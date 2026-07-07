@@ -7,5 +7,13 @@
   "language.th": "ไทย",
   "language.en": "English",
   "planSwitcher.label": "เลือกตาราง",
-  "planSwitcher.placeholder": "ตาราง 1/2569"
+  "planSwitcher.placeholder": "ตาราง 1/2569",
+  "catalog.open": "รายวิชา",
+  "catalog.drawerClose": "ปิดรายการรายวิชา",
+  "search.emptyTitle": "ค้นหารายวิชา",
+  "search.emptyBody": "เลือกคณะ ภาควิชา และหลักสูตร เพื่อค้นหารายวิชาที่เปิดสอน",
+  "catalog.emptyTitle": "ยังไม่มีรายวิชา",
+  "catalog.emptyBody": "ค้นหาเพื่อแสดงรายวิชาที่เปิดสอน",
+  "grid.emptyTitle": "ตารางยังว่าง",
+  "grid.emptyBody": "เพิ่มรายวิชาจากรายการเพื่อแสดงในตาราง"
 }

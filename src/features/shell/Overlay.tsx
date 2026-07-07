@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { useStore } from 'zustand';
 import { uiStore } from './uiStore';
 import { Header } from './Header';
+import { Layout } from './Layout';
 import { useFocusTrap } from './useFocusTrap';
 import { useScrollLock } from './useScrollLock';
 import { usePresence } from './usePresence';
@@ -38,7 +39,9 @@ export function Overlay() {
       }`}
     >
       <Header titleId={TITLE_ID} />
-      <main className="min-h-0 flex-1 overflow-hidden" />
+      <main className="min-h-0 flex-1 overflow-hidden">
+        <Layout />
+      </main>
     </div>
   );
 }
