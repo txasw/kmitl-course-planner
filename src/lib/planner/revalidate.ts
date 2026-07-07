@@ -6,7 +6,7 @@
 // moved. The reconcile step that writes updated snapshots with timestamps lives
 // in the plans feature; this module stays pure.
 
-import type { Exam, Section } from '../domain/types';
+import type { Section } from '../domain/types';
 import type { Plan, PlanEntry, SectionSnapshot } from '../domain/plan';
 import type { NormalizedCatalog } from '../domain/normalize';
 
@@ -129,7 +129,15 @@ function rangesEqual(
   return a.start === b.start && a.end === b.end;
 }
 
-function examEqual(a: Exam, b: Exam): boolean {
+// The snapshot exam type infers optional properties as `T | undefined`, while the
+// domain Exam type omits undefined, so compare against a shape both satisfy.
+interface ExamLike {
+  midterm?: { start: string; end: string } | undefined;
+  final?: { start: string; end: string } | undefined;
+  note?: string | undefined;
+}
+
+function examEqual(a: ExamLike, b: ExamLike): boolean {
   return (
     rangesEqual(a.midterm, b.midterm) &&
     rangesEqual(a.final, b.final) &&

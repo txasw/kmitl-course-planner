@@ -81,7 +81,7 @@ describe('auditTeachTable', () => {
   });
 
   it('classifies every issue kind on a corrupted row', () => {
-    const row = {
+    const row: Record<string, unknown> = {
       ...validRow(),
       subject_id: '123',
       teach_day: '9',
