@@ -7,5 +7,13 @@
   "language.th": "ไทย",
   "language.en": "English",
   "planSwitcher.label": "Select plan",
-  "planSwitcher.placeholder": "Plan 1/2569"
+  "planSwitcher.placeholder": "Plan 1/2569",
+  "catalog.open": "Courses",
+  "catalog.drawerClose": "Close course list",
+  "search.emptyTitle": "Search courses",
+  "search.emptyBody": "Select a faculty, department, and curriculum to find open courses.",
+  "catalog.emptyTitle": "No courses yet",
+  "catalog.emptyBody": "Search to see the courses on offer.",
+  "grid.emptyTitle": "Your timetable is empty",
+  "grid.emptyBody": "Add courses from the list to see them here."
 }
