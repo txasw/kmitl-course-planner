@@ -1,0 +1,3 @@
+/* Content script UI stylesheet. It is injected into the closed shadow root
+   through WXT cssInjectionMode 'ui', so nothing here reaches the host page.
+   The Tailwind pipeline and design tokens are wired in a later commit. */
