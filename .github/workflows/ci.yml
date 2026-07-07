@@ -95,6 +95,9 @@ jobs:
           name: extension-${{ matrix.browser }}-${{ github.sha }}
           path: .output/*.zip
           if-no-files-found: error
+          # .output is a dot directory, whose contents upload-artifact treats as
+          # hidden and skips unless this is set.
+          include-hidden-files: true
 
   debug-build:
     name: debug-build
@@ -114,6 +117,7 @@ jobs:
           name: extension-chrome-debug-${{ github.sha }}
           path: .output/
           if-no-files-found: error
+          include-hidden-files: true
 
   security:
     name: security
