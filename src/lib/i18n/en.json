@@ -1,4 +1,6 @@
 {
   "launcher.label": "Planner",
-  "launcher.open": "Open KMITL Course Planner"
+  "launcher.open": "Open KMITL Course Planner",
+  "app.title": "KMITL Course Planner",
+  "action.close": "Close"
 }
