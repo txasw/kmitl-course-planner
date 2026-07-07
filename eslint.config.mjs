@@ -81,6 +81,13 @@ export default tseslint.config(
     },
   },
 
+  // The logger is the single sanctioned console sink; the console is disabled
+  // everywhere else by the security rules above.
+  {
+    files: ['src/lib/utils/logger.ts'],
+    rules: { 'no-console': 'off' },
+  },
+
   // The content script and feature UI never touch the network directly.
   {
     files: [
