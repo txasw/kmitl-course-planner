@@ -18,7 +18,9 @@
     "postinstall": "wxt prepare",
     "typecheck": "wxt prepare && tsc --noEmit",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "lucide-react": "1.23.0",
@@ -38,6 +40,7 @@
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.1.1",
     "globals": "17.7.0",
+    "prettier": "3.9.4",
     "tailwindcss": "4.3.2",
     "typescript": "6.0.3",
     "typescript-eslint": "8.63.0",
