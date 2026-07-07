@@ -1,3 +1,37 @@
 /* Content script UI stylesheet. It is injected into the closed shadow root
-   through WXT cssInjectionMode 'ui', so nothing here reaches the host page.
-   The Tailwind pipeline and design tokens are wired in a later commit. */
+   through WXT cssInjectionMode 'ui', so nothing here reaches the host page. */
+@import 'tailwindcss';
+
+/* Spacing is pinned to pixels so the layout does not rescale with the host page
+   root font size, and the font stack carries Thai support. These land on :root
+   and are mirrored onto :host by the build time transform in wxt.config.ts. */
+@theme {
+  --spacing: 4px;
+  --font-sans:
+    'Segoe UI', 'Sukhumvit Set', 'Noto Sans Thai', 'Helvetica Neue', Arial,
+    sans-serif;
+}
+
+/* KMITL design tokens per the brief, declared on the shadow host so every
+   descendant in the closed shadow tree can read them. The full token to utility
+   mapping is completed in the theme phase. */
+:host {
+  --kcp-primary: #e35205;
+  --kcp-primary-hover: #c74804;
+  --kcp-primary-soft: #fdeee5;
+  --kcp-ink: #1a1a1a;
+  --kcp-ink-soft: #5c5c5c;
+  --kcp-surface: #ffffff;
+  --kcp-surface-alt: #f7f7f8;
+  --kcp-border: #e4e4e7;
+  --kcp-danger: #c62828;
+  --kcp-warn: #b26a00;
+  --kcp-success: #1b7f3b;
+  --kcp-success-soft: #e7f3eb;
+  --kcp-danger-soft: #fbeaea;
+  --kcp-radius: 8px;
+  --kcp-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  color: var(--kcp-ink);
+  font-family: var(--font-sans);
+}

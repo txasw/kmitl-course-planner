@@ -1,10 +1,13 @@
 import { defineConfig } from 'wxt';
+import tailwindcss from '@tailwindcss/vite';
 
 const PRODUCT_NAME = 'KMITL Course Planner';
 
 // See https://wxt.dev/api/config. The manifest is a function so the debug build
 // flavor can carry a distinct name, and so network egress stays limited to the
-// two KMITL origins the product actually calls.
+// two KMITL origins the product actually calls. Tailwind v4 emits its theme
+// variables under ":root, :host", so tokens resolve inside the closed shadow
+// root without any extra transform.
 export default defineConfig({
   srcDir: 'src',
   // Manifest V3 for every target. WXT emits the Firefox appropriate background
@@ -35,6 +38,7 @@ export default defineConfig({
     },
   }),
   vite: (env) => ({
+    plugins: [tailwindcss()],
     define: {
       // Baked in literal so debug only modules dead code eliminate from
       // production output. Runtime code reads this through src/lib/env.ts.
