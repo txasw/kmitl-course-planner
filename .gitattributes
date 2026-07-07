@@ -1,0 +1,10 @@
+# Normalize line endings to LF in the repository so shell scripts and git
+# hooks run correctly on the Linux CI runner regardless of the author OS.
+* text=auto eol=lf
+
+# Binary assets must never be normalized.
+*.png binary
+*.ico binary
+*.jpg binary
+*.woff binary
+*.woff2 binary
