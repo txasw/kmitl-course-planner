@@ -1,0 +1,560 @@
+[
+  {
+    "faculty_id": "01",
+    "department_id": "01",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e42\u0e17\u0e23\u0e04\u0e21\u0e19\u0e32\u0e04\u0e21",
+    "department_name_en": "Telecommunications Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "02",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e44\u0e1f\u0e1f\u0e49\u0e32",
+    "department_name_en": "Electrical Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "03",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e2d\u0e34\u0e40\u0e25\u0e47\u0e01\u0e17\u0e23\u0e2d\u0e19\u0e34\u0e01\u0e2a\u0e4c",
+    "department_name_en": "Electronics Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "04",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e23\u0e30\u0e1a\u0e1a\u0e04\u0e27\u0e1a\u0e04\u0e38\u0e21",
+    "department_name_en": "Control Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "05",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e04\u0e2d\u0e21\u0e1e\u0e34\u0e27\u0e40\u0e15\u0e2d\u0e23\u0e4c",
+    "department_name_en": "Computer Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "06",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e40\u0e04\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e01\u0e25",
+    "department_name_en": "Mechanical Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "07",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e01\u0e32\u0e23\u0e27\u0e31\u0e14\u0e41\u0e25\u0e30\u0e04\u0e27\u0e1a\u0e04\u0e38\u0e21",
+    "department_name_en": "Instrumentation Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "08",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e42\u0e22\u0e18\u0e32",
+    "department_name_en": "Civil Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "09",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e23\u0e30\u0e1a\u0e1a\u0e0a\u0e35\u0e27\u0e20\u0e32\u0e1e\u0e41\u0e25\u0e30\u0e40\u0e01\u0e29\u0e15\u0e23",
+    "department_name_en": "Biosystems and Agricultural Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "10",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e40\u0e04\u0e21\u0e35",
+    "department_name_en": "Chemical Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "11",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e2d\u0e32\u0e2b\u0e32\u0e23",
+    "department_name_en": "Food Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "12",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e2a\u0e32\u0e23\u0e2a\u0e19\u0e40\u0e17\u0e28",
+    "department_name_en": "Information Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "13",
+    "department_name_th": "\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e40\u0e25\u0e37\u0e2d\u0e01\u0e20\u0e32\u0e04\u0e27\u0e34\u0e0a\u0e32",
+    "department_name_en": "Not yet selected the department"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "14",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e2d\u0e38\u0e15\u0e2a\u0e32\u0e2b\u0e01\u0e32\u0e23",
+    "department_name_en": "Industrial Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "15",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e2d\u0e31\u0e15\u0e42\u0e19\u0e21\u0e31\u0e15\u0e34",
+    "department_name_en": "Automation Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "16",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e1b\u0e49\u0e2d\u0e07\u0e01\u0e31\u0e19\u0e1b\u0e23\u0e30\u0e40\u0e17\u0e28",
+    "department_name_en": "Defence Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "20",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e01\u0e32\u0e23\u0e1a\u0e34\u0e19\u0e41\u0e25\u0e30\u0e19\u0e31\u0e01\u0e1a\u0e34\u0e19\u0e1e\u0e32\u0e13\u0e34\u0e0a\u0e22\u0e4c",
+    "department_name_en": "Aeronautical Engineering and Commercial Pilot"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "22",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e41\u0e21\u0e04\u0e04\u0e32\u0e17\u0e23\u0e2d\u0e19\u0e34\u0e01\u0e2a\u0e4c",
+    "department_name_en": "Mechatronics Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "23",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e0a\u0e35\u0e27\u0e01\u0e32\u0e23\u0e41\u0e1e\u0e17\u0e22\u0e4c",
+    "department_name_en": "Biomedical Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "24",
+    "department_name_th": "\u0e2a\u0e33\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e1a\u0e23\u0e34\u0e2b\u0e32\u0e23\u0e2b\u0e25\u0e31\u0e01\u0e2a\u0e39\u0e15\u0e23\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e2a\u0e2b\u0e27\u0e34\u0e17\u0e22\u0e32\u0e01\u0e32\u0e23\u0e19\u0e32\u0e19\u0e32\u0e0a\u0e32\u0e15\u0e34",
+    "department_name_en": "School of International and Interdisciplinary Engineering Programs (SIIE)"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "26",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e1e\u0e25\u0e31\u0e07\u0e07\u0e32\u0e19",
+    "department_name_en": "Energy Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "27",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e41\u0e25\u0e30\u0e01\u0e32\u0e23\u0e40\u0e1b\u0e47\u0e19\u0e1c\u0e39\u0e49\u0e1b\u0e23\u0e30\u0e01\u0e2d\u0e1a\u0e01\u0e32\u0e23",
+    "department_name_en": "Engineering Management and Engrepreneurship"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "28",
+    "department_name_th": "\u0e04\u0e13\u0e30\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c \u0e44\u0e21\u0e48\u0e1b\u0e23\u0e30\u0e08\u0e33\u0e20\u0e32\u0e04\u0e27\u0e34\u0e0a\u0e32",
+    "department_name_en": "\u0e04\u0e13\u0e30\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c \u0e44\u0e21\u0e48\u0e1b\u0e23\u0e30\u0e08\u0e33\u0e20\u0e32\u0e04\u0e27\u0e34\u0e0a\u0e32"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "29",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e2b\u0e38\u0e48\u0e19\u0e22\u0e19\u0e15\u0e4c\u0e41\u0e25\u0e30\u0e1b\u0e31\u0e0d\u0e0d\u0e32\u0e1b\u0e23\u0e30\u0e14\u0e34\u0e29\u0e10\u0e4c",
+    "department_name_en": "Robotics and AI Engineering"
+  },
+  {
+    "faculty_id": "01",
+    "department_id": "30",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e44\u0e2d\u0e42\u0e2d\u0e17\u0e35\u0e41\u0e25\u0e30\u0e2a\u0e32\u0e23\u0e2a\u0e19\u0e40\u0e17\u0e28",
+    "department_name_en": "IoT and Information Engineering"
+  },
+  {
+    "faculty_id": "02",
+    "department_id": "01",
+    "department_name_th": "\u0e2a\u0e16\u0e32\u0e1b\u0e31\u0e15\u0e22\u0e01\u0e23\u0e23\u0e21",
+    "department_name_en": "Architecture"
+  },
+  {
+    "faculty_id": "02",
+    "department_id": "02",
+    "department_name_th": "\u0e2a\u0e16\u0e32\u0e1b\u0e31\u0e15\u0e22\u0e01\u0e23\u0e23\u0e21\u0e20\u0e32\u0e22\u0e43\u0e19",
+    "department_name_en": "Interior Architecture"
+  },
+  {
+    "faculty_id": "02",
+    "department_id": "03",
+    "department_name_th": "\u0e28\u0e34\u0e25\u0e1b\u0e2d\u0e38\u0e15\u0e2a\u0e32\u0e2b\u0e01\u0e23\u0e23\u0e21",
+    "department_name_en": "Industrial Design"
+  },
+  {
+    "faculty_id": "02",
+    "department_id": "04",
+    "department_name_th": "\u0e19\u0e34\u0e40\u0e17\u0e28\u0e28\u0e34\u0e25\u0e1b\u0e4c",
+    "department_name_en": "Communication Arts and Design"
+  },
+  {
+    "faculty_id": "02",
+    "department_id": "05",
+    "department_name_th": "\u0e27\u0e34\u0e08\u0e34\u0e15\u0e23\u0e28\u0e34\u0e25\u0e1b\u0e4c",
+    "department_name_en": "Fine Arts"
+  },
+  {
+    "faculty_id": "02",
+    "department_id": "06",
+    "department_name_th": "\u0e28\u0e34\u0e25\u0e1b\u0e01\u0e23\u0e23\u0e21",
+    "department_name_en": "Fine Arts"
+  },
+  {
+    "faculty_id": "02",
+    "department_id": "07",
+    "department_name_th": "\u0e2a\u0e33\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e1a\u0e23\u0e34\u0e2b\u0e32\u0e23\u0e2b\u0e25\u0e31\u0e01\u0e2a\u0e39\u0e15\u0e23\u0e2a\u0e16\u0e32\u0e1b\u0e31\u0e15\u0e22\u0e01\u0e23\u0e23\u0e21\u0e2a\u0e2b\u0e27\u0e34\u0e17\u0e22\u0e32\u0e01\u0e32\u0e23\u0e19\u0e32\u0e19\u0e32\u0e0a\u0e32\u0e15\u0e34",
+    "department_name_en": "Free Department"
+  },
+  {
+    "faculty_id": "02",
+    "department_id": "08",
+    "department_name_th": "\u0e2a\u0e16\u0e32\u0e1b\u0e31\u0e15\u0e22\u0e01\u0e23\u0e23\u0e21\u0e2d\u0e31\u0e08\u0e09\u0e23\u0e34\u0e22\u0e30\u0e41\u0e25\u0e30\u0e01\u0e23\u0e30\u0e1a\u0e27\u0e19\u0e01\u0e32\u0e23\u0e04\u0e34\u0e14\u0e40\u0e0a\u0e34\u0e07\u0e2d\u0e2d\u0e01\u0e41\u0e1a\u0e1a",
+    "department_name_en": "Architectural Intelligence and Design Thinking "
+  },
+  {
+    "faculty_id": "02",
+    "department_id": "09",
+    "department_name_th": "\u0e01\u0e32\u0e23\u0e27\u0e32\u0e07\u0e41\u0e1c\u0e19\u0e20\u0e32\u0e04\u0e41\u0e25\u0e30\u0e40\u0e21\u0e37\u0e2d\u0e07",
+    "department_name_en": "Urban and Regional Planning"
+  },
+  {
+    "faculty_id": "03",
+    "department_id": "01",
+    "department_name_th": "\u0e04\u0e23\u0e38\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c\u0e2a\u0e16\u0e32\u0e1b\u0e31\u0e15\u0e22\u0e01\u0e23\u0e23\u0e21\u0e41\u0e25\u0e30\u0e01\u0e32\u0e23\u0e2d\u0e2d\u0e01\u0e41\u0e1a\u0e1a",
+    "department_name_en": "Architectural and Design Education"
+  },
+  {
+    "faculty_id": "03",
+    "department_id": "05",
+    "department_name_th": "\u0e04\u0e23\u0e38\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c\u0e2d\u0e38\u0e15\u0e2a\u0e32\u0e2b\u0e01\u0e23\u0e23\u0e21",
+    "department_name_en": "Industrial Education"
+  },
+  {
+    "faculty_id": "03",
+    "department_id": "11",
+    "department_name_th": "\u0e04\u0e23\u0e38\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21",
+    "department_name_en": "Engineering Education"
+  },
+  {
+    "faculty_id": "03",
+    "department_id": "21",
+    "department_name_th": "\u0e04\u0e23\u0e38\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c\u0e40\u0e01\u0e29\u0e15\u0e23",
+    "department_name_en": "Agricultural Education"
+  },
+  {
+    "faculty_id": "03",
+    "department_id": "31",
+    "department_name_th": "\u0e20\u0e32\u0e29\u0e32\u0e41\u0e25\u0e30\u0e2a\u0e31\u0e07\u0e04\u0e21",
+    "department_name_en": "Languages and Social Science"
+  },
+  {
+    "faculty_id": "03",
+    "department_id": "32",
+    "department_name_th": "\u0e2a\u0e33\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e19\u0e32\u0e19\u0e32\u0e0a\u0e32\u0e15\u0e34\u0e04\u0e23\u0e38\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c\u0e2d\u0e38\u0e15\u0e2a\u0e32\u0e2b\u0e01\u0e23\u0e23\u0e21\u0e41\u0e25\u0e30\u0e40\u0e17\u0e04\u0e42\u0e19\u0e42\u0e25\u0e22\u0e35",
+    "department_name_en": "\u0e2a\u0e33\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e19\u0e32\u0e19\u0e32\u0e0a\u0e32\u0e15\u0e34\u0e04\u0e23\u0e38\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c\u0e2d\u0e38\u0e15\u0e2a\u0e32\u0e2b\u0e01\u0e23\u0e23\u0e21\u0e41\u0e25\u0e30\u0e40\u0e17\u0e04\u0e42\u0e19\u0e42\u0e25\u0e22\u0e35"
+  },
+  {
+    "faculty_id": "04",
+    "department_id": "01",
+    "department_name_th": "\u0e1a\u0e23\u0e34\u0e2b\u0e32\u0e23\u0e18\u0e38\u0e23\u0e01\u0e34\u0e08\u0e40\u0e01\u0e29\u0e15\u0e23",
+    "department_name_en": "Agricultural Business Administration"
+  },
+  {
+    "faculty_id": "04",
+    "department_id": "03",
+    "department_name_th": "\u0e27\u0e34\u0e17\u0e22\u0e32\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c\u0e01\u0e32\u0e23\u0e1b\u0e23\u0e30\u0e21\u0e07",
+    "department_name_en": "Fisheries Science"
+  },
+  {
+    "faculty_id": "04",
+    "department_id": "04",
+    "department_name_th": "\u0e1e\u0e37\u0e0a\u0e2a\u0e27\u0e19",
+    "department_name_en": "Horticulture"
+  },
+  {
+    "faculty_id": "04",
+    "department_id": "05",
+    "department_name_th": "\u0e40\u0e17\u0e04\u0e42\u0e19\u0e42\u0e25\u0e22\u0e35\u0e01\u0e32\u0e23\u0e1c\u0e25\u0e34\u0e15\u0e1e\u0e37\u0e0a",
+    "department_name_en": "Plant Production Technology"
+  },
+  {
+    "faculty_id": "04",
+    "department_id": "06",
+    "department_name_th": "\u0e40\u0e17\u0e04\u0e42\u0e19\u0e42\u0e25\u0e22\u0e35\u0e01\u0e32\u0e23\u0e1c\u0e25\u0e34\u0e15\u0e2a\u0e31\u0e15\u0e27\u0e4c",
+    "department_name_en": "Animal Production Technology"
+  },
+  {
+    "faculty_id": "04",
+    "department_id": "07",
+    "department_name_th": "\u0e19\u0e27\u0e31\u0e15\u0e01\u0e23\u0e23\u0e21\u0e01\u0e32\u0e23\u0e2a\u0e37\u0e48\u0e2d\u0e2a\u0e32\u0e23\u0e41\u0e25\u0e30\u0e1e\u0e31\u0e12\u0e19\u0e32\u0e01\u0e32\u0e23\u0e40\u0e01\u0e29\u0e15\u0e23",
+    "department_name_en": "Innovative Communication and Agricultural Development"
+  },
+  {
+    "faculty_id": "04",
+    "department_id": "08",
+    "department_name_th": "\u0e1b\u0e10\u0e1e\u0e35\u0e27\u0e34\u0e17\u0e22\u0e32",
+    "department_name_en": "Soil Science"
+  },
+  {
+    "faculty_id": "04",
+    "department_id": "09",
+    "department_name_th": "\u0e40\u0e17\u0e04\u0e42\u0e19\u0e42\u0e25\u0e22\u0e35\u0e01\u0e32\u0e23\u0e08\u0e31\u0e14\u0e01\u0e32\u0e23\u0e28\u0e31\u0e15\u0e23\u0e39\u0e1e\u0e37\u0e0a",
+    "department_name_en": "Pest Management Technology"
+  },
+  {
+    "faculty_id": "04",
+    "department_id": "10",
+    "department_name_th": "\u0e19\u0e34\u0e40\u0e17\u0e28\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c\u0e40\u0e01\u0e29\u0e15\u0e23",
+    "department_name_en": "Agricultural Communication"
+  },
+  {
+    "faculty_id": "04",
+    "department_id": "11",
+    "department_name_th": "\u0e40\u0e01\u0e29\u0e15\u0e23\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c",
+    "department_name_en": "Agriculture"
+  },
+  {
+    "faculty_id": "04",
+    "department_id": "12",
+    "department_name_th": "\u0e1e\u0e31\u0e12\u0e19\u0e32\u0e01\u0e32\u0e23\u0e40\u0e01\u0e29\u0e15\u0e23\u0e41\u0e25\u0e30\u0e01\u0e32\u0e23\u0e08\u0e31\u0e14\u0e01\u0e32\u0e23\u0e17\u0e23\u0e31\u0e1e\u0e22\u0e32\u0e01\u0e23",
+    "department_name_en": "Agriculture Development and resources management"
+  },
+  {
+    "faculty_id": "04",
+    "department_id": "13",
+    "department_name_th": "\u0e1e\u0e31\u0e12\u0e19\u0e32\u0e01\u0e32\u0e23\u0e40\u0e01\u0e29\u0e15\u0e23",
+    "department_name_en": "Agricultural Development"
+  },
+  {
+    "faculty_id": "04",
+    "department_id": "14",
+    "department_name_th": "\u0e19\u0e27\u0e31\u0e15\u0e01\u0e23\u0e23\u0e21\u0e01\u0e32\u0e23\u0e2a\u0e37\u0e48\u0e2d\u0e2a\u0e32\u0e23\u0e41\u0e25\u0e30\u0e1e\u0e31\u0e12\u0e19\u0e32\u0e01\u0e32\u0e23\u0e40\u0e01\u0e29\u0e15\u0e23",
+    "department_name_en": "Agricultural Communication Innovation and Development"
+  },
+  {
+    "faculty_id": "04",
+    "department_id": "15",
+    "department_name_th": "\u0e2a\u0e33\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e1a\u0e23\u0e34\u0e2b\u0e32\u0e23\u0e2b\u0e25\u0e31\u0e01\u0e2a\u0e39\u0e15\u0e23\u0e2a\u0e2b\u0e27\u0e34\u0e17\u0e22\u0e32\u0e01\u0e32\u0e23\u0e40\u0e17\u0e04\u0e42\u0e19\u0e42\u0e25\u0e22\u0e35\u0e01\u0e32\u0e23\u0e40\u0e01\u0e29\u0e15\u0e23",
+    "department_name_en": "Office of Administrative Interdisciplinary Program on Agricultural Technology"
+  },
+  {
+    "faculty_id": "04",
+    "department_id": "16",
+    "department_name_th": "\u0e40\u0e17\u0e04\u0e42\u0e19\u0e42\u0e25\u0e22\u0e35\u0e01\u0e32\u0e23\u0e1c\u0e25\u0e34\u0e15\u0e2a\u0e31\u0e15\u0e27\u0e4c\u0e41\u0e25\u0e30\u0e1b\u0e23\u0e30\u0e21\u0e07",
+    "department_name_en": "Animal Production Technology and Fisheries"
+  },
+  {
+    "faculty_id": "05",
+    "department_id": "01",
+    "department_name_th": "\u0e04\u0e13\u0e34\u0e15\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c\u0e41\u0e25\u0e30\u0e27\u0e34\u0e17\u0e22\u0e32\u0e01\u0e32\u0e23\u0e04\u0e2d\u0e21\u0e1e\u0e34\u0e27\u0e40\u0e15\u0e2d\u0e23\u0e4c",
+    "department_name_en": "Mathematics and Computer Science"
+  },
+  {
+    "faculty_id": "05",
+    "department_id": "02",
+    "department_name_th": "\u0e40\u0e04\u0e21\u0e35",
+    "department_name_en": "Chemistry"
+  },
+  {
+    "faculty_id": "05",
+    "department_id": "03",
+    "department_name_th": "\u0e0a\u0e35\u0e27\u0e27\u0e34\u0e17\u0e22\u0e32",
+    "department_name_en": "Biology"
+  },
+  {
+    "faculty_id": "05",
+    "department_id": "04",
+    "department_name_th": "\u0e1f\u0e34\u0e2a\u0e34\u0e01\u0e2a\u0e4c",
+    "department_name_en": "Physics"
+  },
+  {
+    "faculty_id": "05",
+    "department_id": "05",
+    "department_name_th": "\u0e2a\u0e16\u0e34\u0e15\u0e34",
+    "department_name_en": "Applied Statistics"
+  },
+  {
+    "faculty_id": "05",
+    "department_id": "06",
+    "department_name_th": "\u0e27\u0e34\u0e17\u0e22\u0e32\u0e01\u0e32\u0e23\u0e04\u0e2d\u0e21\u0e1e\u0e34\u0e27\u0e40\u0e15\u0e2d\u0e23\u0e4c",
+    "department_name_en": "Department of Computer Science"
+  },
+  {
+    "faculty_id": "05",
+    "department_id": "07",
+    "department_name_th": "\u0e04\u0e13\u0e34\u0e15\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c",
+    "department_name_en": "Mathematics"
+  },
+  {
+    "faculty_id": "05",
+    "department_id": "08",
+    "department_name_th": "\u0e40\u0e17\u0e04\u0e42\u0e19\u0e42\u0e25\u0e22\u0e35\u0e0a\u0e35\u0e27\u0e20\u0e32\u0e1e",
+    "department_name_en": "Biotechnology"
+  },
+  {
+    "faculty_id": "05",
+    "department_id": "10",
+    "department_name_th": "\u0e04\u0e13\u0e34\u0e15\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c\u0e1b\u0e23\u0e30\u0e22\u0e38\u0e01\u0e15\u0e4c",
+    "department_name_en": "Applied Mathematics"
+  },
+  {
+    "faculty_id": "05",
+    "department_id": "11",
+    "department_name_th": "\u0e28\u0e39\u0e19\u0e22\u0e4c\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e14\u0e34\u0e08\u0e34\u0e17\u0e31\u0e25\u0e2d\u0e31\u0e08\u0e09\u0e23\u0e34\u0e22\u0e30\u0e1e\u0e23\u0e30\u0e08\u0e2d\u0e21\u0e40\u0e01\u0e25\u0e49\u0e32\u0e25\u0e32\u0e14\u0e01\u0e23\u0e30\u0e1a\u0e31\u0e07",
+    "department_name_en": "KMITL Digital Analytics and Intelligence Center"
+  },
+  {
+    "faculty_id": "06",
+    "department_id": "01",
+    "department_name_th": "\u0e2d\u0e38\u0e15\u0e2a\u0e32\u0e2b\u0e01\u0e23\u0e23\u0e21\u0e2d\u0e32\u0e2b\u0e32\u0e23",
+    "department_name_en": "Food Industry"
+  },
+  {
+    "faculty_id": "07",
+    "department_id": "01",
+    "department_name_th": "\u0e40\u0e17\u0e04\u0e42\u0e19\u0e42\u0e25\u0e22\u0e35\u0e2a\u0e32\u0e23\u0e2a\u0e19\u0e40\u0e17\u0e28",
+    "department_name_en": "Information Technology"
+  },
+  {
+    "faculty_id": "09",
+    "department_id": "01",
+    "department_name_th": "\u0e27\u0e34\u0e17\u0e22\u0e32\u0e25\u0e31\u0e22\u0e19\u0e32\u0e19\u0e32\u0e0a\u0e32\u0e15\u0e34",
+    "department_name_en": "International College"
+  },
+  {
+    "faculty_id": "09",
+    "department_id": "02",
+    "department_name_th": "\u0e01\u0e32\u0e23\u0e08\u0e31\u0e14\u0e01\u0e32\u0e23\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e41\u0e25\u0e30\u0e40\u0e17\u0e04\u0e42\u0e19\u0e42\u0e25\u0e22\u0e35",
+    "department_name_en": "Engineering and Technology Management (International Program)"
+  },
+  {
+    "faculty_id": "09",
+    "department_id": "04",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e0b\u0e2d\u0e1f\u0e15\u0e4c\u0e41\u0e27\u0e23\u0e4c",
+    "department_name_en": "Software Engineering"
+  },
+  {
+    "faculty_id": "10",
+    "department_id": "01",
+    "department_name_th": "\u0e19\u0e32\u0e42\u0e19\u0e27\u0e34\u0e17\u0e22\u0e32\u0e41\u0e25\u0e30\u0e19\u0e32\u0e42\u0e19\u0e40\u0e17\u0e04\u0e42\u0e19\u0e42\u0e25\u0e22\u0e35",
+    "department_name_en": "Nanoscience and Nanotechnology"
+  },
+  {
+    "faculty_id": "11",
+    "department_id": "01",
+    "department_name_th": "\u0e40\u0e17\u0e04\u0e42\u0e19\u0e42\u0e25\u0e22\u0e35\u0e23\u0e30\u0e1a\u0e1a\u0e01\u0e32\u0e23\u0e1c\u0e25\u0e34\u0e15",
+    "department_name_en": "Manufacturing System Technology"
+  },
+  {
+    "faculty_id": "12",
+    "department_id": "01",
+    "department_name_th": "\u0e1a\u0e23\u0e34\u0e2b\u0e32\u0e23\u0e18\u0e38\u0e23\u0e01\u0e34\u0e08",
+    "department_name_en": "Department of Business"
+  },
+  {
+    "faculty_id": "12",
+    "department_id": "02",
+    "department_name_th": "\u0e01\u0e32\u0e23\u0e08\u0e31\u0e14\u0e01\u0e32\u0e23",
+    "department_name_en": "Department of Management"
+  },
+  {
+    "faculty_id": "14",
+    "department_id": "01",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e01\u0e32\u0e23\u0e1a\u0e34\u0e19",
+    "department_name_en": "Aeronautical Engineering"
+  },
+  {
+    "faculty_id": "14",
+    "department_id": "02",
+    "department_name_th": "\u0e19\u0e27\u0e31\u0e15\u0e01\u0e23\u0e23\u0e21\u0e01\u0e32\u0e23\u0e08\u0e31\u0e14\u0e01\u0e32\u0e23\u0e2d\u0e38\u0e15\u0e2a\u0e32\u0e2b\u0e01\u0e23\u0e23\u0e21\u0e01\u0e32\u0e23\u0e1a\u0e34\u0e19\u0e41\u0e25\u0e30\u0e01\u0e32\u0e23\u0e1a\u0e23\u0e34\u0e01\u0e32\u0e23",
+    "department_name_en": "Aviation Industry Innovation and Services"
+  },
+  {
+    "faculty_id": "15",
+    "department_id": "01",
+    "department_name_th": "\u0e20\u0e32\u0e29\u0e32",
+    "department_name_en": "Languages"
+  },
+  {
+    "faculty_id": "15",
+    "department_id": "02",
+    "department_name_th": "\u0e21\u0e19\u0e38\u0e29\u0e22\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c\u0e41\u0e25\u0e30\u0e2a\u0e31\u0e07\u0e04\u0e21\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c",
+    "department_name_en": "Humanities and Social Studies"
+  },
+  {
+    "faculty_id": "16",
+    "department_id": "01",
+    "department_name_th": "\u0e41\u0e1e\u0e17\u0e22\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e19\u0e32\u0e19\u0e32\u0e0a\u0e32\u0e15\u0e34",
+    "department_name_en": "International Medical College"
+  },
+  {
+    "faculty_id": "17",
+    "department_id": "01",
+    "department_name_th": "\u0e27\u0e34\u0e17\u0e22\u0e32\u0e25\u0e31\u0e22\u0e27\u0e34\u0e08\u0e31\u0e22\u0e19\u0e27\u0e31\u0e15\u0e01\u0e23\u0e23\u0e21\u0e17\u0e32\u0e07\u0e01\u0e32\u0e23\u0e28\u0e36\u0e01\u0e29\u0e32",
+    "department_name_en": "College of Educational Innovation Research"
+  },
+  {
+    "faculty_id": "18",
+    "department_id": "01",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e14\u0e19\u0e15\u0e23\u0e35\u0e41\u0e25\u0e30\u0e2a\u0e37\u0e48\u0e2d\u0e1b\u0e23\u0e30\u0e2a\u0e21",
+    "department_name_en": "Music Engineering and Multimedia"
+  },
+  {
+    "faculty_id": "19",
+    "department_id": "01",
+    "department_name_th": "\u0e17\u0e31\u0e19\u0e15\u0e41\u0e1e\u0e17\u0e22\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c",
+    "department_name_en": "Dentistry"
+  },
+  {
+    "faculty_id": "20",
+    "department_id": "01",
+    "department_name_th": "\u0e27\u0e34\u0e28\u0e27\u0e01\u0e23\u0e23\u0e21\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c",
+    "department_name_en": "Engineering"
+  },
+  {
+    "faculty_id": "20",
+    "department_id": "02",
+    "department_name_th": "\u0e40\u0e17\u0e04\u0e42\u0e19\u0e42\u0e25\u0e22\u0e35\u0e01\u0e32\u0e23\u0e40\u0e01\u0e29\u0e15\u0e23",
+    "department_name_en": "Agricultural Technology"
+  },
+  {
+    "faculty_id": "20",
+    "department_id": "03",
+    "department_name_th": "\u0e1e\u0e37\u0e49\u0e19\u0e10\u0e32\u0e19\u0e17\u0e31\u0e48\u0e27\u0e44\u0e1b",
+    "department_name_en": "General basic"
+  },
+  {
+    "faculty_id": "20",
+    "department_id": "11",
+    "department_name_th": "\u0e1a\u0e23\u0e34\u0e2b\u0e32\u0e23\u0e18\u0e38\u0e23\u0e01\u0e34\u0e08",
+    "department_name_en": "Business Administration"
+  },
+  {
+    "faculty_id": "20",
+    "department_id": "90",
+    "department_name_th": "\u0e28\u0e36\u0e01\u0e29\u0e32\u0e17\u0e31\u0e48\u0e27\u0e44\u0e1b (\u0e0a\u0e38\u0e21\u0e1e\u0e23)",
+    "department_name_en": "General Education (Chumphon)"
+  },
+  {
+    "faculty_id": "21",
+    "department_id": "01",
+    "department_name_th": "\u0e2a\u0e16\u0e32\u0e1a\u0e31\u0e19\u0e42\u0e04\u0e40\u0e0b\u0e47\u0e19\u0e41\u0e2b\u0e48\u0e07\u0e2a\u0e16\u0e32\u0e1a\u0e31\u0e19\u0e40\u0e17\u0e04\u0e42\u0e19\u0e42\u0e25\u0e22\u0e35\u0e1e\u0e23\u0e30\u0e08\u0e2d\u0e21\u0e40\u0e01\u0e25\u0e49\u0e32\u0e40\u0e08\u0e49\u0e32\u0e04\u0e38\u0e13\u0e17\u0e2b\u0e32\u0e23\u0e25\u0e32\u0e14\u0e01\u0e23\u0e30\u0e1a\u0e31\u0e07",
+    "department_name_en": "KOSEN-KMITL"
+  },
+  {
+    "faculty_id": "22",
+    "department_id": "01",
+    "department_name_th": "\u0e1e\u0e22\u0e32\u0e1a\u0e32\u0e25\u0e28\u0e32\u0e2a\u0e15\u0e23\u0e4c",
+    "department_name_en": "Nursing Science"
+  },
+  {
+    "faculty_id": "23",
+    "department_id": "01",
+    "department_name_th": "\u0e40\u0e17\u0e04\u0e42\u0e19\u0e42\u0e25\u0e22\u0e35\u0e23\u0e30\u0e1a\u0e1a\u0e01\u0e32\u0e23\u0e1c\u0e25\u0e34\u0e15",
+    "department_name_en": "Manufacturing System Technology"
+  },
+  {
+    "faculty_id": "23",
+    "department_id": "02",
+    "department_name_th": "\u0e19\u0e32\u0e42\u0e19\u0e27\u0e34\u0e17\u0e22\u0e32\u0e41\u0e25\u0e30\u0e19\u0e32\u0e42\u0e19\u0e40\u0e17\u0e04\u0e42\u0e19\u0e42\u0e25\u0e22\u0e35",
+    "department_name_en": "Nanoscience and Nanotechnology"
+  },
+  {
+    "faculty_id": "90",
+    "department_id": "90",
+    "department_name_th": "\u0e28\u0e36\u0e01\u0e29\u0e32\u0e17\u0e31\u0e48\u0e27\u0e44\u0e1b",
+    "department_name_en": "General Education"
+  },
+  {
+    "faculty_id": "90",
+    "department_id": "95",
+    "department_name_th": "\u0e28\u0e36\u0e01\u0e29\u0e32\u0e17\u0e31\u0e48\u0e27\u0e44\u0e1b (\u0e19\u0e32\u0e19\u0e32\u0e0a\u0e32\u0e15\u0e34)",
+    "department_name_en": "General Education (International)"
+  }
+]
