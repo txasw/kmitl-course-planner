@@ -2,5 +2,10 @@
   "launcher.label": "Planner",
   "launcher.open": "Open KMITL Course Planner",
   "app.title": "KMITL Course Planner",
-  "action.close": "Close"
+  "action.close": "Close",
+  "language.select": "Select language",
+  "language.th": "ไทย",
+  "language.en": "English",
+  "planSwitcher.label": "Select plan",
+  "planSwitcher.placeholder": "Plan 1/2569"
 }

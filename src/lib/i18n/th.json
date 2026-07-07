@@ -2,5 +2,10 @@
   "launcher.label": "Planner",
   "launcher.open": "เปิด KMITL Course Planner",
   "app.title": "ตัววางแผนตารางเรียน สจล.",
-  "action.close": "ปิด"
+  "action.close": "ปิด",
+  "language.select": "เลือกภาษา",
+  "language.th": "ไทย",
+  "language.en": "English",
+  "planSwitcher.label": "เลือกตาราง",
+  "planSwitcher.placeholder": "ตาราง 1/2569"
 }
