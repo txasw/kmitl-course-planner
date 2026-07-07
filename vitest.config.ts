@@ -1,6 +1,14 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  resolve: {
+    // Mirror the WXT @ alias so component tests resolve @/ imports the same way
+    // the extension build does.
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   define: {
     // Mirror a production build so IS_DEBUG resolves to a literal in tests.
     __KCP_DEBUG__: 'false',
