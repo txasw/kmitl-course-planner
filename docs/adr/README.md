@@ -21,3 +21,4 @@ a new record that supersedes the old one rather than editing history.
 12. [Testing: Vitest and Playwright](0012-testing-vitest-playwright.md)
 13. [Lint and format: ESLint and Prettier](0013-lint-eslint-prettier.md)
 14. [Debug build flavor](0014-debug-build-flavor.md)
+15. [Day of week digit mapping](0015-day-of-week-mapping.md)
