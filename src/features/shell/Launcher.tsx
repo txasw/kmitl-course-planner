@@ -1,22 +1,28 @@
 import { CalendarDays } from 'lucide-react';
+import { useStore } from 'zustand';
+import { uiStore } from './uiStore';
+import { useTranslation } from './useTranslation';
 
-// Floating launcher shown on every host route. During bootstrap it only proves
-// the closed shadow root UI mounts and the Tailwind pipeline styles it. The
-// overlay panel it opens is implemented in a later phase.
+// Floating launcher shown on every host route. It opens the overlay and, while
+// the overlay is open, becomes inert and hidden from assistive technology so the
+// modal is the only interactive surface. It stays mounted so focus returns here
+// when the overlay closes.
 export function Launcher() {
-  const handleClick = () => {
-    // The overlay panel is not built yet.
-  };
+  const isOpen = useStore(uiStore, (state) => state.isOpen);
+  const open = useStore(uiStore, (state) => state.open);
+  const { t } = useTranslation();
 
   return (
     <button
       type="button"
-      onClick={handleClick}
-      aria-label="Open KMITL Course Planner"
-      className="fixed right-5 bottom-5 z-[2147483647] inline-flex items-center gap-2 rounded-kcp bg-primary px-4 py-3 text-sm font-semibold text-white shadow-kcp outline-none transition-colors hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      onClick={open}
+      inert={isOpen || undefined}
+      aria-hidden={isOpen || undefined}
+      aria-label={t('launcher.open')}
+      className="fixed right-5 bottom-5 z-[2147483646] inline-flex items-center gap-2 rounded-kcp bg-primary px-4 py-3 text-sm font-semibold text-white shadow-kcp outline-none transition-colors hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
     >
       <CalendarDays size={18} strokeWidth={2} aria-hidden />
-      <span>Planner</span>
+      <span>{t('launcher.label')}</span>
     </button>
   );
 }
