@@ -95,3 +95,79 @@ export type RawFaculty = z.infer<typeof facultySchema>;
 export type RawDepartment = z.infer<typeof departmentSchema>;
 export type RawCurriculum = z.infer<typeof curriculumSchema>;
 export type RawSubjectOwner = z.infer<typeof subjectOwnerSchema>;
+
+/** The exact string the API sends for `count` when a section is full. */
+export const FULL_MARKER = 'เต็ม/Full';
+
+// Endpoint 4.1: one section meeting row. Rooms and buildings and every exam
+// field are nullable; `sec_pair` is nullable; `count` is a number when seats
+// remain and the full marker string otherwise. `limit` stays a string because it
+// carries the literal "-" for uncapped sections.
+export const sectionRowSchema = z.object({
+  teach_table_id: z.string(),
+  subject_id: z.string(),
+  subject_name_th: z.string(),
+  subject_name_en: z.string(),
+  credit: z.string(),
+  credit_lps: z.string(),
+  credit_str: z.string(),
+  section: z.string(),
+  sec_pair: z.string().nullable(),
+  lect_or_prac: z.string(),
+  teach_day: z.string(),
+  teach_time: z.string(),
+  teach_time2: z.string(),
+  teachtime_str: z.string(),
+  classroom: z.string().nullable(),
+  room_no: z.string().nullable(),
+  classbuilding: z.string().nullable(),
+  building_no: z.string().nullable(),
+  teacher_list_th: z.string(),
+  teacher_list_en: z.string(),
+  midterm_start_date_time: z.string().nullable(),
+  midterm_end_date_time: z.string().nullable(),
+  final_start_date_time: z.string().nullable(),
+  final_end_date_time: z.string().nullable(),
+  exam_text_detail: z.string().nullable(),
+  rules_th: z.string(),
+  rules_en: z.string(),
+  remark: z.string(),
+  closed: z.string(),
+  limit: z.string(),
+  pre_count: z.number(),
+  queue_left: z.number(),
+  count: z.union([z.number(), z.literal(FULL_MARKER)]),
+  class_group_display: z.number(),
+});
+
+// One subject type block ("กลุ่ม 1" or "กลุ่ม 2") within a grouping. `data` may be
+// empty.
+export const teachtableBlockSchema = z.object({
+  subject_type_name_th: z.string(),
+  subject_type_name_en: z.string(),
+  data: z.array(sectionRowSchema),
+});
+
+// One curriculum grouping object. `department_id` and `curriculum2_id` admit the
+// literal "x" sentinel, and the department and curriculum names are nullable on
+// the catch all groupings.
+export const groupingSchema = z.object({
+  faculty_id: z.string(),
+  department_id: z.string(),
+  curriculum2_id: z.string(),
+  class: z.string(),
+  faculty_name_th: z.string(),
+  faculty_name_en: z.string(),
+  department_name_th: z.string().nullable(),
+  department_name_en: z.string().nullable(),
+  curriculum_name_th: z.string().nullable(),
+  curriculum_name_en: z.string().nullable(),
+  teachtable: z.array(teachtableBlockSchema),
+});
+
+export const teachTableResponseSchema = z.array(groupingSchema);
+
+export type RawSectionRow = z.infer<typeof sectionRowSchema>;
+export type RawTeachtableBlock = z.infer<typeof teachtableBlockSchema>;
+export type RawGrouping = z.infer<typeof groupingSchema>;
+export type RawTeachTableResponse = z.infer<typeof teachTableResponseSchema>;
