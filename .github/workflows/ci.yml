@@ -112,6 +112,14 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build:debug -b chrome
+      - name: Assert debug bundle retains the diagnostic canary
+        run: |
+          if grep -rIl 'kcp-debug-canary' .output/; then
+            echo "debug canary present as expected"
+          else
+            echo "::error::debug canary missing from debug bundle"
+            exit 1
+          fi
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: extension-chrome-debug-${{ github.sha }}
