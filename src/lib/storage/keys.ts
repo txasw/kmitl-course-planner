@@ -11,6 +11,14 @@ export const ROOT_KEY = 'kcp:v1';
 /** The schema version the current build reads and writes. */
 export const CURRENT_SCHEMA_VERSION = 1;
 
+/**
+ * Content owned UI preferences such as the language choice. These live under a
+ * separate key rather than the plan root so the plan store binding stays
+ * deferred and the plan-store-only persistence rule holds. It is disjoint from
+ * both the plan root and the worker owned kcp:cache: namespace.
+ */
+export const PREFS_KEY = 'kcp:prefs';
+
 /** Key under which a corrupt root blob is preserved for later export. */
 export function quarantineKey(timestamp: string): string {
   return `kcp:quarantine:${timestamp}`;
