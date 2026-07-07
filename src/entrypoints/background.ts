@@ -9,6 +9,7 @@ import {
   subjectOwnerEndpoint,
 } from '@/lib/api/endpoints';
 import { createRouter, type HandlerMap } from '@/lib/messaging/router';
+import { logger } from '@/lib/utils/logger';
 
 // The background service worker is the single network and cache authority. It
 // builds the gateway over the browser storage cache, exposes the typed handlers
@@ -52,6 +53,9 @@ export default defineBackground(() => {
         runtimeId: browser.runtime.id,
         router,
       });
+      logger.debug('diagnostics interceptors installed');
     });
   }
+
+  logger.debug('background gateway ready');
 });

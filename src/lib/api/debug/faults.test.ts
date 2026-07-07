@@ -8,6 +8,15 @@ import type { GatewayEnv } from '../types';
 import type { ReferenceEndpoint } from '../endpoints';
 import type { StorageAdapter } from '../../storage/repo';
 
+vi.mock('../../utils/logger', () => ({
+  logger: {
+    debug: () => undefined,
+    info: () => undefined,
+    warn: () => undefined,
+    error: () => undefined,
+  },
+}));
+
 const probeEndpoint: ReferenceEndpoint<{ id: string }[]> = {
   endpoint: 'probe',
   url: 'https://api.example/probe',

@@ -26,6 +26,7 @@ import {
 } from './endpoints';
 import { getAudit, getRecorder, getSimulation } from './interceptors';
 import type { FaultOutcome, GatewayEnv, RequestContext } from './types';
+import { logger } from '../utils/logger';
 
 export interface GatewayDeps {
   cache: CacheStore;
@@ -123,6 +124,7 @@ export function createGateway(deps: GatewayDeps): Gateway {
     if (!refresh) {
       const hit = await cache.get(cacheKey, env.now());
       if (hit) {
+        logger.debug('cache hit', context.endpoint, hit.source);
         record(context, {
           cacheHit: true,
           status: null,
@@ -149,10 +151,16 @@ export function createGateway(deps: GatewayDeps): Gateway {
     };
     record(context, metrics);
     if (!fetched.result.ok) {
+      logger.warn(
+        'request failed',
+        context.endpoint,
+        fetched.result.error.kind,
+      );
       return fetched.result;
     }
     const validated = validate(schema, fetched.result.value);
     if (!validated.ok) {
+      logger.warn('response failed validation', context.endpoint);
       return validated;
     }
     await cache.set(cacheKey, validated.value, env.now() + ttlMs);

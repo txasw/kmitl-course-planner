@@ -15,6 +15,15 @@ import { REFERENCE_TTL_MS, TEACH_TABLE_TTL_MS } from '../storage/keys';
 import type { TeachTableQuery } from '../messaging/protocol';
 import { loadFixture } from '../../../tests/support/fixtures';
 
+vi.mock('../utils/logger', () => ({
+  logger: {
+    debug: () => undefined,
+    info: () => undefined,
+    warn: () => undefined,
+    error: () => undefined,
+  },
+}));
+
 const probeSchema = z.array(z.object({ id: z.string() }));
 
 const probeEndpoint: ReferenceEndpoint<{ id: string }[]> = {
