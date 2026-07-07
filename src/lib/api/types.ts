@@ -29,6 +29,13 @@ export interface RequestLogEntry {
   issueCount: number;
 }
 
+/** The request identity an interceptor and the audit context observe. */
+export interface RequestContext {
+  endpoint: string;
+  params: Record<string, string>;
+  url: string;
+}
+
 /** The simulation controls the debug drawer can set on the worker. */
 export interface SimSettings {
   fixtureId: string | null;
