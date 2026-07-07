@@ -1,0 +1,24 @@
+[
+  {
+    "FACULTY_ID": "01",
+    "FACULTY_NAME_TH": "คณะวิศวกรรมศาสตร์",
+    "FACULTY_NAME_EN": "Faculty of Engineering",
+    "PREFIX_NAME_TH": "วศ.",
+    "PREFIX_NAME_EN": "Eng.",
+    "ACRONYM_TH": "วศ",
+    "ACRONYM_EN": "ENG",
+    "CREATE_BY": "system",
+    "UPDATE_BY": null
+  },
+  {
+    "FACULTY_ID": "02",
+    "FACULTY_NAME_TH": "คณะสถาปัตยกรรม ศิลปะและการออกแบบ",
+    "FACULTY_NAME_EN": "Faculty of Architecture, Art and Design",
+    "PREFIX_NAME_TH": null,
+    "PREFIX_NAME_EN": null,
+    "ACRONYM_TH": "สถ",
+    "ACRONYM_EN": "",
+    "CREATE_BY": "system",
+    "UPDATE_BY": null
+  }
+]

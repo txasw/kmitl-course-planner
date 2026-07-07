@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<!-- saved from url=(0052)https://regis.reg.kmitl.ac.th/#/teach_table_selector -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><meta property="og:image" content="https://www.reg.kmitl.ac.th/index/new_index_assets/img/logo/main.png"><meta property="og:title" content="Registration System KMITL"><meta property="og:description" content="ระบบลงทะเบียนเรียน สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง"><link rel="icon" href="https://regis.reg.kmitl.ac.th/favicon.ico"><title>Registration System KMITL</title><script defer="defer" src="./ตารางเรียน_files/chunk-vendors.6db015b3.js.download"></script><script defer="defer" src="./ตารางเรียน_files/app.6bd6a0ff.js.download"></script><link href="./ตารางเรียน_files/chunk-vendors.ed401154.css" rel="stylesheet"><link href="./ตารางเรียน_files/app.56cdacad.css" rel="stylesheet"><style type="text/css">.toasted{padding:0 20px}.toasted.rounded{border-radius:24px}.toasted .primary,.toasted.toasted-primary{border-radius:2px;min-height:38px;line-height:1.1em;background-color:#353535;padding:6px 20px;font-size:15px;font-weight:300;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.24)}.toasted .primary.success,.toasted.toasted-primary.success{background:#4caf50}.toasted .primary.error,.toasted.toasted-primary.error{background:#f44336}.toasted .primary.info,.toasted.toasted-primary.info{background:#3f51b5}.toasted .primary .action,.toasted.toasted-primary .action{color:#a1c2fa}.toasted.bubble{border-radius:30px;min-height:38px;line-height:1.1em;background-color:#ff7043;padding:0 20px;font-size:15px;font-weight:300;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.24)}.toasted.bubble.success{background:#4caf50}.toasted.bubble.error{background:#f44336}.toasted.bubble.info{background:#3f51b5}.toasted.bubble .action{color:#8e2b0c}.toasted.outline{border-radius:30px;min-height:38px;line-height:1.1em;background-color:#fff;border:1px solid #676767;padding:0 20px;font-size:15px;color:#676767;box-shadow:0 1px 3px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.24);font-weight:700}.toasted.outline.success{color:#4caf50;border-color:#4caf50}.toasted.outline.error{color:#f44336;border-color:#f44336}.toasted.outline.info{color:#3f51b5;border-color:#3f51b5}.toasted.outline .action{color:#607d8b}.toasted-container{position:fixed;z-index:10000}.toasted-container,.toasted-container.full-width{display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column}.toasted-container.full-width{max-width:86%;width:100%}.toasted-container.full-width.fit-to-screen{min-width:100%}.toasted-container.full-width.fit-to-screen .toasted:first-child{margin-top:0}.toasted-container.full-width.fit-to-screen.top-right{top:0;right:0}.toasted-container.full-width.fit-to-screen.top-left{top:0;left:0}.toasted-container.full-width.fit-to-screen.top-center{top:0;left:0;-webkit-transform:translateX(0);transform:translateX(0)}.toasted-container.full-width.fit-to-screen.bottom-right{right:0;bottom:0}.toasted-container.full-width.fit-to-screen.bottom-left{left:0;bottom:0}.toasted-container.full-width.fit-to-screen.bottom-center{left:0;bottom:0;-webkit-transform:translateX(0);transform:translateX(0)}.toasted-container.top-right{top:10%;right:7%}.toasted-container.top-left{top:10%;left:7%}.toasted-container.top-center{top:10%;left:50%;-webkit-transform:translateX(-50%);transform:translateX(-50%)}.toasted-container.bottom-right{right:5%;bottom:7%}.toasted-container.bottom-left{left:5%;bottom:7%}.toasted-container.bottom-center{left:50%;-webkit-transform:translateX(-50%);transform:translateX(-50%);bottom:7%}.toasted-container.bottom-left .toasted,.toasted-container.top-left .toasted{float:left}.toasted-container.bottom-right .toasted,.toasted-container.top-right .toasted{float:right}.toasted-container .toasted{top:35px;width:auto;clear:both;margin-top:10px;position:relative;max-width:100%;height:auto;word-break:normal;display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center;-ms-flex-pack:justify;justify-content:space-between;box-sizing:inherit}.toasted-container .toasted .fa,.toasted-container .toasted .fab,.toasted-container .toasted .far,.toasted-container .toasted .fas,.toasted-container .toasted .material-icons,.toasted-container .toasted .mdi{margin-right:.5rem;margin-left:-.4rem}.toasted-container .toasted .fa.after,.toasted-container .toasted .fab.after,.toasted-container .toasted .far.after,.toasted-container .toasted .fas.after,.toasted-container .toasted .material-icons.after,.toasted-container .toasted .mdi.after{margin-left:.5rem;margin-right:-.4rem}.toasted-container .toasted .action{text-decoration:none;font-size:.8rem;padding:8px;margin:5px -7px 5px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.03em;font-weight:600;cursor:pointer}.toasted-container .toasted .action.icon{padding:4px;display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center;-ms-flex-pack:center;justify-content:center}.toasted-container .toasted .action.icon .fa,.toasted-container .toasted .action.icon .material-icons,.toasted-container .toasted .action.icon .mdi{margin-right:0;margin-left:4px}.toasted-container .toasted .action.icon:hover{text-decoration:none}.toasted-container .toasted .action:hover{text-decoration:underline}@media only screen and (max-width:600px){.toasted-container{min-width:100%}.toasted-container .toasted:first-child{margin-top:0}.toasted-container.top-right{top:0;right:0}.toasted-container.top-left{top:0;left:0}.toasted-container.top-center{top:0;left:0;-webkit-transform:translateX(0);transform:translateX(0)}.toasted-container.bottom-right{right:0;bottom:0}.toasted-container.bottom-left{left:0;bottom:0}.toasted-container.bottom-center{left:0;bottom:0;-webkit-transform:translateX(0);transform:translateX(0)}.toasted-container.bottom-center,.toasted-container.top-center{-ms-flex-align:stretch!important;align-items:stretch!important}.toasted-container.bottom-left .toasted,.toasted-container.bottom-right .toasted,.toasted-container.top-left .toasted,.toasted-container.top-right .toasted{float:none}.toasted-container .toasted{border-radius:0}}</style><style type="text/css">.resize-observer[data-v-8859cc6c]{position:absolute;top:0;left:0;z-index:-1;width:100%;height:100%;border:none;background-color:transparent;pointer-events:none;display:block;overflow:hidden;opacity:0}.resize-observer[data-v-8859cc6c] object{display:block;position:absolute;top:0;left:0;height:100%;width:100%;overflow:hidden;pointer-events:none;z-index:-1}</style><link href="https://www.googletagmanager.com/" rel="preconnect"><script async="" src="./ตารางเรียน_files/js"></script><style type="text/css" id="vuetify-theme-stylesheet">.v-application a { color: #1976d2; }
+.v-application .primary {
+  background-color: #1976d2 !important;
+  border-color: #1976d2 !important;
+}
+.v-application .primary--text {
+  color: #1976d2 !important;
+  caret-color: #1976d2 !important;
+}
+.v-application .primary.lighten-5 {
+  background-color: #c7fdff !important;
+  border-color: #c7fdff !important;
+}
+.v-application .primary--text.text--lighten-5 {
+  color: #c7fdff !important;
+  caret-color: #c7fdff !important;
+}
+.v-application .primary.lighten-4 {
+  background-color: #a8e0ff !important;
+  border-color: #a8e0ff !important;
+}
+.v-application .primary--text.text--lighten-4 {
+  color: #a8e0ff !important;
+  caret-color: #a8e0ff !important;
+}
+.v-application .primary.lighten-3 {
+  background-color: #8ac5ff !important;
+  border-color: #8ac5ff !important;
+}
+.v-application .primary--text.text--lighten-3 {
+  color: #8ac5ff !important;
+  caret-color: #8ac5ff !important;
+}
+.v-application .primary.lighten-2 {
+  background-color: #6aaaff !important;
+  border-color: #6aaaff !important;
+}
+.v-application .primary--text.text--lighten-2 {
+  color: #6aaaff !important;
+  caret-color: #6aaaff !important;
+}
+.v-application .primary.lighten-1 {
+  background-color: #488fef !important;
+  border-color: #488fef !important;
+}
+.v-application .primary--text.text--lighten-1 {
+  color: #488fef !important;
+  caret-color: #488fef !important;
+}
+.v-application .primary.darken-1 {
+  background-color: #005eb6 !important;
+  border-color: #005eb6 !important;
+}
+.v-application .primary--text.text--darken-1 {
+  color: #005eb6 !important;
+  caret-color: #005eb6 !important;
+}
+.v-application .primary.darken-2 {
+  background-color: #00479b !important;
+  border-color: #00479b !important;
+}
+.v-application .primary--text.text--darken-2 {
+  color: #00479b !important;
+  caret-color: #00479b !important;
+}
+.v-application .primary.darken-3 {
+  background-color: #003180 !important;
+  border-color: #003180 !important;
+}
+.v-application .primary--text.text--darken-3 {
+  color: #003180 !important;
+  caret-color: #003180 !important;
+}
+.v-application .primary.darken-4 {
+  background-color: #001e67 !important;
+  border-color: #001e67 !important;
+}
+.v-application .primary--text.text--darken-4 {
+  color: #001e67 !important;
+  caret-color: #001e67 !important;
+}
+.v-application .secondary {
+  background-color: #424242 !important;
+  border-color: #424242 !important;
+}
+.v-application .secondary--text {
+  color: #424242 !important;
+  caret-color: #424242 !important;
+}
+.v-application .secondary.lighten-5 {
+  background-color: #c1c1c1 !important;
+  border-color: #c1c1c1 !important;
+}
+.v-application .secondary--text.text--lighten-5 {
+  color: #c1c1c1 !important;
+  caret-color: #c1c1c1 !important;
+}
+.v-application .secondary.lighten-4 {
+  background-color: #a6a6a6 !important;
+  border-color: #a6a6a6 !important;
+}
+.v-application .secondary--text.text--lighten-4 {
+  color: #a6a6a6 !important;
+  caret-color: #a6a6a6 !important;
+}
+.v-application .secondary.lighten-3 {
+  background-color: #8b8b8b !important;
+  border-color: #8b8b8b !important;
+}
+.v-application .secondary--text.text--lighten-3 {
+  color: #8b8b8b !important;
+  caret-color: #8b8b8b !important;
+}
+.v-application .secondary.lighten-2 {
+  background-color: #727272 !important;
+  border-color: #727272 !important;
+}
+.v-application .secondary--text.text--lighten-2 {
+  color: #727272 !important;
+  caret-color: #727272 !important;
+}
+.v-application .secondary.lighten-1 {
+  background-color: #595959 !important;
+  border-color: #595959 !important;
+}
+.v-application .secondary--text.text--lighten-1 {
+  color: #595959 !important;
+  caret-color: #595959 !important;
+}
+.v-application .secondary.darken-1 {
+  background-color: #2c2c2c !important;
+  border-color: #2c2c2c !important;
+}
+.v-application .secondary--text.text--darken-1 {
+  color: #2c2c2c !important;
+  caret-color: #2c2c2c !important;
+}
+.v-application .secondary.darken-2 {
+  background-color: #171717 !important;
+  border-color: #171717 !important;
+}
+.v-application .secondary--text.text--darken-2 {
+  color: #171717 !important;
+  caret-color: #171717 !important;
+}
+.v-application .secondary.darken-3 {
+  background-color: #000000 !important;
+  border-color: #000000 !important;
+}
+.v-application .secondary--text.text--darken-3 {
+  color: #000000 !important;
+  caret-color: #000000 !important;
+}
+.v-application .secondary.darken-4 {
+  background-color: #000000 !important;
+  border-color: #000000 !important;
+}
+.v-application .secondary--text.text--darken-4 {
+  color: #000000 !important;
+  caret-color: #000000 !important;
+}
+.v-application .accent {
+  background-color: #82b1ff !important;
+  border-color: #82b1ff !important;
+}
+.v-application .accent--text {
+  color: #82b1ff !important;
+  caret-color: #82b1ff !important;
+}
+.v-application .accent.lighten-5 {
+  background-color: #ffffff !important;
+  border-color: #ffffff !important;
+}
+.v-application .accent--text.text--lighten-5 {
+  color: #ffffff !important;
+  caret-color: #ffffff !important;
+}
+.v-application .accent.lighten-4 {
+  background-color: #f8ffff !important;
+  border-color: #f8ffff !important;
+}
+.v-application .accent--text.text--lighten-4 {
+  color: #f8ffff !important;
+  caret-color: #f8ffff !important;
+}
+.v-application .accent.lighten-3 {
+  background-color: #daffff !important;
+  border-color: #daffff !important;
+}
+.v-application .accent--text.text--lighten-3 {
+  color: #daffff !important;
+  caret-color: #daffff !important;
+}
+.v-application .accent.lighten-2 {
+  background-color: #bce8ff !important;
+  border-color: #bce8ff !important;
+}
+.v-application .accent--text.text--lighten-2 {
+  color: #bce8ff !important;
+  caret-color: #bce8ff !important;
+}
+.v-application .accent.lighten-1 {
+  background-color: #9fccff !important;
+  border-color: #9fccff !important;
+}
+.v-application .accent--text.text--lighten-1 {
+  color: #9fccff !important;
+  caret-color: #9fccff !important;
+}
+.v-application .accent.darken-1 {
+  background-color: #6596e2 !important;
+  border-color: #6596e2 !important;
+}
+.v-application .accent--text.text--darken-1 {
+  color: #6596e2 !important;
+  caret-color: #6596e2 !important;
+}
+.v-application .accent.darken-2 {
+  background-color: #467dc6 !important;
+  border-color: #467dc6 !important;
+}
+.v-application .accent--text.text--darken-2 {
+  color: #467dc6 !important;
+  caret-color: #467dc6 !important;
+}
+.v-application .accent.darken-3 {
+  background-color: #2364aa !important;
+  border-color: #2364aa !important;
+}
+.v-application .accent--text.text--darken-3 {
+  color: #2364aa !important;
+  caret-color: #2364aa !important;
+}
+.v-application .accent.darken-4 {
+  background-color: #004c90 !important;
+  border-color: #004c90 !important;
+}
+.v-application .accent--text.text--darken-4 {
+  color: #004c90 !important;
+  caret-color: #004c90 !important;
+}
+.v-application .error {
+  background-color: #ff5252 !important;
+  border-color: #ff5252 !important;
+}
+.v-application .error--text {
+  color: #ff5252 !important;
+  caret-color: #ff5252 !important;
+}
+.v-application .error.lighten-5 {
+  background-color: #ffe4d5 !important;
+  border-color: #ffe4d5 !important;
+}
+.v-application .error--text.text--lighten-5 {
+  color: #ffe4d5 !important;
+  caret-color: #ffe4d5 !important;
+}
+.v-application .error.lighten-4 {
+  background-color: #ffc6b9 !important;
+  border-color: #ffc6b9 !important;
+}
+.v-application .error--text.text--lighten-4 {
+  color: #ffc6b9 !important;
+  caret-color: #ffc6b9 !important;
+}
+.v-application .error.lighten-3 {
+  background-color: #ffa99e !important;
+  border-color: #ffa99e !important;
+}
+.v-application .error--text.text--lighten-3 {
+  color: #ffa99e !important;
+  caret-color: #ffa99e !important;
+}
+.v-application .error.lighten-2 {
+  background-color: #ff8c84 !important;
+  border-color: #ff8c84 !important;
+}
+.v-application .error--text.text--lighten-2 {
+  color: #ff8c84 !important;
+  caret-color: #ff8c84 !important;
+}
+.v-application .error.lighten-1 {
+  background-color: #ff6f6a !important;
+  border-color: #ff6f6a !important;
+}
+.v-application .error--text.text--lighten-1 {
+  color: #ff6f6a !important;
+  caret-color: #ff6f6a !important;
+}
+.v-application .error.darken-1 {
+  background-color: #df323b !important;
+  border-color: #df323b !important;
+}
+.v-application .error--text.text--darken-1 {
+  color: #df323b !important;
+  caret-color: #df323b !important;
+}
+.v-application .error.darken-2 {
+  background-color: #bf0025 !important;
+  border-color: #bf0025 !important;
+}
+.v-application .error--text.text--darken-2 {
+  color: #bf0025 !important;
+  caret-color: #bf0025 !important;
+}
+.v-application .error.darken-3 {
+  background-color: #9f0010 !important;
+  border-color: #9f0010 !important;
+}
+.v-application .error--text.text--darken-3 {
+  color: #9f0010 !important;
+  caret-color: #9f0010 !important;
+}
+.v-application .error.darken-4 {
+  background-color: #800000 !important;
+  border-color: #800000 !important;
+}
+.v-application .error--text.text--darken-4 {
+  color: #800000 !important;
+  caret-color: #800000 !important;
+}
+.v-application .info {
+  background-color: #2196f3 !important;
+  border-color: #2196f3 !important;
+}
+.v-application .info--text {
+  color: #2196f3 !important;
+  caret-color: #2196f3 !important;
+}
+.v-application .info.lighten-5 {
+  background-color: #d4ffff !important;
+  border-color: #d4ffff !important;
+}
+.v-application .info--text.text--lighten-5 {
+  color: #d4ffff !important;
+  caret-color: #d4ffff !important;
+}
+.v-application .info.lighten-4 {
+  background-color: #b5ffff !important;
+  border-color: #b5ffff !important;
+}
+.v-application .info--text.text--lighten-4 {
+  color: #b5ffff !important;
+  caret-color: #b5ffff !important;
+}
+.v-application .info.lighten-3 {
+  background-color: #95e8ff !important;
+  border-color: #95e8ff !important;
+}
+.v-application .info--text.text--lighten-3 {
+  color: #95e8ff !important;
+  caret-color: #95e8ff !important;
+}
+.v-application .info.lighten-2 {
+  background-color: #75ccff !important;
+  border-color: #75ccff !important;
+}
+.v-application .info--text.text--lighten-2 {
+  color: #75ccff !important;
+  caret-color: #75ccff !important;
+}
+.v-application .info.lighten-1 {
+  background-color: #51b0ff !important;
+  border-color: #51b0ff !important;
+}
+.v-application .info--text.text--lighten-1 {
+  color: #51b0ff !important;
+  caret-color: #51b0ff !important;
+}
+.v-application .info.darken-1 {
+  background-color: #007cd6 !important;
+  border-color: #007cd6 !important;
+}
+.v-application .info--text.text--darken-1 {
+  color: #007cd6 !important;
+  caret-color: #007cd6 !important;
+}
+.v-application .info.darken-2 {
+  background-color: #0064ba !important;
+  border-color: #0064ba !important;
+}
+.v-application .info--text.text--darken-2 {
+  color: #0064ba !important;
+  caret-color: #0064ba !important;
+}
+.v-application .info.darken-3 {
+  background-color: #004d9f !important;
+  border-color: #004d9f !important;
+}
+.v-application .info--text.text--darken-3 {
+  color: #004d9f !important;
+  caret-color: #004d9f !important;
+}
+.v-application .info.darken-4 {
+  background-color: #003784 !important;
+  border-color: #003784 !important;
+}
+.v-application .info--text.text--darken-4 {
+  color: #003784 !important;
+  caret-color: #003784 !important;
+}
+.v-application .success {
+  background-color: #4caf50 !important;
+  border-color: #4caf50 !important;
+}
+.v-application .success--text {
+  color: #4caf50 !important;
+  caret-color: #4caf50 !important;
+}
+.v-application .success.lighten-5 {
+  background-color: #dcffd6 !important;
+  border-color: #dcffd6 !important;
+}
+.v-application .success--text.text--lighten-5 {
+  color: #dcffd6 !important;
+  caret-color: #dcffd6 !important;
+}
+.v-application .success.lighten-4 {
+  background-color: #beffba !important;
+  border-color: #beffba !important;
+}
+.v-application .success--text.text--lighten-4 {
+  color: #beffba !important;
+  caret-color: #beffba !important;
+}
+.v-application .success.lighten-3 {
+  background-color: #a2ff9e !important;
+  border-color: #a2ff9e !important;
+}
+.v-application .success--text.text--lighten-3 {
+  color: #a2ff9e !important;
+  caret-color: #a2ff9e !important;
+}
+.v-application .success.lighten-2 {
+  background-color: #85e783 !important;
+  border-color: #85e783 !important;
+}
+.v-application .success--text.text--lighten-2 {
+  color: #85e783 !important;
+  caret-color: #85e783 !important;
+}
+.v-application .success.lighten-1 {
+  background-color: #69cb69 !important;
+  border-color: #69cb69 !important;
+}
+.v-application .success--text.text--lighten-1 {
+  color: #69cb69 !important;
+  caret-color: #69cb69 !important;
+}
+.v-application .success.darken-1 {
+  background-color: #2d9437 !important;
+  border-color: #2d9437 !important;
+}
+.v-application .success--text.text--darken-1 {
+  color: #2d9437 !important;
+  caret-color: #2d9437 !important;
+}
+.v-application .success.darken-2 {
+  background-color: #00791e !important;
+  border-color: #00791e !important;
+}
+.v-application .success--text.text--darken-2 {
+  color: #00791e !important;
+  caret-color: #00791e !important;
+}
+.v-application .success.darken-3 {
+  background-color: #006000 !important;
+  border-color: #006000 !important;
+}
+.v-application .success--text.text--darken-3 {
+  color: #006000 !important;
+  caret-color: #006000 !important;
+}
+.v-application .success.darken-4 {
+  background-color: #004700 !important;
+  border-color: #004700 !important;
+}
+.v-application .success--text.text--darken-4 {
+  color: #004700 !important;
+  caret-color: #004700 !important;
+}
+.v-application .warning {
+  background-color: #fb8c00 !important;
+  border-color: #fb8c00 !important;
+}
+.v-application .warning--text {
+  color: #fb8c00 !important;
+  caret-color: #fb8c00 !important;
+}
+.v-application .warning.lighten-5 {
+  background-color: #ffff9e !important;
+  border-color: #ffff9e !important;
+}
+.v-application .warning--text.text--lighten-5 {
+  color: #ffff9e !important;
+  caret-color: #ffff9e !important;
+}
+.v-application .warning.lighten-4 {
+  background-color: #fffb82 !important;
+  border-color: #fffb82 !important;
+}
+.v-application .warning--text.text--lighten-4 {
+  color: #fffb82 !important;
+  caret-color: #fffb82 !important;
+}
+.v-application .warning.lighten-3 {
+  background-color: #ffdf67 !important;
+  border-color: #ffdf67 !important;
+}
+.v-application .warning--text.text--lighten-3 {
+  color: #ffdf67 !important;
+  caret-color: #ffdf67 !important;
+}
+.v-application .warning.lighten-2 {
+  background-color: #ffc24b !important;
+  border-color: #ffc24b !important;
+}
+.v-application .warning--text.text--lighten-2 {
+  color: #ffc24b !important;
+  caret-color: #ffc24b !important;
+}
+.v-application .warning.lighten-1 {
+  background-color: #ffa72d !important;
+  border-color: #ffa72d !important;
+}
+.v-application .warning--text.text--lighten-1 {
+  color: #ffa72d !important;
+  caret-color: #ffa72d !important;
+}
+.v-application .warning.darken-1 {
+  background-color: #db7200 !important;
+  border-color: #db7200 !important;
+}
+.v-application .warning--text.text--darken-1 {
+  color: #db7200 !important;
+  caret-color: #db7200 !important;
+}
+.v-application .warning.darken-2 {
+  background-color: #bb5900 !important;
+  border-color: #bb5900 !important;
+}
+.v-application .warning--text.text--darken-2 {
+  color: #bb5900 !important;
+  caret-color: #bb5900 !important;
+}
+.v-application .warning.darken-3 {
+  background-color: #9d4000 !important;
+  border-color: #9d4000 !important;
+}
+.v-application .warning--text.text--darken-3 {
+  color: #9d4000 !important;
+  caret-color: #9d4000 !important;
+}
+.v-application .warning.darken-4 {
+  background-color: #802700 !important;
+  border-color: #802700 !important;
+}
+.v-application .warning--text.text--darken-4 {
+  color: #802700 !important;
+  caret-color: #802700 !important;
+}</style></head><body><noscript></noscript><div data-v-1270f5e8="" id="app"><div data-v-1270f5e8=""><div data-v-1270f5e8="" data-app="true" class="v-application v-application--is-ltr theme--light" id="app"><div class="v-application--wrap"><div data-v-fc1b6e6e="" data-v-1270f5e8=""><header data-v-fc1b6e6e="" class="v-sheet theme--light elevation-1 v-toolbar v-app-bar v-app-bar--clipped v-app-bar--fixed" style="height: 64px; margin-top: 0px; transform: translateY(0px); left: 0px; right: 0px;" data-booted="true"><div class="v-toolbar__content" style="height: 64px;"><button data-v-fc1b6e6e="" type="button" class="v-app-bar__nav-icon v-btn v-btn--icon v-btn--round theme--light v-size--default"><span class="v-btn__content"><i data-v-fc1b6e6e="" aria-hidden="true" class="v-icon notranslate mdi mdi-menu theme--light"></i></span></button><div data-v-fc1b6e6e="" class="v-toolbar__title"><div data-v-fc1b6e6e="" class="v-image v-responsive theme--light" style="width: 120px;"><div class="v-responsive__sizer" style="padding-bottom: 48.8%;"></div><div class="v-image__image v-image__image--cover" style="background-image: url(&quot;https://regis.reg.kmitl.ac.th/kmitl_logo.png&quot;); background-position: center center;"></div><div class="v-responsive__content" style="width: 500px;"></div></div></div><div data-v-fc1b6e6e="" class="deep-orange--text ml-2 v-toolbar__title v-app-bar-title"><div class="v-app-bar-title__content" style="width: 2066px; visibility: visible;"> ระบบลงทะเบียนเรียน </div><div class="v-app-bar-title__placeholder" style="visibility: hidden;"> ระบบลงทะเบียนเรียน </div></div><div data-v-fc1b6e6e="" class="spacer"></div><!----><!----><button data-v-fc1b6e6e="" type="button" class="mr-3 v-btn v-btn--outlined theme--dark v-size--default deep-orange--text" dense=""><span class="v-btn__content"> เข้าสู่ระบบ <i data-v-fc1b6e6e="" aria-hidden="true" class="v-icon notranslate mdi mdi-login theme--dark"></i></span></button><!----><!----><div data-v-3a8be2e6="" data-v-fc1b6e6e=""><span data-v-3a8be2e6="" class="text-no-wrap"><button data-v-3a8be2e6="" type="button" class="rounded-0 rounded-l-lg v-btn v-btn--outlined theme--dark v-size--default grey--text"><span class="v-btn__content">ENG</span></button><button data-v-3a8be2e6="" type="button" class="rounded-0 rounded-r-lg v-btn v-btn--has-bg theme--dark v-size--default major"><span class="v-btn__content">ไทย</span></button></span><!----></div></div></header></div><nav data-v-0de6275e="" data-v-1270f5e8="" class="v-navigation-drawer v-navigation-drawer--clipped v-navigation-drawer--fixed v-navigation-drawer--open theme--light" style="height: 100vh; top: 64px; max-height: calc(100% - 64px); transform: translateX(0%); width: 350px;" data-booted="true"><div class="v-navigation-drawer__content"><div data-v-0de6275e="" class="v-list v-sheet theme--light"><!----><!----><!----><div data-v-0de6275e="" class="v-list-group"><div tabindex="0" aria-expanded="false" role="button" class="v-list-group__header v-list-item v-list-item--link theme--light"><div data-v-0de6275e="" class="v-list-item__icon mr-3"><i data-v-0de6275e="" aria-hidden="true" class="v-icon notranslate white--text shadow mdi mdi-account theme--light"></i></div><div data-v-0de6275e="" class="v-list-item__content"><div data-v-0de6275e="" class="v-list-item__title white--text shadow"> บัญชีผู้ใช้งาน </div></div><div class="v-list-item__icon v-list-group__header__append-icon"><i data-v-0de6275e="" aria-hidden="true" class="v-icon notranslate white--text shadow mdi mdi-chevron-down theme--light"></i></div></div><!----></div><!----><div data-v-0de6275e="" class="v-list-group"><div tabindex="0" aria-expanded="false" role="button" class="v-list-group__header v-list-item v-list-item--link theme--light"><div data-v-0de6275e="" class="v-list-item__icon mr-3"><i data-v-0de6275e="" aria-hidden="true" class="v-icon notranslate white--text shadow mdi mdi-book-open-variant theme--light"></i></div><div data-v-0de6275e="" class="v-list-item__content"><div data-v-0de6275e="" class="v-list-item__title white--text shadow"> คู่มือการลงทะเบียน </div></div><div class="v-list-item__icon v-list-group__header__append-icon"><i data-v-0de6275e="" aria-hidden="true" class="v-icon notranslate white--text shadow mdi mdi-chevron-down theme--light"></i></div></div><!----></div><!----><div data-v-0de6275e="" class="v-list-group"><div tabindex="0" aria-expanded="false" role="button" class="v-list-group__header v-list-item v-list-item--link theme--light"><div data-v-0de6275e="" class="v-list-item__icon mr-3"><i data-v-0de6275e="" aria-hidden="true" class="v-icon notranslate white--text shadow mdi mdi-table-clock theme--light"></i></div><div data-v-0de6275e="" class="v-list-item__content"><div data-v-0de6275e="" class="v-list-item__title white--text shadow"> ตารางเรียน-สอบ </div></div><div class="v-list-item__icon v-list-group__header__append-icon"><i data-v-0de6275e="" aria-hidden="true" class="v-icon notranslate white--text shadow mdi mdi-chevron-down theme--light"></i></div></div><!----></div><!----><div data-v-0de6275e="" class="v-list-group"><div tabindex="0" aria-expanded="false" role="button" class="v-list-group__header v-list-item v-list-item--link theme--light"><div data-v-0de6275e="" class="v-list-item__icon mr-3"><i data-v-0de6275e="" aria-hidden="true" class="v-icon notranslate white--text shadow mdi mdi-table-account theme--light"></i></div><div data-v-0de6275e="" class="v-list-item__content"><div data-v-0de6275e="" class="v-list-item__title white--text shadow"> ระบบลงทะเบียนเรียน </div></div><div class="v-list-item__icon v-list-group__header__append-icon"><i data-v-0de6275e="" aria-hidden="true" class="v-icon notranslate white--text shadow mdi mdi-chevron-down theme--light"></i></div></div><!----></div><!----><!----><!----><!----><!----><!----></div></div><div class="v-navigation-drawer__border"></div></nav><main data-v-1270f5e8="" class="v-main" style="padding: 64px 0px 0px 350px; background-color: rgb(227, 227, 227);" data-booted="true"><div class="v-main__wrap"><div data-v-1270f5e8="" class="container pa-0 pa-sm-3 pa-xl-6 container--fluid"><div data-v-1270f5e8="" class="container fill-height container--fluid"><div class="row align-center justify-center"><div class="v-card v-sheet theme--light"><div class="v-card__title"> ตารางเรียน - สอบ ระดับปริญญาตรี </div><div class="v-card__text"><div class="v-tabs theme--light"><div role="tablist" class="v-item-group theme--light v-slide-group v-tabs-bar primary--text" data-booted="true"><div class="v-slide-group__prev v-slide-group__prev--disabled"><!----></div><div class="v-slide-group__wrapper"><div class="v-slide-group__content v-tabs-bar__content"><div class="v-tabs-slider-wrapper" style="height: 2px; left: 0px; width: 202px;"><div class="v-tabs-slider orange"></div></div><div tabindex="0" aria-selected="true" role="tab" class="v-tab v-tab--active"> ค้นหาตามหลักสูตร / ชั้นปี </div><div tabindex="0" aria-selected="false" role="tab" class="v-tab"> ค้นหาตามรหัสวิชา </div><div tabindex="0" aria-selected="false" role="tab" class="v-tab"> ค้นหาตามหมวดวิชา </div></div></div><div class="v-slide-group__next v-slide-group__next--disabled"><!----></div></div></div><hr role="separator" aria-orientation="horizontal" class="mt-3 v-divider theme--light"><div class="v-window v-item-group theme--light v-tabs-items"><div class="v-window__container" style=""><div class="v-window-item v-window-item--active"><div class="mt-5"><div class="row"><div class="col"><div class="v-input v-input--hide-details v-input--dense theme--light v-text-field v-text-field--single-line v-text-field--solo v-text-field--is-booted v-text-field--enclosed v-text-field--outlined v-select v-autocomplete"><div class="v-input__control"><div role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-154" class="v-input__slot"><fieldset aria-hidden="true"><legend><span class="notranslate">​</span></legend></fieldset><div class="v-select__slot"><label for="input-154" class="v-label theme--light" style="left: 0px; right: auto; position: absolute;">ปีการศึกษา</label><input id="input-154" type="text" autocomplete="off"><div class="v-input__append-inner"><div class="v-input__icon v-input__icon--append"><i aria-hidden="true" class="v-icon notranslate mdi mdi-menu-down theme--light"></i></div></div><input type="hidden"></div><div class="v-menu"><!----></div></div></div></div></div><div class="col"><div class="v-input v-input--hide-details v-input--dense theme--light v-text-field v-text-field--single-line v-text-field--solo v-text-field--is-booted v-text-field--enclosed v-text-field--outlined v-select v-autocomplete"><div class="v-input__control"><div role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-157" class="v-input__slot"><fieldset aria-hidden="true"><legend><span class="notranslate">​</span></legend></fieldset><div class="v-select__slot"><label for="input-157" class="v-label theme--light" style="left: 0px; right: auto; position: absolute;">ภาคการศึกษา</label><input id="input-157" type="text" autocomplete="off"><div class="v-input__append-inner"><div class="v-input__icon v-input__icon--append"><i aria-hidden="true" class="v-icon notranslate mdi mdi-menu-down theme--light"></i></div></div><input type="hidden"></div><div class="v-menu"><!----></div></div></div></div></div></div><div class="row"><div class="col"><div class="v-input v-input--hide-details v-input--dense theme--light v-text-field v-text-field--single-line v-text-field--solo v-text-field--is-booted v-text-field--enclosed v-text-field--outlined v-select v-autocomplete"><div class="v-input__control"><div role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-161" class="v-input__slot"><fieldset aria-hidden="true"><legend><span class="notranslate">​</span></legend></fieldset><div class="v-select__slot"><label for="input-161" class="v-label theme--light" style="left: 0px; right: auto; position: absolute;">คณะ</label><input id="input-161" type="text" autocomplete="off"><div class="v-input__append-inner"><div class="v-input__icon v-input__icon--append"><i aria-hidden="true" class="v-icon notranslate mdi mdi-menu-down theme--light"></i></div></div><input type="hidden"></div><div class="v-menu"><!----></div></div></div></div></div><!----></div><div class="row"><div class="col"><div class="v-input v-input--hide-details v-input--dense theme--light v-text-field v-text-field--single-line v-text-field--solo v-text-field--is-booted v-text-field--enclosed v-text-field--outlined v-select v-autocomplete"><div class="v-input__control"><div role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-165" class="v-input__slot"><fieldset aria-hidden="true"><legend><span class="notranslate">​</span></legend></fieldset><div class="v-select__slot"><label for="input-165" class="v-label theme--light" style="left: 0px; right: auto; position: absolute;">ภาควิชา</label><input id="input-165" type="text" autocomplete="off"><div class="v-input__append-inner"><div class="v-input__icon v-input__icon--append"><i aria-hidden="true" class="v-icon notranslate mdi mdi-menu-down theme--light"></i></div></div><input type="hidden"></div><div class="v-menu"><!----></div></div></div></div></div><!----></div><div class="row"><div class="col"><div class="v-input v-input--hide-details v-input--dense theme--light v-text-field v-text-field--single-line v-text-field--solo v-text-field--is-booted v-text-field--enclosed v-text-field--outlined v-select v-autocomplete"><div class="v-input__control"><div role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-169" class="v-input__slot"><fieldset aria-hidden="true"><legend><span class="notranslate">​</span></legend></fieldset><div class="v-select__slot"><label for="input-169" class="v-label theme--light" style="left: 0px; right: auto; position: absolute;">หลักสูตร</label><input id="input-169" type="text" autocomplete="off"><div class="v-input__append-inner"><div class="v-input__icon v-input__icon--append"><i aria-hidden="true" class="v-icon notranslate mdi mdi-menu-down theme--light"></i></div></div><input type="hidden"></div><div class="v-menu"><!----></div></div></div></div></div><div class="col"><div class="v-input mt-1 v-input--hide-details v-input--is-disabled theme--light v-input--selection-controls v-input--checkbox"><div class="v-input__control"><div class="v-input__slot"><div class="v-input--selection-controls__input"><i aria-hidden="true" class="v-icon notranslate mdi mdi-checkbox-blank-outline theme--light"></i><input aria-checked="false" disabled="disabled" id="input-172" role="checkbox" type="checkbox" value=""><div class="v-input--selection-controls__ripple"></div></div><label for="input-172" class="v-label v-label--is-disabled theme--light" style="left: 0px; right: auto; position: relative;">เลือกทุกหลักสูตร</label></div></div></div></div></div><div class="row"><div class="col"><div class="v-input v-input--hide-details v-input--dense theme--light v-text-field v-text-field--single-line v-text-field--solo v-text-field--is-booted v-text-field--enclosed v-text-field--outlined v-select v-autocomplete"><div class="v-input__control"><div role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-owns="list-175" class="v-input__slot"><fieldset aria-hidden="true"><legend><span class="notranslate">​</span></legend></fieldset><div class="v-select__slot"><label for="input-175" class="v-label theme--light" style="left: 0px; right: auto; position: absolute;">ชั้นปี</label><input id="input-175" type="text" autocomplete="off"><div class="v-input__append-inner"><div class="v-input__icon v-input__icon--append"><i aria-hidden="true" class="v-icon notranslate mdi mdi-menu-down theme--light"></i></div></div><input type="hidden"></div><div class="v-menu"><!----></div></div></div></div></div><div class="col"><div class="v-input mt-1 v-input--hide-details theme--light v-input--selection-controls v-input--checkbox"><div class="v-input__control"><div class="v-input__slot"><div class="v-input--selection-controls__input"><i aria-hidden="true" class="v-icon notranslate mdi mdi-checkbox-blank-outline theme--light"></i><input aria-checked="false" id="input-178" role="checkbox" type="checkbox" value=""><div class="v-input--selection-controls__ripple"></div></div><label for="input-178" class="v-label theme--light" style="left: 0px; right: auto; position: relative;">เลือกทุกชั้นปี</label></div></div></div></div></div><hr role="separator" aria-orientation="horizontal" class="mt-2 v-divider theme--light"><button type="button" disabled="disabled" class="mt-3 white--text v-btn v-btn--block v-btn--disabled v-btn--has-bg theme--light v-size--large"><span class="v-btn__content">ค้นหา </span></button><!----><!----></div></div><!----><!----></div></div></div></div></div></div></div></div></main><footer data-v-1270f5e8="" class="v-footer v-sheet theme--dark" data-booted="true"><div class="container"><div class="row"><div class="col-3 d-none d-lg-flex col"></div><div class="col-12 col-sm-6 col-md-6 col-lg-3 col-xl-3 col"><h3><span class="orange--text text--darken-4">ติดต่อ : ระดับปริญญาตรี</span></h3><hr role="separator" aria-orientation="horizontal" color="#757575" class="v-divider theme--dark"><i aria-hidden="true" class="v-icon notranslate mdi mdi-phone theme--dark"></i> : 0 2329 8201 ต่อ 201 - 210<br><i aria-hidden="true" class="v-icon notranslate mdi mdi-phone theme--dark"></i> : 0 2329 8202 ต่อ 201 - 210<br><i aria-hidden="true" class="v-icon notranslate mdi mdi-phone theme--dark"></i> : 0 2329 8203 ต่อ 201 - 210<br><i aria-hidden="true" class="v-icon notranslate mdi mdi-phone theme--dark"></i> : 0 2329 8205 ต่อ 201 - 210<br><i aria-hidden="true" class="v-icon notranslate mdi mdi-phone theme--dark"></i> : 0 2329 8163 ต่อ 201 - 210<br><i aria-hidden="true" class="v-icon notranslate mdi mdi-at theme--dark"></i> : enroll-reg@kmitl.ac.th<br><i aria-hidden="true" class="v-icon notranslate mdi mdi-facebook theme--dark"></i> : <a href="https://www.facebook.com/reg.kmitl" target="blank" style="text-decoration: none; color: white;">reg.kmitl</a></div><div class="col-12 col-sm-6 col-md-6 col-lg-3 col-xl-3 col"><h3><span class="orange--text text--darken-4">ติดต่อ : ระดับบัณฑิตศึกษา</span></h3><hr role="separator" aria-orientation="horizontal" color="#757575" class="v-divider theme--dark"><i aria-hidden="true" class="v-icon notranslate mdi mdi-phone theme--dark"></i> : 0 2329 8201 ต่อ 101 - 102, 502 - 503<br><i aria-hidden="true" class="v-icon notranslate mdi mdi-phone theme--dark"></i> : 0 2329 8202 ต่อ 101 - 102, 502 - 503<br><i aria-hidden="true" class="v-icon notranslate mdi mdi-phone theme--dark"></i> : 0 2329 8203 ต่อ 101 - 102, 502 - 503<br><i aria-hidden="true" class="v-icon notranslate mdi mdi-phone theme--dark"></i> : 0 2329 8205 ต่อ 101 - 102, 502 - 503<br><i aria-hidden="true" class="v-icon notranslate mdi mdi-phone theme--dark"></i> : 0 2329 8163 ต่อ 101 - 102, 502 - 503<br><i aria-hidden="true" class="v-icon notranslate mdi mdi-at theme--dark"></i> : grad-reg@kmitl.ac.th<br><i aria-hidden="true" class="v-icon notranslate mdi mdi-facebook theme--dark"></i> : <a href="https://www.facebook.com/reg.kmitl" target="blank" style="text-decoration: none; color: white;">reg.kmitl</a></div><div class="col-md-12 col-lg-3 col-xl-3 col"><h3><span class="orange--text text--darken-4">สำนักทะเบียนและบริการการศึกษา </span></h3><hr role="separator" aria-orientation="horizontal" color="#757575" class="v-divider theme--dark"> สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง<br> เลขที่ 1 ซอยฉลองกรุง 1<br> แขวงลาดกระบัง เขตลาดกระบัง<br> กรุงเทพ 10520 </div></div><div class="row"><div class="col-3 d-none d-lg-flex col"></div><div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9 col"><h3><span class="orange--text text--darken-4">King Mongkut's Institute of Technology Ladkrabang</span> 2021-2026 All Rights Reserved. </h3></div></div></div></footer><button data-v-1270f5e8="" type="button" class="to-top v-btn v-btn--is-elevated v-btn--fab v-btn--has-bg v-btn--round theme--dark v-size--default primary"><span class="v-btn__content"><i data-v-1270f5e8="" aria-hidden="true" class="v-icon notranslate mdi mdi-arrow-collapse-up theme--dark"></i></span></button><div data-v-2136f12b="" data-v-1270f5e8="" class="dev-env" style="display: none;"><p data-v-2136f12b="" class="text-right ma-0"><i data-v-2136f12b="" aria-hidden="true" class="v-icon notranslate mdi mdi-close-circle theme--light red--text"></i></p><h1 data-v-2136f12b="" class="red--text"> เว็บไซต์นี้จัดทำเพื่อใช้ในการทดสอบเท่านั้น<br data-v-2136f12b=""> This website is constructed for testing purposed only </h1></div></div></div></div></div><div id="G3YyNYps1" role="status" aria-live="polite" aria-atomic="false" class="toasted-container top-center"></div><iframe src="./ตารางเรียน_files/login-status-iframe.html" sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin" title="keycloak-session-iframe" style="display: none;"></iframe></body></html>
