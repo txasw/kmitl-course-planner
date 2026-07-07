@@ -1,16 +1,47 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  cleanup,
+  act,
+} from '@testing-library/react';
 import { Launcher } from './Launcher';
+import { uiStore } from './uiStore';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  act(() => {
+    uiStore.getState().close();
+    uiStore.getState().setLanguage('th');
+  });
+});
 
 describe('Launcher', () => {
-  it('renders an accessible launcher button', () => {
+  it('renders an accessible launcher button in the default locale', () => {
     render(<Launcher />);
     const button = screen.getByRole('button', {
-      name: 'Open KMITL Course Planner',
+      name: 'เปิด KMITL Course Planner',
     });
     expect(button).toBeInTheDocument();
     expect(button).toHaveTextContent('Planner');
+  });
+
+  it('opens the overlay when activated', () => {
+    render(<Launcher />);
+    fireEvent.click(
+      screen.getByRole('button', { name: 'เปิด KMITL Course Planner' }),
+    );
+    expect(uiStore.getState().isOpen).toBe(true);
+  });
+
+  it('localizes the label when the language is English', () => {
+    act(() => {
+      uiStore.getState().setLanguage('en');
+    });
+    render(<Launcher />);
+    expect(
+      screen.getByRole('button', { name: 'Open KMITL Course Planner' }),
+    ).toBeInTheDocument();
   });
 });
