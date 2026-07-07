@@ -10,6 +10,7 @@ import {
 import type { Section } from '../domain/types';
 import {
   buildSectionIndex,
+  diffSnapshot,
   revalidateEntry,
   revalidatePlan,
   type SectionIndex,
@@ -68,6 +69,36 @@ describe('revalidateEntry', () => {
     const result = revalidateEntry(entry, indexFrom([unrelated]));
     expect(result.outcome).toBe('missing');
     expect(result.freshTeachTableId).toBeNull();
+  });
+});
+
+describe('diffSnapshot classifications', () => {
+  it('reports no changes for an identical section', () => {
+    expect(diffSnapshot(makeSnapshot(), makeSection())).toEqual([]);
+  });
+
+  it('detects a room change without a time change', () => {
+    const fresh = makeSection({ meetings: [makeMeeting({ room: 'B202' })] });
+    expect(diffSnapshot(makeSnapshot(), fresh)).toEqual(['room_changed']);
+  });
+
+  it('detects a teacher change', () => {
+    const fresh = makeSection({ teachersTh: ['New Teacher'] });
+    expect(diffSnapshot(makeSnapshot(), fresh)).toEqual(['teacher_changed']);
+  });
+
+  it('detects a pair change', () => {
+    const fresh = makeSection({ pairedSection: '902' });
+    expect(diffSnapshot(makeSnapshot(), fresh)).toEqual(['pair_changed']);
+  });
+
+  it('detects an exam change', () => {
+    const fresh = makeSection({
+      exam: {
+        midterm: { start: '2026-01-01 09:00:00', end: '2026-01-01 12:00:00' },
+      },
+    });
+    expect(diffSnapshot(makeSnapshot(), fresh)).toEqual(['exam_changed']);
   });
 });
 
