@@ -4,10 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const manifestPath = resolve(
-  here,
-  '../../.output/chrome-mv3/manifest.json',
-);
+const manifestPath = resolve(here, '../../.output/chrome-mv3/manifest.json');
 
 // Guards the least privilege manifest and the debug canary against regressions.
 // Full browser driven end to end coverage arrives in later phases.
