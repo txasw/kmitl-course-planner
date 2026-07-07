@@ -13,7 +13,7 @@ export function Launcher() {
       type="button"
       onClick={handleClick}
       aria-label="Open KMITL Course Planner"
-      className="fixed right-5 bottom-5 z-[2147483647] inline-flex items-center gap-2 rounded-[var(--kcp-radius)] bg-[var(--kcp-primary)] px-4 py-3 text-sm font-semibold text-white shadow-[var(--kcp-shadow)] outline-none transition-colors hover:bg-[var(--kcp-primary-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      className="fixed right-5 bottom-5 z-[2147483647] inline-flex items-center gap-2 rounded-kcp bg-primary px-4 py-3 text-sm font-semibold text-white shadow-kcp outline-none transition-colors hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
     >
       <CalendarDays size={18} strokeWidth={2} aria-hidden />
       <span>Planner</span>

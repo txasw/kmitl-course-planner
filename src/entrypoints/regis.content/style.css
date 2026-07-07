@@ -3,18 +3,40 @@
 @import 'tailwindcss';
 
 /* Spacing is pinned to pixels so the layout does not rescale with the host page
-   root font size, and the font stack carries Thai support. These land on :root
-   and are mirrored onto :host by the build time transform in wxt.config.ts. */
+   root font size, and the font stack carries Thai support. Tailwind v4 emits the
+   @theme variables below under the ":root, :host" selector, and WXT rewrites
+   ":root" to ":host" as it injects this sheet, so they resolve inside the closed
+   shadow root without a separate transform. */
 @theme {
   --spacing: 4px;
   --font-sans:
     'Segoe UI', 'Sukhumvit Set', 'Noto Sans Thai', 'Helvetica Neue', Arial,
     sans-serif;
+
+  /* The --kcp-* tokens on :host are the single source of truth. Mapping them
+     into Tailwind's color, radius, and shadow namespaces exposes first class
+     utilities (bg-primary, text-ink, border-border, rounded-kcp, shadow-kcp)
+     that dereference those tokens, so a value changes in exactly one place. */
+  --color-primary: var(--kcp-primary);
+  --color-primary-hover: var(--kcp-primary-hover);
+  --color-primary-soft: var(--kcp-primary-soft);
+  --color-ink: var(--kcp-ink);
+  --color-ink-soft: var(--kcp-ink-soft);
+  --color-surface: var(--kcp-surface);
+  --color-surface-alt: var(--kcp-surface-alt);
+  --color-border: var(--kcp-border);
+  --color-danger: var(--kcp-danger);
+  --color-danger-soft: var(--kcp-danger-soft);
+  --color-warn: var(--kcp-warn);
+  --color-success: var(--kcp-success);
+  --color-success-soft: var(--kcp-success-soft);
+  --radius-kcp: var(--kcp-radius);
+  --shadow-kcp: var(--kcp-shadow);
 }
 
 /* KMITL design tokens per the brief, declared on the shadow host so every
-   descendant in the closed shadow tree can read them. The full token to utility
-   mapping is completed in the theme phase. */
+   descendant in the closed shadow tree can read them, and so the @theme
+   mappings above dereference them on the same node. */
 :host {
   --kcp-primary: #e35205;
   --kcp-primary-hover: #c74804;
