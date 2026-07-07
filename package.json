@@ -31,7 +31,8 @@
     "lucide-react": "1.23.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
-    "zod": "4.4.3"
+    "zod": "4.4.3",
+    "zustand": "5.0.14"
   },
   "devDependencies": {
     "@changesets/cli": "2.31.0",
