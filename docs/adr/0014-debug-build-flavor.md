@@ -29,3 +29,9 @@ inspection.
 
 One codebase serves both flavors. The canary grep in continuous integration is
 the guarantee that production output stays free of diagnostic code.
+
+The gateway consults a production safe interceptor registry that holds only null
+slots and carries no canary, so the gateway calls its getters unconditionally and
+gets cheap no-ops in production. Debug builds populate the slots through the
+dynamically imported register module, which is the single point the define gates,
+so the whole diagnostic graph and its canary drop from production output.
