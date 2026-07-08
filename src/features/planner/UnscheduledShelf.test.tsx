@@ -1,5 +1,11 @@
-import { describe, it, expect, afterEach } from 'vitest';
-import { render, screen, within, cleanup } from '@testing-library/react';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+import {
+  render,
+  screen,
+  within,
+  fireEvent,
+  cleanup,
+} from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import { UnscheduledShelf } from './UnscheduledShelf';
 import type { PlacedSection } from './placedSection';
@@ -43,5 +49,26 @@ describe('UnscheduledShelf', () => {
     );
     expect(screen.getByText('Lecture')).toBeInTheDocument();
     expect(screen.getByText(/Online subject/)).toBeInTheDocument();
+  });
+
+  it('removes a shelf row on click when a handler is given', () => {
+    const onRemove = vi.fn();
+    render(
+      <UnscheduledShelf
+        sections={[makePlaced()]}
+        locale="th"
+        t={t}
+        onRemove={onRemove}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'นำออก' }));
+    expect(onRemove).toHaveBeenCalledWith('o1');
+  });
+
+  it('shows no remove button without a handler', () => {
+    render(<UnscheduledShelf sections={[makePlaced()]} locale="th" t={t} />);
+    expect(
+      screen.queryByRole('button', { name: 'นำออก' }),
+    ).not.toBeInTheDocument();
   });
 });

@@ -4,6 +4,8 @@
   "app.title": "ตัววางแผนตารางเรียน สจล.",
   "action.close": "ปิด",
   "action.retry": "ลองอีกครั้ง",
+  "action.add": "เพิ่ม",
+  "action.remove": "นำออก",
   "language.select": "เลือกภาษา",
   "language.th": "ไทย",
   "language.en": "English",

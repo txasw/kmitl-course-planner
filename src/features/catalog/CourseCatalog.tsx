@@ -3,17 +3,19 @@
 // Section states are computed against the placed sections read from the plan
 // store, so the catalog is ready for the planner phase without rework.
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useStore } from 'zustand';
 import { RefreshCw } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
-import type { Course } from '@/lib/domain/types';
+import type { Course, Section } from '@/lib/domain/types';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import { computeSeatStatus } from '@/lib/catalog/seatStatus';
 import { computeSectionRelation } from '@/lib/planner/sectionState';
+import { toSourceQuery } from '@/lib/planner/sourceQuery';
 import { filterCourses, type SectionPredicates } from '@/lib/catalog/filter';
 import { useTranslation } from '@/features/shell/useTranslation';
-import { usePlacedSections } from '@/features/plans/planStore';
+import { planStore, usePlacedSections } from '@/features/plans/planStore';
+import { searchStore } from '@/features/search/searchStore';
 import { catalogStore } from './catalogStore';
 import { CourseCard } from './CourseCard';
 import { FilterBar } from './FilterBar';
@@ -72,6 +74,20 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
   const { t, language } = useTranslation();
   const placed = usePlacedSections();
   const filter = useStore(catalogStore, (state) => state.filter);
+  const resultQuery = useStore(searchStore, (state) => state.resultQuery);
+
+  const handleAdd = useCallback(
+    (course: Course, section: Section) => {
+      const sourceQuery = resultQuery
+        ? toSourceQuery(resultQuery)
+        : { endpoint: 'get-teach-table-show' as const, params: {} };
+      planStore.getState().add(course, section, sourceQuery);
+    },
+    [resultQuery],
+  );
+  const handleRemove = useCallback((teachTableId: string) => {
+    planStore.getState().remove(teachTableId);
+  }, []);
 
   const predicates = useMemo<SectionPredicates>(
     () => ({
@@ -139,6 +155,8 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
                 placed={placed}
                 locale={language}
                 t={t}
+                onAdd={handleAdd}
+                onRemove={handleRemove}
               />
             ))}
           </section>

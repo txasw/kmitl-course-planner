@@ -11,12 +11,14 @@ interface UnscheduledShelfProps {
   sections: PlacedSection[];
   locale: Locale;
   t: Translate;
+  onRemove?: ((teachTableId: string) => void) | undefined;
 }
 
 export function UnscheduledShelf({
   sections,
   locale,
   t,
+  onRemove,
 }: UnscheduledShelfProps) {
   return (
     <section
@@ -49,6 +51,17 @@ export function UnscheduledShelf({
                 <span>
                   {section.credit} {t('footer.credits')}
                 </span>
+                {onRemove !== undefined ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onRemove(section.teachTableId);
+                    }}
+                    className="rounded-kcp border border-border px-2 py-0.5 font-medium text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  >
+                    {t('action.remove')}
+                  </button>
+                ) : null}
               </span>
             </li>
           );

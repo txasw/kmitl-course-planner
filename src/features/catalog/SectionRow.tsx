@@ -1,8 +1,9 @@
 // A single section row inside a course card. It shows the section code, a lecture
 // or practice badge, each meeting's day, time, and room, the instructors, the
 // seat status, and the section's state relative to the plan. Conflicting and
-// duplicate sections read dimmed with a stated reason. Add and remove actions and
-// dragging arrive in the planner phase; this row is presentational.
+// duplicate sections read dimmed with a stated reason. When add and remove
+// handlers are supplied it offers an add button for an addable section and a
+// remove button for an added one; dragging arrives with the placement system.
 
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
@@ -51,14 +52,19 @@ interface SectionRowProps {
   seat: SeatStatus;
   locale: Locale;
   t: Translate;
+  onAdd?: ((course: Course, section: Section) => void) | undefined;
+  onRemove?: ((teachTableId: string) => void) | undefined;
 }
 
 export function SectionRow({
+  course,
   section,
   relation,
   seat,
   locale,
   t,
+  onAdd,
+  onRemove,
 }: SectionRowProps) {
   const kind = section.kind;
   const teachers = locale === 'th' ? section.teachersTh : section.teachersEn;
@@ -81,6 +87,30 @@ export function SectionRow({
           </Pill>
           <SeatPill status={seat} t={t} />
           <StateBadge relation={relation} t={t} />
+          {relation.kind === 'addable' &&
+          seat.kind === 'open' &&
+          onAdd !== undefined ? (
+            <button
+              type="button"
+              onClick={() => {
+                onAdd(course, section);
+              }}
+              className="rounded-kcp bg-primary px-2 py-0.5 font-medium text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              {t('action.add')}
+            </button>
+          ) : null}
+          {relation.kind === 'added' && onRemove !== undefined ? (
+            <button
+              type="button"
+              onClick={() => {
+                onRemove(section.teachTableId);
+              }}
+              className="rounded-kcp border border-border px-2 py-0.5 font-medium text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              {t('action.remove')}
+            </button>
+          ) : null}
         </div>
       </div>
 
