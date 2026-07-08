@@ -15,6 +15,7 @@ function fakeAdapter(): StorageAdapter & { store: Map<string, unknown> } {
       store.delete(key);
       return Promise.resolve();
     },
+    keys: () => Promise.resolve([...store.keys()]),
   };
 }
 
@@ -42,16 +43,20 @@ describe('createCacheStore', () => {
     expect((await revived.get('k', 50))?.source).toBe('memory');
   });
 
-  it('clears every entry from both memory and storage', async () => {
+  it('clears cache entries across worker sessions and spares other keys', async () => {
     const adapter = fakeAdapter();
-    const store = createCacheStore(adapter);
-    await store.set('a', 1, 100);
-    await store.set('b', 2, 100);
-    await store.clear();
-    expect(adapter.store.size).toBe(0);
+    await createCacheStore(adapter).set('kcp:cache:teach:a', 1, 100);
+    await createCacheStore(adapter).set('kcp:cache:ref:b', 2, 100);
+    adapter.store.set('kcp:v1', { plans: [] });
+    // A fresh store models a respawned worker with an empty written set; clear
+    // must still drop the durable entries by enumerating storage.
+    const fresh = createCacheStore(adapter);
+    await fresh.clear();
     // A miss even before expiry, from both tiers, confirms memory was cleared too.
-    expect(await store.get('a', 50)).toBeNull();
-    expect(await store.get('b', 50)).toBeNull();
+    expect(await fresh.get('kcp:cache:teach:a', 50)).toBeNull();
+    expect(await fresh.get('kcp:cache:ref:b', 50)).toBeNull();
+    // A non cache key is outside the namespace and must survive.
+    expect(adapter.store.has('kcp:v1')).toBe(true);
   });
 
   it('treats an entry at or past its expiry as a miss', async () => {

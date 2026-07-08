@@ -21,5 +21,9 @@ export function createBrowserStorageAdapter(): StorageAdapter {
     async remove(key) {
       await browser.storage.local.remove(key);
     },
+    async keys() {
+      const all: unknown = await browser.storage.local.get(null);
+      return typeof all === 'object' && all !== null ? Object.keys(all) : [];
+    },
   };
 }
