@@ -16,6 +16,7 @@ import {
 } from '../../contract/expectations';
 import type { DataQualityReport } from '../../contract/report';
 import type { AuditInterceptor } from '../interceptors';
+import type { RequestContext } from '../types';
 
 export const DEBUG_CANARY = 'kcp-debug-canary';
 
@@ -23,6 +24,8 @@ export interface AuditDeps {
   extensionVersion: string;
   now: () => string;
   onReport: (report: DataQualityReport) => void;
+  /** Receives the raw payload so the drawer can show it beside the normalized. */
+  onRaw?: (context: RequestContext, raw: unknown) => void;
 }
 
 function runAudit(
@@ -55,6 +58,7 @@ export function createAuditInterceptor(deps: AuditDeps): AuditInterceptor {
         request: { endpoint: context.endpoint, params: context.params },
       });
       deps.onReport(report);
+      deps.onRaw?.(context, raw);
     },
   };
 }

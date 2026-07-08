@@ -13,7 +13,7 @@ import type {
   RawSubjectOwner,
 } from '../domain/schemas';
 import type { NormalizedCatalog } from '../domain/normalize';
-import type { RequestLogEntry } from '../api/types';
+import type { LatestRaw, RequestLogEntry } from '../api/types';
 import type { DataQualityReport } from '../contract/report';
 
 // The three search modes mirror Section 4.1. Booleans stay booleans here; the
@@ -73,6 +73,7 @@ export const requestMessageSchema = z.discriminatedUnion('type', [
   }),
   z.object({ type: z.literal('debug/getRequestLog') }),
   z.object({ type: z.literal('debug/getReport') }),
+  z.object({ type: z.literal('debug/getLatestRaw') }),
   z.object({
     type: z.literal('debug/setFixture'),
     fixtureId: z.string().nullable(),
@@ -99,6 +100,7 @@ export interface ResponseMap {
   'teachTable/query': Result<NormalizedCatalog>;
   'debug/getRequestLog': Result<RequestLogEntry[]>;
   'debug/getReport': Result<DataQualityReport | null>;
+  'debug/getLatestRaw': Result<LatestRaw | null>;
   'debug/setFixture': Result<void>;
   'debug/setFault': Result<void>;
   'debug/setMutation': Result<void>;

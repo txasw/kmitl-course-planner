@@ -5,7 +5,7 @@
 // its canary never ships. State is per worker lifetime because the MV3 worker is
 // ephemeral.
 
-import type { RequestLogEntry, SimSettings } from '../types';
+import type { LatestRaw, RequestLogEntry, SimSettings } from '../types';
 import type { DataQualityReport } from '../../contract/report';
 import type { Recorder } from '../interceptors';
 
@@ -20,6 +20,8 @@ export interface DebugState {
   getRequestLog(): RequestLogEntry[];
   getReport(): DataQualityReport | null;
   setReport(report: DataQualityReport): void;
+  getLatestRaw(): LatestRaw | null;
+  setLatestRaw(value: LatestRaw): void;
 }
 
 export function createDebugState(): DebugState {
@@ -30,6 +32,7 @@ export function createDebugState(): DebugState {
   };
   const requestLog: RequestLogEntry[] = [];
   let latestReport: DataQualityReport | null = null;
+  let latestRaw: LatestRaw | null = null;
 
   const recorder: Recorder = {
     record(entry) {
@@ -53,6 +56,10 @@ export function createDebugState(): DebugState {
     getReport: () => latestReport,
     setReport(report) {
       latestReport = report;
+    },
+    getLatestRaw: () => latestRaw,
+    setLatestRaw(value) {
+      latestRaw = value;
     },
   };
 }
