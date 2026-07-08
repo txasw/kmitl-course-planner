@@ -13,6 +13,7 @@ import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { useSearchActions } from '@/features/search/useSearchController';
 import { errorMessageKey } from '@/features/search/errorMessage';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { CourseCatalog } from './CourseCatalog';
 
 function termSummary(query: TeachTableQuery | null, t: Translate): string {
   if (query === null) {
@@ -88,8 +89,7 @@ export function CatalogPanel() {
     );
   }
 
-  const { courses, duplicateCount } = result.data;
-  if (courses.length === 0) {
+  if (result.data.courses.length === 0) {
     return (
       <EmptyState
         icon={SearchX}
@@ -99,27 +99,5 @@ export function CatalogPanel() {
     );
   }
 
-  const sectionCount = courses.reduce(
-    (total, course) => total + course.sections.length,
-    0,
-  );
-
-  return (
-    <div className="flex flex-col gap-3">
-      <p className="text-sm text-ink-soft">
-        {courses.length} / {sectionCount} / {duplicateCount}
-      </p>
-      <ul className="flex flex-col gap-2">
-        {courses.map((course) => (
-          <li
-            key={course.subjectId}
-            className="rounded-kcp border border-border p-3 text-sm"
-          >
-            <span className="font-medium text-ink">{course.subjectId}</span>{' '}
-            <span className="text-ink-soft">{course.nameTh}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+  return <CourseCatalog catalog={result.data} />;
 }
