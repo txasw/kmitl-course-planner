@@ -1,7 +1,6 @@
 import { useStore } from 'zustand';
-import { CalendarDays } from 'lucide-react';
-import { EmptyState } from '@/components/EmptyState';
 import { CatalogPanel } from '@/features/catalog/CatalogPanel';
+import { PlannerPanel } from '@/features/planner/PlannerPanel';
 import { SearchForm } from '@/features/search/SearchForm';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
@@ -12,8 +11,8 @@ export const DRAWER_ID = 'kcp-catalog-drawer';
 // The three region body: a left search rail, a center catalog, and a dominant
 // right grid. Below the xl breakpoint the catalog collapses into a slide over
 // drawer toggled from the header; the drawer open state lives in the ui store.
-// The search rail and catalog carry their features; the grid arrives in a later
-// phase and keeps a designed empty state.
+// The search rail and catalog carry their features; the grid region hosts the
+// weekly timetable, which renders from the plan snapshots.
 export function Layout() {
   const { t } = useTranslation();
   const drawerOpen = useStore(uiStore, (state) => state.drawerOpen);
@@ -31,12 +30,8 @@ export function Layout() {
         {catalog}
       </div>
 
-      <div className="min-w-0 flex-1 kcp-scroll overflow-y-auto p-6">
-        <EmptyState
-          icon={CalendarDays}
-          title={t('grid.emptyTitle')}
-          description={t('grid.emptyBody')}
-        />
+      <div className="min-w-0 flex-1 overflow-hidden p-4">
+        <PlannerPanel />
       </div>
 
       <div className="xl:hidden">
