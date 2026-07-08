@@ -92,7 +92,11 @@ export async function pickOption(
   const combo = page.getByRole('combobox', { name: comboName });
   await combo.click();
   if (filter !== undefined) {
+    // Typing highlights the first match; Enter confirms it.
     await combo.fill(filter);
+  } else {
+    // With no filter nothing is highlighted yet, so move onto the first option.
+    await combo.press('ArrowDown');
   }
   await combo.press('Enter');
 }

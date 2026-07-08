@@ -52,11 +52,28 @@ describe('Combobox', () => {
 
   it('selects an option by keyboard', () => {
     const { onChange, input } = setup();
-    input.focus();
+    fireEvent.focus(input);
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onChange).toHaveBeenCalledWith('02');
+  });
+
+  it('commits nothing on Enter before any option is highlighted', () => {
+    const { onChange, input } = setup();
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('keeps the filter when the open input is clicked again', () => {
+    const { input } = setup();
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: 'sci' } });
+    fireEvent.click(input);
+    const options = screen.getAllByRole('option');
+    expect(options).toHaveLength(1);
+    expect(options[0]).toHaveTextContent('Science');
   });
 
   it('closes on Escape without selecting', () => {
