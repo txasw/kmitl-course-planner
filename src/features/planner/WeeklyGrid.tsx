@@ -18,9 +18,14 @@ import {
   quarterCount,
   type GridWindow,
 } from '@/lib/planner/grid';
+import { candidateFootprints } from '@/lib/planner/candidateLayout';
 import { dragStore } from './dragStore';
+import { CandidateSlot } from './CandidateSlot';
 import { EventBlock } from './EventBlock';
 import type { PlacedSection } from './placedSection';
+
+const MAX_STACK_OFFSET = 4;
+const STACK_STEP_PX = 5;
 
 const AXIS_ROW = 1;
 const FIRST_DAY_ROW = 2;
@@ -66,6 +71,8 @@ export function WeeklyGrid({ sections, window, locale, t }: WeeklyGridProps) {
 
   const active = useStore(dragStore, (state) => state.active);
   const hover = useStore(dragStore, (state) => state.hover);
+  const courseDrag = useStore(dragStore, (state) => state.courseDrag);
+  const raised = useStore(dragStore, (state) => state.raised);
   const blocked = active !== null && !active.placement.ok;
   const blockingIds = useMemo(() => {
     const ids = new Set<string>();
@@ -164,6 +171,29 @@ export function WeeklyGrid({ sections, window, locale, t }: WeeklyGridProps) {
               style={blockStyle(meeting, window)}
             />
           ))
+        : null}
+
+      {courseDrag !== null
+        ? candidateFootprints(courseDrag.candidates, window).map(
+            (footprint) => {
+              const offset =
+                Math.min(footprint.stack, MAX_STACK_OFFSET) * STACK_STEP_PX;
+              const id = `cand-${footprint.candidate.section.teachTableId}-${String(footprint.meeting.day)}-${String(footprint.meeting.startMin)}`;
+              return (
+                <CandidateSlot
+                  key={id}
+                  id={id}
+                  candidate={footprint.candidate}
+                  raised={footprint.candidate.section.teachTableId === raised}
+                  style={{
+                    ...blockStyle(footprint.meeting, window),
+                    marginLeft: `${String(offset)}px`,
+                    marginTop: `${String(offset)}px`,
+                  }}
+                />
+              );
+            },
+          )
         : null}
     </div>
   );
