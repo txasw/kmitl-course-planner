@@ -100,6 +100,11 @@ export function teachTableParams(
 ): Record<string, string> {
   const params: Record<string, string> = {};
   for (const [key, value] of Object.entries(query)) {
+    // An omitted optional field such as selected_faculty for an all faculties
+    // search carries no value and is not sent.
+    if (value === undefined) {
+      continue;
+    }
     params[key] = typeof value === 'boolean' ? String(value) : value;
   }
   return params;

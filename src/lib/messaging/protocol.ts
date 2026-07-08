@@ -52,7 +52,8 @@ export const teachTableQuerySchema = z.discriminatedUnion('mode', [
     mode: z.literal('by_subject_owner_id'),
     selected_year: z.string(),
     selected_semester: z.string(),
-    selected_faculty: z.string(),
+    // Omitted for an all faculties search; present for a specific faculty.
+    selected_faculty: z.string().optional(),
     search_all_faculty: z.boolean(),
     selected_subject_owner_id: z.string(),
   }),

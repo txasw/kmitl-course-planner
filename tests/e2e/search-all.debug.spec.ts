@@ -29,3 +29,15 @@ test('searches a subject id across everything', async ({ context }) => {
     timeout: 15_000,
   });
 });
+
+test('searches a category across all faculties', async ({ context }) => {
+  const page = await openPlanner(context);
+  await page.getByRole('button', { name: 'หมวดวิชา' }).click();
+  await pickOption(page, 'คณะ', 'ทุกคณะ');
+  await pickOption(page, 'หมวดวิชา', '90592xxx');
+  await page.getByRole('button', { name: 'ค้นหา' }).click();
+
+  await expect(page.getByText('90592033').first()).toBeVisible({
+    timeout: 15_000,
+  });
+});

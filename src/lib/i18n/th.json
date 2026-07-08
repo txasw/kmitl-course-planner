@@ -26,6 +26,8 @@
   "search.subjectOwner": "หมวดวิชา",
   "search.selectPlaceholder": "เลือก",
   "search.classYearAll": "ทุกชั้นปี",
+  "search.curriculumAll": "ทุกหลักสูตร",
+  "search.facultyAll": "ทุกคณะ",
   "search.optionsLoading": "กำลังโหลด",
   "search.submit": "ค้นหา",
   "search.subjectIdHint": "รหัสวิชา 1 ถึง 8 หลัก",

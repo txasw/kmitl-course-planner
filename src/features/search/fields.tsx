@@ -26,6 +26,7 @@ import {
   subjectOwnerName,
 } from '@/lib/reference/filters';
 import {
+  ALL_OPTION,
   CLASS_YEARS,
   asClassYear,
   asSemester,
@@ -132,6 +133,8 @@ interface FacultySelectProps {
   locale: Locale;
   t: Translate;
   onChange: (value: string) => void;
+  /** Offer an all faculties option, verified only for the category tab. */
+  includeAll?: boolean;
 }
 
 export function FacultySelect({
@@ -140,11 +143,17 @@ export function FacultySelect({
   locale,
   t,
   onChange,
+  includeAll = false,
 }: FacultySelectProps) {
-  const options = sortFacultiesById(readyData(faculties)).map((faculty) => ({
-    value: faculty.FACULTY_ID,
-    label: `${faculty.FACULTY_ID} ${facultyName(faculty, locale)}`,
-  }));
+  const options = [
+    ...(includeAll
+      ? [{ value: ALL_OPTION, label: t('search.facultyAll') }]
+      : []),
+    ...sortFacultiesById(readyData(faculties)).map((faculty) => ({
+      value: faculty.FACULTY_ID,
+      label: `${faculty.FACULTY_ID} ${facultyName(faculty, locale)}`,
+    })),
+  ];
   return (
     <Combobox
       label={t('search.faculty')}
@@ -186,14 +195,17 @@ export function ClassFields({
     label: `${department.department_id} ${departmentName(department, locale)}`,
   }));
 
-  const curriculumOptions = curriculaFor(
-    readyData(reference.curricula),
-    form.faculty,
-    form.department,
-  ).map((curriculum) => ({
-    value: curriculum.REGISTRAR_CURRICULUM2_ID,
-    label: curriculumName(curriculum, locale),
-  }));
+  const curriculumOptions = [
+    { value: ALL_OPTION, label: t('search.curriculumAll') },
+    ...curriculaFor(
+      readyData(reference.curricula),
+      form.faculty,
+      form.department,
+    ).map((curriculum) => ({
+      value: curriculum.REGISTRAR_CURRICULUM2_ID,
+      label: curriculumName(curriculum, locale),
+    })),
+  ];
 
   const classYearOptions = CLASS_YEARS.map((value) => ({
     value,
@@ -314,6 +326,7 @@ export function CategoryFields({
         faculties={reference.faculties}
         locale={locale}
         t={t}
+        includeAll
         onChange={(faculty) => {
           patch({ faculty });
         }}
