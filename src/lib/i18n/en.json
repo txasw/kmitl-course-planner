@@ -66,6 +66,8 @@
   "section.reason.conflictWith": "Conflicts with",
   "section.reason.duplicate": "This subject is already in the plan",
   "feedback.removed": "Removed",
+  "feedback.tryInstead": "Or try",
+  "feedback.revealInCatalog": "Show in the list",
   "seat.open": "Open",
   "seat.full": "Full",
   "seat.closed": "Closed",
