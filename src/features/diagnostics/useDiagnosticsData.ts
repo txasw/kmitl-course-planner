@@ -59,9 +59,11 @@ export function useDiagnosticsData(send: TypedSend): {
   useEffect(
     () =>
       searchStore.subscribe((state, previous) => {
+        // Refresh on a terminal result, ready or error: a payload that breaks the
+        // hard gate still produced an audit report worth surfacing.
         if (
           state.result !== previous.result &&
-          state.result.status === 'ready'
+          (state.result.status === 'ready' || state.result.status === 'error')
         ) {
           refresh();
         }
