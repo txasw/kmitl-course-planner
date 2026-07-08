@@ -78,4 +78,14 @@ describe('dragStore', () => {
     expect(store.getState().active).toBeNull();
     expect(store.getState().blocked?.conflicts.length).toBeGreaterThan(0);
   });
+
+  it('starts and clears a course drag with its candidates', () => {
+    const store = createDragStore();
+    const { course } = draggedSection();
+    store.getState().startCourse(course, []);
+    expect(store.getState().courseDrag?.candidates).toHaveLength(1);
+    expect(store.getState().courseDrag?.candidates[0]?.valid).toBe(true);
+    store.getState().clearCourse();
+    expect(store.getState().courseDrag).toBeNull();
+  });
 });
