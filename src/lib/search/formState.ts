@@ -95,7 +95,10 @@ export function asClassYear(value: string): ClassYear | null {
 
 export function isClassFormReady(form: ClassForm): boolean {
   return (
-    form.faculty !== '' && form.department !== '' && form.curriculum !== ''
+    form.year !== '' &&
+    form.faculty !== '' &&
+    form.department !== '' &&
+    form.curriculum !== ''
   );
 }
 
@@ -104,7 +107,7 @@ export function isSubjectIdFormReady(form: SubjectIdForm): boolean {
 }
 
 export function isCategoryFormReady(form: CategoryForm): boolean {
-  return form.faculty !== '' && form.subjectOwner !== '';
+  return form.year !== '' && form.faculty !== '' && form.subjectOwner !== '';
 }
 
 function classParams(form: ClassForm) {

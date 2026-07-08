@@ -87,6 +87,22 @@ describe('form readiness', () => {
       isCategoryFormReady({ ...form, faculty: '01', subjectOwner: '32' }),
     ).toBe(true);
   });
+
+  it('requires a year on both tabs', () => {
+    const category = {
+      ...defaultCategoryForm(term),
+      faculty: '01',
+      subjectOwner: '32',
+    };
+    expect(isCategoryFormReady({ ...category, year: '' })).toBe(false);
+    const classForm = {
+      ...defaultClassForm(term),
+      faculty: '01',
+      department: '01',
+      curriculum: '121',
+    };
+    expect(isClassFormReady({ ...classForm, year: '' })).toBe(false);
+  });
 });
 
 describe('query builders', () => {
