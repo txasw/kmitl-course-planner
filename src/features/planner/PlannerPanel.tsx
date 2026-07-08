@@ -10,6 +10,7 @@ import { planStore } from '@/features/plans/planStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { isScheduled, toPlacedSection } from './placedSection';
+import { FeedbackStrip } from './FeedbackStrip';
 import { GridFooter } from './GridFooter';
 import { PosterHeader } from './PosterHeader';
 import { UnscheduledShelf } from './UnscheduledShelf';
@@ -47,6 +48,7 @@ export function PlannerPanel() {
           t={t}
         />
       ) : null}
+      {viewMode === 'edit' ? <FeedbackStrip locale={language} t={t} /> : null}
       <div className="relative min-h-0 flex-1 overflow-auto kcp-scroll">
         <WeeklyGrid
           sections={scheduled}
