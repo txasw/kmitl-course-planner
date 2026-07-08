@@ -17,5 +17,5 @@ test('renders the deduped catalog for a category search', async ({
   await expect(page.getByText('90592033').first()).toBeVisible({
     timeout: 15_000,
   });
-  await expect(page.getByText('4 ตอนเรียน').first()).toBeVisible();
+  await expect(page.getByText('4 กลุ่มเรียน').first()).toBeVisible();
 });
