@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { sanitizeToLines } from './sanitize';
 
 describe('sanitizeToLines', () => {
@@ -20,8 +20,17 @@ describe('sanitizeToLines', () => {
     ]);
   });
 
-  it('decodes HTML entities to their text', () => {
+  it('decodes named, decimal, and hex entities to their text', () => {
     expect(sanitizeToLines('<div>A &amp; B</div>')).toEqual(['A & B']);
+    // Thai character ko kai as a decimal and a hex numeric entity.
+    expect(sanitizeToLines('<div>&#3585;</div>')).toEqual(['ก']);
+    expect(sanitizeToLines('<div>&#x0E01;</div>')).toEqual(['ก']);
+  });
+
+  it('leaves an unknown entity untouched', () => {
+    expect(sanitizeToLines('<div>a &unknownentity; b</div>')).toEqual([
+      'a &unknownentity; b',
+    ]);
   });
 
   it('treats a plain string with no wrapper as one line', () => {
@@ -43,5 +52,19 @@ describe('sanitizeToLines', () => {
     expect(sanitizeToLines('<div>safe</div><script>value=1</script>')).toEqual([
       'safe',
     ]);
+  });
+
+  it('parses without DOMParser, as in the service worker', () => {
+    // Normalization runs in the worker, which has no DOM. Removing DOMParser
+    // must not break sanitizing.
+    vi.stubGlobal('DOMParser', undefined);
+    try {
+      expect(sanitizeToLines('<div>อ. A</div><div>B</div>')).toEqual([
+        'อ. A',
+        'B',
+      ]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
