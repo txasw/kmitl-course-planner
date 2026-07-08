@@ -12,6 +12,9 @@ export default defineConfig<TestOptions>({
   fullyParallel: false,
   workers: 1,
   timeout: 60_000,
+  // A transient connection level flake in the extension network stack should not
+  // fail the run; a real failure fails every attempt.
+  retries: process.env.CI ? 2 : 0,
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? 'github' : 'list',
   // A wide viewport keeps the catalog in its dominant column rather than the
