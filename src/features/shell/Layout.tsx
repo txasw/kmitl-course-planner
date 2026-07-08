@@ -23,15 +23,15 @@ export function Layout() {
 
   return (
     <div className="relative flex h-full">
-      <div className="w-80 shrink-0 overflow-y-auto border-r border-border p-6">
+      <div className="w-80 shrink-0 kcp-scroll overflow-y-auto border-r border-border p-6">
         <SearchForm />
       </div>
 
-      <div className="hidden w-96 shrink-0 overflow-y-auto border-r border-border p-6 xl:block">
+      <div className="hidden w-96 shrink-0 kcp-scroll overflow-y-auto border-r border-border p-6 xl:block">
         {catalog}
       </div>
 
-      <div className="min-w-0 flex-1 overflow-y-auto p-6">
+      <div className="min-w-0 flex-1 kcp-scroll overflow-y-auto p-6">
         <EmptyState
           icon={CalendarDays}
           title={t('grid.emptyTitle')}
@@ -53,7 +53,7 @@ export function Layout() {
         <div
           id={DRAWER_ID}
           aria-hidden={!drawerOpen}
-          className={`absolute inset-y-0 left-0 z-20 w-80 max-w-[85%] overflow-y-auto border-r border-border bg-surface p-6 shadow-kcp transition-transform duration-200 motion-reduce:transition-none ${
+          className={`absolute inset-y-0 left-0 z-20 w-80 max-w-[85%] kcp-scroll overflow-y-auto border-r border-border bg-surface p-6 shadow-kcp transition-transform duration-200 motion-reduce:transition-none ${
             drawerOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >

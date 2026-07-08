@@ -87,7 +87,7 @@ export function ReportView({ report }: { report: DataQualityReport | null }) {
 }
 
 const PRE =
-  'max-h-96 overflow-auto rounded-kcp border border-border bg-surface-alt p-2 text-xs';
+  'max-h-96 kcp-scroll overflow-auto rounded-kcp border border-border bg-surface-alt p-2 text-xs';
 
 export function RawNormalizedView({
   latestRaw,

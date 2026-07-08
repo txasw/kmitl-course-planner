@@ -127,7 +127,7 @@ export function SearchForm() {
         </div>
       ) : null}
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 kcp-scroll overflow-y-auto">
         {activeTab === 'by_class' ? (
           <ClassFields
             form={byClass}
