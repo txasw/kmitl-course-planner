@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { teachTableQuerySchema } from '../messaging/protocol';
 import type { Term } from '../routing/academicTerms';
 import {
+  asClassYear,
+  asSemester,
   buildCategoryQuery,
   buildClassQuery,
   buildSubjectIdQuery,
+  buildTeachTableQueryForTab,
   defaultCategoryForm,
   defaultClassForm,
   defaultSubjectIdForm,
@@ -26,6 +29,20 @@ describe('isValidSubjectId', () => {
     expect(isValidSubjectId('')).toBe(false);
     expect(isValidSubjectId('123456789')).toBe(false);
     expect(isValidSubjectId('12a')).toBe(false);
+  });
+});
+
+describe('narrowing helpers', () => {
+  it('narrows a valid semester and rejects others', () => {
+    expect(asSemester('2')).toBe('2');
+    expect(asSemester('9')).toBeNull();
+    expect(asSemester('')).toBeNull();
+  });
+
+  it('narrows a valid class year including the all option', () => {
+    expect(asClassYear('4')).toBe('4');
+    expect(asClassYear('all')).toBe('all');
+    expect(asClassYear('99')).toBeNull();
   });
 });
 
@@ -130,5 +147,31 @@ describe('query builders', () => {
       selected_faculty: '01',
       selected_subject_owner_id: '32',
     });
+  });
+});
+
+describe('buildTeachTableQueryForTab', () => {
+  const forms = {
+    byClass: defaultClassForm(term),
+    bySubjectId: defaultSubjectIdForm(term),
+    byCategory: defaultCategoryForm(term),
+  };
+
+  it('returns null when the active tab form is not ready', () => {
+    expect(buildTeachTableQueryForTab('by_class', forms)).toBeNull();
+    expect(buildTeachTableQueryForTab('by_subject_owner_id', forms)).toBeNull();
+  });
+
+  it('builds the query for the active tab when its form is ready', () => {
+    const ready = {
+      ...forms,
+      byCategory: {
+        ...forms.byCategory,
+        faculty: '01',
+        subjectOwner: '32',
+      },
+    };
+    const query = buildTeachTableQueryForTab('by_subject_owner_id', ready);
+    expect(query?.mode).toBe('by_subject_owner_id');
   });
 });
