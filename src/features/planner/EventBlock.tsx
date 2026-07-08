@@ -18,6 +18,8 @@ interface EventBlockProps {
   style: CSSProperties;
   locale: Locale;
   t: Translate;
+  /** Whether this block is blocking the active drag and should pulse. */
+  pulsing?: boolean;
 }
 
 export function EventBlock({
@@ -26,6 +28,7 @@ export function EventBlock({
   style,
   locale,
   t,
+  pulsing = false,
 }: EventBlockProps) {
   const name = locale === 'th' ? section.nameTh : section.nameEn;
   const time = `${formatMinutes(meeting.startMin)}-${formatMinutes(meeting.endMin)}`;
@@ -35,7 +38,7 @@ export function EventBlock({
     <div
       data-teach-table-id={section.teachTableId}
       aria-label={label}
-      className="m-px flex min-w-0 flex-col overflow-hidden rounded-kcp px-1.5 py-1 text-[11px] leading-tight text-white"
+      className={`kcp-settle m-px flex min-w-0 flex-col overflow-hidden rounded-kcp px-1.5 py-1 text-[11px] leading-tight text-white ${pulsing ? 'kcp-pulse' : ''}`}
       style={{ ...style, backgroundColor: hashColor(section.subjectId) }}
     >
       <span className="truncate font-semibold">

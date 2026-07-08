@@ -11,11 +11,10 @@ import type { Course, Section } from '@/lib/domain/types';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import { computeSeatStatus } from '@/lib/catalog/seatStatus';
 import { computeSectionRelation } from '@/lib/planner/sectionState';
-import { toSourceQuery } from '@/lib/planner/sourceQuery';
 import { filterCourses, type SectionPredicates } from '@/lib/catalog/filter';
 import { useTranslation } from '@/features/shell/useTranslation';
-import { planStore, usePlacedSections } from '@/features/plans/planStore';
-import { searchStore } from '@/features/search/searchStore';
+import { usePlacedSections, planStore } from '@/features/plans/planStore';
+import { addSectionToPlan } from '@/features/plans/addToPlan';
 import { catalogStore } from './catalogStore';
 import { CourseCard } from './CourseCard';
 import { FilterBar } from './FilterBar';
@@ -74,17 +73,10 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
   const { t, language } = useTranslation();
   const placed = usePlacedSections();
   const filter = useStore(catalogStore, (state) => state.filter);
-  const resultQuery = useStore(searchStore, (state) => state.resultQuery);
 
-  const handleAdd = useCallback(
-    (course: Course, section: Section) => {
-      const sourceQuery = resultQuery
-        ? toSourceQuery(resultQuery)
-        : { endpoint: 'get-teach-table-show' as const, params: {} };
-      planStore.getState().add(course, section, sourceQuery);
-    },
-    [resultQuery],
-  );
+  const handleAdd = useCallback((course: Course, section: Section) => {
+    addSectionToPlan(course, section);
+  }, []);
   const handleRemove = useCallback((teachTableId: string) => {
     planStore.getState().remove(teachTableId);
   }, []);

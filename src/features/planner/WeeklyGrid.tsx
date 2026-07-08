@@ -4,8 +4,9 @@
 // day row. A per day lane draws the hour and quarter gridlines with a gradient so
 // the line count follows the window without a cell per quarter.
 
-import { Fragment } from 'react';
+import { Fragment, useMemo } from 'react';
 import type { CSSProperties } from 'react';
+import { useStore } from 'zustand';
 import type { Meeting } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
@@ -17,6 +18,7 @@ import {
   quarterCount,
   type GridWindow,
 } from '@/lib/planner/grid';
+import { dragStore } from './dragStore';
 import { EventBlock } from './EventBlock';
 import type { PlacedSection } from './placedSection';
 
@@ -62,11 +64,25 @@ export function WeeklyGrid({ sections, window, locale, t }: WeeklyGridProps) {
     gridTemplateRows: `auto repeat(${String(WEEK_DAYS.length)}, minmax(2.5rem, 1fr))`,
   };
 
+  const active = useStore(dragStore, (state) => state.active);
+  const blocked = active !== null && !active.placement.ok;
+  const blockingIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (active !== null && !active.placement.ok) {
+      for (const conflict of active.placement.conflicts) {
+        if (conflict.kind === 'time') {
+          ids.add(conflict.blocking.teachTableId);
+        }
+      }
+    }
+    return ids;
+  }, [active]);
+
   return (
     <div
       role="group"
       aria-label={t('grid.label')}
-      className="grid h-full min-w-[44rem] text-ink"
+      className={`grid h-full min-w-[44rem] text-ink ${blocked ? 'cursor-not-allowed' : ''}`}
       style={gridStyle}
     >
       {ticks.map((min, index) => (
@@ -114,9 +130,28 @@ export function WeeklyGrid({ sections, window, locale, t }: WeeklyGridProps) {
             style={blockStyle(meeting, window)}
             locale={locale}
             t={t}
+            pulsing={blockingIds.has(section.teachTableId)}
           />
         )),
       )}
+
+      {active !== null
+        ? active.group.flatMap((groupSection) =>
+            groupSection.meetings.map((meeting) => (
+              <div
+                key={`ghost-${groupSection.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`}
+                aria-hidden
+                data-ghost={active.placement.ok ? 'valid' : 'blocked'}
+                className={`pointer-events-none m-px rounded-kcp border ${
+                  active.placement.ok
+                    ? 'border-success bg-success-soft'
+                    : 'kcp-hatch border-danger bg-danger-soft'
+                }`}
+                style={blockStyle(meeting, window)}
+              />
+            )),
+          )
+        : null}
     </div>
   );
 }

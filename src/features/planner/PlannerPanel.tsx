@@ -10,6 +10,7 @@ import { planStore } from '@/features/plans/planStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { isScheduled, toPlacedSection } from './placedSection';
+import { dragStore } from './dragStore';
 import { FeedbackStrip } from './FeedbackStrip';
 import { GridFooter } from './GridFooter';
 import { PosterHeader } from './PosterHeader';
@@ -20,6 +21,7 @@ export function PlannerPanel() {
   const { t, language } = useTranslation();
   const entries = useStore(planStore, (state) => state.entries);
   const viewMode = useStore(uiStore, (state) => state.viewMode);
+  const activeDrag = useStore(dragStore, (state) => state.active);
 
   const sections = useMemo(
     () => entries.map((entry) => toPlacedSection(entry.snapshot)),
@@ -30,10 +32,14 @@ export function PlannerPanel() {
     () => sections.filter((section) => !isScheduled(section)),
     [sections],
   );
-  const window = useMemo(
-    () => computeWindow(scheduled.flatMap((section) => section.meetings)),
-    [scheduled],
-  );
+  const window = useMemo(() => {
+    const placedMeetings = scheduled.flatMap((section) => section.meetings);
+    const dragMeetings =
+      activeDrag === null
+        ? []
+        : activeDrag.group.flatMap((section) => section.meetings);
+    return computeWindow([...placedMeetings, ...dragMeetings]);
+  }, [scheduled, activeDrag]);
   const handleRemove = useCallback((teachTableId: string) => {
     planStore.getState().remove(teachTableId);
   }, []);
