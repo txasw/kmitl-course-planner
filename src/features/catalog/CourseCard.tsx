@@ -60,7 +60,10 @@ export function CourseCard({
               onRemove={onRemove}
             />
           );
-          if (relation.kind === 'addable' && seat.kind === 'open') {
+          if (
+            (relation.kind === 'addable' || relation.kind === 'conflicting') &&
+            seat.kind === 'open'
+          ) {
             return (
               <DraggableSection
                 key={section.teachTableId}

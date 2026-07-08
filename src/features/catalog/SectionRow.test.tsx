@@ -50,12 +50,29 @@ describe('SectionRow actions', () => {
     expect(onRemove).toHaveBeenCalledWith(section.teachTableId);
   });
 
-  it('offers no add button for a conflicting section', () => {
+  it('offers an add button on a conflicting open section that fires the handler', () => {
+    const onAdd = vi.fn();
     render(
       <SectionRow
         course={course}
         section={section}
         relation={{ kind: 'conflicting', conflicts: [] }}
+        seat={openSeat}
+        locale="th"
+        t={t}
+        onAdd={onAdd}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'เพิ่ม' }));
+    expect(onAdd).toHaveBeenCalledWith(course, section);
+  });
+
+  it('offers no add button for a duplicate section', () => {
+    render(
+      <SectionRow
+        course={course}
+        section={section}
+        relation={{ kind: 'duplicate', subjectId: '90000001' }}
         seat={openSeat}
         locale="th"
         t={t}
