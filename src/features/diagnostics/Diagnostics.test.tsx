@@ -48,7 +48,7 @@ function report(): DataQualityReport {
   };
 }
 
-function fakeSend(): TypedSend {
+function fakeSend(mutationId: string | null): TypedSend {
   const handler = (message: RequestMessage) => {
     switch (message.type) {
       case 'debug/getRequestLog':
@@ -74,6 +74,10 @@ function fakeSend(): TypedSend {
             request: { endpoint: 'get-teach-table-show', params: {} },
           }),
         );
+      case 'debug/getSimulation':
+        return Promise.resolve(
+          ok({ fixtureId: null, faultId: null, mutationId }),
+        );
       default:
         return Promise.resolve(ok(undefined));
     }
@@ -81,9 +85,9 @@ function fakeSend(): TypedSend {
   return handler as unknown as TypedSend;
 }
 
-function deps(): SearchDeps {
+function deps(mutationId: string | null = null): SearchDeps {
   return {
-    send: fakeSend(),
+    send: fakeSend(mutationId),
     repo: { load: () => Promise.resolve(null), save: () => Promise.resolve() },
   };
 }
@@ -123,5 +127,22 @@ describe('Diagnostics drawer', () => {
     expect(
       screen.getByRole('heading', { name: 'Normalized' }),
     ).toBeInTheDocument();
+  });
+
+  it('rehydrates the simulation controls from the worker', async () => {
+    render(
+      <SearchDepsProvider value={deps('drop_teach_time2')}>
+        <Diagnostics />
+      </SearchDepsProvider>,
+    );
+    // The trigger reflects the armed simulation once the worker state loads.
+    const trigger = await screen.findByRole('button', {
+      name: 'Diagnostics, simulation armed',
+    });
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByRole('button', { name: 'Simulation' }));
+    expect(screen.getByRole('combobox', { name: 'Mutation' })).toHaveValue(
+      'drop_teach_time2',
+    );
   });
 });

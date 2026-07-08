@@ -7,9 +7,8 @@
 
 import { useState } from 'react';
 import { useStore } from 'zustand';
-import type { LatestRaw, RequestLogEntry } from '@/lib/api/types';
+import type { LatestRaw, RequestLogEntry, SimSettings } from '@/lib/api/types';
 import type { DataQualityReport } from '@/lib/contract/report';
-import type { TypedSend } from '@/lib/messaging/sendTyped';
 import { FAULT_PRESETS } from '@/lib/api/debug/faults';
 import { MUTATION_PRESETS } from '@/lib/contract/mutations';
 import { searchStore } from '@/features/search/searchStore';
@@ -123,9 +122,21 @@ export function RawNormalizedView({
 const SELECT =
   'rounded-kcp border border-border bg-surface px-2 py-1.5 text-ink focus:ring-2 focus:ring-primary focus:outline-none';
 
-export function SimulationControls({ send }: { send: TypedSend }) {
-  const [fault, setFault] = useState('');
-  const [mutation, setMutation] = useState('');
+interface SimulationControlsProps {
+  simulation: SimSettings;
+  onSetFault: (id: string | null) => void;
+  onSetMutation: (id: string | null) => void;
+}
+
+export function SimulationControls({
+  simulation,
+  onSetFault,
+  onSetMutation,
+}: SimulationControlsProps) {
+  // Seeded from the worker state so a return to this tab rehydrates the current
+  // selection rather than showing none while a simulation is still armed.
+  const [fault, setFault] = useState(simulation.faultId ?? '');
+  const [mutation, setMutation] = useState(simulation.mutationId ?? '');
   return (
     <div className="flex flex-col gap-3 text-sm">
       <label className="flex flex-col gap-1">
@@ -136,10 +147,7 @@ export function SimulationControls({ send }: { send: TypedSend }) {
           onChange={(event) => {
             const id = event.target.value;
             setFault(id);
-            void send({
-              type: 'debug/setFault',
-              faultId: id === '' ? null : id,
-            });
+            onSetFault(id === '' ? null : id);
           }}
         >
           <option value="">None</option>
@@ -158,10 +166,7 @@ export function SimulationControls({ send }: { send: TypedSend }) {
           onChange={(event) => {
             const id = event.target.value;
             setMutation(id);
-            void send({
-              type: 'debug/setMutation',
-              mutationId: id === '' ? null : id,
-            });
+            onSetMutation(id === '' ? null : id);
           }}
         >
           <option value="">None</option>

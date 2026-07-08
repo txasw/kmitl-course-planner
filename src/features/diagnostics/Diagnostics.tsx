@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import { Bug, RefreshCw, X } from 'lucide-react';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
-import { useDiagnosticsData } from './useDiagnosticsData';
+import { isSimulationArmed, useDiagnosticsData } from './useDiagnosticsData';
 import {
   RawNormalizedView,
   ReportView,
@@ -49,6 +49,17 @@ export function Diagnostics() {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>('requests');
 
+  const armed = isSimulationArmed(data.simulation);
+
+  const setFault = (faultId: string | null) => {
+    void send({ type: 'debug/setFault', faultId });
+    refresh();
+  };
+  const setMutation = (mutationId: string | null) => {
+    void send({ type: 'debug/setMutation', mutationId });
+    refresh();
+  };
+
   if (!open) {
     return (
       <button
@@ -56,10 +67,17 @@ export function Diagnostics() {
         onClick={() => {
           setOpen(true);
         }}
+        aria-label={armed ? 'Diagnostics, simulation armed' : 'Diagnostics'}
         className="fixed bottom-5 left-5 z-[2147483647] inline-flex items-center gap-2 rounded-kcp border border-border bg-surface px-3 py-2 text-sm font-medium text-ink shadow-kcp hover:bg-surface-alt focus:ring-2 focus:ring-primary focus:outline-none"
       >
         <Bug size={16} strokeWidth={2} aria-hidden />
         Diagnostics
+        {armed ? (
+          <span
+            aria-hidden
+            className="absolute -top-1 -right-1 size-2.5 rounded-full bg-warn"
+          />
+        ) : null}
       </button>
     );
   }
@@ -106,13 +124,16 @@ export function Diagnostics() {
             onClick={() => {
               setTab(entry.id);
             }}
-            className={`rounded-kcp px-2 py-1 text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none ${
+            className={`inline-flex items-center gap-1 rounded-kcp px-2 py-1 text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none ${
               tab === entry.id
                 ? 'bg-primary text-surface'
                 : 'text-ink-soft hover:text-ink'
             }`}
           >
             {entry.label}
+            {entry.id === 'simulation' && armed ? (
+              <span aria-hidden className="size-2 rounded-full bg-warn" />
+            ) : null}
           </button>
         ))}
       </div>
@@ -123,7 +144,13 @@ export function Diagnostics() {
         {tab === 'raw' ? (
           <RawNormalizedView latestRaw={data.latestRaw} />
         ) : null}
-        {tab === 'simulation' ? <SimulationControls send={send} /> : null}
+        {tab === 'simulation' ? (
+          <SimulationControls
+            simulation={data.simulation}
+            onSetFault={setFault}
+            onSetMutation={setMutation}
+          />
+        ) : null}
       </div>
 
       <footer className="flex gap-2 border-t border-border p-2">
