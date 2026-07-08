@@ -45,6 +45,7 @@
   "catalog.units.merged": "merged duplicates",
   "catalog.filterEmpty": "No courses match the filters",
   "catalog.refresh": "Refresh",
+  "toast.refreshUnchanged": "Already up to date, nothing changed",
   "catalog.filter.text": "Filter courses",
   "catalog.filter.day": "Day",
   "catalog.filter.credit": "Credits",
