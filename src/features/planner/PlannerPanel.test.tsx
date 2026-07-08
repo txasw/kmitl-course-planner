@@ -8,6 +8,7 @@ import {
   makePlanEntry,
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
+import { expectNoSeriousA11yViolations } from '../../../tests/support/axe';
 import { PlannerPanel } from './PlannerPanel';
 
 function seed(entries: PlanEntry[]): void {
@@ -66,5 +67,28 @@ describe('PlannerPanel', () => {
     });
     render(<PlannerPanel />);
     expect(screen.getByRole('heading', { name: 'ตาราง' })).toBeInTheDocument();
+  });
+
+  it('has no serious accessibility violations when populated', async () => {
+    seed([
+      makePlanEntry({
+        snapshot: makeSnapshot({
+          teachTableId: 's1',
+          subjectId: '90000001',
+          section: '901',
+          meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+        }),
+      }),
+      makePlanEntry({
+        snapshot: makeSnapshot({
+          teachTableId: 'o1',
+          subjectId: '90000002',
+          section: '1',
+          meetings: [],
+        }),
+      }),
+    ]);
+    const { container } = render(<PlannerPanel />);
+    await expectNoSeriousA11yViolations(container);
   });
 });
