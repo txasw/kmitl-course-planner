@@ -3,7 +3,7 @@
 
 import type { Translate } from '@/lib/i18n/t';
 import type { SeatStatus } from '@/lib/catalog/seatStatus';
-import { Pill } from './Pill';
+import { Pill } from '@/components/Pill';
 
 interface SeatPillProps {
   status: SeatStatus;
