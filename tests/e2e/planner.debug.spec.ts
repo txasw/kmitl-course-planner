@@ -40,11 +40,36 @@ test('adds a section from its button, then removes it with undo', async ({
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
 });
 
-// The pointer drag itself is not exercised here: dnd-kit's PointerSensor uses
-// pointer capture rather than HTML5 drag, which headless Playwright does not drive
-// reliably, so the drag validation, ghosts, reason chip, and blocked strip are
-// covered by component tests and the manual QA script instead. The add commit path
-// the drag shares is proven by the button add above.
+test('places a section on the grid by dragging its handle', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await categorySearch(page);
+
+  const handle = page.getByRole('button', { name: /ลากเพื่อเพิ่ม/ }).first();
+  const grid = page.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+  const from = await handle.boundingBox();
+  const to = await grid.boundingBox();
+  expect(from).not.toBeNull();
+  expect(to).not.toBeNull();
+  if (from === null || to === null) {
+    return;
+  }
+
+  // A raw pointer sequence drives the real dnd-kit pointer sensor: press the grip,
+  // move past the activation distance, then onto the grid, and release. The pointer
+  // within collision resolves the drop zone and the placement commits.
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(from.x + 20, from.y + 20, { steps: 5 });
+  await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, {
+    steps: 15,
+  });
+  await page.mouse.up();
+
+  await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
+});
+
 test('lists an added unscheduled course on the shelf', async ({ context }) => {
   const page = await openPlanner(context);
   // The by_class all curricula path surfaces the unscheduled online course 01006029.
