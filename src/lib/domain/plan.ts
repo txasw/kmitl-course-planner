@@ -9,6 +9,7 @@
 
 import { z } from 'zod';
 import type { DayOfWeek } from '../parsing/days';
+import type { Exam, Section } from './types';
 
 const dayOfWeekSchema: z.ZodType<DayOfWeek> = z.union([
   z.literal(0),
@@ -110,3 +111,37 @@ export type SourceQuery = z.infer<typeof sourceQuerySchema>;
 export type SectionSnapshot = z.infer<typeof sectionSnapshotSchema>;
 export type PlanEntry = z.infer<typeof planEntrySchema>;
 export type Plan = z.infer<typeof planSchema>;
+
+/**
+ * Convert a stored snapshot into a plain domain Section for the planner. The
+ * snapshot exam infers its optional fields as `T | undefined` from the schema, so
+ * the exam is rebuilt with only the present fields to satisfy the stricter domain
+ * Exam under exactOptionalPropertyTypes. Every other field maps across directly.
+ */
+export function snapshotToSection(snapshot: SectionSnapshot): Section {
+  const exam: Exam = {};
+  if (snapshot.exam.midterm !== undefined) {
+    exam.midterm = snapshot.exam.midterm;
+  }
+  if (snapshot.exam.final !== undefined) {
+    exam.final = snapshot.exam.final;
+  }
+  if (snapshot.exam.note !== undefined) {
+    exam.note = snapshot.exam.note;
+  }
+  return {
+    teachTableId: snapshot.teachTableId,
+    subjectId: snapshot.subjectId,
+    section: snapshot.section,
+    pairedSection: snapshot.pairedSection,
+    meetings: snapshot.meetings,
+    teachersTh: snapshot.teachersTh,
+    teachersEn: snapshot.teachersEn,
+    seats: snapshot.seats,
+    isClosed: snapshot.isClosed,
+    exam,
+    rulesTh: snapshot.rulesTh,
+    rulesEn: snapshot.rulesEn,
+    remark: snapshot.remark,
+  };
+}
