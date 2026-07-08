@@ -31,6 +31,8 @@ export function createDebugDispatch(state: DebugState): DebugDispatch {
         return Promise.resolve(ok(state.getReport()));
       case 'debug/getLatestRaw':
         return Promise.resolve(ok(state.getLatestRaw()));
+      case 'debug/getSimulation':
+        return Promise.resolve(ok(state.getSettings()));
       case 'debug/setFixture':
         state.setSettings({ fixtureId: message.fixtureId });
         return Promise.resolve(ok(undefined));

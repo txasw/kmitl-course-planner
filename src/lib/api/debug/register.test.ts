@@ -73,6 +73,10 @@ describe('installDebug', () => {
     });
     await dispatch({ type: 'debug/setFault', faultId: 'timeout' });
     expect(state.getSettings().faultId).toBe('timeout');
+    expect(await dispatch({ type: 'debug/getSimulation' })).toEqual({
+      ok: true,
+      value: { fixtureId: null, faultId: 'timeout', mutationId: null },
+    });
   });
 
   it('captures the latest teach table raw payload for the drawer', () => {

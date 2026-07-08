@@ -5,7 +5,7 @@
 // the debug chunk and embeds the canary the production bundle check greps for.
 
 import { useCallback, useEffect, useState } from 'react';
-import type { LatestRaw, RequestLogEntry } from '@/lib/api/types';
+import type { LatestRaw, RequestLogEntry, SimSettings } from '@/lib/api/types';
 import type { DataQualityReport } from '@/lib/contract/report';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import { searchStore } from '@/features/search/searchStore';
@@ -13,10 +13,26 @@ import { uiStore } from '@/features/shell/uiStore';
 
 export const DEBUG_CANARY = 'kcp-debug-canary';
 
+const IDLE_SIMULATION: SimSettings = {
+  fixtureId: null,
+  faultId: null,
+  mutationId: null,
+};
+
 export interface DiagnosticsData {
   log: RequestLogEntry[];
   report: DataQualityReport | null;
   latestRaw: LatestRaw | null;
+  simulation: SimSettings;
+}
+
+/** Whether any fault, fixture, or mutation preset is currently armed. */
+export function isSimulationArmed(simulation: SimSettings): boolean {
+  return (
+    simulation.faultId !== null ||
+    simulation.fixtureId !== null ||
+    simulation.mutationId !== null
+  );
 }
 
 function countIssues(report: DataQualityReport): number {
@@ -31,20 +47,23 @@ export function useDiagnosticsData(send: TypedSend): {
     log: [],
     report: null,
     latestRaw: null,
+    simulation: IDLE_SIMULATION,
   });
 
   const refresh = useCallback(() => {
     void (async () => {
-      const [log, report, raw] = await Promise.all([
+      const [log, report, raw, simulation] = await Promise.all([
         send({ type: 'debug/getRequestLog' }),
         send({ type: 'debug/getReport' }),
         send({ type: 'debug/getLatestRaw' }),
+        send({ type: 'debug/getSimulation' }),
       ]);
       const nextReport = report.ok ? report.value : null;
       setData({
         log: log.ok ? log.value : [],
         report: nextReport,
         latestRaw: raw.ok ? raw.value : null,
+        simulation: simulation.ok ? simulation.value : IDLE_SIMULATION,
       });
       uiStore
         .getState()
