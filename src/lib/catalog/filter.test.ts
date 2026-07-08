@@ -113,4 +113,26 @@ describe('filterCourses', () => {
     expect(result[0]?.sections).toHaveLength(1);
     expect(result[0]?.sections[0]?.section).toBe('901');
   });
+
+  it('hides unscheduled sections with no meetings', () => {
+    const online = makeCourse({
+      subjectId: '01006029',
+      sections: [
+        makeSection({ teachTableId: 'o', section: '1', meetings: [] }),
+      ],
+    });
+    const withOnline = [...courses, online];
+    expect(filterCourses(withOnline, EMPTY_FILTER, NO_PREDICATES)).toHaveLength(
+      3,
+    );
+    const hidden = filterCourses(
+      withOnline,
+      { ...EMPTY_FILTER, hideUnscheduled: true },
+      NO_PREDICATES,
+    );
+    expect(hidden).toHaveLength(2);
+    expect(hidden.some((course) => course.subjectId === '01006029')).toBe(
+      false,
+    );
+  });
 });

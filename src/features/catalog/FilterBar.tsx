@@ -101,6 +101,19 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
             {t('catalog.filter.hideConflicting')}
           </span>
         </label>
+        <label className="flex items-center gap-1">
+          <input
+            type="checkbox"
+            checked={filter.hideUnscheduled}
+            onChange={(event) => {
+              catalogStore.getState().setHideUnscheduled(event.target.checked);
+            }}
+            className="accent-primary"
+          />
+          <span className="text-ink-soft">
+            {t('catalog.filter.hideUnscheduled')}
+          </span>
+        </label>
       </div>
     </div>
   );
