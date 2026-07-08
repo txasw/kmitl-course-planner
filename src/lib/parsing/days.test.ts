@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { loadFixture } from '../../../tests/support/fixtures';
-import { DAY_MAP, parseTeachDay, type DayOfWeek } from './days';
+import {
+  DAY_MAP,
+  parseTeachDay,
+  isUnscheduledDay,
+  UNSCHEDULED_DAY,
+  type DayOfWeek,
+} from './days';
 
 const FRIDAY: DayOfWeek = 5;
 
@@ -44,12 +50,22 @@ describe('parseTeachDay', () => {
   });
 
   it('rejects out of range and malformed values as null', () => {
+    // 0 is the unscheduled sentinel, not a real day, so it too resolves to null.
     expect(parseTeachDay('0')).toBeNull();
     expect(parseTeachDay('8')).toBeNull();
     expect(parseTeachDay('')).toBeNull();
     expect(parseTeachDay('x')).toBeNull();
     // Guards against prototype keys leaking through the lookup.
     expect(parseTeachDay('toString')).toBeNull();
+  });
+});
+
+describe('isUnscheduledDay', () => {
+  it('recognizes the unscheduled sentinel and nothing else', () => {
+    expect(UNSCHEDULED_DAY).toBe('0');
+    expect(isUnscheduledDay('0')).toBe(true);
+    expect(isUnscheduledDay('6')).toBe(false);
+    expect(isUnscheduledDay('')).toBe(false);
   });
 });
 

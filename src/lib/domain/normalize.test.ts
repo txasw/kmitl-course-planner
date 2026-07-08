@@ -214,10 +214,11 @@ describe('malformed rows and invalid input', () => {
     }
   });
 
-  it('accepts an unscheduled row with a null teachtime_str as a warning', () => {
+  it('treats an unscheduled row as a no meeting section without a warning', () => {
     // Regression: the all curricula query surfaces unscheduled online courses
-    // whose teachtime_str is null; a non nullable schema had rejected the whole
-    // response. The null must pass the gate and the row become a warning.
+    // with teachtime_str null, teach_day "0", and 00:00:00 times. The null must
+    // pass the gate, and the row is a legitimate no meeting section, not a
+    // malformed one, so it records no warning.
     const result = normalizeTeachTable(
       loadFixture(
         'regressions/teach-table.by_class-null-teachtime-str.capture.json',
@@ -232,7 +233,7 @@ describe('malformed rows and invalid input', () => {
       expect(unscheduled?.sections[0]?.meetings).toHaveLength(0);
       expect(
         result.value.warnings.some((w) => w.subjectId === '01006029'),
-      ).toBe(true);
+      ).toBe(false);
     }
   });
 

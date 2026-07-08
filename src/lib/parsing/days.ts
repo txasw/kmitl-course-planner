@@ -26,9 +26,23 @@ export const DAY_MAP: ReadonlyMap<string, DayOfWeek> = new Map<
 ]);
 
 /**
+ * The `teach_day` value the API sends for a course with no scheduled meeting,
+ * such as an online or asynchronous course. It comes with `teach_time` and
+ * `teach_time2` of `00:00:00`. Confirmed against live exports of the all curricula
+ * query, which returns these unscheduled rows that narrower queries omit.
+ */
+export const UNSCHEDULED_DAY = '0';
+
+/** Whether a raw `teach_day` marks an unscheduled row rather than a real day. */
+export function isUnscheduledDay(raw: string): boolean {
+  return raw === UNSCHEDULED_DAY;
+}
+
+/**
  * Convert a raw `teach_day` value to a `DayOfWeek`, or null when the value is
  * outside the documented 1 through 7 range so the caller can record a per row
- * warning rather than crash the whole result.
+ * warning rather than crash the whole result. The unscheduled sentinel 0 is one
+ * such null; callers distinguish it with `isUnscheduledDay`.
  */
 export function parseTeachDay(raw: string): DayOfWeek | null {
   return DAY_MAP.get(raw) ?? null;
