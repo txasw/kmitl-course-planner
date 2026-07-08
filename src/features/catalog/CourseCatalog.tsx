@@ -5,6 +5,7 @@
 
 import { useMemo } from 'react';
 import { useStore } from 'zustand';
+import { RefreshCw } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course } from '@/lib/domain/types';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
@@ -64,9 +65,10 @@ function Summary({
 
 interface CourseCatalogProps {
   catalog: NormalizedCatalog;
+  onRefresh: () => void;
 }
 
-export function CourseCatalog({ catalog }: CourseCatalogProps) {
+export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
   const { t, language } = useTranslation();
   const placed = usePlacedSections();
   const filter = useStore(catalogStore, (state) => state.filter);
@@ -105,12 +107,22 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      <Summary
-        courses={catalog.courses.length}
-        sections={totalSections}
-        merged={catalog.duplicateCount}
-        t={t}
-      />
+      <div className="flex items-center justify-between gap-2">
+        <Summary
+          courses={catalog.courses.length}
+          sections={totalSections}
+          merged={catalog.duplicateCount}
+          t={t}
+        />
+        <button
+          type="button"
+          onClick={onRefresh}
+          className="inline-flex shrink-0 items-center gap-1 rounded-kcp border border-border px-2 py-1 text-xs font-medium text-ink-soft hover:bg-surface-alt hover:text-ink focus:ring-2 focus:ring-primary focus:outline-none"
+        >
+          <RefreshCw size={12} strokeWidth={2} aria-hidden />
+          {t('catalog.refresh')}
+        </button>
+      </div>
       <FilterBar creditOptions={creditOptions} />
       {groups.length === 0 ? (
         <p className="text-sm text-ink-soft">{t('catalog.filterEmpty')}</p>

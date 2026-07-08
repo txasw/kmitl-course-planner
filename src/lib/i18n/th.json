@@ -44,6 +44,7 @@
   "catalog.units.section": "กลุ่มเรียน",
   "catalog.units.merged": "รายการซ้ำที่รวมแล้ว",
   "catalog.filterEmpty": "ไม่มีรายวิชาที่ตรงกับตัวกรอง",
+  "catalog.refresh": "รีเฟรช",
   "catalog.filter.text": "ค้นหาในรายการ",
   "catalog.filter.day": "วัน",
   "catalog.filter.credit": "หน่วยกิต",

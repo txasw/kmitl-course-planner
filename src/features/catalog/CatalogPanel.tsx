@@ -40,7 +40,7 @@ function SkeletonRows() {
 
 export function CatalogPanel() {
   const deps = useSearchDeps();
-  const { retry } = useSearchActions(deps);
+  const { retry, refreshResult } = useSearchActions(deps);
   const { t } = useTranslation();
   const result = useStore(searchStore, (state) => state.result);
   const query = useStore(searchStore, (state) => state.resultQuery);
@@ -99,5 +99,12 @@ export function CatalogPanel() {
     );
   }
 
-  return <CourseCatalog catalog={result.data} />;
+  return (
+    <CourseCatalog
+      catalog={result.data}
+      onRefresh={() => {
+        void refreshResult();
+      }}
+    />
+  );
 }
