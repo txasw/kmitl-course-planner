@@ -80,6 +80,19 @@ describe('auditTeachTable', () => {
     expect(report.request).toEqual(ctx.request);
   });
 
+  it('accepts an unscheduled row without a day or time error', () => {
+    // teach_day 0 with 00:00:00 times is the API's unscheduled online course, a
+    // valid state, so it flags neither value_out_of_range nor cross_field.
+    const row = {
+      ...validRow(),
+      teach_day: '0',
+      teach_time: '00:00:00',
+      teach_time2: '00:00:00',
+    };
+    const report = auditTeachTable(wrap(row), ctx);
+    expect(report.totals.issues).toBe(0);
+  });
+
   it('classifies every issue kind on a corrupted row', () => {
     const row: Record<string, unknown> = {
       ...validRow(),
