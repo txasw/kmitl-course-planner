@@ -1,9 +1,21 @@
 // A reusable searchable combobox with the WAI ARIA combobox and listbox popup
 // pattern. Curriculum and faculty lists are long, so type to filter is a
 // usability need, not polish. It carries full keyboard support and its own design
-// token styling, and it is the single select primitive the search rail uses.
+// token styling, and it is the single select primitive the search rail uses. The
+// popup is positioned with floating-ui: a fixed strategy escapes the scrolling
+// rail's clip, flip drops it above when space below is short, and size caps its
+// height to the viewport with internal scrolling.
 
-import { useId, useMemo, useRef, useState } from 'react';
+import { useCallback, useId, useMemo, useState } from 'react';
+import {
+  useFloating,
+  offset,
+  flip,
+  size,
+  autoUpdate,
+} from '@floating-ui/react';
+
+const MAX_LIST_HEIGHT = 224;
 
 export interface ComboboxOption {
   value: string;
@@ -30,7 +42,6 @@ export function Combobox({
   const listboxId = useId();
   const optionIdBase = useId();
   const inputId = useId();
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedLabel = useMemo(
     () => options.find((option) => option.value === value)?.label ?? '',
@@ -62,6 +73,43 @@ export function Combobox({
 
   // The popup is only present when the field is open and has matches.
   const listVisible = open && visible.length > 0;
+
+  const { refs, floatingStyles } = useFloating({
+    open: listVisible,
+    strategy: 'fixed',
+    placement: 'bottom-start',
+    middleware: [
+      offset(4),
+      flip({ padding: 8 }),
+      size({
+        padding: 8,
+        apply({ availableHeight, rects, elements }) {
+          // Match the input width and cap the height to the space available,
+          // scrolling internally beyond that.
+          Object.assign(elements.floating.style, {
+            width: `${String(rects.reference.width)}px`,
+            maxHeight: `${String(Math.min(availableHeight, MAX_LIST_HEIGHT))}px`,
+          });
+        },
+      }),
+    ],
+    whileElementsMounted: autoUpdate,
+  });
+
+  // Wrap the floating-ui setters as stable callback refs. Calling them in a
+  // callback keeps the ref access out of render and off the method itself.
+  const setReference = useCallback(
+    (node: HTMLInputElement | null) => {
+      refs.setReference(node);
+    },
+    [refs],
+  );
+  const setFloating = useCallback(
+    (node: HTMLUListElement | null) => {
+      refs.setFloating(node);
+    },
+    [refs],
+  );
 
   const optionId = (index: number) => `${optionIdBase}-${String(index)}`;
 
@@ -143,7 +191,7 @@ export function Combobox({
         {label}
       </label>
       <input
-        ref={inputRef}
+        ref={setReference}
         id={inputId}
         type="text"
         role="combobox"
@@ -168,10 +216,12 @@ export function Combobox({
       />
       {listVisible ? (
         <ul
+          ref={setFloating}
           role="listbox"
           id={listboxId}
           aria-label={label}
-          className="absolute top-full right-0 left-0 z-10 mt-1 max-h-56 overflow-y-auto rounded-kcp border border-border bg-surface py-1 shadow-kcp"
+          style={floatingStyles}
+          className="z-50 overflow-y-auto rounded-kcp border border-border bg-surface py-1 shadow-kcp"
         >
           {visible.map((option, index) => (
             <li
