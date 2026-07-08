@@ -8,6 +8,7 @@
 // production bundle check greps for.
 
 import { parseTimeToMinutes } from '../parsing/time';
+import { isUnscheduledDay } from '../parsing/days';
 
 export const DEBUG_CANARY = 'kcp-debug-canary';
 
@@ -40,7 +41,8 @@ function field(
 }
 
 const HHMMSS = /^\d{2}:\d{2}:\d{2}$/;
-const DAY_VALUES = ['1', '2', '3', '4', '5', '6', '7'] as const;
+// 1 through 7 are the real days; 0 marks an unscheduled row (no meeting).
+const DAY_VALUES = ['0', '1', '2', '3', '4', '5', '6', '7'] as const;
 
 /** The full contract for one teach table section row (Section 4.1). */
 export const SECTION_ROW_EXPECTATIONS: readonly FieldExpectation[] = [
@@ -60,9 +62,15 @@ export const SECTION_ROW_EXPECTATIONS: readonly FieldExpectation[] = [
   field('lect_or_prac', 'string', false, 'lecture or practice marker', {
     enum: ['ท', 'ป'],
   }),
-  field('teach_day', 'string', false, 'day digit 1 through 7', {
-    enum: DAY_VALUES,
-  }),
+  field(
+    'teach_day',
+    'string',
+    false,
+    'day digit 1 through 7, or 0 unscheduled',
+    {
+      enum: DAY_VALUES,
+    },
+  ),
   field('teach_time', 'string', false, 'HH:MM:SS start time', {
     pattern: HHMMSS,
   }),
@@ -173,6 +181,12 @@ export const CROSS_FIELD_RULES: readonly CrossFieldRule[] = [
     field: 'teach_time2',
     description: 'end time is after start time',
     check(row) {
+      const day = asString(row.teach_day);
+      // An unscheduled row has no meeting, so its 00:00:00 to 00:00:00 window is
+      // expected, not a reversed range.
+      if (day !== null && isUnscheduledDay(day)) {
+        return null;
+      }
       const start = asString(row.teach_time);
       const end = asString(row.teach_time2);
       if (start === null || end === null) {
