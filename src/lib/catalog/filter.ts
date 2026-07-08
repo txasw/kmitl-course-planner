@@ -15,6 +15,8 @@ export interface CatalogFilter {
   credit: number | null;
   hideFull: boolean;
   hideConflicting: boolean;
+  /** Hide sections with no scheduled meeting, such as online courses. */
+  hideUnscheduled: boolean;
 }
 
 export const EMPTY_FILTER: CatalogFilter = {
@@ -23,6 +25,7 @@ export const EMPTY_FILTER: CatalogFilter = {
   credit: null,
   hideFull: false,
   hideConflicting: false,
+  hideUnscheduled: false,
 };
 
 export interface SectionPredicates {
@@ -58,6 +61,9 @@ function keepSection(
     return false;
   }
   if (filter.hideConflicting && predicates.isConflicting(course, section)) {
+    return false;
+  }
+  if (filter.hideUnscheduled && section.meetings.length === 0) {
     return false;
   }
   return true;
