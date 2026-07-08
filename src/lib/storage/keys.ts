@@ -19,6 +19,14 @@ export const CURRENT_SCHEMA_VERSION = 1;
  */
 export const PREFS_KEY = 'kcp:prefs';
 
+/**
+ * Content owned last search state, one entry per search tab, persisted so the
+ * form restores on reopen. Like the preferences key it is disjoint from the plan
+ * root and the worker cache namespace, so it never touches the plan-store-only
+ * persistence rule.
+ */
+export const SEARCH_KEY = 'kcp:search';
+
 /** Key under which a corrupt root blob is preserved for later export. */
 export function quarantineKey(timestamp: string): string {
   return `kcp:quarantine:${timestamp}`;
