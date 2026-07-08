@@ -9,6 +9,7 @@ import {
 import { App } from './App';
 import { uiStore } from '@/features/shell/uiStore';
 import type { PrefsRepository } from '@/lib/storage/prefs';
+import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 
 function noopRepo(): PrefsRepository {
   return {
@@ -27,7 +28,7 @@ afterEach(() => {
 
 describe('App', () => {
   it('shows the launcher and opens the overlay on activation', () => {
-    render(<App prefs={noopRepo()} />);
+    render(<App prefs={noopRepo()} search={fakeSearchDeps()} />);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     fireEvent.click(
       screen.getByRole('button', { name: 'เปิด KMITL Course Planner' }),
@@ -36,7 +37,7 @@ describe('App', () => {
   });
 
   it('makes the launcher inert and hidden while the overlay is open', () => {
-    render(<App prefs={noopRepo()} />);
+    render(<App prefs={noopRepo()} search={fakeSearchDeps()} />);
     const launcher = screen.getByRole('button', {
       name: 'เปิด KMITL Course Planner',
     });
