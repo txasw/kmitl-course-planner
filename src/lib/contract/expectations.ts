@@ -69,7 +69,12 @@ export const SECTION_ROW_EXPECTATIONS: readonly FieldExpectation[] = [
   field('teach_time2', 'string', false, 'HH:MM:SS end time', {
     pattern: HHMMSS,
   }),
-  field('teachtime_str', 'string', false, 'display time string, often empty'),
+  field(
+    'teachtime_str',
+    'string',
+    true,
+    'display time string, often empty or null on unscheduled rows',
+  ),
   field('classroom', 'string', true, 'room name or null'),
   field('room_no', 'string', true, 'room number or null'),
   field('classbuilding', 'string', true, 'building name or null'),

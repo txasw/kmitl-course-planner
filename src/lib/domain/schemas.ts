@@ -117,7 +117,8 @@ export const sectionRowSchema = z.object({
   teach_day: z.string(),
   teach_time: z.string(),
   teach_time2: z.string(),
-  teachtime_str: z.string(),
+  // Null on unscheduled online courses, which the all curricula query surfaces.
+  teachtime_str: z.string().nullable(),
   classroom: z.string().nullable(),
   room_no: z.string().nullable(),
   classbuilding: z.string().nullable(),

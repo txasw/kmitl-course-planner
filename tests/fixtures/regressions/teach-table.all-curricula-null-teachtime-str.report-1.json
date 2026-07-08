@@ -1,0 +1,219 @@
+{
+  "reportVersion": 1,
+  "extensionVersion": "0.0.0",
+  "generatedAt": "2026-07-08T09:37:56.147Z",
+  "request": {
+    "endpoint": "get-teach-table-show",
+    "params": {
+      "mode": "by_class",
+      "selected_year": "2569",
+      "selected_semester": "1",
+      "selected_faculty": "01",
+      "selected_department": "01",
+      "selected_curriculum": "x",
+      "selected_class_year": "0",
+      "search_all_faculty": "false",
+      "search_all_department": "false",
+      "search_all_curriculum": "true",
+      "search_all_class_year": "true"
+    }
+  },
+  "totals": {
+    "rows": 201,
+    "deduped": 152,
+    "issues": 9,
+    "byKind": {
+      "missing_field": 0,
+      "unexpected_null": 3,
+      "type_mismatch": 0,
+      "format_violation": 0,
+      "value_out_of_range": 3,
+      "cross_field": 3,
+      "unknown_field": 0
+    }
+  },
+  "aggregates": [
+    {
+      "path": "rows[41].teach_day",
+      "kind": "value_out_of_range",
+      "count": 1,
+      "samples": [
+        "\"0\""
+      ]
+    },
+    {
+      "path": "rows[41].teachtime_str",
+      "kind": "unexpected_null",
+      "count": 1,
+      "samples": [
+        "null"
+      ]
+    },
+    {
+      "path": "rows[41].teach_time2",
+      "kind": "cross_field",
+      "count": 1,
+      "samples": [
+        "00:00:00 to 00:00:00"
+      ]
+    },
+    {
+      "path": "rows[125].teach_day",
+      "kind": "value_out_of_range",
+      "count": 1,
+      "samples": [
+        "\"0\""
+      ]
+    },
+    {
+      "path": "rows[125].teachtime_str",
+      "kind": "unexpected_null",
+      "count": 1,
+      "samples": [
+        "null"
+      ]
+    },
+    {
+      "path": "rows[125].teach_time2",
+      "kind": "cross_field",
+      "count": 1,
+      "samples": [
+        "00:00:00 to 00:00:00"
+      ]
+    },
+    {
+      "path": "rows[127].teach_day",
+      "kind": "value_out_of_range",
+      "count": 1,
+      "samples": [
+        "\"0\""
+      ]
+    },
+    {
+      "path": "rows[127].teachtime_str",
+      "kind": "unexpected_null",
+      "count": 1,
+      "samples": [
+        "null"
+      ]
+    },
+    {
+      "path": "rows[127].teach_time2",
+      "kind": "cross_field",
+      "count": 1,
+      "samples": [
+        "00:00:00 to 00:00:00"
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "kind": "value_out_of_range",
+      "severity": "error",
+      "path": "rows[41].teach_day",
+      "expected": "day digit 1 through 7",
+      "received": "\"0\"",
+      "rowRef": {
+        "index": 41,
+        "teachTableId": "136407",
+        "subjectId": "01006029"
+      }
+    },
+    {
+      "kind": "unexpected_null",
+      "severity": "error",
+      "path": "rows[41].teachtime_str",
+      "expected": "display time string, often empty",
+      "received": "null",
+      "rowRef": {
+        "index": 41,
+        "teachTableId": "136407",
+        "subjectId": "01006029"
+      }
+    },
+    {
+      "kind": "cross_field",
+      "severity": "error",
+      "path": "rows[41].teach_time2",
+      "expected": "end time is after start time",
+      "received": "00:00:00 to 00:00:00",
+      "rowRef": {
+        "index": 41,
+        "teachTableId": "136407",
+        "subjectId": "01006029"
+      }
+    },
+    {
+      "kind": "value_out_of_range",
+      "severity": "error",
+      "path": "rows[125].teach_day",
+      "expected": "day digit 1 through 7",
+      "received": "\"0\"",
+      "rowRef": {
+        "index": 125,
+        "teachTableId": "136409",
+        "subjectId": "01006029"
+      }
+    },
+    {
+      "kind": "unexpected_null",
+      "severity": "error",
+      "path": "rows[125].teachtime_str",
+      "expected": "display time string, often empty",
+      "received": "null",
+      "rowRef": {
+        "index": 125,
+        "teachTableId": "136409",
+        "subjectId": "01006029"
+      }
+    },
+    {
+      "kind": "cross_field",
+      "severity": "error",
+      "path": "rows[125].teach_time2",
+      "expected": "end time is after start time",
+      "received": "00:00:00 to 00:00:00",
+      "rowRef": {
+        "index": 125,
+        "teachTableId": "136409",
+        "subjectId": "01006029"
+      }
+    },
+    {
+      "kind": "value_out_of_range",
+      "severity": "error",
+      "path": "rows[127].teach_day",
+      "expected": "day digit 1 through 7",
+      "received": "\"0\"",
+      "rowRef": {
+        "index": 127,
+        "teachTableId": "136572",
+        "subjectId": "01016263"
+      }
+    },
+    {
+      "kind": "unexpected_null",
+      "severity": "error",
+      "path": "rows[127].teachtime_str",
+      "expected": "display time string, often empty",
+      "received": "null",
+      "rowRef": {
+        "index": 127,
+        "teachTableId": "136572",
+        "subjectId": "01016263"
+      }
+    },
+    {
+      "kind": "cross_field",
+      "severity": "error",
+      "path": "rows[127].teach_time2",
+      "expected": "end time is after start time",
+      "received": "00:00:00 to 00:00:00",
+      "rowRef": {
+        "index": 127,
+        "teachTableId": "136572",
+        "subjectId": "01016263"
+      }
+    }
+  ]
+}
