@@ -36,6 +36,10 @@ export async function startMockServer(): Promise<MockServer> {
   const server: Server = createServer(
     { key: pems.private, cert: pems.cert },
     (req, res) => {
+      // Close each connection rather than keeping it alive. Reusing a connection
+      // across the fault injected 503 and the retry was intermittently failing
+      // the retry's fetch at the network level on Linux CI.
+      res.setHeader('Connection', 'close');
       const host = (req.headers.host ?? '').split(':')[0] ?? '';
       const url = new URL(req.url ?? '/', `https://${host}`);
       const fn = url.searchParams.get('function');
@@ -91,6 +95,8 @@ export async function startMockServer(): Promise<MockServer> {
     },
   );
 
+  // Do not hold keep-alive connections open; each request gets a fresh one.
+  server.keepAliveTimeout = 0;
   await new Promise<void>((resolveListen) => {
     server.listen(0, '127.0.0.1', resolveListen);
   });
