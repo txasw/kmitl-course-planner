@@ -40,7 +40,7 @@ describe('CourseCatalog', () => {
     const { container } = render(<CourseCatalog catalog={catalog} />);
     // The owner 32 capture dedupes 13 raw rows to 4 sections across 3 courses.
     expect(container.textContent).toContain('3 รายวิชา');
-    expect(container.textContent).toContain('4 ตอนเรียน');
+    expect(container.textContent).toContain('4 กลุ่มเรียน');
     expect(container.textContent).toContain('9 รายการซ้ำที่รวมแล้ว');
   });
 

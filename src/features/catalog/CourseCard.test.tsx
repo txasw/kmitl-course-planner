@@ -32,7 +32,7 @@ describe('CourseCard seat status', () => {
     render(<CourseCard course={course} placed={[]} locale="th" t={t} />);
     expect(screen.getByText('ว่าง 7')).toBeInTheDocument();
     expect(screen.getByText('เต็ม')).toBeInTheDocument();
-    expect(screen.getByText('ปิดรับ')).toBeInTheDocument();
+    expect(screen.getByText('ปิด')).toBeInTheDocument();
   });
 });
 

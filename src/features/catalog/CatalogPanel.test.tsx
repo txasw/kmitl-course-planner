@@ -74,6 +74,6 @@ describe('CatalogPanel', () => {
     expect(
       screen.getByRole('heading', { name: 'ไม่พบรายวิชา' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('ภาคเรียน 1/2569')).toBeInTheDocument();
+    expect(screen.getByText('ภาคการศึกษา 1/2569')).toBeInTheDocument();
   });
 });
