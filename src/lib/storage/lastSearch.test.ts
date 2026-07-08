@@ -18,6 +18,10 @@ function memoryAdapter(): StorageAdapter & { map: Map<string, unknown> } {
       map.set(key, value);
       return Promise.resolve();
     },
+    remove: (key) => {
+      map.delete(key);
+      return Promise.resolve();
+    },
   };
 }
 

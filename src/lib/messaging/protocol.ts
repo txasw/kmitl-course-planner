@@ -84,6 +84,7 @@ export const requestMessageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('debug/getReport') }),
   z.object({ type: z.literal('debug/getLatestRaw') }),
   z.object({ type: z.literal('debug/getSimulation') }),
+  z.object({ type: z.literal('debug/clearCache') }),
   z.object({
     type: z.literal('debug/setFixture'),
     fixtureId: z.string().nullable(),
@@ -112,6 +113,7 @@ export interface ResponseMap {
   'debug/getReport': Result<DataQualityReport | null>;
   'debug/getLatestRaw': Result<LatestRaw | null>;
   'debug/getSimulation': Result<SimSettings>;
+  'debug/clearCache': Result<void>;
   'debug/setFixture': Result<void>;
   'debug/setFault': Result<void>;
   'debug/setMutation': Result<void>;

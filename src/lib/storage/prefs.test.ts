@@ -18,6 +18,10 @@ function fakeAdapter(initial: Record<string, unknown> = {}): FakeAdapter {
       store[key] = value;
       return Promise.resolve();
     },
+    remove(key) {
+      Reflect.deleteProperty(store, key);
+      return Promise.resolve();
+    },
   };
 }
 

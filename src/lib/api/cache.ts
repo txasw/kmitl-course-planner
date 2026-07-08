@@ -50,6 +50,8 @@ function isCacheEntry(value: unknown): value is CacheEntry {
 export interface CacheStore {
   get(key: string, now: number): Promise<CacheHit | null>;
   set(key: string, value: unknown, expiresAt: number): Promise<void>;
+  /** Drop every cached entry from memory and storage. Debug tooling only. */
+  clear(): Promise<void>;
 }
 
 export function createCacheStore(
@@ -57,6 +59,9 @@ export function createCacheStore(
   memoryCap = DEFAULT_MEMORY_CAP,
 ): CacheStore {
   const memory = new Map<string, CacheEntry>();
+  // Every key ever written this session, so clear can remove entries that have
+  // since been evicted from the memory map but remain in storage.
+  const written = new Set<string>();
 
   function remember(key: string, entry: CacheEntry): void {
     // Refresh recency by reinserting, then evict the oldest key when the cap is
@@ -91,7 +96,14 @@ export function createCacheStore(
     async set(key, value, expiresAt) {
       const entry: CacheEntry = { value, expiresAt };
       remember(key, entry);
+      written.add(key);
       await adapter.set(key, entry);
+    },
+    async clear() {
+      const keys = [...written];
+      memory.clear();
+      written.clear();
+      await Promise.all(keys.map((key) => adapter.remove(key)));
     },
   };
 }

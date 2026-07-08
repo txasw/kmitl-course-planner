@@ -180,6 +180,15 @@ export function Diagnostics() {
         >
           Copy as fixture
         </button>
+        <button
+          type="button"
+          onClick={() => {
+            void send({ type: 'debug/clearCache' }).then(refresh);
+          }}
+          className={ACTION}
+        >
+          Clear cache
+        </button>
       </footer>
     </aside>
   );

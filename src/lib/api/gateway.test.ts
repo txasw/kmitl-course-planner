@@ -51,6 +51,10 @@ function fakeAdapter(): StorageAdapter {
       store.set(key, value);
       return Promise.resolve();
     },
+    remove: (key) => {
+      store.delete(key);
+      return Promise.resolve();
+    },
   };
 }
 
