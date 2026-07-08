@@ -75,16 +75,23 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
   const placed = usePlacedSections();
   const filter = useStore(catalogStore, (state) => state.filter);
 
-  const handleAdd = useCallback((course: Course, section: Section) => {
-    const outcome = addSectionToPlan(course, section);
-    if (!outcome.ok) {
-      dragStore.getState().showBlocked({
-        course,
-        section,
-        conflicts: outcome.conflicts,
-      });
-    }
-  }, []);
+  const handleAdd = useCallback(
+    (course: Course, section: Section) => {
+      const outcome = addSectionToPlan(course, section);
+      if (outcome.ok) {
+        dragStore
+          .getState()
+          .announce(`${t('feedback.added')} ${section.subjectId}`);
+      } else {
+        dragStore.getState().showBlocked({
+          course,
+          section,
+          conflicts: outcome.conflicts,
+        });
+      }
+    },
+    [t],
+  );
   const handleRemove = useCallback((teachTableId: string) => {
     planStore.getState().remove(teachTableId);
   }, []);

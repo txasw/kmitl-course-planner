@@ -9,7 +9,6 @@ import { useCallback } from 'react';
 import {
   DndContext,
   DragOverlay,
-  KeyboardSensor,
   PointerSensor,
   pointerWithin,
   useSensor,
@@ -43,11 +42,13 @@ function isDragData(value: unknown): value is DragData {
 const ACTIVATION_DISTANCE = 6;
 
 export function PlannerDnd({ children }: { children: ReactNode }) {
+  // Only the pointer sensor drags. The grip commits on Enter or Space through its
+  // own click handler, so there is no arrow key move machinery to arm, which would
+  // be meaningless when every placement is fixed.
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: ACTIVATION_DISTANCE },
     }),
-    useSensor(KeyboardSensor),
   );
   const active = useStore(dragStore, (state) => state.active);
 

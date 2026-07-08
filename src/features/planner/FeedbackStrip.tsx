@@ -20,6 +20,7 @@ import { conflictReasonText } from './conflictText';
 
 const UNDO_WINDOW_MS = 10_000;
 const BLOCKED_WINDOW_MS = 6_000;
+const ANNOUNCE_WINDOW_MS = 4_000;
 
 interface FeedbackStripProps {
   locale: Locale;
@@ -117,6 +118,7 @@ function RemovedNotice({
 export function FeedbackStrip({ locale, t }: FeedbackStripProps) {
   const pendingUndo = useStore(planStore, (state) => state.pendingUndo);
   const blocked = useStore(dragStore, (state) => state.blocked);
+  const announcement = useStore(dragStore, (state) => state.announcement);
   const placed = usePlacedSections();
 
   useEffect(() => {
@@ -143,6 +145,18 @@ export function FeedbackStrip({ locale, t }: FeedbackStripProps) {
     };
   }, [blocked]);
 
+  useEffect(() => {
+    if (announcement === null) {
+      return undefined;
+    }
+    const timer = setTimeout(() => {
+      dragStore.getState().clearAnnouncement();
+    }, ANNOUNCE_WINDOW_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [announcement]);
+
   const removed = pendingUndo?.[0];
 
   return (
@@ -151,6 +165,8 @@ export function FeedbackStrip({ locale, t }: FeedbackStripProps) {
         <BlockedNotice blocked={blocked} placed={placed} t={t} />
       ) : removed !== undefined ? (
         <RemovedNotice removed={removed} locale={locale} t={t} />
+      ) : announcement !== null ? (
+        <span className="sr-only">{announcement}</span>
       ) : null}
     </div>
   );
