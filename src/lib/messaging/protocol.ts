@@ -35,9 +35,17 @@ const byClassShape = {
 
 export const teachTableQuerySchema = z.discriminatedUnion('mode', [
   z.object({ mode: z.literal('by_class'), ...byClassShape }),
+  // The host searches a subject id across everything: it sends only the term and
+  // the subject id with every search_all_* flag true, and no specific selects.
+  // Verified against captured host traffic; see Section 6.2.
   z.object({
     mode: z.literal('by_subject_id'),
-    ...byClassShape,
+    selected_year: z.string(),
+    selected_semester: z.string(),
+    search_all_faculty: z.boolean(),
+    search_all_department: z.boolean(),
+    search_all_curriculum: z.boolean(),
+    search_all_class_year: z.boolean(),
     selected_subject_id: z.string(),
   }),
   z.object({

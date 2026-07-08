@@ -9,12 +9,18 @@ import { AlertTriangle } from 'lucide-react';
 import { buddhistYears, toBuddhistYear } from '@/lib/routing/academicTerms';
 import {
   SEARCH_TABS,
+  asSemester,
   buildTeachTableQueryForTab,
   isValidSubjectId,
   type SearchTab,
 } from '@/lib/search/formState';
 import { useTranslation } from '@/features/shell/useTranslation';
-import { CategoryFields, ClassFields, SubjectIdInput } from './fields';
+import {
+  CategoryFields,
+  ClassFields,
+  SubjectIdInput,
+  TermFields,
+} from './fields';
 import { searchStore } from './searchStore';
 import { useSearchDeps } from './SearchDepsContext';
 import { useHashRoute } from './useHashRoute';
@@ -133,14 +139,19 @@ export function SearchForm() {
         ) : null}
         {activeTab === 'by_subject_id' ? (
           <>
-            <ClassFields
-              form={bySubjectId}
-              reference={reference}
+            <TermFields
+              year={bySubjectId.year}
+              semester={bySubjectId.semester}
               years={years}
-              locale={language}
               t={t}
-              patch={(patch) => {
-                searchStore.getState().patchSubjectIdForm(patch);
+              onYear={(year) => {
+                searchStore.getState().patchSubjectIdForm({ year });
+              }}
+              onSemester={(value) => {
+                const semester = asSemester(value);
+                if (semester !== null) {
+                  searchStore.getState().patchSubjectIdForm({ semester });
+                }
               }}
             />
             <SubjectIdInput

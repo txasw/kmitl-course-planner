@@ -41,7 +41,11 @@ export const classFormSchema = z.object({
 });
 export type ClassForm = z.infer<typeof classFormSchema>;
 
-export const subjectIdFormSchema = classFormSchema.extend({
+// The host searches a subject id across every faculty, department, curriculum,
+// and class year, so this tab needs only the term and the subject id.
+export const subjectIdFormSchema = z.object({
+  year: z.string(),
+  semester: semesterSchema,
   subjectId: z.string(),
 });
 export type SubjectIdForm = z.infer<typeof subjectIdFormSchema>;
@@ -66,7 +70,7 @@ export function defaultClassForm(term: Term): ClassForm {
 }
 
 export function defaultSubjectIdForm(term: Term): SubjectIdForm {
-  return { ...defaultClassForm(term), subjectId: '' };
+  return { year: term.year, semester: term.semester, subjectId: '' };
 }
 
 export function defaultCategoryForm(term: Term): CategoryForm {
@@ -103,7 +107,7 @@ export function isClassFormReady(form: ClassForm): boolean {
 }
 
 export function isSubjectIdFormReady(form: SubjectIdForm): boolean {
-  return isClassFormReady(form) && isValidSubjectId(form.subjectId);
+  return form.year !== '' && isValidSubjectId(form.subjectId);
 }
 
 export function isCategoryFormReady(form: CategoryForm): boolean {
@@ -118,9 +122,9 @@ function classParams(form: ClassForm) {
     selected_faculty: form.faculty,
     selected_department: form.department,
     selected_curriculum: form.curriculum,
-    // With search_all_class_year set the specific value is ignored upstream, so
-    // it is sent empty rather than a misleading year. Verify against live traffic.
-    selected_class_year: searchAllClassYear ? '' : form.classYear,
+    // The host sends class year 0 with search_all_class_year for the all option;
+    // an empty value is rejected as "not integer". Verified against host traffic.
+    selected_class_year: searchAllClassYear ? '0' : form.classYear,
     search_all_faculty: false,
     search_all_department: false,
     search_all_curriculum: false,
@@ -135,7 +139,12 @@ export function buildClassQuery(form: ClassForm): TeachTableQuery {
 export function buildSubjectIdQuery(form: SubjectIdForm): TeachTableQuery {
   return {
     mode: 'by_subject_id',
-    ...classParams(form),
+    selected_year: form.year,
+    selected_semester: form.semester,
+    search_all_faculty: true,
+    search_all_department: true,
+    search_all_curriculum: true,
+    search_all_class_year: true,
     selected_subject_id: form.subjectId,
   };
 }

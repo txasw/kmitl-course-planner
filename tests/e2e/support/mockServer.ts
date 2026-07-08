@@ -71,6 +71,13 @@ export async function startMockServer(): Promise<MockServer> {
             res.end('unavailable');
             return;
           }
+          // Mirror the real API: a present but empty selected_class_year is
+          // rejected as "not integer". Absent (by_subject_id) or 0 is accepted.
+          if (url.searchParams.get('selected_class_year') === '') {
+            res.writeHead(400, { 'content-type': 'application/json' });
+            res.end(JSON.stringify({ selected_class_year: ['not integer'] }));
+            return;
+          }
           sendJson('teach-table.by_subject_owner_id-32.capture.json');
           return;
         }
