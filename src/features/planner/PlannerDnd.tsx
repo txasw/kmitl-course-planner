@@ -11,6 +11,7 @@ import {
   DragOverlay,
   KeyboardSensor,
   PointerSensor,
+  pointerWithin,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -22,6 +23,7 @@ import { placedSections } from '@/lib/planner/transaction';
 import { planStore } from '@/features/plans/planStore';
 import { addSectionToPlan } from '@/features/plans/addToPlan';
 import { dragStore } from './dragStore';
+import { DragCard } from './DragCard';
 import { ReasonChip } from './ReasonChip';
 
 interface DragData {
@@ -82,14 +84,18 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
   return (
     <DndContext
       sensors={sensors}
+      collisionDetection={pointerWithin}
       onDragStart={handleStart}
       onDragEnd={handleEnd}
       onDragCancel={handleCancel}
     >
       {children}
       <DragOverlay dropAnimation={null}>
-        {active !== null && !active.placement.ok ? (
-          <ReasonChip active={active} />
+        {active !== null ? (
+          <div className="flex flex-col items-start gap-1">
+            <DragCard section={active.section} />
+            {active.placement.ok ? null : <ReasonChip active={active} />}
+          </div>
         ) : null}
       </DragOverlay>
     </DndContext>
