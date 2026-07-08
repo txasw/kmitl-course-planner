@@ -7,12 +7,19 @@ import {
   act,
 } from '@testing-library/react';
 import { loadFixture } from '../../../tests/support/fixtures';
-import { makeCourse } from '../../../tests/support/domain-builders';
+import {
+  makeCourse,
+  makeMeeting,
+  makePlanEntry,
+  makeSection,
+  makeSnapshot,
+} from '../../../tests/support/domain-builders';
 import {
   normalizeTeachTable,
   type NormalizedCatalog,
 } from '@/lib/domain/normalize';
 import { planStore } from '@/features/plans/planStore';
+import { dragStore } from '@/features/planner/dragStore';
 import { catalogStore } from './catalogStore';
 import { CourseCatalog } from './CourseCatalog';
 
@@ -38,6 +45,7 @@ afterEach(() => {
   cleanup();
   act(() => {
     planStore.setState({ entries: [] });
+    dragStore.setState({ active: null, blocked: null });
   });
 });
 
@@ -113,5 +121,48 @@ describe('CourseCatalog', () => {
       fireEvent.click(addButton);
     }
     expect(planStore.getState().entries.length).toBeGreaterThan(0);
+  });
+
+  it('routes a blocked add on a conflicting section to the feedback strip', () => {
+    act(() => {
+      planStore.setState({
+        entries: [
+          makePlanEntry({
+            snapshot: makeSnapshot({
+              teachTableId: 'p1',
+              subjectId: 'S1',
+              section: '901',
+              meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+            }),
+          }),
+        ],
+      });
+    });
+    const conflictCatalog: NormalizedCatalog = {
+      duplicateCount: 0,
+      warnings: [],
+      courses: [
+        makeCourse({
+          subjectId: 'S2',
+          sections: [
+            makeSection({
+              teachTableId: 's2',
+              subjectId: 'S2',
+              section: '901',
+              meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+            }),
+          ],
+        }),
+      ],
+    };
+    render(
+      <CourseCatalog catalog={conflictCatalog} onRefresh={() => undefined} />,
+    );
+    const [addButton] = screen.getAllByRole('button', { name: 'เพิ่ม' });
+    if (addButton) {
+      fireEvent.click(addButton);
+    }
+    expect(dragStore.getState().blocked).not.toBeNull();
+    expect(planStore.getState().entries).toHaveLength(1);
   });
 });

@@ -1,9 +1,11 @@
 // A single section row inside a course card. It shows the section code, a lecture
 // or practice badge, each meeting's day, time, and room, the instructors, the
-// seat status, and the section's state relative to the plan. Conflicting and
-// duplicate sections read dimmed with a stated reason. When add and remove
-// handlers are supplied it offers an add button for an addable section and a
-// remove button for an added one; dragging arrives with the placement system.
+// seat status, and the section's state relative to the plan. A time conflicting
+// section keeps its conflict badge and reason but stays actionable: its add button
+// routes to the blocked feedback strip instead of being disabled, so a keyboard
+// user gets the same reason and alternatives a drag would give. A duplicate reads
+// dimmed with its reason. When handlers are supplied the row offers an add button
+// for an addable or conflicting open section and a remove button for an added one.
 
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
@@ -68,8 +70,10 @@ export function SectionRow({
 }: SectionRowProps) {
   const kind = section.kind;
   const teachers = locale === 'th' ? section.teachersTh : section.teachersEn;
-  const dimmed =
-    relation.kind === 'conflicting' || relation.kind === 'duplicate';
+  const dimmed = relation.kind === 'duplicate';
+  const addable =
+    (relation.kind === 'addable' || relation.kind === 'conflicting') &&
+    seat.kind === 'open';
 
   return (
     <div
@@ -87,9 +91,7 @@ export function SectionRow({
           </Pill>
           <SeatPill status={seat} t={t} />
           <StateBadge relation={relation} t={t} />
-          {relation.kind === 'addable' &&
-          seat.kind === 'open' &&
-          onAdd !== undefined ? (
+          {addable && onAdd !== undefined ? (
             <button
               type="button"
               onClick={() => {

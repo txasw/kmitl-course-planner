@@ -58,4 +58,24 @@ describe('dragStore', () => {
     expect(store.getState().active).toBeNull();
     expect(store.getState().blocked).toBeNull();
   });
+
+  it('surfaces a blocked feedback from a non-drag add', () => {
+    const store = createDragStore();
+    const { section, course } = draggedSection();
+    store.getState().showBlocked({
+      course,
+      section,
+      conflicts: [
+        {
+          kind: 'time',
+          blocking: { teachTableId: 'p', subjectId: 'X', section: '900' },
+          day: 1,
+          startMin: 540,
+          endMin: 600,
+        },
+      ],
+    });
+    expect(store.getState().active).toBeNull();
+    expect(store.getState().blocked?.conflicts.length).toBeGreaterThan(0);
+  });
 });
