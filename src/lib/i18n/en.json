@@ -86,5 +86,10 @@
   "day.full.4": "Thursday",
   "day.full.5": "Friday",
   "day.full.6": "Saturday",
-  "grid.label": "Weekly timetable"
+  "grid.label": "Weekly timetable",
+  "shelf.title": "Unscheduled courses",
+  "footer.credits": "credits",
+  "footer.subjects": "subjects",
+  "footer.hourUnit": "h",
+  "footer.unscheduled": "unscheduled"
 }

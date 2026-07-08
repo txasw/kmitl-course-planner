@@ -9,6 +9,8 @@ import { computeWindow } from '@/lib/planner/grid';
 import { planStore } from '@/features/plans/planStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { isScheduled, toPlacedSection } from './placedSection';
+import { GridFooter } from './GridFooter';
+import { UnscheduledShelf } from './UnscheduledShelf';
 import { WeeklyGrid } from './WeeklyGrid';
 
 export function PlannerPanel() {
@@ -20,13 +22,17 @@ export function PlannerPanel() {
     [entries],
   );
   const scheduled = useMemo(() => sections.filter(isScheduled), [sections]);
+  const unscheduled = useMemo(
+    () => sections.filter((section) => !isScheduled(section)),
+    [sections],
+  );
   const window = useMemo(
     () => computeWindow(scheduled.flatMap((section) => section.meetings)),
     [scheduled],
   );
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col gap-2">
       <div className="relative min-h-0 flex-1 overflow-auto kcp-scroll">
         <WeeklyGrid
           sections={scheduled}
@@ -43,6 +49,10 @@ export function PlannerPanel() {
           </div>
         ) : null}
       </div>
+      {unscheduled.length > 0 ? (
+        <UnscheduledShelf sections={unscheduled} locale={language} t={t} />
+      ) : null}
+      {sections.length > 0 ? <GridFooter sections={sections} t={t} /> : null}
     </div>
   );
 }
