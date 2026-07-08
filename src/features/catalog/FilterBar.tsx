@@ -6,7 +6,7 @@ import { useStore } from 'zustand';
 import type { DayOfWeek } from '@/lib/domain/types';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { catalogStore } from './catalogStore';
-import { dayLabelKey } from './meetingFormat';
+import { dayLabelKey } from '@/lib/i18n/dayLabel';
 
 const DAYS: DayOfWeek[] = [0, 1, 2, 3, 4, 5, 6];
 
