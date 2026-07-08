@@ -10,6 +10,7 @@ import { useTranslation } from './useTranslation';
 export function Launcher() {
   const isOpen = useStore(uiStore, (state) => state.isOpen);
   const open = useStore(uiStore, (state) => state.open);
+  const issueCount = useStore(uiStore, (state) => state.diagnosticsIssueCount);
   const { t } = useTranslation();
 
   return (
@@ -23,6 +24,14 @@ export function Launcher() {
     >
       <CalendarDays size={18} strokeWidth={2} aria-hidden />
       <span>{t('launcher.label')}</span>
+      {issueCount !== null && issueCount > 0 ? (
+        <span
+          aria-hidden
+          className="absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-xs font-semibold text-white"
+        >
+          {issueCount}
+        </span>
+      ) : null}
     </button>
   );
 }
