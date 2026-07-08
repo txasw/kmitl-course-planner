@@ -1,4 +1,4 @@
-import { test, expect, openPlanner } from './support/fixtures';
+import { test, expect, openPlanner, pickOption } from './support/fixtures';
 
 // The mock rejects a present but empty selected_class_year with the real API's
 // "not integer" body, so these specs fail if the search-all construction
@@ -9,9 +9,9 @@ test('searches by class with the all class year option', async ({
 }) => {
   const page = await openPlanner(context);
   // by_class is the default tab; class year defaults to the all option.
-  await page.getByRole('combobox', { name: 'คณะ' }).selectOption('01');
-  await page.getByRole('combobox', { name: 'ภาควิชา' }).selectOption('08');
-  await page.getByRole('combobox', { name: 'หลักสูตร' }).selectOption('121');
+  await pickOption(page, 'คณะ', '01');
+  await pickOption(page, 'ภาควิชา', '08');
+  await pickOption(page, 'หลักสูตร');
   await page.getByRole('button', { name: 'ค้นหา' }).click();
 
   await expect(page.getByText('90592033').first()).toBeVisible({

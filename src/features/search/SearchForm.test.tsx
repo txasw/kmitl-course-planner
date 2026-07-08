@@ -107,32 +107,51 @@ beforeEach(() => {
 
 afterEach(cleanup);
 
+// Drive a searchable combobox: open it, filter, and confirm with Enter.
+function selectCombobox(name: string, filter: string) {
+  const combo = screen.getByRole('combobox', { name });
+  fireEvent.focus(combo);
+  fireEvent.change(combo, { target: { value: filter } });
+  fireEvent.keyDown(combo, { key: 'Enter' });
+}
+
+async function waitEnabled(name: string) {
+  const combo = screen.getByRole('combobox', { name });
+  await waitFor(() => {
+    expect(combo).toBeEnabled();
+  });
+  return combo;
+}
+
 describe('SearchForm', () => {
-  it('populates the faculty select from reference data', async () => {
+  it('populates the faculty combobox from reference data', async () => {
     renderSearch(deps());
+    const faculty = await waitEnabled('คณะ');
+    fireEvent.focus(faculty);
     expect(
       await screen.findByRole('option', { name: /วิศวกรรมศาสตร์/ }),
     ).toBeInTheDocument();
   });
 
-  it('enables the department select after a faculty is chosen', async () => {
+  it('enables the department combobox after a faculty is chosen', async () => {
     renderSearch(deps());
-    const faculty = await screen.findByRole('combobox', { name: 'คณะ' });
+    await waitEnabled('คณะ');
     const department = screen.getByRole('combobox', { name: 'ภาควิชา' });
     expect(department).toBeDisabled();
-    fireEvent.change(faculty, { target: { value: '01' } });
+    selectCombobox('คณะ', '01');
     await waitFor(() => {
-      expect(department).not.toBeDisabled();
+      expect(department).toBeEnabled();
     });
+    fireEvent.focus(department);
     expect(
-      screen.getByRole('option', { name: /วิศวกรรมโทรคมนาคม/ }),
+      await screen.findByRole('option', { name: /วิศวกรรมโทรคมนาคม/ }),
     ).toBeInTheDocument();
   });
 
-  it('shows a validation message for an invalid subject id', async () => {
+  it('shows a validation message for an invalid subject id', () => {
     renderSearch(deps());
     fireEvent.click(screen.getByRole('button', { name: 'รหัสวิชา' }));
-    const input = await screen.findByRole('textbox', { name: 'รหัสวิชา' });
+    const input = screen.getByRole('textbox', { name: 'รหัสวิชา' });
     fireEvent.change(input, { target: { value: 'abc' } });
     expect(
       screen.getByText('กรอกรหัสวิชาเป็นตัวเลข 1 ถึง 8 หลัก'),
@@ -144,22 +163,22 @@ describe('SearchForm', () => {
     fireEvent.click(screen.getByRole('button', { name: 'หมวดวิชา' }));
     const submit = screen.getByRole('button', { name: 'ค้นหา' });
     expect(submit).toBeDisabled();
-    const faculty = await screen.findByRole('combobox', { name: 'คณะ' });
-    fireEvent.change(faculty, { target: { value: '01' } });
-    const owner = await screen.findByRole('combobox', { name: 'หมวดวิชา' });
-    fireEvent.change(owner, { target: { value: '32' } });
+    await waitEnabled('คณะ');
+    selectCombobox('คณะ', '01');
+    await waitEnabled('หมวดวิชา');
+    selectCombobox('หมวดวิชา', '90592xxx');
     await waitFor(() => {
-      expect(submit).not.toBeDisabled();
+      expect(submit).toBeEnabled();
     });
   });
 
   it('runs a category search and renders the results', async () => {
     renderSearch(deps());
     fireEvent.click(screen.getByRole('button', { name: 'หมวดวิชา' }));
-    const faculty = await screen.findByRole('combobox', { name: 'คณะ' });
-    fireEvent.change(faculty, { target: { value: '01' } });
-    const owner = await screen.findByRole('combobox', { name: 'หมวดวิชา' });
-    fireEvent.change(owner, { target: { value: '32' } });
+    await waitEnabled('คณะ');
+    selectCombobox('คณะ', '01');
+    await waitEnabled('หมวดวิชา');
+    selectCombobox('หมวดวิชา', '90592xxx');
     fireEvent.click(screen.getByRole('button', { name: 'ค้นหา' }));
     expect(await screen.findByText('90592033')).toBeInTheDocument();
   });

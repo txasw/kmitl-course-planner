@@ -1,4 +1,4 @@
-import { test, expect, openPlanner } from './support/fixtures';
+import { test, expect, openPlanner, pickOption } from './support/fixtures';
 
 // The debug build exposes the diagnostics drawer. Setting the drop teach_time2
 // mutation and running a query makes the contract auditor report a missing field,
@@ -7,8 +7,8 @@ import { test, expect, openPlanner } from './support/fixtures';
 test('surfaces a dropped teach_time2 in the report', async ({ context }) => {
   const page = await openPlanner(context);
   await page.getByRole('button', { name: 'หมวดวิชา' }).click();
-  await page.getByRole('combobox', { name: 'คณะ' }).selectOption('01');
-  await page.getByRole('combobox', { name: 'หมวดวิชา' }).selectOption('32');
+  await pickOption(page, 'คณะ', '01');
+  await pickOption(page, 'หมวดวิชา', '90592xxx');
 
   await page.getByRole('button', { name: 'Diagnostics' }).click();
   await page.getByRole('button', { name: 'Simulation' }).click();
