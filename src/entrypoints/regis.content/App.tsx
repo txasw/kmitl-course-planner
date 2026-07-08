@@ -1,6 +1,7 @@
 import type { PrefsRepository } from '@/lib/storage/prefs';
 import { Launcher } from '@/features/shell/Launcher';
 import { Overlay } from '@/features/shell/Overlay';
+import { Toaster } from '@/features/shell/Toaster';
 import { useLanguagePersistence } from '@/features/shell/useLanguagePersistence';
 import {
   SearchDepsProvider,
@@ -24,6 +25,7 @@ export function App({ prefs, search }: AppProps) {
       <Launcher />
       <Overlay />
       <DiagnosticsGate />
+      <Toaster />
     </SearchDepsProvider>
   );
 }
