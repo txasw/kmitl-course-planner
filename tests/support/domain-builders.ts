@@ -24,6 +24,7 @@ export function makeSection(overrides: Partial<Section> = {}): Section {
     teachTableId: 't1',
     subjectId: '90000001',
     section: '901',
+    kind: 'lecture',
     pairedSection: null,
     meetings: [makeMeeting()],
     teachersTh: [],

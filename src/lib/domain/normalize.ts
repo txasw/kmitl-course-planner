@@ -16,7 +16,14 @@ import {
   type RawSectionRow,
   type RawTeachTableResponse,
 } from './schemas';
-import type { Course, Enrolled, Exam, Meeting, Section } from './types';
+import type {
+  Course,
+  Enrolled,
+  Exam,
+  Meeting,
+  MeetingKind,
+  Section,
+} from './types';
 
 /** A row whose day or time could not be parsed into a meeting. */
 export interface NormalizationWarning {
@@ -92,6 +99,11 @@ function pickBuilding(row: RawSectionRow): string {
   return row.building_no ?? row.classbuilding ?? '';
 }
 
+/** Lecture or practice from the raw lect_or_prac marker; ป is practice. */
+function parseKind(lectOrPrac: string): MeetingKind {
+  return lectOrPrac === 'ป' ? 'practice' : 'lecture';
+}
+
 function toExam(row: RawSectionRow): Exam {
   const exam: Exam = {};
   if (
@@ -135,7 +147,7 @@ function toMeeting(row: RawSectionRow): Meeting | { reason: string } {
     endMin,
     room: pickRoom(row),
     building: pickBuilding(row),
-    kind: row.lect_or_prac === 'ป' ? 'practice' : 'lecture',
+    kind: parseKind(row.lect_or_prac),
   };
 }
 
@@ -166,6 +178,7 @@ function toSection(
     teachTableId: row.teach_table_id,
     subjectId: row.subject_id,
     section: row.section,
+    kind: parseKind(row.lect_or_prac),
     pairedSection: row.sec_pair,
     meetings,
     teachersTh: sanitizeToLines(row.teacher_list_th),

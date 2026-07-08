@@ -52,6 +52,12 @@ export interface Section {
   teachTableId: string;
   subjectId: string;
   section: string;
+  /**
+   * Whether the section is a lecture or a practice, from lect_or_prac. It is
+   * carried on the section, not only on its meetings, so an unscheduled section
+   * with no meeting still shows the correct kind.
+   */
+  kind: MeetingKind;
   /** The paired section code from sec_pair, or null when the section is standalone. */
   pairedSection: string | null;
   meetings: Meeting[];
