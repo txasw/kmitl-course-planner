@@ -4,6 +4,8 @@
   "app.title": "KMITL Course Planner",
   "action.close": "Close",
   "action.retry": "Retry",
+  "action.add": "Add",
+  "action.remove": "Remove",
   "language.select": "Select language",
   "language.th": "ไทย",
   "language.en": "English",

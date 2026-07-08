@@ -3,7 +3,7 @@
 // visible time window from the scheduled meetings so an early or late class widens
 // the grid. Unscheduled sections and the footer summary arrive with the shelf.
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useStore } from 'zustand';
 import { computeWindow } from '@/lib/planner/grid';
 import { planStore } from '@/features/plans/planStore';
@@ -33,6 +33,9 @@ export function PlannerPanel() {
     () => computeWindow(scheduled.flatMap((section) => section.meetings)),
     [scheduled],
   );
+  const handleRemove = useCallback((teachTableId: string) => {
+    planStore.getState().remove(teachTableId);
+  }, []);
 
   return (
     <div className="flex h-full flex-col gap-2">
@@ -61,7 +64,12 @@ export function PlannerPanel() {
         ) : null}
       </div>
       {unscheduled.length > 0 ? (
-        <UnscheduledShelf sections={unscheduled} locale={language} t={t} />
+        <UnscheduledShelf
+          sections={unscheduled}
+          locale={language}
+          t={t}
+          onRemove={viewMode === 'edit' ? handleRemove : undefined}
+        />
       ) : null}
       {sections.length > 0 ? <GridFooter sections={sections} t={t} /> : null}
     </div>

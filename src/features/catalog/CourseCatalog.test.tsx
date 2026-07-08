@@ -12,6 +12,7 @@ import {
   normalizeTeachTable,
   type NormalizedCatalog,
 } from '@/lib/domain/normalize';
+import { planStore } from '@/features/plans/planStore';
 import { catalogStore } from './catalogStore';
 import { CourseCatalog } from './CourseCatalog';
 
@@ -33,7 +34,12 @@ beforeEach(() => {
   });
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  act(() => {
+    planStore.setState({ entries: [] });
+  });
+});
 
 describe('CourseCatalog', () => {
   it('reports the dedupe summary from the normalized totals', () => {
@@ -98,5 +104,14 @@ describe('CourseCatalog', () => {
     const cards = screen.getAllByRole('article');
     expect(cards).toHaveLength(1);
     expect(screen.getByText('90592033')).toBeInTheDocument();
+  });
+
+  it('adds an open section to the plan from its add button', () => {
+    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    const [addButton] = screen.getAllByRole('button', { name: 'เพิ่ม' });
+    if (addButton) {
+      fireEvent.click(addButton);
+    }
+    expect(planStore.getState().entries.length).toBeGreaterThan(0);
   });
 });

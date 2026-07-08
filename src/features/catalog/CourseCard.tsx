@@ -13,9 +13,18 @@ interface CourseCardProps {
   placed: Section[];
   locale: Locale;
   t: Translate;
+  onAdd?: ((course: Course, section: Section) => void) | undefined;
+  onRemove?: ((teachTableId: string) => void) | undefined;
 }
 
-export function CourseCard({ course, placed, locale, t }: CourseCardProps) {
+export function CourseCard({
+  course,
+  placed,
+  locale,
+  t,
+  onAdd,
+  onRemove,
+}: CourseCardProps) {
   const primary = locale === 'th' ? course.nameTh : course.nameEn;
   const secondary = locale === 'th' ? course.nameEn : course.nameTh;
 
@@ -43,6 +52,8 @@ export function CourseCard({ course, placed, locale, t }: CourseCardProps) {
             seat={computeSeatStatus(section)}
             locale={locale}
             t={t}
+            onAdd={onAdd}
+            onRemove={onRemove}
           />
         ))}
       </div>
