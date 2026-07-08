@@ -41,6 +41,7 @@ afterEach(() => {
   dragStore.getState().clearActive();
   dragStore.getState().clearBlocked();
   dragStore.getState().clearHover();
+  dragStore.getState().clearCourse();
 });
 
 describe('WeeklyGrid', () => {
@@ -137,5 +138,27 @@ describe('WeeklyGrid', () => {
       <WeeklyGrid sections={[]} window={DEFAULT_WINDOW} locale="th" t={t} />,
     );
     expect(document.querySelector('[data-ghost="hover"]')).not.toBeNull();
+  });
+
+  it('renders candidate slots during a course drag', () => {
+    const valid = makeSection({
+      teachTableId: 'c1',
+      section: '901',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 660 })],
+    });
+    const full = makeSection({
+      teachTableId: 'c2',
+      section: '902',
+      meetings: [makeMeeting({ day: 3, startMin: 540, endMin: 660 })],
+      seats: { limit: 40, preCount: 40, queueLeft: 0, enrolled: 'full' },
+    });
+    const course = makeCourse({ sections: [valid, full] });
+    dragStore.getState().startCourse(course, []);
+    render(
+      <WeeklyGrid sections={[]} window={DEFAULT_WINDOW} locale="th" t={t} />,
+    );
+    expect(document.querySelector('[data-candidate="valid"]')).not.toBeNull();
+    expect(document.querySelector('[data-candidate="blocked"]')).not.toBeNull();
+    expect(screen.getByText('901')).toBeInTheDocument();
   });
 });
