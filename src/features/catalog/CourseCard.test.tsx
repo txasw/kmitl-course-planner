@@ -90,3 +90,25 @@ describe('CourseCard plan relation', () => {
     expect(screen.getByText('มีวิชานี้ในตารางแล้ว')).toBeInTheDocument();
   });
 });
+
+describe('CourseCard course drag handle', () => {
+  it('shows a course drag handle in edit mode', () => {
+    const course = makeCourse({ subjectId: '90592008' });
+    render(
+      <CourseCard
+        course={course}
+        placed={[]}
+        locale="th"
+        t={t}
+        onAdd={() => undefined}
+      />,
+    );
+    expect(screen.getByTitle(/ลากรายวิชา/)).toBeInTheDocument();
+  });
+
+  it('omits the course drag handle without an add handler', () => {
+    const course = makeCourse({ subjectId: '90592008' });
+    render(<CourseCard course={course} placed={[]} locale="th" t={t} />);
+    expect(screen.queryByTitle(/ลากรายวิชา/)).not.toBeInTheDocument();
+  });
+});

@@ -56,7 +56,12 @@ afterEach(() => {
   cleanup();
   act(() => {
     planStore.setState({ entries: [], pendingUndo: null });
-    dragStore.setState({ active: null, blocked: null, announcement: null });
+    dragStore.setState({
+      active: null,
+      blocked: null,
+      announcement: null,
+      hint: null,
+    });
     catalogStore.getState().resetFilter();
   });
 });
@@ -199,5 +204,15 @@ describe('FeedbackStrip', () => {
     });
     render(<FeedbackStrip locale="th" t={t} />);
     expect(screen.getByText('เพิ่มลงตารางแล้ว 90592008')).toBeInTheDocument();
+  });
+
+  it('shows a course drop hint', () => {
+    act(() => {
+      dragStore.setState({ hint: 'วางบนช่องที่ไฮไลต์เพื่อเพิ่มกลุ่มเรียน' });
+    });
+    render(<FeedbackStrip locale="th" t={t} />);
+    expect(
+      screen.getByText('วางบนช่องที่ไฮไลต์เพื่อเพิ่มกลุ่มเรียน'),
+    ).toBeInTheDocument();
   });
 });
