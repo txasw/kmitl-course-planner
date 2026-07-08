@@ -15,6 +15,7 @@ import { filterCourses, type SectionPredicates } from '@/lib/catalog/filter';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { usePlacedSections, planStore } from '@/features/plans/planStore';
 import { addSectionToPlan } from '@/features/plans/addToPlan';
+import { dragStore } from '@/features/planner/dragStore';
 import { catalogStore } from './catalogStore';
 import { CourseCard } from './CourseCard';
 import { FilterBar } from './FilterBar';
@@ -75,7 +76,14 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
   const filter = useStore(catalogStore, (state) => state.filter);
 
   const handleAdd = useCallback((course: Course, section: Section) => {
-    addSectionToPlan(course, section);
+    const outcome = addSectionToPlan(course, section);
+    if (!outcome.ok) {
+      dragStore.getState().showBlocked({
+        course,
+        section,
+        conflicts: outcome.conflicts,
+      });
+    }
   }, []);
   const handleRemove = useCallback((teachTableId: string) => {
     planStore.getState().remove(teachTableId);

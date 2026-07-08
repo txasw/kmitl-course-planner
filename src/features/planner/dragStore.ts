@@ -36,6 +36,9 @@ export interface DragStore {
   clearActive: () => void;
   /** End a blocked drop: surface the reason and alternatives, clear the drag. */
   reject: () => void;
+  /** Surface a blocked outcome that did not come from a drag, such as a blocked
+   * add from the button, so keyboard users get the same reason and alternatives. */
+  showBlocked: (feedback: BlockedFeedback) => void;
   clearBlocked: () => void;
 }
 
@@ -65,6 +68,9 @@ export function createDragStore() {
       } else {
         set({ active: null });
       }
+    },
+    showBlocked: (feedback) => {
+      set({ active: null, blocked: feedback });
     },
     clearBlocked: () => {
       set({ blocked: null });
