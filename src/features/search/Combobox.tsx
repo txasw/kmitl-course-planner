@@ -29,7 +29,7 @@ export function Combobox({
 }: ComboboxProps) {
   const listboxId = useId();
   const optionIdBase = useId();
-  const labelId = useId();
+  const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedLabel = useMemo(
@@ -41,7 +41,9 @@ export function Combobox({
   const [query, setQuery] = useState('');
   // Until the field is edited it shows every option; typing switches to filtering.
   const [dirty, setDirty] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
+  // Index of the highlighted option, or -1 when none is highlighted so Enter on a
+  // freshly opened field with no prior selection commits nothing.
+  const [activeIndex, setActiveIndex] = useState(-1);
 
   // While closed the input mirrors the current selection, derived rather than
   // synced, so an external change such as a cascade reset shows immediately and
@@ -58,17 +60,21 @@ export function Combobox({
     );
   }, [options, query, dirty]);
 
+  // The popup is only present when the field is open and has matches.
+  const listVisible = open && visible.length > 0;
+
   const optionId = (index: number) => `${optionIdBase}-${String(index)}`;
 
   const openList = () => {
-    if (disabled) {
+    // Only seed on the transition to open, so a click to reposition the caret
+    // while already open does not discard the current filter.
+    if (disabled || open) {
       return;
     }
     setOpen(true);
     setDirty(false);
     setQuery(selectedLabel);
-    const selectedIndex = options.findIndex((option) => option.value === value);
-    setActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
+    setActiveIndex(options.findIndex((option) => option.value === value));
   };
 
   const close = () => {
@@ -133,16 +139,16 @@ export function Combobox({
 
   return (
     <div className="relative flex flex-col gap-1 text-sm">
-      <span id={labelId} className="font-medium text-ink">
+      <label htmlFor={inputId} className="font-medium text-ink">
         {label}
-      </span>
+      </label>
       <input
         ref={inputRef}
+        id={inputId}
         type="text"
         role="combobox"
-        aria-labelledby={labelId}
-        aria-expanded={open}
-        aria-controls={open ? listboxId : undefined}
+        aria-expanded={listVisible}
+        aria-controls={listVisible ? listboxId : undefined}
         aria-autocomplete="list"
         aria-activedescendant={activeOption ? optionId(activeIndex) : undefined}
         value={displayValue}
@@ -160,7 +166,7 @@ export function Combobox({
         onBlur={close}
         className="rounded-kcp border border-border bg-surface px-2 py-1.5 text-ink focus:ring-2 focus:ring-primary focus:outline-none disabled:opacity-50"
       />
-      {open && visible.length > 0 ? (
+      {listVisible ? (
         <ul
           role="listbox"
           id={listboxId}
