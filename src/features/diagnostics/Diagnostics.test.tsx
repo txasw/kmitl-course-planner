@@ -5,7 +5,9 @@ import {
   fireEvent,
   cleanup,
   act,
+  waitFor,
 } from '@testing-library/react';
+import { SimulationControls } from './views';
 import type { RequestMessage } from '@/lib/messaging/protocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import type { DataQualityReport } from '@/lib/contract/report';
@@ -48,7 +50,15 @@ function report(): DataQualityReport {
   };
 }
 
+// A stateful fake worker: setFault and setMutation mutate the settings that
+// getSimulation then returns, so the test binds against the same round trip the
+// real worker drives, not a hardcoded response.
 function fakeSend(mutationId: string | null): TypedSend {
+  const sim = { fixtureId: null, faultId: null, mutationId } as {
+    fixtureId: string | null;
+    faultId: string | null;
+    mutationId: string | null;
+  };
   const handler = (message: RequestMessage) => {
     switch (message.type) {
       case 'debug/getRequestLog':
@@ -75,9 +85,13 @@ function fakeSend(mutationId: string | null): TypedSend {
           }),
         );
       case 'debug/getSimulation':
-        return Promise.resolve(
-          ok({ fixtureId: null, faultId: null, mutationId }),
-        );
+        return Promise.resolve(ok({ ...sim }));
+      case 'debug/setFault':
+        sim.faultId = message.faultId;
+        return Promise.resolve(ok(undefined));
+      case 'debug/setMutation':
+        sim.mutationId = message.mutationId;
+        return Promise.resolve(ok(undefined));
       default:
         return Promise.resolve(ok(undefined));
     }
@@ -141,6 +155,53 @@ describe('Diagnostics drawer', () => {
     });
     fireEvent.click(trigger);
     fireEvent.click(screen.getByRole('button', { name: 'Simulation' }));
+    expect(screen.getByRole('combobox', { name: 'Mutation' })).toHaveValue(
+      'drop_teach_time2',
+    );
+  });
+
+  it('keeps the armed mutation after switching tabs and returning', async () => {
+    render(
+      <SearchDepsProvider value={deps()}>
+        <Diagnostics />
+      </SearchDepsProvider>,
+    );
+    fireEvent.click(await screen.findByRole('button', { name: 'Diagnostics' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Simulation' }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'Mutation' }), {
+      target: { value: 'drop_teach_time2' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Requests' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Simulation' }));
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: 'Mutation' })).toHaveValue(
+        'drop_teach_time2',
+      );
+    });
+  });
+
+  it('binds the rendered control to the simulation prop', () => {
+    // A seed once control would ignore this prop change; the rendered value must
+    // track the worker state the parent passes down.
+    const { rerender } = render(
+      <SimulationControls
+        simulation={{ fixtureId: null, faultId: null, mutationId: null }}
+        onSetFault={() => undefined}
+        onSetMutation={() => undefined}
+      />,
+    );
+    expect(screen.getByRole('combobox', { name: 'Mutation' })).toHaveValue('');
+    rerender(
+      <SimulationControls
+        simulation={{
+          fixtureId: null,
+          faultId: null,
+          mutationId: 'drop_teach_time2',
+        }}
+        onSetFault={() => undefined}
+        onSetMutation={() => undefined}
+      />,
+    );
     expect(screen.getByRole('combobox', { name: 'Mutation' })).toHaveValue(
       'drop_teach_time2',
     );

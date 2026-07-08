@@ -45,19 +45,19 @@ const ACTION =
 
 export function Diagnostics() {
   const { send } = useSearchDeps();
-  const { data, refresh } = useDiagnosticsData(send);
+  const { data, refresh, setSimulation } = useDiagnosticsData(send);
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>('requests');
 
   const armed = isSimulationArmed(data.simulation);
 
   const setFault = (faultId: string | null) => {
-    void send({ type: 'debug/setFault', faultId });
-    refresh();
+    setSimulation({ ...data.simulation, faultId });
+    void send({ type: 'debug/setFault', faultId }).then(refresh);
   };
   const setMutation = (mutationId: string | null) => {
-    void send({ type: 'debug/setMutation', mutationId });
-    refresh();
+    setSimulation({ ...data.simulation, mutationId });
+    void send({ type: 'debug/setMutation', mutationId }).then(refresh);
   };
 
   if (!open) {

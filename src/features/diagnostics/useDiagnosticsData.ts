@@ -42,6 +42,7 @@ function countIssues(report: DataQualityReport): number {
 export function useDiagnosticsData(send: TypedSend): {
   data: DiagnosticsData;
   refresh: () => void;
+  setSimulation: (simulation: SimSettings) => void;
 } {
   const [data, setData] = useState<DiagnosticsData>({
     log: [],
@@ -49,6 +50,13 @@ export function useDiagnosticsData(send: TypedSend): {
     latestRaw: null,
     simulation: IDLE_SIMULATION,
   });
+
+  // Apply the simulation optimistically so the controls, which bind to this
+  // state, reflect the change at once; a following refresh confirms it from the
+  // worker, the source of truth.
+  const setSimulation = useCallback((simulation: SimSettings) => {
+    setData((prev) => ({ ...prev, simulation }));
+  }, []);
 
   const refresh = useCallback(() => {
     void (async () => {
@@ -90,5 +98,5 @@ export function useDiagnosticsData(send: TypedSend): {
     [refresh],
   );
 
-  return { data, refresh };
+  return { data, refresh, setSimulation };
 }
