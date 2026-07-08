@@ -1,10 +1,11 @@
 // Presentational form fields for the search rail. Each select derives its options
 // from the reference lists through the pure filters, stays disabled until its
 // source list is ready and its parent selection is made, and writes back through
-// the store patch. Native controls carry accessible labels and a visible focus
-// ring in the brand orange.
+// the store patch. The selects are searchable comboboxes, since faculty and
+// curriculum lists are long.
 
 import { useId } from 'react';
+import { Combobox } from './Combobox';
 import type { Translate } from '@/lib/i18n/t';
 import type { Locale } from '@/lib/i18n/t';
 import type {
@@ -38,50 +39,6 @@ export interface ReferenceLists {
   departments: AsyncState<RawDepartment[]>;
   curricula: AsyncState<RawCurriculum[]>;
   subjectOwners: AsyncState<RawSubjectOwner[]>;
-}
-
-interface Option {
-  value: string;
-  label: string;
-}
-
-interface LabeledSelectProps {
-  label: string;
-  value: string;
-  options: Option[];
-  placeholder: string;
-  disabled: boolean;
-  onChange: (value: string) => void;
-}
-
-export function LabeledSelect({
-  label,
-  value,
-  options,
-  placeholder,
-  disabled,
-  onChange,
-}: LabeledSelectProps) {
-  return (
-    <label className="flex flex-col gap-1 text-sm">
-      <span className="font-medium text-ink">{label}</span>
-      <select
-        value={value}
-        disabled={disabled}
-        onChange={(event) => {
-          onChange(event.target.value);
-        }}
-        className="rounded-kcp border border-border bg-surface px-2 py-1.5 text-ink focus:ring-2 focus:ring-primary focus:outline-none disabled:opacity-50"
-      >
-        <option value="">{placeholder}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
 }
 
 interface SubjectIdInputProps {
@@ -149,7 +106,7 @@ export function TermFields({
 }: TermFieldsProps) {
   return (
     <>
-      <LabeledSelect
+      <Combobox
         label={t('search.year')}
         value={year}
         placeholder={t('search.selectPlaceholder')}
@@ -157,7 +114,7 @@ export function TermFields({
         options={years.map((value) => ({ value, label: value }))}
         onChange={onYear}
       />
-      <LabeledSelect
+      <Combobox
         label={t('search.semester')}
         value={semester}
         placeholder={t('search.selectPlaceholder')}
@@ -189,7 +146,7 @@ export function FacultySelect({
     label: `${faculty.FACULTY_ID} ${facultyName(faculty, locale)}`,
   }));
   return (
-    <LabeledSelect
+    <Combobox
       label={t('search.faculty')}
       value={value}
       placeholder={
@@ -269,7 +226,7 @@ export function ClassFields({
           patch({ faculty, department: '', curriculum: '' });
         }}
       />
-      <LabeledSelect
+      <Combobox
         label={t('search.department')}
         value={form.department}
         placeholder={t('search.selectPlaceholder')}
@@ -281,7 +238,7 @@ export function ClassFields({
           patch({ department, curriculum: '' });
         }}
       />
-      <LabeledSelect
+      <Combobox
         label={t('search.curriculum')}
         value={form.curriculum}
         placeholder={t('search.selectPlaceholder')}
@@ -293,7 +250,7 @@ export function ClassFields({
           patch({ curriculum });
         }}
       />
-      <LabeledSelect
+      <Combobox
         label={t('search.classYear')}
         value={form.classYear}
         placeholder={t('search.selectPlaceholder')}
@@ -361,7 +318,7 @@ export function CategoryFields({
           patch({ faculty });
         }}
       />
-      <LabeledSelect
+      <Combobox
         label={t('search.subjectOwner')}
         value={form.subjectOwner}
         placeholder={

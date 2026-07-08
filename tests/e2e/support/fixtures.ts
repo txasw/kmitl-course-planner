@@ -78,3 +78,21 @@ export async function openPlanner(context: BrowserContext): Promise<Page> {
   await page.getByRole('button', { name: 'เปิด KMITL Course Planner' }).click();
   return page;
 }
+
+/**
+ * Choose an option in a searchable combobox by opening it, optionally typing to
+ * filter, then confirming the highlighted option with Enter. Without a filter it
+ * confirms the first option.
+ */
+export async function pickOption(
+  page: Page,
+  comboName: string,
+  filter?: string,
+): Promise<void> {
+  const combo = page.getByRole('combobox', { name: comboName });
+  await combo.click();
+  if (filter !== undefined) {
+    await combo.fill(filter);
+  }
+  await combo.press('Enter');
+}
