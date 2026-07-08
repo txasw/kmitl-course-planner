@@ -36,6 +36,17 @@ export interface RequestContext {
   url: string;
 }
 
+/**
+ * The latest raw teach table payload the worker saw, surfaced by the debug
+ * drawer's raw versus normalized viewer beside the content side normalized
+ * catalog. It carries only clone safe data so it can cross the messaging
+ * boundary.
+ */
+export interface LatestRaw {
+  raw: unknown;
+  request: { endpoint: string; params: Record<string, string> };
+}
+
 /** The simulation controls the debug drawer can set on the worker. */
 export interface SimSettings {
   fixtureId: string | null;

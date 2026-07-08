@@ -67,8 +67,36 @@ describe('installDebug', () => {
       ok: true,
       value: null,
     });
+    expect(await dispatch({ type: 'debug/getLatestRaw' })).toEqual({
+      ok: true,
+      value: null,
+    });
     await dispatch({ type: 'debug/setFault', faultId: 'timeout' });
     expect(state.getSettings().faultId).toBe('timeout');
+  });
+
+  it('captures the latest teach table raw payload for the drawer', () => {
+    const state = installDebug({
+      extensionVersion: '0.0.0',
+      runtimeId: 'id',
+      router: noopRouter,
+      now: () => 'T',
+    });
+    const audit = getAudit();
+    const context = {
+      endpoint: 'get-teach-table-show',
+      params: { mode: 'by_class' },
+      url: 'https://example.test',
+    };
+    const raw = [{ teachtable: [] }];
+    audit?.observe(context, raw);
+    expect(state.getLatestRaw()).toEqual({
+      raw,
+      request: {
+        endpoint: 'get-teach-table-show',
+        params: { mode: 'by_class' },
+      },
+    });
   });
 
   it('surfaces an injected unknown field in the report through the gateway', async () => {

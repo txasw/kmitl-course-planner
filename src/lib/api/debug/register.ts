@@ -29,6 +29,8 @@ export function createDebugDispatch(state: DebugState): DebugDispatch {
         return Promise.resolve(ok(state.getRequestLog()));
       case 'debug/getReport':
         return Promise.resolve(ok(state.getReport()));
+      case 'debug/getLatestRaw':
+        return Promise.resolve(ok(state.getLatestRaw()));
       case 'debug/setFixture':
         state.setSettings({ fixtureId: message.fixtureId });
         return Promise.resolve(ok(undefined));
@@ -66,6 +68,15 @@ export function installDebug(deps: InstallDebugDeps): DebugState {
       now,
       onReport: (report) => {
         state.setReport(report);
+      },
+      onRaw: (context, raw) => {
+        // Only the teach table payload has a normalized counterpart to compare.
+        if (context.endpoint === 'get-teach-table-show') {
+          state.setLatestRaw({
+            raw,
+            request: { endpoint: context.endpoint, params: context.params },
+          });
+        }
       },
     }),
   );
