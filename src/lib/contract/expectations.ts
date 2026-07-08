@@ -8,7 +8,7 @@
 // production bundle check greps for.
 
 import { parseTimeToMinutes } from '../parsing/time';
-import { isUnscheduledDay } from '../parsing/days';
+import { isUnscheduledDay, isUnscheduledRow } from '../parsing/days';
 
 export const DEBUG_CANARY = 'kcp-debug-canary';
 
@@ -181,15 +181,15 @@ export const CROSS_FIELD_RULES: readonly CrossFieldRule[] = [
     field: 'teach_time2',
     description: 'end time is after start time',
     check(row) {
-      const day = asString(row.teach_day);
-      // An unscheduled row has no meeting, so its 00:00:00 to 00:00:00 window is
-      // expected, not a reversed range.
-      if (day !== null && isUnscheduledDay(day)) {
-        return null;
-      }
       const start = asString(row.teach_time);
       const end = asString(row.teach_time2);
       if (start === null || end === null) {
+        return null;
+      }
+      const day = asString(row.teach_day);
+      // A fully unscheduled row has no meeting, so its 00:00:00 to 00:00:00 window
+      // is expected, not a reversed range.
+      if (day !== null && isUnscheduledRow(day, start, end)) {
         return null;
       }
       const startMin = parseTimeToMinutes(start);
@@ -198,6 +198,25 @@ export const CROSS_FIELD_RULES: readonly CrossFieldRule[] = [
         return null;
       }
       return endMin > startMin ? null : `${start} to ${end}`;
+    },
+  },
+  {
+    id: 'unscheduled_zeroed_times',
+    field: 'teach_day',
+    description: 'an unscheduled day 0 carries 00:00:00 times',
+    check(row) {
+      const day = asString(row.teach_day);
+      if (day === null || !isUnscheduledDay(day)) {
+        return null;
+      }
+      // day is the unscheduled sentinel; it must carry the zeroed times, or it is
+      // a real meeting mislabeled to day 0 and worth surfacing.
+      const start = asString(row.teach_time);
+      const end = asString(row.teach_time2);
+      if (start !== null && end !== null && isUnscheduledRow(day, start, end)) {
+        return null;
+      }
+      return `teach_day 0 with times ${start ?? 'null'} to ${end ?? 'null'}`;
     },
   },
   {

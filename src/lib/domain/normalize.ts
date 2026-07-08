@@ -5,7 +5,7 @@
 // day or time could not be parsed. A shape that fails validation returns a typed
 // error; a single malformed row never crashes the whole result.
 
-import { isUnscheduledDay, parseTeachDay } from '../parsing/days';
+import { isUnscheduledRow, parseTeachDay } from '../parsing/days';
 import { parseTimeToMinutes } from '../parsing/time';
 import { sanitizeToLines } from '../parsing/sanitize';
 import { ok, type Result, type ValidationError } from '../utils/result';
@@ -147,8 +147,9 @@ function toSection(
   const meetings: Meeting[] = [];
   // An unscheduled row, an online or asynchronous course, legitimately carries no
   // meeting. It is an expected state, not a malformed row, so it records no
-  // warning; only a genuinely unparseable day or time does.
-  if (!isUnscheduledDay(row.teach_day)) {
+  // warning; only a genuinely unparseable day or time does. A day 0 row that still
+  // carries real times is not unscheduled and falls through to the warning path.
+  if (!isUnscheduledRow(row.teach_day, row.teach_time, row.teach_time2)) {
     const meeting = toMeeting(row);
     if ('reason' in meeting) {
       warnings.push({

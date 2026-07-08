@@ -4,7 +4,9 @@ import {
   DAY_MAP,
   parseTeachDay,
   isUnscheduledDay,
+  isUnscheduledRow,
   UNSCHEDULED_DAY,
+  UNSCHEDULED_TIME,
   type DayOfWeek,
 } from './days';
 
@@ -66,6 +68,18 @@ describe('isUnscheduledDay', () => {
     expect(isUnscheduledDay('0')).toBe(true);
     expect(isUnscheduledDay('6')).toBe(false);
     expect(isUnscheduledDay('')).toBe(false);
+  });
+});
+
+describe('isUnscheduledRow', () => {
+  it('is true only for day 0 with both times zeroed', () => {
+    expect(UNSCHEDULED_TIME).toBe('00:00:00');
+    expect(isUnscheduledRow('0', '00:00:00', '00:00:00')).toBe(true);
+    // A day 0 row with real times is a meeting mislabeled to day 0, not
+    // unscheduled.
+    expect(isUnscheduledRow('0', '09:00:00', '12:00:00')).toBe(false);
+    expect(isUnscheduledRow('0', '00:00:00', '12:00:00')).toBe(false);
+    expect(isUnscheduledRow('6', '00:00:00', '00:00:00')).toBe(false);
   });
 });
 
