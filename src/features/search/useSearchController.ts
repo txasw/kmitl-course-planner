@@ -170,6 +170,11 @@ export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
       return 'error';
     }
     await runQuery(resultQuery, true);
+    // A newer search may have superseded the refresh; comparing against a foreign
+    // query's result would toast a misleading outcome, so bail if it did.
+    if (searchStore.getState().resultQuery !== resultQuery) {
+      return 'error';
+    }
     const after = searchStore.getState().result;
     if (after.status !== 'ready') {
       return 'error';
