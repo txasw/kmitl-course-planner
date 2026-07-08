@@ -86,5 +86,10 @@
   "day.full.4": "วันพฤหัสบดี",
   "day.full.5": "วันศุกร์",
   "day.full.6": "วันเสาร์",
-  "grid.label": "ตารางเรียนรายสัปดาห์"
+  "grid.label": "ตารางเรียนรายสัปดาห์",
+  "shelf.title": "รายวิชาที่ไม่มีคาบเรียน",
+  "footer.credits": "หน่วยกิต",
+  "footer.subjects": "วิชา",
+  "footer.hourUnit": "ชม.",
+  "footer.unscheduled": "ไม่มีคาบเรียน"
 }

@@ -6,9 +6,10 @@
 
 import { Fragment } from 'react';
 import type { CSSProperties } from 'react';
-import type { DayOfWeek, Meeting } from '@/lib/domain/types';
+import type { Meeting } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
+import { WEEK_DAYS } from '@/lib/parsing/days';
 import { formatMinutes } from '@/lib/parsing/time';
 import {
   hourTicks,
@@ -19,7 +20,6 @@ import {
 import { EventBlock } from './EventBlock';
 import type { PlacedSection } from './placedSection';
 
-const DAYS: readonly DayOfWeek[] = [0, 1, 2, 3, 4, 5, 6];
 const AXIS_ROW = 1;
 const FIRST_DAY_ROW = 2;
 const FIRST_TIME_COLUMN = 2; // the grid line just after the day label column
@@ -59,7 +59,7 @@ export function WeeklyGrid({ sections, window, locale, t }: WeeklyGridProps) {
   const lane = laneBackground(quarters);
   const gridStyle: CSSProperties = {
     gridTemplateColumns: `2.25rem repeat(${String(quarters)}, minmax(0, 1fr))`,
-    gridTemplateRows: `auto repeat(${String(DAYS.length)}, minmax(2.5rem, 1fr))`,
+    gridTemplateRows: `auto repeat(${String(WEEK_DAYS.length)}, minmax(2.5rem, 1fr))`,
   };
 
   return (
@@ -83,7 +83,7 @@ export function WeeklyGrid({ sections, window, locale, t }: WeeklyGridProps) {
         </div>
       ))}
 
-      {DAYS.map((day) => (
+      {WEEK_DAYS.map((day) => (
         <Fragment key={day}>
           <div
             className={`flex items-center justify-center border-t border-border text-xs font-medium text-ink-soft ${day % 2 === 1 ? 'bg-surface-alt' : ''}`}

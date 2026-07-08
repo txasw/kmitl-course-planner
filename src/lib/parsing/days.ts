@@ -25,6 +25,9 @@ export const DAY_MAP: ReadonlyMap<string, DayOfWeek> = new Map<
   ['7', 6],
 ]);
 
+/** The seven days in display order, Sunday (0) through Saturday (6). */
+export const WEEK_DAYS: readonly DayOfWeek[] = [0, 1, 2, 3, 4, 5, 6];
+
 /**
  * The `teach_day` value the API sends for a course with no scheduled meeting,
  * such as an online or asynchronous course. It comes with `teach_time` and
