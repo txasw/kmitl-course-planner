@@ -6,6 +6,7 @@
 // lifetime and the storage tier is the durable one.
 
 import type { StorageAdapter } from '../storage/repo';
+import { CACHE_PREFIX } from '../storage/keys';
 
 export interface CacheEntry {
   value: unknown;
@@ -100,8 +101,13 @@ export function createCacheStore(
       await adapter.set(key, entry);
     },
     async clear() {
-      const keys = [...written];
       memory.clear();
+      // Enumerate storage when the adapter supports it so entries from an earlier
+      // worker session are dropped too, scoped to the cache namespace so plans and
+      // preferences survive. Without enumeration fall back to this session's keys.
+      const keys = adapter.keys
+        ? (await adapter.keys()).filter((key) => key.startsWith(CACHE_PREFIX))
+        : [...written];
       written.clear();
       await Promise.all(keys.map((key) => adapter.remove(key)));
     },

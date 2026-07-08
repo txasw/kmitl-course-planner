@@ -30,6 +30,8 @@ export interface StorageAdapter {
   get(key: string): Promise<unknown>;
   set(key: string, value: unknown): Promise<void>;
   remove(key: string): Promise<void>;
+  /** Every stored key, for a prefix scoped bulk clear. Optional for fakes. */
+  keys?(): Promise<string[]>;
 }
 
 export type LoadOutcome =
