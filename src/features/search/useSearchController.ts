@@ -104,13 +104,14 @@ export function useSearchInit(
 export interface SearchActions {
   submit: () => Promise<void>;
   retry: () => Promise<void>;
+  refreshResult: () => Promise<void>;
 }
 
 export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
   const runQuery = useCallback(
-    async (query: TeachTableQuery) => {
+    async (query: TeachTableQuery, refresh = false) => {
       searchStore.getState().setResult({ status: 'loading' }, query);
-      const result = await send({ type: 'teachTable/query', query });
+      const result = await send({ type: 'teachTable/query', query, refresh });
       // A newer submission replaces resultQuery, so a stale response is dropped.
       if (searchStore.getState().resultQuery !== query) {
         return;
@@ -155,5 +156,15 @@ export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
     await runQuery(resultQuery);
   }, [runQuery]);
 
-  return { submit, retry };
+  // Re run the current query while bypassing the cache, so the catalog reflects
+  // the latest seats and closures on demand without waiting for the ttl.
+  const refreshResult = useCallback(async () => {
+    const { resultQuery } = searchStore.getState();
+    if (resultQuery === null) {
+      return;
+    }
+    await runQuery(resultQuery, true);
+  }, [runQuery]);
+
+  return { submit, retry, refreshResult };
 }
