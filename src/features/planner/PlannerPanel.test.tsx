@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, cleanup, act } from '@testing-library/react';
 import { planStore } from '@/features/plans/planStore';
+import { uiStore } from '@/features/shell/uiStore';
 import type { PlanEntry } from '@/lib/domain/plan';
 import {
   makeMeeting,
@@ -18,6 +19,9 @@ function seed(entries: PlanEntry[]): void {
 afterEach(() => {
   cleanup();
   seed([]);
+  act(() => {
+    uiStore.getState().setViewMode('edit');
+  });
 });
 
 describe('PlannerPanel', () => {
@@ -54,5 +58,13 @@ describe('PlannerPanel', () => {
       screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
     ).toBeInTheDocument();
     expect(screen.queryByText('ตารางยังว่าง')).not.toBeInTheDocument();
+  });
+
+  it('shows the poster header in preview mode', () => {
+    act(() => {
+      uiStore.getState().setViewMode('preview');
+    });
+    render(<PlannerPanel />);
+    expect(screen.getByRole('heading', { name: 'ตาราง' })).toBeInTheDocument();
   });
 });

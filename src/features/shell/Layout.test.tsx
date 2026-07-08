@@ -23,6 +23,7 @@ afterEach(() => {
   act(() => {
     uiStore.getState().setDrawer(false);
     uiStore.getState().setLanguage('th');
+    uiStore.getState().setViewMode('edit');
   });
 });
 
@@ -64,5 +65,18 @@ describe('Layout', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'ปิดรายการรายวิชา' }));
     expect(uiStore.getState().drawerOpen).toBe(false);
+  });
+
+  it('collapses the search rail and catalog in preview mode', () => {
+    act(() => {
+      uiStore.getState().setViewMode('preview');
+    });
+    render(<Layout />, { wrapper });
+    expect(
+      screen.queryByRole('button', { name: 'หลักสูตรและชั้นปี' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
+    ).toBeInTheDocument();
   });
 });

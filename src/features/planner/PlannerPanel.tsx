@@ -7,15 +7,18 @@ import { useMemo } from 'react';
 import { useStore } from 'zustand';
 import { computeWindow } from '@/lib/planner/grid';
 import { planStore } from '@/features/plans/planStore';
+import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { isScheduled, toPlacedSection } from './placedSection';
 import { GridFooter } from './GridFooter';
+import { PosterHeader } from './PosterHeader';
 import { UnscheduledShelf } from './UnscheduledShelf';
 import { WeeklyGrid } from './WeeklyGrid';
 
 export function PlannerPanel() {
   const { t, language } = useTranslation();
   const entries = useStore(planStore, (state) => state.entries);
+  const viewMode = useStore(uiStore, (state) => state.viewMode);
 
   const sections = useMemo(
     () => entries.map((entry) => toPlacedSection(entry.snapshot)),
@@ -33,6 +36,14 @@ export function PlannerPanel() {
 
   return (
     <div className="flex h-full flex-col gap-2">
+      {viewMode === 'preview' ? (
+        <PosterHeader
+          planName={t('plan.untitled')}
+          sections={sections}
+          locale={language}
+          t={t}
+        />
+      ) : null}
       <div className="relative min-h-0 flex-1 overflow-auto kcp-scroll">
         <WeeklyGrid
           sections={scheduled}

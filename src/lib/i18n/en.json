@@ -91,5 +91,9 @@
   "footer.credits": "credits",
   "footer.subjects": "subjects",
   "footer.hourUnit": "h",
-  "footer.unscheduled": "unscheduled"
+  "footer.unscheduled": "unscheduled",
+  "mode.select": "View mode",
+  "mode.edit": "Edit",
+  "mode.preview": "Preview",
+  "plan.untitled": "Plan"
 }
