@@ -164,7 +164,12 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      # The e2e specs load both flavors: production for the isolation checks and
+      # debug for the browser driven specs. WXT suffixes the debug output dir, so
+      # the two builds coexist.
       - run: pnpm wxt build -b chrome
+      - run: pnpm build:debug -b chrome
       - run: pnpm test:e2e
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
