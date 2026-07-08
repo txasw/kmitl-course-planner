@@ -58,4 +58,23 @@ describe('createSearchStateRepository', () => {
     const repo = createSearchStateRepository(adapter);
     expect(await repo.load()).toBeNull();
   });
+
+  it('loads an old by_subject_id blob by dropping its extra fields', async () => {
+    // Before the search-all fix, by_subject_id carried faculty, department,
+    // curriculum, and classYear. An old blob must still load, not reset.
+    const adapter = memoryAdapter();
+    const state = sampleState();
+    adapter.map.set(SEARCH_KEY, {
+      ...state,
+      bySubjectId: {
+        ...state.bySubjectId,
+        faculty: '01',
+        department: '05',
+        curriculum: '137',
+        classYear: '1',
+      },
+    });
+    const repo = createSearchStateRepository(adapter);
+    expect(await repo.load()).toEqual(state);
+  });
 });
