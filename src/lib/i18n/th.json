@@ -66,6 +66,8 @@
   "section.reason.conflictWith": "ชนกับ",
   "section.reason.duplicate": "มีวิชานี้ในตารางแล้ว",
   "feedback.removed": "นำออกแล้ว",
+  "feedback.tryInstead": "หรือเลือก",
+  "feedback.revealInCatalog": "แสดงในรายการ",
   "seat.open": "ว่าง",
   "seat.full": "เต็ม",
   "seat.closed": "ปิด",
