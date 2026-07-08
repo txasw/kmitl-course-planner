@@ -27,3 +27,6 @@ a new record that supersedes the old one rather than editing history.
 18. [UI preferences storage key](0018-ui-preferences-storage-key.md)
 19. [Debug build shadow root mode](0019-debug-build-shadow-root-mode.md)
 20. [Combobox positioning with floating-ui](0020-combobox-positioning-floating-ui.md)
+21. [Placement feedback interaction model](0021-placement-feedback-model.md)
+22. [Preview mode DOM isolation](0022-preview-mode-dom-isolation.md)
+23. [Event block color palette](0023-event-block-color-palette.md)
