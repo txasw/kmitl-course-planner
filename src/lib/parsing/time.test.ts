@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseTimeToMinutes } from './time';
+import { formatMinutes, parseTimeToMinutes } from './time';
 
 describe('parseTimeToMinutes', () => {
   it('converts well formed times to minutes since midnight', () => {
@@ -21,5 +21,14 @@ describe('parseTimeToMinutes', () => {
     expect(parseTimeToMinutes('25:00:00')).toBeNull();
     expect(parseTimeToMinutes('09:60:00')).toBeNull();
     expect(parseTimeToMinutes('ab:cd:ef')).toBeNull();
+  });
+});
+
+describe('formatMinutes', () => {
+  it('formats minutes since midnight as zero padded HH:MM', () => {
+    expect(formatMinutes(0)).toBe('00:00');
+    expect(formatMinutes(540)).toBe('09:00');
+    expect(formatMinutes(810)).toBe('13:30');
+    expect(formatMinutes(1439)).toBe('23:59');
   });
 });
