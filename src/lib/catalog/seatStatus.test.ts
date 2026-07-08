@@ -3,11 +3,20 @@ import { makeSection } from '../../../tests/support/domain-builders';
 import { computeSeatStatus, isSelectable } from './seatStatus';
 
 describe('computeSeatStatus', () => {
-  it('reports open with the remaining queue for a capped section', () => {
+  it('reports open with the free seats for a capped section', () => {
     const section = makeSection({
       seats: { limit: 40, preCount: 5, queueLeft: 12, enrolled: 28 },
     });
     expect(computeSeatStatus(section)).toEqual({ kind: 'open', remaining: 12 });
+  });
+
+  it('reports open regardless of queue_left, using limit minus enrolled', () => {
+    // queue_left is a waitlist metric, not remaining seats, so a section with
+    // free seats and queue_left 0 is still open.
+    const section = makeSection({
+      seats: { limit: 85, preCount: 0, queueLeft: 0, enrolled: 0 },
+    });
+    expect(computeSeatStatus(section)).toEqual({ kind: 'open', remaining: 85 });
   });
 
   it('reports open with no count for an uncapped section', () => {
@@ -27,9 +36,9 @@ describe('computeSeatStatus', () => {
     expect(computeSeatStatus(section)).toEqual({ kind: 'full' });
   });
 
-  it('reports full for a capped section with no queue left', () => {
+  it('reports full when enrolled reaches the limit', () => {
     const section = makeSection({
-      seats: { limit: 40, preCount: 40, queueLeft: 0, enrolled: 40 },
+      seats: { limit: 40, preCount: 40, queueLeft: 5, enrolled: 40 },
     });
     expect(computeSeatStatus(section)).toEqual({ kind: 'full' });
   });
