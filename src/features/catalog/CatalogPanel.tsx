@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/EmptyState';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import type { Translate } from '@/lib/i18n/t';
 import { searchStore } from '@/features/search/searchStore';
+import { toastStore } from '@/features/shell/toastStore';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { useSearchActions } from '@/features/search/useSearchController';
 import { errorMessageKey } from '@/features/search/errorMessage';
@@ -103,7 +104,13 @@ export function CatalogPanel() {
     <CourseCatalog
       catalog={result.data}
       onRefresh={() => {
-        void refreshResult();
+        void (async () => {
+          // A changed result is visible in the catalog; only a no op refresh
+          // needs a toast so the action does not feel ignored.
+          if ((await refreshResult()) === 'unchanged') {
+            toastStore.getState().show('success', t('toast.refreshUnchanged'));
+          }
+        })();
       }}
     />
   );

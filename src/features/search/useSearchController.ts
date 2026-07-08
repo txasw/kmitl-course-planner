@@ -101,10 +101,13 @@ export function useSearchInit(
   }, [repo]);
 }
 
+/** Outcome of a manual refresh, so the caller can confirm a no op refresh. */
+export type RefreshOutcome = 'changed' | 'unchanged' | 'error';
+
 export interface SearchActions {
   submit: () => Promise<void>;
   retry: () => Promise<void>;
-  refreshResult: () => Promise<void>;
+  refreshResult: () => Promise<RefreshOutcome>;
 }
 
 export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
@@ -157,13 +160,27 @@ export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
   }, [runQuery]);
 
   // Re run the current query while bypassing the cache, so the catalog reflects
-  // the latest seats and closures on demand without waiting for the ttl.
-  const refreshResult = useCallback(async () => {
+  // the latest seats and closures on demand without waiting for the ttl. Report
+  // whether the fresh result changed, so a no op refresh can be confirmed to the
+  // user, who would otherwise see no visible change.
+  const refreshResult = useCallback(async (): Promise<RefreshOutcome> => {
+    const before = searchStore.getState().result;
     const { resultQuery } = searchStore.getState();
     if (resultQuery === null) {
-      return;
+      return 'error';
     }
     await runQuery(resultQuery, true);
+    const after = searchStore.getState().result;
+    if (after.status !== 'ready') {
+      return 'error';
+    }
+    if (
+      before.status === 'ready' &&
+      JSON.stringify(before.data.courses) === JSON.stringify(after.data.courses)
+    ) {
+      return 'unchanged';
+    }
+    return 'changed';
   }, [runQuery]);
 
   return { submit, retry, refreshResult };

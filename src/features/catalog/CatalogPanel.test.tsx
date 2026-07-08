@@ -1,9 +1,21 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { render, screen, cleanup, act } from '@testing-library/react';
-import { httpError } from '@/lib/utils/result';
+import {
+  render,
+  screen,
+  cleanup,
+  act,
+  fireEvent,
+  waitFor,
+} from '@testing-library/react';
+import { httpError, ok } from '@/lib/utils/result';
+import type { TypedSend } from '@/lib/messaging/sendTyped';
+import type { NormalizedCatalog } from '@/lib/domain/normalize';
+import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { searchStore } from '@/features/search/searchStore';
+import { toastStore } from '@/features/shell/toastStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
+import { makeCourse } from '../../../tests/support/domain-builders';
 import { CatalogPanel } from './CatalogPanel';
 
 function renderPanel() {
@@ -18,6 +30,7 @@ afterEach(() => {
   cleanup();
   act(() => {
     searchStore.getState().setResult({ status: 'idle' }, null);
+    toastStore.getState().dismiss();
   });
 });
 
@@ -75,5 +88,42 @@ describe('CatalogPanel', () => {
       screen.getByRole('heading', { name: 'ไม่พบรายวิชา' }),
     ).toBeInTheDocument();
     expect(screen.getByText('ภาคการศึกษา 1/2569')).toBeInTheDocument();
+  });
+
+  it('toasts when a refresh returns unchanged data', async () => {
+    const catalog: NormalizedCatalog = {
+      courses: [makeCourse({ subjectId: '90592008' })],
+      duplicateCount: 0,
+      warnings: [],
+    };
+    const query: TeachTableQuery = {
+      mode: 'by_subject_owner_id',
+      selected_year: '2569',
+      selected_semester: '1',
+      selected_faculty: '01',
+      search_all_faculty: false,
+      selected_subject_owner_id: '32',
+    };
+    act(() => {
+      searchStore
+        .getState()
+        .setResult({ status: 'ready', data: catalog }, query);
+    });
+    // The refresh replays the query and gets the same catalog back.
+    const send = ((message: { type: string }) =>
+      message.type === 'teachTable/query'
+        ? Promise.resolve(ok(catalog))
+        : new Promise(() => undefined)) as unknown as TypedSend;
+    render(
+      <SearchDepsProvider value={fakeSearchDeps({ send })}>
+        <CatalogPanel />
+      </SearchDepsProvider>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'รีเฟรช' }));
+    await waitFor(() => {
+      expect(toastStore.getState().toast?.message).toBe(
+        'ข้อมูลเป็นปัจจุบัน ไม่มีการเปลี่ยนแปลง',
+      );
+    });
   });
 });
