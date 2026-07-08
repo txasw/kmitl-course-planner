@@ -135,6 +135,35 @@ describe('query builders', () => {
     expect(query.selected_class_year).toBe('4');
   });
 
+  it('builds an all curricula by_class query with the x sentinel', () => {
+    const query = buildClassQuery({
+      ...defaultClassForm(term),
+      faculty: '01',
+      department: '08',
+      curriculum: 'all',
+      classYear: '1',
+    });
+    expect(teachTableQuerySchema.safeParse(query).success).toBe(true);
+    if (query.mode !== 'by_class') throw new Error('wrong mode');
+    expect(query.search_all_curriculum).toBe(true);
+    expect(query.selected_curriculum).toBe('x');
+  });
+
+  it('builds an all faculties category query without selected_faculty', () => {
+    const query = buildCategoryQuery({
+      ...defaultCategoryForm(term),
+      faculty: 'all',
+      subjectOwner: '32',
+    });
+    expect(teachTableQuerySchema.safeParse(query).success).toBe(true);
+    expect(query).toMatchObject({
+      mode: 'by_subject_owner_id',
+      search_all_faculty: true,
+      selected_subject_owner_id: '32',
+    });
+    expect('selected_faculty' in query).toBe(false);
+  });
+
   it('builds a by_subject_id query that searches everything', () => {
     const query = buildSubjectIdQuery({
       ...defaultSubjectIdForm(term),

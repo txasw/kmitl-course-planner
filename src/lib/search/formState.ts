@@ -114,20 +114,25 @@ export function isCategoryFormReady(form: CategoryForm): boolean {
   return form.year !== '' && form.faculty !== '' && form.subjectOwner !== '';
 }
 
+/** The literal value a select carries when its "all" option is chosen. */
+export const ALL_OPTION = 'all';
+
 function classParams(form: ClassForm) {
-  const searchAllClassYear = form.classYear === 'all';
+  const searchAllClassYear = form.classYear === ALL_OPTION;
+  const searchAllCurriculum = form.curriculum === ALL_OPTION;
   return {
     selected_year: form.year,
     selected_semester: form.semester,
     selected_faculty: form.faculty,
     selected_department: form.department,
-    selected_curriculum: form.curriculum,
+    // The host sends the x sentinel with search_all_curriculum for all curricula.
+    selected_curriculum: searchAllCurriculum ? 'x' : form.curriculum,
     // The host sends class year 0 with search_all_class_year for the all option;
     // an empty value is rejected as "not integer". Verified against host traffic.
     selected_class_year: searchAllClassYear ? '0' : form.classYear,
     search_all_faculty: false,
     search_all_department: false,
-    search_all_curriculum: false,
+    search_all_curriculum: searchAllCurriculum,
     search_all_class_year: searchAllClassYear,
   };
 }
@@ -150,14 +155,16 @@ export function buildSubjectIdQuery(form: SubjectIdForm): TeachTableQuery {
 }
 
 export function buildCategoryQuery(form: CategoryForm): TeachTableQuery {
-  return {
-    mode: 'by_subject_owner_id',
+  const searchAllFaculty = form.faculty === ALL_OPTION;
+  const base = {
+    mode: 'by_subject_owner_id' as const,
     selected_year: form.year,
     selected_semester: form.semester,
-    selected_faculty: form.faculty,
-    search_all_faculty: false,
+    search_all_faculty: searchAllFaculty,
     selected_subject_owner_id: form.subjectOwner,
   };
+  // The host omits selected_faculty for an all faculties search.
+  return searchAllFaculty ? base : { ...base, selected_faculty: form.faculty };
 }
 
 export interface SearchForms {

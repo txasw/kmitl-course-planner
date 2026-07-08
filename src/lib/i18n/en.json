@@ -26,6 +26,8 @@
   "search.subjectOwner": "Subject category",
   "search.selectPlaceholder": "Select",
   "search.classYearAll": "All years",
+  "search.curriculumAll": "All curricula",
+  "search.facultyAll": "All faculties",
   "search.optionsLoading": "Loading",
   "search.submit": "Search",
   "search.subjectIdHint": "1 to 8 digit subject id",
