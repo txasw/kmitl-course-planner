@@ -51,6 +51,8 @@ export interface DragStore {
   courseDrag: CourseDrag | null;
   /** The teachTableId of the candidate raised by hover during a course drag. */
   raised: string | null;
+  /** A visible one line hint shown after a missed course drop, or null. */
+  hint: string | null;
   start: (course: Course, section: Section, placed: Section[]) => void;
   /** End a valid or cancelled drag, clearing the active state with no feedback. */
   clearActive: () => void;
@@ -67,6 +69,8 @@ export interface DragStore {
   startCourse: (course: Course, placed: Section[]) => void;
   clearCourse: () => void;
   setRaised: (teachTableId: string | null) => void;
+  setHint: (message: string) => void;
+  clearHint: () => void;
 }
 
 export function createDragStore() {
@@ -77,6 +81,7 @@ export function createDragStore() {
     announcement: null,
     courseDrag: null,
     raised: null,
+    hint: null,
     start: (course, section, placed) => {
       const group = expandSectionGroup(course, section);
       const placement = checkPlacement(placed, group);
@@ -129,6 +134,7 @@ export function createDragStore() {
         blocked: null,
         hover: null,
         raised: null,
+        hint: null,
       });
     },
     clearCourse: () => {
@@ -136,6 +142,12 @@ export function createDragStore() {
     },
     setRaised: (teachTableId) => {
       set({ raised: teachTableId });
+    },
+    setHint: (message) => {
+      set({ hint: message });
+    },
+    clearHint: () => {
+      set({ hint: null });
     },
   }));
 }

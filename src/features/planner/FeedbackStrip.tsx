@@ -119,6 +119,7 @@ export function FeedbackStrip({ locale, t }: FeedbackStripProps) {
   const pendingUndo = useStore(planStore, (state) => state.pendingUndo);
   const blocked = useStore(dragStore, (state) => state.blocked);
   const announcement = useStore(dragStore, (state) => state.announcement);
+  const hint = useStore(dragStore, (state) => state.hint);
   const placed = usePlacedSections();
 
   useEffect(() => {
@@ -157,6 +158,18 @@ export function FeedbackStrip({ locale, t }: FeedbackStripProps) {
     };
   }, [announcement]);
 
+  useEffect(() => {
+    if (hint === null) {
+      return undefined;
+    }
+    const timer = setTimeout(() => {
+      dragStore.getState().clearHint();
+    }, BLOCKED_WINDOW_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [hint]);
+
   const removed = pendingUndo?.[0];
 
   return (
@@ -165,6 +178,8 @@ export function FeedbackStrip({ locale, t }: FeedbackStripProps) {
         <BlockedNotice blocked={blocked} placed={placed} t={t} />
       ) : removed !== undefined ? (
         <RemovedNotice removed={removed} locale={locale} t={t} />
+      ) : hint !== null ? (
+        <p className="text-xs text-ink-soft">{hint}</p>
       ) : announcement !== null ? (
         <span className="sr-only">{announcement}</span>
       ) : null}
