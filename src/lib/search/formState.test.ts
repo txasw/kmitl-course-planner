@@ -69,15 +69,13 @@ describe('form readiness', () => {
     expect(isClassFormReady(ready)).toBe(true);
   });
 
-  it('requires a valid subject id on top of the class fields', () => {
-    const base = {
-      ...defaultSubjectIdForm(term),
-      faculty: '01',
-      department: '01',
-      curriculum: '121',
-    };
-    expect(isSubjectIdFormReady({ ...base, subjectId: '' })).toBe(false);
-    expect(isSubjectIdFormReady({ ...base, subjectId: '90592033' })).toBe(true);
+  it('requires a year and a valid subject id for the subject id tab', () => {
+    const form = defaultSubjectIdForm(term);
+    expect(isSubjectIdFormReady({ ...form, subjectId: '' })).toBe(false);
+    expect(isSubjectIdFormReady({ ...form, subjectId: '90592033' })).toBe(true);
+    expect(
+      isSubjectIdFormReady({ ...form, subjectId: '90592033', year: '' }),
+    ).toBe(false);
   });
 
   it('requires faculty and subject owner for the category tab', () => {
@@ -119,7 +117,8 @@ describe('query builders', () => {
       mode: 'by_class',
       selected_faculty: '01',
       search_all_class_year: true,
-      selected_class_year: '',
+      // The host sends 0, not an empty value, for the all option.
+      selected_class_year: '0',
     });
   });
 
@@ -136,19 +135,22 @@ describe('query builders', () => {
     expect(query.selected_class_year).toBe('4');
   });
 
-  it('builds a valid by_subject_id query', () => {
+  it('builds a by_subject_id query that searches everything', () => {
     const query = buildSubjectIdQuery({
       ...defaultSubjectIdForm(term),
-      faculty: '01',
-      department: '08',
-      curriculum: '121',
       subjectId: '90592033',
     });
     expect(teachTableQuerySchema.safeParse(query).success).toBe(true);
+    // The host omits the specific selects and sets every search_all_* flag.
     expect(query).toMatchObject({
       mode: 'by_subject_id',
       selected_subject_id: '90592033',
+      search_all_faculty: true,
+      search_all_department: true,
+      search_all_curriculum: true,
+      search_all_class_year: true,
     });
+    expect('selected_faculty' in query).toBe(false);
   });
 
   it('builds a valid by_subject_owner_id query', () => {
