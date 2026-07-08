@@ -5,6 +5,12 @@
 // popup is positioned with floating-ui: a fixed strategy escapes the scrolling
 // rail's clip, flip drops it above when space below is short, and size caps its
 // height to the viewport with internal scrolling.
+//
+// The fixed strategy resolves against the viewport only while no ancestor
+// establishes a containing block for fixed elements. The rail has none, so this
+// holds today. If a combobox is ever placed inside a transformed ancestor, such
+// as the slide over catalog drawer, wrap the popup in a floating-ui portal so it
+// stays clip free regardless of ancestor transforms.
 
 import { useCallback, useId, useMemo, useState } from 'react';
 import {
