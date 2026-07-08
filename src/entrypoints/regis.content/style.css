@@ -87,3 +87,27 @@
 .kcp-scroll::-webkit-scrollbar-thumb:hover {
   background-color: var(--kcp-ink-soft);
 }
+
+/* Toast entrance: a short rise into place. The reduced motion path drops the
+   motion so the toast appears instantly, keeping the color and text feedback. */
+@keyframes kcp-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kcp-toast-enter {
+  animation: kcp-toast-in 150ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kcp-toast-enter {
+    animation: none;
+  }
+}
