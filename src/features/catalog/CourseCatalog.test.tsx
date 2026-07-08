@@ -45,7 +45,7 @@ afterEach(() => {
   cleanup();
   act(() => {
     planStore.setState({ entries: [] });
-    dragStore.setState({ active: null, blocked: null });
+    dragStore.setState({ active: null, blocked: null, announcement: null });
   });
 });
 
@@ -164,5 +164,14 @@ describe('CourseCatalog', () => {
     }
     expect(dragStore.getState().blocked).not.toBeNull();
     expect(planStore.getState().entries).toHaveLength(1);
+  });
+
+  it('announces a successful add', () => {
+    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    const [addButton] = screen.getAllByRole('button', { name: 'เพิ่ม' });
+    if (addButton) {
+      fireEvent.click(addButton);
+    }
+    expect(dragStore.getState().announcement).not.toBeNull();
   });
 });

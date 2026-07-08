@@ -70,6 +70,23 @@ test('places a section on the grid by dragging its handle', async ({
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
 });
 
+test('commits a section from the grip with the keyboard', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await categorySearch(page);
+
+  // Focus the grip and press Enter: the grip commits like the add button, since
+  // arrow key movement was removed.
+  await page
+    .getByRole('button', { name: /ลากเพื่อเพิ่ม/ })
+    .first()
+    .focus();
+  await page.keyboard.press('Enter');
+
+  await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
+});
+
 test('lists an added unscheduled course on the shelf', async ({ context }) => {
   const page = await openPlanner(context);
   // The by_class all curricula path surfaces the unscheduled online course 01006029.

@@ -2,8 +2,11 @@
 // section has a fixed footprint, and the result holds for the whole drag: the grid
 // ghosts and the reason chip read it without recomputing per frame. A rejected
 // drop moves the active drag into a blocked feedback the strip renders with its
-// reason and alternatives. It is a singleton store so the grid, the chip, and the
-// strip read it without threading props through the drag context.
+// reason and alternatives. A hover, from a focused grip or a hovered row, previews
+// the target cells at low emphasis without arming a drag, and an announcement
+// carries a keyboard outcome to the strip's live region. It is a singleton store so
+// the grid, the chip, and the strip read it without threading props through the
+// drag context.
 
 import { createStore } from 'zustand/vanilla';
 import type { Course, Section } from '@/lib/domain/types';
@@ -31,6 +34,10 @@ export interface BlockedFeedback {
 export interface DragStore {
   active: ActiveDrag | null;
   blocked: BlockedFeedback | null;
+  /** The section whose cells are previewed at low emphasis, or null. */
+  hover: Section | null;
+  /** A resolved message for the strip's live region after a keyboard outcome. */
+  announcement: string | null;
   start: (course: Course, section: Section, placed: Section[]) => void;
   /** End a valid or cancelled drag, clearing the active state with no feedback. */
   clearActive: () => void;
@@ -40,16 +47,26 @@ export interface DragStore {
    * add from the button, so keyboard users get the same reason and alternatives. */
   showBlocked: (feedback: BlockedFeedback) => void;
   clearBlocked: () => void;
+  setHover: (section: Section) => void;
+  clearHover: () => void;
+  announce: (message: string) => void;
+  clearAnnouncement: () => void;
 }
 
 export function createDragStore() {
   return createStore<DragStore>((set, get) => ({
     active: null,
     blocked: null,
+    hover: null,
+    announcement: null,
     start: (course, section, placed) => {
       const group = expandSectionGroup(course, section);
       const placement = checkPlacement(placed, group);
-      set({ active: { course, section, group, placement }, blocked: null });
+      set({
+        active: { course, section, group, placement },
+        blocked: null,
+        hover: null,
+      });
     },
     clearActive: () => {
       set({ active: null });
@@ -70,10 +87,22 @@ export function createDragStore() {
       }
     },
     showBlocked: (feedback) => {
-      set({ active: null, blocked: feedback });
+      set({ active: null, blocked: feedback, announcement: null });
     },
     clearBlocked: () => {
       set({ blocked: null });
+    },
+    setHover: (section) => {
+      set({ hover: section });
+    },
+    clearHover: () => {
+      set({ hover: null });
+    },
+    announce: (message) => {
+      set({ announcement: message });
+    },
+    clearAnnouncement: () => {
+      set({ announcement: null });
     },
   }));
 }

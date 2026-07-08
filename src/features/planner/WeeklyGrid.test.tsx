@@ -40,6 +40,7 @@ afterEach(() => {
   cleanup();
   dragStore.getState().clearActive();
   dragStore.getState().clearBlocked();
+  dragStore.getState().clearHover();
 });
 
 describe('WeeklyGrid', () => {
@@ -124,5 +125,17 @@ describe('WeeklyGrid', () => {
     );
     expect(document.querySelector('[data-ghost="blocked"]')).not.toBeNull();
     expect(screen.getByLabelText(/OTHER/).className).toContain('kcp-pulse');
+  });
+
+  it('renders a low emphasis hover ghost while previewing', () => {
+    const preview = makeSection({
+      teachTableId: 'h',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+    });
+    dragStore.getState().setHover(preview);
+    render(
+      <WeeklyGrid sections={[]} window={DEFAULT_WINDOW} locale="th" t={t} />,
+    );
+    expect(document.querySelector('[data-ghost="hover"]')).not.toBeNull();
   });
 });

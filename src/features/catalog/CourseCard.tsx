@@ -71,6 +71,9 @@ export function CourseCard({
                 course={course}
                 section={section}
                 label={`${t('action.drag')} ${section.subjectId} ${t('section.code')} ${section.section}`}
+                onActivate={() => {
+                  onAdd?.(course, section);
+                }}
               >
                 {row}
               </DraggableSection>

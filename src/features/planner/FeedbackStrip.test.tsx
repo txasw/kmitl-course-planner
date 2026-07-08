@@ -56,7 +56,7 @@ afterEach(() => {
   cleanup();
   act(() => {
     planStore.setState({ entries: [], pendingUndo: null });
-    dragStore.setState({ active: null, blocked: null });
+    dragStore.setState({ active: null, blocked: null, announcement: null });
     catalogStore.getState().resetFilter();
   });
 });
@@ -191,5 +191,13 @@ describe('FeedbackStrip', () => {
     fireEvent.click(screen.getByRole('button', { name: 'แสดงในรายการ' }));
     expect(catalogStore.getState().filter.text).toBe('S1');
     expect(dragStore.getState().blocked).toBeNull();
+  });
+
+  it('announces an add in the live region', () => {
+    act(() => {
+      dragStore.setState({ announcement: 'เพิ่มลงตารางแล้ว 90592008' });
+    });
+    render(<FeedbackStrip locale="th" t={t} />);
+    expect(screen.getByText('เพิ่มลงตารางแล้ว 90592008')).toBeInTheDocument();
   });
 });
