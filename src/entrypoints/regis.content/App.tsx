@@ -6,6 +6,7 @@ import {
   SearchDepsProvider,
   type SearchDeps,
 } from '@/features/search/SearchDepsContext';
+import { DiagnosticsGate } from '@/features/diagnostics/DiagnosticsGate';
 
 interface AppProps {
   prefs: PrefsRepository;
@@ -22,6 +23,7 @@ export function App({ prefs, search }: AppProps) {
     <SearchDepsProvider value={search}>
       <Launcher />
       <Overlay />
+      <DiagnosticsGate />
     </SearchDepsProvider>
   );
 }
