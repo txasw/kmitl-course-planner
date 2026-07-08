@@ -32,6 +32,17 @@ fixtures missed it.
 A raw payload reconstructed from the two reports above, with one scheduled row
 and one unscheduled row (`teachtime_str: null`, `teach_day: "0"`,
 `teach_time2: "00:00:00"`, matching `teach_table_id` 136407 / subject 01006029
-from report 1). Drives the failing normalization test and the all curricula e2e
-spec: the schema now accepts the null and the unscheduled row becomes a warning
-rather than failing the whole result.
+from report 1). Drives the normalization test and the all curricula e2e spec: the
+schema accepts the null, and the unscheduled row is a no meeting section rather
+than failing the whole result.
+
+### teach-table.unscheduled-row.report-1.json, report-2.json
+
+Reports exported after the null `teachtime_str` fix, for the same all curricula
+queries (departments 02 and 01). The null is no longer flagged, but the audit
+still marked the same unscheduled rows as errors: `teach_day: "0"` fell outside
+the 1 through 7 range and `teach_time2: "00:00:00"` failed the end after start
+rule. Those are the API's representation of an unscheduled online course, not a
+data error, so the contract now recognizes `teach_day: "0"` as the unscheduled
+sentinel: the auditor accepts it and skips the time rule for it, and the
+normalizer produces a no meeting section without a warning.
