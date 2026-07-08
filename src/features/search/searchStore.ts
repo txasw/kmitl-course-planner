@@ -31,6 +31,13 @@ import type { AsyncState } from '@/lib/utils/async';
 const NEUTRAL_TERM: Term = { year: '', semester: '1' };
 
 export interface SearchStore {
+  /**
+   * Whether the term has been seeded or the persisted search hydrated for this
+   * page session. The overlay unmounts the form on close and remounts it on
+   * open, so this guards the one time seed from re running and clobbering in
+   * session edits. It resets only on a full page reload.
+   */
+  hasInitialized: boolean;
   activeTab: SearchTab;
   byClass: ClassForm;
   bySubjectId: SubjectIdForm;
@@ -41,6 +48,7 @@ export interface SearchStore {
   subjectOwners: AsyncState<RawSubjectOwner[]>;
   result: AsyncState<NormalizedCatalog>;
   resultQuery: TeachTableQuery | null;
+  setInitialized: (value: boolean) => void;
   setActiveTab: (tab: SearchTab) => void;
   patchClassForm: (patch: Partial<ClassForm>) => void;
   patchSubjectIdForm: (patch: Partial<SubjectIdForm>) => void;
@@ -59,6 +67,7 @@ export interface SearchStore {
 
 export function createSearchStore() {
   return createStore<SearchStore>((set) => ({
+    hasInitialized: false,
     activeTab: 'by_class',
     byClass: defaultClassForm(NEUTRAL_TERM),
     bySubjectId: defaultSubjectIdForm(NEUTRAL_TERM),
@@ -69,6 +78,9 @@ export function createSearchStore() {
     subjectOwners: { status: 'idle' },
     result: { status: 'idle' },
     resultQuery: null,
+    setInitialized: (value) => {
+      set({ hasInitialized: value });
+    },
     setActiveTab: (tab) => {
       set({ activeTab: tab });
     },

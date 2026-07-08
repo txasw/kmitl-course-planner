@@ -102,6 +102,7 @@ beforeEach(() => {
   state.setCurricula({ status: 'idle' });
   state.setSubjectOwners({ status: 'idle' });
   state.setResult({ status: 'idle' }, null);
+  state.setInitialized(false);
 });
 
 afterEach(cleanup);

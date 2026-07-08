@@ -78,11 +78,17 @@ export function useSearchInit(
   // reseed a form the student may already be editing.
   const initialRoute = useRef(route);
   useEffect(() => {
-    let cancelled = false;
+    // Seed or hydrate exactly once per page session. The overlay unmounts and
+    // remounts the form on close and open, so guarding on a store flag rather
+    // than an effect dependency keeps a remount from clobbering in session
+    // edits. The flag is claimed synchronously so a rapid reopen cannot start a
+    // second load, and the store writes apply unconditionally because writing to
+    // the plain store after unmount is safe.
+    if (searchStore.getState().hasInitialized) {
+      return;
+    }
+    searchStore.getState().setInitialized(true);
     void repo.load().then((persisted) => {
-      if (cancelled) {
-        return;
-      }
       if (persisted) {
         searchStore.getState().hydrate(persisted);
         return;
@@ -92,9 +98,6 @@ export function useSearchInit(
         .getState()
         .seedTerm(resolveInitialTerm(initialRoute.current, years));
     });
-    return () => {
-      cancelled = true;
-    };
   }, [repo]);
 }
 
