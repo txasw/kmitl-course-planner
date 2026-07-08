@@ -20,3 +20,10 @@ export async function sendTyped<T extends RequestMessage['type']>(
     return err(networkError('the background service is unavailable'));
   }
 }
+
+/**
+ * The typed send signature. UI code depends on this shape rather than importing
+ * the concrete client, so the real sendTyped is injected at the entrypoint and a
+ * fake is injected in tests without mocking the browser polyfill.
+ */
+export type TypedSend = typeof sendTyped;

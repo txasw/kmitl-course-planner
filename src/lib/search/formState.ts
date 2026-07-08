@@ -6,7 +6,7 @@
 
 import { z } from 'zod';
 import type { TeachTableQuery } from '../messaging/protocol';
-import type { Semester, Term } from '../routing/academicTerms';
+import { SEMESTERS, type Semester, type Term } from '../routing/academicTerms';
 
 export const SEARCH_TABS = [
   'by_class',
@@ -83,6 +83,16 @@ export function isValidSubjectId(value: string): boolean {
   return /^\d{1,8}$/.test(value);
 }
 
+/** Narrow an arbitrary string to a semester, or null when it is not one. */
+export function asSemester(value: string): Semester | null {
+  return SEMESTERS.find((semester) => semester === value) ?? null;
+}
+
+/** Narrow an arbitrary string to a class year option, or null otherwise. */
+export function asClassYear(value: string): ClassYear | null {
+  return CLASS_YEARS.find((classYear) => classYear === value) ?? null;
+}
+
 export function isClassFormReady(form: ClassForm): boolean {
   return (
     form.faculty !== '' && form.department !== '' && form.curriculum !== ''
@@ -136,6 +146,36 @@ export function buildCategoryQuery(form: CategoryForm): TeachTableQuery {
     search_all_faculty: false,
     selected_subject_owner_id: form.subjectOwner,
   };
+}
+
+export interface SearchForms {
+  byClass: ClassForm;
+  bySubjectId: SubjectIdForm;
+  byCategory: CategoryForm;
+}
+
+/**
+ * Build the gateway query for the active tab, or null when that tab's form is
+ * not ready to submit. This is the single dispatch from tab to query.
+ */
+export function buildTeachTableQueryForTab(
+  tab: SearchTab,
+  forms: SearchForms,
+): TeachTableQuery | null {
+  switch (tab) {
+    case 'by_class':
+      return isClassFormReady(forms.byClass)
+        ? buildClassQuery(forms.byClass)
+        : null;
+    case 'by_subject_id':
+      return isSubjectIdFormReady(forms.bySubjectId)
+        ? buildSubjectIdQuery(forms.bySubjectId)
+        : null;
+    case 'by_subject_owner_id':
+      return isCategoryFormReady(forms.byCategory)
+        ? buildCategoryQuery(forms.byCategory)
+        : null;
+  }
 }
 
 export type { Semester };
