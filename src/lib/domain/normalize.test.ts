@@ -231,9 +231,32 @@ describe('malformed rows and invalid input', () => {
         (course) => course.subjectId === '01006029',
       );
       expect(unscheduled?.sections[0]?.meetings).toHaveLength(0);
+      expect(unscheduled?.sections[0]?.kind).toBe('lecture');
       expect(
         result.value.warnings.some((w) => w.subjectId === '01006029'),
       ).toBe(false);
+    }
+  });
+
+  it('carries the practice kind on an unscheduled section', () => {
+    // The lecture or practice designation comes from lect_or_prac, not from a
+    // meeting, so an unscheduled practice section still reports kind "practice"
+    // for its badge even though it produces no meeting.
+    const result = normalizeTeachTable(
+      makeResponse([
+        makeRow({
+          lect_or_prac: 'ป',
+          teach_day: '0',
+          teach_time: '00:00:00',
+          teach_time2: '00:00:00',
+        }),
+      ]),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const section = result.value.courses[0]?.sections[0];
+      expect(section?.meetings).toHaveLength(0);
+      expect(section?.kind).toBe('practice');
     }
   });
 

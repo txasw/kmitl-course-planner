@@ -59,7 +59,7 @@ export function SectionRow({
   locale,
   t,
 }: SectionRowProps) {
-  const kind = section.meetings[0]?.kind ?? 'lecture';
+  const kind = section.kind;
   const teachers = locale === 'th' ? section.teachersTh : section.teachersEn;
   const dimmed =
     relation.kind === 'conflicting' || relation.kind === 'duplicate';
