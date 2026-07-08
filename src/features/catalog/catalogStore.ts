@@ -14,6 +14,7 @@ export interface CatalogStore {
   setCredit: (credit: number | null) => void;
   setHideFull: (value: boolean) => void;
   setHideConflicting: (value: boolean) => void;
+  setHideUnscheduled: (value: boolean) => void;
   resetFilter: () => void;
 }
 
@@ -39,6 +40,9 @@ export function createCatalogStore() {
     },
     setHideConflicting: (hideConflicting) => {
       set((state) => ({ filter: { ...state.filter, hideConflicting } }));
+    },
+    setHideUnscheduled: (hideUnscheduled) => {
+      set((state) => ({ filter: { ...state.filter, hideUnscheduled } }));
     },
     resetFilter: () => {
       set({ filter: EMPTY_FILTER });
