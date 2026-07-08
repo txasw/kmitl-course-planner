@@ -22,7 +22,10 @@ export interface DebugHandle {
   send(message: RequestMessage): Promise<unknown>;
 }
 
-export function createDebugDispatch(state: DebugState): DebugDispatch {
+export function createDebugDispatch(
+  state: DebugState,
+  clearCache: () => Promise<void>,
+): DebugDispatch {
   return (message) => {
     switch (message.type) {
       case 'debug/getRequestLog':
@@ -33,6 +36,8 @@ export function createDebugDispatch(state: DebugState): DebugDispatch {
         return Promise.resolve(ok(state.getLatestRaw()));
       case 'debug/getSimulation':
         return Promise.resolve(ok(state.getSettings()));
+      case 'debug/clearCache':
+        return clearCache().then(() => ok(undefined));
       case 'debug/setFixture':
         state.setSettings({ fixtureId: message.fixtureId });
         return Promise.resolve(ok(undefined));
@@ -54,6 +59,7 @@ export interface InstallDebugDeps {
   extensionVersion: string;
   runtimeId: string;
   router: RouterListener;
+  clearCache: () => Promise<void>;
   now?: () => string;
   fixtures?: Record<string, unknown>;
 }
@@ -88,7 +94,7 @@ export function installDebug(deps: InstallDebugDeps): DebugState {
       getFixture: (id) => fixtures[id],
     }),
   );
-  setDebugDispatch(createDebugDispatch(state));
+  setDebugDispatch(createDebugDispatch(state, deps.clearCache));
 
   // The worker cannot message itself, so the console handle calls the router
   // directly with a synthetic same-extension sender.

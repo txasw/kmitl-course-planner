@@ -52,6 +52,7 @@ export default defineBackground(() => {
         extensionVersion: browser.runtime.getManifest().version,
         runtimeId: browser.runtime.id,
         router,
+        clearCache: () => cache.clear(),
       });
       logger.debug('diagnostics interceptors installed');
     });

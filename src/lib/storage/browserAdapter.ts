@@ -18,5 +18,8 @@ export function createBrowserStorageAdapter(): StorageAdapter {
     async set(key, value) {
       await browser.storage.local.set({ [key]: value });
     },
+    async remove(key) {
+      await browser.storage.local.remove(key);
+    },
   };
 }

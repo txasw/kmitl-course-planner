@@ -19,6 +19,10 @@ function memoryAdapter(initial: Record<string, unknown> = {}): {
       store.set(key, value);
       return Promise.resolve();
     },
+    remove: (key) => {
+      store.delete(key);
+      return Promise.resolve();
+    },
   };
   return { adapter, store };
 }

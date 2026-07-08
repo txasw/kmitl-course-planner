@@ -11,6 +11,10 @@ function fakeAdapter(): StorageAdapter & { store: Map<string, unknown> } {
       store.set(key, value);
       return Promise.resolve();
     },
+    remove: (key) => {
+      store.delete(key);
+      return Promise.resolve();
+    },
   };
 }
 
@@ -36,6 +40,18 @@ describe('createCacheStore', () => {
     });
     // The storage hit hydrates memory, so the next read is a memory hit.
     expect((await revived.get('k', 50))?.source).toBe('memory');
+  });
+
+  it('clears every entry from both memory and storage', async () => {
+    const adapter = fakeAdapter();
+    const store = createCacheStore(adapter);
+    await store.set('a', 1, 100);
+    await store.set('b', 2, 100);
+    await store.clear();
+    expect(adapter.store.size).toBe(0);
+    // A miss even before expiry, from both tiers, confirms memory was cleared too.
+    expect(await store.get('a', 50)).toBeNull();
+    expect(await store.get('b', 50)).toBeNull();
   });
 
   it('treats an entry at or past its expiry as a miss', async () => {

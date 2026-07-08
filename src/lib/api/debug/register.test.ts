@@ -24,8 +24,14 @@ function fakeAdapter(): StorageAdapter {
       store.set(key, value);
       return Promise.resolve();
     },
+    remove: (key) => {
+      store.delete(key);
+      return Promise.resolve();
+    },
   };
 }
+
+const noopClear = () => Promise.resolve();
 
 function readHandle(): unknown {
   return (globalThis as { __kcp?: unknown }).__kcp;
@@ -43,6 +49,7 @@ describe('installDebug', () => {
       extensionVersion: '0.0.0',
       runtimeId: 'id',
       router: noopRouter,
+      clearCache: noopClear,
       now: () => 'T',
     });
     expect(getSimulation()).not.toBeNull();
@@ -56,9 +63,11 @@ describe('installDebug', () => {
       extensionVersion: '0.0.0',
       runtimeId: 'id',
       router: noopRouter,
+      clearCache: noopClear,
       now: () => 'T',
     });
-    const dispatch = createDebugDispatch(state);
+    const clearCache = vi.fn(() => Promise.resolve());
+    const dispatch = createDebugDispatch(state, clearCache);
     expect(await dispatch({ type: 'debug/getRequestLog' })).toEqual({
       ok: true,
       value: [],
@@ -77,6 +86,11 @@ describe('installDebug', () => {
       ok: true,
       value: { fixtureId: null, faultId: 'timeout', mutationId: null },
     });
+    expect(await dispatch({ type: 'debug/clearCache' })).toEqual({
+      ok: true,
+      value: undefined,
+    });
+    expect(clearCache).toHaveBeenCalledTimes(1);
   });
 
   it('captures the latest teach table raw payload for the drawer', () => {
@@ -84,6 +98,7 @@ describe('installDebug', () => {
       extensionVersion: '0.0.0',
       runtimeId: 'id',
       router: noopRouter,
+      clearCache: noopClear,
       now: () => 'T',
     });
     const audit = getAudit();
@@ -108,6 +123,7 @@ describe('installDebug', () => {
       extensionVersion: '0.0.0',
       runtimeId: 'id',
       router: noopRouter,
+      clearCache: noopClear,
       now: () => 'T',
     });
     state.setSettings({ mutationId: 'inject_unknown_field' });

@@ -29,6 +29,7 @@ const versionSchema = z.object({ schemaVersion: z.number() });
 export interface StorageAdapter {
   get(key: string): Promise<unknown>;
   set(key: string, value: unknown): Promise<void>;
+  remove(key: string): Promise<void>;
 }
 
 export type LoadOutcome =
