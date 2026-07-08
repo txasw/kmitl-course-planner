@@ -78,5 +78,13 @@
   "day.3": "Wed",
   "day.4": "Thu",
   "day.5": "Fri",
-  "day.6": "Sat"
+  "day.6": "Sat",
+  "day.full.0": "Sunday",
+  "day.full.1": "Monday",
+  "day.full.2": "Tuesday",
+  "day.full.3": "Wednesday",
+  "day.full.4": "Thursday",
+  "day.full.5": "Friday",
+  "day.full.6": "Saturday",
+  "grid.label": "Weekly timetable"
 }

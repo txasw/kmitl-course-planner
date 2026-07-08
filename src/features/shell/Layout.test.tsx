@@ -34,7 +34,7 @@ describe('Layout', () => {
       screen.getByRole('button', { name: 'หลักสูตรและชั้นปี' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'ตารางยังว่าง' }),
+      screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
     ).toBeInTheDocument();
     // The catalog idle state is visible; the drawer copy is aria-hidden while
     // closed, so only one is in the accessibility tree.
