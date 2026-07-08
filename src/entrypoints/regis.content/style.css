@@ -57,3 +57,33 @@
   color: var(--kcp-ink);
   font-family: var(--font-sans);
 }
+
+/* One scrollbar treatment for every scrollable region in the panel: thin, drawn
+   from the border and ink soft tokens, and consistent across Chromium and Firefox
+   inside the shadow root. The list still looks scrollable; it is only quieter. */
+.kcp-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--kcp-border) transparent;
+}
+
+.kcp-scroll:hover {
+  scrollbar-color: var(--kcp-ink-soft) transparent;
+}
+
+.kcp-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.kcp-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.kcp-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--kcp-border);
+  border-radius: 4px;
+}
+
+.kcp-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--kcp-ink-soft);
+}

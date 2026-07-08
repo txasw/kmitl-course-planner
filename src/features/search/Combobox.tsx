@@ -227,7 +227,7 @@ export function Combobox({
           id={listboxId}
           aria-label={label}
           style={floatingStyles}
-          className="z-50 overflow-y-auto rounded-kcp border border-border bg-surface py-1 shadow-kcp"
+          className="z-50 kcp-scroll overflow-y-auto rounded-kcp border border-border bg-surface py-1 shadow-kcp"
         >
           {visible.map((option, index) => (
             <li

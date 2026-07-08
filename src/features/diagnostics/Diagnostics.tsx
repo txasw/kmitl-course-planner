@@ -138,7 +138,7 @@ export function Diagnostics() {
         ))}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto p-3">
+      <div className="min-h-0 flex-1 kcp-scroll overflow-auto p-3">
         {tab === 'requests' ? <RequestLogView log={data.log} /> : null}
         {tab === 'report' ? <ReportView report={data.report} /> : null}
         {tab === 'raw' ? (
