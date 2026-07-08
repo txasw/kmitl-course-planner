@@ -4,10 +4,11 @@
 // announcement fires the moment a toast appears. Motion is a short rise that the
 // reduced motion media query removes, leaving the color and text.
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useStore } from 'zustand';
 import { CircleCheck, TriangleAlert } from 'lucide-react';
 import { toastStore } from './toastStore';
+import { uiStore } from './uiStore';
 
 const AUTO_DISMISS_MS = 4000;
 
@@ -29,6 +30,7 @@ const ICON_COLOR = {
 export function Toaster() {
   const toast = useStore(toastStore, (state) => state.toast);
   const dismiss = useStore(toastStore, (state) => state.dismiss);
+  const isOpen = useStore(uiStore, (state) => state.isOpen);
 
   useEffect(() => {
     if (toast === null) {
@@ -43,6 +45,17 @@ export function Toaster() {
     };
   }, [toast, dismiss]);
 
+  // Clear a panel toast when the overlay closes, so it does not linger over the
+  // bare host page. A debug toast shown while the panel is already closed sees no
+  // transition and stays for its normal life.
+  const wasOpen = useRef(isOpen);
+  useEffect(() => {
+    if (wasOpen.current && !isOpen) {
+      dismiss();
+    }
+    wasOpen.current = isOpen;
+  }, [isOpen, dismiss]);
+
   const Icon = toast ? ICON[toast.kind] : null;
 
   return (
@@ -52,8 +65,11 @@ export function Toaster() {
       className="pointer-events-none fixed inset-x-0 bottom-4 z-[2147483647] flex justify-center px-4"
     >
       {toast !== null && Icon !== null ? (
+        // Not a live region itself; the outer element is the sole announcer, so
+        // nesting a second live region here would double announce. The id key
+        // replays the entrance when one toast replaces another.
         <div
-          role="status"
+          key={toast.id}
           className={`kcp-toast-enter flex max-w-md items-center gap-2 rounded-kcp border px-3 py-2 text-sm text-ink shadow-kcp ${VARIANT[toast.kind]}`}
         >
           <Icon
