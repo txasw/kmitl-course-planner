@@ -23,6 +23,7 @@ export function PlannerPanel() {
   const viewMode = useStore(uiStore, (state) => state.viewMode);
   const activeDrag = useStore(dragStore, (state) => state.active);
   const hoverSection = useStore(dragStore, (state) => state.hover);
+  const courseDrag = useStore(dragStore, (state) => state.courseDrag);
 
   const sections = useMemo(
     () => entries.map((entry) => toPlacedSection(entry.snapshot)),
@@ -40,12 +41,19 @@ export function PlannerPanel() {
         ? []
         : activeDrag.group.flatMap((section) => section.meetings);
     const hoverMeetings = hoverSection === null ? [] : hoverSection.meetings;
+    const courseMeetings =
+      courseDrag === null
+        ? []
+        : courseDrag.candidates.flatMap((candidate) =>
+            candidate.group.flatMap((section) => section.meetings),
+          );
     return computeWindow([
       ...placedMeetings,
       ...dragMeetings,
       ...hoverMeetings,
+      ...courseMeetings,
     ]);
-  }, [scheduled, activeDrag, hoverSection]);
+  }, [scheduled, activeDrag, hoverSection, courseDrag]);
   const handleRemove = useCallback((teachTableId: string) => {
     planStore.getState().remove(teachTableId);
   }, []);
