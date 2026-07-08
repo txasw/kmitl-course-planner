@@ -104,6 +104,17 @@ export default tseslint.config(
     },
   },
 
+  // End to end tests run in Node and drive the built extension. They need Node
+  // globals, and the Playwright fixture convention passes an empty destructuring
+  // pattern for a fixture that depends on nothing, which is allowed here.
+  {
+    files: ['tests/e2e/**/*.ts'],
+    languageOptions: { globals: { ...globals.node } },
+    rules: {
+      'no-empty-pattern': ['error', { allowObjectPatternsAsParameters: true }],
+    },
+  },
+
   // Root level config files use the TypeScript parser without type aware rules,
   // so untyped plugin configs do not trip the strict type checked rule set.
   {
