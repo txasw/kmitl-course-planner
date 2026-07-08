@@ -87,6 +87,38 @@ test('commits a section from the grip with the keyboard', async ({
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
 });
 
+test('places a section by dragging the course onto a candidate slot', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await categorySearch(page);
+
+  const courseHandle = page.locator('[title*="ลากรายวิชา"]').first();
+  const from = await courseHandle.boundingBox();
+  if (from === null) {
+    throw new Error('missing course handle');
+  }
+
+  // Press the course grip and move past the activation distance so the grid paints
+  // the candidate slots, then drop onto the first valid slot to commit that section.
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(from.x + 20, from.y + 20, { steps: 5 });
+
+  const slot = page.locator('[data-candidate="valid"]').first();
+  await slot.waitFor();
+  const to = await slot.boundingBox();
+  if (to === null) {
+    throw new Error('missing candidate slot');
+  }
+  await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, {
+    steps: 15,
+  });
+  await page.mouse.up();
+
+  await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
+});
+
 test('lists an added unscheduled course on the shelf', async ({ context }) => {
   const page = await openPlanner(context);
   // The by_class all curricula path surfaces the unscheduled online course 01006029.
