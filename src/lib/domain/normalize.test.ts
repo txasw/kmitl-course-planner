@@ -237,6 +237,28 @@ describe('malformed rows and invalid input', () => {
     }
   });
 
+  it('warns on a day 0 row that still carries real times', () => {
+    // Only teach_day 0 with zeroed times is unscheduled. A day 0 row with real
+    // times is a meeting mislabeled to day 0, so it warns rather than vanishing.
+    const result = normalizeTeachTable(
+      makeResponse([
+        makeRow({
+          teach_table_id: 'mislabeled',
+          section: '900',
+          teach_day: '0',
+          teach_time: '09:00:00',
+          teach_time2: '12:00:00',
+        }),
+      ]),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.warnings).toHaveLength(1);
+      expect(result.value.warnings[0]?.section).toBe('900');
+      expect(result.value.courses[0]?.sections[0]?.meetings).toHaveLength(0);
+    }
+  });
+
   it('returns a validation error for a non array response', () => {
     const result = normalizeTeachTable({ not: 'an array' });
     expect(result.ok).toBe(false);

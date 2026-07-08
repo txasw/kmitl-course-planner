@@ -33,9 +33,30 @@ export const DAY_MAP: ReadonlyMap<string, DayOfWeek> = new Map<
  */
 export const UNSCHEDULED_DAY = '0';
 
+/** The `teach_time` and `teach_time2` an unscheduled row carries. */
+export const UNSCHEDULED_TIME = '00:00:00';
+
 /** Whether a raw `teach_day` marks an unscheduled row rather than a real day. */
 export function isUnscheduledDay(raw: string): boolean {
   return raw === UNSCHEDULED_DAY;
+}
+
+/**
+ * Whether a row is fully unscheduled: the day sentinel with both times zeroed.
+ * Requiring the zeroed times means a day 0 row that still carries real times, a
+ * meeting mislabeled to day 0, is not silently dropped but falls through to the
+ * normal parse, which records a warning.
+ */
+export function isUnscheduledRow(
+  teachDay: string,
+  teachTime: string,
+  teachTime2: string,
+): boolean {
+  return (
+    teachDay === UNSCHEDULED_DAY &&
+    teachTime === UNSCHEDULED_TIME &&
+    teachTime2 === UNSCHEDULED_TIME
+  );
 }
 
 /**

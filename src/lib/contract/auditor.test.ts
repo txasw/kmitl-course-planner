@@ -93,6 +93,20 @@ describe('auditTeachTable', () => {
     expect(report.totals.issues).toBe(0);
   });
 
+  it('flags a day 0 row that still carries real times', () => {
+    // The unscheduled sentinel must come with zeroed times; a day 0 row with real
+    // times is a meeting mislabeled to day 0, which the cross field rule surfaces.
+    const row = {
+      ...validRow(),
+      teach_day: '0',
+      teach_time: '09:00:00',
+      teach_time2: '12:00:00',
+    };
+    const report = auditTeachTable(wrap(row), ctx);
+    expect(report.totals.byKind.cross_field).toBe(1);
+    expect(report.totals.issues).toBe(1);
+  });
+
   it('classifies every issue kind on a corrupted row', () => {
     const row: Record<string, unknown> = {
       ...validRow(),
