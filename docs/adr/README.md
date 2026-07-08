@@ -25,3 +25,4 @@ a new record that supersedes the old one rather than editing history.
 16. [KMITL orange verification](0016-kmitl-orange-verification.md)
 17. [Internationalization: typed dictionaries](0017-i18n-typed-dictionaries.md)
 18. [UI preferences storage key](0018-ui-preferences-storage-key.md)
+19. [Debug build shadow root mode](0019-debug-build-shadow-root-mode.md)
