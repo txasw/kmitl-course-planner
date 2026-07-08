@@ -62,11 +62,14 @@ export function SearchForm() {
   );
 
   const reference = { faculties, departments, curricula, subjectOwners };
+  // The subject id tab uses no reference selects, so a reference load failure is
+  // irrelevant there and its banner would be noise.
   const referenceError =
-    faculties.status === 'error' ||
-    departments.status === 'error' ||
-    curricula.status === 'error' ||
-    subjectOwners.status === 'error';
+    activeTab !== 'by_subject_id' &&
+    (faculties.status === 'error' ||
+      departments.status === 'error' ||
+      curricula.status === 'error' ||
+      subjectOwners.status === 'error');
 
   const query = buildTeachTableQueryForTab(activeTab, {
     byClass,
