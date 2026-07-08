@@ -65,6 +65,7 @@ export function WeeklyGrid({ sections, window, locale, t }: WeeklyGridProps) {
   };
 
   const active = useStore(dragStore, (state) => state.active);
+  const hover = useStore(dragStore, (state) => state.hover);
   const blocked = active !== null && !active.placement.ok;
   const blockingIds = useMemo(() => {
     const ids = new Set<string>();
@@ -151,6 +152,18 @@ export function WeeklyGrid({ sections, window, locale, t }: WeeklyGridProps) {
               />
             )),
           )
+        : null}
+
+      {active === null && hover !== null
+        ? hover.meetings.map((meeting) => (
+            <div
+              key={`hover-${String(meeting.day)}-${String(meeting.startMin)}`}
+              aria-hidden
+              data-ghost="hover"
+              className="pointer-events-none m-px rounded-kcp border border-dashed border-ink-soft"
+              style={blockStyle(meeting, window)}
+            />
+          ))
         : null}
     </div>
   );
