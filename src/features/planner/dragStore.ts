@@ -16,6 +16,10 @@ import {
   type ConflictDetail,
   type PlacementResult,
 } from '@/lib/planner/placement';
+import {
+  courseCandidates,
+  type Candidate,
+} from '@/lib/planner/courseCandidates';
 
 export interface ActiveDrag {
   course: Course;
@@ -31,6 +35,11 @@ export interface BlockedFeedback {
   conflicts: ConflictDetail[];
 }
 
+export interface CourseDrag {
+  course: Course;
+  candidates: Candidate[];
+}
+
 export interface DragStore {
   active: ActiveDrag | null;
   blocked: BlockedFeedback | null;
@@ -38,6 +47,10 @@ export interface DragStore {
   hover: Section | null;
   /** A resolved message for the strip's live region after a keyboard outcome. */
   announcement: string | null;
+  /** The active course level drag with its candidate slots, or null. */
+  courseDrag: CourseDrag | null;
+  /** The teachTableId of the candidate raised by hover during a course drag. */
+  raised: string | null;
   start: (course: Course, section: Section, placed: Section[]) => void;
   /** End a valid or cancelled drag, clearing the active state with no feedback. */
   clearActive: () => void;
@@ -51,6 +64,9 @@ export interface DragStore {
   clearHover: () => void;
   announce: (message: string) => void;
   clearAnnouncement: () => void;
+  startCourse: (course: Course, placed: Section[]) => void;
+  clearCourse: () => void;
+  setRaised: (teachTableId: string | null) => void;
 }
 
 export function createDragStore() {
@@ -59,6 +75,8 @@ export function createDragStore() {
     blocked: null,
     hover: null,
     announcement: null,
+    courseDrag: null,
+    raised: null,
     start: (course, section, placed) => {
       const group = expandSectionGroup(course, section);
       const placement = checkPlacement(placed, group);
@@ -103,6 +121,21 @@ export function createDragStore() {
     },
     clearAnnouncement: () => {
       set({ announcement: null });
+    },
+    startCourse: (course, placed) => {
+      set({
+        courseDrag: { course, candidates: courseCandidates(course, placed) },
+        active: null,
+        blocked: null,
+        hover: null,
+        raised: null,
+      });
+    },
+    clearCourse: () => {
+      set({ courseDrag: null, raised: null });
+    },
+    setRaised: (teachTableId) => {
+      set({ raised: teachTableId });
     },
   }));
 }
