@@ -214,6 +214,28 @@ describe('malformed rows and invalid input', () => {
     }
   });
 
+  it('accepts an unscheduled row with a null teachtime_str as a warning', () => {
+    // Regression: the all curricula query surfaces unscheduled online courses
+    // whose teachtime_str is null; a non nullable schema had rejected the whole
+    // response. The null must pass the gate and the row become a warning.
+    const result = normalizeTeachTable(
+      loadFixture(
+        'regressions/teach-table.by_class-null-teachtime-str.capture.json',
+      ),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.courses).toHaveLength(2);
+      const unscheduled = result.value.courses.find(
+        (course) => course.subjectId === '01006029',
+      );
+      expect(unscheduled?.sections[0]?.meetings).toHaveLength(0);
+      expect(
+        result.value.warnings.some((w) => w.subjectId === '01006029'),
+      ).toBe(true);
+    }
+  });
+
   it('returns a validation error for a non array response', () => {
     const result = normalizeTeachTable({ not: 'an array' });
     expect(result.ok).toBe(false);

@@ -82,6 +82,18 @@ export async function startMockServer(): Promise<MockServer> {
             res.end(JSON.stringify({ selected_class_year: ['not integer'] }));
             return;
           }
+          // The by_class all curricula query returns a broader result that
+          // includes unscheduled rows with a null teachtime_str, so serve the
+          // regression capture on that path to exercise the schema against them.
+          if (
+            url.searchParams.get('mode') === 'by_class' &&
+            url.searchParams.get('search_all_curriculum') === 'true'
+          ) {
+            sendJson(
+              'regressions/teach-table.by_class-null-teachtime-str.capture.json',
+            );
+            return;
+          }
           sendJson('teach-table.by_subject_owner_id-32.capture.json');
           return;
         }
