@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { Bug, RefreshCw, X } from 'lucide-react';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
+import { toastStore } from '@/features/shell/toastStore';
 import { isSimulationArmed, useDiagnosticsData } from './useDiagnosticsData';
 import {
   RawNormalizedView,
@@ -160,6 +161,7 @@ export function Diagnostics() {
           onClick={() => {
             if (data.report !== null) {
               downloadJson('kcp-report.json', data.report);
+              toastStore.getState().show('success', 'Report exported');
             }
           }}
           className={`${ACTION} disabled:opacity-50`}
@@ -171,9 +173,11 @@ export function Diagnostics() {
           disabled={data.latestRaw === null}
           onClick={() => {
             if (data.latestRaw !== null) {
-              void navigator.clipboard.writeText(
-                JSON.stringify(data.latestRaw.raw, null, 2),
-              );
+              void navigator.clipboard
+                .writeText(JSON.stringify(data.latestRaw.raw, null, 2))
+                .then(() => {
+                  toastStore.getState().show('success', 'Copied as fixture');
+                });
             }
           }}
           className={`${ACTION} disabled:opacity-50`}
@@ -183,7 +187,10 @@ export function Diagnostics() {
         <button
           type="button"
           onClick={() => {
-            void send({ type: 'debug/clearCache' }).then(refresh);
+            void send({ type: 'debug/clearCache' }).then(() => {
+              refresh();
+              toastStore.getState().show('success', 'Cache cleared');
+            });
           }}
           className={ACTION}
         >
