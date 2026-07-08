@@ -5,7 +5,6 @@
 // production dictionaries. This module ships only in the debug chunk and embeds
 // the canary the production bundle check greps for.
 
-import { useState } from 'react';
 import { useStore } from 'zustand';
 import type { LatestRaw, RequestLogEntry, SimSettings } from '@/lib/api/types';
 import type { DataQualityReport } from '@/lib/contract/report';
@@ -133,20 +132,17 @@ export function SimulationControls({
   onSetFault,
   onSetMutation,
 }: SimulationControlsProps) {
-  // Seeded from the worker state so a return to this tab rehydrates the current
-  // selection rather than showing none while a simulation is still armed.
-  const [fault, setFault] = useState(simulation.faultId ?? '');
-  const [mutation, setMutation] = useState(simulation.mutationId ?? '');
+  // Controlled directly by the worker state, so returning to this tab always
+  // reflects the armed simulation rather than a stale seed captured at mount.
   return (
     <div className="flex flex-col gap-3 text-sm">
       <label className="flex flex-col gap-1">
         <span className="font-medium text-ink">Fault</span>
         <select
-          value={fault}
+          value={simulation.faultId ?? ''}
           className={SELECT}
           onChange={(event) => {
             const id = event.target.value;
-            setFault(id);
             onSetFault(id === '' ? null : id);
           }}
         >
@@ -161,11 +157,10 @@ export function SimulationControls({
       <label className="flex flex-col gap-1">
         <span className="font-medium text-ink">Mutation</span>
         <select
-          value={mutation}
+          value={simulation.mutationId ?? ''}
           className={SELECT}
           onChange={(event) => {
             const id = event.target.value;
-            setMutation(id);
             onSetMutation(id === '' ? null : id);
           }}
         >
