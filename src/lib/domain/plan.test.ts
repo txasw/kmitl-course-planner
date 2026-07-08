@@ -5,7 +5,7 @@ import {
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
 import { validate } from './schemas';
-import { planSchema } from './plan';
+import { planSchema, snapshotToSection } from './plan';
 
 describe('planSchema', () => {
   it('accepts a well formed plan built from a normalized snapshot', () => {
@@ -50,5 +50,28 @@ describe('planSchema', () => {
     expect(entry?.subjectId).toBe(entry?.snapshot.subjectId);
     expect(entry?.section).toBe(entry?.snapshot.section);
     expect(entry?.sourceQuery.endpoint).toBe('get-teach-table-show');
+  });
+});
+
+describe('snapshotToSection', () => {
+  it('maps a snapshot to a plain section and drops subject metadata', () => {
+    const snapshot = makeSnapshot({ subjectId: '90592033', section: '901' });
+    const section = snapshotToSection(snapshot);
+    expect(section.subjectId).toBe('90592033');
+    expect(section.section).toBe('901');
+    expect('subjectMeta' in section).toBe(false);
+    expect(section.exam).toEqual({});
+  });
+
+  it('carries only the present exam ranges', () => {
+    const snapshot = makeSnapshot({
+      exam: { final: { start: '2026-10-01T09:00', end: '2026-10-01T12:00' } },
+    });
+    const section = snapshotToSection(snapshot);
+    expect(section.exam.final).toEqual({
+      start: '2026-10-01T09:00',
+      end: '2026-10-01T12:00',
+    });
+    expect(section.exam.midterm).toBeUndefined();
   });
 });
