@@ -15,8 +15,19 @@ export const DRAWER_ID = 'kcp-catalog-drawer';
 // weekly timetable, which renders from the plan snapshots.
 export function Layout() {
   const { t } = useTranslation();
+  const viewMode = useStore(uiStore, (state) => state.viewMode);
   const drawerOpen = useStore(uiStore, (state) => state.drawerOpen);
   const setDrawer = useStore(uiStore, (state) => state.setDrawer);
+
+  // Preview collapses the search rail and catalog out of the DOM and gives the
+  // timetable the full panel width as a poster composition.
+  if (viewMode === 'preview') {
+    return (
+      <div className="h-full p-4">
+        <PlannerPanel />
+      </div>
+    );
+  }
 
   const catalog = <CatalogPanel />;
 
