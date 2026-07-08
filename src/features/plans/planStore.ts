@@ -1,25 +1,78 @@
-// The minimal plan store read interface. The catalog computes each section's
-// state against the placed sections, so it needs to read the plan even before the
-// plan feature is built. This store holds the entries and derives the placed
-// sections; it carries no mutations or persistence yet. Phase 5 adds add and
-// remove, Phase 6 adds persistence, both behind this same read surface, so the
-// catalog plugs in without rework.
+// The plan store. It holds the entries and derives the placed sections the catalog
+// reads, and it owns the add and remove transactions. Removing keeps the removed
+// group in memory as a pending undo so the feedback strip can restore it, and the
+// next mutation clears that window. Persistence to storage stays a later phase,
+// behind this same interface, so the catalog and grid plug in without rework.
 
 import { useMemo } from 'react';
 import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
-import { snapshotToSection, type PlanEntry } from '@/lib/domain/plan';
-import type { Section } from '@/lib/domain/types';
+import {
+  snapshotToSection,
+  type PlanEntry,
+  type SourceQuery,
+} from '@/lib/domain/plan';
+import type { Course, Section } from '@/lib/domain/types';
+import {
+  addSectionGroup,
+  removeEntry,
+  type AddOutcome,
+} from '@/lib/planner/transaction';
 
 export interface PlanStore {
   entries: PlanEntry[];
+  /** The sections most recently removed, held for a short undo window, or null. */
+  pendingUndo: PlanEntry[] | null;
+  add: (
+    course: Course,
+    section: Section,
+    sourceQuery: SourceQuery,
+  ) => AddOutcome;
+  remove: (teachTableId: string) => void;
+  undoRemove: () => void;
+  clearUndo: () => void;
 }
 
 export function createPlanStore() {
-  return createStore<PlanStore>(() => ({ entries: [] }));
+  return createStore<PlanStore>((set, get) => ({
+    entries: [],
+    pendingUndo: null,
+    add: (course, section, sourceQuery) => {
+      const outcome = addSectionGroup(
+        get().entries,
+        course,
+        section,
+        sourceQuery,
+        new Date().toISOString(),
+      );
+      if (outcome.ok) {
+        set({ entries: outcome.result.entries, pendingUndo: null });
+      }
+      return outcome;
+    },
+    remove: (teachTableId) => {
+      const { entries, removed } = removeEntry(get().entries, teachTableId);
+      if (removed.length > 0) {
+        set({ entries, pendingUndo: removed });
+      }
+    },
+    undoRemove: () => {
+      const pending = get().pendingUndo;
+      if (pending === null) {
+        return;
+      }
+      set((state) => ({
+        entries: [...state.entries, ...pending],
+        pendingUndo: null,
+      }));
+    },
+    clearUndo: () => {
+      set({ pendingUndo: null });
+    },
+  }));
 }
 
-/** The single plan store instance the catalog reads. */
+/** The single plan store instance the catalog and grid read. */
 export const planStore = createPlanStore();
 
 /**
