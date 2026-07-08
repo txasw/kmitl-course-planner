@@ -6,8 +6,17 @@ import {
   cleanup,
   act,
 } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { Layout, DRAWER_ID } from './Layout';
 import { uiStore } from './uiStore';
+import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
+import { fakeSearchDeps } from '../../../tests/support/searchDeps';
+
+const deps = fakeSearchDeps();
+
+function wrapper({ children }: { children: ReactNode }) {
+  return <SearchDepsProvider value={deps}>{children}</SearchDepsProvider>;
+}
 
 afterEach(() => {
   cleanup();
@@ -18,23 +27,24 @@ afterEach(() => {
 });
 
 describe('Layout', () => {
-  it('renders empty states for the three regions', () => {
-    render(<Layout />);
+  it('renders the search rail, the catalog, and the grid regions', () => {
+    render(<Layout />, { wrapper });
+    // The search rail carries the tab bar rather than a placeholder.
     expect(
-      screen.getByRole('heading', { name: 'ค้นหารายวิชา' }),
+      screen.getByRole('button', { name: 'หลักสูตรและชั้นปี' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('heading', { name: 'ตารางยังว่าง' }),
     ).toBeInTheDocument();
-    // The inline catalog empty state is visible; the drawer copy is aria-hidden
-    // while closed, so only one is in the accessibility tree.
+    // The catalog idle state is visible; the drawer copy is aria-hidden while
+    // closed, so only one is in the accessibility tree.
     expect(
       screen.getByRole('heading', { name: 'ยังไม่มีรายวิชา' }),
     ).toBeInTheDocument();
   });
 
   it('keeps the catalog drawer hidden until it is opened', () => {
-    const { container } = render(<Layout />);
+    const { container } = render(<Layout />, { wrapper });
     const drawer = container.querySelector(`#${DRAWER_ID}`);
     expect(drawer).toHaveAttribute('aria-hidden', 'true');
 
@@ -48,7 +58,7 @@ describe('Layout', () => {
   });
 
   it('closes the drawer from its backdrop', () => {
-    render(<Layout />);
+    render(<Layout />, { wrapper });
     act(() => {
       uiStore.getState().setDrawer(true);
     });

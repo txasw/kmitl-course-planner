@@ -1,7 +1,9 @@
 import './style.css';
 import { createRoot, type Root } from 'react-dom/client';
 import { IS_DEBUG } from '@/lib/env';
+import { sendTyped } from '@/lib/messaging/sendTyped';
 import { createPrefsRepository } from '@/lib/storage/prefs';
+import { createSearchStateRepository } from '@/lib/storage/lastSearch';
 import { createBrowserStorageAdapter } from '@/lib/storage/browserAdapter';
 import { App } from './App';
 
@@ -27,8 +29,13 @@ export default defineContentScript({
         wrapper.id = 'kcp-app';
         container.append(wrapper);
         const root = createRoot(wrapper);
-        const prefs = createPrefsRepository(createBrowserStorageAdapter());
-        root.render(<App prefs={prefs} />);
+        const adapter = createBrowserStorageAdapter();
+        const prefs = createPrefsRepository(adapter);
+        const search = {
+          send: sendTyped,
+          repo: createSearchStateRepository(adapter),
+        };
+        root.render(<App prefs={prefs} search={search} />);
         return root;
       },
       onRemove: (root) => {

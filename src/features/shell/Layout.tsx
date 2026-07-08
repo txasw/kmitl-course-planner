@@ -1,6 +1,8 @@
 import { useStore } from 'zustand';
-import { CalendarDays, Search } from 'lucide-react';
+import { CalendarDays } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
+import { CatalogPanel } from '@/features/catalog/CatalogPanel';
+import { SearchForm } from '@/features/search/SearchForm';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
 
@@ -10,29 +12,19 @@ export const DRAWER_ID = 'kcp-catalog-drawer';
 // The three region body: a left search rail, a center catalog, and a dominant
 // right grid. Below the xl breakpoint the catalog collapses into a slide over
 // drawer toggled from the header; the drawer open state lives in the ui store.
-// The regions render designed empty states because their features arrive in
-// later phases, so the containers stay plain until they carry real content.
+// The search rail and catalog carry their features; the grid arrives in a later
+// phase and keeps a designed empty state.
 export function Layout() {
   const { t } = useTranslation();
   const drawerOpen = useStore(uiStore, (state) => state.drawerOpen);
   const setDrawer = useStore(uiStore, (state) => state.setDrawer);
 
-  const catalog = (
-    <EmptyState
-      icon={Search}
-      title={t('catalog.emptyTitle')}
-      description={t('catalog.emptyBody')}
-    />
-  );
+  const catalog = <CatalogPanel />;
 
   return (
     <div className="relative flex h-full">
       <div className="w-80 shrink-0 overflow-y-auto border-r border-border p-6">
-        <EmptyState
-          icon={Search}
-          title={t('search.emptyTitle')}
-          description={t('search.emptyBody')}
-        />
+        <SearchForm />
       </div>
 
       <div className="hidden w-96 shrink-0 overflow-y-auto border-r border-border p-6 xl:block">

@@ -6,8 +6,17 @@ import {
   cleanup,
   act,
 } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { Overlay } from './Overlay';
 import { uiStore } from './uiStore';
+import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
+import { fakeSearchDeps } from '../../../tests/support/searchDeps';
+
+const deps = fakeSearchDeps();
+
+function wrapper({ children }: { children: ReactNode }) {
+  return <SearchDepsProvider value={deps}>{children}</SearchDepsProvider>;
+}
 
 // Reduced motion makes the presence transitions instant, so open and close are
 // deterministic in tests without advancing timers.
@@ -37,7 +46,7 @@ afterEach(() => {
 
 describe('Overlay', () => {
   it('renders nothing while closed', () => {
-    render(<Overlay />);
+    render(<Overlay />, { wrapper });
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
@@ -45,7 +54,7 @@ describe('Overlay', () => {
     act(() => {
       uiStore.getState().open();
     });
-    render(<Overlay />);
+    render(<Overlay />, { wrapper });
     const dialog = screen.getByRole('dialog');
     expect(dialog).toHaveAttribute('aria-modal', 'true');
     expect(dialog).toHaveAccessibleName('ตัววางแผนตารางเรียน สจล.');
@@ -55,7 +64,7 @@ describe('Overlay', () => {
     act(() => {
       uiStore.getState().open();
     });
-    render(<Overlay />);
+    render(<Overlay />, { wrapper });
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
     expect(uiStore.getState().isOpen).toBe(false);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -65,7 +74,7 @@ describe('Overlay', () => {
     act(() => {
       uiStore.getState().open();
     });
-    render(<Overlay />);
+    render(<Overlay />, { wrapper });
     fireEvent.click(screen.getByRole('button', { name: 'ปิด' }));
     expect(uiStore.getState().isOpen).toBe(false);
   });
@@ -76,6 +85,7 @@ describe('Overlay', () => {
         <button data-testid="opener">opener</button>
         <Overlay />
       </div>,
+      { wrapper },
     );
     const opener = screen.getByTestId('opener');
     opener.focus();
