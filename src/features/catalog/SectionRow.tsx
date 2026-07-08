@@ -11,7 +11,7 @@ import type { SeatStatus } from '@/lib/catalog/seatStatus';
 import type { SectionRelation } from '@/lib/planner/sectionState';
 import type { ConflictDetail } from '@/lib/planner/placement';
 import { dayLabelKey } from '@/lib/i18n/dayLabel';
-import { Pill } from './Pill';
+import { Pill } from '@/components/Pill';
 import { SeatPill } from './SeatPill';
 import { meetingLabel } from './meetingFormat';
 
