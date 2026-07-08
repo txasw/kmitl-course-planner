@@ -7,6 +7,7 @@
   "action.add": "เพิ่ม",
   "action.remove": "นำออก",
   "action.undo": "เลิกทำ",
+  "action.drag": "ลากเพื่อเพิ่มลงตาราง",
   "language.select": "เลือกภาษา",
   "language.th": "ไทย",
   "language.en": "English",

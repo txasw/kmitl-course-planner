@@ -111,3 +111,57 @@
     animation: none;
   }
 }
+
+/* Blocked placement ghost: a hatched danger overlay over the danger soft fill, so
+   the blocked footprint reads differently from the valid one at a glance. */
+.kcp-hatch {
+  background-image: repeating-linear-gradient(
+    45deg,
+    color-mix(in srgb, var(--kcp-danger) 24%, transparent) 0,
+    color-mix(in srgb, var(--kcp-danger) 24%, transparent) 5px,
+    transparent 5px,
+    transparent 11px
+  );
+}
+
+/* A blocking block pulses twice to draw the eye to the conflict during a drag. */
+@keyframes kcp-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+
+  50% {
+    box-shadow: 0 0 0 2px var(--kcp-danger);
+  }
+}
+
+.kcp-pulse {
+  animation: kcp-pulse 300ms ease-in-out 2;
+}
+
+/* A newly placed block settles into place. */
+@keyframes kcp-settle {
+  from {
+    transform: scale(0.96);
+    opacity: 0.6;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.kcp-settle {
+  animation: kcp-settle 150ms ease-out;
+}
+
+/* The reduced motion path drops every placement animation, keeping the color and
+   text cues that carry the same meaning. */
+@media (prefers-reduced-motion: reduce) {
+  .kcp-pulse,
+  .kcp-settle {
+    animation: none;
+  }
+}

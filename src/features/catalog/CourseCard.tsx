@@ -2,10 +2,12 @@
 // as secondary text, the credit string, and one row per section. Each section's
 // seat status and plan relation are computed here from the placed sections.
 
+import { Fragment } from 'react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import { computeSeatStatus } from '@/lib/catalog/seatStatus';
 import { computeSectionRelation } from '@/lib/planner/sectionState';
+import { DraggableSection } from './DraggableSection';
 import { SectionRow } from './SectionRow';
 
 interface CourseCardProps {
@@ -43,19 +45,36 @@ export function CourseCard({
         </span>
       </header>
       <div className="mt-2 flex flex-col gap-1.5">
-        {course.sections.map((section) => (
-          <SectionRow
-            key={section.teachTableId}
-            course={course}
-            section={section}
-            relation={computeSectionRelation(placed, course, section)}
-            seat={computeSeatStatus(section)}
-            locale={locale}
-            t={t}
-            onAdd={onAdd}
-            onRemove={onRemove}
-          />
-        ))}
+        {course.sections.map((section) => {
+          const relation = computeSectionRelation(placed, course, section);
+          const seat = computeSeatStatus(section);
+          const row = (
+            <SectionRow
+              course={course}
+              section={section}
+              relation={relation}
+              seat={seat}
+              locale={locale}
+              t={t}
+              onAdd={onAdd}
+              onRemove={onRemove}
+            />
+          );
+          if (relation.kind === 'addable' && seat.kind === 'open') {
+            return (
+              <DraggableSection
+                key={section.teachTableId}
+                id={section.teachTableId}
+                course={course}
+                section={section}
+                label={`${t('action.drag')} ${section.subjectId} ${t('section.code')} ${section.section}`}
+              >
+                {row}
+              </DraggableSection>
+            );
+          }
+          return <Fragment key={section.teachTableId}>{row}</Fragment>;
+        })}
       </div>
     </article>
   );

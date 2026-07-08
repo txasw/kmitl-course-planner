@@ -28,6 +28,7 @@
     "changeset": "changeset"
   },
   "dependencies": {
+    "@dnd-kit/core": "6.3.1",
     "@floating-ui/react": "0.27.19",
     "lucide-react": "1.23.0",
     "react": "19.2.7",
