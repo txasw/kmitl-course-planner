@@ -12,11 +12,19 @@ export interface UiState {
   isOpen: boolean;
   drawerOpen: boolean;
   language: Locale;
+  /**
+   * Count of error and warning issues in the latest data quality report, or null
+   * when there is no report. The launcher shows a badge from it. It stays null in
+   * production because only the debug diagnostics writes it; the launcher badge
+   * therefore never appears in production.
+   */
+  diagnosticsIssueCount: number | null;
   open: () => void;
   close: () => void;
   toggle: () => void;
   setDrawer: (open: boolean) => void;
   setLanguage: (language: Locale) => void;
+  setDiagnosticsIssueCount: (count: number | null) => void;
 }
 
 /**
@@ -28,6 +36,7 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     isOpen: false,
     drawerOpen: false,
     language,
+    diagnosticsIssueCount: null,
     open: () => {
       set({ isOpen: true });
     },
@@ -44,6 +53,9 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     },
     setLanguage: (language) => {
       set({ language });
+    },
+    setDiagnosticsIssueCount: (count) => {
+      set({ diagnosticsIssueCount: count });
     },
   }));
 }
