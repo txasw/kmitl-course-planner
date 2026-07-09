@@ -7,22 +7,20 @@
 
 import type { Modifier } from '@dnd-kit/core';
 
-/** Read the client coordinates a drag started from, or null when unavailable. */
+/** Read the client coordinates a drag started from, or null when unavailable. The
+ * pointer sensor delivers a pointer event that carries clientX and clientY, which
+ * also covers touch, so no separate touch event branch is needed. */
 export function activatorCoordinates(
   event: Event | null,
 ): { x: number; y: number } | null {
-  if (event === null) {
-    return null;
-  }
-  if ('clientX' in event && 'clientY' in event) {
-    const pointer = event as { clientX: number; clientY: number };
-    return { x: pointer.clientX, y: pointer.clientY };
-  }
-  if ('changedTouches' in event) {
-    const touch = (event as TouchEvent).changedTouches[0];
-    if (touch) {
-      return { x: touch.clientX, y: touch.clientY };
-    }
+  if (
+    event !== null &&
+    'clientX' in event &&
+    'clientY' in event &&
+    typeof event.clientX === 'number' &&
+    typeof event.clientY === 'number'
+  ) {
+    return { x: event.clientX, y: event.clientY };
   }
   return null;
 }
