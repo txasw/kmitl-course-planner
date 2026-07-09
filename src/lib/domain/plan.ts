@@ -97,15 +97,34 @@ export const planEntrySchema = z.object({
   snapshot: sectionSnapshotSchema,
 });
 
-export const planSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  year: z.string(),
-  semester: z.enum(['1', '2', '3']),
-  entries: z.array(planEntrySchema),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
+// A plan belongs to exactly one year and semester pair, and every entry must come
+// from a query for that same term. The refine asserts that invariant, so a mixed
+// term blob is rejected at every trust boundary that parses a plan, including a
+// storage read and a future JSON import.
+export const planSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    year: z.string(),
+    semester: z.enum(['1', '2', '3']),
+    entries: z.array(planEntrySchema),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  })
+  .superRefine((plan, ctx) => {
+    plan.entries.forEach((entry, index) => {
+      if (
+        entry.sourceQuery.params.selected_year !== plan.year ||
+        entry.sourceQuery.params.selected_semester !== plan.semester
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'plan entry term does not match the plan term',
+          path: ['entries', index, 'sourceQuery'],
+        });
+      }
+    });
+  });
 
 export type VerifyStatus = z.infer<typeof verifyStatusSchema>;
 export type SourceQuery = z.infer<typeof sourceQuerySchema>;

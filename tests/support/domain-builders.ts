@@ -72,7 +72,9 @@ export function makeSnapshot(
   };
 }
 
-/** Build a plan entry whose durable identity mirrors its snapshot by default. */
+/** Build a plan entry whose durable identity mirrors its snapshot by default. The
+ * default source query carries the term of the default plan (2569 semester 1) so a
+ * default entry placed in a default plan satisfies the plan's term invariant. */
 export function makePlanEntry(overrides: Partial<PlanEntry> = {}): PlanEntry {
   const snapshot = overrides.snapshot ?? makeSnapshot();
   return {
@@ -84,7 +86,11 @@ export function makePlanEntry(overrides: Partial<PlanEntry> = {}): PlanEntry {
     verifyStatus: 'unverified',
     sourceQuery: {
       endpoint: 'get-teach-table-show',
-      params: { mode: 'by_class' },
+      params: {
+        mode: 'by_class',
+        selected_year: '2569',
+        selected_semester: '1',
+      },
     },
     snapshot,
     ...overrides,

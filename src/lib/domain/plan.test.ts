@@ -44,6 +44,19 @@ describe('planSchema', () => {
     }
   });
 
+  it('rejects a plan whose entry term differs from the plan term', () => {
+    // The default entry carries a first semester source query; a second semester
+    // plan holding it violates the one term per plan invariant.
+    const plan = makePlan({ semester: '2' });
+    const result = validate(planSchema, plan);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(
+        result.error.issues.some((issue) => issue.path.includes('sourceQuery')),
+      ).toBe(true);
+    }
+  });
+
   it('carries the durable identity and source query on each entry', () => {
     const plan = makePlan();
     const entry = plan.entries[0];
