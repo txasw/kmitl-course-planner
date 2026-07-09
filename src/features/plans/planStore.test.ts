@@ -215,6 +215,51 @@ describe('planStore multi-plan', () => {
   });
 });
 
+describe('planStore revalidation write', () => {
+  it('applies reconciled entries by identity and clears undo', () => {
+    const store = makeStore();
+    const section = makeSection({
+      teachTableId: 'a',
+      subjectId: 'S1',
+      section: '901',
+    });
+    store.getState().add(courseFor(section), section, SOURCE_QUERY);
+    const planId = store.getState().activePlanId;
+    const current = store.getState().entries[0];
+    if (planId === null || current === undefined) {
+      throw new Error('expected an active plan with one entry');
+    }
+    store
+      .getState()
+      .applyRevalidation(planId, [
+        { ...current, verifyStatus: 'verified', lastVerifiedAt: 'T' },
+      ]);
+    expect(store.getState().entries[0]?.verifyStatus).toBe('verified');
+    expect(store.getState().pendingUndo).toBeNull();
+  });
+
+  it('acknowledges a changed entry back to verified', () => {
+    const store = makeStore();
+    const section = makeSection({
+      teachTableId: 'a',
+      subjectId: 'S1',
+      section: '901',
+    });
+    store.getState().add(courseFor(section), section, SOURCE_QUERY);
+    const planId = store.getState().activePlanId;
+    const current = store.getState().entries[0];
+    if (planId === null || current === undefined) {
+      throw new Error('expected an active plan with one entry');
+    }
+    store
+      .getState()
+      .applyRevalidation(planId, [{ ...current, verifyStatus: 'changed' }]);
+    expect(store.getState().entries[0]?.verifyStatus).toBe('changed');
+    store.getState().acknowledge('a');
+    expect(store.getState().entries[0]?.verifyStatus).toBe('verified');
+  });
+});
+
 function makePlan(id: string, updatedAt: string, term: Term) {
   return {
     id,
