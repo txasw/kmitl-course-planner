@@ -216,7 +216,7 @@ describe('planStore multi-plan', () => {
 });
 
 describe('planStore revalidation write', () => {
-  it('applies reconciled entries by identity and clears undo', () => {
+  it('applies reconciled entries by durable identity', () => {
     const store = makeStore();
     const section = makeSection({
       teachTableId: 'a',
@@ -235,6 +235,59 @@ describe('planStore revalidation write', () => {
         { ...current, verifyStatus: 'verified', lastVerifiedAt: 'T' },
       ]);
     expect(store.getState().entries[0]?.verifyStatus).toBe('verified');
+  });
+
+  it('keeps a pending undo when a reconcile does not move a key', () => {
+    const store = makeStore();
+    const a = makeSection({
+      teachTableId: 'a',
+      subjectId: 'S1',
+      section: '901',
+    });
+    const b = makeSection({
+      teachTableId: 'b',
+      subjectId: 'S2',
+      section: '902',
+      meetings: [makeMeeting({ day: 3 })],
+    });
+    store.getState().add(courseFor(a), a, SOURCE_QUERY);
+    store.getState().add(courseFor(b), b, SOURCE_QUERY);
+    store.getState().remove('a');
+    const planId = store.getState().activePlanId;
+    const remaining = store.getState().entries[0];
+    if (planId === null || remaining === undefined) {
+      throw new Error('expected a remaining entry and an undo');
+    }
+    store
+      .getState()
+      .applyRevalidation(planId, [{ ...remaining, verifyStatus: 'verified' }]);
+    expect(store.getState().pendingUndo).not.toBeNull();
+  });
+
+  it('clears the pending undo when a reconcile moves a key', () => {
+    const store = makeStore();
+    const a = makeSection({
+      teachTableId: 'a',
+      subjectId: 'S1',
+      section: '901',
+    });
+    const b = makeSection({
+      teachTableId: 'b',
+      subjectId: 'S2',
+      section: '902',
+      meetings: [makeMeeting({ day: 3 })],
+    });
+    store.getState().add(courseFor(a), a, SOURCE_QUERY);
+    store.getState().add(courseFor(b), b, SOURCE_QUERY);
+    store.getState().remove('a');
+    const planId = store.getState().activePlanId;
+    const remaining = store.getState().entries[0];
+    if (planId === null || remaining === undefined) {
+      throw new Error('expected a remaining entry and an undo');
+    }
+    store
+      .getState()
+      .applyRevalidation(planId, [{ ...remaining, teachTableId: 'b2' }]);
     expect(store.getState().pendingUndo).toBeNull();
   });
 
