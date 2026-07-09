@@ -156,5 +156,10 @@
   "preview.toolbar": "Sharing tools",
   "preview.downloadPng": "Download image",
   "preview.pngDownloaded": "Image downloaded",
-  "preview.exportFailed": "Could not export the image"
+  "preview.exportFailed": "Could not export the image",
+  "preview.displayOptions": "Display options",
+  "preview.fitToContent": "Fit to content",
+  "preview.showRoom": "Show room",
+  "preview.showSection": "Show section",
+  "preview.showEnglishNames": "Show English names"
 }
