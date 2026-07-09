@@ -5,6 +5,7 @@
 
 import type { TeachTableQuery } from '../messaging/protocol';
 import type { SourceQuery } from '../domain/plan';
+import type { Semester, Term } from '../routing/academicTerms';
 
 export function toSourceQuery(query: TeachTableQuery): SourceQuery {
   const params: Record<string, string> = {};
@@ -15,4 +16,22 @@ export function toSourceQuery(query: TeachTableQuery): SourceQuery {
     params[key] = typeof value === 'boolean' ? String(value) : value;
   }
   return { endpoint: 'get-teach-table-show', params };
+}
+
+function asSemester(value: string | undefined): Semester {
+  return value === '1' || value === '2' || value === '3' ? value : '1';
+}
+
+/**
+ * The academic term a stored source query targeted, read from its flat params. Every
+ * real teach table query carries both fields, so the defaults only guard a degenerate
+ * empty map, which the entry path stops producing once the source query is required.
+ */
+export function termFromSourceQueryParams(
+  params: Record<string, string>,
+): Term {
+  return {
+    year: params.selected_year ?? '',
+    semester: asSemester(params.selected_semester),
+  };
 }
