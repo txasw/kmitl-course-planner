@@ -17,8 +17,13 @@ import {
   type UndoRecord,
 } from '@/features/plans/planStore';
 import { addSectionToPlan } from '@/features/plans/addToPlan';
+import { switchOrCreatePlanForTerm } from '@/features/plans/switchPlanTerm';
 import { catalogStore } from '@/features/catalog/catalogStore';
-import { dragStore, type BlockedFeedback } from './dragStore';
+import {
+  dragStore,
+  type BlockedFeedback,
+  type CrossTermFeedback,
+} from './dragStore';
 import { conflictReasonText } from './conflictText';
 
 const UNDO_WINDOW_MS = 10_000;
@@ -87,6 +92,34 @@ function BlockedNotice({
   );
 }
 
+function CrossTermNotice({
+  feedback,
+  t,
+}: {
+  feedback: CrossTermFeedback;
+  t: Translate;
+}) {
+  const planTerm = `${feedback.planTerm.semester}/${feedback.planTerm.year}`;
+  const browsedTerm = `${feedback.browsedTerm.semester}/${feedback.browsedTerm.year}`;
+  return (
+    <div className="flex flex-wrap items-center gap-2 rounded-kcp border border-warn bg-primary-soft px-2 py-1 text-xs text-ink">
+      <span>
+        {t('term.planIs')} {planTerm}. {t('term.sectionIs')} {browsedTerm}
+      </span>
+      <button
+        type="button"
+        onClick={() => {
+          switchOrCreatePlanForTerm(feedback.browsedTerm);
+          dragStore.getState().clearCrossTerm();
+        }}
+        className="font-medium text-primary underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      >
+        {t('term.switch')}
+      </button>
+    </div>
+  );
+}
+
 const MUTATION_LABEL: Record<UndoRecord['kind'], TranslationKey> = {
   remove: 'feedback.removed',
   move: 'feedback.moved',
@@ -133,6 +166,7 @@ function MutationNotice({
 export function FeedbackStrip({ locale, t }: FeedbackStripProps) {
   const pendingUndo = useStore(planStore, (state) => state.pendingUndo);
   const blocked = useStore(dragStore, (state) => state.blocked);
+  const crossTerm = useStore(dragStore, (state) => state.crossTerm);
   const announcement = useStore(dragStore, (state) => state.announcement);
   const hint = useStore(dragStore, (state) => state.hint);
   const placed = usePlacedSections();
@@ -162,6 +196,18 @@ export function FeedbackStrip({ locale, t }: FeedbackStripProps) {
   }, [blocked]);
 
   useEffect(() => {
+    if (crossTerm === null) {
+      return undefined;
+    }
+    const timer = setTimeout(() => {
+      dragStore.getState().clearCrossTerm();
+    }, BLOCKED_WINDOW_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [crossTerm]);
+
+  useEffect(() => {
     if (announcement === null) {
       return undefined;
     }
@@ -187,7 +233,9 @@ export function FeedbackStrip({ locale, t }: FeedbackStripProps) {
 
   return (
     <div aria-live="polite" className="min-h-[1.75rem] shrink-0">
-      {blocked !== null ? (
+      {crossTerm !== null ? (
+        <CrossTermNotice feedback={crossTerm} t={t} />
+      ) : blocked !== null ? (
         <BlockedNotice blocked={blocked} placed={placed} t={t} />
       ) : pendingUndo !== null ? (
         <MutationNotice record={pendingUndo} locale={locale} t={t} />

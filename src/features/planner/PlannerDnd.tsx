@@ -236,12 +236,18 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
         state.clearActive();
         state.clearCourse();
         state.clearBlockMove();
-        if (!outcome.ok) {
+        if (!outcome.ok && 'conflicts' in outcome) {
           // Removing the blocker left the incoming section conflicting elsewhere.
           state.showBlocked({
             course: swap.course,
             section: swap.incoming,
             conflicts: outcome.conflicts,
+          });
+        } else if (!outcome.ok) {
+          // Backstop: the swap incoming section came from another term.
+          state.showCrossTerm({
+            planTerm: outcome.crossTerm.planTerm,
+            browsedTerm: outcome.crossTerm.incomingTerm,
           });
         }
         return;

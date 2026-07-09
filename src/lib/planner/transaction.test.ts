@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { Meeting } from '../domain/types';
 import type { PlanEntry, SourceQuery } from '../domain/plan';
+import type { Term } from '../routing/academicTerms';
 import {
   makeCourse,
   makeMeeting,
@@ -15,10 +16,18 @@ import {
   removeEntry,
 } from './transaction';
 
+const PLAN_TERM: Term = { year: '2569', semester: '1' };
+
 const SOURCE_QUERY: SourceQuery = {
   endpoint: 'get-teach-table-show',
-  params: { mode: 'by_class' },
+  params: { mode: 'by_class', selected_year: '2569', selected_semester: '1' },
 };
+
+const OTHER_TERM_QUERY: SourceQuery = {
+  endpoint: 'get-teach-table-show',
+  params: { mode: 'by_class', selected_year: '2569', selected_semester: '2' },
+};
+
 const NOW = '2026-07-08T00:00:00.000Z';
 
 interface EntryOptions {
@@ -53,7 +62,14 @@ describe('addSectionGroup', () => {
   it('adds a section to an empty plan', () => {
     const section = makeSection({ teachTableId: 'a', subjectId: 'S1' });
     const course = makeCourse({ subjectId: 'S1', sections: [section] });
-    const outcome = addSectionGroup([], course, section, SOURCE_QUERY, NOW);
+    const outcome = addSectionGroup(
+      [],
+      course,
+      section,
+      SOURCE_QUERY,
+      NOW,
+      PLAN_TERM,
+    );
     expect(outcome.ok).toBe(true);
     if (outcome.ok) {
       expect(outcome.result.added).toHaveLength(1);
@@ -61,6 +77,32 @@ describe('addSectionGroup', () => {
       expect(outcome.result.entries[0]?.snapshot.subjectMeta.nameTh).toBe(
         makeCourse().nameTh,
       );
+    }
+  });
+
+  it('rejects a section whose query term differs from the plan term', () => {
+    const section = makeSection({ teachTableId: 'a', subjectId: 'S1' });
+    const course = makeCourse({ subjectId: 'S1', sections: [section] });
+    const outcome = addSectionGroup(
+      [],
+      course,
+      section,
+      OTHER_TERM_QUERY,
+      NOW,
+      PLAN_TERM,
+    );
+    expect(outcome.ok).toBe(false);
+    if (!outcome.ok && 'crossTerm' in outcome) {
+      expect(outcome.crossTerm.planTerm).toEqual({
+        year: '2569',
+        semester: '1',
+      });
+      expect(outcome.crossTerm.incomingTerm).toEqual({
+        year: '2569',
+        semester: '2',
+      });
+    } else {
+      throw new Error('expected a cross term rejection');
     }
   });
 
@@ -84,7 +126,14 @@ describe('addSectionGroup', () => {
       subjectId: 'S1',
       sections: [lecture, practice],
     });
-    const outcome = addSectionGroup([], course, lecture, SOURCE_QUERY, NOW);
+    const outcome = addSectionGroup(
+      [],
+      course,
+      lecture,
+      SOURCE_QUERY,
+      NOW,
+      PLAN_TERM,
+    );
     expect(outcome.ok).toBe(true);
     if (outcome.ok) {
       expect(outcome.result.added.map((entry) => entry.teachTableId)).toEqual([
@@ -114,9 +163,10 @@ describe('addSectionGroup', () => {
       incoming,
       SOURCE_QUERY,
       NOW,
+      PLAN_TERM,
     );
     expect(outcome.ok).toBe(false);
-    if (!outcome.ok) {
+    if (!outcome.ok && 'conflicts' in outcome) {
       expect(outcome.conflicts.some((c) => c.kind === 'time')).toBe(true);
     }
   });
@@ -140,9 +190,10 @@ describe('addSectionGroup', () => {
       incoming,
       SOURCE_QUERY,
       NOW,
+      PLAN_TERM,
     );
     expect(outcome.ok).toBe(false);
-    if (!outcome.ok) {
+    if (!outcome.ok && 'conflicts' in outcome) {
       expect(outcome.conflicts.some((c) => c.kind === 'duplicate')).toBe(true);
     }
   });
@@ -155,7 +206,14 @@ describe('addSectionGroup', () => {
       meetings: [],
     });
     const course = makeCourse({ subjectId: 'S9', sections: [online] });
-    const outcome = addSectionGroup([], course, online, SOURCE_QUERY, NOW);
+    const outcome = addSectionGroup(
+      [],
+      course,
+      online,
+      SOURCE_QUERY,
+      NOW,
+      PLAN_TERM,
+    );
     expect(outcome.ok).toBe(true);
     if (outcome.ok) {
       expect(outcome.result.added[0]?.snapshot.meetings).toHaveLength(0);
@@ -181,9 +239,10 @@ describe('addSectionGroup', () => {
       online,
       SOURCE_QUERY,
       NOW,
+      PLAN_TERM,
     );
     expect(outcome.ok).toBe(false);
-    if (!outcome.ok) {
+    if (!outcome.ok && 'conflicts' in outcome) {
       expect(outcome.conflicts[0]?.kind).toBe('duplicate');
     }
   });
@@ -205,7 +264,14 @@ describe('addSectionGroup', () => {
       meetings: [],
     });
     const course = makeCourse({ subjectId: 'S1', sections: [lecture, online] });
-    const outcome = addSectionGroup([], course, lecture, SOURCE_QUERY, NOW);
+    const outcome = addSectionGroup(
+      [],
+      course,
+      lecture,
+      SOURCE_QUERY,
+      NOW,
+      PLAN_TERM,
+    );
     expect(outcome.ok).toBe(true);
     if (outcome.ok) {
       expect(outcome.result.added).toHaveLength(2);
@@ -273,6 +339,7 @@ describe('applyPlanTransaction', () => {
       [],
       { course, section, sourceQuery: SOURCE_QUERY },
       NOW,
+      PLAN_TERM,
     );
     expect(outcome.ok).toBe(true);
     if (outcome.ok) {
@@ -280,6 +347,30 @@ describe('applyPlanTransaction', () => {
       expect(outcome.result.removed).toHaveLength(0);
       expect(outcome.result.entries).toHaveLength(1);
     }
+  });
+
+  it('rejects a cross term add without removing anything', () => {
+    const origin = makeEntry({
+      teachTableId: 'o',
+      subjectId: 'S1',
+      section: '901',
+    });
+    const section = makeSection({
+      teachTableId: 't',
+      subjectId: 'S2',
+      section: '902',
+      meetings: [makeMeeting({ day: 4 })],
+    });
+    const course = makeCourse({ subjectId: 'S2', sections: [section] });
+    const outcome = applyPlanTransaction(
+      [origin],
+      ['o'],
+      { course, section, sourceQuery: OTHER_TERM_QUERY },
+      NOW,
+      PLAN_TERM,
+    );
+    expect(outcome.ok).toBe(false);
+    expect('crossTerm' in outcome).toBe(true);
   });
 
   it('removes a section and its pair when no add is given', () => {
@@ -295,7 +386,13 @@ describe('applyPlanTransaction', () => {
       section: '902',
       pairedSection: '901',
     });
-    const outcome = applyPlanTransaction([lecture, practice], ['L'], null, NOW);
+    const outcome = applyPlanTransaction(
+      [lecture, practice],
+      ['L'],
+      null,
+      NOW,
+      PLAN_TERM,
+    );
     expect(outcome.ok).toBe(true);
     if (outcome.ok) {
       expect(outcome.result.removed).toHaveLength(2);
@@ -322,6 +419,7 @@ describe('applyPlanTransaction', () => {
       ['L', 'P'],
       null,
       NOW,
+      PLAN_TERM,
     );
     expect(outcome.ok).toBe(true);
     if (outcome.ok) {
@@ -348,6 +446,7 @@ describe('applyPlanTransaction', () => {
       ['o'],
       { course, section: target, sourceQuery: SOURCE_QUERY },
       NOW,
+      PLAN_TERM,
     );
     expect(outcome.ok).toBe(true);
     if (outcome.ok) {
@@ -396,6 +495,7 @@ describe('applyPlanTransaction', () => {
       ['BL'],
       { course, section: incomingLecture, sourceQuery: SOURCE_QUERY },
       NOW,
+      PLAN_TERM,
     );
     expect(outcome.ok).toBe(true);
     if (outcome.ok) {
@@ -433,9 +533,10 @@ describe('applyPlanTransaction', () => {
       ['B'],
       { course, section: incoming, sourceQuery: SOURCE_QUERY },
       NOW,
+      PLAN_TERM,
     );
     expect(outcome.ok).toBe(false);
-    if (!outcome.ok) {
+    if (!outcome.ok && 'conflicts' in outcome) {
       expect(
         outcome.conflicts.some(
           (conflict) =>
