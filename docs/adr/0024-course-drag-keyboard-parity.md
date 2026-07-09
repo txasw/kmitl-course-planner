@@ -41,3 +41,27 @@ adding a section is keyboard only. There is one keyboard vocabulary for adding, 
 section buttons, so nothing new to learn or announce. If a keyboard first way to
 survey a course's open slots is wanted later, it can be added as a separate view
 without disturbing this drag, since the drag makes no keyboard promise to keep.
+
+## Amendment: the block move and swap gestures (2026-07-09)
+
+Two more pointer gestures join the planner: a placed block can be dragged off its
+slot to move it to another section of its subject or onto the remove zone, and a
+blocked drag can be dropped on a blocking block to swap. The parity argument here does
+not transfer unchanged from the course drag, because these gestures start on the grid,
+not in the catalog where the add buttons live, and the catalog only lists a subject
+while a search that includes it is on screen.
+
+The decision holds: move and swap stay pointer only conveniences and their grips carry
+no keyboard handler. Removal keeps a keyboard path that does not depend on the catalog,
+because each placed block now carries its own focusable remove control, so a block can
+always be removed from the grid by keyboard. Re-placing a removed section, and reaching
+a move or swap outcome, go through the per section add buttons in the catalog, bridged
+by the reveal in catalog action when the subject is not currently listed. A keyboard
+user therefore never needs a grip: they remove from the block and add from the section
+row, which reach the same outcomes the pointer gestures do.
+
+Building a keyboard move or swap picker over the grid was rejected for the same reason
+the course picker was: it adds a focus trap, a roving selection, and a second
+announcement vocabulary to reach an outcome the remove control and the add buttons
+already deliver. The one honest gap, that re-placing depends on the subject being
+listed, is closed by the reveal action rather than by a new grid widget.
