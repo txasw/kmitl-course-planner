@@ -16,6 +16,7 @@ const sections: PlacedSection[] = [
     credit: 3,
     kind: 'lecture',
     meetings: [],
+    verifyStatus: 'unverified',
   },
   {
     teachTableId: 's2',
@@ -26,6 +27,7 @@ const sections: PlacedSection[] = [
     credit: 2,
     kind: 'lecture',
     meetings: [],
+    verifyStatus: 'unverified',
   },
 ];
 

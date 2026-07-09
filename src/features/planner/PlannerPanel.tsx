@@ -5,7 +5,9 @@
 
 import { useCallback, useMemo } from 'react';
 import { useStore } from 'zustand';
+import { snapshotToSection } from '@/lib/domain/plan';
 import { computeWindow } from '@/lib/planner/grid';
+import { planConflicts } from '@/lib/planner/planConflicts';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
@@ -28,7 +30,21 @@ export function PlannerPanel() {
   const blockMove = useStore(dragStore, (state) => state.blockMove);
 
   const sections = useMemo(
-    () => entries.map((entry) => toPlacedSection(entry.snapshot)),
+    () =>
+      entries.map((entry) =>
+        toPlacedSection(entry.snapshot, entry.verifyStatus),
+      ),
+    [entries],
+  );
+  // teachTableIds a time change put into a new conflict, computed from the full
+  // sections so declared pairs are excluded correctly.
+  const conflictIds = useMemo(
+    () =>
+      new Set(
+        planConflicts(
+          entries.map((entry) => snapshotToSection(entry.snapshot)),
+        ).keys(),
+      ),
     [entries],
   );
   const scheduled = useMemo(() => sections.filter(isScheduled), [sections]);
@@ -94,6 +110,7 @@ export function PlannerPanel() {
           t={t}
           editable={viewMode === 'edit'}
           onRemove={handleRemove}
+          conflictIds={conflictIds}
         />
         {sections.length === 0 ? (
           <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 px-6 text-center">

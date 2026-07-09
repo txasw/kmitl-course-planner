@@ -22,6 +22,7 @@ function makePlaced(overrides: Partial<PlacedSection> = {}): PlacedSection {
     credit: 3,
     kind: 'practice',
     meetings: [],
+    verifyStatus: 'unverified',
     ...overrides,
   };
 }

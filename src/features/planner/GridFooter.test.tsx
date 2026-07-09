@@ -14,6 +14,7 @@ const scheduled: PlacedSection = {
   nameEn: 'A',
   credit: 3,
   kind: 'lecture',
+  verifyStatus: 'unverified',
   meetings: [
     {
       day: 1,
@@ -35,6 +36,7 @@ const online: PlacedSection = {
   credit: 2,
   kind: 'lecture',
   meetings: [],
+  verifyStatus: 'unverified',
 };
 
 afterEach(cleanup);
