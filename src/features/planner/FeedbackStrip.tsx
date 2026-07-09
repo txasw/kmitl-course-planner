@@ -64,8 +64,15 @@ function BlockedNotice({
               key={alternative.teachTableId}
               type="button"
               onClick={() => {
-                addSectionToPlan(blocked.course, alternative);
-                dragStore.getState().clearBlocked();
+                const outcome = addSectionToPlan(blocked.course, alternative);
+                if (!outcome.ok && 'crossTerm' in outcome) {
+                  dragStore.getState().showCrossTerm({
+                    planTerm: outcome.crossTerm.planTerm,
+                    browsedTerm: outcome.crossTerm.incomingTerm,
+                  });
+                } else {
+                  dragStore.getState().clearBlocked();
+                }
               }}
               className="rounded-kcp border border-border bg-surface px-2 py-0.5 font-medium text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
