@@ -1,18 +1,21 @@
 // The placement feedback strip: a slim aria-live region under the grid header. A
 // rejected drop shows the blocking reason and up to two alternative sections of
-// the same subject that would fit, or a reveal action when none do; a removal
-// shows a single undo. Both clear on their own window, six seconds for the blocked
-// reason and ten for the undo. It is not the toast, which stays reserved for
-// actions whose outcome is not otherwise visible on screen.
+// the same subject that would fit, or a reveal action when none do; a removal, move,
+// or swap shows a single undo worded to match. Both clear on their own window, six
+// seconds for the blocked reason and ten for the undo. It is not the toast, which
+// stays reserved for actions whose outcome is not otherwise visible on screen.
 
 import { useEffect } from 'react';
 import { useStore } from 'zustand';
 import type { Section } from '@/lib/domain/types';
-import type { PlanEntry } from '@/lib/domain/plan';
-import type { Locale, Translate } from '@/lib/i18n/t';
+import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import { describeConflicts } from '@/lib/planner/describeConflict';
 import { alternativeSections } from '@/lib/planner/suggestions';
-import { planStore, usePlacedSections } from '@/features/plans/planStore';
+import {
+  planStore,
+  usePlacedSections,
+  type UndoRecord,
+} from '@/features/plans/planStore';
 import { addSectionToPlan } from '@/features/plans/addToPlan';
 import { catalogStore } from '@/features/catalog/catalogStore';
 import { dragStore, type BlockedFeedback } from './dragStore';
@@ -84,23 +87,35 @@ function BlockedNotice({
   );
 }
 
-function RemovedNotice({
-  removed,
+const MUTATION_LABEL: Record<UndoRecord['kind'], TranslationKey> = {
+  remove: 'feedback.removed',
+  move: 'feedback.moved',
+  swap: 'feedback.swapped',
+};
+
+function MutationNotice({
+  record,
   locale,
   t,
 }: {
-  removed: PlanEntry;
+  record: UndoRecord;
   locale: Locale;
   t: Translate;
 }) {
+  // A removal names what left; a move or swap names what is now placed.
+  const subject =
+    record.kind === 'remove' ? record.removed[0] : record.added[0];
+  if (subject === undefined) {
+    return null;
+  }
   const name =
     locale === 'th'
-      ? removed.snapshot.subjectMeta.nameTh
-      : removed.snapshot.subjectMeta.nameEn;
+      ? subject.snapshot.subjectMeta.nameTh
+      : subject.snapshot.subjectMeta.nameEn;
   return (
     <div className="flex items-center gap-2 rounded-kcp border border-border bg-surface-alt px-2 py-1 text-xs text-ink-soft">
       <span>
-        {t('feedback.removed')} {removed.subjectId} {name}
+        {t(MUTATION_LABEL[record.kind])} {subject.subjectId} {name}
       </span>
       <button
         type="button"
@@ -170,14 +185,12 @@ export function FeedbackStrip({ locale, t }: FeedbackStripProps) {
     };
   }, [hint]);
 
-  const removed = pendingUndo?.removed[0];
-
   return (
     <div aria-live="polite" className="min-h-[1.75rem] shrink-0">
       {blocked !== null ? (
         <BlockedNotice blocked={blocked} placed={placed} t={t} />
-      ) : removed !== undefined ? (
-        <RemovedNotice removed={removed} locale={locale} t={t} />
+      ) : pendingUndo !== null ? (
+        <MutationNotice record={pendingUndo} locale={locale} t={t} />
       ) : hint !== null ? (
         <p className="text-xs text-ink-soft">{hint}</p>
       ) : announcement !== null ? (

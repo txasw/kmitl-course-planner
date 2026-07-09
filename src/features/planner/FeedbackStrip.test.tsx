@@ -38,8 +38,24 @@ function seedUndo(): void {
   act(() => {
     planStore.setState({
       entries: [],
-      pendingUndo: { added: [], removed: [entry] },
+      pendingUndo: { kind: 'remove', added: [], removed: [entry] },
     });
+  });
+}
+
+function makeMoveEntry(subjectId: string, nameTh: string) {
+  return makePlanEntry({
+    snapshot: makeSnapshot({
+      teachTableId: `tt-${subjectId}`,
+      subjectId,
+      subjectMeta: {
+        subjectId,
+        nameTh,
+        nameEn: 'name',
+        credit: 3,
+        creditStr: '3(3-0-6)',
+      },
+    }),
   });
 }
 
@@ -75,6 +91,37 @@ describe('FeedbackStrip', () => {
     render(<FeedbackStrip locale="th" t={t} />);
     expect(screen.getByText(/90592033/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'เลิกทำ' })).toBeInTheDocument();
+  });
+
+  it('names the moved subject rather than a removal after a move', () => {
+    act(() => {
+      planStore.setState({
+        entries: [],
+        pendingUndo: {
+          kind: 'move',
+          added: [makeMoveEntry('90000003', 'วิชาซี')],
+          removed: [makeMoveEntry('90000003', 'วิชาซี')],
+        },
+      });
+    });
+    render(<FeedbackStrip locale="th" t={t} />);
+    expect(screen.getByText(/ย้ายแล้ว 90000003/)).toBeInTheDocument();
+    expect(screen.queryByText(/นำออกแล้ว/)).not.toBeInTheDocument();
+  });
+
+  it('names the swapped in subject after a swap', () => {
+    act(() => {
+      planStore.setState({
+        entries: [],
+        pendingUndo: {
+          kind: 'swap',
+          added: [makeMoveEntry('90000002', 'วิชาบี')],
+          removed: [makeMoveEntry('90000001', 'วิชาเอ')],
+        },
+      });
+    });
+    render(<FeedbackStrip locale="th" t={t} />);
+    expect(screen.getByText(/สลับเป็น 90000002/)).toBeInTheDocument();
   });
 
   it('restores the removal and closes the window on undo', () => {

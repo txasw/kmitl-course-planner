@@ -32,10 +32,15 @@ function commit(
   removeIds: string[],
   course: Course,
   section: Section,
+  kind: 'move' | 'swap',
 ): TransactionOutcome {
   return planStore
     .getState()
-    .apply(removeIds, { course, section, sourceQuery: currentSourceQuery() });
+    .apply(
+      removeIds,
+      { course, section, sourceQuery: currentSourceQuery() },
+      kind,
+    );
 }
 
 /**
@@ -48,7 +53,7 @@ export function moveSectionInPlan(
   course: Course,
   toSection: Section,
 ): TransactionOutcome {
-  return commit([fromTeachTableId], course, toSection);
+  return commit([fromTeachTableId], course, toSection, 'move');
 }
 
 /**
@@ -62,5 +67,5 @@ export function swapSectionInPlan(
   course: Course,
   incoming: Section,
 ): TransactionOutcome {
-  return commit(removeIds, course, incoming);
+  return commit(removeIds, course, incoming, 'swap');
 }
