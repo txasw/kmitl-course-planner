@@ -23,8 +23,10 @@ import {
   type TransactionOutcome,
 } from '@/lib/planner/transaction';
 
-/** What the last mutation added and removed, held for a short undo window. */
+/** What the last mutation did, held for a short undo window. The kind drives the
+ * feedback wording so a move does not read as a removal. */
 export interface UndoRecord {
+  kind: 'remove' | 'move' | 'swap';
   added: PlanEntry[];
   removed: PlanEntry[];
 }
@@ -44,7 +46,11 @@ export interface PlanStore {
    * one section and its pair, and record both sides for undo in a single update.
    * Returns the outcome so the caller can surface a residual conflict.
    */
-  apply: (removeIds: string[], add: AddInput) => TransactionOutcome;
+  apply: (
+    removeIds: string[],
+    add: AddInput,
+    kind: 'move' | 'swap',
+  ) => TransactionOutcome;
   /** Reverse the last mutation: drop what it added, restore what it removed. */
   undo: () => void;
   clearUndo: () => void;
@@ -77,11 +83,15 @@ export function createPlanStore() {
       if (outcome.ok && outcome.result.removed.length > 0) {
         set({
           entries: outcome.result.entries,
-          pendingUndo: { added: [], removed: outcome.result.removed },
+          pendingUndo: {
+            kind: 'remove',
+            added: [],
+            removed: outcome.result.removed,
+          },
         });
       }
     },
-    apply: (removeIds, add) => {
+    apply: (removeIds, add, kind) => {
       const outcome = applyPlanTransaction(
         get().entries,
         removeIds,
@@ -90,7 +100,7 @@ export function createPlanStore() {
       );
       if (outcome.ok) {
         const { entries, added, removed } = outcome.result;
-        set({ entries, pendingUndo: { added, removed } });
+        set({ entries, pendingUndo: { kind, added, removed } });
       }
       return outcome;
     },
