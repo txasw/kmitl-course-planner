@@ -1,5 +1,11 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { render, screen, cleanup, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  cleanup,
+  act,
+  fireEvent,
+} from '@testing-library/react';
 import { planStore } from '@/features/plans/planStore';
 import { uiStore } from '@/features/shell/uiStore';
 import type { PlanEntry } from '@/lib/domain/plan';
@@ -71,6 +77,27 @@ describe('PlannerPanel', () => {
       screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
     ).toBeInTheDocument();
     expect(screen.queryByText('ตารางยังว่าง')).not.toBeInTheDocument();
+  });
+
+  it('opens a block detail popover in edit mode and clears it in preview', () => {
+    seed([
+      makePlanEntry({
+        snapshot: makeSnapshot({
+          teachTableId: 's1',
+          subjectId: '90000001',
+          section: '901',
+          meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+        }),
+      }),
+    ]);
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: 'รายละเอียด' }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    act(() => {
+      uiStore.getState().setViewMode('preview');
+    });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('shows the poster header in preview mode', () => {
