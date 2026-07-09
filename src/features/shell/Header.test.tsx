@@ -18,13 +18,15 @@ afterEach(() => {
 });
 
 describe('Header', () => {
-  it('renders the title, plan placeholder, and language toggle', () => {
+  it('renders the title, plan switcher, and language toggle', () => {
     render(<Header titleId="title" />);
     expect(screen.getByRole('heading', { level: 2 })).toHaveAttribute(
       'id',
       'title',
     );
-    expect(screen.getByRole('button', { name: 'เลือกตาราง' })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'เลือกตาราง' }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('group', { name: 'เลือกภาษา' }),
     ).toBeInTheDocument();
