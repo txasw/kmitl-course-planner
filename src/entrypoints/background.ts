@@ -9,6 +9,7 @@ import {
   subjectOwnerEndpoint,
 } from '@/lib/api/endpoints';
 import { createRouter, type HandlerMap } from '@/lib/messaging/router';
+import { ok } from '@/lib/utils/result';
 import { logger } from '@/lib/utils/logger';
 
 // The background service worker is the single network and cache authority. It
@@ -31,6 +32,10 @@ export default defineBackground(() => {
       gateway.reference(subjectOwnerEndpoint, message.refresh),
     'teachTable/query': (message) =>
       gateway.teachTable(message.query, message.refresh),
+    'teachTable/cancel': (message) => {
+      gateway.cancelTeachTable(message.query);
+      return Promise.resolve(ok(undefined));
+    },
   };
 
   const router = createRouter({ handlers, runtimeId: browser.runtime.id });

@@ -80,6 +80,10 @@ export const requestMessageSchema = z.discriminatedUnion('type', [
     query: teachTableQuerySchema,
     refresh: z.boolean().optional(),
   }),
+  z.object({
+    type: z.literal('teachTable/cancel'),
+    query: teachTableQuerySchema,
+  }),
   z.object({ type: z.literal('debug/getRequestLog') }),
   z.object({ type: z.literal('debug/getReport') }),
   z.object({ type: z.literal('debug/getLatestRaw') }),
@@ -109,6 +113,7 @@ export interface ResponseMap {
   'ref/curriculum': Result<RawCurriculum[]>;
   'ref/subjectOwner': Result<RawSubjectOwner[]>;
   'teachTable/query': Result<NormalizedCatalog>;
+  'teachTable/cancel': Result<void>;
   'debug/getRequestLog': Result<RequestLogEntry[]>;
   'debug/getReport': Result<DataQualityReport | null>;
   'debug/getLatestRaw': Result<LatestRaw | null>;
