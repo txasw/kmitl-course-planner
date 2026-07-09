@@ -18,14 +18,13 @@ function currentSourceQuery(): SourceQuery | null {
 }
 
 // The catalog only renders once a search returns a result, so a term bearing source
-// query is always present when a section can be added; this guards the unreachable
-// case rather than stamping a term-less entry that the plan term invariant rejects.
-const NO_SEARCH_CONTEXT = { ok: false as const, conflicts: [] };
-
+// query is always present when a section can be added. A fresh empty conflict outcome
+// guards the unreachable case rather than stamping a term-less entry that the plan term
+// invariant rejects; it is built per call so no caller can mutate a shared instance.
 export function addSectionToPlan(course: Course, section: Section): AddOutcome {
   const sourceQuery = currentSourceQuery();
   if (sourceQuery === null) {
-    return NO_SEARCH_CONTEXT;
+    return { ok: false, conflicts: [] };
   }
   return planStore.getState().add(course, section, sourceQuery);
 }
@@ -40,7 +39,7 @@ function commit(
 ): TransactionOutcome {
   const sourceQuery = currentSourceQuery();
   if (sourceQuery === null) {
-    return NO_SEARCH_CONTEXT;
+    return { ok: false, conflicts: [] };
   }
   return planStore
     .getState()
