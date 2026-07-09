@@ -7,7 +7,7 @@
 
 import type { Course, Section } from '../domain/types';
 import type { PlanEntry, SectionSnapshot, SourceQuery } from '../domain/plan';
-import { snapshotToSection } from '../domain/plan';
+import { buildSnapshot, snapshotToSection } from '../domain/plan';
 import { termsEqual, type Term } from '../routing/academicTerms';
 import {
   checkPlacement,
@@ -29,29 +29,13 @@ export function placedSections(entries: PlanEntry[]): Section[] {
 }
 
 function toSnapshot(course: Course, section: Section): SectionSnapshot {
-  return {
-    teachTableId: section.teachTableId,
-    subjectId: section.subjectId,
-    section: section.section,
-    kind: section.kind,
-    pairedSection: section.pairedSection,
-    meetings: section.meetings,
-    teachersTh: section.teachersTh,
-    teachersEn: section.teachersEn,
-    seats: section.seats,
-    isClosed: section.isClosed,
-    exam: section.exam,
-    rulesTh: section.rulesTh,
-    rulesEn: section.rulesEn,
-    remark: section.remark,
-    subjectMeta: {
-      subjectId: course.subjectId,
-      nameTh: course.nameTh,
-      nameEn: course.nameEn,
-      credit: course.credit,
-      creditStr: course.creditStr,
-    },
-  };
+  return buildSnapshot(section, {
+    subjectId: course.subjectId,
+    nameTh: course.nameTh,
+    nameEn: course.nameEn,
+    credit: course.credit,
+    creditStr: course.creditStr,
+  });
 }
 
 function toEntry(
