@@ -74,4 +74,36 @@ describe('computeSectionRelation', () => {
       expect(relation.conflicts.length).toBeGreaterThan(0);
     }
   });
+
+  it('is different_term when the browsed term differs from the plan term', () => {
+    const section = makeSection();
+    const course = makeCourse({ sections: [section] });
+    const relation = computeSectionRelation([], course, section, {
+      planTerm: { year: '2569', semester: '1' },
+      browsedTerm: { year: '2569', semester: '2' },
+    });
+    expect(relation).toEqual({
+      kind: 'different_term',
+      planTerm: { year: '2569', semester: '1' },
+      browsedTerm: { year: '2569', semester: '2' },
+    });
+  });
+
+  it('ignores the term check when the terms match or a side is null', () => {
+    const section = makeSection();
+    const course = makeCourse({ sections: [section] });
+    const term = { year: '2569', semester: '1' as const };
+    expect(
+      computeSectionRelation([], course, section, {
+        planTerm: term,
+        browsedTerm: term,
+      }).kind,
+    ).toBe('addable');
+    expect(
+      computeSectionRelation([], course, section, {
+        planTerm: null,
+        browsedTerm: term,
+      }).kind,
+    ).toBe('addable');
+  });
 });

@@ -9,6 +9,7 @@
 
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
+import type { Term } from '@/lib/routing/academicTerms';
 import { formatMinutes } from '@/lib/parsing/time';
 import type { SeatStatus } from '@/lib/catalog/seatStatus';
 import type { SectionRelation } from '@/lib/planner/sectionState';
@@ -32,9 +33,15 @@ function StateBadge({
       return <Pill tone="danger">{t('section.badge.conflict')}</Pill>;
     case 'duplicate':
       return <Pill tone="warn">{t('section.badge.duplicate')}</Pill>;
+    case 'different_term':
+      return <Pill tone="neutral">{t('section.badge.differentTerm')}</Pill>;
     case 'addable':
       return null;
   }
+}
+
+function termLabel(term: Term): string {
+  return `${term.semester}/${term.year}`;
 }
 
 function conflictReason(conflicts: ConflictDetail[], t: Translate): string {
@@ -56,6 +63,7 @@ interface SectionRowProps {
   t: Translate;
   onAdd?: ((course: Course, section: Section) => void) | undefined;
   onRemove?: ((teachTableId: string) => void) | undefined;
+  onSwitchTerm?: ((term: Term) => void) | undefined;
 }
 
 export function SectionRow({
@@ -67,10 +75,12 @@ export function SectionRow({
   t,
   onAdd,
   onRemove,
+  onSwitchTerm,
 }: SectionRowProps) {
   const kind = section.kind;
   const teachers = locale === 'th' ? section.teachersTh : section.teachersEn;
-  const dimmed = relation.kind === 'duplicate';
+  const dimmed =
+    relation.kind === 'duplicate' || relation.kind === 'different_term';
   const addable =
     (relation.kind === 'addable' || relation.kind === 'conflicting') &&
     seat.kind === 'open';
@@ -113,6 +123,17 @@ export function SectionRow({
               {t('action.remove')}
             </button>
           ) : null}
+          {relation.kind === 'different_term' && onSwitchTerm !== undefined ? (
+            <button
+              type="button"
+              onClick={() => {
+                onSwitchTerm(relation.browsedTerm);
+              }}
+              className="rounded-kcp border border-primary px-2 py-0.5 font-medium text-primary outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              {t('term.switch')}
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -140,6 +161,12 @@ export function SectionRow({
       ) : null}
       {relation.kind === 'duplicate' ? (
         <p className="mt-1 text-warn">{t('section.reason.duplicate')}</p>
+      ) : null}
+      {relation.kind === 'different_term' ? (
+        <p className="mt-1 text-ink-soft">
+          {t('term.planIs')} {termLabel(relation.planTerm)}.{' '}
+          {t('term.sectionIs')} {termLabel(relation.browsedTerm)}
+        </p>
       ) : null}
     </div>
   );
