@@ -90,7 +90,13 @@ describe('WeeklyGrid', () => {
       .getState()
       .start(makeCourse({ subjectId: 'S1', sections: [dragged] }), dragged, []);
     render(
-      <WeeklyGrid sections={[]} window={DEFAULT_WINDOW} locale="th" t={t} />,
+      <WeeklyGrid
+        sections={[]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+        editable
+      />,
     );
     expect(document.querySelector('[data-ghost="valid"]')).not.toBeNull();
     expect(document.querySelector('[data-ghost="blocked"]')).toBeNull();
@@ -124,6 +130,7 @@ describe('WeeklyGrid', () => {
         window={DEFAULT_WINDOW}
         locale="th"
         t={t}
+        editable
       />,
     );
     expect(document.querySelector('[data-ghost="blocked"]')).not.toBeNull();
@@ -137,9 +144,27 @@ describe('WeeklyGrid', () => {
     });
     dragStore.getState().setHover(preview);
     render(
-      <WeeklyGrid sections={[]} window={DEFAULT_WINDOW} locale="th" t={t} />,
+      <WeeklyGrid
+        sections={[]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+        editable
+      />,
     );
     expect(document.querySelector('[data-ghost="hover"]')).not.toBeNull();
+  });
+
+  it('hides a lingering drag overlay when not editable, so preview stays inert', () => {
+    const preview = makeSection({
+      teachTableId: 'h',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+    });
+    dragStore.getState().setHover(preview);
+    render(
+      <WeeklyGrid sections={[]} window={DEFAULT_WINDOW} locale="th" t={t} />,
+    );
+    expect(document.querySelector('[data-ghost="hover"]')).toBeNull();
   });
 
   it('renders candidate slots during a course drag', () => {
@@ -157,7 +182,13 @@ describe('WeeklyGrid', () => {
     const course = makeCourse({ sections: [valid, full] });
     dragStore.getState().startCourse(course, []);
     render(
-      <WeeklyGrid sections={[]} window={DEFAULT_WINDOW} locale="th" t={t} />,
+      <WeeklyGrid
+        sections={[]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+        editable
+      />,
     );
     expect(document.querySelector('[data-candidate="valid"]')).not.toBeNull();
     expect(document.querySelector('[data-candidate="blocked"]')).not.toBeNull();
@@ -188,6 +219,7 @@ describe('WeeklyGrid', () => {
         window={DEFAULT_WINDOW}
         locale="th"
         t={t}
+        editable
       />,
     );
     expect(document.querySelector('[data-swap-target]')).not.toBeNull();
