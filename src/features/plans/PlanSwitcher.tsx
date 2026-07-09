@@ -25,12 +25,11 @@ import {
   useDismiss,
   useFloating,
   useInteractions,
-  useRole,
 } from '@floating-ui/react';
 import type { Plan } from '@/lib/domain/plan';
 import type { Term } from '@/lib/routing/academicTerms';
 import type { Translate } from '@/lib/i18n/t';
-import { searchStore } from '@/features/search/searchStore';
+import { searchStore, type SearchStore } from '@/features/search/searchStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { planStore, useActivePlan } from './planStore';
 
@@ -67,9 +66,8 @@ function groupByTerm(plans: Plan[]): TermGroup[] {
   return [...groups.values()];
 }
 
-/** The term the search form currently targets, used as a new plan's default term. */
-function currentSearchTerm(): Term {
-  const state = searchStore.getState();
+/** The term the active search tab targets, used as a new plan's default term. */
+function searchFormTerm(state: SearchStore): Term {
   const form =
     state.activeTab === 'by_class'
       ? state.byClass
@@ -83,8 +81,26 @@ export function PlanSwitcher() {
   const { t } = useTranslation();
   const plans = useStore(planStore, (state) => state.plans);
   const activePlan = useActivePlan();
+  const searchYear = useStore(
+    searchStore,
+    (state) => searchFormTerm(state).year,
+  );
+  const searchSemester = useStore(
+    searchStore,
+    (state) => searchFormTerm(state).semester,
+  );
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>({ kind: 'list' });
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const searchTerm = useMemo<Term>(
+    () => ({ year: searchYear, semester: searchSemester }),
+    [searchYear, searchSemester],
+  );
+  // A plan needs a real term or its sections could never be added; block create
+  // until the search form has a seeded year.
+  const canCreate = searchYear !== '';
 
   const { refs, floatingStyles, context } = useFloating({
     open,
@@ -102,12 +118,12 @@ export function PlanSwitcher() {
   const { getReferenceProps, getFloatingProps } = useInteractions([
     useClick(context),
     useDismiss(context),
-    useRole(context, { role: 'menu' }),
   ]);
 
   const setReference = useCallback(
     (node: HTMLButtonElement | null) => {
       refs.setReference(node);
+      triggerRef.current = node;
     },
     [refs],
   );
@@ -118,10 +134,49 @@ export function PlanSwitcher() {
     [refs],
   );
 
+  const closeMenu = useCallback(() => {
+    setOpen(false);
+    setMode({ kind: 'list' });
+    triggerRef.current?.focus();
+  }, []);
+
+  // The overlay traps focus and closes on Escape through a native panel listener
+  // that fires before floating-ui's dismiss. Intercept Escape on the dropdown so it
+  // dismisses the menu only, keeping any in-progress name text and the overlay open.
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+    const node = wrapperRef.current;
+    if (node === null) {
+      return undefined;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        closeMenu();
+      }
+    };
+    node.addEventListener('keydown', handleKeyDown);
+    return () => {
+      node.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open, closeMenu]);
+
   const groups = useMemo(() => groupByTerm(plans), [plans]);
 
   const defaultName = (term: Term): string =>
     `${t('plan.untitled')} ${term.semester}/${term.year}`;
+
+  const snapToActivePlan = () => {
+    const state = planStore.getState();
+    const active = state.plans.find((plan) => plan.id === state.activePlanId);
+    if (active !== undefined) {
+      searchStore
+        .getState()
+        .seedTerm({ year: active.year, semester: active.semester });
+    }
+  };
 
   const selectPlan = (plan: Plan) => {
     planStore.getState().setActivePlan(plan.id);
@@ -129,8 +184,7 @@ export function PlanSwitcher() {
     searchStore
       .getState()
       .seedTerm({ year: plan.year, semester: plan.semester });
-    setOpen(false);
-    setMode({ kind: 'list' });
+    closeMenu();
   };
 
   const submitName = (value: string) => {
@@ -139,24 +193,25 @@ export function PlanSwitcher() {
       return;
     }
     if (mode.action === 'create') {
-      planStore.getState().createPlan(name, currentSearchTerm());
+      planStore.getState().createPlan(name, searchTerm);
     } else if (activePlan !== null) {
       planStore.getState().renamePlan(activePlan.id, name);
     }
-    setMode({ kind: 'list' });
-    setOpen(false);
+    closeMenu();
   };
 
   const triggerLabel =
     activePlan === null ? t('planSwitcher.noPlan') : activePlan.name;
 
   return (
-    <div className="relative">
+    <div ref={wrapperRef} className="relative">
       <button
         ref={setReference}
         type="button"
-        aria-label={t('planSwitcher.label')}
         {...getReferenceProps()}
+        aria-label={t('planSwitcher.label')}
+        aria-haspopup="true"
+        aria-expanded={open}
         className="inline-flex max-w-[16rem] items-center gap-2 rounded-kcp border border-border px-3 py-1.5 text-sm text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
         <CalendarRange
@@ -215,6 +270,8 @@ export function PlanSwitcher() {
                   type="button"
                   onClick={() => {
                     planStore.getState().deletePlan(activePlan.id);
+                    // The fallback plan may be a different term; snap the form to it.
+                    snapToActivePlan();
                     setMode({ kind: 'list' });
                   }}
                   className="rounded-kcp bg-danger px-2 py-1 font-medium text-white outline-none hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
@@ -239,6 +296,9 @@ export function PlanSwitcher() {
                       <button
                         key={plan.id}
                         type="button"
+                        aria-current={
+                          plan.id === activePlan?.id ? 'true' : undefined
+                        }
                         onClick={() => {
                           selectPlan(plan);
                         }}
@@ -264,11 +324,12 @@ export function PlanSwitcher() {
                 <ActionButton
                   icon={<Plus size={14} strokeWidth={2} aria-hidden />}
                   label={t('planSwitcher.create')}
+                  disabled={!canCreate}
                   onClick={() => {
                     setMode({
                       kind: 'name',
                       action: 'create',
-                      value: defaultName(currentSearchTerm()),
+                      value: defaultName(searchTerm),
                     });
                   }}
                 />
@@ -295,8 +356,8 @@ export function PlanSwitcher() {
                             activePlan.id,
                             `${activePlan.name} (${t('planSwitcher.copySuffix')})`,
                           );
-                        setOpen(false);
-                        setMode({ kind: 'list' });
+                        snapToActivePlan();
+                        closeMenu();
                       }}
                     />
                     <ActionButton
@@ -321,18 +382,21 @@ function ActionButton({
   icon,
   label,
   onClick,
+  disabled = false,
 }: {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       aria-label={label}
       title={label}
-      className="inline-flex items-center gap-1 rounded-kcp px-2 py-1 text-xs font-medium text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      className="inline-flex items-center gap-1 rounded-kcp px-2 py-1 text-xs font-medium text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 disabled:hover:bg-transparent"
     >
       {icon}
       <span>{label}</span>
