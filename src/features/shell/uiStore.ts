@@ -7,6 +7,10 @@
 
 import { createStore } from 'zustand/vanilla';
 import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/t';
+import {
+  DEFAULT_DISPLAY_OPTIONS,
+  type DisplayOptions,
+} from '@/lib/planner/displayOptions';
 
 /** The timetable presentation mode: full editing, or the inert preview poster. */
 export type ViewMode = 'edit' | 'preview';
@@ -16,6 +20,8 @@ export interface UiState {
   drawerOpen: boolean;
   language: Locale;
   viewMode: ViewMode;
+  /** Poster display options, applied to the preview and every export. */
+  displayOptions: DisplayOptions;
   /**
    * Count of error and warning issues in the latest data quality report, or null
    * when there is no report. The launcher shows a badge from it. It stays null in
@@ -29,6 +35,8 @@ export interface UiState {
   setDrawer: (open: boolean) => void;
   setLanguage: (language: Locale) => void;
   setViewMode: (mode: ViewMode) => void;
+  setDisplayOptions: (options: DisplayOptions) => void;
+  setDisplayOption: (key: keyof DisplayOptions, value: boolean) => void;
   setDiagnosticsIssueCount: (count: number | null) => void;
 }
 
@@ -42,6 +50,7 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     drawerOpen: false,
     language,
     viewMode: 'edit',
+    displayOptions: DEFAULT_DISPLAY_OPTIONS,
     diagnosticsIssueCount: null,
     open: () => {
       set({ isOpen: true });
@@ -62,6 +71,14 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     },
     setViewMode: (viewMode) => {
       set({ viewMode });
+    },
+    setDisplayOptions: (displayOptions) => {
+      set({ displayOptions });
+    },
+    setDisplayOption: (key, value) => {
+      set((state) => ({
+        displayOptions: { ...state.displayOptions, [key]: value },
+      }));
     },
     setDiagnosticsIssueCount: (count) => {
       set({ diagnosticsIssueCount: count });
