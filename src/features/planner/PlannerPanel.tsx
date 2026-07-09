@@ -100,6 +100,17 @@ export function PlannerPanel() {
   const closeDetail = useCallback(() => {
     setDetail(null);
   }, []);
+  // The anchor is a live block node. Switching to preview recreates the blocks, so a
+  // popover left open would point at a detached node on return to edit. Clear it as
+  // the panel leaves edit mode, using the render time adjust on change pattern rather
+  // than an effect.
+  const [lastMode, setLastMode] = useState(viewMode);
+  if (viewMode !== lastMode) {
+    setLastMode(viewMode);
+    if (viewMode !== 'edit') {
+      setDetail(null);
+    }
+  }
 
   return (
     <div className="flex h-full flex-col gap-2">
