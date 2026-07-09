@@ -1,13 +1,20 @@
-// The pure match and diff core of plan revalidation. The API is the source of
-// truth and snapshots are a cache, so revalidation matches each stored entry
-// against fresh normalized data and classifies what changed. Matching is by
-// teachTableId first and by the durable subjectId plus section identity second; a
-// fallback match with a different id counts as matched and reports that the key
-// moved. The reconcile step that writes updated snapshots with timestamps lives
-// in the plans feature; this module stays pure.
+// The pure match and diff core of plan revalidation and the pure reconcile that
+// applies it. The API is the source of truth and snapshots are a cache, so
+// revalidation matches each stored entry against fresh normalized data and
+// classifies what changed. Matching is by teachTableId first and by the durable
+// subjectId plus section identity second; a fallback match with a different id
+// counts as matched and reports that the key moved. Reconcile then folds the fresh
+// data back into new plan entries and reports old versus new; it stays pure so the
+// plans feature only fetches and writes.
 
 import type { Section } from '../domain/types';
-import type { Plan, PlanEntry, SectionSnapshot } from '../domain/plan';
+import type {
+  Plan,
+  PlanEntry,
+  SectionSnapshot,
+  VerifyStatus,
+} from '../domain/plan';
+import { buildSnapshot } from '../domain/plan';
 import type { NormalizedCatalog } from '../domain/normalize';
 
 export type ChangeKind =
@@ -44,26 +51,41 @@ export interface PlanRevalidation {
   summary: RevalidationSummary;
 }
 
+/** A fresh section with the subject metadata reconcile needs to rebuild a snapshot. */
+export interface IndexedSection {
+  section: Section;
+  subjectMeta: SectionSnapshot['subjectMeta'];
+}
+
 export interface SectionIndex {
-  byTeachTableId: Map<string, Section>;
-  byIdentity: Map<string, Section>;
+  byTeachTableId: Map<string, IndexedSection>;
+  byIdentity: Map<string, IndexedSection>;
 }
 
 function identityKey(subjectId: string, section: string): string {
   return `${subjectId}|${section}`;
 }
 
-/** Index fresh normalized results for lookup by key and by durable identity. */
+/** Index fresh normalized results for lookup by key and by durable identity, keeping
+ * the subject metadata so reconcile can rebuild a full snapshot. */
 export function buildSectionIndex(catalogs: NormalizedCatalog[]): SectionIndex {
-  const byTeachTableId = new Map<string, Section>();
-  const byIdentity = new Map<string, Section>();
+  const byTeachTableId = new Map<string, IndexedSection>();
+  const byIdentity = new Map<string, IndexedSection>();
   for (const catalog of catalogs) {
     for (const course of catalog.courses) {
+      const subjectMeta = {
+        subjectId: course.subjectId,
+        nameTh: course.nameTh,
+        nameEn: course.nameEn,
+        credit: course.credit,
+        creditStr: course.creditStr,
+      };
       for (const section of course.sections) {
-        byTeachTableId.set(section.teachTableId, section);
+        const indexed: IndexedSection = { section, subjectMeta };
+        byTeachTableId.set(section.teachTableId, indexed);
         byIdentity.set(
           identityKey(section.subjectId, section.section),
-          section,
+          indexed,
         );
       }
     }
@@ -74,16 +96,16 @@ export function buildSectionIndex(catalogs: NormalizedCatalog[]): SectionIndex {
 function matchEntry(
   entry: PlanEntry,
   index: SectionIndex,
-): { section: Section; keyChanged: boolean } | null {
+): { indexed: IndexedSection; keyChanged: boolean } | null {
   const byKey = index.byTeachTableId.get(entry.teachTableId);
   if (byKey) {
-    return { section: byKey, keyChanged: false };
+    return { indexed: byKey, keyChanged: false };
   }
   const byIdentity = index.byIdentity.get(
     identityKey(entry.subjectId, entry.section),
   );
   if (byIdentity) {
-    return { section: byIdentity, keyChanged: true };
+    return { indexed: byIdentity, keyChanged: true };
   }
   return null;
 }
@@ -192,7 +214,7 @@ export function revalidateEntry(
       freshTeachTableId: null,
     };
   }
-  const changes = diffSnapshot(entry.snapshot, match.section);
+  const changes = diffSnapshot(entry.snapshot, match.indexed.section);
   return {
     teachTableId: entry.teachTableId,
     subjectId: entry.subjectId,
@@ -200,7 +222,7 @@ export function revalidateEntry(
     outcome: changes.length === 0 ? 'unchanged' : 'changed',
     changes,
     keyChanged: match.keyChanged,
-    freshTeachTableId: match.section.teachTableId,
+    freshTeachTableId: match.indexed.section.teachTableId,
   };
 }
 
@@ -217,4 +239,147 @@ export function revalidatePlan(
     missing: entries.filter((e) => e.outcome === 'missing').length,
   };
   return { entries, summary };
+}
+
+const OUTCOME_STATUS: Record<EntryOutcome, VerifyStatus> = {
+  unchanged: 'verified',
+  changed: 'changed',
+  missing: 'missing',
+};
+
+/** A plan entry whose stored term does not match the plan term, reported not fixed. */
+export interface ReconcileFinding {
+  teachTableId: string;
+  subjectId: string;
+  section: string;
+}
+
+/** One entry's before and after, for the detail sheet and the block popover. */
+export interface EntryDiff {
+  teachTableId: string;
+  subjectId: string;
+  section: string;
+  outcome: EntryOutcome;
+  changes: ChangeKind[];
+  before: SectionSnapshot;
+  after: SectionSnapshot | null;
+}
+
+export interface ReconcileReport {
+  summary: RevalidationSummary;
+  entries: EntryDiff[];
+  /** Entries whose source query term did not match the plan term. */
+  termFindings: ReconcileFinding[];
+}
+
+export interface ReconcileResult {
+  plan: Plan;
+  report: ReconcileReport;
+}
+
+function reconcileEntry(
+  entry: PlanEntry,
+  revalidation: EntryRevalidation,
+  index: SectionIndex,
+  now: string,
+  planIds: Set<string>,
+): { entry: PlanEntry; diff: EntryDiff } {
+  const before = entry.snapshot;
+  const match = matchEntry(entry, index);
+  if (revalidation.outcome === 'missing' || match === null) {
+    // Keep the last known snapshot so the block stays on the grid at its last time;
+    // mark it missing and never delete it silently.
+    return {
+      entry: { ...entry, lastVerifiedAt: now, verifyStatus: 'missing' },
+      diff: {
+        teachTableId: entry.teachTableId,
+        subjectId: entry.subjectId,
+        section: entry.section,
+        outcome: 'missing',
+        changes: [],
+        before,
+        after: null,
+      },
+    };
+  }
+  const fresh = match.indexed.section;
+  // Adopt the fresh key silently, unless it already belongs to another entry, which
+  // would make two entries share a teachTableId; keep the old key in that case.
+  const collides =
+    fresh.teachTableId !== entry.teachTableId &&
+    planIds.has(fresh.teachTableId);
+  const newId =
+    revalidation.keyChanged && !collides
+      ? fresh.teachTableId
+      : entry.teachTableId;
+  const after: SectionSnapshot = {
+    ...buildSnapshot(fresh, match.indexed.subjectMeta),
+    teachTableId: newId,
+  };
+  const status: VerifyStatus = OUTCOME_STATUS[revalidation.outcome];
+  return {
+    entry: {
+      ...entry,
+      teachTableId: newId,
+      snapshot: after,
+      lastVerifiedAt: now,
+      verifyStatus: status,
+    },
+    diff: {
+      teachTableId: newId,
+      subjectId: entry.subjectId,
+      section: entry.section,
+      outcome: revalidation.outcome,
+      changes: revalidation.changes,
+      before,
+      after,
+    },
+  };
+}
+
+/**
+ * Fold a revalidation back into a plan: update each matched entry's snapshot to the
+ * fresh data, set its verification status and time, keep a missing entry at its last
+ * known time, and adopt a moved key silently. The plan's updatedAt is untouched
+ * because reconcile is not a user edit. Term mismatches are reported, not fixed.
+ * Pure: it builds new entries and never mutates the input plan or its snapshots.
+ */
+export function reconcilePlan(
+  plan: Plan,
+  revalidation: PlanRevalidation,
+  index: SectionIndex,
+  now: string,
+): ReconcileResult {
+  const planIds = new Set(plan.entries.map((entry) => entry.teachTableId));
+  const entries: PlanEntry[] = [];
+  const diffs: EntryDiff[] = [];
+  const termFindings: ReconcileFinding[] = [];
+  plan.entries.forEach((entry, order) => {
+    const rev = revalidation.entries[order];
+    if (rev === undefined) {
+      entries.push(entry);
+      return;
+    }
+    if (
+      entry.sourceQuery.params.selected_year !== plan.year ||
+      entry.sourceQuery.params.selected_semester !== plan.semester
+    ) {
+      termFindings.push({
+        teachTableId: entry.teachTableId,
+        subjectId: entry.subjectId,
+        section: entry.section,
+      });
+    }
+    const reconciled = reconcileEntry(entry, rev, index, now, planIds);
+    entries.push(reconciled.entry);
+    diffs.push(reconciled.diff);
+  });
+  return {
+    plan: { ...plan, entries },
+    report: {
+      summary: revalidation.summary,
+      entries: diffs,
+      termFindings,
+    },
+  };
 }

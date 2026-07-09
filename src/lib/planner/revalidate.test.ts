@@ -8,18 +8,34 @@ import {
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
 import type { Section } from '../domain/types';
+import type { Plan, SourceQuery } from '../domain/plan';
 import {
   buildSectionIndex,
   diffSnapshot,
+  reconcilePlan,
   revalidateEntry,
   revalidatePlan,
   type SectionIndex,
 } from './revalidate';
 
+const NOW = '2026-07-09T00:00:00.000Z';
+
 function indexFrom(sections: Section[]): SectionIndex {
   return buildSectionIndex([
     { courses: [makeCourse({ sections })], duplicateCount: 0, warnings: [] },
   ]);
+}
+
+// Index each fresh section under its own course so the subject metadata reconcile
+// rebuilds matches the section's subject.
+function reconcile(plan: Plan, fresh: Section[]) {
+  const courses = fresh.map((section) =>
+    makeCourse({ subjectId: section.subjectId, sections: [section] }),
+  );
+  const index = buildSectionIndex([
+    { courses, duplicateCount: 0, warnings: [] },
+  ]);
+  return reconcilePlan(plan, revalidatePlan(plan, index), index, NOW);
 }
 
 describe('revalidateEntry', () => {
@@ -120,5 +136,130 @@ describe('revalidatePlan', () => {
       changed: 0,
       missing: 1,
     });
+  });
+});
+
+describe('reconcilePlan', () => {
+  it('updates a changed entry to fresh data and records old versus new', () => {
+    const entry = makePlanEntry({
+      snapshot: makeSnapshot({
+        teachTableId: 't1',
+        subjectId: 'S1',
+        section: '901',
+      }),
+    });
+    const plan = makePlan({ entries: [entry] });
+    const fresh = makeSection({
+      teachTableId: 't1',
+      subjectId: 'S1',
+      section: '901',
+      meetings: [makeMeeting({ startMin: 600, endMin: 780 })],
+    });
+    const { plan: reconciled, report } = reconcile(plan, [fresh]);
+    const updated = reconciled.entries[0];
+    expect(updated?.verifyStatus).toBe('changed');
+    expect(updated?.lastVerifiedAt).toBe(NOW);
+    expect(updated?.snapshot.meetings[0]?.startMin).toBe(600);
+    expect(report.entries[0]?.changes).toContain('time_changed');
+    expect(report.entries[0]?.before.meetings[0]?.startMin).toBe(540);
+    expect(report.entries[0]?.after?.meetings[0]?.startMin).toBe(600);
+  });
+
+  it('keeps a missing entry at its last known snapshot and flags it', () => {
+    const entry = makePlanEntry({
+      snapshot: makeSnapshot({
+        teachTableId: 't1',
+        subjectId: 'S1',
+        section: '901',
+      }),
+    });
+    const plan = makePlan({ entries: [entry] });
+    const { plan: reconciled, report } = reconcile(plan, [
+      makeSection({ teachTableId: 'zzz', subjectId: 'OTHER', section: '999' }),
+    ]);
+    const kept = reconciled.entries[0];
+    expect(kept?.verifyStatus).toBe('missing');
+    expect(kept?.snapshot.teachTableId).toBe('t1');
+    expect(kept?.lastVerifiedAt).toBe(NOW);
+    expect(report.entries[0]?.after).toBeNull();
+  });
+
+  it('adopts a moved teachTableId silently', () => {
+    const entry = makePlanEntry({
+      snapshot: makeSnapshot({
+        teachTableId: 't1',
+        subjectId: 'S1',
+        section: '901',
+      }),
+    });
+    const plan = makePlan({ entries: [entry] });
+    const { plan: reconciled } = reconcile(plan, [
+      makeSection({ teachTableId: 't2', subjectId: 'S1', section: '901' }),
+    ]);
+    const moved = reconciled.entries[0];
+    expect(moved?.teachTableId).toBe('t2');
+    expect(moved?.snapshot.teachTableId).toBe('t2');
+    expect(moved?.verifyStatus).toBe('verified');
+  });
+
+  it('keeps the old key when the fresh key already belongs to another entry', () => {
+    const a = makePlanEntry({
+      snapshot: makeSnapshot({
+        teachTableId: 'X',
+        subjectId: 'S1',
+        section: '901',
+      }),
+    });
+    const b = makePlanEntry({
+      snapshot: makeSnapshot({
+        teachTableId: 'Y',
+        subjectId: 'S2',
+        section: '902',
+      }),
+    });
+    const plan = makePlan({ entries: [a, b] });
+    // The fresh S1/901 now carries teachTableId 'Y', which entry b already uses.
+    const fresh = makeSection({
+      teachTableId: 'Y',
+      subjectId: 'S1',
+      section: '901',
+    });
+    const { plan: reconciled } = reconcile(plan, [fresh]);
+    const reconciledA = reconciled.entries.find((e) => e.subjectId === 'S1');
+    expect(reconciledA?.teachTableId).toBe('X');
+  });
+
+  it('reports a term mismatch as a finding without fixing it', () => {
+    const otherTerm: SourceQuery = {
+      endpoint: 'get-teach-table-show',
+      params: {
+        mode: 'by_class',
+        selected_year: '2569',
+        selected_semester: '2',
+      },
+    };
+    const entry = makePlanEntry({
+      snapshot: makeSnapshot({
+        teachTableId: 't1',
+        subjectId: 'S1',
+        section: '901',
+      }),
+      sourceQuery: otherTerm,
+    });
+    const plan = makePlan({ semester: '1', entries: [entry] });
+    const { report } = reconcile(plan, [
+      makeSection({ teachTableId: 't1', subjectId: 'S1', section: '901' }),
+    ]);
+    expect(report.termFindings).toHaveLength(1);
+    expect(report.termFindings[0]?.teachTableId).toBe('t1');
+  });
+
+  it('does not touch the plan updatedAt', () => {
+    const plan = makePlan({
+      updatedAt: '2020-01-01T00:00:00.000Z',
+      entries: [makePlanEntry()],
+    });
+    const { plan: reconciled } = reconcile(plan, [makeSection()]);
+    expect(reconciled.updatedAt).toBe('2020-01-01T00:00:00.000Z');
   });
 });
