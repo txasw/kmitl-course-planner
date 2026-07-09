@@ -10,7 +10,8 @@ import { useStore } from 'zustand';
 import type { Meeting } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
-import { WEEK_DAYS } from '@/lib/parsing/days';
+import { WEEK_DAYS, type DayOfWeek } from '@/lib/parsing/days';
+import type { DisplayOptions } from '@/lib/planner/displayOptions';
 import { formatMinutes } from '@/lib/parsing/time';
 import {
   hourTicks,
@@ -46,10 +47,18 @@ function laneBackground(quarters: number): string {
   ].join(', ');
 }
 
-function blockStyle(meeting: Meeting, window: GridWindow): CSSProperties {
+// The row derives from the day's position in the rendered run, not the day
+// number, so a fit to content preview that trims leading days still places each
+// block in the correct row. With the full week the position equals the day, so
+// edit mode geometry is unchanged.
+function blockStyle(
+  meeting: Meeting,
+  window: GridWindow,
+  days: readonly DayOfWeek[],
+): CSSProperties {
   const columns = meetingColumns(meeting.startMin, meeting.endMin, window);
   return {
-    gridRow: FIRST_DAY_ROW + meeting.day,
+    gridRow: FIRST_DAY_ROW + days.indexOf(meeting.day),
     gridColumn: `${String(FIRST_TIME_COLUMN + columns.startQuarter)} / ${String(FIRST_TIME_COLUMN + columns.endQuarter)}`,
   };
 }
@@ -67,6 +76,11 @@ interface WeeklyGridProps {
   conflictIds?: Set<string>;
   /** Open the block detail popover anchored to a block, edit mode only. */
   onOpenDetail?: (anchor: HTMLElement) => void;
+  /** The day rows to render, in order. Defaults to the full week; preview passes a
+   * trimmed contiguous run for the fit to content option. */
+  days?: readonly DayOfWeek[];
+  /** Preview field toggles. Omitted in edit mode, where blocks show every field. */
+  display?: DisplayOptions;
 }
 
 export function WeeklyGrid({
@@ -78,6 +92,8 @@ export function WeeklyGrid({
   onRemove,
   conflictIds,
   onOpenDetail,
+  days = WEEK_DAYS,
+  display,
 }: WeeklyGridProps) {
   const quarters = quarterCount(window);
   // The last tick is the window's closing edge and needs no hour column label.
@@ -85,8 +101,11 @@ export function WeeklyGrid({
   const lane = laneBackground(quarters);
   const gridStyle: CSSProperties = {
     gridTemplateColumns: `2.25rem repeat(${String(quarters)}, minmax(0, 1fr))`,
-    gridTemplateRows: `auto repeat(${String(WEEK_DAYS.length)}, minmax(2.5rem, 1fr))`,
+    gridTemplateRows: `auto repeat(${String(days.length)}, minmax(2.5rem, 1fr))`,
   };
+  const showRoom = display?.showRoom ?? true;
+  const showSection = display?.showSection ?? true;
+  const showEnglishName = display?.showEnglishNames ?? false;
 
   const active = useStore(dragStore, (state) => state.active);
   const hover = useStore(dragStore, (state) => state.hover);
@@ -139,11 +158,11 @@ export function WeeklyGrid({
         </div>
       ))}
 
-      {WEEK_DAYS.map((day) => (
+      {days.map((day, index) => (
         <Fragment key={day}>
           <div
             className={`flex items-center justify-center border-t border-border text-xs font-medium text-ink-soft ${day % 2 === 1 ? 'bg-surface-alt' : ''}`}
-            style={{ gridRow: FIRST_DAY_ROW + day, gridColumn: 1 }}
+            style={{ gridRow: FIRST_DAY_ROW + index, gridColumn: 1 }}
             title={t(dayFullLabelKey(day))}
             aria-label={t(dayFullLabelKey(day))}
           >
@@ -153,7 +172,7 @@ export function WeeklyGrid({
             aria-hidden
             className={`border-t border-border ${day % 2 === 1 ? 'bg-surface-alt' : ''}`}
             style={{
-              gridRow: FIRST_DAY_ROW + day,
+              gridRow: FIRST_DAY_ROW + index,
               gridColumn: `${String(FIRST_TIME_COLUMN)} / -1`,
               backgroundImage: lane,
             }}
@@ -167,7 +186,7 @@ export function WeeklyGrid({
           const common = {
             section,
             meeting,
-            style: blockStyle(meeting, window),
+            style: blockStyle(meeting, window, days),
             locale,
             t,
             pulsing: blockingIds.has(section.teachTableId),
@@ -185,7 +204,13 @@ export function WeeklyGrid({
               removeLabel={removeLabel}
             />
           ) : (
-            <EventBlock key={key} {...common} />
+            <EventBlock
+              key={key}
+              {...common}
+              showRoom={showRoom}
+              showSection={showSection}
+              showEnglishName={showEnglishName}
+            />
           );
         }),
       )}
@@ -202,7 +227,7 @@ export function WeeklyGrid({
                     ? 'border-success bg-success-soft'
                     : 'kcp-hatch border-danger bg-danger-soft'
                 }`}
-                style={blockStyle(meeting, window)}
+                style={blockStyle(meeting, window, days)}
               />
             )),
           )
@@ -215,7 +240,7 @@ export function WeeklyGrid({
               aria-hidden
               data-ghost="hover"
               className="pointer-events-none m-px rounded-kcp border border-dashed border-ink-soft"
-              style={blockStyle(meeting, window)}
+              style={blockStyle(meeting, window, days)}
             />
           ))
         : null}
@@ -232,7 +257,7 @@ export function WeeklyGrid({
                 candidate={footprint.candidate}
                 raised={footprint.candidate.section.teachTableId === raised}
                 style={{
-                  ...blockStyle(footprint.meeting, window),
+                  ...blockStyle(footprint.meeting, window, days),
                   marginLeft: `${String(offset)}px`,
                   marginTop: `${String(offset)}px`,
                 }}
@@ -254,7 +279,7 @@ export function WeeklyGrid({
                     blockerTeachTableId={section.teachTableId}
                     incomingLabel={swapContext.incoming.section}
                     actionLabel={swapLabel}
-                    style={blockStyle(meeting, window)}
+                    style={blockStyle(meeting, window, days)}
                   />
                 );
               }),

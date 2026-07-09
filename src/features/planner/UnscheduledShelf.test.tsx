@@ -72,4 +72,32 @@ describe('UnscheduledShelf', () => {
       screen.queryByRole('button', { name: 'นำออก' }),
     ).not.toBeInTheDocument();
   });
+
+  it('hides the section code when showSection is off', () => {
+    render(
+      <UnscheduledShelf
+        sections={[makePlaced()]}
+        locale="th"
+        t={t}
+        showSection={false}
+      />,
+    );
+    expect(screen.queryByText(/กลุ่มเรียน 1/)).not.toBeInTheDocument();
+  });
+
+  it('adds the English name under a Thai primary when showEnglishName is on', () => {
+    render(
+      <UnscheduledShelf
+        sections={[makePlaced()]}
+        locale="th"
+        t={t}
+        showEnglishName
+      />,
+    );
+    const shelf = screen.getByRole('region', {
+      name: 'รายวิชาที่ไม่มีคาบเรียน',
+    });
+    expect(within(shelf).getByText('วิชาออนไลน์')).toBeInTheDocument();
+    expect(within(shelf).getByText('Online subject')).toBeInTheDocument();
+  });
 });

@@ -6,7 +6,11 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { snapshotToSection } from '@/lib/domain/plan';
-import { computeWindow } from '@/lib/planner/grid';
+import {
+  computeFitWindow,
+  computeWindow,
+  visibleDays,
+} from '@/lib/planner/grid';
 import { planConflicts } from '@/lib/planner/planConflicts';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
 import { uiStore } from '@/features/shell/uiStore';
@@ -27,6 +31,7 @@ export function PlannerPanel() {
   const entries = useStore(planStore, (state) => state.entries);
   const activePlan = useActivePlan();
   const viewMode = useStore(uiStore, (state) => state.viewMode);
+  const displayOptions = useStore(uiStore, (state) => state.displayOptions);
   const activeDrag = useStore(dragStore, (state) => state.active);
   const hoverSection = useStore(dragStore, (state) => state.hover);
   const courseDrag = useStore(dragStore, (state) => state.courseDrag);
@@ -85,6 +90,21 @@ export function PlannerPanel() {
       ...blockMoveMeetings,
     ]);
   }, [scheduled, activeDrag, hoverSection, courseDrag, blockMove]);
+  // The fit to content preview trims the window and day rows to the scheduled
+  // meetings. Both are derived unconditionally and only used when preview and the
+  // option are on, so switching the option in place needs no extra state.
+  const scheduledMeetings = useMemo(
+    () => scheduled.flatMap((section) => section.meetings),
+    [scheduled],
+  );
+  const fitWindow = useMemo(
+    () => computeFitWindow(scheduledMeetings),
+    [scheduledMeetings],
+  );
+  const fitDays = useMemo(
+    () => visibleDays(scheduledMeetings),
+    [scheduledMeetings],
+  );
   const handleRemove = useCallback((teachTableId: string) => {
     planStore.getState().remove(teachTableId);
   }, []);
@@ -117,6 +137,7 @@ export function PlannerPanel() {
   // image carries the plan and not the surrounding chrome.
   const posterRef = useRef<HTMLDivElement>(null);
   const isPreview = viewMode === 'preview';
+  const fitActive = isPreview && displayOptions.fitToContent;
 
   return (
     <div className="flex h-full flex-col gap-2">
@@ -145,13 +166,15 @@ export function PlannerPanel() {
         <div className="relative min-h-0 flex-1 overflow-auto kcp-scroll">
           <WeeklyGrid
             sections={scheduled}
-            window={window}
+            window={fitActive ? fitWindow : window}
             locale={language}
             t={t}
             editable={viewMode === 'edit'}
             onRemove={handleRemove}
             conflictIds={conflictIds}
             onOpenDetail={openDetail}
+            {...(fitActive ? { days: fitDays } : {})}
+            {...(isPreview ? { display: displayOptions } : {})}
           />
           {sections.length === 0 ? (
             <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 px-6 text-center">
@@ -170,6 +193,12 @@ export function PlannerPanel() {
             locale={language}
             t={t}
             onRemove={viewMode === 'edit' ? handleRemove : undefined}
+            {...(isPreview
+              ? {
+                  showSection: displayOptions.showSection,
+                  showEnglishName: displayOptions.showEnglishNames,
+                }
+              : {})}
           />
         ) : null}
         {sections.length > 0 ? <GridFooter sections={sections} t={t} /> : null}
