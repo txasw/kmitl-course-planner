@@ -190,7 +190,7 @@ export function WeeklyGrid({
         }),
       )}
 
-      {active !== null
+      {editable && active !== null
         ? active.group.flatMap((groupSection) =>
             groupSection.meetings.map((meeting) => (
               <div
@@ -208,7 +208,7 @@ export function WeeklyGrid({
           )
         : null}
 
-      {active === null && hover !== null
+      {editable && active === null && hover !== null
         ? hover.meetings.map((meeting) => (
             <div
               key={`hover-${String(meeting.day)}-${String(meeting.startMin)}`}
@@ -220,7 +220,7 @@ export function WeeklyGrid({
           ))
         : null}
 
-      {candidates !== null
+      {editable && candidates !== null
         ? candidateFootprints(candidates, window).map((footprint) => {
             const offset =
               Math.min(footprint.stack, MAX_STACK_OFFSET) * STACK_STEP_PX;
@@ -241,7 +241,7 @@ export function WeeklyGrid({
           })
         : null}
 
-      {swapContext !== null
+      {editable && swapContext !== null
         ? sections
             .filter((section) => swapBlockers.has(section.teachTableId))
             .flatMap((section) =>
