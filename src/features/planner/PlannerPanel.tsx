@@ -3,7 +3,7 @@
 // visible time window from the scheduled meetings so an early or late class widens
 // the grid. Unscheduled sections and the footer summary arrive with the shelf.
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { snapshotToSection } from '@/lib/domain/plan';
 import { computeWindow } from '@/lib/planner/grid';
@@ -17,6 +17,7 @@ import { BlockDetailPopover } from './BlockDetailPopover';
 import { FeedbackStrip } from './FeedbackStrip';
 import { GridFooter } from './GridFooter';
 import { PosterHeader } from './PosterHeader';
+import { PreviewToolbar } from './PreviewToolbar';
 import { RevalidationBanner } from './RevalidationBanner';
 import { UnscheduledShelf } from './UnscheduledShelf';
 import { WeeklyGrid } from './WeeklyGrid';
@@ -111,53 +112,68 @@ export function PlannerPanel() {
       setDetail(null);
     }
   }
+  // The poster subtree the sharing actions capture. It holds the header, grid,
+  // shelf, and footer but not the toolbar or the revalidation banner, so a shared
+  // image carries the plan and not the surrounding chrome.
+  const posterRef = useRef<HTMLDivElement>(null);
+  const isPreview = viewMode === 'preview';
 
   return (
     <div className="flex h-full flex-col gap-2">
-      {viewMode === 'preview' ? (
-        <PosterHeader
-          planName={activePlan?.name ?? t('plan.untitled')}
-          term={
-            activePlan === null
-              ? null
-              : { year: activePlan.year, semester: activePlan.semester }
-          }
-          sections={sections}
-          locale={language}
-          t={t}
-        />
-      ) : null}
+      {isPreview ? <PreviewToolbar posterRef={posterRef} /> : null}
       {viewMode === 'edit' ? <FeedbackStrip locale={language} t={t} /> : null}
       <RevalidationBanner />
-      <div className="relative min-h-0 flex-1 overflow-auto kcp-scroll">
-        <WeeklyGrid
-          sections={scheduled}
-          window={window}
-          locale={language}
-          t={t}
-          editable={viewMode === 'edit'}
-          onRemove={handleRemove}
-          conflictIds={conflictIds}
-          onOpenDetail={openDetail}
-        />
-        {sections.length === 0 ? (
-          <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 px-6 text-center">
-            <p className="text-sm font-medium text-ink">
-              {t('grid.emptyTitle')}
-            </p>
-            <p className="mt-1 text-sm text-ink-soft">{t('grid.emptyBody')}</p>
-          </div>
+      <div
+        ref={posterRef}
+        className={`flex min-h-0 flex-1 flex-col gap-2 ${
+          isPreview ? 'rounded-kcp bg-surface p-3' : ''
+        }`}
+      >
+        {isPreview ? (
+          <PosterHeader
+            planName={activePlan?.name ?? t('plan.untitled')}
+            term={
+              activePlan === null
+                ? null
+                : { year: activePlan.year, semester: activePlan.semester }
+            }
+            sections={sections}
+            locale={language}
+            t={t}
+          />
         ) : null}
+        <div className="relative min-h-0 flex-1 overflow-auto kcp-scroll">
+          <WeeklyGrid
+            sections={scheduled}
+            window={window}
+            locale={language}
+            t={t}
+            editable={viewMode === 'edit'}
+            onRemove={handleRemove}
+            conflictIds={conflictIds}
+            onOpenDetail={openDetail}
+          />
+          {sections.length === 0 ? (
+            <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 px-6 text-center">
+              <p className="text-sm font-medium text-ink">
+                {t('grid.emptyTitle')}
+              </p>
+              <p className="mt-1 text-sm text-ink-soft">
+                {t('grid.emptyBody')}
+              </p>
+            </div>
+          ) : null}
+        </div>
+        {unscheduled.length > 0 ? (
+          <UnscheduledShelf
+            sections={unscheduled}
+            locale={language}
+            t={t}
+            onRemove={viewMode === 'edit' ? handleRemove : undefined}
+          />
+        ) : null}
+        {sections.length > 0 ? <GridFooter sections={sections} t={t} /> : null}
       </div>
-      {unscheduled.length > 0 ? (
-        <UnscheduledShelf
-          sections={unscheduled}
-          locale={language}
-          t={t}
-          onRemove={viewMode === 'edit' ? handleRemove : undefined}
-        />
-      ) : null}
-      {sections.length > 0 ? <GridFooter sections={sections} t={t} /> : null}
       {viewMode === 'edit' && detail !== null ? (
         <BlockDetailPopover
           teachTableId={detail.teachTableId}

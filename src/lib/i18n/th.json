@@ -152,5 +152,9 @@
   "mode.select": "โหมดการแสดงผล",
   "mode.edit": "แก้ไข",
   "mode.preview": "ดูตัวอย่าง",
-  "plan.untitled": "ตาราง"
+  "plan.untitled": "ตาราง",
+  "preview.toolbar": "เครื่องมือสำหรับแชร์",
+  "preview.downloadPng": "ดาวน์โหลดรูปภาพ",
+  "preview.pngDownloaded": "ดาวน์โหลดรูปภาพแล้ว",
+  "preview.exportFailed": "ส่งออกรูปภาพไม่สำเร็จ"
 }
