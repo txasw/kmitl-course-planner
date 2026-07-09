@@ -22,6 +22,7 @@ import { candidateFootprints } from '@/lib/planner/candidateLayout';
 import { dragStore } from './dragStore';
 import { CandidateSlot } from './CandidateSlot';
 import { EventBlock } from './EventBlock';
+import { DraggableBlock } from './DraggableBlock';
 import type { PlacedSection } from './placedSection';
 
 const MAX_STACK_OFFSET = 4;
@@ -57,9 +58,20 @@ interface WeeklyGridProps {
   window: GridWindow;
   locale: Locale;
   t: Translate;
+  /** Whether blocks are drag sources with a remove control (edit mode only). */
+  editable?: boolean;
+  /** Remove a placed section and its pair, wired in edit mode. */
+  onRemove?: (teachTableId: string) => void;
 }
 
-export function WeeklyGrid({ sections, window, locale, t }: WeeklyGridProps) {
+export function WeeklyGrid({
+  sections,
+  window,
+  locale,
+  t,
+  editable = false,
+  onRemove,
+}: WeeklyGridProps) {
   const quarters = quarterCount(window);
   // The last tick is the window's closing edge and needs no hour column label.
   const ticks = hourTicks(window).slice(0, -1);
@@ -72,8 +84,17 @@ export function WeeklyGrid({ sections, window, locale, t }: WeeklyGridProps) {
   const active = useStore(dragStore, (state) => state.active);
   const hover = useStore(dragStore, (state) => state.hover);
   const courseDrag = useStore(dragStore, (state) => state.courseDrag);
+  const blockMove = useStore(dragStore, (state) => state.blockMove);
   const raised = useStore(dragStore, (state) => state.raised);
   const blocked = active !== null && !active.placement.ok;
+  const removeLabel = t('action.remove');
+  // Candidate slots come from a course drag or a block move, whichever is active.
+  const candidates = courseDrag?.candidates ?? blockMove?.candidates ?? null;
+  const movingIds = useMemo(
+    () =>
+      new Set(blockMove?.group.map((section) => section.teachTableId) ?? []),
+    [blockMove],
+  );
   const blockingIds = useMemo(() => {
     const ids = new Set<string>();
     if (active !== null && !active.placement.ok) {
@@ -130,17 +151,30 @@ export function WeeklyGrid({ sections, window, locale, t }: WeeklyGridProps) {
       ))}
 
       {sections.flatMap((section) =>
-        section.meetings.map((meeting) => (
-          <EventBlock
-            key={`${section.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`}
-            section={section}
-            meeting={meeting}
-            style={blockStyle(meeting, window)}
-            locale={locale}
-            t={t}
-            pulsing={blockingIds.has(section.teachTableId)}
-          />
-        )),
+        section.meetings.map((meeting) => {
+          const key = `${section.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`;
+          const common = {
+            section,
+            meeting,
+            style: blockStyle(meeting, window),
+            locale,
+            t,
+            pulsing: blockingIds.has(section.teachTableId),
+            dimmed: movingIds.has(section.teachTableId),
+          };
+          return editable && onRemove ? (
+            <DraggableBlock
+              key={key}
+              {...common}
+              onRemove={() => {
+                onRemove(section.teachTableId);
+              }}
+              removeLabel={removeLabel}
+            />
+          ) : (
+            <EventBlock key={key} {...common} />
+          );
+        }),
       )}
 
       {active !== null
@@ -173,27 +207,25 @@ export function WeeklyGrid({ sections, window, locale, t }: WeeklyGridProps) {
           ))
         : null}
 
-      {courseDrag !== null
-        ? candidateFootprints(courseDrag.candidates, window).map(
-            (footprint) => {
-              const offset =
-                Math.min(footprint.stack, MAX_STACK_OFFSET) * STACK_STEP_PX;
-              const id = `cand-${footprint.candidate.section.teachTableId}-${String(footprint.meeting.day)}-${String(footprint.meeting.startMin)}`;
-              return (
-                <CandidateSlot
-                  key={id}
-                  id={id}
-                  candidate={footprint.candidate}
-                  raised={footprint.candidate.section.teachTableId === raised}
-                  style={{
-                    ...blockStyle(footprint.meeting, window),
-                    marginLeft: `${String(offset)}px`,
-                    marginTop: `${String(offset)}px`,
-                  }}
-                />
-              );
-            },
-          )
+      {candidates !== null
+        ? candidateFootprints(candidates, window).map((footprint) => {
+            const offset =
+              Math.min(footprint.stack, MAX_STACK_OFFSET) * STACK_STEP_PX;
+            const id = `cand-${footprint.candidate.section.teachTableId}-${String(footprint.meeting.day)}-${String(footprint.meeting.startMin)}`;
+            return (
+              <CandidateSlot
+                key={id}
+                id={id}
+                candidate={footprint.candidate}
+                raised={footprint.candidate.section.teachTableId === raised}
+                style={{
+                  ...blockStyle(footprint.meeting, window),
+                  marginLeft: `${String(offset)}px`,
+                  marginTop: `${String(offset)}px`,
+                }}
+              />
+            );
+          })
         : null}
     </div>
   );

@@ -10,6 +10,7 @@
 
 import { createStore } from 'zustand/vanilla';
 import type { Course, Section } from '@/lib/domain/types';
+import { areDeclaredPair } from '@/lib/planner/conflicts';
 import {
   checkPlacement,
   expandSectionGroup,
@@ -20,6 +21,11 @@ import {
   courseCandidates,
   type Candidate,
 } from '@/lib/planner/courseCandidates';
+
+/** The durable identity a candidate exclude set keys on. */
+function identity(section: Section): string {
+  return `${section.subjectId}:${section.section}`;
+}
 
 export interface ActiveDrag {
   course: Course;
@@ -33,6 +39,17 @@ export interface BlockedFeedback {
   course: Course;
   section: Section;
   conflicts: ConflictDetail[];
+}
+
+export interface BlockMoveDrag {
+  /** The placed section being dragged off its slot. */
+  section: Section;
+  /** The dragged section and its pair, the group that leaves on a move or remove. */
+  group: Section[];
+  /** The resolved course, or null when the subject is not in the current catalog. */
+  course: Course | null;
+  /** The subject's other sections as move targets; empty when the course is null. */
+  candidates: Candidate[];
 }
 
 export interface CourseDrag {
@@ -49,7 +66,10 @@ export interface DragStore {
   announcement: string | null;
   /** The active course level drag with its candidate slots, or null. */
   courseDrag: CourseDrag | null;
-  /** The teachTableId of the candidate raised by hover during a course drag. */
+  /** The active placed block drag, moving a section off its slot, or null. */
+  blockMove: BlockMoveDrag | null;
+  /** The teachTableId of the candidate raised by hover during a course or block
+   * drag. */
   raised: string | null;
   /** A visible one line hint shown after a missed course drop, or null. */
   hint: string | null;
@@ -68,6 +88,14 @@ export interface DragStore {
   clearAnnouncement: () => void;
   startCourse: (course: Course, placed: Section[]) => void;
   clearCourse: () => void;
+  /** Start dragging a placed section: paint its subject's other sections as move
+   * targets against the plan minus this section and its pair. */
+  startBlockMove: (
+    section: Section,
+    placed: Section[],
+    course: Course | null,
+  ) => void;
+  clearBlockMove: () => void;
   setRaised: (teachTableId: string | null) => void;
   setHint: (message: string) => void;
   clearHint: () => void;
@@ -80,6 +108,7 @@ export function createDragStore() {
     hover: null,
     announcement: null,
     courseDrag: null,
+    blockMove: null,
     raised: null,
     hint: null,
     start: (course, section, placed) => {
@@ -87,8 +116,12 @@ export function createDragStore() {
       const placement = checkPlacement(placed, group);
       set({
         active: { course, section, group, placement },
+        courseDrag: null,
+        blockMove: null,
         blocked: null,
         hover: null,
+        raised: null,
+        hint: null,
       });
     },
     clearActive: () => {
@@ -131,6 +164,7 @@ export function createDragStore() {
       set({
         courseDrag: { course, candidates: courseCandidates(course, placed) },
         active: null,
+        blockMove: null,
         blocked: null,
         hover: null,
         raised: null,
@@ -139,6 +173,33 @@ export function createDragStore() {
     },
     clearCourse: () => {
       set({ courseDrag: null, raised: null });
+    },
+    startBlockMove: (section, placed, course) => {
+      const pair = placed.filter(
+        (other) =>
+          other.teachTableId !== section.teachTableId &&
+          areDeclaredPair(section, other),
+      );
+      const group = [section, ...pair];
+      const exclude = new Set(group.map(identity));
+      set({
+        blockMove: {
+          section,
+          group,
+          course,
+          candidates:
+            course === null ? [] : courseCandidates(course, placed, exclude),
+        },
+        active: null,
+        courseDrag: null,
+        blocked: null,
+        hover: null,
+        raised: null,
+        hint: null,
+      });
+    },
+    clearBlockMove: () => {
+      set({ blockMove: null, raised: null });
     },
     setRaised: (teachTableId) => {
       set({ raised: teachTableId });

@@ -24,7 +24,7 @@ export function CandidateSlot({
   const { setNodeRef } = useDroppable({
     id,
     disabled: !candidate.valid,
-    data: { section: candidate.section },
+    data: { role: 'candidate', section: candidate.section },
   });
   return (
     <div

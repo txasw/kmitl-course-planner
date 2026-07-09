@@ -88,4 +88,47 @@ describe('dragStore', () => {
     store.getState().clearCourse();
     expect(store.getState().courseDrag).toBeNull();
   });
+
+  it('starts a block move with the subject other sections as candidates', () => {
+    const store = createDragStore();
+    const dragged = makeSection({
+      teachTableId: 'a',
+      subjectId: 'S1',
+      section: '901',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 600 })],
+    });
+    const other = makeSection({
+      teachTableId: 'b',
+      subjectId: 'S1',
+      section: '902',
+      meetings: [makeMeeting({ day: 2, startMin: 540, endMin: 600 })],
+    });
+    const course = makeCourse({ subjectId: 'S1', sections: [dragged, other] });
+    store.getState().startBlockMove(dragged, [dragged], course);
+    const candidates = store.getState().blockMove?.candidates ?? [];
+    // Only the other section is a candidate; the dragged 901 is excluded.
+    expect(candidates.map((candidate) => candidate.section.section)).toEqual([
+      '902',
+    ]);
+    expect(candidates[0]?.valid).toBe(true);
+  });
+
+  it('starts a block move with no candidates when the course is absent', () => {
+    const store = createDragStore();
+    const dragged = makeSection({ teachTableId: 'a', subjectId: 'S1' });
+    store.getState().startBlockMove(dragged, [dragged], null);
+    expect(store.getState().blockMove?.course).toBeNull();
+    expect(store.getState().blockMove?.candidates).toHaveLength(0);
+  });
+
+  it('clears any other live drag when a block move starts', () => {
+    const store = createDragStore();
+    const { course, section } = draggedSection();
+    store.getState().startCourse(course, []);
+    store.getState().startBlockMove(section, [section], null);
+    expect(store.getState().courseDrag).toBeNull();
+    expect(store.getState().active).toBeNull();
+    store.getState().clearBlockMove();
+    expect(store.getState().blockMove).toBeNull();
+  });
 });

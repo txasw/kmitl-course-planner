@@ -9,7 +9,10 @@ import { useDroppable } from '@dnd-kit/core';
 export const PLANNER_DROP_ID = 'kcp-planner-drop';
 
 export function PlannerDropZone({ children }: { children: ReactNode }) {
-  const { setNodeRef } = useDroppable({ id: PLANNER_DROP_ID });
+  const { setNodeRef } = useDroppable({
+    id: PLANNER_DROP_ID,
+    data: { role: 'panel' },
+  });
   return (
     <div ref={setNodeRef} className="h-full">
       {children}
