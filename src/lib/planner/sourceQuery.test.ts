@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { TeachTableQuery } from '../messaging/protocol';
-import { toSourceQuery } from './sourceQuery';
+import { termFromSourceQueryParams, toSourceQuery } from './sourceQuery';
 
 describe('toSourceQuery', () => {
   it('stringifies the boolean flags of a by_class query', () => {
@@ -36,5 +36,29 @@ describe('toSourceQuery', () => {
     const source = toSourceQuery(query);
     expect('selected_faculty' in source.params).toBe(false);
     expect(source.params.selected_subject_owner_id).toBe('32');
+  });
+});
+
+describe('termFromSourceQueryParams', () => {
+  it('reads the year and semester a query targeted', () => {
+    expect(
+      termFromSourceQueryParams({
+        selected_year: '2569',
+        selected_semester: '2',
+      }),
+    ).toEqual({ year: '2569', semester: '2' });
+  });
+
+  it('defaults the semester and year for a degenerate empty map', () => {
+    expect(termFromSourceQueryParams({})).toEqual({ year: '', semester: '1' });
+  });
+
+  it('falls back to the first semester on an out of range value', () => {
+    expect(
+      termFromSourceQueryParams({
+        selected_year: '2569',
+        selected_semester: '9',
+      }).semester,
+    ).toBe('1');
   });
 });
