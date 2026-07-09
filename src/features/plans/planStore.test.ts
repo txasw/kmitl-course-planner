@@ -175,6 +175,45 @@ describe('planStore multi-plan', () => {
     expect(original?.entries).toHaveLength(1);
   });
 
+  it('imports a plan under a fresh id, resets it to unverified, and de-collides the name', () => {
+    const store = makeStore();
+    const section = makeSection({
+      teachTableId: 'a',
+      subjectId: 'S1',
+      section: '901',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 660 })],
+    });
+    store.getState().add(courseFor(section), section, SOURCE_QUERY);
+    // Give the plan's entries a verified status so the reset to unverified on
+    // import is observable.
+    const original = store.getState().plans[0];
+    if (original === undefined) {
+      throw new Error('expected the added plan');
+    }
+    const source = {
+      ...original,
+      entries: original.entries.map((entry) => ({
+        ...entry,
+        verifyStatus: 'verified' as const,
+        lastVerifiedAt: '2026-01-01T00:00:00.000Z',
+      })),
+    };
+
+    const id = store.getState().importPlan(source);
+    const state = store.getState();
+    expect(state.plans).toHaveLength(2);
+    expect(id).not.toBe(original.id);
+    expect(state.activePlanId).toBe(id);
+    const imported = state.plans.find((plan) => plan.id === id);
+    expect(imported?.name).toBe(`${original.name} (2)`);
+    expect(
+      state.entries.every(
+        (entry) =>
+          entry.verifyStatus === 'unverified' && entry.lastVerifiedAt === null,
+      ),
+    ).toBe(true);
+  });
+
   it('keeps two plans of different terms isolated', () => {
     const store = makeStore();
     const planA = store.getState().createPlan('A', TERM_S1);
