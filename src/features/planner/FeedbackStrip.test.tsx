@@ -16,6 +16,10 @@ import {
   makeSection,
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
+import {
+  resetPlanStore,
+  seedActivePlan,
+} from '../../../tests/support/plan-store';
 import { dragStore } from './dragStore';
 import { FeedbackStrip } from './FeedbackStrip';
 
@@ -36,8 +40,8 @@ function seedUndo(): void {
     }),
   });
   act(() => {
+    seedActivePlan([]);
     planStore.setState({
-      entries: [],
       pendingUndo: { kind: 'remove', added: [], removed: [entry] },
     });
   });
@@ -74,7 +78,7 @@ function blockedTimeConflict() {
 afterEach(() => {
   cleanup();
   act(() => {
-    planStore.setState({ entries: [], pendingUndo: null });
+    resetPlanStore();
     dragStore.setState({
       active: null,
       blocked: null,

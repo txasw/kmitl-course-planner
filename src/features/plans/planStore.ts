@@ -1,20 +1,24 @@
-// The plan store. It holds the entries and derives the placed sections the catalog
-// reads, and it owns the add and remove transactions. A mutation keeps what it added
-// and removed in memory as a pending undo so the feedback strip can reverse it, and
-// the next mutation clears that window. Recording both sides lets one undo cover a
-// plain remove today and a move or swap once those land. Persistence to storage stays
-// a later phase, behind this same interface, so the catalog and grid plug in without
-// rework.
+// The plan store. It holds every saved plan and which one is active, and mirrors the
+// active plan's entries at the top level so the catalog and grid keep reading the same
+// `entries` and placed sections as before the store learned about multiple plans.
+// Mutations run through the pure transaction primitive against the active plan, and a
+// mutation keeps what it added and removed as a pending undo for the feedback strip.
+// When there is no active plan, the first add creates one for the term of the search
+// that produced the section, so the first add never hits a wall. Persistence over
+// storage arrives with the persistence hook, behind this same interface.
 
 import { useMemo } from 'react';
 import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
 import {
   snapshotToSection,
+  type Plan,
   type PlanEntry,
   type SourceQuery,
 } from '@/lib/domain/plan';
 import type { Course, Section } from '@/lib/domain/types';
+import type { Term } from '@/lib/routing/academicTerms';
+import { termFromSourceQueryParams } from '@/lib/planner/sourceQuery';
 import {
   addSectionGroup,
   applyPlanTransaction,
@@ -22,6 +26,13 @@ import {
   type AddOutcome,
   type TransactionOutcome,
 } from '@/lib/planner/transaction';
+import {
+  defaultPlanName,
+  duplicatePlanOf,
+  makePlan,
+  mostRecentlyUpdated,
+  replaceEntries,
+} from './planActions';
 
 /** What the last mutation did, held for a short undo window. The kind drives the
  * feedback wording so a move does not read as a removal. */
@@ -32,6 +43,11 @@ export interface UndoRecord {
 }
 
 export interface PlanStore {
+  /** Every saved plan, each scoped to one year and semester. */
+  plans: Plan[];
+  /** The plan the catalog and grid act on, or null when none exist yet. */
+  activePlanId: string | null;
+  /** The active plan's entries, mirrored so existing readers stay unchanged. */
   entries: PlanEntry[];
   /** The last mutation's added and removed entries, held to reverse it, or null. */
   pendingUndo: UndoRecord | null;
@@ -41,47 +57,116 @@ export interface PlanStore {
     sourceQuery: SourceQuery,
   ) => AddOutcome;
   remove: (teachTableId: string) => void;
-  /**
-   * Apply a compound move or swap: remove the listed entries and their pairs, add
-   * one section and its pair, and record both sides for undo in a single update.
-   * Returns the outcome so the caller can surface a residual conflict.
-   */
   apply: (
     removeIds: string[],
     add: AddInput,
     kind: 'move' | 'swap',
   ) => TransactionOutcome;
-  /** Reverse the last mutation: drop what it added, restore what it removed. */
   undo: () => void;
   clearUndo: () => void;
+  /** Create a plan for a term and make it active, returning its id. */
+  createPlan: (name: string, term: Term) => string;
+  renamePlan: (id: string, name: string) => void;
+  /** Copy a plan under a new name and make the copy active. */
+  duplicatePlan: (id: string, name: string) => void;
+  /** Delete a plan; if it was active, fall back to the most recently updated one. */
+  deletePlan: (id: string) => void;
+  setActivePlan: (id: string) => void;
+  /** Replace the plan list, activating the most recently updated plan. */
+  hydrate: (plans: Plan[]) => void;
 }
 
-export function createPlanStore() {
+/** Injected so tests get deterministic ids and timestamps. */
+export interface PlanStoreDeps {
+  now: () => string;
+  uuid: () => string;
+}
+
+// A shared empty array so the mirrored entries keep a stable reference when no plan
+// is active, which avoids a needless re-render of the subscribing components.
+const EMPTY_ENTRIES: PlanEntry[] = [];
+
+function activeEntriesOf(
+  plans: Plan[],
+  activePlanId: string | null,
+): PlanEntry[] {
+  return (
+    plans.find((plan) => plan.id === activePlanId)?.entries ?? EMPTY_ENTRIES
+  );
+}
+
+export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
   return createStore<PlanStore>((set, get) => ({
-    entries: [],
+    plans: [],
+    activePlanId: null,
+    entries: EMPTY_ENTRIES,
     pendingUndo: null,
+
     add: (course, section, sourceQuery) => {
+      const now = deps.now();
+      const state = get();
+      const active = state.plans.find((plan) => plan.id === state.activePlanId);
       const outcome = addSectionGroup(
-        get().entries,
+        active?.entries ?? EMPTY_ENTRIES,
         course,
         section,
         sourceQuery,
-        new Date().toISOString(),
+        now,
       );
-      if (outcome.ok) {
-        set({ entries: outcome.result.entries, pendingUndo: null });
+      if (!outcome.ok) {
+        return outcome;
+      }
+      if (active === undefined) {
+        // First add with no active plan: create one for the section's term. The plan
+        // is committed only with a successful add, so a rejected first add leaves no
+        // orphan empty plan behind.
+        const term = termFromSourceQueryParams(sourceQuery.params);
+        const created: Plan = {
+          ...makePlan(deps.uuid(), defaultPlanName(term), term, now),
+          entries: outcome.result.entries,
+        };
+        set({
+          plans: [...state.plans, created],
+          activePlanId: created.id,
+          entries: created.entries,
+          pendingUndo: null,
+        });
+      } else {
+        set({
+          plans: replaceEntries(
+            state.plans,
+            active.id,
+            outcome.result.entries,
+            now,
+          ),
+          entries: outcome.result.entries,
+          pendingUndo: null,
+        });
       }
       return outcome;
     },
+
     remove: (teachTableId) => {
+      const now = deps.now();
+      const state = get();
+      const active = state.plans.find((plan) => plan.id === state.activePlanId);
+      if (active === undefined) {
+        return;
+      }
       const outcome = applyPlanTransaction(
-        get().entries,
+        active.entries,
         [teachTableId],
         null,
-        new Date().toISOString(),
+        now,
       );
       if (outcome.ok && outcome.result.removed.length > 0) {
         set({
+          plans: replaceEntries(
+            state.plans,
+            active.id,
+            outcome.result.entries,
+            now,
+          ),
           entries: outcome.result.entries,
           pendingUndo: {
             kind: 'remove',
@@ -91,46 +176,141 @@ export function createPlanStore() {
         });
       }
     },
+
     apply: (removeIds, add, kind) => {
-      const outcome = applyPlanTransaction(
-        get().entries,
-        removeIds,
-        add,
-        new Date().toISOString(),
-      );
+      const now = deps.now();
+      const state = get();
+      const active = state.plans.find((plan) => plan.id === state.activePlanId);
+      if (active === undefined) {
+        // A move or swap always acts on a placed block, so an active plan exists.
+        return { ok: false, conflicts: [] };
+      }
+      const outcome = applyPlanTransaction(active.entries, removeIds, add, now);
       if (outcome.ok) {
         const { entries, added, removed } = outcome.result;
-        set({ entries, pendingUndo: { kind, added, removed } });
+        set({
+          plans: replaceEntries(state.plans, active.id, entries, now),
+          entries,
+          pendingUndo: { kind, added, removed },
+        });
       }
       return outcome;
     },
+
     undo: () => {
-      const pending = get().pendingUndo;
-      if (pending === null) {
+      const now = deps.now();
+      const state = get();
+      const pending = state.pendingUndo;
+      const active = state.plans.find((plan) => plan.id === state.activePlanId);
+      if (pending === null || active === undefined) {
         return;
       }
       const addedIds = new Set(
         pending.added.map((entry) => entry.teachTableId),
       );
-      set((state) => ({
-        entries: [
-          ...state.entries.filter((entry) => !addedIds.has(entry.teachTableId)),
-          ...pending.removed,
-        ],
+      const entries = [
+        ...active.entries.filter((entry) => !addedIds.has(entry.teachTableId)),
+        ...pending.removed,
+      ];
+      set({
+        plans: replaceEntries(state.plans, active.id, entries, now),
+        entries,
         pendingUndo: null,
-      }));
+      });
     },
+
     clearUndo: () => {
       set({ pendingUndo: null });
     },
+
+    createPlan: (name, term) => {
+      const plan = makePlan(deps.uuid(), name, term, deps.now());
+      set((state) => ({
+        plans: [...state.plans, plan],
+        activePlanId: plan.id,
+        entries: plan.entries,
+        pendingUndo: null,
+      }));
+      return plan.id;
+    },
+
+    renamePlan: (id, name) => {
+      const now = deps.now();
+      set((state) => ({
+        plans: state.plans.map((plan) =>
+          plan.id === id ? { ...plan, name, updatedAt: now } : plan,
+        ),
+      }));
+    },
+
+    duplicatePlan: (id, name) => {
+      const state = get();
+      const source = state.plans.find((plan) => plan.id === id);
+      if (source === undefined) {
+        return;
+      }
+      const copy = duplicatePlanOf(source, deps.uuid(), name, deps.now());
+      set({
+        plans: [...state.plans, copy],
+        activePlanId: copy.id,
+        entries: copy.entries,
+        pendingUndo: null,
+      });
+    },
+
+    deletePlan: (id) => {
+      set((state) => {
+        const plans = state.plans.filter((plan) => plan.id !== id);
+        const activePlanId =
+          state.activePlanId === id
+            ? (mostRecentlyUpdated(plans)?.id ?? null)
+            : state.activePlanId;
+        return {
+          plans,
+          activePlanId,
+          entries: activeEntriesOf(plans, activePlanId),
+          pendingUndo: null,
+        };
+      });
+    },
+
+    setActivePlan: (id) => {
+      set((state) => {
+        if (!state.plans.some((plan) => plan.id === id)) {
+          return {};
+        }
+        return {
+          activePlanId: id,
+          entries: activeEntriesOf(state.plans, id),
+          pendingUndo: null,
+        };
+      });
+    },
+
+    hydrate: (plans) => {
+      const active = mostRecentlyUpdated(plans);
+      set({
+        plans,
+        activePlanId: active?.id ?? null,
+        entries: active?.entries ?? EMPTY_ENTRIES,
+        pendingUndo: null,
+      });
+    },
   }));
+}
+
+function defaultDeps(): PlanStoreDeps {
+  return {
+    now: () => new Date().toISOString(),
+    uuid: () => crypto.randomUUID(),
+  };
 }
 
 /** The single plan store instance the catalog and grid read. */
 export const planStore = createPlanStore();
 
 /**
- * The sections currently placed in the plan, derived from entry snapshots. The
+ * The sections currently placed in the active plan, derived from entry snapshots. The
  * derivation is memoized on the entries reference so the returned array is stable
  * between renders and does not retrigger the subscribing component.
  */

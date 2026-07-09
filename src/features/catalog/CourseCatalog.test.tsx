@@ -15,6 +15,10 @@ import {
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
 import {
+  resetPlanStore,
+  seedActivePlan,
+} from '../../../tests/support/plan-store';
+import {
   normalizeTeachTable,
   type NormalizedCatalog,
 } from '@/lib/domain/normalize';
@@ -44,7 +48,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   act(() => {
-    planStore.setState({ entries: [] });
+    resetPlanStore();
     dragStore.setState({ active: null, blocked: null, announcement: null });
   });
 });
@@ -125,18 +129,16 @@ describe('CourseCatalog', () => {
 
   it('routes a blocked add on a conflicting section to the feedback strip', () => {
     act(() => {
-      planStore.setState({
-        entries: [
-          makePlanEntry({
-            snapshot: makeSnapshot({
-              teachTableId: 'p1',
-              subjectId: 'S1',
-              section: '901',
-              meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
-            }),
+      seedActivePlan([
+        makePlanEntry({
+          snapshot: makeSnapshot({
+            teachTableId: 'p1',
+            subjectId: 'S1',
+            section: '901',
+            meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
           }),
-        ],
-      });
+        }),
+      ]);
     });
     const conflictCatalog: NormalizedCatalog = {
       duplicateCount: 0,
