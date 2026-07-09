@@ -102,6 +102,30 @@ describe('fetchJson', () => {
     }
   });
 
+  it('honours a raised per endpoint timeout', async () => {
+    vi.useFakeTimers();
+    const fetchImpl = vi.fn<typeof fetch>().mockImplementation(
+      (_input, init) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => {
+            reject(new DOMException('Aborted', 'AbortError'));
+          });
+        }),
+    );
+    const promise = fetchJson('https://x', makeEnv(fetchImpl), {
+      timeoutMs: 45_000,
+    });
+    // The default budget passes without aborting the raised one.
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(30_000);
+    const outcome = await promise;
+    expect(outcome.result.ok).toBe(false);
+    if (!outcome.result.ok) {
+      expect(outcome.result.error.kind).toBe('timeout');
+    }
+  });
+
   it('treats a non JSON body as a validation error', async () => {
     const fetchImpl = vi
       .fn<typeof fetch>()

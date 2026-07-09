@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { createSimulationInterceptor } from './simulation';
 import type { RequestContext, SimSettings } from '../types';
 
-const context: RequestContext = { endpoint: 'e', params: {}, url: 'u' };
+const context: RequestContext = {
+  endpoint: 'e',
+  params: {},
+  url: 'u',
+  timeoutMs: 15_000,
+};
 const none: SimSettings = { fixtureId: null, faultId: null, mutationId: null };
 
 function sim(settings: SimSettings, fixtures: Record<string, unknown> = {}) {

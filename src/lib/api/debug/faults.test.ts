@@ -23,6 +23,7 @@ const probeEndpoint: ReferenceEndpoint<{ id: string }[]> = {
   schema: z.array(z.object({ id: z.string() })),
   ttlMs: 1000,
   cacheKey: 'kcp:cache:ref:probe',
+  timeoutMs: 15_000,
 };
 
 function fakeAdapter(): StorageAdapter {
