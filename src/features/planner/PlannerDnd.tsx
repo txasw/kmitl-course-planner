@@ -30,6 +30,7 @@ import { useTranslation } from '@/features/shell/useTranslation';
 import { dragStore } from './dragStore';
 import { DragCard } from './DragCard';
 import { ReasonChip } from './ReasonChip';
+import { snapDragCardToCursor } from './snapToCursor';
 
 interface SectionDragData {
   course: Course;
@@ -152,7 +153,7 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
       onDragCancel={handleCancel}
     >
       {children}
-      <DragOverlay dropAnimation={null}>
+      <DragOverlay dropAnimation={null} modifiers={[snapDragCardToCursor]}>
         {active !== null ? (
           <div className="flex flex-col items-start gap-1">
             <DragCard section={active.section} />
