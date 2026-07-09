@@ -41,9 +41,8 @@ export async function startMockServer(): Promise<MockServer> {
   const server: Server = createServer(
     { key: pems.private, cert: pems.cert },
     (req, res) => {
-      // Close each connection rather than keeping it alive. Reusing a connection
-      // across the fault injected 503 and the retry was intermittently failing
-      // the retry's fetch at the network level on Linux CI.
+      // Close each connection rather than keeping it alive, so each request runs
+      // on a fresh connection and no test depends on connection reuse.
       res.setHeader('Connection', 'close');
       const host = (req.headers.host ?? '').split(':')[0] ?? '';
       const url = new URL(req.url ?? '/', `https://${host}`);
@@ -76,8 +75,15 @@ export async function startMockServer(): Promise<MockServer> {
       if (host === 'regis.reg.kmitl.ac.th') {
         if (url.pathname.startsWith('/api')) {
           if (apiFailure) {
-            res.writeHead(503);
-            res.end('unavailable');
+            // Fail with a fully read 200 whose body is not the array the schema
+            // expects, so the gateway drains the whole response over a single
+            // socket, exactly like a successful request, and surfaces a terminal
+            // ValidationError. A 5xx is instead retried over several sockets whose
+            // rapid teardown intermittently poisoned the client connection state
+            // and failed the following recovery fetch; that was the flake this
+            // replaces. The catalog error state is identical for any failed query.
+            res.writeHead(200, { 'content-type': 'application/json' });
+            res.end('{"error":"unavailable"}');
             return;
           }
           // Mirror the real API: a present but empty selected_class_year is
