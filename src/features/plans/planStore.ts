@@ -331,10 +331,24 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
         const plans = state.plans.map((plan) =>
           plan.id === planId ? { ...plan, entries } : plan,
         );
-        if (planId === state.activePlanId) {
-          return { plans, entries, pendingUndo: null };
+        if (planId !== state.activePlanId) {
+          return { plans };
         }
-        return { plans };
+        // The pending undo keys on teachTableId, so only a reconcile that moved a key
+        // can break it; an unchanged or field only reconcile leaves the undo valid.
+        const rekeyed = reconciled.some((entry) => {
+          const before = target.entries.find(
+            (current) =>
+              current.subjectId === entry.subjectId &&
+              current.section === entry.section,
+          );
+          return (
+            before !== undefined && before.teachTableId !== entry.teachTableId
+          );
+        });
+        return rekeyed
+          ? { plans, entries, pendingUndo: null }
+          : { plans, entries };
       });
     },
 
