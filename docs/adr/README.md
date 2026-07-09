@@ -33,3 +33,4 @@ a new record that supersedes the old one rather than editing history.
 24. [Course level drag keyboard parity](0024-course-drag-keyboard-parity.md)
 25. [Plan mutation transaction and undo model](0025-plan-mutation-transaction-and-undo.md)
 26. [PNG capture library confirmation](0026-png-capture-library-confirmation.md)
+27. [Export composition and honesty](0027-export-composition-and-honesty.md)

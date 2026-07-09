@@ -103,3 +103,35 @@ button. Never skip it.
 - [ ] Quarantine: in a dev build, corrupt the stored plan blob. On reload the panel
       shows the quarantine card with an export action and starts from a clean state
       without losing the app.
+
+## Export and import
+
+Run these against a debug build in Chrome and Firefox. Preview mode is entered from
+the header segmented control.
+
+- [ ] Preview toolbar presence: in edit mode there are no sharing controls. Switch to
+      preview and confirm the toolbar shows display options, copy image, download image,
+      and copy as text. Switch back to edit and confirm they leave the DOM. The toolbar
+      and the revalidation banner are never part of an exported image.
+- [ ] Download PNG: populate a plan including one unscheduled course. In preview, download
+      the image and open it. The poster header, the grid with block colours and any
+      revalidation badges, the unscheduled shelf, and the footer credits all render, and
+      Thai text is correct. The file name is kmitl-plan-year-semester-name.
+- [ ] Copy image: use copy image, then paste into a chat app. The pasted image matches the
+      poster. Where the browser lacks image clipboard support the control is a one line
+      note pointing at download, never a dead button.
+- [ ] Copy as text: use copy as text, then paste into LINE. The text reads cleanly in
+      Thai with a header line of plan, term, and credits, one line per meeting ordered
+      Sunday through Saturday, the unscheduled sections under a label, a missing marker on
+      any dropped section, and a footer with the app name. There is no markdown.
+- [ ] Display options are what you get: toggle fit to content, show room, show section,
+      and show English names. The preview updates in place, and a re exported PNG and a
+      re copied text reflect the same options. The options persist across a reopen.
+- [ ] Fit to content: with fit on, the poster trims to the hours and days the plan uses and
+      never hides the unscheduled shelf. With fit off, the full week and the default hours
+      show.
+- [ ] JSON export and import: from the plan menu, export the active plan to JSON. Open the
+      file and confirm it is the durable plan. Tamper one field and import it: the menu
+      lists the exact invalid fields and commits nothing. Import the clean file: a new
+      plan lands under a suffixed name without overwriting the original, and revalidation
+      reconciles its entries on open.
