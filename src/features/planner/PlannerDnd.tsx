@@ -28,9 +28,10 @@ import { planStore } from '@/features/plans/planStore';
 import {
   addSectionToPlan,
   moveSectionInPlan,
+  swapSectionInPlan,
 } from '@/features/plans/addToPlan';
 import { useTranslation } from '@/features/shell/useTranslation';
-import { dragStore } from './dragStore';
+import { dragStore, blockerIds } from './dragStore';
 import { DragCard } from './DragCard';
 import { ReasonChip } from './ReasonChip';
 import { RemoveZone, REMOVE_ZONE_ID } from './RemoveZone';
@@ -94,7 +95,24 @@ function isCandidateDropData(value: unknown): value is CandidateDropData {
     value !== null &&
     'section' in value &&
     !('course' in value) &&
-    !('block' in value)
+    !('block' in value) &&
+    !('swap' in value)
+  );
+}
+
+interface SwapDropData {
+  swap: true;
+  blockerTeachTableId: string;
+}
+
+/** A swap target drop carries the id of the placed block it would exchange. */
+function isSwapDropData(value: unknown): value is SwapDropData {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'swap' in value &&
+    'blockerTeachTableId' in value &&
+    typeof value.blockerTeachTableId === 'string'
   );
 }
 
@@ -138,18 +156,73 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
 
   const handleOver = useCallback((event: DragOverEvent) => {
     const state = dragStore.getState();
-    if (state.courseDrag === null && state.blockMove === null) {
+    const drag = state.courseDrag ?? state.blockMove;
+    if (drag === null) {
+      // A section drag keeps the swap context it latched at drag start.
       return;
     }
     const data = event.over?.data.current;
-    state.setRaised(
-      isCandidateDropData(data) ? data.section.teachTableId : null,
-    );
+    if (isCandidateDropData(data)) {
+      const candidate = drag.candidates.find(
+        (item) => item.section.teachTableId === data.section.teachTableId,
+      );
+      state.setRaised(data.section.teachTableId);
+      const course =
+        state.courseDrag?.course ?? state.blockMove?.course ?? null;
+      if (
+        candidate &&
+        !candidate.valid &&
+        candidate.conflicts.length > 0 &&
+        course !== null
+      ) {
+        // Hovering a blocked candidate latches its blockers as swap targets.
+        state.setSwapContext({
+          incoming: candidate.section,
+          course,
+          originId: state.blockMove?.section.teachTableId ?? null,
+          blockers: blockerIds(candidate.conflicts),
+        });
+      } else {
+        state.setSwapContext(null);
+      }
+    } else if (isSwapDropData(data)) {
+      // Keep the latched swap context while the pointer is over a swap target.
+    } else {
+      state.setRaised(null);
+    }
   }, []);
 
   const handleEnd = useCallback(
     (event: DragEndEvent) => {
       const state = dragStore.getState();
+      const overData = event.over?.data.current;
+      // A drop precisely on a swap target exchanges the blocker for the incoming
+      // section. It resolves before the per gesture branches because a swap can end
+      // a section, course, or block drag.
+      if (isSwapDropData(overData) && state.swapContext !== null) {
+        const swap = state.swapContext;
+        const removeIds =
+          swap.originId === null
+            ? [overData.blockerTeachTableId]
+            : [overData.blockerTeachTableId, swap.originId];
+        const outcome = swapSectionInPlan(
+          removeIds,
+          swap.course,
+          swap.incoming,
+        );
+        state.clearActive();
+        state.clearCourse();
+        state.clearBlockMove();
+        if (!outcome.ok) {
+          // Removing the blocker left the incoming section conflicting elsewhere.
+          state.showBlocked({
+            course: swap.course,
+            section: swap.incoming,
+            conflicts: outcome.conflicts,
+          });
+        }
+        return;
+      }
       if (state.active !== null) {
         if (event.over === null) {
           state.clearActive();
@@ -163,14 +236,13 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
       }
       if (state.blockMove !== null) {
         const move = state.blockMove;
-        const data = event.over?.data.current;
         if (event.over?.id === REMOVE_ZONE_ID) {
           planStore.getState().remove(move.section.teachTableId);
-        } else if (isCandidateDropData(data) && move.course !== null) {
+        } else if (isCandidateDropData(overData) && move.course !== null) {
           moveSectionInPlan(
             move.section.teachTableId,
             move.course,
-            data.section,
+            overData.section,
           );
         } else {
           state.setHint(moveHint);
@@ -179,9 +251,8 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
         return;
       }
       if (state.courseDrag !== null) {
-        const data = event.over?.data.current;
-        if (isCandidateDropData(data)) {
-          addSectionToPlan(state.courseDrag.course, data.section);
+        if (isCandidateDropData(overData)) {
+          addSectionToPlan(state.courseDrag.course, overData.section);
         } else {
           state.setHint(hintText);
         }

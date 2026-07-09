@@ -74,6 +74,7 @@
   "feedback.courseDropHint": "Drop on a highlighted slot to add a section",
   "feedback.moveHint": "Drop on a highlighted slot or the remove zone",
   "blockMove.removeZone": "Drag here to remove",
+  "blockMove.swap": "Swap with",
   "seat.open": "Open",
   "seat.full": "Full",
   "seat.closed": "Closed",

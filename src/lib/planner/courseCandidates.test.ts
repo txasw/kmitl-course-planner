@@ -129,4 +129,35 @@ describe('courseCandidates', () => {
     ]);
     expect(candidates[0]?.valid).toBe(true);
   });
+
+  it('carries the blocking conflicts on a time conflicting candidate', () => {
+    const placed = makeSection({
+      teachTableId: 'p',
+      subjectId: 'OTHER',
+      section: '900',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+    });
+    const section = makeSection({
+      teachTableId: 'a',
+      subjectId: 'S1',
+      section: '901',
+      meetings: [makeMeeting({ day: 1, startMin: 600, endMin: 660 })],
+    });
+    const course = makeCourse({ subjectId: 'S1', sections: [section] });
+    const [candidate] = courseCandidates(course, [placed]);
+    expect(candidate?.conflicts[0]?.blocking.teachTableId).toBe('p');
+  });
+
+  it('carries no conflicts on a valid or seat blocked candidate', () => {
+    const open = makeSection({ teachTableId: 'a', section: '901' });
+    const full = makeSection({
+      teachTableId: 'b',
+      section: '902',
+      seats: { limit: 40, preCount: 40, queueLeft: 0, enrolled: 'full' },
+    });
+    const course = makeCourse({ sections: [open, full] });
+    for (const candidate of courseCandidates(course, [])) {
+      expect(candidate.conflicts).toHaveLength(0);
+    }
+  });
 });

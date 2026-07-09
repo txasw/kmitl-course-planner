@@ -7,7 +7,11 @@
 
 import type { Course, Section } from '../domain/types';
 import { computeSeatStatus } from '../catalog/seatStatus';
-import { checkPlacement, expandSectionGroup } from './placement';
+import {
+  checkPlacement,
+  expandSectionGroup,
+  type ConflictDetail,
+} from './placement';
 
 export type CandidateReason =
   'ok' | 'conflict' | 'duplicate' | 'full' | 'closed';
@@ -18,6 +22,9 @@ export interface Candidate {
   group: Section[];
   valid: boolean;
   reason: CandidateReason;
+  /** The blocking placements for a time or duplicate conflict; empty otherwise. A
+   * seat blocked candidate carries none, since freeing time cannot open a seat. */
+  conflicts: ConflictDetail[];
 }
 
 function identity(section: Section): string {
@@ -45,16 +52,34 @@ export function courseCandidates(
     const group = expandSectionGroup(course, section);
     const seat = computeSeatStatus(section);
     if (seat.kind === 'closed') {
-      candidates.push({ section, group, valid: false, reason: 'closed' });
+      candidates.push({
+        section,
+        group,
+        valid: false,
+        reason: 'closed',
+        conflicts: [],
+      });
       continue;
     }
     if (seat.kind === 'full') {
-      candidates.push({ section, group, valid: false, reason: 'full' });
+      candidates.push({
+        section,
+        group,
+        valid: false,
+        reason: 'full',
+        conflicts: [],
+      });
       continue;
     }
     const placement = checkPlacement(baseline, group);
     if (placement.ok) {
-      candidates.push({ section, group, valid: true, reason: 'ok' });
+      candidates.push({
+        section,
+        group,
+        valid: true,
+        reason: 'ok',
+        conflicts: [],
+      });
       continue;
     }
     const duplicate = placement.conflicts.some(
@@ -65,6 +90,7 @@ export function courseCandidates(
       group,
       valid: false,
       reason: duplicate ? 'duplicate' : 'conflict',
+      conflicts: placement.conflicts,
     });
   }
   return candidates;

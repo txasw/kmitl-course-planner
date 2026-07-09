@@ -74,6 +74,7 @@
   "feedback.courseDropHint": "วางบนช่องที่ไฮไลต์เพื่อเพิ่มกลุ่มเรียน",
   "feedback.moveHint": "วางบนช่องที่ไฮไลต์หรือพื้นที่นำออก",
   "blockMove.removeZone": "ลากมาที่นี่เพื่อนำออก",
+  "blockMove.swap": "สลับกับ",
   "seat.open": "ว่าง",
   "seat.full": "เต็ม",
   "seat.closed": "ปิด",

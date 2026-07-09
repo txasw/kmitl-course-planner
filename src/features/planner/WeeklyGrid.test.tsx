@@ -42,6 +42,7 @@ afterEach(() => {
   dragStore.getState().clearBlocked();
   dragStore.getState().clearHover();
   dragStore.getState().clearCourse();
+  dragStore.getState().setSwapContext(null);
 });
 
 describe('WeeklyGrid', () => {
@@ -160,5 +161,34 @@ describe('WeeklyGrid', () => {
     expect(document.querySelector('[data-candidate="valid"]')).not.toBeNull();
     expect(document.querySelector('[data-candidate="blocked"]')).not.toBeNull();
     expect(screen.getByText('901')).toBeInTheDocument();
+  });
+
+  it('renders swap targets over the blocking blocks during a blocked drag', () => {
+    const blocker = makePlaced({
+      teachTableId: 'p',
+      subjectId: 'OTHER',
+      section: '900',
+    });
+    const incoming = makeSection({
+      teachTableId: 'i',
+      subjectId: 'S1',
+      section: '901',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+    });
+    dragStore.getState().setSwapContext({
+      incoming,
+      course: makeCourse({ subjectId: 'S1', sections: [incoming] }),
+      originId: null,
+      blockers: ['p'],
+    });
+    render(
+      <WeeklyGrid
+        sections={[blocker]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(document.querySelector('[data-swap-target]')).not.toBeNull();
   });
 });
