@@ -44,6 +44,8 @@ function SkeletonRows() {
  * not aborted here; only the user's cancel aborts it. */
 const SLOW_NOTICE_MS = 8_000;
 
+// Rendered with a key derived from the query, so a new search remounts it and the
+// slow timer restarts from zero rather than carrying over the previous query's clock.
 function LoadingState({ t, onCancel }: { t: Translate; onCancel: () => void }) {
   const [slow, setSlow] = useState(false);
   useEffect(() => {
@@ -96,8 +98,10 @@ export function CatalogPanel() {
   }
 
   if (result.status === 'loading') {
+    // The key restarts the slow timer for each distinct query.
     return (
       <LoadingState
+        key={query === null ? 'idle' : JSON.stringify(query)}
         t={t}
         onCancel={() => {
           void cancel();
