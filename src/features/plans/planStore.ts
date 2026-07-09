@@ -17,8 +17,10 @@ import {
 import type { Course, Section } from '@/lib/domain/types';
 import {
   addSectionGroup,
-  removeEntry,
+  applyPlanTransaction,
+  type AddInput,
   type AddOutcome,
+  type TransactionOutcome,
 } from '@/lib/planner/transaction';
 
 /** What the last mutation added and removed, held for a short undo window. */
@@ -37,6 +39,12 @@ export interface PlanStore {
     sourceQuery: SourceQuery,
   ) => AddOutcome;
   remove: (teachTableId: string) => void;
+  /**
+   * Apply a compound move or swap: remove the listed entries and their pairs, add
+   * one section and its pair, and record both sides for undo in a single update.
+   * Returns the outcome so the caller can surface a residual conflict.
+   */
+  apply: (removeIds: string[], add: AddInput) => TransactionOutcome;
   /** Reverse the last mutation: drop what it added, restore what it removed. */
   undo: () => void;
   clearUndo: () => void;
@@ -60,10 +68,31 @@ export function createPlanStore() {
       return outcome;
     },
     remove: (teachTableId) => {
-      const { entries, removed } = removeEntry(get().entries, teachTableId);
-      if (removed.length > 0) {
-        set({ entries, pendingUndo: { added: [], removed } });
+      const outcome = applyPlanTransaction(
+        get().entries,
+        [teachTableId],
+        null,
+        new Date().toISOString(),
+      );
+      if (outcome.ok && outcome.result.removed.length > 0) {
+        set({
+          entries: outcome.result.entries,
+          pendingUndo: { added: [], removed: outcome.result.removed },
+        });
       }
+    },
+    apply: (removeIds, add) => {
+      const outcome = applyPlanTransaction(
+        get().entries,
+        removeIds,
+        add,
+        new Date().toISOString(),
+      );
+      if (outcome.ok) {
+        const { entries, added, removed } = outcome.result;
+        set({ entries, pendingUndo: { added, removed } });
+      }
+      return outcome;
     },
     undo: () => {
       const pending = get().pendingUndo;
