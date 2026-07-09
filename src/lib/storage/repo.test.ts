@@ -87,6 +87,25 @@ describe('createPlanRepository', () => {
     expect(store.get(ROOT_KEY)).toEqual(emptyRoot());
   });
 
+  it('quarantines an invalid plan and keeps the valid ones', async () => {
+    const valid = makePlan({ id: 'good' });
+    const invalidPlan = { id: 'bad' };
+    const { adapter, store } = memoryAdapter({
+      [ROOT_KEY]: { schemaVersion: 1, plans: [valid, invalidPlan] },
+    });
+    const outcome = await createPlanRepository(adapter, {
+      now: () => 'T1',
+    }).load();
+    expect(outcome.status).toBe('quarantined');
+    if (outcome.status === 'quarantined') {
+      expect(outcome.root.plans).toHaveLength(1);
+      expect(outcome.root.plans[0]?.id).toBe('good');
+      expect(outcome.quarantineKey).toBe(quarantineKey('T1'));
+    }
+    expect(store.get(quarantineKey('T1'))).toEqual([invalidPlan]);
+    expect(store.get(ROOT_KEY)).toEqual({ schemaVersion: 1, plans: [valid] });
+  });
+
   it('quarantines a non object blob using the default clock', async () => {
     const { adapter, store } = memoryAdapter({ [ROOT_KEY]: 'garbage' });
     const outcome = await createPlanRepository(adapter).load();
