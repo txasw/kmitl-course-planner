@@ -68,6 +68,8 @@
   "section.reason.conflictWith": "ชนกับ",
   "section.reason.duplicate": "มีวิชานี้ในตารางแล้ว",
   "feedback.removed": "นำออกแล้ว",
+  "feedback.moved": "ย้ายแล้ว",
+  "feedback.swapped": "สลับเป็น",
   "feedback.tryInstead": "หรือเลือก",
   "feedback.revealInCatalog": "แสดงในรายการ",
   "feedback.added": "เพิ่มลงตารางแล้ว",
