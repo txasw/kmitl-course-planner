@@ -141,7 +141,13 @@ export function PlannerPanel() {
 
   return (
     <div className="flex h-full flex-col gap-2">
-      {isPreview ? <PreviewToolbar posterRef={posterRef} /> : null}
+      {isPreview ? (
+        <PreviewToolbar
+          posterRef={posterRef}
+          sections={sections}
+          displayOptions={displayOptions}
+        />
+      ) : null}
       {viewMode === 'edit' ? <FeedbackStrip locale={language} t={t} /> : null}
       <RevalidationBanner />
       <div
