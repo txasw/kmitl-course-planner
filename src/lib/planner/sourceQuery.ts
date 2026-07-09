@@ -5,7 +5,7 @@
 
 import type { TeachTableQuery } from '../messaging/protocol';
 import type { SourceQuery } from '../domain/plan';
-import type { Semester, Term } from '../routing/academicTerms';
+import { asSemester, type Term } from '../routing/academicTerms';
 
 export function toSourceQuery(query: TeachTableQuery): SourceQuery {
   const params: Record<string, string> = {};
@@ -16,10 +16,6 @@ export function toSourceQuery(query: TeachTableQuery): SourceQuery {
     params[key] = typeof value === 'boolean' ? String(value) : value;
   }
   return { endpoint: 'get-teach-table-show', params };
-}
-
-function asSemester(value: string | undefined): Semester {
-  return value === '1' || value === '2' || value === '3' ? value : '1';
 }
 
 /**

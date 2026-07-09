@@ -37,6 +37,16 @@ export interface Term {
   semester: Semester;
 }
 
+/** Two terms are equal when their year and semester both match. */
+export function termsEqual(a: Term, b: Term): boolean {
+  return a.year === b.year && a.semester === b.semester;
+}
+
+/** Narrow a semester string to the enum, defaulting to the first semester. */
+export function asSemester(value: string | undefined): Semester {
+  return value === '1' || value === '2' || value === '3' ? value : '1';
+}
+
 function coerceSemester(value: string | undefined): Semester | null {
   return value === '1' || value === '2' || value === '3' ? value : null;
 }
