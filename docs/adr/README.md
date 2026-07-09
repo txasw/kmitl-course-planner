@@ -32,3 +32,4 @@ a new record that supersedes the old one rather than editing history.
 23. [Event block color palette](0023-event-block-color-palette.md)
 24. [Course level drag keyboard parity](0024-course-drag-keyboard-parity.md)
 25. [Plan mutation transaction and undo model](0025-plan-mutation-transaction-and-undo.md)
+26. [PNG capture library confirmation](0026-png-capture-library-confirmation.md)
