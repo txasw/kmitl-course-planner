@@ -30,10 +30,12 @@ import {
   acknowledgeEntry,
   defaultPlanName,
   duplicatePlanOf,
+  importedPlan,
   makePlan,
   mergeReconciled,
   mostRecentlyUpdated,
   replaceEntries,
+  uniquePlanName,
 } from './planActions';
 
 /** What the last mutation did, held for a short undo window. The kind drives the
@@ -71,6 +73,8 @@ export interface PlanStore {
   renamePlan: (id: string, name: string) => void;
   /** Copy a plan under a new name and make the copy active. */
   duplicatePlan: (id: string, name: string) => void;
+  /** Add a plan imported from JSON under a fresh id, marked unverified, made active. */
+  importPlan: (plan: Plan) => string;
   /** Delete a plan; if it was active, fall back to the most recently updated one. */
   deletePlan: (id: string) => void;
   setActivePlan: (id: string) => void;
@@ -278,6 +282,23 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
         entries: copy.entries,
         pendingUndo: null,
       });
+    },
+
+    importPlan: (plan) => {
+      const state = get();
+      const imported = importedPlan(
+        plan,
+        deps.uuid(),
+        uniquePlanName(plan.name, state.plans),
+        deps.now(),
+      );
+      set({
+        plans: [...state.plans, imported],
+        activePlanId: imported.id,
+        entries: imported.entries,
+        pendingUndo: null,
+      });
+      return imported.id;
     },
 
     deletePlan: (id) => {
