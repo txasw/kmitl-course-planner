@@ -171,4 +171,22 @@ describe('EventBlock', () => {
     );
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
+
+  it('opens the detail popover anchored to the block in edit mode', () => {
+    const onOpenDetail = vi.fn();
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        onOpenDetail={onOpenDetail}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: t('block.details') }));
+    expect(onOpenDetail).toHaveBeenCalledTimes(1);
+    const anchor = onOpenDetail.mock.calls[0]?.[0] as HTMLElement;
+    expect(anchor.dataset.teachTableId).toBe('t1');
+  });
 });
