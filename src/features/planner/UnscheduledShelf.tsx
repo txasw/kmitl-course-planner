@@ -13,6 +13,10 @@ interface UnscheduledShelfProps {
   locale: Locale;
   t: Translate;
   onRemove?: ((teachTableId: string) => void) | undefined;
+  /** Show the section code. A preview display option; on by default in edit mode. */
+  showSection?: boolean;
+  /** Add the English name as a secondary line under a Thai primary name. */
+  showEnglishName?: boolean;
 }
 
 export function UnscheduledShelf({
@@ -20,6 +24,8 @@ export function UnscheduledShelf({
   locale,
   t,
   onRemove,
+  showSection = true,
+  showEnglishName = false,
 }: UnscheduledShelfProps) {
   return (
     <section
@@ -32,6 +38,8 @@ export function UnscheduledShelf({
       <ul className="flex flex-col gap-1">
         {sections.map((section) => {
           const name = locale === 'th' ? section.nameTh : section.nameEn;
+          const englishSecondary =
+            showEnglishName && locale === 'th' && section.nameEn !== '';
           const badge = blockBadge(section.verifyStatus, false);
           const badgeKey = blockBadgeLabelKey(section.verifyStatus, false);
           return (
@@ -39,8 +47,16 @@ export function UnscheduledShelf({
               key={section.teachTableId}
               className="flex items-center justify-between gap-2 text-xs"
             >
-              <span className="min-w-0 truncate text-ink">
-                <span className="font-medium">{section.subjectId}</span> {name}
+              <span className="flex min-w-0 flex-col text-ink">
+                <span className="truncate">
+                  <span className="font-medium">{section.subjectId}</span>{' '}
+                  {name}
+                </span>
+                {englishSecondary ? (
+                  <span className="truncate text-ink-soft">
+                    {section.nameEn}
+                  </span>
+                ) : null}
               </span>
               <span className="flex shrink-0 items-center gap-1.5 text-ink-soft">
                 {badge !== null && badgeKey !== null ? (
@@ -48,9 +64,11 @@ export function UnscheduledShelf({
                     {t(badgeKey)}
                   </Pill>
                 ) : null}
-                <span>
-                  {t('section.code')} {section.section}
-                </span>
+                {showSection ? (
+                  <span>
+                    {t('section.code')} {section.section}
+                  </span>
+                ) : null}
                 <Pill tone="neutral">
                   {section.kind === 'practice'
                     ? t('section.practice')

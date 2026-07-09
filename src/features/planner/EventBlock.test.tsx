@@ -142,6 +142,65 @@ describe('EventBlock', () => {
     expect(screen.getByText('Test subject')).toBeInTheDocument();
   });
 
+  it('hides the section code when showSection is off', () => {
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        showSection={false}
+      />,
+    );
+    const block = screen.getByLabelText(/90592033/);
+    expect(within(block).queryByText('901')).not.toBeInTheDocument();
+  });
+
+  it('hides the room when showRoom is off', () => {
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        showRoom={false}
+      />,
+    );
+    expect(screen.queryByText('A101')).not.toBeInTheDocument();
+  });
+
+  it('adds the English name under a Thai primary when showEnglishName is on', () => {
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        showEnglishName
+      />,
+    );
+    const block = screen.getByLabelText(/90592033/);
+    expect(within(block).getByText('วิชาทดสอบ')).toBeInTheDocument();
+    expect(within(block).getByText('Test subject')).toBeInTheDocument();
+  });
+
+  it('does not duplicate the English name when it is already the primary', () => {
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="en"
+        t={createTranslator('en')}
+        showEnglishName
+      />,
+    );
+    expect(screen.getAllByText('Test subject')).toHaveLength(1);
+  });
+
   it('renders a remove control that fires onRemove in edit mode', () => {
     const onRemove = vi.fn();
     render(
