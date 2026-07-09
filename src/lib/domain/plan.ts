@@ -137,9 +137,10 @@ type SubjectMeta = SectionSnapshot['subjectMeta'];
 /**
  * Build a section snapshot from a normalized section and its subject metadata. Used
  * when an entry is added and again when revalidation reconciles an entry to fresh
- * data, so the two never build the snapshot shape differently. A fresh call produces
- * a new snapshot object, so reconciling one plan never mutates a duplicate that
- * shares the old snapshot by reference.
+ * data, so the two never build the snapshot shape differently. It returns a new top
+ * level object referencing the section's fields, so reconcile replaces an entry's
+ * snapshot rather than mutating the old one; snapshots are treated as immutable, since
+ * the nested arrays and objects are shared by reference.
  */
 export function buildSnapshot(
   section: Section,

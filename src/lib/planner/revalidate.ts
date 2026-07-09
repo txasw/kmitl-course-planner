@@ -97,9 +97,16 @@ function matchEntry(
   entry: PlanEntry,
   index: SectionIndex,
 ): { indexed: IndexedSection; keyChanged: boolean } | null {
+  // A key hit must also be the same subject and section, so a recycled teachTableId
+  // never matches an entry to a different course; otherwise fall back to identity.
   const byKey = index.byTeachTableId.get(entry.teachTableId);
-  if (byKey) {
-    return { indexed: byKey, keyChanged: false };
+  if (byKey !== undefined) {
+    if (
+      byKey.section.subjectId === entry.subjectId &&
+      byKey.section.section === entry.section
+    ) {
+      return { indexed: byKey, keyChanged: false };
+    }
   }
   const byIdentity = index.byIdentity.get(
     identityKey(entry.subjectId, entry.section),
@@ -279,14 +286,13 @@ export interface ReconcileResult {
 
 function reconcileEntry(
   entry: PlanEntry,
-  revalidation: EntryRevalidation,
   index: SectionIndex,
   now: string,
   planIds: Set<string>,
 ): { entry: PlanEntry; diff: EntryDiff } {
   const before = entry.snapshot;
   const match = matchEntry(entry, index);
-  if (revalidation.outcome === 'missing' || match === null) {
+  if (match === null) {
     // Keep the last known snapshot so the block stays on the grid at its last time;
     // mark it missing and never delete it silently.
     return {
@@ -303,34 +309,33 @@ function reconcileEntry(
     };
   }
   const fresh = match.indexed.section;
+  const changes = diffSnapshot(before, fresh);
+  const outcome: EntryOutcome = changes.length === 0 ? 'unchanged' : 'changed';
   // Adopt the fresh key silently, unless it already belongs to another entry, which
   // would make two entries share a teachTableId; keep the old key in that case.
   const collides =
     fresh.teachTableId !== entry.teachTableId &&
     planIds.has(fresh.teachTableId);
   const newId =
-    revalidation.keyChanged && !collides
-      ? fresh.teachTableId
-      : entry.teachTableId;
+    match.keyChanged && !collides ? fresh.teachTableId : entry.teachTableId;
   const after: SectionSnapshot = {
     ...buildSnapshot(fresh, match.indexed.subjectMeta),
     teachTableId: newId,
   };
-  const status: VerifyStatus = OUTCOME_STATUS[revalidation.outcome];
   return {
     entry: {
       ...entry,
       teachTableId: newId,
       snapshot: after,
       lastVerifiedAt: now,
-      verifyStatus: status,
+      verifyStatus: OUTCOME_STATUS[outcome],
     },
     diff: {
       teachTableId: newId,
       subjectId: entry.subjectId,
       section: entry.section,
-      outcome: revalidation.outcome,
-      changes: revalidation.changes,
+      outcome,
+      changes,
       before,
       after,
     },
@@ -338,15 +343,16 @@ function reconcileEntry(
 }
 
 /**
- * Fold a revalidation back into a plan: update each matched entry's snapshot to the
- * fresh data, set its verification status and time, keep a missing entry at its last
- * known time, and adopt a moved key silently. The plan's updatedAt is untouched
- * because reconcile is not a user edit. Term mismatches are reported, not fixed.
- * Pure: it builds new entries and never mutates the input plan or its snapshots.
+ * Reconcile a plan against fresh normalized data: update each matched entry's
+ * snapshot to the fresh data, set its verification status and time, keep a missing
+ * entry at its last known time, and adopt a moved key silently. It matches and diffs
+ * each entry itself, so the returned report is the single source of truth and cannot
+ * drift from a separately computed revalidation. The plan's updatedAt is untouched
+ * because reconcile is not a user edit. Term mismatches are reported, not fixed. Pure:
+ * it builds new entries and never mutates the input plan or its snapshots.
  */
 export function reconcilePlan(
   plan: Plan,
-  revalidation: PlanRevalidation,
   index: SectionIndex,
   now: string,
 ): ReconcileResult {
@@ -354,12 +360,7 @@ export function reconcilePlan(
   const entries: PlanEntry[] = [];
   const diffs: EntryDiff[] = [];
   const termFindings: ReconcileFinding[] = [];
-  plan.entries.forEach((entry, order) => {
-    const rev = revalidation.entries[order];
-    if (rev === undefined) {
-      entries.push(entry);
-      return;
-    }
+  for (const entry of plan.entries) {
     if (
       entry.sourceQuery.params.selected_year !== plan.year ||
       entry.sourceQuery.params.selected_semester !== plan.semester
@@ -370,16 +371,18 @@ export function reconcilePlan(
         section: entry.section,
       });
     }
-    const reconciled = reconcileEntry(entry, rev, index, now, planIds);
+    const reconciled = reconcileEntry(entry, index, now, planIds);
     entries.push(reconciled.entry);
     diffs.push(reconciled.diff);
-  });
+  }
+  const summary: RevalidationSummary = {
+    total: diffs.length,
+    unchanged: diffs.filter((diff) => diff.outcome === 'unchanged').length,
+    changed: diffs.filter((diff) => diff.outcome === 'changed').length,
+    missing: diffs.filter((diff) => diff.outcome === 'missing').length,
+  };
   return {
     plan: { ...plan, entries },
-    report: {
-      summary: revalidation.summary,
-      entries: diffs,
-      termFindings,
-    },
+    report: { summary, entries: diffs, termFindings },
   };
 }
