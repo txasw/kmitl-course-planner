@@ -240,6 +240,45 @@ describe('createGateway', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
+  it('cancels an in flight teach table query so a retry re-fetches', async () => {
+    const fixture = loadFixture(
+      'teach-table.by_subject_owner_id-32.capture.json',
+    );
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockImplementationOnce(
+        (_input, init) =>
+          new Promise<Response>((_resolve, reject) => {
+            const abort = () => {
+              reject(new DOMException('Aborted', 'AbortError'));
+            };
+            // Real fetch rejects at once for an already aborted signal, which happens
+            // when the cancel lands before the fetch starts.
+            if (init?.signal?.aborted) {
+              abort();
+              return;
+            }
+            init?.signal?.addEventListener('abort', abort);
+          }),
+      )
+      .mockResolvedValue(okResponse(fixture));
+    const gateway = createGateway({
+      cache: newCache(),
+      env: makeEnv(fetchImpl),
+    });
+
+    const inflight = gateway.teachTable(ownerQuery);
+    gateway.cancelTeachTable(ownerQuery);
+    const canceled = await inflight;
+    expect(canceled.ok).toBe(false);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+
+    // The cancel cleared the coalescing slot, so a fresh call re-fetches.
+    const retried = await gateway.teachTable(ownerQuery);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(retried.ok).toBe(true);
+  });
+
   it('honors the 10 minute teach table ttl', async () => {
     const fixture = loadFixture(
       'teach-table.by_subject_owner_id-32.capture.json',
