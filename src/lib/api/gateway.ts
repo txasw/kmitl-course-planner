@@ -104,10 +104,15 @@ export function createGateway(deps: GatewayDeps): Gateway {
     if (directive?.kind === 'fixture') {
       return { result: ok(directive.response), status: 200, retryCount: 0 };
     }
+    const fetchOptions = { timeoutMs: context.timeoutMs };
     if (directive?.kind === 'fault') {
-      return fetchJson(context.url, withFault(env, directive.fault));
+      return fetchJson(
+        context.url,
+        withFault(env, directive.fault),
+        fetchOptions,
+      );
     }
-    const outcome = await fetchJson(context.url, env);
+    const outcome = await fetchJson(context.url, env, fetchOptions);
     if (directive?.kind === 'mutate' && outcome.result.ok) {
       return { ...outcome, result: ok(directive.mutate(outcome.result.value)) };
     }
@@ -191,6 +196,7 @@ export function createGateway(deps: GatewayDeps): Gateway {
         endpoint: endpoint.endpoint,
         params: {},
         url: endpoint.url,
+        timeoutMs: endpoint.timeoutMs,
       };
       return load(
         context,
@@ -205,6 +211,7 @@ export function createGateway(deps: GatewayDeps): Gateway {
         endpoint: teachTableEndpoint.endpoint,
         params: teachTableParams(query),
         url: teachTableUrl(query),
+        timeoutMs: teachTableEndpoint.timeoutMs,
       };
       const validated = await load(
         context,

@@ -25,7 +25,18 @@ import {
   refCacheKey,
   teachCacheKey,
 } from '../storage/keys';
+import { DEFAULT_TIMEOUT_MS } from './http';
 import { hashKey, stableParamString } from './cache';
+
+// Reference lists are small and fixed, so they keep the default budget. The teach
+// table endpoint is raised because a large category or all curricula query returns a
+// multi megabyte payload whose download, not its parsing, exceeds the default: parse,
+// validate, and normalize together are a few milliseconds even on a 499 row capture,
+// so the overrun is network time. The 8 second slow notice with a cancel gives the
+// user control long before this hard backstop. Confirm the live time to first byte
+// and download split with the debug request log instrumentation.
+const REFERENCE_TIMEOUT_MS = DEFAULT_TIMEOUT_MS;
+export const TEACH_TABLE_TIMEOUT_MS = 45_000;
 
 export interface ReferenceEndpoint<T> {
   /** Function name used for the request log and the audit context. */
@@ -34,6 +45,7 @@ export interface ReferenceEndpoint<T> {
   schema: z.ZodType<T>;
   ttlMs: number;
   cacheKey: string;
+  timeoutMs: number;
 }
 
 const API_BASE = 'https://api.reg.kmitl.ac.th';
@@ -68,6 +80,7 @@ export const facultyEndpoint: ReferenceEndpoint<RawFaculty[]> = {
   schema: facultyListSchema,
   ttlMs: REFERENCE_TTL_MS,
   cacheKey: refCacheKey('faculty'),
+  timeoutMs: REFERENCE_TIMEOUT_MS,
 };
 
 export const departmentEndpoint: ReferenceEndpoint<RawDepartment[]> = {
@@ -76,6 +89,7 @@ export const departmentEndpoint: ReferenceEndpoint<RawDepartment[]> = {
   schema: departmentListSchema,
   ttlMs: REFERENCE_TTL_MS,
   cacheKey: refCacheKey('department'),
+  timeoutMs: REFERENCE_TIMEOUT_MS,
 };
 
 export const curriculumEndpoint: ReferenceEndpoint<RawCurriculum[]> = {
@@ -84,6 +98,7 @@ export const curriculumEndpoint: ReferenceEndpoint<RawCurriculum[]> = {
   schema: curriculumListSchema,
   ttlMs: REFERENCE_TTL_MS,
   cacheKey: refCacheKey('curriculum'),
+  timeoutMs: REFERENCE_TIMEOUT_MS,
 };
 
 export const subjectOwnerEndpoint: ReferenceEndpoint<RawSubjectOwner[]> = {
@@ -92,6 +107,7 @@ export const subjectOwnerEndpoint: ReferenceEndpoint<RawSubjectOwner[]> = {
   schema: subjectOwnerListSchema,
   ttlMs: REFERENCE_TTL_MS,
   cacheKey: refCacheKey('subjectOwner'),
+  timeoutMs: REFERENCE_TIMEOUT_MS,
 };
 
 /** The teach table query params, with the search_all_* flags as string booleans. */
@@ -127,4 +143,5 @@ export const teachTableEndpoint = {
   endpoint: TEACH_TABLE_ENDPOINT,
   schema: teachTableResponseSchema,
   ttlMs: TEACH_TABLE_TTL_MS,
+  timeoutMs: TEACH_TABLE_TIMEOUT_MS,
 } as const;
