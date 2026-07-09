@@ -9,7 +9,19 @@ import {
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
 import { expectNoSeriousA11yViolations } from '../../../tests/support/axe';
+import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
+import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { PlannerPanel } from './PlannerPanel';
+
+// The panel always renders inside the search deps provider in the app; the banner
+// reads it for the manual refresh send.
+function renderPanel() {
+  return render(
+    <SearchDepsProvider value={fakeSearchDeps()}>
+      <PlannerPanel />
+    </SearchDepsProvider>,
+  );
+}
 
 function seed(entries: PlanEntry[]): void {
   act(() => {
@@ -27,7 +39,7 @@ afterEach(() => {
 
 describe('PlannerPanel', () => {
   it('shows the designed empty state when the plan has no sections', () => {
-    render(<PlannerPanel />);
+    renderPanel();
     expect(screen.getByText('ตารางยังว่าง')).toBeInTheDocument();
   });
 
@@ -50,7 +62,7 @@ describe('PlannerPanel', () => {
         }),
       }),
     ]);
-    render(<PlannerPanel />);
+    renderPanel();
     expect(screen.getByLabelText(/90000001/)).toBeInTheDocument();
     expect(
       screen.getByRole('region', { name: 'รายวิชาที่ไม่มีคาบเรียน' }),
@@ -65,7 +77,7 @@ describe('PlannerPanel', () => {
     act(() => {
       uiStore.getState().setViewMode('preview');
     });
-    render(<PlannerPanel />);
+    renderPanel();
     expect(screen.getByRole('heading', { name: 'ตาราง' })).toBeInTheDocument();
   });
 
@@ -88,7 +100,7 @@ describe('PlannerPanel', () => {
         }),
       }),
     ]);
-    const { container } = render(<PlannerPanel />);
+    const { container } = renderPanel();
     await expectNoSeriousA11yViolations(container);
   });
 });
