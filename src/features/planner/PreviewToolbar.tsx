@@ -13,6 +13,7 @@ import { toastStore } from '@/features/shell/toastStore';
 import { downloadBlob } from '@/lib/utils/download';
 import { planExportBaseName } from '@/lib/planner/exportName';
 import { capturePng } from './capture';
+import { DisplayOptionsPopover } from './DisplayOptionsPopover';
 
 interface PreviewToolbarProps {
   /** The poster node captured by the image actions. */
@@ -47,8 +48,9 @@ export function PreviewToolbar({ posterRef }: PreviewToolbarProps) {
     <div
       role="toolbar"
       aria-label={t('preview.toolbar')}
-      className="flex shrink-0 items-center gap-2"
+      className="flex shrink-0 flex-wrap items-center gap-2"
     >
+      <DisplayOptionsPopover />
       <button type="button" onClick={handleDownloadPng} className={BUTTON}>
         <Download size={16} strokeWidth={2} aria-hidden />
         {t('preview.downloadPng')}
