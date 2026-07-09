@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { Bug, RefreshCw, X } from 'lucide-react';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { toastStore } from '@/features/shell/toastStore';
+import { downloadText } from '@/lib/utils/download';
 import { isSimulationArmed, useDiagnosticsData } from './useDiagnosticsData';
 import {
   RawNormalizedView,
@@ -28,18 +29,6 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'raw', label: 'Raw vs normalized' },
   { id: 'simulation', label: 'Simulation' },
 ];
-
-function downloadJson(filename: string, value: unknown): void {
-  const blob = new Blob([JSON.stringify(value, null, 2)], {
-    type: 'application/json',
-  });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  URL.revokeObjectURL(url);
-}
 
 const ACTION =
   'rounded-kcp border border-border px-2 py-1 text-xs font-medium text-ink hover:bg-surface-alt focus:ring-2 focus:ring-primary focus:outline-none';
@@ -160,7 +149,10 @@ export function Diagnostics() {
           disabled={data.report === null}
           onClick={() => {
             if (data.report !== null) {
-              downloadJson('kcp-report.json', data.report);
+              downloadText(
+                'kcp-report.json',
+                JSON.stringify(data.report, null, 2),
+              );
               toastStore.getState().show('success', 'Report exported');
             }
           }}
