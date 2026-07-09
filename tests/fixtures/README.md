@@ -42,6 +42,15 @@ renders each section under a Thai day name, which cross checks the numeric `teac
 values in the captures. The site JavaScript and CSS bundles are intentionally excluded;
 only the public markup is kept.
 
+## Synthetic fixtures
+
+`synthetic.block-interactions.json` is the one fixture that is not a live capture. It
+is a hand built teach table response, in the exact captured shape, that the end to end
+block interaction specs need: overlapping open sections and a multi section subject
+that the real captures do not provide (their multi section subject is full and their
+open sections do not overlap). The mock server serves it only for the reserved subject
+id `90000000`, so no other spec sees it. It carries only synthetic course data.
+
 ## Regressions
 
 `regressions/` holds payloads captured from live contract deviations. See its README
