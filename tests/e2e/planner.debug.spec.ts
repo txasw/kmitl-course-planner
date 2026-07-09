@@ -152,6 +152,33 @@ test('lists an added unscheduled course on the shelf', async ({ context }) => {
   await expect(shelf.getByText('01006029')).toBeVisible();
 });
 
+test('opens a block detail popover and removes the section through it', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await categorySearch(page);
+
+  await page
+    .getByRole('button', { name: 'เพิ่ม', exact: true })
+    .first()
+    .click();
+  const block = page.locator(GRID_BLOCK).first();
+  await expect(block).toBeVisible();
+
+  // The block carries a details control alongside its remove control. Opening it
+  // mounts the popover anchored to the block; the overlay itself is also a dialog,
+  // so the popover is identified by the floating element marker.
+  await block.getByRole('button', { name: 'รายละเอียด' }).click();
+  const popover = page.locator('[data-floating-ui-focusable]');
+  await expect(popover).toBeVisible();
+
+  // Removing through the popover clears the block, the same path as the block's own
+  // remove control, and closes the popover.
+  await popover.getByRole('button', { name: 'นำออก', exact: true }).click();
+  await expect(page.locator(GRID_BLOCK)).toHaveCount(0);
+  await expect(popover).toHaveCount(0);
+});
+
 test('preview removes the mutating controls and keeps the grid', async ({
   context,
 }) => {
