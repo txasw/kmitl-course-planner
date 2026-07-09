@@ -94,6 +94,13 @@ export async function startMockServer(): Promise<MockServer> {
             );
             return;
           }
+          // A synthetic catalog of overlapping and multi section courses the block
+          // move and swap specs need, served for one reserved subject id so no other
+          // spec sees it.
+          if (url.searchParams.get('selected_subject_id') === '90000000') {
+            sendJson('synthetic.block-interactions.json');
+            return;
+          }
           sendJson('teach-table.by_subject_owner_id-32.capture.json');
           return;
         }
