@@ -88,10 +88,11 @@ describe('usePlanPersistence', () => {
     expect(issue?.kind === 'quarantined' && issue.data).toContain('bad');
   });
 
-  it('surfaces a refused schema without hydrating', async () => {
+  it('surfaces a refused schema without hydrating or autosaving over it', async () => {
+    const save = vi.fn(() => Promise.resolve(ok(undefined)));
     render(
       <Harness
-        repo={repoWith({ status: 'refused', reason: 'newer than known' })}
+        repo={repoWith({ status: 'refused', reason: 'newer than known' }, save)}
         adapter={fakeAdapter()}
       />,
     );
@@ -99,6 +100,12 @@ describe('usePlanPersistence', () => {
       expect(storageIssueStore.getState().issue?.kind).toBe('refused');
     });
     expect(planStore.getState().plans).toHaveLength(0);
+    // A later edit must not autosave, or it would overwrite the newer schema blob.
+    planStore.getState().createPlan('x', { year: '2569', semester: '1' });
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 400);
+    });
+    expect(save).not.toHaveBeenCalled();
   });
 
   it('autosaves a plan mutation after the debounce', async () => {
