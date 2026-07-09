@@ -10,20 +10,24 @@ import { toSourceQuery } from '@/lib/planner/sourceQuery';
 import { searchStore } from '@/features/search/searchStore';
 import { planStore } from './planStore';
 
-const FALLBACK_SOURCE_QUERY: SourceQuery = {
-  endpoint: 'get-teach-table-show',
-  params: {},
-};
-
-/** The source query for the search that produced the current catalog, stamped on a
- * new entry so revalidation can replay it. */
-function currentSourceQuery(): SourceQuery {
+/** The source query for the search that produced the current catalog, or null when
+ * no search has run, stamped on a new entry so revalidation can replay it. */
+function currentSourceQuery(): SourceQuery | null {
   const query = searchStore.getState().resultQuery;
-  return query === null ? FALLBACK_SOURCE_QUERY : toSourceQuery(query);
+  return query === null ? null : toSourceQuery(query);
 }
 
+// The catalog only renders once a search returns a result, so a term bearing source
+// query is always present when a section can be added; this guards the unreachable
+// case rather than stamping a term-less entry that the plan term invariant rejects.
+const NO_SEARCH_CONTEXT = { ok: false as const, conflicts: [] };
+
 export function addSectionToPlan(course: Course, section: Section): AddOutcome {
-  return planStore.getState().add(course, section, currentSourceQuery());
+  const sourceQuery = currentSourceQuery();
+  if (sourceQuery === null) {
+    return NO_SEARCH_CONTEXT;
+  }
+  return planStore.getState().add(course, section, sourceQuery);
 }
 
 /** Remove the listed placed sections and their pairs, add one section and its pair,
@@ -34,13 +38,13 @@ function commit(
   section: Section,
   kind: 'move' | 'swap',
 ): TransactionOutcome {
+  const sourceQuery = currentSourceQuery();
+  if (sourceQuery === null) {
+    return NO_SEARCH_CONTEXT;
+  }
   return planStore
     .getState()
-    .apply(
-      removeIds,
-      { course, section, sourceQuery: currentSourceQuery() },
-      kind,
-    );
+    .apply(removeIds, { course, section, sourceQuery }, kind);
 }
 
 /**
