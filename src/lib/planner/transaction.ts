@@ -130,6 +130,68 @@ export function removeEntry(
   };
 }
 
+/** The section to add in a transaction, with the source query to stamp on it. */
+export interface AddInput {
+  course: Course;
+  section: Section;
+  sourceQuery: SourceQuery;
+}
+
+export interface TransactionSuccess {
+  entries: PlanEntry[];
+  added: PlanEntry[];
+  removed: PlanEntry[];
+}
+
+export type TransactionOutcome =
+  | { ok: true; result: TransactionSuccess }
+  | { ok: false; conflicts: ConflictDetail[] };
+
+/**
+ * Apply a remove then add over the plan's entries as one atomic step. Each id in
+ * removeIds takes its section and declared pair out, so a removed id whose pair is
+ * also listed is a no op the second time. When add is given, its section and pair are
+ * validated against the reduced entries and appended; on any conflict nothing changes
+ * and the conflicts are returned. One primitive expresses add (no removeIds), remove
+ * (no add), move (remove the origin), and swap (remove the blocker, plus the origin
+ * when a placed block moves onto a swap target).
+ */
+export function applyPlanTransaction(
+  entries: PlanEntry[],
+  removeIds: string[],
+  add: AddInput | null,
+  now: string,
+): TransactionOutcome {
+  let working = entries;
+  const removed: PlanEntry[] = [];
+  for (const id of removeIds) {
+    const step = removeEntry(working, id);
+    working = step.entries;
+    removed.push(...step.removed);
+  }
+  if (add === null) {
+    return { ok: true, result: { entries: working, added: [], removed } };
+  }
+  const outcome = addSectionGroup(
+    working,
+    add.course,
+    add.section,
+    add.sourceQuery,
+    now,
+  );
+  if (!outcome.ok) {
+    return { ok: false, conflicts: outcome.conflicts };
+  }
+  return {
+    ok: true,
+    result: {
+      entries: outcome.result.entries,
+      added: outcome.result.added,
+      removed,
+    },
+  };
+}
+
 /** Total credits and distinct subjects across the plan, including unscheduled ones. */
 export function planCredits(entries: PlanEntry[]): CreditSummary {
   return summarizeCredits(
