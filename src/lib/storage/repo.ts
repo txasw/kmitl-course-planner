@@ -6,7 +6,7 @@
 // never blocked and stored data is never silently overwritten with garbage.
 
 import { z } from 'zod';
-import { planSchema } from '../domain/plan';
+import { planSchema, type Plan } from '../domain/plan';
 import {
   ok,
   err,
@@ -24,6 +24,13 @@ export const persistedRootSchema = z.object({
 export type PersistedRoot = z.infer<typeof persistedRootSchema>;
 
 const versionSchema = z.object({ schemaVersion: z.number() });
+
+// The root shape without validating each plan, so a single invalid plan can be
+// quarantined on its own rather than discarding every saved plan.
+const rootShapeSchema = z.object({
+  schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
+  plans: z.array(z.unknown()),
+});
 
 /** Minimal async key value store the repository reads and writes. */
 export interface StorageAdapter {
@@ -87,11 +94,37 @@ export function createPlanRepository(
     if (!migrated.ok) {
       return { status: 'refused', reason: migrated.error.message };
     }
-    const validated = persistedRootSchema.safeParse(migrated.value);
-    if (!validated.success) {
+    const shape = rootShapeSchema.safeParse(migrated.value);
+    if (!shape.success) {
+      // The root itself is malformed, so there is nothing to salvage per plan.
       return quarantine(raw);
     }
-    return { status: 'ok', root: validated.data };
+    // Validate each plan on its own, so one bad plan is quarantined while the rest
+    // load. A total quarantine would lose every plan for a single corrupt one.
+    const valid: Plan[] = [];
+    const invalid: unknown[] = [];
+    for (const candidate of shape.data.plans) {
+      const parsed = planSchema.safeParse(candidate);
+      if (parsed.success) {
+        valid.push(parsed.data);
+      } else {
+        invalid.push(candidate);
+      }
+    }
+    if (invalid.length > 0) {
+      const key = quarantineKey(now());
+      await adapter.set(key, invalid);
+      const root: PersistedRoot = {
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        plans: valid,
+      };
+      await adapter.set(ROOT_KEY, root);
+      return { status: 'quarantined', root, quarantineKey: key };
+    }
+    return {
+      status: 'ok',
+      root: { schemaVersion: CURRENT_SCHEMA_VERSION, plans: valid },
+    };
   }
 
   async function save(
