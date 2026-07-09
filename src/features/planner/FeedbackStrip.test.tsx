@@ -219,6 +219,8 @@ describe('FeedbackStrip', () => {
       meetings: [makeMeeting({ day: 2, startMin: 600, endMin: 660 })],
     });
     act(() => {
+      // A search context so the add stamps a term rather than being refused.
+      searchStore.setState({ resultQuery: QUERY_S2 });
       dragStore.setState({
         active: null,
         blocked: {
