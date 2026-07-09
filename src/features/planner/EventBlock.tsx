@@ -37,6 +37,12 @@ interface EventBlockProps {
   removeLabel?: string;
   /** Open the block detail popover anchored to this block, edit mode only. */
   onOpenDetail?: (anchor: HTMLElement) => void;
+  /** Show the room line. A preview display option; on by default in edit mode. */
+  showRoom?: boolean;
+  /** Show the section code beside the subject id. On by default in edit mode. */
+  showSection?: boolean;
+  /** Add the English name as a secondary line under a Thai primary name. */
+  showEnglishName?: boolean;
 }
 
 export function EventBlock({
@@ -53,8 +59,15 @@ export function EventBlock({
   onRemove,
   removeLabel,
   onOpenDetail,
+  showRoom = true,
+  showSection = true,
+  showEnglishName = false,
 }: EventBlockProps) {
   const name = locale === 'th' ? section.nameTh : section.nameEn;
+  // The English name is guaranteed visible when the option is on: it is the primary
+  // in English, so it only needs adding as a secondary line under a Thai primary.
+  const englishSecondary =
+    showEnglishName && locale === 'th' && section.nameEn !== '';
   const time = `${formatMinutes(meeting.startMin)}-${formatMinutes(meeting.endMin)}`;
   const badge = blockBadge(section.verifyStatus, conflicted);
   const badgeLabelKey = blockBadgeLabelKey(section.verifyStatus, conflicted);
@@ -87,11 +100,19 @@ export function EventBlock({
         />
       ) : null}
       <span className="truncate font-semibold">
-        {section.subjectId}{' '}
-        <span className="font-normal">{section.section}</span>
+        {section.subjectId}
+        {showSection ? (
+          <>
+            {' '}
+            <span className="font-normal">{section.section}</span>
+          </>
+        ) : null}
       </span>
       <span className="truncate">{name}</span>
-      {meeting.room !== '' ? (
+      {englishSecondary ? (
+        <span className="truncate text-white/85">{section.nameEn}</span>
+      ) : null}
+      {showRoom && meeting.room !== '' ? (
         <span className="truncate text-white/85">{meeting.room}</span>
       ) : null}
       {onOpenDetail !== undefined || onRemove !== undefined ? (

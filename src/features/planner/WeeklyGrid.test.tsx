@@ -61,6 +61,35 @@ describe('WeeklyGrid', () => {
     expect(block.style.gridRow).toBe('3');
   });
 
+  it('trims to a given day run and rows blocks by their position', () => {
+    const placed = makePlaced({
+      meetings: [
+        {
+          day: 5,
+          startMin: 540,
+          endMin: 720,
+          room: 'A101',
+          building: 'A',
+          kind: 'lecture',
+        },
+      ],
+    });
+    render(
+      <WeeklyGrid
+        sections={[placed]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+        days={[1, 2, 3, 4, 5]}
+      />,
+    );
+    // Sunday is trimmed out of the run; Friday stays.
+    expect(screen.queryByLabelText('วันอาทิตย์')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('วันศุกร์')).toBeInTheDocument();
+    // Friday is the fifth row in the run, so the block lands in grid row 2 + 4.
+    expect(screen.getByLabelText(/90592033/).style.gridRow).toBe('6');
+  });
+
   it('labels the grid and the seven day rows', () => {
     render(
       <WeeklyGrid sections={[]} window={DEFAULT_WINDOW} locale="th" t={t} />,
