@@ -12,9 +12,11 @@ import {
   Check,
   ChevronDown,
   Copy,
+  Download,
   Pencil,
   Plus,
   Trash2,
+  Upload,
 } from 'lucide-react';
 import {
   autoUpdate,
@@ -26,10 +28,13 @@ import {
   useFloating,
   useInteractions,
 } from '@floating-ui/react';
-import type { Plan } from '@/lib/domain/plan';
+import { planSchema, type Plan } from '@/lib/domain/plan';
 import type { Term } from '@/lib/routing/academicTerms';
 import type { Translate } from '@/lib/i18n/t';
+import { planExportBaseName } from '@/lib/planner/exportName';
+import { downloadText } from '@/lib/utils/download';
 import { searchStore, type SearchStore } from '@/features/search/searchStore';
+import { toastStore } from '@/features/shell/toastStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { planStore, useActivePlan } from './planStore';
 
@@ -42,7 +47,8 @@ interface TermGroup {
 type Mode =
   | { kind: 'list' }
   | { kind: 'name'; action: 'create' | 'rename'; value: string }
-  | { kind: 'confirmDelete' };
+  | { kind: 'confirmDelete' }
+  | { kind: 'importError'; issues: string[] };
 
 function termLabel(term: Term, t: Translate): string {
   return `${t('search.semester')} ${term.semester}/${term.year}`;
@@ -93,6 +99,7 @@ export function PlanSwitcher() {
   const [mode, setMode] = useState<Mode>({ kind: 'list' });
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const searchTerm = useMemo<Term>(
     () => ({ year: searchYear, semester: searchSemester }),
@@ -200,6 +207,51 @@ export function PlanSwitcher() {
     closeMenu();
   };
 
+  const handleExport = () => {
+    if (activePlan === null) {
+      return;
+    }
+    const result = planSchema.safeParse(activePlan);
+    if (!result.success) {
+      toastStore.getState().show('error', t('planData.exportFailed'));
+      return;
+    }
+    downloadText(
+      `${planExportBaseName(activePlan)}.json`,
+      JSON.stringify(result.data, null, 2),
+    );
+    toastStore.getState().show('success', t('planData.exported'));
+    closeMenu();
+  };
+
+  // Validate the imported blob at the trust boundary and, on any issue, list the
+  // exact failing fields without committing anything. On success importPlan lands a
+  // new unverified plan that revalidation reconciles on first open.
+  const importText = (text: string) => {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text) as unknown;
+    } catch {
+      setMode({ kind: 'importError', issues: [t('planData.invalidJson')] });
+      return;
+    }
+    const result = planSchema.safeParse(parsed);
+    if (!result.success) {
+      setMode({
+        kind: 'importError',
+        issues: result.error.issues.map((issue) => {
+          const path = issue.path.map(String).join('.');
+          return path === '' ? issue.message : `${path}: ${issue.message}`;
+        }),
+      });
+      return;
+    }
+    planStore.getState().importPlan(result.data);
+    snapToActivePlan();
+    closeMenu();
+    toastStore.getState().show('success', t('planData.imported'));
+  };
+
   const triggerLabel =
     activePlan === null ? t('planSwitcher.noPlan') : activePlan.name;
 
@@ -228,6 +280,21 @@ export function PlanSwitcher() {
           className="shrink-0 text-ink-soft"
         />
       </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/json,.json"
+        aria-label={t('planData.import')}
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          // Clear the value so re-importing the same file fires change again.
+          event.target.value = '';
+          if (file !== undefined) {
+            void file.text().then(importText);
+          }
+        }}
+      />
       {open ? (
         <div
           ref={setFloating}
@@ -277,6 +344,26 @@ export function PlanSwitcher() {
                   className="rounded-kcp bg-danger px-2 py-1 font-medium text-white outline-none hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   {t('planSwitcher.delete')}
+                </button>
+              </div>
+            </div>
+          ) : mode.kind === 'importError' ? (
+            <div className="flex flex-col gap-2">
+              <p className="font-medium text-ink">{t('planData.errorTitle')}</p>
+              <ul className="flex max-h-48 flex-col gap-1 overflow-auto kcp-scroll text-xs text-danger">
+                {mode.issues.map((issue, index) => (
+                  <li key={`${String(index)}-${issue}`}>{issue}</li>
+                ))}
+              </ul>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode({ kind: 'list' });
+                  }}
+                  className="rounded-kcp border border-border px-2 py-1 font-medium text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                >
+                  {t('action.back')}
                 </button>
               </div>
             </div>
@@ -368,6 +455,22 @@ export function PlanSwitcher() {
                       }}
                     />
                   </>
+                ) : null}
+              </div>
+              <div className="mt-1 flex items-center gap-1 border-t border-border pt-1">
+                <ActionButton
+                  icon={<Upload size={14} strokeWidth={2} aria-hidden />}
+                  label={t('planData.import')}
+                  onClick={() => {
+                    fileInputRef.current?.click();
+                  }}
+                />
+                {activePlan !== null ? (
+                  <ActionButton
+                    icon={<Download size={14} strokeWidth={2} aria-hidden />}
+                    label={t('planData.export')}
+                    onClick={handleExport}
+                  />
                 ) : null}
               </div>
             </div>
