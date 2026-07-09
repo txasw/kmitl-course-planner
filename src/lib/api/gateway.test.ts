@@ -32,6 +32,7 @@ const probeEndpoint: ReferenceEndpoint<{ id: string }[]> = {
   schema: probeSchema,
   ttlMs: 1000,
   cacheKey: 'kcp:cache:ref:probe',
+  timeoutMs: 15_000,
 };
 
 const ownerQuery: TeachTableQuery = {

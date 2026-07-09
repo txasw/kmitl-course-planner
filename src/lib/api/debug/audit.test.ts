@@ -22,7 +22,12 @@ describe('createAuditInterceptor', () => {
       'teach-table.by_subject_owner_id-32.capture.json',
     );
     audit.observe(
-      { endpoint: 'get-teach-table-show', params: { mode: 'x' }, url: 'u' },
+      {
+        endpoint: 'get-teach-table-show',
+        params: { mode: 'x' },
+        url: 'u',
+        timeoutMs: 15_000,
+      },
       fixture,
     );
     const report = get();
@@ -33,7 +38,10 @@ describe('createAuditInterceptor', () => {
   it('runs the reference auditor for a reference endpoint', () => {
     const { audit, get } = collector();
     const fixture = loadFixture('faculty.capture.json');
-    audit.observe({ endpoint: 'get-faculty', params: {}, url: 'u' }, fixture);
+    audit.observe(
+      { endpoint: 'get-faculty', params: {}, url: 'u', timeoutMs: 15_000 },
+      fixture,
+    );
     expect(get()?.totals.rows).toBeGreaterThan(0);
   });
 });

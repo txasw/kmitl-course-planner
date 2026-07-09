@@ -34,6 +34,8 @@ export interface RequestContext {
   endpoint: string;
   params: Record<string, string>;
   url: string;
+  /** The per attempt timeout budget for this endpoint. */
+  timeoutMs: number;
 }
 
 /**

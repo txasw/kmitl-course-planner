@@ -15,7 +15,8 @@ import {
 } from '../utils/result';
 import type { GatewayEnv } from './types';
 
-const TIMEOUT_MS = 15_000;
+/** Default per attempt timeout, used when an endpoint does not set its own. */
+export const DEFAULT_TIMEOUT_MS = 15_000;
 const MAX_RETRIES = 2;
 const BACKOFF_BASE_MS = 300;
 const BACKOFF_CAP_MS = 4_000;
@@ -48,11 +49,15 @@ function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : 'network request failed';
 }
 
-async function attemptOnce(url: string, env: GatewayEnv): Promise<Attempt> {
+async function attemptOnce(
+  url: string,
+  env: GatewayEnv,
+  timeoutMs: number,
+): Promise<Attempt> {
   const controller = new AbortController();
   const timer = setTimeout(() => {
     controller.abort();
-  }, TIMEOUT_MS);
+  }, timeoutMs);
   try {
     const response = await env.fetch(url, {
       method: 'GET',
@@ -108,6 +113,14 @@ function backoffDelay(attempt: number, env: GatewayEnv): number {
   return env.random() * ceiling;
 }
 
+export interface FetchOptions {
+  /** Retries for a transient failure. Defaults to two. */
+  maxRetries?: number;
+  /** Per attempt timeout. Defaults to DEFAULT_TIMEOUT_MS; the teach table endpoint
+   * raises it because its large category payloads take longer than reference data. */
+  timeoutMs?: number;
+}
+
 /**
  * Fetch a URL as JSON. Retries network failures and 5xx responses up to
  * maxRetries times; a 4xx, a timeout, or a non JSON body is returned as is.
@@ -115,10 +128,12 @@ function backoffDelay(attempt: number, env: GatewayEnv): number {
 export async function fetchJson(
   url: string,
   env: GatewayEnv,
-  maxRetries = MAX_RETRIES,
+  options: FetchOptions = {},
 ): Promise<HttpOutcome> {
+  const maxRetries = options.maxRetries ?? MAX_RETRIES;
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   for (let attempt = 0; ; attempt += 1) {
-    const attemptResult = await attemptOnce(url, env);
+    const attemptResult = await attemptOnce(url, env, timeoutMs);
     const exhausted = attempt >= maxRetries;
     if (!attemptResult.retryable || exhausted) {
       return {

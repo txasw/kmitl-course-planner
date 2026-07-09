@@ -106,6 +106,7 @@ describe('installDebug', () => {
       endpoint: 'get-teach-table-show',
       params: { mode: 'by_class' },
       url: 'https://example.test',
+      timeoutMs: 15_000,
     };
     const raw = [{ teachtable: [] }];
     audit?.observe(context, raw);

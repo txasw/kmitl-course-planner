@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
   curriculumEndpoint,
+  departmentEndpoint,
   facultyEndpoint,
   subjectOwnerEndpoint,
   teachTableCacheKey,
+  teachTableEndpoint,
   teachTableParams,
   teachTableUrl,
 } from './endpoints';
+import { DEFAULT_TIMEOUT_MS } from './http';
 import type { TeachTableQuery } from '../messaging/protocol';
 
 const ownerQuery: TeachTableQuery = {
@@ -17,6 +20,20 @@ const ownerQuery: TeachTableQuery = {
   search_all_faculty: false,
   selected_subject_owner_id: '32',
 };
+
+describe('endpoint timeouts', () => {
+  it('raises the teach table timeout above the reference default', () => {
+    expect(teachTableEndpoint.timeoutMs).toBeGreaterThan(DEFAULT_TIMEOUT_MS);
+    for (const endpoint of [
+      facultyEndpoint,
+      departmentEndpoint,
+      curriculumEndpoint,
+      subjectOwnerEndpoint,
+    ]) {
+      expect(endpoint.timeoutMs).toBe(DEFAULT_TIMEOUT_MS);
+    }
+  });
+});
 
 describe('reference endpoints', () => {
   it('points reference calls at the api host with static cache keys', () => {
