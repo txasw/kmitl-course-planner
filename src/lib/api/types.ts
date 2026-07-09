@@ -22,6 +22,12 @@ export interface RequestLogEntry {
   endpoint: string;
   params: Record<string, string>;
   durationMs: number;
+  /** Phase breakdown, so a slow query reads as network or client bound at a glance. */
+  ttfbMs: number;
+  downloadMs: number;
+  parseMs: number;
+  validateMs: number;
+  payloadBytes: number;
   cacheHit: boolean;
   retryCount: number;
   /** HTTP status of the final attempt, or null when no response was received. */

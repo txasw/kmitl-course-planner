@@ -16,7 +16,7 @@ import {
 } from '../domain/normalize';
 import type { TeachTableQuery } from '../messaging/protocol';
 import type { CacheStore } from './cache';
-import { fetchJson, type HttpOutcome } from './http';
+import { fetchJson, type HttpOutcome, type HttpTimings } from './http';
 import {
   teachTableCacheKey,
   teachTableEndpoint,
@@ -49,7 +49,16 @@ interface LogMetrics {
   status: number | null;
   retryCount: number;
   durationMs: number;
+  timings: HttpTimings;
+  validateMs: number;
 }
+
+const NO_TIMINGS: HttpTimings = {
+  ttfbMs: 0,
+  downloadMs: 0,
+  parseMs: 0,
+  payloadBytes: 0,
+};
 
 /** Wrap the env with a fetch that emulates a simulated fault. */
 function withFault(env: GatewayEnv, fault: FaultOutcome): GatewayEnv {
@@ -94,6 +103,11 @@ export function createGateway(deps: GatewayDeps): Gateway {
       status: metrics.status,
       retryCount: metrics.retryCount,
       durationMs: metrics.durationMs,
+      ttfbMs: metrics.timings.ttfbMs,
+      downloadMs: metrics.timings.downloadMs,
+      parseMs: metrics.timings.parseMs,
+      validateMs: metrics.validateMs,
+      payloadBytes: metrics.timings.payloadBytes,
       // The debug recorder enriches this from the latest audit report.
       issueCount: 0,
     });
@@ -102,7 +116,12 @@ export function createGateway(deps: GatewayDeps): Gateway {
   async function runFetch(context: RequestContext): Promise<HttpOutcome> {
     const directive = getSimulation()?.intercept(context) ?? null;
     if (directive?.kind === 'fixture') {
-      return { result: ok(directive.response), status: 200, retryCount: 0 };
+      return {
+        result: ok(directive.response),
+        status: 200,
+        retryCount: 0,
+        timings: NO_TIMINGS,
+      };
     }
     const fetchOptions = { timeoutMs: context.timeoutMs };
     if (directive?.kind === 'fault') {
@@ -135,6 +154,8 @@ export function createGateway(deps: GatewayDeps): Gateway {
           status: null,
           retryCount: 0,
           durationMs: 0,
+          timings: NO_TIMINGS,
+          validateMs: 0,
         });
         // A memory hit was validated before it was cached, so it is trusted. A
         // storage hit crosses a trust boundary and is re-validated.
@@ -145,17 +166,16 @@ export function createGateway(deps: GatewayDeps): Gateway {
     }
     const start = env.now();
     const fetched = await runFetch(context);
-    if (fetched.result.ok) {
-      getAudit()?.observe(context, fetched.result.value);
-    }
-    const metrics: LogMetrics = {
-      cacheHit: false,
-      status: fetched.status,
-      retryCount: fetched.retryCount,
-      durationMs: env.now() - start,
-    };
-    record(context, metrics);
+    const fetchMs = env.now() - start;
     if (!fetched.result.ok) {
+      record(context, {
+        cacheHit: false,
+        status: fetched.status,
+        retryCount: fetched.retryCount,
+        durationMs: fetchMs,
+        timings: fetched.timings,
+        validateMs: 0,
+      });
       logger.warn(
         'request failed',
         context.endpoint,
@@ -163,7 +183,18 @@ export function createGateway(deps: GatewayDeps): Gateway {
       );
       return fetched.result;
     }
+    getAudit()?.observe(context, fetched.result.value);
+    const validateStart = env.now();
     const validated = validate(schema, fetched.result.value);
+    const validateMs = env.now() - validateStart;
+    record(context, {
+      cacheHit: false,
+      status: fetched.status,
+      retryCount: fetched.retryCount,
+      durationMs: fetchMs,
+      timings: fetched.timings,
+      validateMs,
+    });
     if (!validated.ok) {
       logger.warn('response failed validation', context.endpoint);
       return validated;
