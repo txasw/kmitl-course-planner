@@ -42,6 +42,8 @@ export interface Gateway {
     query: TeachTableQuery,
     refresh?: boolean,
   ): Promise<Result<NormalizedCatalog>>;
+  /** Abort an in flight teach table query so the UI can cancel a slow one. */
+  cancelTeachTable(query: TeachTableQuery): void;
 }
 
 interface LogMetrics {
@@ -94,6 +96,7 @@ function withFault(env: GatewayEnv, fault: FaultOutcome): GatewayEnv {
 export function createGateway(deps: GatewayDeps): Gateway {
   const { cache, env } = deps;
   const inFlight = new Map<string, Promise<Result<unknown>>>();
+  const aborts = new Map<string, AbortController>();
 
   function record(context: RequestContext, metrics: LogMetrics): void {
     getRecorder()?.record({
@@ -113,7 +116,10 @@ export function createGateway(deps: GatewayDeps): Gateway {
     });
   }
 
-  async function runFetch(context: RequestContext): Promise<HttpOutcome> {
+  async function runFetch(
+    context: RequestContext,
+    signal: AbortSignal,
+  ): Promise<HttpOutcome> {
     const directive = getSimulation()?.intercept(context) ?? null;
     if (directive?.kind === 'fixture') {
       return {
@@ -123,7 +129,7 @@ export function createGateway(deps: GatewayDeps): Gateway {
         timings: NO_TIMINGS,
       };
     }
-    const fetchOptions = { timeoutMs: context.timeoutMs };
+    const fetchOptions = { timeoutMs: context.timeoutMs, signal };
     if (directive?.kind === 'fault') {
       return fetchJson(
         context.url,
@@ -144,6 +150,7 @@ export function createGateway(deps: GatewayDeps): Gateway {
     ttlMs: number,
     refresh: boolean,
     schema: z.ZodType<T>,
+    signal: AbortSignal,
   ): Promise<Result<T>> {
     if (!refresh) {
       const hit = await cache.get(cacheKey, env.now());
@@ -165,7 +172,7 @@ export function createGateway(deps: GatewayDeps): Gateway {
       }
     }
     const start = env.now();
-    const fetched = await runFetch(context);
+    const fetched = await runFetch(context, signal);
     const fetchMs = env.now() - start;
     if (!fetched.result.ok) {
       record(context, {
@@ -214,11 +221,34 @@ export function createGateway(deps: GatewayDeps): Gateway {
     if (existing) {
       return existing.then((shared) => shared as Result<T>);
     }
-    const promise = doLoad(context, cacheKey, ttlMs, refresh, schema);
+    // One abort controller per in flight request, keyed like the coalescing map, so
+    // a cancel can abort the shared request every coalesced caller is waiting on.
+    const controller = new AbortController();
+    aborts.set(cacheKey, controller);
+    const promise = doLoad(
+      context,
+      cacheKey,
+      ttlMs,
+      refresh,
+      schema,
+      controller.signal,
+    );
     inFlight.set(cacheKey, promise);
     return promise.finally(() => {
-      inFlight.delete(cacheKey);
+      // A cancel already cleared these and may have started a fresh request, so only
+      // clear the entries still pointing at this promise.
+      if (inFlight.get(cacheKey) === promise) {
+        inFlight.delete(cacheKey);
+        aborts.delete(cacheKey);
+      }
     });
+  }
+
+  /** Abort an in flight request and drop its slots so a retry starts fresh. */
+  function cancel(cacheKey: string): void {
+    aborts.get(cacheKey)?.abort();
+    inFlight.delete(cacheKey);
+    aborts.delete(cacheKey);
   }
 
   return {
@@ -255,6 +285,9 @@ export function createGateway(deps: GatewayDeps): Gateway {
         return validated;
       }
       return normalizeTeachTable(validated.value);
+    },
+    cancelTeachTable(query) {
+      cancel(teachTableCacheKey(query));
     },
   };
 }

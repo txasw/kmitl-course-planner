@@ -82,11 +82,24 @@ async function attemptOnce(
   url: string,
   env: GatewayEnv,
   timeoutMs: number,
+  externalSignal?: AbortSignal,
 ): Promise<Attempt> {
   const controller = new AbortController();
   const timer = setTimeout(() => {
     controller.abort();
   }, timeoutMs);
+  // A cancel from the UI arrives as an external signal; forward it to the same
+  // controller so the fetch aborts, mapped to a terminal error like the timeout.
+  const onExternalAbort = () => {
+    controller.abort();
+  };
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      controller.abort();
+    } else {
+      externalSignal.addEventListener('abort', onExternalAbort);
+    }
+  }
   const start = env.now();
   try {
     const response = await env.fetch(url, {
@@ -159,6 +172,7 @@ async function attemptOnce(
     };
   } finally {
     clearTimeout(timer);
+    externalSignal?.removeEventListener('abort', onExternalAbort);
   }
 }
 
@@ -173,6 +187,8 @@ export interface FetchOptions {
   /** Per attempt timeout. Defaults to DEFAULT_TIMEOUT_MS; the teach table endpoint
    * raises it because its large category payloads take longer than reference data. */
   timeoutMs?: number;
+  /** An external signal that aborts the request, for a UI cancel. */
+  signal?: AbortSignal;
 }
 
 /**
@@ -187,7 +203,12 @@ export async function fetchJson(
   const maxRetries = options.maxRetries ?? MAX_RETRIES;
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   for (let attempt = 0; ; attempt += 1) {
-    const attemptResult = await attemptOnce(url, env, timeoutMs);
+    const attemptResult = await attemptOnce(
+      url,
+      env,
+      timeoutMs,
+      options.signal,
+    );
     const exhausted = attempt >= maxRetries;
     if (!attemptResult.retryable || exhausted) {
       return {
