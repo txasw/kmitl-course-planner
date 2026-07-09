@@ -8,7 +8,12 @@ import {
   makeSection,
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
-import { addSectionGroup, planCredits, removeEntry } from './transaction';
+import {
+  addSectionGroup,
+  applyPlanTransaction,
+  planCredits,
+  removeEntry,
+} from './transaction';
 
 const SOURCE_QUERY: SourceQuery = {
   endpoint: 'get-teach-table-show',
@@ -252,6 +257,192 @@ describe('removeEntry', () => {
     const result = removeEntry([entry], 'missing');
     expect(result.entries).toHaveLength(1);
     expect(result.removed).toHaveLength(0);
+  });
+});
+
+describe('applyPlanTransaction', () => {
+  it('adds a section when nothing is removed', () => {
+    const section = makeSection({
+      teachTableId: 's',
+      subjectId: 'S1',
+      section: '901',
+    });
+    const course = makeCourse({ subjectId: 'S1', sections: [section] });
+    const outcome = applyPlanTransaction(
+      [],
+      [],
+      { course, section, sourceQuery: SOURCE_QUERY },
+      NOW,
+    );
+    expect(outcome.ok).toBe(true);
+    if (outcome.ok) {
+      expect(outcome.result.added).toHaveLength(1);
+      expect(outcome.result.removed).toHaveLength(0);
+      expect(outcome.result.entries).toHaveLength(1);
+    }
+  });
+
+  it('removes a section and its pair when no add is given', () => {
+    const lecture = makeEntry({
+      teachTableId: 'L',
+      subjectId: 'S1',
+      section: '901',
+      pairedSection: '902',
+    });
+    const practice = makeEntry({
+      teachTableId: 'P',
+      subjectId: 'S1',
+      section: '902',
+      pairedSection: '901',
+    });
+    const outcome = applyPlanTransaction([lecture, practice], ['L'], null, NOW);
+    expect(outcome.ok).toBe(true);
+    if (outcome.ok) {
+      expect(outcome.result.removed).toHaveLength(2);
+      expect(outcome.result.added).toHaveLength(0);
+      expect(outcome.result.entries).toHaveLength(0);
+    }
+  });
+
+  it('does not double remove when both pair halves are listed', () => {
+    const lecture = makeEntry({
+      teachTableId: 'L',
+      subjectId: 'S1',
+      section: '901',
+      pairedSection: '902',
+    });
+    const practice = makeEntry({
+      teachTableId: 'P',
+      subjectId: 'S1',
+      section: '902',
+      pairedSection: '901',
+    });
+    const outcome = applyPlanTransaction(
+      [lecture, practice],
+      ['L', 'P'],
+      null,
+      NOW,
+    );
+    expect(outcome.ok).toBe(true);
+    if (outcome.ok) {
+      expect(outcome.result.removed).toHaveLength(2);
+    }
+  });
+
+  it('moves a section by removing the origin and adding the target', () => {
+    const origin = makeEntry({
+      teachTableId: 'o',
+      subjectId: 'S1',
+      section: '901',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 660 })],
+    });
+    const target = makeSection({
+      teachTableId: 't',
+      subjectId: 'S1',
+      section: '902',
+      meetings: [makeMeeting({ day: 2, startMin: 540, endMin: 660 })],
+    });
+    const course = makeCourse({ subjectId: 'S1', sections: [target] });
+    const outcome = applyPlanTransaction(
+      [origin],
+      ['o'],
+      { course, section: target, sourceQuery: SOURCE_QUERY },
+      NOW,
+    );
+    expect(outcome.ok).toBe(true);
+    if (outcome.ok) {
+      expect(outcome.result.removed).toHaveLength(1);
+      expect(outcome.result.added).toHaveLength(1);
+      expect(outcome.result.entries).toHaveLength(1);
+      expect(outcome.result.entries[0]?.section).toBe('902');
+    }
+  });
+
+  it('swaps a placed pair for an incoming pair', () => {
+    const blockerLecture = makeEntry({
+      teachTableId: 'BL',
+      subjectId: 'B',
+      section: '901',
+      pairedSection: '902',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 660 })],
+    });
+    const blockerPractice = makeEntry({
+      teachTableId: 'BP',
+      subjectId: 'B',
+      section: '902',
+      pairedSection: '901',
+      meetings: [makeMeeting({ day: 3, startMin: 540, endMin: 660 })],
+    });
+    const incomingLecture = makeSection({
+      teachTableId: 'AL',
+      subjectId: 'A',
+      section: '901',
+      pairedSection: '902',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 660 })],
+    });
+    const incomingPractice = makeSection({
+      teachTableId: 'AP',
+      subjectId: 'A',
+      section: '902',
+      pairedSection: '901',
+      meetings: [makeMeeting({ day: 4, startMin: 540, endMin: 660 })],
+    });
+    const course = makeCourse({
+      subjectId: 'A',
+      sections: [incomingLecture, incomingPractice],
+    });
+    const outcome = applyPlanTransaction(
+      [blockerLecture, blockerPractice],
+      ['BL'],
+      { course, section: incomingLecture, sourceQuery: SOURCE_QUERY },
+      NOW,
+    );
+    expect(outcome.ok).toBe(true);
+    if (outcome.ok) {
+      expect(outcome.result.removed).toHaveLength(2);
+      expect(outcome.result.added).toHaveLength(2);
+      expect(outcome.result.entries).toHaveLength(2);
+    }
+  });
+
+  it('rejects when the incoming section still conflicts after the removal', () => {
+    const blocker = makeEntry({
+      teachTableId: 'B',
+      subjectId: 'B',
+      section: '901',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 660 })],
+    });
+    const bystander = makeEntry({
+      teachTableId: 'C',
+      subjectId: 'C',
+      section: '901',
+      meetings: [makeMeeting({ day: 2, startMin: 540, endMin: 660 })],
+    });
+    const incoming = makeSection({
+      teachTableId: 'A',
+      subjectId: 'A',
+      section: '901',
+      meetings: [
+        makeMeeting({ day: 1, startMin: 540, endMin: 660 }),
+        makeMeeting({ day: 2, startMin: 540, endMin: 660 }),
+      ],
+    });
+    const course = makeCourse({ subjectId: 'A', sections: [incoming] });
+    const outcome = applyPlanTransaction(
+      [blocker, bystander],
+      ['B'],
+      { course, section: incoming, sourceQuery: SOURCE_QUERY },
+      NOW,
+    );
+    expect(outcome.ok).toBe(false);
+    if (!outcome.ok) {
+      expect(
+        outcome.conflicts.some(
+          (conflict) =>
+            conflict.kind === 'time' && conflict.blocking.teachTableId === 'C',
+        ),
+      ).toBe(true);
+    }
   });
 });
 
