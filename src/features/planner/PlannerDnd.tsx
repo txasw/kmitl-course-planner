@@ -23,6 +23,7 @@ import {
 } from '@dnd-kit/core';
 import { useStore } from 'zustand';
 import type { Course, Section } from '@/lib/domain/types';
+import type { Candidate } from '@/lib/planner/courseCandidates';
 import { placedSections } from '@/lib/planner/transaction';
 import { planStore } from '@/features/plans/planStore';
 import {
@@ -86,17 +87,18 @@ function isBlockDragData(value: unknown): value is BlockDragData {
 
 interface CandidateDropData {
   section: Section;
+  valid: boolean;
 }
 
-/** A candidate slot drop target carries the section it would place. */
+/** A candidate slot drop target carries the section it would place and whether that
+ * placement fits, so a blocked candidate drop can reject rather than commit. */
 function isCandidateDropData(value: unknown): value is CandidateDropData {
   return (
     typeof value === 'object' &&
     value !== null &&
     'section' in value &&
-    !('course' in value) &&
-    !('block' in value) &&
-    !('swap' in value)
+    'valid' in value &&
+    typeof value.valid === 'boolean'
   );
 }
 
@@ -114,6 +116,25 @@ function isSwapDropData(value: unknown): value is SwapDropData {
     'blockerTeachTableId' in value &&
     typeof value.blockerTeachTableId === 'string'
   );
+}
+
+/** Surface a blocked candidate's conflicts in the strip, the same rejection a blocked
+ * section drop shows, so a drop on a hatched slot names its reason and alternatives. */
+function rejectCandidate(
+  candidates: Candidate[],
+  section: Section,
+  course: Course,
+): void {
+  const candidate = candidates.find(
+    (item) => item.section.teachTableId === section.teachTableId,
+  );
+  if (candidate) {
+    dragStore.getState().showBlocked({
+      course,
+      section: candidate.section,
+      conflicts: candidate.conflicts,
+    });
+  }
 }
 
 const ACTIVATION_DISTANCE = 6;
@@ -188,7 +209,9 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
     } else if (isSwapDropData(data)) {
       // Keep the latched swap context while the pointer is over a swap target.
     } else {
+      // Off any candidate or target: drop the raised candidate and its swap targets.
       state.setRaised(null);
+      state.setSwapContext(null);
     }
   }, []);
 
@@ -239,11 +262,15 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
         if (event.over?.id === REMOVE_ZONE_ID) {
           planStore.getState().remove(move.section.teachTableId);
         } else if (isCandidateDropData(overData) && move.course !== null) {
-          moveSectionInPlan(
-            move.section.teachTableId,
-            move.course,
-            overData.section,
-          );
+          if (overData.valid) {
+            moveSectionInPlan(
+              move.section.teachTableId,
+              move.course,
+              overData.section,
+            );
+          } else {
+            rejectCandidate(move.candidates, overData.section, move.course);
+          }
         } else {
           state.setHint(moveHint);
         }
@@ -251,8 +278,13 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
         return;
       }
       if (state.courseDrag !== null) {
+        const drag = state.courseDrag;
         if (isCandidateDropData(overData)) {
-          addSectionToPlan(state.courseDrag.course, overData.section);
+          if (overData.valid) {
+            addSectionToPlan(drag.course, overData.section);
+          } else {
+            rejectCandidate(drag.candidates, overData.section, drag.course);
+          }
         } else {
           state.setHint(hintText);
         }
