@@ -3,7 +3,7 @@
 // visible time window from the scheduled meetings so an early or late class widens
 // the grid. Unscheduled sections and the footer summary arrive with the shelf.
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useStore } from 'zustand';
 import { snapshotToSection } from '@/lib/domain/plan';
 import { computeWindow } from '@/lib/planner/grid';
@@ -13,6 +13,7 @@ import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { isScheduled, toPlacedSection } from './placedSection';
 import { dragStore } from './dragStore';
+import { BlockDetailPopover } from './BlockDetailPopover';
 import { FeedbackStrip } from './FeedbackStrip';
 import { GridFooter } from './GridFooter';
 import { PosterHeader } from './PosterHeader';
@@ -86,6 +87,19 @@ export function PlannerPanel() {
   const handleRemove = useCallback((teachTableId: string) => {
     planStore.getState().remove(teachTableId);
   }, []);
+  const [detail, setDetail] = useState<{
+    teachTableId: string;
+    anchor: HTMLElement;
+  } | null>(null);
+  const openDetail = useCallback((anchor: HTMLElement) => {
+    const teachTableId = anchor.dataset.teachTableId;
+    if (teachTableId !== undefined) {
+      setDetail({ teachTableId, anchor });
+    }
+  }, []);
+  const closeDetail = useCallback(() => {
+    setDetail(null);
+  }, []);
 
   return (
     <div className="flex h-full flex-col gap-2">
@@ -113,6 +127,7 @@ export function PlannerPanel() {
           editable={viewMode === 'edit'}
           onRemove={handleRemove}
           conflictIds={conflictIds}
+          onOpenDetail={openDetail}
         />
         {sections.length === 0 ? (
           <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 px-6 text-center">
@@ -132,6 +147,16 @@ export function PlannerPanel() {
         />
       ) : null}
       {sections.length > 0 ? <GridFooter sections={sections} t={t} /> : null}
+      {viewMode === 'edit' && detail !== null ? (
+        <BlockDetailPopover
+          teachTableId={detail.teachTableId}
+          anchor={detail.anchor}
+          locale={language}
+          t={t}
+          onClose={closeDetail}
+          onRemove={handleRemove}
+        />
+      ) : null}
     </div>
   );
 }

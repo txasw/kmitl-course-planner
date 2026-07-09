@@ -7,7 +7,7 @@
 
 import type { CSSProperties } from 'react';
 import type { DraggableSyntheticListeners } from '@dnd-kit/core';
-import { X } from 'lucide-react';
+import { Info, X } from 'lucide-react';
 import type { Meeting } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { hashColor } from '@/lib/utils/hash-color';
@@ -35,6 +35,8 @@ interface EventBlockProps {
   /** Remove this section from the plan, present only in edit mode. */
   onRemove?: () => void;
   removeLabel?: string;
+  /** Open the block detail popover anchored to this block, edit mode only. */
+  onOpenDetail?: (anchor: HTMLElement) => void;
 }
 
 export function EventBlock({
@@ -50,6 +52,7 @@ export function EventBlock({
   dragListeners,
   onRemove,
   removeLabel,
+  onOpenDetail,
 }: EventBlockProps) {
   const name = locale === 'th' ? section.nameTh : section.nameEn;
   const time = `${formatMinutes(meeting.startMin)}-${formatMinutes(meeting.endMin)}`;
@@ -91,19 +94,43 @@ export function EventBlock({
       {meeting.room !== '' ? (
         <span className="truncate text-white/85">{meeting.room}</span>
       ) : null}
-      {onRemove ? (
-        <button
-          type="button"
-          aria-label={removeLabel}
-          onPointerDown={(event) => {
-            // Keep a press on the control from arming a drag on the block behind it.
-            event.stopPropagation();
-          }}
-          onClick={onRemove}
-          className="absolute right-0.5 top-0.5 rounded bg-black/25 p-0.5 text-white opacity-0 outline-none group-hover/block:opacity-100 hover:bg-black/45 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white"
-        >
-          <X size={12} aria-hidden />
-        </button>
+      {onOpenDetail !== undefined || onRemove !== undefined ? (
+        <div className="absolute right-0.5 top-0.5 flex gap-0.5">
+          {onOpenDetail !== undefined ? (
+            <button
+              type="button"
+              aria-label={t('block.details')}
+              onPointerDown={(event) => {
+                event.stopPropagation();
+              }}
+              onClick={(event) => {
+                const block = event.currentTarget.closest(
+                  '[data-teach-table-id]',
+                );
+                if (block instanceof HTMLElement) {
+                  onOpenDetail(block);
+                }
+              }}
+              className="rounded bg-black/25 p-0.5 text-white opacity-0 outline-none group-hover/block:opacity-100 hover:bg-black/45 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white"
+            >
+              <Info size={12} aria-hidden />
+            </button>
+          ) : null}
+          {onRemove !== undefined ? (
+            <button
+              type="button"
+              aria-label={removeLabel}
+              onPointerDown={(event) => {
+                // Keep a press on the control from arming a drag on the block behind it.
+                event.stopPropagation();
+              }}
+              onClick={onRemove}
+              className="rounded bg-black/25 p-0.5 text-white opacity-0 outline-none group-hover/block:opacity-100 hover:bg-black/45 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white"
+            >
+              <X size={12} aria-hidden />
+            </button>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

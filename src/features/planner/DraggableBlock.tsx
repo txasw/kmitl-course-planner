@@ -23,6 +23,7 @@ interface DraggableBlockProps {
   conflicted?: boolean;
   onRemove: () => void;
   removeLabel: string;
+  onOpenDetail?: (anchor: HTMLElement) => void;
 }
 
 export function DraggableBlock({
