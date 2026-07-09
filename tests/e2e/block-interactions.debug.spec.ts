@@ -1,40 +1,12 @@
 import { test, expect, openPlanner } from './support/fixtures';
+import { addCourse, block, syntheticSearch } from './support/synthetic';
 import type { Page } from '@playwright/test';
-
-// A placed grid block carries a data-teach-table-id, so a specific section is
-// targeted by its synthetic fixture id.
-const block = (id: string) => `[data-teach-table-id="${id}"]`;
 
 interface Box {
   x: number;
   y: number;
   width: number;
   height: number;
-}
-
-// The by subject id search is served a synthetic catalog for the reserved id
-// 90000000: Course A (Mon 09-11), Course B (Mon 10-12, overlaps A), Course C (two
-// non overlapping sections), Course E (Tue 13-15), and Course X (a pair whose halves
-// overlap A and E). This gives clean move, swap, and still conflicting swap cases the
-// captured fixtures cannot.
-async function syntheticSearch(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'รหัสวิชา' }).click();
-  await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000000');
-  await page.getByRole('button', { name: 'ค้นหา' }).click();
-  await expect(page.getByText('90000001').first()).toBeVisible({
-    timeout: 15_000,
-  });
-}
-
-/** Add the first section of a course by its subject id. */
-async function addCourse(page: Page, subjectId: string): Promise<void> {
-  await page
-    .getByRole('article')
-    .filter({ hasText: subjectId })
-    .first()
-    .getByRole('button', { name: 'เพิ่ม', exact: true })
-    .first()
-    .click();
 }
 
 function center(box: Box): { x: number; y: number } {
