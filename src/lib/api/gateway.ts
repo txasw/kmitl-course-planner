@@ -16,7 +16,12 @@ import {
 } from '../domain/normalize';
 import type { TeachTableQuery } from '../messaging/protocol';
 import type { CacheStore } from './cache';
-import { fetchJson, type HttpOutcome, type HttpTimings } from './http';
+import {
+  fetchJson,
+  NO_TIMINGS,
+  type HttpOutcome,
+  type HttpTimings,
+} from './http';
 import {
   teachTableCacheKey,
   teachTableEndpoint,
@@ -54,13 +59,6 @@ interface LogMetrics {
   timings: HttpTimings;
   validateMs: number;
 }
-
-const NO_TIMINGS: HttpTimings = {
-  ttfbMs: 0,
-  downloadMs: 0,
-  parseMs: 0,
-  payloadBytes: 0,
-};
 
 /** Wrap the env with a fetch that emulates a simulated fault. */
 function withFault(env: GatewayEnv, fault: FaultOutcome): GatewayEnv {

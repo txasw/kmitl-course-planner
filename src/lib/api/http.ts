@@ -34,7 +34,8 @@ export interface HttpTimings {
   payloadBytes: number;
 }
 
-const NO_TIMINGS: HttpTimings = {
+/** The zero timings for a request that received no response. */
+export const NO_TIMINGS: HttpTimings = {
   ttfbMs: 0,
   downloadMs: 0,
   parseMs: 0,
