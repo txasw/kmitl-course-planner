@@ -22,10 +22,25 @@ import {
   normalizeTeachTable,
   type NormalizedCatalog,
 } from '@/lib/domain/normalize';
+import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { planStore } from '@/features/plans/planStore';
+import { searchStore } from '@/features/search/searchStore';
 import { dragStore } from '@/features/planner/dragStore';
 import { catalogStore } from './catalogStore';
 import { CourseCatalog } from './CourseCatalog';
+
+// A search context in the plan's own term (2569 semester 1) so an add stamps a
+// matching source query rather than the term-less fallback.
+const SEARCH_QUERY: TeachTableQuery = {
+  mode: 'by_subject_id',
+  selected_year: '2569',
+  selected_semester: '1',
+  search_all_faculty: true,
+  search_all_department: true,
+  search_all_curriculum: true,
+  search_all_class_year: true,
+  selected_subject_id: '90000000',
+};
 
 function ownerCatalog(): NormalizedCatalog {
   const result = normalizeTeachTable(
@@ -42,6 +57,7 @@ const catalog = ownerCatalog();
 beforeEach(() => {
   act(() => {
     catalogStore.getState().resetFilter();
+    searchStore.setState({ resultQuery: SEARCH_QUERY });
   });
 });
 
@@ -49,7 +65,13 @@ afterEach(() => {
   cleanup();
   act(() => {
     resetPlanStore();
-    dragStore.setState({ active: null, blocked: null, announcement: null });
+    searchStore.setState({ resultQuery: null });
+    dragStore.setState({
+      active: null,
+      blocked: null,
+      crossTerm: null,
+      announcement: null,
+    });
   });
 });
 
@@ -175,5 +197,28 @@ describe('CourseCatalog', () => {
       fireEvent.click(addButton);
     }
     expect(dragStore.getState().announcement).not.toBeNull();
+  });
+
+  it('shows the different term state, its banner, and a switch action', () => {
+    // The active plan is a second semester plan; the catalog is browsed in the
+    // first semester (the beforeEach search context), so every row is different term.
+    act(() => {
+      seedActivePlan([], { id: 'p2', year: '2569', semester: '2' });
+    });
+    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    expect(screen.getAllByText('คนละภาค').length).toBeGreaterThan(0);
+    // The banner names the browsed term and there is no add button.
+    expect(screen.getByText(/กำลังดูภาค/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'เพิ่ม' })).toBeNull();
+    // The switch action creates a plan for the browsed term.
+    const [switchButton] = screen.getAllByRole('button', {
+      name: 'สลับไปตารางภาคนี้',
+    });
+    if (switchButton) {
+      fireEvent.click(switchButton);
+    }
+    const state = planStore.getState();
+    const active = state.plans.find((plan) => plan.id === state.activePlanId);
+    expect(active?.semester).toBe('1');
   });
 });

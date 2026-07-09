@@ -8,12 +8,20 @@
 import type { Course, Section } from '../domain/types';
 import type { PlanEntry, SectionSnapshot, SourceQuery } from '../domain/plan';
 import { snapshotToSection } from '../domain/plan';
+import { termsEqual, type Term } from '../routing/academicTerms';
 import {
   checkPlacement,
   expandSectionGroup,
   type ConflictDetail,
 } from './placement';
+import { termFromSourceQueryParams } from './sourceQuery';
 import { summarizeCredits, type CreditSummary } from './credits';
+
+/** A rejected add whose section came from a query for a different term than the plan. */
+export interface TermMismatch {
+  planTerm: Term;
+  incomingTerm: Term;
+}
 
 /** The placed sections a plan holds, rebuilt from its entry snapshots. */
 export function placedSections(entries: PlanEntry[]): Section[] {
@@ -70,13 +78,17 @@ export interface AddSuccess {
 }
 
 export type AddOutcome =
-  { ok: true; result: AddSuccess } | { ok: false; conflicts: ConflictDetail[] };
+  | { ok: true; result: AddSuccess }
+  | { ok: false; conflicts: ConflictDetail[] }
+  | { ok: false; crossTerm: TermMismatch };
 
 /**
- * Add a section and its declared pair to the plan atomically. Validation runs
- * against the placed sections; on any conflict nothing is added and the conflicts
- * are returned. An unscheduled section has no meeting to collide, so it is added
- * unless it duplicates a subject already in the plan.
+ * Add a section and its declared pair to the plan atomically. The section must come
+ * from a query for the plan's own term; a cross term add is rejected before any
+ * placement check, since a plan belongs to exactly one year and semester. Placement
+ * then runs against the placed sections; on any conflict nothing is added and the
+ * conflicts are returned. An unscheduled section has no meeting to collide, so it is
+ * added unless it duplicates a subject already in the plan.
  */
 export function addSectionGroup(
   entries: PlanEntry[],
@@ -84,7 +96,12 @@ export function addSectionGroup(
   section: Section,
   sourceQuery: SourceQuery,
   now: string,
+  planTerm: Term,
 ): AddOutcome {
+  const incomingTerm = termFromSourceQueryParams(sourceQuery.params);
+  if (!termsEqual(incomingTerm, planTerm)) {
+    return { ok: false, crossTerm: { planTerm, incomingTerm } };
+  }
   const group = expandSectionGroup(course, section);
   const placement = checkPlacement(placedSections(entries), group);
   if (!placement.ok) {
@@ -145,22 +162,24 @@ export interface TransactionSuccess {
 
 export type TransactionOutcome =
   | { ok: true; result: TransactionSuccess }
-  | { ok: false; conflicts: ConflictDetail[] };
+  | { ok: false; conflicts: ConflictDetail[] }
+  | { ok: false; crossTerm: TermMismatch };
 
 /**
  * Apply a remove then add over the plan's entries as one atomic step. Each id in
  * removeIds takes its section and declared pair out, so a removed id whose pair is
  * also listed is a no op the second time. When add is given, its section and pair are
- * validated against the reduced entries and appended; on any conflict nothing changes
- * and the conflicts are returned. One primitive expresses add (no removeIds), remove
- * (no add), move (remove the origin), and swap (remove the blocker, plus the origin
- * when a placed block moves onto a swap target).
+ * validated against the plan's term and the reduced entries and appended; on a cross
+ * term add or any conflict nothing changes and the reason is returned. One primitive
+ * expresses add (no removeIds), remove (no add), move (remove the origin), and swap
+ * (remove the blocker, plus the origin when a placed block moves onto a swap target).
  */
 export function applyPlanTransaction(
   entries: PlanEntry[],
   removeIds: string[],
   add: AddInput | null,
   now: string,
+  planTerm: Term,
 ): TransactionOutcome {
   let working = entries;
   const removed: PlanEntry[] = [];
@@ -178,9 +197,10 @@ export function applyPlanTransaction(
     add.section,
     add.sourceQuery,
     now,
+    planTerm,
   );
   if (!outcome.ok) {
-    return { ok: false, conflicts: outcome.conflicts };
+    return outcome;
   }
   return {
     ok: true,

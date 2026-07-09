@@ -9,12 +9,22 @@ import { RefreshCw } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
+import { asSemester, termsEqual, type Term } from '@/lib/routing/academicTerms';
 import { computeSeatStatus } from '@/lib/catalog/seatStatus';
-import { computeSectionRelation } from '@/lib/planner/sectionState';
+import {
+  computeSectionRelation,
+  type TermContext,
+} from '@/lib/planner/sectionState';
 import { filterCourses, type SectionPredicates } from '@/lib/catalog/filter';
 import { useTranslation } from '@/features/shell/useTranslation';
-import { usePlacedSections, planStore } from '@/features/plans/planStore';
+import {
+  usePlacedSections,
+  useActivePlan,
+  planStore,
+} from '@/features/plans/planStore';
 import { addSectionToPlan } from '@/features/plans/addToPlan';
+import { switchOrCreatePlanForTerm } from '@/features/plans/switchPlanTerm';
+import { searchStore } from '@/features/search/searchStore';
 import { dragStore } from '@/features/planner/dragStore';
 import { catalogStore } from './catalogStore';
 import { CourseCard } from './CourseCard';
@@ -73,7 +83,34 @@ interface CourseCatalogProps {
 export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
   const { t, language } = useTranslation();
   const placed = usePlacedSections();
+  const activePlan = useActivePlan();
+  const resultQuery = useStore(searchStore, (state) => state.resultQuery);
   const filter = useStore(catalogStore, (state) => state.filter);
+
+  const term = useMemo<TermContext>(
+    () => ({
+      planTerm:
+        activePlan === null
+          ? null
+          : { year: activePlan.year, semester: activePlan.semester },
+      browsedTerm:
+        resultQuery === null
+          ? null
+          : {
+              year: resultQuery.selected_year,
+              semester: asSemester(resultQuery.selected_semester),
+            },
+    }),
+    [activePlan, resultQuery],
+  );
+  const crossTerm =
+    term.planTerm !== null &&
+    term.browsedTerm !== null &&
+    !termsEqual(term.planTerm, term.browsedTerm);
+
+  const handleSwitchTerm = useCallback((target: Term) => {
+    switchOrCreatePlanForTerm(target);
+  }, []);
 
   const handleAdd = useCallback(
     (course: Course, section: Section) => {
@@ -82,6 +119,11 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
         dragStore
           .getState()
           .announce(`${t('feedback.added')} ${section.subjectId}`);
+      } else if ('crossTerm' in outcome) {
+        dragStore.getState().showCrossTerm({
+          planTerm: outcome.crossTerm.planTerm,
+          browsedTerm: outcome.crossTerm.incomingTerm,
+        });
       } else {
         dragStore.getState().showBlocked({
           course,
@@ -100,9 +142,10 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
     () => ({
       isFull: (section) => computeSeatStatus(section).kind === 'full',
       isConflicting: (course, section) =>
-        computeSectionRelation(placed, course, section).kind === 'conflicting',
+        computeSectionRelation(placed, course, section, term).kind ===
+        'conflicting',
     }),
-    [placed],
+    [placed, term],
   );
 
   const filtered = useMemo(
@@ -128,6 +171,27 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
     0,
   );
 
+  const planTerm = term.planTerm;
+  const browsedTerm = term.browsedTerm;
+  const banner =
+    crossTerm && planTerm !== null && browsedTerm !== null ? (
+      <div className="flex flex-wrap items-center gap-2 rounded-kcp border border-warn bg-primary-soft px-2 py-1.5 text-xs text-ink">
+        <span>
+          {t('term.planIs')} {planTerm.semester}/{planTerm.year}.{' '}
+          {t('term.browsedIs')} {browsedTerm.semester}/{browsedTerm.year}
+        </span>
+        <button
+          type="button"
+          onClick={() => {
+            handleSwitchTerm(browsedTerm);
+          }}
+          className="rounded-kcp border border-primary bg-surface px-2 py-0.5 font-medium text-primary outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        >
+          {t('term.switch')}
+        </button>
+      </div>
+    ) : null;
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
@@ -146,6 +210,7 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
           {t('catalog.refresh')}
         </button>
       </div>
+      {banner}
       <FilterBar creditOptions={creditOptions} />
       {groups.length === 0 ? (
         <p className="text-sm text-ink-soft">{t('catalog.filterEmpty')}</p>
@@ -162,8 +227,10 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
                 placed={placed}
                 locale={language}
                 t={t}
+                term={term}
                 onAdd={handleAdd}
                 onRemove={handleRemove}
+                onSwitchTerm={handleSwitchTerm}
               />
             ))}
           </section>

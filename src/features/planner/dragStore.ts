@@ -10,6 +10,7 @@
 
 import { createStore } from 'zustand/vanilla';
 import type { Course, Section } from '@/lib/domain/types';
+import type { Term } from '@/lib/routing/academicTerms';
 import { areDeclaredPair } from '@/lib/planner/conflicts';
 import {
   checkPlacement,
@@ -48,6 +49,14 @@ export interface BlockedFeedback {
   conflicts: ConflictDetail[];
 }
 
+/** A rejected add whose section came from a term other than the active plan's. The
+ * catalog's different term state normally intercepts this, so it is the domain
+ * guard's backstop, stated in the strip with the same switch action. */
+export interface CrossTermFeedback {
+  planTerm: Term;
+  browsedTerm: Term;
+}
+
 export interface BlockMoveDrag {
   /** The placed section being dragged off its slot. */
   section: Section;
@@ -80,6 +89,8 @@ export interface SwapContext {
 export interface DragStore {
   active: ActiveDrag | null;
   blocked: BlockedFeedback | null;
+  /** A cross term add rejected by the domain guard, or null. */
+  crossTerm: CrossTermFeedback | null;
   /** The section whose cells are previewed at low emphasis, or null. */
   hover: Section | null;
   /** A resolved message for the strip's live region after a keyboard outcome. */
@@ -105,6 +116,9 @@ export interface DragStore {
    * add from the button, so keyboard users get the same reason and alternatives. */
   showBlocked: (feedback: BlockedFeedback) => void;
   clearBlocked: () => void;
+  /** Surface a cross term rejection in the strip, naming both terms. */
+  showCrossTerm: (feedback: CrossTermFeedback) => void;
+  clearCrossTerm: () => void;
   setHover: (section: Section) => void;
   clearHover: () => void;
   announce: (message: string) => void;
@@ -130,6 +144,7 @@ export function createDragStore() {
   return createStore<DragStore>((set, get) => ({
     active: null,
     blocked: null,
+    crossTerm: null,
     hover: null,
     announcement: null,
     courseDrag: null,
@@ -154,6 +169,7 @@ export function createDragStore() {
         courseDrag: null,
         blockMove: null,
         blocked: null,
+        crossTerm: null,
         hover: null,
         raised: null,
         hint: null,
@@ -168,6 +184,7 @@ export function createDragStore() {
         set({
           active: null,
           swapContext: null,
+          crossTerm: null,
           blocked: {
             course: active.course,
             section: active.section,
@@ -182,12 +199,25 @@ export function createDragStore() {
       set({
         active: null,
         blocked: feedback,
+        crossTerm: null,
         announcement: null,
         swapContext: null,
       });
     },
     clearBlocked: () => {
       set({ blocked: null });
+    },
+    showCrossTerm: (feedback) => {
+      set({
+        active: null,
+        blocked: null,
+        crossTerm: feedback,
+        announcement: null,
+        swapContext: null,
+      });
+    },
+    clearCrossTerm: () => {
+      set({ crossTerm: null });
     },
     setHover: (section) => {
       set({ hover: section });
@@ -207,6 +237,7 @@ export function createDragStore() {
         active: null,
         blockMove: null,
         blocked: null,
+        crossTerm: null,
         hover: null,
         raised: null,
         hint: null,
@@ -235,6 +266,7 @@ export function createDragStore() {
         active: null,
         courseDrag: null,
         blocked: null,
+        crossTerm: null,
         hover: null,
         raised: null,
         hint: null,
