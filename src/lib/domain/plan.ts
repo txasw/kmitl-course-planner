@@ -132,6 +132,38 @@ export type SectionSnapshot = z.infer<typeof sectionSnapshotSchema>;
 export type PlanEntry = z.infer<typeof planEntrySchema>;
 export type Plan = z.infer<typeof planSchema>;
 
+type SubjectMeta = SectionSnapshot['subjectMeta'];
+
+/**
+ * Build a section snapshot from a normalized section and its subject metadata. Used
+ * when an entry is added and again when revalidation reconciles an entry to fresh
+ * data, so the two never build the snapshot shape differently. A fresh call produces
+ * a new snapshot object, so reconciling one plan never mutates a duplicate that
+ * shares the old snapshot by reference.
+ */
+export function buildSnapshot(
+  section: Section,
+  subjectMeta: SubjectMeta,
+): SectionSnapshot {
+  return {
+    teachTableId: section.teachTableId,
+    subjectId: section.subjectId,
+    section: section.section,
+    kind: section.kind,
+    pairedSection: section.pairedSection,
+    meetings: section.meetings,
+    teachersTh: section.teachersTh,
+    teachersEn: section.teachersEn,
+    seats: section.seats,
+    isClosed: section.isClosed,
+    exam: section.exam,
+    rulesTh: section.rulesTh,
+    rulesEn: section.rulesEn,
+    remark: section.remark,
+    subjectMeta,
+  };
+}
+
 /**
  * Convert a stored snapshot into a plain domain Section for the planner. The
  * snapshot exam infers its optional fields as `T | undefined` from the schema, so
