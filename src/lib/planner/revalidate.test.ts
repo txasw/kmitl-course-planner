@@ -35,7 +35,7 @@ function reconcile(plan: Plan, fresh: Section[]) {
   const index = buildSectionIndex([
     { courses, duplicateCount: 0, warnings: [] },
   ]);
-  return reconcilePlan(plan, revalidatePlan(plan, index), index, NOW);
+  return reconcilePlan(plan, index, NOW);
 }
 
 describe('revalidateEntry', () => {
@@ -227,6 +227,22 @@ describe('reconcilePlan', () => {
     const { plan: reconciled } = reconcile(plan, [fresh]);
     const reconciledA = reconciled.entries.find((e) => e.subjectId === 'S1');
     expect(reconciledA?.teachTableId).toBe('X');
+  });
+
+  it('does not match an entry to a different subject that recycled its key', () => {
+    const entry = makePlanEntry({
+      snapshot: makeSnapshot({
+        teachTableId: 't1',
+        subjectId: 'S1',
+        section: '901',
+      }),
+    });
+    const plan = makePlan({ entries: [entry] });
+    // A different subject now carries the entry's teachTableId.
+    const { plan: reconciled } = reconcile(plan, [
+      makeSection({ teachTableId: 't1', subjectId: 'S2', section: '902' }),
+    ]);
+    expect(reconciled.entries[0]?.verifyStatus).toBe('missing');
   });
 
   it('reports a term mismatch as a finding without fixing it', () => {
