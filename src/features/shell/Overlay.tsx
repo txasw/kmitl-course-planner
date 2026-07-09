@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { useStore } from 'zustand';
+import { QuarantineCard } from '@/features/plans/QuarantineCard';
 import { uiStore } from './uiStore';
 import { Header } from './Header';
 import { Layout } from './Layout';
@@ -39,6 +40,7 @@ export function Overlay() {
       }`}
     >
       <Header titleId={TITLE_ID} />
+      <QuarantineCard />
       <main className="min-h-0 flex-1 overflow-hidden">
         <Layout />
       </main>
