@@ -63,3 +63,10 @@ button. Never skip it.
       blocked drags. Outcomes convey through color and text with no settle, pulse, or
       shake.
 - [ ] Persistence: reload the page. The last used mode and language persist.
+- [ ] Large category latency: run a by subject owner or all curricula search on a
+      large category. If it runs past eight seconds, the catalog shows the slow query
+      notice with a cancel action while the request continues. Let one such search
+      finish and confirm it renders. Then run another and press cancel; the form
+      returns to idle and a fresh search still works. Open the debug diagnostics
+      request log and confirm the time to first byte, download, parse, and validate
+      columns and the payload size are populated for the query.
