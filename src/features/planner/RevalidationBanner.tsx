@@ -4,19 +4,22 @@
 // through the toast, so the outcome stays next to the plan it describes. It renders in
 // both edit and preview, since correctness matters most at the moment of sharing.
 
+import { useState } from 'react';
 import { useStore } from 'zustand';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, List, RefreshCw } from 'lucide-react';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { useActivePlan } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
 import { revalidatePlanNow } from '@/features/plans/revalidationController';
+import { RevalidationDetailSheet } from './RevalidationDetailSheet';
 
 export function RevalidationBanner() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { send } = useSearchDeps();
   const activePlan = useActivePlan();
   const runs = useStore(revalidationStore, (state) => state.runs);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   if (activePlan === null) {
     return null;
@@ -79,7 +82,28 @@ export function RevalidationBanner() {
       {run.status === 'partial' ? (
         <span className="text-warn">{t('revalidation.partial')}</span>
       ) : null}
+      {clean ? null : (
+        <button
+          type="button"
+          onClick={() => {
+            setSheetOpen(true);
+          }}
+          className="inline-flex items-center gap-1 rounded-kcp border border-border bg-surface px-2 py-0.5 font-medium text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        >
+          <List size={12} strokeWidth={2} aria-hidden />
+          {t('revalidation.detail')}
+        </button>
+      )}
       <RefreshButton label={t('catalog.refresh')} onClick={refresh} />
+      {sheetOpen ? (
+        <RevalidationDetailSheet
+          locale={language}
+          t={t}
+          onClose={() => {
+            setSheetOpen(false);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
