@@ -50,4 +50,35 @@ describe('prefs repository', () => {
     await createPrefsRepository(adapter).save(valid);
     expect(adapter.store[PREFS_KEY]).toEqual(valid);
   });
+
+  it('loads a blob that carries display options', async () => {
+    const withOptions: Prefs = {
+      schemaVersion: 1,
+      language: 'th',
+      viewMode: 'preview',
+      displayOptions: {
+        fitToContent: false,
+        showRoom: true,
+        showSection: false,
+        showEnglishNames: true,
+      },
+    };
+    const repo = createPrefsRepository(
+      fakeAdapter({ [PREFS_KEY]: withOptions }),
+    );
+    expect(await repo.load()).toEqual(withOptions);
+  });
+
+  it('rejects display options with a missing field', async () => {
+    const repo = createPrefsRepository(
+      fakeAdapter({
+        [PREFS_KEY]: {
+          schemaVersion: 1,
+          language: 'th',
+          displayOptions: { fitToContent: true },
+        },
+      }),
+    );
+    expect(await repo.load()).toBeNull();
+  });
 });
