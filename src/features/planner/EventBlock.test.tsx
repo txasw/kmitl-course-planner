@@ -22,6 +22,7 @@ const section: PlacedSection = {
   credit: 3,
   kind: 'lecture',
   meetings: [],
+  verifyStatus: 'unverified',
 };
 
 const meeting: Meeting = {
@@ -50,6 +51,55 @@ describe('EventBlock', () => {
     expect(within(block).getByText('วิชาทดสอบ')).toBeInTheDocument();
     expect(within(block).getByText('901')).toBeInTheDocument();
     expect(within(block).getByText('A101')).toBeInTheDocument();
+  });
+
+  it('badges a missing section as danger', () => {
+    render(
+      <EventBlock
+        section={{ ...section, verifyStatus: 'missing' }}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.getByLabelText(/ไม่พบในระบบแล้ว/)).toHaveAttribute(
+      'data-verify',
+      'danger',
+    );
+  });
+
+  it('badges a changed section as warn', () => {
+    render(
+      <EventBlock
+        section={{ ...section, verifyStatus: 'changed' }}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.getByLabelText(/ข้อมูลเปลี่ยน/)).toHaveAttribute(
+      'data-verify',
+      'warn',
+    );
+  });
+
+  it('badges a conflicted section as danger', () => {
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        conflicted
+      />,
+    );
+    expect(screen.getByLabelText(/เวลาชนกัน/)).toHaveAttribute(
+      'data-verify',
+      'danger',
+    );
   });
 
   it('fills with the subject stable color', () => {

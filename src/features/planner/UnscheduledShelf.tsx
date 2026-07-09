@@ -6,6 +6,7 @@
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { Pill } from '@/components/Pill';
 import type { PlacedSection } from './placedSection';
+import { blockBadge, blockBadgeLabelKey } from './blockBadge';
 
 interface UnscheduledShelfProps {
   sections: PlacedSection[];
@@ -31,6 +32,8 @@ export function UnscheduledShelf({
       <ul className="flex flex-col gap-1">
         {sections.map((section) => {
           const name = locale === 'th' ? section.nameTh : section.nameEn;
+          const badge = blockBadge(section.verifyStatus, false);
+          const badgeKey = blockBadgeLabelKey(section.verifyStatus, false);
           return (
             <li
               key={section.teachTableId}
@@ -40,6 +43,11 @@ export function UnscheduledShelf({
                 <span className="font-medium">{section.subjectId}</span> {name}
               </span>
               <span className="flex shrink-0 items-center gap-1.5 text-ink-soft">
+                {badge !== null && badgeKey !== null ? (
+                  <Pill tone={badge === 'danger' ? 'danger' : 'warn'}>
+                    {t(badgeKey)}
+                  </Pill>
+                ) : null}
                 <span>
                   {t('section.code')} {section.section}
                 </span>

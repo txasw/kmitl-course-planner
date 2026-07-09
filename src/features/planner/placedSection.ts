@@ -3,7 +3,7 @@
 // The fields are lifted from the plan entry snapshot so the planner never reaches
 // back into the transient catalog. An unscheduled section is one with no meetings.
 
-import type { SectionSnapshot } from '@/lib/domain/plan';
+import type { SectionSnapshot, VerifyStatus } from '@/lib/domain/plan';
 import type { Meeting, MeetingKind } from '@/lib/domain/types';
 
 export interface PlacedSection {
@@ -15,10 +15,17 @@ export interface PlacedSection {
   credit: number;
   kind: MeetingKind;
   meetings: Meeting[];
+  /** The entry's latest verification state, for the grid and shelf badges. */
+  verifyStatus: VerifyStatus;
 }
 
-/** Reshape a stored snapshot into the fields the timetable renders. */
-export function toPlacedSection(snapshot: SectionSnapshot): PlacedSection {
+/** Reshape a stored snapshot into the fields the timetable renders. The verification
+ * status is carried from the plan entry so the block can badge a changed or missing
+ * section; it defaults to unverified for the callers that do not track it. */
+export function toPlacedSection(
+  snapshot: SectionSnapshot,
+  verifyStatus: VerifyStatus = 'unverified',
+): PlacedSection {
   return {
     teachTableId: snapshot.teachTableId,
     subjectId: snapshot.subjectId,
@@ -28,6 +35,7 @@ export function toPlacedSection(snapshot: SectionSnapshot): PlacedSection {
     credit: snapshot.subjectMeta.credit,
     kind: snapshot.kind,
     meetings: snapshot.meetings,
+    verifyStatus,
   };
 }
 

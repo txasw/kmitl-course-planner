@@ -20,6 +20,7 @@ interface DraggableBlockProps {
   t: Translate;
   pulsing?: boolean;
   dimmed?: boolean;
+  conflicted?: boolean;
   onRemove: () => void;
   removeLabel: string;
 }
