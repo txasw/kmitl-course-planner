@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import {
   render,
   screen,
@@ -48,6 +48,45 @@ describe('CatalogPanel', () => {
     });
     renderPanel();
     expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true');
+  });
+
+  it('offers a cancel after the slow threshold and returns to idle', () => {
+    vi.useFakeTimers();
+    try {
+      const calls: string[] = [];
+      const send = ((message: { type: string }) => {
+        calls.push(message.type);
+        return Promise.resolve(ok(undefined));
+      }) as unknown as TypedSend;
+      const query: TeachTableQuery = {
+        mode: 'by_subject_owner_id',
+        selected_year: '2569',
+        selected_semester: '1',
+        search_all_faculty: true,
+        selected_subject_owner_id: '32',
+      };
+      act(() => {
+        searchStore.getState().setResult({ status: 'loading' }, query);
+      });
+      render(
+        <SearchDepsProvider value={fakeSearchDeps({ send })}>
+          <CatalogPanel />
+        </SearchDepsProvider>,
+      );
+      expect(
+        screen.queryByRole('button', { name: 'ยกเลิก' }),
+      ).not.toBeInTheDocument();
+      act(() => {
+        vi.advanceTimersByTime(8_000);
+      });
+      act(() => {
+        fireEvent.click(screen.getByRole('button', { name: 'ยกเลิก' }));
+      });
+      expect(calls).toContain('teachTable/cancel');
+      expect(searchStore.getState().result.status).toBe('idle');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('shows a typed error with a retry action', () => {

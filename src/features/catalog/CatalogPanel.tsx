@@ -3,6 +3,7 @@
 // empty result carrying the search summary, or the courses. The course rendering
 // is filled in by the catalog cards; this panel owns the surrounding states.
 
+import { useEffect, useState } from 'react';
 import { useStore } from 'zustand';
 import { AlertTriangle, Search, SearchX } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
@@ -39,9 +40,47 @@ function SkeletonRows() {
   );
 }
 
+/** How long a query may run before the slow notice offers a cancel. The request is
+ * not aborted here; only the user's cancel aborts it. */
+const SLOW_NOTICE_MS = 8_000;
+
+function LoadingState({ t, onCancel }: { t: Translate; onCancel: () => void }) {
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSlow(true);
+    }, SLOW_NOTICE_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []);
+  return (
+    <div
+      role="status"
+      aria-busy="true"
+      aria-label={t('catalog.loading')}
+      className="flex flex-col gap-3 p-1"
+    >
+      {slow ? (
+        <div className="flex flex-wrap items-center gap-2 rounded-kcp border border-warn bg-primary-soft px-2 py-1.5 text-xs text-ink">
+          <span>{t('catalog.slowNotice')}</span>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-kcp border border-border bg-surface px-2 py-0.5 font-medium text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            {t('action.cancel')}
+          </button>
+        </div>
+      ) : null}
+      <SkeletonRows />
+    </div>
+  );
+}
+
 export function CatalogPanel() {
   const deps = useSearchDeps();
-  const { retry, refreshResult } = useSearchActions(deps);
+  const { retry, refreshResult, cancel } = useSearchActions(deps);
   const { t } = useTranslation();
   const result = useStore(searchStore, (state) => state.result);
   const query = useStore(searchStore, (state) => state.resultQuery);
@@ -58,14 +97,12 @@ export function CatalogPanel() {
 
   if (result.status === 'loading') {
     return (
-      <div
-        role="status"
-        aria-busy="true"
-        aria-label={t('catalog.loading')}
-        className="p-1"
-      >
-        <SkeletonRows />
-      </div>
+      <LoadingState
+        t={t}
+        onCancel={() => {
+          void cancel();
+        }}
+      />
     );
   }
 

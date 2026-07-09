@@ -108,6 +108,7 @@ export interface SearchActions {
   submit: () => Promise<void>;
   retry: () => Promise<void>;
   refreshResult: () => Promise<RefreshOutcome>;
+  cancel: () => Promise<void>;
 }
 
 export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
@@ -188,5 +189,16 @@ export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
     return 'changed';
   }, [runQuery]);
 
-  return { submit, retry, refreshResult };
+  // Abort a slow in flight query in the worker and return the form to idle. The
+  // pending runQuery response is dropped because resultQuery no longer matches it.
+  const cancel = useCallback(async () => {
+    const { resultQuery } = searchStore.getState();
+    if (resultQuery === null) {
+      return;
+    }
+    searchStore.getState().setResult({ status: 'idle' }, null);
+    await send({ type: 'teachTable/cancel', query: resultQuery });
+  }, [send]);
+
+  return { submit, retry, refreshResult, cancel };
 }
