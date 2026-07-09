@@ -56,9 +56,10 @@ describe('planStore write side', () => {
 
     store.getState().remove('a');
     expect(store.getState().entries).toHaveLength(0);
-    expect(store.getState().pendingUndo).toHaveLength(1);
+    expect(store.getState().pendingUndo?.removed).toHaveLength(1);
+    expect(store.getState().pendingUndo?.added).toHaveLength(0);
 
-    store.getState().undoRemove();
+    store.getState().undo();
     expect(store.getState().entries).toHaveLength(1);
     expect(store.getState().pendingUndo).toBeNull();
   });

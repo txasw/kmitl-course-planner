@@ -36,7 +36,10 @@ function seedUndo(): void {
     }),
   });
   act(() => {
-    planStore.setState({ entries: [], pendingUndo: [entry] });
+    planStore.setState({
+      entries: [],
+      pendingUndo: { added: [], removed: [entry] },
+    });
   });
 }
 
