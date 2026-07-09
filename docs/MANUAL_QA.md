@@ -41,6 +41,21 @@ button. Never skip it.
       valid ones as droppable slots and blocked, full, and closed ones as hatched
       with their reason. Hovering a candidate highlights its whole section group.
       Dropping on a valid slot commits that section and its pair.
+- [ ] Overlay tracking: while dragging a section grip, the grab card follows the
+      pointer within a few pixels rather than floating above it.
+- [ ] Block drag to remove: grab a placed block. The remove zone appears at the panel
+      edge. Drop the block on it. The section and its pair leave with a strip
+      confirmation and a ten second undo that restores them.
+- [ ] Block drag to move: grab a placed block of a subject that has another section in
+      the current results. The grid paints that section as a candidate slot. Drop on it.
+      The section moves atomically and a single undo restores the original placement.
+- [ ] Swap on a conflict: start a drag that clashes with a placed section. Each blocking
+      block shows an orange swap target naming the incoming section. Drop precisely on
+      one. The blocker and its pair are exchanged for the dragged section and its pair,
+      and one undo restores both sides.
+- [ ] Still conflicting swap: drop on a swap target whose removal still leaves the
+      incoming section clashing with another block. Nothing changes and the strip names
+      the remaining conflict.
 - [ ] Preview: toggle preview. The rails collapse, the grid becomes a full width
       poster with the plan label, credits, and date, and no add, remove, or drag
       control is present. Toggle back to edit.
