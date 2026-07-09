@@ -5,11 +5,37 @@ import {
   fireEvent,
   cleanup,
   act,
+  waitFor,
 } from '@testing-library/react';
 import { makePlan } from '../../../tests/support/domain-builders';
 import { searchStore } from '@/features/search/searchStore';
 import { planStore } from './planStore';
 import { PlanSwitcher } from './PlanSwitcher';
+
+const validBlob = {
+  id: 'imported-id',
+  name: 'Imported',
+  year: '2569',
+  semester: '1',
+  entries: [],
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+};
+
+function fileInput(container: HTMLElement): HTMLInputElement {
+  const input = container.querySelector('input[type="file"]');
+  if (!(input instanceof HTMLInputElement)) {
+    throw new Error('expected a file input');
+  }
+  return input;
+}
+
+function selectFile(input: HTMLInputElement, value: unknown): void {
+  const file = new File([JSON.stringify(value)], 'plan.json', {
+    type: 'application/json',
+  });
+  fireEvent.change(input, { target: { files: [file] } });
+}
 
 beforeEach(() => {
   act(() => {
@@ -149,5 +175,35 @@ describe('PlanSwitcher', () => {
     // The confirm view offers a delete button; confirm the deletion.
     fireEvent.click(screen.getByRole('button', { name: 'ลบ' }));
     expect(planStore.getState().plans).toHaveLength(0);
+  });
+
+  it('lists the invalid fields of a tampered import and commits nothing', async () => {
+    const { container } = render(<PlanSwitcher />);
+    openMenu();
+    // A valid shape with an out of range semester enum.
+    selectFile(fileInput(container), { ...validBlob, semester: '9' });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('นำเข้าไม่สำเร็จ ข้อมูลไม่ถูกต้อง'),
+      ).toBeInTheDocument();
+    });
+    expect(screen.getByText(/semester/)).toBeInTheDocument();
+    expect(planStore.getState().plans).toHaveLength(0);
+  });
+
+  it('imports a valid plan as a new unverified plan', async () => {
+    const { container } = render(<PlanSwitcher />);
+    openMenu();
+    selectFile(fileInput(container), validBlob);
+
+    await waitFor(() => {
+      expect(planStore.getState().plans).toHaveLength(1);
+    });
+    const plans = planStore.getState().plans;
+    expect(plans[0]?.name).toBe('Imported');
+    // A fresh id, never the imported one, so it cannot overwrite a plan.
+    expect(plans[0]?.id).not.toBe('imported-id');
+    expect(planStore.getState().activePlanId).toBe(plans[0]?.id);
   });
 });
