@@ -52,6 +52,10 @@ export interface RevalidateDeps {
   now: () => string;
 }
 
+// Plans with a run in flight, so a second trigger for the same plan does not start an
+// overlapping run whose out of order result could clobber the newer one.
+const inFlight = new Set<string>();
+
 /**
  * Run a revalidation for a plan. A manual run bypasses the cache; an automatic run
  * uses the normal cache and retry rules. The result is reported through the
@@ -62,58 +66,66 @@ export async function revalidatePlanNow(
   deps: RevalidateDeps,
   manual: boolean,
 ): Promise<void> {
+  if (plan.entries.length === 0 || inFlight.has(plan.id)) {
+    return;
+  }
+  inFlight.add(plan.id);
   revalidationStore
     .getState()
     .setRun(plan.id, { status: 'running', report: null });
 
-  const groups = new Map<string, Record<string, string>>();
-  for (const entry of plan.entries) {
-    const key = sourceQueryKey(entry.sourceQuery.params);
-    if (!groups.has(key)) {
-      groups.set(key, entry.sourceQuery.params);
+  try {
+    const groups = new Map<string, Record<string, string>>();
+    for (const entry of plan.entries) {
+      const key = sourceQueryKey(entry.sourceQuery.params);
+      if (!groups.has(key)) {
+        groups.set(key, entry.sourceQuery.params);
+      }
     }
-  }
 
-  const catalogs: NormalizedCatalog[] = [];
-  const succeeded = new Set<string>();
-  let anyFailure = false;
-  for (const [key, params] of groups) {
-    const query = sourceQueryToQuery(params);
-    if (query === null) {
-      anyFailure = true;
-      continue;
+    const catalogs: NormalizedCatalog[] = [];
+    const succeeded = new Set<string>();
+    let anyFailure = false;
+    for (const [key, params] of groups) {
+      const query = sourceQueryToQuery(params);
+      if (query === null) {
+        anyFailure = true;
+        continue;
+      }
+      const result = await deps.send({
+        type: 'teachTable/query',
+        query,
+        refresh: manual,
+      });
+      if (result.ok) {
+        catalogs.push(result.value);
+        succeeded.add(key);
+      } else {
+        anyFailure = true;
+      }
     }
-    const result = await deps.send({
-      type: 'teachTable/query',
-      query,
-      refresh: manual,
-    });
-    if (result.ok) {
-      catalogs.push(result.value);
-      succeeded.add(key);
-    } else {
-      anyFailure = true;
+
+    const checkedEntries = plan.entries.filter((entry) =>
+      succeeded.has(sourceQueryKey(entry.sourceQuery.params)),
+    );
+    if (checkedEntries.length === 0) {
+      // Every replay failed: render from snapshots with the unverified state and a retry.
+      revalidationStore
+        .getState()
+        .setRun(plan.id, { status: 'offline', report: null });
+      return;
     }
-  }
 
-  const checkedEntries = plan.entries.filter((entry) =>
-    succeeded.has(sourceQueryKey(entry.sourceQuery.params)),
-  );
-  if (checkedEntries.length === 0) {
-    // Every replay failed: render from snapshots with the unverified state and a retry.
-    revalidationStore
-      .getState()
-      .setRun(plan.id, { status: 'offline', report: null });
-    return;
+    const index = buildSectionIndex(catalogs);
+    const { plan: reconciled, report } = reconcilePlan(
+      { ...plan, entries: checkedEntries },
+      index,
+      deps.now(),
+    );
+    planStore.getState().applyRevalidation(plan.id, reconciled.entries);
+    const status: RevalidationStatus = anyFailure ? 'partial' : 'done';
+    revalidationStore.getState().setRun(plan.id, { status, report });
+  } finally {
+    inFlight.delete(plan.id);
   }
-
-  const index = buildSectionIndex(catalogs);
-  const { plan: reconciled, report } = reconcilePlan(
-    { ...plan, entries: checkedEntries },
-    index,
-    deps.now(),
-  );
-  planStore.getState().applyRevalidation(plan.id, reconciled.entries);
-  const status: RevalidationStatus = anyFailure ? 'partial' : 'done';
-  revalidationStore.getState().setRun(plan.id, { status, report });
 }
