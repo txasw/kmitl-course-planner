@@ -59,12 +59,23 @@ test('places a section on the grid by dragging its handle', async ({
   // A raw pointer sequence drives the real dnd-kit pointer sensor: press the grip,
   // move past the activation distance, then onto the grid, and release. The pointer
   // within collision resolves the drop zone and the placement commits.
+  const pointerX = to.x + to.width / 2;
+  const pointerY = to.y + to.height / 2;
   await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
   await page.mouse.down();
   await page.mouse.move(from.x + 20, from.y + 20, { steps: 5 });
-  await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, {
-    steps: 15,
-  });
+  await page.mouse.move(pointerX, pointerY, { steps: 15 });
+
+  // While the drag is live, the grab card's top-left tracks the pointer within a few
+  // pixels. Before the snap-to-cursor modifier it floated above the pointer by half a
+  // catalog row, so this guards the G1 regression.
+  const card = await page.locator('[data-drag-card]').boundingBox();
+  expect(card).not.toBeNull();
+  if (card !== null) {
+    expect(Math.abs(card.x - pointerX)).toBeLessThan(16);
+    expect(Math.abs(card.y - pointerY)).toBeLessThan(16);
+  }
+
   await page.mouse.up();
 
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();

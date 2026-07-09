@@ -12,6 +12,7 @@ export function DragCard({ section }: { section: Section }) {
   const { t } = useTranslation();
   return (
     <div
+      data-drag-card
       className="inline-flex items-center gap-1.5 rounded-kcp px-2 py-1 text-xs font-medium text-white shadow-kcp"
       style={{ backgroundColor: hashColor(section.subjectId) }}
     >
