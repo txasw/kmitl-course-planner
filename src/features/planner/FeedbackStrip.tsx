@@ -105,7 +105,7 @@ function RemovedNotice({
       <button
         type="button"
         onClick={() => {
-          planStore.getState().undoRemove();
+          planStore.getState().undo();
         }}
         className="font-medium text-primary underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
@@ -170,7 +170,7 @@ export function FeedbackStrip({ locale, t }: FeedbackStripProps) {
     };
   }, [hint]);
 
-  const removed = pendingUndo?.[0];
+  const removed = pendingUndo?.removed[0];
 
   return (
     <div aria-live="polite" className="min-h-[1.75rem] shrink-0">
