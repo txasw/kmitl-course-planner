@@ -140,6 +140,45 @@ test('swaps a blocking section on a conflicting drop, with undo', async ({
   await expect(page.locator(block('900002'))).toHaveCount(0);
 });
 
+test('swaps via a course drag onto a blocking section', async ({ context }) => {
+  const page = await openPlanner(context);
+  await syntheticSearch(page);
+  // Course A occupies Mon 09-11.
+  await addCourse(page, '90000001');
+  const aBox = await boxOf(page, block('900001'));
+
+  // Course drag B, whose only section (Mon 10-12) overlaps A, so its candidate is
+  // blocked. Hovering the blocked candidate raises A as a swap target.
+  const courseGrip = page
+    .getByRole('article')
+    .filter({ hasText: '90000002' })
+    .first()
+    .locator('[title*="ลากรายวิชา"]')
+    .first();
+  const gripBox = await courseGrip.boundingBox();
+  expect(gripBox).not.toBeNull();
+  if (gripBox === null) {
+    return;
+  }
+  await page.mouse.move(
+    gripBox.x + gripBox.width / 2,
+    gripBox.y + gripBox.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(gripBox.x + 24, gripBox.y + 12, { steps: 6 });
+  const blockedCandidate = await boxOf(page, '[data-candidate="blocked"]');
+  const bc = center(blockedCandidate);
+  await page.mouse.move(bc.x, bc.y, { steps: 8 });
+  await page.locator('[data-swap-target]').first().waitFor();
+  const a = center(aBox);
+  await page.mouse.move(a.x, a.y, { steps: 8 });
+  await page.mouse.up();
+  await page.waitForTimeout(120);
+
+  await expect(page.locator(block('900001'))).toHaveCount(0);
+  await expect(page.locator(block('900002'))).toBeVisible();
+});
+
 test('rejects a swap that still conflicts after removing the blocker', async ({
   context,
 }) => {
