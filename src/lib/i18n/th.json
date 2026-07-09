@@ -156,5 +156,10 @@
   "preview.toolbar": "เครื่องมือสำหรับแชร์",
   "preview.downloadPng": "ดาวน์โหลดรูปภาพ",
   "preview.pngDownloaded": "ดาวน์โหลดรูปภาพแล้ว",
-  "preview.exportFailed": "ส่งออกรูปภาพไม่สำเร็จ"
+  "preview.exportFailed": "ส่งออกรูปภาพไม่สำเร็จ",
+  "preview.displayOptions": "ตัวเลือกการแสดงผล",
+  "preview.fitToContent": "ย่อพอดีกับเนื้อหา",
+  "preview.showRoom": "แสดงห้อง",
+  "preview.showSection": "แสดงกลุ่มเรียน",
+  "preview.showEnglishNames": "แสดงชื่อภาษาอังกฤษ"
 }
