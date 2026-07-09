@@ -12,10 +12,10 @@ export default defineConfig<TestOptions>({
   fullyParallel: false,
   workers: 1,
   timeout: 60_000,
-  // A transient connection level flake in the extension network stack, seen when
-  // a fault injected failure is retried, should not fail the run; a real failure
-  // fails every attempt.
-  retries: 2,
+  // No retries: every spec is deterministic. The retry spec's injected failure is
+  // a fully read response rather than a 5xx, so it runs on a single drained socket
+  // with no retry churn to race the recovery fetch. A failing run is a real failure.
+  retries: 0,
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? 'github' : 'list',
   // A wide viewport keeps the catalog in its dominant column rather than the
