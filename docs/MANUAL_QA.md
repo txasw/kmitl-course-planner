@@ -70,3 +70,36 @@ button. Never skip it.
       returns to idle and a fresh search still works. Open the debug diagnostics
       request log and confirm the time to first byte, download, parse, and validate
       columns and the payload size are populated for the query.
+
+## Plans, term scoping, and revalidation
+
+- [ ] Plan switcher and CRUD: open the plan switcher in the header. Create a plan and
+      confirm the default name is ตาราง semester/year. Rename it, duplicate it, and
+      delete one behind its inline confirm. Switching plans updates the header and
+      snaps the search form to that plan's term.
+- [ ] Term scoping: with a plan for one term active, change the search term and search
+      again. Every catalog row shows the different term state naming both terms, with no
+      add control and a switch action, and a banner above the catalog carries the same.
+      Use the switch: it moves to or creates a plan for the browsed term and the rows
+      become addable. Confirm the first plan and its sections are untouched.
+- [ ] Persistence across reload: add a few sections, then reload the page and reopen the
+      panel. The grid rebuilds from the stored plan even though the catalog is empty. Two
+      plans for different semesters stay separate.
+- [ ] Revalidation on open: open a plan that has entries. A summary banner reports the
+      check; with unchanged data it reads all up to date. Press refresh and confirm the
+      outcome reports in the banner, not through a toast.
+- [ ] Changed section: if a section's time changed upstream, its block carries a warn
+      badge until acknowledged and the banner counts the change. Open the block detail
+      popover and the revalidation detail sheet and confirm both show old versus new.
+- [ ] Missing section: a section dropped upstream stays on the grid with a danger badge
+      and a suggested remove. Confirm nothing is deleted without the action.
+- [ ] Block detail popover: in edit mode, open a block's details control. The popover
+      shows the metadata, the verification state, acknowledge for a changed entry, and
+      remove. Escape closes the popover and not the whole overlay. It is absent in
+      preview.
+- [ ] Offline revalidation: block the network, then open a plan. It renders from
+      snapshots with an unverified state and a working retry, and viewing is never
+      blocked. Restore the network and retry.
+- [ ] Quarantine: in a dev build, corrupt the stored plan blob. On reload the panel
+      shows the quarantine card with an export action and starts from a clean state
+      without losing the app.
