@@ -7,8 +7,10 @@ import {
   usePlanPersistence,
   type PlanPersistenceDeps,
 } from '@/features/plans/usePlanPersistence';
+import { useRevalidationTriggers } from '@/features/plans/useRevalidationTriggers';
 import {
   SearchDepsProvider,
+  useSearchDeps,
   type SearchDeps,
 } from '@/features/search/SearchDepsContext';
 import { DiagnosticsGate } from '@/features/diagnostics/DiagnosticsGate';
@@ -29,10 +31,19 @@ export function App({ prefs, plans, search }: AppProps) {
   usePlanPersistence(plans);
   return (
     <SearchDepsProvider value={search}>
+      <RevalidationTriggers />
       <Launcher />
       <Overlay />
       <DiagnosticsGate />
       <Toaster />
     </SearchDepsProvider>
   );
+}
+
+// A zero render child so the revalidation triggers can read the injected send from
+// the search deps context rather than threading it through props.
+function RevalidationTriggers() {
+  const { send } = useSearchDeps();
+  useRevalidationTriggers(send);
+  return null;
 }
