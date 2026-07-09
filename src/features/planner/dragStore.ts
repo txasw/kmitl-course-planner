@@ -27,6 +27,13 @@ function identity(section: Section): string {
   return `${section.subjectId}:${section.section}`;
 }
 
+/** The distinct teachTableIds of the placed sections a set of conflicts blocks. */
+export function blockerIds(conflicts: ConflictDetail[]): string[] {
+  return [
+    ...new Set(conflicts.map((conflict) => conflict.blocking.teachTableId)),
+  ];
+}
+
 export interface ActiveDrag {
   course: Course;
   section: Section;
@@ -57,6 +64,19 @@ export interface CourseDrag {
   candidates: Candidate[];
 }
 
+export interface SwapContext {
+  /** The section that would be added by the exchange. */
+  incoming: Section;
+  /** The incoming section's course, for pair expansion on commit. */
+  course: Course;
+  /** A placed block to remove alongside the blocker, for a block move onto a swap
+   * target; null for a section or course drag swap. */
+  originId: string | null;
+  /** The teachTableIds of the placed blocks that block the incoming section, each a
+   * swap target. */
+  blockers: string[];
+}
+
 export interface DragStore {
   active: ActiveDrag | null;
   blocked: BlockedFeedback | null;
@@ -73,6 +93,9 @@ export interface DragStore {
   raised: string | null;
   /** A visible one line hint shown after a missed course drop, or null. */
   hint: string | null;
+  /** What a drop on a swap target would exchange, or null when nothing is blocked.
+   * Latched so it survives the pointer moving from a blocked candidate to a target. */
+  swapContext: SwapContext | null;
   start: (course: Course, section: Section, placed: Section[]) => void;
   /** End a valid or cancelled drag, clearing the active state with no feedback. */
   clearActive: () => void;
@@ -97,6 +120,8 @@ export interface DragStore {
   ) => void;
   clearBlockMove: () => void;
   setRaised: (teachTableId: string | null) => void;
+  /** Latch or clear the swap context as a blocked candidate is hovered. */
+  setSwapContext: (context: SwapContext | null) => void;
   setHint: (message: string) => void;
   clearHint: () => void;
 }
@@ -111,11 +136,21 @@ export function createDragStore() {
     blockMove: null,
     raised: null,
     hint: null,
+    swapContext: null,
     start: (course, section, placed) => {
       const group = expandSectionGroup(course, section);
       const placement = checkPlacement(placed, group);
       set({
         active: { course, section, group, placement },
+        // A blocked section drag can swap: every blocking block is a swap target.
+        swapContext: placement.ok
+          ? null
+          : {
+              incoming: section,
+              course,
+              originId: null,
+              blockers: blockerIds(placement.conflicts),
+            },
         courseDrag: null,
         blockMove: null,
         blocked: null,
@@ -125,13 +160,14 @@ export function createDragStore() {
       });
     },
     clearActive: () => {
-      set({ active: null });
+      set({ active: null, swapContext: null });
     },
     reject: () => {
       const { active } = get();
       if (active !== null && !active.placement.ok) {
         set({
           active: null,
+          swapContext: null,
           blocked: {
             course: active.course,
             section: active.section,
@@ -139,7 +175,7 @@ export function createDragStore() {
           },
         });
       } else {
-        set({ active: null });
+        set({ active: null, swapContext: null });
       }
     },
     showBlocked: (feedback) => {
@@ -169,10 +205,11 @@ export function createDragStore() {
         hover: null,
         raised: null,
         hint: null,
+        swapContext: null,
       });
     },
     clearCourse: () => {
-      set({ courseDrag: null, raised: null });
+      set({ courseDrag: null, raised: null, swapContext: null });
     },
     startBlockMove: (section, placed, course) => {
       const pair = placed.filter(
@@ -196,13 +233,17 @@ export function createDragStore() {
         hover: null,
         raised: null,
         hint: null,
+        swapContext: null,
       });
     },
     clearBlockMove: () => {
-      set({ blockMove: null, raised: null });
+      set({ blockMove: null, raised: null, swapContext: null });
     },
     setRaised: (teachTableId) => {
       set({ raised: teachTableId });
+    },
+    setSwapContext: (context) => {
+      set({ swapContext: context });
     },
     setHint: (message) => {
       set({ hint: message });

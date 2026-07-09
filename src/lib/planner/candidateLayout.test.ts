@@ -16,7 +16,7 @@ function candidate(
     section,
     meetings: [meeting],
   });
-  return { section: s, group: [s], valid: true, reason: 'ok' };
+  return { section: s, group: [s], valid: true, reason: 'ok', conflicts: [] };
 }
 
 describe('candidateFootprints', () => {
@@ -30,7 +30,13 @@ describe('candidateFootprints', () => {
       ],
     });
     const candidates: Candidate[] = [
-      { section: lecture, group: [lecture], valid: true, reason: 'ok' },
+      {
+        section: lecture,
+        group: [lecture],
+        valid: true,
+        reason: 'ok',
+        conflicts: [],
+      },
     ];
     expect(candidateFootprints(candidates, DEFAULT_WINDOW)).toHaveLength(2);
   });

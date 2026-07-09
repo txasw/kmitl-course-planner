@@ -23,6 +23,7 @@ import { dragStore } from './dragStore';
 import { CandidateSlot } from './CandidateSlot';
 import { EventBlock } from './EventBlock';
 import { DraggableBlock } from './DraggableBlock';
+import { SwapTarget } from './SwapTarget';
 import type { PlacedSection } from './placedSection';
 
 const MAX_STACK_OFFSET = 4;
@@ -86,8 +87,12 @@ export function WeeklyGrid({
   const courseDrag = useStore(dragStore, (state) => state.courseDrag);
   const blockMove = useStore(dragStore, (state) => state.blockMove);
   const raised = useStore(dragStore, (state) => state.raised);
+  const swapContext = useStore(dragStore, (state) => state.swapContext);
   const blocked = active !== null && !active.placement.ok;
   const removeLabel = t('action.remove');
+  const swapLabel = t('blockMove.swap');
+  const swapBlockers =
+    swapContext === null ? new Set<string>() : new Set(swapContext.blockers);
   // Candidate slots come from a course drag or a block move, whichever is active.
   const candidates = courseDrag?.candidates ?? blockMove?.candidates ?? null;
   const movingIds = useMemo(
@@ -226,6 +231,26 @@ export function WeeklyGrid({
               />
             );
           })
+        : null}
+
+      {swapContext !== null
+        ? sections
+            .filter((section) => swapBlockers.has(section.teachTableId))
+            .flatMap((section) =>
+              section.meetings.map((meeting) => {
+                const id = `swap-${section.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`;
+                return (
+                  <SwapTarget
+                    key={id}
+                    id={id}
+                    blockerTeachTableId={section.teachTableId}
+                    incomingLabel={swapContext.incoming.section}
+                    actionLabel={swapLabel}
+                    style={blockStyle(meeting, window)}
+                  />
+                );
+              }),
+            )
         : null}
     </div>
   );

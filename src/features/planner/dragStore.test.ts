@@ -4,7 +4,7 @@ import {
   makeMeeting,
   makeSection,
 } from '../../../tests/support/domain-builders';
-import { createDragStore } from './dragStore';
+import { blockerIds, createDragStore } from './dragStore';
 
 function clashingPlaced() {
   return [
@@ -130,5 +130,58 @@ describe('dragStore', () => {
     expect(store.getState().active).toBeNull();
     store.getState().clearBlockMove();
     expect(store.getState().blockMove).toBeNull();
+  });
+
+  it('latches a swap context on a blocked section drag', () => {
+    const store = createDragStore();
+    const { section, course } = draggedSection();
+    store.getState().start(course, section, clashingPlaced());
+    const swap = store.getState().swapContext;
+    expect(swap?.incoming.subjectId).toBe('S1');
+    expect(swap?.originId).toBeNull();
+    expect(swap?.blockers).toEqual(['p']);
+  });
+
+  it('leaves no swap context on a valid section drag', () => {
+    const store = createDragStore();
+    const { section, course } = draggedSection();
+    store.getState().start(course, section, []);
+    expect(store.getState().swapContext).toBeNull();
+  });
+
+  it('clears the swap context when a blocked drag rejects', () => {
+    const store = createDragStore();
+    const { section, course } = draggedSection();
+    store.getState().start(course, section, clashingPlaced());
+    store.getState().reject();
+    expect(store.getState().swapContext).toBeNull();
+  });
+});
+
+describe('blockerIds', () => {
+  it('collects the distinct blocking teachTableIds', () => {
+    expect(
+      blockerIds([
+        {
+          kind: 'time',
+          blocking: { teachTableId: 'p', subjectId: 'X', section: '900' },
+          day: 1,
+          startMin: 540,
+          endMin: 600,
+        },
+        {
+          kind: 'time',
+          blocking: { teachTableId: 'p', subjectId: 'X', section: '900' },
+          day: 2,
+          startMin: 540,
+          endMin: 600,
+        },
+        {
+          kind: 'duplicate',
+          blocking: { teachTableId: 'q', subjectId: 'S1', section: '901' },
+          subjectId: 'S1',
+        },
+      ]),
+    ).toEqual(['p', 'q']);
   });
 });
