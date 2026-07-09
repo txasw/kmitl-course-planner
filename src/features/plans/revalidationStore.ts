@@ -3,8 +3,10 @@
 // persisted: the durable outcome lives on the plan entries as their verification
 // status, while this store carries the one time old versus new detail of a run.
 
+import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
 import type { ReconcileReport } from '@/lib/planner/revalidate';
+import { planStore } from './planStore';
 
 export type RevalidationStatus = 'running' | 'done' | 'partial' | 'offline';
 
@@ -31,3 +33,10 @@ export function createRevalidationStore() {
 
 /** The single revalidation store instance the banner and sheet read. */
 export const revalidationStore = createRevalidationStore();
+
+/** The latest run for the active plan, or null when there is none. */
+export function useActiveRun(): RevalidationRun | null {
+  const activePlanId = useStore(planStore, (state) => state.activePlanId);
+  const runs = useStore(revalidationStore, (state) => state.runs);
+  return activePlanId === null ? null : (runs[activePlanId] ?? null);
+}
