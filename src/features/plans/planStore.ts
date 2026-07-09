@@ -27,9 +27,11 @@ import {
   type TransactionOutcome,
 } from '@/lib/planner/transaction';
 import {
+  acknowledgeEntry,
   defaultPlanName,
   duplicatePlanOf,
   makePlan,
+  mergeReconciled,
   mostRecentlyUpdated,
   replaceEntries,
 } from './planActions';
@@ -74,6 +76,10 @@ export interface PlanStore {
   setActivePlan: (id: string) => void;
   /** Replace the plan list, activating the most recently updated plan. */
   hydrate: (plans: Plan[]) => void;
+  /** Fold reconciled entries into a plan by durable identity, clearing any undo. */
+  applyRevalidation: (planId: string, reconciled: PlanEntry[]) => void;
+  /** Mark a changed entry verified once the user acknowledges its change. */
+  acknowledge: (teachTableId: string) => void;
 }
 
 /** Injected so tests get deterministic ids and timestamps. */
@@ -310,6 +316,43 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
         activePlanId: active?.id ?? null,
         entries: active?.entries ?? EMPTY_ENTRIES,
         pendingUndo: null,
+      });
+    },
+
+    applyRevalidation: (planId, reconciled) => {
+      set((state) => {
+        const target = state.plans.find((plan) => plan.id === planId);
+        if (target === undefined) {
+          return {};
+        }
+        // Merge by identity so a reconcile never resurrects a removed entry or drops
+        // one added during the round trip. updatedAt stays, since this is not an edit.
+        const entries = mergeReconciled(target.entries, reconciled);
+        const plans = state.plans.map((plan) =>
+          plan.id === planId ? { ...plan, entries } : plan,
+        );
+        if (planId === state.activePlanId) {
+          return { plans, entries, pendingUndo: null };
+        }
+        return { plans };
+      });
+    },
+
+    acknowledge: (teachTableId) => {
+      set((state) => {
+        const active = state.plans.find(
+          (plan) => plan.id === state.activePlanId,
+        );
+        if (active === undefined) {
+          return {};
+        }
+        const entries = acknowledgeEntry(active.entries, teachTableId);
+        return {
+          plans: state.plans.map((plan) =>
+            plan.id === active.id ? { ...plan, entries } : plan,
+          ),
+          entries,
+        };
       });
     },
   }));
