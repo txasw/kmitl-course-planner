@@ -2,9 +2,9 @@ import { useStore } from 'zustand';
 import { List, X } from 'lucide-react';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
+import { PlanSwitcher } from '@/features/plans/PlanSwitcher';
 import { LanguageToggle } from './LanguageToggle';
 import { ModeToggle } from './ModeToggle';
-import { PlanSwitcherPlaceholder } from './PlanSwitcherPlaceholder';
 import { DRAWER_ID } from './Layout';
 
 interface HeaderProps {
@@ -28,7 +28,7 @@ export function Header({ titleId }: HeaderProps) {
         <h2 id={titleId} className="text-base font-semibold text-ink">
           {t('app.title')}
         </h2>
-        <PlanSwitcherPlaceholder />
+        <PlanSwitcher />
       </div>
       <div className="flex items-center gap-2">
         {viewMode === 'edit' ? (

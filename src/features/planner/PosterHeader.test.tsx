@@ -32,10 +32,11 @@ const sections: PlacedSection[] = [
 afterEach(cleanup);
 
 describe('PosterHeader', () => {
-  it('shows the plan name and the total credits', () => {
+  it('shows the plan name, the term, and the total credits', () => {
     render(
       <PosterHeader
         planName="ตาราง"
+        term={{ year: '2569', semester: '1' }}
         sections={sections}
         locale="th"
         t={t}
@@ -43,6 +44,21 @@ describe('PosterHeader', () => {
       />,
     );
     expect(screen.getByRole('heading', { name: 'ตาราง' })).toBeInTheDocument();
+    expect(screen.getByText('ภาคการศึกษา 1/2569')).toBeInTheDocument();
     expect(screen.getByText('5 หน่วยกิต')).toBeInTheDocument();
+  });
+
+  it('omits the term line when no term is given', () => {
+    render(
+      <PosterHeader
+        planName="ตาราง"
+        term={null}
+        sections={sections}
+        locale="th"
+        t={t}
+        now={new Date('2026-07-08T00:00:00Z')}
+      />,
+    );
+    expect(screen.queryByText(/ภาคการศึกษา/)).toBeNull();
   });
 });

@@ -6,7 +6,7 @@
 import { useCallback, useMemo } from 'react';
 import { useStore } from 'zustand';
 import { computeWindow } from '@/lib/planner/grid';
-import { planStore } from '@/features/plans/planStore';
+import { planStore, useActivePlan } from '@/features/plans/planStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { isScheduled, toPlacedSection } from './placedSection';
@@ -20,6 +20,7 @@ import { WeeklyGrid } from './WeeklyGrid';
 export function PlannerPanel() {
   const { t, language } = useTranslation();
   const entries = useStore(planStore, (state) => state.entries);
+  const activePlan = useActivePlan();
   const viewMode = useStore(uiStore, (state) => state.viewMode);
   const activeDrag = useStore(dragStore, (state) => state.active);
   const hoverSection = useStore(dragStore, (state) => state.hover);
@@ -73,7 +74,12 @@ export function PlannerPanel() {
     <div className="flex h-full flex-col gap-2">
       {viewMode === 'preview' ? (
         <PosterHeader
-          planName={t('plan.untitled')}
+          planName={activePlan?.name ?? t('plan.untitled')}
+          term={
+            activePlan === null
+              ? null
+              : { year: activePlan.year, semester: activePlan.semester }
+          }
           sections={sections}
           locale={language}
           t={t}

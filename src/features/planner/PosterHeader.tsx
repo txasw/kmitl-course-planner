@@ -1,14 +1,15 @@
-// The preview poster header: the plan name, the total credits, and the date the
-// poster was generated. It is presentation only, shown when the panel is in
-// preview mode, and carries no interactive control. Semester and year join it once
-// the plan model carries them.
+// The preview poster header: the plan name, the semester over year, the total
+// credits, and the date the poster was generated. It is presentation only, shown
+// when the panel is in preview mode, and carries no interactive control.
 
 import type { Locale, Translate } from '@/lib/i18n/t';
+import type { Term } from '@/lib/routing/academicTerms';
 import { summarizeCredits } from '@/lib/planner/credits';
 import type { PlacedSection } from './placedSection';
 
 interface PosterHeaderProps {
   planName: string;
+  term: Term | null;
   sections: PlacedSection[];
   locale: Locale;
   t: Translate;
@@ -17,6 +18,7 @@ interface PosterHeaderProps {
 
 export function PosterHeader({
   planName,
+  term,
   sections,
   locale,
   t,
@@ -36,6 +38,11 @@ export function PosterHeader({
     <header className="shrink-0 border-b border-border pb-2">
       <h2 className="text-base font-semibold text-ink">{planName}</h2>
       <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-ink-soft">
+        {term !== null ? (
+          <span>
+            {t('search.semester')} {term.semester}/{term.year}
+          </span>
+        ) : null}
         <span>
           {credits.credits} {t('footer.credits')}
         </span>
