@@ -1,12 +1,13 @@
-// The drag context for the planner. It hosts two gestures. A section drag validates
-// once on drag start and its result drives the grid ghosts, the pulse, and the
-// reason chip; a valid drop over the planner commits and a blocked drop surfaces the
-// reason and alternatives in the strip. A course drag instead paints every section
-// of the course as a candidate slot on the grid at once; dropping on a valid slot
-// commits that section and its pair, and dropping on empty grid gives one gentle
-// hint. A short pointer activation distance keeps a click on a row button from
-// starting a drag, and pointer within collision resolves the drop wherever the
-// pointer is over the grid.
+// The drag context for the planner. It hosts three gestures. A section drag from the
+// catalog validates once on drag start and its result drives the grid ghosts, the
+// pulse, and the reason chip; a valid drop commits and a blocked drop surfaces the
+// reason and alternatives. A course drag paints every section of the course as a
+// candidate slot; dropping on a valid slot commits that section and its pair. A block
+// drag lifts a placed section: the remove zone appears at the panel edge and the grid
+// paints the subject's other sections as move targets, so a drop removes the section
+// or moves it to another slot. A custom collision detection resolves overlapping drop
+// targets by an explicit priority, and a short pointer activation distance keeps a
+// click on a row or block button from starting a drag.
 
 import type { ReactNode } from 'react';
 import { useCallback } from 'react';
@@ -14,7 +15,6 @@ import {
   DndContext,
   DragOverlay,
   PointerSensor,
-  pointerWithin,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -25,12 +25,18 @@ import { useStore } from 'zustand';
 import type { Course, Section } from '@/lib/domain/types';
 import { placedSections } from '@/lib/planner/transaction';
 import { planStore } from '@/features/plans/planStore';
-import { addSectionToPlan } from '@/features/plans/addToPlan';
+import {
+  addSectionToPlan,
+  moveSectionInPlan,
+} from '@/features/plans/addToPlan';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { dragStore } from './dragStore';
 import { DragCard } from './DragCard';
 import { ReasonChip } from './ReasonChip';
+import { RemoveZone, REMOVE_ZONE_ID } from './RemoveZone';
+import { resolveCourseForSubject } from './resolveCourse';
 import { snapDragCardToCursor } from './snapToCursor';
+import { prioritizedCollision } from './collision';
 
 interface SectionDragData {
   course: Course;
@@ -61,6 +67,22 @@ function isCourseDragData(value: unknown): value is CourseDragData {
   );
 }
 
+interface BlockDragData {
+  block: true;
+  teachTableId: string;
+}
+
+/** A block drag carries the placed section's id, tagged so it is not a course drag. */
+function isBlockDragData(value: unknown): value is BlockDragData {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'block' in value &&
+    'teachTableId' in value &&
+    typeof value.teachTableId === 'string'
+  );
+}
+
 interface CandidateDropData {
   section: Section;
 }
@@ -71,7 +93,8 @@ function isCandidateDropData(value: unknown): value is CandidateDropData {
     typeof value === 'object' &&
     value !== null &&
     'section' in value &&
-    !('course' in value)
+    !('course' in value) &&
+    !('block' in value)
   );
 }
 
@@ -80,6 +103,8 @@ const ACTIVATION_DISTANCE = 6;
 export function PlannerDnd({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   const hintText = t('feedback.courseDropHint');
+  const moveHint = t('feedback.moveHint');
+  const removeLabel = t('blockMove.removeZone');
   // Only the pointer sensor drags. The grip commits on Enter or Space through its
   // own click handler, so there is no arrow key move machinery to arm, which would
   // be meaningless when every placement is fixed.
@@ -90,11 +115,21 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
   );
   const active = useStore(dragStore, (state) => state.active);
   const courseDrag = useStore(dragStore, (state) => state.courseDrag);
+  const blockMove = useStore(dragStore, (state) => state.blockMove);
 
   const handleStart = useCallback((event: DragStartEvent) => {
     const data = event.active.data.current;
     const placed = placedSections(planStore.getState().entries);
-    if (isSectionDragData(data)) {
+    if (isBlockDragData(data)) {
+      const section = placed.find(
+        (candidate) => candidate.teachTableId === data.teachTableId,
+      );
+      if (section === undefined) {
+        return;
+      }
+      const course = resolveCourseForSubject(section.subjectId);
+      dragStore.getState().startBlockMove(section, placed, course);
+    } else if (isSectionDragData(data)) {
       dragStore.getState().start(data.course, data.section, placed);
     } else if (isCourseDragData(data)) {
       dragStore.getState().startCourse(data.course, placed);
@@ -102,13 +137,14 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
   }, []);
 
   const handleOver = useCallback((event: DragOverEvent) => {
-    if (dragStore.getState().courseDrag === null) {
+    const state = dragStore.getState();
+    if (state.courseDrag === null && state.blockMove === null) {
       return;
     }
     const data = event.over?.data.current;
-    dragStore
-      .getState()
-      .setRaised(isCandidateDropData(data) ? data.section.teachTableId : null);
+    state.setRaised(
+      isCandidateDropData(data) ? data.section.teachTableId : null,
+    );
   }, []);
 
   const handleEnd = useCallback(
@@ -125,6 +161,23 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
         }
         return;
       }
+      if (state.blockMove !== null) {
+        const move = state.blockMove;
+        const data = event.over?.data.current;
+        if (event.over?.id === REMOVE_ZONE_ID) {
+          planStore.getState().remove(move.section.teachTableId);
+        } else if (isCandidateDropData(data) && move.course !== null) {
+          moveSectionInPlan(
+            move.section.teachTableId,
+            move.course,
+            data.section,
+          );
+        } else {
+          state.setHint(moveHint);
+        }
+        state.clearBlockMove();
+        return;
+      }
       if (state.courseDrag !== null) {
         const data = event.over?.data.current;
         if (isCandidateDropData(data)) {
@@ -135,30 +188,34 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
         state.clearCourse();
       }
     },
-    [hintText],
+    [hintText, moveHint],
   );
 
   const handleCancel = useCallback(() => {
     dragStore.getState().clearActive();
     dragStore.getState().clearCourse();
+    dragStore.getState().clearBlockMove();
   }, []);
 
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={pointerWithin}
+      collisionDetection={prioritizedCollision}
       onDragStart={handleStart}
       onDragOver={handleOver}
       onDragEnd={handleEnd}
       onDragCancel={handleCancel}
     >
       {children}
+      {blockMove !== null ? <RemoveZone label={removeLabel} /> : null}
       <DragOverlay dropAnimation={null} modifiers={[snapDragCardToCursor]}>
         {active !== null ? (
           <div className="flex flex-col items-start gap-1">
             <DragCard section={active.section} />
             {active.placement.ok ? null : <ReasonChip active={active} />}
           </div>
+        ) : blockMove !== null ? (
+          <DragCard section={blockMove.section} />
         ) : courseDrag !== null ? (
           <div className="inline-flex items-center gap-1.5 rounded-kcp bg-ink px-2 py-1 text-xs font-medium text-surface shadow-kcp">
             {courseDrag.course.subjectId}

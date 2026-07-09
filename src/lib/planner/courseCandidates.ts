@@ -24,16 +24,23 @@ function identity(section: Section): string {
   return `${section.subjectId}:${section.section}`;
 }
 
-/** Classify every not yet placed section of the course as a candidate. */
+/**
+ * Classify every not yet placed section of the course as a candidate. The exclude
+ * set holds durable identities (subjectId:section) to leave out of both the conflict
+ * baseline and the emitted candidates, which is how a block move treats the dragged
+ * section and its pair as already gone so the subject's other sections read as free.
+ */
 export function courseCandidates(
   course: Course,
   placed: Section[],
+  exclude = new Set<string>(),
 ): Candidate[] {
-  const placedKeys = new Set(placed.map(identity));
+  const baseline = placed.filter((section) => !exclude.has(identity(section)));
+  const placedKeys = new Set(baseline.map(identity));
   const candidates: Candidate[] = [];
   for (const section of course.sections) {
-    if (placedKeys.has(identity(section))) {
-      continue; // already on the grid
+    if (placedKeys.has(identity(section)) || exclude.has(identity(section))) {
+      continue; // already on the grid, or the block being moved
     }
     const group = expandSectionGroup(course, section);
     const seat = computeSeatStatus(section);
@@ -45,7 +52,7 @@ export function courseCandidates(
       candidates.push({ section, group, valid: false, reason: 'full' });
       continue;
     }
-    const placement = checkPlacement(placed, group);
+    const placement = checkPlacement(baseline, group);
     if (placement.ok) {
       candidates.push({ section, group, valid: true, reason: 'ok' });
       continue;
