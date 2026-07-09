@@ -152,5 +152,9 @@
   "mode.select": "View mode",
   "mode.edit": "Edit",
   "mode.preview": "Preview",
-  "plan.untitled": "Plan"
+  "plan.untitled": "Plan",
+  "preview.toolbar": "Sharing tools",
+  "preview.downloadPng": "Download image",
+  "preview.pngDownloaded": "Image downloaded",
+  "preview.exportFailed": "Could not export the image"
 }
