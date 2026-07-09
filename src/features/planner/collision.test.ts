@@ -3,17 +3,17 @@ import { orderByPriority } from './collision';
 import { REMOVE_ZONE_ID } from './RemoveZone';
 
 describe('orderByPriority', () => {
-  it('orders remove over candidate over swap over panel', () => {
+  it('orders remove over swap over candidate over panel', () => {
     const ordered = orderByPriority([
       { id: 'kcp-planner-drop' },
-      { id: 'swap-b' },
       { id: 'cand-a' },
+      { id: 'swap-b' },
       { id: REMOVE_ZONE_ID },
     ]);
     expect(ordered.map((collision) => collision.id)).toEqual([
       REMOVE_ZONE_ID,
-      'cand-a',
       'swap-b',
+      'cand-a',
       'kcp-planner-drop',
     ]);
   });

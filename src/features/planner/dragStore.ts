@@ -179,7 +179,12 @@ export function createDragStore() {
       }
     },
     showBlocked: (feedback) => {
-      set({ active: null, blocked: feedback, announcement: null });
+      set({
+        active: null,
+        blocked: feedback,
+        announcement: null,
+        swapContext: null,
+      });
     },
     clearBlocked: () => {
       set({ blocked: null });

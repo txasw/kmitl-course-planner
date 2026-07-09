@@ -23,8 +23,15 @@ export function CandidateSlot({
 }: CandidateSlotProps) {
   const { setNodeRef } = useDroppable({
     id,
-    disabled: !candidate.valid,
-    data: { role: 'candidate', section: candidate.section },
+    // A time or duplicate blocked candidate stays droppable so hovering it can raise
+    // its blockers as swap targets and a drop on it can reject with the reason; only a
+    // seat blocked candidate, which no swap can help, is inert.
+    disabled: !candidate.valid && candidate.conflicts.length === 0,
+    data: {
+      role: 'candidate',
+      section: candidate.section,
+      valid: candidate.valid,
+    },
   });
   return (
     <div
