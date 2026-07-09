@@ -40,6 +40,22 @@ describe('fetchJson', () => {
     }
   });
 
+  it('splits the phase timings and reports the payload size', async () => {
+    const body = { hi: 'there' };
+    const json = JSON.stringify(body);
+    let clock = 0;
+    const env: GatewayEnv = {
+      ...makeEnv(vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(body))),
+      // Advance ten milliseconds per read so each phase boundary is distinct.
+      now: () => (clock += 10),
+    };
+    const outcome = await fetchJson('https://x', env);
+    expect(outcome.timings.ttfbMs).toBe(10);
+    expect(outcome.timings.downloadMs).toBe(10);
+    expect(outcome.timings.parseMs).toBe(10);
+    expect(outcome.timings.payloadBytes).toBe(json.length);
+  });
+
   it('retries a 5xx response and then succeeds', async () => {
     const fetchImpl = vi
       .fn<typeof fetch>()

@@ -16,6 +16,11 @@ export const DEBUG_CANARY = 'kcp-debug-canary';
 
 const CELL = 'border border-border px-1.5 py-1 text-left align-top';
 
+/** A byte count as KB for the log, or a dash when nothing was downloaded. */
+function formatSize(bytes: number): string {
+  return bytes > 0 ? `${(bytes / 1024).toFixed(0)}KB` : '-';
+}
+
 export function RequestLogView({ log }: { log: RequestLogEntry[] }) {
   if (log.length === 0) {
     return <p className="text-sm text-ink-soft">No requests yet</p>;
@@ -26,6 +31,11 @@ export function RequestLogView({ log }: { log: RequestLogEntry[] }) {
         <tr>
           <th className={CELL}>Endpoint</th>
           <th className={CELL}>ms</th>
+          <th className={CELL}>TTFB</th>
+          <th className={CELL}>Down</th>
+          <th className={CELL}>Parse</th>
+          <th className={CELL}>Valid</th>
+          <th className={CELL}>Size</th>
           <th className={CELL}>Cache</th>
           <th className={CELL}>Retries</th>
           <th className={CELL}>Status</th>
@@ -37,6 +47,11 @@ export function RequestLogView({ log }: { log: RequestLogEntry[] }) {
           <tr key={`${entry.endpoint}-${String(index)}`}>
             <td className={CELL}>{entry.endpoint}</td>
             <td className={CELL}>{entry.durationMs}</td>
+            <td className={CELL}>{entry.ttfbMs}</td>
+            <td className={CELL}>{entry.downloadMs}</td>
+            <td className={CELL}>{entry.parseMs}</td>
+            <td className={CELL}>{entry.validateMs}</td>
+            <td className={CELL}>{formatSize(entry.payloadBytes)}</td>
             <td className={CELL}>{entry.cacheHit ? 'hit' : 'miss'}</td>
             <td className={CELL}>{entry.retryCount}</td>
             <td className={CELL}>{entry.status ?? 'none'}</td>

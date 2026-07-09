@@ -21,17 +21,46 @@ const MAX_RETRIES = 2;
 const BACKOFF_BASE_MS = 300;
 const BACKOFF_CAP_MS = 4_000;
 
+/**
+ * A breakdown of where a fetch attempt spent its time, so the debug request log can
+ * show whether a slow query is network bound or client bound. Time to first byte is
+ * until the response headers arrive; download is reading the body; parse is JSON.parse
+ * of that body. All zero when no response was received.
+ */
+export interface HttpTimings {
+  ttfbMs: number;
+  downloadMs: number;
+  parseMs: number;
+  payloadBytes: number;
+}
+
+const NO_TIMINGS: HttpTimings = {
+  ttfbMs: 0,
+  downloadMs: 0,
+  parseMs: 0,
+  payloadBytes: 0,
+};
+
 export interface HttpOutcome {
   result: Result<unknown>;
   /** HTTP status of the final attempt, or null when no response was received. */
   status: number | null;
   retryCount: number;
+  /** The final attempt's phase timings. */
+  timings: HttpTimings;
 }
 
 interface Attempt {
   retryable: boolean;
   status: number | null;
   result: Result<unknown>;
+  timings: HttpTimings;
+}
+
+/** The response body size in bytes from the header, or the text length as a fallback. */
+function payloadSize(response: Response, text: string): number {
+  const header = Number(response.headers.get('content-length'));
+  return Number.isFinite(header) && header > 0 ? header : text.length;
 }
 
 function errorName(error: unknown): string {
@@ -58,23 +87,45 @@ async function attemptOnce(
   const timer = setTimeout(() => {
     controller.abort();
   }, timeoutMs);
+  const start = env.now();
   try {
     const response = await env.fetch(url, {
       method: 'GET',
       headers: { Accept: 'application/json' },
       signal: controller.signal,
     });
+    const ttfbMs = env.now() - start;
     if (!response.ok) {
       const message = `request failed with status ${String(response.status)}`;
       return {
         retryable: response.status >= 500,
         status: response.status,
         result: err(httpError(response.status, message)),
+        timings: { ...NO_TIMINGS, ttfbMs },
       };
     }
+    // Read then parse the body separately so download and parse time are distinct and
+    // the payload size is known; response.json() would fuse them. Both stay inside the
+    // try so a body read or parse failure is a terminal validation error, not a
+    // retryable network error.
     try {
-      const data: unknown = await response.json();
-      return { retryable: false, status: response.status, result: ok(data) };
+      const downloadStart = env.now();
+      const text = await response.text();
+      const downloadMs = env.now() - downloadStart;
+      const payloadBytes = payloadSize(response, text);
+      const parseStart = env.now();
+      const data: unknown = JSON.parse(text);
+      return {
+        retryable: false,
+        status: response.status,
+        result: ok(data),
+        timings: {
+          ttfbMs,
+          downloadMs,
+          parseMs: env.now() - parseStart,
+          payloadBytes,
+        },
+      };
     } catch {
       return {
         retryable: false,
@@ -85,6 +136,7 @@ async function attemptOnce(
             'response body was not valid json',
           ),
         ),
+        timings: { ...NO_TIMINGS, ttfbMs },
       };
     }
   } catch (error) {
@@ -96,12 +148,14 @@ async function attemptOnce(
         retryable: false,
         status: null,
         result: err(timeoutError('request timed out')),
+        timings: NO_TIMINGS,
       };
     }
     return {
       retryable: true,
       status: null,
       result: err(networkError(messageOf(error))),
+      timings: NO_TIMINGS,
     };
   } finally {
     clearTimeout(timer);
@@ -140,6 +194,7 @@ export async function fetchJson(
         result: attemptResult.result,
         status: attemptResult.status,
         retryCount: attempt,
+        timings: attemptResult.timings,
       };
     }
     await env.sleep(backoffDelay(attempt, env));
