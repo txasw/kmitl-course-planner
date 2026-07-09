@@ -4,7 +4,7 @@
 // bounds, the quarter model, and the minute to column conversion, so the React
 // grid and its tests share one geometry.
 
-import type { DayOfWeek } from '../parsing/days';
+import { WEEK_DAYS, type DayOfWeek } from '../parsing/days';
 import type { Meeting } from '../domain/types';
 
 /** Minutes covered by one grid column. */
@@ -63,6 +63,58 @@ export function computeWindow(
     }
   }
   return { startMin, endMin };
+}
+
+/**
+ * The tightest hour aligned window that shows every given meeting, for the fit to
+ * content preview option. Unlike computeWindow it ignores the default bounds and
+ * trims to the meetings themselves, so a plan that runs 09:00 to 15:00 shows only
+ * those hours. With no scheduled meetings it falls back to the default window, so
+ * an all unscheduled plan still renders a sensible empty grid beside its shelf.
+ */
+export function computeFitWindow(meetings: Meeting[]): GridWindow {
+  if (meetings.length === 0) {
+    return DEFAULT_WINDOW;
+  }
+  let startMin = Infinity;
+  let endMin = -Infinity;
+  for (const meeting of meetings) {
+    if (meeting.startMin < startMin) {
+      startMin = meeting.startMin;
+    }
+    if (meeting.endMin > endMin) {
+      endMin = meeting.endMin;
+    }
+  }
+  return { startMin: floorToHour(startMin), endMin: ceilToHour(endMin) };
+}
+
+/**
+ * The contiguous run of day rows from the first to the last day that carries a
+ * meeting, for the fit to content preview option. Interior days with no meeting
+ * stay in the run so the week reads continuously, while empty leading and trailing
+ * days are trimmed. With no meetings it returns the full week, so an all
+ * unscheduled plan keeps a complete grid rather than collapsing to nothing.
+ */
+export function visibleDays(meetings: Meeting[]): DayOfWeek[] {
+  if (meetings.length === 0) {
+    return [...WEEK_DAYS];
+  }
+  let first: DayOfWeek = 6;
+  let last: DayOfWeek = 0;
+  for (const meeting of meetings) {
+    if (meeting.day < first) {
+      first = meeting.day;
+    }
+    if (meeting.day > last) {
+      last = meeting.day;
+    }
+  }
+  const days: DayOfWeek[] = [];
+  for (let day = first; day <= last; day += 1) {
+    days.push(day);
+  }
+  return days;
 }
 
 /** The number of quarter columns the window spans. */

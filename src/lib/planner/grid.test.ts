@@ -3,11 +3,13 @@ import type { DayOfWeek } from '../parsing/days';
 import type { Meeting } from '../domain/types';
 import {
   DEFAULT_WINDOW,
+  computeFitWindow,
   computeWindow,
   hourTicks,
   meetingColumns,
   perDayLoad,
   quarterCount,
+  visibleDays,
 } from './grid';
 
 function meeting(day: DayOfWeek, startMin: number, endMin: number): Meeting {
@@ -86,6 +88,59 @@ describe('computeWindow', () => {
       meeting(5, 1230, 1275),
     ]);
     expect(window).toEqual({ startMin: 360, endMin: 1320 });
+  });
+});
+
+describe('computeFitWindow', () => {
+  it('falls back to the default window when there are no meetings', () => {
+    expect(computeFitWindow([])).toEqual(DEFAULT_WINDOW);
+  });
+
+  it('trims to the hours the meetings occupy', () => {
+    const window = computeFitWindow([
+      meeting(1, 540, 660), // 09:00 to 11:00
+      meeting(3, 780, 900), // 13:00 to 15:00
+    ]);
+    expect(window).toEqual({ startMin: 540, endMin: 900 });
+  });
+
+  it('floors the start and ceils the end to the hour off the grid', () => {
+    // 09:05 to 10:35 trims to a 09:00 to 11:00 window.
+    expect(computeFitWindow([meeting(1, 545, 635)])).toEqual({
+      startMin: 540,
+      endMin: 660,
+    });
+  });
+
+  it('keeps at least a one hour window for a short meeting', () => {
+    expect(computeFitWindow([meeting(1, 540, 570)])).toEqual({
+      startMin: 540,
+      endMin: 600,
+    });
+  });
+});
+
+describe('visibleDays', () => {
+  it('returns the full week when there are no meetings', () => {
+    expect(visibleDays([])).toEqual([0, 1, 2, 3, 4, 5, 6]);
+  });
+
+  it('trims empty leading and trailing days', () => {
+    expect(visibleDays([meeting(1, 540, 600), meeting(3, 540, 600)])).toEqual([
+      1, 2, 3,
+    ]);
+  });
+
+  it('keeps interior empty days within the run', () => {
+    expect(visibleDays([meeting(1, 540, 600), meeting(5, 540, 600)])).toEqual([
+      1, 2, 3, 4, 5,
+    ]);
+  });
+
+  it('returns a single day when every meeting is on it', () => {
+    expect(visibleDays([meeting(3, 540, 600), meeting(3, 780, 840)])).toEqual([
+      3,
+    ]);
   });
 });
 
