@@ -44,6 +44,8 @@ export function QuarantineCard() {
         <button
           type="button"
           onClick={() => {
+            // The host is a secure context, so clipboard write is available; a denied
+            // or failed write is reported through the rejection branch.
             void navigator.clipboard.writeText(issue.data).then(
               () => {
                 toastStore.getState().show('success', t('storage.exported'));

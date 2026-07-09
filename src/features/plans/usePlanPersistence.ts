@@ -36,32 +36,20 @@ export function usePlanPersistence({
           schemaVersion: CURRENT_SCHEMA_VERSION,
           plans: planStore.getState().plans,
         })
-        .then((result) => {
-          if (!result.ok) {
+        .then(
+          (result) => {
+            if (!result.ok) {
+              storageIssueStore.getState().setIssue({ kind: 'saveRefused' });
+            }
+          },
+          () => {
             storageIssueStore.getState().setIssue({ kind: 'saveRefused' });
-          }
-        });
+          },
+        );
     };
 
-    void repo.load().then(async (outcome) => {
-      if (isCancelled()) return;
-      if (outcome.status === 'refused') {
-        // A newer schema is left untouched rather than loaded, to avoid corrupting it.
-        storageIssueStore
-          .getState()
-          .setIssue({ kind: 'refused', reason: outcome.reason });
-      } else {
-        planStore.getState().hydrate(outcome.root.plans);
-        if (outcome.status === 'quarantined') {
-          const blob = await adapter.get(outcome.quarantineKey);
-          if (isCancelled()) return;
-          storageIssueStore.getState().setIssue({
-            kind: 'quarantined',
-            data: JSON.stringify(blob, null, 2),
-          });
-        }
-      }
-      if (isCancelled()) return;
+    const subscribe = (): void => {
+      if (isCancelled() || unsubscribe !== undefined) return;
       unsubscribe = planStore.subscribe((state, previous) => {
         if (state.plans !== previous.plans) {
           if (timer !== undefined) clearTimeout(timer);
@@ -71,7 +59,49 @@ export function usePlanPersistence({
           }, AUTOSAVE_DEBOUNCE_MS);
         }
       });
-    });
+    };
+
+    void repo.load().then(
+      (outcome) => {
+        if (isCancelled()) return;
+        if (outcome.status === 'refused') {
+          // A newer schema is left untouched: do not hydrate and do not autosave, so a
+          // later edit cannot overwrite the newer data the refusal exists to preserve.
+          storageIssueStore
+            .getState()
+            .setIssue({ kind: 'refused', reason: outcome.reason });
+          return;
+        }
+        planStore.getState().hydrate(outcome.root.plans);
+        // Attach the autosave before the quarantine blob read, so a failed read cannot
+        // leave persistence silently disabled.
+        subscribe();
+        if (outcome.status === 'quarantined') {
+          void adapter.get(outcome.quarantineKey).then(
+            (blob) => {
+              if (isCancelled()) return;
+              storageIssueStore.getState().setIssue({
+                kind: 'quarantined',
+                data: JSON.stringify(blob, null, 2),
+              });
+            },
+            () => {
+              if (isCancelled()) return;
+              // The data is set aside on disk; the card just cannot offer its export.
+              storageIssueStore
+                .getState()
+                .setIssue({ kind: 'quarantined', data: '' });
+            },
+          );
+        }
+      },
+      () => {
+        // The read failed, likely a transient storage error. Enable best effort saving
+        // for this session rather than silently dropping every later edit.
+        if (isCancelled()) return;
+        subscribe();
+      },
+    );
 
     return () => {
       cancelled = true;
