@@ -54,6 +54,8 @@ describe('CatalogPanel', () => {
     vi.useFakeTimers();
     try {
       const calls: string[] = [];
+      // A stub cannot satisfy the generic TypedSend signature, so cast it; the test
+      // only exercises the cancel message, which resolves to a void Result.
       const send = ((message: { type: string }) => {
         calls.push(message.type);
         return Promise.resolve(ok(undefined));
