@@ -106,12 +106,19 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
       const now = deps.now();
       const state = get();
       const active = state.plans.find((plan) => plan.id === state.activePlanId);
+      // An existing plan fixes the term; the first add takes the section's own term,
+      // so auto-create never rejects itself as cross term.
+      const planTerm: Term =
+        active !== undefined
+          ? { year: active.year, semester: active.semester }
+          : termFromSourceQueryParams(sourceQuery.params);
       const outcome = addSectionGroup(
         active?.entries ?? EMPTY_ENTRIES,
         course,
         section,
         sourceQuery,
         now,
+        planTerm,
       );
       if (!outcome.ok) {
         return outcome;
@@ -120,9 +127,8 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
         // First add with no active plan: create one for the section's term. The plan
         // is committed only with a successful add, so a rejected first add leaves no
         // orphan empty plan behind.
-        const term = termFromSourceQueryParams(sourceQuery.params);
         const created: Plan = {
-          ...makePlan(deps.uuid(), defaultPlanName(term), term, now),
+          ...makePlan(deps.uuid(), defaultPlanName(planTerm), planTerm, now),
           entries: outcome.result.entries,
         };
         set({
@@ -158,6 +164,7 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
         [teachTableId],
         null,
         now,
+        { year: active.year, semester: active.semester },
       );
       if (outcome.ok && outcome.result.removed.length > 0) {
         set({
@@ -185,7 +192,16 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
         // A move or swap always acts on a placed block, so an active plan exists.
         return { ok: false, conflicts: [] };
       }
-      const outcome = applyPlanTransaction(active.entries, removeIds, add, now);
+      const outcome = applyPlanTransaction(
+        active.entries,
+        removeIds,
+        add,
+        now,
+        {
+          year: active.year,
+          semester: active.semester,
+        },
+      );
       if (outcome.ok) {
         const { entries, added, removed } = outcome.result;
         set({
@@ -308,6 +324,15 @@ function defaultDeps(): PlanStoreDeps {
 
 /** The single plan store instance the catalog and grid read. */
 export const planStore = createPlanStore();
+
+/** The active plan object, or null when no plan is active. */
+export function useActivePlan(): Plan | null {
+  return useStore(
+    planStore,
+    (state) =>
+      state.plans.find((plan) => plan.id === state.activePlanId) ?? null,
+  );
+}
 
 /**
  * The sections currently placed in the active plan, derived from entry snapshots. The

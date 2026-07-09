@@ -7,8 +7,12 @@ import { useDraggable } from '@dnd-kit/core';
 import { GripVertical } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
+import { termsEqual, type Term } from '@/lib/routing/academicTerms';
 import { computeSeatStatus } from '@/lib/catalog/seatStatus';
-import { computeSectionRelation } from '@/lib/planner/sectionState';
+import {
+  computeSectionRelation,
+  type TermContext,
+} from '@/lib/planner/sectionState';
 import { DraggableSection } from './DraggableSection';
 import { SectionRow } from './SectionRow';
 
@@ -45,8 +49,18 @@ interface CourseCardProps {
   placed: Section[];
   locale: Locale;
   t: Translate;
+  term?: TermContext | undefined;
   onAdd?: ((course: Course, section: Section) => void) | undefined;
   onRemove?: ((teachTableId: string) => void) | undefined;
+  onSwitchTerm?: ((term: Term) => void) | undefined;
+}
+
+function isCrossTerm(term: TermContext | undefined): boolean {
+  return (
+    term?.planTerm != null &&
+    term.browsedTerm != null &&
+    !termsEqual(term.planTerm, term.browsedTerm)
+  );
 }
 
 export function CourseCard({
@@ -54,17 +68,22 @@ export function CourseCard({
   placed,
   locale,
   t,
+  term,
   onAdd,
   onRemove,
+  onSwitchTerm,
 }: CourseCardProps) {
   const primary = locale === 'th' ? course.nameTh : course.nameEn;
   const secondary = locale === 'th' ? course.nameEn : course.nameTh;
+  // A cross term course cannot be added, so its whole course drag grip is hidden;
+  // its rows carry the different term state and a switch action instead.
+  const crossTerm = isCrossTerm(term);
 
   return (
     <article className="rounded-kcp border border-border p-3">
       <header className="flex items-baseline justify-between gap-2">
         <div className="flex min-w-0 items-baseline gap-1">
-          {onAdd !== undefined ? (
+          {onAdd !== undefined && !crossTerm ? (
             <CourseDragHandle
               course={course}
               label={`${t('action.dragCourse')} ${course.subjectId}`}
@@ -84,7 +103,12 @@ export function CourseCard({
       </header>
       <div className="mt-2 flex flex-col gap-1.5">
         {course.sections.map((section) => {
-          const relation = computeSectionRelation(placed, course, section);
+          const relation = computeSectionRelation(
+            placed,
+            course,
+            section,
+            term,
+          );
           const seat = computeSeatStatus(section);
           const row = (
             <SectionRow
@@ -96,6 +120,7 @@ export function CourseCard({
               t={t}
               onAdd={onAdd}
               onRemove={onRemove}
+              onSwitchTerm={onSwitchTerm}
             />
           );
           if (
