@@ -24,6 +24,7 @@ export function PlannerPanel() {
   const activeDrag = useStore(dragStore, (state) => state.active);
   const hoverSection = useStore(dragStore, (state) => state.hover);
   const courseDrag = useStore(dragStore, (state) => state.courseDrag);
+  const blockMove = useStore(dragStore, (state) => state.blockMove);
 
   const sections = useMemo(
     () => entries.map((entry) => toPlacedSection(entry.snapshot)),
@@ -47,13 +48,23 @@ export function PlannerPanel() {
         : courseDrag.candidates.flatMap((candidate) =>
             candidate.group.flatMap((section) => section.meetings),
           );
+    const blockMoveMeetings =
+      blockMove === null
+        ? []
+        : [
+            ...blockMove.group.flatMap((section) => section.meetings),
+            ...blockMove.candidates.flatMap((candidate) =>
+              candidate.group.flatMap((section) => section.meetings),
+            ),
+          ];
     return computeWindow([
       ...placedMeetings,
       ...dragMeetings,
       ...hoverMeetings,
       ...courseMeetings,
+      ...blockMoveMeetings,
     ]);
-  }, [scheduled, activeDrag, hoverSection, courseDrag]);
+  }, [scheduled, activeDrag, hoverSection, courseDrag, blockMove]);
   const handleRemove = useCallback((teachTableId: string) => {
     planStore.getState().remove(teachTableId);
   }, []);
@@ -75,6 +86,8 @@ export function PlannerPanel() {
           window={window}
           locale={language}
           t={t}
+          editable={viewMode === 'edit'}
+          onRemove={handleRemove}
         />
         {sections.length === 0 ? (
           <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 px-6 text-center">

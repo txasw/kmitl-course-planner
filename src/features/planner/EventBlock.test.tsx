@@ -1,5 +1,11 @@
-import { describe, it, expect, afterEach } from 'vitest';
-import { render, screen, within, cleanup } from '@testing-library/react';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+import {
+  render,
+  screen,
+  within,
+  cleanup,
+  fireEvent,
+} from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import type { Meeting } from '@/lib/domain/types';
 import { EventBlock } from './EventBlock';
@@ -84,5 +90,35 @@ describe('EventBlock', () => {
       />,
     );
     expect(screen.getByText('Test subject')).toBeInTheDocument();
+  });
+
+  it('renders a remove control that fires onRemove in edit mode', () => {
+    const onRemove = vi.fn();
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        onRemove={onRemove}
+        removeLabel={t('action.remove')}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: t('action.remove') }));
+    expect(onRemove).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders no remove control without onRemove', () => {
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 });

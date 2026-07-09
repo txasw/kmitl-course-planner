@@ -106,4 +106,27 @@ describe('courseCandidates', () => {
     const pair = candidates.find((c) => c.section.section === '902');
     expect(pair?.group).toHaveLength(2);
   });
+
+  it('treats an excluded section as free so its slot becomes a candidate', () => {
+    // A block move: 901 is placed but being dragged, so it is excluded. It must not
+    // reappear as a self candidate, and 902 must read as free rather than a duplicate.
+    const dragged = makeSection({
+      teachTableId: 'd',
+      subjectId: 'S1',
+      section: '901',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 660 })],
+    });
+    const target = makeSection({
+      teachTableId: 't',
+      subjectId: 'S1',
+      section: '902',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 660 })],
+    });
+    const course = makeCourse({ subjectId: 'S1', sections: [dragged, target] });
+    const candidates = courseCandidates(course, [dragged], new Set(['S1:901']));
+    expect(candidates.map((candidate) => candidate.section.section)).toEqual([
+      '902',
+    ]);
+    expect(candidates[0]?.valid).toBe(true);
+  });
 });
