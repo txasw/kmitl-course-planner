@@ -14,6 +14,7 @@ import { hashColor } from '@/lib/utils/hash-color';
 import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
 import { formatMinutes } from '@/lib/parsing/time';
 import type { PlacedSection } from './placedSection';
+import { blockBadge, blockBadgeLabelKey } from './blockBadge';
 
 interface EventBlockProps {
   section: PlacedSection;
@@ -25,6 +26,8 @@ interface EventBlockProps {
   pulsing?: boolean;
   /** Whether this block is being moved and should read at low emphasis. */
   dimmed?: boolean;
+  /** Whether a revalidation time change put this block into a new conflict. */
+  conflicted?: boolean;
   /** The draggable node ref, present only for an edit mode drag source. */
   dragRef?: (element: HTMLElement | null) => void;
   /** The pointer drag listeners, present only for an edit mode drag source. */
@@ -42,6 +45,7 @@ export function EventBlock({
   t,
   pulsing = false,
   dimmed = false,
+  conflicted = false,
   dragRef,
   dragListeners,
   onRemove,
@@ -49,17 +53,36 @@ export function EventBlock({
 }: EventBlockProps) {
   const name = locale === 'th' ? section.nameTh : section.nameEn;
   const time = `${formatMinutes(meeting.startMin)}-${formatMinutes(meeting.endMin)}`;
-  const label = `${section.subjectId} ${name} ${t('section.code')} ${section.section} ${t(dayFullLabelKey(meeting.day))} ${time}`;
+  const badge = blockBadge(section.verifyStatus, conflicted);
+  const badgeLabelKey = blockBadgeLabelKey(section.verifyStatus, conflicted);
+  const label = `${section.subjectId} ${name} ${t('section.code')} ${section.section} ${t(dayFullLabelKey(meeting.day))} ${time}${
+    badgeLabelKey === null ? '' : ` ${t(badgeLabelKey)}`
+  }`;
 
   return (
     <div
       ref={dragRef}
       data-teach-table-id={section.teachTableId}
+      data-verify={badge ?? undefined}
       aria-label={label}
-      className={`group/block kcp-settle relative m-px flex min-w-0 flex-col overflow-hidden rounded-kcp px-1.5 py-1 text-[11px] leading-tight text-white ${pulsing ? 'kcp-pulse' : ''} ${dimmed ? 'opacity-40' : ''} ${dragListeners ? 'cursor-grab touch-none' : ''}`}
+      className={`group/block kcp-settle relative m-px flex min-w-0 flex-col overflow-hidden rounded-kcp px-1.5 py-1 text-[11px] leading-tight text-white ${pulsing ? 'kcp-pulse' : ''} ${dimmed ? 'opacity-40' : ''} ${dragListeners ? 'cursor-grab touch-none' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''}`}
       style={{ ...style, backgroundColor: hashColor(section.subjectId) }}
       {...dragListeners}
     >
+      {badge === 'danger' ? (
+        <span
+          aria-hidden
+          className="kcp-hatch pointer-events-none absolute inset-0 rounded-kcp"
+        />
+      ) : null}
+      {badge !== null ? (
+        <span
+          aria-hidden
+          className={`absolute left-0.5 top-0.5 h-2 w-2 rounded-full ring-1 ring-white ${
+            badge === 'danger' ? 'bg-danger' : 'bg-warn'
+          }`}
+        />
+      ) : null}
       <span className="truncate font-semibold">
         {section.subjectId}{' '}
         <span className="font-normal">{section.section}</span>
