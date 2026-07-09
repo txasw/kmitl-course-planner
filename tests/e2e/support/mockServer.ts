@@ -26,12 +26,17 @@ const HOST_HTML =
 export interface MockServer {
   port: number;
   setApiFailure: (fail: boolean) => void;
+  /** Serve the moved time variant of the synthetic catalog so a revalidation replay
+   * sees a changed section. Off by default, so the block interaction specs that share
+   * the synthetic id keep the stable base catalog. */
+  setFreshSynthetic: (fresh: boolean) => void;
   close: () => Promise<void>;
 }
 
 export async function startMockServer(): Promise<MockServer> {
   const pems = await generate([{ name: 'commonName', value: 'localhost' }]);
   let apiFailure = false;
+  let freshSynthetic = false;
 
   const server: Server = createServer(
     { key: pems.private, cert: pems.cert },
@@ -98,7 +103,11 @@ export async function startMockServer(): Promise<MockServer> {
           // move and swap specs need, served for one reserved subject id so no other
           // spec sees it.
           if (url.searchParams.get('selected_subject_id') === '90000000') {
-            sendJson('synthetic.block-interactions.json');
+            sendJson(
+              freshSynthetic
+                ? 'synthetic.block-interactions.fresh.json'
+                : 'synthetic.block-interactions.json',
+            );
             return;
           }
           sendJson('teach-table.by_subject_owner_id-32.capture.json');
@@ -129,6 +138,9 @@ export async function startMockServer(): Promise<MockServer> {
     port,
     setApiFailure: (fail) => {
       apiFailure = fail;
+    },
+    setFreshSynthetic: (fresh) => {
+      freshSynthetic = fresh;
     },
     close: () =>
       new Promise<void>((resolveClose, rejectClose) => {
