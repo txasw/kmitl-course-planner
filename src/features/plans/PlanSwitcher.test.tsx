@@ -109,6 +109,28 @@ describe('PlanSwitcher', () => {
     expect(planStore.getState().plans[0]?.name).toBe('ตารางใหม่');
   });
 
+  it('dismisses the dropdown on Escape', () => {
+    seedTwoPlans();
+    render(<PlanSwitcher />);
+    openMenu();
+    expect(
+      screen.getByRole('button', { name: 'สร้างตาราง' }),
+    ).toBeInTheDocument();
+    fireEvent.keyDown(screen.getByRole('button', { name: 'สร้างตาราง' }), {
+      key: 'Escape',
+    });
+    expect(screen.queryByRole('button', { name: 'สร้างตาราง' })).toBeNull();
+  });
+
+  it('disables create until the search term has a year', () => {
+    act(() => {
+      searchStore.getState().seedTerm({ year: '', semester: '1' });
+    });
+    render(<PlanSwitcher />);
+    openMenu();
+    expect(screen.getByRole('button', { name: 'สร้างตาราง' })).toBeDisabled();
+  });
+
   it('deletes the active plan behind a confirm', () => {
     act(() => {
       planStore.getState().hydrate([
