@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
-import { createTranslator } from '@/lib/i18n/t';
+import { createTranslator, type Translate } from '@/lib/i18n/t';
+import type { Section } from '@/lib/domain/types';
 import {
   makeCourse,
   makeMeeting,
@@ -110,5 +111,35 @@ describe('CourseCard course drag handle', () => {
     const course = makeCourse({ subjectId: '90592008' });
     render(<CourseCard course={course} placed={[]} locale="th" t={t} />);
     expect(screen.queryByTitle(/ลากรายวิชา/)).not.toBeInTheDocument();
+  });
+});
+
+describe('CourseCard memoization', () => {
+  it('skips re-rendering when its props are unchanged and re-renders on a change', () => {
+    // A card renders through t, so counting t calls counts the card's renders: a
+    // memo skip runs no more t calls, a real re-render runs a fresh batch.
+    let renders = 0;
+    const countingT: Translate = (key) => {
+      renders += 1;
+      return t(key);
+    };
+    const course = makeCourse({
+      subjectId: '90000001',
+      sections: [makeSection({ subjectId: '90000001', section: '901' })],
+    });
+    const placed: Section[] = [];
+    const props = { course, placed, locale: 'th' as const, t: countingT };
+
+    const { rerender } = render(<CourseCard {...props} />);
+    const afterFirst = renders;
+    expect(afterFirst).toBeGreaterThan(0);
+
+    // Identical prop references: the memo skips, so no further t calls.
+    rerender(<CourseCard {...props} />);
+    expect(renders).toBe(afterFirst);
+
+    // A changed placed reference, as a plan mutation produces: the card re-renders.
+    rerender(<CourseCard {...props} placed={[...placed]} />);
+    expect(renders).toBeGreaterThan(afterFirst);
   });
 });
