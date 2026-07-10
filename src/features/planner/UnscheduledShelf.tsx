@@ -58,7 +58,10 @@ export function UnscheduledShelf({
               className="flex items-center justify-between gap-2 text-xs"
             >
               <span className="flex min-w-0 flex-col text-ink">
-                <span className="truncate">
+                <span
+                  className="truncate"
+                  title={`${section.subjectId} ${name}`}
+                >
                   <span className="font-medium">{section.subjectId}</span>{' '}
                   {name}
                 </span>
