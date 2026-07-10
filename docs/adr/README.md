@@ -35,3 +35,4 @@ a new record that supersedes the old one rather than editing history.
 26. [PNG capture library confirmation](0026-png-capture-library-confirmation.md)
 27. [Export composition and honesty](0027-export-composition-and-honesty.md)
 28. [Weekly grid accessibility semantics](0028-grid-accessibility-semantics.md)
+29. [Accessible primary text shade](0029-accessible-primary-text-shade.md)
