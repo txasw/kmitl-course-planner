@@ -5,7 +5,7 @@
 // come from the draggable wrapper so this stays free of the drag library) and carries
 // a focusable remove control, which keeps on grid removal reachable by keyboard.
 
-import type { CSSProperties } from 'react';
+import { memo, type CSSProperties } from 'react';
 import type { DraggableSyntheticListeners } from '@dnd-kit/core';
 import { Info, X } from 'lucide-react';
 import type { Meeting } from '@/lib/domain/types';
@@ -34,8 +34,10 @@ interface EventBlockProps {
   dragRef?: (element: HTMLElement | null) => void;
   /** The pointer drag listeners, present only for an edit mode drag source. */
   dragListeners?: DraggableSyntheticListeners;
-  /** Remove this section from the plan, present only in edit mode. */
-  onRemove?: () => void;
+  /** Remove this section from the plan by its id, present only in edit mode. The
+   * block passes its own id so the grid can hand down one stable handler rather than
+   * a fresh per block closure, which keeps this memoized block from re-rendering. */
+  onRemove?: (teachTableId: string) => void;
   removeLabel?: string;
   /** Open the block detail popover anchored to this block, edit mode only. */
   onOpenDetail?: (anchor: HTMLElement) => void;
@@ -47,7 +49,7 @@ interface EventBlockProps {
   showEnglishName?: boolean;
 }
 
-export function EventBlock({
+function EventBlockComponent({
   section,
   meeting,
   style,
@@ -159,7 +161,9 @@ export function EventBlock({
                 // Keep a press on the control from arming a drag on the block behind it.
                 event.stopPropagation();
               }}
-              onClick={onRemove}
+              onClick={() => {
+                onRemove(section.teachTableId);
+              }}
               className="rounded bg-black/25 p-0.5 text-white opacity-0 outline-none group-hover/block:opacity-100 hover:bg-black/45 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white"
             >
               <X size={12} aria-hidden />
@@ -170,3 +174,11 @@ export function EventBlock({
     </div>
   );
 }
+
+// Memoized so a grid re-render (a drag hover, a revalidation, a plan change) only
+// re-renders the blocks whose own props changed. The grid stabilizes every prop it
+// passes: the style object is built inside the memoized block list, the remove
+// handler is one id taking callback, and the drag ref and listeners come from the
+// draggable wrapper. The pulsing, dimmed, conflicted, and exam warned flags are the
+// only props that vary mid drag, so only the affected blocks re-render.
+export const EventBlock = memo(EventBlockComponent);
