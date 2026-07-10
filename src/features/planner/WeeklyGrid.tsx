@@ -139,6 +139,25 @@ export function WeeklyGrid({
     }
     return ids;
   }, [active]);
+  // Emit the blocks in day then start time then subject order, the same order the copy
+  // as text export uses, so the reading and tab order follow one chronological schedule
+  // rather than plan entry order. Visual position comes from the grid coordinates, not
+  // the DOM order, so the sort changes only what a screen reader and the keyboard walk
+  // traverse, never the layout.
+  const orderedBlocks = useMemo(
+    () =>
+      sections
+        .flatMap((section) =>
+          section.meetings.map((meeting) => ({ section, meeting })),
+        )
+        .sort(
+          (a, b) =>
+            a.meeting.day - b.meeting.day ||
+            a.meeting.startMin - b.meeting.startMin ||
+            a.section.subjectId.localeCompare(b.section.subjectId),
+        ),
+    [sections],
+  );
 
   return (
     <div
@@ -183,41 +202,39 @@ export function WeeklyGrid({
         </Fragment>
       ))}
 
-      {sections.flatMap((section) =>
-        section.meetings.map((meeting) => {
-          const key = `${section.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`;
-          const common = {
-            section,
-            meeting,
-            style: blockStyle(meeting, window, days),
-            locale,
-            t,
-            pulsing: blockingIds.has(section.teachTableId),
-            dimmed: movingIds.has(section.teachTableId),
-            conflicted: conflictIds?.has(section.teachTableId) ?? false,
-            examWarned: examWarnIds?.has(section.teachTableId) ?? false,
-            ...(editable && onOpenDetail !== undefined ? { onOpenDetail } : {}),
-          };
-          return editable && onRemove ? (
-            <DraggableBlock
-              key={key}
-              {...common}
-              onRemove={() => {
-                onRemove(section.teachTableId);
-              }}
-              removeLabel={removeLabel}
-            />
-          ) : (
-            <EventBlock
-              key={key}
-              {...common}
-              showRoom={showRoom}
-              showSection={showSection}
-              showEnglishName={showEnglishName}
-            />
-          );
-        }),
-      )}
+      {orderedBlocks.map(({ section, meeting }) => {
+        const key = `${section.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`;
+        const common = {
+          section,
+          meeting,
+          style: blockStyle(meeting, window, days),
+          locale,
+          t,
+          pulsing: blockingIds.has(section.teachTableId),
+          dimmed: movingIds.has(section.teachTableId),
+          conflicted: conflictIds?.has(section.teachTableId) ?? false,
+          examWarned: examWarnIds?.has(section.teachTableId) ?? false,
+          ...(editable && onOpenDetail !== undefined ? { onOpenDetail } : {}),
+        };
+        return editable && onRemove ? (
+          <DraggableBlock
+            key={key}
+            {...common}
+            onRemove={() => {
+              onRemove(section.teachTableId);
+            }}
+            removeLabel={removeLabel}
+          />
+        ) : (
+          <EventBlock
+            key={key}
+            {...common}
+            showRoom={showRoom}
+            showSection={showSection}
+            showEnglishName={showEnglishName}
+          />
+        );
+      })}
 
       {editable && active !== null
         ? active.group.flatMap((groupSection) =>
