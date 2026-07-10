@@ -19,7 +19,7 @@ import {
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { planStore } from '@/features/plans/planStore';
 import { useActiveRun } from '@/features/plans/revalidationStore';
-import { blockBadge, blockBadgeLabelKey } from './blockBadge';
+import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 import { describeEntryDiff } from './describeEntryDiff';
 
 interface BlockDetailPopoverProps {
@@ -103,7 +103,9 @@ export function BlockDetailPopover({
     locale === 'th' ? snapshot.subjectMeta.nameTh : snapshot.subjectMeta.nameEn;
   const teachers = locale === 'th' ? snapshot.teachersTh : snapshot.teachersEn;
   const badge = blockBadge(entry.verifyStatus, false);
-  const badgeKey = blockBadgeLabelKey(entry.verifyStatus, false);
+  const badgeText = blockBadgeLabelKeys(entry.verifyStatus, false)
+    .map((key) => t(key))
+    .join(' ');
   const diff = run?.report?.entries.find(
     (item) => item.teachTableId === teachTableId,
   );
@@ -136,11 +138,11 @@ export function BlockDetailPopover({
         </button>
       </div>
 
-      {badge !== null && badgeKey !== null ? (
+      {badge !== null && badgeText !== '' ? (
         <p
           className={`mt-1 font-medium ${badge === 'danger' ? 'text-danger' : 'text-warn'}`}
         >
-          {t(badgeKey)}
+          {badgeText}
         </p>
       ) : null}
 

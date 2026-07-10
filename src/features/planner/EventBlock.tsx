@@ -14,7 +14,7 @@ import { hashColor } from '@/lib/utils/hash-color';
 import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
 import { formatMinutes } from '@/lib/parsing/time';
 import type { PlacedSection } from './placedSection';
-import { blockBadge, blockBadgeLabelKey } from './blockBadge';
+import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 
 interface EventBlockProps {
   section: PlacedSection;
@@ -28,6 +28,8 @@ interface EventBlockProps {
   dimmed?: boolean;
   /** Whether a revalidation time change put this block into a new conflict. */
   conflicted?: boolean;
+  /** Whether this block's exam window overlaps another entry's, a warning not a block. */
+  examWarned?: boolean;
   /** The draggable node ref, present only for an edit mode drag source. */
   dragRef?: (element: HTMLElement | null) => void;
   /** The pointer drag listeners, present only for an edit mode drag source. */
@@ -54,6 +56,7 @@ export function EventBlock({
   pulsing = false,
   dimmed = false,
   conflicted = false,
+  examWarned = false,
   dragRef,
   dragListeners,
   onRemove,
@@ -69,10 +72,16 @@ export function EventBlock({
   const englishSecondary =
     showEnglishName && locale === 'th' && section.nameEn !== '';
   const time = `${formatMinutes(meeting.startMin)}-${formatMinutes(meeting.endMin)}`;
-  const badge = blockBadge(section.verifyStatus, conflicted);
-  const badgeLabelKey = blockBadgeLabelKey(section.verifyStatus, conflicted);
+  const badge = blockBadge(section.verifyStatus, conflicted, examWarned);
+  const badgeText = blockBadgeLabelKeys(
+    section.verifyStatus,
+    conflicted,
+    examWarned,
+  )
+    .map((key) => t(key))
+    .join(' ');
   const label = `${section.subjectId} ${name} ${t('section.code')} ${section.section} ${t(dayFullLabelKey(meeting.day))} ${time}${
-    badgeLabelKey === null ? '' : ` ${t(badgeLabelKey)}`
+    badgeText === '' ? '' : ` ${badgeText}`
   }`;
 
   return (
