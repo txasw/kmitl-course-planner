@@ -33,12 +33,17 @@ const CAPTURE_PATH = resolve(
   'tests/fixtures/teach-table.by_subject_id.capture.json',
 );
 
+// The real capture read and parsed once at module load, then reused for both the row
+// template and the grouping template, rather than re-parsing the 1.6 MB file per call.
+// The cast is safe because the fixture is a verbatim captured response whose shape the
+// domain schema already validates elsewhere.
+const CAPTURE = JSON.parse(
+  readFileSync(CAPTURE_PATH, 'utf8'),
+) as CurriculumGroup[];
+
 /** The first non empty row of the real capture, cloned as the shape template. */
 function templateRow(): Record<string, unknown> {
-  const capture = JSON.parse(
-    readFileSync(CAPTURE_PATH, 'utf8'),
-  ) as CurriculumGroup[];
-  for (const group of capture) {
+  for (const group of CAPTURE) {
     for (const table of group.teachtable) {
       const first = table.data[0];
       if (first !== undefined) {
@@ -51,10 +56,7 @@ function templateRow(): Record<string, unknown> {
 
 /** The first grouping object of the real capture, its teachtable replaced below. */
 function templateGroup(): CurriculumGroup {
-  const capture = JSON.parse(
-    readFileSync(CAPTURE_PATH, 'utf8'),
-  ) as CurriculumGroup[];
-  const first = capture[0];
+  const first = CAPTURE[0];
   if (first === undefined) {
     throw new Error('the real capture has no grouping to template from');
   }
