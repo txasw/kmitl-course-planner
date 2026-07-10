@@ -37,7 +37,7 @@ export function SwapTarget({
       aria-hidden
       title={`${actionLabel} ${incomingLabel}`}
       className={`pointer-events-none z-30 m-px flex items-center justify-center gap-1 overflow-hidden rounded-kcp border-2 border-dashed border-primary px-1 text-[10px] font-semibold text-primary-strong ${
-        isOver ? 'bg-primary-soft' : 'bg-surface/85'
+        isOver ? 'bg-primary-soft' : 'bg-surface'
       }`}
       style={style}
     >
