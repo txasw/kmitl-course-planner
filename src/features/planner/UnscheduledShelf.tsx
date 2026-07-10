@@ -6,13 +6,15 @@
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { Pill } from '@/components/Pill';
 import type { PlacedSection } from './placedSection';
-import { blockBadge, blockBadgeLabelKey } from './blockBadge';
+import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 
 interface UnscheduledShelfProps {
   sections: PlacedSection[];
   locale: Locale;
   t: Translate;
   onRemove?: ((teachTableId: string) => void) | undefined;
+  /** teachTableIds whose exam window overlaps another entry's, so the row reads warn. */
+  examWarnIds?: Set<string>;
   /** Show the section code. A preview display option; on by default in edit mode. */
   showSection?: boolean;
   /** Add the English name as a secondary line under a Thai primary name. */
@@ -24,6 +26,7 @@ export function UnscheduledShelf({
   locale,
   t,
   onRemove,
+  examWarnIds,
   showSection = true,
   showEnglishName = false,
 }: UnscheduledShelfProps) {
@@ -40,8 +43,15 @@ export function UnscheduledShelf({
           const name = locale === 'th' ? section.nameTh : section.nameEn;
           const englishSecondary =
             showEnglishName && locale === 'th' && section.nameEn !== '';
-          const badge = blockBadge(section.verifyStatus, false);
-          const badgeKey = blockBadgeLabelKey(section.verifyStatus, false);
+          const examWarned = examWarnIds?.has(section.teachTableId) ?? false;
+          const badge = blockBadge(section.verifyStatus, false, examWarned);
+          const badgeText = blockBadgeLabelKeys(
+            section.verifyStatus,
+            false,
+            examWarned,
+          )
+            .map((key) => t(key))
+            .join(' ');
           return (
             <li
               key={section.teachTableId}
@@ -59,10 +69,8 @@ export function UnscheduledShelf({
                 ) : null}
               </span>
               <span className="flex shrink-0 items-center gap-1.5 text-ink-soft">
-                {badge !== null && badgeKey !== null ? (
-                  <Pill tone={badge === 'danger' ? 'danger' : 'warn'}>
-                    {t(badgeKey)}
-                  </Pill>
+                {badge !== null && badgeText !== '' ? (
+                  <Pill tone={badge}>{badgeText}</Pill>
                 ) : null}
                 {showSection ? (
                   <span>
