@@ -34,3 +34,4 @@ a new record that supersedes the old one rather than editing history.
 25. [Plan mutation transaction and undo model](0025-plan-mutation-transaction-and-undo.md)
 26. [PNG capture library confirmation](0026-png-capture-library-confirmation.md)
 27. [Export composition and honesty](0027-export-composition-and-honesty.md)
+28. [Weekly grid accessibility semantics](0028-grid-accessibility-semantics.md)
