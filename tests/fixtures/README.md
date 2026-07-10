@@ -51,6 +51,15 @@ that the real captures do not provide (their multi section subject is full and t
 open sections do not overlap). The mock server serves it only for the reserved subject
 id `90000000`, so no other spec sees it. It carries only synthetic course data.
 
+The performance profiling spec needs a catalog at the acceptance scale, hundreds of
+sections, which no real capture reaches: the largest, `teach-table.by_subject_id.capture.json`,
+dedupes to 44 unique sections. Rather than commit a large synthetic file, the dense
+catalog is generated at run time by `tests/e2e/support/denseCatalog.ts`, which clones one
+real row shape from that capture and multiplies it into hundreds of unique open sections.
+The mock serves it for the reserved subject id `90000500`, and serves the real 499 row
+capture for `90000499`, so the profiling run measures both the normalize path on the real
+payload and the render and drag at scale. The generator header records the full provenance.
+
 ## Regressions
 
 `regressions/` holds payloads captured from live contract deviations. See its README
