@@ -114,6 +114,26 @@ describe('filterCourses', () => {
     expect(result[0]?.sections[0]?.section).toBe('901');
   });
 
+  it('keeps the original course reference when no section is dropped', () => {
+    // Identity preservation lets a memoized card skip a re-filter that changes
+    // nothing about a course, so the reference must be the same object.
+    const result = filterCourses(courses, EMPTY_FILTER, NO_PREDICATES);
+    expect(result[0]).toBe(physics);
+    expect(result[1]).toBe(english);
+  });
+
+  it('returns a fresh course object only when a section is dropped', () => {
+    const result = filterCourses(
+      courses,
+      { ...EMPTY_FILTER, days: [1] },
+      NO_PREDICATES,
+    );
+    // Physics lost its day 3 section, so it is a new object; its identity must not
+    // alias the input, since the memoized card does need to re-render here.
+    expect(result[0]).not.toBe(physics);
+    expect(result[0]?.subjectId).toBe('90592033');
+  });
+
   it('hides unscheduled sections with no meetings', () => {
     const online = makeCourse({
       subjectId: '01006029',
