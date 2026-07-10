@@ -18,6 +18,7 @@
      utilities (bg-primary, text-ink, border-border, rounded-kcp, shadow-kcp)
      that dereference those tokens, so a value changes in exactly one place. */
   --color-primary: var(--kcp-primary);
+  --color-primary-strong: var(--kcp-primary-strong);
   --color-primary-hover: var(--kcp-primary-hover);
   --color-primary-soft: var(--kcp-primary-soft);
   --color-ink: var(--kcp-ink);
@@ -38,8 +39,14 @@
    descendant in the closed shadow tree can read them, and so the @theme
    mappings above dereference them on the same node. */
 :host {
+  /* The brand orange is kept exactly, verified in ADR-0016, for accents that meet the
+     3:1 UI component threshold: focus rings, borders, and the active tab underline. Its
+     white text and link contrast is 3.84:1, below the 4.5:1 normal text bar, so a darker
+     primary-strong of the same hue carries every interactive fill with white text and
+     every primary link, which passes 4.5:1. See ADR-0029. */
   --kcp-primary: #e35205;
-  --kcp-primary-hover: #c74804;
+  --kcp-primary-strong: #c0430a;
+  --kcp-primary-hover: #a3380a;
   --kcp-primary-soft: #fdeee5;
   --kcp-ink: #1a1a1a;
   --kcp-ink-soft: #5c5c5c;
@@ -47,8 +54,10 @@
   --kcp-surface-alt: #f7f7f8;
   --kcp-border: #e4e4e7;
   --kcp-danger: #c62828;
-  --kcp-warn: #b26a00;
-  --kcp-success: #1b7f3b;
+  /* Warn and success are darkened from the brief values so their text passes 4.5:1 on
+     the soft and surface backgrounds they sit on; the brief allows a token correction. */
+  --kcp-warn: #9a5a00;
+  --kcp-success: #1a7a38;
   --kcp-success-soft: #e7f3eb;
   --kcp-danger-soft: #fbeaea;
   --kcp-radius: 8px;
