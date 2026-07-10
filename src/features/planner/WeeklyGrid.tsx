@@ -98,14 +98,20 @@ export function WeeklyGrid({
   days = WEEK_DAYS,
   display,
 }: WeeklyGridProps) {
-  const quarters = quarterCount(window);
-  // The last tick is the window's closing edge and needs no hour column label.
-  const ticks = hourTicks(window).slice(0, -1);
-  const lane = laneBackground(quarters);
-  const gridStyle: CSSProperties = {
-    gridTemplateColumns: `2.25rem repeat(${String(quarters)}, minmax(0, 1fr))`,
-    gridTemplateRows: `auto repeat(${String(days.length)}, minmax(2.5rem, 1fr))`,
-  };
+  // The grid geometry follows only the window and the rendered day rows, so it holds
+  // stable across a drag or a plan change and is computed once per those inputs.
+  const { ticks, lane, gridStyle } = useMemo(() => {
+    const q = quarterCount(window);
+    return {
+      // The last tick is the window's closing edge and needs no hour column label.
+      ticks: hourTicks(window).slice(0, -1),
+      lane: laneBackground(q),
+      gridStyle: {
+        gridTemplateColumns: `2.25rem repeat(${String(q)}, minmax(0, 1fr))`,
+        gridTemplateRows: `auto repeat(${String(days.length)}, minmax(2.5rem, 1fr))`,
+      } satisfies CSSProperties,
+    };
+  }, [window, days]);
   const showRoom = display?.showRoom ?? true;
   const showSection = display?.showSection ?? true;
   const showEnglishName = display?.showEnglishNames ?? false;
@@ -148,7 +154,15 @@ export function WeeklyGrid({
     () =>
       sections
         .flatMap((section) =>
-          section.meetings.map((meeting) => ({ section, meeting })),
+          section.meetings.map((meeting) => ({
+            section,
+            meeting,
+            key: `${section.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`,
+            // Built here, inside the memo, so each block carries one stable style
+            // object and the memoized EventBlock is not re-rendered by a fresh style
+            // on every grid render. It depends only on the window and the day rows.
+            style: blockStyle(meeting, window, days),
+          })),
         )
         .sort(
           (a, b) =>
@@ -156,7 +170,7 @@ export function WeeklyGrid({
             a.meeting.startMin - b.meeting.startMin ||
             a.section.subjectId.localeCompare(b.section.subjectId),
         ),
-    [sections],
+    [sections, window, days],
   );
 
   return (
@@ -202,12 +216,11 @@ export function WeeklyGrid({
         </Fragment>
       ))}
 
-      {orderedBlocks.map(({ section, meeting }) => {
-        const key = `${section.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`;
+      {orderedBlocks.map(({ section, meeting, key, style }) => {
         const common = {
           section,
           meeting,
-          style: blockStyle(meeting, window, days),
+          style,
           locale,
           t,
           pulsing: blockingIds.has(section.teachTableId),
@@ -220,9 +233,7 @@ export function WeeklyGrid({
           <DraggableBlock
             key={key}
             {...common}
-            onRemove={() => {
-              onRemove(section.teachTableId);
-            }}
+            onRemove={onRemove}
             removeLabel={removeLabel}
           />
         ) : (
