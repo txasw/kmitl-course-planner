@@ -14,6 +14,7 @@ const css = readFileSync(
 
 const COLOR_TOKENS = [
   'primary',
+  'primary-strong',
   'primary-hover',
   'primary-soft',
   'ink',
