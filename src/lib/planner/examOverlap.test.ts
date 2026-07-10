@@ -183,4 +183,32 @@ describe('addedExamWarnings', () => {
       addedExamWarnings([lecture, practice], [lecture, practice]),
     ).toHaveLength(0);
   });
+
+  it('counts a pair sharing an exam against one blocker as a single clash', () => {
+    const placed = makeSection({
+      teachTableId: 'p',
+      subjectId: 'S1',
+      exam: { midterm: MID_A },
+    });
+    const lecture = makeSection({
+      teachTableId: 'L',
+      subjectId: 'S2',
+      section: '901',
+      pairedSection: '902',
+      exam: { midterm: MID_A_OVERLAP },
+    });
+    const practice = makeSection({
+      teachTableId: 'P',
+      subjectId: 'S2',
+      section: '902',
+      pairedSection: '901',
+      exam: { midterm: MID_A_OVERLAP },
+    });
+    const overlaps = addedExamWarnings(
+      [placed, lecture, practice],
+      [lecture, practice],
+    );
+    expect(overlaps).toHaveLength(1);
+    expect(overlaps[0]?.blocking.teachTableId).toBe('p');
+  });
 });

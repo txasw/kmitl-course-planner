@@ -128,12 +128,23 @@ export function addedExamWarnings(
     (section) => !addedIds.has(section.teachTableId),
   );
   const overlaps: ExamOverlap[] = [];
+  // A lecture and practice pair share the subject's exam, so both halves clash with the
+  // same blocker on the same kind. Count that as one clash so the strip's "+N" suffix is
+  // honest, keyed by the blocking section and exam kind.
+  const seen = new Set<string>();
   for (const incoming of added) {
     for (const existing of others) {
       if (areDeclaredPair(existing, incoming)) {
         continue;
       }
-      overlaps.push(...sectionExamOverlaps(existing, incoming));
+      for (const overlap of sectionExamOverlaps(existing, incoming)) {
+        const key = `${overlap.blocking.teachTableId}:${overlap.kind}`;
+        if (seen.has(key)) {
+          continue;
+        }
+        seen.add(key);
+        overlaps.push(overlap);
+      }
     }
   }
   return overlaps;
