@@ -188,7 +188,11 @@ describe('PlanSwitcher', () => {
         screen.getByText('นำเข้าไม่สำเร็จ ข้อมูลไม่ถูกต้อง'),
       ).toBeInTheDocument();
     });
-    expect(screen.getByText(/semester/)).toBeInTheDocument();
+    // The field path is kept and the reason is localized, not the library's English.
+    expect(
+      screen.getByText('semester: ค่าไม่อยู่ในตัวเลือกที่รองรับ'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Invalid option|expected one of/i)).toBeNull();
     expect(planStore.getState().plans).toHaveLength(0);
   });
 

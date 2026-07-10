@@ -29,6 +29,7 @@ import {
   useInteractions,
 } from '@floating-ui/react';
 import { planSchema, type Plan } from '@/lib/domain/plan';
+import { importIssueMessages } from '@/lib/domain/importIssues';
 import type { Term } from '@/lib/routing/academicTerms';
 import type { Translate } from '@/lib/i18n/t';
 import { planExportBaseName } from '@/lib/planner/exportName';
@@ -239,10 +240,7 @@ export function PlanSwitcher() {
     if (!result.success) {
       setMode({
         kind: 'importError',
-        issues: result.error.issues.map((issue) => {
-          const path = issue.path.map(String).join('.');
-          return path === '' ? issue.message : `${path}: ${issue.message}`;
-        }),
+        issues: importIssueMessages(result.error, parsed, t),
       });
       return;
     }
