@@ -107,7 +107,7 @@ export function SectionRow({
               onClick={() => {
                 onAdd(course, section);
               }}
-              className="rounded-kcp bg-primary px-2 py-0.5 font-medium text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              className="rounded-kcp bg-primary-strong px-2 py-0.5 font-medium text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               {t('action.add')}
             </button>
@@ -129,7 +129,7 @@ export function SectionRow({
               onClick={() => {
                 onSwitchTerm(relation.browsedTerm);
               }}
-              className="rounded-kcp border border-primary px-2 py-0.5 font-medium text-primary outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              className="rounded-kcp border border-primary px-2 py-0.5 font-medium text-primary-strong outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               {t('term.switch')}
             </button>

@@ -116,7 +116,7 @@ export function Diagnostics() {
             }}
             className={`inline-flex items-center gap-1 rounded-kcp px-2 py-1 text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none ${
               tab === entry.id
-                ? 'bg-primary text-surface'
+                ? 'bg-primary-strong text-surface'
                 : 'text-ink-soft hover:text-ink'
             }`}
           >

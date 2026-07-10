@@ -20,7 +20,7 @@ export function Launcher() {
       inert={isOpen || undefined}
       aria-hidden={isOpen || undefined}
       aria-label={t('launcher.open')}
-      className="fixed right-5 bottom-5 z-[2147483646] inline-flex items-center gap-2 rounded-kcp bg-primary px-4 py-3 text-sm font-semibold text-white shadow-kcp outline-none transition-colors hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      className="fixed right-5 bottom-5 z-[2147483646] inline-flex items-center gap-2 rounded-kcp bg-primary-strong px-4 py-3 text-sm font-semibold text-white shadow-kcp outline-none transition-colors hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
     >
       <CalendarDays size={18} strokeWidth={2} aria-hidden />
       <span>{t('launcher.label')}</span>

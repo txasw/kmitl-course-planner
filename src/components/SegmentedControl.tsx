@@ -37,7 +37,9 @@ export function SegmentedControl<T extends string>({
               onChange(option.value);
             }}
             className={`rounded-[6px] px-2.5 py-1 text-xs font-medium outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
-              active ? 'bg-primary text-white' : 'text-ink-soft hover:text-ink'
+              active
+                ? 'bg-primary-strong text-white'
+                : 'text-ink-soft hover:text-ink'
             }`}
           >
             {option.label}
