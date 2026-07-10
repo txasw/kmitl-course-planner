@@ -53,6 +53,33 @@ describe('EventBlock', () => {
     expect(within(block).getByText('A101')).toBeInTheDocument();
   });
 
+  it('names the room in the accessible label when the room shows', () => {
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.getByLabelText(/A101/)).toBeInTheDocument();
+  });
+
+  it('omits the room from the accessible label when showRoom is off', () => {
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        showRoom={false}
+      />,
+    );
+    expect(screen.queryByLabelText(/A101/)).not.toBeInTheDocument();
+  });
+
   it('badges a missing section as danger', () => {
     render(
       <EventBlock
