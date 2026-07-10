@@ -135,3 +135,46 @@ the header segmented control.
       lists the exact invalid fields and commits nothing. Import the clean file: a new
       plan lands under a suffixed name without overwriting the original, and revalidation
       reconciles its entries on open.
+
+## Keyboard and screen reader
+
+Run this whole section with the keyboard only first, then repeat it with NVDA on Windows.
+The grid is a labeled group, not a table or grid role, so a screen reader reads it as a
+region followed by each meeting as a self contained sentence in day then time order; there
+is no arrow key cell navigation, by design, because every placement is fixed. Move and swap
+are pointer only; a keyboard user reaches every section through the per row and per block
+add and remove controls, so no action is a dead end for the keyboard.
+
+- [ ] Reach and open: Tab from the page to the launcher and open the panel with Enter. Focus
+      moves into the panel and Escape closes it and returns focus to the launcher.
+- [ ] Search: Tab through the tab bar (the active tab reads pressed), open a combobox and
+      filter with the arrow keys, Home, End, and Enter, then submit. The catalog announces
+      loading, then the result count or the empty state.
+- [ ] Add from a row: Tab to a section's add button and press Enter. The screen reader
+      announces the add. Tab to the grip and press Enter or Space: it commits the same
+      section or routes to the blocked feedback, and the outcome is announced.
+- [ ] Blocked add and suggestions: press add on a time conflicting section. Focus stays
+      reachable and the feedback strip states the reason and offers alternative section
+      chips; Tab to a chip and press Enter to add it. When none fit, the reveal control
+      filters the catalog to the subject.
+- [ ] Exam overlap: add a section whose exam overlaps a placed one. The add succeeds and the
+      strip states the exam overlap; the placed block reads its warn state in its label.
+- [ ] Grid blocks: Tab through the placed blocks. The tab order follows the day then time
+      order, each block announces subject, name, section, day, time, room, and any state,
+      and its details and remove controls are reachable and labeled.
+- [ ] Block popover: open a block's details control. Focus lands in the dialog, Escape
+      closes only the popover and not the whole panel, and acknowledge and remove are
+      reachable. A changed or exam overlapping block reads its state and, for an exam, both
+      windows.
+- [ ] Revalidation: open a plan with entries. The banner announces the check result through
+      its live region. Reach the details control; the detail sheet opens as a dialog with
+      focus inside it and Escape closes it.
+- [ ] Plan switch: open the plan switcher, move through the plans, and create, rename, or
+      delete one entirely by keyboard, confirming the inline delete.
+- [ ] Preview toolbar: switch to preview and Tab through display options, copy image,
+      download image, and copy as text. The display options popover is reachable and its
+      toggles operate by keyboard.
+- [ ] Import rejection: from the plan menu, import a tampered JSON. The per field error list
+      is reachable and the back control returns to the menu.
+- [ ] Footer and summary: the footer summary reads as one labeled region with the credit,
+      subject, and per day load totals.
