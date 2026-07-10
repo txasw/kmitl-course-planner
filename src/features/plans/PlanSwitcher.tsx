@@ -397,7 +397,7 @@ export function PlanSwitcher() {
                           aria-hidden
                           className={`shrink-0 ${
                             plan.id === activePlan?.id
-                              ? 'text-primary'
+                              ? 'text-primary-strong'
                               : 'text-transparent'
                           }`}
                         />
@@ -563,7 +563,7 @@ function NameForm({
           type="button"
           onClick={onSubmit}
           disabled={value.trim() === ''}
-          className="rounded-kcp bg-primary px-2 py-1 font-medium text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
+          className="rounded-kcp bg-primary-strong px-2 py-1 font-medium text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
         >
           {save}
         </button>

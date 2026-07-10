@@ -92,7 +92,7 @@ function BlockedNotice({
             catalogStore.getState().setText(blocked.section.subjectId);
             dragStore.getState().clearBlocked();
           }}
-          className="font-medium text-primary underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className="font-medium text-primary-strong underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
           {t('feedback.revealInCatalog')}
         </button>
@@ -121,7 +121,7 @@ function CrossTermNotice({
           switchOrCreatePlanForTerm(feedback.browsedTerm);
           dragStore.getState().clearCrossTerm();
         }}
-        className="font-medium text-primary underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        className="font-medium text-primary-strong underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
         {t('term.switch')}
       </button>
@@ -178,7 +178,7 @@ function MutationNotice({
         onClick={() => {
           planStore.getState().undo();
         }}
-        className="font-medium text-primary underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        className="font-medium text-primary-strong underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
         {t('action.undo')}
       </button>

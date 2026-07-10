@@ -47,7 +47,7 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
               }}
               className={`flex-1 rounded-kcp px-1 py-1 text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none ${
                 active
-                  ? 'bg-primary text-surface'
+                  ? 'bg-primary-strong text-surface'
                   : 'bg-surface-alt text-ink-soft hover:text-ink'
               }`}
             >
