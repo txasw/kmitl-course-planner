@@ -80,7 +80,12 @@ export function EventBlock({
   )
     .map((key) => t(key))
     .join(' ');
-  const label = `${section.subjectId} ${name} ${t('section.code')} ${section.section} ${t(dayFullLabelKey(meeting.day))} ${time}${
+  // The accessible name is self contained so a screen reader hears the whole meeting
+  // from the block alone: subject, name, section, full day, time, the room when it is
+  // shown, then any verification state. The room follows the visual toggle so the label
+  // matches what is on screen.
+  const roomText = showRoom && meeting.room !== '' ? ` ${meeting.room}` : '';
+  const label = `${section.subjectId} ${name} ${t('section.code')} ${section.section} ${t(dayFullLabelKey(meeting.day))} ${time}${roomText}${
     badgeText === '' ? '' : ` ${badgeText}`
   }`;
 
