@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import {
+  AlertTriangle,
   CalendarRange,
   Check,
   ChevronDown,
@@ -347,7 +348,15 @@ export function PlanSwitcher() {
             </div>
           ) : mode.kind === 'importError' ? (
             <div className="flex flex-col gap-2">
-              <p className="font-medium text-ink">{t('planData.errorTitle')}</p>
+              <p className="flex items-center gap-1.5 font-medium text-ink">
+                <AlertTriangle
+                  size={16}
+                  strokeWidth={2}
+                  className="shrink-0 text-danger"
+                  aria-hidden
+                />
+                {t('planData.errorTitle')}
+              </p>
               <ul className="flex max-h-48 flex-col gap-1 overflow-auto kcp-scroll text-xs text-danger">
                 {mode.issues.map((issue, index) => (
                   <li key={`${String(index)}-${issue}`}>{issue}</li>

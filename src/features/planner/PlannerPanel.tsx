@@ -4,6 +4,7 @@
 // the grid. Unscheduled sections and the footer summary arrive with the shelf.
 
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { CalendarPlus } from 'lucide-react';
 import { useStore } from 'zustand';
 import { snapshotToSection } from '@/lib/domain/plan';
 import {
@@ -199,13 +200,17 @@ export function PlannerPanel() {
             {...(isPreview ? { display: displayOptions } : {})}
           />
           {sections.length === 0 ? (
-            <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 px-6 text-center">
+            <div className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 flex-col items-center gap-2 px-6 text-center">
+              <CalendarPlus
+                size={28}
+                strokeWidth={1.75}
+                className="text-ink-soft"
+                aria-hidden
+              />
               <p className="text-sm font-medium text-ink">
                 {t('grid.emptyTitle')}
               </p>
-              <p className="mt-1 text-sm text-ink-soft">
-                {t('grid.emptyBody')}
-              </p>
+              <p className="text-sm text-ink-soft">{t('grid.emptyBody')}</p>
             </div>
           ) : null}
         </div>
