@@ -161,6 +161,7 @@
   "footer.subjects": "subjects",
   "footer.hourUnit": "h",
   "footer.unscheduled": "unscheduled",
+  "footer.summary": "Timetable summary",
   "mode.select": "View mode",
   "mode.edit": "Edit",
   "mode.preview": "Preview",

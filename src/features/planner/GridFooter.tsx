@@ -34,7 +34,11 @@ export function GridFooter({ sections, t }: GridFooterProps) {
   ).length;
 
   return (
-    <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-2 text-xs text-ink-soft">
+    <div
+      role="group"
+      aria-label={t('footer.summary')}
+      className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-2 text-xs text-ink-soft"
+    >
       <span className="font-medium text-ink">
         {credits.credits} {t('footer.credits')}
       </span>
