@@ -11,6 +11,7 @@ import { createServer, type Server } from 'node:https';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { generate } from 'selfsigned';
+import { denseCatalogJson } from './denseCatalog';
 
 const FIXTURE_DIR = resolve(process.cwd(), 'tests/fixtures');
 
@@ -51,6 +52,11 @@ export async function startMockServer(): Promise<MockServer> {
       const sendJson = (name: string): void => {
         res.writeHead(200, { 'content-type': 'application/json' });
         res.end(fixtureBody(name));
+      };
+
+      const sendBody = (body: string): void => {
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(body);
       };
 
       if (host === 'api.reg.kmitl.ac.th') {
@@ -121,6 +127,20 @@ export async function startMockServer(): Promise<MockServer> {
           // spec sees them.
           if (url.searchParams.get('selected_subject_id') === '90000010') {
             sendJson('synthetic.exam-overlap.json');
+            return;
+          }
+          // The real by_subject_id capture, 499 raw rows that dedupe to 44 unique
+          // sections, served for a reserved id so the profiling spec can measure the
+          // normalize path against the real payload at its real scale.
+          if (url.searchParams.get('selected_subject_id') === '90000499') {
+            sendJson('teach-table.by_subject_id.capture.json');
+            return;
+          }
+          // The synthetic dense catalog, hundreds of open sections, served for a
+          // reserved id so the profiling spec can measure the render and drag at the
+          // acceptance scale the 44 section real capture cannot reach.
+          if (url.searchParams.get('selected_subject_id') === '90000500') {
+            sendBody(denseCatalogJson());
             return;
           }
           sendJson('teach-table.by_subject_owner_id-32.capture.json');
