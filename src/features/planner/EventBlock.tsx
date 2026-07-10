@@ -124,10 +124,10 @@ export function EventBlock({
       </span>
       <span className="truncate">{name}</span>
       {englishSecondary ? (
-        <span className="truncate text-white/85">{section.nameEn}</span>
+        <span className="truncate text-white">{section.nameEn}</span>
       ) : null}
       {showRoom && meeting.room !== '' ? (
-        <span className="truncate text-white/85">{meeting.room}</span>
+        <span className="truncate text-white">{meeting.room}</span>
       ) : null}
       {onOpenDetail !== undefined || onRemove !== undefined ? (
         <div className="absolute right-0.5 top-0.5 flex gap-0.5">
