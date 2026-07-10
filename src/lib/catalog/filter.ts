@@ -86,9 +86,18 @@ export function filterCourses(
     const sections = course.sections.filter((section) =>
       keepSection(course, section, filter, predicates),
     );
-    if (sections.length > 0) {
-      result.push({ ...course, sections });
+    if (sections.length === 0) {
+      continue;
     }
+    // Keep the original course reference when every section survived, so a
+    // re-filter that drops nothing returns identical course identities and a
+    // memoized card can skip its re-render. Only a course that actually lost a
+    // section gets a fresh object.
+    result.push(
+      sections.length === course.sections.length
+        ? course
+        : { ...course, sections },
+    );
   }
   return result;
 }

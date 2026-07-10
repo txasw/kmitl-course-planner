@@ -2,7 +2,7 @@
 // as secondary text, the credit string, and one row per section. Each section's
 // seat status and plan relation are computed here from the placed sections.
 
-import { Fragment } from 'react';
+import { Fragment, memo } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { GripVertical } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -63,7 +63,13 @@ function isCrossTerm(term: TermContext | undefined): boolean {
   );
 }
 
-export function CourseCard({
+// Memoized: the catalog holds hundreds of cards, and a re-render that leaves a
+// card's inputs unchanged (a filter that drops nothing, a language toggle, a plan
+// change that does not touch this course) skips its whole subtree. The default
+// shallow comparison is sufficient because the parent keeps every prop identity
+// stable: the course reference survives an unfiltering pass (filterCourses), the
+// callbacks and term are memoized, and placed changes only when the plan does.
+function CourseCardComponent({
   course,
   placed,
   locale,
@@ -148,3 +154,5 @@ export function CourseCard({
     </article>
   );
 }
+
+export const CourseCard = memo(CourseCardComponent);
