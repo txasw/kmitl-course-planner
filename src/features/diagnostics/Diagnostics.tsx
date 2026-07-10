@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { Bug, RefreshCw, X } from 'lucide-react';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { toastStore } from '@/features/shell/toastStore';
+import { uiStore } from '@/features/shell/uiStore';
 import { downloadText } from '@/lib/utils/download';
 import { isSimulationArmed, useDiagnosticsData } from './useDiagnosticsData';
 import {
@@ -187,6 +188,17 @@ export function Diagnostics() {
           className={ACTION}
         >
           Clear cache
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            // Forces the panel error boundary so the recovery card can be checked in
+            // a debug build. The probe clears the flag after it throws.
+            uiStore.getState().setCrashPanel(true);
+          }}
+          className={ACTION}
+        >
+          Throw in panel
         </button>
       </footer>
     </aside>

@@ -1,9 +1,14 @@
 import { useRef } from 'react';
 import { useStore } from 'zustand';
 import { QuarantineCard } from '@/features/plans/QuarantineCard';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { PanelRecoveryCard } from '@/components/PanelRecoveryCard';
+import { IS_DEBUG } from '@/lib/env';
 import { uiStore } from './uiStore';
 import { Header } from './Header';
 import { Layout } from './Layout';
+import { CrashProbe } from './CrashProbe';
+import { useTranslation } from './useTranslation';
 import { useFocusTrap } from './useFocusTrap';
 import { useScrollLock } from './useScrollLock';
 import { usePresence } from './usePresence';
@@ -18,6 +23,7 @@ const TITLE_ID = 'kcp-overlay-title';
 export function Overlay() {
   const isOpen = useStore(uiStore, (state) => state.isOpen);
   const close = useStore(uiStore, (state) => state.close);
+  const { t } = useTranslation();
   const panelRef = useRef<HTMLDivElement>(null);
   const { mounted, stage } = usePresence(isOpen);
 
@@ -41,9 +47,17 @@ export function Overlay() {
     >
       <Header titleId={TITLE_ID} />
       <QuarantineCard />
-      <main className="min-h-0 flex-1 overflow-hidden">
-        <Layout />
-      </main>
+      {/* The boundary wraps the panel body, not the whole overlay, so a render error
+          in the search, catalog, or planner shows the recovery card while the header
+          keeps its close control and the sibling launcher stays alive. */}
+      <ErrorBoundary
+        fallback={(reset) => <PanelRecoveryCard t={t} onReload={reset} />}
+      >
+        {IS_DEBUG ? <CrashProbe /> : null}
+        <main className="min-h-0 flex-1 overflow-hidden">
+          <Layout />
+        </main>
+      </ErrorBoundary>
     </div>
   );
 }

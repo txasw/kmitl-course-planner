@@ -103,6 +103,11 @@ button. Never skip it.
 - [ ] Quarantine: in a dev build, corrupt the stored plan blob. On reload the panel
       shows the quarantine card with an export action and starts from a clean state
       without losing the app.
+- [ ] Error boundary: in a debug build, open the panel, open the diagnostics drawer at
+      the bottom left, and press Throw in panel. The panel body shows the recovery card
+      with a reload action while the header keeps its close control and the host page
+      behind the overlay is untouched. Press reload and the panel body rebuilds. This is
+      the only way to trigger the boundary; production has no such control.
 
 ## Export and import
 
