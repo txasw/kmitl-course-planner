@@ -81,6 +81,12 @@ function CourseCardComponent({
 }: CourseCardProps) {
   const primary = locale === 'th' ? course.nameTh : course.nameEn;
   const secondary = locale === 'th' ? course.nameEn : course.nameTh;
+  const hasSecondary = secondary !== '' && secondary !== primary;
+  // A long Thai name has no word breaks, so the name line truncates rather than
+  // overflowing the card, and the full text rides on the title for a hover.
+  const fullName = hasSecondary
+    ? `${course.subjectId} ${primary} ${secondary}`
+    : `${course.subjectId} ${primary}`;
   // A cross term course cannot be added, so its whole course drag grip is hidden;
   // its rows carry the different term state and a switch action instead.
   const crossTerm = isCrossTerm(term);
@@ -95,10 +101,10 @@ function CourseCardComponent({
               label={`${t('action.dragCourse')} ${course.subjectId}`}
             />
           ) : null}
-          <div className="min-w-0">
+          <div className="min-w-0 truncate" title={fullName}>
             <span className="font-semibold text-ink">{course.subjectId}</span>{' '}
             <span className="text-ink">{primary}</span>
-            {secondary !== '' && secondary !== primary ? (
+            {hasSecondary ? (
               <span className="ml-1 text-ink-soft">{secondary}</span>
             ) : null}
           </div>

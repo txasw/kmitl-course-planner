@@ -114,6 +114,23 @@ describe('CourseCard course drag handle', () => {
   });
 });
 
+describe('CourseCard long name', () => {
+  it('carries the full name on a title so a truncated name stays readable', () => {
+    const longTh =
+      'วิชาที่มีชื่อยาวมากเกินความกว้างของการ์ดรายวิชาจนต้องตัดข้อความ';
+    const course = makeCourse({
+      subjectId: '90000099',
+      nameTh: longTh,
+      nameEn: 'A course whose name is long enough to be clipped in the card',
+    });
+    render(<CourseCard course={course} placed={[]} locale="th" t={t} />);
+    const named = screen.getByTitle(/90000099/);
+    expect(named.title).toContain(longTh);
+    // The truncate utility is what keeps the long name from overflowing the card.
+    expect(named.className).toContain('truncate');
+  });
+});
+
 describe('CourseCard memoization', () => {
   it('skips re-rendering when its props are unchanged and re-renders on a change', () => {
     // A card renders through t, so counting t calls counts the card's renders: a

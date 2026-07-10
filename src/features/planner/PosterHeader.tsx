@@ -36,7 +36,15 @@ export function PosterHeader({
 
   return (
     <header className="shrink-0 border-b border-border pb-2">
-      <h2 className="text-base font-semibold text-ink">{planName}</h2>
+      {/* The poster is captured to an image, so a long plan name wraps rather than
+          truncating, which would hide part of the name in the export. break-words
+          breaks a long unbroken Thai name so it never overflows the poster width. */}
+      <h2
+        className="text-base font-semibold break-words text-ink"
+        title={planName}
+      >
+        {planName}
+      </h2>
       <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-ink-soft">
         {term !== null ? (
           <span>
