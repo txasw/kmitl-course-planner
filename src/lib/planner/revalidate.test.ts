@@ -17,6 +17,8 @@ import {
   revalidatePlan,
   type SectionIndex,
 } from './revalidate';
+import { planExamWarnings } from './examOverlap';
+import { placedSections } from './transaction';
 
 const NOW = '2026-07-09T00:00:00.000Z';
 
@@ -277,5 +279,67 @@ describe('reconcilePlan', () => {
     });
     const { plan: reconciled } = reconcile(plan, [makeSection()]);
     expect(reconciled.updatedAt).toBe('2020-01-01T00:00:00.000Z');
+  });
+
+  it('re-evaluates exam overlaps after a revalidation moves an exam', () => {
+    // Two entries whose midterms do not overlap when the plan is built.
+    const plan = makePlan({
+      entries: [
+        makePlanEntry({
+          snapshot: makeSnapshot({
+            teachTableId: 'a',
+            subjectId: 'S1',
+            section: '1',
+            exam: {
+              midterm: {
+                start: '2026-08-21 09:00:00',
+                end: '2026-08-21 10:00:00',
+              },
+            },
+          }),
+        }),
+        makePlanEntry({
+          snapshot: makeSnapshot({
+            teachTableId: 'b',
+            subjectId: 'S2',
+            section: '1',
+            exam: {
+              midterm: {
+                start: '2026-08-22 09:00:00',
+                end: '2026-08-22 10:00:00',
+              },
+            },
+          }),
+        }),
+      ],
+    });
+    expect(planExamWarnings(placedSections(plan.entries)).size).toBe(0);
+
+    // Upstream moves the first entry's midterm onto the second entry's day and time.
+    const { plan: reconciled } = reconcile(plan, [
+      makeSection({
+        teachTableId: 'a',
+        subjectId: 'S1',
+        section: '1',
+        exam: {
+          midterm: {
+            start: '2026-08-22 09:30:00',
+            end: '2026-08-22 10:30:00',
+          },
+        },
+      }),
+      makeSection({
+        teachTableId: 'b',
+        subjectId: 'S2',
+        section: '1',
+        exam: {
+          midterm: {
+            start: '2026-08-22 09:00:00',
+            end: '2026-08-22 10:00:00',
+          },
+        },
+      }),
+    ]);
+    expect(planExamWarnings(placedSections(reconciled.entries)).size).toBe(2);
   });
 });
