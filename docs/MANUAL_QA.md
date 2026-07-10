@@ -178,3 +178,30 @@ add and remove controls, so no action is a dead end for the keyboard.
       is reachable and the back control returns to the menu.
 - [ ] Footer and summary: the footer summary reads as one labeled region with the credit,
       subject, and per day load totals.
+
+## Firefox parity
+
+The end to end suite runs on Chromium only, because Playwright cannot side load the
+extension into its Firefox build (ADR-0030). This short list is the recorded Firefox
+acceptance and is run by a person, not automated. Load the unpacked Firefox build with
+`pnpm build:debug -b firefox`, then open `about:debugging`, choose This Firefox, Load
+Temporary Add-on, and pick `.output/firefox-mv3-debug/manifest.json`. Open
+`https://regis.reg.kmitl.ac.th/#/teach_table_selector`. The whole planner and export
+lists above are meant to pass in Firefox too; these four items are the engine specific
+risks to confirm deliberately, since they are where Firefox is most likely to diverge
+from Chromium.
+
+- [ ] Pointer drag: drag a section grip onto the grid and drop it. The grab card follows
+      the pointer, the footprint ghosts show, and the drop commits a block. Repeat a
+      blocked drag and confirm the reason chip and the rejected drop. The pointer events
+      that drive the drag are engine specific, so this is the first thing to check.
+- [ ] Download PNG: in preview, download the image and open it. The poster header, the
+      grid with block colours, the unscheduled shelf, and the footer render, and Thai
+      text is correct. The `html-to-image` capture path is the second engine specific
+      surface.
+- [ ] Copy image: use copy image and paste into a chat app. Where Firefox lacks image
+      clipboard support the control is the one line note pointing at download rather than
+      a dead button, so confirm which path Firefox takes and that it works.
+- [ ] Shadow root isolation: with the overlay open, spot check that the host page styles
+      do not leak into the panel and the panel styles do not leak into the host, then
+      close the overlay and confirm the host page is exactly as it was.
