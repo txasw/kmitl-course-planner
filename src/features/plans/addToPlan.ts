@@ -6,8 +6,11 @@
 import type { Course, Section } from '@/lib/domain/types';
 import type { SourceQuery } from '@/lib/domain/plan';
 import type { AddOutcome, TransactionOutcome } from '@/lib/planner/transaction';
+import { placedSections } from '@/lib/planner/transaction';
 import { toSourceQuery } from '@/lib/planner/sourceQuery';
+import { addedExamWarnings } from '@/lib/planner/examOverlap';
 import { searchStore } from '@/features/search/searchStore';
+import { dragStore } from '@/features/planner/dragStore';
 import { planStore } from './planStore';
 
 /** The source query for the search that produced the current catalog, or null when
@@ -26,7 +29,22 @@ export function addSectionToPlan(course: Course, section: Section): AddOutcome {
   if (sourceQuery === null) {
     return { ok: false, conflicts: [] };
   }
-  return planStore.getState().add(course, section, sourceQuery);
+  const outcome = planStore.getState().add(course, section, sourceQuery);
+  // An exam overlap never blocks the add; when the added group clashes with an existing
+  // entry's exam window, state it in the strip. The persistent warn badge is derived
+  // separately from the entries, so this only drives the transient notice.
+  if (outcome.ok) {
+    const overlaps = addedExamWarnings(
+      placedSections(outcome.result.entries),
+      placedSections(outcome.result.added),
+    );
+    if (overlaps.length > 0) {
+      dragStore
+        .getState()
+        .showExamWarning({ subjectId: section.subjectId, overlaps });
+    }
+  }
+  return outcome;
 }
 
 /** Remove the listed placed sections and their pairs, add one section and its pair,
