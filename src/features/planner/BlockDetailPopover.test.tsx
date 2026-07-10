@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import type { ReconcileReport } from '@/lib/planner/revalidate';
+import type { ExamOverlap } from '@/lib/planner/examOverlap';
 import {
   makeMeeting,
   makePlanEntry,
@@ -43,6 +44,7 @@ function renderPopover(
   overrides: {
     onClose?: () => void;
     onRemove?: (id: string) => void;
+    examOverlaps?: ExamOverlap[];
   } = {},
 ) {
   const onClose = overrides.onClose ?? vi.fn();
@@ -56,6 +58,7 @@ function renderPopover(
       t={t}
       onClose={onClose}
       onRemove={onRemove}
+      examOverlaps={overrides.examOverlaps ?? []}
     />,
   );
   return { onClose, onRemove };
@@ -138,6 +141,28 @@ describe('BlockDetailPopover', () => {
     renderPopover();
     expect(screen.getByText('B202')).toBeInTheDocument();
     expect(screen.getByText('A101')).toBeInTheDocument();
+  });
+
+  it('lists an exam overlap with both windows, distinct from the diff', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry({ verifyStatus: 'verified' })]);
+    });
+    renderPopover({
+      examOverlaps: [
+        {
+          blocking: { teachTableId: 'x', subjectId: '90000009', section: '5' },
+          kind: 'midterm',
+          self: { start: '2026-08-21 09:00:00', end: '2026-08-21 12:00:00' },
+          other: { start: '2026-08-21 11:00:00', end: '2026-08-21 13:00:00' },
+        },
+      ],
+    });
+    expect(screen.getByText('Exam overlap')).toBeInTheDocument();
+    expect(screen.getByText('Midterm')).toBeInTheDocument();
+    expect(screen.getByText('2026-08-21 09:00-12:00')).toBeInTheDocument();
+    expect(
+      screen.getByText(/90000009 Section 5: 2026-08-21 11:00-13:00/),
+    ).toBeInTheDocument();
   });
 
   it('closes when the entry leaves the plan', () => {

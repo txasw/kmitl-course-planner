@@ -234,6 +234,7 @@ export function PlannerPanel() {
           t={t}
           onClose={closeDetail}
           onRemove={handleRemove}
+          examOverlaps={examWarnings.get(detail.teachTableId) ?? []}
         />
       ) : null}
     </div>

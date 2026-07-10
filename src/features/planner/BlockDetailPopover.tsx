@@ -17,10 +17,12 @@ import {
   useInteractions,
 } from '@floating-ui/react';
 import type { Locale, Translate } from '@/lib/i18n/t';
+import type { ExamOverlap } from '@/lib/planner/examOverlap';
 import { planStore } from '@/features/plans/planStore';
 import { useActiveRun } from '@/features/plans/revalidationStore';
 import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 import { describeEntryDiff } from './describeEntryDiff';
+import { formatExamRange } from './examText';
 
 interface BlockDetailPopoverProps {
   teachTableId: string;
@@ -29,6 +31,9 @@ interface BlockDetailPopoverProps {
   t: Translate;
   onClose: () => void;
   onRemove: (teachTableId: string) => void;
+  /** Exam window overlaps this block has with other entries, listed as a distinct
+   * section so the reason reads apart from a revalidation change. */
+  examOverlaps?: ExamOverlap[];
 }
 
 export function BlockDetailPopover({
@@ -38,6 +43,7 @@ export function BlockDetailPopover({
   t,
   onClose,
   onRemove,
+  examOverlaps = [],
 }: BlockDetailPopoverProps) {
   const entries = useStore(planStore, (state) => state.entries);
   const run = useActiveRun();
@@ -158,6 +164,28 @@ export function BlockDetailPopover({
             </div>
           ))}
         </dl>
+      ) : null}
+
+      {examOverlaps.length > 0 ? (
+        <section
+          aria-label={t('verify.examOverlap')}
+          className="mt-2 flex flex-col gap-1 border-t border-border pt-2"
+        >
+          <p className="font-medium text-warn">{t('verify.examOverlap')}</p>
+          {examOverlaps.map((overlap) => (
+            <div
+              key={`${overlap.kind}-${overlap.blocking.teachTableId}`}
+              className="flex flex-col text-ink-soft"
+            >
+              <span>{t(`exam.${overlap.kind}`)}</span>
+              <span className="text-ink">{formatExamRange(overlap.self)}</span>
+              <span>
+                {overlap.blocking.subjectId} {t('section.code')}{' '}
+                {overlap.blocking.section}: {formatExamRange(overlap.other)}
+              </span>
+            </div>
+          ))}
+        </section>
       ) : null}
 
       <div className="mt-2 flex flex-col gap-0.5 border-t border-border pt-2 text-ink-soft">
