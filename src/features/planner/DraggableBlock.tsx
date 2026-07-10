@@ -22,7 +22,7 @@ interface DraggableBlockProps {
   dimmed?: boolean;
   conflicted?: boolean;
   examWarned?: boolean;
-  onRemove: () => void;
+  onRemove: (teachTableId: string) => void;
   removeLabel: string;
   onOpenDetail?: (anchor: HTMLElement) => void;
 }

@@ -6,7 +6,7 @@ import {
   cleanup,
   fireEvent,
 } from '@testing-library/react';
-import { createTranslator } from '@/lib/i18n/t';
+import { createTranslator, type Translate } from '@/lib/i18n/t';
 import type { Meeting } from '@/lib/domain/types';
 import { EventBlock } from './EventBlock';
 import type { PlacedSection } from './placedSection';
@@ -243,6 +243,8 @@ describe('EventBlock', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: t('action.remove') }));
     expect(onRemove).toHaveBeenCalledTimes(1);
+    // The block passes its own id so the grid can hand down one stable handler.
+    expect(onRemove).toHaveBeenCalledWith('t1');
   });
 
   it('renders no remove control without onRemove', () => {
@@ -274,5 +276,35 @@ describe('EventBlock', () => {
     expect(onOpenDetail).toHaveBeenCalledTimes(1);
     const anchor = onOpenDetail.mock.calls[0]?.[0] as HTMLElement;
     expect(anchor.dataset.teachTableId).toBe('t1');
+  });
+
+  it('skips re-rendering when its props are unchanged and re-renders on a change', () => {
+    // The block renders through t, so counting t calls counts its renders. The grid
+    // relies on this memo so a drag hover re-renders only the blocks whose flags move.
+    let renders = 0;
+    const countingT: Translate = (key) => {
+      renders += 1;
+      return t(key);
+    };
+    const style = {};
+    const props = {
+      section,
+      meeting,
+      style,
+      locale: 'th' as const,
+      t: countingT,
+    };
+
+    const { rerender } = render(<EventBlock {...props} />);
+    const afterFirst = renders;
+    expect(afterFirst).toBeGreaterThan(0);
+
+    // Identical prop references: the memo skips, so no further t calls.
+    rerender(<EventBlock {...props} />);
+    expect(renders).toBe(afterFirst);
+
+    // A flag flip, as a drag start produces on a blocking block: it re-renders.
+    rerender(<EventBlock {...props} pulsing />);
+    expect(renders).toBeGreaterThan(afterFirst);
   });
 });
