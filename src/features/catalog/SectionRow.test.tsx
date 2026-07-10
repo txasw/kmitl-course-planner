@@ -84,6 +84,40 @@ describe('SectionRow actions', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('badges a practice section and a lecture section by its kind', () => {
+    // Regression guard: the kind rides from lect_or_prac through the section, so a
+    // practice section reads practice and a lecture section reads lecture. This is
+    // the catalog side of the badge; the shelf and the drag card are covered too.
+    const practice = makeSection({ teachTableId: 'p', kind: 'practice' });
+    render(
+      <SectionRow
+        course={course}
+        section={practice}
+        relation={{ kind: 'addable' }}
+        seat={computeSeatStatus(practice)}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.getByText('ปฏิบัติ')).toBeInTheDocument();
+    expect(screen.queryByText('ทฤษฎี')).not.toBeInTheDocument();
+    cleanup();
+
+    const lecture = makeSection({ teachTableId: 'l', kind: 'lecture' });
+    render(
+      <SectionRow
+        course={course}
+        section={lecture}
+        relation={{ kind: 'addable' }}
+        seat={computeSeatStatus(lecture)}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.getByText('ทฤษฎี')).toBeInTheDocument();
+    expect(screen.queryByText('ปฏิบัติ')).not.toBeInTheDocument();
+  });
+
   it('offers no add button for a full section', () => {
     const fullSection = makeSection({
       seats: { limit: 40, preCount: 40, queueLeft: 0, enrolled: 'full' },
