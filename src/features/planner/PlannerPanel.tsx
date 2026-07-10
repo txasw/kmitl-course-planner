@@ -12,6 +12,7 @@ import {
   visibleDays,
 } from '@/lib/planner/grid';
 import { planConflicts } from '@/lib/planner/planConflicts';
+import { planExamWarnings } from '@/lib/planner/examOverlap';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
@@ -54,6 +55,20 @@ export function PlannerPanel() {
         ).keys(),
       ),
     [entries],
+  );
+  // Exam window overlaps keyed by teachTableId, derived from the same entries so a
+  // revalidation exam change re-evaluates the warnings the way a time change re-lights
+  // the conflicts. The full map feeds the block popover; its keys drive the warn badge.
+  const examWarnings = useMemo(
+    () =>
+      planExamWarnings(
+        entries.map((entry) => snapshotToSection(entry.snapshot)),
+      ),
+    [entries],
+  );
+  const examWarnIds = useMemo(
+    () => new Set(examWarnings.keys()),
+    [examWarnings],
   );
   const scheduled = useMemo(() => sections.filter(isScheduled), [sections]);
   const unscheduled = useMemo(
@@ -178,6 +193,7 @@ export function PlannerPanel() {
             editable={viewMode === 'edit'}
             onRemove={handleRemove}
             conflictIds={conflictIds}
+            examWarnIds={examWarnIds}
             onOpenDetail={openDetail}
             {...(fitActive ? { days: fitDays } : {})}
             {...(isPreview ? { display: displayOptions } : {})}
@@ -199,6 +215,7 @@ export function PlannerPanel() {
             locale={language}
             t={t}
             onRemove={viewMode === 'edit' ? handleRemove : undefined}
+            examWarnIds={examWarnIds}
             {...(isPreview
               ? {
                   showSection: displayOptions.showSection,
