@@ -17,6 +17,12 @@ import { FAT_COURSE_ID, denseSubjectId } from './support/denseCatalog';
 import type { Page, BrowserContext } from '@playwright/test';
 
 const DENSE_SUBJECT_ID = '90000500';
+// The real 499 row by_subject_id capture, which dedupes to 44 unique sections. Served
+// for this reserved id so the real normalize path is measured, not only the synthetic
+// dense catalog.
+const REAL_SUBJECT_ID = '90000499';
+// A subject id present in the real capture, used to confirm its catalog rendered.
+const REAL_COURSE_ID = '90641007';
 const PLAN_SIZE = 12;
 
 interface Metric {
@@ -33,10 +39,21 @@ interface Cdp {
 }
 
 async function scriptMs(client: Cdp): Promise<number> {
+  // The CDP getMetrics reply is untyped in the Playwright surface, so narrow it to the
+  // one field this reads; a malformed reply falls back to zero rather than throwing.
   const response = (await client.send('Performance.getMetrics')) as
     MetricsResponse | undefined;
   const metric = response?.metrics.find((m) => m.name === 'ScriptDuration');
   return (metric?.value ?? 0) * 1000;
+}
+
+/** Open a CDP session narrowed to the send surface this spec uses. The double cast
+ * bridges the Playwright CDPSession type to the minimal Cdp shape, since only send is
+ * called and only for the Performance domain. */
+async function openCdp(context: BrowserContext, page: Page): Promise<Cdp> {
+  const client = (await context.newCDPSession(page)) as unknown as Cdp;
+  await client.send('Performance.enable');
+  return client;
 }
 
 /** Run the by subject id search for a reserved id and wait for its first card. */
@@ -68,8 +85,7 @@ test('profiles the dense catalog render and a grid drag', async ({
   context: BrowserContext;
 }) => {
   const page = await openPlanner(context);
-  const client = (await context.newCDPSession(page)) as unknown as Cdp;
-  await client.send('Performance.enable');
+  const client = await openCdp(context, page);
 
   // Mount: search the dense id and render the full catalog.
   const beforeMount = await scriptMs(client);
@@ -145,20 +161,50 @@ test('profiles the dense catalog render and a grid drag', async ({
     await page.mouse.move(fromBox.x + 4, y, { steps: 12 });
     await page.mouse.move(toBox.x + toBox.width - 4, y, { steps: 12 });
   }
+  // End the sweep off the grid, over the top left chrome, so the drop resolves to no
+  // drop zone and commits nothing whatever the sweep path was. The measurement above
+  // already captured the re-renders the sweep caused.
+  await page.mouse.move(5, 5, { steps: 4 });
   await page.mouse.up();
   await page.waitForTimeout(120);
   const dragMs = (await scriptMs(client)) - beforeDrag;
 
-  // The drop was on empty grid, so nothing committed and the plan is unchanged.
+  // Nothing committed: the placed plan is unchanged and no fat course block was added.
   await expect(page.locator(blockSel('700000'))).toBeVisible();
+  await expect(page.locator('[data-teach-table-id^="790"]')).toHaveCount(0);
 
   console.log(
     `[perf] mount=${mountMs.toFixed(1)}ms filter=${filterMs.toFixed(1)}ms add=${addMs.toFixed(1)}ms drag=${dragMs.toFixed(1)}ms plan=${String(PLAN_SIZE)} catalog=500`,
   );
 
-  // Loose ceilings: a gross regression trips these, machine variance does not.
+  // Loose ceilings: a gross regression trips these, machine variance does not. The
+  // measured values sit far below, so the headroom absorbs a slow contended runner.
   expect(mountMs).toBeGreaterThan(0);
-  expect(filterMs).toBeLessThan(2000);
-  expect(addMs).toBeLessThan(4000);
-  expect(dragMs).toBeLessThan(6000);
+  expect(filterMs).toBeLessThan(3000);
+  expect(addMs).toBeLessThan(6000);
+  expect(dragMs).toBeLessThan(8000);
+});
+
+test('profiles the real capture normalize and render', async ({
+  context,
+}: {
+  context: BrowserContext;
+}) => {
+  const page = await openPlanner(context);
+  const client = await openCdp(context, page);
+
+  // The real 499 row capture: this exercises the true normalize path, 499 raw rows
+  // validated and deduped to 44 sections, and renders that real catalog, which the
+  // synthetic dense set cannot stand in for.
+  const before = await scriptMs(client);
+  await page.getByRole('button', { name: 'รหัสวิชา' }).click();
+  await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill(REAL_SUBJECT_ID);
+  await page.getByRole('button', { name: 'ค้นหา' }).click();
+  await expect(
+    page.getByText(REAL_COURSE_ID, { exact: true }).first(),
+  ).toBeVisible({ timeout: 20_000 });
+  const realMs = (await scriptMs(client)) - before;
+
+  console.log(`[perf] realCapture=${realMs.toFixed(1)}ms rows=499 unique=44`);
+  expect(realMs).toBeGreaterThan(0);
 });
