@@ -45,7 +45,7 @@
      primary-strong of the same hue carries every interactive fill with white text and
      every primary link, which passes 4.5:1. See ADR-0029. */
   --kcp-primary: #e35205;
-  --kcp-primary-strong: #c0430a;
+  --kcp-primary-strong: #b8400a;
   --kcp-primary-hover: #a3380a;
   --kcp-primary-soft: #fdeee5;
   --kcp-ink: #1a1a1a;
