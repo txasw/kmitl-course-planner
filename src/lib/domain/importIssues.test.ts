@@ -42,6 +42,21 @@ describe('importIssueMessages', () => {
     expect(messages).toEqual(['year: Wrong type']);
   });
 
+  it('reads a missing enum field as missing, not as a bad value', () => {
+    // Zod raises invalid_value for both an absent enum and a present bad one, so the
+    // presence check must still call an omitted semester missing.
+    const messages = messagesFor({
+      id: 'x',
+      name: 'x',
+      year: '2569',
+      entries: [],
+      createdAt: 'a',
+      updatedAt: 'a',
+    });
+    expect(messages).toContain('semester: Missing');
+    expect(messages).not.toContain('semester: Value not allowed');
+  });
+
   it('reads a value outside an enum as not allowed', () => {
     const messages = messagesFor({
       id: 'x',
