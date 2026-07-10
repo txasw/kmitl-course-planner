@@ -29,6 +29,12 @@ export interface UiState {
    * therefore never appears in production.
    */
   diagnosticsIssueCount: number | null;
+  /**
+   * Forces the panel error boundary for manual QA. It stays false in production
+   * because only the debug diagnostics drawer sets it and the probe that reads it is
+   * gated behind the debug flag, so production carries only this inert boolean.
+   */
+  crashPanel: boolean;
   open: () => void;
   close: () => void;
   toggle: () => void;
@@ -38,6 +44,7 @@ export interface UiState {
   setDisplayOptions: (options: DisplayOptions) => void;
   setDisplayOption: (key: keyof DisplayOptions, value: boolean) => void;
   setDiagnosticsIssueCount: (count: number | null) => void;
+  setCrashPanel: (crash: boolean) => void;
 }
 
 /**
@@ -52,6 +59,7 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     viewMode: 'edit',
     displayOptions: DEFAULT_DISPLAY_OPTIONS,
     diagnosticsIssueCount: null,
+    crashPanel: false,
     open: () => {
       set({ isOpen: true });
     },
@@ -82,6 +90,9 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     },
     setDiagnosticsIssueCount: (count) => {
       set({ diagnosticsIssueCount: count });
+    },
+    setCrashPanel: (crash) => {
+      set({ crashPanel: crash });
     },
   }));
 }
