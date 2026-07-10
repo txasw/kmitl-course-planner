@@ -24,6 +24,9 @@ test('the panel error boundary shows a recovery card and recovers', async ({
   // aria-hidden while the panel is open, so it is matched by its attribute rather
   // than by role.
   await expect(page.getByRole('dialog')).toBeVisible();
+  // The header close control is outside the boundary, so it survives a body crash and
+  // the way back to the host is always one action away.
+  await expect(page.getByRole('button', { name: 'ปิด' })).toBeVisible();
   await expect(
     page.locator('button[aria-label="เปิด KMITL Course Planner"]'),
   ).toBeAttached();
