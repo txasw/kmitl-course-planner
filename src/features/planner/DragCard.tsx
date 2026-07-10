@@ -18,7 +18,7 @@ export function DragCard({ section }: { section: Section }) {
     >
       <span>{section.subjectId}</span>
       <span className="font-normal">{section.section}</span>
-      <span className="rounded-[4px] bg-white/25 px-1">
+      <span className="rounded-[4px] bg-black/25 px-1">
         {section.kind === 'practice'
           ? t('section.practice')
           : t('section.lecture')}
