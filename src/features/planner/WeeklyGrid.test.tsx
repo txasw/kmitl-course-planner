@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import { DEFAULT_WINDOW } from '@/lib/planner/grid';
+import type { DayOfWeek } from '@/lib/parsing/days';
 import {
   makeCourse,
   makeMeeting,
@@ -131,6 +132,52 @@ describe('WeeklyGrid', () => {
       document.querySelectorAll('[data-teach-table-id]'),
     ).map((node) => node.getAttribute('data-teach-table-id'));
     expect(ids).toEqual(['earlier', 'later']);
+  });
+
+  it('renders a dense eight subject plan as ordered blocks', () => {
+    // A full timetable, eight subjects across the week with two doubled up days, so
+    // the grid stays sane at a realistic maximum load and the reading order holds.
+    const specs: {
+      id: string;
+      subjectId: string;
+      day: DayOfWeek;
+      start: number;
+    }[] = [
+      { id: 'a', subjectId: '90000005', day: 1, start: 540 },
+      { id: 'b', subjectId: '90000001', day: 1, start: 720 },
+      { id: 'c', subjectId: '90000002', day: 2, start: 480 },
+      { id: 'd', subjectId: '90000003', day: 3, start: 600 },
+      { id: 'e', subjectId: '90000004', day: 3, start: 780 },
+      { id: 'f', subjectId: '90000006', day: 4, start: 540 },
+      { id: 'g', subjectId: '90000007', day: 5, start: 900 },
+      { id: 'h', subjectId: '90000008', day: 6, start: 480 },
+    ];
+    const sections = specs.map((spec) =>
+      makePlaced({
+        teachTableId: spec.id,
+        subjectId: spec.subjectId,
+        meetings: [
+          makeMeeting({
+            day: spec.day,
+            startMin: spec.start,
+            endMin: spec.start + 60,
+          }),
+        ],
+      }),
+    );
+    render(
+      <WeeklyGrid
+        sections={sections}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+      />,
+    );
+    const ids = Array.from(
+      document.querySelectorAll('[data-teach-table-id]'),
+    ).map((node) => node.getAttribute('data-teach-table-id'));
+    // All eight render, in day then start time order.
+    expect(ids).toEqual(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']);
   });
 
   it('labels the grid and the seven day rows', () => {
