@@ -28,7 +28,7 @@ function report(): DataQualityReport {
     extensionVersion: '0.0.0',
     generatedAt: 'T',
     request: { endpoint: 'get-teach-table-show', params: {} },
-    totals: { rows: 1, deduped: 1, issues: 1, byKind },
+    totals: { rows: 1, deduped: 1, issues: 1, unscheduled: 0, byKind },
     aggregates: [
       {
         path: 'rows[0].teach_time2',

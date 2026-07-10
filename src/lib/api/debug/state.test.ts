@@ -26,7 +26,13 @@ function reportWith(issues: number): DataQualityReport {
     extensionVersion: 'x',
     generatedAt: 't',
     request: { endpoint: 'e', params: {} },
-    totals: { rows: 0, deduped: 0, issues, byKind: emptyByKind() },
+    totals: {
+      rows: 0,
+      deduped: 0,
+      issues,
+      unscheduled: 0,
+      byKind: emptyByKind(),
+    },
     aggregates: [],
     issues: [],
   };

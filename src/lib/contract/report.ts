@@ -43,6 +43,11 @@ export interface ReportTotals {
   rows: number;
   deduped: number;
   issues: number;
+  /** Rows that are a valid unscheduled sentinel (teach_day 0 with zeroed times), not
+   * an error. Surfaced so a mass day zero regression, where the API sends day 0 for
+   * rows that should carry a real day, is visible as an unexpected spike rather than
+   * hiding as silently accepted rows. */
+  unscheduled: number;
   byKind: Record<IssueKind, number>;
 }
 

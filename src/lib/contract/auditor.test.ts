@@ -91,6 +91,8 @@ describe('auditTeachTable', () => {
     };
     const report = auditTeachTable(wrap(row), ctx);
     expect(report.totals.issues).toBe(0);
+    // The valid unscheduled row is counted so a mass day zero spike is visible.
+    expect(report.totals.unscheduled).toBe(1);
   });
 
   it('flags a day 0 row that still carries real times', () => {
@@ -105,6 +107,8 @@ describe('auditTeachTable', () => {
     const report = auditTeachTable(wrap(row), ctx);
     expect(report.totals.byKind.cross_field).toBe(1);
     expect(report.totals.issues).toBe(1);
+    // A mislabeled day 0 row is not the unscheduled sentinel, so it is not counted.
+    expect(report.totals.unscheduled).toBe(0);
   });
 
   it('classifies every issue kind on a corrupted row', () => {
@@ -137,6 +141,19 @@ describe('auditTeachTable', () => {
     expect(report.totals.rows).toBe(13);
     expect(report.totals.deduped).toBe(4);
     expect(report.totals.issues).toBe(0);
+    // The owner capture has no unscheduled rows, so the counter reads zero.
+    expect(report.totals.unscheduled).toBe(0);
+  });
+
+  it('counts the unscheduled row in the day zero regression capture', () => {
+    const report = auditTeachTable(
+      loadFixture(
+        'regressions/teach-table.by_class-null-teachtime-str.capture.json',
+      ),
+      ctx,
+    );
+    // The capture carries one online course whose day is 0 and times are zeroed.
+    expect(report.totals.unscheduled).toBe(1);
   });
 
   it('flags exactly one missing field and one unknown field for the mutation presets', () => {
