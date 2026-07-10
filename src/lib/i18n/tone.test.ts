@@ -5,10 +5,12 @@ import en from './en.json';
 // Guards the Section 2 tone rules on every rendered string: no emojis, no decorative
 // punctuation such as em or en dashes, arrows, or symbol bullets, no exclamation marks,
 // and no LLM filler words. Both dictionaries are checked for the punctuation and emoji
-// rules; the banned word list is English, so it runs against the English copy.
+// rules; the banned word list is English, so it runs against the English copy. The emoji
+// test covers pictographs, flag pairs, and the emoji presentation selector so a sequence
+// emoji is caught, not only a lone pictograph.
 
-const EMOJI = /\p{Extended_Pictographic}/u;
-const DECORATIVE = /[—–→←↔⇒⇐•●▪◦‣]/;
+const EMOJI = /\p{Extended_Pictographic}|\p{Regional_Indicator}|\u{FE0F}/u;
+const DECORATIVE = /[—–―‒−→←↔⇒⇐•●▪◦‣]/;
 const BANNED = [
   'seamless',
   'delve',
