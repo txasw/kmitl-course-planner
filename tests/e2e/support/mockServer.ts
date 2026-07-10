@@ -116,6 +116,13 @@ export async function startMockServer(): Promise<MockServer> {
             );
             return;
           }
+          // Two courses on different days, so both add without a time conflict, whose
+          // midterm windows overlap. Served for a reserved id so only the exam overlap
+          // spec sees them.
+          if (url.searchParams.get('selected_subject_id') === '90000010') {
+            sendJson('synthetic.exam-overlap.json');
+            return;
+          }
           sendJson('teach-table.by_subject_owner_id-32.capture.json');
           return;
         }
