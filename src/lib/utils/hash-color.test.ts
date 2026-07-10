@@ -1,34 +1,16 @@
 import { describe, it, expect } from 'vitest';
+import {
+  contrastRatio,
+  hexToRgb,
+  linearizeChannel,
+} from '../../../tests/support/contrast';
 import { EVENT_PALETTE, hashColor } from './hash-color';
 
 type Rgb = [number, number, number];
 
 const KMITL_ORANGE = '#e35205';
+const WHITE = '#ffffff';
 const HEX_PATTERN = /^#[0-9a-fA-F]{6}$/;
-
-function hexToRgb(hex: string): Rgb {
-  const value = hex.replace('#', '');
-  return [
-    Number.parseInt(value.slice(0, 2), 16),
-    Number.parseInt(value.slice(2, 4), 16),
-    Number.parseInt(value.slice(4, 6), 16),
-  ];
-}
-
-/** Linearize an sRGB channel per the WCAG relative luminance definition. */
-function linear(channel: number): number {
-  const s = channel / 255;
-  return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-}
-
-function relativeLuminance([r, g, b]: Rgb): number {
-  return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
-}
-
-/** Contrast ratio of a color against white text, per WCAG 2.1. */
-function contrastVsWhite(hex: string): number {
-  return 1.05 / (relativeLuminance(hexToRgb(hex)) + 0.05);
-}
 
 function labFold(t: number): number {
   return t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
@@ -37,9 +19,9 @@ function labFold(t: number): number {
 /** Convert a hex color to CIELAB under the D65 reference white. */
 function toLab(hex: string): Rgb {
   const [r, g, b] = hexToRgb(hex);
-  const rl = linear(r);
-  const gl = linear(g);
-  const bl = linear(b);
+  const rl = linearizeChannel(r);
+  const gl = linearizeChannel(g);
+  const bl = linearizeChannel(b);
   const x = (rl * 0.4124 + gl * 0.3576 + bl * 0.1805) / 0.95047;
   const y = rl * 0.2126 + gl * 0.7152 + bl * 0.0722;
   const z = (rl * 0.0193 + gl * 0.1192 + bl * 0.9505) / 1.08883;
@@ -73,7 +55,7 @@ describe('EVENT_PALETTE', () => {
 
   it('meets WCAG AA contrast against white text for every color', () => {
     for (const color of EVENT_PALETTE) {
-      expect(contrastVsWhite(color)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(color, WHITE)).toBeGreaterThanOrEqual(4.5);
     }
   });
 
