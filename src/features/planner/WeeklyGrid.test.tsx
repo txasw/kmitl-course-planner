@@ -90,6 +90,49 @@ describe('WeeklyGrid', () => {
     expect(screen.getByLabelText(/90592033/).style.gridRow).toBe('6');
   });
 
+  it('emits blocks in day then time order regardless of input order', () => {
+    const later = makePlaced({
+      teachTableId: 'later',
+      subjectId: '90000002',
+      meetings: [
+        {
+          day: 3,
+          startMin: 600,
+          endMin: 720,
+          room: 'B',
+          building: 'B',
+          kind: 'lecture',
+        },
+      ],
+    });
+    const earlier = makePlaced({
+      teachTableId: 'earlier',
+      subjectId: '90000001',
+      meetings: [
+        {
+          day: 1,
+          startMin: 540,
+          endMin: 660,
+          room: 'A',
+          building: 'A',
+          kind: 'lecture',
+        },
+      ],
+    });
+    render(
+      <WeeklyGrid
+        sections={[later, earlier]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+      />,
+    );
+    const ids = Array.from(
+      document.querySelectorAll('[data-teach-table-id]'),
+    ).map((node) => node.getAttribute('data-teach-table-id'));
+    expect(ids).toEqual(['earlier', 'later']);
+  });
+
   it('labels the grid and the seven day rows', () => {
     render(
       <WeeklyGrid sections={[]} window={DEFAULT_WINDOW} locale="th" t={t} />,
