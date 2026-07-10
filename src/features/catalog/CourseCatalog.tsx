@@ -185,7 +185,7 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
           onClick={() => {
             handleSwitchTerm(browsedTerm);
           }}
-          className="rounded-kcp border border-primary bg-surface px-2 py-0.5 font-medium text-primary outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className="rounded-kcp border border-primary bg-surface px-2 py-0.5 font-medium text-primary-strong outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
           {t('term.switch')}
         </button>

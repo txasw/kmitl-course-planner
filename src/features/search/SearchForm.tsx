@@ -98,7 +98,7 @@ export function SearchForm() {
               }}
               className={`flex-1 rounded-[6px] px-2 py-1.5 text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none ${
                 selected
-                  ? 'bg-surface text-primary shadow-kcp'
+                  ? 'bg-surface text-primary-strong shadow-kcp'
                   : 'text-ink-soft hover:text-ink'
               }`}
             >
@@ -120,7 +120,7 @@ export function SearchForm() {
           <button
             type="button"
             onClick={reloadReference}
-            className="self-start rounded-kcp bg-primary px-3 py-1.5 text-xs font-medium text-surface hover:bg-primary-hover focus:ring-2 focus:ring-primary focus:outline-none"
+            className="self-start rounded-kcp bg-primary-strong px-3 py-1.5 text-xs font-medium text-surface hover:bg-primary-hover focus:ring-2 focus:ring-primary focus:outline-none"
           >
             {t('action.retry')}
           </button>
@@ -189,7 +189,7 @@ export function SearchForm() {
         onClick={() => {
           void submit();
         }}
-        className="rounded-kcp bg-primary px-4 py-2 text-sm font-medium text-surface hover:bg-primary-hover focus:ring-2 focus:ring-primary focus:outline-none disabled:opacity-50"
+        className="rounded-kcp bg-primary-strong px-4 py-2 text-sm font-medium text-surface hover:bg-primary-hover focus:ring-2 focus:ring-primary focus:outline-none disabled:opacity-50"
       >
         {t('search.submit')}
       </button>

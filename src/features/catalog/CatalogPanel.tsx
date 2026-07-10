@@ -122,7 +122,7 @@ export function CatalogPanel() {
             onClick={() => {
               void retry();
             }}
-            className="rounded-kcp bg-primary px-3 py-1.5 text-sm font-medium text-surface hover:bg-primary-hover focus:ring-2 focus:ring-primary focus:outline-none"
+            className="rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-medium text-surface hover:bg-primary-hover focus:ring-2 focus:ring-primary focus:outline-none"
           >
             {t('action.retry')}
           </button>
