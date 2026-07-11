@@ -27,6 +27,12 @@ export default defineConfig({
     browser_specific_settings: {
       gecko: {
         id: 'kmitl-course-planner@txasw.github.io',
+        // Firefox data collection consent. The extension collects no user data,
+        // so declare none. This also clears the addons-linter warning that the
+        // property is missing.
+        data_collection_permissions: {
+          required: ['none'],
+        },
       },
     },
     icons: {
