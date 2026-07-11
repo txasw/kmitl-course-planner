@@ -17,6 +17,12 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    # The changesets action commits the version bump itself. Disable the husky
+    # hooks for this job so the bot commit is not run through the local dev
+    # commit-msg and pre-commit hooks; the commit message is set conventional
+    # below regardless.
+    env:
+      HUSKY: '0'
     outputs:
       published: ${{ steps.changesets.outputs.published }}
     steps:
@@ -32,6 +38,8 @@ jobs:
         with:
           version: pnpm changeset version
           publish: pnpm changeset tag
+          commit: 'chore: release version packages'
+          title: 'chore: release version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # When a version was tagged, build and package both browsers and attach the
