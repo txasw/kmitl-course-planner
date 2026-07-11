@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Course Planner for KMITL">
+  <rect width="128" height="128" rx="28" fill="#E35205" />
+  <g fill="#FFFFFF">
+    <rect x="22" y="22" width="38" height="38" rx="6" />
+    <rect x="68" y="22" width="38" height="38" rx="6" />
+    <rect x="22" y="68" width="38" height="38" rx="6" />
+  </g>
+  <rect x="68" y="68" width="38" height="38" rx="6" fill="#B8400A" />
+</svg>
