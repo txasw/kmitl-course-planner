@@ -81,6 +81,12 @@ pnpm zip:chrome       # writes the chrome zip to .output
 PNGs, so the build does not run the icon rasterizer; regenerate them only after editing
 `assets/icon.svg`, with `pnpm icons`.
 
+On Windows, if `pnpm install` fails with `ERR_PACKAGE_IMPORT_NOT_DEFINED` for a
+`#module-sync-enabled` specifier, it is a known interaction between pnpm's symlinked
+`node_modules` and the Node module resolver on Windows. Add a `.npmrc` with
+`node-linker=hoisted` and install again. Linux, the continuous integration build, and the
+Firefox Add-ons review are unaffected, since they resolve the symlinked layout correctly.
+
 ## Common tasks
 
 ```
