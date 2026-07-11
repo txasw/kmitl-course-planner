@@ -38,7 +38,7 @@ describe('App', () => {
     );
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     fireEvent.click(
-      screen.getByRole('button', { name: 'เปิด KMITL Course Planner' }),
+      screen.getByRole('button', { name: 'เปิด Course Planner for KMITL' }),
     );
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
@@ -52,7 +52,7 @@ describe('App', () => {
       />,
     );
     const launcher = screen.getByRole('button', {
-      name: 'เปิด KMITL Course Planner',
+      name: 'เปิด Course Planner for KMITL',
     });
     act(() => {
       uiStore.getState().open();

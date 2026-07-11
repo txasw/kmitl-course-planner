@@ -21,7 +21,7 @@ describe('Launcher', () => {
   it('renders an accessible launcher button in the default locale', () => {
     render(<Launcher />);
     const button = screen.getByRole('button', {
-      name: 'เปิด KMITL Course Planner',
+      name: 'เปิด Course Planner for KMITL',
     });
     expect(button).toBeInTheDocument();
     expect(button).toHaveTextContent('Planner');
@@ -30,7 +30,7 @@ describe('Launcher', () => {
   it('opens the overlay when activated', () => {
     render(<Launcher />);
     fireEvent.click(
-      screen.getByRole('button', { name: 'เปิด KMITL Course Planner' }),
+      screen.getByRole('button', { name: 'เปิด Course Planner for KMITL' }),
     );
     expect(uiStore.getState().isOpen).toBe(true);
   });
@@ -41,7 +41,7 @@ describe('Launcher', () => {
     });
     render(<Launcher />);
     expect(
-      screen.getByRole('button', { name: 'Open KMITL Course Planner' }),
+      screen.getByRole('button', { name: 'Open Course Planner for KMITL' }),
     ).toBeInTheDocument();
   });
 });

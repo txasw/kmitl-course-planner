@@ -14,10 +14,10 @@ describe('i18n dictionaries', () => {
 
   it('resolves a key in each locale', () => {
     expect(createTranslator('th')('launcher.open')).toBe(
-      'เปิด KMITL Course Planner',
+      'เปิด Course Planner for KMITL',
     );
     expect(createTranslator('en')('launcher.open')).toBe(
-      'Open KMITL Course Planner',
+      'Open Course Planner for KMITL',
     );
   });
 });

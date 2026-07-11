@@ -7,7 +7,7 @@ import type { Page } from '@playwright/test';
 // switch, and a revalidation reconciles a section whose time moved upstream. These run
 // against the synthetic by subject id catalog so the sections are known and stable.
 
-const LAUNCHER = 'เปิด KMITL Course Planner';
+const LAUNCHER = 'เปิด Course Planner for KMITL';
 
 /** Run the by subject id search after setting the term, since the term test needs a
  * specific semester rather than the form default. */

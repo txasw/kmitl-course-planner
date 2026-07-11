@@ -75,7 +75,9 @@ export async function gotoSelector(context: BrowserContext): Promise<Page> {
 /** Open the planner overlay from the launcher and return the page. */
 export async function openPlanner(context: BrowserContext): Promise<Page> {
   const page = await gotoSelector(context);
-  await page.getByRole('button', { name: 'เปิด KMITL Course Planner' }).click();
+  await page
+    .getByRole('button', { name: 'เปิด Course Planner for KMITL' })
+    .click();
   return page;
 }
 

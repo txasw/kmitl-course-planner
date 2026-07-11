@@ -24,7 +24,7 @@ test.describe('chrome production manifest', () => {
     };
 
     expect(manifest.manifest_version).toBe(3);
-    expect(manifest.name).toBe('KMITL Course Planner');
+    expect(manifest.name).toBe('Course Planner for KMITL');
     expect(manifest.permissions).toEqual(['storage']);
     expect(manifest.host_permissions).toEqual([
       'https://regis.reg.kmitl.ac.th/*',

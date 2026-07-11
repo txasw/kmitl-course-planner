@@ -15,13 +15,17 @@ describe('useTranslation', () => {
   it('translates in the active locale and reacts to a change', () => {
     const { result } = renderHook(() => useTranslation());
     expect(result.current.language).toBe('th');
-    expect(result.current.t('launcher.open')).toBe('เปิด KMITL Course Planner');
+    expect(result.current.t('launcher.open')).toBe(
+      'เปิด Course Planner for KMITL',
+    );
 
     act(() => {
       uiStore.getState().setLanguage('en');
     });
 
     expect(result.current.language).toBe('en');
-    expect(result.current.t('launcher.open')).toBe('Open KMITL Course Planner');
+    expect(result.current.t('launcher.open')).toBe(
+      'Open Course Planner for KMITL',
+    );
   });
 });
