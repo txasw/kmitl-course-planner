@@ -28,7 +28,7 @@ test('the panel error boundary shows a recovery card and recovers', async ({
   // the way back to the host is always one action away.
   await expect(page.getByRole('button', { name: 'ปิด' })).toBeVisible();
   await expect(
-    page.locator('button[aria-label="เปิด KMITL Course Planner"]'),
+    page.locator('button[aria-label="เปิด Course Planner for KMITL"]'),
   ).toBeAttached();
 
   // Reloading the panel clears the error and rebuilds the body, so the search tabs

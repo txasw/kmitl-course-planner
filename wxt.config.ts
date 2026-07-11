@@ -1,7 +1,7 @@
 import { defineConfig } from 'wxt';
 import tailwindcss from '@tailwindcss/vite';
 
-const PRODUCT_NAME = 'KMITL Course Planner';
+const PRODUCT_NAME = 'Course Planner for KMITL';
 
 // See https://wxt.dev/api/config. The manifest is a function so the debug build
 // flavor can carry a distinct name, and so network egress stays limited to the

@@ -102,7 +102,7 @@ describe('formatPlanText', () => {
         '',
         "Mon 09:00-11:00 90592008 TODAY'S THAI SOCIETY",
         '',
-        'KMITL Course Planner',
+        'Course Planner for KMITL',
       ].join('\n'),
     );
   });
