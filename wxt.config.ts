@@ -37,6 +37,22 @@ export default defineConfig({
       128: '/icon/128.png',
     },
   }),
+  // The Firefox sources zip that AMO requires is produced by `wxt zip -b firefox`.
+  // WXT already drops hidden paths and node_modules from the sources by default;
+  // these globs also keep non hidden private working material out of the sources
+  // zip by construction, so a leak cannot depend on remembering to delete a file.
+  zip: {
+    excludeSources: [
+      '**/CLAUDE.md',
+      '.claude/**',
+      '**/.claude/**',
+      'temp/**',
+      '**/temp/**',
+      '.git/**',
+      '**/.env*',
+      '**/*.local',
+    ],
+  },
   vite: (env) => ({
     plugins: [tailwindcss()],
     define: {
