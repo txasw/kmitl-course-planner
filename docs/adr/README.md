@@ -38,3 +38,4 @@ a new record that supersedes the old one rather than editing history.
 29. [Accessible primary text shade](0029-accessible-primary-text-shade.md)
 30. [Firefox end to end parity](0030-firefox-e2e-parity.md)
 31. [Retire the by_class all faculty and all department options](0031-by-class-all-options-retirement.md)
+32. [Public release identity: name, independence, and mark](0032-public-release-identity.md)
