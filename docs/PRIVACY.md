@@ -1,9 +1,13 @@
 # Privacy
 
-KMITL Course Planner keeps all data inside your browser. It has no backend, sends
+Course Planner for KMITL keeps all data inside your browser. It has no backend, sends
 no analytics or telemetry of any kind, and loads no remote scripts or fonts at
 runtime. Course data is read from the public KMITL endpoints that the
 registration site itself calls, and it is used only to render your planner.
+
+Course Planner for KMITL (KCP) is an independent student project. It is not
+affiliated with, sponsored by, or endorsed by King Mongkut's Institute of
+Technology Ladkrabang (KMITL).
 
 ## Data storage
 

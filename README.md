@@ -1,4 +1,4 @@
-# KMITL Course Planner
+# Course Planner for KMITL
 
 A cross browser extension that turns the KMITL registration course search into
 an interactive weekly timetable planner. It reads the same public course data
@@ -8,6 +8,11 @@ grid with conflict detection, saved plans, and image export.
 
 The extension is read only with respect to the host site. It never touches
 authentication, never submits forms, and never performs registration actions.
+
+Course Planner for KMITL (KCP) is an independent tool built by a student. It is
+not affiliated with, sponsored by, endorsed by, or officially connected to King
+Mongkut's Institute of Technology Ladkrabang (KMITL). It reads only the public
+course data the registration site already exposes.
 
 ## Status
 
