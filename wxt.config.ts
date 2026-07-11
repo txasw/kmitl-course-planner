@@ -45,8 +45,9 @@ export default defineConfig({
   }),
   // The Firefox sources zip that AMO requires is produced by `wxt zip -b firefox`.
   // WXT already drops hidden paths and node_modules from the sources by default;
-  // these globs also keep non hidden private working material out of the sources
-  // zip by construction, so a leak cannot depend on remembering to delete a file.
+  // these globs also keep non hidden private working material and gitignored build
+  // and test output out of the sources zip by construction, so a leak or a bloated
+  // package cannot depend on remembering to delete a file or on a clean tree.
   zip: {
     excludeSources: [
       '**/CLAUDE.md',
@@ -57,6 +58,12 @@ export default defineConfig({
       '.git/**',
       '**/.env*',
       '**/*.local',
+      'coverage/**',
+      'test-results/**',
+      'playwright-report/**',
+      'dist/**',
+      'web-ext-artifacts/**',
+      'stats.html',
     ],
   },
   vite: (env) => ({
