@@ -34,6 +34,34 @@ jobs:
           publish: pnpm changeset tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # When a version was tagged, build and package both browsers and attach the
+      # Chrome zip, the Firefox zip, and the Firefox sources zip to the release the
+      # changesets action created for the tag. The tag is pushed with GITHUB_TOKEN,
+      # so a separate tag triggered workflow would never fire; doing it here avoids
+      # that and keeps the artifacts on the same run that produced the tag.
+      - name: Build and package release artifacts
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          pnpm wxt zip -b chrome
+          pnpm wxt zip -b firefox
+      - name: Attach artifacts to the GitHub Release
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          files=(
+            ".output/kmitl-course-planner-${version}-chrome.zip"
+            ".output/kmitl-course-planner-${version}-firefox.zip"
+            ".output/kmitl-course-planner-${version}-sources.zip"
+          )
+          if gh release view "v${version}" >/dev/null 2>&1; then
+            gh release upload "v${version}" "${files[@]}" --clobber
+          else
+            gh release create "v${version}" "${files[@]}" \
+              --title "v${version}" \
+              --notes "See CHANGELOG.md for the release notes."
+          fi
 
   # Store publish jobs stay gated behind GitHub Environments with required
   # reviewers. They run only after a release is tagged and a reviewer approves,
@@ -53,6 +81,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm wxt zip -b chrome
       - run: pnpm wxt submit --chrome-zip .output/*-chrome.zip
         env:
           CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
@@ -74,6 +103,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm wxt zip -b firefox
       - run: pnpm wxt submit --firefox-zip .output/*-firefox.zip --firefox-sources-zip .output/*-sources.zip
         env:
           FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
