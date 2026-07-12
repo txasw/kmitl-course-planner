@@ -6,6 +6,7 @@
 
 import { FULL_MARKER } from '../domain/schemas';
 import { isUnscheduledRow } from '../parsing/days';
+import { TEACH_TIME_STR_PATTERN } from '../parsing/teachTimeStr';
 import {
   SECTION_ROW_EXPECTATIONS,
   SECTION_ROW_FIELDS,
@@ -174,7 +175,7 @@ function checkField(
   if (expectation.pattern !== undefined && !expectation.pattern.test(value)) {
     return issue(
       'format_violation',
-      'error',
+      expectation.severity ?? 'error',
       path,
       expectation.description,
       clampReceived(value),
@@ -244,6 +245,7 @@ function buildReport(
   issues: ContractIssue[],
   deduped: number,
   unscheduled: number,
+  extraMeetings: number,
   context: AuditContext,
 ): DataQualityReport {
   const byKind = emptyByKind();
@@ -260,6 +262,7 @@ function buildReport(
       deduped,
       issues: issues.length,
       unscheduled,
+      extraMeetings,
       byKind,
     },
     aggregates: buildAggregates(issues),
@@ -288,6 +291,24 @@ function countUnscheduled(rows: Record<string, unknown>[]): number {
       typeof row.teach_time === 'string' &&
       typeof row.teach_time2 === 'string' &&
       isUnscheduledRow(row.teach_day, row.teach_time, row.teach_time2)
+    ) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
+/** Count rows carrying at least one parseable teachtime_str extra meeting segment.
+ * These extra meetings were silently dropped before the field was parsed, so the
+ * count makes the multi meeting sections visible in the report. */
+function countExtraMeetings(rows: Record<string, unknown>[]): number {
+  let count = 0;
+  for (const row of rows) {
+    const value = row.teachtime_str;
+    if (
+      typeof value === 'string' &&
+      value !== '' &&
+      TEACH_TIME_STR_PATTERN.test(value)
     ) {
       count += 1;
     }
@@ -332,6 +353,7 @@ export function auditTeachTable(
     issues,
     uniqueTeachTableIds(rows),
     countUnscheduled(rows),
+    countExtraMeetings(rows),
     context,
   );
 }
@@ -353,6 +375,7 @@ export function auditReference(
       }
     }
   });
-  // Reference rows have no schedule, so the unscheduled count is zero for them.
-  return buildReport(rows, issues, rows.length, 0, context);
+  // Reference rows have no schedule, so the unscheduled and extra meeting counts are
+  // zero for them.
+  return buildReport(rows, issues, rows.length, 0, 0, context);
 }

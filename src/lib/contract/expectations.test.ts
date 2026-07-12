@@ -25,6 +25,16 @@ describe('expectation table', () => {
     expect(SECTION_ROW_FIELDS.has('teach_time2')).toBe(true);
     expect(SECTION_ROW_FIELDS.has('count')).toBe(true);
   });
+
+  it('audits teachtime_str against the machine grammar at warn severity', () => {
+    const expectation = SECTION_ROW_EXPECTATIONS.find(
+      (candidate) => candidate.field === 'teachtime_str',
+    );
+    expect(expectation?.severity).toBe('warn');
+    expect(expectation?.pattern?.test('')).toBe(true);
+    expect(expectation?.pattern?.test('5x10:30-12:00')).toBe(true);
+    expect(expectation?.pattern?.test('จ. 09:00-12:00')).toBe(false);
+  });
 });
 
 describe('end_after_start rule', () => {
