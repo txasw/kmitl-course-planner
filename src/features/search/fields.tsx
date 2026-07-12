@@ -4,8 +4,9 @@
 // the store patch. The selects are searchable comboboxes, since faculty and
 // curriculum lists are long.
 
-import { useId } from 'react';
+import { useId, useRef } from 'react';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { sanitizeSubjectId } from '@/lib/search/formState';
 import { Combobox } from './Combobox';
 import type { Translate } from '@/lib/i18n/t';
 import type { Locale } from '@/lib/i18n/t';
@@ -61,6 +62,10 @@ export function SubjectIdInput({
   onChange,
 }: SubjectIdInputProps) {
   const hintId = useId();
+  // Keep an in flight IME composition intact by passing it through unsanitized, then
+  // sanitize once it commits. A numeric field rarely sees composition, but a Thai IME
+  // over the field must not be mangled mid stroke.
+  const composing = useRef(false);
   return (
     <div className="flex flex-col gap-1 text-sm">
       <label className="flex flex-col gap-1">
@@ -73,7 +78,15 @@ export function SubjectIdInput({
           aria-invalid={invalid}
           aria-describedby={hintId}
           onChange={(event) => {
-            onChange(event.target.value);
+            const raw = event.target.value;
+            onChange(composing.current ? raw : sanitizeSubjectId(raw));
+          }}
+          onCompositionStart={() => {
+            composing.current = true;
+          }}
+          onCompositionEnd={(event) => {
+            composing.current = false;
+            onChange(sanitizeSubjectId(event.currentTarget.value));
           }}
           className={`rounded-kcp border border-border bg-surface px-2 py-1.5 text-ink ${FOCUS_RING}`}
         />

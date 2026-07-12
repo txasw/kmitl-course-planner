@@ -5,6 +5,7 @@ import {
   fireEvent,
   cleanup,
   waitFor,
+  act,
 } from '@testing-library/react';
 import { loadFixture } from '../../../tests/support/fixtures';
 import { normalizeTeachTable } from '@/lib/domain/normalize';
@@ -148,11 +149,15 @@ describe('SearchForm', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows a validation message for an invalid subject id', () => {
+  it('shows a validation message for an invalid persisted subject id', () => {
     renderSearch(deps());
     fireEvent.click(screen.getByRole('button', { name: 'รหัสวิชา' }));
-    const input = screen.getByRole('textbox', { name: 'รหัสวิชา' });
-    fireEvent.change(input, { target: { value: 'abc' } });
+    // Typing can no longer produce an invalid value, since the input sanitizes to
+    // digits, so the safety net message is exercised through a persisted out of range
+    // value that bypasses the input.
+    act(() => {
+      searchStore.getState().patchSubjectIdForm({ subjectId: '123456789' });
+    });
     expect(
       screen.getByText('กรอกรหัสวิชาเป็นตัวเลข 1 ถึง 8 หลัก'),
     ).toBeInTheDocument();

@@ -15,6 +15,7 @@ import {
   isClassFormReady,
   isSubjectIdFormReady,
   isValidSubjectId,
+  sanitizeSubjectId,
 } from './formState';
 
 const term: Term = { year: '2569', semester: '1' };
@@ -29,6 +30,24 @@ describe('isValidSubjectId', () => {
     expect(isValidSubjectId('')).toBe(false);
     expect(isValidSubjectId('123456789')).toBe(false);
     expect(isValidSubjectId('12a')).toBe(false);
+  });
+});
+
+describe('sanitizeSubjectId', () => {
+  it('strips non digits from mixed input', () => {
+    expect(sanitizeSubjectId('12313213123asdasd')).toBe('12313213');
+  });
+
+  it('clamps to eight digits', () => {
+    expect(sanitizeSubjectId('123456789')).toBe('12345678');
+  });
+
+  it('preserves leading zeros', () => {
+    expect(sanitizeSubjectId('01234567')).toBe('01234567');
+  });
+
+  it('returns empty for all letters', () => {
+    expect(sanitizeSubjectId('abcdef')).toBe('');
   });
 });
 

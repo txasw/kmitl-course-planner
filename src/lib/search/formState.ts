@@ -87,6 +87,12 @@ export function isValidSubjectId(value: string): boolean {
   return /^\d{1,8}$/.test(value);
 }
 
+/** Normalize raw subject id input: keep digits only and clamp to the 8 digit course code
+ * prefix. Leading zeros survive because the field stays a text input. */
+export function sanitizeSubjectId(value: string): string {
+  return value.replace(/\D/g, '').slice(0, 8);
+}
+
 /** Narrow an arbitrary string to a semester, or null when it is not one. */
 export function asSemester(value: string): Semester | null {
   return SEMESTERS.find((semester) => semester === value) ?? null;
