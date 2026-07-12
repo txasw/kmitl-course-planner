@@ -114,6 +114,39 @@ describe('PlanSwitcher', () => {
     expect(plans[0]?.semester).toBe('2');
   });
 
+  it('makes the plan actions icon only while import and export keep text', () => {
+    act(() => {
+      planStore.getState().hydrate([
+        makePlan({
+          id: 'a',
+          name: 'A',
+          year: '2569',
+          semester: '1',
+          entries: [],
+        }),
+      ]);
+      planStore.getState().setActivePlan('a');
+    });
+    render(<PlanSwitcher />);
+    openMenu();
+    // The action buttons keep their accessible name from aria-label but drop the
+    // visible text, so an icon only button renders no label text.
+    expect(screen.getByRole('button', { name: 'สร้างตาราง' }).textContent).toBe(
+      '',
+    );
+    expect(
+      screen.getByRole('button', { name: 'เปลี่ยนชื่อ' }).textContent,
+    ).toBe('');
+    // Import and export keep their visible text because file actions read better
+    // with words.
+    expect(
+      screen.getByRole('button', { name: 'นำเข้า JSON' }),
+    ).toHaveTextContent('นำเข้า JSON');
+    expect(
+      screen.getByRole('button', { name: 'ส่งออก JSON' }),
+    ).toHaveTextContent('ส่งออก JSON');
+  });
+
   it('renames the active plan', () => {
     act(() => {
       planStore.getState().hydrate([
