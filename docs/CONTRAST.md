@@ -53,6 +53,7 @@ background it appears on, including the danger soft notice.
 | Foreground     | Background     | Ratio | Bar |
 | -------------- | -------------- | ----- | --- |
 | ink            | surface        | 17.40 | 4.5 |
+| ink            | primary-soft   | 15.36 | 4.5 |
 | ink-soft       | surface        | 6.69  | 4.5 |
 | ink-soft       | surface-alt    | 6.25  | 4.5 |
 | danger         | surface        | 5.62  | 4.5 |
