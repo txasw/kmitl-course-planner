@@ -1,9 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { makeSection } from '../../../tests/support/domain-builders';
 import {
-  addedExamWarnings,
   examWindowsOverlap,
-  planExamWarnings,
+  planExamConflicts,
   sectionExamOverlaps,
 } from './examOverlap';
 
@@ -96,7 +95,7 @@ describe('sectionExamOverlaps', () => {
   });
 });
 
-describe('planExamWarnings', () => {
+describe('planExamConflicts', () => {
   it('reports an exam overlap on both sections', () => {
     const a = makeSection({
       teachTableId: 'a',
@@ -108,7 +107,7 @@ describe('planExamWarnings', () => {
       subjectId: 'S2',
       exam: { midterm: MID_A_OVERLAP },
     });
-    const map = planExamWarnings([a, b]);
+    const map = planExamConflicts([a, b]);
     expect(map.get('a')?.[0]?.blocking.teachTableId).toBe('b');
     expect(map.get('b')?.[0]?.blocking.teachTableId).toBe('a');
   });
@@ -128,7 +127,7 @@ describe('planExamWarnings', () => {
       pairedSection: '901',
       exam: { midterm: MID_A },
     });
-    expect(planExamWarnings([lecture, practice]).size).toBe(0);
+    expect(planExamConflicts([lecture, practice]).size).toBe(0);
   });
 
   it('is empty when no exams overlap', () => {
@@ -137,78 +136,12 @@ describe('planExamWarnings', () => {
       teachTableId: 'b',
       exam: { midterm: MID_A_DISJOINT },
     });
-    expect(planExamWarnings([a, b]).size).toBe(0);
+    expect(planExamConflicts([a, b]).size).toBe(0);
   });
 
   it('is empty when sections carry no exam datetimes', () => {
     const a = makeSection({ teachTableId: 'a' });
     const b = makeSection({ teachTableId: 'b', subjectId: 'S2' });
-    expect(planExamWarnings([a, b]).size).toBe(0);
-  });
-});
-
-describe('addedExamWarnings', () => {
-  it('reports an added section overlapping a placed one', () => {
-    const placed = makeSection({
-      teachTableId: 'p',
-      subjectId: 'S1',
-      exam: { midterm: MID_A },
-    });
-    const added = makeSection({
-      teachTableId: 'n',
-      subjectId: 'S2',
-      exam: { midterm: MID_A_OVERLAP },
-    });
-    const overlaps = addedExamWarnings([placed, added], [added]);
-    expect(overlaps).toHaveLength(1);
-    expect(overlaps[0]?.blocking.teachTableId).toBe('p');
-  });
-
-  it('does not warn a pair against itself when both halves are added', () => {
-    const lecture = makeSection({
-      teachTableId: 'L',
-      subjectId: 'S1',
-      section: '901',
-      pairedSection: '902',
-      exam: { midterm: MID_A },
-    });
-    const practice = makeSection({
-      teachTableId: 'P',
-      subjectId: 'S1',
-      section: '902',
-      pairedSection: '901',
-      exam: { midterm: MID_A },
-    });
-    expect(
-      addedExamWarnings([lecture, practice], [lecture, practice]),
-    ).toHaveLength(0);
-  });
-
-  it('counts a pair sharing an exam against one blocker as a single clash', () => {
-    const placed = makeSection({
-      teachTableId: 'p',
-      subjectId: 'S1',
-      exam: { midterm: MID_A },
-    });
-    const lecture = makeSection({
-      teachTableId: 'L',
-      subjectId: 'S2',
-      section: '901',
-      pairedSection: '902',
-      exam: { midterm: MID_A_OVERLAP },
-    });
-    const practice = makeSection({
-      teachTableId: 'P',
-      subjectId: 'S2',
-      section: '902',
-      pairedSection: '901',
-      exam: { midterm: MID_A_OVERLAP },
-    });
-    const overlaps = addedExamWarnings(
-      [placed, lecture, practice],
-      [lecture, practice],
-    );
-    expect(overlaps).toHaveLength(1);
-    expect(overlaps[0]?.blocking.teachTableId).toBe('p');
+    expect(planExamConflicts([a, b]).size).toBe(0);
   });
 });

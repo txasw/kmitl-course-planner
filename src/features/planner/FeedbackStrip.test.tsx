@@ -97,7 +97,6 @@ afterEach(() => {
       active: null,
       blocked: null,
       crossTerm: null,
-      examWarning: null,
       announcement: null,
       hint: null,
     });
@@ -316,75 +315,6 @@ describe('FeedbackStrip', () => {
     });
     render(<FeedbackStrip locale="th" t={t} />);
     expect(screen.getByText('เพิ่มลงตารางแล้ว 90592008')).toBeInTheDocument();
-  });
-
-  it('states an exam overlap warning after a successful add', () => {
-    act(() => {
-      dragStore.setState({
-        examWarning: {
-          subjectId: '90000002',
-          overlaps: [
-            {
-              blocking: {
-                teachTableId: 'x',
-                subjectId: '90000001',
-                section: '900',
-              },
-              kind: 'midterm',
-              self: {
-                start: '2026-08-21 09:00:00',
-                end: '2026-08-21 12:00:00',
-              },
-              other: {
-                start: '2026-08-21 11:00:00',
-                end: '2026-08-21 13:00:00',
-              },
-            },
-          ],
-        },
-      });
-    });
-    render(<FeedbackStrip locale="th" t={t} />);
-    expect(screen.getByText(/เวลาสอบชนกับ 90000001/)).toBeInTheDocument();
-    expect(screen.getByText(/สอบกลางภาค/)).toBeInTheDocument();
-  });
-
-  it('clears the exam overlap warning after six seconds', () => {
-    vi.useFakeTimers();
-    try {
-      act(() => {
-        dragStore.setState({
-          examWarning: {
-            subjectId: '90000002',
-            overlaps: [
-              {
-                blocking: {
-                  teachTableId: 'x',
-                  subjectId: '90000001',
-                  section: '900',
-                },
-                kind: 'final',
-                self: {
-                  start: '2026-10-30 09:00:00',
-                  end: '2026-10-30 12:00:00',
-                },
-                other: {
-                  start: '2026-10-30 10:00:00',
-                  end: '2026-10-30 13:00:00',
-                },
-              },
-            ],
-          },
-        });
-      });
-      render(<FeedbackStrip locale="th" t={t} />);
-      act(() => {
-        vi.advanceTimersByTime(6_000);
-      });
-      expect(dragStore.getState().examWarning).toBeNull();
-    } finally {
-      vi.useRealTimers();
-    }
   });
 
   it('shows a course drop hint', () => {

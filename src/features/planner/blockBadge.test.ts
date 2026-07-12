@@ -14,12 +14,12 @@ describe('blockBadge', () => {
     expect(blockBadge('changed', false)).toBe('warn');
   });
 
-  it('is warn for an exam overlapping section', () => {
-    expect(blockBadge('verified', false, true)).toBe('warn');
+  it('is danger for an exam conflicting section', () => {
+    expect(blockBadge('verified', false, true)).toBe('danger');
   });
 
-  it('lets danger win over an exam warn on the same block', () => {
-    expect(blockBadge('verified', true, true)).toBe('danger');
+  it('lets an exam conflict win danger over a mere change', () => {
+    expect(blockBadge('changed', false, true)).toBe('danger');
   });
 
   it('is null for a verified section with no state', () => {
@@ -40,10 +40,10 @@ describe('blockBadgeLabelKeys', () => {
     expect(blockBadgeLabelKeys('verified', true)).toEqual(['verify.conflict']);
   });
 
-  it('labels an exam overlap distinct from a change and lists both', () => {
+  it('labels an exam overlap in the danger group, before a change, and lists both', () => {
     expect(blockBadgeLabelKeys('changed', false, true)).toEqual([
-      'verify.changed',
       'verify.examOverlap',
+      'verify.changed',
     ]);
   });
 

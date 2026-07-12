@@ -28,8 +28,9 @@ interface EventBlockProps {
   dimmed?: boolean;
   /** Whether a revalidation time change put this block into a new conflict. */
   conflicted?: boolean;
-  /** Whether this block's exam window overlaps another entry's, a warning not a block. */
-  examWarned?: boolean;
+  /** Whether this block's exam window overlaps another placed entry's, a discovered
+   * conflict that reads danger. */
+  examConflicted?: boolean;
   /** The draggable node ref, present only for an edit mode drag source. */
   dragRef?: (element: HTMLElement | null) => void;
   /** The pointer drag listeners, present only for an edit mode drag source. */
@@ -60,7 +61,7 @@ function EventBlockComponent({
   pulsing = false,
   dimmed = false,
   conflicted = false,
-  examWarned = false,
+  examConflicted = false,
   dragRef,
   dragListeners,
   onRemove,
@@ -77,11 +78,11 @@ function EventBlockComponent({
   const englishSecondary =
     showEnglishName && locale === 'th' && section.nameEn !== '';
   const time = `${formatMinutes(meeting.startMin)}-${formatMinutes(meeting.endMin)}`;
-  const badge = blockBadge(section.verifyStatus, conflicted, examWarned);
+  const badge = blockBadge(section.verifyStatus, conflicted, examConflicted);
   const badgeText = blockBadgeLabelKeys(
     section.verifyStatus,
     conflicted,
-    examWarned,
+    examConflicted,
   )
     .map((key) => t(key))
     .join(' ');
@@ -190,6 +191,6 @@ function EventBlockComponent({
 // re-renders the blocks whose own props changed. The grid stabilizes every prop it
 // passes: the style object is built inside the memoized block list, the remove
 // handler is one id taking callback, and the drag ref and listeners come from the
-// draggable wrapper. The pulsing, dimmed, conflicted, and exam warned flags are the
+// draggable wrapper. The pulsing, dimmed, conflicted, and exam conflicted flags are the
 // only props that vary mid drag, so only the affected blocks re-render.
 export const EventBlock = memo(EventBlockComponent);

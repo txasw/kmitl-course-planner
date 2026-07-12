@@ -1,8 +1,7 @@
-// The exam overlap wording, kept in one place so the feedback strip and the block
-// popover phrase an exam clash the same way, the way conflictText serves the time
-// conflict. It is a warning, so its sentence names the clashing subject, section, and
-// exam kind, distinct from a blocking time conflict; formatExamRange renders the two
-// windows the popover shows.
+// The exam date range wording, kept in one place so the blocked reason and the block
+// popover render an exam window the same way. The year is the Buddhist year the app shows
+// in both locales, converted from the stored Gregorian year without a naive Date, and the
+// month name is localized through t.
 
 import type { DateRange } from '@/lib/domain/types';
 import type { Translate } from '@/lib/i18n/t';
@@ -12,22 +11,6 @@ import {
   type ExamDateParts,
 } from '@/lib/parsing/examDateTime';
 import { monthKey } from '@/lib/i18n/monthLabel';
-import type { ExamWarningFeedback } from './dragStore';
-
-/** The strip sentence for an exam overlap surfaced after a successful add: the first
- * clashing subject, section, and exam kind, with a count suffix when more follow. */
-export function examOverlapText(
-  feedback: ExamWarningFeedback,
-  t: Translate,
-): string {
-  const first = feedback.overlaps[0];
-  if (first === undefined) {
-    return t('verify.examOverlap');
-  }
-  const more = feedback.overlaps.length - 1;
-  const suffix = more > 0 ? ` (+${String(more)})` : '';
-  return `${t('feedback.examOverlap')} ${first.blocking.subjectId} ${t('section.code')} ${first.blocking.section} ${t(`exam.${first.kind}`)}${suffix}`;
-}
 
 const pad = (value: number): string => String(value).padStart(2, '0');
 

@@ -22,7 +22,6 @@ import {
   courseCandidates,
   type Candidate,
 } from '@/lib/planner/courseCandidates';
-import type { ExamOverlap } from '@/lib/planner/examOverlap';
 
 /** The durable identity a candidate exclude set keys on. */
 function identity(section: Section): string {
@@ -56,13 +55,6 @@ export interface BlockedFeedback {
 export interface CrossTermFeedback {
   planTerm: Term;
   browsedTerm: Term;
-}
-
-/** A successful add whose exam window overlaps an existing entry. The add is never
- * blocked; the strip states the warning briefly and the block carries the warn badge. */
-export interface ExamWarningFeedback {
-  subjectId: string;
-  overlaps: ExamOverlap[];
 }
 
 export interface BlockMoveDrag {
@@ -99,8 +91,6 @@ export interface DragStore {
   blocked: BlockedFeedback | null;
   /** A cross term add rejected by the domain guard, or null. */
   crossTerm: CrossTermFeedback | null;
-  /** An exam overlap surfaced after a successful add, held briefly in the strip. */
-  examWarning: ExamWarningFeedback | null;
   /** The section whose cells are previewed at low emphasis, or null. */
   hover: Section | null;
   /** A resolved message for the strip's live region after a keyboard outcome. */
@@ -129,10 +119,6 @@ export interface DragStore {
   /** Surface a cross term rejection in the strip, naming both terms. */
   showCrossTerm: (feedback: CrossTermFeedback) => void;
   clearCrossTerm: () => void;
-  /** Surface an exam overlap warning after a successful add. It supersedes a blocked or
-   * cross term notice, since the add went through. */
-  showExamWarning: (feedback: ExamWarningFeedback) => void;
-  clearExamWarning: () => void;
   setHover: (section: Section) => void;
   clearHover: () => void;
   announce: (message: string) => void;
@@ -159,7 +145,6 @@ export function createDragStore() {
     active: null,
     blocked: null,
     crossTerm: null,
-    examWarning: null,
     hover: null,
     announcement: null,
     courseDrag: null,
@@ -185,7 +170,6 @@ export function createDragStore() {
         blockMove: null,
         blocked: null,
         crossTerm: null,
-        examWarning: null,
         hover: null,
         raised: null,
         hint: null,
@@ -201,7 +185,6 @@ export function createDragStore() {
           active: null,
           swapContext: null,
           crossTerm: null,
-          examWarning: null,
           blocked: {
             course: active.course,
             section: active.section,
@@ -217,7 +200,6 @@ export function createDragStore() {
         active: null,
         blocked: feedback,
         crossTerm: null,
-        examWarning: null,
         announcement: null,
         swapContext: null,
       });
@@ -230,28 +212,12 @@ export function createDragStore() {
         active: null,
         blocked: null,
         crossTerm: feedback,
-        examWarning: null,
         announcement: null,
         swapContext: null,
       });
     },
     clearCrossTerm: () => {
       set({ crossTerm: null });
-    },
-    showExamWarning: (feedback) => {
-      // The add already went through, so this supersedes any blocked or cross term
-      // notice; the block itself now carries the persistent warn badge.
-      set({
-        active: null,
-        blocked: null,
-        crossTerm: null,
-        examWarning: feedback,
-        announcement: null,
-        swapContext: null,
-      });
-    },
-    clearExamWarning: () => {
-      set({ examWarning: null });
     },
     setHover: (section) => {
       set({ hover: section });
@@ -272,7 +238,6 @@ export function createDragStore() {
         blockMove: null,
         blocked: null,
         crossTerm: null,
-        examWarning: null,
         hover: null,
         raised: null,
         hint: null,
@@ -302,7 +267,6 @@ export function createDragStore() {
         courseDrag: null,
         blocked: null,
         crossTerm: null,
-        examWarning: null,
         hover: null,
         raised: null,
         hint: null,

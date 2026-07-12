@@ -1,26 +1,27 @@
-// The verification badge a placed block or a shelf row carries. A missing section or
-// one a time change put into conflict reads danger with a hatched fill; a section whose
-// data changed, or whose exam overlaps another entry, reads warn. A block can carry more
-// than one state at once, so the tone folds to the strongest, danger over warn, while the
-// labels list every state that applies so none is lost to a screen reader. A verified,
-// unverified, or clean section carries no badge.
+// The verification badge a placed block or a shelf row carries. A missing section, one a
+// time change put into conflict, or one whose exam overlaps another entry reads danger with
+// a hatched fill, since an exam clash is a hard constraint; a section whose data merely
+// changed reads warn. A block can carry more than one state at once, so the tone folds to
+// the strongest, danger over warn, while the labels list every state that applies so none
+// is lost to a screen reader and an exam overlap reads distinct from a revalidation change.
+// A verified, unverified, or clean section carries no badge.
 
 import type { VerifyStatus } from '@/lib/domain/plan';
 import type { TranslationKey } from '@/lib/i18n/t';
 
 export type BlockBadge = 'warn' | 'danger';
 
-/** The badge tone that drives the block fill: danger for a missing or conflicting
- * section, warn for a changed or exam overlapping one, null when clean. */
+/** The badge tone that drives the block fill: danger for a missing, time conflicting, or
+ * exam conflicting section, warn for a changed one, null when clean. */
 export function blockBadge(
   verifyStatus: VerifyStatus,
   conflicted: boolean,
-  examWarned = false,
+  examConflicted = false,
 ): BlockBadge | null {
-  if (verifyStatus === 'missing' || conflicted) {
+  if (verifyStatus === 'missing' || conflicted || examConflicted) {
     return 'danger';
   }
-  if (verifyStatus === 'changed' || examWarned) {
+  if (verifyStatus === 'changed') {
     return 'warn';
   }
   return null;
@@ -32,7 +33,7 @@ export function blockBadge(
 export function blockBadgeLabelKeys(
   verifyStatus: VerifyStatus,
   conflicted: boolean,
-  examWarned = false,
+  examConflicted = false,
 ): TranslationKey[] {
   const keys: TranslationKey[] = [];
   if (verifyStatus === 'missing') {
@@ -41,11 +42,11 @@ export function blockBadgeLabelKeys(
   if (conflicted) {
     keys.push('verify.conflict');
   }
+  if (examConflicted) {
+    keys.push('verify.examOverlap');
+  }
   if (verifyStatus === 'changed') {
     keys.push('verify.changed');
-  }
-  if (examWarned) {
-    keys.push('verify.examOverlap');
   }
   return keys;
 }

@@ -13,7 +13,7 @@ import {
   visibleDays,
 } from '@/lib/planner/grid';
 import { planConflicts } from '@/lib/planner/planConflicts';
-import { planExamWarnings } from '@/lib/planner/examOverlap';
+import { planExamConflicts } from '@/lib/planner/examOverlap';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
@@ -59,18 +59,19 @@ export function PlannerPanel() {
     [entries],
   );
   // Exam window overlaps keyed by teachTableId, derived from the same entries so a
-  // revalidation exam change re-evaluates the warnings the way a time change re-lights
-  // the conflicts. The full map feeds the block popover; its keys drive the warn badge.
-  const examWarnings = useMemo(
+  // revalidation exam change re-evaluates the conflicts the way a time change re-lights
+  // the time conflicts. The full map feeds the block popover; its keys drive the danger
+  // badge, since an exam overlap discovered among placed entries is a hard conflict.
+  const examConflicts = useMemo(
     () =>
-      planExamWarnings(
+      planExamConflicts(
         entries.map((entry) => snapshotToSection(entry.snapshot)),
       ),
     [entries],
   );
-  const examWarnIds = useMemo(
-    () => new Set(examWarnings.keys()),
-    [examWarnings],
+  const examConflictIds = useMemo(
+    () => new Set(examConflicts.keys()),
+    [examConflicts],
   );
   const scheduled = useMemo(() => sections.filter(isScheduled), [sections]);
   const unscheduled = useMemo(
@@ -219,7 +220,7 @@ export function PlannerPanel() {
             editable={viewMode === 'edit'}
             onRemove={handleRemove}
             conflictIds={conflictIds}
-            examWarnIds={examWarnIds}
+            examConflictIds={examConflictIds}
             onOpenDetail={openDetail}
             onContextMenu={openContextMenu}
             {...(fitActive ? { days: fitDays } : {})}
@@ -246,7 +247,7 @@ export function PlannerPanel() {
             locale={language}
             t={t}
             onRemove={viewMode === 'edit' ? handleRemove : undefined}
-            examWarnIds={examWarnIds}
+            examConflictIds={examConflictIds}
             {...(isPreview
               ? {
                   showSection: displayOptions.showSection,
@@ -265,7 +266,7 @@ export function PlannerPanel() {
           t={t}
           onClose={closeDetail}
           onRemove={handleRemove}
-          examOverlaps={examWarnings.get(detail.teachTableId) ?? []}
+          examOverlaps={examConflicts.get(detail.teachTableId) ?? []}
         />
       ) : null}
       {viewMode === 'edit' && contextMenu !== null ? (

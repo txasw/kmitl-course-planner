@@ -1,12 +1,13 @@
-// Exam window overlaps between placed sections. This is a warning, never a block: an
-// add whose exam clashes still succeeds. Two sections' exams collide only when both
-// carry a well formed window of the same kind and the datetime ranges intersect, a
-// midterm against a midterm and a final against a final, never a midterm against a
-// final. The datetimes are the API's fixed width "YYYY-MM-DD HH:MM:SS" strings, so a
-// lexicographic compare is chronological and no date parser is needed; a malformed or
-// absent window is treated as no window, so a warning is never invented from a datetime
-// that cannot be ordered. Declared lecture and practice pairs share a subject's exam, so
-// a pair never warns against itself.
+// Exam window overlaps between sections. An exam overlap is a hard block, enforced at add
+// time by checkPlacement; this module provides the overlap primitives it reuses and derives
+// the exam conflicts already present among a plan's placed entries, which arise only through
+// revalidation or import and read danger like a time conflict. Two sections' exams collide
+// only when both carry a well formed window of the same kind and the datetime ranges
+// intersect, a midterm against a midterm and a final against a final, never a midterm against
+// a final. The datetimes are the API's fixed width "YYYY-MM-DD HH:MM:SS" strings ordered by a
+// lexicographic compare; a malformed or absent window is treated as no window, so a conflict
+// is never invented from a datetime that cannot be ordered. Declared lecture and practice
+// pairs share a subject's exam, so a pair never collides with itself.
 
 import type { DateRange, Section } from '../domain/types';
 import { isExamDateTime } from '../parsing/examDateTime';
@@ -82,16 +83,16 @@ export function sectionExamOverlaps(
 
 /** The exam overlaps each placed section has, keyed by teachTableId; a section with no
  * exam clash is absent. Declared pairs are skipped so a subject never clashes with its
- * own pair. Mirrors planConflicts so the grid derives an exam warning badge the same way
- * it derives a time conflict badge. */
-export function planExamWarnings(
+ * own pair. Mirrors planConflicts so the grid derives the exam conflict badge the same way
+ * it derives a time conflict badge; both read danger. */
+export function planExamConflicts(
   sections: Section[],
 ): Map<string, ExamOverlap[]> {
-  const warnings = new Map<string, ExamOverlap[]>();
+  const conflicts = new Map<string, ExamOverlap[]>();
   const add = (id: string, overlap: ExamOverlap): void => {
-    const list = warnings.get(id);
+    const list = conflicts.get(id);
     if (list === undefined) {
-      warnings.set(id, [overlap]);
+      conflicts.set(id, [overlap]);
     } else {
       list.push(overlap);
     }
@@ -111,40 +112,5 @@ export function planExamWarnings(
       }
     }
   }
-  return warnings;
-}
-
-/** The exam overlaps a newly added group has against the sections already placed. The
- * group's own members and any declared pair are excluded, so a lecture and practice pair
- * sharing an exam never warns against itself. Used once at commit time to state the
- * warning in the feedback strip. */
-export function addedExamWarnings(
-  placed: Section[],
-  added: Section[],
-): ExamOverlap[] {
-  const addedIds = new Set(added.map((section) => section.teachTableId));
-  const others = placed.filter(
-    (section) => !addedIds.has(section.teachTableId),
-  );
-  const overlaps: ExamOverlap[] = [];
-  // A lecture and practice pair share the subject's exam, so both halves clash with the
-  // same blocker on the same kind. Count that as one clash so the strip's "+N" suffix is
-  // honest, keyed by the blocking section and exam kind.
-  const seen = new Set<string>();
-  for (const incoming of added) {
-    for (const existing of others) {
-      if (areDeclaredPair(existing, incoming)) {
-        continue;
-      }
-      for (const overlap of sectionExamOverlaps(existing, incoming)) {
-        const key = `${overlap.blocking.teachTableId}:${overlap.kind}`;
-        if (seen.has(key)) {
-          continue;
-        }
-        seen.add(key);
-        overlaps.push(overlap);
-      }
-    }
-  }
-  return overlaps;
+  return conflicts;
 }

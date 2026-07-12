@@ -21,7 +21,7 @@ interface DraggableBlockProps {
   pulsing?: boolean;
   dimmed?: boolean;
   conflicted?: boolean;
-  examWarned?: boolean;
+  examConflicted?: boolean;
   onRemove: (teachTableId: string) => void;
   removeLabel: string;
   onOpenDetail?: (anchor: HTMLElement) => void;

@@ -74,8 +74,8 @@ interface WeeklyGridProps {
   onRemove?: (teachTableId: string) => void;
   /** teachTableIds a revalidation time change put into a new conflict. */
   conflictIds?: Set<string>;
-  /** teachTableIds whose exam window overlaps another entry's, a warning not a block. */
-  examWarnIds?: Set<string>;
+  /** teachTableIds whose exam window overlaps another placed entry's, reading danger. */
+  examConflictIds?: Set<string>;
   /** Open the block detail popover anchored to a block, edit mode only. */
   onOpenDetail?: (anchor: HTMLElement) => void;
   /** Open the block context menu at the pointer on a right click, edit mode only. */
@@ -95,7 +95,7 @@ export function WeeklyGrid({
   editable = false,
   onRemove,
   conflictIds,
-  examWarnIds,
+  examConflictIds,
   onOpenDetail,
   onContextMenu,
   days = WEEK_DAYS,
@@ -229,7 +229,7 @@ export function WeeklyGrid({
           pulsing: blockingIds.has(section.teachTableId),
           dimmed: movingIds.has(section.teachTableId),
           conflicted: conflictIds?.has(section.teachTableId) ?? false,
-          examWarned: examWarnIds?.has(section.teachTableId) ?? false,
+          examConflicted: examConflictIds?.has(section.teachTableId) ?? false,
           ...(editable && onOpenDetail !== undefined ? { onOpenDetail } : {}),
           ...(editable && onContextMenu !== undefined ? { onContextMenu } : {}),
         };
