@@ -178,10 +178,12 @@ export function BlockDetailPopover({
               className="flex flex-col text-ink-soft"
             >
               <span>{t(`exam.${overlap.kind}`)}</span>
-              <span className="text-ink">{formatExamRange(overlap.self)}</span>
+              <span className="text-ink">
+                {formatExamRange(overlap.self, t)}
+              </span>
               <span>
                 {overlap.blocking.subjectId} {t('section.code')}{' '}
-                {overlap.blocking.section}: {formatExamRange(overlap.other)}
+                {overlap.blocking.section}: {formatExamRange(overlap.other, t)}
               </span>
             </div>
           ))}

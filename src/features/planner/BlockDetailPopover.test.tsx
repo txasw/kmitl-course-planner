@@ -159,9 +159,9 @@ describe('BlockDetailPopover', () => {
     });
     expect(screen.getByText('Exam overlap')).toBeInTheDocument();
     expect(screen.getByText('Midterm')).toBeInTheDocument();
-    expect(screen.getByText('2026-08-21 09:00-12:00')).toBeInTheDocument();
+    expect(screen.getByText('21 Aug 2569 09:00-12:00')).toBeInTheDocument();
     expect(
-      screen.getByText(/90000009 Section 5: 2026-08-21 11:00-13:00/),
+      screen.getByText(/90000009 Section 5: 21 Aug 2569 11:00-13:00/),
     ).toBeInTheDocument();
   });
 

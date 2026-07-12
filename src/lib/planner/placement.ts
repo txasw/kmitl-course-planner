@@ -5,8 +5,13 @@
 // and minute range so the grid can highlight exact cells.
 
 import type { DayOfWeek } from '../parsing/days';
-import type { Course, Section } from '../domain/types';
-import { isDuplicateSubject, sectionTimeOverlaps } from './conflicts';
+import type { Course, DateRange, Section } from '../domain/types';
+import {
+  areDeclaredPair,
+  isDuplicateSubject,
+  sectionTimeOverlaps,
+} from './conflicts';
+import { sectionExamOverlaps, type ExamKind } from './examOverlap';
 
 /** Identity of a section involved in a conflict. */
 export interface EntryRef {
@@ -23,7 +28,14 @@ export type ConflictDetail =
       startMin: number;
       endMin: number;
     }
-  | { kind: 'duplicate'; blocking: EntryRef; subjectId: string };
+  | { kind: 'duplicate'; blocking: EntryRef; subjectId: string }
+  | {
+      kind: 'exam';
+      blocking: EntryRef;
+      examKind: ExamKind;
+      self: DateRange;
+      other: DateRange;
+    };
 
 export type PlacementResult =
   { ok: true } | { ok: false; conflicts: ConflictDetail[] };
@@ -54,8 +66,12 @@ export function expandSectionGroup(
 
 /**
  * Validate an atomic section group against the placed sections. The group is
- * accepted only when no member duplicates an existing subject and no member
- * collides in time with an existing section or with another group member.
+ * accepted only when no member duplicates an existing subject, no member collides
+ * in time with an existing section or another group member, and no member's exam
+ * window collides with an existing section's exam of the same kind. Exam overlap is
+ * a hard block, the same class as a time conflict, because a real exam clash cannot
+ * be sat. Group members are a declared lecture and practice pair sharing one exam,
+ * so no exam check runs between them; a pair never blocks itself.
  */
 export function checkPlacement(
   placed: Section[],
@@ -76,6 +92,17 @@ export function checkPlacement(
       }
       for (const overlap of sectionTimeOverlaps(existing, incoming)) {
         conflicts.push({ kind: 'time', blocking: toRef(existing), ...overlap });
+      }
+      if (!areDeclaredPair(existing, incoming)) {
+        for (const overlap of sectionExamOverlaps(existing, incoming)) {
+          conflicts.push({
+            kind: 'exam',
+            blocking: overlap.blocking,
+            examKind: overlap.kind,
+            self: overlap.self,
+            other: overlap.other,
+          });
+        }
       }
     }
   }

@@ -20,6 +20,8 @@ describe('describeConflicts', () => {
       day: 1,
       startMin: 540,
       endMin: 600,
+      examKind: null,
+      examWindow: null,
       moreCount: 0,
     });
   });
@@ -32,6 +34,24 @@ describe('describeConflicts', () => {
     expect(description?.kind).toBe('duplicate');
     expect(description?.day).toBeNull();
     expect(description?.startMin).toBeNull();
+  });
+
+  it('describes an exam conflict with its kind and the added window', () => {
+    const window = { start: '2026-08-21 09:00:00', end: '2026-08-21 12:00:00' };
+    const conflicts: ConflictDetail[] = [
+      {
+        kind: 'exam',
+        blocking,
+        examKind: 'midterm',
+        self: window,
+        other: { start: '2026-08-21 11:00:00', end: '2026-08-21 13:00:00' },
+      },
+    ];
+    const description = describeConflicts(conflicts);
+    expect(description?.kind).toBe('exam');
+    expect(description?.examKind).toBe('midterm');
+    expect(description?.examWindow).toEqual(window);
+    expect(description?.day).toBeNull();
   });
 
   it('counts the conflicts beyond the first', () => {

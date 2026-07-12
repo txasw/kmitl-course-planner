@@ -5,16 +5,22 @@
 // the raw conflict shape.
 
 import type { DayOfWeek } from '../parsing/days';
+import type { DateRange } from '../domain/types';
 import type { ConflictDetail } from './placement';
+import type { ExamKind } from './examOverlap';
 
 export interface ConflictDescription {
-  kind: 'time' | 'duplicate';
+  kind: 'time' | 'duplicate' | 'exam';
   subjectId: string;
   section: string;
-  /** The clashing day for a time conflict, or null for a duplicate. */
+  /** The clashing day for a time conflict, or null otherwise. */
   day: DayOfWeek | null;
   startMin: number | null;
   endMin: number | null;
+  /** The exam kind and the added section's window for an exam conflict, null otherwise, so
+   * the reason can name the exam type and its date range. */
+  examKind: ExamKind | null;
+  examWindow: DateRange | null;
   /** Conflicts beyond the first, for the count suffix. */
   moreCount: number;
 }
@@ -28,24 +34,32 @@ export function describeConflicts(
     return null;
   }
   const moreCount = Math.max(0, conflicts.length - 1);
-  if (first.kind === 'time') {
-    return {
-      kind: 'time',
-      subjectId: first.blocking.subjectId,
-      section: first.blocking.section,
-      day: first.day,
-      startMin: first.startMin,
-      endMin: first.endMin,
-      moreCount,
-    };
-  }
-  return {
-    kind: 'duplicate',
+  const base = {
     subjectId: first.blocking.subjectId,
     section: first.blocking.section,
     day: null,
     startMin: null,
     endMin: null,
+    examKind: null,
+    examWindow: null,
     moreCount,
   };
+  if (first.kind === 'time') {
+    return {
+      ...base,
+      kind: 'time',
+      day: first.day,
+      startMin: first.startMin,
+      endMin: first.endMin,
+    };
+  }
+  if (first.kind === 'exam') {
+    return {
+      ...base,
+      kind: 'exam',
+      examKind: first.examKind,
+      examWindow: first.self,
+    };
+  }
+  return { ...base, kind: 'duplicate' };
 }
