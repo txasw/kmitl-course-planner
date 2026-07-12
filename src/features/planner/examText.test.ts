@@ -33,25 +33,37 @@ describe('examOverlapText', () => {
 });
 
 describe('formatExamRange', () => {
-  it('collapses a same day window and drops seconds', () => {
+  const th = createTranslator('th');
+
+  it('collapses a same day window, drops seconds, and shows the Buddhist year', () => {
+    // 2026 CE plus 543 is 2569 BE, the year the app displays in both locales.
     expect(
-      formatExamRange({
-        start: '2026-08-21 09:00:00',
-        end: '2026-08-21 12:00:00',
-      }),
-    ).toBe('2026-08-21 09:00-12:00');
+      formatExamRange(
+        { start: '2026-08-21 09:00:00', end: '2026-08-21 12:00:00' },
+        t,
+      ),
+    ).toBe('21 Aug 2569 09:00-12:00');
+  });
+
+  it('localizes the month name while keeping the Buddhist year in both locales', () => {
+    expect(
+      formatExamRange(
+        { start: '2026-08-21 09:00:00', end: '2026-08-21 12:00:00' },
+        th,
+      ),
+    ).toBe('21 ส.ค. 2569 09:00-12:00');
   });
 
   it('shows both datetimes when the window spans days', () => {
     expect(
-      formatExamRange({
-        start: '2026-08-21 09:00:00',
-        end: '2026-08-22 12:00:00',
-      }),
-    ).toBe('2026-08-21 09:00 2026-08-22 12:00');
+      formatExamRange(
+        { start: '2026-08-21 09:00:00', end: '2026-08-22 12:00:00' },
+        t,
+      ),
+    ).toBe('21 Aug 2569 09:00 22 Aug 2569 12:00');
   });
 
   it('falls back to the raw strings for a malformed value', () => {
-    expect(formatExamRange({ start: 'x', end: 'y' })).toBe('x y');
+    expect(formatExamRange({ start: 'x', end: 'y' }, t)).toBe('x y');
   });
 });

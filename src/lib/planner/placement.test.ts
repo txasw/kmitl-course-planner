@@ -160,3 +160,142 @@ describe('checkPlacement', () => {
     expect(checkPlacement([section], [section])).toEqual({ ok: true });
   });
 });
+
+describe('checkPlacement exam gate', () => {
+  // Two sections on different days never collide in time, so any block here is the exam
+  // rule alone. Windows are the API's Gregorian "YYYY-MM-DD HH:MM:SS".
+  const placedMid = makeSection({
+    teachTableId: 'p',
+    subjectId: 'A',
+    section: '1',
+    meetings: [makeMeeting({ day: 1 })],
+    exam: {
+      midterm: { start: '2026-08-21 09:00:00', end: '2026-08-21 12:00:00' },
+    },
+  });
+  const incomingMid = makeSection({
+    teachTableId: 'i',
+    subjectId: 'B',
+    section: '2',
+    meetings: [makeMeeting({ day: 3 })],
+    exam: {
+      midterm: { start: '2026-08-21 11:00:00', end: '2026-08-21 13:00:00' },
+    },
+  });
+
+  it('blocks a midterm that overlaps a placed midterm on another day', () => {
+    const result = checkPlacement([placedMid], [incomingMid]);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.conflicts).toHaveLength(1);
+      const conflict = result.conflicts[0];
+      expect(conflict?.kind).toBe('exam');
+      if (conflict?.kind === 'exam') {
+        expect(conflict.examKind).toBe('midterm');
+        expect(conflict.blocking.subjectId).toBe('A');
+        expect(conflict.self).toEqual(incomingMid.exam.midterm);
+      }
+    }
+  });
+
+  it('blocks a final that overlaps a placed final', () => {
+    const placed = makeSection({
+      teachTableId: 'p',
+      subjectId: 'A',
+      section: '1',
+      meetings: [makeMeeting({ day: 1 })],
+      exam: {
+        final: { start: '2026-10-30 09:00:00', end: '2026-10-30 12:00:00' },
+      },
+    });
+    const incoming = makeSection({
+      teachTableId: 'i',
+      subjectId: 'B',
+      section: '2',
+      meetings: [makeMeeting({ day: 3 })],
+      exam: {
+        final: { start: '2026-10-30 10:00:00', end: '2026-10-30 11:00:00' },
+      },
+    });
+    const result = checkPlacement([placed], [incoming]);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.conflicts[0]?.kind).toBe('exam');
+    }
+  });
+
+  it('does not block a midterm against a final on the same datetime', () => {
+    const incoming = makeSection({
+      teachTableId: 'i',
+      subjectId: 'B',
+      section: '2',
+      meetings: [makeMeeting({ day: 3 })],
+      exam: {
+        final: { start: '2026-08-21 11:00:00', end: '2026-08-21 13:00:00' },
+      },
+    });
+    expect(checkPlacement([placedMid], [incoming])).toEqual({ ok: true });
+  });
+
+  it('treats a touching exam boundary as adjacency, not a clash', () => {
+    const incoming = makeSection({
+      teachTableId: 'i',
+      subjectId: 'B',
+      section: '2',
+      meetings: [makeMeeting({ day: 3 })],
+      exam: {
+        midterm: { start: '2026-08-21 12:00:00', end: '2026-08-21 14:00:00' },
+      },
+    });
+    expect(checkPlacement([placedMid], [incoming])).toEqual({ ok: true });
+  });
+
+  it('never blocks a declared pair against itself on a shared exam', () => {
+    const exam = {
+      midterm: { start: '2026-08-21 09:00:00', end: '2026-08-21 12:00:00' },
+    };
+    const lecture = makeSection({
+      teachTableId: 'l',
+      subjectId: 'A',
+      section: '1',
+      pairedSection: '2',
+      meetings: [makeMeeting({ day: 1 })],
+      exam,
+    });
+    const practice = makeSection({
+      teachTableId: 'pr',
+      subjectId: 'A',
+      section: '2',
+      pairedSection: '1',
+      meetings: [makeMeeting({ day: 2 })],
+      exam,
+    });
+    expect(checkPlacement([lecture], [practice])).toEqual({ ok: true });
+  });
+
+  it('gates an unscheduled section, since no meeting does not exempt its exam', () => {
+    const placed = makeSection({
+      teachTableId: 'p',
+      subjectId: 'A',
+      section: '1',
+      meetings: [],
+      exam: {
+        midterm: { start: '2026-08-21 09:00:00', end: '2026-08-21 12:00:00' },
+      },
+    });
+    const incoming = makeSection({
+      teachTableId: 'i',
+      subjectId: 'B',
+      section: '2',
+      meetings: [],
+      exam: {
+        midterm: { start: '2026-08-21 10:00:00', end: '2026-08-21 11:00:00' },
+      },
+    });
+    const result = checkPlacement([placed], [incoming]);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.conflicts[0]?.kind).toBe('exam');
+    }
+  });
+});
