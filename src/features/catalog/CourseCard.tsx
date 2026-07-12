@@ -2,9 +2,9 @@
 // as secondary text, the credit string, and one row per section. Each section's
 // seat status and plan relation are computed here from the placed sections.
 
-import { Fragment, memo } from 'react';
+import { Fragment, memo, useState, type ReactNode } from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { GripVertical } from 'lucide-react';
+import { ChevronDown, GripVertical } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import { termsEqual, type Term } from '@/lib/routing/academicTerms';
@@ -15,32 +15,36 @@ import {
 } from '@/lib/planner/sectionState';
 import { DraggableSection } from './DraggableSection';
 import { SectionRow } from './SectionRow';
+import { FOCUS_RING } from '@/lib/ui/focus';
 
-// The whole course is a pointer drag source through this grip. It previews every
-// section as a candidate slot on the grid. It carries no keyboard handler on
-// purpose: keyboard users add a specific section through the per section add
-// buttons, which reach the same sections, so this grip stays out of the tab order.
-function CourseDragHandle({
+// The whole card header is a pointer drag source. Grabbing it previews every section of
+// the course as a candidate slot on the grid. The grip rendered inside is the visual hint
+// only; the header carries no keyboard handler on purpose, because keyboard users add a
+// specific section through the per section add buttons, so it stays out of the tab order
+// (ADR-0024).
+function CourseDragHeader({
   course,
   label,
+  children,
 }: {
   course: Course;
   label: string;
+  children: ReactNode;
 }) {
   const { setNodeRef, listeners } = useDraggable({
     id: `course-${course.subjectId}`,
     data: { course },
   });
   return (
-    <div
+    <header
       ref={setNodeRef}
       {...listeners}
-      aria-hidden
       title={label}
-      className="flex shrink-0 cursor-grab touch-none items-center self-center rounded-kcp px-0.5 text-ink-soft hover:text-ink"
+      data-drag-surface="course"
+      className="flex touch-none cursor-grab items-baseline justify-between gap-2"
     >
-      <GripVertical size={14} strokeWidth={2} />
-    </div>
+      {children}
+    </header>
   );
 }
 
@@ -87,20 +91,18 @@ function CourseCardComponent({
   const fullName = hasSecondary
     ? `${course.subjectId} ${primary} ${secondary}`
     : `${course.subjectId} ${primary}`;
-  // A cross term course cannot be added, so its whole course drag grip is hidden;
-  // its rows carry the different term state and a switch action instead.
-  const crossTerm = isCrossTerm(term);
+  const [expanded, setExpanded] = useState(false);
+  const placedSection = placed.find((p) => p.subjectId === course.subjectId);
 
-  return (
-    <article className="rounded-kcp border border-border p-3">
-      <header className="flex items-baseline justify-between gap-2">
-        <div className="flex min-w-0 items-baseline gap-1">
-          {onAdd !== undefined && !crossTerm ? (
-            <CourseDragHandle
-              course={course}
-              label={`${t('action.dragCourse')} ${course.subjectId}`}
-            />
-          ) : null}
+  // Once any section of a subject is in the plan the card collapses to a dim summary,
+  // since a second section of the same subject cannot be added. It de-emphasizes with a
+  // muted surface and ink-soft meta rather than opacity, which would drop text below AA.
+  // It expands to its sections read only for reference; changing section happens by
+  // dragging the block on the grid.
+  if (placedSection !== undefined) {
+    return (
+      <article className="rounded-kcp border border-border bg-surface-alt p-3">
+        <header className="flex items-baseline justify-between gap-2">
           <div className="min-w-0 truncate" title={fullName}>
             <span className="font-semibold text-ink">{course.subjectId}</span>{' '}
             <span className="text-ink">{primary}</span>
@@ -108,11 +110,102 @@ function CourseCardComponent({
               <span className="ml-1 text-ink-soft">{secondary}</span>
             ) : null}
           </div>
+          <div className="flex shrink-0 items-center gap-1">
+            <span className="text-xs text-ink-soft">{course.creditStr}</span>
+            <button
+              type="button"
+              aria-expanded={expanded}
+              aria-label={
+                expanded ? t('catalog.card.collapse') : t('catalog.card.expand')
+              }
+              onClick={() => {
+                setExpanded((value) => !value);
+              }}
+              className={`rounded-kcp p-0.5 text-ink-soft hover:text-ink ${FOCUS_RING}`}
+            >
+              <ChevronDown
+                size={16}
+                aria-hidden
+                className={expanded ? 'rotate-180' : ''}
+              />
+            </button>
+            {onRemove !== undefined ? (
+              <button
+                type="button"
+                onClick={() => {
+                  onRemove(placedSection.teachTableId);
+                }}
+                className={`rounded-kcp border border-border px-2 py-0.5 text-xs font-medium text-ink-soft hover:bg-surface hover:text-ink ${FOCUS_RING}`}
+              >
+                {t('action.remove')}
+              </button>
+            ) : null}
+          </div>
+        </header>
+        {expanded ? (
+          <div className="mt-2 flex flex-col gap-1.5">
+            <p className="text-xs text-ink-soft">
+              {t('catalog.card.addedHint')}
+            </p>
+            {course.sections.map((section) => (
+              <SectionRow
+                key={section.teachTableId}
+                course={course}
+                section={section}
+                relation={computeSectionRelation(placed, course, section, term)}
+                seat={computeSeatStatus(section)}
+                locale={locale}
+                t={t}
+                readOnly
+              />
+            ))}
+          </div>
+        ) : null}
+      </article>
+    );
+  }
+
+  // A cross term course cannot be added, so its whole course drag header is inert; its
+  // rows carry the different term state and a switch action instead.
+  const crossTerm = isCrossTerm(term);
+  const draggable = onAdd !== undefined && !crossTerm;
+  const headerContent = (
+    <>
+      <div className="flex min-w-0 items-baseline gap-1">
+        {draggable ? (
+          <GripVertical
+            size={14}
+            strokeWidth={2}
+            aria-hidden
+            className="shrink-0 self-center text-ink-soft"
+          />
+        ) : null}
+        <div className="min-w-0 truncate" title={fullName}>
+          <span className="font-semibold text-ink">{course.subjectId}</span>{' '}
+          <span className="text-ink">{primary}</span>
+          {hasSecondary ? (
+            <span className="ml-1 text-ink-soft">{secondary}</span>
+          ) : null}
         </div>
-        <span className="shrink-0 text-xs text-ink-soft">
-          {course.creditStr}
-        </span>
-      </header>
+      </div>
+      <span className="shrink-0 text-xs text-ink-soft">{course.creditStr}</span>
+    </>
+  );
+
+  return (
+    <article className="rounded-kcp border border-border p-3">
+      {draggable ? (
+        <CourseDragHeader
+          course={course}
+          label={`${t('action.dragCourse')} ${course.subjectId}`}
+        >
+          {headerContent}
+        </CourseDragHeader>
+      ) : (
+        <header className="flex items-baseline justify-between gap-2">
+          {headerContent}
+        </header>
+      )}
       <div className="mt-2 flex flex-col gap-1.5">
         {course.sections.map((section) => {
           const relation = computeSectionRelation(
