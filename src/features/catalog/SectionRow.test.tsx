@@ -197,7 +197,7 @@ describe('SectionRow density and read only', () => {
     expect(screen.getByText('เงื่อนไขพิเศษ')).toBeInTheDocument();
   });
 
-  it('truncates the teachers to one line with the full list on the title', () => {
+  it('truncates the teachers to one line with the full list in a tooltip', async () => {
     const many = makeSection({
       teachTableId: 'm',
       teachersTh: ['อ. หนึ่ง', 'อ. สอง', 'อ. สาม'],
@@ -214,7 +214,10 @@ describe('SectionRow density and read only', () => {
     );
     const teachers = screen.getByText('อ. หนึ่ง, อ. สอง, อ. สาม');
     expect(teachers.className).toContain('truncate');
-    expect(teachers).toHaveAttribute('title', 'อ. หนึ่ง, อ. สอง, อ. สาม');
+    fireEvent.mouseEnter(teachers);
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      'อ. หนึ่ง, อ. สอง, อ. สาม',
+    );
   });
 
   it('read only hides the actions, the state badge, and the remark toggle', () => {

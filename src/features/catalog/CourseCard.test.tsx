@@ -144,7 +144,7 @@ describe('CourseCard collapsed added course', () => {
 });
 
 describe('CourseCard course drag handle', () => {
-  it('shows a course drag handle in edit mode', () => {
+  it('shows a course drag handle in edit mode with a hover hint', async () => {
     const course = makeCourse({ subjectId: '90592008' });
     render(
       <CourseCard
@@ -155,7 +155,12 @@ describe('CourseCard course drag handle', () => {
         onAdd={() => undefined}
       />,
     );
-    expect(screen.getByTitle(/ลากรายวิชา/)).toBeInTheDocument();
+    const surface = document.querySelector('[data-drag-surface="course"]');
+    if (surface === null) {
+      throw new Error('expected a course drag surface');
+    }
+    fireEvent.mouseEnter(surface);
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(/ลากรายวิชา/);
   });
 
   it('makes the whole header the course drag surface in edit mode', () => {
@@ -177,12 +182,12 @@ describe('CourseCard course drag handle', () => {
   it('omits the course drag handle without an add handler', () => {
     const course = makeCourse({ subjectId: '90592008' });
     render(<CourseCard course={course} placed={[]} locale="th" t={t} />);
-    expect(screen.queryByTitle(/ลากรายวิชา/)).not.toBeInTheDocument();
+    expect(document.querySelector('[data-drag-surface="course"]')).toBeNull();
   });
 });
 
 describe('CourseCard long name', () => {
-  it('carries the full name on a title so a truncated name stays readable', () => {
+  it('carries the full name in a tooltip so a truncated name stays readable', async () => {
     const longTh =
       'วิชาที่มีชื่อยาวมากเกินความกว้างของการ์ดรายวิชาจนต้องตัดข้อความ';
     const course = makeCourse({
@@ -191,10 +196,16 @@ describe('CourseCard long name', () => {
       nameEn: 'A course whose name is long enough to be clipped in the card',
     });
     render(<CourseCard course={course} placed={[]} locale="th" t={t} />);
-    const named = screen.getByTitle(/90000099/);
-    expect(named.title).toContain(longTh);
-    // The truncate utility is what keeps the long name from overflowing the card.
-    expect(named.className).toContain('truncate');
+    // Finding the ancestor by the truncate class also asserts the long name is
+    // clipped rather than overflowing the card.
+    const named = screen.getByText(longTh).closest('.truncate');
+    if (named === null) {
+      throw new Error('expected the truncated name element');
+    }
+    fireEvent.mouseEnter(named);
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip).toHaveTextContent('90000099');
+    expect(tooltip).toHaveTextContent(longTh);
   });
 });
 

@@ -2,7 +2,7 @@
 // as secondary text, the credit string, and one row per section. Each section's
 // seat status and plan relation are computed here from the placed sections.
 
-import { Fragment, memo, useState, type ReactNode } from 'react';
+import { Fragment, memo, useCallback, useState, type ReactNode } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { ChevronDown, GripVertical } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -16,6 +16,7 @@ import {
 import { DraggableSection } from './DraggableSection';
 import { SectionRow } from './SectionRow';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { Tooltip } from '@/components/Tooltip';
 
 // The whole card header is a pointer drag source. Grabbing it previews every section of
 // the course as a candidate slot on the grid. The grip rendered inside is the visual hint
@@ -36,10 +37,49 @@ function CourseDragHeader({
     data: { course },
   });
   return (
+    <Tooltip label={label}>
+      {(triggerProps, tooltipRef) => (
+        <DragCourseHeader
+          setNodeRef={setNodeRef}
+          tooltipRef={tooltipRef}
+          listeners={listeners}
+          triggerProps={triggerProps}
+        >
+          {children}
+        </DragCourseHeader>
+      )}
+    </Tooltip>
+  );
+}
+
+// A small element wrapper so the drag node ref and the tooltip reference ref merge
+// through one memoized callback, which the refs lint rule requires; merging them
+// inline would read the refs during render.
+function DragCourseHeader({
+  setNodeRef,
+  tooltipRef,
+  listeners,
+  triggerProps,
+  children,
+}: {
+  setNodeRef: (node: HTMLElement | null) => void;
+  tooltipRef: (node: Element | null) => void;
+  listeners: ReturnType<typeof useDraggable>['listeners'];
+  triggerProps: Record<string, unknown>;
+  children: ReactNode;
+}) {
+  const ref = useCallback(
+    (node: HTMLElement | null) => {
+      setNodeRef(node);
+      tooltipRef(node);
+    },
+    [setNodeRef, tooltipRef],
+  );
+  return (
     <header
-      ref={setNodeRef}
+      ref={ref}
       {...listeners}
-      title={label}
+      {...triggerProps}
       data-drag-surface="course"
       className="flex touch-none cursor-grab items-baseline justify-between gap-2"
     >
@@ -87,7 +127,7 @@ function CourseCardComponent({
   const secondary = locale === 'th' ? course.nameEn : course.nameTh;
   const hasSecondary = secondary !== '' && secondary !== primary;
   // A long Thai name has no word breaks, so the name line truncates rather than
-  // overflowing the card, and the full text rides on the title for a hover.
+  // overflowing the card, and the full text rides on a tooltip for a hover.
   const fullName = hasSecondary
     ? `${course.subjectId} ${primary} ${secondary}`
     : `${course.subjectId} ${primary}`;
@@ -103,13 +143,19 @@ function CourseCardComponent({
     return (
       <article className="rounded-kcp border border-border bg-surface-alt p-3">
         <header className="flex items-baseline justify-between gap-2">
-          <div className="min-w-0 truncate" title={fullName}>
-            <span className="font-semibold text-ink">{course.subjectId}</span>{' '}
-            <span className="text-ink">{primary}</span>
-            {hasSecondary ? (
-              <span className="ml-1 text-ink-soft">{secondary}</span>
-            ) : null}
-          </div>
+          <Tooltip label={fullName}>
+            {(triggerProps, ref) => (
+              <div ref={ref} {...triggerProps} className="min-w-0 truncate">
+                <span className="font-semibold text-ink">
+                  {course.subjectId}
+                </span>{' '}
+                <span className="text-ink">{primary}</span>
+                {hasSecondary ? (
+                  <span className="ml-1 text-ink-soft">{secondary}</span>
+                ) : null}
+              </div>
+            )}
+          </Tooltip>
           <div className="flex shrink-0 items-center gap-1">
             <span className="text-xs text-ink-soft">{course.creditStr}</span>
             <button
@@ -180,13 +226,17 @@ function CourseCardComponent({
             className="shrink-0 self-center text-ink-soft"
           />
         ) : null}
-        <div className="min-w-0 truncate" title={fullName}>
-          <span className="font-semibold text-ink">{course.subjectId}</span>{' '}
-          <span className="text-ink">{primary}</span>
-          {hasSecondary ? (
-            <span className="ml-1 text-ink-soft">{secondary}</span>
-          ) : null}
-        </div>
+        <Tooltip label={fullName}>
+          {(triggerProps, ref) => (
+            <div ref={ref} {...triggerProps} className="min-w-0 truncate">
+              <span className="font-semibold text-ink">{course.subjectId}</span>{' '}
+              <span className="text-ink">{primary}</span>
+              {hasSecondary ? (
+                <span className="ml-1 text-ink-soft">{secondary}</span>
+              ) : null}
+            </div>
+          )}
+        </Tooltip>
       </div>
       <span className="shrink-0 text-xs text-ink-soft">{course.creditStr}</span>
     </>
