@@ -178,6 +178,10 @@ To reproduce the lint: `pnpm build -b firefox` then
 Assets to capture on the live site at
 https://regis.reg.kmitl.ac.th/#/teach_table_selector before submission.
 
+Recapture all five screenshots after the v1.1 UX refinement train ships. The filter bar,
+the catalog cards, and the grid blocks changed in it, so screenshots 2 through 5 no longer
+match the shipped interface.
+
 - Store icon: 128 by 128 pixels. Reuse `public/icon/128.png`.
 - Screenshots: 1280 by 800 pixels, at least one and up to five. Full bleed, square
   corners, no padding.
