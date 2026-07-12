@@ -125,7 +125,7 @@ test('swaps via a course drag onto a blocking section', async ({ context }) => {
     .getByRole('article')
     .filter({ hasText: '90000002' })
     .first()
-    .locator('[title*="ลากรายวิชา"]')
+    .locator('[data-drag-surface="course"]')
     .first();
   const gripBox = await courseGrip.boundingBox();
   expect(gripBox).not.toBeNull();

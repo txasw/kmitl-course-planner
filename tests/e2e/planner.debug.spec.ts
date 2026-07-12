@@ -106,7 +106,7 @@ test('places a section by dragging the course onto a candidate slot', async ({
   const page = await openPlanner(context);
   await categorySearch(page);
 
-  const courseHandle = page.locator('[title*="ลากรายวิชา"]').first();
+  const courseHandle = page.locator('[data-drag-surface="course"]').first();
   const from = await courseHandle.boundingBox();
   if (from === null) {
     throw new Error('missing course handle');

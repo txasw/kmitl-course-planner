@@ -140,7 +140,7 @@ test('profiles the dense catalog render and a grid drag', async ({
     .getByRole('article')
     .filter({ hasText: FAT_COURSE_ID })
     .first()
-    .locator('[title*="ลากรายวิชา"]')
+    .locator('[data-drag-surface="course"]')
     .first();
   const gripBox = await grip.boundingBox();
   const fromBox = await page.locator(blockSel('700000')).boundingBox();

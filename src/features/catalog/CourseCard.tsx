@@ -2,7 +2,7 @@
 // as secondary text, the credit string, and one row per section. Each section's
 // seat status and plan relation are computed here from the placed sections.
 
-import { Fragment, memo, useCallback, useState, type ReactNode } from 'react';
+import { Fragment, memo, useState, type ReactNode } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { ChevronDown, GripVertical } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -36,50 +36,14 @@ function CourseDragHeader({
     id: `course-${course.subjectId}`,
     data: { course },
   });
-  return (
-    <Tooltip label={label}>
-      {(triggerProps, tooltipRef) => (
-        <DragCourseHeader
-          setNodeRef={setNodeRef}
-          tooltipRef={tooltipRef}
-          listeners={listeners}
-          triggerProps={triggerProps}
-        >
-          {children}
-        </DragCourseHeader>
-      )}
-    </Tooltip>
-  );
-}
-
-// A small element wrapper so the drag node ref and the tooltip reference ref merge
-// through one memoized callback, which the refs lint rule requires; merging them
-// inline would read the refs during render.
-function DragCourseHeader({
-  setNodeRef,
-  tooltipRef,
-  listeners,
-  triggerProps,
-  children,
-}: {
-  setNodeRef: (node: HTMLElement | null) => void;
-  tooltipRef: (node: Element | null) => void;
-  listeners: ReturnType<typeof useDraggable>['listeners'];
-  triggerProps: Record<string, unknown>;
-  children: ReactNode;
-}) {
-  const ref = useCallback(
-    (node: HTMLElement | null) => {
-      setNodeRef(node);
-      tooltipRef(node);
-    },
-    [setNodeRef, tooltipRef],
-  );
+  // The drag hint stays as the surface's accessible name, not a tooltip: a hover
+  // tooltip on a pointer drag surface interferes with the drag, and the grip icon
+  // with the grab cursor already signals that the card is draggable.
   return (
     <header
-      ref={ref}
+      ref={setNodeRef}
       {...listeners}
-      {...triggerProps}
+      aria-label={label}
       data-drag-surface="course"
       className="flex touch-none cursor-grab items-baseline justify-between gap-2"
     >
