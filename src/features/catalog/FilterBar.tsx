@@ -8,6 +8,7 @@ import { useTranslation } from '@/features/shell/useTranslation';
 import { catalogStore } from './catalogStore';
 import { dayLabelKey } from '@/lib/i18n/dayLabel';
 import { FOCUS_RING, FOCUS_OUTLINE } from '@/lib/ui/focus';
+import { Combobox, type ComboboxOption } from '@/features/search/Combobox';
 
 const DAYS: DayOfWeek[] = [0, 1, 2, 3, 4, 5, 6];
 
@@ -18,6 +19,14 @@ interface FilterBarProps {
 export function FilterBar({ creditOptions }: FilterBarProps) {
   const { t } = useTranslation();
   const filter = useStore(catalogStore, (state) => state.filter);
+
+  const creditComboOptions: ComboboxOption[] = [
+    { value: '', label: t('catalog.filter.creditAny') },
+    ...creditOptions.map((credit) => ({
+      value: String(credit),
+      label: String(credit),
+    })),
+  ];
 
   return (
     <div className="flex flex-col gap-2 rounded-kcp border border-border p-2">
@@ -58,26 +67,21 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
         })}
       </div>
       <div className="flex flex-wrap items-center gap-3 text-sm">
-        <label className="flex items-center gap-1">
-          <span className="text-ink-soft">{t('catalog.filter.credit')}</span>
-          <select
+        <div className="min-w-32">
+          <Combobox
+            label={t('catalog.filter.credit')}
             value={filter.credit === null ? '' : String(filter.credit)}
-            onChange={(event) => {
-              const value = event.target.value;
+            placeholder={t('catalog.filter.creditAny')}
+            disabled={false}
+            searchable={false}
+            options={creditComboOptions}
+            onChange={(value) => {
               catalogStore
                 .getState()
                 .setCredit(value === '' ? null : Number(value));
             }}
-            className={`rounded-kcp border border-border bg-surface px-1.5 py-1 text-ink ${FOCUS_RING}`}
-          >
-            <option value="">{t('catalog.filter.creditAny')}</option>
-            {creditOptions.map((credit) => (
-              <option key={credit} value={String(credit)}>
-                {credit}
-              </option>
-            ))}
-          </select>
-        </label>
+          />
+        </div>
         <label className="flex items-center gap-1">
           <input
             type="checkbox"
