@@ -4,6 +4,7 @@ import { createTranslator } from '@/lib/i18n/t';
 import { computeSeatStatus } from '@/lib/catalog/seatStatus';
 import {
   makeCourse,
+  makeMeeting,
   makeSection,
 } from '../../../tests/support/domain-builders';
 import { SectionRow } from './SectionRow';
@@ -140,6 +141,42 @@ describe('SectionRow actions', () => {
 });
 
 describe('SectionRow density and read only', () => {
+  it('lists every meeting of a multi meeting section', () => {
+    // A section can meet more than once, with the extra periods parsed from
+    // teachtime_str. The row lists each meeting, not just the first.
+    const multi = makeSection({
+      teachTableId: 'mm',
+      meetings: [
+        makeMeeting({
+          day: 4,
+          startMin: 525,
+          endMin: 615,
+          room: '',
+          building: '',
+        }),
+        makeMeeting({
+          day: 4,
+          startMin: 630,
+          endMin: 720,
+          room: '',
+          building: '',
+        }),
+      ],
+    });
+    render(
+      <SectionRow
+        course={course}
+        section={multi}
+        relation={{ kind: 'addable' }}
+        seat={computeSeatStatus(multi)}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.getByText(/08:45-10:15/)).toBeInTheDocument();
+    expect(screen.getByText(/10:30-12:00/)).toBeInTheDocument();
+  });
+
   it('reveals the remark behind the info affordance', () => {
     const withRemark = makeSection({
       teachTableId: 'r',
