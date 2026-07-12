@@ -147,7 +147,10 @@ export function TermFields({
         value={year}
         placeholder={t('search.selectPlaceholder')}
         disabled={false}
-        options={years.map((value) => ({ value, label: value }))}
+        // List the years newest first, the term a returning student most often
+        // wants. A copy is reversed so the ascending source array, which the term
+        // seed reads as newest last, is left untouched.
+        options={[...years].reverse().map((value) => ({ value, label: value }))}
         onChange={onYear}
       />
       <Combobox

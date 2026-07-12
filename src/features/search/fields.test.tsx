@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { SubjectIdInput } from './fields';
+import { createTranslator } from '@/lib/i18n/t';
+import { SubjectIdInput, TermFields } from './fields';
 
 afterEach(cleanup);
 
@@ -78,5 +79,27 @@ describe('SubjectIdInput', () => {
     const { onSubmit, input } = setup();
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('TermFields', () => {
+  const t = createTranslator('en');
+
+  it('lists academic years newest first', () => {
+    render(
+      <TermFields
+        year=""
+        semester="1"
+        years={['2560', '2561', '2562']}
+        t={t}
+        onYear={() => undefined}
+        onSemester={() => undefined}
+      />,
+    );
+    fireEvent.focus(screen.getByRole('combobox', { name: t('search.year') }));
+    const options = screen
+      .getAllByRole('option')
+      .map((option) => option.textContent);
+    expect(options).toEqual(['2562', '2561', '2560']);
   });
 });
