@@ -5,7 +5,7 @@
 // section with two meetings mounts two blocks, and drag ids must be unique; the shared
 // teachTableId travels in the drag data so a grab on either meeting moves the section.
 
-import type { CSSProperties } from 'react';
+import type { CSSProperties, MouseEvent } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import type { Meeting } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -25,6 +25,7 @@ interface DraggableBlockProps {
   onRemove: (teachTableId: string) => void;
   removeLabel: string;
   onOpenDetail?: (anchor: HTMLElement) => void;
+  onContextMenu?: (event: MouseEvent<HTMLElement>) => void;
 }
 
 export function DraggableBlock({

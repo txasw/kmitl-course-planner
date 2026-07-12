@@ -3,7 +3,7 @@
 // visible time window from the scheduled meetings so an early or late class widens
 // the grid. Unscheduled sections and the footer summary arrive with the shelf.
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { CalendarPlus } from 'lucide-react';
 import { useStore } from 'zustand';
 import { snapshotToSection } from '@/lib/domain/plan';
@@ -20,6 +20,7 @@ import { useTranslation } from '@/features/shell/useTranslation';
 import { isScheduled, toPlacedSection } from './placedSection';
 import { dragStore } from './dragStore';
 import { BlockDetailPopover } from './BlockDetailPopover';
+import { BlockContextMenu } from './BlockContextMenu';
 import { FeedbackStrip } from './FeedbackStrip';
 import { GridFooter } from './GridFooter';
 import { PosterHeader } from './PosterHeader';
@@ -137,6 +138,29 @@ export function PlannerPanel() {
   const closeDetail = useCallback(() => {
     setDetail(null);
   }, []);
+  const [contextMenu, setContextMenu] = useState<{
+    teachTableId: string;
+    anchor: HTMLElement;
+    x: number;
+    y: number;
+  } | null>(null);
+  const openContextMenu = useCallback((event: MouseEvent<HTMLElement>) => {
+    const anchor = event.currentTarget;
+    const teachTableId = anchor.dataset.teachTableId;
+    if (teachTableId !== undefined) {
+      // Replace the browser menu only on a block, and only in edit mode.
+      event.preventDefault();
+      setContextMenu({
+        teachTableId,
+        anchor,
+        x: event.clientX,
+        y: event.clientY,
+      });
+    }
+  }, []);
+  const closeContextMenu = useCallback(() => {
+    setContextMenu(null);
+  }, []);
   // The anchor is a live block node. Switching to preview recreates the blocks, so a
   // popover left open would point at a detached node on return to edit. Clear it as
   // the panel leaves edit mode, using the render time adjust on change pattern rather
@@ -146,6 +170,7 @@ export function PlannerPanel() {
     setLastMode(viewMode);
     if (viewMode !== 'edit') {
       setDetail(null);
+      setContextMenu(null);
     }
   }
   // The poster subtree the sharing actions capture. It holds the header, grid,
@@ -196,6 +221,7 @@ export function PlannerPanel() {
             conflictIds={conflictIds}
             examWarnIds={examWarnIds}
             onOpenDetail={openDetail}
+            onContextMenu={openContextMenu}
             {...(fitActive ? { days: fitDays } : {})}
             {...(isPreview ? { display: displayOptions } : {})}
           />
@@ -240,6 +266,23 @@ export function PlannerPanel() {
           onClose={closeDetail}
           onRemove={handleRemove}
           examOverlaps={examWarnings.get(detail.teachTableId) ?? []}
+        />
+      ) : null}
+      {viewMode === 'edit' && contextMenu !== null ? (
+        <BlockContextMenu
+          teachTableId={contextMenu.teachTableId}
+          x={contextMenu.x}
+          y={contextMenu.y}
+          t={t}
+          onClose={closeContextMenu}
+          onRemove={(id) => {
+            handleRemove(id);
+            closeContextMenu();
+          }}
+          onDetails={() => {
+            openDetail(contextMenu.anchor);
+            closeContextMenu();
+          }}
         />
       ) : null}
     </div>

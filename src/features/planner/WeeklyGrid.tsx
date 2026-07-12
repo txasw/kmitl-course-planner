@@ -5,7 +5,7 @@
 // the line count follows the window without a cell per quarter.
 
 import { Fragment, useMemo } from 'react';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, MouseEvent } from 'react';
 import { useStore } from 'zustand';
 import type { Meeting } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -78,6 +78,8 @@ interface WeeklyGridProps {
   examWarnIds?: Set<string>;
   /** Open the block detail popover anchored to a block, edit mode only. */
   onOpenDetail?: (anchor: HTMLElement) => void;
+  /** Open the block context menu at the pointer on a right click, edit mode only. */
+  onContextMenu?: (event: MouseEvent<HTMLElement>) => void;
   /** The day rows to render, in order. Defaults to the full week; preview passes a
    * trimmed contiguous run for the fit to content option. */
   days?: readonly DayOfWeek[];
@@ -95,6 +97,7 @@ export function WeeklyGrid({
   conflictIds,
   examWarnIds,
   onOpenDetail,
+  onContextMenu,
   days = WEEK_DAYS,
   display,
 }: WeeklyGridProps) {
@@ -228,6 +231,7 @@ export function WeeklyGrid({
           conflicted: conflictIds?.has(section.teachTableId) ?? false,
           examWarned: examWarnIds?.has(section.teachTableId) ?? false,
           ...(editable && onOpenDetail !== undefined ? { onOpenDetail } : {}),
+          ...(editable && onContextMenu !== undefined ? { onContextMenu } : {}),
         };
         return editable && onRemove ? (
           <DraggableBlock

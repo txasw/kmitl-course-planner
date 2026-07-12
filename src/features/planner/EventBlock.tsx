@@ -5,7 +5,7 @@
 // come from the draggable wrapper so this stays free of the drag library) and carries
 // a focusable remove control, which keeps on grid removal reachable by keyboard.
 
-import { memo, type CSSProperties } from 'react';
+import { memo, type CSSProperties, type MouseEvent } from 'react';
 import type { DraggableSyntheticListeners } from '@dnd-kit/core';
 import { Info, X } from 'lucide-react';
 import type { Meeting } from '@/lib/domain/types';
@@ -41,6 +41,8 @@ interface EventBlockProps {
   removeLabel?: string;
   /** Open the block detail popover anchored to this block, edit mode only. */
   onOpenDetail?: (anchor: HTMLElement) => void;
+  /** Open the block context menu at the pointer on a right click, edit mode only. */
+  onContextMenu?: (event: MouseEvent<HTMLElement>) => void;
   /** Show the room line. A preview display option; on by default in edit mode. */
   showRoom?: boolean;
   /** Show the section code beside the subject id. On by default in edit mode. */
@@ -64,6 +66,7 @@ function EventBlockComponent({
   onRemove,
   removeLabel,
   onOpenDetail,
+  onContextMenu,
   showRoom = true,
   showSection = true,
   showEnglishName = false,
@@ -97,6 +100,7 @@ function EventBlockComponent({
       data-teach-table-id={section.teachTableId}
       data-verify={badge ?? undefined}
       aria-label={label}
+      onContextMenu={onContextMenu}
       className={`group/block kcp-settle relative m-px flex min-w-0 flex-col overflow-hidden rounded-kcp px-1.5 py-1 text-[11px] leading-tight text-white ${pulsing ? 'kcp-pulse' : ''} ${dimmed ? 'opacity-40' : ''} ${dragListeners ? 'cursor-grab touch-none' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''}`}
       style={{ ...style, backgroundColor: hashColor(section.subjectId) }}
       {...dragListeners}
