@@ -149,18 +149,36 @@ describe('SearchForm', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows a validation message for an invalid persisted subject id', () => {
+  it('shows a validation message for an out of range persisted subject id', () => {
     renderSearch(deps());
     fireEvent.click(screen.getByRole('button', { name: 'รหัสวิชา' }));
-    // Typing can no longer produce an invalid value, since the input sanitizes to
-    // digits, so the safety net message is exercised through a persisted out of range
-    // value that bypasses the input.
+    // Typing can no longer produce an out of range value, since the input sanitizes
+    // and clamps to eight digits, so the safety net message is exercised through a
+    // persisted over length value that bypasses the input.
     act(() => {
       searchStore.getState().patchSubjectIdForm({ subjectId: '123456789' });
     });
     expect(
-      screen.getByText('กรอกรหัสวิชาเป็นตัวเลข 1 ถึง 8 หลัก'),
+      screen.getByText('กรอกรหัสวิชาเป็นตัวเลข 8 หลัก'),
     ).toBeInTheDocument();
+  });
+
+  it('messages and focuses the field when an incomplete subject id is submitted', () => {
+    renderSearch(deps());
+    fireEvent.click(screen.getByRole('button', { name: 'รหัสวิชา' }));
+    act(() => {
+      searchStore.getState().patchSubjectIdForm({ subjectId: '123' });
+    });
+    const field = screen.getByRole('textbox', { name: 'รหัสวิชา' });
+    const submit = screen.getByRole('button', { name: 'ค้นหา' });
+    // The button stays enabled for an incomplete id so the click routes to the
+    // message rather than being an inert disabled control.
+    expect(submit).toBeEnabled();
+    fireEvent.click(submit);
+    expect(
+      screen.getByText('กรอกรหัสวิชาเป็นตัวเลข 8 หลัก'),
+    ).toBeInTheDocument();
+    expect(field).toHaveFocus();
   });
 
   it('keeps submit disabled until the category form is ready', async () => {

@@ -3,7 +3,7 @@
 // data loads once on mount; the term seeds from a persisted search or the host
 // route. The four async surfaces each render a deliberate state.
 
-import { useMemo } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { AlertTriangle } from 'lucide-react';
 import { buddhistYears, toBuddhistYear } from '@/lib/routing/academicTerms';
@@ -77,8 +77,35 @@ export function SearchForm() {
     bySubjectId,
     byCategory,
   });
-  const subjectIdInvalid =
-    bySubjectId.subjectId !== '' && !isValidSubjectId(bySubjectId.subjectId);
+
+  // A value longer than eight digits can only arrive from a persisted or imported
+  // search, so it shows the safety net message at once; a short value shows the
+  // message only after a submit or Enter attempt, so the counter guides while the
+  // student types rather than nagging.
+  const subjectIdRef = useRef<HTMLInputElement>(null);
+  const [subjectIdAttempted, setSubjectIdAttempted] = useState(false);
+  const subjectIdOutOfRange = bySubjectId.subjectId.length > 8;
+  const subjectIdShowMessage =
+    subjectIdOutOfRange ||
+    (subjectIdAttempted && !isValidSubjectId(bySubjectId.subjectId));
+
+  // The subject id submit stays enabled while the id is incomplete so a click or
+  // Enter routes to the inline message and focuses the field rather than a dead
+  // disabled control; the other tabs disable until their form is ready.
+  const submitDisabled =
+    activeTab === 'by_subject_id' ? bySubjectId.year === '' : query === null;
+
+  const handleSubmit = () => {
+    if (
+      activeTab === 'by_subject_id' &&
+      !isValidSubjectId(bySubjectId.subjectId)
+    ) {
+      setSubjectIdAttempted(true);
+      subjectIdRef.current?.focus();
+      return;
+    }
+    void submit();
+  };
 
   return (
     <div className="flex h-full flex-col gap-4">
@@ -162,11 +189,14 @@ export function SearchForm() {
               label={t('search.subjectId')}
               value={bySubjectId.subjectId}
               hint={t('search.subjectIdHint')}
-              invalid={subjectIdInvalid}
+              invalid={subjectIdShowMessage}
               invalidMessage={t('search.subjectIdInvalid')}
+              inputRef={subjectIdRef}
               onChange={(subjectId) => {
                 searchStore.getState().patchSubjectIdForm({ subjectId });
+                setSubjectIdAttempted(false);
               }}
+              onSubmit={handleSubmit}
             />
           </>
         ) : null}
@@ -186,10 +216,8 @@ export function SearchForm() {
 
       <button
         type="button"
-        disabled={query === null}
-        onClick={() => {
-          void submit();
-        }}
+        disabled={submitDisabled}
+        onClick={handleSubmit}
         className={`rounded-kcp bg-primary-strong px-4 py-2 text-sm font-medium text-surface hover:bg-primary-hover disabled:opacity-50 ${FOCUS_OUTLINE}`}
       >
         {t('search.submit')}

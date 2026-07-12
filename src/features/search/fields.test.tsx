@@ -7,7 +7,13 @@ afterEach(cleanup);
 
 // A controlled harness so the input reflects the sanitized value the way it does in the
 // search rail, which is what a composition end reads back.
-function Harness({ onChange }: { onChange: (value: string) => void }) {
+function Harness({
+  onChange,
+  onSubmit,
+}: {
+  onChange: (value: string) => void;
+  onSubmit: () => void;
+}) {
   const [value, setValue] = useState('');
   return (
     <SubjectIdInput
@@ -20,15 +26,17 @@ function Harness({ onChange }: { onChange: (value: string) => void }) {
         setValue(next);
         onChange(next);
       }}
+      onSubmit={onSubmit}
     />
   );
 }
 
 function setup() {
   const onChange = vi.fn();
-  render(<Harness onChange={onChange} />);
+  const onSubmit = vi.fn();
+  render(<Harness onChange={onChange} onSubmit={onSubmit} />);
   const input = screen.getByRole('textbox');
-  return { onChange, input };
+  return { onChange, onSubmit, input };
 }
 
 describe('SubjectIdInput', () => {
@@ -58,5 +66,17 @@ describe('SubjectIdInput', () => {
     expect(onChange).toHaveBeenLastCalledWith('12ก');
     fireEvent.compositionEnd(input, { target: { value: '12ก' } });
     expect(onChange).toHaveBeenLastCalledWith('12');
+  });
+
+  it('shows a live digit count out of eight', () => {
+    const { input } = setup();
+    fireEvent.change(input, { target: { value: '123' } });
+    expect(screen.getByText('3/8')).toBeInTheDocument();
+  });
+
+  it('routes an Enter press to onSubmit', () => {
+    const { onSubmit, input } = setup();
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 });

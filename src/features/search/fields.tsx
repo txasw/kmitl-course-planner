@@ -4,7 +4,7 @@
 // the store patch. The selects are searchable comboboxes, since faculty and
 // curriculum lists are long.
 
-import { useId, useRef } from 'react';
+import { useId, useRef, type RefObject } from 'react';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { sanitizeSubjectId } from '@/lib/search/formState';
 import { Combobox } from './Combobox';
@@ -50,7 +50,11 @@ interface SubjectIdInputProps {
   hint: string;
   invalid: boolean;
   invalidMessage: string;
+  /** Focused by the parent when a submit or Enter attempt fails validation. */
+  inputRef?: RefObject<HTMLInputElement | null>;
   onChange: (value: string) => void;
+  /** Called when Enter is pressed, so a keyboard submit routes like the button. */
+  onSubmit?: () => void;
 }
 
 export function SubjectIdInput({
@@ -59,7 +63,9 @@ export function SubjectIdInput({
   hint,
   invalid,
   invalidMessage,
+  inputRef,
   onChange,
+  onSubmit,
 }: SubjectIdInputProps) {
   const hintId = useId();
   // Keep an in flight IME composition intact by passing it through unsanitized, then
@@ -69,8 +75,17 @@ export function SubjectIdInput({
   return (
     <div className="flex flex-col gap-1 text-sm">
       <label className="flex flex-col gap-1">
-        <span className="font-medium text-ink">{label}</span>
+        <span className="flex items-center justify-between gap-2">
+          <span className="font-medium text-ink">{label}</span>
+          {/* Live digit counter. The eight mirrors the full subject id length.
+              Hidden from assistive tech so it is not read on every keystroke; the
+              described-by message carries the state a screen reader needs. */}
+          <span aria-hidden className="text-xs tabular-nums text-ink-soft">
+            {value.length}/8
+          </span>
+        </span>
         <input
+          ref={inputRef}
           type="text"
           inputMode="numeric"
           value={value}
@@ -87,6 +102,12 @@ export function SubjectIdInput({
           onCompositionEnd={(event) => {
             composing.current = false;
             onChange(sanitizeSubjectId(event.currentTarget.value));
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' && onSubmit) {
+              event.preventDefault();
+              onSubmit();
+            }
           }}
           className={`rounded-kcp border border-border bg-surface px-2 py-1.5 text-ink ${FOCUS_RING}`}
         />
