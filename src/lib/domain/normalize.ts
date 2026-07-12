@@ -7,6 +7,7 @@
 
 import { isUnscheduledRow, parseTeachDay } from '../parsing/days';
 import { parseTimeToMinutes } from '../parsing/time';
+import { parseTeachTimeStr } from '../parsing/teachTimeStr';
 import { isExamDateTime } from '../parsing/examDateTime';
 import { sanitizeToLines } from '../parsing/sanitize';
 import { ok, type Result, type ValidationError } from '../utils/result';
@@ -38,6 +39,8 @@ export interface NormalizedCatalog {
   courses: Course[];
   /** Raw rows dropped as duplicates of an already seen teach_table_id. */
   duplicateCount: number;
+  /** Sections that carry more than one meeting, from teachtime_str extras. */
+  multiMeetingCount: number;
   warnings: NormalizationWarning[];
 }
 
@@ -193,28 +196,83 @@ function toMeeting(row: RawSectionRow): Meeting | { reason: string } {
   };
 }
 
+/** Drop exact duplicate meetings, keeping the first, ordered by day then start. */
+function dedupeMeetings(meetings: Meeting[]): Meeting[] {
+  const seen = new Set<string>();
+  const unique: Meeting[] = [];
+  for (const meeting of meetings) {
+    const key = `${String(meeting.day)}:${String(meeting.startMin)}-${String(meeting.endMin)}`;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    unique.push(meeting);
+  }
+  return unique.sort((a, b) => a.day - b.day || a.startMin - b.startMin);
+}
+
+function warnRow(
+  row: RawSectionRow,
+  reason: string,
+  warnings: NormalizationWarning[],
+): void {
+  warnings.push({
+    teachTableId: row.teach_table_id,
+    subjectId: row.subject_id,
+    section: row.section,
+    reason,
+  });
+}
+
 function toSection(
   tagged: TaggedRow,
   warnings: NormalizationWarning[],
 ): Section {
   const { row } = tagged;
   const meetings: Meeting[] = [];
-  // An unscheduled row, an online or asynchronous course, legitimately carries no
-  // meeting. It is an expected state, not a malformed row, so it records no
-  // warning; only a genuinely unparseable day or time does. A day 0 row that still
-  // carries real times is not unscheduled and falls through to the warning path.
-  if (!isUnscheduledRow(row.teach_day, row.teach_time, row.teach_time2)) {
+  const unscheduled = isUnscheduledRow(
+    row.teach_day,
+    row.teach_time,
+    row.teach_time2,
+  );
+  // The primary meeting comes from teach_day, teach_time, and teach_time2. An
+  // unscheduled row, an online or asynchronous course, legitimately carries no
+  // primary meeting. It is an expected state, not a malformed row, so it records
+  // no warning; only a genuinely unparseable day or time does. A day 0 row that
+  // still carries real times is not unscheduled and falls through to the warning
+  // path.
+  if (!unscheduled) {
     const meeting = toMeeting(row);
     if ('reason' in meeting) {
-      warnings.push({
-        teachTableId: row.teach_table_id,
-        subjectId: row.subject_id,
-        section: row.section,
-        reason: meeting.reason,
-      });
+      warnRow(row, meeting.reason, warnings);
     } else {
       meetings.push(meeting);
     }
+  }
+  // Additional meetings are packed into teachtime_str, not into separate rows.
+  // They carry no room, building, or kind of their own, so they inherit the row's.
+  // A malformed segment surfaces as a warning rather than a silently lost meeting,
+  // and the primary still renders. An unscheduled row that nonetheless carries
+  // teachtime_str meetings is an undocumented mixed shape: the real meetings are
+  // kept and the mix is warned.
+  const extra = parseTeachTimeStr(row.teachtime_str);
+  for (const meeting of extra.meetings) {
+    meetings.push({
+      ...meeting,
+      room: pickRoom(row),
+      building: pickBuilding(row),
+      kind: parseKind(row.lect_or_prac),
+    });
+  }
+  if (extra.malformed) {
+    warnRow(
+      row,
+      `teachtime_str has an unparseable segment: "${row.teachtime_str ?? ''}"`,
+      warnings,
+    );
+  }
+  if (unscheduled && extra.meetings.length > 0) {
+    warnRow(row, 'unscheduled row carries teachtime_str meetings', warnings);
   }
   return {
     teachTableId: row.teach_table_id,
@@ -222,7 +280,7 @@ function toSection(
     section: row.section,
     kind: parseKind(row.lect_or_prac),
     pairedSection: row.sec_pair,
-    meetings,
+    meetings: dedupeMeetings(meetings),
     teachersTh: sanitizeToLines(row.teacher_list_th),
     teachersEn: sanitizeToLines(row.teacher_list_en),
     seats: {
@@ -270,10 +328,16 @@ export function normalizeTeachTable(
   }
 
   const courses: Course[] = [];
+  let multiMeetingCount = 0;
   for (const [subjectId, tagged] of meta) {
     const sections = (sectionsBySubject.get(subjectId) ?? []).sort(
       bySectionCode,
     );
+    for (const section of sections) {
+      if (section.meetings.length > 1) {
+        multiMeetingCount += 1;
+      }
+    }
     courses.push({
       subjectId,
       nameTh: tagged.row.subject_name_th,
@@ -286,5 +350,5 @@ export function normalizeTeachTable(
     });
   }
 
-  return ok({ courses, duplicateCount, warnings });
+  return ok({ courses, duplicateCount, multiMeetingCount, warnings });
 }

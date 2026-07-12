@@ -41,6 +41,7 @@ function catalogOf(
       makeCourse({ subjectId: section.subjectId, sections: [section] }),
     ),
     duplicateCount: 0,
+    multiMeetingCount: 0,
     warnings: [],
   };
 }

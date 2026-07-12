@@ -7,6 +7,7 @@ import type { RawSectionRow } from './schemas';
 function normalizeFixture(name: string): {
   courses: Course[];
   duplicateCount: number;
+  multiMeetingCount: number;
   warningCount: number;
 } {
   const result = normalizeTeachTable(loadFixture(name));
@@ -16,8 +17,19 @@ function normalizeFixture(name: string): {
   return {
     courses: result.value.courses,
     duplicateCount: result.value.duplicateCount,
+    multiMeetingCount: result.value.multiMeetingCount,
     warningCount: result.value.warnings.length,
   };
+}
+
+function findSection(courses: Course[], subjectId: string, section: string) {
+  const found = courses
+    .find((course) => course.subjectId === subjectId)
+    ?.sections.find((candidate) => candidate.section === section);
+  if (found === undefined) {
+    throw new Error(`section ${subjectId}/${section} not found`);
+  }
+  return found;
 }
 
 function totalSections(courses: Course[]): number {
@@ -123,6 +135,151 @@ describe('deduplication against real captures', () => {
     expect(
       normalizeFixture('teach-table.by_class.capture.json').warningCount,
     ).toBe(0);
+  });
+});
+
+describe('teachtime_str additional meetings', () => {
+  it('reads a second meeting from teachtime_str on the QA case', () => {
+    // Subject 01476101 section 34 meets twice on the same Thursday: the primary
+    // 08:45 to 10:15 and the teachtime_str period 10:30 to 12:00. Day 5 is
+    // Thursday (DayOfWeek 4).
+    const { courses } = normalizeFixture(
+      'teach-table.multi-meeting.capture.json',
+    );
+    const section = findSection(courses, '01476101', '34');
+    expect(section.meetings).toEqual([
+      {
+        day: 4,
+        startMin: 525,
+        endMin: 615,
+        room: 'E12- 506',
+        building: 'E12',
+        kind: 'lecture',
+      },
+      {
+        day: 4,
+        startMin: 630,
+        endMin: 720,
+        room: 'E12- 506',
+        building: 'E12',
+        kind: 'lecture',
+      },
+    ]);
+  });
+
+  it('counts the multi meeting sections in the multi meeting capture', () => {
+    const { multiMeetingCount } = normalizeFixture(
+      'teach-table.multi-meeting.capture.json',
+    );
+    expect(multiMeetingCount).toBe(6);
+  });
+
+  it('reads a section that totals three meetings from two extra segments', () => {
+    // Subject 01076311 section 1 carries a primary and two teachtime_str periods
+    // on the same day, so it totals three meetings.
+    const { courses, multiMeetingCount } = normalizeFixture(
+      'teach-table.with-exams.capture.json',
+    );
+    const section = findSection(courses, '01076311', '1');
+    expect(section.meetings).toHaveLength(3);
+    expect(multiMeetingCount).toBe(9);
+  });
+
+  it('leaves clean single meeting captures with no extra meetings', () => {
+    expect(
+      normalizeFixture('teach-table.by_subject_owner_id-32.capture.json')
+        .multiMeetingCount,
+    ).toBe(0);
+    expect(
+      normalizeFixture('teach-table.by_class.capture.json').multiMeetingCount,
+    ).toBe(0);
+  });
+
+  it('appends a teachtime_str meeting inheriting the row room and kind', () => {
+    const result = normalizeTeachTable(
+      makeResponse([makeRow({ teachtime_str: '5x10:30-12:00' })]),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const section = result.value.courses[0]?.sections[0];
+      expect(section?.meetings).toEqual([
+        {
+          day: 1,
+          startMin: 540,
+          endMin: 720,
+          room: 'A101',
+          building: 'A',
+          kind: 'lecture',
+        },
+        {
+          day: 4,
+          startMin: 630,
+          endMin: 720,
+          room: 'A101',
+          building: 'A',
+          kind: 'lecture',
+        },
+      ]);
+      expect(result.value.warnings).toHaveLength(0);
+    }
+  });
+
+  it('warns on a malformed teachtime_str while keeping the primary meeting', () => {
+    const result = normalizeTeachTable(
+      makeResponse([makeRow({ teachtime_str: 'not a time' })]),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const section = result.value.courses[0]?.sections[0];
+      expect(section?.meetings).toHaveLength(1);
+      expect(result.value.warnings).toHaveLength(1);
+      expect(result.value.warnings[0]?.reason).toContain('teachtime_str');
+    }
+  });
+
+  it('dedupes a teachtime_str segment that repeats the primary meeting', () => {
+    // The primary is day 2 (Monday) 09:00 to 12:00; the segment re encodes it, so
+    // the section ends with one meeting, not two, and never self conflicts.
+    const result = normalizeTeachTable(
+      makeResponse([makeRow({ teachtime_str: '2x09:00-12:00' })]),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.courses[0]?.sections[0]?.meetings).toHaveLength(1);
+      expect(result.value.multiMeetingCount).toBe(0);
+    }
+  });
+
+  it('keeps teachtime_str meetings on an unscheduled row and warns of the mix', () => {
+    const result = normalizeTeachTable(
+      makeResponse([
+        makeRow({
+          teach_day: '0',
+          teach_time: '00:00:00',
+          teach_time2: '00:00:00',
+          teachtime_str: '3x10:30-12:00',
+        }),
+      ]),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const section = result.value.courses[0]?.sections[0];
+      expect(section?.meetings).toEqual([
+        {
+          day: 2,
+          startMin: 630,
+          endMin: 720,
+          room: 'A101',
+          building: 'A',
+          kind: 'lecture',
+        },
+      ]);
+      expect(
+        result.value.warnings.some((warning) =>
+          warning.reason.includes('unscheduled'),
+        ),
+      ).toBe(true);
+    }
   });
 });
 

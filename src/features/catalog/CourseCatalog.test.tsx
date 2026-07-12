@@ -106,6 +106,7 @@ describe('CourseCatalog', () => {
   it('splits courses into separate heading groups', () => {
     const multiGroup: NormalizedCatalog = {
       duplicateCount: 0,
+      multiMeetingCount: 0,
       warnings: [],
       courses: [
         makeCourse({
@@ -164,6 +165,7 @@ describe('CourseCatalog', () => {
     });
     const conflictCatalog: NormalizedCatalog = {
       duplicateCount: 0,
+      multiMeetingCount: 0,
       warnings: [],
       courses: [
         makeCourse({

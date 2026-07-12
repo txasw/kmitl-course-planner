@@ -24,7 +24,12 @@ const NOW = '2026-07-09T00:00:00.000Z';
 
 function indexFrom(sections: Section[]): SectionIndex {
   return buildSectionIndex([
-    { courses: [makeCourse({ sections })], duplicateCount: 0, warnings: [] },
+    {
+      courses: [makeCourse({ sections })],
+      duplicateCount: 0,
+      multiMeetingCount: 0,
+      warnings: [],
+    },
   ]);
 }
 
@@ -35,7 +40,7 @@ function reconcile(plan: Plan, fresh: Section[]) {
     makeCourse({ subjectId: section.subjectId, sections: [section] }),
   );
   const index = buildSectionIndex([
-    { courses, duplicateCount: 0, warnings: [] },
+    { courses, duplicateCount: 0, multiMeetingCount: 0, warnings: [] },
   ]);
   return reconcilePlan(plan, index, NOW);
 }
