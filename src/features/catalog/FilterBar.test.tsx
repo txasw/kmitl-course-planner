@@ -60,6 +60,21 @@ describe('FilterBar', () => {
     expect(catalogStore.getState().filter.days).toHaveLength(0);
   });
 
+  it('renders the hide facets as switches that update the store', () => {
+    render(<FilterBar creditOptions={[3, 4]} />);
+    openFilters();
+    const switches = screen.getAllByRole('switch');
+    expect(switches).toHaveLength(3);
+    // The three hide switches are hide full, hide conflicting, and hide
+    // unscheduled in order, so toggling the first sets hideFull.
+    const [hideFull] = switches;
+    if (hideFull === undefined) {
+      throw new Error('expected the hide full switch');
+    }
+    fireEvent.click(hideFull);
+    expect(catalogStore.getState().filter.hideFull).toBe(true);
+  });
+
   it('has no serious accessibility violations with the popover open', async () => {
     const { container } = render(<FilterBar creditOptions={[3, 4]} />);
     openFilters();

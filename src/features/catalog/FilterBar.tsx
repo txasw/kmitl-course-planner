@@ -17,6 +17,7 @@ import {
   FloatingPortal,
 } from '@floating-ui/react';
 import { SlidersHorizontal, X } from 'lucide-react';
+import { Switch } from '@/components/Switch';
 import type { DayOfWeek } from '@/lib/domain/types';
 import type { Translate } from '@/lib/i18n/t';
 import type { CatalogFilter } from '@/lib/catalog/filter';
@@ -274,44 +275,28 @@ function FilterPopover({
             .setCredit(value === '' ? null : Number(value));
         }}
       />
-      <div className="flex flex-col gap-1 text-sm">
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={filter.hideFull}
-            onChange={(event) => {
-              catalogStore.getState().setHideFull(event.target.checked);
-            }}
-            className="size-4 accent-primary"
-          />
-          <span className="text-ink">{t('catalog.filter.hideFull')}</span>
-        </label>
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={filter.hideConflicting}
-            onChange={(event) => {
-              catalogStore.getState().setHideConflicting(event.target.checked);
-            }}
-            className="size-4 accent-primary"
-          />
-          <span className="text-ink">
-            {t('catalog.filter.hideConflicting')}
-          </span>
-        </label>
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={filter.hideUnscheduled}
-            onChange={(event) => {
-              catalogStore.getState().setHideUnscheduled(event.target.checked);
-            }}
-            className="size-4 accent-primary"
-          />
-          <span className="text-ink">
-            {t('catalog.filter.hideUnscheduled')}
-          </span>
-        </label>
+      <div className="flex flex-col">
+        <Switch
+          checked={filter.hideFull}
+          label={t('catalog.filter.hideFull')}
+          onChange={(checked) => {
+            catalogStore.getState().setHideFull(checked);
+          }}
+        />
+        <Switch
+          checked={filter.hideConflicting}
+          label={t('catalog.filter.hideConflicting')}
+          onChange={(checked) => {
+            catalogStore.getState().setHideConflicting(checked);
+          }}
+        />
+        <Switch
+          checked={filter.hideUnscheduled}
+          label={t('catalog.filter.hideUnscheduled')}
+          onChange={(checked) => {
+            catalogStore.getState().setHideUnscheduled(checked);
+          }}
+        />
       </div>
     </div>
   ) : null;

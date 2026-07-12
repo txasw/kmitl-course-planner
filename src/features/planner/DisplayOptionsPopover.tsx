@@ -23,6 +23,7 @@ import type { TranslationKey } from '@/lib/i18n/t';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { Switch } from '@/components/Switch';
 
 const OPTIONS: { key: keyof DisplayOptions; labelKey: TranslationKey }[] = [
   { key: 'fitToContent', labelKey: 'preview.fitToContent' },
@@ -112,22 +113,14 @@ export function DisplayOptionsPopover() {
           {...getFloatingProps()}
         >
           {OPTIONS.map((option) => (
-            <label
+            <Switch
               key={option.key}
-              className="flex items-center gap-2 rounded-kcp px-2 py-1 text-sm text-ink hover:bg-surface-alt"
-            >
-              <input
-                type="checkbox"
-                checked={displayOptions[option.key]}
-                onChange={(event) => {
-                  uiStore
-                    .getState()
-                    .setDisplayOption(option.key, event.target.checked);
-                }}
-                className="size-4 accent-primary"
-              />
-              {t(option.labelKey)}
-            </label>
+              checked={displayOptions[option.key]}
+              label={t(option.labelKey)}
+              onChange={(checked) => {
+                uiStore.getState().setDisplayOption(option.key, checked);
+              }}
+            />
           ))}
         </div>
       ) : null}
