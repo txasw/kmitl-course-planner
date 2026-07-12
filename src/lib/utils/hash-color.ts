@@ -46,8 +46,42 @@ function hash(value: string): number {
   return result >>> 0;
 }
 
-/** The stable event block fill for a subject id. */
+/** The stable event block fill for a subject id, the saturated subject color used on the
+ * block's left bar. */
 export function hashColor(subjectId: string): string {
   const index = hash(subjectId) % EVENT_PALETTE.length;
   return EVENT_PALETTE[index] ?? FALLBACK_COLOR;
+}
+
+/** The alpha of the subject color tint under the block text (ADR-0035). Shared with the
+ * contrast test so the value that ships is the value that is proven AA. */
+export const EVENT_TINT_ALPHA = 0.15;
+
+const tintCache = new Map<string, string>();
+
+/** Composite a six digit hex over white at the given alpha, to an opaque six digit hex. */
+function tintOverWhite(hex: string, alpha: number): string {
+  const clean = hex.replace('#', '');
+  const channel = (start: number): string => {
+    const front = parseInt(clean.slice(start, start + 2), 16);
+    return Math.round(front * alpha + 255 * (1 - alpha))
+      .toString(16)
+      .padStart(2, '0');
+  };
+  return `#${channel(0)}${channel(2)}${channel(4)}`;
+}
+
+/**
+ * The subject's block color composited over white at EVENT_TINT_ALPHA, a concrete opaque
+ * hex so html-to-image inlines a stable fill and the export matches edit and preview.
+ * Memoized per subject since the grid paints one per block.
+ */
+export function hashTint(subjectId: string): string {
+  const cached = tintCache.get(subjectId);
+  if (cached !== undefined) {
+    return cached;
+  }
+  const tint = tintOverWhite(hashColor(subjectId), EVENT_TINT_ALPHA);
+  tintCache.set(subjectId, tint);
+  return tint;
 }

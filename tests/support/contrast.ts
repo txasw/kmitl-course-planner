@@ -33,3 +33,20 @@ export function contrastRatio(a: string, b: string): number {
   const lb = relativeLuminance(b) + 0.05;
   return Math.max(la, lb) / Math.min(la, lb);
 }
+
+/** Composite a hex color over a background hex at the given alpha, returning the effective
+ * opaque hex. Contrast math has no alpha, so a low alpha tint the runtime paints must be
+ * flattened to its effective color before its contrast can be checked. */
+export function alphaOver(
+  hex: string,
+  alpha: number,
+  background: string,
+): string {
+  const [fr, fg, fb] = hexToRgb(hex);
+  const [br, bg, bb] = hexToRgb(background);
+  const mix = (front: number, back: number): string =>
+    Math.round(front * alpha + back * (1 - alpha))
+      .toString(16)
+      .padStart(2, '0');
+  return `#${mix(fr, br)}${mix(fg, bg)}${mix(fb, bb)}`;
+}
