@@ -7,6 +7,8 @@
 // dimmed with its reason. When handlers are supplied the row offers an add button
 // for an addable or conflicting open section and a remove button for an added one.
 
+import { useState } from 'react';
+import { Info } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import type { Term } from '@/lib/routing/academicTerms';
@@ -15,6 +17,7 @@ import type { SeatStatus } from '@/lib/catalog/seatStatus';
 import type { SectionRelation } from '@/lib/planner/sectionState';
 import type { ConflictDetail } from '@/lib/planner/placement';
 import { dayLabelKey } from '@/lib/i18n/dayLabel';
+import { FOCUS_RING } from '@/lib/ui/focus';
 import { Pill } from '@/components/Pill';
 import { SeatPill } from './SeatPill';
 import { meetingLabel } from './meetingFormat';
@@ -88,6 +91,7 @@ export function SectionRow({
   const addable =
     (relation.kind === 'addable' || relation.kind === 'conflicting') &&
     seat.kind === 'open';
+  const [showDetails, setShowDetails] = useState(false);
 
   return (
     <div
@@ -165,8 +169,35 @@ export function SectionRow({
         ))}
       </div>
 
-      {teachers.length > 0 ? (
-        <p className="mt-1 text-ink-soft">{teachers.join(', ')}</p>
+      {teachers.length > 0 || section.remark !== '' ? (
+        <div className="mt-1 flex items-center gap-1 text-ink-soft">
+          {teachers.length > 0 ? (
+            <p className="min-w-0 flex-1 truncate" title={teachers.join(', ')}>
+              {teachers.join(', ')}
+            </p>
+          ) : (
+            <span className="min-w-0 flex-1" />
+          )}
+          {!readOnly && section.remark !== '' ? (
+            <button
+              type="button"
+              aria-expanded={showDetails}
+              aria-label={t('section.moreInfo')}
+              onPointerDown={(event) => {
+                event.stopPropagation();
+              }}
+              onClick={() => {
+                setShowDetails((value) => !value);
+              }}
+              className={`shrink-0 rounded-kcp p-0.5 hover:text-ink ${FOCUS_RING}`}
+            >
+              <Info size={12} aria-hidden />
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+      {!readOnly && showDetails && section.remark !== '' ? (
+        <p className="mt-1 text-ink-soft">{section.remark}</p>
       ) : null}
 
       {!readOnly && relation.kind === 'conflicting' ? (
