@@ -36,6 +36,15 @@ from report 1). Drives the normalization test and the all curricula e2e spec: th
 schema accepts the null, and the unscheduled row is a no meeting section rather
 than failing the whole result.
 
+Rebuilt when `teachtime_str` became a parsed field (ADR-0037). The scheduled row
+originally carried a hand written display string `"จ. 09:00-12:00"` that no real
+capture produces; once the field was parsed and audited against its machine
+grammar, that value read as drift and misrepresented the real API shape. It now
+carries a genuine machine grammar value, `"2x13:00-14:30"`, a second meeting on
+its own day, so the fixture keeps an honest shape while still exercising the null
+unscheduled regression. The rejected display variant is kept as a parser unit test
+in `teachTimeStr.test.ts`, not as a fixture.
+
 ### teach-table.unscheduled-row.report-1.json, report-2.json
 
 Reports exported after the null `teachtime_str` fix, for the same all curricula
