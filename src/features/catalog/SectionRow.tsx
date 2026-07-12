@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import { Info } from 'lucide-react';
 import { Tooltip } from '@/components/Tooltip';
+import { RemoveButton } from './RemoveButton';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import type { Term } from '@/lib/routing/academicTerms';
@@ -125,18 +126,12 @@ export function SectionRow({
             </button>
           ) : null}
           {!readOnly && relation.kind === 'added' && onRemove !== undefined ? (
-            <button
-              type="button"
-              onPointerDown={(event) => {
-                event.stopPropagation();
-              }}
-              onClick={() => {
+            <RemoveButton
+              label={t('action.remove')}
+              onRemove={() => {
                 onRemove(section.teachTableId);
               }}
-              className="rounded-kcp border border-border px-2 py-0.5 font-medium text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            >
-              {t('action.remove')}
-            </button>
+            />
           ) : null}
           {!readOnly &&
           relation.kind === 'different_term' &&

@@ -120,6 +120,20 @@ describe('CourseCard collapsed added course', () => {
     expect(onRemove).toHaveBeenCalledWith('placed901');
   });
 
+  it('shows the collapsed remove as a quiet icon', () => {
+    render(
+      <CourseCard
+        course={course}
+        placed={placed}
+        locale="th"
+        t={t}
+        onRemove={() => undefined}
+      />,
+    );
+    // Icon only: the accessible name is the aria-label and there is no visible text.
+    expect(screen.getByRole('button', { name: 'นำออก' }).textContent).toBe('');
+  });
+
   it('makes the whole collapsed summary the expand control', () => {
     render(
       <CourseCard
