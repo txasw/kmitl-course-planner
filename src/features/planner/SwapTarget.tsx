@@ -15,8 +15,6 @@ interface SwapTargetProps {
   style: CSSProperties;
   /** The short code of the incoming section, shown as what the drop places here. */
   incomingLabel: string;
-  /** The accessible action label, for example "Swap". */
-  actionLabel: string;
 }
 
 export function SwapTarget({
@@ -24,7 +22,6 @@ export function SwapTarget({
   blockerTeachTableId,
   style,
   incomingLabel,
-  actionLabel,
 }: SwapTargetProps) {
   const { setNodeRef, isOver } = useDroppable({
     id,
@@ -35,7 +32,6 @@ export function SwapTarget({
       ref={setNodeRef}
       data-swap-target
       aria-hidden
-      title={`${actionLabel} ${incomingLabel}`}
       className={`pointer-events-none z-30 m-px flex items-center justify-center gap-1 overflow-hidden rounded-kcp border-2 border-dashed border-primary px-1 text-[10px] font-semibold text-primary-strong ${
         isOver ? 'bg-primary-soft' : 'bg-surface'
       }`}

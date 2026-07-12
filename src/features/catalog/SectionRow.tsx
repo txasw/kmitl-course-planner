@@ -9,6 +9,7 @@
 
 import { useState } from 'react';
 import { Info } from 'lucide-react';
+import { Tooltip } from '@/components/Tooltip';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import type { Term } from '@/lib/routing/academicTerms';
@@ -172,9 +173,17 @@ export function SectionRow({
       {teachers.length > 0 || section.remark !== '' ? (
         <div className="mt-1 flex items-center gap-1 text-ink-soft">
           {teachers.length > 0 ? (
-            <p className="min-w-0 flex-1 truncate" title={teachers.join(', ')}>
-              {teachers.join(', ')}
-            </p>
+            <Tooltip label={teachers.join(', ')}>
+              {(triggerProps, ref) => (
+                <p
+                  ref={ref}
+                  {...triggerProps}
+                  className="min-w-0 flex-1 truncate"
+                >
+                  {teachers.join(', ')}
+                </p>
+              )}
+            </Tooltip>
           ) : (
             <span className="min-w-0 flex-1" />
           )}

@@ -10,6 +10,7 @@ import { useStore } from 'zustand';
 import type { Meeting } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
+import { Tooltip } from '@/components/Tooltip';
 import { WEEK_DAYS, type DayOfWeek } from '@/lib/parsing/days';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
 import { formatMinutes } from '@/lib/parsing/time';
@@ -127,7 +128,6 @@ export function WeeklyGrid({
   const swapContext = useStore(dragStore, (state) => state.swapContext);
   const blocked = active !== null && !active.placement.ok;
   const removeLabel = t('action.remove');
-  const swapLabel = t('blockMove.swap');
   const swapBlockers =
     swapContext === null ? new Set<string>() : new Set(swapContext.blockers);
   // Candidate slots come from a course drag or a block move, whichever is active.
@@ -199,14 +199,19 @@ export function WeeklyGrid({
 
       {days.map((day, index) => (
         <Fragment key={day}>
-          <div
-            className={`flex items-center justify-center border-t border-border text-xs font-medium text-ink-soft ${day % 2 === 1 ? 'bg-surface-alt' : ''}`}
-            style={{ gridRow: FIRST_DAY_ROW + index, gridColumn: 1 }}
-            title={t(dayFullLabelKey(day))}
-            aria-label={t(dayFullLabelKey(day))}
-          >
-            {t(dayLabelKey(day))}
-          </div>
+          <Tooltip label={t(dayFullLabelKey(day))}>
+            {(triggerProps, ref) => (
+              <div
+                ref={ref}
+                {...triggerProps}
+                className={`flex items-center justify-center border-t border-border text-xs font-medium text-ink-soft ${day % 2 === 1 ? 'bg-surface-alt' : ''}`}
+                style={{ gridRow: FIRST_DAY_ROW + index, gridColumn: 1 }}
+                aria-label={t(dayFullLabelKey(day))}
+              >
+                {t(dayLabelKey(day))}
+              </div>
+            )}
+          </Tooltip>
           <div
             aria-hidden
             className={`border-t border-border ${day % 2 === 1 ? 'bg-surface-alt' : ''}`}
@@ -314,7 +319,6 @@ export function WeeklyGrid({
                     id={id}
                     blockerTeachTableId={section.teachTableId}
                     incomingLabel={swapContext.incoming.section}
-                    actionLabel={swapLabel}
                     style={blockStyle(meeting, window, days)}
                   />
                 );

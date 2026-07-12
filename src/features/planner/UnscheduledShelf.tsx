@@ -5,6 +5,7 @@
 
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { Pill } from '@/components/Pill';
+import { Tooltip } from '@/components/Tooltip';
 import type { PlacedSection } from './placedSection';
 import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 
@@ -59,13 +60,14 @@ export function UnscheduledShelf({
               className="flex items-center justify-between gap-2 text-xs"
             >
               <span className="flex min-w-0 flex-col text-ink">
-                <span
-                  className="truncate"
-                  title={`${section.subjectId} ${name}`}
-                >
-                  <span className="font-medium">{section.subjectId}</span>{' '}
-                  {name}
-                </span>
+                <Tooltip label={`${section.subjectId} ${name}`}>
+                  {(triggerProps, ref) => (
+                    <span ref={ref} {...triggerProps} className="truncate">
+                      <span className="font-medium">{section.subjectId}</span>{' '}
+                      {name}
+                    </span>
+                  )}
+                </Tooltip>
                 {englishSecondary ? (
                   <span className="truncate text-ink-soft">
                     {section.nameEn}
