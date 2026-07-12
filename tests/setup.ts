@@ -18,3 +18,19 @@ window.matchMedia = (query: string): MediaQueryList =>
     removeListener: () => undefined,
     dispatchEvent: () => false,
   }) as MediaQueryList;
+
+// jsdom does not implement ResizeObserver, which the preview stage uses to scale the
+// export poster to fit its pane. A no op stub lets those components mount in tests; the
+// scale math is exercised where it matters, in the E2E capture and the manual sweep.
+class ResizeObserverStub implements ResizeObserver {
+  observe(): void {
+    /* no measurements in jsdom */
+  }
+  unobserve(): void {
+    /* no measurements in jsdom */
+  }
+  disconnect(): void {
+    /* no measurements in jsdom */
+  }
+}
+globalThis.ResizeObserver = ResizeObserverStub;

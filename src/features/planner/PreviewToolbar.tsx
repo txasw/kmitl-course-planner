@@ -14,9 +14,15 @@ import type { DisplayOptions } from '@/lib/planner/displayOptions';
 import { formatPlanText } from '@/lib/export/planText';
 import { downloadBlob } from '@/lib/utils/download';
 import { planExportBaseName } from '@/lib/planner/exportName';
+import {
+  EXPORT_TEMPLATES,
+  type ExportTemplate,
+} from '@/lib/planner/exportTemplates';
 import { useActivePlan } from '@/features/plans/planStore';
+import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { toastStore } from '@/features/shell/toastStore';
+import { Combobox } from '@/features/search/Combobox';
 import { capturePng } from './capture';
 import { DisplayOptionsPopover } from './DisplayOptionsPopover';
 import type { PlacedSection } from './placedSection';
@@ -25,6 +31,8 @@ import { FOCUS_RING } from '@/lib/ui/focus';
 interface PreviewToolbarProps {
   /** The poster node captured by the image actions. */
   posterRef: RefObject<HTMLDivElement | null>;
+  /** The chosen export template: the capture pixel ratio and the file name slug. */
+  template: ExportTemplate;
   /** The placed sections, for the plain text export. */
   sections: PlacedSection[];
   /** The active display options, applied to the text export as to the poster. */
@@ -44,14 +52,16 @@ function canCopyImage(): boolean {
 
 export function PreviewToolbar({
   posterRef,
+  template,
   sections,
   displayOptions,
 }: PreviewToolbarProps) {
   const { t, language } = useTranslation();
   const activePlan = useActivePlan();
 
-  const fileBase =
+  const base =
     activePlan === null ? 'kmitl-plan' : planExportBaseName(activePlan);
+  const fileName = `${base}-${template.slug}.png`;
 
   const notifyExportFailed = () => {
     toastStore.getState().show('error', t('preview.exportFailed'));
@@ -62,8 +72,8 @@ export function PreviewToolbar({
     if (node === null) {
       return;
     }
-    void capturePng(node).then((blob) => {
-      downloadBlob(`${fileBase}.png`, blob);
+    void capturePng(node, template.pixelRatio).then((blob) => {
+      downloadBlob(fileName, blob);
       toastStore.getState().show('success', t('preview.pngDownloaded'));
     }, notifyExportFailed);
   };
@@ -73,7 +83,7 @@ export function PreviewToolbar({
     if (node === null) {
       return;
     }
-    void capturePng(node).then((blob) => {
+    void capturePng(node, template.pixelRatio).then((blob) => {
       void navigator.clipboard
         .write([new ClipboardItem({ 'image/png': blob })])
         .then(() => {
@@ -106,8 +116,24 @@ export function PreviewToolbar({
     <div
       role="toolbar"
       aria-label={t('preview.toolbar')}
-      className="flex shrink-0 flex-wrap items-center gap-2"
+      className="flex shrink-0 flex-wrap items-end gap-2"
     >
+      <div className="w-44">
+        <Combobox
+          label={t('preview.template.label')}
+          value={template.slug}
+          placeholder={t('search.selectPlaceholder')}
+          disabled={false}
+          searchable={false}
+          options={EXPORT_TEMPLATES.map((option) => ({
+            value: option.slug,
+            label: t(option.labelKey),
+          }))}
+          onChange={(slug) => {
+            uiStore.getState().setSelectedTemplate(slug);
+          }}
+        />
+      </div>
       <DisplayOptionsPopover />
       {canCopyImage() ? (
         <button type="button" onClick={handleCopyImage} className={BUTTON}>

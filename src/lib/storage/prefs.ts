@@ -20,6 +20,9 @@ export const prefsSchema = z.object({
   language: z.enum(['th', 'en']),
   viewMode: z.enum(['edit', 'preview']).optional(),
   displayOptions: displayOptionsSchema.optional(),
+  // The export template slug is a plain string so an unknown value from a newer
+  // build still validates; the planner resolves it and falls back to the default.
+  exportTemplate: z.string().optional(),
 });
 export type Prefs = z.infer<typeof prefsSchema>;
 

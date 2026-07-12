@@ -206,5 +206,10 @@
   "preview.fitToContent": "ย่อพอดีกับเนื้อหา",
   "preview.showRoom": "แสดงห้อง",
   "preview.showSection": "แสดงกลุ่มเรียน",
-  "preview.showEnglishNames": "แสดงชื่อภาษาอังกฤษ"
+  "preview.showEnglishNames": "แสดงชื่อภาษาอังกฤษ",
+  "preview.template.label": "แม่แบบ",
+  "preview.template.share": "แชร์ 16:9",
+  "preview.template.phone": "ภาพพื้นหลังโทรศัพท์",
+  "preview.template.tablet": "ภาพพื้นหลังแท็บเล็ต",
+  "preview.template.printA4": "พิมพ์ A4"
 }
