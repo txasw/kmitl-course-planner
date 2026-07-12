@@ -19,8 +19,10 @@ import {
   flip,
   size,
   autoUpdate,
+  FloatingPortal,
 } from '@floating-ui/react';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { usePanelPortal } from '@/features/shell/PanelPortalContext';
 
 const MAX_LIST_HEIGHT = 224;
 
@@ -36,6 +38,10 @@ interface ComboboxProps {
   placeholder: string;
   disabled: boolean;
   onChange: (value: string) => void;
+  /** When false the field is a select only combobox: no filter input, a trigger that
+   * opens a listbox navigated by the keyboard. Defaults to true for the long searchable
+   * lists such as faculty and curriculum. */
+  searchable?: boolean;
 }
 
 export function Combobox({
@@ -45,10 +51,13 @@ export function Combobox({
   placeholder,
   disabled,
   onChange,
+  searchable = true,
 }: ComboboxProps) {
   const listboxId = useId();
   const optionIdBase = useId();
   const inputId = useId();
+  const labelId = useId();
+  const portalRoot = usePanelPortal();
 
   const selectedLabel = useMemo(
     () => options.find((option) => option.value === value)?.label ?? '',
@@ -69,14 +78,14 @@ export function Combobox({
   const displayValue = open ? query : selectedLabel;
 
   const visible = useMemo(() => {
-    if (!dirty) {
+    if (!searchable || !dirty) {
       return options;
     }
     const needle = query.trim().toLowerCase();
     return options.filter((option) =>
       option.label.toLowerCase().includes(needle),
     );
-  }, [options, query, dirty]);
+  }, [options, query, dirty, searchable]);
 
   // The popup is only present when the field is open and has matches.
   const listVisible = open && visible.length > 0;
@@ -106,7 +115,7 @@ export function Combobox({
   // Wrap the floating-ui setters as stable callback refs. Calling them in a
   // callback keeps the ref access out of render and off the method itself.
   const setReference = useCallback(
-    (node: HTMLInputElement | null) => {
+    (node: HTMLElement | null) => {
       refs.setReference(node);
     },
     [refs],
@@ -143,7 +152,7 @@ export function Combobox({
     setDirty(false);
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
@@ -155,7 +164,9 @@ export function Combobox({
         break;
       case 'ArrowUp':
         event.preventDefault();
-        if (open) {
+        if (!open) {
+          openList();
+        } else {
           setActiveIndex((index) => Math.max(index - 1, 0));
         }
         break;
@@ -176,9 +187,25 @@ export function Combobox({
         if (open && option) {
           event.preventDefault();
           commit(option);
+        } else if (!open && !searchable) {
+          event.preventDefault();
+          openList();
         }
         break;
       }
+      case ' ':
+        // The select only trigger has no text entry, so Space opens the list or commits
+        // the highlighted option like Enter; the searchable input keeps Space literal.
+        if (!searchable) {
+          event.preventDefault();
+          const option = visible[activeIndex];
+          if (open && option) {
+            commit(option);
+          } else if (!open) {
+            openList();
+          }
+        }
+        break;
       case 'Escape':
         if (open) {
           event.preventDefault();
@@ -192,69 +219,108 @@ export function Combobox({
 
   const activeOption = open ? visible[activeIndex] : undefined;
 
+  const listbox = listVisible ? (
+    <ul
+      ref={setFloating}
+      role="listbox"
+      id={listboxId}
+      aria-label={label}
+      style={floatingStyles}
+      className="z-50 kcp-scroll overflow-y-auto rounded-kcp border border-border bg-surface py-1 shadow-kcp"
+    >
+      {visible.map((option, index) => (
+        <li
+          key={option.value}
+          role="option"
+          id={optionId(index)}
+          aria-selected={option.value === value}
+          onMouseDown={(event) => {
+            // Keep focus on the trigger so blur does not close before the click.
+            event.preventDefault();
+            commit(option);
+          }}
+          onMouseEnter={() => {
+            setActiveIndex(index);
+          }}
+          className={`cursor-pointer px-2 py-1.5 ${
+            index === activeIndex ? 'bg-primary-soft text-ink' : 'text-ink-soft'
+          }`}
+        >
+          {option.label}
+        </li>
+      ))}
+    </ul>
+  ) : null;
+
   return (
     <div className="relative flex flex-col gap-1 text-sm">
-      <label htmlFor={inputId} className="font-medium text-ink">
+      <label
+        id={labelId}
+        htmlFor={searchable ? inputId : undefined}
+        className="font-medium text-ink"
+      >
         {label}
       </label>
-      <input
-        ref={setReference}
-        id={inputId}
-        type="text"
-        role="combobox"
-        aria-expanded={listVisible}
-        aria-controls={listVisible ? listboxId : undefined}
-        aria-autocomplete="list"
-        aria-activedescendant={activeOption ? optionId(activeIndex) : undefined}
-        value={displayValue}
-        disabled={disabled}
-        placeholder={placeholder}
-        onChange={(event) => {
-          setQuery(event.target.value);
-          setDirty(true);
-          setOpen(true);
-          setActiveIndex(0);
-        }}
-        onFocus={openList}
-        onClick={openList}
-        onKeyDown={handleKeyDown}
-        onBlur={close}
-        className={`rounded-kcp border border-border bg-surface px-2 py-1.5 text-ink disabled:opacity-50 ${FOCUS_RING}`}
-      />
-      {listVisible ? (
-        <ul
-          ref={setFloating}
-          role="listbox"
-          id={listboxId}
-          aria-label={label}
-          style={floatingStyles}
-          className="z-50 kcp-scroll overflow-y-auto rounded-kcp border border-border bg-surface py-1 shadow-kcp"
+      {searchable ? (
+        <input
+          ref={setReference}
+          id={inputId}
+          type="text"
+          role="combobox"
+          aria-expanded={listVisible}
+          aria-controls={listVisible ? listboxId : undefined}
+          aria-autocomplete="list"
+          aria-activedescendant={
+            activeOption ? optionId(activeIndex) : undefined
+          }
+          value={displayValue}
+          disabled={disabled}
+          placeholder={placeholder}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            setDirty(true);
+            setOpen(true);
+            setActiveIndex(0);
+          }}
+          onFocus={openList}
+          onClick={openList}
+          onKeyDown={handleKeyDown}
+          onBlur={close}
+          className={`rounded-kcp border border-border bg-surface px-2 py-1.5 text-ink disabled:opacity-50 ${FOCUS_RING}`}
+        />
+      ) : (
+        <div
+          ref={setReference}
+          id={inputId}
+          role="combobox"
+          tabIndex={disabled ? -1 : 0}
+          aria-haspopup="listbox"
+          aria-expanded={listVisible}
+          aria-controls={listVisible ? listboxId : undefined}
+          aria-labelledby={labelId}
+          aria-activedescendant={
+            activeOption ? optionId(activeIndex) : undefined
+          }
+          aria-disabled={disabled || undefined}
+          onClick={() => {
+            if (disabled) return;
+            if (open) close();
+            else openList();
+          }}
+          onKeyDown={handleKeyDown}
+          onBlur={close}
+          className={`flex cursor-pointer items-center rounded-kcp border border-border bg-surface px-2 py-1.5 ${
+            selectedLabel ? 'text-ink' : 'text-ink-soft'
+          } ${disabled ? 'cursor-not-allowed opacity-50' : ''} ${FOCUS_RING}`}
         >
-          {visible.map((option, index) => (
-            <li
-              key={option.value}
-              role="option"
-              id={optionId(index)}
-              aria-selected={option.value === value}
-              onMouseDown={(event) => {
-                // Keep focus on the input so blur does not close before the click.
-                event.preventDefault();
-                commit(option);
-              }}
-              onMouseEnter={() => {
-                setActiveIndex(index);
-              }}
-              className={`cursor-pointer px-2 py-1.5 ${
-                index === activeIndex
-                  ? 'bg-primary-soft text-ink'
-                  : 'text-ink-soft'
-              }`}
-            >
-              {option.label}
-            </li>
-          ))}
-        </ul>
-      ) : null}
+          {selectedLabel || placeholder}
+        </div>
+      )}
+      {portalRoot ? (
+        <FloatingPortal root={portalRoot}>{listbox}</FloatingPortal>
+      ) : (
+        listbox
+      )}
     </div>
   );
 }
