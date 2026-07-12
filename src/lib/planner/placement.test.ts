@@ -161,6 +161,59 @@ describe('checkPlacement', () => {
   });
 });
 
+describe('checkPlacement multi-meeting sections', () => {
+  // Subject 01476101 section 34 meets twice on the same Thursday (day 4): 08:45 to
+  // 10:15 (525 to 615) and 10:30 to 12:00 (630 to 720). Its two periods must never
+  // self conflict, and both must guard the plan.
+  const multi = makeSection({
+    teachTableId: 'm',
+    subjectId: '01476101',
+    section: '34',
+    meetings: [
+      makeMeeting({ day: 4, startMin: 525, endMin: 615 }),
+      makeMeeting({ day: 4, startMin: 630, endMin: 720 }),
+    ],
+  });
+
+  it('accepts a section whose own two periods sit on the same day', () => {
+    expect(checkPlacement([], [multi])).toEqual({ ok: true });
+  });
+
+  it('blocks an add on the second period, proving it reached the engine', () => {
+    const incoming = makeSection({
+      teachTableId: 'q',
+      subjectId: 'Y',
+      section: '902',
+      meetings: [makeMeeting({ day: 4, startMin: 630, endMin: 720 })],
+    });
+    const result = checkPlacement([multi], [incoming]);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.conflicts).toEqual([
+        {
+          kind: 'time',
+          blocking: { teachTableId: 'm', subjectId: '01476101', section: '34' },
+          day: 4,
+          startMin: 630,
+          endMin: 720,
+        },
+      ]);
+    }
+  });
+
+  it('accepts a meeting in the gap, since adjacency is not a clash', () => {
+    // 10:15 to 10:30 (615 to 630) touches the first period's end and the second's
+    // start; the half open rule treats both boundaries as adjacency.
+    const gap = makeSection({
+      teachTableId: 'g',
+      subjectId: 'Z',
+      section: '903',
+      meetings: [makeMeeting({ day: 4, startMin: 615, endMin: 630 })],
+    });
+    expect(checkPlacement([multi], [gap])).toEqual({ ok: true });
+  });
+});
+
 describe('checkPlacement exam gate', () => {
   // Two sections on different days never collide in time, so any block here is the exam
   // rule alone. Windows are the API's Gregorian "YYYY-MM-DD HH:MM:SS".
