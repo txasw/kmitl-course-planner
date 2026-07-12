@@ -178,9 +178,12 @@ To reproduce the lint: `pnpm build -b firefox` then
 Assets to capture on the live site at
 https://regis.reg.kmitl.ac.th/#/teach_table_selector before submission.
 
-Recapture all five screenshots after the v1.1 UX refinement train ships. The filter bar,
-the catalog cards, and the grid blocks changed in it, so screenshots 2 through 5 no longer
-match the shipped interface.
+Capture all five screenshots on v1.2.0, the debut submission build, with the built
+production extension. The v1.2.0 design-review train changed the catalog rows, the timetable
+blocks, and the preview export surface, so every screenshot must show the shipped v1.2.0
+interface: the redesigned blocks that lead with the time and show the building, the vertical
+add rail on a section row, and the export template picker in preview mode. This one session
+supersedes the earlier owed recapture.
 
 - Store icon: 128 by 128 pixels. Reuse `public/icon/128.png`.
 - Screenshots: 1280 by 800 pixels, at least one and up to five. Full bleed, square
@@ -192,14 +195,15 @@ Screenshot shot list, each captioned:
 
 1. The launcher on the registration site. Caption: Open the planner from any page of the
    registration site.
-2. Search and the deduplicated course list. Caption: Search offerings and see unique
-   sections, with duplicate rows merged.
-3. The weekly grid with a placed schedule. Caption: Build your week on a drag and drop
+2. Search and the deduplicated course list, showing the vertical add rail on a section
+   row. Caption: Search offerings and see unique sections, with duplicate rows merged.
+3. The weekly grid with a placed schedule, showing the redesigned blocks that lead with
+   the time and name the room and building. Caption: Build your week on a drag and drop
    timetable.
 4. Conflict feedback during a blocked placement. Caption: See time conflicts before you
    commit, with suggested alternatives.
-5. Preview mode with the export toolbar. Caption: Export your plan as an image or copy it
-   as text.
+5. Preview mode with the export toolbar and the template picker open. Caption: Export your
+   plan at a fixed size, or copy it as text.
 
 ## Firefox source package
 
