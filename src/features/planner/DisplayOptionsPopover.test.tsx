@@ -21,7 +21,7 @@ describe('DisplayOptionsPopover', () => {
   it('opens the popover and toggles an option in the store', () => {
     render(<DisplayOptionsPopover />);
     fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }));
-    const showRoom = screen.getByRole('checkbox', { name: 'แสดงห้อง' });
+    const showRoom = screen.getByRole('switch', { name: 'แสดงห้อง' });
     expect(showRoom).toBeChecked();
 
     fireEvent.click(showRoom);
@@ -35,10 +35,10 @@ describe('DisplayOptionsPopover', () => {
     render(<DisplayOptionsPopover />);
     fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }));
     expect(
-      screen.getByRole('checkbox', { name: 'ย่อพอดีกับเนื้อหา' }),
+      screen.getByRole('switch', { name: 'ย่อพอดีกับเนื้อหา' }),
     ).not.toBeChecked();
     expect(
-      screen.getByRole('checkbox', { name: 'แสดงกลุ่มเรียน' }),
+      screen.getByRole('switch', { name: 'แสดงกลุ่มเรียน' }),
     ).toBeChecked();
   });
 });
