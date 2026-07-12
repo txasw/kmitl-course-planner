@@ -1,5 +1,51 @@
 # kmitl-course-planner
 
+## 1.1.0
+
+### Minor Changes
+
+- 4183fc6: Collapse a catalog card once one of its sections is in the plan. The card de-emphasizes to
+  a summary of the subject id, name, and credits with a remove and an expand affordance;
+  expanding reveals the sections read only for reference, since changing section happens by
+  dragging the block on the grid.
+- cc4aedd: Add a right click context menu on a placed block in edit mode with two shortcuts, details
+  and remove. It replaces the browser menu only on a block, closes on Escape or a click away,
+  and stays within the panel. Every keyboard and popover path is unchanged.
+- 24008fc: Tighten the catalog card. The section teachers truncate to one line with the full list on
+  a hover title, and a remark opens from a compact info affordance rather than crowding the
+  row.
+- 2d12d43: Replace the last native select in the panel, the credit filter, with the accessible
+  combobox in a select only mode, and portal the combobox popup so it positions correctly
+  inside the slide over catalog drawer.
+- 55880c4: Exam overlap is now a hard block, not a warning. Adding a section whose midterm or final
+  overlaps one already in the plan is blocked through the same path as a time conflict, and
+  the blocked reason names the exam type and its date range in the Buddhist year both locales
+  show. An exam overlap discovered on an existing plan through revalidation or import reads
+  danger on the block and is never removed automatically.
+- 0201323: Redesign the catalog filter bar. One always visible search field sits beside a filter
+  button that carries an active count badge and opens a popover with the day, credit, and
+  hide facets; the active facets render as removable chips under the field with a clear all.
+- eb03d20: Give the grid blocks a lighter treatment: a soft tint of the subject color under ink text
+  with the saturated color as a left bar, replacing the solid fill with white text. The ten
+  color palette keeps WCAG AA on the new ink on tint and bar pairs, and the export and
+  preview render identically to edit.
+- 4183fc6: Make the whole catalog surface a drag source, not only the grip. A section row drags from
+  anywhere on its body and a course card drags from its header, the city builder grab feel,
+  while a click on an add or remove button still clicks. The grip stays as the visual hint
+  and the keyboard commit anchor.
+
+### Patch Changes
+
+- 6633d57: Keep the keyboard focus ring from being clipped. Standardize the focus indicator on an
+  inset orange ring for light controls, which paints inside the control so a scrolling rail
+  or the catalog drawer can no longer cut it off, and keep an offset outline on the solid
+  orange buttons where an inset ring would fail contrast.
+- 0f6299d: Refuse non digit input in the subject id field. Keystrokes, pasted content, and IME
+  commits are sanitized to digits and clamped to eight, so a leading zero survives and a
+  letter never reaches the field.
+- 607c151: Use the canonical Thai section term กลุ่มเรียน in the hide full and hide time conflicts
+  filter labels, replacing the non canonical ตอน.
+
 ## 1.0.0
 
 ### Major Changes
