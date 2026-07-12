@@ -7,6 +7,7 @@ import type { DayOfWeek } from '@/lib/domain/types';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { catalogStore } from './catalogStore';
 import { dayLabelKey } from '@/lib/i18n/dayLabel';
+import { FOCUS_RING, FOCUS_OUTLINE } from '@/lib/ui/focus';
 
 const DAYS: DayOfWeek[] = [0, 1, 2, 3, 4, 5, 6];
 
@@ -28,7 +29,7 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
         onChange={(event) => {
           catalogStore.getState().setText(event.target.value);
         }}
-        className="rounded-kcp border border-border bg-surface px-2 py-1.5 text-sm text-ink focus:ring-2 focus:ring-primary focus:outline-none"
+        className={`rounded-kcp border border-border bg-surface px-2 py-1.5 text-sm text-ink ${FOCUS_RING}`}
       />
       <div
         role="group"
@@ -45,7 +46,7 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
               onClick={() => {
                 catalogStore.getState().toggleDay(day);
               }}
-              className={`flex-1 rounded-kcp px-1 py-1 text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none ${
+              className={`flex-1 rounded-kcp px-1 py-1 text-xs font-medium ${FOCUS_OUTLINE} ${
                 active
                   ? 'bg-primary-strong text-surface'
                   : 'bg-surface-alt text-ink-soft hover:text-ink'
@@ -67,7 +68,7 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
                 .getState()
                 .setCredit(value === '' ? null : Number(value));
             }}
-            className="rounded-kcp border border-border bg-surface px-1.5 py-1 text-ink focus:ring-2 focus:ring-primary focus:outline-none"
+            className={`rounded-kcp border border-border bg-surface px-1.5 py-1 text-ink ${FOCUS_RING}`}
           >
             <option value="">{t('catalog.filter.creditAny')}</option>
             {creditOptions.map((credit) => (

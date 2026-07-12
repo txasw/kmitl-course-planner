@@ -7,6 +7,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
+import { FOCUS_RING } from '@/lib/ui/focus';
 import {
   AlertTriangle,
   CalendarRange,
@@ -555,7 +556,7 @@ function NameForm({
               onSubmit();
             }
           }}
-          className="rounded-kcp border border-border bg-surface px-2 py-1 text-ink focus:ring-2 focus:ring-primary focus:outline-none"
+          className={`rounded-kcp border border-border bg-surface px-2 py-1 text-ink ${FOCUS_RING}`}
         />
       </label>
       <div className="flex justify-end gap-2">

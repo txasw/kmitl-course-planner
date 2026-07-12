@@ -22,6 +22,7 @@ import type { DisplayOptions } from '@/lib/planner/displayOptions';
 import type { TranslationKey } from '@/lib/i18n/t';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { FOCUS_RING } from '@/lib/ui/focus';
 
 const OPTIONS: { key: keyof DisplayOptions; labelKey: TranslationKey }[] = [
   { key: 'fitToContent', labelKey: 'preview.fitToContent' },
@@ -30,8 +31,7 @@ const OPTIONS: { key: keyof DisplayOptions; labelKey: TranslationKey }[] = [
   { key: 'showEnglishNames', labelKey: 'preview.showEnglishNames' },
 ];
 
-const TRIGGER =
-  'inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm font-medium text-ink hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none';
+const TRIGGER = `inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm font-medium text-ink hover:bg-surface-alt ${FOCUS_RING}`;
 
 export function DisplayOptionsPopover() {
   const { t } = useTranslation();

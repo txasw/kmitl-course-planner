@@ -15,6 +15,7 @@ import {
   type SearchTab,
 } from '@/lib/search/formState';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { FOCUS_RING, FOCUS_OUTLINE } from '@/lib/ui/focus';
 import {
   CategoryFields,
   ClassFields,
@@ -96,7 +97,7 @@ export function SearchForm() {
               onClick={() => {
                 searchStore.getState().setActiveTab(tab);
               }}
-              className={`flex-1 rounded-[6px] px-2 py-1.5 text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none ${
+              className={`flex-1 rounded-[6px] px-2 py-1.5 text-xs font-medium ${FOCUS_RING} ${
                 selected
                   ? 'bg-surface text-primary-strong shadow-kcp'
                   : 'text-ink-soft hover:text-ink'
@@ -120,7 +121,7 @@ export function SearchForm() {
           <button
             type="button"
             onClick={reloadReference}
-            className="self-start rounded-kcp bg-primary-strong px-3 py-1.5 text-xs font-medium text-surface hover:bg-primary-hover focus:ring-2 focus:ring-primary focus:outline-none"
+            className={`self-start rounded-kcp bg-primary-strong px-3 py-1.5 text-xs font-medium text-surface hover:bg-primary-hover ${FOCUS_OUTLINE}`}
           >
             {t('action.retry')}
           </button>
@@ -189,7 +190,7 @@ export function SearchForm() {
         onClick={() => {
           void submit();
         }}
-        className="rounded-kcp bg-primary-strong px-4 py-2 text-sm font-medium text-surface hover:bg-primary-hover focus:ring-2 focus:ring-primary focus:outline-none disabled:opacity-50"
+        className={`rounded-kcp bg-primary-strong px-4 py-2 text-sm font-medium text-surface hover:bg-primary-hover disabled:opacity-50 ${FOCUS_OUTLINE}`}
       >
         {t('search.submit')}
       </button>

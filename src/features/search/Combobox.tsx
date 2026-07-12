@@ -20,6 +20,7 @@ import {
   size,
   autoUpdate,
 } from '@floating-ui/react';
+import { FOCUS_RING } from '@/lib/ui/focus';
 
 const MAX_LIST_HEIGHT = 224;
 
@@ -218,7 +219,7 @@ export function Combobox({
         onClick={openList}
         onKeyDown={handleKeyDown}
         onBlur={close}
-        className="rounded-kcp border border-border bg-surface px-2 py-1.5 text-ink focus:ring-2 focus:ring-primary focus:outline-none disabled:opacity-50"
+        className={`rounded-kcp border border-border bg-surface px-2 py-1.5 text-ink disabled:opacity-50 ${FOCUS_RING}`}
       />
       {listVisible ? (
         <ul

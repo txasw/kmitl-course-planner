@@ -15,6 +15,7 @@ import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { useSearchActions } from '@/features/search/useSearchController';
 import { errorMessageKey } from '@/features/search/errorMessage';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { CourseCatalog } from './CourseCatalog';
 
 function termSummary(query: TeachTableQuery | null, t: Translate): string {
@@ -122,7 +123,7 @@ export function CatalogPanel() {
             onClick={() => {
               void retry();
             }}
-            className="rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-medium text-surface hover:bg-primary-hover focus:ring-2 focus:ring-primary focus:outline-none"
+            className={`rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-medium text-surface hover:bg-primary-hover ${FOCUS_OUTLINE}`}
           >
             {t('action.retry')}
           </button>
