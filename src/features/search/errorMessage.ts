@@ -11,6 +11,13 @@ export function errorMessageKey(error: ApiError): TranslationKey {
     case 'timeout':
       return 'error.timeout';
     case 'http':
+      // A 400 naming the subject id length is the server's exact rejection for an
+      // id that is not eight digits. The client gate prevents it, so this is a
+      // safety net for a value that reached the wire past the field, such as a
+      // persisted or imported search.
+      if (error.status === 400 && error.fields?.selected_subject_id) {
+        return 'error.subjectIdLength';
+      }
       return 'error.http';
     case 'validation':
       return 'error.validation';
