@@ -60,7 +60,7 @@ export const EVENT_TINT_ALPHA = 0.15;
 const tintCache = new Map<string, string>();
 
 /** Composite a six digit hex over white at the given alpha, to an opaque six digit hex. */
-function tintOverWhite(hex: string, alpha: number): string {
+export function tintOverWhite(hex: string, alpha: number): string {
   const clean = hex.replace('#', '');
   const channel = (start: number): string => {
     const front = parseInt(clean.slice(start, start + 2), 16);

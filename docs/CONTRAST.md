@@ -46,6 +46,23 @@ on every tint (minimum 5.21), enforced alongside the ink pair in `hash-color.tes
 | `#5D4037` | `#E7E2E1` | 13.56       | 7.26        |
 | `#455A64` | `#E3E6E8` | 13.88       | 5.78        |
 
+## Export template day-color accent
+
+The export template day-row labels tint with the traditional Thai day colors, each
+composited over white at 16 percent to an opaque hex (ADR-0042). The accent is on only in
+the preview template render, never in edit mode, and the label text is ink. Ink on every
+day tint clears 4.5:1 with wide margin, enforced in `dayColors.test.ts`.
+
+| Day        | Color     | Tint      | Ink on tint |
+| ---------- | --------- | --------- | ----------- |
+| Sun red    | `#D5322F` | `#F8DEDE` | 13.67       |
+| Mon yellow | `#E8B923` | `#FBF4DC` | 15.81       |
+| Tue pink   | `#E7669B` | `#FBE7EF` | 14.73       |
+| Wed green  | `#2E9E5B` | `#DEEFE5` | 14.57       |
+| Thu orange | `#E5852B` | `#FBEBDD` | 14.94       |
+| Fri blue   | `#2F6FBF` | `#DEE8F5` | 14.06       |
+| Sat purple | `#7A3FB0` | `#EAE0F2` | 13.63       |
+
 ## Design token text on background pairs
 
 Each pair is a usage the UI renders. The brand orange `--kcp-primary` (`#E35205`) is an
