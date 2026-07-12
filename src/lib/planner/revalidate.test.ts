@@ -17,7 +17,7 @@ import {
   revalidatePlan,
   type SectionIndex,
 } from './revalidate';
-import { planExamWarnings } from './examOverlap';
+import { planExamConflicts } from './examOverlap';
 import { placedSections } from './transaction';
 
 const NOW = '2026-07-09T00:00:00.000Z';
@@ -313,7 +313,7 @@ describe('reconcilePlan', () => {
         }),
       ],
     });
-    expect(planExamWarnings(placedSections(plan.entries)).size).toBe(0);
+    expect(planExamConflicts(placedSections(plan.entries)).size).toBe(0);
 
     // Upstream moves the first entry's midterm onto the second entry's day and time.
     const { plan: reconciled } = reconcile(plan, [
@@ -340,6 +340,6 @@ describe('reconcilePlan', () => {
         },
       }),
     ]);
-    expect(planExamWarnings(placedSections(reconciled.entries)).size).toBe(2);
+    expect(planExamConflicts(placedSections(reconciled.entries)).size).toBe(2);
   });
 });

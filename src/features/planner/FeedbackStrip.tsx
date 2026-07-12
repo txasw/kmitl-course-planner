@@ -23,10 +23,8 @@ import {
   dragStore,
   type BlockedFeedback,
   type CrossTermFeedback,
-  type ExamWarningFeedback,
 } from './dragStore';
 import { conflictReasonText } from './conflictText';
-import { examOverlapText } from './examText';
 
 const UNDO_WINDOW_MS = 10_000;
 const BLOCKED_WINDOW_MS = 6_000;
@@ -129,20 +127,6 @@ function CrossTermNotice({
   );
 }
 
-function ExamWarningNotice({
-  feedback,
-  t,
-}: {
-  feedback: ExamWarningFeedback;
-  t: Translate;
-}) {
-  return (
-    <div className="flex flex-wrap items-center gap-2 rounded-kcp border border-warn bg-primary-soft px-2 py-1 text-xs text-ink">
-      <span>{examOverlapText(feedback, t)}</span>
-    </div>
-  );
-}
-
 const MUTATION_LABEL: Record<UndoRecord['kind'], TranslationKey> = {
   remove: 'feedback.removed',
   move: 'feedback.moved',
@@ -190,7 +174,6 @@ export function FeedbackStrip({ locale, t }: FeedbackStripProps) {
   const pendingUndo = useStore(planStore, (state) => state.pendingUndo);
   const blocked = useStore(dragStore, (state) => state.blocked);
   const crossTerm = useStore(dragStore, (state) => state.crossTerm);
-  const examWarning = useStore(dragStore, (state) => state.examWarning);
   const announcement = useStore(dragStore, (state) => state.announcement);
   const hint = useStore(dragStore, (state) => state.hint);
   const placed = usePlacedSections();
@@ -232,18 +215,6 @@ export function FeedbackStrip({ locale, t }: FeedbackStripProps) {
   }, [crossTerm]);
 
   useEffect(() => {
-    if (examWarning === null) {
-      return undefined;
-    }
-    const timer = setTimeout(() => {
-      dragStore.getState().clearExamWarning();
-    }, BLOCKED_WINDOW_MS);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [examWarning]);
-
-  useEffect(() => {
     if (announcement === null) {
       return undefined;
     }
@@ -273,8 +244,6 @@ export function FeedbackStrip({ locale, t }: FeedbackStripProps) {
         <CrossTermNotice feedback={crossTerm} t={t} />
       ) : blocked !== null ? (
         <BlockedNotice blocked={blocked} placed={placed} t={t} />
-      ) : examWarning !== null ? (
-        <ExamWarningNotice feedback={examWarning} t={t} />
       ) : pendingUndo !== null ? (
         <MutationNotice record={pendingUndo} locale={locale} t={t} />
       ) : hint !== null ? (

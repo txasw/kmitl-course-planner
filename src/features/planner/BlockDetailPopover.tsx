@@ -171,7 +171,7 @@ export function BlockDetailPopover({
           aria-label={t('verify.examOverlap')}
           className="mt-2 flex flex-col gap-1 border-t border-border pt-2"
         >
-          <p className="font-medium text-warn">{t('verify.examOverlap')}</p>
+          <p className="font-medium text-danger">{t('verify.examOverlap')}</p>
           {examOverlaps.map((overlap) => (
             <div
               key={`${overlap.kind}-${overlap.blocking.teachTableId}`}

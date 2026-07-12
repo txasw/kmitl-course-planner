@@ -13,8 +13,8 @@ interface UnscheduledShelfProps {
   locale: Locale;
   t: Translate;
   onRemove?: ((teachTableId: string) => void) | undefined;
-  /** teachTableIds whose exam window overlaps another entry's, so the row reads warn. */
-  examWarnIds?: Set<string>;
+  /** teachTableIds whose exam window overlaps another entry's, so the row reads danger. */
+  examConflictIds?: Set<string>;
   /** Show the section code. A preview display option; on by default in edit mode. */
   showSection?: boolean;
   /** Add the English name as a secondary line under a Thai primary name. */
@@ -26,7 +26,7 @@ export function UnscheduledShelf({
   locale,
   t,
   onRemove,
-  examWarnIds,
+  examConflictIds,
   showSection = true,
   showEnglishName = false,
 }: UnscheduledShelfProps) {
@@ -43,12 +43,13 @@ export function UnscheduledShelf({
           const name = locale === 'th' ? section.nameTh : section.nameEn;
           const englishSecondary =
             showEnglishName && locale === 'th' && section.nameEn !== '';
-          const examWarned = examWarnIds?.has(section.teachTableId) ?? false;
-          const badge = blockBadge(section.verifyStatus, false, examWarned);
+          const examConflicted =
+            examConflictIds?.has(section.teachTableId) ?? false;
+          const badge = blockBadge(section.verifyStatus, false, examConflicted);
           const badgeText = blockBadgeLabelKeys(
             section.verifyStatus,
             false,
-            examWarned,
+            examConflicted,
           )
             .map((key) => t(key))
             .join(' ');
