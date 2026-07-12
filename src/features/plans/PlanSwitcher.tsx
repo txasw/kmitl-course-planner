@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { Tooltip } from '@/components/Tooltip';
 import {
   AlertTriangle,
   CalendarRange,
@@ -419,6 +420,7 @@ export function PlanSwitcher() {
                 <ActionButton
                   icon={<Plus size={14} strokeWidth={2} aria-hidden />}
                   label={t('planSwitcher.create')}
+                  showLabel={false}
                   disabled={!canCreate}
                   onClick={() => {
                     setMode({
@@ -433,6 +435,7 @@ export function PlanSwitcher() {
                     <ActionButton
                       icon={<Pencil size={14} strokeWidth={2} aria-hidden />}
                       label={t('planSwitcher.rename')}
+                      showLabel={false}
                       onClick={() => {
                         setMode({
                           kind: 'name',
@@ -444,6 +447,7 @@ export function PlanSwitcher() {
                     <ActionButton
                       icon={<Copy size={14} strokeWidth={2} aria-hidden />}
                       label={t('planSwitcher.duplicate')}
+                      showLabel={false}
                       onClick={() => {
                         planStore
                           .getState()
@@ -458,6 +462,7 @@ export function PlanSwitcher() {
                     <ActionButton
                       icon={<Trash2 size={14} strokeWidth={2} aria-hidden />}
                       label={t('planSwitcher.delete')}
+                      showLabel={false}
                       onClick={() => {
                         setMode({ kind: 'confirmDelete' });
                       }}
@@ -494,24 +499,35 @@ function ActionButton({
   label,
   onClick,
   disabled = false,
+  showLabel = true,
 }: {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
   disabled?: boolean;
+  /** When false the label is dropped and the button is icon only, still named by
+   * its aria-label and its tooltip. Used for the four plan action buttons. */
+  showLabel?: boolean;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={label}
-      title={label}
-      className="inline-flex items-center gap-1 rounded-kcp px-2 py-1 text-xs font-medium text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 disabled:hover:bg-transparent"
-    >
-      {icon}
-      <span>{label}</span>
-    </button>
+    <Tooltip label={label}>
+      {(triggerProps, ref) => (
+        <button
+          ref={ref}
+          {...triggerProps}
+          type="button"
+          onClick={onClick}
+          disabled={disabled}
+          aria-label={label}
+          className={`inline-flex items-center rounded-kcp py-1 font-medium text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 disabled:hover:bg-transparent ${
+            showLabel ? 'gap-1 px-2 text-xs' : 'px-1.5'
+          }`}
+        >
+          {icon}
+          {showLabel ? <span>{label}</span> : null}
+        </button>
+      )}
+    </Tooltip>
   );
 }
 
