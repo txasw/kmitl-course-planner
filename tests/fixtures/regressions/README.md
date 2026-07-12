@@ -13,6 +13,17 @@ The API's rejection body when a `by_class` request sends an empty
 `selected_class_year`. The all class year option must send `0`, not an empty
 value. Drives the mock's rejection and the search-all specs.
 
+### teach-table.subject-id-length.error.json
+
+The live 400 body the API returns for a `by_subject_id` request whose
+`selected_subject_id` is not eight digits, captured on 2026-07-13:
+`{ "message": { "selected_subject_id": ["length is not equal 8"] }, "code": 400,
+"status": "Bad Request" }`. The client contract in Section 6.2 originally said one
+to eight digits, but the server requires exactly eight, so a shorter search always
+failed. The client gate now blocks a short id, and this body drives the safety net
+mapper test: the fetch layer parses the field error into `HttpError.fields` and the
+error mapper turns a 400 naming `selected_subject_id` into a localized message.
+
 ### teach-table.all-curricula-null-teachtime-str.report-1.json, report-2.json
 
 Data quality reports exported from the diagnostics drawer against the live site

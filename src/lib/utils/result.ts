@@ -26,6 +26,9 @@ export interface HttpError {
   readonly kind: 'http';
   readonly status: number;
   readonly message: string;
+  /** Per field error lists parsed from a 4xx validation body, when the server
+   * sent one, for example a subject id length rejection. Absent otherwise. */
+  readonly fields?: Readonly<Record<string, readonly string[]>>;
 }
 
 export interface ValidationError {
@@ -86,8 +89,14 @@ export function timeoutError(message: string): TimeoutError {
   return { kind: 'timeout', message };
 }
 
-export function httpError(status: number, message: string): HttpError {
-  return { kind: 'http', status, message };
+export function httpError(
+  status: number,
+  message: string,
+  fields?: Readonly<Record<string, readonly string[]>>,
+): HttpError {
+  return fields === undefined
+    ? { kind: 'http', status, message }
+    : { kind: 'http', status, message, fields };
 }
 
 export function validationError(

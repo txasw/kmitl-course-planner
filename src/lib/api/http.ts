@@ -79,6 +79,43 @@ function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : 'network request failed';
 }
 
+/**
+ * Extract a `{ message: { field: string[] } }` validation body into a field error
+ * map, or undefined when the body is missing, not JSON, or not that shape. The
+ * registration API returns this for a rejected query, for example
+ * `{ "message": { "selected_subject_id": ["length is not equal 8"] } }`.
+ */
+function extractFieldErrors(
+  text: string,
+): Record<string, string[]> | undefined {
+  if (text === '') {
+    return undefined;
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return undefined;
+  }
+  if (typeof parsed !== 'object' || parsed === null) {
+    return undefined;
+  }
+  const message = (parsed as Record<string, unknown>).message;
+  if (typeof message !== 'object' || message === null) {
+    return undefined;
+  }
+  const fields: Record<string, string[]> = {};
+  for (const [key, value] of Object.entries(message)) {
+    if (
+      Array.isArray(value) &&
+      value.every((item) => typeof item === 'string')
+    ) {
+      fields[key] = value;
+    }
+  }
+  return Object.keys(fields).length > 0 ? fields : undefined;
+}
+
 async function attemptOnce(
   url: string,
   env: GatewayEnv,
@@ -111,10 +148,14 @@ async function attemptOnce(
     const ttfbMs = env.now() - start;
     if (!response.ok) {
       const message = `request failed with status ${String(response.status)}`;
+      // Read the error body once (a 4xx or 5xx is terminal after retries, never
+      // parsed for data) to surface a server field error such as the subject id
+      // length rejection. Best effort: a missing or non JSON body yields no detail.
+      const fields = extractFieldErrors(await response.text().catch(() => ''));
       return {
         retryable: response.status >= 500,
         status: response.status,
-        result: err(httpError(response.status, message)),
+        result: err(httpError(response.status, message, fields)),
         timings: { ...NO_TIMINGS, ttfbMs },
       };
     }

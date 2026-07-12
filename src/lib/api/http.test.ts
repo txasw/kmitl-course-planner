@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { loadFixture } from '../../../tests/support/fixtures';
 import { fetchJson } from './http';
 import type { GatewayEnv } from './types';
 
@@ -78,6 +79,26 @@ describe('fetchJson', () => {
     expect(outcome.result.ok).toBe(false);
     if (!outcome.result.ok && outcome.result.error.kind === 'http') {
       expect(outcome.result.error.status).toBe(400);
+    } else {
+      expect.unreachable('expected an http error');
+    }
+  });
+
+  it('captures a 4xx field error body into the http error', async () => {
+    const body = loadFixture(
+      'regressions/teach-table.subject-id-length.error.json',
+    );
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response(JSON.stringify(body), { status: 400 }));
+    const outcome = await fetchJson('https://x', makeEnv(fetchImpl));
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(outcome.result.ok).toBe(false);
+    if (!outcome.result.ok && outcome.result.error.kind === 'http') {
+      expect(outcome.result.error.status).toBe(400);
+      expect(outcome.result.error.fields?.selected_subject_id).toEqual([
+        'length is not equal 8',
+      ]);
     } else {
       expect.unreachable('expected an http error');
     }
