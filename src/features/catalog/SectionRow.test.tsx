@@ -30,8 +30,26 @@ describe('SectionRow actions', () => {
         onAdd={onAdd}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'เพิ่ม' }));
+    fireEvent.click(screen.getByRole('button', { name: /^เพิ่ม/ }));
     expect(onAdd).toHaveBeenCalledWith(course, section);
+  });
+
+  it('renders the add as an icon rail that names the section', () => {
+    render(
+      <SectionRow
+        course={course}
+        section={section}
+        relation={{ kind: 'addable' }}
+        seat={openSeat}
+        locale="th"
+        t={t}
+        onAdd={vi.fn()}
+      />,
+    );
+    const add = screen.getByRole('button', { name: /^เพิ่ม/ });
+    // Icon only, with the accessible name naming the section it adds.
+    expect(add.textContent).toBe('');
+    expect(add.getAttribute('aria-label')).toContain(section.section);
   });
 
   it('removes an added section on click', () => {
@@ -64,7 +82,7 @@ describe('SectionRow actions', () => {
         onAdd={onAdd}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'เพิ่ม' }));
+    fireEvent.click(screen.getByRole('button', { name: /^เพิ่ม/ }));
     expect(onAdd).toHaveBeenCalledWith(course, section);
   });
 
@@ -81,7 +99,7 @@ describe('SectionRow actions', () => {
       />,
     );
     expect(
-      screen.queryByRole('button', { name: 'เพิ่ม' }),
+      screen.queryByRole('button', { name: /^เพิ่ม/ }),
     ).not.toBeInTheDocument();
   });
 
@@ -119,7 +137,7 @@ describe('SectionRow actions', () => {
     expect(screen.queryByText('ปฏิบัติ')).not.toBeInTheDocument();
   });
 
-  it('offers no add button for a full section', () => {
+  it('shows a disabled add rail for a full section', () => {
     const fullSection = makeSection({
       seats: { limit: 40, preCount: 40, queueLeft: 0, enrolled: 'full' },
     });
@@ -134,9 +152,9 @@ describe('SectionRow actions', () => {
         onAdd={vi.fn()}
       />,
     );
-    expect(
-      screen.queryByRole('button', { name: 'เพิ่ม' }),
-    ).not.toBeInTheDocument();
+    // The rail stays on the trailing edge but is disabled; the full reason reads
+    // from the seat pill in the row body.
+    expect(screen.getByRole('button', { name: /^เพิ่ม/ })).toBeDisabled();
   });
 });
 

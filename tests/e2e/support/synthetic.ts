@@ -28,7 +28,7 @@ export async function addCourse(page: Page, subjectId: string): Promise<void> {
     .getByRole('article')
     .filter({ hasText: subjectId })
     .first()
-    .getByRole('button', { name: 'เพิ่ม', exact: true })
+    .getByRole('button', { name: /^เพิ่ม/ })
     .first()
     .click();
 }
