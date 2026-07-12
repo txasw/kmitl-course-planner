@@ -73,6 +73,21 @@ describe('revalidateEntry', () => {
     expect(result.changes).toContain('time_changed');
   });
 
+  it('flags a snapshot that gains a second meeting as changed', () => {
+    // A plan saved before teachtime_str was parsed has a one meeting snapshot; the
+    // fresh truth now carries the extra period, so the meeting set grew.
+    const entry = makePlanEntry({ snapshot: makeSnapshot() });
+    const grown = makeSection({
+      meetings: [
+        makeMeeting(),
+        makeMeeting({ day: 4, startMin: 630, endMin: 720 }),
+      ],
+    });
+    const result = revalidateEntry(entry, indexFrom([grown]));
+    expect(result.outcome).toBe('changed');
+    expect(result.changes).toContain('time_changed');
+  });
+
   it('flags a seat change including the full state', () => {
     const entry = makePlanEntry({ snapshot: makeSnapshot() });
     const full = makeSection({
@@ -170,6 +185,34 @@ describe('reconcilePlan', () => {
     expect(report.entries[0]?.changes).toContain('time_changed');
     expect(report.entries[0]?.before.meetings[0]?.startMin).toBe(540);
     expect(report.entries[0]?.after?.meetings[0]?.startMin).toBe(600);
+  });
+
+  it('self heals a pre patch snapshot to the fuller multi meeting schedule', () => {
+    // A plan saved before teachtime_str parsing has one meeting. On first open after
+    // the upgrade, reconcile rewrites the snapshot to the two meeting truth, so the
+    // re run conflict engine can surface any newly true conflict. Nothing is removed.
+    const entry = makePlanEntry({
+      snapshot: makeSnapshot({
+        teachTableId: 't1',
+        subjectId: 'S1',
+        section: '901',
+      }),
+    });
+    const plan = makePlan({ entries: [entry] });
+    const fresh = makeSection({
+      teachTableId: 't1',
+      subjectId: 'S1',
+      section: '901',
+      meetings: [
+        makeMeeting(),
+        makeMeeting({ day: 4, startMin: 630, endMin: 720 }),
+      ],
+    });
+    const { plan: reconciled, report } = reconcile(plan, [fresh]);
+    const updated = reconciled.entries[0];
+    expect(updated?.snapshot.meetings).toHaveLength(2);
+    expect(updated?.verifyStatus).toBe('changed');
+    expect(report.entries[0]?.changes).toContain('time_changed');
   });
 
   it('keeps a missing entry at its last known snapshot and flags it', () => {
