@@ -1,5 +1,5 @@
-import { describe, it, expect, afterEach } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { createTranslator, type Translate } from '@/lib/i18n/t';
 import type { Section } from '@/lib/domain/types';
 import {
@@ -38,20 +38,6 @@ describe('CourseCard seat status', () => {
 });
 
 describe('CourseCard plan relation', () => {
-  it('marks a placed section as added', () => {
-    const section = makeSection({ subjectId: '90000001', section: '901' });
-    const course = makeCourse({ subjectId: '90000001', sections: [section] });
-    const placed = [
-      makeSection({
-        subjectId: '90000001',
-        section: '901',
-        teachTableId: 'placed',
-      }),
-    ];
-    render(<CourseCard course={course} placed={placed} locale="th" t={t} />);
-    expect(screen.getByText('เพิ่มแล้ว')).toBeInTheDocument();
-  });
-
   it('marks a time overlap with a different subject as conflicting', () => {
     const section = makeSection({
       subjectId: '90000001',
@@ -70,25 +56,90 @@ describe('CourseCard plan relation', () => {
     render(<CourseCard course={course} placed={placed} locale="th" t={t} />);
     expect(screen.getByText('เวลาชนกัน')).toBeInTheDocument();
   });
+});
 
-  it('marks another section of a placed subject as duplicate', () => {
-    const section = makeSection({
+describe('CourseCard collapsed added course', () => {
+  const section = makeSection({
+    subjectId: '90000001',
+    section: '901',
+    teachTableId: 's901',
+    meetings: [makeMeeting({ day: 1 })],
+  });
+  const course = makeCourse({ subjectId: '90000001', sections: [section] });
+  const placed = [
+    makeSection({
       subjectId: '90000001',
       section: '901',
+      teachTableId: 'placed901',
       meetings: [makeMeeting({ day: 1 })],
-    });
-    const course = makeCourse({ subjectId: '90000001', sections: [section] });
-    const placed = [
-      makeSection({
-        subjectId: '90000001',
-        section: '801',
-        teachTableId: 'placed',
-        meetings: [makeMeeting({ day: 3 })],
-      }),
-    ];
-    render(<CourseCard course={course} placed={placed} locale="th" t={t} />);
-    expect(screen.getByText('วิชาซ้ำ')).toBeInTheDocument();
-    expect(screen.getByText('มีวิชานี้ในตารางแล้ว')).toBeInTheDocument();
+    }),
+  ];
+
+  it('collapses an added course, hiding the section rows and the added badge', () => {
+    render(
+      <CourseCard
+        course={course}
+        placed={placed}
+        locale="th"
+        t={t}
+        onRemove={() => undefined}
+      />,
+    );
+    expect(screen.getByText('90000001')).toBeInTheDocument();
+    expect(screen.queryByText('เพิ่มแล้ว')).not.toBeInTheDocument();
+    expect(screen.queryByText(/กลุ่มเรียน 901/)).not.toBeInTheDocument();
+  });
+
+  it('de-emphasizes an added course with surface-alt, not opacity', () => {
+    const { container } = render(
+      <CourseCard
+        course={course}
+        placed={placed}
+        locale="th"
+        t={t}
+        onRemove={() => undefined}
+      />,
+    );
+    const article = container.querySelector('article');
+    expect(article?.className).toContain('bg-surface-alt');
+    expect(article?.className).not.toContain('opacity');
+  });
+
+  it('removes the placed section from the collapsed header', () => {
+    const onRemove = vi.fn();
+    render(
+      <CourseCard
+        course={course}
+        placed={placed}
+        locale="th"
+        t={t}
+        onRemove={onRemove}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'นำออก' }));
+    expect(onRemove).toHaveBeenCalledWith('placed901');
+  });
+
+  it('expands to read-only sections with the drag hint and no add label', () => {
+    render(
+      <CourseCard
+        course={course}
+        placed={placed}
+        locale="th"
+        t={t}
+        onAdd={() => undefined}
+        onRemove={() => undefined}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'แสดงกลุ่มเรียน' }));
+    expect(
+      screen.getByText('เปลี่ยนกลุ่มเรียนโดยลากบล็อกในตาราง'),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/กลุ่มเรียน 901/)).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'เพิ่ม' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('เพิ่มแล้ว')).not.toBeInTheDocument();
   });
 });
 
@@ -105,6 +156,22 @@ describe('CourseCard course drag handle', () => {
       />,
     );
     expect(screen.getByTitle(/ลากรายวิชา/)).toBeInTheDocument();
+  });
+
+  it('makes the whole header the course drag surface in edit mode', () => {
+    const course = makeCourse({ subjectId: '90592008' });
+    render(
+      <CourseCard
+        course={course}
+        placed={[]}
+        locale="th"
+        t={t}
+        onAdd={() => undefined}
+      />,
+    );
+    expect(
+      document.querySelector('[data-drag-surface="course"]'),
+    ).not.toBeNull();
   });
 
   it('omits the course drag handle without an add handler', () => {

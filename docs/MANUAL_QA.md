@@ -41,6 +41,16 @@ button. Never skip it.
       valid ones as droppable slots and blocked, full, and closed ones as hatched
       with their reason. Hovering a candidate highlights its whole section group.
       Dropping on a valid slot commits that section and its pair.
+- [ ] Whole surface drag: grab a section row on its body, not only the grip, and drag it
+      onto the grid; it places. Grab a course card header and drag; every section shows as a
+      candidate. A click on a row's add or remove button still clicks rather than dragging.
+- [ ] Block context menu: right click a placed block in edit mode. A small menu opens with
+      details and remove. Details opens the block popover; remove takes the section off the
+      grid. Escape and a click away close only the menu. In preview the browser menu shows.
+- [ ] Added course collapse: add a section, then find its card in the catalog. It collapses
+      to a dim summary with the subject id, name, credits, a remove, and an expand. Expand
+      shows the sections read only with the hint that section changes happen by dragging the
+      block. Remove from the collapsed header takes the section off the grid.
 - [ ] Overlay tracking: while dragging a section grip, the grab card follows the
       pointer within a few pixels rather than floating above it.
 - [ ] Block drag to remove: grab a placed block. The remove zone appears at the panel

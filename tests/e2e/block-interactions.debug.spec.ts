@@ -94,7 +94,7 @@ test('swaps a blocking section on a conflicting drop, with undo', async ({
     .getByRole('article')
     .filter({ hasText: '90000002' })
     .first()
-    .getByRole('button', { name: /ลากเพื่อเพิ่ม/ })
+    .locator('[data-drag-surface="section"]')
     .first();
   const gripBox = await gripB.boundingBox();
   expect(gripBox).not.toBeNull();
@@ -168,7 +168,7 @@ test('rejects a swap that still conflicts after removing the blocker', async ({
     .getByRole('article')
     .filter({ hasText: '90000006' })
     .first()
-    .getByRole('button', { name: /ลากเพื่อเพิ่ม/ })
+    .locator('[data-drag-surface="section"]')
     .first();
   const gripBox = await gripX.boundingBox();
   expect(gripBox).not.toBeNull();

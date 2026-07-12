@@ -46,7 +46,9 @@ test('places a section on the grid by dragging its handle', async ({
   const page = await openPlanner(context);
   await categorySearch(page);
 
-  const handle = page.getByRole('button', { name: /ลากเพื่อเพิ่ม/ }).first();
+  // The whole section row is the pointer drag source now, not only the grip, so grab the
+  // row surface. The grip stays the keyboard commit anchor, covered by the next test.
+  const handle = page.locator('[data-drag-surface="section"]').first();
   const grid = page.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
   const from = await handle.boundingBox();
   const to = await grid.boundingBox();

@@ -64,6 +64,9 @@ interface SectionRowProps {
   onAdd?: ((course: Course, section: Section) => void) | undefined;
   onRemove?: ((teachTableId: string) => void) | undefined;
   onSwitchTerm?: ((term: Term) => void) | undefined;
+  /** Reference only: no action buttons, no state badge, no reason lines. Used by the
+   * collapsed added course card when its sections are revealed. */
+  readOnly?: boolean;
 }
 
 export function SectionRow({
@@ -76,6 +79,7 @@ export function SectionRow({
   onAdd,
   onRemove,
   onSwitchTerm,
+  readOnly = false,
 }: SectionRowProps) {
   const kind = section.kind;
   const teachers = locale === 'th' ? section.teachersTh : section.teachersEn;
@@ -100,10 +104,13 @@ export function SectionRow({
             {kind === 'practice' ? t('section.practice') : t('section.lecture')}
           </Pill>
           <SeatPill status={seat} t={t} />
-          <StateBadge relation={relation} t={t} />
-          {addable && onAdd !== undefined ? (
+          {readOnly ? null : <StateBadge relation={relation} t={t} />}
+          {!readOnly && addable && onAdd !== undefined ? (
             <button
               type="button"
+              onPointerDown={(event) => {
+                event.stopPropagation();
+              }}
               onClick={() => {
                 onAdd(course, section);
               }}
@@ -112,9 +119,12 @@ export function SectionRow({
               {t('action.add')}
             </button>
           ) : null}
-          {relation.kind === 'added' && onRemove !== undefined ? (
+          {!readOnly && relation.kind === 'added' && onRemove !== undefined ? (
             <button
               type="button"
+              onPointerDown={(event) => {
+                event.stopPropagation();
+              }}
               onClick={() => {
                 onRemove(section.teachTableId);
               }}
@@ -123,9 +133,14 @@ export function SectionRow({
               {t('action.remove')}
             </button>
           ) : null}
-          {relation.kind === 'different_term' && onSwitchTerm !== undefined ? (
+          {!readOnly &&
+          relation.kind === 'different_term' &&
+          onSwitchTerm !== undefined ? (
             <button
               type="button"
+              onPointerDown={(event) => {
+                event.stopPropagation();
+              }}
               onClick={() => {
                 onSwitchTerm(relation.browsedTerm);
               }}
@@ -154,15 +169,15 @@ export function SectionRow({
         <p className="mt-1 text-ink-soft">{teachers.join(', ')}</p>
       ) : null}
 
-      {relation.kind === 'conflicting' ? (
+      {!readOnly && relation.kind === 'conflicting' ? (
         <p className="mt-1 text-danger">
           {conflictReason(relation.conflicts, t)}
         </p>
       ) : null}
-      {relation.kind === 'duplicate' ? (
+      {!readOnly && relation.kind === 'duplicate' ? (
         <p className="mt-1 text-warn">{t('section.reason.duplicate')}</p>
       ) : null}
-      {relation.kind === 'different_term' ? (
+      {!readOnly && relation.kind === 'different_term' ? (
         <p className="mt-1 text-ink-soft">
           {t('term.planIs')} {termLabel(relation.planTerm)}.{' '}
           {t('term.sectionIs')} {termLabel(relation.browsedTerm)}

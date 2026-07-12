@@ -41,6 +41,23 @@ describe('DraggableSection', () => {
     expect(onActivate).toHaveBeenCalledTimes(1);
   });
 
+  it('exposes the whole row as the section drag surface', () => {
+    render(
+      <DraggableSection
+        id="s1"
+        course={course}
+        section={section}
+        label="ลาก s1"
+        onActivate={() => undefined}
+      >
+        <div>row</div>
+      </DraggableSection>,
+    );
+    expect(
+      document.querySelector('[data-drag-surface="section"]'),
+    ).not.toBeNull();
+  });
+
   it('previews the section on grip focus and clears it on blur', () => {
     render(
       <DraggableSection
