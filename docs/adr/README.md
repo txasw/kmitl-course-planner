@@ -40,3 +40,4 @@ a new record that supersedes the old one rather than editing history.
 31. [Retire the by_class all faculty and all department options](0031-by-class-all-options-retirement.md)
 32. [Public release identity: name, independence, and mark](0032-public-release-identity.md)
 33. [Release artifacts, sources packaging, and private package tagging](0033-release-artifacts-and-private-tagging.md)
+34. [Standard keyboard focus indicator](0034-standard-focus-indicator.md)
