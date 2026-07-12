@@ -82,9 +82,11 @@ export function defaultCategoryForm(term: Term): CategoryForm {
   };
 }
 
-/** A subject id is 1 to 8 digits, matching the 8 digit course code prefix. */
+/** A subject id is exactly 8 digits, matching the course code. The live server
+ * rejects any other length ("length is not equal 8"), so the client gate never
+ * issues a query for a shorter or longer value. */
 export function isValidSubjectId(value: string): boolean {
-  return /^\d{1,8}$/.test(value);
+  return /^\d{8}$/.test(value);
 }
 
 /** Normalize raw subject id input: keep digits only and clamp to the 8 digit course code

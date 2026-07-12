@@ -21,13 +21,15 @@ import {
 const term: Term = { year: '2569', semester: '1' };
 
 describe('isValidSubjectId', () => {
-  it('accepts 1 to 8 digits', () => {
-    expect(isValidSubjectId('1')).toBe(true);
+  it('accepts exactly eight digits', () => {
     expect(isValidSubjectId('90592033')).toBe(true);
+    expect(isValidSubjectId('01234567')).toBe(true);
   });
 
-  it('rejects empty, too long, and non digit input', () => {
+  it('rejects fewer than eight, more than eight, and non digit input', () => {
     expect(isValidSubjectId('')).toBe(false);
+    expect(isValidSubjectId('1')).toBe(false);
+    expect(isValidSubjectId('1234567')).toBe(false);
     expect(isValidSubjectId('123456789')).toBe(false);
     expect(isValidSubjectId('12a')).toBe(false);
   });
@@ -88,9 +90,10 @@ describe('form readiness', () => {
     expect(isClassFormReady(ready)).toBe(true);
   });
 
-  it('requires a year and a valid subject id for the subject id tab', () => {
+  it('requires a year and a full eight digit subject id for the subject id tab', () => {
     const form = defaultSubjectIdForm(term);
     expect(isSubjectIdFormReady({ ...form, subjectId: '' })).toBe(false);
+    expect(isSubjectIdFormReady({ ...form, subjectId: '9059203' })).toBe(false);
     expect(isSubjectIdFormReady({ ...form, subjectId: '90592033' })).toBe(true);
     expect(
       isSubjectIdFormReady({ ...form, subjectId: '90592033', year: '' }),
