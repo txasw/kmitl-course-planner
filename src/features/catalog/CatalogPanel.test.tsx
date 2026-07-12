@@ -112,7 +112,12 @@ describe('CatalogPanel', () => {
       searchStore.getState().setResult(
         {
           status: 'ready',
-          data: { courses: [], duplicateCount: 0, warnings: [] },
+          data: {
+            courses: [],
+            duplicateCount: 0,
+            multiMeetingCount: 0,
+            warnings: [],
+          },
         },
         {
           mode: 'by_subject_owner_id',
@@ -135,6 +140,7 @@ describe('CatalogPanel', () => {
     const catalog: NormalizedCatalog = {
       courses: [makeCourse({ subjectId: '90592008' })],
       duplicateCount: 0,
+      multiMeetingCount: 0,
       warnings: [],
     };
     const query: TeachTableQuery = {
