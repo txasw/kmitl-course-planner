@@ -111,13 +111,13 @@ test('profiles the dense catalog render and a grid drag', async ({
   // first; that render lands before the measurement window and is not counted.
   await page.getByRole('button', { name: 'ตัวกรอง', exact: true }).click();
   const filterToggle = page
-    .getByRole('checkbox', { name: 'ซ่อนวิชาที่ไม่มีคาบเรียน' })
+    .getByRole('switch', { name: 'ซ่อนวิชาที่ไม่มีคาบเรียน' })
     .first();
   const beforeFilter = await scriptMs(client);
-  await filterToggle.check();
+  await filterToggle.click();
   await page.waitForTimeout(150);
   const filterMs = (await scriptMs(client)) - beforeFilter;
-  await filterToggle.uncheck();
+  await filterToggle.click();
   await page.waitForTimeout(150);
   // Close the popover so it does not overlay the catalog for the following adds.
   await page.getByRole('button', { name: 'ตัวกรอง', exact: true }).click();
