@@ -46,3 +46,4 @@ a new record that supersedes the old one rather than editing history.
 37. [teachtime_str carries a section's additional meetings](0037-teachtime-str-additional-meetings.md)
 38. [Subject id search requires exactly eight digits](0038-subject-id-exact-length.md)
 39. [Accessible tooltip primitive](0039-tooltip-primitive.md)
+40. [Event block layout redesign](0040-event-block-redesign.md)
