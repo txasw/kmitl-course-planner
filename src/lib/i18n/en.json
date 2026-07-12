@@ -74,8 +74,6 @@
   "catalog.units.multiMeeting": "multi meeting sections",
   "catalog.filterEmpty": "No courses match the filters",
   "catalog.card.addedHint": "Change sections by dragging the block on the grid",
-  "catalog.card.expand": "Show sections",
-  "catalog.card.collapse": "Hide sections",
   "catalog.refresh": "Refresh",
   "toast.refreshUnchanged": "Already up to date, nothing changed",
   "catalog.filter.text": "Filter courses",
