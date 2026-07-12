@@ -144,7 +144,7 @@ describe('CourseCard collapsed added course', () => {
 });
 
 describe('CourseCard course drag handle', () => {
-  it('shows a course drag handle in edit mode with a hover hint', async () => {
+  it('shows a course drag handle in edit mode with an accessible hint', () => {
     const course = makeCourse({ subjectId: '90592008' });
     render(
       <CourseCard
@@ -159,8 +159,7 @@ describe('CourseCard course drag handle', () => {
     if (surface === null) {
       throw new Error('expected a course drag surface');
     }
-    fireEvent.mouseEnter(surface);
-    expect(await screen.findByRole('tooltip')).toHaveTextContent(/ลากรายวิชา/);
+    expect(surface.getAttribute('aria-label')).toContain('ลากรายวิชา');
   });
 
   it('makes the whole header the course drag surface in edit mode', () => {
