@@ -120,6 +120,24 @@ describe('CourseCard collapsed added course', () => {
     expect(onRemove).toHaveBeenCalledWith('placed901');
   });
 
+  it('makes the whole collapsed summary the expand control', () => {
+    render(
+      <CourseCard
+        course={course}
+        placed={placed}
+        locale="th"
+        t={t}
+        onRemove={() => undefined}
+      />,
+    );
+    const toggle = screen.getByRole('button', { expanded: false });
+    // The summary names the course rather than being an icon only control, so a
+    // click anywhere on it expands.
+    expect(toggle).toHaveTextContent('90000001');
+    fireEvent.click(toggle);
+    expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
+  });
+
   it('expands to read-only sections with the drag hint and no add label', () => {
     render(
       <CourseCard
@@ -131,7 +149,8 @@ describe('CourseCard collapsed added course', () => {
         onRemove={() => undefined}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'แสดงกลุ่มเรียน' }));
+    // The whole collapsed summary is the disclosure button, found by its state.
+    fireEvent.click(screen.getByRole('button', { expanded: false }));
     expect(
       screen.getByText('เปลี่ยนกลุ่มเรียนโดยลากบล็อกในตาราง'),
     ).toBeInTheDocument();

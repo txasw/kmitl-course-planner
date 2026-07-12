@@ -106,52 +106,47 @@ function CourseCardComponent({
   if (placedSection !== undefined) {
     return (
       <article className="rounded-kcp border border-border bg-surface-alt p-3">
-        <header className="flex items-baseline justify-between gap-2">
-          <Tooltip label={fullName}>
-            {(triggerProps, ref) => (
-              <div ref={ref} {...triggerProps} className="min-w-0 truncate">
-                <span className="font-semibold text-ink">
-                  {course.subjectId}
-                </span>{' '}
-                <span className="text-ink">{primary}</span>
-                {hasSecondary ? (
-                  <span className="ml-1 text-ink-soft">{secondary}</span>
-                ) : null}
-              </div>
-            )}
-          </Tooltip>
-          <div className="flex shrink-0 items-center gap-1">
-            <span className="text-xs text-ink-soft">{course.creditStr}</span>
-            <button
-              type="button"
-              aria-expanded={expanded}
-              aria-label={
-                expanded ? t('catalog.card.collapse') : t('catalog.card.expand')
-              }
-              onClick={() => {
-                setExpanded((value) => !value);
-              }}
-              className={`rounded-kcp p-0.5 text-ink-soft hover:text-ink ${FOCUS_RING}`}
-            >
+        {/* The whole summary is the expand and collapse control, so a click anywhere
+            on it toggles the sections. The remove sits outside it, because a button
+            cannot nest inside a button. The truncated name loses its hover tooltip
+            here, since the summary is the button. */}
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            aria-expanded={expanded}
+            onClick={() => {
+              setExpanded((value) => !value);
+            }}
+            className={`flex min-w-0 flex-1 items-center justify-between gap-2 rounded-kcp text-left ${FOCUS_RING}`}
+          >
+            <span className="min-w-0 truncate">
+              <span className="font-semibold text-ink">{course.subjectId}</span>{' '}
+              <span className="text-ink">{primary}</span>
+              {hasSecondary ? (
+                <span className="ml-1 text-ink-soft">{secondary}</span>
+              ) : null}
+            </span>
+            <span className="flex shrink-0 items-center gap-1">
+              <span className="text-xs text-ink-soft">{course.creditStr}</span>
               <ChevronDown
                 size={16}
                 aria-hidden
-                className={expanded ? 'rotate-180' : ''}
+                className={`text-ink-soft ${expanded ? 'rotate-180' : ''}`}
               />
+            </span>
+          </button>
+          {onRemove !== undefined ? (
+            <button
+              type="button"
+              onClick={() => {
+                onRemove(placedSection.teachTableId);
+              }}
+              className={`shrink-0 rounded-kcp border border-border px-2 py-0.5 text-xs font-medium text-ink-soft hover:bg-surface hover:text-ink ${FOCUS_RING}`}
+            >
+              {t('action.remove')}
             </button>
-            {onRemove !== undefined ? (
-              <button
-                type="button"
-                onClick={() => {
-                  onRemove(placedSection.teachTableId);
-                }}
-                className={`rounded-kcp border border-border px-2 py-0.5 text-xs font-medium text-ink-soft hover:bg-surface hover:text-ink ${FOCUS_RING}`}
-              >
-                {t('action.remove')}
-              </button>
-            ) : null}
-          </div>
-        </header>
+          ) : null}
+        </div>
         {expanded ? (
           <div className="mt-2 flex flex-col gap-1.5">
             <p className="text-xs text-ink-soft">

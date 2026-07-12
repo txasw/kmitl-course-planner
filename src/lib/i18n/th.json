@@ -74,8 +74,6 @@
   "catalog.units.multiMeeting": "กลุ่มเรียนหลายคาบ",
   "catalog.filterEmpty": "ไม่มีรายวิชาที่ตรงกับตัวกรอง",
   "catalog.card.addedHint": "เปลี่ยนกลุ่มเรียนโดยลากบล็อกในตาราง",
-  "catalog.card.expand": "แสดงกลุ่มเรียน",
-  "catalog.card.collapse": "ซ่อนกลุ่มเรียน",
   "catalog.refresh": "รีเฟรช",
   "toast.refreshUnchanged": "ข้อมูลเป็นปัจจุบัน ไม่มีการเปลี่ยนแปลง",
   "catalog.filter.text": "ค้นหาในรายการ",
