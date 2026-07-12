@@ -155,13 +155,24 @@ Run these against a debug build in Chrome and Firefox. Preview mode is entered f
 the header segmented control.
 
 - [ ] Preview toolbar presence: in edit mode there are no sharing controls. Switch to
-      preview and confirm the toolbar shows display options, copy image, download image,
-      and copy as text. Switch back to edit and confirm they leave the DOM. The toolbar
-      and the revalidation banner are never part of an exported image.
+      preview and confirm the toolbar shows the template picker, display options, copy
+      image, download image, and copy as text. Switch back to edit and confirm they leave
+      the DOM. The toolbar and the revalidation banner are never part of an exported image.
 - [ ] Download PNG: populate a plan including one unscheduled course. In preview, download
       the image and open it. The poster header, the grid with block colours and any
       revalidation badges, the unscheduled shelf, and the footer credits all render, and
-      Thai text is correct. The file name is kmitl-plan-year-semester-name.
+      Thai text is correct. The file name is kmitl-plan-year-semester-name-template.
+- [ ] Export templates: with the template picker, step through Share 16:9, Phone wallpaper,
+      Tablet wallpaper, and Print A4. The preview reflows to each aspect and the corner label
+      states the output size. Download each and confirm the opened image is exactly the stated
+      pixels: 1920x1080, 1080x2340, 1668x2388, and 3508x2480. The picked template persists
+      across a reopen. At the largest preset, Print A4, the Thai glyphs are sharp and correct
+      with no tofu boxes or clipped tone marks, and every day row, the shelf, and the footer
+      credits are still present, never cropped.
+- [ ] Day-color accent: in preview, confirm the day row labels carry the traditional Thai day
+      colours as a faint tint, the label text stays legible, and the accent appears in the
+      exported image. In edit mode the day rows stay the plain alternating shade, and the
+      subject block colours are unchanged in both modes.
 - [ ] Copy image: use copy image, then paste into a chat app. The pasted image matches the
       poster. Where the browser lacks image clipboard support the control is a one line
       note pointing at download, never a dead button.
@@ -216,9 +227,10 @@ add and remove controls, so no action is a dead end for the keyboard.
       focus inside it and Escape closes it.
 - [ ] Plan switch: open the plan switcher, move through the plans, and create, rename, or
       delete one entirely by keyboard, confirming the inline delete.
-- [ ] Preview toolbar: switch to preview and Tab through display options, copy image,
-      download image, and copy as text. The display options popover is reachable and its
-      toggles operate by keyboard.
+- [ ] Preview toolbar: switch to preview and Tab through the template picker, display
+      options, copy image, download image, and copy as text. The template picker opens with
+      Space or the arrow keys and a template commits with Enter. The display options popover
+      is reachable and its toggles operate by keyboard.
 - [ ] Import rejection: from the plan menu, import a tampered JSON. The per field error list
       is reachable and the back control returns to the menu.
 - [ ] Footer and summary: the footer summary reads as one labeled region with the credit,
