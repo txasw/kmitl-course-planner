@@ -2,9 +2,10 @@ import { test, expect, openPlanner } from './support/fixtures';
 import { syntheticSearch, addCourse, block } from './support/synthetic';
 import type { Page } from '@playwright/test';
 
-// Runs axe-core against the panel across the surfaces item 4 names: populated edit mode,
-// preview with the sharing toolbar, the display options popover, and the import error
-// dialog. axe is pointed at the extension's shadow root so it sees the mounted UI, and
+// Runs axe-core against the panel across its surfaces: populated edit mode, the catalog
+// filter popover, preview with the sharing toolbar, the display options popover, and the
+// import error dialog. axe is pointed at the extension's shadow root so it sees the mounted
+// UI, and
 // the run is limited to the WCAG 2 A and AA rules. Contrast is checked separately in the
 // token contrast unit test, because axe cannot resolve the shadow root token backgrounds.
 const AXE_PATH = 'node_modules/axe-core/axe.min.js';
@@ -44,14 +45,20 @@ test('the panel passes axe across the edit, preview, and dialog surfaces', async
   // 1. Populated edit mode.
   expect(await axeViolations(page)).toEqual([]);
 
-  // 2. Preview mode with the sharing toolbar.
+  // 2. The catalog filter popover.
+  await page.getByRole('button', { name: 'ตัวกรอง', exact: true }).click();
+  await expect(page.getByRole('combobox', { name: 'หน่วยกิต' })).toBeVisible();
+  expect(await axeViolations(page)).toEqual([]);
+  await page.keyboard.press('Escape');
+
+  // 3. Preview mode with the sharing toolbar.
   await page.getByRole('button', { name: 'ดูตัวอย่าง' }).click();
   await expect(
     page.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }),
   ).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
 
-  // 3. The display options popover.
+  // 4. The display options popover.
   await page.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }).click();
   await expect(page.getByText('แสดงห้อง')).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
@@ -59,7 +66,7 @@ test('the panel passes axe across the edit, preview, and dialog surfaces', async
   // Back to edit for the plan menu.
   await page.getByRole('button', { name: 'แก้ไข' }).click();
 
-  // 4. The import error dialog, reached by feeding a tampered plan JSON.
+  // 5. The import error dialog, reached by feeding a tampered plan JSON.
   await page.getByRole('button', { name: 'เลือกตาราง' }).click();
   await page.locator('input[type="file"]').setInputFiles({
     name: 'tampered.json',
