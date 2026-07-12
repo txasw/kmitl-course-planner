@@ -9,7 +9,9 @@
 
 import { parseTimeToMinutes } from '../parsing/time';
 import { isUnscheduledDay, isUnscheduledRow } from '../parsing/days';
+import { TEACH_TIME_STR_PATTERN } from '../parsing/teachTimeStr';
 import { EXAM_DATETIME } from '../parsing/examDateTime';
+import type { IssueSeverity } from './report';
 
 export const DEBUG_CANARY = 'kcp-debug-canary';
 
@@ -23,12 +25,16 @@ export interface FieldExpectation {
   readonly pattern?: RegExp;
   /** The exact allowed string values; a miss is a value_out_of_range. */
   readonly enum?: readonly string[];
+  /** Severity of a format_violation for this field; defaults to error. A field whose
+   *  primary meaning still renders on drift, such as teachtime_str, warns instead. */
+  readonly severity?: IssueSeverity;
   readonly description: string;
 }
 
 interface FieldOptions {
   pattern?: RegExp;
   enum?: readonly string[];
+  severity?: IssueSeverity;
 }
 
 function field(
@@ -82,7 +88,8 @@ export const SECTION_ROW_EXPECTATIONS: readonly FieldExpectation[] = [
     'teachtime_str',
     'string',
     true,
-    'display time string, often empty or null on unscheduled rows',
+    'empty, or comma separated <day>x<H:MM>-<H:MM> extra meeting segments',
+    { pattern: TEACH_TIME_STR_PATTERN, severity: 'warn' },
   ),
   field('classroom', 'string', true, 'room name or null'),
   field('room_no', 'string', true, 'room number or null'),

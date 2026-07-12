@@ -136,6 +136,34 @@ describe('auditTeachTable', () => {
     });
   });
 
+  it('warns rather than errors on a teachtime_str that breaks the grammar', () => {
+    // A display string is not the machine grammar. The primary meeting still
+    // renders, so the drift is a warn severity format_violation, not an error.
+    const row = { ...validRow(), teachtime_str: 'จ. 09:00-12:00' };
+    const report = auditTeachTable(wrap(row), ctx);
+    expect(report.totals.byKind.format_violation).toBe(1);
+    const violation = report.issues.find(
+      (candidate) => candidate.kind === 'format_violation',
+    );
+    expect(violation?.path).toMatch(/\.teachtime_str$/);
+    expect(violation?.severity).toBe('warn');
+  });
+
+  it('accepts a machine grammar teachtime_str and counts the extra meeting', () => {
+    const row = { ...validRow(), teachtime_str: '5x10:30-12:00' };
+    const report = auditTeachTable(wrap(row), ctx);
+    expect(report.totals.issues).toBe(0);
+    expect(report.totals.extraMeetings).toBe(1);
+  });
+
+  it('counts the extra meeting rows in the multi meeting capture', () => {
+    const report = auditTeachTable(
+      loadFixture('teach-table.multi-meeting.capture.json'),
+      ctx,
+    );
+    expect(report.totals.extraMeetings).toBe(6);
+  });
+
   it('audits the owner capture clean and counts dedupe', () => {
     const report = auditTeachTable(loadFixture(OWNER_CAPTURE), ctx);
     expect(report.totals.rows).toBe(13);

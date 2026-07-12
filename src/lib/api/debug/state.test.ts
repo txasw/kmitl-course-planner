@@ -31,6 +31,7 @@ function reportWith(issues: number): DataQualityReport {
       deduped: 0,
       issues,
       unscheduled: 0,
+      extraMeetings: 0,
       byKind: emptyByKind(),
     },
     aggregates: [],

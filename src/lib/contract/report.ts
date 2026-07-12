@@ -48,6 +48,10 @@ export interface ReportTotals {
    * rows that should carry a real day, is visible as an unexpected spike rather than
    * hiding as silently accepted rows. */
   unscheduled: number;
+  /** Rows carrying at least one parseable teachtime_str extra meeting segment. These
+   * were silently dropped before the field was parsed, so the count makes the multi
+   * meeting sections visible. */
+  extraMeetings: number;
   byKind: Record<IssueKind, number>;
 }
 

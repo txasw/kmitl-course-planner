@@ -71,7 +71,8 @@ export function ReportView({ report }: { report: DataQualityReport | null }) {
     <div className="flex flex-col gap-2 text-xs">
       <p className="text-ink-soft">
         rows {report.totals.rows} deduped {report.totals.deduped} issues{' '}
-        {report.totals.issues} unscheduled {report.totals.unscheduled}
+        {report.totals.issues} unscheduled {report.totals.unscheduled}{' '}
+        multi-meeting {report.totals.extraMeetings}
       </p>
       {report.aggregates.length === 0 ? (
         <p className="text-ink-soft">No issues in the latest report</p>
