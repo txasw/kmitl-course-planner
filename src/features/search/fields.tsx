@@ -5,6 +5,7 @@
 // curriculum lists are long.
 
 import { useId } from 'react';
+import { FOCUS_RING } from '@/lib/ui/focus';
 import { Combobox } from './Combobox';
 import type { Translate } from '@/lib/i18n/t';
 import type { Locale } from '@/lib/i18n/t';
@@ -74,7 +75,7 @@ export function SubjectIdInput({
           onChange={(event) => {
             onChange(event.target.value);
           }}
-          className="rounded-kcp border border-border bg-surface px-2 py-1.5 text-ink focus:ring-2 focus:ring-primary focus:outline-none"
+          className={`rounded-kcp border border-border bg-surface px-2 py-1.5 text-ink ${FOCUS_RING}`}
         />
       </label>
       <span id={hintId} className={invalid ? 'text-danger' : 'text-ink-soft'}>

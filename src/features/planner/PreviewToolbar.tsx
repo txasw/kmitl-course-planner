@@ -20,6 +20,7 @@ import { toastStore } from '@/features/shell/toastStore';
 import { capturePng } from './capture';
 import { DisplayOptionsPopover } from './DisplayOptionsPopover';
 import type { PlacedSection } from './placedSection';
+import { FOCUS_RING } from '@/lib/ui/focus';
 
 interface PreviewToolbarProps {
   /** The poster node captured by the image actions. */
@@ -30,8 +31,7 @@ interface PreviewToolbarProps {
   displayOptions: DisplayOptions;
 }
 
-const BUTTON =
-  'inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm font-medium text-ink hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none';
+const BUTTON = `inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm font-medium text-ink hover:bg-surface-alt ${FOCUS_RING}`;
 
 /** Whether the browser can write an image to the clipboard. The host is a secure
  * context, so navigator.clipboard is present; ClipboardItem is the real gate. */
