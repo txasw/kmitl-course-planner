@@ -21,6 +21,7 @@ import {
   type GridWindow,
 } from '@/lib/planner/grid';
 import { candidateFootprints } from '@/lib/planner/candidateLayout';
+import { dayTint } from '@/lib/planner/dayColors';
 import { dragStore } from './dragStore';
 import { CandidateSlot } from './CandidateSlot';
 import { EventBlock } from './EventBlock';
@@ -86,6 +87,9 @@ interface WeeklyGridProps {
   days?: readonly DayOfWeek[];
   /** Preview field toggles. Omitted in edit mode, where blocks show every field. */
   display?: DisplayOptions;
+  /** Tint the day row labels with the traditional Thai day colors. On only when the
+   * poster renders into an export template (preview), never in edit mode (ADR-0042). */
+  dayAccent?: boolean;
 }
 
 export function WeeklyGrid({
@@ -101,6 +105,7 @@ export function WeeklyGrid({
   onContextMenu,
   days = WEEK_DAYS,
   display,
+  dayAccent = false,
 }: WeeklyGridProps) {
   // The grid geometry follows only the window and the rendered day rows, so it holds
   // stable across a drag or a plan change and is computed once per those inputs.
@@ -204,8 +209,14 @@ export function WeeklyGrid({
               <div
                 ref={ref}
                 {...triggerProps}
-                className={`flex items-center justify-center border-t border-border text-xs font-medium text-ink-soft ${day % 2 === 1 ? 'bg-surface-alt' : ''}`}
-                style={{ gridRow: FIRST_DAY_ROW + index, gridColumn: 1 }}
+                className={`flex items-center justify-center border-t border-border text-xs font-medium ${
+                  dayAccent ? 'text-ink' : 'text-ink-soft'
+                } ${!dayAccent && day % 2 === 1 ? 'bg-surface-alt' : ''}`}
+                style={{
+                  gridRow: FIRST_DAY_ROW + index,
+                  gridColumn: 1,
+                  ...(dayAccent ? { backgroundColor: dayTint(day) } : {}),
+                }}
                 aria-label={t(dayFullLabelKey(day))}
               >
                 {t(dayLabelKey(day))}

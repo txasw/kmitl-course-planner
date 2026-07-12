@@ -191,6 +191,27 @@ describe('WeeklyGrid', () => {
     expect(screen.getByLabelText('วันเสาร์')).toBeInTheDocument();
   });
 
+  it('tints the day row labels only when the export accent is on', () => {
+    const { rerender } = render(
+      <WeeklyGrid sections={[]} window={DEFAULT_WINDOW} locale="th" t={t} />,
+    );
+    // Edit mode leaves the label untinted, so the day color never competes with the
+    // subject colored blocks.
+    expect(screen.getByLabelText('วันจันทร์').style.backgroundColor).toBe('');
+    rerender(
+      <WeeklyGrid
+        sections={[]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+        dayAccent
+      />,
+    );
+    expect(screen.getByLabelText('วันจันทร์').style.backgroundColor).not.toBe(
+      '',
+    );
+  });
+
   it('shows an hour label at the window start and its last hour', () => {
     render(
       <WeeklyGrid sections={[]} window={DEFAULT_WINDOW} locale="th" t={t} />,
