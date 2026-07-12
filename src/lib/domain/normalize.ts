@@ -7,6 +7,7 @@
 
 import { isUnscheduledRow, parseTeachDay } from '../parsing/days';
 import { parseTimeToMinutes } from '../parsing/time';
+import { isExamDateTime } from '../parsing/examDateTime';
 import { sanitizeToLines } from '../parsing/sanitize';
 import { ok, type Result, type ValidationError } from '../utils/result';
 import {
@@ -104,8 +105,49 @@ function parseKind(lectOrPrac: string): MeetingKind {
   return lectOrPrac === 'ป' ? 'practice' : 'lecture';
 }
 
-function toExam(row: RawSectionRow): Exam {
+// The exam datetime fields are kept nullable at the schema boundary so one malformed
+// value never blanks the catalog during registration season; the format authority lives
+// here and in the contract auditor. A non null value that fails the format is still stored
+// on the snapshot but is treated as no window by the overlap gate, and it is recorded as a
+// per row warning so an exam silently losing its format is distinguishable from an exam
+// that was never announced (a null field). A null field records nothing.
+function warnMalformedExamField(
+  row: RawSectionRow,
+  value: string | null,
+  label: string,
+  warnings: NormalizationWarning[],
+): void {
+  if (value !== null && !isExamDateTime(value)) {
+    warnings.push({
+      teachTableId: row.teach_table_id,
+      subjectId: row.subject_id,
+      section: row.section,
+      reason: `${label} is not a valid datetime`,
+    });
+  }
+}
+
+function toExam(row: RawSectionRow, warnings: NormalizationWarning[]): Exam {
   const exam: Exam = {};
+  warnMalformedExamField(
+    row,
+    row.midterm_start_date_time,
+    'midterm start',
+    warnings,
+  );
+  warnMalformedExamField(
+    row,
+    row.midterm_end_date_time,
+    'midterm end',
+    warnings,
+  );
+  warnMalformedExamField(
+    row,
+    row.final_start_date_time,
+    'final start',
+    warnings,
+  );
+  warnMalformedExamField(row, row.final_end_date_time, 'final end', warnings);
   if (
     row.midterm_start_date_time !== null &&
     row.midterm_end_date_time !== null
@@ -190,7 +232,7 @@ function toSection(
       enrolled: parseEnrolled(row.count),
     },
     isClosed: row.closed === '1',
-    exam: toExam(row),
+    exam: toExam(row, warnings),
     rulesTh: sanitizeToLines(row.rules_th).join('\n'),
     rulesEn: sanitizeToLines(row.rules_en).join('\n'),
     remark: row.remark,
