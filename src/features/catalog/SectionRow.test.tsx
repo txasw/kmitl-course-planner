@@ -138,3 +138,68 @@ describe('SectionRow actions', () => {
     ).not.toBeInTheDocument();
   });
 });
+
+describe('SectionRow density and read only', () => {
+  it('reveals the remark behind the info affordance', () => {
+    const withRemark = makeSection({
+      teachTableId: 'r',
+      remark: 'เงื่อนไขพิเศษ',
+    });
+    render(
+      <SectionRow
+        course={course}
+        section={withRemark}
+        relation={{ kind: 'addable' }}
+        seat={computeSeatStatus(withRemark)}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.queryByText('เงื่อนไขพิเศษ')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'ข้อมูลเพิ่มเติม' }));
+    expect(screen.getByText('เงื่อนไขพิเศษ')).toBeInTheDocument();
+  });
+
+  it('truncates the teachers to one line with the full list on the title', () => {
+    const many = makeSection({
+      teachTableId: 'm',
+      teachersTh: ['อ. หนึ่ง', 'อ. สอง', 'อ. สาม'],
+    });
+    render(
+      <SectionRow
+        course={course}
+        section={many}
+        relation={{ kind: 'addable' }}
+        seat={computeSeatStatus(many)}
+        locale="th"
+        t={t}
+      />,
+    );
+    const teachers = screen.getByText('อ. หนึ่ง, อ. สอง, อ. สาม');
+    expect(teachers.className).toContain('truncate');
+    expect(teachers).toHaveAttribute('title', 'อ. หนึ่ง, อ. สอง, อ. สาม');
+  });
+
+  it('read only hides the actions, the state badge, and the remark toggle', () => {
+    const withRemark = makeSection({ teachTableId: 'ro', remark: 'หมายเหตุ' });
+    render(
+      <SectionRow
+        course={course}
+        section={withRemark}
+        relation={{ kind: 'added' }}
+        seat={computeSeatStatus(withRemark)}
+        locale="th"
+        t={t}
+        onRemove={vi.fn()}
+        readOnly
+      />,
+    );
+    expect(
+      screen.queryByRole('button', { name: 'นำออก' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('เพิ่มแล้ว')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'ข้อมูลเพิ่มเติม' }),
+    ).not.toBeInTheDocument();
+  });
+});
