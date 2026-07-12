@@ -183,6 +183,13 @@ add and remove controls, so no action is a dead end for the keyboard.
       is reachable and the back control returns to the menu.
 - [ ] Footer and summary: the footer summary reads as one labeled region with the credit,
       subject, and per day load totals.
+- [ ] Focus ring sweep: keyboard only, Tab through the search selects and inputs, the
+      catalog filter field, the day chips, the credit control, the refresh button, the plan
+      rename field, and the preview toolbar buttons. Each light control shows the inset
+      orange ring fully inside its box, never clipped, including a field scrolled to the rail
+      edge and a control inside the narrow viewport catalog drawer. The filled primary
+      buttons, submit, retry, and the active day chip, show the orange ring on the
+      surrounding surface.
 
 ## Firefox parity
 
