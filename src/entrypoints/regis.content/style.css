@@ -67,6 +67,21 @@
   font-family: var(--font-sans);
 }
 
+/* Selected text inside the panel uses the brand soft wash with ink text, a pair
+   the token contrast suite proves clears the 4.5:1 text bar. It is scoped to the
+   closed shadow root, so it never changes selection on the host page. Firefox
+   before the standard ::selection needs its own -moz rule, and the two cannot
+   share one selector list because an unknown pseudo-element voids the whole list. */
+::selection {
+  background-color: var(--kcp-primary-soft);
+  color: var(--kcp-ink);
+}
+
+::-moz-selection {
+  background-color: var(--kcp-primary-soft);
+  color: var(--kcp-ink);
+}
+
 /* One scrollbar treatment for every scrollable region in the panel: thin, drawn
    from the border and ink soft tokens, and consistent across Chromium and Firefox
    inside the shadow root. The list still looks scrollable; it is only quieter. */
