@@ -9,6 +9,7 @@
 // a pair never warns against itself.
 
 import type { DateRange, Section } from '../domain/types';
+import { isExamDateTime } from '../parsing/examDateTime';
 import { areDeclaredPair } from './conflicts';
 import type { EntryRef } from './placement';
 
@@ -28,16 +29,14 @@ export interface ExamOverlap {
 
 const EXAM_KINDS: readonly ExamKind[] = ['midterm', 'final'];
 
-// The API sends a fixed width "YYYY-MM-DD HH:MM:SS". A value that fails this shape is
-// treated as no window, so an overlap is never inferred from a datetime we cannot order.
-const DATETIME = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
-
-/** A window whose ends are both well formed and ordered start before end. */
+/** A window whose ends are both well formed exam datetimes and ordered start before end.
+ * A value that fails the shape is treated as no window, so an overlap is never inferred
+ * from a datetime that cannot be ordered. */
 function isWindow(range: DateRange | undefined): range is DateRange {
   return (
     range !== undefined &&
-    DATETIME.test(range.start) &&
-    DATETIME.test(range.end) &&
+    isExamDateTime(range.start) &&
+    isExamDateTime(range.end) &&
     range.start < range.end
   );
 }

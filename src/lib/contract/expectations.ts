@@ -9,6 +9,7 @@
 
 import { parseTimeToMinutes } from '../parsing/time';
 import { isUnscheduledDay, isUnscheduledRow } from '../parsing/days';
+import { EXAM_DATETIME } from '../parsing/examDateTime';
 
 export const DEBUG_CANARY = 'kcp-debug-canary';
 
@@ -89,10 +90,18 @@ export const SECTION_ROW_EXPECTATIONS: readonly FieldExpectation[] = [
   field('building_no', 'string', true, 'building number or null'),
   field('teacher_list_th', 'string', false, 'Thai teacher HTML fragment'),
   field('teacher_list_en', 'string', false, 'English teacher HTML fragment'),
-  field('midterm_start_date_time', 'string', true, 'midterm start or null'),
-  field('midterm_end_date_time', 'string', true, 'midterm end or null'),
-  field('final_start_date_time', 'string', true, 'final start or null'),
-  field('final_end_date_time', 'string', true, 'final end or null'),
+  field('midterm_start_date_time', 'string', true, 'midterm start or null', {
+    pattern: EXAM_DATETIME,
+  }),
+  field('midterm_end_date_time', 'string', true, 'midterm end or null', {
+    pattern: EXAM_DATETIME,
+  }),
+  field('final_start_date_time', 'string', true, 'final start or null', {
+    pattern: EXAM_DATETIME,
+  }),
+  field('final_end_date_time', 'string', true, 'final end or null', {
+    pattern: EXAM_DATETIME,
+  }),
   field('exam_text_detail', 'string', true, 'exam detail or null'),
   field('rules_th', 'string', false, 'Thai rules text'),
   field('rules_en', 'string', false, 'English rules text'),

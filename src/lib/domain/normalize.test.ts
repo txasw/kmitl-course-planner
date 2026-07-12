@@ -282,6 +282,46 @@ describe('malformed rows and invalid input', () => {
     }
   });
 
+  it('warns on a non null exam datetime that fails the format', () => {
+    // A malformed but present exam datetime is stored on the snapshot yet treated as no
+    // window by the gate. It records a warning so an exam silently losing its format is
+    // distinguishable from an exam that was never announced.
+    const result = normalizeTeachTable(
+      makeResponse([
+        makeRow({
+          teach_table_id: 'badexam',
+          section: '905',
+          midterm_start_date_time: '2026-08-21T09:30:00',
+          midterm_end_date_time: '2026-08-21 12:30:00',
+        }),
+      ]),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.warnings).toHaveLength(1);
+      expect(result.value.warnings[0]?.section).toBe('905');
+      expect(result.value.warnings[0]?.reason).toContain('midterm start');
+    }
+  });
+
+  it('records no warning for a null or well formed exam datetime', () => {
+    const result = normalizeTeachTable(
+      makeResponse([
+        makeRow({ teach_table_id: 'noexam', section: '906' }),
+        makeRow({
+          teach_table_id: 'goodexam',
+          section: '907',
+          final_start_date_time: '2026-10-30 09:30:00',
+          final_end_date_time: '2026-10-30 12:30:00',
+        }),
+      ]),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.warnings).toHaveLength(0);
+    }
+  });
+
   it('returns a validation error for a non array response', () => {
     const result = normalizeTeachTable({ not: 'an array' });
     expect(result.ok).toBe(false);
