@@ -71,6 +71,7 @@
   "catalog.units.course": "รายวิชา",
   "catalog.units.section": "กลุ่มเรียน",
   "catalog.units.merged": "รายการซ้ำที่รวมแล้ว",
+  "catalog.units.multiMeeting": "กลุ่มเรียนหลายคาบ",
   "catalog.filterEmpty": "ไม่มีรายวิชาที่ตรงกับตัวกรอง",
   "catalog.card.addedHint": "เปลี่ยนกลุ่มเรียนโดยลากบล็อกในตาราง",
   "catalog.card.expand": "แสดงกลุ่มเรียน",

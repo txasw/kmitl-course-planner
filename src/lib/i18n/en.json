@@ -71,6 +71,7 @@
   "catalog.units.course": "courses",
   "catalog.units.section": "sections",
   "catalog.units.merged": "merged duplicates",
+  "catalog.units.multiMeeting": "multi meeting sections",
   "catalog.filterEmpty": "No courses match the filters",
   "catalog.card.addedHint": "Change sections by dragging the block on the grid",
   "catalog.card.expand": "Show sections",

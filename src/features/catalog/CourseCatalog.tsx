@@ -61,17 +61,25 @@ function Summary({
   courses,
   sections,
   merged,
+  multiMeeting,
   t,
 }: {
   courses: number;
   sections: number;
   merged: number;
+  multiMeeting: number;
   t: Translate;
 }) {
   return (
     <p className="text-xs text-ink-soft">
       {courses} {t('catalog.units.course')} {sections}{' '}
       {t('catalog.units.section')} {merged} {t('catalog.units.merged')}
+      {multiMeeting > 0 ? (
+        <>
+          {' '}
+          {multiMeeting} {t('catalog.units.multiMeeting')}
+        </>
+      ) : null}
     </p>
   );
 }
@@ -200,6 +208,7 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
           courses={catalog.courses.length}
           sections={totalSections}
           merged={catalog.duplicateCount}
+          multiMeeting={catalog.multiMeetingCount}
           t={t}
         />
         <button

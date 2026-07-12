@@ -84,6 +84,21 @@ describe('CourseCatalog', () => {
     expect(container.textContent).toContain('3 รายวิชา');
     expect(container.textContent).toContain('4 กลุ่มเรียน');
     expect(container.textContent).toContain('9 รายการซ้ำที่รวมแล้ว');
+    // No section here has extra meetings, so the multi meeting count is hidden.
+    expect(container.textContent).not.toContain('กลุ่มเรียนหลายคาบ');
+  });
+
+  it('reports the multi meeting count when sections carry extra meetings', () => {
+    const result = normalizeTeachTable(
+      loadFixture('teach-table.multi-meeting.capture.json'),
+    );
+    if (!result.ok) {
+      throw new Error('fixture failed to normalize');
+    }
+    const { container } = render(
+      <CourseCatalog catalog={result.value} onRefresh={() => undefined} />,
+    );
+    expect(container.textContent).toContain('6 กลุ่มเรียนหลายคาบ');
   });
 
   it('invokes the refresh callback from the refresh control', () => {
