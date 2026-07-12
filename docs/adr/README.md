@@ -45,3 +45,4 @@ a new record that supersedes the old one rather than editing history.
 36. [Exam overlap is a hard block](0036-exam-overlap-hard-block.md)
 37. [teachtime_str carries a section's additional meetings](0037-teachtime-str-additional-meetings.md)
 38. [Subject id search requires exactly eight digits](0038-subject-id-exact-length.md)
+39. [Accessible tooltip primitive](0039-tooltip-primitive.md)
