@@ -119,6 +119,28 @@ button. Never skip it.
       behind the overlay is untouched. Press reload and the panel body rebuilds. This is
       the only way to trigger the boundary; production has no such control.
 
+## Exam scheduling
+
+- [ ] Exam block on add: add a section, then add another whose midterm or final overlaps
+      it. The add is blocked, nothing lands on the grid, and the feedback strip states the
+      exam reason, naming the blocking subject and section, the exam type, and its date
+      range. Confirm a midterm never blocks against a final.
+- [ ] Locale date range: read the blocked reason and the block detail popover in Thai, then
+      switch to English. The year is the Buddhist year in both, for example 2569 for a 2026
+      exam, and the month name follows the language.
+- [ ] Alternatives exclude exam clashes: on the blocked add, the strip offers alternative
+      sections of the same subject. Confirm a section whose exam also clashes is not offered,
+      and that adding a clean alternative from the strip succeeds.
+- [ ] Every path blocks: repeat the exam clash through a section drag, a course drag onto a
+      candidate, the keyboard commit on a grip, and a swap onto the blocking block. Each
+      routes to the same blocked feedback; none commits.
+- [ ] Unscheduled exam: an online section with no meeting still blocks when its exam
+      overlaps a placed one, and its shelf row reads danger.
+- [ ] Discovered conflict on open: a plan populated before this change lights up danger on
+      the blocks whose exams genuinely overlap the first time it is opened after the upgrade.
+      This is the designed discovered conflict path, not a regression. Confirm the block
+      detail popover lists both exam windows and that nothing is removed automatically.
+
 ## Export and import
 
 Run these against a debug build in Chrome and Firefox. Preview mode is entered from

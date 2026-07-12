@@ -316,7 +316,7 @@ describe('reconcilePlan', () => {
     expect(planExamConflicts(placedSections(plan.entries)).size).toBe(0);
 
     // Upstream moves the first entry's midterm onto the second entry's day and time.
-    const { plan: reconciled } = reconcile(plan, [
+    const { plan: reconciled, report } = reconcile(plan, [
       makeSection({
         teachTableId: 'a',
         subjectId: 'S1',
@@ -340,6 +340,9 @@ describe('reconcilePlan', () => {
         },
       }),
     ]);
+    // The move is classified exam_changed, and the discovered overlap now reads danger,
+    // since planExamConflicts is the source of the danger badge.
+    expect(report.entries[0]?.changes).toContain('exam_changed');
     expect(planExamConflicts(placedSections(reconciled.entries)).size).toBe(2);
   });
 });
