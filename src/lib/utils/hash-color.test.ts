@@ -17,6 +17,7 @@ type Rgb = [number, number, number];
 const KMITL_ORANGE = '#e35205';
 const WHITE = '#ffffff';
 const INK = '#1a1a1a';
+const INK_SOFT = '#5c5c5c';
 const HEX_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
 function labFold(t: number): number {
@@ -115,6 +116,15 @@ describe('event block tinted surface', () => {
     for (const color of EVENT_PALETTE) {
       const tint = alphaOver(color, EVENT_TINT_ALPHA, WHITE);
       expect(contrastRatio(INK, tint)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it('reads ink soft on every composited tint at AA', () => {
+    // The redesigned block sets the subject id, the place, and an English secondary
+    // name in ink soft; the section chip and every primary line stay ink.
+    for (const color of EVENT_PALETTE) {
+      const tint = alphaOver(color, EVENT_TINT_ALPHA, WHITE);
+      expect(contrastRatio(INK_SOFT, tint)).toBeGreaterThanOrEqual(4.5);
     }
   });
 

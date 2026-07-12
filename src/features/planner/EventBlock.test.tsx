@@ -37,7 +37,7 @@ const meeting: Meeting = {
 afterEach(cleanup);
 
 describe('EventBlock', () => {
-  it('shows the subject id, section, name, and room', () => {
+  it('shows the time, name, subject id, section, and place', () => {
     render(
       <EventBlock
         section={section}
@@ -48,9 +48,12 @@ describe('EventBlock', () => {
       />,
     );
     const block = screen.getByLabelText(/90592033/);
+    expect(within(block).getByText('09:00-12:00')).toBeInTheDocument();
     expect(within(block).getByText('วิชาทดสอบ')).toBeInTheDocument();
+    expect(within(block).getByText('90592033')).toBeInTheDocument();
     expect(within(block).getByText('901')).toBeInTheDocument();
-    expect(within(block).getByText('A101')).toBeInTheDocument();
+    // Building and room read together as the place.
+    expect(within(block).getByText('A · A101')).toBeInTheDocument();
   });
 
   it('names the room in the accessible label when the room shows', () => {

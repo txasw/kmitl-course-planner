@@ -27,8 +27,11 @@ table below for the shipped pairs.
 ## Event block tinted surface
 
 Each block fills with the subject color composited over white at 15 percent (ADR-0035),
-carries a solid subject color left bar, and uses ink text. Ink on every tint clears 4.5:1
-with wide margin, and the solid bar clears the 3:1 UI bar against its own tint.
+carries a solid subject color left bar, and uses ink text for the time, the subject name,
+and the section chip. Ink on every tint clears 4.5:1 with wide margin, and the solid bar
+clears the 3:1 UI bar against its own tint. The redesigned block sets the quieter meta,
+the subject id, the place, and an English secondary name, in ink soft, which clears 4.5:1
+on every tint (minimum 5.21), enforced alongside the ink pair in `hash-color.test.ts`.
 
 | Color     | Tint      | Ink on tint | Bar on tint |
 | --------- | --------- | ----------- | ----------- |

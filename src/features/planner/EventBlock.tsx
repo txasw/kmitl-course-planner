@@ -1,9 +1,12 @@
-// A single placed meeting on the timetable. It shows the subject id, the section,
-// the short name, and the room, and clips from the room inward as the column span
-// narrows. The fill is the subject's stable color with white text; the KMITL orange
-// is never used here. In edit mode the block is a drag source (the ref and listeners
-// come from the draggable wrapper so this stays free of the drag library) and carries
-// a focusable remove control, which keeps on grid removal reachable by keyboard.
+// A single placed meeting on the timetable, one component across edit, preview, and
+// export. Its hierarchy leads with the time range, then the subject name clamped to
+// two lines, then the subject id, a section chip, and the place (building and room).
+// The fill is a soft tint of the subject's stable color under ink text with the solid
+// color as a left bar (ADR-0035); the KMITL orange is never used here. It clips from
+// the foot inward as the block shortens. In edit mode the block is a drag source (the
+// ref and listeners come from the draggable wrapper so this stays free of the drag
+// library) and carries a focusable remove control, which keeps on grid removal
+// reachable by keyboard.
 
 import { memo, type CSSProperties, type MouseEvent } from 'react';
 import type { DraggableSyntheticListeners } from '@dnd-kit/core';
@@ -86,12 +89,17 @@ function EventBlockComponent({
   )
     .map((key) => t(key))
     .join(' ');
+  // Room and building read together as the place. Both can be empty on an online
+  // course, so the middot separator only appears when both are present.
+  const place = [meeting.building, meeting.room]
+    .filter((part) => part !== '')
+    .join(' · ');
   // The accessible name is self contained so a screen reader hears the whole meeting
-  // from the block alone: subject, name, section, full day, time, the room when it is
-  // shown, then any verification state. The room follows the visual toggle so the label
-  // matches what is on screen.
-  const roomText = showRoom && meeting.room !== '' ? ` ${meeting.room}` : '';
-  const label = `${section.subjectId} ${name} ${t('section.code')} ${section.section} ${t(dayFullLabelKey(meeting.day))} ${time}${roomText}${
+  // from the block alone: subject, name, section, full day, time, the place when it is
+  // shown, then any verification state. The place follows the visual toggle so the
+  // label matches what is on screen.
+  const placeText = showRoom && place !== '' ? ` ${place}` : '';
+  const label = `${section.subjectId} ${name} ${t('section.code')} ${section.section} ${t(dayFullLabelKey(meeting.day))} ${time}${placeText}${
     badgeText === '' ? '' : ` ${badgeText}`
   }`;
 
@@ -127,22 +135,27 @@ function EventBlockComponent({
           }`}
         />
       ) : null}
-      <span className="truncate font-semibold">
-        {section.subjectId}
-        {showSection ? (
-          <>
-            {' '}
-            <span className="font-normal">{section.section}</span>
-          </>
-        ) : null}
-      </span>
-      <span className="truncate">{name}</span>
+      {/* Emphasis order time, place, subject: the time range leads, the subject name
+          is the primary content clamped to two lines, and the subject id, the section
+          chip, and the place read as quieter meta at the foot of the block. */}
+      <span className="font-semibold">{time}</span>
+      <span className="line-clamp-2 font-medium">{name}</span>
       {englishSecondary ? (
-        <span className="truncate text-ink-soft">{section.nameEn}</span>
+        <span className="line-clamp-1 text-ink-soft">{section.nameEn}</span>
       ) : null}
-      {showRoom && meeting.room !== '' ? (
-        <span className="truncate text-ink-soft">{meeting.room}</span>
-      ) : null}
+      <div className="mt-auto pt-0.5">
+        <div className="flex items-center justify-between gap-1 text-ink-soft">
+          <span className="truncate">{section.subjectId}</span>
+          {showSection ? (
+            <span className="shrink-0 rounded bg-ink/10 px-1 text-[10px] font-medium text-ink">
+              {section.section}
+            </span>
+          ) : null}
+        </div>
+        {showRoom && place !== '' ? (
+          <span className="block truncate text-ink-soft">{place}</span>
+        ) : null}
+      </div>
       {onOpenDetail !== undefined || onRemove !== undefined ? (
         <div className="absolute right-0.5 top-0.5 flex gap-0.5">
           {onOpenDetail !== undefined ? (
