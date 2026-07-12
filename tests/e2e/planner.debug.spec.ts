@@ -25,7 +25,7 @@ test('adds a section from its button, then removes it with undo', async ({
   await categorySearch(page);
 
   await page
-    .getByRole('button', { name: 'เพิ่ม', exact: true })
+    .getByRole('button', { name: /^เพิ่ม/ })
     .first()
     .click();
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
@@ -147,7 +147,7 @@ test('lists an added unscheduled course on the shelf', async ({ context }) => {
     .getByRole('article')
     .filter({ hasText: '01006029' })
     .first();
-  await onlineCard.getByRole('button', { name: 'เพิ่ม', exact: true }).click();
+  await onlineCard.getByRole('button', { name: /^เพิ่ม/ }).click();
 
   const shelf = page.getByRole('region', { name: 'รายวิชาที่ไม่มีคาบเรียน' });
   await expect(shelf).toBeVisible();
@@ -161,7 +161,7 @@ test('opens a block detail popover and removes the section through it', async ({
   await categorySearch(page);
 
   await page
-    .getByRole('button', { name: 'เพิ่ม', exact: true })
+    .getByRole('button', { name: /^เพิ่ม/ })
     .first()
     .click();
   const block = page.locator(GRID_BLOCK).first();
@@ -187,16 +187,14 @@ test('preview removes the mutating controls and keeps the grid', async ({
   const page = await openPlanner(context);
   await categorySearch(page);
   await page
-    .getByRole('button', { name: 'เพิ่ม', exact: true })
+    .getByRole('button', { name: /^เพิ่ม/ })
     .first()
     .click();
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
 
   await page.getByRole('button', { name: 'ดูตัวอย่าง' }).click();
 
-  await expect(
-    page.getByRole('button', { name: 'เพิ่ม', exact: true }),
-  ).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /^เพิ่ม/ })).toHaveCount(0);
   await expect(
     page.getByRole('button', { name: 'นำออก', exact: true }),
   ).toHaveCount(0);

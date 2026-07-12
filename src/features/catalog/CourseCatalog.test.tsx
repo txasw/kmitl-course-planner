@@ -158,7 +158,9 @@ describe('CourseCatalog', () => {
 
   it('adds an open section to the plan from its add button', () => {
     render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
-    const [addButton] = screen.getAllByRole('button', { name: 'เพิ่ม' });
+    const addButton = screen
+      .getAllByRole('button', { name: /^เพิ่ม/ })
+      .find((button) => !button.hasAttribute('disabled'));
     if (addButton) {
       fireEvent.click(addButton);
     }
@@ -199,7 +201,9 @@ describe('CourseCatalog', () => {
     render(
       <CourseCatalog catalog={conflictCatalog} onRefresh={() => undefined} />,
     );
-    const [addButton] = screen.getAllByRole('button', { name: 'เพิ่ม' });
+    const addButton = screen
+      .getAllByRole('button', { name: /^เพิ่ม/ })
+      .find((button) => !button.hasAttribute('disabled'));
     if (addButton) {
       fireEvent.click(addButton);
     }
@@ -209,7 +213,9 @@ describe('CourseCatalog', () => {
 
   it('announces a successful add', () => {
     render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
-    const [addButton] = screen.getAllByRole('button', { name: 'เพิ่ม' });
+    const addButton = screen
+      .getAllByRole('button', { name: /^เพิ่ม/ })
+      .find((button) => !button.hasAttribute('disabled'));
     if (addButton) {
       fireEvent.click(addButton);
     }
@@ -224,9 +230,13 @@ describe('CourseCatalog', () => {
     });
     render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
     expect(screen.getAllByText('คนละภาค').length).toBeGreaterThan(0);
-    // The banner names the browsed term and there is no add button.
+    // The banner names the browsed term and every add rail is disabled.
     expect(screen.getByText(/กำลังดูภาค/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'เพิ่ม' })).toBeNull();
+    const addRails = screen.getAllByRole('button', { name: /^เพิ่ม/ });
+    expect(addRails.length).toBeGreaterThan(0);
+    for (const rail of addRails) {
+      expect(rail).toBeDisabled();
+    }
     // The switch action creates a plan for the browsed term.
     const [switchButton] = screen.getAllByRole('button', {
       name: 'สลับไปตารางภาคนี้',
