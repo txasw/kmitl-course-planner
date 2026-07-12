@@ -4,9 +4,12 @@ WCAG 2.1 contrast ratios for the colors the extension renders. Normal text needs
 large text and UI components need 3:1. The `hash-color.test.ts` and `token-contrast.test.ts`
 suites enforce these thresholds so a color edit that drops below its bar fails the build.
 
-## Event block palette against white text
+## Event block palette
 
-Every block draws white text on its subject color. All ten clear 4.5:1.
+Each palette color clears 4.5:1 as white text, kept as a property of the set. Since
+ADR-0035 the block no longer draws white on the solid color; it fills with a soft tint of
+the color under ink text and carries the solid color as a left bar. See the tinted surface
+table below for the shipped pairs.
 
 | Color     | Ratio |
 | --------- | ----- |
@@ -20,6 +23,25 @@ Every block draws white text on its subject color. All ten clear 4.5:1.
 | `#8D5A2B` | 5.79  |
 | `#5D4037` | 9.32  |
 | `#455A64` | 7.24  |
+
+## Event block tinted surface
+
+Each block fills with the subject color composited over white at 15 percent (ADR-0035),
+carries a solid subject color left bar, and uses ink text. Ink on every tint clears 4.5:1
+with wide margin, and the solid bar clears the 3:1 UI bar against its own tint.
+
+| Color     | Tint      | Ink on tint | Bar on tint |
+| --------- | --------- | ----------- | ----------- |
+| `#1F5FA8` | `#DDE7F2` | 13.91       | 5.15        |
+| `#0E7C7B` | `#DBEBEB` | 14.17       | 4.08        |
+| `#2E7D32` | `#E0ECE0` | 14.29       | 4.21        |
+| `#6A3FA0` | `#E9E2F1` | 13.77       | 5.87        |
+| `#B0355F` | `#F3E1E7` | 13.87       | 4.75        |
+| `#3949AB` | `#E1E4F2` | 13.74       | 6.11        |
+| `#A21CAF` | `#F1DDF3` | 13.57       | 4.93        |
+| `#8D5A2B` | `#EEE6DF` | 14.11       | 4.69        |
+| `#5D4037` | `#E7E2E1` | 13.56       | 7.26        |
+| `#455A64` | `#E3E6E8` | 13.88       | 5.78        |
 
 ## Design token text on background pairs
 

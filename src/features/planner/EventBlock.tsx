@@ -10,7 +10,7 @@ import type { DraggableSyntheticListeners } from '@dnd-kit/core';
 import { Info, X } from 'lucide-react';
 import type { Meeting } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
-import { hashColor } from '@/lib/utils/hash-color';
+import { hashColor, hashTint } from '@/lib/utils/hash-color';
 import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
 import { formatMinutes } from '@/lib/parsing/time';
 import type { PlacedSection } from './placedSection';
@@ -101,10 +101,17 @@ function EventBlockComponent({
       data-verify={badge ?? undefined}
       aria-label={label}
       onContextMenu={onContextMenu}
-      className={`group/block kcp-settle relative m-px flex min-w-0 flex-col overflow-hidden rounded-kcp px-1.5 py-1 text-[11px] leading-tight text-white ${pulsing ? 'kcp-pulse' : ''} ${dimmed ? 'opacity-40' : ''} ${dragListeners ? 'cursor-grab touch-none' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''}`}
-      style={{ ...style, backgroundColor: hashColor(section.subjectId) }}
+      className={`group/block kcp-settle relative m-px flex min-w-0 flex-col overflow-hidden rounded-kcp py-1 pr-1.5 pl-2.5 text-[11px] leading-tight text-ink ${pulsing ? 'kcp-pulse' : ''} ${dimmed ? 'opacity-40' : ''} ${dragListeners ? 'cursor-grab touch-none' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''}`}
+      style={{ ...style, backgroundColor: hashTint(section.subjectId) }}
       {...dragListeners}
     >
+      {/* The solid subject color as a left bar carries the identity; the fill is a soft
+          tint of it under ink text. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 left-0 w-1"
+        style={{ backgroundColor: hashColor(section.subjectId) }}
+      />
       {badge === 'danger' ? (
         <span
           aria-hidden
@@ -130,10 +137,10 @@ function EventBlockComponent({
       </span>
       <span className="truncate">{name}</span>
       {englishSecondary ? (
-        <span className="truncate text-white">{section.nameEn}</span>
+        <span className="truncate text-ink-soft">{section.nameEn}</span>
       ) : null}
       {showRoom && meeting.room !== '' ? (
-        <span className="truncate text-white">{meeting.room}</span>
+        <span className="truncate text-ink-soft">{meeting.room}</span>
       ) : null}
       {onOpenDetail !== undefined || onRemove !== undefined ? (
         <div className="absolute right-0.5 top-0.5 flex gap-0.5">
@@ -152,7 +159,7 @@ function EventBlockComponent({
                   onOpenDetail(block);
                 }
               }}
-              className="rounded bg-black/25 p-0.5 text-white opacity-0 outline-none group-hover/block:opacity-100 hover:bg-black/45 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white"
+              className="rounded bg-ink/5 p-0.5 text-ink-soft opacity-0 outline-none group-hover/block:opacity-100 hover:bg-ink/10 hover:text-ink focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary"
             >
               <Info size={12} aria-hidden />
             </button>
@@ -168,7 +175,7 @@ function EventBlockComponent({
               onClick={() => {
                 onRemove(section.teachTableId);
               }}
-              className="rounded bg-black/25 p-0.5 text-white opacity-0 outline-none group-hover/block:opacity-100 hover:bg-black/45 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white"
+              className="rounded bg-ink/5 p-0.5 text-ink-soft opacity-0 outline-none group-hover/block:opacity-100 hover:bg-ink/10 hover:text-ink focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary"
             >
               <X size={12} aria-hidden />
             </button>

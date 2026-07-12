@@ -1,15 +1,22 @@
 import { describe, it, expect } from 'vitest';
 import {
+  alphaOver,
   contrastRatio,
   hexToRgb,
   linearizeChannel,
 } from '../../../tests/support/contrast';
-import { EVENT_PALETTE, hashColor } from './hash-color';
+import {
+  EVENT_PALETTE,
+  EVENT_TINT_ALPHA,
+  hashColor,
+  hashTint,
+} from './hash-color';
 
 type Rgb = [number, number, number];
 
 const KMITL_ORANGE = '#e35205';
 const WHITE = '#ffffff';
+const INK = '#1a1a1a';
 const HEX_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
 function labFold(t: number): number {
@@ -100,5 +107,29 @@ describe('hashColor', () => {
       ].map(hashColor),
     );
     expect(colors.size).toBeGreaterThan(1);
+  });
+});
+
+describe('event block tinted surface', () => {
+  it('reads ink on every composited tint at AA', () => {
+    for (const color of EVENT_PALETTE) {
+      const tint = alphaOver(color, EVENT_TINT_ALPHA, WHITE);
+      expect(contrastRatio(INK, tint)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it('keeps the solid left bar distinct from its tint as a UI element', () => {
+    for (const color of EVENT_PALETTE) {
+      const tint = alphaOver(color, EVENT_TINT_ALPHA, WHITE);
+      expect(contrastRatio(color, tint)).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('composites the subject color over white at the shared alpha', () => {
+    for (const subjectId of ['90592033', '01006029', '90642129']) {
+      expect(hashTint(subjectId)).toBe(
+        alphaOver(hashColor(subjectId), EVENT_TINT_ALPHA, WHITE),
+      );
+    }
   });
 });
