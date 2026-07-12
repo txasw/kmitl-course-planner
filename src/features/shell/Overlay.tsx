@@ -1,10 +1,11 @@
-import { useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { QuarantineCard } from '@/features/plans/QuarantineCard';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { PanelRecoveryCard } from '@/components/PanelRecoveryCard';
 import { IS_DEBUG } from '@/lib/env';
 import { uiStore } from './uiStore';
+import { PanelPortalContext } from './PanelPortalContext';
 import { Header } from './Header';
 import { Layout } from './Layout';
 import { CrashProbe } from './CrashProbe';
@@ -24,7 +25,14 @@ export function Overlay() {
   const isOpen = useStore(uiStore, (state) => state.isOpen);
   const close = useStore(uiStore, (state) => state.close);
   const { t } = useTranslation();
-  const panelRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  // Track the panel node in state as well, so the portal context updates once the node
+  // mounts and floating-ui popups inside the transformed drawer can render into it.
+  const [panelNode, setPanelNode] = useState<HTMLDivElement | null>(null);
+  const attachPanel = useCallback((node: HTMLDivElement | null) => {
+    panelRef.current = node;
+    setPanelNode(node);
+  }, []);
   const { mounted, stage } = usePresence(isOpen);
 
   // Focus enters the panel only once it is mounted; the lock follows the logical
@@ -36,7 +44,7 @@ export function Overlay() {
 
   return (
     <div
-      ref={panelRef}
+      ref={attachPanel}
       role="dialog"
       aria-modal="true"
       aria-labelledby={TITLE_ID}
@@ -55,7 +63,9 @@ export function Overlay() {
       >
         {IS_DEBUG ? <CrashProbe /> : null}
         <main className="min-h-0 flex-1 overflow-hidden">
-          <Layout />
+          <PanelPortalContext.Provider value={panelNode}>
+            <Layout />
+          </PanelPortalContext.Provider>
         </main>
       </ErrorBoundary>
     </div>
