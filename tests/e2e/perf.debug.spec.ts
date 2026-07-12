@@ -107,7 +107,9 @@ test('profiles the dense catalog render and a grid drag', async ({
   // Filter toggle that drops nothing: every section survives, so filterCourses
   // returns identical course identities and a memoized card skips its re-render.
   // This is the clearest memoization win, a re-filter of 500 cards that no longer
-  // re-renders any of them.
+  // re-renders any of them. The hide toggles live in the filter popover, so open it
+  // first; that render lands before the measurement window and is not counted.
+  await page.getByRole('button', { name: 'ตัวกรอง', exact: true }).click();
   const filterToggle = page
     .getByRole('checkbox', { name: 'ซ่อนวิชาที่ไม่มีคาบเรียน' })
     .first();
@@ -117,6 +119,8 @@ test('profiles the dense catalog render and a grid drag', async ({
   const filterMs = (await scriptMs(client)) - beforeFilter;
   await filterToggle.uncheck();
   await page.waitForTimeout(150);
+  // Close the popover so it does not overlay the catalog for the following adds.
+  await page.getByRole('button', { name: 'ตัวกรอง', exact: true }).click();
 
   // Build out the rest of a dense conflict free plan for the drag, from the first
   // non conflicting slots.
