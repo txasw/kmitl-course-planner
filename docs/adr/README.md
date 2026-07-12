@@ -43,3 +43,4 @@ a new record that supersedes the old one rather than editing history.
 34. [Standard keyboard focus indicator](0034-standard-focus-indicator.md)
 35. [Event block tinted surface and ink text](0035-event-block-tinted-surface.md)
 36. [Exam overlap is a hard block](0036-exam-overlap-hard-block.md)
+37. [teachtime_str carries a section's additional meetings](0037-teachtime-str-additional-meetings.md)
