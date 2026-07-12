@@ -37,6 +37,14 @@ button. Never skip it.
       and it appears on the preview poster.
 - [ ] Unscheduled filter: toggle the hide unscheduled filter in the catalog and
       confirm the no meeting sections drop out of the list.
+- [ ] Multi-meeting section: search subject 01476101 by subject id. Section 34 lists
+      two Thursday periods in its catalog row, 08:45 to 10:15 and 10:30 to 12:00. Add
+      it and confirm two blocks land on the grid, both on Thursday, and that copy as
+      text emits a line for each. Then add another section that meets Thursday 10:30 to
+      12:00 and confirm the add is blocked, since the second period is now in the
+      conflict engine. The catalog summary shows a multi meeting count. A plan saved
+      before this patch self heals on first open: its snapshot gains the missing period
+      and a newly true conflict may surface, which is the designed discovered path.
 - [ ] Course drag: drag a course card. Every section shows as a labeled footprint,
       valid ones as droppable slots and blocked, full, and closed ones as hatched
       with their reason. Hovering a candidate highlights its whole section group.
