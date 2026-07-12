@@ -16,6 +16,7 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
     const initialLanguage = uiStore.getState().language;
     const initialViewMode = uiStore.getState().viewMode;
     const initialDisplayOptions = uiStore.getState().displayOptions;
+    const initialTemplate = uiStore.getState().selectedTemplate;
 
     void repo.load().then((stored) => {
       if (cancelled) return;
@@ -36,18 +37,26 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
         ) {
           state.setDisplayOptions(stored.displayOptions);
         }
+        if (
+          stored.exportTemplate !== undefined &&
+          state.selectedTemplate === initialTemplate
+        ) {
+          state.setSelectedTemplate(stored.exportTemplate);
+        }
       }
       unsubscribe = uiStore.subscribe((state, previous) => {
         if (
           state.language !== previous.language ||
           state.viewMode !== previous.viewMode ||
-          state.displayOptions !== previous.displayOptions
+          state.displayOptions !== previous.displayOptions ||
+          state.selectedTemplate !== previous.selectedTemplate
         ) {
           void repo.save({
             schemaVersion: 1,
             language: state.language,
             viewMode: state.viewMode,
             displayOptions: state.displayOptions,
+            exportTemplate: state.selectedTemplate,
           });
         }
       });

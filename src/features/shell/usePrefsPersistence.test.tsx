@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { renderHook, cleanup, act } from '@testing-library/react';
 import { DEFAULT_DISPLAY_OPTIONS } from '@/lib/planner/displayOptions';
+import { DEFAULT_TEMPLATE } from '@/lib/planner/exportTemplates';
 import { usePrefsPersistence } from './usePrefsPersistence';
 import { uiStore } from './uiStore';
 import type { Prefs, PrefsRepository } from '@/lib/storage/prefs';
@@ -35,6 +36,7 @@ afterEach(() => {
     uiStore.getState().setLanguage('th');
     uiStore.getState().setViewMode('edit');
     uiStore.getState().setDisplayOptions(DEFAULT_DISPLAY_OPTIONS);
+    uiStore.getState().setSelectedTemplate(DEFAULT_TEMPLATE.slug);
   });
 });
 
@@ -70,6 +72,7 @@ describe('usePrefsPersistence', () => {
         language: 'en',
         viewMode: 'edit',
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
+        exportTemplate: DEFAULT_TEMPLATE.slug,
       },
     ]);
   });
@@ -90,6 +93,7 @@ describe('usePrefsPersistence', () => {
         language: 'th',
         viewMode: 'preview',
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
+        exportTemplate: DEFAULT_TEMPLATE.slug,
       },
     ]);
   });
@@ -136,6 +140,42 @@ describe('usePrefsPersistence', () => {
         language: 'th',
         viewMode: 'edit',
         displayOptions: { ...DEFAULT_DISPLAY_OPTIONS, showRoom: false },
+        exportTemplate: DEFAULT_TEMPLATE.slug,
+      },
+    ]);
+  });
+
+  it('hydrates the stored export template without writing it back', async () => {
+    const repo = makeRepo({
+      schemaVersion: 1,
+      language: 'th',
+      exportTemplate: 'phone-wallpaper',
+    });
+    renderHook(() => {
+      usePrefsPersistence(repo);
+    });
+    await flush();
+    expect(uiStore.getState().selectedTemplate).toBe('phone-wallpaper');
+    expect(repo.saved).toHaveLength(0);
+  });
+
+  it('persists an export template change', async () => {
+    const repo = makeRepo(null);
+    renderHook(() => {
+      usePrefsPersistence(repo);
+    });
+    await flush();
+
+    act(() => {
+      uiStore.getState().setSelectedTemplate('print-a4');
+    });
+    expect(repo.saved).toEqual([
+      {
+        schemaVersion: 1,
+        language: 'th',
+        viewMode: 'edit',
+        displayOptions: DEFAULT_DISPLAY_OPTIONS,
+        exportTemplate: 'print-a4',
       },
     ]);
   });

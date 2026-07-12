@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import type { RefObject } from 'react';
 import { DEFAULT_DISPLAY_OPTIONS } from '@/lib/planner/displayOptions';
+import { DEFAULT_TEMPLATE } from '@/lib/planner/exportTemplates';
 import { PreviewToolbar } from './PreviewToolbar';
 import type { PlacedSection } from './placedSection';
 
@@ -32,6 +33,7 @@ function renderToolbar() {
   render(
     <PreviewToolbar
       posterRef={posterRef}
+      template={DEFAULT_TEMPLATE}
       sections={[section]}
       displayOptions={DEFAULT_DISPLAY_OPTIONS}
     />,
@@ -67,6 +69,13 @@ describe('PreviewToolbar', () => {
     renderToolbar();
     expect(
       screen.getByRole('button', { name: 'คัดลอกรูปภาพ' }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows the export template picker', () => {
+    renderToolbar();
+    expect(
+      screen.getByRole('combobox', { name: 'แม่แบบ' }),
     ).toBeInTheDocument();
   });
 

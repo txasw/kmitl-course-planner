@@ -3,15 +3,29 @@
 // visible time window from the scheduled meetings so an early or late class widens
 // the grid. Unscheduled sections and the footer summary arrive with the shelf.
 
-import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from 'react';
 import { CalendarPlus } from 'lucide-react';
 import { useStore } from 'zustand';
 import { snapshotToSection } from '@/lib/domain/plan';
+import type { Translate } from '@/lib/i18n/t';
 import {
   computeFitWindow,
   computeWindow,
   visibleDays,
 } from '@/lib/planner/grid';
+import {
+  templateBySlug,
+  templateOutputHeight,
+  templateOutputWidth,
+  type ExportTemplate,
+} from '@/lib/planner/exportTemplates';
 import { planConflicts } from '@/lib/planner/planConflicts';
 import { planExamConflicts } from '@/lib/planner/examOverlap';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
@@ -24,10 +38,38 @@ import { BlockContextMenu } from './BlockContextMenu';
 import { FeedbackStrip } from './FeedbackStrip';
 import { GridFooter } from './GridFooter';
 import { PosterHeader } from './PosterHeader';
+import { PreviewStage } from './PreviewStage';
 import { PreviewToolbar } from './PreviewToolbar';
 import { RevalidationBanner } from './RevalidationBanner';
 import { UnscheduledShelf } from './UnscheduledShelf';
 import { WeeklyGrid } from './WeeklyGrid';
+
+// Wraps the poster in the scaling preview stage in preview mode, or renders it inline
+// in edit mode. The stage scales the fixed template poster to fit the pane, while the
+// poster keeps its exact layout box so the capture lands the template pixels.
+function PosterFrame({
+  isPreview,
+  template,
+  t,
+  children,
+}: {
+  isPreview: boolean;
+  template: ExportTemplate;
+  t: Translate;
+  children: ReactNode;
+}) {
+  if (!isPreview) {
+    return <>{children}</>;
+  }
+  return (
+    <PreviewStage
+      template={template}
+      sizeLabel={`${t(template.labelKey)} · ${String(templateOutputWidth(template))} × ${String(templateOutputHeight(template))}`}
+    >
+      {children}
+    </PreviewStage>
+  );
+}
 
 export function PlannerPanel() {
   const { t, language } = useTranslation();
@@ -35,6 +77,7 @@ export function PlannerPanel() {
   const activePlan = useActivePlan();
   const viewMode = useStore(uiStore, (state) => state.viewMode);
   const displayOptions = useStore(uiStore, (state) => state.displayOptions);
+  const selectedTemplate = useStore(uiStore, (state) => state.selectedTemplate);
   const activeDrag = useStore(dragStore, (state) => state.active);
   const hoverSection = useStore(dragStore, (state) => state.hover);
   const courseDrag = useStore(dragStore, (state) => state.courseDrag);
@@ -180,84 +223,101 @@ export function PlannerPanel() {
   const posterRef = useRef<HTMLDivElement>(null);
   const isPreview = viewMode === 'preview';
   const fitActive = isPreview && displayOptions.fitToContent;
+  const template = templateBySlug(selectedTemplate);
 
   return (
     <div className="flex h-full flex-col gap-2">
       {isPreview ? (
         <PreviewToolbar
           posterRef={posterRef}
+          template={template}
           sections={sections}
           displayOptions={displayOptions}
         />
       ) : null}
       {viewMode === 'edit' ? <FeedbackStrip locale={language} t={t} /> : null}
       <RevalidationBanner />
-      <div
-        ref={posterRef}
-        className={`flex min-h-0 flex-1 flex-col gap-2 ${
-          isPreview ? 'rounded-kcp bg-surface p-3' : ''
-        }`}
-      >
-        {isPreview ? (
-          <PosterHeader
-            planName={activePlan?.name ?? t('plan.untitled')}
-            term={
-              activePlan === null
-                ? null
-                : { year: activePlan.year, semester: activePlan.semester }
-            }
-            sections={sections}
-            locale={language}
-            t={t}
-          />
-        ) : null}
-        <div className="relative min-h-0 flex-1 overflow-auto kcp-scroll">
-          <WeeklyGrid
-            sections={scheduled}
-            window={fitActive ? fitWindow : window}
-            locale={language}
-            t={t}
-            editable={viewMode === 'edit'}
-            onRemove={handleRemove}
-            conflictIds={conflictIds}
-            examConflictIds={examConflictIds}
-            onOpenDetail={openDetail}
-            onContextMenu={openContextMenu}
-            {...(fitActive ? { days: fitDays } : {})}
-            {...(isPreview ? { display: displayOptions } : {})}
-          />
-          {sections.length === 0 ? (
-            <div className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 flex-col items-center gap-2 px-6 text-center">
-              <CalendarPlus
-                size={28}
-                strokeWidth={1.75}
-                className="text-ink-soft"
-                aria-hidden
-              />
-              <p className="text-sm font-medium text-ink">
-                {t('grid.emptyTitle')}
-              </p>
-              <p className="text-sm text-ink-soft">{t('grid.emptyBody')}</p>
-            </div>
+      <PosterFrame isPreview={isPreview} template={template} t={t}>
+        <div
+          ref={posterRef}
+          style={
+            isPreview
+              ? { width: template.layoutWidth, height: template.layoutHeight }
+              : undefined
+          }
+          className={`flex flex-col gap-2 ${
+            isPreview ? 'rounded-kcp bg-surface p-3' : 'min-h-0 flex-1'
+          }`}
+        >
+          {isPreview ? (
+            <PosterHeader
+              planName={activePlan?.name ?? t('plan.untitled')}
+              term={
+                activePlan === null
+                  ? null
+                  : { year: activePlan.year, semester: activePlan.semester }
+              }
+              sections={sections}
+              locale={language}
+              t={t}
+            />
+          ) : null}
+          <div
+            className={`relative min-h-0 flex-1 ${
+              isPreview ? 'overflow-hidden' : 'overflow-auto kcp-scroll'
+            }`}
+          >
+            <WeeklyGrid
+              sections={scheduled}
+              window={fitActive ? fitWindow : window}
+              locale={language}
+              t={t}
+              editable={viewMode === 'edit'}
+              onRemove={handleRemove}
+              conflictIds={conflictIds}
+              examConflictIds={examConflictIds}
+              onOpenDetail={openDetail}
+              onContextMenu={openContextMenu}
+              {...(fitActive ? { days: fitDays } : {})}
+              {...(isPreview
+                ? { display: displayOptions, dayAccent: true }
+                : {})}
+            />
+            {sections.length === 0 ? (
+              <div className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 flex-col items-center gap-2 px-6 text-center">
+                <CalendarPlus
+                  size={28}
+                  strokeWidth={1.75}
+                  className="text-ink-soft"
+                  aria-hidden
+                />
+                <p className="text-sm font-medium text-ink">
+                  {t('grid.emptyTitle')}
+                </p>
+                <p className="text-sm text-ink-soft">{t('grid.emptyBody')}</p>
+              </div>
+            ) : null}
+          </div>
+          {unscheduled.length > 0 ? (
+            <UnscheduledShelf
+              sections={unscheduled}
+              locale={language}
+              t={t}
+              onRemove={viewMode === 'edit' ? handleRemove : undefined}
+              examConflictIds={examConflictIds}
+              {...(isPreview
+                ? {
+                    showSection: displayOptions.showSection,
+                    showEnglishName: displayOptions.showEnglishNames,
+                  }
+                : {})}
+            />
+          ) : null}
+          {sections.length > 0 ? (
+            <GridFooter sections={sections} t={t} />
           ) : null}
         </div>
-        {unscheduled.length > 0 ? (
-          <UnscheduledShelf
-            sections={unscheduled}
-            locale={language}
-            t={t}
-            onRemove={viewMode === 'edit' ? handleRemove : undefined}
-            examConflictIds={examConflictIds}
-            {...(isPreview
-              ? {
-                  showSection: displayOptions.showSection,
-                  showEnglishName: displayOptions.showEnglishNames,
-                }
-              : {})}
-          />
-        ) : null}
-        {sections.length > 0 ? <GridFooter sections={sections} t={t} /> : null}
-      </div>
+      </PosterFrame>
       {viewMode === 'edit' && detail !== null ? (
         <BlockDetailPopover
           teachTableId={detail.teachTableId}
