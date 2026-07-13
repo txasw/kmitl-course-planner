@@ -219,5 +219,7 @@
   "preview.template.tabletPortrait": "ภาพพื้นหลังแท็บเล็ตแนวตั้ง",
   "preview.template.tabletLandscape": "ภาพพื้นหลังแท็บเล็ตแนวนอน",
   "preview.template.printA4": "พิมพ์ A4",
+  "preview.gallery.prev": "แม่แบบก่อนหน้า",
+  "preview.gallery.next": "แม่แบบถัดไป",
   "preview.watermark": "สร้างโดยตัววางแผนตารางเรียน สจล."
 }
