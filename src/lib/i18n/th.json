@@ -114,6 +114,7 @@
   "blockMove.removeZone": "ลากมาที่นี่เพื่อนำออก",
   "blockMove.swap": "สลับกับ",
   "seat.open": "ว่าง",
+  "seat.label": "ที่นั่ง",
   "seat.full": "เต็ม",
   "seat.closed": "ปิด",
   "grid.emptyTitle": "ตารางยังว่าง",

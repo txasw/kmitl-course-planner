@@ -282,6 +282,7 @@ export function PlannerPanel() {
               onRemove={handleRemove}
               conflictIds={conflictIds}
               examConflictIds={examConflictIds}
+              examOverlaps={examConflicts}
               onOpenDetail={openDetail}
               onContextMenu={openContextMenu}
               {...(isPreview

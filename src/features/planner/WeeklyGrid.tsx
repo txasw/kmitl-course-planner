@@ -8,10 +8,11 @@
 // labels center on their gridline and read as an even ruler, with a stronger rule at
 // midday and the window edges. The poster font size scales the whole grid per template.
 
-import { Fragment, useMemo } from 'react';
+import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, MouseEvent } from 'react';
 import { useStore } from 'zustand';
 import type { Meeting } from '@/lib/domain/types';
+import type { ExamOverlap } from '@/lib/planner/examOverlap';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
 import { Tooltip } from '@/components/Tooltip';
@@ -28,6 +29,7 @@ import {
 import { candidateFootprints } from '@/lib/planner/candidateLayout';
 import { dayTint } from '@/lib/planner/dayColors';
 import { dragStore } from './dragStore';
+import { BlockHoverCard } from './BlockHoverCard';
 import { CandidateSlot } from './CandidateSlot';
 import { EventBlock } from './EventBlock';
 import { DraggableBlock } from './DraggableBlock';
@@ -38,6 +40,7 @@ type Orientation = 'landscape' | 'portrait';
 
 const MAX_STACK_OFFSET = 4;
 const STACK_STEP_PX = 5;
+const HOVER_DELAY_MS = 400;
 
 const AXIS_INDEX = 1; // the leading axis track: landscape row 1, portrait column 1
 const FIRST_DAY_INDEX = 2; // first day track: landscape row 2, portrait column 2
@@ -158,6 +161,8 @@ interface WeeklyGridProps {
   conflictIds?: Set<string>;
   /** teachTableIds whose exam window overlaps another placed entry's, reading danger. */
   examConflictIds?: Set<string>;
+  /** The exam overlaps per teachTableId, for the hover detail card. */
+  examOverlaps?: Map<string, ExamOverlap[]>;
   /** Open the block detail popover anchored to a block, edit mode only. */
   onOpenDetail?: (anchor: HTMLElement) => void;
   /** Open the block context menu at the pointer on a right click, edit mode only. */
@@ -186,6 +191,7 @@ export function WeeklyGrid({
   onRemove,
   conflictIds,
   examConflictIds,
+  examOverlaps,
   onOpenDetail,
   onContextMenu,
   days = WEEK_DAYS,
@@ -219,6 +225,37 @@ export function WeeklyGrid({
   const swapContext = useStore(dragStore, (state) => state.swapContext);
   const blocked = active !== null && !active.placement.ok;
   const removeLabel = t('action.remove');
+
+  // The hover detail card: after a short delay on a hovered block, open a read-only card
+  // with its full detail set, never during a drag. The delay avoids a flicker as the
+  // pointer crosses blocks. The card is edit mode only, the interactive surface.
+  const [hoverDetail, setHoverDetail] = useState<{
+    teachTableId: string;
+    anchor: HTMLElement;
+  } | null>(null);
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleHoverEnter = useCallback((anchor: HTMLElement) => {
+    if (hoverTimer.current !== null) {
+      clearTimeout(hoverTimer.current);
+    }
+    if (dragStore.getState().active !== null) {
+      return;
+    }
+    const teachTableId = anchor.dataset.teachTableId;
+    if (teachTableId === undefined) {
+      return;
+    }
+    hoverTimer.current = setTimeout(() => {
+      setHoverDetail({ teachTableId, anchor });
+    }, HOVER_DELAY_MS);
+  }, []);
+  const handleHoverLeave = useCallback(() => {
+    if (hoverTimer.current !== null) {
+      clearTimeout(hoverTimer.current);
+      hoverTimer.current = null;
+    }
+    setHoverDetail(null);
+  }, []);
   const swapBlockers =
     swapContext === null ? new Set<string>() : new Set(swapContext.blockers);
   // Candidate slots come from a course drag or a block move, whichever is active.
@@ -382,6 +419,12 @@ export function WeeklyGrid({
           examConflicted: examConflictIds?.has(section.teachTableId) ?? false,
           ...(editable && onOpenDetail !== undefined ? { onOpenDetail } : {}),
           ...(editable && onContextMenu !== undefined ? { onContextMenu } : {}),
+          ...(editable
+            ? {
+                onHoverEnter: handleHoverEnter,
+                onHoverLeave: handleHoverLeave,
+              }
+            : {}),
         };
         return editable && onRemove ? (
           <DraggableBlock
@@ -470,6 +513,17 @@ export function WeeklyGrid({
               }),
             )
         : null}
+
+      {editable && active === null && hoverDetail !== null ? (
+        <BlockHoverCard
+          teachTableId={hoverDetail.teachTableId}
+          anchor={hoverDetail.anchor}
+          locale={locale}
+          t={t}
+          examOverlaps={examOverlaps?.get(hoverDetail.teachTableId) ?? []}
+          onClose={handleHoverLeave}
+        />
+      ) : null}
     </div>
   );
 }
