@@ -87,5 +87,9 @@ one page. The dots, Home, and End remain.
 
 The export footer becomes one baseline row inside the poster's equal margins: the credits
 summary flush left and the watermark flush right, sharing a baseline and a single top divider.
-The watermark mark is the extension's own icon as a monochrome, single colour variant in the
-credit text colour, sized to the text cap height, replacing the generic glyph.
+The watermark mark is the extension's own icon, built from the same assets/icon.svg rect
+geometry rather than a redrawn approximation, mapped to one colour: the rounded tile fills with
+the credit text colour through currentColor, the three light squares knock out to transparency
+as negative space through a mask, and the signature accent square keeps its position at 45
+percent opacity, so the brand's figure and ground survive rather than flattening to detached
+filled squares that read as a foreign four square glyph.
