@@ -30,15 +30,21 @@ describe('DisplayOptionsPopover', () => {
 
   it('reflects the current store state on each option', () => {
     act(() => {
-      uiStore.getState().setDisplayOption('fitToContent', false);
+      uiStore.getState().setDisplayOption('showRoom', false);
     });
     render(<DisplayOptionsPopover />);
     fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }));
-    expect(
-      screen.getByRole('switch', { name: 'ย่อพอดีกับเนื้อหา' }),
-    ).not.toBeChecked();
+    expect(screen.getByRole('switch', { name: 'แสดงห้อง' })).not.toBeChecked();
     expect(
       screen.getByRole('switch', { name: 'แสดงกลุ่มเรียน' }),
     ).toBeChecked();
+  });
+
+  it('no longer surfaces the retired fit to content option', () => {
+    render(<DisplayOptionsPopover />);
+    fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }));
+    expect(
+      screen.queryByRole('switch', { name: 'ย่อพอดีกับเนื้อหา' }),
+    ).not.toBeInTheDocument();
   });
 });

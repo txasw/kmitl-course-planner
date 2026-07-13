@@ -16,9 +16,9 @@ import { useStore } from 'zustand';
 import { snapshotToSection } from '@/lib/domain/plan';
 import type { Translate } from '@/lib/i18n/t';
 import {
-  computeFitWindow,
+  computeSmartWindow,
   computeWindow,
-  visibleDays,
+  smartVisibleDays,
 } from '@/lib/planner/grid';
 import {
   templateBySlug,
@@ -38,6 +38,7 @@ import { BlockContextMenu } from './BlockContextMenu';
 import { FeedbackStrip } from './FeedbackStrip';
 import { GridFooter } from './GridFooter';
 import { PosterHeader } from './PosterHeader';
+import { PosterWatermark } from './PosterWatermark';
 import { PreviewStage } from './PreviewStage';
 import { PreviewToolbar } from './PreviewToolbar';
 import { RevalidationBanner } from './RevalidationBanner';
@@ -151,19 +152,21 @@ export function PlannerPanel() {
       ...blockMoveMeetings,
     ]);
   }, [scheduled, activeDrag, hoverSection, courseDrag, blockMove]);
-  // The fit to content preview trims the window and day rows to the scheduled
-  // meetings. Both are derived unconditionally and only used when preview and the
-  // option are on, so switching the option in place needs no extra state.
+  // The template poster window and day run: the 08:00 to 18:00 working day extended for
+  // outliers, and Monday to Friday extended for weekend meetings. Both are derived
+  // unconditionally and only used in preview, superseding the fit to content window logic
+  // for templates (precedence: template canvas, then this smart window, then display
+  // options). Edit mode keeps the extending window above.
   const scheduledMeetings = useMemo(
     () => scheduled.flatMap((section) => section.meetings),
     [scheduled],
   );
-  const fitWindow = useMemo(
-    () => computeFitWindow(scheduledMeetings),
+  const smartWindow = useMemo(
+    () => computeSmartWindow(scheduledMeetings),
     [scheduledMeetings],
   );
-  const fitDays = useMemo(
-    () => visibleDays(scheduledMeetings),
+  const smartDays = useMemo(
+    () => smartVisibleDays(scheduledMeetings),
     [scheduledMeetings],
   );
   const handleRemove = useCallback((teachTableId: string) => {
@@ -222,7 +225,6 @@ export function PlannerPanel() {
   // image carries the plan and not the surrounding chrome.
   const posterRef = useRef<HTMLDivElement>(null);
   const isPreview = viewMode === 'preview';
-  const fitActive = isPreview && displayOptions.fitToContent;
   const template = templateBySlug(selectedTemplate);
 
   return (
@@ -242,7 +244,11 @@ export function PlannerPanel() {
           ref={posterRef}
           style={
             isPreview
-              ? { width: template.layoutWidth, height: template.layoutHeight }
+              ? {
+                  width: template.layoutWidth,
+                  height: template.layoutHeight,
+                  fontSize: `${String(template.posterFontPx)}px`,
+                }
               : undefined
           }
           className={`flex flex-col gap-2 ${
@@ -269,7 +275,7 @@ export function PlannerPanel() {
           >
             <WeeklyGrid
               sections={scheduled}
-              window={fitActive ? fitWindow : window}
+              window={isPreview ? smartWindow : window}
               locale={language}
               t={t}
               editable={viewMode === 'edit'}
@@ -278,9 +284,14 @@ export function PlannerPanel() {
               examConflictIds={examConflictIds}
               onOpenDetail={openDetail}
               onContextMenu={openContextMenu}
-              {...(fitActive ? { days: fitDays } : {})}
               {...(isPreview
-                ? { display: displayOptions, dayAccent: true }
+                ? {
+                    days: smartDays,
+                    display: displayOptions,
+                    dayAccent: true,
+                    orientation: template.orientation,
+                    fontPx: template.posterFontPx,
+                  }
                 : {})}
             />
             {sections.length === 0 ? (
@@ -316,6 +327,7 @@ export function PlannerPanel() {
           {sections.length > 0 ? (
             <GridFooter sections={sections} t={t} />
           ) : null}
+          {isPreview ? <PosterWatermark t={t} /> : null}
         </div>
       </PosterFrame>
       {viewMode === 'edit' && detail !== null ? (
