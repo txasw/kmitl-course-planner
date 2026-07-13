@@ -8,7 +8,16 @@
 // for an addable or conflicting open section and a remove button for an added one.
 
 import { useState } from 'react';
-import { Info, Plus } from 'lucide-react';
+import {
+  AlertTriangle,
+  BookOpen,
+  CalendarClock,
+  Check,
+  Copy,
+  FlaskConical,
+  Info,
+  Plus,
+} from 'lucide-react';
 import { Tooltip } from '@/components/Tooltip';
 import { RemoveButton } from './RemoveButton';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -33,13 +42,29 @@ function StateBadge({
 }) {
   switch (relation.kind) {
     case 'added':
-      return <Pill tone="success">{t('section.badge.added')}</Pill>;
+      return (
+        <Pill tone="success" icon={<Check size={12} aria-hidden />}>
+          {t('section.badge.added')}
+        </Pill>
+      );
     case 'conflicting':
-      return <Pill tone="danger">{t('section.badge.conflict')}</Pill>;
+      return (
+        <Pill tone="danger" icon={<AlertTriangle size={12} aria-hidden />}>
+          {t('section.badge.conflict')}
+        </Pill>
+      );
     case 'duplicate':
-      return <Pill tone="warn">{t('section.badge.duplicate')}</Pill>;
+      return (
+        <Pill tone="warn" icon={<Copy size={12} aria-hidden />}>
+          {t('section.badge.duplicate')}
+        </Pill>
+      );
     case 'different_term':
-      return <Pill tone="neutral">{t('section.badge.differentTerm')}</Pill>;
+      return (
+        <Pill tone="neutral" icon={<CalendarClock size={12} aria-hidden />}>
+          {t('section.badge.differentTerm')}
+        </Pill>
+      );
     case 'addable':
       return null;
   }
@@ -106,13 +131,22 @@ export function SectionRow({
         dimmed ? 'opacity-70' : ''
       }`}
     >
-      <div className="min-w-0 flex-1 p-2">
+      <div className="@container min-w-0 flex-1 p-2">
         <div className="flex items-start justify-between gap-2">
           <span className="font-medium text-ink">
             {t('section.code')} {section.section}
           </span>
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
-            <Pill tone="neutral">
+            <Pill
+              tone="neutral"
+              icon={
+                kind === 'practice' ? (
+                  <FlaskConical size={12} aria-hidden />
+                ) : (
+                  <BookOpen size={12} aria-hidden />
+                )
+              }
+            >
               {kind === 'practice'
                 ? t('section.practice')
                 : t('section.lecture')}

@@ -3,6 +3,7 @@
 // even though they never sit on the timetable. It renders only when the plan holds
 // such a section. Remove actions arrive with the placement system.
 
+import { AlertTriangle, BookOpen, FlaskConical } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { Pill } from '@/components/Pill';
 import { Tooltip } from '@/components/Tooltip';
@@ -57,7 +58,7 @@ export function UnscheduledShelf({
           return (
             <li
               key={section.teachTableId}
-              className="flex items-center justify-between gap-2 text-xs"
+              className="@container flex items-center justify-between gap-2 text-xs"
             >
               <span className="flex min-w-0 flex-col text-ink">
                 <Tooltip label={`${section.subjectId} ${name}`}>
@@ -76,14 +77,28 @@ export function UnscheduledShelf({
               </span>
               <span className="flex shrink-0 items-center gap-1.5 text-ink-soft">
                 {badge !== null && badgeText !== '' ? (
-                  <Pill tone={badge}>{badgeText}</Pill>
+                  <Pill
+                    tone={badge}
+                    icon={<AlertTriangle size={12} aria-hidden />}
+                  >
+                    {badgeText}
+                  </Pill>
                 ) : null}
                 {showSection ? (
                   <span>
                     {t('section.code')} {section.section}
                   </span>
                 ) : null}
-                <Pill tone="neutral">
+                <Pill
+                  tone="neutral"
+                  icon={
+                    section.kind === 'practice' ? (
+                      <FlaskConical size={12} aria-hidden />
+                    ) : (
+                      <BookOpen size={12} aria-hidden />
+                    )
+                  }
+                >
                   {section.kind === 'practice'
                     ? t('section.practice')
                     : t('section.lecture')}
