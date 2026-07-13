@@ -235,7 +235,7 @@ export function PlannerPanel() {
           displayOptions={displayOptions}
         />
       ) : null}
-      {viewMode === 'edit' ? <FeedbackStrip locale={language} t={t} /> : null}
+      {viewMode === 'edit' ? <FeedbackStrip t={t} /> : null}
       <RevalidationBanner />
       <PosterFrame isPreview={isPreview} template={template} t={t}>
         <div

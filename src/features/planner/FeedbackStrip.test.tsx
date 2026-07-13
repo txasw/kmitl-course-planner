@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import {
   render,
   screen,
@@ -14,9 +14,7 @@ import { catalogStore } from '@/features/catalog/catalogStore';
 import {
   makeCourse,
   makeMeeting,
-  makePlanEntry,
   makeSection,
-  makeSnapshot,
 } from '../../../tests/support/domain-builders';
 import {
   resetPlanStore,
@@ -26,44 +24,6 @@ import { dragStore } from './dragStore';
 import { FeedbackStrip } from './FeedbackStrip';
 
 const t = createTranslator('th');
-
-function seedUndo(): void {
-  const entry = makePlanEntry({
-    snapshot: makeSnapshot({
-      teachTableId: 'r1',
-      subjectId: '90592033',
-      subjectMeta: {
-        subjectId: '90592033',
-        nameTh: 'วิชาทดสอบ',
-        nameEn: 'Test subject',
-        credit: 3,
-        creditStr: '3(3-0-6)',
-      },
-    }),
-  });
-  act(() => {
-    seedActivePlan([]);
-    planStore.setState({
-      pendingUndo: { kind: 'remove', added: [], removed: [entry] },
-    });
-  });
-}
-
-function makeMoveEntry(subjectId: string, nameTh: string) {
-  return makePlanEntry({
-    snapshot: makeSnapshot({
-      teachTableId: `tt-${subjectId}`,
-      subjectId,
-      subjectMeta: {
-        subjectId,
-        nameTh,
-        nameEn: 'name',
-        credit: 3,
-        creditStr: '3(3-0-6)',
-      },
-    }),
-  });
-}
 
 function blockedTimeConflict() {
   return [
@@ -105,75 +65,6 @@ afterEach(() => {
 });
 
 describe('FeedbackStrip', () => {
-  it('shows the removed subject with an undo action', () => {
-    seedUndo();
-    render(<FeedbackStrip locale="th" t={t} />);
-    expect(screen.getByText(/90592033/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'เลิกทำ' })).toBeInTheDocument();
-  });
-
-  it('names the moved subject rather than a removal after a move', () => {
-    act(() => {
-      planStore.setState({
-        entries: [],
-        pendingUndo: {
-          kind: 'move',
-          added: [makeMoveEntry('90000003', 'วิชาซี')],
-          removed: [makeMoveEntry('90000003', 'วิชาซี')],
-        },
-      });
-    });
-    render(<FeedbackStrip locale="th" t={t} />);
-    expect(screen.getByText(/ย้ายแล้ว 90000003/)).toBeInTheDocument();
-    expect(screen.queryByText(/นำออกแล้ว/)).not.toBeInTheDocument();
-  });
-
-  it('names the swapped in subject after a swap', () => {
-    act(() => {
-      planStore.setState({
-        entries: [],
-        pendingUndo: {
-          kind: 'swap',
-          added: [makeMoveEntry('90000002', 'วิชาบี')],
-          removed: [makeMoveEntry('90000001', 'วิชาเอ')],
-        },
-      });
-    });
-    render(<FeedbackStrip locale="th" t={t} />);
-    expect(screen.getByText(/สลับเป็น 90000002/)).toBeInTheDocument();
-  });
-
-  it('restores the removal and closes the window on undo', () => {
-    seedUndo();
-    render(<FeedbackStrip locale="th" t={t} />);
-    fireEvent.click(screen.getByRole('button', { name: 'เลิกทำ' }));
-    expect(planStore.getState().entries).toHaveLength(1);
-    expect(planStore.getState().pendingUndo).toBeNull();
-    expect(
-      screen.queryByRole('button', { name: 'เลิกทำ' }),
-    ).not.toBeInTheDocument();
-  });
-
-  it('closes the undo window after ten seconds', () => {
-    vi.useFakeTimers();
-    try {
-      seedUndo();
-      render(<FeedbackStrip locale="th" t={t} />);
-      expect(
-        screen.getByRole('button', { name: 'เลิกทำ' }),
-      ).toBeInTheDocument();
-      act(() => {
-        vi.advanceTimersByTime(10_000);
-      });
-      expect(planStore.getState().pendingUndo).toBeNull();
-      expect(
-        screen.queryByRole('button', { name: 'เลิกทำ' }),
-      ).not.toBeInTheDocument();
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
   it('shows the blocked reason and a fitting alternative chip', () => {
     const blocked = makeSection({
       teachTableId: 'b',
@@ -200,7 +91,7 @@ describe('FeedbackStrip', () => {
         },
       });
     });
-    render(<FeedbackStrip locale="th" t={t} />);
+    render(<FeedbackStrip t={t} />);
     expect(screen.getByText(/90000001/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /902/ })).toBeInTheDocument();
   });
@@ -233,7 +124,7 @@ describe('FeedbackStrip', () => {
         },
       });
     });
-    render(<FeedbackStrip locale="th" t={t} />);
+    render(<FeedbackStrip t={t} />);
     fireEvent.click(screen.getByRole('button', { name: /902/ }));
     expect(
       planStore.getState().entries.some((entry) => entry.section === '902'),
@@ -273,7 +164,7 @@ describe('FeedbackStrip', () => {
         },
       });
     });
-    render(<FeedbackStrip locale="th" t={t} />);
+    render(<FeedbackStrip t={t} />);
     fireEvent.click(screen.getByRole('button', { name: /902/ }));
     expect(dragStore.getState().crossTerm).not.toBeNull();
     expect(
@@ -303,7 +194,7 @@ describe('FeedbackStrip', () => {
         },
       });
     });
-    render(<FeedbackStrip locale="th" t={t} />);
+    render(<FeedbackStrip t={t} />);
     fireEvent.click(screen.getByRole('button', { name: 'แสดงในรายการ' }));
     expect(catalogStore.getState().filter.text).toBe('S1');
     expect(dragStore.getState().blocked).toBeNull();
@@ -313,7 +204,7 @@ describe('FeedbackStrip', () => {
     act(() => {
       dragStore.setState({ announcement: 'เพิ่มลงตารางแล้ว 90592008' });
     });
-    render(<FeedbackStrip locale="th" t={t} />);
+    render(<FeedbackStrip t={t} />);
     expect(screen.getByText('เพิ่มลงตารางแล้ว 90592008')).toBeInTheDocument();
   });
 
@@ -321,7 +212,7 @@ describe('FeedbackStrip', () => {
     act(() => {
       dragStore.setState({ hint: 'วางบนช่องที่ไฮไลต์เพื่อเพิ่มกลุ่มเรียน' });
     });
-    render(<FeedbackStrip locale="th" t={t} />);
+    render(<FeedbackStrip t={t} />);
     expect(
       screen.getByText('วางบนช่องที่ไฮไลต์เพื่อเพิ่มกลุ่มเรียน'),
     ).toBeInTheDocument();

@@ -189,3 +189,31 @@
     animation: none;
   }
 }
+
+/* The undo toast drains a thin bar over its ten second window. The bar pauses in step
+   with the timer when the toast is hovered or focused (data-paused). Reduced motion
+   drops the bar entirely, leaving the message and the undo button, since a draining
+   countdown is motion; the timer itself still pauses on hover or focus. */
+@keyframes kcp-undo-drain {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.kcp-undo-drain {
+  animation: kcp-undo-drain linear forwards;
+}
+
+.kcp-undo-drain[data-paused='true'] {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kcp-undo-drain {
+    display: none;
+  }
+}
