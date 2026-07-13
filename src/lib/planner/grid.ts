@@ -33,6 +33,16 @@ export const DEFAULT_WINDOW: GridWindow = {
   endMin: DEFAULT_WINDOW_END_MIN,
 };
 
+/** The template poster base window, 08:00 to 18:00, before any auto extension. */
+export const SMART_WINDOW_START_MIN = 8 * 60;
+export const SMART_WINDOW_END_MIN = 18 * 60;
+
+/** The smart window base, 08:00 to 18:00 (the common teaching day). */
+export const SMART_WINDOW: GridWindow = {
+  startMin: SMART_WINDOW_START_MIN,
+  endMin: SMART_WINDOW_END_MIN,
+};
+
 function floorToHour(min: number): number {
   return Math.floor(min / MINUTES_PER_HOUR) * MINUTES_PER_HOUR;
 }
@@ -112,6 +122,56 @@ export function visibleDays(meetings: Meeting[]): DayOfWeek[] {
   }
   const days: DayOfWeek[] = [];
   for (let day = first; day <= last; day += 1) {
+    days.push(day);
+  }
+  return days;
+}
+
+/**
+ * The template poster window: the 08:00 to 18:00 teaching day, extended to the hour
+ * boundary that clears any meeting falling outside it (down to the floor hour of an early
+ * start, up to the ceil hour of a late end). This supersedes the fit to content window for
+ * templates: a poster reads as a familiar working day, not a band trimmed to whatever hours
+ * the plan happens to use. With no meetings it returns the base window (ADR, precedence is
+ * template canvas, then this window, then display options).
+ */
+export function computeSmartWindow(meetings: Meeting[]): GridWindow {
+  let startMin = SMART_WINDOW_START_MIN;
+  let endMin = SMART_WINDOW_END_MIN;
+  for (const meeting of meetings) {
+    if (meeting.startMin < startMin) {
+      startMin = floorToHour(meeting.startMin);
+    }
+    if (meeting.endMin > endMin) {
+      endMin = ceilToHour(meeting.endMin);
+    }
+  }
+  return { startMin, endMin };
+}
+
+/**
+ * The day rows a template poster shows: Monday through Friday as the base working week,
+ * revealing Sunday when a Sunday meeting exists and revealing both Saturday and Sunday
+ * (the weekend pair) when a Saturday meeting exists. The Monday to Friday base always shows
+ * so a poster keeps a full working week frame even when a plan is sparse. The run is
+ * contiguous from its first to its last day.
+ */
+export function smartVisibleDays(meetings: Meeting[]): DayOfWeek[] {
+  let hasSaturday = false;
+  let hasSunday = false;
+  for (const meeting of meetings) {
+    if (meeting.day === 6) {
+      hasSaturday = true;
+    }
+    if (meeting.day === 0) {
+      hasSunday = true;
+    }
+  }
+  // A Saturday meeting reveals Sunday too, so any weekend meeting opens the run at Sunday.
+  const start: DayOfWeek = hasSaturday || hasSunday ? 0 : 1;
+  const end: DayOfWeek = hasSaturday ? 6 : 5;
+  const days: DayOfWeek[] = [];
+  for (let day = start; day <= end; day += 1) {
     days.push(day);
   }
   return days;

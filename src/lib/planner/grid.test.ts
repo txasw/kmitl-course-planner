@@ -3,12 +3,15 @@ import type { DayOfWeek } from '../parsing/days';
 import type { Meeting } from '../domain/types';
 import {
   DEFAULT_WINDOW,
+  SMART_WINDOW,
   computeFitWindow,
+  computeSmartWindow,
   computeWindow,
   hourTicks,
   meetingColumns,
   perDayLoad,
   quarterCount,
+  smartVisibleDays,
   visibleDays,
 } from './grid';
 
@@ -140,6 +143,57 @@ describe('visibleDays', () => {
   it('returns a single day when every meeting is on it', () => {
     expect(visibleDays([meeting(3, 540, 600), meeting(3, 780, 840)])).toEqual([
       3,
+    ]);
+  });
+});
+
+describe('computeSmartWindow', () => {
+  it('returns the 08:00 to 18:00 base when every meeting is inside it', () => {
+    expect(computeSmartWindow([meeting(1, 540, 660)])).toEqual(SMART_WINDOW);
+    expect(SMART_WINDOW).toEqual({ startMin: 480, endMin: 1080 });
+  });
+
+  it('returns the base window when there are no meetings', () => {
+    expect(computeSmartWindow([])).toEqual(SMART_WINDOW);
+  });
+
+  it('extends the end up to the hour that clears a late meeting', () => {
+    // 18:00 to 19:30 pushes the boundary to 20:00.
+    expect(computeSmartWindow([meeting(1, 1080, 1170)])).toEqual({
+      startMin: 480,
+      endMin: 1200,
+    });
+  });
+
+  it('extends the start down to the hour that clears an early meeting', () => {
+    // 07:15 to 08:15 pulls the boundary to 07:00.
+    expect(computeSmartWindow([meeting(1, 435, 495)])).toEqual({
+      startMin: 420,
+      endMin: 1080,
+    });
+  });
+});
+
+describe('smartVisibleDays', () => {
+  it('shows Monday through Friday when every meeting is a weekday', () => {
+    expect(
+      smartVisibleDays([meeting(1, 540, 600), meeting(5, 540, 600)]),
+    ).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('shows the base week even with no meetings', () => {
+    expect(smartVisibleDays([])).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('reveals Sunday for a Sunday meeting', () => {
+    expect(smartVisibleDays([meeting(0, 540, 600)])).toEqual([
+      0, 1, 2, 3, 4, 5,
+    ]);
+  });
+
+  it('reveals both Saturday and Sunday for a Saturday meeting', () => {
+    expect(smartVisibleDays([meeting(6, 540, 600)])).toEqual([
+      0, 1, 2, 3, 4, 5, 6,
     ]);
   });
 });
