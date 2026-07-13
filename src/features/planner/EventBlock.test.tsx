@@ -82,9 +82,10 @@ describe('EventBlock', () => {
     expect(foot?.textContent).toContain('90592033');
   });
 
-  it('wraps a long name at any point so it ellipsizes rather than clipping a glyph', () => {
-    // A long unbreakable token in a narrow column must wrap and let the line clamp
-    // ellipsize, never clip mid character at the block edge (F2, ADR-0046).
+  it('wraps and hyphenates a long name by its language rather than clipping a glyph', () => {
+    // A long token in a narrow column wraps and, where a forced break is needed, hyphenates
+    // by the text language so it never clips mid glyph; the language attribute also keeps Thai
+    // on its native dictionary breaking (F2, ADR-0046, ADR-0047).
     render(
       <EventBlock
         section={section}
@@ -95,9 +96,10 @@ describe('EventBlock', () => {
       />,
     );
     const block = screen.getByLabelText(/90592033/);
-    expect(within(block).getByText('วิชาทดสอบ').className).toContain(
-      '[overflow-wrap:anywhere]',
-    );
+    const nameEl = within(block).getByText('วิชาทดสอบ');
+    expect(nameEl.className).toContain('break-words');
+    expect(nameEl.className).toContain('hyphens-auto');
+    expect(nameEl).toHaveAttribute('lang', 'th');
   });
 
   it('gives block text Thai headroom only when fitting to the export box', () => {
