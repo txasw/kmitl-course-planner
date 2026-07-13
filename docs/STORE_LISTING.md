@@ -202,8 +202,9 @@ Screenshot shot list, each captioned:
    timetable.
 4. Conflict feedback during a blocked placement. Caption: See time conflicts before you
    commit, with suggested alternatives.
-5. Preview mode with the export toolbar and the template picker open. Caption: Export your
-   plan at a fixed size, or copy it as text.
+5. Preview mode with the export toolbar and the template picker open, showing the portrait
+   phone wallpaper option. Caption: Export your plan at a fixed size, including a portrait
+   phone wallpaper, or copy it as text.
 
 ## Firefox source package
 

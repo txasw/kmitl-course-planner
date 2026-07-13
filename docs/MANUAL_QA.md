@@ -162,14 +162,26 @@ the header segmented control.
       the image and open it. The poster header, the grid with block colours and any
       revalidation badges, the unscheduled shelf, and the footer credits all render, and
       Thai text is correct. The file name is kmitl-plan-year-semester-name-template.
-- [ ] Export templates: with the template picker, step through Share 16:9, Phone wallpaper,
-      Tablet wallpaper, and Print A4. The preview reflows to each aspect and the corner label
-      states the output size. Download each and confirm the opened image is exactly the stated
-      pixels: 1920x1080, 1080x2340, 1668x2388, and 3508x2480. The picked template persists
-      across a reopen. At the largest preset, Print A4, the Thai glyphs are sharp and correct
-      with no tofu boxes or clipped tone marks, and every day row, the shelf, and the footer
-      credits are still present, never cropped.
-- [ ] Day-color accent: in preview, confirm the day row labels carry the traditional Thai day
+- [ ] Export templates: with the template picker, step through Share 16:9, Phone wallpaper
+      landscape, Phone wallpaper portrait, Tablet wallpaper, and Print A4. The preview reflows
+      to each aspect and the corner label states the output size. Download each and confirm the
+      opened image is exactly the stated pixels: 1920x1080, 1080x2340 (both phone templates),
+      1668x2388, and 3508x2480. The picked template persists across a reopen. At the largest
+      preset, Print A4, the Thai glyphs are sharp and correct with no tofu boxes or clipped tone
+      marks, and every day row, the shelf, and the footer credits are still present, never
+      cropped. No block clips its time or name at any preset.
+- [ ] Portrait template: the phone wallpaper portrait fills the tall canvas top to bottom with
+      days across the top as columns and time down the left axis, not a thin band. The block
+      positions match the landscape reading of the same plan.
+- [ ] Smart window: with a plan whose meetings all fall inside Monday to Friday 08:00 to 18:00,
+      the poster shows exactly that window. A meeting before 08:00 or after 18:00 extends the
+      window to the hour that clears it; a Saturday meeting reveals both Saturday and Sunday.
+      The time axis hour labels are centred on their gridline with a stronger rule at midday and
+      the window edges.
+- [ ] Watermark: every export carries the quiet credit line in the bottom-right, in every
+      template including portrait, legible but unobtrusive, never over a block, and present in
+      the downloaded and the copied image.
+- [ ] Day-color accent: in preview, confirm the day labels carry the traditional Thai day
       colours as a faint tint, the label text stays legible, and the accent appears in the
       exported image. In edit mode the day rows stay the plain alternating shade, and the
       subject block colours are unchanged in both modes.

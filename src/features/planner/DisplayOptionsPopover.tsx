@@ -25,8 +25,10 @@ import { useTranslation } from '@/features/shell/useTranslation';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { Switch } from '@/components/Switch';
 
+// Fit to content is retired from the poster: the smart window (grid.ts) now decides the
+// window and day run for every template, so the option no longer has a job. Its schema
+// field is kept for back-compat with stored preferences (no schema bump).
 const OPTIONS: { key: keyof DisplayOptions; labelKey: TranslationKey }[] = [
-  { key: 'fitToContent', labelKey: 'preview.fitToContent' },
   { key: 'showRoom', labelKey: 'preview.showRoom' },
   { key: 'showSection', labelKey: 'preview.showSection' },
   { key: 'showEnglishNames', labelKey: 'preview.showEnglishNames' },
