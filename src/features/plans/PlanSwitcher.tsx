@@ -510,7 +510,10 @@ function ActionButton({
   showLabel?: boolean;
 }) {
   return (
-    <Tooltip label={label}>
+    // The dropdown opens downward from the header, so the action row sits below the plan
+    // list. A top placed tooltip would cover that list; point it below the icons, away
+    // from the popover body, so it never hides the options being chosen.
+    <Tooltip label={label} placement="bottom">
       {(triggerProps, ref) => (
         <button
           ref={ref}

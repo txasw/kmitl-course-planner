@@ -24,6 +24,7 @@ import {
   useHover,
   useInteractions,
   useRole,
+  type Placement,
 } from '@floating-ui/react';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
 
@@ -32,6 +33,10 @@ type TriggerRef = (node: Element | null) => void;
 interface TooltipProps {
   /** The tooltip text. It also becomes the reference's aria-describedby target. */
   label: ReactNode;
+  /** Preferred side of the trigger. Defaults to top. A control inside a popover sets
+   * this to point the tooltip away from the popover body so it never covers the very
+   * options being chosen; the plan menu action buttons pass bottom for this reason. */
+  placement?: Placement;
   /** Render the trigger. Attach `ref` through the element's JSX ref and spread
    * `triggerProps` onto it so the tooltip anchors to it and receives hover and
    * focus, while the element keeps its own handlers and classes. */
@@ -41,15 +46,20 @@ interface TooltipProps {
   ) => ReactNode;
 }
 
-export function Tooltip({ label, children }: TooltipProps) {
+export function Tooltip({ label, placement = 'top', children }: TooltipProps) {
   const [open, setOpen] = useState(false);
   const portalRoot = usePanelPortal();
 
-  const { refs, floatingStyles, context } = useFloating({
+  const {
+    refs,
+    floatingStyles,
+    context,
+    placement: resolvedPlacement,
+  } = useFloating({
     open,
     onOpenChange: setOpen,
     strategy: 'fixed',
-    placement: 'top',
+    placement,
     middleware: [offset(6), flip({ padding: 8 }), shift({ padding: 8 })],
     whileElementsMounted: autoUpdate,
   });
@@ -107,6 +117,7 @@ export function Tooltip({ label, children }: TooltipProps) {
       ref={setFloating}
       style={floatingStyles}
       {...getFloatingProps()}
+      data-placement={resolvedPlacement}
       className="z-[2147483647] max-w-56 rounded-kcp border border-border bg-surface px-2 py-1 text-xs text-ink shadow-kcp"
     >
       {label}
