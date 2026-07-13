@@ -1,5 +1,37 @@
 # kmitl-course-planner
 
+## 1.3.0
+
+### Minor Changes
+
+- 801fce5: Invert the timetable block hierarchy on the grid, since the row and the block's extent already
+  encode the meeting time. The subject name is now the primary anchor at the top, the place
+  (building and room with a location glyph) is promoted to the second line because it is
+  recoverable nowhere else on the sheet, the section stays a corner chip, and the time demotes to
+  quiet metadata at the foot beside the subject id. Under the measured fit a short block drops the
+  subject id, then the English name, then the time, then the section chip, then reduces the name to
+  one line, then the place, with the name never dropping; the place always outlives the name's
+  second line and the time is kept present as a quiet foot line rather than deleted. Long names now
+  hyphenate a forced break by their language instead of splitting a word with no hyphen. The change
+  applies only where position encodes time; the hover card, block popover, catalog rows, and copy
+  as text keep the time prominent. Recorded in ADR-0047.
+- e853d17: Add a show subject id display option to the preview toolbar, off by default. It governs the
+  preview poster, every image export, and the copy as text output, so a shared timetable reads
+  clean without the numeric course code unless the option is turned on, and the id stays
+  recoverable from the text export when it is off. The edit grid ignores the option and always
+  shows the id for cross referencing against the catalog. When on, the id is still the first
+  field to yield on a short block. Recorded in ADR-0046.
+
+### Patch Changes
+
+- 9484f67: Block text on the preview poster and its image exports no longer clips mid glyph. Each
+  field now renders whole or is dropped by measurement in a fixed priority (subject id, then
+  the place line, then the section chip, then the English name, then the name reduces from two
+  clamped lines to one before it drops, with the time never dropped), a long name wraps and
+  ellipsizes rather than clipping in a narrow portrait column, and Thai vowels and tone marks
+  keep their vertical headroom. The image capture waits for fonts to load so the export matches
+  what the fit measured. Recorded in ADR-0046.
+
 ## 1.2.0
 
 ### Minor Changes
