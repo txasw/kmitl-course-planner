@@ -171,7 +171,16 @@ the header segmented control.
       2400x1080, 1080x2340, 2048x2732, 2732x2048, and 3508x2480. The picked template persists
       across a reopen. At the largest preset, Print A4, the Thai glyphs are sharp and correct
       with no tofu boxes or clipped tone marks, and every day track, the shelf, and the footer
-      credits are still present, never cropped. No block clips its time or name at any preset.
+      credits are still present, never cropped. No block clips any field at any preset: the
+      time and name stay and the foot fields drop whole rather than clipping (see the next item).
+- [ ] Fields never half render: step through all six presets and sweep the blocks. No field is
+      ever cut mid glyph. Every visible line sits fully inside its block, including Thai upper
+      vowels and tone marks and low descenders. Where a block is short, the fields drop whole in
+      priority, the subject id first, then the place, then the section chip, then the English
+      name, and the name reduces to one ellipsized line before it drops, with the time never
+      dropped. A long name in the narrow portrait columns ends in an ellipsis, never a clipped
+      glyph. Turn show subject id on to pack the foot with both the id and the place and confirm
+      the fit still drops a field rather than clipping.
 - [ ] Gallery picker: the selected poster is centred with the neighbouring templates peeking at
       both edges wide enough to read as a continuation cue. A pointer swipe past the threshold
       pages to the neighbour and a short swipe springs back. The dots below name each template
@@ -202,9 +211,12 @@ the header segmented control.
       Thai with a header line of plan, term, and credits, one line per meeting ordered
       Sunday through Saturday, the unscheduled sections under a label, a missing marker on
       any dropped section, and a footer with the app name. There is no markdown.
-- [ ] Display options are what you get: toggle fit to content, show room, show section,
+- [ ] Display options are what you get: toggle show room, show section, show subject id,
       and show English names. The preview updates in place, and a re exported PNG and a
       re copied text reflect the same options. The options persist across a reopen.
+- [ ] Show subject id: the option is off by default, so the poster blocks, the shelf, and the
+      copy as text lines carry no numeric id and read name first. Turn it on and the id appears
+      in all three. In edit mode the id always shows on the blocks regardless of the option.
 - [ ] Fit to content: with fit on, the poster trims to the hours and days the plan uses and
       never hides the unscheduled shelf. With fit off, the full week and the default hours
       show.
