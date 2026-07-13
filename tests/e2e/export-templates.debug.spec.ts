@@ -45,24 +45,22 @@ test('exports each template at its exact pixel dimensions', async ({
     .click();
   await page.getByRole('button', { name: 'ดูตัวอย่าง' }).click();
 
-  // The default template is the 16:9 share size, 960 by 540 at ratio 2.
-  expect(pngSize(await downloadPng(page))).toEqual({
-    width: 1920,
-    height: 1080,
-  });
-
-  // Switch templates through the gallery picker, the dot radiogroup, and re-export; the same
-  // capture seam must land each template's exact pixels. Landscape phone is a wide 20:9.
-  await page.getByRole('radio', { name: /ภาพพื้นหลังโทรศัพท์แนวนอน/ }).click();
-  expect(pngSize(await downloadPng(page))).toEqual({
-    width: 2400,
-    height: 1080,
-  });
-
-  // The portrait phone template transposes the grid but lands its own exact pixels.
-  await page.getByRole('radio', { name: /ภาพพื้นหลังโทรศัพท์แนวตั้ง/ }).click();
-  expect(pngSize(await downloadPng(page))).toEqual({
-    width: 1080,
-    height: 2340,
-  });
+  // Every template lands its exact output pixels through the same capture seam, independent
+  // of the viewport. Each is selected through the gallery picker, the dot radiogroup, by its
+  // localized name. The set covers both orientations of phone and tablet plus share and print.
+  const presets = [
+    { name: 'แชร์ 16:9', width: 1920, height: 1080 },
+    { name: 'ภาพพื้นหลังโทรศัพท์แนวนอน', width: 2400, height: 1080 },
+    { name: 'ภาพพื้นหลังโทรศัพท์แนวตั้ง', width: 1080, height: 2340 },
+    { name: 'ภาพพื้นหลังแท็บเล็ตแนวตั้ง', width: 2048, height: 2732 },
+    { name: 'ภาพพื้นหลังแท็บเล็ตแนวนอน', width: 2732, height: 2048 },
+    { name: 'พิมพ์ A4', width: 3508, height: 2480 },
+  ];
+  for (const preset of presets) {
+    await page.getByRole('radio', { name: new RegExp(preset.name) }).click();
+    expect(pngSize(await downloadPng(page))).toEqual({
+      width: preset.width,
+      height: preset.height,
+    });
+  }
 });
