@@ -50,8 +50,14 @@ interface TermGroup {
 
 type Mode =
   | { kind: 'list' }
-  | { kind: 'name'; action: 'create' | 'rename'; value: string }
-  | { kind: 'confirmDelete' }
+  | {
+      kind: 'name';
+      action: 'create' | 'rename';
+      value: string;
+      /** The plan a rename targets; absent for a create. */
+      planId?: string;
+    }
+  | { kind: 'confirmDelete'; planId: string }
   | { kind: 'importError'; issues: string[] };
 
 function termLabel(term: Term, t: Translate): string {
@@ -205,8 +211,8 @@ export function PlanSwitcher() {
     }
     if (mode.action === 'create') {
       planStore.getState().createPlan(name, searchTerm);
-    } else if (activePlan !== null) {
-      planStore.getState().renamePlan(activePlan.id, name);
+    } else if (mode.planId !== undefined) {
+      planStore.getState().renamePlan(mode.planId, name);
     }
     closeMenu();
   };
@@ -319,10 +325,11 @@ export function PlanSwitcher() {
                 setMode({ kind: 'list' });
               }}
             />
-          ) : mode.kind === 'confirmDelete' && activePlan !== null ? (
+          ) : mode.kind === 'confirmDelete' ? (
             <div className="flex flex-col gap-2">
               <p className="text-ink">
-                {t('planSwitcher.deletePrompt')} {activePlan.name}
+                {t('planSwitcher.deletePrompt')}{' '}
+                {plans.find((plan) => plan.id === mode.planId)?.name ?? ''}
               </p>
               <div className="flex justify-end gap-2">
                 <button
@@ -337,7 +344,7 @@ export function PlanSwitcher() {
                 <button
                   type="button"
                   onClick={() => {
-                    planStore.getState().deletePlan(activePlan.id);
+                    planStore.getState().deletePlan(mode.planId);
                     // The fallback plan may be a different term; snap the form to it.
                     snapToActivePlan();
                     setMode({ kind: 'list' });
@@ -378,6 +385,21 @@ export function PlanSwitcher() {
             </div>
           ) : (
             <div className="flex flex-col gap-1">
+              <button
+                type="button"
+                disabled={!canCreate}
+                onClick={() => {
+                  setMode({
+                    kind: 'name',
+                    action: 'create',
+                    value: defaultName(searchTerm),
+                  });
+                }}
+                className="flex w-full items-center justify-center gap-1.5 rounded-kcp bg-primary-strong px-2 py-1.5 text-sm font-medium text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 disabled:hover:bg-primary-strong"
+              >
+                <Plus size={16} strokeWidth={2.5} aria-hidden />
+                {t('planSwitcher.create')}
+              </button>
               {groups.length === 0 ? (
                 <p className="px-2 py-1 text-ink-soft">
                   {t('planSwitcher.noPlan')}
@@ -389,87 +411,86 @@ export function PlanSwitcher() {
                       {termLabel(group.term, t)}
                     </p>
                     {group.plans.map((plan) => (
-                      <button
+                      <div
                         key={plan.id}
-                        type="button"
-                        aria-current={
-                          plan.id === activePlan?.id ? 'true' : undefined
-                        }
-                        onClick={() => {
-                          selectPlan(plan);
-                        }}
-                        className="flex items-center gap-2 rounded-kcp px-2 py-1 text-left text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                        className="group/row flex items-center gap-1 rounded-kcp hover:bg-surface-alt focus-within:bg-surface-alt"
                       >
-                        <Check
-                          size={14}
-                          strokeWidth={2}
-                          aria-hidden
-                          className={`shrink-0 ${
-                            plan.id === activePlan?.id
-                              ? 'text-primary-strong'
-                              : 'text-transparent'
-                          }`}
-                        />
-                        <span className="truncate">{plan.name}</span>
-                      </button>
+                        <button
+                          type="button"
+                          aria-current={
+                            plan.id === activePlan?.id ? 'true' : undefined
+                          }
+                          onClick={() => {
+                            selectPlan(plan);
+                          }}
+                          className="flex min-w-0 flex-1 items-center gap-2 rounded-kcp px-2 py-1 text-left text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                        >
+                          <Check
+                            size={14}
+                            strokeWidth={2}
+                            aria-hidden
+                            className={`shrink-0 ${
+                              plan.id === activePlan?.id
+                                ? 'text-primary-strong'
+                                : 'text-transparent'
+                            }`}
+                          />
+                          <span className="truncate">{plan.name}</span>
+                        </button>
+                        {/* Per-row actions, revealed on hover and focus of the row; they
+                            stay focusable so the keyboard reveals and reaches them. */}
+                        <div className="flex shrink-0 items-center gap-0.5 pr-1 opacity-0 group-hover/row:opacity-100 group-focus-within/row:opacity-100">
+                          <ActionButton
+                            icon={
+                              <Pencil size={14} strokeWidth={2} aria-hidden />
+                            }
+                            label={`${t('planSwitcher.rename')} ${plan.name}`}
+                            showLabel={false}
+                            onClick={() => {
+                              setMode({
+                                kind: 'name',
+                                action: 'rename',
+                                value: plan.name,
+                                planId: plan.id,
+                              });
+                            }}
+                          />
+                          <ActionButton
+                            icon={
+                              <Copy size={14} strokeWidth={2} aria-hidden />
+                            }
+                            label={`${t('planSwitcher.duplicate')} ${plan.name}`}
+                            showLabel={false}
+                            onClick={() => {
+                              planStore
+                                .getState()
+                                .duplicatePlan(
+                                  plan.id,
+                                  `${plan.name} (${t('planSwitcher.copySuffix')})`,
+                                );
+                              snapToActivePlan();
+                              closeMenu();
+                            }}
+                          />
+                          <ActionButton
+                            icon={
+                              <Trash2 size={14} strokeWidth={2} aria-hidden />
+                            }
+                            label={`${t('planSwitcher.delete')} ${plan.name}`}
+                            showLabel={false}
+                            onClick={() => {
+                              setMode({
+                                kind: 'confirmDelete',
+                                planId: plan.id,
+                              });
+                            }}
+                          />
+                        </div>
+                      </div>
                     ))}
                   </div>
                 ))
               )}
-              <div className="mt-1 flex items-center gap-1 border-t border-border pt-1">
-                <ActionButton
-                  icon={<Plus size={14} strokeWidth={2} aria-hidden />}
-                  label={t('planSwitcher.create')}
-                  showLabel={false}
-                  disabled={!canCreate}
-                  onClick={() => {
-                    setMode({
-                      kind: 'name',
-                      action: 'create',
-                      value: defaultName(searchTerm),
-                    });
-                  }}
-                />
-                {activePlan !== null ? (
-                  <>
-                    <ActionButton
-                      icon={<Pencil size={14} strokeWidth={2} aria-hidden />}
-                      label={t('planSwitcher.rename')}
-                      showLabel={false}
-                      onClick={() => {
-                        setMode({
-                          kind: 'name',
-                          action: 'rename',
-                          value: activePlan.name,
-                        });
-                      }}
-                    />
-                    <ActionButton
-                      icon={<Copy size={14} strokeWidth={2} aria-hidden />}
-                      label={t('planSwitcher.duplicate')}
-                      showLabel={false}
-                      onClick={() => {
-                        planStore
-                          .getState()
-                          .duplicatePlan(
-                            activePlan.id,
-                            `${activePlan.name} (${t('planSwitcher.copySuffix')})`,
-                          );
-                        snapToActivePlan();
-                        closeMenu();
-                      }}
-                    />
-                    <ActionButton
-                      icon={<Trash2 size={14} strokeWidth={2} aria-hidden />}
-                      label={t('planSwitcher.delete')}
-                      showLabel={false}
-                      onClick={() => {
-                        setMode({ kind: 'confirmDelete' });
-                      }}
-                    />
-                  </>
-                ) : null}
-              </div>
               <div className="mt-1 flex items-center gap-1 border-t border-border pt-1">
                 <ActionButton
                   icon={<Upload size={14} strokeWidth={2} aria-hidden />}

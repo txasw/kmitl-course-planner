@@ -83,7 +83,10 @@ test('round trips a plan through JSON export and import', async ({
     page.locator(`${block('900001')}[data-verify="warn"]`),
   ).toBeVisible();
   // Import never overwrites: the name collided with the original, so the imported
-  // plan carries the de-collision suffix, which means the original still exists.
+  // plan carries the de-collision suffix, which means the original still exists. The
+  // per-row action buttons repeat the name, so target the first match, the select row.
   await page.getByRole('button', { name: 'เลือกตาราง' }).click();
-  await expect(page.getByRole('button', { name: /\(2\)$/ })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: /\(2\)$/ }).first(),
+  ).toBeVisible();
 });
