@@ -83,6 +83,25 @@ describe('EventBlock', () => {
     expect(foot?.className).toContain('min-h-0');
   });
 
+  it('floats the section as a corner chip over quiet id and place metadata', () => {
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    const block = screen.getByLabelText(/90592033/);
+    // The section reads as a floating chip in the corner, absolutely positioned.
+    expect(within(block).getByText('901').className).toContain('absolute');
+    // The foot holds the id as quiet metadata, no longer the section chip.
+    const foot = within(block).getByText('90592033').closest('.mt-auto');
+    expect(foot).not.toBeNull();
+    expect(foot?.textContent).not.toContain('901');
+  });
+
   it('names the room in the accessible label when the room shows', () => {
     render(
       <EventBlock

@@ -14,7 +14,7 @@
 
 import { memo, type CSSProperties, type MouseEvent } from 'react';
 import type { DraggableSyntheticListeners } from '@dnd-kit/core';
-import { Info, X } from 'lucide-react';
+import { Clock, Info, X } from 'lucide-react';
 import type { Meeting } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { hashColor, hashTint } from '@/lib/utils/hash-color';
@@ -51,6 +51,10 @@ interface EventBlockProps {
   onOpenDetail?: (anchor: HTMLElement) => void;
   /** Open the block context menu at the pointer on a right click, edit mode only. */
   onContextMenu?: (event: MouseEvent<HTMLElement>) => void;
+  /** Report a pointer entering the block, so the grid can open a hover detail card. */
+  onHoverEnter?: (anchor: HTMLElement) => void;
+  /** Report the pointer leaving the block, so the grid can dismiss the hover card. */
+  onHoverLeave?: () => void;
   /** Show the room line. A preview display option; on by default in edit mode. */
   showRoom?: boolean;
   /** Show the section code beside the subject id. On by default in edit mode. */
@@ -75,6 +79,8 @@ function EventBlockComponent({
   removeLabel,
   onOpenDetail,
   onContextMenu,
+  onHoverEnter,
+  onHoverLeave,
   showRoom = true,
   showSection = true,
   showEnglishName = false,
@@ -114,7 +120,15 @@ function EventBlockComponent({
       data-verify={badge ?? undefined}
       aria-label={label}
       onContextMenu={onContextMenu}
-      className={`group/block kcp-settle relative m-px flex min-w-0 flex-col overflow-hidden rounded-kcp py-1 pr-1.5 pl-2.5 text-[1em] leading-tight text-ink ${pulsing ? 'kcp-pulse' : ''} ${dimmed ? 'opacity-40' : ''} ${dragListeners ? 'cursor-grab touch-none' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''}`}
+      onMouseEnter={
+        onHoverEnter !== undefined
+          ? (event) => {
+              onHoverEnter(event.currentTarget);
+            }
+          : undefined
+      }
+      onMouseLeave={onHoverLeave}
+      className={`group/block kcp-settle relative m-px flex min-w-0 flex-col overflow-hidden rounded-kcp py-1.5 pr-2 pl-2.5 text-[1em] leading-tight text-ink ${pulsing ? 'kcp-pulse' : ''} ${dimmed ? 'opacity-40' : ''} ${dragListeners ? 'cursor-grab touch-none' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''}`}
       style={{ ...style, backgroundColor: hashTint(section.subjectId) }}
       {...dragListeners}
     >
@@ -139,29 +153,38 @@ function EventBlockComponent({
           }`}
         />
       ) : null}
-      {/* Emphasis order time, place, subject: the time range leads, the subject name
-          is the primary content clamped to two lines, and the subject id, the section
-          chip, and the place read as quieter meta at the foot of the block. The time
-          and the name are pinned with shrink-0 so a short block clips the foot first
-          rather than squeezing the name out; the name keeps at least one clamped line. */}
-      <span className="shrink-0 font-semibold">{time}</span>
-      <span className="line-clamp-2 shrink-0 font-medium">{name}</span>
+      {/* Section as a small floating chip in the top right corner. It steps aside on hover
+          in edit mode, where the info and remove controls take that corner. */}
+      {showSection ? (
+        <span className="pointer-events-none absolute top-1 right-1 rounded bg-ink/10 px-1 text-[0.85em] font-medium text-ink group-hover/block:opacity-0">
+          {section.section}
+        </span>
+      ) : null}
+      {/* Emphasis order time, name, meta: the time range is the colored bold anchor with a
+          clock glyph, the subject name is the primary full weight line clamped to two
+          lines, and the subject id and place read as quiet metadata at the foot. The time
+          and the name are pinned with shrink-0 so a short block clips the foot first rather
+          than squeezing the name out; the name keeps at least one clamped line. */}
+      <span className="flex shrink-0 items-center gap-1 pr-6 font-semibold">
+        <Clock
+          size="0.85em"
+          strokeWidth={2.5}
+          aria-hidden
+          className="shrink-0"
+          style={{ color: hashColor(section.subjectId) }}
+        />
+        {time}
+      </span>
+      <span className="line-clamp-2 shrink-0 font-semibold">{name}</span>
       {englishSecondary ? (
-        <span className="line-clamp-1 shrink-0 text-ink-soft">
+        <span className="line-clamp-1 shrink-0 font-normal text-ink-soft">
           {section.nameEn}
         </span>
       ) : null}
-      <div className="mt-auto min-h-0 pt-0.5">
-        <div className="flex items-center justify-between gap-1 text-ink-soft">
-          <span className="truncate">{section.subjectId}</span>
-          {showSection ? (
-            <span className="shrink-0 rounded bg-ink/10 px-1 text-[0.9em] font-medium text-ink">
-              {section.section}
-            </span>
-          ) : null}
-        </div>
+      <div className="mt-auto min-h-0 pt-0.5 text-ink-soft">
+        <span className="block truncate">{section.subjectId}</span>
         {showRoom && place !== '' ? (
-          <span className="block truncate text-ink-soft">{place}</span>
+          <span className="block truncate">{place}</span>
         ) : null}
       </div>
       {onOpenDetail !== undefined || onRemove !== undefined ? (
