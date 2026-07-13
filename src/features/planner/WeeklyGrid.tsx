@@ -457,6 +457,7 @@ export function WeeklyGrid({
             showSection={showSection}
             showEnglishName={showEnglishName}
             fitToBox={!editable}
+            fitKey={`${String(fontPx)}|${orientation}|${String(window.startMin)}|${String(window.endMin)}|${String(days.length)}|${String(style.gridRow ?? '')}|${String(style.gridColumn ?? '')}`}
           />
         );
       })}

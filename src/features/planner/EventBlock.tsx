@@ -17,6 +17,7 @@
 
 import {
   memo,
+  useRef,
   type CSSProperties,
   type KeyboardEvent,
   type MouseEvent,
@@ -28,8 +29,10 @@ import type { Locale, Translate } from '@/lib/i18n/t';
 import { hashColor, hashTint } from '@/lib/utils/hash-color';
 import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
 import { formatMinutes } from '@/lib/parsing/time';
+import { buildEligibility } from '@/lib/planner/blockDensity';
 import type { PlacedSection } from './placedSection';
 import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
+import { useDensityFit } from './useDensityFit';
 
 interface EventBlockProps {
   section: PlacedSection;
@@ -74,6 +77,10 @@ interface EventBlockProps {
    * rather than clipping a line mid glyph. On only for the read only preview and export
    * poster; edit mode leaves it off and keeps its tighter line height (ADR-0046). */
   fitToBox?: boolean;
+  /** A key that changes whenever the block box pixel size changes (font, orientation,
+   * window, day count, grid track), so the fit resets to the full field set and re-measures.
+   * Unused when fitToBox is off. */
+  fitKey?: string;
 }
 
 function EventBlockComponent({
@@ -98,6 +105,7 @@ function EventBlockComponent({
   showSection = true,
   showEnglishName = false,
   fitToBox = false,
+  fitKey = '',
 }: EventBlockProps) {
   const name = locale === 'th' ? section.nameTh : section.nameEn;
   // The English name is guaranteed visible when the option is on: it is the primary
@@ -118,6 +126,18 @@ function EventBlockComponent({
   const place = [meeting.building, meeting.room]
     .filter((part) => part !== '')
     .join(' · ');
+  // Which fields this block could show before any measurement, from its data and the display
+  // toggles. When fitToBox is on the measured fit then drops the lowest priority of these
+  // that do not fit the box; when off, the full set always renders (edit mode).
+  const contentRef = useRef<HTMLDivElement>(null);
+  const eligibility = buildEligibility({
+    hasName: name !== '',
+    hasEnglish: englishSecondary,
+    hasSection: showSection && section.section !== '',
+    hasId: section.subjectId !== '',
+    hasPlace: showRoom && place !== '',
+  });
+  const level = useDensityFit(contentRef, fitToBox, eligibility, fitKey);
   // The accessible name is self contained so a screen reader hears the whole meeting
   // from the block alone: subject, name, section, full day, time, the place when it is
   // shown, then any verification state. The place follows the visual toggle so the
@@ -198,39 +218,53 @@ function EventBlockComponent({
         ) : null}
         {/* Section as a small floating chip in the top right corner. It steps aside on hover
             and focus in edit mode, where the remove control takes that corner. */}
-        {showSection ? (
+        {level.showSection ? (
           <span className="pointer-events-none absolute top-1 right-1 rounded bg-ink/10 px-1 text-[0.85em] font-medium text-ink group-hover/block:opacity-0 group-focus-within/block:opacity-0">
             {section.section}
           </span>
         ) : null}
-        {/* Emphasis order time, name, meta: the time range is the colored bold anchor with a
-            clock glyph, the subject name is the primary full weight line clamped to two
-            lines, and the subject id and place read as quiet metadata at the foot. The time
-            and the name are pinned with shrink-0 so a short block clips the foot first rather
-            than squeezing the name out; the name keeps at least one clamped line. */}
-        <span className="flex shrink-0 items-center gap-1 pr-6 font-semibold">
-          <Clock
-            size="0.85em"
-            strokeWidth={2.5}
-            aria-hidden
-            className="shrink-0"
-            style={{ color: hashColor(section.subjectId) }}
-          />
-          {time}
-        </span>
-        <span className="line-clamp-2 shrink-0 font-semibold [overflow-wrap:anywhere]">
-          {name}
-        </span>
-        {englishSecondary ? (
-          <span className="line-clamp-1 shrink-0 font-normal text-ink-soft [overflow-wrap:anywhere]">
-            {section.nameEn}
+        {/* The measured content column. Emphasis order time, name, meta: the time is the bold
+            anchor with a clock glyph, the name is the primary clamped line, and the subject id
+            and place read as quiet metadata at the foot. The time and the name are pinned with
+            shrink-0; on the export poster the fit measures this column and drops the lowest
+            priority foot fields whole rather than clipping a line, so what remains fits inside
+            the box. The absolute chip and badges sit outside this column so they never skew the
+            measurement. */}
+        <div
+          ref={contentRef}
+          data-fit
+          className="flex min-h-0 flex-1 flex-col overflow-hidden"
+        >
+          <span className="flex shrink-0 items-center gap-1 pr-6 font-semibold">
+            <Clock
+              size="0.85em"
+              strokeWidth={2.5}
+              aria-hidden
+              className="shrink-0"
+              style={{ color: hashColor(section.subjectId) }}
+            />
+            {time}
           </span>
-        ) : null}
-        <div className="mt-auto min-h-0 pt-0.5 text-ink-soft">
-          <span className="block truncate">{section.subjectId}</span>
-          {showRoom && place !== '' ? (
-            <span className="block truncate">{place}</span>
+          {level.nameLines > 0 ? (
+            <span
+              className={`${level.nameLines === 2 ? 'line-clamp-2' : 'line-clamp-1'} shrink-0 font-semibold [overflow-wrap:anywhere]`}
+            >
+              {name}
+            </span>
           ) : null}
+          {level.showEnglish ? (
+            <span className="line-clamp-1 shrink-0 font-normal text-ink-soft [overflow-wrap:anywhere]">
+              {section.nameEn}
+            </span>
+          ) : null}
+          <div className="mt-auto min-h-0 pt-0.5 text-ink-soft">
+            {level.showId ? (
+              <span className="block truncate">{section.subjectId}</span>
+            ) : null}
+            {level.showPlace ? (
+              <span className="block truncate">{place}</span>
+            ) : null}
+          </div>
         </div>
       </div>
       {onRemove !== undefined ? (
