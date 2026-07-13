@@ -93,6 +93,34 @@ describe('Tooltip', () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
+  it('defaults to the top placement', () => {
+    renderTooltip();
+    fireEvent.focus(screen.getByRole('button', { name: 'Trigger' }));
+    expect(screen.getByRole('tooltip')).toHaveAttribute(
+      'data-placement',
+      'top',
+    );
+  });
+
+  it('honors a requested placement so it can point away from a popover body', () => {
+    // A control inside a downward popover points its tooltip below itself so the
+    // tooltip never covers the options above it (the plan menu action buttons).
+    render(
+      <Tooltip label="Full name" placement="bottom">
+        {(triggerProps, ref) => (
+          <button type="button" ref={ref} {...triggerProps}>
+            Trigger
+          </button>
+        )}
+      </Tooltip>,
+    );
+    fireEvent.focus(screen.getByRole('button', { name: 'Trigger' }));
+    expect(screen.getByRole('tooltip')).toHaveAttribute(
+      'data-placement',
+      'bottom',
+    );
+  });
+
   it('has no accessibility violations while shown', async () => {
     renderTooltip();
     fireEvent.focus(screen.getByRole('button', { name: 'Trigger' }));
