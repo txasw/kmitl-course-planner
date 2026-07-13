@@ -2,12 +2,14 @@
 // export. Its hierarchy leads with the time range, then the subject name clamped to
 // two lines, then the subject id, a section chip, and the place (building and room).
 // The fill is a soft tint of the subject's stable color under ink text with the solid
-// color as a left bar (ADR-0035); the KMITL orange is never used here. It clips from
-// the foot inward as the block shortens, so the subject name never disappears while a
-// lower priority field remains: the time and at least one clamped line of the name are
-// pinned (shrink-0), and the foot, the subject id, the chip, and the place, is the only
-// part that yields, since the id is recoverable from the text export and the chip
-// carries the section (ADR-0040). In edit mode the block is a drag source (the ref and
+// color as a left bar (ADR-0035); the KMITL orange is never used here. On the export
+// poster (fitToBox on) the content is measured against the box and whole low priority
+// fields are dropped rather than a line clipped mid glyph: the fit walks the density
+// ladder in useDensityFit, dropping the subject id, then the place, then the section
+// chip, then the English secondary, then reducing the name to one line, with the time
+// never dropped (ADR-0046). In edit mode fitToBox is off and the block keeps its tighter
+// line height and CSS clip; the subject id there is always shown for cross referencing.
+// In edit mode the block is a drag source (the ref and
 // listeners come from the draggable wrapper so this stays free of the drag library) and
 // is itself the button that opens the pinned detail popover on click or Enter and Space,
 // the keyboard path to details and actions; the hover card shows the same detail on hover
