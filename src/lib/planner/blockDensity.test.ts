@@ -15,6 +15,17 @@ const allEligible = buildEligibility({
   hasPlace: true,
 });
 
+/** Walk the ladder from a starting level to the terminus, collecting every level. */
+function walk(start: DensityLevel): DensityLevel[] {
+  const steps: DensityLevel[] = [];
+  let level: DensityLevel | null = start;
+  while (level !== null) {
+    steps.push(level);
+    level = nextDensityLevel(level);
+  }
+  return steps;
+}
+
 describe('buildEligibility', () => {
   it('derives a stable mask that distinguishes field sets', () => {
     const a = buildEligibility({
@@ -37,17 +48,18 @@ describe('buildEligibility', () => {
 });
 
 describe('fullLevel', () => {
-  it('shows every eligible field with the name at two lines', () => {
+  it('shows every eligible field with the name at two lines and the time on', () => {
     expect(fullLevel(allEligible)).toEqual({
       nameLines: 2,
       showEnglish: true,
-      showSection: true,
-      showId: true,
       showPlace: true,
+      showSection: true,
+      showTime: true,
+      showId: true,
     });
   });
 
-  it('drops a field the block never had', () => {
+  it('drops a field the block never had, keeping the name and the time', () => {
     const noEnglishNoPlace = buildEligibility({
       hasName: true,
       hasEnglish: false,
@@ -58,99 +70,111 @@ describe('fullLevel', () => {
     expect(fullLevel(noEnglishNoPlace)).toEqual({
       nameLines: 2,
       showEnglish: false,
-      showSection: true,
-      showId: true,
       showPlace: false,
+      showSection: true,
+      showTime: true,
+      showId: true,
     });
-  });
-
-  it('drops the name entirely when there is no name', () => {
-    const noName = buildEligibility({
-      hasName: false,
-      hasEnglish: false,
-      hasSection: true,
-      hasId: true,
-      hasPlace: true,
-    });
-    expect(fullLevel(noName).nameLines).toBe(0);
   });
 });
 
 describe('nextDensityLevel', () => {
-  it('walks the full drop order, id first and the name last', () => {
-    const sequence: (DensityLevel | null)[] = [];
-    let level: DensityLevel | null = fullLevel(allEligible);
-    while (level !== null) {
-      sequence.push(level);
-      level = nextDensityLevel(level);
-    }
-    expect(sequence).toEqual([
+  it('walks the inverted drop order, id first and the name last', () => {
+    expect(walk(fullLevel(allEligible))).toEqual([
       {
         nameLines: 2,
         showEnglish: true,
+        showPlace: true,
         showSection: true,
+        showTime: true,
         showId: true,
+      },
+      {
+        nameLines: 2,
+        showEnglish: true,
         showPlace: true,
-      },
-      {
-        nameLines: 2,
-        showEnglish: true,
         showSection: true,
+        showTime: true,
         showId: false,
-        showPlace: true,
-      },
-      {
-        nameLines: 2,
-        showEnglish: true,
-        showSection: true,
-        showId: false,
-        showPlace: false,
-      },
-      {
-        nameLines: 2,
-        showEnglish: true,
-        showSection: false,
-        showId: false,
-        showPlace: false,
       },
       {
         nameLines: 2,
         showEnglish: false,
-        showSection: false,
+        showPlace: true,
+        showSection: true,
+        showTime: true,
         showId: false,
-        showPlace: false,
+      },
+      {
+        nameLines: 2,
+        showEnglish: false,
+        showPlace: true,
+        showSection: true,
+        showTime: false,
+        showId: false,
+      },
+      {
+        nameLines: 2,
+        showEnglish: false,
+        showPlace: true,
+        showSection: false,
+        showTime: false,
+        showId: false,
       },
       {
         nameLines: 1,
         showEnglish: false,
+        showPlace: true,
         showSection: false,
+        showTime: false,
         showId: false,
-        showPlace: false,
       },
       {
-        nameLines: 0,
+        nameLines: 1,
         showEnglish: false,
-        showSection: false,
-        showId: false,
         showPlace: false,
+        showSection: false,
+        showTime: false,
+        showId: false,
       },
     ]);
   });
 
-  it('returns null once only the time remains', () => {
+  it('never drops the name below one line', () => {
     const bare: DensityLevel = {
-      nameLines: 0,
+      nameLines: 1,
       showEnglish: false,
-      showSection: false,
-      showId: false,
       showPlace: false,
+      showSection: false,
+      showTime: false,
+      showId: false,
     };
     expect(nextDensityLevel(bare)).toBeNull();
   });
 
+  it('keeps the place alive past the name second line', () => {
+    // Binding constraint: a one line ellipsized name still identifies the course while a lost
+    // room is unrecoverable, so the name must reduce to one line before the place drops.
+    const steps = walk(fullLevel(allEligible));
+    const nameReduced = steps.findIndex((s) => s.nameLines === 1);
+    const placeDropped = steps.findIndex((s) => !s.showPlace);
+    expect(nameReduced).toBeGreaterThanOrEqual(0);
+    expect(placeDropped).toBeGreaterThan(nameReduced);
+    // At the step the name first drops to one line, the place is still shown.
+    expect(steps[nameReduced]?.showPlace).toBe(true);
+  });
+
+  it('never keeps the time past the place', () => {
+    // Binding constraint: the place is the field position cannot encode, the time is, so the
+    // time must drop before the place.
+    const steps = walk(fullLevel(allEligible));
+    const timeDropped = steps.findIndex((s) => !s.showTime);
+    const placeDropped = steps.findIndex((s) => !s.showPlace);
+    expect(timeDropped).toBeGreaterThanOrEqual(0);
+    expect(timeDropped).toBeLessThan(placeDropped);
+  });
+
   it('skips a rung for a field the block never had', () => {
-    // No id and no english: the first demotion drops the place, not a phantom id, and the
-    // english rung is never visited.
     const noIdNoEnglish = fullLevel(
       buildEligibility({
         hasName: true,
@@ -160,25 +184,10 @@ describe('nextDensityLevel', () => {
         hasPlace: true,
       }),
     );
-    const steps: DensityLevel[] = [];
-    let level: DensityLevel | null = noIdNoEnglish;
-    while (level !== null) {
-      steps.push(level);
-      level = nextDensityLevel(level);
-    }
-    expect(
-      steps.map((s) => ({
-        n: s.nameLines,
-        sec: s.showSection,
-        place: s.showPlace,
-      })),
-    ).toEqual([
-      { n: 2, sec: true, place: true },
-      { n: 2, sec: true, place: false },
-      { n: 2, sec: false, place: false },
-      { n: 1, sec: false, place: false },
-      { n: 0, sec: false, place: false },
-    ]);
+    const steps = walk(noIdNoEnglish);
+    // The first demotion drops the time, not a phantom id or english.
+    expect(steps[0]?.showTime).toBe(true);
+    expect(steps[1]?.showTime).toBe(false);
     expect(steps.every((s) => !s.showId && !s.showEnglish)).toBe(true);
   });
 });
@@ -187,7 +196,7 @@ describe('sameLevel', () => {
   it('is true only when every field matches', () => {
     const base = fullLevel(allEligible);
     expect(sameLevel(base, { ...base })).toBe(true);
-    expect(sameLevel(base, { ...base, showId: false })).toBe(false);
+    expect(sameLevel(base, { ...base, showTime: false })).toBe(false);
     expect(sameLevel(base, { ...base, nameLines: 1 })).toBe(false);
   });
 });

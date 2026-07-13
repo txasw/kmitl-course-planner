@@ -1,13 +1,16 @@
 // A single placed meeting on the timetable, one component across edit, preview, and
-// export. Its hierarchy leads with the time range, then the subject name clamped to
-// two lines, then the subject id, a section chip, and the place (building and room).
-// The fill is a soft tint of the subject's stable color under ink text with the solid
-// color as a left bar (ADR-0035); the KMITL orange is never used here. On the export
-// poster (fitToBox on) the content is measured against the box and whole low priority
-// fields are dropped rather than a line clipped mid glyph: the fit walks the density
-// ladder in useDensityFit, dropping the subject id, then the place, then the section
-// chip, then the English secondary, then reducing the name to one line, with the time
-// never dropped (ADR-0046). In edit mode fitToBox is off and the block keeps its tighter
+// export. This is a positioned block, the row and the block's extent already encode the
+// meeting time, so its hierarchy inverts the usual reading order (ADR-0047): the subject
+// name is the primary anchor at the top, the place is the promoted second line with a
+// location glyph, and the time demotes to quiet metadata at the foot beside the subject id.
+// The fill is a soft tint of the subject's stable color under ink text with the solid color
+// as a left bar (ADR-0035); the KMITL orange is never used here. On the export poster
+// (fitToBox on) the content is measured against the box and whole low priority fields are
+// dropped rather than a line clipped mid glyph: the fit walks the density ladder in
+// useDensityFit, dropping the subject id, then the English name, then the time, then the
+// section chip, then reducing the name to one line, then the place, with the name never
+// dropping (ADR-0046, ADR-0047). The place outlives the name's second line and the time
+// never outlives the place. In edit mode fitToBox is off and the block keeps its tighter
 // line height and CSS clip; the subject id there is always shown for cross referencing.
 // In edit mode the block is a drag source (the ref and
 // listeners come from the draggable wrapper so this stays free of the drag library) and
@@ -25,7 +28,7 @@ import {
   type MouseEvent,
 } from 'react';
 import type { DraggableSyntheticListeners } from '@dnd-kit/core';
-import { Clock, X } from 'lucide-react';
+import { Clock, MapPin, X } from 'lucide-react';
 import type { Meeting } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { hashColor, hashTint } from '@/lib/utils/hash-color';
@@ -229,46 +232,54 @@ function EventBlockComponent({
             {section.section}
           </span>
         ) : null}
-        {/* The measured content column. Emphasis order time, name, meta: the time is the bold
-            anchor with a clock glyph, the name is the primary clamped line, and the subject id
-            and place read as quiet metadata at the foot. The time and the name are pinned with
-            shrink-0; on the export poster the fit measures this column and drops the lowest
-            priority foot fields whole rather than clipping a line, so what remains fits inside
-            the box. The absolute chip and badges sit outside this column so they never skew the
-            measurement. */}
+        {/* The measured content column. This is a positioned block, the row and the block's
+            extent already encode the time, so the hierarchy inverts (ADR-0047): the subject name
+            is the primary anchor at the top, the place is the promoted second line with a
+            location glyph, and the time demotes to quiet metadata at the foot beside the subject
+            id. The name is pinned and never drops; on the poster the fit measures this column and
+            drops the lowest priority fields whole rather than clipping a line. The absolute chip
+            and badges sit outside this column so they never skew the measurement. */}
         <div
           ref={contentRef}
           data-fit
           className="flex min-h-0 flex-1 flex-col overflow-hidden"
         >
-          <span className="flex shrink-0 items-center gap-1 pr-6 font-semibold">
-            <Clock
-              size="0.85em"
-              strokeWidth={2.5}
-              aria-hidden
-              className="shrink-0"
-              style={{ color: hashColor(section.subjectId) }}
-            />
-            {time}
+          <span
+            className={`${level.nameLines === 2 ? 'line-clamp-2' : 'line-clamp-1'} shrink-0 pr-6 font-semibold [overflow-wrap:anywhere]`}
+          >
+            {name}
           </span>
-          {level.nameLines > 0 ? (
-            <span
-              className={`${level.nameLines === 2 ? 'line-clamp-2' : 'line-clamp-1'} shrink-0 font-semibold [overflow-wrap:anywhere]`}
-            >
-              {name}
-            </span>
-          ) : null}
           {level.showEnglish ? (
             <span className="line-clamp-1 shrink-0 font-normal text-ink-soft [overflow-wrap:anywhere]">
               {section.nameEn}
             </span>
           ) : null}
+          {level.showPlace ? (
+            <span className="mt-0.5 flex shrink-0 items-center gap-1 text-ink">
+              <MapPin
+                size="0.85em"
+                strokeWidth={2}
+                aria-hidden
+                className="shrink-0"
+                style={{ color: hashColor(section.subjectId) }}
+              />
+              <span className="truncate">{place}</span>
+            </span>
+          ) : null}
           <div className="mt-auto min-h-0 pt-0.5 text-ink-soft">
+            {level.showTime ? (
+              <span className="flex items-center gap-1 text-[0.9em] tabular-nums">
+                <Clock
+                  size="0.85em"
+                  strokeWidth={2}
+                  aria-hidden
+                  className="shrink-0"
+                />
+                {time}
+              </span>
+            ) : null}
             {level.showId ? (
               <span className="block truncate">{section.subjectId}</span>
-            ) : null}
-            {level.showPlace ? (
-              <span className="block truncate">{place}</span>
             ) : null}
           </div>
         </div>

@@ -56,10 +56,10 @@ describe('EventBlock', () => {
     expect(within(block).getByText('A · A101')).toBeInTheDocument();
   });
 
-  it('pins the time and name so the foot yields first on a short block', () => {
-    // The name must never disappear while a lower priority field remains. The time and
-    // the name are shrink-0 so a short block clips the foot (id, chip, place) first
-    // rather than squeezing the name to nothing, which inverts the emphasis order.
+  it('pins the name as the anchor and demotes the time to the yielding foot', () => {
+    // A positioned block encodes the time by position, so the name is the primary anchor
+    // pinned at the top while the time reads as quiet metadata in the foot, which yields
+    // first on a short block (ADR-0047).
     render(
       <EventBlock
         section={section}
@@ -70,17 +70,16 @@ describe('EventBlock', () => {
       />,
     );
     const block = screen.getByLabelText(/90592033/);
-    expect(within(block).getByText('09:00-12:00').className).toContain(
-      'shrink-0',
-    );
+    // The name is pinned so it never disappears while a lower priority field remains.
     expect(within(block).getByText('วิชาทดสอบ').className).toContain(
       'shrink-0',
     );
-    // The foot carries the subject id and can be squeezed away; it is not pinned.
-    const foot = within(block).getByText('90592033').closest('.mt-auto');
+    // The time now sits in the foot beside the id and can be squeezed away; it is not pinned.
+    const foot = within(block).getByText('09:00-12:00').closest('.mt-auto');
     expect(foot).not.toBeNull();
     expect(foot?.className).not.toContain('shrink-0');
     expect(foot?.className).toContain('min-h-0');
+    expect(foot?.textContent).toContain('90592033');
   });
 
   it('wraps a long name at any point so it ellipsizes rather than clipping a glyph', () => {
@@ -131,7 +130,7 @@ describe('EventBlock', () => {
     );
   });
 
-  it('floats the section as a corner chip over quiet id and place metadata', () => {
+  it('floats the section as a corner chip while the place is promoted above the foot', () => {
     render(
       <EventBlock
         section={section}
@@ -144,10 +143,11 @@ describe('EventBlock', () => {
     const block = screen.getByLabelText(/90592033/);
     // The section reads as a floating chip in the corner, absolutely positioned.
     expect(within(block).getByText('901').className).toContain('absolute');
-    // The foot holds the id as quiet metadata, no longer the section chip.
+    // The foot holds the quiet time and id; the promoted place line sits above it, not in it.
     const foot = within(block).getByText('90592033').closest('.mt-auto');
     expect(foot).not.toBeNull();
     expect(foot?.textContent).not.toContain('901');
+    expect(foot?.textContent).not.toContain('A · A101');
   });
 
   it('names the room in the accessible label when the room shows', () => {
