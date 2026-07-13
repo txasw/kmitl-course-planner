@@ -167,10 +167,9 @@ test('opens a block detail popover and removes the section through it', async ({
   const block = page.locator(GRID_BLOCK).first();
   await expect(block).toBeVisible();
 
-  // The block carries a details control alongside its remove control. Opening it
-  // mounts the popover anchored to the block; the overlay itself is also a dialog,
-  // so the popover is identified by the floating element marker.
-  await block.getByRole('button', { name: 'รายละเอียด' }).click();
+  // The block itself is the button that opens the popover on a click; the overlay is
+  // also a dialog, so the popover is identified by the floating element marker.
+  await block.click();
   const popover = page.locator('[data-floating-ui-focusable]');
   await expect(popover).toBeVisible();
 
