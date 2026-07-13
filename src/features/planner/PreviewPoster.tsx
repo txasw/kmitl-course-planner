@@ -108,8 +108,19 @@ function PreviewPosterComponent({
           examConflictIds={examConflictIds}
         />
       ) : null}
-      {sections.length > 0 ? <GridFooter sections={sections} t={t} /> : null}
-      <PosterWatermark t={t} />
+      {/* The honesty footer is one baseline row inside the poster's equal margins: the credits
+          summary flush left, the watermark flush right, sharing a baseline and a top divider. */}
+      <div
+        data-poster-footer
+        className="flex shrink-0 items-baseline justify-between gap-3 border-t border-border pt-2"
+      >
+        {sections.length > 0 ? (
+          <GridFooter sections={sections} t={t} flush />
+        ) : (
+          <span />
+        )}
+        <PosterWatermark t={t} />
+      </div>
     </div>
   );
 }
