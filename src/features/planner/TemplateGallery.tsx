@@ -41,26 +41,29 @@ interface TemplateGalleryProps {
   posterRef: RefObject<HTMLDivElement | null>;
 }
 
-// The centered poster fills this fraction of the width, leaving the remainder for the two
-// peeking neighbors. A swipe past this pixel distance commits a page.
-const SLOT_FRACTION = 0.72;
+// The centered poster fits within this fraction of the width and the full height; each poster
+// keeps its own aspect, so the neighbors flank it a fixed gap away and peek at the edges by the
+// same amount whatever their orientation. A swipe past the threshold commits a page.
+const MAX_WIDTH_FRACTION = 0.66;
 const POSTER_FIT = 0.94;
+const SLOT_GAP_PX = 24;
 const SWIPE_THRESHOLD_PX = 48;
 
 function clampIndex(index: number): number {
   return Math.max(0, Math.min(EXPORT_TEMPLATES.length - 1, index));
 }
 
+// The scale that fits a template's poster within the width cap and the available height.
 function posterScale(
   template: ExportTemplate,
-  slotWidth: number,
+  availWidth: number,
   height: number,
 ): number {
-  if (slotWidth <= 0 || height <= 0) {
+  if (availWidth <= 0 || height <= 0) {
     return 0.1;
   }
   return Math.min(
-    (slotWidth * POSTER_FIT) / template.layoutWidth,
+    (availWidth * MAX_WIDTH_FRACTION) / template.layoutWidth,
     (height * POSTER_FIT) / template.layoutHeight,
     1,
   );
@@ -194,11 +197,20 @@ export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
     }
   };
 
-  const slotWidth = area.width * SLOT_FRACTION;
-  const trackX =
-    area.width / 2 - selectedIndex * slotWidth - slotWidth / 2 + dragOffset;
   const selectedTemplate = templateBySlug(selectedSlug);
   const deferredPoster = useDeferredValue(poster);
+  // Center the selected poster: sum the widths and gaps of the templates before it, then shift
+  // the track so its middle sits at the viewport center. Widths track each poster's own scale.
+  const scaledWidth = (template: ExportTemplate) =>
+    template.layoutWidth * posterScale(template, area.width, area.height);
+  const precedingWidth = EXPORT_TEMPLATES.slice(0, selectedIndex).reduce(
+    (sum, template) => sum + scaledWidth(template) + SLOT_GAP_PX,
+    0,
+  );
+  const trackX =
+    area.width / 2 -
+    (precedingWidth + scaledWidth(selectedTemplate) / 2) +
+    dragOffset;
 
   const caption = `${t(selectedTemplate.labelKey)} · ${String(
     templateOutputWidth(selectedTemplate),
@@ -217,6 +229,7 @@ export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
         <div
           className="absolute inset-y-0 left-0 flex"
           style={{
+            columnGap: SLOT_GAP_PX,
             transform: `translateX(${String(Math.round(trackX))}px)`,
             transition:
               reducedMotion || dragging ? 'none' : 'transform 300ms ease',
@@ -226,11 +239,11 @@ export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
           {EXPORT_TEMPLATES.map((template, index) => {
             const isSelected = index === selectedIndex;
             const isNeighbor = Math.abs(index - selectedIndex) === 1;
-            const scale = posterScale(template, slotWidth, area.height);
+            const scale = posterScale(template, area.width, area.height);
             return (
               <div
                 key={template.slug}
-                style={{ width: slotWidth }}
+                style={{ width: template.layoutWidth * scale }}
                 className="flex h-full flex-none items-center justify-center"
               >
                 {isSelected || isNeighbor ? (
