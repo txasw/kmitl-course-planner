@@ -114,6 +114,7 @@
   "blockMove.removeZone": "Drag here to remove",
   "blockMove.swap": "Swap with",
   "seat.open": "Open",
+  "seat.label": "Seats",
   "seat.full": "Full",
   "seat.closed": "Closed",
   "grid.emptyTitle": "Your timetable is empty",
