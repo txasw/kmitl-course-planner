@@ -23,8 +23,11 @@ Anatomy. The subject name becomes the primary anchor at the top, strongest weigh
 two lines with an ellipsis. The place is promoted to the second line at medium emphasis with a
 small location glyph, building then room joined by a middot. The section stays a floating chip in
 the top right corner. The time range demotes to quiet metadata at the foot in small tabular
-numerals with a small clock glyph, beside the subject id when its toggle is on. The soft tint
-fill, the solid left identity bar, and the color system from ADR-0035 are untouched.
+numerals, beside the subject id when its toggle is on. The time carries no glyph: a glyph marks a
+promoted field only, so the promoted place keeps its location pin while the demoted time reads as
+plain tabular numerals, which identify themselves without one and spend no scarce width on a
+field the layout deliberately quieted. The soft tint fill, the solid left identity bar, and the
+color system from ADR-0035 are untouched.
 
 Drop priority. The density ladder from ADR-0046 reorders to drop, first to last: the subject id,
 the English name, the time, the section chip, then the name reduces from two clamped lines to
@@ -33,10 +36,13 @@ the name's second line, since a one line ellipsized name still identifies the co
 room is unrecoverable, so the name reduces to one line before the place can drop. And the time
 never outlives the place, since the place is the field position cannot encode, so the time drops
 before the place. The time is kept present as a quiet foot line rather than deleted, so a ninety
-minute block still reads its exact minutes; this is the quarter hour caveat. The adjacent order
-of the time and the section chip, one frees a flow line and the other frees corner width, may be
-tuned from real renders, and the time is placed before the chip because dropping a flow line is
-what relieves a vertical overflow.
+minute block still reads its exact minutes; this is the quarter hour caveat. The time drops
+before the section chip for two reasons. First, geometry: dropping a flow line is what relieves a
+vertical overflow, while the chip is a corner floater whose removal frees only corner width, so
+on a block short in height the time is what needs to go. Second, disambiguation: on a block short
+enough to force the choice, the section code is the remaining disambiguator between two sections
+of one subject, while the approximate time is still recoverable from the grid axis, so the chip
+earns the later rung.
 
 Scope. The inversion applies only where position encodes time, the weekly grid in both edit and
 preview. The hover detail card, the block detail popover, the catalog section rows, and the copy
