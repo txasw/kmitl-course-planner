@@ -2,14 +2,19 @@
 // pixel dimensions, independent of the viewport, so a download is identical on any
 // screen (ADR-0041). The layout box is what the poster lays out at in CSS pixels;
 // the pixel ratio scales that box to the output width and height, so the output is
-// always layout dimension times the ratio. A landscape template lays out the grid with
-// days as rows and time as columns; the portrait template transposes it, days as columns
-// and time flowing down, so a tall canvas fills top to bottom rather than a thin band
-// (ADR, orientation is a template property). Each template carries a poster font size so
-// its type scale fits its canvas, since completeness beats size. Landscape layout widths
-// stay at or above the grid's minimum (44rem, 704px) so the seven day columns never
-// overflow. Templates are named by use case, never by a device brand, and there are no
-// custom sizes.
+// always layout dimension times the ratio.
+//
+// Axis orientation follows canvas orientation, one rule that every future preset inherits
+// without a new decision (ADR-0045): a landscape canvas keeps normal axes, days as rows and
+// time as columns; a portrait canvas transposes, days as columns and time flowing down, so a
+// tall canvas fills top to bottom rather than drawing a thin landscape band on it. The
+// orientation field therefore always matches the canvas aspect: it is portrait when the
+// layout box is taller than wide and landscape when it is wider than tall.
+//
+// Each template carries a poster font size so its type scale fits its canvas, since
+// completeness beats size. Layout widths stay at or above the grid's minimum (44rem, 704px)
+// so the seven day tracks never overflow. Templates are named by use case, never by a device
+// brand, and there are no custom sizes.
 
 import type { TranslationKey } from '@/lib/i18n/t';
 
@@ -42,13 +47,16 @@ const SHARE_16_9: ExportTemplate = {
 export const EXPORT_TEMPLATES: readonly ExportTemplate[] = [
   SHARE_16_9,
   {
+    // A true wide canvas at 20:9, the rotate to view fullscreen phone image. Share 16:9
+    // covers classic 16:9, so one phone landscape preset suffices; a 21:9 device takes
+    // minor letterboxing, which is acceptable (ADR-0045).
     slug: 'phone-wallpaper',
     labelKey: 'preview.template.phone',
-    layoutWidth: 720,
-    layoutHeight: 1560,
-    pixelRatio: 1.5,
+    layoutWidth: 1200,
+    layoutHeight: 540,
+    pixelRatio: 2,
     orientation: 'landscape',
-    posterFontPx: 10,
+    posterFontPx: 11,
   },
   {
     slug: 'phone-wallpaper-portrait',
@@ -60,10 +68,19 @@ export const EXPORT_TEMPLATES: readonly ExportTemplate[] = [
     posterFontPx: 12,
   },
   {
-    slug: 'tablet-wallpaper',
-    labelKey: 'preview.template.tablet',
-    layoutWidth: 834,
-    layoutHeight: 1194,
+    slug: 'tablet-wallpaper-portrait',
+    labelKey: 'preview.template.tabletPortrait',
+    layoutWidth: 1024,
+    layoutHeight: 1366,
+    pixelRatio: 2,
+    orientation: 'portrait',
+    posterFontPx: 12,
+  },
+  {
+    slug: 'tablet-wallpaper-landscape',
+    labelKey: 'preview.template.tabletLandscape',
+    layoutWidth: 1366,
+    layoutHeight: 1024,
     pixelRatio: 2,
     orientation: 'landscape',
     posterFontPx: 12,
