@@ -285,6 +285,7 @@ export function PlannerPanel() {
               examOverlaps={examConflicts}
               onOpenDetail={openDetail}
               onContextMenu={openContextMenu}
+              detailOpen={detail !== null}
               {...(isPreview
                 ? {
                     days: smartDays,

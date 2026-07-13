@@ -309,7 +309,7 @@ describe('EventBlock', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
-  it('opens the detail popover anchored to the block in edit mode', () => {
+  it('opens the detail popover from the block on click and keyboard in edit mode', () => {
     const onOpenDetail = vi.fn();
     render(
       <EventBlock
@@ -321,10 +321,47 @@ describe('EventBlock', () => {
         onOpenDetail={onOpenDetail}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: t('block.details') }));
+    // The block itself is the button; the hover card replaced the info affordance, so no
+    // separate details control remains on the block chrome.
+    expect(
+      screen.queryByRole('button', { name: t('block.details') }),
+    ).not.toBeInTheDocument();
+    const block = screen.getByRole('button');
+    expect(block).toHaveAttribute('data-teach-table-id', 't1');
+
+    // A click anchors the popover to the block.
+    fireEvent.click(block);
     expect(onOpenDetail).toHaveBeenCalledTimes(1);
     const anchor = onOpenDetail.mock.calls[0]?.[0] as HTMLElement;
     expect(anchor.dataset.teachTableId).toBe('t1');
+
+    // Enter and Space on the focused block are the keyboard path to details and actions.
+    fireEvent.keyDown(block, { key: 'Enter' });
+    expect(onOpenDetail).toHaveBeenCalledTimes(2);
+    fireEvent.keyDown(block, { key: ' ' });
+    expect(onOpenDetail).toHaveBeenCalledTimes(3);
+  });
+
+  it('keeps the remove control a sibling of the block button, never nested', () => {
+    const onOpenDetail = vi.fn();
+    const onRemove = vi.fn();
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        onOpenDetail={onOpenDetail}
+        onRemove={onRemove}
+        removeLabel={t('action.remove')}
+      />,
+    );
+    const block = screen.getByRole('button', { name: /90592033/ });
+    const remove = screen.getByRole('button', { name: t('action.remove') });
+    // No interactive control nests inside another, so a click on remove never bubbles to
+    // the block and axe stays clear of nested-interactive.
+    expect(block.contains(remove)).toBe(false);
   });
 
   it('skips re-rendering when its props are unchanged and re-renders on a change', () => {
