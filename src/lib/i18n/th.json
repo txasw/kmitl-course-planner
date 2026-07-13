@@ -209,7 +209,9 @@
   "preview.showEnglishNames": "แสดงชื่อภาษาอังกฤษ",
   "preview.template.label": "แม่แบบ",
   "preview.template.share": "แชร์ 16:9",
-  "preview.template.phone": "ภาพพื้นหลังโทรศัพท์",
+  "preview.template.phone": "ภาพพื้นหลังโทรศัพท์แนวนอน",
+  "preview.template.phonePortrait": "ภาพพื้นหลังโทรศัพท์แนวตั้ง",
   "preview.template.tablet": "ภาพพื้นหลังแท็บเล็ต",
-  "preview.template.printA4": "พิมพ์ A4"
+  "preview.template.printA4": "พิมพ์ A4",
+  "preview.watermark": "สร้างโดยตัววางแผนตารางเรียน สจล."
 }
