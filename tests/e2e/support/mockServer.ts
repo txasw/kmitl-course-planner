@@ -143,6 +143,13 @@ export async function startMockServer(): Promise<MockServer> {
             sendBody(denseCatalogJson());
             return;
           }
+          // A catalog of three hour blocks with long Thai and English names, Thai place
+          // strings, and a 34 and 35 pair, the shape the export fit guard measures so no
+          // block foot clips at any preset. Served for a reserved id so no other spec sees it.
+          if (url.searchParams.get('selected_subject_id') === '90000600') {
+            sendJson('regressions/teach-table.fit-regression.json');
+            return;
+          }
           sendJson('teach-table.by_subject_owner_id-32.capture.json');
           return;
         }
