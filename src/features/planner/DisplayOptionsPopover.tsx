@@ -37,7 +37,7 @@ const OPTIONS: { key: keyof DisplayOptions; labelKey: TranslationKey }[] = [
 const TRIGGER = `inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm font-medium text-ink hover:bg-surface-alt ${FOCUS_RING}`;
 
 export function DisplayOptionsPopover() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const displayOptions = useStore(uiStore, (state) => state.displayOptions);
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -114,16 +114,26 @@ export function DisplayOptionsPopover() {
           className="z-10 flex min-w-48 flex-col gap-0.5 rounded-kcp border border-border bg-surface p-1.5 shadow-kcp"
           {...getFloatingProps()}
         >
-          {OPTIONS.map((option) => (
-            <Switch
-              key={option.key}
-              checked={displayOptions[option.key]}
-              label={t(option.labelKey)}
-              onChange={(checked) => {
-                uiStore.getState().setDisplayOption(option.key, checked);
-              }}
-            />
-          ))}
+          {OPTIONS.map((option) => {
+            // In English the names already render in English, so the show English names
+            // option has no job; disable it with a tooltip rather than let it read as active.
+            const naEnglish =
+              option.key === 'showEnglishNames' && language === 'en';
+            return (
+              <Switch
+                key={option.key}
+                checked={displayOptions[option.key]}
+                label={t(option.labelKey)}
+                disabled={naEnglish}
+                {...(naEnglish
+                  ? { tooltip: t('preview.showEnglishNamesNa') }
+                  : {})}
+                onChange={(checked) => {
+                  uiStore.getState().setDisplayOption(option.key, checked);
+                }}
+              />
+            );
+          })}
         </div>
       ) : null}
     </div>

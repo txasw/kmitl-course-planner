@@ -1,36 +1,64 @@
-// A binary on and off switch for an instant effect toggle. It is a real button
-// with role switch, so Space and Enter both fire it natively. The track fills with
-// the brand strong when on and outlines with a dark border when off, and each state
-// carries a distinct thumb position and thumb color, so the state never rests on
-// color alone. The thumb slides with a reduced motion fallback.
+// A binary on and off switch for an instant effect toggle. It is a real button with role
+// switch, so Space and Enter both fire it natively. The track fills with the brand strong
+// when on and outlines with a dark border when off, and each state carries a distinct thumb
+// position and thumb color, so the state never rests on color alone. The thumb slides with a
+// reduced motion fallback.
 //
-// Use it only for a binary toggle. A set membership control, such as the catalog day
-// filter, is not a switch and keeps its aria-pressed buttons.
+// Use it only for a binary toggle. A set membership control, such as the catalog day filter,
+// is not a switch and keeps its aria-pressed buttons.
 //
-// Contrast rests on already proven token pairs: white thumb on the primary-strong
-// track and the primary-strong track on the surface for the on state, and the ink
-// soft border and ink soft thumb on the surface for the off state, all asserted by
-// the token contrast suite.
+// A disabled switch reads as not applicable: it dims, does not toggle, and keeps its stored
+// state visible. It uses aria-disabled rather than the native disabled attribute so it stays
+// focusable, and an optional tooltip states why; the tooltip attaches to the button itself so
+// it shows on hover and on keyboard focus.
+//
+// Contrast rests on already proven token pairs: white thumb on the primary-strong track and
+// the primary-strong track on the surface for the on state, and the ink soft border and ink
+// soft thumb on the surface for the off state, all asserted by the token contrast suite.
 
+import type { ReactNode } from 'react';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { Tooltip } from './Tooltip';
+
+type TriggerRef = (node: Element | null) => void;
 
 interface SwitchProps {
   checked: boolean;
   /** The visible label and the control's accessible name. */
   label: string;
   onChange: (checked: boolean) => void;
+  /** When true the switch reads as not applicable: it does not toggle and dims. */
+  disabled?: boolean;
+  /** Optional tooltip, e.g. why a disabled switch is not applicable. */
+  tooltip?: string;
 }
 
-export function Switch({ checked, label, onChange }: SwitchProps) {
-  return (
+export function Switch({
+  checked,
+  label,
+  onChange,
+  disabled = false,
+  tooltip,
+}: SwitchProps) {
+  const renderButton = (
+    triggerProps: Record<string, unknown>,
+    ref?: TriggerRef,
+  ): ReactNode => (
     <button
+      ref={ref}
+      {...triggerProps}
       type="button"
       role="switch"
       aria-checked={checked}
+      aria-disabled={disabled || undefined}
       onClick={() => {
-        onChange(!checked);
+        if (!disabled) {
+          onChange(!checked);
+        }
       }}
-      className={`flex w-full items-center justify-between gap-3 rounded-kcp px-2 py-1 text-sm text-ink hover:bg-surface-alt ${FOCUS_RING}`}
+      className={`flex w-full items-center justify-between gap-3 rounded-kcp px-2 py-1 text-sm text-ink ${
+        disabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-surface-alt'
+      } ${FOCUS_RING}`}
     >
       <span>{label}</span>
       <span
@@ -49,4 +77,13 @@ export function Switch({ checked, label, onChange }: SwitchProps) {
       </span>
     </button>
   );
+
+  if (tooltip !== undefined) {
+    return (
+      <Tooltip label={tooltip}>
+        {(triggerProps, ref) => renderButton(triggerProps, ref)}
+      </Tooltip>
+    );
+  }
+  return renderButton({});
 }
