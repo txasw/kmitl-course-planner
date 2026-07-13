@@ -9,13 +9,17 @@
 // toast shows only while the panel is open, since it belongs to a plan mutation made in
 // the panel; the pending undo itself lives in the plan store and survives a close.
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { useStore } from 'zustand';
-import { CircleCheck, TriangleAlert } from 'lucide-react';
+import { CircleCheck, TriangleAlert, X } from 'lucide-react';
 import { planStore } from '@/features/plans/planStore';
-import { toastStore } from './toastStore';
+import type { Translate } from '@/lib/i18n/t';
+import { FOCUS_RING } from '@/lib/ui/focus';
+import { toastStore, type Toast } from './toastStore';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
+import { usePrefersReducedMotion } from './usePresence';
+import { useSwipeDismiss } from './useSwipeDismiss';
 import { UndoToast } from './UndoToast';
 
 const AUTO_DISMISS_MS = 4000;
@@ -34,6 +38,54 @@ const ICON_COLOR = {
   success: 'text-success',
   error: 'text-danger',
 } as const;
+
+// One ordinary toast, with a close button and swipe to dismiss. Reduced motion turns the
+// swipe off, leaving the close button and Escape as the dismissal.
+function OrdinaryToast({
+  toast,
+  onDismiss,
+  t,
+}: {
+  toast: Toast;
+  onDismiss: () => void;
+  t: Translate;
+}) {
+  const reducedMotion = usePrefersReducedMotion();
+  const swipe = useSwipeDismiss(onDismiss, !reducedMotion);
+  const Icon = ICON[toast.kind];
+  return (
+    <div
+      {...swipe.handlers}
+      style={swipe.style}
+      className={`kcp-toast-enter pointer-events-auto flex max-w-md items-center gap-2 rounded-kcp border py-2 pr-2 pl-3 text-sm text-ink shadow-kcp ${VARIANT[toast.kind]}`}
+    >
+      <Icon
+        size={16}
+        strokeWidth={2}
+        aria-hidden
+        className={`shrink-0 ${ICON_COLOR[toast.kind]}`}
+      />
+      <span className="flex-1">{toast.message}</span>
+      <button
+        type="button"
+        aria-label={t('action.dismiss')}
+        onPointerDown={(event) => {
+          event.stopPropagation();
+        }}
+        onKeyDown={(event: KeyboardEvent<HTMLElement>) => {
+          if (event.key === 'Escape') {
+            event.stopPropagation();
+            onDismiss();
+          }
+        }}
+        onClick={onDismiss}
+        className={`shrink-0 rounded-kcp p-0.5 text-ink-soft hover:bg-black/5 hover:text-ink ${FOCUS_RING}`}
+      >
+        <X size={14} aria-hidden />
+      </button>
+    </div>
+  );
+}
 
 export function Toaster() {
   const toast = useStore(toastStore, (state) => state.toast);
@@ -71,7 +123,6 @@ export function Toaster() {
     wasOpen.current = isOpen;
   }, [isOpen, dismiss]);
 
-  const Icon = toast ? ICON[toast.kind] : null;
   // A stable key per pending undo, so a new removal remounts the toast with a fresh
   // window rather than inheriting the previous one's remaining time. Different affected
   // sections yield different keys; the same section cannot be removed twice without an
@@ -91,22 +142,17 @@ export function Toaster() {
     >
       {pendingUndo !== null && isOpen ? (
         <UndoToast key={undoKey} record={pendingUndo} locale={language} t={t} />
-      ) : toast !== null && Icon !== null ? (
-        // Not a live region itself; the outer element is the sole announcer, so
-        // nesting a second live region here would double announce. The id key
-        // replays the entrance when one toast replaces another.
-        <div
+      ) : toast !== null ? (
+        // The outer element is the sole live region; the id key replays the entrance
+        // when one toast replaces another.
+        <OrdinaryToast
           key={toast.id}
-          className={`kcp-toast-enter flex max-w-md items-center gap-2 rounded-kcp border px-3 py-2 text-sm text-ink shadow-kcp ${VARIANT[toast.kind]}`}
-        >
-          <Icon
-            size={16}
-            strokeWidth={2}
-            aria-hidden
-            className={`shrink-0 ${ICON_COLOR[toast.kind]}`}
-          />
-          <span>{toast.message}</span>
-        </div>
+          toast={toast}
+          onDismiss={() => {
+            dismiss(toast.id);
+          }}
+          t={t}
+        />
       ) : null}
     </div>
   );

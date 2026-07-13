@@ -37,6 +37,18 @@ function removeRecord(): UndoRecord {
   return { kind: 'remove', added: [], removed: [entry] };
 }
 
+function coalescedRecord(count: number): UndoRecord {
+  const removed = Array.from({ length: count }, (_unused, index) =>
+    makePlanEntry({
+      snapshot: makeSnapshot({
+        teachTableId: `r${String(index)}`,
+        subjectId: `9059200${String(index)}`,
+      }),
+    }),
+  );
+  return { kind: 'remove', added: [], removed };
+}
+
 // The toast reads its record from props but drives undo through the store, so the store
 // carries the same pending undo and an active plan for undo to reverse into.
 function seedUndo(record: UndoRecord): void {
@@ -60,6 +72,23 @@ describe('UndoToast', () => {
     render(<UndoToast record={record} locale="th" t={t} />);
     expect(screen.getByText(/นำออกแล้ว 90592033/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'เลิกทำ' })).toBeInTheDocument();
+  });
+
+  it('names a count when several removals coalesce', () => {
+    const record = coalescedRecord(2);
+    seedUndo(record);
+    render(<UndoToast record={record} locale="th" t={t} />);
+    expect(screen.getByText('นำออกแล้ว 2 รายการ')).toBeInTheDocument();
+  });
+
+  it('commits the change when the close button is pressed', () => {
+    const record = removeRecord();
+    seedUndo(record);
+    render(<UndoToast record={record} locale="th" t={t} />);
+    fireEvent.click(screen.getByRole('button', { name: 'ปิด' }));
+    // The pending undo cleared, so the removal stands and was not restored.
+    expect(planStore.getState().pendingUndo).toBeNull();
+    expect(planStore.getState().entries).toHaveLength(0);
   });
 
   it('restores the removed pair on undo', () => {
