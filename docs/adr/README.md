@@ -53,3 +53,4 @@ a new record that supersedes the old one rather than editing history.
 44. [Block redesign, hover detail card, and plan creation flow](0044-block-and-creation-redesign.md)
 45. [Template gallery: canvas orientation and the picker as preview](0045-template-gallery.md)
 46. [Measured block density and the export fit guard](0046-measured-block-density-and-fit-guard.md)
+47. [Positioned block hierarchy inverts](0047-positioned-block-hierarchy.md)
