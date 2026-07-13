@@ -2,7 +2,11 @@
 // export. This is a positioned block, the row and the block's extent already encode the
 // meeting time, so its hierarchy inverts the usual reading order (ADR-0047): the subject
 // name is the primary anchor at the top, the place is the promoted second line with a
-// location glyph, and the time demotes to quiet metadata at the foot beside the subject id.
+// location glyph, and the time demotes to quiet tabular metadata at the foot beside the
+// subject id. Two principles govern this: the time earns emphasis only where position does
+// not encode it, which is why it is prominent on the hover card and the text export but quiet
+// here (the H3 principle), and a glyph marks a promoted field only, which is why the promoted
+// place keeps its location pin while the demoted time carries no glyph.
 // The fill is a soft tint of the subject's stable color under ink text with the solid color
 // as a left bar (ADR-0035); the KMITL orange is never used here. On the export poster
 // (fitToBox on) the content is measured against the box and whole low priority fields are
@@ -28,7 +32,7 @@ import {
   type MouseEvent,
 } from 'react';
 import type { DraggableSyntheticListeners } from '@dnd-kit/core';
-import { Clock, MapPin, X } from 'lucide-react';
+import { MapPin, X } from 'lucide-react';
 import type { Meeting } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { hashColor, hashTint } from '@/lib/utils/hash-color';
@@ -272,15 +276,7 @@ function EventBlockComponent({
           ) : null}
           <div className="mt-auto min-h-0 pt-0.5 text-ink-soft">
             {level.showTime ? (
-              <span className="flex items-center gap-1 text-[0.9em] tabular-nums">
-                <Clock
-                  size="0.85em"
-                  strokeWidth={2}
-                  aria-hidden
-                  className="shrink-0"
-                />
-                {time}
-              </span>
+              <span className="block text-[0.9em] tabular-nums">{time}</span>
             ) : null}
             {level.showId ? (
               <span className="block truncate">{section.subjectId}</span>
