@@ -155,24 +155,34 @@ Run these against a debug build in Chrome and Firefox. Preview mode is entered f
 the header segmented control.
 
 - [ ] Preview toolbar presence: in edit mode there are no sharing controls. Switch to
-      preview and confirm the toolbar shows the template picker, display options, copy
-      image, download image, and copy as text. Switch back to edit and confirm they leave
-      the DOM. The toolbar and the revalidation banner are never part of an exported image.
+      preview and confirm the toolbar shows the display options, copy image, download image,
+      and copy as text, and that the template picker is the preview gallery itself, not a
+      dropdown. Switch back to edit and confirm they leave the DOM. The toolbar and the
+      revalidation banner are never part of an exported image.
 - [ ] Download PNG: populate a plan including one unscheduled course. In preview, download
       the image and open it. The poster header, the grid with block colours and any
       revalidation badges, the unscheduled shelf, and the footer credits all render, and
       Thai text is correct. The file name is kmitl-plan-year-semester-name-template.
-- [ ] Export templates: with the template picker, step through Share 16:9, Phone wallpaper
-      landscape, Phone wallpaper portrait, Tablet wallpaper, and Print A4. The preview reflows
-      to each aspect and the corner label states the output size. Download each and confirm the
-      opened image is exactly the stated pixels: 1920x1080, 1080x2340 (both phone templates),
-      1668x2388, and 3508x2480. The picked template persists across a reopen. At the largest
-      preset, Print A4, the Thai glyphs are sharp and correct with no tofu boxes or clipped tone
-      marks, and every day row, the shelf, and the footer credits are still present, never
-      cropped. No block clips its time or name at any preset.
-- [ ] Portrait template: the phone wallpaper portrait fills the tall canvas top to bottom with
-      days across the top as columns and time down the left axis, not a thin band. The block
-      positions match the landscape reading of the same plan.
+- [ ] Export templates: with the gallery picker, step through Share 16:9, Phone wallpaper
+      landscape, Phone wallpaper portrait, Tablet wallpaper portrait, Tablet wallpaper
+      landscape, and Print A4. The centred poster reflows to each aspect, and the caption below
+      it states the localized name with the exact output pixels; there is no corner size label.
+      Download each and confirm the opened image is exactly the stated pixels: 1920x1080,
+      2400x1080, 1080x2340, 2048x2732, 2732x2048, and 3508x2480. The picked template persists
+      across a reopen. At the largest preset, Print A4, the Thai glyphs are sharp and correct
+      with no tofu boxes or clipped tone marks, and every day track, the shelf, and the footer
+      credits are still present, never cropped. No block clips its time or name at any preset.
+- [ ] Gallery picker: the selected poster is centred with the neighbouring templates peeking at
+      both edges wide enough to read as a continuation cue. A pointer swipe past the threshold
+      pages to the neighbour and a short swipe springs back. The dots below name each template
+      on hover, and clicking one jumps to it. At the first template there is no left neighbour
+      and at the last no right neighbour, so paging clamps rather than wraps. With reduced motion
+      the slide is replaced by an instant switch.
+- [ ] Portrait templates: the phone wallpaper portrait and the tablet wallpaper portrait fill
+      the tall canvas top to bottom with days across the top as columns and time down the left
+      axis, not a thin band. The block positions match the landscape reading of the same plan.
+      Each landscape template keeps days as rows and time across the top, so the axis always
+      matches the canvas orientation.
 - [ ] Smart window: with a plan whose meetings all fall inside Monday to Friday 08:00 to 18:00,
       the poster shows exactly that window. A meeting before 08:00 or after 18:00 extends the
       window to the hour that clears it; a Saturday meeting reveals both Saturday and Sunday.
@@ -239,10 +249,11 @@ add and remove controls, so no action is a dead end for the keyboard.
       focus inside it and Escape closes it.
 - [ ] Plan switch: open the plan switcher, move through the plans, and create, rename, or
       delete one entirely by keyboard, confirming the inline delete.
-- [ ] Preview toolbar: switch to preview and Tab through the template picker, display
-      options, copy image, download image, and copy as text. The template picker opens with
-      Space or the arrow keys and a template commits with Enter. The display options popover
-      is reachable and its toggles operate by keyboard.
+- [ ] Preview toolbar and gallery: switch to preview and Tab through the display options,
+      copy image, download image, and copy as text. Tab into the gallery dot radiogroup; the
+      arrow keys and Home and End move between templates and the poster follows, each dot names
+      its template, and the focus ring is visible. The display options popover is reachable and
+      its toggles operate by keyboard.
 - [ ] Import rejection: from the plan menu, import a tampered JSON. The per field error list
       is reachable and the back control returns to the menu.
 - [ ] Footer and summary: the footer summary reads as one labeled region with the credit,
