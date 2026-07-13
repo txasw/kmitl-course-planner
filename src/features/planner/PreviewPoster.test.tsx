@@ -96,10 +96,12 @@ describe('PreviewPoster footer', () => {
     renderPoster();
     const watermark = document.querySelector('[data-poster-watermark]');
     expect(watermark).not.toBeNull();
-    // The mark is the four square icon motif, a single svg with four rects, aria hidden.
+    // The mark is the icon tile, not four detached squares: a rounded container with the
+    // signature accent square at reduced opacity. BrandMark.test covers the full geometry.
     const svg = watermark?.querySelector('svg');
     expect(svg).not.toBeNull();
-    expect(svg?.querySelectorAll('rect')).toHaveLength(4);
+    expect(svg?.querySelector('rect[rx="28"]')).not.toBeNull();
+    expect(svg?.querySelector('rect[opacity="0.45"]')).not.toBeNull();
     expect(
       screen.getByText('สร้างโดยตัววางแผนตารางเรียน สจล.'),
     ).toBeInTheDocument();
