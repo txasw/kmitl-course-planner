@@ -172,15 +172,20 @@ the header segmented control.
       across a reopen. At the largest preset, Print A4, the Thai glyphs are sharp and correct
       with no tofu boxes or clipped tone marks, and every day track, the shelf, and the footer
       credits are still present, never cropped. No block clips any field at any preset: the
-      time and name stay and the foot fields drop whole rather than clipping (see the next item).
+      name stays and the lower fields drop whole rather than clipping (see the next items).
+- [ ] Block hierarchy: every block leads with the subject name at the top, the place (building
+      and room with a location glyph) reads as the promoted second line, the section is a corner
+      chip, and the time sits as quiet metadata at the foot beside the subject id. Position
+      carries the time, so the name owns the strongest slot and the time is quiet but present.
 - [ ] Fields never half render: step through all six presets and sweep the blocks. No field is
       ever cut mid glyph. Every visible line sits fully inside its block, including Thai upper
       vowels and tone marks and low descenders. Where a block is short, the fields drop whole in
-      priority, the subject id first, then the place, then the section chip, then the English
-      name, and the name reduces to one ellipsized line before it drops, with the time never
-      dropped. A long name in the narrow portrait columns ends in an ellipsis, never a clipped
-      glyph. Turn show subject id on to pack the foot with both the id and the place and confirm
-      the fit still drops a field rather than clipping.
+      priority, the subject id first, then the English name, then the time, then the section
+      chip, then the name reduces to one ellipsized line, then the place, and the name never
+      drops. The place always outlives the name's second line and the time never outlives the
+      place. A long English name in the narrow portrait columns hyphenates or ends in an
+      ellipsis, never a clipped glyph; Thai wraps on its dictionary. Turn show subject id on to
+      pack the foot and confirm the fit still drops a field rather than clipping.
 - [ ] Gallery picker: the selected poster is centred with the neighbouring templates peeking at
       both edges wide enough to read as a continuation cue. A pointer swipe past the threshold
       pages to the neighbour and a short swipe springs back. The dots below name each template
