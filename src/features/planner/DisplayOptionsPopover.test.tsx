@@ -14,6 +14,7 @@ afterEach(() => {
   cleanup();
   act(() => {
     uiStore.getState().setDisplayOptions(DEFAULT_DISPLAY_OPTIONS);
+    uiStore.getState().setLanguage('th');
   });
 });
 
@@ -38,6 +39,27 @@ describe('DisplayOptionsPopover', () => {
     expect(
       screen.getByRole('switch', { name: 'แสดงกลุ่มเรียน' }),
     ).toBeChecked();
+  });
+
+  it('disables the show English names option in English', () => {
+    act(() => {
+      uiStore.getState().setLanguage('en');
+    });
+    render(<DisplayOptionsPopover />);
+    fireEvent.click(screen.getByRole('button', { name: 'Display options' }));
+    const option = screen.getByRole('switch', { name: 'Show English names' });
+    expect(option).toHaveAttribute('aria-disabled', 'true');
+    fireEvent.click(option);
+    // A disabled switch does not change the stored value.
+    expect(uiStore.getState().displayOptions.showEnglishNames).toBe(true);
+  });
+
+  it('leaves the show English names option enabled in Thai', () => {
+    render(<DisplayOptionsPopover />);
+    fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }));
+    expect(
+      screen.getByRole('switch', { name: 'แสดงชื่อภาษาอังกฤษ' }),
+    ).not.toHaveAttribute('aria-disabled');
   });
 
   it('no longer surfaces the retired fit to content option', () => {

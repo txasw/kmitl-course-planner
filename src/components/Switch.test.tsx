@@ -25,6 +25,38 @@ describe('Switch', () => {
     expect(onChange).toHaveBeenCalledWith(true);
   });
 
+  it('does not toggle when disabled and reads as disabled', () => {
+    const onChange = vi.fn();
+    render(
+      <Switch
+        checked
+        label="Show English names"
+        disabled
+        onChange={onChange}
+      />,
+    );
+    const control = screen.getByRole('switch', { name: 'Show English names' });
+    expect(control).toHaveAttribute('aria-disabled', 'true');
+    fireEvent.click(control);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('reveals its tooltip on focus', () => {
+    render(
+      <Switch
+        checked
+        label="Show English names"
+        disabled
+        tooltip="Names already show in English"
+        onChange={() => undefined}
+      />,
+    );
+    fireEvent.focus(screen.getByRole('switch', { name: 'Show English names' }));
+    expect(screen.getByRole('tooltip')).toHaveTextContent(
+      'Names already show in English',
+    );
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = render(
       <Switch checked label="Hide full" onChange={() => undefined} />,
