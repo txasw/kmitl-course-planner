@@ -47,8 +47,12 @@ uses the scroll and client heights, which are the true template pixels because a
 transform that scales the on screen preview does not change a descendant's layout box; the
 bounding rectangle, which the transform would scale, is never used for the threshold. A block's
 box size comes from the grid cell, not its content, so hiding a field never resizes the box and
-the loop cannot oscillate. The whole mechanism is gated to the poster; edit mode never measures
-and its rendering is unchanged.
+the loop cannot oscillate. Because the poster box does not settle in one frame, the gallery
+scale, the fonts, and the deferred neighbor posters resolve over the next few frames, a
+ResizeObserver on the measured box resets the fit to full whenever the box resizes, so the
+convergence re-runs against the settled size rather than a transient one; the observer fires
+only on a real box change, never on a field drop. The whole mechanism is gated to the poster;
+edit mode never measures and its rendering is unchanged.
 
 Two supporting changes make the measurement valid. Long names and English lines wrap at any
 point, so a long token wraps and the line clamp ends in an ellipsis rather than clipping a
