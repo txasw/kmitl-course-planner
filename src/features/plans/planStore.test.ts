@@ -90,6 +90,37 @@ describe('planStore write side', () => {
     expect(store.getState().pendingUndo).toBeNull();
   });
 
+  it('coalesces consecutive removals and restores them in reverse order', () => {
+    const store = makeStore();
+    const a = makeSection({
+      teachTableId: 'a',
+      subjectId: 'S1',
+      section: '901',
+      meetings: [makeMeeting({ day: 1 })],
+    });
+    const b = makeSection({
+      teachTableId: 'b',
+      subjectId: 'S2',
+      section: '901',
+      meetings: [makeMeeting({ day: 3 })],
+    });
+    store.getState().add(courseFor(a), a, SOURCE_QUERY);
+    store.getState().add(courseFor(b), b, SOURCE_QUERY);
+
+    store.getState().remove('a');
+    store.getState().remove('b');
+    // Both removals fold into one undo record rather than the second replacing the first.
+    expect(store.getState().entries).toHaveLength(0);
+    expect(store.getState().pendingUndo?.removed).toHaveLength(2);
+
+    store.getState().undo();
+    // Both come back, most recent first.
+    expect(store.getState().entries.map((entry) => entry.teachTableId)).toEqual(
+      ['b', 'a'],
+    );
+    expect(store.getState().pendingUndo).toBeNull();
+  });
+
   it('clears the pending undo on the next add', () => {
     const store = makeStore();
     const first = makeSection({

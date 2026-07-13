@@ -1,5 +1,11 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, screen, act, cleanup } from '@testing-library/react';
+import {
+  render,
+  screen,
+  act,
+  cleanup,
+  fireEvent,
+} from '@testing-library/react';
 import { planStore, type UndoRecord } from '@/features/plans/planStore';
 import {
   makePlanEntry,
@@ -55,6 +61,16 @@ describe('Toaster', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('dismisses an ordinary toast from its close button', () => {
+    render(<Toaster />);
+    act(() => {
+      toastStore.getState().show('success', 'Done');
+    });
+    expect(screen.getByText('Done')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'ปิด' }));
+    expect(screen.queryByText('Done')).toBeNull();
   });
 
   it('keeps a polite live region mounted and empty until a toast shows', () => {

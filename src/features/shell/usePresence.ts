@@ -12,7 +12,7 @@ export type PresenceStage = 'closed' | 'entering' | 'open' | 'leaving';
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
-function usePrefersReducedMotion(): boolean {
+export function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState<boolean>(
     () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
   );

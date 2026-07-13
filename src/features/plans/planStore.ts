@@ -177,6 +177,14 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
         { year: active.year, semester: active.semester },
       );
       if (outcome.ok && outcome.result.removed.length > 0) {
+        // Coalesce: a removal during an active removal's undo window folds into the same
+        // record rather than replacing it, so one toast covers both and undo restores
+        // both. Only consecutive removals coalesce; a move or swap starts a fresh record.
+        const prior = state.pendingUndo;
+        const removed =
+          prior !== null && prior.kind === 'remove'
+            ? [...prior.removed, ...outcome.result.removed]
+            : outcome.result.removed;
         set({
           plans: replaceEntries(
             state.plans,
@@ -188,7 +196,7 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
           pendingUndo: {
             kind: 'remove',
             added: [],
-            removed: outcome.result.removed,
+            removed,
           },
         });
       }
@@ -234,9 +242,11 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
       const addedIds = new Set(
         pending.added.map((entry) => entry.teachTableId),
       );
+      // Restore the removed entries in reverse order, so a coalesced record brings back
+      // the most recent removal first, undoing the folds newest to oldest.
       const entries = [
         ...active.entries.filter((entry) => !addedIds.has(entry.teachTableId)),
-        ...pending.removed,
+        ...[...pending.removed].reverse(),
       ];
       set({
         plans: replaceEntries(state.plans, active.id, entries, now),
