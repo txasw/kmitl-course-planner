@@ -68,3 +68,24 @@ and tablet in both orientations plus share and print. The user pages through the
 posters and reads the exact output size in the caption, so the choice is made by sight. The
 one axis rule in the module doc means a future preset needs only its box and ratio, never a
 new orientation decision.
+
+## Amendment, gallery hierarchy, affordances, and the footer
+
+The first gallery sized each neighbour by its own width, so a portrait neighbour rendered
+nearly as large as the selection and inverted the emphasis. The hierarchy is fixed to an edge
+anchored sliver: the selected poster is always centred, full height, and unclipped, within the
+width left after a reserved zone at each edge; the previous and next templates show only a
+constant 44 px sliver at each edge, cropped by the frame, dimmed to 0.4 opacity and scaled to
+0.9 of the selection height, so they read as continuation cues, not comparable options. The
+switch keeps the reduced motion aware settle, so reduced motion stays instant.
+
+Paging gains visible affordances beside the keyboard and swipe paths: a previous and a next
+arrow button flank the gallery, named and tooltipped, disabled at the clamped ends to match the
+boundary, and paging exactly like the arrow keys; and a scroll wheel over the gallery pages
+horizontally, a vertical notch or a horizontal trackpad swipe, with a cooldown so one notch is
+one page. The dots, Home, and End remain.
+
+The export footer becomes one baseline row inside the poster's equal margins: the credits
+summary flush left and the watermark flush right, sharing a baseline and a single top divider.
+The watermark mark is the extension's own icon as a monochrome, single colour variant in the
+credit text colour, sized to the text cap height, replacing the generic glyph.

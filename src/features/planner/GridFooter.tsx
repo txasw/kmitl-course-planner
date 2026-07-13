@@ -19,9 +19,12 @@ function formatHours(minutes: number): string {
 interface GridFooterProps {
   sections: PlacedSection[];
   t: Translate;
+  /** Drop the top divider and padding when the footer sits inside a bordered poster row that
+   * already carries them, as in the preview footer baseline row. */
+  flush?: boolean;
 }
 
-export function GridFooter({ sections, t }: GridFooterProps) {
+export function GridFooter({ sections, t, flush = false }: GridFooterProps) {
   const credits = summarizeCredits(
     sections.map((section) => ({
       subjectId: section.subjectId,
@@ -37,7 +40,9 @@ export function GridFooter({ sections, t }: GridFooterProps) {
     <div
       role="group"
       aria-label={t('footer.summary')}
-      className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-2 text-xs text-ink-soft"
+      className={`flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-soft ${
+        flush ? '' : 'border-t border-border pt-2'
+      }`}
     >
       <span className="font-medium text-ink">
         {credits.credits} {t('footer.credits')}
