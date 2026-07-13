@@ -21,6 +21,8 @@ interface UnscheduledShelfProps {
   showSection?: boolean;
   /** Add the English name as a secondary line under a Thai primary name. */
   showEnglishName?: boolean;
+  /** Show the subject id. A preview display option, off by default there; on in edit mode. */
+  showSubjectId?: boolean;
 }
 
 export function UnscheduledShelf({
@@ -31,6 +33,7 @@ export function UnscheduledShelf({
   examConflictIds,
   showSection = true,
   showEnglishName = false,
+  showSubjectId = true,
 }: UnscheduledShelfProps) {
   return (
     <section
@@ -61,10 +64,18 @@ export function UnscheduledShelf({
               className="@container flex items-center justify-between gap-2 text-xs"
             >
               <span className="flex min-w-0 flex-col text-ink">
-                <Tooltip label={`${section.subjectId} ${name}`}>
+                <Tooltip
+                  label={showSubjectId ? `${section.subjectId} ${name}` : name}
+                >
                   {(triggerProps, ref) => (
                     <span ref={ref} {...triggerProps} className="truncate">
-                      <span className="font-medium">{section.subjectId}</span>{' '}
+                      {showSubjectId ? (
+                        <>
+                          <span className="font-medium">
+                            {section.subjectId}
+                          </span>{' '}
+                        </>
+                      ) : null}
                       {name}
                     </span>
                   )}

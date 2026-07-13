@@ -61,12 +61,43 @@ describe('prefs repository', () => {
         showRoom: true,
         showSection: false,
         showEnglishNames: true,
+        showSubjectId: true,
       },
     };
     const repo = createPrefsRepository(
       fakeAdapter({ [PREFS_KEY]: withOptions }),
     );
     expect(await repo.load()).toEqual(withOptions);
+  });
+
+  it('defaults show subject id off for a blob written before it existed', async () => {
+    // showSubjectId is a defaulted field, so an older display options blob missing it still
+    // validates and reads the id off rather than failing the whole preferences load.
+    const repo = createPrefsRepository(
+      fakeAdapter({
+        [PREFS_KEY]: {
+          schemaVersion: 1,
+          language: 'th',
+          displayOptions: {
+            fitToContent: true,
+            showRoom: true,
+            showSection: true,
+            showEnglishNames: true,
+          },
+        },
+      }),
+    );
+    expect(await repo.load()).toEqual({
+      schemaVersion: 1,
+      language: 'th',
+      displayOptions: {
+        fitToContent: true,
+        showRoom: true,
+        showSection: true,
+        showEnglishNames: true,
+        showSubjectId: false,
+      },
+    });
   });
 
   it('rejects display options with a missing field', async () => {

@@ -96,7 +96,8 @@ describe('PreviewToolbar', () => {
     fireEvent.click(screen.getByRole('button', { name: 'คัดลอกข้อความ' }));
     expect(writeText).toHaveBeenCalledTimes(1);
     const text = writeText.mock.calls[0]?.[0];
-    expect(text).toContain('90592008 สังคมไทยในวันนี้');
+    // The subject id is off by default, so the line leads with the course name.
+    expect(text).toContain('สังคมไทยในวันนี้');
     expect(text).toContain('ตัววางแผนตารางเรียน สจล.');
   });
 });

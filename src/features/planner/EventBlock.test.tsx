@@ -281,6 +281,23 @@ describe('EventBlock', () => {
     expect(within(block).queryByText('901')).not.toBeInTheDocument();
   });
 
+  it('hides the subject id when showSubjectId is off', () => {
+    // The preview toggle governs the visible id; the id stays in the accessible label as
+    // the block identity, so the block is still found by it.
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        showSubjectId={false}
+      />,
+    );
+    const block = screen.getByLabelText(/90592033/);
+    expect(within(block).queryByText('90592033')).not.toBeInTheDocument();
+  });
+
   it('hides the room when showRoom is off', () => {
     render(
       <EventBlock

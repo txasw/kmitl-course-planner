@@ -56,6 +56,15 @@ function sectionPart(
   return options.showSection ? ` (${section.section})` : '';
 }
 
+// The subject id leads a line with a trailing space when on, or drops entirely when off, so
+// the text export follows the same show subject id option as the poster.
+function subjectIdPart(
+  section: PlanTextSection,
+  options: DisplayOptions,
+): string {
+  return options.showSubjectId ? `${section.subjectId} ` : '';
+}
+
 function missingPart(section: PlanTextSection, t: Translate): string {
   return section.verifyStatus === 'missing'
     ? ` (${t('revalidation.missing')})`
@@ -88,7 +97,7 @@ export function formatPlanText(input: PlanTextInput): string {
     const time = `${formatMinutes(meeting.startMin)}-${formatMinutes(meeting.endMin)}`;
     const room =
       options.showRoom && meeting.room !== '' ? ` ${meeting.room}` : '';
-    return `${t(dayLabelKey(meeting.day))} ${time} ${section.subjectId} ${subjectName(section, options, locale)}${sectionPart(section, options)}${room}${missingPart(section, t)}`;
+    return `${t(dayLabelKey(meeting.day))} ${time} ${subjectIdPart(section, options)}${subjectName(section, options, locale)}${sectionPart(section, options)}${room}${missingPart(section, t)}`;
   });
 
   const unscheduled = sections.filter(
@@ -96,7 +105,7 @@ export function formatPlanText(input: PlanTextInput): string {
   );
   const unscheduledLines = unscheduled.map(
     (section) =>
-      `${section.subjectId} ${subjectName(section, options, locale)}${sectionPart(section, options)}${missingPart(section, t)}`,
+      `${subjectIdPart(section, options)}${subjectName(section, options, locale)}${sectionPart(section, options)}${missingPart(section, t)}`,
   );
 
   const blocks: string[] = [header];

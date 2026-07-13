@@ -31,6 +31,7 @@ import { Switch } from '@/components/Switch';
 const OPTIONS: { key: keyof DisplayOptions; labelKey: TranslationKey }[] = [
   { key: 'showRoom', labelKey: 'preview.showRoom' },
   { key: 'showSection', labelKey: 'preview.showSection' },
+  { key: 'showSubjectId', labelKey: 'preview.showSubjectId' },
   { key: 'showEnglishNames', labelKey: 'preview.showEnglishNames' },
 ];
 

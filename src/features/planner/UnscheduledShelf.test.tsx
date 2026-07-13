@@ -85,6 +85,22 @@ describe('UnscheduledShelf', () => {
     expect(screen.queryByText(/กลุ่มเรียน 1/)).not.toBeInTheDocument();
   });
 
+  it('hides the subject id when showSubjectId is off', () => {
+    render(
+      <UnscheduledShelf
+        sections={[makePlaced()]}
+        locale="th"
+        t={t}
+        showSubjectId={false}
+      />,
+    );
+    const shelf = screen.getByRole('region', {
+      name: 'รายวิชาที่ไม่มีคาบเรียน',
+    });
+    expect(within(shelf).queryByText('01006029')).not.toBeInTheDocument();
+    expect(within(shelf).getByText('วิชาออนไลน์')).toBeInTheDocument();
+  });
+
   it('adds the English name under a Thai primary when showEnglishName is on', () => {
     render(
       <UnscheduledShelf

@@ -73,6 +73,9 @@ interface EventBlockProps {
   showSection?: boolean;
   /** Add the English name as a secondary line under a Thai primary name. */
   showEnglishName?: boolean;
+  /** Show the subject id in the foot. A preview display option, off by default there; the
+   * edit grid leaves it on so the id is always available for cross referencing. */
+  showSubjectId?: boolean;
   /** Fit the block content to its box by measurement, dropping whole low priority fields
    * rather than clipping a line mid glyph. On only for the read only preview and export
    * poster; edit mode leaves it off and keeps its tighter line height (ADR-0046). */
@@ -104,6 +107,7 @@ function EventBlockComponent({
   showRoom = true,
   showSection = true,
   showEnglishName = false,
+  showSubjectId = true,
   fitToBox = false,
   fitKey = '',
 }: EventBlockProps) {
@@ -134,7 +138,7 @@ function EventBlockComponent({
     hasName: name !== '',
     hasEnglish: englishSecondary,
     hasSection: showSection && section.section !== '',
-    hasId: section.subjectId !== '',
+    hasId: showSubjectId && section.subjectId !== '',
     hasPlace: showRoom && place !== '',
   });
   const level = useDensityFit(contentRef, fitToBox, eligibility, fitKey);
