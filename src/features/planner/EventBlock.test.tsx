@@ -56,6 +56,33 @@ describe('EventBlock', () => {
     expect(within(block).getByText('A · A101')).toBeInTheDocument();
   });
 
+  it('pins the time and name so the foot yields first on a short block', () => {
+    // The name must never disappear while a lower priority field remains. The time and
+    // the name are shrink-0 so a short block clips the foot (id, chip, place) first
+    // rather than squeezing the name to nothing, which inverts the emphasis order.
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    const block = screen.getByLabelText(/90592033/);
+    expect(within(block).getByText('09:00-12:00').className).toContain(
+      'shrink-0',
+    );
+    expect(within(block).getByText('วิชาทดสอบ').className).toContain(
+      'shrink-0',
+    );
+    // The foot carries the subject id and can be squeezed away; it is not pinned.
+    const foot = within(block).getByText('90592033').closest('.mt-auto');
+    expect(foot).not.toBeNull();
+    expect(foot?.className).not.toContain('shrink-0');
+    expect(foot?.className).toContain('min-h-0');
+  });
+
   it('names the room in the accessible label when the room shows', () => {
     render(
       <EventBlock

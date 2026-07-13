@@ -3,7 +3,11 @@
 // two lines, then the subject id, a section chip, and the place (building and room).
 // The fill is a soft tint of the subject's stable color under ink text with the solid
 // color as a left bar (ADR-0035); the KMITL orange is never used here. It clips from
-// the foot inward as the block shortens. In edit mode the block is a drag source (the
+// the foot inward as the block shortens, so the subject name never disappears while a
+// lower priority field remains: the time and at least one clamped line of the name are
+// pinned (shrink-0), and the foot, the subject id, the chip, and the place, is the only
+// part that yields, since the id is recoverable from the text export and the chip
+// carries the section (ADR-0040). In edit mode the block is a drag source (the
 // ref and listeners come from the draggable wrapper so this stays free of the drag
 // library) and carries a focusable remove control, which keeps on grid removal
 // reachable by keyboard.
@@ -137,13 +141,17 @@ function EventBlockComponent({
       ) : null}
       {/* Emphasis order time, place, subject: the time range leads, the subject name
           is the primary content clamped to two lines, and the subject id, the section
-          chip, and the place read as quieter meta at the foot of the block. */}
-      <span className="font-semibold">{time}</span>
-      <span className="line-clamp-2 font-medium">{name}</span>
+          chip, and the place read as quieter meta at the foot of the block. The time
+          and the name are pinned with shrink-0 so a short block clips the foot first
+          rather than squeezing the name out; the name keeps at least one clamped line. */}
+      <span className="shrink-0 font-semibold">{time}</span>
+      <span className="line-clamp-2 shrink-0 font-medium">{name}</span>
       {englishSecondary ? (
-        <span className="line-clamp-1 text-ink-soft">{section.nameEn}</span>
+        <span className="line-clamp-1 shrink-0 text-ink-soft">
+          {section.nameEn}
+        </span>
       ) : null}
-      <div className="mt-auto pt-0.5">
+      <div className="mt-auto min-h-0 pt-0.5">
         <div className="flex items-center justify-between gap-1 text-ink-soft">
           <span className="truncate">{section.subjectId}</span>
           {showSection ? (
