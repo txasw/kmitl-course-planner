@@ -17,8 +17,22 @@ describe('export templates', () => {
     );
     expect(dims['share-16-9']).toEqual([1920, 1080]);
     expect(dims['phone-wallpaper']).toEqual([1080, 2340]);
+    expect(dims['phone-wallpaper-portrait']).toEqual([1080, 2340]);
     expect(dims['tablet-wallpaper']).toEqual([1668, 2388]);
     expect(dims['print-a4']).toEqual([3508, 2480]);
+  });
+
+  it('marks exactly the portrait template as portrait', () => {
+    const portrait = EXPORT_TEMPLATES.filter(
+      (template) => template.orientation === 'portrait',
+    ).map((template) => template.slug);
+    expect(portrait).toEqual(['phone-wallpaper-portrait']);
+  });
+
+  it('gives every template a positive poster font size', () => {
+    for (const template of EXPORT_TEMPLATES) {
+      expect(template.posterFontPx).toBeGreaterThan(0);
+    }
   });
 
   it('keeps every layout width at or above the grid minimum', () => {

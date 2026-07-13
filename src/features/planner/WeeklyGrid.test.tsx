@@ -62,6 +62,39 @@ describe('WeeklyGrid', () => {
     expect(block.style.gridRow).toBe('3');
   });
 
+  it('transposes the same meeting to column 3, rows 10 / 22 in portrait', () => {
+    // Days become columns and time flows down as rows: Monday is the second day column
+    // (grid column 3 after the time axis gutter) and 09:00 to 12:00 spans rows 10 to 22.
+    render(
+      <WeeklyGrid
+        sections={[makePlaced()]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+        orientation="portrait"
+      />,
+    );
+    const block = screen.getByLabelText(/90592033/);
+    expect(block.style.gridColumn).toBe('3');
+    expect(block.style.gridRow).toBe('10 / 22');
+  });
+
+  it('scales the grid font size from the fontPx prop', () => {
+    render(
+      <WeeklyGrid
+        sections={[]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+        fontPx={14}
+      />,
+    );
+    expect(
+      screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }).style
+        .fontSize,
+    ).toBe('14px');
+  });
+
   it('trims to a given day run and rows blocks by their position', () => {
     const placed = makePlaced({
       meetings: [

@@ -114,7 +114,7 @@ function EventBlockComponent({
       data-verify={badge ?? undefined}
       aria-label={label}
       onContextMenu={onContextMenu}
-      className={`group/block kcp-settle relative m-px flex min-w-0 flex-col overflow-hidden rounded-kcp py-1 pr-1.5 pl-2.5 text-[11px] leading-tight text-ink ${pulsing ? 'kcp-pulse' : ''} ${dimmed ? 'opacity-40' : ''} ${dragListeners ? 'cursor-grab touch-none' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''}`}
+      className={`group/block kcp-settle relative m-px flex min-w-0 flex-col overflow-hidden rounded-kcp py-1 pr-1.5 pl-2.5 text-[1em] leading-tight text-ink ${pulsing ? 'kcp-pulse' : ''} ${dimmed ? 'opacity-40' : ''} ${dragListeners ? 'cursor-grab touch-none' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''}`}
       style={{ ...style, backgroundColor: hashTint(section.subjectId) }}
       {...dragListeners}
     >
@@ -155,7 +155,7 @@ function EventBlockComponent({
         <div className="flex items-center justify-between gap-1 text-ink-soft">
           <span className="truncate">{section.subjectId}</span>
           {showSection ? (
-            <span className="shrink-0 rounded bg-ink/10 px-1 text-[10px] font-medium text-ink">
+            <span className="shrink-0 rounded bg-ink/10 px-1 text-[0.9em] font-medium text-ink">
               {section.section}
             </span>
           ) : null}

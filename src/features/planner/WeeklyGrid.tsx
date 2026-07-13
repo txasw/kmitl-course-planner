@@ -1,8 +1,12 @@
-// The weekly timetable. Days are rows Sunday through Saturday and time is columns
-// of 15 minute quarters. Every block position derives from minutes through the
-// grid geometry, never from pixels: a meeting maps to grid column lines and its
-// day row. A per day lane draws the hour and quarter gridlines with a gradient so
-// the line count follows the window without a cell per quarter.
+// The weekly timetable. In the landscape layout days are rows Sunday through Saturday
+// and time is columns of 15 minute quarters; the portrait layout transposes it, days as
+// columns and time flowing down as rows, so a tall export canvas fills top to bottom
+// rather than a thin band (ADR, orientation is a template property). Every block position
+// derives from minutes through the grid geometry, never from pixels: a meeting maps to
+// grid lines and its day track. A per day lane draws the hour and quarter gridlines with a
+// gradient so the line count follows the window without a cell per quarter. The axis hour
+// labels center on their gridline and read as an even ruler, with a stronger rule at
+// midday and the window edges. The poster font size scales the whole grid per template.
 
 import { Fragment, useMemo } from 'react';
 import type { CSSProperties, MouseEvent } from 'react';
@@ -15,6 +19,7 @@ import { WEEK_DAYS, type DayOfWeek } from '@/lib/parsing/days';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
 import { formatMinutes } from '@/lib/parsing/time';
 import {
+  QUARTER_MIN,
   hourTicks,
   meetingColumns,
   quarterCount,
@@ -29,40 +34,115 @@ import { DraggableBlock } from './DraggableBlock';
 import { SwapTarget } from './SwapTarget';
 import type { PlacedSection } from './placedSection';
 
+type Orientation = 'landscape' | 'portrait';
+
 const MAX_STACK_OFFSET = 4;
 const STACK_STEP_PX = 5;
 
-const AXIS_ROW = 1;
-const FIRST_DAY_ROW = 2;
-const FIRST_TIME_COLUMN = 2; // the grid line just after the day label column
+const AXIS_INDEX = 1; // the leading axis track: landscape row 1, portrait column 1
+const FIRST_DAY_INDEX = 2; // first day track: landscape row 2, portrait column 2
+const FIRST_TIME_INDEX = 2; // first quarter track: landscape column 2, portrait row 2
 const QUARTERS_PER_HOUR = 4;
+const NOON_MIN = 12 * 60;
+const EMPHASIS_LINE =
+  'color-mix(in srgb, var(--kcp-ink-soft) 30%, transparent)';
 
-/** Layered gradients that draw the hour lines and the fainter quarter lines. */
-function laneBackground(quarters: number): string {
+/** Layered gradients that draw the hour lines and the fainter quarter lines. The lines run
+ * across the time axis, so they are vertical in landscape and horizontal in portrait. */
+function laneBackground(quarters: number, orientation: Orientation): string {
+  const direction = orientation === 'portrait' ? 'to bottom' : 'to right';
   const quarterPct = 100 / quarters;
   const hourPct = quarterPct * QUARTERS_PER_HOUR;
   const hourLine = 'var(--kcp-border)';
   const quarterLine = 'color-mix(in srgb, var(--kcp-border) 45%, transparent)';
   return [
-    `repeating-linear-gradient(to right, ${hourLine} 0, ${hourLine} 1px, transparent 1px, transparent ${String(hourPct)}%)`,
-    `repeating-linear-gradient(to right, ${quarterLine} 0, ${quarterLine} 1px, transparent 1px, transparent ${String(quarterPct)}%)`,
+    `repeating-linear-gradient(${direction}, ${hourLine} 0, ${hourLine} 1px, transparent 1px, transparent ${String(hourPct)}%)`,
+    `repeating-linear-gradient(${direction}, ${quarterLine} 0, ${quarterLine} 1px, transparent 1px, transparent ${String(quarterPct)}%)`,
   ].join(', ');
 }
 
-// The row derives from the day's position in the rendered run, not the day
-// number, so a fit to content preview that trims leading days still places each
-// block in the correct row. With the full week the position equals the day, so
-// edit mode geometry is unchanged.
+// The day track derives from the day's position in the rendered run, not the day number,
+// so a preview that trims leading days still places each block correctly. With the full
+// week the position equals the day, so edit mode geometry is unchanged. In portrait the
+// day is the column and the time span is the rows; in landscape it is the reverse.
 function blockStyle(
   meeting: Meeting,
   window: GridWindow,
   days: readonly DayOfWeek[],
+  orientation: Orientation,
 ): CSSProperties {
   const columns = meetingColumns(meeting.startMin, meeting.endMin, window);
+  const dayTrack = FIRST_DAY_INDEX + days.indexOf(meeting.day);
+  const timeStart = FIRST_TIME_INDEX + columns.startQuarter;
+  const timeEnd = FIRST_TIME_INDEX + columns.endQuarter;
+  if (orientation === 'portrait') {
+    return {
+      gridColumn: dayTrack,
+      gridRow: `${String(timeStart)} / ${String(timeEnd)}`,
+    };
+  }
   return {
-    gridRow: FIRST_DAY_ROW + days.indexOf(meeting.day),
-    gridColumn: `${String(FIRST_TIME_COLUMN + columns.startQuarter)} / ${String(FIRST_TIME_COLUMN + columns.endQuarter)}`,
+    gridRow: dayTrack,
+    gridColumn: `${String(timeStart)} / ${String(timeEnd)}`,
   };
+}
+
+function gridTemplate(
+  quarters: number,
+  dayCount: number,
+  orientation: Orientation,
+): CSSProperties {
+  // The leading axis track is a fixed size, not auto: the hour labels are absolutely
+  // positioned so they can center on their gridline, which means they add no flow height,
+  // so an auto track would collapse and hide them.
+  if (orientation === 'portrait') {
+    return {
+      gridTemplateColumns: `2.75rem repeat(${String(dayCount)}, minmax(0, 1fr))`,
+      gridTemplateRows: `1.4em repeat(${String(quarters)}, minmax(0, 1fr))`,
+    };
+  }
+  return {
+    gridTemplateColumns: `2.25rem repeat(${String(quarters)}, minmax(0, 1fr))`,
+    gridTemplateRows: `1.4em repeat(${String(dayCount)}, minmax(2.5rem, 1fr))`,
+  };
+}
+
+/** The quarter offsets that carry a stronger rule: the window start, midday, and end. */
+function emphasisOffsets(window: GridWindow, quarters: number): number[] {
+  const offsets = [0, quarters];
+  const noon = (NOON_MIN - window.startMin) / QUARTER_MIN;
+  if (noon > 0 && noon < quarters) {
+    offsets.push(noon);
+  }
+  return offsets;
+}
+
+function emphasisStyle(
+  offset: number,
+  quarters: number,
+  orientation: Orientation,
+): CSSProperties {
+  // The end edge draws on the trailing side of the last cell; the rest on the leading side.
+  const atEnd = offset === quarters;
+  const track = atEnd
+    ? FIRST_TIME_INDEX + offset - 1
+    : FIRST_TIME_INDEX + offset;
+  if (orientation === 'portrait') {
+    const base: CSSProperties = {
+      gridColumn: `${String(FIRST_DAY_INDEX)} / -1`,
+      gridRow: `${String(track)} / span 1`,
+    };
+    return atEnd
+      ? { ...base, borderBottom: `1px solid ${EMPHASIS_LINE}` }
+      : { ...base, borderTop: `1px solid ${EMPHASIS_LINE}` };
+  }
+  const base: CSSProperties = {
+    gridColumn: `${String(track)} / span 1`,
+    gridRow: `${String(FIRST_DAY_INDEX)} / -1`,
+  };
+  return atEnd
+    ? { ...base, borderRight: `1px solid ${EMPHASIS_LINE}` }
+    : { ...base, borderLeft: `1px solid ${EMPHASIS_LINE}` };
 }
 
 interface WeeklyGridProps {
@@ -82,14 +162,19 @@ interface WeeklyGridProps {
   onOpenDetail?: (anchor: HTMLElement) => void;
   /** Open the block context menu at the pointer on a right click, edit mode only. */
   onContextMenu?: (event: MouseEvent<HTMLElement>) => void;
-  /** The day rows to render, in order. Defaults to the full week; preview passes a
-   * trimmed contiguous run for the fit to content option. */
+  /** The day tracks to render, in order. Defaults to the full week; preview passes a
+   * trimmed contiguous run. */
   days?: readonly DayOfWeek[];
   /** Preview field toggles. Omitted in edit mode, where blocks show every field. */
   display?: DisplayOptions;
-  /** Tint the day row labels with the traditional Thai day colors. On only when the
-   * poster renders into an export template (preview), never in edit mode (ADR-0042). */
+  /** Tint the day labels with the traditional Thai day colors. On only when the poster
+   * renders into an export template (preview), never in edit mode (ADR-0042). */
   dayAccent?: boolean;
+  /** Landscape (days as rows) or portrait (days as columns). Portrait is preview only. */
+  orientation?: Orientation;
+  /** The grid root font size in CSS pixels; every grid text node scales from it, so a
+   * template can shrink its type scale a step. Defaults to the edit mode 11px. */
+  fontPx?: number;
 }
 
 export function WeeklyGrid({
@@ -106,24 +191,25 @@ export function WeeklyGrid({
   days = WEEK_DAYS,
   display,
   dayAccent = false,
+  orientation = 'landscape',
+  fontPx = 11,
 }: WeeklyGridProps) {
-  // The grid geometry follows only the window and the rendered day rows, so it holds
-  // stable across a drag or a plan change and is computed once per those inputs.
-  const { ticks, lane, gridStyle } = useMemo(() => {
-    const q = quarterCount(window);
+  // The grid geometry follows only the window, the day tracks, and the orientation, so it
+  // holds stable across a drag or a plan change and is computed once per those inputs.
+  const { ticks, lane, gridStyle, emphasis } = useMemo(() => {
+    const quarters = quarterCount(window);
     return {
-      // The last tick is the window's closing edge and needs no hour column label.
+      // The last tick is the window's closing edge and needs no label.
       ticks: hourTicks(window).slice(0, -1),
-      lane: laneBackground(q),
-      gridStyle: {
-        gridTemplateColumns: `2.25rem repeat(${String(q)}, minmax(0, 1fr))`,
-        gridTemplateRows: `auto repeat(${String(days.length)}, minmax(2.5rem, 1fr))`,
-      } satisfies CSSProperties,
+      lane: laneBackground(quarters, orientation),
+      gridStyle: gridTemplate(quarters, days.length, orientation),
+      emphasis: emphasisOffsets(window, quarters),
     };
-  }, [window, days]);
+  }, [window, days, orientation]);
   const showRoom = display?.showRoom ?? true;
   const showSection = display?.showSection ?? true;
   const showEnglishName = display?.showEnglishNames ?? false;
+  const isPortrait = orientation === 'portrait';
 
   const active = useStore(dragStore, (state) => state.active);
   const hover = useStore(dragStore, (state) => state.hover);
@@ -153,11 +239,10 @@ export function WeeklyGrid({
     }
     return ids;
   }, [active]);
-  // Emit the blocks in day then start time then subject order, the same order the copy
-  // as text export uses, so the reading and tab order follow one chronological schedule
-  // rather than plan entry order. Visual position comes from the grid coordinates, not
-  // the DOM order, so the sort changes only what a screen reader and the keyboard walk
-  // traverse, never the layout.
+  // Emit the blocks in day then start time then subject order, the same order the copy as
+  // text export uses, so the reading and tab order follow one chronological schedule rather
+  // than plan entry order. Visual position comes from the grid coordinates, not the DOM
+  // order, so the sort changes only what a screen reader and the keyboard walk traverse.
   const orderedBlocks = useMemo(
     () =>
       sections
@@ -166,10 +251,7 @@ export function WeeklyGrid({
             section,
             meeting,
             key: `${section.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`,
-            // Built here, inside the memo, so each block carries one stable style
-            // object and the memoized EventBlock is not re-rendered by a fresh style
-            // on every grid render. It depends only on the window and the day rows.
-            style: blockStyle(meeting, window, days),
+            style: blockStyle(meeting, window, days, orientation),
           })),
         )
         .sort(
@@ -178,62 +260,114 @@ export function WeeklyGrid({
             a.meeting.startMin - b.meeting.startMin ||
             a.section.subjectId.localeCompare(b.section.subjectId),
         ),
-    [sections, window, days],
+    [sections, window, days, orientation],
   );
 
   return (
     <div
       role="group"
       aria-label={t('grid.label')}
-      className={`grid h-full min-w-[44rem] text-ink ${blocked ? 'cursor-not-allowed' : ''}`}
-      style={gridStyle}
+      className={`grid h-full text-ink ${isPortrait ? 'min-h-[44rem]' : 'min-w-[44rem]'} ${blocked ? 'cursor-not-allowed' : ''}`}
+      style={{ ...gridStyle, fontSize: `${String(fontPx)}px` }}
     >
-      {ticks.map((min, index) => (
-        <div
-          key={min}
-          aria-hidden
-          className="border-l border-border pl-1 text-[11px] text-ink-soft"
-          style={{
-            gridRow: AXIS_ROW,
-            gridColumn: `${String(FIRST_TIME_COLUMN + index * QUARTERS_PER_HOUR)} / span ${String(QUARTERS_PER_HOUR)}`,
-          }}
-        >
-          {formatMinutes(min)}
-        </div>
-      ))}
-
-      {days.map((day, index) => (
-        <Fragment key={day}>
-          <Tooltip label={t(dayFullLabelKey(day))}>
-            {(triggerProps, ref) => (
-              <div
-                ref={ref}
-                {...triggerProps}
-                className={`flex items-center justify-center border-t border-border text-xs font-medium ${
-                  dayAccent ? 'text-ink' : 'text-ink-soft'
-                } ${!dayAccent && day % 2 === 1 ? 'bg-surface-alt' : ''}`}
-                style={{
-                  gridRow: FIRST_DAY_ROW + index,
-                  gridColumn: 1,
-                  ...(dayAccent ? { backgroundColor: dayTint(day) } : {}),
-                }}
-                aria-label={t(dayFullLabelKey(day))}
-              >
-                {t(dayLabelKey(day))}
-              </div>
-            )}
-          </Tooltip>
+      {ticks.map((min, index) => {
+        const track = FIRST_TIME_INDEX + index * QUARTERS_PER_HOUR;
+        const first = index === 0;
+        return (
           <div
+            key={min}
             aria-hidden
-            className={`border-t border-border ${day % 2 === 1 ? 'bg-surface-alt' : ''}`}
-            style={{
-              gridRow: FIRST_DAY_ROW + index,
-              gridColumn: `${String(FIRST_TIME_COLUMN)} / -1`,
-              backgroundImage: lane,
-            }}
+            className="relative overflow-visible text-[0.92em] text-ink-soft"
+            style={
+              isPortrait
+                ? {
+                    gridColumn: 1,
+                    gridRow: `${String(track)} / span ${String(QUARTERS_PER_HOUR)}`,
+                  }
+                : {
+                    gridRow: AXIS_INDEX,
+                    gridColumn: `${String(track)} / span ${String(QUARTERS_PER_HOUR)}`,
+                  }
+            }
+          >
+            <span
+              className="absolute whitespace-nowrap"
+              style={
+                isPortrait
+                  ? {
+                      right: '0.35em',
+                      top: 0,
+                      transform: first ? 'none' : 'translateY(-50%)',
+                    }
+                  : {
+                      bottom: 0,
+                      left: 0,
+                      transform: first ? 'none' : 'translateX(-50%)',
+                    }
+              }
+            >
+              {formatMinutes(min)}
+            </span>
+          </div>
+        );
+      })}
+
+      {emphasis.map((offset) => {
+        const quarters = quarterCount(window);
+        return (
+          <div
+            key={`emph-${String(offset)}`}
+            aria-hidden
+            className="pointer-events-none"
+            style={emphasisStyle(offset, quarters, orientation)}
           />
-        </Fragment>
-      ))}
+        );
+      })}
+
+      {days.map((day, index) => {
+        const dayTrack = FIRST_DAY_INDEX + index;
+        const alt = !dayAccent && day % 2 === 1 ? 'bg-surface-alt' : '';
+        return (
+          <Fragment key={day}>
+            <Tooltip label={t(dayFullLabelKey(day))}>
+              {(triggerProps, ref) => (
+                <div
+                  ref={ref}
+                  {...triggerProps}
+                  className={`flex items-center justify-center text-[1.05em] font-medium ${
+                    dayAccent ? 'text-ink' : 'text-ink-soft'
+                  } ${isPortrait ? 'border-b border-border' : 'border-t border-border'} ${alt}`}
+                  style={{
+                    ...(isPortrait
+                      ? { gridColumn: dayTrack, gridRow: 1 }
+                      : { gridRow: dayTrack, gridColumn: 1 }),
+                    ...(dayAccent ? { backgroundColor: dayTint(day) } : {}),
+                  }}
+                  aria-label={t(dayFullLabelKey(day))}
+                >
+                  {t(dayLabelKey(day))}
+                </div>
+              )}
+            </Tooltip>
+            <div
+              aria-hidden
+              className={`${isPortrait ? 'border-l border-border' : 'border-t border-border'} ${alt}`}
+              style={{
+                ...(isPortrait
+                  ? {
+                      gridColumn: dayTrack,
+                      gridRow: `${String(FIRST_TIME_INDEX)} / -1`,
+                    }
+                  : {
+                      gridRow: dayTrack,
+                      gridColumn: `${String(FIRST_TIME_INDEX)} / -1`,
+                    }),
+                backgroundImage: lane,
+              }}
+            />
+          </Fragment>
+        );
+      })}
 
       {orderedBlocks.map(({ section, meeting, key, style }) => {
         const common = {
@@ -279,7 +413,7 @@ export function WeeklyGrid({
                     ? 'border-success bg-success-soft'
                     : 'kcp-hatch border-danger bg-danger-soft'
                 }`}
-                style={blockStyle(meeting, window, days)}
+                style={blockStyle(meeting, window, days, orientation)}
               />
             )),
           )
@@ -292,7 +426,7 @@ export function WeeklyGrid({
               aria-hidden
               data-ghost="hover"
               className="pointer-events-none m-px rounded-kcp border border-dashed border-ink-soft"
-              style={blockStyle(meeting, window, days)}
+              style={blockStyle(meeting, window, days, orientation)}
             />
           ))
         : null}
@@ -309,7 +443,7 @@ export function WeeklyGrid({
                 candidate={footprint.candidate}
                 raised={footprint.candidate.section.teachTableId === raised}
                 style={{
-                  ...blockStyle(footprint.meeting, window, days),
+                  ...blockStyle(footprint.meeting, window, days, orientation),
                   marginLeft: `${String(offset)}px`,
                   marginTop: `${String(offset)}px`,
                 }}
@@ -330,7 +464,7 @@ export function WeeklyGrid({
                     id={id}
                     blockerTeachTableId={section.teachTableId}
                     incomingLabel={swapContext.incoming.section}
-                    style={blockStyle(meeting, window, days)}
+                    style={blockStyle(meeting, window, days, orientation)}
                   />
                 );
               }),
