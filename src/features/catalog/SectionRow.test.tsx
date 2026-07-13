@@ -52,6 +52,32 @@ describe('SectionRow actions', () => {
     expect(add.getAttribute('aria-label')).toContain(section.section);
   });
 
+  it('renders the add rail as a quiet, own column affordance', () => {
+    render(
+      <SectionRow
+        course={course}
+        section={section}
+        relation={{ kind: 'addable' }}
+        seat={openSeat}
+        locale="th"
+        t={t}
+        onAdd={vi.fn()}
+      />,
+    );
+    const add = screen.getByRole('button', { name: /^เพิ่ม/ });
+    const tokens = add.className.split(' ');
+    // Quiet by default: a soft tinted surface with the accent icon. The solid orange is
+    // reserved for the hover and focus states, so it is never the base fill.
+    expect(tokens).toContain('bg-primary-soft');
+    expect(tokens).not.toContain('bg-primary-strong');
+    expect(tokens).toContain('hover:bg-primary-strong');
+    // Its own bordered column that never overlaps the row body: it reserves its width
+    // (shrink-0, border-l) and sits outside the body content column.
+    expect(tokens).toContain('shrink-0');
+    expect(tokens).toContain('border-l');
+    expect(add.closest('.flex-1')).toBeNull();
+  });
+
   it('removes an added section on click', () => {
     const onRemove = vi.fn();
     render(
