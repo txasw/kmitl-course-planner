@@ -84,8 +84,10 @@ describe('PlanSwitcher', () => {
     openMenu();
     expect(screen.getByText('ภาคการศึกษา 1/2569')).toBeInTheDocument();
     expect(screen.getByText('ภาคการศึกษา 2/2569')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /A/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /B/ })).toBeInTheDocument();
+    // A string role name matches the full accessible name, so it targets the select
+    // button ("A") and not the per-row action buttons ("Rename A" and the rest).
+    expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'B' })).toBeInTheDocument();
   });
 
   it('switches the active plan and snaps the search term', () => {
@@ -96,7 +98,7 @@ describe('PlanSwitcher', () => {
     });
     render(<PlanSwitcher />);
     openMenu();
-    fireEvent.click(screen.getByRole('button', { name: /B/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'B' }));
     expect(planStore.getState().activePlanId).toBe('b');
     expect(searchStore.getState().byClass.semester).toBe('2');
   });
@@ -114,7 +116,7 @@ describe('PlanSwitcher', () => {
     expect(plans[0]?.semester).toBe('2');
   });
 
-  it('makes the plan actions icon only while import and export keep text', () => {
+  it('shows a prominent create, icon only per-row actions, and text import and export', () => {
     act(() => {
       planStore.getState().hydrate([
         makePlan({
@@ -129,16 +131,16 @@ describe('PlanSwitcher', () => {
     });
     render(<PlanSwitcher />);
     openMenu();
-    // The action buttons keep their accessible name from aria-label but drop the
-    // visible text, so an icon only button renders no label text.
-    expect(screen.getByRole('button', { name: 'สร้างตาราง' }).textContent).toBe(
-      '',
-    );
+    // Create is a prominent labelled button at the top of the menu.
     expect(
-      screen.getByRole('button', { name: 'เปลี่ยนชื่อ' }).textContent,
+      screen.getByRole('button', { name: 'สร้างตาราง' }),
+    ).toHaveTextContent('สร้างตาราง');
+    // The per-row actions keep their accessible name from aria-label but drop the visible
+    // text, so an icon only button renders no label text.
+    expect(
+      screen.getByRole('button', { name: 'เปลี่ยนชื่อ A' }).textContent,
     ).toBe('');
-    // Import and export keep their visible text because file actions read better
-    // with words.
+    // Import and export keep their visible text because file actions read better with words.
     expect(
       screen.getByRole('button', { name: 'นำเข้า JSON' }),
     ).toHaveTextContent('นำเข้า JSON');
@@ -161,7 +163,7 @@ describe('PlanSwitcher', () => {
     });
     render(<PlanSwitcher />);
     openMenu();
-    fireEvent.click(screen.getByRole('button', { name: 'เปลี่ยนชื่อ' }));
+    fireEvent.click(screen.getByRole('button', { name: 'เปลี่ยนชื่อ A' }));
     const input = screen.getByLabelText('ชื่อตาราง');
     fireEvent.change(input, { target: { value: 'ตารางใหม่' } });
     fireEvent.click(screen.getByRole('button', { name: 'บันทึก' }));
@@ -204,8 +206,8 @@ describe('PlanSwitcher', () => {
     });
     render(<PlanSwitcher />);
     openMenu();
-    fireEvent.click(screen.getByRole('button', { name: 'ลบ' }));
-    // The confirm view offers a delete button; confirm the deletion.
+    // The per-row delete opens the confirm; the confirm view offers the delete button.
+    fireEvent.click(screen.getByRole('button', { name: 'ลบ A' }));
     fireEvent.click(screen.getByRole('button', { name: 'ลบ' }));
     expect(planStore.getState().plans).toHaveLength(0);
   });
