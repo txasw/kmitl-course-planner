@@ -51,20 +51,16 @@ test('exports each template at its exact pixel dimensions', async ({
     height: 1080,
   });
 
-  // Switch to the landscape phone template through the select only picker and re-export;
-  // the same capture seam must now land the wide pixels, 1200 by 540 at ratio 2 (20:9).
-  await page.getByRole('combobox', { name: 'แม่แบบ' }).click();
-  await page.getByRole('option', { name: 'ภาพพื้นหลังโทรศัพท์แนวนอน' }).click();
+  // Switch templates through the gallery picker, the dot radiogroup, and re-export; the same
+  // capture seam must land each template's exact pixels. Landscape phone is a wide 20:9.
+  await page.getByRole('radio', { name: /ภาพพื้นหลังโทรศัพท์แนวนอน/ }).click();
   expect(pngSize(await downloadPng(page))).toEqual({
     width: 2400,
     height: 1080,
   });
 
-  // The portrait phone template transposes the grid but lands the same exact pixels.
-  await page.getByRole('combobox', { name: 'แม่แบบ' }).click();
-  await page
-    .getByRole('option', { name: 'ภาพพื้นหลังโทรศัพท์แนวตั้ง' })
-    .click();
+  // The portrait phone template transposes the grid but lands its own exact pixels.
+  await page.getByRole('radio', { name: /ภาพพื้นหลังโทรศัพท์แนวตั้ง/ }).click();
   expect(pngSize(await downloadPng(page))).toEqual({
     width: 1080,
     height: 2340,

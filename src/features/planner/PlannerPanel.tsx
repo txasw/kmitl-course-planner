@@ -3,29 +3,15 @@
 // visible time window from the scheduled meetings so an early or late class widens
 // the grid. Unscheduled sections and the footer summary arrive with the shelf.
 
-import {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-  type MouseEvent,
-  type ReactNode,
-} from 'react';
-import { CalendarPlus } from 'lucide-react';
+import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { useStore } from 'zustand';
 import { snapshotToSection } from '@/lib/domain/plan';
-import type { Translate } from '@/lib/i18n/t';
 import {
   computeSmartWindow,
   computeWindow,
   smartVisibleDays,
 } from '@/lib/planner/grid';
-import {
-  templateBySlug,
-  templateOutputHeight,
-  templateOutputWidth,
-  type ExportTemplate,
-} from '@/lib/planner/exportTemplates';
+import { templateBySlug } from '@/lib/planner/exportTemplates';
 import { planConflicts } from '@/lib/planner/planConflicts';
 import { planExamConflicts } from '@/lib/planner/examOverlap';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
@@ -36,41 +22,14 @@ import { dragStore } from './dragStore';
 import { BlockDetailPopover } from './BlockDetailPopover';
 import { BlockContextMenu } from './BlockContextMenu';
 import { FeedbackStrip } from './FeedbackStrip';
+import { GridEmptyState } from './GridEmptyState';
 import { GridFooter } from './GridFooter';
-import { PosterHeader } from './PosterHeader';
-import { PosterWatermark } from './PosterWatermark';
-import { PreviewStage } from './PreviewStage';
+import { type PosterData } from './PreviewPoster';
 import { PreviewToolbar } from './PreviewToolbar';
 import { RevalidationBanner } from './RevalidationBanner';
+import { TemplateGallery } from './TemplateGallery';
 import { UnscheduledShelf } from './UnscheduledShelf';
 import { WeeklyGrid } from './WeeklyGrid';
-
-// Wraps the poster in the scaling preview stage in preview mode, or renders it inline
-// in edit mode. The stage scales the fixed template poster to fit the pane, while the
-// poster keeps its exact layout box so the capture lands the template pixels.
-function PosterFrame({
-  isPreview,
-  template,
-  t,
-  children,
-}: {
-  isPreview: boolean;
-  template: ExportTemplate;
-  t: Translate;
-  children: ReactNode;
-}) {
-  if (!isPreview) {
-    return <>{children}</>;
-  }
-  return (
-    <PreviewStage
-      template={template}
-      sizeLabel={`${t(template.labelKey)} · ${String(templateOutputWidth(template))} × ${String(templateOutputHeight(template))}`}
-    >
-      {children}
-    </PreviewStage>
-  );
-}
 
 export function PlannerPanel() {
   const { t, language } = useTranslation();
@@ -226,6 +185,42 @@ export function PlannerPanel() {
   const posterRef = useRef<HTMLDivElement>(null);
   const isPreview = viewMode === 'preview';
   const template = templateBySlug(selectedTemplate);
+  // The template independent poster inputs, bundled once so the gallery renders the selected
+  // poster and its peeking neighbors from one plan snapshot and can defer the neighbors.
+  const posterData = useMemo<PosterData>(
+    () => ({
+      planName: activePlan?.name ?? t('plan.untitled'),
+      term:
+        activePlan === null
+          ? null
+          : { year: activePlan.year, semester: activePlan.semester },
+      sections,
+      scheduled,
+      unscheduled,
+      window: smartWindow,
+      days: smartDays,
+      displayOptions,
+      conflictIds,
+      examConflictIds,
+      examOverlaps: examConflicts,
+      locale: language,
+      t,
+    }),
+    [
+      activePlan,
+      sections,
+      scheduled,
+      unscheduled,
+      smartWindow,
+      smartDays,
+      displayOptions,
+      conflictIds,
+      examConflictIds,
+      examConflicts,
+      language,
+      t,
+    ],
+  );
 
   return (
     <div className="flex h-full flex-col gap-2">
@@ -239,46 +234,17 @@ export function PlannerPanel() {
       ) : null}
       {viewMode === 'edit' ? <FeedbackStrip t={t} /> : null}
       <RevalidationBanner />
-      <PosterFrame isPreview={isPreview} template={template} t={t}>
-        <div
-          ref={posterRef}
-          style={
-            isPreview
-              ? {
-                  width: template.layoutWidth,
-                  height: template.layoutHeight,
-                  fontSize: `${String(template.posterFontPx)}px`,
-                }
-              : undefined
-          }
-          className={`flex flex-col gap-2 ${
-            isPreview ? 'rounded-kcp bg-surface p-3' : 'min-h-0 flex-1'
-          }`}
-        >
-          {isPreview ? (
-            <PosterHeader
-              planName={activePlan?.name ?? t('plan.untitled')}
-              term={
-                activePlan === null
-                  ? null
-                  : { year: activePlan.year, semester: activePlan.semester }
-              }
-              sections={sections}
-              locale={language}
-              t={t}
-            />
-          ) : null}
-          <div
-            className={`relative min-h-0 flex-1 ${
-              isPreview ? 'overflow-hidden' : 'overflow-auto kcp-scroll'
-            }`}
-          >
+      {isPreview ? (
+        <TemplateGallery poster={posterData} posterRef={posterRef} />
+      ) : (
+        <div className="flex min-h-0 flex-1 flex-col gap-2">
+          <div className="relative min-h-0 flex-1 overflow-auto kcp-scroll">
             <WeeklyGrid
               sections={scheduled}
-              window={isPreview ? smartWindow : window}
+              window={window}
               locale={language}
               t={t}
-              editable={viewMode === 'edit'}
+              editable
               onRemove={handleRemove}
               conflictIds={conflictIds}
               examConflictIds={examConflictIds}
@@ -286,52 +252,23 @@ export function PlannerPanel() {
               onOpenDetail={openDetail}
               onContextMenu={openContextMenu}
               detailOpen={detail !== null}
-              {...(isPreview
-                ? {
-                    days: smartDays,
-                    display: displayOptions,
-                    dayAccent: true,
-                    orientation: template.orientation,
-                    fontPx: template.posterFontPx,
-                  }
-                : {})}
             />
-            {sections.length === 0 ? (
-              <div className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 flex-col items-center gap-2 px-6 text-center">
-                <CalendarPlus
-                  size={28}
-                  strokeWidth={1.75}
-                  className="text-ink-soft"
-                  aria-hidden
-                />
-                <p className="text-sm font-medium text-ink">
-                  {t('grid.emptyTitle')}
-                </p>
-                <p className="text-sm text-ink-soft">{t('grid.emptyBody')}</p>
-              </div>
-            ) : null}
+            {sections.length === 0 ? <GridEmptyState t={t} /> : null}
           </div>
           {unscheduled.length > 0 ? (
             <UnscheduledShelf
               sections={unscheduled}
               locale={language}
               t={t}
-              onRemove={viewMode === 'edit' ? handleRemove : undefined}
+              onRemove={handleRemove}
               examConflictIds={examConflictIds}
-              {...(isPreview
-                ? {
-                    showSection: displayOptions.showSection,
-                    showEnglishName: displayOptions.showEnglishNames,
-                  }
-                : {})}
             />
           ) : null}
           {sections.length > 0 ? (
             <GridFooter sections={sections} t={t} />
           ) : null}
-          {isPreview ? <PosterWatermark t={t} /> : null}
         </div>
-      </PosterFrame>
+      )}
       {viewMode === 'edit' && detail !== null ? (
         <BlockDetailPopover
           teachTableId={detail.teachTableId}

@@ -72,10 +72,17 @@ describe('PreviewToolbar', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows the export template picker', () => {
+  it('carries no template dropdown, since the picker is now the preview gallery', () => {
     renderToolbar();
     expect(
-      screen.getByRole('combobox', { name: 'แม่แบบ' }),
+      screen.queryByRole('combobox', { name: 'แม่แบบ' }),
+    ).not.toBeInTheDocument();
+    // The display options and the sharing actions remain in the toolbar.
+    expect(
+      screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' }),
     ).toBeInTheDocument();
   });
 

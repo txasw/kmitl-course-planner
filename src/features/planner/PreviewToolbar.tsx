@@ -14,15 +14,10 @@ import type { DisplayOptions } from '@/lib/planner/displayOptions';
 import { formatPlanText } from '@/lib/export/planText';
 import { downloadBlob } from '@/lib/utils/download';
 import { planExportBaseName } from '@/lib/planner/exportName';
-import {
-  EXPORT_TEMPLATES,
-  type ExportTemplate,
-} from '@/lib/planner/exportTemplates';
+import type { ExportTemplate } from '@/lib/planner/exportTemplates';
 import { useActivePlan } from '@/features/plans/planStore';
-import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { toastStore } from '@/features/shell/toastStore';
-import { Combobox } from '@/features/search/Combobox';
 import { capturePng } from './capture';
 import { DisplayOptionsPopover } from './DisplayOptionsPopover';
 import type { PlacedSection } from './placedSection';
@@ -118,22 +113,6 @@ export function PreviewToolbar({
       aria-label={t('preview.toolbar')}
       className="flex shrink-0 flex-wrap items-end gap-2"
     >
-      <div className="w-44">
-        <Combobox
-          label={t('preview.template.label')}
-          value={template.slug}
-          placeholder={t('search.selectPlaceholder')}
-          disabled={false}
-          searchable={false}
-          options={EXPORT_TEMPLATES.map((option) => ({
-            value: option.slug,
-            label: t(option.labelKey),
-          }))}
-          onChange={(slug) => {
-            uiStore.getState().setSelectedTemplate(slug);
-          }}
-        />
-      </div>
       <DisplayOptionsPopover />
       {canCopyImage() ? (
         <button type="button" onClick={handleCopyImage} className={BUTTON}>
