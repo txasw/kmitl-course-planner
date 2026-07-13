@@ -245,12 +245,16 @@ function EventBlockComponent({
           className="flex min-h-0 flex-1 flex-col overflow-hidden"
         >
           <span
-            className={`${level.nameLines === 2 ? 'line-clamp-2' : 'line-clamp-1'} shrink-0 pr-6 font-semibold [overflow-wrap:anywhere]`}
+            lang={locale}
+            className={`${level.nameLines === 2 ? 'line-clamp-2' : 'line-clamp-1'} shrink-0 pr-6 font-semibold break-words hyphens-auto`}
           >
             {name}
           </span>
           {level.showEnglish ? (
-            <span className="line-clamp-1 shrink-0 font-normal text-ink-soft [overflow-wrap:anywhere]">
+            <span
+              lang="en"
+              className="line-clamp-1 shrink-0 font-normal break-words text-ink-soft hyphens-auto"
+            >
               {section.nameEn}
             </span>
           ) : null}
