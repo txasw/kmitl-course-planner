@@ -456,6 +456,7 @@ export function WeeklyGrid({
             showRoom={showRoom}
             showSection={showSection}
             showEnglishName={showEnglishName}
+            fitToBox={!editable}
           />
         );
       })}

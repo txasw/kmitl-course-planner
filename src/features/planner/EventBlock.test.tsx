@@ -83,6 +83,54 @@ describe('EventBlock', () => {
     expect(foot?.className).toContain('min-h-0');
   });
 
+  it('wraps a long name at any point so it ellipsizes rather than clipping a glyph', () => {
+    // A long unbreakable token in a narrow column must wrap and let the line clamp
+    // ellipsize, never clip mid character at the block edge (F2, ADR-0046).
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    const block = screen.getByLabelText(/90592033/);
+    expect(within(block).getByText('วิชาทดสอบ').className).toContain(
+      '[overflow-wrap:anywhere]',
+    );
+  });
+
+  it('gives block text Thai headroom only when fitting to the export box', () => {
+    // Edit mode keeps the tight line height; the export poster raises it so stacked Thai
+    // vowels and tone marks are never cropped (F3, ADR-0046).
+    const { rerender } = render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.getByLabelText(/90592033/).className).toContain(
+      'leading-tight',
+    );
+    rerender(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        fitToBox
+      />,
+    );
+    expect(screen.getByLabelText(/90592033/).className).toContain(
+      'leading-[1.5]',
+    );
+  });
+
   it('floats the section as a corner chip over quiet id and place metadata', () => {
     render(
       <EventBlock

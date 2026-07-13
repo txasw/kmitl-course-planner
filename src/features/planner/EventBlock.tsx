@@ -70,6 +70,10 @@ interface EventBlockProps {
   showSection?: boolean;
   /** Add the English name as a secondary line under a Thai primary name. */
   showEnglishName?: boolean;
+  /** Fit the block content to its box by measurement, dropping whole low priority fields
+   * rather than clipping a line mid glyph. On only for the read only preview and export
+   * poster; edit mode leaves it off and keeps its tighter line height (ADR-0046). */
+  fitToBox?: boolean;
 }
 
 function EventBlockComponent({
@@ -93,6 +97,7 @@ function EventBlockComponent({
   showRoom = true,
   showSection = true,
   showEnglishName = false,
+  fitToBox = false,
 }: EventBlockProps) {
   const name = locale === 'th' ? section.nameTh : section.nameEn;
   // The English name is guaranteed visible when the option is on: it is the primary
@@ -166,7 +171,7 @@ function EventBlockComponent({
             : undefined
         }
         onMouseLeave={onHoverLeave}
-        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-kcp py-1.5 pr-2 pl-2.5 text-[1em] leading-tight text-ink outline-none ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'cursor-grab touch-none' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''} ${interactive ? 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary' : ''}`}
+        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-kcp py-1.5 pr-2 pl-2.5 text-[1em] ${fitToBox ? 'leading-[1.5]' : 'leading-tight'} text-ink outline-none ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'cursor-grab touch-none' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''} ${interactive ? 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary' : ''}`}
         style={{ backgroundColor: hashTint(section.subjectId) }}
         {...dragListeners}
       >
@@ -213,9 +218,11 @@ function EventBlockComponent({
           />
           {time}
         </span>
-        <span className="line-clamp-2 shrink-0 font-semibold">{name}</span>
+        <span className="line-clamp-2 shrink-0 font-semibold [overflow-wrap:anywhere]">
+          {name}
+        </span>
         {englishSecondary ? (
-          <span className="line-clamp-1 shrink-0 font-normal text-ink-soft">
+          <span className="line-clamp-1 shrink-0 font-normal text-ink-soft [overflow-wrap:anywhere]">
             {section.nameEn}
           </span>
         ) : null}
