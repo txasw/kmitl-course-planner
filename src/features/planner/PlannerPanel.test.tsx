@@ -91,7 +91,8 @@ describe('PlannerPanel', () => {
       }),
     ]);
     renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: 'รายละเอียด' }));
+    // The block itself opens the pinned popover on click; there is no info affordance.
+    fireEvent.click(screen.getByRole('button', { name: /90000001/ }));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
 
     act(() => {

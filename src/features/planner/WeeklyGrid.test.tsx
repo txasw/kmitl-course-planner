@@ -1,13 +1,21 @@
-import { describe, it, expect, afterEach } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+import {
+  render,
+  screen,
+  cleanup,
+  act,
+  fireEvent,
+} from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import { DEFAULT_WINDOW } from '@/lib/planner/grid';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import {
   makeCourse,
   makeMeeting,
+  makePlanEntry,
   makeSection,
 } from '../../../tests/support/domain-builders';
+import { planStore } from '@/features/plans/planStore';
 import { dragStore } from './dragStore';
 import { WeeklyGrid } from './WeeklyGrid';
 import type { PlacedSection } from './placedSection';
@@ -38,6 +46,16 @@ function makePlaced(overrides: Partial<PlacedSection> = {}): PlacedSection {
   };
 }
 
+// The grid item that carries the grid coordinates is the positioning wrapper; the labeled
+// block button sits inside it, so read placement from the wrapper.
+function blockItem(): HTMLElement {
+  const wrapper = screen.getByLabelText(/90592033/).parentElement;
+  if (!(wrapper instanceof HTMLElement)) {
+    throw new Error('expected a grid item wrapper');
+  }
+  return wrapper;
+}
+
 afterEach(() => {
   cleanup();
   dragStore.getState().clearActive();
@@ -45,6 +63,9 @@ afterEach(() => {
   dragStore.getState().clearHover();
   dragStore.getState().clearCourse();
   dragStore.getState().setSwapContext(null);
+  act(() => {
+    planStore.setState({ entries: [] });
+  });
 });
 
 describe('WeeklyGrid', () => {
@@ -57,9 +78,9 @@ describe('WeeklyGrid', () => {
         t={t}
       />,
     );
-    const block = screen.getByLabelText(/90592033/);
-    expect(block.style.gridColumn).toBe('10 / 22');
-    expect(block.style.gridRow).toBe('3');
+    const item = blockItem();
+    expect(item.style.gridColumn).toBe('10 / 22');
+    expect(item.style.gridRow).toBe('3');
   });
 
   it('transposes the same meeting to column 3, rows 10 / 22 in portrait', () => {
@@ -74,9 +95,9 @@ describe('WeeklyGrid', () => {
         orientation="portrait"
       />,
     );
-    const block = screen.getByLabelText(/90592033/);
-    expect(block.style.gridColumn).toBe('3');
-    expect(block.style.gridRow).toBe('10 / 22');
+    const item = blockItem();
+    expect(item.style.gridColumn).toBe('3');
+    expect(item.style.gridRow).toBe('10 / 22');
   });
 
   it('scales the grid font size from the fontPx prop', () => {
@@ -121,7 +142,7 @@ describe('WeeklyGrid', () => {
     expect(screen.queryByLabelText('วันอาทิตย์')).not.toBeInTheDocument();
     expect(screen.getByLabelText('วันศุกร์')).toBeInTheDocument();
     // Friday is the fifth row in the run, so the block lands in grid row 2 + 4.
-    expect(screen.getByLabelText(/90592033/).style.gridRow).toBe('6');
+    expect(blockItem().style.gridRow).toBe('6');
   });
 
   it('emits blocks in day then time order regardless of input order', () => {
@@ -396,5 +417,48 @@ describe('WeeklyGrid', () => {
       />,
     );
     expect(document.querySelector('[data-swap-target]')).not.toBeNull();
+  });
+
+  it('opens a hover card on a block but never while a detail popover is pinned', () => {
+    vi.useFakeTimers();
+    try {
+      // The hover card reads the plan entry snapshot by teachTableId, so seed one.
+      act(() => {
+        planStore.setState({ entries: [makePlanEntry()] });
+      });
+      const props = {
+        sections: [makePlaced()],
+        window: DEFAULT_WINDOW,
+        locale: 'th' as const,
+        t,
+        editable: true,
+        onOpenDetail: () => {
+          /* no op: the test drives detailOpen directly */
+        },
+      };
+      const { rerender } = render(<WeeklyGrid {...props} detailOpen={false} />);
+      const block = screen.getByRole('button', { name: /90592033/ });
+
+      // With no popover pinned, hovering opens the read only card after the delay.
+      fireEvent.mouseEnter(block);
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      expect(screen.getByRole('tooltip')).toBeInTheDocument();
+
+      // Pinning a popover drops the shown card at once.
+      rerender(<WeeklyGrid {...props} detailOpen />);
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+
+      // Hovering again while pinned never brings it back, so the two detail surfaces
+      // never show together.
+      fireEvent.mouseEnter(block);
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

@@ -7,14 +7,22 @@
 // lower priority field remains: the time and at least one clamped line of the name are
 // pinned (shrink-0), and the foot, the subject id, the chip, and the place, is the only
 // part that yields, since the id is recoverable from the text export and the chip
-// carries the section (ADR-0040). In edit mode the block is a drag source (the
-// ref and listeners come from the draggable wrapper so this stays free of the drag
-// library) and carries a focusable remove control, which keeps on grid removal
-// reachable by keyboard.
+// carries the section (ADR-0040). In edit mode the block is a drag source (the ref and
+// listeners come from the draggable wrapper so this stays free of the drag library) and
+// is itself the button that opens the pinned detail popover on click or Enter and Space,
+// the keyboard path to details and actions; the hover card shows the same detail on hover
+// (ADR-0044), so the block carries no separate info affordance. The only chrome control is
+// the quiet remove button, kept a sibling of the interactive block rather than nested
+// inside it so no interactive control nests in another; a positioning wrapper holds both.
 
-import { memo, type CSSProperties, type MouseEvent } from 'react';
+import {
+  memo,
+  type CSSProperties,
+  type KeyboardEvent,
+  type MouseEvent,
+} from 'react';
 import type { DraggableSyntheticListeners } from '@dnd-kit/core';
-import { Clock, Info, X } from 'lucide-react';
+import { Clock, X } from 'lucide-react';
 import type { Meeting } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { hashColor, hashTint } from '@/lib/utils/hash-color';
@@ -47,7 +55,8 @@ interface EventBlockProps {
    * a fresh per block closure, which keeps this memoized block from re-rendering. */
   onRemove?: (teachTableId: string) => void;
   removeLabel?: string;
-  /** Open the block detail popover anchored to this block, edit mode only. */
+  /** Open the block detail popover anchored to this block, edit mode only. When set the
+   * block is a button: a click or Enter or Space opens the pinned popover. */
   onOpenDetail?: (anchor: HTMLElement) => void;
   /** Open the block context menu at the pointer on a right click, edit mode only. */
   onContextMenu?: (event: MouseEvent<HTMLElement>) => void;
@@ -112,120 +121,122 @@ function EventBlockComponent({
   const label = `${section.subjectId} ${name} ${t('section.code')} ${section.section} ${t(dayFullLabelKey(meeting.day))} ${time}${placeText}${
     badgeText === '' ? '' : ` ${badgeText}`
   }`;
+  // When onOpenDetail is set the block itself is the button that opens the pinned popover,
+  // so a click or Enter or Space anchors it to this block. A drag past the activation
+  // distance suppresses the click, so this fires only on a real click, not the tail of a
+  // drag. In preview and export the handler is absent and the block stays inert.
+  const interactive = onOpenDetail !== undefined;
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onOpenDetail?.(event.currentTarget);
+    }
+  };
 
+  // A positioning wrapper carries the grid coordinates and the hover group. It holds the
+  // interactive block and, as a sibling rather than a descendant, the remove button, so no
+  // interactive control nests inside another (axe nested-interactive).
   return (
     <div
-      ref={dragRef}
-      data-teach-table-id={section.teachTableId}
-      data-verify={badge ?? undefined}
-      aria-label={label}
-      onContextMenu={onContextMenu}
-      onMouseEnter={
-        onHoverEnter !== undefined
-          ? (event) => {
-              onHoverEnter(event.currentTarget);
-            }
-          : undefined
-      }
-      onMouseLeave={onHoverLeave}
-      className={`group/block kcp-settle relative m-px flex min-w-0 flex-col overflow-hidden rounded-kcp py-1.5 pr-2 pl-2.5 text-[1em] leading-tight text-ink ${pulsing ? 'kcp-pulse' : ''} ${dimmed ? 'opacity-40' : ''} ${dragListeners ? 'cursor-grab touch-none' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''}`}
-      style={{ ...style, backgroundColor: hashTint(section.subjectId) }}
-      {...dragListeners}
+      className={`group/block relative m-px flex min-w-0 ${dimmed ? 'opacity-40' : ''}`}
+      style={style}
     >
-      {/* The solid subject color as a left bar carries the identity; the fill is a soft
-          tint of it under ink text. */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-y-0 left-0 w-1"
-        style={{ backgroundColor: hashColor(section.subjectId) }}
-      />
-      {badge === 'danger' ? (
+      <div
+        ref={dragRef}
+        data-teach-table-id={section.teachTableId}
+        data-verify={badge ?? undefined}
+        aria-label={label}
+        role={interactive ? 'button' : undefined}
+        tabIndex={interactive ? 0 : undefined}
+        onClick={
+          interactive
+            ? (event) => {
+                // onOpenDetail is narrowed non-nullish by the interactive alias here.
+                onOpenDetail(event.currentTarget);
+              }
+            : undefined
+        }
+        onKeyDown={interactive ? handleKeyDown : undefined}
+        onContextMenu={onContextMenu}
+        onMouseEnter={
+          onHoverEnter !== undefined
+            ? (event) => {
+                onHoverEnter(event.currentTarget);
+              }
+            : undefined
+        }
+        onMouseLeave={onHoverLeave}
+        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-kcp py-1.5 pr-2 pl-2.5 text-[1em] leading-tight text-ink outline-none ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'cursor-grab touch-none' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''} ${interactive ? 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary' : ''}`}
+        style={{ backgroundColor: hashTint(section.subjectId) }}
+        {...dragListeners}
+      >
+        {/* The solid subject color as a left bar carries the identity; the fill is a soft
+            tint of it under ink text. */}
         <span
           aria-hidden
-          className="kcp-hatch pointer-events-none absolute inset-0 rounded-kcp"
+          className="pointer-events-none absolute inset-y-0 left-0 w-1"
+          style={{ backgroundColor: hashColor(section.subjectId) }}
         />
-      ) : null}
-      {badge !== null ? (
-        <span
-          aria-hidden
-          className={`absolute left-0.5 top-0.5 h-2 w-2 rounded-full ring-1 ring-white ${
-            badge === 'danger' ? 'bg-danger' : 'bg-warn'
-          }`}
-        />
-      ) : null}
-      {/* Section as a small floating chip in the top right corner. It steps aside on hover
-          in edit mode, where the info and remove controls take that corner. */}
-      {showSection ? (
-        <span className="pointer-events-none absolute top-1 right-1 rounded bg-ink/10 px-1 text-[0.85em] font-medium text-ink group-hover/block:opacity-0">
-          {section.section}
-        </span>
-      ) : null}
-      {/* Emphasis order time, name, meta: the time range is the colored bold anchor with a
-          clock glyph, the subject name is the primary full weight line clamped to two
-          lines, and the subject id and place read as quiet metadata at the foot. The time
-          and the name are pinned with shrink-0 so a short block clips the foot first rather
-          than squeezing the name out; the name keeps at least one clamped line. */}
-      <span className="flex shrink-0 items-center gap-1 pr-6 font-semibold">
-        <Clock
-          size="0.85em"
-          strokeWidth={2.5}
-          aria-hidden
-          className="shrink-0"
-          style={{ color: hashColor(section.subjectId) }}
-        />
-        {time}
-      </span>
-      <span className="line-clamp-2 shrink-0 font-semibold">{name}</span>
-      {englishSecondary ? (
-        <span className="line-clamp-1 shrink-0 font-normal text-ink-soft">
-          {section.nameEn}
-        </span>
-      ) : null}
-      <div className="mt-auto min-h-0 pt-0.5 text-ink-soft">
-        <span className="block truncate">{section.subjectId}</span>
-        {showRoom && place !== '' ? (
-          <span className="block truncate">{place}</span>
+        {badge === 'danger' ? (
+          <span
+            aria-hidden
+            className="kcp-hatch pointer-events-none absolute inset-0 rounded-kcp"
+          />
         ) : null}
-      </div>
-      {onOpenDetail !== undefined || onRemove !== undefined ? (
-        <div className="absolute right-0.5 top-0.5 flex gap-0.5">
-          {onOpenDetail !== undefined ? (
-            <button
-              type="button"
-              aria-label={t('block.details')}
-              onPointerDown={(event) => {
-                event.stopPropagation();
-              }}
-              onClick={(event) => {
-                const block = event.currentTarget.closest(
-                  '[data-teach-table-id]',
-                );
-                if (block instanceof HTMLElement) {
-                  onOpenDetail(block);
-                }
-              }}
-              className="rounded bg-ink/5 p-0.5 text-ink-soft opacity-0 outline-none group-hover/block:opacity-100 hover:bg-ink/10 hover:text-ink focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary"
-            >
-              <Info size={12} aria-hidden />
-            </button>
-          ) : null}
-          {onRemove !== undefined ? (
-            <button
-              type="button"
-              aria-label={removeLabel}
-              onPointerDown={(event) => {
-                // Keep a press on the control from arming a drag on the block behind it.
-                event.stopPropagation();
-              }}
-              onClick={() => {
-                onRemove(section.teachTableId);
-              }}
-              className="rounded bg-ink/5 p-0.5 text-ink-soft opacity-0 outline-none group-hover/block:opacity-100 hover:bg-ink/10 hover:text-ink focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary"
-            >
-              <X size={12} aria-hidden />
-            </button>
+        {badge !== null ? (
+          <span
+            aria-hidden
+            className={`absolute left-0.5 top-0.5 h-2 w-2 rounded-full ring-1 ring-white ${
+              badge === 'danger' ? 'bg-danger' : 'bg-warn'
+            }`}
+          />
+        ) : null}
+        {/* Section as a small floating chip in the top right corner. It steps aside on hover
+            and focus in edit mode, where the remove control takes that corner. */}
+        {showSection ? (
+          <span className="pointer-events-none absolute top-1 right-1 rounded bg-ink/10 px-1 text-[0.85em] font-medium text-ink group-hover/block:opacity-0 group-focus-within/block:opacity-0">
+            {section.section}
+          </span>
+        ) : null}
+        {/* Emphasis order time, name, meta: the time range is the colored bold anchor with a
+            clock glyph, the subject name is the primary full weight line clamped to two
+            lines, and the subject id and place read as quiet metadata at the foot. The time
+            and the name are pinned with shrink-0 so a short block clips the foot first rather
+            than squeezing the name out; the name keeps at least one clamped line. */}
+        <span className="flex shrink-0 items-center gap-1 pr-6 font-semibold">
+          <Clock
+            size="0.85em"
+            strokeWidth={2.5}
+            aria-hidden
+            className="shrink-0"
+            style={{ color: hashColor(section.subjectId) }}
+          />
+          {time}
+        </span>
+        <span className="line-clamp-2 shrink-0 font-semibold">{name}</span>
+        {englishSecondary ? (
+          <span className="line-clamp-1 shrink-0 font-normal text-ink-soft">
+            {section.nameEn}
+          </span>
+        ) : null}
+        <div className="mt-auto min-h-0 pt-0.5 text-ink-soft">
+          <span className="block truncate">{section.subjectId}</span>
+          {showRoom && place !== '' ? (
+            <span className="block truncate">{place}</span>
           ) : null}
         </div>
+      </div>
+      {onRemove !== undefined ? (
+        <button
+          type="button"
+          aria-label={removeLabel}
+          onClick={() => {
+            onRemove(section.teachTableId);
+          }}
+          className="absolute top-0.5 right-0.5 z-10 rounded bg-ink/5 p-0.5 text-ink-soft opacity-0 outline-none group-hover/block:opacity-100 group-focus-within/block:opacity-100 hover:bg-ink/10 hover:text-ink focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary"
+        >
+          <X size={12} aria-hidden />
+        </button>
       ) : null}
     </div>
   );

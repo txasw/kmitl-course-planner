@@ -1,11 +1,12 @@
 // A hover detail card for a placed block. After a short delay the grid opens this card on
-// the hovered block, so a look at the full detail set no longer needs a click on the info
-// affordance; the click and keyboard paths to the block detail popover stay for pinning and
-// actions. It reads the same plan entry snapshot the popover reads, so no new data is
-// plumbed. It is read only: no actions, dismissed on leave by the grid, positioned to the
-// side so it never sits under the pointer. It shares a family look with the drag conflict
-// card but carries a neutral info accent, a left border in the brand, so a placed block and
-// a blocked drop read differently at a glance.
+// the hovered block, so a look at the full detail set needs no click; a click or Enter or
+// Space on the block still opens the pinned detail popover for actions, and the card never
+// spawns while that popover is pinned (ADR-0044). It reads the same plan entry snapshot the
+// popover reads, so no new data is plumbed. It is read only: no actions, dismissed on leave
+// by the grid, positioned to the side so it never sits under the pointer or over the block's
+// remove control. It shares a family look with the drag conflict card but carries a neutral
+// info accent, a left border in the brand, so a placed block and a blocked drop read
+// differently at a glance.
 
 import { useCallback, useEffect } from 'react';
 import {

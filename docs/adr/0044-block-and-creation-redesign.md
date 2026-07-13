@@ -17,7 +17,7 @@ icon row.
 Block redesign. The time range is the colored bold anchor with a small clock glyph in the
 subject colour, the subject name is the primary full weight line, the subject id and the
 place read as quiet metadata at the foot, and the section is a small floating chip in the
-top right corner that steps aside on hover so the info and remove controls take that corner.
+top right corner that steps aside on hover and focus so the remove control takes that corner.
 The soft tint fill and the solid left bar from ADR-0035 and the density rule from the first
 wave still govern, so the time and the name are pinned and never clip. The time text stays
 ink for AA on the tint; the colour is carried by the clock glyph and the left bar, which
@@ -56,3 +56,19 @@ A block leads with when and reads its name as the primary content, a placed bloc
 its full detail on hover without a click, and the plan menu leads with create while its
 per-plan actions are one hover or focus away on the row they act on. The block colour system
 and the density rule are unchanged, which is why this amends rather than replaces ADR-0040.
+
+## Amendment, block chrome simplification
+
+The corrected build showed the hover card made the block's info affordance redundant: two
+paths to the same detail sat on the block at once. The info control leaves the block chrome.
+The block itself becomes the button: a click or Enter or Space on the focused block opens the
+pinned detail popover, which stays the keyboard path to details and actions, and the context
+menu keeps its two entries. The only chrome control that remains is the quiet remove button.
+
+Two rules follow. The hover card never spawns while a popover is pinned, so the two detail
+surfaces never show at once; the grid drops the card and any pending hover the moment a
+popover pins. And to keep the block itself a button without nesting one interactive control
+in another, which axe flags and screen readers mishandle, the remove button is a sibling of
+the block button rather than a descendant: a thin positioning wrapper carries the grid
+coordinates and the hover group and holds both. The hover card already sits to the side of
+the block with an offset, so it never covers the remove control.

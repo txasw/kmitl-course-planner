@@ -167,6 +167,9 @@ interface WeeklyGridProps {
   onOpenDetail?: (anchor: HTMLElement) => void;
   /** Open the block context menu at the pointer on a right click, edit mode only. */
   onContextMenu?: (event: MouseEvent<HTMLElement>) => void;
+  /** Whether a block detail popover is pinned open. The hover card never spawns while a
+   * popover is pinned, so the two detail surfaces never show at once. */
+  detailOpen?: boolean;
   /** The day tracks to render, in order. Defaults to the full week; preview passes a
    * trimmed contiguous run. */
   days?: readonly DayOfWeek[];
@@ -194,6 +197,7 @@ export function WeeklyGrid({
   examOverlaps,
   onOpenDetail,
   onContextMenu,
+  detailOpen = false,
   days = WEEK_DAYS,
   display,
   dayAccent = false,
@@ -256,6 +260,18 @@ export function WeeklyGrid({
     }
     setHoverDetail(null);
   }, []);
+  // When a detail popover pins or unpins, drop any shown hover card so it never lingers next
+  // to the pinned popover and none flashes as the popover closes. The render gate below keeps
+  // a pending hover from surfacing while pinned, and a pending timer is cleared on mouse leave
+  // or replaced by the next hover, so only the shown card needs clearing here. This is the
+  // render time adjust on change pattern, not an effect.
+  const [prevDetailOpen, setPrevDetailOpen] = useState(detailOpen);
+  if (detailOpen !== prevDetailOpen) {
+    setPrevDetailOpen(detailOpen);
+    if (hoverDetail !== null) {
+      setHoverDetail(null);
+    }
+  }
   const swapBlockers =
     swapContext === null ? new Set<string>() : new Set(swapContext.blockers);
   // Candidate slots come from a course drag or a block move, whichever is active.
@@ -514,7 +530,7 @@ export function WeeklyGrid({
             )
         : null}
 
-      {editable && active === null && hoverDetail !== null ? (
+      {editable && active === null && !detailOpen && hoverDetail !== null ? (
         <BlockHoverCard
           teachTableId={hoverDetail.teachTableId}
           anchor={hoverDetail.anchor}
