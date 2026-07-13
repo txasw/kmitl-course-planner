@@ -257,6 +257,12 @@ function railKind(
   return hasAdd ? 'add' : 'none';
 }
 
+// The add rail is a quiet affordance, not the primary path: drag is primary, add is
+// secondary. It rests as a soft tinted column with the accent icon and fills to solid
+// only on hover and focus. Its own bordered column (w-8, shrink-0, border-l) means it
+// never overlaps the row body, which stays min-w-0 and clips rather than spilling into
+// the rail at any card width. The accent icon on the soft surface and white on the
+// solid hover fill both clear the AA text bar (token-contrast.test.ts).
 function AddRail({ label, onAdd }: { label: string; onAdd: () => void }) {
   return (
     <Tooltip label={label}>
@@ -270,7 +276,7 @@ function AddRail({ label, onAdd }: { label: string; onAdd: () => void }) {
             event.stopPropagation();
           }}
           onClick={onAdd}
-          className={`flex w-7 shrink-0 items-center justify-center bg-primary-strong text-white hover:bg-primary-hover ${FOCUS_OUTLINE}`}
+          className={`flex w-8 shrink-0 items-center justify-center border-l border-border bg-primary-soft text-primary-strong hover:bg-primary-strong hover:text-white focus-visible:bg-primary-strong focus-visible:text-white ${FOCUS_OUTLINE}`}
         >
           <Plus size={16} strokeWidth={2.5} aria-hidden />
         </button>
@@ -285,7 +291,7 @@ function DisabledRail({ label }: { label: string }) {
       type="button"
       disabled
       aria-label={label}
-      className="flex w-7 shrink-0 items-center justify-center bg-surface-alt text-ink-soft"
+      className="flex w-8 shrink-0 items-center justify-center border-l border-border bg-surface-alt text-ink-soft"
     >
       <Plus size={16} aria-hidden className="opacity-40" />
     </button>
