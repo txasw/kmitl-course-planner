@@ -219,6 +219,7 @@ export function WeeklyGrid({
   const showRoom = display?.showRoom ?? true;
   const showSection = display?.showSection ?? true;
   const showEnglishName = display?.showEnglishNames ?? false;
+  const showSubjectId = display?.showSubjectId ?? false;
   const isPortrait = orientation === 'portrait';
 
   const active = useStore(dragStore, (state) => state.active);
@@ -456,6 +457,7 @@ export function WeeklyGrid({
             showRoom={showRoom}
             showSection={showSection}
             showEnglishName={showEnglishName}
+            showSubjectId={showSubjectId}
             fitToBox={!editable}
             fitKey={`${String(fontPx)}|${orientation}|${String(window.startMin)}|${String(window.endMin)}|${String(days.length)}|${String(style.gridRow ?? '')}|${String(style.gridColumn ?? '')}`}
           />

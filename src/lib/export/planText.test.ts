@@ -57,12 +57,13 @@ const sections: PlanTextSection[] = [scheduled, missing, online];
 
 describe('formatPlanText', () => {
   it('formats a Thai plan with the shelf and a missing marker', () => {
+    // The subject id is turned on here to pin the full line format including the id.
     const text = formatPlanText({
       planName: 'ตาราง 1/2570',
       year: '2570',
       semester: '1',
       sections,
-      options: DEFAULT_DISPLAY_OPTIONS,
+      options: { ...DEFAULT_DISPLAY_OPTIONS, showSubjectId: true },
       locale: 'th',
       t: createTranslator('th'),
     });
@@ -92,6 +93,7 @@ describe('formatPlanText', () => {
         showRoom: false,
         showSection: false,
         showEnglishNames: false,
+        showSubjectId: true,
       },
       locale: 'en',
       t: createTranslator('en'),
@@ -105,5 +107,34 @@ describe('formatPlanText', () => {
         'Course Planner for KMITL',
       ].join('\n'),
     );
+  });
+
+  it('drops the subject id from every line when showSubjectId is off', () => {
+    // The default has the id off, so the meeting lines and the shelf lines lead with the
+    // name and carry no numeric id.
+    const text = formatPlanText({
+      planName: 'ตาราง 1/2570',
+      year: '2570',
+      semester: '1',
+      sections,
+      options: DEFAULT_DISPLAY_OPTIONS,
+      locale: 'th',
+      t: createTranslator('th'),
+    });
+    expect(text).toBe(
+      [
+        'ตาราง 1/2570  ภาคการศึกษา 1/2570  9 หน่วยกิต',
+        '',
+        "จ 09:00-11:00 สังคมไทยในวันนี้ TODAY'S THAI SOCIETY (901) A101",
+        'พ 13:00-15:00 ปรัชญาเบื้องต้น Introduction to Philosophy (902) B202 (ไม่พบ)',
+        '',
+        'รายวิชาที่ไม่มีคาบเรียน',
+        'วิชาออนไลน์ Online subject (1)',
+        '',
+        'ตัววางแผนตารางเรียน สจล.',
+      ].join('\n'),
+    );
+    expect(text).not.toContain('90592008');
+    expect(text).not.toContain('01006029');
   });
 });

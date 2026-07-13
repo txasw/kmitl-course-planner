@@ -105,6 +105,7 @@ function PreviewPosterComponent({
           t={t}
           showSection={displayOptions.showSection}
           showEnglishName={displayOptions.showEnglishNames}
+          showSubjectId={displayOptions.showSubjectId}
           examConflictIds={examConflictIds}
         />
       ) : null}
