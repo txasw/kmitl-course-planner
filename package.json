@@ -2,7 +2,7 @@
   "name": "kmitl-course-planner",
   "description": "Weekly timetable planner for KMITL pre registration course selection.",
   "private": true,
-  "version": "1.3.0",
+  "version": "1.3.1",
   "type": "module",
   "license": "MIT",
   "packageManager": "pnpm@10.12.1",
