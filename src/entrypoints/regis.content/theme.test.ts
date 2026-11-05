@@ -42,7 +42,6 @@ const LAYER_TOKENS = {
   toast: 70,
   dragoverlay: 80,
   tooltip: 90,
-  host: 2147483647,
 } as const;
 
 const DURATION_TOKENS = { fast: 150, base: 200, slow: 300 } as const;
@@ -77,6 +76,11 @@ describe('shadow stylesheet tokens', () => {
     );
     expect(declared).toHaveLength(Object.keys(LAYER_TOKENS).length);
     expect(declared).toEqual([...declared].sort((a, b) => a - b));
+  });
+
+  it('keeps the host layer a literal z-index the minifier cannot round', () => {
+    expect(css).toMatch(/@utility z-host \{\s*z-index: 2147483647;\s*\}/);
+    expect(css).not.toMatch(/--[a-z-]+: 2147483647/);
   });
 
   it('declares the motion durations and maps them into the duration namespace', () => {

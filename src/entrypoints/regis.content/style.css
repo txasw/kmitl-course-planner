@@ -47,7 +47,6 @@
   --z-index-toast: var(--kcp-z-toast);
   --z-index-dragoverlay: var(--kcp-z-dragoverlay);
   --z-index-tooltip: var(--kcp-z-tooltip);
-  --z-index-host: var(--kcp-z-host);
   --transition-duration-fast: var(--kcp-duration-fast);
   --transition-duration-base: var(--kcp-duration-base);
   --transition-duration-slow: var(--kcp-duration-slow);
@@ -99,11 +98,6 @@
   --kcp-z-toast: 70;
   --kcp-z-dragoverlay: 80;
   --kcp-z-tooltip: 90;
-  /* The surfaces mounted directly in the shadow root (launcher, overlay, page
-     toasts, diagnostics) sit in the host document's stacking order, so they take
-     the largest z-index the page allows. Among themselves they share it and
-     stack by mount order, which places the launcher below the overlay. */
-  --kcp-z-host: 2147483647;
 
   /* Motion durations. Every animation or transition that uses them keeps a
      prefers-reduced-motion variant that drops the motion. */
@@ -119,6 +113,17 @@
 
   color: var(--kcp-ink);
   font-family: var(--font-sans);
+}
+
+/* The surfaces mounted directly in the shadow root (launcher, overlay, page
+   toasts, diagnostics) sit in the host document's stacking order, so they take
+   the largest z-index the page allows. Among themselves they share it and stack
+   by mount order, which places the launcher below the overlay. The value is a
+   literal z-index rather than a --kcp-z-* token because the build minifier
+   rounds a number inside a custom property to six significant digits, which
+   would turn 2147483647 into 2147480000 and let a host page layer above it. */
+@utility z-host {
+  z-index: 2147483647;
 }
 
 /* Selected text inside the panel uses the brand soft wash with ink text, a pair
