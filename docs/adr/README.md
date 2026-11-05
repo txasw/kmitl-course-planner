@@ -54,3 +54,6 @@ a new record that supersedes the old one rather than editing history.
 45. [Template gallery: canvas orientation and the picker as preview](0045-template-gallery.md)
 46. [Measured block density and the export fit guard](0046-measured-block-density-and-fit-guard.md)
 47. [Positioned block hierarchy inverts](0047-positioned-block-hierarchy.md)
+48. [Responsive layout tiers and search in the catalog column](0048-responsive-layout-tiers-and-catalog-search.md)
+49. [Plan views and the phone timetable](0049-plan-views-and-phone-timetable.md)
+50. [Edit grid smart window and sticky axes](0050-edit-grid-smart-window-and-sticky-axes.md)
