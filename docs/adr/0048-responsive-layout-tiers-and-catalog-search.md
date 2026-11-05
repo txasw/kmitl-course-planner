@@ -132,3 +132,47 @@ day needs. The live regions are a closed, tested set, so later features add anno
 the existing owners rather than new nodes. The tier ships without a phone support claim, and the
 claim waits on live evidence rather than an assumption about the host page. Existing ADRs stay
 unchanged; the brief sections 6.1 and 6.9 are read through this record.
+
+## Amendment: the form folds at submit (2026-11-06)
+
+The owner reviewed the live build and found that a search press gave no sign it was accepted.
+On a 1280 by 720 laptop the curriculum form pushed the loading skeleton below the fold, and a
+repeated search answered from the ten minute cache changed nothing visible. The decision above
+collapsed the form once a user submit settled, which is the moment the student had already
+stopped trusting the press.
+
+The form now folds when a user submit is accepted, not when it settles. One store write marks
+the result as loading, records the query the bar describes, closes the form and stamps the
+submit time, before the first await, so the bar, the folded form and the loading state land in
+the same frame. Retry and refresh run as background queries that replace the result and leave
+the disclosure as the student set it. A blocked submit, such as a subject id under eight digits,
+changes nothing, and settling with data, an empty result or an error never changes the
+disclosure either.
+
+The bar is a fixed head of the column, outside the results scroller, not a sticky bar inside it.
+The column is the container header, the search head and then the results scroller. The bar names
+the tab and the term of the running search and carries a status slot that reads the busy text
+while the query runs and the course count once it settles; the query name, its scope, the data
+time and the rerun action join it in later steps. Its disclosure keeps one label and reports its
+state through aria-expanded. Because the bar sits outside the scroller, nothing covers a focused
+row, the drag autoscroll area stays equal to the list, and opening or closing the form never
+moves the list.
+
+A reopened form scrolls in its own region above a minimum of 12rem of results. This is a
+deliberate exception to the column scrolling as one: at 1280 by 720 the curriculum form is
+taller than the room left, and letting it push the results out of view would hide the list the
+student is refining. Before any user search there is no bar and no minimum, so the form takes
+the space it needs as before.
+
+An accepted submit moves focus to the bar, because the folded form turns inert, and the bar is a
+region rather than a button, so a repeated Enter starts nothing. Cancelling a slow search clears
+the bar, reopens the form and moves focus to its submit. For 500 ms after a user submit the
+results ignore pointer input, so the second click of a double click cannot land on a card or an
+add button that rose under the pointer.
+
+The fold animates the region's grid row over the base duration with a standard easing token, the
+form fades faster than it folds, and reduced motion removes every transition so the swap is
+instant. The results scroll offset is kept across a fold, an expand and a tier change, and a new
+user search starts the results from the top. Offsets are kept within one overlay session only:
+the overlay unmounts its body when it closes, so they reset on reopen, a gap against section 6.1
+that a later change can close by keeping the offset in the ui store.
