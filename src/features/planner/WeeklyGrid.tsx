@@ -39,9 +39,9 @@ function gridTemplate(
   editable: boolean,
 ): CSSProperties {
   const quarters = quarterCount(window);
-  // The leading axis track is a fixed size, not auto: the hour labels are absolutely
-  // positioned so they can center on their gridline, which means they add no flow height,
-  // so an auto track would collapse and hide them.
+  // The leading axis track is a fixed size, not auto: each hour label shifts half its size
+  // to center on its gridline, so the track sets the axis height and width rather than the
+  // labels, and the axis keeps one size across windows, locales, and templates.
   if (orientation === 'portrait') {
     return {
       gridTemplateColumns: `2.75rem repeat(${String(dayCount)}, minmax(0, 1fr))`,
