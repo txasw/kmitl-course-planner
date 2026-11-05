@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { loadFixture } from '../../../tests/support/fixtures';
-import { normalizeTeachTable } from './normalize';
+import { normalizeTeachTable, REMARK_MAX_LENGTH } from './normalize';
 import type { Course } from './types';
 import type { RawSectionRow } from './schemas';
 
@@ -484,6 +484,51 @@ describe('malformed rows and invalid input', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.kind).toBe('validation');
+    }
+  });
+});
+
+describe('rule and remark text', () => {
+  it('keeps the program qualifiers in the dual degree rules', () => {
+    const { courses } = normalizeFixture('teach-table.with-exams.capture.json');
+    const section = findSection(courses, '96642011', '101');
+    expect(section.rulesTh.split('\n')).toHaveLength(3);
+    expect(section.rulesTh).toContain('<สองปริญญา><หลักสูตรนานาชาติ> (นน.)');
+    expect(section.rulesEn).toContain(
+      '<Dual Degree> <International Program> (NNT)',
+    );
+  });
+
+  it('keeps the leading remark text and drops its markup', () => {
+    const { courses } = normalizeFixture('teach-table.with-exams.capture.json');
+    const { remark } = findSection(courses, '90641009', '942');
+    expect(remark.startsWith('วิชาบังคับภาษา: การจัดการสมาร์ตฟาร์ม')).toBe(
+      true,
+    );
+    expect(remark.endsWith('ปี2,\n(รายวิชาปิด/Course Closed)')).toBe(true);
+    expect(remark).not.toMatch(/[<>]/);
+  });
+
+  it('clamps a runaway remark to the maximum length', () => {
+    const result = normalizeTeachTable(
+      makeResponse([makeRow({ remark: 'ก'.repeat(REMARK_MAX_LENGTH + 50) })]),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const remark = result.value.courses[0]?.sections[0]?.remark ?? '';
+      expect(remark).toHaveLength(REMARK_MAX_LENGTH);
+      expect(remark.endsWith('...')).toBe(true);
+    }
+  });
+
+  it('keeps a remark at the maximum length unchanged', () => {
+    const exact = 'ก'.repeat(REMARK_MAX_LENGTH);
+    const result = normalizeTeachTable(
+      makeResponse([makeRow({ remark: exact })]),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.courses[0]?.sections[0]?.remark).toBe(exact);
     }
   });
 });
