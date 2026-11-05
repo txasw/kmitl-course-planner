@@ -311,5 +311,18 @@ export function createDragStore() {
   }));
 }
 
+/**
+ * Whether any drag is in flight: a section drag, a course drag, or a placed block move.
+ * Each kind holds its own field, so a guard that must hold for every drag reads this one
+ * selector rather than one field that covers a single kind.
+ */
+export function selectDragging(state: DragStore): boolean {
+  return (
+    state.active !== null ||
+    state.courseDrag !== null ||
+    state.blockMove !== null
+  );
+}
+
 /** The single drag store instance the drag context, grid, and strip read. */
 export const dragStore = createDragStore();
