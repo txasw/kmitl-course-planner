@@ -16,6 +16,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
   act(() => {
     uiStore.getState().close();
+    uiStore.getState().setCatalogVisible(true);
     uiStore.getState().setLanguage('th');
   });
 });
@@ -70,6 +71,19 @@ describe('Header', () => {
   it('drops the sheet toggle where the catalog column is docked', () => {
     installViewport(1024);
     render(<Header titleId="title" />);
+    expect(
+      screen.queryByRole('button', { name: 'รายวิชา' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('offers the toggle on a docked tier while the column is hidden', () => {
+    installViewport(1024);
+    act(() => {
+      uiStore.getState().setCatalogVisible(false);
+    });
+    render(<Header titleId="title" />);
+    fireEvent.click(screen.getByRole('button', { name: 'รายวิชา' }));
+    expect(uiStore.getState().catalogVisible).toBe(true);
     expect(
       screen.queryByRole('button', { name: 'รายวิชา' }),
     ).not.toBeInTheDocument();
