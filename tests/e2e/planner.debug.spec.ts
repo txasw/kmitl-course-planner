@@ -5,6 +5,7 @@ import type { Page } from '@playwright/test';
 // selector targets placed blocks only. The debug build mounts an open shadow root,
 // so Playwright pierces it to reach these nodes.
 const GRID_BLOCK = '[data-teach-table-id]';
+const GRID_NAME = 'ตารางเรียนรายสัปดาห์';
 
 // Run the owner 32 category search that the catalog specs use, so the catalog
 // renders the deduped courses with at least one open, addable section.
@@ -17,6 +18,87 @@ async function categorySearch(page: Page): Promise<void> {
     timeout: 15_000,
   });
 }
+
+interface GridScroll {
+  scrollWidth: number;
+  clientWidth: number;
+  gridWidth: number;
+}
+
+// The edit grid renders inside the planner scroller, its parent, so the scroller's widths
+// say whether the grid fits the column or scrolls.
+async function gridScroll(page: Page): Promise<GridScroll> {
+  return page.getByRole('group', { name: GRID_NAME }).evaluate((grid) => {
+    const scroller = grid.parentElement;
+    return {
+      scrollWidth: scroller?.scrollWidth ?? 0,
+      clientWidth: scroller?.clientWidth ?? 0,
+      gridWidth: grid.getBoundingClientRect().width,
+    };
+  });
+}
+
+for (const viewport of [
+  { width: 1280, height: 720 },
+  { width: 1366, height: 768 },
+]) {
+  test.describe(`at ${String(viewport.width)}x${String(viewport.height)}`, () => {
+    test.use({ viewport });
+
+    test('shows the working day plan with no horizontal scroll', async ({
+      context,
+    }) => {
+      const page = await openPlanner(context);
+      // The real owner 32 capture meets only on Friday, 08:00 to 16:00, inside the
+      // 08:00 to 18:00 working day.
+      await categorySearch(page);
+      await page
+        .getByRole('button', { name: /^เพิ่ม/ })
+        .first()
+        .click();
+      await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
+
+      const grid = page.getByRole('group', { name: GRID_NAME });
+      await expect(grid.getByText('08:00', { exact: true })).toHaveCount(1);
+      await expect(grid.getByText('17:00', { exact: true })).toHaveCount(1);
+      await expect(grid.getByText('07:00', { exact: true })).toHaveCount(0);
+      await expect(grid.getByText('18:00', { exact: true })).toHaveCount(0);
+      await expect(grid.getByLabel('วันเสาร์')).toHaveCount(0);
+      await expect(grid.getByLabel('วันอาทิตย์')).toHaveCount(0);
+
+      const scroll = await gridScroll(page);
+      expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth);
+    });
+  });
+}
+
+test.describe('at 1024x768', () => {
+  test.use({ viewport: { width: 1024, height: 768 } });
+
+  test('scrolls a broad result at a readable quarter instead of shrinking it', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    // The real capture with exam windows meets until 20:00 and on both weekend days, so
+    // the window widens to 08:00 to 20:00, 48 quarters, past the docked grid column.
+    await page.getByRole('button', { name: 'รหัสวิชา' }).click();
+    await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000700');
+    await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+    await expect(page.getByText('01006020').first()).toBeVisible({
+      timeout: 15_000,
+    });
+
+    const grid = page.getByRole('group', { name: GRID_NAME });
+    await expect(grid.getByText('19:00', { exact: true })).toHaveCount(1);
+    await expect(grid.getByLabel('วันเสาร์')).toHaveCount(1);
+    await expect(grid.getByLabel('วันอาทิตย์')).toHaveCount(1);
+
+    const scroll = await gridScroll(page);
+    expect(scroll.scrollWidth).toBeGreaterThan(scroll.clientWidth);
+    // 40 px of day labels plus 14 px for each of the 48 quarters.
+    expect(scroll.gridWidth).toBeGreaterThanOrEqual(40 + 14 * 48);
+  });
+});
 
 test('adds a section from its button, then removes it with undo', async ({
   context,
