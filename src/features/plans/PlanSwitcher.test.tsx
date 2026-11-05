@@ -132,6 +132,15 @@ describe('PlanSwitcher', () => {
     expect(plans[0]?.semester).toBe('2');
   });
 
+  it('draws the plan name field boundary with the form control token', () => {
+    render(<PlanSwitcher />);
+    openMenu();
+    fireEvent.click(screen.getByRole('button', { name: 'สร้างตาราง' }));
+    const field = screen.getByLabelText('ชื่อตาราง');
+    expect(field).toHaveClass('border-border-strong');
+    expect(field).not.toHaveClass('border-border');
+  });
+
   it('shows a prominent create, icon only per-row actions, and text import and export', () => {
     act(() => {
       planStore.getState().hydrate([

@@ -2,6 +2,7 @@
 // and save stays disabled while the name is blank.
 
 import { useEffect, useRef } from 'react';
+import { CONTROL_BOUNDARY } from '@/lib/ui/control';
 import { FOCUS_RING } from '@/lib/ui/focus';
 
 export interface NameFormProps {
@@ -47,7 +48,7 @@ export function NameForm({
               onSubmit();
             }
           }}
-          className={`rounded-kcp border border-border bg-surface px-2 py-1 text-ink ${FOCUS_RING}`}
+          className={`rounded-kcp border px-2 py-1 text-ink ${CONTROL_BOUNDARY} ${FOCUS_RING}`}
         />
       </label>
       <div className="flex justify-end gap-2">
