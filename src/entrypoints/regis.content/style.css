@@ -29,6 +29,12 @@
   --text-lg: 18px;
   --text-lg--line-height: 28px;
 
+  /* Two weights only, regular and semibold, so a third weight cannot reach the
+     screen through a utility. */
+  --font-weight-*: initial;
+  --font-weight-normal: 400;
+  --font-weight-semibold: 600;
+
   /* The --kcp-* tokens on :host are the single source of truth. Mapping them
      into Tailwind's color, radius, and shadow namespaces exposes first class
      utilities (bg-primary, text-ink, border-border, rounded-kcp, shadow-kcp)

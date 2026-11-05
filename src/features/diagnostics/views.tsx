@@ -15,6 +15,8 @@ import { searchStore } from '@/features/search/searchStore';
 export const DEBUG_CANARY = 'kcp-debug-canary';
 
 const CELL = 'border border-border px-1.5 py-1 text-left align-top';
+// A table heading defaults to the browser bold, a third weight, so it takes semibold.
+const HEAD_CELL = `${CELL} font-semibold`;
 
 /** A byte count as KB for the log, or a dash when nothing was downloaded. */
 function formatSize(bytes: number): string {
@@ -29,17 +31,17 @@ export function RequestLogView({ log }: { log: RequestLogEntry[] }) {
     <table className="w-full border-collapse text-xs">
       <thead>
         <tr>
-          <th className={CELL}>Endpoint</th>
-          <th className={CELL}>ms</th>
-          <th className={CELL}>TTFB</th>
-          <th className={CELL}>Down</th>
-          <th className={CELL}>Parse</th>
-          <th className={CELL}>Valid</th>
-          <th className={CELL}>Size</th>
-          <th className={CELL}>Cache</th>
-          <th className={CELL}>Retries</th>
-          <th className={CELL}>Status</th>
-          <th className={CELL}>Issues</th>
+          <th className={HEAD_CELL}>Endpoint</th>
+          <th className={HEAD_CELL}>ms</th>
+          <th className={HEAD_CELL}>TTFB</th>
+          <th className={HEAD_CELL}>Down</th>
+          <th className={HEAD_CELL}>Parse</th>
+          <th className={HEAD_CELL}>Valid</th>
+          <th className={HEAD_CELL}>Size</th>
+          <th className={HEAD_CELL}>Cache</th>
+          <th className={HEAD_CELL}>Retries</th>
+          <th className={HEAD_CELL}>Status</th>
+          <th className={HEAD_CELL}>Issues</th>
         </tr>
       </thead>
       <tbody>
@@ -80,10 +82,10 @@ export function ReportView({ report }: { report: DataQualityReport | null }) {
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th className={CELL}>Path</th>
-              <th className={CELL}>Kind</th>
-              <th className={CELL}>Count</th>
-              <th className={CELL}>Samples</th>
+              <th className={HEAD_CELL}>Path</th>
+              <th className={HEAD_CELL}>Kind</th>
+              <th className={HEAD_CELL}>Count</th>
+              <th className={HEAD_CELL}>Samples</th>
             </tr>
           </thead>
           <tbody>
