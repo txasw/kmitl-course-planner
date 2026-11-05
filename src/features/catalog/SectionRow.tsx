@@ -1,11 +1,12 @@
 // A single section row inside a course card. It shows the section code, a lecture
 // or practice badge, each meeting's day, time, and room, the instructors, the
-// seat status, and the section's state relative to the plan. A time conflicting
-// section keeps its conflict badge and reason but stays actionable: its add button
-// routes to the blocked feedback strip instead of being disabled, so a keyboard
-// user gets the same reason and alternatives a drag would give. A duplicate reads
-// dimmed with its reason. When handlers are supplied the row offers an add button
-// for an addable or conflicting open section and a remove button for an added one.
+// seat status, and the section's state relative to the plan. A conflicting section
+// keeps its badge, which reads as an exam clash when every conflict is an exam
+// overlap, and its reason but stays actionable: its add button routes to the blocked
+// feedback strip instead of being disabled, so a keyboard user gets the same reason
+// and alternatives a drag would give. A duplicate reads dimmed with its reason. When
+// handlers are supplied the row offers an add button for an addable or conflicting
+// open section and a remove button for an added one.
 
 import { useState } from 'react';
 import {
@@ -27,7 +28,10 @@ import type { SeatStatus } from '@/lib/catalog/seatStatus';
 import type { SectionRelation } from '@/lib/planner/sectionState';
 import type { ConflictDetail } from '@/lib/planner/placement';
 import { describeConflicts } from '@/lib/planner/describeConflict';
-import { conflictReasonText } from '@/features/planner/conflictText';
+import {
+  conflictBadgeKey,
+  conflictReasonText,
+} from '@/features/planner/conflictText';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { Pill } from '@/components/Pill';
 import { SeatPill } from './SeatPill';
@@ -50,7 +54,7 @@ function StateBadge({
     case 'conflicting':
       return (
         <Pill tone="danger" icon={<AlertTriangle size={12} aria-hidden />}>
-          {t('section.badge.conflict')}
+          {t(conflictBadgeKey(relation.conflicts))}
         </Pill>
       );
     case 'duplicate':
