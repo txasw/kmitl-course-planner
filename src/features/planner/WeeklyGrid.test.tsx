@@ -701,6 +701,46 @@ describe('WeeklyGrid', () => {
     expect(document.querySelector('[data-swap-target]')).not.toBeNull();
   });
 
+  it('cancels a pending hover card on leave and keeps a shown one for the card to close', () => {
+    vi.useFakeTimers();
+    try {
+      act(() => {
+        planStore.setState({ entries: [makePlanEntry()] });
+      });
+      render(
+        <WeeklyGrid
+          sections={[makePlaced()]}
+          window={DEFAULT_WINDOW}
+          locale="th"
+          t={t}
+          editable
+          onOpenDetail={() => undefined}
+        />,
+      );
+      const block = screen.getByRole('button', { name: /90592033/ });
+
+      // A pass across the block before the delay never opens the card.
+      fireEvent.mouseEnter(block);
+      fireEvent.mouseLeave(block);
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+
+      // Once shown, leaving the block toward the card keeps it open.
+      fireEvent.mouseEnter(block);
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      const card = screen.getByRole('tooltip');
+      fireEvent.mouseLeave(block, { relatedTarget: card });
+      fireEvent.mouseMove(card);
+      expect(screen.getByRole('tooltip')).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('opens a hover card on a block but never while a detail popover is pinned', () => {
     vi.useFakeTimers();
     try {

@@ -2,15 +2,23 @@
 // the hovered block, so a look at the full detail set needs no click; a click or Enter or
 // Space on the block still opens the pinned detail popover for actions, and the card never
 // spawns while that popover is pinned (ADR-0044). It reads the same plan entry snapshot the
-// popover reads, so no new data is plumbed. It is read only: no actions, dismissed on leave
-// by the grid, positioned to the side so it never sits under the pointer or over the block's
-// remove control. It shares a family look with the drag conflict card but carries a neutral
+// popover reads, so no new data is plumbed. It is read only, with no actions, and positioned
+// to the side so it never sits under the pointer or over the block's remove control. Like
+// the shared Tooltip it meets WCAG 1.4.13 hoverable: the grid opens it, and it then owns its
+// own dismissal through floating-ui's safePolygon, so the pointer can travel from the block
+// onto the card to read or select a long field, and the card closes once the pointer leaves
+// both. It shares a family look with the drag conflict card but carries a neutral
 // info accent, a left border in the brand, so a placed block and a blocked drop read
 // differently at a glance. Its body is the compact SectionDetailList, the same list the
 // popover renders in full, so the two surfaces never disagree on a field.
 
 import { useCallback, useEffect } from 'react';
-import { FloatingPortal } from '@floating-ui/react';
+import {
+  FloatingPortal,
+  safePolygon,
+  useHover,
+  useInteractions,
+} from '@floating-ui/react';
 import { useStore } from 'zustand';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { snapshotToSection } from '@/lib/domain/plan';
@@ -30,7 +38,7 @@ interface BlockHoverCardProps {
   locale: Locale;
   t: Translate;
   examOverlaps: ExamOverlap[];
-  /** Dismiss the card, wired to Escape. Leave dismissal is driven by the grid. */
+  /** Dismiss the card, on Escape or once the pointer has left both the block and the card. */
   onClose: () => void;
 }
 
@@ -46,11 +54,23 @@ export function BlockHoverCard({
   const portalRoot = usePanelPortal();
   const entry = entries.find((item) => item.teachTableId === teachTableId);
 
-  const { refs, floatingStyles } = usePanelPopover({
+  const { refs, floatingStyles, context } = usePanelPopover({
     gap: 8,
+    open: true,
+    onOpenChange: (next) => {
+      if (!next) {
+        onClose();
+      }
+    },
     placement: 'right-start',
     elements: { reference: anchor },
   });
+  // The grid already waited out the open delay, so only the close path is used here.
+  const hover = useHover(context, {
+    move: false,
+    handleClose: safePolygon(),
+  });
+  const { getFloatingProps } = useInteractions([hover]);
   const setFloating = useCallback(
     (node: HTMLDivElement | null) => {
       refs.setFloating(node);
@@ -91,8 +111,9 @@ export function BlockHoverCard({
     <div
       ref={setFloating}
       style={floatingStyles}
+      {...getFloatingProps()}
       role="tooltip"
-      className={`pointer-events-none z-popover flex w-72 ${PANEL_POPOVER_SCROLL} flex-col gap-1 rounded-kcp border border-l-2 border-border border-l-primary bg-surface p-2.5 text-xs shadow-kcp`}
+      className={`z-popover flex w-72 ${PANEL_POPOVER_SCROLL} flex-col gap-1 rounded-kcp border border-l-2 border-border border-l-primary bg-surface p-2.5 text-xs shadow-kcp`}
     >
       <p className="font-semibold text-ink">
         <span>{snapshot.subjectId}</span> <span lang={locale}>{name}</span>

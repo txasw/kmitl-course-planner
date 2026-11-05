@@ -164,11 +164,16 @@ export function WeeklyGrid({
       setHoverDetail({ teachTableId, anchor });
     }, HOVER_DELAY_MS);
   }, []);
+  // Leaving a block cancels a card still waiting on its delay. A card already shown closes
+  // itself once the pointer leaves both the block and the card, so it stays open while the
+  // pointer travels onto it.
   const handleHoverLeave = useCallback(() => {
     if (hoverTimer.current !== null) {
       clearTimeout(hoverTimer.current);
       hoverTimer.current = null;
     }
+  }, []);
+  const closeHoverCard = useCallback(() => {
     setHoverDetail(null);
   }, []);
   // When a detail popover pins or unpins, drop any shown hover card so it never lingers next
@@ -231,12 +236,15 @@ export function WeeklyGrid({
 
       {editable && active === null && !detailOpen && hoverDetail !== null ? (
         <BlockHoverCard
+          // One card per block, so a card replaced by the next hover drops the close
+          // tracking it started for the block before.
+          key={hoverDetail.teachTableId}
           teachTableId={hoverDetail.teachTableId}
           anchor={hoverDetail.anchor}
           locale={locale}
           t={t}
           examOverlaps={examOverlaps?.get(hoverDetail.teachTableId) ?? []}
-          onClose={handleHoverLeave}
+          onClose={closeHoverCard}
         />
       ) : null}
     </div>
