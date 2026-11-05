@@ -1,10 +1,10 @@
-// Academic year and semester options. No dedicated endpoint was captured for the
-// year or semester lists, so they are generated locally: Buddhist years from 2560
-// through the current Buddhist year plus one, and the three fixed semesters. The
-// current year is injected rather than read from the clock so this module stays
-// pure and testable, and so a future official endpoint can replace the generator
-// behind the same shape. A tab opening without a persisted search seeds its term
-// from the #/teach_table result route when present, otherwise the newest year.
+// Academic year and semester options. No endpoint lists the years or semesters,
+// so they are generated locally: Buddhist years from 2560 through the current
+// Buddhist year plus one, and the three fixed semesters. The current year is
+// injected rather than read from the clock so this module stays pure and testable.
+// The term the form opens on is resolved here from every source in precedence
+// order, including the current term the registrar reports, which the caller fetches
+// and passes in (ADR-0053).
 
 import type { TeachTableRoute } from './parseTeachTableRoute';
 
@@ -83,20 +83,54 @@ export function parseSemester(value: string | undefined): Semester | null {
   return SEMESTERS.find((semester) => semester === value) ?? null;
 }
 
+/** Where the resolved initial term came from, in precedence order. */
+export type InitialTermSource =
+  'route' | 'persisted' | 'plan' | 'registration' | 'fallback';
+
+export interface InitialTermSources {
+  /** The #/teach_table result route captured at mount, if any. */
+  route: TeachTableRoute | null;
+  /** The active tab term of the persisted last search, if any. */
+  persisted: Term | null;
+  /** The active plan's term, if a plan is active. */
+  plan: Term | null;
+  /** The term the registrar reports as current, or null until it answers. */
+  current: Term | null;
+  /** The generated year options, newest last. */
+  years: string[];
+}
+
+export interface InitialTerm {
+  term: Term;
+  source: InitialTermSource;
+}
+
 /**
- * The term a tab opens on when there is no persisted search: the year and
- * semester carried by a #/teach_table result route when present and valid,
- * otherwise the newest generated year and the first semester.
+ * The term the search form opens on. A #/teach_table route carrying a valid year
+ * and semester wins, then the persisted last search, then the active plan, then the
+ * term after the registrar's current term, since students plan the coming
+ * registration. With none of those, the newest generated year and the first
+ * semester. The source is returned so the caller knows whether a later answer from
+ * the registrar may still replace the result.
  */
-export function resolveInitialTerm(
-  route: TeachTableRoute | null,
-  years: string[],
-): Term {
-  const newest = years[years.length - 1] ?? String(EARLIEST_BUDDHIST_YEAR);
-  const routeYear = route?.params.selected_year;
-  const routeSemester = parseSemester(route?.params.selected_semester);
-  return {
-    year: routeYear !== undefined && routeYear.length > 0 ? routeYear : newest,
-    semester: routeSemester ?? '1',
-  };
+export function resolveInitialTerm(sources: InitialTermSources): InitialTerm {
+  const routeTerm = termFromQueryFields(
+    sources.route?.params.selected_year,
+    sources.route?.params.selected_semester,
+  );
+  if (routeTerm !== null) {
+    return { term: routeTerm, source: 'route' };
+  }
+  if (sources.persisted !== null) {
+    return { term: sources.persisted, source: 'persisted' };
+  }
+  if (sources.plan !== null) {
+    return { term: sources.plan, source: 'plan' };
+  }
+  if (sources.current !== null) {
+    return { term: nextTerm(sources.current), source: 'registration' };
+  }
+  const newest =
+    sources.years[sources.years.length - 1] ?? String(EARLIEST_BUDDHIST_YEAR);
+  return { term: { year: newest, semester: '1' }, source: 'fallback' };
 }

@@ -10,6 +10,7 @@ import {
 import { loadFixture } from '../../../tests/support/fixtures';
 import { normalizeTeachTable } from '@/lib/domain/normalize';
 import {
+  currentTermSchema,
   curriculumListSchema,
   departmentListSchema,
   facultyListSchema,
@@ -39,6 +40,9 @@ const curricula = curriculumListSchema.parse(
 const subjectOwners = subjectOwnerListSchema.parse(
   loadFixture('subject-owner.capture.json'),
 );
+const currentTerm = currentTermSchema.parse(
+  loadFixture('year-semester-now.capture.json'),
+);
 
 function ownerCatalog(): NormalizedCatalog {
   const result = normalizeTeachTable(
@@ -63,6 +67,8 @@ function resolvingSend(catalog: NormalizedCatalog): TypedSend {
         return Promise.resolve(ok(curricula));
       case 'ref/subjectOwner':
         return Promise.resolve(ok(subjectOwners));
+      case 'ref/currentTerm':
+        return Promise.resolve(ok(currentTerm));
       case 'teachTable/query':
         return Promise.resolve(ok(catalog));
       default:

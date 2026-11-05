@@ -7,6 +7,7 @@ import {
   resolveInitialTerm,
   termFromQueryFields,
   toBuddhistYear,
+  type Term,
 } from './academicTerms';
 import type { TeachTableRoute } from './parseTeachTableRoute';
 
@@ -76,31 +77,54 @@ describe('nextTerm', () => {
 
 describe('resolveInitialTerm', () => {
   const years = buddhistYears(2569);
+  const route: TeachTableRoute = {
+    params: { selected_year: '2568', selected_semester: '2' },
+  };
+  const persisted: Term = { year: '2567', semester: '3' };
+  const plan: Term = { year: '2566', semester: '2' };
+  const current: Term = { year: '2569', semester: '1' };
+  const none = { route: null, persisted: null, plan: null, current: null };
 
-  it('takes the year and semester from a result route', () => {
-    const route: TeachTableRoute = {
-      params: { selected_year: '2568', selected_semester: '2' },
-    };
-    expect(resolveInitialTerm(route, years)).toEqual({
-      year: '2568',
-      semester: '2',
+  it('takes the year and semester from a result route above every source', () => {
+    expect(
+      resolveInitialTerm({ route, persisted, plan, current, years }),
+    ).toEqual({ term: { year: '2568', semester: '2' }, source: 'route' });
+  });
+
+  it('takes the persisted search above the plan and the registrar', () => {
+    expect(
+      resolveInitialTerm({ ...none, persisted, plan, current, years }),
+    ).toEqual({ term: persisted, source: 'persisted' });
+  });
+
+  it('takes the active plan term above the registrar', () => {
+    expect(resolveInitialTerm({ ...none, plan, current, years })).toEqual({
+      term: plan,
+      source: 'plan',
     });
   });
 
-  it('falls back to the newest year and first semester without a route', () => {
-    expect(resolveInitialTerm(null, years)).toEqual({
-      year: '2570',
-      semester: '1',
+  it('opens on the term after the registrar current term', () => {
+    expect(resolveInitialTerm({ ...none, current, years })).toEqual({
+      term: { year: '2569', semester: '2' },
+      source: 'registration',
     });
   });
 
-  it('ignores an out of range semester and keeps the newest year', () => {
-    const route: TeachTableRoute = {
-      params: { selected_semester: '9' },
-    };
-    expect(resolveInitialTerm(route, years)).toEqual({
-      year: '2570',
-      semester: '1',
+  it('falls back to the newest year and first semester with no source', () => {
+    expect(resolveInitialTerm({ ...none, years })).toEqual({
+      term: { year: '2570', semester: '1' },
+      source: 'fallback',
+    });
+  });
+
+  it('skips a route without a usable year and semester', () => {
+    const partial: TeachTableRoute = { params: { selected_semester: '9' } };
+    expect(
+      resolveInitialTerm({ ...none, route: partial, current, years }),
+    ).toEqual({
+      term: { year: '2569', semester: '2' },
+      source: 'registration',
     });
   });
 });
