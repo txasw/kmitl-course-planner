@@ -8,10 +8,10 @@ import type { TestOptions } from './tests/e2e/support/fixtures';
 // by the fixtures, so relative paths are enough here. Extension contexts are
 // heavy, so runs stay serial.
 
-// The desktop size every existing spec runs and passes at. It sits above the
-// 1280 px edge where the catalog leaves its column for the drawer, so the visible
-// catalog copy is the first match. The fixture forwards it to the extension
-// context; a spec that needs another desktop size sets it with test.use.
+// The desktop size every existing spec runs and passes at. It sits in the xl tier
+// of ADR-0048, where the catalog column, with the search form at its head, docks
+// beside the grid. The fixture forwards it to the extension context; a spec that
+// needs another desktop size sets it with test.use.
 const DESKTOP = { width: 1440, height: 900 };
 
 // The phone and tablet projects load the debug build for locator access and run

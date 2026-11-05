@@ -1,4 +1,5 @@
-// The catalog column of ADR-0048. It mounts exactly once at every width and only its
+// The catalog column of ADR-0048: the search form at its head, then the filter bar and
+// the results, in one scroller. It mounts exactly once at every width and only its
 // container class follows the layout tier: docked beside the grid from the lg tier, or a
 // slide over left sheet below it. Switching a class on one element, rather than rendering
 // the catalog in two places, keeps a single drag surface per section and lets the drag
@@ -11,6 +12,7 @@ import {
   CatalogPanel,
   useResultCourseCount,
 } from '@/features/catalog/CatalogPanel';
+import { SearchForm } from '@/features/search/SearchForm';
 import {
   isDockedTier,
   type DockedTier,
@@ -84,7 +86,10 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
       className={containerClass(tier, sheetOpen)}
     >
       {docked ? null : <SheetHeader />}
-      <div className="min-h-0 flex-1 kcp-scroll overflow-y-auto p-6">
+      <div className="flex min-h-0 flex-1 flex-col gap-6 kcp-scroll overflow-y-auto p-6">
+        <div className="border-b border-border pb-6">
+          <SearchForm />
+        </div>
         <CatalogPanel />
       </div>
     </div>

@@ -3,9 +3,9 @@
 // --kcp-focus-* tokens on the shadow host, so the indicator changes in one place.
 //
 // FOCUS_RING is the default for light and bordered controls. It is an inset ring, so it
-// paints inside the border box and a clipping overflow ancestor (the scrolling search
-// rail, the translate-x catalog drawer) can never truncate it, and it composes with
-// shadow utilities so a shadowed control keeps its shadow. FOCUS_OUTLINE is for solid
+// paints inside the border box and a clipping overflow ancestor (the scrolling
+// catalog column, the translate-x catalog sheet) can never truncate it, and it composes
+// with shadow utilities so a shadowed control keeps its shadow. FOCUS_OUTLINE is for solid
 // primary-strong filled controls only: an inset orange ring on an orange fill is about
 // 1.2:1, under the 3:1 UI bar, so those keep an offset outline that sits on the
 // surrounding surface at the accepted 3:1 accent ratio.

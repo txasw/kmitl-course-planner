@@ -1,8 +1,9 @@
-// The search rail: a tab bar over the three official search modes, the active
-// tab's fields, and a submit that streams results into the catalog. Reference
-// data loads once on mount; the term seeds from the host route, a persisted
-// search, the active plan, or the term after the registrar's current one. The
-// four async surfaces each render a deliberate state.
+// The search form at the head of the catalog column: a tab bar over the three
+// official search modes, the active tab's fields, and a submit under the last field
+// that streams results into the catalog below. The column scrolls as one, so the
+// form carries no scroller of its own. Reference data loads once on mount; the term
+// seeds from the host route, a persisted search, the active plan, or the term after
+// the registrar's current one. The four async surfaces each render a deliberate state.
 
 import { useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
@@ -112,7 +113,7 @@ export function SearchForm() {
   };
 
   return (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <div
         role="group"
         aria-label={t('search.emptyTitle')}
@@ -159,7 +160,7 @@ export function SearchForm() {
         </div>
       ) : null}
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 kcp-scroll overflow-y-auto">
+      <div className="flex flex-col gap-3">
         {activeTab === 'by_class' ? (
           <ClassFields
             form={byClass}

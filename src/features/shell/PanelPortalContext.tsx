@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react';
 
 // A portal target for floating-ui popups that must escape a transformed ancestor. The
-// slide over catalog drawer uses a translate-x transform, which establishes a containing
+// slide over catalog sheet uses a translate-x transform, which establishes a containing
 // block for fixed positioned elements, so a combobox or popover rendered inside it is
 // mispositioned. Rendering the popup into this node, the overlay root inside the shadow
 // root, keeps it clip free and correctly positioned while staying inside the shadow

@@ -1,4 +1,4 @@
-// Presentational form fields for the search rail. Each select derives its options
+// Presentational form fields for the search form. Each select derives its options
 // from the reference lists through the pure filters, stays disabled until its
 // source list is ready and its parent selection is made, and writes back through
 // the store patch. The selects are searchable comboboxes, since faculty and
