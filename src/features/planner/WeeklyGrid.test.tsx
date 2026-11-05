@@ -741,6 +741,48 @@ describe('WeeklyGrid', () => {
     }
   });
 
+  it('drops a shown hover card when its section leaves the plan, so undo never revives it', () => {
+    vi.useFakeTimers();
+    try {
+      const entry = makePlanEntry();
+      act(() => {
+        planStore.setState({ entries: [entry] });
+      });
+      const props = {
+        sections: [makePlaced()],
+        window: DEFAULT_WINDOW,
+        locale: 'th' as const,
+        t,
+        editable: true,
+        onOpenDetail: () => undefined,
+      };
+      const { rerender } = render(<WeeklyGrid {...props} />);
+      fireEvent.mouseEnter(screen.getByRole('button', { name: /90592033/ }));
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      expect(screen.getByRole('tooltip')).toBeInTheDocument();
+
+      // The block's own remove control takes the section out under the pointer, so the
+      // block never sees a mouse leave.
+      act(() => {
+        planStore.setState({ entries: [] });
+      });
+      rerender(<WeeklyGrid {...props} sections={[]} />);
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+
+      // Undo brings the section back on a new block; the old card must not return
+      // anchored to the detached node.
+      act(() => {
+        planStore.setState({ entries: [entry] });
+      });
+      rerender(<WeeklyGrid {...props} />);
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('opens a hover card on a block but never while a detail popover is pinned', () => {
     vi.useFakeTimers();
     try {

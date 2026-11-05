@@ -209,7 +209,8 @@ describe('BlockHoverCard', () => {
     anchor.remove();
   });
 
-  it('renders nothing when the entry has left the plan', () => {
+  it('renders nothing and closes when the entry has left the plan', () => {
+    const onClose = vi.fn();
     const { container } = render(
       <BlockHoverCard
         teachTableId="gone"
@@ -217,9 +218,10 @@ describe('BlockHoverCard', () => {
         locale="th"
         t={t}
         examOverlaps={[]}
-        onClose={() => undefined}
+        onClose={onClose}
       />,
     );
     expect(container).toBeEmptyDOMElement();
+    expect(onClose).toHaveBeenCalled();
   });
 });
