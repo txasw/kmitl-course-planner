@@ -166,6 +166,8 @@
   "section.rules.showAll": "ดูเงื่อนไขทั้งหมด ({count})",
   "section.rules.hide": "ซ่อนเงื่อนไข",
   "section.remark.label": "หมายเหตุ",
+  "section.remark.showAll": "ดูหมายเหตุทั้งหมด",
+  "section.remark.hide": "ซ่อนหมายเหตุ",
   "detail.verifiedAt": "ตรวจสอบล่าสุด",
   "month.1": "ม.ค.",
   "month.2": "ก.พ.",
