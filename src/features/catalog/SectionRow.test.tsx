@@ -604,6 +604,39 @@ describe('SectionRow conflict badge and reason', () => {
     expect(reason).toHaveTextContent('(+1)');
   });
 
+  it('shows the reason in an inline danger soft callout', () => {
+    const { placed, course, incoming } = examOverlapCourses();
+    renderAgainst([placed], course, incoming);
+    const callout = screen.getByText(/^เวลาสอบชนกับ/).closest('p');
+    expect(callout).not.toBeNull();
+    expect(callout).toHaveClass('bg-danger-soft', 'rounded-kcp-inner');
+    expect(callout).toBeVisible();
+  });
+
+  it('describes the add rail with the callout on a conflicting row', () => {
+    const { placed, course, incoming } = examOverlapCourses();
+    renderAgainst([placed], course, incoming);
+    const add = screen.getByRole('button', { name: /^เพิ่ม/ });
+    expect(add).toHaveAccessibleDescription(/^เวลาสอบชนกับ 90000010/);
+  });
+
+  it('gives the add rail no callout description on an addable row', () => {
+    render(
+      <SectionRow
+        course={course}
+        section={section}
+        relation={{ kind: 'addable' }}
+        seat={openSeat}
+        locale="th"
+        t={t}
+        onAdd={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole('button', { name: /^เพิ่ม/ })).not.toHaveAttribute(
+      'aria-describedby',
+    );
+  });
+
   it('names the time clash even when an earlier placed section clashes only in exams', () => {
     const { placed, course, incoming } = examOverlapCourses();
     // The exam only clash comes from the first placed section, so the engine lists it
