@@ -116,11 +116,13 @@ describe('CourseCard collapsed added course', () => {
         onRemove={onRemove}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'นำออก' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'นำออก 90000001 กลุ่มเรียน 901' }),
+    );
     expect(onRemove).toHaveBeenCalledWith('placed901');
   });
 
-  it('shows the collapsed remove as a quiet icon', () => {
+  it('labels the collapsed remove with visible text the name starts with', () => {
     render(
       <CourseCard
         course={course}
@@ -130,8 +132,12 @@ describe('CourseCard collapsed added course', () => {
         onRemove={() => undefined}
       />,
     );
-    // Icon only: the accessible name is the aria-label and there is no visible text.
-    expect(screen.getByRole('button', { name: 'นำออก' }).textContent).toBe('');
+    // The visible label is the start of the accessible name, so speech input that
+    // says the words on screen still reaches the control.
+    const remove = screen.getByRole('button', {
+      name: 'นำออก 90000001 กลุ่มเรียน 901',
+    });
+    expect(remove.textContent).toBe('นำออก');
   });
 
   it('makes the whole collapsed summary the expand control', () => {

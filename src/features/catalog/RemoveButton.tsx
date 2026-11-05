@@ -1,36 +1,49 @@
-// The remove control on an added course. It reads as a pull back: a compact, quiet
-// undo-arrow icon rather than a bordered text button, because the ten second undo
-// makes a remove reversible, so the metaphor is truthful. The aria-label and the
-// tooltip still state the plain action. onPointerDown stops propagation so a grab on
-// the control does not arm a surrounding drag.
+// The remove control on an added course. It uses the same X glyph as the remove
+// control on a placed block, so one action reads the same on both surfaces, and it
+// shows its short label as text. The accessible name extends that visible label with
+// the subject and section, so a screen reader list of controls tells the removes
+// apart while the spoken name still starts with the words on screen. onPointerDown
+// stops propagation so a grab on the control does not arm a surrounding drag.
 
-import { Undo2 } from 'lucide-react';
-import { Tooltip } from '@/components/Tooltip';
+import { X } from 'lucide-react';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import type { Translate } from '@/lib/i18n/t';
+
+/** The accessible name of a catalog remove control: the action, the subject id and
+ * the section, for example นำออก 90592033 กลุ่มเรียน 901. */
+export function removeSectionName(
+  t: Translate,
+  subjectId: string,
+  section: string,
+): string {
+  return `${t('action.remove')} ${subjectId} ${t('section.code')} ${section}`;
+}
 
 interface RemoveButtonProps {
+  /** The short visible label, for example นำออก. */
   label: string;
+  /** The full name, which starts with the label and names the section. */
+  accessibleName: string;
   onRemove: () => void;
 }
 
-export function RemoveButton({ label, onRemove }: RemoveButtonProps) {
+export function RemoveButton({
+  label,
+  accessibleName,
+  onRemove,
+}: RemoveButtonProps) {
   return (
-    <Tooltip label={label}>
-      {(triggerProps, ref) => (
-        <button
-          ref={ref}
-          {...triggerProps}
-          type="button"
-          aria-label={label}
-          onPointerDown={(event) => {
-            event.stopPropagation();
-          }}
-          onClick={onRemove}
-          className={`shrink-0 rounded-kcp p-1 text-ink-soft hover:bg-surface hover:text-ink ${FOCUS_RING}`}
-        >
-          <Undo2 size={14} aria-hidden />
-        </button>
-      )}
-    </Tooltip>
+    <button
+      type="button"
+      aria-label={accessibleName}
+      onPointerDown={(event) => {
+        event.stopPropagation();
+      }}
+      onClick={onRemove}
+      className={`inline-flex shrink-0 items-center gap-1 rounded-kcp px-1.5 py-1 text-xs text-ink-soft hover:bg-surface hover:text-ink ${FOCUS_RING}`}
+    >
+      <X size={14} aria-hidden />
+      <span>{label}</span>
+    </button>
   );
 }

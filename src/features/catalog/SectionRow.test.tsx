@@ -91,7 +91,11 @@ describe('SectionRow actions', () => {
         onRemove={onRemove}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'นำออก' }));
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: `นำออก ${section.subjectId} กลุ่มเรียน ${section.section}`,
+      }),
+    );
     expect(onRemove).toHaveBeenCalledWith(section.teachTableId);
   });
 
@@ -279,7 +283,7 @@ describe('SectionRow density and read only', () => {
       />,
     );
     expect(
-      screen.queryByRole('button', { name: 'นำออก' }),
+      screen.queryByRole('button', { name: /^นำออก/ }),
     ).not.toBeInTheDocument();
     expect(screen.queryByText('เพิ่มแล้ว')).not.toBeInTheDocument();
     expect(
