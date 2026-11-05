@@ -82,7 +82,7 @@
   "catalog.filter.credit": "หน่วยกิต",
   "catalog.filter.creditAny": "ทุกหน่วยกิต",
   "catalog.filter.hideFull": "ซ่อนกลุ่มเรียนที่เต็ม",
-  "catalog.filter.hideConflicting": "ซ่อนกลุ่มเรียนที่เวลาชนกัน",
+  "catalog.filter.hideConflicting": "ซ่อนรายการที่ชนกัน",
   "catalog.filter.hideUnscheduled": "ซ่อนวิชาที่ไม่มีคาบเรียน",
   "catalog.filter.label": "ตัวกรอง",
   "catalog.filter.clearAll": "ล้างตัวกรอง",

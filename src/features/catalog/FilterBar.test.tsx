@@ -1,13 +1,25 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  cleanup,
+  act,
+} from '@testing-library/react';
 import { expectNoSeriousA11yViolations } from '../../../tests/support/axe';
+import { uiStore } from '@/features/shell/uiStore';
 import { catalogStore } from './catalogStore';
 import { FilterBar } from './FilterBar';
 
 const CREDIT = /หน่วยกิต|Credit/i;
 const FILTER_BUTTON = /^(?:ตัวกรอง|Filters)$/;
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  act(() => {
+    uiStore.getState().setLanguage('th');
+  });
+});
 beforeEach(() => {
   catalogStore.getState().resetFilter();
 });
@@ -73,6 +85,22 @@ describe('FilterBar', () => {
     }
     fireEvent.click(hideFull);
     expect(catalogStore.getState().filter.hideFull).toBe(true);
+  });
+
+  it('labels the hide conflicting switch for time and exam clashes alike', () => {
+    // The filter hides every conflicting section, exam clashes included, so its label
+    // names conflicts in general rather than time conflicts only.
+    render(<FilterBar creditOptions={[3, 4]} />);
+    openFilters();
+    expect(
+      screen.getByRole('switch', { name: 'ซ่อนรายการที่ชนกัน' }),
+    ).toBeInTheDocument();
+    act(() => {
+      uiStore.getState().setLanguage('en');
+    });
+    expect(
+      screen.getByRole('switch', { name: 'Hide conflicts' }),
+    ).toBeInTheDocument();
   });
 
   it('has no serious accessibility violations with the popover open', async () => {

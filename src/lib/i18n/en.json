@@ -82,7 +82,7 @@
   "catalog.filter.credit": "Credits",
   "catalog.filter.creditAny": "Any credits",
   "catalog.filter.hideFull": "Hide full",
-  "catalog.filter.hideConflicting": "Hide time conflicts",
+  "catalog.filter.hideConflicting": "Hide conflicts",
   "catalog.filter.hideUnscheduled": "Hide unscheduled",
   "catalog.filter.label": "Filters",
   "catalog.filter.clearAll": "Clear filters",
