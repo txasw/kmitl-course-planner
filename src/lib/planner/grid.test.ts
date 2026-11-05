@@ -6,7 +6,7 @@ import {
   SMART_WINDOW,
   computeFitWindow,
   computeSmartWindow,
-  computeWindow,
+  editWindow,
   hourTicks,
   meetingColumns,
   perDayLoad,
@@ -62,35 +62,35 @@ describe('quarterCount', () => {
   });
 });
 
-describe('computeWindow', () => {
-  it('returns the default window when there are no meetings', () => {
-    expect(computeWindow([])).toEqual(DEFAULT_WINDOW);
+describe('editWindow', () => {
+  it('shows the 08:00 to 18:00 working day for an empty plan and catalog', () => {
+    expect(editWindow([], [])).toEqual(SMART_WINDOW);
   });
 
-  it('leaves the window unchanged for a meeting fully inside it', () => {
-    expect(computeWindow([meeting(1, 540, 600)])).toEqual(DEFAULT_WINDOW);
+  it('keeps the working day when every meeting sits inside it', () => {
+    expect(editWindow([meeting(1, 540, 660)], [meeting(3, 780, 900)])).toEqual(
+      SMART_WINDOW,
+    );
   });
 
-  it('extends the end up to the nearest hour for a late meeting', () => {
-    expect(computeWindow([meeting(1, 1200, 1290)])).toEqual({
+  it('extends the start to 07:00 for a 07:30 placed meeting', () => {
+    expect(editWindow([meeting(2, 450, 540)], [])).toEqual({
       startMin: 420,
-      endMin: 1320,
+      endMin: 1080,
     });
   });
 
-  it('extends the start down to the nearest hour for an early meeting', () => {
-    expect(computeWindow([meeting(1, 390, 480)])).toEqual({
-      startMin: 360,
-      endMin: 1260,
-    });
+  it('extends the end for a late catalog meeting nothing has placed', () => {
+    // 18:30 to 20:15 in the catalog pushes the boundary to 21:00.
+    expect(
+      editWindow([meeting(1, 540, 660)], [meeting(4, 1110, 1215)]),
+    ).toEqual({ startMin: 480, endMin: 1260 });
   });
 
-  it('extends both ends across several meetings', () => {
-    const window = computeWindow([
-      meeting(1, 390, 480),
-      meeting(5, 1230, 1275),
-    ]);
-    expect(window).toEqual({ startMin: 360, endMin: 1320 });
+  it('covers both sources across several meetings', () => {
+    expect(
+      editWindow([meeting(2, 450, 540)], [meeting(5, 1080, 1170)]),
+    ).toEqual({ startMin: 420, endMin: 1200 });
   });
 });
 

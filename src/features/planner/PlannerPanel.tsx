@@ -1,24 +1,26 @@
 // The planner region: the weekly timetable rendered from the plan snapshots. It
 // reads the plan entries, reshapes them into placed sections, and derives the
-// visible time window from the scheduled meetings so an early or late class widens
-// the grid. Unscheduled sections and the footer summary arrive with the shelf.
+// visible time window from the scheduled meetings and the current catalog result so
+// an early or late class widens the grid. Unscheduled sections and the footer
+// summary arrive with the shelf.
 
 import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { useStore } from 'zustand';
 import { snapshotToSection } from '@/lib/domain/plan';
+import { catalogMeetings } from '@/lib/catalog/catalogMeetings';
 import {
   computeSmartWindow,
-  computeWindow,
+  editWindow,
   smartVisibleDays,
 } from '@/lib/planner/grid';
 import { templateBySlug } from '@/lib/planner/exportTemplates';
 import { planConflicts } from '@/lib/planner/planConflicts';
 import { planExamConflicts } from '@/lib/planner/examOverlap';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
+import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { isScheduled, toPlacedSection } from './placedSection';
-import { dragStore } from './dragStore';
 import { BlockDetailPopover } from './BlockDetailPopover';
 import { BlockContextMenu } from './BlockContextMenu';
 import { FeedbackStrip } from './FeedbackStrip';
@@ -38,10 +40,7 @@ export function PlannerPanel() {
   const viewMode = useStore(uiStore, (state) => state.viewMode);
   const displayOptions = useStore(uiStore, (state) => state.displayOptions);
   const selectedTemplate = useStore(uiStore, (state) => state.selectedTemplate);
-  const activeDrag = useStore(dragStore, (state) => state.active);
-  const hoverSection = useStore(dragStore, (state) => state.hover);
-  const courseDrag = useStore(dragStore, (state) => state.courseDrag);
-  const blockMove = useStore(dragStore, (state) => state.blockMove);
+  const catalogResult = useStore(searchStore, (state) => state.result);
 
   const sections = useMemo(
     () =>
@@ -81,45 +80,26 @@ export function PlannerPanel() {
     () => sections.filter((section) => !isScheduled(section)),
     [sections],
   );
-  const window = useMemo(() => {
-    const placedMeetings = scheduled.flatMap((section) => section.meetings);
-    const dragMeetings =
-      activeDrag === null
-        ? []
-        : activeDrag.group.flatMap((section) => section.meetings);
-    const hoverMeetings = hoverSection === null ? [] : hoverSection.meetings;
-    const courseMeetings =
-      courseDrag === null
-        ? []
-        : courseDrag.candidates.flatMap((candidate) =>
-            candidate.group.flatMap((section) => section.meetings),
-          );
-    const blockMoveMeetings =
-      blockMove === null
-        ? []
-        : [
-            ...blockMove.group.flatMap((section) => section.meetings),
-            ...blockMove.candidates.flatMap((candidate) =>
-              candidate.group.flatMap((section) => section.meetings),
-            ),
-          ];
-    return computeWindow([
-      ...placedMeetings,
-      ...dragMeetings,
-      ...hoverMeetings,
-      ...courseMeetings,
-      ...blockMoveMeetings,
-    ]);
-  }, [scheduled, activeDrag, hoverSection, courseDrag, blockMove]);
-  // The template poster window and day run: the 08:00 to 18:00 working day extended for
-  // outliers, and Monday to Friday extended for weekend meetings. Both are derived
-  // unconditionally and only used in preview, superseding the fit to content window logic
-  // for templates (precedence: template canvas, then this smart window, then display
-  // options). Edit mode keeps the extending window above.
   const scheduledMeetings = useMemo(
     () => scheduled.flatMap((section) => section.meetings),
     [scheduled],
   );
+  // The edit window covers the placed meetings and every meeting in the current catalog
+  // result, so a hovered row, a dragged section, and every candidate slot already sit
+  // inside it and the grid never reflows while the student browses (ADR-0050).
+  const offered = useMemo(
+    () => catalogMeetings(catalogResult),
+    [catalogResult],
+  );
+  const window = useMemo(
+    () => editWindow(scheduledMeetings, offered),
+    [scheduledMeetings, offered],
+  );
+  // The template poster window and day run: the 08:00 to 18:00 working day extended for
+  // outliers, and Monday to Friday extended for weekend meetings, over the placed meetings
+  // only. Both are derived unconditionally and only used in preview, superseding the fit to
+  // content window logic for templates (precedence: template canvas, then this smart
+  // window, then display options).
   const smartWindow = useMemo(
     () => computeSmartWindow(scheduledMeetings),
     [scheduledMeetings],

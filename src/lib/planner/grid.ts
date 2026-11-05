@@ -27,13 +27,13 @@ export interface GridWindow {
   endMin: number;
 }
 
-/** The default 07:00 to 21:00 window before any auto extension. */
+/** The 07:00 to 21:00 window, the fit to content fallback for a plan with no meetings. */
 export const DEFAULT_WINDOW: GridWindow = {
   startMin: DEFAULT_WINDOW_START_MIN,
   endMin: DEFAULT_WINDOW_END_MIN,
 };
 
-/** The template poster base window, 08:00 to 18:00, before any auto extension. */
+/** The smart window base, 08:00 to 18:00, before any auto extension. */
 export const SMART_WINDOW_START_MIN = 8 * 60;
 export const SMART_WINDOW_END_MIN = 18 * 60;
 
@@ -52,35 +52,11 @@ function ceilToHour(min: number): number {
 }
 
 /**
- * The window that shows every given meeting, extending the base window down or up
- * to the nearest hour when a meeting starts before or ends after it. The base
- * bounds are the floor, so the window never shrinks below the default. Meetings
- * are the union of placed and highlighted sections, so a hovered catalog section
- * that reaches outside the current window widens it before the drag begins.
- */
-export function computeWindow(
-  meetings: Meeting[],
-  base: GridWindow = DEFAULT_WINDOW,
-): GridWindow {
-  let startMin = base.startMin;
-  let endMin = base.endMin;
-  for (const meeting of meetings) {
-    if (meeting.startMin < startMin) {
-      startMin = floorToHour(meeting.startMin);
-    }
-    if (meeting.endMin > endMin) {
-      endMin = ceilToHour(meeting.endMin);
-    }
-  }
-  return { startMin, endMin };
-}
-
-/**
  * The tightest hour aligned window that shows every given meeting, for the fit to
- * content preview option. Unlike computeWindow it ignores the default bounds and
- * trims to the meetings themselves, so a plan that runs 09:00 to 15:00 shows only
- * those hours. With no scheduled meetings it falls back to the default window, so
- * an all unscheduled plan still renders a sensible empty grid beside its shelf.
+ * content preview option. Unlike the smart window it has no base bounds and trims
+ * to the meetings themselves, so a plan that runs 09:00 to 15:00 shows only those
+ * hours. With no scheduled meetings it falls back to the default window, so an all
+ * unscheduled plan still renders a sensible empty grid beside its shelf.
  */
 export function computeFitWindow(meetings: Meeting[]): GridWindow {
   if (meetings.length === 0) {
@@ -177,6 +153,20 @@ export function smartVisibleDays(meetings: Meeting[]): DayOfWeek[] {
   return days;
 }
 
+/**
+ * The edit grid window: the smart window over the placed meetings and every meeting in the
+ * current catalog result (ADR-0050). Every candidate a section drag, a course drag, or a block
+ * move can paint is a catalog section, so the window already covers it and a hover or a drag
+ * never reflows the grid. With no catalog result it covers the placed meetings alone, starting
+ * from the 08:00 to 18:00 working day.
+ */
+export function editWindow(
+  placed: readonly Meeting[],
+  catalog: readonly Meeting[],
+): GridWindow {
+  return computeSmartWindow([...placed, ...catalog]);
+}
+
 /** The number of quarter columns the window spans. */
 export function quarterCount(window: GridWindow): number {
   return (window.endMin - window.startMin) / QUARTER_MIN;
@@ -195,7 +185,7 @@ export interface ColumnSpan {
 /**
  * Map a minute range to whole quarter columns. The start floors and the end
  * ceils so a meeting that does not land on a quarter boundary still fills whole
- * columns that fully contain it. Callers pass a window from `computeWindow`, so
+ * columns that fully contain it. Callers pass a window that covers the meeting, so
  * the range sits inside the window and the indices stay in range. The 09:00 to
  * 12:00 meeting in the default window spans quarters 8 through 20.
  */
