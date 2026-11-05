@@ -242,6 +242,33 @@ export function hourTicks(window: GridWindow): number[] {
   return ticks;
 }
 
+/** Midday, the boundary between the morning and afternoon halves of a timetable. */
+const NOON_MIN = 12 * MINUTES_PER_HOUR;
+
+/** One hour rule of the grid: the hour it marks and its quarter offset in the window. */
+export interface HourRule {
+  min: number;
+  offset: number;
+  /** The window start, midday, and end carry the stronger rule. */
+  strong: boolean;
+}
+
+/**
+ * One rule per hour boundary from the window start through its end, the start, midday, and
+ * end marked strong so the eye finds the halves of the day.
+ */
+export function hourRules(window: GridWindow): HourRule[] {
+  const quarters = quarterCount(window);
+  return hourTicks(window).map((min) => {
+    const offset = (min - window.startMin) / QUARTER_MIN;
+    return {
+      min,
+      offset,
+      strong: offset === 0 || offset === quarters || min === NOON_MIN,
+    };
+  });
+}
+
 /** Scheduled minutes per day, keyed by `DayOfWeek`, for the footer load summary. */
 export type PerDayLoad = Record<DayOfWeek, number>;
 

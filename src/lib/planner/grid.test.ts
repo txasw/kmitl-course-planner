@@ -15,6 +15,7 @@ import {
   computeSmartWindow,
   editGridMinWidth,
   editWindow,
+  hourRules,
   hourTicks,
   meetingColumns,
   perDayLoad,
@@ -292,6 +293,36 @@ describe('hourTicks', () => {
     expect(ticks).toHaveLength(15);
     expect(ticks[0]).toBe(420);
     expect(ticks[ticks.length - 1]).toBe(1260);
+  });
+});
+
+describe('hourRules', () => {
+  it('draws one rule per hour, strong at the edges and at midday', () => {
+    const rules = hourRules(DEFAULT_WINDOW);
+    expect(rules).toHaveLength(15);
+    expect(rules.map((rule) => rule.offset)).toEqual(
+      Array.from({ length: 15 }, (_, index) => index * 4),
+    );
+    expect(rules.filter((rule) => rule.strong).map((rule) => rule.min)).toEqual(
+      [420, 720, 1260],
+    );
+  });
+
+  it('drops the midday rule when the window does not reach noon', () => {
+    const rules = hourRules({ startMin: 13 * 60, endMin: 17 * 60 });
+    expect(rules.filter((rule) => rule.strong).map((rule) => rule.min)).toEqual(
+      [780, 1020],
+    );
+  });
+
+  it('keeps a midday edge strong once', () => {
+    const rules = hourRules({ startMin: 8 * 60, endMin: 12 * 60 });
+    expect(rules.filter((rule) => rule.strong)).toHaveLength(2);
+    expect(rules[rules.length - 1]).toEqual({
+      min: 720,
+      offset: 16,
+      strong: true,
+    });
   });
 });
 

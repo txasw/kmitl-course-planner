@@ -337,6 +337,47 @@ describe('WeeklyGrid', () => {
     expect(portrait.style.transform).toBe('translateY(-50%)');
   });
 
+  it('draws one hour rule per hour across every day row, stronger at 12:00', () => {
+    render(
+      <WeeklyGrid sections={[]} window={DEFAULT_WINDOW} locale="th" t={t} />,
+    );
+    const grid = screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+    const all = Array.from(grid.querySelectorAll<HTMLElement>('*')).filter(
+      (node) =>
+        node.style.gridRow === '2 / -1' &&
+        (node.classList.contains('border-l') ||
+          node.classList.contains('border-r')),
+    );
+    const quarterRules = all.filter((node) =>
+      node.classList.contains('border-border/45'),
+    );
+    const rules = all.filter((node) => !quarterRules.includes(node));
+    // 07:00 through 21:00 is fifteen hour boundaries, the closing edge included, each one
+    // item spanning every day track rather than a gradient per row, and the 42 quarters
+    // between them carry the fainter rule the same way.
+    expect(rules).toHaveLength(15);
+    expect(quarterRules).toHaveLength(42);
+    const ruleAt = (column: string): HTMLElement => {
+      const rule = rules.find((node) => node.style.gridColumn === column);
+      if (rule === undefined) {
+        throw new Error(`no rule at column ${column}`);
+      }
+      return rule;
+    };
+    // 12:00 opens quarter 20, grid column 22; 13:00 opens column 26.
+    expect(ruleAt('22 / span 1').className).toContain('border-grid-strong');
+    expect(ruleAt('26 / span 1').className).toContain('border-border');
+    // The window edges are strong too; the closing edge draws on the trailing side of the
+    // last quarter.
+    expect(ruleAt('2 / span 1').className).toContain('border-grid-strong');
+    expect(ruleAt('57 / span 1').className).toMatch(
+      /border-r .*border-grid-strong/,
+    );
+    expect(
+      rules.filter((node) => node.className.includes('border-grid-strong')),
+    ).toHaveLength(3);
+  });
+
   it('pins the day column left and the hour row top in edit', () => {
     render(
       <WeeklyGrid

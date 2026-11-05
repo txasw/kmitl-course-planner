@@ -3,11 +3,11 @@
 // columns and time flowing down as rows, so a tall export canvas fills top to bottom
 // rather than a thin band (ADR, orientation is a template property). Every block position
 // derives from minutes through the grid geometry, never from pixels: a meeting maps to
-// grid lines and its day track. GridAxis draws the hour labels and the stronger rules,
-// DayLanes draws the day labels, the gridline lanes, and the placed blocks, and
-// CandidateLayer draws the edit mode drag feedback over them. This component owns the grid
-// template and the hover detail card. The poster font size scales the whole grid per
-// template. In edit the day and hour axes stick to the planner scroller edges so a grid
+// grid lines and its day track. GridAxis draws the hour labels, DayLanes draws the day
+// labels, the row lanes, and the placed blocks, GridRules draws the hour and quarter rules
+// once across every lane, and CandidateLayer draws the edit mode drag feedback over them.
+// This component owns the grid template and the hover detail card. The poster font size
+// scales the whole grid per template. In edit the day and hour axes stick to the planner scroller edges so a grid
 // wider or taller than its column stays readable; the poster is flat (ADR-0050).
 
 import { useCallback, useMemo, useRef, useState } from 'react';
@@ -28,6 +28,7 @@ import { BlockHoverCard } from './BlockHoverCard';
 import { CandidateLayer } from './CandidateLayer';
 import { DayLanes } from './DayLanes';
 import { GridAxis } from './GridAxis';
+import { GridRules } from './GridRules';
 import type { PlacedSection } from './placedSection';
 import type { Orientation } from './gridGeometry';
 
@@ -207,6 +208,8 @@ export function WeeklyGrid({
         fontPx={fontPx}
         sticky={editable}
       />
+
+      <GridRules window={window} orientation={orientation} />
 
       {editable ? (
         <CandidateLayer
