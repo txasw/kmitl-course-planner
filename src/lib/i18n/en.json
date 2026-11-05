@@ -37,6 +37,8 @@
   "planData.issue.invalidValue": "Value not allowed",
   "planData.issue.termMismatch": "Entry term does not match the plan",
   "planData.issue.malformed": "Malformed",
+  "catalog.hide": "Hide courses",
+  "catalog.show": "Show courses",
   "catalog.open": "Courses",
   "catalog.sheet.title": "Find courses",
   "catalog.sheet.close": "Close course list",
