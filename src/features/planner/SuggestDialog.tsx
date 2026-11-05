@@ -191,7 +191,7 @@ export function SuggestDialog({
           <p>{fillTemplate(t('suggest.locked'), { count: lockedSubjects })}</p>
         ) : null}
       </div>
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col items-start gap-1.5">
         <span className="text-xs text-ink-soft" aria-hidden>
           {t('suggest.objective')}
         </span>
