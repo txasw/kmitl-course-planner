@@ -7,11 +7,14 @@ import {
   fireEvent,
 } from '@testing-library/react';
 import { planStore } from '@/features/plans/planStore';
+import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
 import type { PlanEntry } from '@/lib/domain/plan';
 import {
+  makeCourse,
   makeMeeting,
   makePlanEntry,
+  makeSection,
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
 import { expectNoSeriousA11yViolations } from '../../../tests/support/axe';
@@ -35,9 +38,34 @@ function seed(entries: PlanEntry[]): void {
   });
 }
 
+/** Load a catalog result with one evening section nothing has placed. */
+function seedEveningCatalog(): void {
+  const evening = makeSection({
+    teachTableId: 'c1',
+    subjectId: '90000003',
+    meetings: [makeMeeting({ day: 3, startMin: 1140, endMin: 1230 })],
+  });
+  act(() => {
+    searchStore.setState({
+      result: {
+        status: 'ready',
+        data: {
+          courses: [makeCourse({ subjectId: '90000003', sections: [evening] })],
+          duplicateCount: 0,
+          multiMeetingCount: 0,
+          warnings: [],
+        },
+      },
+    });
+  });
+}
+
 afterEach(() => {
   cleanup();
   seed([]);
+  act(() => {
+    searchStore.setState({ result: { status: 'idle' } });
+  });
   act(() => {
     uiStore.getState().setViewMode('edit');
   });
@@ -77,6 +105,22 @@ describe('PlannerPanel', () => {
       screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
     ).toBeInTheDocument();
     expect(screen.queryByText('ตารางยังว่าง')).not.toBeInTheDocument();
+  });
+
+  it('shows the working day in edit with no catalog result', () => {
+    renderPanel();
+    expect(screen.getByText('08:00')).toBeInTheDocument();
+    expect(screen.getByText('17:00')).toBeInTheDocument();
+    expect(screen.queryByText('07:00')).not.toBeInTheDocument();
+    expect(screen.queryByText('18:00')).not.toBeInTheDocument();
+  });
+
+  it('widens the edit window to cover an evening catalog section', () => {
+    seedEveningCatalog();
+    renderPanel();
+    // 19:00 to 20:30 in the catalog closes the window at 21:00, so 20:00 is labelled.
+    expect(screen.getByText('20:00')).toBeInTheDocument();
+    expect(screen.queryByText('21:00')).not.toBeInTheDocument();
   });
 
   it('opens a block detail popover in edit mode and clears it in preview', () => {
