@@ -9,7 +9,7 @@ import {
 } from '@testing-library/react';
 import { createTranslator, type Locale } from '@/lib/i18n/t';
 import type { ReconcileReport } from '@/lib/planner/revalidate';
-import type { ExamOverlap } from '@/lib/planner/examOverlap';
+import { planExamConflicts, type ExamOverlap } from '@/lib/planner/examOverlap';
 import { normalizeTeachTable } from '@/lib/domain/normalize';
 import { buildSnapshot, type PlanEntry } from '@/lib/domain/plan';
 import type { Course, Section } from '@/lib/domain/types';
@@ -223,7 +223,11 @@ describe('BlockDetailPopover', () => {
         },
       ],
     });
-    expect(screen.getByText('Exam overlap')).toBeInTheDocument();
+    // The badge and the overlap section both name the clash.
+    expect(screen.getAllByText('Exam overlap')).toHaveLength(2);
+    expect(
+      screen.getByRole('region', { name: 'Exam overlap' }),
+    ).toBeInTheDocument();
     expect(screen.getByText('Midterm')).toBeInTheDocument();
     expect(screen.getByText('21 Aug 2569 09:00-12:00')).toBeInTheDocument();
     expect(
@@ -280,6 +284,37 @@ describe('BlockDetailPopover', () => {
     expect(rowValues('Conditions')).toEqual(['Year 1 only']);
     expect(rowValues('Remark')).toEqual(['Shared with another faculty']);
     expect(rowValues('Last checked')).toEqual(['6 Nov 2569 08:05']);
+  });
+
+  // The synthetic exam overlap fixture: 90000010/901 and 90000011/901 meet on different
+  // days but both sit their midterm on the morning of 21 Aug 2026.
+  it('reads both labels for an entry that changed and clashes on an exam', () => {
+    const placed = fixtureEntry(
+      'synthetic.exam-overlap.json',
+      '90000010',
+      '901',
+      {
+        verifyStatus: 'changed',
+      },
+    );
+    const other = fixtureEntry(
+      'synthetic.exam-overlap.json',
+      '90000011',
+      '901',
+    );
+    const overlaps = planExamConflicts([placed.section, other.section]).get(
+      placed.entry.teachTableId,
+    );
+    expect(overlaps).toHaveLength(1);
+    act(() => {
+      seedActivePlan([placed.entry, other.entry]);
+    });
+    renderPopover({
+      teachTableId: placed.entry.teachTableId,
+      examOverlaps: overlaps ?? [],
+    });
+    const badge = screen.getByText('Exam overlap Updated');
+    expect(badge).toHaveClass('text-danger');
   });
 
   it('closes when the entry leaves the plan', () => {

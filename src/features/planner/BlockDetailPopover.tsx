@@ -106,8 +106,15 @@ export function BlockDetailPopover({
   const snapshot = entry.snapshot;
   const name =
     locale === 'th' ? snapshot.subjectMeta.nameTh : snapshot.subjectMeta.nameEn;
-  const badge = blockBadge(entry.verifyStatus, false);
-  const badgeText = blockBadgeLabelKeys(entry.verifyStatus, false)
+  // The exam overlap folds into the badge like it does on the block, so an entry that
+  // both changed and clashes on an exam reads danger and announces both states.
+  const examConflicted = examOverlaps.length > 0;
+  const badge = blockBadge(entry.verifyStatus, false, examConflicted);
+  const badgeText = blockBadgeLabelKeys(
+    entry.verifyStatus,
+    false,
+    examConflicted,
+  )
     .map((key) => t(key))
     .join(' ');
   const diff = run?.report?.entries.find(
