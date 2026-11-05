@@ -38,6 +38,17 @@ describe('type scale', () => {
     expect(declared).toEqual(Object.keys(TEXT_SCALE));
   });
 
+  it('keeps only the regular and semibold weights', () => {
+    expect(css).toContain('--font-weight-*: initial;');
+    const weights = [...css.matchAll(/--font-weight-([a-z]+): (\d+);/g)].map(
+      (match) => [match[1], Number(match[2])],
+    );
+    expect(weights).toEqual([
+      ['normal', 400],
+      ['semibold', 600],
+    ]);
+  });
+
   it('declares the 14 px base on the shadow tree root, not the reset host', () => {
     const base = ruleBody('html');
     expect(base).toContain('font-size: 14px;');
