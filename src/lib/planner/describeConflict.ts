@@ -1,8 +1,11 @@
 // Turn conflict details into a structured description the feedback UI localizes:
-// the first blocking subject and section, the day and minute range for a time
-// conflict, and a count of any further conflicts beyond the first. The UI turns
-// this into the reason chip and the feedback strip sentence without reaching into
-// the raw conflict shape.
+// the leading blocking subject and section, the day and minute range for a time
+// conflict, and a count of any further conflicts beyond the leading one. The UI turns
+// this into the reason chip, the feedback strip sentence, and the catalog row reason
+// without reaching into the raw conflict shape. A time conflict leads whenever one
+// exists, because the placement engine lists conflicts per placed section, so an exam
+// clash with an earlier section would otherwise headline a row whose badge reads as a
+// time conflict.
 
 import type { DayOfWeek } from '../parsing/days';
 import type { DateRange } from '../domain/types';
@@ -25,11 +28,13 @@ export interface ConflictDescription {
   moreCount: number;
 }
 
-/** Describe the first conflict and how many follow it, or null when there are none. */
+/** Describe the leading conflict, the first time conflict when there is one and otherwise
+ * the first conflict, and how many others there are, or null when there are none. */
 export function describeConflicts(
   conflicts: ConflictDetail[],
 ): ConflictDescription | null {
-  const first = conflicts[0];
+  const first =
+    conflicts.find((conflict) => conflict.kind === 'time') ?? conflicts[0];
   if (first === undefined) {
     return null;
   }

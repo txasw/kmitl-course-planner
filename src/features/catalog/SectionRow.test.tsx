@@ -362,4 +362,21 @@ describe('SectionRow conflict badge and reason', () => {
     expect(reason).toHaveTextContent('13:00-15:00');
     expect(reason).toHaveTextContent('(+1)');
   });
+
+  it('names the time clash even when an earlier placed section clashes only in exams', () => {
+    const { placed, course, incoming } = examOverlapCourses();
+    // The exam only clash comes from the first placed section, so the engine lists it
+    // first; the reason must still lead with the time clash the badge announces.
+    const timeOnly = makeSection({
+      teachTableId: 'time-only',
+      subjectId: '90000099',
+      section: '902',
+      meetings: incoming.meetings,
+    });
+    renderAgainst([placed, timeOnly], course, incoming);
+    expect(screen.getByText('เวลาชนกัน')).toBeInTheDocument();
+    const reason = screen.getByText(/^ชนกับ/);
+    expect(reason).toHaveTextContent('90000099 กลุ่มเรียน 902');
+    expect(reason).toHaveTextContent('(+1)');
+  });
 });

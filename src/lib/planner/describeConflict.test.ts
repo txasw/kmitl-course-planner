@@ -62,4 +62,28 @@ describe('describeConflicts', () => {
     ];
     expect(describeConflicts(conflicts)?.moreCount).toBe(2);
   });
+
+  it('leads with a time conflict that follows an exam clash', () => {
+    const conflicts: ConflictDetail[] = [
+      {
+        kind: 'exam',
+        blocking,
+        examKind: 'midterm',
+        self: { start: '2026-08-21 09:00:00', end: '2026-08-21 12:00:00' },
+        other: { start: '2026-08-21 11:00:00', end: '2026-08-21 13:00:00' },
+      },
+      {
+        kind: 'time',
+        blocking: { ...blocking, subjectId: '90000002' },
+        day: 2,
+        startMin: 780,
+        endMin: 900,
+      },
+    ];
+    const description = describeConflicts(conflicts);
+    expect(description?.kind).toBe('time');
+    expect(description?.subjectId).toBe('90000002');
+    expect(description?.day).toBe(2);
+    expect(description?.moreCount).toBe(1);
+  });
 });
