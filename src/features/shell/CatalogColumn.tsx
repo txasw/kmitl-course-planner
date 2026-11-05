@@ -1,12 +1,13 @@
 // The catalog column of ADR-0048: the container header, the search head (the summary
 // bar over the folding search form), then the filter bar and the results in their own
-// scroller. The search head sits outside the results scroller, so the bar stays in view
-// while a long list scrolls and opening or closing the form never moves the list. While
-// a reopened form is taller than the room left, it scrolls in its own region above a
-// minimum of results. It mounts exactly once at every width and only its
-// container class follows the layout tier: docked beside the grid from the lg tier, or a
-// slide over left sheet below it. Switching a class on one element, rather than rendering
-// the catalog in two places, keeps a single drag surface per section and lets the drag
+// scroller. The container header also carries the plan suggestion action of ADR-0054
+// when the result is a curriculum search. The search head sits outside the results
+// scroller, so the bar stays in view while a long list scrolls and opening or closing the
+// form never moves the list. While a reopened form is taller than the room left, it
+// scrolls in its own region above a minimum of results. It mounts exactly once at every
+// width and only its container class follows the layout tier: docked beside the grid
+// from the lg tier, or a slide over left sheet below it. Switching a class on one
+// element, rather than rendering the catalog in two places, keeps a single drag surface per section and lets the drag
 // registration and the scroll offset survive a tier change. The closed sheet stays
 // mounted, so the session state of 6.1 is never dropped. The docked column can be hidden
 // to give the grid the full width; hidden, it leaves the flow but stays mounted, laid
@@ -26,6 +27,7 @@ import {
   selectBarVisible,
   selectFormOpen,
 } from '@/features/search/searchStore';
+import { SuggestAction } from '@/features/catalog/SuggestAction';
 import {
   isDockedTier,
   type DockedTier,
@@ -82,16 +84,19 @@ function SheetHeader() {
           {count} {t('catalog.units.course')}
         </span>
       )}
-      <button
-        type="button"
-        aria-label={t('catalog.sheet.close')}
-        onClick={() => {
-          setSheetOpen(false);
-        }}
-        className={`ml-auto inline-flex items-center justify-center rounded-kcp p-2 text-ink-soft transition-colors hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`}
-      >
-        <X size={18} strokeWidth={2} aria-hidden />
-      </button>
+      <div className="ml-auto flex items-center gap-1">
+        <SuggestAction />
+        <button
+          type="button"
+          aria-label={t('catalog.sheet.close')}
+          onClick={() => {
+            setSheetOpen(false);
+          }}
+          className={`inline-flex items-center justify-center rounded-kcp p-2 text-ink-soft transition-colors hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`}
+        >
+          <X size={18} strokeWidth={2} aria-hidden />
+        </button>
+      </div>
     </div>
   );
 }
@@ -117,6 +122,9 @@ function DockedHeader() {
         </span>
         {t('catalog.hide')}
       </button>
+      <div className="ml-auto">
+        <SuggestAction />
+      </div>
     </div>
   );
 }
