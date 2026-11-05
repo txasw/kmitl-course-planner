@@ -146,7 +146,7 @@ export function DayLanes({
                 <div
                   ref={ref}
                   {...triggerProps}
-                  className={`flex items-center justify-center text-[1.05em] font-medium ${
+                  className={`flex items-center justify-center text-[1.05em] font-semibold ${
                     dayAccent ? 'text-ink' : 'text-ink-soft'
                   } ${isPortrait ? 'border-b border-border' : 'border-t border-border'} ${alt}`}
                   style={{

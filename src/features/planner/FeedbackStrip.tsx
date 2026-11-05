@@ -66,7 +66,7 @@ function BlockedNotice({
                   dragStore.getState().clearBlocked();
                 }
               }}
-              className="rounded-kcp border border-border bg-surface px-2 py-0.5 font-medium text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              className="rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               {t('section.code')} {alternative.section}
               {alternative.meetings.length === 0
@@ -82,7 +82,7 @@ function BlockedNotice({
             catalogStore.getState().setText(blocked.section.subjectId);
             dragStore.getState().clearBlocked();
           }}
-          className="font-medium text-primary-strong underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className="text-primary-strong underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
           {t('feedback.revealInCatalog')}
         </button>
@@ -111,7 +111,7 @@ function CrossTermNotice({
           switchOrCreatePlanForTerm(feedback.browsedTerm);
           dragStore.getState().clearCrossTerm();
         }}
-        className="font-medium text-primary-strong underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        className="text-primary-strong underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
         {t('term.switch')}
       </button>

@@ -356,7 +356,7 @@ export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
         </PagerArrow>
       </div>
 
-      <p className="text-center text-xs font-medium text-ink-soft">{caption}</p>
+      <p className="text-center text-xs text-ink-soft">{caption}</p>
 
       <div
         ref={groupRef}

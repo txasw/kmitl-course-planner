@@ -333,7 +333,7 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
         ) : blockMove !== null ? (
           <DragCard section={blockMove.section} />
         ) : courseDrag !== null ? (
-          <div className="inline-flex items-center gap-1.5 rounded-kcp bg-ink px-2 py-1 text-xs font-medium text-surface shadow-kcp">
+          <div className="inline-flex items-center gap-1.5 rounded-kcp bg-ink px-2 py-1 text-xs font-semibold text-surface shadow-kcp">
             {courseDrag.course.subjectId}
           </div>
         ) : null}

@@ -140,7 +140,7 @@ export function BlockDetailPopover({
 
       {badge !== null && badgeText !== '' ? (
         <p
-          className={`mt-1 font-medium ${badge === 'danger' ? 'text-danger' : 'text-warn'}`}
+          className={`mt-1 font-semibold ${badge === 'danger' ? 'text-danger' : 'text-warn'}`}
         >
           {badgeText}
         </p>
@@ -165,7 +165,7 @@ export function BlockDetailPopover({
           aria-label={t('verify.examOverlap')}
           className="mt-2 flex flex-col gap-1 border-t border-border pt-2"
         >
-          <p className="font-medium text-danger">{t('verify.examOverlap')}</p>
+          <p className="font-semibold text-danger">{t('verify.examOverlap')}</p>
           {examOverlaps.map((overlap) => (
             <div
               key={`${overlap.kind}-${overlap.blocking.teachTableId}`}
@@ -198,7 +198,7 @@ export function BlockDetailPopover({
             onClick={() => {
               planStore.getState().acknowledge(teachTableId);
             }}
-            className="inline-flex items-center gap-1 rounded-kcp border border-border px-2 py-1 font-medium text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="inline-flex items-center gap-1 rounded-kcp border border-border px-2 py-1 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <Check size={12} aria-hidden />
             {t('block.acknowledge')}
@@ -210,7 +210,7 @@ export function BlockDetailPopover({
             onRemove(teachTableId);
             onClose();
           }}
-          className="inline-flex items-center gap-1 rounded-kcp border border-danger px-2 py-1 font-medium text-danger outline-none hover:bg-danger-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className="inline-flex items-center gap-1 rounded-kcp border border-danger px-2 py-1 text-danger outline-none hover:bg-danger-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
           <Trash2 size={12} aria-hidden />
           {t('action.remove')}
