@@ -1,6 +1,12 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { useState, type ComponentProps } from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  cleanup,
+  act,
+} from '@testing-library/react';
 import {
   DndContext,
   PointerSensor,
@@ -157,7 +163,6 @@ describe('CourseCard disclosure', () => {
     ).toHaveLength(1);
     fireEvent.click(toggle());
     expect(toggle()).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByText(/กลุ่มเรียน 901/)).not.toBeInTheDocument();
   });
 
   it('reports the next state and the placement to the catalog', () => {
@@ -183,6 +188,63 @@ describe('CourseCard disclosure', () => {
     );
     expect(title).toHaveClass('line-clamp-2', 'break-words');
     expect(title).toHaveTextContent(`90592008 ${course.nameTh}`);
+  });
+});
+
+describe('CourseCard disclosure motion', () => {
+  const course = makeCourse({
+    subjectId: '90592008',
+    sections: [makeSection({ teachTableId: 's1', subjectId: '90592008' })],
+  });
+
+  function body(): HTMLElement {
+    const node = document.querySelector<HTMLElement>('[data-course-body]');
+    if (node === null) throw new Error('expected the course body');
+    return node;
+  }
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it('enters through a transition stage', () => {
+    render(<Controlled course={course} placed={[]} locale="th" t={t} />);
+    fireEvent.click(toggle());
+    expect(body()).toHaveAttribute('data-stage', 'entering');
+    expect(body()).toHaveClass('kcp-disclosure');
+  });
+
+  it('opens with no transition stage under reduced motion', () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: true,
+      media: query,
+      onchange: null,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      dispatchEvent: () => false,
+    }));
+    render(<Controlled course={course} placed={[]} locale="th" t={t} />);
+    fireEvent.click(toggle());
+    expect(body()).toHaveAttribute('data-stage', 'open');
+    expect(body()).toBeVisible();
+  });
+
+  it('keeps the leaving rows inert, then unmounts them', () => {
+    vi.useFakeTimers();
+    render(
+      <Controlled initialOpen course={course} placed={[]} locale="th" t={t} />,
+    );
+    fireEvent.click(toggle());
+    expect(body()).toHaveAttribute('data-stage', 'leaving');
+    expect(body()).toHaveAttribute('inert');
+    expect(screen.getByText(/กลุ่มเรียน 901/)).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+    expect(body()).toHaveAttribute('data-stage', 'closed');
+    expect(body()).not.toHaveAttribute('inert');
+    expect(screen.queryByText(/กลุ่มเรียน 901/)).not.toBeInTheDocument();
   });
 });
 

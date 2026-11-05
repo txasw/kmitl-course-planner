@@ -18,8 +18,13 @@ import { DraggableSection } from './DraggableSection';
 import { SectionRow } from './SectionRow';
 import { RemoveButton, removeSectionName } from './RemoveButton';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { usePresence } from '@/features/shell/usePresence';
 
 const HEADER = 'flex items-start gap-1';
+
+// Matches the .kcp-disclosure open transition (--kcp-duration-base), so a closing
+// body unmounts its rows once the collapse has played.
+const DISCLOSURE_MS = 200;
 
 // The whole card header is a pointer drag source. Grabbing it previews every section of
 // the course as a candidate slot on the grid, and dnd-kit swallows the click that ends
@@ -106,6 +111,7 @@ function CourseCardComponent({
   // A cross term course cannot be added, so its header is no drag source; its rows
   // carry the different term state and a switch action instead.
   const draggable = !added && onAdd !== undefined && !isCrossTerm(term);
+  const { mounted, stage } = usePresence(open, DISCLOSURE_MS);
 
   // The title clamps to two lines and breaks inside a long Thai word rather than
   // cutting to one line, so the name stays readable without a tooltip, which could
@@ -180,43 +186,56 @@ function CourseCardComponent({
       ) : (
         <header className={HEADER}>{headerContent}</header>
       )}
-      <div id={bodyId} data-course-body hidden={!open}>
-        {open ? (
-          <div className="flex flex-col gap-1.5 pt-2">
-            {/* The full name repeats for the eye when the title clamps; the button
+      {/* The body stays in the tree so aria-controls always resolves. Its rows mount
+          only while it is open or animating, so a collapsed card registers no
+          section drag source, and a leaving body is inert so no stale row takes
+          focus. */}
+      <div
+        id={bodyId}
+        data-course-body
+        data-stage={stage}
+        hidden={!mounted}
+        inert={stage === 'leaving' || undefined}
+        className="kcp-disclosure"
+      >
+        <div>
+          {mounted ? (
+            <div className="flex flex-col gap-1.5 pt-2">
+              {/* The full name repeats for the eye when the title clamps; the button
                 already reads it, so it is hidden from assistive technology. */}
-            <p className="text-xs break-words">
-              <span aria-hidden className="text-ink">
-                {primary}
-              </span>
-              {hasSecondary ? (
-                <span lang={secondaryLang} className="ml-1 text-ink-soft">
-                  {secondary}
+              <p className="text-xs break-words">
+                <span aria-hidden className="text-ink">
+                  {primary}
                 </span>
-              ) : null}
-            </p>
-            {added ? (
-              <p className="text-xs text-ink-soft">
-                {t('catalog.card.addedHint')}
+                {hasSecondary ? (
+                  <span lang={secondaryLang} className="ml-1 text-ink-soft">
+                    {secondary}
+                  </span>
+                ) : null}
               </p>
-            ) : null}
-            {course.sections.map((section) => (
-              <CourseSection
-                key={section.teachTableId}
-                course={course}
-                section={section}
-                placed={placed}
-                locale={locale}
-                t={t}
-                term={term}
-                readOnly={added}
-                onAdd={onAdd}
-                onRemove={onRemove}
-                onSwitchTerm={onSwitchTerm}
-              />
-            ))}
-          </div>
-        ) : null}
+              {added ? (
+                <p className="text-xs text-ink-soft">
+                  {t('catalog.card.addedHint')}
+                </p>
+              ) : null}
+              {course.sections.map((section) => (
+                <CourseSection
+                  key={section.teachTableId}
+                  course={course}
+                  section={section}
+                  placed={placed}
+                  locale={locale}
+                  t={t}
+                  term={term}
+                  readOnly={added}
+                  onAdd={onAdd}
+                  onRemove={onRemove}
+                  onSwitchTerm={onSwitchTerm}
+                />
+              ))}
+            </div>
+          ) : null}
+        </div>
       </div>
     </article>
   );
