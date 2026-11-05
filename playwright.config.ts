@@ -14,6 +14,12 @@ import type { TestOptions } from './tests/e2e/support/fixtures';
 // context; a spec that needs another desktop size sets it with test.use.
 const DESKTOP = { width: 1440, height: 900 };
 
+// The phone and tablet projects load the debug build for locator access and run
+// only the specs named for them, so the desktop suite never repeats at small
+// sizes and a small screen spec never runs at desktop width. The suffixes are
+// disjoint from .debug.spec.ts, so no project needs an ignore list.
+const SMALL_SCREEN_SPECS = /\.(responsive|touch)\.spec\.ts$/;
+
 export default defineConfig<TestOptions>({
   testDir: './tests/e2e',
   fullyParallel: false,
@@ -37,6 +43,27 @@ export default defineConfig<TestOptions>({
       name: 'production',
       testMatch: /\.production\.spec\.ts$/,
       use: { extensionDir: '.output/chrome-mv3', viewport: DESKTOP },
+    },
+    {
+      name: 'phone',
+      testMatch: SMALL_SCREEN_SPECS,
+      use: {
+        extensionDir: '.output/chrome-mv3-debug',
+        viewport: { width: 390, height: 844 },
+        deviceScaleFactor: 3,
+        isMobile: true,
+        hasTouch: true,
+      },
+    },
+    {
+      name: 'tablet',
+      testMatch: SMALL_SCREEN_SPECS,
+      use: {
+        extensionDir: '.output/chrome-mv3-debug',
+        viewport: { width: 768, height: 1024 },
+        deviceScaleFactor: 2,
+        hasTouch: true,
+      },
     },
   ],
 });
