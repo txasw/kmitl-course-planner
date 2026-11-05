@@ -63,6 +63,13 @@ element stays a direct child of the one flat grid and stays aria hidden, as ADR-
 Stickiness applies in edit only and is off in the poster, so the capture rasterizes a flat grid. A
 16 px edge fade marks each side that has more content to scroll.
 
+As built, the quarter rules are grid items too, one per quarter between the hours in the fainter
+color, because a single gradient spanning every lane still rounded its stops a pixel apart from
+the grid tracks and doubled some rules. The stronger rule color is the `--kcp-grid-strong`
+token, shared by the hour rules and the sticky day column edge, which sits on the window start.
+The corner cell takes a sticky corner layer one step above the sticky layer, so both axes pass
+under it. The leading fades start just past the axes and their edge rules.
+
 Measured fit in edit. The measured density from ADR-0046 runs in edit as well, keyed on the window
 and the box size so it runs again on resize, and never during a drag, so the drag frame budget holds.
 The edit grid walks the ladder from ADR-0047, whose first rung is the subject id. Edit still
