@@ -45,3 +45,10 @@ export function computeRowStatus(
       return null;
   }
 }
+
+/** Whether the row announces a clash with the plan. A closed or full section that
+ * also clashes reads closed or full, so its conflict callout is suppressed with the
+ * badge: the section cannot be added by any path, and the clash would be noise. */
+export function isConflictStatus(status: RowStatus | null): boolean {
+  return status === 'time_conflict' || status === 'exam_clash';
+}
