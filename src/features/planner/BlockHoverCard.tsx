@@ -78,6 +78,15 @@ export function BlockHoverCard({
     [refs],
   );
 
+  // A section removed under the pointer, through the block's own remove control, takes its
+  // block away without a mouse leave, so close here. A card left open would otherwise come
+  // back on undo, anchored to the detached block and taking the pointer where it lands.
+  useEffect(() => {
+    if (entry === undefined) {
+      onClose();
+    }
+  }, [entry, onClose]);
+
   // Escape dismisses the card without closing the overlay, matched to the popover guard.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
