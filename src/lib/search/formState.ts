@@ -201,3 +201,14 @@ export function buildTeachTableQueryForTab(
 }
 
 export type { Semester };
+
+/** The term the given tab's form targets: its year and semester as they stand. */
+export function termForTab(tab: SearchTab, forms: SearchForms): Term {
+  const form =
+    tab === 'by_class'
+      ? forms.byClass
+      : tab === 'by_subject_id'
+        ? forms.bySubjectId
+        : forms.byCategory;
+  return { year: form.year, semester: form.semester };
+}
