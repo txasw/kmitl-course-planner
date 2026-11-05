@@ -148,7 +148,7 @@ describe('CourseCatalog', () => {
   it('filters the courses by free text', () => {
     render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
     expect(screen.getAllByRole('article')).toHaveLength(3);
-    fireEvent.change(screen.getByRole('searchbox', { name: 'ค้นหาในรายการ' }), {
+    fireEvent.change(screen.getByRole('searchbox', { name: 'กรองรายการ' }), {
       target: { value: '90592033' },
     });
     const cards = screen.getAllByRole('article');

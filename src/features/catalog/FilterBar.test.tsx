@@ -29,6 +29,23 @@ function openFilters() {
 }
 
 describe('FilterBar', () => {
+  it('names the text field by its visible label and keeps the hint as placeholder', () => {
+    render(<FilterBar creditOptions={[3, 4]} />);
+    const field = screen.getByLabelText('กรองรายการ');
+    expect(field).toBe(screen.getByRole('searchbox', { name: 'กรองรายการ' }));
+    expect(screen.getByText('กรองรายการ').tagName).toBe('LABEL');
+    expect(field).toHaveAttribute('placeholder', 'ค้นหาในรายการ');
+    fireEvent.change(field, { target: { value: '9059' } });
+    expect(catalogStore.getState().filter.text).toBe('9059');
+  });
+
+  it('draws the text field boundary with the form control token', () => {
+    render(<FilterBar creditOptions={[3, 4]} />);
+    const field = screen.getByLabelText('กรองรายการ');
+    expect(field).toHaveClass('border-border-strong');
+    expect(field).not.toHaveClass('border-border');
+  });
+
   it('renders the credit filter as a select only combobox in the popover', () => {
     render(<FilterBar creditOptions={[3, 4]} />);
     openFilters();
