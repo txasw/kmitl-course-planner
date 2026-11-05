@@ -23,11 +23,11 @@ import { RemoveButton, removeSectionName } from './RemoveButton';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import type { Term } from '@/lib/routing/academicTerms';
-import { formatMinutes } from '@/lib/parsing/time';
 import type { SeatStatus } from '@/lib/catalog/seatStatus';
 import type { SectionRelation } from '@/lib/planner/sectionState';
 import type { ConflictDetail } from '@/lib/planner/placement';
-import { dayLabelKey } from '@/lib/i18n/dayLabel';
+import { describeConflicts } from '@/lib/planner/describeConflict';
+import { conflictReasonText } from '@/features/planner/conflictText';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { Pill } from '@/components/Pill';
 import { SeatPill } from './SeatPill';
@@ -72,16 +72,6 @@ function StateBadge({
 
 function termLabel(term: Term): string {
   return `${term.semester}/${term.year}`;
-}
-
-function conflictReason(conflicts: ConflictDetail[], t: Translate): string {
-  const timeConflict = conflicts.find((conflict) => conflict.kind === 'time');
-  if (timeConflict === undefined) {
-    return t('section.badge.conflict');
-  }
-  const day = t(dayLabelKey(timeConflict.day));
-  const time = `${formatMinutes(timeConflict.startMin)}-${formatMinutes(timeConflict.endMin)}`;
-  return `${t('section.reason.conflictWith')} ${timeConflict.blocking.subjectId} ${t('section.code')} ${timeConflict.blocking.section} ${day} ${time}`;
 }
 
 interface SectionRowProps {
@@ -242,9 +232,7 @@ export function SectionRow({
         ) : null}
 
         {!readOnly && relation.kind === 'conflicting' ? (
-          <p className="mt-1 text-danger">
-            {conflictReason(relation.conflicts, t)}
-          </p>
+          <ConflictReason conflicts={relation.conflicts} t={t} />
         ) : null}
         {!readOnly && relation.kind === 'duplicate' ? (
           <p className="mt-1 text-warn">{t('section.reason.duplicate')}</p>
@@ -267,6 +255,25 @@ export function SectionRow({
         <DisabledRail label={addLabel} />
       ) : null}
     </div>
+  );
+}
+
+// The reason line goes through the same conflictText funnel as the reason chip and the
+// feedback strip, so a catalog row names a time or exam clash, its blocking section, and
+// the count of further conflicts in the same words a drag would use.
+function ConflictReason({
+  conflicts,
+  t,
+}: {
+  conflicts: ConflictDetail[];
+  t: Translate;
+}) {
+  const description = describeConflicts(conflicts);
+  if (description === null) {
+    return null;
+  }
+  return (
+    <p className="mt-1 text-danger">{conflictReasonText(description, t)}</p>
   );
 }
 
