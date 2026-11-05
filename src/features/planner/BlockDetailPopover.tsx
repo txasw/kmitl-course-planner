@@ -7,19 +7,15 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useStore } from 'zustand';
 import { Check, Trash2, X } from 'lucide-react';
-import {
-  autoUpdate,
-  flip,
-  offset,
-  shift,
-  useDismiss,
-  useFloating,
-  useInteractions,
-} from '@floating-ui/react';
+import { useDismiss, useInteractions } from '@floating-ui/react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { ExamOverlap } from '@/lib/planner/examOverlap';
 import { planStore } from '@/features/plans/planStore';
 import { useActiveRun } from '@/features/plans/revalidationStore';
+import {
+  PANEL_POPOVER_SCROLL,
+  usePanelPopover,
+} from '@/features/shell/usePanelPopover';
 import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 import { describeEntryDiff } from './describeEntryDiff';
 import { formatExamRange } from './examText';
@@ -51,18 +47,16 @@ export function BlockDetailPopover({
 
   const entry = entries.find((item) => item.teachTableId === teachTableId);
 
-  const { refs, floatingStyles, context } = useFloating({
+  const { refs, floatingStyles, context } = usePanelPopover({
+    gap: 6,
     open: true,
     onOpenChange: (next) => {
       if (!next) {
         onClose();
       }
     },
-    strategy: 'fixed',
     placement: 'right-start',
-    middleware: [offset(6), flip({ padding: 8 }), shift({ padding: 8 })],
     elements: { reference: anchor },
-    whileElementsMounted: autoUpdate,
   });
   const { getFloatingProps } = useInteractions([useDismiss(context)]);
   const setFloating = useCallback(
@@ -125,7 +119,7 @@ export function BlockDetailPopover({
       tabIndex={-1}
       style={floatingStyles}
       {...getFloatingProps()}
-      className="z-popover w-72 rounded-kcp border border-border bg-surface p-3 text-xs text-ink shadow-kcp outline-none"
+      className={`z-popover w-72 ${PANEL_POPOVER_SCROLL} rounded-kcp border border-border bg-surface p-3 text-xs text-ink shadow-kcp outline-none`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">

@@ -7,18 +7,14 @@
 // planner grid has no transformed ancestor, so it needs no portal.
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import {
-  autoUpdate,
-  flip,
-  offset,
-  shift,
-  useDismiss,
-  useFloating,
-  useInteractions,
-} from '@floating-ui/react';
+import { useDismiss, useInteractions } from '@floating-ui/react';
 import { Info, Trash2 } from 'lucide-react';
 import type { Translate } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import {
+  PANEL_POPOVER_SCROLL,
+  usePanelPopover,
+} from '@/features/shell/usePanelPopover';
 
 interface BlockContextMenuProps {
   teachTableId: string;
@@ -55,17 +51,15 @@ export function BlockContextMenu({
     [x, y],
   );
 
-  const { refs, floatingStyles, context } = useFloating({
+  const { refs, floatingStyles, context } = usePanelPopover({
+    gap: 4,
     open: true,
     onOpenChange: (open) => {
       if (!open) {
         onClose();
       }
     },
-    strategy: 'fixed',
     placement: 'right-start',
-    middleware: [offset(4), flip({ padding: 8 }), shift({ padding: 8 })],
-    whileElementsMounted: autoUpdate,
   });
 
   // A virtual reference at the pointer, set after render so the ref is not read during it.
@@ -117,7 +111,7 @@ export function BlockContextMenu({
       onContextMenu={(event) => {
         event.preventDefault();
       }}
-      className="z-popover min-w-36 rounded-kcp border border-border bg-surface py-1 text-sm shadow-kcp"
+      className={`z-popover min-w-36 ${PANEL_POPOVER_SCROLL} rounded-kcp border border-border bg-surface py-1 text-sm shadow-kcp`}
       {...getFloatingProps()}
     >
       <button

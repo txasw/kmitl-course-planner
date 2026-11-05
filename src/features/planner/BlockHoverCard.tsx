@@ -9,20 +9,17 @@
 // differently at a glance.
 
 import { useCallback, useEffect } from 'react';
-import {
-  FloatingPortal,
-  autoUpdate,
-  flip,
-  offset,
-  shift,
-  useFloating,
-} from '@floating-ui/react';
+import { FloatingPortal } from '@floating-ui/react';
 import { useStore } from 'zustand';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
 import { formatMinutes } from '@/lib/parsing/time';
 import { planStore } from '@/features/plans/planStore';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
+import {
+  PANEL_POPOVER_SCROLL,
+  usePanelPopover,
+} from '@/features/shell/usePanelPopover';
 import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 import { formatExamRange } from './examText';
 import type { ExamOverlap } from '@/lib/planner/examOverlap';
@@ -49,12 +46,10 @@ export function BlockHoverCard({
   const portalRoot = usePanelPortal();
   const entry = entries.find((item) => item.teachTableId === teachTableId);
 
-  const { refs, floatingStyles } = useFloating({
-    strategy: 'fixed',
+  const { refs, floatingStyles } = usePanelPopover({
+    gap: 8,
     placement: 'right-start',
-    middleware: [offset(8), flip({ padding: 8 }), shift({ padding: 8 })],
     elements: { reference: anchor },
-    whileElementsMounted: autoUpdate,
   });
   const setFloating = useCallback(
     (node: HTMLDivElement | null) => {
@@ -104,7 +99,7 @@ export function BlockHoverCard({
       ref={setFloating}
       style={floatingStyles}
       role="tooltip"
-      className="pointer-events-none z-popover flex w-64 flex-col gap-1 rounded-kcp border border-l-2 border-border border-l-primary bg-surface p-2.5 text-xs shadow-kcp"
+      className={`pointer-events-none z-popover flex w-64 ${PANEL_POPOVER_SCROLL} flex-col gap-1 rounded-kcp border border-l-2 border-border border-l-primary bg-surface p-2.5 text-xs shadow-kcp`}
     >
       <p className="font-semibold text-ink">
         <span>{snapshot.subjectId}</span> {name}
