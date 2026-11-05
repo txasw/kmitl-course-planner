@@ -192,6 +192,68 @@ describe('SectionRow actions', () => {
   });
 });
 
+describe('SectionRow de-emphasis', () => {
+  // The row root is the bordered container the component renders first.
+  function rowRoot(container: HTMLElement): Element {
+    const root = container.firstElementChild;
+    if (root === null) {
+      throw new Error('expected the section row root');
+    }
+    return root;
+  }
+
+  it('mutes a duplicate row with the surface alt fill instead of opacity', () => {
+    const { container } = render(
+      <SectionRow
+        course={course}
+        section={section}
+        relation={{ kind: 'duplicate', subjectId: '90000001' }}
+        seat={openSeat}
+        locale="th"
+        t={t}
+      />,
+    );
+    const root = rowRoot(container);
+    expect(root).toHaveClass('bg-surface-alt');
+    expect(root.className).not.toMatch(/\bopacity-/);
+  });
+
+  it('mutes a different term row without fading its switch action', () => {
+    const { container } = render(
+      <SectionRow
+        course={course}
+        section={section}
+        relation={{
+          kind: 'different_term',
+          planTerm: { year: '2569', semester: '1' },
+          browsedTerm: { year: '2569', semester: '2' },
+        }}
+        seat={openSeat}
+        locale="th"
+        t={t}
+        onSwitchTerm={vi.fn()}
+      />,
+    );
+    const root = rowRoot(container);
+    expect(root).toHaveClass('bg-surface-alt');
+    expect(container.querySelector('[class*="opacity-70"]')).toBeNull();
+  });
+
+  it('keeps an addable row on the card surface', () => {
+    const { container } = render(
+      <SectionRow
+        course={course}
+        section={section}
+        relation={{ kind: 'addable' }}
+        seat={openSeat}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(rowRoot(container)).not.toHaveClass('bg-surface-alt');
+  });
+});
+
 describe('SectionRow density and read only', () => {
   it('lists every meeting of a multi meeting section', () => {
     // A section can meet more than once, with the extra periods parsed from
