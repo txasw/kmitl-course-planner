@@ -57,6 +57,11 @@ async function performGesture(page: Page, gesture: Gesture): Promise<void> {
   }
 }
 
+/** Touch one point and lift at once, as a tap does. */
+export async function tap(page: Page, point: Point): Promise<void> {
+  await performGesture(page, { from: point, to: point, holdMs: 0, steps: 0 });
+}
+
 /** Press and hold one point without moving, then lift. */
 export async function longPress(
   page: Page,
