@@ -3,6 +3,7 @@ import { createBrowserStorageAdapter } from '@/lib/storage/browserAdapter';
 import { createCacheStore } from '@/lib/api/cache';
 import { createDefaultEnv, createGateway } from '@/lib/api/gateway';
 import {
+  currentTermEndpoint,
   curriculumEndpoint,
   departmentEndpoint,
   facultyEndpoint,
@@ -30,6 +31,8 @@ export default defineBackground(() => {
       gateway.reference(curriculumEndpoint, message.refresh),
     'ref/subjectOwner': (message) =>
       gateway.reference(subjectOwnerEndpoint, message.refresh),
+    'ref/currentTerm': (message) =>
+      gateway.reference(currentTermEndpoint, message.refresh),
     'teachTable/query': (message) =>
       gateway.teachTable(message.query, message.refresh),
     'teachTable/cancel': (message) => {

@@ -2,7 +2,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { createGateway } from './gateway';
 import { createCacheStore } from './cache';
-import { facultyEndpoint, type ReferenceEndpoint } from './endpoints';
+import {
+  currentTermEndpoint,
+  facultyEndpoint,
+  type ReferenceEndpoint,
+} from './endpoints';
 import {
   resetInterceptors,
   setAudit,
@@ -297,6 +301,60 @@ describe('createGateway', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     clock = TEACH_TABLE_TTL_MS;
     await gateway.teachTable(ownerQuery);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('current term route', () => {
+  const capture = loadFixture('year-semester-now.capture.json');
+
+  it('fetches the regis endpoint once and serves repeats from cache', async () => {
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(okResponse(capture));
+    const gateway = createGateway({
+      cache: newCache(),
+      env: makeEnv(fetchImpl),
+    });
+    const first = await gateway.reference(currentTermEndpoint);
+    const second = await gateway.reference(currentTermEndpoint);
+    expect(fetchImpl).toHaveBeenCalledOnce();
+    expect(fetchImpl.mock.calls[0]?.[0]).toBe(currentTermEndpoint.url);
+    expect(first).toEqual(second);
+    expect(first.ok && first.value.SEMESTER).toBe('1');
+  });
+
+  it('re-validates a storage hit after a worker restart', async () => {
+    const adapter = fakeAdapter();
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(okResponse(capture));
+    await createGateway({
+      cache: createCacheStore(adapter),
+      env: makeEnv(fetchImpl),
+    }).reference(currentTermEndpoint);
+    const revived = await createGateway({
+      cache: createCacheStore(adapter),
+      env: makeEnv(fetchImpl),
+    }).reference(currentTermEndpoint);
+    expect(fetchImpl).toHaveBeenCalledOnce();
+    expect(revived.ok && revived.value.YEAR).toBe('2569');
+  });
+
+  it('surfaces an out of range semester as a validation error, uncached', async () => {
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(okResponse({ YEAR: '2569', SEMESTER: '9' }));
+    const gateway = createGateway({
+      cache: newCache(),
+      env: makeEnv(fetchImpl),
+    });
+    const result = await gateway.reference(currentTermEndpoint);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.kind).toBe('validation');
+    }
+    await gateway.reference(currentTermEndpoint);
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
 });
