@@ -7,7 +7,7 @@ import { SubjectIdInput, TermFields } from './fields';
 afterEach(cleanup);
 
 // A controlled harness so the input reflects the sanitized value the way it does in the
-// search rail, which is what a composition end reads back.
+// search form, which is what a composition end reads back.
 function Harness({
   onChange,
   onSubmit,

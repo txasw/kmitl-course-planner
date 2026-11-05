@@ -26,10 +26,12 @@ test('renders the deduped catalog for a category search', async ({
   await pickOption(page, 'หมวดวิชา', '90592xxx');
   await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
 
-  // The catalog renders in both the dominant column and the collapsed drawer, so
-  // the first match is the visible column.
-  await expect(page.getByText('90592033').first()).toBeVisible({
+  // The catalog mounts once, so each subject and the summary match exactly one
+  // node. Both sections of 90592033 are full and are no drag source, so the two
+  // open sections register exactly one drag surface each.
+  await expect(page.getByText('90592033', { exact: true })).toBeVisible({
     timeout: 15_000,
   });
-  await expect(page.getByText('4 กลุ่มเรียน').first()).toBeVisible();
+  await expect(page.getByText('4 กลุ่มเรียน')).toBeVisible();
+  await expect(page.locator('[data-drag-surface="section"]')).toHaveCount(2);
 });

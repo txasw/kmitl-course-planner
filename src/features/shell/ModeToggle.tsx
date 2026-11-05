@@ -4,7 +4,7 @@ import { uiStore, type ViewMode } from './uiStore';
 import { useTranslation } from './useTranslation';
 
 // The edit and preview mode toggle. It writes the mode to the ui store; the App
-// persists it. Edit enables every mutation path; preview collapses the rails into
+// persists it. Edit enables every mutation path; preview collapses the catalog column into
 // a clean poster composition for sharing.
 export function ModeToggle() {
   const viewMode = useStore(uiStore, (state) => state.viewMode);

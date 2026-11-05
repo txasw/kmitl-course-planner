@@ -1,16 +1,15 @@
 // A reusable searchable combobox with the WAI ARIA combobox and listbox popup
 // pattern. Curriculum and faculty lists are long, so type to filter is a
 // usability need, not polish. It carries full keyboard support and its own design
-// token styling, and it is the single select primitive the search rail uses. The
+// token styling, and it is the single select primitive the search form uses. The
 // popup is positioned with floating-ui: a fixed strategy escapes the scrolling
-// rail's clip, flip drops it above when space below is short, and size caps its
-// height to the viewport with internal scrolling.
+// catalog column's clip, flip drops it above when space below is short, and size
+// caps its height to the viewport with internal scrolling.
 //
 // The fixed strategy resolves against the viewport only while no ancestor
-// establishes a containing block for fixed elements. The rail has none, so this
-// holds today. If a combobox is ever placed inside a transformed ancestor, such
-// as the slide over catalog drawer, wrap the popup in a floating-ui portal so it
-// stays clip free regardless of ancestor transforms.
+// establishes a containing block for fixed elements. The catalog sheet's
+// translate-x transform is such an ancestor, so the popup renders through a
+// floating-ui portal into the panel node and stays clip free in every container.
 
 import { useCallback, useId, useMemo, useState } from 'react';
 import {

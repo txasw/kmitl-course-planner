@@ -29,7 +29,7 @@ export function Overlay() {
   const { t, language } = useTranslation();
   const panelRef = useRef<HTMLDivElement | null>(null);
   // Track the panel node in state as well, so the portal context updates once the node
-  // mounts and floating-ui popups inside the transformed drawer can render into it.
+  // mounts and floating-ui popups inside the transformed sheet can render into it.
   const [panelNode, setPanelNode] = useState<HTMLDivElement | null>(null);
   const attachPanel = useCallback((node: HTMLDivElement | null) => {
     panelRef.current = node;

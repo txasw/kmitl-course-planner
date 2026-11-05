@@ -3,7 +3,7 @@
 // its own content (safePolygon) so the content is hoverable, and dismisses on
 // Escape without closing the overlay. It positions with floating-ui like the other
 // panel popups, a fixed strategy that flips and shifts within the panel, and
-// portals into the shadow root overlay node so a transformed drawer never clips or
+// portals into the shadow root overlay node so a transformed sheet never clips or
 // mispositions it. It appears without motion, so there is no reduced motion path.
 //
 // The trigger is a render prop so the caller attaches the reference ref through a
@@ -127,7 +127,7 @@ export function Tooltip({ label, placement = 'top', children }: TooltipProps) {
   return (
     <>
       {children(getReferenceProps(), setReference)}
-      {/* Portal into the shadow root overlay node so a transformed drawer cannot
+      {/* Portal into the shadow root overlay node so a transformed sheet cannot
           clip the tooltip. With no portal node, such as in tests, render inline. */}
       {portalRoot === null ? (
         content
