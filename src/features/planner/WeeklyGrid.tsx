@@ -3,9 +3,11 @@
 // columns and time flowing down as rows, so a tall export canvas fills top to bottom
 // rather than a thin band (ADR, orientation is a template property). Every block position
 // derives from minutes through the grid geometry, never from pixels: a meeting maps to
-// grid lines and its day track. GridAxis draws the hour labels and the stronger rules, and
-// DayLanes draws the day labels, the gridline lanes, and the placed blocks. The poster font
-// size scales the whole grid per template.
+// grid lines and its day track. GridAxis draws the hour labels and the stronger rules,
+// DayLanes draws the day labels, the gridline lanes, and the placed blocks, and
+// CandidateLayer draws the edit mode drag feedback over them. This component owns the grid
+// template and the hover detail card. The poster font size scales the whole grid per
+// template.
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, MouseEvent } from 'react';
@@ -15,18 +17,14 @@ import type { Locale, Translate } from '@/lib/i18n/t';
 import { WEEK_DAYS, type DayOfWeek } from '@/lib/parsing/days';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
 import { quarterCount, type GridWindow } from '@/lib/planner/grid';
-import { candidateFootprints } from '@/lib/planner/candidateLayout';
 import { dragStore } from './dragStore';
 import { BlockHoverCard } from './BlockHoverCard';
-import { CandidateSlot } from './CandidateSlot';
+import { CandidateLayer } from './CandidateLayer';
 import { DayLanes } from './DayLanes';
 import { GridAxis } from './GridAxis';
-import { SwapTarget } from './SwapTarget';
 import type { PlacedSection } from './placedSection';
-import { blockStyle, type Orientation } from './gridGeometry';
+import type { Orientation } from './gridGeometry';
 
-const MAX_STACK_OFFSET = 4;
-const STACK_STEP_PX = 5;
 const HOVER_DELAY_MS = 400;
 
 function gridTemplate(
@@ -114,11 +112,6 @@ export function WeeklyGrid({
   const isPortrait = orientation === 'portrait';
 
   const active = useStore(dragStore, (state) => state.active);
-  const hover = useStore(dragStore, (state) => state.hover);
-  const courseDrag = useStore(dragStore, (state) => state.courseDrag);
-  const blockMove = useStore(dragStore, (state) => state.blockMove);
-  const raised = useStore(dragStore, (state) => state.raised);
-  const swapContext = useStore(dragStore, (state) => state.swapContext);
   const blocked = active !== null && !active.placement.ok;
 
   // The hover detail card: after a short delay on a hovered block, open a read-only card
@@ -163,10 +156,7 @@ export function WeeklyGrid({
       setHoverDetail(null);
     }
   }
-  const swapBlockers =
-    swapContext === null ? new Set<string>() : new Set(swapContext.blockers);
-  // Candidate slots come from a course drag or a block move, whichever is active.
-  const candidates = courseDrag?.candidates ?? blockMove?.candidates ?? null;
+
   return (
     <div
       role="group"
@@ -196,75 +186,14 @@ export function WeeklyGrid({
         fontPx={fontPx}
       />
 
-      {editable && active !== null
-        ? active.group.flatMap((groupSection) =>
-            groupSection.meetings.map((meeting) => (
-              <div
-                key={`ghost-${groupSection.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`}
-                aria-hidden
-                data-ghost={active.placement.ok ? 'valid' : 'blocked'}
-                className={`pointer-events-none m-px rounded-kcp border ${
-                  active.placement.ok
-                    ? 'border-success bg-success-soft'
-                    : 'kcp-hatch border-danger bg-danger-soft'
-                }`}
-                style={blockStyle(meeting, window, days, orientation)}
-              />
-            )),
-          )
-        : null}
-
-      {editable && active === null && hover !== null
-        ? hover.meetings.map((meeting) => (
-            <div
-              key={`hover-${String(meeting.day)}-${String(meeting.startMin)}`}
-              aria-hidden
-              data-ghost="hover"
-              className="pointer-events-none m-px rounded-kcp border border-dashed border-ink-soft"
-              style={blockStyle(meeting, window, days, orientation)}
-            />
-          ))
-        : null}
-
-      {editable && candidates !== null
-        ? candidateFootprints(candidates, window).map((footprint) => {
-            const offset =
-              Math.min(footprint.stack, MAX_STACK_OFFSET) * STACK_STEP_PX;
-            const id = `cand-${footprint.candidate.section.teachTableId}-${String(footprint.meeting.day)}-${String(footprint.meeting.startMin)}`;
-            return (
-              <CandidateSlot
-                key={id}
-                id={id}
-                candidate={footprint.candidate}
-                raised={footprint.candidate.section.teachTableId === raised}
-                style={{
-                  ...blockStyle(footprint.meeting, window, days, orientation),
-                  marginLeft: `${String(offset)}px`,
-                  marginTop: `${String(offset)}px`,
-                }}
-              />
-            );
-          })
-        : null}
-
-      {editable && swapContext !== null
-        ? sections
-            .filter((section) => swapBlockers.has(section.teachTableId))
-            .flatMap((section) =>
-              section.meetings.map((meeting) => {
-                const id = `swap-${section.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`;
-                return (
-                  <SwapTarget
-                    key={id}
-                    id={id}
-                    blockerTeachTableId={section.teachTableId}
-                    incomingLabel={swapContext.incoming.section}
-                    style={blockStyle(meeting, window, days, orientation)}
-                  />
-                );
-              }),
-            )
-        : null}
+      {editable ? (
+        <CandidateLayer
+          sections={sections}
+          window={window}
+          days={days}
+          orientation={orientation}
+        />
+      ) : null}
 
       {editable && active === null && !detailOpen && hoverDetail !== null ? (
         <BlockHoverCard
