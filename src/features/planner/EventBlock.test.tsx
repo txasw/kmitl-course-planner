@@ -24,6 +24,7 @@ const section: PlacedSection = {
   meetings: [],
   rulesTh: '',
   rulesEn: '',
+  remark: '',
   verifyStatus: 'unverified',
 };
 

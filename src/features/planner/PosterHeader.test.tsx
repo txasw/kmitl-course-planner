@@ -18,6 +18,7 @@ const sections: PlacedSection[] = [
     meetings: [],
     rulesTh: '',
     rulesEn: '',
+    remark: '',
     verifyStatus: 'unverified',
   },
   {
@@ -31,6 +32,7 @@ const sections: PlacedSection[] = [
     meetings: [],
     rulesTh: '',
     rulesEn: '',
+    remark: '',
     verifyStatus: 'unverified',
   },
 ];
