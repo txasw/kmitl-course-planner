@@ -4,9 +4,9 @@
 // keeps its badge, which reads as an exam clash when every conflict is an exam
 // overlap, and its reason but stays actionable: its add button routes to the blocked
 // feedback strip instead of being disabled, so a keyboard user gets the same reason
-// and alternatives a drag would give. A duplicate reads dimmed with its reason. When
-// handlers are supplied the row offers an add button for an addable or conflicting
-// open section and a remove button for an added one.
+// and alternatives a drag would give. A duplicate reads on a muted surface with its
+// reason. When handlers are supplied the row offers an add button for an addable or
+// conflicting open section and a remove button for an added one.
 
 import { useState } from 'react';
 import {
@@ -107,6 +107,10 @@ export function SectionRow({
 }: SectionRowProps) {
   const kind = section.kind;
   const teachers = locale === 'th' ? section.teachersTh : section.teachersEn;
+  // A duplicate subject or different term row de-emphasizes with the muted surface
+  // while its text keeps the ink and ink soft tokens, the treatment the collapsed
+  // added course card uses. Opacity would composite every child, dropping the reason
+  // text and the switch term action below AA (ADR-0051).
   const dimmed =
     relation.kind === 'duplicate' || relation.kind === 'different_term';
   // The add affordance is a full height rail on the trailing edge rather than a
@@ -122,7 +126,7 @@ export function SectionRow({
   return (
     <div
       className={`flex items-stretch overflow-hidden rounded-kcp border border-border text-xs ${
-        dimmed ? 'opacity-70' : ''
+        dimmed ? 'bg-surface-alt' : ''
       }`}
     >
       <div className="@container min-w-0 flex-1 p-2">
