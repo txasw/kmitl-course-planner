@@ -84,14 +84,15 @@ export function PlannerPanel() {
     () => scheduled.flatMap((section) => section.meetings),
     [scheduled],
   );
-  // The edit window covers the placed meetings and every meeting in the current catalog
+  // The edit frame covers the placed meetings and every meeting in the current catalog
   // result, so a hovered row, a dragged section, and every candidate slot already sit
-  // inside it and the grid never reflows while the student browses (ADR-0050).
+  // inside it and the grid never reflows while the student browses. Weekend rows show
+  // only when one of those meetings needs them (ADR-0050).
   const offered = useMemo(
     () => catalogMeetings(catalogResult),
     [catalogResult],
   );
-  const window = useMemo(
+  const frame = useMemo(
     () => editWindow(scheduledMeetings, offered),
     [scheduledMeetings, offered],
   );
@@ -221,7 +222,8 @@ export function PlannerPanel() {
           <div className="relative min-h-0 flex-1 overflow-auto kcp-scroll">
             <WeeklyGrid
               sections={scheduled}
-              window={window}
+              window={frame.window}
+              days={frame.days}
               locale={language}
               t={t}
               editable

@@ -10,6 +10,7 @@ import { planStore } from '@/features/plans/planStore';
 import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
 import type { PlanEntry } from '@/lib/domain/plan';
+import type { Meeting } from '@/lib/domain/types';
 import {
   makeCourse,
   makeMeeting,
@@ -38,19 +39,19 @@ function seed(entries: PlanEntry[]): void {
   });
 }
 
-/** Load a catalog result with one evening section nothing has placed. */
-function seedEveningCatalog(): void {
-  const evening = makeSection({
+/** Load a catalog result with one section nothing has placed. */
+function seedCatalog(meeting: Meeting): void {
+  const offered = makeSection({
     teachTableId: 'c1',
     subjectId: '90000003',
-    meetings: [makeMeeting({ day: 3, startMin: 1140, endMin: 1230 })],
+    meetings: [meeting],
   });
   act(() => {
     searchStore.setState({
       result: {
         status: 'ready',
         data: {
-          courses: [makeCourse({ subjectId: '90000003', sections: [evening] })],
+          courses: [makeCourse({ subjectId: '90000003', sections: [offered] })],
           duplicateCount: 0,
           multiMeetingCount: 0,
           warnings: [],
@@ -116,11 +117,26 @@ describe('PlannerPanel', () => {
   });
 
   it('widens the edit window to cover an evening catalog section', () => {
-    seedEveningCatalog();
+    seedCatalog(makeMeeting({ day: 3, startMin: 1140, endMin: 1230 }));
     renderPanel();
     // 19:00 to 20:30 in the catalog closes the window at 21:00, so 20:00 is labelled.
     expect(screen.getByText('20:00')).toBeInTheDocument();
     expect(screen.queryByText('21:00')).not.toBeInTheDocument();
+  });
+
+  it('hides the empty weekend rows in edit', () => {
+    renderPanel();
+    expect(screen.getByLabelText('วันจันทร์')).toBeInTheDocument();
+    expect(screen.getByLabelText('วันศุกร์')).toBeInTheDocument();
+    expect(screen.queryByLabelText('วันเสาร์')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('วันอาทิตย์')).not.toBeInTheDocument();
+  });
+
+  it('reveals the weekend rows for a Saturday catalog section', () => {
+    seedCatalog(makeMeeting({ day: 6, startMin: 540, endMin: 720 }));
+    renderPanel();
+    expect(screen.getByLabelText('วันเสาร์')).toBeInTheDocument();
+    expect(screen.getByLabelText('วันอาทิตย์')).toBeInTheDocument();
   });
 
   it('opens a block detail popover in edit mode and clears it in preview', () => {

@@ -153,18 +153,29 @@ export function smartVisibleDays(meetings: Meeting[]): DayOfWeek[] {
   return days;
 }
 
+/** The time window and the day rows a grid renders. */
+export interface GridFrame {
+  window: GridWindow;
+  days: DayOfWeek[];
+}
+
 /**
- * The edit grid window: the smart window over the placed meetings and every meeting in the
- * current catalog result (ADR-0050). Every candidate a section drag, a course drag, or a block
- * move can paint is a catalog section, so the window already covers it and a hover or a drag
- * never reflows the grid. With no catalog result it covers the placed meetings alone, starting
- * from the 08:00 to 18:00 working day.
+ * The edit grid frame: the smart window and the smart day run over the placed meetings and
+ * every meeting in the current catalog result (ADR-0050). Every candidate a section drag, a
+ * course drag, or a block move can paint is a catalog section, so the frame already covers
+ * it and a hover or a drag never reflows the grid. Saturday and Sunday rows stay hidden
+ * unless a placed or catalog meeting needs them. With no catalog result it covers the placed
+ * meetings alone, starting from the 08:00 to 18:00 working day, Monday to Friday.
  */
 export function editWindow(
   placed: readonly Meeting[],
   catalog: readonly Meeting[],
-): GridWindow {
-  return computeSmartWindow([...placed, ...catalog]);
+): GridFrame {
+  const meetings = [...placed, ...catalog];
+  return {
+    window: computeSmartWindow(meetings),
+    days: smartVisibleDays(meetings),
+  };
 }
 
 /** The number of quarter columns the window spans. */
