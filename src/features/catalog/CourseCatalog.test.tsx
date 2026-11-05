@@ -160,7 +160,7 @@ describe('CourseCatalog', () => {
     render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
     const addButton = screen
       .getAllByRole('button', { name: /^เพิ่ม/ })
-      .find((button) => !button.hasAttribute('disabled'));
+      .find((button) => button.getAttribute('aria-disabled') !== 'true');
     if (addButton) {
       fireEvent.click(addButton);
     }
@@ -203,7 +203,7 @@ describe('CourseCatalog', () => {
     );
     const addButton = screen
       .getAllByRole('button', { name: /^เพิ่ม/ })
-      .find((button) => !button.hasAttribute('disabled'));
+      .find((button) => button.getAttribute('aria-disabled') !== 'true');
     if (addButton) {
       fireEvent.click(addButton);
     }
@@ -215,7 +215,7 @@ describe('CourseCatalog', () => {
     render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
     const addButton = screen
       .getAllByRole('button', { name: /^เพิ่ม/ })
-      .find((button) => !button.hasAttribute('disabled'));
+      .find((button) => button.getAttribute('aria-disabled') !== 'true');
     if (addButton) {
       fireEvent.click(addButton);
     }
@@ -235,7 +235,7 @@ describe('CourseCatalog', () => {
     const addRails = screen.getAllByRole('button', { name: /^เพิ่ม/ });
     expect(addRails.length).toBeGreaterThan(0);
     for (const rail of addRails) {
-      expect(rail).toBeDisabled();
+      expect(rail).toHaveAttribute('aria-disabled', 'true');
     }
     // The switch action creates a plan for the browsed term.
     const [switchButton] = screen.getAllByRole('button', {
