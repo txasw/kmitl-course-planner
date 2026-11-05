@@ -9,7 +9,7 @@ import { isUnscheduledRow, parseTeachDay } from '../parsing/days';
 import { parseTimeToMinutes } from '../parsing/time';
 import { parseTeachTimeStr } from '../parsing/teachTimeStr';
 import { isExamDateTime } from '../parsing/examDateTime';
-import { sanitizeToLines } from '../parsing/sanitize';
+import { sanitizeTextToLines, sanitizeToLines } from '../parsing/sanitize';
 import { ok, type Result, type ValidationError } from '../utils/result';
 import {
   validate,
@@ -101,6 +101,21 @@ function pickRoom(row: RawSectionRow): string {
 
 function pickBuilding(row: RawSectionRow): string {
   return row.building_no ?? row.classbuilding ?? '';
+}
+
+// The remark is unaudited free text that reaches the catalog, the block popover, and
+// every stored snapshot, so it is clamped once here. The longest remark in the captures
+// is about 400 characters, so the bound only cuts a runaway value.
+export const REMARK_MAX_LENGTH = 1000;
+const CLAMP_MARKER = '...';
+
+function toRemark(raw: string): string {
+  const text = sanitizeTextToLines(raw).join('\n');
+  if (text.length <= REMARK_MAX_LENGTH) {
+    return text;
+  }
+  const kept = text.slice(0, REMARK_MAX_LENGTH - CLAMP_MARKER.length);
+  return `${kept.trimEnd()}${CLAMP_MARKER}`;
 }
 
 /** Lecture or practice from the raw lect_or_prac marker; ป is practice. */
@@ -293,7 +308,7 @@ function toSection(
     exam: toExam(row, warnings),
     rulesTh: sanitizeToLines(row.rules_th).join('\n'),
     rulesEn: sanitizeToLines(row.rules_en).join('\n'),
-    remark: row.remark,
+    remark: toRemark(row.remark),
   };
 }
 
