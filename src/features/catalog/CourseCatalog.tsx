@@ -228,7 +228,7 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
       ) : (
         groups.map((group) => (
           <section key={group.key} className="flex flex-col gap-2">
-            <h3 className="text-xs font-semibold tracking-wide text-ink-soft uppercase">
+            <h3 className="text-xs font-semibold text-ink-soft">
               {group.heading}
             </h3>
             {group.courses.map((course) => (
