@@ -1,5 +1,8 @@
-// The block detail popover, edit mode only. It shows a placed section's full metadata,
-// its verification state with old versus new values for a changed field, and the
+// The block detail popover, edit mode only. It shows a placed section's full metadata
+// through the full SectionDetailList, the same list the hover card renders compact, so the
+// popover that touch and keyboard users reach carries every meeting, the seats from the
+// latest verification, and the exam dates. Above the list sit its verification state with
+// old versus new values for a changed field and any exam overlap, and below it the
 // acknowledge and remove actions. It is anchored to the block with floating-ui, a
 // fixed strategy that escapes the panel, and dismisses on an outside click or Escape.
 // Escape is intercepted so it closes the popover rather than the whole overlay.
@@ -10,6 +13,7 @@ import { Check, Trash2, X } from 'lucide-react';
 import { useDismiss, useInteractions } from '@floating-ui/react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { ExamOverlap } from '@/lib/planner/examOverlap';
+import { snapshotToSection } from '@/lib/domain/plan';
 import { planStore } from '@/features/plans/planStore';
 import { useActiveRun } from '@/features/plans/revalidationStore';
 import {
@@ -19,6 +23,7 @@ import {
 import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 import { describeEntryDiff } from './describeEntryDiff';
 import { formatExamRange } from './examText';
+import { SectionDetailList } from './SectionDetailList';
 
 interface BlockDetailPopoverProps {
   teachTableId: string;
@@ -101,7 +106,6 @@ export function BlockDetailPopover({
   const snapshot = entry.snapshot;
   const name =
     locale === 'th' ? snapshot.subjectMeta.nameTh : snapshot.subjectMeta.nameEn;
-  const teachers = locale === 'th' ? snapshot.teachersTh : snapshot.teachersEn;
   const badge = blockBadge(entry.verifyStatus, false);
   const badgeText = blockBadgeLabelKeys(entry.verifyStatus, false)
     .map((key) => t(key))
@@ -119,7 +123,7 @@ export function BlockDetailPopover({
       tabIndex={-1}
       style={floatingStyles}
       {...getFloatingProps()}
-      className={`z-popover w-72 ${PANEL_POPOVER_SCROLL} rounded-kcp border border-border bg-surface p-3 text-xs text-ink shadow-kcp outline-none`}
+      className={`z-popover w-80 ${PANEL_POPOVER_SCROLL} rounded-kcp border border-border bg-surface p-3 text-xs text-ink shadow-kcp outline-none`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
@@ -186,11 +190,15 @@ export function BlockDetailPopover({
         </section>
       ) : null}
 
-      <div className="mt-2 flex flex-col gap-0.5 border-t border-border pt-2 text-ink-soft">
-        {teachers.length > 0 ? <p>{teachers.join(', ')}</p> : null}
-        {snapshot.remark !== '' ? (
-          <p className="whitespace-pre-line">{snapshot.remark}</p>
-        ) : null}
+      <div className="mt-2 border-t border-border pt-2">
+        <SectionDetailList
+          section={snapshotToSection(snapshot)}
+          creditStr={snapshot.subjectMeta.creditStr}
+          density="full"
+          locale={locale}
+          t={t}
+          lastVerifiedAt={entry.lastVerifiedAt}
+        />
       </div>
 
       <div className="mt-2 flex justify-end gap-2 border-t border-border pt-2">
