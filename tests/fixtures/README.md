@@ -17,6 +17,7 @@ public course data.
 | `teach-table.by_subject_id.capture.json` | GET teach table, mode by_subject_id | `https://regis.reg.kmitl.ac.th/api/?function=get-teach-table-show&mode=by_subject_id&selected_year=2569&selected_semester=1&selected_subject_id=90641007` |
 | `teach-table.by_subject_owner_id-32.capture.json` | GET teach table, mode by_subject_owner_id | `https://regis.reg.kmitl.ac.th/api/?function=get-teach-table-show&mode=by_subject_owner_id&selected_year=2569&selected_semester=1&selected_faculty=01&selected_subject_owner_id=32` |
 | `teach-table.multi-meeting.capture.json` | GET teach table, mode by_class, all curricula | `https://regis.reg.kmitl.ac.th/api/?function=get-teach-table-show&mode=by_class&selected_year=2569&selected_semester=1&selected_faculty=01&selected_department=05&selected_curriculum=x&selected_class_year=0&search_all_curriculum=true&search_all_class_year=true` |
+| `year-semester-now.capture.json` | GET current registration term, level 1 | `https://regis.reg.kmitl.ac.th/api/?function=get-year-semester-now&level_id=1` |
 
 ## What each teach table capture exercises
 
@@ -42,6 +43,13 @@ rows. It carries subject `01476101` section `34` with a second Thursday period
 (`teachtime_str` `5x10:30-12:00` after the primary `08:45` to `10:15`) and subject
 `01076311` section `1` with two extra periods on one day, so it exercises the parser, the
 day that differs from `teach_day`, and a section that totals three meetings. See ADR-0037.
+
+## Current term capture
+
+`year-semester-now.capture.json` was captured later, on 2026-11-05, and is kept as the
+single line body the server sent. It reports the term the registrar considers current,
+`YEAR` `2569` and `SEMESTER` `1`, with three datetime fields the extension does not read.
+The search form defaults to the term after it. See ADR-0053.
 
 ## Host DOM snapshots
 
