@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
+  BASE_GRID_FONT_PX,
   BREAKPOINTS,
+  gridFontPx,
   isDockedTier,
   minWidthQuery,
   tierForWidth,
@@ -45,5 +47,24 @@ describe('isDockedTier', () => {
 describe('minWidthQuery', () => {
   it('builds a min width media query in pixels', () => {
     expect(minWidthQuery(1024)).toBe('(min-width: 1024px)');
+  });
+});
+
+describe('gridFontPx', () => {
+  it.each([
+    [0, 11],
+    [736, 11],
+    [1023, 11],
+    [1024, 12],
+    [1334, 12],
+    [1439, 12],
+    [1440, 13],
+    [1888, 13],
+  ] as const)('sets a %i px scroller in %i px type', (width, fontPx) => {
+    expect(gridFontPx(width)).toBe(fontPx);
+  });
+
+  it('keeps the base size before the first measurement', () => {
+    expect(gridFontPx(0)).toBe(BASE_GRID_FONT_PX);
   });
 });

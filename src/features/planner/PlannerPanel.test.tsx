@@ -10,6 +10,7 @@ import { planStore } from '@/features/plans/planStore';
 import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
 import type { PlanEntry } from '@/lib/domain/plan';
+import { EXPORT_TEMPLATES } from '@/lib/planner/exportTemplates';
 import type { Meeting } from '@/lib/domain/types';
 import {
   makeCourse,
@@ -69,6 +70,7 @@ function seedCatalog(meeting: Meeting): void {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
   seed([]);
   act(() => {
     searchStore.setState({ result: { status: 'idle' } });
@@ -204,6 +206,32 @@ describe('PlannerPanel', () => {
     const sheet = screen.getByRole('dialog');
     expect(sheet).toHaveAttribute('aria-modal', 'true');
     expect(sheet.closest('[aria-live]')).toBeNull();
+  });
+
+  it('steps the edit grid font by the scroller width but never the poster', () => {
+    // Every measured box reports a 1920 px screen's docked scroller, which sets the edit
+    // grid at the 13 px step. The posters keep their template posterFontPx.
+    vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(1472);
+    seed([makePlanEntry()]);
+    renderPanel();
+    const gridFonts = () =>
+      screen
+        .getAllByRole('group', { name: 'ตารางเรียนรายสัปดาห์' })
+        .map((grid) => grid.style.fontSize);
+    expect(gridFonts()).toEqual(['13px']);
+
+    act(() => {
+      uiStore.getState().setViewMode('preview');
+    });
+    const posterFonts = new Set(
+      EXPORT_TEMPLATES.map((template) => `${String(template.posterFontPx)}px`),
+    );
+    const fonts = gridFonts();
+    expect(fonts.length).toBeGreaterThan(0);
+    for (const font of fonts) {
+      expect(posterFonts).toContain(font);
+    }
+    expect(fonts).not.toContain('13px');
   });
 
   it('shows the poster header in preview mode', () => {

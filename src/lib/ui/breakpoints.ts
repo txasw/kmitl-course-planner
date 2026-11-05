@@ -38,3 +38,25 @@ export function isDockedTier(tier: LayoutTier): tier is DockedTier {
 export function minWidthQuery(px: number): string {
   return `(min-width: ${String(px)}px)`;
 }
+
+/** The edit grid font size on a narrow scroller, in CSS pixels. */
+export const BASE_GRID_FONT_PX = 11;
+
+// The larger edit grid font sizes, each from the scroller width it starts at, widest first.
+// They follow the measured grid scroller rather than the viewport, so hiding the catalog
+// column steps the type up. The cuts follow the widths the panel measures at: the medium
+// tier and the docked lg and xl scrollers stay below 1024 px, a docked 2xl scroller or a
+// full width xl one reaches 1024 px, and a docked scroller on a 1920 px screen reaches
+// 1440 px.
+const GRID_FONT_STEPS = [
+  { minWidth: 1440, fontPx: 13 },
+  { minWidth: 1024, fontPx: 12 },
+] as const;
+
+/** The edit grid font size for a grid scroller of the given CSS pixel width. */
+export function gridFontPx(width: number): number {
+  return (
+    GRID_FONT_STEPS.find((step) => width >= step.minWidth)?.fontPx ??
+    BASE_GRID_FONT_PX
+  );
+}
