@@ -2,10 +2,12 @@
 // blocks over them. A per day lane draws the hour and quarter gridlines with a gradient so
 // the line count follows the window without a cell per quarter. In edit mode each block is
 // a drag source; in preview it is a plain block that fits its fields to its box. Renders a
-// fragment so every item is a direct child of the grid and places by track index.
+// fragment so every item is a direct child of the grid and places by track index. In edit
+// the day labels are sticky inside the planner scroller on an opaque fill, so the day stays
+// readable while the time scrolls beneath it; the poster renders them flat.
 
 import { Fragment, useMemo } from 'react';
-import type { MouseEvent } from 'react';
+import type { CSSProperties, MouseEvent } from 'react';
 import { useStore } from 'zustand';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
@@ -19,6 +21,7 @@ import { EventBlock } from './EventBlock';
 import { DraggableBlock } from './DraggableBlock';
 import type { PlacedSection } from './placedSection';
 import {
+  EMPHASIS_LINE,
   FIRST_DAY_INDEX,
   FIRST_TIME_INDEX,
   QUARTERS_PER_HOUR,
@@ -40,6 +43,19 @@ function laneBackground(quarters: number, orientation: Orientation): string {
   ].join(', ');
 }
 
+// A sticky day label pins to the scroller edge the days run along: the left in landscape,
+// the top in portrait. The landscape column's trailing edge is the window start, so it
+// draws the stronger start rule as a shadow that stays put while the lanes scroll.
+function stickyDayStyle(orientation: Orientation): CSSProperties {
+  return orientation === 'portrait'
+    ? { position: 'sticky', top: 0 }
+    : {
+        position: 'sticky',
+        left: 0,
+        boxShadow: `1px 0 0 ${EMPHASIS_LINE}`,
+      };
+}
+
 interface DayLanesProps {
   sections: PlacedSection[];
   window: GridWindow;
@@ -58,6 +74,8 @@ interface DayLanesProps {
   display: DisplayOptions | undefined;
   dayAccent: boolean;
   fontPx: number;
+  /** Pin the day labels to the scroller edge, edit mode only. */
+  sticky: boolean;
 }
 
 export function DayLanes({
@@ -78,6 +96,7 @@ export function DayLanes({
   display,
   dayAccent,
   fontPx,
+  sticky,
 }: DayLanesProps) {
   // The lane gradient follows only the window and the orientation, so it holds stable
   // across a drag or a plan change.
@@ -139,6 +158,8 @@ export function DayLanes({
       {days.map((day, index) => {
         const dayTrack = FIRST_DAY_INDEX + index;
         const alt = !dayAccent && day % 2 === 1 ? 'bg-surface-alt' : '';
+        // A sticky label covers the lanes scrolling under it, so it needs an opaque fill.
+        const labelFill = alt === '' && sticky ? 'bg-surface' : alt;
         return (
           <Fragment key={day}>
             <Tooltip label={t(dayFullLabelKey(day))}>
@@ -148,8 +169,9 @@ export function DayLanes({
                   {...triggerProps}
                   className={`flex items-center justify-center text-[1.05em] font-semibold ${
                     dayAccent ? 'text-ink' : 'text-ink-soft'
-                  } ${isPortrait ? 'border-b border-border' : 'border-t border-border'} ${alt}`}
+                  } ${isPortrait ? 'border-b border-border' : 'border-t border-border'} ${labelFill} ${sticky ? 'z-sticky' : ''}`}
                   style={{
+                    ...(sticky ? stickyDayStyle(orientation) : {}),
                     ...(isPortrait
                       ? { gridColumn: dayTrack, gridRow: 1 }
                       : { gridRow: dayTrack, gridColumn: 1 }),

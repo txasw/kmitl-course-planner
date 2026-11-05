@@ -7,7 +7,8 @@
 // DayLanes draws the day labels, the gridline lanes, and the placed blocks, and
 // CandidateLayer draws the edit mode drag feedback over them. This component owns the grid
 // template and the hover detail card. The poster font size scales the whole grid per
-// template.
+// template. In edit the day and hour axes stick to the planner scroller edges so a grid
+// wider or taller than its column stays readable; the poster is flat (ADR-0050).
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, MouseEvent } from 'react';
@@ -184,7 +185,7 @@ export function WeeklyGrid({
       className={`grid h-full leading-normal text-ink ${floor} ${blocked ? 'cursor-not-allowed' : ''}`}
       style={{ ...gridStyle, fontSize: `${String(fontPx)}px` }}
     >
-      <GridAxis window={window} orientation={orientation} />
+      <GridAxis window={window} orientation={orientation} sticky={editable} />
 
       <DayLanes
         sections={sections}
@@ -204,6 +205,7 @@ export function WeeklyGrid({
         display={display}
         dayAccent={dayAccent}
         fontPx={fontPx}
+        sticky={editable}
       />
 
       {editable ? (

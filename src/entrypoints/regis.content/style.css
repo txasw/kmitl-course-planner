@@ -63,6 +63,7 @@
   --z-index-grid: var(--kcp-z-grid);
   --z-index-grid-active: var(--kcp-z-grid-active);
   --z-index-sticky: var(--kcp-z-sticky);
+  --z-index-sticky-corner: var(--kcp-z-sticky-corner);
   --z-index-scrim: var(--kcp-z-scrim);
   --z-index-drawer: var(--kcp-z-drawer);
   --z-index-popover: var(--kcp-z-popover);
@@ -116,11 +117,13 @@
      surfaces. The two grid layers sit below every panel layer, so the scrim, the
      drawer, and a sticky axis always cover the lanes; grid lifts candidate slots
      and a block's own controls over the placed blocks, and grid-active lifts the
-     hovered candidate and the swap targets over the rest. A tooltip annotates any
-     surface, so it sits above the whole scale. */
+     hovered candidate and the swap targets over the rest. The sticky corner where
+     the day and hour axes meet covers both axes as they scroll under it. A tooltip
+     annotates any surface, so it sits above the whole scale. */
   --kcp-z-grid: 1;
   --kcp-z-grid-active: 2;
   --kcp-z-sticky: 10;
+  --kcp-z-sticky-corner: 11;
   --kcp-z-scrim: 20;
   --kcp-z-drawer: 30;
   --kcp-z-popover: 40;
