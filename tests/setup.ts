@@ -6,7 +6,7 @@ import '@testing-library/jest-dom/vitest';
 // Provide a minimal stub that reports motion enabled by default; individual
 // tests override it to exercise the reduced motion path. The cast documents that
 // this is a deliberate partial implementation of the MediaQueryList surface the
-// code touches.
+// code touches, so it omits the deprecated addListener pair the code never calls.
 window.matchMedia = (query: string): MediaQueryList =>
   ({
     matches: false,
@@ -14,10 +14,8 @@ window.matchMedia = (query: string): MediaQueryList =>
     onchange: null,
     addEventListener: () => undefined,
     removeEventListener: () => undefined,
-    addListener: () => undefined,
-    removeListener: () => undefined,
     dispatchEvent: () => false,
-  }) as MediaQueryList;
+  }) as unknown as MediaQueryList;
 
 // jsdom does not implement ResizeObserver, which the preview stage uses to scale the
 // export poster to fit its pane. A no op stub lets those components mount in tests; the
