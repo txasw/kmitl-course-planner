@@ -2,6 +2,10 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import { computeSeatStatus } from '@/lib/catalog/seatStatus';
+import { normalizeTeachTable } from '@/lib/domain/normalize';
+import type { Course, Section } from '@/lib/domain/types';
+import { computeSectionRelation } from '@/lib/planner/sectionState';
+import { loadFixture } from '../../../tests/support/fixtures';
 import {
   makeCourse,
   makeMeeting,
@@ -289,5 +293,69 @@ describe('SectionRow density and read only', () => {
     expect(
       screen.queryByRole('button', { name: 'ข้อมูลเพิ่มเติม' }),
     ).not.toBeInTheDocument();
+  });
+});
+
+// The synthetic exam overlap fixture: 90000010/901 holds a midterm on 21 Aug 2026 from
+// 09:00 to 12:00, and 90000011/901 meets on another day but sits its midterm on the same
+// morning from 11:00, so placing the first makes the second an exam only clash.
+function examOverlapCourses(): {
+  placed: Section;
+  course: Course;
+  incoming: Section;
+} {
+  const result = normalizeTeachTable(
+    loadFixture('synthetic.exam-overlap.json'),
+  );
+  if (!result.ok) {
+    throw new Error('fixture failed to normalize');
+  }
+  const placedCourse = result.value.courses.find(
+    (c) => c.subjectId === '90000010',
+  );
+  const course = result.value.courses.find((c) => c.subjectId === '90000011');
+  const placed = placedCourse?.sections[0];
+  const incoming = course?.sections.find((s) => s.section === '901');
+  if (course === undefined || placed === undefined || incoming === undefined) {
+    throw new Error('fixture is missing the exam overlap sections');
+  }
+  return { placed, course, incoming };
+}
+
+function renderAgainst(placed: Section[], course: Course, incoming: Section) {
+  render(
+    <SectionRow
+      course={course}
+      section={incoming}
+      relation={computeSectionRelation(placed, course, incoming)}
+      seat={computeSeatStatus(incoming)}
+      locale="th"
+      t={t}
+      onAdd={vi.fn()}
+    />,
+  );
+}
+
+describe('SectionRow conflict reason', () => {
+  it('names the exam type and the Buddhist year date for an exam only clash', () => {
+    const { placed, course, incoming } = examOverlapCourses();
+    renderAgainst([placed], course, incoming);
+    const reason = screen.getByText(/^เวลาสอบชนกับ/);
+    expect(reason).toHaveTextContent('90000010 กลุ่มเรียน 901');
+    expect(reason).toHaveTextContent('สอบกลางภาค');
+    expect(reason).toHaveTextContent('2569 11:00-13:00');
+    expect(reason).not.toHaveTextContent('(+');
+  });
+
+  it('names the first time clash and counts the exam clash behind it', () => {
+    const { placed, course, incoming } = examOverlapCourses();
+    // Move the placed section onto the incoming section's meeting, so it clashes in
+    // time as well as in the exam window.
+    const sameSlot = { ...placed, meetings: incoming.meetings };
+    renderAgainst([sameSlot], course, incoming);
+    const reason = screen.getByText(/^ชนกับ/);
+    expect(reason).toHaveTextContent('90000010 กลุ่มเรียน 901');
+    expect(reason).toHaveTextContent('13:00-15:00');
+    expect(reason).toHaveTextContent('(+1)');
   });
 });
