@@ -10,11 +10,8 @@ import { List } from 'lucide-react';
 import { useResultCourseCount } from '@/features/catalog/CatalogPanel';
 import { isDockedTier } from '@/lib/ui/breakpoints';
 import { FOCUS_RING } from '@/lib/ui/focus';
-import {
-  CATALOG_COLUMN_ID,
-  CATALOG_HIDE_ID,
-  CATALOG_TOGGLE_ID,
-} from './CatalogColumn';
+import { CATALOG_COLUMN_ID } from './CatalogColumn';
+import { CATALOG_HIDE_ID, CATALOG_TOGGLE_ID } from './catalogVisibility';
 import { commitAndFocus } from './commitAndFocus';
 import { uiStore } from './uiStore';
 import { useLayoutTier } from './useLayoutTier';

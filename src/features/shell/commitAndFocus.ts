@@ -9,7 +9,8 @@ import { flushSync } from 'react-dom';
  * just activated, since that control turns inert or unmounts with the change. The
  * target is found in the activating control's own root, which is the closed shadow
  * root in the extension, where the document lookup cannot reach. The root is read
- * before the commit, because a control the commit unmounts no longer reaches it.
+ * before the commit, because a control the commit unmounts no longer reaches it. Focus
+ * does not scroll, because the replacing control is already in view where it lands.
  */
 export function commitAndFocus(
   from: Element,
@@ -19,6 +20,6 @@ export function commitAndFocus(
   const root = from.getRootNode();
   flushSync(commit);
   if (root instanceof Document || root instanceof ShadowRoot) {
-    root.getElementById(targetId)?.focus();
+    root.getElementById(targetId)?.focus({ preventScroll: true });
   }
 }
