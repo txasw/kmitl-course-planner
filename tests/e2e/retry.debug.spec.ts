@@ -9,7 +9,7 @@ test('recovers a failed query on retry', async ({ context, mock }) => {
   await page.getByRole('button', { name: 'หมวดวิชา' }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
-  await page.getByRole('button', { name: 'ค้นหา' }).click();
+  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
 
   await expect(
     page.getByRole('heading', { name: 'โหลดรายวิชาไม่สำเร็จ' }),

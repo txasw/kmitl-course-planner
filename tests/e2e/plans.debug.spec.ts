@@ -18,7 +18,7 @@ async function searchSyntheticInSemester(
   await page.getByRole('button', { name: 'รหัสวิชา' }).click();
   await pickOption(page, 'ภาคการศึกษา', semester);
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000000');
-  await page.getByRole('button', { name: 'ค้นหา' }).click();
+  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
   await expect(page.getByText('90000001').first()).toBeVisible({
     timeout: 15_000,
   });

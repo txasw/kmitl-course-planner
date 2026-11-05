@@ -16,7 +16,7 @@ test('surfaces a dropped teach_time2 in the report', async ({ context }) => {
     .getByRole('combobox', { name: 'Mutation' })
     .selectOption('drop_teach_time2');
 
-  await page.getByRole('button', { name: 'ค้นหา' }).click();
+  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
 
   await page.getByRole('button', { name: 'Data quality' }).click();
   await expect(page.getByText('missing_field')).toBeVisible({
