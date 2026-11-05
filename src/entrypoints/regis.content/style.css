@@ -49,6 +49,7 @@
   --color-surface-alt: var(--kcp-surface-alt);
   --color-border: var(--kcp-border);
   --color-border-strong: var(--kcp-border-strong);
+  --color-grid-strong: var(--kcp-grid-strong);
   --color-danger: var(--kcp-danger);
   --color-danger-soft: var(--kcp-danger-soft);
   --color-warn: var(--kcp-warn);
@@ -98,6 +99,9 @@
   /* Form control boundaries only, so a field clears the 3:1 non text bar on both
      surfaces while dividers and gridlines keep the quiet border. See ADR-0051. */
   --kcp-border-strong: #838389;
+  /* The stronger timetable rule at the window edges and midday, a step above the quiet
+     border so the eye finds the halves of the day. Decorative, so no contrast bar. */
+  --kcp-grid-strong: color-mix(in srgb, var(--kcp-ink-soft) 30%, transparent);
   --kcp-danger: #c62828;
   /* Warn and success are darkened from the brief values so their text passes 4.5:1 on
      the soft and surface backgrounds they sit on; the brief allows a token correction. */

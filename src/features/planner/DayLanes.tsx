@@ -1,6 +1,6 @@
 // The day tracks of the weekly grid: a label and a lane per rendered day, and the placed
-// blocks over them. A per day lane draws the hour and quarter gridlines with a gradient so
-// the line count follows the window without a cell per quarter. In edit mode each block is
+// blocks over them. A lane carries the row fill and its border; the time rules draw once
+// across every lane in GridRules. In edit mode each block is
 // a drag source; in preview it is a plain block that fits its fields to its box. Renders a
 // fragment so every item is a direct child of the grid and places by track index. In edit
 // the day labels are sticky inside the planner scroller on an opaque fill, so the day stays
@@ -14,47 +14,30 @@ import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
 import { Tooltip } from '@/components/Tooltip';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
-import { quarterCount, type GridWindow } from '@/lib/planner/grid';
+import type { GridWindow } from '@/lib/planner/grid';
 import { dayTint } from '@/lib/planner/dayColors';
 import { dragStore } from './dragStore';
 import { EventBlock } from './EventBlock';
 import { DraggableBlock } from './DraggableBlock';
 import type { PlacedSection } from './placedSection';
 import {
-  EMPHASIS_LINE,
   FIRST_DAY_INDEX,
   FIRST_TIME_INDEX,
-  QUARTERS_PER_HOUR,
   blockStyle,
   type Orientation,
 } from './gridGeometry';
 
-/** Layered gradients that draw the hour lines and the fainter quarter lines. The lines run
- * across the time axis, so they are vertical in landscape and horizontal in portrait. */
-function laneBackground(quarters: number, orientation: Orientation): string {
-  const direction = orientation === 'portrait' ? 'to bottom' : 'to right';
-  const quarterPct = 100 / quarters;
-  const hourPct = quarterPct * QUARTERS_PER_HOUR;
-  const hourLine = 'var(--kcp-border)';
-  const quarterLine = 'color-mix(in srgb, var(--kcp-border) 45%, transparent)';
-  return [
-    `repeating-linear-gradient(${direction}, ${hourLine} 0, ${hourLine} 1px, transparent 1px, transparent ${String(hourPct)}%)`,
-    `repeating-linear-gradient(${direction}, ${quarterLine} 0, ${quarterLine} 1px, transparent 1px, transparent ${String(quarterPct)}%)`,
-  ].join(', ');
-}
-
 // A sticky day label pins to the scroller edge the days run along: the left in landscape,
-// the top in portrait. The landscape column's trailing edge is the window start, so it
-// draws the stronger start rule as a shadow that stays put while the lanes scroll.
+// the top in portrait.
 function stickyDayStyle(orientation: Orientation): CSSProperties {
   return orientation === 'portrait'
     ? { position: 'sticky', top: 0 }
-    : {
-        position: 'sticky',
-        left: 0,
-        boxShadow: `1px 0 0 ${EMPHASIS_LINE}`,
-      };
+    : { position: 'sticky', left: 0 };
 }
+
+// The landscape day column's trailing edge is the window start, so a sticky label draws the
+// stronger start rule as a shadow that stays put while the lanes scroll under it.
+const STICKY_DAY_EDGE = 'shadow-[1px_0_0_var(--kcp-grid-strong)]';
 
 interface DayLanesProps {
   sections: PlacedSection[];
@@ -98,12 +81,6 @@ export function DayLanes({
   fontPx,
   sticky,
 }: DayLanesProps) {
-  // The lane gradient follows only the window and the orientation, so it holds stable
-  // across a drag or a plan change.
-  const lane = useMemo(
-    () => laneBackground(quarterCount(window), orientation),
-    [window, orientation],
-  );
   const showRoom = display?.showRoom ?? true;
   const showSection = display?.showSection ?? true;
   const showEnglishName = display?.showEnglishNames ?? false;
@@ -169,7 +146,7 @@ export function DayLanes({
                   {...triggerProps}
                   className={`flex items-center justify-center text-[1.05em] font-semibold ${
                     dayAccent ? 'text-ink' : 'text-ink-soft'
-                  } ${isPortrait ? 'border-b border-border' : 'border-t border-border'} ${labelFill} ${sticky ? 'z-sticky' : ''}`}
+                  } ${isPortrait ? 'border-b border-border' : 'border-t border-border'} ${labelFill} ${sticky ? `z-sticky ${isPortrait ? '' : STICKY_DAY_EDGE}` : ''}`}
                   style={{
                     ...(sticky ? stickyDayStyle(orientation) : {}),
                     ...(isPortrait
@@ -196,7 +173,6 @@ export function DayLanes({
                       gridRow: dayTrack,
                       gridColumn: `${String(FIRST_TIME_INDEX)} / -1`,
                     }),
-                backgroundImage: lane,
               }}
             />
           </Fragment>
