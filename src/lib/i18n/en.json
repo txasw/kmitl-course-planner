@@ -166,6 +166,8 @@
   "section.rules.showAll": "Show all conditions ({count})",
   "section.rules.hide": "Hide conditions",
   "section.remark.label": "Remark",
+  "section.remark.showAll": "Show full remark",
+  "section.remark.hide": "Hide remark",
   "detail.verifiedAt": "Last checked",
   "month.1": "Jan",
   "month.2": "Feb",

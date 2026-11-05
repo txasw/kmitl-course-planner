@@ -2,7 +2,7 @@
 // and the first line clamped to one line; the expand control appears when more lines
 // follow or the first line clips, and expanded it lists every line in full. It carries
 // no box fill, so a catalog where half the rows hold a line does not turn into a wash
-// of tinted boxes. RulesNotice is built on it.
+// of tinted boxes. RulesNotice and RemarkLine are built on it.
 //
 // The control is a text button with a 24 px target, 44 px under a coarse pointer, that
 // takes the line's own height through a negative margin so the row does not grow for it.
