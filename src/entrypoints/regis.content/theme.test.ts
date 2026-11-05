@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, it, expect } from 'vitest';
+import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 
 // Reads the authored shadow stylesheet and asserts every design token is present
 // and mapped into a Tailwind namespace. This guards against a token being
@@ -85,6 +86,17 @@ describe('shadow stylesheet tokens', () => {
         `--transition-duration-${name}: var(--kcp-duration-${name})`,
       );
     }
+  });
+
+  it('declares the focus tokens that the shared focus classes read', () => {
+    expect(css).toContain('--kcp-focus-color: var(--kcp-primary);');
+    expect(css).toContain('--kcp-focus-width: 2px;');
+    expect(css).toContain('--kcp-focus-offset: 2px;');
+    expect(FOCUS_RING).toContain('ring-(length:--kcp-focus-width)');
+    expect(FOCUS_RING).toContain('ring-(color:--kcp-focus-color)');
+    expect(FOCUS_OUTLINE).toContain('outline-(length:--kcp-focus-width)');
+    expect(FOCUS_OUTLINE).toContain('outline-offset-(--kcp-focus-offset)');
+    expect(FOCUS_OUTLINE).toContain('outline-(color:--kcp-focus-color)');
   });
 
   it('reads every fixed animation duration from a motion token', () => {

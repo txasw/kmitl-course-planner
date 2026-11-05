@@ -111,6 +111,12 @@
   --kcp-duration-base: 200ms;
   --kcp-duration-slow: 300ms;
 
+  /* The standard keyboard focus indicator from ADR-0034, read by FOCUS_RING and
+     FOCUS_OUTLINE in lib/ui/focus.ts. */
+  --kcp-focus-color: var(--kcp-primary);
+  --kcp-focus-width: 2px;
+  --kcp-focus-offset: 2px;
+
   color: var(--kcp-ink);
   font-family: var(--font-sans);
 }
