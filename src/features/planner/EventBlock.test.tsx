@@ -92,11 +92,41 @@ describe('EventBlock', () => {
       'shrink-0',
     );
     // The time now sits in the foot beside the id and can be squeezed away; it is not pinned.
-    const foot = within(block).getByText('09:00-12:00').closest('.mt-auto');
+    const foot = within(block).getByText('09:00-12:00').closest('.mt-1');
     expect(foot).not.toBeNull();
     expect(foot?.className).not.toContain('shrink-0');
     expect(foot?.className).toContain('min-h-0');
     expect(foot?.textContent).toContain('90592033');
+  });
+
+  it('keeps the foot under the place in edit and at the box bottom on the poster', () => {
+    // A tall edit block reads as one cluster with its spare height below; the poster fit
+    // keeps the time and id at the foot of its measured box (ADR-0046, ADR-0047).
+    const { rerender } = render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    const footOf = () =>
+      within(screen.getByLabelText(/90592033/)).getByText('09:00-12:00')
+        .parentElement;
+    expect(footOf()?.className).toContain('mt-1');
+    expect(footOf()?.className).not.toContain('mt-auto');
+    rerender(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        footAtBottom
+      />,
+    );
+    expect(footOf()?.className).toContain('mt-auto');
   });
 
   it('wraps and hyphenates a long name by its language rather than clipping a glyph', () => {
@@ -163,7 +193,7 @@ describe('EventBlock', () => {
     // The section reads as a floating chip in the corner, absolutely positioned.
     expect(within(block).getByText('901').className).toContain('absolute');
     // The foot holds the quiet time and id; the promoted place line sits above it, not in it.
-    const foot = within(block).getByText('90592033').closest('.mt-auto');
+    const foot = within(block).getByText('90592033').closest('.mt-1');
     expect(foot).not.toBeNull();
     expect(foot?.textContent).not.toContain('901');
     expect(foot?.textContent).not.toContain('A · A101');

@@ -103,6 +103,9 @@ interface EventBlockProps {
    * and the badge text in the accessible name. On in edit mode; the export poster turns it
    * off and states the same facts as footer text, so a shared image stays clean (ADR-0055). */
   showVerification?: boolean;
+  /** Pin the foot to the bottom of the box. On for the export poster, so its measured fit
+   * and export pixels hold; the edit foot follows the place line instead. */
+  footAtBottom?: boolean;
 }
 
 function EventBlockComponent({
@@ -131,6 +134,7 @@ function EventBlockComponent({
   fitPaused = false,
   thaiHeadroom = false,
   showVerification = true,
+  footAtBottom = false,
 }: EventBlockProps) {
   const name = locale === 'th' ? section.nameTh : section.nameEn;
   // The English name is guaranteed visible when the option is on: it is the primary
@@ -286,7 +290,12 @@ function EventBlockComponent({
               <span className="truncate">{place}</span>
             </span>
           ) : null}
-          <div className="mt-auto min-h-0 pt-0.5 text-ink-soft">
+          {/* On the poster the foot sits at the bottom of the fitted box. In edit it follows
+              the place closely, so a tall block reads as one cluster with its spare height
+              below rather than split into a top and a bottom group. */}
+          <div
+            className={`${footAtBottom ? 'mt-auto' : 'mt-1'} min-h-0 pt-0.5 text-ink-soft`}
+          >
             {level.showTime ? (
               <span className="block text-[0.9em] tabular-nums">{time}</span>
             ) : null}

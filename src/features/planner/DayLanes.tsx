@@ -218,6 +218,7 @@ export function DayLanes({
             showSubjectId={showSubjectId}
             thaiHeadroom
             showVerification={editable}
+            footAtBottom
           />
         );
       })}
