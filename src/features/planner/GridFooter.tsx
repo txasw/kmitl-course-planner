@@ -9,14 +9,8 @@ import { WEEK_DAYS } from '@/lib/parsing/days';
 import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
 import { summarizeCredits } from '@/lib/planner/credits';
 import { perDayLoad } from '@/lib/planner/grid';
+import { formatHours } from '@/lib/parsing/time';
 import type { PlacedSection } from './placedSection';
-
-const MINUTES_PER_HOUR = 60;
-
-function formatHours(minutes: number): string {
-  const hours = minutes / MINUTES_PER_HOUR;
-  return Number.isInteger(hours) ? String(hours) : hours.toFixed(1);
-}
 
 interface GridFooterProps {
   sections: PlacedSection[];

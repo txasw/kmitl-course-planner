@@ -29,3 +29,10 @@ export function formatMinutes(totalMinutes: number): string {
   const minutes = totalMinutes % 60;
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
+
+/** Format a duration in minutes as hours, whole when exact and to one decimal
+ * otherwise, for a load or idle time read next to an hour unit. */
+export function formatHours(minutes: number): string {
+  const hours = minutes / 60;
+  return Number.isInteger(hours) ? String(hours) : hours.toFixed(1);
+}
