@@ -317,6 +317,19 @@ describe('BlockDetailPopover', () => {
     expect(badge).toHaveClass('text-danger');
   });
 
+  it('closes on Escape without the press reaching the overlay', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry()]);
+    });
+    const outer = vi.fn();
+    document.body.addEventListener('keydown', outer);
+    const { onClose } = renderPopover();
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+    document.body.removeEventListener('keydown', outer);
+    expect(onClose).toHaveBeenCalledOnce();
+    expect(outer).not.toHaveBeenCalled();
+  });
+
   it('closes when the entry leaves the plan', () => {
     act(() => {
       seedActivePlan([makePlanEntry()]);
