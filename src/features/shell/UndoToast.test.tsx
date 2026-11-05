@@ -10,6 +10,7 @@ import {
 import { createTranslator } from '@/lib/i18n/t';
 import { planStore, type UndoRecord } from '@/features/plans/planStore';
 import {
+  makePlan,
   makePlanEntry,
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
@@ -94,6 +95,37 @@ describe('UndoToast', () => {
     render(<UndoToast record={record} locale="th" t={t} />);
     expect(screen.getByText(/นำออกแล้ว 90592033/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'เลิกทำ' })).toBeInTheDocument();
+  });
+
+  it('names a created plan and deletes it on undo', () => {
+    act(() => {
+      seedActivePlan([], { id: 'before', name: 'ตาราง 1/2569' });
+      planStore.setState((state) => ({
+        plans: [
+          ...state.plans,
+          makePlan({ id: 'created', name: 'ตาราง 1/2569 เน้นเช้า' }),
+        ],
+        activePlanId: 'created',
+      }));
+    });
+    const record: UndoRecord = {
+      kind: 'create',
+      planId: 'created',
+      planName: 'ตาราง 1/2569 เน้นเช้า',
+      previousPlanId: 'before',
+    };
+    act(() => {
+      planStore.setState({ pendingUndo: record });
+    });
+    render(<UndoToast record={record} locale="th" t={t} />);
+    expect(
+      screen.getByText('สร้างตาราง ตาราง 1/2569 เน้นเช้า แล้ว'),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'เลิกทำ' }));
+    expect(planStore.getState().plans.map((plan) => plan.id)).toEqual([
+      'before',
+    ]);
+    expect(planStore.getState().activePlanId).toBe('before');
   });
 
   it('names a count when several removals coalesce', () => {

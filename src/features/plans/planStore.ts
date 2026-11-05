@@ -4,8 +4,10 @@
 // Mutations run through the pure transaction primitive against the active plan, and a
 // mutation keeps what it added and removed as a pending undo for the feedback strip.
 // When there is no active plan, the first add creates one for the term of the search
-// that produced the section, so the first add never hits a wall. Persistence over
-// storage arrives with the persistence hook, behind this same interface.
+// that produced the section, so the first add never hits a wall. Applying a plan
+// suggestion creates a new plan instead of editing the active one, and its undo deletes
+// that plan and returns to the plan it started from. Persistence over storage arrives
+// with the persistence hook, behind this same interface.
 
 import { useMemo } from 'react';
 import { useStore } from 'zustand';
@@ -17,8 +19,10 @@ import {
   type SourceQuery,
 } from '@/lib/domain/plan';
 import type { Course, Section } from '@/lib/domain/types';
-import type { Term } from '@/lib/routing/academicTerms';
+import { termsEqual, type Term } from '@/lib/routing/academicTerms';
 import { termFromSourceQueryParams } from '@/lib/planner/sourceQuery';
+import type { Suggestion } from '@/lib/planner/suggest';
+import { applySuggestion } from '@/lib/planner/suggestApply';
 import {
   addSectionGroup,
   applyPlanTransaction,
@@ -38,12 +42,32 @@ import {
   uniquePlanName,
 } from './planActions';
 
-/** What the last mutation did, held for a short undo window. The kind drives the
- * feedback wording so a move does not read as a removal. */
-export interface UndoRecord {
+/** What an entry mutation of the active plan did. The kind drives the feedback wording
+ * so a move does not read as a removal. */
+export interface EntryUndoRecord {
   kind: 'remove' | 'move' | 'swap';
   added: PlanEntry[];
   removed: PlanEntry[];
+}
+
+/** A plan a suggestion created, and the plan that was active before it. */
+export interface CreatedPlanUndoRecord {
+  kind: 'create';
+  planId: string;
+  planName: string;
+  previousPlanId: string | null;
+}
+
+/** What the last mutation did, held for a short undo window. */
+export type UndoRecord = EntryUndoRecord | CreatedPlanUndoRecord;
+
+/** What applying a suggestion needs: the new plan's name and term, the suggestion, and
+ * the source query of the search it came from. */
+export interface SuggestionPlanInput {
+  name: string;
+  term: Term;
+  suggestion: Suggestion;
+  sourceQuery: SourceQuery;
 }
 
 export interface PlanStore {
@@ -70,6 +94,13 @@ export interface PlanStore {
   clearUndo: () => void;
   /** Create a plan for a term and make it active, returning its id. */
   createPlan: (name: string, term: Term) => string;
+  /**
+   * Create a plan holding the active plan's entries plus a suggestion and make it
+   * active, leaving the active plan unchanged. The active plan's entries are kept only
+   * when it shares the term. Returns the created plan, or null when the add gate
+   * refuses a chosen section, in which case nothing changes.
+   */
+  createFromSuggestion: (input: SuggestionPlanInput) => Plan | null;
   renamePlan: (id: string, name: string) => void;
   /** Copy a plan under a new name and make the copy active. */
   duplicatePlan: (id: string, name: string) => void;
@@ -238,6 +269,23 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
       const now = deps.now();
       const state = get();
       const pending = state.pendingUndo;
+      if (pending?.kind === 'create') {
+        // Delete the created plan and return to the plan active before it, or to the
+        // latest plan when that one has since been deleted.
+        const plans = state.plans.filter((plan) => plan.id !== pending.planId);
+        const activePlanId = plans.some(
+          (plan) => plan.id === pending.previousPlanId,
+        )
+          ? pending.previousPlanId
+          : (mostRecentlyUpdated(plans)?.id ?? null);
+        set({
+          plans,
+          activePlanId,
+          entries: activeEntriesOf(plans, activePlanId),
+          pendingUndo: null,
+        });
+        return;
+      }
       const active = state.plans.find((plan) => plan.id === state.activePlanId);
       if (pending === null || active === undefined) {
         return;
@@ -271,6 +319,43 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
         pendingUndo: null,
       }));
       return plan.id;
+    },
+
+    createFromSuggestion: ({ name, term, suggestion, sourceQuery }) => {
+      const now = deps.now();
+      const state = get();
+      const active = state.plans.find((plan) => plan.id === state.activePlanId);
+      const locked =
+        active !== undefined &&
+        termsEqual({ year: active.year, semester: active.semester }, term)
+          ? active.entries.map((entry) => ({ ...entry }))
+          : EMPTY_ENTRIES;
+      const outcome = applySuggestion(
+        locked,
+        suggestion,
+        sourceQuery,
+        now,
+        term,
+      );
+      if (!outcome.ok) {
+        return null;
+      }
+      const plan: Plan = {
+        ...makePlan(deps.uuid(), uniquePlanName(name, state.plans), term, now),
+        entries: outcome.result.entries,
+      };
+      set({
+        plans: [...state.plans, plan],
+        activePlanId: plan.id,
+        entries: plan.entries,
+        pendingUndo: {
+          kind: 'create',
+          planId: plan.id,
+          planName: plan.name,
+          previousPlanId: state.activePlanId,
+        },
+      });
+      return plan;
     },
 
     renamePlan: (id, name) => {

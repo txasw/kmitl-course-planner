@@ -24,6 +24,7 @@
   "planSwitcher.nameLabel": "ชื่อตาราง",
   "planSwitcher.save": "บันทึก",
   "planSwitcher.copySuffix": "สำเนา",
+  "suggest.created": "สร้างตาราง {name} แล้ว",
   "planData.import": "นำเข้า JSON",
   "planData.export": "ส่งออก JSON",
   "planData.imported": "นำเข้าตารางแล้ว",
