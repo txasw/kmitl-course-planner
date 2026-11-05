@@ -60,6 +60,18 @@ describe('Overlay', () => {
     expect(dialog).toHaveAccessibleName('ตัววางแผนตารางเรียน สจล.');
   });
 
+  it('marks the panel with the active language, not the host one', () => {
+    act(() => {
+      uiStore.getState().open();
+    });
+    render(<Overlay />, { wrapper });
+    expect(screen.getByRole('dialog')).toHaveAttribute('lang', 'th');
+    act(() => {
+      uiStore.getState().setLanguage('en');
+    });
+    expect(screen.getByRole('dialog')).toHaveAttribute('lang', 'en');
+  });
+
   it('closes on Escape', () => {
     act(() => {
       uiStore.getState().open();

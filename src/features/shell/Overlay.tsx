@@ -18,13 +18,15 @@ import { usePresence } from './usePresence';
 // modal dialog: focus is trapped while open, Escape and the close control return
 // to the host, the host document scroll is locked, and enter and leave fade with
 // a reduced motion path. Session state lives in the ui store, so closing and
-// reopening within a page session resumes where the user left off.
+// reopening within a page session resumes where the user left off. The root
+// carries the panel language, because the host document's own lang does not follow
+// the language toggle, and the popovers portal into this node so they inherit it.
 const TITLE_ID = 'kcp-overlay-title';
 
 export function Overlay() {
   const isOpen = useStore(uiStore, (state) => state.isOpen);
   const close = useStore(uiStore, (state) => state.close);
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const panelRef = useRef<HTMLDivElement | null>(null);
   // Track the panel node in state as well, so the portal context updates once the node
   // mounts and floating-ui popups inside the transformed drawer can render into it.
@@ -48,6 +50,7 @@ export function Overlay() {
       role="dialog"
       aria-modal="true"
       aria-labelledby={TITLE_ID}
+      lang={language}
       tabIndex={-1}
       className={`fixed inset-0 z-host flex flex-col bg-surface text-ink outline-none transition-opacity duration-fast motion-reduce:transition-none ${
         stage === 'open' ? 'opacity-100' : 'opacity-0'

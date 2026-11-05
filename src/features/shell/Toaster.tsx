@@ -8,6 +8,9 @@
 // for its window and ordinary toasts queue behind it rather than displacing it. The undo
 // toast shows only while the panel is open, since it belongs to a plan mutation made in
 // the panel; the pending undo itself lives in the plan store and survives a close.
+//
+// The region sits outside the overlay root, so it carries the panel language itself and
+// a screen reader announces a toast in the voice of the language it is written in.
 
 import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { useStore } from 'zustand';
@@ -138,6 +141,7 @@ export function Toaster() {
     <div
       aria-live="polite"
       aria-atomic="true"
+      lang={language}
       className="pointer-events-none fixed inset-x-0 bottom-4 z-host flex justify-center px-4"
     >
       {pendingUndo !== null && isOpen ? (
