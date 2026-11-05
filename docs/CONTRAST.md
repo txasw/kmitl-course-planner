@@ -68,7 +68,9 @@ day tint clears 4.5:1 with wide margin, enforced in `dayColors.test.ts`.
 Each pair is a usage the UI renders. The brand orange `--kcp-primary` (`#E35205`) is an
 accent only, on borders, focus rings, and the active tab, so it carries the 3:1 UI bar;
 its text uses the darker `--kcp-primary-strong` (`#B8400A`), which clears 4.5:1 on every
-background it appears on, including the danger soft notice.
+background it appears on, including the danger soft notice. Form controls draw their
+boundary with `--kcp-border-strong` (`#838389`), which clears the 3:1 UI bar on both panel
+surfaces, while dividers and gridlines keep the quieter `--kcp-border` (ADR-0051).
 
 | Foreground     | Background     | Ratio | Bar |
 | -------------- | -------------- | ----- | --- |
@@ -78,6 +80,7 @@ background it appears on, including the danger soft notice.
 | ink-soft       | surface-alt    | 6.25  | 4.5 |
 | danger         | surface        | 5.62  | 4.5 |
 | danger         | danger-soft    | 4.83  | 4.5 |
+| white          | danger         | 5.62  | 4.5 |
 | warn           | surface        | 5.47  | 4.5 |
 | warn           | surface-alt    | 5.11  | 4.5 |
 | warn           | primary-soft   | 4.83  | 4.5 |
@@ -86,3 +89,6 @@ background it appears on, including the danger soft notice.
 | primary-strong | surface        | 5.56  | 4.5 |
 | primary-strong | danger-soft    | 4.78  | 4.5 |
 | primary accent | surface        | 3.84  | 3.0 |
+| primary accent | danger-soft    | 3.30  | 3.0 |
+| border-strong  | surface        | 3.77  | 3.0 |
+| border-strong  | surface-alt    | 3.52  | 3.0 |

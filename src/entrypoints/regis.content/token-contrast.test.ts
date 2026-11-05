@@ -35,7 +35,9 @@ interface Pair {
 // Each pair names a real usage. The primary brand orange is a UI accent only, on borders,
 // focus rings, and the active tab underline, so it carries the 3:1 bar; its text uses
 // primary-strong. primary-strong text appears on several soft notice backgrounds, the
-// darkest being danger-soft, so it is checked against each.
+// darkest being danger-soft, so it is checked against each. The accent also outlines a
+// swap target and a focus ring over a blocked danger-soft footprint. border-strong is the
+// form control boundary, a UI component on both panel surfaces (ADR-0051).
 const PAIRS: Pair[] = [
   {
     name: 'ink on surface',
@@ -149,6 +151,30 @@ const PAIRS: Pair[] = [
     name: 'primary accent on surface',
     fg: token('primary'),
     bg: token('surface'),
+    min: AA_UI,
+  },
+  {
+    name: 'primary accent on danger-soft',
+    fg: token('primary'),
+    bg: token('danger-soft'),
+    min: AA_UI,
+  },
+  {
+    name: 'white on danger',
+    fg: WHITE,
+    bg: token('danger'),
+    min: AA_NORMAL,
+  },
+  {
+    name: 'border-strong on surface',
+    fg: token('border-strong'),
+    bg: token('surface'),
+    min: AA_UI,
+  },
+  {
+    name: 'border-strong on surface-alt',
+    fg: token('border-strong'),
+    bg: token('surface-alt'),
     min: AA_UI,
   },
 ];
