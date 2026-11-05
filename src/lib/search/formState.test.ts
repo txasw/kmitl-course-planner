@@ -3,7 +3,6 @@ import { teachTableQuerySchema } from '../messaging/protocol';
 import type { Term } from '../routing/academicTerms';
 import {
   asClassYear,
-  asSemester,
   buildCategoryQuery,
   buildClassQuery,
   buildSubjectIdQuery,
@@ -54,12 +53,6 @@ describe('sanitizeSubjectId', () => {
 });
 
 describe('narrowing helpers', () => {
-  it('narrows a valid semester and rejects others', () => {
-    expect(asSemester('2')).toBe('2');
-    expect(asSemester('9')).toBeNull();
-    expect(asSemester('')).toBeNull();
-  });
-
   it('narrows a valid class year including the all option', () => {
     expect(asClassYear('4')).toBe('4');
     expect(asClassYear('all')).toBe('all');

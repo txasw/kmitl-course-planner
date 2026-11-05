@@ -61,10 +61,7 @@ function BlockedNotice({
               onClick={() => {
                 const outcome = addSectionToPlan(blocked.course, alternative);
                 if (!outcome.ok && 'crossTerm' in outcome) {
-                  dragStore.getState().showCrossTerm({
-                    planTerm: outcome.crossTerm.planTerm,
-                    browsedTerm: outcome.crossTerm.incomingTerm,
-                  });
+                  dragStore.getState().showCrossTerm(outcome.crossTerm);
                 } else {
                   dragStore.getState().clearBlocked();
                 }

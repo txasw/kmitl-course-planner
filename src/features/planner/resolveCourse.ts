@@ -6,7 +6,7 @@
 // painting move candidates the transaction would reject as cross term.
 
 import type { Course } from '@/lib/domain/types';
-import { asSemester, termsEqual } from '@/lib/routing/academicTerms';
+import { termFromQueryFields, termsEqual } from '@/lib/routing/academicTerms';
 import { findCourseBySubjectId } from '@/lib/catalog/findCourse';
 import { searchStore } from '@/features/search/searchStore';
 import { planStore } from '@/features/plans/planStore';
@@ -22,11 +22,12 @@ export function resolveCourseForSubject(subjectId: string): Course | null {
   const plan = planStore.getState();
   const active = plan.plans.find((entry) => entry.id === plan.activePlanId);
   if (query !== null && active !== undefined) {
-    const browsedTerm = {
-      year: query.selected_year,
-      semester: asSemester(query.selected_semester),
-    };
+    const browsedTerm = termFromQueryFields(
+      query.selected_year,
+      query.selected_semester,
+    );
     if (
+      browsedTerm === null ||
       !termsEqual(browsedTerm, { year: active.year, semester: active.semester })
     ) {
       return null;

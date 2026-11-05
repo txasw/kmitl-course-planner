@@ -6,7 +6,7 @@
 
 import { z } from 'zod';
 import type { TeachTableQuery } from '../messaging/protocol';
-import { SEMESTERS, type Semester, type Term } from '../routing/academicTerms';
+import { type Semester, type Term } from '../routing/academicTerms';
 
 export const SEARCH_TABS = [
   'by_class',
@@ -93,11 +93,6 @@ export function isValidSubjectId(value: string): boolean {
  * prefix. Leading zeros survive because the field stays a text input. */
 export function sanitizeSubjectId(value: string): string {
   return value.replace(/\D/g, '').slice(0, 8);
-}
-
-/** Narrow an arbitrary string to a semester, or null when it is not one. */
-export function asSemester(value: string): Semester | null {
-  return SEMESTERS.find((semester) => semester === value) ?? null;
 }
 
 /** Narrow an arbitrary string to a class year option, or null otherwise. */

@@ -6,10 +6,13 @@
 import { useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { AlertTriangle } from 'lucide-react';
-import { buddhistYears, toBuddhistYear } from '@/lib/routing/academicTerms';
+import {
+  buddhistYears,
+  parseSemester,
+  toBuddhistYear,
+} from '@/lib/routing/academicTerms';
 import {
   SEARCH_TABS,
-  asSemester,
   buildTeachTableQueryForTab,
   isValidSubjectId,
   type SearchTab,
@@ -179,7 +182,7 @@ export function SearchForm() {
                 searchStore.getState().patchSubjectIdForm({ year });
               }}
               onSemester={(value) => {
-                const semester = asSemester(value);
+                const semester = parseSemester(value);
                 if (semester !== null) {
                   searchStore.getState().patchSubjectIdForm({ semester });
                 }

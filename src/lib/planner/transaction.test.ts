@@ -106,6 +106,29 @@ describe('addSectionGroup', () => {
     }
   });
 
+  it('rejects a section whose query carries no semester', () => {
+    // A defaulting parser used to read the missing semester as the first one, so
+    // this add passed the gate of a first semester plan.
+    const section = makeSection({ teachTableId: 'a', subjectId: 'S1' });
+    const course = makeCourse({ subjectId: 'S1', sections: [section] });
+    const noSemester: SourceQuery = {
+      endpoint: 'get-teach-table-show',
+      params: { mode: 'by_subject_id', selected_year: '2569' },
+    };
+    const outcome = addSectionGroup(
+      [],
+      course,
+      section,
+      noSemester,
+      NOW,
+      PLAN_TERM,
+    );
+    expect(outcome).toEqual({
+      ok: false,
+      crossTerm: { planTerm: PLAN_TERM, incomingTerm: null },
+    });
+  });
+
   it('adds a lecture and practice pair atomically', () => {
     const lecture = makeSection({
       teachTableId: 'L',

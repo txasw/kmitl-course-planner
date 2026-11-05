@@ -8,7 +8,7 @@ import {
   type TeachTableQuery,
 } from '../messaging/protocol';
 import type { SourceQuery } from '../domain/plan';
-import { asSemester, type Term } from '../routing/academicTerms';
+import { termFromQueryFields, type Term } from '../routing/academicTerms';
 
 // The query flags stored as string booleans, coerced back by key on replay so a
 // select whose value happens to be "true" is never mistaken for a flag.
@@ -48,15 +48,12 @@ export function sourceQueryToQuery(
 }
 
 /**
- * The academic term a stored source query targeted, read from its flat params. Every
- * real teach table query carries both fields, so the defaults only guard a degenerate
- * empty map, which the entry path stops producing once the source query is required.
+ * The academic term a stored source query targeted, read from its flat params, or
+ * null when the year is missing or the semester is not a real one. Callers treat
+ * null as a term that matches no plan, so a malformed source query is never added.
  */
 export function termFromSourceQueryParams(
   params: Record<string, string>,
-): Term {
-  return {
-    year: params.selected_year ?? '',
-    semester: asSemester(params.selected_semester),
-  };
+): Term | null {
+  return termFromQueryFields(params.selected_year, params.selected_semester);
 }

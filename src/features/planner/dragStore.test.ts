@@ -158,6 +158,29 @@ describe('dragStore', () => {
   });
 });
 
+describe('showCrossTerm', () => {
+  it('names both terms for a readable mismatch', () => {
+    const store = createDragStore();
+    store.getState().showCrossTerm({
+      planTerm: { year: '2569', semester: '1' },
+      incomingTerm: { year: '2569', semester: '2' },
+    });
+    expect(store.getState().crossTerm).toEqual({
+      planTerm: { year: '2569', semester: '1' },
+      browsedTerm: { year: '2569', semester: '2' },
+    });
+  });
+
+  it('shows no switch strip when the incoming term is unreadable', () => {
+    const store = createDragStore();
+    store.getState().showCrossTerm({
+      planTerm: { year: '2569', semester: '1' },
+      incomingTerm: null,
+    });
+    expect(store.getState().crossTerm).toBeNull();
+  });
+});
+
 describe('blockerIds', () => {
   it('collects the distinct blocking teachTableIds', () => {
     expect(

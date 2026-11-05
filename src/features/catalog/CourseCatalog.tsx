@@ -9,7 +9,11 @@ import { RefreshCw } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
-import { asSemester, termsEqual, type Term } from '@/lib/routing/academicTerms';
+import {
+  termFromQueryFields,
+  termsEqual,
+  type Term,
+} from '@/lib/routing/academicTerms';
 import { computeSeatStatus } from '@/lib/catalog/seatStatus';
 import {
   computeSectionRelation,
@@ -105,10 +109,10 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
       browsedTerm:
         resultQuery === null
           ? null
-          : {
-              year: resultQuery.selected_year,
-              semester: asSemester(resultQuery.selected_semester),
-            },
+          : termFromQueryFields(
+              resultQuery.selected_year,
+              resultQuery.selected_semester,
+            ),
     }),
     [activePlan, resultQuery],
   );
@@ -129,10 +133,7 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
           .getState()
           .announce(`${t('feedback.added')} ${section.subjectId}`);
       } else if ('crossTerm' in outcome) {
-        dragStore.getState().showCrossTerm({
-          planTerm: outcome.crossTerm.planTerm,
-          browsedTerm: outcome.crossTerm.incomingTerm,
-        });
+        dragStore.getState().showCrossTerm(outcome.crossTerm);
       } else {
         dragStore.getState().showBlocked({
           course,
