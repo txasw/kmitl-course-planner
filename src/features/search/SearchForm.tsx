@@ -19,6 +19,7 @@ import {
   buildTeachTableQueryForTab,
   isValidSubjectId,
 } from '@/lib/search/formState';
+import { commitAndFocus } from '@/features/shell/commitAndFocus';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { FOCUS_RING, FOCUS_OUTLINE } from '@/lib/ui/focus';
 import {
@@ -27,6 +28,7 @@ import {
   SubjectIdInput,
   TermFields,
 } from './fields';
+import { SEARCH_BAR_ID, SEARCH_SUBMIT_ID } from './searchIds';
 import { searchStore } from './searchStore';
 import { TAB_LABEL } from './searchTabs';
 import { useSearchDeps } from './SearchDepsContext';
@@ -92,7 +94,10 @@ export function SearchForm() {
   const submitDisabled =
     activeTab === 'by_subject_id' ? bySubjectId.year === '' : query === null;
 
-  const handleSubmit = () => {
+  // An accepted search folds this form and turns it inert, so focus moves from the
+  // pressed control to the summary bar in the same commit. The bar is not a button, so
+  // a repeated Enter there starts nothing.
+  const handleSubmit = (from: Element) => {
     if (
       activeTab === 'by_subject_id' &&
       !isValidSubjectId(bySubjectId.subjectId)
@@ -101,7 +106,12 @@ export function SearchForm() {
       subjectIdRef.current?.focus();
       return;
     }
-    void submit();
+    if (query === null) {
+      return;
+    }
+    commitAndFocus(from, SEARCH_BAR_ID, () => {
+      void submit();
+    });
   };
 
   return (
@@ -212,9 +222,12 @@ export function SearchForm() {
       </div>
 
       <button
+        id={SEARCH_SUBMIT_ID}
         type="button"
         disabled={submitDisabled}
-        onClick={handleSubmit}
+        onClick={(event) => {
+          handleSubmit(event.currentTarget);
+        }}
         className={`rounded-kcp bg-primary-strong px-4 py-2 text-sm font-semibold text-surface hover:bg-primary-hover disabled:opacity-50 ${FOCUS_OUTLINE}`}
       >
         {t('search.submit')}

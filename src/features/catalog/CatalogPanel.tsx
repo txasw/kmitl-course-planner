@@ -14,6 +14,8 @@ import { toastStore } from '@/features/shell/toastStore';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { useSearchActions } from '@/features/search/useSearchController';
 import { errorMessageKey } from '@/features/search/errorMessage';
+import { SEARCH_SUBMIT_ID } from '@/features/search/searchIds';
+import { commitAndFocus } from '@/features/shell/commitAndFocus';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { CourseCatalog } from './CourseCatalog';
@@ -47,7 +49,13 @@ const SLOW_NOTICE_MS = 8_000;
 
 // Rendered with a key derived from the query, so a new search remounts it and the
 // slow timer restarts from zero rather than carrying over the previous query's clock.
-function LoadingState({ t, onCancel }: { t: Translate; onCancel: () => void }) {
+function LoadingState({
+  t,
+  onCancel,
+}: {
+  t: Translate;
+  onCancel: (from: Element) => void;
+}) {
   const [slow, setSlow] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -69,7 +77,9 @@ function LoadingState({ t, onCancel }: { t: Translate; onCancel: () => void }) {
           <span>{t('catalog.slowNotice')}</span>
           <button
             type="button"
-            onClick={onCancel}
+            onClick={(event) => {
+              onCancel(event.currentTarget);
+            }}
             className="rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             {t('action.cancel')}
@@ -112,8 +122,12 @@ export function CatalogPanel() {
       <LoadingState
         key={query === null ? 'idle' : JSON.stringify(query)}
         t={t}
-        onCancel={() => {
-          void cancel();
+        onCancel={(from) => {
+          // Cancelling reopens the form, so focus moves to its submit, ready to search
+          // again; the store write runs before the cancel awaits the worker.
+          commitAndFocus(from, SEARCH_SUBMIT_ID, () => {
+            void cancel();
+          });
         }}
       />
     );
