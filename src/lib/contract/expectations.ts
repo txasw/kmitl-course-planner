@@ -11,6 +11,7 @@ import { parseTimeToMinutes } from '../parsing/time';
 import { isUnscheduledDay, isUnscheduledRow } from '../parsing/days';
 import { TEACH_TIME_STR_PATTERN } from '../parsing/teachTimeStr';
 import { EXAM_DATETIME } from '../parsing/examDateTime';
+import { SEMESTERS } from '../routing/academicTerms';
 import type { IssueSeverity } from './report';
 
 export const DEBUG_CANARY = 'kcp-debug-canary';
@@ -173,6 +174,18 @@ export const SUBJECT_OWNER_EXPECTATIONS: readonly FieldExpectation[] = [
     false,
     'English owner name',
   ),
+];
+
+// The current registration term is one object rather than a list; the audit
+// interceptor wraps it as a single row. The datetime fields carry no expectation
+// because nothing reads them.
+export const CURRENT_TERM_EXPECTATIONS: readonly FieldExpectation[] = [
+  field('YEAR', 'string', false, '4 digit Buddhist year', {
+    pattern: /^\d{4}$/,
+  }),
+  field('SEMESTER', 'string', false, 'semester 1, 2, or 3', {
+    enum: SEMESTERS,
+  }),
 ];
 
 /** A rule spanning more than one field. `check` returns the offending value

@@ -44,4 +44,19 @@ describe('createAuditInterceptor', () => {
     );
     expect(get()?.totals.rows).toBeGreaterThan(0);
   });
+
+  it('audits the single current term object as one row', () => {
+    const { audit, get } = collector();
+    audit.observe(
+      {
+        endpoint: 'get-year-semester-now',
+        params: {},
+        url: 'u',
+        timeoutMs: 15_000,
+      },
+      loadFixture('year-semester-now.capture.json'),
+    );
+    expect(get()?.totals.rows).toBe(1);
+    expect(get()?.totals.issues).toBe(0);
+  });
 });

@@ -7,6 +7,7 @@ import {
   DEPARTMENT_EXPECTATIONS,
   CURRICULUM_EXPECTATIONS,
   SUBJECT_OWNER_EXPECTATIONS,
+  CURRENT_TERM_EXPECTATIONS,
   type FieldExpectation,
 } from './expectations';
 
@@ -215,5 +216,27 @@ describe('auditReference', () => {
   it.each(cases)('audits %s with no issues', (name, expectations) => {
     const report = auditReference(loadFixture(name), expectations, ctx);
     expect(report.totals.issues).toBe(0);
+  });
+
+  it('audits the current term capture as one clean row', () => {
+    const report = auditReference(
+      [loadFixture('year-semester-now.capture.json')],
+      CURRENT_TERM_EXPECTATIONS,
+      ctx,
+    );
+    expect(report.totals.rows).toBe(1);
+    expect(report.totals.issues).toBe(0);
+  });
+
+  it('flags a missing year and an out of range semester', () => {
+    const report = auditReference(
+      [{ SEMESTER: '9' }],
+      CURRENT_TERM_EXPECTATIONS,
+      ctx,
+    );
+    expect(report.issues.map((issue) => issue.kind).sort()).toEqual([
+      'missing_field',
+      'value_out_of_range',
+    ]);
   });
 });

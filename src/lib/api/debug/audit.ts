@@ -9,6 +9,7 @@ import {
   type AuditContext,
 } from '../../contract/auditor';
 import {
+  CURRENT_TERM_EXPECTATIONS,
   CURRICULUM_EXPECTATIONS,
   DEPARTMENT_EXPECTATIONS,
   FACULTY_EXPECTATIONS,
@@ -44,6 +45,13 @@ function runAudit(
       return auditReference(raw, CURRICULUM_EXPECTATIONS, context);
     case 'get-reference':
       return auditReference(raw, SUBJECT_OWNER_EXPECTATIONS, context);
+    case 'get-year-semester-now':
+      // A single object; an array here is drift whose rows then report missing fields.
+      return auditReference(
+        Array.isArray(raw) ? raw : [raw],
+        CURRENT_TERM_EXPECTATIONS,
+        context,
+      );
     default:
       return auditReference(raw, [], context);
   }
