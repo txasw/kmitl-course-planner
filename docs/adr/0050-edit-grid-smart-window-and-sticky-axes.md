@@ -89,8 +89,11 @@ line is a visible defect on the most used surface.
 With the rail gone and the window smart, 1280 and 1366 px laptops show the whole working day with
 no horizontal scroll, and the tablet tiers fit the 600 px minimum. A broad search can still widen
 the grid past its column; then it scrolls with the day and hour axes in view, which is a stated
-fallback rather than a defect, and the end to end check for it runs on the real GenEd category
-capture rather than a synthetic working day. The shared hour rules change export pixels slightly,
+fallback rather than a defect, and the end to end check for it runs on a real capture rather than
+a synthetic working day. The committed GenEd category capture meets only on Friday from 08:00 to
+16:00, inside the working day, so it serves the no scroll check at 1280 and 1366 px; the scroll
+check loads the real capture with exam windows, which meets until 20:00 and on both weekend days
+and widens the grid past the 1024 px column. The shared hour rules change export pixels slightly,
 because the poster draws the same rules. Edit blocks drop whole fields instead of clipping, at the
 cost of a measurement pass after each window or size change. The pure geometry in `grid.ts` is
 reused unchanged; only its inputs in edit differ.
