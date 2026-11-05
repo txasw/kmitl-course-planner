@@ -72,6 +72,9 @@ describe('requestMessageSchema', () => {
       requestMessageSchema.safeParse({ type: 'ref/faculty', refresh: true })
         .success,
     ).toBe(true);
+    expect(
+      requestMessageSchema.safeParse({ type: 'ref/currentTerm' }).success,
+    ).toBe(true);
   });
 
   it('accepts a teach table query message', () => {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  currentTermEndpoint,
   curriculumEndpoint,
   departmentEndpoint,
   facultyEndpoint,
@@ -10,6 +11,7 @@ import {
   teachTableUrl,
 } from './endpoints';
 import { DEFAULT_TIMEOUT_MS } from './http';
+import { REFERENCE_TTL_MS } from '../storage/keys';
 import type { TeachTableQuery } from '../messaging/protocol';
 
 const ownerQuery: TeachTableQuery = {
@@ -29,6 +31,7 @@ describe('endpoint timeouts', () => {
       departmentEndpoint,
       curriculumEndpoint,
       subjectOwnerEndpoint,
+      currentTermEndpoint,
     ]) {
       expect(endpoint.timeoutMs).toBe(DEFAULT_TIMEOUT_MS);
     }
@@ -42,6 +45,14 @@ describe('reference endpoints', () => {
     );
     expect(facultyEndpoint.cacheKey).toBe('kcp:cache:ref:faculty');
     expect(curriculumEndpoint.url).toContain('LEVEL_ID=1');
+  });
+
+  it('points the current term call at the regis host for level 1', () => {
+    expect(currentTermEndpoint.url).toBe(
+      'https://regis.reg.kmitl.ac.th/api/?function=get-year-semester-now&level_id=1',
+    );
+    expect(currentTermEndpoint.cacheKey).toBe('kcp:cache:ref:currentTerm');
+    expect(currentTermEndpoint.ttlMs).toBe(REFERENCE_TTL_MS);
   });
 
   it('builds the subject owner url with literal brackets and encoded json', () => {

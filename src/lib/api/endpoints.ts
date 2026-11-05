@@ -1,4 +1,4 @@
-// URL builders and descriptors for the five endpoints. Each descriptor pairs an
+// URL builders and descriptors for every endpoint. Each descriptor pairs an
 // endpoint with the schema that validates its response, its cache ttl, and its
 // cache key. Reference endpoints are parameter free and cache under a static key.
 // The teach table endpoint takes a query, whose flags serialize to string
@@ -8,11 +8,13 @@
 
 import type { z } from 'zod';
 import {
+  currentTermSchema,
   curriculumListSchema,
   departmentListSchema,
   facultyListSchema,
   subjectOwnerListSchema,
   teachTableResponseSchema,
+  type RawCurrentTerm,
   type RawCurriculum,
   type RawDepartment,
   type RawFaculty,
@@ -49,8 +51,8 @@ export interface ReferenceEndpoint<T> {
 }
 
 const API_BASE = 'https://api.reg.kmitl.ac.th';
-const TEACH_TABLE_URL =
-  'https://regis.reg.kmitl.ac.th/api/?function=get-teach-table-show';
+const REGIS_API_BASE = 'https://regis.reg.kmitl.ac.th/api/';
+const TEACH_TABLE_URL = `${REGIS_API_BASE}?function=get-teach-table-show`;
 export const TEACH_TABLE_ENDPOINT = 'get-teach-table-show';
 
 function subjectOwnerUrl(): string {
@@ -107,6 +109,18 @@ export const subjectOwnerEndpoint: ReferenceEndpoint<RawSubjectOwner[]> = {
   schema: subjectOwnerListSchema,
   ttlMs: REFERENCE_TTL_MS,
   cacheKey: refCacheKey('subjectOwner'),
+  timeoutMs: REFERENCE_TIMEOUT_MS,
+};
+
+// The current registration term lives on the regis host beside the teach table, not
+// on the reference host. It changes only at a term boundary, so it shares the
+// reference ttl. Level 1 is the bachelor level the curriculum list also uses.
+export const currentTermEndpoint: ReferenceEndpoint<RawCurrentTerm> = {
+  endpoint: 'get-year-semester-now',
+  url: `${REGIS_API_BASE}?function=get-year-semester-now&level_id=1`,
+  schema: currentTermSchema,
+  ttlMs: REFERENCE_TTL_MS,
+  cacheKey: refCacheKey('currentTerm'),
   timeoutMs: REFERENCE_TIMEOUT_MS,
 };
 

@@ -11,6 +11,7 @@ import type {
   RawDepartment,
   RawCurriculum,
   RawSubjectOwner,
+  RawCurrentTerm,
 } from '../domain/schemas';
 import type { NormalizedCatalog } from '../domain/normalize';
 import type { LatestRaw, RequestLogEntry, SimSettings } from '../api/types';
@@ -76,6 +77,10 @@ export const requestMessageSchema = z.discriminatedUnion('type', [
     refresh: z.boolean().optional(),
   }),
   z.object({
+    type: z.literal('ref/currentTerm'),
+    refresh: z.boolean().optional(),
+  }),
+  z.object({
     type: z.literal('teachTable/query'),
     query: teachTableQuerySchema,
     refresh: z.boolean().optional(),
@@ -112,6 +117,7 @@ export interface ResponseMap {
   'ref/department': Result<RawDepartment[]>;
   'ref/curriculum': Result<RawCurriculum[]>;
   'ref/subjectOwner': Result<RawSubjectOwner[]>;
+  'ref/currentTerm': Result<RawCurrentTerm>;
   'teachTable/query': Result<NormalizedCatalog>;
   'teachTable/cancel': Result<void>;
   'debug/getRequestLog': Result<RequestLogEntry[]>;
