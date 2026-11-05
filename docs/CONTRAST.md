@@ -89,6 +89,7 @@ surfaces, while dividers and gridlines keep the quieter `--kcp-border` (ADR-0051
 | primary-strong | surface        | 5.56  | 4.5 |
 | primary-strong | danger-soft    | 4.78  | 4.5 |
 | primary accent | surface        | 3.84  | 3.0 |
+| primary accent | surface-alt    | 3.58  | 3.0 |
 | primary accent | danger-soft    | 3.30  | 3.0 |
 | border-strong  | surface        | 3.77  | 3.0 |
 | border-strong  | surface-alt    | 3.52  | 3.0 |
