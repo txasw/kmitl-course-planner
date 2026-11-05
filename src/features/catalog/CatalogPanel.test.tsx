@@ -30,7 +30,7 @@ function renderPanel() {
 afterEach(() => {
   cleanup();
   act(() => {
-    searchStore.getState().setResult({ status: 'idle' }, null);
+    searchStore.getState().cancelSearch();
     toastStore.getState().dismiss();
   });
 });
@@ -87,6 +87,31 @@ describe('CatalogPanel', () => {
       });
       expect(calls).toContain('teachTable/cancel');
       expect(searchStore.getState().result.status).toBe('idle');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('guards the results against pointer input just after a submit', () => {
+    vi.useFakeTimers();
+    try {
+      renderPanel();
+      const query: TeachTableQuery = {
+        mode: 'by_subject_owner_id',
+        selected_year: '2569',
+        selected_semester: '1',
+        search_all_faculty: true,
+        selected_subject_owner_id: '32',
+      };
+      act(() => {
+        searchStore.getState().startQuery(query, 'user');
+      });
+      const loading = screen.getByRole('status');
+      expect(loading.parentElement).toHaveClass('pointer-events-none');
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      expect(loading.parentElement).not.toHaveClass('pointer-events-none');
     } finally {
       vi.useRealTimers();
     }
