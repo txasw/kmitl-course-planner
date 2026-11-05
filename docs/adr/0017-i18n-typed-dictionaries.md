@@ -30,3 +30,13 @@ locales more strictly than a framework's runtime lookups.
 Adding a string means adding one key to both dictionaries, checked at compile time
 and at runtime. The domain layer stays free of React because the pure translator and
 dictionaries live in lib while the hook lives in the shell.
+
+## Amendment, named placeholders
+
+The seat line reads ว่าง 12 จาก 45 in Thai and 12 of 45 open in English, so the two
+locales place the same values in a different order and a value appended to a fixed
+prefix cannot express it. A dictionary string may now carry named `{placeholder}`
+tokens, filled by `fillTemplate` in `lib/i18n/template.ts`. A token with no value is
+left as written so a missing value is visible rather than silently dropped, and a
+runtime test asserts that every key uses the same placeholder names in both
+dictionaries. No message format beyond plain named substitution is introduced.
