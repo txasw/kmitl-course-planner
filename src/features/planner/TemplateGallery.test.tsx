@@ -61,7 +61,23 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
+
+// The selected poster's scaled box, which the gallery sizes from the measured stage.
+function selectedBox(container: HTMLElement): {
+  width: number;
+  height: number;
+} {
+  const box = container.querySelector<HTMLElement>('.kcp-settle');
+  if (box === null) {
+    throw new Error('no selected poster box');
+  }
+  return {
+    width: Number.parseFloat(box.style.width),
+    height: Number.parseFloat(box.style.height),
+  };
+}
 
 describe('TemplateGallery', () => {
   it('renders one radio per template with the selected one checked', () => {
@@ -131,5 +147,48 @@ describe('TemplateGallery', () => {
     expect(
       screen.getByRole('button', { name: 'แม่แบบก่อนหน้า' }),
     ).toBeEnabled();
+  });
+
+  it('scales the selected poster from the measured stage and follows a resize', () => {
+    const callbacks: (() => void)[] = [];
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: () => void) {
+          callbacks.push(callback);
+        }
+        observe(): void {
+          /* resizes are fired by hand below */
+        }
+        unobserve(): void {
+          /* nothing to release */
+        }
+        disconnect(): void {
+          /* nothing to release */
+        }
+      },
+    );
+    // jsdom performs no layout, so the stage reports a hand set client box.
+    let stage = { width: 600, height: 400 };
+    vi.spyOn(Element.prototype, 'clientWidth', 'get').mockImplementation(
+      () => stage.width,
+    );
+    vi.spyOn(Element.prototype, 'clientHeight', 'get').mockImplementation(
+      () => stage.height,
+    );
+    const { container } = renderGallery();
+    // Share 16:9 lays out at 960 by 540. The 600 px stage keeps 60 px clear at each edge, so
+    // the width bound of 480 / 960 wins over the height bound.
+    expect(selectedBox(container)).toEqual({ width: 480, height: 270 });
+
+    stage = { width: 1080, height: 300 };
+    act(() => {
+      for (const callback of callbacks) callback();
+    });
+    // Now the height bound wins: 300 * 0.94 / 540 of the layout box.
+    const scale = (300 * 0.94) / 540;
+    const resized = selectedBox(container);
+    expect(resized.width).toBeCloseTo(960 * scale);
+    expect(resized.height).toBeCloseTo(540 * scale);
   });
 });
