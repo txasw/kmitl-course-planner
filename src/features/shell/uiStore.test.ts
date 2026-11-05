@@ -6,7 +6,7 @@ describe('ui store', () => {
     const store = createUiStore();
     const state = store.getState();
     expect(state.isOpen).toBe(false);
-    expect(state.drawerOpen).toBe(false);
+    expect(state.sheetOpen).toBe(false);
     expect(state.language).toBe('th');
   });
 
@@ -26,13 +26,13 @@ describe('ui store', () => {
     expect(store.getState().isOpen).toBe(false);
   });
 
-  it('resets the drawer when closing', () => {
+  it('resets the catalog sheet when closing', () => {
     const store = createUiStore();
     store.getState().open();
-    store.getState().setDrawer(true);
-    expect(store.getState().drawerOpen).toBe(true);
+    store.getState().setSheetOpen(true);
+    expect(store.getState().sheetOpen).toBe(true);
     store.getState().close();
-    expect(store.getState().drawerOpen).toBe(false);
+    expect(store.getState().sheetOpen).toBe(false);
   });
 
   it('sets the language', () => {

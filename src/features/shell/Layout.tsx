@@ -7,19 +7,19 @@ import { SearchForm } from '@/features/search/SearchForm';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
 
-/** Id the header drawer toggle points its aria-controls at. */
+/** Id the header sheet toggle points its aria-controls at. */
 export const DRAWER_ID = 'kcp-catalog-drawer';
 
 // The three region body: a left search rail, a center catalog, and a dominant
 // right grid. Below the xl breakpoint the catalog collapses into a slide over
-// drawer toggled from the header; the drawer open state lives in the ui store.
+// sheet toggled from the header; the sheet open state lives in the ui store.
 // The search rail and catalog carry their features; the grid region hosts the
 // weekly timetable, which renders from the plan snapshots.
 export function Layout() {
   const { t } = useTranslation();
   const viewMode = useStore(uiStore, (state) => state.viewMode);
-  const drawerOpen = useStore(uiStore, (state) => state.drawerOpen);
-  const setDrawer = useStore(uiStore, (state) => state.setDrawer);
+  const sheetOpen = useStore(uiStore, (state) => state.sheetOpen);
+  const setSheetOpen = useStore(uiStore, (state) => state.setSheetOpen);
 
   // Preview collapses the search rail and catalog out of the DOM and gives the
   // timetable the full panel width as a poster composition.
@@ -51,21 +51,21 @@ export function Layout() {
         </div>
 
         <div className="xl:hidden">
-          {drawerOpen ? (
+          {sheetOpen ? (
             <button
               type="button"
               aria-label={t('catalog.drawerClose')}
               onClick={() => {
-                setDrawer(false);
+                setSheetOpen(false);
               }}
               className="absolute inset-0 z-scrim bg-ink/30"
             />
           ) : null}
           <div
             id={DRAWER_ID}
-            aria-hidden={!drawerOpen}
+            aria-hidden={!sheetOpen}
             className={`absolute inset-y-0 left-0 z-drawer w-80 max-w-[85%] kcp-scroll overflow-y-auto border-r border-border bg-surface p-6 shadow-kcp transition-transform duration-base motion-reduce:transition-none ${
-              drawerOpen ? 'translate-x-0' : '-translate-x-full'
+              sheetOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
           >
             {catalog}

@@ -51,10 +51,10 @@ describe('shell accessibility', () => {
     await expectNoSeriousA11yViolations(container);
   });
 
-  it('the overlay with the catalog drawer open has no serious violations', async () => {
+  it('the overlay with the catalog sheet open has no serious violations', async () => {
     act(() => {
       uiStore.getState().open();
-      uiStore.getState().setDrawer(true);
+      uiStore.getState().setSheetOpen(true);
     });
     const { container } = render(<Overlay />, { wrapper });
     await expectNoSeriousA11yViolations(container);
