@@ -192,7 +192,9 @@ export function BlockDetailPopover({
 
       <div className="mt-2 flex flex-col gap-0.5 border-t border-border pt-2 text-ink-soft">
         {teachers.length > 0 ? <p>{teachers.join(', ')}</p> : null}
-        {snapshot.remark !== '' ? <p>{snapshot.remark}</p> : null}
+        {snapshot.remark !== '' ? (
+          <p className="whitespace-pre-line">{snapshot.remark}</p>
+        ) : null}
       </div>
 
       <div className="mt-2 flex justify-end gap-2 border-t border-border pt-2">
