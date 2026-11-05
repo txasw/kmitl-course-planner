@@ -107,6 +107,36 @@ describe('the search disclosure', () => {
     expect(state.searchFormOpen).toBe(true);
   });
 
+  it('starts a user search in one write that folds the form', () => {
+    const store = createSearchStore();
+    let writes = 0;
+    store.subscribe(() => {
+      writes += 1;
+    });
+    store.getState().startQuery(ownerQuery, 'user');
+    const state = store.getState();
+    expect(writes).toBe(1);
+    expect(state.result).toEqual({ status: 'loading' });
+    expect(state.resultQuery).toBe(ownerQuery);
+    expect(state.barQuery).toBe(ownerQuery);
+    expect(state.searchFormOpen).toBe(false);
+    expect(state.lastSubmitAt).toEqual(expect.any(Number));
+  });
+
+  it('leaves the disclosure alone on a background run', () => {
+    const store = createSearchStore();
+    store.getState().startQuery(ownerQuery, 'user');
+    store.getState().setSearchFormOpen(true);
+    const { lastSubmitAt } = store.getState();
+    const rerun: TeachTableQuery = { ...ownerQuery };
+    store.getState().startQuery(rerun, 'background');
+    const state = store.getState();
+    expect(state.resultQuery).toBe(rerun);
+    expect(state.barQuery).toBe(ownerQuery);
+    expect(state.searchFormOpen).toBe(true);
+    expect(state.lastSubmitAt).toBe(lastSubmitAt);
+  });
+
   it('leaves the bar alone when a persisted search hydrates', () => {
     const store = createSearchStore();
     const term = { year: '2569', semester: '1' } as const;
