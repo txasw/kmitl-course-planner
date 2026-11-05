@@ -18,7 +18,6 @@ import {
   useDeferredValue,
   useEffect,
   useRef,
-  useState,
   type PointerEvent as ReactPointerEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
@@ -35,6 +34,7 @@ import {
 } from '@/lib/planner/exportTemplates';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { useElementSize } from '@/features/shell/useElementSize';
 import { Tooltip } from '@/components/Tooltip';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { PreviewPoster, type PosterData } from './PreviewPoster';
@@ -132,24 +132,8 @@ export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const groupRef = useRef<HTMLDivElement>(null);
-  const [area, setArea] = useState({ width: 0, height: 0 });
+  const area = useElementSize(viewportRef);
   const swipe = useRef<{ pointerId: number; startX: number } | null>(null);
-
-  useEffect(() => {
-    const node = viewportRef.current;
-    if (node === null) {
-      return undefined;
-    }
-    const measure = () => {
-      setArea({ width: node.clientWidth, height: node.clientHeight });
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(node);
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
 
   const select = useCallback((index: number) => {
     uiStore
