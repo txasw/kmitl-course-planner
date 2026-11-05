@@ -15,7 +15,7 @@ import { planStore, type UndoRecord } from '@/features/plans/planStore';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { usePrefersReducedMotion } from './usePresence';
-import { useSwipeDismiss } from './useSwipeDismiss';
+import { useSwipeGesture } from './useSwipeGesture';
 
 /** Matches the plan store's undo window; the drain bar and the timer both run for it. */
 export const UNDO_WINDOW_MS = 10_000;
@@ -39,7 +39,11 @@ export function UndoToast({ record, locale, t }: UndoToastProps) {
   const dismiss = () => {
     planStore.getState().clearUndo();
   };
-  const swipe = useSwipeDismiss(dismiss, !reducedMotion);
+  const swipe = useSwipeGesture({
+    axis: 'x',
+    onSwipe: dismiss,
+    enabled: !reducedMotion,
+  });
   // The time left in the window, preserved across pauses so resume continues from it
   // rather than restarting the full ten seconds.
   const remainingRef = useRef(UNDO_WINDOW_MS);
@@ -111,7 +115,7 @@ export function UndoToast({ record, locale, t }: UndoToastProps) {
       onBlurCapture={resume}
       {...swipe.handlers}
       style={swipe.style}
-      className="kcp-toast-enter pointer-events-auto relative flex max-w-md items-center gap-2 overflow-hidden rounded-kcp border border-border bg-surface py-2 pr-2 pl-3 text-sm text-ink shadow-kcp"
+      className={`kcp-toast-enter pointer-events-auto relative flex max-w-md items-center gap-2 overflow-hidden rounded-kcp border border-border bg-surface py-2 pr-2 pl-3 text-sm text-ink shadow-kcp ${swipe.touchClass}`}
     >
       <Undo2
         size={16}

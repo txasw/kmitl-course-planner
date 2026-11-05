@@ -16,6 +16,7 @@ import {
   resetPlanStore,
   seedActivePlan,
 } from '../../../tests/support/plan-store';
+import { swipe } from '../../../tests/support/swipe';
 import { UndoToast } from './UndoToast';
 
 const t = createTranslator('th');
@@ -89,6 +90,26 @@ describe('UndoToast', () => {
     // The pending undo cleared, so the removal stands and was not restored.
     expect(planStore.getState().pendingUndo).toBeNull();
     expect(planStore.getState().entries).toHaveLength(0);
+  });
+
+  it('commits the change on a sideways swipe', () => {
+    const record = removeRecord();
+    seedUndo(record);
+    render(<UndoToast record={record} locale="th" t={t} />);
+    const toast = screen.getByText(/นำออกแล้ว 90592033/).parentElement;
+    if (toast === null) throw new Error('toast missing');
+    swipe(toast, 'x', 100);
+    expect(planStore.getState().pendingUndo).toBeNull();
+  });
+
+  it('keeps the undo window open after a vertical swipe', () => {
+    const record = removeRecord();
+    seedUndo(record);
+    render(<UndoToast record={record} locale="th" t={t} />);
+    const toast = screen.getByText(/นำออกแล้ว 90592033/).parentElement;
+    if (toast === null) throw new Error('toast missing');
+    swipe(toast, 'y', 100);
+    expect(planStore.getState().pendingUndo).toBe(record);
   });
 
   it('restores the removed pair on undo', () => {

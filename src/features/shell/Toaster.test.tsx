@@ -15,6 +15,7 @@ import {
   resetPlanStore,
   seedActivePlan,
 } from '../../../tests/support/plan-store';
+import { swipe } from '../../../tests/support/swipe';
 import { Toaster } from './Toaster';
 import { toastStore } from './toastStore';
 import { uiStore } from './uiStore';
@@ -72,6 +73,31 @@ describe('Toaster', () => {
     expect(screen.getByText('Done')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'ปิด' }));
     expect(screen.queryByText('Done')).toBeNull();
+  });
+
+  it('dismisses an ordinary toast on a sideways swipe', () => {
+    render(<Toaster />);
+    act(() => {
+      toastStore.getState().show('success', 'Done');
+    });
+    const toast = screen.getByText('Done').parentElement;
+    if (toast === null) throw new Error('toast missing');
+    expect(toast).toHaveClass('touch-pan-y');
+    swipe(toast, 'x', -100);
+    expect(screen.queryByText('Done')).toBeNull();
+  });
+
+  it('keeps an ordinary toast after a short or vertical swipe', () => {
+    render(<Toaster />);
+    act(() => {
+      toastStore.getState().show('success', 'Done');
+    });
+    const toast = screen.getByText('Done').parentElement;
+    if (toast === null) throw new Error('toast missing');
+    swipe(toast, 'x', 20);
+    swipe(toast, 'y', 100);
+    expect(screen.getByText('Done')).toBeInTheDocument();
+    expect(toast.style.transform).toBe('');
   });
 
   it('keeps a polite live region mounted and empty until a toast shows', () => {
