@@ -1,7 +1,8 @@
 // The day tracks of the weekly grid: a label and a lane per rendered day, and the placed
 // blocks over them. A lane carries the row fill and its border; the time rules draw once
 // across every lane in GridRules. In edit mode each block is a drag source; in preview it
-// is a plain block. Both fit their fields to the box, and the edit fit pauses while a drag
+// is a plain block with no verification marks, since the poster states them as text
+// (ADR-0055). Both fit their fields to the box, and the edit fit pauses while a drag
 // holds the grid frame (ADR-0050). Renders a fragment so every item is a direct child of
 // the grid and places by track index. In edit the day labels are sticky inside the
 // planner scroller on an opaque fill, so the day stays readable while the time scrolls
@@ -216,6 +217,7 @@ export function DayLanes({
             showEnglishName={showEnglishName}
             showSubjectId={showSubjectId}
             thaiHeadroom
+            showVerification={editable}
           />
         );
       })}

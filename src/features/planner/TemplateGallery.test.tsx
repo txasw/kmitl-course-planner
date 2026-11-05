@@ -28,9 +28,6 @@ function makePoster(): PosterData {
     window: DEFAULT_WINDOW,
     days: WEEK_DAYS,
     displayOptions: DEFAULT_DISPLAY_OPTIONS,
-    conflictIds: new Set(),
-    examConflictIds: new Set(),
-    examOverlaps: new Map(),
     locale: 'th',
     t,
   };

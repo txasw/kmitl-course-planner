@@ -24,6 +24,8 @@
 // (ADR-0044), so the block carries no separate info affordance. The only chrome control is
 // the quiet remove button, kept a sibling of the interactive block rather than nested
 // inside it so no interactive control nests in another; a positioning wrapper holds both.
+// The verification marks are an editing signal for the plan owner, so the export poster
+// renders the block without them (ADR-0055).
 
 import {
   memo,
@@ -97,6 +99,10 @@ interface EventBlockProps {
    * On for the export poster, where the raster must never crop a mark; the edit grid keeps
    * its tighter line height so a block holds more fields (ADR-0046). */
   thaiHeadroom?: boolean;
+  /** Draw the verification and conflict marks: the status dot, the hatch, the danger ring,
+   * and the badge text in the accessible name. On in edit mode; the export poster turns it
+   * off and states the same facts as footer text, so a shared image stays clean (ADR-0055). */
+  showVerification?: boolean;
 }
 
 function EventBlockComponent({
@@ -124,6 +130,7 @@ function EventBlockComponent({
   fitKey = '',
   fitPaused = false,
   thaiHeadroom = false,
+  showVerification = true,
 }: EventBlockProps) {
   const name = locale === 'th' ? section.nameTh : section.nameEn;
   // The English name is guaranteed visible when the option is on: it is the primary
@@ -131,14 +138,14 @@ function EventBlockComponent({
   const englishSecondary =
     showEnglishName && locale === 'th' && section.nameEn !== '';
   const time = `${formatMinutes(meeting.startMin)}-${formatMinutes(meeting.endMin)}`;
-  const badge = blockBadge(section.verifyStatus, conflicted, examConflicted);
-  const badgeText = blockBadgeLabelKeys(
-    section.verifyStatus,
-    conflicted,
-    examConflicted,
-  )
-    .map((key) => t(key))
-    .join(' ');
+  const badge = showVerification
+    ? blockBadge(section.verifyStatus, conflicted, examConflicted)
+    : null;
+  const badgeText = showVerification
+    ? blockBadgeLabelKeys(section.verifyStatus, conflicted, examConflicted)
+        .map((key) => t(key))
+        .join(' ')
+    : '';
   // Room and building read together as the place. Both can be empty on an online
   // course, so the middot separator only appears when both are present.
   const place = [meeting.building, meeting.room]
