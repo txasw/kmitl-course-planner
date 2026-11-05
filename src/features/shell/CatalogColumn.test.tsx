@@ -24,7 +24,7 @@ import {
 import { installViewport } from '../../../tests/support/viewport';
 import { useLayoutTier } from './useLayoutTier';
 import { CatalogColumn, CATALOG_COLUMN_ID } from './CatalogColumn';
-import { Header } from './Header';
+import { EdgeRail } from './EdgeRail';
 import { uiStore } from './uiStore';
 
 // Every mounted useDraggable call counts against its id while it stays mounted, so a
@@ -91,15 +91,15 @@ function Harness() {
   );
 }
 
-// The header carries the control that restores a hidden column, so the focus hand off
-// between the two is exercised with both mounted.
+// The edge rail takes the hidden column's place and restores it, so the focus hand off
+// between the two is exercised with both mounted, in the order Layout renders them.
 function ShellHarness() {
   const tier = useLayoutTier();
   return (
     <SearchDepsProvider value={fakeSearchDeps()}>
       <DndContext>
-        <Header titleId="title" />
         <CatalogColumn tier={tier} />
+        <EdgeRail />
       </DndContext>
     </SearchDepsProvider>
   );
@@ -307,18 +307,18 @@ describe('CatalogColumn', () => {
     expect(node.scrollTop).toBe(0);
   });
 
-  it('hands focus between the hide control and the header toggle', () => {
+  it('hands focus between the hide control and the edge rail', () => {
     installViewport(1440);
     render(<ShellHarness />);
     fireEvent.click(screen.getByRole('button', { name: 'ซ่อนรายวิชา' }));
-    const toggle = screen.getByRole('button', { name: 'รายวิชา' });
-    expect(toggle).toHaveFocus();
-    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    const rail = screen.getByRole('button', { name: 'แสดงรายวิชา' });
+    expect(rail).toHaveFocus();
 
-    fireEvent.click(toggle);
+    // A keyboard activation, whose detail is 0, is never held back by the pointer guard.
+    fireEvent.click(rail, { detail: 0 });
     expect(uiStore.getState().catalogVisible).toBe(true);
     expect(
-      screen.queryByRole('button', { name: 'รายวิชา' }),
+      screen.queryByRole('button', { name: 'แสดงรายวิชา' }),
     ).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ซ่อนรายวิชา' })).toHaveFocus();
   });

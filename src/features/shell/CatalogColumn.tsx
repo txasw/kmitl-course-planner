@@ -10,7 +10,8 @@
 // registration and the scroll offset survive a tier change. The closed sheet stays
 // mounted, so the session state of 6.1 is never dropped. The docked column can be hidden
 // to give the grid the full width; hidden, it leaves the flow but stays mounted, laid
-// out at its width and inert, so its scroll offset and search state wait for its return.
+// out at its width and inert, so its scroll offset and search state wait for its return,
+// and the edge rail takes its place as the way back.
 
 import { useLayoutEffect, useRef } from 'react';
 import { useStore } from 'zustand';
@@ -31,8 +32,7 @@ import {
   type LayoutTier,
 } from '@/lib/ui/breakpoints';
 import { FOCUS_RING } from '@/lib/ui/focus';
-import { CATALOG_HIDE_ID, CATALOG_TOGGLE_ID } from './catalogVisibility';
-import { commitAndFocus } from './commitAndFocus';
+import { CATALOG_HIDE_ID, hideCatalog } from './catalogVisibility';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
 
@@ -55,9 +55,11 @@ function containerClass(
   if (isDockedTier(tier)) {
     // Hidden, the column leaves the flow so the grid takes the width, but keeps its box
     // so the scroller holds its offset; visibility removes it from view and the tab order.
+    // It shares the edge rail's layer, and the rail comes later in the tree, so the rail
+    // paints above it.
     const placement = catalogVisible
       ? 'shrink-0'
-      : 'invisible absolute inset-y-0 left-0';
+      : 'invisible absolute inset-y-0 left-0 z-drawer';
     return `${SURFACE} ${placement} ${DOCKED_WIDTH[tier]}`;
   }
   return `${SURFACE} absolute inset-y-0 left-0 z-drawer w-[24rem] max-w-[90vw] shadow-kcp transition-transform duration-base motion-reduce:transition-none ${
@@ -96,10 +98,6 @@ function SheetHeader() {
 
 function DockedHeader() {
   const { t } = useTranslation();
-  const setCatalogVisible = useStore(
-    uiStore,
-    (state) => state.setCatalogVisible,
-  );
 
   // The control starts at the column's leading edge with a 44 px icon cell, the same
   // cell the edge rail opens with, so hide and restore sit on one point on screen.
@@ -110,9 +108,7 @@ function DockedHeader() {
         type="button"
         aria-controls={CATALOG_COLUMN_ID}
         onClick={(event) => {
-          commitAndFocus(event.currentTarget, CATALOG_TOGGLE_ID, () => {
-            setCatalogVisible(false);
-          });
+          hideCatalog(event.currentTarget, event.detail);
         }}
         className={`inline-flex h-full items-center pr-3 text-sm text-ink-soft transition-colors hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`}
       >

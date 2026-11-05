@@ -39,6 +39,8 @@
   "catalog.hide": "ซ่อนรายวิชา",
   "catalog.show": "แสดงรายวิชา",
   "catalog.open": "รายวิชา",
+  "catalog.rail.name": "แสดงรายวิชา (พบ {count} รายวิชา)",
+  "catalog.rail.loading": "แสดงรายวิชา (กำลังค้นหา)",
   "catalog.sheet.title": "ค้นหารายวิชา",
   "catalog.sheet.close": "ปิดรายการรายวิชา",
   "search.emptyTitle": "ค้นหารายวิชา",
