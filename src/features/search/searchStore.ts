@@ -30,6 +30,23 @@ import type { AsyncState } from '@/lib/utils/async';
 
 const NEUTRAL_TERM: Term = { year: '', semester: '1' };
 
+type TermForms = Pick<SearchStore, 'byClass' | 'bySubjectId' | 'byCategory'>;
+
+/** Write one term into all three tab forms. */
+function withTerm(state: TermForms, term: Term): TermForms {
+  const patch = { year: term.year, semester: term.semester };
+  return {
+    byClass: { ...state.byClass, ...patch },
+    bySubjectId: { ...state.bySubjectId, ...patch },
+    byCategory: { ...state.byCategory, ...patch },
+  };
+}
+
+/** A form patch that writes the year or semester is a term edit. */
+function touchesTerm(patch: { year?: string; semester?: string }): boolean {
+  return patch.year !== undefined || patch.semester !== undefined;
+}
+
 export interface SearchStore {
   /**
    * Whether the term has been seeded or the persisted search hydrated for this
@@ -38,6 +55,12 @@ export interface SearchStore {
    * session edits. It resets only on a full page reload.
    */
   hasInitialized: boolean;
+  /**
+   * Whether the term in the forms is the local fallback seeded while the current
+   * registration term is still being fetched. Any other term write clears it, so the
+   * fetched default replaces only a term nothing else has set.
+   */
+  defaultTermPending: boolean;
   activeTab: SearchTab;
   byClass: ClassForm;
   bySubjectId: SubjectIdForm;
@@ -54,6 +77,10 @@ export interface SearchStore {
   patchSubjectIdForm: (patch: Partial<SubjectIdForm>) => void;
   patchCategoryForm: (patch: Partial<CategoryForm>) => void;
   seedTerm: (term: Term) => void;
+  /** Seed the fallback term and mark it replaceable by the fetched default. */
+  seedFallbackTerm: (term: Term) => void;
+  /** Apply the fetched default term, only while the fallback is still pending. */
+  applyDefaultTerm: (term: Term) => void;
   hydrate: (state: PersistedSearchState) => void;
   setFaculties: (state: AsyncState<RawFaculty[]>) => void;
   setDepartments: (state: AsyncState<RawDepartment[]>) => void;
@@ -68,6 +95,7 @@ export interface SearchStore {
 export function createSearchStore() {
   return createStore<SearchStore>((set) => ({
     hasInitialized: false,
+    defaultTermPending: false,
     activeTab: 'by_class',
     byClass: defaultClassForm(NEUTRAL_TERM),
     bySubjectId: defaultSubjectIdForm(NEUTRAL_TERM),
@@ -85,31 +113,39 @@ export function createSearchStore() {
       set({ activeTab: tab });
     },
     patchClassForm: (patch) => {
-      set((state) => ({ byClass: { ...state.byClass, ...patch } }));
+      set((state) => ({
+        byClass: { ...state.byClass, ...patch },
+        ...(touchesTerm(patch) ? { defaultTermPending: false } : {}),
+      }));
     },
     patchSubjectIdForm: (patch) => {
-      set((state) => ({ bySubjectId: { ...state.bySubjectId, ...patch } }));
+      set((state) => ({
+        bySubjectId: { ...state.bySubjectId, ...patch },
+        ...(touchesTerm(patch) ? { defaultTermPending: false } : {}),
+      }));
     },
     patchCategoryForm: (patch) => {
-      set((state) => ({ byCategory: { ...state.byCategory, ...patch } }));
+      set((state) => ({
+        byCategory: { ...state.byCategory, ...patch },
+        ...(touchesTerm(patch) ? { defaultTermPending: false } : {}),
+      }));
     },
     seedTerm: (term) => {
-      set((state) => ({
-        byClass: { ...state.byClass, year: term.year, semester: term.semester },
-        bySubjectId: {
-          ...state.bySubjectId,
-          year: term.year,
-          semester: term.semester,
-        },
-        byCategory: {
-          ...state.byCategory,
-          year: term.year,
-          semester: term.semester,
-        },
-      }));
+      set((state) => ({ ...withTerm(state, term), defaultTermPending: false }));
+    },
+    seedFallbackTerm: (term) => {
+      set((state) => ({ ...withTerm(state, term), defaultTermPending: true }));
+    },
+    applyDefaultTerm: (term) => {
+      set((state) =>
+        state.defaultTermPending
+          ? { ...withTerm(state, term), defaultTermPending: false }
+          : {},
+      );
     },
     hydrate: (persisted) => {
       set({
+        defaultTermPending: false,
         activeTab: persisted.activeTab,
         byClass: persisted.byClass,
         bySubjectId: persisted.bySubjectId,

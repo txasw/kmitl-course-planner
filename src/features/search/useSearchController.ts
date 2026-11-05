@@ -1,26 +1,32 @@
 // The search hooks that talk to the worker. useReferenceData fetches the four
 // reference lists once, coalescing on their status so reopening the overlay does
-// not refetch, and returns a reload for the error retry path. useSearchInit seeds
-// the term from a persisted search when one exists, otherwise from the teach
-// table route captured at mount, so an in session edit is never clobbered by a
-// later host navigation. useSearchActions builds the active tab query, runs it
+// not refetch, and returns a reload for the error retry path. useSearchInit
+// hydrates a persisted search and seeds the term from the first source that has
+// one: the teach table route captured at mount, the persisted search, the active
+// plan, then the term after the registrar's current term. That last source needs a
+// fetch, so the form renders with the local fallback first and takes the fetched
+// default only if nothing else has set the term by then. A later host navigation
+// never clobbers an in session edit. useSearchActions builds the active tab query, runs it
 // guarded against a superseded response, and persists the last search. The stores
 // are plain objects, so writing to them after unmount is safe and needs no
 // cancellation guard; the query guard exists only to drop a stale response.
 
 import { useCallback, useEffect, useRef } from 'react';
-import { buildTeachTableQueryForTab } from '@/lib/search/formState';
+import { buildTeachTableQueryForTab, termForTab } from '@/lib/search/formState';
 import {
   buddhistYears,
   resolveInitialTerm,
+  termFromQueryFields,
   toBuddhistYear,
+  type Term,
 } from '@/lib/routing/academicTerms';
+import { toCurrentTerm } from '@/lib/domain/schemas';
 import type { TeachTableRoute } from '@/lib/routing/parseTeachTableRoute';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
-import type { SearchStateRepository } from '@/lib/storage/lastSearch';
 import type { AsyncState } from '@/lib/utils/async';
 import type { Result } from '@/lib/utils/result';
+import { planStore } from '@/features/plans/planStore';
 import { searchStore } from './searchStore';
 import type { SearchDeps } from './SearchDepsContext';
 
@@ -70,8 +76,17 @@ export function useReferenceData(send: TypedSend): () => void {
   };
 }
 
+/** The active plan's term, read when needed because plans hydrate on their own. */
+function activePlanTerm(): Term | null {
+  const { plans, activePlanId } = planStore.getState();
+  const active = plans.find((plan) => plan.id === activePlanId);
+  return active === undefined
+    ? null
+    : { year: active.year, semester: active.semester };
+}
+
 export function useSearchInit(
-  repo: SearchStateRepository,
+  { repo, send }: SearchDeps,
   route: TeachTableRoute | null,
 ): void {
   // The route is captured at first render so a later host navigation does not
@@ -91,14 +106,46 @@ export function useSearchInit(
     void repo.load().then((persisted) => {
       if (persisted) {
         searchStore.getState().hydrate(persisted);
+      }
+      const persistedTerm =
+        persisted === null ? null : termForTab(persisted.activeTab, persisted);
+      const sources = {
+        route: initialRoute.current,
+        persisted:
+          persistedTerm === null
+            ? null
+            : termFromQueryFields(persistedTerm.year, persistedTerm.semester),
+        years: buddhistYears(toBuddhistYear(new Date().getFullYear())),
+      };
+      const initial = resolveInitialTerm({
+        ...sources,
+        plan: activePlanTerm(),
+        current: null,
+      });
+      // The hydrated forms already carry their own per tab terms.
+      if (initial.source === 'persisted') {
         return;
       }
-      const years = buddhistYears(toBuddhistYear(new Date().getFullYear()));
-      searchStore
-        .getState()
-        .seedTerm(resolveInitialTerm(initialRoute.current, years));
+      if (initial.source !== 'fallback') {
+        searchStore.getState().seedTerm(initial.term);
+        return;
+      }
+      searchStore.getState().seedFallbackTerm(initial.term);
+      void send({ type: 'ref/currentTerm' }).then((result) => {
+        // A failed fetch keeps the fallback the form already shows.
+        if (!result.ok) {
+          return;
+        }
+        // The plan is read again because plans may have hydrated meanwhile.
+        const resolved = resolveInitialTerm({
+          ...sources,
+          plan: activePlanTerm(),
+          current: toCurrentTerm(result.value),
+        });
+        searchStore.getState().applyDefaultTerm(resolved.term);
+      });
     });
-  }, [repo]);
+  }, [repo, send]);
 }
 
 /** Outcome of a manual refresh, so the caller can confirm a no op refresh. */

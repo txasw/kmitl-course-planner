@@ -1,7 +1,8 @@
 // The search rail: a tab bar over the three official search modes, the active
 // tab's fields, and a submit that streams results into the catalog. Reference
-// data loads once on mount; the term seeds from a persisted search or the host
-// route. The four async surfaces each render a deliberate state.
+// data loads once on mount; the term seeds from the host route, a persisted
+// search, the active plan, or the term after the registrar's current one. The
+// four async surfaces each render a deliberate state.
 
 import { useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
@@ -47,7 +48,7 @@ export function SearchForm() {
   const deps = useSearchDeps();
   const route = useHashRoute();
   const reloadReference = useReferenceData(deps.send);
-  useSearchInit(deps.repo, route);
+  useSearchInit(deps, route);
   const { submit } = useSearchActions(deps);
   const { t, language } = useTranslation();
 
