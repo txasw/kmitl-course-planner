@@ -183,6 +183,22 @@ export function quarterCount(window: GridWindow): number {
   return (window.endMin - window.startMin) / QUARTER_MIN;
 }
 
+/** The width of the edit grid day label column, in CSS pixels. */
+export const EDIT_DAY_AXIS_PX = 40;
+
+/** The narrowest an edit grid quarter column may render, in CSS pixels. */
+const EDIT_QUARTER_MIN_PX = 14;
+
+/**
+ * The landscape edit grid minimum width: the day label column plus the narrowest quarter
+ * for every quarter in the window, so the 08:00 to 18:00 window needs 600 px (ADR-0050).
+ * The minimum follows the window, so a wider window scrolls at a readable quarter rather
+ * than shrinking every block to fit.
+ */
+export function editGridMinWidth(window: GridWindow): number {
+  return EDIT_DAY_AXIS_PX + EDIT_QUARTER_MIN_PX * quarterCount(window);
+}
+
 /** A meeting's column span, as zero based quarter indices from the window start. */
 export interface ColumnSpan {
   /** First quarter the block occupies, inclusive, zero based from the window. */

@@ -16,7 +16,12 @@ import type { ExamOverlap } from '@/lib/planner/examOverlap';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { WEEK_DAYS, type DayOfWeek } from '@/lib/parsing/days';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
-import { quarterCount, type GridWindow } from '@/lib/planner/grid';
+import {
+  EDIT_DAY_AXIS_PX,
+  editGridMinWidth,
+  quarterCount,
+  type GridWindow,
+} from '@/lib/planner/grid';
 import { dragStore } from './dragStore';
 import { BlockHoverCard } from './BlockHoverCard';
 import { CandidateLayer } from './CandidateLayer';
@@ -28,10 +33,12 @@ import type { Orientation } from './gridGeometry';
 const HOVER_DELAY_MS = 400;
 
 function gridTemplate(
-  quarters: number,
+  window: GridWindow,
   dayCount: number,
   orientation: Orientation,
+  editable: boolean,
 ): CSSProperties {
+  const quarters = quarterCount(window);
   // The leading axis track is a fixed size, not auto: the hour labels are absolutely
   // positioned so they can center on their gridline, which means they add no flow height,
   // so an auto track would collapse and hide them.
@@ -41,9 +48,20 @@ function gridTemplate(
       gridTemplateRows: `1.4em repeat(${String(quarters)}, minmax(0, 1fr))`,
     };
   }
+  const rows = `1.4em repeat(${String(dayCount)}, minmax(2.5rem, 1fr))`;
+  // The edit grid derives its minimum from the window, so the day column is the fixed
+  // width that minimum counts. The poster keeps its own column and the 44rem floor, since
+  // its template canvas, not the window, sets its width.
+  if (editable) {
+    return {
+      gridTemplateColumns: `${String(EDIT_DAY_AXIS_PX)}px repeat(${String(quarters)}, minmax(0, 1fr))`,
+      gridTemplateRows: rows,
+      minWidth: `${String(editGridMinWidth(window))}px`,
+    };
+  }
   return {
     gridTemplateColumns: `2.25rem repeat(${String(quarters)}, minmax(0, 1fr))`,
-    gridTemplateRows: `1.4em repeat(${String(dayCount)}, minmax(2.5rem, 1fr))`,
+    gridTemplateRows: rows,
   };
 }
 
@@ -103,13 +121,15 @@ export function WeeklyGrid({
   orientation = 'landscape',
   fontPx = 11,
 }: WeeklyGridProps) {
-  // The grid template follows only the window, the day count, and the orientation, so it
-  // holds stable across a drag or a plan change and is computed once per those inputs.
+  // The grid template follows only the window, the day count, the orientation, and the
+  // mode, so it holds stable across a drag or a plan change and is computed once per those
+  // inputs.
   const gridStyle = useMemo(
-    () => gridTemplate(quarterCount(window), days.length, orientation),
-    [window, days, orientation],
+    () => gridTemplate(window, days.length, orientation, editable),
+    [window, days, orientation, editable],
   );
   const isPortrait = orientation === 'portrait';
+  const floor = isPortrait ? 'min-h-[44rem]' : editable ? '' : 'min-w-[44rem]';
 
   const active = useStore(dragStore, (state) => state.active);
   const blocked = active !== null && !active.placement.ok;
@@ -161,7 +181,7 @@ export function WeeklyGrid({
     <div
       role="group"
       aria-label={t('grid.label')}
-      className={`grid h-full leading-normal text-ink ${isPortrait ? 'min-h-[44rem]' : 'min-w-[44rem]'} ${blocked ? 'cursor-not-allowed' : ''}`}
+      className={`grid h-full leading-normal text-ink ${floor} ${blocked ? 'cursor-not-allowed' : ''}`}
       style={{ ...gridStyle, fontSize: `${String(fontPx)}px` }}
     >
       <GridAxis window={window} orientation={orientation} />

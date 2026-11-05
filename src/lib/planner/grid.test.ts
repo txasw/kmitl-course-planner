@@ -13,6 +13,7 @@ import {
   SMART_WINDOW,
   computeFitWindow,
   computeSmartWindow,
+  editGridMinWidth,
   editWindow,
   hourTicks,
   meetingColumns,
@@ -66,6 +67,17 @@ describe('meetingColumns', () => {
 describe('quarterCount', () => {
   it('counts 56 quarters across the default window', () => {
     expect(quarterCount(DEFAULT_WINDOW)).toBe(56);
+  });
+});
+
+describe('editGridMinWidth', () => {
+  it('needs 600 px for the 08:00 to 18:00 working day', () => {
+    expect(editGridMinWidth(SMART_WINDOW)).toBe(600);
+  });
+
+  it('grows by 56 px for each hour the window adds', () => {
+    expect(editGridMinWidth({ startMin: 480, endMin: 1260 })).toBe(768);
+    expect(editGridMinWidth(DEFAULT_WINDOW)).toBe(824);
   });
 });
 
