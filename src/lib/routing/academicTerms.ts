@@ -59,6 +59,22 @@ export function termsEqual(a: Term, b: Term): boolean {
 }
 
 /**
+ * The term after the given one: semester 1 and 2 advance within the year, and
+ * semester 3 rolls over to the first semester of the next year. Students plan the
+ * registration ahead of them, so the term the registrar reports as current is not
+ * the term they search.
+ */
+export function nextTerm(term: Term): Term {
+  if (term.semester === '1') {
+    return { year: term.year, semester: '2' };
+  }
+  if (term.semester === '2') {
+    return { year: term.year, semester: '3' };
+  }
+  return { year: String(Number(term.year) + 1), semester: '1' };
+}
+
+/**
  * Narrow a semester string to the enum, or null when it is not one. There is no
  * default: a caller that silently read a missing semester as the first one would let
  * a malformed source query pass the cross term gate of a first semester plan.

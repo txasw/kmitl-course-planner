@@ -3,6 +3,7 @@ import {
   EARLIEST_BUDDHIST_YEAR,
   buddhistYears,
   parseSemester,
+  nextTerm,
   resolveInitialTerm,
   termFromQueryFields,
   toBuddhistYear,
@@ -47,6 +48,29 @@ describe('termFromQueryFields', () => {
     expect(termFromQueryFields('2569', undefined)).toBeNull();
     expect(termFromQueryFields('', '1')).toBeNull();
     expect(termFromQueryFields(undefined, '1')).toBeNull();
+  });
+});
+
+describe('nextTerm', () => {
+  it('advances the first semester to the second of the same year', () => {
+    expect(nextTerm({ year: '2569', semester: '1' })).toEqual({
+      year: '2569',
+      semester: '2',
+    });
+  });
+
+  it('advances the second semester to the third of the same year', () => {
+    expect(nextTerm({ year: '2569', semester: '2' })).toEqual({
+      year: '2569',
+      semester: '3',
+    });
+  });
+
+  it('rolls the third semester over to the first of the next year', () => {
+    expect(nextTerm({ year: '2569', semester: '3' })).toEqual({
+      year: '2570',
+      semester: '1',
+    });
   });
 });
 
