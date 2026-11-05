@@ -123,6 +123,17 @@ export async function startMockServer(): Promise<MockServer> {
             );
             return;
           }
+          // The real by_class capture, the computer engineering and cybersecurity
+          // curriculum 137 of faculty 01, department 05, whose group 2 courses the plan
+          // suggestion spec searches. Served for that one curriculum so every other
+          // by_class search keeps its current response.
+          if (
+            url.searchParams.get('mode') === 'by_class' &&
+            url.searchParams.get('selected_curriculum') === '137'
+          ) {
+            sendJson('teach-table.by_class.capture.json');
+            return;
+          }
           // A synthetic catalog of overlapping and multi section courses the block
           // move and swap specs need, served for one reserved subject id so no other
           // spec sees it.
