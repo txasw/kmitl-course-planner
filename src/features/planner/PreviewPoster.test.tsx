@@ -85,6 +85,11 @@ describe('PreviewPoster footer', () => {
     expect(summary.className).not.toContain('border-t');
   });
 
+  it('scopes the poster leading so the pinned panel scale leaves the export geometry alone', () => {
+    const { container } = renderPoster();
+    expect(footerRow(container).closest('.kcp-poster')).not.toBeNull();
+  });
+
   it('sits inside the poster equal margins, so left and right margins match', () => {
     const { container } = renderPoster();
     // The poster root carries equal padding on every side, so the footer row spans between an

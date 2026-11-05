@@ -161,7 +161,7 @@ export function WeeklyGrid({
     <div
       role="group"
       aria-label={t('grid.label')}
-      className={`grid h-full text-ink ${isPortrait ? 'min-h-[44rem]' : 'min-w-[44rem]'} ${blocked ? 'cursor-not-allowed' : ''}`}
+      className={`grid h-full leading-normal text-ink ${isPortrait ? 'min-h-[44rem]' : 'min-w-[44rem]'} ${blocked ? 'cursor-not-allowed' : ''}`}
       style={{ ...gridStyle, fontSize: `${String(fontPx)}px` }}
     >
       <GridAxis window={window} orientation={orientation} />

@@ -71,7 +71,7 @@ function PreviewPosterComponent({
         height: template.layoutHeight,
         fontSize: `${String(template.posterFontPx)}px`,
       }}
-      className="flex flex-col gap-2 rounded-kcp bg-surface p-3"
+      className="kcp-poster flex flex-col gap-2 rounded-kcp bg-surface p-3"
     >
       <PosterHeader
         planName={planName}
