@@ -63,3 +63,4 @@ a new record that supersedes the old one rather than editing history.
 54. [Curriculum plan suggestions](0054-curriculum-plan-suggestions.md)
 55. [Exports carry a data date instead of verification badges](0055-exports-carry-a-data-date.md)
 56. [Escape routing at the shadow body](0056-escape-routing-at-the-shadow-body.md)
+57. [Collapsed course cards and the course hover preview](0057-collapsed-course-cards.md)
