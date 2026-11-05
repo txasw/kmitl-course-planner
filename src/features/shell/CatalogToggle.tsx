@@ -7,6 +7,7 @@
 
 import { useStore } from 'zustand';
 import { List } from 'lucide-react';
+import { CountChip } from '@/components/CountChip';
 import { useResultCourseCount } from '@/features/catalog/CatalogPanel';
 import { isDockedTier } from '@/lib/ui/breakpoints';
 import { FOCUS_RING } from '@/lib/ui/focus';
@@ -59,11 +60,7 @@ export function CatalogToggle() {
     >
       <List size={18} strokeWidth={2} aria-hidden />
       <span>{label}</span>
-      {count === null ? null : (
-        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full border border-border bg-surface px-1.5 text-2xs font-semibold tabular-nums text-ink">
-          {count}
-        </span>
-      )}
+      {count === null ? null : <CountChip count={count} />}
     </button>
   );
 }
