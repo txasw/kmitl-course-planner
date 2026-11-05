@@ -236,7 +236,9 @@ export function SectionRow({
           </div>
         ) : null}
         {!readOnly && showDetails && section.remark !== '' ? (
-          <p className="mt-1 text-ink-soft">{section.remark}</p>
+          <p className="mt-1 whitespace-pre-line text-ink-soft">
+            {section.remark}
+          </p>
         ) : null}
 
         {!readOnly && relation.kind === 'conflicting' ? (
