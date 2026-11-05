@@ -7,24 +7,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
-import { FOCUS_RING } from '@/lib/ui/focus';
-import { Tooltip } from '@/components/Tooltip';
-import {
-  AlertTriangle,
-  CalendarRange,
-  Check,
-  ChevronDown,
-  Copy,
-  Download,
-  Pencil,
-  Plus,
-  Trash2,
-  Upload,
-} from 'lucide-react';
+import { AlertTriangle, CalendarRange, ChevronDown } from 'lucide-react';
 import { useClick, useDismiss, useInteractions } from '@floating-ui/react';
 import { planSchema, type Plan } from '@/lib/domain/plan';
 import type { Term } from '@/lib/routing/academicTerms';
-import type { Translate } from '@/lib/i18n/t';
 import { planExportBaseName } from '@/lib/planner/exportName';
 import { parsePlanImport } from '@/lib/plans/parsePlanImport';
 import { downloadText } from '@/lib/utils/download';
@@ -35,13 +21,9 @@ import {
   usePanelPopover,
 } from '@/features/shell/usePanelPopover';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { NameForm } from './NameForm';
+import { PlanList } from './PlanList';
 import { planStore, useActivePlan } from './planStore';
-
-interface TermGroup {
-  key: string;
-  term: Term;
-  plans: Plan[];
-}
 
 type Mode =
   | { kind: 'list' }
@@ -54,28 +36,6 @@ type Mode =
     }
   | { kind: 'confirmDelete'; planId: string }
   | { kind: 'importError'; issues: string[] };
-
-function termLabel(term: Term, t: Translate): string {
-  return `${t('search.semester')} ${term.semester}/${term.year}`;
-}
-
-function groupByTerm(plans: Plan[]): TermGroup[] {
-  const groups = new Map<string, TermGroup>();
-  for (const plan of plans) {
-    const key = `${plan.year}-${plan.semester}`;
-    let group = groups.get(key);
-    if (group === undefined) {
-      group = {
-        key,
-        term: { year: plan.year, semester: plan.semester },
-        plans: [],
-      };
-      groups.set(key, group);
-    }
-    group.plans.push(plan);
-  }
-  return [...groups.values()];
-}
 
 /** The term the active search tab targets, used as a new plan's default term. */
 function searchFormTerm(state: SearchStore): Term {
@@ -172,8 +132,6 @@ export function PlanSwitcher() {
       node.removeEventListener('keydown', handleKeyDown);
     };
   }, [open, closeMenu]);
-
-  const groups = useMemo(() => groupByTerm(plans), [plans]);
 
   const defaultName = (term: Term): string =>
     `${t('plan.untitled')} ${term.semester}/${term.year}`;
@@ -367,238 +325,47 @@ export function PlanSwitcher() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col gap-1">
-              <button
-                type="button"
-                disabled={!canCreate}
-                onClick={() => {
-                  setMode({
-                    kind: 'name',
-                    action: 'create',
-                    value: defaultName(searchTerm),
-                  });
-                }}
-                className="flex w-full items-center justify-center gap-1.5 rounded-kcp bg-primary-strong px-2 py-1.5 text-sm font-medium text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 disabled:hover:bg-primary-strong"
-              >
-                <Plus size={16} strokeWidth={2.5} aria-hidden />
-                {t('planSwitcher.create')}
-              </button>
-              {groups.length === 0 ? (
-                <p className="px-2 py-1 text-ink-soft">
-                  {t('planSwitcher.noPlan')}
-                </p>
-              ) : (
-                groups.map((group) => (
-                  <div key={group.key} className="flex flex-col">
-                    <p className="px-2 pt-1 text-xs font-semibold tracking-wide text-ink-soft uppercase">
-                      {termLabel(group.term, t)}
-                    </p>
-                    {group.plans.map((plan) => (
-                      <div
-                        key={plan.id}
-                        className="group/row flex items-center gap-1 rounded-kcp hover:bg-surface-alt focus-within:bg-surface-alt"
-                      >
-                        <button
-                          type="button"
-                          aria-current={
-                            plan.id === activePlan?.id ? 'true' : undefined
-                          }
-                          onClick={() => {
-                            selectPlan(plan);
-                          }}
-                          className="flex min-w-0 flex-1 items-center gap-2 rounded-kcp px-2 py-1 text-left text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                        >
-                          <Check
-                            size={14}
-                            strokeWidth={2}
-                            aria-hidden
-                            className={`shrink-0 ${
-                              plan.id === activePlan?.id
-                                ? 'text-primary-strong'
-                                : 'text-transparent'
-                            }`}
-                          />
-                          <span className="truncate">{plan.name}</span>
-                        </button>
-                        {/* Per-row actions, revealed on hover and focus of the row; they
-                            stay focusable so the keyboard reveals and reaches them. */}
-                        <div className="flex shrink-0 items-center gap-0.5 pr-1 opacity-0 group-hover/row:opacity-100 group-focus-within/row:opacity-100">
-                          <ActionButton
-                            icon={
-                              <Pencil size={14} strokeWidth={2} aria-hidden />
-                            }
-                            label={`${t('planSwitcher.rename')} ${plan.name}`}
-                            showLabel={false}
-                            onClick={() => {
-                              setMode({
-                                kind: 'name',
-                                action: 'rename',
-                                value: plan.name,
-                                planId: plan.id,
-                              });
-                            }}
-                          />
-                          <ActionButton
-                            icon={
-                              <Copy size={14} strokeWidth={2} aria-hidden />
-                            }
-                            label={`${t('planSwitcher.duplicate')} ${plan.name}`}
-                            showLabel={false}
-                            onClick={() => {
-                              planStore
-                                .getState()
-                                .duplicatePlan(
-                                  plan.id,
-                                  `${plan.name} (${t('planSwitcher.copySuffix')})`,
-                                );
-                              snapToActivePlan();
-                              closeMenu();
-                            }}
-                          />
-                          <ActionButton
-                            icon={
-                              <Trash2 size={14} strokeWidth={2} aria-hidden />
-                            }
-                            label={`${t('planSwitcher.delete')} ${plan.name}`}
-                            showLabel={false}
-                            onClick={() => {
-                              setMode({
-                                kind: 'confirmDelete',
-                                planId: plan.id,
-                              });
-                            }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ))
-              )}
-              <div className="mt-1 flex items-center gap-1 border-t border-border pt-1">
-                <ActionButton
-                  icon={<Upload size={14} strokeWidth={2} aria-hidden />}
-                  label={t('planData.import')}
-                  onClick={() => {
-                    fileInputRef.current?.click();
-                  }}
-                />
-                {activePlan !== null ? (
-                  <ActionButton
-                    icon={<Download size={14} strokeWidth={2} aria-hidden />}
-                    label={t('planData.export')}
-                    onClick={handleExport}
-                  />
-                ) : null}
-              </div>
-            </div>
+            <PlanList
+              plans={plans}
+              activePlanId={activePlan?.id ?? null}
+              canCreate={canCreate}
+              onCreate={() => {
+                setMode({
+                  kind: 'name',
+                  action: 'create',
+                  value: defaultName(searchTerm),
+                });
+              }}
+              onSelect={selectPlan}
+              onRename={(plan) => {
+                setMode({
+                  kind: 'name',
+                  action: 'rename',
+                  value: plan.name,
+                  planId: plan.id,
+                });
+              }}
+              onDuplicate={(plan) => {
+                planStore
+                  .getState()
+                  .duplicatePlan(
+                    plan.id,
+                    `${plan.name} (${t('planSwitcher.copySuffix')})`,
+                  );
+                snapToActivePlan();
+                closeMenu();
+              }}
+              onDelete={(plan) => {
+                setMode({ kind: 'confirmDelete', planId: plan.id });
+              }}
+              onImport={() => {
+                fileInputRef.current?.click();
+              }}
+              onExport={activePlan !== null ? handleExport : null}
+            />
           )}
         </div>
       ) : null}
-    </div>
-  );
-}
-
-function ActionButton({
-  icon,
-  label,
-  onClick,
-  disabled = false,
-  showLabel = true,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-  /** When false the label is dropped and the button is icon only, still named by
-   * its aria-label and its tooltip. Used for the four plan action buttons. */
-  showLabel?: boolean;
-}) {
-  return (
-    // The dropdown opens downward from the header, so the action row sits below the plan
-    // list. A top placed tooltip would cover that list; point it below the icons, away
-    // from the popover body, so it never hides the options being chosen.
-    <Tooltip label={label} placement="bottom">
-      {(triggerProps, ref) => (
-        <button
-          ref={ref}
-          {...triggerProps}
-          type="button"
-          onClick={onClick}
-          disabled={disabled}
-          aria-label={label}
-          className={`inline-flex items-center rounded-kcp py-1 font-medium text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 disabled:hover:bg-transparent ${
-            showLabel ? 'gap-1 px-2 text-xs' : 'px-1.5'
-          }`}
-        >
-          {icon}
-          {showLabel ? <span>{label}</span> : null}
-        </button>
-      )}
-    </Tooltip>
-  );
-}
-
-function NameForm({
-  value,
-  label,
-  save,
-  cancel,
-  onChange,
-  onSubmit,
-  onCancel,
-}: {
-  value: string;
-  label: string;
-  save: string;
-  cancel: string;
-  onChange: (value: string) => void;
-  onSubmit: () => void;
-  onCancel: () => void;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  // Focus the field on open so the user can name the plan straight away, done
-  // through a ref rather than autoFocus to satisfy the accessibility lint.
-  useEffect(() => {
-    inputRef.current?.focus();
-    inputRef.current?.select();
-  }, []);
-  return (
-    <div className="flex flex-col gap-2">
-      <label className="flex flex-col gap-1 text-ink">
-        <span className="font-medium">{label}</span>
-        <input
-          ref={inputRef}
-          type="text"
-          value={value}
-          onChange={(event) => {
-            onChange(event.target.value);
-          }}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              onSubmit();
-            }
-          }}
-          className={`rounded-kcp border border-border bg-surface px-2 py-1 text-ink ${FOCUS_RING}`}
-        />
-      </label>
-      <div className="flex justify-end gap-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-kcp border border-border px-2 py-1 font-medium text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-        >
-          {cancel}
-        </button>
-        <button
-          type="button"
-          onClick={onSubmit}
-          disabled={value.trim() === ''}
-          className="rounded-kcp bg-primary-strong px-2 py-1 font-medium text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
-        >
-          {save}
-        </button>
-      </div>
     </div>
   );
 }
