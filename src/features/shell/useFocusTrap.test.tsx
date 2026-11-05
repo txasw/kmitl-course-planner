@@ -8,9 +8,11 @@ afterEach(cleanup);
 function Harness({
   active,
   onEscape,
+  inertTail = false,
 }: {
   active: boolean;
   onEscape?: () => void;
+  inertTail?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   useFocusTrap(ref, active, onEscape);
@@ -27,6 +29,11 @@ function Harness({
       >
         <button data-testid="first">first</button>
         <button data-testid="last">last</button>
+        {inertTail ? (
+          <div inert>
+            <button data-testid="inert">inert</button>
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -53,6 +60,13 @@ describe('useFocusTrap', () => {
       shiftKey: true,
     });
     expect(screen.getByTestId('last')).toHaveFocus();
+  });
+
+  it('wraps past an inert subtree that ends the panel', () => {
+    render(<Harness active={true} inertTail={true} />);
+    screen.getByTestId('last').focus();
+    fireEvent.keyDown(screen.getByTestId('panel'), { key: 'Tab' });
+    expect(screen.getByTestId('first')).toHaveFocus();
   });
 
   it('routes Escape to the close callback', () => {

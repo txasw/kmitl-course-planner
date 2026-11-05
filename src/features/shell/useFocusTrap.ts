@@ -19,8 +19,12 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
 
+// An inert subtree, such as the hidden docked catalog column, stays in the DOM but takes
+// no focus, so it must not supply the first or last stop the Tab wrap compares against.
 function getFocusable(root: HTMLElement): HTMLElement[] {
-  return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+  return Array.from(
+    root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+  ).filter((element) => element.closest('[inert]') === null);
 }
 
 // getRootNode returns a Document or ShadowRoot at the top of the tree; both
