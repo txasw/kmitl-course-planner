@@ -74,7 +74,12 @@ Measured fit in edit. The measured density from ADR-0046 runs in edit as well, k
 and the box size so it runs again on resize, and never during a drag, so the drag frame budget holds.
 The edit grid walks the ladder from ADR-0047, whose first rung is the subject id. Edit still
 ignores the subject id display option and shows the id whenever it fits; it is the first field to
-drop on a short block, since the hover card and the block details always show it.
+drop on a short block, since the hover card and the block details always show it. The fit pauses
+for as long as a drag holds the frozen frame, keeping each block's settled fields, and a block
+whose box resized during the drag fits again once the drag ends. Edit blocks keep their tighter
+line height: the raised line height from ADR-0046 stays on the poster, where a cropped Thai mark
+would be baked into the image, while in edit a taller line would drop fields sooner on the
+surface students read most.
 
 ## Alternatives considered
 
