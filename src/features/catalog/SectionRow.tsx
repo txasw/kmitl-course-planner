@@ -19,7 +19,7 @@ import {
   Plus,
 } from 'lucide-react';
 import { Tooltip } from '@/components/Tooltip';
-import { RemoveButton } from './RemoveButton';
+import { RemoveButton, removeSectionName } from './RemoveButton';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import type { Term } from '@/lib/routing/academicTerms';
@@ -158,6 +158,11 @@ export function SectionRow({
             onRemove !== undefined ? (
               <RemoveButton
                 label={t('action.remove')}
+                accessibleName={removeSectionName(
+                  t,
+                  section.subjectId,
+                  section.section,
+                )}
                 onRemove={() => {
                   onRemove(section.teachTableId);
                 }}

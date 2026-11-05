@@ -15,7 +15,7 @@ import {
 } from '@/lib/planner/sectionState';
 import { DraggableSection } from './DraggableSection';
 import { SectionRow } from './SectionRow';
-import { RemoveButton } from './RemoveButton';
+import { RemoveButton, removeSectionName } from './RemoveButton';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { Tooltip } from '@/components/Tooltip';
 
@@ -139,6 +139,11 @@ function CourseCardComponent({
           {onRemove !== undefined ? (
             <RemoveButton
               label={t('action.remove')}
+              accessibleName={removeSectionName(
+                t,
+                placedSection.subjectId,
+                placedSection.section,
+              )}
               onRemove={() => {
                 onRemove(placedSection.teachTableId);
               }}
