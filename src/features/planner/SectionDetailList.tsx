@@ -8,12 +8,16 @@
 // same SeatDemand line a catalog row shows, from the snapshot the latest verification
 // refreshed. A section that announces neither exam date reads as arranged by the
 // instructor rather than leaving the exam rows out, so a missing date is never mistaken
-// for a missing field.
+// for a missing field. The conditions read in the warn tone with the shield icon a
+// catalog row gives them, through the same line split and locale fallback, but listed in
+// full since the popover has the room a row does not.
 
 import type { ReactNode } from 'react';
-import { MapPin } from 'lucide-react';
+import { MapPin, ShieldAlert } from 'lucide-react';
 import type { Section } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
+import { pickLocalizedWithLang } from '@/lib/i18n/localize';
+import { conditionLines, textLines } from '@/lib/catalog/conditions';
 import { computeSeatDemand } from '@/lib/catalog/seatDemand';
 import { SeatDemand } from '@/features/catalog/SeatDemand';
 import {
@@ -43,42 +47,33 @@ const LABEL_WIDTH: Record<SectionDetailDensity, string> = {
 interface DetailRowProps {
   label: string;
   columns: string;
+  /** A leading icon for the label, used by the conditions row. */
+  icon?: ReactNode;
+  /** The label colour class; ink soft unless the row carries a tone. */
+  labelClass?: string;
   children: ReactNode;
 }
 
-function DetailRow({ label, columns, children }: DetailRowProps) {
+function DetailRow({
+  label,
+  columns,
+  icon,
+  labelClass = 'text-ink-soft',
+  children,
+}: DetailRowProps) {
   return (
     <div className={`grid ${columns} gap-x-2`}>
-      <dt className="text-ink-soft">{label}</dt>
+      <dt className={`flex items-start gap-1 ${labelClass}`}>
+        {icon}
+        {label}
+      </dt>
       {children}
     </div>
   );
 }
 
-const VALUE = 'col-start-2 min-w-0 break-words text-ink';
-
-/** A paired Thai and English value in the locale primary, falling back to the other
- * field when the primary is empty, with the language of the field actually shown. */
-function pickWithLang<T extends string | string[]>(
-  th: T,
-  en: T,
-  locale: Locale,
-): { value: T; lang: Locale } {
-  const primary = locale === 'th' ? th : en;
-  if (primary.length > 0) {
-    return { value: primary, lang: locale };
-  }
-  return locale === 'th'
-    ? { value: en, lang: 'en' }
-    : { value: th, lang: 'th' };
-}
-
-function splitLines(text: string): string[] {
-  return text
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line !== '');
-}
+const VALUE_BOX = 'col-start-2 min-w-0 break-words';
+const VALUE = `${VALUE_BOX} text-ink`;
 
 function checkedAtText(
   lastVerifiedAt: string | null | undefined,
@@ -101,11 +96,14 @@ export function SectionDetailList({
 }: SectionDetailListProps) {
   const columns = LABEL_WIDTH[density];
   const full = density === 'full';
-  const teachers = pickWithLang(section.teachersTh, section.teachersEn, locale);
+  const teachers = pickLocalizedWithLang(
+    section.teachersTh,
+    section.teachersEn,
+    locale,
+  );
   const exams = examWindowTexts(section.exam, t);
-  const rules = pickWithLang(section.rulesTh, section.rulesEn, locale);
-  const ruleLines = splitLines(rules.value);
-  const remarkLines = splitLines(section.remark);
+  const rules = conditionLines(section.rulesTh, section.rulesEn, locale);
+  const remarkLines = textLines(section.remark);
   const note = section.exam.note ?? '';
   const checkedAt = checkedAtText(lastVerifiedAt, t);
 
@@ -186,13 +184,20 @@ export function SectionDetailList({
         </DetailRow>
       ) : null}
 
-      {full && ruleLines.length > 0 ? (
-        <DetailRow label={t('section.rules.label')} columns={columns}>
-          {ruleLines.map((line, index) => (
+      {full && rules.value.length > 0 ? (
+        <DetailRow
+          label={t('section.rules.label')}
+          columns={columns}
+          icon={
+            <ShieldAlert size={12} aria-hidden className="mt-0.5 shrink-0" />
+          }
+          labelClass="text-warn"
+        >
+          {rules.value.map((line, index) => (
             <dd
               key={`${String(index)}-${line}`}
               lang={rules.lang}
-              className={VALUE}
+              className={`${VALUE_BOX} text-warn`}
             >
               {line}
             </dd>

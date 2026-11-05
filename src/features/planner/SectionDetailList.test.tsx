@@ -227,6 +227,32 @@ describe('SectionDetailList', () => {
     }
   });
 
+  it('lists every condition in the warn tone, falling back to the other language', () => {
+    render(
+      <SectionDetailList
+        section={makeSection({
+          rulesTh: '',
+          rulesEn:
+            'Only School of Engineering\nOnly Curriculum AI <Dual Degree> <International Program>',
+        })}
+        creditStr="3(3-0-6)"
+        density="full"
+        locale="th"
+        t={th}
+      />,
+    );
+    expect(rowValues('เงื่อนไข')).toEqual([
+      'Only School of Engineering',
+      'Only Curriculum AI <Dual Degree> <International Program>',
+    ]);
+    const term = screen.getByText('เงื่อนไข', { selector: 'dt' });
+    expect(term.className).toContain('text-warn');
+    for (const value of term.parentElement?.querySelectorAll('dd') ?? []) {
+      expect(value).toHaveAttribute('lang', 'en');
+      expect(value.className).toContain('text-warn');
+    }
+  });
+
   it('omits the last check before the first verification', () => {
     render(
       <SectionDetailList
