@@ -76,6 +76,11 @@ describe('BlockHoverCard', () => {
     // The seat line reads from the snapshot seats in the catalog row convention.
     expect(screen.getByText('ว่าง 40 จาก 40')).toBeInTheDocument();
     expect(screen.getByText('วิชาทดสอบ')).toHaveAttribute('lang', 'th');
+    expect(screen.getByRole('tooltip')).toHaveClass(
+      'w-72',
+      'kcp-scroll',
+      'overflow-y-auto',
+    );
     anchor.remove();
   });
 
@@ -122,6 +127,51 @@ describe('BlockHoverCard', () => {
       anchor.remove();
     },
   );
+
+  it('renders the compact detail list, leaving the long fields to the popover', () => {
+    const entry = makePlanEntry({
+      lastVerifiedAt: '2026-11-06T01:05:00.000Z',
+      snapshot: makeSnapshot({
+        teachTableId: 'x',
+        kind: 'practice',
+        exam: { note: 'Take home exam' },
+        rulesTh: 'เฉพาะชั้นปี 1',
+        remark: 'เปิดสอนร่วมกับคณะอื่น',
+      }),
+    });
+    act(() => {
+      seedActivePlan([entry]);
+    });
+    const anchor = document.createElement('div');
+    document.body.appendChild(anchor);
+    render(
+      <BlockHoverCard
+        teachTableId="x"
+        anchor={anchor}
+        locale="th"
+        t={t}
+        examOverlaps={[]}
+        onClose={() => undefined}
+      />,
+    );
+    expect(screen.getByText('เวลาเรียน', { selector: 'dt' })).toBeVisible();
+    expect(
+      screen.getByText(
+        (_, node) =>
+          node?.tagName === 'DD' && node.textContent === 'ปฏิบัติ 3(3-0-6)',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText('จัดสอบเอง')).toBeInTheDocument();
+    for (const text of [
+      'Take home exam',
+      'เฉพาะชั้นปี 1',
+      'เปิดสอนร่วมกับคณะอื่น',
+      'ตรวจสอบล่าสุด',
+    ]) {
+      expect(screen.queryByText(text)).not.toBeInTheDocument();
+    }
+    anchor.remove();
+  });
 
   it('renders nothing when the entry has left the plan', () => {
     const { container } = render(

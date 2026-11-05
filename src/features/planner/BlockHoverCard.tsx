@@ -6,25 +6,22 @@
 // by the grid, positioned to the side so it never sits under the pointer or over the block's
 // remove control. It shares a family look with the drag conflict card but carries a neutral
 // info accent, a left border in the brand, so a placed block and a blocked drop read
-// differently at a glance. Seats read through the same SeatDemand line a catalog row shows,
-// from the snapshot the latest verification refreshed, so the two never disagree.
+// differently at a glance. Its body is the compact SectionDetailList, the same list the
+// popover renders in full, so the two surfaces never disagree on a field.
 
 import { useCallback, useEffect } from 'react';
 import { FloatingPortal } from '@floating-ui/react';
 import { useStore } from 'zustand';
 import type { Locale, Translate } from '@/lib/i18n/t';
-import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
-import { formatMinutes } from '@/lib/parsing/time';
-import { computeSeatDemand } from '@/lib/catalog/seatDemand';
+import { snapshotToSection } from '@/lib/domain/plan';
 import { planStore } from '@/features/plans/planStore';
-import { SeatDemand } from '@/features/catalog/SeatDemand';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
 import {
   PANEL_POPOVER_SCROLL,
   usePanelPopover,
 } from '@/features/shell/usePanelPopover';
 import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
-import { formatExamRange } from './examText';
+import { SectionDetailList } from './SectionDetailList';
 import type { ExamOverlap } from '@/lib/planner/examOverlap';
 
 interface BlockHoverCardProps {
@@ -81,7 +78,6 @@ export function BlockHoverCard({
   const snapshot = entry.snapshot;
   const name =
     locale === 'th' ? snapshot.subjectMeta.nameTh : snapshot.subjectMeta.nameEn;
-  const teachers = locale === 'th' ? snapshot.teachersTh : snapshot.teachersEn;
   const badge = blockBadge(entry.verifyStatus, false, examOverlaps.length > 0);
   const badgeText = blockBadgeLabelKeys(
     entry.verifyStatus,
@@ -96,47 +92,23 @@ export function BlockHoverCard({
       ref={setFloating}
       style={floatingStyles}
       role="tooltip"
-      className={`pointer-events-none z-popover flex w-64 ${PANEL_POPOVER_SCROLL} flex-col gap-1 rounded-kcp border border-l-2 border-border border-l-primary bg-surface p-2.5 text-xs shadow-kcp`}
+      className={`pointer-events-none z-popover flex w-72 ${PANEL_POPOVER_SCROLL} flex-col gap-1 rounded-kcp border border-l-2 border-border border-l-primary bg-surface p-2.5 text-xs shadow-kcp`}
     >
       <p className="font-semibold text-ink">
         <span>{snapshot.subjectId}</span> <span lang={locale}>{name}</span>
       </p>
       <p className="text-ink-soft">
-        {t('section.code')} {snapshot.section} ·{' '}
-        {snapshot.kind === 'practice'
-          ? t('section.practice')
-          : t('section.lecture')}{' '}
-        · {snapshot.subjectMeta.creditStr}
+        {t('section.code')} {snapshot.section}
       </p>
-      <div className="mt-1 flex flex-col gap-0.5 border-t border-border pt-1 text-ink">
-        {snapshot.meetings.map((meeting) => (
-          <p
-            key={`${String(meeting.day)}-${String(meeting.startMin)}`}
-            className="text-ink-soft"
-          >
-            <span className="text-ink">{t(dayFullLabelKey(meeting.day))}</span>{' '}
-            {formatMinutes(meeting.startMin)}-{formatMinutes(meeting.endMin)}
-            {[meeting.building, meeting.room].filter((part) => part !== '')
-              .length > 0
-              ? ` · ${[meeting.building, meeting.room].filter((part) => part !== '').join(' ')}`
-              : ''}
-          </p>
-        ))}
+      <div className="mt-1 border-t border-border pt-1.5">
+        <SectionDetailList
+          section={snapshotToSection(snapshot)}
+          creditStr={snapshot.subjectMeta.creditStr}
+          density="compact"
+          locale={locale}
+          t={t}
+        />
       </div>
-      <SeatDemand demand={computeSeatDemand(snapshot)} t={t} />
-      {teachers.length > 0 ? (
-        <p className="text-ink-soft">{teachers.join(', ')}</p>
-      ) : null}
-      {snapshot.exam.midterm !== undefined ? (
-        <p className="text-ink-soft">
-          {t('exam.midterm')} {formatExamRange(snapshot.exam.midterm, t)}
-        </p>
-      ) : null}
-      {snapshot.exam.final !== undefined ? (
-        <p className="text-ink-soft">
-          {t('exam.final')} {formatExamRange(snapshot.exam.final, t)}
-        </p>
-      ) : null}
       {badge !== null && badgeText !== '' ? (
         <p
           className={`font-semibold ${badge === 'danger' ? 'text-danger' : 'text-warn'}`}
