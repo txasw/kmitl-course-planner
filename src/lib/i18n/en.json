@@ -163,6 +163,8 @@
   "detail.exams": "Exams",
   "detail.examDetail": "Exam details",
   "section.rules.label": "Conditions",
+  "section.rules.showAll": "Show all conditions ({count})",
+  "section.rules.hide": "Hide conditions",
   "section.remark.label": "Remark",
   "detail.verifiedAt": "Last checked",
   "month.1": "Jan",

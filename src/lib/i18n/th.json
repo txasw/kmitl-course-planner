@@ -163,6 +163,8 @@
   "detail.exams": "การสอบ",
   "detail.examDetail": "รายละเอียดสอบ",
   "section.rules.label": "เงื่อนไข",
+  "section.rules.showAll": "ดูเงื่อนไขทั้งหมด ({count})",
+  "section.rules.hide": "ซ่อนเงื่อนไข",
   "section.remark.label": "หมายเหตุ",
   "detail.verifiedAt": "ตรวจสอบล่าสุด",
   "month.1": "ม.ค.",
