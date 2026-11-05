@@ -33,11 +33,13 @@ const RULE_COLOR: Record<RuleWeight, string> = {
 };
 
 /** Every rule of the window: one per hour boundary, then one per quarter between them. */
-function gridRules(window: GridWindow): Rule[] {
-  const rules: Rule[] = hourRules(window).map((rule) => ({
-    offset: rule.offset,
-    weight: rule.strong ? 'strong' : 'hour',
-  }));
+function gridRules(window: GridWindow, startEdgeDrawn: boolean): Rule[] {
+  const rules: Rule[] = hourRules(window)
+    .filter((rule) => !(startEdgeDrawn && rule.offset === 0))
+    .map((rule) => ({
+      offset: rule.offset,
+      weight: rule.strong ? 'strong' : 'hour',
+    }));
   const quarters = quarterCount(window);
   for (let offset = 1; offset < quarters; offset += 1) {
     if (offset % QUARTERS_PER_HOUR !== 0) {
@@ -76,13 +78,25 @@ function ruleProps(
 interface GridRulesProps {
   window: GridWindow;
   orientation: Orientation;
+  /**
+   * The sticky day column already draws the window start rule as its edge, so the grid
+   * skips it. Both rules are translucent, so drawing the two would darken the start.
+   */
+  startEdgeDrawn: boolean;
 }
 
-export function GridRules({ window, orientation }: GridRulesProps) {
+export function GridRules({
+  window,
+  orientation,
+  startEdgeDrawn,
+}: GridRulesProps) {
   // The rules follow only the window, so they hold stable across a drag or a plan change.
   const { rules, quarters } = useMemo(
-    () => ({ rules: gridRules(window), quarters: quarterCount(window) }),
-    [window],
+    () => ({
+      rules: gridRules(window, startEdgeDrawn),
+      quarters: quarterCount(window),
+    }),
+    [window, startEdgeDrawn],
   );
 
   return (
