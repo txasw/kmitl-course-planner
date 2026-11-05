@@ -12,9 +12,9 @@ interface HeaderProps {
 }
 
 // The overlay header. It carries the panel title, the plan switcher, the catalog
-// toggle on the tiers where the catalog column is a sheet or while the docked column is
-// hidden, the mode and language toggles, and the close control. The title id is
-// supplied by the overlay so the dialog can point its accessible name at it.
+// toggle on the tiers where the catalog column is a sheet, the mode and language
+// toggles, and the close control. The title id is supplied by the overlay so the dialog
+// can point its accessible name at it.
 export function Header({ titleId }: HeaderProps) {
   const close = useStore(uiStore, (state) => state.close);
   const { t } = useTranslation();
