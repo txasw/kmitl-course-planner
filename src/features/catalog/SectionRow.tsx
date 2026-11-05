@@ -131,7 +131,7 @@ export function SectionRow({
     >
       <div className="@container min-w-0 flex-1 p-2">
         <div className="flex items-start justify-between gap-2">
-          <span className="font-medium text-ink">
+          <span className="font-semibold text-ink">
             {t('section.code')} {section.section}
           </span>
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
@@ -177,7 +177,7 @@ export function SectionRow({
                 onClick={() => {
                   onSwitchTerm(relation.browsedTerm);
                 }}
-                className="rounded-kcp border border-primary px-2 py-0.5 font-medium text-primary-strong outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                className="rounded-kcp border border-primary px-2 py-0.5 text-primary-strong outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 {t('term.switch')}
               </button>
