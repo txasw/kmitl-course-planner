@@ -1,4 +1,4 @@
-import { test, expect, openPlanner } from './support/fixtures';
+import { test, expect, catalogAtRest, openPlanner } from './support/fixtures';
 import { addCourse, block, syntheticSearch } from './support/synthetic';
 import { tap, type Point } from './support/touch';
 import type { Locator, Page } from '@playwright/test';
@@ -30,18 +30,27 @@ async function centre(control: Locator): Promise<Point> {
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
 }
 
-/** Scroll the catalog scroller down and return the offset it settled at. */
+const SCROLLER = '[data-catalog-scroller]';
+
+/**
+ * Open every collapsed course card, then scroll the results down and return the offset
+ * they settled at. Collapsed cards are one line each, so the synthetic result only grows
+ * taller than the column once its cards are open.
+ */
 async function scrollCatalog(page: Page): Promise<number> {
-  return page.locator(`${COLUMN} > .kcp-scroll`).evaluate((node) => {
+  const closed = page.locator('[data-course-toggle][aria-expanded="false"]');
+  while ((await closed.count()) > 0) {
+    await closed.first().click();
+  }
+  await catalogAtRest(page);
+  return page.locator(SCROLLER).evaluate((node) => {
     node.scrollTop = 160;
     return node.scrollTop;
   });
 }
 
 async function catalogOffset(page: Page): Promise<number> {
-  return page
-    .locator(`${COLUMN} > .kcp-scroll`)
-    .evaluate((node) => node.scrollTop);
+  return page.locator(SCROLLER).evaluate((node) => node.scrollTop);
 }
 
 for (const viewport of [
