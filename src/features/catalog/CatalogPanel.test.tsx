@@ -6,6 +6,7 @@ import {
   act,
   fireEvent,
   waitFor,
+  renderHook,
 } from '@testing-library/react';
 import { httpError, ok } from '@/lib/utils/result';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
@@ -16,7 +17,7 @@ import { toastStore } from '@/features/shell/toastStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { makeCourse } from '../../../tests/support/domain-builders';
-import { CatalogPanel } from './CatalogPanel';
+import { CatalogPanel, useResultCourseCount } from './CatalogPanel';
 
 function renderPanel() {
   return render(
@@ -172,5 +173,38 @@ describe('CatalogPanel', () => {
         'ข้อมูลเป็นปัจจุบัน ไม่มีการเปลี่ยนแปลง',
       );
     });
+  });
+});
+
+describe('useResultCourseCount', () => {
+  it('is null until a result settles', () => {
+    const { result } = renderHook(() => useResultCourseCount());
+    expect(result.current).toBeNull();
+    act(() => {
+      searchStore.getState().setResult({ status: 'loading' }, null);
+    });
+    expect(result.current).toBeNull();
+  });
+
+  it('counts the courses of a settled result', () => {
+    const { result } = renderHook(() => useResultCourseCount());
+    act(() => {
+      searchStore.getState().setResult(
+        {
+          status: 'ready',
+          data: {
+            courses: [
+              makeCourse({ subjectId: '90592008' }),
+              makeCourse({ subjectId: '90592033' }),
+            ],
+            duplicateCount: 0,
+            multiMeetingCount: 0,
+            warnings: [],
+          },
+        },
+        null,
+      );
+    });
+    expect(result.current).toBe(2);
   });
 });
