@@ -23,10 +23,10 @@ import {
 } from 'lucide-react';
 import { useClick, useDismiss, useInteractions } from '@floating-ui/react';
 import { planSchema, type Plan } from '@/lib/domain/plan';
-import { importIssueMessages } from '@/lib/domain/importIssues';
 import type { Term } from '@/lib/routing/academicTerms';
 import type { Translate } from '@/lib/i18n/t';
 import { planExportBaseName } from '@/lib/planner/exportName';
+import { parsePlanImport } from '@/lib/plans/parsePlanImport';
 import { downloadText } from '@/lib/utils/download';
 import { searchStore, type SearchStore } from '@/features/search/searchStore';
 import { toastStore } from '@/features/shell/toastStore';
@@ -231,22 +231,12 @@ export function PlanSwitcher() {
   // exact failing fields without committing anything. On success importPlan lands a
   // new unverified plan that revalidation reconciles on first open.
   const importText = (text: string) => {
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(text) as unknown;
-    } catch {
-      setMode({ kind: 'importError', issues: [t('planData.invalidJson')] });
+    const result = parsePlanImport(text, t);
+    if (!result.ok) {
+      setMode({ kind: 'importError', issues: result.error });
       return;
     }
-    const result = planSchema.safeParse(parsed);
-    if (!result.success) {
-      setMode({
-        kind: 'importError',
-        issues: importIssueMessages(result.error, parsed, t),
-      });
-      return;
-    }
-    planStore.getState().importPlan(result.data);
+    planStore.getState().importPlan(result.value);
     snapToActivePlan();
     closeMenu();
     toastStore.getState().show('success', t('planData.imported'));
