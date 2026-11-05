@@ -36,6 +36,7 @@ const LAYER_TOKENS = {
   grid: 1,
   'grid-active': 2,
   sticky: 10,
+  'sticky-corner': 11,
   scrim: 20,
   drawer: 30,
   popover: 40,

@@ -337,6 +337,61 @@ describe('WeeklyGrid', () => {
     expect(portrait.style.transform).toBe('translateY(-50%)');
   });
 
+  it('pins the day column left and the hour row top in edit', () => {
+    render(
+      <WeeklyGrid
+        sections={[]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+        editable
+      />,
+    );
+    const day = screen.getByLabelText('วันจันทร์');
+    expect(day.style.position).toBe('sticky');
+    expect(day.style.left).toBe('0px');
+    expect(day.style.top).toBe('');
+    // A pinned label covers the lanes scrolling under it, so it is never transparent.
+    expect(day.className).toMatch(/\bbg-surface(-alt)?\b/);
+    const hour = screen.getByText('08:00');
+    expect(hour.style.position).toBe('sticky');
+    expect(hour.style.top).toBe('0px');
+    expect(hour.style.left).toBe('');
+  });
+
+  it('swaps the sticky sides in portrait', () => {
+    render(
+      <WeeklyGrid
+        sections={[]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+        editable
+        orientation="portrait"
+      />,
+    );
+    const day = screen.getByLabelText('วันจันทร์');
+    expect(day.style.position).toBe('sticky');
+    expect(day.style.top).toBe('0px');
+    expect(day.style.left).toBe('');
+    const hour = screen.getByText('08:00');
+    expect(hour.style.position).toBe('sticky');
+    expect(hour.style.left).toBe('0px');
+    expect(hour.style.top).toBe('');
+  });
+
+  it('renders the poster axes flat, with nothing sticky', () => {
+    render(
+      <WeeklyGrid sections={[]} window={DEFAULT_WINDOW} locale="th" t={t} />,
+    );
+    const grid = screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+    const sticky = Array.from(grid.querySelectorAll<HTMLElement>('*')).filter(
+      (node) => node.style.position === 'sticky',
+    );
+    expect(sticky).toHaveLength(0);
+    expect(screen.getByText('08:00').style.position).toBe('');
+  });
+
   it('renders a valid footprint ghost during a fitting drag', () => {
     const dragged = makeSection({
       teachTableId: 'd',
