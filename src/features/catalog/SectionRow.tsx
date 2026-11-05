@@ -1,7 +1,7 @@
-// A single section row inside a course card. It shows the section code, a lecture
-// or practice badge, each meeting's day, time, and room, the instructors, the
-// seat line, and the section's state relative to the plan. A conflicting section
-// keeps its badge, which reads as an exam clash when every conflict is an exam
+// A single section row inside a course card. It shows the section code, a quiet
+// lecture or practice tag, each meeting's day, time, and room, the instructors, the
+// seat line, and one status badge chosen by the rowStatus precedence. A conflicting
+// section keeps its badge, which reads as an exam clash when every conflict is an exam
 // overlap, and its reason but stays actionable: its add button routes to the blocked
 // feedback strip instead of being disabled, so a keyboard user gets the same reason
 // and alternatives a drag would give. A duplicate reads on a muted surface with its
@@ -9,16 +9,7 @@
 // conflicting open section and a remove button for an added one.
 
 import { useState } from 'react';
-import {
-  AlertTriangle,
-  BookOpen,
-  CalendarClock,
-  Check,
-  Copy,
-  FlaskConical,
-  Info,
-  Plus,
-} from 'lucide-react';
+import { Info, Plus } from 'lucide-react';
 import { Tooltip } from '@/components/Tooltip';
 import { RemoveButton, removeSectionName } from './RemoveButton';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -26,54 +17,15 @@ import type { Course, Section } from '@/lib/domain/types';
 import type { Term } from '@/lib/routing/academicTerms';
 import type { SeatStatus } from '@/lib/catalog/seatStatus';
 import { computeSeatDemand } from '@/lib/catalog/seatDemand';
+import { computeRowStatus } from '@/lib/catalog/rowStatus';
 import type { SectionRelation } from '@/lib/planner/sectionState';
 import type { ConflictDetail } from '@/lib/planner/placement';
 import { describeConflicts } from '@/lib/planner/describeConflict';
-import {
-  conflictBadgeKey,
-  conflictReasonText,
-} from '@/features/planner/conflictText';
+import { conflictReasonText } from '@/features/planner/conflictText';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
-import { Pill } from '@/components/Pill';
 import { SeatDemand } from './SeatDemand';
+import { StatusBadge } from './StatusBadge';
 import { meetingLabel } from './meetingFormat';
-
-function StateBadge({
-  relation,
-  t,
-}: {
-  relation: SectionRelation;
-  t: Translate;
-}) {
-  switch (relation.kind) {
-    case 'added':
-      return (
-        <Pill tone="success" icon={<Check size={12} aria-hidden />}>
-          {t('section.badge.added')}
-        </Pill>
-      );
-    case 'conflicting':
-      return (
-        <Pill tone="danger" icon={<AlertTriangle size={12} aria-hidden />}>
-          {t(conflictBadgeKey(relation.conflicts))}
-        </Pill>
-      );
-    case 'duplicate':
-      return (
-        <Pill tone="warn" icon={<Copy size={12} aria-hidden />}>
-          {t('section.badge.duplicate')}
-        </Pill>
-      );
-    case 'different_term':
-      return (
-        <Pill tone="neutral" icon={<CalendarClock size={12} aria-hidden />}>
-          {t('section.badge.differentTerm')}
-        </Pill>
-      );
-    case 'addable':
-      return null;
-  }
-}
 
 function termLabel(term: Term): string {
   return `${term.semester}/${term.year}`;
@@ -130,27 +82,20 @@ export function SectionRow({
         dimmed ? 'bg-surface-alt' : ''
       }`}
     >
-      <div className="@container min-w-0 flex-1 p-2">
-        <div className="flex items-start justify-between gap-2">
-          <span className="font-semibold text-ink">
+      <div className="min-w-0 flex-1 p-2">
+        {/* The badge cluster wraps under the section code on a narrow row rather than
+            shrinking, so the status label never collapses to an icon. */}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="whitespace-nowrap text-sm font-semibold text-ink">
             {t('section.code')} {section.section}
           </span>
-          <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
-            <Pill
-              tone="neutral"
-              icon={
-                kind === 'practice' ? (
-                  <FlaskConical size={12} aria-hidden />
-                ) : (
-                  <BookOpen size={12} aria-hidden />
-                )
-              }
-            >
-              {kind === 'practice'
-                ? t('section.practice')
-                : t('section.lecture')}
-            </Pill>
-            {readOnly ? null : <StateBadge relation={relation} t={t} />}
+          <span className="text-ink-soft">
+            {kind === 'practice' ? t('section.practice') : t('section.lecture')}
+          </span>
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-1">
+            {readOnly ? null : (
+              <StatusBadge status={computeRowStatus(relation, seat)} t={t} />
+            )}
             {!readOnly &&
             relation.kind === 'added' &&
             onRemove !== undefined ? (

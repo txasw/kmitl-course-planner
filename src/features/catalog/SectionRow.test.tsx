@@ -137,10 +137,10 @@ describe('SectionRow actions', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('badges a practice section and a lecture section by its kind', () => {
+  it('names a practice section and a lecture section by its kind', () => {
     // Regression guard: the kind rides from lect_or_prac through the section, so a
     // practice section reads practice and a lecture section reads lecture. This is
-    // the catalog side of the badge; the shelf and the drag card are covered too.
+    // the catalog side of the tag; the shelf and the drag card are covered too.
     const practice = makeSection({ teachTableId: 'p', kind: 'practice' });
     render(
       <SectionRow
@@ -193,6 +193,110 @@ describe('SectionRow actions', () => {
   });
 });
 
+describe('SectionRow status badge', () => {
+  const blocking = { teachTableId: 'b', subjectId: '90000002', section: '901' };
+  const conflicting = {
+    kind: 'conflicting' as const,
+    conflicts: [
+      {
+        kind: 'time' as const,
+        blocking,
+        day: 1 as const,
+        startMin: 540,
+        endMin: 600,
+      },
+    ],
+  };
+
+  it('renders the lecture or practice kind as quiet text, not a pill', () => {
+    render(
+      <SectionRow
+        course={course}
+        section={section}
+        relation={{ kind: 'addable' }}
+        seat={openSeat}
+        locale="th"
+        t={t}
+      />,
+    );
+    const kind = screen.getByText('ทฤษฎี');
+    expect(kind).toHaveClass('text-ink-soft');
+    expect(kind.className.split(' ').some((c) => c.startsWith('bg-'))).toBe(
+      false,
+    );
+  });
+
+  it('shows no badge on an addable open section', () => {
+    render(
+      <SectionRow
+        course={course}
+        section={section}
+        relation={{ kind: 'addable' }}
+        seat={openSeat}
+        locale="th"
+        t={t}
+      />,
+    );
+    for (const label of ['เพิ่มแล้ว', 'เวลาชนกัน', 'เต็ม', 'ปิด', 'วิชาซ้ำ']) {
+      expect(screen.queryByText(label)).not.toBeInTheDocument();
+    }
+  });
+
+  it('shows one full badge instead of the conflict badge on a full row', () => {
+    const fullSection = makeSection({
+      seats: { limit: 40, preCount: 40, queueLeft: 0, enrolled: 'full' },
+    });
+    render(
+      <SectionRow
+        course={course}
+        section={fullSection}
+        relation={conflicting}
+        seat={computeSeatStatus(fullSection)}
+        locale="th"
+        t={t}
+        onAdd={vi.fn()}
+      />,
+    );
+    expect(screen.getByText('เต็ม')).toBeVisible();
+    expect(screen.queryByText('เวลาชนกัน')).not.toBeInTheDocument();
+  });
+
+  it('reads ปิด on a closed row, the host term for a closed section', () => {
+    const closed = makeSection({ isClosed: true });
+    render(
+      <SectionRow
+        course={course}
+        section={closed}
+        relation={conflicting}
+        seat={computeSeatStatus(closed)}
+        locale="th"
+        t={t}
+        onAdd={vi.fn()}
+      />,
+    );
+    expect(screen.getByText('ปิด')).toBeVisible();
+    expect(screen.queryByText('เวลาชนกัน')).not.toBeInTheDocument();
+  });
+
+  it('keeps the badge label visible text with no tooltip', () => {
+    render(
+      <SectionRow
+        course={course}
+        section={section}
+        relation={conflicting}
+        seat={openSeat}
+        locale="th"
+        t={t}
+        onAdd={vi.fn()}
+      />,
+    );
+    const badge = screen.getByText('เวลาชนกัน');
+    expect(badge).toBeVisible();
+    fireEvent.mouseEnter(badge);
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  });
+});
+
 describe('SectionRow seat line', () => {
   function renderSeats(target: Section, readOnly = false) {
     render(
@@ -218,6 +322,32 @@ describe('SectionRow seat line', () => {
     const line = screen.getByText('ว่าง 12 จาก 45');
     expect(line).not.toHaveClass('sr-only');
     expect(line.closest('[role="tooltip"]')).toBeNull();
+  });
+
+  it('keeps the seat count visible in a 14rem container', () => {
+    const { container } = render(
+      <div style={{ width: '14rem' }}>
+        <SectionRow
+          course={course}
+          section={makeSection({
+            seats: { limit: 45, preCount: 0, queueLeft: 0, enrolled: 33 },
+          })}
+          relation={{ kind: 'addable' }}
+          seat={{ kind: 'open', remaining: 12 }}
+          locale="th"
+          t={t}
+          onAdd={vi.fn()}
+        />
+      </div>,
+    );
+    expect(screen.getByText('ว่าง 12 จาก 45')).toBeVisible();
+    // Nothing in the row hides text behind a container query or a visually hidden
+    // class, so a narrow drawer row reads the same count a wide one does.
+    expect(
+      container.querySelectorAll(
+        '[class*="@container"], [class*="@max-"], .sr-only',
+      ),
+    ).toHaveLength(0);
   });
 
   it('shows no seat limit for an uncapped section', () => {
