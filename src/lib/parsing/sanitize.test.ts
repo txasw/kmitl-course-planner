@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { loadFixture } from '../../../tests/support/fixtures';
-import { sanitizeToLines } from './sanitize';
+import { sanitizeTextToLines, sanitizeToLines } from './sanitize';
 
 interface CapturedRow {
   teach_table_id: string;
@@ -162,5 +162,47 @@ describe('sanitizeToLines', () => {
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+});
+
+describe('sanitizeTextToLines', () => {
+  it('keeps the remark text that sits before its markup wrapper', () => {
+    // Section 90641009/942 appends a closed notice in a div after plain text.
+    const row = captureRow('teach-table.with-exams.capture.json', '134426');
+    const lines = sanitizeTextToLines(row.remark);
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toMatch(/^วิชาบังคับภาษา: การจัดการสมาร์ตฟาร์ม/);
+    expect(lines[0]).toMatch(/วิศวกรรมออโตเมชัน ปี2,$/);
+    expect(lines[1]).toBe('(รายวิชาปิด/Course Closed)');
+    expect(lines.join('\n')).not.toMatch(/[<>]/);
+  });
+
+  it('leaves every plain remark in the captures as written', () => {
+    for (const name of TEACH_TABLE_CAPTURES) {
+      for (const row of captureRows(name)) {
+        if (!/[<&]/.test(row.remark)) {
+          const expected = row.remark.trim();
+          expect(sanitizeTextToLines(row.remark)).toEqual(
+            expected.length > 0 ? [expected] : [],
+          );
+        }
+      }
+    }
+  });
+
+  it('breaks lines at block boundaries and existing line breaks', () => {
+    expect(
+      sanitizeTextToLines('one<br>two<br/>three<p>four</p>five\nsix'),
+    ).toEqual(['one', 'two', 'three', 'four', 'five', 'six']);
+  });
+
+  it('keeps unknown bracketed text and drops executable content', () => {
+    expect(
+      sanitizeTextToLines(
+        'Only <International Program><script>alert(1)</script>' +
+          '<img src="x" onerror="alert(1)">',
+      ),
+    ).toEqual(['Only <International Program>']);
+    expect(sanitizeTextToLines('')).toEqual([]);
   });
 });
