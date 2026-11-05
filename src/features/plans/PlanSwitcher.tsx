@@ -107,7 +107,7 @@ export function PlanSwitcher() {
     triggerRef.current?.focus();
   }, []);
 
-  // The overlay traps focus and closes on Escape through a native panel listener
+  // The overlay traps focus and closes on Escape through a native body listener
   // that fires before floating-ui's dismiss. Intercept Escape on the dropdown so it
   // dismisses the menu only, keeping any in-progress name text and the overlay open.
   useEffect(() => {

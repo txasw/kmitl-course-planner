@@ -94,8 +94,8 @@ export function Tooltip({ label, placement = 'top', children }: TooltipProps) {
 
   // WCAG 1.4.13 dismissible: Escape hides the tooltip. A capture phase document
   // listener catches it whether the tooltip opened from hover or focus, and stops
-  // propagation so the overlay focus trap, which listens on the panel in the
-  // bubble phase, does not also close the whole panel.
+  // propagation so the overlay focus trap, which decides Escape on the panel's body
+  // ancestor in the bubble phase, does not also close the whole panel.
   useEffect(() => {
     if (!open) {
       return undefined;
