@@ -31,18 +31,13 @@ import {
   type LayoutTier,
 } from '@/lib/ui/breakpoints';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { CATALOG_HIDE_ID, CATALOG_TOGGLE_ID } from './catalogVisibility';
 import { commitAndFocus } from './commitAndFocus';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
 
 /** Id the header sheet toggle points its aria-controls at. */
 export const CATALOG_COLUMN_ID = 'kcp-catalog-column';
-
-/** Id of the docked column hide control, which takes focus when the column returns. */
-export const CATALOG_HIDE_ID = 'kcp-catalog-hide';
-
-/** Id of the header catalog toggle, which takes focus when the column is hidden. */
-export const CATALOG_TOGGLE_ID = 'kcp-catalog-toggle';
 
 const DOCKED_WIDTH: Record<DockedTier, string> = {
   lg: 'w-[22rem]',
