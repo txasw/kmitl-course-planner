@@ -1,15 +1,18 @@
 // A single section row inside a course card. It shows the section code, a quiet
 // lecture or practice tag, each meeting's day, time, and room, the instructors, the
-// seat line, and one status badge chosen by the rowStatus precedence. A conflicting
-// section keeps its badge, which reads as an exam clash when every conflict is an exam
-// overlap, and its reason but stays actionable: its add button routes to the blocked
-// feedback strip instead of being disabled, so a keyboard user gets the same reason
-// and alternatives a drag would give. A duplicate reads on a muted surface with its
-// reason. When handlers are supplied the row offers an add button for an addable or
-// conflicting open section and a remove button for an added one.
+// seat line, the enrollment conditions and the remark as one line each with a control
+// that shows the rest, and one status badge chosen by the rowStatus precedence. The
+// conditions and remark show on a read only row too, since they are facts about the
+// section rather than actions. A conflicting section keeps its badge, which reads as an
+// exam clash when every conflict is an exam overlap, and its reason but stays
+// actionable: its add button routes to the blocked feedback strip instead of being
+// disabled, so a keyboard user gets the same reason and alternatives a drag would give.
+// A duplicate reads on a muted surface with its reason. When handlers are supplied the
+// row offers an add button for an addable or conflicting open section and a remove
+// button for an added one.
 
-import { useId, useState } from 'react';
-import { Info, Plus } from 'lucide-react';
+import { useId } from 'react';
+import { Plus } from 'lucide-react';
 import { Tooltip } from '@/components/Tooltip';
 import { RemoveButton, removeSectionName } from './RemoveButton';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -20,8 +23,10 @@ import { computeSeatDemand, seatLineText } from '@/lib/catalog/seatDemand';
 import { computeRowStatus, isConflictStatus } from '@/lib/catalog/rowStatus';
 import type { SectionRelation } from '@/lib/planner/sectionState';
 import { describeConflicts } from '@/lib/planner/describeConflict';
-import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
+import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { ConflictCallout } from './ConflictCallout';
+import { RemarkLine } from './RemarkLine';
+import { RulesNotice } from './RulesNotice';
 import { SeatDemand } from './SeatDemand';
 import { StatusBadge } from './StatusBadge';
 import { meetingLabel } from './meetingFormat';
@@ -77,7 +82,6 @@ export function SectionRow({
     ? 'none'
     : railKind(relation, seat, onAdd !== undefined);
   const addLabel = `${t('action.add')} ${section.subjectId} ${t('section.code')} ${section.section}`;
-  const [showDetails, setShowDetails] = useState(false);
   const calloutId = useId();
   const reasonId = useId();
   const demand = computeSeatDemand(section);
@@ -160,40 +164,18 @@ export function SectionRow({
           ))}
         </div>
 
-        {teachers.length > 0 || section.remark !== '' ? (
-          <div className="mt-1 flex items-center gap-1 text-ink-soft">
-            {teachers.length > 0 ? (
-              <Tooltip label={teachers.join(', ')}>
-                {(triggerProps, ref) => (
-                  <p
-                    ref={ref}
-                    {...triggerProps}
-                    className="min-w-0 flex-1 truncate"
-                  >
-                    {teachers.join(', ')}
-                  </p>
-                )}
-              </Tooltip>
-            ) : (
-              <span className="min-w-0 flex-1" />
-            )}
-            {!readOnly && section.remark !== '' ? (
-              <button
-                type="button"
-                aria-expanded={showDetails}
-                aria-label={t('section.moreInfo')}
-                onPointerDown={(event) => {
-                  event.stopPropagation();
-                }}
-                onClick={() => {
-                  setShowDetails((value) => !value);
-                }}
-                className={`shrink-0 rounded-kcp p-0.5 hover:text-ink ${FOCUS_RING}`}
+        {teachers.length > 0 ? (
+          <Tooltip label={teachers.join(', ')}>
+            {(triggerProps, ref) => (
+              <p
+                ref={ref}
+                {...triggerProps}
+                className="mt-1 truncate text-ink-soft"
               >
-                <Info size={12} aria-hidden />
-              </button>
-            ) : null}
-          </div>
+                {teachers.join(', ')}
+              </p>
+            )}
+          </Tooltip>
         ) : null}
         <div
           className="mt-1"
@@ -201,11 +183,13 @@ export function SectionRow({
         >
           <SeatDemand demand={demand} t={t} />
         </div>
-        {!readOnly && showDetails && section.remark !== '' ? (
-          <p className="mt-1 whitespace-pre-line text-ink-soft">
-            {section.remark}
-          </p>
-        ) : null}
+        <RulesNotice
+          rulesTh={section.rulesTh}
+          rulesEn={section.rulesEn}
+          locale={locale}
+          t={t}
+        />
+        <RemarkLine remark={section.remark} t={t} />
 
         {conflict !== null ? (
           <ConflictCallout id={calloutId} description={conflict} t={t} />

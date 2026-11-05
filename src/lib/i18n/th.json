@@ -103,7 +103,6 @@
   "section.reason.conflictWith": "ชนกับ",
   "section.reason.examConflictWith": "เวลาสอบชนกับ",
   "section.reason.duplicate": "มีวิชานี้ในตารางแล้ว",
-  "section.moreInfo": "ข้อมูลเพิ่มเติม",
   "section.seats.open": "ว่าง {remaining} จาก {limit}",
   "section.seats.uncapped": "ไม่จำกัดที่นั่ง",
   "section.seats.full": "เต็ม เพิ่มไม่ได้",
