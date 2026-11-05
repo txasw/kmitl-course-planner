@@ -21,16 +21,7 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react';
-import {
-  autoUpdate,
-  flip,
-  offset,
-  shift,
-  useClick,
-  useDismiss,
-  useFloating,
-  useInteractions,
-} from '@floating-ui/react';
+import { useClick, useDismiss, useInteractions } from '@floating-ui/react';
 import { planSchema, type Plan } from '@/lib/domain/plan';
 import { importIssueMessages } from '@/lib/domain/importIssues';
 import type { Term } from '@/lib/routing/academicTerms';
@@ -39,6 +30,10 @@ import { planExportBaseName } from '@/lib/planner/exportName';
 import { downloadText } from '@/lib/utils/download';
 import { searchStore, type SearchStore } from '@/features/search/searchStore';
 import { toastStore } from '@/features/shell/toastStore';
+import {
+  PANEL_POPOVER_SCROLL,
+  usePanelPopover,
+} from '@/features/shell/usePanelPopover';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { planStore, useActivePlan } from './planStore';
 
@@ -119,7 +114,8 @@ export function PlanSwitcher() {
   // until the search form has a seeded year.
   const canCreate = searchYear !== '';
 
-  const { refs, floatingStyles, context } = useFloating({
+  const { refs, floatingStyles, context } = usePanelPopover({
+    gap: 4,
     open,
     onOpenChange: (next) => {
       setOpen(next);
@@ -127,10 +123,7 @@ export function PlanSwitcher() {
         setMode({ kind: 'list' });
       }
     },
-    strategy: 'fixed',
     placement: 'bottom-start',
-    middleware: [offset(4), flip({ padding: 8 }), shift({ padding: 8 })],
-    whileElementsMounted: autoUpdate,
   });
   const { getReferenceProps, getFloatingProps } = useInteractions([
     useClick(context),
@@ -307,7 +300,7 @@ export function PlanSwitcher() {
           ref={setFloating}
           style={floatingStyles}
           {...getFloatingProps()}
-          className="z-popover w-72 rounded-kcp border border-border bg-surface p-2 text-sm shadow-kcp"
+          className={`z-popover w-72 ${PANEL_POPOVER_SCROLL} rounded-kcp border border-border bg-surface p-2 text-sm shadow-kcp`}
         >
           {mode.kind === 'name' ? (
             <NameForm
