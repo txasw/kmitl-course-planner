@@ -30,12 +30,22 @@ export const test = base.extend<Fixtures>({
     await mock.close();
   },
 
-  context: async ({ extensionDir, mock }, use) => {
+  context: async (
+    { extensionDir, mock, viewport, isMobile, hasTouch, deviceScaleFactor },
+    use,
+  ) => {
     if (extensionDir === '') {
       throw new Error('extensionDir option is not set for this project');
     }
     const dir = resolve(extensionDir);
+    // The device options are passed on by hand so the emulated screen of each
+    // project is stated where the context is built, rather than depending on the
+    // runner applying its defaults to a context this fixture launches itself.
     const context = await chromium.launchPersistentContext('', {
+      viewport,
+      isMobile,
+      hasTouch,
+      ...(deviceScaleFactor !== undefined ? { deviceScaleFactor } : {}),
       channel: 'chromium',
       args: [
         `--disable-extensions-except=${dir}`,
