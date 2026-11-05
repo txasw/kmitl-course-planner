@@ -7,28 +7,14 @@
 // animation.
 
 import { useEffect, useRef, useState } from 'react';
+import { useMediaQuery } from './useMediaQuery';
 
 export type PresenceStage = 'closed' | 'entering' | 'open' | 'leaving';
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
 export function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState<boolean>(
-    () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
-  );
-
-  useEffect(() => {
-    const query = window.matchMedia(REDUCED_MOTION_QUERY);
-    const onChange = (): void => {
-      setReduced(query.matches);
-    };
-    query.addEventListener('change', onChange);
-    return () => {
-      query.removeEventListener('change', onChange);
-    };
-  }, []);
-
-  return reduced;
+  return useMediaQuery(REDUCED_MOTION_QUERY);
 }
 
 export function usePresence(
