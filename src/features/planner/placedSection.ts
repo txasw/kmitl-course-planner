@@ -15,6 +15,9 @@ export interface PlacedSection {
   credit: number;
   kind: MeetingKind;
   meetings: Meeting[];
+  /** The enrollment conditions, one rule per line, which the edit mode shelf lists. */
+  rulesTh: string;
+  rulesEn: string;
   /** The entry's latest verification state, for the grid and shelf badges. */
   verifyStatus: VerifyStatus;
 }
@@ -35,6 +38,8 @@ export function toPlacedSection(
     credit: snapshot.subjectMeta.credit,
     kind: snapshot.kind,
     meetings: snapshot.meetings,
+    rulesTh: snapshot.rulesTh,
+    rulesEn: snapshot.rulesEn,
     verifyStatus,
   };
 }

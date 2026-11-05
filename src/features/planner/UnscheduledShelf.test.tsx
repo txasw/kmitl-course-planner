@@ -22,6 +22,8 @@ function makePlaced(overrides: Partial<PlacedSection> = {}): PlacedSection {
     credit: 3,
     kind: 'practice',
     meetings: [],
+    rulesTh: '',
+    rulesEn: '',
     verifyStatus: 'unverified',
     ...overrides,
   };
@@ -128,5 +130,40 @@ describe('UnscheduledShelf', () => {
     );
     expect(screen.getByText('วิชาออนไลน์')).toHaveAttribute('lang', 'th');
     expect(screen.getByText('Online subject')).toHaveAttribute('lang', 'en');
+  });
+});
+
+describe('UnscheduledShelf conditions', () => {
+  const restricted = makePlaced({
+    rulesTh: 'เฉพาะคณะวิศวกรรมศาสตร์\nเฉพาะนักศึกษาชั้นปี 1',
+    rulesEn: 'Only School of Engineering\nOnly year 1 students',
+  });
+
+  it('lists the conditions on the edit mode shelf', () => {
+    render(
+      <UnscheduledShelf
+        sections={[restricted]}
+        locale="th"
+        t={t}
+        onRemove={vi.fn()}
+        editable
+      />,
+    );
+    expect(screen.getByText('เงื่อนไข')).toBeInTheDocument();
+    expect(screen.getByText('เฉพาะคณะวิศวกรรมศาสตร์')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'ดูเงื่อนไขทั้งหมด (2)' }),
+    ).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('keeps the conditions off the shelf when it is not editable', () => {
+    // The preview poster shelf is the one the export captures, so a condition there
+    // would enter every shared image and change the measured fit.
+    render(<UnscheduledShelf sections={[restricted]} locale="th" t={t} />);
+    expect(screen.queryByText('เงื่อนไข')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('เฉพาะคณะวิศวกรรมศาสตร์'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 });
