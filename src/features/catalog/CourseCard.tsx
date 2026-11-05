@@ -90,6 +90,9 @@ function CourseCardComponent({
 }: CourseCardProps) {
   const primary = locale === 'th' ? course.nameTh : course.nameEn;
   const secondary = locale === 'th' ? course.nameEn : course.nameTh;
+  // The secondary name is the other language's field, so it carries that language for
+  // a screen reader voice; the primary inherits the panel language.
+  const secondaryLang: Locale = locale === 'th' ? 'en' : 'th';
   const hasSecondary = secondary !== '' && secondary !== primary;
   // A long Thai name has no word breaks, so the name line truncates rather than
   // overflowing the card, and the full text rides on a tooltip for a hover.
@@ -124,7 +127,9 @@ function CourseCardComponent({
               <span className="font-semibold text-ink">{course.subjectId}</span>{' '}
               <span className="text-ink">{primary}</span>
               {hasSecondary ? (
-                <span className="ml-1 text-ink-soft">{secondary}</span>
+                <span lang={secondaryLang} className="ml-1 text-ink-soft">
+                  {secondary}
+                </span>
               ) : null}
             </span>
             <span className="flex shrink-0 items-center gap-1">
@@ -194,7 +199,9 @@ function CourseCardComponent({
               <span className="font-semibold text-ink">{course.subjectId}</span>{' '}
               <span className="text-ink">{primary}</span>
               {hasSecondary ? (
-                <span className="ml-1 text-ink-soft">{secondary}</span>
+                <span lang={secondaryLang} className="ml-1 text-ink-soft">
+                  {secondary}
+                </span>
               ) : null}
             </div>
           )}

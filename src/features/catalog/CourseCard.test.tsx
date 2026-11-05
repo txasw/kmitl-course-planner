@@ -247,6 +247,40 @@ describe('CourseCard long name', () => {
   });
 });
 
+describe('CourseCard secondary name language', () => {
+  const course = makeCourse({
+    subjectId: '90000001',
+    nameTh: 'วิชาทดสอบ',
+    nameEn: 'Test subject',
+  });
+
+  it('marks the English secondary name as English in the Thai locale', () => {
+    render(<CourseCard course={course} placed={[]} locale="th" t={t} />);
+    expect(screen.getByText('Test subject')).toHaveAttribute('lang', 'en');
+    expect(screen.getByText('วิชาทดสอบ')).not.toHaveAttribute('lang');
+  });
+
+  it('marks the Thai secondary name as Thai in the English locale', () => {
+    render(
+      <CourseCard
+        course={course}
+        placed={[]}
+        locale="en"
+        t={createTranslator('en')}
+      />,
+    );
+    expect(screen.getByText('วิชาทดสอบ')).toHaveAttribute('lang', 'th');
+  });
+
+  it('marks the secondary name on a collapsed added course', () => {
+    const placed = [
+      makeSection({ subjectId: '90000001', teachTableId: 'placed' }),
+    ];
+    render(<CourseCard course={course} placed={placed} locale="th" t={t} />);
+    expect(screen.getByText('Test subject')).toHaveAttribute('lang', 'en');
+  });
+});
+
 describe('CourseCard memoization', () => {
   it('skips re-rendering when its props are unchanged and re-renders on a change', () => {
     // A card renders through t, so counting t calls counts the card's renders: a

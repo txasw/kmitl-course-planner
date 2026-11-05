@@ -1,10 +1,12 @@
 // The timetable footer summary: total credits including unscheduled sections, the
 // distinct subject count, the scheduled load per day in plain text, and the count
-// of unscheduled sections when the plan holds any.
+// of unscheduled sections when the plan holds any. The day reads as its short
+// abbreviation on screen and as its full name to assistive technology, which would
+// otherwise spell out a single character.
 
 import type { Translate } from '@/lib/i18n/t';
 import { WEEK_DAYS } from '@/lib/parsing/days';
-import { dayLabelKey } from '@/lib/i18n/dayLabel';
+import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
 import { summarizeCredits } from '@/lib/planner/credits';
 import { perDayLoad } from '@/lib/planner/grid';
 import type { PlacedSection } from './placedSection';
@@ -52,7 +54,9 @@ export function GridFooter({ sections, t, flush = false }: GridFooterProps) {
       </span>
       {WEEK_DAYS.filter((day) => load[day] > 0).map((day) => (
         <span key={day}>
-          {t(dayLabelKey(day))} {formatHours(load[day])}
+          <span aria-hidden>{t(dayLabelKey(day))}</span>
+          <span className="sr-only">{t(dayFullLabelKey(day))}</span>{' '}
+          {formatHours(load[day])}
           {t('footer.hourUnit')}
         </span>
       ))}

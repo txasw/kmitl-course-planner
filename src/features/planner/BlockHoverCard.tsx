@@ -102,7 +102,7 @@ export function BlockHoverCard({
       className={`pointer-events-none z-popover flex w-64 ${PANEL_POPOVER_SCROLL} flex-col gap-1 rounded-kcp border border-l-2 border-border border-l-primary bg-surface p-2.5 text-xs shadow-kcp`}
     >
       <p className="font-semibold text-ink">
-        <span>{snapshot.subjectId}</span> {name}
+        <span>{snapshot.subjectId}</span> <span lang={locale}>{name}</span>
       </p>
       <p className="text-ink-soft">
         {t('section.code')} {snapshot.section} ·{' '}

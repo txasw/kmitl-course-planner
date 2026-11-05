@@ -50,8 +50,17 @@ describe('GridFooter', () => {
 
   it('shows the scheduled load per day and the unscheduled count', () => {
     render(<GridFooter sections={[scheduled, online]} t={t} />);
-    expect(screen.getByText('จ 3ชม.')).toBeInTheDocument();
+    // The abbreviation and the screen reader day name are sibling spans of the load.
+    const day = screen.getByText('จ').parentElement;
+    expect(day).toContainElement(screen.getByText('วันจันทร์'));
+    expect(day).toHaveTextContent(/3ชม\.$/);
     expect(screen.getByText('1 ไม่มีคาบเรียน')).toBeInTheDocument();
+  });
+
+  it('reads the full day name to assistive technology, not the abbreviation', () => {
+    render(<GridFooter sections={[scheduled]} t={t} />);
+    expect(screen.getByText('จ')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByText('วันจันทร์')).toHaveClass('sr-only');
   });
 
   it('omits the unscheduled count when every section is scheduled', () => {
