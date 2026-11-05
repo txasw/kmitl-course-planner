@@ -10,7 +10,7 @@ test('renders the deduped catalog for a category search', async ({
   await page.getByRole('button', { name: 'หมวดวิชา' }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
-  await page.getByRole('button', { name: 'ค้นหา' }).click();
+  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
 
   // The catalog renders in both the dominant column and the collapsed drawer, so
   // the first match is the visible column.

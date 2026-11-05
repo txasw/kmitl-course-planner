@@ -16,7 +16,7 @@ export function block(id: string): string {
 export async function syntheticSearch(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'รหัสวิชา' }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000000');
-  await page.getByRole('button', { name: 'ค้นหา' }).click();
+  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
   await expect(page.getByText('90000001').first()).toBeVisible({
     timeout: 15_000,
   });

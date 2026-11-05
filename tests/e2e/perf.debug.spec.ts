@@ -60,7 +60,7 @@ async function openCdp(context: BrowserContext, page: Page): Promise<Cdp> {
 async function searchDense(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'รหัสวิชา' }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill(DENSE_SUBJECT_ID);
-  await page.getByRole('button', { name: 'ค้นหา' }).click();
+  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
   await expect(
     page.getByText(denseSubjectId(0), { exact: true }).first(),
   ).toBeVisible({ timeout: 20_000 });
@@ -203,7 +203,7 @@ test('profiles the real capture normalize and render', async ({
   const before = await scriptMs(client);
   await page.getByRole('button', { name: 'รหัสวิชา' }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill(REAL_SUBJECT_ID);
-  await page.getByRole('button', { name: 'ค้นหา' }).click();
+  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
   await expect(
     page.getByText(REAL_COURSE_ID, { exact: true }).first(),
   ).toBeVisible({ timeout: 20_000 });

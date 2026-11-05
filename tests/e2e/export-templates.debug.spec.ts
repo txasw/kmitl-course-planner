@@ -18,7 +18,7 @@ async function categorySearch(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'หมวดวิชา' }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
-  await page.getByRole('button', { name: 'ค้นหา' }).click();
+  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
   await expect(page.getByText('90592033').first()).toBeVisible({
     timeout: 15_000,
   });
