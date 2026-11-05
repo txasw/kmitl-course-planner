@@ -3,86 +3,31 @@
 // columns and time flowing down as rows, so a tall export canvas fills top to bottom
 // rather than a thin band (ADR, orientation is a template property). Every block position
 // derives from minutes through the grid geometry, never from pixels: a meeting maps to
-// grid lines and its day track. A per day lane draws the hour and quarter gridlines with a
-// gradient so the line count follows the window without a cell per quarter. GridAxis draws
-// the hour labels and the stronger rules. The poster font size scales the whole grid per
-// template.
+// grid lines and its day track. GridAxis draws the hour labels and the stronger rules, and
+// DayLanes draws the day labels, the gridline lanes, and the placed blocks. The poster font
+// size scales the whole grid per template.
 
-import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, MouseEvent } from 'react';
 import { useStore } from 'zustand';
-import type { Meeting } from '@/lib/domain/types';
 import type { ExamOverlap } from '@/lib/planner/examOverlap';
 import type { Locale, Translate } from '@/lib/i18n/t';
-import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
-import { Tooltip } from '@/components/Tooltip';
 import { WEEK_DAYS, type DayOfWeek } from '@/lib/parsing/days';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
-import {
-  meetingColumns,
-  quarterCount,
-  type GridWindow,
-} from '@/lib/planner/grid';
+import { quarterCount, type GridWindow } from '@/lib/planner/grid';
 import { candidateFootprints } from '@/lib/planner/candidateLayout';
-import { dayTint } from '@/lib/planner/dayColors';
 import { dragStore } from './dragStore';
 import { BlockHoverCard } from './BlockHoverCard';
 import { CandidateSlot } from './CandidateSlot';
-import { EventBlock } from './EventBlock';
+import { DayLanes } from './DayLanes';
 import { GridAxis } from './GridAxis';
-import { DraggableBlock } from './DraggableBlock';
 import { SwapTarget } from './SwapTarget';
 import type { PlacedSection } from './placedSection';
-import {
-  FIRST_DAY_INDEX,
-  FIRST_TIME_INDEX,
-  QUARTERS_PER_HOUR,
-  type Orientation,
-} from './gridGeometry';
+import { blockStyle, type Orientation } from './gridGeometry';
 
 const MAX_STACK_OFFSET = 4;
 const STACK_STEP_PX = 5;
 const HOVER_DELAY_MS = 400;
-
-/** Layered gradients that draw the hour lines and the fainter quarter lines. The lines run
- * across the time axis, so they are vertical in landscape and horizontal in portrait. */
-function laneBackground(quarters: number, orientation: Orientation): string {
-  const direction = orientation === 'portrait' ? 'to bottom' : 'to right';
-  const quarterPct = 100 / quarters;
-  const hourPct = quarterPct * QUARTERS_PER_HOUR;
-  const hourLine = 'var(--kcp-border)';
-  const quarterLine = 'color-mix(in srgb, var(--kcp-border) 45%, transparent)';
-  return [
-    `repeating-linear-gradient(${direction}, ${hourLine} 0, ${hourLine} 1px, transparent 1px, transparent ${String(hourPct)}%)`,
-    `repeating-linear-gradient(${direction}, ${quarterLine} 0, ${quarterLine} 1px, transparent 1px, transparent ${String(quarterPct)}%)`,
-  ].join(', ');
-}
-
-// The day track derives from the day's position in the rendered run, not the day number,
-// so a preview that trims leading days still places each block correctly. With the full
-// week the position equals the day, so edit mode geometry is unchanged. In portrait the
-// day is the column and the time span is the rows; in landscape it is the reverse.
-function blockStyle(
-  meeting: Meeting,
-  window: GridWindow,
-  days: readonly DayOfWeek[],
-  orientation: Orientation,
-): CSSProperties {
-  const columns = meetingColumns(meeting.startMin, meeting.endMin, window);
-  const dayTrack = FIRST_DAY_INDEX + days.indexOf(meeting.day);
-  const timeStart = FIRST_TIME_INDEX + columns.startQuarter;
-  const timeEnd = FIRST_TIME_INDEX + columns.endQuarter;
-  if (orientation === 'portrait') {
-    return {
-      gridColumn: dayTrack,
-      gridRow: `${String(timeStart)} / ${String(timeEnd)}`,
-    };
-  }
-  return {
-    gridRow: dayTrack,
-    gridColumn: `${String(timeStart)} / ${String(timeEnd)}`,
-  };
-}
 
 function gridTemplate(
   quarters: number,
@@ -160,19 +105,12 @@ export function WeeklyGrid({
   orientation = 'landscape',
   fontPx = 11,
 }: WeeklyGridProps) {
-  // The grid geometry follows only the window, the day tracks, and the orientation, so it
+  // The grid template follows only the window, the day count, and the orientation, so it
   // holds stable across a drag or a plan change and is computed once per those inputs.
-  const { lane, gridStyle } = useMemo(() => {
-    const quarters = quarterCount(window);
-    return {
-      lane: laneBackground(quarters, orientation),
-      gridStyle: gridTemplate(quarters, days.length, orientation),
-    };
-  }, [window, days, orientation]);
-  const showRoom = display?.showRoom ?? true;
-  const showSection = display?.showSection ?? true;
-  const showEnglishName = display?.showEnglishNames ?? false;
-  const showSubjectId = display?.showSubjectId ?? false;
+  const gridStyle = useMemo(
+    () => gridTemplate(quarterCount(window), days.length, orientation),
+    [window, days, orientation],
+  );
   const isPortrait = orientation === 'portrait';
 
   const active = useStore(dragStore, (state) => state.active);
@@ -182,7 +120,6 @@ export function WeeklyGrid({
   const raised = useStore(dragStore, (state) => state.raised);
   const swapContext = useStore(dragStore, (state) => state.swapContext);
   const blocked = active !== null && !active.placement.ok;
-  const removeLabel = t('action.remove');
 
   // The hover detail card: after a short delay on a hovered block, open a read-only card
   // with its full detail set, never during a drag. The delay avoids a flicker as the
@@ -230,46 +167,6 @@ export function WeeklyGrid({
     swapContext === null ? new Set<string>() : new Set(swapContext.blockers);
   // Candidate slots come from a course drag or a block move, whichever is active.
   const candidates = courseDrag?.candidates ?? blockMove?.candidates ?? null;
-  const movingIds = useMemo(
-    () =>
-      new Set(blockMove?.group.map((section) => section.teachTableId) ?? []),
-    [blockMove],
-  );
-  const blockingIds = useMemo(() => {
-    const ids = new Set<string>();
-    if (active !== null && !active.placement.ok) {
-      for (const conflict of active.placement.conflicts) {
-        if (conflict.kind === 'time') {
-          ids.add(conflict.blocking.teachTableId);
-        }
-      }
-    }
-    return ids;
-  }, [active]);
-  // Emit the blocks in day then start time then subject order, the same order the copy as
-  // text export uses, so the reading and tab order follow one chronological schedule rather
-  // than plan entry order. Visual position comes from the grid coordinates, not the DOM
-  // order, so the sort changes only what a screen reader and the keyboard walk traverse.
-  const orderedBlocks = useMemo(
-    () =>
-      sections
-        .flatMap((section) =>
-          section.meetings.map((meeting) => ({
-            section,
-            meeting,
-            key: `${section.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`,
-            style: blockStyle(meeting, window, days, orientation),
-          })),
-        )
-        .sort(
-          (a, b) =>
-            a.meeting.day - b.meeting.day ||
-            a.meeting.startMin - b.meeting.startMin ||
-            a.section.subjectId.localeCompare(b.section.subjectId),
-        ),
-    [sections, window, days, orientation],
-  );
-
   return (
     <div
       role="group"
@@ -279,91 +176,25 @@ export function WeeklyGrid({
     >
       <GridAxis window={window} orientation={orientation} />
 
-      {days.map((day, index) => {
-        const dayTrack = FIRST_DAY_INDEX + index;
-        const alt = !dayAccent && day % 2 === 1 ? 'bg-surface-alt' : '';
-        return (
-          <Fragment key={day}>
-            <Tooltip label={t(dayFullLabelKey(day))}>
-              {(triggerProps, ref) => (
-                <div
-                  ref={ref}
-                  {...triggerProps}
-                  className={`flex items-center justify-center text-[1.05em] font-medium ${
-                    dayAccent ? 'text-ink' : 'text-ink-soft'
-                  } ${isPortrait ? 'border-b border-border' : 'border-t border-border'} ${alt}`}
-                  style={{
-                    ...(isPortrait
-                      ? { gridColumn: dayTrack, gridRow: 1 }
-                      : { gridRow: dayTrack, gridColumn: 1 }),
-                    ...(dayAccent ? { backgroundColor: dayTint(day) } : {}),
-                  }}
-                  aria-label={t(dayFullLabelKey(day))}
-                >
-                  {t(dayLabelKey(day))}
-                </div>
-              )}
-            </Tooltip>
-            <div
-              aria-hidden
-              className={`${isPortrait ? 'border-l border-border' : 'border-t border-border'} ${alt}`}
-              style={{
-                ...(isPortrait
-                  ? {
-                      gridColumn: dayTrack,
-                      gridRow: `${String(FIRST_TIME_INDEX)} / -1`,
-                    }
-                  : {
-                      gridRow: dayTrack,
-                      gridColumn: `${String(FIRST_TIME_INDEX)} / -1`,
-                    }),
-                backgroundImage: lane,
-              }}
-            />
-          </Fragment>
-        );
-      })}
-
-      {orderedBlocks.map(({ section, meeting, key, style }) => {
-        const common = {
-          section,
-          meeting,
-          style,
-          locale,
-          t,
-          pulsing: blockingIds.has(section.teachTableId),
-          dimmed: movingIds.has(section.teachTableId),
-          conflicted: conflictIds?.has(section.teachTableId) ?? false,
-          examConflicted: examConflictIds?.has(section.teachTableId) ?? false,
-          ...(editable && onOpenDetail !== undefined ? { onOpenDetail } : {}),
-          ...(editable && onContextMenu !== undefined ? { onContextMenu } : {}),
-          ...(editable
-            ? {
-                onHoverEnter: handleHoverEnter,
-                onHoverLeave: handleHoverLeave,
-              }
-            : {}),
-        };
-        return editable && onRemove ? (
-          <DraggableBlock
-            key={key}
-            {...common}
-            onRemove={onRemove}
-            removeLabel={removeLabel}
-          />
-        ) : (
-          <EventBlock
-            key={key}
-            {...common}
-            showRoom={showRoom}
-            showSection={showSection}
-            showEnglishName={showEnglishName}
-            showSubjectId={showSubjectId}
-            fitToBox={!editable}
-            fitKey={`${String(fontPx)}|${orientation}|${String(window.startMin)}|${String(window.endMin)}|${String(days.length)}|${String(style.gridRow ?? '')}|${String(style.gridColumn ?? '')}`}
-          />
-        );
-      })}
+      <DayLanes
+        sections={sections}
+        window={window}
+        days={days}
+        orientation={orientation}
+        locale={locale}
+        t={t}
+        editable={editable}
+        onRemove={onRemove}
+        conflictIds={conflictIds}
+        examConflictIds={examConflictIds}
+        onOpenDetail={onOpenDetail}
+        onContextMenu={onContextMenu}
+        onHoverEnter={handleHoverEnter}
+        onHoverLeave={handleHoverLeave}
+        display={display}
+        dayAccent={dayAccent}
+        fontPx={fontPx}
+      />
 
       {editable && active !== null
         ? active.group.flatMap((groupSection) =>
