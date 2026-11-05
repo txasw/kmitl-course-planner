@@ -70,7 +70,7 @@ function LoadingState({ t, onCancel }: { t: Translate; onCancel: () => void }) {
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-kcp border border-border bg-surface px-2 py-0.5 font-medium text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             {t('action.cancel')}
           </button>
@@ -123,7 +123,7 @@ export function CatalogPanel() {
             onClick={() => {
               void retry();
             }}
-            className={`rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-medium text-surface hover:bg-primary-hover ${FOCUS_OUTLINE}`}
+            className={`rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover ${FOCUS_OUTLINE}`}
           >
             {t('action.retry')}
           </button>

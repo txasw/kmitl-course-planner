@@ -195,7 +195,7 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
           onClick={() => {
             handleSwitchTerm(browsedTerm);
           }}
-          className="rounded-kcp border border-primary bg-surface px-2 py-0.5 font-medium text-primary-strong outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className="rounded-kcp border border-primary bg-surface px-2 py-0.5 text-primary-strong outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
           {t('term.switch')}
         </button>
@@ -215,7 +215,7 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
         <button
           type="button"
           onClick={onRefresh}
-          className={`inline-flex shrink-0 items-center gap-1 rounded-kcp border border-border px-2 py-1 text-xs font-medium text-ink-soft hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`}
+          className={`inline-flex shrink-0 items-center gap-1 rounded-kcp border border-border px-2 py-1 text-xs text-ink-soft hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`}
         >
           <RefreshCw size={12} strokeWidth={2} aria-hidden />
           {t('catalog.refresh')}

@@ -152,7 +152,7 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
             onClick={() => {
               catalogStore.getState().resetFilter();
             }}
-            className={`rounded-kcp px-2 py-0.5 font-medium text-primary-strong hover:bg-primary-soft ${FOCUS_RING}`}
+            className={`rounded-kcp px-2 py-0.5 text-primary-strong hover:bg-primary-soft ${FOCUS_RING}`}
           >
             {t('catalog.filter.clearAll')}
           </button>
@@ -242,7 +242,7 @@ function FilterPopover({
         aria-label={t('catalog.filter.day')}
         className="flex flex-col gap-1"
       >
-        <span className="text-xs font-medium text-ink-soft">
+        <span className="text-xs font-semibold text-ink-soft">
           {t('catalog.filter.day')}
         </span>
         <div className="flex gap-1">
@@ -256,7 +256,7 @@ function FilterPopover({
                 onClick={() => {
                   catalogStore.getState().toggleDay(day);
                 }}
-                className={`flex-1 rounded-kcp px-1 py-1 text-xs font-medium ${
+                className={`flex-1 rounded-kcp px-1 py-1 text-xs ${
                   active
                     ? 'bg-primary-strong text-surface'
                     : 'bg-surface-alt text-ink-soft hover:text-ink'
@@ -314,7 +314,7 @@ function FilterPopover({
         type="button"
         aria-expanded={open}
         aria-label={t('catalog.filter.label')}
-        className={`inline-flex shrink-0 items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm font-medium text-ink hover:bg-surface-alt ${FOCUS_RING}`}
+        className={`inline-flex shrink-0 items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm text-ink hover:bg-surface-alt ${FOCUS_RING}`}
         {...getReferenceProps()}
       >
         <SlidersHorizontal size={16} strokeWidth={2} aria-hidden />
