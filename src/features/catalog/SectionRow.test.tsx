@@ -336,10 +336,12 @@ function renderAgainst(placed: Section[], course: Course, incoming: Section) {
   );
 }
 
-describe('SectionRow conflict reason', () => {
-  it('names the exam type and the Buddhist year date for an exam only clash', () => {
+describe('SectionRow conflict badge and reason', () => {
+  it('badges an exam only clash and names its exam type and Buddhist year date', () => {
     const { placed, course, incoming } = examOverlapCourses();
     renderAgainst([placed], course, incoming);
+    expect(screen.getByText('สอบชนกัน')).toBeInTheDocument();
+    expect(screen.queryByText('เวลาชนกัน')).not.toBeInTheDocument();
     const reason = screen.getByText(/^เวลาสอบชนกับ/);
     expect(reason).toHaveTextContent('90000010 กลุ่มเรียน 901');
     expect(reason).toHaveTextContent('สอบกลางภาค');
@@ -347,12 +349,14 @@ describe('SectionRow conflict reason', () => {
     expect(reason).not.toHaveTextContent('(+');
   });
 
-  it('names the first time clash and counts the exam clash behind it', () => {
+  it('keeps the time badge when a time clash leads and counts the exam clash', () => {
     const { placed, course, incoming } = examOverlapCourses();
     // Move the placed section onto the incoming section's meeting, so it clashes in
     // time as well as in the exam window.
     const sameSlot = { ...placed, meetings: incoming.meetings };
     renderAgainst([sameSlot], course, incoming);
+    expect(screen.getByText('เวลาชนกัน')).toBeInTheDocument();
+    expect(screen.queryByText('สอบชนกัน')).not.toBeInTheDocument();
     const reason = screen.getByText(/^ชนกับ/);
     expect(reason).toHaveTextContent('90000010 กลุ่มเรียน 901');
     expect(reason).toHaveTextContent('13:00-15:00');
