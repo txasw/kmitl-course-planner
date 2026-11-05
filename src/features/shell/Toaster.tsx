@@ -132,14 +132,17 @@ export function Toaster() {
 
   // A stable key per pending undo, so a new removal remounts the toast with a fresh
   // window rather than inheriting the previous one's remaining time. Different affected
-  // sections yield different keys; the same section cannot be removed twice without an
-  // intervening re-add, which unmounts the toast, so a fresh mount always resets it.
+  // sections, or a different created plan, yield different keys; the same section cannot
+  // be removed twice without an intervening re-add, which unmounts the toast, so a fresh
+  // mount always resets it.
   const undoKey =
     pendingUndo === null
       ? ''
-      : `${pendingUndo.kind}:${[...pendingUndo.removed, ...pendingUndo.added]
-          .map((entry) => entry.teachTableId)
-          .join(',')}`;
+      : pendingUndo.kind === 'create'
+        ? `create:${pendingUndo.planId}`
+        : `${pendingUndo.kind}:${[...pendingUndo.removed, ...pendingUndo.added]
+            .map((entry) => entry.teachTableId)
+            .join(',')}`;
 
   return (
     <div

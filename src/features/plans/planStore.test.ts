@@ -6,6 +6,13 @@ import {
   makeMeeting,
   makeSection,
 } from '../../../tests/support/domain-builders';
+import { suggestPlans, type Suggestion } from '@/lib/planner/suggest';
+import {
+  byClassCourses,
+  lockSections,
+  SUGGEST_QUERY,
+  SUGGEST_TERM,
+} from '../../../tests/support/suggest';
 import { createPlanStore, type PlanStoreDeps } from './planStore';
 
 const SOURCE_QUERY: SourceQuery = {
@@ -82,8 +89,11 @@ describe('planStore write side', () => {
 
     store.getState().remove('a');
     expect(store.getState().entries).toHaveLength(0);
-    expect(store.getState().pendingUndo?.removed).toHaveLength(1);
-    expect(store.getState().pendingUndo?.added).toHaveLength(0);
+    expect(store.getState().pendingUndo).toMatchObject({
+      kind: 'remove',
+      added: [],
+      removed: [{ teachTableId: 'a' }],
+    });
 
     store.getState().undo();
     expect(store.getState().entries).toHaveLength(1);
@@ -111,7 +121,10 @@ describe('planStore write side', () => {
     store.getState().remove('b');
     // Both removals fold into one undo record rather than the second replacing the first.
     expect(store.getState().entries).toHaveLength(0);
-    expect(store.getState().pendingUndo?.removed).toHaveLength(2);
+    expect(store.getState().pendingUndo).toMatchObject({
+      kind: 'remove',
+      removed: [{ teachTableId: 'a' }, { teachTableId: 'b' }],
+    });
 
     store.getState().undo();
     // Both come back, most recent first.
@@ -394,3 +407,140 @@ function makePlan(id: string, updatedAt: string, term: Term) {
     updatedAt,
   };
 }
+
+describe('planStore createFromSuggestion', () => {
+  const courses = byClassCourses();
+  // The student placed the GenEd 04186098 by hand; it is kept as a fixed constraint.
+  const locked = lockSections(courses, [['04186098', '2']]);
+
+  function firstSuggestion(): Suggestion {
+    const [suggestion] = suggestPlans({
+      courses,
+      locked,
+      objective: 'coverAll',
+      preference: 'morning',
+    }).suggestions;
+    if (suggestion === undefined) {
+      throw new Error('expected a suggestion');
+    }
+    return suggestion;
+  }
+
+  function seededStore() {
+    const store = makeStore();
+    const original = {
+      ...makePlan('original', '2026-01-01T00:00:00.000Z', SUGGEST_TERM),
+      entries: locked,
+    };
+    store.getState().hydrate([original]);
+    return { store, original };
+  }
+
+  it('creates an active plan with the locked entries plus the suggestion', () => {
+    const { store, original } = seededStore();
+    const suggestion = firstSuggestion();
+    const plan = store.getState().createFromSuggestion({
+      name: 'ตาราง 1/2569 เน้นเช้า',
+      term: SUGGEST_TERM,
+      suggestion,
+      sourceQuery: SUGGEST_QUERY,
+    });
+
+    expect(plan?.name).toBe('ตาราง 1/2569 เน้นเช้า');
+    expect(store.getState().activePlanId).toBe(plan?.id);
+    const subjects = new Set(
+      store.getState().entries.map((entry) => entry.subjectId),
+    );
+    expect(subjects).toEqual(
+      new Set([
+        '04186098',
+        ...suggestion.choices.map((choice) => choice.course.subjectId),
+      ]),
+    );
+    // The plan it started from is untouched.
+    expect(
+      store.getState().plans.find((p) => p.id === original.id),
+    ).toStrictEqual(original);
+    expect(store.getState().pendingUndo).toMatchObject({
+      kind: 'create',
+      planId: plan?.id,
+      previousPlanId: original.id,
+    });
+  });
+
+  it('undoes by deleting the created plan and restoring the previous one', () => {
+    const { store, original } = seededStore();
+    store.getState().createFromSuggestion({
+      name: 'ตาราง 1/2569',
+      term: SUGGEST_TERM,
+      suggestion: firstSuggestion(),
+      sourceQuery: SUGGEST_QUERY,
+    });
+    store.getState().undo();
+
+    expect(store.getState().plans).toStrictEqual([original]);
+    expect(store.getState().activePlanId).toBe(original.id);
+    expect(store.getState().entries).toBe(original.entries);
+    expect(store.getState().pendingUndo).toBeNull();
+  });
+
+  it('suffixes the name when a plan already uses it', () => {
+    const { store } = seededStore();
+    const input = {
+      name: 'original',
+      term: SUGGEST_TERM,
+      suggestion: firstSuggestion(),
+      sourceQuery: SUGGEST_QUERY,
+    };
+    expect(store.getState().createFromSuggestion(input)?.name).toBe(
+      'original (2)',
+    );
+  });
+
+  it('keeps no entries of an active plan from another term', () => {
+    const store = makeStore();
+    store.getState().hydrate([
+      {
+        ...makePlan('other', '2026-01-01T00:00:00.000Z', TERM_S2),
+        entries: [],
+      },
+    ]);
+    const [suggestion] = suggestPlans({
+      courses,
+      locked: [],
+      objective: 'coverAll',
+      preference: 'balanced',
+    }).suggestions;
+    if (suggestion === undefined) {
+      throw new Error('expected a suggestion');
+    }
+    const plan = store.getState().createFromSuggestion({
+      name: 'ตาราง 1/2569',
+      term: SUGGEST_TERM,
+      suggestion,
+      sourceQuery: SUGGEST_QUERY,
+    });
+    expect(plan).toMatchObject({ year: '2569', semester: '1' });
+    expect(plan?.entries).toHaveLength(
+      suggestion.choices.reduce(
+        (count, choice) => count + choice.group.length,
+        0,
+      ),
+    );
+  });
+
+  it('changes nothing when the add gate refuses a chosen section', () => {
+    const { store, original } = seededStore();
+    const suggestion = firstSuggestion();
+    // A suggestion searched for another term is refused as cross term.
+    const outcome = store.getState().createFromSuggestion({
+      name: 'ตาราง 2/2569',
+      term: TERM_S2,
+      suggestion,
+      sourceQuery: SUGGEST_QUERY,
+    });
+    expect(outcome).toBeNull();
+    expect(store.getState().plans).toStrictEqual([original]);
+    expect(store.getState().pendingUndo).toBeNull();
+  });
+});

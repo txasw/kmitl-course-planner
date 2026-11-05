@@ -24,6 +24,7 @@
   "planSwitcher.nameLabel": "Plan name",
   "planSwitcher.save": "Save",
   "planSwitcher.copySuffix": "copy",
+  "suggest.created": "Created plan {name}",
   "planData.import": "Import JSON",
   "planData.export": "Export JSON",
   "planData.imported": "Plan imported",

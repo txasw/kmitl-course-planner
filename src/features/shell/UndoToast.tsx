@@ -1,4 +1,5 @@
-// The undo toast, shown in the bottom feedback region after a removal, move, or swap.
+// The undo toast, shown in the bottom feedback region after a removal, move, or swap,
+// or after a suggestion created a plan.
 // It sits where the eye already is, on the block that just changed, rather than at the
 // top of the panel where the old undo strip went unnoticed. It names what changed,
 // offers undo after the text, and drains a thin progress bar over the plan store's ten
@@ -11,8 +12,13 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { Undo2, X } from 'lucide-react';
-import { planStore, type UndoRecord } from '@/features/plans/planStore';
+import {
+  planStore,
+  type EntryUndoRecord,
+  type UndoRecord,
+} from '@/features/plans/planStore';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
+import { fillTemplate } from '@/lib/i18n/template';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { usePrefersReducedMotion } from './usePresence';
 import { useSwipeGesture } from './useSwipeGesture';
@@ -20,11 +26,37 @@ import { useSwipeGesture } from './useSwipeGesture';
 /** Matches the plan store's undo window; the drain bar and the timer both run for it. */
 export const UNDO_WINDOW_MS = 10_000;
 
-const MUTATION_LABEL: Record<UndoRecord['kind'], TranslationKey> = {
+const MUTATION_LABEL: Record<EntryUndoRecord['kind'], TranslationKey> = {
   remove: 'feedback.removed',
   move: 'feedback.moved',
   swap: 'feedback.swapped',
 };
+
+/** What the toast says: a created plan by name, a removal by what left, and a move or
+ * swap by what is now placed. Null when an entry record names no entry. */
+function undoMessage(
+  record: UndoRecord,
+  locale: Locale,
+  t: Translate,
+): string | null {
+  if (record.kind === 'create') {
+    return fillTemplate(t('suggest.created'), { name: record.planName });
+  }
+  const subject =
+    record.kind === 'remove' ? record.removed[0] : record.added[0];
+  if (subject === undefined) {
+    return null;
+  }
+  // A coalesced removal names a count rather than one subject, since it folded several.
+  if (record.kind === 'remove' && record.removed.length > 1) {
+    return `${t('feedback.removed')} ${String(record.removed.length)} ${t('unit.sections')}`;
+  }
+  const name =
+    locale === 'th'
+      ? subject.snapshot.subjectMeta.nameTh
+      : subject.snapshot.subjectMeta.nameEn;
+  return `${t(MUTATION_LABEL[record.kind])} ${subject.subjectId} ${name}`;
+}
 
 interface UndoToastProps {
   record: UndoRecord;
@@ -68,21 +100,10 @@ export function UndoToast({ record, locale, t }: UndoToastProps) {
     };
   }, [paused]);
 
-  // A removal names what left; a move or swap names what is now placed.
-  const subject =
-    record.kind === 'remove' ? record.removed[0] : record.added[0];
-  if (subject === undefined) {
+  const message = undoMessage(record, locale, t);
+  if (message === null) {
     return null;
   }
-  const name =
-    locale === 'th'
-      ? subject.snapshot.subjectMeta.nameTh
-      : subject.snapshot.subjectMeta.nameEn;
-  // A coalesced removal names a count rather than one subject, since it folded several.
-  const message =
-    record.kind === 'remove' && record.removed.length > 1
-      ? `${t('feedback.removed')} ${String(record.removed.length)} ${t('unit.sections')}`
-      : `${t(MUTATION_LABEL[record.kind])} ${subject.subjectId} ${name}`;
 
   const pause = () => {
     setPaused(true);
