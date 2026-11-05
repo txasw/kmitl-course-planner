@@ -62,7 +62,7 @@ function expected(
   seat: keyof typeof SEATS,
 ): RowStatus | null {
   const candidates = [relation, seat].filter((status): status is RowStatus =>
-    (PRECEDENCE as string[]).includes(status),
+    PRECEDENCE.some((ranked) => ranked === status),
   );
   const ranked = candidates.sort(
     (a, b) => PRECEDENCE.indexOf(a) - PRECEDENCE.indexOf(b),
