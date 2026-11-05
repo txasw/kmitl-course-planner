@@ -171,6 +171,14 @@ describe('CatalogColumn', () => {
     },
   );
 
+  it('marks the scroller that owns its scroll anchoring', () => {
+    installViewport(1440);
+    const { container } = render(<Harness />);
+    const node = scroller(container);
+    expect(node).toHaveAttribute('data-catalog-scroller');
+    expect(node).toHaveClass('[overflow-anchor:none]');
+  });
+
   it('keeps the drag registrations and the scroll offset across tier changes', () => {
     const viewport = installViewport(768);
     act(() => {

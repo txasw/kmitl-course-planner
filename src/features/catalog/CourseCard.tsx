@@ -19,6 +19,7 @@ import { SectionRow } from './SectionRow';
 import { RemoveButton, removeSectionName } from './RemoveButton';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { usePresence } from '@/features/shell/usePresence';
+import { useRevealOnExpand } from './useRevealOnExpand';
 
 const HEADER = 'flex items-start gap-1';
 
@@ -112,6 +113,11 @@ function CourseCardComponent({
   // carry the different term state and a switch action instead.
   const draggable = !added && onAdd !== undefined && !isCrossTerm(term);
   const { mounted, stage } = usePresence(open, DISCLOSURE_MS);
+  const { cardRef, scheduleReveal } = useRevealOnExpand(DISCLOSURE_MS);
+  const handleToggle = () => {
+    scheduleReveal(!open);
+    onToggle(course.subjectId, !open, added);
+  };
 
   // The title clamps to two lines and breaks inside a long Thai word rather than
   // cutting to one line, so the name stays readable without a tooltip, which could
@@ -133,9 +139,7 @@ function CourseCardComponent({
           aria-expanded={open}
           aria-controls={bodyId}
           aria-labelledby={`${titleId} ${creditId}`}
-          onClick={() => {
-            onToggle(course.subjectId, !open, added);
-          }}
+          onClick={handleToggle}
           className={`group flex min-h-6 min-w-0 flex-1 cursor-pointer items-start gap-2 rounded-kcp text-left pointer-coarse:min-h-11 ${FOCUS_RING}`}
         >
           <span
@@ -179,6 +183,7 @@ function CourseCardComponent({
   // the grid.
   return (
     <article
+      ref={cardRef}
       className={`rounded-kcp border border-border px-3 py-2 hover:border-ink-soft ${added ? 'bg-surface-alt' : 'bg-surface'}`}
     >
       {draggable ? (
