@@ -41,7 +41,7 @@ export function CandidateSlot({
         candidate.valid
           ? 'border-success bg-success-soft text-success'
           : 'kcp-hatch border-danger bg-danger-soft text-danger'
-      } ${raised ? 'z-30 opacity-100 shadow-kcp ring-2 ring-primary' : 'z-10 opacity-90'}`}
+      } ${raised ? 'z-grid-active opacity-100 shadow-kcp ring-2 ring-primary' : 'z-grid opacity-90'}`}
       style={style}
     >
       {candidate.section.section}

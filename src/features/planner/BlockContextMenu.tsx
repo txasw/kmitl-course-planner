@@ -117,7 +117,7 @@ export function BlockContextMenu({
       onContextMenu={(event) => {
         event.preventDefault();
       }}
-      className="z-50 min-w-36 rounded-kcp border border-border bg-surface py-1 text-sm shadow-kcp"
+      className="z-popover min-w-36 rounded-kcp border border-border bg-surface py-1 text-sm shadow-kcp"
       {...getFloatingProps()}
     >
       <button

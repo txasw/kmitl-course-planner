@@ -112,7 +112,7 @@ export function DisplayOptionsPopover() {
           ref={setFloating}
           style={floatingStyles}
           aria-label={t('preview.displayOptions')}
-          className="z-10 flex min-w-48 flex-col gap-0.5 rounded-kcp border border-border bg-surface p-1.5 shadow-kcp"
+          className="z-popover flex min-w-48 flex-col gap-0.5 rounded-kcp border border-border bg-surface p-1.5 shadow-kcp"
           {...getFloatingProps()}
         >
           {OPTIONS.map((option) => {

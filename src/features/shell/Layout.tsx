@@ -58,13 +58,13 @@ export function Layout() {
               onClick={() => {
                 setDrawer(false);
               }}
-              className="absolute inset-0 z-10 bg-ink/30"
+              className="absolute inset-0 z-scrim bg-ink/30"
             />
           ) : null}
           <div
             id={DRAWER_ID}
             aria-hidden={!drawerOpen}
-            className={`absolute inset-y-0 left-0 z-20 w-80 max-w-[85%] kcp-scroll overflow-y-auto border-r border-border bg-surface p-6 shadow-kcp transition-transform duration-200 motion-reduce:transition-none ${
+            className={`absolute inset-y-0 left-0 z-drawer w-80 max-w-[85%] kcp-scroll overflow-y-auto border-r border-border bg-surface p-6 shadow-kcp transition-transform duration-200 motion-reduce:transition-none ${
               drawerOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
           >

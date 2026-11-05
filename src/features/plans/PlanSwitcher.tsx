@@ -307,7 +307,7 @@ export function PlanSwitcher() {
           ref={setFloating}
           style={floatingStyles}
           {...getFloatingProps()}
-          className="z-50 w-72 rounded-kcp border border-border bg-surface p-2 text-sm shadow-kcp"
+          className="z-popover w-72 rounded-kcp border border-border bg-surface p-2 text-sm shadow-kcp"
         >
           {mode.kind === 'name' ? (
             <NameForm

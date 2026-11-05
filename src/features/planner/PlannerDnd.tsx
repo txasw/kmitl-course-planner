@@ -9,7 +9,7 @@
 // targets by an explicit priority, and a short pointer activation distance keeps a
 // click on a row or block button from starting a drag.
 
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { useCallback } from 'react';
 import {
   DndContext,
@@ -138,6 +138,12 @@ function rejectCandidate(
 }
 
 const ACTIVATION_DISTANCE = 6;
+
+// dnd-kit sets an inline z-index of 999 on the overlay wrapper, and its style prop is
+// spread after that default, so the layer token replaces it here.
+const DRAG_OVERLAY_STYLE: CSSProperties = {
+  zIndex: 'var(--kcp-z-dragoverlay)',
+};
 
 export function PlannerDnd({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
@@ -314,7 +320,11 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
     >
       {children}
       {blockMove !== null ? <RemoveZone label={removeLabel} /> : null}
-      <DragOverlay dropAnimation={null} modifiers={[snapDragCardToCursor]}>
+      <DragOverlay
+        dropAnimation={null}
+        modifiers={[snapDragCardToCursor]}
+        style={DRAG_OVERLAY_STYLE}
+      >
         {active !== null ? (
           <div className="flex flex-col items-start gap-1">
             <DragCard section={active.section} />

@@ -104,7 +104,7 @@ export function BlockHoverCard({
       ref={setFloating}
       style={floatingStyles}
       role="tooltip"
-      className="pointer-events-none z-[2147483647] flex w-64 flex-col gap-1 rounded-kcp border border-l-2 border-border border-l-primary bg-surface p-2.5 text-xs shadow-kcp"
+      className="pointer-events-none z-popover flex w-64 flex-col gap-1 rounded-kcp border border-l-2 border-border border-l-primary bg-surface p-2.5 text-xs shadow-kcp"
     >
       <p className="font-semibold text-ink">
         <span>{snapshot.subjectId}</span> {name}

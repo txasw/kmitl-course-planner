@@ -228,7 +228,7 @@ function FilterPopover({
       ref={setFloating}
       style={floatingStyles}
       aria-label={t('catalog.filter.label')}
-      className="z-50 flex min-w-56 flex-col gap-3 rounded-kcp border border-border bg-surface p-3 shadow-kcp"
+      className="z-popover flex min-w-56 flex-col gap-3 rounded-kcp border border-border bg-surface p-3 shadow-kcp"
       {...getFloatingProps()}
     >
       <div

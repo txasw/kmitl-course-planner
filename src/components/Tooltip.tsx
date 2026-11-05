@@ -118,7 +118,7 @@ export function Tooltip({ label, placement = 'top', children }: TooltipProps) {
       style={floatingStyles}
       {...getFloatingProps()}
       data-placement={resolvedPlacement}
-      className="z-[2147483647] max-w-56 rounded-kcp border border-border bg-surface px-2 py-1 text-xs text-ink shadow-kcp"
+      className="z-tooltip max-w-56 rounded-kcp border border-border bg-surface px-2 py-1 text-xs text-ink shadow-kcp"
     >
       {label}
     </div>

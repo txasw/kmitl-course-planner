@@ -49,7 +49,7 @@ export function RevalidationDetailSheet({
   );
 
   return (
-    <div className="fixed inset-0 z-[2147483647] flex items-center justify-center bg-black/30 p-4">
+    <div className="fixed inset-0 z-sheet flex items-center justify-center bg-black/30 p-4">
       <div
         ref={panelRef}
         role="dialog"

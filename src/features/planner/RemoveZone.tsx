@@ -18,7 +18,7 @@ export function RemoveZone({ label }: { label: string }) {
     <div
       ref={setNodeRef}
       data-remove-zone
-      className={`pointer-events-none absolute bottom-6 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-kcp border px-3 py-2 text-xs font-medium shadow-kcp ${
+      className={`pointer-events-none absolute bottom-6 left-1/2 z-dropzone flex -translate-x-1/2 items-center gap-2 rounded-kcp border px-3 py-2 text-xs font-medium shadow-kcp ${
         isOver
           ? 'border-danger bg-danger-soft text-danger'
           : 'border-border bg-surface text-ink-soft'

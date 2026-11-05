@@ -138,7 +138,7 @@ export function Toaster() {
     <div
       aria-live="polite"
       aria-atomic="true"
-      className="pointer-events-none fixed inset-x-0 bottom-4 z-[2147483647] flex justify-center px-4"
+      className="pointer-events-none fixed inset-x-0 bottom-4 z-host flex justify-center px-4"
     >
       {pendingUndo !== null && isOpen ? (
         <UndoToast key={undoKey} record={pendingUndo} locale={language} t={t} />

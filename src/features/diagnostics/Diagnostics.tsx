@@ -59,7 +59,7 @@ export function Diagnostics() {
           setOpen(true);
         }}
         aria-label={armed ? 'Diagnostics, simulation armed' : 'Diagnostics'}
-        className="fixed bottom-5 left-5 z-[2147483647] inline-flex items-center gap-2 rounded-kcp border border-border bg-surface px-3 py-2 text-sm font-medium text-ink shadow-kcp hover:bg-surface-alt focus:ring-2 focus:ring-primary focus:outline-none"
+        className="fixed bottom-5 left-5 z-host inline-flex items-center gap-2 rounded-kcp border border-border bg-surface px-3 py-2 text-sm font-medium text-ink shadow-kcp hover:bg-surface-alt focus:ring-2 focus:ring-primary focus:outline-none"
       >
         <Bug size={16} strokeWidth={2} aria-hidden />
         Diagnostics
@@ -76,7 +76,7 @@ export function Diagnostics() {
   return (
     <aside
       aria-label="Diagnostics"
-      className="fixed inset-y-0 right-0 z-[2147483647] flex w-[520px] max-w-[95%] flex-col bg-surface text-ink shadow-kcp"
+      className="fixed inset-y-0 right-0 z-host flex w-[520px] max-w-[95%] flex-col bg-surface text-ink shadow-kcp"
     >
       <header className="flex items-center justify-between border-b border-border px-3 py-2">
         <span className="text-sm font-semibold">Diagnostics</span>
