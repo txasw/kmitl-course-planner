@@ -97,6 +97,24 @@ test.describe('at 1024x768', () => {
     expect(scroll.scrollWidth).toBeGreaterThan(scroll.clientWidth);
     // 40 px of day labels plus 14 px for each of the 48 quarters.
     expect(scroll.gridWidth).toBeGreaterThanOrEqual(40 + 14 * 48);
+
+    // Only the trailing side hides content at the start, so only it fades.
+    const fade = (side: string) => page.locator(`[data-edge-fade="${side}"]`);
+    await expect(fade('right')).toHaveCount(1);
+    await expect(fade('left')).toHaveCount(0);
+
+    // Scrolled to the end, the day column stays pinned to the scroller's left edge and the
+    // fade moves to the leading side.
+    const edge = await grid.evaluate((node) => {
+      const scroller = node.parentElement;
+      scroller?.scrollTo({ left: scroller.scrollWidth });
+      return scroller?.getBoundingClientRect().left ?? 0;
+    });
+    await expect(fade('left')).toHaveCount(1);
+    await expect(fade('right')).toHaveCount(0);
+    const monday = await grid.getByLabel('วันจันทร์').boundingBox();
+    expect(Math.abs((monday?.x ?? -1) - edge)).toBeLessThanOrEqual(1);
+    await expect(grid.getByLabel('วันจันทร์')).toBeVisible();
   });
 });
 
