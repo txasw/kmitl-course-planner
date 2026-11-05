@@ -188,8 +188,60 @@ describe('SectionRow actions', () => {
     );
     // The rail stays on the trailing edge but is disabled; the full reason reads
     // from the seat line in the row body.
-    expect(screen.getByRole('button', { name: /^เพิ่ม/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /^เพิ่ม/ })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
     expect(screen.getByText('เต็ม เพิ่มไม่ได้')).toBeInTheDocument();
+  });
+
+  it('keeps the disabled rail focusable with its reason as the description', () => {
+    const onAdd = vi.fn();
+    const fullSection = makeSection({
+      seats: { limit: 40, preCount: 40, queueLeft: 0, enrolled: 'full' },
+    });
+    render(
+      <SectionRow
+        course={course}
+        section={fullSection}
+        relation={{ kind: 'addable' }}
+        seat={computeSeatStatus(fullSection)}
+        locale="th"
+        t={t}
+        onAdd={onAdd}
+      />,
+    );
+    const rail = screen.getByRole('button', { name: /^เพิ่ม/ });
+    // aria-disabled rather than disabled, so the rail stays in the tab order.
+    expect(rail).not.toHaveAttribute('disabled');
+    rail.focus();
+    expect(rail).toHaveFocus();
+    expect(rail).toHaveAccessibleDescription('เต็ม เพิ่มไม่ได้');
+    fireEvent.click(rail);
+    expect(onAdd).not.toHaveBeenCalled();
+  });
+
+  it('describes a different term rail with the term mismatch', () => {
+    render(
+      <SectionRow
+        course={course}
+        section={section}
+        relation={{
+          kind: 'different_term',
+          planTerm: { year: '2569', semester: '2' },
+          browsedTerm: { year: '2569', semester: '1' },
+        }}
+        seat={openSeat}
+        locale="th"
+        t={t}
+        onAdd={vi.fn()}
+      />,
+    );
+    const rail = screen.getByRole('button', { name: /^เพิ่ม/ });
+    expect(rail).toHaveAttribute('aria-disabled', 'true');
+    expect(rail).toHaveAccessibleDescription(
+      'ตารางอยู่ในภาคการศึกษา 2/2569. กลุ่มเรียนอยู่ในภาค 1/2569',
+    );
   });
 });
 
@@ -401,7 +453,9 @@ describe('SectionRow seat line', () => {
   it('states that a closed section cannot be added', () => {
     renderSeats(makeSection({ isClosed: true }));
     expect(screen.getByText('ปิด เพิ่มไม่ได้')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^เพิ่ม/ })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: /^เพิ่ม/ }),
+    ).toHaveAccessibleDescription('ปิด เพิ่มไม่ได้');
   });
 
   it('keeps the seat line on a read only row', () => {

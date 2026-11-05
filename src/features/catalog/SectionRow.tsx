@@ -16,7 +16,7 @@ import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import type { Term } from '@/lib/routing/academicTerms';
 import type { SeatStatus } from '@/lib/catalog/seatStatus';
-import { computeSeatDemand } from '@/lib/catalog/seatDemand';
+import { computeSeatDemand, seatLineText } from '@/lib/catalog/seatDemand';
 import { computeRowStatus, isConflictStatus } from '@/lib/catalog/rowStatus';
 import type { SectionRelation } from '@/lib/planner/sectionState';
 import { describeConflicts } from '@/lib/planner/describeConflict';
@@ -28,6 +28,10 @@ import { meetingLabel } from './meetingFormat';
 
 function termLabel(term: Term): string {
   return `${term.semester}/${term.year}`;
+}
+
+function termReason(planTerm: Term, browsedTerm: Term, t: Translate): string {
+  return `${t('term.planIs')} ${termLabel(planTerm)}. ${t('term.sectionIs')} ${termLabel(browsedTerm)}`;
 }
 
 interface SectionRowProps {
@@ -75,6 +79,14 @@ export function SectionRow({
   const addLabel = `${t('action.add')} ${section.subjectId} ${t('section.code')} ${section.section}`;
   const [showDetails, setShowDetails] = useState(false);
   const calloutId = useId();
+  const reasonId = useId();
+  const demand = computeSeatDemand(section);
+  // A disabled rail names the reason the row body already states: the term mismatch,
+  // which outranks the seat state, or the full or closed seat line.
+  const disabledReason =
+    relation.kind === 'different_term'
+      ? termReason(relation.planTerm, relation.browsedTerm, t)
+      : seatLineText(demand, t);
   const status = readOnly ? null : computeRowStatus(relation, seat);
   // The callout follows the badge: a full or closed row that also clashes shows only
   // its seat state and reason, since the section cannot be added by any path.
@@ -183,8 +195,11 @@ export function SectionRow({
             ) : null}
           </div>
         ) : null}
-        <div className="mt-1">
-          <SeatDemand demand={computeSeatDemand(section)} t={t} />
+        <div
+          className="mt-1"
+          id={relation.kind === 'different_term' ? undefined : reasonId}
+        >
+          <SeatDemand demand={demand} t={t} />
         </div>
         {!readOnly && showDetails && section.remark !== '' ? (
           <p className="mt-1 whitespace-pre-line text-ink-soft">
@@ -199,9 +214,8 @@ export function SectionRow({
           <p className="mt-1 text-warn">{t('section.reason.duplicate')}</p>
         ) : null}
         {!readOnly && relation.kind === 'different_term' ? (
-          <p className="mt-1 text-ink-soft">
-            {t('term.planIs')} {termLabel(relation.planTerm)}.{' '}
-            {t('term.sectionIs')} {termLabel(relation.browsedTerm)}
+          <p id={reasonId} className="mt-1 text-ink-soft">
+            {termReason(relation.planTerm, relation.browsedTerm, t)}
           </p>
         ) : null}
       </div>
@@ -214,7 +228,11 @@ export function SectionRow({
           }}
         />
       ) : rail === 'disabled' ? (
-        <DisabledRail label={addLabel} />
+        <DisabledRail
+          label={addLabel}
+          reason={disabledReason}
+          reasonId={reasonId}
+        />
       ) : null}
     </div>
   );
@@ -289,15 +307,37 @@ function AddRail({
   );
 }
 
-function DisabledRail({ label }: { label: string }) {
+// A section that cannot be added keeps its rail so the trailing edge stays consistent.
+// The rail is aria-disabled rather than disabled, so it stays in the tab order: a
+// keyboard user who reaches it hears the reason through aria-describedby, and a pointer
+// user sees it in the tooltip. The reason itself is always visible in the row body.
+function DisabledRail({
+  label,
+  reason,
+  reasonId,
+}: {
+  label: string;
+  reason: string;
+  reasonId: string;
+}) {
   return (
-    <button
-      type="button"
-      disabled
-      aria-label={label}
-      className="flex w-8 shrink-0 items-center justify-center border-l border-border bg-surface-alt text-ink-soft"
-    >
-      <Plus size={16} aria-hidden className="opacity-40" />
-    </button>
+    <Tooltip label={reason}>
+      {(triggerProps, ref) => (
+        <button
+          ref={ref}
+          {...triggerProps}
+          type="button"
+          aria-disabled="true"
+          aria-label={label}
+          aria-describedby={reasonId}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+          }}
+          className={`flex w-8 shrink-0 cursor-not-allowed items-center justify-center border-l border-border bg-surface-alt text-ink-soft ${FOCUS_OUTLINE}`}
+        >
+          <Plus size={16} aria-hidden className="opacity-40" />
+        </button>
+      )}
+    </Tooltip>
   );
 }
