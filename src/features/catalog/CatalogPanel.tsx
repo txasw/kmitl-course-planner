@@ -19,6 +19,7 @@ import { commitAndFocus } from '@/features/shell/commitAndFocus';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { CourseCatalog } from './CourseCatalog';
+import { InputGuard } from './InputGuard';
 
 function termSummary(query: TeachTableQuery | null, t: Translate): string {
   if (query === null) {
@@ -99,7 +100,7 @@ export function useResultCourseCount(): number | null {
   );
 }
 
-export function CatalogPanel() {
+function CatalogState() {
   const deps = useSearchDeps();
   const { retry, refreshResult, cancel } = useSearchActions(deps);
   const { t } = useTranslation();
@@ -177,5 +178,15 @@ export function CatalogPanel() {
         })();
       }}
     />
+  );
+}
+
+/** The catalog region, guarded against stray pointer input just after a submit. The
+ * state renders as the guard's child, so lifting the guard never re-renders it. */
+export function CatalogPanel() {
+  return (
+    <InputGuard>
+      <CatalogState />
+    </InputGuard>
   );
 }
