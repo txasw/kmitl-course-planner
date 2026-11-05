@@ -42,6 +42,13 @@ test('the panel passes axe across the edit, preview, and dialog surfaces', async
   await addCourse(page, '90000001');
   await expect(page.locator(block('900001'))).toBeVisible();
 
+  // The host document declares no language, so the panel must carry its own for axe
+  // and assistive technology to read the Thai copy with a Thai voice.
+  expect(
+    await page.evaluate(() => document.documentElement.getAttribute('lang')),
+  ).toBeNull();
+  await expect(page.getByRole('dialog')).toHaveAttribute('lang', 'th');
+
   // 1. Populated edit mode.
   expect(await axeViolations(page)).toEqual([]);
 
