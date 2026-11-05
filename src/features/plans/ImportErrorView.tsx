@@ -14,7 +14,7 @@ export function ImportErrorView({ issues, onBack }: ImportErrorViewProps) {
   const { t } = useTranslation();
   return (
     <div className="flex flex-col gap-2">
-      <p className="flex items-center gap-1.5 font-medium text-ink">
+      <p className="flex items-center gap-1.5 font-semibold text-ink">
         <AlertTriangle
           size={16}
           strokeWidth={2}
@@ -32,7 +32,7 @@ export function ImportErrorView({ issues, onBack }: ImportErrorViewProps) {
         <button
           type="button"
           onClick={onBack}
-          className="rounded-kcp border border-border px-2 py-1 font-medium text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className="rounded-kcp border border-border px-2 py-1 text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
           {t('action.back')}
         </button>

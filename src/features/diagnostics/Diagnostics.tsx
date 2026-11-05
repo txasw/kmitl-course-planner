@@ -32,7 +32,7 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 const ACTION =
-  'rounded-kcp border border-border px-2 py-1 text-xs font-medium text-ink hover:bg-surface-alt focus:ring-2 focus:ring-primary focus:outline-none';
+  'rounded-kcp border border-border px-2 py-1 text-xs text-ink hover:bg-surface-alt focus:ring-2 focus:ring-primary focus:outline-none';
 
 export function Diagnostics() {
   const { send } = useSearchDeps();
@@ -59,7 +59,7 @@ export function Diagnostics() {
           setOpen(true);
         }}
         aria-label={armed ? 'Diagnostics, simulation armed' : 'Diagnostics'}
-        className="fixed bottom-5 left-5 z-host inline-flex items-center gap-2 rounded-kcp border border-border bg-surface px-3 py-2 text-sm font-medium text-ink shadow-kcp hover:bg-surface-alt focus:ring-2 focus:ring-primary focus:outline-none"
+        className="fixed bottom-5 left-5 z-host inline-flex items-center gap-2 rounded-kcp border border-border bg-surface px-3 py-2 text-sm text-ink shadow-kcp hover:bg-surface-alt focus:ring-2 focus:ring-primary focus:outline-none"
       >
         <Bug size={16} strokeWidth={2} aria-hidden />
         Diagnostics
@@ -115,7 +115,7 @@ export function Diagnostics() {
             onClick={() => {
               setTab(entry.id);
             }}
-            className={`inline-flex items-center gap-1 rounded-kcp px-2 py-1 text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none ${
+            className={`inline-flex items-center gap-1 rounded-kcp px-2 py-1 text-xs focus:ring-2 focus:ring-primary focus:outline-none ${
               tab === entry.id
                 ? 'bg-primary-strong text-surface'
                 : 'text-ink-soft hover:text-ink'

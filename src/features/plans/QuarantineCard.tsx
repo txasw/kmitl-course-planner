@@ -55,7 +55,7 @@ export function QuarantineCard() {
               },
             );
           }}
-          className="rounded-kcp border border-border bg-surface px-2 py-0.5 font-medium text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className="rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
           {t('storage.export')}
         </button>
@@ -65,7 +65,7 @@ export function QuarantineCard() {
         onClick={() => {
           storageIssueStore.getState().setIssue(null);
         }}
-        className="font-medium text-ink-soft underline outline-none hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        className="text-ink-soft underline outline-none hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
         {t('action.close')}
       </button>

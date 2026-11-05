@@ -153,7 +153,7 @@ export function SimulationControls({
   return (
     <div className="flex flex-col gap-3 text-sm">
       <label className="flex flex-col gap-1">
-        <span className="font-medium text-ink">Fault</span>
+        <span className="font-semibold text-ink">Fault</span>
         <select
           value={simulation.faultId ?? ''}
           className={SELECT}
@@ -171,7 +171,7 @@ export function SimulationControls({
         </select>
       </label>
       <label className="flex flex-col gap-1">
-        <span className="font-medium text-ink">Mutation</span>
+        <span className="font-semibold text-ink">Mutation</span>
         <select
           value={simulation.mutationId ?? ''}
           className={SELECT}

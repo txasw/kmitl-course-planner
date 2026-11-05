@@ -76,7 +76,7 @@ export function SubjectIdInput({
     <div className="flex flex-col gap-1 text-sm">
       <label className="flex flex-col gap-1">
         <span className="flex items-center justify-between gap-2">
-          <span className="font-medium text-ink">{label}</span>
+          <span className="font-semibold text-ink">{label}</span>
           {/* Live digit counter. The eight mirrors the full subject id length.
               Hidden from assistive tech so it is not read on every keystroke; the
               described-by message carries the state a screen reader needs. */}
