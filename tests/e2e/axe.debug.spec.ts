@@ -1,39 +1,10 @@
 import { test, expect, expandCourse, openPlanner } from './support/fixtures';
+import { axeViolations } from './support/axe';
 import { syntheticSearch, addCourse, block } from './support/synthetic';
-import type { Page } from '@playwright/test';
 
 // Runs axe-core against the panel across its surfaces: populated edit mode, the catalog
 // filter popover, preview with the sharing toolbar, the display options popover, and the
-// import error dialog. axe is pointed at the extension's shadow root so it sees the mounted
-// UI, and
-// the run is limited to the WCAG 2 A and AA rules. Contrast is checked separately in the
-// token contrast unit test, because axe cannot resolve the shadow root token backgrounds.
-const AXE_PATH = 'node_modules/axe-core/axe.min.js';
-
-async function axeViolations(
-  page: Page,
-): Promise<{ id: string; impact: string }[]> {
-  await page.addScriptTag({ path: AXE_PATH });
-  return page.evaluate(async () => {
-    const runner = (
-      window as unknown as {
-        axe: {
-          run: (
-            context: unknown,
-            options: unknown,
-          ) => Promise<{ violations: { id: string; impact: string }[] }>;
-        };
-      }
-    ).axe;
-    const host = Array.from(document.body.children).find(
-      (el) => el.shadowRoot !== null,
-    );
-    const root = host?.shadowRoot ?? document;
-    const result = await runner.run(root, { runOnly: ['wcag2a', 'wcag2aa'] });
-    return result.violations.map((v) => ({ id: v.id, impact: v.impact }));
-  });
-}
-
+// import error dialog.
 test('the panel passes axe across the edit, preview, and dialog surfaces', async ({
   context,
 }) => {
