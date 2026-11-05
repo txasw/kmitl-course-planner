@@ -310,6 +310,33 @@ describe('WeeklyGrid', () => {
     expect(screen.getByText('20:00')).toBeInTheDocument();
   });
 
+  it('places each hour label as a grid item on its hour track', () => {
+    const { rerender } = render(
+      <WeeklyGrid sections={[]} window={DEFAULT_WINDOW} locale="th" t={t} />,
+    );
+    // 08:00 is the second hour of the 07:00 window: quarter tracks 6 to 9 of the axis row.
+    const label = screen.getByText('08:00');
+    expect(label.style.gridRow).toBe('1');
+    expect(label.style.gridColumn).toBe('6 / span 4');
+    expect(label.style.transform).toBe('translateX(-50%)');
+    // The first label starts the ruler, so it stays inside the grid.
+    expect(screen.getByText('07:00').style.transform).toBe('none');
+
+    rerender(
+      <WeeklyGrid
+        sections={[]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+        orientation="portrait"
+      />,
+    );
+    const portrait = screen.getByText('08:00');
+    expect(portrait.style.gridColumn).toBe('1');
+    expect(portrait.style.gridRow).toBe('6 / span 4');
+    expect(portrait.style.transform).toBe('translateY(-50%)');
+  });
+
   it('renders a valid footprint ghost during a fitting drag', () => {
     const dragged = makeSection({
       teachTableId: 'd',

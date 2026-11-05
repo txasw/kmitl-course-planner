@@ -1,8 +1,9 @@
 // The time axis of the weekly grid: the hour labels along the leading track and the
-// stronger rules at the window start, midday, and end. The labels center on their gridline
-// and read as an even ruler, so each is absolutely positioned inside its hour span. The
-// corner where the two axes meet stays empty. Renders a fragment so every item is a direct
-// child of the grid and places by track index.
+// stronger rules at the window start, midday, and end. Each label is a grid item placed on
+// its hour span and aligned to the span's leading line, then shifted half its own size so it
+// centers on the gridline and reads as an even ruler. The first label stays inside the grid
+// rather than overhanging the corner. The corner where the two axes meet stays empty.
+// Renders a fragment so every item is a direct child of the grid and places by track index.
 
 import { useMemo } from 'react';
 import type { CSSProperties } from 'react';
@@ -90,37 +91,27 @@ export function GridAxis({ window, orientation }: GridAxisProps) {
           <div
             key={min}
             aria-hidden
-            className="relative overflow-visible text-[0.92em] text-ink-soft"
+            className="whitespace-nowrap text-[0.92em] text-ink-soft"
             style={
               isPortrait
                 ? {
-                    gridColumn: 1,
+                    gridColumn: AXIS_INDEX,
                     gridRow: `${String(track)} / span ${String(QUARTERS_PER_HOUR)}`,
+                    alignSelf: 'start',
+                    justifySelf: 'end',
+                    marginRight: '0.35em',
+                    transform: first ? 'none' : 'translateY(-50%)',
                   }
                 : {
                     gridRow: AXIS_INDEX,
                     gridColumn: `${String(track)} / span ${String(QUARTERS_PER_HOUR)}`,
+                    alignSelf: 'end',
+                    justifySelf: 'start',
+                    transform: first ? 'none' : 'translateX(-50%)',
                   }
             }
           >
-            <span
-              className="absolute whitespace-nowrap"
-              style={
-                isPortrait
-                  ? {
-                      right: '0.35em',
-                      top: 0,
-                      transform: first ? 'none' : 'translateY(-50%)',
-                    }
-                  : {
-                      bottom: 0,
-                      left: 0,
-                      transform: first ? 'none' : 'translateX(-50%)',
-                    }
-              }
-            >
-              {formatMinutes(min)}
-            </span>
+            {formatMinutes(min)}
           </div>
         );
       })}
