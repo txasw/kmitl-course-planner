@@ -112,3 +112,20 @@ export async function pickOption(
   }
   await combo.press('Enter');
 }
+
+/**
+ * Reopen the search form from the summary bar. A submit folds the form, so a spec that
+ * runs a second search in the same page opens it first, as a student would.
+ */
+export async function editSearch(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'แก้ไขการค้นหา' }).click();
+}
+
+/**
+ * Wait until the results accept pointer input again after a submit. The guard outlasts
+ * the form fold, so a raw pointer sequence that measures a row first measures it where
+ * it settles.
+ */
+export async function waitForResultsInput(page: Page): Promise<void> {
+  await expect(page.locator('[data-input-guard="on"]')).toHaveCount(0);
+}

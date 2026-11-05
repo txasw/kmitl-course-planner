@@ -1,4 +1,10 @@
-import { test, expect, openPlanner, pickOption } from './support/fixtures';
+import {
+  test,
+  expect,
+  openPlanner,
+  pickOption,
+  waitForResultsInput,
+} from './support/fixtures';
 import type { Page } from '@playwright/test';
 
 // A grid block carries a data-teach-table-id; the catalog rows do not, so this
@@ -17,6 +23,7 @@ async function categorySearch(page: Page): Promise<void> {
   await expect(page.getByText('90592033').first()).toBeVisible({
     timeout: 15_000,
   });
+  await waitForResultsInput(page);
 }
 
 interface GridScroll {

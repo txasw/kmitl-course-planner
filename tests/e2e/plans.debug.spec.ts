@@ -1,4 +1,10 @@
-import { test, expect, openPlanner, pickOption } from './support/fixtures';
+import {
+  test,
+  expect,
+  editSearch,
+  openPlanner,
+  pickOption,
+} from './support/fixtures';
 import { addCourse, block, syntheticSearch } from './support/synthetic';
 import type { Page } from '@playwright/test';
 
@@ -51,6 +57,8 @@ test('refuses a section from another term and switches on request', async ({
 
   // Browsing semester 2 while the plan is bound to semester 1 puts every row in the
   // different term state: the add rail is disabled, and a switch action shows instead.
+  // The first search folded the form, so it is reopened from the summary bar.
+  await editSearch(page);
   await searchSyntheticInSemester(page, '2');
   await expect(
     page.getByRole('button', { name: 'สลับไปตารางภาคนี้' }).first(),
