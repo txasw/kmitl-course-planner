@@ -63,18 +63,21 @@ describe('quarterCount', () => {
 });
 
 describe('editWindow', () => {
-  it('shows the 08:00 to 18:00 working day for an empty plan and catalog', () => {
-    expect(editWindow([], [])).toEqual(SMART_WINDOW);
+  it('shows the 08:00 to 18:00 working week for an empty plan and catalog', () => {
+    expect(editWindow([], [])).toEqual({
+      window: SMART_WINDOW,
+      days: [1, 2, 3, 4, 5],
+    });
   });
 
   it('keeps the working day when every meeting sits inside it', () => {
-    expect(editWindow([meeting(1, 540, 660)], [meeting(3, 780, 900)])).toEqual(
-      SMART_WINDOW,
-    );
+    expect(
+      editWindow([meeting(1, 540, 660)], [meeting(3, 780, 900)]).window,
+    ).toEqual(SMART_WINDOW);
   });
 
   it('extends the start to 07:00 for a 07:30 placed meeting', () => {
-    expect(editWindow([meeting(2, 450, 540)], [])).toEqual({
+    expect(editWindow([meeting(2, 450, 540)], []).window).toEqual({
       startMin: 420,
       endMin: 1080,
     });
@@ -83,14 +86,32 @@ describe('editWindow', () => {
   it('extends the end for a late catalog meeting nothing has placed', () => {
     // 18:30 to 20:15 in the catalog pushes the boundary to 21:00.
     expect(
-      editWindow([meeting(1, 540, 660)], [meeting(4, 1110, 1215)]),
+      editWindow([meeting(1, 540, 660)], [meeting(4, 1110, 1215)]).window,
     ).toEqual({ startMin: 480, endMin: 1260 });
   });
 
   it('covers both sources across several meetings', () => {
     expect(
-      editWindow([meeting(2, 450, 540)], [meeting(5, 1080, 1170)]),
+      editWindow([meeting(2, 450, 540)], [meeting(5, 1080, 1170)]).window,
     ).toEqual({ startMin: 420, endMin: 1200 });
+  });
+
+  it('hides the weekend rows when no meeting needs them', () => {
+    expect(
+      editWindow([meeting(1, 540, 660)], [meeting(5, 540, 660)]).days,
+    ).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('reveals both weekend rows for a Saturday catalog meeting', () => {
+    expect(
+      editWindow([meeting(1, 540, 660)], [meeting(6, 540, 660)]).days,
+    ).toEqual([0, 1, 2, 3, 4, 5, 6]);
+  });
+
+  it('reveals Sunday alone for a placed Sunday meeting', () => {
+    expect(editWindow([meeting(0, 540, 660)], []).days).toEqual([
+      0, 1, 2, 3, 4, 5,
+    ]);
   });
 });
 
