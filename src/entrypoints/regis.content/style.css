@@ -57,6 +57,7 @@
   --color-success-soft: var(--kcp-success-soft);
   --radius-kcp: var(--kcp-radius);
   --radius-kcp-inner: var(--kcp-radius-inner);
+  --radius-kcp-sheet: var(--kcp-radius-sheet);
   --shadow-kcp: var(--kcp-shadow);
 
   /* The layer and motion tokens map into the z-index and transition duration
@@ -114,7 +115,14 @@
      badges, chips, and the inline conflict callout, so a nested corner reads
      tighter than the card around it rather than matching it. */
   --kcp-radius-inner: 4px;
+  /* The top corners of a bottom sheet, rounder than a card so the sheet reads as a
+     surface raised from the screen edge. */
+  --kcp-radius-sheet: 12px;
   --kcp-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  /* The home indicator inset on phones, zero where the device has none, so a surface
+     pinned to the bottom edge keeps its controls clear of the system gesture area. */
+  --kcp-safe-bottom: env(safe-area-inset-bottom, 0px);
 
   /* One layer scale for everything stacked inside the overlay panel, which is a
      stacking context of its own, so these values only order the panel's own
@@ -265,6 +273,22 @@ html {
   .kcp-toast-enter {
     animation: none;
   }
+}
+
+/* Bottom sheet entrance: a rise from the bottom edge. The sheet drops this class
+   under reduced motion, so it appears in place with no movement. */
+@keyframes kcp-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+.kcp-sheet-enter {
+  animation: kcp-sheet-in var(--kcp-duration-base) ease-out;
 }
 
 /* Blocked placement ghost: a hatched danger overlay over the danger soft fill, so

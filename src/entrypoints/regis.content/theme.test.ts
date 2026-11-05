@@ -68,6 +68,20 @@ describe('shadow stylesheet tokens', () => {
     expect(css).toContain('--shadow-kcp: var(--kcp-shadow)');
   });
 
+  it('declares the sheet radius and the bottom safe area inset', () => {
+    expect(css).toContain('--kcp-radius-sheet: 12px;');
+    expect(css).toContain('--radius-kcp-sheet: var(--kcp-radius-sheet)');
+    expect(css).toContain(
+      '--kcp-safe-bottom: env(safe-area-inset-bottom, 0px);',
+    );
+  });
+
+  it('animates the sheet entrance from a motion token', () => {
+    expect(css).toMatch(
+      /\.kcp-sheet-enter \{\s*animation: kcp-sheet-in var\(--kcp-duration-base\) ease-out;/,
+    );
+  });
+
   it('draws placeholders in ink soft at full opacity', () => {
     expect(css).toMatch(
       /@layer base \{\s*::placeholder \{\s*color: var\(--kcp-ink-soft\);\s*opacity: 1;\s*\}/,
