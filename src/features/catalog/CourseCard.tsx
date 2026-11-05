@@ -1,8 +1,9 @@
-// A course card: the subject id, the locale primary name with the other language
-// as secondary text, the credit string, and one row per section. Each section's
-// seat status and plan relation are computed here from the placed sections.
+// A course card: a header with the subject id, the locale primary name and the credit
+// string, which is also the disclosure for the card's sections. Each section's seat
+// status and plan relation are computed here from the placed sections. A card starts
+// collapsed and the catalog owns whether it is open, so the state survives a remount.
 
-import { memo, useState, type ReactNode } from 'react';
+import { memo, useId, type ReactNode } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { ChevronDown, GripVertical } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -17,36 +18,32 @@ import { DraggableSection } from './DraggableSection';
 import { SectionRow } from './SectionRow';
 import { RemoveButton, removeSectionName } from './RemoveButton';
 import { FOCUS_RING } from '@/lib/ui/focus';
-import { Tooltip } from '@/components/Tooltip';
+
+const HEADER = 'flex items-start gap-1';
 
 // The whole card header is a pointer drag source. Grabbing it previews every section of
-// the course as a candidate slot on the grid. The grip rendered inside is the visual hint
-// only; the header carries no keyboard handler on purpose, because keyboard users add a
-// specific section through the per section add buttons, so it stays out of the tab order
-// (ADR-0024).
+// the course as a candidate slot on the grid, and dnd-kit swallows the click that ends
+// an activated drag, so a drag never toggles the card. The drag has no keyboard path and
+// no accessible name: keyboard users open the card and add a specific section through
+// its rows (ADR-0024, amended by ADR-0057). touch-pan-y lets a vertical swipe scroll the
+// list while a horizontal swipe still starts the drag.
 function CourseDragHeader({
   course,
-  label,
   children,
 }: {
   course: Course;
-  label: string;
   children: ReactNode;
 }) {
   const { setNodeRef, listeners } = useDraggable({
     id: `course-${course.subjectId}`,
     data: { course },
   });
-  // The drag hint stays as the surface's accessible name, not a tooltip: a hover
-  // tooltip on a pointer drag surface interferes with the drag, and the grip icon
-  // with the grab cursor already signals that the card is draggable.
   return (
     <header
       ref={setNodeRef}
       {...listeners}
-      aria-label={label}
       data-drag-surface="course"
-      className="flex touch-none cursor-grab items-baseline justify-between gap-2"
+      className={`${HEADER} touch-pan-y`}
     >
       {children}
     </header>
@@ -59,6 +56,9 @@ interface CourseCardProps {
   locale: Locale;
   t: Translate;
   term?: TermContext | undefined;
+  /** Whether the sections show, decided by the catalog. */
+  open: boolean;
+  onToggle: (subjectId: string, open: boolean, added: boolean) => void;
   onAdd?: ((course: Course, section: Section) => void) | undefined;
   onRemove?: ((teachTableId: string) => void) | undefined;
   onSwitchTerm?: ((term: Term) => void) | undefined;
@@ -77,89 +77,129 @@ function isCrossTerm(term: TermContext | undefined): boolean {
 // change that does not touch this course) skips its whole subtree. The default
 // shallow comparison is sufficient because the parent keeps every prop identity
 // stable: the course reference survives an unfiltering pass (filterCourses), the
-// callbacks and term are memoized, and placed changes only when the plan does.
+// callbacks and term are memoized, open is a boolean, and placed changes only when
+// the plan does.
 function CourseCardComponent({
   course,
   placed,
   locale,
   t,
   term,
+  open,
+  onToggle,
   onAdd,
   onRemove,
   onSwitchTerm,
 }: CourseCardProps) {
+  const id = useId();
+  const titleId = `${id}-title`;
+  const creditId = `${id}-credit`;
+  const bodyId = `${id}-body`;
   const primary = locale === 'th' ? course.nameTh : course.nameEn;
   const secondary = locale === 'th' ? course.nameEn : course.nameTh;
   // The secondary name is the other language's field, so it carries that language for
   // a screen reader voice; the primary inherits the panel language.
   const secondaryLang: Locale = locale === 'th' ? 'en' : 'th';
   const hasSecondary = secondary !== '' && secondary !== primary;
-  // A long Thai name has no word breaks, so the name line truncates rather than
-  // overflowing the card, and the full text rides on a tooltip for a hover.
-  const fullName = hasSecondary
-    ? `${course.subjectId} ${primary} ${secondary}`
-    : `${course.subjectId} ${primary}`;
-  const [expanded, setExpanded] = useState(false);
   const placedSection = placed.find((p) => p.subjectId === course.subjectId);
+  const added = placedSection !== undefined;
+  // A cross term course cannot be added, so its header is no drag source; its rows
+  // carry the different term state and a switch action instead.
+  const draggable = !added && onAdd !== undefined && !isCrossTerm(term);
 
-  // Once any section of a subject is in the plan the card collapses to a dim summary,
-  // since a second section of the same subject cannot be added. It de-emphasizes with a
-  // muted surface and ink-soft meta rather than opacity, which would drop text below AA.
-  // It expands to its sections read only for reference; changing section happens by
-  // dragging the block on the grid.
-  if (placedSection !== undefined) {
-    return (
-      <article className="rounded-kcp border border-border bg-surface-alt p-3">
-        {/* The whole summary is the expand and collapse control, so a click anywhere
-            on it toggles the sections. The remove sits outside it, because a button
-            cannot nest inside a button. The truncated name loses its hover tooltip
-            here, since the summary is the button. */}
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            aria-expanded={expanded}
-            onClick={() => {
-              setExpanded((value) => !value);
-            }}
-            className={`flex min-w-0 flex-1 items-center justify-between gap-2 rounded-kcp text-left ${FOCUS_RING}`}
+  // The title clamps to two lines and breaks inside a long Thai word rather than
+  // cutting to one line, so the name stays readable without a tooltip, which could
+  // not sit inside the button. The button is named by the title and the credits.
+  const headerContent = (
+    <>
+      {draggable ? (
+        <GripVertical
+          size={14}
+          strokeWidth={2}
+          aria-hidden
+          className="mt-0.5 shrink-0 cursor-grab text-ink-soft"
+        />
+      ) : null}
+      <h4 className="flex min-w-0 flex-1">
+        <button
+          type="button"
+          data-course-toggle
+          aria-expanded={open}
+          aria-controls={bodyId}
+          aria-labelledby={`${titleId} ${creditId}`}
+          onClick={() => {
+            onToggle(course.subjectId, !open, added);
+          }}
+          className={`group flex min-h-6 min-w-0 flex-1 cursor-pointer items-start gap-2 rounded-kcp text-left pointer-coarse:min-h-11 ${FOCUS_RING}`}
+        >
+          <span
+            id={titleId}
+            className="line-clamp-2 min-w-0 flex-1 break-words text-ink"
           >
-            <span className="min-w-0 truncate">
-              <span className="font-semibold text-ink">{course.subjectId}</span>{' '}
-              <span className="text-ink">{primary}</span>
+            <span className="font-semibold tabular-nums">
+              {course.subjectId}
+            </span>{' '}
+            {primary}
+          </span>
+          <span id={creditId} className="shrink-0 text-xs text-ink-soft">
+            {course.creditStr}
+          </span>
+          <ChevronDown
+            size={16}
+            aria-hidden
+            className={`mt-0.5 shrink-0 text-ink-soft transition-transform duration-fast group-hover:text-ink motion-reduce:transition-none ${open ? 'rotate-180' : ''}`}
+          />
+        </button>
+      </h4>
+      {placedSection !== undefined && onRemove !== undefined ? (
+        <RemoveButton
+          label={t('action.remove')}
+          accessibleName={removeSectionName(
+            t,
+            placedSection.subjectId,
+            placedSection.section,
+          )}
+          onRemove={() => {
+            onRemove(placedSection.teachTableId);
+          }}
+        />
+      ) : null}
+    </>
+  );
+
+  // An added card de-emphasizes with a muted surface rather than opacity, which would
+  // drop text below AA. It opens to its sections read only for reference, since a
+  // second section of the same subject cannot be added; changing section happens on
+  // the grid.
+  return (
+    <article
+      className={`rounded-kcp border border-border px-3 py-2 hover:border-ink-soft ${added ? 'bg-surface-alt' : 'bg-surface'}`}
+    >
+      {draggable ? (
+        <CourseDragHeader course={course}>{headerContent}</CourseDragHeader>
+      ) : (
+        <header className={HEADER}>{headerContent}</header>
+      )}
+      <div id={bodyId} data-course-body hidden={!open}>
+        {open ? (
+          <div className="flex flex-col gap-1.5 pt-2">
+            {/* The full name repeats for the eye when the title clamps; the button
+                already reads it, so it is hidden from assistive technology. */}
+            <p className="text-xs break-words">
+              <span aria-hidden className="text-ink">
+                {primary}
+              </span>
               {hasSecondary ? (
                 <span lang={secondaryLang} className="ml-1 text-ink-soft">
                   {secondary}
                 </span>
               ) : null}
-            </span>
-            <span className="flex shrink-0 items-center gap-1">
-              <span className="text-xs text-ink-soft">{course.creditStr}</span>
-              <ChevronDown
-                size={16}
-                aria-hidden
-                className={`text-ink-soft ${expanded ? 'rotate-180' : ''}`}
-              />
-            </span>
-          </button>
-          {onRemove !== undefined ? (
-            <RemoveButton
-              label={t('action.remove')}
-              accessibleName={removeSectionName(
-                t,
-                placedSection.subjectId,
-                placedSection.section,
-              )}
-              onRemove={() => {
-                onRemove(placedSection.teachTableId);
-              }}
-            />
-          ) : null}
-        </div>
-        {expanded ? (
-          <div className="mt-2 flex flex-col gap-1.5">
-            <p className="text-xs text-ink-soft">
-              {t('catalog.card.addedHint')}
             </p>
+            {added ? (
+              <p className="text-xs text-ink-soft">
+                {t('catalog.card.addedHint')}
+              </p>
+            ) : null}
             {course.sections.map((section) => (
               <CourseSection
                 key={section.teachTableId}
@@ -169,81 +209,14 @@ function CourseCardComponent({
                 locale={locale}
                 t={t}
                 term={term}
-                readOnly
-                onAdd={undefined}
-                onRemove={undefined}
-                onSwitchTerm={undefined}
+                readOnly={added}
+                onAdd={onAdd}
+                onRemove={onRemove}
+                onSwitchTerm={onSwitchTerm}
               />
             ))}
           </div>
         ) : null}
-      </article>
-    );
-  }
-
-  // A cross term course cannot be added, so its whole course drag header is inert; its
-  // rows carry the different term state and a switch action instead.
-  const crossTerm = isCrossTerm(term);
-  const draggable = onAdd !== undefined && !crossTerm;
-  const headerContent = (
-    <>
-      <div className="flex min-w-0 items-baseline gap-1">
-        {draggable ? (
-          <GripVertical
-            size={14}
-            strokeWidth={2}
-            aria-hidden
-            className="shrink-0 self-center text-ink-soft"
-          />
-        ) : null}
-        <Tooltip label={fullName}>
-          {(triggerProps, ref) => (
-            <div ref={ref} {...triggerProps} className="min-w-0 truncate">
-              <span className="font-semibold text-ink">{course.subjectId}</span>{' '}
-              <span className="text-ink">{primary}</span>
-              {hasSecondary ? (
-                <span lang={secondaryLang} className="ml-1 text-ink-soft">
-                  {secondary}
-                </span>
-              ) : null}
-            </div>
-          )}
-        </Tooltip>
-      </div>
-      <span className="shrink-0 text-xs text-ink-soft">{course.creditStr}</span>
-    </>
-  );
-
-  return (
-    <article className="rounded-kcp border border-border p-3">
-      {draggable ? (
-        <CourseDragHeader
-          course={course}
-          label={`${t('action.dragCourse')} ${course.subjectId}`}
-        >
-          {headerContent}
-        </CourseDragHeader>
-      ) : (
-        <header className="flex items-baseline justify-between gap-2">
-          {headerContent}
-        </header>
-      )}
-      <div className="mt-2 flex flex-col gap-1.5">
-        {course.sections.map((section) => (
-          <CourseSection
-            key={section.teachTableId}
-            course={course}
-            section={section}
-            placed={placed}
-            locale={locale}
-            t={t}
-            term={term}
-            readOnly={false}
-            onAdd={onAdd}
-            onRemove={onRemove}
-            onSwitchTerm={onSwitchTerm}
-          />
-        ))}
       </div>
     </article>
   );

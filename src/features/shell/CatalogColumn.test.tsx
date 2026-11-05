@@ -13,6 +13,8 @@ import type { UniqueIdentifier, UseDraggableArguments } from '@dnd-kit/core';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { searchStore } from '@/features/search/searchStore';
+import { catalogStore } from '@/features/catalog/catalogStore';
+import { EMPTY_DISCLOSURE } from '@/lib/catalog/cardDisclosure';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import {
@@ -117,6 +119,16 @@ function scroller(container: HTMLElement): HTMLElement {
   return node;
 }
 
+// Cards start collapsed and mount no section rows, so the section drag surfaces are
+// counted after every card is opened.
+function expandAll(container: HTMLElement): void {
+  for (const node of container.querySelectorAll<HTMLElement>(
+    '[data-course-toggle][aria-expanded="false"]',
+  )) {
+    fireEvent.click(node);
+  }
+}
+
 function sectionRegistrations(): Record<string, number> {
   return Object.fromEntries(
     SECTION_IDS.map((id) => [id, registrations.get(id) ?? 0]),
@@ -128,6 +140,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
   registrations.clear();
   act(() => {
+    catalogStore.setState({ disclosure: EMPTY_DISCLOSURE });
     searchStore.getState().cancelSearch();
     uiStore.getState().setSheetOpen(false);
     uiStore.getState().setCatalogVisible(true);
@@ -149,6 +162,8 @@ describe('CatalogColumn', () => {
           .setResult({ status: 'ready', data: catalog }, null);
       });
       const { container } = render(<Harness />);
+      expect(sectionRegistrations()).toEqual({ t1: 0, t2: 0, t3: 0 });
+      expandAll(container);
       expect(sectionRegistrations()).toEqual({ t1: 1, t2: 1, t3: 1 });
       expect(
         container.querySelectorAll('[data-drag-surface="section"]'),
@@ -164,6 +179,7 @@ describe('CatalogColumn', () => {
         .setResult({ status: 'ready', data: catalog }, null);
     });
     const { container } = render(<Harness />);
+    expandAll(container);
     const node = scroller(container);
     node.scrollTop = 240;
 
@@ -203,6 +219,7 @@ describe('CatalogColumn', () => {
         .setResult({ status: 'ready', data: catalog }, null);
     });
     const { container } = render(<Harness />);
+    expandAll(container);
     const node = column(container);
     const scroll = scroller(container);
     scroll.scrollTop = 240;

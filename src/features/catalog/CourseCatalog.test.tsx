@@ -26,6 +26,7 @@ import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { planStore } from '@/features/plans/planStore';
 import { searchStore } from '@/features/search/searchStore';
 import { dragStore } from '@/features/planner/dragStore';
+import { EMPTY_DISCLOSURE } from '@/lib/catalog/cardDisclosure';
 import { catalogStore } from './catalogStore';
 import { CourseCatalog } from './CourseCatalog';
 
@@ -54,9 +55,28 @@ function ownerCatalog(): NormalizedCatalog {
 
 const catalog = ownerCatalog();
 
+function cardToggle(subjectId: string): HTMLElement {
+  const article = screen
+    .getAllByRole('article')
+    .find((node) => node.textContent.includes(subjectId));
+  const node = article?.querySelector<HTMLElement>('[data-course-toggle]');
+  if (node == null) throw new Error(`no card toggle for ${subjectId}`);
+  return node;
+}
+
+/** Opens every collapsed card, as a student does before adding from its rows. */
+function expandAll(): void {
+  for (const node of document.querySelectorAll<HTMLElement>(
+    '[data-course-toggle][aria-expanded="false"]',
+  )) {
+    fireEvent.click(node);
+  }
+}
+
 beforeEach(() => {
   act(() => {
     catalogStore.getState().resetFilter();
+    catalogStore.setState({ disclosure: EMPTY_DISCLOSURE });
     searchStore.setState({ resultQuery: SEARCH_QUERY });
   });
 });
@@ -158,6 +178,7 @@ describe('CourseCatalog', () => {
 
   it('adds an open section to the plan from its add button', () => {
     render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    expandAll();
     const addButton = screen
       .getAllByRole('button', { name: /^เพิ่ม/ })
       .find((button) => button.getAttribute('aria-disabled') !== 'true');
@@ -213,6 +234,7 @@ describe('CourseCatalog', () => {
 
   it('announces a successful add', () => {
     render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    expandAll();
     const addButton = screen
       .getAllByRole('button', { name: /^เพิ่ม/ })
       .find((button) => button.getAttribute('aria-disabled') !== 'true');
@@ -229,6 +251,7 @@ describe('CourseCatalog', () => {
       seedActivePlan([], { id: 'p2', year: '2569', semester: '2' });
     });
     render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    expandAll();
     expect(screen.getAllByText('คนละภาค').length).toBeGreaterThan(0);
     // The banner names the browsed term and every add rail is disabled.
     expect(screen.getByText(/กำลังดูภาค/)).toBeInTheDocument();
@@ -247,5 +270,79 @@ describe('CourseCatalog', () => {
     const state = planStore.getState();
     const active = state.plans.find((plan) => plan.id === state.activePlanId);
     expect(active?.semester).toBe('1');
+  });
+});
+
+describe('CourseCatalog card disclosure', () => {
+  it('collapses every card of a multi course result', () => {
+    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    const toggles = document.querySelectorAll('[data-course-toggle]');
+    expect(toggles).toHaveLength(3);
+    for (const node of toggles) {
+      expect(node).toHaveAttribute('aria-expanded', 'false');
+    }
+  });
+
+  it('opens the card of a single course result', () => {
+    const single: NormalizedCatalog = {
+      ...catalog,
+      courses: catalog.courses.slice(0, 1),
+    };
+    render(<CourseCatalog catalog={single} onRefresh={() => undefined} />);
+    expect(document.querySelector('[data-course-toggle]')).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+  });
+
+  it('opens a card whose subject id the text filter names exactly', () => {
+    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    const filterBox = screen.getByRole('searchbox', { name: 'กรองรายการ' });
+    fireEvent.change(filterBox, { target: { value: '9059203' } });
+    expect(cardToggle('90592033')).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.change(filterBox, { target: { value: '90592033' } });
+    expect(cardToggle('90592033')).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('keeps a choice across a refresh and drops it for a new query', () => {
+    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    fireEvent.click(cardToggle('90592033'));
+    expect(cardToggle('90592033')).toHaveAttribute('aria-expanded', 'true');
+
+    // A refresh stores an equal query object, so the choice holds.
+    act(() => {
+      searchStore.setState({ resultQuery: { ...SEARCH_QUERY } });
+    });
+    expect(cardToggle('90592033')).toHaveAttribute('aria-expanded', 'true');
+
+    act(() => {
+      searchStore.setState({
+        resultQuery: { ...SEARCH_QUERY, selected_subject_id: '90592008' },
+      });
+    });
+    expect(cardToggle('90592033')).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('collapses an opened card once added and keeps it collapsed after a remove', () => {
+    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    expandAll();
+    const addButton = screen
+      .getAllByRole('button', { name: /^เพิ่ม/ })
+      .find((button) => button.getAttribute('aria-disabled') !== 'true');
+    if (addButton === undefined) throw new Error('expected an open section');
+    const article = addButton.closest('article');
+    fireEvent.click(addButton);
+    const added = article?.querySelector('[data-course-toggle]');
+    expect(added).toHaveAttribute('aria-expanded', 'false');
+
+    const entry = planStore.getState().entries[0];
+    if (entry === undefined) throw new Error('expected a plan entry');
+    act(() => {
+      planStore.getState().remove(entry.teachTableId);
+    });
+    expect(article?.querySelector('[data-course-toggle]')).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
   });
 });
