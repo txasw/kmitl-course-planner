@@ -23,9 +23,12 @@ import {
 } from '@dnd-kit/core';
 import { useStore } from 'zustand';
 import type { Course, Section } from '@/lib/domain/types';
+import { catalogMeetings } from '@/lib/catalog/catalogMeetings';
 import type { Candidate } from '@/lib/planner/courseCandidates';
+import { editWindow } from '@/lib/planner/grid';
 import { placedSections } from '@/lib/planner/transaction';
 import { planStore } from '@/features/plans/planStore';
+import { searchStore } from '@/features/search/searchStore';
 import {
   addSectionToPlan,
   moveSectionInPlan,
@@ -165,6 +168,7 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
   const handleStart = useCallback((event: DragStartEvent) => {
     const data = event.active.data.current;
     const placed = placedSections(planStore.getState().entries);
+    const drag = dragStore.getState();
     if (isBlockDragData(data)) {
       const section = placed.find(
         (candidate) => candidate.teachTableId === data.teachTableId,
@@ -173,12 +177,22 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
         return;
       }
       const course = resolveCourseForSubject(section.subjectId);
-      dragStore.getState().startBlockMove(section, placed, course);
+      drag.startBlockMove(section, placed, course);
     } else if (isSectionDragData(data)) {
-      dragStore.getState().start(data.course, data.section, placed);
+      drag.start(data.course, data.section, placed);
     } else if (isCourseDragData(data)) {
-      dragStore.getState().startCourse(data.course, placed);
+      drag.startCourse(data.course, placed);
+    } else {
+      return;
     }
+    // Freeze the frame the grid shows now, the same frame the planner panel derives,
+    // so the slots this drag paints hold still until it ends (ADR-0050).
+    drag.freezeFrame(
+      editWindow(
+        placed.flatMap((section) => section.meetings),
+        catalogMeetings(searchStore.getState().result),
+      ),
+    );
   }, []);
 
   const handleOver = useCallback((event: DragOverEvent) => {

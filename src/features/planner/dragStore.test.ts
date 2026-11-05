@@ -4,6 +4,7 @@ import {
   makeMeeting,
   makeSection,
 } from '../../../tests/support/domain-builders';
+import type { GridFrame } from '@/lib/planner/grid';
 import { blockerIds, createDragStore } from './dragStore';
 
 function clashingPlaced() {
@@ -155,6 +156,61 @@ describe('dragStore', () => {
     store.getState().start(course, section, clashingPlaced());
     store.getState().reject();
     expect(store.getState().swapContext).toBeNull();
+  });
+});
+
+describe('frozen frame', () => {
+  const frozen: GridFrame = {
+    window: { startMin: 480, endMin: 1080 },
+    days: [1, 2, 3, 4, 5],
+  };
+
+  it('holds no frame before any drag starts', () => {
+    expect(createDragStore().getState().frame).toBeNull();
+  });
+
+  it('keeps the window unchanged for the length of a course drag', () => {
+    const store = createDragStore();
+    const { course, section } = draggedSection();
+    store.getState().startCourse(course, []);
+    store.getState().freezeFrame(frozen);
+    // Raising a candidate, latching a swap, and showing a hint are all mid drag
+    // updates; none of them may move the frame.
+    store.getState().setRaised(section.teachTableId);
+    store.getState().setSwapContext({
+      incoming: section,
+      course,
+      originId: null,
+      blockers: ['p'],
+    });
+    store.getState().setHint('hint');
+    expect(store.getState().frame).toBe(frozen);
+    store.getState().clearCourse();
+    expect(store.getState().frame).toBeNull();
+  });
+
+  it('releases the frame when a section drag commits or rejects', () => {
+    const store = createDragStore();
+    const { section, course } = draggedSection();
+    store.getState().start(course, section, []);
+    store.getState().freezeFrame(frozen);
+    store.getState().clearActive();
+    expect(store.getState().frame).toBeNull();
+
+    store.getState().start(course, section, clashingPlaced());
+    store.getState().freezeFrame(frozen);
+    store.getState().reject();
+    expect(store.getState().frame).toBeNull();
+  });
+
+  it('releases the frame when a block move ends', () => {
+    const store = createDragStore();
+    const { section } = draggedSection();
+    store.getState().startBlockMove(section, [section], null);
+    store.getState().freezeFrame(frozen);
+    expect(store.getState().frame).toBe(frozen);
+    store.getState().clearBlockMove();
+    expect(store.getState().frame).toBeNull();
   });
 });
 

@@ -2,6 +2,13 @@ import { describe, it, expect } from 'vitest';
 import type { DayOfWeek } from '../parsing/days';
 import type { Meeting } from '../domain/types';
 import {
+  makeCourse,
+  makeMeeting,
+  makeSection,
+} from '../../../tests/support/domain-builders';
+import { catalogMeetings } from '../catalog/catalogMeetings';
+import { courseCandidates } from './courseCandidates';
+import {
   DEFAULT_WINDOW,
   SMART_WINDOW,
   computeFitWindow,
@@ -106,6 +113,54 @@ describe('editWindow', () => {
     expect(
       editWindow([meeting(1, 540, 660)], [meeting(6, 540, 660)]).days,
     ).toEqual([0, 1, 2, 3, 4, 5, 6]);
+  });
+
+  it('covers a block move candidate that lies outside the placed meetings', () => {
+    // The placed 901 sits on Monday morning; its sibling 902 meets Saturday evening, a
+    // day and hours no placed meeting reaches. The frame a block move freezes at drag
+    // start is built from the catalog, so the candidate stays inside it.
+    const placedSection = makeSection({
+      teachTableId: 'a',
+      subjectId: 'S1',
+      section: '901',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 660 })],
+    });
+    const sibling = makeSection({
+      teachTableId: 'b',
+      subjectId: 'S1',
+      section: '902',
+      meetings: [makeMeeting({ day: 6, startMin: 1080, endMin: 1170 })],
+    });
+    const course = makeCourse({
+      subjectId: 'S1',
+      sections: [placedSection, sibling],
+    });
+    const placed = [placedSection];
+    const placedMeetings = placed.flatMap((section) => section.meetings);
+    const offered = catalogMeetings({
+      status: 'ready',
+      data: {
+        courses: [course],
+        duplicateCount: 0,
+        multiMeetingCount: 0,
+        warnings: [],
+      },
+    });
+    const candidates = courseCandidates(course, placed, new Set(['S1:901']));
+    const candidateMeetings = candidates.flatMap((candidate) =>
+      candidate.group.flatMap((section) => section.meetings),
+    );
+    expect(candidateMeetings).toHaveLength(1);
+
+    const placedOnly = editWindow(placedMeetings, []);
+    const frozen = editWindow(placedMeetings, offered);
+    for (const candidate of candidateMeetings) {
+      expect(placedOnly.days).not.toContain(candidate.day);
+      expect(candidate.endMin).toBeGreaterThan(placedOnly.window.endMin);
+      expect(frozen.days).toContain(candidate.day);
+      expect(candidate.startMin).toBeGreaterThanOrEqual(frozen.window.startMin);
+      expect(candidate.endMin).toBeLessThanOrEqual(frozen.window.endMin);
+    }
   });
 
   it('reveals Sunday alone for a placed Sunday meeting', () => {

@@ -21,6 +21,7 @@ import {
 import { expectNoSeriousA11yViolations } from '../../../tests/support/axe';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
+import { dragStore } from './dragStore';
 import { PlannerPanel } from './PlannerPanel';
 
 // The panel always renders inside the search deps provider in the app; the banner
@@ -66,6 +67,7 @@ afterEach(() => {
   seed([]);
   act(() => {
     searchStore.setState({ result: { status: 'idle' } });
+    dragStore.getState().clearActive();
   });
   act(() => {
     uiStore.getState().setViewMode('edit');
@@ -122,6 +124,24 @@ describe('PlannerPanel', () => {
     // 19:00 to 20:30 in the catalog closes the window at 21:00, so 20:00 is labelled.
     expect(screen.getByText('20:00')).toBeInTheDocument();
     expect(screen.queryByText('21:00')).not.toBeInTheDocument();
+  });
+
+  it('keeps the frozen frame while a drag holds it', () => {
+    renderPanel();
+    act(() => {
+      dragStore.getState().freezeFrame({
+        window: { startMin: 480, endMin: 1080 },
+        days: [1, 2, 3, 4, 5],
+      });
+    });
+    // A search landing mid drag would widen the live frame to 21:00.
+    seedCatalog(makeMeeting({ day: 3, startMin: 1140, endMin: 1230 }));
+    expect(screen.queryByText('20:00')).not.toBeInTheDocument();
+
+    act(() => {
+      dragStore.getState().clearActive();
+    });
+    expect(screen.getByText('20:00')).toBeInTheDocument();
   });
 
   it('hides the empty weekend rows in edit', () => {
