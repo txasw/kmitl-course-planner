@@ -54,6 +54,7 @@ describe('shadow stylesheet tokens', () => {
       expect(css).toContain(`--kcp-${token}: #`);
     }
     expect(css).toContain('--kcp-radius:');
+    expect(css).toContain('--kcp-radius-inner: 4px;');
     expect(css).toContain('--kcp-shadow:');
   });
 
@@ -62,6 +63,7 @@ describe('shadow stylesheet tokens', () => {
       expect(css).toContain(`--color-${token}: var(--kcp-${token})`);
     }
     expect(css).toContain('--radius-kcp: var(--kcp-radius)');
+    expect(css).toContain('--radius-kcp-inner: var(--kcp-radius-inner)');
     expect(css).toContain('--shadow-kcp: var(--kcp-shadow)');
   });
 
