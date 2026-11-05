@@ -5,6 +5,7 @@ import { DEFAULT_WINDOW } from '@/lib/planner/grid';
 import { WEEK_DAYS } from '@/lib/parsing/days';
 import { DEFAULT_DISPLAY_OPTIONS } from '@/lib/planner/displayOptions';
 import { DEFAULT_TEMPLATE } from '@/lib/planner/exportTemplates';
+import type { PosterHonesty } from '@/lib/planner/posterHonesty';
 import { PreviewPoster } from './PreviewPoster';
 import type { PlacedSection } from './placedSection';
 
@@ -43,10 +44,23 @@ const online: PlacedSection = {
   meetings: [],
 };
 
-function renderPoster(
-  scheduled: PlacedSection[] = [section],
-  unscheduled: PlacedSection[] = [],
-) {
+const CLEAN: PosterHonesty = {
+  dataDate: { kind: 'unverified' },
+  missingCount: 0,
+  conflictPairCount: 0,
+};
+
+interface PosterInputs {
+  scheduled?: PlacedSection[];
+  unscheduled?: PlacedSection[];
+  honesty?: PosterHonesty;
+}
+
+function renderPoster({
+  scheduled = [section],
+  unscheduled = [],
+  honesty = CLEAN,
+}: PosterInputs = {}) {
   return render(
     <PreviewPoster
       template={DEFAULT_TEMPLATE}
@@ -58,6 +72,7 @@ function renderPoster(
       window={DEFAULT_WINDOW}
       days={WEEK_DAYS}
       displayOptions={DEFAULT_DISPLAY_OPTIONS}
+      honesty={honesty}
       locale="th"
       t={t}
     />,
@@ -127,8 +142,8 @@ describe('PreviewPoster footer', () => {
 
 describe('PreviewPoster verification marks', () => {
   it('draws no badge on a missing or changed block or on a missing shelf row', () => {
-    const { container } = renderPoster(
-      [
+    const { container } = renderPoster({
+      scheduled: [
         { ...section, verifyStatus: 'missing' },
         {
           ...section,
@@ -137,12 +152,70 @@ describe('PreviewPoster verification marks', () => {
           verifyStatus: 'changed',
         },
       ],
-      [online],
-    );
+      unscheduled: [online],
+    });
     expect(container.querySelector('[data-verify]')).toBeNull();
     expect(container.querySelector('.kcp-hatch')).toBeNull();
     expect(screen.queryByText(/ไม่พบในระบบแล้ว/)).not.toBeInTheDocument();
     // The shelf still lists the row, so the credits it carries stay in the image.
     expect(screen.getByText('วิชาออนไลน์')).toBeInTheDocument();
+  });
+});
+
+function dataLine(container: HTMLElement): HTMLElement {
+  const line = container.querySelector('[data-poster-data-line]');
+  if (!(line instanceof HTMLElement)) {
+    throw new Error('expected the poster data line');
+  }
+  return line;
+}
+
+describe('PreviewPoster data line', () => {
+  it('dates the poster from the oldest check, beside the watermark in the footer row', () => {
+    const at = new Date(2026, 10, 6, 8, 5).toISOString();
+    const { container } = renderPoster({
+      honesty: { ...CLEAN, dataDate: { kind: 'asOf', at } },
+    });
+    const line = dataLine(container);
+    expect(line).toHaveTextContent('ข้อมูล ณ 6 พ.ย. 2569 08:05');
+    expect(line.closest('[data-poster-footer]')).toBe(footerRow(container));
+    // A clean plan carries the date line alone.
+    expect(line.children).toHaveLength(1);
+  });
+
+  it('says nothing has been checked when no entry has a verification date', () => {
+    const { container } = renderPoster();
+    expect(dataLine(container)).toHaveTextContent('ยังไม่ได้ตรวจสอบข้อมูล');
+  });
+
+  it('adds a second line with the missing and conflicting pair counts', () => {
+    const { container } = renderPoster({
+      honesty: { ...CLEAN, missingCount: 2, conflictPairCount: 1 },
+    });
+    const line = dataLine(container);
+    expect(line.children).toHaveLength(2);
+    expect(
+      within(line).getByText('2 รายวิชาไม่พบในระบบ ณ วันที่ตรวจสอบ'),
+    ).toBeInTheDocument();
+    expect(
+      within(line).getByText('มีรายวิชาที่เวลาชนกัน 1 คู่'),
+    ).toBeInTheDocument();
+  });
+
+  it('states only the count that applies', () => {
+    const { container } = renderPoster({
+      honesty: { ...CLEAN, conflictPairCount: 3 },
+    });
+    const line = dataLine(container);
+    expect(
+      within(line).getByText('มีรายวิชาที่เวลาชนกัน 3 คู่'),
+    ).toBeInTheDocument();
+    expect(line).not.toHaveTextContent('ไม่พบในระบบ');
+  });
+
+  it('carries no data line on an empty plan', () => {
+    const { container } = renderPoster({ scheduled: [] });
+    expect(container.querySelector('[data-poster-data-line]')).toBeNull();
+    expect(container.querySelector('[data-poster-watermark]')).not.toBeNull();
   });
 });

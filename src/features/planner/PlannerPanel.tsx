@@ -16,6 +16,7 @@ import {
 import { templateBySlug } from '@/lib/planner/exportTemplates';
 import { planConflicts } from '@/lib/planner/planConflicts';
 import { planExamConflicts } from '@/lib/planner/examOverlap';
+import { posterHonesty } from '@/lib/planner/posterHonesty';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
 import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
@@ -52,16 +53,16 @@ export function PlannerPanel() {
       ),
     [entries],
   );
-  // teachTableIds a time change put into a new conflict, computed from the full
-  // sections so declared pairs are excluded correctly.
-  const conflictIds = useMemo(
+  // The time conflicts a time change put among the placed entries, computed from the full
+  // sections so declared pairs are excluded correctly. Its keys drive the danger badge.
+  const timeConflicts = useMemo(
     () =>
-      new Set(
-        planConflicts(
-          entries.map((entry) => snapshotToSection(entry.snapshot)),
-        ).keys(),
-      ),
+      planConflicts(entries.map((entry) => snapshotToSection(entry.snapshot))),
     [entries],
+  );
+  const conflictIds = useMemo(
+    () => new Set(timeConflicts.keys()),
+    [timeConflicts],
   );
   // Exam window overlaps keyed by teachTableId, derived from the same entries so a
   // revalidation exam change re-evaluates the conflicts the way a time change re-lights
@@ -77,6 +78,12 @@ export function PlannerPanel() {
   const examConflictIds = useMemo(
     () => new Set(examConflicts.keys()),
     [examConflicts],
+  );
+  // The poster carries no badges, so it states the data date, the missing count, and the
+  // conflicting pair count as footer text instead (ADR-0055).
+  const honesty = useMemo(
+    () => posterHonesty({ entries, timeConflicts, examConflicts }),
+    [entries, timeConflicts, examConflicts],
   );
   const scheduled = useMemo(() => sections.filter(isScheduled), [sections]);
   const unscheduled = useMemo(
@@ -187,6 +194,7 @@ export function PlannerPanel() {
       window: smartWindow,
       days: smartDays,
       displayOptions,
+      honesty,
       locale: language,
       t,
     }),
@@ -198,6 +206,7 @@ export function PlannerPanel() {
       smartWindow,
       smartDays,
       displayOptions,
+      honesty,
       language,
       t,
     ],
