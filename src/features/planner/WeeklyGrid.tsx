@@ -4,9 +4,9 @@
 // rather than a thin band (ADR, orientation is a template property). Every block position
 // derives from minutes through the grid geometry, never from pixels: a meeting maps to
 // grid lines and its day track. A per day lane draws the hour and quarter gridlines with a
-// gradient so the line count follows the window without a cell per quarter. The axis hour
-// labels center on their gridline and read as an even ruler, with a stronger rule at
-// midday and the window edges. The poster font size scales the whole grid per template.
+// gradient so the line count follows the window without a cell per quarter. GridAxis draws
+// the hour labels and the stronger rules. The poster font size scales the whole grid per
+// template.
 
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, MouseEvent } from 'react';
@@ -18,10 +18,7 @@ import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
 import { Tooltip } from '@/components/Tooltip';
 import { WEEK_DAYS, type DayOfWeek } from '@/lib/parsing/days';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
-import { formatMinutes } from '@/lib/parsing/time';
 import {
-  QUARTER_MIN,
-  hourTicks,
   meetingColumns,
   quarterCount,
   type GridWindow,
@@ -32,23 +29,20 @@ import { dragStore } from './dragStore';
 import { BlockHoverCard } from './BlockHoverCard';
 import { CandidateSlot } from './CandidateSlot';
 import { EventBlock } from './EventBlock';
+import { GridAxis } from './GridAxis';
 import { DraggableBlock } from './DraggableBlock';
 import { SwapTarget } from './SwapTarget';
 import type { PlacedSection } from './placedSection';
-
-type Orientation = 'landscape' | 'portrait';
+import {
+  FIRST_DAY_INDEX,
+  FIRST_TIME_INDEX,
+  QUARTERS_PER_HOUR,
+  type Orientation,
+} from './gridGeometry';
 
 const MAX_STACK_OFFSET = 4;
 const STACK_STEP_PX = 5;
 const HOVER_DELAY_MS = 400;
-
-const AXIS_INDEX = 1; // the leading axis track: landscape row 1, portrait column 1
-const FIRST_DAY_INDEX = 2; // first day track: landscape row 2, portrait column 2
-const FIRST_TIME_INDEX = 2; // first quarter track: landscape column 2, portrait row 2
-const QUARTERS_PER_HOUR = 4;
-const NOON_MIN = 12 * 60;
-const EMPHASIS_LINE =
-  'color-mix(in srgb, var(--kcp-ink-soft) 30%, transparent)';
 
 /** Layered gradients that draw the hour lines and the fainter quarter lines. The lines run
  * across the time axis, so they are vertical in landscape and horizontal in portrait. */
@@ -110,44 +104,6 @@ function gridTemplate(
   };
 }
 
-/** The quarter offsets that carry a stronger rule: the window start, midday, and end. */
-function emphasisOffsets(window: GridWindow, quarters: number): number[] {
-  const offsets = [0, quarters];
-  const noon = (NOON_MIN - window.startMin) / QUARTER_MIN;
-  if (noon > 0 && noon < quarters) {
-    offsets.push(noon);
-  }
-  return offsets;
-}
-
-function emphasisStyle(
-  offset: number,
-  quarters: number,
-  orientation: Orientation,
-): CSSProperties {
-  // The end edge draws on the trailing side of the last cell; the rest on the leading side.
-  const atEnd = offset === quarters;
-  const track = atEnd
-    ? FIRST_TIME_INDEX + offset - 1
-    : FIRST_TIME_INDEX + offset;
-  if (orientation === 'portrait') {
-    const base: CSSProperties = {
-      gridColumn: `${String(FIRST_DAY_INDEX)} / -1`,
-      gridRow: `${String(track)} / span 1`,
-    };
-    return atEnd
-      ? { ...base, borderBottom: `1px solid ${EMPHASIS_LINE}` }
-      : { ...base, borderTop: `1px solid ${EMPHASIS_LINE}` };
-  }
-  const base: CSSProperties = {
-    gridColumn: `${String(track)} / span 1`,
-    gridRow: `${String(FIRST_DAY_INDEX)} / -1`,
-  };
-  return atEnd
-    ? { ...base, borderRight: `1px solid ${EMPHASIS_LINE}` }
-    : { ...base, borderLeft: `1px solid ${EMPHASIS_LINE}` };
-}
-
 interface WeeklyGridProps {
   sections: PlacedSection[];
   window: GridWindow;
@@ -206,14 +162,11 @@ export function WeeklyGrid({
 }: WeeklyGridProps) {
   // The grid geometry follows only the window, the day tracks, and the orientation, so it
   // holds stable across a drag or a plan change and is computed once per those inputs.
-  const { ticks, lane, gridStyle, emphasis } = useMemo(() => {
+  const { lane, gridStyle } = useMemo(() => {
     const quarters = quarterCount(window);
     return {
-      // The last tick is the window's closing edge and needs no label.
-      ticks: hourTicks(window).slice(0, -1),
       lane: laneBackground(quarters, orientation),
       gridStyle: gridTemplate(quarters, days.length, orientation),
-      emphasis: emphasisOffsets(window, quarters),
     };
   }, [window, days, orientation]);
   const showRoom = display?.showRoom ?? true;
@@ -324,59 +277,7 @@ export function WeeklyGrid({
       className={`grid h-full text-ink ${isPortrait ? 'min-h-[44rem]' : 'min-w-[44rem]'} ${blocked ? 'cursor-not-allowed' : ''}`}
       style={{ ...gridStyle, fontSize: `${String(fontPx)}px` }}
     >
-      {ticks.map((min, index) => {
-        const track = FIRST_TIME_INDEX + index * QUARTERS_PER_HOUR;
-        const first = index === 0;
-        return (
-          <div
-            key={min}
-            aria-hidden
-            className="relative overflow-visible text-[0.92em] text-ink-soft"
-            style={
-              isPortrait
-                ? {
-                    gridColumn: 1,
-                    gridRow: `${String(track)} / span ${String(QUARTERS_PER_HOUR)}`,
-                  }
-                : {
-                    gridRow: AXIS_INDEX,
-                    gridColumn: `${String(track)} / span ${String(QUARTERS_PER_HOUR)}`,
-                  }
-            }
-          >
-            <span
-              className="absolute whitespace-nowrap"
-              style={
-                isPortrait
-                  ? {
-                      right: '0.35em',
-                      top: 0,
-                      transform: first ? 'none' : 'translateY(-50%)',
-                    }
-                  : {
-                      bottom: 0,
-                      left: 0,
-                      transform: first ? 'none' : 'translateX(-50%)',
-                    }
-              }
-            >
-              {formatMinutes(min)}
-            </span>
-          </div>
-        );
-      })}
-
-      {emphasis.map((offset) => {
-        const quarters = quarterCount(window);
-        return (
-          <div
-            key={`emph-${String(offset)}`}
-            aria-hidden
-            className="pointer-events-none"
-            style={emphasisStyle(offset, quarters, orientation)}
-          />
-        );
-      })}
+      <GridAxis window={window} orientation={orientation} />
 
       {days.map((day, index) => {
         const dayTrack = FIRST_DAY_INDEX + index;
