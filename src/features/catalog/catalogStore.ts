@@ -1,11 +1,18 @@
-// Session scoped catalog filter state. Held in memory like the other panel
-// stores, it survives closing and reopening the overlay within a page session.
-// Every update produces a new filter object so the shared empty filter is never
-// mutated.
+// Session scoped catalog filter and card disclosure state. Held in memory like the
+// other panel stores, it survives closing and reopening the overlay within a page
+// session. Every update produces a new filter object so the shared empty filter is
+// never mutated.
 
 import { createStore } from 'zustand/vanilla';
 import { EMPTY_FILTER, type CatalogFilter } from '@/lib/catalog/filter';
 import type { DayOfWeek } from '@/lib/domain/types';
+import {
+  EMPTY_DISCLOSURE,
+  withChoice,
+  withPlacement,
+  type CardChoice,
+  type CardDisclosure,
+} from '@/lib/catalog/cardDisclosure';
 
 export interface CatalogStore {
   filter: CatalogFilter;
@@ -16,6 +23,14 @@ export interface CatalogStore {
   setHideConflicting: (value: boolean) => void;
   setHideUnscheduled: (value: boolean) => void;
   resetFilter: () => void;
+  disclosure: CardDisclosure;
+  setCardOpen: (
+    queryKey: string | null,
+    subjectId: string,
+    choice: CardChoice,
+  ) => void;
+  /** Drops the card choices a plan change has made stale. */
+  syncPlacement: (addedIds: ReadonlySet<string>) => void;
 }
 
 export function createCatalogStore() {
@@ -46,6 +61,17 @@ export function createCatalogStore() {
     },
     resetFilter: () => {
       set({ filter: EMPTY_FILTER });
+    },
+    disclosure: EMPTY_DISCLOSURE,
+    setCardOpen: (queryKey, subjectId, choice) => {
+      set((state) => ({
+        disclosure: withChoice(state.disclosure, queryKey, subjectId, choice),
+      }));
+    },
+    syncPlacement: (addedIds) => {
+      set((state) => ({
+        disclosure: withPlacement(state.disclosure, addedIds),
+      }));
     },
   }));
 }
