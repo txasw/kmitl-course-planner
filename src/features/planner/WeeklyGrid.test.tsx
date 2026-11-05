@@ -400,6 +400,31 @@ describe('WeeklyGrid', () => {
     expect(hour.style.left).toBe('');
   });
 
+  it('lets the sticky day column alone draw the start rule in edit', () => {
+    render(
+      <WeeklyGrid
+        sections={[]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+        editable
+      />,
+    );
+    // Both rules are translucent, so a grid start rule under the day column edge would
+    // read darker than the midday and closing rules.
+    expect(screen.getByLabelText('วันจันทร์').className).toContain(
+      'shadow-[1px_0_0_var(--kcp-grid-strong)]',
+    );
+    const grid = screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+    const strong = Array.from(
+      grid.querySelectorAll<HTMLElement>('.border-grid-strong'),
+    );
+    expect(strong.map((node) => node.style.gridColumn)).toEqual([
+      '22 / span 1',
+      '57 / span 1',
+    ]);
+  });
+
   it('swaps the sticky sides in portrait', () => {
     render(
       <WeeklyGrid

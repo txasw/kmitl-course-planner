@@ -209,7 +209,11 @@ export function WeeklyGrid({
         sticky={editable}
       />
 
-      <GridRules window={window} orientation={orientation} />
+      <GridRules
+        window={window}
+        orientation={orientation}
+        startEdgeDrawn={editable && orientation === 'landscape'}
+      />
 
       {editable ? (
         <CandidateLayer
