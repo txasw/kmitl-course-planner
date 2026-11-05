@@ -1,9 +1,10 @@
 // The search form at the head of the catalog column: a tab bar over the three
 // official search modes, the active tab's fields, and a submit under the last field
-// that streams results into the catalog below. The column scrolls as one, so the
-// form carries no scroller of its own. Reference data loads once on mount; the term
-// seeds from the host route, a persisted search, the active plan, or the term after
-// the registrar's current one. The four async surfaces each render a deliberate state.
+// that streams results into the catalog below. The search header around it owns the
+// fold and the scroller, so the form lays out at its natural height. Reference data
+// loads once on mount; the term seeds from the host route, a persisted search, the
+// active plan, or the term after the registrar's current one. The four async surfaces
+// each render a deliberate state.
 
 import { useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
