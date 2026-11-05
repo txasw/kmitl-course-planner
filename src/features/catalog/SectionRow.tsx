@@ -8,7 +8,7 @@
 // reason. When handlers are supplied the row offers an add button for an addable or
 // conflicting open section and a remove button for an added one.
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Info, Plus } from 'lucide-react';
 import { Tooltip } from '@/components/Tooltip';
 import { RemoveButton, removeSectionName } from './RemoveButton';
@@ -19,10 +19,9 @@ import type { SeatStatus } from '@/lib/catalog/seatStatus';
 import { computeSeatDemand } from '@/lib/catalog/seatDemand';
 import { computeRowStatus } from '@/lib/catalog/rowStatus';
 import type { SectionRelation } from '@/lib/planner/sectionState';
-import type { ConflictDetail } from '@/lib/planner/placement';
 import { describeConflicts } from '@/lib/planner/describeConflict';
-import { conflictReasonText } from '@/features/planner/conflictText';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
+import { ConflictCallout } from './ConflictCallout';
 import { SeatDemand } from './SeatDemand';
 import { StatusBadge } from './StatusBadge';
 import { meetingLabel } from './meetingFormat';
@@ -75,6 +74,11 @@ export function SectionRow({
     : railKind(relation, seat, onAdd !== undefined);
   const addLabel = `${t('action.add')} ${section.subjectId} ${t('section.code')} ${section.section}`;
   const [showDetails, setShowDetails] = useState(false);
+  const calloutId = useId();
+  const conflict =
+    !readOnly && relation.kind === 'conflicting'
+      ? describeConflicts(relation.conflicts)
+      : null;
 
   return (
     <div
@@ -187,8 +191,8 @@ export function SectionRow({
           </p>
         ) : null}
 
-        {!readOnly && relation.kind === 'conflicting' ? (
-          <ConflictReason conflicts={relation.conflicts} t={t} />
+        {conflict !== null ? (
+          <ConflictCallout id={calloutId} description={conflict} t={t} />
         ) : null}
         {!readOnly && relation.kind === 'duplicate' ? (
           <p className="mt-1 text-warn">{t('section.reason.duplicate')}</p>
@@ -203,6 +207,7 @@ export function SectionRow({
       {rail === 'add' && onAdd !== undefined ? (
         <AddRail
           label={addLabel}
+          describedBy={conflict !== null ? calloutId : undefined}
           onAdd={() => {
             onAdd(course, section);
           }}
@@ -211,25 +216,6 @@ export function SectionRow({
         <DisabledRail label={addLabel} />
       ) : null}
     </div>
-  );
-}
-
-// The reason line goes through the same conflictText funnel as the reason chip and the
-// feedback strip, so a catalog row names a time or exam clash, its blocking section, and
-// the count of further conflicts in the same words a drag would use.
-function ConflictReason({
-  conflicts,
-  t,
-}: {
-  conflicts: ConflictDetail[];
-  t: Translate;
-}) {
-  const description = describeConflicts(conflicts);
-  if (description === null) {
-    return null;
-  }
-  return (
-    <p className="mt-1 text-danger">{conflictReasonText(description, t)}</p>
   );
 }
 
@@ -266,8 +252,18 @@ function railKind(
 // only on hover and focus. Its own bordered column (w-8, shrink-0, border-l) means it
 // never overlaps the row body, which stays min-w-0 and clips rather than spilling into
 // the rail at any card width. The accent icon on the soft surface and white on the
-// solid hover fill both clear the AA text bar (token-contrast.test.ts).
-function AddRail({ label, onAdd }: { label: string; onAdd: () => void }) {
+// solid hover fill both clear the AA text bar (token-contrast.test.ts). On a conflicting
+// row its description points at the conflict callout, so a screen reader hears why the
+// add will route to the blocked feedback before pressing it.
+function AddRail({
+  label,
+  describedBy,
+  onAdd,
+}: {
+  label: string;
+  describedBy: string | undefined;
+  onAdd: () => void;
+}) {
   return (
     <Tooltip label={label}>
       {(triggerProps, ref) => (
@@ -276,6 +272,9 @@ function AddRail({ label, onAdd }: { label: string; onAdd: () => void }) {
           {...triggerProps}
           type="button"
           aria-label={label}
+          {...(describedBy !== undefined
+            ? { 'aria-describedby': describedBy }
+            : {})}
           onPointerDown={(event) => {
             event.stopPropagation();
           }}
