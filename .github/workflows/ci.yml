@@ -54,6 +54,12 @@ jobs:
           done
           rm -f commit-message.txt
           exit $status
+      - name: Enforce pull request description policy
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          printf '%s' "${PR_BODY}" > "${RUNNER_TEMP}/pr-body.txt"
+          node scripts/commit-msg-guard.mjs --pr-body "${RUNNER_TEMP}/pr-body.txt"
 
   test:
     name: test
