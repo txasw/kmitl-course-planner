@@ -5,13 +5,14 @@
 // visible line differs: a capped section reads its remaining count out of the limit,
 // an uncapped one (the API sends the limit "-") has no count to give.
 //
-// Oversubscribed records that pre registrations exceed a capped section's capacity,
-// the factual signal the demand chip shows; it carries no estimate of a chance.
+// Oversubscribed records that pre registrations exceed a capped section's capacity. It
+// is a fact read from the counts, not an estimate of a student's chance. The summary
+// takes only the seat fields, so a plan entry snapshot formats the same way a catalog
+// section does.
 
-import type { Section } from '../domain/types';
 import type { Translate, TranslationKey } from '../i18n/t';
 import { fillTemplate } from '../i18n/template';
-import { computeSeatStatus } from './seatStatus';
+import { computeSeatStatus, type SeatFields } from './seatStatus';
 
 export type SeatState = 'open' | 'uncapped' | 'full' | 'closed';
 
@@ -28,7 +29,7 @@ export interface SeatDemand {
   oversubscribed: boolean;
 }
 
-export function computeSeatDemand(section: Section): SeatDemand {
+export function computeSeatDemand(section: SeatFields): SeatDemand {
   const status = computeSeatStatus(section);
   const { limit, enrolled, preCount, queueLeft } = section.seats;
   const state: SeatState =

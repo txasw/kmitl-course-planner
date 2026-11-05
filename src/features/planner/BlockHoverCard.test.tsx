@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, cleanup, act } from '@testing-library/react';
-import { createTranslator } from '@/lib/i18n/t';
+import { createTranslator, type Locale } from '@/lib/i18n/t';
+import type { Seats } from '@/lib/domain/types';
 import {
   makeMeeting,
   makePlanEntry,
@@ -21,10 +22,13 @@ afterEach(() => {
   });
 });
 
-function seedEntry() {
+function seedEntry(
+  seats: Seats = { limit: 40, preCount: 0, queueLeft: 40, enrolled: 0 },
+) {
   const entry = makePlanEntry({
     snapshot: makeSnapshot({
       teachTableId: 'x',
+      seats,
       subjectId: '90592033',
       section: '901',
       meetings: [
@@ -69,11 +73,55 @@ describe('BlockHoverCard', () => {
     expect(screen.getByText(/90592033/)).toBeInTheDocument();
     expect(screen.getByText(/A101/)).toBeInTheDocument();
     expect(screen.getByText(/อ\. ทดสอบ/)).toBeInTheDocument();
-    // The seat line reads from the snapshot seats.
-    expect(screen.getByText(/ที่นั่ง/)).toBeInTheDocument();
+    // The seat line reads from the snapshot seats in the catalog row convention.
+    expect(screen.getByText('ว่าง 40 จาก 40')).toBeInTheDocument();
     expect(screen.getByText('วิชาทดสอบ')).toHaveAttribute('lang', 'th');
     anchor.remove();
   });
+
+  it.each([
+    [
+      'th',
+      { limit: 45, preCount: 0, queueLeft: 0, enrolled: 33 },
+      'ว่าง 12 จาก 45',
+    ],
+    [
+      'en',
+      { limit: 45, preCount: 0, queueLeft: 0, enrolled: 33 },
+      '12 of 45 open',
+    ],
+    [
+      'th',
+      { limit: null, preCount: 0, queueLeft: 0, enrolled: 120 },
+      'ไม่จำกัดที่นั่ง',
+    ],
+    [
+      'th',
+      { limit: 40, preCount: 40, queueLeft: 0, enrolled: 'full' },
+      'เต็ม เพิ่มไม่ได้',
+    ],
+  ] as const satisfies readonly (readonly [Locale, Seats, string])[])(
+    'shows the %s seat line %j as %s',
+    (locale, seats, text) => {
+      seedEntry(seats);
+      const anchor = document.createElement('div');
+      document.body.appendChild(anchor);
+      render(
+        <BlockHoverCard
+          teachTableId="x"
+          anchor={anchor}
+          locale={locale}
+          t={createTranslator(locale)}
+          examOverlaps={[]}
+          onClose={() => undefined}
+        />,
+      );
+      expect(screen.getByText(text)).toBeInTheDocument();
+      // One seat convention: the enrolled over limit fraction is gone.
+      expect(screen.queryByText(/\d+\/\d+/)).not.toBeInTheDocument();
+      anchor.remove();
+    },
+  );
 
   it('renders nothing when the entry has left the plan', () => {
     const { container } = render(
