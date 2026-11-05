@@ -11,6 +11,7 @@
 import { createStore } from 'zustand/vanilla';
 import type { Course, Section } from '@/lib/domain/types';
 import type { Term } from '@/lib/routing/academicTerms';
+import type { TermMismatch } from '@/lib/planner/transaction';
 import { areDeclaredPair } from '@/lib/planner/conflicts';
 import {
   checkPlacement,
@@ -117,7 +118,9 @@ export interface DragStore {
   showBlocked: (feedback: BlockedFeedback) => void;
   clearBlocked: () => void;
   /** Surface a cross term rejection in the strip, naming both terms. */
-  showCrossTerm: (feedback: CrossTermFeedback) => void;
+  /** Show the switch term strip for a rejected add. A mismatch with no readable
+   * term on either side has nothing to name or switch to, so it clears instead. */
+  showCrossTerm: (mismatch: TermMismatch) => void;
   clearCrossTerm: () => void;
   setHover: (section: Section) => void;
   clearHover: () => void;
@@ -207,11 +210,14 @@ export function createDragStore() {
     clearBlocked: () => {
       set({ blocked: null });
     },
-    showCrossTerm: (feedback) => {
+    showCrossTerm: ({ planTerm, incomingTerm }) => {
       set({
         active: null,
         blocked: null,
-        crossTerm: feedback,
+        crossTerm:
+          planTerm !== null && incomingTerm !== null
+            ? { planTerm, browsedTerm: incomingTerm }
+            : null,
         announcement: null,
         swapContext: null,
       });

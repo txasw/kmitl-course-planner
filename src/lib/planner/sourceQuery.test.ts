@@ -53,17 +53,19 @@ describe('termFromSourceQueryParams', () => {
     ).toEqual({ year: '2569', semester: '2' });
   });
 
-  it('defaults the semester and year for a degenerate empty map', () => {
-    expect(termFromSourceQueryParams({})).toEqual({ year: '', semester: '1' });
+  it('reads no term from a map without a year or semester', () => {
+    expect(termFromSourceQueryParams({})).toBeNull();
+    expect(termFromSourceQueryParams({ selected_semester: '1' })).toBeNull();
+    expect(termFromSourceQueryParams({ selected_year: '2569' })).toBeNull();
   });
 
-  it('falls back to the first semester on an out of range value', () => {
+  it('reads no term from an out of range semester', () => {
     expect(
       termFromSourceQueryParams({
         selected_year: '2569',
         selected_semester: '9',
-      }).semester,
-    ).toBe('1');
+      }),
+    ).toBeNull();
   });
 });
 

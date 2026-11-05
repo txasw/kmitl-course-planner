@@ -245,10 +245,7 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
           });
         } else if (!outcome.ok) {
           // Backstop: the swap incoming section came from another term.
-          state.showCrossTerm({
-            planTerm: outcome.crossTerm.planTerm,
-            browsedTerm: outcome.crossTerm.incomingTerm,
-          });
+          state.showCrossTerm(outcome.crossTerm);
         }
         return;
       }

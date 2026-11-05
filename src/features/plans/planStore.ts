@@ -118,10 +118,13 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
       const active = state.plans.find((plan) => plan.id === state.activePlanId);
       // An existing plan fixes the term; the first add takes the section's own term,
       // so auto-create never rejects itself as cross term.
-      const planTerm: Term =
+      const planTerm: Term | null =
         active !== undefined
           ? { year: active.year, semester: active.semester }
           : termFromSourceQueryParams(sourceQuery.params);
+      if (planTerm === null) {
+        return { ok: false, crossTerm: { planTerm: null, incomingTerm: null } };
+      }
       const outcome = addSectionGroup(
         active?.entries ?? EMPTY_ENTRIES,
         course,

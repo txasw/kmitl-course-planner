@@ -18,9 +18,14 @@ import { termFromSourceQueryParams } from './sourceQuery';
 import { summarizeCredits, type CreditSummary } from './credits';
 
 /** A rejected add whose section came from a query for a different term than the plan. */
+/**
+ * A rejected add whose source term differs from the plan's. incomingTerm is null
+ * when the source query carries no readable term. planTerm is null only on a first
+ * add with no plan, where that unreadable term was the only term available.
+ */
 export interface TermMismatch {
-  planTerm: Term;
-  incomingTerm: Term;
+  planTerm: Term | null;
+  incomingTerm: Term | null;
 }
 
 /** The placed sections a plan holds, rebuilt from its entry snapshots. */
@@ -83,7 +88,7 @@ export function addSectionGroup(
   planTerm: Term,
 ): AddOutcome {
   const incomingTerm = termFromSourceQueryParams(sourceQuery.params);
-  if (!termsEqual(incomingTerm, planTerm)) {
+  if (incomingTerm === null || !termsEqual(incomingTerm, planTerm)) {
     return { ok: false, crossTerm: { planTerm, incomingTerm } };
   }
   const group = expandSectionGroup(course, section);

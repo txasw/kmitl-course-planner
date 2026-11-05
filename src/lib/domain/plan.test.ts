@@ -57,6 +57,22 @@ describe('planSchema', () => {
     }
   });
 
+  it('rejects an entry whose source query has no semester', () => {
+    const entry = makePlanEntry();
+    const plan = makePlan({
+      entries: [
+        {
+          ...entry,
+          sourceQuery: {
+            endpoint: 'get-teach-table-show',
+            params: { mode: 'by_class', selected_year: '2569' },
+          },
+        },
+      ],
+    });
+    expect(validate(planSchema, plan).ok).toBe(false);
+  });
+
   it('carries the durable identity and source query on each entry', () => {
     const plan = makePlan();
     const entry = plan.entries[0];

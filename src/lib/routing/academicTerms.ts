@@ -37,18 +37,34 @@ export interface Term {
   semester: Semester;
 }
 
+/**
+ * Read a term from a query's year and semester strings, or null when either is
+ * missing or the semester is not one of the three. Queries, stored source queries
+ * and the catalog's browsed term all read their term through this one function.
+ */
+export function termFromQueryFields(
+  year: string | undefined,
+  semester: string | undefined,
+): Term | null {
+  const parsed = parseSemester(semester);
+  if (year === undefined || year.length === 0 || parsed === null) {
+    return null;
+  }
+  return { year, semester: parsed };
+}
+
 /** Two terms are equal when their year and semester both match. */
 export function termsEqual(a: Term, b: Term): boolean {
   return a.year === b.year && a.semester === b.semester;
 }
 
-/** Narrow a semester string to the enum, defaulting to the first semester. */
-export function asSemester(value: string | undefined): Semester {
-  return value === '1' || value === '2' || value === '3' ? value : '1';
-}
-
-function coerceSemester(value: string | undefined): Semester | null {
-  return value === '1' || value === '2' || value === '3' ? value : null;
+/**
+ * Narrow a semester string to the enum, or null when it is not one. There is no
+ * default: a caller that silently read a missing semester as the first one would let
+ * a malformed source query pass the cross term gate of a first semester plan.
+ */
+export function parseSemester(value: string | undefined): Semester | null {
+  return SEMESTERS.find((semester) => semester === value) ?? null;
 }
 
 /**
@@ -62,7 +78,7 @@ export function resolveInitialTerm(
 ): Term {
   const newest = years[years.length - 1] ?? String(EARLIEST_BUDDHIST_YEAR);
   const routeYear = route?.params.selected_year;
-  const routeSemester = coerceSemester(route?.params.selected_semester);
+  const routeSemester = parseSemester(route?.params.selected_semester);
   return {
     year: routeYear !== undefined && routeYear.length > 0 ? routeYear : newest,
     semester: routeSemester ?? '1',

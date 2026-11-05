@@ -31,11 +31,10 @@ import {
   ALL_OPTION,
   CLASS_YEARS,
   asClassYear,
-  asSemester,
   type CategoryForm,
   type ClassForm,
 } from '@/lib/search/formState';
-import { SEMESTERS } from '@/lib/routing/academicTerms';
+import { SEMESTERS, parseSemester } from '@/lib/routing/academicTerms';
 
 export interface ReferenceLists {
   faculties: AsyncState<RawFaculty[]>;
@@ -261,7 +260,7 @@ export function ClassFields({
           patch({ year });
         }}
         onSemester={(value) => {
-          const semester = asSemester(value);
+          const semester = parseSemester(value);
           if (semester !== null) {
             patch({ semester });
           }
@@ -353,7 +352,7 @@ export function CategoryFields({
           patch({ year });
         }}
         onSemester={(value) => {
-          const semester = asSemester(value);
+          const semester = parseSemester(value);
           if (semester !== null) {
             patch({ semester });
           }

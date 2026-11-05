@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   EARLIEST_BUDDHIST_YEAR,
   buddhistYears,
+  parseSemester,
   resolveInitialTerm,
+  termFromQueryFields,
   toBuddhistYear,
 } from './academicTerms';
 import type { TeachTableRoute } from './parseTeachTableRoute';
@@ -24,6 +26,27 @@ describe('buddhistYears', () => {
 
   it('never returns fewer than the earliest year for an old input', () => {
     expect(buddhistYears(2555)).toEqual([String(EARLIEST_BUDDHIST_YEAR)]);
+  });
+});
+
+describe('parseSemester', () => {
+  it('narrows the three semesters and rejects anything else', () => {
+    expect(parseSemester('2')).toBe('2');
+    expect(parseSemester('9')).toBeNull();
+    expect(parseSemester('')).toBeNull();
+    expect(parseSemester(undefined)).toBeNull();
+  });
+});
+
+describe('termFromQueryFields', () => {
+  it('reads a term only when both fields are usable', () => {
+    expect(termFromQueryFields('2569', '2')).toEqual({
+      year: '2569',
+      semester: '2',
+    });
+    expect(termFromQueryFields('2569', undefined)).toBeNull();
+    expect(termFromQueryFields('', '1')).toBeNull();
+    expect(termFromQueryFields(undefined, '1')).toBeNull();
   });
 });
 
