@@ -26,6 +26,7 @@
   --color-surface: var(--kcp-surface);
   --color-surface-alt: var(--kcp-surface-alt);
   --color-border: var(--kcp-border);
+  --color-border-strong: var(--kcp-border-strong);
   --color-danger: var(--kcp-danger);
   --color-danger-soft: var(--kcp-danger-soft);
   --color-warn: var(--kcp-warn);
@@ -70,6 +71,9 @@
   --kcp-surface: #ffffff;
   --kcp-surface-alt: #f7f7f8;
   --kcp-border: #e4e4e7;
+  /* Form control boundaries only, so a field clears the 3:1 non text bar on both
+     surfaces while dividers and gridlines keep the quiet border. See ADR-0051. */
+  --kcp-border-strong: #838389;
   --kcp-danger: #c62828;
   /* Warn and success are darkened from the brief values so their text passes 4.5:1 on
      the soft and surface backgrounds they sit on; the brief allows a token correction. */
@@ -124,6 +128,16 @@
    would turn 2147483647 into 2147480000 and let a host page layer above it. */
 @utility z-host {
   z-index: 2147483647;
+}
+
+/* Placeholders read ink soft at full opacity, which clears 4.5:1 on both surfaces,
+   replacing the preflight default of half the current color. Declared in the base
+   layer after preflight so a placeholder utility can still override it. */
+@layer base {
+  ::placeholder {
+    color: var(--kcp-ink-soft);
+    opacity: 1;
+  }
 }
 
 /* Selected text inside the panel uses the brand soft wash with ink text, a pair

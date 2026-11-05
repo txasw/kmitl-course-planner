@@ -23,6 +23,7 @@ const COLOR_TOKENS = [
   'surface',
   'surface-alt',
   'border',
+  'border-strong',
   'danger',
   'danger-soft',
   'warn',
@@ -61,6 +62,12 @@ describe('shadow stylesheet tokens', () => {
     }
     expect(css).toContain('--radius-kcp: var(--kcp-radius)');
     expect(css).toContain('--shadow-kcp: var(--kcp-shadow)');
+  });
+
+  it('draws placeholders in ink soft at full opacity', () => {
+    expect(css).toMatch(
+      /@layer base \{\s*::placeholder \{\s*color: var\(--kcp-ink-soft\);\s*opacity: 1;\s*\}/,
+    );
   });
 
   it('declares the layer scale and maps it into the z-index namespace', () => {
