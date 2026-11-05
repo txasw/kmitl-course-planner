@@ -7,7 +7,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
-import { AlertTriangle, CalendarRange, ChevronDown } from 'lucide-react';
+import { CalendarRange, ChevronDown } from 'lucide-react';
 import { useClick, useDismiss, useInteractions } from '@floating-ui/react';
 import { planSchema, type Plan } from '@/lib/domain/plan';
 import type { Term } from '@/lib/routing/academicTerms';
@@ -21,6 +21,8 @@ import {
   usePanelPopover,
 } from '@/features/shell/usePanelPopover';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { DeleteConfirm } from './DeleteConfirm';
+import { ImportErrorView } from './ImportErrorView';
 import { NameForm } from './NameForm';
 import { PlanList } from './PlanList';
 import { planStore, useActivePlan } from './planStore';
@@ -267,63 +269,27 @@ export function PlanSwitcher() {
               }}
             />
           ) : mode.kind === 'confirmDelete' ? (
-            <div className="flex flex-col gap-2">
-              <p className="text-ink">
-                {t('planSwitcher.deletePrompt')}{' '}
-                {plans.find((plan) => plan.id === mode.planId)?.name ?? ''}
-              </p>
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode({ kind: 'list' });
-                  }}
-                  className="rounded-kcp border border-border px-2 py-1 font-medium text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                >
-                  {t('action.cancel')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    planStore.getState().deletePlan(mode.planId);
-                    // The fallback plan may be a different term; snap the form to it.
-                    snapToActivePlan();
-                    setMode({ kind: 'list' });
-                  }}
-                  className="rounded-kcp bg-danger px-2 py-1 font-medium text-white outline-none hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                >
-                  {t('planSwitcher.delete')}
-                </button>
-              </div>
-            </div>
+            <DeleteConfirm
+              planName={
+                plans.find((plan) => plan.id === mode.planId)?.name ?? ''
+              }
+              onCancel={() => {
+                setMode({ kind: 'list' });
+              }}
+              onConfirm={() => {
+                planStore.getState().deletePlan(mode.planId);
+                // The fallback plan may be a different term; snap the form to it.
+                snapToActivePlan();
+                setMode({ kind: 'list' });
+              }}
+            />
           ) : mode.kind === 'importError' ? (
-            <div className="flex flex-col gap-2">
-              <p className="flex items-center gap-1.5 font-medium text-ink">
-                <AlertTriangle
-                  size={16}
-                  strokeWidth={2}
-                  className="shrink-0 text-danger"
-                  aria-hidden
-                />
-                {t('planData.errorTitle')}
-              </p>
-              <ul className="flex max-h-48 flex-col gap-1 overflow-auto kcp-scroll text-xs text-danger">
-                {mode.issues.map((issue, index) => (
-                  <li key={`${String(index)}-${issue}`}>{issue}</li>
-                ))}
-              </ul>
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode({ kind: 'list' });
-                  }}
-                  className="rounded-kcp border border-border px-2 py-1 font-medium text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                >
-                  {t('action.back')}
-                </button>
-              </div>
-            </div>
+            <ImportErrorView
+              issues={mode.issues}
+              onBack={() => {
+                setMode({ kind: 'list' });
+              }}
+            />
           ) : (
             <PlanList
               plans={plans}

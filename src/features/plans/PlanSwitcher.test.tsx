@@ -247,6 +247,33 @@ describe('PlanSwitcher', () => {
     expect(planStore.getState().plans).toHaveLength(0);
   });
 
+  it('keeps the plan when the delete confirm is cancelled', () => {
+    seedTwoPlans();
+    render(<PlanSwitcher />);
+    openMenu();
+    fireEvent.click(screen.getByRole('button', { name: 'ลบ A' }));
+    fireEvent.click(screen.getByRole('button', { name: 'ยกเลิก' }));
+    expect(planStore.getState().plans).toHaveLength(2);
+    expect(
+      screen.getByRole('button', { name: 'สร้างตาราง' }),
+    ).toBeInTheDocument();
+  });
+
+  it('returns from the import error view to the plan list', async () => {
+    const { container } = render(<PlanSwitcher />);
+    openMenu();
+    selectFile(fileInput(container), { id: 'x', name: 'x' });
+    await waitFor(() => {
+      expect(
+        screen.getByText('นำเข้าไม่สำเร็จ ข้อมูลไม่ถูกต้อง'),
+      ).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'ย้อนกลับ' }));
+    expect(
+      screen.getByRole('button', { name: 'สร้างตาราง' }),
+    ).toBeInTheDocument();
+  });
+
   it('imports a valid plan as a new unverified plan', async () => {
     const { container } = render(<PlanSwitcher />);
     openMenu();
