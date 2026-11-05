@@ -61,7 +61,7 @@ export function UnscheduledShelf({
           return (
             <li
               key={section.teachTableId}
-              className="@container flex items-center justify-between gap-2 text-xs"
+              className="flex items-center justify-between gap-2 text-xs"
             >
               <span className="flex min-w-0 flex-col text-ink">
                 <Tooltip
