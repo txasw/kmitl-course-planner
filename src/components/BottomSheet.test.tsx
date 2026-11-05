@@ -116,6 +116,14 @@ describe('BottomSheet', () => {
     expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
   });
 
+  it('keeps Shift+Tab from the focused heading inside the sheet', () => {
+    openSheet();
+    const heading = screen.getByRole('heading', { name: 'Sheet title' });
+    expect(heading).toHaveFocus();
+    fireEvent.keyDown(heading, { key: 'Tab', shiftKey: true });
+    expect(screen.getByRole('button', { name: 'Body action' })).toHaveFocus();
+  });
+
   it('closes from the scrim, which is neither a tab stop nor announced', () => {
     openSheet();
     const scrim = screen
