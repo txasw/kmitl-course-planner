@@ -144,7 +144,7 @@ export function BlockHoverCard({
       ) : null}
       {badge !== null && badgeText !== '' ? (
         <p
-          className={`font-medium ${badge === 'danger' ? 'text-danger' : 'text-warn'}`}
+          className={`font-semibold ${badge === 'danger' ? 'text-danger' : 'text-warn'}`}
         >
           {badgeText}
         </p>

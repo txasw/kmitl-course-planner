@@ -71,7 +71,7 @@ export function UnscheduledShelf({
                     <span ref={ref} {...triggerProps} className="truncate">
                       {showSubjectId ? (
                         <>
-                          <span className="font-medium">
+                          <span className="font-semibold">
                             {section.subjectId}
                           </span>{' '}
                         </>
@@ -123,7 +123,7 @@ export function UnscheduledShelf({
                     onClick={() => {
                       onRemove(section.teachTableId);
                     }}
-                    className="rounded-kcp border border-border px-2 py-0.5 font-medium text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    className="rounded-kcp border border-border px-2 py-0.5 text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     {t('action.remove')}
                   </button>

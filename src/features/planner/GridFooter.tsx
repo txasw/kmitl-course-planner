@@ -44,7 +44,7 @@ export function GridFooter({ sections, t, flush = false }: GridFooterProps) {
         flush ? '' : 'border-t border-border pt-2'
       }`}
     >
-      <span className="font-medium text-ink">
+      <span className="font-semibold text-ink">
         {credits.credits} {t('footer.credits')}
       </span>
       <span>

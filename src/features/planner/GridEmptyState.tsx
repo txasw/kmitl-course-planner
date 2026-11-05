@@ -14,7 +14,7 @@ export function GridEmptyState({ t }: { t: Translate }) {
         className="text-ink-soft"
         aria-hidden
       />
-      <p className="text-sm font-medium text-ink">{t('grid.emptyTitle')}</p>
+      <p className="text-sm font-semibold text-ink">{t('grid.emptyTitle')}</p>
       <p className="text-sm text-ink-soft">{t('grid.emptyBody')}</p>
     </div>
   );

@@ -79,7 +79,7 @@ export function RevalidationDetailSheet({
                 key={entry.teachTableId}
                 className="border-t border-border pt-2 first:border-t-0 first:pt-0"
               >
-                <p className="font-medium">
+                <p className="font-semibold">
                   {entry.subjectId} {t('section.code')} {entry.section}
                 </p>
                 {entry.outcome === 'missing' ? (

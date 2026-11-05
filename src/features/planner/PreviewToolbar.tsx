@@ -34,7 +34,7 @@ interface PreviewToolbarProps {
   displayOptions: DisplayOptions;
 }
 
-const BUTTON = `inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm font-medium text-ink hover:bg-surface-alt ${FOCUS_RING}`;
+const BUTTON = `inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm text-ink hover:bg-surface-alt ${FOCUS_RING}`;
 
 /** Whether the browser can write an image to the clipboard. The host is a secure
  * context, so navigator.clipboard is present; ClipboardItem is the real gate. */

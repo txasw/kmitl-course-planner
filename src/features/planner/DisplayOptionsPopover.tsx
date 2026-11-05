@@ -30,7 +30,7 @@ const OPTIONS: { key: keyof DisplayOptions; labelKey: TranslationKey }[] = [
   { key: 'showEnglishNames', labelKey: 'preview.showEnglishNames' },
 ];
 
-const TRIGGER = `inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm font-medium text-ink hover:bg-surface-alt ${FOCUS_RING}`;
+const TRIGGER = `inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm text-ink hover:bg-surface-alt ${FOCUS_RING}`;
 
 export function DisplayOptionsPopover() {
   const { t, language } = useTranslation();

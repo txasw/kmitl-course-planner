@@ -32,7 +32,7 @@ export function ReasonChip({ active }: { active: ActiveDrag }) {
         className="mt-0.5 shrink-0 text-danger"
       />
       <div className="min-w-0">
-        <p className="font-medium text-ink">{headline}</p>
+        <p className="font-semibold text-ink">{headline}</p>
         {detail !== null ? <p className="text-ink-soft">{detail}</p> : null}
         {description.moreCount > 0 ? (
           <p className="text-ink-soft">

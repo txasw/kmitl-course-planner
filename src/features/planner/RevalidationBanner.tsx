@@ -88,7 +88,7 @@ export function RevalidationBanner() {
           onClick={() => {
             setSheetOpen(true);
           }}
-          className="inline-flex items-center gap-1 rounded-kcp border border-border bg-surface px-2 py-0.5 font-medium text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className="inline-flex items-center gap-1 rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
           <List size={12} strokeWidth={2} aria-hidden />
           {t('revalidation.detail')}
@@ -119,7 +119,7 @@ function RefreshButton({
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-1 rounded-kcp border border-border bg-surface px-2 py-0.5 font-medium text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      className="inline-flex items-center gap-1 rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
     >
       <RefreshCw size={12} strokeWidth={2} aria-hidden />
       {label}

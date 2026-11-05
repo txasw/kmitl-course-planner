@@ -232,7 +232,7 @@ function EventBlockComponent({
         {/* Section as a small floating chip in the top right corner. It steps aside on hover
             and focus in edit mode, where the remove control takes that corner. */}
         {level.showSection ? (
-          <span className="pointer-events-none absolute top-1 right-1 rounded bg-ink/10 px-1 text-[0.85em] font-medium text-ink group-hover/block:opacity-0 group-focus-within/block:opacity-0">
+          <span className="pointer-events-none absolute top-1 right-1 rounded bg-ink/10 px-1 text-[0.85em] text-ink group-hover/block:opacity-0 group-focus-within/block:opacity-0">
             {section.section}
           </span>
         ) : null}
