@@ -3,15 +3,15 @@ import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 
 describe('blockBadge', () => {
   it('is danger for a missing section', () => {
-    expect(blockBadge('missing', false)).toBe('danger');
+    expect(blockBadge('missing', false, false)).toBe('danger');
   });
 
   it('is danger for a conflicted section', () => {
-    expect(blockBadge('verified', true)).toBe('danger');
+    expect(blockBadge('verified', true, false)).toBe('danger');
   });
 
   it('is warn for a changed section', () => {
-    expect(blockBadge('changed', false)).toBe('warn');
+    expect(blockBadge('changed', false, false)).toBe('warn');
   });
 
   it('is danger for an exam conflicting section', () => {
@@ -23,21 +23,23 @@ describe('blockBadge', () => {
   });
 
   it('is null for a verified section with no state', () => {
-    expect(blockBadge('verified', false)).toBeNull();
-    expect(blockBadge('unverified', false)).toBeNull();
+    expect(blockBadge('verified', false, false)).toBeNull();
+    expect(blockBadge('unverified', false, false)).toBeNull();
   });
 });
 
 describe('blockBadgeLabelKeys', () => {
   it('labels missing before a conflict', () => {
-    expect(blockBadgeLabelKeys('missing', true)).toEqual([
+    expect(blockBadgeLabelKeys('missing', true, false)).toEqual([
       'verify.missing',
       'verify.conflict',
     ]);
   });
 
   it('labels a conflict when the section is not missing', () => {
-    expect(blockBadgeLabelKeys('verified', true)).toEqual(['verify.conflict']);
+    expect(blockBadgeLabelKeys('verified', true, false)).toEqual([
+      'verify.conflict',
+    ]);
   });
 
   it('labels an exam overlap in the danger group, before a change, and lists both', () => {
@@ -47,7 +49,15 @@ describe('blockBadgeLabelKeys', () => {
     ]);
   });
 
+  it('lists a time conflict and an exam overlap together, time first', () => {
+    expect(blockBadgeLabelKeys('missing', true, true)).toEqual([
+      'verify.missing',
+      'verify.conflict',
+      'verify.examOverlap',
+    ]);
+  });
+
   it('is empty for a verified section with no state', () => {
-    expect(blockBadgeLabelKeys('verified', false)).toEqual([]);
+    expect(blockBadgeLabelKeys('verified', false, false)).toEqual([]);
   });
 });

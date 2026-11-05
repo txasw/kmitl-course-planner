@@ -4,7 +4,9 @@
 // changed reads warn. A block can carry more than one state at once, so the tone folds to
 // the strongest, danger over warn, while the labels list every state that applies so none
 // is lost to a screen reader and an exam overlap reads distinct from a revalidation change.
-// A verified, unverified, or clean section carries no badge.
+// A verified, unverified, or clean section carries no badge. The exam flag is a required
+// argument rather than a default, because a default once let the block popover drop an
+// exam clash and read only the change.
 
 import type { VerifyStatus } from '@/lib/domain/plan';
 import type { TranslationKey } from '@/lib/i18n/t';
@@ -16,7 +18,7 @@ export type BlockBadge = 'warn' | 'danger';
 export function blockBadge(
   verifyStatus: VerifyStatus,
   conflicted: boolean,
-  examConflicted = false,
+  examConflicted: boolean,
 ): BlockBadge | null {
   if (verifyStatus === 'missing' || conflicted || examConflicted) {
     return 'danger';
@@ -33,7 +35,7 @@ export function blockBadge(
 export function blockBadgeLabelKeys(
   verifyStatus: VerifyStatus,
   conflicted: boolean,
-  examConflicted = false,
+  examConflicted: boolean,
 ): TranslationKey[] {
   const keys: TranslationKey[] = [];
   if (verifyStatus === 'missing') {
