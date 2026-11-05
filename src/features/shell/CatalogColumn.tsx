@@ -1,5 +1,9 @@
-// The catalog column of ADR-0048: the search form at its head, then the filter bar and
-// the results, in one scroller. It mounts exactly once at every width and only its
+// The catalog column of ADR-0048: the container header, the search head (the summary
+// bar over the folding search form), then the filter bar and the results in their own
+// scroller. The search head sits outside the results scroller, so the bar stays in view
+// while a long list scrolls and opening or closing the form never moves the list. While
+// a reopened form is taller than the room left, it scrolls in its own region above a
+// minimum of results. It mounts exactly once at every width and only its
 // container class follows the layout tier: docked beside the grid from the lg tier, or a
 // slide over left sheet below it. Switching a class on one element, rather than rendering
 // the catalog in two places, keeps a single drag surface per section and lets the drag
@@ -8,6 +12,7 @@
 // to give the grid the full width; hidden, it leaves the flow but stays mounted, laid
 // out at its width and inert, so its scroll offset and search state wait for its return.
 
+import { useLayoutEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import { useStore } from 'zustand';
 import { PanelLeftClose, X } from 'lucide-react';
@@ -15,7 +20,12 @@ import {
   CatalogPanel,
   useResultCourseCount,
 } from '@/features/catalog/CatalogPanel';
-import { SearchForm } from '@/features/search/SearchForm';
+import { SearchHeader } from '@/features/search/SearchHeader';
+import {
+  searchStore,
+  selectBarVisible,
+  selectFormOpen,
+} from '@/features/search/searchStore';
 import {
   isDockedTier,
   type DockedTier,
@@ -144,6 +154,21 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
   const catalogVisible = useStore(uiStore, (state) => state.catalogVisible);
   const docked = isDockedTier(tier);
   const shown = docked ? catalogVisible : sheetOpen;
+  // While the bar exists and the form is open, the results keep a 12rem minimum, so a
+  // tall form scrolls in its own region rather than pushing the results out of view.
+  const keepResults = useStore(
+    searchStore,
+    (state) => selectBarVisible(state) && selectFormOpen(state),
+  );
+  const lastSubmitAt = useStore(searchStore, (state) => state.lastSubmitAt);
+  const results = useRef<HTMLDivElement>(null);
+
+  // A new user search starts its results from the top, before the frame paints.
+  useLayoutEffect(() => {
+    if (lastSubmitAt !== null && results.current !== null) {
+      results.current.scrollTop = 0;
+    }
+  }, [lastSubmitAt]);
 
   return (
     <div
@@ -153,10 +178,13 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
       className={containerClass(tier, sheetOpen, catalogVisible)}
     >
       {docked ? <DockedHeader /> : <SheetHeader />}
-      <div className="flex min-h-0 flex-1 flex-col gap-6 kcp-scroll overflow-y-auto p-6">
-        <div className="border-b border-border pb-6">
-          <SearchForm />
-        </div>
+      <SearchHeader />
+      <div
+        ref={results}
+        className={`kcp-scroll flex flex-1 flex-col overflow-y-auto p-6 ${
+          keepResults ? 'min-h-48' : 'min-h-0'
+        }`}
+      >
         <CatalogPanel />
       </div>
     </div>

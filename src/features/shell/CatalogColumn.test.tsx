@@ -11,6 +11,7 @@ import { DndContext } from '@dnd-kit/core';
 import type * as DndKit from '@dnd-kit/core';
 import type { UniqueIdentifier, UseDraggableArguments } from '@dnd-kit/core';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
+import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { searchStore } from '@/features/search/searchStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
@@ -45,6 +46,14 @@ vi.mock('@dnd-kit/core', async (importOriginal) => {
 });
 
 const SECTION_IDS = ['t1', 't2', 't3'];
+
+const ownerQuery: TeachTableQuery = {
+  mode: 'by_subject_owner_id',
+  selected_year: '2569',
+  selected_semester: '1',
+  search_all_faculty: true,
+  selected_subject_owner_id: '32',
+};
 
 const catalog: NormalizedCatalog = {
   courses: [
@@ -119,7 +128,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
   registrations.clear();
   act(() => {
-    searchStore.getState().setResult({ status: 'idle' }, null);
+    searchStore.getState().cancelSearch();
     uiStore.getState().setSheetOpen(false);
     uiStore.getState().setCatalogVisible(true);
   });
@@ -235,6 +244,33 @@ describe('CatalogColumn', () => {
     expect(
       screen.queryByRole('button', { name: 'ซ่อนรายวิชา' }),
     ).not.toBeInTheDocument();
+  });
+
+  it('keeps the results offset across the fold and resets it on a new search', () => {
+    installViewport(1440);
+    const { container } = render(<Harness />);
+    act(() => {
+      searchStore.getState().startQuery(ownerQuery, 'user');
+      searchStore
+        .getState()
+        .setResult({ status: 'ready', data: catalog }, ownerQuery);
+    });
+    const node = scroller(container);
+    expect(node).toHaveClass('min-h-0');
+    node.scrollTop = 240;
+
+    fireEvent.click(screen.getByRole('button', { name: 'แก้ไขการค้นหา' }));
+    expect(node).toHaveClass('min-h-48');
+    expect(node.scrollTop).toBe(240);
+    fireEvent.click(screen.getByRole('button', { name: 'แก้ไขการค้นหา' }));
+    expect(node).toHaveClass('min-h-0');
+    expect(node.scrollTop).toBe(240);
+
+    act(() => {
+      searchStore.getState().startQuery({ ...ownerQuery }, 'user');
+    });
+    expect(scroller(container)).toBe(node);
+    expect(node.scrollTop).toBe(0);
   });
 
   it('hands focus between the hide control and the header toggle', () => {
