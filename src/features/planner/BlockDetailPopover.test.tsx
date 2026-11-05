@@ -7,9 +7,13 @@ import {
   act,
   waitFor,
 } from '@testing-library/react';
-import { createTranslator } from '@/lib/i18n/t';
+import { createTranslator, type Locale } from '@/lib/i18n/t';
 import type { ReconcileReport } from '@/lib/planner/revalidate';
 import type { ExamOverlap } from '@/lib/planner/examOverlap';
+import { normalizeTeachTable } from '@/lib/domain/normalize';
+import { buildSnapshot, type PlanEntry } from '@/lib/domain/plan';
+import type { Course, Section } from '@/lib/domain/types';
+import { loadFixture } from '../../../tests/support/fixtures';
 import {
   makeMeeting,
   makePlanEntry,
@@ -46,23 +50,71 @@ function renderPopover(
     onClose?: () => void;
     onRemove?: (id: string) => void;
     examOverlaps?: ExamOverlap[];
+    teachTableId?: string;
+    locale?: Locale;
   } = {},
 ) {
   const onClose = overrides.onClose ?? vi.fn();
   const onRemove = overrides.onRemove ?? vi.fn();
+  const locale = overrides.locale ?? 'en';
   const anchor = makeAnchor();
   render(
     <BlockDetailPopover
-      teachTableId="t1"
+      teachTableId={overrides.teachTableId ?? 't1'}
       anchor={anchor}
-      locale="en"
-      t={t}
+      locale={locale}
+      t={locale === 'en' ? t : createTranslator(locale)}
       onClose={onClose}
       onRemove={onRemove}
       examOverlaps={overrides.examOverlaps ?? []}
     />,
   );
   return { onClose, onRemove };
+}
+
+/** A plan entry for one section of a normalized capture, found by subject and section. */
+function fixtureEntry(
+  fixture: string,
+  subjectId: string,
+  sectionCode: string,
+  overrides: Partial<PlanEntry> = {},
+): { entry: PlanEntry; section: Section } {
+  const result = normalizeTeachTable(loadFixture(fixture));
+  if (!result.ok) {
+    throw new Error(`${fixture} failed to normalize`);
+  }
+  const course: Course | undefined = result.value.courses.find(
+    (item) => item.subjectId === subjectId,
+  );
+  const section = course?.sections.find((item) => item.section === sectionCode);
+  if (course === undefined || section === undefined) {
+    throw new Error(`${fixture} is missing ${subjectId} ${sectionCode}`);
+  }
+  const snapshot = buildSnapshot(section, {
+    subjectId: course.subjectId,
+    nameTh: course.nameTh,
+    nameEn: course.nameEn,
+    credit: course.credit,
+    creditStr: course.creditStr,
+  });
+  return {
+    entry: makePlanEntry({
+      teachTableId: section.teachTableId,
+      subjectId: section.subjectId,
+      section: section.section,
+      snapshot,
+      ...overrides,
+    }),
+    section,
+  };
+}
+
+/** The value cells of the detail row whose label is `label`. */
+function rowValues(label: string): string[] {
+  const row = screen.getByText(label, { selector: 'dt' }).parentElement;
+  return Array.from(row?.querySelectorAll('dd') ?? []).map(
+    (node) => node.textContent,
+  );
 }
 
 describe('BlockDetailPopover', () => {
@@ -177,6 +229,57 @@ describe('BlockDetailPopover', () => {
     expect(
       screen.getByText(/90000009 Section 5: 21 Aug 2569 11:00-13:00/),
     ).toBeInTheDocument();
+  });
+
+  // 01006030 section 34 in the multi meeting capture meets twice on Monday in ECC-608 and
+  // announces both exam windows, and nothing else in the plan clashes with it.
+  it('lists every meeting and the exam windows of a non overlapping entry', () => {
+    const { entry } = fixtureEntry(
+      'teach-table.multi-meeting.capture.json',
+      '01006030',
+      '34',
+    );
+    act(() => {
+      seedActivePlan([entry]);
+    });
+    renderPopover({ teachTableId: entry.teachTableId });
+    expect(rowValues('Class times')).toEqual([
+      'Monday 13:00-14:30ECC ECC-608',
+      'Monday 14:45-16:15ECC ECC-608',
+    ]);
+    expect(rowValues('Midterm')).toEqual(['26 Aug 2568 09:30-12:30']);
+    expect(rowValues('Final')).toEqual(['21 Oct 2568 09:30-12:30']);
+    expect(rowValues('Type and credits')).toEqual(['Lecture 3(3-0-6)']);
+    expect(screen.queryByText('Exam overlap')).not.toBeInTheDocument();
+  });
+
+  it('reads จัดสอบเอง when both exam windows are null', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry({ snapshot: makeSnapshot({ exam: {} }) })]);
+    });
+    renderPopover({ locale: 'th' });
+    expect(rowValues('การสอบ')).toEqual(['จัดสอบเอง']);
+  });
+
+  it('shows the seats, conditions, remark, and the last check in full', () => {
+    act(() => {
+      seedActivePlan([
+        makePlanEntry({
+          verifyStatus: 'verified',
+          lastVerifiedAt: new Date(2026, 10, 6, 8, 5).toISOString(),
+          snapshot: makeSnapshot({
+            seats: { limit: 45, preCount: 0, queueLeft: 0, enrolled: 33 },
+            rulesEn: 'Year 1 only',
+            remark: 'Shared with another faculty',
+          }),
+        }),
+      ]);
+    });
+    renderPopover();
+    expect(rowValues('Seats')).toEqual(['12 of 45 open']);
+    expect(rowValues('Conditions')).toEqual(['Year 1 only']);
+    expect(rowValues('Remark')).toEqual(['Shared with another faculty']);
+    expect(rowValues('Last checked')).toEqual(['6 Nov 2569 08:05']);
   });
 
   it('closes when the entry leaves the plan', () => {
