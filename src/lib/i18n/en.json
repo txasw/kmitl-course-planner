@@ -103,7 +103,6 @@
   "section.reason.conflictWith": "Conflicts with",
   "section.reason.examConflictWith": "Exam clashes with",
   "section.reason.duplicate": "This subject is already in the plan",
-  "section.moreInfo": "More information",
   "section.seats.open": "{remaining} of {limit} open",
   "section.seats.uncapped": "No seat limit",
   "section.seats.full": "Full, cannot be added",

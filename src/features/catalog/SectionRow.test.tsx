@@ -563,26 +563,6 @@ describe('SectionRow density and read only', () => {
     expect(screen.getByText(/10:30-12:00/)).toBeInTheDocument();
   });
 
-  it('reveals the remark behind the info affordance', () => {
-    const withRemark = makeSection({
-      teachTableId: 'r',
-      remark: 'เงื่อนไขพิเศษ',
-    });
-    render(
-      <SectionRow
-        course={course}
-        section={withRemark}
-        relation={{ kind: 'addable' }}
-        seat={computeSeatStatus(withRemark)}
-        locale="th"
-        t={t}
-      />,
-    );
-    expect(screen.queryByText('เงื่อนไขพิเศษ')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'ข้อมูลเพิ่มเติม' }));
-    expect(screen.getByText('เงื่อนไขพิเศษ')).toBeInTheDocument();
-  });
-
   it('truncates the teachers to one line with the full list in a tooltip', async () => {
     const many = makeSection({
       teachTableId: 'm',
@@ -606,8 +586,12 @@ describe('SectionRow density and read only', () => {
     );
   });
 
-  it('read only hides the actions, the state badge, and the remark toggle', () => {
-    const withRemark = makeSection({ teachTableId: 'ro', remark: 'หมายเหตุ' });
+  it('read only hides the actions and the state badge but keeps the facts', () => {
+    const withRemark = makeSection({
+      teachTableId: 'ro',
+      rulesTh: 'เฉพาะคณะวิศวกรรมศาสตร์',
+      remark: 'เปิดสอนร่วมกับคณะอื่น',
+    });
     render(
       <SectionRow
         course={course}
@@ -624,9 +608,119 @@ describe('SectionRow density and read only', () => {
       screen.queryByRole('button', { name: /^นำออก/ }),
     ).not.toBeInTheDocument();
     expect(screen.queryByText('เพิ่มแล้ว')).not.toBeInTheDocument();
+    expect(screen.getByText('เฉพาะคณะวิศวกรรมศาสตร์')).toBeInTheDocument();
+    expect(screen.getByText('เปิดสอนร่วมกับคณะอื่น')).toBeInTheDocument();
+  });
+});
+
+// 96642011/101 in the exam capture is limited to the faculty and to a dual degree
+// international curriculum. Its qualifiers are angle bracketed text in both languages,
+// which the sanitizer keeps, so the row must show them as written.
+function dualDegree(): { course: Course; section: Section } {
+  const result = normalizeTeachTable(
+    loadFixture('teach-table.with-exams.capture.json'),
+  );
+  if (!result.ok) {
+    throw new Error('fixture failed to normalize');
+  }
+  const found = result.value.courses.find((c) => c.subjectId === '96642011');
+  const sectionFound = found?.sections.find((s) => s.section === '101');
+  if (found === undefined || sectionFound === undefined) {
+    throw new Error('fixture is missing the dual degree section');
+  }
+  return { course: found, section: sectionFound };
+}
+
+describe('SectionRow conditions and remark', () => {
+  it('shows the dual degree conditions with their qualifiers', () => {
+    const dual = dualDegree();
+    render(
+      <SectionRow
+        course={dual.course}
+        section={dual.section}
+        relation={{ kind: 'addable' }}
+        seat={computeSeatStatus(dual.section)}
+        locale="th"
+        t={t}
+        onAdd={vi.fn()}
+      />,
+    );
+    expect(screen.getByText('เงื่อนไข')).toBeInTheDocument();
+    expect(screen.getByText('เฉพาะคณะวิศวกรรมศาสตร์')).toBeInTheDocument();
+    const toggle = screen.getByRole('button', {
+      name: 'ดูเงื่อนไขทั้งหมด (3)',
+    });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(toggle);
     expect(
-      screen.queryByRole('button', { name: 'ข้อมูลเพิ่มเติม' }),
+      screen.getByRole('button', { name: 'ซ่อนเงื่อนไข' }),
+    ).toHaveAttribute('aria-expanded', 'true');
+    expect(
+      screen.getByText(
+        'เฉพาะสาขาเทคโนโลยีวัสดุชาญฉลาดและหุ่นยนต์และปัญญาประดิษฐ์ <สองปริญญา><หลักสูตรนานาชาติ> (นน.)',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('shows the English conditions in the English locale', () => {
+    const dual = dualDegree();
+    render(
+      <SectionRow
+        course={dual.course}
+        section={dual.section}
+        relation={{ kind: 'addable' }}
+        seat={computeSeatStatus(dual.section)}
+        locale="en"
+        t={createTranslator('en')}
+      />,
+    );
+    expect(screen.getByText('Only School of Engineering').className).toContain(
+      'truncate',
+    );
+    expect(screen.getByRole('list')).toHaveAttribute('lang', 'en');
+  });
+
+  it('shows the remark first line inline with a labelled expand control', () => {
+    const withRemark = makeSection({
+      teachTableId: 'r',
+      remark: 'รับเฉพาะนักศึกษาเก็บตกเท่านั้น\nติดต่อภาควิชาก่อนลงทะเบียน',
+    });
+    render(
+      <SectionRow
+        course={course}
+        section={withRemark}
+        relation={{ kind: 'addable' }}
+        seat={computeSeatStatus(withRemark)}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.getByText('หมายเหตุ')).toBeInTheDocument();
+    expect(
+      screen.getByText('รับเฉพาะนักศึกษาเก็บตกเท่านั้น'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('ติดต่อภาควิชาก่อนลงทะเบียน'),
     ).not.toBeInTheDocument();
+    const toggle = screen.getByRole('button', { name: 'ดูหมายเหตุทั้งหมด' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(toggle);
+    expect(screen.getByText('ติดต่อภาควิชาก่อนลงทะเบียน')).toBeInTheDocument();
+  });
+
+  it('adds no condition or remark line to a section without them', () => {
+    render(
+      <SectionRow
+        course={course}
+        section={section}
+        relation={{ kind: 'addable' }}
+        seat={openSeat}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.queryByText('เงื่อนไข')).not.toBeInTheDocument();
+    expect(screen.queryByText('หมายเหตุ')).not.toBeInTheDocument();
   });
 });
 
