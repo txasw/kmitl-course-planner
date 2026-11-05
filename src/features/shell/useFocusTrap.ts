@@ -1,5 +1,5 @@
-// Keeps keyboard focus inside the overlay while it is open and routes Escape to
-// a close callback. On activation it moves focus into the panel and remembers
+// Keeps keyboard focus inside the overlay, or a nested modal layer, while it is
+// open and routes Escape to a close callback. On activation it moves focus into the panel and remembers
 // the opener; on deactivation it restores focus to the opener. It attaches its
 // keydown listener to the panel element rather than the document, which is the
 // correct place inside a closed shadow root: the isolateEvents guard stops keys
@@ -62,8 +62,13 @@ export function useFocusTrap(
 
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
+        // A nested layer that already handled the press prevented its default, so a
+        // nested trap or sheet closes alone and never takes the overlay with it. A
+        // trap given no Escape callback leaves the press to the layer that owns it.
+        const handleEscape = escapeRef.current;
+        if (event.defaultPrevented || handleEscape === undefined) return;
         event.preventDefault();
-        escapeRef.current?.();
+        handleEscape();
         return;
       }
       if (event.key !== 'Tab') return;

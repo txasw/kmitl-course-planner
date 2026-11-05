@@ -39,6 +39,31 @@ function Harness({
   );
 }
 
+// A modal layer with its own trap inside the trapped overlay, the shape of a sheet
+// opened from the panel.
+function NestedHarness({
+  onOuterEscape,
+  onInnerEscape,
+}: {
+  onOuterEscape: () => void;
+  onInnerEscape: () => void;
+}) {
+  const outerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(outerRef, true, onOuterEscape);
+  useFocusTrap(innerRef, true, onInnerEscape);
+  return (
+    <div ref={outerRef} tabIndex={-1}>
+      <button type="button">outer</button>
+      <div ref={innerRef} tabIndex={-1}>
+        <button type="button" data-testid="inner-button">
+          inner
+        </button>
+      </div>
+    </div>
+  );
+}
+
 describe('useFocusTrap', () => {
   it('moves focus into the panel when it activates', () => {
     render(<Harness active={true} />);
@@ -74,6 +99,35 @@ describe('useFocusTrap', () => {
     render(<Harness active={true} onEscape={onEscape} />);
     fireEvent.keyDown(screen.getByTestId('panel'), { key: 'Escape' });
     expect(onEscape).toHaveBeenCalledOnce();
+  });
+
+  it('ignores an Escape a nested layer already handled', () => {
+    const onEscape = vi.fn();
+    render(<Harness active={true} onEscape={onEscape} />);
+    const first = screen.getByTestId('first');
+    first.addEventListener('keydown', (event) => {
+      event.preventDefault();
+    });
+    fireEvent.keyDown(first, { key: 'Escape' });
+    expect(onEscape).not.toHaveBeenCalled();
+  });
+
+  it('keeps the overlay open when a nested trap closes on Escape', () => {
+    const outer = vi.fn();
+    const inner = vi.fn();
+    render(<NestedHarness onOuterEscape={outer} onInnerEscape={inner} />);
+    fireEvent.keyDown(screen.getByTestId('inner-button'), { key: 'Escape' });
+    expect(inner).toHaveBeenCalledOnce();
+    expect(outer).not.toHaveBeenCalled();
+  });
+
+  it('leaves Escape unhandled when it has no close callback', () => {
+    render(<Harness active={true} />);
+    const pressed = fireEvent.keyDown(screen.getByTestId('panel'), {
+      key: 'Escape',
+    });
+    // fireEvent returns true when nothing prevented the default.
+    expect(pressed).toBe(true);
   });
 
   it('restores focus to the opener when it deactivates', () => {
