@@ -1,5 +1,5 @@
 // Zod schemas for every network trust boundary. They mirror the observed shape
-// of the five endpoints, including the fields that are nullable, the grouping
+// of every endpoint, including the fields that are nullable, the grouping
 // sentinels, and the count union. Schemas strip unknown keys, so a drifted server
 // field passes the hard gate here and is surfaced separately by the contract
 // auditor, which walks the raw response. Inferred Raw* types are the single
@@ -13,6 +13,7 @@ import {
   type Result,
   type ValidationError,
 } from '../utils/result';
+import { parseSemester, type Term } from '../routing/academicTerms';
 
 /** Validate untrusted data against a schema, returning a typed Result. */
 export function validate<T>(
@@ -91,10 +92,36 @@ export const subjectOwnerSchema = z.object({
 });
 export const subjectOwnerListSchema = z.array(subjectOwnerSchema);
 
+// The current registration term (get-year-semester-now): a single object, not an
+// array. YEAR is a four digit Buddhist year and SEMESTER narrows through the same
+// parseSemester every other term reader uses, so an out of range value fails the
+// gate here. The three datetime fields are not read, so they are only tolerated as
+// optional nullable strings rather than asserted.
+export const currentTermSchema = z.object({
+  YEAR: z.string().regex(/^\d{4}$/),
+  SEMESTER: z.string().transform((value, ctx) => {
+    const semester = parseSemester(value);
+    if (semester === null) {
+      ctx.addIssue({ code: 'custom', message: 'semester is not 1, 2, or 3' });
+      return z.NEVER;
+    }
+    return semester;
+  }),
+  START_DATETIME_SYSTEM: z.string().nullable().optional(),
+  START_DATETIME_ACADEMIC: z.string().nullable().optional(),
+  END_DATETIME_ACADEMIC: z.string().nullable().optional(),
+});
+
 export type RawFaculty = z.infer<typeof facultySchema>;
 export type RawDepartment = z.infer<typeof departmentSchema>;
 export type RawCurriculum = z.infer<typeof curriculumSchema>;
 export type RawSubjectOwner = z.infer<typeof subjectOwnerSchema>;
+export type RawCurrentTerm = z.infer<typeof currentTermSchema>;
+
+/** The term the registrar reports as current, read from a validated response. */
+export function toCurrentTerm(raw: RawCurrentTerm): Term {
+  return { year: raw.YEAR, semester: raw.SEMESTER };
+}
 
 /** The exact string the API sends for `count` when a section is full. */
 export const FULL_MARKER = 'เต็ม/Full';
