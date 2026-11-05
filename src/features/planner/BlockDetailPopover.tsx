@@ -125,7 +125,7 @@ export function BlockDetailPopover({
       tabIndex={-1}
       style={floatingStyles}
       {...getFloatingProps()}
-      className="z-[2147483647] w-72 rounded-kcp border border-border bg-surface p-3 text-xs text-ink shadow-kcp outline-none"
+      className="z-popover w-72 rounded-kcp border border-border bg-surface p-3 text-xs text-ink shadow-kcp outline-none"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">

@@ -291,7 +291,7 @@ function EventBlockComponent({
           onClick={() => {
             onRemove(section.teachTableId);
           }}
-          className="absolute top-0.5 right-0.5 z-10 rounded bg-ink/5 p-0.5 text-ink-soft opacity-0 outline-none group-hover/block:opacity-100 group-focus-within/block:opacity-100 hover:bg-ink/10 hover:text-ink focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary"
+          className="absolute top-0.5 right-0.5 z-grid rounded bg-ink/5 p-0.5 text-ink-soft opacity-0 outline-none group-hover/block:opacity-100 group-focus-within/block:opacity-100 hover:bg-ink/10 hover:text-ink focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary"
         >
           <X size={12} aria-hidden />
         </button>

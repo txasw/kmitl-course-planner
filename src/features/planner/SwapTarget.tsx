@@ -32,7 +32,7 @@ export function SwapTarget({
       ref={setNodeRef}
       data-swap-target
       aria-hidden
-      className={`pointer-events-none z-30 m-px flex items-center justify-center gap-1 overflow-hidden rounded-kcp border-2 border-dashed border-primary px-1 text-[10px] font-semibold text-primary-strong ${
+      className={`pointer-events-none z-grid-active m-px flex items-center justify-center gap-1 overflow-hidden rounded-kcp border-2 border-dashed border-primary px-1 text-[10px] font-semibold text-primary-strong ${
         isOver ? 'bg-primary-soft' : 'bg-surface'
       }`}
       style={style}
