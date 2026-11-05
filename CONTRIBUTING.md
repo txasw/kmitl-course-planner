@@ -24,9 +24,13 @@ why the change was made and what alternative was rejected. Keep commits small an
 atomic: one logical change each, and each commit should build and pass its own
 gate.
 
-Commit messages must not contain attribution trailers or emoji. A commit-msg
-hook enforces this, and continuous integration re checks the pull request range.
-Thai text in commit messages is allowed.
+Commit messages must not contain attribution trailers or emoji. The only trailers
+allowed are Signed-off-by, Refs and Fixes with issue numbers such as `#12`, and
+BREAKING CHANGE. A trailer never carries a link, and a message never ends on a bare
+link line. A commit-msg hook enforces this, and continuous integration re checks the
+pull request range and applies the trailer and link rules to the pull request
+description. The rules live in `scripts/commit-msg-rules.mjs` with tests under
+`tests/scripts`. Thai text in commit messages is allowed.
 
 ## Local gates
 
