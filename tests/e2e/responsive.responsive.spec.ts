@@ -5,7 +5,8 @@ import type { Page } from '@playwright/test';
 // A responsive smoke for the phone and tablet projects. It asserts only what holds
 // today at both sizes: the host lays out at the device width, the planner opens and
 // closes with focus returned to the launcher, and the touch helper delivers real
-// touch events. The small screen layout work adds its own assertions on top.
+// touch events, and the edit grid keeps its derived minimum width. The small screen
+// layout work adds its own assertions on top.
 
 const LAUNCHER = 'เปิด Course Planner for KMITL';
 
@@ -66,6 +67,32 @@ test('the planner opens and closes with focus back on the launcher', async ({
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toBeHidden();
   await expect(page.getByRole('button', { name: LAUNCHER })).toBeFocused();
+});
+
+test('the edit grid keeps its derived minimum and fits where the column allows', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  const grid = page.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+  await expect(grid).toBeVisible();
+  const scroll = await grid.evaluate((node) => {
+    const scroller = node.parentElement;
+    return {
+      scrollWidth: scroller?.scrollWidth ?? 0,
+      clientWidth: scroller?.clientWidth ?? 0,
+      gridWidth: node.getBoundingClientRect().width,
+    };
+  });
+  // An empty plan shows the 08:00 to 18:00 working day: 40 px of day labels plus 14 px
+  // for each of its 40 quarters. A column at least that wide shows it whole, as on the
+  // tablet; a narrower one, as on the phone, scrolls rather than shrinking the quarters.
+  const minimum = 40 + 14 * 40;
+  expect(scroll.gridWidth).toBeGreaterThanOrEqual(minimum);
+  if (scroll.clientWidth >= minimum) {
+    expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth);
+  } else {
+    expect(scroll.scrollWidth).toBeGreaterThan(scroll.clientWidth);
+  }
 });
 
 test('a long press holds one point for the full press', async ({ context }) => {

@@ -162,6 +162,13 @@ export async function startMockServer(): Promise<MockServer> {
             sendJson('regressions/teach-table.fit-regression.json');
             return;
           }
+          // The real capture with exam windows, 331 rows whose meetings reach 20:00 and
+          // both weekend days, served for a reserved id so the grid window spec can load a
+          // broad result that widens the edit grid past its column.
+          if (url.searchParams.get('selected_subject_id') === '90000700') {
+            sendJson('teach-table.with-exams.capture.json');
+            return;
+          }
           sendJson('teach-table.by_subject_owner_id-32.capture.json');
           return;
         }
