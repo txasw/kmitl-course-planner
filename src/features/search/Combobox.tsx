@@ -21,6 +21,7 @@ import {
   autoUpdate,
   FloatingPortal,
 } from '@floating-ui/react';
+import { CONTROL_BOUNDARY, CONTROL_DISABLED } from '@/lib/ui/control';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
 
@@ -286,7 +287,9 @@ export function Combobox({
           onClick={openList}
           onKeyDown={handleKeyDown}
           onBlur={close}
-          className={`rounded-kcp border border-border bg-surface px-2 py-1.5 text-ink disabled:opacity-50 ${FOCUS_RING}`}
+          className={`rounded-kcp border px-2 py-1.5 ${
+            disabled ? CONTROL_DISABLED : `${CONTROL_BOUNDARY} text-ink`
+          } ${FOCUS_RING}`}
         />
       ) : (
         <div
@@ -309,9 +312,13 @@ export function Combobox({
           }}
           onKeyDown={handleKeyDown}
           onBlur={close}
-          className={`flex cursor-pointer items-center rounded-kcp border border-border bg-surface px-2 py-1.5 ${
-            selectedLabel ? 'text-ink' : 'text-ink-soft'
-          } ${disabled ? 'cursor-not-allowed opacity-50' : ''} ${FOCUS_RING}`}
+          className={`flex items-center rounded-kcp border px-2 py-1.5 ${
+            disabled
+              ? `cursor-not-allowed ${CONTROL_DISABLED}`
+              : `cursor-pointer ${CONTROL_BOUNDARY} ${
+                  selectedLabel ? 'text-ink' : 'text-ink-soft'
+                }`
+          } ${FOCUS_RING}`}
         >
           {selectedLabel || placeholder}
         </div>

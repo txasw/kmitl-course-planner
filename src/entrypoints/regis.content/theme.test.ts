@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, it, expect } from 'vitest';
+import { CONTROL_BOUNDARY, CONTROL_DISABLED } from '@/lib/ui/control';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 
 // Reads the authored shadow stylesheet and asserts every design token is present
@@ -68,6 +69,13 @@ describe('shadow stylesheet tokens', () => {
     expect(css).toMatch(
       /@layer base \{\s*::placeholder \{\s*color: var\(--kcp-ink-soft\);\s*opacity: 1;\s*\}/,
     );
+  });
+
+  it('draws form control boundaries with border-strong, never opacity', () => {
+    expect(CONTROL_BOUNDARY).toContain('border-border-strong');
+    expect(CONTROL_BOUNDARY).toContain('hover:border-ink-soft');
+    expect(CONTROL_DISABLED).toContain('bg-surface-alt');
+    expect(`${CONTROL_BOUNDARY} ${CONTROL_DISABLED}`).not.toMatch(/opacity/);
   });
 
   it('declares the layer scale and maps it into the z-index namespace', () => {
