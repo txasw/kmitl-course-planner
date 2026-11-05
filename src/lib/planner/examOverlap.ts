@@ -28,7 +28,8 @@ export interface ExamOverlap {
   other: DateRange;
 }
 
-const EXAM_KINDS: readonly ExamKind[] = ['midterm', 'final'];
+/** The exam kinds in the order every surface lists them, midterm before final. */
+export const EXAM_KINDS: readonly ExamKind[] = ['midterm', 'final'];
 
 /** A window whose ends are both well formed exam datetimes and ordered start before end.
  * A value that fails the shape is treated as no window, so an overlap is never inferred

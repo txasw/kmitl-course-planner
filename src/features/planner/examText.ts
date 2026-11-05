@@ -1,9 +1,10 @@
-// The exam date range wording, kept in one place so the blocked reason and the block
-// popover render an exam window the same way. The year is the Buddhist year the app shows
-// in both locales, converted from the stored Gregorian year without a naive Date, and the
-// month name is localized through t.
+// The exam date range wording, kept in one place so the blocked reason, the block
+// popover, and the section detail list render an exam window the same way. The year is
+// the Buddhist year the app shows in both locales, converted from the stored Gregorian
+// year without a naive Date, and the month name is localized through t.
 
-import type { DateRange } from '@/lib/domain/types';
+import type { DateRange, Exam } from '@/lib/domain/types';
+import { EXAM_KINDS, type ExamKind } from '@/lib/planner/examOverlap';
 import type { Translate } from '@/lib/i18n/t';
 import { toBuddhistYear } from '@/lib/routing/academicTerms';
 import {
@@ -43,4 +44,37 @@ export function formatExamRange(range: DateRange, t: Translate): string {
     return `${formatExamDate(start, t)} ${startTime}-${endTime}`;
   }
   return `${formatExamDate(start, t)} ${startTime} ${formatExamDate(end, t)} ${endTime}`;
+}
+
+/** One announced exam window of a section, labelled by its kind and formatted. */
+export interface ExamWindowText {
+  kind: ExamKind;
+  text: string;
+}
+
+/** The exam windows a section announces, midterm before final, each formatted through
+ * formatExamRange. A window the API left empty is absent, so an empty list means the
+ * section announces no exam date, which the surfaces read as arranged by the instructor. */
+export function examWindowTexts(exam: Exam, t: Translate): ExamWindowText[] {
+  return EXAM_KINDS.flatMap((kind) => {
+    const range = exam[kind];
+    return range === undefined
+      ? []
+      : [{ kind, text: formatExamRange(range, t) }];
+  });
+}
+
+/** A moment the app recorded itself, such as the last verification, in the same
+ * "D MMM BE HH:MM" form an exam date reads, so one detail list never mixes two date
+ * conventions. It reads the local calendar fields of the Date, since the stored value
+ * is an ISO instant rather than the API's fixed width exam string. */
+export function formatLocalDateTime(date: Date, t: Translate): string {
+  const parts: ExamDateParts = {
+    yearCE: date.getFullYear(),
+    month: date.getMonth() + 1,
+    day: date.getDate(),
+    hour: date.getHours(),
+    minute: date.getMinutes(),
+  };
+  return `${formatExamDate(parts, t)} ${pad(parts.hour)}:${pad(parts.minute)}`;
 }

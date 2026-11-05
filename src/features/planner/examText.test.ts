@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { createTranslator } from '@/lib/i18n/t';
-import { formatExamRange } from './examText';
+import {
+  examWindowTexts,
+  formatExamRange,
+  formatLocalDateTime,
+} from './examText';
 
 const t = createTranslator('en');
 
@@ -37,5 +41,45 @@ describe('formatExamRange', () => {
 
   it('falls back to the raw strings for a malformed value', () => {
     expect(formatExamRange({ start: 'x', end: 'y' }, t)).toBe('x y');
+  });
+});
+
+describe('examWindowTexts', () => {
+  it('lists the midterm before the final, each formatted', () => {
+    expect(
+      examWindowTexts(
+        {
+          final: { start: '2026-10-05 13:00:00', end: '2026-10-05 16:00:00' },
+          midterm: { start: '2026-08-21 09:00:00', end: '2026-08-21 12:00:00' },
+        },
+        t,
+      ),
+    ).toEqual([
+      { kind: 'midterm', text: '21 Aug 2569 09:00-12:00' },
+      { kind: 'final', text: '5 Oct 2569 13:00-16:00' },
+    ]);
+  });
+
+  it('skips an absent window and is empty when the section announces none', () => {
+    expect(
+      examWindowTexts(
+        {
+          final: { start: '2026-10-05 13:00:00', end: '2026-10-05 16:00:00' },
+        },
+        t,
+      ),
+    ).toEqual([{ kind: 'final', text: '5 Oct 2569 13:00-16:00' }]);
+    expect(examWindowTexts({ note: 'Take home' }, t)).toEqual([]);
+  });
+});
+
+describe('formatLocalDateTime', () => {
+  it('reads the local calendar fields in the exam date convention', () => {
+    // A local constructor, so the expectation does not depend on the test time zone.
+    const date = new Date(2026, 10, 6, 8, 5);
+    expect(formatLocalDateTime(date, t)).toBe('6 Nov 2569 08:05');
+    expect(formatLocalDateTime(date, createTranslator('th'))).toBe(
+      '6 พ.ย. 2569 08:05',
+    );
   });
 });
