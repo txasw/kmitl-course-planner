@@ -16,6 +16,7 @@ const scheduled: PlacedSection = {
   kind: 'lecture',
   rulesTh: '',
   rulesEn: '',
+  remark: '',
   verifyStatus: 'unverified',
   meetings: [
     {
@@ -40,6 +41,7 @@ const online: PlacedSection = {
   meetings: [],
   rulesTh: '',
   rulesEn: '',
+  remark: '',
   verifyStatus: 'unverified',
 };
 

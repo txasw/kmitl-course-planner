@@ -16,6 +16,7 @@ const section: PlacedSection = {
   kind: 'lecture',
   rulesTh: '',
   rulesEn: '',
+  remark: '',
   verifyStatus: 'verified',
   meetings: [
     {

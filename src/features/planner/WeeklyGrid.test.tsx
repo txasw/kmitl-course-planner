@@ -33,6 +33,7 @@ function makePlaced(overrides: Partial<PlacedSection> = {}): PlacedSection {
     kind: 'lecture',
     rulesTh: '',
     rulesEn: '',
+    remark: '',
     verifyStatus: 'unverified',
     meetings: [
       {

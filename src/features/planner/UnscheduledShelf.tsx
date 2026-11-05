@@ -1,11 +1,13 @@
 // The unscheduled shelf: a slim region listing sections with no scheduled
 // meeting, such as online or asynchronous courses, so their credits stay visible
 // even though they never sit on the timetable. It renders only when the plan holds
-// such a section. In edit mode each row adds a remove action and its enrollment
-// conditions. The poster shelf in preview carries neither: the conditions are planning
-// facts, and keeping them out holds the shared image and its measured fit unchanged.
+// such a section. In edit mode each row adds a remove action, its enrollment
+// conditions, and its remark, since an online section has no block to open for them.
+// The poster shelf in preview carries none of these: they are planning facts, and
+// keeping them out holds the shared image and its measured fit unchanged.
 
 import { AlertTriangle, BookOpen, FlaskConical } from 'lucide-react';
+import { RemarkLine } from '@/features/catalog/RemarkLine';
 import { RulesNotice } from '@/features/catalog/RulesNotice';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { Pill } from '@/components/Pill';
@@ -26,8 +28,8 @@ interface UnscheduledShelfProps {
   showEnglishName?: boolean;
   /** Show the subject id. A preview display option, off by default there; on in edit mode. */
   showSubjectId?: boolean;
-  /** The edit mode shelf. Only it lists each section's conditions, so they never enter
-   * the poster capture or change the measured export fit. */
+  /** The edit mode shelf. Only it lists each section's conditions and remark, so they
+   * never enter the poster capture or change the measured export fit. */
   editable?: boolean;
 }
 
@@ -138,12 +140,15 @@ export function UnscheduledShelf({
                 </span>
               </div>
               {editable ? (
-                <RulesNotice
-                  rulesTh={section.rulesTh}
-                  rulesEn={section.rulesEn}
-                  locale={locale}
-                  t={t}
-                />
+                <>
+                  <RulesNotice
+                    rulesTh={section.rulesTh}
+                    rulesEn={section.rulesEn}
+                    locale={locale}
+                    t={t}
+                  />
+                  <RemarkLine remark={section.remark} t={t} />
+                </>
               ) : null}
             </li>
           );

@@ -24,6 +24,7 @@ function makePlaced(overrides: Partial<PlacedSection> = {}): PlacedSection {
     meetings: [],
     rulesTh: '',
     rulesEn: '',
+    remark: '',
     verifyStatus: 'unverified',
     ...overrides,
   };
@@ -133,13 +134,14 @@ describe('UnscheduledShelf', () => {
   });
 });
 
-describe('UnscheduledShelf conditions', () => {
+describe('UnscheduledShelf conditions and remark', () => {
   const restricted = makePlaced({
     rulesTh: 'เฉพาะคณะวิศวกรรมศาสตร์\nเฉพาะนักศึกษาชั้นปี 1',
     rulesEn: 'Only School of Engineering\nOnly year 1 students',
+    remark: 'เรียนออนไลน์ผ่าน MS Teams',
   });
 
-  it('lists the conditions on the edit mode shelf', () => {
+  it('lists the conditions and remark on the edit mode shelf', () => {
     render(
       <UnscheduledShelf
         sections={[restricted]}
@@ -154,15 +156,21 @@ describe('UnscheduledShelf conditions', () => {
     expect(
       screen.getByRole('button', { name: 'ดูเงื่อนไขทั้งหมด (2)' }),
     ).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByText('หมายเหตุ')).toBeInTheDocument();
+    expect(screen.getByText('เรียนออนไลน์ผ่าน MS Teams')).toBeInTheDocument();
   });
 
-  it('keeps the conditions off the shelf when it is not editable', () => {
-    // The preview poster shelf is the one the export captures, so a condition there
-    // would enter every shared image and change the measured fit.
+  it('keeps the conditions and remark off the shelf when it is not editable', () => {
+    // The preview poster shelf is the one the export captures, so a condition or a
+    // remark there would enter every shared image and change the measured fit.
     render(<UnscheduledShelf sections={[restricted]} locale="th" t={t} />);
     expect(screen.queryByText('เงื่อนไข')).not.toBeInTheDocument();
     expect(
       screen.queryByText('เฉพาะคณะวิศวกรรมศาสตร์'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('หมายเหตุ')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('เรียนออนไลน์ผ่าน MS Teams'),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
