@@ -26,6 +26,8 @@ interface DraggableBlockProps {
   removeLabel: string;
   onOpenDetail?: (anchor: HTMLElement) => void;
   onContextMenu?: (event: MouseEvent<HTMLElement>) => void;
+  fitKey?: string;
+  fitPaused?: boolean;
 }
 
 export function DraggableBlock({

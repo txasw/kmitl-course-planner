@@ -19,6 +19,11 @@
 // transient size and miss the overflow. A ResizeObserver on the measured box resets the fit to
 // full whenever the box resizes, so the convergence re-runs against the settled size. Because a
 // demotion never resizes this box, the observer fires only on real box changes, not on a drop.
+//
+// The edit grid fits too (ADR-0050), and there the fit pauses for the length of a drag: a
+// paused block keeps the field set it settled on and never reads layout, so the drag frame
+// budget holds. A box resize during the pause only marks the fit stale, and the first
+// render after the drag resets to full and re-converges.
 
 import { useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import {
@@ -35,15 +40,14 @@ import { useFontsReady } from './fontsReady';
 // that barely fit, which the text export still carries, than keep one clipped by a pixel.
 const OVERFLOW_EPS = 0.5;
 
-/** Choose the field set for a block by measuring its content wrapper against its box. When
- * `fitToBox` is off the full set is always returned, so edit mode never measures and its
- * render path stays identical. `fitKey` encodes everything that changes the box pixel size,
- * so a change resets the level to full and re-measures. */
+/** Choose the field set for a block by measuring its content wrapper against its box.
+ * `fitKey` encodes everything that changes the box pixel size, so a change resets the level
+ * to full and re-measures. While `paused` the settled level holds and no measurement runs. */
 export function useDensityFit(
   ref: RefObject<HTMLElement | null>,
-  fitToBox: boolean,
   eligibility: DensityEligibility,
   fitKey: string,
+  paused = false,
 ): DensityLevel {
   const fontsReady = useFontsReady();
   const resetKey = `${fitKey}|${eligibility.mask}|${fontsReady ? '1' : '0'}`;
@@ -54,9 +58,11 @@ export function useDensityFit(
   // The observer callback needs the current eligibility without re-subscribing every render.
   const eligibilityRef = useRef(eligibility);
   eligibilityRef.current = eligibility;
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
 
   useLayoutEffect(() => {
-    if (!fitToBox) {
+    if (paused) {
       return;
     }
     const el = ref.current;
@@ -90,22 +96,21 @@ export function useDensityFit(
   // re-arms the convergence even when the level was already full. Demoting a field never
   // resizes this box, which is flex sized by the grid cell, so the observer does not loop.
   useLayoutEffect(() => {
-    if (!fitToBox) {
-      return undefined;
-    }
     const el = ref.current;
     if (el === null) {
       return undefined;
     }
     const observer = new ResizeObserver(() => {
       settledKey.current = null;
-      setLevel(fullLevel(eligibilityRef.current));
+      if (!pausedRef.current) {
+        setLevel(fullLevel(eligibilityRef.current));
+      }
     });
     observer.observe(el);
     return () => {
       observer.disconnect();
     };
-  }, [fitToBox, ref]);
+  }, [ref]);
 
-  return fitToBox ? level : fullLevel(eligibility);
+  return level;
 }
