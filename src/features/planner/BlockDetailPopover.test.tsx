@@ -5,6 +5,7 @@ import {
   fireEvent,
   cleanup,
   act,
+  waitFor,
 } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import type { ReconcileReport } from '@/lib/planner/revalidate';
@@ -75,6 +76,18 @@ describe('BlockDetailPopover', () => {
         (_, node) => node?.textContent === '90000001 Section 901',
       ),
     ).toBeInTheDocument();
+  });
+
+  it('caps its height to the available space and scrolls inside', async () => {
+    act(() => {
+      seedActivePlan([makePlanEntry()]);
+    });
+    renderPopover();
+    const dialog = screen.getByRole('dialog');
+    await waitFor(() => {
+      expect(dialog.style.maxHeight).toMatch(/^\d+px$/);
+    });
+    expect(dialog).toHaveClass('kcp-scroll', 'overflow-y-auto');
   });
 
   it('removes through the callback and closes', () => {
