@@ -40,7 +40,7 @@ function getFocusable(root: HTMLElement): HTMLElement[] {
 
 // getRootNode returns a Document or ShadowRoot at the top of the tree; both
 // expose activeElement, but the Node return type does not, so narrow by instance.
-function activeElementWithin(node: Node): Element | null {
+export function activeElementWithin(node: Node): Element | null {
   const root = node.getRootNode();
   if (root instanceof Document || root instanceof ShadowRoot) {
     return root.activeElement;

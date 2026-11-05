@@ -23,7 +23,7 @@ import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { isScheduled, toPlacedSection } from './placedSection';
 import { dragStore } from './dragStore';
-import { BlockDetailPopover } from './BlockDetailPopover';
+import { BlockDetailSurface } from './BlockDetailSurface';
 import { BlockContextMenu } from './BlockContextMenu';
 import { FeedbackStrip } from './FeedbackStrip';
 import { GridEmptyState } from './GridEmptyState';
@@ -266,8 +266,8 @@ export function PlannerPanel() {
           ) : null}
         </div>
       )}
-      {viewMode === 'edit' && detail !== null ? (
-        <BlockDetailPopover
+      {detail !== null ? (
+        <BlockDetailSurface
           teachTableId={detail.teachTableId}
           anchor={detail.anchor}
           locale={language}
