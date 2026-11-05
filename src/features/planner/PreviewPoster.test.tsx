@@ -34,21 +34,30 @@ const section: PlacedSection = {
   ],
 };
 
-function renderPoster() {
+const online: PlacedSection = {
+  ...section,
+  teachTableId: 't2',
+  subjectId: '90000002',
+  nameTh: 'วิชาออนไลน์',
+  verifyStatus: 'missing',
+  meetings: [],
+};
+
+function renderPoster(
+  scheduled: PlacedSection[] = [section],
+  unscheduled: PlacedSection[] = [],
+) {
   return render(
     <PreviewPoster
       template={DEFAULT_TEMPLATE}
       planName="ตาราง 1"
       term={{ year: '2569', semester: '1' }}
-      sections={[section]}
-      scheduled={[section]}
-      unscheduled={[]}
+      sections={[...scheduled, ...unscheduled]}
+      scheduled={scheduled}
+      unscheduled={unscheduled}
       window={DEFAULT_WINDOW}
       days={WEEK_DAYS}
       displayOptions={DEFAULT_DISPLAY_OPTIONS}
-      conflictIds={new Set()}
-      examConflictIds={new Set()}
-      examOverlaps={new Map()}
       locale="th"
       t={t}
     />,
@@ -113,5 +122,27 @@ describe('PreviewPoster footer', () => {
     expect(
       screen.getByText('สร้างโดยตัววางแผนตารางเรียน สจล.'),
     ).toBeInTheDocument();
+  });
+});
+
+describe('PreviewPoster verification marks', () => {
+  it('draws no badge on a missing or changed block or on a missing shelf row', () => {
+    const { container } = renderPoster(
+      [
+        { ...section, verifyStatus: 'missing' },
+        {
+          ...section,
+          teachTableId: 't3',
+          subjectId: '90000003',
+          verifyStatus: 'changed',
+        },
+      ],
+      [online],
+    );
+    expect(container.querySelector('[data-verify]')).toBeNull();
+    expect(container.querySelector('.kcp-hatch')).toBeNull();
+    expect(screen.queryByText(/ไม่พบในระบบแล้ว/)).not.toBeInTheDocument();
+    // The shelf still lists the row, so the credits it carries stay in the image.
+    expect(screen.getByText('วิชาออนไลน์')).toBeInTheDocument();
   });
 });

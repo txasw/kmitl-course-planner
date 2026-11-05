@@ -4,7 +4,8 @@
 // such a section. In edit mode each row adds a remove action, its enrollment
 // conditions, and its remark, since an online section has no block to open for them.
 // The poster shelf in preview carries none of these: they are planning facts, and
-// keeping them out holds the shared image and its measured fit unchanged.
+// keeping them out holds the shared image and its measured fit unchanged. The poster
+// also drops the verification pill, which the footer states as text (ADR-0055).
 
 import { AlertTriangle, BookOpen, FlaskConical } from 'lucide-react';
 import { RemarkLine } from '@/features/catalog/RemarkLine';
@@ -31,6 +32,9 @@ interface UnscheduledShelfProps {
   /** The edit mode shelf. Only it lists each section's conditions and remark, so they
    * never enter the poster capture or change the measured export fit. */
   editable?: boolean;
+  /** Draw the verification and conflict pill. On in edit mode; the export poster turns it
+   * off and states the same facts as footer text (ADR-0055). */
+  showVerification?: boolean;
 }
 
 export function UnscheduledShelf({
@@ -43,6 +47,7 @@ export function UnscheduledShelf({
   showEnglishName = false,
   showSubjectId = true,
   editable = false,
+  showVerification = true,
 }: UnscheduledShelfProps) {
   return (
     <section
@@ -59,14 +64,14 @@ export function UnscheduledShelf({
             showEnglishName && locale === 'th' && section.nameEn !== '';
           const examConflicted =
             examConflictIds?.has(section.teachTableId) ?? false;
-          const badge = blockBadge(section.verifyStatus, false, examConflicted);
-          const badgeText = blockBadgeLabelKeys(
-            section.verifyStatus,
-            false,
-            examConflicted,
-          )
-            .map((key) => t(key))
-            .join(' ');
+          const badge = showVerification
+            ? blockBadge(section.verifyStatus, false, examConflicted)
+            : null;
+          const badgeText = showVerification
+            ? blockBadgeLabelKeys(section.verifyStatus, false, examConflicted)
+                .map((key) => t(key))
+                .join(' ')
+            : '';
           return (
             <li key={section.teachTableId} className="text-xs">
               <div className="flex items-center justify-between gap-2">

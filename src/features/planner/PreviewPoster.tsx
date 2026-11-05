@@ -1,7 +1,8 @@
 // One preview poster, the shareable composition for a single export template: the header,
 // the weekly grid, the unscheduled shelf, the footer summary, and the watermark, laid out at
 // the template's exact layout box and type scale. It is read only, never editable, so it
-// carries no drag or remove wiring. The template gallery renders one of these per visible
+// carries no drag or remove wiring, and no verification or conflict marks: those are editing
+// signals the people who receive the image cannot act on (ADR-0055). The template gallery renders one of these per visible
 // template; only the selected one holds the capture ref, which html-to-image reads at the
 // poster's own box so the export lands the exact template pixels regardless of the display
 // scale around it (ADR-0041, ADR-0045). Memoized so paging between templates and a display
@@ -13,7 +14,6 @@ import type { DayOfWeek } from '@/lib/parsing/days';
 import type { GridWindow } from '@/lib/planner/grid';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
 import type { ExportTemplate } from '@/lib/planner/exportTemplates';
-import type { ExamOverlap } from '@/lib/planner/examOverlap';
 import { GridEmptyState } from './GridEmptyState';
 import { PosterHeader } from './PosterHeader';
 import { PosterWatermark } from './PosterWatermark';
@@ -33,9 +33,6 @@ export interface PosterData {
   window: GridWindow;
   days: readonly DayOfWeek[];
   displayOptions: DisplayOptions;
-  conflictIds: Set<string>;
-  examConflictIds: Set<string>;
-  examOverlaps: Map<string, ExamOverlap[]>;
   locale: Locale;
   t: Translate;
 }
@@ -57,9 +54,6 @@ function PreviewPosterComponent({
   window,
   days,
   displayOptions,
-  conflictIds,
-  examConflictIds,
-  examOverlaps,
   locale,
   t,
 }: PreviewPosterProps) {
@@ -87,9 +81,6 @@ function PreviewPosterComponent({
           locale={locale}
           t={t}
           editable={false}
-          conflictIds={conflictIds}
-          examConflictIds={examConflictIds}
-          examOverlaps={examOverlaps}
           days={days}
           display={displayOptions}
           dayAccent
@@ -106,7 +97,7 @@ function PreviewPosterComponent({
           showSection={displayOptions.showSection}
           showEnglishName={displayOptions.showEnglishNames}
           showSubjectId={displayOptions.showSubjectId}
-          examConflictIds={examConflictIds}
+          showVerification={false}
         />
       ) : null}
       {/* The honesty footer is one baseline row inside the poster's equal margins: the credits

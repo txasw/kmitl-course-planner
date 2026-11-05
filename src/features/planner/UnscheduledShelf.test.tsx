@@ -132,6 +132,33 @@ describe('UnscheduledShelf', () => {
     expect(screen.getByText('วิชาออนไลน์')).toHaveAttribute('lang', 'th');
     expect(screen.getByText('Online subject')).toHaveAttribute('lang', 'en');
   });
+
+  it('pills a missing section in edit mode', () => {
+    render(
+      <UnscheduledShelf
+        sections={[makePlaced({ verifyStatus: 'missing' })]}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.getByText('ไม่พบในระบบแล้ว')).toBeInTheDocument();
+  });
+
+  it('draws no verification pill when showVerification is off, as on the poster', () => {
+    render(
+      <UnscheduledShelf
+        sections={[makePlaced({ verifyStatus: 'missing' })]}
+        locale="th"
+        t={t}
+        examConflictIds={new Set(['o1'])}
+        showVerification={false}
+      />,
+    );
+    expect(screen.queryByText(/ไม่พบในระบบแล้ว/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/เวลาสอบชนกัน/)).not.toBeInTheDocument();
+    // The row itself stays, with its credits.
+    expect(screen.getByText('3 หน่วยกิต')).toBeInTheDocument();
+  });
 });
 
 describe('UnscheduledShelf conditions and remark', () => {

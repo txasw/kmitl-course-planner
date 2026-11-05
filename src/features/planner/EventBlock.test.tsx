@@ -245,6 +245,47 @@ describe('EventBlock', () => {
     );
   });
 
+  it('draws no verification marks when showVerification is off, as on the poster', () => {
+    const { container } = render(
+      <EventBlock
+        section={{ ...section, verifyStatus: 'missing' }}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        conflicted
+        examConflicted
+        showVerification={false}
+      />,
+    );
+    const block = screen.getByLabelText(/90592033/);
+    expect(block).not.toHaveAttribute('data-verify');
+    expect(block.className).not.toContain('ring-danger');
+    expect(container.querySelector('.kcp-hatch')).toBeNull();
+    expect(container.querySelector('.bg-danger, .bg-warn')).toBeNull();
+    // The accessible name follows what is drawn, so it carries no badge text either.
+    expect(block.getAttribute('aria-label')).not.toMatch(
+      /ไม่พบในระบบแล้ว|เวลาชนกัน|เวลาสอบชนกัน/,
+    );
+  });
+
+  it('draws no warn dot for a changed section when showVerification is off', () => {
+    const { container } = render(
+      <EventBlock
+        section={{ ...section, verifyStatus: 'changed' }}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        showVerification={false}
+      />,
+    );
+    expect(screen.getByLabelText(/90592033/)).not.toHaveAttribute(
+      'data-verify',
+    );
+    expect(container.querySelector('.bg-warn')).toBeNull();
+  });
+
   it('fills with the subject stable color', () => {
     render(
       <EventBlock
