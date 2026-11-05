@@ -60,3 +60,4 @@ a new record that supersedes the old one rather than editing history.
 51. [Form control boundary token and new contrast pairs](0051-form-control-boundary-token.md)
 52. [Pinned px type scale and two weights](0052-pinned-px-type-scale-and-two-weights.md)
 53. [Registration term default](0053-registration-term-default.md)
+54. [Curriculum plan suggestions](0054-curriculum-plan-suggestions.md)
