@@ -135,6 +135,22 @@ describe('shadow stylesheet tokens', () => {
     expect(FOCUS_OUTLINE).toContain('outline-(color:--kcp-focus-color)');
   });
 
+  it('folds the search form on its grid row and drops the motion when reduced', () => {
+    expect(css).toContain('--kcp-ease-standard: cubic-bezier(0.2, 0, 0, 1);');
+    expect(css).toMatch(
+      /\.kcp-fold \{[^}]*grid-template-rows: 1fr;[^}]*transition: grid-template-rows var\(--kcp-duration-base\)\s+var\(--kcp-ease-standard\);/,
+    );
+    expect(css).toMatch(
+      /\.kcp-fold\[data-open='false'\] \{\s*grid-template-rows: 0fr;\s*\}/,
+    );
+    expect(css).toMatch(
+      /\.kcp-fold\[data-open='false'\] > \* \{[^}]*visibility: hidden;[^}]*visibility var\(--kcp-duration-base\);/,
+    );
+    expect(css).toMatch(
+      /@media \(prefers-reduced-motion: reduce\) \{\s*\.kcp-fold,\s*\.kcp-fold > \*,\s*\.kcp-fold\[data-open='false'\] > \* \{\s*transition: none;/,
+    );
+  });
+
   it('reads every fixed animation duration from a motion token', () => {
     expect(css).not.toMatch(/animation:[^;]*\b\d+m?s\b/);
     expect(css).toMatch(/animation:[^;]*var\(--kcp-duration-/);

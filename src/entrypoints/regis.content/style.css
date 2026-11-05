@@ -151,6 +151,10 @@
   --kcp-duration-base: 200ms;
   --kcp-duration-slow: 300ms;
 
+  /* The standard easing for a surface that changes size in place: a quick start that
+     settles gently, so a folding region reads as one motion rather than a jump. */
+  --kcp-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
   /* The standard keyboard focus indicator from ADR-0034, read by FOCUS_RING and
      FOCUS_OUTLINE in lib/ui/focus.ts. */
   --kcp-focus-color: var(--kcp-primary);
@@ -249,6 +253,67 @@ html {
 
 .kcp-scroll::-webkit-scrollbar-thumb:hover {
   background-color: var(--kcp-ink-soft);
+}
+
+/* The search form fold. The region animates its single grid row between the form's
+   height and zero, so the results rise into the space as the form closes. The form
+   fades faster than it folds. Visibility is discrete and the visible value wins, so a
+   closing form stays visible through the fold and then hides, while an opening form
+   shows at once because the open state carries no visibility transition. The folded
+   form is also inert, so it is out of the tab order from the first frame. */
+.kcp-fold {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--kcp-duration-base)
+    var(--kcp-ease-standard);
+}
+
+.kcp-fold[data-open='false'] {
+  grid-template-rows: 0fr;
+}
+
+.kcp-fold > * {
+  min-height: 0;
+  overflow-y: auto;
+  transition: opacity var(--kcp-duration-fast) var(--kcp-ease-standard);
+}
+
+.kcp-fold[data-open='false'] > * {
+  opacity: 0;
+  visibility: hidden;
+  overflow: hidden;
+  transition:
+    opacity var(--kcp-duration-fast) var(--kcp-ease-standard),
+    visibility var(--kcp-duration-base);
+}
+
+/* A short fade for content that swaps in place, such as the busy text giving way to
+   the course count in the search summary bar. */
+@keyframes kcp-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.kcp-fade-in {
+  animation: kcp-fade-in var(--kcp-duration-fast) ease-out;
+}
+
+/* Reduced motion swaps the form and the summary status in the same frame. */
+@media (prefers-reduced-motion: reduce) {
+  .kcp-fold,
+  .kcp-fold > *,
+  .kcp-fold[data-open='false'] > * {
+    transition: none;
+  }
+
+  .kcp-fade-in {
+    animation: none;
+  }
 }
 
 /* Toast entrance: a short rise into place. The reduced motion path drops the
