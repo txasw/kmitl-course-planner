@@ -187,8 +187,57 @@ describe('SectionRow actions', () => {
       />,
     );
     // The rail stays on the trailing edge but is disabled; the full reason reads
-    // from the seat pill in the row body.
+    // from the seat line in the row body.
     expect(screen.getByRole('button', { name: /^เพิ่ม/ })).toBeDisabled();
+    expect(screen.getByText('เต็ม เพิ่มไม่ได้')).toBeInTheDocument();
+  });
+});
+
+describe('SectionRow seat line', () => {
+  function renderSeats(target: Section, readOnly = false) {
+    render(
+      <SectionRow
+        course={course}
+        section={target}
+        relation={{ kind: 'addable' }}
+        seat={computeSeatStatus(target)}
+        locale="th"
+        t={t}
+        onAdd={vi.fn()}
+        readOnly={readOnly}
+      />,
+    );
+  }
+
+  it('shows the remaining count out of the limit as visible text', () => {
+    renderSeats(
+      makeSection({
+        seats: { limit: 45, preCount: 0, queueLeft: 0, enrolled: 33 },
+      }),
+    );
+    const line = screen.getByText('ว่าง 12 จาก 45');
+    expect(line).not.toHaveClass('sr-only');
+    expect(line.closest('[role="tooltip"]')).toBeNull();
+  });
+
+  it('shows no seat limit for an uncapped section', () => {
+    renderSeats(
+      makeSection({
+        seats: { limit: null, preCount: 0, queueLeft: 0, enrolled: 120 },
+      }),
+    );
+    expect(screen.getByText('ไม่จำกัดที่นั่ง')).toBeInTheDocument();
+  });
+
+  it('states that a closed section cannot be added', () => {
+    renderSeats(makeSection({ isClosed: true }));
+    expect(screen.getByText('ปิด เพิ่มไม่ได้')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^เพิ่ม/ })).toBeDisabled();
+  });
+
+  it('keeps the seat line on a read only row', () => {
+    renderSeats(makeSection(), true);
+    expect(screen.getByText('ว่าง 40 จาก 40')).toBeInTheDocument();
   });
 });
 
