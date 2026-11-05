@@ -1,5 +1,12 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
+import { useState, type ComponentProps } from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
 import { createTranslator, type Translate } from '@/lib/i18n/t';
 import type { Section } from '@/lib/domain/types';
 import {
@@ -12,6 +19,32 @@ import { CourseCard } from './CourseCard';
 const t = createTranslator('th');
 
 afterEach(cleanup);
+
+type CardProps = Omit<ComponentProps<typeof CourseCard>, 'open' | 'onToggle'>;
+
+// Holds the open flag the way the catalog does, so a click on the toggle opens and
+// closes the card.
+function Controlled({
+  initialOpen = false,
+  ...props
+}: CardProps & { initialOpen?: boolean }) {
+  const [open, setOpen] = useState(initialOpen);
+  return (
+    <CourseCard
+      {...props}
+      open={open}
+      onToggle={(_subjectId, next) => {
+        setOpen(next);
+      }}
+    />
+  );
+}
+
+function toggle(): HTMLElement {
+  const node = document.querySelector<HTMLElement>('[data-course-toggle]');
+  if (node === null) throw new Error('expected the course toggle');
+  return node;
+}
 
 describe('CourseCard seat status', () => {
   it('shows the remaining count, full, and closed seat lines', () => {
@@ -30,7 +63,9 @@ describe('CourseCard seat status', () => {
         makeSection({ teachTableId: 'closed', section: '903', isClosed: true }),
       ],
     });
-    render(<CourseCard course={course} placed={[]} locale="th" t={t} />);
+    render(
+      <Controlled initialOpen course={course} placed={[]} locale="th" t={t} />,
+    );
     expect(screen.getByText('ว่าง 7 จาก 40')).toBeInTheDocument();
     expect(screen.getByText('เต็ม เพิ่มไม่ได้')).toBeInTheDocument();
     expect(screen.getByText('ปิด เพิ่มไม่ได้')).toBeInTheDocument();
@@ -53,8 +88,101 @@ describe('CourseCard plan relation', () => {
         meetings: [makeMeeting({ day: 1, startMin: 600, endMin: 660 })],
       }),
     ];
-    render(<CourseCard course={course} placed={placed} locale="th" t={t} />);
+    render(
+      <Controlled
+        initialOpen
+        course={course}
+        placed={placed}
+        locale="th"
+        t={t}
+      />,
+    );
     expect(screen.getByText('เวลาชนกัน')).toBeInTheDocument();
+  });
+});
+
+describe('CourseCard disclosure', () => {
+  const course = makeCourse({
+    subjectId: '90592008',
+    creditStr: '3(3-0-6)',
+    sections: [makeSection({ teachTableId: 's1', subjectId: '90592008' })],
+  });
+
+  it('starts collapsed with no section row and no section drag surface', () => {
+    render(
+      <Controlled
+        course={course}
+        placed={[]}
+        locale="th"
+        t={t}
+        onAdd={() => undefined}
+      />,
+    );
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText(/กลุ่มเรียน 901/)).not.toBeInTheDocument();
+    expect(document.querySelector('[data-drag-surface="section"]')).toBeNull();
+  });
+
+  it('names the toggle by its title and credits and points at its body', () => {
+    render(<Controlled course={course} placed={[]} locale="th" t={t} />);
+    const button = screen.getByRole('button', {
+      name: `90592008 ${course.nameTh} 3(3-0-6)`,
+    });
+    expect(button).toBe(toggle());
+    expect(button.tagName).toBe('BUTTON');
+    expect(button).toHaveAttribute('type', 'button');
+    expect(button.closest('h4')).not.toBeNull();
+    const body = document.getElementById(
+      button.getAttribute('aria-controls') ?? '',
+    );
+    expect(body).toHaveAttribute('data-course-body');
+    expect(body).not.toBeVisible();
+  });
+
+  it('opens and closes from a click on the toggle', () => {
+    render(
+      <Controlled
+        course={course}
+        placed={[]}
+        locale="th"
+        t={t}
+        onAdd={() => undefined}
+      />,
+    );
+    fireEvent.click(toggle());
+    expect(toggle()).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText(/กลุ่มเรียน 901/)).toBeInTheDocument();
+    expect(
+      document.querySelectorAll('[data-drag-surface="section"]'),
+    ).toHaveLength(1);
+    fireEvent.click(toggle());
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText(/กลุ่มเรียน 901/)).not.toBeInTheDocument();
+  });
+
+  it('reports the next state and the placement to the catalog', () => {
+    const onToggle = vi.fn();
+    render(
+      <CourseCard
+        course={course}
+        placed={[]}
+        locale="th"
+        t={t}
+        open={false}
+        onToggle={onToggle}
+      />,
+    );
+    fireEvent.click(toggle());
+    expect(onToggle).toHaveBeenCalledWith('90592008', true, false);
+  });
+
+  it('clamps a long title to two lines instead of truncating it', () => {
+    render(<Controlled course={course} placed={[]} locale="th" t={t} />);
+    const title = document.getElementById(
+      toggle().getAttribute('aria-labelledby')?.split(' ')[0] ?? '',
+    );
+    expect(title).toHaveClass('line-clamp-2', 'break-words');
+    expect(title).toHaveTextContent(`90592008 ${course.nameTh}`);
   });
 });
 
@@ -77,7 +205,7 @@ describe('CourseCard collapsed added course', () => {
 
   it('collapses an added course, hiding the section rows and the added badge', () => {
     render(
-      <CourseCard
+      <Controlled
         course={course}
         placed={placed}
         locale="th"
@@ -92,23 +220,17 @@ describe('CourseCard collapsed added course', () => {
 
   it('de-emphasizes an added course with surface-alt, not opacity', () => {
     const { container } = render(
-      <CourseCard
-        course={course}
-        placed={placed}
-        locale="th"
-        t={t}
-        onRemove={() => undefined}
-      />,
+      <Controlled course={course} placed={placed} locale="th" t={t} />,
     );
     const article = container.querySelector('article');
     expect(article?.className).toContain('bg-surface-alt');
     expect(article?.className).not.toContain('opacity');
   });
 
-  it('removes the placed section from the collapsed header', () => {
+  it('removes the placed section from a control outside the toggle', () => {
     const onRemove = vi.fn();
     render(
-      <CourseCard
+      <Controlled
         course={course}
         placed={placed}
         locale="th"
@@ -116,51 +238,33 @@ describe('CourseCard collapsed added course', () => {
         onRemove={onRemove}
       />,
     );
-    fireEvent.click(
-      screen.getByRole('button', { name: 'นำออก 90000001 กลุ่มเรียน 901' }),
-    );
-    expect(onRemove).toHaveBeenCalledWith('placed901');
-  });
-
-  it('labels the collapsed remove with visible text the name starts with', () => {
-    render(
-      <CourseCard
-        course={course}
-        placed={placed}
-        locale="th"
-        t={t}
-        onRemove={() => undefined}
-      />,
-    );
-    // The visible label is the start of the accessible name, so speech input that
-    // says the words on screen still reaches the control.
     const remove = screen.getByRole('button', {
       name: 'นำออก 90000001 กลุ่มเรียน 901',
     });
+    // The visible label starts the accessible name, so speech input reaches it.
     expect(remove.textContent).toBe('นำออก');
+    expect(toggle().contains(remove)).toBe(false);
+    fireEvent.click(remove);
+    expect(onRemove).toHaveBeenCalledWith('placed901');
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('makes the whole collapsed summary the expand control', () => {
+  it('has no course drag surface', () => {
     render(
-      <CourseCard
+      <Controlled
         course={course}
         placed={placed}
         locale="th"
         t={t}
-        onRemove={() => undefined}
+        onAdd={() => undefined}
       />,
     );
-    const toggle = screen.getByRole('button', { expanded: false });
-    // The summary names the course rather than being an icon only control, so a
-    // click anywhere on it expands.
-    expect(toggle).toHaveTextContent('90000001');
-    fireEvent.click(toggle);
-    expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
+    expect(document.querySelector('[data-drag-surface="course"]')).toBeNull();
   });
 
   it('expands to read-only sections with the drag hint and no add label', () => {
     render(
-      <CourseCard
+      <Controlled
         course={course}
         placed={placed}
         locale="th"
@@ -169,8 +273,7 @@ describe('CourseCard collapsed added course', () => {
         onRemove={() => undefined}
       />,
     );
-    // The whole collapsed summary is the disclosure button, found by its state.
-    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    fireEvent.click(toggle());
     expect(
       screen.getByText('เปลี่ยนกลุ่มเรียนโดยลากบล็อกในตาราง'),
     ).toBeInTheDocument();
@@ -178,15 +281,24 @@ describe('CourseCard collapsed added course', () => {
     expect(
       screen.queryByRole('button', { name: 'เพิ่ม' }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByText('เพิ่มแล้ว')).not.toBeInTheDocument();
+    expect(document.querySelector('[data-drag-surface="section"]')).toBeNull();
   });
 });
 
-describe('CourseCard course drag handle', () => {
-  it('shows a course drag handle in edit mode with an accessible hint', () => {
-    const course = makeCourse({ subjectId: '90592008' });
+describe('CourseCard course drag header', () => {
+  const course = makeCourse({ subjectId: '90592008' });
+
+  function surface(): HTMLElement {
+    const node = document.querySelector<HTMLElement>(
+      '[data-drag-surface="course"]',
+    );
+    if (node === null) throw new Error('expected a course drag surface');
+    return node;
+  }
+
+  it('makes the header a pointer drag source with no accessible name', () => {
     render(
-      <CourseCard
+      <Controlled
         course={course}
         placed={[]}
         locale="th"
@@ -194,17 +306,14 @@ describe('CourseCard course drag handle', () => {
         onAdd={() => undefined}
       />,
     );
-    const surface = document.querySelector('[data-drag-surface="course"]');
-    if (surface === null) {
-      throw new Error('expected a course drag surface');
-    }
-    expect(surface.getAttribute('aria-label')).toContain('ลากรายวิชา');
+    expect(surface().tagName).toBe('HEADER');
+    expect(surface()).not.toHaveAttribute('aria-label');
+    expect(surface().contains(toggle())).toBe(true);
   });
 
-  it('makes the whole header the course drag surface in edit mode', () => {
-    const course = makeCourse({ subjectId: '90592008' });
+  it('lets a vertical swipe on the header scroll the list', () => {
     render(
-      <CourseCard
+      <Controlled
         course={course}
         placed={[]}
         locale="th"
@@ -212,38 +321,65 @@ describe('CourseCard course drag handle', () => {
         onAdd={() => undefined}
       />,
     );
-    expect(
-      document.querySelector('[data-drag-surface="course"]'),
-    ).not.toBeNull();
+    expect(surface()).toHaveClass('touch-pan-y');
+    expect(surface()).not.toHaveClass('touch-none');
   });
 
-  it('omits the course drag handle without an add handler', () => {
-    const course = makeCourse({ subjectId: '90592008' });
-    render(<CourseCard course={course} placed={[]} locale="th" t={t} />);
+  it('omits the course drag surface without an add handler', () => {
+    render(<Controlled course={course} placed={[]} locale="th" t={t} />);
     expect(document.querySelector('[data-drag-surface="course"]')).toBeNull();
   });
-});
 
-describe('CourseCard long name', () => {
-  it('carries the full name in a tooltip so a truncated name stays readable', async () => {
-    const longTh =
-      'วิชาที่มีชื่อยาวมากเกินความกว้างของการ์ดรายวิชาจนต้องตัดข้อความ';
-    const course = makeCourse({
-      subjectId: '90000099',
-      nameTh: longTh,
-      nameEn: 'A course whose name is long enough to be clipped in the card',
-    });
-    render(<CourseCard course={course} placed={[]} locale="th" t={t} />);
-    // Finding the ancestor by the truncate class also asserts the long name is
-    // clipped rather than overflowing the card.
-    const named = screen.getByText(longTh).closest('.truncate');
-    if (named === null) {
-      throw new Error('expected the truncated name element');
+  it('omits the course drag surface on a cross term card', () => {
+    render(
+      <Controlled
+        course={course}
+        placed={[]}
+        locale="th"
+        t={t}
+        term={{
+          planTerm: { year: '2569', semester: '2' },
+          browsedTerm: { year: '2569', semester: '1' },
+        }}
+        onAdd={() => undefined}
+      />,
+    );
+    expect(document.querySelector('[data-drag-surface="course"]')).toBeNull();
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  // Pins dnd-kit's own click suppression: once a pointer drag activates, it swallows
+  // the click that ends it, so a header drag never toggles the card. A dnd-kit upgrade
+  // that drops the behaviour fails here.
+  it('does not toggle after a header drag released over the header', () => {
+    function Harness() {
+      const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+      );
+      return (
+        <DndContext sensors={sensors}>
+          <Controlled
+            course={course}
+            placed={[]}
+            locale="th"
+            t={t}
+            onAdd={() => undefined}
+          />
+        </DndContext>
+      );
     }
-    fireEvent.mouseEnter(named);
-    const tooltip = await screen.findByRole('tooltip');
-    expect(tooltip).toHaveTextContent('90000099');
-    expect(tooltip).toHaveTextContent(longTh);
+    render(<Harness />);
+    const button = toggle();
+    fireEvent.pointerDown(button, {
+      isPrimary: true,
+      button: 0,
+      clientX: 10,
+      clientY: 10,
+    });
+    fireEvent.pointerMove(document, { clientX: 40, clientY: 12 });
+    fireEvent.pointerUp(document, { clientX: 12, clientY: 10 });
+    fireEvent.click(button);
+    expect(button).toHaveAttribute('aria-expanded', 'false');
   });
 });
 
@@ -255,14 +391,22 @@ describe('CourseCard secondary name language', () => {
   });
 
   it('marks the English secondary name as English in the Thai locale', () => {
-    render(<CourseCard course={course} placed={[]} locale="th" t={t} />);
+    render(
+      <Controlled initialOpen course={course} placed={[]} locale="th" t={t} />,
+    );
     expect(screen.getByText('Test subject')).toHaveAttribute('lang', 'en');
-    expect(screen.getByText('วิชาทดสอบ')).not.toHaveAttribute('lang');
+    // The body repeats the clamped primary name for the eye only.
+    const repeated = screen
+      .getAllByText('วิชาทดสอบ')
+      .filter((node) => !toggle().contains(node));
+    expect(repeated).toHaveLength(1);
+    expect(repeated[0]).toHaveAttribute('aria-hidden', 'true');
   });
 
   it('marks the Thai secondary name as Thai in the English locale', () => {
     render(
-      <CourseCard
+      <Controlled
+        initialOpen
         course={course}
         placed={[]}
         locale="en"
@@ -272,12 +416,9 @@ describe('CourseCard secondary name language', () => {
     expect(screen.getByText('วิชาทดสอบ')).toHaveAttribute('lang', 'th');
   });
 
-  it('marks the secondary name on a collapsed added course', () => {
-    const placed = [
-      makeSection({ subjectId: '90000001', teachTableId: 'placed' }),
-    ];
-    render(<CourseCard course={course} placed={placed} locale="th" t={t} />);
-    expect(screen.getByText('Test subject')).toHaveAttribute('lang', 'en');
+  it('shows the secondary name only when the card is open', () => {
+    render(<Controlled course={course} placed={[]} locale="th" t={t} />);
+    expect(screen.queryByText('Test subject')).not.toBeInTheDocument();
   });
 });
 
@@ -295,7 +436,15 @@ describe('CourseCard memoization', () => {
       sections: [makeSection({ subjectId: '90000001', section: '901' })],
     });
     const placed: Section[] = [];
-    const props = { course, placed, locale: 'th' as const, t: countingT };
+    const onToggle = () => undefined;
+    const props = {
+      course,
+      placed,
+      locale: 'th' as const,
+      t: countingT,
+      open: true,
+      onToggle,
+    };
 
     const { rerender } = render(<CourseCard {...props} />);
     const afterFirst = renders;

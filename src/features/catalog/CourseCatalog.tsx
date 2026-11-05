@@ -3,7 +3,7 @@
 // Section states are computed against the placed sections read from the plan
 // store, so the catalog is ready for the planner phase without rework.
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useStore } from 'zustand';
 import { RefreshCw } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -20,6 +20,7 @@ import {
   type TermContext,
 } from '@/lib/planner/sectionState';
 import { filterCourses, type SectionPredicates } from '@/lib/catalog/filter';
+import { catalogQueryKey, isCardOpen } from '@/lib/catalog/cardDisclosure';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { useTranslation } from '@/features/shell/useTranslation';
 import {
@@ -99,6 +100,27 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
   const activePlan = useActivePlan();
   const resultQuery = useStore(searchStore, (state) => state.resultQuery);
   const filter = useStore(catalogStore, (state) => state.filter);
+  const disclosure = useStore(catalogStore, (state) => state.disclosure);
+  const queryKey = useMemo(() => catalogQueryKey(resultQuery), [resultQuery]);
+  const addedIds = useMemo(
+    () => new Set(placed.map((section) => section.subjectId)),
+    [placed],
+  );
+  // A plan change makes a choice stale once its course's placement no longer matches,
+  // so a card opened before an add is collapsed again after a later remove.
+  useEffect(() => {
+    catalogStore.getState().syncPlacement(addedIds);
+  }, [addedIds]);
+  // One course in the result, or a text filter naming a subject id exactly, opens that
+  // card, so a subject id search and the reveal in the list show the sections at once.
+  const singleCourse = catalog.courses.length === 1;
+  const exactId = filter.text.trim();
+  const handleToggle = useCallback(
+    (subjectId: string, open: boolean, added: boolean) => {
+      catalogStore.getState().setCardOpen(queryKey, subjectId, { open, added });
+    },
+    [queryKey],
+  );
 
   const term = useMemo<TermContext>(
     () => ({
@@ -239,6 +261,14 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
                 locale={language}
                 t={t}
                 term={term}
+                open={isCardOpen(
+                  disclosure,
+                  queryKey,
+                  course.subjectId,
+                  addedIds.has(course.subjectId),
+                  singleCourse || exactId === course.subjectId,
+                )}
+                onToggle={handleToggle}
                 onAdd={handleAdd}
                 onRemove={handleRemove}
                 onSwitchTerm={handleSwitchTerm}
