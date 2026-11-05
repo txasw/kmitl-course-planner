@@ -7,6 +7,7 @@ import type { CSSProperties } from 'react';
 import type { Meeting } from '@/lib/domain/types';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import { meetingColumns, type GridWindow } from '@/lib/planner/grid';
+import { BASE_GRID_FONT_PX } from '@/lib/ui/breakpoints';
 
 export type Orientation = 'landscape' | 'portrait';
 
@@ -18,8 +19,9 @@ export const QUARTERS_PER_HOUR = 4;
 /** The size of the leading axis track, in em of the grid font. */
 export const AXIS_TRACK_EM = 1.4;
 
-/** The grid root font size in edit mode, in CSS pixels; a template sets its own. */
-export const EDIT_FONT_PX = 11;
+/** The grid root font size in edit mode before the scroller is measured, in CSS pixels;
+ * a wider scroller steps it up and a template sets its own. */
+export const EDIT_FONT_PX = BASE_GRID_FONT_PX;
 
 // The day track derives from the day's position in the rendered run, not the day number,
 // so a preview that trims leading days still places each block correctly. With the full

@@ -229,22 +229,27 @@ export function PlannerPanel() {
       ) : (
         <div className="flex min-h-0 flex-1 flex-col gap-2">
           <GridScroller>
-            <WeeklyGrid
-              sections={scheduled}
-              window={frame.window}
-              days={frame.days}
-              locale={language}
-              t={t}
-              editable
-              onRemove={handleRemove}
-              conflictIds={conflictIds}
-              examConflictIds={examConflictIds}
-              examOverlaps={examConflicts}
-              onOpenDetail={openDetail}
-              onContextMenu={openContextMenu}
-              detailOpen={detail !== null}
-            />
-            {sections.length === 0 ? <GridEmptyState t={t} /> : null}
+            {(fontPx) => (
+              <>
+                <WeeklyGrid
+                  sections={scheduled}
+                  window={frame.window}
+                  days={frame.days}
+                  locale={language}
+                  t={t}
+                  editable
+                  onRemove={handleRemove}
+                  conflictIds={conflictIds}
+                  examConflictIds={examConflictIds}
+                  examOverlaps={examConflicts}
+                  onOpenDetail={openDetail}
+                  onContextMenu={openContextMenu}
+                  detailOpen={detail !== null}
+                  fontPx={fontPx}
+                />
+                {sections.length === 0 ? <GridEmptyState t={t} /> : null}
+              </>
+            )}
           </GridScroller>
           {unscheduled.length > 0 ? (
             <UnscheduledShelf

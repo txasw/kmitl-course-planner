@@ -103,8 +103,9 @@ interface WeeklyGridProps {
   dayAccent?: boolean;
   /** Landscape (days as rows) or portrait (days as columns). Portrait is preview only. */
   orientation?: Orientation;
-  /** The grid root font size in CSS pixels; every grid text node scales from it, so a
-   * template can shrink its type scale a step. Defaults to the edit mode 11px. */
+  /** The grid root font size in CSS pixels; every grid text node scales from it. Edit
+   * passes the step for the measured scroller width, and a template passes its own
+   * posterFontPx, so the scroller step never reaches an export. Defaults to the edit 11px. */
   fontPx?: number;
 }
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, cleanup, fireEvent, act } from '@testing-library/react';
 import { GridScroller } from './GridScroller';
 import { scrollEdges, type ScrollMetrics } from './useScrollEdges';
@@ -16,6 +16,7 @@ const FITS: ScrollMetrics = {
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
 });
 
 describe('scrollEdges', () => {
@@ -68,20 +69,12 @@ describe('GridScroller', () => {
   }
 
   it('renders no fade when the grid fits its column', () => {
-    const { container } = render(
-      <GridScroller>
-        <div />
-      </GridScroller>,
-    );
+    const { container } = render(<GridScroller>{() => <div />}</GridScroller>);
     expect(container.querySelector('[data-edge-fade]')).toBeNull();
   });
 
   it('fades the side that still hides content as the grid scrolls', () => {
-    const { container } = render(
-      <GridScroller>
-        <div />
-      </GridScroller>,
-    );
+    const { container } = render(<GridScroller>{() => <div />}</GridScroller>);
     const scroller = container.querySelector('.overflow-auto');
     if (!(scroller instanceof HTMLElement)) {
       throw new Error('expected the scroller');
@@ -112,5 +105,33 @@ describe('GridScroller', () => {
         container.querySelectorAll<HTMLElement>('[data-edge-fade]'),
       ).map((fade) => fade.dataset.edgeFade),
     ).toEqual(['left']);
+  });
+
+  it('hands the content the font step for its measured width', () => {
+    vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(1888);
+    const seen: number[] = [];
+    const { container } = render(
+      <GridScroller>
+        {(fontPx) => {
+          seen.push(fontPx);
+          return <div />;
+        }}
+      </GridScroller>,
+    );
+    // Unmeasured on the first render, then the 13 px step once the region reports 1888 px.
+    expect(seen[0]).toBe(11);
+    expect(seen.at(-1)).toBe(13);
+
+    // The top fade starts past the hour axis, which grows with the stepped font.
+    const scroller = container.querySelector('.overflow-auto');
+    if (!(scroller instanceof HTMLElement)) {
+      throw new Error('expected the scroller');
+    }
+    stubMetrics(scroller, { scrollHeight: 800, scrollTop: 40 });
+    act(() => {
+      fireEvent.scroll(scroller);
+    });
+    const top = container.querySelector<HTMLElement>('[data-edge-fade="top"]');
+    expect(top?.style.top).toBe('19.2px');
   });
 });
