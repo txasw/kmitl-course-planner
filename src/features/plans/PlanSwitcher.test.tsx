@@ -90,6 +90,22 @@ describe('PlanSwitcher', () => {
     expect(screen.getByRole('button', { name: 'B' })).toBeInTheDocument();
   });
 
+  it('caps the menu height to the available space so a long list scrolls', async () => {
+    seedTwoPlans();
+    render(<PlanSwitcher />);
+    openMenu();
+    const menu = screen
+      .getByRole('button', { name: 'สร้างตาราง' })
+      .closest<HTMLElement>('.kcp-scroll');
+    if (menu === null) {
+      throw new Error('expected the menu to carry the panel scroll class');
+    }
+    await waitFor(() => {
+      expect(menu.style.maxHeight).toMatch(/^\d+px$/);
+    });
+    expect(menu).toHaveClass('overflow-y-auto');
+  });
+
   it('switches the active plan and snaps the search term', () => {
     seedTwoPlans();
     // Activate the first semester plan, then switch to the second semester plan.
