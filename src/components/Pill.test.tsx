@@ -11,42 +11,34 @@ describe('Pill', () => {
     expect(screen.getByText('Added')).toBeInTheDocument();
   });
 
-  it('keeps the label in the tree and offers a tooltip when given an icon', async () => {
+  it('keeps the label visible beside its icon at any container width', () => {
+    const { container } = render(
+      <div style={{ width: '14rem' }}>
+        <Pill tone="success" icon={<Check size={12} aria-hidden />}>
+          Added
+        </Pill>
+      </div>,
+    );
+    const pill = screen.getByText('Added');
+    expect(pill).toBeVisible();
+    // No container query collapse and no visually hidden label anywhere in the pill.
+    expect(
+      container.querySelectorAll('[class*="@max-"], .sr-only'),
+    ).toHaveLength(0);
+  });
+
+  it('carries no tooltip, so the label is never hover only', () => {
     render(
       <Pill tone="success" icon={<Check size={12} aria-hidden />}>
         Added
       </Pill>,
     );
-    // The label stays in the accessibility tree even where it collapses visually.
-    const label = screen.getByText('Added');
-    expect(label).toBeInTheDocument();
-    // Hovering the collapsible pill reveals the label in a tooltip. mouseenter does not
-    // bubble, so it targets the trigger span, the label's parent, not the label itself.
-    const trigger = label.parentElement;
-    expect(trigger).not.toBeNull();
-    if (trigger !== null) {
-      fireEvent.mouseEnter(trigger);
-    }
-    expect(await screen.findByRole('tooltip')).toHaveTextContent('Added');
+    fireEvent.mouseEnter(screen.getByText('Added'));
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
 
-  it('uses an explicit label for the tooltip over the children', async () => {
-    render(
-      <Pill
-        tone="success"
-        icon={<Check size={12} aria-hidden />}
-        label="Open, 12 seats left"
-      >
-        Open 12
-      </Pill>,
-    );
-    const trigger = screen.getByText('Open 12').parentElement;
-    expect(trigger).not.toBeNull();
-    if (trigger !== null) {
-      fireEvent.mouseEnter(trigger);
-    }
-    expect(await screen.findByRole('tooltip')).toHaveTextContent(
-      'Open, 12 seats left',
-    );
+  it('uses the inner radius token so it reads tighter than its card', () => {
+    render(<Pill tone="danger">Full</Pill>);
+    expect(screen.getByText('Full')).toHaveClass('rounded-kcp-inner');
   });
 });

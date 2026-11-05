@@ -98,6 +98,8 @@
   "section.badge.examConflict": "สอบชนกัน",
   "section.badge.duplicate": "วิชาซ้ำ",
   "section.badge.differentTerm": "คนละภาค",
+  "section.badge.full": "เต็ม",
+  "section.badge.closed": "ปิด",
   "section.reason.conflictWith": "ชนกับ",
   "section.reason.examConflictWith": "เวลาสอบชนกับ",
   "section.reason.duplicate": "มีวิชานี้ในตารางแล้ว",

@@ -1,12 +1,11 @@
 // The one place a conflict description becomes localized copy, shared by the reason card
 // that follows the pointer, the feedback strip that reports a rejected drop, and the
-// catalog row's badge and reason line, so none of them phrase the same conflict
+// catalog row's reason line, so none of them phrase the same conflict
 // differently. The parts split the headline (which section clashes) from the detail (when
 // it clashes) so the reason card can lay them on readable lines, while the sentence joins
 // them for the feedback strip.
 
-import type { Translate, TranslationKey } from '@/lib/i18n/t';
-import type { ConflictDetail } from '@/lib/planner/placement';
+import type { Translate } from '@/lib/i18n/t';
 import type { ConflictDescription } from '@/lib/planner/describeConflict';
 import { dayLabelKey } from '@/lib/i18n/dayLabel';
 import { formatMinutes } from '@/lib/parsing/time';
@@ -51,14 +50,4 @@ export function conflictReasonText(
     description.moreCount > 0 ? ` (+${String(description.moreCount)})` : '';
   const { headline, detail } = conflictReasonParts(description, t);
   return `${headline}${detail !== null ? ` ${detail}` : ''}${suffix}`;
-}
-
-/** The badge for a conflicting section: an exam clash only when every conflict is an exam
- * overlap, so a section that also clashes in time, or as a duplicate, keeps the time
- * conflict badge and its reason names that first conflict. */
-export function conflictBadgeKey(conflicts: ConflictDetail[]): TranslationKey {
-  return conflicts.length > 0 &&
-    conflicts.every((conflict) => conflict.kind === 'exam')
-    ? 'section.badge.examConflict'
-    : 'section.badge.conflict';
 }

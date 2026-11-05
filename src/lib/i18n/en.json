@@ -98,6 +98,8 @@
   "section.badge.examConflict": "Exam clash",
   "section.badge.duplicate": "Duplicate subject",
   "section.badge.differentTerm": "Other term",
+  "section.badge.full": "Full",
+  "section.badge.closed": "Closed",
   "section.reason.conflictWith": "Conflicts with",
   "section.reason.examConflictWith": "Exam clashes with",
   "section.reason.duplicate": "This subject is already in the plan",

@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createTranslator } from '@/lib/i18n/t';
 import type { ConflictDescription } from '@/lib/planner/describeConflict';
-import type { ConflictDetail } from '@/lib/planner/placement';
-import { conflictBadgeKey, conflictReasonText } from './conflictText';
+import { conflictReasonText } from './conflictText';
 
 const t = createTranslator('en');
 const base = {
@@ -60,38 +59,5 @@ describe('conflictReasonText', () => {
     expect(conflictReasonText(description, t)).toBe(
       t('section.reason.duplicate'),
     );
-  });
-});
-
-describe('conflictBadgeKey', () => {
-  const blocking = { teachTableId: '1', subjectId: '90000001', section: '901' };
-  const exam: ConflictDetail = {
-    kind: 'exam',
-    blocking,
-    examKind: 'midterm',
-    self: { start: '2026-08-21 11:00:00', end: '2026-08-21 13:00:00' },
-    other: { start: '2026-08-21 09:00:00', end: '2026-08-21 12:00:00' },
-  };
-  const time: ConflictDetail = {
-    kind: 'time',
-    blocking,
-    day: 1,
-    startMin: 540,
-    endMin: 600,
-  };
-
-  it('reads an exam clash when every conflict is an exam overlap', () => {
-    expect(conflictBadgeKey([exam, { ...exam, examKind: 'final' }])).toBe(
-      'section.badge.examConflict',
-    );
-  });
-
-  it('keeps the time conflict badge when a time clash is among them', () => {
-    expect(conflictBadgeKey([exam, time])).toBe('section.badge.conflict');
-    expect(conflictBadgeKey([time])).toBe('section.badge.conflict');
-  });
-
-  it('falls back to the time conflict badge for an empty list', () => {
-    expect(conflictBadgeKey([])).toBe('section.badge.conflict');
   });
 });
