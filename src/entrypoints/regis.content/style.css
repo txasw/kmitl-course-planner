@@ -356,6 +356,54 @@ html {
   animation: kcp-sheet-in var(--kcp-duration-base) ease-out;
 }
 
+/* Course card disclosure. The body is a one row grid whose row grows from 0fr to 1fr,
+   so the section list opens to its own height with no measured pixels, and the rows
+   fade and rise in a moment after the height starts. data-stage comes from
+   usePresence. The inner node clips only while the height animates, so the focus
+   rings of an open list are never cut. Reduced motion drops every transition, and the
+   state still reads from aria-expanded and the chevron. */
+.kcp-disclosure {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    grid-template-rows var(--kcp-duration-base) ease-out,
+    opacity var(--kcp-duration-fast) ease-out 50ms,
+    translate var(--kcp-duration-fast) ease-out 50ms;
+}
+
+.kcp-disclosure > * {
+  min-height: 0;
+}
+
+.kcp-disclosure[data-stage='entering'] {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  translate: 0 4px;
+  transition: none;
+}
+
+.kcp-disclosure[data-stage='leaving'] {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows var(--kcp-duration-fast) ease-in,
+    opacity var(--kcp-duration-fast) ease-in;
+}
+
+.kcp-disclosure[data-stage='entering'] > *,
+.kcp-disclosure[data-stage='leaving'] > * {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kcp-disclosure,
+  .kcp-disclosure[data-stage] {
+    transition: none;
+  }
+}
+
 /* Blocked placement ghost: a hatched danger overlay over the danger soft fill, so
    the blocked footprint reads differently from the valid one at a glance. */
 .kcp-hatch {
