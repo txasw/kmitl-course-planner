@@ -61,3 +61,4 @@ a new record that supersedes the old one rather than editing history.
 52. [Pinned px type scale and two weights](0052-pinned-px-type-scale-and-two-weights.md)
 53. [Registration term default](0053-registration-term-default.md)
 54. [Curriculum plan suggestions](0054-curriculum-plan-suggestions.md)
+55. [Exports carry a data date instead of verification badges](0055-exports-carry-a-data-date.md)
