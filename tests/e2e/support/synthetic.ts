@@ -4,7 +4,7 @@
 // Course E, and a Course X pair), so a spec can add, move, and revalidate known
 // sections that the captured fixtures cannot express.
 
-import { expect } from './fixtures';
+import { expect, waitForResultsInput } from './fixtures';
 import type { Page } from '@playwright/test';
 
 /** A placed grid block is addressed by its synthetic fixture teach_table_id. */
@@ -20,6 +20,7 @@ export async function syntheticSearch(page: Page): Promise<void> {
   await expect(page.getByText('90000001').first()).toBeVisible({
     timeout: 15_000,
   });
+  await waitForResultsInput(page);
 }
 
 /** Add the first section of a course by its subject id. */

@@ -35,3 +35,33 @@ test('renders the deduped catalog for a category search', async ({
   await expect(page.getByText('4 กลุ่มเรียน')).toBeVisible();
   await expect(page.locator('[data-drag-surface="section"]')).toHaveCount(2);
 });
+
+test.describe('at 1280x720', () => {
+  test.use({ viewport: { width: 1280, height: 720 } });
+
+  // The curriculum form is the tallest, so before the fold its loading skeleton sat
+  // below the fold of a 720 px laptop and a cached answer changed nothing visible.
+  // The form now folds at the press into the summary bar, with the results under it.
+  test('folds the curriculum form into the summary bar at the press', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    await pickOption(page, 'คณะ', '01');
+    await pickOption(page, 'ภาควิชา', '08');
+    await pickOption(page, 'หลักสูตร', 'ทุกหลักสูตร');
+    await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+
+    await expect(
+      page.getByRole('region', { name: 'การค้นหาปัจจุบัน' }),
+    ).toBeInViewport();
+    await expect(
+      page
+        .getByRole('status', { name: 'กำลังโหลดรายวิชา' })
+        .or(page.getByRole('article'))
+        .first(),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'แก้ไขการค้นหา' }),
+    ).toHaveAttribute('aria-expanded', 'false');
+  });
+});
