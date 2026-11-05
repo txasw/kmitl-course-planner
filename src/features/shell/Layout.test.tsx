@@ -21,7 +21,7 @@ function wrapper({ children }: { children: ReactNode }) {
 afterEach(() => {
   cleanup();
   act(() => {
-    uiStore.getState().setDrawer(false);
+    uiStore.getState().setSheetOpen(false);
     uiStore.getState().setLanguage('th');
     uiStore.getState().setViewMode('edit');
   });
@@ -37,34 +37,34 @@ describe('Layout', () => {
     expect(
       screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
     ).toBeInTheDocument();
-    // The catalog idle state is visible; the drawer copy is aria-hidden while
+    // The catalog idle state is visible; the sheet copy is aria-hidden while
     // closed, so only one is in the accessibility tree.
     expect(
       screen.getByRole('heading', { name: 'ยังไม่มีรายวิชา' }),
     ).toBeInTheDocument();
   });
 
-  it('keeps the catalog drawer hidden until it is opened', () => {
+  it('keeps the catalog sheet hidden until it is opened', () => {
     const { container } = render(<Layout />, { wrapper });
-    const drawer = container.querySelector(`#${DRAWER_ID}`);
-    expect(drawer).toHaveAttribute('aria-hidden', 'true');
+    const sheet = container.querySelector(`#${DRAWER_ID}`);
+    expect(sheet).toHaveAttribute('aria-hidden', 'true');
 
     act(() => {
-      uiStore.getState().setDrawer(true);
+      uiStore.getState().setSheetOpen(true);
     });
-    expect(drawer).toHaveAttribute('aria-hidden', 'false');
+    expect(sheet).toHaveAttribute('aria-hidden', 'false');
     expect(
       screen.getByRole('button', { name: 'ปิดรายการรายวิชา' }),
     ).toBeInTheDocument();
   });
 
-  it('closes the drawer from its backdrop', () => {
+  it('closes the sheet from its scrim', () => {
     render(<Layout />, { wrapper });
     act(() => {
-      uiStore.getState().setDrawer(true);
+      uiStore.getState().setSheetOpen(true);
     });
     fireEvent.click(screen.getByRole('button', { name: 'ปิดรายการรายวิชา' }));
-    expect(uiStore.getState().drawerOpen).toBe(false);
+    expect(uiStore.getState().sheetOpen).toBe(false);
   });
 
   it('collapses the search rail and catalog in preview mode', () => {

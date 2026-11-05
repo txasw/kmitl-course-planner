@@ -18,7 +18,8 @@ export type ViewMode = 'edit' | 'preview';
 
 export interface UiState {
   isOpen: boolean;
-  drawerOpen: boolean;
+  /** Whether the catalog sheet is open, on the tiers where the catalog column is a sheet. */
+  sheetOpen: boolean;
   language: Locale;
   viewMode: ViewMode;
   /** Poster display options, applied to the preview and every export. */
@@ -41,7 +42,7 @@ export interface UiState {
   open: () => void;
   close: () => void;
   toggle: () => void;
-  setDrawer: (open: boolean) => void;
+  setSheetOpen: (open: boolean) => void;
   setLanguage: (language: Locale) => void;
   setViewMode: (mode: ViewMode) => void;
   setDisplayOptions: (options: DisplayOptions) => void;
@@ -58,7 +59,7 @@ export interface UiState {
 export function createUiStore(language: Locale = DEFAULT_LOCALE) {
   return createStore<UiState>((set) => ({
     isOpen: false,
-    drawerOpen: false,
+    sheetOpen: false,
     language,
     viewMode: 'edit',
     displayOptions: DEFAULT_DISPLAY_OPTIONS,
@@ -69,15 +70,15 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
       set({ isOpen: true });
     },
     close: () => {
-      // Closing the overlay also resets the drawer, which is only meaningful
+      // Closing the overlay also resets the catalog sheet, which is only meaningful
       // while the overlay is open.
-      set({ isOpen: false, drawerOpen: false });
+      set({ isOpen: false, sheetOpen: false });
     },
     toggle: () => {
       set((state) => ({ isOpen: !state.isOpen }));
     },
-    setDrawer: (open) => {
-      set({ drawerOpen: open });
+    setSheetOpen: (open) => {
+      set({ sheetOpen: open });
     },
     setLanguage: (language) => {
       set({ language });
