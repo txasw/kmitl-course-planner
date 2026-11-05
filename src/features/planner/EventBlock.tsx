@@ -8,14 +8,15 @@
 // here (the H3 principle), and a glyph marks a promoted field only, which is why the promoted
 // place keeps its location pin while the demoted time carries no glyph.
 // The fill is a soft tint of the subject's stable color under ink text with the solid color
-// as a left bar (ADR-0035); the KMITL orange is never used here. On the export poster
-// (fitToBox on) the content is measured against the box and whole low priority fields are
-// dropped rather than a line clipped mid glyph: the fit walks the density ladder in
-// useDensityFit, dropping the subject id, then the English name, then the time, then the
-// section chip, then reducing the name to one line, then the place, with the name never
-// dropping (ADR-0046, ADR-0047). The place outlives the name's second line and the time
-// never outlives the place. In edit mode fitToBox is off and the block keeps its tighter
-// line height and CSS clip; the subject id there is always shown for cross referencing.
+// as a left bar (ADR-0035); the KMITL orange is never used here. On the export poster and
+// in the edit grid alike the content is measured against the box and whole low
+// priority fields are dropped rather than a line clipped mid glyph: the fit walks the
+// density ladder in useDensityFit, dropping the subject id, then the English name, then the
+// time, then the section chip, then reducing the name to one line, then the place, with the
+// name never dropping (ADR-0046, ADR-0047). The place outlives the name's second line and
+// the time never outlives the place. The edit block keeps its tighter line height and always
+// carries the subject id for cross referencing, so the id is the first field it drops; the
+// hover card and the details still show it (ADR-0050). The edit fit pauses during a drag.
 // In edit mode the block is a drag source (the ref and
 // listeners come from the draggable wrapper so this stays free of the drag library) and
 // is itself the button that opens the pinned detail popover on click or Enter and Space,
@@ -85,14 +86,17 @@ interface EventBlockProps {
   /** Show the subject id in the foot. A preview display option, off by default there; the
    * edit grid leaves it on so the id is always available for cross referencing. */
   showSubjectId?: boolean;
-  /** Fit the block content to its box by measurement, dropping whole low priority fields
-   * rather than clipping a line mid glyph. On only for the read only preview and export
-   * poster; edit mode leaves it off and keeps its tighter line height (ADR-0046). */
-  fitToBox?: boolean;
   /** A key that changes whenever the block box pixel size changes (font, orientation,
-   * window, day count, grid track), so the fit resets to the full field set and re-measures.
-   * Unused when fitToBox is off. */
+   * window, day count, grid track), so the measured fit resets to the full field set and
+   * re-measures (ADR-0046, ADR-0050). */
   fitKey?: string;
+  /** Hold the settled field set and skip measurement, set for the length of an edit drag
+   * so the fit never reads layout while the pointer moves. */
+  fitPaused?: boolean;
+  /** Raise the line height so stacked Thai vowels and tone marks sit inside the line box.
+   * On for the export poster, where the raster must never crop a mark; the edit grid keeps
+   * its tighter line height so a block holds more fields (ADR-0046). */
+  thaiHeadroom?: boolean;
 }
 
 function EventBlockComponent({
@@ -117,8 +121,9 @@ function EventBlockComponent({
   showSection = true,
   showEnglishName = false,
   showSubjectId = true,
-  fitToBox = false,
   fitKey = '',
+  fitPaused = false,
+  thaiHeadroom = false,
 }: EventBlockProps) {
   const name = locale === 'th' ? section.nameTh : section.nameEn;
   // The English name is guaranteed visible when the option is on: it is the primary
@@ -140,8 +145,8 @@ function EventBlockComponent({
     .filter((part) => part !== '')
     .join(' · ');
   // Which fields this block could show before any measurement, from its data and the display
-  // toggles. When fitToBox is on the measured fit then drops the lowest priority of these
-  // that do not fit the box; when off, the full set always renders (edit mode).
+  // toggles. The measured fit then drops the lowest priority of these that do not fit the
+  // box.
   const contentRef = useRef<HTMLDivElement>(null);
   const eligibility = buildEligibility({
     hasName: name !== '',
@@ -150,7 +155,7 @@ function EventBlockComponent({
     hasId: showSubjectId && section.subjectId !== '',
     hasPlace: showRoom && place !== '',
   });
-  const level = useDensityFit(contentRef, fitToBox, eligibility, fitKey);
+  const level = useDensityFit(contentRef, eligibility, fitKey, fitPaused);
   // The accessible name is self contained so a screen reader hears the whole meeting
   // from the block alone: subject, name, section, full day, time, the place when it is
   // shown, then any verification state. The place follows the visual toggle so the
@@ -204,7 +209,7 @@ function EventBlockComponent({
             : undefined
         }
         onMouseLeave={onHoverLeave}
-        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-kcp py-1.5 pr-2 pl-2.5 text-[1em] ${fitToBox ? 'leading-[1.5]' : 'leading-tight'} text-ink outline-none ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'cursor-grab touch-none' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''} ${interactive ? 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary' : ''}`}
+        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-kcp py-1.5 pr-2 pl-2.5 text-[1em] ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink outline-none ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'cursor-grab touch-none' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''} ${interactive ? 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary' : ''}`}
         style={{ backgroundColor: hashTint(section.subjectId) }}
         {...dragListeners}
       >
@@ -240,8 +245,8 @@ function EventBlockComponent({
             extent already encode the time, so the hierarchy inverts (ADR-0047): the subject name
             is the primary anchor at the top, the place is the promoted second line with a
             location glyph, and the time demotes to quiet metadata at the foot beside the subject
-            id. The name is pinned and never drops; on the poster the fit measures this column and
-            drops the lowest priority fields whole rather than clipping a line. The absolute chip
+            id. The name is pinned and never drops; the fit measures this column and drops the
+            lowest priority fields whole rather than clipping a line. The absolute chip
             and badges sit outside this column so they never skew the measurement. */}
         <div
           ref={contentRef}

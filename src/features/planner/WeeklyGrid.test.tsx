@@ -58,6 +58,7 @@ function blockItem(): HTMLElement {
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
   dragStore.getState().clearActive();
   dragStore.getState().clearBlocked();
   dragStore.getState().clearHover();
@@ -259,6 +260,36 @@ describe('WeeklyGrid', () => {
       />,
     );
     expect(grid.style.minWidth).toBe('824px');
+  });
+
+  it('fits an edit block to its box, holding the fit while a drag holds the frame', () => {
+    // jsdom performs no layout, so a fit column overflows while it still shows the id.
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(80);
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return this.textContent.includes('90592033') ? 100 : 80;
+      },
+    );
+    // A drag is live before the grid mounts, so the block keeps its full field set.
+    dragStore.getState().freezeFrame({ window: SMART_WINDOW, days: [1] });
+    render(
+      <WeeklyGrid
+        sections={[makePlaced()]}
+        window={SMART_WINDOW}
+        locale="th"
+        t={t}
+        editable
+        onRemove={vi.fn()}
+      />,
+    );
+    const block = screen.getByLabelText(/90592033/);
+    expect(block.textContent).toContain('90592033');
+    // The drag ends and releases the frame: the fit runs and drops the overflowing id.
+    act(() => {
+      dragStore.getState().clearActive();
+    });
+    expect(block.textContent).not.toContain('90592033');
+    expect(block.textContent).toContain('09:00-12:00');
   });
 
   it('keeps the poster grid on its fixed minimum width', () => {

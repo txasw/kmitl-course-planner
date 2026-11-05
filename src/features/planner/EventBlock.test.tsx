@@ -34,7 +34,21 @@ const meeting: Meeting = {
   kind: 'lecture',
 };
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
+
+/** Make every fit column report a 20 px overflow while it contains `text`, standing in for
+ * the layout jsdom does not perform. */
+function overflowWhileShowing(text: string): void {
+  vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(80);
+  vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+    function (this: HTMLElement) {
+      return this.textContent.includes(text) ? 100 : 80;
+    },
+  );
+}
 
 describe('EventBlock', () => {
   it('shows the time, name, subject id, section, and place', () => {
@@ -102,9 +116,9 @@ describe('EventBlock', () => {
     expect(nameEl).toHaveAttribute('lang', 'th');
   });
 
-  it('gives block text Thai headroom only when fitting to the export box', () => {
-    // Edit mode keeps the tight line height; the export poster raises it so stacked Thai
-    // vowels and tone marks are never cropped (F3, ADR-0046).
+  it('gives block text Thai headroom only on the export poster', () => {
+    // The edit grid keeps the tight line height even while it fits its box; the export poster
+    // raises it so stacked Thai vowels and tone marks are never cropped (F3, ADR-0046).
     const { rerender } = render(
       <EventBlock
         section={section}
@@ -124,7 +138,7 @@ describe('EventBlock', () => {
         style={{}}
         locale="th"
         t={t}
-        fitToBox
+        thaiHeadroom
       />,
     );
     expect(screen.getByLabelText(/90592033/).className).toContain(
@@ -429,6 +443,46 @@ describe('EventBlock', () => {
     // No interactive control nests inside another, so a click on remove never bubbles to
     // the block and axe stays clear of nested-interactive.
     expect(block.contains(remove)).toBe(false);
+  });
+
+  it('drops the subject id first when a short edit block overflows', () => {
+    // jsdom performs no layout, so the content column reports an overflow for as long as it
+    // still holds the subject id, the height a short block cannot fit.
+    overflowWhileShowing('90592033');
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        onOpenDetail={vi.fn()}
+      />,
+    );
+    const block = screen.getByRole('button', { name: /90592033/ });
+    expect(within(block).queryByText('90592033')).not.toBeInTheDocument();
+    // Only the id yielded: the time, the place, the section, and the name all remain.
+    expect(within(block).getByText('09:00-12:00')).toBeInTheDocument();
+    expect(within(block).getByText('A · A101')).toBeInTheDocument();
+    expect(within(block).getByText('901')).toBeInTheDocument();
+    expect(within(block).getByText('วิชาทดสอบ')).toBeInTheDocument();
+  });
+
+  it('holds its field set while the fit is paused for a drag', () => {
+    overflowWhileShowing('90592033');
+    const props = {
+      section,
+      meeting,
+      style: {},
+      locale: 'th' as const,
+      t,
+    };
+    const { rerender } = render(<EventBlock {...props} fitPaused />);
+    const block = screen.getByLabelText(/90592033/);
+    expect(within(block).getByText('90592033')).toBeInTheDocument();
+    // The drag ends: the fit runs again and drops the id that overflows.
+    rerender(<EventBlock {...props} fitPaused={false} />);
+    expect(within(block).queryByText('90592033')).not.toBeInTheDocument();
   });
 
   it('skips re-rendering when its props are unchanged and re-renders on a change', () => {

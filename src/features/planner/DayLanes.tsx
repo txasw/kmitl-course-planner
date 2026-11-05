@@ -1,10 +1,11 @@
 // The day tracks of the weekly grid: a label and a lane per rendered day, and the placed
 // blocks over them. A lane carries the row fill and its border; the time rules draw once
-// across every lane in GridRules. In edit mode each block is
-// a drag source; in preview it is a plain block that fits its fields to its box. Renders a
-// fragment so every item is a direct child of the grid and places by track index. In edit
-// the day labels are sticky inside the planner scroller on an opaque fill, so the day stays
-// readable while the time scrolls beneath it; the poster renders them flat.
+// across every lane in GridRules. In edit mode each block is a drag source; in preview it
+// is a plain block. Both fit their fields to the box, and the edit fit pauses while a drag
+// holds the grid frame (ADR-0050). Renders a fragment so every item is a direct child of
+// the grid and places by track index. In edit the day labels are sticky inside the
+// planner scroller on an opaque fill, so the day stays readable while the time scrolls
+// beneath it; the poster renders them flat.
 
 import { Fragment, useMemo } from 'react';
 import type { CSSProperties, MouseEvent } from 'react';
@@ -90,6 +91,9 @@ export function DayLanes({
 
   const active = useStore(dragStore, (state) => state.active);
   const blockMove = useStore(dragStore, (state) => state.blockMove);
+  // Every pointer drag holds the grid frame from its start to its end, so a held frame is
+  // the one signal that a drag is live and the block fit must not read layout.
+  const dragging = useStore(dragStore, (state) => state.frame !== null);
   const movingIds = useMemo(
     () =>
       new Set(blockMove?.group.map((section) => section.teachTableId) ?? []),
@@ -193,6 +197,8 @@ export function DayLanes({
           ...(editable && onOpenDetail !== undefined ? { onOpenDetail } : {}),
           ...(editable && onContextMenu !== undefined ? { onContextMenu } : {}),
           ...(editable ? { onHoverEnter, onHoverLeave } : {}),
+          fitKey: `${String(fontPx)}|${orientation}|${String(window.startMin)}|${String(window.endMin)}|${String(days.length)}|${String(style.gridRow ?? '')}|${String(style.gridColumn ?? '')}`,
+          fitPaused: dragging,
         };
         return editable && onRemove ? (
           <DraggableBlock
@@ -209,8 +215,7 @@ export function DayLanes({
             showSection={showSection}
             showEnglishName={showEnglishName}
             showSubjectId={showSubjectId}
-            fitToBox={!editable}
-            fitKey={`${String(fontPx)}|${orientation}|${String(window.startMin)}|${String(window.endMin)}|${String(days.length)}|${String(style.gridRow ?? '')}|${String(style.gridColumn ?? '')}`}
+            thaiHeadroom
           />
         );
       })}
