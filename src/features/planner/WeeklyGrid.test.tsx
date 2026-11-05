@@ -5,6 +5,7 @@ import {
   cleanup,
   act,
   fireEvent,
+  within,
 } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import { DEFAULT_WINDOW, SMART_WINDOW } from '@/lib/planner/grid';
@@ -293,6 +294,69 @@ describe('WeeklyGrid', () => {
     });
     expect(block.textContent).not.toContain('90592033');
     expect(block.textContent).toContain('09:00-12:00');
+  });
+
+  it('caps the edit day rows at 7rem and packs them to the top', () => {
+    render(
+      <WeeklyGrid
+        sections={[]}
+        window={SMART_WINDOW}
+        locale="th"
+        t={t}
+        editable
+        days={[1, 2, 3, 4, 5]}
+      />,
+    );
+    const grid = screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+    expect(grid.style.gridTemplateRows).toBe(
+      '1.4em repeat(5, minmax(2.5rem, 7rem))',
+    );
+    expect(grid.style.alignContent).toBe('start');
+  });
+
+  it('lets the poster day rows share the template canvas', () => {
+    render(
+      <WeeklyGrid
+        sections={[]}
+        window={SMART_WINDOW}
+        locale="th"
+        t={t}
+        days={[1, 2, 3, 4, 5]}
+      />,
+    );
+    const grid = screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+    expect(grid.style.gridTemplateRows).toBe(
+      '1.4em repeat(5, minmax(2.5rem, 1fr))',
+    );
+    expect(grid.style.alignContent).toBe('');
+  });
+
+  it('pins the block foot to the box bottom on the poster only', () => {
+    const footClass = () =>
+      within(screen.getByLabelText(/90592033/)).getByText('09:00-12:00')
+        .parentElement?.className;
+    const { unmount } = render(
+      <WeeklyGrid
+        sections={[makePlaced()]}
+        window={SMART_WINDOW}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(footClass()).toContain('mt-auto');
+    unmount();
+    render(
+      <WeeklyGrid
+        sections={[makePlaced()]}
+        window={SMART_WINDOW}
+        locale="th"
+        t={t}
+        editable
+        onRemove={vi.fn()}
+      />,
+    );
+    expect(footClass()).toContain('mt-1');
+    expect(footClass()).not.toContain('mt-auto');
   });
 
   it('keeps the poster grid on its fixed minimum width', () => {

@@ -50,20 +50,24 @@ function gridTemplate(
       gridTemplateRows: `${String(AXIS_TRACK_EM)}em repeat(${String(quarters)}, minmax(0, 1fr))`,
     };
   }
-  const rows = `${String(AXIS_TRACK_EM)}em repeat(${String(dayCount)}, minmax(2.5rem, 1fr))`;
+  const rows = (rowMax: string) =>
+    `${String(AXIS_TRACK_EM)}em repeat(${String(dayCount)}, minmax(2.5rem, ${rowMax}))`;
   // The edit grid derives its minimum from the window, so the day column is the fixed
-  // width that minimum counts. The poster keeps its own column and the 44rem floor, since
-  // its template canvas, not the window, sets its width.
+  // width that minimum counts. Its day rows stop growing at 7rem and pack to the top, so a
+  // tall panel leaves its spare height below the week rather than stretching every block
+  // into a mostly empty box. The poster keeps its own column, the 44rem floor, and rows
+  // that share the template canvas, since the canvas, not the window, sets its size.
   if (editable) {
     return {
       gridTemplateColumns: `${String(EDIT_DAY_AXIS_PX)}px repeat(${String(quarters)}, minmax(0, 1fr))`,
-      gridTemplateRows: rows,
+      gridTemplateRows: rows('7rem'),
+      alignContent: 'start',
       minWidth: `${String(editGridMinWidth(window))}px`,
     };
   }
   return {
     gridTemplateColumns: `2.25rem repeat(${String(quarters)}, minmax(0, 1fr))`,
-    gridTemplateRows: rows,
+    gridTemplateRows: rows('1fr'),
   };
 }
 
