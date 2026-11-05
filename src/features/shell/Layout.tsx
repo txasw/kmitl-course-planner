@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { useStore } from 'zustand';
 import { PlannerPanel } from '@/features/planner/PlannerPanel';
 import { PlannerDnd } from '@/features/planner/PlannerDnd';
@@ -6,6 +7,7 @@ import { isDockedTier } from '@/lib/ui/breakpoints';
 import { CatalogColumn } from './CatalogColumn';
 import { EdgeRail } from './EdgeRail';
 import { uiStore } from './uiStore';
+import { useCatalogFocusRepair } from './useCatalogFocusRepair';
 import { useLayoutTier } from './useLayoutTier';
 import { useTranslation } from './useTranslation';
 
@@ -22,6 +24,8 @@ export function Layout() {
   const viewMode = useStore(uiStore, (state) => state.viewMode);
   const sheetOpen = useStore(uiStore, (state) => state.sheetOpen);
   const setSheetOpen = useStore(uiStore, (state) => state.setSheetOpen);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
+  useCatalogFocusRepair(bodyRef, tier);
 
   // Preview collapses the catalog column out of the DOM and gives the
   // timetable the full panel width as a poster composition.
@@ -35,7 +39,7 @@ export function Layout() {
 
   return (
     <PlannerDnd>
-      <div className="relative flex h-full">
+      <div ref={bodyRef} className="relative flex h-full">
         <CatalogColumn tier={tier} />
         {isDockedTier(tier) ? <EdgeRail /> : null}
 
