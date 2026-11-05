@@ -10,6 +10,7 @@ import { TEACH_TIME_STR_PATTERN } from '../parsing/teachTimeStr';
 import {
   SECTION_ROW_EXPECTATIONS,
   SECTION_ROW_FIELDS,
+  SUBJECT_TYPE_EXPECTATIONS,
   CROSS_FIELD_RULES,
   type FieldExpectation,
 } from './expectations';
@@ -36,24 +37,31 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function flattenTeachTableRows(response: unknown): Record<string, unknown>[] {
-  const rows: Record<string, unknown>[] = [];
+function flattenTeachTableBlocks(response: unknown): Record<string, unknown>[] {
+  const blocks: Record<string, unknown>[] = [];
   if (!Array.isArray(response)) {
-    return rows;
+    return blocks;
   }
   for (const group of response) {
     if (!isRecord(group) || !Array.isArray(group.teachtable)) {
       continue;
     }
     for (const block of group.teachtable) {
-      if (!isRecord(block) || !Array.isArray(block.data)) {
-        continue;
+      if (isRecord(block)) {
+        blocks.push(block);
       }
-      for (const row of block.data) {
-        if (isRecord(row)) {
-          rows.push(row);
-        }
-      }
+    }
+  }
+  return blocks;
+}
+
+function flattenTeachTableRows(
+  blocks: Record<string, unknown>[],
+): Record<string, unknown>[] {
+  const rows: Record<string, unknown>[] = [];
+  for (const block of blocks) {
+    if (Array.isArray(block.data)) {
+      rows.push(...collectRecords(block.data));
     }
   }
   return rows;
@@ -110,10 +118,10 @@ function issue(
 function checkField(
   row: Record<string, unknown>,
   expectation: FieldExpectation,
-  index: number,
+  location: string,
   ref: IssueRowRef,
 ): ContractIssue | null {
-  const path = `rows[${String(index)}].${expectation.field}`;
+  const path = `${location}.${expectation.field}`;
   if (!(expectation.field in row)) {
     return issue(
       'missing_field',
@@ -321,12 +329,31 @@ export function auditTeachTable(
   response: unknown,
   context: AuditContext,
 ): DataQualityReport {
-  const rows = flattenTeachTableRows(response);
+  const blocks = flattenTeachTableBlocks(response);
+  const rows = flattenTeachTableRows(blocks);
   const issues: ContractIssue[] = [];
+  blocks.forEach((block, index) => {
+    for (const expectation of SUBJECT_TYPE_EXPECTATIONS) {
+      const fieldIssue = checkField(
+        block,
+        expectation,
+        `blocks[${String(index)}]`,
+        { index },
+      );
+      if (fieldIssue !== null) {
+        issues.push(fieldIssue);
+      }
+    }
+  });
   rows.forEach((row, index) => {
     const ref = toRowRef(row, index);
     for (const expectation of SECTION_ROW_EXPECTATIONS) {
-      const fieldIssue = checkField(row, expectation, index, ref);
+      const fieldIssue = checkField(
+        row,
+        expectation,
+        `rows[${String(index)}]`,
+        ref,
+      );
       if (fieldIssue !== null) {
         issues.push(fieldIssue);
       }
@@ -369,7 +396,12 @@ export function auditReference(
   rows.forEach((row, index) => {
     const ref = toRowRef(row, index);
     for (const expectation of expectations) {
-      const fieldIssue = checkField(row, expectation, index, ref);
+      const fieldIssue = checkField(
+        row,
+        expectation,
+        `rows[${String(index)}]`,
+        ref,
+      );
       if (fieldIssue !== null) {
         issues.push(fieldIssue);
       }

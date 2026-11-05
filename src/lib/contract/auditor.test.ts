@@ -58,11 +58,24 @@ function validRow(): Record<string, unknown> {
   };
 }
 
-function wrap(row: Record<string, unknown>): unknown {
+const GROUP_2_TH =
+  'กลุ่ม 2 (วิชาบังคับคณะฯ / วิชาบังคับหลักสูตร / วิชาเลือกหลักสูตร)';
+const GROUP_2_EN =
+  'Group 2 (Required Subject / Compulsory Courses / Elective Courses)';
+
+function wrap(
+  row: Record<string, unknown>,
+  headingTh = GROUP_2_TH,
+  headingEn = GROUP_2_EN,
+): unknown {
   return [
     {
       teachtable: [
-        { subject_type_name_th: 'g', subject_type_name_en: 'g', data: [row] },
+        {
+          subject_type_name_th: headingTh,
+          subject_type_name_en: headingEn,
+          data: [row],
+        },
       ],
     },
   ];
@@ -183,6 +196,45 @@ describe('auditTeachTable', () => {
     );
     // The capture carries one online course whose day is 0 and times are zeroed.
     expect(report.totals.unscheduled).toBe(1);
+  });
+
+  it('warns when a subject type heading no longer names its group', () => {
+    const report = auditTeachTable(
+      wrap(validRow(), 'วิชาบังคับ', GROUP_2_EN),
+      ctx,
+    );
+    expect(report.totals.issues).toBe(1);
+    expect(report.issues[0]).toMatchObject({
+      kind: 'format_violation',
+      severity: 'warn',
+      path: 'blocks[0].subject_type_name_th',
+      rowRef: { index: 0 },
+    });
+  });
+
+  it('reports a missing heading as an error', () => {
+    const response = [
+      {
+        teachtable: [{ subject_type_name_en: GROUP_2_EN, data: [validRow()] }],
+      },
+    ];
+    const report = auditTeachTable(response, ctx);
+    expect(report.totals.byKind.missing_field).toBe(1);
+    expect(report.issues[0]?.path).toBe('blocks[0].subject_type_name_th');
+  });
+
+  it('accepts the headings of every teach table capture', () => {
+    for (const name of [
+      OWNER_CAPTURE,
+      'teach-table.by_class.capture.json',
+      'teach-table.with-exams.capture.json',
+      'teach-table.multi-meeting.capture.json',
+    ]) {
+      const report = auditTeachTable(loadFixture(name), ctx);
+      expect(report.issues.filter((i) => i.path.startsWith('blocks['))).toEqual(
+        [],
+      );
+    }
   });
 
   it('flags exactly one missing field and one unknown field for the mutation presets', () => {
