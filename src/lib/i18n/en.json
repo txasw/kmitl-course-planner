@@ -78,6 +78,7 @@
   "catalog.refresh": "Refresh",
   "toast.refreshUnchanged": "Already up to date, nothing changed",
   "catalog.filter.text": "Filter courses",
+  "catalog.filter.fieldLabel": "Filter results",
   "catalog.filter.day": "Day",
   "catalog.filter.credit": "Credits",
   "catalog.filter.creditAny": "Any credits",

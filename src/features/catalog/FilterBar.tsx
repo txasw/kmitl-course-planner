@@ -3,7 +3,7 @@
 // under the field. Filtering itself happens in the pure filter over the catalog store state,
 // which is untouched; the redesign only reshapes the controls.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import {
   useClick,
@@ -23,6 +23,7 @@ import {
   usePanelPopover,
 } from '@/features/shell/usePanelPopover';
 import { dayLabelKey } from '@/lib/i18n/dayLabel';
+import { CONTROL_BOUNDARY } from '@/lib/ui/control';
 import { FOCUS_RING, FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { Combobox, type ComboboxOption } from '@/features/search/Combobox';
 import { catalogStore } from './catalogStore';
@@ -42,6 +43,7 @@ interface Chip {
 export function FilterBar({ creditOptions }: FilterBarProps) {
   const { t } = useTranslation();
   const filter = useStore(catalogStore, (state) => state.filter);
+  const textId = useId();
 
   const activeCount =
     (filter.days.length > 0 ? 1 : 0) +
@@ -106,23 +108,30 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex gap-2">
-        <input
-          type="search"
-          value={filter.text}
-          placeholder={t('catalog.filter.text')}
-          aria-label={t('catalog.filter.text')}
-          onChange={(event) => {
-            catalogStore.getState().setText(event.target.value);
-          }}
-          className={`min-w-0 flex-1 rounded-kcp border border-border bg-surface px-2 py-1.5 text-sm text-ink ${FOCUS_RING}`}
-        />
-        <FilterPopover
-          t={t}
-          filter={filter}
-          creditOptions={creditOptions}
-          activeCount={activeCount}
-        />
+      {/* A persistent visible label names the field, since the placeholder hint
+          disappears as soon as the student types. */}
+      <div className="flex flex-col gap-1">
+        <label htmlFor={textId} className="text-sm font-medium text-ink">
+          {t('catalog.filter.fieldLabel')}
+        </label>
+        <div className="flex gap-2">
+          <input
+            id={textId}
+            type="search"
+            value={filter.text}
+            placeholder={t('catalog.filter.text')}
+            onChange={(event) => {
+              catalogStore.getState().setText(event.target.value);
+            }}
+            className={`min-w-0 flex-1 rounded-kcp border px-2 py-1.5 text-sm text-ink ${CONTROL_BOUNDARY} ${FOCUS_RING}`}
+          />
+          <FilterPopover
+            t={t}
+            filter={filter}
+            creditOptions={creditOptions}
+            activeCount={activeCount}
+          />
+        </div>
       </div>
       {chips.length > 0 ? (
         <div className="flex flex-wrap items-center gap-1 text-xs">
