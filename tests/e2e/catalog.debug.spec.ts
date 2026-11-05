@@ -1,5 +1,19 @@
 import { test, expect, openPlanner, pickOption } from './support/fixtures';
 
+// With no persisted search, no result route, and no plan, the form opens on the term
+// after the one the registrar reports as current. The capture reports 1/2569.
+test('opens the search form on the next registration term', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await expect(page.getByRole('combobox', { name: 'ปีการศึกษา' })).toHaveValue(
+    '2569',
+  );
+  await expect(page.getByRole('combobox', { name: 'ภาคการศึกษา' })).toHaveValue(
+    '2',
+  );
+});
+
 // A category search for subject owner 32 in faculty 01. The owner 32 capture
 // carries 13 raw rows that dedupe to 4 unique sections across 3 courses, so the
 // catalog proves the dedupe by rendering exactly that.
