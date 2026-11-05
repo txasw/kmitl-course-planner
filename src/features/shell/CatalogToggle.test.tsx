@@ -98,32 +98,25 @@ describe('CatalogToggle', () => {
     expect(uiStore.getState().sheetOpen).toBe(false);
   });
 
-  it('is absent on the wide tiers while the column is shown', () => {
-    installViewport(1440);
-    showResult();
-    render(<CatalogToggle />);
-    expect(
-      screen.queryByRole('button', { name: /^รายวิชา/ }),
-    ).not.toBeInTheDocument();
-  });
-
-  it('restores a hidden docked column and keeps the count in its name', () => {
-    installViewport(1440);
-    showResult();
-    act(() => {
-      uiStore.getState().setCatalogVisible(false);
-    });
-    render(<CatalogToggle />);
-    const toggle = screen.getByRole('button', { name: 'รายวิชา 2' });
-    expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    expect(toggle).toHaveAttribute('title', 'แสดงรายวิชา');
-    fireEvent.click(toggle);
-    expect(uiStore.getState().catalogVisible).toBe(true);
-    expect(uiStore.getState().sheetOpen).toBe(false);
-    expect(
-      screen.queryByRole('button', { name: 'รายวิชา 2' }),
-    ).not.toBeInTheDocument();
-  });
+  it.each([
+    [1024, true],
+    [1280, true],
+    [1536, true],
+    [1024, false],
+    [1280, false],
+    [1536, false],
+  ] as const)(
+    'is absent at %i px with the docked column shown %s',
+    (width, visible) => {
+      installViewport(width);
+      showResult();
+      act(() => {
+        uiStore.getState().setCatalogVisible(visible);
+      });
+      render(<CatalogToggle />);
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    },
+  );
 
   it('is absent in preview', () => {
     installViewport(768);

@@ -76,14 +76,12 @@ describe('Header', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('offers the toggle on a docked tier while the column is hidden', () => {
+  it('leaves a hidden docked column to the edge rail', () => {
     installViewport(1024);
     act(() => {
       uiStore.getState().setCatalogVisible(false);
     });
     render(<Header titleId="title" />);
-    fireEvent.click(screen.getByRole('button', { name: 'รายวิชา' }));
-    expect(uiStore.getState().catalogVisible).toBe(true);
     expect(
       screen.queryByRole('button', { name: 'รายวิชา' }),
     ).not.toBeInTheDocument();
