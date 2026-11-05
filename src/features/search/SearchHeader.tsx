@@ -9,7 +9,8 @@
 import { useLayoutEffect, useRef } from 'react';
 import { useStore } from 'zustand';
 import { SearchForm } from './SearchForm';
-import { SEARCH_FORM_ID, SearchSummaryBar } from './SearchSummaryBar';
+import { SEARCH_FORM_ID } from './searchIds';
+import { SearchSummaryBar } from './SearchSummaryBar';
 import { searchStore, selectFormOpen } from './searchStore';
 
 export function SearchHeader() {

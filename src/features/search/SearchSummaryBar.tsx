@@ -13,17 +13,13 @@ import type { Translate } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { useTranslation } from '@/features/shell/useTranslation';
+import {
+  SEARCH_BAR_ID,
+  SEARCH_DISCLOSURE_ID,
+  SEARCH_FORM_ID,
+} from './searchIds';
 import { searchStore, selectFormOpen } from './searchStore';
 import { TAB_ICON, TAB_LABEL } from './searchTabs';
-
-/** Id of the bar, which takes focus when a user search is accepted. */
-export const SEARCH_BAR_ID = 'kcp-search-bar';
-
-/** Id of the folding form region the disclosure controls. */
-export const SEARCH_FORM_ID = 'kcp-search-form';
-
-/** Id of the disclosure that opens and closes the form under the bar. */
-export const SEARCH_DISCLOSURE_ID = 'kcp-search-disclosure';
 
 const SUMMARY_ID = 'kcp-search-bar-summary';
 const TERM_ID = 'kcp-search-bar-term';

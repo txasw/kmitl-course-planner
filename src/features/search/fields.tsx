@@ -54,7 +54,8 @@ interface SubjectIdInputProps {
   inputRef?: RefObject<HTMLInputElement | null>;
   onChange: (value: string) => void;
   /** Called when Enter is pressed, so a keyboard submit routes like the button. */
-  onSubmit?: () => void;
+  /** Called on Enter with the input, so the caller can move focus from it. */
+  onSubmit?: (input: HTMLInputElement) => void;
 }
 
 export function SubjectIdInput({
@@ -106,7 +107,7 @@ export function SubjectIdInput({
           onKeyDown={(event) => {
             if (event.key === 'Enter' && onSubmit) {
               event.preventDefault();
-              onSubmit();
+              onSubmit(event.currentTarget);
             }
           }}
           className={`rounded-kcp border px-2 py-1.5 text-ink ${CONTROL_BOUNDARY} ${FOCUS_RING}`}

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   render,
   screen,
@@ -7,7 +7,10 @@ import {
   act,
 } from '@testing-library/react';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
-import type { TeachTableQuery } from '@/lib/messaging/protocol';
+import type { RequestMessage, TeachTableQuery } from '@/lib/messaging/protocol';
+import type { TypedSend } from '@/lib/messaging/sendTyped';
+import { ok } from '@/lib/utils/result';
+import { CatalogPanel } from '@/features/catalog/CatalogPanel';
 import {
   defaultCategoryForm,
   defaultClassForm,
@@ -17,7 +20,7 @@ import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { makeCourse } from '../../../tests/support/domain-builders';
 import { SearchDepsProvider } from './SearchDepsContext';
 import { SearchHeader } from './SearchHeader';
-import { SEARCH_FORM_ID } from './SearchSummaryBar';
+import { SEARCH_BAR_ID, SEARCH_FORM_ID } from './searchIds';
 import { searchStore } from './searchStore';
 
 const term = { year: '2569', semester: '1' } as const;
@@ -139,5 +142,90 @@ describe('SearchHeader', () => {
     fireEvent.click(disclosure, { detail: 1 });
     fireEvent.click(disclosure, { detail: 2 });
     expect(disclosure).toHaveAttribute('aria-expanded', 'true');
+  });
+});
+
+interface CountingSend {
+  send: TypedSend;
+  queries: () => number;
+}
+
+// A send that counts the queries it is asked and never answers them, so a search
+// stays in flight. The cast is required because a single arrow cannot satisfy the
+// generic send signature.
+function countingSend(): CountingSend {
+  let queries = 0;
+  const handler = (message: RequestMessage) => {
+    if (message.type === 'teachTable/query') {
+      queries += 1;
+      return new Promise<never>(() => undefined);
+    }
+    return Promise.resolve(ok(null));
+  };
+  return { send: handler as unknown as TypedSend, queries: () => queries };
+}
+
+function renderColumn(send: TypedSend) {
+  return render(
+    <SearchDepsProvider value={fakeSearchDeps({ send })}>
+      <SearchHeader />
+      <CatalogPanel />
+    </SearchDepsProvider>,
+  );
+}
+
+describe('search focus', () => {
+  it('folds the form and focuses the bar inside the submit click', () => {
+    const { container } = renderColumn(countingSend().send);
+    fireEvent.click(screen.getByRole('button', { name: 'ค้นหา' }));
+    const region = formRegion(container);
+    expect(region).toHaveAttribute('data-open', 'false');
+    expect(region).toHaveAttribute('inert');
+    expect(document.activeElement?.id).toBe(SEARCH_BAR_ID);
+  });
+
+  it('keeps the form open for a short subject id', () => {
+    act(() => {
+      searchStore.getState().patchSubjectIdForm({ subjectId: '123' });
+    });
+    const counting = countingSend();
+    const { container } = renderColumn(counting.send);
+    fireEvent.click(screen.getByRole('button', { name: 'ค้นหา' }));
+    expect(formRegion(container)).toHaveAttribute('data-open', 'true');
+    expect(
+      screen.queryByRole('region', { name: 'การค้นหาปัจจุบัน' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'รหัสวิชา' })).toHaveFocus();
+    expect(counting.queries()).toBe(0);
+  });
+
+  it('starts nothing on a second Enter after the bar takes focus', () => {
+    const counting = countingSend();
+    renderColumn(counting.send);
+    const field = screen.getByRole('textbox', { name: 'รหัสวิชา' });
+    field.focus();
+    fireEvent.keyDown(field, { key: 'Enter' });
+    const bar = screen.getByRole('region', { name: 'การค้นหาปัจจุบัน' });
+    expect(bar).toHaveFocus();
+    fireEvent.keyDown(bar, { key: 'Enter' });
+    expect(counting.queries()).toBe(1);
+  });
+
+  it('reopens the form and focuses submit when a slow search is cancelled', () => {
+    vi.useFakeTimers();
+    try {
+      const { container } = renderColumn(countingSend().send);
+      fireEvent.click(screen.getByRole('button', { name: 'ค้นหา' }));
+      act(() => {
+        vi.advanceTimersByTime(8_000);
+      });
+      fireEvent.click(screen.getByRole('button', { name: 'ยกเลิก' }));
+      expect(formRegion(container)).toHaveAttribute('data-open', 'true');
+      expect(formRegion(container)).not.toHaveAttribute('inert');
+      expect(screen.getByRole('button', { name: 'ค้นหา' })).toHaveFocus();
+      expect(searchStore.getState().barQuery).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
