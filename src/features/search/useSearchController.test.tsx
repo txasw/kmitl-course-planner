@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { render, cleanup, waitFor } from '@testing-library/react';
+import {
+  render,
+  renderHook,
+  cleanup,
+  waitFor,
+  act,
+} from '@testing-library/react';
 import type {
   SearchState,
   SearchStateRepository,
@@ -22,7 +28,7 @@ import { loadFixture } from '../../../tests/support/fixtures';
 import { planStore } from '@/features/plans/planStore';
 import { searchStore } from './searchStore';
 import type { SearchDeps } from './SearchDepsContext';
-import { useSearchInit } from './useSearchController';
+import { useSearchActions, useSearchInit } from './useSearchController';
 
 const term = { year: '2569', semester: '1' } as const;
 const capture = currentTermSchema.parse(
@@ -204,5 +210,76 @@ describe('useSearchInit', () => {
       expect(formTerms()).toEqual([planTerm, planTerm, planTerm]);
     });
     expect(controlled.requested()).toBe(false);
+  });
+});
+
+// A send that never answers a query, so the store can be read while the query is
+// still in flight. The cast is required because a single arrow cannot satisfy the
+// generic send signature.
+function pendingSend(): TypedSend {
+  const handler = (message: RequestMessage) =>
+    message.type === 'teachTable/query'
+      ? new Promise<never>(() => undefined)
+      : Promise.resolve(ok(null));
+  return handler as unknown as TypedSend;
+}
+
+describe('useSearchActions', () => {
+  afterEach(() => {
+    act(() => {
+      searchStore.getState().cancelSearch();
+    });
+  });
+
+  it('folds the form before the first await of a submit', () => {
+    act(() => {
+      searchStore.getState().setActiveTab('by_subject_id');
+      searchStore.getState().patchSubjectIdForm({ subjectId: '90592033' });
+    });
+    const { result } = renderHook(() =>
+      useSearchActions({ send: pendingSend(), repo: repoReturning(null) }),
+    );
+    // The submit is not awaited: the write must already be visible when it returns
+    // its promise, because the focus move to the bar runs in the same call.
+    void result.current.submit();
+    const state = searchStore.getState();
+    expect(state.result.status).toBe('loading');
+    expect(state.barQuery).not.toBeNull();
+    expect(state.barQuery).toBe(state.resultQuery);
+    expect(state.searchFormOpen).toBe(false);
+  });
+
+  it('retries in the background and leaves a reopened form open', () => {
+    act(() => {
+      searchStore.getState().setActiveTab('by_subject_id');
+      searchStore.getState().patchSubjectIdForm({ subjectId: '90592033' });
+    });
+    const { result } = renderHook(() =>
+      useSearchActions({ send: pendingSend(), repo: repoReturning(null) }),
+    );
+    void result.current.submit();
+    const { barQuery, lastSubmitAt } = searchStore.getState();
+    searchStore.getState().setSearchFormOpen(true);
+    void result.current.retry();
+    const state = searchStore.getState();
+    expect(state.searchFormOpen).toBe(true);
+    expect(state.barQuery).toBe(barQuery);
+    expect(state.lastSubmitAt).toBe(lastSubmitAt);
+  });
+
+  it('clears the bar and opens the form on cancel', async () => {
+    act(() => {
+      searchStore.getState().setActiveTab('by_subject_id');
+      searchStore.getState().patchSubjectIdForm({ subjectId: '90592033' });
+    });
+    const { result } = renderHook(() =>
+      useSearchActions({ send: pendingSend(), repo: repoReturning(null) }),
+    );
+    void result.current.submit();
+    await result.current.cancel();
+    const state = searchStore.getState();
+    expect(state.result).toEqual({ status: 'idle' });
+    expect(state.barQuery).toBeNull();
+    expect(state.searchFormOpen).toBe(true);
   });
 });

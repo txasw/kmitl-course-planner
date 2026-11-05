@@ -7,7 +7,9 @@
 // fetch, so the form renders with the local fallback first and takes the fetched
 // default only if nothing else has set the term by then. A later host navigation
 // never clobbers an in session edit. useSearchActions builds the active tab query, runs it
-// guarded against a superseded response, and persists the last search. The stores
+// guarded against a superseded response, and persists the last search. A submit runs
+// with the user intent, which folds the form into the bar; retry and refresh run in the
+// background and leave the disclosure as the student set it. The stores
 // are plain objects, so writing to them after unmount is safe and needs no
 // cancellation guard; the query guard exists only to drop a stale response.
 
@@ -27,7 +29,7 @@ import type { TypedSend } from '@/lib/messaging/sendTyped';
 import type { AsyncState } from '@/lib/utils/async';
 import type { Result } from '@/lib/utils/result';
 import { planStore } from '@/features/plans/planStore';
-import { searchStore } from './searchStore';
+import { searchStore, type QueryIntent } from './searchStore';
 import type { SearchDeps } from './SearchDepsContext';
 
 function loadInto<T>(
@@ -158,10 +160,17 @@ export interface SearchActions {
   cancel: () => Promise<void>;
 }
 
+interface RunOptions {
+  intent: QueryIntent;
+  refresh?: boolean;
+}
+
 export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
+  // The store write runs before the first await, so a caller that commits a submit
+  // under flushSync sees the folded form and the bar in the same frame.
   const runQuery = useCallback(
-    async (query: TeachTableQuery, refresh = false) => {
-      searchStore.getState().setResult({ status: 'loading' }, query);
+    async (query: TeachTableQuery, { intent, refresh = false }: RunOptions) => {
+      searchStore.getState().startQuery(query, intent);
       const result = await send({ type: 'teachTable/query', query, refresh });
       // A newer submission replaces resultQuery, so a stale response is dropped.
       if (searchStore.getState().resultQuery !== query) {
@@ -196,7 +205,7 @@ export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
       bySubjectId: state.bySubjectId,
       byCategory: state.byCategory,
     });
-    await runQuery(query);
+    await runQuery(query, { intent: 'user' });
   }, [runQuery, repo]);
 
   const retry = useCallback(async () => {
@@ -204,7 +213,7 @@ export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
     if (resultQuery === null) {
       return;
     }
-    await runQuery(resultQuery);
+    await runQuery(resultQuery, { intent: 'background' });
   }, [runQuery]);
 
   // Re run the current query while bypassing the cache, so the catalog reflects
@@ -217,7 +226,7 @@ export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
     if (resultQuery === null) {
       return 'error';
     }
-    await runQuery(resultQuery, true);
+    await runQuery(resultQuery, { intent: 'background', refresh: true });
     // A newer search may have superseded the refresh; comparing against a foreign
     // query's result would toast a misleading outcome, so bail if it did.
     if (searchStore.getState().resultQuery !== resultQuery) {
@@ -236,14 +245,14 @@ export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
     return 'changed';
   }, [runQuery]);
 
-  // Abort a slow in flight query in the worker and return the form to idle. The
+  // Abort a slow in flight query in the worker and return to the open form. The
   // pending runQuery response is dropped because resultQuery no longer matches it.
   const cancel = useCallback(async () => {
-    const { resultQuery } = searchStore.getState();
+    const { resultQuery, cancelSearch } = searchStore.getState();
     if (resultQuery === null) {
       return;
     }
-    searchStore.getState().setResult({ status: 'idle' }, null);
+    cancelSearch();
     await send({ type: 'teachTable/cancel', query: resultQuery });
   }, [send]);
 

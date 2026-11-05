@@ -50,6 +50,13 @@ function touchesTerm(patch: { year?: string; semester?: string }): boolean {
   return patch.year !== undefined || patch.semester !== undefined;
 }
 
+/**
+ * Who started a query. A user search folds the form into the bar and stamps the
+ * submit; a background run (retry, refresh) replaces the result and leaves the
+ * disclosure as the student set it.
+ */
+export type QueryIntent = 'user' | 'background';
+
 export interface SearchStore {
   /**
    * Whether the term has been seeded or the persisted search hydrated for this
@@ -99,6 +106,12 @@ export interface SearchStore {
     result: AsyncState<NormalizedCatalog>,
     query: TeachTableQuery | null,
   ) => void;
+  /**
+   * Mark a query as loading in one write. The stored resultQuery and barQuery are the
+   * very object sent to the worker, because the stale response guard compares by
+   * reference.
+   */
+  startQuery: (query: TeachTableQuery, intent: QueryIntent) => void;
   setSearchFormOpen: (open: boolean) => void;
   /** Drop the running search and its bar, returning to the open form. */
   cancelSearch: () => void;
@@ -191,6 +204,19 @@ export function createSearchStore() {
     },
     setResult: (result, query) => {
       set({ result, resultQuery: query });
+    },
+    startQuery: (query, intent) => {
+      set(
+        intent === 'user'
+          ? {
+              result: { status: 'loading' },
+              resultQuery: query,
+              barQuery: query,
+              searchFormOpen: false,
+              lastSubmitAt: Date.now(),
+            }
+          : { result: { status: 'loading' }, resultQuery: query },
+      );
     },
     setSearchFormOpen: (open) => {
       set({ searchFormOpen: open });
