@@ -101,8 +101,10 @@ function DockedHeader() {
     (state) => state.setCatalogVisible,
   );
 
+  // The control starts at the column's leading edge with a 44 px icon cell, the same
+  // cell the edge rail opens with, so hide and restore sit on one point on screen.
   return (
-    <div className="flex items-center justify-end border-b border-border px-4 py-2">
+    <div className="flex h-12 shrink-0 items-center justify-start border-b border-border pr-4">
       <button
         id={CATALOG_HIDE_ID}
         type="button"
@@ -112,9 +114,11 @@ function DockedHeader() {
             setCatalogVisible(false);
           });
         }}
-        className={`inline-flex items-center gap-1.5 rounded-kcp px-2 py-1.5 text-sm text-ink-soft transition-colors hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`}
+        className={`inline-flex h-full items-center pr-3 text-sm text-ink-soft transition-colors hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`}
       >
-        <PanelLeftClose size={16} strokeWidth={2} aria-hidden />
+        <span className="flex w-11 shrink-0 justify-center">
+          <PanelLeftClose size={16} strokeWidth={2} aria-hidden />
+        </span>
         {t('catalog.hide')}
       </button>
     </div>

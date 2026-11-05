@@ -254,6 +254,15 @@ describe('CatalogColumn', () => {
     expect(scroll.scrollTop).toBe(240);
   });
 
+  it('starts the hide control at the leading edge of a 48 px header row', () => {
+    installViewport(1440);
+    render(<Harness />);
+    const hide = screen.getByRole('button', { name: 'ซ่อนรายวิชา' });
+    expect(hide.parentElement).toHaveClass('h-12', 'justify-start');
+    expect(hide.parentElement).not.toHaveClass('pl-4', 'px-4');
+    expect(hide.firstElementChild).toHaveClass('w-11', 'justify-center');
+  });
+
   it('leaves the sheet tiers to the sheet state while the docked column is hidden', () => {
     const viewport = installViewport(1440);
     const { container } = render(<Harness />);
