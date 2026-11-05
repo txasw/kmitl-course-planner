@@ -97,6 +97,21 @@ export const planEntrySchema = z.object({
   snapshot: sectionSnapshotSchema,
 });
 
+/**
+ * Whether an entry's source query targets the plan's term. The comparison is on the
+ * raw params with no defaulting, so an entry whose query lacks a year or semester
+ * matches no plan. The plan schema and revalidation share this one check.
+ */
+export function entryTermMatches(
+  entry: { sourceQuery: { params: Record<string, string> } },
+  plan: { year: string; semester: string },
+): boolean {
+  return (
+    entry.sourceQuery.params.selected_year === plan.year &&
+    entry.sourceQuery.params.selected_semester === plan.semester
+  );
+}
+
 // A plan belongs to exactly one year and semester pair, and every entry must come
 // from a query for that same term. The refine asserts that invariant, so a mixed
 // term blob is rejected at every trust boundary that parses a plan, including a
@@ -113,10 +128,7 @@ export const planSchema = z
   })
   .superRefine((plan, ctx) => {
     plan.entries.forEach((entry, index) => {
-      if (
-        entry.sourceQuery.params.selected_year !== plan.year ||
-        entry.sourceQuery.params.selected_semester !== plan.semester
-      ) {
+      if (!entryTermMatches(entry, plan)) {
         ctx.addIssue({
           code: 'custom',
           message: 'plan entry term does not match the plan term',

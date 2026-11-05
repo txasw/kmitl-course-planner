@@ -14,7 +14,7 @@ import type {
   SectionSnapshot,
   VerifyStatus,
 } from '../domain/plan';
-import { buildSnapshot } from '../domain/plan';
+import { buildSnapshot, entryTermMatches } from '../domain/plan';
 import type { NormalizedCatalog } from '../domain/normalize';
 
 export type ChangeKind =
@@ -361,10 +361,7 @@ export function reconcilePlan(
   const diffs: EntryDiff[] = [];
   const termFindings: ReconcileFinding[] = [];
   for (const entry of plan.entries) {
-    if (
-      entry.sourceQuery.params.selected_year !== plan.year ||
-      entry.sourceQuery.params.selected_semester !== plan.semester
-    ) {
+    if (!entryTermMatches(entry, plan)) {
       termFindings.push({
         teachTableId: entry.teachTableId,
         subjectId: entry.subjectId,
