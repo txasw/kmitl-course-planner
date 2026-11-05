@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import {
   render,
   screen,
@@ -21,6 +21,8 @@ import {
 import { expectNoSeriousA11yViolations } from '../../../tests/support/axe';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
+import { installViewport } from '../../../tests/support/viewport';
+import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { dragStore } from './dragStore';
 import { PlannerPanel } from './PlannerPanel';
 
@@ -29,7 +31,9 @@ import { PlannerPanel } from './PlannerPanel';
 function renderPanel() {
   return render(
     <SearchDepsProvider value={fakeSearchDeps()}>
-      <PlannerPanel />
+      <PanelPortalContext.Provider value={document.body}>
+        <PlannerPanel />
+      </PanelPortalContext.Provider>
     </SearchDepsProvider>,
   );
 }
@@ -64,6 +68,7 @@ function seedCatalog(meeting: Meeting): void {
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals();
   seed([]);
   act(() => {
     searchStore.setState({ result: { status: 'idle' } });
@@ -160,6 +165,7 @@ describe('PlannerPanel', () => {
   });
 
   it('opens a block detail popover in edit mode and clears it in preview', () => {
+    installViewport(1366);
     seed([
       makePlanEntry({
         snapshot: makeSnapshot({
@@ -179,6 +185,25 @@ describe('PlannerPanel', () => {
       uiStore.getState().setViewMode('preview');
     });
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('opens the block details as a bottom sheet on a phone', () => {
+    installViewport(390);
+    seed([
+      makePlanEntry({
+        snapshot: makeSnapshot({
+          teachTableId: 's1',
+          subjectId: '90000001',
+          section: '901',
+          meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+        }),
+      }),
+    ]);
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /90000001/ }));
+    const sheet = screen.getByRole('dialog');
+    expect(sheet).toHaveAttribute('aria-modal', 'true');
+    expect(sheet.closest('[aria-live]')).toBeNull();
   });
 
   it('shows the poster header in preview mode', () => {

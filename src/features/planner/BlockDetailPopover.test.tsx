@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import {
   render,
   screen,
@@ -25,6 +25,8 @@ import {
 } from '../../../tests/support/plan-store';
 import { planStore } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
+import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
+import { installViewport } from '../../../tests/support/viewport';
 import { BlockDetailPopover } from './BlockDetailPopover';
 
 const t = createTranslator('en');
@@ -36,8 +38,15 @@ function makeAnchor(): HTMLElement {
   return anchor;
 }
 
+// A laptop width, where the details open in the anchored popover; the sheet tests below
+// narrow it to a phone.
+beforeEach(() => {
+  installViewport(1366);
+});
+
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals();
   resetPlanStore();
   revalidationStore.setState({ runs: {} });
   document.querySelectorAll('[data-teach-table-id]').forEach((node) => {
@@ -59,15 +68,17 @@ function renderPopover(
   const locale = overrides.locale ?? 'en';
   const anchor = makeAnchor();
   render(
-    <BlockDetailPopover
-      teachTableId={overrides.teachTableId ?? 't1'}
-      anchor={anchor}
-      locale={locale}
-      t={locale === 'en' ? t : createTranslator(locale)}
-      onClose={onClose}
-      onRemove={onRemove}
-      examOverlaps={overrides.examOverlaps ?? []}
-    />,
+    <PanelPortalContext.Provider value={document.body}>
+      <BlockDetailPopover
+        teachTableId={overrides.teachTableId ?? 't1'}
+        anchor={anchor}
+        locale={locale}
+        t={locale === 'en' ? t : createTranslator(locale)}
+        onClose={onClose}
+        onRemove={onRemove}
+        examOverlaps={overrides.examOverlaps ?? []}
+      />
+    </PanelPortalContext.Provider>,
   );
   return { onClose, onRemove };
 }
@@ -339,5 +350,58 @@ describe('BlockDetailPopover', () => {
       planStore.setState({ entries: [] });
     });
     expect(onClose).toHaveBeenCalled();
+  });
+});
+
+describe('BlockDetailPopover below 640 px', () => {
+  beforeEach(() => {
+    installViewport(390);
+  });
+
+  it('opens the details as a modal bottom sheet named by the section', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry({ verifyStatus: 'changed' })]);
+    });
+    renderPopover();
+    const sheet = screen.getByRole('dialog', {
+      name: '90000001 Section 901',
+    });
+    expect(sheet).toHaveAttribute('aria-modal', 'true');
+    expect(sheet).toHaveClass('rounded-t-kcp-sheet');
+    expect(
+      screen.getByRole('heading', { name: '90000001 Section 901' }),
+    ).toHaveFocus();
+    expect(screen.getByText('Subject')).toHaveAttribute('lang', 'en');
+    expect(rowValues('Seats')).toHaveLength(1);
+  });
+
+  it('pins acknowledge and remove in the footer as touch targets', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry({ verifyStatus: 'changed' })]);
+    });
+    const { onClose, onRemove } = renderPopover();
+    const remove = screen.getByRole('button', { name: 'Remove' });
+    const acknowledge = screen.getByRole('button', { name: 'Acknowledge' });
+    expect(remove).toHaveClass('min-h-11');
+    expect(acknowledge.parentElement).toBe(remove.parentElement);
+    expect(remove.parentElement?.parentElement).toHaveClass('shrink-0');
+    fireEvent.click(remove);
+    expect(onRemove).toHaveBeenCalledWith('t1');
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('closes on Escape without the press reaching the overlay', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry()]);
+    });
+    const outer = vi.fn();
+    document.body.addEventListener('keydown', outer);
+    const { onClose } = renderPopover();
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Remove' }), {
+      key: 'Escape',
+    });
+    document.body.removeEventListener('keydown', outer);
+    expect(onClose).toHaveBeenCalledOnce();
+    expect(outer).not.toHaveBeenCalled();
   });
 });
