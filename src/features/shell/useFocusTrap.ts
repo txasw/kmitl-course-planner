@@ -1,6 +1,7 @@
 // Keeps keyboard focus inside the overlay, or a nested modal layer, while it is
-// open and routes Escape to a close callback. On activation it moves focus into the panel and remembers
-// the opener; on deactivation it restores focus to the opener. It attaches its
+// open and routes Escape to a close callback. On activation it moves focus into
+// the panel and remembers the opener; on deactivation it restores focus to the
+// opener. It attaches its
 // keydown listener to the panel element rather than the document, which is the
 // correct place inside a closed shadow root: the isolateEvents guard stops keys
 // only at the shadow host above the panel, so this listener still sees them, and
@@ -71,7 +72,9 @@ export function useFocusTrap(
         handleEscape();
         return;
       }
-      if (event.key !== 'Tab') return;
+      // A nested trap that already wrapped this Tab prevented its default; acting on it
+      // again here would read the stop the inner trap just moved to and wrap past it.
+      if (event.key !== 'Tab' || event.defaultPrevented) return;
       const items = getFocusable(panel);
       const first = items[0];
       const last = items[items.length - 1];
@@ -81,7 +84,10 @@ export function useFocusTrap(
         return;
       }
       const current = activeElementWithin(panel);
-      if (event.shiftKey && current === first) {
+      // Focus that sits on the panel itself or on a programmatic landing point, such as
+      // a heading, is not a tab stop, so a native Shift+Tab from it would leave the trap.
+      const onStop = current instanceof HTMLElement && items.includes(current);
+      if (event.shiftKey && (current === first || !onStop)) {
         event.preventDefault();
         last.focus();
       } else if (!event.shiftKey && current === last) {

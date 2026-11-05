@@ -130,6 +130,22 @@ describe('useFocusTrap', () => {
     expect(pressed).toBe(true);
   });
 
+  it('wraps Shift+Tab from the panel itself to the last stop', () => {
+    render(<Harness active={true} />);
+    const panel = screen.getByTestId('panel');
+    expect(panel).toHaveFocus();
+    fireEvent.keyDown(panel, { key: 'Tab', shiftKey: true });
+    expect(screen.getByTestId('last')).toHaveFocus();
+  });
+
+  it('leaves a Tab that a nested trap already wrapped', () => {
+    render(<NestedHarness onOuterEscape={vi.fn()} onInnerEscape={vi.fn()} />);
+    const inner = screen.getByTestId('inner-button');
+    inner.focus();
+    fireEvent.keyDown(inner, { key: 'Tab' });
+    expect(inner).toHaveFocus();
+  });
+
   it('restores focus to the opener when it deactivates', () => {
     const { rerender } = render(<Harness active={false} />);
     const opener = screen.getByTestId('opener');
