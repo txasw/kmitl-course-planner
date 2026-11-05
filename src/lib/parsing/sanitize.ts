@@ -55,6 +55,12 @@ const TAG_PATTERN = new RegExp(
   String.raw`<\/?(?:${KNOWN_ELEMENTS})(?=[\s/>])${ATTRIBUTES}>`,
   'gi',
 );
+// Block level elements end a line of flowing text, so the free text pass turns each
+// of their tags into a line break before the remaining inline tags are stripped.
+const BLOCK_BOUNDARY_PATTERN = new RegExp(
+  String.raw`<\/?(?:div|p|br|ul|ol|li|table|thead|tbody|tfoot|tr|caption)(?=[\s/>])${ATTRIBUTES}>`,
+  'gi',
+);
 // Script and style bodies are code, not text, so they go with their tags. An
 // unclosed element drops everything after it.
 const RAW_TEXT_PATTERN = new RegExp(
@@ -107,4 +113,19 @@ export function sanitizeToLines(html: string): string[] {
   }
   const text = cleanLine(markup);
   return text.length > 0 ? [text] : [];
+}
+
+/**
+ * Read a free text field that may mix plain text with markup, such as a remark that
+ * ends in "<div><font color=...>...</font></div>". Unlike {@link sanitizeToLines},
+ * text outside any wrapper is kept: every block boundary and existing line break
+ * starts a new line, and empty lines are dropped.
+ */
+export function sanitizeTextToLines(html: string): string[] {
+  return html
+    .replace(RAW_TEXT_PATTERN, '')
+    .replace(BLOCK_BOUNDARY_PATTERN, '\n')
+    .split(/\r?\n/)
+    .map(cleanLine)
+    .filter((line) => line.length > 0);
 }
