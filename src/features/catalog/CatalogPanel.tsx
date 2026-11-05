@@ -81,6 +81,14 @@ function LoadingState({ t, onCancel }: { t: Translate; onCancel: () => void }) {
   );
 }
 
+/** The course count of the settled search result, or null while there is none, so a
+ * header outside the panel can name the result without reading the panel's states. */
+export function useResultCourseCount(): number | null {
+  return useStore(searchStore, (state) =>
+    state.result.status === 'ready' ? state.result.data.courses.length : null,
+  );
+}
+
 export function CatalogPanel() {
   const deps = useSearchDeps();
   const { retry, refreshResult, cancel } = useSearchActions(deps);

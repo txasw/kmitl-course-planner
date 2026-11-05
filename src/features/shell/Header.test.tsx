@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import {
   render,
   screen,
@@ -8,9 +8,12 @@ import {
 } from '@testing-library/react';
 import { Header } from './Header';
 import { uiStore } from './uiStore';
+import { CATALOG_COLUMN_ID } from './CatalogColumn';
+import { installViewport } from '../../../tests/support/viewport';
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals();
   act(() => {
     uiStore.getState().close();
     uiStore.getState().setLanguage('th');
@@ -49,5 +52,26 @@ describe('Header', () => {
       'aria-pressed',
       'true',
     );
+  });
+
+  it('toggles the catalog sheet below the lg tier', () => {
+    installViewport(768);
+    render(<Header titleId="title" />);
+    const toggle = screen.getByRole('button', { name: 'รายวิชา' });
+    expect(toggle).toHaveAttribute('aria-controls', CATALOG_COLUMN_ID);
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(toggle);
+    expect(uiStore.getState().sheetOpen).toBe(true);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(toggle);
+    expect(uiStore.getState().sheetOpen).toBe(false);
+  });
+
+  it('drops the sheet toggle where the catalog column is docked', () => {
+    installViewport(1024);
+    render(<Header titleId="title" />);
+    expect(
+      screen.queryByRole('button', { name: 'รายวิชา' }),
+    ).not.toBeInTheDocument();
   });
 });

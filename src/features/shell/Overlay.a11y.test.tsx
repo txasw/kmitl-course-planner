@@ -7,6 +7,7 @@ import { uiStore } from './uiStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { expectNoSeriousA11yViolations } from '../../../tests/support/axe';
+import { installViewport } from '../../../tests/support/viewport';
 
 const deps = fakeSearchDeps();
 
@@ -14,18 +15,10 @@ function wrapper({ children }: { children: ReactNode }) {
   return <SearchDepsProvider value={deps}>{children}</SearchDepsProvider>;
 }
 
-// Reduced motion mounts the overlay instantly so axe scans the final markup.
+// Reduced motion mounts the overlay instantly so axe scans the final markup. The
+// default width docks the catalog column; the sheet case sets a medium width.
 beforeEach(() => {
-  vi.stubGlobal('matchMedia', (query: string) => ({
-    matches: true,
-    media: query,
-    onchange: null,
-    addEventListener: () => undefined,
-    removeEventListener: () => undefined,
-    addListener: () => undefined,
-    removeListener: () => undefined,
-    dispatchEvent: () => false,
-  }));
+  installViewport(1440, { reducedMotion: true });
 });
 
 afterEach(() => {
@@ -52,6 +45,7 @@ describe('shell accessibility', () => {
   });
 
   it('the overlay with the catalog sheet open has no serious violations', async () => {
+    installViewport(768, { reducedMotion: true });
     act(() => {
       uiStore.getState().open();
       uiStore.getState().setSheetOpen(true);

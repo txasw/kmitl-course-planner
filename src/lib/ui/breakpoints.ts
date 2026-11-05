@@ -16,7 +16,9 @@ export const BREAKPOINTS = {
   '2xl': 1536,
 } as const;
 
-export type LayoutTier = 'compact' | 'medium' | 'lg' | 'xl' | '2xl';
+export type DockedTier = 'lg' | 'xl' | '2xl';
+
+export type LayoutTier = 'compact' | 'medium' | DockedTier;
 
 /** The tier a panel of the given CSS pixel width lays out at. */
 export function tierForWidth(width: number): LayoutTier {
@@ -28,7 +30,7 @@ export function tierForWidth(width: number): LayoutTier {
 }
 
 /** Whether the catalog column docks beside the grid rather than opening as a sheet. */
-export function isDockedTier(tier: LayoutTier): boolean {
+export function isDockedTier(tier: LayoutTier): tier is DockedTier {
   return tier === 'lg' || tier === 'xl' || tier === '2xl';
 }
 
