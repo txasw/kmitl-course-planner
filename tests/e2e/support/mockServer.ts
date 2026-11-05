@@ -23,9 +23,11 @@ function fixtureBody(name: string): string {
 // mount; the extension UI reads its data from the gateway, not the host DOM. The
 // device width viewport makes a mobile emulated run lay out at the device width
 // instead of the 980 px default a page without the tag gets, so the phone project
-// exercises the small screen layout. Desktop runs ignore the tag.
+// exercises the small screen layout. Desktop runs ignore the tag. The document
+// declares no language, so the panel cannot pass on an inherited one and the specs
+// see the language the panel sets on itself.
 const HOST_HTML =
-  '<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>KMITL</title></head><body></body></html>';
+  '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>KMITL</title></head><body></body></html>';
 
 export interface MockServer {
   port: number;
