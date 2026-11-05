@@ -7,7 +7,25 @@ describe('ui store', () => {
     const state = store.getState();
     expect(state.isOpen).toBe(false);
     expect(state.sheetOpen).toBe(false);
+    expect(state.catalogVisible).toBe(true);
     expect(state.language).toBe('th');
+  });
+
+  it('hides and shows the docked catalog column', () => {
+    const store = createUiStore();
+    store.getState().setCatalogVisible(false);
+    expect(store.getState().catalogVisible).toBe(false);
+    store.getState().setCatalogVisible(true);
+    expect(store.getState().catalogVisible).toBe(true);
+  });
+
+  it('keeps the catalog column choice across closing and reopening', () => {
+    const store = createUiStore();
+    store.getState().open();
+    store.getState().setCatalogVisible(false);
+    store.getState().close();
+    store.getState().open();
+    expect(store.getState().catalogVisible).toBe(false);
   });
 
   it('opens and closes', () => {

@@ -20,6 +20,12 @@ export interface UiState {
   isOpen: boolean;
   /** Whether the catalog sheet is open, on the tiers where the catalog column is a sheet. */
   sheetOpen: boolean;
+  /**
+   * Whether the docked catalog column is shown, on the tiers where it docks beside the
+   * grid. It is session only: it starts shown on every page load, and closing the overlay
+   * keeps it, so a reopened panel resumes the layout the user left.
+   */
+  catalogVisible: boolean;
   language: Locale;
   viewMode: ViewMode;
   /** Poster display options, applied to the preview and every export. */
@@ -43,6 +49,7 @@ export interface UiState {
   close: () => void;
   toggle: () => void;
   setSheetOpen: (open: boolean) => void;
+  setCatalogVisible: (visible: boolean) => void;
   setLanguage: (language: Locale) => void;
   setViewMode: (mode: ViewMode) => void;
   setDisplayOptions: (options: DisplayOptions) => void;
@@ -60,6 +67,7 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
   return createStore<UiState>((set) => ({
     isOpen: false,
     sheetOpen: false,
+    catalogVisible: true,
     language,
     viewMode: 'edit',
     displayOptions: DEFAULT_DISPLAY_OPTIONS,
@@ -79,6 +87,9 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     },
     setSheetOpen: (open) => {
       set({ sheetOpen: open });
+    },
+    setCatalogVisible: (catalogVisible) => {
+      set({ catalogVisible });
     },
     setLanguage: (language) => {
       set({ language });
