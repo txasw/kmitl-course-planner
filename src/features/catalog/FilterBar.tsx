@@ -111,7 +111,7 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
       {/* A persistent visible label names the field, since the placeholder hint
           disappears as soon as the student types. */}
       <div className="flex flex-col gap-1">
-        <label htmlFor={textId} className="text-sm font-medium text-ink">
+        <label htmlFor={textId} className="text-sm font-semibold text-ink">
           {t('catalog.filter.fieldLabel')}
         </label>
         <div className="flex gap-2">
