@@ -13,7 +13,6 @@
 // out at its width and inert, so its scroll offset and search state wait for its return.
 
 import { useLayoutEffect, useRef } from 'react';
-import { flushSync } from 'react-dom';
 import { useStore } from 'zustand';
 import { PanelLeftClose, X } from 'lucide-react';
 import {
@@ -32,6 +31,7 @@ import {
   type LayoutTier,
 } from '@/lib/ui/breakpoints';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { commitAndFocus } from './commitAndFocus';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
 
@@ -43,25 +43,6 @@ export const CATALOG_HIDE_ID = 'kcp-catalog-hide';
 
 /** Id of the header catalog toggle, which takes focus when the column is hidden. */
 export const CATALOG_TOGGLE_ID = 'kcp-catalog-toggle';
-
-/**
- * Commits a visibility change, then moves focus to the control that replaces the one
- * just activated, since that control turns inert or unmounts with the change. The
- * target is found in the activating control's own root, which is the closed shadow
- * root in the extension, where the document lookup cannot reach. The root is read
- * before the commit, because a control the commit unmounts no longer reaches it.
- */
-export function commitAndFocus(
-  from: Element,
-  targetId: string,
-  commit: () => void,
-): void {
-  const root = from.getRootNode();
-  flushSync(commit);
-  if (root instanceof Document || root instanceof ShadowRoot) {
-    root.getElementById(targetId)?.focus();
-  }
-}
 
 const DOCKED_WIDTH: Record<DockedTier, string> = {
   lg: 'w-[22rem]',

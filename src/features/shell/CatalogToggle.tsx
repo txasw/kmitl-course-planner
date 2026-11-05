@@ -14,8 +14,8 @@ import {
   CATALOG_COLUMN_ID,
   CATALOG_HIDE_ID,
   CATALOG_TOGGLE_ID,
-  commitAndFocus,
 } from './CatalogColumn';
+import { commitAndFocus } from './commitAndFocus';
 import { uiStore } from './uiStore';
 import { useLayoutTier } from './useLayoutTier';
 import { useTranslation } from './useTranslation';
