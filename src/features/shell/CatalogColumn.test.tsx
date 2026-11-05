@@ -241,14 +241,14 @@ describe('CatalogColumn', () => {
     installViewport(1440);
     render(<ShellHarness />);
     fireEvent.click(screen.getByRole('button', { name: 'ซ่อนรายวิชา' }));
-    const toggle = screen.getByRole('button', { name: 'แสดงรายวิชา' });
+    const toggle = screen.getByRole('button', { name: 'รายวิชา' });
     expect(toggle).toHaveFocus();
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
 
     fireEvent.click(toggle);
     expect(uiStore.getState().catalogVisible).toBe(true);
     expect(
-      screen.queryByRole('button', { name: 'แสดงรายวิชา' }),
+      screen.queryByRole('button', { name: 'รายวิชา' }),
     ).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ซ่อนรายวิชา' })).toHaveFocus();
   });
