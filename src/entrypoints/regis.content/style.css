@@ -33,6 +33,24 @@
   --color-success-soft: var(--kcp-success-soft);
   --radius-kcp: var(--kcp-radius);
   --shadow-kcp: var(--kcp-shadow);
+
+  /* The layer and motion tokens map into the z-index and transition duration
+     namespaces the same way, so z-popover or duration-base read the token. */
+  --z-index-grid: var(--kcp-z-grid);
+  --z-index-grid-active: var(--kcp-z-grid-active);
+  --z-index-sticky: var(--kcp-z-sticky);
+  --z-index-scrim: var(--kcp-z-scrim);
+  --z-index-drawer: var(--kcp-z-drawer);
+  --z-index-popover: var(--kcp-z-popover);
+  --z-index-sheet: var(--kcp-z-sheet);
+  --z-index-dropzone: var(--kcp-z-dropzone);
+  --z-index-toast: var(--kcp-z-toast);
+  --z-index-dragoverlay: var(--kcp-z-dragoverlay);
+  --z-index-tooltip: var(--kcp-z-tooltip);
+  --z-index-host: var(--kcp-z-host);
+  --transition-duration-fast: var(--kcp-duration-fast);
+  --transition-duration-base: var(--kcp-duration-base);
+  --transition-duration-slow: var(--kcp-duration-slow);
 }
 
 /* KMITL design tokens per the brief, declared on the shadow host so every
@@ -62,6 +80,36 @@
   --kcp-danger-soft: #fbeaea;
   --kcp-radius: 8px;
   --kcp-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  /* One layer scale for everything stacked inside the overlay panel, which is a
+     stacking context of its own, so these values only order the panel's own
+     surfaces. The two grid layers sit below every panel layer, so the scrim, the
+     drawer, and a sticky axis always cover the lanes; grid lifts candidate slots
+     and a block's own controls over the placed blocks, and grid-active lifts the
+     hovered candidate and the swap targets over the rest. A tooltip annotates any
+     surface, so it sits above the whole scale. */
+  --kcp-z-grid: 1;
+  --kcp-z-grid-active: 2;
+  --kcp-z-sticky: 10;
+  --kcp-z-scrim: 20;
+  --kcp-z-drawer: 30;
+  --kcp-z-popover: 40;
+  --kcp-z-sheet: 50;
+  --kcp-z-dropzone: 60;
+  --kcp-z-toast: 70;
+  --kcp-z-dragoverlay: 80;
+  --kcp-z-tooltip: 90;
+  /* The surfaces mounted directly in the shadow root (launcher, overlay, page
+     toasts, diagnostics) sit in the host document's stacking order, so they take
+     the largest z-index the page allows. Among themselves they share it and
+     stack by mount order, which places the launcher below the overlay. */
+  --kcp-z-host: 2147483647;
+
+  /* Motion durations. Every animation or transition that uses them keeps a
+     prefers-reduced-motion variant that drops the motion. */
+  --kcp-duration-fast: 150ms;
+  --kcp-duration-base: 200ms;
+  --kcp-duration-slow: 300ms;
 
   color: var(--kcp-ink);
   font-family: var(--font-sans);
