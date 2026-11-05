@@ -44,4 +44,14 @@ describe('Launcher', () => {
       screen.getByRole('button', { name: 'Open Course Planner for KMITL' }),
     ).toBeInTheDocument();
   });
+
+  it('carries the active language for its label', () => {
+    render(<Launcher />);
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('lang', 'th');
+    act(() => {
+      uiStore.getState().setLanguage('en');
+    });
+    expect(button).toHaveAttribute('lang', 'en');
+  });
 });

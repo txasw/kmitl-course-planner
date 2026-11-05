@@ -42,6 +42,7 @@ afterEach(() => {
     toastStore.getState().dismiss();
     resetPlanStore();
     uiStore.getState().close();
+    uiStore.getState().setLanguage('th');
   });
 });
 
@@ -78,6 +79,16 @@ describe('Toaster', () => {
     const region = container.querySelector('[aria-live="polite"]');
     expect(region).not.toBeNull();
     expect(region?.textContent).toBe('');
+  });
+
+  it('marks the live region with the active language', () => {
+    const { container } = render(<Toaster />);
+    const region = container.querySelector('[aria-live="polite"]');
+    expect(region).toHaveAttribute('lang', 'th');
+    act(() => {
+      uiStore.getState().setLanguage('en');
+    });
+    expect(region).toHaveAttribute('lang', 'en');
   });
 
   it('is the sole live region, without a nested one', () => {
