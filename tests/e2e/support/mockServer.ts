@@ -85,6 +85,13 @@ export async function startMockServer(): Promise<MockServer> {
 
       if (host === 'regis.reg.kmitl.ac.th') {
         if (url.pathname.startsWith('/api')) {
+          // The current registration term seeds the form default once per session.
+          // It is answered before the failure flag, which targets teach table
+          // queries, so the default term is the same in every spec.
+          if (fn === 'get-year-semester-now') {
+            sendJson('year-semester-now.capture.json');
+            return;
+          }
           if (apiFailure) {
             // Fail with a fully read 200 whose body is not the array the schema
             // expects, so the gateway drains the whole response over a single
