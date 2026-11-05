@@ -39,6 +39,8 @@
   "catalog.hide": "Hide courses",
   "catalog.show": "Show courses",
   "catalog.open": "Courses",
+  "catalog.rail.name": "Show courses ({count} found)",
+  "catalog.rail.loading": "Show courses (searching)",
   "catalog.sheet.title": "Find courses",
   "catalog.sheet.close": "Close course list",
   "search.emptyTitle": "Search courses",
