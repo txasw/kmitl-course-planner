@@ -55,6 +55,7 @@
   --color-success: var(--kcp-success);
   --color-success-soft: var(--kcp-success-soft);
   --radius-kcp: var(--kcp-radius);
+  --radius-kcp-inner: var(--kcp-radius-inner);
   --shadow-kcp: var(--kcp-shadow);
 
   /* The layer and motion tokens map into the z-index and transition duration
@@ -104,6 +105,10 @@
   --kcp-success-soft: #e7f3eb;
   --kcp-danger-soft: #fbeaea;
   --kcp-radius: 8px;
+  /* The smaller radius for elements that sit inside a rounded container, such as
+     badges, chips, and the inline conflict callout, so a nested corner reads
+     tighter than the card around it rather than matching it. */
+  --kcp-radius-inner: 4px;
   --kcp-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 
   /* One layer scale for everything stacked inside the overlay panel, which is a
