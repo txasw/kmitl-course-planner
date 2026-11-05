@@ -44,7 +44,7 @@ media query hook and one pure tier function:
   carries the result count in its visible text and its accessible name.
 - Wide, 1024 px and up. The catalog column is docked beside the grid with no scrim, 22rem at lg,
   24rem at xl and 26rem at 2xl, and the student can hide it from its own header and restore it
-  from the header toggle.
+  from the edge rail that takes the column's place (see the amendment below).
 
 The 320 px search rail is removed at every width. Search becomes the head of the catalog column.
 
@@ -176,3 +176,46 @@ instant. The results scroll offset is kept across a fold, an expand and a tier c
 user search starts the results from the top. Offsets are kept within one overlay session only:
 the overlay unmounts its body when it closes, so they reset on reopen, a gap against section 6.1
 that a later change can close by keeping the offset in the ui store.
+
+## Amendment, 2026-11-06: restore the docked column from an edge rail
+
+The first Wide build put the hide control at the far end of the docked column's header and
+the restore control in the panel header, so hiding and restoring the column took two trips
+across the screen. The Wide restore moves to an edge rail at the column's place.
+
+- While the docked column is hidden, a 44 px rail renders after it in the tree, on the same
+  layer, so it paints above the hidden column. It is one native button: an open icon in a
+  48 px top cell, then the result count chip, or a busy dot while a search is in flight, then
+  a vertical label. Its accessible name carries the label and the count, or the searching
+  state, and it has no title and no expanded state, because it can only show the column.
+- The hide control moves to the leading edge of a 48 px docked header row and opens with a
+  44 px icon cell, so the hide icon and the rail icon centre on one point at every docked
+  tier. Hiding focuses the rail and restoring focuses the hide control, so focus lands where
+  the pointer already is.
+- The header toggle renders only on the sheet tiers, so each tier has one restore control.
+  Opening the sheet also shows the docked column, so a student who asked for the catalog on a
+  narrow window finds it shown after widening; closing the sheet leaves the docked choice.
+- Every show and hide goes through one funnel. It refuses to toggle during any drag, a section
+  drag, a course drag or a block move, because the grid width is frozen for the length of a
+  drag, and the rail takes no pointer events while one runs. It ignores the second click of a
+  multi click and a pointer activation within 200 ms of the previous pointer toggle, because
+  the two controls share one point and a quick second click would undo the first. A keyboard
+  activation is never throttled.
+- A tier change that crosses the dock boundary, such as a browser zoom, can unmount the
+  focused catalog control. When focus is lost that way, it moves to the catalog control of
+  the new tier; focus on any other element is never moved.
+
+This rail is not the search rail this record removes. It holds no form and no results, it
+costs 44 px only while the column is hidden, and the column behind it stays mounted with its
+scroll offset, search state and drag registration, as the one mount rule requires.
+
+The hidden column and the rail are never a remove target. A later catalog remove zone may
+accept a block dropped on the shown column, but a hidden column is out of view and the rail
+is too narrow to aim at and is not a drop zone, so a block move dropped over either of them
+while the column is hidden commits nothing.
+
+Alternatives considered: an invisible hot zone at the panel edge was rejected because it
+cannot be discovered, offers nothing to touch or keyboard users, and fires when the pointer
+enters from a left taskbar or another monitor. An auto hide flyout over the grid was rejected
+because it covers the early hour columns where drops land and adds a third container state.
+Opening on hover was rejected for the same accidental trigger reason; hover may only hint.
