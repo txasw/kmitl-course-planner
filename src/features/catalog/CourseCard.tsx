@@ -2,7 +2,7 @@
 // as secondary text, the credit string, and one row per section. Each section's
 // seat status and plan relation are computed here from the placed sections.
 
-import { Fragment, memo, useState, type ReactNode } from 'react';
+import { memo, useState, type ReactNode } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { ChevronDown, GripVertical } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -161,15 +161,18 @@ function CourseCardComponent({
               {t('catalog.card.addedHint')}
             </p>
             {course.sections.map((section) => (
-              <SectionRow
+              <CourseSection
                 key={section.teachTableId}
                 course={course}
                 section={section}
-                relation={computeSectionRelation(placed, course, section, term)}
-                seat={computeSeatStatus(section)}
+                placed={placed}
                 locale={locale}
                 t={t}
+                term={term}
                 readOnly
+                onAdd={undefined}
+                onRemove={undefined}
+                onSwitchTerm={undefined}
               />
             ))}
           </div>
@@ -226,50 +229,95 @@ function CourseCardComponent({
         </header>
       )}
       <div className="mt-2 flex flex-col gap-1.5">
-        {course.sections.map((section) => {
-          const relation = computeSectionRelation(
-            placed,
-            course,
-            section,
-            term,
-          );
-          const seat = computeSeatStatus(section);
-          const row = (
-            <SectionRow
-              course={course}
-              section={section}
-              relation={relation}
-              seat={seat}
-              locale={locale}
-              t={t}
-              onAdd={onAdd}
-              onRemove={onRemove}
-              onSwitchTerm={onSwitchTerm}
-            />
-          );
-          if (
-            (relation.kind === 'addable' || relation.kind === 'conflicting') &&
-            seat.kind === 'open'
-          ) {
-            return (
-              <DraggableSection
-                key={section.teachTableId}
-                id={section.teachTableId}
-                course={course}
-                section={section}
-                label={`${t('action.drag')} ${section.subjectId} ${t('section.code')} ${section.section}`}
-                onActivate={() => {
-                  onAdd?.(course, section);
-                }}
-              >
-                {row}
-              </DraggableSection>
-            );
-          }
-          return <Fragment key={section.teachTableId}>{row}</Fragment>;
-        })}
+        {course.sections.map((section) => (
+          <CourseSection
+            key={section.teachTableId}
+            course={course}
+            section={section}
+            placed={placed}
+            locale={locale}
+            t={t}
+            term={term}
+            readOnly={false}
+            onAdd={onAdd}
+            onRemove={onRemove}
+            onSwitchTerm={onSwitchTerm}
+          />
+        ))}
       </div>
     </article>
+  );
+}
+
+interface CourseSectionProps {
+  course: Course;
+  section: Section;
+  placed: Section[];
+  locale: Locale;
+  t: Translate;
+  term: TermContext | undefined;
+  readOnly: boolean;
+  onAdd: ((course: Course, section: Section) => void) | undefined;
+  onRemove: ((teachTableId: string) => void) | undefined;
+  onSwitchTerm: ((term: Term) => void) | undefined;
+}
+
+// One section row of an open card. An addable or conflicting open row is a section
+// drag source; the rows of an added card are read only.
+function CourseSection({
+  course,
+  section,
+  placed,
+  locale,
+  t,
+  term,
+  readOnly,
+  onAdd,
+  onRemove,
+  onSwitchTerm,
+}: CourseSectionProps) {
+  const relation = computeSectionRelation(placed, course, section, term);
+  const seat = computeSeatStatus(section);
+  const row = readOnly ? (
+    <SectionRow
+      course={course}
+      section={section}
+      relation={relation}
+      seat={seat}
+      locale={locale}
+      t={t}
+      readOnly
+    />
+  ) : (
+    <SectionRow
+      course={course}
+      section={section}
+      relation={relation}
+      seat={seat}
+      locale={locale}
+      t={t}
+      onAdd={onAdd}
+      onRemove={onRemove}
+      onSwitchTerm={onSwitchTerm}
+    />
+  );
+  const dragSource =
+    !readOnly &&
+    (relation.kind === 'addable' || relation.kind === 'conflicting') &&
+    seat.kind === 'open';
+  if (!dragSource) return row;
+  return (
+    <DraggableSection
+      id={section.teachTableId}
+      course={course}
+      section={section}
+      label={`${t('action.drag')} ${section.subjectId} ${t('section.code')} ${section.section}`}
+      onActivate={() => {
+        onAdd?.(course, section);
+      }}
+    >
+      {row}
+    </DraggableSection>
   );
 }
 
