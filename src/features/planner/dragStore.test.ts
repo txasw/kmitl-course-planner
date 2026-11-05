@@ -5,7 +5,7 @@ import {
   makeSection,
 } from '../../../tests/support/domain-builders';
 import type { GridFrame } from '@/lib/planner/grid';
-import { blockerIds, createDragStore } from './dragStore';
+import { blockerIds, createDragStore, selectDragging } from './dragStore';
 
 function clashingPlaced() {
   return [
@@ -262,5 +262,38 @@ describe('blockerIds', () => {
         },
       ]),
     ).toEqual(['p', 'q']);
+  });
+});
+
+describe('selectDragging', () => {
+  it('is false with no drag in flight', () => {
+    expect(selectDragging(createDragStore().getState())).toBe(false);
+  });
+
+  it('is true during a section drag and false after it ends', () => {
+    const store = createDragStore();
+    const { section, course } = draggedSection();
+    store.getState().start(course, section, []);
+    expect(selectDragging(store.getState())).toBe(true);
+    store.getState().clearActive();
+    expect(selectDragging(store.getState())).toBe(false);
+  });
+
+  it('is true during a course drag and false after it ends', () => {
+    const store = createDragStore();
+    const { course } = draggedSection();
+    store.getState().startCourse(course, []);
+    expect(selectDragging(store.getState())).toBe(true);
+    store.getState().clearCourse();
+    expect(selectDragging(store.getState())).toBe(false);
+  });
+
+  it('is true during a block move and false after it ends', () => {
+    const store = createDragStore();
+    const { section } = draggedSection();
+    store.getState().startBlockMove(section, [section], null);
+    expect(selectDragging(store.getState())).toBe(true);
+    store.getState().clearBlockMove();
+    expect(selectDragging(store.getState())).toBe(false);
   });
 });
