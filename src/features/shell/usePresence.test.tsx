@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { renderHook, act, cleanup } from '@testing-library/react';
-import { usePresence } from './usePresence';
+import { usePrefersReducedMotion, usePresence } from './usePresence';
 
 afterEach(() => {
   cleanup();
@@ -76,5 +76,40 @@ describe('usePresence', () => {
     expect(result.current.stage).toBe('open');
     rerender({ open: false });
     expect(result.current.stage).toBe('closed');
+  });
+
+  it('follows a reduced motion change made while mounted', () => {
+    let reduced = false;
+    const listeners = new Set<() => void>();
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      get matches() {
+        return reduced;
+      },
+      media: query,
+      onchange: null,
+      addEventListener: (_type: string, listener: () => void) => {
+        listeners.add(listener);
+      },
+      removeEventListener: (_type: string, listener: () => void) => {
+        listeners.delete(listener);
+      },
+      dispatchEvent: () => false,
+    }));
+    const { result, rerender } = renderHook(
+      ({ open }) => ({
+        reduced: usePrefersReducedMotion(),
+        presence: usePresence(open, 100),
+      }),
+      { initialProps: { open: true } },
+    );
+    expect(result.current.reduced).toBe(false);
+    act(() => {
+      reduced = true;
+      for (const listener of listeners) listener();
+    });
+    expect(result.current.reduced).toBe(true);
+    // With motion now reduced, closing skips the leave stage.
+    rerender({ open: false });
+    expect(result.current.presence.stage).toBe('closed');
   });
 });
