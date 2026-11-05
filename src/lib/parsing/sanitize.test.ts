@@ -1,5 +1,46 @@
 import { describe, it, expect, vi } from 'vitest';
+import { loadFixture } from '../../../tests/support/fixtures';
 import { sanitizeToLines } from './sanitize';
+
+interface CapturedRow {
+  teach_table_id: string;
+  teacher_list_th: string;
+  teacher_list_en: string;
+  rules_th: string;
+  rules_en: string;
+  remark: string;
+}
+
+// The rows are read straight from the committed captures, so every case below runs
+// against text the live API returned rather than a hand written copy of it. The
+// schema tests already validate the capture shape, so the cast only names the
+// fields read here.
+function captureRows(name: string): CapturedRow[] {
+  const groups = loadFixture(name) as {
+    teachtable: { data: CapturedRow[] }[];
+  }[];
+  return groups.flatMap((group) =>
+    group.teachtable.flatMap((heading) => heading.data),
+  );
+}
+
+function captureRow(name: string, teachTableId: string): CapturedRow {
+  const row = captureRows(name).find(
+    (candidate) => candidate.teach_table_id === teachTableId,
+  );
+  if (row === undefined) {
+    throw new Error(`row ${teachTableId} not found in ${name}`);
+  }
+  return row;
+}
+
+const TEACH_TABLE_CAPTURES = [
+  'teach-table.by_class.capture.json',
+  'teach-table.by_subject_id.capture.json',
+  'teach-table.by_subject_owner_id-32.capture.json',
+  'teach-table.multi-meeting.capture.json',
+  'teach-table.with-exams.capture.json',
+];
 
 describe('sanitizeToLines', () => {
   it('reads a single wrapped teacher name', () => {
@@ -48,10 +89,65 @@ describe('sanitizeToLines', () => {
   });
 
   it('does not execute or expand markup, only reads text', () => {
-    // The script text survives as inert text content and nothing runs.
     expect(sanitizeToLines('<div>safe</div><script>value=1</script>')).toEqual([
       'safe',
     ]);
+  });
+
+  it('keeps the dual degree and international qualifiers in both locales', () => {
+    // Section 96642011/101 restricts enrolment to the dual degree international
+    // program, which only the bracketed qualifiers distinguish.
+    const row = captureRow('teach-table.with-exams.capture.json', '136656');
+    expect(sanitizeToLines(row.rules_th)).toEqual([
+      'เฉพาะคณะวิศวกรรมศาสตร์',
+      'เฉพาะสาขาเทคโนโลยีวัสดุชาญฉลาดและหุ่นยนต์และปัญญาประดิษฐ์ <สองปริญญา><หลักสูตรนานาชาติ> (นน.)',
+      'เฉพาะสาขาเทคโนโลยีวัสดุชาญฉลาดและหุ่นยนต์และปัญญาประดิษฐ์ <สองปริญญา><หลักสูตรนานาชาติ> ()',
+    ]);
+    expect(sanitizeToLines(row.rules_en)).toEqual([
+      'Only School of Engineering',
+      'Only Curriculum Smart Materials Technology and Robotics and AI <Dual Degree> <International Program> (NNT)',
+      'Only Curriculum Smart Materials Technology and Robotics and AI Engineering <Dual Degree> <International Program> ()',
+    ]);
+  });
+
+  it('strips known elements with attributes and keeps unknown bracketed text', () => {
+    expect(
+      sanitizeToLines(
+        '<div class="x"><font color="red"><b>ปิด</b></font> <Dual Degree></div>',
+      ),
+    ).toEqual(['ปิด <Dual Degree>']);
+  });
+
+  it('drops script and style bodies along with their tags', () => {
+    expect(
+      sanitizeToLines(
+        '<div>A<script type="text/javascript">alert(1)</script></div>' +
+          '<div><style>div{color:red}</style>B</div>',
+      ),
+    ).toEqual(['A', 'B']);
+    expect(sanitizeToLines('<div>A</div><script>alert(1)')).toEqual(['A']);
+  });
+
+  it('removes an image tag whose quoted attribute hides a closing bracket', () => {
+    const lines = sanitizeToLines(
+      '<div>A<img src="x" onerror="alert(1) > 0"></div>',
+    );
+    expect(lines).toEqual(['A']);
+  });
+
+  it('reads the same teacher names from every capture', () => {
+    // The captures wrap each teacher in a bare <div>, so every name is that div
+    // body trimmed, with no markup left behind.
+    for (const name of TEACH_TABLE_CAPTURES) {
+      for (const row of captureRows(name)) {
+        for (const raw of [row.teacher_list_th, row.teacher_list_en]) {
+          const bodies = [...raw.matchAll(/<div>(.*?)<\/div>/g)]
+            .map((match) => (match[1] ?? '').trim())
+            .filter((body) => body.length > 0);
+          expect(sanitizeToLines(raw)).toEqual(bodies);
+        }
+      }
+    }
   });
 
   it('parses without DOMParser, as in the service worker', () => {
