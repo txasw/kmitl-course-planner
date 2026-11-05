@@ -1,8 +1,10 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
+import { useRef } from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { expectNoSeriousA11yViolations } from '../../../tests/support/axe';
 import { Combobox, type ComboboxOption } from './Combobox';
 import { PanelPortalContext } from '../shell/PanelPortalContext';
+import { useFocusTrap } from '../shell/useFocusTrap';
 
 const OPTIONS: ComboboxOption[] = [
   { value: '01', label: 'Engineering' },
@@ -172,5 +174,63 @@ describe('Combobox select only mode', () => {
     fireEvent.keyDown(trigger, { key: 'ArrowDown' });
     fireEvent.keyDown(trigger, { key: ' ' });
     expect(onChange).toHaveBeenCalledWith('01');
+  });
+});
+
+// The overlay panel in miniature: a focus trap that closes on Escape around one combobox,
+// so the test proves the list claims the first Escape and the panel takes the next one.
+function TrappedCombobox({
+  onEscape,
+  searchable,
+}: {
+  onEscape: () => void;
+  searchable: boolean;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useFocusTrap(ref, true, onEscape);
+  return (
+    <div ref={ref} role="dialog" aria-label="panel" tabIndex={-1}>
+      <Combobox
+        label="Faculty"
+        value=""
+        options={OPTIONS}
+        placeholder="Select"
+        disabled={false}
+        searchable={searchable}
+        onChange={() => undefined}
+      />
+    </div>
+  );
+}
+
+describe('Combobox inside a trapped panel', () => {
+  it('closes only the open list on Escape, then the panel on the next Escape', () => {
+    const onEscape = vi.fn();
+    render(<TrappedCombobox onEscape={onEscape} searchable={true} />);
+    const input = screen.getByRole('combobox', { name: 'Faculty' });
+    fireEvent.focus(input);
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    expect(onEscape).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(onEscape).toHaveBeenCalledOnce();
+  });
+
+  it('does the same for a select only list', () => {
+    const onEscape = vi.fn();
+    render(<TrappedCombobox onEscape={onEscape} searchable={false} />);
+    const trigger = screen.getByRole('combobox', { name: 'Faculty' });
+    fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.keyDown(trigger, { key: 'Escape' });
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(onEscape).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(trigger, { key: 'Escape' });
+    expect(onEscape).toHaveBeenCalledOnce();
   });
 });

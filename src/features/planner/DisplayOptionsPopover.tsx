@@ -64,7 +64,7 @@ export function DisplayOptionsPopover() {
     [refs],
   );
 
-  // The overlay closes on Escape through a panel listener that fires before
+  // The overlay closes on Escape through a body listener that fires before
   // floating-ui's dismiss, so intercept Escape on the popover to close only it and
   // return focus to the trigger, keeping the overlay open.
   useEffect(() => {

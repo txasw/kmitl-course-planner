@@ -1,4 +1,5 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
+import { useRef } from 'react';
 import {
   render,
   screen,
@@ -18,6 +19,7 @@ import {
 } from '../../../tests/support/plan-store';
 import { swipe } from '../../../tests/support/swipe';
 import { UndoToast } from './UndoToast';
+import { useFocusTrap } from './useFocusTrap';
 
 const t = createTranslator('th');
 
@@ -57,6 +59,25 @@ function seedUndo(record: UndoRecord): void {
     seedActivePlan([]);
     planStore.setState({ pendingUndo: record });
   });
+}
+
+// The app renders the toaster beside the overlay panel, not inside it, so the trapped
+// panel here is a sibling of the toast with its own close callback.
+function OverlayBesideToast({
+  record,
+  onEscape,
+}: {
+  record: UndoRecord;
+  onEscape: () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useFocusTrap(ref, true, onEscape);
+  return (
+    <div>
+      <div ref={ref} role="dialog" aria-label="panel" tabIndex={-1} />
+      <UndoToast record={record} locale="th" t={t} />
+    </div>
+  );
 }
 
 afterEach(() => {
@@ -136,6 +157,19 @@ describe('UndoToast', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('dismisses on Escape and keeps the overlay open', () => {
+    const record = removeRecord();
+    seedUndo(record);
+    const onEscape = vi.fn();
+    render(<OverlayBesideToast record={record} onEscape={onEscape} />);
+    const close = screen.getByRole('button', { name: 'ปิด' });
+    close.focus();
+    fireEvent.keyDown(close, { key: 'Escape' });
+    // The pending undo cleared, so the toast dismissed and the removal stands.
+    expect(planStore.getState().pendingUndo).toBeNull();
+    expect(onEscape).not.toHaveBeenCalled();
   });
 
   it('pauses the window while hovered and resumes on leave', () => {
