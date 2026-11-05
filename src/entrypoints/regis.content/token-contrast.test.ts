@@ -36,8 +36,9 @@ interface Pair {
 // focus rings, and the active tab underline, so it carries the 3:1 bar; its text uses
 // primary-strong. primary-strong text appears on several soft notice backgrounds, the
 // darkest being danger-soft, so it is checked against each. The accent also outlines a
-// swap target and a focus ring over a blocked danger-soft footprint. border-strong is the
-// form control boundary, a UI component on both panel surfaces (ADR-0051).
+// swap target and a focus ring over a blocked danger-soft footprint, and the switch term
+// action on a muted surface-alt section row. border-strong is the form control boundary,
+// a UI component on both panel surfaces (ADR-0051).
 const PAIRS: Pair[] = [
   {
     name: 'ink on surface',
@@ -151,6 +152,12 @@ const PAIRS: Pair[] = [
     name: 'primary accent on surface',
     fg: token('primary'),
     bg: token('surface'),
+    min: AA_UI,
+  },
+  {
+    name: 'primary accent on surface-alt',
+    fg: token('primary'),
+    bg: token('surface-alt'),
     min: AA_UI,
   },
   {
