@@ -286,7 +286,7 @@ test('opens a block detail popover and removes the section through it', async ({
 
   // Removing through the popover clears the block, the same path as the block's own
   // remove control, and closes the popover.
-  await popover.getByRole('button', { name: 'นำออก', exact: true }).click();
+  await popover.getByRole('button', { name: 'นำออกจากตาราง' }).click();
   await expect(page.locator(GRID_BLOCK)).toHaveCount(0);
   await expect(popover).toHaveCount(0);
 });

@@ -159,7 +159,7 @@ describe('BlockDetailPopover', () => {
       seedActivePlan([makePlanEntry()]);
     });
     const { onClose, onRemove } = renderPopover();
-    fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove from plan' }));
     expect(onRemove).toHaveBeenCalledWith('t1');
     expect(onClose).toHaveBeenCalled();
   });
@@ -380,7 +380,7 @@ describe('BlockDetailPopover below 640 px', () => {
       seedActivePlan([makePlanEntry({ verifyStatus: 'changed' })]);
     });
     const { onClose, onRemove } = renderPopover();
-    const remove = screen.getByRole('button', { name: 'Remove' });
+    const remove = screen.getByRole('button', { name: 'Remove from plan' });
     const acknowledge = screen.getByRole('button', { name: 'Acknowledge' });
     expect(remove).toHaveClass('min-h-11');
     expect(acknowledge.parentElement).toBe(remove.parentElement);
@@ -397,9 +397,12 @@ describe('BlockDetailPopover below 640 px', () => {
     const outer = vi.fn();
     document.body.addEventListener('keydown', outer);
     const { onClose } = renderPopover();
-    fireEvent.keyDown(screen.getByRole('button', { name: 'Remove' }), {
-      key: 'Escape',
-    });
+    fireEvent.keyDown(
+      screen.getByRole('button', { name: 'Remove from plan' }),
+      {
+        key: 'Escape',
+      },
+    );
     document.body.removeEventListener('keydown', outer);
     expect(onClose).toHaveBeenCalledOnce();
     expect(outer).not.toHaveBeenCalled();

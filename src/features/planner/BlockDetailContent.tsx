@@ -2,7 +2,9 @@
 // bottom sheet so both carry the same facts and the same actions. The body reads the
 // verification state with old versus new values for a changed field, any exam overlap as
 // its own section, and the full SectionDetailList. The actions acknowledge a change and
-// remove the section; on a sheet they grow to a 44 px touch target.
+// remove the section; on a sheet they grow to a 44 px touch target. The remove action reads
+// นำออกจากตาราง rather than the short นำออก of the block and catalog remove controls, so its
+// name stays distinct from theirs while the surface is open beside them.
 
 import { Check, Trash2 } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -150,7 +152,7 @@ export function BlockDetailActions({
         className={`${ACTION} ${size} border-danger text-danger hover:bg-danger-soft`}
       >
         <Trash2 size={touch ? 16 : 12} aria-hidden />
-        {t('action.remove')}
+        {t('block.removeFromPlan')}
       </button>
     </div>
   );
