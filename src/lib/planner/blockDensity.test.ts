@@ -174,6 +174,38 @@ describe('nextDensityLevel', () => {
     expect(timeDropped).toBeLessThan(placeDropped);
   });
 
+  it('drops the subject id first on an edit block', () => {
+    // An edit block ignores the display options: it always carries the id, the section, and
+    // the place, and never the English line, so its first rung is the id and its second the
+    // time (ADR-0050).
+    const edit = buildEligibility({
+      hasName: true,
+      hasEnglish: false,
+      hasSection: true,
+      hasId: true,
+      hasPlace: true,
+    });
+    const steps = walk(fullLevel(edit));
+    expect(steps.map((s) => s.showId)).toEqual([
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+    ]);
+    expect(steps[1]).toEqual({ ...fullLevel(edit), showId: false });
+    expect(steps[2]?.showTime).toBe(false);
+    expect(steps.at(-1)).toEqual({
+      nameLines: 1,
+      showEnglish: false,
+      showPlace: false,
+      showSection: false,
+      showTime: false,
+      showId: false,
+    });
+  });
+
   it('skips a rung for a field the block never had', () => {
     const noIdNoEnglish = fullLevel(
       buildEligibility({
