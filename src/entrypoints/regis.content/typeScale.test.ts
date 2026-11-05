@@ -1,5 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join, relative, resolve } from 'node:path';
 import { describe, it, expect } from 'vitest';
 
 // The type scale from ADR-0052, read from the authored shadow stylesheet. The path
@@ -66,5 +66,42 @@ describe('type scale', () => {
     expect(poster).toContain('--text-sm--line-height: calc(1.25 / 0.875);');
     expect(poster).toContain('--text-base--line-height: 1.5;');
     expect(poster).toContain('line-height: 1.5;');
+  });
+});
+
+// Only regular and semibold exist in the theme, so any other weight utility would
+// compile to nothing and leave the text at the inherited weight, which reads as a
+// styling bug rather than a choice. Uppercase is banned because the transform has
+// no effect on Thai and only spaces out the Latin half of a mixed label. Test files
+// are skipped because they name these classes to assert on them.
+const BANNED_CLASSES = [
+  /\bfont-(?:thin|extralight|light|medium|bold|extrabold|black)\b/,
+  /\bfont-\[\d/,
+  /\buppercase\b/,
+];
+
+function collectSourceFiles(dir: string): string[] {
+  return readdirSync(dir).flatMap((name) => {
+    const full = join(dir, name);
+    if (statSync(full).isDirectory()) return collectSourceFiles(full);
+    return /\.tsx?$/.test(name) && !/\.test\.tsx?$/.test(name) ? [full] : [];
+  });
+}
+
+describe('type guard', () => {
+  it('uses no weight beyond regular and semibold and no uppercase in source', () => {
+    const root = process.cwd();
+    const files = collectSourceFiles(resolve(root, 'src'));
+    expect(files.length).toBeGreaterThan(0);
+    const hits = files.flatMap((file) =>
+      readFileSync(file, 'utf8')
+        .split('\n')
+        .flatMap((line, index) =>
+          BANNED_CLASSES.some((pattern) => pattern.test(line))
+            ? [`${relative(root, file)}:${String(index + 1)}: ${line.trim()}`]
+            : [],
+        ),
+    );
+    expect(hits).toEqual([]);
   });
 });
