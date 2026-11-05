@@ -31,8 +31,11 @@ test('an exam conflicting add blocks and a clean alternative succeeds', async ({
     exact: true,
   });
   await expect(strip).toBeVisible();
-  await expect(page.getByText(/เวลาสอบชนกับ 90000010/)).toBeVisible();
-  await expect(page.getByText(/สอบกลางภาค/)).toBeVisible();
+  // The catalog rows now name the same exam clash, so the reason is read from the
+  // feedback strip's live region rather than anywhere on the page.
+  const feedback = page.locator('[aria-live="polite"]').filter({ has: strip });
+  await expect(feedback.getByText(/เวลาสอบชนกับ 90000010/)).toBeVisible();
+  await expect(feedback.getByText(/สอบกลางภาค/)).toBeVisible();
 
   // The clean alternative from the strip adds without a clash.
   await strip.click();
