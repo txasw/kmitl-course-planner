@@ -70,7 +70,7 @@ export function Switch({
         }`}
       >
         <span
-          className={`size-3.5 rounded-full transition-transform duration-150 ease-out motion-reduce:transition-none ${
+          className={`size-3.5 rounded-full transition-transform duration-fast ease-out motion-reduce:transition-none ${
             checked ? 'translate-x-4 bg-surface' : 'translate-x-0 bg-ink-soft'
           }`}
         />

@@ -86,4 +86,9 @@ describe('shadow stylesheet tokens', () => {
       );
     }
   });
+
+  it('reads every fixed animation duration from a motion token', () => {
+    expect(css).not.toMatch(/animation:[^;]*\b\d+m?s\b/);
+    expect(css).toMatch(/animation:[^;]*var\(--kcp-duration-/);
+  });
 });

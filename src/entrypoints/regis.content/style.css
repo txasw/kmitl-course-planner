@@ -175,7 +175,7 @@
 }
 
 .kcp-toast-enter {
-  animation: kcp-toast-in 150ms ease-out;
+  animation: kcp-toast-in var(--kcp-duration-fast) ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -209,7 +209,7 @@
 }
 
 .kcp-pulse {
-  animation: kcp-pulse 300ms ease-in-out 2;
+  animation: kcp-pulse var(--kcp-duration-slow) ease-in-out 2;
 }
 
 /* A newly placed block settles into place. */
@@ -226,7 +226,7 @@
 }
 
 .kcp-settle {
-  animation: kcp-settle 150ms ease-out;
+  animation: kcp-settle var(--kcp-duration-fast) ease-out;
 }
 
 /* The reduced motion path drops every placement animation, keeping the color and
