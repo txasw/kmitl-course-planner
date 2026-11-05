@@ -1,4 +1,10 @@
-import { test, expect, openPlanner, pickOption } from './support/fixtures';
+import {
+  test,
+  expect,
+  expandCourse,
+  openPlanner,
+  pickOption,
+} from './support/fixtures';
 
 // With no persisted search, no result route, and no plan, the form opens on the term
 // after the one the registrar reports as current. The capture reports 1/2569.
@@ -27,12 +33,26 @@ test('renders the deduped catalog for a category search', async ({
   await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
 
   // The catalog mounts once, so each subject and the summary match exactly one
-  // node. Both sections of 90592033 are full and are no drag source, so the two
-  // open sections register exactly one drag surface each.
+  // node.
   await expect(page.getByText('90592033', { exact: true })).toBeVisible({
     timeout: 15_000,
   });
   await expect(page.getByText('4 กลุ่มเรียน')).toBeVisible();
+
+  // Every card of the three course result starts collapsed and mounts no section
+  // row, so no section drag surface exists until a card opens.
+  const toggles = page.locator('[data-course-toggle]');
+  await expect(toggles).toHaveCount(3);
+  await expect(
+    page.locator('[data-course-toggle][aria-expanded="true"]'),
+  ).toHaveCount(0);
+  await expect(page.locator('[data-drag-surface="section"]')).toHaveCount(0);
+
+  // Opened, both sections of 90592033 are full and are no drag source, so the two
+  // open sections register exactly one drag surface each.
+  for (const subjectId of ['90592008', '90592033', '90592004']) {
+    await expandCourse(page, subjectId);
+  }
   await expect(page.locator('[data-drag-surface="section"]')).toHaveCount(2);
 });
 
@@ -64,4 +84,28 @@ test.describe('at 1280x720', () => {
       page.getByRole('button', { name: 'แก้ไขการค้นหา' }),
     ).toHaveAttribute('aria-expanded', 'false');
   });
+});
+
+test('opens and closes a course card from the keyboard', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await page.getByRole('button', { name: 'หมวดวิชา' }).click();
+  await pickOption(page, 'คณะ', '01');
+  await pickOption(page, 'หมวดวิชา', '90592xxx');
+  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+
+  const toggle = page
+    .getByRole('article')
+    .filter({ hasText: '90592008' })
+    .locator('[data-course-toggle]');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false', {
+    timeout: 15_000,
+  });
+  await toggle.focus();
+  await page.keyboard.press('Enter');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(toggle).toBeFocused();
+  await page.keyboard.press('Space');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
 });

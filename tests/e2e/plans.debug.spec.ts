@@ -2,6 +2,7 @@ import {
   test,
   expect,
   editSearch,
+  expandCourse,
   openPlanner,
   pickOption,
 } from './support/fixtures';
@@ -60,6 +61,7 @@ test('refuses a section from another term and switches on request', async ({
   // The first search folded the form, so it is reopened from the summary bar.
   await editSearch(page);
   await searchSyntheticInSemester(page, '2');
+  await expandCourse(page, '90000003');
   await expect(
     page.getByRole('button', { name: 'สลับไปตารางภาคนี้' }).first(),
   ).toBeVisible();

@@ -129,3 +129,57 @@ export async function editSearch(page: Page): Promise<void> {
 export async function waitForResultsInput(page: Page): Promise<void> {
   await expect(page.locator('[data-input-guard="on"]')).toHaveCount(0);
 }
+
+/**
+ * Open a collapsed course card so its section rows mount. A card is collapsed by
+ * default unless it is the only course in the result, so a spec that adds from the
+ * rows of a multi course result opens the card first; an open card is left as is.
+ */
+export async function expandCourse(
+  page: Page,
+  subjectId: string,
+): Promise<void> {
+  const toggle = page
+    .getByRole('article')
+    .filter({ hasText: subjectId })
+    .first()
+    .locator('[data-course-toggle]');
+  if ((await toggle.getAttribute('aria-expanded')) === 'false') {
+    await toggle.click();
+  }
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await catalogAtRest(page);
+}
+
+/**
+ * Wait until no course card is opening or closing and the catalog scroller rests. A
+ * card animates its height and an expand scrolls it into view once the open settles,
+ * so a spec waits for this before it reads a row's position for a drag.
+ */
+export async function catalogAtRest(page: Page): Promise<void> {
+  await expect(
+    page.locator(
+      '[data-course-body][data-stage="entering"], [data-course-body][data-stage="leaving"]',
+    ),
+  ).toHaveCount(0);
+  await page.locator('[data-catalog-scroller]').evaluate(
+    (scroller) =>
+      new Promise<void>((resolve) => {
+        const start = performance.now();
+        let last = -1;
+        let still = 0;
+        const tick = (): void => {
+          const top = scroller.scrollTop;
+          still = top === last ? still + 1 : 0;
+          last = top;
+          const elapsed = performance.now() - start;
+          if ((elapsed > 300 && still >= 5) || elapsed > 3000) {
+            resolve();
+            return;
+          }
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }),
+  );
+}
