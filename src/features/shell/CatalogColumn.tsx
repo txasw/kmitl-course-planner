@@ -160,9 +160,13 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
     >
       {docked ? <DockedHeader /> : <SheetHeader />}
       <SearchHeader />
+      {/* The catalog owns its scroll anchoring: a card opening or closing changes
+          only the content below its header, and the browser must not pick an anchor
+          inside a body that is unmounting. */}
       <div
         ref={results}
-        className={`kcp-scroll flex flex-1 flex-col overflow-y-auto p-6 ${
+        data-catalog-scroller
+        className={`kcp-scroll flex flex-1 flex-col overflow-y-auto p-6 [overflow-anchor:none] ${
           keepResults ? 'min-h-48' : 'min-h-0'
         }`}
       >

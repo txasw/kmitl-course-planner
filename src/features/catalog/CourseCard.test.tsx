@@ -248,6 +248,62 @@ describe('CourseCard disclosure motion', () => {
   });
 });
 
+describe('CourseCard reveal on expand', () => {
+  const course = makeCourse({
+    subjectId: '90592008',
+    sections: [makeSection({ teachTableId: 's1', subjectId: '90592008' })],
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function setup(initialOpen = false) {
+    vi.useFakeTimers();
+    const { container } = render(
+      <div data-catalog-scroller="">
+        <Controlled
+          initialOpen={initialOpen}
+          course={course}
+          placed={[]}
+          locale="th"
+          t={t}
+        />
+      </div>,
+    );
+    const scroller = container.firstElementChild;
+    const card = container.querySelector('article');
+    if (!(scroller instanceof HTMLElement) || card === null) {
+      throw new Error('expected the scroller and the card');
+    }
+    // The view spans 0 to 300 and the opened card overflows it by 150.
+    scroller.getBoundingClientRect = () => new DOMRect(0, 0, 300, 300);
+    card.getBoundingClientRect = () => new DOMRect(0, 250, 300, 200);
+    const scrollBy = vi.fn();
+    scroller.scrollBy = scrollBy;
+    return scrollBy;
+  }
+
+  it('scrolls an expanded card into view once the open settles', () => {
+    const scrollBy = setup();
+    fireEvent.click(toggle());
+    expect(scrollBy).not.toHaveBeenCalled();
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+    expect(scrollBy).toHaveBeenCalledWith({ top: 150, behavior: 'smooth' });
+  });
+
+  it('does not scroll on a collapse', () => {
+    const scrollBy = setup(true);
+    fireEvent.click(toggle());
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    expect(scrollBy).not.toHaveBeenCalled();
+  });
+});
+
 describe('CourseCard collapsed added course', () => {
   const section = makeSection({
     subjectId: '90000001',
