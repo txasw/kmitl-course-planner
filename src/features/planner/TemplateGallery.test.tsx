@@ -28,6 +28,11 @@ function makePoster(): PosterData {
     window: DEFAULT_WINDOW,
     days: WEEK_DAYS,
     displayOptions: DEFAULT_DISPLAY_OPTIONS,
+    honesty: {
+      dataDate: { kind: 'unverified' },
+      missingCount: 0,
+      conflictPairCount: 0,
+    },
     locale: 'th',
     t,
   };

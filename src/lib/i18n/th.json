@@ -244,5 +244,9 @@
   "preview.template.printA4": "พิมพ์ A4",
   "preview.gallery.prev": "แม่แบบก่อนหน้า",
   "preview.gallery.next": "แม่แบบถัดไป",
-  "preview.watermark": "สร้างโดยตัววางแผนตารางเรียน สจล."
+  "preview.watermark": "สร้างโดยตัววางแผนตารางเรียน สจล.",
+  "poster.dataAsOf": "ข้อมูล ณ {dateTime}",
+  "poster.unverified": "ยังไม่ได้ตรวจสอบข้อมูล",
+  "poster.honesty.missing": "{count} รายวิชาไม่พบในระบบ ณ วันที่ตรวจสอบ",
+  "poster.honesty.conflict": "มีรายวิชาที่เวลาชนกัน {count} คู่"
 }

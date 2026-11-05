@@ -5,8 +5,10 @@
 // section in parentheses, and the room, honouring the display options. Unscheduled
 // sections follow under a label without a day or time so a shared plan never hides
 // the credits they carry, and a missing entry keeps a short parenthetical marker so
-// the text is honest about what upstream no longer lists. A header line names the
-// plan, its term, and total credits; a footer line names the app.
+// the text is honest about what upstream no longer lists; a chat message has no footer
+// to carry the poster's data line, so the marker stays on the line it describes
+// (ADR-0055). A header line names the plan, its term, and total credits; a footer line
+// names the app.
 
 import type { Meeting } from '../domain/types';
 import type { VerifyStatus } from '../domain/plan';
