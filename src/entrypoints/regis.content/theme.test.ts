@@ -29,6 +29,23 @@ const COLOR_TOKENS = [
   'success-soft',
 ] as const;
 
+const LAYER_TOKENS = {
+  grid: 1,
+  'grid-active': 2,
+  sticky: 10,
+  scrim: 20,
+  drawer: 30,
+  popover: 40,
+  sheet: 50,
+  dropzone: 60,
+  toast: 70,
+  dragoverlay: 80,
+  tooltip: 90,
+  host: 2147483647,
+} as const;
+
+const DURATION_TOKENS = { fast: 150, base: 200, slow: 300 } as const;
+
 describe('shadow stylesheet tokens', () => {
   it('declares every kcp token on the shadow host', () => {
     for (const token of COLOR_TOKENS) {
@@ -44,5 +61,29 @@ describe('shadow stylesheet tokens', () => {
     }
     expect(css).toContain('--radius-kcp: var(--kcp-radius)');
     expect(css).toContain('--shadow-kcp: var(--kcp-shadow)');
+  });
+
+  it('declares the layer scale and maps it into the z-index namespace', () => {
+    for (const [layer, value] of Object.entries(LAYER_TOKENS)) {
+      expect(css).toContain(`--kcp-z-${layer}: ${String(value)};`);
+      expect(css).toContain(`--z-index-${layer}: var(--kcp-z-${layer})`);
+    }
+  });
+
+  it('declares the layer scale in ascending order', () => {
+    const declared = [...css.matchAll(/--kcp-z-[a-z-]+: (\d+);/g)].map(
+      (match) => Number(match[1]),
+    );
+    expect(declared).toHaveLength(Object.keys(LAYER_TOKENS).length);
+    expect(declared).toEqual([...declared].sort((a, b) => a - b));
+  });
+
+  it('declares the motion durations and maps them into the duration namespace', () => {
+    for (const [name, ms] of Object.entries(DURATION_TOKENS)) {
+      expect(css).toContain(`--kcp-duration-${name}: ${String(ms)}ms;`);
+      expect(css).toContain(
+        `--transition-duration-${name}: var(--kcp-duration-${name})`,
+      );
+    }
   });
 });
