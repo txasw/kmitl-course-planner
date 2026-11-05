@@ -24,7 +24,7 @@ export function PanelRecoveryCard({ t, onReload }: PanelRecoveryCardProps) {
           <button
             type="button"
             onClick={onReload}
-            className="rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-medium text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             {t('panel.error.reload')}
           </button>

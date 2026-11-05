@@ -127,7 +127,7 @@ export function UndoToast({ record, locale, t }: UndoToastProps) {
         onClick={() => {
           planStore.getState().undo();
         }}
-        className={`shrink-0 rounded-kcp px-1 font-medium text-primary-strong underline ${FOCUS_RING}`}
+        className={`shrink-0 rounded-kcp px-1 text-primary-strong underline ${FOCUS_RING}`}
       >
         {t('action.undo')}
       </button>

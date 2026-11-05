@@ -36,7 +36,7 @@ export function SegmentedControl<T extends string>({
             onClick={() => {
               onChange(option.value);
             }}
-            className={`rounded-[6px] px-2.5 py-1 text-xs font-medium outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+            className={`rounded-[6px] px-2.5 py-1 text-xs outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
               active
                 ? 'bg-primary-strong text-white'
                 : 'text-ink-soft hover:text-ink'

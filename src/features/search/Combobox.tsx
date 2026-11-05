@@ -258,7 +258,7 @@ export function Combobox({
       <label
         id={labelId}
         htmlFor={searchable ? inputId : undefined}
-        className="font-medium text-ink"
+        className="font-semibold text-ink"
       >
         {label}
       </label>

@@ -82,7 +82,7 @@ export function PlanList({
         type="button"
         disabled={!canCreate}
         onClick={onCreate}
-        className="flex w-full items-center justify-center gap-1.5 rounded-kcp bg-primary-strong px-2 py-1.5 text-sm font-medium text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 disabled:hover:bg-primary-strong"
+        className="flex w-full items-center justify-center gap-1.5 rounded-kcp bg-primary-strong px-2 py-1.5 text-sm font-semibold text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 disabled:hover:bg-primary-strong"
       >
         <Plus size={16} strokeWidth={2.5} aria-hidden />
         {t('planSwitcher.create')}
@@ -198,7 +198,7 @@ function ActionButton({
           type="button"
           onClick={onClick}
           aria-label={label}
-          className={`inline-flex items-center rounded-kcp py-1 font-medium text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+          className={`inline-flex items-center rounded-kcp py-1 text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
             showLabel ? 'gap-1 px-2 text-xs' : 'px-1.5'
           }`}
         >

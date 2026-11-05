@@ -127,7 +127,7 @@ export function SearchForm() {
               onClick={() => {
                 searchStore.getState().setActiveTab(tab);
               }}
-              className={`flex-1 rounded-[6px] px-2 py-1.5 text-xs font-medium ${FOCUS_RING} ${
+              className={`flex-1 rounded-[6px] px-2 py-1.5 text-xs ${FOCUS_RING} ${
                 selected
                   ? 'bg-surface text-primary-strong shadow-kcp'
                   : 'text-ink-soft hover:text-ink'
@@ -141,7 +141,7 @@ export function SearchForm() {
 
       {referenceError ? (
         <div className="flex flex-col gap-2 rounded-kcp border border-border bg-surface-alt p-3 text-sm">
-          <span className="flex items-center gap-2 font-medium text-ink">
+          <span className="flex items-center gap-2 font-semibold text-ink">
             <AlertTriangle size={16} strokeWidth={2} aria-hidden />
             {t('search.referenceErrorTitle')}
           </span>
@@ -151,7 +151,7 @@ export function SearchForm() {
           <button
             type="button"
             onClick={reloadReference}
-            className={`self-start rounded-kcp bg-primary-strong px-3 py-1.5 text-xs font-medium text-surface hover:bg-primary-hover ${FOCUS_OUTLINE}`}
+            className={`self-start rounded-kcp bg-primary-strong px-3 py-1.5 text-xs font-semibold text-surface hover:bg-primary-hover ${FOCUS_OUTLINE}`}
           >
             {t('action.retry')}
           </button>
@@ -221,7 +221,7 @@ export function SearchForm() {
         type="button"
         disabled={submitDisabled}
         onClick={handleSubmit}
-        className={`rounded-kcp bg-primary-strong px-4 py-2 text-sm font-medium text-surface hover:bg-primary-hover disabled:opacity-50 ${FOCUS_OUTLINE}`}
+        className={`rounded-kcp bg-primary-strong px-4 py-2 text-sm font-semibold text-surface hover:bg-primary-hover disabled:opacity-50 ${FOCUS_OUTLINE}`}
       >
         {t('search.submit')}
       </button>
