@@ -33,7 +33,9 @@ export function placedSections(entries: PlanEntry[]): Section[] {
   return entries.map((entry) => snapshotToSection(entry.snapshot));
 }
 
-function toSnapshot(course: Course, section: Section): SectionSnapshot {
+/** The snapshot an entry stores for a section of a course, also used to preview a
+ * section that is not yet in a plan in the same shape. */
+export function toSnapshot(course: Course, section: Section): SectionSnapshot {
   return buildSnapshot(section, {
     subjectId: course.subjectId,
     nameTh: course.nameTh,
