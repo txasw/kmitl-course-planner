@@ -8,12 +8,16 @@
 
 import type { Section } from '../domain/types';
 
+/** The seat fields a status reads, so a plan entry snapshot qualifies as well as a
+ * catalog section. */
+export type SeatFields = Pick<Section, 'seats' | 'isClosed'>;
+
 export type SeatStatus =
   | { kind: 'closed' }
   | { kind: 'full' }
   | { kind: 'open'; remaining: number | null };
 
-export function computeSeatStatus(section: Section): SeatStatus {
+export function computeSeatStatus(section: SeatFields): SeatStatus {
   if (section.isClosed) {
     return { kind: 'closed' };
   }

@@ -120,7 +120,6 @@
   "feedback.moveHint": "วางบนช่องที่ไฮไลต์หรือพื้นที่นำออก",
   "blockMove.removeZone": "ลากมาที่นี่เพื่อนำออก",
   "blockMove.swap": "สลับกับ",
-  "seat.label": "ที่นั่ง",
   "seat.full": "เต็ม",
   "grid.emptyTitle": "ตารางยังว่าง",
   "grid.emptyBody": "เพิ่มรายวิชาจากรายการเพื่อแสดงในตาราง",

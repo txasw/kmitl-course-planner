@@ -6,7 +6,8 @@
 // by the grid, positioned to the side so it never sits under the pointer or over the block's
 // remove control. It shares a family look with the drag conflict card but carries a neutral
 // info accent, a left border in the brand, so a placed block and a blocked drop read
-// differently at a glance.
+// differently at a glance. Seats read through the same SeatDemand line a catalog row shows,
+// from the snapshot the latest verification refreshed, so the two never disagree.
 
 import { useCallback, useEffect } from 'react';
 import { FloatingPortal } from '@floating-ui/react';
@@ -14,7 +15,9 @@ import { useStore } from 'zustand';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
 import { formatMinutes } from '@/lib/parsing/time';
+import { computeSeatDemand } from '@/lib/catalog/seatDemand';
 import { planStore } from '@/features/plans/planStore';
+import { SeatDemand } from '@/features/catalog/SeatDemand';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
 import {
   PANEL_POPOVER_SCROLL,
@@ -87,12 +90,6 @@ export function BlockHoverCard({
   )
     .map((key) => t(key))
     .join(' ');
-  const seatText =
-    snapshot.seats.enrolled === 'full'
-      ? t('seat.full')
-      : snapshot.seats.limit === null
-        ? String(snapshot.seats.enrolled)
-        : `${String(snapshot.seats.enrolled)}/${String(snapshot.seats.limit)}`;
 
   const card = (
     <div
@@ -126,9 +123,7 @@ export function BlockHoverCard({
           </p>
         ))}
       </div>
-      <p className="text-ink-soft">
-        {t('seat.label')}: {seatText}
-      </p>
+      <SeatDemand demand={computeSeatDemand(snapshot)} t={t} />
       {teachers.length > 0 ? (
         <p className="text-ink-soft">{teachers.join(', ')}</p>
       ) : null}
