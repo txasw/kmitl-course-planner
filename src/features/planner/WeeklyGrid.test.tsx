@@ -7,7 +7,7 @@ import {
   fireEvent,
 } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
-import { DEFAULT_WINDOW } from '@/lib/planner/grid';
+import { DEFAULT_WINDOW, SMART_WINDOW } from '@/lib/planner/grid';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import {
   makeCourse,
@@ -232,6 +232,42 @@ describe('WeeklyGrid', () => {
     ).map((node) => node.getAttribute('data-teach-table-id'));
     // All eight render, in day then start time order.
     expect(ids).toEqual(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']);
+  });
+
+  it('derives the edit grid minimum width from the window', () => {
+    const { rerender } = render(
+      <WeeklyGrid
+        sections={[]}
+        window={SMART_WINDOW}
+        locale="th"
+        t={t}
+        editable
+      />,
+    );
+    const grid = screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+    // 40 px of day labels plus 14 px for each of the 40 quarters from 08:00 to 18:00.
+    expect(grid.style.minWidth).toBe('600px');
+    expect(grid.className).not.toContain('min-w-[44rem]');
+
+    rerender(
+      <WeeklyGrid
+        sections={[]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+        editable
+      />,
+    );
+    expect(grid.style.minWidth).toBe('824px');
+  });
+
+  it('keeps the poster grid on its fixed minimum width', () => {
+    render(
+      <WeeklyGrid sections={[]} window={SMART_WINDOW} locale="th" t={t} />,
+    );
+    const grid = screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+    expect(grid.style.minWidth).toBe('');
+    expect(grid.className).toContain('min-w-[44rem]');
   });
 
   it('labels the grid and the seven day rows', () => {
