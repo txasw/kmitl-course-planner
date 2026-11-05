@@ -1,4 +1,4 @@
-import { test, expect, openPlanner } from './support/fixtures';
+import { test, expect, expandCourse, openPlanner } from './support/fixtures';
 import { syntheticSearch, addCourse, block } from './support/synthetic';
 import type { Page } from '@playwright/test';
 
@@ -49,7 +49,14 @@ test('the panel passes axe across the edit, preview, and dialog surfaces', async
   ).toBeNull();
   await expect(page.getByRole('dialog')).toHaveAttribute('lang', 'th');
 
-  // 1. Populated edit mode.
+  // 1. Populated edit mode, with the added card collapsed and one unadded card open.
+  await expect(
+    page
+      .getByRole('article')
+      .filter({ hasText: '90000001' })
+      .locator('[data-course-toggle]'),
+  ).toHaveAttribute('aria-expanded', 'false');
+  await expandCourse(page, '90000003');
   expect(await axeViolations(page)).toEqual([]);
 
   // 2. The catalog filter popover.

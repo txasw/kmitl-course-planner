@@ -1,4 +1,10 @@
-import { test, expect, openPlanner, pickOption } from './support/fixtures';
+import {
+  test,
+  expect,
+  expandCourse,
+  openPlanner,
+  pickOption,
+} from './support/fixtures';
 import { addCourse, block, syntheticSearch } from './support/synthetic';
 import type { Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
@@ -14,7 +20,7 @@ function pngSize(bytes: Buffer): { width: number; height: number } {
 }
 
 // The owner 90592xxx category search the other planner specs use, which renders the
-// deduped courses with an open, addable section.
+// deduped courses with an open, addable section in the card of 90592008.
 async function categorySearch(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'หมวดวิชา' }).click();
   await pickOption(page, 'คณะ', '01');
@@ -23,6 +29,7 @@ async function categorySearch(page: Page): Promise<void> {
   await expect(page.getByText('90592033').first()).toBeVisible({
     timeout: 15_000,
   });
+  await expandCourse(page, '90592008');
 }
 
 async function downloadPng(page: Page): Promise<Buffer> {

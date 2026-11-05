@@ -12,7 +12,7 @@
 // upper bounds that only catch a gross regression, since absolute timings vary by
 // machine; the memoization is proven by the unit tests, not by a tight timing here.
 
-import { test, expect, openPlanner } from './support/fixtures';
+import { test, expect, expandCourse, openPlanner } from './support/fixtures';
 import { FAT_COURSE_ID, denseSubjectId } from './support/denseCatalog';
 import type { Page, BrowserContext } from '@playwright/test';
 
@@ -66,8 +66,9 @@ async function searchDense(page: Page): Promise<void> {
   ).toBeVisible({ timeout: 20_000 });
 }
 
-/** Add one single section course to the plan by its subject id. */
+/** Add one single section course to the plan by its subject id, opening its card. */
 async function addBySubject(page: Page, subjectId: string): Promise<void> {
+  await expandCourse(page, subjectId);
   await page
     .getByRole('article')
     .filter({ hasText: subjectId })
@@ -98,7 +99,9 @@ test('profiles the dense catalog render and a grid drag', async ({
   // Add: one add re-renders the catalog because the plan changed. Measured first,
   // clean of any preceding interaction, so the number is the honest cost of a 500
   // card re-render. Memoizing a card cannot cut this, because the plan change alters
-  // every card's placement input, so it is reported as a cost, not a win.
+  // every card's placement input, so it is reported as a cost, not a win. The card
+  // is opened first, outside the window, so the number is the add alone.
+  await expandCourse(page, denseSubjectId(0));
   const beforeAdd = await scriptMs(client);
   await addBySubject(page, denseSubjectId(0));
   await expect(page.locator(blockSel('700000'))).toBeVisible();

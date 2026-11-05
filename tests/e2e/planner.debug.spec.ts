@@ -1,6 +1,7 @@
 import {
   test,
   expect,
+  expandCourse,
   openPlanner,
   pickOption,
   waitForResultsInput,
@@ -14,7 +15,8 @@ const GRID_BLOCK = '[data-teach-table-id]';
 const GRID_NAME = 'ตารางเรียนรายสัปดาห์';
 
 // Run the owner 32 category search that the catalog specs use, so the catalog
-// renders the deduped courses with at least one open, addable section.
+// renders the deduped courses with at least one open, addable section, then open the
+// card of 90592008, the first course, whose section 901 is open.
 async function categorySearch(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'หมวดวิชา' }).click();
   await pickOption(page, 'คณะ', '01');
@@ -24,6 +26,7 @@ async function categorySearch(page: Page): Promise<void> {
     timeout: 15_000,
   });
   await waitForResultsInput(page);
+  await expandCourse(page, '90592008');
 }
 
 interface GridScroll {
@@ -250,6 +253,7 @@ test('lists an added unscheduled course on the shelf', async ({ context }) => {
     timeout: 15_000,
   });
 
+  await expandCourse(page, '01006029');
   const onlineCard = page
     .getByRole('article')
     .filter({ hasText: '01006029' })

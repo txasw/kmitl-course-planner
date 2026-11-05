@@ -4,7 +4,12 @@
 // Course E, and a Course X pair), so a spec can add, move, and revalidate known
 // sections that the captured fixtures cannot express.
 
-import { expect, waitForResultsInput } from './fixtures';
+import {
+  expect,
+  catalogAtRest,
+  expandCourse,
+  waitForResultsInput,
+} from './fixtures';
 import type { Page } from '@playwright/test';
 
 /** A placed grid block is addressed by its synthetic fixture teach_table_id. */
@@ -23,8 +28,9 @@ export async function syntheticSearch(page: Page): Promise<void> {
   await waitForResultsInput(page);
 }
 
-/** Add the first section of a course by its subject id. */
+/** Add the first section of a course by its subject id, opening its card first. */
 export async function addCourse(page: Page, subjectId: string): Promise<void> {
+  await expandCourse(page, subjectId);
   await page
     .getByRole('article')
     .filter({ hasText: subjectId })
@@ -32,4 +38,6 @@ export async function addCourse(page: Page, subjectId: string): Promise<void> {
     .getByRole('button', { name: /^เพิ่ม/ })
     .first()
     .click();
+  // An added card collapses, which moves every card below it.
+  await catalogAtRest(page);
 }

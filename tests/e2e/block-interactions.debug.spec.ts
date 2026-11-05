@@ -1,4 +1,4 @@
-import { test, expect, openPlanner } from './support/fixtures';
+import { test, expect, expandCourse, openPlanner } from './support/fixtures';
 import { addCourse, block, syntheticSearch } from './support/synthetic';
 import type { Page } from '@playwright/test';
 
@@ -90,6 +90,7 @@ test('swaps a blocking section on a conflicting drop, with undo', async ({
   await addCourse(page, '90000001');
   await expect(page.locator(block('900001'))).toBeVisible();
 
+  await expandCourse(page, '90000002');
   const gripB = page
     .getByRole('article')
     .filter({ hasText: '90000002' })
@@ -164,6 +165,7 @@ test('rejects a swap that still conflicts after removing the blocker', async ({
   // Capture A's cell so the drop lands on A's swap target, not E's.
   const aBox = await boxOf(page, block('900001'));
 
+  await expandCourse(page, '90000006');
   const gripX = page
     .getByRole('article')
     .filter({ hasText: '90000006' })
