@@ -20,6 +20,7 @@ import {
   PANEL_POPOVER_SCROLL,
   usePanelPopover,
 } from '@/features/shell/usePanelPopover';
+import { useEscapeLayer } from '@/features/shell/useEscapeLayer';
 import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 import { describeEntryDiff } from './describeEntryDiff';
 import { formatExamRange } from './examText';
@@ -74,23 +75,10 @@ export function BlockDetailPopover({
 
   // Escape closes the popover only; the overlay focus trap would otherwise close the
   // whole panel first. Focus the popover on open so a keyboard user lands inside it.
+  useEscapeLayer(wrapperRef, onClose);
   useEffect(() => {
-    const node = wrapperRef.current;
-    if (node === null) {
-      return undefined;
-    }
-    node.focus();
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.stopPropagation();
-        onClose();
-      }
-    };
-    node.addEventListener('keydown', handleKeyDown);
-    return () => {
-      node.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [onClose]);
+    wrapperRef.current?.focus();
+  }, []);
 
   // Close if the entry left the plan while the popover was open.
   useEffect(() => {
