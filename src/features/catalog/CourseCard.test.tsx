@@ -14,7 +14,7 @@ const t = createTranslator('th');
 afterEach(cleanup);
 
 describe('CourseCard seat status', () => {
-  it('shows the remaining count, full, and closed pills', () => {
+  it('shows the remaining count, full, and closed seat lines', () => {
     const course = makeCourse({
       sections: [
         makeSection({
@@ -31,9 +31,9 @@ describe('CourseCard seat status', () => {
       ],
     });
     render(<CourseCard course={course} placed={[]} locale="th" t={t} />);
-    expect(screen.getByText('ว่าง 7')).toBeInTheDocument();
-    expect(screen.getByText('เต็ม')).toBeInTheDocument();
-    expect(screen.getByText('ปิด')).toBeInTheDocument();
+    expect(screen.getByText('ว่าง 7 จาก 40')).toBeInTheDocument();
+    expect(screen.getByText('เต็ม เพิ่มไม่ได้')).toBeInTheDocument();
+    expect(screen.getByText('ปิด เพิ่มไม่ได้')).toBeInTheDocument();
   });
 });
 

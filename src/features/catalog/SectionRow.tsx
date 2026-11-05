@@ -1,6 +1,6 @@
 // A single section row inside a course card. It shows the section code, a lecture
 // or practice badge, each meeting's day, time, and room, the instructors, the
-// seat status, and the section's state relative to the plan. A conflicting section
+// seat line, and the section's state relative to the plan. A conflicting section
 // keeps its badge, which reads as an exam clash when every conflict is an exam
 // overlap, and its reason but stays actionable: its add button routes to the blocked
 // feedback strip instead of being disabled, so a keyboard user gets the same reason
@@ -25,6 +25,7 @@ import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import type { Term } from '@/lib/routing/academicTerms';
 import type { SeatStatus } from '@/lib/catalog/seatStatus';
+import { computeSeatDemand } from '@/lib/catalog/seatDemand';
 import type { SectionRelation } from '@/lib/planner/sectionState';
 import type { ConflictDetail } from '@/lib/planner/placement';
 import { describeConflicts } from '@/lib/planner/describeConflict';
@@ -34,7 +35,7 @@ import {
 } from '@/features/planner/conflictText';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { Pill } from '@/components/Pill';
-import { SeatPill } from './SeatPill';
+import { SeatDemand } from './SeatDemand';
 import { meetingLabel } from './meetingFormat';
 
 function StateBadge({
@@ -149,7 +150,6 @@ export function SectionRow({
                 ? t('section.practice')
                 : t('section.lecture')}
             </Pill>
-            <SeatPill status={seat} t={t} />
             {readOnly ? null : <StateBadge relation={relation} t={t} />}
             {!readOnly &&
             relation.kind === 'added' &&
@@ -233,6 +233,9 @@ export function SectionRow({
             ) : null}
           </div>
         ) : null}
+        <div className="mt-1">
+          <SeatDemand demand={computeSeatDemand(section)} t={t} />
+        </div>
         {!readOnly && showDetails && section.remark !== '' ? (
           <p className="mt-1 whitespace-pre-line text-ink-soft">
             {section.remark}
