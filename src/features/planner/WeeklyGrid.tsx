@@ -30,7 +30,7 @@ import { DayLanes } from './DayLanes';
 import { GridAxis } from './GridAxis';
 import { GridRules } from './GridRules';
 import type { PlacedSection } from './placedSection';
-import type { Orientation } from './gridGeometry';
+import { AXIS_TRACK_EM, EDIT_FONT_PX, type Orientation } from './gridGeometry';
 
 const HOVER_DELAY_MS = 400;
 
@@ -47,10 +47,10 @@ function gridTemplate(
   if (orientation === 'portrait') {
     return {
       gridTemplateColumns: `2.75rem repeat(${String(dayCount)}, minmax(0, 1fr))`,
-      gridTemplateRows: `1.4em repeat(${String(quarters)}, minmax(0, 1fr))`,
+      gridTemplateRows: `${String(AXIS_TRACK_EM)}em repeat(${String(quarters)}, minmax(0, 1fr))`,
     };
   }
-  const rows = `1.4em repeat(${String(dayCount)}, minmax(2.5rem, 1fr))`;
+  const rows = `${String(AXIS_TRACK_EM)}em repeat(${String(dayCount)}, minmax(2.5rem, 1fr))`;
   // The edit grid derives its minimum from the window, so the day column is the fixed
   // width that minimum counts. The poster keeps its own column and the 44rem floor, since
   // its template canvas, not the window, sets its width.
@@ -121,7 +121,7 @@ export function WeeklyGrid({
   display,
   dayAccent = false,
   orientation = 'landscape',
-  fontPx = 11,
+  fontPx = EDIT_FONT_PX,
 }: WeeklyGridProps) {
   // The grid template follows only the window, the day count, the orientation, and the
   // mode, so it holds stable across a drag or a plan change and is computed once per those

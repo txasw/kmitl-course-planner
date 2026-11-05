@@ -15,6 +15,12 @@ export const FIRST_DAY_INDEX = 2; // first day track: landscape row 2, portrait 
 export const FIRST_TIME_INDEX = 2; // first quarter track: landscape column 2, portrait row 2
 export const QUARTERS_PER_HOUR = 4;
 
+/** The size of the leading axis track, in em of the grid font. */
+export const AXIS_TRACK_EM = 1.4;
+
+/** The grid root font size in edit mode, in CSS pixels; a template sets its own. */
+export const EDIT_FONT_PX = 11;
+
 // The day track derives from the day's position in the rendered run, not the day number,
 // so a preview that trims leading days still places each block correctly. With the full
 // week the position equals the day, so edit mode geometry is unchanged. In portrait the

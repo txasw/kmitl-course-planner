@@ -27,6 +27,7 @@ import { BlockContextMenu } from './BlockContextMenu';
 import { FeedbackStrip } from './FeedbackStrip';
 import { GridEmptyState } from './GridEmptyState';
 import { GridFooter } from './GridFooter';
+import { GridScroller } from './GridScroller';
 import { type PosterData } from './PreviewPoster';
 import { PreviewToolbar } from './PreviewToolbar';
 import { RevalidationBanner } from './RevalidationBanner';
@@ -224,7 +225,7 @@ export function PlannerPanel() {
         <TemplateGallery poster={posterData} posterRef={posterRef} />
       ) : (
         <div className="flex min-h-0 flex-1 flex-col gap-2">
-          <div className="relative min-h-0 flex-1 overflow-auto kcp-scroll">
+          <GridScroller>
             <WeeklyGrid
               sections={scheduled}
               window={frame.window}
@@ -241,7 +242,7 @@ export function PlannerPanel() {
               detailOpen={detail !== null}
             />
             {sections.length === 0 ? <GridEmptyState t={t} /> : null}
-          </div>
+          </GridScroller>
           {unscheduled.length > 0 ? (
             <UnscheduledShelf
               sections={unscheduled}
