@@ -113,8 +113,11 @@ button. Never skip it.
       and a suggested remove. Confirm nothing is deleted without the action.
 - [ ] Block detail popover: in edit mode, open a block's details control. The popover
       shows the metadata, the verification state, acknowledge for a changed entry, and
-      remove. Escape closes the popover and not the whole overlay. It is absent in
-      preview.
+      remove from plan. Escape closes the popover and not the whole overlay, and focus
+      returns to the block. It is absent in preview.
+- [ ] Block detail sheet: on a touch screen at any width, or below 640 px with a mouse,
+      tap a block. The details open as a bottom sheet with acknowledge and remove from
+      plan pinned in its footer as large targets. Closing it returns focus to the block.
 - [ ] Offline revalidation: block the network, then open a plan. It renders from
       snapshots with an unverified state and a working retry, and viewing is never
       blocked. Restore the network and retry.

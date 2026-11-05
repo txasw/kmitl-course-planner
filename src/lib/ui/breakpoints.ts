@@ -60,3 +60,7 @@ export function gridFontPx(width: number): number {
     BASE_GRID_FONT_PX
   );
 }
+
+/** The media query for a coarse primary pointer such as a finger, the same condition as
+ * the Tailwind pointer-coarse variant, so code and markup agree on what reads as touch. */
+export const COARSE_POINTER_QUERY = '(pointer: coarse)';

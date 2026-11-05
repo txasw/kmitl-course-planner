@@ -27,13 +27,15 @@ import { planStore } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { installViewport } from '../../../tests/support/viewport';
-import { BlockDetailPopover } from './BlockDetailPopover';
+import { uiStore } from '@/features/shell/uiStore';
+import { BlockDetailSurface } from './BlockDetailSurface';
 
 const t = createTranslator('en');
 
 function makeAnchor(): HTMLElement {
   const anchor = document.createElement('div');
   anchor.dataset.teachTableId = 't1';
+  anchor.tabIndex = 0;
   document.body.appendChild(anchor);
   return anchor;
 }
@@ -48,6 +50,7 @@ afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
   resetPlanStore();
+  uiStore.getState().setViewMode('edit');
   revalidationStore.setState({ runs: {} });
   document.querySelectorAll('[data-teach-table-id]').forEach((node) => {
     node.remove();
@@ -69,7 +72,7 @@ function renderPopover(
   const anchor = makeAnchor();
   render(
     <PanelPortalContext.Provider value={document.body}>
-      <BlockDetailPopover
+      <BlockDetailSurface
         teachTableId={overrides.teachTableId ?? 't1'}
         anchor={anchor}
         locale={locale}
@@ -80,7 +83,7 @@ function renderPopover(
       />
     </PanelPortalContext.Provider>,
   );
-  return { onClose, onRemove };
+  return { onClose, onRemove, anchor };
 }
 
 /** A plan entry for one section of a normalized capture, found by subject and section. */
@@ -128,7 +131,7 @@ function rowValues(label: string): string[] {
   );
 }
 
-describe('BlockDetailPopover', () => {
+describe('BlockDetailSurface on a fine pointer from 640 px', () => {
   it('renders the section metadata for the entry', () => {
     act(() => {
       seedActivePlan([makePlanEntry()]);
@@ -142,16 +145,83 @@ describe('BlockDetailPopover', () => {
     expect(screen.getByText('Subject')).toHaveAttribute('lang', 'en');
   });
 
-  it('caps its height to the available space and scrolls inside', async () => {
+  it('caps its height and scrolls the body under a pinned footer', async () => {
     act(() => {
-      seedActivePlan([makePlanEntry()]);
+      seedActivePlan([makePlanEntry({ verifyStatus: 'changed' })]);
     });
     renderPopover();
     const dialog = screen.getByRole('dialog');
     await waitFor(() => {
       expect(dialog.style.maxHeight).toMatch(/^\d+px$/);
     });
-    expect(dialog).toHaveClass('kcp-scroll', 'overflow-y-auto');
+    expect(dialog).toHaveClass('flex-col', 'overflow-hidden');
+    expect(dialog).not.toHaveAttribute('aria-modal');
+    const body = screen
+      .getByText('Seats', { selector: 'dt' })
+      .closest('.overflow-y-auto');
+    expect(body).toHaveClass('kcp-scroll', 'min-h-0');
+    const footer = screen.getByRole('button', { name: 'Remove from plan' })
+      .parentElement?.parentElement;
+    expect(footer).toHaveClass('shrink-0');
+    expect(footer?.parentElement).toBe(dialog);
+    expect(
+      screen.getByRole('button', { name: 'Acknowledge' }).parentElement,
+    ).toBe(footer?.firstElementChild);
+  });
+
+  it('opens anchored, named by the section, with focus on the heading', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry()]);
+    });
+    renderPopover();
+    expect(
+      screen.getByRole('dialog', { name: '90000001 Section 901' }),
+    ).not.toHaveClass('rounded-t-kcp-sheet');
+    expect(
+      screen.getByRole('heading', { name: '90000001 Section 901' }),
+    ).toHaveFocus();
+    // The anchored form keeps compact actions; the 44 px targets are for the sheet.
+    expect(
+      screen.getByRole('button', { name: 'Remove from plan' }),
+    ).not.toHaveClass('min-h-11');
+  });
+
+  it('returns focus to the block when it closes', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry()]);
+    });
+    const { anchor } = renderPopover();
+    expect(
+      screen.getByRole('heading', { name: '90000001 Section 901' }),
+    ).toHaveFocus();
+    cleanup();
+    expect(anchor).toHaveFocus();
+  });
+
+  it('leaves focus where an outside click moved it', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry()]);
+    });
+    const elsewhere = document.createElement('button');
+    document.body.appendChild(elsewhere);
+    const { anchor } = renderPopover();
+    elsewhere.focus();
+    cleanup();
+    expect(elsewhere).toHaveFocus();
+    expect(anchor).not.toHaveFocus();
+    elsewhere.remove();
+  });
+
+  it('opens nothing in preview, where blocks accept no interaction', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry()]);
+      uiStore.getState().setViewMode('preview');
+    });
+    renderPopover();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Remove from plan' }),
+    ).not.toBeInTheDocument();
   });
 
   it('removes through the callback and closes', () => {
@@ -353,7 +423,7 @@ describe('BlockDetailPopover', () => {
   });
 });
 
-describe('BlockDetailPopover below 640 px', () => {
+describe('BlockDetailSurface below 640 px', () => {
   beforeEach(() => {
     installViewport(390);
   });
@@ -406,5 +476,50 @@ describe('BlockDetailPopover below 640 px', () => {
     document.body.removeEventListener('keydown', outer);
     expect(onClose).toHaveBeenCalledOnce();
     expect(outer).not.toHaveBeenCalled();
+  });
+});
+
+describe('BlockDetailSurface on a coarse pointer', () => {
+  beforeEach(() => {
+    installViewport(1366, { coarsePointer: true });
+  });
+
+  it('opens the bottom sheet even where the width would allow the popover', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry({ verifyStatus: 'changed' })]);
+    });
+    renderPopover();
+    const sheet = screen.getByRole('dialog', {
+      name: '90000001 Section 901',
+    });
+    expect(sheet).toHaveAttribute('aria-modal', 'true');
+    expect(sheet).toHaveClass('rounded-t-kcp-sheet');
+    expect(
+      screen.getByRole('heading', { name: '90000001 Section 901' }),
+    ).toHaveFocus();
+    expect(
+      screen.getByRole('button', { name: 'Remove from plan' }),
+    ).toHaveClass('min-h-11');
+    expect(screen.getByRole('button', { name: 'Acknowledge' })).toHaveClass(
+      'min-h-11',
+    );
+  });
+
+  it('returns focus to the block when the sheet closes', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry()]);
+    });
+    const { anchor } = renderPopover();
+    cleanup();
+    expect(anchor).toHaveFocus();
+  });
+
+  it('opens nothing in preview', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry()]);
+      uiStore.getState().setViewMode('preview');
+    });
+    renderPopover();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
