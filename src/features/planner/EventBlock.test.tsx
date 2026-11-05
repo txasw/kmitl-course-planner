@@ -22,6 +22,8 @@ const section: PlacedSection = {
   credit: 3,
   kind: 'lecture',
   meetings: [],
+  rulesTh: '',
+  rulesEn: '',
   verifyStatus: 'unverified',
 };
 

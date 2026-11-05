@@ -14,6 +14,8 @@ const scheduled: PlacedSection = {
   nameEn: 'A',
   credit: 3,
   kind: 'lecture',
+  rulesTh: '',
+  rulesEn: '',
   verifyStatus: 'unverified',
   meetings: [
     {
@@ -36,6 +38,8 @@ const online: PlacedSection = {
   credit: 2,
   kind: 'lecture',
   meetings: [],
+  rulesTh: '',
+  rulesEn: '',
   verifyStatus: 'unverified',
 };
 

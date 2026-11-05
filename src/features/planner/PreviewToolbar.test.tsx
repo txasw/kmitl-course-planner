@@ -14,6 +14,8 @@ const section: PlacedSection = {
   nameEn: "TODAY'S THAI SOCIETY",
   credit: 3,
   kind: 'lecture',
+  rulesTh: '',
+  rulesEn: '',
   verifyStatus: 'verified',
   meetings: [
     {

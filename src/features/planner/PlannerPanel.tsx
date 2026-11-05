@@ -250,6 +250,7 @@ export function PlannerPanel() {
               t={t}
               onRemove={handleRemove}
               examConflictIds={examConflictIds}
+              editable
             />
           ) : null}
           {sections.length > 0 ? (
