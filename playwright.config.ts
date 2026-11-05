@@ -7,6 +7,13 @@ import type { TestOptions } from './tests/e2e/support/fixtures';
 // assertions. The extension directory is resolved against the working directory
 // by the fixtures, so relative paths are enough here. Extension contexts are
 // heavy, so runs stay serial.
+
+// The desktop size every existing spec runs and passes at. It sits above the
+// 1280 px edge where the catalog leaves its column for the drawer, so the visible
+// catalog copy is the first match. The fixture forwards it to the extension
+// context; a spec that needs another desktop size sets it with test.use.
+const DESKTOP = { width: 1440, height: 900 };
+
 export default defineConfig<TestOptions>({
   testDir: './tests/e2e',
   fullyParallel: false,
@@ -18,20 +25,18 @@ export default defineConfig<TestOptions>({
   retries: 0,
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? 'github' : 'list',
-  // A wide viewport keeps the catalog in its dominant column rather than the
-  // mobile drawer, so the visible copy is the first match.
-  use: { ignoreHTTPSErrors: true, viewport: { width: 1440, height: 900 } },
+  use: { ignoreHTTPSErrors: true },
   projects: [
     { name: 'smoke', testMatch: /manifest\.smoke\.spec\.ts$/ },
     {
       name: 'debug',
       testMatch: /\.debug\.spec\.ts$/,
-      use: { extensionDir: '.output/chrome-mv3-debug' },
+      use: { extensionDir: '.output/chrome-mv3-debug', viewport: DESKTOP },
     },
     {
       name: 'production',
       testMatch: /\.production\.spec\.ts$/,
-      use: { extensionDir: '.output/chrome-mv3' },
+      use: { extensionDir: '.output/chrome-mv3', viewport: DESKTOP },
     },
   ],
 });
