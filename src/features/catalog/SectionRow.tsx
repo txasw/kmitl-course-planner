@@ -17,7 +17,7 @@ import type { Course, Section } from '@/lib/domain/types';
 import type { Term } from '@/lib/routing/academicTerms';
 import type { SeatStatus } from '@/lib/catalog/seatStatus';
 import { computeSeatDemand } from '@/lib/catalog/seatDemand';
-import { computeRowStatus } from '@/lib/catalog/rowStatus';
+import { computeRowStatus, isConflictStatus } from '@/lib/catalog/rowStatus';
 import type { SectionRelation } from '@/lib/planner/sectionState';
 import { describeConflicts } from '@/lib/planner/describeConflict';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
@@ -75,8 +75,11 @@ export function SectionRow({
   const addLabel = `${t('action.add')} ${section.subjectId} ${t('section.code')} ${section.section}`;
   const [showDetails, setShowDetails] = useState(false);
   const calloutId = useId();
+  const status = readOnly ? null : computeRowStatus(relation, seat);
+  // The callout follows the badge: a full or closed row that also clashes shows only
+  // its seat state and reason, since the section cannot be added by any path.
   const conflict =
-    !readOnly && relation.kind === 'conflicting'
+    relation.kind === 'conflicting' && isConflictStatus(status)
       ? describeConflicts(relation.conflicts)
       : null;
 
@@ -97,9 +100,7 @@ export function SectionRow({
             {kind === 'practice' ? t('section.practice') : t('section.lecture')}
           </span>
           <div className="ml-auto flex flex-wrap items-center justify-end gap-1">
-            {readOnly ? null : (
-              <StatusBadge status={computeRowStatus(relation, seat)} t={t} />
-            )}
+            <StatusBadge status={status} t={t} />
             {!readOnly &&
             relation.kind === 'added' &&
             onRemove !== undefined ? (

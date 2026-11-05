@@ -261,6 +261,45 @@ describe('SectionRow status badge', () => {
     expect(screen.queryByText('เวลาชนกัน')).not.toBeInTheDocument();
   });
 
+  it('suppresses the conflict callout on a full or closed row', () => {
+    for (const blocked of [
+      makeSection({
+        seats: { limit: 40, preCount: 40, queueLeft: 0, enrolled: 'full' },
+      }),
+      makeSection({ isClosed: true }),
+    ]) {
+      render(
+        <SectionRow
+          course={course}
+          section={blocked}
+          relation={conflicting}
+          seat={computeSeatStatus(blocked)}
+          locale="th"
+          t={t}
+          onAdd={vi.fn()}
+        />,
+      );
+      expect(screen.queryByText(/^ชนกับ/)).not.toBeInTheDocument();
+      expect(screen.getByText(/เพิ่มไม่ได้$/)).toBeVisible();
+      cleanup();
+    }
+  });
+
+  it('keeps the conflict callout on an open conflicting row', () => {
+    render(
+      <SectionRow
+        course={course}
+        section={section}
+        relation={conflicting}
+        seat={openSeat}
+        locale="th"
+        t={t}
+        onAdd={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/^ชนกับ 90000002/)).toBeVisible();
+  });
+
   it('reads ปิด on a closed row, the host term for a closed section', () => {
     const closed = makeSection({ isClosed: true });
     render(

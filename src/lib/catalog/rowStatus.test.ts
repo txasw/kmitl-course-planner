@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { makeSection } from '../../../tests/support/domain-builders';
 import type { ConflictDetail } from '../planner/placement';
 import type { SectionRelation } from '../planner/sectionState';
-import { computeRowStatus, type RowStatus } from './rowStatus';
+import {
+  computeRowStatus,
+  isConflictStatus,
+  type RowStatus,
+} from './rowStatus';
 import { computeSeatStatus, type SeatStatus } from './seatStatus';
 
 const blocking = { teachTableId: '1', subjectId: '90000001', section: '901' };
@@ -143,5 +147,29 @@ describe('computeRowStatus', () => {
     expect(
       computeRowStatus({ kind: 'addable' }, { kind: 'open', remaining: null }),
     ).toBeNull();
+  });
+});
+
+describe('isConflictStatus', () => {
+  it('holds for a time conflict and an exam clash only', () => {
+    expect(isConflictStatus('time_conflict')).toBe(true);
+    expect(isConflictStatus('exam_clash')).toBe(true);
+    for (const status of PRECEDENCE.slice(0, 5)) {
+      expect(isConflictStatus(status)).toBe(false);
+    }
+    expect(isConflictStatus(null)).toBe(false);
+  });
+
+  it('is false for a conflicting relation on a full or closed seat', () => {
+    const relation = RELATIONS.time_conflict;
+    if (relation === undefined) {
+      throw new Error('missing relation');
+    }
+    expect(isConflictStatus(computeRowStatus(relation, SEATS.full))).toBe(
+      false,
+    );
+    expect(isConflictStatus(computeRowStatus(relation, SEATS.closed))).toBe(
+      false,
+    );
   });
 });
