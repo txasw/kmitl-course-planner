@@ -66,7 +66,10 @@ is a hand built teach table response, in the exact captured shape, that the end 
 block interaction specs need: overlapping open sections and a multi section subject
 that the real captures do not provide (their multi section subject is full and their
 open sections do not overlap). The mock server serves it only for the reserved subject
-id `90000000`, so no other spec sees it. It carries only synthetic course data.
+id `90000000`, so no other spec sees it. It carries only synthetic course data. Its
+`synthetic.block-interactions.fresh.json` variant is what the mock serves after a spec
+asks for fresh data: Course A (`900001`) moves to a new day and time and Course E (`900005`)
+is dropped, so a revalidation sees one changed and one missing entry.
 
 The performance profiling spec needs a catalog at the acceptance scale, hundreds of
 sections, which no real capture reaches: the largest, `teach-table.by_subject_id.capture.json`,

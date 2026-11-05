@@ -1,4 +1,5 @@
 import { test, expect, openPlanner, pickOption } from './support/fixtures';
+import { addCourse, block, syntheticSearch } from './support/synthetic';
 import type { Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 
@@ -63,4 +64,46 @@ test('exports each template at its exact pixel dimensions', async ({
       height: preset.height,
     });
   }
+});
+
+test('keeps verification badges out of the poster and states the data date', async ({
+  context,
+  mock,
+}) => {
+  const page = await openPlanner(context);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await syntheticSearch(page);
+  await addCourse(page, '90000001');
+  await addCourse(page, '90000005');
+
+  // Wait for the automatic check after the first add, then serve the fresh variant, where
+  // Course A moved and Course E is gone, and refresh: one entry is changed, one missing.
+  const banner = page
+    .getByText(/ตรวจสอบแล้ว/)
+    .locator('xpath=ancestor::div[1]');
+  await expect(banner).toBeVisible({ timeout: 15_000 });
+  mock.setFreshSynthetic(true);
+  await banner.getByRole('button', { name: 'รีเฟรช' }).click();
+
+  // Edit mode keeps every badge, where the owner can act on it.
+  await expect(
+    page.locator(`${block('900001')}[data-verify="warn"]`),
+  ).toBeVisible({ timeout: 15_000 });
+  await expect(
+    page.locator(`${block('900005')}[data-verify="danger"]`),
+  ).toBeVisible();
+
+  await page.getByRole('button', { name: 'ดูตัวอย่าง' }).click();
+
+  // The poster, which is the capture node, renders both blocks with no verification mark.
+  const posters = page.locator('.kcp-poster');
+  await expect(posters.locator(block('900005')).first()).toBeAttached();
+  await expect(posters.locator(block('900001')).first()).toBeAttached();
+  await expect(posters.locator('[data-verify]')).toHaveCount(0);
+  await expect(posters.locator('.kcp-hatch')).toHaveCount(0);
+
+  // The footer states the facts as text instead: the data date, and the missing count.
+  const dataLine = posters.locator('[data-poster-data-line]').first();
+  await expect(dataLine).toContainText('ข้อมูล ณ');
+  await expect(dataLine).toContainText('1 รายวิชาไม่พบในระบบ ณ วันที่ตรวจสอบ');
 });
