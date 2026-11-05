@@ -193,6 +193,7 @@
   "diff.exam": "การสอบ",
   "block.details": "รายละเอียด",
   "block.acknowledge": "รับทราบ",
+  "block.removeFromPlan": "นำออกจากตาราง",
   "block.menu": "ตัวเลือกบล็อก",
   "exam.midterm": "สอบกลางภาค",
   "exam.final": "สอบปลายภาค",

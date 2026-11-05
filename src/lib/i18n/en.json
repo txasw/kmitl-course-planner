@@ -193,6 +193,7 @@
   "diff.exam": "Exam",
   "block.details": "Details",
   "block.acknowledge": "Acknowledge",
+  "block.removeFromPlan": "Remove from plan",
   "block.menu": "Block actions",
   "exam.midterm": "Midterm",
   "exam.final": "Final",
