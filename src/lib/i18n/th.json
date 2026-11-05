@@ -37,6 +37,8 @@
   "planData.issue.invalidValue": "ค่าไม่อยู่ในตัวเลือกที่รองรับ",
   "planData.issue.termMismatch": "รายการนี้อยู่คนละภาคกับตาราง",
   "planData.issue.malformed": "รูปแบบข้อมูลไม่ถูกต้อง",
+  "catalog.hide": "ซ่อนรายวิชา",
+  "catalog.show": "แสดงรายวิชา",
   "catalog.open": "รายวิชา",
   "catalog.sheet.title": "ค้นหารายวิชา",
   "catalog.sheet.close": "ปิดรายการรายวิชา",

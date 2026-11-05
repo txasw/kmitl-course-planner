@@ -1,6 +1,12 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { useEffect } from 'react';
-import { render, cleanup, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  cleanup,
+  act,
+} from '@testing-library/react';
 import { DndContext } from '@dnd-kit/core';
 import type * as DndKit from '@dnd-kit/core';
 import type { UniqueIdentifier, UseDraggableArguments } from '@dnd-kit/core';
@@ -15,6 +21,7 @@ import {
 import { installViewport } from '../../../tests/support/viewport';
 import { useLayoutTier } from './useLayoutTier';
 import { CatalogColumn, CATALOG_COLUMN_ID } from './CatalogColumn';
+import { Header } from './Header';
 import { uiStore } from './uiStore';
 
 // Every mounted useDraggable call counts against its id while it stays mounted, so a
@@ -73,6 +80,26 @@ function Harness() {
   );
 }
 
+// The header carries the control that restores a hidden column, so the focus hand off
+// between the two is exercised with both mounted.
+function ShellHarness() {
+  const tier = useLayoutTier();
+  return (
+    <SearchDepsProvider value={fakeSearchDeps()}>
+      <DndContext>
+        <Header titleId="title" />
+        <CatalogColumn tier={tier} />
+      </DndContext>
+    </SearchDepsProvider>
+  );
+}
+
+function column(container: HTMLElement): HTMLElement {
+  const node = container.querySelector<HTMLElement>(`#${CATALOG_COLUMN_ID}`);
+  if (node === null) throw new Error('the catalog column is not rendered');
+  return node;
+}
+
 function scroller(container: HTMLElement): HTMLElement {
   const node = container.querySelector<HTMLElement>(
     `#${CATALOG_COLUMN_ID} > .kcp-scroll`,
@@ -94,6 +121,7 @@ afterEach(() => {
   act(() => {
     searchStore.getState().setResult({ status: 'idle' }, null);
     uiStore.getState().setSheetOpen(false);
+    uiStore.getState().setCatalogVisible(true);
   });
 });
 
@@ -156,5 +184,72 @@ describe('CatalogColumn', () => {
       viewport.resize(1280);
     });
     expect(column).not.toHaveTextContent('ค้นหารายวิชา');
+  });
+
+  it('hides the docked column out of the flow and keeps it mounted and inert', () => {
+    installViewport(1440);
+    act(() => {
+      searchStore
+        .getState()
+        .setResult({ status: 'ready', data: catalog }, null);
+    });
+    const { container } = render(<Harness />);
+    const node = column(container);
+    const scroll = scroller(container);
+    scroll.scrollTop = 240;
+    expect(node).toHaveClass('shrink-0', 'w-96');
+    expect(node).not.toHaveAttribute('inert');
+
+    fireEvent.click(screen.getByRole('button', { name: 'ซ่อนรายวิชา' }));
+    expect(uiStore.getState().catalogVisible).toBe(false);
+    expect(column(container)).toBe(node);
+    expect(node).toHaveClass('invisible', 'absolute', 'w-96');
+    expect(node).not.toHaveClass('shrink-0');
+    expect(node).toHaveAttribute('inert');
+    expect(node).toHaveAttribute('aria-hidden', 'true');
+    expect(scroller(container)).toBe(scroll);
+    expect(scroll.scrollTop).toBe(240);
+    expect(sectionRegistrations()).toEqual({ t1: 1, t2: 1, t3: 1 });
+
+    act(() => {
+      uiStore.getState().setCatalogVisible(true);
+    });
+    expect(node).toHaveClass('shrink-0');
+    expect(node).not.toHaveAttribute('inert');
+    expect(node).not.toHaveAttribute('aria-hidden');
+    expect(scroll.scrollTop).toBe(240);
+  });
+
+  it('leaves the sheet tiers to the sheet state while the docked column is hidden', () => {
+    const viewport = installViewport(1440);
+    const { container } = render(<Harness />);
+    act(() => {
+      uiStore.getState().setCatalogVisible(false);
+    });
+    act(() => {
+      viewport.resize(768);
+    });
+    const node = column(container);
+    expect(node).not.toHaveClass('invisible');
+    expect(node).not.toHaveAttribute('inert');
+    expect(
+      screen.queryByRole('button', { name: 'ซ่อนรายวิชา' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('hands focus between the hide control and the header toggle', () => {
+    installViewport(1440);
+    render(<ShellHarness />);
+    fireEvent.click(screen.getByRole('button', { name: 'ซ่อนรายวิชา' }));
+    const toggle = screen.getByRole('button', { name: 'แสดงรายวิชา' });
+    expect(toggle).toHaveFocus();
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+
+    fireEvent.click(toggle);
+    expect(uiStore.getState().catalogVisible).toBe(true);
+    expect(
+      screen.queryByRole('button', { name: 'แสดงรายวิชา' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ซ่อนรายวิชา' })).toHaveFocus();
   });
 });
