@@ -92,7 +92,7 @@ export function PlanList({
       ) : (
         groups.map((group) => (
           <div key={group.key} className="flex flex-col">
-            <p className="px-2 pt-1 text-xs font-semibold tracking-wide text-ink-soft uppercase">
+            <p className="px-2 pt-1 text-xs font-semibold text-ink-soft">
               {termLabel(group.term, t)}
             </p>
             {group.plans.map((plan) => (
