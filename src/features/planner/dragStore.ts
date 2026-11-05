@@ -4,14 +4,17 @@
 // drop moves the active drag into a blocked feedback the strip renders with its
 // reason and alternatives. A hover, from a focused grip or a hovered row, previews
 // the target cells at low emphasis without arming a drag, and an announcement
-// carries a keyboard outcome to the strip's live region. It is a singleton store so
-// the grid, the chip, and the strip read it without threading props through the
-// drag context.
+// carries a keyboard outcome to the strip's live region. The grid frame is frozen
+// when a drag starts and released when it ends, so a search that lands or a plan
+// that revalidates mid drag never shifts the slots under the pointer. It is a
+// singleton store so the grid, the chip, and the strip read it without threading
+// props through the drag context.
 
 import { createStore } from 'zustand/vanilla';
 import type { Course, Section } from '@/lib/domain/types';
 import type { Term } from '@/lib/routing/academicTerms';
 import type { TermMismatch } from '@/lib/planner/transaction';
+import type { GridFrame } from '@/lib/planner/grid';
 import { areDeclaredPair } from '@/lib/planner/conflicts';
 import {
   checkPlacement,
@@ -108,6 +111,8 @@ export interface DragStore {
   /** What a drop on a swap target would exchange, or null when nothing is blocked.
    * Latched so it survives the pointer moving from a blocked candidate to a target. */
   swapContext: SwapContext | null;
+  /** The grid frame held for the length of a drag, or null when no drag holds one. */
+  frame: GridFrame | null;
   start: (course: Course, section: Section, placed: Section[]) => void;
   /** End a valid or cancelled drag, clearing the active state with no feedback. */
   clearActive: () => void;
@@ -141,6 +146,10 @@ export interface DragStore {
   setSwapContext: (context: SwapContext | null) => void;
   setHint: (message: string) => void;
   clearHint: () => void;
+  /** Hold the grid frame a drag started on until that drag ends. A block move's
+   * candidates come from the catalog course, whose meetings the frame already covers,
+   * so the freeze never hides a candidate. */
+  freezeFrame: (frame: GridFrame) => void;
 }
 
 export function createDragStore() {
@@ -155,6 +164,7 @@ export function createDragStore() {
     raised: null,
     hint: null,
     swapContext: null,
+    frame: null,
     start: (course, section, placed) => {
       const group = expandSectionGroup(course, section);
       const placement = checkPlacement(placed, group);
@@ -179,7 +189,7 @@ export function createDragStore() {
       });
     },
     clearActive: () => {
-      set({ active: null, swapContext: null });
+      set({ active: null, swapContext: null, frame: null });
     },
     reject: () => {
       const { active } = get();
@@ -187,6 +197,7 @@ export function createDragStore() {
         set({
           active: null,
           swapContext: null,
+          frame: null,
           crossTerm: null,
           blocked: {
             course: active.course,
@@ -195,7 +206,7 @@ export function createDragStore() {
           },
         });
       } else {
-        set({ active: null, swapContext: null });
+        set({ active: null, swapContext: null, frame: null });
       }
     },
     showBlocked: (feedback) => {
@@ -251,7 +262,7 @@ export function createDragStore() {
       });
     },
     clearCourse: () => {
-      set({ courseDrag: null, raised: null, swapContext: null });
+      set({ courseDrag: null, raised: null, swapContext: null, frame: null });
     },
     startBlockMove: (section, placed, course) => {
       const pair = placed.filter(
@@ -280,7 +291,7 @@ export function createDragStore() {
       });
     },
     clearBlockMove: () => {
-      set({ blockMove: null, raised: null, swapContext: null });
+      set({ blockMove: null, raised: null, swapContext: null, frame: null });
     },
     setRaised: (teachTableId) => {
       set({ raised: teachTableId });
@@ -293,6 +304,9 @@ export function createDragStore() {
     },
     clearHint: () => {
       set({ hint: null });
+    },
+    freezeFrame: (frame) => {
+      set({ frame });
     },
   }));
 }

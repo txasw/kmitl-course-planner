@@ -21,6 +21,7 @@ import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { isScheduled, toPlacedSection } from './placedSection';
+import { dragStore } from './dragStore';
 import { BlockDetailPopover } from './BlockDetailPopover';
 import { BlockContextMenu } from './BlockContextMenu';
 import { FeedbackStrip } from './FeedbackStrip';
@@ -41,6 +42,7 @@ export function PlannerPanel() {
   const displayOptions = useStore(uiStore, (state) => state.displayOptions);
   const selectedTemplate = useStore(uiStore, (state) => state.selectedTemplate);
   const catalogResult = useStore(searchStore, (state) => state.result);
+  const frozenFrame = useStore(dragStore, (state) => state.frame);
 
   const sections = useMemo(
     () =>
@@ -92,10 +94,13 @@ export function PlannerPanel() {
     () => catalogMeetings(catalogResult),
     [catalogResult],
   );
-  const frame = useMemo(
+  const liveFrame = useMemo(
     () => editWindow(scheduledMeetings, offered),
     [scheduledMeetings, offered],
   );
+  // A live drag holds the frame it started on, so a search that lands or a plan that
+  // revalidates mid drag never moves the slots under the pointer.
+  const frame = frozenFrame ?? liveFrame;
   // The template poster window and day run: the 08:00 to 18:00 working day extended for
   // outliers, and Monday to Friday extended for weekend meetings, over the placed meetings
   // only. Both are derived unconditionally and only used in preview, superseding the fit to
