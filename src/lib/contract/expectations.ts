@@ -12,6 +12,10 @@ import { isUnscheduledDay, isUnscheduledRow } from '../parsing/days';
 import { TEACH_TIME_STR_PATTERN } from '../parsing/teachTimeStr';
 import { EXAM_DATETIME } from '../parsing/examDateTime';
 import { SEMESTERS } from '../routing/academicTerms';
+import {
+  SUBJECT_GROUP_HEADING_EN,
+  SUBJECT_GROUP_HEADING_TH,
+} from '../catalog/subjectGroup';
 import type { IssueSeverity } from './report';
 
 export const DEBUG_CANARY = 'kcp-debug-canary';
@@ -125,6 +129,27 @@ export const SECTION_ROW_EXPECTATIONS: readonly FieldExpectation[] = [
 export const SECTION_ROW_FIELDS: ReadonlySet<string> = new Set(
   SECTION_ROW_EXPECTATIONS.map((expectation) => expectation.field),
 );
+
+// The subject type heading on each teachtable block. Plan suggestions read its
+// leading group number to tell curriculum subjects from GenEd and free electives, so
+// a heading that drifts from that prefix is reported. It warns rather than errors
+// because the catalog still renders; only the suggestion set loses the course.
+export const SUBJECT_TYPE_EXPECTATIONS: readonly FieldExpectation[] = [
+  field(
+    'subject_type_name_th',
+    'string',
+    false,
+    'Thai heading starting with group 1 or group 2',
+    { pattern: SUBJECT_GROUP_HEADING_TH, severity: 'warn' },
+  ),
+  field(
+    'subject_type_name_en',
+    'string',
+    false,
+    'English heading starting with Group 1 or Group 2',
+    { pattern: SUBJECT_GROUP_HEADING_EN, severity: 'warn' },
+  ),
+];
 
 /** Minimal presence and type expectations for the reference endpoints. */
 export const FACULTY_EXPECTATIONS: readonly FieldExpectation[] = [
