@@ -76,12 +76,12 @@ export function UnscheduledShelf({
                           </span>{' '}
                         </>
                       ) : null}
-                      {name}
+                      <span lang={locale}>{name}</span>
                     </span>
                   )}
                 </Tooltip>
                 {englishSecondary ? (
-                  <span className="truncate text-ink-soft">
+                  <span lang="en" className="truncate text-ink-soft">
                     {section.nameEn}
                   </span>
                 ) : null}

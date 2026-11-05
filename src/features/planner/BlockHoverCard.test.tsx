@@ -71,6 +71,7 @@ describe('BlockHoverCard', () => {
     expect(screen.getByText(/อ\. ทดสอบ/)).toBeInTheDocument();
     // The seat line reads from the snapshot seats.
     expect(screen.getByText(/ที่นั่ง/)).toBeInTheDocument();
+    expect(screen.getByText('วิชาทดสอบ')).toHaveAttribute('lang', 'th');
     anchor.remove();
   });
 

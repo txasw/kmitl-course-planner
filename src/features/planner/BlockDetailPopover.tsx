@@ -126,7 +126,9 @@ export function BlockDetailPopover({
           <p className="font-semibold">
             {entry.subjectId} {t('section.code')} {entry.section}
           </p>
-          <p className="truncate text-ink-soft">{name}</p>
+          <p lang={locale} className="truncate text-ink-soft">
+            {name}
+          </p>
         </div>
         <button
           type="button"

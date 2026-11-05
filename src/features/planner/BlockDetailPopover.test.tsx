@@ -76,6 +76,7 @@ describe('BlockDetailPopover', () => {
         (_, node) => node?.textContent === '90000001 Section 901',
       ),
     ).toBeInTheDocument();
+    expect(screen.getByText('Subject')).toHaveAttribute('lang', 'en');
   });
 
   it('caps its height to the available space and scrolls inside', async () => {

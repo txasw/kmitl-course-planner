@@ -116,4 +116,17 @@ describe('UnscheduledShelf', () => {
     expect(within(shelf).getByText('วิชาออนไลน์')).toBeInTheDocument();
     expect(within(shelf).getByText('Online subject')).toBeInTheDocument();
   });
+
+  it('marks each name with the language of its field', () => {
+    render(
+      <UnscheduledShelf
+        sections={[makePlaced()]}
+        locale="th"
+        t={t}
+        showEnglishName
+      />,
+    );
+    expect(screen.getByText('วิชาออนไลน์')).toHaveAttribute('lang', 'th');
+    expect(screen.getByText('Online subject')).toHaveAttribute('lang', 'en');
+  });
 });
