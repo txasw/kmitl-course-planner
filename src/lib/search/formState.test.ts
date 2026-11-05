@@ -15,6 +15,7 @@ import {
   isSubjectIdFormReady,
   isValidSubjectId,
   sanitizeSubjectId,
+  termForTab,
 } from './formState';
 
 const term: Term = { year: '2569', semester: '1' };
@@ -235,5 +236,27 @@ describe('buildTeachTableQueryForTab', () => {
     };
     const query = buildTeachTableQueryForTab('by_subject_owner_id', ready);
     expect(query?.mode).toBe('by_subject_owner_id');
+  });
+});
+
+describe('termForTab', () => {
+  it('reads the year and semester of the named tab only', () => {
+    const forms = {
+      byClass: defaultClassForm({ year: '2568', semester: '1' }),
+      bySubjectId: defaultSubjectIdForm({ year: '2569', semester: '2' }),
+      byCategory: defaultCategoryForm({ year: '2570', semester: '3' }),
+    };
+    expect(termForTab('by_class', forms)).toEqual({
+      year: '2568',
+      semester: '1',
+    });
+    expect(termForTab('by_subject_id', forms)).toEqual({
+      year: '2569',
+      semester: '2',
+    });
+    expect(termForTab('by_subject_owner_id', forms)).toEqual({
+      year: '2570',
+      semester: '3',
+    });
   });
 });

@@ -11,6 +11,7 @@ import { CalendarRange, ChevronDown } from 'lucide-react';
 import { useClick, useDismiss, useInteractions } from '@floating-ui/react';
 import { planSchema, type Plan } from '@/lib/domain/plan';
 import type { Term } from '@/lib/routing/academicTerms';
+import { termForTab } from '@/lib/search/formState';
 import { planExportBaseName } from '@/lib/planner/exportName';
 import { parsePlanImport } from '@/lib/plans/parsePlanImport';
 import { downloadText } from '@/lib/utils/download';
@@ -41,13 +42,7 @@ type Mode =
 
 /** The term the active search tab targets, used as a new plan's default term. */
 function searchFormTerm(state: SearchStore): Term {
-  const form =
-    state.activeTab === 'by_class'
-      ? state.byClass
-      : state.activeTab === 'by_subject_id'
-        ? state.bySubjectId
-        : state.byCategory;
-  return { year: form.year, semester: form.semester };
+  return termForTab(state.activeTab, state);
 }
 
 export function PlanSwitcher() {
