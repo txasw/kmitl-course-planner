@@ -28,6 +28,23 @@ describe('ui store', () => {
     expect(store.getState().catalogVisible).toBe(false);
   });
 
+  it('shows the docked column when the sheet opens', () => {
+    const store = createUiStore();
+    store.getState().setCatalogVisible(false);
+    store.getState().setSheetOpen(true);
+    expect(store.getState().sheetOpen).toBe(true);
+    expect(store.getState().catalogVisible).toBe(true);
+  });
+
+  it('leaves the docked column choice alone when the sheet closes', () => {
+    const store = createUiStore();
+    store.getState().setSheetOpen(true);
+    store.getState().setCatalogVisible(false);
+    store.getState().setSheetOpen(false);
+    expect(store.getState().sheetOpen).toBe(false);
+    expect(store.getState().catalogVisible).toBe(false);
+  });
+
   it('opens and closes', () => {
     const store = createUiStore();
     store.getState().open();

@@ -86,7 +86,12 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
       set((state) => ({ isOpen: !state.isOpen }));
     },
     setSheetOpen: (open) => {
-      set({ sheetOpen: open });
+      // Opening the sheet asks for the catalog, so a window widened past the dock finds
+      // the column shown rather than hidden behind the rail. Closing it states nothing
+      // about the docked column, which keeps its own choice.
+      set(
+        open ? { sheetOpen: true, catalogVisible: true } : { sheetOpen: false },
+      );
     },
     setCatalogVisible: (catalogVisible) => {
       set({ catalogVisible });
