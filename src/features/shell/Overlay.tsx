@@ -49,7 +49,7 @@ export function Overlay() {
       aria-modal="true"
       aria-labelledby={TITLE_ID}
       tabIndex={-1}
-      className={`fixed inset-0 z-host flex flex-col bg-surface text-ink outline-none transition-opacity duration-150 motion-reduce:transition-none ${
+      className={`fixed inset-0 z-host flex flex-col bg-surface text-ink outline-none transition-opacity duration-fast motion-reduce:transition-none ${
         stage === 'open' ? 'opacity-100' : 'opacity-0'
       }`}
     >
