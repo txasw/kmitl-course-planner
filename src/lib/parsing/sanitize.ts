@@ -7,9 +7,60 @@
 // cannot use DOMParser. It extracts each <div> body with a scanner, strips any
 // inner tags, and decodes HTML entities to text. It reads text only and never
 // evaluates the markup, so hostile input cannot inject nodes or run script.
+//
+// Only a known set of HTML elements is stripped. The rule text uses angle
+// brackets as plain qualifiers, for example "<สองปริญญา>" and "<Dual Degree>",
+// and those distinguish the eligible programs, so any bracketed text whose name
+// is not a known element stays as written.
 
-const DIV_PATTERN = /<div[^>]*>(.*?)<\/div>/gis;
-const TAG_PATTERN = /<[^>]*>/g;
+const KNOWN_ELEMENTS = [
+  'div',
+  'br',
+  'span',
+  'p',
+  'font',
+  'b',
+  'i',
+  'u',
+  'strong',
+  'em',
+  'a',
+  'ul',
+  'ol',
+  'li',
+  'img',
+  'script',
+  'style',
+  'table',
+  'thead',
+  'tbody',
+  'tfoot',
+  'tr',
+  'th',
+  'td',
+  'caption',
+  'colgroup',
+  'col',
+].join('|');
+
+// Attribute values may hold a ">" inside quotes, so a quoted value is consumed
+// whole rather than ending the tag early.
+const ATTRIBUTES = String.raw`(?:"[^"]*"|'[^']*'|[^'">])*`;
+
+const DIV_PATTERN = new RegExp(
+  String.raw`<div(?=[\s/>])${ATTRIBUTES}>(.*?)<\/div\s*>`,
+  'gis',
+);
+const TAG_PATTERN = new RegExp(
+  String.raw`<\/?(?:${KNOWN_ELEMENTS})(?=[\s/>])${ATTRIBUTES}>`,
+  'gi',
+);
+// Script and style bodies are code, not text, so they go with their tags. An
+// unclosed element drops everything after it.
+const RAW_TEXT_PATTERN = new RegExp(
+  String.raw`<(script|style)(?=[\s/>])${ATTRIBUTES}>[\s\S]*?(?:<\/\1\s*>|$)`,
+  'gi',
+);
 const ENTITY_PATTERN = /&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z][a-zA-Z0-9]*);/g;
 
 const NAMED_ENTITIES: Record<string, string> = {
@@ -47,12 +98,13 @@ function cleanLine(fragment: string): string {
  * text content is returned as a single line.
  */
 export function sanitizeToLines(html: string): string[] {
-  const divMatches = [...html.matchAll(DIV_PATTERN)];
+  const markup = html.replace(RAW_TEXT_PATTERN, '');
+  const divMatches = [...markup.matchAll(DIV_PATTERN)];
   if (divMatches.length > 0) {
     return divMatches
       .map((match) => cleanLine(match[1] ?? ''))
       .filter((line) => line.length > 0);
   }
-  const text = cleanLine(html);
+  const text = cleanLine(markup);
   return text.length > 0 ? [text] : [];
 }
