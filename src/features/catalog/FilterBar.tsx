@@ -6,13 +6,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import {
-  autoUpdate,
-  flip,
-  offset,
-  shift,
   useClick,
   useDismiss,
-  useFloating,
   useInteractions,
   FloatingPortal,
 } from '@floating-ui/react';
@@ -23,6 +18,10 @@ import type { Translate } from '@/lib/i18n/t';
 import type { CatalogFilter } from '@/lib/catalog/filter';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
+import {
+  PANEL_POPOVER_SCROLL,
+  usePanelPopover,
+} from '@/features/shell/usePanelPopover';
 import { dayLabelKey } from '@/lib/i18n/dayLabel';
 import { FOCUS_RING, FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { Combobox, type ComboboxOption } from '@/features/search/Combobox';
@@ -169,13 +168,11 @@ function FilterPopover({
   const portalRoot = usePanelPortal();
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
-  const { refs, floatingStyles, context } = useFloating({
+  const { refs, floatingStyles, context } = usePanelPopover({
+    gap: 4,
     open,
     onOpenChange: setOpen,
-    strategy: 'fixed',
     placement: 'bottom-end',
-    middleware: [offset(4), flip({ padding: 8 }), shift({ padding: 8 })],
-    whileElementsMounted: autoUpdate,
   });
   // Escape is handled manually so it can stop propagation and close only the popover, since
   // the popover may portal out of the trigger's wrapper and the overlay closes on Escape too.
@@ -228,7 +225,7 @@ function FilterPopover({
       ref={setFloating}
       style={floatingStyles}
       aria-label={t('catalog.filter.label')}
-      className="z-popover flex min-w-56 flex-col gap-3 rounded-kcp border border-border bg-surface p-3 shadow-kcp"
+      className={`z-popover flex min-w-56 ${PANEL_POPOVER_SCROLL} flex-col gap-3 rounded-kcp border border-border bg-surface p-3 shadow-kcp`}
       {...getFloatingProps()}
     >
       <div

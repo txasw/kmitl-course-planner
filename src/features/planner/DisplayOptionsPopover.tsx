@@ -8,20 +8,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { SlidersHorizontal } from 'lucide-react';
-import {
-  autoUpdate,
-  flip,
-  offset,
-  shift,
-  useClick,
-  useDismiss,
-  useFloating,
-  useInteractions,
-} from '@floating-ui/react';
+import { useClick, useDismiss, useInteractions } from '@floating-ui/react';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
 import type { TranslationKey } from '@/lib/i18n/t';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
+import {
+  PANEL_POPOVER_SCROLL,
+  usePanelPopover,
+} from '@/features/shell/usePanelPopover';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { Switch } from '@/components/Switch';
 
@@ -44,13 +39,11 @@ export function DisplayOptionsPopover() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
-  const { refs, floatingStyles, context } = useFloating({
+  const { refs, floatingStyles, context } = usePanelPopover({
+    gap: 4,
     open,
     onOpenChange: setOpen,
-    strategy: 'fixed',
     placement: 'bottom-end',
-    middleware: [offset(4), flip({ padding: 8 }), shift({ padding: 8 })],
-    whileElementsMounted: autoUpdate,
   });
   const { getReferenceProps, getFloatingProps } = useInteractions([
     useClick(context),
@@ -112,7 +105,7 @@ export function DisplayOptionsPopover() {
           ref={setFloating}
           style={floatingStyles}
           aria-label={t('preview.displayOptions')}
-          className="z-popover flex min-w-48 flex-col gap-0.5 rounded-kcp border border-border bg-surface p-1.5 shadow-kcp"
+          className={`z-popover flex min-w-48 ${PANEL_POPOVER_SCROLL} flex-col gap-0.5 rounded-kcp border border-border bg-surface p-1.5 shadow-kcp`}
           {...getFloatingProps()}
         >
           {OPTIONS.map((option) => {
