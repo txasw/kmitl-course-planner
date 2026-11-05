@@ -22,7 +22,7 @@ import { toastStore, type Toast } from './toastStore';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
 import { usePrefersReducedMotion } from './usePresence';
-import { useSwipeDismiss } from './useSwipeDismiss';
+import { useSwipeGesture } from './useSwipeGesture';
 import { UndoToast } from './UndoToast';
 
 const AUTO_DISMISS_MS = 4000;
@@ -54,13 +54,17 @@ function OrdinaryToast({
   t: Translate;
 }) {
   const reducedMotion = usePrefersReducedMotion();
-  const swipe = useSwipeDismiss(onDismiss, !reducedMotion);
+  const swipe = useSwipeGesture({
+    axis: 'x',
+    onSwipe: onDismiss,
+    enabled: !reducedMotion,
+  });
   const Icon = ICON[toast.kind];
   return (
     <div
       {...swipe.handlers}
       style={swipe.style}
-      className={`kcp-toast-enter pointer-events-auto flex max-w-md items-center gap-2 rounded-kcp border py-2 pr-2 pl-3 text-sm text-ink shadow-kcp ${VARIANT[toast.kind]}`}
+      className={`kcp-toast-enter pointer-events-auto flex max-w-md items-center gap-2 rounded-kcp border py-2 pr-2 pl-3 text-sm text-ink shadow-kcp ${swipe.touchClass} ${VARIANT[toast.kind]}`}
     >
       <Icon
         size={16}
