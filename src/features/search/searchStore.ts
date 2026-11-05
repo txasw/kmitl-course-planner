@@ -4,7 +4,10 @@
 // overlay within a page session while the panel that submits a search writes the
 // last search to storage. The store only merges patches; cascade resets when a
 // faculty or department changes are applied by the form handlers, keeping the
-// store dumb and testable through getState.
+// store dumb and testable through getState. The search disclosure is session state
+// too: barQuery names the search the summary bar describes, and searchFormOpen says
+// whether the student has opened the form under that bar. Without a bar the form is
+// always shown, so the form is open when either holds.
 
 import { createStore } from 'zustand/vanilla';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
@@ -71,6 +74,12 @@ export interface SearchStore {
   subjectOwners: AsyncState<RawSubjectOwner[]>;
   result: AsyncState<NormalizedCatalog>;
   resultQuery: TeachTableQuery | null;
+  /** The query the summary bar describes, or null while no user search has run. */
+  barQuery: TeachTableQuery | null;
+  /** Whether the form is open under the bar; ignored while there is no bar. */
+  searchFormOpen: boolean;
+  /** When the latest user search was accepted, so the results can guard input. */
+  lastSubmitAt: number | null;
   setInitialized: (value: boolean) => void;
   setActiveTab: (tab: SearchTab) => void;
   patchClassForm: (patch: Partial<ClassForm>) => void;
@@ -90,6 +99,19 @@ export interface SearchStore {
     result: AsyncState<NormalizedCatalog>,
     query: TeachTableQuery | null,
   ) => void;
+  setSearchFormOpen: (open: boolean) => void;
+  /** Drop the running search and its bar, returning to the open form. */
+  cancelSearch: () => void;
+}
+
+/** Whether the summary bar exists, which is whenever a user search has run. */
+export function selectBarVisible(state: SearchStore): boolean {
+  return state.barQuery !== null;
+}
+
+/** Whether the search form shows: always without a bar, otherwise as toggled. */
+export function selectFormOpen(state: SearchStore): boolean {
+  return state.searchFormOpen || state.barQuery === null;
 }
 
 export function createSearchStore() {
@@ -106,6 +128,9 @@ export function createSearchStore() {
     subjectOwners: { status: 'idle' },
     result: { status: 'idle' },
     resultQuery: null,
+    barQuery: null,
+    searchFormOpen: true,
+    lastSubmitAt: null,
     setInitialized: (value) => {
       set({ hasInitialized: value });
     },
@@ -166,6 +191,17 @@ export function createSearchStore() {
     },
     setResult: (result, query) => {
       set({ result, resultQuery: query });
+    },
+    setSearchFormOpen: (open) => {
+      set({ searchFormOpen: open });
+    },
+    cancelSearch: () => {
+      set({
+        result: { status: 'idle' },
+        resultQuery: null,
+        barQuery: null,
+        searchFormOpen: true,
+      });
     },
   }));
 }
