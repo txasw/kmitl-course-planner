@@ -81,7 +81,7 @@ describe('CatalogToggle', () => {
     ).toBeInTheDocument();
   });
 
-  it('opens and closes the sheet on the medium tier, whatever the docked choice', () => {
+  it('opens and closes the sheet on the medium tier and shows the docked column for later', () => {
     installViewport(768);
     act(() => {
       uiStore.getState().setCatalogVisible(false);
@@ -91,7 +91,7 @@ describe('CatalogToggle', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(toggle);
     expect(uiStore.getState().sheetOpen).toBe(true);
-    expect(uiStore.getState().catalogVisible).toBe(false);
+    expect(uiStore.getState().catalogVisible).toBe(true);
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
     expect(toggle).toHaveClass('bg-surface-alt');
     fireEvent.click(toggle);
