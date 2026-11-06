@@ -7,7 +7,12 @@ import {
 import { loadFixture } from '../../../tests/support/fixtures';
 import { validate } from './schemas';
 import { normalizeTeachTable } from './normalize';
-import { buildSnapshot, planSchema, snapshotToSection } from './plan';
+import {
+  buildSnapshot,
+  planSchema,
+  snapshotToSection,
+  type EntryReview,
+} from './plan';
 import type { OfferedTo } from './types';
 
 const OFFERED: OfferedTo[] = [
@@ -18,6 +23,70 @@ const OFFERED: OfferedTo[] = [
 function byteLength(value: unknown): number {
   return new TextEncoder().encode(JSON.stringify(value)).length;
 }
+
+// A plan as a version 1 store holds it, written out field by field rather than through
+// the builders, so the test pins the stored shape from before entries carried a review.
+const STORED_V1_PLAN = {
+  id: 'b3f1c2d4-0000-4000-8000-000000000001',
+  name: 'ตาราง 1/2569',
+  year: '2569',
+  semester: '1',
+  entries: [
+    {
+      teachTableId: '135224',
+      subjectId: '90592033',
+      section: '901',
+      addedAt: '2026-07-07T03:00:00.000Z',
+      lastVerifiedAt: '2026-07-08T03:00:00.000Z',
+      verifyStatus: 'verified',
+      sourceQuery: {
+        endpoint: 'get-teach-table-show',
+        params: {
+          mode: 'by_subject_owner_id',
+          selected_year: '2569',
+          selected_semester: '1',
+          selected_faculty: '90',
+          search_all_faculty: 'false',
+          selected_subject_owner_id: '32',
+        },
+      },
+      snapshot: {
+        teachTableId: '135224',
+        subjectId: '90592033',
+        section: '901',
+        kind: 'lecture',
+        pairedSection: null,
+        meetings: [
+          {
+            day: 5,
+            startMin: 540,
+            endMin: 720,
+            room: '301',
+            building: 'ECC',
+            kind: 'lecture',
+          },
+        ],
+        teachersTh: ['อ. ภาณุวัฒน์ จุทอง'],
+        teachersEn: ['Panuwat Juthong'],
+        seats: { limit: 60, preCount: 12, queueLeft: 48, enrolled: 12 },
+        isClosed: false,
+        exam: {},
+        rulesTh: '',
+        rulesEn: '',
+        remark: '',
+        subjectMeta: {
+          subjectId: '90592033',
+          nameTh: 'วิชา',
+          nameEn: 'Subject',
+          credit: 3,
+          creditStr: '3(2-2-5)',
+        },
+      },
+    },
+  ],
+  createdAt: '2026-07-07T03:00:00.000Z',
+  updatedAt: '2026-07-07T03:00:00.000Z',
+};
 
 describe('planSchema', () => {
   it('accepts a well formed plan built from a normalized snapshot', () => {
@@ -83,6 +152,43 @@ describe('planSchema', () => {
       ],
     });
     expect(validate(planSchema, plan).ok).toBe(false);
+  });
+
+  it('parses a version 1 stored plan whose entries carry no review', () => {
+    const result = planSchema.safeParse(STORED_V1_PLAN);
+    expect(result.success).toBe(true);
+    expect(result.data?.entries[0]).not.toHaveProperty('review');
+  });
+
+  it('keeps a well formed review on an entry', () => {
+    const entry = makePlanEntry();
+    const review: EntryReview = {
+      kinds: ['exam_changed', 'closed'],
+      before: makeSnapshot(),
+      detectedAt: '2026-07-08T03:00:00.000Z',
+      notifiedAt: null,
+    };
+    const result = planSchema.safeParse(
+      makePlan({ entries: [{ ...entry, review }] }),
+    );
+    expect(result.data?.entries[0]?.review).toEqual(review);
+  });
+
+  it('rejects a review with no kinds or an unknown kind', () => {
+    const entry = makePlanEntry();
+    const review = {
+      kinds: [],
+      before: makeSnapshot(),
+      detectedAt: '2026-07-08T03:00:00.000Z',
+      notifiedAt: null,
+    };
+    const empty = { ...makePlan(), entries: [{ ...entry, review }] };
+    const seats = {
+      ...makePlan(),
+      entries: [{ ...entry, review: { ...review, kinds: ['seats_changed'] } }],
+    };
+    expect(validate(planSchema, empty).ok).toBe(false);
+    expect(validate(planSchema, seats).ok).toBe(false);
   });
 
   it('carries the durable identity and source query on each entry', () => {

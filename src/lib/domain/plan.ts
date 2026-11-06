@@ -99,6 +99,30 @@ export const sourceQuerySchema = z.object({
   params: z.record(z.string(), z.string()),
 });
 
+// The material change kinds a review can hold (ADR-0060): the diff kinds that change
+// when, where, or whether the class or its exam happens, a section that turned closed,
+// and a section no longer listed. Seat and teacher changes are ambient and never stored.
+export const reviewKindSchema = z.enum([
+  'time_changed',
+  'room_changed',
+  'pair_changed',
+  'exam_changed',
+  'closed',
+  'missing',
+]);
+
+// An open review of an entry's material changes. before is the snapshot as the student
+// last reviewed it, detectedAt the time the first open kind was found, and notifiedAt the
+// time the student was last shown the item, null until then.
+export const entryReviewSchema = z.object({
+  kinds: z.array(reviewKindSchema).min(1),
+  before: sectionSnapshotSchema,
+  detectedAt: z.string(),
+  notifiedAt: z.string().nullable(),
+});
+
+// review is optional, so every stored blob written before it existed still parses and
+// the storage schema version does not change.
 export const planEntrySchema = z.object({
   teachTableId: z.string(),
   subjectId: z.string(),
@@ -108,6 +132,7 @@ export const planEntrySchema = z.object({
   verifyStatus: verifyStatusSchema,
   sourceQuery: sourceQuerySchema,
   snapshot: sectionSnapshotSchema,
+  review: entryReviewSchema.optional(),
 });
 
 /**
@@ -128,31 +153,48 @@ export function entryTermMatches(
 // A plan belongs to exactly one year and semester pair, and every entry must come
 // from a query for that same term. The refine asserts that invariant, so a mixed
 // term blob is rejected at every trust boundary that parses a plan, including a
-// storage read and a future JSON import.
-export const planSchema = z
-  .object({
-    id: z.string(),
-    name: z.string(),
-    year: z.string(),
-    semester: z.enum(['1', '2', '3']),
-    entries: z.array(planEntrySchema),
-    createdAt: z.string(),
-    updatedAt: z.string(),
-  })
-  .superRefine((plan, ctx) => {
-    plan.entries.forEach((entry, index) => {
-      if (!entryTermMatches(entry, plan)) {
-        ctx.addIssue({
-          code: 'custom',
-          message: 'plan entry term does not match the plan term',
-          path: ['entries', index, 'sourceQuery'],
-        });
-      }
+// storage read and a JSON import. The entry schema is a parameter so the import
+// boundary can apply the same plan rules to entries that carry no review.
+function termConsistentPlanSchema<
+  Entry extends z.ZodType<{ sourceQuery: { params: Record<string, string> } }>,
+>(entrySchema: Entry) {
+  return z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      year: z.string(),
+      semester: z.enum(['1', '2', '3']),
+      entries: z.array(entrySchema),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+    })
+    .superRefine((plan, ctx) => {
+      plan.entries.forEach((entry, index) => {
+        if (!entryTermMatches(entry, plan)) {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'plan entry term does not match the plan term',
+            path: ['entries', index, 'sourceQuery'],
+          });
+        }
+      });
     });
-  });
+}
+
+export const planSchema = termConsistentPlanSchema(planEntrySchema);
+
+// An imported plan is reset to unverified and reconciled on its first check, so a review
+// written on another device describes nothing the importing student has seen. The import
+// schema leaves review out of each entry, and Zod strips the key along with any other
+// unknown one, so a review in the file, well formed or not, never reaches the store.
+export const planImportSchema = termConsistentPlanSchema(
+  planEntrySchema.omit({ review: true }),
+);
 
 export type VerifyStatus = z.infer<typeof verifyStatusSchema>;
 export type SourceQuery = z.infer<typeof sourceQuerySchema>;
+export type ReviewKind = z.infer<typeof reviewKindSchema>;
+export type EntryReview = z.infer<typeof entryReviewSchema>;
 export type SectionSnapshot = z.infer<typeof sectionSnapshotSchema>;
 export type PlanEntry = z.infer<typeof planEntrySchema>;
 export type Plan = z.infer<typeof planSchema>;

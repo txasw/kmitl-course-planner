@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   makePlan,
   makePlanEntry,
+  makeSnapshot,
 } from '../../../tests/support/domain-builders';
 import { createTranslator } from '@/lib/i18n/t';
 import { parsePlanImport } from './parsePlanImport';
@@ -90,6 +91,30 @@ describe('parsePlanImport', () => {
   it('rejects a JSON value that is not a plan object', () => {
     expect(rejectionOf('[]')).toEqual(['Wrong type']);
     expect(rejectionOf('null')).toEqual(['Wrong type']);
+  });
+
+  it('drops a well formed review that would parse as stored data', () => {
+    const plan = makePlan();
+    const blob = {
+      ...plan,
+      entries: plan.entries.map((entry) => ({
+        ...entry,
+        verifyStatus: 'changed',
+        review: {
+          kinds: ['exam_changed'],
+          before: makeSnapshot(),
+          detectedAt: '2026-07-08T00:00:00.000Z',
+          notifiedAt: '2026-07-08T00:05:00.000Z',
+        },
+      })),
+    };
+    const result = parsePlanImport(JSON.stringify(blob), en);
+    if (!result.ok) {
+      throw new Error('expected the import to succeed');
+    }
+    for (const entry of result.value.entries) {
+      expect(entry).not.toHaveProperty('review');
+    }
   });
 
   it('drops review and notification state carried from another device', () => {
