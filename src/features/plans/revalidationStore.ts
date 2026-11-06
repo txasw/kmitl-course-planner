@@ -1,7 +1,9 @@
 // The transient result of the latest revalidation per plan, held in memory for the
 // summary banner, the detail sheet, and the block popover to read. It is not
 // persisted: the durable outcome lives on the plan entries as their verification
-// status, while this store carries the one time old versus new detail of a run.
+// status, while this store carries the one time old versus new detail of a run. The
+// detail sheet's open state lives here too, so a surface other than the banner can
+// open the sheet the banner renders.
 
 import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
@@ -20,6 +22,9 @@ export interface RevalidationRun {
 export interface RevalidationStore {
   runs: Record<string, RevalidationRun>;
   setRun: (planId: string, run: RevalidationRun) => void;
+  /** Whether the detail sheet for the active plan's latest run is open. */
+  sheetOpen: boolean;
+  setSheetOpen: (open: boolean) => void;
 }
 
 export function createRevalidationStore() {
@@ -27,6 +32,10 @@ export function createRevalidationStore() {
     runs: {},
     setRun: (planId, run) => {
       set((state) => ({ runs: { ...state.runs, [planId]: run } }));
+    },
+    sheetOpen: false,
+    setSheetOpen: (sheetOpen) => {
+      set({ sheetOpen });
     },
   }));
 }

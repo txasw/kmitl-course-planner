@@ -2,9 +2,10 @@
 // active plan in one line and offers a refresh that reruns the check, or a retry when
 // the check could not reach the service. A manual refresh reports here rather than
 // through the toast, so the outcome stays next to the plan it describes. It renders in
-// both edit and preview, since correctness matters most at the moment of sharing.
+// both edit and preview, since correctness matters most at the moment of sharing. The
+// detail sheet's open state is held in the revalidation store, so another surface can
+// ask for the sheet and the banner still renders it next to the run it describes.
 
-import { useState } from 'react';
 import { useStore } from 'zustand';
 import { AlertTriangle, List, RefreshCw } from 'lucide-react';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
@@ -19,7 +20,11 @@ export function RevalidationBanner() {
   const { send } = useSearchDeps();
   const activePlan = useActivePlan();
   const runs = useStore(revalidationStore, (state) => state.runs);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const sheetOpen = useStore(revalidationStore, (state) => state.sheetOpen);
+  const setSheetOpen = useStore(
+    revalidationStore,
+    (state) => state.setSheetOpen,
+  );
 
   if (activePlan === null) {
     return null;

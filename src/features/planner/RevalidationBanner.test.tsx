@@ -30,7 +30,7 @@ function renderBanner(deps: SearchDeps = fakeSearchDeps()) {
 afterEach(() => {
   cleanup();
   resetPlanStore();
-  revalidationStore.setState({ runs: {} });
+  revalidationStore.setState({ runs: {}, sheetOpen: false });
 });
 
 describe('RevalidationBanner', () => {
@@ -100,6 +100,38 @@ describe('RevalidationBanner', () => {
     expect(
       screen.getByRole('dialog', { name: /รายละเอียดการตรวจสอบ/ }),
     ).toBeInTheDocument();
+  });
+
+  it('renders the detail sheet when the store asks for it and closes it there', () => {
+    act(() => {
+      seedActivePlan([], { id: 'p1' });
+      revalidationStore.getState().setRun('p1', {
+        status: 'done',
+        report: {
+          summary: { total: 1, unchanged: 0, changed: 0, missing: 1 },
+          entries: [
+            {
+              teachTableId: 't1',
+              subjectId: '90000001',
+              section: '901',
+              outcome: 'missing',
+              changes: [],
+              before: makeSnapshot(),
+              after: null,
+            },
+          ],
+          termFindings: [],
+        },
+      });
+      revalidationStore.getState().setSheetOpen(true);
+    });
+    renderBanner();
+    expect(
+      screen.getByRole('dialog', { name: /รายละเอียดการตรวจสอบ/ }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'ปิด' }));
+    expect(revalidationStore.getState().sheetOpen).toBe(false);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('offers no detail button when everything matches', () => {
