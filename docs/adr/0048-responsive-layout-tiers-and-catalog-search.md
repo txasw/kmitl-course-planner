@@ -219,3 +219,33 @@ cannot be discovered, offers nothing to touch or keyboard users, and fires when 
 enters from a left taskbar or another monitor. An auto hide flyout over the grid was rejected
 because it covers the early hour columns where drops land and adds a third container state.
 Opening on hover was rejected for the same accidental trigger reason; hover may only hint.
+
+## Amendment, 2026-11-06: the open sheet's inert scope
+
+The decision above makes the header and the grid region inert while the Medium sheet is open.
+The build narrows that scope to the grid region, the part the scrim covers. The header sits
+above the scrim and looks live, so making it inert would turn a visible control into a dead
+click, and its catalog toggle is a disclosure whose expected behavior is to close what it
+opened.
+
+- The closed sheet stays mounted, inert and hidden from assistive technology on every sheet
+  tier, the same rule the hidden docked column follows. A window narrowed past the dock while
+  focus sits in the docked column moves that focus to the header toggle, because the column
+  turns into the inert closed sheet and the browser would drop the focus to the body.
+- The open sheet is a dialog named by its heading. It takes focus as it opens and keeps Tab
+  inside it with the shared focus trap, so the keyboard reaches the header only after the sheet
+  closes. It is not marked aria-modal, because the header stays operable.
+- The scrim is a pointer target only: it is not a tab stop and is hidden from assistive
+  technology, because the sheet header close carries the same action.
+- Escape closes the sheet alone. The sheet claims the press through claimEscape in a React
+  handler on its container, so a surface inside it that holds focus, such as an open combobox
+  list or the search form fold, claims the press first, and the overlay decides last, as
+  ADR-0056 routes it. The press that ends an input method composition stays with the editor,
+  as it does for the overlay. A native escape layer on the sheet was rejected because it runs
+  before the React handlers inside the sheet.
+- Every sheet close, from Escape, the sheet close or the scrim, moves focus to the header
+  toggle, because the control that closed it turns inert.
+
+The feedback strip still renders inside the grid region, so while the sheet is open it is inert
+with the grid until the strip moves to the place the live region inventory above gives it on
+Medium, at the bottom of the open sheet.
