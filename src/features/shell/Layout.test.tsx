@@ -8,7 +8,7 @@ import {
 } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { Layout } from './Layout';
-import { CATALOG_COLUMN_ID } from './CatalogColumn';
+import { CATALOG_COLUMN_ID } from './catalogVisibility';
 import { CatalogToggle } from './CatalogToggle';
 import { uiStore } from './uiStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
