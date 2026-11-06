@@ -283,6 +283,7 @@
   "updates.kind.missing": "ไม่พบในระบบแล้ว",
   "updates.newConflict": "การเปลี่ยนแปลงนี้ทำให้ชนกับ {subject} กลุ่มเรียน {section}",
   "updates.unchangedGroup": "ไม่เปลี่ยนแปลง {count} รายการ",
+  "updates.indicator": "มีการเปลี่ยนแปลง {count} รายการ",
   "updates.toast.done": "รับทราบการเปลี่ยนแปลงแล้ว",
   "block.details": "รายละเอียด",
   "block.acknowledge": "รับทราบ",

@@ -262,6 +262,36 @@ describe('PlannerPanel plan views', () => {
     await expectNoSeriousA11yViolations(container);
   });
 
+  it('shows the updates indicator beside the tabs and opens the dialog from it', () => {
+    installViewport(1366);
+    const snapshot = makeSnapshot({
+      teachTableId: 'r1',
+      subjectId: '90000001',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+    });
+    seed([
+      makePlanEntry({
+        snapshot,
+        verifyStatus: 'changed',
+        review: {
+          kinds: ['room_changed'],
+          before: snapshot,
+          detectedAt: '2026-11-06T00:00:00.000Z',
+          notifiedAt: '2026-11-06T00:00:00.000Z',
+        },
+      }),
+    ]);
+    renderPanel();
+    const indicator = screen.getByRole('button', {
+      name: 'มีการเปลี่ยนแปลง 1 รายการ',
+    });
+    expect(screen.getByRole('tablist')).not.toContainElement(indicator);
+    fireEvent.click(indicator);
+    expect(
+      screen.getByRole('dialog', { name: 'ข้อมูลในตารางมีการเปลี่ยนแปลง' }),
+    ).toBeInTheDocument();
+  });
+
   it('has no serious accessibility violations in the selected view', async () => {
     installViewport(1366);
     seedTwoSubjects();
