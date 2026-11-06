@@ -8,16 +8,16 @@ import {
   waitForResultsInput,
 } from './support/fixtures';
 import { LONG_PRESS_MS, longPress, swipe, touchDrag } from './support/touch';
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 // A responsive smoke for the phone and tablet projects. It asserts what holds at both
 // sizes: the host lays out at the device width, the planner opens and closes with focus
 // returned to the launcher, the header keeps close and preview in view and working at
 // the device width and at 320 px, the touch helper delivers real touch events, the edit
 // grid keeps its derived minimum width, the catalog sheet is modal over the grid and
-// closes alone on Escape, and a tapped block opens its details as a bottom sheet, since
-// both projects are coarse pointers. The small screen layout work adds its own
-// assertions on top.
+// closes alone on Escape, a tapped block opens its details as a bottom sheet, and the
+// controls a finger reaches are 44 px targets, since both projects are coarse pointers.
+// The small screen layout work adds its own assertions on top.
 
 const LAUNCHER = 'เปิด Course Planner for KMITL';
 // A grid block carries a data-teach-table-id; the catalog rows do not.
@@ -342,4 +342,110 @@ test('an add from the open sheet is confirmed once by a toast that leads to the 
   await expect(column).toHaveAttribute('aria-hidden', 'true');
   await expect(toggle).toBeFocused();
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
+});
+
+// The coarse pointer target from the --kcp-target-touch token.
+const TOUCH_TARGET = 44;
+
+/** Assert a control is visible and at least a touch target in each direction. */
+async function expectTouchTarget(
+  control: Locator,
+  name: string,
+): Promise<void> {
+  await expect(control, name).toBeVisible();
+  const box = await control.boundingBox();
+  expect(box, name).not.toBeNull();
+  expect(box?.width ?? 0, `${name} width`).toBeGreaterThanOrEqual(TOUCH_TARGET);
+  expect(box?.height ?? 0, `${name} height`).toBeGreaterThanOrEqual(
+    TOUCH_TARGET,
+  );
+}
+
+test('the controls a finger reaches are 44 px targets', async ({ context }) => {
+  const page = await openPlanner(context);
+  const dialog = page.getByRole('dialog', {
+    name: 'ตัววางแผนตารางเรียน สจล.',
+  });
+  const header = dialog.locator('header');
+
+  // The header: the plan switcher height, the catalog toggle, both mode segments, the
+  // overflow menu and close.
+  const switcher = header.getByRole('button', { name: 'เลือกตาราง' });
+  expect((await switcher.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(
+    TOUCH_TARGET,
+  );
+  const toggle = header.getByRole('button', { name: /^รายวิชา/ });
+  for (const [control, name] of [
+    [toggle, 'catalog toggle'],
+    [header.getByRole('button', { name: 'แก้ไข' }), 'edit segment'],
+    [header.getByRole('button', { name: 'ดูตัวอย่าง' }), 'preview segment'],
+    [header.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }), 'overflow'],
+    [header.getByRole('button', { name: 'ปิด', exact: true }), 'close'],
+  ] as const) {
+    await expectTouchTarget(control, name);
+  }
+
+  // The search form in the catalog sheet: a tab and the submit.
+  await toggle.click();
+  const sheet = page.getByRole('dialog', { name: 'ค้นหารายวิชา' });
+  const tab = sheet.getByRole('tab', { name: 'หมวดวิชา' });
+  await expectTouchTarget(tab, 'search tab');
+  await tab.click();
+  await pickOption(page, 'คณะ', '01');
+  await pickOption(page, 'หมวดวิชา', '90592xxx');
+  const submit = sheet.getByRole('button', { name: 'ค้นหา', exact: true });
+  await expectTouchTarget(submit, 'search submit');
+  await submit.click();
+  await expect(sheet.getByText('90592033').first()).toBeVisible({
+    timeout: 15_000,
+  });
+  await waitForResultsInput(page);
+
+  // The catalog: the summary actions, the filter toggle, the add rail, and the remove
+  // control the added card shows.
+  await expectTouchTarget(
+    sheet.getByRole('button', { name: 'รีเฟรช' }),
+    'refresh',
+  );
+  await expectTouchTarget(
+    sheet.getByRole('button', { name: 'ขยายทั้งหมด' }),
+    'expand all',
+  );
+  await expectTouchTarget(
+    sheet.getByRole('button', { name: 'ตัวกรอง' }),
+    'filter toggle',
+  );
+  await expandCourse(page, '90592008');
+  const add = sheet.getByRole('button', { name: /^เพิ่ม 90592008/ });
+  await expectTouchTarget(add, 'add rail');
+  await add.tap();
+  await expectTouchTarget(
+    sheet.getByRole('button', { name: /^นำออก 90592008/ }),
+    'catalog remove',
+  );
+
+  // The placed block carries no remove control on a coarse pointer; its tap opens the
+  // detail sheet, which holds the remove action.
+  await page
+    .locator('#kcp-catalog-column')
+    .getByRole('button', { name: 'ปิดรายการรายวิชา' })
+    .tap();
+  await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
+  await expect(
+    dialog.getByRole('button', { name: 'นำออก', exact: true }),
+  ).toHaveCount(0);
+
+  // The plan menu: the row actions show at rest on a touch screen and take a finger.
+  await switcher.click();
+  const rename = page.getByRole('button', { name: /^เปลี่ยนชื่อ / });
+  await expect(rename).toBeVisible();
+  const opacity = await rename.evaluate((node) =>
+    Number(getComputedStyle(node.parentElement ?? node).opacity),
+  );
+  expect(opacity).toBe(1);
+  await expectTouchTarget(rename, 'plan rename');
+  await expectTouchTarget(
+    page.getByRole('button', { name: 'สร้างตาราง' }),
+    'plan create',
+  );
 });
