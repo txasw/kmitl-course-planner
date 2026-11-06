@@ -112,9 +112,10 @@ export function CatalogRemoveZone() {
 }
 
 /**
- * The bar form, a 64 px band across the panel bottom over the summary bar, padded clear
- * of the device's bottom inset. It is the zone on the tiers below the dock and while the
- * docked column is hidden, and it mounts only while a block drag is live.
+ * The bar form, a 64 px band across the panel bottom over the summary bar. It is the zone
+ * on the tiers below the dock and while the docked column is hidden, and it mounts only
+ * while a block drag is live. Below 640 px the panel body runs to the screen edge, so the
+ * bar pads clear of the device's bottom inset; above it the overlay body already does.
  */
 export function RemoveBar({ tier }: { tier: LayoutTier }) {
   const active = useRemoveZoneActive(tier, 'bar');
@@ -131,7 +132,7 @@ function BarZone() {
       ref={setNodeRef}
       data-remove-zone="bar"
       data-over={isOver || undefined}
-      className={`pointer-events-none absolute inset-x-0 bottom-0 z-dropzone box-content flex h-16 items-center justify-center border-t-2 border-danger pb-[var(--kcp-safe-bottom)] ${
+      className={`pointer-events-none absolute inset-x-0 bottom-0 z-dropzone box-content flex h-16 items-center justify-center border-t-2 border-danger max-sm:pb-(--kcp-safe-bottom) ${
         isOver
           ? 'border-solid bg-danger-zone-over'
           : 'border-dashed bg-danger-zone'

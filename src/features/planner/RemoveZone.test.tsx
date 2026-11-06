@@ -162,7 +162,7 @@ describe('RemoveBar', () => {
     return result;
   }
 
-  it('docks a 64 px dashed band at the panel bottom above the device inset', () => {
+  it('docks a 64 px dashed band at the panel bottom, above the device inset below 640 px', () => {
     const { container } = renderBar();
     const [zone] = zones(container);
     expect(zone).toHaveAttribute('data-remove-zone', 'bar');
@@ -173,7 +173,7 @@ describe('RemoveBar', () => {
       'z-dropzone',
       'box-content',
       'h-16',
-      'pb-[var(--kcp-safe-bottom)]',
+      'max-sm:pb-(--kcp-safe-bottom)',
       'border-t-2',
       'border-dashed',
       'bg-danger-zone',

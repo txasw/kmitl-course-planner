@@ -195,6 +195,15 @@ describe('Toaster', () => {
     expect(region?.textContent).toBe('');
   });
 
+  it('keeps its edge offsets or the device safe area insets, whichever is larger', () => {
+    const { container } = render(<Toaster />);
+    expect(container.querySelector('[aria-live="polite"]')).toHaveClass(
+      'bottom-[max(16px,var(--kcp-safe-bottom))]',
+      'pr-[max(16px,var(--kcp-safe-right))]',
+      'pl-[max(16px,var(--kcp-safe-left))]',
+    );
+  });
+
   it('marks the live region with the active language', () => {
     const { container } = render(<Toaster />);
     const region = container.querySelector('[aria-live="polite"]');
