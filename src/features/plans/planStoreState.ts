@@ -33,6 +33,12 @@ export interface PlanStoreState {
   entries: PlanEntry[];
   /** The last mutation's added and removed entries, held to reverse it, or null. */
   pendingUndo: UndoRecord | null;
+  /**
+   * Whether the stored plans read has settled: hydrated, refused as a newer schema, or
+   * failed. A surface that speaks about the plan, such as an entry prompt, waits for it so
+   * it never describes the empty store that precedes the read.
+   */
+  loaded: boolean;
 }
 
 /** Injected so tests get deterministic ids and timestamps. */
