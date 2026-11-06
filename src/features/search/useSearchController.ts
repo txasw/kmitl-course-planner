@@ -20,7 +20,6 @@ import {
   resolveInitialTerm,
   termFromQueryFields,
   toBuddhistYear,
-  type Term,
 } from '@/lib/routing/academicTerms';
 import { toCurrentTerm } from '@/lib/domain/schemas';
 import type { TeachTableRoute } from '@/lib/routing/parseTeachTableRoute';
@@ -28,7 +27,7 @@ import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import type { AsyncState } from '@/lib/utils/async';
 import type { Result } from '@/lib/utils/result';
-import { planStore } from '@/features/plans/planStore';
+import { activePlanTerm } from '@/features/plans/planStore';
 import { searchStore, type QueryIntent } from './searchStore';
 import type { SearchDeps } from './SearchDepsContext';
 
@@ -76,15 +75,6 @@ export function useReferenceData(send: TypedSend): () => void {
   return () => {
     loadAll(false);
   };
-}
-
-/** The active plan's term, read when needed because plans hydrate on their own. */
-function activePlanTerm(): Term | null {
-  const { plans, activePlanId } = planStore.getState();
-  const active = plans.find((plan) => plan.id === activePlanId);
-  return active === undefined
-    ? null
-    : { year: active.year, semester: active.semester };
 }
 
 export function useSearchInit(
