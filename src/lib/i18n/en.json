@@ -436,5 +436,15 @@
   "welcome.access.shortcut": "Open it any time from the Planner button at the bottom right, the extension icon, or the shortcut {shortcut}.",
   "welcome.access": "Open it any time from the Planner button at the bottom right or the extension icon.",
   "welcome.start": "Start planning",
-  "welcome.close": "Close the welcome message"
+  "welcome.close": "Close the welcome message",
+  "entryToast.noPlan": "Use Planner to plan your timetable from the courses offered on this site.",
+  "entryToast.noPlan.action": "Open Planner",
+  "entryToast.plan": "Continue with {name}. Subjects planned: {count}.",
+  "entryToast.plan.action": "Open plan",
+  "entryToast.planEmpty": "{name} has no subjects yet.",
+  "entryToast.planEmpty.action": "Add subjects",
+  "entryToast.updates": "Changes to review in {name}: {count}.",
+  "entryToast.updates.action": "Review",
+  "entryToast.optOut": "Do not show again",
+  "entryToast.close": "Dismiss this message"
 }

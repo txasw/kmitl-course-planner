@@ -436,5 +436,15 @@
   "welcome.access.shortcut": "เปิดได้ทุกเมื่อจากปุ่ม Planner มุมขวาล่าง ไอคอนส่วนขยาย หรือแป้นลัด {shortcut}",
   "welcome.access": "เปิดได้ทุกเมื่อจากปุ่ม Planner มุมขวาล่าง หรือไอคอนส่วนขยาย",
   "welcome.start": "เริ่มวางแผน",
-  "welcome.close": "ปิดข้อความต้อนรับ"
+  "welcome.close": "ปิดข้อความต้อนรับ",
+  "entryToast.noPlan": "ใช้ Planner วางแผนตารางเรียนจากรายวิชาที่เปิดสอนในเว็บไซต์นี้ได้",
+  "entryToast.noPlan.action": "เปิด Planner",
+  "entryToast.plan": "{name} มีวิชาในตาราง {count} วิชา",
+  "entryToast.plan.action": "เปิดตาราง",
+  "entryToast.planEmpty": "{name} ยังไม่มีวิชา",
+  "entryToast.planEmpty.action": "เพิ่มวิชา",
+  "entryToast.updates": "{name} มีการเปลี่ยนแปลงที่ยังไม่ได้ตรวจสอบ {count} รายการ",
+  "entryToast.updates.action": "ตรวจสอบ",
+  "entryToast.optOut": "ไม่ต้องแสดงข้อความนี้อีก",
+  "entryToast.close": "ปิดข้อความนี้"
 }

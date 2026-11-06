@@ -28,6 +28,8 @@ const INVENTORY: Readonly<Record<string, number>> = {
   // Error alerts of the recovery and quarantine cards.
   'components/PanelRecoveryCard.tsx': 1,
   'features/plans/QuarantineCard.tsx': 1,
+  // The entry prompt beside the launcher, shown only while the panel is closed.
+  'features/onboarding/EntryToast.tsx': 1,
 };
 
 // The drag library mounts one region of its own inside the drag context, which no source
