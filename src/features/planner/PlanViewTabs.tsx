@@ -1,10 +1,12 @@
 // The plan view tabs of ADR-0049 on the medium and wide tiers: an underline tablist above
-// the grid region that switches between the timetable and the list of placed subjects.
-// The selected tab carries the subject count in its visible label, so the count is part of
-// its accessible name. Arrow keys, Home, and End move focus and activate the tab in one
-// step, and only the active tab sits in the tab order, the roving pattern of the ARIA
-// tablist. The row is 40 px tall and tightens to 36 px under a max height of 800 px, so a
-// 720 or 768 px laptop keeps grid height.
+// the grid region that switches between the timetable, the list of placed subjects, and
+// the summary. The selected tab carries the subject count in its visible label, so the
+// count is part of its accessible name. While two placed subjects clash on an exam, the
+// summary tab carries a danger dot with the clash in its accessible name, so the exam
+// schedule that lists the clash stays one action away. Arrow keys, Home, and End move
+// focus and activate the tab in one step, and only the active tab sits in the tab order,
+// the roving pattern of the ARIA tablist. The row is 40 px tall and tightens to 36 px
+// under a max height of 800 px, so a 720 or 768 px laptop keeps grid height.
 
 import { useRef, type KeyboardEvent } from 'react';
 import type { Translate, TranslationKey } from '@/lib/i18n/t';
@@ -12,11 +14,12 @@ import { fillTemplate } from '@/lib/i18n/template';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import type { PlanView } from '@/features/shell/uiStore';
 
-const VIEWS: readonly PlanView[] = ['timetable', 'selected'];
+const VIEWS: readonly PlanView[] = ['timetable', 'selected', 'summary'];
 
 const LABEL_KEY: Record<PlanView, TranslationKey> = {
   timetable: 'planView.timetable',
   selected: 'planView.selected',
+  summary: 'planView.summary',
 };
 
 /** The id of a plan view tab, which its tabpanel names through aria-labelledby. */
@@ -50,6 +53,8 @@ interface PlanViewTabsProps {
   value: PlanView;
   /** The number of placed subjects, shown in the selected tab label. */
   selectedCount: number;
+  /** Whether two placed subjects clash on an exam, marked on the summary tab. */
+  examClash: boolean;
   onChange: (view: PlanView) => void;
   t: Translate;
 }
@@ -57,6 +62,7 @@ interface PlanViewTabsProps {
 export function PlanViewTabs({
   value,
   selectedCount,
+  examClash,
   onChange,
   t,
 }: PlanViewTabsProps) {
@@ -81,6 +87,10 @@ export function PlanViewTabs({
     >
       {VIEWS.map((view) => {
         const active = view === value;
+        const label = fillTemplate(t(LABEL_KEY[view]), {
+          count: selectedCount,
+        });
+        const clashDot = view === 'summary' && examClash;
         return (
           <button
             key={view}
@@ -96,6 +106,9 @@ export function PlanViewTabs({
             id={planViewTabId(view)}
             aria-selected={active}
             aria-controls={planViewPanelId(view)}
+            aria-label={
+              clashDot ? `${label} ${t('planView.examClash')}` : undefined
+            }
             tabIndex={active ? 0 : -1}
             onClick={() => {
               onChange(view);
@@ -107,7 +120,13 @@ export function PlanViewTabs({
                 : 'border-transparent text-ink-soft hover:text-ink'
             }`}
           >
-            {fillTemplate(t(LABEL_KEY[view]), { count: selectedCount })}
+            {label}
+            {clashDot ? (
+              <span
+                aria-hidden
+                className="ml-1.5 size-2 shrink-0 rounded-full bg-danger"
+              />
+            ) : null}
           </button>
         );
       })}

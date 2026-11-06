@@ -3,10 +3,10 @@
 // visible time window from the scheduled meetings and the current catalog result so
 // an early or late class widens the grid. Unscheduled sections and the footer
 // summary arrive with the shelf. In edit mode the plan view of ADR-0049 switches the
-// region between the timetable and the selected courses list: through the tabs above
-// the region on the medium and wide tiers, and through the bottom nav below 640 px, where
-// the region carries no tabs and so no tabpanel semantics. A timetable narrower than
-// 640 px reads one day at a time through the day view.
+// region between the timetable, the selected courses list, and the summary: through the
+// tabs above the region on the medium and wide tiers, and through the bottom nav below
+// 640 px, where the region carries no tabs and so no tabpanel semantics. A timetable
+// narrower than 640 px reads one day at a time through the day view.
 
 import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { useStore } from 'zustand';
@@ -42,6 +42,7 @@ import { PlanViewTabs, planViewPanelId, planViewTabId } from './PlanViewTabs';
 import { type PosterData } from './PreviewPoster';
 import { PreviewToolbar } from './PreviewToolbar';
 import { RevalidationBanner } from './RevalidationBanner';
+import { SummaryView } from './SummaryView';
 import {
   SelectedCoursesList,
   groupEntriesBySubject,
@@ -108,8 +109,8 @@ export function PlannerPanel() {
     () => posterHonesty({ entries, timeConflicts, examConflicts }),
     [entries, timeConflicts, examConflicts],
   );
-  // The exam schedule the poster and the text export list when the show exams option is
-  // on (ADR-0064).
+  // The exam schedule the summary view lists, and the poster and the text export list when
+  // the show exams option is on (ADR-0064).
   const examSchedule = useMemo(() => buildExamSchedule(entries), [entries]);
   const subjectGroups = useMemo(
     () => groupEntriesBySubject(entries),
@@ -208,7 +209,7 @@ export function PlannerPanel() {
   const closeContextMenu = useCallback(() => {
     setContextMenu(null);
   }, []);
-  // The anchor is a live block node. Switching to preview or to the selected view
+  // The anchor is a live block node. Switching to preview or to another plan view
   // unmounts the edit grid, so a popover left open would point at a detached node on
   // return. Clear it as the edit grid leaves, using the render time adjust on change
   // pattern rather than an effect.
@@ -285,6 +286,7 @@ export function PlannerPanel() {
         <PlanViewTabs
           value={planView}
           selectedCount={subjectGroups.length}
+          examClash={examSchedule.hasClash}
           onChange={setPlanView}
           t={t}
         />
@@ -296,6 +298,18 @@ export function PlannerPanel() {
       <RevalidationBanner />
       {isPreview ? (
         <TemplateGallery poster={posterData} posterRef={posterRef} />
+      ) : planView === 'summary' ? (
+        <div
+          {...panelProps}
+          className="kcp-scroll min-h-0 flex-1 overflow-y-auto"
+        >
+          <SummaryView
+            schedule={examSchedule}
+            hasEntries={entries.length > 0}
+            locale={language}
+            t={t}
+          />
+        </div>
       ) : planView === 'selected' ? (
         <div
           {...panelProps}

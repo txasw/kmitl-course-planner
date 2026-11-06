@@ -23,6 +23,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   'catalog',
   'timetable',
   'selected',
+  'summary',
 ];
 
 /** The id of a nav item, the focus target of a control that switches to its pane. */
