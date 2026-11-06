@@ -24,6 +24,10 @@ import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { installViewport } from '../../../tests/support/viewport';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
+import {
+  resetPlanStore,
+  seedActivePlan,
+} from '../../../tests/support/plan-store';
 import { dragStore } from './dragStore';
 import { PlannerPanel } from './PlannerPanel';
 
@@ -400,5 +404,158 @@ describe('PlannerPanel', () => {
     ]);
     const { container } = renderPanel();
     await expectNoSeriousA11yViolations(container);
+  });
+});
+
+describe('PlannerPanel focus after a remove', () => {
+  afterEach(() => {
+    act(() => {
+      resetPlanStore();
+    });
+  });
+
+  // Three sections in time order: Monday 09:00, Monday 13:00, Tuesday 09:00. The DOM
+  // lists the blocks by day lane, so time order is what decides the next one.
+  function seedThree(): void {
+    const entry = (
+      teachTableId: string,
+      subjectId: string,
+      meeting: Meeting,
+    ): PlanEntry =>
+      makePlanEntry({
+        teachTableId,
+        subjectId,
+        snapshot: makeSnapshot({
+          teachTableId,
+          subjectId,
+          section: '901',
+          meetings: [meeting],
+        }),
+      });
+    act(() => {
+      seedActivePlan([
+        entry(
+          'tue',
+          '90000003',
+          makeMeeting({ day: 2, startMin: 540, endMin: 600 }),
+        ),
+        entry(
+          'mon-pm',
+          '90000002',
+          makeMeeting({ day: 1, startMin: 780, endMin: 840 }),
+        ),
+        entry(
+          'mon-am',
+          '90000001',
+          makeMeeting({ day: 1, startMin: 540, endMin: 600 }),
+        ),
+      ]);
+    });
+  }
+
+  function block(subjectId: string): HTMLElement {
+    return screen.getByRole('button', { name: new RegExp(subjectId) });
+  }
+
+  function removeControl(subjectId: string): HTMLElement {
+    const control = block(subjectId).parentElement?.querySelector<HTMLElement>(
+      'button[aria-label="นำออก"]',
+    );
+    if (control == null) throw new Error(`no remove control for ${subjectId}`);
+    return control;
+  }
+
+  it('moves focus to the next block in time order', () => {
+    seedThree();
+    renderPanel();
+    const control = removeControl('90000001');
+    control.focus();
+    fireEvent.click(control);
+    expect(screen.queryByRole('button', { name: /90000001/ })).toBeNull();
+    expect(block('90000002')).toHaveFocus();
+  });
+
+  it('moves focus to the last block left after the last one goes', () => {
+    seedThree();
+    renderPanel();
+    const control = removeControl('90000003');
+    control.focus();
+    fireEvent.click(control);
+    expect(block('90000002')).toHaveFocus();
+  });
+
+  it('moves focus to the grid when no block is left', () => {
+    installViewport(1366);
+    act(() => {
+      seedActivePlan([
+        makePlanEntry({
+          teachTableId: 's1',
+          snapshot: makeSnapshot({
+            teachTableId: 's1',
+            subjectId: '90000001',
+            section: '901',
+            meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+          }),
+        }),
+      ]);
+    });
+    renderPanel();
+    fireEvent.click(block('90000001'));
+    const remove = screen.getByRole('button', { name: 'นำออกจากตาราง' });
+    remove.focus();
+    fireEvent.click(remove);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
+    ).toHaveFocus();
+  });
+
+  it('moves focus on from a remove in the block context menu', () => {
+    installViewport(1366);
+    seedThree();
+    renderPanel();
+    fireEvent.contextMenu(block('90000002'));
+    fireEvent.click(screen.getByRole('menuitem', { name: /นำออก/ }));
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(block('90000003')).toHaveFocus();
+  });
+
+  it('moves focus to the next shelf row after a shelf remove', () => {
+    const unscheduled = (teachTableId: string, subjectId: string) =>
+      makePlanEntry({
+        teachTableId,
+        subjectId,
+        snapshot: makeSnapshot({
+          teachTableId,
+          subjectId,
+          section: '1',
+          meetings: [],
+        }),
+      });
+    act(() => {
+      seedActivePlan([
+        unscheduled('o1', '90000004'),
+        unscheduled('o2', '90000005'),
+      ]);
+    });
+    renderPanel();
+    const shelf = screen.getByRole('region', {
+      name: 'รายวิชาที่ไม่มีคาบเรียน',
+    });
+    const [first] = shelf.querySelectorAll<HTMLElement>('[data-shelf-remove]');
+    if (first === undefined) throw new Error('expected a shelf remove control');
+    first.focus();
+    fireEvent.click(first);
+    expect(shelf.querySelector('[data-shelf-remove="o2"]')).toHaveFocus();
+  });
+
+  it('returns focus to the block when its context menu closes', () => {
+    installViewport(1366);
+    seedThree();
+    renderPanel();
+    fireEvent.contextMenu(block('90000002'));
+    expect(screen.getByRole('menuitem', { name: /รายละเอียด/ })).toHaveFocus();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(block('90000002')).toHaveFocus();
   });
 });
