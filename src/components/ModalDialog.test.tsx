@@ -113,4 +113,36 @@ describe('ModalDialog', () => {
     fireEvent.click(scrim);
     expect(screen.queryByRole('dialog')).toBeNull();
   });
+
+  it('pins the footer and focuses the named control on open', () => {
+    function WithFooter() {
+      const actRef = useRef<HTMLButtonElement>(null);
+      return (
+        <PanelPortalContext.Provider value={document.body}>
+          <ModalDialog
+            title="Review"
+            closeLabel="Close"
+            onClose={vi.fn()}
+            width="medium"
+            initialFocusRef={actRef}
+            footer={
+              <button ref={actRef} type="button">
+                Act
+              </button>
+            }
+          >
+            <p>Body text</p>
+          </ModalDialog>
+        </PanelPortalContext.Provider>
+      );
+    }
+    render(<WithFooter />);
+    const act = screen.getByRole('button', { name: 'Act' });
+    expect(act).toHaveFocus();
+    expect(act.parentElement).toHaveClass('shrink-0');
+    expect(screen.getByText('Body text').parentElement).toHaveClass(
+      'overflow-y-auto',
+    );
+    expect(screen.getByRole('dialog')).toHaveClass('max-w-[32rem]');
+  });
 });

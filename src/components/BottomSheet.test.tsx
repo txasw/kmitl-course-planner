@@ -175,4 +175,33 @@ describe('BottomSheet', () => {
     swipe(screen.getByRole('heading', { name: 'Sheet title' }), 'y', 120);
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
+
+  it('fills the viewport and focuses the named control when asked', () => {
+    function FullSheet() {
+      const actRef = useRef<HTMLButtonElement>(null);
+      return (
+        <PanelPortalContext.Provider value={document.body}>
+          <BottomSheet
+            title="Review"
+            closeLabel="Close"
+            onClose={vi.fn()}
+            fullHeight
+            initialFocusRef={actRef}
+            footer={
+              <button ref={actRef} type="button">
+                Act
+              </button>
+            }
+          >
+            <p>Body text</p>
+          </BottomSheet>
+        </PanelPortalContext.Provider>
+      );
+    }
+    render(<FullSheet />);
+    expect(screen.getByRole('button', { name: 'Act' })).toHaveFocus();
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveClass('h-dvh');
+    expect(dialog).not.toHaveClass('max-h-[85dvh]');
+  });
 });
