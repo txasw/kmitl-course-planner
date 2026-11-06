@@ -38,3 +38,23 @@ globalThis.ResizeObserver = ResizeObserverStub;
 // element jsdom never animates; a test that exercises the slide stubs animate and
 // getAnimations with its own recording fakes.
 Element.prototype.getAnimations = () => [];
+
+// jsdom lays nothing out, so getClientRects is empty for every element, where a browser
+// returns a box for anything it renders. The focus trap skips a node with no box, as the
+// browser's Tab does, so report one empty box unless the node or an ancestor is hidden or
+// set to display none. The cast documents that this is a deliberate partial list: the
+// code reads only its length.
+function isLaidOut(element: Element): boolean {
+  if (
+    element.hasAttribute('hidden') ||
+    window.getComputedStyle(element).display === 'none'
+  ) {
+    return false;
+  }
+  return element.parentElement === null || isLaidOut(element.parentElement);
+}
+Element.prototype.getClientRects = function getClientRects(
+  this: Element,
+): DOMRectList {
+  return (isLaidOut(this) ? [new DOMRect()] : []) as unknown as DOMRectList;
+};
