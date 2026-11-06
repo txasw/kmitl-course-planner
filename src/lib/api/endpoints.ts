@@ -27,6 +27,7 @@ import {
   refCacheKey,
   teachCacheKey,
 } from '../storage/keys';
+import { API_ORIGIN, REGIS_ORIGIN } from '../shell/hostTab';
 import { DEFAULT_TIMEOUT_MS } from './http';
 import { hashKey, stableParamString } from './cache';
 
@@ -50,8 +51,7 @@ export interface ReferenceEndpoint<T> {
   timeoutMs: number;
 }
 
-const API_BASE = 'https://api.reg.kmitl.ac.th';
-const REGIS_API_BASE = 'https://regis.reg.kmitl.ac.th/api/';
+const REGIS_API_BASE = `${REGIS_ORIGIN}/api/`;
 const TEACH_TABLE_URL = `${REGIS_API_BASE}?function=get-teach-table-show`;
 export const TEACH_TABLE_ENDPOINT = 'get-teach-table-show';
 
@@ -66,7 +66,7 @@ function subjectOwnerUrl(): string {
     JSON.stringify({ TEACH_TABLE_SUBJECT_OWNER_NAME_MAIN_PAGE_TH: 'ASC' }),
   );
   return (
-    `${API_BASE}/reference/?function=get-reference` +
+    `${API_ORIGIN}/reference/?function=get-reference` +
     '&table=TEACH_TABLE_SUBJECT_OWNER' +
     '&select[]=TEACH_TABLE_SUBJECT_OWNER_ID' +
     '&select[]=TEACH_TABLE_SUBJECT_OWNER_NAME_MAIN_PAGE_TH' +
@@ -78,7 +78,7 @@ function subjectOwnerUrl(): string {
 
 export const facultyEndpoint: ReferenceEndpoint<RawFaculty[]> = {
   endpoint: 'get-faculty',
-  url: `${API_BASE}/faculty/?function=get-faculty`,
+  url: `${API_ORIGIN}/faculty/?function=get-faculty`,
   schema: facultyListSchema,
   ttlMs: REFERENCE_TTL_MS,
   cacheKey: refCacheKey('faculty'),
@@ -87,7 +87,7 @@ export const facultyEndpoint: ReferenceEndpoint<RawFaculty[]> = {
 
 export const departmentEndpoint: ReferenceEndpoint<RawDepartment[]> = {
   endpoint: 'get-registrar-department',
-  url: `${API_BASE}/department/?function=get-registrar-department`,
+  url: `${API_ORIGIN}/department/?function=get-registrar-department`,
   schema: departmentListSchema,
   ttlMs: REFERENCE_TTL_MS,
   cacheKey: refCacheKey('department'),
@@ -96,7 +96,7 @@ export const departmentEndpoint: ReferenceEndpoint<RawDepartment[]> = {
 
 export const curriculumEndpoint: ReferenceEndpoint<RawCurriculum[]> = {
   endpoint: 'get-curriculum',
-  url: `${API_BASE}/curriculum/?function=get-curriculum&LEVEL_ID=1`,
+  url: `${API_ORIGIN}/curriculum/?function=get-curriculum&LEVEL_ID=1`,
   schema: curriculumListSchema,
   ttlMs: REFERENCE_TTL_MS,
   cacheKey: refCacheKey('curriculum'),
