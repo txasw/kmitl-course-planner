@@ -79,6 +79,19 @@ export function hasUpdateItems(
   );
 }
 
+/**
+ * The teachTableIds of the entries whose open review the student has not been shown,
+ * the new items that may open the updates dialog on its own. An acknowledged missing
+ * entry holds no review, so it never counts as new again.
+ */
+export function unnotifiedReviewIds(
+  entries: readonly Pick<PlanEntry, 'teachTableId' | 'review'>[],
+): string[] {
+  return entries
+    .filter((entry) => entry.review?.notifiedAt === null)
+    .map((entry) => entry.teachTableId);
+}
+
 function clashesOf(
   id: string,
   kinds: readonly ReviewKind[],

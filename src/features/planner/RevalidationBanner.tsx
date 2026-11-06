@@ -4,9 +4,10 @@
 // through the toast, so the outcome stays next to the plan it describes. It renders in
 // both edit and preview, since correctness matters most at the moment of sharing. While
 // the plan has anything to review, a details action opens the updates dialog, switching
-// to edit first, since the dialog's acknowledge and remove actions never enter the preview
-// DOM. The planner panel renders the dialog outside this live summary, so opening it
-// never reads its whole list as a status update.
+// to edit first, since the dialog's acknowledge and remove actions never enter the
+// preview DOM. A refresh in edit that finds something new opens the dialog directly. The
+// planner panel renders the dialog outside this live summary, so opening it never reads
+// its whole list as a status update.
 
 import { useStore } from 'zustand';
 import { AlertTriangle, List, RefreshCw } from 'lucide-react';
@@ -15,7 +16,7 @@ import { useTranslation } from '@/features/shell/useTranslation';
 import { hasUpdateItems } from '@/lib/planner/updateReview';
 import { useActivePlan } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
-import { revalidatePlanNow } from '@/features/plans/revalidationController';
+import { checkPlanNow } from '@/features/plans/updatesNotice';
 import { uiStore } from '@/features/shell/uiStore';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
@@ -34,11 +35,7 @@ export function RevalidationBanner() {
   }
 
   const refresh = (): void => {
-    void revalidatePlanNow(
-      activePlan,
-      { send, now: () => new Date().toISOString() },
-      true,
-    );
+    void checkPlanNow(activePlan, send);
   };
 
   if (run.status === 'running') {
