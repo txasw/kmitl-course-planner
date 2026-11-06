@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { ClientRect, DroppableContainer } from '@dnd-kit/core';
 import { orderByPriority, prioritizedCollision } from './collision';
-import { REMOVE_ZONE_ID } from './RemoveZone';
+import { REMOVE_BAR_ID, REMOVE_CATALOG_ID, REMOVE_ZONE_ID } from './RemoveZone';
 
 const PANEL_ID = 'kcp-planner-drop';
-const CATALOG_REMOVE_ID = 'kcp-remove-catalog';
-const BAR_REMOVE_ID = 'kcp-remove-bar';
 
 function rect(left: number, top: number, width: number, height: number) {
   return {
@@ -66,7 +64,7 @@ describe('orderByPriority', () => {
     ]);
   });
 
-  it.each([CATALOG_REMOVE_ID, BAR_REMOVE_ID])(
+  it.each([REMOVE_CATALOG_ID, REMOVE_BAR_ID])(
     'ranks the remove prefixed %s above a swap target and a candidate',
     (removeId) => {
       const ordered = orderByPriority([
@@ -123,9 +121,9 @@ describe('prioritizedCollision', () => {
     expect(
       hitsAt(overColumn, [
         { id: PANEL_ID, rect: panel },
-        { id: CATALOG_REMOVE_ID, rect: column },
+        { id: REMOVE_CATALOG_ID, rect: column },
       ]),
-    ).toEqual([CATALOG_REMOVE_ID, PANEL_ID]);
+    ).toEqual([REMOVE_CATALOG_ID, PANEL_ID]);
   });
 
   it('resolves a drop over the hidden column to the panel, never a remove zone', () => {
@@ -134,7 +132,7 @@ describe('prioritizedCollision', () => {
     expect(
       hitsAt(overColumn, [
         { id: PANEL_ID, rect: panel },
-        { id: BAR_REMOVE_ID, rect: rect(0, 736, 1440, 64) },
+        { id: REMOVE_BAR_ID, rect: rect(0, 736, 1440, 64) },
       ]),
     ).toEqual([PANEL_ID]);
   });

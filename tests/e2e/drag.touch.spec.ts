@@ -7,15 +7,18 @@ import {
   waitForResultsInput,
 } from './support/fixtures';
 import { denseSubjectId } from './support/denseCatalog';
+import { addCourse, block, syntheticSearch } from './support/synthetic';
 import { LONG_PRESS_MS, swipe, touchDown, type Point } from './support/touch';
 import type { Locator, Page } from '@playwright/test';
 
 // The touch input model of ADR-0058 on a real touch screen. A swipe that starts on a
 // drag surface scrolls the catalog, a long press on a section row drags it onto the grid
 // and commits, and a tap on a placed block opens its details without the mouse only hover
-// card. The touch events go through the Chrome DevTools Protocol helper, so the browser
-// runs its own scroll and gesture handling. The tablet keeps the grid beside the catalog
-// sheet; on the phone the sheet covers the grid, so these run on the tablet only.
+// card. A long press on a placed block drags it onto the remove bar, which stands in for
+// the catalog column below the dock. The touch events go through the Chrome DevTools
+// Protocol helper, so the browser runs its own scroll and gesture handling. The tablet
+// keeps the grid beside the catalog sheet; on the phone the sheet covers the grid, so
+// these run on the tablet only.
 
 const GRID_BLOCK = '[data-teach-table-id]';
 const SCROLLER = '[data-catalog-scroller]';
@@ -153,4 +156,40 @@ test('a tap on a placed block opens its details and never the hover card', async
   // The hover card opens after its 400 ms rest; wait past it before reading.
   await page.waitForTimeout(600);
   await expect(page.getByRole('tooltip')).toHaveCount(0);
+});
+
+test('a long press on a placed block drags it onto the remove bar, with undo', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await page.getByRole('button', { name: /^รายวิชา/ }).click();
+  await syntheticSearch(page);
+  // Course X section 901 (id 900006) is paired with section 902 (id 900007).
+  await addCourse(page, '90000006');
+  await page
+    .locator('#kcp-catalog-column')
+    .getByRole('button', { name: 'ปิดรายการรายวิชา' })
+    .tap();
+  await expect(page.locator(block('900006'))).toBeVisible();
+
+  const from = await centre(page.locator(block('900006')));
+  const finger = await touchDown(page, from);
+  try {
+    // A long press is defined by elapsed time, so this wait is the gesture itself.
+    await page.waitForTimeout(LONG_PRESS_MS);
+    await finger.moveTo({ x: from.x + 24, y: from.y + 24 }, 6);
+    // Below the dock no column is shown, so the remove zone is the bar.
+    const bar = page.locator('[data-remove-zone="bar"]');
+    await expect(bar).toBeVisible();
+    await expect(page.locator('[data-remove-zone]')).toHaveCount(1);
+    await finger.moveTo(await centre(bar), 12);
+  } finally {
+    await finger.lift();
+  }
+
+  await expect(page.locator(block('900006'))).toHaveCount(0);
+  await expect(page.locator(block('900007'))).toHaveCount(0);
+  await page.getByRole('button', { name: 'เลิกทำ' }).tap();
+  await expect(page.locator(block('900006'))).toBeVisible();
+  await expect(page.locator(block('900007'))).toBeVisible();
 });

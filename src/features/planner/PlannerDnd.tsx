@@ -4,7 +4,7 @@
 // reason and alternatives. A course drag paints every section of the course as a
 // candidate slot; dropping on a valid slot commits that section and its pair. A block
 // drag lifts a placed section: the remove zone appears, the docked catalog column or a
-// target at the panel bottom, and the grid paints the subject's other sections as move
+// bar at the panel bottom, and the grid paints the subject's other sections as move
 // targets, so a drop removes the section or moves it to another slot, and a drop back on
 // its own place cancels silently. A custom collision detection resolves overlapping drop
 // targets by an explicit priority. Every drag first finishes a running catalog slide, so
