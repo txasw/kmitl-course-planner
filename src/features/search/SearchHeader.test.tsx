@@ -63,11 +63,12 @@ function formRegion(container: HTMLElement): HTMLElement {
 beforeEach(() => {
   const state = searchStore.getState();
   state.hydrate({
-    schemaVersion: 1,
+    schemaVersion: 2,
     activeTab: 'by_subject_id',
-    byClass: defaultClassForm(term),
-    bySubjectId: { ...defaultSubjectIdForm(term), subjectId: '90592033' },
-    byCategory: defaultCategoryForm(term),
+    term,
+    byClass: defaultClassForm(),
+    bySubjectId: { ...defaultSubjectIdForm(), subjectId: '90592033' },
+    byCategory: defaultCategoryForm(),
   });
   state.cancelSearch();
   state.setInitialized(false);

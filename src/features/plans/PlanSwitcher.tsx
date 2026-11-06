@@ -11,7 +11,6 @@ import { CalendarRange, ChevronDown } from 'lucide-react';
 import { useClick, useDismiss, useInteractions } from '@floating-ui/react';
 import { planSchema, type Plan } from '@/lib/domain/plan';
 import type { Term } from '@/lib/routing/academicTerms';
-import { termForTab } from '@/lib/search/formState';
 import { planExportBaseName } from '@/lib/planner/exportName';
 import { parsePlanImport } from '@/lib/plans/parsePlanImport';
 import { downloadText } from '@/lib/utils/download';
@@ -42,9 +41,9 @@ type Mode =
   | { kind: 'confirmDelete'; planId: string }
   | { kind: 'importError'; issues: string[] };
 
-/** The term the active search tab targets, used as a new plan's default term. */
+/** The term the search form targets, used as a new plan's default term. */
 function searchFormTerm(state: SearchStore): Term {
-  return termForTab(state.activeTab, state);
+  return state.term;
 }
 
 export function PlanSwitcher() {

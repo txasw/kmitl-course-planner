@@ -50,10 +50,9 @@ const loading: ReferenceLists = {
 };
 
 function classQuery(
-  overrides: Partial<Parameters<typeof buildClassQuery>[0]>,
+  overrides: Partial<Parameters<typeof buildClassQuery>[1]>,
 ): TeachTableQuery {
-  return buildClassQuery({
-    ...term,
+  return buildClassQuery(term, {
     faculty: '01',
     department: '08',
     curriculum: '08',
@@ -63,7 +62,7 @@ function classQuery(
 }
 
 describe('describeQuery by subject id', () => {
-  const query = buildSubjectIdQuery({ ...term, subjectId: '90592033' });
+  const query = buildSubjectIdQuery(term, { subjectId: '90592033' });
 
   it('names the subject id with no qualifiers', () => {
     expect(describeQuery(query, ready, 'th', th)).toEqual({
@@ -79,8 +78,7 @@ describe('describeQuery by subject id', () => {
 
 describe('describeQuery by category', () => {
   it('names the category and the faculty acronym of the locale', () => {
-    const query = buildCategoryQuery({
-      ...term,
+    const query = buildCategoryQuery(term, {
       faculty: '01',
       subjectOwner: '6',
     });
@@ -95,8 +93,7 @@ describe('describeQuery by category', () => {
   });
 
   it('falls back to the faculty name when the faculty has no acronym', () => {
-    const query = buildCategoryQuery({
-      ...term,
+    const query = buildCategoryQuery(term, {
       faculty: '22',
       subjectOwner: '6',
     });
@@ -109,8 +106,7 @@ describe('describeQuery by category', () => {
   });
 
   it('reads all faculties when search_all_faculty is set', () => {
-    const query = buildCategoryQuery({
-      ...term,
+    const query = buildCategoryQuery(term, {
       faculty: 'all',
       subjectOwner: '6',
     });
@@ -123,8 +119,7 @@ describe('describeQuery by category', () => {
   });
 
   it('shows the raw ids while the reference lists load', () => {
-    const query = buildCategoryQuery({
-      ...term,
+    const query = buildCategoryQuery(term, {
       faculty: '01',
       subjectOwner: '32',
     });

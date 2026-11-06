@@ -17,6 +17,7 @@ import {
 import {
   SEARCH_TABS,
   buildTeachTableQueryForTab,
+  isTermReady,
   isValidSubjectId,
 } from '@/lib/search/formState';
 import { commitAndFocus } from '@/features/shell/commitAndFocus';
@@ -48,6 +49,7 @@ export function SearchForm() {
   const { t, language } = useTranslation();
 
   const activeTab = useStore(searchStore, (state) => state.activeTab);
+  const term = useStore(searchStore, (state) => state.term);
   const byClass = useStore(searchStore, (state) => state.byClass);
   const bySubjectId = useStore(searchStore, (state) => state.bySubjectId);
   const byCategory = useStore(searchStore, (state) => state.byCategory);
@@ -71,7 +73,7 @@ export function SearchForm() {
       curricula.status === 'error' ||
       subjectOwners.status === 'error');
 
-  const query = buildTeachTableQueryForTab(activeTab, {
+  const query = buildTeachTableQueryForTab(activeTab, term, {
     byClass,
     bySubjectId,
     byCategory,
@@ -92,7 +94,7 @@ export function SearchForm() {
   // Enter routes to the inline message and focuses the field rather than a dead
   // disabled control; the other tabs disable until their form is ready.
   const submitDisabled =
-    activeTab === 'by_subject_id' ? bySubjectId.year === '' : query === null;
+    activeTab === 'by_subject_id' ? !isTermReady(term) : query === null;
 
   // An accepted search folds this form and turns it inert, so focus moves from the
   // pressed control to the summary bar in the same commit. The bar is not a button, so
@@ -163,11 +165,25 @@ export function SearchForm() {
       ) : null}
 
       <div className="flex flex-col gap-3">
+        <TermFields
+          year={term.year}
+          semester={term.semester}
+          years={years}
+          t={t}
+          onYear={(year) => {
+            searchStore.getState().patchTerm({ year });
+          }}
+          onSemester={(value) => {
+            const semester = parseSemester(value);
+            if (semester !== null) {
+              searchStore.getState().patchTerm({ semester });
+            }
+          }}
+        />
         {activeTab === 'by_class' ? (
           <ClassFields
             form={byClass}
             reference={reference}
-            years={years}
             locale={language}
             t={t}
             patch={(patch) => {
@@ -176,42 +192,24 @@ export function SearchForm() {
           />
         ) : null}
         {activeTab === 'by_subject_id' ? (
-          <>
-            <TermFields
-              year={bySubjectId.year}
-              semester={bySubjectId.semester}
-              years={years}
-              t={t}
-              onYear={(year) => {
-                searchStore.getState().patchSubjectIdForm({ year });
-              }}
-              onSemester={(value) => {
-                const semester = parseSemester(value);
-                if (semester !== null) {
-                  searchStore.getState().patchSubjectIdForm({ semester });
-                }
-              }}
-            />
-            <SubjectIdInput
-              label={t('search.subjectId')}
-              value={bySubjectId.subjectId}
-              hint={t('search.subjectIdHint')}
-              invalid={subjectIdShowMessage}
-              invalidMessage={t('search.subjectIdInvalid')}
-              inputRef={subjectIdRef}
-              onChange={(subjectId) => {
-                searchStore.getState().patchSubjectIdForm({ subjectId });
-                setSubjectIdAttempted(false);
-              }}
-              onSubmit={handleSubmit}
-            />
-          </>
+          <SubjectIdInput
+            label={t('search.subjectId')}
+            value={bySubjectId.subjectId}
+            hint={t('search.subjectIdHint')}
+            invalid={subjectIdShowMessage}
+            invalidMessage={t('search.subjectIdInvalid')}
+            inputRef={subjectIdRef}
+            onChange={(subjectId) => {
+              searchStore.getState().patchSubjectIdForm({ subjectId });
+              setSubjectIdAttempted(false);
+            }}
+            onSubmit={handleSubmit}
+          />
         ) : null}
         {activeTab === 'by_subject_owner_id' ? (
           <CategoryFields
             form={byCategory}
             reference={reference}
-            years={years}
             locale={language}
             t={t}
             patch={(patch) => {

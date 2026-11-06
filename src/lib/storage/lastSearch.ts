@@ -1,5 +1,5 @@
-// Content owned last search state, persisted so the three search tabs restore
-// their fields and the active tab on reopen. It follows the preferences pattern:
+// Content owned last search state, persisted so the shared term, the three search
+// tabs' fields, and the active tab restore on reopen. It follows the preferences pattern:
 // a single blob under its own key, validated on read, resolving to null on a
 // corrupt or absent value so the caller falls back to route or generated
 // defaults rather than crashing. It is disjoint from the plan root and the worker
@@ -12,12 +12,14 @@ import {
   SEARCH_TABS,
   categoryFormSchema,
   classFormSchema,
+  searchTermSchema,
   subjectIdFormSchema,
 } from '../search/formState';
 
 export const searchStateSchema = z.object({
-  schemaVersion: z.literal(1),
+  schemaVersion: z.literal(2),
   activeTab: z.enum(SEARCH_TABS),
+  term: searchTermSchema,
   byClass: classFormSchema,
   bySubjectId: subjectIdFormSchema,
   byCategory: categoryFormSchema,

@@ -29,12 +29,13 @@ const term: Term = { year: '2569', semester: '1' };
 
 function sampleState(): SearchState {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     activeTab: 'by_subject_owner_id',
-    byClass: { ...defaultClassForm(term), faculty: '01' },
-    bySubjectId: defaultSubjectIdForm(term),
+    term,
+    byClass: { ...defaultClassForm(), faculty: '01' },
+    bySubjectId: defaultSubjectIdForm(),
     byCategory: {
-      ...defaultCategoryForm(term),
+      ...defaultCategoryForm(),
       faculty: '01',
       subjectOwner: '32',
     },

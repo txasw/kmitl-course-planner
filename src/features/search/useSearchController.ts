@@ -14,7 +14,7 @@
 // cancellation guard; the query guard exists only to drop a stale response.
 
 import { useCallback, useEffect, useRef } from 'react';
-import { buildTeachTableQueryForTab, termForTab } from '@/lib/search/formState';
+import { buildTeachTableQueryForTab } from '@/lib/search/formState';
 import {
   buddhistYears,
   resolveInitialTerm,
@@ -109,14 +109,12 @@ export function useSearchInit(
       if (persisted) {
         searchStore.getState().hydrate(persisted);
       }
-      const persistedTerm =
-        persisted === null ? null : termForTab(persisted.activeTab, persisted);
       const sources = {
         route: initialRoute.current,
         persisted:
-          persistedTerm === null
+          persisted === null
             ? null
-            : termFromQueryFields(persistedTerm.year, persistedTerm.semester),
+            : termFromQueryFields(persisted.term.year, persisted.term.semester),
         years: buddhistYears(toBuddhistYear(new Date().getFullYear())),
       };
       const initial = resolveInitialTerm({
@@ -124,7 +122,7 @@ export function useSearchInit(
         plan: activePlanTerm(),
         current: null,
       });
-      // The hydrated forms already carry their own per tab terms.
+      // The hydrated search already carries its shared term.
       if (initial.source === 'persisted') {
         return;
       }
@@ -190,7 +188,7 @@ export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
 
   const submit = useCallback(async () => {
     const state = searchStore.getState();
-    const query = buildTeachTableQueryForTab(state.activeTab, {
+    const query = buildTeachTableQueryForTab(state.activeTab, state.term, {
       byClass: state.byClass,
       bySubjectId: state.bySubjectId,
       byCategory: state.byCategory,
@@ -199,8 +197,9 @@ export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
       return;
     }
     void repo.save({
-      schemaVersion: 1,
+      schemaVersion: 2,
       activeTab: state.activeTab,
+      term: state.term,
       byClass: state.byClass,
       bySubjectId: state.bySubjectId,
       byCategory: state.byCategory,
