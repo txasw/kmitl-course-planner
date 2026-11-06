@@ -3,8 +3,10 @@
 // arranges them: one group per exam kind, midterm before final, each a list of days in
 // date order with one row per subject and window. A day with two or more subjects carries
 // a same day count for a neutral note, a row records the subjects whose exam it collides
-// with. Only well formed windows are dated, the same reading the overlap gate applies, so
-// a malformed window is never listed and never marks a clash.
+// with, and the subjects that announce no dated exam at all form the arranged by the
+// instructor list. Only well formed windows are dated, the same reading the overlap gate
+// applies, so a malformed window is never listed and never marks a clash. A row is tagged
+// changed while the entry's open review holds an exam change.
 
 import { snapshotToSection, type PlanEntry } from '../domain/plan';
 import type { DateRange, Section } from '../domain/types';
@@ -24,6 +26,8 @@ export interface ExamSubject {
   nameEn: string;
   /** The plan's section codes this item covers, in numeric order. */
   sections: string[];
+  /** Whether an open review of one of these sections holds an exam change. */
+  changed: boolean;
 }
 
 /** Another placed subject whose exam of the same kind collides with a row. */
@@ -65,6 +69,8 @@ export interface ExamKindGroup {
 export interface ExamSchedule {
   /** The kinds with at least one dated exam, midterm before final. */
   groups: ExamKindGroup[];
+  /** The subjects with no dated exam of either kind, ordered by subject id. */
+  selfArranged: ExamSubject[];
   /** Whether any row collides with another subject's exam. */
   hasClash: boolean;
 }
@@ -77,6 +83,10 @@ interface Placed {
 const compareCodes = (a: string, b: string): number =>
   a.localeCompare(b, undefined, { numeric: true });
 
+function examChanged(entry: PlanEntry): boolean {
+  return entry.review?.kinds.includes('exam_changed') ?? false;
+}
+
 function subjectOf(placed: Placed): ExamSubject {
   const meta = placed.entry.snapshot.subjectMeta;
   return {
@@ -84,12 +94,14 @@ function subjectOf(placed: Placed): ExamSubject {
     nameTh: meta.nameTh,
     nameEn: meta.nameEn,
     sections: [],
+    changed: false,
   };
 }
 
 function addSection(item: ExamSubject, placed: Placed): void {
   item.sections.push(placed.section.section);
   item.sections.sort(compareCodes);
+  item.changed ||= examChanged(placed.entry);
 }
 
 // The weekday is read from a UTC date built from the extracted fields rather than by
@@ -189,6 +201,23 @@ function groupByDay(rows: readonly ExamScheduleRow[]): ExamDay[] {
   return days;
 }
 
+/** The subjects none of whose sections announces a dated exam of either kind. */
+function selfArranged(placed: readonly Placed[]): ExamSubject[] {
+  const subjects = new Map<string, ExamSubject>();
+  const dated = new Set<string>();
+  for (const item of placed) {
+    const subject = subjects.get(item.section.subjectId) ?? subjectOf(item);
+    subjects.set(item.section.subjectId, subject);
+    addSection(subject, item);
+    if (EXAM_KINDS.some((kind) => isExamWindow(item.section.exam[kind]))) {
+      dated.add(item.section.subjectId);
+    }
+  }
+  return [...subjects.values()]
+    .filter((subject) => !dated.has(subject.subjectId))
+    .sort((a, b) => a.subjectId.localeCompare(b.subjectId));
+}
+
 /** Arrange a plan's entries into its exam schedule. */
 export function buildExamSchedule(entries: readonly PlanEntry[]): ExamSchedule {
   const placed = entries.map((entry) => ({
@@ -206,5 +235,5 @@ export function buildExamSchedule(entries: readonly PlanEntry[]): ExamSchedule {
       groups.push({ kind, days });
     }
   }
-  return { groups, hasClash };
+  return { groups, selfArranged: selfArranged(placed), hasClash };
 }
