@@ -4,25 +4,28 @@
 // carries the facts a quick look needs: every meeting with its full day, time, and place,
 // the kind and credits, the instructors, the seats, and the exam dates. The full density,
 // for the popover that touch and keyboard users reach, adds the exam detail, the
-// conditions, the remark, and when the section was last checked. It also spells out under
-// the credit string the weekly lecture, practice, and self study hours the string
-// encodes, so a student need not know the 3(2-3-6) notation; the hover card keeps the
-// short string alone so a quick look stays short, and a credit string outside the
-// notation shows no hours line rather than a wrong one. Seats read through the full
-// SeatDemand variant, the catalog row's seat line plus the host's four counts, from the
-// snapshot the latest verification refreshed. A section that announces neither exam
-// date reads as arranged by the instructor rather than leaving the exam rows out, so a
-// missing date is never mistaken for a missing field. The conditions read in the warn
-// tone with the shield icon a catalog row gives them, through the same line split and
-// locale fallback, but listed in full since the popover has the room a row does not.
+// conditions, the remark, the curriculum groupings the section is open to, and when the
+// section was last checked. It also spells out under the credit string the weekly
+// lecture, practice, and self study hours the string encodes, so a student need not know
+// the 3(2-3-6) notation; the hover card keeps the short string alone so a quick look
+// stays short, and a credit string outside the notation shows no hours line rather than a
+// wrong one. Seats read through the full SeatDemand variant, the catalog row's seat line
+// plus the host's four counts, from the snapshot the latest verification refreshed. A
+// section that announces neither exam date reads as arranged by the instructor rather
+// than leaving the exam rows out, so a missing date is never mistaken for a missing
+// field. The conditions read in the warn tone with the shield icon a catalog row gives
+// them, through the same line split and locale fallback, but listed in full since the
+// popover has the room a row does not.
 
-import type { ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { MapPin, ShieldAlert } from 'lucide-react';
-import type { Section } from '@/lib/domain/types';
+import type { OfferedTo, Section } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { pickLocalizedWithLang } from '@/lib/i18n/localize';
 import { fillTemplate } from '@/lib/i18n/template';
 import { parseCreditLps } from '@/lib/parsing/creditLps';
+import { describeGrouping } from '@/lib/search/describeQuery';
+import { useReferenceLists } from '@/features/search/useReferenceLists';
 import { conditionLines, textLines } from '@/lib/catalog/conditions';
 import { computeSeatDemand } from '@/lib/catalog/seatDemand';
 import { SeatDemand } from '@/features/catalog/SeatDemand';
@@ -90,6 +93,40 @@ function checkedAtText(
   }
   const date = new Date(lastVerifiedAt);
   return Number.isNaN(date.getTime()) ? null : formatLocalDateTime(date, t);
+}
+
+interface OfferedToValuesProps {
+  offeredTo: readonly OfferedTo[];
+  locale: Locale;
+  t: Translate;
+}
+
+// The groupings name themselves through the cached reference lists, so they follow
+// the locale, and an id the lists do not hold shows as the raw id. The closing note
+// says the list describes the search the section was added from, which revalidation
+// replays, not every curriculum the section may be open to.
+function OfferedToValues({ offeredTo, locale, t }: OfferedToValuesProps) {
+  const reference = useReferenceLists();
+  const groupings = useMemo(
+    () =>
+      offeredTo.map((grouping) =>
+        describeGrouping(grouping, reference, locale, t),
+      ),
+    [offeredTo, reference, locale, t],
+  );
+  return (
+    <>
+      {groupings.map((grouping, index) => (
+        <dd key={`${String(index)}-${grouping.primary}`} className={VALUE}>
+          {grouping.primary}{' '}
+          <span className="text-ink-soft">{grouping.qualifiers.join(' ')}</span>
+        </dd>
+      ))}
+      <dd className={`${VALUE_BOX} text-ink-soft`}>
+        {t('offeredTo.detailScope')}
+      </dd>
+    </>
+  );
 }
 
 export function SectionDetailList({
@@ -228,6 +265,18 @@ export function SectionDetailList({
               {line}
             </dd>
           ))}
+        </DetailRow>
+      ) : null}
+
+      {full &&
+      section.offeredTo !== undefined &&
+      section.offeredTo.length > 0 ? (
+        <DetailRow label={t('offeredTo.label')} columns={columns}>
+          <OfferedToValues
+            offeredTo={section.offeredTo}
+            locale={locale}
+            t={t}
+          />
         </DetailRow>
       ) : null}
 
