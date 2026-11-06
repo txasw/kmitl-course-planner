@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { describe, it, expect } from 'vitest';
 import { CONTROL_BOUNDARY, CONTROL_DISABLED } from '@/lib/ui/control';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 // Reads the authored shadow stylesheet and asserts every design token is present
 // and mapped into a Tailwind namespace. This guards against a token being
@@ -68,12 +69,26 @@ describe('shadow stylesheet tokens', () => {
     expect(css).toContain('--shadow-kcp: var(--kcp-shadow)');
   });
 
-  it('declares the sheet radius and the bottom safe area inset', () => {
+  it('declares the sheet radius', () => {
     expect(css).toContain('--kcp-radius-sheet: 12px;');
     expect(css).toContain('--radius-kcp-sheet: var(--kcp-radius-sheet)');
-    expect(css).toContain(
-      '--kcp-safe-bottom: env(safe-area-inset-bottom, 0px);',
-    );
+  });
+
+  it('declares a safe area inset token for every edge', () => {
+    for (const edge of ['top', 'right', 'bottom', 'left']) {
+      expect(css).toContain(
+        `--kcp-safe-${edge}: env(safe-area-inset-${edge}, 0px);`,
+      );
+    }
+  });
+
+  it('declares the target sizes that the shared target classes read', () => {
+    expect(css).toContain('--kcp-target-min: 24px;');
+    expect(css).toContain('--kcp-target-touch: 44px;');
+    expect(TARGET_SIZE).toContain('min-h-(--kcp-target-min)');
+    expect(TARGET_SIZE).toContain('min-w-(--kcp-target-min)');
+    expect(TARGET_SIZE).toContain('pointer-coarse:min-h-(--kcp-target-touch)');
+    expect(TARGET_SIZE).toContain('pointer-coarse:min-w-(--kcp-target-touch)');
   });
 
   it('animates the sheet entrance from a motion token', () => {

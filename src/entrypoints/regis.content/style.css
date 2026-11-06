@@ -120,9 +120,20 @@
   --kcp-radius-sheet: 12px;
   --kcp-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 
-  /* The home indicator inset on phones, zero where the device has none, so a surface
-     pinned to the bottom edge keeps its controls clear of the system gesture area. */
+  /* The device safe area insets, zero where the device has none: the notch and the
+     rounded corners at the top and sides, and the home indicator at the bottom. A
+     surface pinned to a viewport edge pads by the matching inset so its controls stay
+     clear of the system areas. */
+  --kcp-safe-top: env(safe-area-inset-top, 0px);
+  --kcp-safe-right: env(safe-area-inset-right, 0px);
   --kcp-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --kcp-safe-left: env(safe-area-inset-left, 0px);
+
+  /* The pointer target sizes. Every control keeps at least the 24 px minimum target of
+     WCAG 2.5.8, and grows to 44 px under a coarse pointer, where a finger covers more
+     than a cursor. TARGET_SIZE in lib/ui/target.ts reads them. */
+  --kcp-target-min: 24px;
+  --kcp-target-touch: 44px;
 
   /* One layer scale for everything stacked inside the overlay panel, which is a
      stacking context of its own, so these values only order the panel's own
