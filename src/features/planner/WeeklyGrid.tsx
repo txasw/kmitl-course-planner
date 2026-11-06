@@ -231,6 +231,7 @@ export function WeeklyGrid({
           window={window}
           days={days}
           orientation={orientation}
+          t={t}
         />
       ) : null}
 

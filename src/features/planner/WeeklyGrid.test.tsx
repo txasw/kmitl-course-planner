@@ -67,6 +67,7 @@ afterEach(() => {
   dragStore.getState().clearBlocked();
   dragStore.getState().clearHover();
   dragStore.getState().clearCourse();
+  dragStore.getState().clearBlockMove();
   dragStore.getState().setSwapContext(null);
   act(() => {
     planStore.setState({ entries: [] });
@@ -698,7 +699,45 @@ describe('WeeklyGrid', () => {
         editable
       />,
     );
-    expect(document.querySelector('[data-swap-target]')).not.toBeNull();
+    const target = document.querySelector('[data-swap-target]');
+    expect(target).toHaveTextContent('สลับเป็นกลุ่ม 901');
+    expect(target).toHaveClass('border-2', 'border-primary');
+    expect(target).not.toHaveClass('border-dashed');
+    expect(target?.querySelector('.lucide-arrow-left-right')).not.toBeNull();
+  });
+
+  it('labels a valid block move candidate with the move it performs', () => {
+    const origin = makeSection({
+      teachTableId: 'm1',
+      subjectId: 'S1',
+      section: '901',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 660 })],
+    });
+    const other = makeSection({
+      teachTableId: 'm2',
+      subjectId: 'S1',
+      section: '902',
+      meetings: [makeMeeting({ day: 3, startMin: 540, endMin: 660 })],
+    });
+    dragStore
+      .getState()
+      .startBlockMove(
+        origin,
+        [origin],
+        makeCourse({ subjectId: 'S1', sections: [origin, other] }),
+      );
+    render(
+      <WeeklyGrid
+        sections={[]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+        editable
+      />,
+    );
+    expect(
+      document.querySelector('[data-candidate="valid"]'),
+    ).toHaveTextContent('ย้ายไปกลุ่ม 902');
   });
 
   it('cancels a pending hover card on leave and keeps a shown one for the card to close', () => {
