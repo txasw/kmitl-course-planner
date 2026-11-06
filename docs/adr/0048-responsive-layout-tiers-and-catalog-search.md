@@ -307,9 +307,10 @@ until this record and the test change together.
 
 - `StatusAnnouncer`, in `Layout` beside the catalog column, speaks when a user search settles:
   the course and section count, the empty title with the searched term, or the error title. The
-  search store records the intent of each run in the same write as its query, so a retry or a
-  refresh replaces the result without a word. The message is written at the settle, so a
-  re-render, a language change or a remount never repeats it. A result that lands while the
+  search store records the intent of each run in the same write as its query, so a refresh
+  replaces the result without a word. A retry pressed on the error state is spoken, because the
+  student asked again after an outcome that was spoken. The message is written at the settle,
+  so a re-render, a language change or a remount never repeats it. A result that lands while the
   sheet is closed or the docked column is hidden is still spoken, because the announcer sits
   outside both. Preview has no search and carries no announcer.
 - `FeedbackStrip` speaks placement outcomes, and its screen reader only added line only while
