@@ -4,7 +4,11 @@
 // neighbour. The classes set minimums only, so a control that is already larger keeps
 // its own size.
 
-/** The 24 px minimum alone, without the growth under a coarse pointer. */
+/**
+ * The 24 px minimum alone, without the growth under a coarse pointer, for a control that
+ * is hidden under a coarse pointer, such as the placed block remove control, whose action
+ * the detail sheet carries on touch.
+ */
 export const TARGET_MIN = 'min-h-(--kcp-target-min) min-w-(--kcp-target-min)';
 
 /**

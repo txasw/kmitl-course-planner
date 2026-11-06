@@ -542,6 +542,39 @@ describe('EventBlock', () => {
     expect(onRemove).toHaveBeenCalledWith('t1');
   });
 
+  it('hides the remove control on a coarse pointer and keeps Enter opening the details', () => {
+    const onOpenDetail = vi.fn();
+    const onRemove = vi.fn();
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        onRemove={onRemove}
+        removeLabel={t('action.remove')}
+        onOpenDetail={onOpenDetail}
+      />,
+    );
+    // The remove control drops out of layout, the tab order and the accessibility tree
+    // under a coarse pointer, and keeps the 24 px floor for a fine one.
+    const remove = screen.getByRole('button', { name: t('action.remove') });
+    expect(remove).toHaveClass('pointer-coarse:hidden');
+    expect(remove).toHaveClass('min-h-(--kcp-target-min)');
+    expect(remove).toHaveClass('min-w-(--kcp-target-min)');
+
+    // With the remove control gone, a keyboard reaches removal through the block itself:
+    // Enter opens the detail surface, which carries the remove action.
+    const block = screen.getByRole('button', { name: /90592033/ });
+    expect(block).toHaveAttribute('tabindex', '0');
+    expect(block).not.toHaveClass('pointer-coarse:hidden');
+    block.focus();
+    fireEvent.keyDown(block, { key: 'Enter' });
+    expect(onOpenDetail).toHaveBeenCalledWith(block);
+    expect(onRemove).not.toHaveBeenCalled();
+  });
+
   it('renders no remove control without onRemove', () => {
     render(
       <EventBlock

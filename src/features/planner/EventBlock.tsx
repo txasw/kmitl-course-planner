@@ -24,6 +24,9 @@
 // (ADR-0044), so the block carries no separate info affordance. The only chrome control is
 // the quiet remove button, kept a sibling of the interactive block rather than nested
 // inside it so no interactive control nests in another; a positioning wrapper holds both.
+// Under a coarse pointer the remove button is hidden: a 44 px target would cover a short
+// block, and the detail sheet that a tap or Enter on the block opens carries Remove, so a
+// touch laptop used with a keyboard keeps a keyboard path to removal (ADR-0058).
 // The verification marks are an editing signal for the plan owner, so the export poster
 // renders the block without them (ADR-0055).
 
@@ -341,7 +344,7 @@ function EventBlockComponent({
           onClick={() => {
             onRemove(section.teachTableId);
           }}
-          className={`absolute top-0.5 right-0.5 z-grid inline-flex items-center justify-center rounded bg-ink/5 p-0.5 text-ink-soft opacity-0 outline-none group-hover/block:opacity-100 group-focus-within/block:opacity-100 hover:bg-ink/10 hover:text-ink focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary ${TARGET_MIN}`}
+          className={`absolute top-0.5 right-0.5 z-grid inline-flex items-center justify-center rounded bg-ink/5 p-0.5 text-ink-soft opacity-0 outline-none group-hover/block:opacity-100 group-focus-within/block:opacity-100 hover:bg-ink/10 hover:text-ink focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary pointer-coarse:hidden ${TARGET_MIN}`}
         >
           <X size={12} aria-hidden />
         </button>
