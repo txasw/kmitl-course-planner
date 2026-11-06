@@ -9,8 +9,11 @@ import {
 import { createTranslator } from '@/lib/i18n/t';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { planStore } from '@/features/plans/planStore';
+import { confirmAdd } from '@/features/plans/addToPlan';
 import { searchStore } from '@/features/search/searchStore';
 import { catalogStore } from '@/features/catalog/catalogStore';
+import { Toaster } from '@/features/shell/Toaster';
+import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { installViewport } from '../../../tests/support/viewport';
 import {
@@ -240,6 +243,63 @@ describe('FeedbackStrip', () => {
     });
     render(<FeedbackStrip t={t} />);
     expect(screen.getByText('เพิ่มลงตารางแล้ว 90592008')).toBeInTheDocument();
+  });
+
+  describe('a catalog add confirmation', () => {
+    const added = makeSection({ subjectId: '90592033', section: '901' });
+
+    // Every polite region the add could speak through, with its current text.
+    function spokenRegions(container: HTMLElement): string[] {
+      return [...container.querySelectorAll('[aria-live]')]
+        .map((region) => region.textContent)
+        .filter((text) => text !== '');
+    }
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+      act(() => {
+        toastStore.getState().dismiss();
+        uiStore.getState().close();
+      });
+    });
+
+    it('is read once from the strip while the timetable is in view', () => {
+      installViewport(1280);
+      act(() => {
+        uiStore.getState().open();
+      });
+      const { container } = render(
+        <>
+          <FeedbackStrip t={t} />
+          <Toaster />
+        </>,
+      );
+      act(() => {
+        confirmAdd(added, t);
+      });
+      expect(spokenRegions(container)).toEqual(['เพิ่มลงตารางแล้ว 90592033']);
+    });
+
+    it('is read once from the toast while the sheet covers the timetable', () => {
+      installViewport(768);
+      act(() => {
+        uiStore.getState().open();
+        uiStore.getState().setSheetOpen(true);
+      });
+      const { container } = render(
+        <>
+          <FeedbackStrip t={t} />
+          <Toaster />
+        </>,
+      );
+      act(() => {
+        confirmAdd(added, t);
+      });
+      expect(dragStore.getState().announcement).toBeNull();
+      expect(spokenRegions(container)).toEqual([
+        'เพิ่ม 90592033 กลุ่มเรียน 901 แล้วดูตาราง',
+      ]);
+    });
   });
 
   it('shows a course drop hint', () => {

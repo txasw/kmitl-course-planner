@@ -11,6 +11,7 @@ import { fillTemplate } from '@/lib/i18n/template';
 import type { AddOutcome, TransactionOutcome } from '@/lib/planner/transaction';
 import { toSourceQuery } from '@/lib/planner/sourceQuery';
 import { BREAKPOINTS, minWidthQuery } from '@/lib/ui/breakpoints';
+import { dragStore } from '@/features/planner/dragStore';
 import { searchStore } from '@/features/search/searchStore';
 import { CATALOG_TOGGLE_ID } from '@/features/shell/catalogVisibility';
 import { commitAndFocus } from '@/features/shell/commitAndFocus';
@@ -53,13 +54,19 @@ function gridCovered(): boolean {
 }
 
 /**
- * Confirm a committed catalog add. While the timetable is covered, the outcome is not
- * visible on screen, so a toast names the section and offers the way to the timetable,
- * which closes the sheet and returns focus to the control that reopens it. The pane
- * never switches on its own, because the student is still picking from the list.
+ * Confirm a committed catalog add through exactly one live region, so the add is read
+ * once. With the timetable in view, the new block is the visible outcome and the
+ * feedback strip's screen reader only line speaks it. While the timetable is covered,
+ * the outcome is not visible on screen, so a toast names the section and offers the
+ * way to the timetable, which closes the sheet and returns focus to the control that
+ * reopens it, and the strip stays silent. The pane never switches on its own, because
+ * the student is still picking from the list.
  */
 export function confirmAdd(section: Section, t: Translate): void {
   if (!gridCovered()) {
+    dragStore
+      .getState()
+      .announce(`${t('feedback.added')} ${section.subjectId}`);
     return;
   }
   toastStore.getState().show(

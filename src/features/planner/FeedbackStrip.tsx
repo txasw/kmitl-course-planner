@@ -2,9 +2,12 @@
 // rejected drop shows the blocking reason and up to two alternative sections of the
 // same subject that would fit, or a reveal action when none do. A cross term add and a
 // drag hint show here too. Each clears on its own window, six seconds for the blocked
-// reason. It is not the toast, which stays reserved for actions whose outcome is not
-// otherwise visible on screen; the undo for a removal, move, or swap is an undo toast in
-// the bottom region, where the eye already is on the block that changed.
+// reason. A catalog add is confirmed by a screen reader only line here only while the
+// timetable is in view; while the sheet covers it, the add toast speaks instead and this
+// line stays empty, so the add is read once. It is not the toast, which stays reserved
+// for actions whose outcome is not otherwise visible on screen; the undo for a removal,
+// move, or swap is an undo toast in the bottom region, where the eye already is on the
+// block that changed.
 
 import { useEffect } from 'react';
 import { useStore } from 'zustand';

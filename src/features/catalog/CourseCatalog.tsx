@@ -186,9 +186,6 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
     (course: Course, section: Section) => {
       const outcome = addSectionToPlan(course, section);
       if (outcome.ok) {
-        dragStore
-          .getState()
-          .announce(`${t('feedback.added')} ${section.subjectId}`);
         confirmAdd(section, t);
       } else if ('crossTerm' in outcome) {
         dragStore.getState().showCrossTerm(outcome.crossTerm);
