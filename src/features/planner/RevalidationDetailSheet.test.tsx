@@ -7,7 +7,7 @@ import {
   act,
 } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
-import type { EntryDiff, ReconcileReport } from '@/lib/planner/revalidate';
+import type { EntryDiff, ReconcileReport } from '@/lib/planner/reconcile';
 import {
   makeMeeting,
   makeSnapshot,

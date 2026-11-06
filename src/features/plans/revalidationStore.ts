@@ -7,7 +7,7 @@
 
 import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
-import type { ReconcileReport } from '@/lib/planner/revalidate';
+import type { ReconcileReport } from '@/lib/planner/reconcile';
 import { planStore } from './planStore';
 
 export type RevalidationStatus = 'running' | 'done' | 'partial' | 'offline';

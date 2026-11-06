@@ -1,30 +1,12 @@
-// The pure reconcile that applies plan revalidation. Matching and diffing live in
-// revalidateDiff; reconcile folds the fresh data back into new plan entries and
-// reports old versus new. It stays pure so the plans feature only fetches and writes.
+// A whole plan revalidation that classifies every entry without reconciling it.
 
-import type {
-  Plan,
-  PlanEntry,
-  SectionSnapshot,
-  VerifyStatus,
-} from '../domain/plan';
-import { buildSnapshot, entryTermMatches } from '../domain/plan';
+import type { Plan } from '../domain/plan';
 import {
-  diffSnapshot,
-  matchEntry,
   revalidateEntry,
-  type ChangeKind,
-  type EntryOutcome,
   type EntryRevalidation,
   type SectionIndex,
 } from './revalidateDiff';
-
-export interface RevalidationSummary {
-  total: number;
-  unchanged: number;
-  changed: number;
-  missing: number;
-}
+import { summarize, type RevalidationSummary } from './reconcile';
 
 export interface PlanRevalidation {
   entries: EntryRevalidation[];
@@ -37,147 +19,5 @@ export function revalidatePlan(
   index: SectionIndex,
 ): PlanRevalidation {
   const entries = plan.entries.map((entry) => revalidateEntry(entry, index));
-  const summary: RevalidationSummary = {
-    total: entries.length,
-    unchanged: entries.filter((e) => e.outcome === 'unchanged').length,
-    changed: entries.filter((e) => e.outcome === 'changed').length,
-    missing: entries.filter((e) => e.outcome === 'missing').length,
-  };
-  return { entries, summary };
-}
-
-const OUTCOME_STATUS: Record<EntryOutcome, VerifyStatus> = {
-  unchanged: 'verified',
-  changed: 'changed',
-  missing: 'missing',
-};
-
-/** A plan entry whose stored term does not match the plan term, reported not fixed. */
-export interface ReconcileFinding {
-  teachTableId: string;
-  subjectId: string;
-  section: string;
-}
-
-/** One entry's before and after, for the detail sheet and the block popover. */
-export interface EntryDiff {
-  teachTableId: string;
-  subjectId: string;
-  section: string;
-  outcome: EntryOutcome;
-  changes: ChangeKind[];
-  before: SectionSnapshot;
-  after: SectionSnapshot | null;
-}
-
-export interface ReconcileReport {
-  summary: RevalidationSummary;
-  entries: EntryDiff[];
-  /** Entries whose source query term did not match the plan term. */
-  termFindings: ReconcileFinding[];
-}
-
-export interface ReconcileResult {
-  plan: Plan;
-  report: ReconcileReport;
-}
-
-function reconcileEntry(
-  entry: PlanEntry,
-  index: SectionIndex,
-  now: string,
-  planIds: Set<string>,
-): { entry: PlanEntry; diff: EntryDiff } {
-  const before = entry.snapshot;
-  const match = matchEntry(entry, index);
-  if (match === null) {
-    // Keep the last known snapshot so the block stays on the grid at its last time;
-    // mark it missing and never delete it silently.
-    return {
-      entry: { ...entry, lastVerifiedAt: now, verifyStatus: 'missing' },
-      diff: {
-        teachTableId: entry.teachTableId,
-        subjectId: entry.subjectId,
-        section: entry.section,
-        outcome: 'missing',
-        changes: [],
-        before,
-        after: null,
-      },
-    };
-  }
-  const fresh = match.indexed.section;
-  const changes = diffSnapshot(before, fresh);
-  const outcome: EntryOutcome = changes.length === 0 ? 'unchanged' : 'changed';
-  // Adopt the fresh key silently, unless it already belongs to another entry, which
-  // would make two entries share a teachTableId; keep the old key in that case.
-  const collides =
-    fresh.teachTableId !== entry.teachTableId &&
-    planIds.has(fresh.teachTableId);
-  const newId =
-    match.keyChanged && !collides ? fresh.teachTableId : entry.teachTableId;
-  const after: SectionSnapshot = {
-    ...buildSnapshot(fresh, match.indexed.subjectMeta),
-    teachTableId: newId,
-  };
-  return {
-    entry: {
-      ...entry,
-      teachTableId: newId,
-      snapshot: after,
-      lastVerifiedAt: now,
-      verifyStatus: OUTCOME_STATUS[outcome],
-    },
-    diff: {
-      teachTableId: newId,
-      subjectId: entry.subjectId,
-      section: entry.section,
-      outcome,
-      changes,
-      before,
-      after,
-    },
-  };
-}
-
-/**
- * Reconcile a plan against fresh normalized data: update each matched entry's
- * snapshot to the fresh data, set its verification status and time, keep a missing
- * entry at its last known time, and adopt a moved key silently. It matches and diffs
- * each entry itself, so the returned report is the single source of truth and cannot
- * drift from a separately computed revalidation. The plan's updatedAt is untouched
- * because reconcile is not a user edit. Term mismatches are reported, not fixed. Pure:
- * it builds new entries and never mutates the input plan or its snapshots.
- */
-export function reconcilePlan(
-  plan: Plan,
-  index: SectionIndex,
-  now: string,
-): ReconcileResult {
-  const planIds = new Set(plan.entries.map((entry) => entry.teachTableId));
-  const entries: PlanEntry[] = [];
-  const diffs: EntryDiff[] = [];
-  const termFindings: ReconcileFinding[] = [];
-  for (const entry of plan.entries) {
-    if (!entryTermMatches(entry, plan)) {
-      termFindings.push({
-        teachTableId: entry.teachTableId,
-        subjectId: entry.subjectId,
-        section: entry.section,
-      });
-    }
-    const reconciled = reconcileEntry(entry, index, now, planIds);
-    entries.push(reconciled.entry);
-    diffs.push(reconciled.diff);
-  }
-  const summary: RevalidationSummary = {
-    total: diffs.length,
-    unchanged: diffs.filter((diff) => diff.outcome === 'unchanged').length,
-    changed: diffs.filter((diff) => diff.outcome === 'changed').length,
-    missing: diffs.filter((diff) => diff.outcome === 'missing').length,
-  };
-  return {
-    plan: { ...plan, entries },
-    report: { summary, entries: diffs, termFindings },
-  };
+  return { entries, summary: summarize(entries) };
 }

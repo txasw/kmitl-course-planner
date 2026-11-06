@@ -9,7 +9,7 @@ import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import type { Plan } from '@/lib/domain/plan';
 import { sourceQueryToQuery } from '@/lib/planner/sourceQuery';
 import { buildSectionIndex } from '@/lib/planner/revalidateDiff';
-import { reconcilePlan } from '@/lib/planner/revalidate';
+import { reconcilePlan } from '@/lib/planner/reconcile';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import { planStore } from './planStore';
 import {

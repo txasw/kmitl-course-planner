@@ -8,7 +8,7 @@ import {
   within,
 } from '@testing-library/react';
 import type { PlanEntry } from '@/lib/domain/plan';
-import type { ReconcileReport } from '@/lib/planner/revalidate';
+import type { ReconcileReport } from '@/lib/planner/reconcile';
 import { revalidationStore } from '@/features/plans/revalidationStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
