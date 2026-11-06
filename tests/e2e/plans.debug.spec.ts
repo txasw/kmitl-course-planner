@@ -88,30 +88,29 @@ test('flags a moved section on refresh and acknowledges it in the dialog', async
   await expect(page.locator(block('900001'))).toBeVisible();
 
   // Adding the first section creates the plan, which triggers an automatic check
-  // against the base catalog. Wait for that clean result before moving the section.
+  // against the base catalog. That check still runs and reports verified, while the
+  // updates dialog stays closed for it. Wait for that clean result before moving the
+  // section.
   const banner = page
     .getByText(/ตรวจสอบแล้ว/)
     .locator('xpath=ancestor::div[1]');
   await expect(banner).toBeVisible({ timeout: 15_000 });
-
-  // Serve the moved time variant, then refresh from the banner: the replay reconciles
-  // the section, the summary reports one change, and the block carries the warn badge.
-  mock.setFreshSynthetic(true);
-  await banner.getByRole('button', { name: 'รีเฟรช' }).click();
-  await expect(page.getByText(/เปลี่ยน 1/)).toBeVisible({
-    timeout: 15_000,
-  });
-  await expect(
-    page.locator(`${block('900001')}[data-verify="warn"]`),
-  ).toBeVisible();
-
-  // The details action opens the updates dialog, which lists the time change with its
-  // old and new values and starts focus on the acknowledgement.
-  await banner.getByRole('button', { name: 'รายละเอียด' }).click();
   const dialog = page.getByRole('dialog', {
     name: 'ข้อมูลในตารางมีการเปลี่ยนแปลง',
   });
-  await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveCount(0);
+
+  // Serve the moved time variant, then refresh from the banner: the replay reconciles
+  // the section, the summary reports one change, and the block carries the warn badge.
+  // A manual check that finds a change opens the updates dialog directly, listing the
+  // time change with its old and new values and starting focus on the acknowledgement.
+  mock.setFreshSynthetic(true);
+  await banner.getByRole('button', { name: 'รีเฟรช' }).click();
+  await expect(dialog).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText(/เปลี่ยน 1/)).toBeVisible();
+  await expect(
+    page.locator(`${block('900001')}[data-verify="warn"]`),
+  ).toBeVisible();
   await expect(dialog.getByText('เวลาเรียนเปลี่ยน')).toBeVisible();
   await expect(dialog.getByText('เดิม', { exact: true })).toBeVisible();
   await expect(dialog.getByText('ใหม่', { exact: true })).toBeVisible();
