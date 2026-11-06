@@ -4,7 +4,7 @@
 // state: the install tab is closed and the onboarding record is seeded as if the
 // student had seen the welcome, opened the panel, and turned the entry prompt off. A
 // spec about the first run asks for the fresh state and meets the install as a student
-// would.
+// would, and a spec about the entry prompt turns it back on before it loads a page.
 
 import type { BrowserContext, Page } from '@playwright/test';
 import { SELECTOR_URL } from '../../../src/lib/shell/hostTab';
@@ -26,11 +26,17 @@ const POLL_MS = 100;
 
 const SETTLED_AT = '2026-11-06T08:00:00.000Z';
 
-// The first run as done: the welcome seen, the panel opened, the entry prompt off.
-const SETTLED_RECORD: OnboardingRecord = {
+// The first run as done with the entry prompt still on: the welcome seen, the panel
+// opened.
+const PROMPTED_RECORD: OnboardingRecord = {
   schemaVersion: 1,
   welcomeShownAt: SETTLED_AT,
   panelFirstOpenedAt: SETTLED_AT,
+};
+
+// The first run as done: the welcome seen, the panel opened, the entry prompt off.
+const SETTLED_RECORD: OnboardingRecord = {
+  ...PROMPTED_RECORD,
   entryToastOptOutAt: SETTLED_AT,
 };
 
@@ -38,7 +44,12 @@ const SETTLED_RECORD: OnboardingRecord = {
 // part it calls.
 interface WorkerGlobals {
   chrome: {
-    storage: { local: { set(items: Record<string, unknown>): Promise<void> } };
+    storage: {
+      local: {
+        get(key: string): Promise<Record<string, unknown>>;
+        set(items: Record<string, unknown>): Promise<void>;
+      };
+    };
   };
 }
 
@@ -78,13 +89,42 @@ export async function waitForInstallTab(
 export async function settleOnboarding(context: BrowserContext): Promise<void> {
   const tab = await waitForInstallTab(context);
   await tab.close();
+  await seedOnboarding(context, SETTLED_RECORD);
+}
+
+/**
+ * Turns the entry prompt back on in a settled context, as for a student who has not
+ * opted out, so the next page a spec loads may show it. A test harness write, like the
+ * seed it replaces.
+ */
+export async function allowEntryToast(context: BrowserContext): Promise<void> {
+  await seedOnboarding(context, PROMPTED_RECORD);
+}
+
+async function seedOnboarding(
+  context: BrowserContext,
+  record: OnboardingRecord,
+): Promise<void> {
   const worker = await extensionWorker(context);
   await worker.evaluate(
-    async ({ key, record }) => {
+    async ({ key, value }) => {
       // Test only assertion: an extension worker carries the global described above.
       const globals = globalThis as unknown as WorkerGlobals;
-      await globals.chrome.storage.local.set({ [key]: record });
+      await globals.chrome.storage.local.set({ [key]: value });
     },
-    { key: ONBOARDING_KEY, record: SETTLED_RECORD },
+    { key: ONBOARDING_KEY, value: record },
   );
+}
+
+/** The stored onboarding record as the worker reads it, unvalidated. */
+export async function storedOnboarding(
+  context: BrowserContext,
+): Promise<unknown> {
+  const worker = await extensionWorker(context);
+  return worker.evaluate(async (key) => {
+    // Test only assertion: an extension worker carries the global described above.
+    const globals = globalThis as unknown as WorkerGlobals;
+    const items = await globals.chrome.storage.local.get(key);
+    return items[key];
+  }, ONBOARDING_KEY);
 }
