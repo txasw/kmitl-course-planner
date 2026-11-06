@@ -85,12 +85,11 @@ test('keeps verification badges out of the poster and states the data date', asy
 
   // Wait for the automatic check after the first add, then serve the fresh variant, where
   // Course A moved and Course E is gone, and refresh: one entry is changed, one missing.
-  const banner = page
-    .getByText(/ตรวจสอบแล้ว/)
-    .locator('xpath=ancestor::div[1]');
-  await expect(banner).toBeVisible({ timeout: 15_000 });
+  // The check settles into the verification status at the end of the stats bar.
+  const stats = page.getByRole('group', { name: 'สรุปตาราง', exact: true });
+  await expect(stats.getByText(/ตรวจสอบแล้ว/)).toBeVisible({ timeout: 15_000 });
   mock.setFreshSynthetic(true);
-  await banner.getByRole('button', { name: 'รีเฟรช' }).click();
+  await stats.getByRole('button', { name: 'ตรวจสอบอีกครั้ง' }).click();
 
   // The check found changes, so the updates dialog opens directly. Review later keeps
   // both reviews open and clears the way to the preview toggle.
