@@ -1,19 +1,15 @@
-// The search form at the head of the catalog column: a tab bar over the three
-// official search modes, the active tab's fields, and a submit under the last field
-// that streams results into the catalog below. The search header around it owns the
-// fold and the scroller, so the form lays out at its natural height. Reference data
-// loads once on mount; the term seeds from the host route, a persisted search, the
-// active plan, or the term after the registrar's current one. The four async surfaces
-// each render a deliberate state.
+// The search form at the head of the catalog column: the term row every tab shares,
+// a tab bar over the three official search modes, the active tab's fields, and a
+// submit under the last field that streams results into the catalog below. The
+// search header around it owns the fold and the scroller, so the form lays out at
+// its natural height. Reference data loads once on mount; the term seeds from the
+// host route, a persisted search, the active plan, or the term after the
+// registrar's current one. The four async surfaces each render a deliberate state.
 
 import { useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { AlertTriangle } from 'lucide-react';
-import {
-  buddhistYears,
-  parseSemester,
-  toBuddhistYear,
-} from '@/lib/routing/academicTerms';
+import { buddhistYears, toBuddhistYear } from '@/lib/routing/academicTerms';
 import {
   SEARCH_TABS,
   buildTeachTableQueryForTab,
@@ -118,6 +114,15 @@ export function SearchForm() {
 
   return (
     <div className="flex flex-col gap-4">
+      <TermFields
+        term={term}
+        years={years}
+        t={t}
+        onChange={(patch) => {
+          searchStore.getState().patchTerm(patch);
+        }}
+      />
+
       <div
         role="group"
         aria-label={t('search.emptyTitle')}
@@ -165,21 +170,6 @@ export function SearchForm() {
       ) : null}
 
       <div className="flex flex-col gap-3">
-        <TermFields
-          year={term.year}
-          semester={term.semester}
-          years={years}
-          t={t}
-          onYear={(year) => {
-            searchStore.getState().patchTerm({ year });
-          }}
-          onSemester={(value) => {
-            const semester = parseSemester(value);
-            if (semester !== null) {
-              searchStore.getState().patchTerm({ semester });
-            }
-          }}
-        />
         {activeTab === 'by_class' ? (
           <ClassFields
             form={byClass}
