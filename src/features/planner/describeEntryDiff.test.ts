@@ -93,4 +93,44 @@ describe('describeEntryDiff', () => {
       t('diff.room'),
     ]);
   });
+
+  it('formats an exam change in the Buddhist year with its kind', () => {
+    const diff = makeDiff({
+      changes: ['exam_changed'],
+      before: makeSnapshot({
+        exam: {
+          final: { start: '2026-11-20 09:00:00', end: '2026-11-20 12:00:00' },
+        },
+      }),
+      after: makeSnapshot({
+        exam: {
+          midterm: { start: '2026-09-01 13:00:00', end: '2026-09-01 16:00:00' },
+          final: { start: '2026-11-21 09:00:00', end: '2026-11-21 12:00:00' },
+        },
+      }),
+    });
+    const [row] = describeEntryDiff(diff, 'en', t);
+    expect(row?.label).toBe(t('diff.exam'));
+    expect(row?.old).toBe(
+      `${t('exam.final')} 20 ${t('month.11')} 2569 09:00-12:00`,
+    );
+    expect(row?.next).toBe(
+      `${t('exam.midterm')} 1 ${t('month.9')} 2569 13:00-16:00, ${t('exam.final')} 21 ${t('month.11')} 2569 09:00-12:00`,
+    );
+  });
+
+  it('reads an exam window the API left empty as arranged by the instructor', () => {
+    const diff = makeDiff({
+      changes: ['exam_changed'],
+      before: makeSnapshot({
+        exam: {
+          final: { start: '2026-11-20 09:00:00', end: '2026-11-20 12:00:00' },
+        },
+      }),
+      after: makeSnapshot({ exam: {} }),
+    });
+    expect(describeEntryDiff(diff, 'en', t)[0]?.next).toBe(
+      t('exam.selfArranged'),
+    );
+  });
 });
