@@ -1,6 +1,8 @@
 // The edit mode drag feedback drawn over the day lanes: the footprint ghosts of an active
-// section drag, the hover preview of a catalog row, the candidate slots of a course drag or
-// a block move, and the swap targets over the blockers of a blocked drag. It is distinct
+// section drag, the candidate slots of a course drag or a block move, the preview of a
+// hovered course card, the hover preview of a catalog row, and the swap targets over the
+// blockers of a blocked drag. The ghosts and previews take precedence in that order, so a
+// real drag always owns the grid and a preview never paints under one. It is distinct
 // from the dnd-kit drag overlay, which renders only the grab card that follows the pointer.
 // Every item places at its fixed meeting position, so nothing here moves during a drag.
 // Renders a fragment so every item is a direct child of the grid and places by track index.
@@ -12,11 +14,9 @@ import { candidateFootprints } from '@/lib/planner/candidateLayout';
 import { dragStore } from './dragStore';
 import { CandidateSlot } from './CandidateSlot';
 import { SwapTarget } from './SwapTarget';
+import { CoursePreviewLayer } from './CoursePreviewLayer';
 import type { PlacedSection } from './placedSection';
-import { blockStyle, type Orientation } from './gridGeometry';
-
-const MAX_STACK_OFFSET = 4;
-const STACK_STEP_PX = 5;
+import { blockStyle, stackOffsetStyle, type Orientation } from './gridGeometry';
 
 interface CandidateLayerProps {
   sections: PlacedSection[];
@@ -33,6 +33,7 @@ export function CandidateLayer({
 }: CandidateLayerProps) {
   const active = useStore(dragStore, (state) => state.active);
   const hover = useStore(dragStore, (state) => state.hover);
+  const hoverCourse = useStore(dragStore, (state) => state.hoverCourse);
   const courseDrag = useStore(dragStore, (state) => state.courseDrag);
   const blockMove = useStore(dragStore, (state) => state.blockMove);
   const raised = useStore(dragStore, (state) => state.raised);
@@ -62,13 +63,22 @@ export function CandidateLayer({
           )
         : null}
 
-      {active === null && hover !== null
+      <CoursePreviewLayer
+        window={window}
+        days={days}
+        orientation={orientation}
+      />
+
+      {active === null &&
+      candidates === null &&
+      hoverCourse === null &&
+      hover !== null
         ? hover.meetings.map((meeting) => (
             <div
               key={`hover-${String(meeting.day)}-${String(meeting.startMin)}`}
               aria-hidden
               data-ghost="hover"
-              className="pointer-events-none m-px rounded-kcp border border-dashed border-ink-soft"
+              className="pointer-events-none m-px rounded-kcp border border-dotted border-ink-soft"
               style={blockStyle(meeting, window, days, orientation)}
             />
           ))
@@ -76,8 +86,6 @@ export function CandidateLayer({
 
       {candidates !== null
         ? candidateFootprints(candidates, window).map((footprint) => {
-            const offset =
-              Math.min(footprint.stack, MAX_STACK_OFFSET) * STACK_STEP_PX;
             const id = `cand-${footprint.candidate.section.teachTableId}-${String(footprint.meeting.day)}-${String(footprint.meeting.startMin)}`;
             return (
               <CandidateSlot
@@ -87,8 +95,7 @@ export function CandidateLayer({
                 raised={footprint.candidate.section.teachTableId === raised}
                 style={{
                   ...blockStyle(footprint.meeting, window, days, orientation),
-                  marginLeft: `${String(offset)}px`,
-                  marginTop: `${String(offset)}px`,
+                  ...stackOffsetStyle(footprint.stack),
                 }}
               />
             );
