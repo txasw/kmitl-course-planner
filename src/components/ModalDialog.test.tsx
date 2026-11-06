@@ -167,4 +167,30 @@ describe('ModalDialog', () => {
     );
     expect(screen.getByRole('dialog')).toHaveClass('max-w-[32rem]');
   });
+
+  it('leaves the scroll to the content in the table width', () => {
+    function TablePanel() {
+      const [node, setNode] = useState<HTMLDivElement | null>(null);
+      return (
+        <div ref={setNode}>
+          <PanelPortalContext.Provider value={node}>
+            <ModalDialog
+              title="Table"
+              closeLabel="Close"
+              onClose={vi.fn()}
+              width="table"
+              scroll="content"
+            >
+              <div data-testid="content" />
+            </ModalDialog>
+          </PanelPortalContext.Provider>
+        </div>
+      );
+    }
+    render(<TablePanel />);
+    expect(screen.getByRole('dialog')).toHaveClass('max-w-[64rem]');
+    const body = screen.getByTestId('content').parentElement;
+    expect(body).toHaveClass('flex', 'flex-col', 'min-h-0');
+    expect(body).not.toHaveClass('overflow-y-auto');
+  });
 });
