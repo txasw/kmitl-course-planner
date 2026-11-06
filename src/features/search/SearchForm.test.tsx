@@ -98,11 +98,12 @@ beforeEach(() => {
   const term = { year: '2569', semester: '1' } as const;
   const state = searchStore.getState();
   state.hydrate({
-    schemaVersion: 1,
+    schemaVersion: 2,
     activeTab: 'by_class',
-    byClass: defaultClassForm(term),
-    bySubjectId: defaultSubjectIdForm(term),
-    byCategory: defaultCategoryForm(term),
+    term,
+    byClass: defaultClassForm(),
+    bySubjectId: defaultSubjectIdForm(),
+    byCategory: defaultCategoryForm(),
   });
   state.setFaculties({ status: 'idle' });
   state.setDepartments({ status: 'idle' });

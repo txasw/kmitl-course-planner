@@ -1,12 +1,14 @@
-// The pure form model behind the three search tabs. Each tab holds plain field
-// values validated by a Zod schema, so the same shapes persist to storage and
-// build the typed gateway query. The query builders are the single mapping from
-// user facing form state to the wire parameters, including the class year "all"
-// option that sets the search_all_class_year flag.
+// The pure form model behind the three search tabs. The term (year and semester) is
+// one value shared by every tab, so switching tabs never changes the term a search
+// targets; each tab holds only its own fields. Every shape is validated by a Zod
+// schema, so the same shapes persist to storage and build the typed gateway query.
+// The query builders are the single mapping from the term and the user facing form
+// state to the wire parameters, including the class year "all" option that sets the
+// search_all_class_year flag.
 
 import { z } from 'zod';
 import type { TeachTableQuery } from '../messaging/protocol';
-import { type Semester, type Term } from '../routing/academicTerms';
+import { SEMESTERS, type Semester, type Term } from '../routing/academicTerms';
 
 export const SEARCH_TABS = [
   'by_class',
@@ -29,11 +31,13 @@ export const CLASS_YEARS = [
 ] as const;
 export type ClassYear = (typeof CLASS_YEARS)[number];
 
-const semesterSchema = z.enum(['1', '2', '3']);
+/** The term every search tab shares. An empty year means it is not seeded yet. */
+export const searchTermSchema = z.object({
+  year: z.string(),
+  semester: z.enum(SEMESTERS),
+});
 
 export const classFormSchema = z.object({
-  year: z.string(),
-  semester: semesterSchema,
   faculty: z.string(),
   department: z.string(),
   curriculum: z.string(),
@@ -42,44 +46,28 @@ export const classFormSchema = z.object({
 export type ClassForm = z.infer<typeof classFormSchema>;
 
 // The host searches a subject id across every faculty, department, curriculum,
-// and class year, so this tab needs only the term and the subject id.
+// and class year, so this tab needs only the shared term and the subject id.
 export const subjectIdFormSchema = z.object({
-  year: z.string(),
-  semester: semesterSchema,
   subjectId: z.string(),
 });
 export type SubjectIdForm = z.infer<typeof subjectIdFormSchema>;
 
 export const categoryFormSchema = z.object({
-  year: z.string(),
-  semester: semesterSchema,
   faculty: z.string(),
   subjectOwner: z.string(),
 });
 export type CategoryForm = z.infer<typeof categoryFormSchema>;
 
-export function defaultClassForm(term: Term): ClassForm {
-  return {
-    year: term.year,
-    semester: term.semester,
-    faculty: '',
-    department: '',
-    curriculum: '',
-    classYear: 'all',
-  };
+export function defaultClassForm(): ClassForm {
+  return { faculty: '', department: '', curriculum: '', classYear: 'all' };
 }
 
-export function defaultSubjectIdForm(term: Term): SubjectIdForm {
-  return { year: term.year, semester: term.semester, subjectId: '' };
+export function defaultSubjectIdForm(): SubjectIdForm {
+  return { subjectId: '' };
 }
 
-export function defaultCategoryForm(term: Term): CategoryForm {
-  return {
-    year: term.year,
-    semester: term.semester,
-    faculty: '',
-    subjectOwner: '',
-  };
+export function defaultCategoryForm(): CategoryForm {
+  return { faculty: '', subjectOwner: '' };
 }
 
 /** A subject id is exactly 8 digits, matching the course code. The live server
@@ -100,32 +88,34 @@ export function asClassYear(value: string): ClassYear | null {
   return CLASS_YEARS.find((classYear) => classYear === value) ?? null;
 }
 
+/** A term is ready once its year is seeded; the semester always holds a value. */
+export function isTermReady(term: Term): boolean {
+  return term.year !== '';
+}
+
 export function isClassFormReady(form: ClassForm): boolean {
   return (
-    form.year !== '' &&
-    form.faculty !== '' &&
-    form.department !== '' &&
-    form.curriculum !== ''
+    form.faculty !== '' && form.department !== '' && form.curriculum !== ''
   );
 }
 
 export function isSubjectIdFormReady(form: SubjectIdForm): boolean {
-  return form.year !== '' && isValidSubjectId(form.subjectId);
+  return isValidSubjectId(form.subjectId);
 }
 
 export function isCategoryFormReady(form: CategoryForm): boolean {
-  return form.year !== '' && form.faculty !== '' && form.subjectOwner !== '';
+  return form.faculty !== '' && form.subjectOwner !== '';
 }
 
 /** The literal value a select carries when its "all" option is chosen. */
 export const ALL_OPTION = 'all';
 
-function classParams(form: ClassForm) {
+function classParams(term: Term, form: ClassForm) {
   const searchAllClassYear = form.classYear === ALL_OPTION;
   const searchAllCurriculum = form.curriculum === ALL_OPTION;
   return {
-    selected_year: form.year,
-    selected_semester: form.semester,
+    selected_year: term.year,
+    selected_semester: term.semester,
     selected_faculty: form.faculty,
     selected_department: form.department,
     // The host sends the x sentinel with search_all_curriculum for all curricula.
@@ -140,15 +130,18 @@ function classParams(form: ClassForm) {
   };
 }
 
-export function buildClassQuery(form: ClassForm): TeachTableQuery {
-  return { mode: 'by_class', ...classParams(form) };
+export function buildClassQuery(term: Term, form: ClassForm): TeachTableQuery {
+  return { mode: 'by_class', ...classParams(term, form) };
 }
 
-export function buildSubjectIdQuery(form: SubjectIdForm): TeachTableQuery {
+export function buildSubjectIdQuery(
+  term: Term,
+  form: SubjectIdForm,
+): TeachTableQuery {
   return {
     mode: 'by_subject_id',
-    selected_year: form.year,
-    selected_semester: form.semester,
+    selected_year: term.year,
+    selected_semester: term.semester,
     search_all_faculty: true,
     search_all_department: true,
     search_all_curriculum: true,
@@ -157,12 +150,15 @@ export function buildSubjectIdQuery(form: SubjectIdForm): TeachTableQuery {
   };
 }
 
-export function buildCategoryQuery(form: CategoryForm): TeachTableQuery {
+export function buildCategoryQuery(
+  term: Term,
+  form: CategoryForm,
+): TeachTableQuery {
   const searchAllFaculty = form.faculty === ALL_OPTION;
   const base = {
     mode: 'by_subject_owner_id' as const,
-    selected_year: form.year,
-    selected_semester: form.semester,
+    selected_year: term.year,
+    selected_semester: term.semester,
     search_all_faculty: searchAllFaculty,
     selected_subject_owner_id: form.subjectOwner,
   };
@@ -177,38 +173,32 @@ export interface SearchForms {
 }
 
 /**
- * Build the gateway query for the active tab, or null when that tab's form is
- * not ready to submit. This is the single dispatch from tab to query.
+ * Build the gateway query for the active tab under the shared term, or null when
+ * the term is not seeded or that tab's form is not ready to submit. This is the
+ * single dispatch from tab to query.
  */
 export function buildTeachTableQueryForTab(
   tab: SearchTab,
+  term: Term,
   forms: SearchForms,
 ): TeachTableQuery | null {
+  if (!isTermReady(term)) {
+    return null;
+  }
   switch (tab) {
     case 'by_class':
       return isClassFormReady(forms.byClass)
-        ? buildClassQuery(forms.byClass)
+        ? buildClassQuery(term, forms.byClass)
         : null;
     case 'by_subject_id':
       return isSubjectIdFormReady(forms.bySubjectId)
-        ? buildSubjectIdQuery(forms.bySubjectId)
+        ? buildSubjectIdQuery(term, forms.bySubjectId)
         : null;
     case 'by_subject_owner_id':
       return isCategoryFormReady(forms.byCategory)
-        ? buildCategoryQuery(forms.byCategory)
+        ? buildCategoryQuery(term, forms.byCategory)
         : null;
   }
 }
 
 export type { Semester };
-
-/** The term the given tab's form targets: its year and semester as they stand. */
-export function termForTab(tab: SearchTab, forms: SearchForms): Term {
-  const form =
-    tab === 'by_class'
-      ? forms.byClass
-      : tab === 'by_subject_id'
-        ? forms.bySubjectId
-        : forms.byCategory;
-  return { year: form.year, semester: form.semester };
-}

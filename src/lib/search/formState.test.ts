@@ -13,9 +13,9 @@ import {
   isCategoryFormReady,
   isClassFormReady,
   isSubjectIdFormReady,
+  isTermReady,
   isValidSubjectId,
   sanitizeSubjectId,
-  termForTab,
 } from './formState';
 
 const term: Term = { year: '2569', semester: '1' };
@@ -62,18 +62,18 @@ describe('narrowing helpers', () => {
 });
 
 describe('default forms', () => {
-  it('seed the term and leave selects empty', () => {
-    const form = defaultClassForm(term);
-    expect(form.year).toBe('2569');
-    expect(form.semester).toBe('1');
+  it('leave the selects empty and carry no term of their own', () => {
+    const form = defaultClassForm();
     expect(form.faculty).toBe('');
     expect(form.classYear).toBe('all');
+    expect('year' in form).toBe(false);
+    expect('semester' in form).toBe(false);
   });
 });
 
 describe('form readiness', () => {
   it('requires faculty, department, and curriculum for the class tab', () => {
-    const form = defaultClassForm(term);
+    const form = defaultClassForm();
     expect(isClassFormReady(form)).toBe(false);
     const ready = {
       ...form,
@@ -84,45 +84,31 @@ describe('form readiness', () => {
     expect(isClassFormReady(ready)).toBe(true);
   });
 
-  it('requires a year and a full eight digit subject id for the subject id tab', () => {
-    const form = defaultSubjectIdForm(term);
+  it('requires a full eight digit subject id for the subject id tab', () => {
+    const form = defaultSubjectIdForm();
     expect(isSubjectIdFormReady({ ...form, subjectId: '' })).toBe(false);
     expect(isSubjectIdFormReady({ ...form, subjectId: '9059203' })).toBe(false);
     expect(isSubjectIdFormReady({ ...form, subjectId: '90592033' })).toBe(true);
-    expect(
-      isSubjectIdFormReady({ ...form, subjectId: '90592033', year: '' }),
-    ).toBe(false);
   });
 
   it('requires faculty and subject owner for the category tab', () => {
-    const form = defaultCategoryForm(term);
+    const form = defaultCategoryForm();
     expect(isCategoryFormReady(form)).toBe(false);
     expect(
       isCategoryFormReady({ ...form, faculty: '01', subjectOwner: '32' }),
     ).toBe(true);
   });
 
-  it('requires a year on both tabs', () => {
-    const category = {
-      ...defaultCategoryForm(term),
-      faculty: '01',
-      subjectOwner: '32',
-    };
-    expect(isCategoryFormReady({ ...category, year: '' })).toBe(false);
-    const classForm = {
-      ...defaultClassForm(term),
-      faculty: '01',
-      department: '01',
-      curriculum: '121',
-    };
-    expect(isClassFormReady({ ...classForm, year: '' })).toBe(false);
+  it('treats a term as ready once its year is seeded', () => {
+    expect(isTermReady(term)).toBe(true);
+    expect(isTermReady({ year: '', semester: '1' })).toBe(false);
   });
 });
 
 describe('query builders', () => {
   it('builds a valid by_class query and flags all class years', () => {
-    const query = buildClassQuery({
-      ...defaultClassForm(term),
+    const query = buildClassQuery(term, {
+      ...defaultClassForm(),
       faculty: '01',
       department: '08',
       curriculum: '121',
@@ -139,8 +125,8 @@ describe('query builders', () => {
   });
 
   it('sends a specific class year when one is chosen', () => {
-    const query = buildClassQuery({
-      ...defaultClassForm(term),
+    const query = buildClassQuery(term, {
+      ...defaultClassForm(),
       faculty: '01',
       department: '08',
       curriculum: '121',
@@ -152,8 +138,8 @@ describe('query builders', () => {
   });
 
   it('builds an all curricula by_class query with the x sentinel', () => {
-    const query = buildClassQuery({
-      ...defaultClassForm(term),
+    const query = buildClassQuery(term, {
+      ...defaultClassForm(),
       faculty: '01',
       department: '08',
       curriculum: 'all',
@@ -166,8 +152,8 @@ describe('query builders', () => {
   });
 
   it('builds an all faculties category query without selected_faculty', () => {
-    const query = buildCategoryQuery({
-      ...defaultCategoryForm(term),
+    const query = buildCategoryQuery(term, {
+      ...defaultCategoryForm(),
       faculty: 'all',
       subjectOwner: '32',
     });
@@ -181,8 +167,8 @@ describe('query builders', () => {
   });
 
   it('builds a by_subject_id query that searches everything', () => {
-    const query = buildSubjectIdQuery({
-      ...defaultSubjectIdForm(term),
+    const query = buildSubjectIdQuery(term, {
+      ...defaultSubjectIdForm(),
       subjectId: '90592033',
     });
     expect(teachTableQuerySchema.safeParse(query).success).toBe(true);
@@ -199,8 +185,8 @@ describe('query builders', () => {
   });
 
   it('builds a valid by_subject_owner_id query', () => {
-    const query = buildCategoryQuery({
-      ...defaultCategoryForm(term),
+    const query = buildCategoryQuery(term, {
+      ...defaultCategoryForm(),
       faculty: '01',
       subjectOwner: '32',
     });
@@ -215,48 +201,42 @@ describe('query builders', () => {
 
 describe('buildTeachTableQueryForTab', () => {
   const forms = {
-    byClass: defaultClassForm(term),
-    bySubjectId: defaultSubjectIdForm(term),
-    byCategory: defaultCategoryForm(term),
+    byClass: defaultClassForm(),
+    bySubjectId: defaultSubjectIdForm(),
+    byCategory: defaultCategoryForm(),
+  };
+  const readyCategory = {
+    ...forms,
+    byCategory: { ...forms.byCategory, faculty: '01', subjectOwner: '32' },
   };
 
   it('returns null when the active tab form is not ready', () => {
-    expect(buildTeachTableQueryForTab('by_class', forms)).toBeNull();
-    expect(buildTeachTableQueryForTab('by_subject_owner_id', forms)).toBeNull();
+    expect(buildTeachTableQueryForTab('by_class', term, forms)).toBeNull();
+    expect(
+      buildTeachTableQueryForTab('by_subject_owner_id', term, forms),
+    ).toBeNull();
   });
 
-  it('builds the query for the active tab when its form is ready', () => {
-    const ready = {
-      ...forms,
-      byCategory: {
-        ...forms.byCategory,
-        faculty: '01',
-        subjectOwner: '32',
-      },
-    };
-    const query = buildTeachTableQueryForTab('by_subject_owner_id', ready);
-    expect(query?.mode).toBe('by_subject_owner_id');
+  it('returns null while the shared term has no year', () => {
+    expect(
+      buildTeachTableQueryForTab(
+        'by_subject_owner_id',
+        { year: '', semester: '1' },
+        readyCategory,
+      ),
+    ).toBeNull();
   });
-});
 
-describe('termForTab', () => {
-  it('reads the year and semester of the named tab only', () => {
-    const forms = {
-      byClass: defaultClassForm({ year: '2568', semester: '1' }),
-      bySubjectId: defaultSubjectIdForm({ year: '2569', semester: '2' }),
-      byCategory: defaultCategoryForm({ year: '2570', semester: '3' }),
-    };
-    expect(termForTab('by_class', forms)).toEqual({
-      year: '2568',
-      semester: '1',
-    });
-    expect(termForTab('by_subject_id', forms)).toEqual({
-      year: '2569',
-      semester: '2',
-    });
-    expect(termForTab('by_subject_owner_id', forms)).toEqual({
-      year: '2570',
-      semester: '3',
+  it('builds the active tab query under the shared term', () => {
+    const query = buildTeachTableQueryForTab(
+      'by_subject_owner_id',
+      { year: '2569', semester: '2' },
+      readyCategory,
+    );
+    expect(query).toMatchObject({
+      mode: 'by_subject_owner_id',
+      selected_year: '2569',
+      selected_semester: '2',
     });
   });
 });

@@ -31,7 +31,7 @@ import {
   type CategoryForm,
   type ClassForm,
 } from '@/lib/search/formState';
-import { SEMESTERS, parseSemester } from '@/lib/routing/academicTerms';
+import { SEMESTERS } from '@/lib/routing/academicTerms';
 
 interface SubjectIdInputProps {
   label: string;
@@ -201,7 +201,6 @@ export function FacultySelect({
 interface ClassFieldsProps {
   form: ClassForm;
   reference: ReferenceLists;
-  years: string[];
   locale: Locale;
   t: Translate;
   patch: (patch: Partial<ClassForm>) => void;
@@ -210,7 +209,6 @@ interface ClassFieldsProps {
 export function ClassFields({
   form,
   reference,
-  years,
   locale,
   t,
   patch,
@@ -242,21 +240,6 @@ export function ClassFields({
 
   return (
     <>
-      <TermFields
-        year={form.year}
-        semester={form.semester}
-        years={years}
-        t={t}
-        onYear={(year) => {
-          patch({ year });
-        }}
-        onSemester={(value) => {
-          const semester = parseSemester(value);
-          if (semester !== null) {
-            patch({ semester });
-          }
-        }}
-      />
       <FacultySelect
         value={form.faculty}
         faculties={reference.faculties}
@@ -310,7 +293,6 @@ export function ClassFields({
 interface CategoryFieldsProps {
   form: CategoryForm;
   reference: ReferenceLists;
-  years: string[];
   locale: Locale;
   t: Translate;
   patch: (patch: Partial<CategoryForm>) => void;
@@ -319,7 +301,6 @@ interface CategoryFieldsProps {
 export function CategoryFields({
   form,
   reference,
-  years,
   locale,
   t,
   patch,
@@ -334,21 +315,6 @@ export function CategoryFields({
 
   return (
     <>
-      <TermFields
-        year={form.year}
-        semester={form.semester}
-        years={years}
-        t={t}
-        onYear={(year) => {
-          patch({ year });
-        }}
-        onSemester={(value) => {
-          const semester = parseSemester(value);
-          if (semester !== null) {
-            patch({ semester });
-          }
-        }}
-      />
       <FacultySelect
         value={form.faculty}
         faculties={reference.faculties}

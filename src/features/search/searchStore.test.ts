@@ -15,28 +15,60 @@ import {
 const fallback: Term = { year: '2570', semester: '1' };
 const fetched: Term = { year: '2569', semester: '2' };
 
-function yearsAndSemesters(store: ReturnType<typeof createSearchStore>) {
-  const { byClass, bySubjectId, byCategory } = store.getState();
-  return [byClass, bySubjectId, byCategory].map(
-    (form) => `${form.semester}/${form.year}`,
-  );
+function termLabel(store: ReturnType<typeof createSearchStore>): string {
+  const { term } = store.getState();
+  return `${term.semester}/${term.year}`;
 }
 
+describe('the shared term', () => {
+  it('keeps the term when the student switches tabs', () => {
+    const store = createSearchStore();
+    store.getState().seedTerm({ year: '2569', semester: '1' });
+    store.getState().patchTerm({ semester: '2' });
+    store.getState().setActiveTab('by_subject_id');
+    expect(termLabel(store)).toBe('2/2569');
+    store.getState().setActiveTab('by_subject_owner_id');
+    expect(termLabel(store)).toBe('2/2569');
+  });
+
+  it('leaves the term alone when a tab field changes', () => {
+    const store = createSearchStore();
+    store.getState().seedTerm({ year: '2569', semester: '3' });
+    store.getState().patchClassForm({ faculty: '01' });
+    store.getState().patchSubjectIdForm({ subjectId: '90592033' });
+    store.getState().patchCategoryForm({ subjectOwner: '32' });
+    expect(termLabel(store)).toBe('3/2569');
+  });
+
+  it('takes the persisted term on hydrate', () => {
+    const store = createSearchStore();
+    store.getState().hydrate({
+      schemaVersion: 2,
+      activeTab: 'by_subject_id',
+      term: { year: '2568', semester: '2' },
+      byClass: defaultClassForm(),
+      bySubjectId: defaultSubjectIdForm(),
+      byCategory: defaultCategoryForm(),
+    });
+    expect(termLabel(store)).toBe('2/2568');
+  });
+});
+
 describe('the fetched default term', () => {
-  it('replaces an untouched fallback in every tab', () => {
+  it('replaces an untouched fallback', () => {
     const store = createSearchStore();
     store.getState().seedFallbackTerm(fallback);
     store.getState().applyDefaultTerm(fetched);
-    expect(yearsAndSemesters(store)).toEqual(['2/2569', '2/2569', '2/2569']);
+    expect(termLabel(store)).toBe('2/2569');
     expect(store.getState().defaultTermPending).toBe(false);
   });
 
   it('is ignored once the student edits a term field', () => {
     const store = createSearchStore();
     store.getState().seedFallbackTerm(fallback);
-    store.getState().patchCategoryForm({ year: '2570' });
+    store.getState().patchTerm({ year: '2570' });
     store.getState().applyDefaultTerm(fetched);
-    expect(yearsAndSemesters(store)).toEqual(['1/2570', '1/2570', '1/2570']);
+    expect(termLabel(store)).toBe('1/2570');
   });
 
   it('survives an edit that leaves the term alone', () => {
@@ -44,7 +76,7 @@ describe('the fetched default term', () => {
     store.getState().seedFallbackTerm(fallback);
     store.getState().patchClassForm({ faculty: '01' });
     store.getState().applyDefaultTerm(fetched);
-    expect(yearsAndSemesters(store)).toEqual(['2/2569', '2/2569', '2/2569']);
+    expect(termLabel(store)).toBe('2/2569');
   });
 
   it('is ignored after another source seeds the term', () => {
@@ -52,14 +84,14 @@ describe('the fetched default term', () => {
     store.getState().seedFallbackTerm(fallback);
     store.getState().seedTerm({ year: '2568', semester: '3' });
     store.getState().applyDefaultTerm(fetched);
-    expect(yearsAndSemesters(store)).toEqual(['3/2568', '3/2568', '3/2568']);
+    expect(termLabel(store)).toBe('3/2568');
   });
 
   it('never applies without a pending fallback', () => {
     const store = createSearchStore();
     store.getState().seedTerm(fallback);
     store.getState().applyDefaultTerm(fetched);
-    expect(yearsAndSemesters(store)).toEqual(['1/2570', '1/2570', '1/2570']);
+    expect(termLabel(store)).toBe('1/2570');
   });
 });
 
@@ -139,13 +171,13 @@ describe('the search disclosure', () => {
 
   it('leaves the bar alone when a persisted search hydrates', () => {
     const store = createSearchStore();
-    const term = { year: '2569', semester: '1' } as const;
     store.getState().hydrate({
-      schemaVersion: 1,
+      schemaVersion: 2,
       activeTab: 'by_subject_owner_id',
-      byClass: defaultClassForm(term),
-      bySubjectId: defaultSubjectIdForm(term),
-      byCategory: defaultCategoryForm(term),
+      term: { year: '2569', semester: '1' },
+      byClass: defaultClassForm(),
+      bySubjectId: defaultSubjectIdForm(),
+      byCategory: defaultCategoryForm(),
     });
     expect(store.getState().barQuery).toBeNull();
     expect(selectFormOpen(store.getState())).toBe(true);

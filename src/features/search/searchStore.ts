@@ -1,13 +1,14 @@
-// Session scoped search state: the active tab, the three tab forms, the fetched
-// reference lists, and the latest query result. Like the ui store it is held in
-// memory and carries no persistence, so it survives closing and reopening the
-// overlay within a page session while the panel that submits a search writes the
-// last search to storage. The store only merges patches; cascade resets when a
-// faculty or department changes are applied by the form handlers, keeping the
-// store dumb and testable through getState. The search disclosure is session state
-// too: barQuery names the search the summary bar describes, and searchFormOpen says
-// whether the student has opened the form under that bar. Without a bar the form is
-// always shown, so the form is open when either holds.
+// Session scoped search state: the active tab, the one term every tab shares, the
+// three tab forms, the fetched reference lists, and the latest query result. Like
+// the ui store it is held in memory and carries no persistence, so it survives
+// closing and reopening the overlay within a page session while the panel that
+// submits a search writes the last search to storage. The store only merges
+// patches; cascade resets when a faculty or department changes are applied by the
+// form handlers, keeping the store dumb and testable through getState. The search
+// disclosure is session state too: barQuery names the search the summary bar
+// describes, and searchFormOpen says whether the student has opened the form under
+// that bar. Without a bar the form is always shown, so the form is open when either
+// holds.
 
 import { createStore } from 'zustand/vanilla';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
@@ -33,23 +34,6 @@ import type { AsyncState } from '@/lib/utils/async';
 
 const NEUTRAL_TERM: Term = { year: '', semester: '1' };
 
-type TermForms = Pick<SearchStore, 'byClass' | 'bySubjectId' | 'byCategory'>;
-
-/** Write one term into all three tab forms. */
-function withTerm(state: TermForms, term: Term): TermForms {
-  const patch = { year: term.year, semester: term.semester };
-  return {
-    byClass: { ...state.byClass, ...patch },
-    bySubjectId: { ...state.bySubjectId, ...patch },
-    byCategory: { ...state.byCategory, ...patch },
-  };
-}
-
-/** A form patch that writes the year or semester is a term edit. */
-function touchesTerm(patch: { year?: string; semester?: string }): boolean {
-  return patch.year !== undefined || patch.semester !== undefined;
-}
-
 /**
  * Who started a query. A user search folds the form into the bar and stamps the
  * submit; a background run (retry, refresh) replaces the result and leaves the
@@ -72,6 +56,8 @@ export interface SearchStore {
    */
   defaultTermPending: boolean;
   activeTab: SearchTab;
+  /** The year and semester every tab searches, so a tab switch keeps the term. */
+  term: Term;
   byClass: ClassForm;
   bySubjectId: SubjectIdForm;
   byCategory: CategoryForm;
@@ -89,6 +75,8 @@ export interface SearchStore {
   lastSubmitAt: number | null;
   setInitialized: (value: boolean) => void;
   setActiveTab: (tab: SearchTab) => void;
+  /** A student edit of the year or semester, which ends any pending default. */
+  patchTerm: (patch: Partial<Term>) => void;
   patchClassForm: (patch: Partial<ClassForm>) => void;
   patchSubjectIdForm: (patch: Partial<SubjectIdForm>) => void;
   patchCategoryForm: (patch: Partial<CategoryForm>) => void;
@@ -132,9 +120,10 @@ export function createSearchStore() {
     hasInitialized: false,
     defaultTermPending: false,
     activeTab: 'by_class',
-    byClass: defaultClassForm(NEUTRAL_TERM),
-    bySubjectId: defaultSubjectIdForm(NEUTRAL_TERM),
-    byCategory: defaultCategoryForm(NEUTRAL_TERM),
+    term: NEUTRAL_TERM,
+    byClass: defaultClassForm(),
+    bySubjectId: defaultSubjectIdForm(),
+    byCategory: defaultCategoryForm(),
     faculties: { status: 'idle' },
     departments: { status: 'idle' },
     curricula: { status: 'idle' },
@@ -150,41 +139,37 @@ export function createSearchStore() {
     setActiveTab: (tab) => {
       set({ activeTab: tab });
     },
-    patchClassForm: (patch) => {
+    patchTerm: (patch) => {
       set((state) => ({
-        byClass: { ...state.byClass, ...patch },
-        ...(touchesTerm(patch) ? { defaultTermPending: false } : {}),
+        term: { ...state.term, ...patch },
+        defaultTermPending: false,
       }));
+    },
+    patchClassForm: (patch) => {
+      set((state) => ({ byClass: { ...state.byClass, ...patch } }));
     },
     patchSubjectIdForm: (patch) => {
-      set((state) => ({
-        bySubjectId: { ...state.bySubjectId, ...patch },
-        ...(touchesTerm(patch) ? { defaultTermPending: false } : {}),
-      }));
+      set((state) => ({ bySubjectId: { ...state.bySubjectId, ...patch } }));
     },
     patchCategoryForm: (patch) => {
-      set((state) => ({
-        byCategory: { ...state.byCategory, ...patch },
-        ...(touchesTerm(patch) ? { defaultTermPending: false } : {}),
-      }));
+      set((state) => ({ byCategory: { ...state.byCategory, ...patch } }));
     },
     seedTerm: (term) => {
-      set((state) => ({ ...withTerm(state, term), defaultTermPending: false }));
+      set({ term, defaultTermPending: false });
     },
     seedFallbackTerm: (term) => {
-      set((state) => ({ ...withTerm(state, term), defaultTermPending: true }));
+      set({ term, defaultTermPending: true });
     },
     applyDefaultTerm: (term) => {
       set((state) =>
-        state.defaultTermPending
-          ? { ...withTerm(state, term), defaultTermPending: false }
-          : {},
+        state.defaultTermPending ? { term, defaultTermPending: false } : {},
       );
     },
     hydrate: (persisted) => {
       set({
         defaultTermPending: false,
         activeTab: persisted.activeTab,
+        term: persisted.term,
         byClass: persisted.byClass,
         bySubjectId: persisted.bySubjectId,
         byCategory: persisted.byCategory,

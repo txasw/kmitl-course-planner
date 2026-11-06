@@ -41,11 +41,12 @@ const fallback: Term = {
 
 function persistedState(): SearchState {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     activeTab: 'by_subject_id',
-    byClass: defaultClassForm(term),
-    bySubjectId: defaultSubjectIdForm(term),
-    byCategory: defaultCategoryForm(term),
+    term,
+    byClass: defaultClassForm(),
+    bySubjectId: defaultSubjectIdForm(),
+    byCategory: defaultCategoryForm(),
   };
 }
 
@@ -84,12 +85,8 @@ function controlledSend(): ControlledSend {
   };
 }
 
-function formTerms(): Term[] {
-  const { byClass, bySubjectId, byCategory } = searchStore.getState();
-  return [byClass, bySubjectId, byCategory].map((form) => ({
-    year: form.year,
-    semester: form.semester,
-  }));
+function formTerm(): Term {
+  return searchStore.getState().term;
 }
 
 function InitProbe({ deps }: { deps: SearchDeps }) {
@@ -100,11 +97,12 @@ function InitProbe({ deps }: { deps: SearchDeps }) {
 beforeEach(() => {
   const state = searchStore.getState();
   state.hydrate({
-    schemaVersion: 1,
+    schemaVersion: 2,
     activeTab: 'by_class',
-    byClass: defaultClassForm(term),
-    bySubjectId: defaultSubjectIdForm(term),
-    byCategory: defaultCategoryForm(term),
+    term,
+    byClass: defaultClassForm(),
+    bySubjectId: defaultSubjectIdForm(),
+    byCategory: defaultCategoryForm(),
   });
   state.setInitialized(false);
   planStore.getState().hydrate([]);
@@ -156,7 +154,7 @@ describe('useSearchInit', () => {
       expect(searchStore.getState().activeTab).toBe('by_subject_id');
     });
     expect(controlled.requested()).toBe(false);
-    expect(formTerms()).toEqual([term, term, term]);
+    expect(formTerm()).toEqual(term);
   });
 
   it('renders the fallback, then applies the term after the current one', async () => {
@@ -167,10 +165,10 @@ describe('useSearchInit', () => {
     await waitFor(() => {
       expect(controlled.requested()).toBe(true);
     });
-    expect(formTerms()).toEqual([fallback, fallback, fallback]);
+    expect(formTerm()).toEqual(fallback);
     await controlled.answer(ok(capture));
     const next = { year: '2569', semester: '2' };
-    expect(formTerms()).toEqual([next, next, next]);
+    expect(formTerm()).toEqual(next);
   });
 
   it('leaves a term the student edited before the answer', async () => {
@@ -182,9 +180,9 @@ describe('useSearchInit', () => {
       expect(controlled.requested()).toBe(true);
     });
     // Picking the value already shown still counts as a choice.
-    searchStore.getState().patchClassForm({ semester: '1' });
+    searchStore.getState().patchTerm({ semester: '1' });
     await controlled.answer(ok(capture));
-    expect(formTerms()).toEqual([fallback, fallback, fallback]);
+    expect(formTerm()).toEqual(fallback);
   });
 
   it('keeps the fallback when the registrar request fails', async () => {
@@ -196,7 +194,7 @@ describe('useSearchInit', () => {
       expect(controlled.requested()).toBe(true);
     });
     await controlled.answer(err(networkError('offline')));
-    expect(formTerms()).toEqual([fallback, fallback, fallback]);
+    expect(formTerm()).toEqual(fallback);
   });
 
   it('seeds the active plan term without asking the registrar', async () => {
@@ -207,7 +205,7 @@ describe('useSearchInit', () => {
       <InitProbe deps={{ send: controlled.send, repo: repoReturning(null) }} />,
     );
     await waitFor(() => {
-      expect(formTerms()).toEqual([planTerm, planTerm, planTerm]);
+      expect(formTerm()).toEqual(planTerm);
     });
     expect(controlled.requested()).toBe(false);
   });

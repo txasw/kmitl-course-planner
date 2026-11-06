@@ -125,7 +125,7 @@ describe('PlanSwitcher', () => {
     openMenu();
     fireEvent.click(screen.getByRole('button', { name: 'B' }));
     expect(planStore.getState().activePlanId).toBe('b');
-    expect(searchStore.getState().byClass.semester).toBe('2');
+    expect(searchStore.getState().term.semester).toBe('2');
   });
 
   it('creates a plan for the current search term', () => {
