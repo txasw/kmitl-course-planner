@@ -15,6 +15,7 @@ import {
   type EntryOutcome,
   type SectionIndex,
 } from './revalidateDiff';
+import { mergeReview, withReview } from './review';
 
 export interface RevalidationSummary {
   total: number;
@@ -87,7 +88,10 @@ function reconcileEntry(
     // Keep the last known snapshot so the block stays on the grid at its last time;
     // mark it missing and never delete it silently.
     return {
-      entry: { ...entry, lastVerifiedAt: now, verifyStatus: 'missing' },
+      entry: withReview(
+        { ...entry, lastVerifiedAt: now, verifyStatus: 'missing' },
+        mergeReview(entry, null, now),
+      ),
       diff: {
         teachTableId: entry.teachTableId,
         subjectId: entry.subjectId,
@@ -109,13 +113,16 @@ function reconcileEntry(
     teachTableId: newId,
   };
   return {
-    entry: {
-      ...entry,
-      teachTableId: newId,
-      snapshot: after,
-      lastVerifiedAt: now,
-      verifyStatus: OUTCOME_STATUS[outcome],
-    },
+    entry: withReview(
+      {
+        ...entry,
+        teachTableId: newId,
+        snapshot: after,
+        lastVerifiedAt: now,
+        verifyStatus: OUTCOME_STATUS[outcome],
+      },
+      mergeReview(entry, after, now),
+    ),
     diff: {
       teachTableId: newId,
       subjectId: entry.subjectId,

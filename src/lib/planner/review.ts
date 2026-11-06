@@ -4,6 +4,12 @@
 // exam. An ambient change, seat counts moving by the minute during pre registration or a
 // teacher change, updates the display silently and never asks for review on its own.
 
+import type {
+  EntryReview,
+  PlanEntry,
+  ReviewKind,
+  SectionSnapshot,
+} from '../domain/plan';
 import type { ChangeKind, ComparableSection } from './revalidateDiff';
 import { diffSnapshot } from './revalidateDiff';
 
@@ -58,4 +64,63 @@ export function materialKinds(
     kinds.push('closed');
   }
   return kinds;
+}
+
+/** Whether the student already acknowledged that the entry is no longer listed: it was
+ * missing before this run and its review no longer holds that fact. */
+function missingAcknowledged(
+  entry: Pick<PlanEntry, 'verifyStatus' | 'review'>,
+): boolean {
+  return (
+    entry.verifyStatus === 'missing' &&
+    !(entry.review?.kinds.includes('missing') ?? false)
+  );
+}
+
+/**
+ * Merge one run into an entry's review. after is the snapshot the run applied, or null
+ * when the entry is no longer listed. The comparison is always against the earliest
+ * before, the snapshot as the student last reviewed it, so the open kinds are the union
+ * of what every run since then changed, minus any that a later run returned to the old
+ * value. A clean run therefore keeps the review, since the difference from before still
+ * stands, and only a reverted value or an acknowledgement clears it. A kind that is new
+ * to the review resets notifiedAt, since the student has not been shown it. Returns
+ * undefined when nothing is left to review.
+ */
+export function mergeReview(
+  entry: Pick<PlanEntry, 'snapshot' | 'review' | 'verifyStatus'>,
+  after: SectionSnapshot | null,
+  now: string,
+): EntryReview | undefined {
+  const existing = entry.review;
+  const before = existing?.before ?? entry.snapshot;
+  const kinds: ReviewKind[] = materialKinds(before, after ?? entry.snapshot);
+  if (after === null && !missingAcknowledged(entry)) {
+    kinds.push('missing');
+  }
+  if (kinds.length === 0) {
+    return undefined;
+  }
+  const grew =
+    existing === undefined ||
+    kinds.some((kind) => !existing.kinds.includes(kind));
+  return {
+    kinds,
+    before,
+    detectedAt: existing?.detectedAt ?? now,
+    notifiedAt: grew ? null : existing.notifiedAt,
+  };
+}
+
+/** An entry with its review replaced, the key left out rather than set to undefined
+ * when nothing is left to review, so a stored entry never carries an empty field. */
+export function withReview(
+  entry: PlanEntry,
+  review: EntryReview | undefined,
+): PlanEntry {
+  if (review !== undefined) {
+    return { ...entry, review };
+  }
+  const { review: cleared, ...rest } = entry;
+  return cleared === undefined ? entry : rest;
 }
