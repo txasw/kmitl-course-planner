@@ -136,6 +136,46 @@ describe('BottomNav', () => {
     ).toBeInTheDocument();
   });
 
+  it('marks the timetable item with the review dot while a review is open', () => {
+    const snapshot = makeSnapshot(
+      makeSection({ subjectId: '90000001', teachTableId: 'r1' }),
+    );
+    seedActivePlan([
+      makePlanEntry({
+        snapshot,
+        verifyStatus: 'changed',
+        review: {
+          kinds: ['time_changed'],
+          before: snapshot,
+          detectedAt: '2026-11-06T00:00:00.000Z',
+          notifiedAt: null,
+        },
+      }),
+      makePlanEntry({
+        snapshot: makeSnapshot(
+          makeSection({ subjectId: '90000002', teachTableId: 'm1' }),
+        ),
+        verifyStatus: 'missing',
+      }),
+    ]);
+    render(<BottomNav />);
+    // The dot's meaning is in the name, so it is not carried by colour alone.
+    const timetable = screen.getByRole('button', {
+      name: 'ตารางเรียน มีการเปลี่ยนแปลง 2 รายการ',
+    });
+    expect(timetable.querySelector('[data-review-dot]')).not.toBeNull();
+    expect(nav().querySelectorAll('[data-review-dot]')).toHaveLength(1);
+  });
+
+  it('shows no review dot while nothing asks for review', () => {
+    seedActivePlan([entry('90000001', 't1')]);
+    render(<BottomNav />);
+    expect(nav().querySelector('[data-review-dot]')).toBeNull();
+    expect(
+      screen.getByRole('button', { name: 'ตารางเรียน' }),
+    ).toBeInTheDocument();
+  });
+
   it('labels the items in English', () => {
     act(() => {
       uiStore.getState().setLanguage('en');

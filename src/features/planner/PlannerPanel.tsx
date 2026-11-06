@@ -291,6 +291,12 @@ export function PlannerPanel() {
           trailing={<UpdatesIndicator />}
         />
       ) : null}
+      {/* Below 640 px the pane has no tab row, so the indicator heads the pane instead. */}
+      {!isPreview && !showTabs ? (
+        <div className="flex shrink-0 empty:hidden">
+          <UpdatesIndicator />
+        </div>
+      ) : null}
       {/* Below the dock the strip floats over the layout instead, above the sheet. */}
       {viewMode === 'edit' && isDockedTier(tier) ? (
         <FeedbackStrip t={t} />

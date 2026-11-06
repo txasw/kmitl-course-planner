@@ -5,8 +5,11 @@
 // on it, since the nav sits outside both panes, which turn inert in turn. The catalog item
 // carries the result course count and the selected item the placed subject count, each
 // as a chip over the icon and in the accessible name, so the number is read with the
-// label. Each item is at least 56 px tall, and the nav pads below them by the bottom safe
-// area inset, so the items stay clear of the home indicator while the fill reaches it.
+// label. While the plan has anything to review, the timetable item carries the review dot
+// of ADR-0060, and its accessible name adds the updates indicator wording with the count,
+// so the dot's meaning is not carried by colour alone. The indicator chip itself heads the
+// plan pane. Each item is at least 56 px tall, and the nav pads below them by the bottom
+// safe area inset, so the items stay clear of the home indicator while the fill reaches it.
 // During a block drag the nav turns into the remove bar: its items hide and go inert, and
 // the bar lays over the nav's own box, so the pane above keeps its height mid drag and a
 // lift over the bar never reaches a nav item, which has no meaning while a block is held.
@@ -24,7 +27,9 @@ import { useResultCourseCount } from '@/features/catalog/CatalogPanel';
 import { NavRemoveBar, useNavRemoving } from '@/features/planner/RemoveZone';
 import { groupEntriesBySubject } from '@/features/planner/SelectedCoursesList';
 import { planStore } from '@/features/plans/planStore';
-import type { TranslationKey } from '@/lib/i18n/t';
+import type { Translate, TranslationKey } from '@/lib/i18n/t';
+import { fillTemplate } from '@/lib/i18n/template';
+import { countUpdateItems } from '@/lib/planner/updateReview';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import {
   NAV_ITEMS,
@@ -60,6 +65,24 @@ function itemCount(
   return null;
 }
 
+/** The accessible name of an item: its label, then its count and its review wording. */
+function itemName(
+  label: string,
+  count: number | null,
+  reviewCount: number,
+  t: Translate,
+): string {
+  return [
+    label,
+    count === null ? null : String(count),
+    reviewCount > 0
+      ? fillTemplate(t('updates.indicator'), { count: reviewCount })
+      : null,
+  ]
+    .filter((part) => part !== null)
+    .join(' ');
+}
+
 export function BottomNav() {
   const { t } = useTranslation();
   const pane = useMobilePane();
@@ -68,6 +91,9 @@ export function BottomNav() {
   const selectedCount = useStore(
     planStore,
     (state) => groupEntriesBySubject(state.entries).length,
+  );
+  const reviewCount = useStore(planStore, (state) =>
+    countUpdateItems(state.entries),
   );
   const active = activeNavItem(pane, planView);
   const removing = useNavRemoving();
@@ -85,6 +111,7 @@ export function BottomNav() {
           const Icon = ICON[item];
           const label = t(LABEL_KEY[item]);
           const count = itemCount(item, courseCount, selectedCount);
+          const itemReviews = item === 'timetable' ? reviewCount : 0;
           const current = item === active;
           return (
             <button
@@ -92,7 +119,7 @@ export function BottomNav() {
               id={navItemId(item)}
               type="button"
               aria-current={current ? 'page' : undefined}
-              aria-label={count === null ? label : `${label} ${String(count)}`}
+              aria-label={itemName(label, count, itemReviews, t)}
               onClick={() => {
                 selectNavItem(item);
               }}
@@ -109,6 +136,12 @@ export function BottomNav() {
                     <CountChip count={count} />
                   </span>
                 )}
+                {itemReviews > 0 ? (
+                  <span
+                    data-review-dot
+                    className="absolute -top-0.5 -right-1 size-2.5 rounded-full bg-warn ring-2 ring-surface"
+                  />
+                ) : null}
               </span>
               <span className="max-w-full truncate">{label}</span>
             </button>
