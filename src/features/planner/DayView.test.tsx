@@ -10,6 +10,7 @@ import {
 import { planStore } from '@/features/plans/planStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
+import { uiStore } from '@/features/shell/uiStore';
 import { createTranslator } from '@/lib/i18n/t';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import { dayChipDays, dayFlags } from '@/lib/planner/dayView';
@@ -36,6 +37,7 @@ afterEach(() => {
   vi.useRealTimers();
   act(() => {
     planStore.setState({ entries: [] });
+    uiStore.getState().setPlanView('timetable');
     dragStore.getState().clearActive();
     dragStore.getState().clearBlockMove();
   });
@@ -211,6 +213,22 @@ describe('DayView', () => {
     const note = document.querySelector('[data-grid-notice="free-day"]');
     expect(note).toHaveTextContent('วันอังคาร');
     expect(note).toHaveTextContent('วันว่าง');
+  });
+
+  it('keeps the picked day across a switch to the selected courses and back', () => {
+    installViewport(390);
+    seedPlan();
+    renderPanel();
+    fireEvent.click(chip('วันศุกร์ มีเรียน'));
+    act(() => {
+      uiStore.getState().setPlanView('selected');
+    });
+    expect(screen.queryByRole('radiogroup')).toBeNull();
+    act(() => {
+      uiStore.getState().setPlanView('timetable');
+    });
+    expect(chip('วันศุกร์ มีเรียน')).toHaveAttribute('aria-checked', 'true');
+    expect(block('90000002')).not.toBeNull();
   });
 
   it('shows the week with no day chips from 640 px', () => {

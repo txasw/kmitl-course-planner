@@ -2,9 +2,11 @@
 // own box rather than the viewport, so a grid scroller narrower than 640 px reads one day
 // at a time through the day view, and a wider one shows the landscape week. The measure
 // lives here, in the component that mounts with the timetable, so switching back from the
-// selected courses view starts a fresh observation of the new node.
+// selected courses view starts a fresh observation of the new node. The day the day view
+// shows is held by the planner panel and passed through.
 
 import { useRef } from 'react';
+import type { DayOfWeek } from '@/lib/parsing/days';
 import type { GridFrame } from '@/lib/planner/grid';
 import type { ConflictDetail } from '@/lib/planner/placement';
 import { isDayViewWidth } from '@/lib/planner/dayView';
@@ -23,6 +25,9 @@ interface TimetableViewProps {
   timeConflicts: ReadonlyMap<string, readonly ConflictDetail[]>;
   /** Whether the plan holds no section at all, scheduled or not. */
   planEmpty: boolean;
+  /** The day the day view shows when the student picked one, or null. */
+  day: DayOfWeek | null;
+  onDayChange: (day: DayOfWeek) => void;
   grid: EditGridProps;
 }
 
@@ -31,6 +36,8 @@ export function TimetableView({
   frame,
   timeConflicts,
   planEmpty,
+  day,
+  onDayChange,
   grid,
 }: TimetableViewProps) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -46,6 +53,8 @@ export function TimetableView({
           window={frame.window}
           timeConflicts={timeConflicts}
           planEmpty={planEmpty}
+          chosen={day}
+          onChoose={onDayChange}
           grid={grid}
         />
       ) : (
