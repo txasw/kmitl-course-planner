@@ -25,6 +25,7 @@ import { isDockedTier } from '@/lib/ui/breakpoints';
 import { planConflicts } from '@/lib/planner/planConflicts';
 import { planExamConflicts } from '@/lib/planner/examOverlap';
 import { buildExamSchedule } from '@/lib/planner/examSchedule';
+import { summarizeWeeklyHours } from '@/lib/planner/credits';
 import { posterHonesty } from '@/lib/planner/posterHonesty';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
@@ -119,6 +120,12 @@ export function PlannerPanel() {
   // The exam schedule the summary view lists, and the poster and the text export list when
   // the show exams option is on (ADR-0064).
   const examSchedule = useMemo(() => buildExamSchedule(entries), [entries]);
+  // The weekly hours the summary view states, from each subject's credit notation.
+  const weeklyHours = useMemo(
+    () =>
+      summarizeWeeklyHours(entries.map((entry) => entry.snapshot.subjectMeta)),
+    [entries],
+  );
   const subjectGroups = useMemo(
     () => groupEntriesBySubject(entries),
     [entries],
@@ -342,6 +349,8 @@ export function PlannerPanel() {
         >
           <SummaryView
             schedule={examSchedule}
+            hours={weeklyHours}
+            meetings={scheduledMeetings}
             hasEntries={entries.length > 0}
             locale={language}
             t={t}

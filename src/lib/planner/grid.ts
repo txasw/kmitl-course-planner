@@ -276,7 +276,9 @@ export type PerDayLoad = Record<DayOfWeek, number>;
  * Total scheduled minutes on each day across the given meetings. Unscheduled
  * sections carry no meetings, so they contribute nothing and never appear here.
  */
-export function perDayLoad(meetings: Meeting[]): PerDayLoad {
+export function perDayLoad(
+  meetings: readonly Pick<Meeting, 'day' | 'startMin' | 'endMin'>[],
+): PerDayLoad {
   const load: PerDayLoad = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
   for (const meeting of meetings) {
     load[meeting.day] += meeting.endMin - meeting.startMin;

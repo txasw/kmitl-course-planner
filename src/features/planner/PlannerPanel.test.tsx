@@ -199,14 +199,18 @@ describe('PlannerPanel plan views', () => {
     expect(screen.queryByRole('list', { name: 'วิชาที่เลือก' })).toBeNull();
   });
 
-  it('switches the region to the summary with the exam schedule', () => {
+  it('switches the region to the summary with the exam schedule, then the workload', () => {
     installViewport(1366);
     seedTwoSubjects();
     renderPanel();
     fireEvent.click(screen.getByRole('tab', { name: 'สรุป' }));
     const panel = screen.getByRole('tabpanel', { name: 'สรุป' });
-    expect(panel).toContainElement(
-      screen.getByRole('region', { name: 'ตารางสอบ' }),
+    const exams = screen.getByRole('region', { name: 'ตารางสอบ' });
+    const workload = screen.getByRole('region', { name: 'ภาระการเรียน' });
+    expect(panel).toContainElement(exams);
+    expect(panel).toContainElement(workload);
+    expect(exams.compareDocumentPosition(workload)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
     );
     expect(
       screen.queryByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
