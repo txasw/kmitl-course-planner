@@ -6,14 +6,18 @@
 // marks the active option with the alternate surface, ink text, and the semibold
 // weight, for settings such as the language, so the header never shows two orange
 // blocks side by side. Labels never wrap, and every option keeps the shared target
-// size.
+// size. An option may carry an icon: below 640 px the option then shows the icon alone
+// in a square segment and keeps its label as sr-only text, so its accessible name is
+// the same word the wider layout shows.
 
+import type { LucideIcon } from 'lucide-react';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
 interface SegmentedOption<T extends string> {
   value: T;
   label: string;
+  icon?: LucideIcon;
 }
 
 export type SegmentedVariant = 'filled' | 'quiet';
@@ -55,6 +59,7 @@ export function SegmentedControl<T extends string>({
     >
       {options.map((option) => {
         const active = option.value === value;
+        const Icon = option.icon;
         return (
           <button
             key={option.value}
@@ -63,11 +68,25 @@ export function SegmentedControl<T extends string>({
             onClick={() => {
               onChange(option.value);
             }}
-            className={`inline-flex items-center justify-center whitespace-nowrap rounded-[6px] px-2.5 py-1 text-xs transition-colors ${TARGET_SIZE} ${FOCUS[variant]} ${
+            className={`inline-flex items-center justify-center whitespace-nowrap rounded-[6px] px-2.5 py-1 text-xs transition-colors ${
+              Icon === undefined ? '' : 'max-sm:size-8 max-sm:p-0'
+            } ${TARGET_SIZE} ${FOCUS[variant]} ${
               active ? ACTIVE[variant] : INACTIVE
             }`}
           >
-            {option.label}
+            {Icon === undefined ? (
+              option.label
+            ) : (
+              <>
+                <Icon
+                  size={16}
+                  strokeWidth={2}
+                  aria-hidden
+                  className="sm:hidden"
+                />
+                <span className="max-sm:sr-only">{option.label}</span>
+              </>
+            )}
           </button>
         );
       })}
