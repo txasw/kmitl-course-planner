@@ -17,6 +17,7 @@ import { FOCUS_RING } from '@/lib/ui/focus';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
 import { useEscapeLayer } from '@/features/shell/useEscapeLayer';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 interface ModalDialogProps {
   /** The heading that names the dialog; it labels the dialog and takes focus on open. */
@@ -78,7 +79,7 @@ export function ModalDialog({
             type="button"
             aria-label={closeLabel}
             onClick={onClose}
-            className={`flex size-9 shrink-0 items-center justify-center rounded-kcp text-ink-soft hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`}
+            className={`flex size-9 shrink-0 items-center justify-center rounded-kcp text-ink-soft hover:bg-surface-alt hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
           >
             <X size={18} aria-hidden />
           </button>

@@ -4,6 +4,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
 import { ModalDialog } from './ModalDialog';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 afterEach(() => {
   cleanup();
@@ -62,6 +63,14 @@ function openDialog() {
 }
 
 describe('ModalDialog', () => {
+  it('sizes the close button as a shared touch target', () => {
+    openDialog();
+    const close = screen.getByRole('button', { name: 'Close' });
+    for (const token of TARGET_SIZE.split(' ')) {
+      expect(close).toHaveClass(token);
+    }
+  });
+
   it('is a modal dialog named by its heading, which takes focus', () => {
     openDialog();
     const dialog = screen.getByRole('dialog', { name: 'Dialog title' });

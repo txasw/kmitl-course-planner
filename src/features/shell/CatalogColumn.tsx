@@ -55,6 +55,7 @@ import {
 } from '@/lib/ui/breakpoints';
 import { claimEscape } from '@/lib/ui/escape';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import {
   CATALOG_COLUMN_ID,
   CATALOG_HIDE_ID,
@@ -173,7 +174,7 @@ function SheetHeader() {
           onClick={(event) => {
             closeSheet(event.currentTarget);
           }}
-          className={`inline-flex items-center justify-center rounded-kcp p-2 text-ink-soft transition-colors hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`}
+          className={`inline-flex items-center justify-center rounded-kcp p-2 text-ink-soft transition-colors hover:bg-surface-alt hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
         >
           <X size={18} strokeWidth={2} aria-hidden />
         </button>

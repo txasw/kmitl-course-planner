@@ -426,10 +426,11 @@ test('the controls a finger reaches are 44 px targets', async ({ context }) => {
 
   // The placed block carries no remove control on a coarse pointer; its tap opens the
   // detail sheet, which holds the remove action.
-  await page
+  const sheetClose = page
     .locator('#kcp-catalog-column')
-    .getByRole('button', { name: 'ปิดรายการรายวิชา' })
-    .tap();
+    .getByRole('button', { name: 'ปิดรายการรายวิชา' });
+  await expectTouchTarget(sheetClose, 'catalog sheet close');
+  await sheetClose.tap();
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
   await expect(
     dialog.getByRole('button', { name: 'นำออก', exact: true }),

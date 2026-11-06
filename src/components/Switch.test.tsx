@@ -2,10 +2,19 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { expectNoSeriousA11yViolations } from '../../tests/support/axe';
 import { Switch } from './Switch';
+import { TARGET_HEIGHT } from '@/lib/ui/target';
 
 afterEach(cleanup);
 
 describe('Switch', () => {
+  it('takes the shared target height, which grows under a coarse pointer', () => {
+    render(<Switch checked label="Hide full" onChange={() => undefined} />);
+    const control = screen.getByRole('switch', { name: 'Hide full' });
+    for (const token of TARGET_HEIGHT.split(' ')) {
+      expect(control).toHaveClass(token);
+    }
+  });
+
   it('exposes the checked state through the switch role', () => {
     render(<Switch checked label="Hide full" onChange={() => undefined} />);
     expect(screen.getByRole('switch', { name: 'Hide full' })).toBeChecked();
