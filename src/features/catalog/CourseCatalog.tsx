@@ -116,7 +116,8 @@ const SUMMARY_ACTION = `inline-flex shrink-0 items-center gap-1 rounded-kcp bord
 
 interface CourseCatalogProps {
   catalog: NormalizedCatalog;
-  onRefresh: () => void;
+  /** Called with the pressed control, which unmounts once the refresh starts loading. */
+  onRefresh: (from: Element) => void;
 }
 
 export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
@@ -303,7 +304,13 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
               {t(anyOpen ? 'catalog.collapseAll' : 'catalog.expandAll')}
             </button>
           )}
-          <button type="button" onClick={onRefresh} className={SUMMARY_ACTION}>
+          <button
+            type="button"
+            onClick={(event) => {
+              onRefresh(event.currentTarget);
+            }}
+            className={SUMMARY_ACTION}
+          >
             <RefreshCw size={12} strokeWidth={2} aria-hidden />
             {t('catalog.refresh')}
           </button>

@@ -10,7 +10,7 @@ import {
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import type { RequestMessage, TeachTableQuery } from '@/lib/messaging/protocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
-import { ok } from '@/lib/utils/result';
+import { err, httpError, ok, type Result } from '@/lib/utils/result';
 import { CatalogPanel } from '@/features/catalog/CatalogPanel';
 import {
   defaultCategoryForm,
@@ -209,6 +209,23 @@ function countingSend(): CountingSend {
   return { send: handler as unknown as TypedSend, queries: () => queries };
 }
 
+// A send that answers the first query with the given result and leaves every later one
+// in flight, so a retry or refresh stays loading while the test reads focus. The cast is
+// required for the same reason as above.
+function answerOnceSend(first: Result<NormalizedCatalog>): TypedSend {
+  let queries = 0;
+  const handler = (message: RequestMessage) => {
+    if (message.type === 'teachTable/query') {
+      queries += 1;
+      return queries === 1
+        ? Promise.resolve(first)
+        : new Promise<never>(() => undefined);
+    }
+    return Promise.resolve(ok(null));
+  };
+  return handler as unknown as TypedSend;
+}
+
 function renderColumn(send: TypedSend) {
   return render(
     <SearchDepsProvider value={fakeSearchDeps({ send })}>
@@ -253,6 +270,26 @@ describe('search focus', () => {
     expect(bar).toHaveFocus();
     fireEvent.keyDown(bar, { key: 'Enter' });
     expect(counting.queries()).toBe(1);
+  });
+
+  it('moves focus to the bar when a retry replaces the error card', async () => {
+    renderColumn(answerOnceSend(err(httpError(500, 'boom'))));
+    fireEvent.click(screen.getByRole('button', { name: 'ค้นหา' }));
+    const retry = await screen.findByRole('button', { name: 'ลองอีกครั้ง' });
+    retry.focus();
+    fireEvent.click(retry);
+    expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true');
+    expect(document.activeElement?.id).toBe(SEARCH_BAR_ID);
+  });
+
+  it('moves focus to the bar when a refresh replaces the catalog', async () => {
+    renderColumn(answerOnceSend(ok(catalog)));
+    fireEvent.click(screen.getByRole('button', { name: 'ค้นหา' }));
+    const refresh = await screen.findByRole('button', { name: 'รีเฟรช' });
+    refresh.focus();
+    fireEvent.click(refresh);
+    expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true');
+    expect(document.activeElement?.id).toBe(SEARCH_BAR_ID);
   });
 
   it('reopens the form and focuses submit when a slow search is cancelled', () => {
