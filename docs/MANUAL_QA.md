@@ -146,6 +146,12 @@ button. Never skip it.
       creates a clash, the bar shows a danger button ชนกัน with the count; pressing it shows
       the timetable and focuses and pulses the first clashing block in time order. On a
       phone, with the day view on another day, the press first shows the clash's day.
+- [ ] Updates indicator: after a check records a change, close the updates dialog with
+      ดูภายหลัง. At 640 px and up a chip มีการเปลี่ยนแปลง n รายการ sits at the right of the
+      plan view tabs; below 640 px the same chip heads the plan pane and the ตารางเรียน nav
+      item carries a warn dot. The chip reopens the dialog and focus returns to it on close.
+      A screen reader reads the chip wording once when it first appears, and the nav item
+      name includes it. Acknowledge every item and the chip and the dot leave.
 - [ ] Missing section: a section dropped upstream stays on the grid with a danger badge
       and a suggested remove. Confirm nothing is deleted without the action.
 - [ ] Block detail popover: in edit mode, open a block's details control. The popover
