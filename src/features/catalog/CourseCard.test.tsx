@@ -6,6 +6,7 @@ import {
   fireEvent,
   cleanup,
   act,
+  within,
 } from '@testing-library/react';
 import { DndContext } from '@dnd-kit/core';
 import { usePlannerSensors } from '@/features/planner/usePlannerSensors';
@@ -19,6 +20,7 @@ import {
 import { CourseCard } from './CourseCard';
 
 const t = createTranslator('th');
+const en = createTranslator('en');
 
 afterEach(cleanup);
 
@@ -184,6 +186,97 @@ describe('CourseCard disclosure', () => {
     );
     expect(title).toHaveClass('line-clamp-2', 'break-words');
     expect(title).toHaveTextContent(`90592008 ${course.nameTh}`);
+  });
+});
+
+describe('CourseCard fit line', () => {
+  const course = makeCourse({
+    subjectId: '90592008',
+    sections: [
+      makeSection({
+        teachTableId: 's1',
+        subjectId: '90592008',
+        section: '901',
+        meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+      }),
+      makeSection({
+        teachTableId: 's2',
+        subjectId: '90592008',
+        section: '902',
+        meetings: [makeMeeting({ day: 3, startMin: 540, endMin: 720 })],
+      }),
+    ],
+  });
+
+  function meta(): HTMLElement {
+    const id = toggle().getAttribute('aria-describedby') ?? '';
+    const node = document.getElementById(id);
+    if (node === null) throw new Error('expected the described meta line');
+    return node;
+  }
+
+  it('describes the toggle by the meta line inside it', () => {
+    render(<Controlled course={course} placed={[]} locale="th" t={t} />);
+    expect(meta()).toHaveAttribute('data-course-meta');
+    expect(toggle().contains(meta())).toBe(true);
+    expect(toggle()).toHaveAccessibleName(`90592008 ${course.nameTh} 3(3-0-6)`);
+  });
+
+  it('shows the section count, the days and the addable count', () => {
+    render(<Controlled course={course} placed={[]} locale="th" t={t} />);
+    expect(meta()).toHaveTextContent('2 กลุ่มเรียน');
+    expect(meta()).toHaveTextContent('เพิ่มได้ 2 กลุ่ม');
+  });
+
+  it('hides the short day labels and reads the full day list instead', () => {
+    render(<Controlled course={course} placed={[]} locale="th" t={t} />);
+    const short = within(meta()).getByText('จ พ');
+    expect(short).toHaveAttribute('aria-hidden', 'true');
+    expect(within(meta()).getByText('เรียนวันจันทร์และวันพุธ')).toHaveClass(
+      'sr-only',
+    );
+  });
+
+  it('names a course with no meeting and a single section', () => {
+    const online = makeCourse({
+      sections: [makeSection({ teachTableId: 'o1', meetings: [] })],
+    });
+    render(<Controlled course={online} placed={[]} locale="en" t={en} />);
+    expect(meta()).toHaveTextContent('1 section');
+    expect(meta()).toHaveTextContent('No scheduled meeting');
+  });
+
+  it('states that every section clashes, in text beside a hidden icon', () => {
+    const placed = [
+      makeSection({
+        teachTableId: 'p1',
+        subjectId: 'OTHER',
+        meetings: [
+          makeMeeting({ day: 1, startMin: 540, endMin: 720 }),
+          makeMeeting({ day: 3, startMin: 540, endMin: 720 }),
+        ],
+      }),
+    ];
+    render(<Controlled course={course} placed={placed} locale="th" t={t} />);
+    const status = within(meta()).getByText('ชนกับตารางทุกกลุ่ม');
+    expect(status.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('shows the other term badge and no fit for a cross term course', () => {
+    render(
+      <Controlled
+        course={course}
+        placed={[]}
+        locale="th"
+        t={t}
+        term={{
+          planTerm: { year: '2569', semester: '1' },
+          browsedTerm: { year: '2569', semester: '2' },
+        }}
+      />,
+    );
+    expect(within(meta()).getByText('คนละภาค')).toBeInTheDocument();
+    expect(meta()).not.toHaveTextContent('เพิ่มได้');
   });
 });
 

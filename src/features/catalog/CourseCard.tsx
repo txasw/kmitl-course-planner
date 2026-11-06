@@ -1,15 +1,18 @@
 // A course card: a header with the subject id, the locale primary name and the credit
-// string, which is also the disclosure for the card's sections. Each section's seat
+// string, which is also the disclosure for the card's sections. A second line inside
+// the toggle summarizes the course's fit, so a collapsed card answers whether opening
+// it is worth it. Each section's seat
 // status and plan relation are computed here from the placed sections. A card starts
 // collapsed and the catalog owns whether it is open, so the state survives a remount.
 
-import { memo, useId, type ReactNode } from 'react';
+import { memo, useId, useMemo, type ReactNode } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { ChevronDown, GripVertical } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import { termsEqual, type Term } from '@/lib/routing/academicTerms';
 import { computeSeatStatus } from '@/lib/catalog/seatStatus';
+import { summarizeCourse } from '@/lib/catalog/courseSummary';
 import {
   computeSectionRelation,
   type TermContext,
@@ -17,6 +20,7 @@ import {
 import { DraggableSection } from './DraggableSection';
 import { SectionRow } from './SectionRow';
 import { RemoveButton, removeSectionName } from './RemoveButton';
+import { FitLine } from './CourseMeta';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { usePresence } from '@/features/shell/usePresence';
 import { useRevealOnExpand } from './useRevealOnExpand';
@@ -107,6 +111,7 @@ function CourseCardComponent({
   const id = useId();
   const titleId = `${id}-title`;
   const creditId = `${id}-credit`;
+  const metaId = `${id}-meta`;
   const bodyId = `${id}-body`;
   const primary = locale === 'th' ? course.nameTh : course.nameEn;
   const secondary = locale === 'th' ? course.nameEn : course.nameTh;
@@ -118,7 +123,14 @@ function CourseCardComponent({
   const added = placedSection !== undefined;
   // A cross term course cannot be added, so its header is no drag source; its rows
   // carry the different term state and a switch action instead.
-  const draggable = !added && onAdd !== undefined && !isCrossTerm(term);
+  const crossTerm = isCrossTerm(term);
+  const draggable = !added && onAdd !== undefined && !crossTerm;
+  // The card receives the filtered course, so the summary counts what opening shows.
+  // placed changes identity only when the plan does, so the candidates rerun rarely.
+  const summary = useMemo(
+    () => (added ? null : summarizeCourse(course, placed, crossTerm, locale)),
+    [added, course, placed, crossTerm, locale],
+  );
   const { mounted, stage } = usePresence(open, DISCLOSURE_MS);
   const { cardRef, scheduleReveal } = useRevealOnExpand(DISCLOSURE_MS);
   const handleToggle = () => {
@@ -128,7 +140,8 @@ function CourseCardComponent({
 
   // The title clamps to two lines and breaks inside a long Thai word rather than
   // cutting to one line, so the name stays readable without a tooltip, which could
-  // not sit inside the button. The button is named by the title and the credits.
+  // not sit inside the button. The button is named by the title and the credits and
+  // described by the summary line under them.
   const headerContent = (
     <>
       {draggable ? (
@@ -146,26 +159,32 @@ function CourseCardComponent({
           aria-expanded={open}
           aria-controls={bodyId}
           aria-labelledby={`${titleId} ${creditId}`}
+          aria-describedby={summary === null ? undefined : metaId}
           onClick={handleToggle}
-          className={`group flex min-h-6 min-w-0 flex-1 cursor-pointer items-start gap-2 rounded-kcp text-left pointer-coarse:min-h-11 ${FOCUS_RING}`}
+          className={`group flex min-h-6 min-w-0 flex-1 cursor-pointer flex-col gap-0.5 rounded-kcp text-left pointer-coarse:min-h-11 ${FOCUS_RING}`}
         >
-          <span
-            id={titleId}
-            className="line-clamp-2 min-w-0 flex-1 break-words text-ink"
-          >
-            <span className="font-semibold tabular-nums">
-              {course.subjectId}
-            </span>{' '}
-            {primary}
+          <span className="flex w-full min-w-0 items-start gap-2">
+            <span
+              id={titleId}
+              className="line-clamp-2 min-w-0 flex-1 break-words text-ink"
+            >
+              <span className="font-semibold tabular-nums">
+                {course.subjectId}
+              </span>{' '}
+              {primary}
+            </span>
+            <span id={creditId} className="shrink-0 text-xs text-ink-soft">
+              {course.creditStr}
+            </span>
+            <ChevronDown
+              size={16}
+              aria-hidden
+              className={`mt-0.5 shrink-0 text-ink-soft transition-transform duration-fast group-hover:text-ink motion-reduce:transition-none ${open ? 'rotate-180' : ''}`}
+            />
           </span>
-          <span id={creditId} className="shrink-0 text-xs text-ink-soft">
-            {course.creditStr}
-          </span>
-          <ChevronDown
-            size={16}
-            aria-hidden
-            className={`mt-0.5 shrink-0 text-ink-soft transition-transform duration-fast group-hover:text-ink motion-reduce:transition-none ${open ? 'rotate-180' : ''}`}
-          />
+          {summary === null ? null : (
+            <FitLine id={metaId} summary={summary} t={t} />
+          )}
         </button>
       </h4>
       {placedSection !== undefined && onRemove !== undefined ? (
