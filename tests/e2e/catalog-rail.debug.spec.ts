@@ -8,6 +8,7 @@ import type { Locator, Page } from '@playwright/test';
 // column kept, it takes no pointer events during a drag, and a tap opens it on a touch
 // screen. Hovering it peeks a shadowed edge of the column once the pointer has moved off it
 // after a hide, and the column slides in and out by transform unless motion is reduced.
+// The feedback strip's reveal action brings the hidden column back too.
 
 const COLUMN = '#kcp-catalog-column';
 const HIDE = 'ซ่อนรายวิชา';
@@ -135,6 +136,28 @@ for (const viewport of [
     });
   });
 }
+
+// Course B 90000002 overlaps Course A and has no other section, so its blocked add offers
+// the reveal action alone. With the column hidden, the action slides it back and hands
+// focus to the course's card, where the rail would otherwise have taken it.
+test('the reveal action slides the hidden column back on the blocked course', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await syntheticSearch(page);
+  await addCourse(page, '90000001');
+  await addCourse(page, '90000002');
+  const reveal = page.getByRole('button', { name: 'แสดงในรายการ' });
+  await expect(reveal).toBeFocused();
+
+  await page.getByRole('button', { name: HIDE }).click();
+  await expect(page.locator(COLUMN)).toHaveAttribute('inert');
+  await reveal.click();
+  await expect(page.locator(COLUMN)).not.toHaveAttribute('inert');
+  await expect(page.getByRole('button', { name: RAIL })).toHaveCount(0);
+  await expect(page.locator('#kcp-course-toggle-90000002')).toBeFocused();
+  await expect(reveal).toHaveCount(0);
+});
 
 test.describe('peek and slide at 1366 by 768', () => {
   test.use({ viewport: { width: 1366, height: 768 } });
