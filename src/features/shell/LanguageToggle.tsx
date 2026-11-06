@@ -5,8 +5,9 @@ import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
 
 // The UI language toggle. It writes the choice to the ui store; the App persists
-// the change. Built on the shared segmented control so it and the mode toggle stay
-// visually and behaviorally identical.
+// the change. Built on the shared segmented control so it behaves like the mode
+// toggle, in the quiet variant, because a language is a setting rather than the view
+// state the filled mode toggle carries.
 export function LanguageToggle() {
   const language = useStore(uiStore, (state) => state.language);
   const setLanguage = useStore(uiStore, (state) => state.setLanguage);
@@ -23,6 +24,7 @@ export function LanguageToggle() {
       value={language}
       options={options}
       onChange={setLanguage}
+      variant="quiet"
     />
   );
 }
