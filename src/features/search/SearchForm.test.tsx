@@ -311,14 +311,16 @@ describe('SearchForm', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'หมวดวิชา' }));
     const submit = screen.getByRole('button', { name: 'ค้นหา' });
     // The submit block follows the last field, with only the clear action after it.
-    const block = submit.parentElement;
+    const block = submit.parentElement?.parentElement;
     expect(block?.previousElementSibling).toContainElement(
       screen.getByRole('combobox', { name: 'หมวดวิชา' }),
     );
     expect(block?.nextElementSibling).toBe(
       screen.getByRole('button', { name: 'ล้างการค้นหา' }),
     );
-    expect(submit).toHaveClass('w-full');
+    // Alone in its row, the submit takes the full width.
+    expect(submit.parentElement?.children).toHaveLength(1);
+    expect(submit).toHaveClass('flex-1');
   });
 
   it('runs a category search and renders the results', async () => {

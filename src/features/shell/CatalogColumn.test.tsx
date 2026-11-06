@@ -143,7 +143,7 @@ function column(container: HTMLElement): HTMLElement {
 
 function scroller(container: HTMLElement): HTMLElement {
   const node = container.querySelector<HTMLElement>(
-    `#${CATALOG_COLUMN_ID} > .kcp-scroll`,
+    `#${CATALOG_COLUMN_ID} [data-catalog-scroller]`,
   );
   if (node === null) throw new Error('the catalog scroller is not rendered');
   return node;
@@ -236,6 +236,42 @@ describe('CatalogColumn', () => {
       viewport.resize(768);
     });
     for (const row of rows) expect(row).toHaveClass('cursor-grab');
+  });
+
+  it('hides the results under the open form below 640 px and shows them on the fold', () => {
+    const viewport = installViewport(390);
+    const { container } = render(<Harness />);
+    const node = scroller(container);
+    // Before any search the open form fills the pane over the idle results.
+    expect(node).toHaveAttribute('inert');
+    expect(node).toHaveAttribute('aria-hidden', 'true');
+    expect(node).toHaveClass('invisible');
+
+    act(() => {
+      searchStore.getState().startQuery(ownerQuery, 'user');
+      searchStore
+        .getState()
+        .setResult({ status: 'ready', data: catalog }, ownerQuery);
+    });
+    expect(node).not.toHaveAttribute('inert');
+    expect(node).not.toHaveAttribute('aria-hidden');
+    expect(node).not.toHaveClass('invisible');
+    node.scrollTop = 240;
+
+    // Reopening the form hides the results again, kept mounted with their offset.
+    fireEvent.click(screen.getByRole('button', { name: 'แก้ไขการค้นหา' }));
+    expect(node).toHaveAttribute('inert');
+    expect(node).toHaveClass('invisible');
+    expect(node.scrollTop).toBe(240);
+
+    // The hidden state is derived from the tier, so widening never strands it.
+    act(() => {
+      viewport.resize(768);
+    });
+    expect(scroller(container)).toBe(node);
+    expect(node).not.toHaveAttribute('inert');
+    expect(node).not.toHaveClass('invisible');
+    expect(node.scrollTop).toBe(240);
   });
 
   it('marks the scroller that owns its scroll anchoring', () => {

@@ -43,7 +43,9 @@
 // header names the catalog and carries the plan suggestion action but no close, since the
 // bottom nav switches panes. Below 640 px the catalog also turns drag off for every row
 // and course header in it, because the timetable is not beside the list to drop on; the
-// add buttons carry the add.
+// add buttons carry the add. An open search form fills the pane there, laid over the
+// results, which stay mounted but invisible and inert until the form folds, so the list
+// keeps its offset while the student edits the search.
 
 import { useLayoutEffect, useRef, type KeyboardEvent } from 'react';
 import { useStore } from 'zustand';
@@ -281,6 +283,14 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
     searchStore,
     (state) => selectBarVisible(state) && selectFormOpen(state),
   );
+  // Below 640 px an open form fills the pane, so the results under it are hidden and
+  // inert, derived here from the tier and the disclosure and never stored, so a resize
+  // out of the phone layout cannot leave them hidden.
+  const compact = tier === 'compact';
+  const editing = useStore(
+    searchStore,
+    (state) => compact && selectFormOpen(state),
+  );
   const lastSubmitAt = useStore(searchStore, (state) => state.lastSubmitAt);
   const results = useRef<HTMLDivElement>(null);
 
@@ -316,20 +326,26 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
       ) : (
         <SheetHeader closable={sheet} />
       )}
-      <SearchHeader />
-      {/* The catalog owns its scroll anchoring: a card opening or closing changes
-          only the content below its header, and the browser must not pick an anchor
-          inside a body that is unmounting. */}
-      <div
-        ref={results}
-        data-catalog-scroller
-        className={`kcp-scroll flex flex-1 flex-col overflow-y-auto p-6 [overflow-anchor:none] [scroll-padding-bottom:var(--kcp-overlay-bottom,0px)] ${
-          keepResults ? 'min-h-48' : 'min-h-0'
-        }`}
-      >
-        <CatalogDragContext.Provider value={tier !== 'compact'}>
-          <CatalogPanel />
-        </CatalogDragContext.Provider>
+      {/* The body positions the search head, which lays over the results while an
+          open form fills the phone pane. */}
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <SearchHeader compact={compact} />
+        {/* The catalog owns its scroll anchoring: a card opening or closing changes
+            only the content below its header, and the browser must not pick an
+            anchor inside a body that is unmounting. */}
+        <div
+          ref={results}
+          data-catalog-scroller
+          inert={editing || undefined}
+          aria-hidden={editing || undefined}
+          className={`kcp-scroll flex flex-1 flex-col overflow-y-auto p-6 [overflow-anchor:none] [scroll-padding-bottom:var(--kcp-overlay-bottom,0px)] ${
+            keepResults ? 'min-h-48' : 'min-h-0'
+          } ${editing ? 'invisible' : ''}`}
+        >
+          <CatalogDragContext.Provider value={!compact}>
+            <CatalogPanel />
+          </CatalogDragContext.Provider>
+        </div>
       </div>
       {removeZone ? <CatalogRemoveZone /> : null}
     </div>
