@@ -132,10 +132,10 @@ function reconcileEntry(
  * Reconcile a plan against fresh normalized data: update each matched entry's
  * snapshot to the fresh data, set its verification status and time, keep a missing
  * entry at its last known time, and adopt a moved key silently. It matches and diffs
- * each entry itself, so the returned report is the single source of truth and cannot
- * drift from a separately computed revalidation. The plan's updatedAt is untouched
- * because reconcile is not a user edit. Term mismatches are reported, not fixed. Pure:
- * it builds new entries and never mutates the input plan or its snapshots.
+ * each entry itself, so the returned report is the single source of truth for the
+ * revalidation outcome. The plan's updatedAt is untouched because reconcile is not a
+ * user edit. Term mismatches are reported, not fixed. Pure: it builds new entries and
+ * never mutates the input plan or its snapshots.
  */
 export function reconcilePlan(
   plan: Plan,

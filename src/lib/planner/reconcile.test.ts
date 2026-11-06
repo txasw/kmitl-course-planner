@@ -51,6 +51,25 @@ describe('summarize', () => {
 });
 
 describe('reconcilePlan', () => {
+  it('summarizes outcomes across all entries', () => {
+    const present = makePlanEntry({ snapshot: makeSnapshot() });
+    const gone = makePlanEntry({
+      snapshot: makeSnapshot({
+        teachTableId: 'g1',
+        subjectId: 'GONE',
+        section: '800',
+      }),
+    });
+    const plan = makePlan({ entries: [present, gone] });
+    const { report } = reconcile(plan, [makeSection()]);
+    expect(report.summary).toEqual({
+      total: 2,
+      unchanged: 1,
+      changed: 0,
+      missing: 1,
+    });
+  });
+
   it('updates a changed entry to fresh data and records old versus new', () => {
     const entry = makePlanEntry({
       snapshot: makeSnapshot({
