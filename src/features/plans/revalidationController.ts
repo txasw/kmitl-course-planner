@@ -60,15 +60,16 @@ const inFlight = new Set<string>();
 /**
  * Run a revalidation for a plan. A manual run bypasses the cache; an automatic run
  * uses the normal cache and retry rules. The result is reported through the
- * revalidation store for the banner.
+ * revalidation store for the banner, and returned so the caller can decide whether the
+ * run should open the updates dialog; a run that did not start returns null.
  */
 export async function revalidatePlanNow(
   plan: Plan,
   deps: RevalidateDeps,
   manual: boolean,
-): Promise<void> {
+): Promise<RevalidationStatus | null> {
   if (plan.entries.length === 0 || inFlight.has(plan.id)) {
-    return;
+    return null;
   }
   inFlight.add(plan.id);
   revalidationStore
@@ -114,7 +115,7 @@ export async function revalidatePlanNow(
       revalidationStore
         .getState()
         .setRun(plan.id, { status: 'offline', report: null });
-      return;
+      return 'offline';
     }
 
     const index = buildSectionIndex(catalogs);
@@ -126,6 +127,7 @@ export async function revalidatePlanNow(
     planStore.getState().applyRevalidation(plan.id, reconciled.entries);
     const status: RevalidationStatus = anyFailure ? 'partial' : 'done';
     revalidationStore.getState().setRun(plan.id, { status, report });
+    return status;
   } finally {
     inFlight.delete(plan.id);
   }
