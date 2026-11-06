@@ -75,20 +75,22 @@ test('round trips a plan through JSON export and import', async ({
 
   // Serve the moved variant and refresh from the banner, which bypasses the cache:
   // the imported entries reconcile against fresh data, report one change, and the
-  // block carries the warn badge.
+  // block carries the warn badge. The check found a change, so the updates dialog
+  // opens directly over the plan.
   mock.setFreshSynthetic(true);
   await banner.getByRole('button', { name: 'รีเฟรช' }).click();
-  await expect(page.getByText(/เปลี่ยน 1/)).toBeVisible({ timeout: 15_000 });
-  await expect(
-    page.locator(`${block('900001')}[data-verify="warn"]`),
-  ).toBeVisible();
-  // The imported plan reviews its change in the updates dialog. Review later keeps the
-  // review open, so the badge stays, and Escape is the same as review later.
-  await banner.getByRole('button', { name: 'รายละเอียด' }).click();
   const dialog = page.getByRole('dialog', {
     name: 'ข้อมูลในตารางมีการเปลี่ยนแปลง',
   });
-  await expect(dialog.getByText('เวลาเรียนเปลี่ยน')).toBeVisible();
+  await expect(dialog.getByText('เวลาเรียนเปลี่ยน')).toBeVisible({
+    timeout: 15_000,
+  });
+  await expect(page.getByText(/เปลี่ยน 1/)).toBeVisible();
+  await expect(
+    page.locator(`${block('900001')}[data-verify="warn"]`),
+  ).toBeVisible();
+  // Review later keeps the review open, so the badge stays, and Escape is the same as
+  // review later. The dialog must close before the plan menu can take a click.
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
   await expect(
