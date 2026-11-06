@@ -33,6 +33,10 @@ export interface PlanStoreState {
   entries: PlanEntry[];
   /** The last mutation's added and removed entries, held to reverse it, or null. */
   pendingUndo: UndoRecord | null;
+  /** The plan a first add just created, or null. Its first check still runs, but the
+   * updates dialog stays closed for it, since the entry came from a live search moments
+   * before (ADR-0060). Session memory only, never persisted. */
+  quietPlanId: string | null;
 }
 
 /** Injected so tests get deterministic ids and timestamps. */
