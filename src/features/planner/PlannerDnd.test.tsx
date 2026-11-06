@@ -86,4 +86,18 @@ describe('PlannerDnd', () => {
     expect(lift()).toBeNull();
     fireEvent.mouseUp(document, { clientX: 80, clientY: 40 });
   });
+
+  it('names the drop targets once at drag start and keeps the dnd-kit region silent', () => {
+    renderDnd();
+    fireEvent.mouseDown(screen.getByText('row'), { button: 0, ...at });
+    fireEvent.mouseMove(document, { clientX: 80, clientY: 40 });
+    expect(dragStore.getState().announcement).toBe('วางในตารางเพื่อเพิ่ม');
+    const dndRegion = document.querySelector('[id^="DndLiveRegion"]');
+    expect(dndRegion).not.toBeNull();
+    expect(dndRegion).toHaveTextContent('');
+    fireEvent.mouseUp(document, { clientX: 80, clientY: 40 });
+    expect(dndRegion).toHaveTextContent('');
+    // The sentence belongs to the drag, so it does not outlive the release.
+    expect(dragStore.getState().announcement).toBeNull();
+  });
 });
