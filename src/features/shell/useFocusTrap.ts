@@ -18,6 +18,12 @@
 // stops propagation, which does not skip other listeners on that node. Nested
 // traps hand off innermost first, because their panel listeners run in that
 // order, so the innermost trap closes alone.
+//
+// A control that unmounts while it holds focus, such as an add button whose card
+// collapses, drops focus to the document body outside the shadow root, where the panel
+// listener never sees the next key, so Tab would leave for the host page and Escape
+// would stop working. The features move focus on purpose after such a change; as a
+// backstop the trap pulls focus that was dropped back onto the panel.
 
 import { useEffect, useRef, type RefObject } from 'react';
 
@@ -55,6 +61,24 @@ export function activeElementWithin(node: Node): Element | null {
     return root.activeElement;
   }
   return null;
+}
+
+/**
+ * Whether no live control in the node's root holds focus: focus fell to the body, as it
+ * does when its holder unmounts, or it sits in a subtree that turned inert, which the
+ * browser is about to blur. In a closed shadow root activeElement is null once focus
+ * leaves it, where the document reports its body instead. A detached node has no root
+ * to ask, so it reports false.
+ */
+export function focusIsLost(node: Node): boolean {
+  const root = node.getRootNode();
+  if (!(root instanceof Document || root instanceof ShadowRoot)) return false;
+  const active = root.activeElement;
+  return (
+    active === null ||
+    active === active.ownerDocument.body ||
+    active.closest('[inert]') !== null
+  );
 }
 
 export function useFocusTrap(
@@ -146,9 +170,26 @@ export function useFocusTrap(
       }
     };
 
+    // A drop shows as a focusout that names no new target. Moving to another control,
+    // inside the panel or out of it, names one, and so does nothing else here. The check
+    // waits a microtask, so a handler that moves focus on purpose right after the commit
+    // that dropped it, such as commitAndFocus, has done so before the trap looks; focus
+    // that sits on any live control by then, or that never left because the window lost
+    // focus, is left alone. A nested trap runs first and keeps focus inside its own layer.
+    const onFocusOut = (event: FocusEvent): void => {
+      if (event.relatedTarget !== null) return;
+      queueMicrotask(() => {
+        if (panel.isConnected && focusIsLost(panel)) {
+          panel.focus({ preventScroll: true });
+        }
+      });
+    };
+
     panel.addEventListener('keydown', onKeyDown);
+    panel.addEventListener('focusout', onFocusOut);
     return () => {
       panel.removeEventListener('keydown', onKeyDown);
+      panel.removeEventListener('focusout', onFocusOut);
       clearDecider();
       const previous = openerRef.current;
       if (previous?.isConnected) {

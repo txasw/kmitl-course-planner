@@ -16,22 +16,12 @@ import {
   CATALOG_TOGGLE_ID,
 } from './catalogVisibility';
 import { uiStore } from './uiStore';
+import { focusIsLost } from './useFocusTrap';
 
 /** The catalog control that replaces the lost one on the tier just entered. */
 function repairTarget(tier: LayoutTier): string {
   if (!isDockedTier(tier)) return CATALOG_TOGGLE_ID;
   return uiStore.getState().catalogVisible ? CATALOG_HIDE_ID : CATALOG_RAIL_ID;
-}
-
-/**
- * Whether focus has fallen out of every element, as it does when its holder unmounts, or
- * sits in a subtree the change made inert, which the browser is about to blur.
- */
-function focusIsLost(root: Document | ShadowRoot, body: HTMLElement): boolean {
-  const active = root.activeElement;
-  return (
-    active === null || active === body || active.closest('[inert]') !== null
-  );
 }
 
 export function useCatalogFocusRepair(
@@ -47,11 +37,9 @@ export function useCatalogFocusRepair(
     if (!uiStore.getState().isOpen) return;
     const node = rootRef.current;
     if (node === null) return;
-    // In the extension the panel sits in a closed shadow root, whose activeElement is
-    // null once focus leaves it, where the document reports its body instead.
+    if (!focusIsLost(node)) return;
     const root = node.getRootNode();
     if (!(root instanceof Document || root instanceof ShadowRoot)) return;
-    if (!focusIsLost(root, node.ownerDocument.body)) return;
     root.getElementById(repairTarget(tier))?.focus({ preventScroll: true });
   }, [rootRef, tier]);
 }
