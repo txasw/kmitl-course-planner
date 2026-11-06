@@ -1,13 +1,12 @@
 // The plan store. It holds every saved plan and which one is active, and mirrors the
 // active plan's entries at the top level so the catalog and grid keep reading the same
-// `entries` and placed sections as before the store learned about multiple plans.
+// `entries` and placed sections as before the store learned about multiple plans. The
+// plan list actions live in the CRUD slice; this module composes it with the entry
+// mutations into one store, so callers keep a single store and a single API.
 // Mutations run through the pure transaction primitive against the active plan, and a
 // mutation keeps what it added and removed as a pending undo for the feedback strip.
 // When there is no active plan, the first add creates one for the term of the search
-// that produced the section, so the first add never hits a wall. Applying a plan
-// suggestion creates a new plan instead of editing the active one, and its undo deletes
-// that plan and returns to the plan it started from. Persistence over storage arrives
-// with the persistence hook, behind this same interface.
+// that produced the section, so the first add never hits a wall.
 
 import { useMemo } from 'react';
 import { useStore } from 'zustand';
@@ -19,10 +18,8 @@ import {
   type SourceQuery,
 } from '@/lib/domain/plan';
 import type { Course, Section } from '@/lib/domain/types';
-import { termsEqual, type Term } from '@/lib/routing/academicTerms';
+import type { Term } from '@/lib/routing/academicTerms';
 import { termFromSourceQueryParams } from '@/lib/planner/sourceQuery';
-import type { Suggestion } from '@/lib/planner/suggest';
-import { applySuggestion } from '@/lib/planner/suggestApply';
 import {
   addSectionGroup,
   applyPlanTransaction,
@@ -30,55 +27,32 @@ import {
   type AddOutcome,
   type TransactionOutcome,
 } from '@/lib/planner/transaction';
+import { createPlanCrudSlice, type PlanCrudActions } from './planCrudSlice';
 import {
   acknowledgeEntry,
   defaultPlanName,
-  duplicatePlanOf,
-  importedPlan,
   makePlan,
   mergeReconciled,
   mostRecentlyUpdated,
   replaceEntries,
-  uniquePlanName,
 } from './planActions';
+import {
+  activeEntriesOf,
+  activePlanOf,
+  EMPTY_ENTRIES,
+  type PlanStoreDeps,
+  type PlanStoreState,
+} from './planStoreState';
 
-/** What an entry mutation of the active plan did. The kind drives the feedback wording
- * so a move does not read as a removal. */
-export interface EntryUndoRecord {
-  kind: 'remove' | 'move' | 'swap';
-  added: PlanEntry[];
-  removed: PlanEntry[];
-}
+export type { SuggestionPlanInput } from './planCrudSlice';
+export type {
+  CreatedPlanUndoRecord,
+  EntryUndoRecord,
+  PlanStoreDeps,
+  UndoRecord,
+} from './planStoreState';
 
-/** A plan a suggestion created, and the plan that was active before it. */
-export interface CreatedPlanUndoRecord {
-  kind: 'create';
-  planId: string;
-  planName: string;
-  previousPlanId: string | null;
-}
-
-/** What the last mutation did, held for a short undo window. */
-export type UndoRecord = EntryUndoRecord | CreatedPlanUndoRecord;
-
-/** What applying a suggestion needs: the new plan's name and term, the suggestion, and
- * the source query of the search it came from. */
-export interface SuggestionPlanInput {
-  name: string;
-  term: Term;
-  suggestion: Suggestion;
-  sourceQuery: SourceQuery;
-}
-
-export interface PlanStore {
-  /** Every saved plan, each scoped to one year and semester. */
-  plans: Plan[];
-  /** The plan the catalog and grid act on, or null when none exist yet. */
-  activePlanId: string | null;
-  /** The active plan's entries, mirrored so existing readers stay unchanged. */
-  entries: PlanEntry[];
-  /** The last mutation's added and removed entries, held to reverse it, or null. */
-  pendingUndo: UndoRecord | null;
+export interface PlanEntryActions {
   add: (
     course: Course,
     section: Section,
@@ -92,49 +66,13 @@ export interface PlanStore {
   ) => TransactionOutcome;
   undo: () => void;
   clearUndo: () => void;
-  /** Create a plan for a term and make it active, returning its id. */
-  createPlan: (name: string, term: Term) => string;
-  /**
-   * Create a plan holding the active plan's entries plus a suggestion and make it
-   * active, leaving the active plan unchanged. The active plan's entries are kept only
-   * when it shares the term. Returns the created plan, or null when the add gate
-   * refuses a chosen section, in which case nothing changes.
-   */
-  createFromSuggestion: (input: SuggestionPlanInput) => Plan | null;
-  renamePlan: (id: string, name: string) => void;
-  /** Copy a plan under a new name and make the copy active. */
-  duplicatePlan: (id: string, name: string) => void;
-  /** Add a plan imported from JSON under a fresh id, marked unverified, made active. */
-  importPlan: (plan: Plan) => string;
-  /** Delete a plan; if it was active, fall back to the most recently updated one. */
-  deletePlan: (id: string) => void;
-  setActivePlan: (id: string) => void;
-  /** Replace the plan list, activating the most recently updated plan. */
-  hydrate: (plans: Plan[]) => void;
   /** Fold reconciled entries into a plan by durable identity, clearing any undo. */
   applyRevalidation: (planId: string, reconciled: PlanEntry[]) => void;
   /** Mark a changed entry verified once the user acknowledges its change. */
   acknowledge: (teachTableId: string) => void;
 }
 
-/** Injected so tests get deterministic ids and timestamps. */
-export interface PlanStoreDeps {
-  now: () => string;
-  uuid: () => string;
-}
-
-// A shared empty array so the mirrored entries keep a stable reference when no plan
-// is active, which avoids a needless re-render of the subscribing components.
-const EMPTY_ENTRIES: PlanEntry[] = [];
-
-function activeEntriesOf(
-  plans: Plan[],
-  activePlanId: string | null,
-): PlanEntry[] {
-  return (
-    plans.find((plan) => plan.id === activePlanId)?.entries ?? EMPTY_ENTRIES
-  );
-}
+export type PlanStore = PlanStoreState & PlanCrudActions & PlanEntryActions;
 
 export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
   return createStore<PlanStore>((set, get) => ({
@@ -142,11 +80,12 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
     activePlanId: null,
     entries: EMPTY_ENTRIES,
     pendingUndo: null,
+    ...createPlanCrudSlice(set, get, deps),
 
     add: (course, section, sourceQuery) => {
       const now = deps.now();
       const state = get();
-      const active = state.plans.find((plan) => plan.id === state.activePlanId);
+      const active = activePlanOf(state);
       // An existing plan fixes the term; the first add takes the section's own term,
       // so auto-create never rejects itself as cross term.
       const planTerm: Term | null =
@@ -199,7 +138,7 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
     remove: (teachTableId) => {
       const now = deps.now();
       const state = get();
-      const active = state.plans.find((plan) => plan.id === state.activePlanId);
+      const active = activePlanOf(state);
       if (active === undefined) {
         return;
       }
@@ -239,7 +178,7 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
     apply: (removeIds, add, kind) => {
       const now = deps.now();
       const state = get();
-      const active = state.plans.find((plan) => plan.id === state.activePlanId);
+      const active = activePlanOf(state);
       if (active === undefined) {
         // A move or swap always acts on a placed block, so an active plan exists.
         return { ok: false, conflicts: [] };
@@ -286,7 +225,7 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
         });
         return;
       }
-      const active = state.plans.find((plan) => plan.id === state.activePlanId);
+      const active = activePlanOf(state);
       if (pending === null || active === undefined) {
         return;
       }
@@ -308,134 +247,6 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
 
     clearUndo: () => {
       set({ pendingUndo: null });
-    },
-
-    createPlan: (name, term) => {
-      const plan = makePlan(deps.uuid(), name, term, deps.now());
-      set((state) => ({
-        plans: [...state.plans, plan],
-        activePlanId: plan.id,
-        entries: plan.entries,
-        pendingUndo: null,
-      }));
-      return plan.id;
-    },
-
-    createFromSuggestion: ({ name, term, suggestion, sourceQuery }) => {
-      const now = deps.now();
-      const state = get();
-      const active = state.plans.find((plan) => plan.id === state.activePlanId);
-      const locked =
-        active !== undefined &&
-        termsEqual({ year: active.year, semester: active.semester }, term)
-          ? active.entries.map((entry) => ({ ...entry }))
-          : EMPTY_ENTRIES;
-      const outcome = applySuggestion(
-        locked,
-        suggestion,
-        sourceQuery,
-        now,
-        term,
-      );
-      if (!outcome.ok) {
-        return null;
-      }
-      const plan: Plan = {
-        ...makePlan(deps.uuid(), uniquePlanName(name, state.plans), term, now),
-        entries: outcome.result.entries,
-      };
-      set({
-        plans: [...state.plans, plan],
-        activePlanId: plan.id,
-        entries: plan.entries,
-        pendingUndo: {
-          kind: 'create',
-          planId: plan.id,
-          planName: plan.name,
-          previousPlanId: state.activePlanId,
-        },
-      });
-      return plan;
-    },
-
-    renamePlan: (id, name) => {
-      const now = deps.now();
-      set((state) => ({
-        plans: state.plans.map((plan) =>
-          plan.id === id ? { ...plan, name, updatedAt: now } : plan,
-        ),
-      }));
-    },
-
-    duplicatePlan: (id, name) => {
-      const state = get();
-      const source = state.plans.find((plan) => plan.id === id);
-      if (source === undefined) {
-        return;
-      }
-      const copy = duplicatePlanOf(source, deps.uuid(), name, deps.now());
-      set({
-        plans: [...state.plans, copy],
-        activePlanId: copy.id,
-        entries: copy.entries,
-        pendingUndo: null,
-      });
-    },
-
-    importPlan: (plan) => {
-      const state = get();
-      const imported = importedPlan(
-        plan,
-        deps.uuid(),
-        uniquePlanName(plan.name, state.plans),
-        deps.now(),
-      );
-      set({
-        plans: [...state.plans, imported],
-        activePlanId: imported.id,
-        entries: imported.entries,
-        pendingUndo: null,
-      });
-      return imported.id;
-    },
-
-    deletePlan: (id) => {
-      set((state) => {
-        const plans = state.plans.filter((plan) => plan.id !== id);
-        const activePlanId =
-          state.activePlanId === id
-            ? (mostRecentlyUpdated(plans)?.id ?? null)
-            : state.activePlanId;
-        return {
-          plans,
-          activePlanId,
-          entries: activeEntriesOf(plans, activePlanId),
-          pendingUndo: null,
-        };
-      });
-    },
-
-    setActivePlan: (id) => {
-      set((state) => {
-        if (!state.plans.some((plan) => plan.id === id)) {
-          return {};
-        }
-        return {
-          activePlanId: id,
-          entries: activeEntriesOf(state.plans, id),
-          pendingUndo: null,
-        };
-      });
-    },
-
-    hydrate: (plans) => {
-      const active = mostRecentlyUpdated(plans);
-      set({
-        plans,
-        activePlanId: active?.id ?? null,
-        entries: active?.entries ?? EMPTY_ENTRIES,
-        pendingUndo: null,
-      });
     },
 
     applyRevalidation: (planId, reconciled) => {
@@ -473,9 +284,7 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
 
     acknowledge: (teachTableId) => {
       set((state) => {
-        const active = state.plans.find(
-          (plan) => plan.id === state.activePlanId,
-        );
+        const active = activePlanOf(state);
         if (active === undefined) {
           return {};
         }
@@ -503,11 +312,7 @@ export const planStore = createPlanStore();
 
 /** The active plan object, or null when no plan is active. */
 export function useActivePlan(): Plan | null {
-  return useStore(
-    planStore,
-    (state) =>
-      state.plans.find((plan) => plan.id === state.activePlanId) ?? null,
-  );
+  return useStore(planStore, (state) => activePlanOf(state) ?? null);
 }
 
 /**
