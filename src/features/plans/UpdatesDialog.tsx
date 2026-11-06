@@ -5,6 +5,8 @@
 // nothing to review in one collapsed group. The footer acknowledges every item, closes for
 // later, or runs the check again. Closing any other way, by the close button, the scrim,
 // or Escape, is the same as later, which marks the items shown and keeps their reviews.
+// Each item can be shown on the timetable, and a section no longer listed can be removed
+// from the plan with undo, its item staying in the list as removed meanwhile.
 //
 // It is a centred dialog from 640 px and a full height bottom sheet below, holding the
 // same body. Both portal out of any live region, contain focus, and return it to the
@@ -18,13 +20,23 @@ import { ModalDialog } from '@/components/ModalDialog';
 import { snapshotToSection } from '@/lib/domain/plan';
 import { planConflicts } from '@/lib/planner/planConflicts';
 import { planExamConflicts } from '@/lib/planner/examOverlap';
-import { buildUpdateReview } from '@/lib/planner/updateReview';
+import {
+  buildUpdateReview,
+  withRemovedItems,
+  type UpdateItem,
+} from '@/lib/planner/updateReview';
+import { locateSection } from '@/features/planner/locateSection';
 import { toastStore } from '@/features/shell/toastStore';
+import { uiStore } from '@/features/shell/uiStore';
+import { rootOf } from '@/features/shell/useFocusTrap';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
+import { usePrefersReducedMotion } from '@/features/shell/usePresence';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { planStore } from './planStore';
 import { UnchangedGroup, UpdateGroupList } from './UpdateGroupList';
+import { UpdateItemActions } from './UpdateItemActions';
 import { UpdatesFooter } from './UpdatesFooter';
+import { useReviewRemoval } from './useReviewRemoval';
 
 interface UpdatesDialogProps {
   onClose: () => void;
@@ -34,7 +46,9 @@ export function UpdatesDialog({ onClose }: UpdatesDialogProps) {
   const { t, language } = useTranslation();
   const tier = useLayoutTier();
   const entries = useStore(planStore, (state) => state.entries);
+  const reducedMotion = usePrefersReducedMotion();
   const acknowledgeRef = useRef<HTMLButtonElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const bodyId = useId();
 
   const review = useMemo(() => {
@@ -45,10 +59,15 @@ export function UpdatesDialog({ onClose }: UpdatesDialogProps) {
       examConflicts: planExamConflicts(sections),
     });
   }, [entries]);
-  const itemIds = review.groups.flatMap((group) =>
-    group.items.map((item) => item.entry.teachTableId),
+  const liveItems = review.groups.flatMap((group) => group.items);
+  const itemIds = liveItems.map((item) => item.entry.teachTableId);
+  const removal = useReviewRemoval(bodyRef, liveItems, acknowledgeRef);
+  const { groups, removedIds } = withRemovedItems(
+    review.groups,
+    removal.removed,
+    entries,
   );
-  const empty = itemIds.length === 0;
+  const empty = groups.length === 0;
 
   // A check that returned every value to what the student last saw leaves nothing to
   // review, so the dialog closes rather than stand open and empty.
@@ -67,6 +86,20 @@ export function UpdatesDialog({ onClose }: UpdatesDialogProps) {
     onClose();
   };
 
+  const handleShow = (item: UpdateItem): void => {
+    const root = bodyRef.current === null ? null : rootOf(bodyRef.current);
+    planStore.getState().markNotified(itemIds);
+    uiStore.getState().setPlanView('timetable');
+    onClose();
+    // Wait for the dialog to unmount and the timetable to render, so the block takes focus
+    // after the dialog has handed it back to its opener.
+    requestAnimationFrame(() => {
+      if (root !== null) {
+        locateSection(root, item.entry.teachTableId, reducedMotion);
+      }
+    });
+  };
+
   const handleAcknowledgeAll = (): void => {
     const { acknowledge } = planStore.getState();
     for (const id of itemIds) {
@@ -77,11 +110,29 @@ export function UpdatesDialog({ onClose }: UpdatesDialogProps) {
   };
 
   const body = (
-    <div className="flex flex-col gap-4">
+    <div ref={bodyRef} className="flex flex-col gap-4">
       <p id={bodyId} className="text-ink-soft">
         {t('updates.body')}
       </p>
-      <UpdateGroupList groups={review.groups} locale={language} t={t} />
+      <UpdateGroupList
+        groups={groups}
+        locale={language}
+        t={t}
+        renderActions={(item) => {
+          const id = item.entry.teachTableId;
+          return (
+            <UpdateItemActions
+              item={item}
+              t={t}
+              removed={removedIds.has(id)}
+              canUndo={removal.canUndo(id)}
+              onShow={handleShow}
+              onRemove={removal.remove}
+              onUndo={removal.undo}
+            />
+          );
+        }}
+      />
       {review.unchanged.length > 0 ? (
         <UnchangedGroup entries={review.unchanged} locale={language} t={t} />
       ) : null}

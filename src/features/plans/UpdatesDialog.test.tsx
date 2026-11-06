@@ -6,6 +6,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from '@testing-library/react';
 import type { PlanEntry, ReviewKind } from '@/lib/domain/plan';
@@ -98,6 +99,15 @@ function Panel({ onOverlayEscape }: { onOverlayEscape: () => void }) {
           >
             details
           </button>
+        </div>
+        {/* A placed block of entry 1, as the timetable renders it. */}
+        <div
+          role="button"
+          data-teach-table-id="1"
+          data-block-order="600"
+          tabIndex={0}
+        >
+          block
         </div>
         {open ? (
           <UpdatesDialog
@@ -252,5 +262,63 @@ describe('UpdatesDialog', () => {
     expect(
       screen.getByRole('button', { name: 'รับทราบทั้งหมด' }),
     ).toHaveFocus();
+  });
+
+  it('shows an item on the timetable: it closes, focuses and pulses the block', async () => {
+    // jsdom has no layout and does not implement scrollIntoView.
+    Element.prototype.scrollIntoView = vi.fn();
+    openDialog([reviewed('1', ['room_changed'])]);
+    fireEvent.click(
+      screen.getByRole('button', { name: 'ดูในตาราง 90000001 กลุ่มเรียน 901' }),
+    );
+    expect(screen.queryByRole('dialog')).toBeNull();
+    const block = screen.getByText('block');
+    await waitFor(() => {
+      expect(block).toHaveFocus();
+    });
+    expect(block).toHaveClass('kcp-locate');
+    expect(planStore.getState().entries[0]?.review?.notifiedAt).not.toBeNull();
+  });
+
+  it('removes a missing section with undo, keeping it listed as removed', () => {
+    openDialog([
+      reviewed('1', ['missing'], { verifyStatus: 'missing' }),
+      reviewed('2', ['room_changed']),
+    ]);
+    const remove = screen.getByRole('button', {
+      name: 'นำออกจากตาราง 90000001 กลุ่มเรียน 901',
+    });
+    expect(
+      screen.queryByRole('button', { name: /^นำออกจากตาราง 90000002/ }),
+    ).toBeNull();
+    fireEvent.click(remove);
+    expect(
+      planStore.getState().entries.map((entry) => entry.teachTableId),
+    ).toEqual(['2']);
+    expect(screen.getByText('นำออกแล้ว')).toBeInTheDocument();
+    const undo = screen.getByRole('button', {
+      name: 'เลิกทำ 90000001 กลุ่มเรียน 901',
+    });
+    expect(undo).toHaveFocus();
+
+    fireEvent.click(undo);
+    expect(planStore.getState().entries).toHaveLength(2);
+    expect(screen.queryByText('นำออกแล้ว')).toBeNull();
+    expect(
+      screen.getByRole('button', {
+        name: 'นำออกจากตาราง 90000001 กลุ่มเรียน 901',
+      }),
+    ).toHaveFocus();
+  });
+
+  it('stays open with the removed item when it was the last to review', () => {
+    openDialog([reviewed('1', ['missing'], { verifyStatus: 'missing' })]);
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'นำออกจากตาราง 90000001 กลุ่มเรียน 901',
+      }),
+    );
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText('นำออกแล้ว')).toBeInTheDocument();
   });
 });
