@@ -33,7 +33,8 @@ import type { Plan } from '../../src/lib/domain/plan';
 // on Escape. The phone, below 640 px, shows one pane at a time behind a bottom nav, so
 // the catalog and the timetable each take the whole body in turn, its timetable reads
 // one day at a time, stepped by the day chips or a swipe, and during a block drag the
-// nav turns into the remove bar.
+// nav turns into the remove bar. There the open search form fills the catalog pane over
+// a pinned submit, and the plan menu and the display options open as bottom sheets.
 
 const LAUNCHER = 'เปิด Course Planner for KMITL';
 // A grid block carries a data-teach-table-id; the catalog rows do not.
@@ -65,6 +66,33 @@ async function openCatalog(page: Page): Promise<Locator> {
   }
   await page.getByRole('button', { name: /^รายวิชา/ }).click();
   return page.getByRole('dialog', { name: 'ค้นหารายวิชา' });
+}
+
+/** Assert the control sits inside the viewport and wholly above the bottom nav. */
+async function expectAboveNav(page: Page, control: Locator): Promise<void> {
+  await expect(control).toBeInViewport({ ratio: 1 });
+  const box = await control.boundingBox();
+  const nav = await bottomNav(page).boundingBox();
+  expect(box).not.toBeNull();
+  expect(nav).not.toBeNull();
+  expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(nav?.y ?? 0);
+}
+
+/** Assert a bottom sheet named by its heading is open and meets the viewport bottom. */
+async function expectBottomSheet(page: Page, name: string): Promise<Locator> {
+  const sheet = page.getByRole('dialog', { name });
+  await expect(sheet).toBeVisible();
+  await expect(sheet).toHaveAttribute('aria-modal', 'true');
+  await expect(page.getByRole('heading', { name })).toBeFocused();
+  // The sheet slides up as it enters, so read its edge once the slide settles.
+  const height = page.viewportSize()?.height ?? 0;
+  await expect
+    .poll(async () => {
+      const box = await sheet.boundingBox();
+      return Math.round((box?.y ?? 0) + (box?.height ?? 0));
+    })
+    .toBe(height);
+  return sheet;
 }
 
 /** The control that brings the timetable back from the catalog. */
@@ -805,6 +833,94 @@ test.describe('the phone layout', () => {
     await expect(
       nav.getByRole('button', { name: 'ที่เลือก', exact: true }),
     ).toBeVisible();
+  });
+
+  test('fills the pane with the search form and adds from the results by button', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    const column = page.locator('#kcp-catalog-column');
+    const results = page.locator('[data-catalog-scroller]');
+    const submit = column.getByRole('button', { name: 'ค้นหา', exact: true });
+    // Before any search the form fills the pane, its submit pinned above the nav, and
+    // the idle results wait hidden under it.
+    await expect(results).toBeHidden();
+    await expectAboveNav(page, submit);
+    await expect(column.getByRole('button', { name: 'ยกเลิก' })).toHaveCount(0);
+
+    await categorySearch(page, column);
+    const bar = column.getByRole('region', { name: 'การค้นหาปัจจุบัน' });
+    await expect(bar).toBeFocused();
+    await expect(results).toBeVisible();
+    await expect(page.locator('#kcp-search-form')).toHaveAttribute(
+      'data-open',
+      'false',
+    );
+
+    // Reopened, the form takes the pane again and its cancel folds it back under the
+    // bar, with the results where they were.
+    const disclosure = bar.getByRole('button', { name: 'แก้ไขการค้นหา' });
+    await disclosure.tap();
+    await expect(results).toBeHidden();
+    const cancel = column.getByRole('button', { name: 'ยกเลิก' });
+    await expectAboveNav(page, cancel);
+    await expectAboveNav(page, submit);
+    await cancel.tap();
+    await expect(disclosure).toBeFocused();
+    await expect(disclosure).toHaveAttribute('aria-expanded', 'false');
+    await expect(results).toBeVisible();
+
+    // The rows carry no grip on the phone, only the add button, and the add is
+    // confirmed by the toast that leads to the timetable.
+    await expandCourse(page, '90592008');
+    await expect(
+      column.locator('button[aria-label^="ลากเพื่อเพิ่มลงตาราง"]'),
+    ).toHaveCount(0);
+    await column
+      .getByRole('button', { name: /^เพิ่ม 90592008/ })
+      .first()
+      .tap();
+    await expect(
+      page.getByText(/^เพิ่ม 90592008 กลุ่มเรียน \d+ แล้ว$/),
+    ).toBeVisible();
+    await page.getByRole('button', { name: 'ดูตาราง' }).tap();
+    await expect(
+      bottomNav(page).getByRole('button', { name: 'ตารางเรียน' }),
+    ).toBeFocused();
+    await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
+  });
+
+  test('opens the plan menu and the display options as bottom sheets', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    const switcher = page
+      .locator('header')
+      .getByRole('button', { name: 'เลือกตาราง' });
+    await switcher.tap();
+    const menu = await expectBottomSheet(page, 'เลือกตาราง');
+    await expectTouchTarget(
+      menu.getByRole('button', { name: 'สร้างตาราง' }),
+      'plan create',
+    );
+    await menu.getByRole('button', { name: 'ปิด', exact: true }).tap();
+    await expect(menu).toHaveCount(0);
+    await expect(switcher).toBeFocused();
+
+    await page.getByRole('button', { name: 'ดูตัวอย่าง' }).tap();
+    const trigger = page.getByRole('button', { name: 'ตัวเลือกการแสดงผล' });
+    await trigger.tap();
+    const options = await expectBottomSheet(page, 'ตัวเลือกการแสดงผล');
+    const showRoom = options.getByRole('switch', { name: 'แสดงห้อง' });
+    await expect(showRoom).toBeChecked();
+    await showRoom.tap();
+    await expect(showRoom).not.toBeChecked();
+    // A tap inside the sheet keeps it open; Escape closes it alone.
+    await expect(options).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(options).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+    await expect(page.getByRole('dialog', { name: OVERLAY })).toBeVisible();
   });
 
   test('carries the result and selected counts in the nav item names', async ({
