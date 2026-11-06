@@ -12,6 +12,7 @@ import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { useStore } from 'zustand';
 import { snapshotToSection } from '@/lib/domain/plan';
 import { catalogMeetings } from '@/lib/catalog/catalogMeetings';
+import type { DayOfWeek } from '@/lib/parsing/days';
 import {
   computeSmartWindow,
   editWindow,
@@ -167,6 +168,9 @@ export function PlannerPanel() {
       () => (scope === null ? [] : targetsAfterRemoval(scope, removed)),
     );
   }, []);
+  // The day the day view shows once the student picks one. It lives here rather than in
+  // the view, so a switch to the selected courses view and back keeps the picked day.
+  const [timetableDay, setTimetableDay] = useState<DayOfWeek | null>(null);
   const [detail, setDetail] = useState<{
     teachTableId: string;
     anchor: HTMLElement;
@@ -331,6 +335,8 @@ export function PlannerPanel() {
             frame={frame}
             timeConflicts={timeConflicts}
             planEmpty={sections.length === 0}
+            day={timetableDay}
+            onDayChange={setTimetableDay}
             grid={{
               locale: language,
               t,
