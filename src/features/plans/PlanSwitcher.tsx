@@ -1,20 +1,21 @@
 // The plan switcher in the overlay header. It lists the saved plans grouped by term,
 // switches the active plan, and creates, renames, duplicates, or deletes a plan.
 // Switching a plan snaps the search form to that plan's term so the next search
-// reflects it. A new plan takes the current search term. The dropdown is positioned
-// with floating-ui, a fixed strategy that escapes the header, and dismisses on an
-// outside click or Escape.
+// reflects it. A new plan takes the term the search tabs share. The dropdown is
+// positioned with floating-ui, a fixed strategy that escapes the header, and
+// dismisses on an outside click or Escape.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { CalendarRange, ChevronDown } from 'lucide-react';
 import { useClick, useDismiss, useInteractions } from '@floating-ui/react';
 import { planSchema, type Plan } from '@/lib/domain/plan';
 import type { Term } from '@/lib/routing/academicTerms';
+import { isTermReady } from '@/lib/search/formState';
 import { planExportBaseName } from '@/lib/planner/exportName';
 import { parsePlanImport } from '@/lib/plans/parsePlanImport';
 import { downloadText } from '@/lib/utils/download';
-import { searchStore, type SearchStore } from '@/features/search/searchStore';
+import { searchStore } from '@/features/search/searchStore';
 import { toastStore } from '@/features/shell/toastStore';
 import {
   PANEL_POPOVER_SCROLL,
@@ -41,36 +42,22 @@ type Mode =
   | { kind: 'confirmDelete'; planId: string }
   | { kind: 'importError'; issues: string[] };
 
-/** The term the search form targets, used as a new plan's default term. */
-function searchFormTerm(state: SearchStore): Term {
-  return state.term;
-}
-
 export function PlanSwitcher() {
   const { t } = useTranslation();
   const plans = useStore(planStore, (state) => state.plans);
   const activePlan = useActivePlan();
-  const searchYear = useStore(
-    searchStore,
-    (state) => searchFormTerm(state).year,
-  );
-  const searchSemester = useStore(
-    searchStore,
-    (state) => searchFormTerm(state).semester,
-  );
+  // A new plan defaults to the one term every search tab shares, so the active tab
+  // never decides it.
+  const searchTerm = useStore(searchStore, (state) => state.term);
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>({ kind: 'list' });
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const searchTerm = useMemo<Term>(
-    () => ({ year: searchYear, semester: searchSemester }),
-    [searchYear, searchSemester],
-  );
   // A plan needs a real term or its sections could never be added; block create
   // until the search form has a seeded year.
-  const canCreate = searchYear !== '';
+  const canCreate = isTermReady(searchTerm);
 
   const { refs, floatingStyles, context } = usePanelPopover({
     gap: 4,
