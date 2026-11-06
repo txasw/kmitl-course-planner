@@ -33,6 +33,7 @@ import {
   dragSourceClass,
   useTouchPress,
 } from '@/features/planner/useTouchPress';
+import { useCatalogDragEnabled } from './catalogDrag';
 import { useCoursePreview } from './useCoursePreview';
 import type { HoverIntentHandlers } from './useHoverIntent';
 
@@ -44,7 +45,8 @@ const HEADER = 'flex items-start gap-1';
 // no accessible name: keyboard users open the card and add a specific section through
 // its rows (ADR-0024, amended by ADR-0057). On a touch screen a swipe on the header
 // scrolls the list, a tap toggles the card, and a long press starts the course drag,
-// with the header marked pressed on the way and dimmed once it drags (ADR-0058).
+// with the header marked pressed on the way and dimmed once it drags (ADR-0058). Where
+// the catalog turns drag off, below 640 px, the header is a plain header with no grip.
 function CourseDragHeader({
   course,
   hover,
@@ -143,7 +145,8 @@ function CourseCardComponent({
   // A cross term course cannot be added, so its header is no drag source; its rows
   // carry the different term state and a switch action instead.
   const crossTerm = isCrossTerm(term);
-  const draggable = !added && onAdd !== undefined && !crossTerm;
+  const dragEnabled = useCatalogDragEnabled();
+  const draggable = dragEnabled && !added && onAdd !== undefined && !crossTerm;
   // The card receives the filtered course, so the summary counts what opening shows.
   // placed changes identity only when the plan does, so the candidates rerun rarely.
   // An added card names its placed section instead, so it skips the candidates.

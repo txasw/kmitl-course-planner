@@ -13,24 +13,27 @@ import {
 import { DndContext } from '@dnd-kit/core';
 import { dragStore } from '@/features/planner/dragStore';
 import { usePlannerSensors } from '@/features/planner/usePlannerSensors';
+import { CatalogDragContext } from './catalogDrag';
 import { DraggableSection } from './DraggableSection';
 
 const course = makeCourse();
 const section = makeSection({ teachTableId: 's1' });
 
-function Harness() {
+function Harness({ dragEnabled = true }: { dragEnabled?: boolean }) {
   const sensors = usePlannerSensors();
   return (
     <DndContext sensors={sensors}>
-      <DraggableSection
-        id="s1"
-        course={course}
-        section={section}
-        label="ลาก s1"
-        onActivate={() => undefined}
-      >
-        <div>row</div>
-      </DraggableSection>
+      <CatalogDragContext.Provider value={dragEnabled}>
+        <DraggableSection
+          id="s1"
+          course={course}
+          section={section}
+          label="ลาก s1"
+          onActivate={() => undefined}
+        >
+          <div>row</div>
+        </DraggableSection>
+      </CatalogDragContext.Provider>
     </DndContext>
   );
 }
@@ -136,6 +139,35 @@ describe('DraggableSection', () => {
     fireEvent.mouseMove(document, { clientX: 60, clientY: 10 });
     expect(surface()).toHaveClass('opacity-40');
     fireEvent.mouseUp(document, { clientX: 60, clientY: 10 });
+  });
+
+  it('starts no drag and shows no grab cursor where the catalog turns drag off', () => {
+    vi.useFakeTimers();
+    try {
+      render(<Harness dragEnabled={false} />);
+      expect(surface()).not.toHaveClass('cursor-grab');
+      const row = screen.getByText('row');
+      fireEvent.mouseDown(row, { button: 0, clientX: 10, clientY: 10 });
+      fireEvent.mouseMove(document, { clientX: 60, clientY: 10 });
+      expect(surface()).not.toHaveClass('opacity-40');
+      fireEvent.mouseUp(document, { clientX: 60, clientY: 10 });
+
+      const at = { clientX: 10, clientY: 10 };
+      fireEvent.pointerDown(row, {
+        pointerType: 'touch',
+        isPrimary: true,
+        ...at,
+      });
+      fireEvent.touchStart(row, { touches: [at], changedTouches: [at] });
+      act(() => {
+        vi.advanceTimersByTime(300);
+      });
+      expect(surface()).not.toHaveClass('opacity-40');
+      expect(surface()).not.toHaveClass('outline-border-strong');
+      fireEvent.touchEnd(row, { touches: [], changedTouches: [at] });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('arms a touch drag after a long press on the row, never on the grip', () => {
