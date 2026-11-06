@@ -10,7 +10,11 @@ import type {
   ReviewKind,
   SectionSnapshot,
 } from '../domain/plan';
-import type { ChangeKind, ComparableSection } from './revalidateDiff';
+import type {
+  ChangeKind,
+  ComparableSection,
+  EntryOutcome,
+} from './revalidateDiff';
 import { diffSnapshot } from './revalidateDiff';
 
 export type ChangeClass = 'material' | 'ambient';
@@ -123,4 +127,21 @@ export function withReview(
   }
   const { review: cleared, ...rest } = entry;
   return cleared === undefined ? entry : rest;
+}
+
+/**
+ * The outcome a run leaves on an entry: missing when the section is no longer listed,
+ * changed exactly while a material review is open, and unchanged otherwise. A run whose
+ * differences are all ambient, such as seat counts, therefore leaves the entry verified,
+ * and an entry a seats only run left changed in an earlier build returns to verified on
+ * its next run.
+ */
+export function reviewedOutcome(
+  after: SectionSnapshot | null,
+  review: EntryReview | undefined,
+): EntryOutcome {
+  if (after === null) {
+    return 'missing';
+  }
+  return review === undefined ? 'unchanged' : 'changed';
 }

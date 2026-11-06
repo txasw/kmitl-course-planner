@@ -10,6 +10,7 @@ import {
   isMaterial,
   materialKinds,
   mergeReview,
+  reviewedOutcome,
   withReview,
 } from './review';
 
@@ -198,5 +199,26 @@ describe('withReview', () => {
     expect(reviewed.review).toBe(review);
     expect(withReview(reviewed, undefined)).not.toHaveProperty('review');
     expect(withReview(entry, undefined)).toBe(entry);
+  });
+});
+
+describe('reviewedOutcome', () => {
+  const review: EntryReview = {
+    kinds: ['time_changed'],
+    before: original,
+    detectedAt: T1,
+    notifiedAt: null,
+  };
+
+  it('reads changed only while a review is open', () => {
+    expect(reviewedOutcome(movedTime, review)).toBe('changed');
+    expect(reviewedOutcome(movedTime, undefined)).toBe('unchanged');
+  });
+
+  it('reads missing for a section no longer listed, reviewed or not', () => {
+    expect(reviewedOutcome(null, undefined)).toBe('missing');
+    expect(reviewedOutcome(null, { ...review, kinds: ['missing'] })).toBe(
+      'missing',
+    );
   });
 });

@@ -95,6 +95,50 @@ describe('reconcilePlan', () => {
     expect(report.entries[0]?.after?.meetings[0]?.startMin).toBe(600);
   });
 
+  it('keeps an entry verified when only its seats changed', () => {
+    const entry = makePlanEntry({
+      snapshot: makeSnapshot({ teachTableId: 't1', subjectId: 'S1' }),
+    });
+    const fresh = makeSection({
+      teachTableId: 't1',
+      subjectId: 'S1',
+      seats: { limit: 40, preCount: 52, queueLeft: 0, enrolled: 'full' },
+      teachersTh: ['อ. ใหม่'],
+    });
+    const { plan: reconciled, report } = reconcile(
+      makePlan({ entries: [entry] }),
+      [fresh],
+    );
+    const updated = reconciled.entries[0];
+    expect(updated?.verifyStatus).toBe('verified');
+    expect(updated?.snapshot.seats.enrolled).toBe('full');
+    expect(updated).not.toHaveProperty('review');
+    // The diff still lists the ambient changes, but the run counts the entry unchanged.
+    expect(report.entries[0]?.changes).toEqual([
+      'teacher_changed',
+      'seats_changed',
+    ]);
+    expect(report.summary).toEqual({
+      total: 1,
+      unchanged: 1,
+      changed: 0,
+      missing: 0,
+    });
+  });
+
+  it('returns an entry an earlier seats only run left changed to verified', () => {
+    // Before the review layer, a seats only run stored the entry as changed with no
+    // review. The next run finds no material difference and normalizes it.
+    const entry = makePlanEntry({
+      snapshot: makeSnapshot({ teachTableId: 't1', subjectId: 'S1' }),
+      verifyStatus: 'changed',
+    });
+    const { plan: reconciled } = reconcile(makePlan({ entries: [entry] }), [
+      makeSection({ teachTableId: 't1', subjectId: 'S1' }),
+    ]);
+    expect(reconciled.entries[0]?.verifyStatus).toBe('verified');
+  });
+
   it('self heals a pre patch snapshot to the fuller multi meeting schedule', () => {
     // A plan saved before teachtime_str parsing has one meeting. On first open after
     // the upgrade, reconcile rewrites the snapshot to the two meeting truth, so the
@@ -278,9 +322,12 @@ describe('reconcilePlan', () => {
     });
 
     // The next run finds nothing new against the updated snapshot, yet the exam still
-    // differs from what the student last reviewed, so the review stays.
+    // differs from what the student last reviewed, so the review and the changed status
+    // stay, and the run still counts the entry changed.
     const second = reconcile(first.plan, [fresh]);
     expect(second.plan.entries[0]?.review).toEqual(reviewed?.review);
+    expect(second.plan.entries[0]?.verifyStatus).toBe('changed');
+    expect(second.report.summary.changed).toBe(1);
   });
 
   it('opens a review for a missing entry and leaves the snapshot in place', () => {

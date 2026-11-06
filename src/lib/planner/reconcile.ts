@@ -15,7 +15,7 @@ import {
   type EntryOutcome,
   type SectionIndex,
 } from './revalidateDiff';
-import { mergeReview, withReview } from './review';
+import { mergeReview, reviewedOutcome, withReview } from './review';
 
 export interface RevalidationSummary {
   total: number;
@@ -53,7 +53,9 @@ export interface ReconcileFinding {
   section: string;
 }
 
-/** One entry's before and after, for the detail sheet and the block popover. */
+/** One entry's before and after, for the detail sheet and the block popover. The
+ * outcome follows the entry's review, while changes lists every difference this run
+ * found, ambient ones included. */
 export interface EntryDiff {
   teachTableId: string;
   subjectId: string;
@@ -83,14 +85,20 @@ function reconcileEntry(
   planIds: Set<string>,
 ): { entry: PlanEntry; diff: EntryDiff } {
   const before = entry.snapshot;
-  const { fresh, outcome, changes, keyChanged } = revalidateEntry(entry, index);
+  const { fresh, changes, keyChanged } = revalidateEntry(entry, index);
   if (fresh === null) {
     // Keep the last known snapshot so the block stays on the grid at its last time;
     // mark it missing and never delete it silently.
+    const review = mergeReview(entry, null, now);
+    const outcome = reviewedOutcome(null, review);
     return {
       entry: withReview(
-        { ...entry, lastVerifiedAt: now, verifyStatus: 'missing' },
-        mergeReview(entry, null, now),
+        {
+          ...entry,
+          lastVerifiedAt: now,
+          verifyStatus: OUTCOME_STATUS[outcome],
+        },
+        review,
       ),
       diff: {
         teachTableId: entry.teachTableId,
@@ -112,6 +120,8 @@ function reconcileEntry(
     ...buildSnapshot(fresh.section, fresh.subjectMeta),
     teachTableId: newId,
   };
+  const review = mergeReview(entry, after, now);
+  const outcome = reviewedOutcome(after, review);
   return {
     entry: withReview(
       {
@@ -121,7 +131,7 @@ function reconcileEntry(
         lastVerifiedAt: now,
         verifyStatus: OUTCOME_STATUS[outcome],
       },
-      mergeReview(entry, after, now),
+      review,
     ),
     diff: {
       teachTableId: newId,
