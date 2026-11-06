@@ -2,10 +2,11 @@
 // the top of the grid column under the grid header, with a reserved height so a notice
 // never shifts the grid. Below the dock it floats at the bottom of the open catalog
 // sheet, or of the grid while the sheet is closed, above the sheet's scrim and above a
-// toast at the panel foot, so its chips are never dimmed or covered; it then reserves
-// the space it covers at the foot of the catalog scrollers, so a control focused there
-// is never hidden under it (WCAG 2.4.11). It mounts once at every tier, so one live node
-// speaks each outcome. A rejected drop shows the blocking reason and up to two
+// toast at the panel foot, so its chips are never dimmed or covered. Below 640 px it
+// floats over whichever pane shows, at most 32rem wide, above the bottom nav and the
+// device's bottom inset. Floating, it reserves the space it covers at the foot of the
+// catalog scrollers, so a control focused there is never hidden under it (WCAG 2.4.11).
+// It mounts once at every tier, so one live node speaks each outcome. A rejected drop shows the blocking reason and up to two
 // alternative sections of the same subject that would fit, or a reveal action when none
 // do. A cross term add and a drag hint show here too. Each visible notice ends with a
 // dismiss control and clears on its own window, six seconds for the blocked reason,
@@ -66,14 +67,40 @@ const PLACEMENT_CLASS: Record<StripPlacement, string> = {
 };
 
 // How far the floating strip sits above the foot of its container: clear of the panel
-// edge at rest, clear of the 56 px bottom nav below 640 px, and clear of the toast
-// region, which shares the panel foot, while a toast shows. The strip outranks a toast,
-// since its chips are the next step.
+// edge at rest, and clear of the toast region, which shares the panel foot, while a toast
+// shows. The strip outranks a toast, since its chips are the next step. Below 640 px the
+// container runs to the screen edge behind the 56 px bottom nav, which pads by the bottom
+// safe area inset, so the strip adds the inset and rises clear of the nav, and above the
+// toast that itself rises 72 px over the nav. Above 640 px the overlay body already clears
+// the inset.
+interface FloatOffset {
+  className: string;
+  px: number;
+  /** Whether the offset adds the bottom safe area inset to its pixels. */
+  inset: boolean;
+}
+
 const FLOAT_OFFSET = {
-  rest: { className: 'bottom-4', px: 16 },
-  aboveNav: { className: 'bottom-18', px: 72 },
-  aboveToast: { className: 'bottom-24', px: 96 },
-} as const;
+  rest: { className: 'bottom-4', px: 16, inset: false },
+  aboveToast: { className: 'bottom-24', px: 96, inset: false },
+  aboveNav: {
+    className: 'bottom-[calc(72px+var(--kcp-safe-bottom))]',
+    px: 72,
+    inset: true,
+  },
+  aboveNavAndToast: {
+    className: 'bottom-[calc(144px+var(--kcp-safe-bottom))]',
+    px: 144,
+    inset: true,
+  },
+} as const satisfies Record<string, FloatOffset>;
+
+function floatOffset(aboveToast: boolean, aboveNav: boolean): FloatOffset {
+  if (aboveNav) {
+    return aboveToast ? FLOAT_OFFSET.aboveNavAndToast : FLOAT_OFFSET.aboveNav;
+  }
+  return aboveToast ? FLOAT_OFFSET.aboveToast : FLOAT_OFFSET.rest;
+}
 
 // The gap a scroller under the floating strip keeps above it as well as its height.
 const OVERLAY_GAP_PX = 8;
@@ -95,22 +122,26 @@ interface FeedbackStripProps {
  */
 function useOverlayClearance(
   ref: RefObject<HTMLDivElement | null>,
-  offsetPx: number | null,
+  offset: FloatOffset | null,
 ): void {
   const { height } = useElementSize(ref);
+  const px = offset === null ? null : height + offset.px + OVERLAY_GAP_PX;
+  const inset = offset?.inset ?? false;
   useEffect(() => {
     const container = ref.current?.parentElement;
-    if (container == null || offsetPx === null || height === 0) {
+    if (container == null || px === null || height === 0) {
       return undefined;
     }
     container.style.setProperty(
       OVERLAY_BOTTOM_PROPERTY,
-      `${String(height + offsetPx + OVERLAY_GAP_PX)}px`,
+      inset
+        ? `calc(${String(px)}px + var(--kcp-safe-bottom))`
+        : `${String(px)}px`,
     );
     return () => {
       container.style.removeProperty(OVERLAY_BOTTOM_PROPERTY);
     };
-  }, [ref, offsetPx, height]);
+  }, [ref, px, inset, height]);
 }
 
 export function FeedbackStrip({
@@ -126,12 +157,8 @@ export function FeedbackStrip({
   const placed = usePlacedSections();
   const stripRef = useRef<HTMLDivElement>(null);
   const floating = placement !== 'inline';
-  const offset = aboveToast
-    ? FLOAT_OFFSET.aboveToast
-    : aboveNav
-      ? FLOAT_OFFSET.aboveNav
-      : FLOAT_OFFSET.rest;
-  useOverlayClearance(stripRef, floating ? offset.px : null);
+  const offset = floatOffset(aboveToast, aboveNav);
+  useOverlayClearance(stripRef, floating ? offset : null);
   // The control focus came from when it entered the strip, such as the add button whose
   // blocked add moved focus to the first alternative. It is forgotten once focus moves on
   // to a control outside the strip, which then owns it.
@@ -228,10 +255,12 @@ export function FloatingFeedbackStrip() {
   const toastShows = useStore(toastStore, (state) => state.toast !== null);
   const undoShows = useStore(planStore, (state) => state.pendingUndo !== null);
   const compact = useLayoutTier() === 'compact';
+  // The compact tier has no sheet, so a sheet left open on a wider window that narrowed
+  // below 640 px never gives the strip the sheet's width there.
   return (
     <FeedbackStrip
       t={t}
-      placement={sheetOpen ? 'sheet' : 'grid'}
+      placement={sheetOpen && !compact ? 'sheet' : 'grid'}
       aboveToast={toastShows || undoShows}
       aboveNav={compact}
     />

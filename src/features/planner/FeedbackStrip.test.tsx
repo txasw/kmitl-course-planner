@@ -509,19 +509,56 @@ describe('FeedbackStrip', () => {
       showBlockedWithChip();
       const { container } = render(<FloatingFeedbackStrip />);
       const node = container.querySelector('[aria-live]');
-      expect(node).toHaveClass('bottom-18');
+      expect(node).toHaveClass(
+        'bottom-[calc(72px+var(--kcp-safe-bottom))]',
+        'inset-x-4',
+        'max-w-[32rem]',
+      );
       expect(node).not.toHaveClass('bottom-4');
       expect(container.style.getPropertyValue(OVERLAY_BOTTOM_PROPERTY)).toBe(
-        '116px',
+        'calc(116px + var(--kcp-safe-bottom))',
       );
     });
 
+    it('rises above a toast that itself rises above the phone nav', () => {
+      installViewport(390);
+      vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(
+        36,
+      );
+      showBlockedWithChip();
+      act(() => {
+        toastStore.getState().show('success', 'ok');
+      });
+      const { container } = render(<FloatingFeedbackStrip />);
+      const node = container.querySelector('[aria-live]');
+      expect(node).toHaveClass('bottom-[calc(144px+var(--kcp-safe-bottom))]');
+      expect(container.style.getPropertyValue(OVERLAY_BOTTOM_PROPERTY)).toBe(
+        'calc(188px + var(--kcp-safe-bottom))',
+      );
+      act(() => {
+        toastStore.getState().dismiss();
+      });
+      expect(node).toHaveClass('bottom-[calc(72px+var(--kcp-safe-bottom))]');
+    });
+
     it('takes the sheet width while the sheet is open', () => {
+      installViewport(768);
       act(() => {
         uiStore.getState().setSheetOpen(true);
       });
       const { container } = render(<FloatingFeedbackStrip />);
       expect(container.querySelector('[aria-live]')).toHaveClass('left-4');
+    });
+
+    it('keeps the phone width with a sheet left open on a wider window', () => {
+      installViewport(390);
+      act(() => {
+        uiStore.getState().setSheetOpen(true);
+      });
+      const { container } = render(<FloatingFeedbackStrip />);
+      const node = container.querySelector('[aria-live]');
+      expect(node).toHaveClass('inset-x-4', 'max-w-[32rem]');
+      expect(node).not.toHaveClass('left-4');
     });
 
     it('reserves nothing while it is empty', () => {
