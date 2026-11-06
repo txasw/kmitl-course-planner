@@ -41,7 +41,7 @@ const FOCUSABLE_SELECTOR = [
 // The browser's Tab skips both, so neither may supply the first or last stop the wrap
 // compares against: a skipped last stop would let Tab from the real last one leave the
 // panel for the host page.
-function isTabStop(element: HTMLElement): boolean {
+export function isTabStop(element: HTMLElement): boolean {
   return (
     element.closest('[inert]') === null && element.getClientRects().length > 0
   );
