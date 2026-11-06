@@ -78,6 +78,17 @@ with undo. The footer carries รับทราบทั้งหมด as the 
 Unchanged and ambient only entries sit in one collapsed group, so the dialog still answers what a
 run checked. From 640 px it is a centred dialog; below it is a full height bottom sheet.
 
+The dialog reads the items from the plan entries, not from the latest run, so it lists the same
+items after a reload. An entry is an item while it holds an open review, and also while it is
+still not listed after its review was acknowledged, since it stays on the grid with its danger
+badge and its remove action. A clash puts an item in the first group only when a time or exam
+change in its review created it. ดูในตาราง counts as ดูภายหลัง for the items shown, then focuses
+the earliest block and pulses it twice in the brand orange, the selection accent, rather than in
+the danger tone that marks a blocker during a drag; a section with no meeting marks its shelf
+row. A removal runs through the plan store, so the declared pair goes with it and the plan's undo
+window applies, and every item it took stays listed as นำออกแล้ว with its undo meanwhile. Escape,
+the close button and the scrim all count as ดูภายหลัง.
+
 While any review is open, an `UpdatesIndicator`, มีการเปลี่ยนแปลง {count} รายการ, sits at the
 right of the plan view tabs and reopens the dialog, and the phone ตารางเรียน nav item carries a
 dot. The indicator announces its first appearance through `StatusAnnouncer` and is not a live
