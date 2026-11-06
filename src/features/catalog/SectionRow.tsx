@@ -24,7 +24,7 @@ import { computeRowStatus, isConflictStatus } from '@/lib/catalog/rowStatus';
 import type { SectionRelation } from '@/lib/planner/sectionState';
 import { describeConflicts } from '@/lib/planner/describeConflict';
 import { FOCUS_OUTLINE } from '@/lib/ui/focus';
-import { TARGET_MIN } from '@/lib/ui/target';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import { NO_DRAG_ARMING } from '@/features/planner/dragArming';
 import { ConflictCallout } from './ConflictCallout';
 import { RemarkLine } from './RemarkLine';
@@ -143,7 +143,7 @@ export function SectionRow({
                 onClick={() => {
                   onSwitchTerm(relation.browsedTerm);
                 }}
-                className={`rounded-kcp border border-primary px-2 py-0.5 text-primary-strong outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_MIN}`}
+                className={`rounded-kcp border border-primary px-2 py-0.5 text-primary-strong outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
               >
                 {t('term.switch')}
               </button>
@@ -252,7 +252,8 @@ function railKind(
 
 // The add rail is a quiet affordance, not the primary path: drag is primary, add is
 // secondary. It rests as a soft tinted column with the accent icon and fills to solid
-// only on hover and focus. Its own bordered column (w-8, shrink-0, border-l) means it
+// only on hover and focus. Its own bordered column (w-8, or w-11 under a coarse pointer so
+// a finger has a 44 px target, shrink-0, border-l) means it
 // never overlaps the row body, which stays min-w-0 and clips rather than spilling into
 // the rail at any card width. The accent icon on the soft surface and white on the
 // solid hover fill both clear the AA text bar (token-contrast.test.ts). On a conflicting
@@ -280,7 +281,7 @@ function AddRail({
             : {})}
           {...NO_DRAG_ARMING}
           onClick={onAdd}
-          className={`flex w-8 shrink-0 items-center justify-center border-l border-border bg-primary-soft text-primary-strong hover:bg-primary-strong hover:text-white focus-visible:bg-primary-strong focus-visible:text-white ${FOCUS_OUTLINE}`}
+          className={`flex w-8 shrink-0 items-center justify-center border-l border-border bg-primary-soft pointer-coarse:w-11 text-primary-strong hover:bg-primary-strong hover:text-white focus-visible:bg-primary-strong focus-visible:text-white ${FOCUS_OUTLINE}`}
         >
           <Plus size={16} strokeWidth={2.5} aria-hidden />
         </button>
@@ -313,7 +314,7 @@ function DisabledRail({
           aria-label={label}
           aria-describedby={reasonId}
           {...NO_DRAG_ARMING}
-          className={`flex w-8 shrink-0 cursor-not-allowed items-center justify-center border-l border-border bg-surface-alt text-ink-soft ${FOCUS_OUTLINE}`}
+          className={`flex w-8 shrink-0 cursor-not-allowed items-center pointer-coarse:w-11 justify-center border-l border-border bg-surface-alt text-ink-soft ${FOCUS_OUTLINE}`}
         >
           <Plus size={16} aria-hidden className="opacity-40" />
         </button>

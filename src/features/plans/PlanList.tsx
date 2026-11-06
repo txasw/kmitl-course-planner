@@ -17,7 +17,7 @@ import type { Plan } from '@/lib/domain/plan';
 import type { Term } from '@/lib/routing/academicTerms';
 import type { Translate } from '@/lib/i18n/t';
 import { useTranslation } from '@/features/shell/useTranslation';
-import { TARGET_MIN } from '@/lib/ui/target';
+import { TARGET_HEIGHT, TARGET_SIZE } from '@/lib/ui/target';
 
 interface TermGroup {
   key: string;
@@ -84,7 +84,7 @@ export function PlanList({
         type="button"
         disabled={!canCreate}
         onClick={onCreate}
-        className="flex w-full items-center justify-center gap-1.5 rounded-kcp bg-primary-strong px-2 py-1.5 text-sm font-semibold text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 disabled:hover:bg-primary-strong"
+        className={`flex w-full items-center justify-center gap-1.5 rounded-kcp bg-primary-strong px-2 py-1.5 text-sm font-semibold text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 disabled:hover:bg-primary-strong ${TARGET_HEIGHT}`}
       >
         <Plus size={16} strokeWidth={2.5} aria-hidden />
         {t('planSwitcher.create')}
@@ -108,7 +108,7 @@ export function PlanList({
                   onClick={() => {
                     onSelect(plan);
                   }}
-                  className="flex min-w-0 flex-1 items-center gap-2 rounded-kcp px-2 py-1 text-left text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  className={`flex min-w-0 flex-1 items-center gap-2 rounded-kcp px-2 py-1 text-left text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_HEIGHT}`}
                 >
                   <Check
                     size={14}
@@ -200,7 +200,7 @@ function ActionButton({
           type="button"
           onClick={onClick}
           aria-label={label}
-          className={`inline-flex items-center justify-center rounded-kcp py-1 text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_MIN} ${
+          className={`inline-flex items-center justify-center rounded-kcp py-1 text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE} ${
             showLabel ? 'gap-1 px-2 text-xs' : 'px-1.5'
           }`}
         >

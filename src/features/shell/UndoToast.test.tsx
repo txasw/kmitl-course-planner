@@ -18,6 +18,7 @@ import {
   resetPlanStore,
   seedActivePlan,
 } from '../../../tests/support/plan-store';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import { swipe } from '../../../tests/support/swipe';
 import { UndoToast } from './UndoToast';
 import { useFocusTrap } from './useFocusTrap';
@@ -133,6 +134,18 @@ describe('UndoToast', () => {
     seedUndo(record);
     render(<UndoToast record={record} locale="th" t={t} />);
     expect(screen.getByText('นำออกแล้ว 2 รายการ')).toBeInTheDocument();
+  });
+
+  it('sizes undo and close as shared touch targets', () => {
+    const record = removeRecord();
+    seedUndo(record);
+    render(<UndoToast record={record} locale="th" t={t} />);
+    for (const name of ['เลิกทำ', 'ปิด']) {
+      const button = screen.getByRole('button', { name });
+      for (const token of TARGET_SIZE.split(' ')) {
+        expect(button).toHaveClass(token);
+      }
+    }
   });
 
   it('commits the change when the close button is pressed', () => {

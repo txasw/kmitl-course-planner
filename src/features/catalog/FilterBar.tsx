@@ -25,7 +25,7 @@ import {
 import { dayLabelKey } from '@/lib/i18n/dayLabel';
 import { CONTROL_BOUNDARY } from '@/lib/ui/control';
 import { FOCUS_RING, FOCUS_OUTLINE } from '@/lib/ui/focus';
-import { TARGET_MIN } from '@/lib/ui/target';
+import { TARGET_HEIGHT, TARGET_SIZE } from '@/lib/ui/target';
 import { Combobox, type ComboboxOption } from '@/features/search/Combobox';
 import { catalogStore } from './catalogStore';
 
@@ -124,7 +124,7 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
             onChange={(event) => {
               catalogStore.getState().setText(event.target.value);
             }}
-            className={`min-w-0 flex-1 rounded-kcp border px-2 py-1.5 text-sm text-ink ${CONTROL_BOUNDARY} ${FOCUS_RING}`}
+            className={`min-w-0 flex-1 rounded-kcp border px-2 py-1.5 text-sm text-ink ${TARGET_HEIGHT} ${CONTROL_BOUNDARY} ${FOCUS_RING}`}
           />
           <FilterPopover
             t={t}
@@ -142,7 +142,7 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
               type="button"
               aria-label={`${t('action.remove')} ${chip.label}`}
               onClick={chip.onRemove}
-              className={`inline-flex items-center gap-1 rounded-kcp bg-surface-alt px-2 py-0.5 text-ink-soft hover:text-ink ${TARGET_MIN} ${FOCUS_RING}`}
+              className={`inline-flex items-center gap-1 rounded-kcp bg-surface-alt px-2 py-0.5 text-ink-soft hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
             >
               {chip.label}
               <X size={12} aria-hidden />
@@ -153,7 +153,7 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
             onClick={() => {
               catalogStore.getState().resetFilter();
             }}
-            className={`rounded-kcp px-2 py-0.5 text-primary-strong hover:bg-primary-soft ${TARGET_MIN} ${FOCUS_RING}`}
+            className={`rounded-kcp px-2 py-0.5 text-primary-strong hover:bg-primary-soft ${TARGET_SIZE} ${FOCUS_RING}`}
           >
             {t('catalog.filter.clearAll')}
           </button>
@@ -246,7 +246,7 @@ function FilterPopover({
         <span className="text-xs font-semibold text-ink-soft">
           {t('catalog.filter.day')}
         </span>
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           {DAYS.map((day) => {
             const active = filter.days.includes(day);
             return (
@@ -257,7 +257,7 @@ function FilterPopover({
                 onClick={() => {
                   catalogStore.getState().toggleDay(day);
                 }}
-                className={`flex-1 rounded-kcp px-1 py-1 text-xs ${TARGET_MIN} ${
+                className={`flex-1 rounded-kcp px-1 py-1 text-xs ${TARGET_SIZE} ${
                   active
                     ? 'bg-primary-strong text-surface'
                     : 'bg-surface-alt text-ink-soft hover:text-ink'
@@ -315,7 +315,7 @@ function FilterPopover({
         type="button"
         aria-expanded={open}
         aria-label={t('catalog.filter.label')}
-        className={`inline-flex shrink-0 items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm text-ink hover:bg-surface-alt ${TARGET_MIN} ${FOCUS_RING}`}
+        className={`inline-flex shrink-0 items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm text-ink hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`}
         {...getReferenceProps()}
       >
         <SlidersHorizontal size={16} strokeWidth={2} aria-hidden />
