@@ -7,6 +7,8 @@ import { createPrefsRepository } from '@/lib/storage/prefs';
 import { createSearchStateRepository } from '@/lib/storage/lastSearch';
 import { createBrowserStorageAdapter } from '@/lib/storage/browserAdapter';
 import { createPlanRepository } from '@/lib/storage/repo';
+import { createInstallRepository } from '@/lib/storage/install';
+import { createOnboardingRepository } from '@/lib/storage/onboarding';
 import { App } from './App';
 
 // The content script runs once per document. Because the host is a hash routed
@@ -38,7 +40,18 @@ export default defineContentScript({
           send: sendTyped,
           repo: createSearchStateRepository(adapter),
         };
-        root.render(<App prefs={prefs} plans={plans} search={search} />);
+        const onboarding = {
+          install: createInstallRepository(adapter),
+          record: createOnboardingRepository(adapter),
+        };
+        root.render(
+          <App
+            prefs={prefs}
+            plans={plans}
+            search={search}
+            onboarding={onboarding}
+          />,
+        );
         return root;
       },
       onRemove: (root) => {

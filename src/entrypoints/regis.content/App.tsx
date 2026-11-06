@@ -14,21 +14,27 @@ import {
   type SearchDeps,
 } from '@/features/search/SearchDepsContext';
 import { DiagnosticsGate } from '@/features/diagnostics/DiagnosticsGate';
+import {
+  useOnboardingPersistence,
+  type OnboardingPersistenceDeps,
+} from '@/features/onboarding/useOnboardingPersistence';
 
 interface AppProps {
   prefs: PrefsRepository;
   plans: PlanPersistenceDeps;
   search: SearchDeps;
+  onboarding: OnboardingPersistenceDeps;
 }
 
 // Root component for the content script UI. It renders the launcher and the
-// overlay, hydrates and persists the language and the plans through the injected
-// repositories, and provides the search dependencies so the deep form components
-// stay free of the browser binding. The storage and messaging bindings stay at the
-// entrypoint.
-export function App({ prefs, plans, search }: AppProps) {
+// overlay, hydrates and persists the language, the plans and the onboarding
+// record through the injected repositories, and provides the search dependencies
+// so the deep form components stay free of the browser binding. The storage and
+// messaging bindings stay at the entrypoint.
+export function App({ prefs, plans, search, onboarding }: AppProps) {
   usePrefsPersistence(prefs);
   usePlanPersistence(plans);
+  useOnboardingPersistence(onboarding);
   return (
     <SearchDepsProvider value={search}>
       <RevalidationTriggers />
