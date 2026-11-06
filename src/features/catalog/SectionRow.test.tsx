@@ -704,19 +704,27 @@ describe('SectionRow density and read only', () => {
 // 96642011/101 in the exam capture is limited to the faculty and to a dual degree
 // international curriculum. Its qualifiers are angle bracketed text in both languages,
 // which the sanitizer keeps, so the row must show them as written.
-function dualDegree(): { course: Course; section: Section } {
+/** A course and one of its sections from the real capture that carries exam windows. */
+function withExamsSection(
+  subjectId: string,
+  code: string,
+): { course: Course; section: Section } {
   const result = normalizeTeachTable(
     loadFixture('teach-table.with-exams.capture.json'),
   );
   if (!result.ok) {
     throw new Error('fixture failed to normalize');
   }
-  const found = result.value.courses.find((c) => c.subjectId === '96642011');
-  const sectionFound = found?.sections.find((s) => s.section === '101');
+  const found = result.value.courses.find((c) => c.subjectId === subjectId);
+  const sectionFound = found?.sections.find((s) => s.section === code);
   if (found === undefined || sectionFound === undefined) {
-    throw new Error('fixture is missing the dual degree section');
+    throw new Error(`fixture is missing ${subjectId} section ${code}`);
   }
   return { course: found, section: sectionFound };
+}
+
+function dualDegree(): { course: Course; section: Section } {
+  return withExamsSection('96642011', '101');
 }
 
 describe('SectionRow conditions and remark', () => {
@@ -927,5 +935,69 @@ describe('SectionRow conflict badge and reason', () => {
     const reason = screen.getByText(/^ชนกับ/);
     expect(reason).toHaveTextContent('90000099 กลุ่มเรียน 902');
     expect(reason).toHaveTextContent('(+1)');
+  });
+});
+
+describe('SectionRow exam line', () => {
+  it('shows both exam windows of a real section in the Buddhist year', () => {
+    const { course: physics, section: first } = withExamsSection(
+      '01006020',
+      '1',
+    );
+    render(
+      <SectionRow
+        course={physics}
+        section={first}
+        relation={{ kind: 'addable' }}
+        seat={computeSeatStatus(first)}
+        locale="th"
+        t={t}
+        onAdd={vi.fn()}
+      />,
+    );
+    // The capture stores 2026 CE; the row reads 2569 BE like the detail list.
+    expect(screen.getByText('กลางภาค').parentElement).toHaveTextContent(
+      'กลางภาค 21 ส.ค. 2569 09:30-12:30',
+    );
+    expect(screen.getByText('ปลายภาค').parentElement).toHaveTextContent(
+      'ปลายภาค 30 ต.ค. 2569 09:30-12:30',
+    );
+    expect(screen.queryByText('จัดสอบเอง')).toBeNull();
+  });
+
+  it('reads as arranged by the instructor when the section announces no exam', () => {
+    render(
+      <SectionRow
+        course={course}
+        section={section}
+        relation={{ kind: 'addable' }}
+        seat={openSeat}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.getByText('จัดสอบเอง')).toBeInTheDocument();
+  });
+
+  it('keeps the exam dates on a read only row, since they are facts', () => {
+    const scheduled = makeSection({
+      exam: {
+        midterm: { start: '2026-08-21 09:30:00', end: '2026-08-21 12:30:00' },
+      },
+    });
+    render(
+      <SectionRow
+        course={course}
+        section={scheduled}
+        relation={{ kind: 'added' }}
+        seat={computeSeatStatus(scheduled)}
+        locale="en"
+        t={createTranslator('en')}
+        readOnly
+      />,
+    );
+    expect(screen.getByText('Midterm').parentElement).toHaveTextContent(
+      'Midterm 21 Aug 2569 09:30-12:30',
+    );
   });
 });
