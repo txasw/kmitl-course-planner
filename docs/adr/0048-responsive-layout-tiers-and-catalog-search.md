@@ -431,3 +431,42 @@ device with no inset.
 
 This closes both gaps the compact panes amendment recorded. The live region inventory is
 unchanged.
+
+## Amendment, 2026-11-06: phone sheets and the full pane search
+
+The compact panes shipped with the wide tier's anchored menus and with the search form laid
+out as on the wider tiers. On a 360 px phone the w-72 plan menu left almost no margin, its row
+actions sat at the screen edge under a thumb, and a long curriculum form pushed its submit
+below the bottom nav. Below 640 px every popover larger than a short menu now opens as a
+bottom sheet, as the block details already do under ADR-0049, and the search takes the pane.
+
+- The plan switcher menu and the display options open as bottom sheets named by their
+  trigger label, with the same content as the popovers. A sheet carries its own scrim, focus
+  trap and Escape layer, lands focus on its heading and returns it to the trigger, which
+  reports a dialog popup in that form. The floating outside press dismiss is off while a
+  sheet is in use, because the sheet portals outside the floating context and every tap
+  inside it would read as an outside press. From 640 px up both stay anchored popovers.
+- The panel portal context now covers the header as well as the body, so a header control
+  can open its sheet over the whole panel. Before this a header surface had no portal node.
+- An open search form fills the catalog pane. The search head lays over the results, which
+  stay mounted but invisible and inert beneath it, never display none, so the list keeps its
+  scroll offset while the student edits the search. The hidden state is derived at render
+  from the tier and the disclosure and never stored, so a widened window cannot strand it. A
+  user submit folds the form as on every tier and reveals the bar and the results, and the
+  feedback strip's show in the list action folds it too, or the card it opens would stay
+  hidden and could not take focus.
+- The submit row is pinned to the foot of the form scroller, above the bottom nav, and the
+  scroller adds the row's measured height to the `--kcp-overlay-bottom` reservation of the
+  floating strip as its bottom scroll padding, so a focused field never sits under either
+  (WCAG 2.4.11). While a running search has a bar, the row carries ยกเลิก
+  beside the submit; it folds the form back under the bar and moves focus to the disclosure,
+  the same fold Escape gives. Before any search there is no bar to fold to, so no cancel shows.
+- The section grip drops out with the catalog drag. Its name promises a drag to the
+  timetable that the phone pane cannot offer, and its press only repeated the row's add
+  button, so the add button alone carries the commit. The row keeps its element and its
+  disabled drag registration, so a tier change never remounts it under a focused control.
+  The course header stays a plain disclosure with no drag source, as the compact panes
+  amendment above set it.
+
+The block details sheet of ADR-0049 is unchanged. The live region inventory is unchanged:
+neither the sheets nor the pinned submit add a live node.
