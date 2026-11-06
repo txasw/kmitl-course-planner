@@ -1,13 +1,14 @@
 // A single section row inside a course card. It shows the section code, a quiet
 // lecture or practice tag, each meeting's day, time, and room, the instructors, the
 // seat line with a demand chip when pre registrations exceed the capacity, the
-// enrollment conditions and the remark as one line each with a control
-// that shows the rest, and one status badge chosen by the rowStatus precedence. The
-// conditions and remark show on a read only row too, since they are facts about the
-// section rather than actions. A conflicting section keeps its badge, which reads as an
-// exam clash when every conflict is an exam overlap, and its reason but stays
-// actionable: its add button routes to the blocked feedback strip instead of being
-// disabled, so a keyboard user gets the same reason and alternatives a drag would give.
+// midterm and final exam dates, the enrollment conditions and the remark as one line
+// each with a control that shows the rest, and one status badge chosen by the
+// rowStatus precedence. The exam dates, conditions, and remark show on a read only row
+// too, since they are facts about the section rather than actions. A conflicting
+// section keeps its badge, which reads as an exam clash when every conflict is an exam
+// overlap, and its reason but stays actionable: its add button routes to the blocked
+// feedback strip instead of being disabled, so a keyboard user gets the same reason
+// and alternatives a drag would give.
 // A duplicate reads on a muted surface with its reason. When handlers are supplied the
 // row offers an add button for an addable or conflicting open section and a remove
 // button for an added one.
@@ -28,6 +29,7 @@ import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { NO_DRAG_ARMING } from '@/features/planner/dragArming';
 import { ConflictCallout } from './ConflictCallout';
+import { ExamLine } from './ExamLine';
 import { RemarkLine } from './RemarkLine';
 import { RulesNotice } from './RulesNotice';
 import { DemandChip, SeatDemand } from './SeatDemand';
@@ -186,6 +188,7 @@ export function SectionRow({
           </div>
           <DemandChip demand={demand} t={t} />
         </div>
+        <ExamLine exam={section.exam} t={t} />
         <RulesNotice
           rulesTh={section.rulesTh}
           rulesEn={section.rulesEn}
