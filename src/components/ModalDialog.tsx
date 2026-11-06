@@ -47,6 +47,8 @@ interface ModalDialogProps {
   footer?: ReactNode;
   /** The control that takes focus on open, in place of the heading. */
   initialFocusRef?: RefObject<HTMLElement | null>;
+  /** The id of the element in the body that describes the dialog. */
+  describedBy?: string;
 }
 
 export function ModalDialog({
@@ -57,6 +59,7 @@ export function ModalDialog({
   width = 'wide',
   footer,
   initialFocusRef,
+  describedBy,
 }: ModalDialogProps) {
   const portalRoot = usePanelPortal();
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -87,6 +90,7 @@ export function ModalDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        aria-describedby={describedBy}
         tabIndex={-1}
         className={`relative flex max-h-[85dvh] w-full ${WIDTH_CLASS[width]} flex-col rounded-kcp bg-surface text-ink shadow-kcp outline-none`}
       >

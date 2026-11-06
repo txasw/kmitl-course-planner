@@ -47,6 +47,8 @@ interface BottomSheetProps {
   fullHeight?: boolean;
   /** The control that takes focus on open, in place of the heading. */
   initialFocusRef?: RefObject<HTMLElement | null>;
+  /** The id of the element in the body that describes the dialog. */
+  describedBy?: string;
 }
 
 export function BottomSheet({
@@ -57,6 +59,7 @@ export function BottomSheet({
   footer,
   fullHeight = false,
   initialFocusRef,
+  describedBy,
 }: BottomSheetProps) {
   const portalRoot = usePanelPortal();
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -101,6 +104,7 @@ export function BottomSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        aria-describedby={describedBy}
         tabIndex={-1}
         style={swipe.style}
         className={`relative flex ${fullHeight ? 'h-dvh' : 'max-h-[85dvh]'} w-full flex-col rounded-t-kcp-sheet bg-surface text-ink shadow-kcp outline-none ${reducedMotion ? '' : 'kcp-sheet-enter'}`}
