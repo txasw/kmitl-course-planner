@@ -89,6 +89,7 @@ export const requestMessageSchema = z.discriminatedUnion('type', [
     type: z.literal('teachTable/cancel'),
     query: teachTableQuerySchema,
   }),
+  z.object({ type: z.literal('shell/mounted') }),
   z.object({ type: z.literal('debug/getRequestLog') }),
   z.object({ type: z.literal('debug/getReport') }),
   z.object({ type: z.literal('debug/getLatestRaw') }),
@@ -109,6 +110,26 @@ export const requestMessageSchema = z.discriminatedUnion('type', [
 ]);
 
 export type RequestMessage = z.infer<typeof requestMessageSchema>;
+
+/**
+ * The worker's answer to the mount handshake: whether this tab was opened to show the
+ * panel, and the open shortcut as the browser reports it, or null when none is
+ * assigned.
+ */
+export const mountHandshakeSchema = z.object({
+  openPanel: z.boolean(),
+  shortcut: z.string().nullable(),
+});
+export type MountHandshake = z.infer<typeof mountHandshakeSchema>;
+
+/**
+ * The successful shell/mounted reply. The content side checks the reply against it on
+ * receipt, so an error Result and a malformed reply alike settle with no open.
+ */
+export const mountedReplySchema = z.object({
+  ok: z.literal(true),
+  value: mountHandshakeSchema,
+});
 export type RequestType = RequestMessage['type'];
 
 /** The response payload each request type resolves to, keyed by discriminant. */
@@ -120,6 +141,7 @@ export interface ResponseMap {
   'ref/currentTerm': Result<RawCurrentTerm>;
   'teachTable/query': Result<NormalizedCatalog>;
   'teachTable/cancel': Result<void>;
+  'shell/mounted': Result<MountHandshake>;
   'debug/getRequestLog': Result<RequestLogEntry[]>;
   'debug/getReport': Result<DataQualityReport | null>;
   'debug/getLatestRaw': Result<LatestRaw | null>;

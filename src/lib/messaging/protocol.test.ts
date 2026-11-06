@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { requestMessageSchema, teachTableQuerySchema } from './protocol';
+import {
+  mountedReplySchema,
+  requestMessageSchema,
+  teachTableQuerySchema,
+} from './protocol';
 
 const byClassQuery = {
   mode: 'by_class',
@@ -107,11 +111,42 @@ describe('requestMessageSchema', () => {
     ).toBe(true);
   });
 
+  it('accepts the mount handshake with no payload', () => {
+    expect(
+      requestMessageSchema.safeParse({ type: 'shell/mounted' }).success,
+    ).toBe(true);
+  });
+
   it('rejects an unknown message type and a non object', () => {
     expect(
       requestMessageSchema.safeParse({ type: 'ref/unknown' }).success,
     ).toBe(false);
     expect(requestMessageSchema.safeParse('nope').success).toBe(false);
     expect(requestMessageSchema.safeParse(null).success).toBe(false);
+  });
+});
+
+describe('mountedReplySchema', () => {
+  it('accepts a successful handshake with and without a shortcut', () => {
+    for (const shortcut of ['Alt+Shift+P', null]) {
+      expect(
+        mountedReplySchema.safeParse({
+          ok: true,
+          value: { openPanel: true, shortcut },
+        }).success,
+      ).toBe(true);
+    }
+  });
+
+  it('rejects an error result and a malformed reply', () => {
+    for (const reply of [
+      { ok: false, error: { kind: 'network', message: 'down' } },
+      { ok: true, value: { openPanel: 'yes', shortcut: null } },
+      { ok: true, value: { openPanel: true } },
+      undefined,
+      null,
+    ]) {
+      expect(mountedReplySchema.safeParse(reply).success).toBe(false);
+    }
   });
 });
