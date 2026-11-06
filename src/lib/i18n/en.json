@@ -107,6 +107,7 @@
   "search.missing.department": "Choose a department to search.",
   "search.missing.curriculum": "Choose a curriculum to search.",
   "search.missing.subjectOwner": "Choose a subject category to search.",
+  "search.busyReason": "Wait for the current search to finish before searching again.",
   "search.subjectIdHint": "8 digit subject id",
   "search.subjectIdInvalid": "Enter an 8 digit numeric subject id.",
   "search.referenceErrorTitle": "Could not load options",

@@ -281,6 +281,31 @@ describe('SearchForm', () => {
     });
   });
 
+  it('holds submit with a reason while a query is in flight', () => {
+    renderSearch(deps());
+    fireEvent.click(screen.getByRole('tab', { name: 'รหัสวิชา' }));
+    act(() => {
+      searchStore.getState().patchSubjectIdForm({ subjectId: '90592033' });
+      searchStore.getState().setResult({ status: 'loading' }, null);
+    });
+    const submit = screen.getByRole('button', { name: 'ค้นหา' });
+    expect(submit).toHaveAttribute('aria-disabled', 'true');
+    expect(submit).toHaveAccessibleDescription(
+      'รอผลการค้นหาปัจจุบันก่อนค้นหาใหม่',
+    );
+    fireEvent.click(submit);
+    fireEvent.keyDown(screen.getByRole('textbox', { name: 'รหัสวิชา' }), {
+      key: 'Enter',
+    });
+    expect(searchStore.getState().barQuery).toBeNull();
+    expect(searchStore.getState().result.status).toBe('loading');
+
+    act(() => {
+      searchStore.getState().setResult({ status: 'idle' }, null);
+    });
+    expect(submit).not.toHaveAttribute('aria-disabled');
+  });
+
   it('places the full width submit directly under the last field', () => {
     renderSearch(deps());
     fireEvent.click(screen.getByRole('tab', { name: 'หมวดวิชา' }));
