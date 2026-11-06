@@ -8,7 +8,8 @@
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import type { Plan } from '@/lib/domain/plan';
 import { sourceQueryToQuery } from '@/lib/planner/sourceQuery';
-import { buildSectionIndex, reconcilePlan } from '@/lib/planner/revalidate';
+import { buildSectionIndex } from '@/lib/planner/revalidateDiff';
+import { reconcilePlan } from '@/lib/planner/revalidate';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import { planStore } from './planStore';
 import {
