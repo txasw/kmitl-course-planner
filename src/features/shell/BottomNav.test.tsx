@@ -59,13 +59,14 @@ afterEach(() => {
 });
 
 describe('BottomNav', () => {
-  it('lists the catalog and both plan views as 56 px buttons in a nav landmark', () => {
+  it('lists the catalog and the three plan views as 56 px buttons in a nav landmark', () => {
     render(<BottomNav />);
     const items = within(nav()).getAllByRole('button');
     expect(items.map((item) => item.textContent)).toEqual([
       'รายวิชา',
       'ตารางเรียน',
       'ที่เลือก',
+      'สรุป',
     ]);
     for (const item of items) expect(item).toHaveClass('min-h-14');
   });
@@ -103,6 +104,13 @@ describe('BottomNav', () => {
     const selected = screen.getByRole('button', { name: 'ที่เลือก' });
     expect(selected).toHaveAttribute('aria-current', 'page');
     expect(selected).toHaveClass('border-primary');
+
+    fireEvent.click(screen.getByRole('button', { name: 'สรุป' }));
+    expect(uiStore.getState().planView).toBe('summary');
+    expect(screen.getByRole('button', { name: 'สรุป' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
 
     fireEvent.click(screen.getByRole('button', { name: 'ตารางเรียน' }));
     expect(uiStore.getState().planView).toBe('timetable');
@@ -145,7 +153,7 @@ describe('BottomNav', () => {
       within(screen.getByRole('navigation', { name: 'Planner sections' }))
         .getAllByRole('button')
         .map((item) => item.textContent),
-    ).toEqual(['Courses', 'Timetable', 'Selected']);
+    ).toEqual(['Courses', 'Timetable', 'Selected', 'Summary']);
   });
 
   it('turns into the remove bar during a block drag and back after it', () => {

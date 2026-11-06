@@ -198,6 +198,70 @@ describe('PlannerPanel plan views', () => {
     expect(screen.queryByRole('list', { name: 'วิชาที่เลือก' })).toBeNull();
   });
 
+  it('switches the region to the summary with the exam schedule', () => {
+    installViewport(1366);
+    seedTwoSubjects();
+    renderPanel();
+    fireEvent.click(screen.getByRole('tab', { name: 'สรุป' }));
+    const panel = screen.getByRole('tabpanel', { name: 'สรุป' });
+    expect(panel).toContainElement(
+      screen.getByRole('region', { name: 'ตารางสอบ' }),
+    );
+    expect(
+      screen.queryByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
+    ).toBeNull();
+    expect(uiStore.getState().planView).toBe('summary');
+  });
+
+  it('marks the summary tab while two placed subjects clash on an exam', () => {
+    installViewport(1366);
+    const midterm = {
+      start: '2026-12-17 09:00:00',
+      end: '2026-12-17 12:00:00',
+    };
+    seed(
+      ['90000001', '90000002'].map((subjectId, index) =>
+        makePlanEntry({
+          snapshot: makeSnapshot({
+            teachTableId: `e${String(index)}`,
+            subjectId,
+            section: '901',
+            meetings: [makeMeeting({ day: index === 0 ? 1 : 2 })],
+            exam: { midterm },
+          }),
+        }),
+      ),
+    );
+    renderPanel();
+    fireEvent.click(
+      screen.getByRole('tab', { name: 'สรุป มีวิชาที่สอบชนกัน' }),
+    );
+    expect(
+      screen.getByText(/^สอบชนกับ 90000002 .* กลุ่มเรียน 901$/),
+    ).toBeVisible();
+  });
+
+  it('offers the way to the catalog when the plan is empty', () => {
+    installViewport(1366);
+    act(() => {
+      uiStore.getState().setPlanView('summary');
+    });
+    renderPanel();
+    expect(screen.getByText('ยังไม่มีรายวิชาในตาราง')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'ไปที่รายวิชา' })).toBeVisible();
+    expect(screen.queryByRole('region', { name: 'ตารางสอบ' })).toBeNull();
+  });
+
+  it('has no serious accessibility violations in the summary view', async () => {
+    installViewport(1366);
+    seedTwoSubjects();
+    act(() => {
+      uiStore.getState().setPlanView('summary');
+    });
+    const { container } = renderPanel();
+    await expectNoSeriousA11yViolations(container);
+  });
+
   it('has no serious accessibility violations in the selected view', async () => {
     installViewport(1366);
     seedTwoSubjects();
