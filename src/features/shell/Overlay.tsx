@@ -25,7 +25,8 @@ import { usePresence } from './usePresence';
 // The header pads itself clear of the top and side safe area insets, and the body pads
 // clear of the side insets and of the bottom one, except while the bottom nav runs along
 // its foot: the nav pads itself there, so its fill reaches the screen edge under the
-// home indicator.
+// home indicator. The portal context covers the header as well as the body, so a header
+// control such as the plan switcher can open its bottom sheet over the whole panel.
 const TITLE_ID = 'kcp-overlay-title';
 
 export function Overlay() {
@@ -62,25 +63,25 @@ export function Overlay() {
         stage === 'open' ? 'opacity-100' : 'opacity-0'
       }`}
     >
-      <Header titleId={TITLE_ID} />
-      <QuarantineCard />
-      {/* The boundary wraps the panel body, not the whole overlay, so a render error
-          in the search, catalog, or planner shows the recovery card while the header
-          keeps its close control and the sibling launcher stays alive. */}
-      <ErrorBoundary
-        fallback={(reset) => <PanelRecoveryCard t={t} onReload={reset} />}
-      >
-        {IS_DEBUG ? <CrashProbe /> : null}
-        <main
-          className={`min-h-0 flex-1 overflow-hidden pr-(--kcp-safe-right) pl-(--kcp-safe-left) ${
-            navShown ? '' : 'pb-(--kcp-safe-bottom)'
-          }`}
+      <PanelPortalContext.Provider value={panelNode}>
+        <Header titleId={TITLE_ID} />
+        <QuarantineCard />
+        {/* The boundary wraps the panel body, not the whole overlay, so a render
+            error in the search, catalog, or planner shows the recovery card while the
+            header keeps its close control and the sibling launcher stays alive. */}
+        <ErrorBoundary
+          fallback={(reset) => <PanelRecoveryCard t={t} onReload={reset} />}
         >
-          <PanelPortalContext.Provider value={panelNode}>
+          {IS_DEBUG ? <CrashProbe /> : null}
+          <main
+            className={`min-h-0 flex-1 overflow-hidden pr-(--kcp-safe-right) pl-(--kcp-safe-left) ${
+              navShown ? '' : 'pb-(--kcp-safe-bottom)'
+            }`}
+          >
             <Layout />
-          </PanelPortalContext.Provider>
-        </main>
-      </ErrorBoundary>
+          </main>
+        </ErrorBoundary>
+      </PanelPortalContext.Provider>
     </div>
   );
 }

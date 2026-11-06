@@ -190,4 +190,20 @@ describe('Overlay', () => {
       },
     );
   });
+
+  it('portals a header sheet into the panel below 640 px', () => {
+    installViewport(390, { reducedMotion: true });
+    act(() => {
+      uiStore.getState().open();
+    });
+    render(<Overlay />, { wrapper });
+    const panel = screen.getByRole('dialog', {
+      name: 'ตัววางแผนตารางเรียน สจล.',
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'เลือกตาราง' }));
+    const sheet = screen.getByRole('dialog', { name: 'เลือกตาราง' });
+    expect(panel).toContainElement(sheet);
+    // The sheet sits on the panel itself, outside the header it opened from.
+    expect(sheet.closest('header')).toBeNull();
+  });
 });

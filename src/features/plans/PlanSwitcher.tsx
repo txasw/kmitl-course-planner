@@ -3,7 +3,9 @@
 // Switching a plan snaps the search form to that plan's term so the next search
 // reflects it. A new plan takes the term the search tabs share. The dropdown is
 // positioned with floating-ui, a fixed strategy that escapes the header, and
-// dismisses on an outside click or Escape.
+// dismisses on an outside click or Escape. Below 640 px a w-72 dropdown leaves almost
+// no margin and its row actions sit under a thumb, so the same menu opens as a bottom
+// sheet instead, which carries its own scrim, focus trap and Escape layer.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
@@ -21,7 +23,9 @@ import {
   PANEL_POPOVER_SCROLL,
   usePanelPopover,
 } from '@/features/shell/usePanelPopover';
+import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { BottomSheet } from '@/components/BottomSheet';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_HEIGHT } from '@/lib/ui/target';
 import { DeleteConfirm } from './DeleteConfirm';
@@ -51,6 +55,7 @@ export function PlanSwitcher() {
   const searchTerm = useStore(searchStore, (state) => state.term);
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>({ kind: 'list' });
+  const sheet = useLayoutTier() === 'compact';
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -70,9 +75,11 @@ export function PlanSwitcher() {
     },
     placement: 'bottom-start',
   });
+  // The sheet portals outside the floating context, so an outside press dismiss would
+  // read every tap inside it as outside; the sheet closes through its own scrim instead.
   const { getReferenceProps, getFloatingProps } = useInteractions([
     useClick(context),
-    useDismiss(context),
+    useDismiss(context, { enabled: !sheet }),
   ]);
 
   const setReference = useCallback(
@@ -188,6 +195,84 @@ export function PlanSwitcher() {
   const triggerLabel =
     activePlan === null ? t('planSwitcher.noPlan') : activePlan.name;
 
+  const menu =
+    mode.kind === 'name' ? (
+      <NameForm
+        value={mode.value}
+        label={t('planSwitcher.nameLabel')}
+        save={t('planSwitcher.save')}
+        cancel={t('action.cancel')}
+        onChange={(value) => {
+          setMode({ ...mode, value });
+        }}
+        onSubmit={() => {
+          submitName(mode.value);
+        }}
+        onCancel={() => {
+          setMode({ kind: 'list' });
+        }}
+      />
+    ) : mode.kind === 'confirmDelete' ? (
+      <DeleteConfirm
+        planName={plans.find((plan) => plan.id === mode.planId)?.name ?? ''}
+        onCancel={() => {
+          setMode({ kind: 'list' });
+        }}
+        onConfirm={() => {
+          planStore.getState().deletePlan(mode.planId);
+          // The fallback plan may be a different term; snap the form to it.
+          snapToActivePlan();
+          setMode({ kind: 'list' });
+        }}
+      />
+    ) : mode.kind === 'importError' ? (
+      <ImportErrorView
+        issues={mode.issues}
+        onBack={() => {
+          setMode({ kind: 'list' });
+        }}
+      />
+    ) : (
+      <PlanList
+        plans={plans}
+        activePlanId={activePlan?.id ?? null}
+        canCreate={canCreate}
+        onCreate={() => {
+          setMode({
+            kind: 'name',
+            action: 'create',
+            value: defaultName(searchTerm),
+          });
+        }}
+        onSelect={selectPlan}
+        onRename={(plan) => {
+          setMode({
+            kind: 'name',
+            action: 'rename',
+            value: plan.name,
+            planId: plan.id,
+          });
+        }}
+        onDuplicate={(plan) => {
+          planStore
+            .getState()
+            .duplicatePlan(
+              plan.id,
+              `${plan.name} (${t('planSwitcher.copySuffix')})`,
+            );
+          snapToActivePlan();
+          closeMenu();
+        }}
+        onDelete={(plan) => {
+          setMode({ kind: 'confirmDelete', planId: plan.id });
+        }}
+        onImport={() => {
+          fileInputRef.current?.click();
+        }}
+        onExport={activePlan !== null ? handleExport : null}
+      />
+    );
+
   // The wrapper is the header item that shrinks first, so the trigger fills it and its
   // plan name and term truncate before any other header control gives way. Below 640 px
   // the calendar icon drops out so the name keeps the room, and at the narrowest width
@@ -200,7 +285,7 @@ export function PlanSwitcher() {
         type="button"
         {...getReferenceProps()}
         aria-label={t('planSwitcher.label')}
-        aria-haspopup="true"
+        aria-haspopup={sheet ? 'dialog' : 'true'}
         aria-expanded={open}
         className={`flex w-full items-center gap-2 overflow-hidden rounded-kcp border border-border px-2 py-px text-sm text-ink hover:bg-surface-alt sm:px-3 ${TARGET_HEIGHT} ${FOCUS_RING}`}
       >
@@ -240,91 +325,23 @@ export function PlanSwitcher() {
           }
         }}
       />
-      {open ? (
+      {open && sheet ? (
+        <BottomSheet
+          title={t('planSwitcher.label')}
+          closeLabel={t('action.close')}
+          onClose={closeMenu}
+        >
+          {menu}
+        </BottomSheet>
+      ) : null}
+      {open && !sheet ? (
         <div
           ref={setFloating}
           style={floatingStyles}
           {...getFloatingProps()}
           className={`z-popover w-72 ${PANEL_POPOVER_SCROLL} rounded-kcp border border-border bg-surface p-2 text-sm shadow-kcp`}
         >
-          {mode.kind === 'name' ? (
-            <NameForm
-              value={mode.value}
-              label={t('planSwitcher.nameLabel')}
-              save={t('planSwitcher.save')}
-              cancel={t('action.cancel')}
-              onChange={(value) => {
-                setMode({ ...mode, value });
-              }}
-              onSubmit={() => {
-                submitName(mode.value);
-              }}
-              onCancel={() => {
-                setMode({ kind: 'list' });
-              }}
-            />
-          ) : mode.kind === 'confirmDelete' ? (
-            <DeleteConfirm
-              planName={
-                plans.find((plan) => plan.id === mode.planId)?.name ?? ''
-              }
-              onCancel={() => {
-                setMode({ kind: 'list' });
-              }}
-              onConfirm={() => {
-                planStore.getState().deletePlan(mode.planId);
-                // The fallback plan may be a different term; snap the form to it.
-                snapToActivePlan();
-                setMode({ kind: 'list' });
-              }}
-            />
-          ) : mode.kind === 'importError' ? (
-            <ImportErrorView
-              issues={mode.issues}
-              onBack={() => {
-                setMode({ kind: 'list' });
-              }}
-            />
-          ) : (
-            <PlanList
-              plans={plans}
-              activePlanId={activePlan?.id ?? null}
-              canCreate={canCreate}
-              onCreate={() => {
-                setMode({
-                  kind: 'name',
-                  action: 'create',
-                  value: defaultName(searchTerm),
-                });
-              }}
-              onSelect={selectPlan}
-              onRename={(plan) => {
-                setMode({
-                  kind: 'name',
-                  action: 'rename',
-                  value: plan.name,
-                  planId: plan.id,
-                });
-              }}
-              onDuplicate={(plan) => {
-                planStore
-                  .getState()
-                  .duplicatePlan(
-                    plan.id,
-                    `${plan.name} (${t('planSwitcher.copySuffix')})`,
-                  );
-                snapToActivePlan();
-                closeMenu();
-              }}
-              onDelete={(plan) => {
-                setMode({ kind: 'confirmDelete', planId: plan.id });
-              }}
-              onImport={() => {
-                fileInputRef.current?.click();
-              }}
-              onExport={activePlan !== null ? handleExport : null}
-            />
-          )}
+          {menu}
         </div>
       ) : null}
     </div>

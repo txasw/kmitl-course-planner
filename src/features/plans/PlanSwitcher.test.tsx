@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, beforeEach } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import {
   render,
   screen,
@@ -9,7 +9,9 @@ import {
   within,
 } from '@testing-library/react';
 import { makePlan } from '../../../tests/support/domain-builders';
+import { installViewport } from '../../../tests/support/viewport';
 import { searchStore } from '@/features/search/searchStore';
+import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { planStore } from './planStore';
 import { PlanSwitcher } from './PlanSwitcher';
 
@@ -51,7 +53,10 @@ beforeEach(() => {
   });
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 function seedTwoPlans() {
   act(() => {
@@ -79,6 +84,11 @@ function openMenu() {
 }
 
 describe('PlanSwitcher', () => {
+  // The dropdown is the form from 640 px up; the sheet below has its own suite.
+  beforeEach(() => {
+    installViewport(1366);
+  });
+
   it('lists the plans grouped by term', () => {
     seedTwoPlans();
     render(<PlanSwitcher />);
@@ -339,5 +349,77 @@ describe('PlanSwitcher', () => {
     // A fresh id, never the imported one, so it cannot overwrite a plan.
     expect(plans[0]?.id).not.toBe('imported-id');
     expect(planStore.getState().activePlanId).toBe(plans[0]?.id);
+  });
+});
+
+describe('PlanSwitcher below 640 px', () => {
+  beforeEach(() => {
+    installViewport(390);
+  });
+
+  function renderInPanel() {
+    return render(
+      <PanelPortalContext.Provider value={document.body}>
+        <PlanSwitcher />
+      </PanelPortalContext.Provider>,
+    );
+  }
+
+  it('opens the plan menu as a modal bottom sheet with its heading focused', () => {
+    seedTwoPlans();
+    renderInPanel();
+    const trigger = screen.getByRole('button', { name: 'เลือกตาราง' });
+    expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
+    openMenu();
+    const sheet = screen.getByRole('dialog', { name: 'เลือกตาราง' });
+    expect(sheet).toHaveAttribute('aria-modal', 'true');
+    expect(sheet).toHaveClass('rounded-t-kcp-sheet');
+    expect(screen.getByRole('heading', { name: 'เลือกตาราง' })).toHaveFocus();
+    expect(
+      within(sheet).getByRole('button', { name: 'สร้างตาราง' }),
+    ).toBeInTheDocument();
+    expect(within(sheet).getByText('ภาคการศึกษา 2/2569')).toBeInTheDocument();
+  });
+
+  it('keeps the sheet open on a press inside it and switches the plan', () => {
+    seedTwoPlans();
+    renderInPanel();
+    openMenu();
+    const sheet = screen.getByRole('dialog', { name: 'เลือกตาราง' });
+    fireEvent.pointerDown(within(sheet).getByText('ภาคการศึกษา 1/2569'));
+    fireEvent.mouseDown(within(sheet).getByText('ภาคการศึกษา 1/2569'));
+    expect(screen.getByRole('dialog', { name: 'เลือกตาราง' })).toBe(sheet);
+
+    fireEvent.click(within(sheet).getByRole('button', { name: 'B' }));
+    expect(planStore.getState().activePlanId).toBe('b');
+    expect(screen.queryByRole('dialog', { name: 'เลือกตาราง' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'เลือกตาราง' })).toHaveFocus();
+  });
+
+  it('holds the name form inside the sheet', () => {
+    renderInPanel();
+    openMenu();
+    const sheet = screen.getByRole('dialog', { name: 'เลือกตาราง' });
+    fireEvent.click(within(sheet).getByRole('button', { name: 'สร้างตาราง' }));
+    const name = within(sheet).getByRole('textbox', { name: 'ชื่อตาราง' });
+    fireEvent.change(name, { target: { value: 'ตารางหลัก' } });
+    fireEvent.click(within(sheet).getByRole('button', { name: 'บันทึก' }));
+    expect(planStore.getState().plans[0]?.name).toBe('ตารางหลัก');
+    expect(screen.queryByRole('dialog', { name: 'เลือกตาราง' })).toBeNull();
+  });
+
+  it('closes on Escape without the press reaching the overlay', () => {
+    seedTwoPlans();
+    renderInPanel();
+    openMenu();
+    const outer = vi.fn();
+    document.body.addEventListener('keydown', outer);
+    fireEvent.keyDown(screen.getByRole('button', { name: 'สร้างตาราง' }), {
+      key: 'Escape',
+    });
+    document.body.removeEventListener('keydown', outer);
+    expect(screen.queryByRole('dialog', { name: 'เลือกตาราง' })).toBeNull();
+    expect(outer).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'เลือกตาราง' })).toHaveFocus();
   });
 });
