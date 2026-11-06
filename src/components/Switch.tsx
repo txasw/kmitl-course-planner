@@ -34,6 +34,8 @@ interface SwitchProps {
   disabled?: boolean;
   /** Optional tooltip, e.g. why a disabled switch is not applicable. */
   tooltip?: string;
+  /** The id of a visible note that describes the switch, such as its scope. */
+  describedBy?: string;
 }
 
 export function Switch({
@@ -42,6 +44,7 @@ export function Switch({
   onChange,
   disabled = false,
   tooltip,
+  describedBy,
 }: SwitchProps) {
   const renderButton = (
     triggerProps: Record<string, unknown>,
@@ -54,6 +57,7 @@ export function Switch({
       role="switch"
       aria-checked={checked}
       aria-disabled={disabled || undefined}
+      aria-describedby={describedBy}
       onClick={() => {
         if (!disabled) {
           onChange(!checked);

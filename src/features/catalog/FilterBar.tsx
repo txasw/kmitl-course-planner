@@ -1,7 +1,7 @@
 // The catalog filter: an always visible search field, a filter button that opens a popover
-// with the day, credit, and hide facets, and the active facets rendered as removable chips
-// under the field. Filtering itself happens in the pure filter over the catalog store state,
-// which is untouched; the redesign only reshapes the controls.
+// with the day, credit, hide, and open to my curriculum facets, and the active facets
+// rendered as removable chips under the field. Filtering itself happens in the pure filter
+// over the catalog store state, which is untouched; the redesign only reshapes the controls.
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useStore } from 'zustand';
@@ -14,7 +14,7 @@ import {
 import { SlidersHorizontal, X } from 'lucide-react';
 import { Switch } from '@/components/Switch';
 import type { DayOfWeek } from '@/lib/domain/types';
-import type { Translate } from '@/lib/i18n/t';
+import type { Locale, Translate } from '@/lib/i18n/t';
 import type { CatalogFilter } from '@/lib/catalog/filter';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
@@ -28,6 +28,7 @@ import { FOCUS_RING, FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { TARGET_HEIGHT, TARGET_SIZE } from '@/lib/ui/target';
 import { Combobox, type ComboboxOption } from '@/features/search/Combobox';
 import { catalogStore } from './catalogStore';
+import { CurriculumFilter } from './CurriculumProfilePicker';
 
 const DAYS: DayOfWeek[] = [0, 1, 2, 3, 4, 5, 6];
 
@@ -42,7 +43,7 @@ interface Chip {
 }
 
 export function FilterBar({ creditOptions }: FilterBarProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const filter = useStore(catalogStore, (state) => state.filter);
   const textId = useId();
 
@@ -51,7 +52,8 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
     (filter.credit !== null ? 1 : 0) +
     Number(filter.hideFull) +
     Number(filter.hideConflicting) +
-    Number(filter.hideUnscheduled);
+    Number(filter.hideUnscheduled) +
+    (filter.curriculum !== null ? 1 : 0);
 
   const chips: Chip[] = [
     ...filter.days.map((day) => ({
@@ -105,6 +107,17 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
           },
         ]
       : []),
+    ...(filter.curriculum !== null
+      ? [
+          {
+            key: 'curriculum',
+            label: t('offeredTo.filter'),
+            onRemove: () => {
+              catalogStore.getState().setCurriculum(null);
+            },
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -128,6 +141,7 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
           />
           <FilterPopover
             t={t}
+            locale={language}
             filter={filter}
             creditOptions={creditOptions}
             activeCount={activeCount}
@@ -165,11 +179,13 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
 
 function FilterPopover({
   t,
+  locale,
   filter,
   creditOptions,
   activeCount,
 }: {
   t: Translate;
+  locale: Locale;
   filter: CatalogFilter;
   creditOptions: number[];
   activeCount: number;
@@ -305,6 +321,11 @@ function FilterPopover({
           }}
         />
       </div>
+      <CurriculumFilter
+        active={filter.curriculum !== null}
+        locale={locale}
+        t={t}
+      />
     </div>
   ) : null;
 
