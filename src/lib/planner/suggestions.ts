@@ -10,7 +10,9 @@ import { checkPlacement, expandSectionGroup } from './placement';
 const MAX_SUGGESTIONS = 2;
 const UNSCHEDULED_SORT_KEY = Number.POSITIVE_INFINITY;
 
-function earliestStart(section: Section): number {
+/** The earliest start of a section's meetings in minutes, with an unscheduled section
+ * sorting after every scheduled one. Shared by the comparison table's start sort. */
+export function earliestStart(section: Section): number {
   if (section.meetings.length === 0) {
     return UNSCHEDULED_SORT_KEY;
   }
