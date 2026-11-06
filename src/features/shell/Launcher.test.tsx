@@ -6,6 +6,10 @@ import {
   cleanup,
   act,
 } from '@testing-library/react';
+import {
+  initialOnboardingData,
+  onboardingStore,
+} from '@/features/onboarding/onboardingStore';
 import { Launcher } from './Launcher';
 import { uiStore } from './uiStore';
 
@@ -14,6 +18,7 @@ afterEach(() => {
   act(() => {
     uiStore.getState().close();
     uiStore.getState().setLanguage('th');
+    onboardingStore.setState(initialOnboardingData());
   });
 });
 
@@ -61,5 +66,37 @@ describe('Launcher', () => {
       'right-[max(20px,var(--kcp-safe-right))]',
       'bottom-[max(20px,var(--kcp-safe-bottom))]',
     );
+  });
+
+  it('is interactive while neither the panel nor the welcome is open', () => {
+    render(<Launcher />);
+    const button = screen.getByRole('button');
+    expect(button).not.toHaveAttribute('inert');
+    expect(button).not.toHaveAttribute('aria-hidden');
+  });
+
+  it('is inert and hidden while the panel is open', () => {
+    render(<Launcher />);
+    const button = screen.getByRole('button');
+    act(() => {
+      uiStore.getState().open();
+    });
+    expect(button).toHaveAttribute('inert');
+    expect(button).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('is inert and hidden while the welcome is open, and interactive again after it closes', () => {
+    render(<Launcher />);
+    const button = screen.getByRole('button');
+    act(() => {
+      onboardingStore.getState().setWelcomeOpen(true);
+    });
+    expect(button).toHaveAttribute('inert');
+    expect(button).toHaveAttribute('aria-hidden', 'true');
+    act(() => {
+      onboardingStore.getState().setWelcomeOpen(false);
+    });
+    expect(button).not.toHaveAttribute('inert');
+    expect(button).not.toHaveAttribute('aria-hidden');
   });
 });
