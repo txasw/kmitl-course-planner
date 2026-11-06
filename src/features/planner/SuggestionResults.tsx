@@ -2,7 +2,8 @@
 // and docked tiers the cards sit side by side on one grid whose rows the cards share
 // through a subgrid, so each stat lines up across the cards. On compact a phone has room
 // for one card, so the cards become a horizontal pager: one card at a time, a swipe across
-// its grid, and the arrows and the dot radiogroup of the template gallery below it.
+// its grid, and the arrows and the dot radiogroup of the template gallery below it. Every
+// card offers to open full size, which the dialog shows in place of the list.
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PagerArrow, PagerDots, usePager } from '@/components/Pager';
@@ -41,6 +42,7 @@ interface SuggestionResultsProps {
   locale: Locale;
   t: Translate;
   onApply: (suggestion: Suggestion) => void;
+  onExpand: (index: number) => void;
 }
 
 function CompactPager({
@@ -52,6 +54,7 @@ function CompactPager({
   locale,
   t,
   onApply,
+  onExpand,
 }: Omit<SuggestionResultsProps, 'paged' | 'busy'>) {
   const reducedMotion = usePrefersReducedMotion();
   const last = cards.length - 1;
@@ -83,11 +86,15 @@ function CompactPager({
         sections={card.sections}
         frame={frame}
         orientation={orientation}
+        size="thumb"
         locale={locale}
         t={t}
         swipe={swipe}
         onApply={() => {
           onApply(card.suggestion);
+        }}
+        onExpand={() => {
+          onExpand(page);
         }}
       />
       {cards.length > 1 ? (
@@ -127,7 +134,17 @@ function CompactPager({
 }
 
 export function SuggestionResults(props: SuggestionResultsProps) {
-  const { cards, frame, paged, orientation, busy, locale, t, onApply } = props;
+  const {
+    cards,
+    frame,
+    paged,
+    orientation,
+    busy,
+    locale,
+    t,
+    onApply,
+    onExpand,
+  } = props;
   const dim = `transition-opacity duration-base motion-reduce:transition-none ${busy ? 'opacity-60' : ''}`;
   if (paged) {
     return (
@@ -151,11 +168,15 @@ export function SuggestionResults(props: SuggestionResultsProps) {
             sections={card.sections}
             frame={frame}
             orientation={orientation}
+            size="thumb"
             subgrid
             locale={locale}
             t={t}
             onApply={() => {
               onApply(card.suggestion);
+            }}
+            onExpand={() => {
+              onExpand(index);
             }}
           />
         </li>

@@ -6,11 +6,14 @@
 // it. The grid itself takes no input.
 //
 // The card has five parts in a fixed order. Side by side, the dialog lays them on shared
-// grid rows through a subgrid, so the same stat sits at the same height on every card. The
-// grid fits its card rather than keeping the poster floor, in the orientation the dialog
-// picks for the tier, so no meeting sits out of view.
+// grid rows through a subgrid, so the same stat sits at the same height on every card. A
+// thumbnail card offers to open full size; the full size card takes focus on its heading
+// and draws a taller grid. The grid fits its card rather than keeping the poster floor,
+// in the orientation the dialog picks for the tier, so no meeting sits out of view.
 
-import { useId } from 'react';
+import { useEffect, useId, useRef } from 'react';
+import { Maximize2 } from 'lucide-react';
+import { Tooltip } from '@/components/Tooltip';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
 import { formatHours, formatMinutes } from '@/lib/parsing/time';
@@ -34,13 +37,18 @@ const MINI_DISPLAY: DisplayOptions = {
   showSubjectId: false,
 };
 
-const GRID_FONT_PX = 10;
+export type SuggestionCardSize = 'thumb' | 'full';
 
-// The grid box height per orientation. Portrait runs time downward, so it needs the
-// taller box; landscape rows share the shorter one.
-const GRID_HEIGHT: Record<Orientation, string> = {
-  portrait: 'h-80',
-  landscape: 'h-56',
+const GRID_FONT_PX: Record<SuggestionCardSize, number> = {
+  thumb: 10,
+  full: 11,
+};
+
+// The grid box height per size and orientation. Portrait runs time downward, so it needs
+// the taller box; landscape rows share the shorter one.
+const GRID_HEIGHT: Record<SuggestionCardSize, Record<Orientation, string>> = {
+  thumb: { portrait: 'h-80', landscape: 'h-56' },
+  full: { portrait: 'h-[36rem]', landscape: 'h-[26rem]' },
 };
 
 /** The five card parts on the rows of a parent grid, for the side by side view. The list
@@ -105,11 +113,14 @@ interface SuggestionCardProps {
   sections: readonly PlacedSection[];
   frame: SuggestionFrame;
   orientation: Orientation;
+  size: SuggestionCardSize;
   /** Lay the five parts on the rows of a parent subgrid, for the side by side view. */
   subgrid?: boolean;
   locale: Locale;
   t: Translate;
   onApply: () => void;
+  /** Open the card full size; offered on a thumbnail only. */
+  onExpand?: () => void;
   /** The pager swipe, bound to the grid, which holds no control. */
   swipe?: SwipeGesture;
 }
@@ -120,13 +131,22 @@ export function SuggestionCard({
   sections,
   frame,
   orientation,
+  size,
   subgrid = false,
   locale,
   t,
   onApply,
+  onExpand,
   swipe,
 }: SuggestionCardProps) {
   const headingId = useId();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const isFull = size === 'full';
+  useEffect(() => {
+    if (isFull) {
+      headingRef.current?.focus();
+    }
+  }, [isFull]);
 
   const { stats } = suggestion;
   const facts: [TranslationKey, string][] = [
@@ -140,6 +160,7 @@ export function SuggestionCard({
       `${formatHours(stats.idleMinutes)} ${t('footer.hourUnit')}`,
     ],
   ];
+  const expandLabel = t('suggest.expand');
 
   return (
     <article
@@ -151,11 +172,31 @@ export function SuggestionCard({
     >
       <div className="flex min-h-11 items-center gap-2">
         <h3
+          ref={headingRef}
           id={headingId}
+          tabIndex={isFull ? -1 : undefined}
           className="min-w-0 flex-1 text-sm font-semibold outline-none"
         >
           {fillTemplate(t('suggest.option'), { number: index + 1 })}
         </h3>
+        {onExpand === undefined ? null : (
+          <Tooltip label={expandLabel}>
+            {(triggerProps, ref) => (
+              <button
+                ref={ref}
+                {...triggerProps}
+                type="button"
+                aria-label={expandLabel}
+                aria-describedby={headingId}
+                data-suggest-expand={index}
+                onClick={onExpand}
+                className={`flex shrink-0 items-center justify-center rounded-kcp text-ink-soft hover:bg-surface-alt hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
+              >
+                <Maximize2 size={16} aria-hidden />
+              </button>
+            )}
+          </Tooltip>
+        )}
       </div>
       <dl className="flex flex-col gap-0.5 text-xs">
         {facts.map(([label, value]) => (
@@ -166,7 +207,7 @@ export function SuggestionCard({
         ))}
       </dl>
       <div
-        className={`${GRID_HEIGHT[orientation]} ${swipe?.touchClass ?? ''}`}
+        className={`${GRID_HEIGHT[size][orientation]} ${swipe?.touchClass ?? ''}`}
         {...swipe?.handlers}
       >
         <WeeklyGrid
@@ -178,7 +219,7 @@ export function SuggestionCard({
           editable={false}
           display={MINI_DISPLAY}
           orientation={orientation}
-          fontPx={GRID_FONT_PX}
+          fontPx={GRID_FONT_PX[size]}
           posterFloor={false}
         />
       </div>
