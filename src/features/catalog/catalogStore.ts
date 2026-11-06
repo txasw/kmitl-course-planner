@@ -5,6 +5,7 @@
 
 import { createStore } from 'zustand/vanilla';
 import { EMPTY_FILTER, type CatalogFilter } from '@/lib/catalog/filter';
+import type { CurriculumProfile } from '@/lib/catalog/curriculumProfile';
 import type { DayOfWeek } from '@/lib/domain/types';
 import {
   EMPTY_DISCLOSURE,
@@ -24,6 +25,8 @@ export interface CatalogStore {
   setHideFull: (value: boolean) => void;
   setHideConflicting: (value: boolean) => void;
   setHideUnscheduled: (value: boolean) => void;
+  /** Keep only the sections offered to this curriculum, or null to show every section. */
+  setCurriculum: (profile: CurriculumProfile | null) => void;
   resetFilter: () => void;
   disclosure: CardDisclosure;
   setCardOpen: (
@@ -66,6 +69,9 @@ export function createCatalogStore() {
     },
     setHideUnscheduled: (hideUnscheduled) => {
       set((state) => ({ filter: { ...state.filter, hideUnscheduled } }));
+    },
+    setCurriculum: (curriculum) => {
+      set((state) => ({ filter: { ...state.filter, curriculum } }));
     },
     resetFilter: () => {
       set({ filter: EMPTY_FILTER });
