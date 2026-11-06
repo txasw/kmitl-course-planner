@@ -11,7 +11,12 @@ import { usePrefersReducedMotion } from '@/features/shell/usePresence';
 
 const CATALOG_SCROLLER_ATTR = 'data-catalog-scroller';
 
-function revealCard(card: HTMLElement, reduced: boolean): void {
+/**
+ * Scroll the catalog by the least amount that brings the card into view, keeping its
+ * header below the scroller's top inset. It moves only the catalog scroller, never an
+ * ancestor, so a card in a column that is still sliding in never shifts the panel.
+ */
+export function revealCard(card: HTMLElement, reduced: boolean): void {
   const scroller = card.closest<HTMLElement>(`[${CATALOG_SCROLLER_ATTR}]`);
   if (scroller === null) return;
   const cardBox = card.getBoundingClientRect();

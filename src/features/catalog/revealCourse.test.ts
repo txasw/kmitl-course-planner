@@ -1,14 +1,16 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import {
   EMPTY_DISCLOSURE,
   catalogQueryKey,
   isCardOpen,
 } from '@/lib/catalog/cardDisclosure';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
+import { dragStore } from '@/features/planner/dragStore';
 import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
 import {
   makePlanEntry,
+  makeSection,
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
 import {
@@ -16,6 +18,7 @@ import {
   seedActivePlan,
 } from '../../../tests/support/plan-store';
 import { catalogStore } from './catalogStore';
+import { courseToggleId } from './courseFocus';
 import { revealCourse } from './revealCourse';
 
 const QUERY: TeachTableQuery = {
@@ -27,10 +30,30 @@ const QUERY: TeachTableQuery = {
   selected_subject_owner_id: '32',
 };
 
+const SUBJECT = '90592033';
+
+// A strip action to reveal from, and a card toggle to land on, laid out the way the
+// catalog renders it.
+let control: HTMLButtonElement;
+let toggle: HTMLButtonElement;
+
+beforeEach(() => {
+  control = document.createElement('button');
+  const card = document.createElement('article');
+  card.dataset.courseCard = SUBJECT;
+  toggle = document.createElement('button');
+  toggle.id = courseToggleId(SUBJECT);
+  card.append(toggle);
+  document.body.append(control, card);
+  control.focus();
+});
+
 afterEach(() => {
+  document.body.replaceChildren();
   catalogStore.getState().resetFilter();
   catalogStore.setState({ disclosure: EMPTY_DISCLOSURE });
   searchStore.setState({ resultQuery: null });
+  dragStore.setState({ blockMove: null });
   resetPlanStore();
   uiStore.getState().setSheetOpen(false);
   uiStore.getState().setCatalogVisible(true);
@@ -39,27 +62,35 @@ afterEach(() => {
 
 describe('revealCourse', () => {
   it('narrows the list to the subject id', () => {
-    revealCourse('90592033', 'xl');
-    expect(catalogStore.getState().filter.text).toBe('90592033');
+    revealCourse(control, SUBJECT, 'xl');
+    expect(catalogStore.getState().filter.text).toBe(SUBJECT);
   });
 
-  it('shows the docked column on a docked tier', () => {
+  it('shows the hidden docked column and focuses the course', () => {
     uiStore.getState().setCatalogVisible(false);
-    revealCourse('90592033', 'lg');
+    expect(revealCourse(control, SUBJECT, 'lg')).toBe(true);
     expect(uiStore.getState().catalogVisible).toBe(true);
     expect(uiStore.getState().sheetOpen).toBe(false);
+    expect(toggle).toHaveFocus();
   });
 
-  it('opens the sheet on the medium tier', () => {
-    revealCourse('90592033', 'medium');
+  it('focuses the course in a docked column already shown', () => {
+    revealCourse(control, SUBJECT, 'xl');
+    expect(toggle).toHaveFocus();
+  });
+
+  it('opens the sheet on the medium tier and focuses the course', () => {
+    revealCourse(control, SUBJECT, 'medium');
     expect(uiStore.getState().sheetOpen).toBe(true);
+    expect(toggle).toHaveFocus();
   });
 
   it('shows the catalog pane below 640 px and opens no sheet', () => {
     uiStore.getState().setMobilePane('plan');
-    revealCourse('90592033', 'compact');
+    revealCourse(control, SUBJECT, 'compact');
     expect(uiStore.getState().mobilePane).toBe('catalog');
     expect(uiStore.getState().sheetOpen).toBe(false);
+    expect(toggle).toHaveFocus();
   });
 
   it('opens the card even after the student closed it', () => {
@@ -67,20 +98,30 @@ describe('revealCourse', () => {
     const key = catalogQueryKey(QUERY);
     catalogStore
       .getState()
-      .setCardOpen(key, '90592033', { open: false, added: false });
-    revealCourse('90592033', 'xl');
+      .setCardOpen(key, SUBJECT, { open: false, added: false });
+    revealCourse(control, SUBJECT, 'xl');
     const { disclosure } = catalogStore.getState();
-    expect(isCardOpen(disclosure, key, '90592033', false, false)).toBe(true);
+    expect(isCardOpen(disclosure, key, SUBJECT, false, false)).toBe(true);
   });
 
   it('opens the card of a course already in the plan', () => {
     searchStore.setState({ resultQuery: QUERY });
     seedActivePlan([
-      makePlanEntry({ snapshot: makeSnapshot({ subjectId: '90592033' }) }),
+      makePlanEntry({ snapshot: makeSnapshot({ subjectId: SUBJECT }) }),
     ]);
-    revealCourse('90592033', 'xl');
+    revealCourse(control, SUBJECT, 'xl');
     const { disclosure } = catalogStore.getState();
     const key = catalogQueryKey(QUERY);
-    expect(isCardOpen(disclosure, key, '90592033', true, false)).toBe(true);
+    expect(isCardOpen(disclosure, key, SUBJECT, true, false)).toBe(true);
+  });
+
+  it('does nothing during a block move', () => {
+    uiStore.getState().setCatalogVisible(false);
+    const section = makeSection({ subjectId: SUBJECT });
+    dragStore.getState().startBlockMove(section, [section], null);
+    expect(revealCourse(control, SUBJECT, 'lg')).toBe(false);
+    expect(uiStore.getState().catalogVisible).toBe(false);
+    expect(catalogStore.getState().filter.text).toBe('');
+    expect(control).toHaveFocus();
   });
 });

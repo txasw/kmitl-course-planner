@@ -1,8 +1,8 @@
 // The notices the feedback strip shows, one at a time: a blocked reason with up to two
-// fitting alternatives or a reveal action, a cross term switch, and a drag hint. Each
-// ends with the same dismiss control. Their actions carry data-feedback-action, so a
-// blocked or cross term add can move focus to the first of them; the dismiss control
-// does not, since the way forward comes before the way out.
+// fitting alternatives or an action that shows the course, a cross term switch, and a
+// drag hint. Each ends with the same dismiss control. Their actions carry
+// data-feedback-action, so a blocked or cross term add can move focus to the first of
+// them; the dismiss control does not, since the way forward comes before the way out.
 
 import { X } from 'lucide-react';
 import type { Section } from '@/lib/domain/types';
@@ -55,6 +55,34 @@ function DismissButton({ t }: { t: Translate }) {
   );
 }
 
+const LINK_ACTION = `text-primary-strong underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`;
+
+/** The action of a blocked notice with no fitting alternative: show the course in the
+ * catalog. */
+function CourseRevealAction({
+  subjectId,
+  t,
+}: {
+  subjectId: string;
+  t: Translate;
+}) {
+  const tier = useLayoutTier();
+  return (
+    <button
+      type="button"
+      data-feedback-action
+      onClick={(event) => {
+        if (revealCourse(event.currentTarget, subjectId, tier)) {
+          dragStore.getState().clearBlocked();
+        }
+      }}
+      className={LINK_ACTION}
+    >
+      {t('feedback.revealInCatalog')}
+    </button>
+  );
+}
+
 export function BlockedNotice({
   blocked,
   placed,
@@ -64,7 +92,6 @@ export function BlockedNotice({
   placed: Section[];
   t: Translate;
 }) {
-  const tier = useLayoutTier();
   const description = describeConflicts(blocked.conflicts);
   const alternatives = alternativeSections(
     blocked.course,
@@ -121,17 +148,7 @@ export function BlockedNotice({
           ))}
         </>
       ) : (
-        <button
-          type="button"
-          data-feedback-action
-          onClick={() => {
-            revealCourse(blocked.section.subjectId, tier);
-            dragStore.getState().clearBlocked();
-          }}
-          className={`text-primary-strong underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
-        >
-          {t('feedback.revealInCatalog')}
-        </button>
+        <CourseRevealAction subjectId={blocked.section.subjectId} t={t} />
       )}
       <DismissButton t={t} />
     </div>
@@ -159,7 +176,7 @@ export function CrossTermNotice({
           switchOrCreatePlanForTerm(feedback.browsedTerm);
           dragStore.getState().clearCrossTerm();
         }}
-        className={`text-primary-strong underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
+        className={LINK_ACTION}
       >
         {t('term.switch')}
       </button>
