@@ -1,6 +1,6 @@
 // Performance profiling against the synthetic dense catalog. This is the profiled
 // run the Phase 8 acceptance names: it loads a 500 section catalog, then measures
-// the script time three interactions cost through the Chrome DevTools Protocol
+// the script time each interaction costs through the Chrome DevTools Protocol
 // Performance metrics. ScriptDuration is cumulative, so a delta across one
 // interaction is the main thread script time that interaction spent, which is what
 // memoizing the block and card cuts. Headless Chromium does not composite at a real
@@ -107,6 +107,22 @@ test('profiles the dense catalog render and a grid drag', async ({
   await expect(page.locator(blockSel('700000'))).toBeVisible();
   const addMs = (await scriptMs(client)) - beforeAdd;
 
+  // Expand all: opening every card mounts every section row at once, the cost a
+  // collapsed catalog no longer pays on mount, so it is reported beside mount and add.
+  // Collapse all then returns the catalog to the collapsed state the later steps
+  // measure from.
+  const collapsed = page.locator('[data-course-toggle][aria-expanded="false"]');
+  const beforeExpand = await scriptMs(client);
+  await page.getByRole('button', { name: 'ขยายทั้งหมด' }).click();
+  await expect(collapsed).toHaveCount(0);
+  const expandMs = (await scriptMs(client)) - beforeExpand;
+  const beforeCollapse = await scriptMs(client);
+  await page.getByRole('button', { name: 'ย่อทั้งหมด' }).click();
+  await expect(
+    page.locator('[data-course-toggle][aria-expanded="true"]'),
+  ).toHaveCount(0);
+  const collapseMs = (await scriptMs(client)) - beforeCollapse;
+
   // Filter toggle that drops nothing: every section survives, so filterCourses
   // returns identical course identities and a memoized card skips its re-render.
   // This is the clearest memoization win, a re-filter of 500 cards that no longer
@@ -181,7 +197,7 @@ test('profiles the dense catalog render and a grid drag', async ({
   await expect(page.locator('[data-teach-table-id^="790"]')).toHaveCount(0);
 
   console.log(
-    `[perf] mount=${mountMs.toFixed(1)}ms filter=${filterMs.toFixed(1)}ms add=${addMs.toFixed(1)}ms drag=${dragMs.toFixed(1)}ms plan=${String(PLAN_SIZE)} catalog=500`,
+    `[perf] mount=${mountMs.toFixed(1)}ms add=${addMs.toFixed(1)}ms expandAll=${expandMs.toFixed(1)}ms collapseAll=${collapseMs.toFixed(1)}ms filter=${filterMs.toFixed(1)}ms drag=${dragMs.toFixed(1)}ms plan=${String(PLAN_SIZE)} catalog=500`,
   );
 
   // Loose ceilings: a gross regression trips these, machine variance does not. The
@@ -189,6 +205,8 @@ test('profiles the dense catalog render and a grid drag', async ({
   expect(mountMs).toBeGreaterThan(0);
   expect(filterMs).toBeLessThan(3000);
   expect(addMs).toBeLessThan(6000);
+  expect(expandMs).toBeLessThan(8000);
+  expect(collapseMs).toBeLessThan(6000);
   expect(dragMs).toBeLessThan(8000);
 });
 
