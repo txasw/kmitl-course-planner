@@ -17,12 +17,16 @@ import {
   seedActivePlan,
 } from '../../../tests/support/plan-store';
 import { revalidationStore } from '@/features/plans/revalidationStore';
+import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { RevalidationBanner } from './RevalidationBanner';
 
+// The detail sheet portals into the overlay root, which the panel provides.
 function renderBanner(deps: SearchDeps = fakeSearchDeps()) {
   return render(
     <SearchDepsProvider value={deps}>
-      <RevalidationBanner />
+      <PanelPortalContext.Provider value={document.body}>
+        <RevalidationBanner />
+      </PanelPortalContext.Provider>
     </SearchDepsProvider>,
   );
 }
@@ -96,10 +100,19 @@ describe('RevalidationBanner', () => {
       });
     });
     renderBanner();
-    fireEvent.click(screen.getByRole('button', { name: /รายละเอียด/ }));
-    expect(
-      screen.getByRole('dialog', { name: /รายละเอียดการตรวจสอบ/ }),
-    ).toBeInTheDocument();
+    const detail = screen.getByRole('button', { name: /รายละเอียด/ });
+    detail.focus();
+    fireEvent.click(detail);
+    const dialog = screen.getByRole('dialog', {
+      name: /รายละเอียดการตรวจสอบ/,
+    });
+    // The sheet sits outside the live summary, so its list is not read as a status.
+    expect(dialog.closest('[aria-live]')).toBeNull();
+    expect(screen.getByText('90000001 กลุ่มเรียน 901')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'ปิด' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(detail).toHaveFocus();
   });
 
   it('renders the detail sheet when the store asks for it and closes it there', () => {

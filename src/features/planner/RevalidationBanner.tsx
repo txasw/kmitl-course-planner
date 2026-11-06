@@ -4,7 +4,9 @@
 // through the toast, so the outcome stays next to the plan it describes. It renders in
 // both edit and preview, since correctness matters most at the moment of sharing. The
 // detail sheet's open state is held in the revalidation store, so another surface can
-// ask for the sheet and the banner still renders it next to the run it describes.
+// ask for the sheet and the banner still renders it next to the run it describes. The
+// sheet renders beside the live summary, not inside it, and portals into the overlay
+// root, so opening it never reads its whole list as a status update.
 
 import { useStore } from 'zustand';
 import { AlertTriangle, List, RefreshCw } from 'lucide-react';
@@ -71,36 +73,38 @@ export function RevalidationBanner() {
   const clean = summary.changed === 0 && summary.missing === 0;
 
   return (
-    <div
-      aria-live="polite"
-      className="flex shrink-0 flex-wrap items-center gap-2 rounded-kcp border border-border bg-surface-alt px-2 py-1 text-xs text-ink"
-    >
-      <span>
-        {t('revalidation.checked')} {summary.total}
-        {summary.changed > 0
-          ? ` ${t('revalidation.changed')} ${String(summary.changed)}`
-          : ''}
-        {summary.missing > 0
-          ? ` ${t('revalidation.missing')} ${String(summary.missing)}`
-          : ''}
-        {clean ? ` ${t('revalidation.allMatch')}` : ''}
-      </span>
-      {run.status === 'partial' ? (
-        <span className="text-warn">{t('revalidation.partial')}</span>
-      ) : null}
-      {clean ? null : (
-        <button
-          type="button"
-          onClick={() => {
-            setSheetOpen(true);
-          }}
-          className={`inline-flex items-center gap-1 rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
-        >
-          <List size={12} strokeWidth={2} aria-hidden />
-          {t('revalidation.detail')}
-        </button>
-      )}
-      <RefreshButton label={t('catalog.refresh')} onClick={refresh} />
+    <>
+      <div
+        aria-live="polite"
+        className="flex shrink-0 flex-wrap items-center gap-2 rounded-kcp border border-border bg-surface-alt px-2 py-1 text-xs text-ink"
+      >
+        <span>
+          {t('revalidation.checked')} {summary.total}
+          {summary.changed > 0
+            ? ` ${t('revalidation.changed')} ${String(summary.changed)}`
+            : ''}
+          {summary.missing > 0
+            ? ` ${t('revalidation.missing')} ${String(summary.missing)}`
+            : ''}
+          {clean ? ` ${t('revalidation.allMatch')}` : ''}
+        </span>
+        {run.status === 'partial' ? (
+          <span className="text-warn">{t('revalidation.partial')}</span>
+        ) : null}
+        {clean ? null : (
+          <button
+            type="button"
+            onClick={() => {
+              setSheetOpen(true);
+            }}
+            className={`inline-flex items-center gap-1 rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
+          >
+            <List size={12} strokeWidth={2} aria-hidden />
+            {t('revalidation.detail')}
+          </button>
+        )}
+        <RefreshButton label={t('catalog.refresh')} onClick={refresh} />
+      </div>
       {sheetOpen ? (
         <RevalidationDetailSheet
           locale={language}
@@ -110,7 +114,7 @@ export function RevalidationBanner() {
           }}
         />
       ) : null}
-    </div>
+    </>
   );
 }
 
