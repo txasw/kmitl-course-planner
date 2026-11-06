@@ -1,8 +1,9 @@
 // Wires the automatic revalidation triggers: opening the overlay and switching the
 // active plan each revalidate the active plan, throttled to once per plan per ten
-// minutes. A manual refresh runs from the banner and bypasses the throttle. The hook
-// mounts once at the app root and reads the injected send so it stays off the search
-// store's live catalog.
+// minutes. A manual refresh runs from the banner and bypasses the throttle. A run that
+// leaves new review items asks for the updates dialog, which opens at the next idle
+// moment (ADR-0060). The hook mounts once at the app root and reads the injected send so
+// it stays off the search store's live catalog.
 
 import { useEffect } from 'react';
 import type { Plan } from '@/lib/domain/plan';
@@ -10,6 +11,7 @@ import type { TypedSend } from '@/lib/messaging/sendTyped';
 import { uiStore } from '@/features/shell/uiStore';
 import { planStore } from './planStore';
 import { revalidatePlanNow, shouldRevalidate } from './revalidationController';
+import { noticeNewReviews } from './updatesNotice';
 
 function activePlan(): Plan | null {
   const state = planStore.getState();
@@ -27,7 +29,9 @@ export function useRevalidationTriggers(send: TypedSend): void {
       if (plan === null || !shouldRevalidate(plan, Date.now())) {
         return;
       }
-      void revalidatePlanNow(plan, deps, false);
+      void revalidatePlanNow(plan, deps, false).then((status) => {
+        noticeNewReviews(plan.id, status, false);
+      });
     };
     // Check once in case the overlay is already open when the hook mounts.
     maybeRun();

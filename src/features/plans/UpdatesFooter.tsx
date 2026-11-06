@@ -11,7 +11,7 @@ import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { useActivePlan } from './planStore';
-import { revalidatePlanNow } from './revalidationController';
+import { checkPlanNow } from './updatesNotice';
 import { useActiveRun } from './revalidationStore';
 
 const SECONDARY_BUTTON = `rounded-kcp border border-border bg-surface px-3 py-1.5 text-sm text-ink hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`;
@@ -38,11 +38,7 @@ export function UpdatesFooter({
 
   const handleRecheck = (): void => {
     if (activePlan === null) return;
-    void revalidatePlanNow(
-      activePlan,
-      { send, now: () => new Date().toISOString() },
-      true,
-    );
+    void checkPlanNow(activePlan, send);
   };
 
   return (

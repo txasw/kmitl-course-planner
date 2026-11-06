@@ -3,7 +3,8 @@
 // It is not persisted: the durable outcome lives on the plan entries as their
 // verification status and open review, while this store carries the one time old versus
 // new detail of a run. The updates dialog's open state lives here too, so the banner and
-// the pre share notice can both ask for the dialog the planner panel renders.
+// the pre share notice can both ask for the dialog the planner panel renders, and so does
+// the plan whose new review items wait for an idle moment to open it on their own.
 
 import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
@@ -24,7 +25,12 @@ export interface RevalidationStore {
   setRun: (planId: string, run: RevalidationRun) => void;
   /** Whether the updates dialog for the active plan is open. */
   updatesOpen: boolean;
+  /** Open or close the dialog. Opening it by any path settles a waiting request. */
   setUpdatesOpen: (open: boolean) => void;
+  /** The plan whose new review items wait to open the dialog, or null (ADR-0060). */
+  pendingOpen: string | null;
+  requestOpen: (planId: string) => void;
+  clearPendingOpen: () => void;
 }
 
 export function createRevalidationStore() {
@@ -35,7 +41,14 @@ export function createRevalidationStore() {
     },
     updatesOpen: false,
     setUpdatesOpen: (updatesOpen) => {
-      set({ updatesOpen });
+      set(updatesOpen ? { updatesOpen, pendingOpen: null } : { updatesOpen });
+    },
+    pendingOpen: null,
+    requestOpen: (planId) => {
+      set({ pendingOpen: planId });
+    },
+    clearPendingOpen: () => {
+      set({ pendingOpen: null });
     },
   }));
 }

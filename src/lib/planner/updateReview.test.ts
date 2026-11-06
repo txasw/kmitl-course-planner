@@ -9,6 +9,7 @@ import {
   buildUpdateReview,
   countUpdateItems,
   hasUpdateItems,
+  unnotifiedReviewIds,
   withRemovedItems,
   type ConflictsById,
 } from './updateReview';
@@ -214,6 +215,23 @@ describe('countUpdateItems', () => {
     for (const entries of cases) {
       expect(hasUpdateItems(entries)).toBe(countUpdateItems(entries) > 0);
     }
+  });
+});
+
+describe('unnotifiedReviewIds', () => {
+  it('lists only the open reviews the student has not been shown', () => {
+    const fresh = reviewed('1', ['time_changed']);
+    const shown = reviewed('2', ['exam_changed']);
+    const seen: PlanEntry = shown.review
+      ? {
+          ...shown,
+          review: { ...shown.review, notifiedAt: '2026-11-06T01:00:00.000Z' },
+        }
+      : shown;
+    const acknowledgedMissing = makePlanEntry({ verifyStatus: 'missing' });
+    expect(unnotifiedReviewIds([fresh, seen, acknowledgedMissing])).toEqual([
+      fresh.teachTableId,
+    ]);
   });
 });
 
