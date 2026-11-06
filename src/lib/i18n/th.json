@@ -238,6 +238,7 @@
   "detail.meetings": "เวลาเรียน",
   "detail.noMeetings": "ไม่มีคาบเรียน",
   "detail.kindCredits": "ประเภทและหน่วยกิต",
+  "detail.weeklyHours": "ทฤษฎี {lecture} ชม. ปฏิบัติ {practice} ชม. ศึกษาด้วยตนเอง {selfStudy} ชม. ต่อสัปดาห์",
   "detail.teachers": "อาจารย์ผู้สอน",
   "detail.seats": "ที่นั่ง",
   "detail.exams": "การสอบ",

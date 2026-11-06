@@ -334,7 +334,9 @@ describe('BlockDetailSurface on a fine pointer from 640 px', () => {
     ]);
     expect(rowValues('Midterm')).toEqual(['26 Aug 2568 09:30-12:30']);
     expect(rowValues('Final')).toEqual(['21 Oct 2568 09:30-12:30']);
-    expect(rowValues('Type and credits')).toEqual(['Lecture 3(3-0-6)']);
+    expect(rowValues('Type and credits')).toEqual([
+      'Lecture 3(3-0-6)Lecture 3 h, practice 0 h, self study 6 h per week',
+    ]);
     expect(screen.queryByText('Exam overlap')).not.toBeInTheDocument();
   });
 
