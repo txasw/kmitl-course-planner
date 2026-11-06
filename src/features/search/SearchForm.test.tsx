@@ -252,6 +252,18 @@ describe('SearchForm', () => {
     });
   });
 
+  it('places the full width submit directly under the last field', () => {
+    renderSearch(deps());
+    fireEvent.click(screen.getByRole('tab', { name: 'หมวดวิชา' }));
+    const submit = screen.getByRole('button', { name: 'ค้นหา' });
+    const stack = submit.parentElement;
+    expect(stack?.lastElementChild).toBe(submit);
+    expect(stack).toContainElement(
+      screen.getByRole('combobox', { name: 'หมวดวิชา' }),
+    );
+    expect(submit).toHaveClass('w-full');
+  });
+
   it('runs a category search and renders the results', async () => {
     renderSearch(deps());
     fireEvent.click(screen.getByRole('tab', { name: 'หมวดวิชา' }));

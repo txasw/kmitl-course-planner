@@ -1,10 +1,10 @@
 // The search form at the head of the catalog column: the term row every tab shares,
-// a tab bar over the three official search modes, the active tab's fields, and a
-// submit under the last field that streams results into the catalog below. The
-// search header around it owns the fold and the scroller, so the form lays out at
-// its natural height. Reference data loads once on mount; the term seeds from the
-// host route, a persisted search, the active plan, or the term after the
-// registrar's current one. The four async surfaces each render a deliberate state.
+// a tablist over the three official search modes, the active tab's fields, and a
+// submit directly under the last field that streams results into the catalog below.
+// The search header around it owns the fold and the scroller, so the form lays out at
+// its natural height. Reference data loads once on mount; the term seeds from the host
+// route, a persisted search, the active plan, or the term after the registrar's current
+// one. The four async surfaces each render a deliberate state.
 
 import { useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
@@ -24,13 +24,9 @@ import {
   SubjectIdInput,
   TermFields,
 } from './fields';
-import {
-  SEARCH_BAR_ID,
-  SEARCH_SUBMIT_ID,
-  SEARCH_TABPANEL_ID,
-  searchTabId,
-} from './searchIds';
+import { SEARCH_BAR_ID, SEARCH_TABPANEL_ID, searchTabId } from './searchIds';
 import { searchStore } from './searchStore';
+import { SearchSubmit } from './SearchSubmit';
 import { SearchTabList } from './SearchTabList';
 import { useSearchDeps } from './SearchDepsContext';
 import { useHashRoute } from './useHashRoute';
@@ -199,19 +195,12 @@ export function SearchForm() {
               }}
             />
           ) : null}
+          <SearchSubmit
+            disabled={submitDisabled}
+            t={t}
+            onSubmit={handleSubmit}
+          />
         </div>
-
-        <button
-          id={SEARCH_SUBMIT_ID}
-          type="button"
-          disabled={submitDisabled}
-          onClick={(event) => {
-            handleSubmit(event.currentTarget);
-          }}
-          className={`rounded-kcp bg-primary-strong px-4 py-2 text-sm font-semibold text-surface hover:bg-primary-hover disabled:opacity-50 ${FOCUS_OUTLINE}`}
-        >
-          {t('search.submit')}
-        </button>
       </div>
     </div>
   );
