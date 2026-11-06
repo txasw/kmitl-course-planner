@@ -11,8 +11,9 @@ import type { Page } from '@playwright/test';
 
 // The Phase 6 plan flows: a plan persists across a reload because the grid renders
 // from stored snapshots, the catalog refuses a section from another term and offers a
-// switch, and a revalidation reconciles a section whose time moved upstream. These run
-// against the synthetic by subject id catalog so the sections are known and stable.
+// switch, and a revalidation reconciles a section whose time moved upstream, which the
+// student then reviews and acknowledges in the updates dialog. These run against the
+// synthetic by subject id catalog so the sections are known and stable.
 
 const LAUNCHER = 'เปิด Course Planner for KMITL';
 
@@ -77,7 +78,7 @@ test('refuses a section from another term and switches on request', async ({
   ).toBeVisible();
 });
 
-test('flags a section whose time moved upstream on refresh', async ({
+test('flags a moved section on refresh and acknowledges it in the dialog', async ({
   context,
   mock,
 }) => {
@@ -103,4 +104,26 @@ test('flags a section whose time moved upstream on refresh', async ({
   await expect(
     page.locator(`${block('900001')}[data-verify="warn"]`),
   ).toBeVisible();
+
+  // The details action opens the updates dialog, which lists the time change with its
+  // old and new values and starts focus on the acknowledgement.
+  await banner.getByRole('button', { name: 'รายละเอียด' }).click();
+  const dialog = page.getByRole('dialog', {
+    name: 'ข้อมูลในตารางมีการเปลี่ยนแปลง',
+  });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText('เวลาเรียนเปลี่ยน')).toBeVisible();
+  await expect(dialog.getByText('เดิม', { exact: true })).toBeVisible();
+  await expect(dialog.getByText('ใหม่', { exact: true })).toBeVisible();
+  const acknowledge = dialog.getByRole('button', { name: 'รับทราบทั้งหมด' });
+  await expect(acknowledge).toBeFocused();
+
+  // Acknowledging clears the review: the dialog closes with one toast, and the block
+  // no longer carries the warn badge.
+  await acknowledge.click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByText('รับทราบการเปลี่ยนแปลงแล้ว')).toBeVisible();
+  await expect(
+    page.locator(`${block('900001')}[data-verify="warn"]`),
+  ).toHaveCount(0);
 });

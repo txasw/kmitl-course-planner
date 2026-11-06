@@ -82,6 +82,18 @@ test('round trips a plan through JSON export and import', async ({
   await expect(
     page.locator(`${block('900001')}[data-verify="warn"]`),
   ).toBeVisible();
+  // The imported plan reviews its change in the updates dialog. Review later keeps the
+  // review open, so the badge stays, and Escape is the same as review later.
+  await banner.getByRole('button', { name: 'รายละเอียด' }).click();
+  const dialog = page.getByRole('dialog', {
+    name: 'ข้อมูลในตารางมีการเปลี่ยนแปลง',
+  });
+  await expect(dialog.getByText('เวลาเรียนเปลี่ยน')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(
+    page.locator(`${block('900001')}[data-verify="warn"]`),
+  ).toBeVisible();
   // Import never overwrites: the name collided with the original, so the imported
   // plan carries the de-collision suffix, which means the original still exists. The
   // per-row action buttons repeat the name, so target the first match, the select row.
