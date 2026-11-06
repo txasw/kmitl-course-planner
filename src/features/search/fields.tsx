@@ -10,29 +10,18 @@ import { CONTROL_BOUNDARY } from '@/lib/ui/control';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { sanitizeSubjectId } from '@/lib/search/formState';
 import { Combobox } from './Combobox';
+import { CurriculumFields } from './CurriculumFields';
+import { FacultySelect } from './FacultySelect';
 import { SEARCH_SUBJECT_ID_INPUT_ID } from './searchIds';
 import type { Translate } from '@/lib/i18n/t';
 import type { Locale } from '@/lib/i18n/t';
-import type { RawFaculty } from '@/lib/domain/schemas';
-import type { AsyncState } from '@/lib/utils/async';
 import {
-  curriculaFor,
-  curriculumName,
-  departmentName,
-  departmentsForFaculty,
-  facultyName,
-  sortFacultiesById,
+  readyData,
   sortSubjectOwners,
   subjectOwnerName,
   type ReferenceLists,
 } from '@/lib/reference/filters';
-import {
-  ALL_OPTION,
-  CLASS_YEARS,
-  asClassYear,
-  type CategoryForm,
-  type ClassForm,
-} from '@/lib/search/formState';
+import type { CategoryForm, ClassForm } from '@/lib/search/formState';
 import {
   SEMESTERS,
   parseSemester,
@@ -116,10 +105,6 @@ export function SubjectIdInput({
   );
 }
 
-function readyData<T>(state: AsyncState<T[]>): T[] {
-  return state.status === 'ready' ? state.data : [];
-}
-
 interface TermFieldsProps {
   term: Term;
   years: string[];
@@ -169,49 +154,6 @@ export function TermFields({ term, years, t, onChange }: TermFieldsProps) {
   );
 }
 
-interface FacultySelectProps {
-  value: string;
-  faculties: AsyncState<RawFaculty[]>;
-  locale: Locale;
-  t: Translate;
-  onChange: (value: string) => void;
-  /** Offer an all faculties option, verified only for the category tab. */
-  includeAll?: boolean;
-}
-
-export function FacultySelect({
-  value,
-  faculties,
-  locale,
-  t,
-  onChange,
-  includeAll = false,
-}: FacultySelectProps) {
-  const options = [
-    ...(includeAll
-      ? [{ value: ALL_OPTION, label: t('search.facultyAll') }]
-      : []),
-    ...sortFacultiesById(readyData(faculties)).map((faculty) => ({
-      value: faculty.FACULTY_ID,
-      label: `${faculty.FACULTY_ID} ${facultyName(faculty, locale)}`,
-    })),
-  ];
-  return (
-    <Combobox
-      label={t('search.faculty')}
-      value={value}
-      placeholder={
-        faculties.status === 'ready'
-          ? t('search.selectPlaceholder')
-          : t('search.optionsLoading')
-      }
-      disabled={faculties.status !== 'ready'}
-      options={options}
-      onChange={onChange}
-    />
-  );
-}
-
 interface ClassFieldsProps {
   form: ClassForm;
   reference: ReferenceLists;
@@ -227,80 +169,15 @@ export function ClassFields({
   t,
   patch,
 }: ClassFieldsProps) {
-  const departmentOptions = departmentsForFaculty(
-    readyData(reference.departments),
-    form.faculty,
-  ).map((department) => ({
-    value: department.department_id,
-    label: `${department.department_id} ${departmentName(department, locale)}`,
-  }));
-
-  const curriculumOptions = [
-    { value: ALL_OPTION, label: t('search.curriculumAll') },
-    ...curriculaFor(
-      readyData(reference.curricula),
-      form.faculty,
-      form.department,
-    ).map((curriculum) => ({
-      value: curriculum.REGISTRAR_CURRICULUM2_ID,
-      label: curriculumName(curriculum, locale),
-    })),
-  ];
-
-  const classYearOptions = CLASS_YEARS.map((value) => ({
-    value,
-    label: value === 'all' ? t('search.classYearAll') : value,
-  }));
-
   return (
-    <>
-      <FacultySelect
-        value={form.faculty}
-        faculties={reference.faculties}
-        locale={locale}
-        t={t}
-        onChange={(faculty) => {
-          patch({ faculty, department: '', curriculum: '' });
-        }}
-      />
-      <Combobox
-        label={t('search.department')}
-        value={form.department}
-        placeholder={t('search.selectPlaceholder')}
-        disabled={
-          form.faculty === '' || reference.departments.status !== 'ready'
-        }
-        options={departmentOptions}
-        onChange={(department) => {
-          patch({ department, curriculum: '' });
-        }}
-      />
-      <Combobox
-        label={t('search.curriculum')}
-        value={form.curriculum}
-        placeholder={t('search.selectPlaceholder')}
-        disabled={
-          form.department === '' || reference.curricula.status !== 'ready'
-        }
-        options={curriculumOptions}
-        onChange={(curriculum) => {
-          patch({ curriculum });
-        }}
-      />
-      <Combobox
-        label={t('search.classYear')}
-        value={form.classYear}
-        placeholder={t('search.selectPlaceholder')}
-        disabled={false}
-        options={classYearOptions}
-        onChange={(value) => {
-          const classYear = asClassYear(value);
-          if (classYear !== null) {
-            patch({ classYear });
-          }
-        }}
-      />
-    </>
+    <CurriculumFields
+      value={form}
+      includeAll
+      reference={reference}
+      locale={locale}
+      t={t}
+      patch={patch}
+    />
   );
 }
 
