@@ -40,7 +40,7 @@ import { useTranslation } from '@/features/shell/useTranslation';
 import { dragStore, blockerIds } from './dragStore';
 import { DragCard } from './DragCard';
 import { ReasonChip } from './ReasonChip';
-import { RemoveZone, REMOVE_ZONE_ID } from './RemoveZone';
+import { RemoveZone, isRemoveZoneId } from './RemoveZone';
 import { resolveCourseForSubject } from './resolveCourse';
 import { isTouchEvent, snapDragCardToCursor } from './snapToCursor';
 import { prioritizedCollision } from './collision';
@@ -306,7 +306,7 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
       }
       if (state.blockMove !== null) {
         const move = state.blockMove;
-        if (event.over?.id === REMOVE_ZONE_ID) {
+        if (isRemoveZoneId(event.over?.id)) {
           planStore.getState().remove(move.section.teachTableId);
         } else if (isOriginId(event.over?.id)) {
           // Putting the block back where it came from is a deliberate cancel.

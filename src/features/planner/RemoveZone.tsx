@@ -7,7 +7,16 @@
 import { useDroppable } from '@dnd-kit/core';
 import { Trash2 } from 'lucide-react';
 
-export const REMOVE_ZONE_ID = 'kcp-remove-zone';
+/** Every remove target id starts with this prefix, so the collision priority and the
+ * drop handler treat each form of the zone alike. */
+export const REMOVE_ZONE_PREFIX = 'kcp-remove-';
+
+export const REMOVE_ZONE_ID = `${REMOVE_ZONE_PREFIX}zone`;
+
+/** Whether a drop target id names a remove zone. */
+export function isRemoveZoneId(id: string | number | undefined): boolean {
+  return typeof id === 'string' && id.startsWith(REMOVE_ZONE_PREFIX);
+}
 
 export function RemoveZone({ label }: { label: string }) {
   const { setNodeRef, isOver } = useDroppable({

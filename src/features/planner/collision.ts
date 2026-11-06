@@ -2,22 +2,24 @@
 // drop targets purely by geometry, so a swap target and the blocked candidate it
 // belongs to, which share a cell, would win or lose by corner distance. This wraps
 // pointerWithin and reorders the hits by an explicit target priority so a drop always
-// resolves to the same target the user sees: the remove zone first, then a swap
+// resolves to the same target the user sees: a remove zone first, then a swap
 // target, then a candidate slot, then the lifted origin of a block drag, then the whole
 // panel. Swap ranks above candidate so a drop on a blocking block that a blocked
 // candidate overlaps performs the exchange; a valid candidate never overlaps a swap
 // target, so this does not affect a plain add or move. A candidate ranks above the
 // origin because it is the raised, labelled choice drawn over the origin it shares a
-// cell with (ADR-0059). The priority reads the target id prefix, which the droppables
-// set, so the ordering needs no access to dnd-kit's loosely typed collision data.
+// cell with (ADR-0059). Every id with the remove prefix ranks first, so each form the
+// remove zone takes wins alike. The priority reads the target id prefix, which the
+// droppables set, so the ordering needs no access to dnd-kit's loosely typed collision
+// data.
 
 import { pointerWithin, type CollisionDetection } from '@dnd-kit/core';
-import { REMOVE_ZONE_ID } from './RemoveZone';
+import { isRemoveZoneId } from './RemoveZone';
 import { isOriginId } from './LiftedOrigin';
 
 /** Lower wins. A drop where several targets overlap resolves to the lowest number. */
 function priority(id: string | number): number {
-  if (id === REMOVE_ZONE_ID) {
+  if (isRemoveZoneId(id)) {
     return 0;
   }
   if (typeof id === 'string') {
