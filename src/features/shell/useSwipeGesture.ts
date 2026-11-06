@@ -54,7 +54,7 @@ interface SwipeGestureOptions {
   canStart?: () => boolean;
 }
 
-interface SwipeGesture {
+export interface SwipeGesture {
   handlers: {
     onPointerDown: (event: PointerEvent<HTMLElement>) => void;
     onPointerMove: (event: PointerEvent<HTMLElement>) => void;

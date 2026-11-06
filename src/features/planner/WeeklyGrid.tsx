@@ -111,6 +111,9 @@ export interface WeeklyGridProps {
   /** The accessible name of the grid. Defaults to the weekly timetable; the day view names
    * the day it shows. */
   label?: string;
+  /** Whether the poster keeps its 44rem floor along the time axis. The plan suggestion
+   * cards pass false, so a card fits its column and its frame sets the size instead. */
+  posterFloor?: boolean;
 }
 
 /** The edit grid inputs that hold whatever days and layout render them, so the week grid
@@ -147,6 +150,7 @@ export function WeeklyGrid({
   orientation = 'landscape',
   fontPx = EDIT_FONT_PX,
   label,
+  posterFloor = true,
 }: WeeklyGridProps) {
   // The grid template follows only the window, the day count, the orientation, and the
   // mode, so it holds stable across a drag or a plan change and is computed once per those
@@ -156,7 +160,13 @@ export function WeeklyGrid({
     [window, days, orientation, editable],
   );
   const isPortrait = orientation === 'portrait';
-  const floor = isPortrait ? 'min-h-[44rem]' : editable ? '' : 'min-w-[44rem]';
+  const floor = !posterFloor
+    ? ''
+    : isPortrait
+      ? 'min-h-[44rem]'
+      : editable
+        ? ''
+        : 'min-w-[44rem]';
 
   const active = useStore(dragStore, (state) => state.active);
   const blocked = active !== null && !active.placement.ok;

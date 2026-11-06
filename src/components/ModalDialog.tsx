@@ -12,10 +12,10 @@
 // so the overlay behind it stays open. The body is capped at 85 percent of the dynamic
 // viewport height and scrolls inside, and the optional footer stays pinned below it. A
 // list dialog takes the narrow width, a review the medium one, a card list the wide one,
-// and a comparison table the table width. A table that keeps its header row in view
-// while it scrolls owns its scroll instead: a sticky header sticks to its nearest
-// scrolling ancestor, so the body then only bounds the content and leaves the scroll to
-// it.
+// a comparison table the table width, and a side by side comparison the full one. A table
+// that keeps its header row in view while it scrolls owns its scroll instead: a sticky
+// header sticks to its nearest scrolling ancestor, so the body then only bounds the
+// content and leaves the scroll to it.
 
 import {
   useEffect,
@@ -37,6 +37,7 @@ const WIDTH_CLASS = {
   medium: 'max-w-[32rem]',
   wide: 'max-w-4xl',
   table: 'max-w-[64rem]',
+  full: 'max-w-6xl',
 } as const;
 
 const BODY_CLASS = {

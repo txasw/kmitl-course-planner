@@ -3,7 +3,9 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import { suggestPlans } from '@/lib/planner/suggest';
 import { byClassCourses, lockSections } from '../../../tests/support/suggest';
+import type { Orientation } from './gridGeometry';
 import { SuggestionCard } from './SuggestionCard';
+import { sharedFrame, suggestionSections } from './suggestionFrame';
 
 const t = createTranslator('th');
 const courses = byClassCourses();
@@ -22,19 +24,26 @@ afterEach(() => {
   cleanup();
 });
 
-function renderCard(onApply = vi.fn()) {
+function renderCard({
+  onApply = vi.fn(),
+  orientation = 'landscape',
+}: {
+  onApply?: () => void;
+  orientation?: Orientation;
+} = {}) {
   if (suggestion === undefined) throw new Error('expected a suggestion');
+  const sections = suggestionSections(locked, suggestion);
   render(
-    <ul>
-      <SuggestionCard
-        suggestion={suggestion}
-        index={0}
-        locked={locked}
-        locale="th"
-        t={t}
-        onApply={onApply}
-      />
-    </ul>,
+    <SuggestionCard
+      suggestion={suggestion}
+      index={0}
+      sections={sections}
+      frame={sharedFrame([sections])}
+      orientation={orientation}
+      locale="th"
+      t={t}
+      onApply={onApply}
+    />,
   );
   return { onApply, suggestion };
 }
@@ -87,5 +96,12 @@ describe('SuggestionCard', () => {
     const { onApply } = renderCard();
     fireEvent.click(screen.getByRole('button', { name: 'ใช้ตารางนี้' }));
     expect(onApply).toHaveBeenCalledOnce();
+  });
+
+  it('draws a portrait grid without the poster floor', () => {
+    renderCard({ orientation: 'portrait' });
+    const grid = screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+    expect(grid.style.gridTemplateColumns).toMatch(/^2\.75rem repeat\(/);
+    expect(grid.className).not.toMatch(/min-h-\[44rem\]/);
   });
 });
