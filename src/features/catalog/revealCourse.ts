@@ -7,8 +7,10 @@
 // id search for it runs instead, in the active plan's term, and focus lands on the
 // summary bar the search adds. Both are no ops while a drag is in flight, and each
 // reports whether it ran, so the caller clears the notice only when the catalog took
-// over. An action that sends the student to look for courses, such as the summary
-// view's empty state, brings the catalog into view at its search the same way.
+// over. Below 640 px an open search form fills the catalog pane over hidden, inert
+// results, so the reveal folds it first, or the card it opens could take neither the
+// view nor the focus. An action that sends the student to look for courses, such as the
+// summary view's empty state, brings the catalog into view at its search the same way.
 
 import { flushSync } from 'react-dom';
 import { catalogQueryKey } from '@/lib/catalog/cardDisclosure';
@@ -38,6 +40,9 @@ export function revealCourse(
     .getState()
     .entries.some((entry) => entry.subjectId === subjectId);
   flushSync(() => {
+    if (tier === 'compact') {
+      searchStore.getState().setSearchFormOpen(false);
+    }
     const catalog = catalogStore.getState();
     catalog.setText(subjectId);
     catalog.setCardOpen(
