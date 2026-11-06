@@ -1,30 +1,57 @@
 // A two or more option segmented control. Each option is a button and the active
 // one is marked with aria-pressed, so the selected state is conveyed without
-// relying on color. The brand orange fills the active option and the focus ring.
+// relying on color. Two looks share the behavior. The filled variant fills the
+// active option with the strong brand orange and is kept for the view mode choice,
+// the one header control whose state changes the whole panel. The quiet variant
+// marks the active option with the alternate surface, ink text, and the semibold
+// weight, for settings such as the language, so the header never shows two orange
+// blocks side by side. Labels never wrap, and every option keeps the shared target
+// size.
+
+import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 interface SegmentedOption<T extends string> {
   value: T;
   label: string;
 }
 
+export type SegmentedVariant = 'filled' | 'quiet';
+
 interface SegmentedControlProps<T extends string> {
   ariaLabel: string;
   value: T;
   options: readonly SegmentedOption<T>[];
   onChange: (value: T) => void;
+  variant?: SegmentedVariant;
 }
+
+const ACTIVE: Record<SegmentedVariant, string> = {
+  filled: 'bg-primary-strong text-white',
+  quiet: 'bg-surface-alt font-semibold text-ink',
+};
+
+const INACTIVE = 'text-ink-soft hover:text-ink';
+
+// An inset ring on the orange fill would fall under the 3:1 bar, so the filled variant
+// keeps the offset outline of ADR-0034 and the quiet one the default inset ring.
+const FOCUS: Record<SegmentedVariant, string> = {
+  filled: FOCUS_OUTLINE,
+  quiet: FOCUS_RING,
+};
 
 export function SegmentedControl<T extends string>({
   ariaLabel,
   value,
   options,
   onChange,
+  variant = 'filled',
 }: SegmentedControlProps<T>) {
   return (
     <div
       role="group"
       aria-label={ariaLabel}
-      className="inline-flex rounded-kcp border border-border p-0.5"
+      className="inline-flex shrink-0 rounded-kcp border border-border p-0.5"
     >
       {options.map((option) => {
         const active = option.value === value;
@@ -36,10 +63,8 @@ export function SegmentedControl<T extends string>({
             onClick={() => {
               onChange(option.value);
             }}
-            className={`rounded-[6px] px-2.5 py-1 text-xs outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
-              active
-                ? 'bg-primary-strong text-white'
-                : 'text-ink-soft hover:text-ink'
+            className={`inline-flex items-center justify-center whitespace-nowrap rounded-[6px] px-2.5 py-1 text-xs transition-colors ${TARGET_SIZE} ${FOCUS[variant]} ${
+              active ? ACTIVE[variant] : INACTIVE
             }`}
           >
             {option.label}
