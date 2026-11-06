@@ -57,21 +57,29 @@ export function departmentsForFaculty(
 }
 
 /**
- * Active curricula of the selected faculty and department. A curriculum with an
- * empty department id applies to any department in the faculty and is always
- * included.
+ * Whether a curriculum belongs to the faculty and department. A curriculum with an
+ * empty department id applies to any department in the faculty.
  */
+export function curriculumBelongsTo(
+  curriculum: RawCurriculum,
+  facultyId: string,
+  departmentId: string,
+): boolean {
+  return (
+    idsEqual(curriculum.FACULTY_ID, facultyId) &&
+    (curriculum.REGISTRAR_DEPARTMENT_ID === '' ||
+      idsEqual(curriculum.REGISTRAR_DEPARTMENT_ID, departmentId))
+  );
+}
+
+/** Active curricula of the selected faculty and department. */
 export function curriculaFor(
   curricula: readonly RawCurriculum[],
   facultyId: string,
   departmentId: string,
 ): RawCurriculum[] {
   return curricula.filter(
-    (c) =>
-      c.ACTIVE === '1' &&
-      idsEqual(c.FACULTY_ID, facultyId) &&
-      (c.REGISTRAR_DEPARTMENT_ID === '' ||
-        idsEqual(c.REGISTRAR_DEPARTMENT_ID, departmentId)),
+    (c) => c.ACTIVE === '1' && curriculumBelongsTo(c, facultyId, departmentId),
   );
 }
 

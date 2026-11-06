@@ -9,6 +9,7 @@ import {
 } from '../domain/schemas';
 import {
   curriculaFor,
+  curriculumBelongsTo,
   departmentsForFaculty,
   idsEqual,
   sortFacultiesById,
@@ -78,6 +79,25 @@ describe('departmentsForFaculty', () => {
   it('tolerates an unpadded faculty id', () => {
     expect(departmentsForFaculty(departments, '1')).toEqual(
       departmentsForFaculty(departments, '01'),
+    );
+  });
+});
+
+describe('curriculumBelongsTo', () => {
+  it('matches the faculty and department whatever their width', () => {
+    const sample = find(
+      curricula,
+      (c) => c.FACULTY_ID === '01' && c.REGISTRAR_DEPARTMENT_ID !== '',
+    );
+    const narrowDepartment = String(Number(sample.REGISTRAR_DEPARTMENT_ID));
+    expect(curriculumBelongsTo(sample, '1', narrowDepartment)).toBe(true);
+    expect(curriculumBelongsTo(sample, '02', narrowDepartment)).toBe(false);
+  });
+
+  it('places an empty department curriculum in every department of its faculty', () => {
+    const openEnded = find(curricula, (c) => c.REGISTRAR_DEPARTMENT_ID === '');
+    expect(curriculumBelongsTo(openEnded, openEnded.FACULTY_ID, '99')).toBe(
+      true,
     );
   });
 });
