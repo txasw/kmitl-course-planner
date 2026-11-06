@@ -7,10 +7,22 @@ import { PlanViewTabs, planViewPanelId } from './PlanViewTabs';
 
 const t = createTranslator('th');
 
-function Harness({ initial = 'timetable' }: { initial?: PlanView }) {
+function Harness({
+  initial = 'timetable',
+  examClash = false,
+}: {
+  initial?: PlanView;
+  examClash?: boolean;
+}) {
   const [view, setView] = useState<PlanView>(initial);
   return (
-    <PlanViewTabs value={view} selectedCount={3} onChange={setView} t={t} />
+    <PlanViewTabs
+      value={view}
+      selectedCount={3}
+      examClash={examClash}
+      onChange={setView}
+      t={t}
+    />
   );
 }
 
@@ -26,6 +38,19 @@ describe('PlanViewTabs', () => {
     expect(screen.getByRole('tablist', { name: 'มุมมองตาราง' })).toBeVisible();
     expect(tab('ตารางเรียน')).toBeVisible();
     expect(tab('วิชาที่เลือก (3)')).toBeVisible();
+    expect(tab('สรุป')).toBeVisible();
+  });
+
+  it('marks an exam clash on the summary tab with a dot and in its name', () => {
+    const { container } = render(<Harness examClash />);
+    expect(tab('สรุป มีวิชาที่สอบชนกัน')).toBeVisible();
+    expect(container.querySelectorAll('.bg-danger')).toHaveLength(1);
+  });
+
+  it('shows no dot without an exam clash', () => {
+    const { container } = render(<Harness />);
+    expect(tab('สรุป')).toBeVisible();
+    expect(container.querySelector('.bg-danger')).toBeNull();
   });
 
   it('marks the active tab and keeps only it in the tab order', () => {
@@ -51,6 +76,7 @@ describe('PlanViewTabs', () => {
     render(<Harness />);
     const timetable = tab('ตารางเรียน');
     const selected = tab('วิชาที่เลือก (3)');
+    const summary = tab('สรุป');
     timetable.focus();
 
     fireEvent.keyDown(timetable, { key: 'ArrowRight' });
@@ -58,23 +84,27 @@ describe('PlanViewTabs', () => {
     expect(selected).toHaveAttribute('aria-selected', 'true');
 
     fireEvent.keyDown(selected, { key: 'ArrowRight' });
+    expect(summary).toHaveFocus();
+    expect(summary).toHaveAttribute('aria-selected', 'true');
+
+    fireEvent.keyDown(summary, { key: 'ArrowRight' });
     expect(timetable).toHaveFocus();
     expect(timetable).toHaveAttribute('aria-selected', 'true');
 
     fireEvent.keyDown(timetable, { key: 'ArrowLeft' });
-    expect(selected).toHaveFocus();
-    expect(selected).toHaveAttribute('aria-selected', 'true');
+    expect(summary).toHaveFocus();
+    expect(summary).toHaveAttribute('aria-selected', 'true');
   });
 
   it('moves to the first and last tab with Home and End', () => {
     render(<Harness />);
     const timetable = tab('ตารางเรียน');
-    const selected = tab('วิชาที่เลือก (3)');
+    const summary = tab('สรุป');
     timetable.focus();
 
     fireEvent.keyDown(timetable, { key: 'End' });
-    expect(selected).toHaveFocus();
-    fireEvent.keyDown(selected, { key: 'Home' });
+    expect(summary).toHaveFocus();
+    fireEvent.keyDown(summary, { key: 'Home' });
     expect(timetable).toHaveFocus();
     expect(timetable).toHaveAttribute('aria-selected', 'true');
   });

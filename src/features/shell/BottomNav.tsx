@@ -15,6 +15,7 @@
 import { useStore } from 'zustand';
 import {
   CalendarDays,
+  ClipboardList,
   ListChecks,
   Search,
   type LucideIcon,
@@ -41,12 +42,14 @@ const LABEL_KEY: Record<NavItem, TranslationKey> = {
   catalog: 'catalog.open',
   timetable: 'planView.timetable',
   selected: 'nav.selected',
+  summary: 'planView.summary',
 };
 
 const ICON: Record<NavItem, LucideIcon> = {
   catalog: Search,
   timetable: CalendarDays,
   selected: ListChecks,
+  summary: ClipboardList,
 };
 
 /** The count an item shows, or null for none. A plan with no subjects shows no zero. */

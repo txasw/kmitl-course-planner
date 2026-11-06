@@ -52,6 +52,12 @@ describe('ui store', () => {
     expect(store.getState().planView).toBe('selected');
   });
 
+  it('switches to the summary view', () => {
+    const store = createUiStore();
+    store.getState().setPlanView('summary');
+    expect(store.getState().planView).toBe('summary');
+  });
+
   it('keeps the plan view across closing and reopening', () => {
     const store = createUiStore();
     store.getState().open();

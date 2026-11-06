@@ -17,12 +17,16 @@ import type { CurriculumProfile } from '@/lib/catalog/curriculumProfile';
 /** The timetable presentation mode: full editing, or the inert preview poster. */
 export type ViewMode = 'edit' | 'preview';
 
-/** The plan view shown in edit mode: the weekly grid, or the list of placed subjects. */
-export type PlanView = 'timetable' | 'selected';
+/**
+ * The plan view shown in edit mode (ADR-0049): the weekly grid, the list of placed
+ * subjects, or the summary that opens on the plan's exam schedule.
+ */
+export type PlanView = 'timetable' | 'selected' | 'summary';
 
 /**
  * The pane the compact tier shows below 640 px (ADR-0048): the catalog with its search,
- * or the plan views, where the plan view picks the timetable or the selected list.
+ * or the plan views, where the plan view picks the timetable, the selected list, or the
+ * summary.
  */
 export type MobilePane = 'catalog' | 'plan';
 
