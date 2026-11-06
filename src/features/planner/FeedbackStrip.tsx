@@ -22,14 +22,24 @@ import { addSectionToPlan } from '@/features/plans/addToPlan';
 import { switchOrCreatePlanForTerm } from '@/features/plans/switchPlanTerm';
 import { revealCourse } from '@/features/catalog/revealCourse';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
-import { focusFirst } from '@/features/shell/restoreFocus';
-import { focusIsLost } from '@/features/shell/useFocusTrap';
+import { commitThenFocus, focusFirst } from '@/features/shell/restoreFocus';
+import { focusIsLost, rootOf } from '@/features/shell/useFocusTrap';
+import { courseToggle } from '@/features/catalog/courseFocus';
 import {
   dragStore,
   type BlockedFeedback,
   type CrossTermFeedback,
 } from './dragStore';
 import { conflictReasonText } from './conflictText';
+
+/**
+ * The first action of the blocked notice: the first alternative chip, or the reveal
+ * action when none fits. A blocked add moves focus here, so a keyboard user can take
+ * the alternative without hunting for it.
+ */
+export function firstFeedbackAction(root: ParentNode): HTMLElement | null {
+  return root.querySelector<HTMLElement>('[data-feedback-action]');
+}
 
 const BLOCKED_WINDOW_MS = 6_000;
 const ANNOUNCE_WINDOW_MS = 4_000;
@@ -67,13 +77,29 @@ function BlockedNotice({
             <button
               key={alternative.teachTableId}
               type="button"
-              onClick={() => {
-                const outcome = addSectionToPlan(blocked.course, alternative);
-                if (!outcome.ok && 'crossTerm' in outcome) {
-                  dragStore.getState().showCrossTerm(outcome.crossTerm);
-                } else {
-                  dragStore.getState().clearBlocked();
-                }
+              data-feedback-action
+              onClick={(event) => {
+                // A chip is an add, so it lands focus where a row add does: the card
+                // toggle of the course, which collapses with the add.
+                const root = rootOf(event.currentTarget);
+                commitThenFocus(
+                  () => {
+                    const outcome = addSectionToPlan(
+                      blocked.course,
+                      alternative,
+                    );
+                    if (!outcome.ok && 'crossTerm' in outcome) {
+                      dragStore.getState().showCrossTerm(outcome.crossTerm);
+                    } else {
+                      dragStore.getState().clearBlocked();
+                    }
+                    return outcome;
+                  },
+                  (outcome) =>
+                    outcome.ok && root !== null
+                      ? [courseToggle(root, alternative.subjectId)]
+                      : [],
+                );
               }}
               className="rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
@@ -87,6 +113,7 @@ function BlockedNotice({
       ) : (
         <button
           type="button"
+          data-feedback-action
           onClick={() => {
             revealCourse(blocked.section.subjectId, tier);
             dragStore.getState().clearBlocked();

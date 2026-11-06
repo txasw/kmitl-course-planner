@@ -26,6 +26,8 @@ import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { planStore } from '@/features/plans/planStore';
 import { searchStore } from '@/features/search/searchStore';
 import { dragStore } from '@/features/planner/dragStore';
+import { FeedbackStrip } from '@/features/planner/FeedbackStrip';
+import { createTranslator } from '@/lib/i18n/t';
 import { EMPTY_DISCLOSURE } from '@/lib/catalog/cardDisclosure';
 import { catalogStore } from './catalogStore';
 import { CourseCatalog } from './CourseCatalog';
@@ -426,5 +428,108 @@ describe('CourseCatalog expand all', () => {
     // not, so focus stays in the row until the catalog moves it.
     fireEvent.click(screen.getByRole('button', { name: 'ย่อทั้งหมด' }));
     expect(document.activeElement).toBe(toggleNode);
+  });
+});
+
+describe('CourseCatalog focus', () => {
+  /** The first add control a student can press on an open row. */
+  function firstAddButton(): HTMLElement {
+    const button = screen
+      .getAllByRole('button', { name: /^เพิ่ม/ })
+      .find((node) => node.getAttribute('aria-disabled') !== 'true');
+    if (button === undefined) throw new Error('expected an open section');
+    return button;
+  }
+
+  it('lands a keyboard add from an expanded row on the collapsed card toggle', () => {
+    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    expandAll();
+    const add = firstAddButton();
+    const toggleId = add
+      .closest('article')
+      ?.querySelector('[data-course-toggle]')
+      ?.getAttribute('aria-controls');
+    add.focus();
+    fireEvent.click(add);
+    const focused = document.activeElement;
+    expect(focused).toHaveAttribute('data-course-toggle');
+    expect(focused).toHaveAttribute('aria-controls', toggleId);
+    expect(focused).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('lands a grip commit on the collapsed card toggle', () => {
+    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    expandAll();
+    const grip = screen.getAllByRole('button', { name: /^ลากเพื่อเพิ่ม/ })[0];
+    if (grip === undefined) throw new Error('expected a section grip');
+    const article = grip.closest('article');
+    grip.focus();
+    fireEvent.click(grip);
+    expect(planStore.getState().entries.length).toBeGreaterThan(0);
+    expect(document.activeElement).toBe(
+      article?.querySelector('[data-course-toggle]'),
+    );
+  });
+
+  it('moves focus to the card toggle after a remove from the card', () => {
+    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    expandAll();
+    const article = firstAddButton().closest('article');
+    fireEvent.click(firstAddButton());
+    const remove = article?.querySelector<HTMLElement>(
+      'header button[aria-label^="นำออก"]',
+    );
+    if (remove == null) throw new Error('expected the card remove control');
+    remove.focus();
+    fireEvent.click(remove);
+    expect(planStore.getState().entries).toHaveLength(0);
+    expect(document.activeElement).toBe(
+      article?.querySelector('[data-course-toggle]'),
+    );
+  });
+
+  it('moves focus to the strip action after a blocked add', () => {
+    act(() => {
+      seedActivePlan([
+        makePlanEntry({
+          snapshot: makeSnapshot({
+            teachTableId: 'p1',
+            subjectId: 'S1',
+            section: '901',
+            meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+          }),
+        }),
+      ]);
+    });
+    const conflictCatalog: NormalizedCatalog = {
+      duplicateCount: 0,
+      multiMeetingCount: 0,
+      warnings: [],
+      courses: [
+        makeCourse({
+          subjectId: 'S2',
+          sections: [
+            makeSection({
+              teachTableId: 's2',
+              subjectId: 'S2',
+              section: '901',
+              meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+            }),
+          ],
+        }),
+      ],
+    };
+    render(
+      <>
+        <FeedbackStrip t={createTranslator('th')} />
+        <CourseCatalog catalog={conflictCatalog} onRefresh={() => undefined} />
+      </>,
+    );
+    const add = firstAddButton();
+    add.focus();
+    fireEvent.click(add);
+    expect(dragStore.getState().blocked).not.toBeNull();
+    // S2 has no other section, so the strip's one action reveals it in the catalog.
+    expect(document.activeElement).toHaveAttribute('data-feedback-action');
   });
 });

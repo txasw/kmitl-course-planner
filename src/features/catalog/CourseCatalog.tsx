@@ -8,6 +8,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   type MouseEvent,
 } from 'react';
 import { useStore } from 'zustand';
@@ -15,6 +16,7 @@ import { ChevronsDownUp, ChevronsUpDown, RefreshCw } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
+import type { AddOutcome } from '@/lib/planner/transaction';
 import {
   termFromQueryFields,
   termsEqual,
@@ -43,6 +45,10 @@ import { addSectionToPlan, confirmAdd } from '@/features/plans/addToPlan';
 import { switchOrCreatePlanForTerm } from '@/features/plans/switchPlanTerm';
 import { searchStore } from '@/features/search/searchStore';
 import { dragStore } from '@/features/planner/dragStore';
+import { firstFeedbackAction } from '@/features/planner/FeedbackStrip';
+import { commitThenFocus } from '@/features/shell/restoreFocus';
+import { rootOf } from '@/features/shell/useFocusTrap';
+import { courseToggle } from './courseFocus';
 import { catalogStore } from './catalogStore';
 import { CourseCard } from './CourseCard';
 import { FilterBar } from './FilterBar';
@@ -111,6 +117,19 @@ function moveFocusOutOfCardBody(from: Element): void {
     ?.closest('article')
     ?.querySelector<HTMLElement>('[data-course-toggle]')
     ?.focus();
+}
+
+/** Where focus goes after an add from the catalog, by its outcome. */
+function addFocusTargets(
+  scope: HTMLElement | null,
+  course: Course,
+  outcome: AddOutcome,
+): (HTMLElement | null)[] {
+  if (scope === null) return [];
+  if (outcome.ok) return [courseToggle(scope, course.subjectId)];
+  if ('crossTerm' in outcome) return [];
+  const root = rootOf(scope);
+  return root === null ? [] : [firstFeedbackAction(root)];
 }
 
 const SUMMARY_ACTION = `inline-flex shrink-0 items-center gap-1 rounded-kcp border border-border px-2 py-1 text-xs text-ink-soft hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`;
@@ -182,25 +201,49 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
     switchOrCreatePlanForTerm(target);
   }, []);
 
+  // An add or a remove from a row or the card header unmounts the control that was
+  // pressed, so focus moves on in the same commit: to the card's toggle, which stays in
+  // place as the card collapses or turns addable again, or, after a blocked add, to the
+  // first action of the feedback strip, which offers the way forward.
+  const rootRef = useRef<HTMLDivElement>(null);
   const handleAdd = useCallback(
     (course: Course, section: Section) => {
-      const outcome = addSectionToPlan(course, section);
-      if (outcome.ok) {
-        confirmAdd(section, t);
-      } else if ('crossTerm' in outcome) {
-        dragStore.getState().showCrossTerm(outcome.crossTerm);
-      } else {
-        dragStore.getState().showBlocked({
-          course,
-          section,
-          conflicts: outcome.conflicts,
-        });
-      }
+      commitThenFocus(
+        () => {
+          const outcome = addSectionToPlan(course, section);
+          if (outcome.ok) {
+            confirmAdd(section, t);
+          } else if ('crossTerm' in outcome) {
+            dragStore.getState().showCrossTerm(outcome.crossTerm);
+          } else {
+            dragStore.getState().showBlocked({
+              course,
+              section,
+              conflicts: outcome.conflicts,
+            });
+          }
+          return outcome;
+        },
+        (outcome) => addFocusTargets(rootRef.current, course, outcome),
+      );
     },
     [t],
   );
   const handleRemove = useCallback((teachTableId: string) => {
-    planStore.getState().remove(teachTableId);
+    const removed = planStore
+      .getState()
+      .entries.find((entry) => entry.teachTableId === teachTableId);
+    commitThenFocus(
+      () => {
+        planStore.getState().remove(teachTableId);
+      },
+      () => {
+        const scope = rootRef.current;
+        return scope === null || removed === undefined
+          ? []
+          : [courseToggle(scope, removed.subjectId)];
+      },
+    );
   }, []);
 
   const predicates = useMemo<SectionPredicates>(
@@ -271,7 +314,7 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
     ) : null;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div ref={rootRef} className="flex flex-col gap-3">
       <div
         data-catalog-summary
         className="flex items-center justify-between gap-2"
