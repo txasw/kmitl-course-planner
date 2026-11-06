@@ -27,7 +27,8 @@ afterEach(() => {
 });
 
 describe('Header', () => {
-  it('renders the title, plan switcher, and language toggle', () => {
+  it('renders the title, plan switcher, and language toggle from lg', () => {
+    installViewport(1024);
     render(<Header titleId="title" />);
     expect(screen.getByRole('heading', { level: 2 })).toHaveAttribute(
       'id',
@@ -93,6 +94,7 @@ describe('Header', () => {
   });
 
   it('switches the language through the toggle', () => {
+    installViewport(1024);
     render(<Header titleId="title" />);
     fireEvent.click(screen.getByRole('button', { name: 'English' }));
     expect(uiStore.getState().language).toBe('en');
@@ -100,6 +102,35 @@ describe('Header', () => {
       'aria-pressed',
       'true',
     );
+  });
+
+  it('moves the language choice into the overflow menu below lg', () => {
+    installViewport(1023);
+    render(<Header titleId="title" />);
+    expect(
+      screen.queryByRole('group', { name: 'เลือกภาษา' }),
+    ).not.toBeInTheDocument();
+    const more = screen.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' });
+    fireEvent.click(more);
+    fireEvent.click(screen.getByRole('menuitemradio', { name: 'English' }));
+    expect(uiStore.getState().language).toBe('en');
+  });
+
+  it('swaps the overflow menu for the toggle when the panel widens', () => {
+    const viewport = installViewport(768);
+    render(<Header titleId="title" />);
+    expect(
+      screen.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }),
+    ).toBeInTheDocument();
+    act(() => {
+      viewport.resize(1024);
+    });
+    expect(
+      screen.queryByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('group', { name: 'เลือกภาษา' }),
+    ).toBeInTheDocument();
   });
 
   it('toggles the catalog sheet below the lg tier', () => {

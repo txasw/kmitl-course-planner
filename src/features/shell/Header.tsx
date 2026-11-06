@@ -2,13 +2,16 @@ import { useStore } from 'zustand';
 import { X } from 'lucide-react';
 import { BrandMark } from '@/components/BrandMark';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { BREAKPOINTS, minWidthQuery } from '@/lib/ui/breakpoints';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { uiStore } from './uiStore';
+import { useMediaQuery } from './useMediaQuery';
 import { useTranslation } from './useTranslation';
 import { PlanSwitcher } from '@/features/plans/PlanSwitcher';
 import { LanguageToggle } from './LanguageToggle';
 import { ModeToggle } from './ModeToggle';
 import { CatalogToggle } from './CatalogToggle';
+import { HeaderOverflowMenu } from './HeaderOverflowMenu';
 
 interface HeaderProps {
   titleId: string;
@@ -20,12 +23,14 @@ interface HeaderProps {
 // shrinks, and the switcher truncates the plan name before anything else gives way.
 // The title shows from 1024 px and stays in the accessibility tree below as sr-only
 // text, so the dialog's aria-labelledby always resolves. The trailing group never
-// shrinks and carries the catalog toggle on the sheet tiers, the mode and language
-// toggles, and the close control, which is always last so leaving the overlay stays
-// one action away at every width.
+// shrinks and carries the catalog toggle on the sheet tiers, the mode toggle, the
+// language toggle from 1024 px or the overflow menu that holds the language below it,
+// and the close control, which is always last so leaving the overlay stays one action
+// away at every width.
 export function Header({ titleId }: HeaderProps) {
   const close = useStore(uiStore, (state) => state.close);
   const { t } = useTranslation();
+  const wide = useMediaQuery(minWidthQuery(BREAKPOINTS.lg));
 
   return (
     <header className="box-content flex h-14 shrink-0 items-center gap-2 border-b border-border pt-(--kcp-safe-top) pr-[calc(16px_+_var(--kcp-safe-right))] pl-[calc(16px_+_var(--kcp-safe-left))] sm:gap-4 [@media(max-height:800px)]:h-12">
@@ -42,7 +47,7 @@ export function Header({ titleId }: HeaderProps) {
       <div className="flex shrink-0 items-center gap-2">
         <CatalogToggle />
         <ModeToggle />
-        <LanguageToggle />
+        {wide ? <LanguageToggle /> : <HeaderOverflowMenu />}
         <button
           type="button"
           onClick={close}

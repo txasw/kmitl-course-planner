@@ -83,13 +83,13 @@ describe('useCatalogFocusRepair', () => {
       uiStore.getState().setCatalogVisible(false);
     });
     render(<Panel />);
-    const english = screen.getByRole('button', { name: 'English' });
-    english.focus();
+    const close = screen.getByRole('button', { name: 'ปิด' });
+    close.focus();
 
     act(() => {
       viewport.resize(768);
     });
-    expect(english).toHaveFocus();
+    expect(close).toHaveFocus();
   });
 
   it('does nothing while the overlay is closed', () => {
