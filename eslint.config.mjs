@@ -50,7 +50,19 @@ export default tseslint.config(
     // An explicit version avoids eslint-plugin-react 7 calling context APIs that
     // ESLint 10 removed during its React version auto detection.
     settings: { react: { version: '19.2.7' } },
-    rules: { ...reactHooks.configs['recommended-latest'].rules },
+    rules: {
+      ...reactHooks.configs['recommended-latest'].rules,
+      // A named region may be a tab stop so a keyboard can scroll content that holds
+      // no control of its own, such as a wide table, which WCAG 2.1.1 requires.
+      'jsx-a11y/no-noninteractive-tabindex': [
+        'error',
+        {
+          tags: [],
+          roles: ['tabpanel', 'region'],
+          allowExpressionValues: true,
+        },
+      ],
+    },
   },
 
   // Security rules that apply to every product source file.

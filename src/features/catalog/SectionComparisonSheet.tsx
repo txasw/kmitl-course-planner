@@ -132,9 +132,15 @@ interface ComparisonTableProps {
 
 function ComparisonTable({ rows, title, locale, t }: ComparisonTableProps) {
   return (
-    // Chromium and Firefox make a scroller with no focusable content a tab stop of
-    // their own, so a keyboard user can scroll the table; the ring shows where it is.
+    // The table holds no control, so the scroller is a tab stop of its own and a
+    // keyboard user can scroll it with the arrow keys. The browser's implicit stop for
+    // such a scroller is not enough: the dialog's focus trap wraps Tab from its last
+    // control and only counts explicit stops, so it would skip the table. The ring
+    // shows where focus is.
     <div
+      role="region"
+      aria-label={title}
+      tabIndex={0}
       className={`kcp-scroll min-h-0 flex-1 overflow-auto rounded-kcp border border-border ${FOCUS_RING}`}
     >
       {/* Separate borders keep each cell's rule on the cell, so the rules travel with

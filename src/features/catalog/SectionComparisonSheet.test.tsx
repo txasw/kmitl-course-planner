@@ -154,6 +154,22 @@ describe('SectionComparisonSheet', () => {
     expect(within(second).getByText('ปิด')).toBeInTheDocument();
   });
 
+  it('keeps the table scroller in the dialog tab order', () => {
+    renderSheet(captureCourse());
+    const scroller = screen.getByRole('region', {
+      name: /เปรียบเทียบกลุ่มเรียน 90641007/,
+    });
+    expect(scroller).toHaveAttribute('tabindex', '0');
+    expect(within(scroller).getByRole('table')).toBeInTheDocument();
+    // The trap wraps Tab from its last stop, so the scroller must be that stop for a
+    // keyboard user to reach it after the sort control.
+    scroller.focus();
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Tab' });
+    expect(
+      screen.getByRole('button', { name: 'ปิดการเปรียบเทียบ' }),
+    ).toHaveFocus();
+  });
+
   it('closes on Escape and from the close button', () => {
     const { onClose } = renderSheet(captureCourse());
     fireEvent.keyDown(screen.getByRole('table'), { key: 'Escape' });
