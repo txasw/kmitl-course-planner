@@ -124,6 +124,12 @@ describe('shadow stylesheet tokens', () => {
     }
   });
 
+  it('declares the edge easings and the hover intent delay', () => {
+    expect(css).toContain('--kcp-ease-enter: cubic-bezier(0.2, 0, 0, 1);');
+    expect(css).toContain('--kcp-ease-exit: cubic-bezier(0.4, 0, 1, 1);');
+    expect(css).toContain('--kcp-delay-intent: 80ms;');
+  });
+
   it('declares the focus tokens that the shared focus classes read', () => {
     expect(css).toContain('--kcp-focus-color: var(--kcp-primary);');
     expect(css).toContain('--kcp-focus-width: 2px;');
