@@ -4,7 +4,9 @@
 // dispatcher installed, so production actively rejects debug routes as defense in
 // depth. Any handler throw is converted to an UnknownError so no raw exception
 // crosses the messaging boundary. The runtime id is injected rather than read from
-// browser globals, which keeps this module pure and unit testable.
+// browser globals, which keeps this module pure and unit testable. Each handler
+// also receives the id of the tab the message came from, so a handler can answer
+// with state the worker keeps per tab.
 
 import {
   err,
@@ -23,6 +25,14 @@ import {
 /** The subset of a runtime message sender the router inspects. */
 export interface MessageSender {
   id?: string;
+  // The browser types declare both optional fields as possibly undefined.
+  tab?: { id?: number | undefined } | undefined;
+}
+
+/** What the router knows about the origin of a message beyond its payload. */
+export interface HandlerContext {
+  /** The sending tab, or null when the sender is not a tab. */
+  tabId: number | null;
 }
 
 export type RouterListener = (
@@ -30,8 +40,11 @@ export type RouterListener = (
   sender: MessageSender,
 ) => Promise<unknown> | undefined;
 
+// A handler that ignores the context still satisfies this type, because a function
+// with fewer parameters is assignable to one with more.
 export type Handler<T extends RequestType> = (
   message: Extract<RequestMessage, { type: T }>,
+  context: HandlerContext,
 ) => Promise<ResponseMap[T]>;
 
 export type HandlerMap = { [T in RequestType]?: Handler<T> };
@@ -67,6 +80,18 @@ function toValidationError(
   );
 }
 
+// Chrome reports tabs.TAB_ID_NONE (-1) for a sender outside a browser tab, so only
+// a non negative integer counts as a tab.
+function contextOf(sender: MessageSender): HandlerContext {
+  const tabId = sender.tab?.id;
+  return {
+    tabId:
+      tabId !== undefined && Number.isInteger(tabId) && tabId >= 0
+        ? tabId
+        : null,
+  };
+}
+
 export function createRouter({
   handlers,
   runtimeId,
@@ -91,13 +116,14 @@ export function createRouter({
       return Promise.resolve(err(unknownError('debug routes disabled')));
     }
     const handler = handlers[request.type] as
-      ((message: RequestMessage) => Promise<unknown>) | undefined;
+      | ((message: RequestMessage, context: HandlerContext) => Promise<unknown>)
+      | undefined;
     if (!handler) {
       return Promise.resolve(
         err(unknownError(`no handler for ${request.type}`)),
       );
     }
-    return handler(request).catch((error: unknown) =>
+    return handler(request, contextOf(sender)).catch((error: unknown) =>
       err(unknownError(messageOf(error))),
     );
   };
