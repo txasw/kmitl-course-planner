@@ -114,6 +114,9 @@ export interface WeeklyGridProps {
   /** Whether the poster keeps its 44rem floor along the time axis. The plan suggestion
    * cards pass false, so a card fits its column and its frame sets the size instead. */
   posterFloor?: boolean;
+  /** Label every nth hour on the time axis; the suggestion thumbnails thin their labels
+   * so a narrow card keeps them apart. Defaults to every hour. */
+  hourLabelStep?: number;
 }
 
 /** The edit grid inputs that hold whatever days and layout render them, so the week grid
@@ -151,6 +154,7 @@ export function WeeklyGrid({
   fontPx = EDIT_FONT_PX,
   label,
   posterFloor = true,
+  hourLabelStep = 1,
 }: WeeklyGridProps) {
   // The grid template follows only the window, the day count, the orientation, and the
   // mode, so it holds stable across a drag or a plan change and is computed once per those
@@ -230,7 +234,12 @@ export function WeeklyGrid({
       className={`grid h-full leading-normal text-ink outline-none ${floor} ${blocked ? 'cursor-not-allowed' : ''}`}
       style={{ ...gridStyle, fontSize: `${String(fontPx)}px` }}
     >
-      <GridAxis window={window} orientation={orientation} sticky={editable} />
+      <GridAxis
+        window={window}
+        orientation={orientation}
+        sticky={editable}
+        labelStep={hourLabelStep}
+      />
 
       <DayLanes
         sections={sections}
