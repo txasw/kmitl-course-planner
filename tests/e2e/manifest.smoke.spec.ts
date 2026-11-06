@@ -21,6 +21,8 @@ test.describe('chrome production manifest', () => {
       name: string;
       permissions: string[];
       host_permissions: string[];
+      action?: Record<string, unknown>;
+      commands?: Record<string, unknown>;
     };
 
     expect(manifest.manifest_version).toBe(3);
@@ -30,5 +32,14 @@ test.describe('chrome production manifest', () => {
       'https://regis.reg.kmitl.ac.th/*',
       'https://api.reg.kmitl.ac.th/*',
     ]);
+    // The toolbar icon and its shortcut open the panel, with no popup and no
+    // Firefox only key in the Chrome build.
+    expect(manifest.action).toEqual({
+      default_title: 'Course Planner for KMITL',
+      default_icon: { '16': '/icon/16.png', '32': '/icon/32.png' },
+    });
+    expect(manifest.commands).toEqual({
+      _execute_action: { suggested_key: { default: 'Alt+Shift+P' } },
+    });
   });
 });

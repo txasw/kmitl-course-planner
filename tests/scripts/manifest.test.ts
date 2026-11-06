@@ -49,6 +49,42 @@ describe.each(COMBINATIONS)('manifest for $browser in $mode', (env) => {
   });
 });
 
+describe.each(COMBINATIONS)('toolbar action for $browser in $mode', (env) => {
+  const manifest = buildManifest(env);
+
+  it('opens the panel from the icon with no popup', () => {
+    expect(manifest.action).toBeDefined();
+    expect(manifest.action).not.toHaveProperty('default_popup');
+    expect(manifest.action?.default_title).toBe(manifest.name);
+    expect(manifest.action?.default_icon).toEqual({
+      16: '/icon/16.png',
+      32: '/icon/32.png',
+    });
+  });
+
+  it('pins the icon to the toolbar on Firefox only', () => {
+    if (env.browser === 'firefox') {
+      expect(manifest.action?.default_area).toBe('navbar');
+    } else {
+      expect(manifest.action).not.toHaveProperty('default_area');
+    }
+  });
+
+  it('suggests Alt+Shift+P for the action command', () => {
+    expect(manifest.commands).toEqual({
+      _execute_action: { suggested_key: { default: 'Alt+Shift+P' } },
+    });
+  });
+});
+
+describe('toolbar action title in debug', () => {
+  it('carries the debug suffix', () => {
+    expect(
+      buildManifest({ browser: 'chrome', mode: 'debug' }).action?.default_title,
+    ).toBe('Course Planner for KMITL (Debug)');
+  });
+});
+
 describe('manifest name in development', () => {
   it('carries the debug suffix outside a production build', () => {
     expect(buildManifest({ browser: 'chrome', mode: 'development' }).name).toBe(
