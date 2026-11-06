@@ -58,7 +58,7 @@ async function openCdp(context: BrowserContext, page: Page): Promise<Cdp> {
 
 /** Run the by subject id search for a reserved id and wait for its first card. */
 async function searchDense(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'รหัสวิชา' }).click();
+  await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill(DENSE_SUBJECT_ID);
   await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
   await expect(
@@ -222,7 +222,7 @@ test('profiles the real capture normalize and render', async ({
   // validated and deduped to 44 sections, and renders that real catalog, which the
   // synthetic dense set cannot stand in for.
   const before = await scriptMs(client);
-  await page.getByRole('button', { name: 'รหัสวิชา' }).click();
+  await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill(REAL_SUBJECT_ID);
   await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
   await expect(

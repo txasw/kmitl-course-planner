@@ -6,7 +6,7 @@ import { test, expect, openPlanner, pickOption } from './support/fixtures';
 // drawer on the right, so both are usable at the same time on a wide viewport.
 test('surfaces a dropped teach_time2 in the report', async ({ context }) => {
   const page = await openPlanner(context);
-  await page.getByRole('button', { name: 'หมวดวิชา' }).click();
+  await page.getByRole('tab', { name: 'หมวดวิชา', exact: true }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
 

@@ -11,7 +11,7 @@ test('an exam conflicting add blocks and a clean alternative succeeds', async ({
 }) => {
   const page = await openPlanner(context);
 
-  await page.getByRole('button', { name: 'รหัสวิชา' }).click();
+  await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000010');
   await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
   await expect(page.getByText('90000010').first()).toBeVisible({

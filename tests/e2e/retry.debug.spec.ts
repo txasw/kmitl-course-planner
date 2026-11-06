@@ -6,7 +6,7 @@ import { test, expect, openPlanner, pickOption } from './support/fixtures';
 test('recovers a failed query on retry', async ({ context, mock }) => {
   mock.setApiFailure(true);
   const page = await openPlanner(context);
-  await page.getByRole('button', { name: 'หมวดวิชา' }).click();
+  await page.getByRole('tab', { name: 'หมวดวิชา', exact: true }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
   await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();

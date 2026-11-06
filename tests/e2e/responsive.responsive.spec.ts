@@ -224,7 +224,7 @@ test('the catalog sheet holds its search and results and closes alone on Escape'
   );
 
   // The submit sits in the sheet, and its results land in the same open sheet.
-  await sheet.getByRole('button', { name: 'หมวดวิชา' }).click();
+  await sheet.getByRole('tab', { name: 'หมวดวิชา', exact: true }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
   await sheet.getByRole('button', { name: 'ค้นหา', exact: true }).click();
@@ -266,7 +266,7 @@ test('a tapped block opens its details as a sheet with the remove action', async
 
   // Below the docked tiers the catalog is a sheet opened from the header.
   await page.getByRole('button', { name: /^รายวิชา/ }).click();
-  await page.getByRole('button', { name: 'หมวดวิชา' }).click();
+  await page.getByRole('tab', { name: 'หมวดวิชา', exact: true }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
   await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
@@ -311,7 +311,7 @@ test('an add from the open sheet is confirmed once by a toast that leads to the 
   const page = await openPlanner(context);
   const toggle = page.getByRole('button', { name: /^รายวิชา/ });
   await toggle.click();
-  await page.getByRole('button', { name: 'หมวดวิชา' }).click();
+  await page.getByRole('tab', { name: 'หมวดวิชา' }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
   await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();

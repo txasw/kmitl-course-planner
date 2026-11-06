@@ -38,6 +38,6 @@ test('the panel error boundary shows a recovery card and recovers', async ({
   await page.getByRole('button', { name: 'โหลดแผงใหม่' }).click();
   await expect(page.getByRole('alert')).toHaveCount(0);
   await expect(
-    page.getByRole('button', { name: 'หลักสูตรและชั้นปี' }),
+    page.getByRole('tab', { name: 'หลักสูตร', exact: true }),
   ).toBeVisible();
 });
