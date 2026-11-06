@@ -22,7 +22,7 @@ const PRESETS = [
 // The reserved id the mock server answers with the fit regression catalog: three hour blocks,
 // long Thai and English names, Thai place strings, and a 34 and 35 pair.
 async function fitRegressionSearch(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'รหัสวิชา' }).click();
+  await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000600');
   await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
   await expect(page.getByText('90000601').first()).toBeVisible({

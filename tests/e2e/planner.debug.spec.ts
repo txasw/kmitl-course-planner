@@ -19,7 +19,7 @@ const GRID_NAME = 'ตารางเรียนรายสัปดาห์'
 // renders the deduped courses, every card collapsed, with at least one open, addable
 // section.
 async function collapsedCategorySearch(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'หมวดวิชา' }).click();
+  await page.getByRole('tab', { name: 'หมวดวิชา', exact: true }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
   await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
@@ -98,7 +98,7 @@ test.describe('at 1024x768', () => {
     const page = await openPlanner(context);
     // The real capture with exam windows meets until 20:00 and on both weekend days, so
     // the window widens to 08:00 to 20:00, 48 quarters, past the docked grid column.
-    await page.getByRole('button', { name: 'รหัสวิชา' }).click();
+    await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
     await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000700');
     await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
     await expect(page.getByText('01006020').first()).toBeVisible({
@@ -378,7 +378,7 @@ test.describe('course hover preview at 1366x768', () => {
     const page = await openPlanner(context);
     // The dense catalog holds enough collapsed cards for the list to scroll; the
     // category result fits the column.
-    await page.getByRole('button', { name: 'รหัสวิชา' }).click();
+    await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
     await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000500');
     await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
     await expect(

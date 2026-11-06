@@ -19,7 +19,7 @@ export function block(id: string): string {
 
 /** Run the by subject id search for the reserved synthetic id and wait for results. */
 export async function syntheticSearch(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'รหัสวิชา' }).click();
+  await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000000');
   await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
   await expect(page.getByText('90000001').first()).toBeVisible({

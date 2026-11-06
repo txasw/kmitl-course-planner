@@ -22,7 +22,7 @@ function pngSize(bytes: Buffer): { width: number; height: number } {
 // The owner 90592xxx category search the other planner specs use, which renders the
 // deduped courses with an open, addable section in the card of 90592008.
 async function categorySearch(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'หมวดวิชา' }).click();
+  await page.getByRole('tab', { name: 'หมวดวิชา', exact: true }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
   await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();

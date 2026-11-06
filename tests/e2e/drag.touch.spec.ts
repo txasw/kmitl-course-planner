@@ -34,7 +34,7 @@ const DENSE_SUBJECT_ID = '90000500';
 /** Open the catalog sheet, search the dense catalog, and open its first course card. */
 async function denseSearch(page: Page): Promise<void> {
   await page.getByRole('button', { name: /^รายวิชา/ }).click();
-  await page.getByRole('button', { name: 'รหัสวิชา' }).click();
+  await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill(DENSE_SUBJECT_ID);
   await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
   await expect(

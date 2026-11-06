@@ -24,7 +24,7 @@ test('searches by class with the all curricula and all class year options', asyn
 
 test('searches a subject id across everything', async ({ context }) => {
   const page = await openPlanner(context);
-  await page.getByRole('button', { name: 'รหัสวิชา' }).click();
+  await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90592033');
   await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
 
@@ -35,7 +35,7 @@ test('searches a subject id across everything', async ({ context }) => {
 
 test('searches a category across all faculties', async ({ context }) => {
   const page = await openPlanner(context);
-  await page.getByRole('button', { name: 'หมวดวิชา' }).click();
+  await page.getByRole('tab', { name: 'หมวดวิชา', exact: true }).click();
   await pickOption(page, 'คณะ', 'ทุกคณะ');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
   await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
