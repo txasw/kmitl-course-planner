@@ -257,6 +257,49 @@ describe('reconcilePlan', () => {
     expect(reconciled.updatedAt).toBe('2020-01-01T00:00:00.000Z');
   });
 
+  it('persists a review for an exam change and keeps it through a clean run', () => {
+    const entry = makePlanEntry({
+      snapshot: makeSnapshot({ teachTableId: 't1', subjectId: 'S1' }),
+    });
+    const fresh = makeSection({
+      teachTableId: 't1',
+      subjectId: 'S1',
+      exam: {
+        midterm: { start: '2026-08-21 09:00:00', end: '2026-08-21 12:00:00' },
+      },
+    });
+    const first = reconcile(makePlan({ entries: [entry] }), [fresh]);
+    const reviewed = first.plan.entries[0];
+    expect(reviewed?.review).toEqual({
+      kinds: ['exam_changed'],
+      before: entry.snapshot,
+      detectedAt: NOW,
+      notifiedAt: null,
+    });
+
+    // The next run finds nothing new against the updated snapshot, yet the exam still
+    // differs from what the student last reviewed, so the review stays.
+    const second = reconcile(first.plan, [fresh]);
+    expect(second.plan.entries[0]?.review).toEqual(reviewed?.review);
+  });
+
+  it('opens a review for a missing entry and leaves the snapshot in place', () => {
+    const entry = makePlanEntry({
+      snapshot: makeSnapshot({ teachTableId: 't1', subjectId: 'S1' }),
+      verifyStatus: 'verified',
+    });
+    const { plan: reconciled } = reconcile(makePlan({ entries: [entry] }), [
+      makeSection({ teachTableId: 'zzz', subjectId: 'OTHER', section: '999' }),
+    ]);
+    expect(reconciled.entries[0]?.review?.kinds).toEqual(['missing']);
+    expect(reconciled.entries[0]?.review?.before).toBe(entry.snapshot);
+  });
+
+  it('writes no review for an unchanged entry', () => {
+    const { plan: reconciled } = reconcile(makePlan(), [makeSection()]);
+    expect(reconciled.entries[0]).not.toHaveProperty('review');
+  });
+
   it('re-evaluates exam overlaps after a revalidation moves an exam', () => {
     // Two entries whose midterms do not overlap when the plan is built.
     const plan = makePlan({
