@@ -89,7 +89,7 @@ export function createPlanEntrySlice(
       if (active === undefined) {
         // First add with no active plan: create one for the section's term. The plan
         // is committed only with a successful add, so a rejected first add leaves no
-        // orphan empty plan behind.
+        // orphan empty plan behind. The switch to it runs a check, which stays quiet.
         const created: Plan = {
           ...makePlan(deps.uuid(), defaultPlanName(planTerm), planTerm, now),
           entries: outcome.result.entries,
@@ -99,6 +99,7 @@ export function createPlanEntrySlice(
           activePlanId: created.id,
           entries: created.entries,
           pendingUndo: null,
+          quietPlanId: created.id,
         });
       } else {
         set({

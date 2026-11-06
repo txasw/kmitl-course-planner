@@ -169,6 +169,23 @@ describe('planStore multi-plan', () => {
     expect(state.plans[0]?.entries).toHaveLength(1);
   });
 
+  it('marks only the plan a first add created as quiet for its first check', () => {
+    const store = makeStore();
+    const first = makeSection({ teachTableId: 'a', subjectId: 'S1' });
+    store.getState().add(courseFor(first), first, SOURCE_QUERY);
+    const created = store.getState().activePlanId;
+    expect(store.getState().quietPlanId).toBe(created);
+
+    store.setState({ quietPlanId: null });
+    const second = makeSection({
+      teachTableId: 'b',
+      subjectId: 'S2',
+      meetings: [makeMeeting({ day: 3 })],
+    });
+    store.getState().add(courseFor(second), second, SOURCE_QUERY);
+    expect(store.getState().quietPlanId).toBeNull();
+  });
+
   it('leaves no plan behind when the first add is rejected', () => {
     const store = makeStore();
     const pair = makeSection({

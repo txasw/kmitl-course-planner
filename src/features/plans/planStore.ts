@@ -37,6 +37,7 @@ export function createPlanStore(deps: PlanStoreDeps = defaultDeps()) {
     entries: EMPTY_ENTRIES,
     pendingUndo: null,
     loaded: false,
+    quietPlanId: null,
     ...createPlanCrudSlice(set, get, deps),
     ...createPlanEntrySlice(set, get, deps),
   }));

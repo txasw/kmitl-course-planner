@@ -101,6 +101,36 @@ describe('useRevalidationTriggers', () => {
     expect(planStore.getState().entries[0]?.review?.notifiedAt).toBeNull();
   });
 
+  it('runs the check after a first add but keeps the dialog closed for it', async () => {
+    const section = makeSection({
+      teachTableId: 't1',
+      subjectId: '90000001',
+      section: '901',
+    });
+    act(() => {
+      uiStore.setState({ isOpen: true, viewMode: 'edit' });
+    });
+    renderHook(() => {
+      useRevalidationTriggers(fakeSend(ok(movedCatalog())));
+    });
+    act(() => {
+      planStore
+        .getState()
+        .add(
+          makeCourse({ subjectId: '90000001', sections: [section] }),
+          section,
+          sourceQuery(),
+        );
+    });
+    const planId = planStore.getState().activePlanId ?? '';
+    await waitFor(() => {
+      expect(revalidationStore.getState().runs[planId]?.status).toBe('done');
+    });
+    expect(planStore.getState().entries[0]?.review).toBeDefined();
+    expect(planStore.getState().quietPlanId).toBeNull();
+    expect(revalidationStore.getState().pendingOpen).toBeNull();
+  });
+
   it('never asks after an offline run', async () => {
     seedActivePlan([placed()], { id: 'p1' });
     renderHook(() => {
