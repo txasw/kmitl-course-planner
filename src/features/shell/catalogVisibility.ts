@@ -19,7 +19,11 @@
 // animationend listener is involved, so a slide never renders and never replays.
 
 import { dragStore, selectDragging } from '@/features/planner/dragStore';
+import { isDockedTier, type LayoutTier } from '@/lib/ui/breakpoints';
 import { commitAndFocus } from './commitAndFocus';
+import { selectNavItem } from './mobilePane';
+import { focusFirst } from './restoreFocus';
+import { rootOf } from './useFocusTrap';
 import { uiStore } from './uiStore';
 import { REDUCED_MOTION_QUERY } from './usePresence';
 
@@ -188,6 +192,40 @@ export function showCatalog(
     uiStore.getState().setCatalogVisible(true);
   });
   if (column !== null) slideCatalog(column, 'in');
+}
+
+/**
+ * Bring the catalog into view from a control outside it, such as an action in the
+ * feedback strip, and move focus to a target inside it: below 640 px the catalog pane
+ * shows, on the medium tier the sheet opens, and on a docked tier a hidden column slides
+ * back while a shown one stays. Nothing happens while a drag is in flight, since the
+ * drag owns the grid width and the sheet.
+ */
+export function revealCatalog(
+  control: Element,
+  tier: LayoutTier,
+  focusId: string,
+): void {
+  if (selectDragging(dragStore.getState())) return;
+  if (tier === 'compact') {
+    commitAndFocus(control, focusId, () => {
+      selectNavItem('catalog');
+    });
+    return;
+  }
+  if (!isDockedTier(tier)) {
+    commitAndFocus(control, focusId, () => {
+      uiStore.getState().setSheetOpen(true);
+    });
+    return;
+  }
+  if (!uiStore.getState().catalogVisible) {
+    showCatalog(control, 0, focusId);
+    return;
+  }
+  focusFirst([rootOf(control)?.getElementById(focusId)], {
+    preventScroll: true,
+  });
 }
 
 /**

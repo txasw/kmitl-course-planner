@@ -4,6 +4,15 @@
 // looked up after the commit, because the header remounts when the card changes between
 // a drag source and a plain header. Each card names its subject id in data-course-card.
 
+/**
+ * The id of a card's disclosure toggle. One card renders per subject, so the id is
+ * unique, and a caller outside the catalog, such as the strip's reveal action, can name
+ * the toggle as a focus target before the card is in view.
+ */
+export function courseToggleId(subjectId: string): string {
+  return `kcp-course-toggle-${subjectId}`;
+}
+
 /** The disclosure toggle of the card for the subject, or null when none is rendered. */
 export function courseToggle(
   scope: ParentNode,

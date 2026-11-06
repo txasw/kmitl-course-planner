@@ -29,6 +29,7 @@ import { AddedLine, FitLine } from './CourseMeta';
 import { CourseBody, DISCLOSURE_MS } from './CourseBody';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { useRevealOnExpand } from './useRevealOnExpand';
+import { courseToggleId } from './courseFocus';
 import {
   dragSourceClass,
   useTouchPress,
@@ -184,6 +185,7 @@ function CourseCardComponent({
       <h4 className="flex min-w-0 flex-1">
         <button
           type="button"
+          id={courseToggleId(course.subjectId)}
           data-course-toggle
           aria-expanded={open}
           aria-controls={bodyId}
