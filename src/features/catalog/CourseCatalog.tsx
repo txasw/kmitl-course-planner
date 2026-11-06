@@ -128,7 +128,6 @@ function addFocusTargets(
 ): (HTMLElement | null)[] {
   if (scope === null) return [];
   if (outcome.ok) return [courseToggle(scope, course.subjectId)];
-  if ('crossTerm' in outcome) return [];
   const root = rootOf(scope);
   return root === null ? [] : [firstFeedbackAction(root)];
 }
@@ -204,8 +203,8 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
 
   // An add or a remove from a row or the card header unmounts the control that was
   // pressed, so focus moves on in the same commit: to the card's toggle, which stays in
-  // place as the card collapses or turns addable again, or, after a blocked add, to the
-  // first action of the feedback strip, which offers the way forward.
+  // place as the card collapses or turns addable again, or, after a blocked or cross
+  // term add, to the first action of the feedback strip, which offers the way forward.
   const rootRef = useRef<HTMLDivElement>(null);
   const handleAdd = useCallback(
     (course: Course, section: Section) => {

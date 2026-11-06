@@ -44,9 +44,10 @@ import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
 /**
- * The first action of the blocked notice: the first alternative chip, or the reveal
- * action when none fits. A blocked add moves focus here, so a keyboard user can take
- * the alternative without hunting for it.
+ * The first action of the notice the strip shows: the first alternative chip of a
+ * blocked notice, or its reveal action when none fits, or the switch of a cross term
+ * notice. A blocked or cross term add moves focus here, so a keyboard user can take the
+ * way forward without hunting for it.
  */
 export function firstFeedbackAction(root: ParentNode): HTMLElement | null {
   return root.querySelector<HTMLElement>('[data-feedback-action]');
@@ -111,7 +112,8 @@ function BlockedNotice({
               data-feedback-action
               onClick={(event) => {
                 // A chip is an add, so it lands focus where a row add does: the card
-                // toggle of the course, which collapses with the add.
+                // toggle of the course, which collapses with the add, or the switch of
+                // the cross term notice that replaces this one.
                 const root = rootOf(event.currentTarget);
                 commitThenFocus(
                   () => {
@@ -126,10 +128,12 @@ function BlockedNotice({
                     }
                     return outcome;
                   },
-                  (outcome) =>
-                    outcome.ok && root !== null
+                  (outcome) => {
+                    if (root === null) return [];
+                    return outcome.ok
                       ? [courseToggle(root, alternative.subjectId)]
-                      : [],
+                      : [firstFeedbackAction(root)];
+                  },
                 );
               }}
               className={`rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
@@ -175,6 +179,7 @@ function CrossTermNotice({
       </span>
       <button
         type="button"
+        data-feedback-action
         onClick={() => {
           switchOrCreatePlanForTerm(feedback.browsedTerm);
           dragStore.getState().clearCrossTerm();

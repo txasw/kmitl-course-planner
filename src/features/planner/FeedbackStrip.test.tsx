@@ -242,11 +242,17 @@ describe('FeedbackStrip', () => {
       });
     });
     render(<FeedbackStrip t={t} />);
-    fireEvent.click(screen.getByRole('button', { name: /902/ }));
+    const chip = screen.getByRole('button', { name: /902/ });
+    chip.focus();
+    fireEvent.click(chip);
     expect(dragStore.getState().crossTerm).not.toBeNull();
     expect(
       planStore.getState().entries.some((entry) => entry.section === '902'),
     ).toBe(false);
+    // The chip left with its notice, so focus moves on to the switch that replaced it.
+    expect(
+      screen.getByRole('button', { name: t('term.switch') }),
+    ).toHaveFocus();
   });
 
   it('reveals the subject in the catalog when no alternative fits', () => {
