@@ -17,6 +17,7 @@ import {
   smartVisibleDays,
 } from '@/lib/planner/grid';
 import { templateBySlug } from '@/lib/planner/exportTemplates';
+import { isDockedTier } from '@/lib/ui/breakpoints';
 import { planConflicts } from '@/lib/planner/planConflicts';
 import { planExamConflicts } from '@/lib/planner/examOverlap';
 import { posterHonesty } from '@/lib/planner/posterHonesty';
@@ -54,7 +55,8 @@ export function PlannerPanel() {
   const viewMode = useStore(uiStore, (state) => state.viewMode);
   const planView = useStore(uiStore, (state) => state.planView);
   const setPlanView = useStore(uiStore, (state) => state.setPlanView);
-  const showTabs = useLayoutTier() !== 'compact';
+  const tier = useLayoutTier();
+  const showTabs = tier !== 'compact';
   const displayOptions = useStore(uiStore, (state) => state.displayOptions);
   const selectedTemplate = useStore(uiStore, (state) => state.selectedTemplate);
   const catalogResult = useStore(searchStore, (state) => state.result);
@@ -274,7 +276,10 @@ export function PlannerPanel() {
           t={t}
         />
       ) : null}
-      {viewMode === 'edit' ? <FeedbackStrip t={t} /> : null}
+      {/* Below the dock the strip floats over the layout instead, above the sheet. */}
+      {viewMode === 'edit' && isDockedTier(tier) ? (
+        <FeedbackStrip t={t} />
+      ) : null}
       <RevalidationBanner />
       {isPreview ? (
         <TemplateGallery poster={posterData} posterRef={posterRef} />
