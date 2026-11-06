@@ -329,3 +329,47 @@ until this record and the test change together.
 
 The summary bar is not part of the inventory. It is a focusable region that reads its busy text
 when focus lands on it, not a live region.
+
+## Amendment, 2026-11-06: the compact panes
+
+The first build below 640 px kept the medium sheet, so on a phone the catalog slid over nearly
+the whole grid it adds to. The compact tier now ships as the decision above describes it.
+
+- The ui store holds a session only `mobilePane`, the catalog or the plan. The plan pane shows
+  the plan view, and the bottom nav sets that same field, so the nav and the medium and wide
+  tabs always show the same view and a widened window keeps the student's choice.
+- The pane is settled once, the first time the compact tier lays out: the plan when it already
+  holds entries, the catalog otherwise. After that it changes only on request, so an add never
+  switches panes, and it survives closing the overlay. Deriving the pane from the entries on
+  every render was rejected because the first add from an empty plan would leave the list.
+- The catalog column and the grid region share one grid cell above the nav, so both keep the
+  same box. The pane not shown is invisible, inert and hidden from assistive technology, never
+  unmounted and never display none, which would drop its scroll offset. Every element keeps its
+  place in the tree at every tier, so the one mount rule holds across a tier change.
+- The bottom nav is a nav landmark of plain buttons, and the item on screen carries
+  aria-current, because each item swaps the whole pane rather than a panel in place. Pressing an
+  item keeps focus on it. Each item is at least 56 px tall, and the catalog item carries the
+  result course count and the selected item the placed subject count, both in the accessible
+  name. No live region is added, so the inventory above is unchanged. Three items ship first:
+  รายวิชา, ตารางเรียน and ที่เลือก. สรุป joins with the summary view, and the review dot on
+  ตารางเรียน arrives with the review data, so no item renders a slot without a source.
+- The header toggle and the scrim belong to the medium tier alone, and the pane header carries
+  the catalog name, the result count and the plan suggestion action but no close, so each tier
+  has one way to the catalog.
+- Catalog drag is off below 640 px. The timetable sits in the other pane, and its drop zone
+  keeps its box at the same place, so a drag from the list would commit an add the student never
+  saw. The column provides the choice through one context, so the rows read it without each
+  subscribing to a media query; a row is no drag source and the course header is a plain header.
+  The section grip and the add buttons keep the add one press away. Disabling the drop zone
+  instead was rejected because the drag would still start with nowhere to go.
+- An add made while the catalog pane is shown is confirmed by the toast, and its ดูตาราง action
+  shows the timetable pane and focuses its nav item. The show in the list action of the
+  feedback strip switches to the catalog pane. The focus repair runs when a tier change crosses
+  between the nav, the sheet toggle and the docked controls, and below 640 px it lands on the
+  nav item of the pane on screen.
+
+Two gaps remain for the safe area change that follows. The toast region still sits at the panel
+bottom, over the nav, and the feedback strip still renders in the plan pane, so a blocked add
+made from the catalog pane routes its alternatives to a hidden strip. That change floats the
+strip above the nav and pads the nav, the toaster and the launcher for the device safe areas.
+The phone support gate above is unchanged.
