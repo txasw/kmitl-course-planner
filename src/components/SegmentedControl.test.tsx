@@ -1,5 +1,12 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  cleanup,
+  within,
+} from '@testing-library/react';
+import { Pencil } from 'lucide-react';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { SegmentedControl } from './SegmentedControl';
 
@@ -78,6 +85,30 @@ describe('SegmentedControl variants', () => {
     expect(screen.getByRole('button', { name: 'Alpha' })).toHaveClass(
       'text-ink-soft',
     );
+  });
+
+  it('shows an icon option as a square icon below 640 px and keeps its label as the name', () => {
+    render(
+      <SegmentedControl
+        ariaLabel="Choice"
+        value="a"
+        options={[
+          { value: 'a', label: 'Alpha', icon: Pencil },
+          { value: 'b', label: 'Beta' },
+        ]}
+        onChange={() => undefined}
+      />,
+    );
+    const withIcon = screen.getByRole('button', { name: 'Alpha' });
+    expect(withIcon).toHaveClass('max-sm:size-8');
+    expect(withIcon.querySelector('svg')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    );
+    expect(within(withIcon).getByText('Alpha')).toHaveClass('max-sm:sr-only');
+    const plain = screen.getByRole('button', { name: 'Beta' });
+    expect(plain).not.toHaveClass('max-sm:size-8');
+    expect(plain.querySelector('svg')).toBeNull();
   });
 
   it('keeps every label on one line at the shared target size', () => {
