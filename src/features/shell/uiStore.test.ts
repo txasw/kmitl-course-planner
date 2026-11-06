@@ -45,6 +45,22 @@ describe('ui store', () => {
     expect(store.getState().catalogVisible).toBe(false);
   });
 
+  it('starts on the timetable view and switches to the selected view', () => {
+    const store = createUiStore();
+    expect(store.getState().planView).toBe('timetable');
+    store.getState().setPlanView('selected');
+    expect(store.getState().planView).toBe('selected');
+  });
+
+  it('keeps the plan view across closing and reopening', () => {
+    const store = createUiStore();
+    store.getState().open();
+    store.getState().setPlanView('selected');
+    store.getState().close();
+    store.getState().open();
+    expect(store.getState().planView).toBe('selected');
+  });
+
   it('opens and closes', () => {
     const store = createUiStore();
     store.getState().open();
