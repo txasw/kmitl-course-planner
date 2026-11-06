@@ -7,9 +7,17 @@ import {
   act,
 } from '@testing-library/react';
 import type { ReactNode } from 'react';
+import { CATALOG_COLUMN_ID } from './catalogVisibility';
 import { Overlay } from './Overlay';
+import { openPanelAt } from './openPanel';
 import { uiStore } from './uiStore';
+import { revalidationStore } from '@/features/plans/revalidationStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
+import { makePlanEntry } from '../../../tests/support/domain-builders';
+import {
+  resetPlanStore,
+  seedActivePlan,
+} from '../../../tests/support/plan-store';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { installViewport } from '../../../tests/support/viewport';
 
@@ -144,5 +152,42 @@ describe('Overlay', () => {
       });
       expect(openAt(390)).toHaveClass(...SIDES, BOTTOM);
     });
+  });
+
+  // The funnel writes the layout before the panel opens, so a sheet or dialog mounts in
+  // the same commits as the overlay; focus must still land inside that modal layer.
+  describe('opened at a target', () => {
+    afterEach(() => {
+      act(() => {
+        revalidationStore.getState().setUpdatesOpen(false);
+      });
+      resetPlanStore();
+    });
+
+    it('lands focus in the catalog sheet at 768 px', () => {
+      installViewport(768, { reducedMotion: true });
+      render(<Overlay />, { wrapper });
+      act(() => {
+        openPanelAt('catalog');
+      });
+      const sheet = document.getElementById(CATALOG_COLUMN_ID);
+      expect(sheet).toHaveAttribute('role', 'dialog');
+      expect(sheet?.contains(document.activeElement)).toBe(true);
+    });
+
+    it.each([390, 1366])(
+      'lands focus in the updates dialog at %i px',
+      (width) => {
+        installViewport(width, { reducedMotion: true });
+        seedActivePlan([makePlanEntry({ verifyStatus: 'missing' })]);
+        render(<Overlay />, { wrapper });
+        act(() => {
+          openPanelAt('updates');
+        });
+        const dialogs = screen.getAllByRole('dialog');
+        expect(dialogs).toHaveLength(2);
+        expect(dialogs[1]?.contains(document.activeElement)).toBe(true);
+      },
+    );
   });
 });

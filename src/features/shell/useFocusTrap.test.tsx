@@ -86,6 +86,32 @@ function NestedHarness({
   );
 }
 
+// A modal layer in a child component that mounts in the same commit as the trapped
+// overlay, the shape of the panel opened with its catalog sheet already shown. The child's
+// effect runs first, so its trap takes focus before the overlay trap starts.
+function ChildLayer() {
+  const ref = useRef<HTMLDivElement>(null);
+  useFocusTrap(ref, true);
+  return (
+    <div ref={ref} tabIndex={-1} data-testid="child-layer">
+      <button type="button" data-testid="child-button">
+        child
+      </button>
+    </div>
+  );
+}
+
+function MountedTogetherHarness() {
+  const ref = useRef<HTMLDivElement>(null);
+  useFocusTrap(ref, true);
+  return (
+    <div ref={ref} tabIndex={-1} data-testid="overlay">
+      <button type="button">overlay</button>
+      <ChildLayer />
+    </div>
+  );
+}
+
 describe('useFocusTrap', () => {
   it('moves focus into the panel when it activates', () => {
     render(<Harness active={true} />);
@@ -158,6 +184,14 @@ describe('useFocusTrap', () => {
     fireEvent.keyDown(screen.getByTestId('inner-button'), { key: 'Escape' });
     expect(inner).toHaveBeenCalledOnce();
     expect(outer).not.toHaveBeenCalled();
+  });
+
+  it('leaves focus in a nested layer that mounted with it', () => {
+    render(<MountedTogetherHarness />);
+    expect(screen.getByTestId('child-layer')).toHaveFocus();
+    screen.getByTestId('child-button').focus();
+    fireEvent.keyDown(screen.getByTestId('child-layer'), { key: 'Tab' });
+    expect(screen.getByTestId('child-button')).toHaveFocus();
   });
 
   it('leaves Escape unhandled when it has no close callback', () => {
