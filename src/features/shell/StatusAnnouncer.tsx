@@ -3,13 +3,15 @@
 // stays mounted while the column swaps its loading, error, empty and result states, and
 // while a sheet or a hidden docked column keeps the result out of view. It speaks only
 // when a user search settles: the course and section count, the empty title with the
-// searched term, or the error title. A background retry or refresh replaces the result
-// without a word, and a re-render or a language change says nothing, because the message
-// is written at the settle rather than derived from the current state. Each settle
-// replaces the message node, so a repeated search that settles on the same words is
-// still read once, and any new run clears the region while it runs.
+// searched term, or the error title. A retry pressed on the error state is the student
+// asking again after an outcome that was spoken, so its settle is spoken too. A refresh
+// replaces the result without a word, and a re-render or a language change says
+// nothing, because the message is written at the settle rather than derived from the
+// current state. Each settle replaces the message node, so a repeated search that
+// settles on the same words is still read once, and any new run clears the region while
+// it runs.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import type { Translate } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
@@ -50,6 +52,8 @@ function outcomeText(
 export function StatusAnnouncer() {
   const { t } = useTranslation();
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
+  // Whether the run in flight started from an error, which only the retry action does.
+  const retrying = useRef(false);
 
   useEffect(
     () =>
@@ -61,11 +65,12 @@ export function StatusAnnouncer() {
           // Any new run clears the last outcome, so the region never holds a stale
           // count or error while the result is replaced. A removal is not read.
           setAnnouncement(null);
+          retrying.current = previous.result.status === 'error';
           return;
         }
         if (
           previous.result.status !== 'loading' ||
-          state.resultIntent !== 'user'
+          (state.resultIntent !== 'user' && !retrying.current)
         ) {
           return;
         }

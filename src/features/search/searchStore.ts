@@ -70,7 +70,7 @@ export interface SearchStore {
   /**
    * Who started the query behind the current result, written with the query in one
    * write, so a settle can tell a user search, which the status announcer speaks, from
-   * a background retry or refresh, which it does not. Null while no query has run.
+   * a background run such as a refresh, which it does not. Null while no query has run.
    */
   resultIntent: QueryIntent | null;
   /** The query the summary bar describes, or null while no user search has run. */

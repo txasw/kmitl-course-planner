@@ -92,10 +92,27 @@ describe('StatusAnnouncer', () => {
     expect(region()).toBeEmptyDOMElement();
   });
 
-  it('does not announce a background retry or refresh', () => {
+  it('does not announce a background refresh', () => {
     render(<StatusAnnouncer />);
+    run('user', { status: 'ready', data: catalog([1]) });
     run('background', { status: 'ready', data: catalog([2]) });
     expect(region()).toBeEmptyDOMElement();
+  });
+
+  it('names the outcome of a retry pressed on the error state', () => {
+    render(<StatusAnnouncer />);
+    run('user', { status: 'error', error: httpError(500, 'boom') });
+    run('background', { status: 'ready', data: catalog([2]) });
+    expect(region()).toHaveTextContent('พบ 1 รายวิชา 2 กลุ่มเรียน');
+  });
+
+  it('names the error again when a retry fails again', () => {
+    render(<StatusAnnouncer />);
+    run('user', { status: 'error', error: httpError(500, 'boom') });
+    const first = region().firstElementChild;
+    run('background', { status: 'error', error: httpError(503, 'down') });
+    expect(region().firstElementChild).not.toBe(first);
+    expect(region()).toHaveTextContent('โหลดรายวิชาไม่สำเร็จ');
   });
 
   it('says nothing when a running search is cancelled', () => {
