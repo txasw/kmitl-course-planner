@@ -59,6 +59,7 @@ import {
   searchStore,
   selectBarVisible,
   selectFormOpen,
+  type SearchStore,
 } from '@/features/search/searchStore';
 import { SuggestAction } from '@/features/catalog/SuggestAction';
 import { CatalogDragContext } from '@/features/catalog/catalogDrag';
@@ -111,6 +112,21 @@ const SURFACE = 'flex flex-col border-r border-border bg-surface';
 // overlay, the last child, paints above them all with no layer of its own.
 const REMOVE_DIM =
   '[&>:not([data-remove-zone],[data-catalog-shadow])]:opacity-30';
+
+/**
+ * Whether the results show a state that holds no control: the idle hint before any
+ * search, the loading skeleton, or a search that found nothing. A short column scrolls
+ * such a state with nothing in it to take focus, so the scroller becomes a tab stop of
+ * its own there and a keyboard user can scroll it. The browser's implicit stop for such
+ * a scroller is not enough, since the overlay's focus trap counts only explicit stops.
+ * With courses listed, or an error with its retry, the controls inside take focus and
+ * scroll the list, so the scroller adds no stop.
+ */
+function selectResultsHoldNoControl(state: SearchStore): boolean {
+  const { result } = state;
+  if (result.status === 'idle' || result.status === 'loading') return true;
+  return result.status === 'ready' && result.data.courses.length === 0;
+}
 
 /** Whether a drag that starts in the catalog is live: a section or a course drag. A block
  * drag starts on the grid, so the sheet has nothing to yield to it. */
@@ -293,6 +309,8 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
   );
   const lastSubmitAt = useStore(searchStore, (state) => state.lastSubmitAt);
   const results = useRef<HTMLDivElement>(null);
+  const resultsStop = useStore(searchStore, selectResultsHoldNoControl);
+  const { t } = useTranslation();
 
   // A new user search starts its results from the top, before the frame paints.
   useLayoutEffect(() => {
@@ -340,9 +358,12 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
         <div
           ref={results}
           data-catalog-scroller
+          role="region"
+          aria-label={t('catalog.results')}
+          tabIndex={resultsStop ? 0 : undefined}
           inert={editing || undefined}
           aria-hidden={editing || undefined}
-          className={`kcp-scroll relative flex flex-1 flex-col overflow-y-auto p-6 [overflow-anchor:none] [scroll-padding-bottom:var(--kcp-overlay-bottom,0px)] ${
+          className={`kcp-scroll relative flex flex-1 flex-col overflow-y-auto p-6 [overflow-anchor:none] [scroll-padding-bottom:var(--kcp-overlay-bottom,0px)] ${FOCUS_RING} ${
             keepResults ? 'min-h-48' : 'min-h-0'
           } ${editing ? 'invisible' : ''}`}
         >

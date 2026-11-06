@@ -128,6 +128,7 @@
   "search.summary.bySubjectId": "Subject {id}",
   "search.summary.byCategory": "Category {name}",
   "search.summary.classYear": "Year {classYear}",
+  "catalog.results": "Search results",
   "catalog.emptyTitle": "No courses yet",
   "catalog.emptyBody": "Search to see the courses on offer.",
   "catalog.loading": "Loading courses",
