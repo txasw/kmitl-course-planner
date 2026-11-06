@@ -20,7 +20,8 @@ const PRESETS = [
 ];
 
 // The reserved id the mock server answers with the fit regression catalog: three hour blocks,
-// long Thai and English names, Thai place strings, and a 34 and 35 pair.
+// long Thai and English names, Thai place strings, a 34 and 35 pair, and exam windows on
+// every subject but 90000603, which the exam block lists as arranged by the instructor.
 async function fitRegressionSearch(page: Page): Promise<void> {
   await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000600');
@@ -78,5 +79,21 @@ test('no block text clips at any export preset', async ({ context }) => {
   for (const preset of PRESETS) {
     await page.getByRole('radio', { name: new RegExp(preset) }).click();
     await expectNoBlockClips(page);
+    await expect(page.locator('[data-poster-exams]')).toHaveCount(0);
+  }
+
+  // The exam schedule takes up to a quarter of the poster height from the grid. Its box carries
+  // the data-fit marker too, so the same guard proves neither an exam line nor a grid block
+  // clips under the reduced height, at every preset.
+  await page.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }).click();
+  await page.getByRole('switch', { name: 'แสดงตารางสอบ' }).click();
+  await page.keyboard.press('Escape');
+
+  for (const preset of PRESETS) {
+    await page.getByRole('radio', { name: new RegExp(preset) }).click();
+    await expectNoBlockClips(page);
+    const exams = page.locator('[data-poster-exams]').first();
+    await expect(exams).toContainText('ตารางสอบ');
+    await expect(exams).toContainText('กลางภาค');
   }
 });
