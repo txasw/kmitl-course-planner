@@ -15,7 +15,8 @@
 // a comparison table the table width, and a side by side comparison the full one. A table
 // that keeps its header row in view while it scrolls owns its scroll instead: a sticky
 // header sticks to its nearest scrolling ancestor, so the body then only bounds the
-// content and leaves the scroll to it.
+// content and leaves the scroll to it. While mounted the dialog counts as an open
+// surface, so an unasked one waits for it.
 
 import {
   useEffect,
@@ -28,6 +29,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
+import { useOpenSurface } from '@/features/shell/attentionStore';
 import { useEscapeLayer } from '@/features/shell/useEscapeLayer';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
 import { TARGET_SIZE } from '@/lib/ui/target';
@@ -84,6 +86,7 @@ export function ModalDialog({
   // when the panel opens with the layer already shown, so focus and Escape wait for it.
   const portalReady = portalRoot !== null;
   useFocusTrap(dialogRef, portalReady);
+  useOpenSurface(true);
   useEscapeLayer(dialogRef, onClose, portalReady);
   useEffect(() => {
     (initialFocusRef?.current ?? headingRef.current)?.focus();

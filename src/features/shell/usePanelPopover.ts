@@ -5,9 +5,12 @@
 // height follows the available height, so a long plan list or a block with many diff rows
 // scrolls inside the node instead of running past a short viewport. The node opts into
 // that internal scroll by carrying PANEL_POPOVER_SCROLL. The combobox popup keeps its own
-// size rule because it matches its input width and caps its list height.
+// size rule because it matches its input width and caps its list height. While open, a
+// node counts as an open surface the student is busy with, unless it is ambient, such as
+// a hover card that follows the pointer rather than a choice to open it.
 
 import { useMemo } from 'react';
+import { useOpenSurface } from './attentionStore';
 import {
   autoUpdate,
   flip,
@@ -53,13 +56,18 @@ export interface PanelPopoverOptions extends Omit<
 > {
   /** The distance from the anchor to the floating node, in pixels. */
   gap: number;
+  /** Whether the node opens by itself, as a hover card does, so it never counts as an
+   * open surface that holds the student's attention. */
+  ambient?: boolean;
 }
 
 export function usePanelPopover<RT extends ReferenceType = ReferenceType>({
   gap,
+  ambient = false,
   ...options
 }: PanelPopoverOptions): UseFloatingReturn<RT> {
   const middleware = useMemo(() => panelPopoverMiddleware(gap), [gap]);
+  useOpenSurface(options.open === true && !ambient);
   return useFloating<RT>({
     ...options,
     strategy: 'fixed',

@@ -14,7 +14,8 @@
 // is a long review, and the optional footer stays pinned below it, padded clear of the
 // home indicator. A sheet can name the control that takes focus on open in place of the
 // heading, as the modal dialog can. Reduced motion drops the entrance and the swipe
-// tracking, leaving the close button, the scrim, and Escape.
+// tracking, leaving the close button, the scrim, and Escape. While mounted the sheet
+// counts as an open surface, so an unasked dialog waits for it to close.
 
 import {
   useEffect,
@@ -27,6 +28,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
+import { useOpenSurface } from '@/features/shell/attentionStore';
 import { useEscapeLayer } from '@/features/shell/useEscapeLayer';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
 import { usePrefersReducedMotion } from '@/features/shell/usePresence';
@@ -71,6 +73,7 @@ export function BottomSheet({
   // when the panel opens with the layer already shown, so focus and Escape wait for it.
   const portalReady = portalRoot !== null;
   useFocusTrap(sheetRef, portalReady);
+  useOpenSurface(true);
   useEscapeLayer(sheetRef, onClose, portalReady);
   // The trap focuses the sheet itself; the heading is the clearer landing point because
   // it is read first and sits above the content.
