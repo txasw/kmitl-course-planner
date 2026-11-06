@@ -29,8 +29,9 @@ import type { Locator, Page } from '@playwright/test';
 // coarse pointers, and the feedback strip's chips stay tappable over the open catalog.
 // The tablet holds the catalog in a sheet that is modal over the grid and closes alone
 // on Escape. The phone, below 640 px, shows one pane at a time behind a bottom nav, so
-// the catalog and the timetable each take the whole body in turn, and during a block drag
-// the nav turns into the remove bar.
+// the catalog and the timetable each take the whole body in turn, its timetable reads
+// one day at a time, stepped by the day chips or a swipe, and during a block drag the
+// nav turns into the remove bar.
 
 const LAUNCHER = 'เปิด Course Planner for KMITL';
 // A grid block carries a data-teach-table-id; the catalog rows do not.
@@ -788,5 +789,49 @@ test.describe('the phone layout', () => {
     // The pair's other half meets on Tuesday, a day the phone shows on its own.
     await showDay(page, 'วันอังคาร');
     await expect(page.locator(block('900007'))).toBeVisible();
+  });
+
+  test('reads the timetable one day at a time and steps the day by a swipe', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    await categorySearch(page, page.locator('#kcp-catalog-column'));
+    await expandCourse(page, '90592008');
+    await page
+      .getByRole('button', { name: /^เพิ่ม/ })
+      .first()
+      .tap();
+    await timetableControl(page).tap();
+
+    // The one class falls on Friday, so the day view opens there, its chip marked.
+    const days = page.getByRole('radiogroup', { name: 'วันที่แสดง' });
+    const friday = days.getByRole('radio', { name: 'วันศุกร์ มีเรียน' });
+    await expect(friday).toHaveAttribute('aria-checked', 'true');
+    await expect(
+      page.getByRole('group', { name: 'ตารางเรียนวันศุกร์' }),
+    ).toBeVisible();
+    const classBlock = page.locator(GRID_BLOCK).first();
+    await expect(classBlock).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+
+    // A swipe to the right that starts on the block brings in the day before. It starts
+    // no drag, and the free day names itself.
+    const box = await classBlock.boundingBox();
+    if (box === null) throw new Error('expected a laid out block');
+    const from: Point = { x: box.x + 40, y: box.y + box.height / 2 };
+    await swipe(page, from, { x: from.x + 200, y: from.y }, 10);
+    await expect(
+      days.getByRole('radio', { name: 'วันพฤหัสบดี' }),
+    ).toHaveAttribute('aria-checked', 'true');
+    // The timetable claims the sideways finger, so the browser never reads it as a back
+    // navigation away from the host page.
+    expect(page.url()).toContain('regis.reg.kmitl.ac.th');
+    await expect(page.locator('[data-drag-card]')).toHaveCount(0);
+    await expect(page.locator('[data-free-day]')).toContainText('วันพฤหัสบดี');
+    await expect(page.locator('[data-free-day]')).toContainText('วันว่าง');
+
+    // The chip is the path back, and the plan kept its class.
+    await friday.tap();
+    await expect(page.locator(GRID_BLOCK)).toHaveCount(1);
   });
 });

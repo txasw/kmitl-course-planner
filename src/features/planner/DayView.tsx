@@ -8,6 +8,13 @@
 // Until the student picks a day, the view follows the first day with a class, so a class
 // added from the catalog pane is in view on return; a picked day holds until its chip
 // leaves the row.
+//
+// A horizontal swipe over the timetable steps the day, stopping at either end of the row.
+// It starts only past 24 px along the row and never while a drag is live. A touch drag
+// waits for a finger held within 8 px, so a finger that has travelled 24 px has already
+// released any pending long press, and a block keeps its tap and its long press. The chips
+// stay the path every input reaches. Under reduced motion the swipe still steps the day,
+// but the column does not follow the finger.
 
 import { useMemo, useState } from 'react';
 import { CalendarCheck } from 'lucide-react';
@@ -16,12 +23,29 @@ import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import type { GridWindow } from '@/lib/planner/grid';
 import type { ConflictDetail } from '@/lib/planner/placement';
-import { dayChipDays, dayFlags, shownDay } from '@/lib/planner/dayView';
+import {
+  dayChipDays,
+  dayFlags,
+  shownDay,
+  stepDay,
+} from '@/lib/planner/dayView';
+import { usePrefersReducedMotion } from '@/features/shell/usePresence';
+import {
+  useSwipeGesture,
+  type SwipeDirection,
+} from '@/features/shell/useSwipeGesture';
+import { dragStore, selectDragging } from './dragStore';
 import { DayChips } from './DayChips';
 import { GridEmptyState } from './GridEmptyState';
 import { GridScroller } from './GridScroller';
 import type { PlacedSection } from './placedSection';
 import { WeeklyGrid, type EditGridProps } from './WeeklyGrid';
+
+const SWIPE_SLOP_PX = 24;
+
+function noDragLive(): boolean {
+  return !selectDragging(dragStore.getState());
+}
 
 interface DayViewProps {
   /** The scheduled placed sections. */
@@ -55,6 +79,16 @@ export function DayView({
   const day = shownDay(days, chosen, flags);
   const run = useMemo(() => [day], [day]);
   const dayName = t(dayFullLabelKey(day));
+  const reducedMotion = usePrefersReducedMotion();
+  // A finger that travels left brings the next day in from the right.
+  const { handlers, style, touchClass, bindClaim } = useSwipeGesture({
+    axis: 'x',
+    slop: SWIPE_SLOP_PX,
+    canStart: noDragLive,
+    onSwipe: (direction: SwipeDirection) => {
+      setChosen(stepDay(days, day, direction === 1 ? -1 : 1, false));
+    },
+  });
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
@@ -65,39 +99,47 @@ export function DayView({
         onSelect={setChosen}
         t={t}
       />
-      <GridScroller>
-        {(fontPx) => (
-          <>
-            <WeeklyGrid
-              {...grid}
-              sections={sections}
-              window={window}
-              days={run}
-              orientation="portrait"
-              editable
-              fontPx={fontPx}
-              label={fillTemplate(t('view.dayGrid'), { day: dayName })}
-            />
-            {planEmpty ? (
-              <GridEmptyState t={t} />
-            ) : flags[day].hasClass ? null : (
-              <div
-                data-free-day
-                className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 flex-col items-center gap-1 px-6 text-center"
-              >
-                <CalendarCheck
-                  size={28}
-                  strokeWidth={1.75}
-                  className="text-ink-soft"
-                  aria-hidden
-                />
-                <p className="text-sm font-semibold text-ink">{dayName}</p>
-                <p className="text-sm text-ink-soft">{t('view.freeDay')}</p>
-              </div>
-            )}
-          </>
-        )}
-      </GridScroller>
+      <div
+        {...handlers}
+        ref={bindClaim}
+        data-day-swipe
+        className={`flex min-h-0 flex-1 flex-col ${touchClass}`}
+        style={reducedMotion ? undefined : style}
+      >
+        <GridScroller>
+          {(fontPx) => (
+            <>
+              <WeeklyGrid
+                {...grid}
+                sections={sections}
+                window={window}
+                days={run}
+                orientation="portrait"
+                editable
+                fontPx={fontPx}
+                label={fillTemplate(t('view.dayGrid'), { day: dayName })}
+              />
+              {planEmpty ? (
+                <GridEmptyState t={t} />
+              ) : flags[day].hasClass ? null : (
+                <div
+                  data-free-day
+                  className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 flex-col items-center gap-1 px-6 text-center"
+                >
+                  <CalendarCheck
+                    size={28}
+                    strokeWidth={1.75}
+                    className="text-ink-soft"
+                    aria-hidden
+                  />
+                  <p className="text-sm font-semibold text-ink">{dayName}</p>
+                  <p className="text-sm text-ink-soft">{t('view.freeDay')}</p>
+                </div>
+              )}
+            </>
+          )}
+        </GridScroller>
+      </div>
     </div>
   );
 }
