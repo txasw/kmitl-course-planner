@@ -439,6 +439,30 @@ in the service worker console, which keeps the welcome recorded as shown.
 - [ ] Language: switch the panel to English, then reload. The prompt reads in English and
       carries that language on its own node.
 
+## Launcher pill
+
+The launcher is a rounded orange pill that rings until the panel first opens (ADR-0063).
+Start from a fresh browser profile with the debug build, so no plan and no first open
+are recorded.
+
+- [ ] Look: a fully rounded pill in the strong orange with the calendar icon and the
+      Planner label, at least 48 px tall. Hover lifts it 2 px with no change of shadow,
+      and Tab focus lifts it the same way and shows the white focus outline.
+- [ ] Ring on a fresh install: on the install tab the ring does not play behind the
+      welcome. Close the welcome; after a short pause the ring grows from the pill's edge
+      and fades twice, then stops. Reload the tab and the ring plays twice again.
+- [ ] First open: open the panel from the launcher, close it, and reload. No ring plays,
+      on that tab or on any other regis tab.
+- [ ] Returning student: create a plan, then remove the `kcp:onboarding` key from the
+      extension's local storage in the service worker console, as an update from an
+      earlier version would leave it, and reload. No ring plays, since a plan is stored.
+- [ ] Reduced motion: turn on the operating system's reduced motion setting and repeat
+      the fresh install check. The ring shows still around the pill for about two
+      seconds and then disappears in one step, and hover or focus does not lift the pill.
+- [ ] Placement: at 390, 768 and 1366 px wide the pill, and the ring at its widest, stay
+      clear of the screen edges and of the host page's own floating elements, and on a
+      phone with a home indicator the pill sits above it.
+
 ## Firefox parity
 
 The end to end suite runs on Chromium only, because Playwright cannot side load the
