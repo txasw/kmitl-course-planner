@@ -121,11 +121,12 @@ describe('CourseCatalog', () => {
     expect(container.textContent).toContain('6 กลุ่มเรียนหลายคาบ');
   });
 
-  it('invokes the refresh callback from the refresh control', () => {
+  it('invokes the refresh callback with the refresh control', () => {
     const onRefresh = vi.fn();
     render(<CourseCatalog catalog={catalog} onRefresh={onRefresh} />);
-    fireEvent.click(screen.getByRole('button', { name: 'รีเฟรช' }));
-    expect(onRefresh).toHaveBeenCalledTimes(1);
+    const refresh = screen.getByRole('button', { name: 'รีเฟรช' });
+    fireEvent.click(refresh);
+    expect(onRefresh).toHaveBeenCalledExactlyOnceWith(refresh);
   });
 
   it('renders the deduped courses under their subject type heading', () => {
