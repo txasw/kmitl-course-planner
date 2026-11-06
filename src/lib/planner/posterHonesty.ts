@@ -27,7 +27,12 @@ export interface PosterHonestyInput {
   examConflicts: ReadonlyMap<string, readonly ExamOverlap[]>;
 }
 
-function oldestVerification(entries: PosterHonestyInput['entries']): DataDate {
+/** How current the plan data is: the oldest verification among the entries that were
+ * checked, or unverified when none was. The poster footer and the verification status in the
+ * edit stats bar and the preview toolbar both state it. */
+export function planDataDate(
+  entries: readonly Pick<PlanEntry, 'lastVerifiedAt'>[],
+): DataDate {
   let oldest: { at: string; ms: number } | null = null;
   for (const entry of entries) {
     if (entry.lastVerifiedAt === null) {
@@ -68,7 +73,7 @@ function countConflictPairs(
 
 export function posterHonesty(input: PosterHonestyInput): PosterHonesty {
   return {
-    dataDate: oldestVerification(input.entries),
+    dataDate: planDataDate(input.entries),
     missingCount: input.entries.filter(
       (entry) => entry.verifyStatus === 'missing',
     ).length,
