@@ -53,6 +53,10 @@ export function SearchForm() {
   const departments = useStore(searchStore, (state) => state.departments);
   const curricula = useStore(searchStore, (state) => state.curricula);
   const subjectOwners = useStore(searchStore, (state) => state.subjectOwners);
+  const busy = useStore(
+    searchStore,
+    (state) => state.result.status === 'loading',
+  );
 
   const years = useMemo(
     () => buddhistYears(toBuddhistYear(new Date().getFullYear())),
@@ -85,16 +89,20 @@ export function SearchForm() {
 
   // The subject id submit stays live while the id is incomplete so a click or Enter
   // routes to the inline message and focuses the field rather than a dead control; any
-  // other missing field blocks the submit and names itself under it.
-  const submitReason = missingFieldReason(
-    missingField(activeTab, term, forms),
-    t,
-  );
+  // other missing field blocks the submit and names itself under it. A query in
+  // flight blocks it too: the form is folded then, so this shows only when the
+  // student reopens it mid search, and the slow notice offers the way out.
+  const submitReason = busy
+    ? t('search.busyReason')
+    : missingFieldReason(missingField(activeTab, term, forms), t);
 
   // An accepted search folds this form and turns it inert, so focus moves from the
   // pressed control to the summary bar in the same commit. The bar is not a button, so
   // a repeated Enter there starts nothing.
   const handleSubmit = (from: Element) => {
+    if (busy) {
+      return;
+    }
     if (
       activeTab === 'by_subject_id' &&
       !isValidSubjectId(bySubjectId.subjectId)
