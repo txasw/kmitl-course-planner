@@ -23,7 +23,7 @@ import {
 } from '@/features/shell/usePanelPopover';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { FOCUS_RING } from '@/lib/ui/focus';
-import { TARGET_SIZE } from '@/lib/ui/target';
+import { TARGET_HEIGHT } from '@/lib/ui/target';
 import { DeleteConfirm } from './DeleteConfirm';
 import { ImportErrorView } from './ImportErrorView';
 import { NameForm } from './NameForm';
@@ -203,7 +203,10 @@ export function PlanSwitcher() {
     activePlan === null ? t('planSwitcher.noPlan') : activePlan.name;
 
   // The wrapper is the header item that shrinks first, so the trigger fills it and its
-  // plan name and term truncate before any other header control gives way.
+  // plan name and term truncate before any other header control gives way. Below 640 px
+  // the calendar icon drops out so the name keeps the room, and at the narrowest width
+  // the trigger narrows to its chevron. It keeps the target height but sets no minimum
+  // width, which would push it over its neighbours.
   return (
     <div ref={wrapperRef} className="relative min-w-0 max-w-[16rem]">
       <button
@@ -213,13 +216,13 @@ export function PlanSwitcher() {
         aria-label={t('planSwitcher.label')}
         aria-haspopup="true"
         aria-expanded={open}
-        className={`flex w-full items-center gap-2 rounded-kcp border border-border px-3 py-0.5 text-sm text-ink hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`}
+        className={`flex w-full items-center gap-2 overflow-hidden rounded-kcp border border-border px-2 py-px text-sm text-ink hover:bg-surface-alt sm:px-3 ${TARGET_HEIGHT} ${FOCUS_RING}`}
       >
         <CalendarRange
           size={16}
           strokeWidth={2}
           aria-hidden
-          className="shrink-0 text-ink-soft"
+          className="hidden shrink-0 text-ink-soft sm:block"
         />
         <span className="flex min-w-0 flex-1 flex-col items-start text-left">
           <span className="max-w-full truncate">{triggerLabel}</span>

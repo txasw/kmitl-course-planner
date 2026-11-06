@@ -18,9 +18,11 @@ interface HeaderProps {
 }
 
 // The overlay header: one row that never wraps, 56 px high and 48 px on a short
-// viewport, padded clear of the device safe areas. The leading group holds the brand
-// mark from 640 px, the panel title, and the plan switcher; it is the only part that
-// shrinks, and the switcher truncates the plan name before anything else gives way.
+// viewport, padded clear of the device safe areas. Below 640 px the padding and gaps
+// tighten so six touch sized controls still fit a 320 px screen. The leading group
+// holds the brand mark from 640 px, the panel title, and the plan switcher; it is the
+// only part that shrinks, and the switcher truncates the plan name before anything else
+// gives way.
 // The title shows from 1024 px and stays in the accessibility tree below as sr-only
 // text, so the dialog's aria-labelledby always resolves. The trailing group never
 // shrinks and carries the catalog toggle on the sheet tiers, the mode toggle, the
@@ -33,7 +35,7 @@ export function Header({ titleId }: HeaderProps) {
   const wide = useMediaQuery(minWidthQuery(BREAKPOINTS.lg));
 
   return (
-    <header className="box-content flex h-14 shrink-0 items-center gap-2 border-b border-border pt-(--kcp-safe-top) pr-[calc(16px_+_var(--kcp-safe-right))] pl-[calc(16px_+_var(--kcp-safe-left))] sm:gap-4 [@media(max-height:800px)]:h-12">
+    <header className="box-content flex h-14 shrink-0 items-center gap-2 border-b border-border pt-(--kcp-safe-top) pr-[calc(12px_+_var(--kcp-safe-right))] pl-[calc(12px_+_var(--kcp-safe-left))] sm:gap-4 sm:pr-[calc(16px_+_var(--kcp-safe-right))] sm:pl-[calc(16px_+_var(--kcp-safe-left))] [@media(max-height:800px)]:h-12">
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <BrandMark className="hidden size-6 shrink-0 text-primary sm:block" />
         <h2
@@ -44,7 +46,7 @@ export function Header({ titleId }: HeaderProps) {
         </h2>
         <PlanSwitcher />
       </div>
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
         <CatalogToggle />
         <ModeToggle />
         {wide ? <LanguageToggle /> : <HeaderOverflowMenu />}

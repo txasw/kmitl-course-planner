@@ -4,5 +4,12 @@
 // neighbour. The classes set minimums only, so a control that is already larger keeps
 // its own size.
 
-export const TARGET_SIZE =
-  'min-h-(--kcp-target-min) min-w-(--kcp-target-min) pointer-coarse:min-h-(--kcp-target-touch) pointer-coarse:min-w-(--kcp-target-touch)';
+/**
+ * The height half alone, for a wide control that is the one item allowed to shrink in
+ * its row, such as the header plan switcher, where a minimum width would push it over
+ * its neighbours.
+ */
+export const TARGET_HEIGHT =
+  'min-h-(--kcp-target-min) pointer-coarse:min-h-(--kcp-target-touch)';
+
+export const TARGET_SIZE = `${TARGET_HEIGHT} min-w-(--kcp-target-min) pointer-coarse:min-w-(--kcp-target-touch)`;
