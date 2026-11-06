@@ -304,3 +304,42 @@ test('a tapped block opens its details as a sheet with the remove action', async
     page.locator(`[data-teach-table-id="${teachTableId ?? ''}"]`),
   ).toHaveCount(0);
 });
+
+test('an add from the open sheet is confirmed once by a toast that leads to the timetable', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  const toggle = page.getByRole('button', { name: /^รายวิชา/ });
+  await toggle.click();
+  await page.getByRole('button', { name: 'หมวดวิชา' }).click();
+  await pickOption(page, 'คณะ', '01');
+  await pickOption(page, 'หมวดวิชา', '90592xxx');
+  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  // The settled search is spoken by the status announcer beside the sheet.
+  await expect(
+    page.getByRole('status').filter({ hasText: 'พบ 3 รายวิชา 4 กลุ่มเรียน' }),
+  ).toHaveCount(1, { timeout: 15_000 });
+
+  await waitForResultsInput(page);
+  await expandCourse(page, '90592008');
+  await page
+    .getByRole('button', { name: /^เพิ่ม/ })
+    .first()
+    .tap();
+
+  // The sheet covers the timetable, so the add is confirmed by the toast alone and the
+  // sheet stays open for the next pick.
+  const column = page.locator('#kcp-catalog-column');
+  await expect(
+    page.getByText(/^เพิ่ม 90592008 กลุ่มเรียน \d+ แล้ว$/),
+  ).toBeVisible();
+  await expect(
+    page.locator('[aria-live]').filter({ hasText: '90592008' }),
+  ).toHaveCount(1);
+  await expect(column).not.toHaveAttribute('aria-hidden', 'true');
+
+  await page.getByRole('button', { name: 'ดูตาราง' }).tap();
+  await expect(column).toHaveAttribute('aria-hidden', 'true');
+  await expect(toggle).toBeFocused();
+  await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
+});
