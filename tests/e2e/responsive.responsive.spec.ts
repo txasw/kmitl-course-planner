@@ -9,7 +9,7 @@ import {
   waitForResultsInput,
 } from './support/fixtures';
 import { denseSubjectId } from './support/denseCatalog';
-import { addCourse, block } from './support/synthetic';
+import { addCourse, block, syntheticSearch } from './support/synthetic';
 import {
   LONG_PRESS_MS,
   longPress,
@@ -445,6 +445,33 @@ test('the strip chips stay tappable over the open catalog', async ({
   await expect(page.locator(block('910002'))).toHaveCount(0);
   // The catalog stays open for the next pick.
   await expect(catalog).toBeVisible();
+});
+
+// In the synthetic catalog under 90000000, Course B 90000002 overlaps Course A and has
+// no other section, so its blocked add offers the reveal action alone. Pressed with the
+// catalog put away, the action brings it back, the sheet on the tablet and the catalog
+// pane on the phone, and hands focus to the course's card.
+test('the reveal action opens the catalog on the blocked course', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await openCatalog(page);
+  await syntheticSearch(page);
+  await addCourse(page, '90000001');
+  await addCourse(page, '90000002');
+  const reveal = page.getByRole('button', { name: 'แสดงในรายการ' });
+  await expect(reveal).toBeFocused();
+
+  const column = page.locator('#kcp-catalog-column');
+  await timetableControl(page).tap();
+  await expect(column).toHaveAttribute('aria-hidden', 'true');
+  await expect(reveal).toBeVisible();
+  await reveal.tap();
+  await expect(column).not.toHaveAttribute('aria-hidden', 'true');
+  const card = column.locator('#kcp-course-toggle-90000002');
+  await expect(card).toBeFocused();
+  await expect(card).toBeInViewport();
+  await expect(reveal).toHaveCount(0);
 });
 
 // The coarse pointer target from the --kcp-target-touch token.
