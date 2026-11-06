@@ -241,6 +241,65 @@ test('cancels a block drag silently when the block goes back in place', async ({
   ).toHaveCount(0);
 });
 
+test.describe('on the medium sheet tier', () => {
+  // A short window, so the opened course list scrolls inside the sheet.
+  test.use({ viewport: { width: 768, height: 640 } });
+
+  test('yields the sheet during a section drag and returns it at the same offset', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    // Reduced motion makes the expand reveal scroll instant, so it cannot land after the
+    // offset this test sets, and the sheet slide settles at once.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.getByRole('button', { name: /^รายวิชา/ }).click();
+    await categorySearch(page);
+
+    const sheet = page.locator('#kcp-catalog-column');
+    const list = sheet.locator('[data-catalog-scroller]');
+    await list.evaluate((node) => {
+      node.scrollTop = 40;
+    });
+    const offset = await list.evaluate((node) => node.scrollTop);
+    expect(offset).toBeGreaterThan(0);
+
+    const handle = page.locator('[data-drag-surface="section"]').first();
+    const from = await handle.boundingBox();
+    const grid = await page
+      .getByRole('group', { name: GRID_NAME })
+      .boundingBox();
+    if (from === null || grid === null) {
+      throw new Error('missing drag source or grid');
+    }
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(from.x + 20, from.y + 20, { steps: 5 });
+
+    // The sheet slides to its peek and the scrim lets the grid through.
+    await expect(sheet).toHaveAttribute('data-yielded', 'true');
+    await expect
+      .poll(async () => (await sheet.boundingBox())?.x ?? 0)
+      .toBeLessThan(-300);
+    await page.mouse.move(grid.x + grid.width * 0.7, grid.y + grid.height / 2, {
+      steps: 15,
+    });
+    await expect(page.locator('[data-commit-zone]')).toHaveAttribute(
+      'data-commit-zone',
+      'over',
+    );
+    expect(await list.evaluate((node) => node.scrollTop)).toBe(offset);
+
+    // Release over the peek, outside every target, so nothing is added and the list
+    // keeps its content; the sheet returns where the student left it.
+    await page.mouse.move(8, grid.y + grid.height / 2, { steps: 10 });
+    await page.mouse.up();
+    await expect(sheet).not.toHaveAttribute('data-yielded');
+    await expect.poll(async () => (await sheet.boundingBox())?.x).toBe(0);
+    await expect(page.locator(GRID_BLOCK)).toHaveCount(0);
+    expect(await list.evaluate((node) => node.scrollTop)).toBe(offset);
+  });
+});
+
 test('commits a section from the grip with the keyboard', async ({
   context,
 }) => {
