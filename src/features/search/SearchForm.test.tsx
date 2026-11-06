@@ -6,6 +6,7 @@ import {
   cleanup,
   waitFor,
   act,
+  within,
 } from '@testing-library/react';
 import { loadFixture } from '../../../tests/support/fixtures';
 import { normalizeTeachTable } from '@/lib/domain/normalize';
@@ -156,9 +157,58 @@ describe('SearchForm', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders the search modes as a tablist that labels its panel', () => {
+    renderSearch(deps());
+    const tablist = screen.getByRole('tablist', { name: 'ค้นหารายวิชา' });
+    const tabs = within(tablist).getAllByRole('tab');
+    expect(tabs.map((tab) => tab.textContent)).toEqual([
+      'หลักสูตร',
+      'รหัสวิชา',
+      'หมวดวิชา',
+    ]);
+    const selected = screen.getByRole('tab', { name: 'หลักสูตร' });
+    expect(selected).toHaveAttribute('aria-selected', 'true');
+    expect(selected).toHaveAttribute('tabindex', '0');
+    expect(screen.getByRole('tab', { name: 'รหัสวิชา' })).toHaveAttribute(
+      'tabindex',
+      '-1',
+    );
+    expect(
+      screen.getByRole('tabpanel', { name: 'หลักสูตร' }),
+    ).toBeInTheDocument();
+  });
+
+  it('moves and selects tabs with the arrow, Home, and End keys', () => {
+    renderSearch(deps());
+    const byClass = screen.getByRole('tab', { name: 'หลักสูตร' });
+    byClass.focus();
+    fireEvent.keyDown(byClass, { key: 'ArrowRight' });
+    const bySubjectId = screen.getByRole('tab', { name: 'รหัสวิชา' });
+    expect(bySubjectId).toHaveFocus();
+    expect(bySubjectId).toHaveAttribute('aria-selected', 'true');
+    expect(searchStore.getState().activeTab).toBe('by_subject_id');
+    expect(
+      screen.getByRole('textbox', { name: 'รหัสวิชา' }),
+    ).toBeInTheDocument();
+
+    fireEvent.keyDown(bySubjectId, { key: 'End' });
+    expect(screen.getByRole('tab', { name: 'หมวดวิชา' })).toHaveFocus();
+    fireEvent.keyDown(screen.getByRole('tab', { name: 'หมวดวิชา' }), {
+      key: 'ArrowRight',
+    });
+    expect(byClass).toHaveFocus();
+    fireEvent.keyDown(byClass, { key: 'ArrowLeft' });
+    expect(screen.getByRole('tab', { name: 'หมวดวิชา' })).toHaveFocus();
+    fireEvent.keyDown(screen.getByRole('tab', { name: 'หมวดวิชา' }), {
+      key: 'Home',
+    });
+    expect(byClass).toHaveFocus();
+    expect(searchStore.getState().activeTab).toBe('by_class');
+  });
+
   it('shows a validation message for an out of range persisted subject id', () => {
     renderSearch(deps());
-    fireEvent.click(screen.getByRole('button', { name: 'รหัสวิชา' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'รหัสวิชา' }));
     // Typing can no longer produce an out of range value, since the input sanitizes
     // and clamps to eight digits, so the safety net message is exercised through a
     // persisted over length value that bypasses the input.
@@ -172,7 +222,7 @@ describe('SearchForm', () => {
 
   it('messages and focuses the field when an incomplete subject id is submitted', () => {
     renderSearch(deps());
-    fireEvent.click(screen.getByRole('button', { name: 'รหัสวิชา' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'รหัสวิชา' }));
     act(() => {
       searchStore.getState().patchSubjectIdForm({ subjectId: '123' });
     });
@@ -190,7 +240,7 @@ describe('SearchForm', () => {
 
   it('keeps submit disabled until the category form is ready', async () => {
     renderSearch(deps());
-    fireEvent.click(screen.getByRole('button', { name: 'หมวดวิชา' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'หมวดวิชา' }));
     const submit = screen.getByRole('button', { name: 'ค้นหา' });
     expect(submit).toBeDisabled();
     await waitEnabled('คณะ');
@@ -204,7 +254,7 @@ describe('SearchForm', () => {
 
   it('runs a category search and renders the results', async () => {
     renderSearch(deps());
-    fireEvent.click(screen.getByRole('button', { name: 'หมวดวิชา' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'หมวดวิชา' }));
     await waitEnabled('คณะ');
     selectCombobox('คณะ', '01');
     await waitEnabled('หมวดวิชา');
@@ -221,7 +271,7 @@ describe('SearchForm', () => {
       expect(semester).toHaveValue('2');
     });
     const termRow = screen.getByRole('group', { name: 'ปีและภาคการศึกษา' });
-    const tabs = screen.getByRole('button', { name: 'รหัสวิชา' });
+    const tabs = screen.getByRole('tab', { name: 'รหัสวิชา' });
     expect(
       termRow.compareDocumentPosition(tabs) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
@@ -233,7 +283,7 @@ describe('SearchForm', () => {
     expect(screen.getByRole('combobox', { name: 'ภาคการศึกษา' })).toHaveValue(
       '3',
     );
-    fireEvent.click(screen.getByRole('button', { name: 'หมวดวิชา' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'หมวดวิชา' }));
     expect(searchStore.getState().term).toEqual({
       year: '2569',
       semester: '3',

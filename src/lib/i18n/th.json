@@ -84,7 +84,7 @@
   "catalog.sheet.close": "ปิดรายการรายวิชา",
   "search.emptyTitle": "ค้นหารายวิชา",
   "search.emptyBody": "เลือกคณะ ภาควิชา และหลักสูตร เพื่อค้นหารายวิชาที่เปิดสอน",
-  "search.tab.byClass": "หลักสูตรและชั้นปี",
+  "search.tab.byClass": "หลักสูตร",
   "search.tab.bySubjectId": "รหัสวิชา",
   "search.tab.byCategory": "หมวดวิชา",
   "search.year": "ปีการศึกษา",

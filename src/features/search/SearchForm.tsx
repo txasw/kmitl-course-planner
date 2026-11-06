@@ -11,23 +11,27 @@ import { useStore } from 'zustand';
 import { AlertTriangle } from 'lucide-react';
 import { buddhistYears, toBuddhistYear } from '@/lib/routing/academicTerms';
 import {
-  SEARCH_TABS,
   buildTeachTableQueryForTab,
   isTermReady,
   isValidSubjectId,
 } from '@/lib/search/formState';
 import { commitAndFocus } from '@/features/shell/commitAndFocus';
 import { useTranslation } from '@/features/shell/useTranslation';
-import { FOCUS_RING, FOCUS_OUTLINE } from '@/lib/ui/focus';
+import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import {
   CategoryFields,
   ClassFields,
   SubjectIdInput,
   TermFields,
 } from './fields';
-import { SEARCH_BAR_ID, SEARCH_SUBMIT_ID } from './searchIds';
+import {
+  SEARCH_BAR_ID,
+  SEARCH_SUBMIT_ID,
+  SEARCH_TABPANEL_ID,
+  searchTabId,
+} from './searchIds';
 import { searchStore } from './searchStore';
-import { TAB_LABEL } from './searchTabs';
+import { SearchTabList } from './SearchTabList';
 import { useSearchDeps } from './SearchDepsContext';
 import { useHashRoute } from './useHashRoute';
 import {
@@ -123,103 +127,92 @@ export function SearchForm() {
         }}
       />
 
-      <div
-        role="group"
-        aria-label={t('search.emptyTitle')}
-        className="flex gap-1 rounded-kcp bg-surface-alt p-1"
-      >
-        {SEARCH_TABS.map((tab) => {
-          const selected = tab === activeTab;
-          return (
-            <button
-              key={tab}
-              type="button"
-              aria-pressed={selected}
-              onClick={() => {
-                searchStore.getState().setActiveTab(tab);
-              }}
-              className={`flex-1 rounded-[6px] px-2 py-1.5 text-xs ${FOCUS_RING} ${
-                selected
-                  ? 'bg-surface text-primary-strong shadow-kcp'
-                  : 'text-ink-soft hover:text-ink'
-              }`}
-            >
-              {t(TAB_LABEL[tab])}
-            </button>
-          );
-        })}
-      </div>
-
-      {referenceError ? (
-        <div className="flex flex-col gap-2 rounded-kcp border border-border bg-surface-alt p-3 text-sm">
-          <span className="flex items-center gap-2 font-semibold text-ink">
-            <AlertTriangle size={16} strokeWidth={2} aria-hidden />
-            {t('search.referenceErrorTitle')}
-          </span>
-          <span className="text-ink-soft">
-            {t('search.referenceErrorBody')}
-          </span>
-          <button
-            type="button"
-            onClick={reloadReference}
-            className={`self-start rounded-kcp bg-primary-strong px-3 py-1.5 text-xs font-semibold text-surface hover:bg-primary-hover ${FOCUS_OUTLINE}`}
-          >
-            {t('action.retry')}
-          </button>
-        </div>
-      ) : null}
-
-      <div className="flex flex-col gap-3">
-        {activeTab === 'by_class' ? (
-          <ClassFields
-            form={byClass}
-            reference={reference}
-            locale={language}
-            t={t}
-            patch={(patch) => {
-              searchStore.getState().patchClassForm(patch);
-            }}
-          />
-        ) : null}
-        {activeTab === 'by_subject_id' ? (
-          <SubjectIdInput
-            label={t('search.subjectId')}
-            value={bySubjectId.subjectId}
-            hint={t('search.subjectIdHint')}
-            invalid={subjectIdShowMessage}
-            invalidMessage={t('search.subjectIdInvalid')}
-            inputRef={subjectIdRef}
-            onChange={(subjectId) => {
-              searchStore.getState().patchSubjectIdForm({ subjectId });
-              setSubjectIdAttempted(false);
-            }}
-            onSubmit={handleSubmit}
-          />
-        ) : null}
-        {activeTab === 'by_subject_owner_id' ? (
-          <CategoryFields
-            form={byCategory}
-            reference={reference}
-            locale={language}
-            t={t}
-            patch={(patch) => {
-              searchStore.getState().patchCategoryForm(patch);
-            }}
-          />
-        ) : null}
-      </div>
-
-      <button
-        id={SEARCH_SUBMIT_ID}
-        type="button"
-        disabled={submitDisabled}
-        onClick={(event) => {
-          handleSubmit(event.currentTarget);
+      <SearchTabList
+        activeTab={activeTab}
+        label={t('search.emptyTitle')}
+        t={t}
+        onSelect={(tab) => {
+          searchStore.getState().setActiveTab(tab);
         }}
-        className={`rounded-kcp bg-primary-strong px-4 py-2 text-sm font-semibold text-surface hover:bg-primary-hover disabled:opacity-50 ${FOCUS_OUTLINE}`}
+      />
+
+      <div
+        id={SEARCH_TABPANEL_ID}
+        role="tabpanel"
+        aria-labelledby={searchTabId(activeTab)}
+        className="flex flex-col gap-4"
       >
-        {t('search.submit')}
-      </button>
+        {referenceError ? (
+          <div className="flex flex-col gap-2 rounded-kcp border border-border bg-surface-alt p-3 text-sm">
+            <span className="flex items-center gap-2 font-semibold text-ink">
+              <AlertTriangle size={16} strokeWidth={2} aria-hidden />
+              {t('search.referenceErrorTitle')}
+            </span>
+            <span className="text-ink-soft">
+              {t('search.referenceErrorBody')}
+            </span>
+            <button
+              type="button"
+              onClick={reloadReference}
+              className={`self-start rounded-kcp bg-primary-strong px-3 py-1.5 text-xs font-semibold text-surface hover:bg-primary-hover ${FOCUS_OUTLINE}`}
+            >
+              {t('action.retry')}
+            </button>
+          </div>
+        ) : null}
+
+        <div className="flex flex-col gap-3">
+          {activeTab === 'by_class' ? (
+            <ClassFields
+              form={byClass}
+              reference={reference}
+              locale={language}
+              t={t}
+              patch={(patch) => {
+                searchStore.getState().patchClassForm(patch);
+              }}
+            />
+          ) : null}
+          {activeTab === 'by_subject_id' ? (
+            <SubjectIdInput
+              label={t('search.subjectId')}
+              value={bySubjectId.subjectId}
+              hint={t('search.subjectIdHint')}
+              invalid={subjectIdShowMessage}
+              invalidMessage={t('search.subjectIdInvalid')}
+              inputRef={subjectIdRef}
+              onChange={(subjectId) => {
+                searchStore.getState().patchSubjectIdForm({ subjectId });
+                setSubjectIdAttempted(false);
+              }}
+              onSubmit={handleSubmit}
+            />
+          ) : null}
+          {activeTab === 'by_subject_owner_id' ? (
+            <CategoryFields
+              form={byCategory}
+              reference={reference}
+              locale={language}
+              t={t}
+              patch={(patch) => {
+                searchStore.getState().patchCategoryForm(patch);
+              }}
+            />
+          ) : null}
+        </div>
+
+        <button
+          id={SEARCH_SUBMIT_ID}
+          type="button"
+          disabled={submitDisabled}
+          onClick={(event) => {
+            handleSubmit(event.currentTarget);
+          }}
+          className={`rounded-kcp bg-primary-strong px-4 py-2 text-sm font-semibold text-surface hover:bg-primary-hover disabled:opacity-50 ${FOCUS_OUTLINE}`}
+        >
+          {t('search.submit')}
+        </button>
+      </div>
     </div>
   );
 }
