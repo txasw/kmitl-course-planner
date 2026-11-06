@@ -10,11 +10,19 @@
 // shared escape layer, so the overlay behind it stays open. A downward swipe on the
 // handle or the header also closes it; the body is left to the browser so a pan there
 // scrolls and a tap there activates. The body is capped at 85 percent of the dynamic
-// viewport height and scrolls inside, and the optional footer stays pinned below it,
-// padded clear of the home indicator. Reduced motion drops the entrance and the swipe
+// viewport height and scrolls inside, or the sheet fills the viewport when its content
+// is a long review, and the optional footer stays pinned below it, padded clear of the
+// home indicator. A sheet can name the control that takes focus on open in place of the
+// heading, as the modal dialog can. Reduced motion drops the entrance and the swipe
 // tracking, leaving the close button, the scrim, and Escape.
 
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  type ReactNode,
+  type RefObject,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { FOCUS_RING } from '@/lib/ui/focus';
@@ -35,6 +43,10 @@ interface BottomSheetProps {
   children: ReactNode;
   /** Actions pinned below the scrolling body. */
   footer?: ReactNode;
+  /** Whether the sheet fills the viewport height rather than fitting its content. */
+  fullHeight?: boolean;
+  /** The control that takes focus on open, in place of the heading. */
+  initialFocusRef?: RefObject<HTMLElement | null>;
 }
 
 export function BottomSheet({
@@ -43,6 +55,8 @@ export function BottomSheet({
   onClose,
   children,
   footer,
+  fullHeight = false,
+  initialFocusRef,
 }: BottomSheetProps) {
   const portalRoot = usePanelPortal();
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -55,8 +69,8 @@ export function BottomSheet({
   // The trap focuses the sheet itself; the heading is the clearer landing point because
   // it is read first and sits above the content.
   useEffect(() => {
-    headingRef.current?.focus();
-  }, []);
+    (initialFocusRef?.current ?? headingRef.current)?.focus();
+  }, [initialFocusRef]);
 
   const swipe = useSwipeGesture({
     axis: 'y',
@@ -89,7 +103,7 @@ export function BottomSheet({
         aria-labelledby={titleId}
         tabIndex={-1}
         style={swipe.style}
-        className={`relative flex max-h-[85dvh] w-full flex-col rounded-t-kcp-sheet bg-surface text-ink shadow-kcp outline-none ${reducedMotion ? '' : 'kcp-sheet-enter'}`}
+        className={`relative flex ${fullHeight ? 'h-dvh' : 'max-h-[85dvh]'} w-full flex-col rounded-t-kcp-sheet bg-surface text-ink shadow-kcp outline-none ${reducedMotion ? '' : 'kcp-sheet-enter'}`}
       >
         <div
           {...swipe.handlers}

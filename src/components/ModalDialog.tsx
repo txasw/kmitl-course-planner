@@ -6,12 +6,20 @@
 // tree, since the close button carries the same action.
 //
 // Focus is contained with the shared focus trap: it moves to the heading on open, wraps
-// on Tab, and returns to the opener on close. Escape closes the dialog only, through the
-// shared escape layer, so the overlay behind it stays open. The body is capped at 85
-// percent of the dynamic viewport height and scrolls inside. A list dialog takes the
-// narrow width, a table the wide one.
+// on Tab, and returns to the opener on close. A dialog whose likely next step is one
+// action, such as a review that ends in an acknowledgement, can name that control as the
+// landing point instead. Escape closes the dialog only, through the shared escape layer,
+// so the overlay behind it stays open. The body is capped at 85 percent of the dynamic
+// viewport height and scrolls inside, and the optional footer stays pinned below it. A
+// list dialog takes the narrow width, a review the medium one, a table the wide one.
 
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  type ReactNode,
+  type RefObject,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { FOCUS_RING } from '@/lib/ui/focus';
@@ -20,7 +28,11 @@ import { useEscapeLayer } from '@/features/shell/useEscapeLayer';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
-const WIDTH_CLASS = { narrow: 'max-w-md', wide: 'max-w-4xl' } as const;
+const WIDTH_CLASS = {
+  narrow: 'max-w-md',
+  medium: 'max-w-[32rem]',
+  wide: 'max-w-4xl',
+} as const;
 
 interface ModalDialogProps {
   /** The heading that names the dialog; it labels the dialog and takes focus on open. */
@@ -31,6 +43,10 @@ interface ModalDialogProps {
   children: ReactNode;
   /** The width cap, wide by default. */
   width?: keyof typeof WIDTH_CLASS;
+  /** Actions pinned below the scrolling body. */
+  footer?: ReactNode;
+  /** The control that takes focus on open, in place of the heading. */
+  initialFocusRef?: RefObject<HTMLElement | null>;
 }
 
 export function ModalDialog({
@@ -39,6 +55,8 @@ export function ModalDialog({
   onClose,
   children,
   width = 'wide',
+  footer,
+  initialFocusRef,
 }: ModalDialogProps) {
   const portalRoot = usePanelPortal();
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -48,8 +66,8 @@ export function ModalDialog({
   useFocusTrap(dialogRef, true);
   useEscapeLayer(dialogRef, onClose);
   useEffect(() => {
-    headingRef.current?.focus();
-  }, []);
+    (initialFocusRef?.current ?? headingRef.current)?.focus();
+  }, [initialFocusRef]);
 
   if (portalRoot === null) {
     return null;
@@ -93,6 +111,11 @@ export function ModalDialog({
         <div className="kcp-scroll min-h-0 flex-1 overflow-y-auto p-4 text-sm">
           {children}
         </div>
+        {footer !== undefined && footer !== null ? (
+          <div className="shrink-0 border-t border-border px-4 py-3">
+            {footer}
+          </div>
+        ) : null}
       </div>
     </div>,
     portalRoot,
