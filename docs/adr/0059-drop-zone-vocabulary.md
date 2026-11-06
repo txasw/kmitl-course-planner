@@ -106,8 +106,9 @@ now takes one of two forms, and exactly one is mounted for each block drag.
   the search summary bar included, takes no pointer events, and multiplies its fill onto the
   dimmed content, so the column white reads as the token and the list still shows through.
 - The bar form, on the tiers below the dock and while the docked column is hidden. A 64 px band
-  across the panel bottom, over the summary bar and padded by the bottom safe area inset, with
-  the same fills, borders and labels.
+  across the panel bottom, over the summary bar, with the same fills, borders and labels. Below
+  640 px it takes the place of the bottom nav, padded by the bottom safe area inset, as the
+  phone safe areas amendment of ADR-0048 records.
 
 Either drop removes the section and its pair as one transaction, with the ten second undo.
 Every remove target id carries the `kcp-remove-` prefix, and the explicit priority ranks any id
