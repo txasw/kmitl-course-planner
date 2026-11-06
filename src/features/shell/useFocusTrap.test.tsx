@@ -77,7 +77,7 @@ function NestedHarness({
   return (
     <div ref={outerRef} tabIndex={-1}>
       <button type="button">outer</button>
-      <div ref={innerRef} tabIndex={-1}>
+      <div ref={innerRef} tabIndex={-1} data-testid="inner">
         <button type="button" data-testid="inner-button">
           inner
         </button>
@@ -272,6 +272,70 @@ describe('useFocusTrap', () => {
     rerender(<Harness active={false} onEscape={onEscape} />);
     fireEvent.keyDown(screen.getByTestId('panel'), { key: 'Escape' });
     expect(onEscape).not.toHaveBeenCalled();
+  });
+
+  it('pulls focus dropped by an unmounted control back onto the panel', async () => {
+    render(<Harness active={true} />);
+    const last = screen.getByTestId('last');
+    last.focus();
+    // jsdom fires no focusout when the focused node goes, so drop focus to the body and
+    // send the event Chromium reports for a removed holder, with no related target.
+    last.blur();
+    fireEvent.focusOut(last, { relatedTarget: null });
+    expect(document.body).toHaveFocus();
+    await Promise.resolve();
+    expect(screen.getByTestId('panel')).toHaveFocus();
+  });
+
+  it('leaves focus a handler moved on purpose right after the drop', async () => {
+    render(<Harness active={true} />);
+    const last = screen.getByTestId('last');
+    last.focus();
+    last.blur();
+    fireEvent.focusOut(last, { relatedTarget: null });
+    screen.getByTestId('first').focus();
+    await Promise.resolve();
+    expect(screen.getByTestId('first')).toHaveFocus();
+  });
+
+  it('leaves focus that never left, as when the window loses focus', async () => {
+    render(<Harness active={true} />);
+    const first = screen.getByTestId('first');
+    first.focus();
+    fireEvent.focusOut(first, { relatedTarget: null });
+    await Promise.resolve();
+    expect(first).toHaveFocus();
+  });
+
+  it('leaves focus moved to a named control outside the panel', async () => {
+    render(<Harness active={true} />);
+    screen.getByTestId('first').focus();
+    const outside = screen.getByTestId('outside');
+    outside.focus();
+    await Promise.resolve();
+    expect(outside).toHaveFocus();
+  });
+
+  it('keeps dropped focus inside the innermost trap', async () => {
+    render(<NestedHarness onOuterEscape={vi.fn()} onInnerEscape={vi.fn()} />);
+    const button = screen.getByTestId('inner-button');
+    button.focus();
+    button.blur();
+    fireEvent.focusOut(button, { relatedTarget: null });
+    await Promise.resolve();
+    expect(screen.getByTestId('inner')).toHaveFocus();
+  });
+
+  it('pulls nothing once it deactivates', async () => {
+    const { rerender } = render(<Harness active={true} />);
+    const last = screen.getByTestId('last');
+    last.focus();
+    rerender(<Harness active={false} />);
+    last.focus();
+    last.blur();
+    fireEvent.focusOut(last, { relatedTarget: null });
+    await Promise.resolve();
+    expect(document.body).toHaveFocus();
   });
 
   it('restores focus to the opener when it deactivates', () => {
