@@ -491,6 +491,34 @@ describe('CourseCard course drag header', () => {
     expect(button).toHaveAttribute('aria-expanded', 'false');
   });
 
+  it('marks the header pressed during a long press and dims it while it drags', () => {
+    vi.useFakeTimers();
+    try {
+      render(<Harness />);
+      const button = toggle();
+      const at = { clientX: 10, clientY: 10 };
+      fireEvent.pointerDown(button, {
+        pointerType: 'touch',
+        isPrimary: true,
+        ...at,
+      });
+      fireEvent.touchStart(button, { touches: [at], changedTouches: [at] });
+      act(() => {
+        vi.advanceTimersByTime(120);
+      });
+      expect(surface()).toHaveClass('outline-border-strong');
+      act(() => {
+        vi.advanceTimersByTime(130);
+      });
+      expect(surface()).toHaveClass('opacity-40');
+      fireEvent.touchEnd(button, { touches: [], changedTouches: [at] });
+      fireEvent.pointerUp(button, { pointerType: 'touch', ...at });
+      expect(surface()).not.toHaveClass('opacity-40');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('does not toggle after a long press drag, while a tap still toggles', () => {
     vi.useFakeTimers();
     try {

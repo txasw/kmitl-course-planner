@@ -12,3 +12,6 @@ export const TOUCH_ACTIVATION_DELAY_MS = 250;
 
 /** Distance a held finger may drift inside the delay before the press becomes a scroll. */
 export const TOUCH_TOLERANCE_PX = 8;
+
+/** Time a finger is held before the surface reads as pressed, ahead of the drag. */
+export const PRESS_FEEDBACK_MS = 120;

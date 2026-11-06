@@ -20,6 +20,10 @@ import { RemoveButton, removeSectionName } from './RemoveButton';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { usePresence } from '@/features/shell/usePresence';
 import { useRevealOnExpand } from './useRevealOnExpand';
+import {
+  dragSourceClass,
+  useTouchPress,
+} from '@/features/planner/useTouchPress';
 
 const HEADER = 'flex items-start gap-1';
 
@@ -32,8 +36,8 @@ const DISCLOSURE_MS = 200;
 // an activated drag, so a drag never toggles the card. The drag has no keyboard path and
 // no accessible name: keyboard users open the card and add a specific section through
 // its rows (ADR-0024, amended by ADR-0057). On a touch screen a swipe on the header
-// scrolls the list, a tap toggles the card, and a long press starts the course drag
-// (ADR-0058).
+// scrolls the list, a tap toggles the card, and a long press starts the course drag,
+// with the header marked pressed on the way and dimmed once it drags (ADR-0058).
 function CourseDragHeader({
   course,
   children,
@@ -41,16 +45,18 @@ function CourseDragHeader({
   course: Course;
   children: ReactNode;
 }) {
-  const { setNodeRef, listeners } = useDraggable({
+  const { setNodeRef, listeners, isDragging } = useDraggable({
     id: `course-${course.subjectId}`,
     data: { course },
   });
+  const press = useTouchPress();
   return (
     <header
       ref={setNodeRef}
+      {...press.handlers}
       {...listeners}
       data-drag-surface="course"
-      className={`${HEADER} touch-drag`}
+      className={`${HEADER} touch-drag rounded-kcp ${dragSourceClass(isDragging, press.pressed)}`}
     >
       {children}
     </header>

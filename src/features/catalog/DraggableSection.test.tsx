@@ -125,7 +125,7 @@ describe('DraggableSection', () => {
     const grip = screen.getByRole('button', { name: 'ลาก s1' });
     fireEvent.mouseDown(grip, { button: 0, clientX: 10, clientY: 10 });
     fireEvent.mouseMove(document, { clientX: 60, clientY: 10 });
-    expect(surface()).not.toHaveClass('opacity-50');
+    expect(surface()).not.toHaveClass('opacity-40');
     fireEvent.mouseUp(document, { clientX: 60, clientY: 10 });
 
     fireEvent.mouseDown(screen.getByText('row'), {
@@ -134,7 +134,7 @@ describe('DraggableSection', () => {
       clientY: 10,
     });
     fireEvent.mouseMove(document, { clientX: 60, clientY: 10 });
-    expect(surface()).toHaveClass('opacity-50');
+    expect(surface()).toHaveClass('opacity-40');
     fireEvent.mouseUp(document, { clientX: 60, clientY: 10 });
   });
 
@@ -151,13 +151,43 @@ describe('DraggableSection', () => {
       };
       const grip = screen.getByRole('button', { name: 'ลาก s1' });
       hold(grip);
-      expect(surface()).not.toHaveClass('opacity-50');
+      expect(surface()).not.toHaveClass('opacity-40');
       fireEvent.touchEnd(grip, { touches: [], changedTouches: [at] });
 
       const row = screen.getByText('row');
       hold(row);
-      expect(surface()).toHaveClass('opacity-50');
+      expect(surface()).toHaveClass('opacity-40');
       fireEvent.touchEnd(row, { touches: [], changedTouches: [at] });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('marks the row pressed while a finger holds it, then dims it once it drags', () => {
+    vi.useFakeTimers();
+    try {
+      render(<Harness />);
+      const row = screen.getByText('row');
+      const at = { clientX: 10, clientY: 10 };
+      fireEvent.pointerDown(row, {
+        pointerType: 'touch',
+        isPrimary: true,
+        ...at,
+      });
+      fireEvent.touchStart(row, { touches: [at], changedTouches: [at] });
+      act(() => {
+        vi.advanceTimersByTime(120);
+      });
+      expect(surface()).toHaveClass('outline-border-strong', 'bg-surface-alt');
+      act(() => {
+        vi.advanceTimersByTime(130);
+      });
+      expect(surface()).toHaveClass('opacity-40');
+      expect(surface()).not.toHaveClass('outline-border-strong');
+      fireEvent.touchEnd(row, { touches: [], changedTouches: [at] });
+      fireEvent.pointerUp(row, { pointerType: 'touch', ...at });
+      expect(surface()).not.toHaveClass('opacity-40');
+      expect(surface()).not.toHaveClass('outline-border-strong');
     } finally {
       vi.useRealTimers();
     }
