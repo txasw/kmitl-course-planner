@@ -3,7 +3,8 @@
 // ghosts and the reason chip read it without recomputing per frame. A rejected
 // drop moves the active drag into a blocked feedback the strip renders with its
 // reason and alternatives. A hover, from a focused grip or a hovered row, previews
-// the target cells at low emphasis without arming a drag, and an announcement
+// the target cells at low emphasis without arming a drag, a hovered course card
+// previews where all of its sections would land, and an announcement
 // carries a keyboard outcome to the strip's live region. The grid frame is frozen
 // when a drag starts and released when it ends, so a search that lands or a plan
 // that revalidates mid drag never shifts the slots under the pointer. It is a
@@ -97,6 +98,10 @@ export interface DragStore {
   crossTerm: CrossTermFeedback | null;
   /** The section whose cells are previewed at low emphasis, or null. */
   hover: Section | null;
+  /** The catalog course whose sections are previewed on the grid, or null. Only the
+   * course is held; the preview derives its candidates from the live plan, so a plan
+   * change reclassifies them at once. */
+  hoverCourse: Course | null;
   /** A resolved message for the strip's live region after a keyboard outcome. */
   announcement: string | null;
   /** The active course level drag with its candidate slots, or null. */
@@ -129,6 +134,12 @@ export interface DragStore {
   clearCrossTerm: () => void;
   setHover: (section: Section) => void;
   clearHover: () => void;
+  /** Preview a course's sections on the grid. A drag in flight owns the grid, so the
+   * call is ignored until it ends. */
+  setHoverCourse: (course: Course) => void;
+  /** Clear the course preview, or only the given subject's, so a card that leaves
+   * never clears a preview another card has since taken. */
+  clearHoverCourse: (subjectId?: string) => void;
   announce: (message: string) => void;
   clearAnnouncement: () => void;
   startCourse: (course: Course, placed: Section[]) => void;
@@ -158,6 +169,7 @@ export function createDragStore() {
     blocked: null,
     crossTerm: null,
     hover: null,
+    hoverCourse: null,
     announcement: null,
     courseDrag: null,
     blockMove: null,
@@ -184,6 +196,7 @@ export function createDragStore() {
         blocked: null,
         crossTerm: null,
         hover: null,
+        hoverCourse: null,
         raised: null,
         hint: null,
       });
@@ -242,6 +255,17 @@ export function createDragStore() {
     clearHover: () => {
       set({ hover: null });
     },
+    setHoverCourse: (course) => {
+      if (selectDragging(get())) return;
+      set({ hoverCourse: course });
+    },
+    clearHoverCourse: (subjectId) => {
+      const { hoverCourse } = get();
+      if (hoverCourse === null) return;
+      if (subjectId !== undefined && hoverCourse.subjectId !== subjectId)
+        return;
+      set({ hoverCourse: null });
+    },
     announce: (message) => {
       set({ announcement: message });
     },
@@ -256,6 +280,7 @@ export function createDragStore() {
         blocked: null,
         crossTerm: null,
         hover: null,
+        hoverCourse: null,
         raised: null,
         hint: null,
         swapContext: null,
@@ -285,6 +310,7 @@ export function createDragStore() {
         blocked: null,
         crossTerm: null,
         hover: null,
+        hoverCourse: null,
         raised: null,
         hint: null,
         swapContext: null,
