@@ -8,6 +8,7 @@ import {
 import {
   acknowledgeEntry,
   defaultPlanName,
+  markReviewsNotified,
   duplicatePlanOf,
   importedPlan,
   makePlan,
@@ -192,5 +193,49 @@ describe('acknowledgeEntry', () => {
       target.teachTableId,
     );
     expect(untouched).toBe(other);
+  });
+});
+
+describe('markReviewsNotified', () => {
+  const review: EntryReview = {
+    kinds: ['time_changed'],
+    before: makeSnapshot(),
+    detectedAt: '2026-11-01T00:00:00.000Z',
+    notifiedAt: null,
+  };
+  const NOW = '2026-11-06T08:00:00.000Z';
+
+  it('stamps the open review of a listed entry and keeps its kinds', () => {
+    const changed = makePlanEntry({ verifyStatus: 'changed', review });
+    const [marked] = markReviewsNotified(
+      [changed],
+      new Set([changed.teachTableId]),
+      NOW,
+    );
+    expect(marked?.review).toEqual({ ...review, notifiedAt: NOW });
+    expect(marked?.verifyStatus).toBe('changed');
+  });
+
+  it('leaves an unlisted, unreviewed, or already shown entry as is', () => {
+    const shown = makePlanEntry({
+      verifyStatus: 'changed',
+      review: { ...review, notifiedAt: '2026-11-02T00:00:00.000Z' },
+    });
+    const plain = makePlanEntry({
+      snapshot: makeSnapshot({ teachTableId: 't2', subjectId: '90000002' }),
+    });
+    const other = makePlanEntry({
+      snapshot: makeSnapshot({ teachTableId: 't3', subjectId: '90000003' }),
+      verifyStatus: 'changed',
+      review,
+    });
+    const result = markReviewsNotified(
+      [shown, plain, other],
+      new Set([shown.teachTableId, 't2']),
+      NOW,
+    );
+    expect(result[0]).toBe(shown);
+    expect(result[1]).toBe(plain);
+    expect(result[2]).toBe(other);
   });
 });
