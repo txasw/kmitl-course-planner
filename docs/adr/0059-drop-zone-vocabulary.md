@@ -88,3 +88,40 @@ means swap, dashed ink soft means the block's own place, and dotted means a prev
 drop. The commit outline is a single element drawn only during a valid section drag, so the paint
 cost of a drag does not grow with the plan. A block drag can now be called off by putting the
 block back. A Medium tier drag keeps the catalog one edge away and its list where it was.
+
+## Amendment, 2026-11-06: the catalog remove zone
+
+The remove target was a small floating pill at the bottom centre of the panel. It was easy to
+miss, and it could sit over a block in the last row of the grid. It is retired. The remove zone
+now takes one of two forms, and exactly one is mounted for each block drag.
+
+- The column form, while the docked catalog column is shown. The column itself is the target:
+  the block came from the list, so dragging it back there reads as remove. The column content
+  stays mounted and dims to 30 percent, so the student keeps their place, under an overlay with
+  the `--kcp-danger-zone` fill, a 2 px dashed danger border inset 8 px, and a centred label with
+  a 24 px trash icon, วางที่นี่เพื่อนำออกจากตาราง, Drop here to remove from the plan, in danger
+  text on the surface. While the block is over it, the fill turns `--kcp-danger-zone-over`, the
+  border turns solid, and the label turns solid danger with white text, ปล่อยเพื่อนำออก, Release
+  to remove. The icon keeps its size, so nothing reflows. The overlay covers the whole column,
+  the search summary bar included, takes no pointer events, and multiplies its fill onto the
+  dimmed content, so the column white reads as the token and the list still shows through.
+- The bar form, on the tiers below the dock and while the docked column is hidden. A 64 px band
+  across the panel bottom, over the summary bar and padded by the bottom safe area inset, with
+  the same fills, borders and labels.
+
+Either drop removes the section and its pair as one transaction, with the ten second undo.
+Every remove target id carries the `kcp-remove-` prefix, and the explicit priority ranks any id
+with that prefix first, above a swap target and a candidate.
+
+The zone couples to the column's visibility, recorded in ADR-0048. The form is chosen at drag
+start from the tier and the docked choice, which cannot change during a drag. A hidden column
+mounts no zone, so a block dropped over its former place, or over the edge rail, falls through
+to the planner panel and commits nothing, and the bar is the target instead. Every drag first
+finishes a running column slide, so the zone is measured where the column settles, and while a
+block is dragged nothing inside the column auto scrolls under the pointer.
+
+Keeping the pill alongside the column was rejected because two remove targets on screen dilute
+the vocabulary, and the pill could cover a block. Making all space outside the grid a remove
+zone was rejected because a drop on the header or the toolbar should cancel, not destroy.
+Painting the fill as an opaque layer over the column was rejected because it would hide the list
+the student is returning the block to.
