@@ -16,6 +16,7 @@ import {
   type OnboardingPersistenceDeps,
 } from './useOnboardingPersistence';
 import { initialOnboardingData, onboardingStore } from './onboardingStore';
+import { uiStore } from '@/features/shell/uiStore';
 
 const INSTALL: InstallRecord = {
   schemaVersion: 1,
@@ -61,8 +62,31 @@ async function flush(): Promise<void> {
 
 afterEach(() => {
   cleanup();
+  act(() => {
+    uiStore.getState().close();
+  });
   onboardingStore.setState(initialOnboardingData());
 });
+
+function openPanel(): void {
+  act(() => {
+    uiStore.getState().open();
+  });
+}
+
+function closePanel(): void {
+  act(() => {
+    uiStore.getState().close();
+  });
+}
+
+function onboardingWrites(
+  storage: ReturnType<typeof createMemoryStorage>,
+): unknown[] {
+  return storage.set.mock.calls
+    .filter(([key]) => key === ONBOARDING_KEY)
+    .map(([, value]) => value);
+}
 
 describe('useOnboardingPersistence', () => {
   it('turns loaded true only after both reads settle', async () => {
@@ -192,5 +216,124 @@ describe('useOnboardingPersistence', () => {
     });
     await flush();
     expect(onboardingStore.getState().loaded).toBe(false);
+  });
+
+  it('records the first panel open', async () => {
+    const deps = storageDeps();
+    renderHook(() => {
+      useOnboardingPersistence(deps);
+    });
+    await flush();
+    openPanel();
+    await flush();
+
+    const writes = onboardingWrites(deps.storage);
+    expect(writes).toHaveLength(1);
+    const opened = onboardingStore.getState().record.panelFirstOpenedAt;
+    expect(opened).toEqual(expect.any(String));
+    expect(writes[0]).toEqual({ schemaVersion: 1, panelFirstOpenedAt: opened });
+  });
+
+  it('never rewrites the first open on later opens', async () => {
+    const deps = storageDeps();
+    renderHook(() => {
+      useOnboardingPersistence(deps);
+    });
+    await flush();
+    openPanel();
+    await flush();
+    const first = onboardingStore.getState().record.panelFirstOpenedAt;
+    closePanel();
+    openPanel();
+    await flush();
+
+    expect(onboardingWrites(deps.storage)).toHaveLength(1);
+    expect(onboardingStore.getState().record.panelFirstOpenedAt).toBe(first);
+  });
+
+  it('writes nothing when the stored record already has the first open', async () => {
+    const deps = storageDeps({
+      [ONBOARDING_KEY]: { schemaVersion: 1, panelFirstOpenedAt: SHOWN },
+    });
+    renderHook(() => {
+      useOnboardingPersistence(deps);
+    });
+    await flush();
+    openPanel();
+    await flush();
+
+    expect(deps.storage.set).not.toHaveBeenCalled();
+    expect(onboardingStore.getState().record.panelFirstOpenedAt).toBe(SHOWN);
+  });
+
+  it('writes the first open once when a second app is mounted', async () => {
+    const storage = createMemoryStorage();
+    const first: OnboardingPersistenceDeps = {
+      install: createInstallRepository(storage),
+      record: createOnboardingRepository(storage),
+    };
+    const second: OnboardingPersistenceDeps = {
+      install: createInstallRepository(storage),
+      record: createOnboardingRepository(storage),
+    };
+    renderHook(() => {
+      useOnboardingPersistence(first);
+    });
+    renderHook(() => {
+      useOnboardingPersistence(second);
+    });
+    await flush();
+    openPanel();
+    await flush();
+
+    expect(onboardingWrites(storage)).toHaveLength(1);
+  });
+
+  it('counts a panel opened while the records were being read', async () => {
+    const deps = storageDeps();
+    renderHook(() => {
+      useOnboardingPersistence(deps);
+    });
+    openPanel();
+    await flush();
+
+    expect(onboardingWrites(deps.storage)).toHaveLength(1);
+    expect(onboardingStore.getState().record.panelFirstOpenedAt).toBeDefined();
+  });
+
+  it('keeps a first open another tab wrote since the read', async () => {
+    const deps = storageDeps();
+    renderHook(() => {
+      useOnboardingPersistence(deps);
+    });
+    await flush();
+    deps.storage.store[ONBOARDING_KEY] = {
+      schemaVersion: 1,
+      panelFirstOpenedAt: SHOWN,
+    };
+    openPanel();
+    await flush();
+
+    expect(onboardingStore.getState().record.panelFirstOpenedAt).toBe(SHOWN);
+    expect(deps.storage.store[ONBOARDING_KEY]).toEqual({
+      schemaVersion: 1,
+      panelFirstOpenedAt: SHOWN,
+    });
+  });
+
+  it('writes only the onboarding key, never the worker owned install key', async () => {
+    const deps = storageDeps({ [INSTALL_KEY]: INSTALL });
+    renderHook(() => {
+      useOnboardingPersistence(deps);
+    });
+    await flush();
+    openPanel();
+    await flush();
+
+    expect(deps.storage.set).toHaveBeenCalled();
+    for (const [key] of deps.storage.set.mock.calls) {
+      expect(key).toBe(ONBOARDING_KEY);
+    }
+    expect(deps.storage.store[INSTALL_KEY]).toEqual(INSTALL);
   });
 });
