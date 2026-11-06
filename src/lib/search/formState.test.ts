@@ -15,7 +15,9 @@ import {
   isSubjectIdFormReady,
   isTermReady,
   isValidSubjectId,
+  missingField,
   sanitizeSubjectId,
+  type SearchForms,
 } from './formState';
 
 const term: Term = { year: '2569', semester: '1' };
@@ -102,6 +104,83 @@ describe('form readiness', () => {
   it('treats a term as ready once its year is seeded', () => {
     expect(isTermReady(term)).toBe(true);
     expect(isTermReady({ year: '', semester: '1' })).toBe(false);
+  });
+});
+
+describe('missingField', () => {
+  const forms = (): SearchForms => ({
+    byClass: defaultClassForm(),
+    bySubjectId: defaultSubjectIdForm(),
+    byCategory: defaultCategoryForm(),
+  });
+
+  it('names the class tab fields in the order they appear', () => {
+    const base = forms();
+    expect(missingField('by_class', term, base)).toBe('faculty');
+    const byClass = { ...base.byClass, faculty: '01' };
+    expect(missingField('by_class', term, { ...base, byClass })).toBe(
+      'department',
+    );
+    const withDepartment = { ...byClass, department: '08' };
+    expect(
+      missingField('by_class', term, { ...base, byClass: withDepartment }),
+    ).toBe('curriculum');
+    expect(
+      missingField('by_class', term, {
+        ...base,
+        byClass: { ...withDepartment, curriculum: '121' },
+      }),
+    ).toBeNull();
+  });
+
+  it('names the shared year before any other field on every tab', () => {
+    const base = forms();
+    const noYear: Term = { ...term, year: '' };
+    expect(missingField('by_class', noYear, base)).toBe('year');
+    expect(missingField('by_subject_id', noYear, base)).toBe('year');
+    expect(missingField('by_subject_owner_id', noYear, base)).toBe('year');
+  });
+
+  it('names an incomplete subject id on the subject id tab', () => {
+    const base = forms();
+    expect(missingField('by_subject_id', term, base)).toBe('subjectId');
+    expect(
+      missingField('by_subject_id', term, {
+        ...base,
+        bySubjectId: { ...base.bySubjectId, subjectId: '9059203' },
+      }),
+    ).toBe('subjectId');
+    expect(
+      missingField('by_subject_id', term, {
+        ...base,
+        bySubjectId: { ...base.bySubjectId, subjectId: '90592033' },
+      }),
+    ).toBeNull();
+  });
+
+  it('names the faculty and then the category on the category tab', () => {
+    const base = forms();
+    expect(missingField('by_subject_owner_id', term, base)).toBe('faculty');
+    const byCategory = { ...base.byCategory, faculty: 'all' };
+    expect(
+      missingField('by_subject_owner_id', term, { ...base, byCategory }),
+    ).toBe('subjectOwner');
+    expect(
+      missingField('by_subject_owner_id', term, {
+        ...base,
+        byCategory: { ...byCategory, subjectOwner: '32' },
+      }),
+    ).toBeNull();
+  });
+
+  it('agrees with the readiness check of each tab', () => {
+    const base = forms();
+    expect(missingField('by_class', term, base) === null).toBe(
+      isClassFormReady(base.byClass),
+    );
+    expect(missingField('by_subject_owner_id', term, base) === null).toBe(
+      isCategoryFormReady(base.byCategory),
+    );
   });
 });
 

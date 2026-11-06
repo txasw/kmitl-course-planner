@@ -12,8 +12,8 @@ import { AlertTriangle } from 'lucide-react';
 import { buddhistYears, toBuddhistYear } from '@/lib/routing/academicTerms';
 import {
   buildTeachTableQueryForTab,
-  isTermReady,
   isValidSubjectId,
+  missingField,
 } from '@/lib/search/formState';
 import { commitAndFocus } from '@/features/shell/commitAndFocus';
 import { useTranslation } from '@/features/shell/useTranslation';
@@ -26,7 +26,7 @@ import {
 } from './fields';
 import { SEARCH_BAR_ID, SEARCH_TABPANEL_ID, searchTabId } from './searchIds';
 import { searchStore } from './searchStore';
-import { SearchSubmit } from './SearchSubmit';
+import { SearchSubmit, missingFieldReason } from './SearchSubmit';
 import { SearchTabList } from './SearchTabList';
 import { useSearchDeps } from './SearchDepsContext';
 import { useHashRoute } from './useHashRoute';
@@ -69,11 +69,8 @@ export function SearchForm() {
       curricula.status === 'error' ||
       subjectOwners.status === 'error');
 
-  const query = buildTeachTableQueryForTab(activeTab, term, {
-    byClass,
-    bySubjectId,
-    byCategory,
-  });
+  const forms = { byClass, bySubjectId, byCategory };
+  const query = buildTeachTableQueryForTab(activeTab, term, forms);
 
   // A value longer than eight digits can only arrive from a persisted or imported
   // search, so it shows the safety net message at once; a short value shows the
@@ -86,11 +83,13 @@ export function SearchForm() {
     subjectIdOutOfRange ||
     (subjectIdAttempted && !isValidSubjectId(bySubjectId.subjectId));
 
-  // The subject id submit stays enabled while the id is incomplete so a click or
-  // Enter routes to the inline message and focuses the field rather than a dead
-  // disabled control; the other tabs disable until their form is ready.
-  const submitDisabled =
-    activeTab === 'by_subject_id' ? !isTermReady(term) : query === null;
+  // The subject id submit stays live while the id is incomplete so a click or Enter
+  // routes to the inline message and focuses the field rather than a dead control; any
+  // other missing field blocks the submit and names itself under it.
+  const submitReason = missingFieldReason(
+    missingField(activeTab, term, forms),
+    t,
+  );
 
   // An accepted search folds this form and turns it inert, so focus moves from the
   // pressed control to the summary bar in the same commit. The bar is not a button, so
@@ -195,11 +194,7 @@ export function SearchForm() {
               }}
             />
           ) : null}
-          <SearchSubmit
-            disabled={submitDisabled}
-            t={t}
-            onSubmit={handleSubmit}
-          />
+          <SearchSubmit reason={submitReason} t={t} onSubmit={handleSubmit} />
         </div>
       </div>
     </div>
