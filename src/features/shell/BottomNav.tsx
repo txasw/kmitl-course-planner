@@ -7,9 +7,12 @@
 // as a chip over the icon and in the accessible name, so the number is read with the
 // label. While two placed subjects clash on an exam, the summary item carries a danger
 // dot over its icon and the clash in its accessible name, as the summary tab does on the
-// wider tiers, so the exam schedule that lists the clash stays one tap away. Each item is
-// at least 56 px tall, and the nav pads below them by the bottom safe area inset, so the
-// items stay clear of the home indicator while the fill reaches it.
+// wider tiers, so the exam schedule that lists the clash stays one tap away. While the
+// plan has anything to review, the timetable item carries the review dot of ADR-0060, and
+// its accessible name adds the updates indicator wording with the count, so neither dot's
+// meaning is carried by colour alone. The indicator chip itself heads the plan pane. Each
+// item is at least 56 px tall, and the nav pads below them by the bottom safe area inset,
+// so the items stay clear of the home indicator while the fill reaches it.
 // During a block drag the nav turns into the remove bar: its items hide and go inert, and
 // the bar lays over the nav's own box, so the pane above keeps its height mid drag and a
 // lift over the bar never reaches a nav item, which has no meaning while a block is held.
@@ -29,7 +32,9 @@ import { NavRemoveBar, useNavRemoving } from '@/features/planner/RemoveZone';
 import { groupEntriesBySubject } from '@/features/planner/SelectedCoursesList';
 import { useExamSchedule } from '@/features/planner/useExamSchedule';
 import { planStore } from '@/features/plans/planStore';
-import type { TranslationKey } from '@/lib/i18n/t';
+import type { Translate, TranslationKey } from '@/lib/i18n/t';
+import { fillTemplate } from '@/lib/i18n/template';
+import { countUpdateItems } from '@/lib/planner/updateReview';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import {
   NAV_ITEMS,
@@ -67,6 +72,26 @@ function itemCount(
   return null;
 }
 
+/** The accessible name of an item: its label, then its count and its review wording. */
+function itemName(
+  label: string,
+  count: number | null,
+  reviewCount: number,
+  examClash: boolean,
+  t: Translate,
+): string {
+  return [
+    label,
+    count === null ? null : String(count),
+    examClash ? t('planView.examClash') : null,
+    reviewCount > 0
+      ? fillTemplate(t('updates.indicator'), { count: reviewCount })
+      : null,
+  ]
+    .filter((part) => part !== null)
+    .join(' ');
+}
+
 export function BottomNav() {
   const { t } = useTranslation();
   const pane = useMobilePane();
@@ -77,6 +102,9 @@ export function BottomNav() {
     (state) => groupEntriesBySubject(state.entries).length,
   );
   const examClash = useExamSchedule().hasClash;
+  const reviewCount = useStore(planStore, (state) =>
+    countUpdateItems(state.entries),
+  );
   const active = activeNavItem(pane, planView);
   const removing = useNavRemoving();
 
@@ -94,7 +122,7 @@ export function BottomNav() {
           const label = t(LABEL_KEY[item]);
           const count = itemCount(item, courseCount, selectedCount);
           const clashDot = item === 'summary' && examClash;
-          const name = count === null ? label : `${label} ${String(count)}`;
+          const itemReviews = item === 'timetable' ? reviewCount : 0;
           const current = item === active;
           return (
             <button
@@ -102,9 +130,7 @@ export function BottomNav() {
               id={navItemId(item)}
               type="button"
               aria-current={current ? 'page' : undefined}
-              aria-label={
-                clashDot ? `${name} ${t('planView.examClash')}` : name
-              }
+              aria-label={itemName(label, count, itemReviews, clashDot, t)}
               onClick={() => {
                 selectNavItem(item);
               }}
@@ -125,6 +151,12 @@ export function BottomNav() {
                   <span
                     aria-hidden
                     className="absolute -top-0.5 -right-1 size-2 rounded-full bg-danger ring-2 ring-surface"
+                  />
+                ) : null}
+                {itemReviews > 0 ? (
+                  <span
+                    data-review-dot
+                    className="absolute -top-0.5 -right-1 size-2.5 rounded-full bg-warn ring-2 ring-surface"
                   />
                 ) : null}
               </span>
