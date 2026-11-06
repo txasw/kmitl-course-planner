@@ -1,14 +1,16 @@
 // The planner region: the weekly timetable rendered from the plan snapshots. It
 // reads the plan entries, reshapes them into placed sections, and derives the
 // visible time window from the scheduled meetings and the current catalog result so
-// an early or late class widens the grid. Unscheduled sections and the footer
-// summary arrive with the shelf. In edit mode the plan view of ADR-0049 switches the
-// region between the timetable, the selected courses list, and the summary: through the
-// tabs above the region on the medium and wide tiers, and through the bottom nav below
-// 640 px, where the region carries no tabs and so no tabpanel semantics. A timetable
-// narrower than 640 px reads one day at a time through the day view.
+// an early or late class widens the grid. Unscheduled sections arrive with the shelf. In
+// edit mode the plan view of ADR-0049 switches the region between the timetable, the
+// selected courses list, and the summary: through the tabs above the region on the medium
+// and wide tiers, and through the bottom nav below 640 px, where the region carries no
+// tabs and so no tabpanel semantics. A timetable narrower than 640 px reads one day at a
+// time through the day view. The stats bar sits under every view, since it sums the plan
+// rather than the view.
 
 import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
+import { flushSync } from 'react-dom';
 import { useStore } from 'zustand';
 import { snapshotToSection } from '@/lib/domain/plan';
 import { catalogMeetings } from '@/lib/catalog/catalogMeetings';
@@ -31,14 +33,16 @@ import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { commitThenFocus } from '@/features/shell/restoreFocus';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
+import { usePrefersReducedMotion } from '@/features/shell/usePresence';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { removalOrder, targetsAfterRemoval } from './blockFocus';
+import { firstClash } from './clashTarget';
+import { locateSection } from './locateSection';
 import { isScheduled, toPlacedSection } from './placedSection';
 import { dragStore, selectDragging } from './dragStore';
 import { BlockDetailSurface } from './BlockDetailSurface';
 import { BlockContextMenu } from './BlockContextMenu';
 import { FeedbackStrip } from './FeedbackStrip';
-import { GridFooter } from './GridFooter';
 import { PlanViewTabs, planViewPanelId, planViewTabId } from './PlanViewTabs';
 import { type PosterData } from './PreviewPoster';
 import { PreviewToolbar } from './PreviewToolbar';
@@ -48,6 +52,7 @@ import {
   SelectedCoursesList,
   groupEntriesBySubject,
 } from './SelectedCoursesList';
+import { StatsBar } from './StatsBar';
 import { TemplateGallery } from './TemplateGallery';
 import { TimetableView } from './TimetableView';
 import { UnscheduledShelf } from './UnscheduledShelf';
@@ -171,6 +176,27 @@ export function PlannerPanel() {
   // The day the day view shows once the student picks one. It lives here rather than in
   // the view, so a switch to the selected courses view and back keeps the picked day.
   const [timetableDay, setTimetableDay] = useState<DayOfWeek | null>(null);
+  // The stats bar conflict action points at the first clashing section in time order. It
+  // shows the timetable and, for the day view, the clash's day in one synchronous commit,
+  // so the block exists when it is looked up.
+  const reducedMotion = usePrefersReducedMotion();
+  const handleShowConflict = useCallback(() => {
+    const clash = firstClash(
+      sections,
+      new Set([...conflictIds, ...examConflictIds]),
+    );
+    if (clash === null) return;
+    flushSync(() => {
+      setPlanView('timetable');
+      if (clash.day !== null) {
+        setTimetableDay(clash.day);
+      }
+    });
+    const scope = rootRef.current;
+    if (scope !== null) {
+      locateSection(scope, clash.teachTableId, reducedMotion);
+    }
+  }, [sections, conflictIds, examConflictIds, reducedMotion, setPlanView]);
   const [detail, setDetail] = useState<{
     teachTableId: string;
     anchor: HTMLElement;
@@ -359,11 +385,16 @@ export function PlannerPanel() {
               editable
             />
           ) : null}
-          {sections.length > 0 ? (
-            <GridFooter sections={sections} t={t} />
-          ) : null}
         </div>
       )}
+      {!isPreview && sections.length > 0 ? (
+        <StatsBar
+          sections={sections}
+          conflictCount={honesty.conflictPairCount}
+          onShowConflict={handleShowConflict}
+          t={t}
+        />
+      ) : null}
       {detail !== null ? (
         <BlockDetailSurface
           teachTableId={detail.teachTableId}

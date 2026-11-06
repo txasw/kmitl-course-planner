@@ -1,5 +1,6 @@
-// Shows a placed section on the timetable for the updates dialog's show on timetable action.
-// The dialog closes first, so the section's earliest block is scrolled into view, takes
+// Shows a placed section on the timetable, for the updates dialog's show on timetable action
+// and the stats bar conflict action. The dialog closes first, so the section's earliest
+// block, of those the timetable renders, is scrolled into view, takes
 // focus, and pulses twice in the brand orange, the accent for selection, so the eye lands
 // on it. A section with no meeting has no block; its shelf row scrolls into view and pulses
 // instead, and focus stays where the closing dialog returned it, since the row's only
