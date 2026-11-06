@@ -15,6 +15,15 @@ function rect(left: number, top: number): ClientRect {
 
 const IDENTITY = { x: 0, y: 0, scaleX: 1, scaleY: 1 };
 
+/** A touch start at one point. jsdom has no Touch constructor, so the touch list is a
+ * plain array of the two fields the modifier reads. */
+function touchStart(clientX: number, clientY: number): Event {
+  return Object.assign(new Event('touchstart'), {
+    touches: [{ clientX, clientY }],
+    changedTouches: [],
+  });
+}
+
 // The modifier receives the full dnd-kit argument object; only the activator event,
 // the dragging node rect, and the transform drive the result, so the rest are the
 // inert defaults dnd-kit would pass before anything is measured.
@@ -40,6 +49,18 @@ describe('activatorCoordinates', () => {
   it('reads client coordinates from a pointer event', () => {
     const event = new MouseEvent('pointerdown', { clientX: 120, clientY: 80 });
     expect(activatorCoordinates(event)).toEqual({ x: 120, y: 80 });
+  });
+
+  it('reads client coordinates from the first touch of a touch start', () => {
+    expect(activatorCoordinates(touchStart(64, 48))).toEqual({ x: 64, y: 48 });
+  });
+
+  it('returns null for a touch event that carries no touch', () => {
+    const empty = Object.assign(new Event('touchstart'), {
+      touches: [],
+      changedTouches: [],
+    });
+    expect(activatorCoordinates(empty)).toBeNull();
   });
 
   it('returns null when there is no event', () => {

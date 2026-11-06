@@ -6,17 +6,15 @@
 // drag lifts a placed section: the remove zone appears at the panel edge and the grid
 // paints the subject's other sections as move targets, so a drop removes the section
 // or moves it to another slot. A custom collision detection resolves overlapping drop
-// targets by an explicit priority, and a short pointer activation distance keeps a
-// click on a row or block button from starting a drag.
+// targets by an explicit priority. A mouse drag starts after a short distance, so a
+// click on a row or block button is never a drag, and a touch drag starts after a long
+// press, so a swipe on a drag surface scrolls (ADR-0058).
 
 import type { CSSProperties, ReactNode } from 'react';
 import { useCallback } from 'react';
 import {
   DndContext,
   DragOverlay,
-  PointerSensor,
-  useSensor,
-  useSensors,
   type DragEndEvent,
   type DragOverEvent,
   type DragStartEvent,
@@ -42,6 +40,7 @@ import { RemoveZone, REMOVE_ZONE_ID } from './RemoveZone';
 import { resolveCourseForSubject } from './resolveCourse';
 import { snapDragCardToCursor } from './snapToCursor';
 import { prioritizedCollision } from './collision';
+import { usePlannerSensors } from './usePlannerSensors';
 
 interface SectionDragData {
   course: Course;
@@ -140,8 +139,6 @@ function rejectCandidate(
   }
 }
 
-const ACTIVATION_DISTANCE = 6;
-
 // dnd-kit sets an inline z-index of 999 on the overlay wrapper, and its style prop is
 // spread after that default, so the layer token replaces it here.
 const DRAG_OVERLAY_STYLE: CSSProperties = {
@@ -153,14 +150,7 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
   const hintText = t('feedback.courseDropHint');
   const moveHint = t('feedback.moveHint');
   const removeLabel = t('blockMove.removeZone');
-  // Only the pointer sensor drags. The grip commits on Enter or Space through its
-  // own click handler, so there is no arrow key move machinery to arm, which would
-  // be meaningless when every placement is fixed.
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: ACTIVATION_DISTANCE },
-    }),
-  );
+  const sensors = usePlannerSensors();
   const active = useStore(dragStore, (state) => state.active);
   const courseDrag = useStore(dragStore, (state) => state.courseDrag);
   const blockMove = useStore(dragStore, (state) => state.blockMove);

@@ -7,14 +7,28 @@
 
 import type { Modifier } from '@dnd-kit/core';
 
-/** Read the client coordinates a drag started from, or null when unavailable. The
- * pointer sensor delivers a pointer event that carries clientX and clientY, which
- * also covers touch, so no separate touch event branch is needed. */
+/** Whether a drag was started by a finger. The touch sensor activates from a touch start,
+ * which carries its coordinates on the touch list rather than on the event. The type is
+ * read rather than tested with instanceof, since a desktop browser without touch support
+ * has no TouchEvent constructor. */
+export function isTouchEvent(event: Event): event is TouchEvent {
+  return event.type.startsWith('touch');
+}
+
+/** Read the client coordinates a drag started from, or null when unavailable. The mouse
+ * sensor delivers a mouse event that carries clientX and clientY; the touch sensor
+ * delivers a touch start whose first touch carries them. */
 export function activatorCoordinates(
   event: Event | null,
 ): { x: number; y: number } | null {
+  if (event === null) {
+    return null;
+  }
+  if (isTouchEvent(event)) {
+    const touch = event.touches[0] ?? event.changedTouches[0];
+    return touch === undefined ? null : { x: touch.clientX, y: touch.clientY };
+  }
   if (
-    event !== null &&
     'clientX' in event &&
     'clientY' in event &&
     typeof event.clientX === 'number' &&

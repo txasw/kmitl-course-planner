@@ -6,11 +6,12 @@
 //
 // The control is a text button with a 24 px target, 44 px under a coarse pointer, that
 // takes the line's own height through a negative margin so the row does not grow for it.
-// It stops the pointer down so pressing it never starts a drag of the row it sits in.
+// It stops the press events so pressing it never starts a drag of the row it sits in.
 
 import { useId, useRef, useState, type ReactNode } from 'react';
 import type { Locale } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { NO_DRAG_ARMING } from '@/features/planner/dragArming';
 import { useTruncated } from './useTruncated';
 
 interface CollapsibleLinesProps {
@@ -73,9 +74,7 @@ export function CollapsibleLines({
           type="button"
           aria-expanded={expanded}
           aria-controls={listId}
-          onPointerDown={(event) => {
-            event.stopPropagation();
-          }}
+          {...NO_DRAG_ARMING}
           onClick={() => {
             setExpanded((value) => !value);
           }}

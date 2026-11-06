@@ -54,6 +54,22 @@ function overflowWhileShowing(text: string): void {
 }
 
 describe('EventBlock', () => {
+  it('lets a swipe on a draggable block scroll and leaves a long press to the drag', () => {
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        dragListeners={{}}
+      />,
+    );
+    const block = screen.getByLabelText(/90592033/);
+    expect(block).toHaveClass('touch-drag', 'cursor-grab');
+    expect(block).not.toHaveClass('touch-none');
+  });
+
   it('shows the time, name, subject id, section, and place', () => {
     render(
       <EventBlock

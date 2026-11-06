@@ -31,8 +31,9 @@ const DISCLOSURE_MS = 200;
 // the course as a candidate slot on the grid, and dnd-kit swallows the click that ends
 // an activated drag, so a drag never toggles the card. The drag has no keyboard path and
 // no accessible name: keyboard users open the card and add a specific section through
-// its rows (ADR-0024, amended by ADR-0057). touch-pan-y lets a vertical swipe scroll the
-// list while a horizontal swipe still starts the drag.
+// its rows (ADR-0024, amended by ADR-0057). On a touch screen a swipe on the header
+// scrolls the list, a tap toggles the card, and a long press starts the course drag
+// (ADR-0058).
 function CourseDragHeader({
   course,
   children,
@@ -49,7 +50,7 @@ function CourseDragHeader({
       ref={setNodeRef}
       {...listeners}
       data-drag-surface="course"
-      className={`${HEADER} touch-pan-y`}
+      className={`${HEADER} touch-drag`}
     >
       {children}
     </header>

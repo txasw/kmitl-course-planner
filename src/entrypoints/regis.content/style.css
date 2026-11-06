@@ -200,6 +200,17 @@ html {
   z-index: 2147483647;
 }
 
+/* A drag surface on a touch screen (ADR-0058). The browser keeps its pan and pinch, so
+   a swipe that starts on a row, a course header, or a block scrolls, and a long press
+   is left to the touch sensor. A held finger neither selects text nor opens the iOS
+   callout menu. */
+@utility touch-drag {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 /* Placeholders read ink soft at full opacity, which clears 4.5:1 on both surfaces,
    replacing the preflight default of half the current color. Declared in the base
    layer after preflight so a placeholder utility can still override it. */

@@ -7,12 +7,8 @@ import {
   cleanup,
   act,
 } from '@testing-library/react';
-import {
-  DndContext,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
+import { DndContext } from '@dnd-kit/core';
+import { usePlannerSensors } from '@/features/planner/usePlannerSensors';
 import { createTranslator, type Translate } from '@/lib/i18n/t';
 import type { Section } from '@/lib/domain/types';
 import {
@@ -429,7 +425,7 @@ describe('CourseCard course drag header', () => {
     expect(surface().contains(toggle())).toBe(true);
   });
 
-  it('lets a vertical swipe on the header scroll the list', () => {
+  it('lets a swipe on the header scroll the list and leaves a long press to the drag', () => {
     render(
       <Controlled
         course={course}
@@ -439,8 +435,9 @@ describe('CourseCard course drag header', () => {
         onAdd={() => undefined}
       />,
     );
-    expect(surface()).toHaveClass('touch-pan-y');
+    expect(surface()).toHaveClass('touch-drag');
     expect(surface()).not.toHaveClass('touch-none');
+    expect(surface()).not.toHaveClass('touch-pan-y');
   });
 
   it('omits the course drag surface without an add handler', () => {
@@ -466,38 +463,59 @@ describe('CourseCard course drag header', () => {
     expect(toggle()).toHaveAttribute('aria-expanded', 'false');
   });
 
-  // Pins dnd-kit's own click suppression: once a pointer drag activates, it swallows
-  // the click that ends it, so a header drag never toggles the card. A dnd-kit upgrade
-  // that drops the behaviour fails here.
-  it('does not toggle after a header drag released over the header', () => {
-    function Harness() {
-      const sensors = useSensors(
-        useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-      );
-      return (
-        <DndContext sensors={sensors}>
-          <Controlled
-            course={course}
-            placed={[]}
-            locale="th"
-            t={t}
-            onAdd={() => undefined}
-          />
-        </DndContext>
-      );
-    }
+  function Harness() {
+    const sensors = usePlannerSensors();
+    return (
+      <DndContext sensors={sensors}>
+        <Controlled
+          course={course}
+          placed={[]}
+          locale="th"
+          t={t}
+          onAdd={() => undefined}
+        />
+      </DndContext>
+    );
+  }
+
+  // Pins dnd-kit's own click suppression: once a drag activates, it swallows the click
+  // that ends it, so a header drag never toggles the card. A dnd-kit upgrade that drops
+  // the behaviour fails here.
+  it('does not toggle after a mouse drag released over the header', () => {
     render(<Harness />);
     const button = toggle();
-    fireEvent.pointerDown(button, {
-      isPrimary: true,
-      button: 0,
-      clientX: 10,
-      clientY: 10,
-    });
-    fireEvent.pointerMove(document, { clientX: 40, clientY: 12 });
-    fireEvent.pointerUp(document, { clientX: 12, clientY: 10 });
+    fireEvent.mouseDown(button, { button: 0, clientX: 10, clientY: 10 });
+    fireEvent.mouseMove(document, { clientX: 40, clientY: 12 });
+    fireEvent.mouseUp(document, { clientX: 12, clientY: 10 });
     fireEvent.click(button);
     expect(button).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('does not toggle after a long press drag, while a tap still toggles', () => {
+    vi.useFakeTimers();
+    try {
+      render(<Harness />);
+      const button = toggle();
+      const at = { clientX: 10, clientY: 10 };
+      fireEvent.touchStart(button, { touches: [at], changedTouches: [at] });
+      act(() => {
+        vi.advanceTimersByTime(300);
+      });
+      fireEvent.touchEnd(button, { touches: [], changedTouches: [at] });
+      fireEvent.click(button);
+      expect(button).toHaveAttribute('aria-expanded', 'false');
+
+      // dnd-kit lifts its click guard shortly after the drag ends, then a tap is a click.
+      act(() => {
+        vi.advanceTimersByTime(100);
+      });
+      fireEvent.touchStart(button, { touches: [at], changedTouches: [at] });
+      fireEvent.touchEnd(button, { touches: [], changedTouches: [at] });
+      fireEvent.click(button);
+      expect(button).toHaveAttribute('aria-expanded', 'true');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
