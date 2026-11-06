@@ -1,9 +1,11 @@
 // The edit mode drag feedback drawn over the day lanes: the footprint ghosts of an active
 // section drag, the candidate slots of a course drag or a block move, the preview of a
-// hovered course card, the hover preview of a catalog row, and the swap targets over the
-// blockers of a blocked drag. The ghosts and previews take precedence in that order, so a
-// real drag always owns the grid and a preview never paints under one. It is distinct
-// from the dnd-kit drag overlay, which renders only the grab card that follows the pointer.
+// hovered course card, the hover preview of a catalog row, the lifted origin of a block
+// move, and the swap targets over the blockers of a blocked drag. The ghosts and previews
+// take precedence in that order, so a real drag always owns the grid and a preview never
+// paints under one. The origin paints before the candidates, so a candidate that shares a
+// cell with it draws over it. It is distinct from the dnd-kit drag overlay, which renders
+// only the grab card that follows the pointer.
 // Every item places at its fixed meeting position, so nothing here moves during a drag.
 // Renders a fragment so every item is a direct child of the grid and places by track index.
 
@@ -18,6 +20,7 @@ import { dragStore } from './dragStore';
 import { CandidateSlot } from './CandidateSlot';
 import { SwapTarget } from './SwapTarget';
 import { CoursePreviewLayer } from './CoursePreviewLayer';
+import { LiftedOrigin, ORIGIN_ID_PREFIX } from './LiftedOrigin';
 import type { PlacedSection } from './placedSection';
 import { blockStyle, stackOffsetStyle, type Orientation } from './gridGeometry';
 
@@ -93,6 +96,21 @@ export function CandidateLayer({
               style={blockStyle(meeting, window, days, orientation)}
             />
           ))
+        : null}
+
+      {blockMove !== null
+        ? blockMove.group.flatMap((groupSection) =>
+            groupSection.meetings.map((meeting) => {
+              const id = `${ORIGIN_ID_PREFIX}${groupSection.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`;
+              return (
+                <LiftedOrigin
+                  key={id}
+                  id={id}
+                  style={blockStyle(meeting, window, days, orientation)}
+                />
+              );
+            }),
+          )
         : null}
 
       {candidates !== null
