@@ -22,7 +22,18 @@ button. Never skip it.
 - [ ] Rejected drop fallback: after a blocked drop, the feedback strip states the
       reason and offers up to two alternative sections that fit; tapping one adds it
       and clears the strip. When none fit, the reveal action filters the catalog to
-      the subject.
+      the subject, opens the sheet or brings back a hidden course column, scrolls the
+      card into view, and moves focus to it. When the results no longer list the
+      subject, the strip offers a search for it instead, which runs by subject code in
+      the plan's term.
+- [ ] Strip timing and dismiss: rest the pointer on a blocked notice, or Tab into it,
+      for longer than six seconds. It stays until the pointer leaves or focus moves on,
+      then clears after the time it had left. The close control at its end clears it
+      at once.
+- [ ] Strip over the sheet: below 1024 px, open the course sheet and add a time
+      conflicting section. The strip floats at the foot of the sheet above the dimmed
+      backdrop and above the add toast, focus lands on the first alternative chip, and
+      a tap on the chip adds it while the sheet stays open.
 - [ ] Blocked add via the button: pressing add on a time conflicting section routes
       to the same feedback strip with the same alternatives rather than doing
       nothing.
@@ -253,8 +264,8 @@ add and remove controls, so no action is a dead end for the keyboard.
       section or routes to the blocked feedback, and the outcome is announced.
 - [ ] Blocked add and suggestions: press add on a time conflicting section. Focus stays
       reachable and the feedback strip states the reason and offers alternative section
-      chips; Tab to a chip and press Enter to add it. When none fit, the reveal control
-      filters the catalog to the subject.
+      chips, and focus moves to the first chip; press Enter to add it. When none fit,
+      the reveal control filters the catalog to the subject and moves focus to its card.
 - [ ] Exam overlap: add a section whose exam overlaps a placed one. The add succeeds and the
       strip states the exam overlap; the placed block reads its warn state in its label.
 - [ ] Grid blocks: Tab through the placed blocks. The tab order follows the day then time
