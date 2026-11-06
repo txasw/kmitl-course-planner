@@ -22,10 +22,12 @@ import {
   usePanelPopover,
 } from '@/features/shell/usePanelPopover';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import { DeleteConfirm } from './DeleteConfirm';
 import { ImportErrorView } from './ImportErrorView';
 import { NameForm } from './NameForm';
-import { PlanList } from './PlanList';
+import { PlanList, termLabel } from './PlanList';
 import { planStore, useActivePlan } from './planStore';
 
 type Mode =
@@ -200,8 +202,10 @@ export function PlanSwitcher() {
   const triggerLabel =
     activePlan === null ? t('planSwitcher.noPlan') : activePlan.name;
 
+  // The wrapper is the header item that shrinks first, so the trigger fills it and its
+  // plan name and term truncate before any other header control gives way.
   return (
-    <div ref={wrapperRef} className="relative">
+    <div ref={wrapperRef} className="relative min-w-0 max-w-[16rem]">
       <button
         ref={setReference}
         type="button"
@@ -209,7 +213,7 @@ export function PlanSwitcher() {
         aria-label={t('planSwitcher.label')}
         aria-haspopup="true"
         aria-expanded={open}
-        className="inline-flex max-w-[16rem] items-center gap-2 rounded-kcp border border-border px-3 py-1.5 text-sm text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        className={`flex w-full items-center gap-2 rounded-kcp border border-border px-3 py-0.5 text-sm text-ink hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`}
       >
         <CalendarRange
           size={16}
@@ -217,7 +221,14 @@ export function PlanSwitcher() {
           aria-hidden
           className="shrink-0 text-ink-soft"
         />
-        <span className="truncate">{triggerLabel}</span>
+        <span className="flex min-w-0 flex-1 flex-col items-start text-left">
+          <span className="max-w-full truncate">{triggerLabel}</span>
+          {activePlan === null ? null : (
+            <span className="max-w-full truncate text-2xs text-ink-soft">
+              {termLabel(activePlan, t)}
+            </span>
+          )}
+        </span>
         <ChevronDown
           size={16}
           strokeWidth={2}

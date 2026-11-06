@@ -37,9 +37,11 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
     .first()
     .click();
   // The first add names the plan from the searched term, which the suggestion keeps.
+  // The switcher shows the term on a line under the name, so read the name line alone.
   const switcher = page.getByRole('button', { name: 'เลือกตาราง' });
-  await expect(switcher).toHaveText(/^ตาราง \d\/\d{4}$/);
-  const planName = (await switcher.textContent()) ?? '';
+  const firstName = switcher.getByText(/^ตาราง \d\/\d{4}$/);
+  await expect(firstName).toBeVisible();
+  const planName = (await firstName.textContent()) ?? '';
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
   const placedBefore = await page.locator(GRID_BLOCK).count();
 
@@ -56,7 +58,9 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
 
   await apply.first().click();
   await expect(dialog).toHaveCount(0);
-  await expect(switcher).toHaveText(`${planName} เน้นเช้า`);
+  await expect(
+    switcher.getByText(`${planName} เน้นเช้า`, { exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByText(`สร้างตาราง ${planName} เน้นเช้า แล้ว`),
   ).toBeVisible();
@@ -68,6 +72,6 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
   );
 
   await page.getByRole('button', { name: 'เลิกทำ' }).click();
-  await expect(switcher).toHaveText(planName);
+  await expect(switcher.getByText(planName, { exact: true })).toBeVisible();
   await expect(page.locator(GRID_BLOCK)).toHaveCount(placedBefore);
 });

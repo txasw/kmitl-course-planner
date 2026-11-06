@@ -1,5 +1,8 @@
 import { useStore } from 'zustand';
 import { X } from 'lucide-react';
+import { BrandMark } from '@/components/BrandMark';
+import { FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
 import { PlanSwitcher } from '@/features/plans/PlanSwitcher';
@@ -11,23 +14,32 @@ interface HeaderProps {
   titleId: string;
 }
 
-// The overlay header. It carries the panel title, the plan switcher, the catalog
-// toggle on the tiers where the catalog column is a sheet, the mode and language
-// toggles, and the close control. The title id is supplied by the overlay so the dialog
-// can point its accessible name at it.
+// The overlay header: one row that never wraps, 56 px high and 48 px on a short
+// viewport, padded clear of the device safe areas. The leading group holds the brand
+// mark from 640 px, the panel title, and the plan switcher; it is the only part that
+// shrinks, and the switcher truncates the plan name before anything else gives way.
+// The title shows from 1024 px and stays in the accessibility tree below as sr-only
+// text, so the dialog's aria-labelledby always resolves. The trailing group never
+// shrinks and carries the catalog toggle on the sheet tiers, the mode and language
+// toggles, and the close control, which is always last so leaving the overlay stays
+// one action away at every width.
 export function Header({ titleId }: HeaderProps) {
   const close = useStore(uiStore, (state) => state.close);
   const { t } = useTranslation();
 
   return (
-    <header className="flex items-center justify-between gap-4 border-b border-border px-4 py-3">
-      <div className="flex items-center gap-3">
-        <h2 id={titleId} className="text-base font-semibold text-ink">
+    <header className="box-content flex h-14 shrink-0 items-center gap-2 border-b border-border pt-(--kcp-safe-top) pr-[calc(16px_+_var(--kcp-safe-right))] pl-[calc(16px_+_var(--kcp-safe-left))] sm:gap-4 [@media(max-height:800px)]:h-12">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <BrandMark className="hidden size-6 shrink-0 text-primary sm:block" />
+        <h2
+          id={titleId}
+          className="sr-only shrink-0 text-base font-semibold text-ink lg:not-sr-only"
+        >
           {t('app.title')}
         </h2>
         <PlanSwitcher />
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         <CatalogToggle />
         <ModeToggle />
         <LanguageToggle />
@@ -35,7 +47,7 @@ export function Header({ titleId }: HeaderProps) {
           type="button"
           onClick={close}
           aria-label={t('action.close')}
-          className="inline-flex items-center justify-center rounded-kcp p-2 text-ink-soft outline-none transition-colors hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className={`inline-flex shrink-0 items-center justify-center rounded-kcp p-2 text-ink-soft transition-colors hover:bg-surface-alt hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
         >
           <X size={20} strokeWidth={2} aria-hidden />
         </button>

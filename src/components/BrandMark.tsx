@@ -6,7 +6,8 @@
 // position, rendered in currentColor at 45 percent opacity, so its signature survives in one
 // colour. currentColor ties the whole mark to the credit text beside it. The mask id is unique
 // per instance so several marks on one poster do not collide. The mark is aria-hidden and a
-// label carries the meaning; the caller sizes it in em.
+// label carries the meaning. The caller sizes and colours it through className: the poster
+// watermark in em beside its credit, the panel header in px in the brand orange.
 
 import { useId } from 'react';
 
