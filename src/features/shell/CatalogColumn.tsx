@@ -34,12 +34,13 @@ import {
   type LayoutTier,
 } from '@/lib/ui/breakpoints';
 import { FOCUS_RING } from '@/lib/ui/focus';
-import { CATALOG_HIDE_ID, hideCatalog } from './catalogVisibility';
+import {
+  CATALOG_COLUMN_ID,
+  CATALOG_HIDE_ID,
+  hideCatalog,
+} from './catalogVisibility';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
-
-/** Id the header sheet toggle points its aria-controls at. */
-export const CATALOG_COLUMN_ID = 'kcp-catalog-column';
 
 const DOCKED_WIDTH: Record<DockedTier, string> = {
   lg: 'w-[22rem]',

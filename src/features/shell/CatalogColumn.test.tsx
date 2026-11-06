@@ -23,7 +23,8 @@ import {
 } from '../../../tests/support/domain-builders';
 import { installViewport } from '../../../tests/support/viewport';
 import { useLayoutTier } from './useLayoutTier';
-import { CatalogColumn, CATALOG_COLUMN_ID } from './CatalogColumn';
+import { CatalogColumn } from './CatalogColumn';
+import { CATALOG_COLUMN_ID } from './catalogVisibility';
 import { EdgeRail } from './EdgeRail';
 import { uiStore } from './uiStore';
 

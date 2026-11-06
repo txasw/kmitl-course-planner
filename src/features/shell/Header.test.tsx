@@ -8,7 +8,7 @@ import {
 } from '@testing-library/react';
 import { Header } from './Header';
 import { uiStore } from './uiStore';
-import { CATALOG_COLUMN_ID } from './CatalogColumn';
+import { CATALOG_COLUMN_ID } from './catalogVisibility';
 import { installViewport } from '../../../tests/support/viewport';
 
 afterEach(() => {
