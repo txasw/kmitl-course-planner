@@ -51,6 +51,8 @@ export function Diagnostics() {
     void send({ type: 'debug/setMutation', mutationId }).then(refresh);
   };
 
+  // Below 640 px the launcher rides above the 56 px bottom nav of the phone layout, so it
+  // never covers the nav item at the leading edge.
   if (!open) {
     return (
       <button
@@ -59,7 +61,7 @@ export function Diagnostics() {
           setOpen(true);
         }}
         aria-label={armed ? 'Diagnostics, simulation armed' : 'Diagnostics'}
-        className="fixed bottom-5 left-5 z-host inline-flex items-center gap-2 rounded-kcp border border-border bg-surface px-3 py-2 text-sm text-ink shadow-kcp hover:bg-surface-alt focus:ring-2 focus:ring-primary focus:outline-none"
+        className="fixed bottom-5 left-5 z-host inline-flex max-sm:bottom-20 items-center gap-2 rounded-kcp border border-border bg-surface px-3 py-2 text-sm text-ink shadow-kcp hover:bg-surface-alt focus:ring-2 focus:ring-primary focus:outline-none"
       >
         <Bug size={16} strokeWidth={2} aria-hidden />
         Diagnostics
