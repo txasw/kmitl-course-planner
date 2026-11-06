@@ -8,6 +8,11 @@ import {
 } from '@testing-library/react';
 import { App } from './App';
 import { uiStore } from '@/features/shell/uiStore';
+import {
+  initialOnboardingData,
+  onboardingStore,
+} from '@/features/onboarding/onboardingStore';
+import { applyRequestedOpen } from '@/features/onboarding/useWorkerHandshake';
 import type { PrefsRepository } from '@/lib/storage/prefs';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { fakePlanDeps } from '../../../tests/support/planDeps';
@@ -30,7 +35,31 @@ afterEach(() => {
     uiStore.getState().close();
     uiStore.getState().setLanguage('th');
   });
+  onboardingStore.setState(initialOnboardingData());
+  document.documentElement.style.overflow = '';
 });
+
+function renderApp(): void {
+  render(
+    <App
+      prefs={noopRepo()}
+      plans={fakePlanDeps()}
+      search={fakeSearchDeps()}
+      onboarding={fakeOnboardingDeps()}
+      handshake={fakeHandshakeDeps()}
+      welcome={fakeWelcomeDeps()}
+    />,
+  );
+}
+
+const LAUNCHER = 'เปิด Course Planner for KMITL';
+const WELCOME = 'ขอบคุณที่ติดตั้ง Course Planner for KMITL';
+
+function showWelcome(): void {
+  act(() => {
+    onboardingStore.getState().setWelcomeOpen(true);
+  });
+}
 
 describe('App', () => {
   it('shows the launcher and opens the overlay on activation', () => {
@@ -70,5 +99,44 @@ describe('App', () => {
     });
     expect(launcher).toHaveAttribute('inert');
     expect(launcher).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('opens the panel from Start planning and the overlay trap holds focus', () => {
+    renderApp();
+    showWelcome();
+    expect(screen.getByRole('dialog', { name: WELCOME })).toBeInTheDocument();
+    expect(document.documentElement.style.overflow).toBe('hidden');
+    fireEvent.click(screen.getByRole('button', { name: 'เริ่มวางแผน' }));
+    expect(screen.queryByRole('dialog', { name: WELCOME })).toBeNull();
+    const overlay = screen.getByRole('dialog');
+    expect(overlay).toContainElement(
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null,
+    );
+    expect(document.documentElement.style.overflow).toBe('hidden');
+    act(() => {
+      uiStore.getState().close();
+    });
+    expect(screen.getByRole('button', { name: LAUNCHER })).toHaveFocus();
+    expect(document.documentElement.style.overflow).toBe('');
+  });
+
+  it('closes the welcome for a worker open and keeps the host locked', () => {
+    renderApp();
+    showWelcome();
+    act(() => {
+      applyRequestedOpen();
+    });
+    expect(screen.queryByRole('dialog', { name: WELCOME })).toBeNull();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(document.documentElement.style.overflow).toBe('hidden');
+  });
+
+  it('keeps the launcher inert under the welcome', () => {
+    renderApp();
+    const launcher = screen.getByRole('button', { name: LAUNCHER });
+    showWelcome();
+    expect(launcher).toHaveAttribute('inert');
   });
 });
