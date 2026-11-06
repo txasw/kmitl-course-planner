@@ -6,7 +6,7 @@ import {
   makeSection,
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
-import type { Section } from '../domain/types';
+import type { OfferedTo, Section } from '../domain/types';
 import {
   buildSectionIndex,
   diffSnapshot,
@@ -117,5 +117,51 @@ describe('diffSnapshot classifications', () => {
       },
     });
     expect(diffSnapshot(makeSnapshot(), fresh)).toEqual(['exam_changed']);
+  });
+});
+
+describe('offeredTo is outside the diff', () => {
+  const NARROW: OfferedTo[] = [
+    { facultyId: '01', departmentId: '08', curriculumId: '08', classYear: '4' },
+  ];
+  const WIDE: OfferedTo[] = [
+    ...NARROW,
+    { facultyId: '01', departmentId: 'x', curriculumId: 'x', classYear: '0' },
+  ];
+
+  it('reports no change when only the grouping list differs', () => {
+    const snapshot = makeSnapshot({ offeredTo: NARROW });
+    expect(diffSnapshot(snapshot, makeSection({ offeredTo: WIDE }))).toEqual(
+      [],
+    );
+    expect(diffSnapshot(snapshot, makeSection({ offeredTo: [] }))).toEqual([]);
+  });
+
+  it('reports no change for an old snapshot without the field', () => {
+    expect(
+      diffSnapshot(makeSnapshot(), makeSection({ offeredTo: WIDE })),
+    ).toEqual([]);
+    expect(
+      diffSnapshot(makeSnapshot({ offeredTo: WIDE }), makeSection()),
+    ).toEqual([]);
+  });
+
+  it('keeps the entry unchanged when only the grouping list differs', () => {
+    const entry = makePlanEntry({
+      snapshot: makeSnapshot({ offeredTo: NARROW }),
+    });
+    const result = revalidateEntry(
+      entry,
+      indexFrom([makeSection({ offeredTo: WIDE })]),
+    );
+    expect(result.outcome).toBe('unchanged');
+    expect(result.changes).toEqual([]);
+  });
+
+  it('still reports a real change alongside a grouping difference', () => {
+    const fresh = makeSection({ offeredTo: WIDE, teachersTh: ['New Teacher'] });
+    expect(diffSnapshot(makeSnapshot({ offeredTo: NARROW }), fresh)).toEqual([
+      'teacher_changed',
+    ]);
   });
 });

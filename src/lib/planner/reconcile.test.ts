@@ -228,6 +228,26 @@ describe('reconcilePlan', () => {
     expect(report.termFindings[0]?.teachTableId).toBe('t1');
   });
 
+  it('refreshes offeredTo from fresh data while the entry stays verified', () => {
+    const offeredTo = [
+      {
+        facultyId: '01',
+        departmentId: '08',
+        curriculumId: '08',
+        classYear: '4',
+      },
+    ];
+    const plan = makePlan({
+      entries: [makePlanEntry({ snapshot: makeSnapshot() })],
+    });
+    const { plan: reconciled, report } = reconcile(plan, [
+      makeSection({ offeredTo }),
+    ]);
+    expect(reconciled.entries[0]?.verifyStatus).toBe('verified');
+    expect(reconciled.entries[0]?.snapshot.offeredTo).toEqual(offeredTo);
+    expect(report.summary.changed).toBe(0);
+  });
+
   it('does not touch the plan updatedAt', () => {
     const plan = makePlan({
       updatedAt: '2020-01-01T00:00:00.000Z',
