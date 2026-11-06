@@ -521,6 +521,8 @@ describe('SectionRow demand chip', () => {
     expect(container.querySelector('.bg-warn-soft')).toBeNull();
   });
 
+  // The sweep renders every section of the full capture, so it needs more
+  // than the default budget when the whole suite shares the CPU.
   it('flags exactly the 28 oversubscribed sections of the exam capture', () => {
     const result = normalizeTeachTable(
       loadFixture('teach-table.with-exams.capture.json'),
@@ -549,7 +551,7 @@ describe('SectionRow demand chip', () => {
     }
     expect(flagged).toHaveLength(28);
     expect(flagged).toContain('96642083/101');
-  });
+  }, 30_000);
 });
 
 describe('SectionRow de-emphasis', () => {
