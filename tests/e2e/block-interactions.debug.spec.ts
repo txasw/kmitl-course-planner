@@ -47,21 +47,28 @@ async function boxOf(page: Page, selector: string): Promise<Box> {
   return box;
 }
 
-test('removes a placed block by dragging it to the remove zone, with undo', async ({
+test('removes a paired block by dropping it on the catalog column, with undo', async ({
   context,
 }) => {
   const page = await openPlanner(context);
   await syntheticSearch(page);
-  await addCourse(page, '90000001');
-  await expect(page.locator(block('900001'))).toBeVisible();
+  // Course X section 901 (id 900006) is paired with section 902 (id 900007), so the
+  // add places both and the remove takes both.
+  await addCourse(page, '90000006');
+  await expect(page.locator(block('900006'))).toBeVisible();
+  await expect(page.locator(block('900007'))).toBeVisible();
 
-  await dragOnto(page, await boxOf(page, block('900001')), () =>
-    boxOf(page, '[data-remove-zone]'),
+  // At the docked desktop width the remove zone is the catalog column itself.
+  await dragOnto(page, await boxOf(page, block('900006')), () =>
+    boxOf(page, '#kcp-catalog-column > [data-remove-zone="column"]'),
   );
-  await expect(page.locator(block('900001'))).toHaveCount(0);
+  await expect(page.locator(block('900006'))).toHaveCount(0);
+  await expect(page.locator(block('900007'))).toHaveCount(0);
+  await expect(page.locator('[data-remove-zone]')).toHaveCount(0);
 
   await page.getByRole('button', { name: 'เลิกทำ' }).click();
-  await expect(page.locator(block('900001'))).toBeVisible();
+  await expect(page.locator(block('900006'))).toBeVisible();
+  await expect(page.locator(block('900007'))).toBeVisible();
 });
 
 test('moves a placed section onto another section of the same subject', async ({
