@@ -47,6 +47,20 @@ export interface Exam {
   note?: string;
 }
 
+/**
+ * One curriculum grouping a section was offered to, as ids only. The ids are the raw
+ * grouping strings: department and curriculum may be the "x" any sentinel and the
+ * class year may be "0", and widths vary, so consumers compare through idsEqual.
+ * Names resolve at render from the reference lists (ADR-0061).
+ */
+export interface OfferedTo {
+  facultyId: string;
+  departmentId: string;
+  /** From curriculum2_id, the value the search sends as selected_curriculum. */
+  curriculumId: string;
+  classYear: string;
+}
+
 export interface Section {
   /** Primary key after deduplication. */
   teachTableId: string;
@@ -69,6 +83,12 @@ export interface Section {
   rulesTh: string;
   rulesEn: string;
   remark: string;
+  /**
+   * The groupings this section repeated under in the query that produced it, in first
+   * seen order. Normalization always sets it; a snapshot stored before the field
+   * existed has none.
+   */
+  offeredTo?: OfferedTo[];
 }
 
 export interface Course {
