@@ -117,4 +117,22 @@ describe('PlanViewTabs', () => {
     expect(timetable).toHaveFocus();
     expect(timetable).toHaveAttribute('aria-selected', 'true');
   });
+
+  it('places a trailing control in the row outside the tablist', () => {
+    render(
+      <PlanViewTabs
+        value="timetable"
+        selectedCount={3}
+        examClash={false}
+        onChange={() => undefined}
+        t={t}
+        trailing={<button type="button">indicator</button>}
+      />,
+    );
+    const trailing = screen.getByRole('button', { name: 'indicator' });
+    expect(screen.getByRole('tablist')).not.toContainElement(trailing);
+    expect(screen.getByRole('tablist').parentElement).toContainElement(
+      trailing,
+    );
+  });
 });
