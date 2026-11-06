@@ -1,6 +1,6 @@
 # Privacy
 
-Last updated: 2026-07-11.
+Last updated: 2026-11-07.
 
 This policy is published at
 https://github.com/txasw/kmitl-course-planner/blob/main/docs/PRIVACY.md and is the
@@ -18,8 +18,16 @@ Technology Ladkrabang (KMITL).
 ## Data storage
 
 Your saved plans and the cached reference data live in the browser extension
-storage on your own device. Nothing is uploaded anywhere. Removing the extension
-removes this data.
+storage on your own device. The extension also stores the date and version of its
+installation and whether you have seen the welcome message, so that message shows
+only once. Nothing is uploaded anywhere. Removing the extension removes this data.
+
+## First run
+
+When you first install the extension, it opens the course search page of the
+registration site, https://regis.reg.kmitl.ac.th/#/teach_table_selector, in a new tab
+and shows a short welcome message there. It does this once, and only when it has
+access to both KMITL sites. Updates of the extension or the browser open no tab.
 
 ## Permissions
 
