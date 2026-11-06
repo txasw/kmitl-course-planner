@@ -72,28 +72,33 @@ background it appears on, including the danger soft notice. Form controls draw t
 boundary with `--kcp-border-strong` (`#838389`), which clears the 3:1 UI bar on both panel
 surfaces, while dividers and gridlines keep the quieter `--kcp-border` (ADR-0051). The
 quiet warn fill `--kcp-warn-soft` (`#FDF3E1`) carries the pre share notice, with ink text
-and a warn icon and border on it (ADR-0055).
+and a warn icon and border on it (ADR-0055). The remove drop zone fills with
+`--kcp-danger-zone` (`#FCF2F2`) at rest and `--kcp-danger-zone-over` (`#F8E5E5`) while a
+block is over it, the danger tone mixed into the surface at 6 and 12 percent, and its
+danger border and text clear 4.5:1 on both (ADR-0059).
 
-| Foreground     | Background     | Ratio | Bar |
-| -------------- | -------------- | ----- | --- |
-| ink            | surface        | 17.40 | 4.5 |
-| ink            | primary-soft   | 15.36 | 4.5 |
-| ink-soft       | surface        | 6.69  | 4.5 |
-| ink-soft       | surface-alt    | 6.25  | 4.5 |
-| danger         | surface        | 5.62  | 4.5 |
-| danger         | danger-soft    | 4.83  | 4.5 |
-| white          | danger         | 5.62  | 4.5 |
-| warn           | surface        | 5.47  | 4.5 |
-| warn           | surface-alt    | 5.11  | 4.5 |
-| warn           | primary-soft   | 4.83  | 4.5 |
-| warn           | warn-soft      | 4.97  | 4.5 |
-| ink            | warn-soft      | 15.82 | 4.5 |
-| success        | success-soft   | 4.74  | 4.5 |
-| white          | primary-strong | 5.56  | 4.5 |
-| primary-strong | surface        | 5.56  | 4.5 |
-| primary-strong | danger-soft    | 4.78  | 4.5 |
-| primary accent | surface        | 3.84  | 3.0 |
-| primary accent | surface-alt    | 3.58  | 3.0 |
-| primary accent | danger-soft    | 3.30  | 3.0 |
-| border-strong  | surface        | 3.77  | 3.0 |
-| border-strong  | surface-alt    | 3.52  | 3.0 |
+| Foreground     | Background       | Ratio | Bar |
+| -------------- | ---------------- | ----- | --- |
+| ink            | surface          | 17.40 | 4.5 |
+| ink            | primary-soft     | 15.36 | 4.5 |
+| ink-soft       | surface          | 6.69  | 4.5 |
+| ink-soft       | surface-alt      | 6.25  | 4.5 |
+| danger         | surface          | 5.62  | 4.5 |
+| danger         | danger-soft      | 4.83  | 4.5 |
+| danger         | danger-zone      | 5.12  | 4.5 |
+| danger         | danger-zone-over | 4.64  | 4.5 |
+| white          | danger           | 5.62  | 4.5 |
+| warn           | surface          | 5.47  | 4.5 |
+| warn           | surface-alt      | 5.11  | 4.5 |
+| warn           | primary-soft     | 4.83  | 4.5 |
+| warn           | warn-soft        | 4.97  | 4.5 |
+| ink            | warn-soft        | 15.82 | 4.5 |
+| success        | success-soft     | 4.74  | 4.5 |
+| white          | primary-strong   | 5.56  | 4.5 |
+| primary-strong | surface          | 5.56  | 4.5 |
+| primary-strong | danger-soft      | 4.78  | 4.5 |
+| primary accent | surface          | 3.84  | 3.0 |
+| primary accent | surface-alt      | 3.58  | 3.0 |
+| primary accent | danger-soft      | 3.30  | 3.0 |
+| border-strong  | surface          | 3.77  | 3.0 |
+| border-strong  | surface-alt      | 3.52  | 3.0 |

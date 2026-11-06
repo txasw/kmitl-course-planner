@@ -39,7 +39,8 @@ interface Pair {
 // swap target and a focus ring over a blocked danger-soft footprint, and the switch term
 // action on a muted surface-alt section row. border-strong is the form control boundary,
 // a UI component on both panel surfaces (ADR-0051). warn-soft fills the pre share notice,
-// whose ink text, warn icon, and warn border sit on it.
+// whose ink text, warn icon, and warn border sit on it. The remove drop zone carries its
+// danger border and danger text on both of its fills (ADR-0059).
 const PAIRS: Pair[] = [
   {
     name: 'ink on surface',
@@ -81,6 +82,18 @@ const PAIRS: Pair[] = [
     name: 'danger on danger-soft',
     fg: token('danger'),
     bg: token('danger-soft'),
+    min: AA_NORMAL,
+  },
+  {
+    name: 'danger on danger-zone',
+    fg: token('danger'),
+    bg: token('danger-zone'),
+    min: AA_NORMAL,
+  },
+  {
+    name: 'danger on danger-zone-over',
+    fg: token('danger'),
+    bg: token('danger-zone-over'),
     min: AA_NORMAL,
   },
   {

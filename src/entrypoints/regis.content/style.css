@@ -52,6 +52,8 @@
   --color-grid-strong: var(--kcp-grid-strong);
   --color-danger: var(--kcp-danger);
   --color-danger-soft: var(--kcp-danger-soft);
+  --color-danger-zone: var(--kcp-danger-zone);
+  --color-danger-zone-over: var(--kcp-danger-zone-over);
   --color-warn: var(--kcp-warn);
   --color-warn-soft: var(--kcp-warn-soft);
   --color-success: var(--kcp-success);
@@ -114,6 +116,12 @@
   --kcp-success: #1a7a38;
   --kcp-success-soft: #e7f3eb;
   --kcp-danger-soft: #fbeaea;
+  /* The remove drop zone fills, the danger tone mixed into the surface at 6 percent at
+     rest and 12 percent while a block is over the zone, written out as hex so the
+     contrast test reads them. Danger text and the zone border clear 4.5:1 on both, and
+     the over fill stays apart from the hatched danger soft of a blocked footprint. */
+  --kcp-danger-zone: #fcf2f2;
+  --kcp-danger-zone-over: #f8e5e5;
   --kcp-radius: 8px;
   /* The smaller radius for elements that sit inside a rounded container, such as
      badges, chips, and the inline conflict callout, so a nested corner reads
