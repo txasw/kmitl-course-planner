@@ -3,7 +3,9 @@
 // changes which plan is active also refreshes the mirrored entries and drops the
 // pending undo, since an undo only ever applies to the plan it was recorded against.
 // Applying a plan suggestion lives here too because it creates a plan instead of
-// editing the active one; its undo record deletes that plan again.
+// editing the active one; its undo record deletes that plan again. The hydrate and the
+// settle without plans both mark the load settled, the one fact a reader of the empty
+// store needs to tell no plans from not read yet.
 
 import type { Plan, SourceQuery } from '@/lib/domain/plan';
 import { termsEqual, type Term } from '@/lib/routing/academicTerms';
@@ -52,8 +54,11 @@ export interface PlanCrudActions {
   /** Delete a plan; if it was active, fall back to the most recently updated one. */
   deletePlan: (id: string) => void;
   setActivePlan: (id: string) => void;
-  /** Replace the plan list, activating the most recently updated plan. */
+  /** Replace the plan list, activating the most recently updated plan, and mark the
+   * load settled. */
   hydrate: (plans: Plan[]) => void;
+  /** Mark the load settled without plans, for a read that was refused or failed. */
+  markLoaded: () => void;
 }
 
 export function createPlanCrudSlice(
@@ -179,7 +184,12 @@ export function createPlanCrudSlice(
         activePlanId: active?.id ?? null,
         entries: active?.entries ?? EMPTY_ENTRIES,
         pendingUndo: null,
+        loaded: true,
       });
+    },
+
+    markLoaded: () => {
+      set({ loaded: true });
     },
   };
 }

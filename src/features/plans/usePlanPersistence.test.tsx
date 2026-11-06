@@ -49,6 +49,7 @@ afterEach(() => {
     activePlanId: null,
     entries: [],
     pendingUndo: null,
+    loaded: false,
   });
   storageIssueStore.getState().setIssue(null);
 });
@@ -68,6 +69,44 @@ describe('usePlanPersistence', () => {
     await waitFor(() => {
       expect(planStore.getState().plans.map((p) => p.id)).toEqual(['stored']);
     });
+    expect(planStore.getState().loaded).toBe(true);
+  });
+
+  it('stays unloaded until the read settles', async () => {
+    let settle: (outcome: LoadOutcome) => void = () => undefined;
+    const repo: PlanRepository = {
+      load: () =>
+        new Promise<LoadOutcome>((resolve) => {
+          settle = resolve;
+        }),
+      save: () => Promise.resolve(ok(undefined)),
+    };
+    render(<Harness repo={repo} adapter={fakeAdapter()} />);
+    expect(planStore.getState().loaded).toBe(false);
+    settle({ status: 'ok', root: emptyRoot() });
+    await waitFor(() => {
+      expect(planStore.getState().loaded).toBe(true);
+    });
+  });
+
+  it('marks the load settled after a rejected read and still autosaves', async () => {
+    const save = vi.fn(() => Promise.resolve(ok(undefined)));
+    const repo: PlanRepository = {
+      load: () => Promise.reject(new Error('storage unavailable')),
+      save,
+    };
+    render(<Harness repo={repo} adapter={fakeAdapter()} />);
+    await waitFor(() => {
+      expect(planStore.getState().loaded).toBe(true);
+    });
+    expect(planStore.getState().plans).toHaveLength(0);
+    planStore.getState().createPlan('x', { year: '2569', semester: '1' });
+    await waitFor(
+      () => {
+        expect(save).toHaveBeenCalled();
+      },
+      { timeout: 1000 },
+    );
   });
 
   it('surfaces a quarantine issue with the set aside data', async () => {
@@ -99,6 +138,7 @@ describe('usePlanPersistence', () => {
     await waitFor(() => {
       expect(storageIssueStore.getState().issue?.kind).toBe('refused');
     });
+    expect(planStore.getState().loaded).toBe(true);
     expect(planStore.getState().plans).toHaveLength(0);
     // A later edit must not autosave, or it would overwrite the newer schema blob.
     planStore.getState().createPlan('x', { year: '2569', semester: '1' });

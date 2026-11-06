@@ -3,7 +3,8 @@
 // pending save on unmount so a last moment change is not lost. A quarantined, refused,
 // or save refused outcome is surfaced through the storage issue store for the card to
 // render. The subscription attaches only after hydration, so a hydrated value is not
-// written straight back.
+// written straight back. Every settled read, hydrated, refused, or failed, marks the
+// plan store loaded.
 
 import { useEffect } from 'react';
 import { CURRENT_SCHEMA_VERSION } from '@/lib/storage/keys';
@@ -70,6 +71,7 @@ export function usePlanPersistence({
           storageIssueStore
             .getState()
             .setIssue({ kind: 'refused', reason: outcome.reason });
+          planStore.getState().markLoaded();
           return;
         }
         planStore.getState().hydrate(outcome.root.plans);
@@ -99,6 +101,7 @@ export function usePlanPersistence({
         // The read failed, likely a transient storage error. Enable best effort saving
         // for this session rather than silently dropping every later edit.
         if (isCancelled()) return;
+        planStore.getState().markLoaded();
         subscribe();
       },
     );

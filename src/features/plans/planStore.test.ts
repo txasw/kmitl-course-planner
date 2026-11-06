@@ -298,6 +298,28 @@ describe('planStore multi-plan', () => {
   });
 });
 
+describe('planStore load settle', () => {
+  it('starts unloaded', () => {
+    expect(makeStore().getState().loaded).toBe(false);
+  });
+
+  it('marks the load settled on hydrate, even with no plans', () => {
+    const store = makeStore();
+    store.getState().hydrate([]);
+    expect(store.getState().loaded).toBe(true);
+  });
+
+  it('marks the load settled without touching the plans', () => {
+    const store = makeStore();
+    const id = store.getState().createPlan('x', TERM_S1);
+    const before = store.getState().plans;
+    store.getState().markLoaded();
+    expect(store.getState().loaded).toBe(true);
+    expect(store.getState().plans).toBe(before);
+    expect(store.getState().activePlanId).toBe(id);
+  });
+});
+
 describe('planStore revalidation write', () => {
   it('applies reconciled entries by durable identity', () => {
     const store = makeStore();
