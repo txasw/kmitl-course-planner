@@ -49,11 +49,10 @@ import {
 } from '@/lib/ui/breakpoints';
 import { claimEscape } from '@/lib/ui/escape';
 import { FOCUS_RING } from '@/lib/ui/focus';
-import { commitAndFocus } from './commitAndFocus';
 import {
   CATALOG_COLUMN_ID,
   CATALOG_HIDE_ID,
-  CATALOG_TOGGLE_ID,
+  closeSheet,
   hideCatalog,
 } from './catalogVisibility';
 import { uiStore } from './uiStore';
@@ -62,16 +61,6 @@ import { useTranslation } from './useTranslation';
 
 /** Id of the sheet heading, which names the open sheet dialog. */
 const SHEET_TITLE_ID = 'kcp-catalog-sheet-title';
-
-/**
- * Close the catalog sheet from the control that asked for it and move focus to the
- * header toggle, which opens it again.
- */
-export function closeSheet(control: Element): void {
-  commitAndFocus(control, CATALOG_TOGGLE_ID, () => {
-    uiStore.getState().setSheetOpen(false);
-  });
-}
 
 // The Escape that ends an input method composition in a sheet field belongs to the
 // editor, as the overlay trap already rules, so it never closes the sheet.

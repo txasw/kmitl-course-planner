@@ -14,7 +14,9 @@ import {
   CATALOG_COLUMN_ID,
   CATALOG_HIDE_ID,
   CATALOG_RAIL_ID,
+  CATALOG_TOGGLE_ID,
   POINTER_TOGGLE_GUARD_MS,
+  closeSheet,
   finishCatalogSlide,
   hideCatalog,
   readMotionToken,
@@ -302,5 +304,18 @@ describe('catalog slide', () => {
     element.style.setProperty('--kcp-duration-base', '');
     expect(readMotionToken(element, '--kcp-duration-base')).toBe(0);
     expect(readMotionToken(element, '--kcp-missing')).toBe(0);
+  });
+});
+
+describe('closeSheet', () => {
+  it('closes the sheet and moves focus to the header toggle', () => {
+    const control = document.createElement('button');
+    const toggle = document.createElement('button');
+    toggle.id = CATALOG_TOGGLE_ID;
+    document.body.append(control, toggle);
+    uiStore.getState().setSheetOpen(true);
+    closeSheet(control);
+    expect(uiStore.getState().sheetOpen).toBe(false);
+    expect(toggle).toHaveFocus();
   });
 });

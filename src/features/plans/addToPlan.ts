@@ -13,8 +13,7 @@ import { toSourceQuery } from '@/lib/planner/sourceQuery';
 import { BREAKPOINTS, minWidthQuery } from '@/lib/ui/breakpoints';
 import { dragStore } from '@/features/planner/dragStore';
 import { searchStore } from '@/features/search/searchStore';
-import { CATALOG_TOGGLE_ID } from '@/features/shell/catalogVisibility';
-import { commitAndFocus } from '@/features/shell/commitAndFocus';
+import { closeSheet } from '@/features/shell/catalogVisibility';
 import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { planStore } from './planStore';
@@ -77,11 +76,7 @@ export function confirmAdd(section: Section, t: Translate): void {
     }),
     {
       label: t('toast.viewTimetable'),
-      run: (control) => {
-        commitAndFocus(control, CATALOG_TOGGLE_ID, () => {
-          uiStore.getState().setSheetOpen(false);
-        });
-      },
+      run: closeSheet,
     },
   );
 }
