@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isCardOpen } from '@/lib/catalog/cardDisclosure';
+import { isCardInstant, isCardOpen } from '@/lib/catalog/cardDisclosure';
 import { createCatalogStore } from './catalogStore';
 
 describe('catalogStore disclosure', () => {
@@ -27,5 +27,24 @@ describe('catalogStore disclosure', () => {
     expect(store.getState().disclosure).toBe(before);
     store.getState().syncPlacement(new Set(['S1']));
     expect(store.getState().disclosure.choices).toEqual({});
+  });
+
+  it('opens every given card at once as a bulk change', () => {
+    const store = createCatalogStore();
+    store.getState().setAllCards(
+      'q1',
+      [
+        { subjectId: 'S1', added: false },
+        { subjectId: 'S2', added: false },
+      ],
+      true,
+    );
+    const { disclosure } = store.getState();
+    expect(isCardInstant(disclosure, 'q1', 'S1')).toBe(true);
+    expect(isCardOpen(disclosure, 'q1', 'S1', false, false)).toBe(true);
+    expect(isCardOpen(disclosure, 'q1', 'S2', false, false)).toBe(true);
+    store.getState().setCardOpen('q1', 'S1', { open: false, added: false });
+    expect(isCardInstant(store.getState().disclosure, 'q1', 'S1')).toBe(false);
+    expect(isCardInstant(store.getState().disclosure, 'q1', 'S2')).toBe(true);
   });
 });

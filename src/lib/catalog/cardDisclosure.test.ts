@@ -2,12 +2,15 @@ import { describe, it, expect } from 'vitest';
 import {
   EMPTY_DISCLOSURE,
   catalogQueryKey,
+  isCardInstant,
   isCardOpen,
+  withAllCards,
   withChoice,
   withPlacement,
+  type CardChoice,
 } from './cardDisclosure';
 
-const OPEN_UNADDED = { open: true, added: false };
+const OPEN_UNADDED: CardChoice = { open: true, added: false };
 
 describe('catalogQueryKey', () => {
   it('is null without a query', () => {
@@ -76,5 +79,45 @@ describe('withPlacement', () => {
     const added = withPlacement(opened, new Set(['S1']));
     expect(added.choices).toEqual({});
     expect(isCardOpen(added, 'q1', 'S1', false, false)).toBe(false);
+  });
+});
+
+describe('withAllCards', () => {
+  const cards = [
+    { subjectId: 'S1', added: false },
+    { subjectId: 'S2', added: true },
+  ];
+
+  it('sets every given card with its placement tag and marks the change bulk', () => {
+    const all = withAllCards(EMPTY_DISCLOSURE, 'q1', cards, true);
+    expect(isCardInstant(all, 'q1', 'S1')).toBe(true);
+    expect(isCardInstant(all, 'q1', 'S2')).toBe(true);
+    expect(isCardInstant(all, 'q2', 'S1')).toBe(false);
+    expect(isCardOpen(all, 'q1', 'S1', false, false)).toBe(true);
+    expect(isCardOpen(all, 'q1', 'S2', true, false)).toBe(true);
+  });
+
+  it('keeps the choices of cards outside the list for the same query', () => {
+    const hidden = withChoice(EMPTY_DISCLOSURE, 'q1', 'S3', OPEN_UNADDED);
+    const all = withAllCards(hidden, 'q1', cards, false);
+    expect(isCardOpen(all, 'q1', 'S3', false, false)).toBe(true);
+    expect(isCardOpen(all, 'q1', 'S1', false, true)).toBe(false);
+  });
+
+  it('drops the choices of an earlier query', () => {
+    const earlier = withChoice(EMPTY_DISCLOSURE, 'q0', 'S3', OPEN_UNADDED);
+    const all = withAllCards(earlier, 'q1', cards, true);
+    expect(Object.keys(all.choices)).toEqual(['S1', 'S2']);
+  });
+
+  it('clears the bulk flag of only the card a single choice names', () => {
+    const all = withAllCards(EMPTY_DISCLOSURE, 'q1', cards, true);
+    const single = withChoice(all, 'q1', 'S1', {
+      ...OPEN_UNADDED,
+      bulk: true,
+    });
+    expect(isCardInstant(single, 'q1', 'S1')).toBe(false);
+    expect(isCardInstant(single, 'q1', 'S2')).toBe(true);
+    expect(single.choices.S2).toBe(all.choices.S2);
   });
 });

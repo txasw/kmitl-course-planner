@@ -8,10 +8,12 @@ import { EMPTY_FILTER, type CatalogFilter } from '@/lib/catalog/filter';
 import type { DayOfWeek } from '@/lib/domain/types';
 import {
   EMPTY_DISCLOSURE,
+  withAllCards,
   withChoice,
   withPlacement,
   type CardChoice,
   type CardDisclosure,
+  type CardTarget,
 } from '@/lib/catalog/cardDisclosure';
 
 export interface CatalogStore {
@@ -28,6 +30,12 @@ export interface CatalogStore {
     queryKey: string | null,
     subjectId: string,
     choice: CardChoice,
+  ) => void;
+  /** Opens or closes every given card at once, with no transition. */
+  setAllCards: (
+    queryKey: string | null,
+    cards: readonly CardTarget[],
+    open: boolean,
   ) => void;
   /** Drops the card choices a plan change has made stale. */
   syncPlacement: (addedIds: ReadonlySet<string>) => void;
@@ -66,6 +74,11 @@ export function createCatalogStore() {
     setCardOpen: (queryKey, subjectId, choice) => {
       set((state) => ({
         disclosure: withChoice(state.disclosure, queryKey, subjectId, choice),
+      }));
+    },
+    setAllCards: (queryKey, cards, open) => {
+      set((state) => ({
+        disclosure: withAllCards(state.disclosure, queryKey, cards, open),
       }));
     },
     syncPlacement: (addedIds) => {

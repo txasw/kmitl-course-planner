@@ -8,6 +8,12 @@
 export interface CardChoice {
   open: boolean;
   added: boolean;
+  /**
+   * Set when Expand all or Collapse all made the choice, so the card skips its
+   * transition rather than animating with every other card. A single choice for the
+   * card replaces it, so only that card's flag changes and the rest do not rerender.
+   */
+  bulk?: true;
 }
 
 export interface CardDisclosure {
@@ -19,6 +25,12 @@ export const EMPTY_DISCLOSURE: CardDisclosure = {
   queryKey: null,
   choices: {},
 };
+
+/** A card a bulk change applies to, with its placement for the choice tag. */
+export interface CardTarget {
+  subjectId: string;
+  added: boolean;
+}
 
 type QueryFields = Readonly<Record<string, string | boolean | undefined>>;
 
@@ -41,8 +53,41 @@ export function withChoice(
   const base = disclosure.queryKey === queryKey ? disclosure.choices : {};
   return {
     queryKey,
-    choices: { ...base, [subjectId]: choice },
+    choices: {
+      ...base,
+      [subjectId]: { open: choice.open, added: choice.added },
+    },
   };
+}
+
+/**
+ * Opens or closes every given card at once, as Expand all and Collapse all do. Cards
+ * outside the list, such as those a filter hides, keep their choices.
+ */
+export function withAllCards(
+  disclosure: CardDisclosure,
+  queryKey: string | null,
+  cards: readonly CardTarget[],
+  open: boolean,
+): CardDisclosure {
+  const choices: Record<string, CardChoice> =
+    disclosure.queryKey === queryKey ? { ...disclosure.choices } : {};
+  for (const { subjectId, added } of cards) {
+    choices[subjectId] = { open, added, bulk: true };
+  }
+  return { queryKey, choices };
+}
+
+/** Whether a card's current choice came from a bulk change, so it skips its transition. */
+export function isCardInstant(
+  disclosure: CardDisclosure,
+  queryKey: string | null,
+  subjectId: string,
+): boolean {
+  return (
+    disclosure.queryKey === queryKey &&
+    disclosure.choices[subjectId]?.bulk === true
+  );
 }
 
 /**

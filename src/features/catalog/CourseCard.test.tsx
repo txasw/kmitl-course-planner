@@ -24,7 +24,10 @@ const en = createTranslator('en');
 
 afterEach(cleanup);
 
-type CardProps = Omit<ComponentProps<typeof CourseCard>, 'open' | 'onToggle'>;
+type CardProps = Omit<
+  ComponentProps<typeof CourseCard>,
+  'open' | 'instant' | 'onToggle'
+>;
 
 // Holds the open flag the way the catalog does, so a click on the toggle opens and
 // closes the card.
@@ -37,6 +40,7 @@ function Controlled({
     <CourseCard
       {...props}
       open={open}
+      instant={false}
       onToggle={(_subjectId, next) => {
         setOpen(next);
       }}
@@ -172,6 +176,7 @@ describe('CourseCard disclosure', () => {
         locale="th"
         t={t}
         open={false}
+        instant={false}
         onToggle={onToggle}
       />,
     );
@@ -341,6 +346,7 @@ describe('CourseCard disclosure motion', () => {
       course,
       locale: 'th' as const,
       t,
+      instant: false,
       onToggle: () => undefined,
     };
     const placed = [makeSection({ teachTableId: 's1', subjectId: '90592008' })];
@@ -745,6 +751,7 @@ describe('CourseCard memoization', () => {
       locale: 'th' as const,
       t: countingT,
       open: true,
+      instant: false,
       onToggle,
     };
 
