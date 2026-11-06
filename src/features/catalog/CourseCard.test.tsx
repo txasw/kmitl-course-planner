@@ -23,6 +23,7 @@ import { dragStore } from '@/features/planner/dragStore';
 import { Overlay } from '@/features/shell/Overlay';
 import { uiStore } from '@/features/shell/uiStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
+import { CatalogDragContext } from './catalogDrag';
 import { CourseCard } from './CourseCard';
 import { courseToggle } from './courseFocus';
 import { HOVER_REST_MS } from './useHoverIntent';
@@ -625,20 +626,30 @@ describe('CourseCard course drag header', () => {
     expect(toggle()).toHaveAttribute('aria-expanded', 'false');
   });
 
-  function Harness() {
+  function Harness({ dragEnabled = true }: { dragEnabled?: boolean }) {
     const sensors = usePlannerSensors();
     return (
       <DndContext sensors={sensors}>
-        <Controlled
-          course={course}
-          placed={[]}
-          locale="th"
-          t={t}
-          onAdd={() => undefined}
-        />
+        <CatalogDragContext.Provider value={dragEnabled}>
+          <Controlled
+            course={course}
+            placed={[]}
+            locale="th"
+            t={t}
+            onAdd={() => undefined}
+          />
+        </CatalogDragContext.Provider>
       </DndContext>
     );
   }
+
+  it('has no course drag surface or grip where the catalog turns drag off', () => {
+    render(<Harness dragEnabled={false} />);
+    expect(document.querySelector('[data-drag-surface="course"]')).toBeNull();
+    expect(document.querySelector('.cursor-grab')).toBeNull();
+    fireEvent.click(toggle());
+    expect(toggle()).toHaveAttribute('aria-expanded', 'true');
+  });
 
   // Pins dnd-kit's own click suppression: once a drag activates, it swallows the click
   // that ends it, so a header drag never toggles the card. A dnd-kit upgrade that drops

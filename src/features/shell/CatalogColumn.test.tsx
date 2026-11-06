@@ -216,6 +216,28 @@ describe('CatalogColumn', () => {
     },
   );
 
+  it('turns catalog drag off below 640 px and keeps it on above', () => {
+    const viewport = installViewport(390);
+    act(() => {
+      searchStore
+        .getState()
+        .setResult({ status: 'ready', data: catalog }, null);
+    });
+    const { container } = render(<Harness />);
+    expect(
+      container.querySelectorAll('[data-drag-surface="course"]'),
+    ).toHaveLength(0);
+    expandAll(container);
+    const rows = container.querySelectorAll('[data-drag-surface="section"]');
+    expect(rows).toHaveLength(SECTION_IDS.length);
+    for (const row of rows) expect(row).not.toHaveClass('cursor-grab');
+
+    act(() => {
+      viewport.resize(768);
+    });
+    for (const row of rows) expect(row).toHaveClass('cursor-grab');
+  });
+
   it('marks the scroller that owns its scroll anchoring', () => {
     installViewport(1440);
     const { container } = render(<Harness />);

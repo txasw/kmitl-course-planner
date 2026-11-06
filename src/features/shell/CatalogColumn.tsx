@@ -36,6 +36,9 @@
 // While a placed block is dragged and the docked column is shown, the column is the
 // remove zone (ADR-0059): its content dims to 30 percent under the zone overlay, so the
 // student keeps their place in the list, and a drop anywhere on it removes the block.
+//
+// Below 640 px the catalog turns drag off for every row and course header in it, because
+// the timetable is not beside the list to drop on; the add buttons carry the add.
 
 import { useLayoutEffect, useRef, type KeyboardEvent } from 'react';
 import { useStore } from 'zustand';
@@ -51,6 +54,7 @@ import {
   selectFormOpen,
 } from '@/features/search/searchStore';
 import { SuggestAction } from '@/features/catalog/SuggestAction';
+import { CatalogDragContext } from '@/features/catalog/catalogDrag';
 import { dragStore, type DragStore } from '@/features/planner/dragStore';
 import {
   CatalogRemoveZone,
@@ -294,7 +298,9 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
           keepResults ? 'min-h-48' : 'min-h-0'
         }`}
       >
-        <CatalogPanel />
+        <CatalogDragContext.Provider value={tier !== 'compact'}>
+          <CatalogPanel />
+        </CatalogDragContext.Provider>
       </div>
       {removeZone ? <CatalogRemoveZone /> : null}
     </div>

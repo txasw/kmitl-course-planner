@@ -5,7 +5,9 @@
 // movement is meaningless when every placement is fixed. Hovering the row with a mouse
 // or focusing the grip previews the section's cells at low emphasis; a finger never
 // hovers, so a tap does not draw the preview (ADR-0058). A held finger marks the row
-// pressed before its drag starts, and the dragged row dims to 40 percent.
+// pressed before its drag starts, and the dragged row dims to 40 percent. Where the
+// catalog turns drag off, below 640 px, the row is no drag source and shows no grab
+// cursor or pressed mark, and the grip stays as the commit control.
 
 import { useEffect, type PointerEvent, type ReactNode } from 'react';
 import { useDraggable } from '@dnd-kit/core';
@@ -18,6 +20,7 @@ import {
   dragSourceClass,
   useTouchPress,
 } from '@/features/planner/useTouchPress';
+import { useCatalogDragEnabled } from './catalogDrag';
 
 interface DraggableSectionProps {
   id: string;
@@ -40,9 +43,11 @@ export function DraggableSection({
   // on the row commits the section, the city builder grab feel. The grip stays as the
   // visual hint and the keyboard commit anchor; there is no dnd keyboard sensor, so the
   // draggable attributes are omitted and the grip button carries the keyboard commit.
+  const dragEnabled = useCatalogDragEnabled();
   const { setNodeRef, listeners, isDragging } = useDraggable({
     id,
     data: { course, section },
+    disabled: !dragEnabled,
   });
   const press = useTouchPress();
 
@@ -74,7 +79,9 @@ export function DraggableSection({
     <div
       ref={setNodeRef}
       data-drag-surface="section"
-      className={`touch-drag flex cursor-grab items-stretch gap-1 rounded-kcp ${dragSourceClass(isDragging, press.pressed)}`}
+      className={`touch-drag flex items-stretch gap-1 rounded-kcp ${
+        dragEnabled ? 'cursor-grab' : ''
+      } ${dragSourceClass(isDragging, dragEnabled && press.pressed)}`}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={clearPreview}
       {...press.handlers}
