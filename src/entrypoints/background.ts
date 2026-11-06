@@ -7,6 +7,7 @@ import { createTabIntentStore } from '@/lib/storage/tabIntents';
 import { handleActionClick, type ClickedTab } from '@/lib/shell/actionClick';
 import { HOST_MATCH_PATTERNS } from '@/lib/shell/hostTab';
 import { answerMountHandshake } from '@/lib/shell/mountHandshake';
+import { answerWelcomeClaim } from '@/lib/shell/welcomeClaim';
 import { createCacheStore } from '@/lib/api/cache';
 import { createDefaultEnv, createGateway } from '@/lib/api/gateway';
 import {
@@ -46,9 +47,10 @@ async function createTab(url: string): Promise<number | null> {
 // The background service worker is the single network and cache authority. It
 // builds the gateway over the browser storage cache, exposes the typed handlers
 // through the message router, and validates every inbound message. It also turns a
-// toolbar icon click or the open shortcut into an open panel (ADR-0062). Debug
-// builds additionally install the diagnostics interceptors and a console handle
-// through a dynamic import that dead code eliminates from production.
+// toolbar icon click or the open shortcut into an open panel, and decides which host
+// tab shows the welcome after install (ADR-0062). Debug builds additionally install
+// the diagnostics interceptors and a console handle through a dynamic import that
+// dead code eliminates from production.
 export default defineBackground(() => {
   const cache = createCacheStore(createBrowserStorageAdapter());
   const gateway = createGateway({ cache, env: createDefaultEnv() });
@@ -99,6 +101,8 @@ export default defineBackground(() => {
           getCommands: () => browser.commands.getAll(),
         }),
       ),
+    'onboarding/claimWelcome': async (_message, context) =>
+      ok(await answerWelcomeClaim(context, { intents })),
   };
 
   const router = createRouter({ handlers, runtimeId: browser.runtime.id });
