@@ -1,6 +1,7 @@
 import './style.css';
 import { createRoot, type Root } from 'react-dom/client';
 import { IS_DEBUG } from '@/lib/env';
+import { REGIS_MATCH_PATTERN } from '@/lib/shell/hostTab';
 import { sendTyped } from '@/lib/messaging/sendTyped';
 import { createPrefsRepository } from '@/lib/storage/prefs';
 import { createSearchStateRepository } from '@/lib/storage/lastSearch';
@@ -15,7 +16,7 @@ import { App } from './App';
 // for host isolation; debug builds use an open root so in browser accessibility
 // scans and browser driven tests can reach the tree without a source edit.
 export default defineContentScript({
-  matches: ['https://regis.reg.kmitl.ac.th/*'],
+  matches: [REGIS_MATCH_PATTERN],
   runAt: 'document_idle',
   cssInjectionMode: 'ui',
   async main(ctx) {
