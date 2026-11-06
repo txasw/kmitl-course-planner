@@ -1,5 +1,6 @@
-// The one persistent status region for settled search outcomes, listed in the live
-// region inventory of ADR-0048. It sits in Layout, outside the catalog column, so it
+// The one persistent status region for settled search outcomes and for the settle of a
+// manual plan check, listed in the live region inventory of ADR-0048 as ADR-0060 amends it.
+// It sits in Layout, outside the catalog column, so it
 // stays mounted while the column swaps its loading, error, empty and result states, and
 // while a sheet or a hidden docked column keeps the result out of view. It speaks only
 // when a user search settles: the course and section count, the empty title with the
@@ -19,6 +20,10 @@ import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import type { AsyncState } from '@/lib/utils/async';
 import { countSections } from '@/lib/catalog/countSections';
 import { termSummary } from '@/features/catalog/CatalogPanel';
+import { planDataDate } from '@/lib/planner/posterHonesty';
+import { verificationText } from '@/features/planner/verificationText';
+import { planStore } from '@/features/plans/planStore';
+import { revalidationStore } from '@/features/plans/revalidationStore';
 import { searchStore } from '@/features/search/searchStore';
 import { useTranslation } from './useTranslation';
 
@@ -54,6 +59,38 @@ export function StatusAnnouncer() {
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   // Whether the run in flight started from an error, which only the retry action does.
   const retrying = useRef(false);
+
+  // A check the student asked for settles in words: the verification status line of the
+  // active plan once the run leaves running. An automatic check on open or on a plan switch
+  // says nothing, as a refresh of the search says nothing.
+  useEffect(
+    () =>
+      revalidationStore.subscribe((state, previous) => {
+        const { activePlanId, entries } = planStore.getState();
+        if (activePlanId === null) {
+          return;
+        }
+        const run = state.runs[activePlanId];
+        const before = previous.runs[activePlanId];
+        if (
+          run === undefined ||
+          run === before ||
+          run.manual !== true ||
+          run.status === 'running' ||
+          before?.status !== 'running'
+        ) {
+          return;
+        }
+        const text = verificationText(
+          run,
+          planDataDate(entries),
+          new Date(),
+          t,
+        ).text;
+        setAnnouncement((current) => ({ id: (current?.id ?? 0) + 1, text }));
+      }),
+    [t],
+  );
 
   useEffect(
     () =>

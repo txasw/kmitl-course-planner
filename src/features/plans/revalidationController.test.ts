@@ -122,6 +122,23 @@ describe('revalidatePlanNow', () => {
       'unverified',
     );
     expect(revalidationStore.getState().runs.p1?.status).toBe('offline');
+    expect(revalidationStore.getState().runs.p1?.manual).toBe(false);
+  });
+
+  it('marks a run the student asked for as manual from start to settle', async () => {
+    const entry = makePlanEntry({ sourceQuery: fullSourceQuery('S1') });
+    const plan = makePlan({ id: 'p1', entries: [entry] });
+    seed(plan);
+    const send = fakeSend(() => Promise.resolve(err(networkError('down'))));
+
+    const done = revalidatePlanNow(plan, { send, ...deps }, true);
+    expect(revalidationStore.getState().runs.p1).toEqual({
+      status: 'running',
+      report: null,
+      manual: true,
+    });
+    await done;
+    expect(revalidationStore.getState().runs.p1?.manual).toBe(true);
   });
 
   it('reconciles the succeeded entries and reports partial on a mixed result', async () => {

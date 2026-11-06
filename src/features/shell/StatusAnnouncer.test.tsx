@@ -5,9 +5,18 @@ import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { httpError } from '@/lib/utils/result';
 import { searchStore, type QueryIntent } from '@/features/search/searchStore';
 import {
+  revalidationStore,
+  type RevalidationRun,
+} from '@/features/plans/revalidationStore';
+import {
   makeCourse,
+  makePlanEntry,
   makeSection,
 } from '../../../tests/support/domain-builders';
+import {
+  resetPlanStore,
+  seedActivePlan,
+} from '../../../tests/support/plan-store';
 import { StatusAnnouncer } from './StatusAnnouncer';
 import { uiStore } from './uiStore';
 
@@ -162,5 +171,61 @@ describe('StatusAnnouncer', () => {
     render(<StatusAnnouncer />);
     run('user', { status: 'ready', data: catalog([2, 2]) });
     expect(region()).toHaveTextContent('Found 2 courses and 4 sections');
+  });
+});
+
+describe('StatusAnnouncer plan checks', () => {
+  const report = {
+    summary: { total: 1, unchanged: 0, changed: 1, missing: 0 },
+    entries: [],
+    termFindings: [],
+  };
+
+  function check(manual: boolean, settle: RevalidationRun): void {
+    act(() => {
+      revalidationStore
+        .getState()
+        .setRun('p1', { status: 'running', report: null, manual });
+    });
+    act(() => {
+      revalidationStore.getState().setRun('p1', { ...settle, manual });
+    });
+  }
+
+  afterEach(() => {
+    resetPlanStore();
+    revalidationStore.setState({ runs: {} });
+  });
+
+  it('names the status line when a manual check settles', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry({ lastVerifiedAt: null })], { id: 'p1' });
+    });
+    render(<StatusAnnouncer />);
+    check(true, { status: 'offline', report: null });
+    expect(region()).toHaveTextContent(
+      'ยังตรวจสอบไม่ได้ แสดงข้อมูลที่บันทึกไว้',
+    );
+  });
+
+  it('names the changes a manual check found', () => {
+    act(() => {
+      seedActivePlan(
+        [makePlanEntry({ lastVerifiedAt: new Date().toISOString() })],
+        { id: 'p1' },
+      );
+    });
+    render(<StatusAnnouncer />);
+    check(true, { status: 'done', report });
+    expect(region()).toHaveTextContent(/^ตรวจสอบแล้ว \d\d:\d\d เปลี่ยน 1$/);
+  });
+
+  it('says nothing when an automatic check settles', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry()], { id: 'p1' });
+    });
+    render(<StatusAnnouncer />);
+    check(false, { status: 'done', report });
+    expect(region()).toBeEmptyDOMElement();
   });
 });

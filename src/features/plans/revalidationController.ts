@@ -60,7 +60,7 @@ const inFlight = new Set<string>();
 /**
  * Run a revalidation for a plan. A manual run bypasses the cache; an automatic run
  * uses the normal cache and retry rules. The result is reported through the
- * revalidation store for the banner.
+ * revalidation store for the verification status.
  */
 export async function revalidatePlanNow(
   plan: Plan,
@@ -73,7 +73,7 @@ export async function revalidatePlanNow(
   inFlight.add(plan.id);
   revalidationStore
     .getState()
-    .setRun(plan.id, { status: 'running', report: null });
+    .setRun(plan.id, { status: 'running', report: null, manual });
 
   try {
     const groups = new Map<string, Record<string, string>>();
@@ -113,7 +113,7 @@ export async function revalidatePlanNow(
       // Every replay failed: render from snapshots with the unverified state and a retry.
       revalidationStore
         .getState()
-        .setRun(plan.id, { status: 'offline', report: null });
+        .setRun(plan.id, { status: 'offline', report: null, manual });
       return;
     }
 
@@ -125,7 +125,7 @@ export async function revalidatePlanNow(
     );
     planStore.getState().applyRevalidation(plan.id, reconciled.entries);
     const status: RevalidationStatus = anyFailure ? 'partial' : 'done';
-    revalidationStore.getState().setRun(plan.id, { status, report });
+    revalidationStore.getState().setRun(plan.id, { status, report, manual });
   } finally {
     inFlight.delete(plan.id);
   }
