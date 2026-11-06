@@ -17,6 +17,7 @@ import {
   seedActivePlan,
 } from '../../../tests/support/plan-store';
 import { revalidationStore } from '@/features/plans/revalidationStore';
+import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { RevalidationDetailSheet } from './RevalidationDetailSheet';
 
 const t = createTranslator('en');
@@ -55,6 +56,15 @@ const UNCHANGED: EntryDiff = {
   after: makeSnapshot({ teachTableId: 't3', subjectId: '90000003' }),
 };
 
+// The sheet portals into the overlay root, which the panel provides.
+function renderSheet(onClose: () => void = vi.fn()) {
+  return render(
+    <PanelPortalContext.Provider value={document.body}>
+      <RevalidationDetailSheet locale="en" t={t} onClose={onClose} />
+    </PanelPortalContext.Provider>,
+  );
+}
+
 function seedRun(entries: EntryDiff[]): void {
   const report: ReconcileReport = {
     summary: { total: entries.length, unchanged: 0, changed: 1, missing: 1 },
@@ -76,7 +86,7 @@ describe('RevalidationDetailSheet', () => {
     act(() => {
       seedRun([CHANGED, MISSING, UNCHANGED]);
     });
-    render(<RevalidationDetailSheet locale="en" t={t} onClose={vi.fn()} />);
+    renderSheet();
     expect(screen.getByText('A101')).toBeInTheDocument();
     expect(screen.getByText('B202')).toBeInTheDocument();
     expect(screen.getByText(t('verify.missing'))).toBeInTheDocument();
@@ -86,8 +96,26 @@ describe('RevalidationDetailSheet', () => {
     act(() => {
       seedRun([CHANGED, UNCHANGED]);
     });
-    render(<RevalidationDetailSheet locale="en" t={t} onClose={vi.fn()} />);
+    renderSheet();
     expect(screen.queryByText(/90000003/)).not.toBeInTheDocument();
+  });
+
+  it('starts focus on its heading and keeps Tab inside', () => {
+    act(() => {
+      seedRun([CHANGED]);
+    });
+    renderSheet();
+    const dialog = screen.getByRole('dialog', {
+      name: t('revalidation.detailTitle'),
+    });
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(
+      screen.getByRole('heading', { name: t('revalidation.detailTitle') }),
+    ).toHaveFocus();
+    const close = screen.getByRole('button', { name: t('action.close') });
+    close.focus();
+    fireEvent.keyDown(close, { key: 'Tab' });
+    expect(close).toHaveFocus();
   });
 
   it('closes through the close control', () => {
@@ -95,7 +123,7 @@ describe('RevalidationDetailSheet', () => {
       seedRun([CHANGED]);
     });
     const onClose = vi.fn();
-    render(<RevalidationDetailSheet locale="en" t={t} onClose={onClose} />);
+    renderSheet(onClose);
     fireEvent.click(screen.getByRole('button', { name: t('action.close') }));
     expect(onClose).toHaveBeenCalled();
   });
@@ -105,7 +133,7 @@ describe('RevalidationDetailSheet', () => {
       seedRun([CHANGED]);
     });
     const onClose = vi.fn();
-    render(<RevalidationDetailSheet locale="en" t={t} onClose={onClose} />);
+    renderSheet(onClose);
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
     expect(onClose).toHaveBeenCalled();
   });
@@ -114,9 +142,7 @@ describe('RevalidationDetailSheet', () => {
     act(() => {
       resetPlanStore();
     });
-    const { container } = render(
-      <RevalidationDetailSheet locale="en" t={t} onClose={vi.fn()} />,
-    );
-    expect(container).toBeEmptyDOMElement();
+    renderSheet();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
