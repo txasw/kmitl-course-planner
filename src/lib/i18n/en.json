@@ -167,6 +167,7 @@
   "offeredTo.incomplete": "Choose a faculty, department, curriculum, and class year.",
   "offeredTo.label": "Open to",
   "offeredTo.detailScope": "Based on the search this section was added from",
+  "compare.open": "Compare sections",
   "compare.title": "Compare sections of {subject}",
   "compare.close": "Close comparison",
   "compare.onlyAddable": "Addable only",

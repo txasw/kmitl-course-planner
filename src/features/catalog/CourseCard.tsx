@@ -5,11 +5,21 @@
 // the placed sections. A card starts collapsed and the catalog owns whether it is
 // open, so the state survives a remount.
 // Resting the mouse on the header, or focusing the toggle from the keyboard, previews
-// where the course's sections would land on the grid.
+// where the course's sections would land on the grid. A course with two or more sections
+// opens its body with a compare control first, which shows every section side by side
+// in a table. The body stays mounted while the table is open, so closing it returns
+// focus to the control.
 
-import { memo, useId, useMemo, type PointerEvent, type ReactNode } from 'react';
+import {
+  memo,
+  useId,
+  useMemo,
+  useState,
+  type PointerEvent,
+  type ReactNode,
+} from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { ChevronDown, GripVertical } from 'lucide-react';
+import { ChevronDown, Columns3, GripVertical } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import { termsEqual, type Term } from '@/lib/routing/academicTerms';
@@ -28,6 +38,7 @@ import { RemoveButton, removeSectionName } from './RemoveButton';
 import { AddedLine, FitLine } from './CourseMeta';
 import { CourseBody, DISCLOSURE_MS } from './CourseBody';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import { useRevealOnExpand } from './useRevealOnExpand';
 import { courseToggleId } from './courseFocus';
 import {
@@ -37,8 +48,11 @@ import {
 import { useCatalogDragEnabled } from './catalogDrag';
 import { useCoursePreview } from './useCoursePreview';
 import type { HoverIntentHandlers } from './useHoverIntent';
+import { SectionComparisonSheet } from './SectionComparisonSheet';
 
 const HEADER = 'flex items-start gap-1';
+
+const COMPARE_ACTION = `inline-flex items-center gap-1 self-start rounded-kcp border border-border px-2 py-1 text-xs text-ink-soft hover:bg-surface-alt hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`;
 
 // The whole card header is a pointer drag source. Grabbing it previews every section of
 // the course as a candidate slot on the grid, and dnd-kit swallows the click that ends
@@ -163,6 +177,8 @@ function CourseCardComponent({
   );
   const preview = useCoursePreview(course, !added && !crossTerm);
   const { cardRef, scheduleReveal } = useRevealOnExpand(DISCLOSURE_MS);
+  const [comparing, setComparing] = useState(false);
+  const comparable = course.sections.length >= 2;
   const handleToggle = () => {
     scheduleReveal(!open);
     onToggle(course.subjectId, !open, added);
@@ -283,6 +299,20 @@ function CourseCardComponent({
                 {t('catalog.card.addedHint')}
               </p>
             ) : null}
+            {comparable ? (
+              <button
+                type="button"
+                aria-haspopup="dialog"
+                aria-describedby={titleId}
+                onClick={() => {
+                  setComparing(true);
+                }}
+                className={COMPARE_ACTION}
+              >
+                <Columns3 size={12} strokeWidth={2} aria-hidden />
+                {t('compare.open')}
+              </button>
+            ) : null}
             {course.sections.map((section) => (
               <CourseSection
                 key={section.teachTableId}
@@ -301,6 +331,18 @@ function CourseCardComponent({
           </div>
         )}
       />
+      {comparing ? (
+        <SectionComparisonSheet
+          course={course}
+          placed={placed}
+          locale={locale}
+          t={t}
+          term={term}
+          onClose={() => {
+            setComparing(false);
+          }}
+        />
+      ) : null}
     </article>
   );
 }

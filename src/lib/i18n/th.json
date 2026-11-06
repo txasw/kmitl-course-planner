@@ -167,6 +167,7 @@
   "offeredTo.incomplete": "เลือกคณะ ภาควิชา หลักสูตร และชั้นปีให้ครบ",
   "offeredTo.label": "เปิดให้",
   "offeredTo.detailScope": "อ้างอิงจากการค้นหาที่ใช้เพิ่มรายการนี้",
+  "compare.open": "เปรียบเทียบกลุ่มเรียน",
   "compare.title": "เปรียบเทียบกลุ่มเรียน {subject}",
   "compare.close": "ปิดการเปรียบเทียบ",
   "compare.onlyAddable": "เฉพาะกลุ่มที่เพิ่มได้",
