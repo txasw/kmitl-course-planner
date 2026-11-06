@@ -11,7 +11,7 @@ import type { Locale, Translate } from '@/lib/i18n/t';
 import type { PlanEntry } from '@/lib/domain/plan';
 import { snapshotToSection } from '@/lib/domain/plan';
 import type { ExamOverlap } from '@/lib/planner/examOverlap';
-import type { EntryDiff } from '@/lib/planner/revalidate';
+import type { EntryDiff } from '@/lib/planner/reconcile';
 import { planStore } from '@/features/plans/planStore';
 import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 import { describeEntryDiff } from './describeEntryDiff';

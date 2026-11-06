@@ -27,8 +27,8 @@ export interface EntryRevalidation {
   changes: ChangeKind[];
   /** True when the entry matched by durable identity under a different key. */
   keyChanged: boolean;
-  /** The matched fresh teachTableId, or null when the entry is missing. */
-  freshTeachTableId: string | null;
+  /** The matched fresh section, or null when the entry is missing. */
+  fresh: IndexedSection | null;
 }
 
 /** A fresh section with the subject metadata reconcile needs to rebuild a snapshot. */
@@ -73,8 +73,7 @@ export function buildSectionIndex(catalogs: NormalizedCatalog[]): SectionIndex {
   return { byTeachTableId, byIdentity };
 }
 
-/** Find the fresh section for a stored entry, by key and then by durable identity. */
-export function matchEntry(
+function matchEntry(
   entry: PlanEntry,
   index: SectionIndex,
 ): { indexed: IndexedSection; keyChanged: boolean } | null {
@@ -199,7 +198,7 @@ export function revalidateEntry(
       outcome: 'missing',
       changes: [],
       keyChanged: false,
-      freshTeachTableId: null,
+      fresh: null,
     };
   }
   const changes = diffSnapshot(entry.snapshot, match.indexed.section);
@@ -210,6 +209,6 @@ export function revalidateEntry(
     outcome: changes.length === 0 ? 'unchanged' : 'changed',
     changes,
     keyChanged: match.keyChanged,
-    freshTeachTableId: match.indexed.section.teachTableId,
+    fresh: match.indexed,
   };
 }

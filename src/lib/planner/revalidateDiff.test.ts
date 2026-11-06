@@ -40,7 +40,7 @@ describe('revalidateEntry', () => {
     const result = revalidateEntry(entry, indexFrom([moved]));
     expect(result.outcome).toBe('unchanged');
     expect(result.keyChanged).toBe(true);
-    expect(result.freshTeachTableId).toBe('t2');
+    expect(result.fresh?.section.teachTableId).toBe('t2');
   });
 
   it('flags a moved meeting time as changed', () => {
@@ -86,7 +86,7 @@ describe('revalidateEntry', () => {
     });
     const result = revalidateEntry(entry, indexFrom([unrelated]));
     expect(result.outcome).toBe('missing');
-    expect(result.freshTeachTableId).toBeNull();
+    expect(result.fresh).toBeNull();
   });
 });
 

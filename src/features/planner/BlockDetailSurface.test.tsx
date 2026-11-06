@@ -8,7 +8,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { createTranslator, type Locale } from '@/lib/i18n/t';
-import type { ReconcileReport } from '@/lib/planner/revalidate';
+import type { ReconcileReport } from '@/lib/planner/reconcile';
 import { planExamConflicts, type ExamOverlap } from '@/lib/planner/examOverlap';
 import { normalizeTeachTable } from '@/lib/domain/normalize';
 import { buildSnapshot, type PlanEntry } from '@/lib/domain/plan';

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createTranslator } from '@/lib/i18n/t';
-import type { EntryDiff } from '@/lib/planner/revalidate';
+import type { EntryDiff } from '@/lib/planner/reconcile';
 import {
   makeMeeting,
   makeSnapshot,
