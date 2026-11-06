@@ -56,6 +56,7 @@ import { StatsBar } from './StatsBar';
 import { TemplateGallery } from './TemplateGallery';
 import { TimetableView } from './TimetableView';
 import { UnscheduledShelf } from './UnscheduledShelf';
+import { VerificationStatus } from './VerificationStatus';
 
 export function PlannerPanel() {
   const { t, language } = useTranslation();
@@ -392,6 +393,7 @@ export function PlannerPanel() {
           sections={sections}
           conflictCount={honesty.conflictPairCount}
           onShowConflict={handleShowConflict}
+          status={<VerificationStatus />}
           t={t}
         />
       ) : null}
