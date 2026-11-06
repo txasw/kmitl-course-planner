@@ -6,7 +6,9 @@
 // Copy image is feature detected; where the browser lacks image clipboard support
 // the control is replaced by a one line note pointing at the always present
 // download, never a dead button. JSON export and import live in the plan menu, not
-// here, because they are data management rather than visual sharing.
+// here, because they are data management rather than visual sharing. The pre share
+// notice follows the toolbar, also outside the capture node, when the plan holds
+// entries to review before sharing.
 
 import type { RefObject } from 'react';
 import { Clipboard, ClipboardCopy, Download } from 'lucide-react';
@@ -20,6 +22,7 @@ import { useTranslation } from '@/features/shell/useTranslation';
 import { toastStore } from '@/features/shell/toastStore';
 import { capturePng } from './capture';
 import { DisplayOptionsPopover } from './DisplayOptionsPopover';
+import { PreShareNotice } from './PreShareNotice';
 import type { PlacedSection } from './placedSection';
 import { FOCUS_RING } from '@/lib/ui/focus';
 
@@ -108,30 +111,33 @@ export function PreviewToolbar({
   };
 
   return (
-    <div
-      role="toolbar"
-      aria-label={t('preview.toolbar')}
-      className="flex shrink-0 flex-wrap items-end gap-2"
-    >
-      <DisplayOptionsPopover />
-      {canCopyImage() ? (
-        <button type="button" onClick={handleCopyImage} className={BUTTON}>
-          <Clipboard size={16} strokeWidth={2} aria-hidden />
-          {t('preview.copyImage')}
+    <>
+      <div
+        role="toolbar"
+        aria-label={t('preview.toolbar')}
+        className="flex shrink-0 flex-wrap items-end gap-2"
+      >
+        <DisplayOptionsPopover />
+        {canCopyImage() ? (
+          <button type="button" onClick={handleCopyImage} className={BUTTON}>
+            <Clipboard size={16} strokeWidth={2} aria-hidden />
+            {t('preview.copyImage')}
+          </button>
+        ) : (
+          <span className="text-xs text-ink-soft">
+            {t('preview.copyImageUnsupported')}
+          </span>
+        )}
+        <button type="button" onClick={handleDownloadPng} className={BUTTON}>
+          <Download size={16} strokeWidth={2} aria-hidden />
+          {t('preview.downloadPng')}
         </button>
-      ) : (
-        <span className="text-xs text-ink-soft">
-          {t('preview.copyImageUnsupported')}
-        </span>
-      )}
-      <button type="button" onClick={handleDownloadPng} className={BUTTON}>
-        <Download size={16} strokeWidth={2} aria-hidden />
-        {t('preview.downloadPng')}
-      </button>
-      <button type="button" onClick={handleCopyText} className={BUTTON}>
-        <ClipboardCopy size={16} strokeWidth={2} aria-hidden />
-        {t('preview.copyText')}
-      </button>
-    </div>
+        <button type="button" onClick={handleCopyText} className={BUTTON}>
+          <ClipboardCopy size={16} strokeWidth={2} aria-hidden />
+          {t('preview.copyText')}
+        </button>
+      </div>
+      <PreShareNotice />
+    </>
   );
 }

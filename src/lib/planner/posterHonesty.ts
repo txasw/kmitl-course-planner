@@ -78,3 +78,14 @@ export function posterHonesty(input: PosterHonestyInput): PosterHonesty {
     ]),
   };
 }
+
+/** The entries to look at before sharing: those whose latest check found a change not yet
+ * acknowledged, or found them no longer listed. The pre share notice states this count. */
+export function reviewBeforeShareCount(
+  entries: readonly Pick<PlanEntry, 'verifyStatus'>[],
+): number {
+  return entries.filter(
+    (entry) =>
+      entry.verifyStatus === 'changed' || entry.verifyStatus === 'missing',
+  ).length;
+}

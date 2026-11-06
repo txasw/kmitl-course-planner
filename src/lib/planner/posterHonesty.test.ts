@@ -7,7 +7,7 @@ import {
 import type { Section } from '../domain/types';
 import { planConflicts } from './planConflicts';
 import { planExamConflicts } from './examOverlap';
-import { posterHonesty } from './posterHonesty';
+import { posterHonesty, reviewBeforeShareCount } from './posterHonesty';
 
 const NO_CONFLICTS = new Map<string, never[]>();
 
@@ -187,5 +187,25 @@ describe('posterHonesty conflicting pairs', () => {
       meetings: [makeMeeting({ day: 1, startMin: 600, endMin: 660 })],
     });
     expect(honestyFor([a, b]).conflictPairCount).toBe(0);
+  });
+});
+
+describe('reviewBeforeShareCount', () => {
+  it('counts the changed and missing entries only', () => {
+    expect(
+      reviewBeforeShareCount([
+        makePlanEntry({ verifyStatus: 'changed' }),
+        makePlanEntry({ verifyStatus: 'missing' }),
+        makePlanEntry({ verifyStatus: 'verified' }),
+        makePlanEntry({ verifyStatus: 'unverified' }),
+      ]),
+    ).toBe(2);
+  });
+
+  it('is zero for a clean or empty plan', () => {
+    expect(
+      reviewBeforeShareCount([makePlanEntry({ verifyStatus: 'verified' })]),
+    ).toBe(0);
+    expect(reviewBeforeShareCount([])).toBe(0);
   });
 });

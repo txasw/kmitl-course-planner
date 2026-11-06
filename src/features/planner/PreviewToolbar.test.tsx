@@ -1,10 +1,22 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, screen, cleanup, fireEvent } from '@testing-library/react';
+import {
+  render,
+  screen,
+  cleanup,
+  fireEvent,
+  act,
+  within,
+} from '@testing-library/react';
 import type { RefObject } from 'react';
 import { DEFAULT_DISPLAY_OPTIONS } from '@/lib/planner/displayOptions';
 import { DEFAULT_TEMPLATE } from '@/lib/planner/exportTemplates';
 import { PreviewToolbar } from './PreviewToolbar';
 import type { PlacedSection } from './placedSection';
+import { makePlanEntry } from '../../../tests/support/domain-builders';
+import {
+  resetPlanStore,
+  seedActivePlan,
+} from '../../../tests/support/plan-store';
 
 const section: PlacedSection = {
   teachTableId: 't1',
@@ -45,6 +57,7 @@ function renderToolbar() {
 
 afterEach(() => {
   cleanup();
+  resetPlanStore();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -102,5 +115,31 @@ describe('PreviewToolbar', () => {
     // The subject id is off by default, so the line leads with the course name.
     expect(text).toContain('สังคมไทยในวันนี้');
     expect(text).toContain('ตัววางแผนตารางเรียน สจล.');
+  });
+
+  it('follows the toolbar with the pre share notice, never inside it', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry({ verifyStatus: 'missing' })]);
+    });
+    renderToolbar();
+    const text = 'มี 1 รายการที่ข้อมูลเปลี่ยนหรือไม่พบในระบบ ตรวจก่อนแชร์';
+    expect(screen.getByText(text)).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('toolbar')).queryByText(text),
+    ).not.toBeInTheDocument();
+    // The sharing actions stay available beside the notice, so it never blocks an export.
+    expect(
+      screen.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows no pre share notice for a clean plan', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry({ verifyStatus: 'verified' })]);
+    });
+    renderToolbar();
+    expect(
+      screen.queryByRole('button', { name: 'ดูรายการ' }),
+    ).not.toBeInTheDocument();
   });
 });
