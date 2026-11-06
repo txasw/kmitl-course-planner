@@ -14,6 +14,11 @@ import { uiStore } from './uiStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { installViewport } from '../../../tests/support/viewport';
+import { makePlanEntry } from '../../../tests/support/domain-builders';
+import {
+  resetPlanStore,
+  seedActivePlan,
+} from '../../../tests/support/plan-store';
 
 const deps = fakeSearchDeps();
 
@@ -44,10 +49,23 @@ function catalogColumn(container: HTMLElement): HTMLElement {
   return column;
 }
 
+// The grid region may be the hidden pane, so the lookup includes hidden nodes.
+function gridRegion(): HTMLElement {
+  const grid = screen.getByRole('group', {
+    name: 'ตารางเรียนรายสัปดาห์',
+    hidden: true,
+  });
+  const region = grid.closest<HTMLElement>('.p-4');
+  if (region === null) throw new Error('the grid region is not rendered');
+  return region;
+}
+
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  resetPlanStore();
   act(() => {
+    uiStore.setState({ mobilePane: null, planView: 'timetable' });
     uiStore.getState().setSheetOpen(false);
     uiStore.getState().setLanguage('th');
     uiStore.getState().setViewMode('edit');
@@ -92,26 +110,109 @@ describe('Layout', () => {
     },
   );
 
-  it.each([390, 768])(
-    'keeps the catalog sheet hidden at %i px until it is opened',
-    (width) => {
-      installViewport(width);
-      const { container } = render(<Layout />, { wrapper });
-      const sheet = catalogColumn(container);
-      expect(sheet).toHaveClass('w-[24rem]', 'max-w-[90vw]');
-      expect(sheet).toHaveAttribute('aria-hidden', 'true');
-      expect(sheet).toHaveAttribute('inert');
+  it('keeps the catalog sheet hidden at 768 px until it is opened', () => {
+    installViewport(768);
+    const { container } = render(<Layout />, { wrapper });
+    const sheet = catalogColumn(container);
+    expect(sheet).toHaveClass('w-[24rem]', 'max-w-[90vw]');
+    expect(sheet).toHaveAttribute('aria-hidden', 'true');
+    expect(sheet).toHaveAttribute('inert');
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
 
-      act(() => {
-        uiStore.getState().setSheetOpen(true);
-      });
-      expect(sheet).not.toHaveAttribute('aria-hidden');
-      expect(sheet).not.toHaveAttribute('inert');
-      expect(
-        screen.getByRole('heading', { name: 'ค้นหารายวิชา' }),
-      ).toBeInTheDocument();
-    },
-  );
+    act(() => {
+      uiStore.getState().setSheetOpen(true);
+    });
+    expect(sheet).not.toHaveAttribute('aria-hidden');
+    expect(sheet).not.toHaveAttribute('inert');
+    expect(
+      screen.getByRole('heading', { name: 'ค้นหารายวิชา' }),
+    ).toBeInTheDocument();
+  });
+
+  it('opens on the catalog pane below 640 px for an empty plan', () => {
+    installViewport(390);
+    const { container } = render(<Layout />, { wrapper });
+    const pane = catalogColumn(container);
+    expect(uiStore.getState().mobilePane).toBe('catalog');
+    expect(pane).toHaveClass('col-start-1', 'row-start-1');
+    expect(pane).not.toHaveAttribute('role');
+    expect(pane).not.toHaveAttribute('inert');
+    expect(
+      screen.getByRole('heading', { name: 'ค้นหารายวิชา' }),
+    ).toBeInTheDocument();
+    // The bottom nav switches panes, so the pane carries no close.
+    expect(
+      screen.queryByRole('button', { name: 'ปิดรายการรายวิชา' }),
+    ).not.toBeInTheDocument();
+
+    const region = gridRegion();
+    expect(region).toHaveClass('col-start-1', 'row-start-1', 'invisible');
+    expect(region).toHaveAttribute('inert');
+    expect(region).toHaveAttribute('aria-hidden', 'true');
+    expect(
+      screen.getByRole('navigation', { name: 'ส่วนของตัววางแผน' }),
+    ).toBeInTheDocument();
+  });
+
+  it('opens on the timetable pane below 640 px when the plan has entries', () => {
+    seedActivePlan([makePlanEntry()]);
+    installViewport(390);
+    const { container } = render(<Layout />, { wrapper });
+    expect(uiStore.getState().mobilePane).toBe('plan');
+    const pane = catalogColumn(container);
+    expect(pane).toHaveClass('invisible');
+    expect(pane).toHaveAttribute('inert');
+    expect(pane).toHaveAttribute('aria-hidden', 'true');
+    expect(gridRegion()).not.toHaveAttribute('inert');
+    expect(gridRegion()).not.toHaveClass('invisible');
+    expect(screen.getByRole('button', { name: 'ตารางเรียน' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+  });
+
+  it('switches panes from the nav, keeping both mounted and one reachable', () => {
+    installViewport(390);
+    const { container } = render(<Layout />, { wrapper });
+    const pane = catalogColumn(container);
+    const scroller = pane.querySelector<HTMLElement>('[data-catalog-scroller]');
+    if (scroller === null) throw new Error('the catalog scroller is missing');
+    scroller.scrollTop = 180;
+
+    fireEvent.click(screen.getByRole('button', { name: 'ตารางเรียน' }));
+    expect(catalogColumn(container)).toBe(pane);
+    expect(pane).toHaveAttribute('inert');
+    expect(gridRegion()).not.toHaveAttribute('inert');
+    expect(tabStops(container).some((stop) => pane.contains(stop))).toBe(false);
+
+    fireEvent.click(screen.getByRole('button', { name: 'ที่เลือก' }));
+    expect(
+      screen.getByRole('heading', { name: 'ยังไม่ได้เลือกรายวิชา' }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'รายวิชา' }));
+    expect(pane).not.toHaveAttribute('inert');
+    expect(scroller.scrollTop).toBe(180);
+    // The plan pane keeps the selected view for the return, hidden and inert meanwhile.
+    const selected = screen.getByRole('heading', {
+      name: 'ยังไม่ได้เลือกรายวิชา',
+      hidden: true,
+    });
+    expect(selected.closest('[inert]')).not.toBeNull();
+    expect(tabStops(container).some((stop) => pane.contains(stop))).toBe(true);
+  });
+
+  it('opens no sheet and no scrim below 640 px', () => {
+    seedActivePlan([makePlanEntry()]);
+    installViewport(390);
+    const { container } = render(<Layout />, { wrapper });
+    act(() => {
+      uiStore.getState().setSheetOpen(true);
+    });
+    expect(container.querySelector('.z-scrim')).toBeNull();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(gridRegion()).not.toHaveAttribute('inert');
+  });
 
   it('closes the sheet from its header close', () => {
     installViewport(768);
@@ -201,7 +302,7 @@ describe('Layout', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('keeps one catalog column element across a tier change', () => {
+  it('keeps one catalog column element across tier changes', () => {
     const viewport = installViewport(768);
     const { container } = render(<Layout />, { wrapper });
     const sheet = catalogColumn(container);
@@ -211,6 +312,12 @@ describe('Layout', () => {
     const docked = catalogColumn(container);
     expect(docked).toBe(sheet);
     expect(docked).toHaveClass('w-96');
+    act(() => {
+      viewport.resize(390);
+    });
+    expect(catalogColumn(container)).toBe(sheet);
+    expect(sheet).toHaveClass('col-start-1');
+    expect(screen.getByRole('navigation')).toBeInTheDocument();
   });
 
   it('collapses the search and catalog in preview mode', () => {
@@ -225,5 +332,14 @@ describe('Layout', () => {
     expect(
       screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
     ).toBeInTheDocument();
+  });
+
+  it('shows no bottom nav in preview below 640 px', () => {
+    installViewport(390);
+    act(() => {
+      uiStore.getState().setViewMode('preview');
+    });
+    render(<Layout />, { wrapper });
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
   });
 });
