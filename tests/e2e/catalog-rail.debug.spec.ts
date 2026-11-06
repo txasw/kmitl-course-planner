@@ -51,6 +51,17 @@ async function scrollCatalog(page: Page): Promise<number> {
   });
 }
 
+/**
+ * How far the panel body could scroll. Every region in it scrolls on its own, so this
+ * stays 0; any overflow would let a scroll into view move the whole panel, the hide
+ * control with it.
+ */
+async function panelBodyOverflow(page: Page): Promise<number> {
+  return page
+    .getByRole('main')
+    .evaluate((node) => node.scrollHeight - node.clientHeight);
+}
+
 async function catalogOffset(page: Page): Promise<number> {
   return page.locator(SCROLLER).evaluate((node) => node.scrollTop);
 }
@@ -86,6 +97,7 @@ for (const viewport of [
       await syntheticSearch(page);
       const offset = await scrollCatalog(page);
       expect(offset).toBeGreaterThan(0);
+      expect(await panelBodyOverflow(page)).toBe(0);
 
       const hide = page.getByRole('button', { name: HIDE });
       const hideIcon = await iconCentre(hide);
