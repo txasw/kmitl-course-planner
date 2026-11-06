@@ -84,7 +84,7 @@
   "catalog.sheet.close": "Close course list",
   "search.emptyTitle": "Search courses",
   "search.emptyBody": "Select a faculty, department, and curriculum to find open courses.",
-  "search.tab.byClass": "Curriculum and class year",
+  "search.tab.byClass": "Curriculum",
   "search.tab.bySubjectId": "Subject id",
   "search.tab.byCategory": "Subject category",
   "search.year": "Academic year",

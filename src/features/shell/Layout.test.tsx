@@ -58,9 +58,7 @@ describe('Layout', () => {
   it('renders the search, the docked catalog, and the grid regions', () => {
     installViewport(1440);
     render(<Layout />, { wrapper });
-    expect(
-      screen.getByRole('button', { name: 'หลักสูตรและชั้นปี' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'หลักสูตร' })).toBeInTheDocument();
     expect(
       screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
     ).toBeInTheDocument();
@@ -221,7 +219,7 @@ describe('Layout', () => {
     });
     const { container } = render(<Layout />, { wrapper });
     expect(
-      screen.queryByRole('button', { name: 'หลักสูตรและชั้นปี' }),
+      screen.queryByRole('tab', { name: 'หลักสูตร' }),
     ).not.toBeInTheDocument();
     expect(container.querySelector(`#${CATALOG_COLUMN_ID}`)).toBeNull();
     expect(
