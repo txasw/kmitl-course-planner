@@ -12,6 +12,7 @@ import type {
   RawFaculty,
   RawSubjectOwner,
 } from '../domain/schemas';
+import type { OfferedTo } from '../domain/types';
 import { pickLocalized } from '../i18n/localize';
 import { fillTemplate } from '../i18n/template';
 import type { Locale, Translate } from '../i18n/t';
@@ -75,22 +76,24 @@ function facultyLabel(facultyId: string, { reference, locale }: Context) {
   );
 }
 
-function classYearQualifier(query: ByClassQuery, t: Translate): string {
-  return query.search_all_class_year || query.selected_class_year === '0'
+// The x department and curriculum and the class 0 of a catch all grouping mean any.
+const ANY_GROUPING_ID = 'x';
+const ANY_CLASS_YEAR = '0';
+
+function classYearQualifier(classYear: string, t: Translate): string {
+  return classYear === ANY_CLASS_YEAR
     ? t('search.classYearAll')
-    : fillTemplate(t('search.summary.classYear'), {
-        classYear: query.selected_class_year,
-      });
+    : fillTemplate(t('search.summary.classYear'), { classYear });
 }
 
 function findDepartment(
   departments: readonly RawDepartment[],
-  query: ByClassQuery,
+  grouping: OfferedTo,
 ): RawDepartment | undefined {
   return departments.find(
     (department) =>
-      idsEqual(department.faculty_id, query.selected_faculty) &&
-      idsEqual(department.department_id, query.selected_department),
+      idsEqual(department.faculty_id, grouping.facultyId) &&
+      idsEqual(department.department_id, grouping.departmentId),
   );
 }
 
@@ -98,51 +101,66 @@ function findDepartment(
 // retired one, so a query saved before a curriculum retired still finds its name.
 function findCurriculum(
   curricula: readonly RawCurriculum[],
-  query: ByClassQuery,
+  grouping: OfferedTo,
 ): RawCurriculum | undefined {
   const matches = curricula.filter(
     (curriculum) =>
       curriculumBelongsTo(
         curriculum,
-        query.selected_faculty,
-        query.selected_department,
-      ) &&
-      idsEqual(curriculum.REGISTRAR_CURRICULUM2_ID, query.selected_curriculum),
+        grouping.facultyId,
+        grouping.departmentId,
+      ) && idsEqual(curriculum.REGISTRAR_CURRICULUM2_ID, grouping.curriculumId),
   );
   return matches.find((curriculum) => curriculum.ACTIVE === '1') ?? matches[0];
 }
 
-function describeClass(query: ByClassQuery, context: Context): QuerySummary {
+function describeGroupingIn(
+  grouping: OfferedTo,
+  context: Context,
+): QuerySummary {
   const { reference, locale, t } = context;
-  const classYear = classYearQualifier(query, t);
-  const allCurricula =
-    query.search_all_curriculum || query.selected_curriculum === 'x';
-  if (!allCurricula) {
+  const classYear = classYearQualifier(grouping.classYear, t);
+  if (grouping.curriculumId !== ANY_GROUPING_ID) {
     return {
       primary: nameOr(
-        findCurriculum(readyData(reference.curricula), query),
+        findCurriculum(readyData(reference.curricula), grouping),
         (curriculum) => curriculumName(curriculum, locale),
-        query.selected_curriculum,
+        grouping.curriculumId,
       ),
       qualifiers: [classYear],
     };
   }
   const qualifiers = [t('search.curriculumAll'), classYear];
-  const allDepartments =
-    query.search_all_department || query.selected_department === 'x';
-  if (allDepartments) {
+  if (grouping.departmentId === ANY_GROUPING_ID) {
     return {
-      primary: facultyLabel(query.selected_faculty, context),
+      primary: facultyLabel(grouping.facultyId, context),
       qualifiers,
     };
   }
   return {
     primary: nameOr(
-      findDepartment(readyData(reference.departments), query),
+      findDepartment(readyData(reference.departments), grouping),
       (department) => departmentName(department, locale),
-      query.selected_department,
+      grouping.departmentId,
     ),
     qualifiers,
+  };
+}
+
+// A class query names one grouping; each search_all flag stands for the sentinel
+// its catch all grouping carries.
+function queryGrouping(query: ByClassQuery): OfferedTo {
+  return {
+    facultyId: query.selected_faculty,
+    departmentId: query.search_all_department
+      ? ANY_GROUPING_ID
+      : query.selected_department,
+    curriculumId: query.search_all_curriculum
+      ? ANY_GROUPING_ID
+      : query.selected_curriculum,
+    classYear: query.search_all_class_year
+      ? ANY_CLASS_YEAR
+      : query.selected_class_year,
   };
 }
 
@@ -213,6 +231,19 @@ export function describeQuery(
     case 'by_subject_owner_id':
       return describeCategory(query, context);
     case 'by_class':
-      return describeClass(query, context);
+      return describeGroupingIn(queryGrouping(query), context);
   }
+}
+
+/**
+ * Describe one curriculum grouping, such as an offeredTo item or a curriculum
+ * profile, in the words the summary bar uses for a class search of it.
+ */
+export function describeGrouping(
+  grouping: OfferedTo,
+  reference: ReferenceLists,
+  locale: Locale,
+  t: Translate,
+): QuerySummary {
+  return describeGroupingIn(grouping, { reference, locale, t });
 }
