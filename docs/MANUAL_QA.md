@@ -314,6 +314,34 @@ add and remove controls, so no action is a dead end for the keyboard.
       buttons, submit, retry, and the active day chip, show the orange ring on the
       surrounding surface.
 
+## Toolbar icon and shortcut
+
+The end to end suite runs the click handler through the debug console handle, because
+Playwright cannot click the toolbar or press a browser command (ADR-0062). The click
+itself and the shortcut are checked here by hand, in Chrome, Edge, Opera and Firefox.
+
+- [ ] Icon on a regis tab: with a regis page active and the panel closed, click the
+      extension icon in the toolbar. The panel opens in that tab at the layout it had
+      last, and no new tab opens. A second regis tab stays closed. Click the icon again
+      with the panel open; it stays open.
+- [ ] Icon on another site: with a tab on another site active, click the icon. One new
+      tab opens at the search page and its panel opens by itself. Click the icon twice
+      quickly from the other site; the second click brings that same tab forward rather
+      than opening another.
+- [ ] Shortcut: press Alt+Shift+P on Windows and Linux, or Option+Shift+P on macOS. It
+      does the same as the icon click, on a regis tab and on another site. On Windows,
+      repeat with both the Thai and the English keyboard layout, where Alt+Shift also
+      switches the input language, and confirm the panel still opens.
+- [ ] Shortcut taken or removed: clear the shortcut on the browser's extension shortcuts
+      page, or assign Alt+Shift+P to another extension first. The icon still opens the
+      panel, and a shortcut hint, where one shows, names only a shortcut the browser
+      reports.
+- [ ] Tooltip: hover the icon. It reads Course Planner for KMITL, with the (Debug)
+      suffix in the debug build.
+- [ ] Site access on click (Chrome): set the extension's site access to on click, then
+      click the icon on a regis tab that has not been granted. Known limitation: the
+      planner may need a page reload after the grant before the panel opens.
+
 ## Firefox parity
 
 The end to end suite runs on Chromium only, because Playwright cannot side load the
@@ -322,7 +350,7 @@ acceptance and is run by a person, not automated. Load the unpacked Firefox buil
 `pnpm build:debug -b firefox`, then open `about:debugging`, choose This Firefox, Load
 Temporary Add-on, and pick `.output/firefox-mv3-debug/manifest.json`. Open
 `https://regis.reg.kmitl.ac.th/#/teach_table_selector`. The whole planner and export
-lists above are meant to pass in Firefox too; these four items are the engine specific
+lists above are meant to pass in Firefox too; the items below are the engine specific
 risks to confirm deliberately, since they are where Firefox is most likely to diverge
 from Chromium.
 
@@ -340,3 +368,11 @@ from Chromium.
 - [ ] Shadow root isolation: with the overlay open, spot check that the host page styles
       do not leak into the panel and the panel styles do not leak into the host, then
       close the overlay and confirm the host page is exactly as it was.
+- [ ] Toolbar icon placement: after loading the add-on, the icon sits pinned in the
+      toolbar rather than only in the extensions menu.
+- [ ] Host access on click: withhold the add-on's access to the two KMITL sites, then
+      click the icon. Firefox asks for access to both sites. Declining opens nothing and
+      changes nothing; allowing opens the panel as in the Chrome list above.
+- [ ] Session area: on Firefox 115 or later, a click from another site opens the search
+      page with the panel open. On an older Firefox the search page opens without the
+      panel opening by itself, and nothing breaks.
