@@ -65,6 +65,16 @@ function firstCardBlocks(): string[] {
   ).sort();
 }
 
+// A portrait grid opens with its time axis column, then one column per day.
+const PORTRAIT = /^2\.75rem repeat\(/;
+
+/** The column template of every suggestion grid on screen, in card order. */
+function gridColumns(): string[] {
+  return screen
+    .getAllByRole('group', { name: 'ตารางเรียนรายสัปดาห์' })
+    .map((grid) => grid.style.gridTemplateColumns);
+}
+
 async function findCards(): Promise<HTMLElement[]> {
   return screen.findAllByRole('button', { name: 'ใช้ตารางนี้' });
 }
@@ -77,10 +87,66 @@ describe('SuggestDialog', () => {
     expect(screen.getAllByText('16')).not.toHaveLength(0);
   });
 
-  it('opens as the bottom sheet on a compact panel', async () => {
-    renderDialog(375);
+  it('pages one card at a time on a 390 px phone', async () => {
+    renderDialog(390);
     expect(screen.getByRole('dialog', { name: 'แนะนำตาราง' })).toBeVisible();
+    expect(await findCards()).toHaveLength(1);
+    expect(screen.queryAllByRole('listitem')).toHaveLength(0);
+    const dots = within(
+      screen.getByRole('radiogroup', { name: 'ตัวเลือกตาราง' }),
+    ).getAllByRole('radio');
+    expect(dots).toHaveLength(3);
+    expect(gridColumns()).toEqual([expect.stringMatching(PORTRAIT)]);
+
+    fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกถัดไป' }));
+    expect(
+      screen.getByRole('heading', { name: 'ตัวเลือกที่ 2' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'ตัวเลือกที่ 2' })).toHaveFocus();
+    fireEvent.keyDown(screen.getByRole('radio', { name: 'ตัวเลือกที่ 2' }), {
+      key: 'End',
+    });
+    expect(
+      screen.getByRole('heading', { name: 'ตัวเลือกที่ 3' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'ตัวเลือกถัดไป' }),
+    ).toBeDisabled();
+
+    // A new preference ranks the cards again, so the pager returns to the best one.
+    fireEvent.click(screen.getByRole('button', { name: 'เน้นบ่าย' }));
+    expect(
+      screen.getByRole('heading', { name: 'ตัวเลือกที่ 1' }),
+    ).toBeInTheDocument();
+  });
+
+  it('sets the cards side by side with portrait grids at 768 px', async () => {
+    renderDialog(768);
     expect(await findCards()).toHaveLength(3);
+    expect(screen.getAllByRole('listitem')).toHaveLength(3);
+    expect(
+      screen.queryByRole('radiogroup', { name: 'ตัวเลือกตาราง' }),
+    ).toBeNull();
+    const columns = gridColumns();
+    expect(columns).toHaveLength(3);
+    for (const column of columns) {
+      expect(column).toMatch(PORTRAIT);
+    }
+  });
+
+  it('compares the cards side by side on one frame at 1440 px', async () => {
+    renderDialog(1440);
+    expect(await findCards()).toHaveLength(3);
+    const list = screen.getAllByRole('listitem')[0]?.parentElement;
+    expect(list?.style.gridTemplateColumns).toBe('repeat(3, minmax(0, 1fr))');
+    const columns = gridColumns();
+    expect(columns).toHaveLength(3);
+    expect(columns[0]).not.toMatch(PORTRAIT);
+    // One shared frame, so every card draws the same hours on the same columns.
+    expect(new Set(columns).size).toBe(1);
+    for (const card of screen.getAllByRole('article')) {
+      expect(within(card).getByText('เริ่มเร็วสุด')).toBeInTheDocument();
+    }
   });
 
   it('reorders the cards when the preference changes', async () => {
@@ -152,10 +218,13 @@ describe('SuggestDialog', () => {
     expect(screen.queryByRole('button', { name: 'ใช้ตารางนี้' })).toBeNull();
   });
 
-  it('has no serious accessibility violations when open', async () => {
-    const { portal } = renderDialog();
-    await findCards();
-    const dialog = within(portal).getByRole('dialog');
-    await expectNoSeriousA11yViolations(dialog);
-  });
+  it.each([390, 1366])(
+    'has no serious accessibility violations when open at %i px',
+    async (width) => {
+      const { portal } = renderDialog(width);
+      await findCards();
+      const dialog = within(portal).getByRole('dialog');
+      await expectNoSeriousA11yViolations(dialog);
+    },
+  );
 });
