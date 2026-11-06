@@ -12,7 +12,7 @@ import {
 import { createTranslator } from '../i18n/t';
 import type { TeachTableQuery } from '../messaging/protocol';
 import type { ReferenceLists } from '../reference/filters';
-import { describeQuery } from './describeQuery';
+import { describeGrouping, describeQuery } from './describeQuery';
 import {
   buildCategoryQuery,
   buildClassQuery,
@@ -222,5 +222,42 @@ describe('describeQuery by class', () => {
     expect(
       describeQuery(classQuery({ curriculum: '999' }), ready, 'th', th).primary,
     ).toBe('999');
+  });
+});
+
+describe('describeGrouping', () => {
+  it('names a curriculum grouping like a class search of it', () => {
+    expect(
+      describeGrouping(
+        {
+          facultyId: '1',
+          departmentId: '8',
+          curriculumId: '8',
+          classYear: '4',
+        },
+        ready,
+        'th',
+        th,
+      ),
+    ).toEqual({ primary: 'วิศวกรรมโยธา', qualifiers: ['ชั้นปี 4'] });
+  });
+
+  it('names the faculty of a catch all grouping', () => {
+    expect(
+      describeGrouping(
+        {
+          facultyId: '01',
+          departmentId: 'x',
+          curriculumId: 'x',
+          classYear: '0',
+        },
+        ready,
+        'en',
+        en,
+      ),
+    ).toEqual({
+      primary: 'Engineering',
+      qualifiers: ['All curricula', 'All years'],
+    });
   });
 });
