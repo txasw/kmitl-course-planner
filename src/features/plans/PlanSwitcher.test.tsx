@@ -199,6 +199,24 @@ describe('PlanSwitcher', () => {
     ).toHaveTextContent('ส่งออก JSON');
   });
 
+  it('shows the per-row actions unless the device hovers with a fine pointer', () => {
+    seedTwoPlans();
+    const { container } = render(<PlanSwitcher />);
+    openMenu();
+    const rows = container.querySelectorAll('[data-plan-row-actions]');
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      // No bare opacity-0: the fade applies only under the hover and fine pointer query,
+      // so a touch screen shows the actions at rest.
+      expect(row).not.toHaveClass('opacity-0');
+      expect(row).toHaveClass(
+        '[@media(hover:hover)_and_(pointer:fine)]:opacity-0',
+      );
+      expect(row).toHaveClass('group-hover/row:opacity-100');
+      expect(row).toHaveClass('group-focus-within/row:opacity-100');
+    }
+  });
+
   it('renames the active plan', () => {
     act(() => {
       planStore.getState().hydrate([
