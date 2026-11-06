@@ -7,7 +7,8 @@
 //
 // Until the student picks a day, the view follows the first day with a class, so a class
 // added from the catalog pane is in view on return; a picked day holds until its chip
-// leaves the row.
+// leaves the row. The planner panel holds the picked day, so an action outside the view,
+// such as the stats bar conflict action, can show the day its target sits on.
 //
 // A horizontal swipe over the timetable steps the day, stopping at either end of the row.
 // It starts only past 24 px along the row and never while a drag is live. A touch drag
@@ -16,7 +17,7 @@
 // stay the path every input reaches. Under reduced motion the swipe still steps the day,
 // but the column does not follow the finger.
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { fillTemplate } from '@/lib/i18n/template';
 import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
 import type { DayOfWeek } from '@/lib/parsing/days';
@@ -54,6 +55,9 @@ interface DayViewProps {
   timeConflicts: ReadonlyMap<string, readonly ConflictDetail[]>;
   /** Whether the plan holds no section at all, scheduled or not. */
   planEmpty: boolean;
+  /** The day the student picked, or null to follow the first day with a class. */
+  chosen: DayOfWeek | null;
+  onChoose: (day: DayOfWeek) => void;
   grid: EditGridProps;
 }
 
@@ -62,6 +66,8 @@ export function DayView({
   window,
   timeConflicts,
   planEmpty,
+  chosen,
+  onChoose,
   grid,
 }: DayViewProps) {
   const { t } = grid;
@@ -74,7 +80,6 @@ export function DayView({
     () => dayFlags(meetings, timeConflicts),
     [meetings, timeConflicts],
   );
-  const [chosen, setChosen] = useState<DayOfWeek | null>(null);
   const day = shownDay(days, chosen, flags);
   const run = useMemo(() => [day], [day]);
   const dayName = t(dayFullLabelKey(day));
@@ -85,7 +90,7 @@ export function DayView({
     slop: SWIPE_SLOP_PX,
     canStart: noDragLive,
     onSwipe: (direction: SwipeDirection) => {
-      setChosen(stepDay(days, day, direction === 1 ? -1 : 1, false));
+      onChoose(stepDay(days, day, direction === 1 ? -1 : 1, false));
     },
   });
 
@@ -95,7 +100,7 @@ export function DayView({
         days={days}
         selected={day}
         flags={flags}
-        onSelect={setChosen}
+        onSelect={onChoose}
         t={t}
       />
       <div
