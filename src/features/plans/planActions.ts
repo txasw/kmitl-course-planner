@@ -162,3 +162,24 @@ export function acknowledgeEntry(
       : cleared;
   });
 }
+
+/**
+ * Record that the student was shown the open reviews of the given entries without
+ * acknowledging them, as when the updates dialog is closed for later. A review keeps its
+ * kinds, so the badges and the dialog still list it, and its notifiedAt marks it as seen
+ * until a later run adds a kind. An entry already marked, or with no review, is returned
+ * as is.
+ */
+export function markReviewsNotified(
+  entries: PlanEntry[],
+  teachTableIds: ReadonlySet<string>,
+  now: string,
+): PlanEntry[] {
+  return entries.map((entry) => {
+    const { review } = entry;
+    if (review?.notifiedAt !== null || !teachTableIds.has(entry.teachTableId)) {
+      return entry;
+    }
+    return { ...entry, review: { ...review, notifiedAt: now } };
+  });
+}

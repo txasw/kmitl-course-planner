@@ -20,6 +20,7 @@ import {
   acknowledgeEntry,
   defaultPlanName,
   makePlan,
+  markReviewsNotified,
   mergeReconciled,
   mostRecentlyUpdated,
   replaceEntries,
@@ -51,6 +52,8 @@ export interface PlanEntryActions {
   applyRevalidation: (planId: string, reconciled: PlanEntry[]) => void;
   /** Clear an entry's review once the user acknowledges it, marking a changed entry verified. */
   acknowledge: (teachTableId: string) => void;
+  /** Mark the open reviews of the given entries as shown, without acknowledging them. */
+  markNotified: (teachTableIds: string[]) => void;
 }
 
 export function createPlanEntrySlice(
@@ -266,6 +269,28 @@ export function createPlanEntrySlice(
           return {};
         }
         const entries = acknowledgeEntry(active.entries, teachTableId);
+        return {
+          plans: state.plans.map((plan) =>
+            plan.id === active.id ? { ...plan, entries } : plan,
+          ),
+          entries,
+        };
+      });
+    },
+
+    markNotified: (teachTableIds) => {
+      const now = deps.now();
+      set((state) => {
+        const active = activePlanOf(state);
+        if (active === undefined) {
+          return {};
+        }
+        // Not an edit, so updatedAt stays, as with an acknowledgement.
+        const entries = markReviewsNotified(
+          active.entries,
+          new Set(teachTableIds),
+          now,
+        );
         return {
           plans: state.plans.map((plan) =>
             plan.id === active.id ? { ...plan, entries } : plan,

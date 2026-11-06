@@ -394,6 +394,39 @@ describe('planStore revalidation write', () => {
     store.getState().acknowledge('a');
     expect(store.getState().entries[0]?.verifyStatus).toBe('verified');
   });
+
+  it('marks an open review as shown without clearing it or touching updatedAt', () => {
+    const store = makeStore();
+    const section = makeSection({
+      teachTableId: 'a',
+      subjectId: 'S1',
+      section: '901',
+    });
+    store.getState().add(courseFor(section), section, SOURCE_QUERY);
+    const planId = store.getState().activePlanId;
+    const current = store.getState().entries[0];
+    if (planId === null || current === undefined) {
+      throw new Error('expected an active plan with one entry');
+    }
+    const review = {
+      kinds: ['room_changed' as const],
+      before: current.snapshot,
+      detectedAt: '2026-11-01T00:00:00.000Z',
+      notifiedAt: null,
+    };
+    store
+      .getState()
+      .applyRevalidation(planId, [
+        { ...current, verifyStatus: 'changed', review },
+      ]);
+    const updatedAt = store.getState().plans[0]?.updatedAt;
+    store.getState().markNotified(['a']);
+    const marked = store.getState().entries[0];
+    expect(marked?.review?.kinds).toEqual(['room_changed']);
+    expect(marked?.review?.notifiedAt).not.toBeNull();
+    expect(store.getState().plans[0]?.entries[0]).toBe(marked);
+    expect(store.getState().plans[0]?.updatedAt).toBe(updatedAt);
+  });
 });
 
 function makePlan(id: string, updatedAt: string, term: Term) {
