@@ -28,6 +28,8 @@ const COLOR_TOKENS = [
   'border-strong',
   'danger',
   'danger-soft',
+  'danger-zone',
+  'danger-zone-over',
   'warn',
   'warn-soft',
   'success',
