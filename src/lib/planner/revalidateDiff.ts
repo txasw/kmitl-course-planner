@@ -17,13 +17,13 @@ export type ChangeKind =
   | 'pair_changed'
   | 'exam_changed';
 
+/** The outcome a run leaves on an entry, decided by the review layer from what changed. */
 export type EntryOutcome = 'unchanged' | 'changed' | 'missing';
 
 export interface EntryRevalidation {
   teachTableId: string;
   subjectId: string;
   section: string;
-  outcome: EntryOutcome;
   changes: ChangeKind[];
   /** True when the entry matched by durable identity under a different key. */
   keyChanged: boolean;
@@ -211,7 +211,6 @@ export function revalidateEntry(
       teachTableId: entry.teachTableId,
       subjectId: entry.subjectId,
       section: entry.section,
-      outcome: 'missing',
       changes: [],
       keyChanged: false,
       fresh: null,
@@ -222,7 +221,6 @@ export function revalidateEntry(
     teachTableId: entry.teachTableId,
     subjectId: entry.subjectId,
     section: entry.section,
-    outcome: changes.length === 0 ? 'unchanged' : 'changed',
     changes,
     keyChanged: match.keyChanged,
     fresh: match.indexed,

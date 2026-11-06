@@ -26,10 +26,10 @@ function indexFrom(sections: Section[]): SectionIndex {
 }
 
 describe('revalidateEntry', () => {
-  it('reports unchanged when the fresh section matches the snapshot', () => {
+  it('reports no changes when the fresh section matches the snapshot', () => {
     const entry = makePlanEntry({ snapshot: makeSnapshot() });
     const result = revalidateEntry(entry, indexFrom([makeSection()]));
-    expect(result.outcome).toBe('unchanged');
+    expect(result.fresh?.section.teachTableId).toBe('t1');
     expect(result.changes).toEqual([]);
     expect(result.keyChanged).toBe(false);
   });
@@ -38,22 +38,21 @@ describe('revalidateEntry', () => {
     const entry = makePlanEntry({ snapshot: makeSnapshot() });
     const moved = makeSection({ teachTableId: 't2' });
     const result = revalidateEntry(entry, indexFrom([moved]));
-    expect(result.outcome).toBe('unchanged');
+    expect(result.changes).toEqual([]);
     expect(result.keyChanged).toBe(true);
     expect(result.fresh?.section.teachTableId).toBe('t2');
   });
 
-  it('flags a moved meeting time as changed', () => {
+  it('flags a moved meeting time', () => {
     const entry = makePlanEntry({ snapshot: makeSnapshot() });
     const moved = makeSection({
       meetings: [makeMeeting({ startMin: 600, endMin: 780 })],
     });
     const result = revalidateEntry(entry, indexFrom([moved]));
-    expect(result.outcome).toBe('changed');
     expect(result.changes).toContain('time_changed');
   });
 
-  it('flags a snapshot that gains a second meeting as changed', () => {
+  it('flags a snapshot that gains a second meeting', () => {
     // A plan saved before teachtime_str was parsed has a one meeting snapshot; the
     // fresh truth now carries the extra period, so the meeting set grew.
     const entry = makePlanEntry({ snapshot: makeSnapshot() });
@@ -64,7 +63,6 @@ describe('revalidateEntry', () => {
       ],
     });
     const result = revalidateEntry(entry, indexFrom([grown]));
-    expect(result.outcome).toBe('changed');
     expect(result.changes).toContain('time_changed');
   });
 
@@ -85,7 +83,7 @@ describe('revalidateEntry', () => {
       section: '999',
     });
     const result = revalidateEntry(entry, indexFrom([unrelated]));
-    expect(result.outcome).toBe('missing');
+    expect(result.changes).toEqual([]);
     expect(result.fresh).toBeNull();
   });
 });
@@ -146,7 +144,7 @@ describe('offeredTo is outside the diff', () => {
     ).toEqual([]);
   });
 
-  it('keeps the entry unchanged when only the grouping list differs', () => {
+  it('matches the entry with no changes when only the grouping list differs', () => {
     const entry = makePlanEntry({
       snapshot: makeSnapshot({ offeredTo: NARROW }),
     });
@@ -154,7 +152,7 @@ describe('offeredTo is outside the diff', () => {
       entry,
       indexFrom([makeSection({ offeredTo: WIDE })]),
     );
-    expect(result.outcome).toBe('unchanged');
+    expect(result.fresh?.section.teachTableId).toBe('t1');
     expect(result.changes).toEqual([]);
   });
 
