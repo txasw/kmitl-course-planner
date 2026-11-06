@@ -1,4 +1,5 @@
-// Presentational form fields for the search form. Each select derives its options
+// Presentational form fields for the search form. The term row is shared by every
+// tab; each tab's own fields follow the tab bar. Each select derives its options
 // from the reference lists through the pure filters, stays disabled until its
 // source list is ready and its parent selection is made, and writes back through
 // the store patch. The selects are searchable comboboxes, since faculty and
@@ -31,7 +32,11 @@ import {
   type CategoryForm,
   type ClassForm,
 } from '@/lib/search/formState';
-import { SEMESTERS } from '@/lib/routing/academicTerms';
+import {
+  SEMESTERS,
+  parseSemester,
+  type Term,
+} from '@/lib/routing/academicTerms';
 
 interface SubjectIdInputProps {
   label: string;
@@ -114,44 +119,51 @@ function readyData<T>(state: AsyncState<T[]>): T[] {
 }
 
 interface TermFieldsProps {
-  year: string;
-  semester: string;
+  term: Term;
   years: string[];
   t: Translate;
-  onYear: (value: string) => void;
-  onSemester: (value: string) => void;
+  onChange: (patch: Partial<Term>) => void;
 }
 
-export function TermFields({
-  year,
-  semester,
-  years,
-  t,
-  onYear,
-  onSemester,
-}: TermFieldsProps) {
+/**
+ * The year and semester every tab searches, side by side in one labelled row. It
+ * renders once above the tabs rather than inside each tab's fields, so it reads as
+ * the term the whole form targets and a tab switch leaves it in place.
+ */
+export function TermFields({ term, years, t, onChange }: TermFieldsProps) {
   return (
-    <>
+    <div
+      role="group"
+      aria-label={t('search.termGroup')}
+      className="grid grid-cols-2 gap-3 *:min-w-0"
+    >
       <Combobox
         label={t('search.year')}
-        value={year}
+        value={term.year}
         placeholder={t('search.selectPlaceholder')}
         disabled={false}
         // List the years newest first, the term a returning student most often
         // wants. A copy is reversed so the ascending source array, which the term
         // seed reads as newest last, is left untouched.
         options={[...years].reverse().map((value) => ({ value, label: value }))}
-        onChange={onYear}
+        onChange={(year) => {
+          onChange({ year });
+        }}
       />
       <Combobox
         label={t('search.semester')}
-        value={semester}
+        value={term.semester}
         placeholder={t('search.selectPlaceholder')}
         disabled={false}
         options={SEMESTERS.map((value) => ({ value, label: value }))}
-        onChange={onSemester}
+        onChange={(value) => {
+          const semester = parseSemester(value);
+          if (semester !== null) {
+            onChange({ semester });
+          }
+        }}
       />
-    </>
+    </div>
   );
 }
 

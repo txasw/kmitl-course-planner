@@ -212,4 +212,31 @@ describe('SearchForm', () => {
     fireEvent.click(screen.getByRole('button', { name: 'ค้นหา' }));
     expect(await screen.findByText('90592033')).toBeInTheDocument();
   });
+
+  it('renders the term once above the tabs and keeps it across a tab switch', async () => {
+    renderSearch(deps());
+    const semester = screen.getByRole('combobox', { name: 'ภาคการศึกษา' });
+    // Wait for the default term to settle so the pick is not replaced by it.
+    await waitFor(() => {
+      expect(semester).toHaveValue('2');
+    });
+    const termRow = screen.getByRole('group', { name: 'ปีและภาคการศึกษา' });
+    const tabs = screen.getByRole('button', { name: 'รหัสวิชา' });
+    expect(
+      termRow.compareDocumentPosition(tabs) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    selectCombobox('ภาคการศึกษา', '3');
+    fireEvent.click(tabs);
+    expect(
+      screen.getAllByRole('combobox', { name: 'ภาคการศึกษา' }),
+    ).toHaveLength(1);
+    expect(screen.getByRole('combobox', { name: 'ภาคการศึกษา' })).toHaveValue(
+      '3',
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'หมวดวิชา' }));
+    expect(searchStore.getState().term).toEqual({
+      year: '2569',
+      semester: '3',
+    });
+  });
 });

@@ -80,3 +80,20 @@ written the term. The extension now depends on one more registrar endpoint; if i
 the form keeps the old default and the debug report shows the drift. The end to end mock server
 serves the capture so every spec opens on the same term. Swapping in a future endpoint that lists
 the offered terms remains open behind the same `resolveInitialTerm` inputs.
+
+## Amendment: one term shared by every tab (2026-11-06)
+
+Each search tab stored its own year and semester, and a tab switch did not carry them over, so
+a term picked on one tab was silently replaced by another tab's term on the next search, and a
+new plan took whichever term the active tab held. The term is now one value in the search store
+that all three tabs search under. It renders once, as a year and semester row above the tabs,
+and the tab forms hold only their own fields. A year or semester edit in that row is the student
+edit that clears `defaultTermPending`; the precedence order above is unchanged and writes the
+one shared term. The create plan form defaults to the same term.
+
+The persisted last search moves to schema version 2 with a single `term` field. A version 1
+blob still loads: its active tab's term becomes the shared term, since that is the term the
+saved search ran under, and the per tab copies are dropped. Keeping three copies in sync on
+every write was rejected because it leaves three sources of truth that a later write can split
+again, and taking the newest of the three terms was rejected because it can name a term the
+student never searched.

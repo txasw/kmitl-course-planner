@@ -2,7 +2,14 @@ import { useState } from 'react';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
-import { SubjectIdInput, TermFields } from './fields';
+import type { ReferenceLists } from '@/lib/reference/filters';
+import { defaultCategoryForm, defaultClassForm } from '@/lib/search/formState';
+import {
+  CategoryFields,
+  ClassFields,
+  SubjectIdInput,
+  TermFields,
+} from './fields';
 
 afterEach(cleanup);
 
@@ -88,12 +95,10 @@ describe('TermFields', () => {
   it('lists academic years newest first', () => {
     render(
       <TermFields
-        year=""
-        semester="1"
+        term={{ year: '', semester: '1' }}
         years={['2560', '2561', '2562']}
         t={t}
-        onYear={() => undefined}
-        onSemester={() => undefined}
+        onChange={() => undefined}
       />,
     );
     fireEvent.focus(screen.getByRole('combobox', { name: t('search.year') }));
@@ -101,5 +106,89 @@ describe('TermFields', () => {
       .getAllByRole('option')
       .map((option) => option.textContent);
     expect(options).toEqual(['2562', '2561', '2560']);
+  });
+
+  it('groups the year and semester under one term label', () => {
+    render(
+      <TermFields
+        term={{ year: '2569', semester: '2' }}
+        years={['2569']}
+        t={t}
+        onChange={() => undefined}
+      />,
+    );
+    const group = screen.getByRole('group', { name: t('search.termGroup') });
+    expect(group).toContainElement(
+      screen.getByRole('combobox', { name: t('search.year') }),
+    );
+    expect(group).toContainElement(
+      screen.getByRole('combobox', { name: t('search.semester') }),
+    );
+  });
+
+  it('reports a semester pick as a term patch', () => {
+    const onChange = vi.fn();
+    render(
+      <TermFields
+        term={{ year: '2569', semester: '1' }}
+        years={['2569']}
+        t={t}
+        onChange={onChange}
+      />,
+    );
+    fireEvent.focus(
+      screen.getByRole('combobox', { name: t('search.semester') }),
+    );
+    fireEvent.mouseDown(screen.getByRole('option', { name: '3' }));
+    expect(onChange).toHaveBeenCalledWith({ semester: '3' });
+  });
+});
+
+describe('tab fields', () => {
+  const t = createTranslator('en');
+  const reference: ReferenceLists = {
+    faculties: { status: 'idle' },
+    departments: { status: 'idle' },
+    curricula: { status: 'idle' },
+    subjectOwners: { status: 'idle' },
+  };
+
+  it('leave the term out of the class tab fields', () => {
+    render(
+      <ClassFields
+        form={defaultClassForm()}
+        reference={reference}
+        locale="en"
+        t={t}
+        patch={() => undefined}
+      />,
+    );
+    expect(
+      screen.queryByRole('combobox', { name: t('search.year') }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole('combobox', { name: t('search.semester') }),
+    ).toBeNull();
+    expect(
+      screen.getByRole('combobox', { name: t('search.faculty') }),
+    ).toBeInTheDocument();
+  });
+
+  it('leave the term out of the category tab fields', () => {
+    render(
+      <CategoryFields
+        form={defaultCategoryForm()}
+        reference={reference}
+        locale="en"
+        t={t}
+        patch={() => undefined}
+      />,
+    );
+    expect(
+      screen.queryByRole('combobox', { name: t('search.year') }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole('combobox', { name: t('search.semester') }),
+    ).toBeNull();
   });
 });
