@@ -368,7 +368,11 @@ describe('Layout', () => {
       const { container } = render(<Layout />, { wrapper });
       const node = strip(container);
       expect(node.closest('[inert]')).toBeNull();
-      expect(node).toHaveClass('absolute', 'z-drawer', 'bottom-18');
+      expect(node).toHaveClass(
+        'absolute',
+        'z-drawer',
+        'bottom-[calc(72px+var(--kcp-safe-bottom))]',
+      );
     });
 
     it('floats at the foot of the grid while the sheet is closed', () => {
