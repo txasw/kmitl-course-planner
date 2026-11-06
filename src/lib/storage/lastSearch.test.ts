@@ -82,4 +82,37 @@ describe('createSearchStateRepository', () => {
     const repo = createSearchStateRepository(adapter);
     expect(await repo.load()).toEqual(state);
   });
+
+  it('reads a version 1 per tab blob through the active tab term', async () => {
+    // Version 1 stored a term in every tab form. The term the last search ran
+    // under is the active tab's, so it becomes the shared term.
+    const adapter = memoryAdapter();
+    const state = sampleState();
+    adapter.map.set(SEARCH_KEY, {
+      schemaVersion: 1,
+      activeTab: 'by_subject_owner_id',
+      byClass: { ...state.byClass, year: '2568', semester: '3' },
+      bySubjectId: { ...state.bySubjectId, year: '2570', semester: '1' },
+      byCategory: { ...state.byCategory, year: '2569', semester: '2' },
+    });
+    const repo = createSearchStateRepository(adapter);
+    expect(await repo.load()).toEqual({
+      ...state,
+      term: { year: '2569', semester: '2' },
+    });
+  });
+
+  it('rejects a version 1 blob whose forms lack their term', async () => {
+    const adapter = memoryAdapter();
+    const state = sampleState();
+    adapter.map.set(SEARCH_KEY, {
+      schemaVersion: 1,
+      activeTab: state.activeTab,
+      byClass: state.byClass,
+      bySubjectId: state.bySubjectId,
+      byCategory: state.byCategory,
+    });
+    const repo = createSearchStateRepository(adapter);
+    expect(await repo.load()).toBeNull();
+  });
 });
