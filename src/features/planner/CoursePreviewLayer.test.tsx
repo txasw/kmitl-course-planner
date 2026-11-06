@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, cleanup, act } from '@testing-library/react';
 import { DndContext, useDndContext } from '@dnd-kit/core';
 import { DEFAULT_WINDOW } from '@/lib/planner/grid';
+import { createTranslator } from '@/lib/i18n/t';
 import { WEEK_DAYS } from '@/lib/parsing/days';
 import { searchStore } from '@/features/search/searchStore';
 import {
@@ -175,6 +176,7 @@ describe('CoursePreviewLayer', () => {
           }}
           style={{}}
           raised={false}
+          label={fit.section}
         />
         <Probe />
       </DndContext>,
@@ -194,6 +196,7 @@ describe('CoursePreviewLayer', () => {
           window={DEFAULT_WINDOW}
           days={WEEK_DAYS}
           orientation="landscape"
+          t={createTranslator('th')}
         />
       </div>,
     );
