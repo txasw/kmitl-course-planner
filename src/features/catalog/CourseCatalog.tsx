@@ -3,9 +3,15 @@
 // Section states are computed against the placed sections read from the plan
 // store, so the catalog is ready for the planner phase without rework.
 
-import { useCallback, useEffect, useMemo } from 'react';
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  type MouseEvent,
+} from 'react';
 import { useStore } from 'zustand';
-import { RefreshCw } from 'lucide-react';
+import { ChevronsDownUp, ChevronsUpDown, RefreshCw } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
@@ -20,7 +26,11 @@ import {
   type TermContext,
 } from '@/lib/planner/sectionState';
 import { filterCourses, type SectionPredicates } from '@/lib/catalog/filter';
-import { catalogQueryKey, isCardOpen } from '@/lib/catalog/cardDisclosure';
+import {
+  catalogQueryKey,
+  isCardInstant,
+  isCardOpen,
+} from '@/lib/catalog/cardDisclosure';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { useTranslation } from '@/features/shell/useTranslation';
 import {
@@ -89,6 +99,21 @@ function Summary({
   );
 }
 
+// Collapse all unmounts every open body. A clicked button is not focused on every
+// platform, so focus can still rest in a row that is about to go; it moves to that
+// card's toggle first, read from the panel's root so a shadow root is searched.
+function moveFocusOutOfCardBody(from: Element): void {
+  const root = from.getRootNode();
+  if (!(root instanceof ShadowRoot || root instanceof Document)) return;
+  root.activeElement
+    ?.closest('[data-course-body]')
+    ?.closest('article')
+    ?.querySelector<HTMLElement>('[data-course-toggle]')
+    ?.focus();
+}
+
+const SUMMARY_ACTION = `inline-flex shrink-0 items-center gap-1 rounded-kcp border border-border px-2 py-1 text-xs text-ink-soft hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`;
+
 interface CourseCatalogProps {
   catalog: NormalizedCatalog;
   onRefresh: () => void;
@@ -115,6 +140,14 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
   // card, so a subject id search and the reveal in the list show the sections at once.
   const singleCourse = catalog.courses.length === 1;
   const exactId = filter.text.trim();
+  const isOpen = (course: Course): boolean =>
+    isCardOpen(
+      disclosure,
+      queryKey,
+      course.subjectId,
+      addedIds.has(course.subjectId),
+      singleCourse || exactId === course.subjectId,
+    );
   const handleToggle = useCallback(
     (subjectId: string, open: boolean, added: boolean) => {
       catalogStore.getState().setCardOpen(queryKey, subjectId, { open, added });
@@ -190,6 +223,22 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
     [filtered, language],
   );
 
+  // The control acts on the cards the filters show. A bulk change sets every card
+  // without a transition, and the transition keeps input responsive while a dense
+  // catalog mounts its rows.
+  const anyOpen = filtered.some(isOpen);
+  const handleToggleAll = (event: MouseEvent<HTMLButtonElement>) => {
+    const open = !anyOpen;
+    if (!open) moveFocusOutOfCardBody(event.currentTarget);
+    const cards = filtered.map((course) => ({
+      subjectId: course.subjectId,
+      added: addedIds.has(course.subjectId),
+    }));
+    startTransition(() => {
+      catalogStore.getState().setAllCards(queryKey, cards, open);
+    });
+  };
+
   const creditOptions = useMemo(
     () =>
       [...new Set(catalog.courses.map((course) => course.credit))].sort(
@@ -226,7 +275,10 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-2">
+      <div
+        data-catalog-summary
+        className="flex items-center justify-between gap-2"
+      >
         <Summary
           courses={catalog.courses.length}
           sections={totalSections}
@@ -234,14 +286,28 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
           multiMeeting={catalog.multiMeetingCount}
           t={t}
         />
-        <button
-          type="button"
-          onClick={onRefresh}
-          className={`inline-flex shrink-0 items-center gap-1 rounded-kcp border border-border px-2 py-1 text-xs text-ink-soft hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`}
-        >
-          <RefreshCw size={12} strokeWidth={2} aria-hidden />
-          {t('catalog.refresh')}
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          {/* A one course result opens on its own, and an empty filter leaves
+              nothing to act on, so the control shows only for a list. */}
+          {singleCourse || filtered.length === 0 ? null : (
+            <button
+              type="button"
+              onClick={handleToggleAll}
+              className={`${SUMMARY_ACTION} min-h-6 min-w-6 pointer-coarse:min-h-11`}
+            >
+              {anyOpen ? (
+                <ChevronsDownUp size={12} strokeWidth={2} aria-hidden />
+              ) : (
+                <ChevronsUpDown size={12} strokeWidth={2} aria-hidden />
+              )}
+              {t(anyOpen ? 'catalog.collapseAll' : 'catalog.expandAll')}
+            </button>
+          )}
+          <button type="button" onClick={onRefresh} className={SUMMARY_ACTION}>
+            <RefreshCw size={12} strokeWidth={2} aria-hidden />
+            {t('catalog.refresh')}
+          </button>
+        </div>
       </div>
       {banner}
       <FilterBar creditOptions={creditOptions} />
@@ -261,13 +327,8 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
                 locale={language}
                 t={t}
                 term={term}
-                open={isCardOpen(
-                  disclosure,
-                  queryKey,
-                  course.subjectId,
-                  addedIds.has(course.subjectId),
-                  singleCourse || exactId === course.subjectId,
-                )}
+                open={isOpen(course)}
+                instant={isCardInstant(disclosure, queryKey, course.subjectId)}
                 onToggle={handleToggle}
                 onAdd={handleAdd}
                 onRemove={handleRemove}

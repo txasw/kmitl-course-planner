@@ -134,6 +134,8 @@
   "catalog.card.allUnavailable": "เต็มหรือปิดทุกกลุ่ม",
   "catalog.card.noneAddable": "ไม่มีกลุ่มที่เพิ่มได้",
   "catalog.refresh": "รีเฟรช",
+  "catalog.expandAll": "ขยายทั้งหมด",
+  "catalog.collapseAll": "ย่อทั้งหมด",
   "toast.refreshUnchanged": "ข้อมูลเป็นปัจจุบัน ไม่มีการเปลี่ยนแปลง",
   "catalog.filter.text": "ค้นหาในรายการ",
   "catalog.filter.fieldLabel": "กรองรายการ",

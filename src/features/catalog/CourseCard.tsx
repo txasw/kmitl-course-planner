@@ -74,6 +74,8 @@ interface CourseCardProps {
   term?: TermContext | undefined;
   /** Whether the sections show, decided by the catalog. */
   open: boolean;
+  /** Skip the open or close transition, for a change made to many cards at once. */
+  instant: boolean;
   onToggle: (subjectId: string, open: boolean, added: boolean) => void;
   onAdd?: ((course: Course, section: Section) => void) | undefined;
   onRemove?: ((teachTableId: string) => void) | undefined;
@@ -97,8 +99,8 @@ function isCrossTerm(term: TermContext | undefined): boolean {
 // change that does not touch this course) skips its whole subtree. The default
 // shallow comparison is sufficient because the parent keeps every prop identity
 // stable: the course reference survives an unfiltering pass (filterCourses), the
-// callbacks and term are memoized, open is a boolean, and placed changes only when
-// the plan does.
+// callbacks and term are memoized, open and instant are booleans, and placed
+// changes only when the plan does.
 function CourseCardComponent({
   course,
   placed,
@@ -106,6 +108,7 @@ function CourseCardComponent({
   t,
   term,
   open,
+  instant,
   onToggle,
   onAdd,
   onRemove,
@@ -235,7 +238,7 @@ function CourseCardComponent({
         key={added ? 'added' : 'unadded'}
         id={bodyId}
         open={open}
-        instant={false}
+        instant={instant}
         renderContent={() => (
           <div className="flex flex-col gap-1.5 pt-2">
             {/* The full name repeats for the eye when the title clamps; the button

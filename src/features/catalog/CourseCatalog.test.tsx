@@ -346,3 +346,84 @@ describe('CourseCatalog card disclosure', () => {
     );
   });
 });
+
+describe('CourseCatalog expand all', () => {
+  function bodyStages(): (string | null)[] {
+    return [...document.querySelectorAll('[data-course-body]')].map((node) =>
+      node.getAttribute('data-stage'),
+    );
+  }
+
+  it('opens every card, then flips to collapse every card', () => {
+    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    fireEvent.click(screen.getByRole('button', { name: 'ขยายทั้งหมด' }));
+    for (const node of document.querySelectorAll('[data-course-toggle]')) {
+      expect(node).toHaveAttribute('aria-expanded', 'true');
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'ย่อทั้งหมด' }));
+    for (const node of document.querySelectorAll('[data-course-toggle]')) {
+      expect(node).toHaveAttribute('aria-expanded', 'false');
+    }
+  });
+
+  it('offers collapse once any visible card is open', () => {
+    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    fireEvent.click(cardToggle('90592033'));
+    expect(
+      screen.getByRole('button', { name: 'ย่อทั้งหมด' }),
+    ).toBeInTheDocument();
+  });
+
+  it('changes every card with no transition stage', () => {
+    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    fireEvent.click(screen.getByRole('button', { name: 'ขยายทั้งหมด' }));
+    expect(bodyStages()).toEqual(['open', 'open', 'open']);
+    fireEvent.click(screen.getByRole('button', { name: 'ย่อทั้งหมด' }));
+    expect(bodyStages()).toEqual(['closed', 'closed', 'closed']);
+  });
+
+  it('animates a single card toggled after a bulk change, and only that card', () => {
+    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    fireEvent.click(screen.getByRole('button', { name: 'ขยายทั้งหมด' }));
+    fireEvent.click(cardToggle('90592008'));
+    expect(bodyStages()).toContain('leaving');
+    expect(bodyStages().filter((stage) => stage === 'open')).toHaveLength(2);
+  });
+
+  it('acts only on the cards the filters show', () => {
+    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    const filterBox = screen.getByRole('searchbox', { name: 'กรองรายการ' });
+    fireEvent.change(filterBox, { target: { value: '9059200' } });
+    fireEvent.click(screen.getByRole('button', { name: 'ขยายทั้งหมด' }));
+    fireEvent.change(filterBox, { target: { value: '' } });
+    expect(cardToggle('90592008')).toHaveAttribute('aria-expanded', 'true');
+    expect(cardToggle('90592004')).toHaveAttribute('aria-expanded', 'true');
+    expect(cardToggle('90592033')).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('is hidden for a one course result', () => {
+    const single: NormalizedCatalog = {
+      ...catalog,
+      courses: catalog.courses.slice(0, 1),
+    };
+    render(<CourseCatalog catalog={single} onRefresh={() => undefined} />);
+    expect(
+      screen.queryByRole('button', { name: /ทั้งหมด$/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('moves focus from a row to its card toggle before collapsing', () => {
+    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    fireEvent.click(screen.getByRole('button', { name: 'ขยายทั้งหมด' }));
+    const toggleNode = cardToggle('90592008');
+    const row = toggleNode
+      .closest('article')
+      ?.querySelector<HTMLElement>('[data-course-body] button');
+    if (row == null) throw new Error('expected a focusable row control');
+    row.focus();
+    // fireEvent.click does not focus the control, as a click on some platforms does
+    // not, so focus stays in the row until the catalog moves it.
+    fireEvent.click(screen.getByRole('button', { name: 'ย่อทั้งหมด' }));
+    expect(document.activeElement).toBe(toggleNode);
+  });
+});
