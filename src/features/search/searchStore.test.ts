@@ -135,6 +135,7 @@ describe('the search disclosure', () => {
     const state = store.getState();
     expect(state.result).toEqual({ status: 'idle' });
     expect(state.resultQuery).toBeNull();
+    expect(state.resultIntent).toBeNull();
     expect(state.barQuery).toBeNull();
     expect(state.searchFormOpen).toBe(true);
   });
@@ -150,6 +151,7 @@ describe('the search disclosure', () => {
     expect(writes).toBe(1);
     expect(state.result).toEqual({ status: 'loading' });
     expect(state.resultQuery).toBe(ownerQuery);
+    expect(state.resultIntent).toBe('user');
     expect(state.barQuery).toBe(ownerQuery);
     expect(state.searchFormOpen).toBe(false);
     expect(state.lastSubmitAt).toEqual(expect.any(Number));
@@ -164,6 +166,7 @@ describe('the search disclosure', () => {
     store.getState().startQuery(rerun, 'background');
     const state = store.getState();
     expect(state.resultQuery).toBe(rerun);
+    expect(state.resultIntent).toBe('background');
     expect(state.barQuery).toBe(ownerQuery);
     expect(state.searchFormOpen).toBe(true);
     expect(state.lastSubmitAt).toBe(lastSubmitAt);

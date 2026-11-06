@@ -21,6 +21,7 @@ import {
   type Term,
 } from '@/lib/routing/academicTerms';
 import { computeSeatStatus } from '@/lib/catalog/seatStatus';
+import { countSections } from '@/lib/catalog/countSections';
 import {
   computeSectionRelation,
   type TermContext,
@@ -248,10 +249,7 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
     [catalog.courses],
   );
 
-  const totalSections = catalog.courses.reduce(
-    (total, course) => total + course.sections.length,
-    0,
-  );
+  const totalSections = countSections(catalog.courses);
 
   const planTerm = term.planTerm;
   const browsedTerm = term.browsedTerm;
