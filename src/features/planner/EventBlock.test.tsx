@@ -78,6 +78,39 @@ describe('EventBlock', () => {
     expect(onHoverLeave).toHaveBeenCalledTimes(1);
   });
 
+  it('opens the context menu for a mouse but swallows one from a long press', () => {
+    const onContextMenu = vi.fn();
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        onContextMenu={onContextMenu}
+      />,
+    );
+    const block = screen.getByLabelText(/90592033/);
+    const touch = new PointerEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+      pointerType: 'touch',
+    });
+    // fireEvent reports false once a handler prevented the default browser menu.
+    expect(fireEvent(block, touch)).toBe(false);
+    expect(onContextMenu).not.toHaveBeenCalled();
+
+    fireEvent.contextMenu(block);
+    expect(onContextMenu).toHaveBeenCalledTimes(1);
+    const mouse = new PointerEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+      pointerType: 'mouse',
+    });
+    fireEvent(block, mouse);
+    expect(onContextMenu).toHaveBeenCalledTimes(2);
+  });
+
   it('lets a swipe on a draggable block scroll and leaves a long press to the drag', () => {
     render(
       <EventBlock

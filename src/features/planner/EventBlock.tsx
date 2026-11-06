@@ -73,7 +73,8 @@ interface EventBlockProps {
   /** Open the block detail popover anchored to this block, edit mode only. When set the
    * block is a button: a click or Enter or Space opens the pinned popover. */
   onOpenDetail?: (anchor: HTMLElement) => void;
-  /** Open the block context menu at the pointer on a right click, edit mode only. */
+  /** Open the block context menu at the pointer on a right click, edit mode only. A
+   * touch long press is a drag, so a context menu event from a finger is swallowed. */
   onContextMenu?: (event: MouseEvent<HTMLElement>) => void;
   /** Report a mouse entering the block, so the grid can open a hover detail card. A touch
    * never reports, so a tap opens only the detail sheet (ADR-0058). */
@@ -107,6 +108,12 @@ interface EventBlockProps {
   /** Pin the foot to the bottom of the box. On for the export poster, so its measured fit
    * and export pixels hold; the edit foot follows the place line instead. */
   footAtBottom?: boolean;
+}
+
+/** Whether a context menu event came from a finger. Chromium delivers the event as a
+ * pointer event that names its pointer type; an event without one is a mouse or a key. */
+function isTouchContextMenu(event: globalThis.MouseEvent): boolean {
+  return 'pointerType' in event && event.pointerType === 'touch';
 }
 
 function EventBlockComponent({
@@ -181,6 +188,18 @@ function EventBlockComponent({
   // distance suppresses the click, so this fires only on a real click, not the tail of a
   // drag. In preview and export the handler is absent and the block stays inert.
   const interactive = onOpenDetail !== undefined;
+  const handleContextMenu =
+    onContextMenu === undefined
+      ? undefined
+      : (event: MouseEvent<HTMLDivElement>) => {
+          if (isTouchContextMenu(event.nativeEvent)) {
+            // The long press already started a block drag; neither the browser menu nor
+            // the block menu belongs on top of it (ADR-0058).
+            event.preventDefault();
+            return;
+          }
+          onContextMenu(event);
+        };
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
@@ -212,7 +231,7 @@ function EventBlockComponent({
             : undefined
         }
         onKeyDown={interactive ? handleKeyDown : undefined}
-        onContextMenu={onContextMenu}
+        onContextMenu={handleContextMenu}
         onPointerEnter={
           onHoverEnter !== undefined
             ? (event) => {

@@ -22,7 +22,7 @@ import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { isScheduled, toPlacedSection } from './placedSection';
-import { dragStore } from './dragStore';
+import { dragStore, selectDragging } from './dragStore';
 import { BlockDetailSurface } from './BlockDetailSurface';
 import { BlockContextMenu } from './BlockContextMenu';
 import { FeedbackStrip } from './FeedbackStrip';
@@ -145,6 +145,12 @@ export function PlannerPanel() {
     y: number;
   } | null>(null);
   const openContextMenu = useCallback((event: MouseEvent<HTMLElement>) => {
+    if (selectDragging(dragStore.getState())) {
+      // A held finger fires the menu event after its long press started a drag, in a
+      // browser that does not name the pointer type; the drag owns the gesture.
+      event.preventDefault();
+      return;
+    }
     const anchor = event.currentTarget;
     const teachTableId = anchor.dataset.teachTableId;
     if (teachTableId !== undefined) {
