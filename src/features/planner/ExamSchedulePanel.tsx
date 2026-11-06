@@ -9,7 +9,7 @@
 // announce no dated exam close the panel as the arranged by the instructor list. Like the
 // grid, it renders only from the plan snapshots.
 
-import { useId, type ReactNode } from 'react';
+import { useId } from 'react';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
 import { pickLocalized } from '@/lib/i18n/localize';
@@ -24,6 +24,7 @@ import type {
 } from '@/lib/planner/examSchedule';
 import { Pill } from '@/components/Pill';
 import { formatExamDate, formatExamTimes } from './examText';
+import { SummarySubSection } from './SummarySubSection';
 
 const KIND_KEY: Record<ExamKind, TranslationKey> = {
   midterm: 'exam.midterm',
@@ -63,7 +64,7 @@ export function ExamSchedulePanel({
         <KindSection key={group.kind} group={group} locale={locale} t={t} />
       ))}
       {schedule.selfArranged.length > 0 ? (
-        <SubSection title={t('examSchedule.selfArranged')}>
+        <SummarySubSection title={t('examSchedule.selfArranged')}>
           <ul className="divide-y divide-border rounded-kcp border border-border">
             {schedule.selfArranged.map((subject) => (
               <li key={subject.subjectId} className="px-3 py-2">
@@ -71,25 +72,8 @@ export function ExamSchedulePanel({
               </li>
             ))}
           </ul>
-        </SubSection>
+        </SummarySubSection>
       ) : null}
-    </section>
-  );
-}
-
-interface SubSectionProps {
-  title: string;
-  children: ReactNode;
-}
-
-function SubSection({ title, children }: SubSectionProps) {
-  const headingId = `${useId()}-heading`;
-  return (
-    <section aria-labelledby={headingId} className="flex flex-col gap-2">
-      <h4 id={headingId} className="text-xs font-semibold text-ink-soft">
-        {title}
-      </h4>
-      {children}
     </section>
   );
 }
@@ -102,7 +86,7 @@ interface KindSectionProps {
 
 function KindSection({ group, locale, t }: KindSectionProps) {
   return (
-    <SubSection title={t(KIND_KEY[group.kind])}>
+    <SummarySubSection title={t(KIND_KEY[group.kind])}>
       <ol className="flex flex-col gap-2">
         {group.days.map((day) => (
           <li
@@ -134,7 +118,7 @@ function KindSection({ group, locale, t }: KindSectionProps) {
           </li>
         ))}
       </ol>
-    </SubSection>
+    </SummarySubSection>
   );
 }
 
