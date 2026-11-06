@@ -13,13 +13,27 @@ export type ManifestEnv = Pick<ConfigEnv, 'mode' | 'browser'>;
  * storage is the only permission, and network egress stays limited to the two
  * KMITL origins the product calls.
  */
-export function buildManifest({ mode }: ManifestEnv): UserManifest {
+export function buildManifest({ mode, browser }: ManifestEnv): UserManifest {
+  const name = mode === 'production' ? PRODUCT_NAME : `${PRODUCT_NAME} (Debug)`;
   return {
-    name: mode === 'production' ? PRODUCT_NAME : `${PRODUCT_NAME} (Debug)`,
+    name,
     description:
       'Weekly timetable planner for KMITL pre registration course selection.',
     permissions: ['storage'],
     host_permissions: [...HOST_MATCH_PATTERNS],
+    // The toolbar icon opens the panel and has no popup, since the panel is the
+    // product (ADR-0062). Firefox would otherwise hide the icon in its unified
+    // extensions menu; Chrome does not know default_area, so it is left out there.
+    action: {
+      default_title: name,
+      default_icon: { 16: '/icon/16.png', 32: '/icon/32.png' },
+      ...(browser === 'firefox' ? { default_area: 'navbar' as const } : {}),
+    },
+    // The reserved command runs the action, so the shortcut and the icon click
+    // share one handler. Chrome maps Alt to Option on macOS.
+    commands: {
+      _execute_action: { suggested_key: { default: 'Alt+Shift+P' } },
+    },
     browser_specific_settings: {
       gecko: {
         id: 'kmitl-course-planner@txasw.github.io',
