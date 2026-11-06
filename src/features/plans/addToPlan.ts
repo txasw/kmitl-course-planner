@@ -14,6 +14,7 @@ import { BREAKPOINTS, minWidthQuery } from '@/lib/ui/breakpoints';
 import { dragStore } from '@/features/planner/dragStore';
 import { searchStore } from '@/features/search/searchStore';
 import { closeSheet } from '@/features/shell/catalogVisibility';
+import { showNavItem } from '@/features/shell/mobilePane';
 import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { planStore } from './planStore';
@@ -40,16 +41,30 @@ export function addSectionToPlan(course: Course, section: Section): AddOutcome {
 }
 
 /**
- * Whether the timetable is out of view, so a new block lands where the student cannot
- * see it: the catalog sheet is open on a tier where it slides over the grid. A docked
- * column sits beside the grid, and hidden it cannot add, so the docked tiers never
- * cover it.
+ * What keeps the timetable out of view, so a new block lands where the student cannot
+ * see it, or null when nothing does: the catalog pane shown below 640 px, or the catalog
+ * sheet open on the medium tier, where it slides over the grid. A docked column sits
+ * beside the grid, and hidden it cannot add, so the docked tiers never cover it.
  */
-function gridCovered(): boolean {
-  return (
-    uiStore.getState().sheetOpen &&
+function gridCover(): 'pane' | 'sheet' | null {
+  const ui = uiStore.getState();
+  if (!window.matchMedia(minWidthQuery(BREAKPOINTS.sm)).matches) {
+    return ui.mobilePane === 'catalog' ? 'pane' : null;
+  }
+  return ui.sheetOpen &&
     !window.matchMedia(minWidthQuery(BREAKPOINTS.lg)).matches
-  );
+    ? 'sheet'
+    : null;
+}
+
+/** The way back to the timetable from what covers it, moving focus to the control that
+ * returns to the catalog, since the toast action unmounts with the toast. */
+function showTimetable(cover: 'pane' | 'sheet'): (control: Element) => void {
+  return cover === 'pane'
+    ? (control) => {
+        showNavItem(control, 'timetable');
+      }
+    : closeSheet;
 }
 
 /**
@@ -58,11 +73,13 @@ function gridCovered(): boolean {
  * feedback strip's screen reader only line speaks it. While the timetable is covered,
  * the outcome is not visible on screen, so a toast names the section and offers the
  * way to the timetable, which closes the sheet and returns focus to the control that
- * reopens it, and the strip stays silent. The pane never switches on its own, because
- * the student is still picking from the list.
+ * reopens it, or below 640 px shows the timetable pane and focuses its nav item, and
+ * the strip stays silent. The pane never switches on its own, because the student is
+ * still picking from the list.
  */
 export function confirmAdd(section: Section, t: Translate): void {
-  if (!gridCovered()) {
+  const cover = gridCover();
+  if (cover === null) {
     dragStore
       .getState()
       .announce(`${t('feedback.added')} ${section.subjectId}`);
@@ -76,7 +93,7 @@ export function confirmAdd(section: Section, t: Translate): void {
     }),
     {
       label: t('toast.viewTimetable'),
-      run: closeSheet,
+      run: showTimetable(cover),
     },
   );
 }

@@ -2,10 +2,11 @@
 // nav has one item for the catalog pane and one per plan view, so the plan view the nav
 // picks is the same one the medium and wide tabs show, and a window widened past 640 px
 // keeps the view the student chose. Every pane change goes through one funnel here, so the
-// store writes hold for every control that switches panes.
+// store writes and the focus hand off hold for every control that switches panes.
 
 import { useStore } from 'zustand';
 import { planStore } from '@/features/plans/planStore';
+import { commitAndFocus } from './commitAndFocus';
 import {
   defaultMobilePane,
   uiStore,
@@ -52,4 +53,14 @@ export function selectNavItem(item: NavItem): void {
   }
   ui.setPlanView(item);
   ui.setMobilePane('plan');
+}
+
+/**
+ * Show the pane of a nav item from a control in the pane that turns hidden, and move
+ * focus to the item, because the control that asked turns inert with the change.
+ */
+export function showNavItem(control: Element, item: NavItem): void {
+  commitAndFocus(control, navItemId(item), () => {
+    selectNavItem(item);
+  });
 }
