@@ -434,6 +434,27 @@ describe('CatalogColumn', () => {
     expect(hide.firstElementChild).toHaveClass('w-11', 'justify-center');
   });
 
+  it('carries the slide shadow on its own inert child on the docked tiers only', () => {
+    const viewport = installViewport(1440);
+    const { container } = render(<Harness />);
+    const node = column(container);
+    expect(node).toHaveClass('relative', 'shrink-0');
+    const shadow = node.querySelector('[data-catalog-shadow]');
+    expect(shadow).toHaveAttribute('aria-hidden', 'true');
+    expect(shadow).toHaveClass(
+      'pointer-events-none',
+      'absolute',
+      'inset-0',
+      'opacity-0',
+      'shadow-kcp',
+    );
+
+    act(() => {
+      viewport.resize(768);
+    });
+    expect(node.querySelector('[data-catalog-shadow]')).toBeNull();
+  });
+
   it('leaves the sheet tiers to the sheet state while the docked column is hidden', () => {
     const viewport = installViewport(1440);
     const { container } = render(<Harness />);
