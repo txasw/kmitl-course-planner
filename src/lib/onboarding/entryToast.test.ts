@@ -6,6 +6,8 @@ import {
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
 import { countUpdateItems, hasUpdateItems } from '../planner/updateReview';
+import { parseTeachTableRoute } from '../routing/parseTeachTableRoute';
+import { routeSearchPrefill } from '../search/queryForms';
 import {
   ENTRY_TOAST_DELAY_MS,
   ENTRY_TOAST_NAME_MAX,
@@ -35,8 +37,18 @@ function withReview(entry: PlanEntry): PlanEntry {
   };
 }
 
+const SELECTOR_HASH = '#/teach_table_selector';
+// The result route of the saved host snapshot: the category search for owner 46.
+const RESULT_HASH =
+  '#/teach_table?mode=by_subject_owner_id&selected_year=2569&selected_semester=1&selected_faculty=01&search_all_faculty=false&selected_subject_owner_id=46';
+
+function onHash(atMount: string, atShow = atMount): EntryToastInput['hash'] {
+  return { atMount, atShow };
+}
+
 function input(overrides: Partial<EntryToastInput> = {}): EntryToastInput {
   return {
+    hash: onHash(SELECTOR_HASH),
     plan: makePlan({ name: 'ตาราง 1/2569', entries: [] }),
     onboarding: {},
     isOpen: false,
@@ -160,6 +172,82 @@ describe('selectEntryToast content', () => {
     expect(toast?.params).toMatchObject({
       name: clampEntryToastName('ก'.repeat(60)),
     });
+  });
+});
+
+describe('selectEntryToast route offer', () => {
+  const resultPrefill = (() => {
+    const route = parseTeachTableRoute(RESULT_HASH);
+    return route === null ? null : routeSearchPrefill(route);
+  })();
+
+  it('maps the saved result route to the category search', () => {
+    expect(resultPrefill).toEqual({
+      tab: 'by_subject_owner_id',
+      term: { year: '2569', semester: '1' },
+      form: { faculty: '01', subjectOwner: '46' },
+    });
+  });
+
+  it.each<[string, EntryToastInput['plan']]>([
+    ['there is no plan', null],
+    ['the plan is empty', makePlan({ entries: [] })],
+    [
+      'the plan has subjects',
+      makePlan({ entries: [placed('1', '90592033', '901')] }),
+    ],
+  ])('offers the route search in the catalog when %s', (_label, plan) => {
+    expect(
+      selectEntryToast(input({ plan, hash: onHash(RESULT_HASH) })),
+    ).toEqual({
+      kind: 'route',
+      messageKey: 'entryToast.route',
+      actionKey: 'entryToast.route.action',
+      params: {},
+      target: 'catalog',
+      prefill: resultPrefill,
+    });
+  });
+
+  it('keeps an open review ahead of the result route', () => {
+    const entries = [withReview(placed('1', '90592033', '901'))];
+    expect(
+      selectEntryToast(
+        input({ plan: makePlan({ entries }), hash: onHash(RESULT_HASH) }),
+      )?.kind,
+    ).toBe('updates');
+  });
+
+  it.each<[string, EntryToastInput['hash']]>([
+    ['the hash changed before the show', onHash(RESULT_HASH, SELECTOR_HASH)],
+    [
+      'the hash arrived on a result route after mount',
+      onHash(SELECTOR_HASH, RESULT_HASH),
+    ],
+    [
+      'the result route maps to no search',
+      onHash(
+        '#/teach_table?mode=by_subject_id&selected_year=2569&selected_semester=1&selected_subject_id=9059',
+      ),
+    ],
+    ['the result route carries no params', onHash('#/teach_table?')],
+  ])('falls through to the plan kinds when %s', (_label, hash) => {
+    expect(selectEntryToast(input({ plan: null, hash }))?.kind).toBe('noPlan');
+    expect(selectEntryToast(input({ hash }))?.kind).toBe('planEmpty');
+    expect(
+      selectEntryToast(
+        input({
+          plan: makePlan({ entries: [placed('1', '90592033', '901')] }),
+          hash,
+        }),
+      )?.kind,
+    ).toBe('plan');
+  });
+
+  it('shows nothing on a result route while a gate holds', () => {
+    expect(
+      selectEntryToast(input({ isOpen: true, hash: onHash(RESULT_HASH) })),
+    ).toBeNull();
   });
 });
 

@@ -446,6 +446,8 @@
   "entryToast.planEmpty.action": "Add subjects",
   "entryToast.updates": "Changes to review in {name}: {count}.",
   "entryToast.updates.action": "Review",
+  "entryToast.route": "Open this search in Planner to place its sections on a timetable.",
+  "entryToast.route.action": "Open in Planner",
   "entryToast.optOut": "Do not show again",
   "entryToast.close": "Dismiss this message"
 }

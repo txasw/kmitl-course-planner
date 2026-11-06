@@ -2,12 +2,19 @@
 // entry toast and launcher attention ADR. The toast is a prompt, not action feedback: it
 // shows at most once per document, after everything it depends on has settled, and never
 // while the panel or the welcome is open. The content follows a fixed precedence, most
-// useful first: changes that still wait for review, then a plan with subjects, then an
-// empty plan, then no plan at all.
+// useful first: changes that still wait for review, then the host result route the
+// document loaded on, then a plan with subjects, then an empty plan, then no plan at all.
+//
+// The route offer belongs to the page the student arrived on. It applies only when the
+// hash at mount and the hash when the wait ends are the same result route, and only when
+// that route maps to a search the panel can run; any other route falls through to the
+// plan kinds. Reading the hash never changes it (Section 4.6).
 
 import type { Plan, PlanEntry } from '../domain/plan';
 import { summarizeCredits } from '../planner/credits';
 import { countUpdateItems } from '../planner/updateReview';
+import { parseTeachTableRoute } from '../routing/parseTeachTableRoute';
+import { routeSearchPrefill, type SearchPrefill } from '../search/queryForms';
 
 /** The wait after everything settles, counted only while the document is visible. */
 export const ENTRY_TOAST_DELAY_MS = 2000;
@@ -28,6 +35,15 @@ export type EntryToastContent =
       actionKey: 'entryToast.updates.action';
       params: { name: string; count: number };
       target: 'updates';
+    }
+  | {
+      kind: 'route';
+      messageKey: 'entryToast.route';
+      actionKey: 'entryToast.route.action';
+      params: Record<string, never>;
+      target: 'catalog';
+      /** The search the result route maps to, which the action prefills and runs. */
+      prefill: SearchPrefill;
     }
   | {
       kind: 'plan';
@@ -74,6 +90,8 @@ export interface EntryToastInput {
   /** The plan and the onboarding record are loaded, and the handshake and the welcome
    * decision have settled. */
   settled: boolean;
+  /** The location hash this document loaded on, and the hash when the wait ends. */
+  hash: Readonly<{ atMount: string; atShow: string }>;
 }
 
 function graphemes(text: string): string[] {
@@ -103,6 +121,18 @@ export function clampEntryToastName(name: string): string {
   return `${kept.trimEnd()}${NAME_MARKER}`;
 }
 
+/**
+ * The search the result route offers, or null when the hash changed since mount, is not a
+ * result route, or carries params the panel cannot search.
+ */
+function routeOffer(hash: EntryToastInput['hash']): SearchPrefill | null {
+  if (hash.atMount !== hash.atShow) {
+    return null;
+  }
+  const route = parseTeachTableRoute(hash.atMount);
+  return route === null ? null : routeSearchPrefill(route);
+}
+
 /** What the entry toast shows on this visit, or null when it must not show. */
 export function selectEntryToast(
   input: EntryToastInput,
@@ -117,6 +147,27 @@ export function selectEntryToast(
     return null;
   }
   const { plan } = input;
+  const updates = plan === null ? 0 : countUpdateItems(plan.entries);
+  if (plan !== null && updates > 0) {
+    return {
+      kind: 'updates',
+      messageKey: 'entryToast.updates',
+      actionKey: 'entryToast.updates.action',
+      params: { name: clampEntryToastName(plan.name), count: updates },
+      target: 'updates',
+    };
+  }
+  const prefill = routeOffer(input.hash);
+  if (prefill !== null) {
+    return {
+      kind: 'route',
+      messageKey: 'entryToast.route',
+      actionKey: 'entryToast.route.action',
+      params: {},
+      target: 'catalog',
+      prefill,
+    };
+  }
   if (plan === null) {
     return {
       kind: 'noPlan',
@@ -127,16 +178,6 @@ export function selectEntryToast(
     };
   }
   const name = clampEntryToastName(plan.name);
-  const updates = countUpdateItems(plan.entries);
-  if (updates > 0) {
-    return {
-      kind: 'updates',
-      messageKey: 'entryToast.updates',
-      actionKey: 'entryToast.updates.action',
-      params: { name, count: updates },
-      target: 'updates',
-    };
-  }
   if (plan.entries.length === 0) {
     return {
       kind: 'planEmpty',
