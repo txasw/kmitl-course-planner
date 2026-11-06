@@ -18,23 +18,30 @@ import {
   useOnboardingPersistence,
   type OnboardingPersistenceDeps,
 } from '@/features/onboarding/useOnboardingPersistence';
+import {
+  useWorkerHandshake,
+  type WorkerHandshakeDeps,
+} from '@/features/onboarding/useWorkerHandshake';
 
 interface AppProps {
   prefs: PrefsRepository;
   plans: PlanPersistenceDeps;
   search: SearchDeps;
   onboarding: OnboardingPersistenceDeps;
+  handshake: WorkerHandshakeDeps;
 }
 
 // Root component for the content script UI. It renders the launcher and the
 // overlay, hydrates and persists the language, the plans and the onboarding
-// record through the injected repositories, and provides the search dependencies
-// so the deep form components stay free of the browser binding. The storage and
-// messaging bindings stay at the entrypoint.
-export function App({ prefs, plans, search, onboarding }: AppProps) {
+// record through the injected repositories, listens for the worker and sends it
+// the mount handshake, and provides the search dependencies so the deep form
+// components stay free of the browser binding. The storage and messaging bindings
+// stay at the entrypoint.
+export function App({ prefs, plans, search, onboarding, handshake }: AppProps) {
   usePrefsPersistence(prefs);
   usePlanPersistence(plans);
   useOnboardingPersistence(onboarding);
+  useWorkerHandshake(handshake);
   return (
     <SearchDepsProvider value={search}>
       <RevalidationTriggers />

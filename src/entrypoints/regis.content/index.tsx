@@ -44,12 +44,18 @@ export default defineContentScript({
           install: createInstallRepository(adapter),
           record: createOnboardingRepository(adapter),
         };
+        const handshake = {
+          runtimeId: browser.runtime.id,
+          onMessage: browser.runtime.onMessage,
+          send: sendTyped,
+        };
         root.render(
           <App
             prefs={prefs}
             plans={plans}
             search={search}
             onboarding={onboarding}
+            handshake={handshake}
           />,
         );
         return root;

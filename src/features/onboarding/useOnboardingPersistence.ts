@@ -56,9 +56,9 @@ export function useOnboardingPersistence({
             ? recordRead.value
             : emptyOnboardingRecord(),
         );
-        // Nothing performs the mount handshake or the welcome claim yet, so both
-        // settle as soon as the records are read and no surface waits on them.
-        store.settleHandshake();
+        // Nothing performs the welcome claim yet, so the welcome decision settles as
+        // soon as the records are read and no surface waits on it. The mount
+        // handshake settles in useWorkerHandshake.
         store.settleWelcome();
 
         // Watching starts after the read, so the stored record decides whether the
