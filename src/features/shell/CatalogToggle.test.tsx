@@ -5,6 +5,7 @@ import {
   fireEvent,
   cleanup,
   act,
+  within,
 } from '@testing-library/react';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import { searchStore } from '@/features/search/searchStore';
@@ -52,6 +53,15 @@ afterEach(() => {
 });
 
 describe('CatalogToggle', () => {
+  it('keeps the icon and count visible below 640 px with the label as sr-only text', () => {
+    installViewport(390);
+    showResult();
+    render(<CatalogToggle />);
+    const toggle = screen.getByRole('button', { name: 'รายวิชา 2' });
+    expect(within(toggle).getByText('รายวิชา')).toHaveClass('max-sm:sr-only');
+    expect(within(toggle).getByText('2')).not.toHaveClass('max-sm:sr-only');
+  });
+
   it('shows a visible label and puts the result count in its accessible name', () => {
     installViewport(768);
     showResult();
