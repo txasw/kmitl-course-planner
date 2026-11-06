@@ -41,3 +41,42 @@ describe('useScrollLock', () => {
     expect(document.documentElement.style.overflow).toBe('scroll');
   });
 });
+
+describe('useScrollLock with stacked layers', () => {
+  function Pair({ first, second }: { first: boolean; second: boolean }) {
+    return (
+      <>
+        <Harness active={first} />
+        <Harness active={second} />
+      </>
+    );
+  }
+
+  it('restores the original overflow only after both release, first one first', () => {
+    document.documentElement.style.overflow = 'auto';
+    const { rerender } = render(<Pair first={true} second={false} />);
+    rerender(<Pair first={true} second={true} />);
+    rerender(<Pair first={false} second={true} />);
+    expect(document.documentElement.style.overflow).toBe('hidden');
+    rerender(<Pair first={false} second={false} />);
+    expect(document.documentElement.style.overflow).toBe('auto');
+  });
+
+  it('restores the original overflow only after both release, last one first', () => {
+    document.documentElement.style.overflow = 'auto';
+    const { rerender } = render(<Pair first={true} second={false} />);
+    rerender(<Pair first={true} second={true} />);
+    rerender(<Pair first={true} second={false} />);
+    expect(document.documentElement.style.overflow).toBe('hidden');
+    rerender(<Pair first={false} second={false} />);
+    expect(document.documentElement.style.overflow).toBe('auto');
+  });
+
+  it('keeps the host locked when one layer hands over to another in one commit', () => {
+    const { rerender } = render(<Pair first={true} second={false} />);
+    rerender(<Pair first={false} second={true} />);
+    expect(document.documentElement.style.overflow).toBe('hidden');
+    rerender(<Pair first={false} second={false} />);
+    expect(document.documentElement.style.overflow).toBe('');
+  });
+});
