@@ -26,6 +26,10 @@ import {
   resetPlanStore,
   seedActivePlan,
 } from '../../../tests/support/plan-store';
+import type { Course } from '@/lib/domain/types';
+import type { TypedSend } from '@/lib/messaging/sendTyped';
+import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
+import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { dragStore } from './dragStore';
 import {
   FeedbackStrip,
@@ -62,7 +66,11 @@ afterEach(() => {
   cleanup();
   act(() => {
     resetPlanStore();
-    searchStore.setState({ resultQuery: null });
+    searchStore.setState({
+      resultQuery: null,
+      result: { status: 'idle' },
+      activeTab: 'by_class',
+    });
     dragStore.setState({
       active: null,
       blocked: null,
@@ -76,6 +84,23 @@ afterEach(() => {
   });
   vi.unstubAllGlobals();
 });
+
+// A ready catalog result listing the courses, so a reveal has a card to show.
+function seedResult(...courses: Course[]): void {
+  act(() => {
+    searchStore.setState({
+      result: {
+        status: 'ready',
+        data: {
+          courses,
+          duplicateCount: 0,
+          multiMeetingCount: 0,
+          warnings: [],
+        },
+      },
+    });
+  });
+}
 
 // A blocked add of section 901 whose alternative 902 fits, so the strip shows one chip.
 function showBlockedWithChip(): void {
@@ -265,11 +290,13 @@ describe('FeedbackStrip', () => {
       subjectId: 'S1',
       section: '901',
     });
+    const course = makeCourse({ subjectId: 'S1', sections: [blocked] });
+    seedResult(course);
     act(() => {
       dragStore.setState({
         active: null,
         blocked: {
-          course: makeCourse({ subjectId: 'S1', sections: [blocked] }),
+          course,
           section: blocked,
           conflicts: [
             {
@@ -296,10 +323,12 @@ describe('FeedbackStrip', () => {
       uiStore.getState().setCatalogVisible(false);
     });
     const blocked = makeSection({ teachTableId: 'b', subjectId: 'S1' });
+    const course = makeCourse({ subjectId: 'S1', sections: [blocked] });
+    seedResult(course);
     act(() => {
       dragStore.setState({
         blocked: {
-          course: makeCourse({ subjectId: 'S1', sections: [blocked] }),
+          course,
           section: blocked,
           conflicts: [
             {
@@ -314,6 +343,52 @@ describe('FeedbackStrip', () => {
     render(<FeedbackStrip t={t} />);
     fireEvent.click(screen.getByRole('button', { name: 'แสดงในรายการ' }));
     expect(uiStore.getState()[shown]).toBe(true);
+  });
+
+  it('searches for a course the result no longer lists', () => {
+    installViewport(800);
+    // A real eight digit id, since the search refuses any other.
+    const blocked = makeSection({ teachTableId: 'b', subjectId: '90000002' });
+    seedResult(makeCourse({ subjectId: 'S9' }));
+    act(() => {
+      seedActivePlan([], { year: '2569', semester: '2' });
+      dragStore.setState({
+        blocked: {
+          course: makeCourse({ subjectId: '90000002', sections: [blocked] }),
+          section: blocked,
+          conflicts: [
+            {
+              kind: 'duplicate',
+              blocking: {
+                teachTableId: 'p',
+                subjectId: '90000002',
+                section: '900',
+              },
+              subjectId: '90000002',
+            },
+          ],
+        },
+      });
+    });
+    const send = vi.fn(() => new Promise(() => undefined));
+    render(
+      <SearchDepsProvider
+        value={fakeSearchDeps({ send: send as unknown as TypedSend })}
+      >
+        <FeedbackStrip t={t} />
+      </SearchDepsProvider>,
+    );
+    expect(
+      screen.queryByRole('button', { name: 'แสดงในรายการ' }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'ค้นหารายวิชานี้' }));
+    expect(uiStore.getState().sheetOpen).toBe(true);
+    expect(searchStore.getState().activeTab).toBe('by_subject_id');
+    expect(searchStore.getState().bySubjectId.subjectId).toBe('90000002');
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'teachTable/query' }),
+    );
+    expect(dragStore.getState().blocked).toBeNull();
   });
 
   it('announces an add in the live region', () => {

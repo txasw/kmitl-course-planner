@@ -90,7 +90,7 @@ afterEach(() => {
   cleanup();
   act(() => {
     resetPlanStore();
-    searchStore.setState({ resultQuery: null });
+    searchStore.setState({ resultQuery: null, result: { status: 'idle' } });
     dragStore.setState({
       active: null,
       blocked: null,
@@ -549,6 +549,11 @@ describe('CourseCatalog focus', () => {
         }),
       ],
     };
+    act(() => {
+      searchStore.setState({
+        result: { status: 'ready', data: conflictCatalog },
+      });
+    });
     render(
       <>
         <FeedbackStrip t={createTranslator('th')} />

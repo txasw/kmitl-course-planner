@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, beforeEach } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import {
   EMPTY_DISCLOSURE,
   catalogQueryKey,
@@ -6,6 +6,7 @@ import {
 } from '@/lib/catalog/cardDisclosure';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { dragStore } from '@/features/planner/dragStore';
+import { SEARCH_BAR_ID } from '@/features/search/searchIds';
 import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
 import {
@@ -19,7 +20,7 @@ import {
 } from '../../../tests/support/plan-store';
 import { catalogStore } from './catalogStore';
 import { courseToggleId } from './courseFocus';
-import { revealCourse } from './revealCourse';
+import { revealCourse, searchForCourse } from './revealCourse';
 
 const QUERY: TeachTableQuery = {
   mode: 'by_subject_owner_id',
@@ -32,10 +33,11 @@ const QUERY: TeachTableQuery = {
 
 const SUBJECT = '90592033';
 
-// A strip action to reveal from, and a card toggle to land on, laid out the way the
-// catalog renders it.
+// A strip action to reveal from, and a card toggle and a summary bar to land on, laid
+// out the way the catalog renders them.
 let control: HTMLButtonElement;
 let toggle: HTMLButtonElement;
+let bar: HTMLDivElement;
 
 beforeEach(() => {
   control = document.createElement('button');
@@ -44,7 +46,10 @@ beforeEach(() => {
   toggle = document.createElement('button');
   toggle.id = courseToggleId(SUBJECT);
   card.append(toggle);
-  document.body.append(control, card);
+  bar = document.createElement('div');
+  bar.id = SEARCH_BAR_ID;
+  bar.tabIndex = -1;
+  document.body.append(control, card, bar);
   control.focus();
 });
 
@@ -53,6 +58,8 @@ afterEach(() => {
   catalogStore.getState().resetFilter();
   catalogStore.setState({ disclosure: EMPTY_DISCLOSURE });
   searchStore.setState({ resultQuery: null });
+  searchStore.getState().setActiveTab('by_class');
+  searchStore.getState().patchSubjectIdForm({ subjectId: '' });
   dragStore.setState({ blockMove: null });
   resetPlanStore();
   uiStore.getState().setSheetOpen(false);
@@ -123,5 +130,37 @@ describe('revealCourse', () => {
     expect(uiStore.getState().catalogVisible).toBe(false);
     expect(catalogStore.getState().filter.text).toBe('');
     expect(control).toHaveFocus();
+  });
+});
+
+describe('searchForCourse', () => {
+  it('runs a by subject id search in the plan term and focuses the bar', () => {
+    seedActivePlan([], { year: '2569', semester: '2' });
+    const submit = vi.fn(() => Promise.resolve());
+    expect(searchForCourse(control, SUBJECT, 'medium', submit)).toBe(true);
+    const search = searchStore.getState();
+    expect(search.activeTab).toBe('by_subject_id');
+    expect(search.bySubjectId.subjectId).toBe(SUBJECT);
+    expect(search.term).toEqual({ year: '2569', semester: '2' });
+    expect(catalogStore.getState().filter.text).toBe(SUBJECT);
+    expect(submit).toHaveBeenCalledTimes(1);
+    expect(uiStore.getState().sheetOpen).toBe(true);
+    expect(bar).toHaveFocus();
+  });
+
+  it('shows the hidden docked column before it searches', () => {
+    uiStore.getState().setCatalogVisible(false);
+    searchForCourse(control, SUBJECT, 'xl', () => Promise.resolve());
+    expect(uiStore.getState().catalogVisible).toBe(true);
+    expect(bar).toHaveFocus();
+  });
+
+  it('does nothing during a block move', () => {
+    const section = makeSection({ subjectId: SUBJECT });
+    dragStore.getState().startBlockMove(section, [section], null);
+    const submit = vi.fn(() => Promise.resolve());
+    expect(searchForCourse(control, SUBJECT, 'medium', submit)).toBe(false);
+    expect(submit).not.toHaveBeenCalled();
+    expect(uiStore.getState().sheetOpen).toBe(false);
   });
 });
