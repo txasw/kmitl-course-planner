@@ -8,7 +8,8 @@
 // Focus is contained with the shared focus trap: it moves to the heading on open, wraps
 // on Tab, and returns to the opener on close. Escape closes the dialog only, through the
 // shared escape layer, so the overlay behind it stays open. The body is capped at 85
-// percent of the dynamic viewport height and scrolls inside.
+// percent of the dynamic viewport height and scrolls inside. A list dialog takes the
+// narrow width, a table the wide one.
 
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -18,6 +19,8 @@ import { usePanelPortal } from '@/features/shell/PanelPortalContext';
 import { useEscapeLayer } from '@/features/shell/useEscapeLayer';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
 
+const WIDTH_CLASS = { narrow: 'max-w-md', wide: 'max-w-4xl' } as const;
+
 interface ModalDialogProps {
   /** The heading that names the dialog; it labels the dialog and takes focus on open. */
   title: ReactNode;
@@ -25,6 +28,8 @@ interface ModalDialogProps {
   closeLabel: string;
   onClose: () => void;
   children: ReactNode;
+  /** The width cap, wide by default. */
+  width?: keyof typeof WIDTH_CLASS;
 }
 
 export function ModalDialog({
@@ -32,6 +37,7 @@ export function ModalDialog({
   closeLabel,
   onClose,
   children,
+  width = 'wide',
 }: ModalDialogProps) {
   const portalRoot = usePanelPortal();
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -63,7 +69,7 @@ export function ModalDialog({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="relative flex max-h-[85dvh] w-full max-w-4xl flex-col rounded-kcp bg-surface text-ink shadow-kcp outline-none"
+        className={`relative flex max-h-[85dvh] w-full ${WIDTH_CLASS[width]} flex-col rounded-kcp bg-surface text-ink shadow-kcp outline-none`}
       >
         <div className="flex shrink-0 items-center gap-2 border-b border-border py-2 pr-2 pl-4">
           <h2
