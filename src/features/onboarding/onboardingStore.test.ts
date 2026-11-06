@@ -74,6 +74,14 @@ describe('onboarding store', () => {
     expect(store.getState().documentSuppressed).toBe(true);
   });
 
+  it('marks a requested open, which also suppresses the document', () => {
+    const store = createOnboardingStore();
+    expect(store.getState().openRequested).toBe(false);
+    store.getState().markOpenRequested();
+    expect(store.getState().openRequested).toBe(true);
+    expect(store.getState().documentSuppressed).toBe(true);
+  });
+
   it('updates the record, the settled flags, the welcome and the shortcut', () => {
     const store = createOnboardingStore();
     store.getState().setRecord({ schemaVersion: 1, welcomeShownAt: SHOWN });

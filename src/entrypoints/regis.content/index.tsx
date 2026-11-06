@@ -40,15 +40,19 @@ export default defineContentScript({
           send: sendTyped,
           repo: createSearchStateRepository(adapter),
         };
+        // One onboarding repository for the document, so the welcome claim's write
+        // queues behind the first panel open write rather than racing it.
+        const onboardingRecord = createOnboardingRepository(adapter);
         const onboarding = {
           install: createInstallRepository(adapter),
-          record: createOnboardingRepository(adapter),
+          record: onboardingRecord,
         };
         const handshake = {
           runtimeId: browser.runtime.id,
           onMessage: browser.runtime.onMessage,
           send: sendTyped,
         };
+        const welcome = { record: onboardingRecord, send: sendTyped };
         root.render(
           <App
             prefs={prefs}
@@ -56,6 +60,7 @@ export default defineContentScript({
             search={search}
             onboarding={onboarding}
             handshake={handshake}
+            welcome={welcome}
           />,
         );
         return root;

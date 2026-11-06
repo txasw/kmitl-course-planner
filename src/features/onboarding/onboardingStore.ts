@@ -29,6 +29,12 @@ export interface OnboardingData {
   welcomeSettled: boolean;
   welcomeOpen: boolean;
   /**
+   * Whether this document opened the panel because the worker asked, from the mount
+   * handshake or a later command. Such a document never claims the welcome, so the
+   * welcome and the panel do not stack.
+   */
+  openRequested: boolean;
+  /**
    * Whether this document holds back the entry prompts: it showed the welcome,
    * applied an open the worker requested, or found the welcome pending at load.
    */
@@ -44,6 +50,8 @@ export interface OnboardingState extends OnboardingData {
   settleHandshake: () => void;
   settleWelcome: () => void;
   setWelcomeOpen: (open: boolean) => void;
+  /** Records an open the worker requested, which also suppresses the document. */
+  markOpenRequested: () => void;
   suppressDocument: () => void;
   setShortcut: (shortcut: string | null) => void;
 }
@@ -58,6 +66,7 @@ export function initialOnboardingData(): OnboardingData {
     handshakeSettled: false,
     welcomeSettled: false,
     welcomeOpen: false,
+    openRequested: false,
     documentSuppressed: false,
     shortcut: null,
   };
@@ -97,6 +106,9 @@ export function createOnboardingStore() {
     },
     setWelcomeOpen: (welcomeOpen) => {
       set({ welcomeOpen });
+    },
+    markOpenRequested: () => {
+      set({ openRequested: true, documentSuppressed: true });
     },
     suppressDocument: () => {
       set({ documentSuppressed: true });

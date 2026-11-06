@@ -69,6 +69,7 @@ describe('useWorkerHandshake', () => {
     await flush();
     expect(uiStore.getState().isOpen).toBe(true);
     expect(onboardingStore.getState().documentSuppressed).toBe(true);
+    expect(onboardingStore.getState().openRequested).toBe(true);
     expect(onboardingStore.getState().handshakeSettled).toBe(true);
   });
 

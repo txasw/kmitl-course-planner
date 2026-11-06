@@ -14,6 +14,7 @@ import { fakePlanDeps } from '../../../tests/support/planDeps';
 import {
   fakeHandshakeDeps,
   fakeOnboardingDeps,
+  fakeWelcomeDeps,
 } from '../../../tests/support/onboardingDeps';
 
 function noopRepo(): PrefsRepository {
@@ -40,6 +41,7 @@ describe('App', () => {
         search={fakeSearchDeps()}
         onboarding={fakeOnboardingDeps()}
         handshake={fakeHandshakeDeps()}
+        welcome={fakeWelcomeDeps()}
       />,
     );
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -57,6 +59,7 @@ describe('App', () => {
         search={fakeSearchDeps()}
         onboarding={fakeOnboardingDeps()}
         handshake={fakeHandshakeDeps()}
+        welcome={fakeWelcomeDeps()}
       />,
     );
     const launcher = screen.getByRole('button', {

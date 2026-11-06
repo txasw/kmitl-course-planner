@@ -23,6 +23,10 @@ import {
   useWorkerHandshake,
   type WorkerHandshakeDeps,
 } from '@/features/onboarding/useWorkerHandshake';
+import {
+  useWelcomeClaim,
+  type WelcomeClaimDeps,
+} from '@/features/onboarding/useWelcomeClaim';
 
 interface AppProps {
   prefs: PrefsRepository;
@@ -30,19 +34,28 @@ interface AppProps {
   search: SearchDeps;
   onboarding: OnboardingPersistenceDeps;
   handshake: WorkerHandshakeDeps;
+  welcome: WelcomeClaimDeps;
 }
 
 // Root component for the content script UI. It renders the launcher and the
 // overlay, hydrates and persists the language, the plans and the onboarding
 // record through the injected repositories, listens for the worker and sends it
-// the mount handshake, and provides the search dependencies so the deep form
+// the mount handshake, decides whether this document claims the welcome, and provides the search dependencies so the deep form
 // components stay free of the browser binding. The storage and messaging bindings
 // stay at the entrypoint.
-export function App({ prefs, plans, search, onboarding, handshake }: AppProps) {
+export function App({
+  prefs,
+  plans,
+  search,
+  onboarding,
+  handshake,
+  welcome,
+}: AppProps) {
   usePrefsPersistence(prefs);
   usePlanPersistence(plans);
   useOnboardingPersistence(onboarding);
   useWorkerHandshake(handshake);
+  useWelcomeClaim(welcome);
   return (
     <SearchDepsProvider value={search}>
       <RevalidationTriggers />
