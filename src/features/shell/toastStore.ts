@@ -1,12 +1,12 @@
 // The one global feedback channel for actions whose outcome is not otherwise
-// visible on screen: copy, export, cache clear, and a refresh that returned unchanged
-// data. Search is excluded because its skeleton, results, error, and empty states
-// already communicate. One toast shows at a time and a new one replaces the current,
-// so the latest outcome is always the one on screen. The message is a resolved
-// string, so production callers localize through t() before showing and the debug
-// drawer passes its English copy directly. A toast may carry one action, a way to the
-// outcome it reports; it is never the only path there, because the toast leaves on
-// its own.
+// visible on screen: copy, export, cache clear, a refresh that returned unchanged
+// data, and an add made while the timetable is covered. Search is excluded because
+// its skeleton, results, error, and empty states already communicate. One toast
+// shows at a time and a new one replaces the current, so the latest outcome is
+// always the one on screen. The message is a resolved string, so production callers
+// localize through t() before showing and the debug drawer passes its English copy
+// directly. A toast may carry one action, a way to the outcome it reports; it is
+// never the only path there, because the toast leaves on its own.
 
 import { createStore } from 'zustand/vanilla';
 

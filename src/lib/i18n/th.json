@@ -139,6 +139,8 @@
   "catalog.expandAll": "ขยายทั้งหมด",
   "catalog.collapseAll": "ย่อทั้งหมด",
   "toast.refreshUnchanged": "ข้อมูลเป็นปัจจุบัน ไม่มีการเปลี่ยนแปลง",
+  "toast.added": "เพิ่ม {subject} กลุ่มเรียน {section} แล้ว",
+  "toast.viewTimetable": "ดูตาราง",
   "catalog.filter.text": "ค้นหาในรายการ",
   "catalog.filter.fieldLabel": "กรองรายการ",
   "catalog.filter.day": "วัน",

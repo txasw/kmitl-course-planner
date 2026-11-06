@@ -39,7 +39,7 @@ import {
   useActivePlan,
   planStore,
 } from '@/features/plans/planStore';
-import { addSectionToPlan } from '@/features/plans/addToPlan';
+import { addSectionToPlan, confirmAdd } from '@/features/plans/addToPlan';
 import { switchOrCreatePlanForTerm } from '@/features/plans/switchPlanTerm';
 import { searchStore } from '@/features/search/searchStore';
 import { dragStore } from '@/features/planner/dragStore';
@@ -189,6 +189,7 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
         dragStore
           .getState()
           .announce(`${t('feedback.added')} ${section.subjectId}`);
+        confirmAdd(section, t);
       } else if ('crossTerm' in outcome) {
         dragStore.getState().showCrossTerm(outcome.crossTerm);
       } else {
