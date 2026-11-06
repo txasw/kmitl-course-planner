@@ -11,6 +11,7 @@ import { uiStore } from '@/features/shell/uiStore';
 import type { PrefsRepository } from '@/lib/storage/prefs';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { fakePlanDeps } from '../../../tests/support/planDeps';
+import { fakeOnboardingDeps } from '../../../tests/support/onboardingDeps';
 
 function noopRepo(): PrefsRepository {
   return {
@@ -34,6 +35,7 @@ describe('App', () => {
         prefs={noopRepo()}
         plans={fakePlanDeps()}
         search={fakeSearchDeps()}
+        onboarding={fakeOnboardingDeps()}
       />,
     );
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -49,6 +51,7 @@ describe('App', () => {
         prefs={noopRepo()}
         plans={fakePlanDeps()}
         search={fakeSearchDeps()}
+        onboarding={fakeOnboardingDeps()}
       />,
     );
     const launcher = screen.getByRole('button', {
