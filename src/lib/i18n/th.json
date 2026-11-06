@@ -189,7 +189,6 @@
   "feedback.added": "เพิ่มลงตารางแล้ว",
   "feedback.courseDropHint": "วางบนช่องที่ไฮไลต์เพื่อเพิ่มกลุ่มเรียน",
   "feedback.moveHint": "วางบนช่องที่ไฮไลต์หรือพื้นที่นำออก",
-  "blockMove.removeZone": "ลากมาที่นี่เพื่อนำออก",
   "blockMove.swap": "สลับกับ",
   "dropZone.remove": "วางที่นี่เพื่อนำออกจากตาราง",
   "dropZone.removeOver": "ปล่อยเพื่อนำออก",

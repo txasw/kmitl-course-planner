@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ClientRect, DroppableContainer } from '@dnd-kit/core';
 import { orderByPriority, prioritizedCollision } from './collision';
-import { REMOVE_BAR_ID, REMOVE_CATALOG_ID, REMOVE_ZONE_ID } from './RemoveZone';
+import { REMOVE_BAR_ID, REMOVE_CATALOG_ID } from './RemoveZone';
 
 const PANEL_ID = 'kcp-planner-drop';
 
@@ -54,10 +54,10 @@ describe('orderByPriority', () => {
       { id: PANEL_ID },
       { id: 'cand-a' },
       { id: 'swap-b' },
-      { id: REMOVE_ZONE_ID },
+      { id: REMOVE_CATALOG_ID },
     ]);
     expect(ordered.map((collision) => collision.id)).toEqual([
-      REMOVE_ZONE_ID,
+      REMOVE_CATALOG_ID,
       'swap-b',
       'cand-a',
       PANEL_ID,
