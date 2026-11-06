@@ -9,8 +9,8 @@ import {
 import { axeViolations } from './support/axe';
 
 // The plan suggestion flow on the real by_class capture, curriculum 137: a GenEd the
-// student placed by hand is kept, the suggestion is applied as a new plan, and undo
-// returns to the plan it started from.
+// student placed by hand is kept, a card opens full size and back, the suggestion is
+// applied as a new plan, and undo returns to the plan it started from.
 const GRID_BLOCK = '[data-teach-table-id]';
 
 test('applies a suggested timetable as a new plan and undoes it', async ({
@@ -55,6 +55,20 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
   const apply = dialog.getByRole('button', { name: 'ใช้ตารางนี้' });
   await expect(apply).toHaveCount(3);
   expect(await axeViolations(page)).toEqual([]);
+
+  // The cards sit side by side; one opens full size and the back action returns to all
+  // three with focus on the control that opened it.
+  const expand = dialog.getByRole('button', { name: 'ดูขนาดเต็ม' });
+  await expand.nth(1).click();
+  await expect(
+    dialog.getByRole('heading', { name: 'ตัวเลือกที่ 2' }),
+  ).toBeFocused();
+  await expect(apply).toHaveCount(1);
+  await dialog
+    .getByRole('button', { name: 'กลับไปที่ตัวเลือกทั้งหมด' })
+    .click();
+  await expect(apply).toHaveCount(3);
+  await expect(expand.nth(1)).toBeFocused();
 
   await apply.first().click();
   await expect(dialog).toHaveCount(0);
