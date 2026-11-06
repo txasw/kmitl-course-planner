@@ -7,7 +7,9 @@ import {
   act,
   within,
 } from '@testing-library/react';
+import { DndContext } from '@dnd-kit/core';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
+import { dragStore } from '@/features/planner/dragStore';
 import { searchStore } from '@/features/search/searchStore';
 import {
   makeCourse,
@@ -49,6 +51,7 @@ afterEach(() => {
   cleanup();
   resetPlanStore();
   act(() => {
+    dragStore.getState().clearBlockMove();
     searchStore.getState().setResult({ status: 'idle' }, null);
     uiStore.setState({ mobilePane: null, planView: 'timetable' });
     uiStore.getState().setLanguage('th');
@@ -143,5 +146,33 @@ describe('BottomNav', () => {
         .getAllByRole('button')
         .map((item) => item.textContent),
     ).toEqual(['Courses', 'Timetable', 'Selected']);
+  });
+
+  it('turns into the remove bar during a block drag and back after it', () => {
+    const placed = makeSection({ teachTableId: 'b1', subjectId: '90000001' });
+    render(
+      <DndContext>
+        <BottomNav />
+      </DndContext>,
+    );
+    const items = within(nav()).getAllByRole('button');
+    const group = items[0]?.parentElement;
+    expect(nav().querySelector('[data-remove-zone]')).toBeNull();
+
+    act(() => {
+      dragStore.getState().startBlockMove(placed, [placed], null);
+    });
+    const bar = nav().querySelector('[data-remove-zone="bar"]');
+    expect(bar).toHaveClass('absolute', 'bottom-0', 'pb-(--kcp-safe-bottom)');
+    expect(bar).toHaveTextContent('วางที่นี่เพื่อนำออกจากตาราง');
+    expect(group).toHaveClass('invisible');
+    expect(group).toHaveAttribute('inert');
+
+    act(() => {
+      dragStore.getState().clearBlockMove();
+    });
+    expect(nav().querySelector('[data-remove-zone]')).toBeNull();
+    expect(group).not.toHaveClass('invisible');
+    expect(group).not.toHaveAttribute('inert');
   });
 });

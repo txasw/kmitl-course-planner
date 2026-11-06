@@ -14,6 +14,7 @@ import {
   LONG_PRESS_MS,
   longPress,
   swipe,
+  touchDown,
   touchDrag,
   type Point,
 } from './support/touch';
@@ -28,7 +29,8 @@ import type { Locator, Page } from '@playwright/test';
 // coarse pointers, and the feedback strip's chips stay tappable over the open catalog.
 // The tablet holds the catalog in a sheet that is modal over the grid and closes alone
 // on Escape. The phone, below 640 px, shows one pane at a time behind a bottom nav, so
-// the catalog and the timetable each take the whole body in turn.
+// the catalog and the timetable each take the whole body in turn, and during a block drag
+// the nav turns into the remove bar.
 
 const LAUNCHER = 'เปิด Course Planner for KMITL';
 // A grid block carries a data-teach-table-id; the catalog rows do not.
@@ -581,6 +583,13 @@ test('the controls a finger reaches are 44 px targets', async ({ context }) => {
   );
 });
 
+/** The centre of a laid out element, as a point a finger can press. */
+async function centre(locator: Locator): Promise<Point> {
+  const box = await locator.boundingBox();
+  if (box === null) throw new Error('expected a laid out element');
+  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+}
+
 /** Assert the overlay lays out inside the viewport width, with nothing scrolling it sideways. */
 async function expectNoHorizontalOverflow(page: Page): Promise<void> {
   const overflow = await page
@@ -719,5 +728,44 @@ test.describe('the phone layout', () => {
     await expect(
       nav.getByRole('button', { name: 'รายวิชา 3', exact: true }),
     ).toHaveAttribute('aria-current', 'page');
+  });
+
+  test('turns the nav into the remove bar for a long pressed block, with undo', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    await syntheticSearch(page);
+    // Course X section 901 (id 900006) is paired with section 902 (id 900007).
+    await addCourse(page, '90000006');
+    const nav = bottomNav(page);
+    await nav.getByRole('button', { name: 'ตารางเรียน' }).tap();
+    await expect(page.locator(block('900006'))).toBeVisible();
+    const navBox = await nav.boundingBox();
+
+    const from = await centre(page.locator(block('900006')));
+    const finger = await touchDown(page, from);
+    try {
+      // A long press is defined by elapsed time, so this wait is the gesture itself.
+      await page.waitForTimeout(LONG_PRESS_MS);
+      await finger.moveTo({ x: from.x + 24, y: from.y + 24 }, 6);
+      // The bar takes the nav's place: the items give way and the nav keeps its box,
+      // so the timetable above it does not resize mid drag.
+      const bar = nav.locator('[data-remove-zone="bar"]');
+      await expect(bar).toBeVisible();
+      await expect(page.locator('[data-remove-zone]')).toHaveCount(1);
+      await expect(nav.getByRole('button')).toHaveCount(0);
+      expect(await nav.boundingBox()).toEqual(navBox);
+      await finger.moveTo(await centre(bar), 12);
+    } finally {
+      await finger.lift();
+    }
+
+    await expect(page.locator(block('900006'))).toHaveCount(0);
+    await expect(page.locator(block('900007'))).toHaveCount(0);
+    await expect(nav.locator('[data-remove-zone]')).toHaveCount(0);
+    await expect(nav.getByRole('button', { name: 'ตารางเรียน' })).toBeVisible();
+    await page.getByRole('button', { name: 'เลิกทำ' }).tap();
+    await expect(page.locator(block('900006'))).toBeVisible();
+    await expect(page.locator(block('900007'))).toBeVisible();
   });
 });
