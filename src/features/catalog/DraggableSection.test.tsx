@@ -104,6 +104,16 @@ describe('DraggableSection', () => {
     expect(dragStore.getState().hover).toBeNull();
   });
 
+  it('previews the section for a mouse over the row but not for a touch', () => {
+    render(<Harness />);
+    fireEvent.pointerEnter(surface(), { pointerType: 'touch' });
+    expect(dragStore.getState().hover).toBeNull();
+    fireEvent.pointerEnter(surface(), { pointerType: 'mouse' });
+    expect(dragStore.getState().hover?.teachTableId).toBe('s1');
+    fireEvent.pointerLeave(surface(), { pointerType: 'mouse' });
+    expect(dragStore.getState().hover).toBeNull();
+  });
+
   it('lets a swipe on the row scroll and leaves a long press to the drag', () => {
     render(<Harness />);
     expect(surface()).toHaveClass('touch-drag');

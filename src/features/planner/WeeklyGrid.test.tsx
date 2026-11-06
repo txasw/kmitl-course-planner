@@ -720,19 +720,20 @@ describe('WeeklyGrid', () => {
       const block = screen.getByRole('button', { name: /90592033/ });
 
       // A pass across the block before the delay never opens the card.
-      fireEvent.mouseEnter(block);
-      fireEvent.mouseLeave(block);
+      fireEvent.pointerEnter(block, { pointerType: 'mouse' });
+      fireEvent.pointerLeave(block, { pointerType: 'mouse' });
       act(() => {
         vi.advanceTimersByTime(500);
       });
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
       // Once shown, leaving the block toward the card keeps it open.
-      fireEvent.mouseEnter(block);
+      fireEvent.pointerEnter(block, { pointerType: 'mouse' });
       act(() => {
         vi.advanceTimersByTime(500);
       });
       const card = screen.getByRole('tooltip');
+      fireEvent.pointerLeave(block, { pointerType: 'mouse' });
       fireEvent.mouseLeave(block, { relatedTarget: card });
       fireEvent.mouseMove(card);
       expect(screen.getByRole('tooltip')).toBeInTheDocument();
@@ -757,7 +758,9 @@ describe('WeeklyGrid', () => {
         onOpenDetail: () => undefined,
       };
       const { rerender } = render(<WeeklyGrid {...props} />);
-      fireEvent.mouseEnter(screen.getByRole('button', { name: /90592033/ }));
+      fireEvent.pointerEnter(screen.getByRole('button', { name: /90592033/ }), {
+        pointerType: 'mouse',
+      });
       act(() => {
         vi.advanceTimersByTime(500);
       });
@@ -777,6 +780,34 @@ describe('WeeklyGrid', () => {
         planStore.setState({ entries: [entry] });
       });
       rerender(<WeeklyGrid {...props} />);
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('never opens a hover card for a touch, so a tap shows only the detail sheet', () => {
+    vi.useFakeTimers();
+    try {
+      act(() => {
+        planStore.setState({ entries: [makePlanEntry()] });
+      });
+      render(
+        <WeeklyGrid
+          sections={[makePlaced()]}
+          window={DEFAULT_WINDOW}
+          locale="th"
+          t={t}
+          editable
+          onOpenDetail={() => undefined}
+        />,
+      );
+      fireEvent.pointerEnter(screen.getByRole('button', { name: /90592033/ }), {
+        pointerType: 'touch',
+      });
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
     } finally {
       vi.useRealTimers();
@@ -804,7 +835,7 @@ describe('WeeklyGrid', () => {
       const block = screen.getByRole('button', { name: /90592033/ });
 
       // With no popover pinned, hovering opens the read only card after the delay.
-      fireEvent.mouseEnter(block);
+      fireEvent.pointerEnter(block, { pointerType: 'mouse' });
       act(() => {
         vi.advanceTimersByTime(500);
       });
@@ -816,7 +847,7 @@ describe('WeeklyGrid', () => {
 
       // Hovering again while pinned never brings it back, so the two detail surfaces
       // never show together.
-      fireEvent.mouseEnter(block);
+      fireEvent.pointerEnter(block, { pointerType: 'mouse' });
       act(() => {
         vi.advanceTimersByTime(500);
       });

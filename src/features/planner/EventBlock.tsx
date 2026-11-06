@@ -75,7 +75,8 @@ interface EventBlockProps {
   onOpenDetail?: (anchor: HTMLElement) => void;
   /** Open the block context menu at the pointer on a right click, edit mode only. */
   onContextMenu?: (event: MouseEvent<HTMLElement>) => void;
-  /** Report a pointer entering the block, so the grid can open a hover detail card. */
+  /** Report a mouse entering the block, so the grid can open a hover detail card. A touch
+   * never reports, so a tap opens only the detail sheet (ADR-0058). */
   onHoverEnter?: (anchor: HTMLElement) => void;
   /** Report the pointer leaving the block, so the grid can dismiss the hover card. */
   onHoverLeave?: () => void;
@@ -212,14 +213,16 @@ function EventBlockComponent({
         }
         onKeyDown={interactive ? handleKeyDown : undefined}
         onContextMenu={onContextMenu}
-        onMouseEnter={
+        onPointerEnter={
           onHoverEnter !== undefined
             ? (event) => {
-                onHoverEnter(event.currentTarget);
+                if (event.pointerType === 'mouse') {
+                  onHoverEnter(event.currentTarget);
+                }
               }
             : undefined
         }
-        onMouseLeave={onHoverLeave}
+        onPointerLeave={onHoverLeave}
         className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-kcp py-1.5 pr-2 pl-2.5 text-[1em] ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink outline-none ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'touch-drag cursor-grab' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''} ${interactive ? 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary' : ''}`}
         style={{ backgroundColor: hashTint(section.subjectId) }}
         {...dragListeners}
