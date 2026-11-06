@@ -8,6 +8,7 @@ import {
   type PlanPersistenceDeps,
 } from '@/features/plans/usePlanPersistence';
 import { useRevalidationTriggers } from '@/features/plans/useRevalidationTriggers';
+import { useUpdatesAutoOpen } from '@/features/plans/useUpdatesAutoOpen';
 import {
   SearchDepsProvider,
   useSearchDeps,
@@ -54,9 +55,11 @@ export function App({ prefs, plans, search, onboarding, handshake }: AppProps) {
 }
 
 // A zero render child so the revalidation triggers can read the injected send from
-// the search deps context rather than threading it through props.
+// the search deps context rather than threading it through props. The updates dialog's
+// automatic opening rides along, since it acts on what those triggers find.
 function RevalidationTriggers() {
   const { send } = useSearchDeps();
   useRevalidationTriggers(send);
+  useUpdatesAutoOpen();
   return null;
 }
