@@ -68,23 +68,22 @@ test('round trips a plan through JSON export and import', async ({
     buffer: Buffer.from(exported),
   });
   await expect(page.locator(block('900001'))).toBeVisible();
-  const banner = page
-    .getByText(/ตรวจสอบแล้ว/)
-    .locator('xpath=ancestor::div[1]');
-  await expect(banner).toBeVisible({ timeout: 15_000 });
+  // The check settles into the verification status at the end of the stats bar.
+  const stats = page.getByRole('group', { name: 'สรุปตาราง', exact: true });
+  await expect(stats.getByText(/ตรวจสอบแล้ว/)).toBeVisible({ timeout: 15_000 });
 
-  // Serve the moved variant and refresh from the banner, which bypasses the cache:
+  // Serve the moved variant and check again from the stats bar, which bypasses the cache:
   // the imported entries reconcile against fresh data, report one change, and the
   // block carries the warn badge.
   mock.setFreshSynthetic(true);
-  await banner.getByRole('button', { name: 'รีเฟรช' }).click();
-  await expect(page.getByText(/เปลี่ยน 1/)).toBeVisible({ timeout: 15_000 });
+  await stats.getByRole('button', { name: 'ตรวจสอบอีกครั้ง' }).click();
+  await expect(stats.getByText(/เปลี่ยน 1/)).toBeVisible({ timeout: 15_000 });
   await expect(
     page.locator(`${block('900001')}[data-verify="warn"]`),
   ).toBeVisible();
   // The imported plan reviews its change in the updates dialog. Review later keeps the
   // review open, so the badge stays, and Escape is the same as review later.
-  await banner.getByRole('button', { name: 'รายละเอียด' }).click();
+  await stats.getByRole('button', { name: 'รายละเอียด' }).click();
   const dialog = page.getByRole('dialog', {
     name: 'ข้อมูลในตารางมีการเปลี่ยนแปลง',
   });

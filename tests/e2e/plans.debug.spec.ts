@@ -89,16 +89,15 @@ test('flags a moved section on refresh and acknowledges it in the dialog', async
 
   // Adding the first section creates the plan, which triggers an automatic check
   // against the base catalog. Wait for that clean result before moving the section.
-  const banner = page
-    .getByText(/ตรวจสอบแล้ว/)
-    .locator('xpath=ancestor::div[1]');
-  await expect(banner).toBeVisible({ timeout: 15_000 });
+  // The check settles into the verification status at the end of the stats bar.
+  const stats = page.getByRole('group', { name: 'สรุปตาราง', exact: true });
+  await expect(stats.getByText(/ตรวจสอบแล้ว/)).toBeVisible({ timeout: 15_000 });
 
-  // Serve the moved time variant, then refresh from the banner: the replay reconciles
+  // Serve the moved time variant, then check again from the stats bar: the replay reconciles
   // the section, the summary reports one change, and the block carries the warn badge.
   mock.setFreshSynthetic(true);
-  await banner.getByRole('button', { name: 'รีเฟรช' }).click();
-  await expect(page.getByText(/เปลี่ยน 1/)).toBeVisible({
+  await stats.getByRole('button', { name: 'ตรวจสอบอีกครั้ง' }).click();
+  await expect(stats.getByText(/เปลี่ยน 1/)).toBeVisible({
     timeout: 15_000,
   });
   await expect(
@@ -107,7 +106,7 @@ test('flags a moved section on refresh and acknowledges it in the dialog', async
 
   // The details action opens the updates dialog, which lists the time change with its
   // old and new values and starts focus on the acknowledgement.
-  await banner.getByRole('button', { name: 'รายละเอียด' }).click();
+  await stats.getByRole('button', { name: 'รายละเอียด' }).click();
   const dialog = page.getByRole('dialog', {
     name: 'ข้อมูลในตารางมีการเปลี่ยนแปลง',
   });
