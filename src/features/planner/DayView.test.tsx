@@ -21,6 +21,7 @@ import {
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
+import { swipe } from '../../../tests/support/swipe';
 import { installViewport } from '../../../tests/support/viewport';
 import { DayChips } from './DayChips';
 import { dragStore } from './dragStore';
@@ -261,5 +262,86 @@ describe('DayView', () => {
     });
     expect(dragStore.getState().blockMove?.section.teachTableId).toBe('wed');
     fireEvent.touchEnd(target, { touches: [], changedTouches: [at] });
+    // The sensor removes its click guard on a short timer after the drag ends; run it so
+    // the guard never outlives the test and swallows a later click.
+    act(() => {
+      vi.runOnlyPendingTimers();
+    });
+  });
+});
+
+describe('DayView swipe', () => {
+  function swipeSurface(): Element {
+    const surface = document.querySelector('[data-day-swipe]');
+    if (surface === null)
+      throw new Error('expected the day view swipe surface');
+    return surface;
+  }
+
+  function shown(): string | undefined {
+    return screen
+      .getAllByRole('radio')
+      .find((node) => node.getAttribute('aria-checked') === 'true')?.dataset
+      .day;
+  }
+
+  it('steps to the next day on a swipe left and back on a swipe right', () => {
+    installViewport(390);
+    seedPlan();
+    renderPanel();
+    expect(shown()).toBe('3');
+    swipe(swipeSurface(), 'x', -100);
+    expect(shown()).toBe('4');
+    swipe(swipeSurface(), 'x', 100);
+    swipe(swipeSurface(), 'x', 100);
+    expect(shown()).toBe('2');
+  });
+
+  it('stops at the end of the row rather than wrapping', () => {
+    installViewport(390);
+    seedPlan();
+    renderPanel();
+    fireEvent.click(chip('วันศุกร์ มีเรียน'));
+    expect(shown()).toBe('5');
+    swipe(swipeSurface(), 'x', -100);
+    expect(shown()).toBe('5');
+  });
+
+  it('ignores a move under the slop, a short swipe, and a vertical swipe', () => {
+    installViewport(390);
+    seedPlan();
+    renderPanel();
+    swipe(swipeSurface(), 'x', -20);
+    swipe(swipeSurface(), 'x', -60);
+    swipe(swipeSurface(), 'y', -100);
+    expect(shown()).toBe('3');
+  });
+
+  it('leaves the day alone while a drag owns the pointer', () => {
+    installViewport(390);
+    seedPlan();
+    renderPanel();
+    const section = makeSection({ teachTableId: 'wed' });
+    act(() => {
+      dragStore.setState({
+        blockMove: { section, group: [section], course: null, candidates: [] },
+      });
+    });
+    swipe(swipeSurface(), 'x', -100);
+    expect(shown()).toBe('3');
+  });
+
+  it('claims a sideways touch move from the browser and leaves a vertical one', () => {
+    installViewport(390);
+    seedPlan();
+    renderPanel();
+    const touch = (x: number, y: number) => ({
+      touches: [{ clientX: x, clientY: y }],
+    });
+    fireEvent.touchStart(swipeSurface(), touch(100, 100));
+    // fireEvent returns false when a listener cancelled the event.
+    expect(fireEvent.touchMove(swipeSurface(), touch(80, 104))).toBe(false);
+    fireEvent.touchStart(swipeSurface(), touch(100, 100));
+    expect(fireEvent.touchMove(swipeSurface(), touch(104, 70))).toBe(true);
   });
 });
