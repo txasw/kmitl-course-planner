@@ -58,7 +58,10 @@ export function SearchHeader() {
         inert={!formOpen || undefined}
         className="kcp-fold min-h-0"
       >
-        <div ref={formScroller} className="kcp-scroll overscroll-contain">
+        <div
+          ref={formScroller}
+          className="kcp-scroll overscroll-contain [scroll-padding-bottom:var(--kcp-overlay-bottom,0px)]"
+        >
           {/* The padding sits inside the scroller, so the submit focus outline is
               never clipped by the scroller edge. */}
           <div className="border-b border-border px-6 pt-4 pb-6">

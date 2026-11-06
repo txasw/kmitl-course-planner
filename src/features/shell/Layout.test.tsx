@@ -5,6 +5,7 @@ import {
   fireEvent,
   cleanup,
   act,
+  within,
 } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { Layout } from './Layout';
@@ -318,6 +319,63 @@ describe('Layout', () => {
     expect(catalogColumn(container)).toBe(sheet);
     expect(sheet).toHaveClass('col-start-1');
     expect(screen.getByRole('navigation')).toBeInTheDocument();
+  });
+
+  describe('the feedback strip', () => {
+    // The strip's one live node, told apart from the status announcer and the drag
+    // library's region by its polite live attribute.
+    function strip(container: HTMLElement): HTMLElement {
+      const node = container.querySelector<HTMLElement>(
+        '[aria-live="polite"]:not([id^="DndLiveRegion-"]):not([role])',
+      );
+      if (node === null) throw new Error('the feedback strip is not rendered');
+      return node;
+    }
+
+    it('sits at the top of the grid column on a docked tier', () => {
+      installViewport(1440);
+      const { container } = render(<Layout />, { wrapper });
+      const node = strip(container);
+      // The strip and the grid share the planner region, the strip first.
+      const region = node.parentElement;
+      if (region === null) throw new Error('the strip has no region');
+      expect(
+        within(region).getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
+      ).toBeInTheDocument();
+      expect(node).toHaveClass('min-h-[1.75rem]');
+    });
+
+    it('floats over the open sheet outside the inert grid at 768 px', () => {
+      installViewport(768);
+      const { container } = render(<Layout />, { wrapper });
+      act(() => {
+        uiStore.getState().setSheetOpen(true);
+      });
+      const node = strip(container);
+      expect(node.closest('[inert]')).toBeNull();
+      expect(node).toHaveClass('absolute', 'z-drawer', 'left-4');
+      // It follows the scrim in the tree, so at the same layer it paints above it.
+      const scrim = container.querySelector('.z-scrim');
+      expect(
+        scrim !== null &&
+          scrim.compareDocumentPosition(node) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
+
+    it('floats above the bottom nav outside both panes at 390 px', () => {
+      installViewport(390);
+      const { container } = render(<Layout />, { wrapper });
+      const node = strip(container);
+      expect(node.closest('[inert]')).toBeNull();
+      expect(node).toHaveClass('absolute', 'z-drawer', 'bottom-18');
+    });
+
+    it('floats at the foot of the grid while the sheet is closed', () => {
+      installViewport(768);
+      const { container } = render(<Layout />, { wrapper });
+      expect(strip(container)).toHaveClass('inset-x-4', 'max-w-[32rem]');
+    });
   });
 
   it('collapses the search and catalog in preview mode', () => {

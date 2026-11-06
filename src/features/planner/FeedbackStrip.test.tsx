@@ -27,7 +27,11 @@ import {
   seedActivePlan,
 } from '../../../tests/support/plan-store';
 import { dragStore } from './dragStore';
-import { FeedbackStrip } from './FeedbackStrip';
+import {
+  FeedbackStrip,
+  FloatingFeedbackStrip,
+  OVERLAY_BOTTOM_PROPERTY,
+} from './FeedbackStrip';
 
 const t = createTranslator('th');
 
@@ -374,6 +378,93 @@ describe('FeedbackStrip', () => {
       expect(spokenRegions(container)).toEqual([
         'เพิ่ม 90592033 กลุ่มเรียน 901 แล้วดูตาราง',
       ]);
+    });
+  });
+
+  describe('floating below the dock', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+      vi.unstubAllGlobals();
+    });
+
+    it('keeps the space it covers clear at the foot of its container', () => {
+      vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(
+        36,
+      );
+      showBlockedWithChip();
+      const { container, unmount } = render(
+        <FeedbackStrip t={t} placement="sheet" />,
+      );
+      expect(container.style.getPropertyValue(OVERLAY_BOTTOM_PROPERTY)).toBe(
+        '60px',
+      );
+      unmount();
+      expect(container.style.getPropertyValue(OVERLAY_BOTTOM_PROPERTY)).toBe(
+        '',
+      );
+    });
+
+    it('rises above a toast at the panel foot', () => {
+      installViewport(768);
+      vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(
+        36,
+      );
+      showBlockedWithChip();
+      act(() => {
+        toastStore.getState().show('success', 'ok');
+      });
+      const { container } = render(<FloatingFeedbackStrip />);
+      const node = container.querySelector('[aria-live]');
+      expect(node).toHaveClass('bottom-24');
+      expect(node).not.toHaveClass('bottom-4');
+      expect(container.style.getPropertyValue(OVERLAY_BOTTOM_PROPERTY)).toBe(
+        '140px',
+      );
+      act(() => {
+        toastStore.getState().dismiss();
+      });
+      expect(node).toHaveClass('bottom-4');
+    });
+
+    it('rises above the bottom nav of the phone layout', () => {
+      installViewport(390);
+      vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(
+        36,
+      );
+      showBlockedWithChip();
+      const { container } = render(<FloatingFeedbackStrip />);
+      const node = container.querySelector('[aria-live]');
+      expect(node).toHaveClass('bottom-18');
+      expect(node).not.toHaveClass('bottom-4');
+      expect(container.style.getPropertyValue(OVERLAY_BOTTOM_PROPERTY)).toBe(
+        '116px',
+      );
+    });
+
+    it('takes the sheet width while the sheet is open', () => {
+      act(() => {
+        uiStore.getState().setSheetOpen(true);
+      });
+      const { container } = render(<FloatingFeedbackStrip />);
+      expect(container.querySelector('[aria-live]')).toHaveClass('left-4');
+    });
+
+    it('reserves nothing while it is empty', () => {
+      const { container } = render(<FeedbackStrip t={t} placement="grid" />);
+      expect(container.style.getPropertyValue(OVERLAY_BOTTOM_PROPERTY)).toBe(
+        '',
+      );
+    });
+
+    it('reserves nothing in the grid column on a docked tier', () => {
+      vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(
+        36,
+      );
+      showBlockedWithChip();
+      const { container } = render(<FeedbackStrip t={t} />);
+      expect(container.style.getPropertyValue(OVERLAY_BOTTOM_PROPERTY)).toBe(
+        '',
+      );
     });
   });
 

@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef } from 'react';
 import { useStore } from 'zustand';
+import { FloatingFeedbackStrip } from '@/features/planner/FeedbackStrip';
 import { PlannerPanel } from '@/features/planner/PlannerPanel';
 import { PlannerDnd } from '@/features/planner/PlannerDnd';
 import { PlannerDropZone } from '@/features/planner/PlannerDropZone';
@@ -31,6 +32,9 @@ import { useLayoutTier } from './useLayoutTier';
 // its search state and its drag registration wait for its return. Every element keeps
 // its place in the tree at every tier, so a tier change never remounts the catalog. The
 // pane is settled from the plan the first time the compact tier lays out, before paint.
+// Below the dock the feedback strip floats here, after the scrim and outside the inert
+// grid region, so its chips stay operable while the sheet is open; on the docked tiers
+// it sits in the grid column instead.
 // The status announcer sits beside the column and outside the inert grid region, so it
 // outlives every state the column swaps and still speaks a search outcome while the
 // sheet is open or closed, the docked column is hidden, or another pane is shown. Preview
@@ -98,6 +102,7 @@ export function Layout() {
 
         <SheetScrim tier={tier} />
         <RemoveBar tier={tier} />
+        {isDockedTier(tier) ? null : <FloatingFeedbackStrip />}
         {compact ? <BottomNav /> : null}
       </div>
     </PlannerDnd>

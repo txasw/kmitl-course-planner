@@ -323,7 +323,7 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
       <div
         ref={results}
         data-catalog-scroller
-        className={`kcp-scroll flex flex-1 flex-col overflow-y-auto p-6 [overflow-anchor:none] ${
+        className={`kcp-scroll flex flex-1 flex-col overflow-y-auto p-6 [overflow-anchor:none] [scroll-padding-bottom:var(--kcp-overlay-bottom,0px)] ${
           keepResults ? 'min-h-48' : 'min-h-0'
         }`}
       >
