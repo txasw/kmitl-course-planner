@@ -3,10 +3,11 @@
 // pulse, and the reason chip; a valid drop commits and a blocked drop surfaces the
 // reason and alternatives. A course drag paints every section of the course as a
 // candidate slot; dropping on a valid slot commits that section and its pair. A block
-// drag lifts a placed section: the remove zone appears at the panel edge and the grid
-// paints the subject's other sections as move targets, so a drop removes the section
-// or moves it to another slot, and a drop back on its own place cancels silently. A
-// custom collision detection resolves overlapping drop targets by an explicit priority.
+// drag lifts a placed section: the remove zone appears, the docked catalog column or a
+// target at the panel bottom, and the grid paints the subject's other sections as move
+// targets, so a drop removes the section or moves it to another slot, and a drop back on
+// its own place cancels silently. A custom collision detection resolves overlapping drop
+// targets by an explicit priority.
 // A mouse drag starts after a short distance, so a click on a row or block button is
 // never a drag, and a touch drag starts after a long press, so a swipe on a drag surface
 // scrolls (ADR-0058). A touch drag lifts the grab card clear of the finger and marks its
@@ -40,7 +41,7 @@ import { useTranslation } from '@/features/shell/useTranslation';
 import { dragStore, blockerIds } from './dragStore';
 import { DragCard } from './DragCard';
 import { ReasonChip } from './ReasonChip';
-import { RemoveZone, isRemoveZoneId } from './RemoveZone';
+import { isRemoveZoneId } from './RemoveZone';
 import { resolveCourseForSubject } from './resolveCourse';
 import { isTouchEvent, snapDragCardToCursor } from './snapToCursor';
 import { prioritizedCollision } from './collision';
@@ -166,7 +167,6 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   const hintText = t('feedback.courseDropHint');
   const moveHint = t('feedback.moveHint');
-  const removeLabel = t('blockMove.removeZone');
   const sensors = usePlannerSensors();
   const active = useStore(dragStore, (state) => state.active);
   const courseDrag = useStore(dragStore, (state) => state.courseDrag);
@@ -361,7 +361,6 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
       onDragCancel={handleCancel}
     >
       {children}
-      {blockMove !== null ? <RemoveZone label={removeLabel} /> : null}
       <DragOverlay
         dropAnimation={null}
         modifiers={[snapDragCardToCursor]}

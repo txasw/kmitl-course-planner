@@ -350,5 +350,10 @@ export function selectDragging(state: DragStore): boolean {
   );
 }
 
+/** Whether a placed block is being dragged, the one drag that shows a remove zone. */
+export function selectBlockMoving(state: DragStore): boolean {
+  return state.blockMove !== null;
+}
+
 /** The single drag store instance the drag context, grid, and strip read. */
 export const dragStore = createDragStore();

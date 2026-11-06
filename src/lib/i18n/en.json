@@ -191,6 +191,8 @@
   "feedback.moveHint": "Drop on a highlighted slot or the remove zone",
   "blockMove.removeZone": "Drag here to remove",
   "blockMove.swap": "Swap with",
+  "dropZone.remove": "Drop here to remove from the plan",
+  "dropZone.removeOver": "Release to remove",
   "dropZone.move": "Move to section {section}",
   "dropZone.swap": "Swap for section {section}",
   "dropZone.addAnnounce": "Drop on the timetable to add",
