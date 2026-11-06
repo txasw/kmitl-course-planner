@@ -12,8 +12,16 @@
 
 import type { DayOfWeek, Meeting } from '../domain/types';
 
-export type SuggestPreference =
-  'balanced' | 'morning' | 'afternoon' | 'fewerDays' | 'compact';
+/** The preferences in the order the suggestion dialog offers them. */
+export const SUGGEST_PREFERENCES = [
+  'balanced',
+  'morning',
+  'afternoon',
+  'fewerDays',
+  'compact',
+] as const;
+
+export type SuggestPreference = (typeof SUGGEST_PREFERENCES)[number];
 
 /** Noon as minutes since midnight, the boundary between morning and afternoon. */
 export const NOON_MIN = 12 * 60;

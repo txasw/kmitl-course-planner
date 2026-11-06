@@ -11,6 +11,7 @@ import {
 import type { PlanEntry } from '@/lib/domain/plan';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { planStore } from '@/features/plans/planStore';
+import { uiStore } from '@/features/shell/uiStore';
 import { expectNoSeriousA11yViolations } from '../../../tests/support/axe';
 import {
   resetPlanStore,
@@ -32,6 +33,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
   act(() => {
     resetPlanStore();
+    uiStore.getState().setSuggestObjective('coverAll');
+    uiStore.getState().setSuggestPreference('balanced');
   });
 });
 
@@ -251,4 +254,21 @@ describe('SuggestDialog', () => {
       await expectNoSeriousA11yViolations(dialog);
     },
   );
+
+  it('opens on the options last used and remembers a new one', async () => {
+    act(() => {
+      uiStore.getState().setSuggestObjective('maxCredits');
+      uiStore.getState().setSuggestPreference('fewerDays');
+    });
+    renderDialog();
+    await findCards();
+    expect(
+      screen.getByRole('button', { name: 'เรียนน้อยวัน', pressed: true }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'หน่วยกิตมากที่สุด', pressed: true }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'เน้นเช้า' }));
+    expect(uiStore.getState().suggestPreference).toBe('morning');
+  });
 });

@@ -9,6 +9,8 @@ import type { StorageAdapter } from './repo';
 import { PREFS_KEY } from './keys';
 import { displayOptionsSchema } from '../planner/displayOptions';
 import { curriculumProfileSchema } from '../catalog/curriculumProfile';
+import { SUGGEST_OBJECTIVES } from '../planner/suggestRank';
+import { SUGGEST_PREFERENCES } from '../planner/suggestScore';
 
 // language mirrors the i18n Locale union and viewMode mirrors the ui store's view
 // mode; both are declared inline so the storage layer does not depend on the i18n
@@ -28,6 +30,11 @@ export const prefsSchema = z.object({
   // no longer validates is dropped alone, so it never costs the language or the
   // other preferences; the filter then asks for the curriculum again.
   curriculumProfile: curriculumProfileSchema.optional().catch(undefined),
+  // The last suggestion objective and preference. A value this build does not know,
+  // from a newer build, reads as absent rather than failing the whole blob, so the
+  // language and the other preferences survive and the dialog opens on its default.
+  suggestObjective: z.enum(SUGGEST_OBJECTIVES).optional().catch(undefined),
+  suggestPreference: z.enum(SUGGEST_PREFERENCES).optional().catch(undefined),
 });
 export type Prefs = z.infer<typeof prefsSchema>;
 

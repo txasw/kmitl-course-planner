@@ -3,7 +3,8 @@
 // plan's entries as fixed constraints, and lists up to three as cards. The student picks
 // an objective and a preference; every change searches again. Applying a card creates a
 // new plan for the term, so the active plan is never rewritten, and the undo toast can
-// take it back. It is a centered dialog at the full width on the medium and wide tiers,
+// take it back. The objective and the preference last used persist with the prefs, so
+// the dialog opens on them. It is a centered dialog at the full width on the medium and wide tiers,
 // where the cards sit side by side, and the bottom sheet on compact, where they page.
 //
 // The cards share one frame and one grid orientation. Thumbnails run time downward on
@@ -13,6 +14,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { CalendarX2, ChevronLeft } from 'lucide-react';
+import { useStore } from 'zustand';
 import { BottomSheet } from '@/components/BottomSheet';
 import { EmptyState } from '@/components/EmptyState';
 import { ModalDialog } from '@/components/ModalDialog';
@@ -28,12 +30,19 @@ import {
   suggestEmptyReason,
   type SuggestEmptyReason,
 } from '@/lib/planner/suggestEmpty';
-import type { SuggestObjective } from '@/lib/planner/suggestRank';
-import type { SuggestPreference } from '@/lib/planner/suggestScore';
+import {
+  SUGGEST_OBJECTIVES,
+  type SuggestObjective,
+} from '@/lib/planner/suggestRank';
+import {
+  SUGGEST_PREFERENCES,
+  type SuggestPreference,
+} from '@/lib/planner/suggestScore';
 import { isDockedTier } from '@/lib/ui/breakpoints';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
 import { toastStore } from '@/features/shell/toastStore';
+import { uiStore } from '@/features/shell/uiStore';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { SuggestionCard } from './SuggestionCard';
@@ -45,16 +54,6 @@ import {
 } from './SuggestionResults';
 import { useSuggestions } from './useSuggestions';
 import { TARGET_SIZE } from '@/lib/ui/target';
-
-const OBJECTIVES: readonly SuggestObjective[] = ['coverAll', 'maxCredits'];
-
-const PREFERENCES: readonly SuggestPreference[] = [
-  'balanced',
-  'morning',
-  'afternoon',
-  'fewerDays',
-  'compact',
-];
 
 const PREFERENCE_LABEL: Record<SuggestPreference, TranslationKey> = {
   balanced: 'suggest.pref.balanced',
@@ -101,7 +100,7 @@ function PreferenceChips({
         aria-labelledby={labelId}
         className="flex flex-wrap gap-1.5"
       >
-        {PREFERENCES.map((preference) => {
+        {SUGGEST_PREFERENCES.map((preference) => {
           const active = preference === value;
           return (
             <button
@@ -162,8 +161,8 @@ export function SuggestDialog({
 }: SuggestDialogProps) {
   const { t, language } = useTranslation();
   const tier = useLayoutTier();
-  const [objective, setObjective] = useState<SuggestObjective>('coverAll');
-  const [preference, setPreference] = useState<SuggestPreference>('balanced');
+  const objective = useStore(uiStore, (state) => state.suggestObjective);
+  const preference = useStore(uiStore, (state) => state.suggestPreference);
   const [page, setPage] = useState(0);
   const [fullIndex, setFullIndex] = useState<number | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -215,11 +214,11 @@ export function SuggestDialog({
 
   // A new objective or preference ranks the cards again, so the pager returns to the best.
   const handleObjective = (value: SuggestObjective) => {
-    setObjective(value);
+    uiStore.getState().setSuggestObjective(value);
     setPage(0);
   };
   const handlePreference = (value: SuggestPreference) => {
-    setPreference(value);
+    uiStore.getState().setSuggestPreference(value);
     setPage(0);
   };
   const handleBack = () => {
@@ -288,7 +287,7 @@ export function SuggestDialog({
         <SegmentedControl
           ariaLabel={t('suggest.objective')}
           value={objective}
-          options={OBJECTIVES.map((value) => ({
+          options={SUGGEST_OBJECTIVES.map((value) => ({
             value,
             label: t(`suggest.objective.${value}`),
           }))}

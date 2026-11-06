@@ -162,4 +162,36 @@ describe('prefs repository', () => {
     expect(loaded?.language).toBe('en');
     expect(loaded?.curriculumProfile).toBeUndefined();
   });
+
+  it('round trips the suggestion options', async () => {
+    const adapter = fakeAdapter();
+    const repo = createPrefsRepository(adapter);
+    const withSuggest: Prefs = {
+      schemaVersion: 1,
+      language: 'th',
+      suggestObjective: 'maxCredits',
+      suggestPreference: 'compact',
+    };
+    await repo.save(withSuggest);
+    expect(await repo.load()).toEqual(withSuggest);
+  });
+
+  it('reads an unknown suggestion option as absent and keeps the rest', async () => {
+    // A newer build may add a preference; this build drops only that field rather than
+    // the whole blob, so the language survives.
+    const repo = createPrefsRepository(
+      fakeAdapter({
+        [PREFS_KEY]: {
+          schemaVersion: 1,
+          language: 'en',
+          suggestObjective: 'maxCredits',
+          suggestPreference: 'weekendsFree',
+        },
+      }),
+    );
+    const loaded = await repo.load();
+    expect(loaded?.language).toBe('en');
+    expect(loaded?.suggestObjective).toBe('maxCredits');
+    expect(loaded?.suggestPreference).toBeUndefined();
+  });
 });

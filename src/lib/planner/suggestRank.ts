@@ -7,8 +7,11 @@
 import type { Course, Section } from '../domain/types';
 import type { SuggestChoice } from './suggestCandidates';
 
+/** The objectives in the order the suggestion dialog offers them. */
+export const SUGGEST_OBJECTIVES = ['coverAll', 'maxCredits'] as const;
+
 /** coverAll ranks by curriculum courses, then credits; maxCredits the reverse. */
-export type SuggestObjective = 'coverAll' | 'maxCredits';
+export type SuggestObjective = (typeof SUGGEST_OBJECTIVES)[number];
 
 /** The objective as a pair compared left to right, higher is better. */
 export type ObjectiveValue = [number, number];

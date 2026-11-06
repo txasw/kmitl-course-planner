@@ -13,6 +13,8 @@ import {
 } from '@/lib/planner/displayOptions';
 import { DEFAULT_TEMPLATE } from '@/lib/planner/exportTemplates';
 import type { CurriculumProfile } from '@/lib/catalog/curriculumProfile';
+import type { SuggestObjective } from '@/lib/planner/suggestRank';
+import type { SuggestPreference } from '@/lib/planner/suggestScore';
 
 /** The timetable presentation mode: full editing, or the inert preview poster. */
 export type ViewMode = 'edit' | 'preview';
@@ -64,6 +66,10 @@ export interface UiState {
   selectedTemplate: string;
   /** The student's curriculum for the open to my curriculum filter, or null until chosen. */
   curriculumProfile: CurriculumProfile | null;
+  /** The objective the suggestion dialog last searched with, persisted with the prefs. */
+  suggestObjective: SuggestObjective;
+  /** The preference the suggestion dialog last searched with, persisted with the prefs. */
+  suggestPreference: SuggestPreference;
   /**
    * Count of error and warning issues in the latest data quality report, or null
    * when there is no report. The launcher shows a badge from it. It stays null in
@@ -92,6 +98,8 @@ export interface UiState {
   setDisplayOption: (key: keyof DisplayOptions, value: boolean) => void;
   setSelectedTemplate: (slug: string) => void;
   setCurriculumProfile: (profile: CurriculumProfile | null) => void;
+  setSuggestObjective: (objective: SuggestObjective) => void;
+  setSuggestPreference: (preference: SuggestPreference) => void;
   setDiagnosticsIssueCount: (count: number | null) => void;
   setCrashPanel: (crash: boolean) => void;
 }
@@ -112,6 +120,8 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     displayOptions: DEFAULT_DISPLAY_OPTIONS,
     selectedTemplate: DEFAULT_TEMPLATE.slug,
     curriculumProfile: null,
+    suggestObjective: 'coverAll',
+    suggestPreference: 'balanced',
     diagnosticsIssueCount: null,
     crashPanel: false,
     open: () => {
@@ -168,6 +178,12 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     },
     setCurriculumProfile: (curriculumProfile) => {
       set({ curriculumProfile });
+    },
+    setSuggestObjective: (suggestObjective) => {
+      set({ suggestObjective });
+    },
+    setSuggestPreference: (suggestPreference) => {
+      set({ suggestPreference });
     },
     setDiagnosticsIssueCount: (count) => {
       set({ diagnosticsIssueCount: count });
