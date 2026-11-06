@@ -1,27 +1,85 @@
 import {
   test,
   expect,
+  catalogAtRest,
   expandCourse,
   gotoSelector,
   openPlanner,
   pickOption,
   waitForResultsInput,
 } from './support/fixtures';
-import { LONG_PRESS_MS, longPress, swipe, touchDrag } from './support/touch';
+import { denseSubjectId } from './support/denseCatalog';
+import {
+  LONG_PRESS_MS,
+  longPress,
+  swipe,
+  touchDrag,
+  type Point,
+} from './support/touch';
 import type { Locator, Page } from '@playwright/test';
 
 // A responsive smoke for the phone and tablet projects. It asserts what holds at both
 // sizes: the host lays out at the device width, the planner opens and closes with focus
 // returned to the launcher, the header keeps close and preview in view and working at
 // the device width and at 320 px, the touch helper delivers real touch events, the edit
-// grid keeps its derived minimum width, the catalog sheet is modal over the grid and
-// closes alone on Escape, a tapped block opens its details as a bottom sheet, and the
-// controls a finger reaches are 44 px targets, since both projects are coarse pointers.
-// The small screen layout work adds its own assertions on top.
+// grid keeps its derived minimum width, a tapped block opens its details as a bottom
+// sheet, and the controls a finger reaches are 44 px targets, since both projects are
+// coarse pointers. The tablet holds the catalog in a sheet that is modal over the grid
+// and closes alone on Escape. The phone, below 640 px, shows one pane at a time behind a
+// bottom nav, so the catalog and the timetable each take the whole body in turn.
 
 const LAUNCHER = 'เปิด Course Planner for KMITL';
 // A grid block carries a data-teach-table-id; the catalog rows do not.
 const GRID_BLOCK = '[data-teach-table-id]';
+const OVERLAY = 'ตัววางแผนตารางเรียน สจล.';
+// The reserved subject id the mock server answers with the synthetic dense catalog,
+// hundreds of collapsed one section courses, so the list is long enough to scroll.
+const DENSE_SUBJECT_ID = '90000500';
+
+/** Whether the page lays out at the phone tier, below 640 px, behind a bottom nav. */
+function isPhone(page: Page): boolean {
+  return (page.viewportSize()?.width ?? 0) < 640;
+}
+
+function bottomNav(page: Page): Locator {
+  return page.getByRole('navigation', { name: 'ส่วนของตัววางแผน' });
+}
+
+/**
+ * Bring the catalog into view, the catalog pane on the phone and the sheet on the
+ * tablet, and return the container that holds the search and the results.
+ */
+async function openCatalog(page: Page): Promise<Locator> {
+  if (isPhone(page)) {
+    await bottomNav(page)
+      .getByRole('button', { name: /^รายวิชา/ })
+      .tap();
+    return page.locator('#kcp-catalog-column');
+  }
+  await page.getByRole('button', { name: /^รายวิชา/ }).click();
+  return page.getByRole('dialog', { name: 'ค้นหารายวิชา' });
+}
+
+/** The control that brings the timetable back from the catalog. */
+function timetableControl(page: Page): Locator {
+  return isPhone(page)
+    ? bottomNav(page).getByRole('button', { name: 'ตารางเรียน' })
+    : page
+        .locator('#kcp-catalog-column')
+        .getByRole('button', { name: 'ปิดรายการรายวิชา' });
+}
+
+/** Search the owner 32 category from the catalog the page has open. */
+async function categorySearch(page: Page, catalog: Locator): Promise<void> {
+  await catalog.getByRole('tab', { name: 'หมวดวิชา', exact: true }).click();
+  await pickOption(page, 'คณะ', '01');
+  await pickOption(page, 'หมวดวิชา', '90592xxx');
+  await catalog.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await expect(catalog.getByText('90592033').first()).toBeVisible({
+    timeout: 15_000,
+  });
+  await waitForResultsInput(page);
+}
 
 interface TouchRecord {
   type: string;
@@ -134,6 +192,8 @@ test('the edit grid keeps its derived minimum and fits where the column allows',
   context,
 }) => {
   const page = await openPlanner(context);
+  // An empty plan opens the phone on the catalog pane.
+  if (isPhone(page)) await timetableControl(page).tap();
   const grid = page.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
   await expect(grid).toBeVisible();
   const scroll = await grid.evaluate((node) => {
@@ -207,11 +267,13 @@ test('a touch drag holds before the finger moves', async ({ context }) => {
 
 test('the catalog sheet holds its search and results and closes alone on Escape', async ({
   context,
-}) => {
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name === 'phone',
+    'the phone shows the catalog as a pane, not a sheet',
+  );
   const page = await openPlanner(context);
-  const overlay = page.getByRole('dialog', {
-    name: 'ตัววางแผนตารางเรียน สจล.',
-  });
+  const overlay = page.getByRole('dialog', { name: OVERLAY });
   const toggle = page.getByRole('button', { name: /^รายวิชา/ });
   await toggle.click();
 
@@ -264,26 +326,15 @@ test('a tapped block opens its details as a sheet with the remove action', async
     await page.evaluate(() => window.matchMedia('(pointer: coarse)').matches),
   ).toBe(true);
 
-  // Below the docked tiers the catalog is a sheet opened from the header.
-  await page.getByRole('button', { name: /^รายวิชา/ }).click();
-  await page.getByRole('tab', { name: 'หมวดวิชา', exact: true }).click();
-  await pickOption(page, 'คณะ', '01');
-  await pickOption(page, 'หมวดวิชา', '90592xxx');
-  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
-  await expect(page.getByText('90592033').first()).toBeVisible({
-    timeout: 15_000,
-  });
+  // Below the docked tiers the catalog is a sheet on the tablet and a pane on the phone.
+  await categorySearch(page, await openCatalog(page));
   // Course cards start collapsed, so the first card opens before its add button exists.
-  await waitForResultsInput(page);
   await expandCourse(page, '90592008');
   await page
     .getByRole('button', { name: /^เพิ่ม/ })
     .first()
     .tap();
-  await page
-    .locator('#kcp-catalog-column')
-    .getByRole('button', { name: 'ปิดรายการรายวิชา' })
-    .tap();
+  await timetableControl(page).tap();
 
   const block = page.locator(GRID_BLOCK).first();
   await expect(block).toBeVisible();
@@ -305,30 +356,24 @@ test('a tapped block opens its details as a sheet with the remove action', async
   ).toHaveCount(0);
 });
 
-test('an add from the open sheet is confirmed once by a toast that leads to the timetable', async ({
+test('an add made over the covered timetable is confirmed once by a toast that leads to it', async ({
   context,
 }) => {
   const page = await openPlanner(context);
-  const toggle = page.getByRole('button', { name: /^รายวิชา/ });
-  await toggle.click();
-  await page.getByRole('tab', { name: 'หมวดวิชา' }).click();
-  await pickOption(page, 'คณะ', '01');
-  await pickOption(page, 'หมวดวิชา', '90592xxx');
-  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
-  // The settled search is spoken by the status announcer beside the sheet.
+  await categorySearch(page, await openCatalog(page));
+  // The settled search is spoken by the status announcer beside the catalog.
   await expect(
     page.getByRole('status').filter({ hasText: 'พบ 3 รายวิชา 4 กลุ่มเรียน' }),
-  ).toHaveCount(1, { timeout: 15_000 });
+  ).toHaveCount(1);
 
-  await waitForResultsInput(page);
   await expandCourse(page, '90592008');
   await page
     .getByRole('button', { name: /^เพิ่ม/ })
     .first()
     .tap();
 
-  // The sheet covers the timetable, so the add is confirmed by the toast alone and the
-  // sheet stays open for the next pick.
+  // The sheet or the catalog pane covers the timetable, so the add is confirmed by the
+  // toast alone and the catalog stays in view for the next pick.
   const column = page.locator('#kcp-catalog-column');
   await expect(
     page.getByText(/^เพิ่ม 90592008 กลุ่มเรียน \d+ แล้ว$/),
@@ -340,7 +385,13 @@ test('an add from the open sheet is confirmed once by a toast that leads to the 
 
   await page.getByRole('button', { name: 'ดูตาราง' }).tap();
   await expect(column).toHaveAttribute('aria-hidden', 'true');
-  await expect(toggle).toBeFocused();
+  // Focus lands on the control that returns to the catalog: the header toggle on the
+  // tablet, the timetable nav item on the phone.
+  await expect(
+    isPhone(page)
+      ? bottomNav(page).getByRole('button', { name: 'ตารางเรียน' })
+      : page.getByRole('button', { name: /^รายวิชา/ }),
+  ).toBeFocused();
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
 });
 
@@ -363,31 +414,33 @@ async function expectTouchTarget(
 
 test('the controls a finger reaches are 44 px targets', async ({ context }) => {
   const page = await openPlanner(context);
-  const dialog = page.getByRole('dialog', {
-    name: 'ตัววางแผนตารางเรียน สจล.',
-  });
+  const dialog = page.getByRole('dialog', { name: OVERLAY });
   const header = dialog.locator('header');
 
-  // The header: the plan switcher height, the catalog toggle, both mode segments, the
-  // overflow menu and close.
+  // The header: the plan switcher height, the catalog toggle on the tablet, both mode
+  // segments, the overflow menu and close. The phone reaches the catalog from the nav.
   const switcher = header.getByRole('button', { name: 'เลือกตาราง' });
   expect((await switcher.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(
     TOUCH_TARGET,
   );
-  const toggle = header.getByRole('button', { name: /^รายวิชา/ });
-  for (const [control, name] of [
-    [toggle, 'catalog toggle'],
+  const controls: [Locator, string][] = [
     [header.getByRole('button', { name: 'แก้ไข' }), 'edit segment'],
     [header.getByRole('button', { name: 'ดูตัวอย่าง' }), 'preview segment'],
     [header.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }), 'overflow'],
     [header.getByRole('button', { name: 'ปิด', exact: true }), 'close'],
-  ] as const) {
+  ];
+  if (!isPhone(page)) {
+    controls.unshift([
+      header.getByRole('button', { name: /^รายวิชา/ }),
+      'catalog toggle',
+    ]);
+  }
+  for (const [control, name] of controls) {
     await expectTouchTarget(control, name);
   }
 
-  // The search form in the catalog sheet: a tab and the submit.
-  await toggle.click();
-  const sheet = page.getByRole('dialog', { name: 'ค้นหารายวิชา' });
+  // The search form in the catalog: a tab and the submit.
+  const sheet = await openCatalog(page);
   const tab = sheet.getByRole('tab', { name: 'หมวดวิชา' });
   await expectTouchTarget(tab, 'search tab');
   await tab.click();
@@ -426,11 +479,9 @@ test('the controls a finger reaches are 44 px targets', async ({ context }) => {
 
   // The placed block carries no remove control on a coarse pointer; its tap opens the
   // detail sheet, which holds the remove action.
-  const sheetClose = page
-    .locator('#kcp-catalog-column')
-    .getByRole('button', { name: 'ปิดรายการรายวิชา' });
-  await expectTouchTarget(sheetClose, 'catalog sheet close');
-  await sheetClose.tap();
+  const back = timetableControl(page);
+  await expectTouchTarget(back, 'timetable control');
+  await back.tap();
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
   await expect(
     dialog.getByRole('button', { name: 'นำออก', exact: true }),
@@ -449,4 +500,145 @@ test('the controls a finger reaches are 44 px targets', async ({ context }) => {
     page.getByRole('button', { name: 'สร้างตาราง' }),
     'plan create',
   );
+});
+
+/** Assert the overlay lays out inside the viewport width, with nothing scrolling it sideways. */
+async function expectNoHorizontalOverflow(page: Page): Promise<void> {
+  const overflow = await page
+    .getByRole('dialog', { name: OVERLAY })
+    .evaluate((node) => ({
+      scrollWidth: node.scrollWidth,
+      clientWidth: node.clientWidth,
+      right: node.getBoundingClientRect().right,
+    }));
+  expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth);
+  expect(overflow.right).toBeLessThanOrEqual(page.viewportSize()?.width ?? 0);
+}
+
+test.describe('the phone layout', () => {
+  test.beforeEach(({}, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'phone',
+      'the panes and the bottom nav show below 640 px only',
+    );
+  });
+
+  test('shows one pane at a time behind a bottom nav with no horizontal overflow', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    const nav = bottomNav(page);
+    const catalog = nav.getByRole('button', { name: /^รายวิชา/ });
+    const timetable = nav.getByRole('button', { name: 'ตารางเรียน' });
+    const selected = nav.getByRole('button', { name: /^ที่เลือก/ });
+    for (const item of [catalog, timetable, selected]) {
+      expect((await item.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(
+        56,
+      );
+    }
+    // An empty plan opens on the catalog pane, and the header holds no catalog toggle.
+    await expect(catalog).toHaveAttribute('aria-current', 'page');
+    await expect(
+      page.locator('header').getByRole('button', { name: /^รายวิชา/ }),
+    ).toHaveCount(0);
+    const column = page.locator('#kcp-catalog-column');
+    const grid = page.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+    await expect(column.getByRole('tab', { name: 'หมวดวิชา' })).toBeVisible();
+    await expect(grid).toBeHidden();
+    await expectNoHorizontalOverflow(page);
+
+    await timetable.tap();
+    await expect(timetable).toBeFocused();
+    await expect(grid).toBeVisible();
+    await expect(column).toHaveAttribute('aria-hidden', 'true');
+    await expectNoHorizontalOverflow(page);
+
+    await selected.tap();
+    await expect(
+      page.getByRole('heading', { name: 'ยังไม่ได้เลือกรายวิชา' }),
+    ).toBeVisible();
+
+    await page.setViewportSize({ width: 320, height: 640 });
+    await expectNoHorizontalOverflow(page);
+
+    // Preview is the poster, with no nav.
+    await page.getByRole('button', { name: 'ดูตัวอย่าง' }).click();
+    await expect(nav).toHaveCount(0);
+  });
+
+  test('keeps the catalog scroll across a pane switch and starts no drag from a row', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    const column = page.locator('#kcp-catalog-column');
+    await column.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
+    await column
+      .getByRole('textbox', { name: 'รหัสวิชา' })
+      .fill(DENSE_SUBJECT_ID);
+    await column.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+    await expect(
+      column.getByText(denseSubjectId(0), { exact: true }).first(),
+    ).toBeVisible({ timeout: 20_000 });
+    await waitForResultsInput(page);
+
+    const scroller = page.locator('[data-catalog-scroller]');
+    await scroller.evaluate((node) => {
+      node.scrollTop = 900;
+    });
+    await catalogAtRest(page);
+    const offset = await scroller.evaluate((node) => node.scrollTop);
+    expect(offset).toBeGreaterThan(0);
+
+    const nav = bottomNav(page);
+    await nav.getByRole('button', { name: 'ตารางเรียน' }).tap();
+    await expect(column).toHaveAttribute('aria-hidden', 'true');
+    await nav.getByRole('button', { name: /^รายวิชา/ }).tap();
+    await expect(column).not.toHaveAttribute('aria-hidden', 'true');
+    expect(await scroller.evaluate((node) => node.scrollTop)).toBe(offset);
+
+    // The timetable is in another pane, so a long press on a row starts no drag. The
+    // hidden drop zone sits under the row, so a drag that started would commit on lift:
+    // the plan staying empty is what proves no drag ran, since the drag card is gone
+    // after the lift either way.
+    const toggle = column.locator('[data-course-toggle]').first();
+    await toggle.tap();
+    const row = column.locator('[data-drag-surface="section"]').first();
+    await expect(row).toBeVisible();
+    const box = await row.boundingBox();
+    if (box === null) throw new Error('expected a laid out row');
+    const centre: Point = {
+      x: box.x + box.width / 2,
+      y: box.y + box.height / 2,
+    };
+    await longPress(page, centre);
+    await expect(page.locator('[data-drag-card]')).toHaveCount(0);
+    await expect(page.locator(GRID_BLOCK)).toHaveCount(0);
+    await expect(
+      nav.getByRole('button', { name: 'ที่เลือก', exact: true }),
+    ).toBeVisible();
+  });
+
+  test('carries the result and selected counts in the nav item names', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    await categorySearch(page, page.locator('#kcp-catalog-column'));
+    const nav = bottomNav(page);
+    await expect(
+      nav.getByRole('button', { name: 'รายวิชา 3', exact: true }),
+    ).toHaveText(/3/);
+
+    await expandCourse(page, '90592008');
+    await page
+      .getByRole('button', { name: /^เพิ่ม/ })
+      .first()
+      .tap();
+    await expect(
+      nav.getByRole('button', { name: 'ที่เลือก 1', exact: true }),
+    ).toBeVisible();
+    // The add never switches panes.
+    await expect(
+      nav.getByRole('button', { name: 'รายวิชา 3', exact: true }),
+    ).toHaveAttribute('aria-current', 'page');
+  });
 });
