@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { createTranslator } from '@/lib/i18n/t';
 import {
   examWindowTexts,
+  formatExamDate,
   formatExamRange,
+  formatExamTimes,
   formatLocalDateTime,
 } from './examText';
 
@@ -41,6 +43,34 @@ describe('formatExamRange', () => {
 
   it('falls back to the raw strings for a malformed value', () => {
     expect(formatExamRange({ start: 'x', end: 'y' }, t)).toBe('x y');
+  });
+});
+
+describe('formatExamDate', () => {
+  it('reads a calendar day in the Buddhist year with a localized month', () => {
+    const day = { yearCE: 2026, month: 12, day: 17 };
+    expect(formatExamDate(day, createTranslator('th'))).toBe('17 ธ.ค. 2569');
+    expect(formatExamDate(day, t)).toBe('17 Dec 2569');
+  });
+});
+
+describe('formatExamTimes', () => {
+  it('shows only the clock times when the window ends on its start day', () => {
+    expect(
+      formatExamTimes(
+        { start: '2026-12-17 09:00:00', end: '2026-12-17 12:00:00' },
+        t,
+      ),
+    ).toBe('09:00-12:00');
+  });
+
+  it('keeps the end date when the window runs into another day', () => {
+    expect(
+      formatExamTimes(
+        { start: '2026-12-17 21:00:00', end: '2026-12-18 01:00:00' },
+        t,
+      ),
+    ).toBe('17 Dec 2569 21:00 18 Dec 2569 01:00');
   });
 });
 
