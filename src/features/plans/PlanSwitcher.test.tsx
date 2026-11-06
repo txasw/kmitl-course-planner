@@ -141,6 +141,22 @@ describe('PlanSwitcher', () => {
     expect(plans[0]?.semester).toBe('2');
   });
 
+  it('defaults a new plan to the shared term whichever tab is active', () => {
+    act(() => {
+      searchStore.getState().seedTerm({ year: '2569', semester: '1' });
+      searchStore.getState().patchTerm({ semester: '3' });
+      searchStore.getState().setActiveTab('by_subject_owner_id');
+    });
+    render(<PlanSwitcher />);
+    openMenu();
+    fireEvent.click(screen.getByRole('button', { name: 'สร้างตาราง' }));
+    expect(screen.getByRole('textbox')).toHaveValue('ตาราง 3/2569');
+    fireEvent.click(screen.getByRole('button', { name: 'บันทึก' }));
+    const plans = planStore.getState().plans;
+    expect(plans[0]?.year).toBe('2569');
+    expect(plans[0]?.semester).toBe('3');
+  });
+
   it('draws the plan name field boundary with the form control token', () => {
     render(<PlanSwitcher />);
     openMenu();
