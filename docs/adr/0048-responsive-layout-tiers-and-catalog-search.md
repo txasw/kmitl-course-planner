@@ -470,3 +470,21 @@ bottom sheet, as the block details already do under ADR-0049, and the search tak
 
 The block details sheet of ADR-0049 is unchanged. The live region inventory is unchanged:
 neither the sheets nor the pinned submit add a live node.
+
+## Amendment, 2026-11-07: the entry toast live region
+
+The entry toast and launcher attention record, ADR-0063, adds a prompt beside the launcher on a
+visit. Its polite region joins the audited inventory as the one node anchored to the launcher, and
+`src/features/shell/liveRegions.test.tsx` lists `features/onboarding/EntryToast.tsx` with it.
+
+- `EntryToast` owns the entry prompt and nothing else. The region is mounted empty from the start
+  and carries the panel language in `lang`, since it sits outside the overlay root, so the prompt is
+  announced once when its text arrives and in the voice of the language it is written in. No
+  outcome another region owns is read through it.
+- It never coexists with the panel toasts of the `Toaster` region. It shows only while the panel is
+  closed and hides for good when the panel opens, and the `Toaster` clears its panel toasts when the
+  panel closes. A debug toast shown while the panel is already closed sits at the bottom centre,
+  below the entry toast, which rests 60 px above the launcher's bottom offset on the right.
+- The prompt is a separate surface from the one toast pattern of brief section 8.2, a deviation
+  that ADR-0063 records and that sets no precedent: action feedback still goes through the toast
+  store and the `Toaster` region.
