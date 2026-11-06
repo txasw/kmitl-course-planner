@@ -130,6 +130,17 @@ outcome in preview, and the ADR-0048 amendment records that preview carries no a
 `StatusAnnouncer` now mounts in preview as well. There it speaks only the run status, since
 preview has no search.
 
+As built, one function words the status for the item and for the announcement, so the two never
+differ. The time is the plan's data date, the oldest verification the poster states, read as a
+clock time for a check today and as a date and time otherwise, so the item reads correctly after
+a reload before any run of the session; a plan never verified reads ยังไม่ได้ตรวจสอบ. A run that
+found changes adds its changed and missing counts after the time. Only a run the student asked
+for is announced, as only a user search is; a run records whether it was manual. Until the
+`UpdatesIndicator` lands in the tab row, the status item also carries the banner's details action
+while any review is open, so the dialog stays one action away in edit. The stats bar ends with
+the status at every tier and shows the full text on a phone as well, wrapping to a second line;
+an icon and time only form there is left for the compact stats line.
+
 ## Alternatives considered
 
 A sync action that applies upstream data only on approval was rejected. It reverses the core
