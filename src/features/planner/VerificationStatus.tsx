@@ -5,9 +5,9 @@
 // source queries, so the unverified state of brief section 6.6 step 6 and its retry stay in
 // reach in both modes. A retry is not a plan edit, so it belongs in preview too. While the
 // plan has anything to review, a details action opens the updates dialog, switching to edit
-// first, since the dialog's acknowledge and remove actions never enter the preview DOM. The
-// item is not a live region; a manual check settles through the status announcer
-// (ADR-0060).
+// first, since the dialog's acknowledge and remove actions never enter the preview DOM. A
+// check in edit that finds something new opens the dialog directly. The item is not a live
+// region; a manual check settles through the status announcer (ADR-0060).
 
 import { useStore } from 'zustand';
 import {
@@ -24,8 +24,8 @@ import { hasUpdateItems } from '@/lib/planner/updateReview';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { useActivePlan } from '@/features/plans/planStore';
-import { revalidatePlanNow } from '@/features/plans/revalidationController';
 import { revalidationStore } from '@/features/plans/revalidationStore';
+import { checkPlanNow } from '@/features/plans/updatesNotice';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
@@ -82,11 +82,7 @@ export function VerificationStatus() {
   const checking = status.tone === 'checking';
 
   const handleCheck = (): void => {
-    void revalidatePlanNow(
-      activePlan,
-      { send, now: () => new Date().toISOString() },
-      true,
-    );
+    void checkPlanNow(activePlan, send);
   };
   const handleReview = (): void => {
     uiStore.getState().setViewMode('edit');

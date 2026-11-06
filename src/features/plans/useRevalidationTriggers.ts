@@ -1,8 +1,8 @@
 // Wires the automatic revalidation triggers: opening the overlay and switching the
 // active plan each revalidate the active plan, throttled to once per plan per ten
-// minutes. A manual refresh runs from the banner and bypasses the throttle. A run that
-// leaves new review items asks for the updates dialog, which opens at the next idle
-// moment (ADR-0060), except the check after a first add created the plan, which runs
+// minutes. A manual check runs from the verification status and bypasses the throttle. A
+// run that leaves new review items asks for the updates dialog, which opens at the next
+// idle moment (ADR-0060), except the check after a first add created the plan, which runs
 // but stays quiet. The hook mounts once at the app root and reads the injected send so it
 // stays off the search store's live catalog.
 

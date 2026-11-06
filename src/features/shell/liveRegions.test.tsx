@@ -15,7 +15,7 @@ import { uiStore } from './uiStore';
 // existing owner rather than a new region that would read an outcome twice. A change to
 // this table is a change to the record.
 const INVENTORY: Readonly<Record<string, number>> = {
-  // Settled search outcomes for user submits.
+  // Settled search outcomes for user submits, and the settle of a manual plan check.
   'features/shell/StatusAnnouncer.tsx': 1,
   // Placement outcomes and the added line while the timetable is in view.
   'features/planner/FeedbackStrip.tsx': 1,
@@ -28,8 +28,6 @@ const INVENTORY: Readonly<Record<string, number>> = {
   // Error alerts of the recovery and quarantine cards.
   'components/PanelRecoveryCard.tsx': 1,
   'features/plans/QuarantineCard.tsx': 1,
-  // The revalidation summary, until a later record replaces the banner.
-  'features/planner/RevalidationBanner.tsx': 1,
 };
 
 // The drag library mounts one region of its own inside the drag context, which no source
