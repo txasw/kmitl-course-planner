@@ -13,17 +13,21 @@ afterEach(() => {
 });
 
 // The overlay shape: a trapped panel that is also the portal root, with the sheet opened
-// from inside a live region, the way a strip or banner could open one.
+// from inside a live region, the way a strip or banner could open one. It can also mount
+// with the sheet already shown, the way the panel opens straight at a sheet, so the sheet
+// renders before its portal root exists.
 function Panel({
   onOverlayEscape,
   footer,
+  initiallyOpen = false,
 }: {
   onOverlayEscape: () => void;
   footer?: boolean;
+  initiallyOpen?: boolean;
 }) {
   const [node, setNode] = useState<HTMLDivElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initiallyOpen);
   useFocusTrap(panelRef, true, onOverlayEscape);
   return (
     <div
@@ -84,6 +88,20 @@ describe('BottomSheet', () => {
   it('moves focus to the heading on open', () => {
     openSheet();
     expect(screen.getByRole('heading', { name: 'Sheet title' })).toHaveFocus();
+  });
+
+  it('takes focus and Escape when it mounts before its portal root', () => {
+    const onOverlayEscape = vi.fn();
+    render(<Panel onOverlayEscape={onOverlayEscape} initiallyOpen />);
+    expect(screen.getByRole('heading', { name: 'Sheet title' })).toHaveFocus();
+    screen.getByRole('button', { name: 'Body action' }).focus();
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Tab' });
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Close' }), {
+      key: 'Escape',
+    });
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(onOverlayEscape).not.toHaveBeenCalled();
   });
 
   it('closes on Escape while the overlay stays open', () => {

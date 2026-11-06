@@ -66,11 +66,14 @@ export function ModalDialog({
   const headingRef = useRef<HTMLHeadingElement>(null);
   const titleId = useId();
 
-  useFocusTrap(dialogRef, true);
-  useEscapeLayer(dialogRef, onClose);
+  // The layer mounts its node only once the portal root exists, which is a commit later
+  // when the panel opens with the layer already shown, so focus and Escape wait for it.
+  const portalReady = portalRoot !== null;
+  useFocusTrap(dialogRef, portalReady);
+  useEscapeLayer(dialogRef, onClose, portalReady);
   useEffect(() => {
     (initialFocusRef?.current ?? headingRef.current)?.focus();
-  }, [initialFocusRef]);
+  }, [initialFocusRef, portalReady]);
 
   if (portalRoot === null) {
     return null;

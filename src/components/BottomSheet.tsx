@@ -67,13 +67,16 @@ export function BottomSheet({
   const titleId = useId();
   const reducedMotion = usePrefersReducedMotion();
 
-  useFocusTrap(sheetRef, true);
-  useEscapeLayer(sheetRef, onClose);
+  // The layer mounts its node only once the portal root exists, which is a commit later
+  // when the panel opens with the layer already shown, so focus and Escape wait for it.
+  const portalReady = portalRoot !== null;
+  useFocusTrap(sheetRef, portalReady);
+  useEscapeLayer(sheetRef, onClose, portalReady);
   // The trap focuses the sheet itself; the heading is the clearer landing point because
   // it is read first and sits above the content.
   useEffect(() => {
     (initialFocusRef?.current ?? headingRef.current)?.focus();
-  }, [initialFocusRef]);
+  }, [initialFocusRef, portalReady]);
 
   const swipe = useSwipeGesture({
     axis: 'y',
