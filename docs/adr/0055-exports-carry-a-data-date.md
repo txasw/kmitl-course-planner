@@ -57,6 +57,18 @@ each count in a plain sentence. An empty plan has no data line.
 The text export keeps its short missing parenthetical, since a chat message has no footer to carry
 a separate note and the marker sits on the line it describes.
 
+Before the user shares, a `PreShareNotice` follows the preview toolbar, outside the capture node,
+whenever the plan holds an entry whose latest check found a change not yet acknowledged or found it
+no longer listed. It is a slim row on the quiet `--kcp-warn-soft` fill that states the count, มี
+{count} รายการที่ข้อมูลเปลี่ยนหรือไม่พบในระบบ ตรวจก่อนแชร์, with one action, ดูรายการ. The action
+switches the panel to edit mode and then opens the revalidation detail sheet, whose open state the
+revalidation store holds so the notice can request it. The review therefore happens in edit mode,
+where the acknowledge and remove actions live, and no mutating control enters the preview DOM, as
+brief section 6.4 requires. When the latest run lists no change, as after an offline check or a
+partial one whose changed entries sat in a failed group, the action switches to edit only, since the
+edit mode badges are then the review surface. The notice never blocks an export: the sharing actions
+stay available beside it.
+
 ## Alternatives considered
 
 A dashed border on missing blocks in the poster was rejected because the owner asked for a clean
@@ -65,6 +77,11 @@ rejected because it breaks the rule that preview equals export, so the user coul
 they share. Removing all honesty was rejected because a shared image of a missing section would
 then carry nothing to judge it by. Blocking the export until every change is acknowledged was
 rejected as hostile at the moment of sharing.
+
+Opening the detail sheet over preview was rejected because a review surface that later grows
+acknowledge or remove actions would put a mutating control in the preview DOM. A read only copy of
+the sheet for preview was rejected because it duplicates the review surface for no gain, since the
+user who reviews a change usually wants to act on it.
 
 Using the newest `lastVerifiedAt` as the data date was rejected because a single fresh entry would
 then vouch for sections checked days earlier. Treating any entry without a `lastVerifiedAt` as
