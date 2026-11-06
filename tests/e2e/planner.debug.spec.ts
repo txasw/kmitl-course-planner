@@ -6,6 +6,7 @@ import {
   pickOption,
   waitForResultsInput,
 } from './support/fixtures';
+import { denseSubjectId } from './support/denseCatalog';
 import type { Page } from '@playwright/test';
 
 // A grid block carries a data-teach-table-id; the catalog rows do not, so this
@@ -15,9 +16,9 @@ const GRID_BLOCK = '[data-teach-table-id]';
 const GRID_NAME = 'ตารางเรียนรายสัปดาห์';
 
 // Run the owner 32 category search that the catalog specs use, so the catalog
-// renders the deduped courses with at least one open, addable section, then open the
-// card of 90592008, the first course, whose section 901 is open.
-async function categorySearch(page: Page): Promise<void> {
+// renders the deduped courses, every card collapsed, with at least one open, addable
+// section.
+async function collapsedCategorySearch(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'หมวดวิชา' }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
@@ -26,6 +27,12 @@ async function categorySearch(page: Page): Promise<void> {
     timeout: 15_000,
   });
   await waitForResultsInput(page);
+}
+
+// The category search with the card of 90592008, the first course, opened, so its
+// section 901, which is open, can be added from its row.
+async function categorySearch(page: Page): Promise<void> {
+  await collapsedCategorySearch(page);
   await expandCourse(page, '90592008');
 }
 
@@ -307,4 +314,95 @@ test('preview removes the mutating controls and keeps the grid', async ({
   await expect(page.getByRole('button', { name: /^เพิ่ม/ })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /^นำออก/ })).toHaveCount(0);
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
+});
+
+test.describe('course hover preview at 1366x768', () => {
+  test.use({ viewport: { width: 1366, height: 768 } });
+
+  const PREVIEW = '[data-preview]';
+
+  function courseHeader(page: Page, subjectId: string) {
+    return page
+      .getByRole('article')
+      .filter({ hasText: subjectId })
+      .first()
+      .locator('header');
+  }
+
+  test('previews a collapsed course and drags it onto a fit slot', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    await collapsedCategorySearch(page);
+    const header = courseHeader(page, '90592008');
+    const toggle = header.locator('[data-course-toggle]');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+
+    const box = await header.boundingBox();
+    if (box === null) {
+      throw new Error('missing course header');
+    }
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+
+    // Entering alone does not arm the preview; a small deliberate move and a rest do.
+    await page.mouse.move(x, y);
+    await page.waitForTimeout(300);
+    await expect(page.locator(PREVIEW)).toHaveCount(0);
+    await page.mouse.move(x + 6, y, { steps: 2 });
+    await expect(page.locator('[data-preview="fit"]').first()).toBeVisible();
+
+    // A header drag replaces the preview with the real candidates and commits on a fit
+    // slot without opening the card.
+    await page.mouse.down();
+    await page.mouse.move(x + 26, y + 20, { steps: 5 });
+    const slot = page.locator('[data-candidate="valid"]').first();
+    await slot.waitFor();
+    await expect(page.locator(PREVIEW)).toHaveCount(0);
+    const to = await slot.boundingBox();
+    if (to === null) {
+      throw new Error('missing candidate slot');
+    }
+    await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, {
+      steps: 15,
+    });
+    await page.mouse.up();
+
+    await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  test('never previews while the wheel scrolls the list', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    // The dense catalog holds enough collapsed cards for the list to scroll; the
+    // category result fits the column.
+    await page.getByRole('button', { name: 'รหัสวิชา' }).click();
+    await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000500');
+    await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+    await expect(
+      page.getByText(denseSubjectId(0), { exact: true }).first(),
+    ).toBeVisible({ timeout: 20_000 });
+    await waitForResultsInput(page);
+    const box = await courseHeader(page, denseSubjectId(0)).boundingBox();
+    if (box === null) {
+      throw new Error('missing course header');
+    }
+
+    // A still pointer over the list while the wheel moves the cards under it.
+    await page.mouse.move(box.x + box.width / 2, box.y + 4);
+    for (let step = 0; step < 8; step += 1) {
+      await page.mouse.wheel(0, 120);
+      await page.waitForTimeout(60);
+      await expect(page.locator(PREVIEW)).toHaveCount(0);
+    }
+    await page.waitForTimeout(400);
+    await expect(page.locator(PREVIEW)).toHaveCount(0);
+    // The list really moved under the pointer, so the check above is not vacuous.
+    const scrolled = await page
+      .locator('[data-catalog-scroller]')
+      .evaluate((scroller) => scroller.scrollTop);
+    expect(scrolled).toBeGreaterThan(0);
+  });
 });
