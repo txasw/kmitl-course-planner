@@ -6,7 +6,7 @@ import {
 } from '@/lib/catalog/cardDisclosure';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { dragStore } from '@/features/planner/dragStore';
-import { SEARCH_BAR_ID } from '@/features/search/searchIds';
+import { SEARCH_BAR_ID, searchTabId } from '@/features/search/searchIds';
 import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
 import {
@@ -20,7 +20,7 @@ import {
 } from '../../../tests/support/plan-store';
 import { catalogStore } from './catalogStore';
 import { courseToggleId } from './courseFocus';
-import { revealCourse, searchForCourse } from './revealCourse';
+import { revealCourse, revealSearch, searchForCourse } from './revealCourse';
 
 const QUERY: TeachTableQuery = {
   mode: 'by_subject_owner_id',
@@ -57,7 +57,7 @@ afterEach(() => {
   document.body.replaceChildren();
   catalogStore.getState().resetFilter();
   catalogStore.setState({ disclosure: EMPTY_DISCLOSURE });
-  searchStore.setState({ resultQuery: null });
+  searchStore.setState({ resultQuery: null, barQuery: null });
   searchStore.getState().setActiveTab('by_class');
   searchStore.getState().patchSubjectIdForm({ subjectId: '' });
   dragStore.setState({ blockMove: null });
@@ -162,5 +162,45 @@ describe('searchForCourse', () => {
     expect(searchForCourse(control, SUBJECT, 'medium', submit)).toBe(false);
     expect(submit).not.toHaveBeenCalled();
     expect(uiStore.getState().sheetOpen).toBe(false);
+  });
+});
+
+describe('revealSearch', () => {
+  let tab: HTMLButtonElement;
+
+  beforeEach(() => {
+    tab = document.createElement('button');
+    tab.id = searchTabId('by_subject_id');
+    document.body.append(tab);
+    searchStore.getState().setActiveTab('by_subject_id');
+  });
+
+  it('shows the catalog pane below 640 px and focuses the active search tab', () => {
+    uiStore.setState({ mobilePane: 'plan' });
+    revealSearch(control, 'compact');
+    expect(uiStore.getState().mobilePane).toBe('catalog');
+    expect(tab).toHaveFocus();
+  });
+
+  it('opens the sheet on the medium tier', () => {
+    revealSearch(control, 'medium');
+    expect(uiStore.getState().sheetOpen).toBe(true);
+    expect(tab).toHaveFocus();
+  });
+
+  it('focuses the summary bar once a search has run', () => {
+    searchStore.setState({ barQuery: QUERY });
+    uiStore.getState().setCatalogVisible(false);
+    revealSearch(control, 'xl');
+    expect(uiStore.getState().catalogVisible).toBe(true);
+    expect(bar).toHaveFocus();
+  });
+
+  it('does nothing while a drag is in flight', () => {
+    const section = makeSection({ subjectId: SUBJECT });
+    dragStore.getState().startBlockMove(section, [section], null);
+    revealSearch(control, 'medium');
+    expect(uiStore.getState().sheetOpen).toBe(false);
+    expect(control).toHaveFocus();
   });
 });

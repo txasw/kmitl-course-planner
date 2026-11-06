@@ -7,14 +7,15 @@
 // id search for it runs instead, in the active plan's term, and focus lands on the
 // summary bar the search adds. Both are no ops while a drag is in flight, and each
 // reports whether it ran, so the caller clears the notice only when the catalog took
-// over.
+// over. An action that sends the student to look for courses, such as the summary
+// view's empty state, brings the catalog into view at its search the same way.
 
 import { flushSync } from 'react-dom';
 import { catalogQueryKey } from '@/lib/catalog/cardDisclosure';
 import type { LayoutTier } from '@/lib/ui/breakpoints';
 import { activePlanTerm, planStore } from '@/features/plans/planStore';
 import { dragStore, selectDragging } from '@/features/planner/dragStore';
-import { SEARCH_BAR_ID } from '@/features/search/searchIds';
+import { SEARCH_BAR_ID, searchTabId } from '@/features/search/searchIds';
 import { searchStore } from '@/features/search/searchStore';
 import { revealCatalog } from '@/features/shell/catalogVisibility';
 import { commitAndFocus } from '@/features/shell/commitAndFocus';
@@ -77,4 +78,16 @@ export function searchForCourse(
     void submit();
   });
   return true;
+}
+
+/**
+ * Bring the catalog into view at its search and focus the summary bar when a search has
+ * run, or else the active search tab, the first control of the form. A no op while a
+ * drag is in flight, as every catalog reveal is.
+ */
+export function revealSearch(control: Element, tier: LayoutTier): void {
+  const search = searchStore.getState();
+  const focusId =
+    search.barQuery === null ? searchTabId(search.activeTab) : SEARCH_BAR_ID;
+  revealCatalog(control, tier, focusId);
 }
