@@ -32,3 +32,9 @@ class ResizeObserverStub implements ResizeObserver {
   }
 }
 globalThis.ResizeObserver = ResizeObserverStub;
+
+// jsdom does not implement the Web Animations API, which the catalog slide reads to cancel
+// a running slide before it starts the next. No running effects is the honest answer for an
+// element jsdom never animates; a test that exercises the slide stubs animate and
+// getAnimations with its own recording fakes.
+Element.prototype.getAnimations = () => [];

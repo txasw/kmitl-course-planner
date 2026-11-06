@@ -11,7 +11,8 @@ import { useMediaQuery } from './useMediaQuery';
 
 export type PresenceStage = 'closed' | 'entering' | 'open' | 'leaving';
 
-const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+/** The media query every motion path reads to swap motion for an instant change. */
+export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
 export function usePrefersReducedMotion(): boolean {
   return useMediaQuery(REDUCED_MOTION_QUERY);
