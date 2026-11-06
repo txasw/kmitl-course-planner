@@ -46,6 +46,7 @@ import type { PlacedSection } from './placedSection';
 import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 import { useDensityFit } from './useDensityFit';
 import { PRESSED_CLASS } from './useTouchPress';
+import { meetingOrder } from './blockFocus';
 
 interface EventBlockProps {
   section: PlacedSection;
@@ -222,6 +223,7 @@ function EventBlockComponent({
       <div
         ref={dragRef}
         data-teach-table-id={section.teachTableId}
+        data-block-order={interactive ? meetingOrder(meeting) : undefined}
         data-verify={badge ?? undefined}
         aria-label={label}
         role={interactive ? 'button' : undefined}

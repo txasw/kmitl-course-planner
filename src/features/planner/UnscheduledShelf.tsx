@@ -134,6 +134,7 @@ export function UnscheduledShelf({
                   {onRemove !== undefined ? (
                     <button
                       type="button"
+                      data-shelf-remove={section.teachTableId}
                       onClick={() => {
                         onRemove(section.teachTableId);
                       }}
