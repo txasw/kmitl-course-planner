@@ -7,7 +7,9 @@
 // target at the panel bottom, and the grid paints the subject's other sections as move
 // targets, so a drop removes the section or moves it to another slot, and a drop back on
 // its own place cancels silently. A custom collision detection resolves overlapping drop
-// targets by an explicit priority.
+// targets by an explicit priority. Every drag first finishes a running catalog slide, so
+// the zones it measures sit where they stay, and a block drag never auto scrolls the
+// catalog it may be dropped onto.
 // A mouse drag starts after a short distance, so a click on a row or block button is
 // never a drag, and a touch drag starts after a long press, so a swipe on a drag surface
 // scrolls (ADR-0058). A touch drag lifts the grab card clear of the finger and marks its
@@ -42,6 +44,7 @@ import { dragStore, blockerIds } from './dragStore';
 import { DragCard } from './DragCard';
 import { ReasonChip } from './ReasonChip';
 import { isRemoveZoneId } from './RemoveZone';
+import { mayAutoScroll, settleCatalogSlide } from './catalogDragGuards';
 import { resolveCourseForSubject } from './resolveCourse';
 import { isTouchEvent, snapDragCardToCursor } from './snapToCursor';
 import { prioritizedCollision } from './collision';
@@ -162,6 +165,7 @@ const SILENT_ANNOUNCEMENTS: Announcements = {
   onDragCancel: () => undefined,
 };
 const ACCESSIBILITY = { announcements: SILENT_ANNOUNCEMENTS };
+const AUTO_SCROLL = { canScroll: mayAutoScroll };
 
 export function PlannerDnd({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
@@ -176,6 +180,7 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
 
   const handleStart = useCallback(
     (event: DragStartEvent) => {
+      settleCatalogSlide(event.activatorEvent);
       const data = event.active.data.current;
       const placed = placedSections(planStore.getState().entries);
       const drag = dragStore.getState();
@@ -355,6 +360,7 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
       sensors={sensors}
       collisionDetection={prioritizedCollision}
       accessibility={ACCESSIBILITY}
+      autoScroll={AUTO_SCROLL}
       onDragStart={handleStart}
       onDragOver={handleOver}
       onDragEnd={handleEnd}
