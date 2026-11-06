@@ -16,6 +16,9 @@ import { DEFAULT_TEMPLATE } from '@/lib/planner/exportTemplates';
 /** The timetable presentation mode: full editing, or the inert preview poster. */
 export type ViewMode = 'edit' | 'preview';
 
+/** The plan view shown in edit mode: the weekly grid, or the list of placed subjects. */
+export type PlanView = 'timetable' | 'selected';
+
 export interface UiState {
   isOpen: boolean;
   /** Whether the catalog sheet is open, on the tiers where the catalog column is a sheet. */
@@ -28,6 +31,11 @@ export interface UiState {
   catalogVisible: boolean;
   language: Locale;
   viewMode: ViewMode;
+  /**
+   * The plan view tab in edit mode (ADR-0049). It is session only: it starts on the
+   * timetable on every page load and survives closing and reopening the overlay.
+   */
+  planView: PlanView;
   /** Poster display options, applied to the preview and every export. */
   displayOptions: DisplayOptions;
   /** The chosen export template slug, applied to the preview and every image export. */
@@ -52,6 +60,7 @@ export interface UiState {
   setCatalogVisible: (visible: boolean) => void;
   setLanguage: (language: Locale) => void;
   setViewMode: (mode: ViewMode) => void;
+  setPlanView: (view: PlanView) => void;
   setDisplayOptions: (options: DisplayOptions) => void;
   setDisplayOption: (key: keyof DisplayOptions, value: boolean) => void;
   setSelectedTemplate: (slug: string) => void;
@@ -70,6 +79,7 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     catalogVisible: true,
     language,
     viewMode: 'edit',
+    planView: 'timetable',
     displayOptions: DEFAULT_DISPLAY_OPTIONS,
     selectedTemplate: DEFAULT_TEMPLATE.slug,
     diagnosticsIssueCount: null,
@@ -101,6 +111,9 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     },
     setViewMode: (viewMode) => {
       set({ viewMode });
+    },
+    setPlanView: (planView) => {
+      set({ planView });
     },
     setDisplayOptions: (displayOptions) => {
       set({ displayOptions });
