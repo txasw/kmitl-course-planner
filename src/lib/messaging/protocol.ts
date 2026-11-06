@@ -90,6 +90,7 @@ export const requestMessageSchema = z.discriminatedUnion('type', [
     query: teachTableQuerySchema,
   }),
   z.object({ type: z.literal('shell/mounted') }),
+  z.object({ type: z.literal('onboarding/claimWelcome') }),
   z.object({ type: z.literal('debug/getRequestLog') }),
   z.object({ type: z.literal('debug/getReport') }),
   z.object({ type: z.literal('debug/getLatestRaw') }),
@@ -130,6 +131,20 @@ export const mountedReplySchema = z.object({
   ok: z.literal(true),
   value: mountHandshakeSchema,
 });
+
+/** The worker's answer to a welcome claim: whether this tab may show the welcome. */
+export const welcomeClaimSchema = z.object({ granted: z.boolean() });
+export type WelcomeClaim = z.infer<typeof welcomeClaimSchema>;
+
+/**
+ * The successful onboarding/claimWelcome reply, checked on receipt like the mount
+ * reply, so an error Result and a malformed reply alike count as a denial.
+ */
+export const claimWelcomeReplySchema = z.object({
+  ok: z.literal(true),
+  value: welcomeClaimSchema,
+});
+
 export type RequestType = RequestMessage['type'];
 
 /** The response payload each request type resolves to, keyed by discriminant. */
@@ -142,6 +157,7 @@ export interface ResponseMap {
   'teachTable/query': Result<NormalizedCatalog>;
   'teachTable/cancel': Result<void>;
   'shell/mounted': Result<MountHandshake>;
+  'onboarding/claimWelcome': Result<WelcomeClaim>;
   'debug/getRequestLog': Result<RequestLogEntry[]>;
   'debug/getReport': Result<DataQualityReport | null>;
   'debug/getLatestRaw': Result<LatestRaw | null>;

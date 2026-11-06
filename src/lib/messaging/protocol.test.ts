@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  claimWelcomeReplySchema,
   mountedReplySchema,
   requestMessageSchema,
   teachTableQuerySchema,
@@ -117,6 +118,13 @@ describe('requestMessageSchema', () => {
     ).toBe(true);
   });
 
+  it('accepts the welcome claim with no payload', () => {
+    expect(
+      requestMessageSchema.safeParse({ type: 'onboarding/claimWelcome' })
+        .success,
+    ).toBe(true);
+  });
+
   it('rejects an unknown message type and a non object', () => {
     expect(
       requestMessageSchema.safeParse({ type: 'ref/unknown' }).success,
@@ -147,6 +155,28 @@ describe('mountedReplySchema', () => {
       null,
     ]) {
       expect(mountedReplySchema.safeParse(reply).success).toBe(false);
+    }
+  });
+});
+
+describe('claimWelcomeReplySchema', () => {
+  it('accepts a grant and a denial', () => {
+    for (const granted of [true, false]) {
+      expect(
+        claimWelcomeReplySchema.safeParse({ ok: true, value: { granted } })
+          .success,
+      ).toBe(true);
+    }
+  });
+
+  it('rejects an error result and a malformed reply', () => {
+    for (const reply of [
+      { ok: false, error: { kind: 'network', message: 'down' } },
+      { ok: true, value: { granted: 'yes' } },
+      { ok: true, value: {} },
+      undefined,
+    ]) {
+      expect(claimWelcomeReplySchema.safeParse(reply).success).toBe(false);
     }
   });
 });
