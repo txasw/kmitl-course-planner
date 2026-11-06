@@ -260,6 +260,7 @@
   "updates.kind.missing": "No longer listed",
   "updates.newConflict": "This change now clashes with {subject} section {section}",
   "updates.unchangedGroup": "{count} unchanged",
+  "updates.indicator": "Changes to review: {count}",
   "updates.toast.done": "Changes marked as reviewed",
   "block.details": "Details",
   "block.acknowledge": "Acknowledge",
