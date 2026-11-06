@@ -23,7 +23,8 @@ import {
 } from '../../../tests/support/domain-builders';
 import { installViewport } from '../../../tests/support/viewport';
 import { useLayoutTier } from './useLayoutTier';
-import { CatalogColumn } from './CatalogColumn';
+import { dragStore } from '@/features/planner/dragStore';
+import { CatalogColumn, SheetScrim } from './CatalogColumn';
 import { CATALOG_COLUMN_ID } from './catalogVisibility';
 import { CatalogToggle } from './CatalogToggle';
 import { EdgeRail } from './EdgeRail';
@@ -173,8 +174,23 @@ afterEach(() => {
     searchStore.getState().cancelSearch();
     uiStore.getState().setSheetOpen(false);
     uiStore.getState().setCatalogVisible(true);
+    dragStore.getState().clearActive();
+    dragStore.getState().clearCourse();
+    dragStore.getState().clearBlockMove();
   });
 });
+
+const dragged = catalog.courses[0];
+
+function startSectionDrag(): void {
+  const section = dragged?.sections[0];
+  if (dragged === undefined || section === undefined) {
+    throw new Error('the dragged course is missing');
+  }
+  act(() => {
+    dragStore.getState().start(dragged, section, []);
+  });
+}
 
 describe('CatalogColumn', () => {
   it.each([
@@ -473,6 +489,82 @@ describe('CatalogColumn', () => {
     expect(
       screen.queryByRole('button', { name: 'ซ่อนรายวิชา' }),
     ).not.toBeInTheDocument();
+  });
+
+  it('yields the open sheet to a 24 px peek during a section drag and returns it', () => {
+    installViewport(768);
+    const { container } = render(<Harness />);
+    act(() => {
+      uiStore.getState().setSheetOpen(true);
+    });
+    const node = column(container);
+    const list = scroller(container);
+    list.scrollTop = 180;
+
+    startSectionDrag();
+    expect(node).toHaveAttribute('data-yielded', 'true');
+    expect(node).toHaveClass('translate-x-[calc(24px-100%)]');
+    expect(node).toHaveClass('motion-reduce:transition-none');
+
+    act(() => {
+      dragStore.getState().clearActive();
+    });
+    expect(node).not.toHaveAttribute('data-yielded');
+    expect(node).toHaveClass('translate-x-0');
+    expect(scroller(container)).toBe(list);
+    expect(list.scrollTop).toBe(180);
+  });
+
+  it('yields during a course drag but not during a block drag', () => {
+    installViewport(768);
+    const { container } = render(<Harness />);
+    act(() => {
+      uiStore.getState().setSheetOpen(true);
+    });
+    const node = column(container);
+    if (dragged === undefined) throw new Error('the dragged course is missing');
+
+    act(() => {
+      dragStore.getState().startCourse(dragged, []);
+    });
+    expect(node).toHaveAttribute('data-yielded', 'true');
+
+    const placed = dragged.sections[0];
+    if (placed === undefined) throw new Error('the placed section is missing');
+    act(() => {
+      dragStore.getState().startBlockMove(placed, [placed], dragged);
+    });
+    expect(node).not.toHaveAttribute('data-yielded');
+  });
+
+  it('never moves the docked column for a drag', () => {
+    installViewport(1440);
+    const { container } = render(<Harness />);
+    startSectionDrag();
+    const node = column(container);
+    expect(node).not.toHaveAttribute('data-yielded');
+    expect(node).not.toHaveClass('translate-x-[calc(24px-100%)]');
+  });
+
+  it('fades the scrim and lets the pointer through while the sheet yields', () => {
+    installViewport(768);
+    const { container } = render(<SheetScrim tier="medium" />);
+    expect(container.querySelector('button')).toBeNull();
+    act(() => {
+      uiStore.getState().setSheetOpen(true);
+    });
+    const scrim = container.querySelector('button');
+    expect(scrim).toHaveAttribute('tabindex', '-1');
+    expect(scrim).not.toHaveClass('opacity-0');
+
+    startSectionDrag();
+    expect(scrim).toHaveClass('pointer-events-none', 'opacity-0');
+    expect(scrim).toHaveClass('motion-reduce:transition-none');
+
+    act(() => {
+      dragStore.getState().clearActive();
+    });
+    expect(scrim).not.toHaveClass('opacity-0');
   });
 
   it('keeps the results offset across the fold and resets it on a new search', () => {
