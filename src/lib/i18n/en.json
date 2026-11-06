@@ -305,6 +305,8 @@
   "planView.label": "Plan views",
   "planView.timetable": "Timetable",
   "planView.selected": "Selected courses ({count})",
+  "nav.label": "Planner sections",
+  "nav.selected": "Selected",
   "selected.title": "Selected courses",
   "selected.emptyTitle": "No courses selected yet",
   "selected.emptyBody": "Add courses from the list to see them here.",

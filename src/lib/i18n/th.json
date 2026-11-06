@@ -305,6 +305,8 @@
   "planView.label": "มุมมองตาราง",
   "planView.timetable": "ตารางเรียน",
   "planView.selected": "วิชาที่เลือก ({count})",
+  "nav.label": "ส่วนของตัววางแผน",
+  "nav.selected": "ที่เลือก",
   "selected.title": "วิชาที่เลือก",
   "selected.emptyTitle": "ยังไม่ได้เลือกรายวิชา",
   "selected.emptyBody": "เพิ่มรายวิชาจากรายการเพื่อแสดงที่นี่",
