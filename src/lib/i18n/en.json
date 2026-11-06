@@ -139,6 +139,8 @@
   "catalog.expandAll": "Expand all",
   "catalog.collapseAll": "Collapse all",
   "toast.refreshUnchanged": "Already up to date, nothing changed",
+  "toast.added": "Added {subject} section {section}",
+  "toast.viewTimetable": "View timetable",
   "catalog.filter.text": "Filter courses",
   "catalog.filter.fieldLabel": "Filter results",
   "catalog.filter.day": "Day",
