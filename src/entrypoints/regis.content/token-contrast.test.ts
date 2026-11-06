@@ -38,7 +38,8 @@ interface Pair {
 // darkest being danger-soft, so it is checked against each. The accent also outlines a
 // swap target and a focus ring over a blocked danger-soft footprint, and the switch term
 // action on a muted surface-alt section row. border-strong is the form control boundary,
-// a UI component on both panel surfaces (ADR-0051).
+// a UI component on both panel surfaces (ADR-0051). warn-soft fills the pre share notice,
+// whose ink text, warn icon, and warn border sit on it.
 const PAIRS: Pair[] = [
   {
     name: 'ink on surface',
@@ -98,6 +99,18 @@ const PAIRS: Pair[] = [
     name: 'warn on primary-soft',
     fg: token('warn'),
     bg: token('primary-soft'),
+    min: AA_NORMAL,
+  },
+  {
+    name: 'warn on warn-soft',
+    fg: token('warn'),
+    bg: token('warn-soft'),
+    min: AA_NORMAL,
+  },
+  {
+    name: 'ink on warn-soft',
+    fg: token('ink'),
+    bg: token('warn-soft'),
     min: AA_NORMAL,
   },
   {

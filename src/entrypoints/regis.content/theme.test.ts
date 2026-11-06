@@ -29,6 +29,7 @@ const COLOR_TOKENS = [
   'danger',
   'danger-soft',
   'warn',
+  'warn-soft',
   'success',
   'success-soft',
 ] as const;
