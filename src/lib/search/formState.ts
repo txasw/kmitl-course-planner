@@ -93,18 +93,49 @@ export function isTermReady(term: Term): boolean {
   return term.year !== '';
 }
 
+/**
+ * A field the active tab still needs before it can search. A blocked submit names
+ * the first one, in the order the fields appear, so the student knows what to fill.
+ * The shared term row sits above every tab, so its year comes first.
+ */
+export type SearchField =
+  | 'year'
+  | 'faculty'
+  | 'department'
+  | 'curriculum'
+  | 'subjectId'
+  | 'subjectOwner';
+
+/** The first field the class tab still needs, or null when it can search. */
+export function missingClassField(form: ClassForm): SearchField | null {
+  if (form.faculty === '') return 'faculty';
+  if (form.department === '') return 'department';
+  if (form.curriculum === '') return 'curriculum';
+  return null;
+}
+
+/** The first field the subject id tab still needs, or null when it can search. */
+export function missingSubjectIdField(form: SubjectIdForm): SearchField | null {
+  return isValidSubjectId(form.subjectId) ? null : 'subjectId';
+}
+
+/** The first field the category tab still needs, or null when it can search. */
+export function missingCategoryField(form: CategoryForm): SearchField | null {
+  if (form.faculty === '') return 'faculty';
+  if (form.subjectOwner === '') return 'subjectOwner';
+  return null;
+}
+
 export function isClassFormReady(form: ClassForm): boolean {
-  return (
-    form.faculty !== '' && form.department !== '' && form.curriculum !== ''
-  );
+  return missingClassField(form) === null;
 }
 
 export function isSubjectIdFormReady(form: SubjectIdForm): boolean {
-  return isValidSubjectId(form.subjectId);
+  return missingSubjectIdField(form) === null;
 }
 
 export function isCategoryFormReady(form: CategoryForm): boolean {
-  return form.faculty !== '' && form.subjectOwner !== '';
+  return missingCategoryField(form) === null;
 }
 
 /** The literal value a select carries when its "all" option is chosen. */
@@ -198,6 +229,23 @@ export function buildTeachTableQueryForTab(
       return isCategoryFormReady(forms.byCategory)
         ? buildCategoryQuery(term, forms.byCategory)
         : null;
+  }
+}
+
+/** The first field the given tab still needs, or null when its form can search. */
+export function missingField(
+  tab: SearchTab,
+  term: Term,
+  forms: SearchForms,
+): SearchField | null {
+  if (!isTermReady(term)) return 'year';
+  switch (tab) {
+    case 'by_class':
+      return missingClassField(forms.byClass);
+    case 'by_subject_id':
+      return missingSubjectIdField(forms.bySubjectId);
+    case 'by_subject_owner_id':
+      return missingCategoryField(forms.byCategory);
   }
 }
 

@@ -238,17 +238,46 @@ describe('SearchForm', () => {
     expect(field).toHaveFocus();
   });
 
-  it('keeps submit disabled until the category form is ready', async () => {
+  it('blocks submit and names the missing field until the category form is ready', async () => {
     renderSearch(deps());
     fireEvent.click(screen.getByRole('tab', { name: 'หมวดวิชา' }));
     const submit = screen.getByRole('button', { name: 'ค้นหา' });
-    expect(submit).toBeDisabled();
+    // aria-disabled keeps the blocked submit in the tab order, so its reason is read
+    // on focus rather than skipped with the control.
+    expect(submit).toBeEnabled();
+    expect(submit).toHaveAttribute('aria-disabled', 'true');
+    expect(submit).toHaveAccessibleDescription('เลือกคณะก่อนค้นหา');
+    expect(submit).not.toHaveClass('bg-primary-strong');
+    fireEvent.click(submit);
+    expect(searchStore.getState().barQuery).toBeNull();
+
     await waitEnabled('คณะ');
     selectCombobox('คณะ', '01');
+    await waitFor(() => {
+      expect(submit).toHaveAccessibleDescription('เลือกหมวดวิชาก่อนค้นหา');
+    });
     await waitEnabled('หมวดวิชา');
     selectCombobox('หมวดวิชา', '90592xxx');
     await waitFor(() => {
-      expect(submit).toBeEnabled();
+      expect(submit).not.toHaveAttribute('aria-disabled');
+    });
+    expect(submit).not.toHaveAttribute('aria-describedby');
+    expect(screen.queryByText('เลือกหมวดวิชาก่อนค้นหา')).toBeNull();
+  });
+
+  it('names the department and then the curriculum on the curriculum tab', async () => {
+    renderSearch(deps());
+    const submit = screen.getByRole('button', { name: 'ค้นหา' });
+    expect(submit).toHaveAccessibleDescription('เลือกคณะก่อนค้นหา');
+    await waitEnabled('คณะ');
+    selectCombobox('คณะ', '01');
+    await waitFor(() => {
+      expect(submit).toHaveAccessibleDescription('เลือกภาควิชาก่อนค้นหา');
+    });
+    await waitEnabled('ภาควิชา');
+    selectCombobox('ภาควิชา', '08');
+    await waitFor(() => {
+      expect(submit).toHaveAccessibleDescription('เลือกหลักสูตรก่อนค้นหา');
     });
   });
 
@@ -256,8 +285,8 @@ describe('SearchForm', () => {
     renderSearch(deps());
     fireEvent.click(screen.getByRole('tab', { name: 'หมวดวิชา' }));
     const submit = screen.getByRole('button', { name: 'ค้นหา' });
-    const stack = submit.parentElement;
-    expect(stack?.lastElementChild).toBe(submit);
+    const stack = submit.parentElement?.parentElement;
+    expect(stack?.lastElementChild).toContainElement(submit);
     expect(stack).toContainElement(
       screen.getByRole('combobox', { name: 'หมวดวิชา' }),
     );
