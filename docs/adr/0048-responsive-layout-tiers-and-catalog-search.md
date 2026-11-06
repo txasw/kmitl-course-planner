@@ -297,3 +297,34 @@ course cards and never fires under reduced motion, and can replay after a tier c
 preview round trip. Animating the column's box shadow or visibility inside the transform effect
 was rejected because either moves the slide off the compositor. Animating the grid width was
 rejected for the relayout reasons above.
+
+## Amendment, 2026-11-06: the audited live region inventory
+
+The inventory above was written before the status announcer existed. With it in place, every
+node that announces was audited against the source and the rendered panel, and
+`src/features/shell/liveRegions.test.tsx` now asserts the set. A new live node fails that test
+until this record and the test change together.
+
+- `StatusAnnouncer`, in `Layout` beside the catalog column, speaks when a user search settles:
+  the course and section count, the empty title with the searched term, or the error title. The
+  search store records the intent of each run in the same write as its query, so a retry or a
+  refresh replaces the result without a word. The message is written at the settle, so a
+  re-render, a language change or a remount never repeats it. A result that lands while the
+  sheet is closed or the docked column is hidden is still spoken, because the announcer sits
+  outside both. Preview has no search and carries no announcer.
+- `FeedbackStrip` speaks placement outcomes, and its screen reader only added line only while
+  the timetable is in view. While the sheet is open the strip is inert with the grid, which is
+  why an add over the open sheet speaks through the toast instead.
+- The `Toaster` region speaks its toasts, the undo toast it hosts, and an add made while the
+  sheet covers the timetable. That add toast offers one action, ดูตาราง, which closes the sheet
+  and returns focus to the catalog toggle. One confirmation funnel picks the toast or the strip
+  line for each add, never both, so the add is read once.
+- Scoped and transient nodes: the catalog loading status, the loading status inside the
+  suggestion modal, the alerts of the recovery and quarantine cards, and the revalidation banner.
+- The drag library mounts one region of its own inside the drag context. It speaks the drag
+  lifecycle in its default English wording with internal ids, which overlaps the placement
+  outcomes the strip owns. It is listed so the gap stays visible; replacing its announcements
+  with the panel's own wording is left to the drop zone vocabulary change.
+
+The summary bar is not part of the inventory. It is a focusable region that reads its busy text
+when focus lands on it, not a live region.
