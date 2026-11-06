@@ -4,6 +4,7 @@
 import { useEffect, useRef } from 'react';
 import { CONTROL_BOUNDARY } from '@/lib/ui/control';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 export interface NameFormProps {
   value: string;
@@ -55,7 +56,7 @@ export function NameForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-kcp border border-border px-2 py-1 text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className={`rounded-kcp border border-border px-2 py-1 text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
         >
           {cancel}
         </button>
@@ -63,7 +64,7 @@ export function NameForm({
           type="button"
           onClick={onSubmit}
           disabled={value.trim() === ''}
-          className="rounded-kcp bg-primary-strong px-2 py-1 font-semibold text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
+          className={`rounded-kcp bg-primary-strong px-2 py-1 font-semibold text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 ${TARGET_SIZE}`}
         >
           {save}
         </button>

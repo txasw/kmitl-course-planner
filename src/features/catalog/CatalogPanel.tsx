@@ -22,6 +22,7 @@ import { useTranslation } from '@/features/shell/useTranslation';
 import { CourseCatalog } from './CourseCatalog';
 import { ErrorActionButton } from './ErrorActionButton';
 import { InputGuard } from './InputGuard';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 /** The term a result was searched for, which the empty state and its announcement
  * both name. */
@@ -88,7 +89,7 @@ function LoadingState({
             onClick={(event) => {
               onCancel(event.currentTarget);
             }}
-            className="rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className={`rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
           >
             {t('action.cancel')}
           </button>

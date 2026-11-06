@@ -23,6 +23,7 @@ import { SuggestDialog } from '@/features/planner/SuggestDialog';
 import { useActivePlan } from '@/features/plans/planStore';
 import { searchStore } from '@/features/search/searchStore';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 interface SuggestTarget {
   courses: readonly Course[];
@@ -84,7 +85,7 @@ export function SuggestAction() {
         onClick={() => {
           setOpen(true);
         }}
-        className={`inline-flex items-center gap-1.5 rounded-kcp border border-border bg-surface px-2 py-1.5 text-sm text-ink transition-colors hover:bg-surface-alt ${FOCUS_RING}`}
+        className={`inline-flex items-center gap-1.5 rounded-kcp border border-border bg-surface px-2 py-1.5 text-sm text-ink transition-colors hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`}
       >
         <ListChecks size={16} strokeWidth={2} aria-hidden />
         {t('suggest.open')}

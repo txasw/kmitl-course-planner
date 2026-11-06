@@ -2,6 +2,7 @@
 // undone, so the menu asks once, naming the plan, before the switcher deletes it.
 
 import { useTranslation } from '@/features/shell/useTranslation';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 export interface DeleteConfirmProps {
   planName: string;
@@ -24,14 +25,14 @@ export function DeleteConfirm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-kcp border border-border px-2 py-1 text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className={`rounded-kcp border border-border px-2 py-1 text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
         >
           {t('action.cancel')}
         </button>
         <button
           type="button"
           onClick={onConfirm}
-          className="rounded-kcp bg-danger px-2 py-1 font-semibold text-white outline-none hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className={`rounded-kcp bg-danger px-2 py-1 font-semibold text-white outline-none hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
         >
           {t('planSwitcher.delete')}
         </button>

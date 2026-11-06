@@ -21,6 +21,7 @@
 import type { ReactNode } from 'react';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { Tooltip } from './Tooltip';
+import { TARGET_HEIGHT } from '@/lib/ui/target';
 
 type TriggerRef = (node: Element | null) => void;
 
@@ -58,7 +59,7 @@ export function Switch({
           onChange(!checked);
         }
       }}
-      className={`group flex w-full items-center justify-between gap-3 rounded-kcp px-2 py-1 text-sm text-ink ${
+      className={`group flex w-full items-center justify-between gap-3 rounded-kcp px-2 py-1 text-sm text-ink ${TARGET_HEIGHT} ${
         disabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-surface-alt'
       } ${FOCUS_RING}`}
     >
