@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { useRef } from 'react';
 import {
   render,
   screen,
@@ -18,9 +19,14 @@ import {
 } from '@/lib/search/formState';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { makeCourse } from '../../../tests/support/domain-builders';
+import { useFocusTrap } from '@/features/shell/useFocusTrap';
 import { SearchDepsProvider } from './SearchDepsContext';
 import { SearchHeader } from './SearchHeader';
-import { SEARCH_BAR_ID, SEARCH_FORM_ID } from './searchIds';
+import {
+  SEARCH_BAR_ID,
+  SEARCH_DISCLOSURE_ID,
+  SEARCH_FORM_ID,
+} from './searchIds';
 import { searchStore } from './searchStore';
 
 const term = { year: '2569', semester: '1' } as const;
@@ -265,5 +271,84 @@ describe('search focus', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+// The overlay panel in miniature: a focus trap that closes on Escape around the search
+// head, so the test proves each surface claims one press, innermost first.
+function TrappedHeader({ onEscape }: { onEscape: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useFocusTrap(ref, true, onEscape);
+  return (
+    <div ref={ref} role="dialog" aria-label="panel" tabIndex={-1}>
+      <SearchHeader />
+    </div>
+  );
+}
+
+function renderTrapped(onEscape: () => void) {
+  return render(
+    <SearchDepsProvider value={fakeSearchDeps()}>
+      <TrappedHeader onEscape={onEscape} />
+    </SearchDepsProvider>,
+  );
+}
+
+describe('search head Escape', () => {
+  it('closes the open list, then folds the form, then closes the overlay', () => {
+    const onEscape = vi.fn();
+    const { container } = renderTrapped(onEscape);
+    act(() => {
+      searchStore.getState().startQuery(subjectQuery, 'user');
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'แก้ไขการค้นหา' }), {
+      detail: 1,
+    });
+    const year = screen.getByRole('combobox', { name: 'ปีการศึกษา' });
+    year.focus();
+    fireEvent.keyDown(year, { key: 'ArrowDown' });
+    expect(year).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.keyDown(year, { key: 'Escape' });
+    expect(year).toHaveAttribute('aria-expanded', 'false');
+    expect(formRegion(container)).toHaveAttribute('data-open', 'true');
+    expect(onEscape).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(year, { key: 'Escape' });
+    expect(formRegion(container)).toHaveAttribute('data-open', 'false');
+    expect(formRegion(container)).toHaveAttribute('inert');
+    expect(document.activeElement?.id).toBe(SEARCH_DISCLOSURE_ID);
+    expect(onEscape).not.toHaveBeenCalled();
+
+    if (document.activeElement === null) throw new Error('focus was lost');
+    fireEvent.keyDown(document.activeElement, { key: 'Escape' });
+    expect(onEscape).toHaveBeenCalledOnce();
+  });
+
+  it('leaves the Escape that ends a composition to the field', () => {
+    const onEscape = vi.fn();
+    const { container } = renderTrapped(onEscape);
+    act(() => {
+      searchStore.getState().startQuery(subjectQuery, 'user');
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'แก้ไขการค้นหา' }), {
+      detail: 1,
+    });
+    const field = screen.getByRole('textbox', { name: 'รหัสวิชา' });
+    field.focus();
+    fireEvent.keyDown(field, { key: 'Escape', isComposing: true });
+    expect(formRegion(container)).toHaveAttribute('data-open', 'true');
+    expect(field).toHaveFocus();
+    expect(onEscape).not.toHaveBeenCalled();
+  });
+
+  it('closes the overlay at once while there is no bar to fold to', () => {
+    const onEscape = vi.fn();
+    const { container } = renderTrapped(onEscape);
+    const field = screen.getByRole('textbox', { name: 'รหัสวิชา' });
+    field.focus();
+    fireEvent.keyDown(field, { key: 'Escape' });
+    expect(onEscape).toHaveBeenCalledOnce();
+    expect(formRegion(container)).toHaveAttribute('data-open', 'true');
   });
 });
