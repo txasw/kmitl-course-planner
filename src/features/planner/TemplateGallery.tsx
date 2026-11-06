@@ -37,7 +37,7 @@ import { useTranslation } from '@/features/shell/useTranslation';
 import { useElementSize } from '@/features/shell/useElementSize';
 import { Tooltip } from '@/components/Tooltip';
 import { FOCUS_RING } from '@/lib/ui/focus';
-import { TARGET_MIN } from '@/lib/ui/target';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import { PreviewPoster, type PosterData } from './PreviewPoster';
 
 interface TemplateGalleryProps {
@@ -111,7 +111,7 @@ function PagerArrow({
           aria-label={label}
           disabled={disabled}
           onClick={onActivate}
-          className={`flex shrink-0 items-center justify-center rounded-kcp border border-border p-1 text-ink-soft transition-colors hover:bg-surface-alt disabled:pointer-events-none disabled:opacity-30 ${TARGET_MIN} ${FOCUS_RING}`}
+          className={`flex shrink-0 items-center justify-center rounded-kcp border border-border p-1 text-ink-soft transition-colors hover:bg-surface-alt disabled:pointer-events-none disabled:opacity-30 ${TARGET_SIZE} ${FOCUS_RING}`}
         >
           {children}
         </button>
@@ -387,7 +387,7 @@ export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
                   }}
                   // The dot stays small while the button around it keeps the shared
                   // target size, so the pager reads as dots but takes a finger.
-                  className={`group/dot inline-flex items-center justify-center rounded-full ${TARGET_MIN} ${FOCUS_RING}`}
+                  className={`group/dot inline-flex items-center justify-center rounded-full ${TARGET_SIZE} ${FOCUS_RING}`}
                 >
                   <span
                     aria-hidden

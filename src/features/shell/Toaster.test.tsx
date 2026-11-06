@@ -15,6 +15,7 @@ import {
   resetPlanStore,
   seedActivePlan,
 } from '../../../tests/support/plan-store';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import { swipe } from '../../../tests/support/swipe';
 import { Toaster } from './Toaster';
 import { toastStore } from './toastStore';
@@ -148,6 +149,17 @@ describe('Toaster', () => {
       expect(screen.queryByText('Second')).toBeNull();
     } finally {
       vi.useRealTimers();
+    }
+  });
+
+  it('sizes the close button as a shared touch target', () => {
+    render(<Toaster />);
+    act(() => {
+      toastStore.getState().show('success', 'Done');
+    });
+    const close = screen.getByRole('button', { name: 'ปิด' });
+    for (const token of TARGET_SIZE.split(' ')) {
+      expect(close).toHaveClass(token);
     }
   });
 

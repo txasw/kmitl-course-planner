@@ -20,7 +20,7 @@ import { CircleCheck, TriangleAlert, X } from 'lucide-react';
 import { planStore } from '@/features/plans/planStore';
 import type { Translate } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
-import { TARGET_MIN } from '@/lib/ui/target';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import { toastStore, type Toast } from './toastStore';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
@@ -127,7 +127,7 @@ function OrdinaryToast({
         onPointerDown={stopSwipe}
         onKeyDown={onEscape}
         onClick={onDismiss}
-        className={`inline-flex shrink-0 items-center justify-center rounded-kcp p-0.5 text-ink-soft hover:bg-black/5 hover:text-ink ${TARGET_MIN} ${FOCUS_RING}`}
+        className={`inline-flex shrink-0 items-center justify-center rounded-kcp p-0.5 text-ink-soft hover:bg-black/5 hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
       >
         <X size={14} aria-hidden />
       </button>

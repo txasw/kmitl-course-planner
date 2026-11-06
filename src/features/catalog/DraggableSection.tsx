@@ -13,7 +13,7 @@ import { GripVertical } from 'lucide-react';
 import type { Course, Section } from '@/lib/domain/types';
 import { dragStore } from '@/features/planner/dragStore';
 import { NO_DRAG_ARMING } from '@/features/planner/dragArming';
-import { TARGET_MIN } from '@/lib/ui/target';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import {
   dragSourceClass,
   useTouchPress,
@@ -89,7 +89,7 @@ export function DraggableSection({
         // Keyboard and click only: a press on the grip must not arm the row drag, so it
         // stays a discrete commit control rather than a second drag source.
         {...NO_DRAG_ARMING}
-        className={`flex shrink-0 items-center justify-center rounded-kcp px-0.5 text-ink-soft outline-none hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_MIN}`}
+        className={`flex shrink-0 items-center justify-center rounded-kcp px-0.5 text-ink-soft outline-none hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
       >
         <GripVertical size={14} strokeWidth={2} aria-hidden />
       </button>
