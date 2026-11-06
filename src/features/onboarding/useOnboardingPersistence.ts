@@ -14,28 +14,12 @@ import {
 } from '@/lib/storage/onboarding';
 import { uiStore } from '@/features/shell/uiStore';
 import { onboardingStore } from './onboardingStore';
+import { recordOnboardingMoment } from './recordOnboardingMoment';
 
 export interface OnboardingPersistenceDeps {
   /** Only the read: the worker owns the install key, so content cannot write it. */
   install: Pick<InstallRepository, 'load'>;
   record: OnboardingRepository;
-}
-
-// The store takes the timestamp before the write starts, so a second mounted app in
-// this document sees it already recorded and does not write again. The repository
-// keeps the first timestamp any tab wrote, and the merged record it resolves
-// replaces the optimistic one.
-function recordFirstPanelOpen(record: OnboardingRepository): void {
-  const store = onboardingStore.getState();
-  if (store.record.panelFirstOpenedAt !== undefined) return;
-  const panelFirstOpenedAt = new Date().toISOString();
-  store.setRecord({ ...store.record, panelFirstOpenedAt });
-  void record.patch({ panelFirstOpenedAt }).then(
-    (merged) => {
-      onboardingStore.getState().setRecord(merged);
-    },
-    () => undefined,
-  );
 }
 
 export function useOnboardingPersistence({
@@ -58,9 +42,13 @@ export function useOnboardingPersistence({
         );
         // Watching starts after the read, so the stored record decides whether the
         // first open is already recorded; a panel opened during the read counts.
-        if (uiStore.getState().isOpen) recordFirstPanelOpen(record);
+        if (uiStore.getState().isOpen) {
+          recordOnboardingMoment(record, 'panelFirstOpenedAt');
+        }
         unsubscribe = uiStore.subscribe((state, previous) => {
-          if (state.isOpen && !previous.isOpen) recordFirstPanelOpen(record);
+          if (state.isOpen && !previous.isOpen) {
+            recordOnboardingMoment(record, 'panelFirstOpenedAt');
+          }
         });
       },
     );
