@@ -23,37 +23,66 @@ interface Gesture {
   steps: number;
 }
 
+/** A finger on the screen, moved and lifted step by step, so a spec can read the page
+ * while the finger is still down. */
+export interface HeldTouch {
+  /** Move the finger to a point through a number of intermediate moves. */
+  moveTo: (to: Point, steps: number) => Promise<void>;
+  /** Lift the finger and end the touch session. */
+  lift: () => Promise<void>;
+}
+
+/** Put a finger down on one point and keep it there until the spec lifts it. */
+export async function touchDown(page: Page, from: Point): Promise<HeldTouch> {
+  const cdp = await page.context().newCDPSession(page);
+  let at = from;
+  await cdp.send('Input.dispatchTouchEvent', {
+    type: 'touchStart',
+    touchPoints: [from],
+  });
+  return {
+    moveTo: async (to, steps) => {
+      const start = at;
+      for (let step = 1; step <= steps; step += 1) {
+        const progress = step / steps;
+        await cdp.send('Input.dispatchTouchEvent', {
+          type: 'touchMove',
+          touchPoints: [
+            {
+              x: start.x + (to.x - start.x) * progress,
+              y: start.y + (to.y - start.y) * progress,
+            },
+          ],
+        });
+      }
+      at = to;
+    },
+    lift: async () => {
+      try {
+        await cdp.send('Input.dispatchTouchEvent', {
+          type: 'touchEnd',
+          touchPoints: [],
+        });
+      } finally {
+        await cdp.detach();
+      }
+    },
+  };
+}
+
 async function performGesture(page: Page, gesture: Gesture): Promise<void> {
   const { from, to, holdMs, steps } = gesture;
-  const cdp = await page.context().newCDPSession(page);
+  const finger = await touchDown(page, from);
   try {
-    await cdp.send('Input.dispatchTouchEvent', {
-      type: 'touchStart',
-      touchPoints: [from],
-    });
     if (holdMs > 0) {
-      // A long press is defined by elapsed time, so this wait is the gesture
-      // itself rather than a wait for the page to settle.
+      // A long press is defined by elapsed time, so this wait is the gesture itself
+      // rather than a wait for the page to settle.
       await page.waitForTimeout(holdMs);
     }
-    for (let step = 1; step <= steps; step += 1) {
-      const progress = step / steps;
-      await cdp.send('Input.dispatchTouchEvent', {
-        type: 'touchMove',
-        touchPoints: [
-          {
-            x: from.x + (to.x - from.x) * progress,
-            y: from.y + (to.y - from.y) * progress,
-          },
-        ],
-      });
-    }
-    await cdp.send('Input.dispatchTouchEvent', {
-      type: 'touchEnd',
-      touchPoints: [],
-    });
+    await finger.moveTo(to, steps);
   } finally {
-    await cdp.detach();
+    // Lifting also detaches the session, so a failed move never leaves a finger down.
+    await finger.lift();
   }
 }
 
