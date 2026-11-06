@@ -9,8 +9,11 @@
 
 import { useStore } from 'zustand';
 import type { DayOfWeek } from '@/lib/parsing/days';
+import type { Translate } from '@/lib/i18n/t';
+import { fillTemplate } from '@/lib/i18n/template';
 import type { GridWindow } from '@/lib/planner/grid';
 import { candidateFootprints } from '@/lib/planner/candidateLayout';
+import type { Candidate } from '@/lib/planner/courseCandidates';
 import { dragStore } from './dragStore';
 import { CandidateSlot } from './CandidateSlot';
 import { SwapTarget } from './SwapTarget';
@@ -23,6 +26,7 @@ interface CandidateLayerProps {
   window: GridWindow;
   days: readonly DayOfWeek[];
   orientation: Orientation;
+  t: Translate;
 }
 
 export function CandidateLayer({
@@ -30,6 +34,7 @@ export function CandidateLayer({
   window,
   days,
   orientation,
+  t,
 }: CandidateLayerProps) {
   const active = useStore(dragStore, (state) => state.active);
   const hover = useStore(dragStore, (state) => state.hover);
@@ -42,6 +47,12 @@ export function CandidateLayer({
     swapContext === null ? new Set<string>() : new Set(swapContext.blockers);
   // Candidate slots come from a course drag or a block move, whichever is active.
   const candidates = courseDrag?.candidates ?? blockMove?.candidates ?? null;
+  // A valid block move candidate names the move it performs; every other slot shows its
+  // section code, so an add and a move never read alike.
+  const candidateLabel = (candidate: Candidate): string =>
+    blockMove !== null && candidate.valid
+      ? fillTemplate(t('dropZone.move'), { section: candidate.section.section })
+      : candidate.section.section;
 
   return (
     <>
@@ -93,6 +104,7 @@ export function CandidateLayer({
                 id={id}
                 candidate={footprint.candidate}
                 raised={footprint.candidate.section.teachTableId === raised}
+                label={candidateLabel(footprint.candidate)}
                 style={{
                   ...blockStyle(footprint.meeting, window, days, orientation),
                   ...stackOffsetStyle(footprint.stack),
@@ -113,7 +125,9 @@ export function CandidateLayer({
                     key={id}
                     id={id}
                     blockerTeachTableId={section.teachTableId}
-                    incomingLabel={swapContext.incoming.section}
+                    label={fillTemplate(t('dropZone.swap'), {
+                      section: swapContext.incoming.section,
+                    })}
                     style={blockStyle(meeting, window, days, orientation)}
                   />
                 );

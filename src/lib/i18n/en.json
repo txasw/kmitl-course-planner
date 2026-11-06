@@ -191,6 +191,8 @@
   "feedback.moveHint": "Drop on a highlighted slot or the remove zone",
   "blockMove.removeZone": "Drag here to remove",
   "blockMove.swap": "Swap with",
+  "dropZone.move": "Move to section {section}",
+  "dropZone.swap": "Swap for section {section}",
   "seat.full": "Full",
   "grid.emptyTitle": "Your timetable is empty",
   "grid.emptyBody": "Add courses from the list to see them here.",
