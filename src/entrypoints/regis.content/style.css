@@ -448,8 +448,11 @@ html {
    so the section list opens to its own height with no measured pixels, and the rows
    fade and rise in a moment after the height starts. data-stage comes from
    usePresence. The inner node clips only while the height animates, so the focus
-   rings of an open list are never cut. Reduced motion drops every transition, and the
-   state still reads from aria-expanded and the chevron. */
+   rings of an open list are never cut. The inner node also drops the grid item's
+   min-content floor, so a nowrap line such as a long instructor list truncates inside
+   the card instead of widening the rows past it and clipping their add rail. Reduced
+   motion drops every transition, and the state still reads from aria-expanded and the
+   chevron. */
 .kcp-disclosure {
   display: grid;
   grid-template-rows: 1fr;
@@ -463,6 +466,7 @@ html {
 
 .kcp-disclosure > * {
   min-height: 0;
+  min-width: 0;
 }
 
 .kcp-disclosure[data-stage='entering'] {

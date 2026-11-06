@@ -178,6 +178,14 @@ describe('shadow stylesheet tokens', () => {
     );
   });
 
+  it('lets the course disclosure content shrink to the card width', () => {
+    // A grid item keeps a min-content floor, so without this a nowrap line in a section
+    // row widens every row past the card and clips the add rail.
+    expect(css).toMatch(
+      /\.kcp-disclosure > \* \{\s*min-height: 0;\s*min-width: 0;\s*\}/,
+    );
+  });
+
   it('peeks the rail ghost on hover only where hover exists, after the intent delay', () => {
     expect(css).toMatch(
       /@media \(hover: hover\) \{\s*\.kcp-rail:not\(\[data-peek-held\]\):not\(\[data-dragging\]\):hover \.kcp-rail-ghost \{[^}]*transform: none;[^}]*var\(--kcp-delay-intent\)/,
