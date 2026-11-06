@@ -53,6 +53,9 @@ vi.mock('@dnd-kit/core', async (importOriginal) => {
 
 const SECTION_IDS = ['t1', 't2', 't3'];
 
+/** The section grip, named for the drag it starts. */
+const GRIP = 'button[aria-label^="ลากเพื่อเพิ่มลงตาราง "]';
+
 const ownerQuery: TeachTableQuery = {
   mode: 'by_subject_owner_id',
   selected_year: '2569',
@@ -218,10 +221,12 @@ describe('CatalogColumn', () => {
 
   it('turns catalog drag off below 640 px and keeps it on above', () => {
     const viewport = installViewport(390);
+    // A user search folds the form, so the results show in the phone pane.
     act(() => {
+      searchStore.getState().startQuery(ownerQuery, 'user');
       searchStore
         .getState()
-        .setResult({ status: 'ready', data: catalog }, null);
+        .setResult({ status: 'ready', data: catalog }, ownerQuery);
     });
     const { container } = render(<Harness />);
     expect(
@@ -231,11 +236,19 @@ describe('CatalogColumn', () => {
     const rows = container.querySelectorAll('[data-drag-surface="section"]');
     expect(rows).toHaveLength(SECTION_IDS.length);
     for (const row of rows) expect(row).not.toHaveClass('cursor-grab');
+    // No grip either; each row keeps its add button.
+    expect(container.querySelectorAll(GRIP)).toHaveLength(0);
+    expect(screen.getAllByRole('button', { name: /^เพิ่ม / })).toHaveLength(
+      SECTION_IDS.length,
+    );
 
+    // The rows keep their elements across the tier change and gain the grip; the
+    // closed medium sheet is hidden from the accessibility tree, so count by selector.
     act(() => {
       viewport.resize(768);
     });
     for (const row of rows) expect(row).toHaveClass('cursor-grab');
+    expect(container.querySelectorAll(GRIP)).toHaveLength(SECTION_IDS.length);
   });
 
   it('hides the results under the open form below 640 px and shows them on the fold', () => {
