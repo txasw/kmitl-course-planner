@@ -26,6 +26,7 @@ import {
   FIRST_DAY_INDEX,
   FIRST_TIME_INDEX,
   blockStyle,
+  onShownDay,
   type Orientation,
 } from './gridGeometry';
 
@@ -119,12 +120,14 @@ export function DayLanes({
     () =>
       sections
         .flatMap((section) =>
-          section.meetings.map((meeting) => ({
-            section,
-            meeting,
-            key: `${section.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`,
-            style: blockStyle(meeting, window, days, orientation),
-          })),
+          section.meetings
+            .filter((meeting) => onShownDay(meeting, days))
+            .map((meeting) => ({
+              section,
+              meeting,
+              key: `${section.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`,
+              style: blockStyle(meeting, window, days, orientation),
+            })),
         )
         .sort(
           (a, b) =>
