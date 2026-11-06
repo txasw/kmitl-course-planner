@@ -1,15 +1,20 @@
 // The edit mode plan summary, a bar pinned to the foot of the plan region. It states the
 // credits as the lead number, the distinct subject count, whether any section pair clashes,
 // the scheduled load per day, the count of sections with no meeting when the plan holds any,
-// and at the end the verification status the panel slots in. A clash is the one item the
-// student acts on, so it is a danger button that points at the first clashing section on
-// the timetable; with none the bar says so quietly with a check. The poster states the same
-// totals in its own footer line, without the clash control.
+// the weekdays with no class, and at the end the verification status the panel slots in.
+// A clash is the one item the student acts on, so it is a danger button that points at the
+// first clashing section on the timetable; with none the bar says so quietly with a check.
+// The poster states the same totals in its own footer line, without the clash control and
+// without the free days, which describe the student's week rather than the timetable
+// being shared.
 
 import type { ReactNode } from 'react';
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
-import type { Translate } from '@/lib/i18n/t';
+import type { Translate, TranslationKey } from '@/lib/i18n/t';
+import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
 import { fillTemplate } from '@/lib/i18n/template';
+import type { DayOfWeek } from '@/lib/parsing/days';
+import { computeFreePeriods } from '@/lib/planner/freePeriods';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { DayLoads } from './DayLoads';
@@ -37,6 +42,9 @@ export function StatsBar({
   t,
 }: StatsBarProps) {
   const totals = planTotals(sections);
+  const { freeDays } = computeFreePeriods(
+    sections.flatMap((section) => section.meetings),
+  );
 
   return (
     <div
@@ -71,7 +79,28 @@ export function StatsBar({
           {totals.unscheduled} {t('footer.unscheduled')}
         </span>
       ) : null}
+      {freeDays.length > 0 ? <FreeDays days={freeDays} t={t} /> : null}
       {status === undefined ? null : <span className="ml-auto">{status}</span>}
     </div>
+  );
+}
+
+interface FreeDaysProps {
+  days: readonly DayOfWeek[];
+  t: Translate;
+}
+
+/** The free weekdays as short labels on screen and as full names to assistive
+ * technology, which would otherwise spell out a single character. */
+function FreeDays({ days, t }: FreeDaysProps) {
+  const list = (key: (day: DayOfWeek) => TranslationKey) =>
+    fillTemplate(t('stats.freeDays'), {
+      days: days.map((day) => t(key(day))).join(' '),
+    });
+  return (
+    <span>
+      <span aria-hidden>{list(dayLabelKey)}</span>
+      <span className="sr-only">{list(dayFullLabelKey)}</span>
+    </span>
   );
 }

@@ -1,6 +1,8 @@
 ﻿import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
+import type { Meeting } from '@/lib/domain/types';
+import { WORKING_DAYS } from '@/lib/planner/freePeriods';
 import { StatsBar } from './StatsBar';
 import type { PlacedSection } from './placedSection';
 
@@ -101,5 +103,44 @@ describe('StatsBar', () => {
     cleanup();
     renderBar([scheduled]);
     expect(screen.queryByText(/ไม่มีคาบเรียน/)).not.toBeInTheDocument();
+  });
+
+  it('names the free weekdays, short on screen and in full to assistive technology', () => {
+    renderBar([scheduled]);
+    expect(screen.getByText('วันว่าง อ พ พฤ ศ')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    );
+    expect(
+      screen.getByText('วันว่าง วันอังคาร วันพุธ วันพฤหัสบดี วันศุกร์'),
+    ).toHaveClass('sr-only');
+  });
+
+  it('leaves the free days out when every weekday has a class', () => {
+    const meetings = WORKING_DAYS.map<Meeting>((day) => ({
+      day,
+      startMin: 540,
+      endMin: 720,
+      room: '',
+      building: '',
+      kind: 'lecture',
+    }));
+    renderBar([{ ...scheduled, meetings }]);
+    expect(screen.queryByText(/วันว่าง/)).not.toBeInTheDocument();
+  });
+
+  it('reads the free days in English', () => {
+    render(
+      <StatsBar
+        sections={[scheduled]}
+        conflictCount={0}
+        onShowConflict={vi.fn()}
+        t={createTranslator('en')}
+      />,
+    );
+    expect(screen.getByText('Free days Tue Wed Thu Fri')).toBeInTheDocument();
+    expect(
+      screen.getByText('Free days Tuesday Wednesday Thursday Friday'),
+    ).toHaveClass('sr-only');
   });
 });
