@@ -342,6 +342,38 @@ itself and the shortcut are checked here by hand, in Chrome, Edge, Opera and Fir
       click the icon on a regis tab that has not been granted. Known limitation: the
       planner may need a page reload after the grant before the panel opens.
 
+## Welcome after install
+
+The welcome shows once per install, in the first visible regis tab the worker grants it
+to, with the install tab first (ADR-0062). Start from a fresh browser profile and load
+the debug build, so the install record is new.
+
+- [ ] First visit: the install tab shows the welcome over the host page, with the
+      launcher behind it and the host page not scrolling. Focus starts on Start planning.
+      At 640 px and wider it is a centred dialog; below 640 px it is a bottom sheet clear
+      of the home indicator.
+- [ ] Content: the title, one sentence, three numbered steps with their icons, and one
+      sentence on how to open the panel again. The sentence names the shortcut only when
+      the browser reports one; clear the shortcut first and confirm the shorter sentence.
+- [ ] Keyboard: Tab and Shift+Tab stay inside the welcome. Escape closes it, focus moves
+      to the launcher, and the host page scrolls again.
+- [ ] Close button and scrim: each closes the welcome, with focus on the launcher.
+- [ ] Start planning: the welcome closes and the panel opens at the catalog, in edit
+      mode, with focus inside the panel. Close the panel; focus returns to the launcher
+      and the host page scrolls again.
+- [ ] Exactly once: reload the tab while the welcome shows. It does not show again,
+      since it is recorded as shown when it appears, not when it closes. Open another
+      regis tab; no welcome.
+- [ ] Toolbar click during the welcome: with the welcome open, click the extension icon.
+      The welcome closes and the panel opens; the welcome does not return.
+- [ ] Opened by a toolbar click: when the first regis tab after install is the one a
+      toolbar click opened, the panel opens and the welcome waits. It shows in the next
+      visible regis document instead, such as after a reload.
+- [ ] Background tab: with the welcome still pending, open a regis tab in the
+      background. Nothing shows there until it is brought to the front.
+- [ ] Language: the welcome reads in the panel language, Thai in a fresh profile, and
+      carries that language on its own node rather than the host page's.
+
 ## Firefox parity
 
 The end to end suite runs on Chromium only, because Playwright cannot side load the
@@ -376,3 +408,6 @@ from Chromium.
 - [ ] Session area: on Firefox 115 or later, a click from another site opens the search
       page with the panel open. On an older Firefox the search page opens without the
       panel opening by itself, and nothing breaks.
+- [ ] Welcome with tabs already open: open two regis tabs, then load the add-on so
+      Firefox injects into them. The welcome shows in the install tab only, and neither
+      earlier tab shows it when brought to the front.
