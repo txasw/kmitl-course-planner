@@ -53,14 +53,18 @@ function getFocusable(root: HTMLElement): HTMLElement[] {
   ).filter(isTabStop);
 }
 
-// getRootNode returns a Document or ShadowRoot at the top of the tree; both
-// expose activeElement, but the Node return type does not, so narrow by instance.
-export function activeElementWithin(node: Node): Element | null {
+/**
+ * The document or shadow root the node lives in, or null for a detached node, whose
+ * getRootNode is the top of its own subtree. Both roots expose activeElement and the id
+ * lookup, but the Node return type does not, so narrow by instance.
+ */
+export function rootOf(node: Node): Document | ShadowRoot | null {
   const root = node.getRootNode();
-  if (root instanceof Document || root instanceof ShadowRoot) {
-    return root.activeElement;
-  }
-  return null;
+  return root instanceof Document || root instanceof ShadowRoot ? root : null;
+}
+
+export function activeElementWithin(node: Node): Element | null {
+  return rootOf(node)?.activeElement ?? null;
 }
 
 /**
@@ -71,8 +75,8 @@ export function activeElementWithin(node: Node): Element | null {
  * to ask, so it reports false.
  */
 export function focusIsLost(node: Node): boolean {
-  const root = node.getRootNode();
-  if (!(root instanceof Document || root instanceof ShadowRoot)) return false;
+  const root = rootOf(node);
+  if (root === null) return false;
   const active = root.activeElement;
   return (
     active === null ||
