@@ -48,3 +48,13 @@ export function blockStyle(
     gridColumn: `${String(timeStart)} / ${String(timeEnd)}`,
   };
 }
+
+const MAX_STACK_OFFSET = 4;
+const STACK_STEP_PX = 5;
+
+// Footprints that share a cell fan out by their stack index so each one stays legible,
+// capped so a crowded cell never pushes a footprint out of its track.
+export function stackOffsetStyle(stack: number): CSSProperties {
+  const offset = `${String(Math.min(stack, MAX_STACK_OFFSET) * STACK_STEP_PX)}px`;
+  return { marginLeft: offset, marginTop: offset };
+}
