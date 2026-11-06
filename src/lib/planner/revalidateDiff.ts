@@ -154,7 +154,11 @@ function examEqual(a: ExamLike, b: ExamLike): boolean {
   );
 }
 
-/** Classify the differences between a stored snapshot and a fresh section. */
+/**
+ * Classify the differences between a stored snapshot and a fresh section. offeredTo is
+ * deliberately not compared: grouping membership depends on the query that produced the
+ * section, not on the section itself, so it has no change kind (ADR-0061).
+ */
 export function diffSnapshot(
   snapshot: SectionSnapshot,
   fresh: Section,
