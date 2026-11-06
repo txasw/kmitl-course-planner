@@ -11,7 +11,7 @@
 // tooltip layout free (no wrapper) and satisfies the refs lint rule that forbids a
 // ref object key passed to a function during render.
 
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import {
   FloatingPortal,
   autoUpdate,
@@ -27,6 +27,7 @@ import {
   type Placement,
 } from '@floating-ui/react';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
+import { useEscapeDismiss } from './useEscapeDismiss';
 
 type TriggerRef = (node: Element | null) => void;
 
@@ -92,25 +93,13 @@ export function Tooltip({ label, placement = 'top', children }: TooltipProps) {
     [refs],
   );
 
-  // WCAG 1.4.13 dismissible: Escape hides the tooltip. A capture phase document
-  // listener catches it whether the tooltip opened from hover or focus, and stops
-  // propagation so the overlay focus trap, which decides Escape on the panel's body
-  // ancestor in the bubble phase, does not also close the whole panel.
-  useEffect(() => {
-    if (!open) {
-      return undefined;
-    }
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.stopPropagation();
-        setOpen(false);
-      }
-    };
-    document.addEventListener('keydown', onKeyDown, true);
-    return () => {
-      document.removeEventListener('keydown', onKeyDown, true);
-    };
-  }, [open]);
+  // WCAG 1.4.13 dismissible: Escape hides the tooltip whether it opened from hover or
+  // focus, and the overlay, which decides Escape on the panel's body ancestor in the
+  // bubble phase, stays open.
+  const dismiss = useCallback(() => {
+    setOpen(false);
+  }, []);
+  useEscapeDismiss(open, dismiss);
 
   const content = open ? (
     <div
