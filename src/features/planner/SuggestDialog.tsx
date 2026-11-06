@@ -4,13 +4,16 @@
 // an objective and a preference; every change searches again. Applying a card creates a
 // new plan for the term, so the active plan is never rewritten, and the undo toast can
 // take it back. The objective and the preference last used persist with the prefs, so
-// the dialog opens on them. It is a centered dialog at the full width on the medium and wide tiers,
-// where the cards sit side by side, and the bottom sheet on compact, where they page.
+// the dialog opens on them. It is a centered dialog at the full width on the medium and
+// docked tiers, where the cards sit side by side, and the bottom sheet on compact, where
+// they page.
 //
-// The cards share one frame and one grid orientation. Thumbnails run time downward on
-// compact and medium, where a card is narrow, and across on the docked tiers. A card
-// opened full size replaces the options and the list until the back action, which
-// returns focus to the control that opened it.
+// The cards share one frame and one grid orientation: time runs downward on compact,
+// where the phone is tall and narrow, and across on every wider tier, the way the edit
+// grid reads. A medium card is narrow too, but a portrait grid there splits five days
+// into columns too slim for a label, while a landscape one keeps each block wide enough
+// for its name. A card opened full size replaces the options and the list until the
+// back action, which returns focus to the control that opened it.
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { CalendarX2, ChevronLeft } from 'lucide-react';
@@ -38,7 +41,6 @@ import {
   SUGGEST_PREFERENCES,
   type SuggestPreference,
 } from '@/lib/planner/suggestScore';
-import { isDockedTier } from '@/lib/ui/breakpoints';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
 import { toastStore } from '@/features/shell/toastStore';
@@ -208,7 +210,7 @@ export function SuggestDialog({
   }, [fullIndex]);
 
   const compact = tier === 'compact';
-  const thumbOrientation = isDockedTier(tier) ? 'landscape' : 'portrait';
+  const orientation = compact ? 'portrait' : 'landscape';
   const current = Math.min(page, Math.max(0, cards.length - 1));
   const full = fullIndex === null ? undefined : cards[fullIndex];
 
@@ -262,7 +264,7 @@ export function SuggestDialog({
           index={fullIndex}
           sections={full.sections}
           frame={frame}
-          orientation={compact ? 'portrait' : 'landscape'}
+          orientation={orientation}
           size="full"
           locale={language}
           t={t}
@@ -316,7 +318,7 @@ export function SuggestDialog({
             cards={cards}
             frame={frame}
             paged={compact}
-            orientation={thumbOrientation}
+            orientation={orientation}
             page={current}
             onPageChange={setPage}
             busy={busy}

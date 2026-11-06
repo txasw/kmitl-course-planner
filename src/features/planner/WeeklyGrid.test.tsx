@@ -369,6 +369,20 @@ describe('WeeklyGrid', () => {
     expect(grid.className).toContain('min-w-[44rem]');
   });
 
+  it('drops the poster floor when asked, for a grid that fits its card', () => {
+    render(
+      <WeeklyGrid
+        sections={[]}
+        window={SMART_WINDOW}
+        locale="th"
+        t={t}
+        posterFloor={false}
+      />,
+    );
+    const grid = screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+    expect(grid.className).not.toContain('min-w-[44rem]');
+  });
+
   it('labels the grid and the seven day rows', () => {
     render(
       <WeeklyGrid sections={[]} window={DEFAULT_WINDOW} locale="th" t={t} />,
@@ -407,6 +421,21 @@ describe('WeeklyGrid', () => {
     );
     expect(screen.getByText('07:00')).toBeInTheDocument();
     expect(screen.getByText('20:00')).toBeInTheDocument();
+  });
+
+  it('labels every nth hour from the first when the label step is set', () => {
+    render(
+      <WeeklyGrid
+        sections={[]}
+        window={SMART_WINDOW}
+        locale="th"
+        t={t}
+        hourLabelStep={2}
+      />,
+    );
+    expect(screen.getByText('08:00')).toBeInTheDocument();
+    expect(screen.queryByText('09:00')).toBeNull();
+    expect(screen.getByText('10:00')).toBeInTheDocument();
   });
 
   it('places each hour label as a grid item on its hour track', () => {
