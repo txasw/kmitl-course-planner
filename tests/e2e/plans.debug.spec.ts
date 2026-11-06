@@ -91,23 +91,22 @@ test('flags a moved section on refresh and acknowledges it in the dialog', async
   // against the base catalog. That check still runs and reports verified, while the
   // updates dialog stays closed for it. Wait for that clean result before moving the
   // section.
-  const banner = page
-    .getByText(/ตรวจสอบแล้ว/)
-    .locator('xpath=ancestor::div[1]');
-  await expect(banner).toBeVisible({ timeout: 15_000 });
+  // The check settles into the verification status at the end of the stats bar.
+  const stats = page.getByRole('group', { name: 'สรุปตาราง', exact: true });
+  await expect(stats.getByText(/ตรวจสอบแล้ว/)).toBeVisible({ timeout: 15_000 });
   const dialog = page.getByRole('dialog', {
     name: 'ข้อมูลในตารางมีการเปลี่ยนแปลง',
   });
   await expect(dialog).toHaveCount(0);
 
-  // Serve the moved time variant, then refresh from the banner: the replay reconciles
+  // Serve the moved time variant, then check again from the stats bar: the replay reconciles
   // the section, the summary reports one change, and the block carries the warn badge.
   // A manual check that finds a change opens the updates dialog directly, listing the
   // time change with its old and new values and starting focus on the acknowledgement.
   mock.setFreshSynthetic(true);
-  await banner.getByRole('button', { name: 'รีเฟรช' }).click();
+  await stats.getByRole('button', { name: 'ตรวจสอบอีกครั้ง' }).click();
   await expect(dialog).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByText(/เปลี่ยน 1/)).toBeVisible();
+  await expect(stats.getByText(/เปลี่ยน 1/)).toBeVisible();
   await expect(
     page.locator(`${block('900001')}[data-verify="warn"]`),
   ).toBeVisible();
