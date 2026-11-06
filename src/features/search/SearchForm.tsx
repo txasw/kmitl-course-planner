@@ -4,7 +4,8 @@
 // The search header around it owns the fold and the scroller, so the form lays out at
 // its natural height. Reference data loads once on mount; the term seeds from the host
 // route, a persisted search, the active plan, or the term after the registrar's current
-// one. The four async surfaces each render a deliberate state.
+// one. The four async surfaces each render a deliberate state. Focus within the form is
+// tracked, so the updates dialog never opens on its own while the student types a search.
 
 import { useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
@@ -15,6 +16,7 @@ import {
   isValidSubjectId,
   missingField,
 } from '@/lib/search/formState';
+import { useSearchFocusTracking } from '@/features/shell/attentionStore';
 import { commitAndFocus } from '@/features/shell/commitAndFocus';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
@@ -52,6 +54,7 @@ export function SearchForm({ dock }: SearchFormProps = {}) {
   useSearchInit(deps, route);
   const { submit } = useSearchActions(deps);
   const { t, language } = useTranslation();
+  const focusTracking = useSearchFocusTracking();
 
   const activeTab = useStore(searchStore, (state) => state.activeTab);
   const term = useStore(searchStore, (state) => state.term);
@@ -129,7 +132,7 @@ export function SearchForm({ dock }: SearchFormProps = {}) {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4" {...focusTracking}>
       <TermFields
         term={term}
         years={years}

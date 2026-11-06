@@ -56,6 +56,7 @@ export function BlockHoverCard({
 
   const { refs, floatingStyles, context } = usePanelPopover({
     gap: 8,
+    ambient: true,
     open: true,
     onOpenChange: (next) => {
       if (!next) {
