@@ -96,7 +96,10 @@ export function SelectedCoursesList({
   };
 
   return (
-    <section aria-labelledby={headingId} className="flex flex-col gap-2">
+    <section
+      aria-labelledby={headingId}
+      className="flex max-w-3xl flex-col gap-2"
+    >
       <h3
         ref={listHeadingRef}
         id={headingId}
