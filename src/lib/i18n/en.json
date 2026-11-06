@@ -238,6 +238,7 @@
   "detail.meetings": "Class times",
   "detail.noMeetings": "No scheduled class",
   "detail.kindCredits": "Type and credits",
+  "detail.weeklyHours": "Lecture {lecture} h, practice {practice} h, self study {selfStudy} h per week",
   "detail.teachers": "Instructors",
   "detail.seats": "Seats",
   "detail.exams": "Exams",

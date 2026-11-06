@@ -4,9 +4,13 @@
 // carries the facts a quick look needs: every meeting with its full day, time, and place,
 // the kind and credits, the instructors, the seats, and the exam dates. The full density,
 // for the popover that touch and keyboard users reach, adds the exam detail, the
-// conditions, the remark, and when the section was last checked. Seats read through the
-// full SeatDemand variant, the catalog row's seat line plus the host's four counts, from
-// the snapshot the latest verification refreshed. A section that announces neither exam
+// conditions, the remark, and when the section was last checked. It also spells out under
+// the credit string the weekly lecture, practice, and self study hours the string
+// encodes, so a student need not know the 3(2-3-6) notation; the hover card keeps the
+// short string alone so a quick look stays short, and a credit string outside the
+// notation shows no hours line rather than a wrong one. Seats read through the full
+// SeatDemand variant, the catalog row's seat line plus the host's four counts, from the
+// snapshot the latest verification refreshed. A section that announces neither exam
 // date reads as arranged by the instructor rather than leaving the exam rows out, so a
 // missing date is never mistaken for a missing field. The conditions read in the warn
 // tone with the shield icon a catalog row gives them, through the same line split and
@@ -17,6 +21,8 @@ import { MapPin, ShieldAlert } from 'lucide-react';
 import type { Section } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { pickLocalizedWithLang } from '@/lib/i18n/localize';
+import { fillTemplate } from '@/lib/i18n/template';
+import { parseCreditLps } from '@/lib/parsing/creditLps';
 import { conditionLines, textLines } from '@/lib/catalog/conditions';
 import { computeSeatDemand } from '@/lib/catalog/seatDemand';
 import { SeatDemand } from '@/features/catalog/SeatDemand';
@@ -106,6 +112,7 @@ export function SectionDetailList({
   const remarkLines = textLines(section.remark);
   const note = section.exam.note ?? '';
   const checkedAt = checkedAtText(lastVerifiedAt, t);
+  const hours = full ? parseCreditLps(creditStr) : null;
 
   return (
     <dl className="flex flex-col gap-1 text-xs">
@@ -139,6 +146,11 @@ export function SectionDetailList({
             ? t('section.practice')
             : t('section.lecture')}{' '}
           <span className="tabular-nums">{creditStr}</span>
+          {hours !== null ? (
+            <span className="block text-ink-soft tabular-nums">
+              {fillTemplate(t('detail.weeklyHours'), { ...hours })}
+            </span>
+          ) : null}
         </dd>
       </DetailRow>
 

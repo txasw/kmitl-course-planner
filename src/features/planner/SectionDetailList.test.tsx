@@ -75,9 +75,58 @@ describe('SectionDetailList', () => {
         t={th}
       />,
     );
+    // The hover card keeps the short credit string alone.
     expect(rowValues('ประเภทและหน่วยกิต')).toEqual(['ปฏิบัติ 3(2-2-5)']);
     expect(rowValues('อาจารย์ผู้สอน')).toEqual(['อ. หนึ่ง', 'อ. สอง']);
     expect(screen.getByText('อ. หนึ่ง')).toHaveAttribute('lang', 'th');
+  });
+
+  it('spells out the weekly hours under the credit string in full density', () => {
+    render(
+      <SectionDetailList
+        section={makeSection({ kind: 'practice' })}
+        creditStr="3(2-2-5)"
+        density="full"
+        locale="th"
+        t={th}
+      />,
+    );
+    expect(
+      screen.getByText(
+        'ทฤษฎี 2 ชม. ปฏิบัติ 2 ชม. ศึกษาด้วยตนเอง 5 ชม. ต่อสัปดาห์',
+      ),
+    ).toBeVisible();
+    expect(rowValues('ประเภทและหน่วยกิต')).toEqual([
+      'ปฏิบัติ 3(2-2-5)ทฤษฎี 2 ชม. ปฏิบัติ 2 ชม. ศึกษาด้วยตนเอง 5 ชม. ต่อสัปดาห์',
+    ]);
+  });
+
+  it('spells out the weekly hours in English', () => {
+    render(
+      <SectionDetailList
+        section={makeSection()}
+        creditStr="3(2-3-6)"
+        density="full"
+        locale="en"
+        t={en}
+      />,
+    );
+    expect(
+      screen.getByText('Lecture 2 h, practice 3 h, self study 6 h per week'),
+    ).toBeVisible();
+  });
+
+  it('shows no hours line when the credit string does not follow the notation', () => {
+    render(
+      <SectionDetailList
+        section={makeSection()}
+        creditStr="3"
+        density="full"
+        locale="th"
+        t={th}
+      />,
+    );
+    expect(rowValues('ประเภทและหน่วยกิต')).toEqual(['ทฤษฎี 3']);
   });
 
   // The teacher list is read from the API's div wrappers without deduplication, so a
