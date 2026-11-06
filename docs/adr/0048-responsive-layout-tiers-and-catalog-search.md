@@ -249,3 +249,51 @@ opened.
 The feedback strip still renders inside the grid region, so while the sheet is open it is inert
 with the grid until the strip moves to the place the live region inventory above gives it on
 Medium, at the bottom of the open sheet.
+
+## Amendment, 2026-11-06: the rail peeks and the docked column slides
+
+The owner asked for a shadow of the drawer at the left edge and for motion as the column comes
+and goes. Both apply on the docked tiers in edit mode only; the sheet tiers keep their own slide.
+
+- Hovering the rail, or reaching it with the keyboard, slides a 12 px shadowed edge of the
+  column out from behind it over the fast duration. The edge sits in the grid region's padding,
+  takes no pointer events and never opens anything; only a click, tap, Enter or Space opens the
+  column. The hover rule lives inside a hover capable media query, so a tap on a touch screen
+  never leaves it stuck. It waits an 80 ms intent delay, a new token, so a pointer passing
+  toward the browser edge does not flash it, and it leaves at once. It is off during any drag.
+- A pointer hide mounts the rail under the pointer, so the hint is held off until the first
+  pointer move that lands outside the rail; otherwise it would slide out while the column slides
+  away. A pointerleave on the rail cannot end the hold, because Chromium sends no enter or leave
+  to an element that mounted under a still pointer. A keyboard hide holds nothing, and focus
+  moved after a click does not match focus-visible, so it does not show the hint either.
+- Showing the column slides it in from the panel edge over the base duration, 200 ms, on a
+  decelerating enter easing. Hiding slides it out over the fast duration, 150 ms, on an
+  accelerating exit easing, until it tucks behind the rail. Neither overshoots, because a bounce
+  would shake the column edge beside a dense timetable.
+- The show and hide funnels start the slide through the Web Animations API after the visibility
+  change commits. The column moves by transform only, and the drawer shadow lives on a separate
+  child that fades by opacity, so both stay on the compositor. A leaving column keeps its
+  visibility through a third effect and then drops to the hidden state its classes already hold.
+  Every effect fills none, so an ended or cancelled slide leaves the column exactly as its
+  classes say, and a running slide is cancelled before the next starts. Durations and easings
+  are read from the tokens on the shadow host; a token that cannot be read means no motion,
+  never a hardcoded copy. A finish call lets a later drag start measure the column at its final
+  position.
+- Reduced motion skips the slide, shows and hides the hint in the same frame with no delay, and
+  stops the busy dot pulsing.
+- Focus moves at the start of a slide. On a show it lands on the hide control while the column is
+  still sliding in, so for up to 200 ms the focused control is partly out of view. This is
+  accepted as transient: it ends where the rail's icon was, where the pointer already is.
+
+The grid takes its new width in one step at the start of each slide rather than following the
+column. An animated width would re-lay out the whole CSS grid and every block on every frame,
+the edit window of ADR-0050 derives its minimum width from the visible quarters, and every edit
+block re-measures its fit from ADR-0046 through a resize observer, so a width animation would
+run the fit on every block about twelve times per toggle.
+
+Alternatives considered: a transient store field driving CSS keyframes was rejected, because it
+renders the panel twice per toggle, depends on an animationend event that bubbles from the
+course cards and never fires under reduced motion, and can replay after a tier change or a
+preview round trip. Animating the column's box shadow or visibility inside the transform effect
+was rejected because either moves the slide off the compositor. Animating the grid width was
+rejected for the relayout reasons above.
