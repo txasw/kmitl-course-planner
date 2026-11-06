@@ -76,6 +76,20 @@ describe('useCatalogFocusRepair', () => {
     expect(screen.getByRole('button', { name: 'ซ่อนรายวิชา' })).toHaveFocus();
   });
 
+  it('moves focus out of the docked column when it gives way to the closed sheet', () => {
+    const viewport = installViewport(1440);
+    openPanel();
+    render(<Panel />);
+    const semester = screen.getByRole('combobox', { name: 'ภาคการศึกษา' });
+    semester.focus();
+
+    act(() => {
+      viewport.resize(768);
+    });
+    expect(semester.closest('[inert]')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'รายวิชา' })).toHaveFocus();
+  });
+
   it('leaves focus on another live element alone', () => {
     const viewport = installViewport(1440);
     openPanel();
