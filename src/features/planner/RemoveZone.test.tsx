@@ -17,6 +17,7 @@ import { installViewport } from '../../../tests/support/viewport';
 import { dragStore } from './dragStore';
 import {
   CatalogRemoveZone,
+  REMOVE_BAR_ID,
   REMOVE_CATALOG_ID,
   RemoveBar,
   isRemoveZoneId,
@@ -101,6 +102,7 @@ describe('removeZoneForm', () => {
 describe('isRemoveZoneId', () => {
   it('matches every remove prefixed id and nothing else', () => {
     expect(isRemoveZoneId(REMOVE_CATALOG_ID)).toBe(true);
+    expect(isRemoveZoneId(REMOVE_BAR_ID)).toBe(true);
     expect(isRemoveZoneId('kcp-planner-drop')).toBe(false);
     expect(isRemoveZoneId('cand-kcp-remove-x')).toBe(false);
     expect(isRemoveZoneId(7)).toBe(false);
@@ -148,6 +150,58 @@ describe('CatalogRemoveZone', () => {
   });
 });
 
+describe('RemoveBar', () => {
+  function renderBar() {
+    installViewport(768);
+    const result = render(
+      <DndContext>
+        <RemoveBar tier="medium" />
+      </DndContext>,
+    );
+    startBlockDrag();
+    return result;
+  }
+
+  it('docks a 64 px dashed band at the panel bottom above the device inset', () => {
+    const { container } = renderBar();
+    const [zone] = zones(container);
+    expect(zone).toHaveAttribute('data-remove-zone', 'bar');
+    expect(zone).toHaveClass(
+      'absolute',
+      'inset-x-0',
+      'bottom-0',
+      'z-dropzone',
+      'box-content',
+      'h-16',
+      'pb-[var(--kcp-safe-bottom)]',
+      'border-t-2',
+      'border-dashed',
+      'bg-danger-zone',
+    );
+    expect(screen.getByText('วางที่นี่เพื่อนำออกจากตาราง')).toHaveClass(
+      'text-danger',
+    );
+  });
+
+  it('turns solid with the release label while a block is over it', () => {
+    overIds.add(REMOVE_BAR_ID);
+    const { container } = renderBar();
+    const [zone] = zones(container);
+    expect(zone).toHaveClass('border-solid', 'bg-danger-zone-over');
+    expect(screen.getByText('ปล่อยเพื่อนำออก')).toHaveClass('bg-danger');
+  });
+
+  it('mounts nothing outside a block drag', () => {
+    installViewport(768);
+    const { container } = render(
+      <DndContext>
+        <RemoveBar tier="medium" />
+      </DndContext>,
+    );
+    expect(zones(container)).toHaveLength(0);
+  });
+});
+
 describe('remove zone forms in the panel body', () => {
   it('turns the shown docked column into the zone and dims its content', () => {
     installViewport(1440);
@@ -180,7 +234,9 @@ describe('remove zone forms in the panel body', () => {
     const { container } = render(<Body />);
     startBlockDrag();
     expect(column(container).querySelector('[data-remove-zone]')).toBeNull();
-    expect(zones(container)).toHaveLength(1);
+    expect(zones(container).map((zone) => zone.dataset.removeZone)).toEqual([
+      'bar',
+    ]);
   });
 
   it.each([390, 768])(
@@ -190,7 +246,9 @@ describe('remove zone forms in the panel body', () => {
       const { container } = render(<Body />);
       startBlockDrag();
       expect(column(container).querySelector('[data-remove-zone]')).toBeNull();
-      expect(zones(container)).toHaveLength(1);
+      expect(zones(container).map((zone) => zone.dataset.removeZone)).toEqual([
+        'bar',
+      ]);
     },
   );
 

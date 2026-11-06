@@ -25,6 +25,9 @@ export const REMOVE_ZONE_ID = `${REMOVE_ZONE_PREFIX}zone`;
 /** The id of the column form, the docked catalog column as a remove zone. */
 export const REMOVE_CATALOG_ID = `${REMOVE_ZONE_PREFIX}catalog`;
 
+/** The id of the bar form, along the panel bottom where no column is shown. */
+export const REMOVE_BAR_ID = `${REMOVE_ZONE_PREFIX}bar`;
+
 /** Whether a drop target id names a remove zone. */
 export function isRemoveZoneId(id: string | number | undefined): boolean {
   return typeof id === 'string' && id.startsWith(REMOVE_ZONE_PREFIX);
@@ -132,9 +135,33 @@ export function RemoveZone({ label }: { label: string }) {
   );
 }
 
-/** The remove target for a block drag when the column form is not mounted. */
+/**
+ * The bar form, a 64 px band across the panel bottom over the summary bar, padded clear
+ * of the device's bottom inset. It is the zone on the tiers below the dock and while the
+ * docked column is hidden, and it mounts only while a block drag is live.
+ */
 export function RemoveBar({ tier }: { tier: LayoutTier }) {
-  const { t } = useTranslation();
   const active = useRemoveZoneActive(tier, 'bar');
-  return active ? <RemoveZone label={t('blockMove.removeZone')} /> : null;
+  return active ? <BarZone /> : null;
+}
+
+function BarZone() {
+  const { setNodeRef, isOver } = useDroppable({
+    id: REMOVE_BAR_ID,
+    data: { role: 'remove' },
+  });
+  return (
+    <div
+      ref={setNodeRef}
+      data-remove-zone="bar"
+      data-over={isOver || undefined}
+      className={`pointer-events-none absolute inset-x-0 bottom-0 z-dropzone box-content flex h-16 items-center justify-center border-t-2 border-danger pb-[var(--kcp-safe-bottom)] ${
+        isOver
+          ? 'border-solid bg-danger-zone-over'
+          : 'border-dashed bg-danger-zone'
+      }`}
+    >
+      <RemovePill over={isOver} />
+    </div>
+  );
 }
