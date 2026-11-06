@@ -45,6 +45,7 @@ import { buildEligibility } from '@/lib/planner/blockDensity';
 import type { PlacedSection } from './placedSection';
 import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 import { useDensityFit } from './useDensityFit';
+import { PRESSED_CLASS } from './useTouchPress';
 
 interface EventBlockProps {
   section: PlacedSection;
@@ -63,8 +64,10 @@ interface EventBlockProps {
   examConflicted?: boolean;
   /** The draggable node ref, present only for an edit mode drag source. */
   dragRef?: (element: HTMLElement | null) => void;
-  /** The pointer drag listeners, present only for an edit mode drag source. */
+  /** The drag listeners, present only for an edit mode drag source. */
   dragListeners?: DraggableSyntheticListeners;
+  /** Whether a finger holds the block long enough to read as pressed, ahead of its drag. */
+  pressed?: boolean;
   /** Remove this section from the plan by its id, present only in edit mode. The
    * block passes its own id so the grid can hand down one stable handler rather than
    * a fresh per block closure, which keeps this memoized block from re-rendering. */
@@ -128,6 +131,7 @@ function EventBlockComponent({
   examConflicted = false,
   dragRef,
   dragListeners,
+  pressed = false,
   onRemove,
   removeLabel,
   onOpenDetail,
@@ -242,7 +246,9 @@ function EventBlockComponent({
             : undefined
         }
         onPointerLeave={onHoverLeave}
-        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-kcp py-1.5 pr-2 pl-2.5 text-[1em] ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink outline-none ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'touch-drag cursor-grab' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''} ${interactive ? 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary' : ''}`}
+        // The pressed outline replaces outline-none, which would otherwise zero the
+        // outline style the pressed look sets.
+        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-kcp py-1.5 pr-2 pl-2.5 text-[1em] ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink ${pressed ? PRESSED_CLASS : 'outline-none'} ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'touch-drag cursor-grab' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''} ${interactive ? 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary' : ''}`}
         style={{ backgroundColor: hashTint(section.subjectId) }}
         {...dragListeners}
       >

@@ -4,7 +4,8 @@
 // routes to the blocked feedback exactly like the add button, since arrow key
 // movement is meaningless when every placement is fixed. Hovering the row with a mouse
 // or focusing the grip previews the section's cells at low emphasis; a finger never
-// hovers, so a tap does not draw the preview (ADR-0058).
+// hovers, so a tap does not draw the preview (ADR-0058). A held finger marks the row
+// pressed before its drag starts, and the dragged row dims to 40 percent.
 
 import type { PointerEvent, ReactNode } from 'react';
 import { useDraggable } from '@dnd-kit/core';
@@ -12,6 +13,10 @@ import { GripVertical } from 'lucide-react';
 import type { Course, Section } from '@/lib/domain/types';
 import { dragStore } from '@/features/planner/dragStore';
 import { NO_DRAG_ARMING } from '@/features/planner/dragArming';
+import {
+  dragSourceClass,
+  useTouchPress,
+} from '@/features/planner/useTouchPress';
 
 interface DraggableSectionProps {
   id: string;
@@ -38,6 +43,7 @@ export function DraggableSection({
     id,
     data: { course, section },
   });
+  const press = useTouchPress();
 
   const preview = () => {
     dragStore.getState().setHover(section);
@@ -55,9 +61,10 @@ export function DraggableSection({
     <div
       ref={setNodeRef}
       data-drag-surface="section"
-      className={`touch-drag flex cursor-grab items-stretch gap-1 ${isDragging ? 'opacity-50' : ''}`}
+      className={`touch-drag flex cursor-grab items-stretch gap-1 rounded-kcp ${dragSourceClass(isDragging, press.pressed)}`}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={clearPreview}
+      {...press.handlers}
       {...listeners}
     >
       <button

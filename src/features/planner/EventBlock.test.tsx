@@ -111,6 +111,24 @@ describe('EventBlock', () => {
     expect(onContextMenu).toHaveBeenCalledTimes(2);
   });
 
+  it('shows the pressed outline in place of the cleared outline while pressed', () => {
+    const props = {
+      section,
+      meeting,
+      style: {},
+      locale: 'th' as const,
+      t,
+      dragListeners: {},
+    };
+    const { rerender } = render(<EventBlock {...props} />);
+    const block = screen.getByLabelText(/90592033/);
+    expect(block).toHaveClass('outline-none');
+    expect(block).not.toHaveClass('outline-border-strong');
+    rerender(<EventBlock {...props} pressed />);
+    expect(block).toHaveClass('outline-border-strong');
+    expect(block).not.toHaveClass('outline-none');
+  });
+
   it('lets a swipe on a draggable block scroll and leaves a long press to the drag', () => {
     render(
       <EventBlock
