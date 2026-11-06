@@ -7,8 +7,10 @@
 // the credits they carry, and a missing entry keeps a short parenthetical marker so
 // the text is honest about what upstream no longer lists; a chat message has no footer
 // to carry the poster's data line, so the marker stays on the line it describes
-// (ADR-0055). A header line names the plan, its term, and total credits; a footer line
-// names the app.
+// (ADR-0055). When the show exams option is on, the exam schedule follows under its own
+// label, one line per exam window in the poster exam block's order and wording, with no cap
+// since a chat message has no canvas to fit (ADR-0064). A header line names the plan, its
+// term, and total credits; a footer line names the app.
 
 import type { Meeting } from '../domain/types';
 import type { VerifyStatus } from '../domain/plan';
@@ -29,11 +31,21 @@ export interface PlanTextSection {
   meetings: Meeting[];
 }
 
+/** One exam schedule line, as the poster exam block also lists it: the exam kind label, the
+ * formatted window or null for a subject with no dated exam, and the named subject. */
+export interface PlanTextExamLine {
+  label: string;
+  when: string | null;
+  subject: string;
+}
+
 export interface PlanTextInput {
   planName: string;
   year: string;
   semester: string;
   sections: PlanTextSection[];
+  /** The plan's exam schedule lines, appended when the show exams option is on. */
+  exams: readonly PlanTextExamLine[];
   options: DisplayOptions;
   locale: Locale;
   t: Translate;
@@ -69,6 +81,12 @@ export function subjectText(
   return `${id}${name}${codes}`;
 }
 
+function examLineText(line: PlanTextExamLine): string {
+  return line.when === null
+    ? `${line.label} ${line.subject}`
+    : `${line.label} ${line.when} ${line.subject}`;
+}
+
 function missingPart(section: PlanTextSection, t: Translate): string {
   return section.verifyStatus === 'missing'
     ? ` (${t('revalidation.missing')})`
@@ -76,7 +94,8 @@ function missingPart(section: PlanTextSection, t: Translate): string {
 }
 
 export function formatPlanText(input: PlanTextInput): string {
-  const { planName, year, semester, sections, options, locale, t } = input;
+  const { planName, year, semester, sections, exams, options, locale, t } =
+    input;
 
   const credits = summarizeCredits(
     sections.map((section) => ({
@@ -118,6 +137,11 @@ export function formatPlanText(input: PlanTextInput): string {
   }
   if (unscheduledLines.length > 0) {
     blocks.push([t('shelf.title'), ...unscheduledLines].join('\n'));
+  }
+  if (options.showExams && exams.length > 0) {
+    blocks.push(
+      [t('exam.schedule.title'), ...exams.map(examLineText)].join('\n'),
+    );
   }
   blocks.push(t('app.title'));
 

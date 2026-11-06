@@ -8,11 +8,22 @@ import {
   within,
 } from '@testing-library/react';
 import type { RefObject } from 'react';
-import { DEFAULT_DISPLAY_OPTIONS } from '@/lib/planner/displayOptions';
+import {
+  DEFAULT_DISPLAY_OPTIONS,
+  type DisplayOptions,
+} from '@/lib/planner/displayOptions';
+import {
+  buildExamSchedule,
+  type ExamSchedule,
+} from '@/lib/planner/examSchedule';
 import { DEFAULT_TEMPLATE } from '@/lib/planner/exportTemplates';
 import { PreviewToolbar } from './PreviewToolbar';
 import type { PlacedSection } from './placedSection';
-import { makePlanEntry } from '../../../tests/support/domain-builders';
+import {
+  makePlanEntry,
+  makeSection,
+  makeSnapshot,
+} from '../../../tests/support/domain-builders';
 import {
   resetPlanStore,
   seedActivePlan,
@@ -44,13 +55,17 @@ const section: PlacedSection = {
 
 const posterRef: RefObject<HTMLDivElement | null> = { current: null };
 
-function renderToolbar() {
+function renderToolbar(
+  displayOptions: DisplayOptions = DEFAULT_DISPLAY_OPTIONS,
+  examSchedule: ExamSchedule = buildExamSchedule([]),
+) {
   render(
     <PreviewToolbar
       posterRef={posterRef}
       template={DEFAULT_TEMPLATE}
       sections={[section]}
-      displayOptions={DEFAULT_DISPLAY_OPTIONS}
+      displayOptions={displayOptions}
+      examSchedule={examSchedule}
     />,
   );
 }
@@ -115,6 +130,45 @@ describe('PreviewToolbar', () => {
     // The subject id is off by default, so the line leads with the course name.
     expect(text).toContain('สังคมไทยในวันนี้');
     expect(text).toContain('ตัววางแผนตารางเรียน สจล.');
+  });
+
+  it('appends the exam schedule to the copied text when the option is on', () => {
+    const writeText = vi.fn<(text: string) => Promise<void>>(() =>
+      Promise.resolve(),
+    );
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+    const schedule = buildExamSchedule([
+      makePlanEntry({
+        snapshot: makeSnapshot({
+          ...makeSection({
+            teachTableId: 't1',
+            subjectId: '90592008',
+            exam: {
+              midterm: {
+                start: '2026-12-10 09:00:00',
+                end: '2026-12-10 12:00:00',
+              },
+            },
+          }),
+          subjectMeta: {
+            subjectId: '90592008',
+            nameTh: 'สังคมไทยในวันนี้',
+            nameEn: "TODAY'S THAI SOCIETY",
+            credit: 3,
+            creditStr: '3(3-0-6)',
+          },
+        }),
+      }),
+    ]);
+    renderToolbar(
+      { ...DEFAULT_DISPLAY_OPTIONS, showEnglishNames: false, showExams: true },
+      schedule,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'คัดลอกข้อความ' }));
+    expect(writeText.mock.calls[0]?.[0]).toContain(
+      'ตารางสอบ\nกลางภาค 10 ธ.ค. 2569 09:00-12:00 สังคมไทยในวันนี้ (901)',
+    );
   });
 
   it('follows the toolbar with the pre share notice, never inside it', () => {
