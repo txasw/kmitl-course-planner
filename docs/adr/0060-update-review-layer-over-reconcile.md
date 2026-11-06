@@ -189,3 +189,24 @@ requires.
 The end to end specs that click the banner's refresh and read its summary move to the stats bar,
 and those that trigger a manual check that finds changes must dismiss or acknowledge the dialog
 before the next step.
+
+## Amendment, 2026-11-06: the updates indicator on each tier
+
+The indicator ships as the decision above places it, with these details settled in the build.
+
+- Its count is the number of items the dialog lists, read through the same rule, so a section
+  still not listed after its review was acknowledged keeps the indicator, as it keeps its place
+  in the dialog, until the student removes it.
+- On the medium and wide tiers it is a warn bordered chip at the right of the plan view tab row,
+  outside the tablist, since a tablist holds tabs only. The row heights become minimums, so under
+  a coarse pointer the row grows to the chip's 44 px target rather than clip it.
+- Below 640 px the plan pane has no tab row, so the same chip heads the plan pane in both plan
+  views, and the ตารางเรียน nav item carries a warn dot. The item's accessible name adds the
+  indicator wording with the count, so the dot's meaning is not carried by colour alone.
+- `StatusAnnouncer` reads the indicator wording when the active plan goes from nothing to review
+  to some items, as a check records changes or a switch lands on a plan with open reviews. A
+  count that changes while the chip shows stays silent, and a plan that already had items when
+  the panel opened says nothing, because the indicator did not just appear. No live region is
+  added, so the ADR-0048 inventory is unchanged.
+- The indicator renders in edit only, as the dialog it opens does. In preview the
+  `PreShareNotice` carries the count.
