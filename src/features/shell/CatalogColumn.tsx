@@ -16,13 +16,16 @@
 // screen. The open sheet is a labelled dialog over the grid: it takes focus as it opens
 // and keeps Tab inside it with its own focus trap, while Layout makes the grid region
 // under the scrim inert. The header above the scrim stays operable, so its toggle still
-// closes the sheet.
+// closes the sheet. Escape closes the sheet alone, claimed in a React handler on the
+// sheet so an inner surface that holds focus, such as an open combobox list, claims the
+// press first and the overlay behind stays open (ADR-0056). Every sheet close returns
+// focus to the header toggle, because the control that closed it turns inert.
 //
 // The docked column can be hidden to give the grid the full width; hidden, it leaves the
 // flow but stays mounted, laid out at its width and inert, so its scroll offset and
 // search state wait for its return, and the edge rail takes its place as the way back.
 
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, type KeyboardEvent } from 'react';
 import { useStore } from 'zustand';
 import { PanelLeftClose, X } from 'lucide-react';
 import {
@@ -41,8 +44,14 @@ import {
   type DockedTier,
   type LayoutTier,
 } from '@/lib/ui/breakpoints';
+import { claimEscape } from '@/lib/ui/escape';
 import { FOCUS_RING } from '@/lib/ui/focus';
-import { CATALOG_HIDE_ID, hideCatalog } from './catalogVisibility';
+import { commitAndFocus } from './commitAndFocus';
+import {
+  CATALOG_HIDE_ID,
+  CATALOG_TOGGLE_ID,
+  hideCatalog,
+} from './catalogVisibility';
 import { uiStore } from './uiStore';
 import { useFocusTrap } from './useFocusTrap';
 import { useTranslation } from './useTranslation';
@@ -52,6 +61,22 @@ export const CATALOG_COLUMN_ID = 'kcp-catalog-column';
 
 /** Id of the sheet heading, which names the open sheet dialog. */
 const SHEET_TITLE_ID = 'kcp-catalog-sheet-title';
+
+/**
+ * Close the catalog sheet from the control that asked for it and move focus to the
+ * header toggle, which opens it again.
+ */
+export function closeSheet(control: Element): void {
+  commitAndFocus(control, CATALOG_TOGGLE_ID, () => {
+    uiStore.getState().setSheetOpen(false);
+  });
+}
+
+function handleSheetKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
+  if (claimEscape(event)) {
+    closeSheet(event.currentTarget);
+  }
+}
 
 const DOCKED_WIDTH: Record<DockedTier, string> = {
   lg: 'w-[22rem]',
@@ -84,7 +109,6 @@ function containerClass(
 function SheetHeader() {
   const { t } = useTranslation();
   const count = useResultCourseCount();
-  const setSheetOpen = useStore(uiStore, (state) => state.setSheetOpen);
 
   return (
     <div className="flex items-center gap-2 border-b border-border px-4 py-3">
@@ -101,8 +125,8 @@ function SheetHeader() {
         <button
           type="button"
           aria-label={t('catalog.sheet.close')}
-          onClick={() => {
-            setSheetOpen(false);
+          onClick={(event) => {
+            closeSheet(event.currentTarget);
           }}
           className={`inline-flex items-center justify-center rounded-kcp p-2 text-ink-soft transition-colors hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`}
         >
@@ -178,6 +202,7 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
       role={docked ? undefined : 'dialog'}
       aria-labelledby={docked ? undefined : SHEET_TITLE_ID}
       tabIndex={docked ? undefined : -1}
+      onKeyDown={sheetModal ? handleSheetKeyDown : undefined}
       aria-hidden={shown ? undefined : true}
       inert={!shown || undefined}
       className={containerClass(tier, sheetOpen, catalogVisible)}

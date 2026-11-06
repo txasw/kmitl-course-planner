@@ -4,7 +4,7 @@ import { PlannerPanel } from '@/features/planner/PlannerPanel';
 import { PlannerDnd } from '@/features/planner/PlannerDnd';
 import { PlannerDropZone } from '@/features/planner/PlannerDropZone';
 import { isDockedTier } from '@/lib/ui/breakpoints';
-import { CatalogColumn } from './CatalogColumn';
+import { CatalogColumn, closeSheet } from './CatalogColumn';
 import { EdgeRail } from './EdgeRail';
 import { uiStore } from './uiStore';
 import { useCatalogFocusRepair } from './useCatalogFocusRepair';
@@ -24,7 +24,6 @@ export function Layout() {
   const tier = useLayoutTier();
   const viewMode = useStore(uiStore, (state) => state.viewMode);
   const sheetOpen = useStore(uiStore, (state) => state.sheetOpen);
-  const setSheetOpen = useStore(uiStore, (state) => state.setSheetOpen);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   useCatalogFocusRepair(bodyRef, tier);
   const sheetModal = !isDockedTier(tier) && sheetOpen;
@@ -59,8 +58,8 @@ export function Layout() {
             type="button"
             tabIndex={-1}
             aria-hidden="true"
-            onClick={() => {
-              setSheetOpen(false);
+            onClick={(event) => {
+              closeSheet(event.currentTarget);
             }}
             className="absolute inset-0 z-scrim bg-ink/30"
           />
