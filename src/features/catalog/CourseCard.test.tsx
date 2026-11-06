@@ -335,6 +335,22 @@ describe('CourseCard disclosure motion', () => {
     expect(body()).not.toHaveAttribute('inert');
     expect(screen.queryByText(/กลุ่มเรียน 901/)).not.toBeInTheDocument();
   });
+
+  it('closes with no leaving stage when the course is added', () => {
+    const props = {
+      course,
+      locale: 'th' as const,
+      t,
+      onToggle: () => undefined,
+    };
+    const placed = [makeSection({ teachTableId: 's1', subjectId: '90592008' })];
+    const { rerender } = render(<CourseCard {...props} placed={[]} open />);
+    expect(body()).toHaveAttribute('data-stage', 'open');
+    // The catalog collapses a card once its course is placed.
+    rerender(<CourseCard {...props} placed={placed} open={false} />);
+    expect(body()).toHaveAttribute('data-stage', 'closed');
+    expect(body()).not.toHaveAttribute('inert');
+  });
 });
 
 describe('CourseCard reveal on expand', () => {

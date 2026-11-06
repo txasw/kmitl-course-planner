@@ -1,9 +1,9 @@
 // A course card: a header with the subject id, the locale primary name and the credit
 // string, which is also the disclosure for the card's sections. A second line inside
 // the toggle summarizes the course's fit, so a collapsed card answers whether opening
-// it is worth it. Each section's seat
-// status and plan relation are computed here from the placed sections. A card starts
-// collapsed and the catalog owns whether it is open, so the state survives a remount.
+// it is worth it. Each section's seat status and plan relation are computed here from
+// the placed sections. A card starts collapsed and the catalog owns whether it is
+// open, so the state survives a remount.
 
 import { memo, useId, useMemo, type ReactNode } from 'react';
 import { useDraggable } from '@dnd-kit/core';
@@ -24,8 +24,8 @@ import { DraggableSection } from './DraggableSection';
 import { SectionRow } from './SectionRow';
 import { RemoveButton, removeSectionName } from './RemoveButton';
 import { AddedLine, FitLine } from './CourseMeta';
+import { CourseBody, DISCLOSURE_MS } from './CourseBody';
 import { FOCUS_RING } from '@/lib/ui/focus';
-import { usePresence } from '@/features/shell/usePresence';
 import { useRevealOnExpand } from './useRevealOnExpand';
 import {
   dragSourceClass,
@@ -33,10 +33,6 @@ import {
 } from '@/features/planner/useTouchPress';
 
 const HEADER = 'flex items-start gap-1';
-
-// Matches the .kcp-disclosure open transition (--kcp-duration-base), so a closing
-// body unmounts its rows once the collapse has played.
-const DISCLOSURE_MS = 200;
 
 // The whole card header is a pointer drag source. Grabbing it previews every section of
 // the course as a candidate slot on the grid, and dnd-kit swallows the click that ends
@@ -145,7 +141,6 @@ function CourseCardComponent({
         : { added: true, section: placedSection },
     [placedSection, course, placed, crossTerm, locale],
   );
-  const { mounted, stage } = usePresence(open, DISCLOSURE_MS);
   const { cardRef, scheduleReveal } = useRevealOnExpand(DISCLOSURE_MS);
   const handleToggle = () => {
     scheduleReveal(!open);
@@ -233,57 +228,51 @@ function CourseCardComponent({
       ) : (
         <header className={HEADER}>{headerContent}</header>
       )}
-      {/* The body stays in the tree so aria-controls always resolves. Its rows mount
-          only while it is open or animating, so a collapsed card registers no
-          section drag source, and a leaving body is inert so no stale row takes
-          focus. */}
-      <div
+      {/* Keyed by placement: an add or a remove remounts the body at its new state
+          with no transition, so a card never plays the exit of rows that just
+          became read only or addable again. */}
+      <CourseBody
+        key={added ? 'added' : 'unadded'}
         id={bodyId}
-        data-course-body
-        data-stage={stage}
-        hidden={!mounted}
-        inert={stage === 'leaving' || undefined}
-        className="kcp-disclosure"
-      >
-        <div>
-          {mounted ? (
-            <div className="flex flex-col gap-1.5 pt-2">
-              {/* The full name repeats for the eye when the title clamps; the button
+        open={open}
+        instant={false}
+        renderContent={() => (
+          <div className="flex flex-col gap-1.5 pt-2">
+            {/* The full name repeats for the eye when the title clamps; the button
                 already reads it, so it is hidden from assistive technology. */}
-              <p className="text-xs break-words">
-                <span aria-hidden className="text-ink">
-                  {primary}
+            <p className="text-xs break-words">
+              <span aria-hidden className="text-ink">
+                {primary}
+              </span>
+              {hasSecondary ? (
+                <span lang={secondaryLang} className="ml-1 text-ink-soft">
+                  {secondary}
                 </span>
-                {hasSecondary ? (
-                  <span lang={secondaryLang} className="ml-1 text-ink-soft">
-                    {secondary}
-                  </span>
-                ) : null}
-              </p>
-              {added ? (
-                <p className="text-xs text-ink-soft">
-                  {t('catalog.card.addedHint')}
-                </p>
               ) : null}
-              {course.sections.map((section) => (
-                <CourseSection
-                  key={section.teachTableId}
-                  course={course}
-                  section={section}
-                  placed={placed}
-                  locale={locale}
-                  t={t}
-                  term={term}
-                  readOnly={added}
-                  onAdd={onAdd}
-                  onRemove={onRemove}
-                  onSwitchTerm={onSwitchTerm}
-                />
-              ))}
-            </div>
-          ) : null}
-        </div>
-      </div>
+            </p>
+            {added ? (
+              <p className="text-xs text-ink-soft">
+                {t('catalog.card.addedHint')}
+              </p>
+            ) : null}
+            {course.sections.map((section) => (
+              <CourseSection
+                key={section.teachTableId}
+                course={course}
+                section={section}
+                placed={placed}
+                locale={locale}
+                t={t}
+                term={term}
+                readOnly={added}
+                onAdd={onAdd}
+                onRemove={onRemove}
+                onSwitchTerm={onSwitchTerm}
+              />
+            ))}
+          </div>
+        )}
+      />
     </article>
   );
 }
