@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   render,
   screen,
@@ -24,8 +24,10 @@ import {
 import { installViewport } from '../../../tests/support/viewport';
 import { useLayoutTier } from './useLayoutTier';
 import { CatalogColumn, CATALOG_COLUMN_ID } from './CatalogColumn';
+import { CatalogToggle } from './CatalogToggle';
 import { EdgeRail } from './EdgeRail';
 import { uiStore } from './uiStore';
+import { useFocusTrap } from './useFocusTrap';
 
 // Every mounted useDraggable call counts against its id while it stays mounted, so a
 // second copy of the catalog anywhere in the tree would show as a count of two.
@@ -103,6 +105,32 @@ function ShellHarness() {
       </DndContext>
     </SearchDepsProvider>
   );
+}
+
+// The overlay in miniature: a trapped panel that closes on Escape, holding the header
+// toggle and the column, so a test proves which layer each Escape press closes.
+function OverlayHarness({ onOverlayEscape }: { onOverlayEscape: () => void }) {
+  const tier = useLayoutTier();
+  const panel = useRef<HTMLDivElement>(null);
+  useFocusTrap(panel, true, onOverlayEscape);
+  return (
+    <SearchDepsProvider value={fakeSearchDeps()}>
+      <DndContext>
+        <div ref={panel} role="dialog" aria-label="overlay" tabIndex={-1}>
+          <CatalogToggle />
+          <CatalogColumn tier={tier} />
+        </div>
+      </DndContext>
+    </SearchDepsProvider>
+  );
+}
+
+function openSheetFromToggle(): HTMLElement {
+  const toggle = screen.getByRole('button', { name: 'รายวิชา' });
+  toggle.focus();
+  fireEvent.click(toggle);
+  expect(uiStore.getState().sheetOpen).toBe(true);
+  return toggle;
 }
 
 function column(container: HTMLElement): HTMLElement {
@@ -309,6 +337,67 @@ describe('CatalogColumn', () => {
     expect(first).toHaveFocus();
     fireEvent.keyDown(first, { key: 'Tab', shiftKey: true });
     expect(last).toHaveFocus();
+  });
+
+  it('closes only the sheet on Escape and returns focus to the header toggle', () => {
+    installViewport(768);
+    const onOverlayEscape = vi.fn();
+    render(<OverlayHarness onOverlayEscape={onOverlayEscape} />);
+    const toggle = openSheetFromToggle();
+    const sheet = screen.getByRole('dialog', { name: 'ค้นหารายวิชา' });
+    expect(sheet).toHaveFocus();
+
+    fireEvent.keyDown(sheet, { key: 'Escape' });
+    expect(uiStore.getState().sheetOpen).toBe(false);
+    expect(onOverlayEscape).not.toHaveBeenCalled();
+    expect(toggle).toHaveFocus();
+
+    // With the sheet closed, the next Escape belongs to the overlay.
+    fireEvent.keyDown(toggle, { key: 'Escape' });
+    expect(onOverlayEscape).toHaveBeenCalledOnce();
+  });
+
+  it('lets an open list inside the sheet claim Escape before the sheet', () => {
+    installViewport(768);
+    const onOverlayEscape = vi.fn();
+    render(<OverlayHarness onOverlayEscape={onOverlayEscape} />);
+    openSheetFromToggle();
+    const semester = screen.getByRole('combobox', { name: 'ภาคการศึกษา' });
+    fireEvent.keyDown(semester, { key: 'ArrowDown' });
+    expect(semester).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.keyDown(semester, { key: 'Escape' });
+    expect(semester).toHaveAttribute('aria-expanded', 'false');
+    expect(uiStore.getState().sheetOpen).toBe(true);
+    expect(onOverlayEscape).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(semester, { key: 'Escape' });
+    expect(uiStore.getState().sheetOpen).toBe(false);
+    expect(onOverlayEscape).not.toHaveBeenCalled();
+  });
+
+  it('returns focus to the header toggle from the sheet close', () => {
+    installViewport(768);
+    render(<OverlayHarness onOverlayEscape={vi.fn()} />);
+    const toggle = openSheetFromToggle();
+    const close = screen.getByRole('button', { name: 'ปิดรายการรายวิชา' });
+    close.focus();
+    fireEvent.click(close);
+    expect(uiStore.getState().sheetOpen).toBe(false);
+    expect(toggle).toHaveFocus();
+  });
+
+  it('leaves Escape to the overlay on a docked tier', () => {
+    installViewport(1440);
+    const onOverlayEscape = vi.fn();
+    const { container } = render(
+      <OverlayHarness onOverlayEscape={onOverlayEscape} />,
+    );
+    const hide = screen.getByRole('button', { name: 'ซ่อนรายวิชา' });
+    hide.focus();
+    fireEvent.keyDown(hide, { key: 'Escape' });
+    expect(onOverlayEscape).toHaveBeenCalledOnce();
+    expect(column(container)).not.toHaveAttribute('inert');
   });
 
   it('renders the docked column as no dialog', () => {
