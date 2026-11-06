@@ -15,7 +15,8 @@ import { alternativeSections } from '@/lib/planner/suggestions';
 import { usePlacedSections } from '@/features/plans/planStore';
 import { addSectionToPlan } from '@/features/plans/addToPlan';
 import { switchOrCreatePlanForTerm } from '@/features/plans/switchPlanTerm';
-import { catalogStore } from '@/features/catalog/catalogStore';
+import { revealCourse } from '@/features/catalog/revealCourse';
+import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import {
   dragStore,
   type BlockedFeedback,
@@ -39,6 +40,7 @@ function BlockedNotice({
   placed: Section[];
   t: Translate;
 }) {
+  const tier = useLayoutTier();
   const description = describeConflicts(blocked.conflicts);
   const alternatives = alternativeSections(
     blocked.course,
@@ -79,7 +81,7 @@ function BlockedNotice({
         <button
           type="button"
           onClick={() => {
-            catalogStore.getState().setText(blocked.section.subjectId);
+            revealCourse(blocked.section.subjectId, tier);
             dragStore.getState().clearBlocked();
           }}
           className="text-primary-strong underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
