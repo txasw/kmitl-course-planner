@@ -239,6 +239,7 @@ function CourseCardComponent({
   return (
     <article
       ref={cardRef}
+      data-course-card={course.subjectId}
       className={`rounded-kcp border border-border px-3 py-2 hover:border-ink-soft ${added ? 'bg-surface-alt' : 'bg-surface'}`}
     >
       {draggable ? (

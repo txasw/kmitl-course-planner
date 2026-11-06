@@ -24,6 +24,7 @@ import { Overlay } from '@/features/shell/Overlay';
 import { uiStore } from '@/features/shell/uiStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { CourseCard } from './CourseCard';
+import { courseToggle } from './courseFocus';
 import { HOVER_REST_MS } from './useHoverIntent';
 
 const t = createTranslator('th');
@@ -152,6 +153,16 @@ describe('CourseCard disclosure', () => {
     );
     expect(body).toHaveAttribute('data-course-body');
     expect(body).not.toBeVisible();
+  });
+
+  it('names its subject on the card so focus can find its toggle', () => {
+    render(<Controlled course={course} placed={[]} locale="th" t={t} />);
+    expect(screen.getByRole('article')).toHaveAttribute(
+      'data-course-card',
+      '90592008',
+    );
+    expect(courseToggle(document, '90592008')).toBe(toggle());
+    expect(courseToggle(document, '90592033')).toBeNull();
   });
 
   it('opens and closes from a click on the toggle', () => {

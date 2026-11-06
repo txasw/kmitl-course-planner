@@ -4,6 +4,7 @@
 
 import { flushSync } from 'react-dom';
 import { focusFirst } from './restoreFocus';
+import { rootOf } from './useFocusTrap';
 
 /**
  * Commits a visibility change, then moves focus to the control that replaces the one
@@ -19,8 +20,8 @@ export function commitAndFocus(
   targetId: string,
   commit: () => void,
 ): HTMLElement | null {
-  const root = from.getRootNode();
+  const root = rootOf(from);
   flushSync(commit);
-  if (!(root instanceof Document || root instanceof ShadowRoot)) return null;
+  if (root === null) return null;
   return focusFirst([root.getElementById(targetId)], { preventScroll: true });
 }
