@@ -446,6 +446,8 @@
   "entryToast.planEmpty.action": "เพิ่มวิชา",
   "entryToast.updates": "{name} มีการเปลี่ยนแปลงที่ยังไม่ได้ตรวจสอบ {count} รายการ",
   "entryToast.updates.action": "ตรวจสอบ",
+  "entryToast.route": "เปิดผลการค้นหานี้ใน Planner เพื่อจัดกลุ่มเรียนลงตาราง",
+  "entryToast.route.action": "เปิดใน Planner",
   "entryToast.optOut": "ไม่ต้องแสดงข้อความนี้อีก",
   "entryToast.close": "ปิดข้อความนี้"
 }

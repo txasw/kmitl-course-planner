@@ -7,6 +7,12 @@
 // so a later hash change or plan edit never swaps the message or brings it back. A
 // choice of nothing ends the schedule for the document.
 //
+// The hash is captured when the hook mounts, which is when the content script mounts,
+// so the route offer can tell the page the document loaded on from a route the host
+// navigated to later. A route offer speaks about the page on screen, so a route change
+// while it shows hides it for good; nothing replaces it, and the plan kinds keep
+// showing across a route change since they do not depend on the page.
+//
 // Once shown, the toast hides after ENTRY_TOAST_VISIBLE_MS. A hold from the pointer or
 // focus within it pauses that timer, and releasing the hold starts the full time again,
 // the same as the panel toasts. Opening the panel, at any point, ends the schedule for
@@ -24,6 +30,10 @@ import {
 import { planStore } from '@/features/plans/planStore';
 import { activePlanOf } from '@/features/plans/planStoreState';
 import { uiStore } from '@/features/shell/uiStore';
+import {
+  readLocationHash,
+  subscribeHashRoute,
+} from '@/features/search/useHashRoute';
 import { onboardingStore } from './onboardingStore';
 
 type Phase =
@@ -53,7 +63,7 @@ function documentVisible(): boolean {
 }
 
 /** The choice's input read from the stores at the moment the wait ends. */
-function currentInput(): EntryToastInput {
+function currentInput(mountHash: string): EntryToastInput {
   const plans = planStore.getState();
   const plan = activePlanOf(plans);
   const onboarding = onboardingStore.getState();
@@ -69,11 +79,13 @@ function currentInput(): EntryToastInput {
       onboarding.loaded &&
       onboarding.handshakeSettled &&
       onboarding.welcomeSettled,
+    hash: { atMount: mountHash, atShow: readLocationHash() },
   };
 }
 
 export function useEntryToastSchedule(held: boolean): EntryToastSchedule {
   const [phase, setPhase] = useState<Phase>(WAITING);
+  const [mountHash] = useState(readLocationHash);
   const planLoaded = useStore(planStore, (state) => state.loaded);
   const onboardingLoaded = useStore(onboardingStore, (state) => state.loaded);
   const handshakeSettled = useStore(
@@ -101,13 +113,22 @@ export function useEntryToastSchedule(held: boolean): EntryToastSchedule {
   useEffect(() => {
     if (!waiting || !settled || !visible) return undefined;
     const timer = setTimeout(() => {
-      const content = selectEntryToast(currentInput());
+      const content = selectEntryToast(currentInput(mountHash));
       setPhase(content === null ? DONE : { stage: 'shown', content });
     }, ENTRY_TOAST_DELAY_MS);
     return () => {
       clearTimeout(timer);
     };
-  }, [waiting, settled, visible]);
+  }, [waiting, settled, visible, mountHash]);
+
+  const routeShown = phase.stage === 'shown' && phase.content.kind === 'route';
+  useEffect(() => {
+    if (!routeShown) return undefined;
+    // A popstate that left the hash as it was keeps the offer, since the page is the same.
+    return subscribeHashRoute(() => {
+      if (readLocationHash() !== mountHash) setPhase(DONE);
+    });
+  }, [routeShown, mountHash]);
 
   const shown = phase.stage === 'shown';
   useEffect(() => {

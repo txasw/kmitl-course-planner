@@ -9,7 +9,8 @@ import {
   type TeachTableRoute,
 } from '@/lib/routing/parseTeachTableRoute';
 
-function subscribe(onChange: () => void): () => void {
+/** Listens for a host route change, by either event the hash router fires. */
+export function subscribeHashRoute(onChange: () => void): () => void {
   window.addEventListener('hashchange', onChange);
   window.addEventListener('popstate', onChange);
   return () => {
@@ -18,12 +19,17 @@ function subscribe(onChange: () => void): () => void {
   };
 }
 
-function getHash(): string {
+/** The host location hash as it stands. */
+export function readLocationHash(): string {
   return window.location.hash;
 }
 
 /** The current teach table result route, or null on any other route. */
 export function useHashRoute(): TeachTableRoute | null {
-  const hash = useSyncExternalStore(subscribe, getHash, getHash);
+  const hash = useSyncExternalStore(
+    subscribeHashRoute,
+    readLocationHash,
+    readLocationHash,
+  );
   return parseTeachTableRoute(hash);
 }

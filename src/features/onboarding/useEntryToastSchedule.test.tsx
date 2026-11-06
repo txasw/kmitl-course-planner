@@ -16,6 +16,23 @@ import { useEntryToastSchedule } from './useEntryToastSchedule';
 
 let visibility: DocumentVisibilityState = 'visible';
 
+const RESULT_HASH =
+  '#/teach_table?mode=by_subject_owner_id&selected_year=2569&selected_semester=1&selected_faculty=01&search_all_faculty=false&selected_subject_owner_id=46';
+const SELECTOR_HASH = '#/teach_table_selector';
+
+/** Moves the host to a hash without an event, as a load or a silent replace would. */
+function placeHash(hash: string): void {
+  window.history.replaceState(null, '', hash);
+}
+
+/** Moves the host to a hash the way the hash router does, with its event. */
+function navigateTo(hash: string): void {
+  act(() => {
+    placeHash(hash);
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+  });
+}
+
 function setVisibility(next: DocumentVisibilityState): void {
   visibility = next;
   act(() => {
@@ -56,6 +73,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  placeHash('#');
   vi.useRealTimers();
   vi.restoreAllMocks();
   act(() => {
@@ -234,5 +252,61 @@ describe('useEntryToastSchedule once per document', () => {
     expect(result.current.content).toBeNull();
     advance(ENTRY_TOAST_DELAY_MS + ENTRY_TOAST_VISIBLE_MS);
     expect(result.current.content).toBeNull();
+  });
+});
+
+describe('useEntryToastSchedule route offer', () => {
+  it('offers the route search when the document loaded on a result route', () => {
+    placeHash(RESULT_HASH);
+    const { result } = renderSchedule();
+    settle();
+    advance(ENTRY_TOAST_DELAY_MS);
+    expect(result.current.content).toMatchObject({
+      kind: 'route',
+      target: 'catalog',
+      prefill: { tab: 'by_subject_owner_id' },
+    });
+  });
+
+  it('falls through to the plan kinds when the hash changed during the wait', () => {
+    placeHash(RESULT_HASH);
+    const { result } = renderSchedule();
+    settle();
+    navigateTo(SELECTOR_HASH);
+    advance(ENTRY_TOAST_DELAY_MS);
+    expect(result.current.content?.kind).toBe('noPlan');
+  });
+
+  it('offers nothing for a result route reached after mount', () => {
+    placeHash(SELECTOR_HASH);
+    const { result } = renderSchedule();
+    settle();
+    navigateTo(RESULT_HASH);
+    advance(ENTRY_TOAST_DELAY_MS);
+    expect(result.current.content?.kind).toBe('noPlan');
+  });
+
+  it('hides the route offer on a hash change and puts nothing in its place', () => {
+    placeHash(RESULT_HASH);
+    const { result } = renderSchedule();
+    settle();
+    advance(ENTRY_TOAST_DELAY_MS);
+    expect(result.current.content?.kind).toBe('route');
+    navigateTo(SELECTOR_HASH);
+    expect(result.current.content).toBeNull();
+    navigateTo(RESULT_HASH);
+    advance(ENTRY_TOAST_DELAY_MS + ENTRY_TOAST_VISIBLE_MS);
+    expect(result.current.content).toBeNull();
+  });
+
+  it('keeps the route offer on a popstate that leaves the hash as it was', () => {
+    placeHash(RESULT_HASH);
+    const { result } = renderSchedule();
+    settle();
+    advance(ENTRY_TOAST_DELAY_MS);
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    expect(result.current.content?.kind).toBe('route');
   });
 });
