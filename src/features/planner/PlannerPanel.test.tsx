@@ -189,6 +189,30 @@ describe('PlannerPanel', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
+  it('opens the block context menu, but never while a drag holds the gesture', () => {
+    installViewport(1366);
+    const meetings = [makeMeeting({ day: 1, startMin: 540, endMin: 720 })];
+    const placed = { teachTableId: 's1', subjectId: '90000001', meetings };
+    seed([
+      makePlanEntry({ snapshot: makeSnapshot({ ...placed, section: '901' }) }),
+    ]);
+    renderPanel();
+    const block = () => screen.getByRole('button', { name: /90000001/ });
+
+    const moving = makeSection(placed);
+    act(() => {
+      dragStore.getState().startBlockMove(moving, [moving], null);
+    });
+    expect(fireEvent.contextMenu(block())).toBe(false);
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+
+    act(() => {
+      dragStore.getState().clearBlockMove();
+    });
+    fireEvent.contextMenu(block());
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+  });
+
   it('opens the block details as a bottom sheet on a phone', () => {
     installViewport(390);
     seed([
