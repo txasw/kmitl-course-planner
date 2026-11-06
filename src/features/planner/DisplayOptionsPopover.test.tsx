@@ -29,6 +29,16 @@ describe('DisplayOptionsPopover', () => {
     expect(uiStore.getState().displayOptions.showRoom).toBe(false);
   });
 
+  it('offers the exam schedule option off by default and stores it when turned on', () => {
+    render(<DisplayOptionsPopover />);
+    fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }));
+    const showExams = screen.getByRole('switch', { name: 'แสดงตารางสอบ' });
+    expect(showExams).not.toBeChecked();
+
+    fireEvent.click(showExams);
+    expect(uiStore.getState().displayOptions.showExams).toBe(true);
+  });
+
   it('reflects the current store state on each option', () => {
     act(() => {
       uiStore.getState().setDisplayOption('showRoom', false);

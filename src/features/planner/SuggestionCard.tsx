@@ -26,6 +26,7 @@ const MINI_DISPLAY: DisplayOptions = {
   showSection: true,
   showEnglishNames: false,
   showSubjectId: false,
+  showExams: false,
 };
 
 const MINI_FONT_PX = 10;

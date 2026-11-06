@@ -94,6 +94,7 @@ describe('formatPlanText', () => {
         showSection: false,
         showEnglishNames: false,
         showSubjectId: true,
+        showExams: false,
       },
       locale: 'en',
       t: createTranslator('en'),
