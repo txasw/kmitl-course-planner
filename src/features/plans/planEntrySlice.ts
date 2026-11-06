@@ -49,7 +49,7 @@ export interface PlanEntryActions {
   clearUndo: () => void;
   /** Fold reconciled entries into a plan by durable identity, clearing any undo. */
   applyRevalidation: (planId: string, reconciled: PlanEntry[]) => void;
-  /** Mark a changed entry verified once the user acknowledges its change. */
+  /** Clear an entry's review once the user acknowledges it, marking a changed entry verified. */
   acknowledge: (teachTableId: string) => void;
 }
 

@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import type { Plan, PlanEntry } from '@/lib/domain/plan';
+import type { EntryReview, Plan, PlanEntry } from '@/lib/domain/plan';
 import type { Term } from '@/lib/routing/academicTerms';
 import {
+  makePlanEntry,
+  makeSnapshot,
+} from '../../../tests/support/domain-builders';
+import {
+  acknowledgeEntry,
   defaultPlanName,
   duplicatePlanOf,
   importedPlan,
@@ -147,5 +152,45 @@ describe('planActions', () => {
     expect(
       uniquePlanName('Fall', [named('a', 'Fall'), named('b', 'Fall (2)')]),
     ).toBe('Fall (3)');
+  });
+});
+
+describe('acknowledgeEntry', () => {
+  const review: EntryReview = {
+    kinds: ['exam_changed'],
+    before: makeSnapshot(),
+    detectedAt: '2026-11-01T00:00:00.000Z',
+    notifiedAt: '2026-11-01T00:05:00.000Z',
+  };
+
+  it('clears the review and marks a changed entry verified', () => {
+    const changed = makePlanEntry({ verifyStatus: 'changed', review });
+    const [acknowledged] = acknowledgeEntry([changed], changed.teachTableId);
+    expect(acknowledged?.verifyStatus).toBe('verified');
+    expect(acknowledged).not.toHaveProperty('review');
+  });
+
+  it('clears the review of a missing entry but keeps it missing', () => {
+    const missing = makePlanEntry({
+      verifyStatus: 'missing',
+      review: { ...review, kinds: ['missing'] },
+    });
+    const [acknowledged] = acknowledgeEntry([missing], missing.teachTableId);
+    expect(acknowledged?.verifyStatus).toBe('missing');
+    expect(acknowledged).not.toHaveProperty('review');
+  });
+
+  it('leaves every other entry untouched', () => {
+    const target = makePlanEntry({ verifyStatus: 'changed', review });
+    const other = makePlanEntry({
+      snapshot: makeSnapshot({ teachTableId: 't2', subjectId: '90000002' }),
+      verifyStatus: 'changed',
+      review,
+    });
+    const [, untouched] = acknowledgeEntry(
+      [target, other],
+      target.teachTableId,
+    );
+    expect(untouched).toBe(other);
   });
 });

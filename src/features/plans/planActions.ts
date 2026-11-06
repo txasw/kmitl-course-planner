@@ -3,6 +3,7 @@
 // store a thin set of transactions and lets these rules be tested without a store.
 
 import type { Plan, PlanEntry } from '@/lib/domain/plan';
+import { withReview } from '@/lib/planner/review';
 import type { Term } from '@/lib/routing/academicTerms';
 
 /** A fresh, empty plan for a term. */
@@ -141,14 +142,23 @@ export function mergeReconciled(
   return entries.map((entry) => byIdentity.get(identity(entry)) ?? entry);
 }
 
-/** Mark a changed entry as verified once its change has been acknowledged. */
+/**
+ * Acknowledge an entry's review: clear it, so later runs compare against what the
+ * student has now seen, and mark a changed entry verified. A missing entry stays
+ * missing, since the section is still not listed and its danger badge must remain,
+ * but acknowledging it stops later runs from asking again.
+ */
 export function acknowledgeEntry(
   entries: PlanEntry[],
   teachTableId: string,
 ): PlanEntry[] {
-  return entries.map((entry) =>
-    entry.teachTableId === teachTableId && entry.verifyStatus === 'changed'
-      ? { ...entry, verifyStatus: 'verified' }
-      : entry,
-  );
+  return entries.map((entry) => {
+    if (entry.teachTableId !== teachTableId) {
+      return entry;
+    }
+    const cleared = withReview(entry, undefined);
+    return cleared.verifyStatus === 'changed'
+      ? { ...cleared, verifyStatus: 'verified' }
+      : cleared;
+  });
 }
