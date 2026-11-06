@@ -5,7 +5,7 @@ import {
   makeSection,
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
-import { buildSnapshot, type PlanEntry } from '../domain/plan';
+import { buildSnapshot, type PlanEntry, type ReviewKind } from '../domain/plan';
 import { normalizeTeachTable } from '../domain/normalize';
 import type { Exam } from '../domain/types';
 import { buildExamSchedule } from './examSchedule';
@@ -40,7 +40,7 @@ function captureEntry(teachTableId: string): PlanEntry {
 // Captured sections: 01006020/1 and 01276209/902 sit the same midterm and final windows;
 // 01286111 is a declared pair whose lecture half 1 carries the windows and whose practice
 // half 2 carries none, and 01286324/1 shares its windows; 01076034/1 announces a final
-// only; 01006031/41 sits alone on its days.
+// only; 01006031/41 sits alone on its days; 90592004/901 announces no exam.
 const CAPTURED = [
   '136485',
   '135246',
@@ -49,6 +49,7 @@ const CAPTURED = [
   '137094',
   '133555',
   '137882',
+  '135340',
 ];
 
 function entryWith(
@@ -143,6 +144,9 @@ describe('buildExamSchedule over the with-exams capture', () => {
       (row) => row.subjectId === '01286111',
     );
     expect(pair?.sections).toEqual(['1']);
+    expect(schedule.selfArranged.map((item) => item.subjectId)).toEqual([
+      '90592004',
+    ]);
   });
 
   it('lists a final only subject under finals alone', () => {
@@ -157,6 +161,7 @@ describe('buildExamSchedule edge cases', () => {
   it('returns no groups for an empty plan', () => {
     expect(buildExamSchedule([])).toEqual({
       groups: [],
+      selfArranged: [],
       hasClash: false,
     });
   });
@@ -175,6 +180,10 @@ describe('buildExamSchedule edge cases', () => {
     expect(rows.map((row) => row.subjectId)).toEqual(['10000001']);
     expect(rows[0]?.clashesWith).toEqual([]);
     expect(schedule.hasClash).toBe(false);
+    expect(schedule.selfArranged.map((item) => item.subjectId)).toEqual([
+      '10000002',
+      '10000003',
+    ]);
   });
 
   it('merges sections of one subject that share a window and keeps the note', () => {
@@ -201,5 +210,34 @@ describe('buildExamSchedule edge cases', () => {
       }),
     ]);
     expect(schedule.groups[0]?.days[0]?.weekday).toBeNull();
+  });
+
+  it('tags an item changed only while its review holds an exam change', () => {
+    const reviewed = (entry: PlanEntry, kind: ReviewKind): PlanEntry => ({
+      ...entry,
+      review: {
+        kinds: [kind],
+        before: entry.snapshot,
+        detectedAt: '2026-07-08T00:00:00.000Z',
+        notifiedAt: null,
+      },
+    });
+    const schedule = buildExamSchedule([
+      reviewed(entryWith('a', '10000001', { midterm: MID }), 'exam_changed'),
+      reviewed(
+        entryWith('b', '10000002', {
+          midterm: { start: '2026-08-22 09:00:00', end: '2026-08-22 12:00:00' },
+        }),
+        'room_changed',
+      ),
+      reviewed(entryWith('c', '10000003', {}), 'exam_changed'),
+      entryWith('d', '10000004', {}),
+    ]);
+    const rows = schedule.groups[0]?.days.flatMap((day) => day.rows) ?? [];
+    expect(rows.map((row) => row.changed)).toEqual([true, false]);
+    expect(schedule.selfArranged.map((item) => item.changed)).toEqual([
+      true,
+      false,
+    ]);
   });
 });
