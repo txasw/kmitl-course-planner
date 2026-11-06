@@ -38,6 +38,8 @@ afterEach(() => {
     uiStore.getState().setDisplayOptions(DEFAULT_DISPLAY_OPTIONS);
     uiStore.getState().setSelectedTemplate(DEFAULT_TEMPLATE.slug);
     uiStore.getState().setCurriculumProfile(null);
+    uiStore.getState().setSuggestObjective('coverAll');
+    uiStore.getState().setSuggestPreference('balanced');
   });
 });
 
@@ -81,6 +83,8 @@ describe('usePrefsPersistence', () => {
         viewMode: 'edit',
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
         exportTemplate: DEFAULT_TEMPLATE.slug,
+        suggestObjective: 'coverAll',
+        suggestPreference: 'balanced',
       },
     ]);
   });
@@ -102,6 +106,8 @@ describe('usePrefsPersistence', () => {
         viewMode: 'preview',
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
         exportTemplate: DEFAULT_TEMPLATE.slug,
+        suggestObjective: 'coverAll',
+        suggestPreference: 'balanced',
       },
     ]);
   });
@@ -151,6 +157,8 @@ describe('usePrefsPersistence', () => {
         viewMode: 'edit',
         displayOptions: { ...DEFAULT_DISPLAY_OPTIONS, showRoom: false },
         exportTemplate: DEFAULT_TEMPLATE.slug,
+        suggestObjective: 'coverAll',
+        suggestPreference: 'balanced',
       },
     ]);
   });
@@ -186,6 +194,47 @@ describe('usePrefsPersistence', () => {
         viewMode: 'edit',
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
         exportTemplate: 'print-a4',
+        suggestObjective: 'coverAll',
+        suggestPreference: 'balanced',
+      },
+    ]);
+  });
+
+  it('hydrates the stored suggestion options without writing them back', async () => {
+    const repo = makeRepo({
+      schemaVersion: 1,
+      language: 'th',
+      suggestObjective: 'maxCredits',
+      suggestPreference: 'fewerDays',
+    });
+    renderHook(() => {
+      usePrefsPersistence(repo);
+    });
+    await flush();
+    expect(uiStore.getState().suggestObjective).toBe('maxCredits');
+    expect(uiStore.getState().suggestPreference).toBe('fewerDays');
+    expect(repo.saved).toHaveLength(0);
+  });
+
+  it('persists a suggestion option change', async () => {
+    const repo = makeRepo(null);
+    renderHook(() => {
+      usePrefsPersistence(repo);
+    });
+    await flush();
+
+    act(() => {
+      uiStore.getState().setSuggestPreference('morning');
+    });
+    expect(repo.saved).toEqual([
+      {
+        schemaVersion: 1,
+        language: 'th',
+        viewMode: 'edit',
+        displayOptions: DEFAULT_DISPLAY_OPTIONS,
+        exportTemplate: DEFAULT_TEMPLATE.slug,
+        suggestObjective: 'coverAll',
+        suggestPreference: 'morning',
       },
     ]);
   });
@@ -222,6 +271,8 @@ describe('usePrefsPersistence', () => {
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
         exportTemplate: DEFAULT_TEMPLATE.slug,
         curriculumProfile: PROFILE,
+        suggestObjective: 'coverAll',
+        suggestPreference: 'balanced',
       },
     ]);
   });
