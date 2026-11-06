@@ -33,8 +33,8 @@ export const EXAM_KINDS: readonly ExamKind[] = ['midterm', 'final'];
 
 /** A window whose ends are both well formed exam datetimes and ordered start before end.
  * A value that fails the shape is treated as no window, so an overlap is never inferred
- * from a datetime that cannot be ordered. */
-function isWindow(range: DateRange | undefined): range is DateRange {
+ * from a datetime that cannot be ordered. The exam schedule lists only such windows. */
+export function isExamWindow(range: DateRange | undefined): range is DateRange {
   return (
     range !== undefined &&
     isExamDateTime(range.start) &&
@@ -54,7 +54,7 @@ export function examWindowsOverlap(
   a: DateRange | undefined,
   b: DateRange | undefined,
 ): boolean {
-  return isWindow(a) && isWindow(b) && windowsIntersect(a, b);
+  return isExamWindow(a) && isExamWindow(b) && windowsIntersect(a, b);
 }
 
 function toRef(section: Section): EntryRef {
@@ -75,7 +75,11 @@ export function sectionExamOverlaps(
   for (const kind of EXAM_KINDS) {
     const self = incoming.exam[kind];
     const other = existing.exam[kind];
-    if (isWindow(self) && isWindow(other) && windowsIntersect(self, other)) {
+    if (
+      isExamWindow(self) &&
+      isExamWindow(other) &&
+      windowsIntersect(self, other)
+    ) {
       overlaps.push({ blocking: toRef(existing), kind, self, other });
     }
   }
