@@ -2,7 +2,9 @@
 // reads the plan entries, reshapes them into placed sections, and derives the
 // visible time window from the scheduled meetings and the current catalog result so
 // an early or late class widens the grid. Unscheduled sections and the footer
-// summary arrive with the shelf.
+// summary arrive with the shelf. In edit mode on the medium and wide tiers, the plan
+// view tabs of ADR-0049 switch the region between the timetable and the selected
+// courses list; the compact tier shows the timetable until its bottom nav arrives.
 
 import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { useStore } from 'zustand';
@@ -20,6 +22,7 @@ import { posterHonesty } from '@/lib/planner/posterHonesty';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
 import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
+import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { isScheduled, toPlacedSection } from './placedSection';
 import { dragStore, selectDragging } from './dragStore';
@@ -29,9 +32,14 @@ import { FeedbackStrip } from './FeedbackStrip';
 import { GridEmptyState } from './GridEmptyState';
 import { GridFooter } from './GridFooter';
 import { GridScroller } from './GridScroller';
+import { PlanViewTabs, planViewPanelId, planViewTabId } from './PlanViewTabs';
 import { type PosterData } from './PreviewPoster';
 import { PreviewToolbar } from './PreviewToolbar';
 import { RevalidationBanner } from './RevalidationBanner';
+import {
+  SelectedCoursesList,
+  groupEntriesBySubject,
+} from './SelectedCoursesList';
 import { TemplateGallery } from './TemplateGallery';
 import { UnscheduledShelf } from './UnscheduledShelf';
 import { WeeklyGrid } from './WeeklyGrid';
@@ -41,6 +49,10 @@ export function PlannerPanel() {
   const entries = useStore(planStore, (state) => state.entries);
   const activePlan = useActivePlan();
   const viewMode = useStore(uiStore, (state) => state.viewMode);
+  const planView = useStore(uiStore, (state) => state.planView);
+  const setPlanView = useStore(uiStore, (state) => state.setPlanView);
+  const showTabs = useLayoutTier() !== 'compact';
+  const view = showTabs ? planView : 'timetable';
   const displayOptions = useStore(uiStore, (state) => state.displayOptions);
   const selectedTemplate = useStore(uiStore, (state) => state.selectedTemplate);
   const catalogResult = useStore(searchStore, (state) => state.result);
@@ -84,6 +96,10 @@ export function PlannerPanel() {
   const honesty = useMemo(
     () => posterHonesty({ entries, timeConflicts, examConflicts }),
     [entries, timeConflicts, examConflicts],
+  );
+  const subjectGroups = useMemo(
+    () => groupEntriesBySubject(entries),
+    [entries],
   );
   const scheduled = useMemo(() => sections.filter(isScheduled), [sections]);
   const unscheduled = useMemo(
@@ -167,14 +183,15 @@ export function PlannerPanel() {
   const closeContextMenu = useCallback(() => {
     setContextMenu(null);
   }, []);
-  // The anchor is a live block node. Switching to preview recreates the blocks, so a
-  // popover left open would point at a detached node on return to edit. Clear it as
-  // the panel leaves edit mode, using the render time adjust on change pattern rather
-  // than an effect.
-  const [lastMode, setLastMode] = useState(viewMode);
-  if (viewMode !== lastMode) {
-    setLastMode(viewMode);
-    if (viewMode !== 'edit') {
+  // The anchor is a live block node. Switching to preview or to the selected view
+  // unmounts the edit grid, so a popover left open would point at a detached node on
+  // return. Clear it as the edit grid leaves, using the render time adjust on change
+  // pattern rather than an effect.
+  const gridShown = viewMode === 'edit' && view === 'timetable';
+  const [lastGridShown, setLastGridShown] = useState(gridShown);
+  if (gridShown !== lastGridShown) {
+    setLastGridShown(gridShown);
+    if (!gridShown) {
       setDetail(null);
       setContextMenu(null);
     }
@@ -184,6 +201,14 @@ export function PlannerPanel() {
   // image carries the plan and not the surrounding chrome.
   const posterRef = useRef<HTMLDivElement>(null);
   const isPreview = viewMode === 'preview';
+  // The tabpanel semantics apply only while the tabs render to name the panel.
+  const panelProps = showTabs
+    ? {
+        role: 'tabpanel',
+        id: planViewPanelId(view),
+        'aria-labelledby': planViewTabId(view),
+      }
+    : {};
   const template = templateBySlug(selectedTemplate);
   // The template independent poster inputs, bundled once so the gallery renders the selected
   // poster and its peeking neighbors from one plan snapshot and can defer the neighbors.
@@ -228,12 +253,34 @@ export function PlannerPanel() {
           displayOptions={displayOptions}
         />
       ) : null}
+      {!isPreview && showTabs ? (
+        <PlanViewTabs
+          value={view}
+          selectedCount={subjectGroups.length}
+          onChange={setPlanView}
+          t={t}
+        />
+      ) : null}
       {viewMode === 'edit' ? <FeedbackStrip t={t} /> : null}
       <RevalidationBanner />
       {isPreview ? (
         <TemplateGallery poster={posterData} posterRef={posterRef} />
+      ) : view === 'selected' ? (
+        <div
+          {...panelProps}
+          className="kcp-scroll min-h-0 flex-1 overflow-y-auto"
+        >
+          <SelectedCoursesList
+            groups={subjectGroups}
+            locale={language}
+            t={t}
+            onRemove={handleRemove}
+            conflictIds={conflictIds}
+            examConflictIds={examConflictIds}
+          />
+        </div>
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col gap-2">
+        <div {...panelProps} className="flex min-h-0 flex-1 flex-col gap-2">
           <GridScroller>
             {(fontPx) => (
               <>
