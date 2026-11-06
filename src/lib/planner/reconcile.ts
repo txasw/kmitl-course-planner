@@ -10,6 +10,7 @@ import type {
 } from '../domain/plan';
 import { buildSnapshot, entryTermMatches } from '../domain/plan';
 import {
+  diffSnapshot,
   revalidateEntry,
   type ChangeKind,
   type EntryOutcome,
@@ -54,8 +55,10 @@ export interface ReconcileFinding {
 }
 
 /** One entry's before and after, for the detail sheet and the block popover. The
- * outcome follows the entry's review, while changes lists every difference this run
- * found, ambient ones included. */
+ * outcome follows the entry's review. While a review is open, before is the snapshot the
+ * student last reviewed and changes lists every difference from it, so a later clean run
+ * still explains the changed badge; otherwise changes lists what this run found. Ambient
+ * kinds are included either way. */
 export interface EntryDiff {
   teachTableId: string;
   subjectId: string;
@@ -122,6 +125,7 @@ function reconcileEntry(
   };
   const review = mergeReview(entry, after, now);
   const outcome = reviewedOutcome(after, review);
+  const reviewedBefore = review?.before ?? before;
   return {
     entry: withReview(
       {
@@ -138,8 +142,9 @@ function reconcileEntry(
       subjectId: entry.subjectId,
       section: entry.section,
       outcome,
-      changes,
-      before,
+      changes:
+        review === undefined ? changes : diffSnapshot(reviewedBefore, after),
+      before: reviewedBefore,
       after,
     },
   };

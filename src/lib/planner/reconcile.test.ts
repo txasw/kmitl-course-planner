@@ -328,6 +328,10 @@ describe('reconcilePlan', () => {
     expect(second.plan.entries[0]?.review).toEqual(reviewed?.review);
     expect(second.plan.entries[0]?.verifyStatus).toBe('changed');
     expect(second.report.summary.changed).toBe(1);
+    // The diff describes the open review, so the detail sheet and the block popover
+    // still explain the changed badge after a run that found nothing new.
+    expect(second.report.entries[0]?.before).toEqual(entry.snapshot);
+    expect(second.report.entries[0]?.changes).toEqual(['exam_changed']);
   });
 
   it('opens a review for a missing entry and leaves the snapshot in place', () => {
