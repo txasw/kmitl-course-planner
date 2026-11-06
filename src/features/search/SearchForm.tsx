@@ -8,7 +8,7 @@
 
 import { useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, RotateCcw } from 'lucide-react';
 import { buddhistYears, toBuddhistYear } from '@/lib/routing/academicTerms';
 import {
   buildTeachTableQueryForTab,
@@ -17,7 +17,7 @@ import {
 } from '@/lib/search/formState';
 import { commitAndFocus } from '@/features/shell/commitAndFocus';
 import { useTranslation } from '@/features/shell/useTranslation';
-import { FOCUS_OUTLINE } from '@/lib/ui/focus';
+import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import {
   CategoryFields,
   ClassFields,
@@ -203,6 +203,17 @@ export function SearchForm() {
             />
           ) : null}
           <SearchSubmit reason={submitReason} t={t} onSubmit={handleSubmit} />
+          <button
+            type="button"
+            onClick={() => {
+              searchStore.getState().clearActiveForm();
+              setSubjectIdAttempted(false);
+            }}
+            className={`inline-flex min-h-6 items-center gap-1 self-center rounded-kcp px-2 text-sm text-ink-soft hover:text-ink pointer-coarse:min-h-11 ${FOCUS_RING}`}
+          >
+            <RotateCcw size={14} strokeWidth={2} aria-hidden />
+            {t('search.clear')}
+          </button>
         </div>
       </div>
     </div>

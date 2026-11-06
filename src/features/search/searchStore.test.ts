@@ -186,3 +186,25 @@ describe('the search disclosure', () => {
     expect(selectFormOpen(store.getState())).toBe(true);
   });
 });
+
+describe('clearing the active form', () => {
+  it('resets only the active tab and leaves the bar and result alone', () => {
+    const store = createSearchStore();
+    store.getState().seedTerm(fetched);
+    store.getState().setActiveTab('by_subject_owner_id');
+    store.getState().patchCategoryForm({ faculty: '01', subjectOwner: '32' });
+    store.getState().patchClassForm({ faculty: '01' });
+    store.getState().startQuery(ownerQuery, 'user');
+    store.getState().setSearchFormOpen(true);
+
+    store.getState().clearActiveForm();
+    const state = store.getState();
+    expect(state.byCategory).toEqual(defaultCategoryForm());
+    expect(state.term).toEqual(fetched);
+    expect(state.byClass.faculty).toBe('01');
+    expect(state.barQuery).toBe(ownerQuery);
+    expect(state.resultQuery).toBe(ownerQuery);
+    expect(state.result).toEqual({ status: 'loading' });
+    expect(state.searchFormOpen).toBe(true);
+  });
+});

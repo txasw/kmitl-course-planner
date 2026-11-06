@@ -25,6 +25,7 @@ import {
   type ClassForm,
   type SearchTab,
   type SubjectIdForm,
+  clearTabForm,
   defaultCategoryForm,
   defaultClassForm,
   defaultSubjectIdForm,
@@ -86,6 +87,11 @@ export interface SearchStore {
   patchClassForm: (patch: Partial<ClassForm>) => void;
   patchSubjectIdForm: (patch: Partial<SubjectIdForm>) => void;
   patchCategoryForm: (patch: Partial<CategoryForm>) => void;
+  /**
+   * Reset the active tab's fields to their defaults, keeping the term. The bar and the
+   * result stay, since they describe the search that ran, not the form being edited.
+   */
+  clearActiveForm: () => void;
   seedTerm: (term: Term) => void;
   /** Seed the fallback term and mark it replaceable by the fetched default. */
   seedFallbackTerm: (term: Term) => void;
@@ -160,6 +166,9 @@ export function createSearchStore() {
     },
     patchCategoryForm: (patch) => {
       set((state) => ({ byCategory: { ...state.byCategory, ...patch } }));
+    },
+    clearActiveForm: () => {
+      set((state) => clearTabForm(state.activeTab, state));
     },
     seedTerm: (term) => {
       set({ term, defaultTermPending: false });
