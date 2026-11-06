@@ -19,8 +19,6 @@ import {
   useEffect,
   useRef,
   type PointerEvent as ReactPointerEvent,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type ReactNode,
   type RefObject,
 } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -35,9 +33,7 @@ import {
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { useElementSize } from '@/features/shell/useElementSize';
-import { Tooltip } from '@/components/Tooltip';
-import { FOCUS_RING } from '@/lib/ui/focus';
-import { TARGET_SIZE } from '@/lib/ui/target';
+import { PagerArrow, PagerDots, usePager } from '@/components/Pager';
 import { PreviewPoster, type PosterData } from './PreviewPoster';
 
 interface TemplateGalleryProps {
@@ -90,36 +86,6 @@ function neighborScale(template: ExportTemplate, height: number): number {
   );
 }
 
-function PagerArrow({
-  label,
-  disabled,
-  onActivate,
-  children,
-}: {
-  label: string;
-  disabled: boolean;
-  onActivate: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <Tooltip label={label}>
-      {(triggerProps, ref) => (
-        <button
-          ref={ref}
-          {...triggerProps}
-          type="button"
-          aria-label={label}
-          disabled={disabled}
-          onClick={onActivate}
-          className={`flex shrink-0 items-center justify-center rounded-kcp border border-border p-1 text-ink-soft transition-colors hover:bg-surface-alt disabled:pointer-events-none disabled:opacity-30 ${TARGET_SIZE} ${FOCUS_RING}`}
-        >
-          {children}
-        </button>
-      )}
-    </Tooltip>
-  );
-}
-
 export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
   const { t } = useTranslation();
   const selectedSlug = useStore(uiStore, (state) => state.selectedTemplate);
@@ -132,7 +98,6 @@ export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
   })();
 
   const viewportRef = useRef<HTMLDivElement>(null);
-  const groupRef = useRef<HTMLDivElement>(null);
   const area = useElementSize(viewportRef);
   const swipe = useRef<{ pointerId: number; startX: number } | null>(null);
 
@@ -142,22 +107,11 @@ export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
       .setSelectedTemplate(EXPORT_TEMPLATES[clampIndex(index)]?.slug ?? '');
   }, []);
 
-  const focusDot = useCallback((index: number) => {
-    const dots =
-      groupRef.current?.querySelectorAll<HTMLElement>('[role="radio"]');
-    dots?.[index]?.focus();
-  }, []);
-
-  const move = useCallback(
-    (delta: number) => {
-      const next = clampIndex(selectedIndex + delta);
-      if (next !== selectedIndex) {
-        select(next);
-      }
-      focusDot(next);
-    },
-    [selectedIndex, select, focusDot],
-  );
+  const { move, groupRef, handleKeyDown } = usePager({
+    count: EXPORT_TEMPLATES.length,
+    selected: selectedIndex,
+    onSelect: select,
+  });
 
   // A wheel over the gallery pages horizontally: a vertical notch or a horizontal trackpad
   // swipe, whichever delta dominates. A cooldown keeps one notch to one page. The listener is
@@ -197,34 +151,6 @@ export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
     };
   }, []);
 
-  const handleKeyDown = useCallback(
-    (event: ReactKeyboardEvent<HTMLElement>) => {
-      switch (event.key) {
-        case 'ArrowRight':
-        case 'ArrowDown':
-          event.preventDefault();
-          move(1);
-          break;
-        case 'ArrowLeft':
-        case 'ArrowUp':
-          event.preventDefault();
-          move(-1);
-          break;
-        case 'Home':
-          event.preventDefault();
-          move(-selectedIndex);
-          break;
-        case 'End':
-          event.preventDefault();
-          move(LAST_INDEX - selectedIndex);
-          break;
-        default:
-          break;
-      }
-    },
-    [move, selectedIndex],
-  );
-
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) {
       return;
@@ -255,9 +181,10 @@ export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
   const deferredPoster = useDeferredValue(poster);
   const selScale = selectedScale(selectedTemplate, area.width, area.height);
 
-  const caption = `${t(selectedTemplate.labelKey)} · ${String(
-    templateOutputWidth(selectedTemplate),
-  )} × ${String(templateOutputHeight(selectedTemplate))}`;
+  const templateLabel = (template: ExportTemplate) =>
+    `${t(template.labelKey)} · ${String(
+      templateOutputWidth(template),
+    )} × ${String(templateOutputHeight(template))}`;
 
   const renderSliver = (index: number, side: 'left' | 'right') => {
     const template = EXPORT_TEMPLATES[index];
@@ -357,52 +284,18 @@ export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
         </PagerArrow>
       </div>
 
-      <p className="text-center text-xs text-ink-soft">{caption}</p>
+      <p className="text-center text-xs text-ink-soft">
+        {templateLabel(selectedTemplate)}
+      </p>
 
-      <div
-        ref={groupRef}
-        role="radiogroup"
-        aria-label={t('preview.template.label')}
-        className="flex items-center justify-center"
-      >
-        {EXPORT_TEMPLATES.map((template, index) => {
-          const isSelected = index === selectedIndex;
-          const label = `${t(template.labelKey)} · ${String(
-            templateOutputWidth(template),
-          )} × ${String(templateOutputHeight(template))}`;
-          return (
-            <Tooltip key={template.slug} label={label}>
-              {(triggerProps, ref) => (
-                <button
-                  ref={ref}
-                  {...triggerProps}
-                  type="button"
-                  role="radio"
-                  aria-checked={isSelected}
-                  aria-label={label}
-                  tabIndex={isSelected ? 0 : -1}
-                  onKeyDown={handleKeyDown}
-                  onClick={() => {
-                    select(index);
-                  }}
-                  // The dot stays small while the button around it keeps the shared
-                  // target size, so the pager reads as dots but takes a finger.
-                  className={`group/dot inline-flex items-center justify-center rounded-full ${TARGET_SIZE} ${FOCUS_RING}`}
-                >
-                  <span
-                    aria-hidden
-                    className={`h-2.5 w-2.5 rounded-full border transition-colors ${
-                      isSelected
-                        ? 'border-primary bg-primary'
-                        : 'border-border bg-transparent group-hover/dot:border-ink-soft'
-                    }`}
-                  />
-                </button>
-              )}
-            </Tooltip>
-          );
-        })}
-      </div>
+      <PagerDots
+        groupRef={groupRef}
+        onKeyDown={handleKeyDown}
+        label={t('preview.template.label')}
+        itemLabels={EXPORT_TEMPLATES.map(templateLabel)}
+        selected={selectedIndex}
+        onSelect={select}
+      />
     </div>
   );
 }
