@@ -9,6 +9,7 @@ import {
 import type { ReactNode } from 'react';
 import { Layout } from './Layout';
 import { CATALOG_COLUMN_ID } from './CatalogColumn';
+import { CatalogToggle } from './CatalogToggle';
 import { uiStore } from './uiStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
@@ -143,6 +144,27 @@ describe('Layout', () => {
     fireEvent.click(scrim);
     expect(uiStore.getState().sheetOpen).toBe(false);
     expect(container.querySelector('.z-scrim')).toBeNull();
+  });
+
+  it('returns focus to the header toggle when the scrim closes the sheet', () => {
+    installViewport(768);
+    const { container } = render(
+      <>
+        <CatalogToggle />
+        <Layout />
+      </>,
+      { wrapper },
+    );
+    const toggle = screen.getByRole('button', { name: 'รายวิชา' });
+    toggle.focus();
+    fireEvent.click(toggle);
+    expect(catalogColumn(container)).toHaveFocus();
+
+    const scrim = container.querySelector<HTMLElement>('.z-scrim');
+    if (scrim === null) throw new Error('the scrim is not rendered');
+    fireEvent.click(scrim);
+    expect(uiStore.getState().sheetOpen).toBe(false);
+    expect(toggle).toHaveFocus();
   });
 
   it('makes the grid region inert while the sheet is open', () => {
