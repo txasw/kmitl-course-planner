@@ -122,9 +122,14 @@ export function PlanList({
                   />
                   <span className="truncate">{plan.name}</span>
                 </button>
-                {/* Per-row actions, revealed on hover and focus of the row; they
-                    stay focusable so the keyboard reveals and reaches them. */}
-                <div className="flex shrink-0 items-center gap-0.5 pr-1 opacity-0 group-hover/row:opacity-100 group-focus-within/row:opacity-100">
+                {/* Per-row actions. They show by default and fade out only where the
+                    device can hover with a fine pointer, so a finger never has to find
+                    an invisible control; there they return on hover and focus of the
+                    row, and stay focusable so the keyboard reveals and reaches them. */}
+                <div
+                  data-plan-row-actions
+                  className="flex shrink-0 items-center gap-0.5 pr-1 group-hover/row:opacity-100 group-focus-within/row:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:opacity-0"
+                >
                   <ActionButton
                     icon={<Pencil size={14} strokeWidth={2} aria-hidden />}
                     label={`${t('planSwitcher.rename')} ${plan.name}`}
