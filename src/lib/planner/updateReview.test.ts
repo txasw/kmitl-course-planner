@@ -7,6 +7,7 @@ import {
 } from '../../../tests/support/domain-builders';
 import {
   buildUpdateReview,
+  countUpdateItems,
   hasUpdateItems,
   withRemovedItems,
   type ConflictsById,
@@ -172,6 +173,47 @@ describe('hasUpdateItems', () => {
     expect(hasUpdateItems([makePlanEntry({ verifyStatus: 'missing' })])).toBe(
       true,
     );
+  });
+});
+
+describe('countUpdateItems', () => {
+  it('counts each entry with an open review or a missing status once', () => {
+    expect(countUpdateItems([])).toBe(0);
+    expect(
+      countUpdateItems([
+        makePlanEntry({ verifyStatus: 'verified' }),
+        reviewed('1', ['room_changed', 'time_changed']),
+        reviewed('2', ['missing'], { verifyStatus: 'missing' }),
+        makePlanEntry({ verifyStatus: 'missing' }),
+        makePlanEntry({ verifyStatus: 'changed' }),
+      ]),
+    ).toBe(3);
+  });
+
+  it('counts the same entries the dialog lists as items', () => {
+    const entries = [
+      makePlanEntry({ verifyStatus: 'verified' }),
+      reviewed('1', ['pair_changed']),
+      reviewed('2', ['exam_changed']),
+      makePlanEntry({ verifyStatus: 'missing' }),
+    ];
+    const listed = review(entries).groups.flatMap((group) => group.items);
+    expect(countUpdateItems(entries)).toBe(listed.length);
+  });
+
+  it('agrees with hasUpdateItems on every case', () => {
+    const cases: PlanEntry[][] = [
+      [],
+      [makePlanEntry({ verifyStatus: 'verified' })],
+      [makePlanEntry({ verifyStatus: 'unverified' })],
+      [makePlanEntry({ verifyStatus: 'changed' })],
+      [makePlanEntry({ verifyStatus: 'missing' })],
+      [reviewed('1', ['closed'])],
+      [makePlanEntry({ verifyStatus: 'verified' }), reviewed('2', ['missing'])],
+    ];
+    for (const entries of cases) {
+      expect(hasUpdateItems(entries)).toBe(countUpdateItems(entries) > 0);
+    }
   });
 });
 
