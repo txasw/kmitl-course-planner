@@ -67,6 +67,12 @@ export interface SearchStore {
   subjectOwners: AsyncState<RawSubjectOwner[]>;
   result: AsyncState<NormalizedCatalog>;
   resultQuery: TeachTableQuery | null;
+  /**
+   * Who started the query behind the current result, written with the query in one
+   * write, so a settle can tell a user search, which the status announcer speaks, from
+   * a background retry or refresh, which it does not. Null while no query has run.
+   */
+  resultIntent: QueryIntent | null;
   /** The query the summary bar describes, or null while no user search has run. */
   barQuery: TeachTableQuery | null;
   /** Whether the form is open under the bar; ignored while there is no bar. */
@@ -130,6 +136,7 @@ export function createSearchStore() {
     subjectOwners: { status: 'idle' },
     result: { status: 'idle' },
     resultQuery: null,
+    resultIntent: null,
     barQuery: null,
     searchFormOpen: true,
     lastSubmitAt: null,
@@ -196,11 +203,16 @@ export function createSearchStore() {
           ? {
               result: { status: 'loading' },
               resultQuery: query,
+              resultIntent: intent,
               barQuery: query,
               searchFormOpen: false,
               lastSubmitAt: Date.now(),
             }
-          : { result: { status: 'loading' }, resultQuery: query },
+          : {
+              result: { status: 'loading' },
+              resultQuery: query,
+              resultIntent: intent,
+            },
       );
     },
     setSearchFormOpen: (open) => {
@@ -210,6 +222,7 @@ export function createSearchStore() {
       set({
         result: { status: 'idle' },
         resultQuery: null,
+        resultIntent: null,
         barQuery: null,
         searchFormOpen: true,
       });

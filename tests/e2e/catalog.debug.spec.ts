@@ -37,8 +37,8 @@ test('renders the deduped catalog for a category search', async ({
   await expect(page.getByText('90592033', { exact: true })).toBeVisible({
     timeout: 15_000,
   });
-  // Each collapsed card counts its own sections too, so the total is read from the
-  // summary row.
+  // Each collapsed card counts its own sections too, and the status announcer names
+  // the same count, so the total is read from the summary row.
   await expect(
     page.locator('[data-catalog-summary]').getByText('4 กลุ่มเรียน'),
   ).toBeVisible();
@@ -50,6 +50,9 @@ test('renders the deduped catalog for a category search', async ({
       .filter({ hasText: '90592033' })
       .locator('[data-course-meta]'),
   ).toHaveText(/2 กลุ่มเรียน.*เต็มหรือปิดทุกกลุ่ม/);
+  await expect(page.getByRole('status').filter({ hasText: 'พบ' })).toHaveText(
+    'พบ 3 รายวิชา 4 กลุ่มเรียน',
+  );
 
   // Every card of the three course result starts collapsed and mounts no section
   // row, so no section drag surface exists until a card opens.

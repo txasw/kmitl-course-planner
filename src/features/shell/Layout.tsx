@@ -6,6 +6,7 @@ import { PlannerDropZone } from '@/features/planner/PlannerDropZone';
 import { isDockedTier } from '@/lib/ui/breakpoints';
 import { CatalogColumn, closeSheet } from './CatalogColumn';
 import { EdgeRail } from './EdgeRail';
+import { StatusAnnouncer } from './StatusAnnouncer';
 import { uiStore } from './uiStore';
 import { useCatalogFocusRepair } from './useCatalogFocusRepair';
 import { useLayoutTier } from './useLayoutTier';
@@ -20,6 +21,10 @@ import { useLayoutTier } from './useLayoutTier';
 // the docked tiers the edge rail follows the column in the tree and takes its place
 // while it is hidden. The grid region hosts the weekly timetable, which renders from
 // the plan snapshots.
+// The status announcer sits beside the column and outside the inert grid region, so it
+// outlives every state the column swaps and still speaks a search outcome while the
+// sheet is open or closed or the docked column is hidden. Preview has no search, so it
+// carries no announcer.
 export function Layout() {
   const tier = useLayoutTier();
   const viewMode = useStore(uiStore, (state) => state.viewMode);
@@ -41,6 +46,7 @@ export function Layout() {
   return (
     <PlannerDnd>
       <div ref={bodyRef} className="relative flex h-full">
+        <StatusAnnouncer />
         <CatalogColumn tier={tier} />
         {isDockedTier(tier) ? <EdgeRail /> : null}
 

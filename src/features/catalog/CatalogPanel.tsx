@@ -23,7 +23,12 @@ import { CourseCatalog } from './CourseCatalog';
 import { ErrorActionButton } from './ErrorActionButton';
 import { InputGuard } from './InputGuard';
 
-function termSummary(query: TeachTableQuery | null, t: Translate): string {
+/** The term a result was searched for, which the empty state and its announcement
+ * both name. */
+export function termSummary(
+  query: TeachTableQuery | null,
+  t: Translate,
+): string {
   if (query === null) {
     return '';
   }

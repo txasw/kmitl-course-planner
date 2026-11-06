@@ -124,6 +124,7 @@
   "catalog.units.section": "กลุ่มเรียน",
   "catalog.units.merged": "รายการซ้ำที่รวมแล้ว",
   "catalog.units.multiMeeting": "กลุ่มเรียนหลายคาบ",
+  "status.resultsFound": "พบ {courses} รายวิชา {sections} กลุ่มเรียน",
   "catalog.filterEmpty": "ไม่มีรายวิชาที่ตรงกับตัวกรอง",
   "catalog.card.addedHint": "เปลี่ยนกลุ่มเรียนโดยลากบล็อกในตาราง",
   "catalog.card.sectionCount": "{n} กลุ่มเรียน",
