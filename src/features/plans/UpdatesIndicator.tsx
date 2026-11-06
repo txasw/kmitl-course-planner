@@ -34,7 +34,7 @@ export function UpdatesIndicator() {
     <button
       type="button"
       onClick={handleOpen}
-      className={`inline-flex shrink-0 items-center gap-1 self-center rounded-full border border-warn bg-surface px-2 py-0.5 text-xs text-ink hover:bg-warn-soft ${TARGET_HEIGHT} ${FOCUS_RING}`}
+      className={`inline-flex shrink-0 items-center gap-1 rounded-full border border-warn bg-surface px-2 py-0.5 text-xs text-ink hover:bg-warn-soft ${TARGET_HEIGHT} ${FOCUS_RING}`}
     >
       <AlertCircle
         size={14}
