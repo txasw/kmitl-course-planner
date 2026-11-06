@@ -40,7 +40,7 @@ import { useLayoutTier } from './useLayoutTier';
 // sheet is open or closed, the docked column is hidden, or another pane is shown. Preview
 // has no search, so it carries no announcer and no nav. During a block drag the remove
 // zone is the docked column, which the column renders itself, or else the bar along the
-// body's bottom edge.
+// body's bottom edge, which below 640 px the bottom nav hosts in its own place.
 export function Layout() {
   const tier = useLayoutTier();
   const viewMode = useStore(uiStore, (state) => state.viewMode);

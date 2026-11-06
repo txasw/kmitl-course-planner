@@ -4,6 +4,7 @@ import { DndContext } from '@dnd-kit/core';
 import type * as DndKit from '@dnd-kit/core';
 import type { UseDroppableArguments } from '@dnd-kit/core';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
+import { BottomNav } from '@/features/shell/BottomNav';
 import { CatalogColumn } from '@/features/shell/CatalogColumn';
 import { CATALOG_COLUMN_ID } from '@/features/shell/catalogVisibility';
 import { uiStore } from '@/features/shell/uiStore';
@@ -19,6 +20,7 @@ import {
   CatalogRemoveZone,
   REMOVE_BAR_ID,
   REMOVE_CATALOG_ID,
+  NavRemoveBar,
   RemoveBar,
   isRemoveZoneId,
   removeZoneForm,
@@ -47,7 +49,8 @@ function startBlockDrag(): void {
   });
 }
 
-// The panel body in miniature: the column and the bar slot, as Layout mounts them.
+// The panel body in miniature: the column, the bar slot and the phone nav, as Layout
+// mounts them.
 function Body() {
   const tier = useLayoutTier();
   return (
@@ -55,6 +58,7 @@ function Body() {
       <DndContext>
         <CatalogColumn tier={tier} />
         <RemoveBar tier={tier} />
+        {tier === 'compact' ? <BottomNav /> : null}
       </DndContext>
     </SearchDepsProvider>
   );
@@ -162,7 +166,7 @@ describe('RemoveBar', () => {
     return result;
   }
 
-  it('docks a 64 px dashed band at the panel bottom, above the device inset below 640 px', () => {
+  it('docks a 64 px dashed band at the panel bottom, which the body keeps off the inset', () => {
     const { container } = renderBar();
     const [zone] = zones(container);
     expect(zone).toHaveAttribute('data-remove-zone', 'bar');
@@ -173,11 +177,11 @@ describe('RemoveBar', () => {
       'z-dropzone',
       'box-content',
       'h-16',
-      'max-sm:pb-(--kcp-safe-bottom)',
       'border-t-2',
       'border-dashed',
       'bg-danger-zone',
     );
+    expect(zone).not.toHaveClass('pb-(--kcp-safe-bottom)');
     expect(screen.getByText('วางที่นี่เพื่อนำออกจากตาราง')).toHaveClass(
       'text-danger',
     );
@@ -189,6 +193,28 @@ describe('RemoveBar', () => {
     const [zone] = zones(container);
     expect(zone).toHaveClass('border-solid', 'bg-danger-zone-over');
     expect(screen.getByText('ปล่อยเพื่อนำออก')).toHaveClass('bg-danger');
+  });
+
+  it('leaves the compact tier to the bar the bottom nav hosts', () => {
+    installViewport(390);
+    const { container } = render(
+      <DndContext>
+        <RemoveBar tier="compact" />
+      </DndContext>,
+    );
+    startBlockDrag();
+    expect(zones(container)).toHaveLength(0);
+  });
+
+  it('pads the nav hosted bar by the bottom inset the nav pads by', () => {
+    const { container } = render(
+      <DndContext>
+        <NavRemoveBar />
+      </DndContext>,
+    );
+    const [zone] = zones(container);
+    expect(zone).toHaveAttribute('data-remove-zone', 'bar');
+    expect(zone).toHaveClass('h-16', 'pb-(--kcp-safe-bottom)');
   });
 
   it('mounts nothing outside a block drag', () => {
@@ -237,6 +263,17 @@ describe('remove zone forms in the panel body', () => {
     expect(zones(container).map((zone) => zone.dataset.removeZone)).toEqual([
       'bar',
     ]);
+  });
+
+  it('puts the bar in the bottom nav at 390 px', () => {
+    installViewport(390);
+    const { container } = render(<Body />);
+    startBlockDrag();
+    const [zone, ...rest] = zones(container);
+    expect(rest).toHaveLength(0);
+    expect(zone?.parentElement).toBe(
+      screen.getByRole('navigation', { name: 'ส่วนของตัววางแผน' }),
+    );
   });
 
   it.each([390, 768])(

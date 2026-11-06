@@ -2,7 +2,8 @@
 // here takes its section and its pair out of the plan, with the usual undo. The zone
 // takes one of two forms per drag, never both (ADR-0059). While the docked catalog column
 // is shown, the column itself is the zone: the block came from the list, so dragging it
-// back there reads as remove. Otherwise a bar at the panel bottom is. Neither form
+// back there reads as remove. Otherwise a bar at the panel bottom is, and below 640 px
+// the bar takes the place of the bottom nav, whose items hide while it shows. No form
 // resizes the grid mid drag, which would shift the candidate slots the same drag just
 // painted, and a hidden column is never a target. Every form's id carries one prefix,
 // which the collision priority ranks first, so a drop that lands on a zone wins over an
@@ -114,15 +115,33 @@ export function CatalogRemoveZone() {
 /**
  * The bar form, a 64 px band across the panel bottom over the summary bar. It is the zone
  * on the tiers below the dock and while the docked column is hidden, and it mounts only
- * while a block drag is live. Below 640 px the panel body runs to the screen edge, so the
- * bar pads clear of the device's bottom inset; above it the overlay body already does.
+ * while a block drag is live. The overlay body already clears the bottom safe area inset
+ * on these tiers. Below 640 px the bottom nav hosts the bar instead, as NavRemoveBar.
  */
 export function RemoveBar({ tier }: { tier: LayoutTier }) {
   const active = useRemoveZoneActive(tier, 'bar');
-  return active ? <BarZone /> : null;
+  return active && tier !== 'compact' ? <BarZone padInset={false} /> : null;
 }
 
-function BarZone() {
+/**
+ * Whether the bottom nav gives its place to the bar: a block drag is live on the compact
+ * tier, where no column is ever shown.
+ */
+export function useNavRemoving(): boolean {
+  return useRemoveZoneActive('compact', 'bar');
+}
+
+/**
+ * The bar form below 640 px, laid over the bottom nav while its items hide. The nav runs
+ * to the screen edge and pads below its items by the bottom safe area inset, so the bar
+ * pads by it too and covers the whole nav, with the label clear of the home indicator.
+ * The nav keeps its box, so the pane above it never resizes mid drag.
+ */
+export function NavRemoveBar() {
+  return <BarZone padInset />;
+}
+
+function BarZone({ padInset }: { padInset: boolean }) {
   const { setNodeRef, isOver } = useDroppable({
     id: REMOVE_BAR_ID,
     data: { role: 'remove' },
@@ -132,7 +151,9 @@ function BarZone() {
       ref={setNodeRef}
       data-remove-zone="bar"
       data-over={isOver || undefined}
-      className={`pointer-events-none absolute inset-x-0 bottom-0 z-dropzone box-content flex h-16 items-center justify-center border-t-2 border-danger max-sm:pb-(--kcp-safe-bottom) ${
+      className={`pointer-events-none absolute inset-x-0 bottom-0 z-dropzone box-content flex h-16 items-center justify-center border-t-2 border-danger ${
+        padInset ? 'pb-(--kcp-safe-bottom)' : ''
+      } ${
         isOver
           ? 'border-solid bg-danger-zone-over'
           : 'border-dashed bg-danger-zone'
