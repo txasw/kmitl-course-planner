@@ -1,15 +1,10 @@
 // The timetable footer summary: total credits including unscheduled sections, the
 // distinct subject count, the scheduled load per day in plain text, and the count
-// of unscheduled sections when the plan holds any. The day reads as its short
-// abbreviation on screen and as its full name to assistive technology, which would
-// otherwise spell out a single character.
+// of unscheduled sections when the plan holds any.
 
 import type { Translate } from '@/lib/i18n/t';
-import { WEEK_DAYS } from '@/lib/parsing/days';
-import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
-import { summarizeCredits } from '@/lib/planner/credits';
-import { perDayLoad } from '@/lib/planner/grid';
-import { formatHours } from '@/lib/parsing/time';
+import { DayLoads } from './DayLoads';
+import { planTotals } from './planTotals';
 import type { PlacedSection } from './placedSection';
 
 interface GridFooterProps {
@@ -21,16 +16,7 @@ interface GridFooterProps {
 }
 
 export function GridFooter({ sections, t, flush = false }: GridFooterProps) {
-  const credits = summarizeCredits(
-    sections.map((section) => ({
-      subjectId: section.subjectId,
-      credit: section.credit,
-    })),
-  );
-  const load = perDayLoad(sections.flatMap((section) => section.meetings));
-  const unscheduled = sections.filter(
-    (section) => section.meetings.length === 0,
-  ).length;
+  const totals = planTotals(sections);
 
   return (
     <div
@@ -41,22 +27,15 @@ export function GridFooter({ sections, t, flush = false }: GridFooterProps) {
       }`}
     >
       <span className="font-semibold text-ink">
-        {credits.credits} {t('footer.credits')}
+        {totals.credits} {t('footer.credits')}
       </span>
       <span>
-        {credits.subjects} {t('footer.subjects')}
+        {totals.subjects} {t('footer.subjects')}
       </span>
-      {WEEK_DAYS.filter((day) => load[day] > 0).map((day) => (
-        <span key={day}>
-          <span aria-hidden>{t(dayLabelKey(day))}</span>
-          <span className="sr-only">{t(dayFullLabelKey(day))}</span>{' '}
-          {formatHours(load[day])}
-          {t('footer.hourUnit')}
-        </span>
-      ))}
-      {unscheduled > 0 ? (
+      <DayLoads load={totals.load} t={t} />
+      {totals.unscheduled > 0 ? (
         <span>
-          {unscheduled} {t('footer.unscheduled')}
+          {totals.unscheduled} {t('footer.unscheduled')}
         </span>
       ) : null}
     </div>
