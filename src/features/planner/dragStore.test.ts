@@ -297,3 +297,62 @@ describe('selectDragging', () => {
     expect(selectDragging(store.getState())).toBe(false);
   });
 });
+
+type Store = ReturnType<typeof createDragStore>;
+
+describe('hoverCourse', () => {
+  it('holds and clears a previewed course', () => {
+    const store = createDragStore();
+    const { course } = draggedSection();
+    store.getState().setHoverCourse(course);
+    expect(store.getState().hoverCourse).toBe(course);
+    store.getState().clearHoverCourse();
+    expect(store.getState().hoverCourse).toBeNull();
+  });
+
+  it('clears only the matching subject when an id is given', () => {
+    const store = createDragStore();
+    const { course } = draggedSection();
+    store.getState().setHoverCourse(course);
+    store.getState().clearHoverCourse('OTHER');
+    expect(store.getState().hoverCourse).toBe(course);
+    store.getState().clearHoverCourse('S1');
+    expect(store.getState().hoverCourse).toBeNull();
+  });
+
+  it.each([
+    [
+      'a section drag',
+      (store: Store) => {
+        const { section, course } = draggedSection();
+        store.getState().start(course, section, []);
+      },
+    ],
+    [
+      'a course drag',
+      (store: Store) => {
+        store.getState().startCourse(draggedSection().course, []);
+      },
+    ],
+    [
+      'a block move',
+      (store: Store) => {
+        const { section } = draggedSection();
+        store.getState().startBlockMove(section, [section], null);
+      },
+    ],
+  ])('clears the preview when %s starts', (_label, startDrag) => {
+    const store = createDragStore();
+    store.getState().setHoverCourse(draggedSection().course);
+    startDrag(store);
+    expect(store.getState().hoverCourse).toBeNull();
+  });
+
+  it('ignores a preview while a drag is in flight', () => {
+    const store = createDragStore();
+    const { course } = draggedSection();
+    store.getState().startCourse(course, []);
+    store.getState().setHoverCourse(course);
+    expect(store.getState().hoverCourse).toBeNull();
+  });
+});
