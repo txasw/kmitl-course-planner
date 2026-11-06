@@ -75,7 +75,7 @@ const PLAIN = makePlanEntry({
 });
 
 // The overlay shape: a trapped panel that is the portal root, with the dialog opened from
-// a button inside a live region, the way the revalidation banner opens it.
+// a button inside a live region, the way a status line could open it.
 function Panel({ onOverlayEscape }: { onOverlayEscape: () => void }) {
   const [node, setNode] = useState<HTMLDivElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);

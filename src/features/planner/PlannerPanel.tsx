@@ -45,7 +45,6 @@ import { FeedbackStrip } from './FeedbackStrip';
 import { PlanViewTabs, planViewPanelId, planViewTabId } from './PlanViewTabs';
 import { type PosterData } from './PreviewPoster';
 import { PreviewToolbar } from './PreviewToolbar';
-import { RevalidationBanner } from './RevalidationBanner';
 import {
   SelectedCoursesList,
   groupEntriesBySubject,
@@ -249,7 +248,7 @@ export function PlannerPanel() {
     }
   }
   // The poster subtree the sharing actions capture. It holds the header, grid,
-  // shelf, and footer but not the toolbar or the revalidation banner, so a shared
+  // shelf, and footer but not the toolbar or its verification status, so a shared
   // image carries the plan and not the surrounding chrome.
   const posterRef = useRef<HTMLDivElement>(null);
   const isPreview = viewMode === 'preview';
@@ -317,7 +316,6 @@ export function PlannerPanel() {
       {viewMode === 'edit' && isDockedTier(tier) ? (
         <FeedbackStrip t={t} />
       ) : null}
-      <RevalidationBanner />
       {isPreview ? (
         <TemplateGallery poster={posterData} posterRef={posterRef} />
       ) : planView === 'selected' ? (

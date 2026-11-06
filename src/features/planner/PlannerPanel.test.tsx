@@ -34,8 +34,8 @@ import {
 import { dragStore } from './dragStore';
 import { PlannerPanel } from './PlannerPanel';
 
-// The panel always renders inside the search deps provider in the app; the banner
-// reads it for the manual refresh send.
+// The panel always renders inside the search deps provider in the app; the
+// verification status reads it for the manual check send.
 function renderPanel() {
   return render(
     <SearchDepsProvider value={fakeSearchDeps()}>
