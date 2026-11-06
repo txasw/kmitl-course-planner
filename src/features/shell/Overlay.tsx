@@ -9,6 +9,7 @@ import { PanelPortalContext } from './PanelPortalContext';
 import { Header } from './Header';
 import { Layout } from './Layout';
 import { CrashProbe } from './CrashProbe';
+import { useBottomNavShown } from './mobilePane';
 import { useTranslation } from './useTranslation';
 import { useFocusTrap } from './useFocusTrap';
 import { useScrollLock } from './useScrollLock';
@@ -21,6 +22,10 @@ import { usePresence } from './usePresence';
 // reopening within a page session resumes where the user left off. The root
 // carries the panel language, because the host document's own lang does not follow
 // the language toggle, and the popovers portal into this node so they inherit it.
+// The header pads itself clear of the top and side safe area insets, and the body pads
+// clear of the side insets and of the bottom one, except while the bottom nav runs along
+// its foot: the nav pads itself there, so its fill reaches the screen edge under the
+// home indicator.
 const TITLE_ID = 'kcp-overlay-title';
 
 export function Overlay() {
@@ -36,6 +41,7 @@ export function Overlay() {
     setPanelNode(node);
   }, []);
   const { mounted, stage } = usePresence(isOpen);
+  const navShown = useBottomNavShown();
 
   // Focus enters the panel only once it is mounted; the lock follows the logical
   // open flag so it never waits on the leave animation.
@@ -65,7 +71,11 @@ export function Overlay() {
         fallback={(reset) => <PanelRecoveryCard t={t} onReload={reset} />}
       >
         {IS_DEBUG ? <CrashProbe /> : null}
-        <main className="min-h-0 flex-1 overflow-hidden">
+        <main
+          className={`min-h-0 flex-1 overflow-hidden pr-(--kcp-safe-right) pl-(--kcp-safe-left) ${
+            navShown ? '' : 'pb-(--kcp-safe-bottom)'
+          }`}
+        >
           <PanelPortalContext.Provider value={panelNode}>
             <Layout />
           </PanelPortalContext.Provider>

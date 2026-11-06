@@ -54,4 +54,12 @@ describe('Launcher', () => {
     });
     expect(button).toHaveAttribute('lang', 'en');
   });
+
+  it('keeps its corner offset or the device safe area inset, whichever is larger', () => {
+    render(<Launcher />);
+    expect(screen.getByRole('button')).toHaveClass(
+      'right-[max(20px,var(--kcp-safe-right))]',
+      'bottom-[max(20px,var(--kcp-safe-bottom))]',
+    );
+  });
 });

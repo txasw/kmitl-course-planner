@@ -11,6 +11,7 @@ import { Overlay } from './Overlay';
 import { uiStore } from './uiStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
+import { installViewport } from '../../../tests/support/viewport';
 
 const deps = fakeSearchDeps();
 
@@ -41,6 +42,7 @@ afterEach(() => {
   act(() => {
     uiStore.getState().close();
     uiStore.getState().setLanguage('th');
+    uiStore.getState().setViewMode('edit');
   });
 });
 
@@ -111,5 +113,36 @@ describe('Overlay', () => {
       uiStore.getState().close();
     });
     expect(opener).toHaveFocus();
+  });
+
+  describe('safe area insets', () => {
+    const SIDES = ['pr-(--kcp-safe-right)', 'pl-(--kcp-safe-left)'];
+    const BOTTOM = 'pb-(--kcp-safe-bottom)';
+
+    function openAt(width: number): HTMLElement {
+      installViewport(width, { reducedMotion: true });
+      act(() => {
+        uiStore.getState().open();
+      });
+      render(<Overlay />, { wrapper });
+      return screen.getByRole('main');
+    }
+
+    it('pads the body clear of the side and bottom insets above 640 px', () => {
+      expect(openAt(1366)).toHaveClass(...SIDES, BOTTOM);
+    });
+
+    it('leaves the bottom inset to the phone nav, which pads itself', () => {
+      const main = openAt(390);
+      expect(main).toHaveClass(...SIDES);
+      expect(main).not.toHaveClass(BOTTOM);
+    });
+
+    it('pads the bottom inset of the phone preview, which has no nav', () => {
+      act(() => {
+        uiStore.getState().setViewMode('preview');
+      });
+      expect(openAt(390)).toHaveClass(...SIDES, BOTTOM);
+    });
   });
 });

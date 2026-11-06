@@ -67,6 +67,11 @@ describe('BottomNav', () => {
     for (const item of items) expect(item).toHaveClass('min-h-14');
   });
 
+  it('pads below its items by the bottom safe area inset', () => {
+    render(<BottomNav />);
+    expect(nav()).toHaveClass('pb-(--kcp-safe-bottom)');
+  });
+
   it('opens on the catalog for an empty plan and marks it as the current pane', () => {
     render(<BottomNav />);
     expect(screen.getByRole('button', { name: 'รายวิชา' })).toHaveAttribute(

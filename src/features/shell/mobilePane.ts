@@ -7,6 +7,7 @@
 import { useStore } from 'zustand';
 import { planStore } from '@/features/plans/planStore';
 import { commitAndFocus } from './commitAndFocus';
+import { useLayoutTier } from './useLayoutTier';
 import {
   defaultMobilePane,
   uiStore,
@@ -42,6 +43,18 @@ export function useMobilePane(): MobilePane {
   const pane = useStore(uiStore, (state) => state.mobilePane);
   const hasEntries = useStore(planStore, (state) => state.entries.length > 0);
   return pane ?? defaultMobilePane(hasEntries);
+}
+
+/**
+ * Whether the bottom nav runs along the panel foot: the compact tier in edit mode, the
+ * one state the layout renders it in. The nav pads itself clear of the bottom safe area
+ * inset, so the overlay body leaves that inset to it, and a surface pinned to the panel
+ * foot, such as the toast region, rises above it.
+ */
+export function useBottomNavShown(): boolean {
+  const compact = useLayoutTier() === 'compact';
+  const editing = useStore(uiStore, (state) => state.viewMode === 'edit');
+  return compact && editing;
 }
 
 /** Show the pane of a nav item, setting the plan view first for a plan item. */

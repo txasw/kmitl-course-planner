@@ -5,8 +5,9 @@
 // on it, since the nav sits outside both panes and never turns inert. The catalog item
 // carries the result course count and the selected item the placed subject count, each
 // as a chip over the icon and in the accessible name, so the number is read with the
-// label. Each item is at least 56 px tall. Preview has no nav, because Layout returns
-// before it for the poster.
+// label. Each item is at least 56 px tall, and the nav pads below them by the bottom safe
+// area inset, so the items stay clear of the home indicator while the fill reaches it.
+// Preview has no nav, because Layout returns before it for the poster.
 
 import { useStore } from 'zustand';
 import {
@@ -69,7 +70,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label={t('nav.label')}
-      className="flex shrink-0 border-t border-border bg-surface"
+      className="flex shrink-0 border-t border-border bg-surface pb-(--kcp-safe-bottom)"
     >
       {NAV_ITEMS.map((item) => {
         const Icon = ICON[item];
