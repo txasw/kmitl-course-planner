@@ -237,6 +237,30 @@ describe('showCrossTerm', () => {
   });
 });
 
+describe('dismissNotice', () => {
+  it('clears every visible notice and keeps the add line', () => {
+    const store = createDragStore();
+    const { section, course } = draggedSection();
+    store.getState().showBlocked({ course, section, conflicts: [] });
+    store.getState().setHint('hint');
+    store.getState().announce('added');
+    store.getState().dismissNotice();
+    expect(store.getState().blocked).toBeNull();
+    expect(store.getState().hint).toBeNull();
+    expect(store.getState().announcement).toBe('added');
+  });
+
+  it('clears a cross term notice', () => {
+    const store = createDragStore();
+    store.getState().showCrossTerm({
+      planTerm: { year: '2569', semester: '1' },
+      incomingTerm: { year: '2569', semester: '2' },
+    });
+    store.getState().dismissNotice();
+    expect(store.getState().crossTerm).toBeNull();
+  });
+});
+
 describe('blockerIds', () => {
   it('collects the distinct blocking teachTableIds', () => {
     expect(

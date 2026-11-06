@@ -191,6 +191,7 @@
   "feedback.swapped": "Swapped in",
   "feedback.tryInstead": "Or try",
   "feedback.revealInCatalog": "Show in the list",
+  "feedback.dismiss": "Dismiss message",
   "feedback.added": "Added to the plan",
   "feedback.courseDropHint": "Drop on a highlighted slot to add a section",
   "feedback.moveHint": "Drop on a highlighted slot or the remove zone",

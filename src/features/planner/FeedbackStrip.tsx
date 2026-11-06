@@ -1,15 +1,16 @@
 // The placement feedback strip: a slim aria-live region under the grid header. A
 // rejected drop shows the blocking reason and up to two alternative sections of the
 // same subject that would fit, or a reveal action when none do. A cross term add and a
-// drag hint show here too. Each clears on its own window, six seconds for the blocked
-// reason, which pauses while the pointer rests on the strip or focus is inside it. A catalog add is confirmed by a screen reader only line here only while the
-// timetable is in view; while the sheet covers it, the add toast speaks instead and this
-// line stays empty, so the add is read once. It is not the toast, which stays reserved
-// for actions whose outcome is not otherwise visible on screen; the undo for a removal,
-// move, or swap is an undo toast in the bottom region, where the eye already is on the
-// block that changed. A notice that clears while one of its actions holds focus hands
-// focus back to the control it came from, so the timer that clears it never drops focus
-// to the document body.
+// drag hint show here too. Each visible notice ends with a dismiss control and clears
+// on its own window, six seconds for the blocked reason, which pauses while the pointer
+// rests on the strip or focus is inside it. A catalog add is confirmed by a screen
+// reader only line here only while the timetable is in view; while the sheet covers it,
+// the add toast speaks instead and this line stays empty, so the add is read once. It is
+// not the toast, which stays reserved for actions whose outcome is not otherwise visible
+// on screen; the undo for a removal, move, or swap is an undo toast in the bottom
+// region, where the eye already is on the block that changed. A notice that clears while
+// one of its controls holds focus hands focus back to the control it came from, so the
+// timer that clears it never drops focus to the document body.
 
 import {
   useLayoutEffect,
@@ -19,6 +20,7 @@ import {
   type PointerEvent,
 } from 'react';
 import { useStore } from 'zustand';
+import { X } from 'lucide-react';
 import type { Section } from '@/lib/domain/types';
 import type { Translate } from '@/lib/i18n/t';
 import { describeConflicts } from '@/lib/planner/describeConflict';
@@ -38,6 +40,7 @@ import {
   type CrossTermFeedback,
 } from './dragStore';
 import { conflictReasonText } from './conflictText';
+import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
 /**
@@ -47,6 +50,26 @@ import { TARGET_SIZE } from '@/lib/ui/target';
  */
 export function firstFeedbackAction(root: ParentNode): HTMLElement | null {
   return root.querySelector<HTMLElement>('[data-feedback-action]');
+}
+
+/**
+ * The close control every visible notice ends with, so a student can clear one without
+ * waiting out its window or taking one of its actions. It is not a strip action: a
+ * blocked add moves focus to the way forward, never to the way out.
+ */
+function DismissButton({ t }: { t: Translate }) {
+  return (
+    <button
+      type="button"
+      aria-label={t('feedback.dismiss')}
+      onClick={() => {
+        dragStore.getState().dismissNotice();
+      }}
+      className={`ml-auto inline-flex shrink-0 items-center justify-center rounded-kcp text-ink-soft hover:bg-surface-alt hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
+    >
+      <X size={14} strokeWidth={2} aria-hidden />
+    </button>
+  );
 }
 
 const BLOCKED_WINDOW_MS = 6_000;
@@ -131,6 +154,7 @@ function BlockedNotice({
           {t('feedback.revealInCatalog')}
         </button>
       )}
+      <DismissButton t={t} />
     </div>
   );
 }
@@ -159,6 +183,7 @@ function CrossTermNotice({
       >
         {t('term.switch')}
       </button>
+      <DismissButton t={t} />
     </div>
   );
 }
@@ -245,7 +270,10 @@ export function FeedbackStrip({ t }: FeedbackStripProps) {
       ) : blocked !== null ? (
         <BlockedNotice blocked={blocked} placed={placed} t={t} />
       ) : hint !== null ? (
-        <p className="text-xs text-ink-soft">{hint}</p>
+        <div className="flex items-center gap-2 text-xs text-ink-soft">
+          <p>{hint}</p>
+          <DismissButton t={t} />
+        </div>
       ) : announcement !== null ? (
         <span className="sr-only">{announcement}</span>
       ) : null}

@@ -371,6 +371,50 @@ describe('FeedbackStrip', () => {
     });
   });
 
+  describe('the dismiss control', () => {
+    it('clears a blocked notice and is not the strip action', () => {
+      showBlockedWithChip();
+      render(<FeedbackStrip t={t} />);
+      const dismiss = screen.getByRole('button', { name: 'ปิดข้อความ' });
+      expect(dismiss).not.toHaveAttribute('data-feedback-action');
+      for (const token of TARGET_SIZE.split(' ')) {
+        expect(dismiss).toHaveClass(token);
+      }
+      fireEvent.click(dismiss);
+      expect(dragStore.getState().blocked).toBeNull();
+    });
+
+    it('clears a hint', () => {
+      act(() => {
+        dragStore.getState().setHint('วางบนช่องที่ไฮไลต์หรือพื้นที่นำออก');
+      });
+      render(<FeedbackStrip t={t} />);
+      fireEvent.click(screen.getByRole('button', { name: 'ปิดข้อความ' }));
+      expect(dragStore.getState().hint).toBeNull();
+    });
+
+    it('returns focus to the control the notice took it from', () => {
+      showBlockedWithChip();
+      render(<StripWithOrigin />);
+      const origin = screen.getByRole('button', { name: 'origin' });
+      origin.focus();
+      const dismiss = screen.getByRole('button', { name: 'ปิดข้อความ' });
+      dismiss.focus();
+      fireEvent.click(dismiss);
+      expect(origin).toHaveFocus();
+    });
+
+    it('is absent while only the add line speaks', () => {
+      act(() => {
+        dragStore.setState({ announcement: 'เพิ่มลงตารางแล้ว 90592008' });
+      });
+      render(<FeedbackStrip t={t} />);
+      expect(
+        screen.queryByRole('button', { name: 'ปิดข้อความ' }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
   describe('the clear window', () => {
     afterEach(() => {
       vi.useRealTimers();
