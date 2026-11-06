@@ -11,7 +11,11 @@
 // landing point instead. Escape closes the dialog only, through the shared escape layer,
 // so the overlay behind it stays open. The body is capped at 85 percent of the dynamic
 // viewport height and scrolls inside, and the optional footer stays pinned below it. A
-// list dialog takes the narrow width, a review the medium one, a table the wide one.
+// list dialog takes the narrow width, a review the medium one, a card list the wide one,
+// and a comparison table the table width. A table that keeps its header row in view
+// while it scrolls owns its scroll instead: a sticky header sticks to its nearest
+// scrolling ancestor, so the body then only bounds the content and leaves the scroll to
+// it.
 
 import {
   useEffect,
@@ -32,6 +36,12 @@ const WIDTH_CLASS = {
   narrow: 'max-w-md',
   medium: 'max-w-[32rem]',
   wide: 'max-w-4xl',
+  table: 'max-w-[64rem]',
+} as const;
+
+const BODY_CLASS = {
+  body: 'kcp-scroll overflow-y-auto',
+  content: 'flex flex-col',
 } as const;
 
 interface ModalDialogProps {
@@ -49,6 +59,8 @@ interface ModalDialogProps {
   initialFocusRef?: RefObject<HTMLElement | null>;
   /** The id of the element in the body that describes the dialog. */
   describedBy?: string;
+  /** Who scrolls the content: the dialog body by default, or the content itself. */
+  scroll?: keyof typeof BODY_CLASS;
 }
 
 export function ModalDialog({
@@ -60,6 +72,7 @@ export function ModalDialog({
   footer,
   initialFocusRef,
   describedBy,
+  scroll = 'body',
 }: ModalDialogProps) {
   const portalRoot = usePanelPortal();
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -115,7 +128,7 @@ export function ModalDialog({
             <X size={18} aria-hidden />
           </button>
         </div>
-        <div className="kcp-scroll min-h-0 flex-1 overflow-y-auto p-4 text-sm">
+        <div className={`min-h-0 flex-1 p-4 text-sm ${BODY_CLASS[scroll]}`}>
           {children}
         </div>
         {footer !== undefined && footer !== null ? (
