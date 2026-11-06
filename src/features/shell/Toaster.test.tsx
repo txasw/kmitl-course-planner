@@ -75,6 +75,82 @@ describe('Toaster', () => {
     expect(screen.queryByText('Done')).toBeNull();
   });
 
+  it('runs a toast action with its control and then dismisses the toast', () => {
+    render(<Toaster />);
+    const run = vi.fn();
+    act(() => {
+      toastStore.getState().show('success', 'Done', { label: 'View', run });
+    });
+    const action = screen.getByRole('button', { name: 'View' });
+    fireEvent.click(action);
+    expect(run).toHaveBeenCalledWith(action);
+    expect(screen.queryByText('Done')).toBeNull();
+  });
+
+  it('renders no action control for a toast without one', () => {
+    render(<Toaster />);
+    act(() => {
+      toastStore.getState().show('success', 'Done');
+    });
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+  });
+
+  it('holds a toast with an action while the pointer or focus is on it', () => {
+    vi.useFakeTimers();
+    try {
+      render(<Toaster />);
+      act(() => {
+        toastStore
+          .getState()
+          .show('success', 'Done', { label: 'View', run: () => undefined });
+      });
+      const toast = screen.getByText('Done').parentElement;
+      if (toast === null) throw new Error('toast missing');
+      fireEvent.mouseEnter(toast);
+      act(() => {
+        vi.advanceTimersByTime(8000);
+      });
+      expect(screen.getByText('Done')).toBeInTheDocument();
+      fireEvent.mouseLeave(toast);
+      fireEvent.focus(screen.getByRole('button', { name: 'View' }));
+      act(() => {
+        vi.advanceTimersByTime(8000);
+      });
+      expect(screen.getByText('Done')).toBeInTheDocument();
+      fireEvent.blur(screen.getByRole('button', { name: 'View' }));
+      act(() => {
+        vi.advanceTimersByTime(4000);
+      });
+      expect(screen.queryByText('Done')).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('does not carry a hold over to the toast that replaces a held one', () => {
+    vi.useFakeTimers();
+    try {
+      render(<Toaster />);
+      act(() => {
+        toastStore
+          .getState()
+          .show('success', 'First', { label: 'View', run: () => undefined });
+      });
+      const toast = screen.getByText('First').parentElement;
+      if (toast === null) throw new Error('toast missing');
+      fireEvent.mouseEnter(toast);
+      act(() => {
+        toastStore.getState().show('success', 'Second');
+      });
+      act(() => {
+        vi.advanceTimersByTime(4000);
+      });
+      expect(screen.queryByText('Second')).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('dismisses an ordinary toast on a sideways swipe', () => {
     render(<Toaster />);
     act(() => {

@@ -2,7 +2,9 @@
 // a time, auto dismisses an ordinary toast after a short delay, and announces politely
 // so a screen reader hears the outcome. The live region stays mounted even when empty
 // so an announcement fires the moment a toast appears. Motion is a short rise that the
-// reduced motion media query removes, leaving the color and text.
+// reduced motion media query removes, leaving the color and text. A toast that carries
+// an action shows it before the close button; pressing it runs the action and dismisses
+// the toast.
 //
 // A pending undo takes priority over an ordinary toast: the undo toast holds the region
 // for its window and ordinary toasts queue behind it rather than displacing it. The undo
@@ -12,7 +14,7 @@
 // The region sits outside the overlay root, so it carries the panel language itself and
 // a screen reader announces a toast in the voice of the language it is written in.
 
-import { useEffect, useRef, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useStore } from 'zustand';
 import { CircleCheck, TriangleAlert, X } from 'lucide-react';
 import { planStore } from '@/features/plans/planStore';
@@ -42,15 +44,19 @@ const ICON_COLOR = {
   error: 'text-danger',
 } as const;
 
-// One ordinary toast, with a close button and swipe to dismiss. Reduced motion turns the
-// swipe off, leaving the close button and Escape as the dismissal.
+// One ordinary toast, with its action when it carries one, a close button and swipe to
+// dismiss. Reduced motion turns the swipe off, leaving the close button and Escape as
+// the dismissal. A toast with an action holds its timer while the pointer is over it or
+// focus is within it, per WCAG timing, so the action does not leave under the pointer.
 function OrdinaryToast({
   toast,
   onDismiss,
+  onHold,
   t,
 }: {
   toast: Toast;
   onDismiss: () => void;
+  onHold: (held: boolean) => void;
   t: Translate;
 }) {
   const reducedMotion = usePrefersReducedMotion();
@@ -60,8 +66,35 @@ function OrdinaryToast({
     enabled: !reducedMotion,
   });
   const Icon = ICON[toast.kind];
+  const { action } = toast;
+  const hold = () => {
+    onHold(true);
+  };
+  const release = () => {
+    onHold(false);
+  };
+  const holdHandlers =
+    action === undefined
+      ? {}
+      : {
+          onMouseEnter: hold,
+          onMouseLeave: release,
+          onFocusCapture: hold,
+          onBlurCapture: release,
+        };
+  const stopSwipe = (event: { stopPropagation: () => void }) => {
+    // Keep a press on a control from arming the swipe on the toast behind it.
+    event.stopPropagation();
+  };
+  const onEscape = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+      onDismiss();
+    }
+  };
   return (
     <div
+      {...holdHandlers}
       {...swipe.handlers}
       style={swipe.style}
       className={`kcp-toast-enter pointer-events-auto flex max-w-md items-center gap-2 rounded-kcp border py-2 pr-2 pl-3 text-sm text-ink shadow-kcp ${swipe.touchClass} ${VARIANT[toast.kind]}`}
@@ -73,18 +106,25 @@ function OrdinaryToast({
         className={`shrink-0 ${ICON_COLOR[toast.kind]}`}
       />
       <span className="flex-1">{toast.message}</span>
+      {action === undefined ? null : (
+        <button
+          type="button"
+          onPointerDown={stopSwipe}
+          onKeyDown={onEscape}
+          onClick={(event) => {
+            action.run(event.currentTarget);
+            onDismiss();
+          }}
+          className={`shrink-0 rounded-kcp px-1 text-primary-strong underline pointer-coarse:min-h-11 ${FOCUS_RING}`}
+        >
+          {action.label}
+        </button>
+      )}
       <button
         type="button"
         aria-label={t('action.dismiss')}
-        onPointerDown={(event) => {
-          event.stopPropagation();
-        }}
-        onKeyDown={(event: KeyboardEvent<HTMLElement>) => {
-          if (event.key === 'Escape') {
-            event.stopPropagation();
-            onDismiss();
-          }
-        }}
+        onPointerDown={stopSwipe}
+        onKeyDown={onEscape}
         onClick={onDismiss}
         className={`shrink-0 rounded-kcp p-0.5 text-ink-soft hover:bg-black/5 hover:text-ink ${FOCUS_RING}`}
       >
@@ -103,11 +143,15 @@ export function Toaster() {
 
   // The undo toast owns the region while the panel is open; an ordinary toast waits.
   const showUndo = pendingUndo !== null && isOpen;
+  // The id of the toast the pointer or focus is holding. Keyed by id, a hold never
+  // outlives its toast, even when the toast is replaced under a resting pointer.
+  const [heldId, setHeldId] = useState<number | null>(null);
+  const held = toast !== null && heldId === toast.id;
 
   useEffect(() => {
     // An ordinary toast auto dismisses only while it is the thing on screen. While an
     // undo toast holds the region, hold the ordinary toast so it queues behind it.
-    if (toast === null || showUndo) {
+    if (toast === null || showUndo || held) {
       return;
     }
     const { id } = toast;
@@ -117,7 +161,7 @@ export function Toaster() {
     return () => {
       clearTimeout(timer);
     };
-  }, [toast, dismiss, showUndo]);
+  }, [toast, dismiss, showUndo, held]);
 
   // Clear a panel toast when the overlay closes, so it does not linger over the
   // bare host page. A debug toast shown while the panel is already closed sees no
@@ -161,6 +205,9 @@ export function Toaster() {
           toast={toast}
           onDismiss={() => {
             dismiss(toast.id);
+          }}
+          onHold={(hold) => {
+            setHeldId(hold ? toast.id : null);
           }}
           t={t}
         />

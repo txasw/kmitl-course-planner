@@ -31,6 +31,15 @@ describe('toastStore', () => {
     expect(store.getState().toast).toBeNull();
   });
 
+  it('carries one action when given and none otherwise', () => {
+    const store = createToastStore();
+    const action = { label: 'View', run: () => undefined };
+    store.getState().show('success', 'with action', action);
+    expect(store.getState().toast?.action).toBe(action);
+    store.getState().show('success', 'plain');
+    expect(store.getState().toast).not.toHaveProperty('action');
+  });
+
   it('dismisses unconditionally without an id', () => {
     const store = createToastStore();
     store.getState().show('success', 'x');
