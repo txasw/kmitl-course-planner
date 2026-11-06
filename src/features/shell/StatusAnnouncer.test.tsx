@@ -3,11 +3,19 @@ import { render, screen, cleanup, act } from '@testing-library/react';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { httpError } from '@/lib/utils/result';
+import type { PlanEntry } from '@/lib/domain/plan';
+import { planStore } from '@/features/plans/planStore';
 import { searchStore, type QueryIntent } from '@/features/search/searchStore';
 import {
   makeCourse,
+  makePlanEntry,
   makeSection,
+  makeSnapshot,
 } from '../../../tests/support/domain-builders';
+import {
+  resetPlanStore,
+  seedActivePlan,
+} from '../../../tests/support/plan-store';
 import { StatusAnnouncer } from './StatusAnnouncer';
 import { uiStore } from './uiStore';
 
@@ -53,6 +61,7 @@ function region(): HTMLElement {
 
 afterEach(() => {
   cleanup();
+  resetPlanStore();
   act(() => {
     searchStore.getState().cancelSearch();
     uiStore.getState().setLanguage('th');
@@ -162,5 +171,66 @@ describe('StatusAnnouncer', () => {
     render(<StatusAnnouncer />);
     run('user', { status: 'ready', data: catalog([2, 2]) });
     expect(region()).toHaveTextContent('Found 2 courses and 4 sections');
+  });
+});
+
+/** A placed entry, with an open room review when asked for. */
+function entry(id: string, review = false): PlanEntry {
+  const snapshot = makeSnapshot({
+    teachTableId: id,
+    subjectId: `9000000${id}`,
+  });
+  return makePlanEntry({
+    snapshot,
+    verifyStatus: review ? 'changed' : 'verified',
+    ...(review
+      ? {
+          review: {
+            kinds: ['room_changed'],
+            before: snapshot,
+            detectedAt: '2026-11-06T00:00:00.000Z',
+            notifiedAt: null,
+          },
+        }
+      : {}),
+  });
+}
+
+/** Replace the active plan's entries, the way a check records its outcome. */
+function record(entries: PlanEntry[]): void {
+  act(() => {
+    planStore.setState({ entries });
+  });
+}
+
+describe('StatusAnnouncer and the updates indicator', () => {
+  it('reads the indicator once when a check first records changes', () => {
+    seedActivePlan([entry('1'), entry('2')]);
+    render(<StatusAnnouncer />);
+    record([entry('1', true), entry('2')]);
+    const message = region().firstElementChild;
+    expect(region()).toHaveTextContent('มีการเปลี่ยนแปลง 1 รายการ');
+
+    record([entry('1', true), entry('2', true)]);
+    expect(region().firstElementChild).toBe(message);
+    expect(region()).toHaveTextContent('มีการเปลี่ยนแปลง 1 รายการ');
+  });
+
+  it('reads it again when it returns after every item was reviewed', () => {
+    seedActivePlan([entry('1')]);
+    render(<StatusAnnouncer />);
+    record([entry('1', true)]);
+    const first = region().firstElementChild;
+    record([entry('1')]);
+    record([entry('1', true)]);
+    expect(region().firstElementChild).not.toBe(first);
+    expect(region()).toHaveTextContent('มีการเปลี่ยนแปลง 1 รายการ');
+  });
+
+  it('says nothing for a plan that already had items when it mounted', () => {
+    seedActivePlan([entry('1', true)]);
+    render(<StatusAnnouncer />);
+    record([entry('1', true), entry('2', true)]);
+    expect(region()).toBeEmptyDOMElement();
   });
 });

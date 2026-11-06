@@ -15,7 +15,8 @@ import { uiStore } from './uiStore';
 // existing owner rather than a new region that would read an outcome twice. A change to
 // this table is a change to the record.
 const INVENTORY: Readonly<Record<string, number>> = {
-  // Settled search outcomes for user submits.
+  // Settled search outcomes for user submits, and the first appearance of the updates
+  // indicator, which is no live region itself.
   'features/shell/StatusAnnouncer.tsx': 1,
   // Placement outcomes and the added line while the timetable is in view.
   'features/planner/FeedbackStrip.tsx': 1,
