@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { curriculumProfileSchema } from './curriculumProfile';
+import {
+  curriculumProfileSchema,
+  profileDraft,
+  profileFromSelection,
+} from './curriculumProfile';
 
 const profile = {
   facultyId: '01',
@@ -34,5 +38,84 @@ describe('curriculumProfileSchema', () => {
     expect(
       curriculumProfileSchema.safeParse({ ...profile, classYear: '8' }).success,
     ).toBe(true);
+  });
+});
+
+describe('profileDraft', () => {
+  it('opens on the class search with its all options cleared', () => {
+    expect(
+      profileDraft(null, {
+        faculty: '01',
+        department: '05',
+        curriculum: 'all',
+        classYear: 'all',
+      }),
+    ).toEqual({
+      faculty: '01',
+      department: '05',
+      curriculum: '',
+      classYear: '',
+    });
+    expect(
+      profileDraft(null, {
+        faculty: '01',
+        department: '05',
+        curriculum: '137',
+        classYear: '2',
+      }),
+    ).toEqual({
+      faculty: '01',
+      department: '05',
+      curriculum: '137',
+      classYear: '2',
+    });
+  });
+
+  it('opens on the saved profile over the class search', () => {
+    expect(
+      profileDraft(profile, {
+        faculty: '02',
+        department: '01',
+        curriculum: '21',
+        classYear: '5',
+      }),
+    ).toEqual({
+      faculty: '01',
+      department: '05',
+      curriculum: '137',
+      classYear: '1',
+    });
+  });
+});
+
+describe('profileFromSelection', () => {
+  it('builds the profile of a complete selection', () => {
+    expect(
+      profileFromSelection({
+        faculty: '01',
+        department: '05',
+        curriculum: '137',
+        classYear: '1',
+      }),
+    ).toEqual(profile);
+  });
+
+  it('returns null while a select is empty or holds an all value', () => {
+    expect(
+      profileFromSelection({
+        faculty: '01',
+        department: '05',
+        curriculum: '137',
+        classYear: '',
+      }),
+    ).toBeNull();
+    expect(
+      profileFromSelection({
+        faculty: '01',
+        department: '05',
+        curriculum: 'all',
+        classYear: '1',
+      }),
+    ).toBeNull();
   });
 });

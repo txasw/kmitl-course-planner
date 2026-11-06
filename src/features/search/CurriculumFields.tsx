@@ -17,21 +17,13 @@ import {
   readyData,
   type ReferenceLists,
 } from '@/lib/reference/filters';
+import type { CurriculumSelection } from '@/lib/catalog/curriculumProfile';
 import {
   ALL_OPTION,
   CLASS_YEARS,
   asClassYear,
   type ClassForm,
-  type ClassYear,
 } from '@/lib/search/formState';
-
-/** The four selections; an empty class year means none is chosen yet. */
-export interface CurriculumSelection {
-  faculty: string;
-  department: string;
-  curriculum: string;
-  classYear: ClassYear | '';
-}
 
 interface CurriculumFieldsProps {
   value: CurriculumSelection;
