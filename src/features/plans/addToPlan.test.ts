@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { createTranslator } from '@/lib/i18n/t';
+import { dragStore } from '@/features/planner/dragStore';
 import { CATALOG_TOGGLE_ID } from '@/features/shell/catalogVisibility';
 import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
@@ -13,6 +14,7 @@ const section = makeSection({ subjectId: '90592033', section: '901' });
 afterEach(() => {
   vi.unstubAllGlobals();
   toastStore.getState().dismiss();
+  dragStore.getState().clearAnnouncement();
   uiStore.getState().setSheetOpen(false);
   document.body.replaceChildren();
 });
@@ -31,17 +33,26 @@ describe('confirmAdd', () => {
     },
   );
 
-  it('raises no toast while the sheet is closed', () => {
+  it('leaves the strip silent while the toast speaks', () => {
+    installViewport(768);
+    uiStore.getState().setSheetOpen(true);
+    confirmAdd(section, t);
+    expect(dragStore.getState().announcement).toBeNull();
+  });
+
+  it('announces through the strip while the sheet is closed', () => {
     installViewport(768);
     confirmAdd(section, t);
     expect(toastStore.getState().toast).toBeNull();
+    expect(dragStore.getState().announcement).toBe('เพิ่มลงตารางแล้ว 90592033');
   });
 
-  it('raises no toast where the column docks beside the grid', () => {
+  it('announces through the strip where the column docks beside the grid', () => {
     installViewport(1280);
     uiStore.getState().setSheetOpen(true);
     confirmAdd(section, t);
     expect(toastStore.getState().toast).toBeNull();
+    expect(dragStore.getState().announcement).toBe('เพิ่มลงตารางแล้ว 90592033');
   });
 
   it('closes the sheet and focuses the catalog toggle from the action', () => {
