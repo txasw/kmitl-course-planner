@@ -3,9 +3,9 @@
 // catalog has no visible grid to land on: the hidden timetable pane still holds its drop
 // zone at the same place, and a drop there would commit an add the student never saw.
 // The catalog column provides the value once for every source in it, so the hundreds of
-// rows read one context instead of each subscribing to a media query. The grip and the
-// add buttons stay, so an add is always one press away. Without a provider, as in a
-// component test, drag stays on.
+// rows read one context instead of each subscribing to a media query. The section grip,
+// named for the drag it starts, drops out with the drag, and the add buttons stay, so an
+// add is always one press away. Without a provider, as in a component test, drag stays on.
 
 import { createContext, useContext } from 'react';
 

@@ -7,7 +7,10 @@
 // hovers, so a tap does not draw the preview (ADR-0058). A held finger marks the row
 // pressed before its drag starts, and the dragged row dims to 40 percent. Where the
 // catalog turns drag off, below 640 px, the row is no drag source and shows no grab
-// cursor or pressed mark, and the grip stays as the commit control.
+// cursor, pressed mark or grip: the grip there would only repeat the row's add button
+// under a name that promises a drag, so the add button alone carries the commit. The
+// row keeps its element and its drag registration, disabled, so a tier change never
+// remounts the row under a focused control.
 
 import { useEffect, type PointerEvent, type ReactNode } from 'react';
 import { useDraggable } from '@dnd-kit/core';
@@ -87,19 +90,21 @@ export function DraggableSection({
       {...press.handlers}
       {...listeners}
     >
-      <button
-        type="button"
-        aria-label={label}
-        onClick={onActivate}
-        onFocus={preview}
-        onBlur={clearPreview}
-        // Keyboard and click only: a press on the grip must not arm the row drag, so it
-        // stays a discrete commit control rather than a second drag source.
-        {...NO_DRAG_ARMING}
-        className={`flex shrink-0 items-center justify-center rounded-kcp px-0.5 text-ink-soft outline-none hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
-      >
-        <GripVertical size={14} strokeWidth={2} aria-hidden />
-      </button>
+      {dragEnabled ? (
+        <button
+          type="button"
+          aria-label={label}
+          onClick={onActivate}
+          onFocus={preview}
+          onBlur={clearPreview}
+          // Keyboard and click only: a press on the grip must not arm the row drag, so it
+          // stays a discrete commit control rather than a second drag source.
+          {...NO_DRAG_ARMING}
+          className={`flex shrink-0 items-center justify-center rounded-kcp px-0.5 text-ink-soft outline-none hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
+        >
+          <GripVertical size={14} strokeWidth={2} aria-hidden />
+        </button>
+      ) : null}
       <div className="min-w-0 flex-1">{children}</div>
     </div>
   );
