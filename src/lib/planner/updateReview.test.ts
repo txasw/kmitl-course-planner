@@ -8,6 +8,7 @@ import {
 import {
   buildUpdateReview,
   hasUpdateItems,
+  updateItemCount,
   withRemovedItems,
   type ConflictsById,
 } from './updateReview';
@@ -172,6 +173,21 @@ describe('hasUpdateItems', () => {
     expect(hasUpdateItems([makePlanEntry({ verifyStatus: 'missing' })])).toBe(
       true,
     );
+  });
+});
+
+describe('updateItemCount', () => {
+  it('counts the open reviews and the missing entries, one per entry', () => {
+    expect(updateItemCount([makePlanEntry({ verifyStatus: 'verified' })])).toBe(
+      0,
+    );
+    expect(
+      updateItemCount([
+        reviewed('1', ['room_changed', 'time_changed']),
+        makePlanEntry({ verifyStatus: 'missing' }),
+        makePlanEntry({ verifyStatus: 'verified' }),
+      ]),
+    ).toBe(2);
   });
 });
 

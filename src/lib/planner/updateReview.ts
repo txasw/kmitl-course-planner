@@ -70,13 +70,20 @@ function itemKinds(entry: PlanEntry): ReviewKind[] {
   return kinds;
 }
 
+type ItemFields = Pick<PlanEntry, 'review' | 'verifyStatus'>;
+
+function isUpdateItem(entry: ItemFields): boolean {
+  return entry.review !== undefined || entry.verifyStatus === 'missing';
+}
+
 /** Whether the plan has anything for the updates dialog to list. */
-export function hasUpdateItems(
-  entries: readonly Pick<PlanEntry, 'review' | 'verifyStatus'>[],
-): boolean {
-  return entries.some(
-    (entry) => entry.review !== undefined || entry.verifyStatus === 'missing',
-  );
+export function hasUpdateItems(entries: readonly ItemFields[]): boolean {
+  return entries.some(isUpdateItem);
+}
+
+/** How many items the updates dialog lists, the count the updates indicator shows. */
+export function updateItemCount(entries: readonly ItemFields[]): number {
+  return entries.filter(isUpdateItem).length;
 }
 
 function clashesOf(
