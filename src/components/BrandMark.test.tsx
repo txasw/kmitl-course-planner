@@ -44,6 +44,15 @@ describe('BrandMark', () => {
     expect(accent?.getAttribute('fill')).toBe('currentColor');
   });
 
+  it('stays out of the accessibility tree and takes its size and colour from the caller', () => {
+    const { container } = render(
+      <BrandMark className="hidden size-6 text-primary sm:block" />,
+    );
+    const svg = container.querySelector('svg');
+    expect(svg).toHaveAttribute('aria-hidden', 'true');
+    expect(svg).toHaveClass('size-6', 'text-primary', 'sm:block');
+  });
+
   it('gives each instance a unique mask id so marks on one poster do not collide', () => {
     const { container } = render(
       <>

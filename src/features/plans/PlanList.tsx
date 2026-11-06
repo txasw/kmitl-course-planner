@@ -24,7 +24,8 @@ interface TermGroup {
   plans: Plan[];
 }
 
-function termLabel(term: Term, t: Translate): string {
+/** A term as the plan menu names it, such as ภาคการศึกษา 1/2569. */
+export function termLabel(term: Term, t: Translate): string {
   return `${t('search.semester')} ${term.semester}/${term.year}`;
 }
 

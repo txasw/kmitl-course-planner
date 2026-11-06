@@ -6,6 +6,7 @@ import {
   cleanup,
   act,
   waitFor,
+  within,
 } from '@testing-library/react';
 import { makePlan } from '../../../tests/support/domain-builders';
 import { searchStore } from '@/features/search/searchStore';
@@ -82,8 +83,16 @@ describe('PlanSwitcher', () => {
     seedTwoPlans();
     render(<PlanSwitcher />);
     openMenu();
-    expect(screen.getByText('ภาคการศึกษา 1/2569')).toBeInTheDocument();
-    expect(screen.getByText('ภาคการศึกษา 2/2569')).toBeInTheDocument();
+    // The trigger also names the active plan's term, so read the group headings from
+    // the menu alone.
+    const menu = screen
+      .getByRole('button', { name: 'สร้างตาราง' })
+      .closest<HTMLElement>('.kcp-scroll');
+    if (menu === null) {
+      throw new Error('expected the plan menu');
+    }
+    expect(within(menu).getByText('ภาคการศึกษา 1/2569')).toBeInTheDocument();
+    expect(within(menu).getByText('ภาคการศึกษา 2/2569')).toBeInTheDocument();
     // A string role name matches the full accessible name, so it targets the select
     // button ("A") and not the per-row action buttons ("Rename A" and the rest).
     expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument();
