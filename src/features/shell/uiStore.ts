@@ -19,6 +19,21 @@ export type ViewMode = 'edit' | 'preview';
 /** The plan view shown in edit mode: the weekly grid, or the list of placed subjects. */
 export type PlanView = 'timetable' | 'selected';
 
+/**
+ * The pane the compact tier shows below 640 px (ADR-0048): the catalog with its search,
+ * or the plan views, where the plan view picks the timetable or the selected list.
+ */
+export type MobilePane = 'catalog' | 'plan';
+
+/**
+ * The pane the compact tier opens on before the student picks one: the plan views when
+ * the plan already holds entries, so a returning student sees the timetable, and the
+ * catalog otherwise, since an empty plan has nothing to show yet (ADR-0049).
+ */
+export function defaultMobilePane(hasEntries: boolean): MobilePane {
+  return hasEntries ? 'plan' : 'catalog';
+}
+
 export interface UiState {
   isOpen: boolean;
   /** Whether the catalog sheet is open, on the tiers where the catalog column is a sheet. */
@@ -36,6 +51,12 @@ export interface UiState {
    * timetable on every page load and survives closing and reopening the overlay.
    */
   planView: PlanView;
+  /**
+   * The pane the compact tier shows, or null until the compact tier first lays out. It
+   * is settled once from the plan at that moment and then changes only on request, so an
+   * add never switches panes. It is session only and survives closing the overlay.
+   */
+  mobilePane: MobilePane | null;
   /** Poster display options, applied to the preview and every export. */
   displayOptions: DisplayOptions;
   /** The chosen export template slug, applied to the preview and every image export. */
@@ -61,6 +82,9 @@ export interface UiState {
   setLanguage: (language: Locale) => void;
   setViewMode: (mode: ViewMode) => void;
   setPlanView: (view: PlanView) => void;
+  setMobilePane: (pane: MobilePane) => void;
+  /** Settle the compact pane to its default when no pane is set yet; a set pane stays. */
+  settleMobilePane: (hasEntries: boolean) => void;
   setDisplayOptions: (options: DisplayOptions) => void;
   setDisplayOption: (key: keyof DisplayOptions, value: boolean) => void;
   setSelectedTemplate: (slug: string) => void;
@@ -80,6 +104,7 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     language,
     viewMode: 'edit',
     planView: 'timetable',
+    mobilePane: null,
     displayOptions: DEFAULT_DISPLAY_OPTIONS,
     selectedTemplate: DEFAULT_TEMPLATE.slug,
     diagnosticsIssueCount: null,
@@ -114,6 +139,16 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     },
     setPlanView: (planView) => {
       set({ planView });
+    },
+    setMobilePane: (mobilePane) => {
+      set({ mobilePane });
+    },
+    settleMobilePane: (hasEntries) => {
+      set((state) =>
+        state.mobilePane === null
+          ? { mobilePane: defaultMobilePane(hasEntries) }
+          : state,
+      );
     },
     setDisplayOptions: (displayOptions) => {
       set({ displayOptions });

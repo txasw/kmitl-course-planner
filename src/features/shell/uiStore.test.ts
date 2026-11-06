@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createUiStore } from './uiStore';
+import { createUiStore, defaultMobilePane } from './uiStore';
 
 describe('ui store', () => {
   it('starts closed with the default locale', () => {
@@ -59,6 +59,40 @@ describe('ui store', () => {
     store.getState().close();
     store.getState().open();
     expect(store.getState().planView).toBe('selected');
+  });
+
+  it('starts with no compact pane until one is settled', () => {
+    expect(createUiStore().getState().mobilePane).toBeNull();
+  });
+
+  it.each([
+    [true, 'plan'],
+    [false, 'catalog'],
+  ] as const)(
+    'settles the compact pane for a plan with entries %s on %s',
+    (hasEntries, pane) => {
+      expect(defaultMobilePane(hasEntries)).toBe(pane);
+      const store = createUiStore();
+      store.getState().settleMobilePane(hasEntries);
+      expect(store.getState().mobilePane).toBe(pane);
+    },
+  );
+
+  it('keeps a compact pane once settled, so a later add never switches it', () => {
+    const store = createUiStore();
+    store.getState().settleMobilePane(false);
+    store.getState().settleMobilePane(true);
+    expect(store.getState().mobilePane).toBe('catalog');
+  });
+
+  it('keeps a picked compact pane across settling and reopening', () => {
+    const store = createUiStore();
+    store.getState().open();
+    store.getState().setMobilePane('plan');
+    store.getState().settleMobilePane(false);
+    store.getState().close();
+    store.getState().open();
+    expect(store.getState().mobilePane).toBe('plan');
   });
 
   it('opens and closes', () => {
