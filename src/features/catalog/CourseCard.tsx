@@ -2,6 +2,8 @@
 // string, which is also the disclosure for the card's sections. Each section's seat
 // status and plan relation are computed here from the placed sections. A card starts
 // collapsed and the catalog owns whether it is open, so the state survives a remount.
+// Resting the mouse on the header, or focusing the toggle from the keyboard, previews
+// where the course's sections would land on the grid.
 
 import { memo, useId, type ReactNode } from 'react';
 import { useDraggable } from '@dnd-kit/core';
@@ -20,6 +22,8 @@ import { RemoveButton, removeSectionName } from './RemoveButton';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { usePresence } from '@/features/shell/usePresence';
 import { useRevealOnExpand } from './useRevealOnExpand';
+import { useCoursePreview } from './useCoursePreview';
+import type { HoverIntentHandlers } from './useHoverIntent';
 
 const HEADER = 'flex items-start gap-1';
 
@@ -35,9 +39,11 @@ const DISCLOSURE_MS = 200;
 // list while a horizontal swipe still starts the drag.
 function CourseDragHeader({
   course,
+  hover,
   children,
 }: {
   course: Course;
+  hover: HoverIntentHandlers;
   children: ReactNode;
 }) {
   const { setNodeRef, listeners } = useDraggable({
@@ -48,6 +54,7 @@ function CourseDragHeader({
     <header
       ref={setNodeRef}
       {...listeners}
+      {...hover}
       data-drag-surface="course"
       className={`${HEADER} touch-pan-y`}
     >
@@ -111,7 +118,9 @@ function CourseCardComponent({
   const added = placedSection !== undefined;
   // A cross term course cannot be added, so its header is no drag source; its rows
   // carry the different term state and a switch action instead.
-  const draggable = !added && onAdd !== undefined && !isCrossTerm(term);
+  const crossTerm = isCrossTerm(term);
+  const draggable = !added && onAdd !== undefined && !crossTerm;
+  const preview = useCoursePreview(course, !added && !crossTerm);
   const { mounted, stage } = usePresence(open, DISCLOSURE_MS);
   const { cardRef, scheduleReveal } = useRevealOnExpand(DISCLOSURE_MS);
   const handleToggle = () => {
@@ -140,6 +149,7 @@ function CourseCardComponent({
           aria-controls={bodyId}
           aria-labelledby={`${titleId} ${creditId}`}
           onClick={handleToggle}
+          {...preview.focus}
           className={`group flex min-h-6 min-w-0 flex-1 cursor-pointer items-start gap-2 rounded-kcp text-left pointer-coarse:min-h-11 ${FOCUS_RING}`}
         >
           <span
@@ -187,9 +197,13 @@ function CourseCardComponent({
       className={`rounded-kcp border border-border px-3 py-2 hover:border-ink-soft ${added ? 'bg-surface-alt' : 'bg-surface'}`}
     >
       {draggable ? (
-        <CourseDragHeader course={course}>{headerContent}</CourseDragHeader>
+        <CourseDragHeader course={course} hover={preview.hover}>
+          {headerContent}
+        </CourseDragHeader>
       ) : (
-        <header className={HEADER}>{headerContent}</header>
+        <header className={HEADER} {...preview.hover}>
+          {headerContent}
+        </header>
       )}
       {/* The body stays in the tree so aria-controls always resolves. Its rows mount
           only while it is open or animating, so a collapsed card registers no
