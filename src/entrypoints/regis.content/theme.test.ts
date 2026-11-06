@@ -157,6 +157,32 @@ describe('shadow stylesheet tokens', () => {
     );
   });
 
+  it('peeks the rail ghost on hover only where hover exists, after the intent delay', () => {
+    expect(css).toMatch(
+      /@media \(hover: hover\) \{\s*\.kcp-rail:not\(\[data-peek-held\]\):not\(\[data-dragging\]\):hover \.kcp-rail-ghost \{[^}]*transform: none;[^}]*var\(--kcp-delay-intent\)/,
+    );
+    expect(css).toMatch(
+      /\.kcp-rail:not\(\[data-dragging\]\):focus-visible \.kcp-rail-ghost \{[^}]*opacity: 1;/,
+    );
+  });
+
+  it('drops the rail ghost transition when motion is reduced', () => {
+    const reduced = [
+      ...css.matchAll(
+        /@media \(prefers-reduced-motion: reduce\) \{([^{}]*)\{([^}]*)\}/g,
+      ),
+    ].find((match) => match[1]?.includes('.kcp-rail-ghost'));
+    expect(reduced).toBeDefined();
+    const selectors = reduced?.[1] ?? '';
+    expect(selectors).toContain(
+      '.kcp-rail:not([data-peek-held]):not([data-dragging]):hover .kcp-rail-ghost',
+    );
+    expect(selectors).toContain(
+      '.kcp-rail:not([data-dragging]):focus-visible .kcp-rail-ghost',
+    );
+    expect(reduced?.[2]).toContain('transition: none;');
+  });
+
   it('reads every fixed animation duration from a motion token', () => {
     expect(css).not.toMatch(/animation:[^;]*\b\d+m?s\b/);
     expect(css).toMatch(/animation:[^;]*var\(--kcp-duration-/);

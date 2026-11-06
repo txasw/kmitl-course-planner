@@ -1,5 +1,11 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, screen, cleanup, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  cleanup,
+  act,
+  fireEvent,
+} from '@testing-library/react';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import { dragStore } from '@/features/planner/dragStore';
 import { searchStore } from '@/features/search/searchStore';
@@ -9,7 +15,11 @@ import {
 } from '../../../tests/support/domain-builders';
 import { installViewport } from '../../../tests/support/viewport';
 import { CATALOG_COLUMN_ID } from './CatalogColumn';
-import { CATALOG_RAIL_ID } from './catalogVisibility';
+import {
+  CATALOG_HIDE_ID,
+  CATALOG_RAIL_ID,
+  hideCatalog,
+} from './catalogVisibility';
 import { EdgeRail } from './EdgeRail';
 import { uiStore } from './uiStore';
 
@@ -161,5 +171,61 @@ describe('EdgeRail', () => {
       dragStore.getState().clearBlockMove();
     });
     expect(button).not.toHaveAttribute('data-dragging');
+  });
+
+  describe('peek hold after a hide', () => {
+    // The hide control lives in the column, which this test does not render, so a bare
+    // button with its id stands in as the control the funnel hides from.
+    function renderWithHideControl(): HTMLButtonElement {
+      installViewport(1440);
+      render(
+        <>
+          <button type="button" id={CATALOG_HIDE_ID}>
+            hide
+          </button>
+          <EdgeRail />
+        </>,
+      );
+      const hide = document.getElementById(CATALOG_HIDE_ID);
+      if (!(hide instanceof HTMLButtonElement)) {
+        throw new Error('the hide control did not render');
+      }
+      return hide;
+    }
+
+    it('holds the peek off after a pointer hide until the pointer moves off the rail', () => {
+      const hide = renderWithHideControl();
+      act(() => {
+        hideCatalog(hide, 1);
+      });
+      const button = rail();
+      expect(button).toHaveFocus();
+      expect(button).toHaveAttribute('data-peek-held');
+
+      if (button === null) throw new Error('the rail did not mount');
+      fireEvent.pointerMove(button);
+      expect(button).toHaveAttribute('data-peek-held');
+      fireEvent.pointerMove(hide);
+      expect(button).not.toHaveAttribute('data-peek-held');
+    });
+
+    it('leaves the peek armed after a keyboard hide', () => {
+      const hide = renderWithHideControl();
+      act(() => {
+        hideCatalog(hide, 0);
+      });
+      expect(rail()).toHaveFocus();
+      expect(rail()).not.toHaveAttribute('data-peek-held');
+    });
+  });
+
+  it('carries the peek ghost as a hidden, inert child', () => {
+    installViewport(1440);
+    hideColumn();
+    render(<EdgeRail />);
+    const ghost = rail()?.querySelector('.kcp-rail-ghost');
+    expect(rail()).toHaveClass('kcp-rail');
+    expect(ghost).toHaveAttribute('aria-hidden', 'true');
+    expect(ghost).toHaveClass('pointer-events-none', 'absolute', 'left-full');
   });
 });
