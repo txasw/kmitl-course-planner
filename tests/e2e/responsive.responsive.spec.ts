@@ -10,6 +10,7 @@ import {
 } from './support/fixtures';
 import { axeViolations } from './support/axe';
 import { denseSubjectId } from './support/denseCatalog';
+import { expectLauncherInSafeArea } from './support/launcher';
 import { allowEntryToast } from './support/onboarding';
 import { addCourse, block, syntheticSearch } from './support/synthetic';
 import {
@@ -188,6 +189,17 @@ test('the planner opens and closes with focus back on the launcher', async ({
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toBeHidden();
   await expect(page.getByRole('button', { name: LAUNCHER })).toBeFocused();
+});
+
+test('the launcher pill stays inside the safe area, with no ring after a first open', async ({
+  context,
+}) => {
+  const page = await gotoSelector(context);
+  await expectLauncherInSafeArea(page);
+  // The settled first run has opened the panel before, so the ring stays off.
+  await expect(page.getByRole('button', { name: LAUNCHER })).not.toHaveClass(
+    /kcp-launcher-ring/,
+  );
 });
 
 /**

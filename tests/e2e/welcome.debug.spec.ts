@@ -1,6 +1,7 @@
 import type { BrowserContext, Page } from '@playwright/test';
 import { test, expect, SELECTOR_URL } from './support/fixtures';
 import { axeViolations } from './support/axe';
+import { expectLauncherInSafeArea } from './support/launcher';
 import { waitForInstallTab } from './support/onboarding';
 
 // The first install as a student meets it (ADR-0062). The fresh profile fires the
@@ -67,6 +68,27 @@ test('opens the panel at the catalog from Start planning', async ({
   await expect(tab.getByRole('dialog', { name: WELCOME })).toHaveCount(0);
   await expect(tab.getByRole('dialog', { name: OVERLAY })).toBeVisible();
   await expect(tab.locator('#kcp-catalog-column')).toBeInViewport();
+});
+
+test('rings the launcher once the welcome closes, inside the safe area', async ({
+  context,
+}) => {
+  const tab = await installTabWithWelcome(context);
+  const launcher = tab.getByRole('button', { name: LAUNCHER });
+  // Under the welcome the launcher is hidden from assistive technology, so it is
+  // found here by its id rather than its role.
+  await expect(tab.locator('#kcp-launcher')).not.toHaveClass(
+    /kcp-launcher-ring/,
+  );
+  await tab.keyboard.press('Escape');
+  await expect(tab.getByRole('dialog', { name: WELCOME })).toHaveCount(0);
+  await expect(launcher).toHaveClass(/kcp-launcher-ring/);
+  await expectLauncherInSafeArea(tab);
+
+  await launcher.click();
+  await expect(tab.getByRole('dialog', { name: OVERLAY })).toBeVisible();
+  await tab.keyboard.press('Escape');
+  await expect(launcher).not.toHaveClass(/kcp-launcher-ring/);
 });
 
 test('the welcome passes axe', async ({ context }) => {
