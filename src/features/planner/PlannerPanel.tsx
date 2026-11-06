@@ -29,6 +29,7 @@ import { posterHonesty } from '@/lib/planner/posterHonesty';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
 import { UpdatesDialog } from '@/features/plans/UpdatesDialog';
+import { UpdatesIndicator } from '@/features/plans/UpdatesIndicator';
 import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { commitThenFocus } from '@/features/shell/restoreFocus';
@@ -319,6 +320,7 @@ export function PlannerPanel() {
           examClash={examSchedule.hasClash}
           onChange={setPlanView}
           t={t}
+          trailing={<UpdatesIndicator />}
         />
       ) : null}
       {/* Below the dock the strip floats over the layout instead, above the sheet. */}

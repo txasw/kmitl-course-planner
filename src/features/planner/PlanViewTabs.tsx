@@ -6,9 +6,12 @@
 // schedule that lists the clash stays one action away. Arrow keys, Home, and End move
 // focus and activate the tab in one step, and only the active tab sits in the tab order,
 // the roving pattern of the ARIA tablist. The row is 40 px tall and tightens to 36 px
-// under a max height of 800 px, so a 720 or 768 px laptop keeps grid height.
+// under a max height of 800 px, so a 720 or 768 px laptop keeps grid height. A trailing
+// control, the updates indicator of ADR-0060, sits at the right of the row outside the
+// tablist, since a tablist holds tabs only. The heights are minimums, so under a coarse
+// pointer the row grows to the 44 px touch target of that control rather than clip it.
 
-import { useRef, type KeyboardEvent } from 'react';
+import { useRef, type KeyboardEvent, type ReactNode } from 'react';
 import type { Translate, TranslationKey } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
 import { FOCUS_RING } from '@/lib/ui/focus';
@@ -57,6 +60,8 @@ interface PlanViewTabsProps {
   examClash: boolean;
   onChange: (view: PlanView) => void;
   t: Translate;
+  /** A control at the right of the row, outside the tablist. */
+  trailing?: ReactNode;
 }
 
 export function PlanViewTabs({
@@ -65,6 +70,7 @@ export function PlanViewTabs({
   examClash,
   onChange,
   t,
+  trailing,
 }: PlanViewTabsProps) {
   const tabRefs = useRef(new Map<PlanView, HTMLButtonElement>());
 
@@ -80,56 +86,61 @@ export function PlanViewTabs({
   };
 
   return (
-    <div
-      role="tablist"
-      aria-label={t('planView.label')}
-      className="flex h-10 shrink-0 items-stretch gap-4 border-b border-border [@media(max-height:800px)]:h-9"
-    >
-      {VIEWS.map((view) => {
-        const active = view === value;
-        const label = fillTemplate(t(LABEL_KEY[view]), {
-          count: selectedCount,
-        });
-        const clashDot = view === 'summary' && examClash;
-        return (
-          <button
-            key={view}
-            ref={(node) => {
-              if (node === null) {
-                tabRefs.current.delete(view);
-              } else {
-                tabRefs.current.set(view, node);
+    <div className="flex min-h-10 shrink-0 items-stretch gap-4 border-b border-border [@media(max-height:800px)]:min-h-9">
+      <div
+        role="tablist"
+        aria-label={t('planView.label')}
+        className="flex min-w-0 items-stretch gap-4"
+      >
+        {VIEWS.map((view) => {
+          const active = view === value;
+          const label = fillTemplate(t(LABEL_KEY[view]), {
+            count: selectedCount,
+          });
+          const clashDot = view === 'summary' && examClash;
+          return (
+            <button
+              key={view}
+              ref={(node) => {
+                if (node === null) {
+                  tabRefs.current.delete(view);
+                } else {
+                  tabRefs.current.set(view, node);
+                }
+              }}
+              type="button"
+              role="tab"
+              id={planViewTabId(view)}
+              aria-selected={active}
+              aria-controls={planViewPanelId(view)}
+              aria-label={
+                clashDot ? `${label} ${t('planView.examClash')}` : undefined
               }
-            }}
-            type="button"
-            role="tab"
-            id={planViewTabId(view)}
-            aria-selected={active}
-            aria-controls={planViewPanelId(view)}
-            aria-label={
-              clashDot ? `${label} ${t('planView.examClash')}` : undefined
-            }
-            tabIndex={active ? 0 : -1}
-            onClick={() => {
-              onChange(view);
-            }}
-            onKeyDown={handleKeyDown}
-            className={`-mb-px inline-flex items-center border-b-2 px-1 text-sm transition-colors motion-reduce:transition-none ${FOCUS_RING} ${
-              active
-                ? 'border-primary font-semibold text-primary-strong'
-                : 'border-transparent text-ink-soft hover:text-ink'
-            }`}
-          >
-            {label}
-            {clashDot ? (
-              <span
-                aria-hidden
-                className="ml-1.5 size-2 shrink-0 rounded-full bg-danger"
-              />
-            ) : null}
-          </button>
-        );
-      })}
+              tabIndex={active ? 0 : -1}
+              onClick={() => {
+                onChange(view);
+              }}
+              onKeyDown={handleKeyDown}
+              className={`-mb-px inline-flex items-center border-b-2 px-1 text-sm transition-colors motion-reduce:transition-none ${FOCUS_RING} ${
+                active
+                  ? 'border-primary font-semibold text-primary-strong'
+                  : 'border-transparent text-ink-soft hover:text-ink'
+              }`}
+            >
+              {label}
+              {clashDot ? (
+                <span
+                  aria-hidden
+                  className="ml-1.5 size-2 shrink-0 rounded-full bg-danger"
+                />
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+      {trailing === undefined ? null : (
+        <div className="ml-auto flex shrink-0 items-center">{trailing}</div>
+      )}
     </div>
   );
 }
