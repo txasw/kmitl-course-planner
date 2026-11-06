@@ -15,9 +15,10 @@ export default tseslint.config(
   },
   js.configs.recommended,
 
-  // Type checked linting for product and test sources.
+  // Type checked linting for product and test sources. The manifest builder is
+  // product code at the root, so it gets the same rule set as src.
   {
-    files: ['src/**/*.{ts,tsx}', 'tests/**/*.{ts,tsx}'],
+    files: ['src/**/*.{ts,tsx}', 'tests/**/*.{ts,tsx}', 'manifest.config.ts'],
     extends: [
       tseslint.configs.strictTypeChecked,
       tseslint.configs.stylisticTypeChecked,
