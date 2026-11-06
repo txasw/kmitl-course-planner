@@ -67,3 +67,4 @@ a new record that supersedes the old one rather than editing history.
 58. [Touch input model](0058-touch-input-model.md)
 59. [Drop zone vocabulary](0059-drop-zone-vocabulary.md)
 60. [Update review layer over reconcile](0060-update-review-layer-over-reconcile.md)
+61. [Section offeredTo derived from curriculum groupings](0061-section-offered-to-from-groupings.md)
