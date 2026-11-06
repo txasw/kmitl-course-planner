@@ -8,6 +8,7 @@ import { z } from 'zod';
 import type { StorageAdapter } from './repo';
 import { PREFS_KEY } from './keys';
 import { displayOptionsSchema } from '../planner/displayOptions';
+import { curriculumProfileSchema } from '../catalog/curriculumProfile';
 
 // language mirrors the i18n Locale union and viewMode mirrors the ui store's view
 // mode; both are declared inline so the storage layer does not depend on the i18n
@@ -23,6 +24,10 @@ export const prefsSchema = z.object({
   // The export template slug is a plain string so an unknown value from a newer
   // build still validates; the planner resolves it and falls back to the default.
   exportTemplate: z.string().optional(),
+  // The curriculum the open to my curriculum filter matches. A stored profile that
+  // no longer validates is dropped alone, so it never costs the language or the
+  // other preferences; the filter then asks for the curriculum again.
+  curriculumProfile: curriculumProfileSchema.optional().catch(undefined),
 });
 export type Prefs = z.infer<typeof prefsSchema>;
 

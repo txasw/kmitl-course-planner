@@ -12,6 +12,7 @@ import {
   type DisplayOptions,
 } from '@/lib/planner/displayOptions';
 import { DEFAULT_TEMPLATE } from '@/lib/planner/exportTemplates';
+import type { CurriculumProfile } from '@/lib/catalog/curriculumProfile';
 
 /** The timetable presentation mode: full editing, or the inert preview poster. */
 export type ViewMode = 'edit' | 'preview';
@@ -61,6 +62,8 @@ export interface UiState {
   displayOptions: DisplayOptions;
   /** The chosen export template slug, applied to the preview and every image export. */
   selectedTemplate: string;
+  /** The student's curriculum for the open to my curriculum filter, or null until chosen. */
+  curriculumProfile: CurriculumProfile | null;
   /**
    * Count of error and warning issues in the latest data quality report, or null
    * when there is no report. The launcher shows a badge from it. It stays null in
@@ -88,6 +91,7 @@ export interface UiState {
   setDisplayOptions: (options: DisplayOptions) => void;
   setDisplayOption: (key: keyof DisplayOptions, value: boolean) => void;
   setSelectedTemplate: (slug: string) => void;
+  setCurriculumProfile: (profile: CurriculumProfile | null) => void;
   setDiagnosticsIssueCount: (count: number | null) => void;
   setCrashPanel: (crash: boolean) => void;
 }
@@ -107,6 +111,7 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     mobilePane: null,
     displayOptions: DEFAULT_DISPLAY_OPTIONS,
     selectedTemplate: DEFAULT_TEMPLATE.slug,
+    curriculumProfile: null,
     diagnosticsIssueCount: null,
     crashPanel: false,
     open: () => {
@@ -160,6 +165,9 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     },
     setSelectedTemplate: (selectedTemplate) => {
       set({ selectedTemplate });
+    },
+    setCurriculumProfile: (curriculumProfile) => {
+      set({ curriculumProfile });
     },
     setDiagnosticsIssueCount: (count) => {
       set({ diagnosticsIssueCount: count });

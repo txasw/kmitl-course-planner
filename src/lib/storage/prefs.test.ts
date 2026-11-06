@@ -112,4 +112,54 @@ describe('prefs repository', () => {
     );
     expect(await repo.load()).toBeNull();
   });
+
+  it('loads a blob written before the curriculum profile existed', async () => {
+    const older = {
+      schemaVersion: 1,
+      language: 'th',
+      viewMode: 'edit',
+      exportTemplate: 'share',
+    };
+    const repo = createPrefsRepository(fakeAdapter({ [PREFS_KEY]: older }));
+    const loaded = await repo.load();
+    expect(loaded).toEqual(older);
+    expect(loaded).not.toHaveProperty('curriculumProfile');
+  });
+
+  it('round trips a curriculum profile', async () => {
+    const withProfile: Prefs = {
+      schemaVersion: 1,
+      language: 'th',
+      curriculumProfile: {
+        facultyId: '01',
+        departmentId: '05',
+        curriculumId: '137',
+        classYear: '1',
+      },
+    };
+    const adapter = fakeAdapter();
+    const repo = createPrefsRepository(adapter);
+    await repo.save(withProfile);
+    expect(await repo.load()).toEqual(withProfile);
+  });
+
+  it('drops an invalid curriculum profile and keeps the rest', async () => {
+    const repo = createPrefsRepository(
+      fakeAdapter({
+        [PREFS_KEY]: {
+          schemaVersion: 1,
+          language: 'en',
+          curriculumProfile: {
+            facultyId: '01',
+            departmentId: 'x',
+            curriculumId: 'x',
+            classYear: '0',
+          },
+        },
+      }),
+    );
+    const loaded = await repo.load();
+    expect(loaded?.language).toBe('en');
+    expect(loaded?.curriculumProfile).toBeUndefined();
+  });
 });
