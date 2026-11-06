@@ -1,11 +1,12 @@
 // The edit mode plan summary, a bar pinned to the foot of the plan region. It states the
 // credits as the lead number, the distinct subject count, whether any section pair clashes,
-// the scheduled load per day, and the count of sections with no meeting when the plan holds
-// any. A clash is the one item the student acts on, so it is a danger button that points at
-// the first clashing section on the timetable; with none the bar says so quietly with a
-// check. The poster states the same totals in its own footer line, without the clash
-// control.
+// the scheduled load per day, the count of sections with no meeting when the plan holds any,
+// and at the end the verification status the panel slots in. A clash is the one item the
+// student acts on, so it is a danger button that points at the first clashing section on
+// the timetable; with none the bar says so quietly with a check. The poster states the same
+// totals in its own footer line, without the clash control.
 
+import type { ReactNode } from 'react';
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import type { Translate } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
@@ -21,6 +22,8 @@ interface StatsBarProps {
   conflictCount: number;
   /** Bring the first clashing section into view and focus it. */
   onShowConflict: () => void;
+  /** The verification status, pushed to the end of the bar. */
+  status?: ReactNode;
   t: Translate;
 }
 
@@ -30,6 +33,7 @@ export function StatsBar({
   sections,
   conflictCount,
   onShowConflict,
+  status,
   t,
 }: StatsBarProps) {
   const totals = planTotals(sections);
@@ -67,6 +71,7 @@ export function StatsBar({
           {totals.unscheduled} {t('footer.unscheduled')}
         </span>
       ) : null}
+      {status === undefined ? null : <span className="ml-auto">{status}</span>}
     </div>
   );
 }

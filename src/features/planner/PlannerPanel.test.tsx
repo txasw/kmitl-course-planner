@@ -669,6 +669,21 @@ describe('PlannerPanel stats bar', () => {
     expect(stats()).toBeInTheDocument();
   });
 
+  it('ends the bar with the verification status and its check again action', () => {
+    installViewport(1366);
+    act(() => {
+      seedActivePlan(
+        [makePlanEntry({ lastVerifiedAt: new Date().toISOString() })],
+        { id: 'p1' },
+      );
+    });
+    renderPanel();
+    expect(stats()).toHaveTextContent(/ตรวจสอบแล้ว \d\d:\d\d/);
+    expect(
+      within(stats()).getByRole('button', { name: 'ตรวจสอบอีกครั้ง' }),
+    ).toBeInTheDocument();
+  });
+
   it('renders no stats bar in preview or for an empty plan', () => {
     renderPanel();
     expect(screen.queryByRole('group', { name: 'สรุปตาราง' })).toBeNull();
