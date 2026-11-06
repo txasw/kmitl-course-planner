@@ -3,9 +3,11 @@ import {
   createBrowserStorageAdapter,
   createSessionStorageAdapter,
 } from '@/lib/storage/browserAdapter';
+import { createInstallRepository } from '@/lib/storage/install';
 import { createTabIntentStore } from '@/lib/storage/tabIntents';
 import { handleActionClick, type ClickedTab } from '@/lib/shell/actionClick';
 import { HOST_MATCH_PATTERNS } from '@/lib/shell/hostTab';
+import { handleInstalled } from '@/lib/shell/install';
 import { answerMountHandshake } from '@/lib/shell/mountHandshake';
 import { answerWelcomeClaim } from '@/lib/shell/welcomeClaim';
 import { createCacheStore } from '@/lib/api/cache';
@@ -44,13 +46,19 @@ async function createTab(url: string): Promise<number | null> {
   return tab.id ?? null;
 }
 
+// Whether both host origins are granted. The permissions API answers without the
+// permissions permission, and the answer reflects a grant the student turned off.
+function hasHostAccess(): Promise<boolean> {
+  return browser.permissions.contains({ origins: [...HOST_MATCH_PATTERNS] });
+}
+
 // The background service worker is the single network and cache authority. It
 // builds the gateway over the browser storage cache, exposes the typed handlers
 // through the message router, and validates every inbound message. It also turns a
-// toolbar icon click or the open shortcut into an open panel, and decides which host
-// tab shows the welcome after install (ADR-0062). Debug builds additionally install
-// the diagnostics interceptors and a console handle through a dynamic import that
-// dead code eliminates from production.
+// toolbar icon click or the open shortcut into an open panel, opens the search page
+// once on first install, and decides which host tab shows the welcome (ADR-0062).
+// Debug builds additionally install the diagnostics interceptors and a console
+// handle through a dynamic import that dead code eliminates from production.
 export default defineBackground(() => {
   const cache = createCacheStore(createBrowserStorageAdapter());
   const gateway = createGateway({ cache, env: createDefaultEnv() });
@@ -74,6 +82,19 @@ export default defineBackground(() => {
   browser.action.onClicked.addListener((tab) => {
     onActionClick(tab).catch((error: unknown) => {
       logger.warn('toolbar action failed', error);
+    });
+  });
+
+  // Registered synchronously, so the install event that starts the worker reaches it.
+  browser.runtime.onInstalled.addListener((details) => {
+    handleInstalled(details, {
+      install: createInstallRepository(createBrowserStorageAdapter()),
+      version: browser.runtime.getManifest().version,
+      hasHostAccess,
+      createTab,
+      intents,
+    }).catch((error: unknown) => {
+      logger.warn('install handling failed', error);
     });
   });
 
