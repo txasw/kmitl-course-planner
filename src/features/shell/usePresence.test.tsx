@@ -77,6 +77,39 @@ describe('usePresence', () => {
     rerender({ open: false });
     expect(result.current.stage).toBe('closed');
   });
+  it('opens and closes instantly on request, as under reduced motion', () => {
+    const { result, rerender } = renderHook(
+      ({ open }) => usePresence(open, 100, { instant: true }),
+      { initialProps: { open: false } },
+    );
+    rerender({ open: true });
+    expect(result.current.stage).toBe('open');
+    rerender({ open: false });
+    expect(result.current.stage).toBe('closed');
+    expect(result.current.mounted).toBe(false);
+  });
+
+  it('animates again once the instant request is lifted', () => {
+    const { result, rerender } = renderHook(
+      ({ open, instant }) => usePresence(open, 100, { instant }),
+      { initialProps: { open: false, instant: true } },
+    );
+    rerender({ open: true, instant: false });
+    expect(result.current.stage).toBe('entering');
+  });
+
+  it('settles a leave in flight when an instant change arrives', () => {
+    vi.useFakeTimers();
+    const { result, rerender } = renderHook(
+      ({ open, instant }) => usePresence(open, 100, { instant }),
+      { initialProps: { open: true, instant: false } },
+    );
+    rerender({ open: false, instant: false });
+    expect(result.current.stage).toBe('leaving');
+    rerender({ open: false, instant: true });
+    expect(result.current.stage).toBe('closed');
+    expect(result.current.mounted).toBe(false);
+  });
 
   it('follows a reduced motion change made while mounted', () => {
     let reduced = false;
