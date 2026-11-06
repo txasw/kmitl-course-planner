@@ -157,6 +157,9 @@ export interface DragStore {
   setSwapContext: (context: SwapContext | null) => void;
   setHint: (message: string) => void;
   clearHint: () => void;
+  /** Dismiss whichever visible notice the strip shows: a blocked reason, a cross term
+   * switch, or a hint. The screen reader only add line is left to its own window. */
+  dismissNotice: () => void;
   /** Hold the grid frame a drag started on until that drag ends. A block move's
    * candidates come from the catalog course, whose meetings the frame already covers,
    * so the freeze never hides a candidate. */
@@ -330,6 +333,9 @@ export function createDragStore() {
     },
     clearHint: () => {
       set({ hint: null });
+    },
+    dismissNotice: () => {
+      set({ blocked: null, crossTerm: null, hint: null });
     },
     freezeFrame: (frame) => {
       set({ frame });
