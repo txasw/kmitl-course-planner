@@ -5,7 +5,7 @@
 // candidate slot; dropping on a valid slot commits that section and its pair. A block
 // drag lifts a placed section: the remove zone appears at the panel edge and the grid
 // paints the subject's other sections as move targets, so a drop removes the section
-// or moves it to another slot. A custom collision detection resolves overlapping drop
+// or moves it to another slot, and a drop back on its own place cancels silently. A custom collision detection resolves overlapping drop
 // targets by an explicit priority. A mouse drag starts after a short distance, so a
 // click on a row or block button is never a drag, and a touch drag starts after a long
 // press, so a swipe on a drag surface scrolls (ADR-0058). A touch drag lifts the grab
@@ -41,6 +41,7 @@ import { RemoveZone, REMOVE_ZONE_ID } from './RemoveZone';
 import { resolveCourseForSubject } from './resolveCourse';
 import { isTouchEvent, snapDragCardToCursor } from './snapToCursor';
 import { prioritizedCollision } from './collision';
+import { isOriginId } from './LiftedOrigin';
 import { usePlannerSensors } from './usePlannerSensors';
 import { vibrateOnDragStart } from './touchInput';
 
@@ -283,6 +284,8 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
         const move = state.blockMove;
         if (event.over?.id === REMOVE_ZONE_ID) {
           planStore.getState().remove(move.section.teachTableId);
+        } else if (isOriginId(event.over?.id)) {
+          // Putting the block back where it came from is a deliberate cancel.
         } else if (isCandidateDropData(overData) && move.course !== null) {
           if (overData.valid) {
             moveSectionInPlan(
