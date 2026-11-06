@@ -183,7 +183,13 @@ test('places a section on the grid by dragging its handle', async ({
   await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
   await page.mouse.down();
   await page.mouse.move(from.x + 20, from.y + 20, { steps: 5 });
+
+  // The commit outline marks the planner drop zone from drag activation, while the
+  // pointer is still over the catalog, and turns solid once the pointer reaches it.
+  const outline = page.locator('[data-commit-zone]');
+  await expect(outline).toHaveAttribute('data-commit-zone', 'latent');
   await page.mouse.move(pointerX, pointerY, { steps: 15 });
+  await expect(outline).toHaveAttribute('data-commit-zone', 'over');
 
   // While the drag is live, the grab card's top-left tracks the pointer within a few
   // pixels. Before the snap-to-cursor modifier it floated above the pointer by half a
@@ -198,6 +204,7 @@ test('places a section on the grid by dragging its handle', async ({
   await page.mouse.up();
 
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
+  await expect(outline).toHaveCount(0);
 });
 
 test('commits a section from the grip with the keyboard', async ({
