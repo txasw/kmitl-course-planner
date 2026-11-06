@@ -43,6 +43,8 @@
   "suggest.loading": "Searching for plans",
   "suggest.truncated": "There are many options, so these plans have no clashes but may not be the best possible.",
   "suggest.option": "Option {number}",
+  "suggest.expand": "View full size",
+  "suggest.back": "Back to all options",
   "suggest.pager": "Plan options",
   "suggest.prev": "Previous option",
   "suggest.next": "Next option",

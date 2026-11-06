@@ -7,10 +7,12 @@
 // where the cards sit side by side, and the bottom sheet on compact, where they page.
 //
 // The cards share one frame and one grid orientation. Thumbnails run time downward on
-// compact and medium, where a card is narrow, and across on the docked tiers.
+// compact and medium, where a card is narrow, and across on the docked tiers. A card
+// opened full size replaces the options and the list until the back action, which
+// returns focus to the control that opened it.
 
-import { useId, useMemo, useState } from 'react';
-import { CalendarX2 } from 'lucide-react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { CalendarX2, ChevronLeft } from 'lucide-react';
 import { BottomSheet } from '@/components/BottomSheet';
 import { EmptyState } from '@/components/EmptyState';
 import { ModalDialog } from '@/components/ModalDialog';
@@ -29,13 +31,18 @@ import {
 import type { SuggestObjective } from '@/lib/planner/suggestRank';
 import type { SuggestPreference } from '@/lib/planner/suggestScore';
 import { isDockedTier } from '@/lib/ui/breakpoints';
-import { FOCUS_OUTLINE } from '@/lib/ui/focus';
+import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
 import { toastStore } from '@/features/shell/toastStore';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { SuggestionCard } from './SuggestionCard';
 import { sharedFrame, suggestionSections } from './suggestionFrame';
-import { SuggestionResults, type SuggestionView } from './SuggestionResults';
+import {
+  SuggestionResults,
+  suggestionKey,
+  type SuggestionView,
+} from './SuggestionResults';
 import { useSuggestions } from './useSuggestions';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
@@ -158,6 +165,9 @@ export function SuggestDialog({
   const [objective, setObjective] = useState<SuggestObjective>('coverAll');
   const [preference, setPreference] = useState<SuggestPreference>('balanced');
   const [page, setPage] = useState(0);
+  const [fullIndex, setFullIndex] = useState<number | null>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const returnFocus = useRef<number | null>(null);
   const locked = useLockedEntries(term);
   const { result, busy } = useSuggestions(
     courses,
@@ -184,9 +194,24 @@ export function SuggestDialog({
     [cards],
   );
 
+  // Closing the full size card hands focus back to the expand control it came from, which
+  // mounts again with the list.
+  useEffect(() => {
+    if (fullIndex !== null || returnFocus.current === null) {
+      return;
+    }
+    bodyRef.current
+      ?.querySelector<HTMLElement>(
+        `[data-suggest-expand="${String(returnFocus.current)}"]`,
+      )
+      ?.focus();
+    returnFocus.current = null;
+  }, [fullIndex]);
+
   const compact = tier === 'compact';
   const thumbOrientation = isDockedTier(tier) ? 'landscape' : 'portrait';
   const current = Math.min(page, Math.max(0, cards.length - 1));
+  const full = fullIndex === null ? undefined : cards[fullIndex];
 
   // A new objective or preference ranks the cards again, so the pager returns to the best.
   const handleObjective = (value: SuggestObjective) => {
@@ -197,6 +222,12 @@ export function SuggestDialog({
     setPreference(value);
     setPage(0);
   };
+  const handleBack = () => {
+    returnFocus.current = fullIndex;
+    setPage(fullIndex ?? 0);
+    setFullIndex(null);
+  };
+
   const handleApply = (suggestion: Suggestion) => {
     const plan = planStore.getState().createFromSuggestion({
       name: fillTemplate(t('suggest.planName'), {
@@ -215,7 +246,34 @@ export function SuggestDialog({
   };
 
   const emptyReason = result === null ? null : suggestEmptyReason(result);
-  const body = (
+  const fullBody =
+    full === undefined || fullIndex === null ? null : (
+      <div className="flex flex-col gap-3 pt-1">
+        <button
+          type="button"
+          onClick={handleBack}
+          className={`inline-flex w-fit items-center gap-1 rounded-kcp px-2 text-sm text-ink-soft hover:bg-surface-alt hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
+        >
+          <ChevronLeft size={16} aria-hidden />
+          {t('suggest.back')}
+        </button>
+        <SuggestionCard
+          key={suggestionKey(full.suggestion)}
+          suggestion={full.suggestion}
+          index={fullIndex}
+          sections={full.sections}
+          frame={frame}
+          orientation={compact ? 'portrait' : 'landscape'}
+          size="full"
+          locale={language}
+          t={t}
+          onApply={() => {
+            handleApply(full.suggestion);
+          }}
+        />
+      </div>
+    );
+  const listBody = (
     <div className="flex flex-col gap-4 pt-1">
       <div className="flex flex-col gap-1 text-xs text-ink-soft">
         <p>{t('suggest.scope')}</p>
@@ -266,11 +324,13 @@ export function SuggestDialog({
             locale={language}
             t={t}
             onApply={handleApply}
+            onExpand={setFullIndex}
           />
         </section>
       )}
     </div>
   );
+  const body = <div ref={bodyRef}>{fullBody ?? listBody}</div>;
 
   return compact ? (
     <BottomSheet

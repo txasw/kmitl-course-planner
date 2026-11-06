@@ -4,7 +4,7 @@ import { createTranslator } from '@/lib/i18n/t';
 import { suggestPlans } from '@/lib/planner/suggest';
 import { byClassCourses, lockSections } from '../../../tests/support/suggest';
 import type { Orientation } from './gridGeometry';
-import { SuggestionCard } from './SuggestionCard';
+import { SuggestionCard, type SuggestionCardSize } from './SuggestionCard';
 import { sharedFrame, suggestionSections } from './suggestionFrame';
 
 const t = createTranslator('th');
@@ -26,9 +26,13 @@ afterEach(() => {
 
 function renderCard({
   onApply = vi.fn(),
+  onExpand,
+  size = 'thumb',
   orientation = 'landscape',
 }: {
   onApply?: () => void;
+  onExpand?: () => void;
+  size?: SuggestionCardSize;
   orientation?: Orientation;
 } = {}) {
   if (suggestion === undefined) throw new Error('expected a suggestion');
@@ -40,9 +44,11 @@ function renderCard({
       sections={sections}
       frame={sharedFrame([sections])}
       orientation={orientation}
+      size={size}
       locale="th"
       t={t}
       onApply={onApply}
+      {...(onExpand === undefined ? {} : { onExpand })}
     />,
   );
   return { onApply, suggestion };
@@ -96,6 +102,23 @@ describe('SuggestionCard', () => {
     const { onApply } = renderCard();
     fireEvent.click(screen.getByRole('button', { name: 'ใช้ตารางนี้' }));
     expect(onApply).toHaveBeenCalledOnce();
+  });
+
+  it('offers full size only when the dialog passes an expand action', () => {
+    const onExpand = vi.fn();
+    renderCard({ onExpand });
+    fireEvent.click(screen.getByRole('button', { name: 'ดูขนาดเต็ม' }));
+    expect(onExpand).toHaveBeenCalledOnce();
+    cleanup();
+    renderCard();
+    expect(screen.queryByRole('button', { name: 'ดูขนาดเต็ม' })).toBeNull();
+  });
+
+  it('focuses the heading of a full size card', () => {
+    renderCard({ size: 'full' });
+    expect(
+      screen.getByRole('heading', { name: 'ตัวเลือกที่ 1' }),
+    ).toHaveFocus();
   });
 
   it('draws a portrait grid without the poster floor', () => {
