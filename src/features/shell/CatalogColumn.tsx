@@ -332,13 +332,17 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
         <SearchHeader compact={compact} />
         {/* The catalog owns its scroll anchoring: a card opening or closing changes
             only the content below its header, and the browser must not pick an
-            anchor inside a body that is unmounting. */}
+            anchor inside a body that is unmounting. The scroller is positioned, so it
+            is the containing block of the screen reader text in the cards. Otherwise
+            that text takes the body above as its containing block, escapes the clip,
+            and gives the panel body scrollable overflow, which a scroll into view
+            then uses to move the whole panel up. */}
         <div
           ref={results}
           data-catalog-scroller
           inert={editing || undefined}
           aria-hidden={editing || undefined}
-          className={`kcp-scroll flex flex-1 flex-col overflow-y-auto p-6 [overflow-anchor:none] [scroll-padding-bottom:var(--kcp-overlay-bottom,0px)] ${
+          className={`kcp-scroll relative flex flex-1 flex-col overflow-y-auto p-6 [overflow-anchor:none] [scroll-padding-bottom:var(--kcp-overlay-bottom,0px)] ${
             keepResults ? 'min-h-48' : 'min-h-0'
           } ${editing ? 'invisible' : ''}`}
         >
