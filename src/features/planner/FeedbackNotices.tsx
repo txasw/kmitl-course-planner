@@ -5,13 +5,18 @@
 // them; the dismiss control does not, since the way forward comes before the way out.
 
 import { X } from 'lucide-react';
+import { useStore } from 'zustand';
 import type { Section } from '@/lib/domain/types';
 import type { Translate } from '@/lib/i18n/t';
 import { describeConflicts } from '@/lib/planner/describeConflict';
 import { alternativeSections } from '@/lib/planner/suggestions';
 import { addSectionToPlan } from '@/features/plans/addToPlan';
 import { switchOrCreatePlanForTerm } from '@/features/plans/switchPlanTerm';
-import { revealCourse } from '@/features/catalog/revealCourse';
+import type { LayoutTier } from '@/lib/ui/breakpoints';
+import { revealCourse, searchForCourse } from '@/features/catalog/revealCourse';
+import { useSearchDeps } from '@/features/search/SearchDepsContext';
+import { searchStore } from '@/features/search/searchStore';
+import { useSearchActions } from '@/features/search/useSearchController';
 import { courseToggle } from '@/features/catalog/courseFocus';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { commitThenFocus } from '@/features/shell/restoreFocus';
@@ -57,8 +62,50 @@ function DismissButton({ t }: { t: Translate }) {
 
 const LINK_ACTION = `text-primary-strong underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`;
 
-/** The action of a blocked notice with no fitting alternative: show the course in the
- * catalog. */
+/** Whether the current catalog result lists the subject, so a reveal has a card to show. */
+function useInResult(subjectId: string): boolean {
+  return useStore(
+    searchStore,
+    (state) =>
+      state.result.status === 'ready' &&
+      state.result.data.courses.some(
+        (course) => course.subjectId === subjectId,
+      ),
+  );
+}
+
+/** Runs a by subject id search for a course the result no longer lists. It is its own
+ * component because only it needs the search dependencies. */
+function SearchCourseAction({
+  subjectId,
+  tier,
+  t,
+}: {
+  subjectId: string;
+  tier: LayoutTier;
+  t: Translate;
+}) {
+  const { submit } = useSearchActions(useSearchDeps());
+  return (
+    <button
+      type="button"
+      data-feedback-action
+      onClick={(event) => {
+        if (searchForCourse(event.currentTarget, subjectId, tier, submit)) {
+          dragStore.getState().clearBlocked();
+        }
+      }}
+      className={LINK_ACTION}
+    >
+      {t('feedback.searchCourse')}
+    </button>
+  );
+}
+
+/**
+ * The action of a blocked notice with no fitting alternative: show the course in the
+ * catalog, or search for it when the result no longer lists it.
+ */
 function CourseRevealAction({
   subjectId,
   t,
@@ -67,6 +114,10 @@ function CourseRevealAction({
   t: Translate;
 }) {
   const tier = useLayoutTier();
+  const inResult = useInResult(subjectId);
+  if (!inResult) {
+    return <SearchCourseAction subjectId={subjectId} tier={tier} t={t} />;
+  }
   return (
     <button
       type="button"
