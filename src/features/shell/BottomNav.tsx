@@ -5,8 +5,11 @@
 // on it, since the nav sits outside both panes, which turn inert in turn. The catalog item
 // carries the result course count and the selected item the placed subject count, each
 // as a chip over the icon and in the accessible name, so the number is read with the
-// label. Each item is at least 56 px tall, and the nav pads below them by the bottom safe
-// area inset, so the items stay clear of the home indicator while the fill reaches it.
+// label. While two placed subjects clash on an exam, the summary item carries a danger
+// dot over its icon and the clash in its accessible name, as the summary tab does on the
+// wider tiers, so the exam schedule that lists the clash stays one tap away. Each item is
+// at least 56 px tall, and the nav pads below them by the bottom safe area inset, so the
+// items stay clear of the home indicator while the fill reaches it.
 // During a block drag the nav turns into the remove bar: its items hide and go inert, and
 // the bar lays over the nav's own box, so the pane above keeps its height mid drag and a
 // lift over the bar never reaches a nav item, which has no meaning while a block is held.
@@ -24,6 +27,7 @@ import { CountChip } from '@/components/CountChip';
 import { useResultCourseCount } from '@/features/catalog/CatalogPanel';
 import { NavRemoveBar, useNavRemoving } from '@/features/planner/RemoveZone';
 import { groupEntriesBySubject } from '@/features/planner/SelectedCoursesList';
+import { useExamSchedule } from '@/features/planner/useExamSchedule';
 import { planStore } from '@/features/plans/planStore';
 import type { TranslationKey } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
@@ -72,6 +76,7 @@ export function BottomNav() {
     planStore,
     (state) => groupEntriesBySubject(state.entries).length,
   );
+  const examClash = useExamSchedule().hasClash;
   const active = activeNavItem(pane, planView);
   const removing = useNavRemoving();
 
@@ -88,6 +93,8 @@ export function BottomNav() {
           const Icon = ICON[item];
           const label = t(LABEL_KEY[item]);
           const count = itemCount(item, courseCount, selectedCount);
+          const clashDot = item === 'summary' && examClash;
+          const name = count === null ? label : `${label} ${String(count)}`;
           const current = item === active;
           return (
             <button
@@ -95,7 +102,9 @@ export function BottomNav() {
               id={navItemId(item)}
               type="button"
               aria-current={current ? 'page' : undefined}
-              aria-label={count === null ? label : `${label} ${String(count)}`}
+              aria-label={
+                clashDot ? `${name} ${t('planView.examClash')}` : name
+              }
               onClick={() => {
                 selectNavItem(item);
               }}
@@ -112,6 +121,12 @@ export function BottomNav() {
                     <CountChip count={count} />
                   </span>
                 )}
+                {clashDot ? (
+                  <span
+                    aria-hidden
+                    className="absolute -top-0.5 -right-1 size-2 rounded-full bg-danger ring-2 ring-surface"
+                  />
+                ) : null}
               </span>
               <span className="max-w-full truncate">{label}</span>
             </button>

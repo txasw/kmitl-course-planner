@@ -19,6 +19,8 @@ import {
   type Point,
 } from './support/touch';
 import type { Locator, Page } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import type { Plan } from '../../src/lib/domain/plan';
 
 // A responsive smoke for the phone and tablet projects. It asserts what holds at both
 // sizes: the host lays out at the device width, the planner opens and closes with focus
@@ -495,6 +497,84 @@ test('the reveal action opens the catalog on the blocked course', async ({
   await expect(reveal).toHaveCount(0);
 });
 
+/** The control that shows the summary: the nav item on the phone, the tab on the tablet. */
+function summaryControl(page: Page, name: string): Locator {
+  return isPhone(page)
+    ? bottomNav(page).getByRole('button', { name, exact: true })
+    : page.getByRole('tab', { name, exact: true });
+}
+
+// An exam clash cannot be added, so the clashing plan arrives through JSON import: the
+// plan holding Exam Course A is exported, an entry of another subject is written into it
+// on another day with A's midterm window, and the file is imported. Its section, 903, is
+// not in the live result, so revalidation keeps its snapshot as missing and the clash
+// stays. The summary item, the nav item on the phone and the tab on the tablet, then
+// carries the clash in its name, and the exam schedule names the other subject on A's row.
+test('the summary marks an imported exam clash and lists it', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  const catalog = await openCatalog(page);
+  await catalog.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
+  await catalog.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000010');
+  await catalog.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await expect(catalog.getByText('90000011').first()).toBeVisible({
+    timeout: 15_000,
+  });
+  await waitForResultsInput(page);
+  await addCourse(page, '90000010');
+  await expect(page.getByText(/^เพิ่ม 90000010 กลุ่มเรียน/)).toBeVisible();
+  await timetableControl(page).tap();
+  await expect(summaryControl(page, 'สรุป')).toBeVisible();
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'เลือกตาราง' }).click();
+  await page.getByRole('button', { name: 'ส่งออก JSON' }).click();
+  const exported = readFileSync(await (await downloadPromise).path(), 'utf8');
+  // The export is the plan the app validated through its schema before writing it, so
+  // the test reads it as that shape to write the clashing copy into it.
+  const plan = JSON.parse(exported) as Plan;
+  const [first] = plan.entries;
+  if (first === undefined) throw new Error('expected the exported entry');
+  const ids = { teachTableId: '910099', subjectId: '90000011', section: '903' };
+  plan.entries.push({
+    ...first,
+    ...ids,
+    snapshot: {
+      ...first.snapshot,
+      ...ids,
+      pairedSection: null,
+      // A sits on Tuesday, so the copy moves to Thursday and never clashes in time.
+      meetings: first.snapshot.meetings.map((meeting) => ({
+        ...meeting,
+        day: 4,
+      })),
+      subjectMeta: {
+        ...first.snapshot.subjectMeta,
+        subjectId: '90000011',
+        nameTh: 'Exam Course C',
+        nameEn: 'Exam Course C',
+      },
+    },
+  });
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'clash.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(plan)),
+  });
+
+  const summary = summaryControl(page, 'สรุป มีวิชาที่สอบชนกัน');
+  await expect(summary).toBeVisible({ timeout: 15_000 });
+  await summary.tap();
+  await expect(
+    page.getByRole('heading', { name: 'ตารางสอบ', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText('สอบชนกับ 90000011 Exam Course C กลุ่มเรียน 903'),
+  ).toBeVisible();
+  await expect(page.getByText(/^สอบชนกับ 90000010 /)).toBeVisible();
+});
+
 // The coarse pointer target from the --kcp-target-touch token.
 const TOUCH_TARGET = 44;
 
@@ -638,7 +718,8 @@ test.describe('the phone layout', () => {
     const catalog = nav.getByRole('button', { name: /^รายวิชา/ });
     const timetable = nav.getByRole('button', { name: 'ตารางเรียน' });
     const selected = nav.getByRole('button', { name: /^ที่เลือก/ });
-    for (const item of [catalog, timetable, selected]) {
+    const summary = nav.getByRole('button', { name: /^สรุป/ });
+    for (const item of [catalog, timetable, selected, summary]) {
       expect((await item.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(
         56,
       );
