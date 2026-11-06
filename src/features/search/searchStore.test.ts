@@ -6,6 +6,11 @@ import {
   defaultClassForm,
   defaultSubjectIdForm,
 } from '@/lib/search/formState';
+import type { SearchPrefill } from '@/lib/search/queryForms';
+import type {
+  SearchState as PersistedSearchState,
+  SearchStateRepository,
+} from '@/lib/storage/lastSearch';
 import {
   createSearchStore,
   selectBarVisible,
@@ -206,5 +211,113 @@ describe('clearing the active form', () => {
     expect(state.resultQuery).toBe(ownerQuery);
     expect(state.result).toEqual({ status: 'loading' });
     expect(state.searchFormOpen).toBe(true);
+  });
+});
+
+describe('applying a route prefill', () => {
+  const prefill: SearchPrefill = {
+    tab: 'by_subject_owner_id',
+    term: { year: '2569', semester: '1' },
+    form: { faculty: '01', subjectOwner: '46' },
+  };
+
+  function persisted(): PersistedSearchState {
+    return {
+      schemaVersion: 2,
+      activeTab: 'by_class',
+      term: { year: '2568', semester: '2' },
+      byClass: {
+        faculty: '01',
+        department: '08',
+        curriculum: '08',
+        classYear: '4',
+      },
+      bySubjectId: { subjectId: '90592033' },
+      byCategory: { faculty: '05', subjectOwner: '6' },
+    };
+  }
+
+  function repoLoading(
+    load: () => Promise<PersistedSearchState | null>,
+  ): Pick<SearchStateRepository, 'load'> {
+    return { load };
+  }
+
+  it('claims the initialization once and reads a rejected load as none', async () => {
+    const store = createSearchStore();
+    const load = store
+      .getState()
+      .claimInitialization(
+        repoLoading(() => Promise.reject(new Error('storage unavailable'))),
+      );
+    expect(
+      store
+        .getState()
+        .claimInitialization(repoLoading(() => Promise.resolve(persisted()))),
+    ).toBeNull();
+    expect(await load).toBeNull();
+  });
+
+  it('claims the initialization before the load settles', () => {
+    const store = createSearchStore();
+    void store.getState().applyRoutePrefill(
+      prefill,
+      repoLoading(() => new Promise(() => undefined)),
+    );
+    expect(store.getState().hasInitialized).toBe(true);
+  });
+
+  it('lays the prefill over the persisted search', async () => {
+    const store = createSearchStore();
+    await store.getState().applyRoutePrefill(
+      prefill,
+      repoLoading(() => Promise.resolve(persisted())),
+    );
+    const state = store.getState();
+    expect(state.activeTab).toBe('by_subject_owner_id');
+    expect(state.term).toEqual(prefill.term);
+    expect(state.byCategory).toEqual(prefill.form);
+    expect(state.byClass).toEqual(persisted().byClass);
+    expect(state.bySubjectId).toEqual(persisted().bySubjectId);
+  });
+
+  it('ends a pending default so the fetched term cannot replace it', async () => {
+    const store = createSearchStore();
+    store.getState().seedFallbackTerm(fallback);
+    await store.getState().applyRoutePrefill(
+      prefill,
+      repoLoading(() => Promise.resolve(null)),
+    );
+    store.getState().applyDefaultTerm(fetched);
+    expect(store.getState().term).toEqual(prefill.term);
+  });
+
+  it('still applies the prefill when the load is rejected', async () => {
+    const store = createSearchStore();
+    await store.getState().applyRoutePrefill(
+      prefill,
+      repoLoading(() => Promise.reject(new Error('storage unavailable'))),
+    );
+    const state = store.getState();
+    expect(state.activeTab).toBe('by_subject_owner_id');
+    expect(state.byCategory).toEqual(prefill.form);
+    expect(state.byClass).toEqual(defaultClassForm());
+  });
+
+  it('keeps in session edits once the search is initialized', async () => {
+    const store = createSearchStore();
+    store.getState().setInitialized(true);
+    store.getState().patchSubjectIdForm({ subjectId: '01006001' });
+    let loads = 0;
+    await store.getState().applyRoutePrefill(
+      prefill,
+      repoLoading(() => {
+        loads += 1;
+        return Promise.resolve(persisted());
+      }),
+    );
+    expect(loads).toBe(0);
+    expect(store.getState().bySubjectId).toEqual({ subjectId: '01006001' });
+    expect(store.getState().byCategory).toEqual(prefill.form);
   });
 });

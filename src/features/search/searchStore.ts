@@ -30,7 +30,11 @@ import {
   defaultClassForm,
   defaultSubjectIdForm,
 } from '@/lib/search/formState';
-import type { SearchState as PersistedSearchState } from '@/lib/storage/lastSearch';
+import { applyPrefillForms, type SearchPrefill } from '@/lib/search/queryForms';
+import type {
+  SearchState as PersistedSearchState,
+  SearchStateRepository,
+} from '@/lib/storage/lastSearch';
 import type { AsyncState } from '@/lib/utils/async';
 
 const NEUTRAL_TERM: Term = { year: '', semester: '1' };
@@ -44,10 +48,10 @@ export type QueryIntent = 'user' | 'background';
 
 export interface SearchStore {
   /**
-   * Whether the term has been seeded or the persisted search hydrated for this
-   * page session. The overlay unmounts the form on close and remounts it on
-   * open, so this guards the one time seed from re running and clobbering in
-   * session edits. It resets only on a full page reload.
+   * Whether the term has been seeded, the persisted search hydrated, or a route
+   * prefill applied for this page session. The overlay unmounts the form on close
+   * and remounts it on open, so this guards the one time seed from re running and
+   * clobbering in session edits. It resets only on a full page reload.
    */
   hasInitialized: boolean;
   /**
@@ -81,6 +85,14 @@ export interface SearchStore {
   /** When the latest user search was accepted, so the results can guard input. */
   lastSubmitAt: number | null;
   setInitialized: (value: boolean) => void;
+  /**
+   * Claim the one time initialization and start loading the persisted search, or
+   * return null when this page session already claimed it. The claim is synchronous,
+   * so a rapid reopen cannot start a second load. A rejected load resolves to null.
+   */
+  claimInitialization: (
+    repo: Pick<SearchStateRepository, 'load'>,
+  ) => Promise<PersistedSearchState | null> | null;
   setActiveTab: (tab: SearchTab) => void;
   /** A student edit of the year or semester, which ends any pending default. */
   patchTerm: (patch: Partial<Term>) => void;
@@ -98,6 +110,19 @@ export interface SearchStore {
   /** Apply the fetched default term, only while the fallback is still pending. */
   applyDefaultTerm: (term: Term) => void;
   hydrate: (state: PersistedSearchState) => void;
+  /**
+   * Open the search on a prefill read from a host result route. On the first run of
+   * the page session it claims the one time initialization synchronously, so the
+   * init hook never runs over the prefill, and hydrates the persisted search first so
+   * the other tabs keep their last search; a failed load still applies the prefill.
+   * Once initialized it waits for an initialization still in flight and then lays the
+   * prefill over the in session forms. The caller may submit once the returned
+   * promise resolves.
+   */
+  applyRoutePrefill: (
+    prefill: SearchPrefill,
+    repo: Pick<SearchStateRepository, 'load'>,
+  ) => Promise<void>;
   setFaculties: (state: AsyncState<RawFaculty[]>) => void;
   setDepartments: (state: AsyncState<RawDepartment[]>) => void;
   setCurricula: (state: AsyncState<RawCurriculum[]>) => void;
@@ -117,6 +142,27 @@ export interface SearchStore {
   cancelSearch: () => void;
 }
 
+// A rejected load reads as no persisted search, as a corrupt one already does.
+async function loadPersisted(
+  repo: Pick<SearchStateRepository, 'load'>,
+): Promise<PersistedSearchState | null> {
+  try {
+    return await repo.load();
+  } catch {
+    return null;
+  }
+}
+
+/** The state with a prefill's tab, term, and form laid over it, ending any default. */
+function withPrefill(state: SearchStore, prefill: SearchPrefill) {
+  return {
+    ...applyPrefillForms(prefill, state),
+    activeTab: prefill.tab,
+    term: prefill.term,
+    defaultTermPending: false,
+  };
+}
+
 /** Whether the summary bar exists, which is whenever a user search has run. */
 export function selectBarVisible(state: SearchStore): boolean {
   return state.barQuery !== null;
@@ -128,7 +174,11 @@ export function selectFormOpen(state: SearchStore): boolean {
 }
 
 export function createSearchStore() {
-  return createStore<SearchStore>((set) => ({
+  // The load the claimed initialization started. A prefill that arrives while it is in
+  // flight awaits it, and since the init hook subscribed to it first, the hook's
+  // hydrate and term seed settle before the prefill lands rather than over it.
+  let initialLoad: Promise<PersistedSearchState | null> = Promise.resolve(null);
+  return createStore<SearchStore>((set, get) => ({
     hasInitialized: false,
     defaultTermPending: false,
     activeTab: 'by_class',
@@ -148,6 +198,14 @@ export function createSearchStore() {
     lastSubmitAt: null,
     setInitialized: (value) => {
       set({ hasInitialized: value });
+    },
+    claimInitialization: (repo) => {
+      if (get().hasInitialized) {
+        return null;
+      }
+      set({ hasInitialized: true });
+      initialLoad = loadPersisted(repo);
+      return initialLoad;
     },
     setActiveTab: (tab) => {
       set({ activeTab: tab });
@@ -190,6 +248,18 @@ export function createSearchStore() {
         bySubjectId: persisted.bySubjectId,
         byCategory: persisted.byCategory,
       });
+    },
+    applyRoutePrefill: async (prefill, repo) => {
+      const load = get().claimInitialization(repo);
+      if (load === null) {
+        await initialLoad;
+      } else {
+        const persisted = await load;
+        if (persisted !== null) {
+          get().hydrate(persisted);
+        }
+      }
+      set((state) => withPrefill(state, prefill));
     },
     setFaculties: (faculties) => {
       set({ faculties });

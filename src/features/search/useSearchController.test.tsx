@@ -209,6 +209,55 @@ describe('useSearchInit', () => {
     });
     expect(controlled.requested()).toBe(false);
   });
+
+  it('leaves a route prefill alone when it mounts afterwards', async () => {
+    const controlled = controlledSend();
+    const repo = repoReturning(persistedState());
+    await searchStore.getState().applyRoutePrefill(
+      {
+        tab: 'by_subject_owner_id',
+        term: { year: '2568', semester: '3' },
+        form: { faculty: '01', subjectOwner: '46' },
+      },
+      repo,
+    );
+    render(<InitProbe deps={{ send: controlled.send, repo }} />);
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 0);
+    });
+    expect(searchStore.getState().activeTab).toBe('by_subject_owner_id');
+    expect(formTerm()).toEqual({ year: '2568', semester: '3' });
+    expect(controlled.requested()).toBe(false);
+  });
+
+  it('lands a prefill that arrives during the load over the hydrated search', async () => {
+    const controlled = controlledSend();
+    let release: (state: SearchState) => void = () => undefined;
+    const repo: SearchStateRepository = {
+      load: () =>
+        new Promise<SearchState>((resolve) => {
+          release = resolve;
+        }),
+      save: () => Promise.resolve(),
+    };
+    render(<InitProbe deps={{ send: controlled.send, repo }} />);
+    const prefilled = searchStore.getState().applyRoutePrefill(
+      {
+        tab: 'by_subject_owner_id',
+        term: { year: '2568', semester: '3' },
+        form: { faculty: '01', subjectOwner: '46' },
+      },
+      repo,
+    );
+    release({ ...persistedState(), bySubjectId: { subjectId: '90592033' } });
+    await prefilled;
+    const state = searchStore.getState();
+    expect(state.activeTab).toBe('by_subject_owner_id');
+    expect(formTerm()).toEqual({ year: '2568', semester: '3' });
+    expect(state.byCategory).toEqual({ faculty: '01', subjectOwner: '46' });
+    expect(state.bySubjectId).toEqual({ subjectId: '90592033' });
+    expect(controlled.requested()).toBe(false);
+  });
 });
 
 // A send that never answers a query, so the store can be read while the query is

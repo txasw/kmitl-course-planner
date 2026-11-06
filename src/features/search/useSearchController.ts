@@ -91,11 +91,11 @@ export function useSearchInit(
     // edits. The flag is claimed synchronously so a rapid reopen cannot start a
     // second load, and the store writes apply unconditionally because writing to
     // the plain store after unmount is safe.
-    if (searchStore.getState().hasInitialized) {
+    const load = searchStore.getState().claimInitialization(repo);
+    if (load === null) {
       return;
     }
-    searchStore.getState().setInitialized(true);
-    void repo.load().then((persisted) => {
+    void load.then((persisted) => {
       if (persisted) {
         searchStore.getState().hydrate(persisted);
       }
