@@ -144,6 +144,39 @@ describe('BottomNav', () => {
     ).toBeInTheDocument();
   });
 
+  it('marks an exam clash on the summary item with a dot and in its name', () => {
+    const midterm = {
+      start: '2026-12-17 09:00:00',
+      end: '2026-12-17 12:00:00',
+    };
+    seedActivePlan(
+      ['90000001', '90000002'].map((subjectId) =>
+        makePlanEntry({
+          snapshot: makeSnapshot(
+            makeSection({
+              subjectId,
+              teachTableId: subjectId,
+              meetings: [],
+              exam: { midterm },
+            }),
+          ),
+        }),
+      ),
+    );
+    render(<BottomNav />);
+    const summary = screen.getByRole('button', {
+      name: 'สรุป มีวิชาที่สอบชนกัน',
+    });
+    expect(summary.querySelectorAll('.bg-danger')).toHaveLength(1);
+  });
+
+  it('shows no dot on the summary item without an exam clash', () => {
+    seedActivePlan([entry('90000001', 't1')]);
+    render(<BottomNav />);
+    const summary = screen.getByRole('button', { name: 'สรุป' });
+    expect(summary.querySelector('.bg-danger')).toBeNull();
+  });
+
   it('labels the items in English', () => {
     act(() => {
       uiStore.getState().setLanguage('en');
