@@ -533,6 +533,23 @@ html {
   animation: kcp-pulse var(--kcp-duration-slow) ease-in-out 2;
 }
 
+/* A section the updates dialog shows on the timetable pulses twice in the brand orange,
+   the selection accent, so the eye finds it after the dialog closes. */
+@keyframes kcp-locate {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+
+  50% {
+    box-shadow: 0 0 0 2px var(--kcp-primary);
+  }
+}
+
+.kcp-locate {
+  animation: kcp-locate var(--kcp-duration-slow) ease-in-out 2;
+}
+
 /* A newly placed block settles into place. */
 @keyframes kcp-settle {
   from {
@@ -554,8 +571,13 @@ html {
    text cues that carry the same meaning. */
 @media (prefers-reduced-motion: reduce) {
   .kcp-pulse,
-  .kcp-settle {
+  .kcp-settle,
+  .kcp-locate {
     animation: none;
+  }
+
+  .kcp-locate {
+    box-shadow: 0 0 0 2px var(--kcp-primary);
   }
 }
 
