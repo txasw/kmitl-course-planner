@@ -5,8 +5,11 @@ import {
   cleanup,
   act,
   fireEvent,
+  waitFor,
+  within,
 } from '@testing-library/react';
 import { planStore } from '@/features/plans/planStore';
+import { revalidationStore } from '@/features/plans/revalidationStore';
 import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
 import type { PlanEntry } from '@/lib/domain/plan';
@@ -83,6 +86,7 @@ afterEach(() => {
   act(() => {
     uiStore.getState().setViewMode('edit');
     uiStore.getState().setPlanView('timetable');
+    revalidationStore.getState().setUpdatesOpen(false);
   });
 });
 
@@ -388,6 +392,47 @@ describe('PlannerPanel', () => {
     });
     renderPanel();
     expect(screen.getByRole('heading', { name: 'ตาราง' })).toBeInTheDocument();
+  });
+
+  it('renders the updates dialog only in edit and shows an item on the grid', async () => {
+    // jsdom has no layout and does not implement scrollIntoView.
+    Element.prototype.scrollIntoView = vi.fn();
+    installViewport(1366);
+    seed([
+      makePlanEntry({
+        verifyStatus: 'missing',
+        snapshot: makeSnapshot({
+          teachTableId: 'm1',
+          subjectId: '90000001',
+          meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+        }),
+      }),
+    ]);
+    act(() => {
+      uiStore.getState().setViewMode('preview');
+      revalidationStore.getState().setUpdatesOpen(true);
+    });
+    renderPanel();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    act(() => {
+      uiStore.getState().setViewMode('edit');
+    });
+    const dialog = screen.getByRole('dialog', {
+      name: 'ข้อมูลในตารางมีการเปลี่ยนแปลง',
+    });
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: /^ดูในตาราง 90000001/ }),
+    );
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(revalidationStore.getState().updatesOpen).toBe(false);
+    const block = document.querySelector<HTMLElement>(
+      '[data-teach-table-id="m1"][data-block-order]',
+    );
+    await waitFor(() => {
+      expect(block).toHaveFocus();
+    });
+    expect(block).toHaveClass('kcp-locate');
   });
 
   it('has no serious accessibility violations when populated', async () => {

@@ -22,6 +22,8 @@ import { planConflicts } from '@/lib/planner/planConflicts';
 import { planExamConflicts } from '@/lib/planner/examOverlap';
 import { posterHonesty } from '@/lib/planner/posterHonesty';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
+import { revalidationStore } from '@/features/plans/revalidationStore';
+import { UpdatesDialog } from '@/features/plans/UpdatesDialog';
 import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { commitThenFocus } from '@/features/shell/restoreFocus';
@@ -58,6 +60,11 @@ export function PlannerPanel() {
   const tier = useLayoutTier();
   const showTabs = tier !== 'compact';
   const displayOptions = useStore(uiStore, (state) => state.displayOptions);
+  // The updates dialog renders only in edit, where its actions live (ADR-0060).
+  const updatesOpen = useStore(revalidationStore, (state) => state.updatesOpen);
+  const closeUpdates = useCallback(() => {
+    revalidationStore.getState().setUpdatesOpen(false);
+  }, []);
   const selectedTemplate = useStore(uiStore, (state) => state.selectedTemplate);
   const catalogResult = useStore(searchStore, (state) => state.result);
   const frozenFrame = useStore(dragStore, (state) => state.frame);
@@ -347,6 +354,9 @@ export function PlannerPanel() {
           onRemove={handleRemove}
           examOverlaps={examConflicts.get(detail.teachTableId) ?? []}
         />
+      ) : null}
+      {viewMode === 'edit' && updatesOpen ? (
+        <UpdatesDialog onClose={closeUpdates} />
       ) : null}
       {viewMode === 'edit' && contextMenu !== null ? (
         <BlockContextMenu

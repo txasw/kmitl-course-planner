@@ -94,7 +94,7 @@ afterEach(() => {
   cleanup();
   resetPlanStore();
   act(() => {
-    revalidationStore.setState({ runs: {}, sheetOpen: false });
+    revalidationStore.setState({ runs: {}, updatesOpen: false });
     uiStore.getState().setViewMode('edit');
   });
 });
@@ -112,39 +112,29 @@ describe('PreShareNotice', () => {
     expect(screen.getByText(NOTICE)).toBeInTheDocument();
   });
 
-  it('switches to edit and opens the detail sheet from its action', () => {
+  it('switches to edit and opens the updates dialog from its action', () => {
     seed(changedPlan, true);
     render(<PreShareNotice />);
     fireEvent.click(screen.getByRole('button', { name: 'ดูรายการ' }));
     expect(uiStore.getState().viewMode).toBe('edit');
-    expect(revalidationStore.getState().sheetOpen).toBe(true);
+    expect(revalidationStore.getState().updatesOpen).toBe(true);
   });
 
-  it('switches to edit but leaves the sheet closed when the run has no report', () => {
+  it('opens the dialog after an offline check, since a review outlives its run', () => {
     seed(changedPlan, false);
     render(<PreShareNotice />);
     fireEvent.click(screen.getByRole('button', { name: 'ดูรายการ' }));
     expect(uiStore.getState().viewMode).toBe('edit');
-    expect(revalidationStore.getState().sheetOpen).toBe(false);
+    expect(revalidationStore.getState().updatesOpen).toBe(true);
   });
 
-  it('leaves the sheet closed when the latest run lists no change', () => {
-    act(() => {
-      seedActivePlan(changedPlan, { id: 'p1' });
-      revalidationStore.getState().setRun('p1', {
-        status: 'partial',
-        report: {
-          summary: { total: 1, unchanged: 1, changed: 0, missing: 0 },
-          entries: [],
-          termFindings: [],
-        },
-      });
-      uiStore.getState().setViewMode('preview');
-    });
+  it('leaves the dialog closed when no entry holds anything to review', () => {
+    // A changed status with no review record, as an older build left it.
+    seed([entry('t1', 'changed')], true);
     render(<PreShareNotice />);
     fireEvent.click(screen.getByRole('button', { name: 'ดูรายการ' }));
     expect(uiStore.getState().viewMode).toBe('edit');
-    expect(revalidationStore.getState().sheetOpen).toBe(false);
+    expect(revalidationStore.getState().updatesOpen).toBe(false);
   });
 
   it('keeps mutating controls out of the preview DOM and reviews in edit', () => {
@@ -157,7 +147,7 @@ describe('PreShareNotice', () => {
     expect(
       within(screen.getByRole('toolbar')).queryByText(NOTICE),
     ).not.toBeInTheDocument();
-    // Preview carries no remove, acknowledge, or sheet before the user leaves it.
+    // Preview carries no remove, acknowledge, or dialog before the user leaves it.
     expect(
       screen.queryByRole('button', { name: /นำออก/ }),
     ).not.toBeInTheDocument();
@@ -170,7 +160,7 @@ describe('PreShareNotice', () => {
     expect(screen.queryByRole('toolbar')).not.toBeInTheDocument();
     expect(screen.queryByText(NOTICE)).not.toBeInTheDocument();
     expect(
-      screen.getByRole('dialog', { name: /รายละเอียดการตรวจสอบ/ }),
+      screen.getByRole('dialog', { name: 'ข้อมูลในตารางมีการเปลี่ยนแปลง' }),
     ).toBeInTheDocument();
   });
 });
