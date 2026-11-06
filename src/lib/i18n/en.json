@@ -165,6 +165,8 @@
   "offeredTo.change": "Change curriculum",
   "offeredTo.apply": "Use this curriculum",
   "offeredTo.incomplete": "Choose a faculty, department, curriculum, and class year.",
+  "offeredTo.label": "Open to",
+  "offeredTo.detailScope": "Based on the search this section was added from",
   "section.code": "Section",
   "section.lecture": "Lecture",
   "section.practice": "Practice",

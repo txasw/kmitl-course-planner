@@ -165,6 +165,8 @@
   "offeredTo.change": "เปลี่ยนหลักสูตร",
   "offeredTo.apply": "ใช้หลักสูตรนี้",
   "offeredTo.incomplete": "เลือกคณะ ภาควิชา หลักสูตร และชั้นปีให้ครบ",
+  "offeredTo.label": "เปิดให้",
+  "offeredTo.detailScope": "อ้างอิงจากการค้นหาที่ใช้เพิ่มรายการนี้",
   "section.code": "กลุ่มเรียน",
   "section.lecture": "ทฤษฎี",
   "section.practice": "ปฏิบัติ",

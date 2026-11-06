@@ -1,7 +1,9 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import { normalizeTeachTable } from '@/lib/domain/normalize';
+import { curriculumListSchema, facultyListSchema } from '@/lib/domain/schemas';
+import { searchStore } from '@/features/search/searchStore';
 import type { Section } from '@/lib/domain/types';
 import { loadFixture } from '../../../tests/support/fixtures';
 import {
@@ -334,5 +336,91 @@ describe('SectionDetailList', () => {
     );
     expect(screen.getByText('เวลาเรียน')).toBeInTheDocument();
     expect(screen.queryByText('ตรวจสอบล่าสุด')).not.toBeInTheDocument();
+  });
+
+  describe('open to', () => {
+    const offeredTo = [
+      {
+        facultyId: '01',
+        departmentId: '05',
+        curriculumId: '137',
+        classYear: '1',
+      },
+      { facultyId: '01', departmentId: 'x', curriculumId: 'x', classYear: '0' },
+    ];
+
+    beforeEach(() => {
+      const store = searchStore.getState();
+      store.setFaculties({
+        status: 'ready',
+        data: facultyListSchema.parse(loadFixture('faculty.capture.json')),
+      });
+      store.setCurricula({
+        status: 'ready',
+        data: curriculumListSchema.parse(
+          loadFixture('curriculum.level1.capture.json'),
+        ),
+      });
+    });
+
+    afterEach(() => {
+      searchStore.getState().setFaculties({ status: 'idle' });
+      searchStore.getState().setCurricula({ status: 'idle' });
+    });
+
+    it('names each grouping and notes the search it comes from', () => {
+      render(
+        <SectionDetailList
+          section={makeSection({ offeredTo })}
+          creditStr="3(3-0-6)"
+          density="full"
+          locale="en"
+          t={en}
+        />,
+      );
+      expect(rowValues('Open to')).toEqual([
+        'Computer Engineering and Cyber Security Year 1',
+        'Engineering All curricula All years',
+        'Based on the search this section was added from',
+      ]);
+    });
+
+    it('shows the raw ids while the reference lists are not ready', () => {
+      searchStore.getState().setCurricula({ status: 'loading' });
+      render(
+        <SectionDetailList
+          section={makeSection({ offeredTo })}
+          creditStr="3(3-0-6)"
+          density="full"
+          locale="th"
+          t={th}
+        />,
+      );
+      expect(rowValues('เปิดให้')[0]).toBe('137 ชั้นปี 1');
+    });
+
+    it('stays out of the compact hover card and an old snapshot', () => {
+      render(
+        <SectionDetailList
+          section={makeSection({ offeredTo })}
+          creditStr="3(3-0-6)"
+          density="compact"
+          locale="th"
+          t={th}
+        />,
+      );
+      expect(screen.queryByText('เปิดให้')).not.toBeInTheDocument();
+      cleanup();
+      render(
+        <SectionDetailList
+          section={makeSection()}
+          creditStr="3(3-0-6)"
+          density="full"
+          locale="th"
+          t={th}
+        />,
+      );
+      expect(screen.queryByText('เปิดให้')).not.toBeInTheDocument();
+    });
   });
 });
