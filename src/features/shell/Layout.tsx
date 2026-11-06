@@ -3,6 +3,7 @@ import { useStore } from 'zustand';
 import { PlannerPanel } from '@/features/planner/PlannerPanel';
 import { PlannerDnd } from '@/features/planner/PlannerDnd';
 import { PlannerDropZone } from '@/features/planner/PlannerDropZone';
+import { RemoveBar } from '@/features/planner/RemoveZone';
 import { isDockedTier } from '@/lib/ui/breakpoints';
 import { CatalogColumn, SheetScrim } from './CatalogColumn';
 import { EdgeRail } from './EdgeRail';
@@ -24,7 +25,8 @@ import { useLayoutTier } from './useLayoutTier';
 // The status announcer sits beside the column and outside the inert grid region, so it
 // outlives every state the column swaps and still speaks a search outcome while the
 // sheet is open or closed or the docked column is hidden. Preview has no search, so it
-// carries no announcer.
+// carries no announcer. During a block drag the remove zone is the docked column, which
+// the column renders itself, or else the bar along the body's bottom edge.
 export function Layout() {
   const tier = useLayoutTier();
   const viewMode = useStore(uiStore, (state) => state.viewMode);
@@ -60,6 +62,7 @@ export function Layout() {
         </div>
 
         <SheetScrim tier={tier} />
+        <RemoveBar tier={tier} />
       </div>
     </PlannerDnd>
   );

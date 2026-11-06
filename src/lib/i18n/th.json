@@ -191,6 +191,8 @@
   "feedback.moveHint": "วางบนช่องที่ไฮไลต์หรือพื้นที่นำออก",
   "blockMove.removeZone": "ลากมาที่นี่เพื่อนำออก",
   "blockMove.swap": "สลับกับ",
+  "dropZone.remove": "วางที่นี่เพื่อนำออกจากตาราง",
+  "dropZone.removeOver": "ปล่อยเพื่อนำออก",
   "dropZone.move": "ย้ายไปกลุ่ม {section}",
   "dropZone.swap": "สลับเป็นกลุ่ม {section}",
   "dropZone.addAnnounce": "วางในตารางเพื่อเพิ่ม",

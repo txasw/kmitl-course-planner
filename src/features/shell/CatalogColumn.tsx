@@ -32,6 +32,10 @@
 // Showing and hiding it slides it from the leading edge, driven by the catalogVisibility
 // funnels, with the drawer shadow on a child of its own so the slide animates transform
 // and opacity only.
+//
+// While a placed block is dragged and the docked column is shown, the column is the
+// remove zone (ADR-0059): its content dims to 30 percent under the zone overlay, so the
+// student keeps their place in the list, and a drop anywhere on it removes the block.
 
 import { useLayoutEffect, useRef, type KeyboardEvent } from 'react';
 import { useStore } from 'zustand';
@@ -48,6 +52,10 @@ import {
 } from '@/features/search/searchStore';
 import { SuggestAction } from '@/features/catalog/SuggestAction';
 import { dragStore, type DragStore } from '@/features/planner/dragStore';
+import {
+  CatalogRemoveZone,
+  useRemoveZoneActive,
+} from '@/features/planner/RemoveZone';
 import {
   isDockedTier,
   type DockedTier,
@@ -85,6 +93,12 @@ const DOCKED_WIDTH: Record<DockedTier, string> = {
 };
 
 const SURFACE = 'flex flex-col border-r border-border bg-surface';
+
+// Dims every child but the remove zone overlay and the slide shadow, which stays at the
+// zero opacity it rests at. Each dimmed child forms its own stacking context, so the
+// overlay, the last child, paints above them all with no layer of its own.
+const REMOVE_DIM =
+  '[&>:not([data-remove-zone],[data-catalog-shadow])]:opacity-30';
 
 /** Whether a drag that starts in the catalog is live: a section or a course drag. A block
  * drag starts on the grid, so the sheet has nothing to yield to it. */
@@ -226,6 +240,8 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
   // layers that own it.
   useFocusTrap(columnRef, sheetModal);
   const yielded = useSheetYield(tier) && sheetOpen;
+  const removeZone = useRemoveZoneActive(tier, 'column');
+  const container = containerClass(tier, sheetOpen, catalogVisible, yielded);
   // While the bar exists and the form is open, the results keep a 12rem minimum, so a
   // tall form scrolls in its own region rather than pushing the results out of view.
   const keepResults = useStore(
@@ -253,7 +269,7 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
       aria-hidden={shown ? undefined : true}
       inert={!shown || undefined}
       data-yielded={yielded || undefined}
-      className={containerClass(tier, sheetOpen, catalogVisible, yielded)}
+      className={removeZone ? `${container} ${REMOVE_DIM}` : container}
     >
       {docked ? (
         <>
@@ -280,6 +296,7 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
       >
         <CatalogPanel />
       </div>
+      {removeZone ? <CatalogRemoveZone /> : null}
     </div>
   );
 }
