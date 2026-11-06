@@ -6,6 +6,7 @@ import {
 import { createTabIntentStore } from '@/lib/storage/tabIntents';
 import { handleActionClick, type ClickedTab } from '@/lib/shell/actionClick';
 import { HOST_MATCH_PATTERNS } from '@/lib/shell/hostTab';
+import { answerMountHandshake } from '@/lib/shell/mountHandshake';
 import { createCacheStore } from '@/lib/api/cache';
 import { createDefaultEnv, createGateway } from '@/lib/api/gateway';
 import {
@@ -91,6 +92,13 @@ export default defineBackground(() => {
       gateway.cancelTeachTable(message.query);
       return Promise.resolve(ok(undefined));
     },
+    'shell/mounted': async (_message, context) =>
+      ok(
+        await answerMountHandshake(context, {
+          intents,
+          getCommands: () => browser.commands.getAll(),
+        }),
+      ),
   };
 
   const router = createRouter({ handlers, runtimeId: browser.runtime.id });
