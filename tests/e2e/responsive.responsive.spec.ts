@@ -8,7 +8,9 @@ import {
   pickOption,
   waitForResultsInput,
 } from './support/fixtures';
+import { axeViolations } from './support/axe';
 import { denseSubjectId } from './support/denseCatalog';
+import { allowEntryToast } from './support/onboarding';
 import { addCourse, block, syntheticSearch } from './support/synthetic';
 import {
   LONG_PRESS_MS,
@@ -35,6 +37,7 @@ import type { Plan } from '../../src/lib/domain/plan';
 // one day at a time, stepped by the day chips or a swipe, and during a block drag the
 // nav turns into the remove bar. There the open search form fills the catalog pane over
 // a pinned submit, and the plan menu and the display options open as bottom sheets.
+// The entry toast beside the launcher fits inside the viewport above the launcher.
 
 const LAUNCHER = 'เปิด Course Planner for KMITL';
 // A grid block carries a data-teach-table-id; the catalog rows do not.
@@ -1031,5 +1034,39 @@ test.describe('the phone layout', () => {
     // The chip is the path back, and the plan kept its class.
     await friday.tap();
     await expect(page.locator(GRID_BLOCK)).toHaveCount(1);
+  });
+});
+
+test.describe('the entry toast', () => {
+  test.beforeEach(async ({ context }) => {
+    await allowEntryToast(context);
+  });
+
+  test('sits inside the viewport above the launcher and passes axe', async ({
+    context,
+  }) => {
+    const page = await gotoSelector(context);
+    const toast = page.locator('[data-entry-toast]');
+    // Past the settle and the 2000 ms delay, with room for a cold page to mount.
+    await expect(toast).toBeVisible({ timeout: 10_000 });
+    // The emulated devices report no safe area insets, so the viewport is the safe area.
+    await expect(toast).toBeInViewport({ ratio: 1 });
+
+    const toastBox = await toast.boundingBox();
+    const launcherBox = await page
+      .getByRole('button', { name: LAUNCHER })
+      .boundingBox();
+    if (toastBox === null || launcherBox === null) {
+      throw new Error('expected the toast and the launcher to be laid out');
+    }
+    expect(toastBox.y + toastBox.height).toBeLessThanOrEqual(launcherBox.y);
+    const viewport = page.viewportSize();
+    if (viewport === null) throw new Error('The project sets no viewport');
+    expect(toastBox.x).toBeGreaterThanOrEqual(16);
+    expect(
+      viewport.width - (toastBox.x + toastBox.width),
+    ).toBeGreaterThanOrEqual(20);
+
+    expect(await axeViolations(page)).toEqual([]);
   });
 });
