@@ -11,12 +11,7 @@ import { sanitizeSubjectId } from '@/lib/search/formState';
 import { Combobox } from './Combobox';
 import type { Translate } from '@/lib/i18n/t';
 import type { Locale } from '@/lib/i18n/t';
-import type {
-  RawCurriculum,
-  RawDepartment,
-  RawFaculty,
-  RawSubjectOwner,
-} from '@/lib/domain/schemas';
+import type { RawFaculty } from '@/lib/domain/schemas';
 import type { AsyncState } from '@/lib/utils/async';
 import {
   curriculaFor,
@@ -27,6 +22,7 @@ import {
   sortFacultiesById,
   sortSubjectOwners,
   subjectOwnerName,
+  type ReferenceLists,
 } from '@/lib/reference/filters';
 import {
   ALL_OPTION,
@@ -36,13 +32,6 @@ import {
   type ClassForm,
 } from '@/lib/search/formState';
 import { SEMESTERS, parseSemester } from '@/lib/routing/academicTerms';
-
-export interface ReferenceLists {
-  faculties: AsyncState<RawFaculty[]>;
-  departments: AsyncState<RawDepartment[]>;
-  curricula: AsyncState<RawCurriculum[]>;
-  subjectOwners: AsyncState<RawSubjectOwner[]>;
-}
 
 interface SubjectIdInputProps {
   label: string;

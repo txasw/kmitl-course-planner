@@ -12,6 +12,15 @@ import type {
 } from '../domain/schemas';
 import type { Locale } from '../i18n/t';
 import { pickLocalized } from '../i18n/localize';
+import type { AsyncState } from '../utils/async';
+
+/** The four reference lists as the search feature holds them, each fetched on its own. */
+export interface ReferenceLists {
+  faculties: AsyncState<RawFaculty[]>;
+  departments: AsyncState<RawDepartment[]>;
+  curricula: AsyncState<RawCurriculum[]>;
+  subjectOwners: AsyncState<RawSubjectOwner[]>;
+}
 
 const NUMERIC = /^\d+$/;
 
