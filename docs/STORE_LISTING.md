@@ -105,6 +105,13 @@ reviewers. Each states what the permission is for and that data stays on the dev
   only.
 - Remote code: No. The extension executes no remotely hosted code.
 
+First run note for reviewers. On first install the extension opens one tab at
+https://regis.reg.kmitl.ac.th/#/teach_table_selector, the registration site's own
+course search page, and shows a one time welcome there that explains the planner. It
+opens the tab only when both host permissions are granted, never on an update, and
+never again after the first install. The tab is opened with `tabs.create`, which needs
+no `tabs` permission.
+
 ## Data disclosure
 
 The extension collects none of the data categories the Chrome Web Store privacy tab
