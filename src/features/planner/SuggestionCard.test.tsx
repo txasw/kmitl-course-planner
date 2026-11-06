@@ -4,7 +4,11 @@ import { createTranslator } from '@/lib/i18n/t';
 import { suggestPlans } from '@/lib/planner/suggest';
 import { byClassCourses, lockSections } from '../../../tests/support/suggest';
 import type { Orientation } from './gridGeometry';
-import { SuggestionCard, type SuggestionCardSize } from './SuggestionCard';
+import {
+  labelStepFor,
+  SuggestionCard,
+  type SuggestionCardSize,
+} from './SuggestionCard';
 import { sharedFrame, suggestionSections } from './suggestionFrame';
 
 const t = createTranslator('th');
@@ -126,5 +130,20 @@ describe('SuggestionCard', () => {
     const grid = screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
     expect(grid.style.gridTemplateColumns).toMatch(/^2\.75rem repeat\(/);
     expect(grid.className).not.toMatch(/min-h-\[44rem\]/);
+  });
+});
+
+describe('labelStepFor', () => {
+  it('labels every hour while each hour has room for its label', () => {
+    expect(labelStepFor(436, 10)).toBe(1);
+  });
+
+  it('thins the labels as the hours narrow', () => {
+    expect(labelStepFor(336, 10)).toBe(2);
+    expect(labelStepFor(196, 10)).toBe(3);
+  });
+
+  it('labels every hour before the grid is measured', () => {
+    expect(labelStepFor(0, 10)).toBe(1);
   });
 });

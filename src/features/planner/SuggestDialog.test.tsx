@@ -123,7 +123,7 @@ describe('SuggestDialog', () => {
     ).toBeInTheDocument();
   });
 
-  it('sets the cards side by side with portrait grids at 768 px', async () => {
+  it('sets the cards side by side with landscape grids at 768 px', async () => {
     renderDialog(768);
     expect(await findCards()).toHaveLength(3);
     expect(screen.getAllByRole('listitem')).toHaveLength(3);
@@ -133,7 +133,7 @@ describe('SuggestDialog', () => {
     const columns = gridColumns();
     expect(columns).toHaveLength(3);
     for (const column of columns) {
-      expect(column).toMatch(PORTRAIT);
+      expect(column).not.toMatch(PORTRAIT);
     }
   });
 

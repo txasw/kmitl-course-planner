@@ -90,9 +90,17 @@ interface GridAxisProps {
   orientation: Orientation;
   /** Pin the axis to the scroller edge, edit mode only. The poster renders flat. */
   sticky: boolean;
+  /** Label every nth hour from the first, so a narrow grid keeps its labels apart. The
+   * hour rules still draw on every hour. Defaults to every hour. */
+  labelStep?: number;
 }
 
-export function GridAxis({ window, orientation, sticky }: GridAxisProps) {
+export function GridAxis({
+  window,
+  orientation,
+  sticky,
+  labelStep = 1,
+}: GridAxisProps) {
   // The axis follows only the window, so it holds stable across a drag or a plan change.
   // The last tick is the window's closing edge and needs no label.
   const ticks = useMemo(() => hourTicks(window).slice(0, -1), [window]);
@@ -107,21 +115,23 @@ export function GridAxis({ window, orientation, sticky }: GridAxisProps) {
         />
       ) : null}
 
-      {ticks.map((min, index) => (
-        <div
-          key={min}
-          aria-hidden
-          className={`whitespace-nowrap text-[0.92em] text-ink-soft ${sticky ? 'z-sticky' : ''}`}
-          style={labelStyle(
-            FIRST_TIME_INDEX + index * QUARTERS_PER_HOUR,
-            index === 0,
-            orientation,
-            sticky,
-          )}
-        >
-          {formatMinutes(min)}
-        </div>
-      ))}
+      {ticks.map((min, index) =>
+        index % labelStep === 0 ? (
+          <div
+            key={min}
+            aria-hidden
+            className={`whitespace-nowrap text-[0.92em] text-ink-soft ${sticky ? 'z-sticky' : ''}`}
+            style={labelStyle(
+              FIRST_TIME_INDEX + index * QUARTERS_PER_HOUR,
+              index === 0,
+              orientation,
+              sticky,
+            )}
+          >
+            {formatMinutes(min)}
+          </div>
+        ) : null,
+      )}
 
       {sticky ? (
         <div

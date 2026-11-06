@@ -12,6 +12,8 @@
 // in the orientation the dialog picks for the tier, so no meeting sits out of view.
 
 import { useEffect, useId, useRef } from 'react';
+import { useElementSize } from '@/features/shell/useElementSize';
+import { hourTicks } from '@/lib/planner/grid';
 import { Maximize2 } from 'lucide-react';
 import { Tooltip } from '@/components/Tooltip';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
@@ -50,6 +52,17 @@ const GRID_HEIGHT: Record<SuggestionCardSize, Record<Orientation, string>> = {
   thumb: { portrait: 'h-80', landscape: 'h-56' },
   full: { portrait: 'h-[36rem]', landscape: 'h-[26rem]' },
 };
+
+// The space an hour label needs along the time axis at the mini grid type size, and the
+// leading day track a landscape grid gives up before the hours begin.
+const LABEL_SPAN_PX = 40;
+const DAY_TRACK_PX = 36;
+
+/** The hour label step that keeps the labels of a landscape grid this wide apart. */
+export function labelStepFor(widthPx: number, hours: number): number {
+  const hourPx = (widthPx - DAY_TRACK_PX) / hours;
+  return hourPx > 0 ? Math.max(1, Math.ceil(LABEL_SPAN_PX / hourPx)) : 1;
+}
 
 /** The five card parts on the rows of a parent grid, for the side by side view. The list
  * item and the card inside it both take it, so the rows reach the card's parts. */
@@ -141,6 +154,13 @@ export function SuggestionCard({
 }: SuggestionCardProps) {
   const headingId = useId();
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const gridBoxRef = useRef<HTMLDivElement>(null);
+  const gridBox = useElementSize(gridBoxRef);
+  // A portrait grid runs its hours down a tall box, so only a landscape one thins them.
+  const hourLabelStep =
+    orientation === 'landscape'
+      ? labelStepFor(gridBox.width, hourTicks(frame.window).length - 1)
+      : 1;
   const isFull = size === 'full';
   useEffect(() => {
     if (isFull) {
@@ -198,7 +218,9 @@ export function SuggestionCard({
           </Tooltip>
         )}
       </div>
-      <dl className="flex flex-col gap-0.5 text-xs">
+      <dl
+        className={`flex flex-col gap-0.5 text-xs ${isFull ? 'w-full max-w-xs' : ''}`}
+      >
         {facts.map(([label, value]) => (
           <div key={label} className="flex justify-between gap-2">
             <dt className="text-ink-soft">{t(label)}</dt>
@@ -207,6 +229,7 @@ export function SuggestionCard({
         ))}
       </dl>
       <div
+        ref={gridBoxRef}
         className={`${GRID_HEIGHT[size][orientation]} ${swipe?.touchClass ?? ''}`}
         {...swipe?.handlers}
       >
@@ -221,6 +244,7 @@ export function SuggestionCard({
           orientation={orientation}
           fontPx={GRID_FONT_PX[size]}
           posterFloor={false}
+          hourLabelStep={hourLabelStep}
         />
       </div>
       <LeftOutList leftOut={suggestion.leftOut} locale={locale} t={t} />
