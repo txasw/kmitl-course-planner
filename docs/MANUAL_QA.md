@@ -385,6 +385,54 @@ the debug build, so the install record is new.
 - [ ] Language: the welcome reads in the panel language, Thai in a fresh profile, and
       carries that language on its own node rather than the host page's.
 
+## Entry toast
+
+The entry toast is a short prompt beside the launcher, shown at most once per page load
+(ADR-0063). Use the debug build in a profile past the welcome that has not turned the
+prompt off. To turn it back on after an opt out, run
+`chrome.storage.local.set({ 'kcp:onboarding': { schemaVersion: 1, welcomeShownAt: new Date().toISOString() } })`
+in the service worker console, which keeps the welcome recorded as shown.
+
+- [ ] No plan: with no plan stored, load the selector page. About two seconds after the
+      page settles the prompt appears above the launcher, saying the planner can plan a
+      timetable from the courses on this site. Open Planner opens the panel at the
+      catalog in edit mode.
+- [ ] Empty plan: create a plan with no subjects, then reload. The prompt names the plan,
+      starting with its name so ตาราง is not read twice, and Add subjects opens the
+      catalog.
+- [ ] Plan with subjects: add two subjects, one of them a lecture and practice pair, then
+      reload. The prompt names the plan and counts two subjects, and Open plan opens the
+      timetable.
+- [ ] Changes to review: with a plan whose revalidation found a change not yet reviewed,
+      reload. The prompt counts the changes, and Review opens the timetable in edit mode
+      with the updates dialog over it.
+- [ ] Timing: the prompt hides by itself after about eight seconds. Rest the pointer on it,
+      or tab into it, and it stays until the pointer leaves or focus moves out.
+- [ ] Once per load: while it shows, and after it hides, move between host routes with
+      the host page's own links and the browser back button. It never shows again and its
+      message never changes until the next page load.
+- [ ] Background tab: load a regis page in a background tab and wait. Bring it to the
+      front; the prompt appears about two seconds later, not at once.
+- [ ] Panel open: open the panel from the launcher while the prompt shows. The prompt is
+      gone, and closing the panel does not bring it back.
+- [ ] Close and Escape: the close button hides it for this page load only; reload and it
+      shows again. With focus on one of its buttons, Escape hides it and focus moves to
+      the launcher.
+- [ ] Do not show again: press it. The prompt hides, focus moves to the launcher, and no
+      later page load shows it in any regis tab.
+- [ ] Keyboard and focus: the prompt never takes focus when it appears. From the launcher,
+      Tab reaches its action, then Do not show again, then the close button.
+- [ ] Screen reader: the message and its actions are read once when the prompt appears,
+      in the panel language, and nothing is read when it hides.
+- [ ] Install visit: in a fresh profile the install tab shows the welcome and no prompt,
+      before or after the welcome closes. The next load of a regis page shows the prompt.
+- [ ] Placement: at 390, 768 and 1366 px wide the prompt sits above the launcher on the
+      right with a clear gap, wholly inside the screen, and on a phone it stays clear of
+      the home indicator and the rounded corners. Under reduced motion it appears without
+      the rise.
+- [ ] Language: switch the panel to English, then reload. The prompt reads in English and
+      carries that language on its own node.
+
 ## Firefox parity
 
 The end to end suite runs on Chromium only, because Playwright cannot side load the
