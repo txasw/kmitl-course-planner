@@ -827,8 +827,9 @@ test.describe('the phone layout', () => {
     // navigation away from the host page.
     expect(page.url()).toContain('regis.reg.kmitl.ac.th');
     await expect(page.locator('[data-drag-card]')).toHaveCount(0);
-    await expect(page.locator('[data-free-day]')).toContainText('วันพฤหัสบดี');
-    await expect(page.locator('[data-free-day]')).toContainText('วันว่าง');
+    const freeDay = page.locator('[data-grid-notice="free-day"]');
+    await expect(freeDay).toContainText('วันพฤหัสบดี');
+    await expect(freeDay).toContainText('วันว่าง');
 
     // The chip is the path back, and the plan kept its class.
     await friday.tap();

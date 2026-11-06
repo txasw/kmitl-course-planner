@@ -205,10 +205,10 @@ describe('DayView', () => {
     fireEvent.click(chip('วันศุกร์ มีเรียน'));
     expect(block('90000002')).not.toBeNull();
     expect(block('90000001')).toBeNull();
-    expect(document.querySelector('[data-free-day]')).toBeNull();
+    expect(document.querySelector('[data-grid-notice="free-day"]')).toBeNull();
 
     fireEvent.click(chip('วันอังคาร'));
-    const note = document.querySelector('[data-free-day]');
+    const note = document.querySelector('[data-grid-notice="free-day"]');
     expect(note).toHaveTextContent('วันอังคาร');
     expect(note).toHaveTextContent('วันว่าง');
   });

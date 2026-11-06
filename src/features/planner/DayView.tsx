@@ -17,7 +17,6 @@
 // but the column does not follow the finger.
 
 import { useMemo, useState } from 'react';
-import { CalendarCheck } from 'lucide-react';
 import { fillTemplate } from '@/lib/i18n/template';
 import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
 import type { DayOfWeek } from '@/lib/parsing/days';
@@ -36,7 +35,7 @@ import {
 } from '@/features/shell/useSwipeGesture';
 import { dragStore, selectDragging } from './dragStore';
 import { DayChips } from './DayChips';
-import { GridEmptyState } from './GridEmptyState';
+import { FreeDayNotice, GridEmptyState } from './GridEmptyState';
 import { GridScroller } from './GridScroller';
 import type { PlacedSection } from './placedSection';
 import { WeeklyGrid, type EditGridProps } from './WeeklyGrid';
@@ -122,19 +121,7 @@ export function DayView({
               {planEmpty ? (
                 <GridEmptyState t={t} />
               ) : flags[day].hasClass ? null : (
-                <div
-                  data-free-day
-                  className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 flex-col items-center gap-1 px-6 text-center"
-                >
-                  <CalendarCheck
-                    size={28}
-                    strokeWidth={1.75}
-                    className="text-ink-soft"
-                    aria-hidden
-                  />
-                  <p className="text-sm font-semibold text-ink">{dayName}</p>
-                  <p className="text-sm text-ink-soft">{t('view.freeDay')}</p>
-                </div>
+                <FreeDayNotice dayName={dayName} t={t} />
               )}
             </>
           )}
