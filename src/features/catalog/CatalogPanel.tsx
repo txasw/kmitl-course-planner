@@ -1,5 +1,5 @@
 // The catalog region. It renders exactly one deliberate state for the search
-// result: the initial prompt, a loading skeleton, a typed error with retry, an
+// result: the initial prompt, a loading skeleton, a typed error with one action, an
 // empty result carrying the search summary, or the courses. The course rendering
 // is filled in by the catalog cards; this panel owns the surrounding states. A retry
 // or a refresh replaces its own control with the loading state, so focus moves to the
@@ -15,12 +15,12 @@ import { searchStore } from '@/features/search/searchStore';
 import { toastStore } from '@/features/shell/toastStore';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { useSearchActions } from '@/features/search/useSearchController';
-import { errorMessageKey } from '@/features/search/errorMessage';
+import { errorAction, errorMessageKey } from '@/features/search/errorMessage';
 import { SEARCH_BAR_ID, SEARCH_SUBMIT_ID } from '@/features/search/searchIds';
 import { commitAndFocus } from '@/features/shell/commitAndFocus';
 import { useTranslation } from '@/features/shell/useTranslation';
-import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { CourseCatalog } from './CourseCatalog';
+import { ErrorActionButton } from './ErrorActionButton';
 import { InputGuard } from './InputGuard';
 
 function termSummary(query: TeachTableQuery | null, t: Translate): string {
@@ -143,17 +143,13 @@ function CatalogState() {
         title={t('catalog.errorTitle')}
         description={t(errorMessageKey(result.error))}
         action={
-          <button
-            type="button"
-            onClick={(event) => {
-              commitAndFocus(event.currentTarget, SEARCH_BAR_ID, () => {
-                void retry();
-              });
+          <ErrorActionButton
+            action={errorAction(result.error)}
+            t={t}
+            onRetry={() => {
+              void retry();
             }}
-            className={`rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover ${FOCUS_OUTLINE}`}
-          >
-            {t('action.retry')}
-          </button>
+          />
         }
       />
     );
