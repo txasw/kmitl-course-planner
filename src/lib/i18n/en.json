@@ -417,5 +417,18 @@
   "poster.unverified": "Data not yet checked",
   "poster.honesty.missing": "Sections not listed at the last check: {count}",
   "poster.honesty.conflict": "Conflicting pairs: {count}",
-  "poster.exams.more": "{count} more"
+  "poster.exams.more": "{count} more",
+  "welcome.title": "Thank you for installing Course Planner for KMITL",
+  "welcome.body": "Plan your timetable before registration from the courses offered on this site. Saved plans stay in this browser only.",
+  "welcome.steps": "Get started in three steps",
+  "welcome.step.search.title": "Search for courses",
+  "welcome.step.search.body": "Search by curriculum and class year, subject id, or subject category.",
+  "welcome.step.place.title": "Drag sections into the timetable",
+  "welcome.step.place.body": "Clashing class times and exam times are flagged as you place them.",
+  "welcome.step.share.title": "Share as an image",
+  "welcome.step.share.body": "Download or copy your timetable as an image to send to others.",
+  "welcome.access.shortcut": "Open it any time from the Planner button at the bottom right, the extension icon, or the shortcut {shortcut}.",
+  "welcome.access": "Open it any time from the Planner button at the bottom right or the extension icon.",
+  "welcome.start": "Start planning",
+  "welcome.close": "Close the welcome message"
 }

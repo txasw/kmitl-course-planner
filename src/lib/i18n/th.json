@@ -417,5 +417,18 @@
   "poster.unverified": "ยังไม่ได้ตรวจสอบข้อมูล",
   "poster.honesty.missing": "{count} รายวิชาไม่พบในระบบ ณ วันที่ตรวจสอบ",
   "poster.honesty.conflict": "มีรายวิชาที่เวลาชนกัน {count} คู่",
-  "poster.exams.more": "อีก {count} รายการ"
+  "poster.exams.more": "อีก {count} รายการ",
+  "welcome.title": "ขอบคุณที่ติดตั้ง Course Planner for KMITL",
+  "welcome.body": "วางแผนตารางเรียนก่อนลงทะเบียนจากรายวิชาที่เปิดสอนในเว็บไซต์นี้ ตารางที่บันทึกไว้จะอยู่ในเบราว์เซอร์นี้เท่านั้น",
+  "welcome.steps": "เริ่มใช้งานใน 3 ขั้น",
+  "welcome.step.search.title": "ค้นหารายวิชา",
+  "welcome.step.search.body": "ค้นหาตามหลักสูตรและชั้นปี รหัสวิชา หรือหมวดวิชา",
+  "welcome.step.place.title": "ลากกลุ่มเรียนลงตาราง",
+  "welcome.step.place.body": "ระบบจะแจ้งทันทีเมื่อเวลาเรียนหรือเวลาสอบชนกัน",
+  "welcome.step.share.title": "แชร์เป็นรูปภาพ",
+  "welcome.step.share.body": "ดาวน์โหลดหรือคัดลอกตารางเป็นรูปภาพเพื่อส่งต่อ",
+  "welcome.access.shortcut": "เปิดได้ทุกเมื่อจากปุ่ม Planner มุมขวาล่าง ไอคอนส่วนขยาย หรือแป้นลัด {shortcut}",
+  "welcome.access": "เปิดได้ทุกเมื่อจากปุ่ม Planner มุมขวาล่าง หรือไอคอนส่วนขยาย",
+  "welcome.start": "เริ่มวางแผน",
+  "welcome.close": "ปิดข้อความต้อนรับ"
 }

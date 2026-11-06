@@ -11,6 +11,10 @@ import { useTranslation } from './useTranslation';
 // so it carries the panel language itself rather than inheriting the host
 // document's. It keeps its 20 px offset from the corner, or the device safe area
 // inset where that is larger.
+
+/** The launcher's id, so a layer that closes over it can hand it focus. */
+export const LAUNCHER_ID = 'kcp-launcher';
+
 export function Launcher() {
   const isOpen = useStore(uiStore, (state) => state.isOpen);
   const welcomeOpen = useStore(onboardingStore, (state) => state.welcomeOpen);
@@ -21,6 +25,7 @@ export function Launcher() {
 
   return (
     <button
+      id={LAUNCHER_ID}
       type="button"
       onClick={open}
       inert={covered || undefined}
