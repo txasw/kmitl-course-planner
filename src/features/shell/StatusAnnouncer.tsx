@@ -1,16 +1,21 @@
-// The one persistent status region for settled search outcomes and for the settle of a
-// manual plan check, listed in the live region inventory of ADR-0048 as ADR-0060 amends it.
-// It sits in Layout, outside the catalog column, so it
+// The one persistent status region for settled search outcomes, the settle of a manual
+// plan check, and panel status indicators, listed in the live region inventory of
+// ADR-0048 as ADR-0060 amends it. It sits in Layout, outside the catalog column, so it
 // stays mounted while the column swaps its loading, error, empty and result states, and
-// while a sheet or a hidden docked column keeps the result out of view. It speaks only
-// when a user search settles: the course and section count, the empty title with the
-// searched term, or the error title. A retry pressed on the error state is the student
-// asking again after an outcome that was spoken, so its settle is spoken too. A refresh
-// replaces the result without a word, and a re-render or a language change says
+// while a sheet or a hidden docked column keeps the result out of view. For search it
+// speaks only when a user search settles: the course and section count, the empty title
+// with the searched term, or the error title. A retry pressed on the error state is the
+// student asking again after an outcome that was spoken, so its settle is spoken too. A
+// refresh replaces the result without a word, and a re-render or a language change says
 // nothing, because the message is written at the settle rather than derived from the
 // current state. Each settle replaces the message node, so a repeated search that
 // settles on the same words is still read once, and any new run clears the region while
-// it runs.
+// it runs. The updates indicator of ADR-0060 is not a live region, so its first
+// appearance is read here: the moment the active plan goes from nothing to review to
+// some items, as a check records changes or a switch lands on a plan with open reviews.
+// A count that only changes while the indicator shows says nothing, and a plan that
+// already had items when the panel opened says nothing, since the indicator did not
+// just appear.
 
 import { useEffect, useRef, useState } from 'react';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
@@ -19,6 +24,7 @@ import { fillTemplate } from '@/lib/i18n/template';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import type { AsyncState } from '@/lib/utils/async';
 import { countSections } from '@/lib/catalog/countSections';
+import { countUpdateItems } from '@/lib/planner/updateReview';
 import { termSummary } from '@/features/catalog/CatalogPanel';
 import { planDataDate } from '@/lib/planner/posterHonesty';
 import { verificationText } from '@/features/planner/verificationText';
@@ -30,6 +36,15 @@ import { useTranslation } from './useTranslation';
 interface Announcement {
   id: number;
   text: string;
+}
+
+/** The update that replaces the message node with a new one, so the text is read even
+ * when it repeats the last. */
+function replacing(text: string) {
+  return (current: Announcement | null): Announcement => ({
+    id: (current?.id ?? 0) + 1,
+    text,
+  });
 }
 
 /** What a settled result says, or null for a state that is not an outcome. */
@@ -113,10 +128,23 @@ export function StatusAnnouncer() {
         }
         const text = outcomeText(state.result, state.resultQuery, t);
         if (text !== null) {
-          setAnnouncement((current) => ({
-            id: (current?.id ?? 0) + 1,
-            text,
-          }));
+          setAnnouncement(replacing(text));
+        }
+      }),
+    [t],
+  );
+
+  useEffect(
+    () =>
+      planStore.subscribe((state, previous) => {
+        if (state.entries === previous.entries) {
+          return;
+        }
+        const count = countUpdateItems(state.entries);
+        if (count > 0 && countUpdateItems(previous.entries) === 0) {
+          setAnnouncement(
+            replacing(fillTemplate(t('updates.indicator'), { count })),
+          );
         }
       }),
     [t],
