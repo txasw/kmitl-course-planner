@@ -10,12 +10,13 @@ import {
 import { LONG_PRESS_MS, longPress, swipe, touchDrag } from './support/touch';
 import type { Page } from '@playwright/test';
 
-// A responsive smoke for the phone and tablet projects. It asserts only what holds
-// today at both sizes: the host lays out at the device width, the planner opens and
-// closes with focus returned to the launcher, and the touch helper delivers real
-// touch events, the edit grid keeps its derived minimum width, and a tapped block opens
-// its details as a bottom sheet, since both projects are coarse pointers. The small
-// screen layout work adds its own assertions on top.
+// A responsive smoke for the phone and tablet projects. It asserts what holds at both
+// sizes: the host lays out at the device width, the planner opens and closes with focus
+// returned to the launcher, the header keeps close and preview in view and working at
+// the device width and at 320 px, the touch helper delivers real touch events, the edit
+// grid keeps its derived minimum width, and a tapped block opens its details as a bottom
+// sheet, since both projects are coarse pointers. The small screen layout work adds its
+// own assertions on top.
 
 const LAUNCHER = 'เปิด Course Planner for KMITL';
 // A grid block carries a data-teach-table-id; the catalog rows do not.
@@ -78,6 +79,54 @@ test('the planner opens and closes with focus back on the launcher', async ({
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toBeHidden();
   await expect(page.getByRole('button', { name: LAUNCHER })).toBeFocused();
+});
+
+/**
+ * Assert the header keeps its exit and its preview control inside the viewport and
+ * working: the header stays one row, preview switches the mode, and close leaves the
+ * overlay. Both clicks go through Playwright's actionability checks, so a control that
+ * is off screen or covered by a neighbour fails here.
+ */
+async function expectHeaderExitsReachable(page: Page): Promise<void> {
+  const dialog = page.getByRole('dialog');
+  const header = dialog.locator('header');
+  const close = dialog.getByRole('button', { name: 'ปิด', exact: true });
+  const preview = dialog.getByRole('button', { name: 'ดูตัวอย่าง' });
+  const viewport = page.viewportSize();
+  expect(viewport).not.toBeNull();
+
+  for (const control of [close, preview]) {
+    await expect(control).toBeInViewport({ ratio: 1 });
+    const box = await control.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box?.x ?? -1).toBeGreaterThanOrEqual(0);
+    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(
+      viewport?.width ?? 0,
+    );
+  }
+  // One row: 56 px, or 48 px on a short viewport, plus the bottom border.
+  const headerBox = await header.boundingBox();
+  expect(headerBox?.height ?? 0).toBeLessThanOrEqual(57);
+
+  await preview.click();
+  await expect(preview).toHaveAttribute('aria-pressed', 'true');
+  await close.click();
+  await expect(dialog).toBeHidden();
+}
+
+test('close and preview stay in view and work at the device width', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await expectHeaderExitsReachable(page);
+});
+
+test('close and preview stay in view and work at 320 px', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await page.setViewportSize({ width: 320, height: 640 });
+  await expectHeaderExitsReachable(page);
 });
 
 test('the edit grid keeps its derived minimum and fits where the column allows', async ({
