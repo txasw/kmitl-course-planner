@@ -131,12 +131,21 @@ button. Never skip it.
 - [ ] Persistence across reload: add a few sections, then reload the page and reopen the
       panel. The grid rebuilds from the stored plan even though the catalog is empty. Two
       plans for different semesters stay separate.
-- [ ] Revalidation on open: open a plan that has entries. A summary banner reports the
-      check; with unchanged data it reads all up to date. Press refresh and confirm the
-      outcome reports in the banner, not through a toast.
+- [ ] Revalidation on open: open a plan that has entries. The end of the stats bar under
+      the grid reads ตรวจสอบแล้ว with the time of the check and a success check. Press the
+      icon button ตรวจสอบอีกครั้ง and confirm it is disabled while the check runs and the
+      outcome reports in the same place, not through a toast.
+- [ ] Offline check: with the network off, check again. The status reads in warn that the
+      plan shows saved data and offers ลองอีกครั้ง. Switch to preview and confirm the same
+      status and retry end the toolbar row and never appear in an exported image.
 - [ ] Changed section: if a section's time changed upstream, its block carries a warn
-      badge until acknowledged and the banner counts the change. Open the block detail
-      popover and the revalidation detail sheet and confirm both show old versus new.
+      badge until acknowledged and the status counts the change. Open the block detail
+      popover and the updates dialog from รายละเอียด and confirm both show old versus new.
+- [ ] Stats bar: the bar is a group named สรุปตาราง under both plan views, with the credit
+      total as the larger number, the subject count, and ไม่มีรายการชนกัน. When a check
+      creates a clash, the bar shows a danger button ชนกัน with the count; pressing it shows
+      the timetable and focuses and pulses the first clashing block in time order. On a
+      phone, with the day view on another day, the press first shows the clash's day.
 - [ ] Missing section: a section dropped upstream stays on the grid with a danger badge
       and a suggested remove. Confirm nothing is deleted without the action.
 - [ ] Block detail popover: in edit mode, open a block's details control. The popover
@@ -188,8 +197,8 @@ the header segmented control.
 - [ ] Preview toolbar presence: in edit mode there are no sharing controls. Switch to
       preview and confirm the toolbar shows the display options, copy image, download image,
       and copy as text, and that the template picker is the preview gallery itself, not a
-      dropdown. Switch back to edit and confirm they leave the DOM. The toolbar and the
-      revalidation banner are never part of an exported image.
+      dropdown. Switch back to edit and confirm they leave the DOM. The toolbar and its
+      verification status are never part of an exported image.
 - [ ] Download PNG: populate a plan including one unscheduled course. In preview, download
       the image and open it. The poster header, the grid with block colours and any
       revalidation badges, the unscheduled shelf, and the footer credits all render, and
@@ -292,9 +301,10 @@ add and remove controls, so no action is a dead end for the keyboard.
       closes only the popover and not the whole panel, and acknowledge and remove are
       reachable. A changed or exam overlapping block reads its state and, for an exam, both
       windows.
-- [ ] Revalidation: open a plan with entries. The banner announces the check result through
-      its live region. Reach the details control; the detail sheet opens as a dialog with
-      focus inside it and Escape closes it.
+- [ ] Revalidation: open a plan with entries. Press ตรวจสอบอีกครั้ง in the stats bar; the
+      status announcer reads the outcome once, and an automatic check on open says nothing.
+      Reach the details control; the updates dialog opens with focus inside it and Escape
+      closes it.
 - [ ] Plan switch: open the plan switcher, move through the plans, and create, rename, or
       delete one entirely by keyboard, confirming the inline delete.
 - [ ] Preview toolbar and gallery: switch to preview and Tab through the display options,
@@ -304,8 +314,9 @@ add and remove controls, so no action is a dead end for the keyboard.
       its toggles operate by keyboard.
 - [ ] Import rejection: from the plan menu, import a tampered JSON. The per field error list
       is reachable and the back control returns to the menu.
-- [ ] Footer and summary: the footer summary reads as one labeled region with the credit,
-      subject, and per day load totals.
+- [ ] Stats bar and poster footer: the edit stats bar reads as one group named สรุปตาราง
+      with the credit, subject, clash, and per day load totals, each day read by its full
+      name. The poster footer line reads as its own labeled group.
 - [ ] Focus ring sweep: keyboard only, Tab through the search selects and inputs, the
       catalog filter field, the day chips, the credit control, the refresh button, the plan
       rename field, and the preview toolbar buttons. Each light control shows the inset
