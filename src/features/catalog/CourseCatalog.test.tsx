@@ -29,6 +29,9 @@ import { dragStore } from '@/features/planner/dragStore';
 import { FeedbackStrip } from '@/features/planner/FeedbackStrip';
 import { createTranslator } from '@/lib/i18n/t';
 import { EMPTY_DISCLOSURE } from '@/lib/catalog/cardDisclosure';
+import { toastStore } from '@/features/shell/toastStore';
+import { uiStore } from '@/features/shell/uiStore';
+import { installViewport } from '../../../tests/support/viewport';
 import { catalogStore } from './catalogStore';
 import { CourseCatalog } from './CourseCatalog';
 
@@ -455,6 +458,33 @@ describe('CourseCatalog focus', () => {
     expect(focused).toHaveAttribute('data-course-toggle');
     expect(focused).toHaveAttribute('aria-controls', toggleId);
     expect(focused).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('lands an add over the covered timetable on the card toggle beside its toast', () => {
+    installViewport(768);
+    act(() => {
+      uiStore.getState().setSheetOpen(true);
+    });
+    try {
+      render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+      expandAll();
+      const add = firstAddButton();
+      const article = add.closest('article');
+      add.focus();
+      fireEvent.click(add);
+      // The sheet stays open for the next pick, so focus stays on the card in it while
+      // the toast confirms the add the covered grid cannot show.
+      expect(toastStore.getState().toast).not.toBeNull();
+      expect(document.activeElement).toBe(
+        article?.querySelector('[data-course-toggle]'),
+      );
+    } finally {
+      act(() => {
+        uiStore.getState().setSheetOpen(false);
+        toastStore.getState().dismiss();
+      });
+      vi.unstubAllGlobals();
+    }
   });
 
   it('lands a grip commit on the collapsed card toggle', () => {
