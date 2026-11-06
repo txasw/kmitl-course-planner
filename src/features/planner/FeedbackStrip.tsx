@@ -2,7 +2,7 @@
 // rejected drop shows the blocking reason and up to two alternative sections of the
 // same subject that would fit, or a reveal action when none do. A cross term add and a
 // drag hint show here too. Each clears on its own window, six seconds for the blocked
-// reason. A catalog add is confirmed by a screen reader only line here only while the
+// reason, which pauses while the pointer rests on the strip or focus is inside it. A catalog add is confirmed by a screen reader only line here only while the
 // timetable is in view; while the sheet covers it, the add toast speaks instead and this
 // line stays empty, so the add is read once. It is not the toast, which stays reserved
 // for actions whose outcome is not otherwise visible on screen; the undo for a removal,
@@ -11,7 +11,13 @@
 // focus back to the control it came from, so the timer that clears it never drops focus
 // to the document body.
 
-import { useEffect, useLayoutEffect, useRef, type FocusEvent } from 'react';
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type FocusEvent,
+  type PointerEvent,
+} from 'react';
 import { useStore } from 'zustand';
 import type { Section } from '@/lib/domain/types';
 import type { Translate } from '@/lib/i18n/t';
@@ -24,6 +30,7 @@ import { revealCourse } from '@/features/catalog/revealCourse';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { commitThenFocus, focusFirst } from '@/features/shell/restoreFocus';
 import { focusIsLost, rootOf } from '@/features/shell/useFocusTrap';
+import { useAutoClear } from '@/features/shell/useAutoClear';
 import { courseToggle } from '@/features/catalog/courseFocus';
 import {
   dragStore,
@@ -167,7 +174,14 @@ export function FeedbackStrip({ t }: FeedbackStripProps) {
   // blocked add moved focus to the first alternative. It is forgotten once focus moves on
   // to a control outside the strip, which then owns it.
   const originRef = useRef<HTMLElement | null>(null);
+  // The notice showing when focus came in. Focus pauses that notice only: a control
+  // that unmounts with its notice sends no blur, so a flag would stay set and hold the
+  // next notice forever.
+  const [focusedNotice, setFocusedNotice] = useState<unknown>(null);
+  const [hovered, setHovered] = useState(false);
+  const visible = crossTerm ?? blocked ?? hint ?? announcement;
   const handleFocusIn = (event: FocusEvent<HTMLDivElement>) => {
+    setFocusedNotice(visible);
     const from = event.relatedTarget;
     if (from instanceof HTMLElement && !event.currentTarget.contains(from)) {
       originRef.current = from;
@@ -175,9 +189,19 @@ export function FeedbackStrip({ t }: FeedbackStripProps) {
   };
   const handleFocusOut = (event: FocusEvent<HTMLDivElement>) => {
     const to = event.relatedTarget;
-    if (to instanceof Node && !event.currentTarget.contains(to)) {
+    if (to instanceof Node && event.currentTarget.contains(to)) return;
+    setFocusedNotice(null);
+    if (to instanceof Node) {
       originRef.current = null;
     }
+  };
+  // A finger that taps the strip sends no leave until it touches elsewhere, so only a
+  // hovering pointer pauses it.
+  const handlePointerEnter = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== 'touch') setHovered(true);
+  };
+  const handlePointerLeave = () => {
+    setHovered(false);
   };
   // Runs in the commit that swapped the notice, before the focus trap checks for dropped
   // focus, so focus returns straight to its origin rather than to the panel. An origin
@@ -191,53 +215,20 @@ export function FeedbackStrip({ t }: FeedbackStripProps) {
     focusFirst([origin]);
   }, [blocked, crossTerm, hint, announcement]);
 
-  useEffect(() => {
-    if (blocked === null) {
-      return undefined;
-    }
-    const timer = setTimeout(() => {
-      dragStore.getState().clearBlocked();
-    }, BLOCKED_WINDOW_MS);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [blocked]);
-
-  useEffect(() => {
-    if (crossTerm === null) {
-      return undefined;
-    }
-    const timer = setTimeout(() => {
-      dragStore.getState().clearCrossTerm();
-    }, BLOCKED_WINDOW_MS);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [crossTerm]);
-
-  useEffect(() => {
-    if (announcement === null) {
-      return undefined;
-    }
-    const timer = setTimeout(() => {
-      dragStore.getState().clearAnnouncement();
-    }, ANNOUNCE_WINDOW_MS);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [announcement]);
-
-  useEffect(() => {
-    if (hint === null) {
-      return undefined;
-    }
-    const timer = setTimeout(() => {
-      dragStore.getState().clearHint();
-    }, BLOCKED_WINDOW_MS);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [hint]);
+  // Every notice waits on one pausable window: it holds while the pointer rests on the
+  // strip or focus is inside it, and resumes with the time left (WCAG 2.2.1).
+  const paused =
+    hovered || (focusedNotice !== null && focusedNotice === visible);
+  const drag = dragStore.getState();
+  useAutoClear(blocked, BLOCKED_WINDOW_MS, drag.clearBlocked, paused);
+  useAutoClear(crossTerm, BLOCKED_WINDOW_MS, drag.clearCrossTerm, paused);
+  useAutoClear(hint, BLOCKED_WINDOW_MS, drag.clearHint, paused);
+  useAutoClear(
+    announcement,
+    ANNOUNCE_WINDOW_MS,
+    drag.clearAnnouncement,
+    paused,
+  );
 
   return (
     <div
@@ -245,6 +236,8 @@ export function FeedbackStrip({ t }: FeedbackStripProps) {
       aria-live="polite"
       onFocus={handleFocusIn}
       onBlur={handleFocusOut}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
       className="min-h-[1.75rem] shrink-0"
     >
       {crossTerm !== null ? (

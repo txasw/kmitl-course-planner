@@ -371,6 +371,101 @@ describe('FeedbackStrip', () => {
     });
   });
 
+  describe('the clear window', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    function liveNode(): HTMLElement {
+      const node = document.querySelector<HTMLElement>('[aria-live]');
+      if (node === null) throw new Error('no live node');
+      return node;
+    }
+
+    it('clears a blocked notice after six seconds', () => {
+      vi.useFakeTimers();
+      showBlockedWithChip();
+      render(<FeedbackStrip t={t} />);
+      act(() => {
+        vi.advanceTimersByTime(6_000);
+      });
+      expect(dragStore.getState().blocked).toBeNull();
+    });
+
+    it('holds a notice while the pointer rests on the strip', () => {
+      vi.useFakeTimers();
+      showBlockedWithChip();
+      render(<FeedbackStrip t={t} />);
+      act(() => {
+        vi.advanceTimersByTime(4_000);
+      });
+      fireEvent.pointerEnter(liveNode(), { pointerType: 'mouse' });
+      act(() => {
+        vi.advanceTimersByTime(20_000);
+      });
+      expect(dragStore.getState().blocked).not.toBeNull();
+      // The resume continues from the two seconds left, not a new window.
+      fireEvent.pointerLeave(liveNode(), { pointerType: 'mouse' });
+      act(() => {
+        vi.advanceTimersByTime(1_999);
+      });
+      expect(dragStore.getState().blocked).not.toBeNull();
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(dragStore.getState().blocked).toBeNull();
+    });
+
+    it('is not held by a finger that tapped the strip', () => {
+      vi.useFakeTimers();
+      showBlockedWithChip();
+      render(<FeedbackStrip t={t} />);
+      fireEvent.pointerEnter(liveNode(), { pointerType: 'touch' });
+      act(() => {
+        vi.advanceTimersByTime(6_000);
+      });
+      expect(dragStore.getState().blocked).toBeNull();
+    });
+
+    it('holds a notice while focus is inside it', () => {
+      vi.useFakeTimers();
+      showBlockedWithChip();
+      render(<StripWithOrigin />);
+      const chip = screen.getByRole('button', { name: /902/ });
+      act(() => {
+        chip.focus();
+      });
+      act(() => {
+        vi.advanceTimersByTime(20_000);
+      });
+      expect(dragStore.getState().blocked).not.toBeNull();
+      act(() => {
+        screen.getByRole('button', { name: 'elsewhere' }).focus();
+      });
+      act(() => {
+        vi.advanceTimersByTime(6_000);
+      });
+      expect(dragStore.getState().blocked).toBeNull();
+    });
+
+    it('does not hold the next notice once the focused one has gone', () => {
+      vi.useFakeTimers();
+      showBlockedWithChip();
+      render(<StripWithOrigin />);
+      act(() => {
+        screen.getByRole('button', { name: /902/ }).focus();
+      });
+      act(() => {
+        dragStore.getState().clearBlocked();
+        dragStore.getState().setHint('วางบนช่องที่ไฮไลต์เพื่อเพิ่มกลุ่มเรียน');
+      });
+      act(() => {
+        vi.advanceTimersByTime(6_000);
+      });
+      expect(dragStore.getState().hint).toBeNull();
+    });
+  });
+
   it('shows a course drop hint', () => {
     act(() => {
       dragStore.setState({ hint: 'วางบนช่องที่ไฮไลต์เพื่อเพิ่มกลุ่มเรียน' });
