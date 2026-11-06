@@ -464,6 +464,94 @@ describe('SectionRow seat line', () => {
   });
 });
 
+describe('SectionRow demand chip', () => {
+  const OVERSUBSCRIBED = makeSection({
+    seats: { limit: 45, preCount: 171, queueLeft: 83, enrolled: 'full' },
+  });
+
+  function renderDemand(target: Section, readOnly = false) {
+    return render(
+      <SectionRow
+        course={course}
+        section={target}
+        relation={{ kind: 'addable' }}
+        seat={computeSeatStatus(target)}
+        locale="th"
+        t={t}
+        onAdd={vi.fn()}
+        readOnly={readOnly}
+      />,
+    );
+  }
+
+  it('flags pre registrations beyond the capacity beside the seat line', () => {
+    renderDemand(OVERSUBSCRIBED);
+    const chip = screen.getByText(/ล่วงหน้า 171 คิว 83$/);
+    expect(chip).toHaveClass('bg-warn-soft', 'text-warn');
+    // A screen reader hears the fact the counts stand for ahead of them.
+    expect(chip).toHaveTextContent(
+      'ลงทะเบียนล่วงหน้าเกินจำนวนรับ ล่วงหน้า 171 คิว 83',
+    );
+    // The chip sits on the seat line rather than adding a line of its own.
+    expect(chip.parentElement).toBe(
+      screen.getByText('เต็ม เพิ่มไม่ได้').closest('p')?.parentElement
+        ?.parentElement,
+    );
+  });
+
+  it('keeps the demand counts out of the disabled rail reason', () => {
+    renderDemand(OVERSUBSCRIBED);
+    expect(
+      screen.getByRole('button', { name: /^เพิ่ม/ }),
+    ).toHaveAccessibleDescription('เต็ม เพิ่มไม่ได้');
+  });
+
+  it('keeps the chip on a read only row', () => {
+    renderDemand(OVERSUBSCRIBED, true);
+    expect(screen.getByText(/ล่วงหน้า 171 คิว 83$/)).toBeInTheDocument();
+  });
+
+  it('shows no chip while pre registrations fit the capacity', () => {
+    const { container } = renderDemand(
+      makeSection({
+        seats: { limit: 45, preCount: 45, queueLeft: 0, enrolled: 33 },
+      }),
+    );
+    expect(screen.queryByText(/ล่วงหน้า/)).toBeNull();
+    expect(container.querySelector('.bg-warn-soft')).toBeNull();
+  });
+
+  it('flags exactly the 28 oversubscribed sections of the exam capture', () => {
+    const result = normalizeTeachTable(
+      loadFixture('teach-table.with-exams.capture.json'),
+    );
+    if (!result.ok) {
+      throw new Error('fixture failed to normalize');
+    }
+    const flagged: string[] = [];
+    for (const captured of result.value.courses) {
+      for (const target of captured.sections) {
+        const { container, unmount } = render(
+          <SectionRow
+            course={captured}
+            section={target}
+            relation={{ kind: 'addable' }}
+            seat={computeSeatStatus(target)}
+            locale="th"
+            t={t}
+          />,
+        );
+        if (container.querySelector('.bg-warn-soft') !== null) {
+          flagged.push(`${target.subjectId}/${target.section}`);
+        }
+        unmount();
+      }
+    }
+    expect(flagged).toHaveLength(28);
+    expect(flagged).toContain('96642083/101');
+  });
+});
+
 describe('SectionRow de-emphasis', () => {
   // The row root is the bordered container the component renders first.
   function rowRoot(container: HTMLElement): Element {

@@ -4,7 +4,7 @@ import { createTranslator } from '@/lib/i18n/t';
 import type { Seats } from '@/lib/domain/types';
 import { computeSeatDemand } from '@/lib/catalog/seatDemand';
 import { makeSection } from '../../../tests/support/domain-builders';
-import { SeatDemand } from './SeatDemand';
+import { DemandChip, SeatDemand } from './SeatDemand';
 
 afterEach(cleanup);
 
@@ -125,5 +125,39 @@ describe('SeatDemand full variant', () => {
     expect(screen.getByText('Enrolled').parentElement).toHaveTextContent(
       'Enrolled 9',
     );
+  });
+});
+
+describe('DemandChip', () => {
+  it.each([
+    ['th', 'ลงทะเบียนล่วงหน้าเกินจำนวนรับ ล่วงหน้า 171 คิว 83'],
+    ['en', 'Pre registrations exceed capacity Pre registered 171 Queue 83'],
+  ] as const)('reads the %s counts after the fact', (locale, text) => {
+    const { container } = render(
+      <DemandChip
+        demand={demandFor(OVERSUBSCRIBED)}
+        t={createTranslator(locale)}
+      />,
+    );
+    const chip = container.firstElementChild;
+    expect(chip).toHaveTextContent(text);
+    expect(chip).toHaveClass('bg-warn-soft', 'text-warn', 'whitespace-nowrap');
+    // The sentence is for a screen reader; the counts are what shows.
+    expect(chip?.querySelector('.sr-only')).toHaveTextContent(
+      locale === 'th'
+        ? 'ลงทะเบียนล่วงหน้าเกินจำนวนรับ'
+        : 'Pre registrations exceed capacity',
+    );
+  });
+
+  it.each([
+    ['an open section', OPEN],
+    ['an uncapped section', UNCAPPED],
+    ['pre registrations equal to the capacity', FULL],
+  ] as const)('renders nothing for %s', (_label, seats) => {
+    const { container } = render(
+      <DemandChip demand={demandFor(seats)} t={createTranslator('th')} />,
+    );
+    expect(container).toBeEmptyDOMElement();
   });
 });

@@ -9,7 +9,12 @@ import {
 } from '../domain/schemas';
 import type { Section } from '../domain/types';
 import { createTranslator } from '../i18n/t';
-import { computeSeatDemand, demandFigures, seatLineText } from './seatDemand';
+import {
+  computeSeatDemand,
+  demandChipText,
+  demandFigures,
+  seatLineText,
+} from './seatDemand';
 
 const th = createTranslator('th');
 const en = createTranslator('en');
@@ -239,5 +244,15 @@ describe('demandFigures', () => {
       { key: 'pre', value: 3 },
       { key: 'queue', value: 0 },
     ]);
+  });
+});
+
+describe('demandChipText', () => {
+  it('reads the pre registered and queue counts with the host labels', () => {
+    const demand = computeSeatDemand(
+      findSection(capturedSections(), '96642083', '101'),
+    );
+    expect(demandChipText(demand, th)).toBe('ล่วงหน้า 171 คิว 83');
+    expect(demandChipText(demand, en)).toBe('Pre registered 171 Queue 83');
   });
 });

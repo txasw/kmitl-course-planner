@@ -5,14 +5,16 @@
 // that the section cannot be added, so the reason for a disabled add rail reads in the
 // row body. The full variant, for the section details, adds the host's four counts as
 // labelled figures and, when pre registrations exceed the capacity, a warn line stating
-// that fact. It gives no estimate of a student's chance. The icons are decorative; the
-// text carries the meaning.
+// that fact. It gives no estimate of a student's chance. A catalog row flags the same
+// fact with the demand chip beside its seat line. The icons are decorative; the text
+// carries the meaning.
 
 import { Fragment } from 'react';
 import { AlertCircle, Users } from 'lucide-react';
 import type { Translate } from '@/lib/i18n/t';
 import {
   DEMAND_LABEL_KEY,
+  demandChipText,
   demandFigures,
   seatLineText,
   type SeatDemand as SeatDemandModel,
@@ -77,5 +79,29 @@ export function SeatDemand({ demand, t, variant = 'inline' }: SeatDemandProps) {
         </p>
       ) : null}
     </div>
+  );
+}
+
+interface DemandChipProps {
+  demand: SeatDemandModel;
+  t: Translate;
+}
+
+/**
+ * The row flag for an oversubscribed section: a warn soft chip with the pre registered
+ * and queue counts beside the seat line. It adds no line of its own, so a row grows only
+ * when a narrow card wraps the chip, and a row whose demand fits the capacity renders
+ * nothing. The sentence that names the fact is read to a screen reader ahead of the
+ * counts; the section details state it on screen.
+ */
+export function DemandChip({ demand, t }: DemandChipProps) {
+  if (!demand.oversubscribed) {
+    return null;
+  }
+  return (
+    <p className="whitespace-nowrap rounded-kcp-inner bg-warn-soft px-1.5 tabular-nums text-warn">
+      <span className="sr-only">{t('seat.demand.oversubscribed')} </span>
+      {demandChipText(demand, t)}
+    </p>
   );
 }

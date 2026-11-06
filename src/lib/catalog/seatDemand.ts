@@ -96,3 +96,11 @@ export function demandFigures(demand: SeatDemand): DemandFigure[] {
   figures.push({ key: 'queue', value: demand.queueLeft });
   return figures;
 }
+
+/**
+ * The row chip text for an oversubscribed section, ล่วงหน้า 171 คิว 83: the two counts
+ * that show the competition for the seats. Only an oversubscribed row shows the chip.
+ */
+export function demandChipText(demand: SeatDemand, t: Translate): string {
+  return `${t(DEMAND_LABEL_KEY.pre)} ${String(demand.preCount)} ${t(DEMAND_LABEL_KEY.queue)} ${String(demand.queueLeft)}`;
+}
