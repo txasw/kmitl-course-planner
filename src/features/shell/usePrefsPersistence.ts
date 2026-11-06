@@ -2,13 +2,13 @@ import { useEffect } from 'react';
 import type { PrefsRepository } from '@/lib/storage/prefs';
 import { uiStore } from './uiStore';
 
-// Hydrates the stored UI preferences, the language, the view mode, and the poster
-// display options, on mount, then persists explicit changes to any of them. They
-// live under one storage key, so a single hook writes the whole preferences object
-// on any change rather than several hooks clobbering each other's field. The
-// subscription attaches only after hydration, so a hydrated value is not written
-// straight back, and a change made during the async read is respected rather than
-// overwritten by the stored value.
+// Hydrates the stored UI preferences, the language, the view mode, the poster
+// display options, the export template, and the curriculum profile, on mount, then
+// persists explicit changes to any of them. They live under one storage key, so a
+// single hook writes the whole preferences object on any change rather than several
+// hooks clobbering each other's field. The subscription attaches only after
+// hydration, so a hydrated value is not written straight back, and a change made
+// during the async read is respected rather than overwritten by the stored value.
 export function usePrefsPersistence(repo: PrefsRepository): void {
   useEffect(() => {
     let cancelled = false;
@@ -17,6 +17,7 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
     const initialViewMode = uiStore.getState().viewMode;
     const initialDisplayOptions = uiStore.getState().displayOptions;
     const initialTemplate = uiStore.getState().selectedTemplate;
+    const initialProfile = uiStore.getState().curriculumProfile;
 
     void repo.load().then((stored) => {
       if (cancelled) return;
@@ -43,13 +44,20 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
         ) {
           state.setSelectedTemplate(stored.exportTemplate);
         }
+        if (
+          stored.curriculumProfile !== undefined &&
+          state.curriculumProfile === initialProfile
+        ) {
+          state.setCurriculumProfile(stored.curriculumProfile);
+        }
       }
       unsubscribe = uiStore.subscribe((state, previous) => {
         if (
           state.language !== previous.language ||
           state.viewMode !== previous.viewMode ||
           state.displayOptions !== previous.displayOptions ||
-          state.selectedTemplate !== previous.selectedTemplate
+          state.selectedTemplate !== previous.selectedTemplate ||
+          state.curriculumProfile !== previous.curriculumProfile
         ) {
           void repo.save({
             schemaVersion: 1,
@@ -57,6 +65,9 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
             viewMode: state.viewMode,
             displayOptions: state.displayOptions,
             exportTemplate: state.selectedTemplate,
+            ...(state.curriculumProfile === null
+              ? {}
+              : { curriculumProfile: state.curriculumProfile }),
           });
         }
       });

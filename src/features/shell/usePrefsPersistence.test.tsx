@@ -37,8 +37,16 @@ afterEach(() => {
     uiStore.getState().setViewMode('edit');
     uiStore.getState().setDisplayOptions(DEFAULT_DISPLAY_OPTIONS);
     uiStore.getState().setSelectedTemplate(DEFAULT_TEMPLATE.slug);
+    uiStore.getState().setCurriculumProfile(null);
   });
 });
+
+const PROFILE = {
+  facultyId: '01',
+  departmentId: '05',
+  curriculumId: '137',
+  classYear: '1',
+};
 
 describe('usePrefsPersistence', () => {
   it('hydrates the stored language and view mode without writing them back', async () => {
@@ -177,6 +185,42 @@ describe('usePrefsPersistence', () => {
         viewMode: 'edit',
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
         exportTemplate: 'print-a4',
+      },
+    ]);
+  });
+
+  it('hydrates a stored curriculum profile without writing it back', async () => {
+    const repo = makeRepo({
+      schemaVersion: 1,
+      language: 'th',
+      curriculumProfile: PROFILE,
+    });
+    renderHook(() => {
+      usePrefsPersistence(repo);
+    });
+    await flush();
+    expect(uiStore.getState().curriculumProfile).toEqual(PROFILE);
+    expect(repo.saved).toHaveLength(0);
+  });
+
+  it('persists a chosen curriculum profile with the other preferences', async () => {
+    const repo = makeRepo(null);
+    renderHook(() => {
+      usePrefsPersistence(repo);
+    });
+    await flush();
+
+    act(() => {
+      uiStore.getState().setCurriculumProfile(PROFILE);
+    });
+    expect(repo.saved).toEqual([
+      {
+        schemaVersion: 1,
+        language: 'th',
+        viewMode: 'edit',
+        displayOptions: DEFAULT_DISPLAY_OPTIONS,
+        exportTemplate: DEFAULT_TEMPLATE.slug,
+        curriculumProfile: PROFILE,
       },
     ]);
   });
