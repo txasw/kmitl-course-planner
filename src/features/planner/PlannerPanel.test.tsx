@@ -292,6 +292,21 @@ describe('PlannerPanel plan views', () => {
     ).toBeInTheDocument();
   });
 
+  it('heads the phone plan pane with the updates indicator', () => {
+    installViewport(390);
+    const snapshot = makeSnapshot({
+      teachTableId: 'm1',
+      subjectId: '90000001',
+    });
+    seed([makePlanEntry({ snapshot, verifyStatus: 'missing' })]);
+    renderPanel();
+    expect(screen.queryByRole('tablist')).toBeNull();
+    fireEvent.click(
+      screen.getByRole('button', { name: 'มีการเปลี่ยนแปลง 1 รายการ' }),
+    );
+    expect(revalidationStore.getState().updatesOpen).toBe(true);
+  });
+
   it('has no serious accessibility violations in the selected view', async () => {
     installViewport(1366);
     seedTwoSubjects();
