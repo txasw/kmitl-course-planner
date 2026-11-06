@@ -2,9 +2,10 @@
 // reads the plan entries, reshapes them into placed sections, and derives the
 // visible time window from the scheduled meetings and the current catalog result so
 // an early or late class widens the grid. Unscheduled sections and the footer
-// summary arrive with the shelf. In edit mode on the medium and wide tiers, the plan
-// view tabs of ADR-0049 switch the region between the timetable and the selected
-// courses list; the compact tier shows the timetable until its bottom nav arrives.
+// summary arrive with the shelf. In edit mode the plan view of ADR-0049 switches the
+// region between the timetable and the selected courses list: through the tabs above
+// the region on the medium and wide tiers, and through the bottom nav below 640 px, where
+// the region carries no tabs and so no tabpanel semantics.
 
 import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { useStore } from 'zustand';
@@ -54,7 +55,6 @@ export function PlannerPanel() {
   const planView = useStore(uiStore, (state) => state.planView);
   const setPlanView = useStore(uiStore, (state) => state.setPlanView);
   const showTabs = useLayoutTier() !== 'compact';
-  const view = showTabs ? planView : 'timetable';
   const displayOptions = useStore(uiStore, (state) => state.displayOptions);
   const selectedTemplate = useStore(uiStore, (state) => state.selectedTemplate);
   const catalogResult = useStore(searchStore, (state) => state.result);
@@ -200,7 +200,7 @@ export function PlannerPanel() {
   // unmounts the edit grid, so a popover left open would point at a detached node on
   // return. Clear it as the edit grid leaves, using the render time adjust on change
   // pattern rather than an effect.
-  const gridShown = viewMode === 'edit' && view === 'timetable';
+  const gridShown = viewMode === 'edit' && planView === 'timetable';
   const [lastGridShown, setLastGridShown] = useState(gridShown);
   if (gridShown !== lastGridShown) {
     setLastGridShown(gridShown);
@@ -218,8 +218,8 @@ export function PlannerPanel() {
   const panelProps = showTabs
     ? {
         role: 'tabpanel',
-        id: planViewPanelId(view),
-        'aria-labelledby': planViewTabId(view),
+        id: planViewPanelId(planView),
+        'aria-labelledby': planViewTabId(planView),
       }
     : {};
   const template = templateBySlug(selectedTemplate);
@@ -268,7 +268,7 @@ export function PlannerPanel() {
       ) : null}
       {!isPreview && showTabs ? (
         <PlanViewTabs
-          value={view}
+          value={planView}
           selectedCount={subjectGroups.length}
           onChange={setPlanView}
           t={t}
@@ -278,7 +278,7 @@ export function PlannerPanel() {
       <RevalidationBanner />
       {isPreview ? (
         <TemplateGallery poster={posterData} posterRef={posterRef} />
-      ) : view === 'selected' ? (
+      ) : planView === 'selected' ? (
         <div
           {...panelProps}
           className="kcp-scroll min-h-0 flex-1 overflow-y-auto"

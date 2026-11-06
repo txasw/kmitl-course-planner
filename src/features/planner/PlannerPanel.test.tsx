@@ -162,7 +162,7 @@ describe('PlannerPanel plan views', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('shows the timetable without tabs on a phone', () => {
+  it('follows the plan view the bottom nav picks on a phone, with no tabs', () => {
     installViewport(390);
     seedTwoSubjects();
     act(() => {
@@ -171,6 +171,13 @@ describe('PlannerPanel plan views', () => {
     renderPanel();
     expect(screen.queryByRole('tablist')).toBeNull();
     expect(screen.queryByRole('tabpanel')).toBeNull();
+    expect(
+      screen.getByRole('list', { name: 'วิชาที่เลือก' }),
+    ).toBeInTheDocument();
+
+    act(() => {
+      uiStore.getState().setPlanView('timetable');
+    });
     expect(
       screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
     ).toBeInTheDocument();
