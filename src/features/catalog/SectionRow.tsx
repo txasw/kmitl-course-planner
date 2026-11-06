@@ -36,6 +36,12 @@ import { DemandChip, SeatDemand } from './SeatDemand';
 import { StatusBadge } from './StatusBadge';
 import { meetingLabel } from './meetingFormat';
 
+/** The accessible name of a section's add control: the action, the subject id and the
+ * section, for example เพิ่ม 90592033 กลุ่มเรียน 901. */
+export function addSectionName(section: Section, t: Translate): string {
+  return `${t('action.add')} ${section.subjectId} ${t('section.code')} ${section.section}`;
+}
+
 function termLabel(term: Term): string {
   return `${term.semester}/${term.year}`;
 }
@@ -86,7 +92,7 @@ export function SectionRow({
   const rail = readOnly
     ? 'none'
     : railKind(relation, seat, onAdd !== undefined);
-  const addLabel = `${t('action.add')} ${section.subjectId} ${t('section.code')} ${section.section}`;
+  const addLabel = addSectionName(section, t);
   const calloutId = useId();
   const reasonId = useId();
   const demand = computeSeatDemand(section);
