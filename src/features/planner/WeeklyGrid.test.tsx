@@ -706,6 +706,42 @@ describe('WeeklyGrid', () => {
     expect(target?.querySelector('.lucide-arrow-left-right')).not.toBeNull();
   });
 
+  it('marks every meeting of a lifted block as its dashed origin', () => {
+    const placed = makePlaced({
+      teachTableId: 'm1',
+      meetings: [
+        makeMeeting({ day: 1, startMin: 540, endMin: 660 }),
+        makeMeeting({ day: 3, startMin: 540, endMin: 660 }),
+      ],
+    });
+    const lifted = makeSection({
+      teachTableId: 'm1',
+      meetings: placed.meetings,
+    });
+    dragStore.getState().startBlockMove(lifted, [lifted], null);
+    render(
+      <WeeklyGrid
+        sections={[placed]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+        editable
+        onRemove={() => undefined}
+      />,
+    );
+    const origins = document.querySelectorAll('[data-lifted-origin]');
+    expect(origins).toHaveLength(2);
+    expect(origins[0]).toHaveClass(
+      'border',
+      'border-dashed',
+      'border-ink-soft',
+    );
+    expect(origins[0]).toHaveAttribute('aria-hidden', 'true');
+    for (const block of screen.getAllByLabelText(/90592033/)) {
+      expect(block.parentElement).toHaveClass('opacity-40');
+    }
+  });
+
   it('labels a valid block move candidate with the move it performs', () => {
     const origin = makeSection({
       teachTableId: 'm1',

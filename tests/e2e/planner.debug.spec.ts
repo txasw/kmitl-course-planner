@@ -207,6 +207,40 @@ test('places a section on the grid by dragging its handle', async ({
   await expect(outline).toHaveCount(0);
 });
 
+test('cancels a block drag silently when the block goes back in place', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await categorySearch(page);
+  await page
+    .getByRole('button', { name: /^เพิ่ม/ })
+    .first()
+    .click();
+  const placed = page.locator(GRID_BLOCK).first();
+  await expect(placed).toBeVisible();
+  const from = await placed.boundingBox();
+  if (from === null) {
+    throw new Error('missing placed block');
+  }
+
+  // Arm the block drag with a short move that stays over the block, so the pointer is
+  // over its lifted origin, then release there.
+  const x = from.x + from.width / 2;
+  const y = from.y + from.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + 8, y, { steps: 4 });
+  await expect(page.locator('[data-lifted-origin]').first()).toBeVisible();
+  await page.mouse.move(x + 2, y, { steps: 2 });
+  await page.mouse.up();
+
+  await expect(page.locator('[data-lifted-origin]')).toHaveCount(0);
+  await expect(page.locator(GRID_BLOCK)).toHaveCount(1);
+  await expect(
+    page.getByText('วางบนช่องที่ไฮไลต์หรือพื้นที่นำออก'),
+  ).toHaveCount(0);
+});
+
 test('commits a section from the grip with the keyboard', async ({
   context,
 }) => {

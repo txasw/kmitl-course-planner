@@ -18,6 +18,19 @@ describe('orderByPriority', () => {
     ]);
   });
 
+  it('ranks a lifted origin below a candidate and above the panel', () => {
+    const ordered = orderByPriority([
+      { id: 'kcp-planner-drop' },
+      { id: 'origin-a-1-540' },
+      { id: 'cand-b' },
+    ]);
+    expect(ordered.map((collision) => collision.id)).toEqual([
+      'cand-b',
+      'origin-a-1-540',
+      'kcp-planner-drop',
+    ]);
+  });
+
   it('keeps the pointer order among equal priority targets', () => {
     const ordered = orderByPriority([
       { id: 'cand-first' },
