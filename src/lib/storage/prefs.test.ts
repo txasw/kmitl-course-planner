@@ -62,6 +62,7 @@ describe('prefs repository', () => {
         showSection: false,
         showEnglishNames: true,
         showSubjectId: true,
+        showExams: true,
       },
     };
     const repo = createPrefsRepository(
@@ -96,7 +97,36 @@ describe('prefs repository', () => {
         showSection: true,
         showEnglishNames: true,
         showSubjectId: false,
+        showExams: false,
       },
+    });
+  });
+
+  it('defaults show exams off for a blob written before it existed', async () => {
+    // showExams is a defaulted field like showSubjectId, so a display options blob that
+    // predates it loads with the exam schedule off and keeps every other stored choice.
+    const repo = createPrefsRepository(
+      fakeAdapter({
+        [PREFS_KEY]: {
+          schemaVersion: 1,
+          language: 'th',
+          displayOptions: {
+            fitToContent: true,
+            showRoom: false,
+            showSection: true,
+            showEnglishNames: true,
+            showSubjectId: true,
+          },
+        },
+      }),
+    );
+    expect((await repo.load())?.displayOptions).toEqual({
+      fitToContent: true,
+      showRoom: false,
+      showSection: true,
+      showEnglishNames: true,
+      showSubjectId: true,
+      showExams: false,
     });
   });
 

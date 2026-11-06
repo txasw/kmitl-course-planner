@@ -123,6 +123,7 @@ describe('usePrefsPersistence', () => {
       showSection: true,
       showEnglishNames: false,
       showSubjectId: true,
+      showExams: true,
     };
     const repo = makeRepo({ schemaVersion: 1, language: 'th', displayOptions });
     renderHook(() => {

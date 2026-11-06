@@ -1,4 +1,4 @@
-// The display options popover in the preview toolbar. It toggles the four poster
+// The display options popover in the preview toolbar. It toggles the poster
 // options, which apply to the preview and every export, so the choices persist
 // through the ui store and its preferences hook. It is positioned with floating-ui
 // like the plan switcher, a fixed strategy that escapes the toolbar, dismisses on
@@ -29,6 +29,7 @@ const OPTIONS: { key: keyof DisplayOptions; labelKey: TranslationKey }[] = [
   { key: 'showSection', labelKey: 'preview.showSection' },
   { key: 'showSubjectId', labelKey: 'preview.showSubjectId' },
   { key: 'showEnglishNames', labelKey: 'preview.showEnglishNames' },
+  { key: 'showExams', labelKey: 'preview.showExams' },
 ];
 
 const TRIGGER = `inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm text-ink hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`;
