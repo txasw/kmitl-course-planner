@@ -49,6 +49,18 @@ export function blockStyle(
   };
 }
 
+/**
+ * Whether a meeting falls on a day the grid renders. The week grids render the day of every
+ * meeting they hold, but the day view of ADR-0049 renders one, so each layer drops the
+ * meetings of the other days rather than placing them on the axis track.
+ */
+export function onShownDay(
+  meeting: Pick<Meeting, 'day'>,
+  days: readonly DayOfWeek[],
+): boolean {
+  return days.includes(meeting.day);
+}
+
 const MAX_STACK_OFFSET = 4;
 const STACK_STEP_PX = 5;
 

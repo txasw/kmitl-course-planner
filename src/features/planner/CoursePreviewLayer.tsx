@@ -22,7 +22,12 @@ import { usePlacedSections } from '@/features/plans/planStore';
 import { searchStore } from '@/features/search/searchStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { dragStore, selectDragging } from './dragStore';
-import { blockStyle, stackOffsetStyle, type Orientation } from './gridGeometry';
+import {
+  blockStyle,
+  onShownDay,
+  stackOffsetStyle,
+  type Orientation,
+} from './gridGeometry';
 
 type PreviewKind = 'fit' | 'clash' | 'unavailable';
 
@@ -71,8 +76,11 @@ export function CoursePreviewLayer({
     () =>
       hoverCourse === null
         ? []
-        : candidateFootprints(courseCandidates(hoverCourse, placed), window),
-    [hoverCourse, placed, window],
+        : candidateFootprints(
+            courseCandidates(hoverCourse, placed),
+            window,
+          ).filter((footprint) => onShownDay(footprint.meeting, days)),
+    [hoverCourse, placed, window, days],
   );
 
   if (dragging) return null;

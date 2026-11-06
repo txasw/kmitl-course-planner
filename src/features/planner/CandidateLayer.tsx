@@ -22,7 +22,12 @@ import { SwapTarget } from './SwapTarget';
 import { CoursePreviewLayer } from './CoursePreviewLayer';
 import { LiftedOrigin, ORIGIN_ID_PREFIX } from './LiftedOrigin';
 import type { PlacedSection } from './placedSection';
-import { blockStyle, stackOffsetStyle, type Orientation } from './gridGeometry';
+import {
+  blockStyle,
+  onShownDay,
+  stackOffsetStyle,
+  type Orientation,
+} from './gridGeometry';
 
 interface CandidateLayerProps {
   sections: PlacedSection[];
@@ -61,19 +66,21 @@ export function CandidateLayer({
     <>
       {active !== null
         ? active.group.flatMap((groupSection) =>
-            groupSection.meetings.map((meeting) => (
-              <div
-                key={`ghost-${groupSection.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`}
-                aria-hidden
-                data-ghost={active.placement.ok ? 'valid' : 'blocked'}
-                className={`pointer-events-none m-px rounded-kcp border ${
-                  active.placement.ok
-                    ? 'border-success bg-success-soft'
-                    : 'kcp-hatch border-danger bg-danger-soft'
-                }`}
-                style={blockStyle(meeting, window, days, orientation)}
-              />
-            )),
+            groupSection.meetings
+              .filter((meeting) => onShownDay(meeting, days))
+              .map((meeting) => (
+                <div
+                  key={`ghost-${groupSection.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`}
+                  aria-hidden
+                  data-ghost={active.placement.ok ? 'valid' : 'blocked'}
+                  className={`pointer-events-none m-px rounded-kcp border ${
+                    active.placement.ok
+                      ? 'border-success bg-success-soft'
+                      : 'kcp-hatch border-danger bg-danger-soft'
+                  }`}
+                  style={blockStyle(meeting, window, days, orientation)}
+                />
+              )),
           )
         : null}
 
@@ -87,69 +94,77 @@ export function CandidateLayer({
       candidates === null &&
       hoverCourse === null &&
       hover !== null
-        ? hover.meetings.map((meeting) => (
-            <div
-              key={`hover-${String(meeting.day)}-${String(meeting.startMin)}`}
-              aria-hidden
-              data-ghost="hover"
-              className="pointer-events-none m-px rounded-kcp border border-dotted border-ink-soft"
-              style={blockStyle(meeting, window, days, orientation)}
-            />
-          ))
+        ? hover.meetings
+            .filter((meeting) => onShownDay(meeting, days))
+            .map((meeting) => (
+              <div
+                key={`hover-${String(meeting.day)}-${String(meeting.startMin)}`}
+                aria-hidden
+                data-ghost="hover"
+                className="pointer-events-none m-px rounded-kcp border border-dotted border-ink-soft"
+                style={blockStyle(meeting, window, days, orientation)}
+              />
+            ))
         : null}
 
       {blockMove !== null
         ? blockMove.group.flatMap((groupSection) =>
-            groupSection.meetings.map((meeting) => {
-              const id = `${ORIGIN_ID_PREFIX}${groupSection.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`;
-              return (
-                <LiftedOrigin
-                  key={id}
-                  id={id}
-                  style={blockStyle(meeting, window, days, orientation)}
-                />
-              );
-            }),
+            groupSection.meetings
+              .filter((meeting) => onShownDay(meeting, days))
+              .map((meeting) => {
+                const id = `${ORIGIN_ID_PREFIX}${groupSection.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`;
+                return (
+                  <LiftedOrigin
+                    key={id}
+                    id={id}
+                    style={blockStyle(meeting, window, days, orientation)}
+                  />
+                );
+              }),
           )
         : null}
 
       {candidates !== null
-        ? candidateFootprints(candidates, window).map((footprint) => {
-            const id = `cand-${footprint.candidate.section.teachTableId}-${String(footprint.meeting.day)}-${String(footprint.meeting.startMin)}`;
-            return (
-              <CandidateSlot
-                key={id}
-                id={id}
-                candidate={footprint.candidate}
-                raised={footprint.candidate.section.teachTableId === raised}
-                label={candidateLabel(footprint.candidate)}
-                style={{
-                  ...blockStyle(footprint.meeting, window, days, orientation),
-                  ...stackOffsetStyle(footprint.stack),
-                }}
-              />
-            );
-          })
+        ? candidateFootprints(candidates, window)
+            .filter((footprint) => onShownDay(footprint.meeting, days))
+            .map((footprint) => {
+              const id = `cand-${footprint.candidate.section.teachTableId}-${String(footprint.meeting.day)}-${String(footprint.meeting.startMin)}`;
+              return (
+                <CandidateSlot
+                  key={id}
+                  id={id}
+                  candidate={footprint.candidate}
+                  raised={footprint.candidate.section.teachTableId === raised}
+                  label={candidateLabel(footprint.candidate)}
+                  style={{
+                    ...blockStyle(footprint.meeting, window, days, orientation),
+                    ...stackOffsetStyle(footprint.stack),
+                  }}
+                />
+              );
+            })
         : null}
 
       {swapContext !== null
         ? sections
             .filter((section) => swapBlockers.has(section.teachTableId))
             .flatMap((section) =>
-              section.meetings.map((meeting) => {
-                const id = `swap-${section.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`;
-                return (
-                  <SwapTarget
-                    key={id}
-                    id={id}
-                    blockerTeachTableId={section.teachTableId}
-                    label={fillTemplate(t('dropZone.swap'), {
-                      section: swapContext.incoming.section,
-                    })}
-                    style={blockStyle(meeting, window, days, orientation)}
-                  />
-                );
-              }),
+              section.meetings
+                .filter((meeting) => onShownDay(meeting, days))
+                .map((meeting) => {
+                  const id = `swap-${section.teachTableId}-${String(meeting.day)}-${String(meeting.startMin)}`;
+                  return (
+                    <SwapTarget
+                      key={id}
+                      id={id}
+                      blockerTeachTableId={section.teachTableId}
+                      label={fillTemplate(t('dropZone.swap'), {
+                        section: swapContext.incoming.section,
+                      })}
+                      style={blockStyle(meeting, window, days, orientation)}
+                    />
+                  );
+                }),
             )
         : null}
     </>

@@ -71,7 +71,7 @@ function gridTemplate(
   };
 }
 
-interface WeeklyGridProps {
+export interface WeeklyGridProps {
   sections: PlacedSection[];
   window: GridWindow;
   locale: Locale;
@@ -101,13 +101,32 @@ interface WeeklyGridProps {
   /** Tint the day labels with the traditional Thai day colors. On only when the poster
    * renders into an export template (preview), never in edit mode (ADR-0042). */
   dayAccent?: boolean;
-  /** Landscape (days as rows) or portrait (days as columns). Portrait is preview only. */
+  /** Landscape (days as rows) or portrait (days as columns). Portrait renders the export
+   * templates that ask for it and the edit day view. */
   orientation?: Orientation;
   /** The grid root font size in CSS pixels; every grid text node scales from it. Edit
    * passes the step for the measured scroller width, and a template passes its own
    * posterFontPx, so the scroller step never reaches an export. Defaults to the edit 11px. */
   fontPx?: number;
+  /** The accessible name of the grid. Defaults to the weekly timetable; the day view names
+   * the day it shows. */
+  label?: string;
 }
+
+/** The edit grid inputs that hold whatever days and layout render them, so the week grid
+ * and the day view take one bundle. */
+export type EditGridProps = Pick<
+  WeeklyGridProps,
+  | 'locale'
+  | 't'
+  | 'onRemove'
+  | 'conflictIds'
+  | 'examConflictIds'
+  | 'examOverlaps'
+  | 'onOpenDetail'
+  | 'onContextMenu'
+  | 'detailOpen'
+>;
 
 export function WeeklyGrid({
   sections,
@@ -127,6 +146,7 @@ export function WeeklyGrid({
   dayAccent = false,
   orientation = 'landscape',
   fontPx = EDIT_FONT_PX,
+  label,
 }: WeeklyGridProps) {
   // The grid template follows only the window, the day count, the orientation, and the
   // mode, so it holds stable across a drag or a plan change and is computed once per those
@@ -192,7 +212,7 @@ export function WeeklyGrid({
   return (
     <div
       role="group"
-      aria-label={t('grid.label')}
+      aria-label={label ?? t('grid.label')}
       // The edit grid is the landing point when a remove leaves no block to focus, so it
       // takes programmatic focus, though it is not a tab stop.
       data-edit-grid={editable ? '' : undefined}
