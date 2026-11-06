@@ -5,17 +5,20 @@
 // candidate slot; dropping on a valid slot commits that section and its pair. A block
 // drag lifts a placed section: the remove zone appears at the panel edge and the grid
 // paints the subject's other sections as move targets, so a drop removes the section
-// or moves it to another slot, and a drop back on its own place cancels silently. A custom collision detection resolves overlapping drop
-// targets by an explicit priority. A mouse drag starts after a short distance, so a
-// click on a row or block button is never a drag, and a touch drag starts after a long
-// press, so a swipe on a drag surface scrolls (ADR-0058). A touch drag lifts the grab
-// card clear of the finger and marks its start with a short vibration.
+// or moves it to another slot, and a drop back on its own place cancels silently. A
+// custom collision detection resolves overlapping drop targets by an explicit priority.
+// A mouse drag starts after a short distance, so a click on a row or block button is
+// never a drag, and a touch drag starts after a long press, so a swipe on a drag surface
+// scrolls (ADR-0058). A touch drag lifts the grab card clear of the finger and marks its
+// start with a short vibration. At drag start the strip's live region names the drop
+// targets the drag offers in one sentence (ADR-0059).
 
 import type { CSSProperties, ReactNode } from 'react';
 import { useCallback, useState } from 'react';
 import {
   DndContext,
   DragOverlay,
+  type Announcements,
   type DragEndEvent,
   type DragOverEvent,
   type DragStartEvent,
@@ -42,6 +45,7 @@ import { resolveCourseForSubject } from './resolveCourse';
 import { isTouchEvent, snapDragCardToCursor } from './snapToCursor';
 import { prioritizedCollision } from './collision';
 import { isOriginId } from './LiftedOrigin';
+import { dropZoneAnnouncement } from './dropZoneAnnouncement';
 import { usePlannerSensors } from './usePlannerSensors';
 import { vibrateOnDragStart } from './touchInput';
 
@@ -148,6 +152,16 @@ const DRAG_OVERLAY_STYLE: CSSProperties = {
   zIndex: 'var(--kcp-z-dragoverlay)',
 };
 
+// dnd-kit's own live region would read internal drag and drop ids and a second sentence
+// for outcomes the feedback strip owns (ADR-0048), so its announcements stay silent.
+const SILENT_ANNOUNCEMENTS: Announcements = {
+  onDragStart: () => undefined,
+  onDragOver: () => undefined,
+  onDragEnd: () => undefined,
+  onDragCancel: () => undefined,
+};
+const ACCESSIBILITY = { announcements: SILENT_ANNOUNCEMENTS };
+
 export function PlannerDnd({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   const hintText = t('feedback.courseDropHint');
@@ -160,40 +174,47 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
   // Whether the live drag was started by a finger, which lifts the grab card above it.
   const [touchDrag, setTouchDrag] = useState(false);
 
-  const handleStart = useCallback((event: DragStartEvent) => {
-    const data = event.active.data.current;
-    const placed = placedSections(planStore.getState().entries);
-    const drag = dragStore.getState();
-    if (isBlockDragData(data)) {
-      const section = placed.find(
-        (candidate) => candidate.teachTableId === data.teachTableId,
-      );
-      if (section === undefined) {
+  const handleStart = useCallback(
+    (event: DragStartEvent) => {
+      const data = event.active.data.current;
+      const placed = placedSections(planStore.getState().entries);
+      const drag = dragStore.getState();
+      if (isBlockDragData(data)) {
+        const section = placed.find(
+          (candidate) => candidate.teachTableId === data.teachTableId,
+        );
+        if (section === undefined) {
+          return;
+        }
+        const course = resolveCourseForSubject(section.subjectId);
+        drag.startBlockMove(section, placed, course);
+      } else if (isSectionDragData(data)) {
+        drag.start(data.course, data.section, placed);
+      } else if (isCourseDragData(data)) {
+        drag.startCourse(data.course, placed);
+      } else {
         return;
       }
-      const course = resolveCourseForSubject(section.subjectId);
-      drag.startBlockMove(section, placed, course);
-    } else if (isSectionDragData(data)) {
-      drag.start(data.course, data.section, placed);
-    } else if (isCourseDragData(data)) {
-      drag.startCourse(data.course, placed);
-    } else {
-      return;
-    }
-    const touch = isTouchEvent(event.activatorEvent);
-    setTouchDrag(touch);
-    if (touch) {
-      vibrateOnDragStart();
-    }
-    // Freeze the frame the grid shows now, the same frame the planner panel derives,
-    // so the slots this drag paints hold still until it ends (ADR-0050).
-    drag.freezeFrame(
-      editWindow(
-        placed.flatMap((section) => section.meetings),
-        catalogMeetings(searchStore.getState().result),
-      ),
-    );
-  }, []);
+      const touch = isTouchEvent(event.activatorEvent);
+      setTouchDrag(touch);
+      if (touch) {
+        vibrateOnDragStart();
+      }
+      // Freeze the frame the grid shows now, the same frame the planner panel derives,
+      // so the slots this drag paints hold still until it ends (ADR-0050).
+      drag.freezeFrame(
+        editWindow(
+          placed.flatMap((section) => section.meetings),
+          catalogMeetings(searchStore.getState().result),
+        ),
+      );
+      const announcement = dropZoneAnnouncement(dragStore.getState(), t);
+      if (announcement !== null) {
+        drag.announce(announcement);
+      }
+    },
+    [t],
+  );
 
   const handleOver = useCallback((event: DragOverEvent) => {
     const state = dragStore.getState();
@@ -239,6 +260,9 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
     (event: DragEndEvent) => {
       const state = dragStore.getState();
       const overData = event.over?.data.current;
+      // The drag start sentence describes a drag that is over now. Clearing it keeps the
+      // live region free of a stale instruction and lets the next drag announce afresh.
+      state.clearAnnouncement();
       // A drop precisely on a swap target exchanges the blocker for the incoming
       // section. It resolves before the per gesture branches because a swap can end
       // a section, course, or block drag.
@@ -320,6 +344,7 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
   );
 
   const handleCancel = useCallback(() => {
+    dragStore.getState().clearAnnouncement();
     dragStore.getState().clearActive();
     dragStore.getState().clearCourse();
     dragStore.getState().clearBlockMove();
@@ -329,6 +354,7 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
     <DndContext
       sensors={sensors}
       collisionDetection={prioritizedCollision}
+      accessibility={ACCESSIBILITY}
       onDragStart={handleStart}
       onDragOver={handleOver}
       onDragEnd={handleEnd}
