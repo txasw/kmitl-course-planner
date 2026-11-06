@@ -19,8 +19,11 @@ import { searchStore } from '@/features/search/searchStore';
 import { fillTemplate } from '@/lib/i18n/template';
 import { isDockedTier } from '@/lib/ui/breakpoints';
 import { FOCUS_RING } from '@/lib/ui/focus';
-import { CATALOG_COLUMN_ID } from './CatalogColumn';
-import { CATALOG_RAIL_ID, showCatalog } from './catalogVisibility';
+import {
+  CATALOG_COLUMN_ID,
+  CATALOG_RAIL_ID,
+  showCatalog,
+} from './catalogVisibility';
 import { uiStore } from './uiStore';
 import { useLayoutTier } from './useLayoutTier';
 import { useTranslation } from './useTranslation';

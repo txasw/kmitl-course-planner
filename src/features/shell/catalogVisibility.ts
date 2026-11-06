@@ -12,6 +12,9 @@ import { dragStore, selectDragging } from '@/features/planner/dragStore';
 import { commitAndFocus } from './commitAndFocus';
 import { uiStore } from './uiStore';
 
+/** Id of the catalog column, the target of every control that shows or hides it. */
+export const CATALOG_COLUMN_ID = 'kcp-catalog-column';
+
 /** Id of the docked column hide control, which takes focus when the column returns. */
 export const CATALOG_HIDE_ID = 'kcp-catalog-hide';
 

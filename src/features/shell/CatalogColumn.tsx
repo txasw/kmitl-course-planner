@@ -48,6 +48,7 @@ import { claimEscape } from '@/lib/ui/escape';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { commitAndFocus } from './commitAndFocus';
 import {
+  CATALOG_COLUMN_ID,
   CATALOG_HIDE_ID,
   CATALOG_TOGGLE_ID,
   hideCatalog,
@@ -55,9 +56,6 @@ import {
 import { uiStore } from './uiStore';
 import { useFocusTrap } from './useFocusTrap';
 import { useTranslation } from './useTranslation';
-
-/** Id the header sheet toggle points its aria-controls at. */
-export const CATALOG_COLUMN_ID = 'kcp-catalog-column';
 
 /** Id of the sheet heading, which names the open sheet dialog. */
 const SHEET_TITLE_ID = 'kcp-catalog-sheet-title';

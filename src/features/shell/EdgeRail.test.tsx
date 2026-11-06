@@ -14,8 +14,8 @@ import {
   makeSection,
 } from '../../../tests/support/domain-builders';
 import { installViewport } from '../../../tests/support/viewport';
-import { CATALOG_COLUMN_ID } from './CatalogColumn';
 import {
+  CATALOG_COLUMN_ID,
   CATALOG_HIDE_ID,
   CATALOG_RAIL_ID,
   hideCatalog,
