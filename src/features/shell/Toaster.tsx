@@ -19,7 +19,7 @@
 // 72 px above the bottom inset, clear of the 56 px nav, so a toast never covers the item
 // its own action, such as ดูตาราง, leads to.
 
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { useStore } from 'zustand';
 import { CircleCheck, TriangleAlert, X } from 'lucide-react';
 import { planStore } from '@/features/plans/planStore';
@@ -28,6 +28,7 @@ import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { toastStore, type Toast } from './toastStore';
 import { useBottomNavShown } from './mobilePane';
+import { useHoverFocusHold, type HoldHandlers } from './useHoverFocusHold';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
 import { usePrefersReducedMotion } from './usePresence';
@@ -58,12 +59,12 @@ const ICON_COLOR = {
 function OrdinaryToast({
   toast,
   onDismiss,
-  onHold,
+  hold,
   t,
 }: {
   toast: Toast;
   onDismiss: () => void;
-  onHold: (held: boolean) => void;
+  hold: HoldHandlers;
   t: Translate;
 }) {
   const reducedMotion = usePrefersReducedMotion();
@@ -74,21 +75,7 @@ function OrdinaryToast({
   });
   const Icon = ICON[toast.kind];
   const { action } = toast;
-  const hold = () => {
-    onHold(true);
-  };
-  const release = () => {
-    onHold(false);
-  };
-  const holdHandlers =
-    action === undefined
-      ? {}
-      : {
-          onMouseEnter: hold,
-          onMouseLeave: release,
-          onFocusCapture: hold,
-          onBlurCapture: release,
-        };
+  const holdHandlers = action === undefined ? {} : hold;
   const stopSwipe = (event: { stopPropagation: () => void }) => {
     // Keep a press on a control from arming the swipe on the toast behind it.
     event.stopPropagation();
@@ -151,10 +138,9 @@ export function Toaster() {
 
   // The undo toast owns the region while the panel is open; an ordinary toast waits.
   const showUndo = pendingUndo !== null && isOpen;
-  // The id of the toast the pointer or focus is holding. Keyed by id, a hold never
-  // outlives its toast, even when the toast is replaced under a resting pointer.
-  const [heldId, setHeldId] = useState<number | null>(null);
-  const held = toast !== null && heldId === toast.id;
+  // Keyed by the toast id, a hold never outlives its toast, even when the toast is
+  // replaced under a resting pointer.
+  const { held, handlers: holdHandlers } = useHoverFocusHold(toast?.id ?? null);
 
   useEffect(() => {
     // An ordinary toast auto dismisses only while it is the thing on screen. While an
@@ -218,9 +204,7 @@ export function Toaster() {
           onDismiss={() => {
             dismiss(toast.id);
           }}
-          onHold={(hold) => {
-            setHeldId(hold ? toast.id : null);
-          }}
+          hold={holdHandlers}
           t={t}
         />
       ) : null}
