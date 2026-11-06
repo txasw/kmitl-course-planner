@@ -1,27 +1,24 @@
 // The pre share notice in the preview chrome, outside the poster capture node. The poster
 // carries no verification badges (ADR-0055), so before the user shares an image this slim row
 // states how many entries changed or were not found at the last check. Its one action leaves
-// preview for edit and then opens the revalidation detail sheet, so the review happens where
-// the acknowledge and remove actions live and no mutating control enters the preview DOM. It
+// preview for edit and then opens the updates dialog, so the review happens where the
+// acknowledge and remove actions live and no mutating control enters the preview DOM. It
 // never blocks an export: the sharing actions stay available beside it.
 
 import { useStore } from 'zustand';
 import { AlertCircle, List } from 'lucide-react';
 import { fillTemplate } from '@/lib/i18n/template';
 import { reviewBeforeShareCount } from '@/lib/planner/posterHonesty';
+import { hasUpdateItems } from '@/lib/planner/updateReview';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { planStore } from '@/features/plans/planStore';
-import {
-  revalidationStore,
-  useActiveRun,
-} from '@/features/plans/revalidationStore';
+import { revalidationStore } from '@/features/plans/revalidationStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 
 export function PreShareNotice() {
   const { t } = useTranslation();
   const entries = useStore(planStore, (state) => state.entries);
-  const run = useActiveRun();
   const count = reviewBeforeShareCount(entries);
 
   if (count === 0) {
@@ -30,13 +27,11 @@ export function PreShareNotice() {
 
   const handleReview = () => {
     uiStore.getState().setViewMode('edit');
-    // The sheet lists the latest run's diffs. When that run has none to list, as after an
-    // offline check or a partial one whose changed entries sat in a failed group, the edit
-    // mode badges alone are the review surface, and a flag left open would pop the sheet up
-    // later when a run completes.
-    const summary = run?.report?.summary;
-    if (summary !== undefined && summary.changed + summary.missing > 0) {
-      revalidationStore.getState().setSheetOpen(true);
+    // The dialog lists the entries' open reviews, which outlive the run that found them, so
+    // it has items whenever an entry still asks for review, even after an offline check.
+    // The guard keeps a flag from being left open with nothing to list.
+    if (hasUpdateItems(entries)) {
+      revalidationStore.getState().setUpdatesOpen(true);
     }
   };
 

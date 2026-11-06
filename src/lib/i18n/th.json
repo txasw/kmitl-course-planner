@@ -232,7 +232,6 @@
   "revalidation.allMatch": "ข้อมูลตรงกันทั้งหมด",
   "revalidation.partial": "บางรายการตรวจไม่ได้",
   "revalidation.detail": "รายละเอียด",
-  "revalidation.detailTitle": "รายละเอียดการตรวจสอบ",
   "diff.time": "เวลา",
   "diff.room": "ห้อง",
   "diff.teacher": "ผู้สอน",

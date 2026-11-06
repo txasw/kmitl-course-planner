@@ -232,7 +232,6 @@
   "revalidation.allMatch": "all up to date",
   "revalidation.partial": "some could not be checked",
   "revalidation.detail": "Details",
-  "revalidation.detailTitle": "Check details",
   "diff.time": "Time",
   "diff.room": "Room",
   "diff.teacher": "Instructor",
