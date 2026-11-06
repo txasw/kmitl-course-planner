@@ -72,7 +72,72 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+// A blocked add of section 901 whose alternative 902 fits, so the strip shows one chip.
+function showBlockedWithChip(): void {
+  const blocked = makeSection({
+    teachTableId: 'b',
+    subjectId: 'S1',
+    section: '901',
+    meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 600 })],
+  });
+  const alternative = makeSection({
+    teachTableId: 'a',
+    subjectId: 'S1',
+    section: '902',
+    meetings: [makeMeeting({ day: 2, startMin: 600, endMin: 660 })],
+  });
+  act(() => {
+    dragStore.setState({
+      active: null,
+      blocked: {
+        course: makeCourse({
+          subjectId: 'S1',
+          sections: [blocked, alternative],
+        }),
+        section: blocked,
+        conflicts: blockedTimeConflict(),
+      },
+    });
+  });
+}
+
+// The strip beside the add control a blocked add came from, and one other control.
+function StripWithOrigin() {
+  return (
+    <>
+      <button type="button">origin</button>
+      <button type="button">elsewhere</button>
+      <FeedbackStrip t={t} />
+    </>
+  );
+}
+
 describe('FeedbackStrip', () => {
+  it('returns focus to its origin when the notice clears under it', () => {
+    showBlockedWithChip();
+    render(<StripWithOrigin />);
+    const origin = screen.getByRole('button', { name: 'origin' });
+    origin.focus();
+    screen.getByRole('button', { name: /902/ }).focus();
+    act(() => {
+      dragStore.getState().clearBlocked();
+    });
+    expect(origin).toHaveFocus();
+  });
+
+  it('leaves focus that moved on before the notice cleared', () => {
+    showBlockedWithChip();
+    render(<StripWithOrigin />);
+    screen.getByRole('button', { name: 'origin' }).focus();
+    screen.getByRole('button', { name: /902/ }).focus();
+    const elsewhere = screen.getByRole('button', { name: 'elsewhere' });
+    elsewhere.focus();
+    act(() => {
+      dragStore.getState().clearBlocked();
+    });
+    expect(elsewhere).toHaveFocus();
+  });
+
   it('shows the blocked reason and a fitting alternative chip', () => {
     const blocked = makeSection({
       teachTableId: 'b',

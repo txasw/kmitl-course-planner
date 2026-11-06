@@ -7,9 +7,11 @@
 // line stays empty, so the add is read once. It is not the toast, which stays reserved
 // for actions whose outcome is not otherwise visible on screen; the undo for a removal,
 // move, or swap is an undo toast in the bottom region, where the eye already is on the
-// block that changed.
+// block that changed. A notice that clears while one of its actions holds focus hands
+// focus back to the control it came from, so the timer that clears it never drops focus
+// to the document body.
 
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef, type FocusEvent } from 'react';
 import { useStore } from 'zustand';
 import type { Section } from '@/lib/domain/types';
 import type { Translate } from '@/lib/i18n/t';
@@ -20,6 +22,8 @@ import { addSectionToPlan } from '@/features/plans/addToPlan';
 import { switchOrCreatePlanForTerm } from '@/features/plans/switchPlanTerm';
 import { revealCourse } from '@/features/catalog/revealCourse';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
+import { focusFirst } from '@/features/shell/restoreFocus';
+import { focusIsLost } from '@/features/shell/useFocusTrap';
 import {
   dragStore,
   type BlockedFeedback,
@@ -130,6 +134,34 @@ export function FeedbackStrip({ t }: FeedbackStripProps) {
   const announcement = useStore(dragStore, (state) => state.announcement);
   const hint = useStore(dragStore, (state) => state.hint);
   const placed = usePlacedSections();
+  const stripRef = useRef<HTMLDivElement>(null);
+  // The control focus came from when it entered the strip, such as the add button whose
+  // blocked add moved focus to the first alternative. It is forgotten once focus moves on
+  // to a control outside the strip, which then owns it.
+  const originRef = useRef<HTMLElement | null>(null);
+  const handleFocusIn = (event: FocusEvent<HTMLDivElement>) => {
+    const from = event.relatedTarget;
+    if (from instanceof HTMLElement && !event.currentTarget.contains(from)) {
+      originRef.current = from;
+    }
+  };
+  const handleFocusOut = (event: FocusEvent<HTMLDivElement>) => {
+    const to = event.relatedTarget;
+    if (to instanceof Node && !event.currentTarget.contains(to)) {
+      originRef.current = null;
+    }
+  };
+  // Runs in the commit that swapped the notice, before the focus trap checks for dropped
+  // focus, so focus returns straight to its origin rather than to the panel. An origin
+  // that the same change removed, such as an add button whose course was just added, is
+  // skipped, and the action that removed it moves focus itself.
+  useLayoutEffect(() => {
+    const strip = stripRef.current;
+    const origin = originRef.current;
+    if (strip === null || origin === null || !focusIsLost(strip)) return;
+    originRef.current = null;
+    focusFirst([origin]);
+  }, [blocked, crossTerm, hint, announcement]);
 
   useEffect(() => {
     if (blocked === null) {
@@ -180,7 +212,13 @@ export function FeedbackStrip({ t }: FeedbackStripProps) {
   }, [hint]);
 
   return (
-    <div aria-live="polite" className="min-h-[1.75rem] shrink-0">
+    <div
+      ref={stripRef}
+      aria-live="polite"
+      onFocus={handleFocusIn}
+      onBlur={handleFocusOut}
+      className="min-h-[1.75rem] shrink-0"
+    >
       {crossTerm !== null ? (
         <CrossTermNotice feedback={crossTerm} t={t} />
       ) : blocked !== null ? (
