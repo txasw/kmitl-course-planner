@@ -563,6 +563,14 @@ describe('EventBlock', () => {
     expect(remove).toHaveClass('pointer-coarse:hidden');
     expect(remove).toHaveClass('min-h-(--kcp-target-min)');
     expect(remove).toHaveClass('min-w-(--kcp-target-min)');
+    // The section chip steps aside for the remove control only where that control can
+    // show, so a focused block on a coarse pointer keeps its corner chip.
+    const chip = screen.getByText(section.section);
+    expect(chip).toHaveClass(
+      'not-pointer-coarse:group-hover/block:opacity-0',
+      'not-pointer-coarse:group-focus-within/block:opacity-0',
+    );
+    expect(chip).not.toHaveClass('group-focus-within/block:opacity-0');
 
     // With the remove control gone, a keyboard reaches removal through the block itself:
     // Enter opens the detail surface, which carries the remove action.
