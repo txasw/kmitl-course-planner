@@ -102,6 +102,7 @@
   "search.facultyAll": "All faculties",
   "search.optionsLoading": "Loading",
   "search.submit": "Search",
+  "search.cancelEdit": "Cancel",
   "search.missing.year": "Choose an academic year to search.",
   "search.missing.faculty": "Choose a faculty to search.",
   "search.missing.department": "Choose a department to search.",

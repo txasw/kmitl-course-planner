@@ -102,6 +102,7 @@
   "search.facultyAll": "ทุกคณะ",
   "search.optionsLoading": "กำลังโหลด",
   "search.submit": "ค้นหา",
+  "search.cancelEdit": "ยกเลิก",
   "search.missing.year": "เลือกปีการศึกษาก่อนค้นหา",
   "search.missing.faculty": "เลือกคณะก่อนค้นหา",
   "search.missing.department": "เลือกภาควิชาก่อนค้นหา",

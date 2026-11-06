@@ -60,12 +60,20 @@ const catalog: NormalizedCatalog = {
   warnings: [],
 };
 
-function renderHeader() {
+function renderHeader(compact = false) {
   return render(
     <SearchDepsProvider value={fakeSearchDeps()}>
-      <SearchHeader />
+      <SearchHeader compact={compact} />
     </SearchDepsProvider>,
   );
+}
+
+/** The submit row, the block that holds the submit and, on the phone, the cancel. */
+function submitRow(): HTMLElement {
+  const row = screen.getByRole('button', { name: 'ค้นหา' }).parentElement
+    ?.parentElement;
+  if (row == null) throw new Error('the submit row is not rendered');
+  return row;
 }
 
 function formRegion(container: HTMLElement): HTMLElement {
@@ -88,7 +96,10 @@ beforeEach(() => {
   state.setInitialized(false);
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 describe('SearchHeader', () => {
   it('shows the open form and no bar before a search', () => {
@@ -434,5 +445,71 @@ describe('search head Escape', () => {
     fireEvent.keyDown(field, { key: 'Escape' });
     expect(onEscape).toHaveBeenCalledOnce();
     expect(formRegion(container)).toHaveAttribute('data-open', 'true');
+  });
+});
+
+describe('SearchHeader on the phone layout', () => {
+  it('fills the pane with the open form over a pinned submit row', () => {
+    const { container } = renderHeader(true);
+    const head = container.firstElementChild;
+    expect(head).toHaveClass('absolute', 'inset-0');
+    expect(formRegion(container)).toHaveClass('flex-1');
+    expect(submitRow()).toHaveClass('sticky', 'bottom-0');
+    // Before any search there is no bar to fold back to, so no cancel shows.
+    expect(
+      screen.queryByRole('button', { name: 'ยกเลิก' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('pads the form scroll by the pinned row height so focus clears it', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(68);
+    const { container } = renderHeader(true);
+    const scroller = formRegion(container).firstElementChild;
+    if (!(scroller instanceof HTMLElement)) {
+      throw new Error('the form scroller is not rendered');
+    }
+    expect(scroller.style.scrollPaddingBottom).toBe(
+      'calc(68px + var(--kcp-overlay-bottom, 0px))',
+    );
+  });
+
+  it('folds the reopened form back under its bar from the cancel', () => {
+    const { container } = renderHeader(true);
+    act(() => {
+      searchStore.getState().startQuery(subjectQuery, 'user');
+    });
+    const head = container.firstElementChild;
+    // Folded, the head returns to the flow above the results with its bar alone.
+    expect(head).not.toHaveClass('absolute');
+    expect(submitRow()).not.toHaveClass('sticky');
+
+    fireEvent.click(screen.getByRole('button', { name: 'แก้ไขการค้นหา' }), {
+      detail: 1,
+    });
+    expect(head).toHaveClass('absolute');
+    const cancel = screen.getByRole('button', { name: 'ยกเลิก' });
+    expect(cancel.parentElement).toBe(
+      screen.getByRole('button', { name: 'ค้นหา' }).parentElement,
+    );
+    cancel.focus();
+    fireEvent.click(cancel);
+    expect(formRegion(container)).toHaveAttribute('data-open', 'false');
+    expect(formRegion(container)).toHaveAttribute('inert');
+    expect(screen.getByRole('button', { name: 'แก้ไขการค้นหา' })).toHaveFocus();
+    // The cancel only folds; the running search keeps its bar.
+    expect(searchStore.getState().barQuery).toBe(subjectQuery);
+  });
+
+  it('keeps the submit in the flow with no cancel from 640 px up', () => {
+    const { container } = renderHeader();
+    act(() => {
+      searchStore.getState().startQuery(subjectQuery, 'user');
+      searchStore.getState().setSearchFormOpen(true);
+    });
+    expect(container.firstElementChild).not.toHaveClass('absolute');
+    expect(submitRow()).not.toHaveClass('sticky');
+    expect(
+      screen.queryByRole('button', { name: 'ยกเลิก' }),
+    ).not.toBeInTheDocument();
   });
 });

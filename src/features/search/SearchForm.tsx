@@ -26,7 +26,11 @@ import {
 } from './fields';
 import { SEARCH_BAR_ID, SEARCH_TABPANEL_ID, searchTabId } from './searchIds';
 import { searchStore } from './searchStore';
-import { SearchSubmit, missingFieldReason } from './SearchSubmit';
+import {
+  SearchSubmit,
+  missingFieldReason,
+  type SubmitDock,
+} from './SearchSubmit';
 import { SearchTabList } from './SearchTabList';
 import { useSearchDeps } from './SearchDepsContext';
 import { useHashRoute } from './useHashRoute';
@@ -36,7 +40,12 @@ import {
   useSearchInit,
 } from './useSearchController';
 
-export function SearchForm() {
+interface SearchFormProps {
+  /** Where the submit row sits, handed down by the search head. */
+  dock?: SubmitDock | undefined;
+}
+
+export function SearchForm({ dock }: SearchFormProps = {}) {
   const deps = useSearchDeps();
   const route = useHashRoute();
   const reloadReference = useReferenceData(deps.send);
@@ -202,7 +211,12 @@ export function SearchForm() {
               }}
             />
           ) : null}
-          <SearchSubmit reason={submitReason} t={t} onSubmit={handleSubmit} />
+          <SearchSubmit
+            reason={submitReason}
+            t={t}
+            onSubmit={handleSubmit}
+            dock={dock}
+          />
           <button
             type="button"
             onClick={() => {

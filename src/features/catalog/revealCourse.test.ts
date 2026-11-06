@@ -7,7 +7,7 @@ import {
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { dragStore } from '@/features/planner/dragStore';
 import { SEARCH_BAR_ID, searchTabId } from '@/features/search/searchIds';
-import { searchStore } from '@/features/search/searchStore';
+import { searchStore, selectFormOpen } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
 import {
   makePlanEntry,
@@ -57,7 +57,11 @@ afterEach(() => {
   document.body.replaceChildren();
   catalogStore.getState().resetFilter();
   catalogStore.setState({ disclosure: EMPTY_DISCLOSURE });
-  searchStore.setState({ resultQuery: null, barQuery: null });
+  searchStore.setState({
+    resultQuery: null,
+    barQuery: null,
+    searchFormOpen: false,
+  });
   searchStore.getState().setActiveTab('by_class');
   searchStore.getState().patchSubjectIdForm({ subjectId: '' });
   dragStore.setState({ blockMove: null });
@@ -98,6 +102,18 @@ describe('revealCourse', () => {
     expect(uiStore.getState().mobilePane).toBe('catalog');
     expect(uiStore.getState().sheetOpen).toBe(false);
     expect(toggle).toHaveFocus();
+  });
+
+  it('folds an open search form below 640 px so the results show', () => {
+    searchStore.setState({ barQuery: QUERY, searchFormOpen: true });
+    revealCourse(control, SUBJECT, 'compact');
+    expect(selectFormOpen(searchStore.getState())).toBe(false);
+  });
+
+  it('leaves an open search form alone from 640 px up', () => {
+    searchStore.setState({ barQuery: QUERY, searchFormOpen: true });
+    revealCourse(control, SUBJECT, 'medium');
+    expect(selectFormOpen(searchStore.getState())).toBe(true);
   });
 
   it('opens the card even after the student closed it', () => {
