@@ -53,6 +53,7 @@
   --color-danger: var(--kcp-danger);
   --color-danger-soft: var(--kcp-danger-soft);
   --color-warn: var(--kcp-warn);
+  --color-warn-soft: var(--kcp-warn-soft);
   --color-success: var(--kcp-success);
   --color-success-soft: var(--kcp-success-soft);
   --radius-kcp: var(--kcp-radius);
@@ -107,6 +108,9 @@
   /* Warn and success are darkened from the brief values so their text passes 4.5:1 on
      the soft and surface backgrounds they sit on; the brief allows a token correction. */
   --kcp-warn: #9a5a00;
+  /* The quiet warn fill for a notice that asks for a look before an action, under ink
+     text and a warn icon and border, so the warn text still clears 4.5:1 on it. */
+  --kcp-warn-soft: #fdf3e1;
   --kcp-success: #1a7a38;
   --kcp-success-soft: #e7f3eb;
   --kcp-danger-soft: #fbeaea;

@@ -70,7 +70,9 @@ accent only, on borders, focus rings, and the active tab, so it carries the 3:1 
 its text uses the darker `--kcp-primary-strong` (`#B8400A`), which clears 4.5:1 on every
 background it appears on, including the danger soft notice. Form controls draw their
 boundary with `--kcp-border-strong` (`#838389`), which clears the 3:1 UI bar on both panel
-surfaces, while dividers and gridlines keep the quieter `--kcp-border` (ADR-0051).
+surfaces, while dividers and gridlines keep the quieter `--kcp-border` (ADR-0051). The
+quiet warn fill `--kcp-warn-soft` (`#FDF3E1`) carries the pre share notice, with ink text
+and a warn icon and border on it (ADR-0055).
 
 | Foreground     | Background     | Ratio | Bar |
 | -------------- | -------------- | ----- | --- |
@@ -84,6 +86,8 @@ surfaces, while dividers and gridlines keep the quieter `--kcp-border` (ADR-0051
 | warn           | surface        | 5.47  | 4.5 |
 | warn           | surface-alt    | 5.11  | 4.5 |
 | warn           | primary-soft   | 4.83  | 4.5 |
+| warn           | warn-soft      | 4.97  | 4.5 |
+| ink            | warn-soft      | 15.82 | 4.5 |
 | success        | success-soft   | 4.74  | 4.5 |
 | white          | primary-strong | 5.56  | 4.5 |
 | primary-strong | surface        | 5.56  | 4.5 |
