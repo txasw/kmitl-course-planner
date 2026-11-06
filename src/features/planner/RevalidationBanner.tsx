@@ -14,6 +14,7 @@ import { useActivePlan } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
 import { revalidatePlanNow } from '@/features/plans/revalidationController';
 import { RevalidationDetailSheet } from './RevalidationDetailSheet';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 export function RevalidationBanner() {
   const { t, language } = useTranslation();
@@ -93,7 +94,7 @@ export function RevalidationBanner() {
           onClick={() => {
             setSheetOpen(true);
           }}
-          className="inline-flex items-center gap-1 rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className={`inline-flex items-center gap-1 rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
         >
           <List size={12} strokeWidth={2} aria-hidden />
           {t('revalidation.detail')}
@@ -124,7 +125,7 @@ function RefreshButton({
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-1 rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      className={`inline-flex items-center gap-1 rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
     >
       <RefreshCw size={12} strokeWidth={2} aria-hidden />
       {label}

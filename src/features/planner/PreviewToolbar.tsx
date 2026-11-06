@@ -25,6 +25,7 @@ import { DisplayOptionsPopover } from './DisplayOptionsPopover';
 import { PreShareNotice } from './PreShareNotice';
 import type { PlacedSection } from './placedSection';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 interface PreviewToolbarProps {
   /** The poster node captured by the image actions. */
@@ -37,7 +38,7 @@ interface PreviewToolbarProps {
   displayOptions: DisplayOptions;
 }
 
-const BUTTON = `inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm text-ink hover:bg-surface-alt ${FOCUS_RING}`;
+const BUTTON = `inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm text-ink hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`;
 
 /** Whether the browser can write an image to the clipboard. The host is a secure
  * context, so navigator.clipboard is present; ClipboardItem is the real gate. */

@@ -15,6 +15,7 @@ import { Pill } from '@/components/Pill';
 import { Tooltip } from '@/components/Tooltip';
 import type { PlacedSection } from './placedSection';
 import { VerificationPill } from './VerificationPill';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 interface UnscheduledShelfProps {
   sections: PlacedSection[];
@@ -129,7 +130,7 @@ export function UnscheduledShelf({
                       onClick={() => {
                         onRemove(section.teachTableId);
                       }}
-                      className="rounded-kcp border border-border px-2 py-0.5 text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      className={`rounded-kcp border border-border px-2 py-0.5 text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
                     >
                       {t('action.remove')}
                     </button>

@@ -26,6 +26,7 @@ import {
   type CrossTermFeedback,
 } from './dragStore';
 import { conflictReasonText } from './conflictText';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 const BLOCKED_WINDOW_MS = 6_000;
 const ANNOUNCE_WINDOW_MS = 4_000;
@@ -71,7 +72,7 @@ function BlockedNotice({
                   dragStore.getState().clearBlocked();
                 }
               }}
-              className="rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              className={`rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
             >
               {t('section.code')} {alternative.section}
               {alternative.meetings.length === 0
@@ -87,7 +88,7 @@ function BlockedNotice({
             revealCourse(blocked.section.subjectId, tier);
             dragStore.getState().clearBlocked();
           }}
-          className="text-primary-strong underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className={`text-primary-strong underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
         >
           {t('feedback.revealInCatalog')}
         </button>
@@ -116,7 +117,7 @@ function CrossTermNotice({
           switchOrCreatePlanForTerm(feedback.browsedTerm);
           dragStore.getState().clearCrossTerm();
         }}
-        className="text-primary-strong underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        className={`text-primary-strong underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
       >
         {t('term.switch')}
       </button>

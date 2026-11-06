@@ -8,6 +8,7 @@ import { X } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { useActiveRun } from '@/features/plans/revalidationStore';
 import { describeEntryDiff } from './describeEntryDiff';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 interface RevalidationDetailSheetProps {
   locale: Locale;
@@ -64,7 +65,7 @@ export function RevalidationDetailSheet({
             type="button"
             onClick={onClose}
             aria-label={t('action.close')}
-            className="rounded-kcp p-1 text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className={`inline-flex shrink-0 items-center justify-center rounded-kcp p-1 text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
           >
             <X size={16} aria-hidden />
           </button>
