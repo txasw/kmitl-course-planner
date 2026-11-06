@@ -115,7 +115,7 @@ describe('SectionDetailList', () => {
     expect(screen.getByText('อ. หนึ่ง')).toHaveAttribute('lang', 'th');
   });
 
-  it('reads the seats through the shared seat line', () => {
+  it('reads the seats through the shared seat line and the host counts', () => {
     render(
       <SectionDetailList
         section={makeSection({
@@ -127,7 +127,26 @@ describe('SectionDetailList', () => {
         t={th}
       />,
     );
-    expect(rowValues('ที่นั่ง')).toEqual(['ว่าง 12 จาก 45']);
+    expect(rowValues('ที่นั่ง')).toEqual([
+      'ว่าง 12 จาก 45รับ 45 ลง 33 ล่วงหน้า 0 คิว 0',
+    ]);
+  });
+
+  it('states pre registrations beyond the capacity in the seats row', () => {
+    render(
+      <SectionDetailList
+        section={makeSection({
+          seats: { limit: 45, preCount: 171, queueLeft: 83, enrolled: 'full' },
+        })}
+        creditStr="3(3-0-6)"
+        density="full"
+        locale="en"
+        t={en}
+      />,
+    );
+    expect(rowValues('Seats')).toEqual([
+      'Full, cannot be addedCapacity 45 Pre registered 171 Queue 83Pre registrations exceed capacity',
+    ]);
   });
 
   it('shows both exam windows in the Buddhist year', () => {

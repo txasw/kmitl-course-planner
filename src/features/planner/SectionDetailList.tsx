@@ -5,12 +5,12 @@
 // the kind and credits, the instructors, the seats, and the exam dates. The full density,
 // for the popover that touch and keyboard users reach, adds the exam detail, the
 // conditions, the remark, and when the section was last checked. Seats read through the
-// same SeatDemand line a catalog row shows, from the snapshot the latest verification
-// refreshed. A section that announces neither exam date reads as arranged by the
-// instructor rather than leaving the exam rows out, so a missing date is never mistaken
-// for a missing field. The conditions read in the warn tone with the shield icon a
-// catalog row gives them, through the same line split and locale fallback, but listed in
-// full since the popover has the room a row does not.
+// full SeatDemand variant, the catalog row's seat line plus the host's four counts, from
+// the snapshot the latest verification refreshed. A section that announces neither exam
+// date reads as arranged by the instructor rather than leaving the exam rows out, so a
+// missing date is never mistaken for a missing field. The conditions read in the warn
+// tone with the shield icon a catalog row gives them, through the same line split and
+// locale fallback, but listed in full since the popover has the room a row does not.
 
 import type { ReactNode } from 'react';
 import { MapPin, ShieldAlert } from 'lucide-react';
@@ -158,7 +158,11 @@ export function SectionDetailList({
 
       <DetailRow label={t('detail.seats')} columns={columns}>
         <dd className={VALUE}>
-          <SeatDemand demand={computeSeatDemand(section)} t={t} />
+          <SeatDemand
+            demand={computeSeatDemand(section)}
+            t={t}
+            variant="full"
+          />
         </dd>
       </DetailRow>
 
