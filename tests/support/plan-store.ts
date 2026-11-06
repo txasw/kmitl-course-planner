@@ -27,5 +27,6 @@ export function resetPlanStore(): void {
     activePlanId: null,
     entries: [],
     pendingUndo: null,
+    quietPlanId: null,
   });
 }
