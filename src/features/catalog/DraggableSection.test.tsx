@@ -192,4 +192,44 @@ describe('DraggableSection', () => {
       vi.useRealTimers();
     }
   });
+
+  it('clears its own row hover when it unmounts under the pointer', () => {
+    const { unmount } = render(
+      <DraggableSection
+        id="s1"
+        course={course}
+        section={section}
+        label="ลาก s1"
+        onActivate={() => undefined}
+      >
+        <div>row</div>
+      </DraggableSection>,
+    );
+    const surface = document.querySelector('[data-drag-surface="section"]');
+    if (surface === null) throw new Error('expected the drag surface');
+    fireEvent.pointerEnter(surface, { pointerType: 'mouse' });
+    expect(dragStore.getState().hover?.teachTableId).toBe('s1');
+    unmount();
+    expect(dragStore.getState().hover).toBeNull();
+  });
+
+  it('leaves a row hover another section has taken since', () => {
+    const { unmount } = render(
+      <DraggableSection
+        id="s1"
+        course={course}
+        section={section}
+        label="ลาก s1"
+        onActivate={() => undefined}
+      >
+        <div>row</div>
+      </DraggableSection>,
+    );
+    const other = makeSection({ teachTableId: 's2' });
+    act(() => {
+      dragStore.getState().setHover(other);
+    });
+    unmount();
+    expect(dragStore.getState().hover).toBe(other);
+  });
 });

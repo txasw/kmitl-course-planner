@@ -7,7 +7,7 @@
 // hovers, so a tap does not draw the preview (ADR-0058). A held finger marks the row
 // pressed before its drag starts, and the dragged row dims to 40 percent.
 
-import type { PointerEvent, ReactNode } from 'react';
+import { useEffect, type PointerEvent, type ReactNode } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { GripVertical } from 'lucide-react';
 import type { Course, Section } from '@/lib/domain/types';
@@ -56,6 +56,18 @@ export function DraggableSection({
       preview();
     }
   };
+
+  // A row can unmount under a resting pointer, through a collapse, a filter edit or a new
+  // result, and then never sees its mouse leave, so it clears its own preview on the way
+  // out. Only its own: a preview another row has taken since stays.
+  const { teachTableId } = section;
+  useEffect(
+    () => () => {
+      const { hover, clearHover } = dragStore.getState();
+      if (hover?.teachTableId === teachTableId) clearHover();
+    },
+    [teachTableId],
+  );
 
   return (
     <div
