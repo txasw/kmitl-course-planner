@@ -33,6 +33,7 @@ import {
   isCardOpen,
 } from '@/lib/catalog/cardDisclosure';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_MIN } from '@/lib/ui/target';
 import { useTranslation } from '@/features/shell/useTranslation';
 import {
   usePlacedSections,
@@ -113,7 +114,7 @@ function moveFocusOutOfCardBody(from: Element): void {
     ?.focus();
 }
 
-const SUMMARY_ACTION = `inline-flex shrink-0 items-center gap-1 rounded-kcp border border-border px-2 py-1 text-xs text-ink-soft hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`;
+const SUMMARY_ACTION = `inline-flex shrink-0 items-center gap-1 rounded-kcp border border-border px-2 py-1 text-xs text-ink-soft hover:bg-surface-alt hover:text-ink ${TARGET_MIN} ${FOCUS_RING}`;
 
 interface CourseCatalogProps {
   catalog: NormalizedCatalog;
@@ -290,7 +291,7 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
             <button
               type="button"
               onClick={handleToggleAll}
-              className={`${SUMMARY_ACTION} min-h-6 min-w-6 pointer-coarse:min-h-11`}
+              className={`${SUMMARY_ACTION} pointer-coarse:min-h-11`}
             >
               {anyOpen ? (
                 <ChevronsDownUp size={12} strokeWidth={2} aria-hidden />

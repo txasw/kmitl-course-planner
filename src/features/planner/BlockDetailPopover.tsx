@@ -11,6 +11,7 @@ import { useCallback, useEffect, useId, useRef, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { useDismiss, useInteractions } from '@floating-ui/react';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_MIN } from '@/lib/ui/target';
 import {
   PANEL_POPOVER_SCROLL,
   usePanelPopover,
@@ -94,7 +95,7 @@ export function BlockDetailPopover({
           type="button"
           onClick={onClose}
           aria-label={closeLabel}
-          className={`rounded-kcp p-0.5 text-ink-soft hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`}
+          className={`inline-flex shrink-0 items-center justify-center rounded-kcp p-0.5 text-ink-soft hover:bg-surface-alt hover:text-ink ${TARGET_MIN} ${FOCUS_RING}`}
         >
           <X size={14} aria-hidden />
         </button>

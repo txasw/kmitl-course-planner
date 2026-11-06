@@ -37,6 +37,7 @@ import { useTranslation } from '@/features/shell/useTranslation';
 import { useElementSize } from '@/features/shell/useElementSize';
 import { Tooltip } from '@/components/Tooltip';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_MIN } from '@/lib/ui/target';
 import { PreviewPoster, type PosterData } from './PreviewPoster';
 
 interface TemplateGalleryProps {
@@ -110,7 +111,7 @@ function PagerArrow({
           aria-label={label}
           disabled={disabled}
           onClick={onActivate}
-          className={`flex shrink-0 items-center justify-center rounded-kcp border border-border p-1 text-ink-soft transition-colors hover:bg-surface-alt disabled:pointer-events-none disabled:opacity-30 ${FOCUS_RING}`}
+          className={`flex shrink-0 items-center justify-center rounded-kcp border border-border p-1 text-ink-soft transition-colors hover:bg-surface-alt disabled:pointer-events-none disabled:opacity-30 ${TARGET_MIN} ${FOCUS_RING}`}
         >
           {children}
         </button>
@@ -362,7 +363,7 @@ export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
         ref={groupRef}
         role="radiogroup"
         aria-label={t('preview.template.label')}
-        className="flex items-center justify-center gap-2.5"
+        className="flex items-center justify-center"
       >
         {EXPORT_TEMPLATES.map((template, index) => {
           const isSelected = index === selectedIndex;
@@ -384,12 +385,19 @@ export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
                   onClick={() => {
                     select(index);
                   }}
-                  className={`h-2.5 w-2.5 rounded-full border transition-colors ${
-                    isSelected
-                      ? 'border-primary bg-primary'
-                      : 'border-border bg-transparent hover:border-ink-soft'
-                  } ${FOCUS_RING}`}
-                />
+                  // The dot stays small while the button around it keeps the shared
+                  // target size, so the pager reads as dots but takes a finger.
+                  className={`group/dot inline-flex items-center justify-center rounded-full ${TARGET_MIN} ${FOCUS_RING}`}
+                >
+                  <span
+                    aria-hidden
+                    className={`h-2.5 w-2.5 rounded-full border transition-colors ${
+                      isSelected
+                        ? 'border-primary bg-primary'
+                        : 'border-border bg-transparent group-hover/dot:border-ink-soft'
+                    }`}
+                  />
+                </button>
               )}
             </Tooltip>
           );

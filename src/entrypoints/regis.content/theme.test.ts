@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { describe, it, expect } from 'vitest';
 import { CONTROL_BOUNDARY, CONTROL_DISABLED } from '@/lib/ui/control';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
-import { TARGET_SIZE } from '@/lib/ui/target';
+import { TARGET_MIN, TARGET_SIZE } from '@/lib/ui/target';
 
 // Reads the authored shadow stylesheet and asserts every design token is present
 // and mapped into a Tailwind namespace. This guards against a token being
@@ -90,6 +90,9 @@ describe('shadow stylesheet tokens', () => {
     expect(TARGET_SIZE).toContain('min-w-(--kcp-target-min)');
     expect(TARGET_SIZE).toContain('pointer-coarse:min-h-(--kcp-target-touch)');
     expect(TARGET_SIZE).toContain('pointer-coarse:min-w-(--kcp-target-touch)');
+    expect(TARGET_MIN).toBe(
+      'min-h-(--kcp-target-min) min-w-(--kcp-target-min)',
+    );
   });
 
   it('animates the sheet entrance from a motion token', () => {

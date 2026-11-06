@@ -25,6 +25,7 @@ import {
 import { dayLabelKey } from '@/lib/i18n/dayLabel';
 import { CONTROL_BOUNDARY } from '@/lib/ui/control';
 import { FOCUS_RING, FOCUS_OUTLINE } from '@/lib/ui/focus';
+import { TARGET_MIN } from '@/lib/ui/target';
 import { Combobox, type ComboboxOption } from '@/features/search/Combobox';
 import { catalogStore } from './catalogStore';
 
@@ -141,7 +142,7 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
               type="button"
               aria-label={`${t('action.remove')} ${chip.label}`}
               onClick={chip.onRemove}
-              className={`inline-flex items-center gap-1 rounded-kcp bg-surface-alt px-2 py-0.5 text-ink-soft hover:text-ink ${FOCUS_RING}`}
+              className={`inline-flex items-center gap-1 rounded-kcp bg-surface-alt px-2 py-0.5 text-ink-soft hover:text-ink ${TARGET_MIN} ${FOCUS_RING}`}
             >
               {chip.label}
               <X size={12} aria-hidden />
@@ -152,7 +153,7 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
             onClick={() => {
               catalogStore.getState().resetFilter();
             }}
-            className={`rounded-kcp px-2 py-0.5 text-primary-strong hover:bg-primary-soft ${FOCUS_RING}`}
+            className={`rounded-kcp px-2 py-0.5 text-primary-strong hover:bg-primary-soft ${TARGET_MIN} ${FOCUS_RING}`}
           >
             {t('catalog.filter.clearAll')}
           </button>
@@ -256,7 +257,7 @@ function FilterPopover({
                 onClick={() => {
                   catalogStore.getState().toggleDay(day);
                 }}
-                className={`flex-1 rounded-kcp px-1 py-1 text-xs ${
+                className={`flex-1 rounded-kcp px-1 py-1 text-xs ${TARGET_MIN} ${
                   active
                     ? 'bg-primary-strong text-surface'
                     : 'bg-surface-alt text-ink-soft hover:text-ink'
@@ -314,7 +315,7 @@ function FilterPopover({
         type="button"
         aria-expanded={open}
         aria-label={t('catalog.filter.label')}
-        className={`inline-flex shrink-0 items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm text-ink hover:bg-surface-alt ${FOCUS_RING}`}
+        className={`inline-flex shrink-0 items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm text-ink hover:bg-surface-alt ${TARGET_MIN} ${FOCUS_RING}`}
         {...getReferenceProps()}
       >
         <SlidersHorizontal size={16} strokeWidth={2} aria-hidden />

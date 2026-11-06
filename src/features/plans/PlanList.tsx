@@ -17,6 +17,7 @@ import type { Plan } from '@/lib/domain/plan';
 import type { Term } from '@/lib/routing/academicTerms';
 import type { Translate } from '@/lib/i18n/t';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { TARGET_MIN } from '@/lib/ui/target';
 
 interface TermGroup {
   key: string;
@@ -199,7 +200,7 @@ function ActionButton({
           type="button"
           onClick={onClick}
           aria-label={label}
-          className={`inline-flex items-center rounded-kcp py-1 text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+          className={`inline-flex items-center justify-center rounded-kcp py-1 text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_MIN} ${
             showLabel ? 'gap-1 px-2 text-xs' : 'px-1.5'
           }`}
         >
