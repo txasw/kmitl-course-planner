@@ -31,11 +31,20 @@ const FOCUSABLE_SELECTOR = [
 ].join(',');
 
 // An inert subtree, such as the hidden docked catalog column, stays in the DOM but takes
-// no focus, so it must not supply the first or last stop the Tab wrap compares against.
+// no focus, and neither does a node with no layout box, such as one under display none.
+// The browser's Tab skips both, so neither may supply the first or last stop the wrap
+// compares against: a skipped last stop would let Tab from the real last one leave the
+// panel for the host page.
+function isTabStop(element: HTMLElement): boolean {
+  return (
+    element.closest('[inert]') === null && element.getClientRects().length > 0
+  );
+}
+
 function getFocusable(root: HTMLElement): HTMLElement[] {
   return Array.from(
     root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
-  ).filter((element) => element.closest('[inert]') === null);
+  ).filter(isTabStop);
 }
 
 // getRootNode returns a Document or ShadowRoot at the top of the tree; both

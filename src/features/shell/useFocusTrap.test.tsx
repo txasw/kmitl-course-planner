@@ -10,11 +10,13 @@ function Harness({
   active,
   onEscape,
   inertTail = false,
+  hiddenTail = false,
   onInnerEscape,
 }: {
   active: boolean;
   onEscape?: () => void;
   inertTail?: boolean;
+  hiddenTail?: boolean;
   onInnerEscape?: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -47,6 +49,11 @@ function Harness({
         {inertTail ? (
           <div inert>
             <button data-testid="inert">inert</button>
+          </div>
+        ) : null}
+        {hiddenTail ? (
+          <div style={{ display: 'none' }}>
+            <button data-testid="hidden">hidden</button>
           </div>
         ) : null}
       </div>
@@ -107,6 +114,23 @@ describe('useFocusTrap', () => {
     screen.getByTestId('last').focus();
     fireEvent.keyDown(screen.getByTestId('panel'), { key: 'Tab' });
     expect(screen.getByTestId('first')).toHaveFocus();
+  });
+
+  it('wraps past a subtree with no layout box that ends the panel', () => {
+    render(<Harness active={true} hiddenTail={true} />);
+    screen.getByTestId('last').focus();
+    fireEvent.keyDown(screen.getByTestId('panel'), { key: 'Tab' });
+    expect(screen.getByTestId('first')).toHaveFocus();
+  });
+
+  it('wraps Shift+Tab to the last rendered stop, past a hidden one', () => {
+    render(<Harness active={true} hiddenTail={true} />);
+    screen.getByTestId('first').focus();
+    fireEvent.keyDown(screen.getByTestId('panel'), {
+      key: 'Tab',
+      shiftKey: true,
+    });
+    expect(screen.getByTestId('last')).toHaveFocus();
   });
 
   it('routes Escape to the close callback', () => {
