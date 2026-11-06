@@ -254,6 +254,29 @@ describe('CatalogColumn', () => {
     expect(scroll.scrollTop).toBe(240);
   });
 
+  it('keeps the closed sheet mounted and inert, and opens it in place', () => {
+    installViewport(768);
+    const { container } = render(<Harness />);
+    const node = column(container);
+    expect(node).toHaveAttribute('inert');
+    expect(node).toHaveAttribute('aria-hidden', 'true');
+    expect(node).toHaveClass('-translate-x-full');
+
+    act(() => {
+      uiStore.getState().setSheetOpen(true);
+    });
+    expect(column(container)).toBe(node);
+    expect(node).not.toHaveAttribute('inert');
+    expect(node).not.toHaveAttribute('aria-hidden');
+    expect(node).toHaveClass('translate-x-0');
+
+    act(() => {
+      uiStore.getState().setSheetOpen(false);
+    });
+    expect(node).toHaveAttribute('inert');
+    expect(node).toHaveAttribute('aria-hidden', 'true');
+  });
+
   it('starts the hide control at the leading edge of a 48 px header row', () => {
     installViewport(1440);
     render(<Harness />);
@@ -266,7 +289,10 @@ describe('CatalogColumn', () => {
   it('leaves the sheet tiers to the sheet state while the docked column is hidden', () => {
     const viewport = installViewport(1440);
     const { container } = render(<Harness />);
+    // The sheet was opened on a narrow window, then the window widened and the docked
+    // column was hidden, so the sheet state is open while the docked choice is hidden.
     act(() => {
+      uiStore.getState().setSheetOpen(true);
       uiStore.getState().setCatalogVisible(false);
     });
     act(() => {

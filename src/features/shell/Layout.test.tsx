@@ -84,11 +84,13 @@ describe('Layout', () => {
       const sheet = catalogColumn(container);
       expect(sheet).toHaveClass('w-[24rem]', 'max-w-[90vw]');
       expect(sheet).toHaveAttribute('aria-hidden', 'true');
+      expect(sheet).toHaveAttribute('inert');
 
       act(() => {
         uiStore.getState().setSheetOpen(true);
       });
-      expect(sheet).toHaveAttribute('aria-hidden', 'false');
+      expect(sheet).not.toHaveAttribute('aria-hidden');
+      expect(sheet).not.toHaveAttribute('inert');
       expect(
         screen.getByRole('heading', { name: 'ค้นหารายวิชา' }),
       ).toBeInTheDocument();

@@ -9,7 +9,8 @@
 // from the lg tier, or a slide over left sheet below it. Switching a class on one
 // element, rather than rendering the catalog in two places, keeps a single drag surface per section and lets the drag
 // registration and the scroll offset survive a tier change. The closed sheet stays
-// mounted, so the session state of 6.1 is never dropped. The docked column can be hidden
+// mounted, so the session state of 6.1 is never dropped, and it is inert, so Tab and
+// assistive technology never reach the controls it holds off screen. The docked column can be hidden
 // to give the grid the full width; hidden, it leaves the flow but stays mounted, laid
 // out at its width and inert, so its scroll offset and search state wait for its return,
 // and the edge rail takes its place as the way back.
@@ -157,8 +158,8 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
   return (
     <div
       id={CATALOG_COLUMN_ID}
-      aria-hidden={docked && shown ? undefined : !shown}
-      inert={(docked && !shown) || undefined}
+      aria-hidden={shown ? undefined : true}
+      inert={!shown || undefined}
       className={containerClass(tier, sheetOpen, catalogVisible)}
     >
       {docked ? <DockedHeader /> : <SheetHeader />}
