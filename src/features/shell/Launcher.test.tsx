@@ -68,6 +68,21 @@ describe('Launcher', () => {
     );
   });
 
+  it('is a full pill at least 48 px tall that lifts only without reduced motion', () => {
+    render(<Launcher />);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass(
+      'rounded-full',
+      'bg-primary-strong',
+      'min-h-12',
+      'px-5',
+      'motion-safe:hover:-translate-y-0.5',
+      'motion-safe:focus-visible:-translate-y-0.5',
+    );
+    // The lift moves the pill only; the shadow stays at its one level.
+    expect(button.className).not.toMatch(/hover:shadow|focus-visible:shadow/);
+  });
+
   it('is interactive while neither the panel nor the welcome is open', () => {
     render(<Launcher />);
     const button = screen.getByRole('button');
