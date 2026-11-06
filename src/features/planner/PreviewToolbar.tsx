@@ -6,9 +6,11 @@
 // Copy image is feature detected; where the browser lacks image clipboard support
 // the control is replaced by a one line note pointing at the always present
 // download, never a dead button. JSON export and import live in the plan menu, not
-// here, because they are data management rather than visual sharing. The pre share
-// notice follows the toolbar, also outside the capture node, when the plan holds
-// entries to review before sharing.
+// here, because they are data management rather than visual sharing. The verification
+// status ends the toolbar row, so an offline or partial check and its retry stay in
+// view while sharing (brief section 6.6 step 6, ADR-0060), and the pre share notice
+// follows the toolbar, both outside the capture node, when the plan holds entries to
+// review before sharing.
 
 import type { RefObject } from 'react';
 import { Clipboard, ClipboardCopy, Download } from 'lucide-react';
@@ -23,6 +25,7 @@ import { toastStore } from '@/features/shell/toastStore';
 import { capturePng } from './capture';
 import { DisplayOptionsPopover } from './DisplayOptionsPopover';
 import { PreShareNotice } from './PreShareNotice';
+import { VerificationStatus } from './VerificationStatus';
 import type { PlacedSection } from './placedSection';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
@@ -137,6 +140,9 @@ export function PreviewToolbar({
           <ClipboardCopy size={16} strokeWidth={2} aria-hidden />
           {t('preview.copyText')}
         </button>
+        <span className="ml-auto self-center text-xs">
+          <VerificationStatus />
+        </span>
       </div>
       <PreShareNotice />
     </>

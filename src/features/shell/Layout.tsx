@@ -38,9 +38,10 @@ import { useLayoutTier } from './useLayoutTier';
 // The status announcer sits beside the column and outside the inert grid region, so it
 // outlives every state the column swaps and still speaks a search outcome while the
 // sheet is open or closed, the docked column is hidden, or another pane is shown. Preview
-// has no search, so it carries no announcer and no nav. During a block drag the remove
-// zone is the docked column, which the column renders itself, or else the bar along the
-// body's bottom edge, which below 640 px the bottom nav hosts in its own place.
+// has no search and no nav, but it mounts the announcer too, which there speaks only the
+// settle of a manual plan check from the toolbar status (ADR-0060). During a block drag
+// the remove zone is the docked column, which the column renders itself, or else the bar
+// along the body's bottom edge, which below 640 px the bottom nav hosts in its own place.
 export function Layout() {
   const tier = useLayoutTier();
   const viewMode = useStore(uiStore, (state) => state.viewMode);
@@ -67,6 +68,7 @@ export function Layout() {
   if (viewMode === 'preview') {
     return (
       <div className="h-full p-4">
+        <StatusAnnouncer />
         <PlannerPanel />
       </div>
     );

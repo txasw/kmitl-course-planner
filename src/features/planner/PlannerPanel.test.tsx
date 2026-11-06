@@ -87,6 +87,7 @@ afterEach(() => {
     uiStore.getState().setViewMode('edit');
     uiStore.getState().setPlanView('timetable');
     revalidationStore.getState().setUpdatesOpen(false);
+    revalidationStore.setState({ runs: {} });
   });
 });
 
@@ -682,6 +683,25 @@ describe('PlannerPanel stats bar', () => {
     expect(
       within(stats()).getByRole('button', { name: 'ตรวจสอบอีกครั้ง' }),
     ).toBeInTheDocument();
+  });
+
+  it('moves the verification status to the preview toolbar, outside the poster', () => {
+    installViewport(1366);
+    act(() => {
+      seedActivePlan([makePlanEntry()], { id: 'p1' });
+      revalidationStore
+        .getState()
+        .setRun('p1', { status: 'offline', report: null });
+      uiStore.getState().setViewMode('preview');
+    });
+    const { container } = renderPanel();
+    const offline = 'ยังตรวจสอบไม่ได้ แสดงข้อมูลที่บันทึกไว้';
+    expect(
+      within(screen.getByRole('toolbar')).getByText(offline),
+    ).toBeInTheDocument();
+    for (const poster of container.querySelectorAll('.kcp-poster')) {
+      expect(poster).not.toHaveTextContent(offline);
+    }
   });
 
   it('renders no stats bar in preview or for an empty plan', () => {
