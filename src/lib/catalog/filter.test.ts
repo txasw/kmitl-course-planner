@@ -4,7 +4,16 @@ import {
   makeMeeting,
   makeSection,
 } from '../../../tests/support/domain-builders';
-import { EMPTY_FILTER, filterCourses, type SectionPredicates } from './filter';
+import { loadFixture } from '../../../tests/support/fixtures';
+import { normalizeTeachTable } from '../domain/normalize';
+import type { OfferedTo } from '../domain/types';
+import type { CurriculumProfile } from './curriculumProfile';
+import {
+  EMPTY_FILTER,
+  filterCourses,
+  matchesOfferedTo,
+  type SectionPredicates,
+} from './filter';
 
 const NO_PREDICATES: SectionPredicates = {
   isFull: () => false,
@@ -154,5 +163,96 @@ describe('filterCourses', () => {
     expect(hidden.some((course) => course.subjectId === '01006029')).toBe(
       false,
     );
+  });
+});
+
+describe('matchesOfferedTo', () => {
+  const profile: CurriculumProfile = {
+    facultyId: '01',
+    departmentId: '05',
+    curriculumId: '137',
+    classYear: '1',
+  };
+  const grouping = (
+    facultyId: string,
+    departmentId: string,
+    curriculumId: string,
+    classYear: string,
+  ): OfferedTo => ({ facultyId, departmentId, curriculumId, classYear });
+
+  it('matches the exact grouping and rejects another year or curriculum', () => {
+    expect(matchesOfferedTo([grouping('01', '05', '137', '1')], profile)).toBe(
+      true,
+    );
+    expect(matchesOfferedTo([grouping('01', '05', '137', '2')], profile)).toBe(
+      false,
+    );
+    expect(matchesOfferedTo([grouping('01', '05', '06', '1')], profile)).toBe(
+      false,
+    );
+  });
+
+  it('compares unpadded ids by value', () => {
+    expect(matchesOfferedTo([grouping('1', '5', '137', '01')], profile)).toBe(
+      true,
+    );
+    expect(
+      matchesOfferedTo([grouping('01', '05', '06', '1')], {
+        ...profile,
+        curriculumId: '6',
+      }),
+    ).toBe(true);
+  });
+
+  it('reads x and class 0 on the data side as any', () => {
+    expect(matchesOfferedTo([grouping('01', 'x', 'x', '0')], profile)).toBe(
+      true,
+    );
+    expect(matchesOfferedTo([grouping('01', 'x', 'x', '4')], profile)).toBe(
+      false,
+    );
+    expect(matchesOfferedTo([grouping('01', '05', 'x', '1')], profile)).toBe(
+      true,
+    );
+  });
+
+  it('never lets a wildcard cross into another faculty', () => {
+    expect(matchesOfferedTo([grouping('02', 'x', 'x', '0')], profile)).toBe(
+      false,
+    );
+  });
+
+  it('matches when any one grouping matches', () => {
+    expect(
+      matchesOfferedTo(
+        [grouping('03', '01', '34', '1'), grouping('01', '05', '137', '1')],
+        profile,
+      ),
+    ).toBe(true);
+    expect(matchesOfferedTo([], profile)).toBe(false);
+  });
+
+  it('keeps a section that has no list to judge', () => {
+    expect(matchesOfferedTo(undefined, profile)).toBe(true);
+  });
+
+  it('narrows the subject id capture to the curriculum and year', () => {
+    const result = normalizeTeachTable(
+      loadFixture('teach-table.by_subject_id.capture.json'),
+    );
+    if (!result.ok) {
+      throw new Error('fixture failed to normalize');
+    }
+    const all = result.value.courses.flatMap((course) => course.sections);
+    const kept = filterCourses(
+      result.value.courses,
+      { ...EMPTY_FILTER, curriculum: profile },
+      NO_PREDICATES,
+    ).flatMap((course) => course.sections);
+    expect(kept.length).toBeGreaterThan(0);
+    expect(kept.length).toBeLessThan(all.length);
+    for (const section of kept) {
+      expect(matchesOfferedTo(section.offeredTo, profile)).toBe(true);
+    }
   });
 });
