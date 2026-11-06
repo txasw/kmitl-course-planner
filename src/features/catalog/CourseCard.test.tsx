@@ -410,7 +410,13 @@ describe('CourseCard collapsed added course', () => {
     }),
   ];
 
-  it('collapses an added course, hiding the section rows and the added badge', () => {
+  function body(): HTMLElement {
+    const node = document.querySelector<HTMLElement>('[data-course-body]');
+    if (node === null) throw new Error('expected the course body');
+    return node;
+  }
+
+  it('collapses an added course, hiding the section rows', () => {
     render(
       <Controlled
         course={course}
@@ -421,8 +427,31 @@ describe('CourseCard collapsed added course', () => {
       />,
     );
     expect(screen.getByText('90000001')).toBeInTheDocument();
-    expect(screen.queryByText('เพิ่มแล้ว')).not.toBeInTheDocument();
-    expect(screen.queryByText(/กลุ่มเรียน 901/)).not.toBeInTheDocument();
+    expect(body().textContent).toBe('');
+  });
+
+  it('names the chosen section and its first meeting on the second line', () => {
+    render(<Controlled course={course} placed={placed} locale="th" t={t} />);
+    const meta = document.getElementById(
+      toggle().getAttribute('aria-describedby') ?? '',
+    );
+    if (meta === null) throw new Error('expected the described meta line');
+    expect(toggle().contains(meta)).toBe(true);
+    expect(within(meta).getByText('เพิ่มแล้ว')).toBeInTheDocument();
+    expect(within(meta).getByText('กลุ่มเรียน 901')).toBeInTheDocument();
+    expect(within(meta).getByText('จ 09:00-12:00')).toBeInTheDocument();
+    expect(meta).not.toHaveTextContent('เพิ่มได้');
+  });
+
+  it('says an added section without a meeting has none', () => {
+    const online = makeSection({
+      subjectId: '90000001',
+      section: '901',
+      teachTableId: 'placed901',
+      meetings: [],
+    });
+    render(<Controlled course={course} placed={[online]} locale="en" t={en} />);
+    expect(screen.getByText('No scheduled meeting')).toBeInTheDocument();
   });
 
   it('de-emphasizes an added course with surface-alt, not opacity', () => {
@@ -484,7 +513,7 @@ describe('CourseCard collapsed added course', () => {
     expect(
       screen.getByText('เปลี่ยนกลุ่มเรียนโดยลากบล็อกในตาราง'),
     ).toBeInTheDocument();
-    expect(screen.getByText(/กลุ่มเรียน 901/)).toBeInTheDocument();
+    expect(within(body()).getByText(/กลุ่มเรียน 901/)).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'เพิ่ม' }),
     ).not.toBeInTheDocument();

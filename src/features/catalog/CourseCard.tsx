@@ -12,7 +12,10 @@ import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import { termsEqual, type Term } from '@/lib/routing/academicTerms';
 import { computeSeatStatus } from '@/lib/catalog/seatStatus';
-import { summarizeCourse } from '@/lib/catalog/courseSummary';
+import {
+  summarizeCourse,
+  type CourseSummary,
+} from '@/lib/catalog/courseSummary';
 import {
   computeSectionRelation,
   type TermContext,
@@ -20,7 +23,7 @@ import {
 import { DraggableSection } from './DraggableSection';
 import { SectionRow } from './SectionRow';
 import { RemoveButton, removeSectionName } from './RemoveButton';
-import { FitLine } from './CourseMeta';
+import { AddedLine, FitLine } from './CourseMeta';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { usePresence } from '@/features/shell/usePresence';
 import { useRevealOnExpand } from './useRevealOnExpand';
@@ -81,6 +84,10 @@ interface CourseCardProps {
   onSwitchTerm?: ((term: Term) => void) | undefined;
 }
 
+/** The second line of the toggle: the placed section, or the course summary. */
+type CardMeta =
+  { added: true; section: Section } | { added: false; summary: CourseSummary };
+
 function isCrossTerm(term: TermContext | undefined): boolean {
   return (
     term?.planTerm != null &&
@@ -127,9 +134,16 @@ function CourseCardComponent({
   const draggable = !added && onAdd !== undefined && !crossTerm;
   // The card receives the filtered course, so the summary counts what opening shows.
   // placed changes identity only when the plan does, so the candidates rerun rarely.
-  const summary = useMemo(
-    () => (added ? null : summarizeCourse(course, placed, crossTerm, locale)),
-    [added, course, placed, crossTerm, locale],
+  // An added card names its placed section instead, so it skips the candidates.
+  const meta = useMemo<CardMeta>(
+    () =>
+      placedSection === undefined
+        ? {
+            added: false,
+            summary: summarizeCourse(course, placed, crossTerm, locale),
+          }
+        : { added: true, section: placedSection },
+    [placedSection, course, placed, crossTerm, locale],
   );
   const { mounted, stage } = usePresence(open, DISCLOSURE_MS);
   const { cardRef, scheduleReveal } = useRevealOnExpand(DISCLOSURE_MS);
@@ -159,7 +173,7 @@ function CourseCardComponent({
           aria-expanded={open}
           aria-controls={bodyId}
           aria-labelledby={`${titleId} ${creditId}`}
-          aria-describedby={summary === null ? undefined : metaId}
+          aria-describedby={metaId}
           onClick={handleToggle}
           className={`group flex min-h-6 min-w-0 flex-1 cursor-pointer flex-col gap-0.5 rounded-kcp text-left pointer-coarse:min-h-11 ${FOCUS_RING}`}
         >
@@ -182,8 +196,10 @@ function CourseCardComponent({
               className={`mt-0.5 shrink-0 text-ink-soft transition-transform duration-fast group-hover:text-ink motion-reduce:transition-none ${open ? 'rotate-180' : ''}`}
             />
           </span>
-          {summary === null ? null : (
-            <FitLine id={metaId} summary={summary} t={t} />
+          {meta.added ? (
+            <AddedLine id={metaId} section={meta.section} t={t} />
+          ) : (
+            <FitLine id={metaId} summary={meta.summary} t={t} />
           )}
         </button>
       </h4>
