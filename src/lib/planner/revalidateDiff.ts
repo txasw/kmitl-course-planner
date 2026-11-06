@@ -154,14 +154,26 @@ function examEqual(a: ExamLike, b: ExamLike): boolean {
   );
 }
 
+/** The fields a diff compares, which a fresh Section and a stored snapshot both carry,
+ * so a review can also compare an earlier snapshot against the current one. */
+export type ComparableSection = Pick<
+  Section,
+  | 'meetings'
+  | 'teachersTh'
+  | 'teachersEn'
+  | 'seats'
+  | 'isClosed'
+  | 'pairedSection'
+> & { exam: ExamLike };
+
 /**
  * Classify the differences between a stored snapshot and a fresh section. offeredTo is
  * deliberately not compared: grouping membership depends on the query that produced the
  * section, not on the section itself, so it has no change kind (ADR-0061).
  */
 export function diffSnapshot(
-  snapshot: SectionSnapshot,
-  fresh: Section,
+  snapshot: ComparableSection,
+  fresh: ComparableSection,
 ): ChangeKind[] {
   const changes: ChangeKind[] = [];
   if (timeFootprint(snapshot) !== timeFootprint(fresh)) {
