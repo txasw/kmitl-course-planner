@@ -1,4 +1,4 @@
-// The one way the docked catalog column is shown or hidden, recorded in ADR-0048. Each
+// The one way the catalog column is shown or hidden, recorded in ADR-0048. Each
 // control that toggles the column calls a funnel here rather than the store, so the
 // guards hold for every path. Nothing toggles while any drag is in flight, because the
 // grid width is frozen for the length of a drag. A click past the first of a multi click
@@ -6,7 +6,8 @@
 // within a short window, because the hide control and the edge rail share one point on
 // screen and a quick second click would undo the first. A keyboard activation, whose
 // detail is 0, is never throttled. The window is a module scoped timestamp, not store
-// state, so it never renders anything.
+// state, so it never renders anything. Every close of the sheet, on the tiers below the
+// dock, goes through one funnel here too, so focus always lands on the header toggle.
 //
 // The funnels also slide the docked column in and out through the Web Animations API,
 // after the visibility change has committed. The effects move the column by transform
@@ -187,4 +188,14 @@ export function showCatalog(
     uiStore.getState().setCatalogVisible(true);
   });
   if (column !== null) slideCatalog(column, 'in');
+}
+
+/**
+ * Close the catalog sheet from the control that asked for it and move focus to the
+ * header toggle, which opens it again.
+ */
+export function closeSheet(control: Element): void {
+  commitAndFocus(control, CATALOG_TOGGLE_ID, () => {
+    uiStore.getState().setSheetOpen(false);
+  });
 }
