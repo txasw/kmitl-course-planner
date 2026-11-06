@@ -1,13 +1,14 @@
 // Shows one course in the catalog, for the feedback strip's show in the list action.
 // It narrows the list to the subject id, opens that card even if the student closed
 // it before, and brings the catalog into view: the docked column on the wide tiers,
-// the sheet below them. Without the last step the action changed a list the student
-// could not see.
+// the sheet on the medium tier, and the catalog pane below 640 px. Without the last step
+// the action changed a list the student could not see.
 
 import { catalogQueryKey } from '@/lib/catalog/cardDisclosure';
 import { isDockedTier, type LayoutTier } from '@/lib/ui/breakpoints';
 import { planStore } from '@/features/plans/planStore';
 import { searchStore } from '@/features/search/searchStore';
+import { selectNavItem } from '@/features/shell/mobilePane';
 import { uiStore } from '@/features/shell/uiStore';
 import { catalogStore } from './catalogStore';
 
@@ -26,7 +27,9 @@ export function revealCourse(subjectId: string, tier: LayoutTier): void {
   );
   if (isDockedTier(tier)) {
     uiStore.getState().setCatalogVisible(true);
-  } else {
+  } else if (tier === 'medium') {
     uiStore.getState().setSheetOpen(true);
+  } else {
+    selectNavItem('catalog');
   }
 }

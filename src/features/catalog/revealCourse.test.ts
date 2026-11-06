@@ -34,6 +34,7 @@ afterEach(() => {
   resetPlanStore();
   uiStore.getState().setSheetOpen(false);
   uiStore.getState().setCatalogVisible(true);
+  uiStore.setState({ mobilePane: null });
 });
 
 describe('revealCourse', () => {
@@ -49,9 +50,16 @@ describe('revealCourse', () => {
     expect(uiStore.getState().sheetOpen).toBe(false);
   });
 
-  it('opens the sheet below the docked tiers', () => {
+  it('opens the sheet on the medium tier', () => {
     revealCourse('90592033', 'medium');
     expect(uiStore.getState().sheetOpen).toBe(true);
+  });
+
+  it('shows the catalog pane below 640 px and opens no sheet', () => {
+    uiStore.getState().setMobilePane('plan');
+    revealCourse('90592033', 'compact');
+    expect(uiStore.getState().mobilePane).toBe('catalog');
+    expect(uiStore.getState().sheetOpen).toBe(false);
   });
 
   it('opens the card even after the student closed it', () => {
