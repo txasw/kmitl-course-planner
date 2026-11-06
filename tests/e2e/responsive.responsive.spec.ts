@@ -13,9 +13,10 @@ import type { Page } from '@playwright/test';
 // A responsive smoke for the phone and tablet projects. It asserts only what holds
 // today at both sizes: the host lays out at the device width, the planner opens and
 // closes with focus returned to the launcher, and the touch helper delivers real
-// touch events, the edit grid keeps its derived minimum width, and a tapped block opens
-// its details as a bottom sheet, since both projects are coarse pointers. The small
-// screen layout work adds its own assertions on top.
+// touch events, the edit grid keeps its derived minimum width, the catalog sheet is
+// modal over the grid and closes alone on Escape, and a tapped block opens its details
+// as a bottom sheet, since both projects are coarse pointers. The small screen layout
+// work adds its own assertions on top.
 
 const LAUNCHER = 'เปิด Course Planner for KMITL';
 // A grid block carries a data-teach-table-id; the catalog rows do not.
@@ -153,6 +154,56 @@ test('a touch drag holds before the finger moves', async ({ context }) => {
     LONG_PRESS_MS,
   );
   expect(touches.at(-2)).toMatchObject({ x: 240, y: 300 });
+});
+
+test('the catalog sheet holds its search and results and closes alone on Escape', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  const overlay = page.getByRole('dialog', {
+    name: 'ตัววางแผนตารางเรียน สจล.',
+  });
+  const toggle = page.getByRole('button', { name: /^รายวิชา/ });
+  await toggle.click();
+
+  // The open sheet takes focus and the grid region under its scrim is inert.
+  const sheet = page.getByRole('dialog', { name: 'ค้นหารายวิชา' });
+  await expect(sheet).toBeFocused();
+  const grid = page.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+  expect(await grid.evaluate((node) => node.closest('[inert]') !== null)).toBe(
+    true,
+  );
+
+  // The submit sits in the sheet, and its results land in the same open sheet.
+  await sheet.getByRole('button', { name: 'หมวดวิชา' }).click();
+  await pickOption(page, 'คณะ', '01');
+  await pickOption(page, 'หมวดวิชา', '90592xxx');
+  await sheet.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await expect(sheet.getByText('90592033').first()).toBeVisible({
+    timeout: 15_000,
+  });
+  expect(
+    await sheet.evaluate((node) => {
+      const root = node.getRootNode();
+      return (
+        (root instanceof ShadowRoot || root instanceof Document) &&
+        node.contains(root.activeElement)
+      );
+    }),
+  ).toBe(true);
+
+  // Escape closes the sheet alone, and focus returns to the header toggle.
+  await page.keyboard.press('Escape');
+  await expect(sheet).toBeHidden();
+  await expect(overlay).toBeVisible();
+  await expect(toggle).toBeFocused();
+  expect(await grid.evaluate((node) => node.closest('[inert]') === null)).toBe(
+    true,
+  );
+
+  // The next Escape closes the overlay.
+  await page.keyboard.press('Escape');
+  await expect(overlay).toBeHidden();
 });
 
 test('a tapped block opens its details as a sheet with the remove action', async ({
