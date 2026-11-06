@@ -11,7 +11,8 @@
 // landing point instead. Escape closes the dialog only, through the shared escape layer,
 // so the overlay behind it stays open. The body is capped at 85 percent of the dynamic
 // viewport height and scrolls inside, and the optional footer stays pinned below it. A
-// list dialog takes the narrow width, a review the medium one, a table the wide one.
+// list dialog takes the narrow width, a review the medium one, a table the wide one, and
+// a side by side comparison the full one.
 
 import {
   useEffect,
@@ -32,6 +33,7 @@ const WIDTH_CLASS = {
   narrow: 'max-w-md',
   medium: 'max-w-[32rem]',
   wide: 'max-w-4xl',
+  full: 'max-w-6xl',
 } as const;
 
 interface ModalDialogProps {

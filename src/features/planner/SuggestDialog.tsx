@@ -3,10 +3,13 @@
 // plan's entries as fixed constraints, and lists up to three as cards. The student picks
 // an objective and a preference; every change searches again. Applying a card creates a
 // new plan for the term, so the active plan is never rewritten, and the undo toast can
-// take it back. It is a centered dialog on the medium and wide tiers and the bottom sheet
-// on compact, holding the same body.
+// take it back. It is a centered dialog at the full width on the medium and wide tiers,
+// where the cards sit side by side, and the bottom sheet on compact, where they page.
+//
+// The cards share one frame and one grid orientation. Thumbnails run time downward on
+// compact and medium, where a card is narrow, and across on the docked tiers.
 
-import { useId, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { CalendarX2 } from 'lucide-react';
 import { BottomSheet } from '@/components/BottomSheet';
 import { EmptyState } from '@/components/EmptyState';
@@ -25,12 +28,14 @@ import {
 } from '@/lib/planner/suggestEmpty';
 import type { SuggestObjective } from '@/lib/planner/suggestRank';
 import type { SuggestPreference } from '@/lib/planner/suggestScore';
+import { isDockedTier } from '@/lib/ui/breakpoints';
 import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
 import { toastStore } from '@/features/shell/toastStore';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { useTranslation } from '@/features/shell/useTranslation';
-import { SuggestionCard } from './SuggestionCard';
+import { sharedFrame, suggestionSections } from './suggestionFrame';
+import { SuggestionResults, type SuggestionView } from './SuggestionResults';
 import { useSuggestions } from './useSuggestions';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
@@ -152,6 +157,7 @@ export function SuggestDialog({
   const tier = useLayoutTier();
   const [objective, setObjective] = useState<SuggestObjective>('coverAll');
   const [preference, setPreference] = useState<SuggestPreference>('balanced');
+  const [page, setPage] = useState(0);
   const locked = useLockedEntries(term);
   const { result, busy } = useSuggestions(
     courses,
@@ -165,7 +171,32 @@ export function SuggestDialog({
       credit: entry.snapshot.subjectMeta.credit,
     })),
   ).subjects;
+  const cards = useMemo<SuggestionView[]>(
+    () =>
+      (result?.suggestions ?? []).map((suggestion) => ({
+        suggestion,
+        sections: suggestionSections(locked, suggestion),
+      })),
+    [result, locked],
+  );
+  const frame = useMemo(
+    () => sharedFrame(cards.map((card) => card.sections)),
+    [cards],
+  );
 
+  const compact = tier === 'compact';
+  const thumbOrientation = isDockedTier(tier) ? 'landscape' : 'portrait';
+  const current = Math.min(page, Math.max(0, cards.length - 1));
+
+  // A new objective or preference ranks the cards again, so the pager returns to the best.
+  const handleObjective = (value: SuggestObjective) => {
+    setObjective(value);
+    setPage(0);
+  };
+  const handlePreference = (value: SuggestPreference) => {
+    setPreference(value);
+    setPage(0);
+  };
   const handleApply = (suggestion: Suggestion) => {
     const plan = planStore.getState().createFromSuggestion({
       name: fillTemplate(t('suggest.planName'), {
@@ -203,10 +234,10 @@ export function SuggestDialog({
             value,
             label: t(`suggest.objective.${value}`),
           }))}
-          onChange={setObjective}
+          onChange={handleObjective}
         />
       </div>
-      <PreferenceChips value={preference} onChange={setPreference} t={t} />
+      <PreferenceChips value={preference} onChange={handlePreference} t={t} />
       {result === null ? (
         busy ? (
           <LoadingCards t={t} />
@@ -224,31 +255,24 @@ export function SuggestDialog({
               {t('suggest.truncated')}
             </p>
           ) : null}
-          <ol
-            className={`flex flex-col gap-3 transition-opacity duration-base motion-reduce:transition-none ${busy ? 'opacity-60' : ''}`}
-          >
-            {result.suggestions.map((suggestion, index) => (
-              <SuggestionCard
-                key={suggestion.choices
-                  .map((choice) => choice.section.teachTableId)
-                  .join(',')}
-                suggestion={suggestion}
-                index={index}
-                locked={locked}
-                locale={language}
-                t={t}
-                onApply={() => {
-                  handleApply(suggestion);
-                }}
-              />
-            ))}
-          </ol>
+          <SuggestionResults
+            cards={cards}
+            frame={frame}
+            paged={compact}
+            orientation={thumbOrientation}
+            page={current}
+            onPageChange={setPage}
+            busy={busy}
+            locale={language}
+            t={t}
+            onApply={handleApply}
+          />
         </section>
       )}
     </div>
   );
 
-  return tier === 'compact' ? (
+  return compact ? (
     <BottomSheet
       title={t('suggest.title')}
       closeLabel={t('suggest.close')}
@@ -261,6 +285,7 @@ export function SuggestDialog({
       title={t('suggest.title')}
       closeLabel={t('suggest.close')}
       onClose={onClose}
+      width="full"
     >
       {body}
     </ModalDialog>
