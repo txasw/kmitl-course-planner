@@ -203,6 +203,28 @@ describe('buildExamSchedule edge cases', () => {
     expect(schedule.groups[0]?.days[0]?.sameDayCount).toBeNull();
   });
 
+  it('names a clashing subject once when two of its sections share the window', () => {
+    const schedule = buildExamSchedule([
+      entryWith('a', '10000001', { midterm: MID }),
+      entryWith('b', '10000002', { midterm: MID }, '1'),
+      entryWith('c', '10000002', { midterm: MID }, '2'),
+    ]);
+    const [first, second] = schedule.groups[0]?.days[0]?.rows ?? [];
+    expect(first?.clashesWith).toEqual([
+      {
+        teachTableId: 'b',
+        subjectId: '10000002',
+        section: '1',
+        nameTh: 'วิชา 10000002',
+        nameEn: 'Subject 10000002',
+      },
+    ]);
+    expect(second?.sections).toEqual(['1', '2']);
+    expect(second?.clashesWith.map((clash) => clash.subjectId)).toEqual([
+      '10000001',
+    ]);
+  });
+
   it('reads no weekday for a date that is not a real calendar day', () => {
     const schedule = buildExamSchedule([
       entryWith('a', '10000001', {
