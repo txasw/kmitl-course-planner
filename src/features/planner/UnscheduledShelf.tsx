@@ -7,14 +7,14 @@
 // keeping them out holds the shared image and its measured fit unchanged. The poster
 // also drops the verification pill, which the footer states as text (ADR-0055).
 
-import { AlertTriangle, BookOpen, FlaskConical } from 'lucide-react';
+import { BookOpen, FlaskConical } from 'lucide-react';
 import { RemarkLine } from '@/features/catalog/RemarkLine';
 import { RulesNotice } from '@/features/catalog/RulesNotice';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { Pill } from '@/components/Pill';
 import { Tooltip } from '@/components/Tooltip';
 import type { PlacedSection } from './placedSection';
-import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
+import { VerificationPill } from './VerificationPill';
 
 interface UnscheduledShelfProps {
   sections: PlacedSection[];
@@ -62,16 +62,6 @@ export function UnscheduledShelf({
           const name = locale === 'th' ? section.nameTh : section.nameEn;
           const englishSecondary =
             showEnglishName && locale === 'th' && section.nameEn !== '';
-          const examConflicted =
-            examConflictIds?.has(section.teachTableId) ?? false;
-          const badge = showVerification
-            ? blockBadge(section.verifyStatus, false, examConflicted)
-            : null;
-          const badgeText = showVerification
-            ? blockBadgeLabelKeys(section.verifyStatus, false, examConflicted)
-                .map((key) => t(key))
-                .join(' ')
-            : '';
           return (
             <li key={section.teachTableId} className="text-xs">
               <div className="flex items-center justify-between gap-2">
@@ -101,13 +91,15 @@ export function UnscheduledShelf({
                   ) : null}
                 </span>
                 <span className="flex shrink-0 items-center gap-1.5 text-ink-soft">
-                  {badge !== null && badgeText !== '' ? (
-                    <Pill
-                      tone={badge}
-                      icon={<AlertTriangle size={12} aria-hidden />}
-                    >
-                      {badgeText}
-                    </Pill>
+                  {showVerification ? (
+                    <VerificationPill
+                      verifyStatus={section.verifyStatus}
+                      conflicted={false}
+                      examConflicted={
+                        examConflictIds?.has(section.teachTableId) ?? false
+                      }
+                      t={t}
+                    />
                   ) : null}
                   {showSection ? (
                     <span>
