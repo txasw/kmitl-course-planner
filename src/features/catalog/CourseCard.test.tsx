@@ -11,7 +11,7 @@ import {
 import { DndContext } from '@dnd-kit/core';
 import { usePlannerSensors } from '@/features/planner/usePlannerSensors';
 import { createTranslator, type Translate } from '@/lib/i18n/t';
-import type { Section } from '@/lib/domain/types';
+import type { Course, Section } from '@/lib/domain/types';
 import {
   makeCourse,
   makeMeeting,
@@ -23,6 +23,7 @@ import { dragStore } from '@/features/planner/dragStore';
 import { Overlay } from '@/features/shell/Overlay';
 import { uiStore } from '@/features/shell/uiStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
+import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { CatalogDragContext } from './catalogDrag';
 import { CourseCard } from './CourseCard';
 import { courseToggle } from './courseFocus';
@@ -977,5 +978,74 @@ describe('CourseCard memoization', () => {
     // A changed placed reference, as a plan mutation produces: the card re-renders.
     rerender(<CourseCard {...props} placed={[...placed]} />);
     expect(renders).toBeGreaterThan(afterFirst);
+  });
+});
+
+describe('CourseCard section comparison', () => {
+  const twoSections = makeCourse({
+    subjectId: '90000001',
+    sections: [
+      makeSection({ teachTableId: 'a', section: '901' }),
+      makeSection({
+        teachTableId: 'b',
+        section: '902',
+        meetings: [makeMeeting({ day: 3 })],
+      }),
+    ],
+  });
+
+  // The overlay shape: the panel is the portal root the comparison dialog renders into.
+  function PortalPanel({ course }: { course: Course }) {
+    const [node, setNode] = useState<HTMLDivElement | null>(null);
+    return (
+      <div ref={setNode}>
+        <PanelPortalContext.Provider value={node}>
+          <Controlled
+            initialOpen
+            course={course}
+            placed={[]}
+            locale="th"
+            t={t}
+          />
+        </PanelPortalContext.Provider>
+      </div>
+    );
+  }
+
+  it('offers no compare control for a course with one section', () => {
+    render(
+      <PortalPanel
+        course={makeCourse({ sections: [makeSection({ section: '901' })] })}
+      />,
+    );
+    expect(
+      screen.queryByRole('button', { name: 'เปรียบเทียบกลุ่มเรียน' }),
+    ).toBeNull();
+  });
+
+  it('puts the compare control first in the open body', () => {
+    render(<PortalPanel course={twoSections} />);
+    const body = document.querySelector<HTMLElement>('[data-course-body]');
+    if (body === null) throw new Error('expected the course body');
+    const [first] = within(body).getAllByRole('button');
+    expect(first).toHaveAccessibleName('เปรียบเทียบกลุ่มเรียน');
+    expect(first).toHaveAttribute('aria-haspopup', 'dialog');
+  });
+
+  it('opens the table and returns focus to the control on Escape', () => {
+    render(<PortalPanel course={twoSections} />);
+    const trigger = screen.getByRole('button', {
+      name: 'เปรียบเทียบกลุ่มเรียน',
+    });
+    trigger.focus();
+    fireEvent.click(trigger);
+    const dialog = screen.getByRole('dialog', {
+      name: /เปรียบเทียบกลุ่มเรียน 90000001/,
+    });
+    expect(within(dialog).getAllByRole('rowheader')).toHaveLength(2);
+    fireEvent.keyDown(within(dialog).getByRole('table'), { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(trigger).toHaveFocus();
+    expect(toggle()).toHaveAttribute('aria-expanded', 'true');
   });
 });
