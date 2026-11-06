@@ -23,6 +23,7 @@ import {
   useWorkerHandshake,
   type WorkerHandshakeDeps,
 } from '@/features/onboarding/useWorkerHandshake';
+import { WelcomeLayer } from '@/features/onboarding/WelcomeLayer';
 import {
   useWelcomeClaim,
   type WelcomeClaimDeps,
@@ -37,10 +38,12 @@ interface AppProps {
   welcome: WelcomeClaimDeps;
 }
 
-// Root component for the content script UI. It renders the launcher and the
-// overlay, hydrates and persists the language, the plans and the onboarding
-// record through the injected repositories, listens for the worker and sends it
-// the mount handshake, decides whether this document claims the welcome, and provides the search dependencies so the deep form
+// Root component for the content script UI. It renders the launcher, the overlay
+// and, while it is open, the welcome above everything else, since the shadow root
+// stacks its host layer nodes by mount order. It hydrates and persists the language,
+// the plans and the onboarding record through the injected repositories, listens
+// for the worker and sends it the mount handshake, decides whether this document
+// claims the welcome, and provides the search dependencies so the deep form
 // components stay free of the browser binding. The storage and messaging bindings
 // stay at the entrypoint.
 export function App({
@@ -63,6 +66,7 @@ export function App({
       <Overlay />
       <DiagnosticsGate />
       <Toaster />
+      <WelcomeLayer />
     </SearchDepsProvider>
   );
 }
