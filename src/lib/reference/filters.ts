@@ -22,6 +22,11 @@ export interface ReferenceLists {
   subjectOwners: AsyncState<RawSubjectOwner[]>;
 }
 
+/** A reference list's entries once it has loaded, or none while it is not ready. */
+export function readyData<T>(state: AsyncState<T[]>): readonly T[] {
+  return state.status === 'ready' ? state.data : [];
+}
+
 const NUMERIC = /^\d+$/;
 
 /**

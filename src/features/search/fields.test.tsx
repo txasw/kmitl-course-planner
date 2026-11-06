@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { loadFixture } from '../../../tests/support/fixtures';
+import {
+  curriculumListSchema,
+  departmentListSchema,
+  facultyListSchema,
+} from '@/lib/domain/schemas';
 import { createTranslator } from '@/lib/i18n/t';
 import type { ReferenceLists } from '@/lib/reference/filters';
 import { defaultCategoryForm, defaultClassForm } from '@/lib/search/formState';
@@ -10,6 +16,7 @@ import {
   SubjectIdInput,
   TermFields,
 } from './fields';
+import { CurriculumFields } from './CurriculumFields';
 
 afterEach(cleanup);
 
@@ -190,5 +197,132 @@ describe('tab fields', () => {
     expect(
       screen.queryByRole('combobox', { name: t('search.semester') }),
     ).toBeNull();
+  });
+});
+
+describe('CurriculumFields', () => {
+  const t = createTranslator('en');
+  const loaded: ReferenceLists = {
+    faculties: {
+      status: 'ready',
+      data: facultyListSchema.parse(loadFixture('faculty.capture.json')),
+    },
+    departments: {
+      status: 'ready',
+      data: departmentListSchema.parse(loadFixture('department.capture.json')),
+    },
+    curricula: {
+      status: 'ready',
+      data: curriculumListSchema.parse(
+        loadFixture('curriculum.level1.capture.json'),
+      ),
+    },
+    subjectOwners: { status: 'idle' },
+  };
+  const selection = {
+    faculty: '01',
+    department: '05',
+    curriculum: '137',
+    classYear: '1',
+  } as const;
+
+  function optionNames(name: string): (string | null)[] {
+    fireEvent.focus(screen.getByRole('combobox', { name }));
+    return screen.getAllByRole('option').map((option) => option.textContent);
+  }
+
+  it('offers the all options when a search renders them', () => {
+    render(
+      <CurriculumFields
+        value={selection}
+        includeAll
+        reference={loaded}
+        locale="en"
+        t={t}
+        patch={() => undefined}
+      />,
+    );
+    expect(optionNames(t('search.curriculum'))).toContain(
+      t('search.curriculumAll'),
+    );
+    cleanup();
+    render(
+      <CurriculumFields
+        value={selection}
+        includeAll
+        reference={loaded}
+        locale="en"
+        t={t}
+        patch={() => undefined}
+      />,
+    );
+    expect(optionNames(t('search.classYear'))).toContain(
+      t('search.classYearAll'),
+    );
+  });
+
+  it('leaves out every all option and the term without them', () => {
+    render(
+      <CurriculumFields
+        value={selection}
+        includeAll={false}
+        reference={loaded}
+        locale="en"
+        t={t}
+        patch={() => undefined}
+      />,
+    );
+    expect(
+      screen.queryByRole('combobox', { name: t('search.year') }),
+    ).toBeNull();
+    const curricula = optionNames(t('search.curriculum'));
+    expect(curricula).not.toContain(t('search.curriculumAll'));
+    expect(curricula.length).toBeGreaterThan(0);
+    cleanup();
+    render(
+      <CurriculumFields
+        value={selection}
+        includeAll={false}
+        reference={loaded}
+        locale="en"
+        t={t}
+        patch={() => undefined}
+      />,
+    );
+    expect(optionNames(t('search.classYear'))).toEqual([
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+    ]);
+  });
+
+  it('clears the department and curriculum when the faculty changes', () => {
+    const patch = vi.fn();
+    render(
+      <CurriculumFields
+        value={selection}
+        includeAll={false}
+        reference={loaded}
+        locale="en"
+        t={t}
+        patch={patch}
+      />,
+    );
+    fireEvent.focus(
+      screen.getByRole('combobox', { name: t('search.faculty') }),
+    );
+    const [first] = screen.getAllByRole('option');
+    if (first === undefined) {
+      throw new Error('expected a faculty option');
+    }
+    fireEvent.mouseDown(first);
+    expect(patch).toHaveBeenCalledWith(
+      expect.objectContaining({ department: '', curriculum: '' }),
+    );
   });
 });

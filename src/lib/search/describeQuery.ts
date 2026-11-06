@@ -22,10 +22,10 @@ import {
   departmentName,
   facultyName,
   idsEqual,
+  readyData,
   subjectOwnerName,
   type ReferenceLists,
 } from '../reference/filters';
-import type { AsyncState } from '../utils/async';
 
 export interface QuerySummary {
   primary: string;
@@ -42,10 +42,6 @@ interface Context {
   reference: ReferenceLists;
   locale: Locale;
   t: Translate;
-}
-
-function readyData<T>(state: AsyncState<T[]>): readonly T[] {
-  return state.status === 'ready' ? state.data : [];
 }
 
 /** The looked up name, or the raw id when the entry is unknown or its name is blank. */
