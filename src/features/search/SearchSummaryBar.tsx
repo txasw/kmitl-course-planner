@@ -1,16 +1,21 @@
-// The summary bar the search form folds into once a user search starts. It names the
-// tab and the term of that search and carries a status slot that reads the busy text
-// while the query runs and the course count once it settles, so the press is visibly
-// accepted even when a cached answer changes nothing else. It is a focusable region,
-// not a live region: the busy text is read when focus lands on the bar, and settled
-// outcomes stay with the panel's existing announcers. The disclosure keeps one label
-// and reports its state through aria-expanded, so it never moves under the pointer.
+// The summary bar the search form folds into once a user search starts. It names what
+// was searched, the scope and the term of that search, and carries a status slot that
+// reads the busy text while the query runs and the course count once it settles, so the
+// press is visibly accepted even when a cached answer changes nothing else. The query
+// name clamps to two lines, while the scope chips beside the term never truncate, so a
+// long Thai category name cannot hide the faculty or class year that sets two alike
+// searches apart. It is a focusable region, not a live region: the busy text is read
+// when focus lands on the bar, and settled outcomes stay with the panel's existing
+// announcers. The disclosure keeps one label and reports its state through
+// aria-expanded, so it never moves under the pointer.
 
+import { useMemo } from 'react';
 import { useStore } from 'zustand';
 import { ChevronDown, LoaderCircle } from 'lucide-react';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import type { Translate } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
+import { describeQuery } from '@/lib/search/describeQuery';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { useTranslation } from '@/features/shell/useTranslation';
 import {
@@ -19,11 +24,14 @@ import {
   SEARCH_FORM_ID,
 } from './searchIds';
 import { searchStore, selectFormOpen } from './searchStore';
-import { TAB_ICON, TAB_LABEL } from './searchTabs';
+import { TAB_ICON } from './searchTabs';
 
 const SUMMARY_ID = 'kcp-search-bar-summary';
 const TERM_ID = 'kcp-search-bar-term';
 const STATUS_ID = 'kcp-search-bar-status';
+const QUALIFIER_ID_PREFIX = 'kcp-search-bar-qualifier-';
+const CHIP =
+  'shrink-0 whitespace-nowrap rounded-kcp-inner bg-surface-alt px-1.5 py-0.5';
 
 interface StatusSlotProps {
   busy: boolean;
@@ -63,7 +71,25 @@ interface SearchSummaryBarProps {
 }
 
 export function SearchSummaryBar({ query }: SearchSummaryBarProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const faculties = useStore(searchStore, (state) => state.faculties);
+  const departments = useStore(searchStore, (state) => state.departments);
+  const curricula = useStore(searchStore, (state) => state.curricula);
+  const subjectOwners = useStore(searchStore, (state) => state.subjectOwners);
+  const summary = useMemo(
+    () =>
+      describeQuery(
+        query,
+        { faculties, departments, curricula, subjectOwners },
+        language,
+        t,
+      ),
+    [query, faculties, departments, curricula, subjectOwners, language, t],
+  );
+  // Each chip is referenced on its own, so the description reads the chips apart.
+  const qualifierIds = summary.qualifiers.map(
+    (_, index) => `${QUALIFIER_ID_PREFIX}${String(index)}`,
+  );
   const formOpen = useStore(searchStore, selectFormOpen);
   const busy = useStore(
     searchStore,
@@ -80,18 +106,25 @@ export function SearchSummaryBar({ query }: SearchSummaryBarProps) {
       role="region"
       tabIndex={-1}
       aria-label={t('search.bar.label')}
-      aria-describedby={`${SUMMARY_ID} ${TERM_ID} ${STATUS_ID}`}
+      aria-describedby={[SUMMARY_ID, TERM_ID, ...qualifierIds, STATUS_ID].join(
+        ' ',
+      )}
       className={`flex flex-none flex-col gap-1 border-b border-border bg-surface px-4 py-2 ${FOCUS_RING}`}
     >
-      <div className="flex items-center gap-2 text-sm text-ink">
+      {/* Top aligned, so the disclosure stays put when the name grows to two lines
+          as the reference lists arrive. */}
+      <div className="flex items-start gap-2 text-sm text-ink">
         <TabIcon
           size={16}
           strokeWidth={2}
           aria-hidden
-          className="shrink-0 text-ink-soft"
+          className="mt-1 shrink-0 text-ink-soft"
         />
-        <span id={SUMMARY_ID} className="min-w-0 flex-1 truncate">
-          {t(TAB_LABEL[query.mode])}
+        <span
+          id={SUMMARY_ID}
+          className="line-clamp-2 min-w-0 flex-1 py-0.5 break-words"
+        >
+          {summary.primary}
         </span>
         <button
           id={SEARCH_DISCLOSURE_ID}
@@ -119,15 +152,21 @@ export function SearchSummaryBar({ query }: SearchSummaryBarProps) {
         </button>
       </div>
       <div className="flex flex-wrap items-center gap-2 text-xs text-ink-soft">
-        <span
-          id={TERM_ID}
-          className="rounded-kcp-inner bg-surface-alt px-1.5 py-0.5"
-        >
+        <span id={TERM_ID} className={CHIP}>
           {fillTemplate(t('search.summary.term'), {
             semester: query.selected_semester,
             year: query.selected_year,
           })}
         </span>
+        {summary.qualifiers.map((qualifier, index) => (
+          <span
+            key={qualifierIds[index]}
+            id={qualifierIds[index]}
+            className={CHIP}
+          >
+            {qualifier}
+          </span>
+        ))}
         <span id={STATUS_ID}>
           <StatusSlot busy={busy} courses={courses} t={t} />
         </span>

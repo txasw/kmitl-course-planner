@@ -1,5 +1,5 @@
-// The label and icon of each search tab, shared by the tab bar in the form and the
-// summary bar that names the tab of the running search, so the two never disagree.
+// The label and icon of each search tab. The tab bar in the form shows both, and the
+// summary bar marks the running search with the same icon, so the two never disagree.
 
 import { GraduationCap, Hash, Layers, type LucideIcon } from 'lucide-react';
 import type { SearchTab } from '@/lib/search/formState';
