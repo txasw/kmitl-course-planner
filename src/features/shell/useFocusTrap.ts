@@ -1,7 +1,7 @@
 // Keeps keyboard focus inside the overlay, or a nested modal layer, while it is
 // open and routes Escape to a close callback. On activation it moves focus into
-// the panel and remembers the opener; on deactivation it restores focus to the
-// opener. It attaches its keydown listener to the panel element rather than the
+// the panel and remembers the opener, unless a nested layer mounted with it already
+// holds focus inside; on deactivation it restores focus to the opener. It attaches its keydown listener to the panel element rather than the
 // document, which is the correct place inside a closed shadow root: the
 // isolateEvents guard stops keys only at the shadow body above the panel, so
 // this listener still sees them, and host page scripts never do. Active focus is
@@ -105,8 +105,15 @@ export function useFocusTrap(
     if (panel === null) return;
 
     const opener = activeElementWithin(panel);
-    openerRef.current = opener instanceof HTMLElement ? opener : null;
-    panel.focus();
+    if (opener !== null && opener !== panel && panel.contains(opener)) {
+      // A nested layer that mounted in the same commit already took focus, since a child's
+      // effect runs before its parent's, as when the panel opens with a sheet or dialog
+      // shown. Focus stays in that layer, and a node inside this panel is no opener.
+      openerRef.current = null;
+    } else {
+      openerRef.current = opener instanceof HTMLElement ? opener : null;
+      panel.focus();
+    }
 
     const deciderNode: Node = panel.closest('body') ?? panel.getRootNode();
     // The decider for the latest handed off press. A press an inner surface stopped
