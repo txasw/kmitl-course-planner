@@ -12,10 +12,18 @@ afterEach(() => {
 
 // The overlay shape: a trapped panel that is also the portal root, with the dialog opened
 // from inside a live region.
-function Panel({ onOverlayEscape }: { onOverlayEscape: () => void }) {
+// It can also mount with the dialog already shown, the way the panel opens straight at a
+// dialog, so the dialog renders before its portal root exists.
+function Panel({
+  onOverlayEscape,
+  initiallyOpen = false,
+}: {
+  onOverlayEscape: () => void;
+  initiallyOpen?: boolean;
+}) {
   const [node, setNode] = useState<HTMLDivElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initiallyOpen);
   useFocusTrap(panelRef, true, onOverlayEscape);
   return (
     <div
@@ -78,6 +86,20 @@ describe('ModalDialog', () => {
     expect(screen.getByRole('heading', { name: 'Dialog title' })).toHaveFocus();
     expect(dialog.closest('[aria-live]')).toBeNull();
     expect(screen.getByTestId('panel')).toContainElement(dialog);
+  });
+
+  it('takes focus and Escape when it mounts before its portal root', () => {
+    const onOverlayEscape = vi.fn();
+    render(<Panel onOverlayEscape={onOverlayEscape} initiallyOpen />);
+    expect(screen.getByRole('heading', { name: 'Dialog title' })).toHaveFocus();
+    screen.getByRole('button', { name: 'Body action' }).focus();
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Tab' });
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Close' }), {
+      key: 'Escape',
+    });
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(onOverlayEscape).not.toHaveBeenCalled();
   });
 
   it('closes on Escape while the overlay stays open', () => {
