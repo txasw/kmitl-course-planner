@@ -149,6 +149,30 @@ describe('SuggestDialog', () => {
     }
   });
 
+  it('opens a card full size and returns focus to it', async () => {
+    renderDialog(1440);
+    await findCards();
+    const [, second] = screen.getAllByRole('button', { name: 'ดูขนาดเต็ม' });
+    if (second === undefined) throw new Error('no second card');
+    fireEvent.click(second);
+
+    expect(
+      screen.getByRole('heading', { name: 'ตัวเลือกที่ 2' }),
+    ).toHaveFocus();
+    expect(screen.getAllByRole('button', { name: 'ใช้ตารางนี้' })).toHaveLength(
+      1,
+    );
+    expect(screen.queryByRole('button', { name: 'สมดุล' })).toBeNull();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'กลับไปที่ตัวเลือกทั้งหมด' }),
+    );
+    expect(await findCards()).toHaveLength(3);
+    expect(
+      screen.getAllByRole('button', { name: 'ดูขนาดเต็ม' })[1],
+    ).toHaveFocus();
+  });
+
   it('reorders the cards when the preference changes', async () => {
     renderDialog();
     await findCards();
