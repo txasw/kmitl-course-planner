@@ -78,3 +78,31 @@ snapshots grow by about 80 bytes per grouping. A plan entry added from a subject
 search stores the widest list, bounded by the number of groupings in that one response. The
 contract auditor is unchanged, since the grouping fields are already validated by the response
 schema. The curriculum filter and the details row that read the field follow as separate changes.
+
+## Amendment, 2026-11-06: the curriculum filter and the details row
+
+The filter popover gains an open to my curriculum switch. It keeps a section when any one of its
+`offeredTo` groupings matches the student's curriculum profile: the faculty, department,
+curriculum, and class year compared through `idsEqual`, with the `x` department and curriculum
+and the class `0` read as any on the data side only. A wildcard never crosses a faculty, and a
+grouping such as the faculty 90 General Education grouping is read literally, since the
+sentinels defined for the data are `x` and class `0` alone. A section with no list, which only a
+snapshot stored before this field can be, is kept, because the filter hides only what it can
+judge. The switch carries the scope note as its accessible description, since a by_class search
+lists one grouping per section.
+
+The profile is an optional field of the preferences blob, held in the ui store and written by the
+one persistence hook, so a save never drops it. It names one real grouping, so its schema refuses
+the `x` sentinel, the search form's all option, and class year `0`; a stored profile that fails
+validation is dropped alone and the other preferences survive. The first time the switch turns on
+with no profile, an inline picker opens in the popover. It reuses the class tab's selects as
+`CurriculumFields` without the all options and without the term, prefilled from the class search
+form with its all values cleared, and the filter turns on only once a complete profile applies;
+cancelling leaves it off. A separate settings surface was rejected, since the brief allows no
+options page and the choice matters only to this filter.
+
+The full block details list the groupings under an open to row, named through the cached
+reference lists in the words the search summary uses, with the raw ids while the lists load. Its
+note says the list comes from the search the section was added from, which revalidation replays,
+because a snapshot's list belongs to that query and not to the search on screen. The compact hover
+card leaves the row out.
