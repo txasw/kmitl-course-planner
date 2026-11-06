@@ -65,3 +65,4 @@ a new record that supersedes the old one rather than editing history.
 56. [Escape routing at the shadow body](0056-escape-routing-at-the-shadow-body.md)
 57. [Collapsed course cards and the course hover preview](0057-collapsed-course-cards.md)
 58. [Touch input model](0058-touch-input-model.md)
+59. [Drop zone vocabulary](0059-drop-zone-vocabulary.md)
