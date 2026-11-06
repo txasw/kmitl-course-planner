@@ -22,9 +22,11 @@ limited to export templates, because the drag machinery never ran in portrait.
 
 ## Decision
 
-Three plan views at every tier. ตารางเรียน is the grid. วิชาที่เลือก, with the entry count in its
-label, lists one card per placed subject built on the shared section detail list, with change
-section, remove, and copy registration list actions; it is the management path that needs no drag.
+Three plan views at every tier. ตารางเรียน is the grid. วิชาที่เลือก, with the placed subject
+count in its label, lists one card per placed subject built on the shared section detail list, with
+change section, remove, and copy registration list actions; it is the management path that needs
+no drag. The label counts subjects rather than plan entries so it matches the cards: a lecture and
+practice pair is two entries but one card.
 สรุป opens on the plan's exam schedule and then shows weekly workload, free periods and credits;
 the always visible stats bar stays the at a glance line, and สรุป is its detail view rather than a
 duplicate. An exam clash marks the สรุป tab or nav item with a danger dot so the exam schedule
@@ -33,7 +35,7 @@ stays discoverable. The selected view is session state and is not persisted.
 On Medium and Wide the views are an underline tablist above the grid region, 40 px tall and 36 px
 under a `max-height: 800px` media rule so 720 px laptops keep grid height. On Compact they join the
 catalog pane in a bottom nav of four items: รายวิชา (Courses, with the result count), ตารางเรียน,
-ที่เลือก (Selected, with the entry count) and สรุป. Each item is at least 56 px tall with safe
+ที่เลือก (Selected, with the subject count) and สรุป. Each item is at least 56 px tall with safe
 area padding below it, and the count is part of each accessible name. The default Compact pane is
 ตารางเรียน when the plan has entries and รายวิชา otherwise, and an add never switches panes. Preview
 shows no tab row and no nav; it stays the poster composition from section 6.4.
