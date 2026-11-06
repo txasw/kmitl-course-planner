@@ -7,6 +7,7 @@
 
 import { X } from 'lucide-react';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_MIN } from '@/lib/ui/target';
 import type { Translate } from '@/lib/i18n/t';
 import { NO_DRAG_ARMING } from '@/features/planner/dragArming';
 
@@ -39,7 +40,7 @@ export function RemoveButton({
       aria-label={accessibleName}
       {...NO_DRAG_ARMING}
       onClick={onRemove}
-      className={`inline-flex shrink-0 items-center gap-1 rounded-kcp px-1.5 py-1 text-xs text-ink-soft hover:bg-surface hover:text-ink ${FOCUS_RING}`}
+      className={`inline-flex shrink-0 items-center gap-1 rounded-kcp px-1.5 py-1 text-xs text-ink-soft hover:bg-surface hover:text-ink ${TARGET_MIN} ${FOCUS_RING}`}
     >
       <X size={14} aria-hidden />
       <span>{label}</span>

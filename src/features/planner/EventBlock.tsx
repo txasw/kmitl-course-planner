@@ -41,6 +41,7 @@ import type { Locale, Translate } from '@/lib/i18n/t';
 import { hashColor, hashTint } from '@/lib/utils/hash-color';
 import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
 import { formatMinutes } from '@/lib/parsing/time';
+import { TARGET_MIN } from '@/lib/ui/target';
 import { buildEligibility } from '@/lib/planner/blockDensity';
 import type { PlacedSection } from './placedSection';
 import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
@@ -340,7 +341,7 @@ function EventBlockComponent({
           onClick={() => {
             onRemove(section.teachTableId);
           }}
-          className="absolute top-0.5 right-0.5 z-grid rounded bg-ink/5 p-0.5 text-ink-soft opacity-0 outline-none group-hover/block:opacity-100 group-focus-within/block:opacity-100 hover:bg-ink/10 hover:text-ink focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary"
+          className={`absolute top-0.5 right-0.5 z-grid inline-flex items-center justify-center rounded bg-ink/5 p-0.5 text-ink-soft opacity-0 outline-none group-hover/block:opacity-100 group-focus-within/block:opacity-100 hover:bg-ink/10 hover:text-ink focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary ${TARGET_MIN}`}
         >
           <X size={12} aria-hidden />
         </button>
