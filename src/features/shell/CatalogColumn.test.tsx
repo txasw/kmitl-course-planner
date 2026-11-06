@@ -357,6 +357,18 @@ describe('CatalogColumn', () => {
     expect(onOverlayEscape).toHaveBeenCalledOnce();
   });
 
+  it('leaves the Escape that ends a composition to the editor', () => {
+    installViewport(768);
+    const onOverlayEscape = vi.fn();
+    render(<OverlayHarness onOverlayEscape={onOverlayEscape} />);
+    openSheetFromToggle();
+    const sheet = screen.getByRole('dialog', { name: 'ค้นหารายวิชา' });
+
+    fireEvent.keyDown(sheet, { key: 'Escape', isComposing: true });
+    expect(uiStore.getState().sheetOpen).toBe(true);
+    expect(onOverlayEscape).not.toHaveBeenCalled();
+  });
+
   it('lets an open list inside the sheet claim Escape before the sheet', () => {
     installViewport(768);
     const onOverlayEscape = vi.fn();
