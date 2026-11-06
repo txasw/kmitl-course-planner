@@ -235,6 +235,8 @@
   "exam.midterm": "Midterm",
   "exam.final": "Final",
   "exam.selfArranged": "Arranged by instructor",
+  "exam.midterm.short": "Midterm",
+  "exam.final.short": "Final",
   "detail.meetings": "Class times",
   "detail.noMeetings": "No scheduled class",
   "detail.kindCredits": "Type and credits",

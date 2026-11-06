@@ -235,6 +235,8 @@
   "exam.midterm": "สอบกลางภาค",
   "exam.final": "สอบปลายภาค",
   "exam.selfArranged": "จัดสอบเอง",
+  "exam.midterm.short": "กลางภาค",
+  "exam.final.short": "ปลายภาค",
   "detail.meetings": "เวลาเรียน",
   "detail.noMeetings": "ไม่มีคาบเรียน",
   "detail.kindCredits": "ประเภทและหน่วยกิต",
