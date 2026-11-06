@@ -100,6 +100,12 @@ The dialog opens on its own once per new set of items, only when the student is 
   `notifiedAt`, and opening sets `notifiedAt` on every shown item.
 - It waits while a drag is active, while a popover, menu or sheet is open, while focus is inside
   the search form, and while the panel is in preview, then opens at the next idle moment in edit.
+  The catalog sheet over the grid on the medium tier counts as a sheet, and so does the catalog
+  pane below 640 px, which hides the grid the dialog points to. A hover card does not count,
+  since it opens on its own. Idle means the panel stays that way for a settle of 600 ms,
+  which any busy moment restarts, so the dialog never lands on a gesture that just ended. The
+  surfaces report themselves through an attention store that the shared popover recipe, the
+  bottom sheet and the modal dialog write, so a new popover is covered without a list to keep.
 - An offline run or a partial run never opens it. The items a partial run did record still show
   in the indicator.
 - The run that follows the first add of a new plan still executes, since the new plan becomes
