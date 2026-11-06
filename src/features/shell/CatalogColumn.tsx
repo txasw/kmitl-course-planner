@@ -12,7 +12,9 @@
 // mounted, so the session state of 6.1 is never dropped. The docked column can be hidden
 // to give the grid the full width; hidden, it leaves the flow but stays mounted, laid
 // out at its width and inert, so its scroll offset and search state wait for its return,
-// and the edge rail takes its place as the way back.
+// and the edge rail takes its place as the way back. Showing and hiding it slides it
+// from the leading edge, driven by the catalogVisibility funnels, with the drawer shadow
+// on a child of its own so the slide animates transform and opacity only.
 
 import { useLayoutEffect, useRef } from 'react';
 import { useStore } from 'zustand';
@@ -59,9 +61,9 @@ function containerClass(
     // Hidden, the column leaves the flow so the grid takes the width, but keeps its box
     // so the scroller holds its offset; visibility removes it from view and the tab order.
     // It shares the edge rail's layer, and the rail comes later in the tree, so the rail
-    // paints above it.
+    // paints above it. Shown, it is positioned too, so its slide shadow covers its box.
     const placement = catalogVisible
-      ? 'shrink-0'
+      ? 'relative shrink-0'
       : 'invisible absolute inset-y-0 left-0 z-drawer';
     return `${SURFACE} ${placement} ${DOCKED_WIDTH[tier]}`;
   }
@@ -162,7 +164,18 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
       inert={(docked && !shown) || undefined}
       className={containerClass(tier, sheetOpen, catalogVisible)}
     >
-      {docked ? <DockedHeader /> : <SheetHeader />}
+      {docked ? (
+        <>
+          <span
+            data-catalog-shadow
+            aria-hidden
+            className="pointer-events-none absolute inset-0 opacity-0 shadow-kcp"
+          />
+          <DockedHeader />
+        </>
+      ) : (
+        <SheetHeader />
+      )}
       <SearchHeader />
       {/* The catalog owns its scroll anchoring: a card opening or closing changes
           only the content below its header, and the browser must not pick an anchor
