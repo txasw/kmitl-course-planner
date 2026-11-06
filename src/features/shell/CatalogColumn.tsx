@@ -7,13 +7,20 @@
 // scrolls in its own region above a minimum of results. It mounts exactly once at every
 // width and only its container class follows the layout tier: docked beside the grid
 // from the lg tier, or a slide over left sheet below it. Switching a class on one
-// element, rather than rendering the catalog in two places, keeps a single drag surface per section and lets the drag
-// registration and the scroll offset survive a tier change. The closed sheet stays
-// mounted, so the session state of 6.1 is never dropped, and it is inert, so Tab and
-// assistive technology never reach the controls it holds off screen. The docked column can be hidden
-// to give the grid the full width; hidden, it leaves the flow but stays mounted, laid
-// out at its width and inert, so its scroll offset and search state wait for its return,
-// and the edge rail takes its place as the way back.
+// element, rather than rendering the catalog in two places, keeps a single drag surface
+// per section and lets the drag registration and the scroll offset survive a tier
+// change.
+//
+// The closed sheet stays mounted, so the session state of 6.1 is never dropped, and it
+// is inert, so Tab and assistive technology never reach the controls it holds off
+// screen. The open sheet is a labelled dialog over the grid: it takes focus as it opens
+// and keeps Tab inside it with its own focus trap, while Layout makes the grid region
+// under the scrim inert. The header above the scrim stays operable, so its toggle still
+// closes the sheet.
+//
+// The docked column can be hidden to give the grid the full width; hidden, it leaves the
+// flow but stays mounted, laid out at its width and inert, so its scroll offset and
+// search state wait for its return, and the edge rail takes its place as the way back.
 
 import { useLayoutEffect, useRef } from 'react';
 import { useStore } from 'zustand';
@@ -37,10 +44,14 @@ import {
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { CATALOG_HIDE_ID, hideCatalog } from './catalogVisibility';
 import { uiStore } from './uiStore';
+import { useFocusTrap } from './useFocusTrap';
 import { useTranslation } from './useTranslation';
 
 /** Id the header sheet toggle points its aria-controls at. */
 export const CATALOG_COLUMN_ID = 'kcp-catalog-column';
+
+/** Id of the sheet heading, which names the open sheet dialog. */
+const SHEET_TITLE_ID = 'kcp-catalog-sheet-title';
 
 const DOCKED_WIDTH: Record<DockedTier, string> = {
   lg: 'w-[22rem]',
@@ -65,7 +76,7 @@ function containerClass(
       : 'invisible absolute inset-y-0 left-0 z-drawer';
     return `${SURFACE} ${placement} ${DOCKED_WIDTH[tier]}`;
   }
-  return `${SURFACE} absolute inset-y-0 left-0 z-drawer w-[24rem] max-w-[90vw] shadow-kcp transition-transform duration-base motion-reduce:transition-none ${
+  return `${SURFACE} absolute inset-y-0 left-0 z-drawer w-[24rem] max-w-[90vw] shadow-kcp outline-none transition-transform duration-base motion-reduce:transition-none ${
     sheetOpen ? 'translate-x-0' : '-translate-x-full'
   }`;
 }
@@ -77,7 +88,7 @@ function SheetHeader() {
 
   return (
     <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-      <h3 className="text-sm font-semibold text-ink">
+      <h3 id={SHEET_TITLE_ID} className="text-sm font-semibold text-ink">
         {t('catalog.sheet.title')}
       </h3>
       {count === null ? null : (
@@ -139,6 +150,11 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
   const catalogVisible = useStore(uiStore, (state) => state.catalogVisible);
   const docked = isDockedTier(tier);
   const shown = docked ? catalogVisible : sheetOpen;
+  const sheetModal = !docked && sheetOpen;
+  const columnRef = useRef<HTMLDivElement>(null);
+  // The trap contains Tab only; it takes no Escape callback, so the press is left to the
+  // layers that own it.
+  useFocusTrap(columnRef, sheetModal);
   // While the bar exists and the form is open, the results keep a 12rem minimum, so a
   // tall form scrolls in its own region rather than pushing the results out of view.
   const keepResults = useStore(
@@ -157,7 +173,11 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
 
   return (
     <div
+      ref={columnRef}
       id={CATALOG_COLUMN_ID}
+      role={docked ? undefined : 'dialog'}
+      aria-labelledby={docked ? undefined : SHEET_TITLE_ID}
+      tabIndex={docked ? undefined : -1}
       aria-hidden={shown ? undefined : true}
       inert={!shown || undefined}
       className={containerClass(tier, sheetOpen, catalogVisible)}

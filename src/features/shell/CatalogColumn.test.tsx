@@ -277,6 +277,52 @@ describe('CatalogColumn', () => {
     expect(node).toHaveAttribute('aria-hidden', 'true');
   });
 
+  it('opens the sheet as a labelled dialog that takes focus and wraps Tab', () => {
+    installViewport(768);
+    act(() => {
+      searchStore
+        .getState()
+        .setResult({ status: 'ready', data: catalog }, null);
+    });
+    const { container } = render(<Harness />);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    act(() => {
+      uiStore.getState().setSheetOpen(true);
+    });
+    const sheet = screen.getByRole('dialog', { name: 'ค้นหารายวิชา' });
+    expect(sheet).toBe(column(container));
+    expect(sheet).toHaveFocus();
+
+    const stops = Array.from(
+      sheet.querySelectorAll<HTMLElement>('button:not([disabled]),input'),
+    ).filter(
+      (element) => element.tabIndex >= 0 && element.closest('[inert]') === null,
+    );
+    const first = stops[0];
+    const last = stops.at(-1);
+    if (first === undefined || last === undefined) {
+      throw new Error('the sheet has no tab stops');
+    }
+    last.focus();
+    fireEvent.keyDown(last, { key: 'Tab' });
+    expect(first).toHaveFocus();
+    fireEvent.keyDown(first, { key: 'Tab', shiftKey: true });
+    expect(last).toHaveFocus();
+  });
+
+  it('renders the docked column as no dialog', () => {
+    installViewport(1440);
+    act(() => {
+      uiStore.getState().setSheetOpen(true);
+    });
+    const { container } = render(<Harness />);
+    const node = column(container);
+    expect(node).not.toHaveAttribute('role');
+    expect(node).not.toHaveAttribute('tabindex');
+    expect(node).not.toHaveFocus();
+  });
+
   it('starts the hide control at the leading edge of a 48 px header row', () => {
     installViewport(1440);
     render(<Harness />);
