@@ -3,6 +3,7 @@
 // use it without importing the column that renders it.
 
 import { flushSync } from 'react-dom';
+import { focusFirst } from './restoreFocus';
 
 /**
  * Commits a visibility change, then moves focus to the control that replaces the one
@@ -11,7 +12,7 @@ import { flushSync } from 'react-dom';
  * root in the extension, where the document lookup cannot reach. The root is read
  * before the commit, because a control the commit unmounts no longer reaches it. Focus
  * does not scroll, because the replacing control is already in view where it lands.
- * Returns the target it focused, or null when the root holds none.
+ * Returns the target it focused, or null when the root holds none that can take focus.
  */
 export function commitAndFocus(
   from: Element,
@@ -21,7 +22,5 @@ export function commitAndFocus(
   const root = from.getRootNode();
   flushSync(commit);
   if (!(root instanceof Document || root instanceof ShadowRoot)) return null;
-  const target = root.getElementById(targetId);
-  target?.focus({ preventScroll: true });
-  return target;
+  return focusFirst([root.getElementById(targetId)], { preventScroll: true });
 }

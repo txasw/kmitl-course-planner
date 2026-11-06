@@ -24,7 +24,7 @@ import {
 import { BottomSheet } from '@/components/BottomSheet';
 import { planStore } from '@/features/plans/planStore';
 import { useActiveRun } from '@/features/plans/revalidationStore';
-import { activeElementWithin } from '@/features/shell/useFocusTrap';
+import { useReturnFocus } from '@/features/shell/restoreFocus';
 import { useMediaQuery } from '@/features/shell/useMediaQuery';
 import { uiStore } from '@/features/shell/uiStore';
 import { BlockDetailActions, BlockDetailBody } from './BlockDetailContent';
@@ -127,23 +127,5 @@ export function BlockDetailSurface({
     >
       {body}
     </BlockDetailPopover>
-  );
-}
-
-// Returns focus to the block when the surface closes, whichever way it closed. It acts only
-// when focus was lost with the surface, which is the case after the close button, Escape,
-// or an action inside it; an outside click that moved focus to another control keeps it
-// there. A block the remove action took out of the grid is no longer connected and is
-// skipped.
-function useReturnFocus(anchor: HTMLElement): void {
-  useEffect(
-    () => () => {
-      if (!anchor.isConnected) return;
-      const active = activeElementWithin(anchor);
-      if (active === null || active === anchor.ownerDocument.body) {
-        anchor.focus();
-      }
-    },
-    [anchor],
   );
 }
