@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import {
   render,
   screen,
@@ -11,6 +11,8 @@ import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { planStore } from '@/features/plans/planStore';
 import { searchStore } from '@/features/search/searchStore';
 import { catalogStore } from '@/features/catalog/catalogStore';
+import { uiStore } from '@/features/shell/uiStore';
+import { installViewport } from '../../../tests/support/viewport';
 import {
   makeCourse,
   makeMeeting,
@@ -61,7 +63,10 @@ afterEach(() => {
       hint: null,
     });
     catalogStore.getState().resetFilter();
+    uiStore.getState().setSheetOpen(false);
+    uiStore.getState().setCatalogVisible(true);
   });
+  vi.unstubAllGlobals();
 });
 
 describe('FeedbackStrip', () => {
@@ -198,6 +203,35 @@ describe('FeedbackStrip', () => {
     fireEvent.click(screen.getByRole('button', { name: 'แสดงในรายการ' }));
     expect(catalogStore.getState().filter.text).toBe('S1');
     expect(dragStore.getState().blocked).toBeNull();
+  });
+
+  it.each([
+    [1280, 'catalogVisible' as const],
+    [800, 'sheetOpen' as const],
+  ])('shows the catalog when revealing at %i px', (width, shown) => {
+    installViewport(width);
+    act(() => {
+      uiStore.getState().setCatalogVisible(false);
+    });
+    const blocked = makeSection({ teachTableId: 'b', subjectId: 'S1' });
+    act(() => {
+      dragStore.setState({
+        blocked: {
+          course: makeCourse({ subjectId: 'S1', sections: [blocked] }),
+          section: blocked,
+          conflicts: [
+            {
+              kind: 'duplicate',
+              blocking: { teachTableId: 'p', subjectId: 'S1', section: '900' },
+              subjectId: 'S1',
+            },
+          ],
+        },
+      });
+    });
+    render(<FeedbackStrip t={t} />);
+    fireEvent.click(screen.getByRole('button', { name: 'แสดงในรายการ' }));
+    expect(uiStore.getState()[shown]).toBe(true);
   });
 
   it('announces an add in the live region', () => {
