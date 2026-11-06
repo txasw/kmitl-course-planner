@@ -1,6 +1,7 @@
 // A single section row inside a course card. It shows the section code, a quiet
 // lecture or practice tag, each meeting's day, time, and room, the instructors, the
-// seat line, the enrollment conditions and the remark as one line each with a control
+// seat line with a demand chip when pre registrations exceed the capacity, the
+// enrollment conditions and the remark as one line each with a control
 // that shows the rest, and one status badge chosen by the rowStatus precedence. The
 // conditions and remark show on a read only row too, since they are facts about the
 // section rather than actions. A conflicting section keeps its badge, which reads as an
@@ -29,7 +30,7 @@ import { NO_DRAG_ARMING } from '@/features/planner/dragArming';
 import { ConflictCallout } from './ConflictCallout';
 import { RemarkLine } from './RemarkLine';
 import { RulesNotice } from './RulesNotice';
-import { SeatDemand } from './SeatDemand';
+import { DemandChip, SeatDemand } from './SeatDemand';
 import { StatusBadge } from './StatusBadge';
 import { meetingLabel } from './meetingFormat';
 
@@ -177,11 +178,13 @@ export function SectionRow({
             )}
           </Tooltip>
         ) : null}
-        <div
-          className="mt-1"
-          id={relation.kind === 'different_term' ? undefined : reasonId}
-        >
-          <SeatDemand demand={demand} t={t} />
+        {/* The reason id stays on the seat line alone, so a disabled rail names the seat
+            state without the demand counts. */}
+        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <div id={relation.kind === 'different_term' ? undefined : reasonId}>
+            <SeatDemand demand={demand} t={t} />
+          </div>
+          <DemandChip demand={demand} t={t} />
         </div>
         <RulesNotice
           rulesTh={section.rulesTh}
