@@ -5,7 +5,8 @@
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import type { Meeting, Seats } from '@/lib/domain/types';
 import type { SectionSnapshot } from '@/lib/domain/plan';
-import type { ChangeKind, EntryDiff } from '@/lib/planner/revalidate';
+import type { ChangeKind } from '@/lib/planner/revalidateDiff';
+import type { EntryDiff } from '@/lib/planner/revalidate';
 import { dayLabelKey } from '@/lib/i18n/dayLabel';
 import { formatMinutes } from '@/lib/parsing/time';
 
