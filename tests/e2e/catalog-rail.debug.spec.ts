@@ -6,7 +6,8 @@ import type { Locator, Page } from '@playwright/test';
 // The edge rail of ADR-0048 on the docked tiers: it takes the hidden column's place with
 // its icon on the hide control's icon, it restores the column with the scroll offset the
 // column kept, it takes no pointer events during a drag, and a tap opens it on a touch
-// screen.
+// screen. Hovering it peeks a shadowed edge of the column once the pointer has moved off it
+// after a hide, and the column slides in and out by transform unless motion is reduced.
 
 const COLUMN = '#kcp-catalog-column';
 const HIDE = 'ซ่อนรายวิชา';
@@ -51,6 +52,23 @@ async function scrollCatalog(page: Page): Promise<number> {
 
 async function catalogOffset(page: Page): Promise<number> {
   return page.locator(SCROLLER).evaluate((node) => node.scrollTop);
+}
+
+const GHOST = '.kcp-rail-ghost';
+
+// The hint waits the 80 ms intent delay, then fades in over the 150 ms fast duration.
+const PEEK_SETTLED_MS = 80 + 150 + 70;
+
+/** The slide effects running on the column, which the show and hide funnels start. */
+async function slideEffects(page: Page): Promise<number> {
+  return page
+    .locator(COLUMN)
+    .evaluate(
+      (node) =>
+        node
+          .getAnimations()
+          .filter((effect) => effect.id === 'kcp-catalog-slide').length,
+    );
 }
 
 for (const viewport of [
@@ -117,6 +135,81 @@ for (const viewport of [
     });
   });
 }
+
+test.describe('peek and slide at 1366 by 768', () => {
+  test.use({ viewport: { width: 1366, height: 768 } });
+
+  test('the peek waits for the pointer to move off the rail after a hide', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    await page.getByRole('button', { name: HIDE }).click();
+    const rail = page.getByRole('button', { name: RAIL });
+    await expect(rail).toHaveAttribute('data-peek-held');
+
+    await page.waitForTimeout(PEEK_SETTLED_MS);
+    await expect(page.locator(GHOST)).toHaveCSS('opacity', '0');
+
+    // A point over the grid, well clear of the rail.
+    await page.mouse.move(700, 400);
+    await expect(rail).not.toHaveAttribute('data-peek-held');
+    await rail.hover();
+    await page.waitForTimeout(PEEK_SETTLED_MS);
+    await expect(page.locator(GHOST)).toHaveCSS('opacity', '1');
+    await expect(page.locator(GHOST)).toHaveCSS('transform', 'none');
+  });
+
+  test('the column slides by transform and rests with none', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    await page.getByRole('button', { name: HIDE }).click();
+    const rail = page.getByRole('button', { name: RAIL });
+    await expect(rail).toBeVisible();
+    await expect.poll(() => slideEffects(page)).toBe(0);
+
+    await page.waitForTimeout(PAST_POINTER_GUARD_MS);
+    await rail.click();
+    expect(await slideEffects(page)).toBeGreaterThan(0);
+    await expect.poll(() => slideEffects(page)).toBe(0);
+    await expect(page.locator(COLUMN)).toHaveCSS('transform', 'none');
+    await expect(page.locator(COLUMN)).toHaveCSS('visibility', 'visible');
+  });
+
+  test('with reduced motion the column shows on the next frame', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.getByRole('button', { name: HIDE }).click();
+    const rail = page.getByRole('button', { name: RAIL });
+    await expect(rail).toBeVisible();
+    expect(await slideEffects(page)).toBe(0);
+
+    await page.waitForTimeout(PAST_POINTER_GUARD_MS);
+    await rail.click();
+    const shown = await page.locator(COLUMN).evaluate(
+      (node) =>
+        new Promise<{ visibility: string; transform: string; effects: number }>(
+          (resolve) => {
+            requestAnimationFrame(() => {
+              const style = getComputedStyle(node);
+              resolve({
+                visibility: style.visibility,
+                transform: style.transform,
+                effects: node.getAnimations().length,
+              });
+            });
+          },
+        ),
+    );
+    expect(shown).toEqual({
+      visibility: 'visible',
+      transform: 'none',
+      effects: 0,
+    });
+  });
+});
 
 test.describe('on a touch screen at 1180 by 820', () => {
   test.use({ viewport: { width: 1180, height: 820 }, hasTouch: true });
