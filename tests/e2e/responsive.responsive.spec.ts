@@ -9,6 +9,7 @@ import {
   waitForResultsInput,
 } from './support/fixtures';
 import { denseSubjectId } from './support/denseCatalog';
+import { addCourse, block } from './support/synthetic';
 import {
   LONG_PRESS_MS,
   longPress,
@@ -23,10 +24,11 @@ import type { Locator, Page } from '@playwright/test';
 // returned to the launcher, the header keeps close and preview in view and working at
 // the device width and at 320 px, the touch helper delivers real touch events, the edit
 // grid keeps its derived minimum width, a tapped block opens its details as a bottom
-// sheet, and the controls a finger reaches are 44 px targets, since both projects are
-// coarse pointers. The tablet holds the catalog in a sheet that is modal over the grid
-// and closes alone on Escape. The phone, below 640 px, shows one pane at a time behind a
-// bottom nav, so the catalog and the timetable each take the whole body in turn.
+// sheet, the controls a finger reaches are 44 px targets, since both projects are
+// coarse pointers, and the feedback strip's chips stay tappable over the open catalog.
+// The tablet holds the catalog in a sheet that is modal over the grid and closes alone
+// on Escape. The phone, below 640 px, shows one pane at a time behind a bottom nav, so
+// the catalog and the timetable each take the whole body in turn.
 
 const LAUNCHER = 'เปิด Course Planner for KMITL';
 // A grid block carries a data-teach-table-id; the catalog rows do not.
@@ -393,6 +395,56 @@ test('an add made over the covered timetable is confirmed once by a toast that l
       : page.getByRole('button', { name: /^รายวิชา/ }),
   ).toBeFocused();
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
+});
+
+// The reserved id 90000010 serves Exam Course A and Exam Course B, whose section 901
+// clashes with A's midterm while section 902 fits. With the catalog open, the sheet on
+// the tablet and the catalog pane on the phone, the blocked add of B 901 floats the
+// strip over it, above the scrim, the add toast A left, and the bottom nav, so its
+// alternative chip takes focus and a finger.
+test('the strip chips stay tappable over the open catalog', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  const catalog = await openCatalog(page);
+  await catalog.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
+  await catalog.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000010');
+  await catalog.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await expect(catalog.getByText('90000011').first()).toBeVisible({
+    timeout: 15_000,
+  });
+  await waitForResultsInput(page);
+
+  await addCourse(page, '90000010');
+  await expect(page.getByText(/^เพิ่ม 90000010 กลุ่มเรียน/)).toBeVisible();
+  await addCourse(page, '90000011');
+
+  const chip = page.getByRole('button', {
+    name: 'กลุ่มเรียน 902',
+    exact: true,
+  });
+  await expect(chip).toBeFocused();
+  await expect(chip).toBeInViewport({ ratio: 1 });
+  // The chip is the element a tap at its centre lands on: no scrim, sheet, toast, or
+  // nav covers it.
+  expect(
+    await chip.evaluate((node) => {
+      const box = node.getBoundingClientRect();
+      const root = node.getRootNode();
+      if (!(root instanceof ShadowRoot)) return false;
+      const hit = root.elementFromPoint(
+        box.left + box.width / 2,
+        box.top + box.height / 2,
+      );
+      return hit !== null && node.contains(hit);
+    }),
+  ).toBe(true);
+
+  await chip.tap();
+  await expect(page.locator(block('910003'))).toHaveCount(1);
+  await expect(page.locator(block('910002'))).toHaveCount(0);
+  // The catalog stays open for the next pick.
+  await expect(catalog).toBeVisible();
 });
 
 // The coarse pointer target from the --kcp-target-touch token.
