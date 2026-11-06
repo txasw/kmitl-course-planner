@@ -30,8 +30,10 @@ export interface ExamSubject {
   changed: boolean;
 }
 
-/** Another placed subject whose exam of the same kind collides with a row. */
+/** Another placed subject whose exam of the same kind collides with a row, named by the
+ * first of its sections that collides, so a pair that shares the window is listed once. */
 export interface ExamClash {
+  teachTableId: string;
   subjectId: string;
   section: string;
   nameTh: string;
@@ -147,9 +149,7 @@ function kindRows(
     for (const overlap of clashes.get(item.section.teachTableId) ?? []) {
       const other = byId.get(overlap.blocking.teachTableId);
       const known = row.clashesWith.some(
-        (clash) =>
-          clash.subjectId === overlap.blocking.subjectId &&
-          clash.section === overlap.blocking.section,
+        (clash) => clash.subjectId === overlap.blocking.subjectId,
       );
       if (
         overlap.kind !== kind ||
