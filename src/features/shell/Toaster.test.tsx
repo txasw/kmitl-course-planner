@@ -17,6 +17,7 @@ import {
 } from '../../../tests/support/plan-store';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { swipe } from '../../../tests/support/swipe';
+import { installViewport } from '../../../tests/support/viewport';
 import { Toaster } from './Toaster';
 import { toastStore } from './toastStore';
 import { uiStore } from './uiStore';
@@ -40,11 +41,13 @@ function removeRecord(): UndoRecord {
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals();
   act(() => {
     toastStore.getState().dismiss();
     resetPlanStore();
     uiStore.getState().close();
     uiStore.getState().setLanguage('th');
+    uiStore.getState().setViewMode('edit');
   });
 });
 
@@ -196,12 +199,36 @@ describe('Toaster', () => {
   });
 
   it('keeps its edge offsets or the device safe area insets, whichever is larger', () => {
+    installViewport(1366);
+    act(() => {
+      uiStore.getState().open();
+    });
     const { container } = render(<Toaster />);
     expect(container.querySelector('[aria-live="polite"]')).toHaveClass(
       'bottom-[max(16px,var(--kcp-safe-bottom))]',
       'pr-[max(16px,var(--kcp-safe-right))]',
       'pl-[max(16px,var(--kcp-safe-left))]',
     );
+  });
+
+  it('rises above the phone nav while the panel is open in edit mode', () => {
+    installViewport(390);
+    const { container } = render(<Toaster />);
+    const region = container.querySelector('[aria-live="polite"]');
+    const ABOVE_NAV = 'bottom-[calc(72px+var(--kcp-safe-bottom))]';
+    const AT_FOOT = 'bottom-[max(16px,var(--kcp-safe-bottom))]';
+    // Over the bare host page there is no nav to clear.
+    expect(region).toHaveClass(AT_FOOT);
+    act(() => {
+      uiStore.getState().open();
+    });
+    expect(region).toHaveClass(ABOVE_NAV);
+    expect(region).not.toHaveClass(AT_FOOT);
+    // Preview has no nav.
+    act(() => {
+      uiStore.getState().setViewMode('preview');
+    });
+    expect(region).toHaveClass(AT_FOOT);
   });
 
   it('marks the live region with the active language', () => {
