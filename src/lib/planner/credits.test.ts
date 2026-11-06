@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { summarizeCredits, totalCredits } from './credits';
+import {
+  summarizeCredits,
+  summarizeWeeklyHours,
+  totalCredits,
+} from './credits';
 
 describe('summarizeCredits', () => {
   it('returns zero for an empty plan', () => {
@@ -23,5 +27,36 @@ describe('summarizeCredits', () => {
         { subjectId: 'C', credit: 4 },
       ]),
     ).toBe(8);
+  });
+});
+
+describe('summarizeWeeklyHours', () => {
+  it('returns zero hours for an empty plan', () => {
+    expect(summarizeWeeklyHours([])).toEqual({
+      lecture: 0,
+      practice: 0,
+      selfStudy: 0,
+      unstated: 0,
+    });
+  });
+
+  it('counts a subject once when both halves of its pair are placed', () => {
+    expect(
+      summarizeWeeklyHours([
+        { subjectId: 'X', creditStr: '3(2-3-6)' },
+        { subjectId: 'X', creditStr: '3(2-3-6)' },
+        { subjectId: 'Y', creditStr: '3(3-0-6)' },
+      ]),
+    ).toEqual({ lecture: 5, practice: 3, selfStudy: 12, unstated: 0 });
+  });
+
+  it('leaves a subject with no stated hours out of the sums and counts it apart', () => {
+    expect(
+      summarizeWeeklyHours([
+        { subjectId: 'A', creditStr: '1(0-2-1)' },
+        { subjectId: 'B', creditStr: '3' },
+        { subjectId: 'C', creditStr: '' },
+      ]),
+    ).toEqual({ lecture: 0, practice: 2, selfStudy: 1, unstated: 2 });
   });
 });
