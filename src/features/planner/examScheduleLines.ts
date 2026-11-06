@@ -8,18 +8,13 @@
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
 import type { ExamSchedule } from '@/lib/planner/examSchedule';
 import type { ExamKind } from '@/lib/planner/examOverlap';
-import { subjectText } from '@/lib/export/planText';
+import { subjectText, type PlanTextExamLine } from '@/lib/export/planText';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import { formatExamRange } from './examText';
 
-export interface ExamScheduleLine {
-  /** A stable key, unique within the schedule. */
+/** A line of the schedule: the text export's exam line plus a key unique within it. */
+export interface ExamScheduleLine extends PlanTextExamLine {
   key: string;
-  /** The exam kind label, or the arranged by instructor label. */
-  label: string;
-  /** The formatted window, or null for a subject with no dated exam. */
-  when: string | null;
-  subject: string;
 }
 
 const KIND_LABEL: Record<ExamKind, TranslationKey> = {

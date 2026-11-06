@@ -108,7 +108,8 @@ export function PlannerPanel() {
     () => posterHonesty({ entries, timeConflicts, examConflicts }),
     [entries, timeConflicts, examConflicts],
   );
-  // The exam schedule the poster lists when the show exams option is on (ADR-0064).
+  // The exam schedule the poster and the text export list when the show exams option is
+  // on (ADR-0064).
   const examSchedule = useMemo(() => buildExamSchedule(entries), [entries]);
   const subjectGroups = useMemo(
     () => groupEntriesBySubject(entries),
@@ -277,6 +278,7 @@ export function PlannerPanel() {
           template={template}
           sections={sections}
           displayOptions={displayOptions}
+          examSchedule={examSchedule}
         />
       ) : null}
       {!isPreview && showTabs ? (

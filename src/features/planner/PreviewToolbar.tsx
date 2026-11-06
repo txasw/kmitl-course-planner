@@ -13,6 +13,7 @@
 import type { RefObject } from 'react';
 import { Clipboard, ClipboardCopy, Download } from 'lucide-react';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
+import type { ExamSchedule } from '@/lib/planner/examSchedule';
 import { formatPlanText } from '@/lib/export/planText';
 import { downloadBlob } from '@/lib/utils/download';
 import { planExportBaseName } from '@/lib/planner/exportName';
@@ -22,6 +23,7 @@ import { useTranslation } from '@/features/shell/useTranslation';
 import { toastStore } from '@/features/shell/toastStore';
 import { capturePng } from './capture';
 import { DisplayOptionsPopover } from './DisplayOptionsPopover';
+import { examScheduleLines } from './examScheduleLines';
 import { PreShareNotice } from './PreShareNotice';
 import type { PlacedSection } from './placedSection';
 import { FOCUS_RING } from '@/lib/ui/focus';
@@ -36,6 +38,8 @@ interface PreviewToolbarProps {
   sections: PlacedSection[];
   /** The active display options, applied to the text export as to the poster. */
   displayOptions: DisplayOptions;
+  /** The plan's exam schedule, which the text export appends when the option is on. */
+  examSchedule: ExamSchedule;
 }
 
 const BUTTON = `inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm text-ink hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`;
@@ -54,6 +58,7 @@ export function PreviewToolbar({
   template,
   sections,
   displayOptions,
+  examSchedule,
 }: PreviewToolbarProps) {
   const { t, language } = useTranslation();
   const activePlan = useActivePlan();
@@ -97,6 +102,7 @@ export function PreviewToolbar({
       year: activePlan?.year ?? '',
       semester: activePlan?.semester ?? '',
       sections,
+      exams: examScheduleLines(examSchedule, displayOptions, language, t),
       options: displayOptions,
       locale: language,
       t,
