@@ -106,6 +106,21 @@ describe('the live region inventory', () => {
     },
   );
 
+  it('mounts the announcer once in preview, for the settle of a manual check', () => {
+    installViewport(1366);
+    act(() => {
+      uiStore.getState().setViewMode('preview');
+    });
+    try {
+      const { container } = render(<Layout />, { wrapper });
+      expect(container.querySelectorAll(ANNOUNCER)).toHaveLength(1);
+    } finally {
+      act(() => {
+        uiStore.getState().setViewMode('edit');
+      });
+    }
+  });
+
   it('keeps the announcer reachable while the sheet covers the grid', () => {
     installViewport(768);
     act(() => {

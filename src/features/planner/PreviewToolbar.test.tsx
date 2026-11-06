@@ -19,6 +19,9 @@ import {
 import { DEFAULT_TEMPLATE } from '@/lib/planner/exportTemplates';
 import { PreviewToolbar } from './PreviewToolbar';
 import type { PlacedSection } from './placedSection';
+import { revalidationStore } from '@/features/plans/revalidationStore';
+import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
+import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import {
   makePlanEntry,
   makeSection,
@@ -55,24 +58,28 @@ const section: PlacedSection = {
 
 const posterRef: RefObject<HTMLDivElement | null> = { current: null };
 
+// The verification status in the toolbar reads the search deps for its retry send.
 function renderToolbar(
   displayOptions: DisplayOptions = DEFAULT_DISPLAY_OPTIONS,
   examSchedule: ExamSchedule = buildExamSchedule([]),
 ) {
   render(
-    <PreviewToolbar
-      posterRef={posterRef}
-      template={DEFAULT_TEMPLATE}
-      sections={[section]}
-      displayOptions={displayOptions}
-      examSchedule={examSchedule}
-    />,
+    <SearchDepsProvider value={fakeSearchDeps()}>
+      <PreviewToolbar
+        posterRef={posterRef}
+        template={DEFAULT_TEMPLATE}
+        sections={[section]}
+        displayOptions={displayOptions}
+        examSchedule={examSchedule}
+      />
+    </SearchDepsProvider>,
   );
 }
 
 afterEach(() => {
   cleanup();
   resetPlanStore();
+  revalidationStore.setState({ runs: {}, updatesOpen: false });
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -184,6 +191,40 @@ describe('PreviewToolbar', () => {
     // The sharing actions stay available beside the notice, so it never blocks an export.
     expect(
       screen.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' }),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps an offline check and its retry in the toolbar, so preview never hides them', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry({ verifyStatus: 'unverified' })], {
+        id: 'p1',
+      });
+      revalidationStore
+        .getState()
+        .setRun('p1', { status: 'offline', report: null });
+    });
+    renderToolbar();
+    const toolbar = screen.getByRole('toolbar');
+    expect(
+      within(toolbar).getByText('ยังตรวจสอบไม่ได้ แสดงข้อมูลที่บันทึกไว้'),
+    ).toBeInTheDocument();
+    expect(
+      within(toolbar).getByRole('button', { name: 'ลองอีกครั้ง' }),
+    ).toBeInTheDocument();
+  });
+
+  it('offers check again in the toolbar after a clean check', () => {
+    act(() => {
+      seedActivePlan(
+        [makePlanEntry({ lastVerifiedAt: new Date().toISOString() })],
+        { id: 'p1' },
+      );
+    });
+    renderToolbar();
+    const toolbar = screen.getByRole('toolbar');
+    expect(within(toolbar).getByText(/ตรวจสอบแล้ว/)).toBeInTheDocument();
+    expect(
+      within(toolbar).getByRole('button', { name: 'ตรวจสอบอีกครั้ง' }),
     ).toBeInTheDocument();
   });
 
