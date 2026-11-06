@@ -8,10 +8,11 @@
 // or moves it to another slot. A custom collision detection resolves overlapping drop
 // targets by an explicit priority. A mouse drag starts after a short distance, so a
 // click on a row or block button is never a drag, and a touch drag starts after a long
-// press, so a swipe on a drag surface scrolls (ADR-0058).
+// press, so a swipe on a drag surface scrolls (ADR-0058). A touch drag lifts the grab
+// card clear of the finger and marks its start with a short vibration.
 
 import type { CSSProperties, ReactNode } from 'react';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -38,9 +39,10 @@ import { DragCard } from './DragCard';
 import { ReasonChip } from './ReasonChip';
 import { RemoveZone, REMOVE_ZONE_ID } from './RemoveZone';
 import { resolveCourseForSubject } from './resolveCourse';
-import { snapDragCardToCursor } from './snapToCursor';
+import { isTouchEvent, snapDragCardToCursor } from './snapToCursor';
 import { prioritizedCollision } from './collision';
 import { usePlannerSensors } from './usePlannerSensors';
+import { vibrateOnDragStart } from './touchInput';
 
 interface SectionDragData {
   course: Course;
@@ -154,6 +156,8 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
   const active = useStore(dragStore, (state) => state.active);
   const courseDrag = useStore(dragStore, (state) => state.courseDrag);
   const blockMove = useStore(dragStore, (state) => state.blockMove);
+  // Whether the live drag was started by a finger, which lifts the grab card above it.
+  const [touchDrag, setTouchDrag] = useState(false);
 
   const handleStart = useCallback((event: DragStartEvent) => {
     const data = event.active.data.current;
@@ -174,6 +178,11 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
       drag.startCourse(data.course, placed);
     } else {
       return;
+    }
+    const touch = isTouchEvent(event.activatorEvent);
+    setTouchDrag(touch);
+    if (touch) {
+      vibrateOnDragStart();
     }
     // Freeze the frame the grid shows now, the same frame the planner panel derives,
     // so the slots this drag paints hold still until it ends (ADR-0050).
@@ -329,18 +338,25 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
         modifiers={[snapDragCardToCursor]}
         style={DRAG_OVERLAY_STYLE}
       >
-        {active !== null ? (
-          <div className="flex flex-col items-start gap-1">
-            <DragCard section={active.section} />
-            {active.placement.ok ? null : <ReasonChip active={active} />}
+        {/* dnd-kit measures the overlay's only child and the snap modifier anchors that
+            box at the pointer, so the touch lift sits one level down, where its translate
+            moves the card without moving the measured box. */}
+        <div>
+          <div className={touchDrag ? 'kcp-grab-lift' : undefined}>
+            {active !== null ? (
+              <div className="flex flex-col items-start gap-1">
+                <DragCard section={active.section} />
+                {active.placement.ok ? null : <ReasonChip active={active} />}
+              </div>
+            ) : blockMove !== null ? (
+              <DragCard section={blockMove.section} />
+            ) : courseDrag !== null ? (
+              <div className="inline-flex items-center gap-1.5 rounded-kcp bg-ink px-2 py-1 text-xs font-semibold text-surface shadow-kcp">
+                {courseDrag.course.subjectId}
+              </div>
+            ) : null}
           </div>
-        ) : blockMove !== null ? (
-          <DragCard section={blockMove.section} />
-        ) : courseDrag !== null ? (
-          <div className="inline-flex items-center gap-1.5 rounded-kcp bg-ink px-2 py-1 text-xs font-semibold text-surface shadow-kcp">
-            {courseDrag.course.subjectId}
-          </div>
-        ) : null}
+        </div>
       </DragOverlay>
     </DndContext>
   );

@@ -15,3 +15,14 @@ export const TOUCH_TOLERANCE_PX = 8;
 
 /** Time a finger is held before the surface reads as pressed, ahead of the drag. */
 export const PRESS_FEEDBACK_MS = 120;
+
+/** Length of the vibration that marks a touch drag starting, where one is offered. */
+export const DRAG_START_VIBRATION_MS = 10;
+
+/** Mark a touch drag starting with a short vibration. A browser without the vibration
+ * API, such as Safari, skips it. */
+export function vibrateOnDragStart(): void {
+  if ('vibrate' in navigator) {
+    navigator.vibrate(DRAG_START_VIBRATION_MS);
+  }
+}

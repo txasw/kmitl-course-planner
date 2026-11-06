@@ -3,7 +3,9 @@
 // dnd-kit positions the overlay from the measured node's top-left plus the pointer
 // delta, and the section grip stretches to the full row height, so without this the
 // card would sit above the pointer by half a row. Anchoring the top-left (not the
-// centre) keeps the card at the cursor with the reason chip trailing below it.
+// centre) keeps the card at the cursor with the reason chip trailing below it. A touch
+// drag anchors the same point, and the overlay content lifts itself above the finger
+// with the kcp-grab-lift class, since only the content knows its own size (ADR-0058).
 
 import type { Modifier } from '@dnd-kit/core';
 
