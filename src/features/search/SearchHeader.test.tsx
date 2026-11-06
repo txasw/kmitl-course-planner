@@ -133,6 +133,43 @@ describe('SearchHeader', () => {
     expect(disclosure).toHaveFocus();
   });
 
+  it('clamps a long category name and keeps the scope chip whole', () => {
+    const longName =
+      '90641xxx กลุ่มวิชาเลือกเสรีด้านนวัตกรรมการผลิตขั้นสูงและการจัดการอุตสาหกรรมเพื่อความยั่งยืนของชุมชน';
+    const categoryQuery: TeachTableQuery = {
+      mode: 'by_subject_owner_id',
+      selected_year: '2569',
+      selected_semester: '2',
+      search_all_faculty: true,
+      selected_subject_owner_id: '77',
+    };
+    renderHeader();
+    act(() => {
+      searchStore.getState().setSubjectOwners({
+        status: 'ready',
+        data: [
+          {
+            TEACH_TABLE_SUBJECT_OWNER_ID: '77',
+            TEACH_TABLE_SUBJECT_OWNER_NAME_MAIN_PAGE_TH: longName,
+            TEACH_TABLE_SUBJECT_OWNER_NAME_MAIN_PAGE_EN: longName,
+          },
+        ],
+      });
+      searchStore.getState().startQuery(categoryQuery, 'user');
+    });
+    const bar = screen.getByRole('region', { name: 'การค้นหาปัจจุบัน' });
+    const primary = screen.getByText(`หมวดวิชา ${longName}`);
+    expect(primary).toHaveClass('line-clamp-2');
+    expect(primary).not.toHaveAttribute('title');
+    const chip = screen.getByText('ทุกคณะ');
+    expect(chip).toHaveClass('whitespace-nowrap', 'shrink-0');
+    expect(chip).not.toHaveClass('truncate');
+    expect(primary).not.toContainElement(chip);
+    expect(bar).toHaveAccessibleDescription(
+      `หมวดวิชา ${longName} ภาค 2/2569 ทุกคณะ กำลังค้นหารายวิชา`,
+    );
+  });
+
   it('ignores the second click of a double click on the disclosure', () => {
     renderHeader();
     act(() => {
