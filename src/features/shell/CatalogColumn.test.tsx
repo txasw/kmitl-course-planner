@@ -12,6 +12,7 @@ import type * as DndKit from '@dnd-kit/core';
 import type { UniqueIdentifier, UseDraggableArguments } from '@dnd-kit/core';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
+import { httpError } from '@/lib/utils/result';
 import { searchStore } from '@/features/search/searchStore';
 import { catalogStore } from '@/features/catalog/catalogStore';
 import { EMPTY_DISCLOSURE } from '@/lib/catalog/cardDisclosure';
@@ -293,6 +294,43 @@ describe('CatalogColumn', () => {
     const node = scroller(container);
     expect(node).toHaveAttribute('data-catalog-scroller');
     expect(node).toHaveClass('[overflow-anchor:none]');
+  });
+
+  it('makes the results a tab stop only while they hold no control', () => {
+    installViewport(1440);
+    render(<Harness />);
+    const results = screen.getByRole('region', { name: 'ผลการค้นหา' });
+    // The idle hint holds no control, so the scroller takes focus itself.
+    expect(results).toHaveAttribute('tabindex', '0');
+
+    act(() => {
+      searchStore.getState().setResult({ status: 'loading' }, null);
+    });
+    expect(results).toHaveAttribute('tabindex', '0');
+
+    act(() => {
+      searchStore
+        .getState()
+        .setResult(
+          { status: 'ready', data: { ...catalog, courses: [] } },
+          null,
+        );
+    });
+    expect(results).toHaveAttribute('tabindex', '0');
+
+    // The listed courses and the error retry take focus, so the scroller adds no stop.
+    act(() => {
+      searchStore
+        .getState()
+        .setResult({ status: 'ready', data: catalog }, null);
+    });
+    expect(results).not.toHaveAttribute('tabindex');
+    act(() => {
+      searchStore
+        .getState()
+        .setResult({ status: 'error', error: httpError(500, 'boom') }, null);
+    });
+    expect(results).not.toHaveAttribute('tabindex');
   });
 
   it('keeps the drag registrations and the scroll offset across tier changes', () => {
