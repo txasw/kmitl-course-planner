@@ -51,9 +51,10 @@ function catalogColumn(container: HTMLElement): HTMLElement {
 }
 
 // The grid region may be the hidden pane, so the lookup includes hidden nodes.
+// The week grid, or below 640 px the day view grid named for the day it shows.
 function gridRegion(): HTMLElement {
   const grid = screen.getByRole('group', {
-    name: 'ตารางเรียนรายสัปดาห์',
+    name: /^ตารางเรียน(รายสัปดาห์|วัน)/,
     hidden: true,
   });
   const region = grid.closest<HTMLElement>('.p-4');

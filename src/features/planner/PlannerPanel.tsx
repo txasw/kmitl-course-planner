@@ -5,7 +5,8 @@
 // summary arrive with the shelf. In edit mode the plan view of ADR-0049 switches the
 // region between the timetable and the selected courses list: through the tabs above
 // the region on the medium and wide tiers, and through the bottom nav below 640 px, where
-// the region carries no tabs and so no tabpanel semantics.
+// the region carries no tabs and so no tabpanel semantics. A timetable narrower than
+// 640 px reads one day at a time through the day view.
 
 import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { useStore } from 'zustand';
@@ -35,9 +36,7 @@ import { dragStore, selectDragging } from './dragStore';
 import { BlockDetailSurface } from './BlockDetailSurface';
 import { BlockContextMenu } from './BlockContextMenu';
 import { FeedbackStrip } from './FeedbackStrip';
-import { GridEmptyState } from './GridEmptyState';
 import { GridFooter } from './GridFooter';
-import { GridScroller } from './GridScroller';
 import { PlanViewTabs, planViewPanelId, planViewTabId } from './PlanViewTabs';
 import { type PosterData } from './PreviewPoster';
 import { PreviewToolbar } from './PreviewToolbar';
@@ -47,8 +46,8 @@ import {
   groupEntriesBySubject,
 } from './SelectedCoursesList';
 import { TemplateGallery } from './TemplateGallery';
+import { TimetableView } from './TimetableView';
 import { UnscheduledShelf } from './UnscheduledShelf';
-import { WeeklyGrid } from './WeeklyGrid';
 
 export function PlannerPanel() {
   const { t, language } = useTranslation();
@@ -306,29 +305,23 @@ export function PlannerPanel() {
         </div>
       ) : (
         <div {...panelProps} className="flex min-h-0 flex-1 flex-col gap-2">
-          <GridScroller>
-            {(fontPx) => (
-              <>
-                <WeeklyGrid
-                  sections={scheduled}
-                  window={frame.window}
-                  days={frame.days}
-                  locale={language}
-                  t={t}
-                  editable
-                  onRemove={handleRemove}
-                  conflictIds={conflictIds}
-                  examConflictIds={examConflictIds}
-                  examOverlaps={examConflicts}
-                  onOpenDetail={openDetail}
-                  onContextMenu={openContextMenu}
-                  detailOpen={detail !== null}
-                  fontPx={fontPx}
-                />
-                {sections.length === 0 ? <GridEmptyState t={t} /> : null}
-              </>
-            )}
-          </GridScroller>
+          <TimetableView
+            sections={scheduled}
+            frame={frame}
+            timeConflicts={timeConflicts}
+            planEmpty={sections.length === 0}
+            grid={{
+              locale: language,
+              t,
+              onRemove: handleRemove,
+              conflictIds,
+              examConflictIds,
+              examOverlaps: examConflicts,
+              onOpenDetail: openDetail,
+              onContextMenu: openContextMenu,
+              detailOpen: detail !== null,
+            }}
+          />
           {unscheduled.length > 0 ? (
             <UnscheduledShelf
               sections={unscheduled}

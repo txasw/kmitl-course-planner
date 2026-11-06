@@ -1,19 +1,44 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { useState } from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  cleanup,
+  act,
+} from '@testing-library/react';
+import { planStore } from '@/features/plans/planStore';
+import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
+import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { createTranslator } from '@/lib/i18n/t';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import { dayChipDays, dayFlags } from '@/lib/planner/dayView';
 import { planConflicts } from '@/lib/planner/planConflicts';
 import {
   makeMeeting,
+  makePlanEntry,
   makeSection,
+  makeSnapshot,
 } from '../../../tests/support/domain-builders';
+import { fakeSearchDeps } from '../../../tests/support/searchDeps';
+import { installViewport } from '../../../tests/support/viewport';
 import { DayChips } from './DayChips';
+import { dragStore } from './dragStore';
+import { PlannerDnd } from './PlannerDnd';
+import { PlannerPanel } from './PlannerPanel';
 
 const t = createTranslator('th');
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+  vi.useRealTimers();
+  act(() => {
+    planStore.setState({ entries: [] });
+    dragStore.getState().clearActive();
+    dragStore.getState().clearBlockMove();
+  });
+});
 
 // Monday has a time conflict between two sections, Wednesday a single class, and
 // Saturday a class, so the row offers the week plus Saturday.
@@ -111,5 +136,130 @@ describe('DayChips', () => {
     expect(chip('วันจันทร์ มีรายการชนกัน')).toHaveFocus();
     fireEvent.keyDown(chip('วันจันทร์ มีรายการชนกัน'), { key: 'End' });
     expect(chip('วันเสาร์ มีเรียน')).toHaveAttribute('aria-checked', 'true');
+  });
+});
+
+// Two subjects: one on Wednesday morning and one on Friday afternoon.
+function seedPlan(): void {
+  act(() => {
+    planStore.setState({
+      entries: [
+        makePlanEntry({
+          teachTableId: 'wed',
+          snapshot: makeSnapshot({
+            teachTableId: 'wed',
+            subjectId: '90000001',
+            meetings: [makeMeeting({ day: 3, startMin: 540, endMin: 720 })],
+          }),
+        }),
+        makePlanEntry({
+          teachTableId: 'fri',
+          snapshot: makeSnapshot({
+            teachTableId: 'fri',
+            subjectId: '90000002',
+            meetings: [makeMeeting({ day: 5, startMin: 780, endMin: 900 })],
+          }),
+        }),
+      ],
+    });
+  });
+}
+
+function renderPanel() {
+  return render(
+    <SearchDepsProvider value={fakeSearchDeps()}>
+      <PanelPortalContext.Provider value={document.body}>
+        <PlannerDnd>
+          <PlannerPanel />
+        </PlannerDnd>
+      </PanelPortalContext.Provider>
+    </SearchDepsProvider>,
+  );
+}
+
+function block(subjectId: string): HTMLElement | null {
+  return screen.queryByRole('button', { name: new RegExp(subjectId) });
+}
+
+describe('DayView', () => {
+  it('opens on the first day with a class below 640 px, one day at a time', () => {
+    installViewport(390);
+    seedPlan();
+    renderPanel();
+    expect(
+      screen.getByRole('radiogroup', { name: 'วันที่แสดง' }),
+    ).toBeVisible();
+    expect(chip('วันพุธ มีเรียน')).toHaveAttribute('aria-checked', 'true');
+    expect(
+      screen.getByRole('group', { name: 'ตารางเรียนวันพุธ' }),
+    ).toBeInTheDocument();
+    expect(block('90000001')).not.toBeNull();
+    expect(block('90000002')).toBeNull();
+  });
+
+  it('shows the picked day and names a free day', () => {
+    installViewport(390);
+    seedPlan();
+    renderPanel();
+    fireEvent.click(chip('วันศุกร์ มีเรียน'));
+    expect(block('90000002')).not.toBeNull();
+    expect(block('90000001')).toBeNull();
+    expect(document.querySelector('[data-free-day]')).toBeNull();
+
+    fireEvent.click(chip('วันอังคาร'));
+    const note = document.querySelector('[data-free-day]');
+    expect(note).toHaveTextContent('วันอังคาร');
+    expect(note).toHaveTextContent('วันว่าง');
+  });
+
+  it('shows the week with no day chips from 640 px', () => {
+    installViewport(1366);
+    seedPlan();
+    renderPanel();
+    expect(screen.queryByRole('radiogroup')).toBeNull();
+    expect(
+      screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
+    ).toBeInTheDocument();
+    expect(block('90000001')).not.toBeNull();
+    expect(block('90000002')).not.toBeNull();
+  });
+
+  it('paints drag feedback for the shown day only', () => {
+    installViewport(390);
+    seedPlan();
+    renderPanel();
+    act(() => {
+      dragStore.getState().setHover(
+        makeSection({
+          teachTableId: 'c1',
+          subjectId: '90000003',
+          meetings: [
+            makeMeeting({ day: 3, startMin: 780, endMin: 840 }),
+            makeMeeting({ day: 4, startMin: 780, endMin: 840 }),
+          ],
+        }),
+      );
+    });
+    // The Thursday meeting is off the shown Wednesday, so it never lands on the axis.
+    expect(document.querySelectorAll('[data-ghost="hover"]')).toHaveLength(1);
+    act(() => {
+      dragStore.getState().clearHover();
+    });
+  });
+
+  it('keeps a block draggable through a long press', () => {
+    vi.useFakeTimers();
+    installViewport(390);
+    seedPlan();
+    renderPanel();
+    const target = block('90000001');
+    if (target === null) throw new Error('expected the Wednesday block');
+    const at = { clientX: 40, clientY: 40 };
+    fireEvent.touchStart(target, { touches: [at], changedTouches: [at] });
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+    expect(dragStore.getState().blockMove?.section.teachTableId).toBe('wed');
+    fireEvent.touchEnd(target, { touches: [], changedTouches: [at] });
   });
 });

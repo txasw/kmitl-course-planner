@@ -328,6 +328,8 @@
   "view.dayPicker": "Day shown",
   "view.dayHasClasses": "Has classes",
   "view.dayHasConflict": "Has a time conflict",
+  "view.dayGrid": "{day} timetable",
+  "view.freeDay": "Free day",
   "shelf.title": "Unscheduled courses",
   "footer.credits": "credits",
   "footer.subjects": "subjects",
