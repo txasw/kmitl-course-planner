@@ -176,6 +176,31 @@ describe('SuggestDialog', () => {
     ).toHaveFocus();
   });
 
+  it('leaves full size when a new search no longer holds the card', async () => {
+    renderDialog(1440);
+    await findCards();
+    const [, second] = screen.getAllByRole('button', { name: 'ดูขนาดเต็ม' });
+    if (second === undefined) throw new Error('no second card');
+    fireEvent.click(second);
+    expect(screen.getAllByRole('button', { name: 'ใช้ตารางนี้' })).toHaveLength(
+      1,
+    );
+
+    // A placed entry changes every suggestion, so the card opened is gone and the view
+    // returns to the list rather than showing another card in its place.
+    act(() => {
+      seedActivePlan(lockSections(courses, [['04186098', '2']]));
+    });
+    await waitFor(() => {
+      expect(
+        screen.getAllByRole('button', { name: 'ใช้ตารางนี้' }),
+      ).toHaveLength(3);
+    });
+    expect(
+      screen.getAllByRole('button', { name: 'ดูขนาดเต็ม' })[1],
+    ).toHaveFocus();
+  });
+
   it('reorders the cards when the preference changes', async () => {
     renderDialog();
     await findCards();
