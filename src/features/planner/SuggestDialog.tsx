@@ -166,7 +166,7 @@ export function SuggestDialog({
   const objective = useStore(uiStore, (state) => state.suggestObjective);
   const preference = useStore(uiStore, (state) => state.suggestPreference);
   const [page, setPage] = useState(0);
-  const [fullIndex, setFullIndex] = useState<number | null>(null);
+  const [fullKey, setFullKey] = useState<string | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const returnFocus = useRef<number | null>(null);
   const locked = useLockedEntries(term);
@@ -195,24 +195,35 @@ export function SuggestDialog({
     [cards],
   );
 
-  // Closing the full size card hands focus back to the expand control it came from, which
-  // mounts again with the list.
+  // The full size view follows the suggestion it opened, not its rank. A search that runs
+  // again while it is open, after a plan change, may rank other suggestions in that place;
+  // the view then returns to the list rather than showing a card the student did not pick.
+  const fullIndex =
+    fullKey === null
+      ? -1
+      : cards.findIndex((card) => suggestionKey(card.suggestion) === fullKey);
+  const full = cards[fullIndex];
+  const showingFull = full !== undefined;
+
+  // Leaving the full size card hands focus back to the expand control it came from, which
+  // mounts again with the list. A card that left with a new search is forgotten, so it
+  // does not open full size again should a later search bring it back.
   useEffect(() => {
-    if (fullIndex !== null || returnFocus.current === null) {
+    if (showingFull || returnFocus.current === null) {
       return;
     }
+    setFullKey(null);
     bodyRef.current
       ?.querySelector<HTMLElement>(
         `[data-suggest-expand="${String(returnFocus.current)}"]`,
       )
       ?.focus();
     returnFocus.current = null;
-  }, [fullIndex]);
+  }, [showingFull]);
 
   const compact = tier === 'compact';
   const orientation = compact ? 'portrait' : 'landscape';
   const current = Math.min(page, Math.max(0, cards.length - 1));
-  const full = fullIndex === null ? undefined : cards[fullIndex];
 
   // A new objective or preference ranks the cards again, so the pager returns to the best.
   const handleObjective = (value: SuggestObjective) => {
@@ -223,10 +234,17 @@ export function SuggestDialog({
     uiStore.getState().setSuggestPreference(value);
     setPage(0);
   };
+  const handleExpand = (index: number) => {
+    const card = cards[index];
+    if (card === undefined) {
+      return;
+    }
+    returnFocus.current = index;
+    setFullKey(suggestionKey(card.suggestion));
+  };
   const handleBack = () => {
-    returnFocus.current = fullIndex;
-    setPage(fullIndex ?? 0);
-    setFullIndex(null);
+    setPage(Math.max(0, fullIndex));
+    setFullKey(null);
   };
 
   const handleApply = (suggestion: Suggestion) => {
@@ -248,7 +266,7 @@ export function SuggestDialog({
 
   const emptyReason = result === null ? null : suggestEmptyReason(result);
   const fullBody =
-    full === undefined || fullIndex === null ? null : (
+    full === undefined ? null : (
       <div className="flex flex-col gap-3 pt-1">
         <button
           type="button"
@@ -325,7 +343,7 @@ export function SuggestDialog({
             locale={language}
             t={t}
             onApply={handleApply}
-            onExpand={setFullIndex}
+            onExpand={handleExpand}
           />
         </section>
       )}
