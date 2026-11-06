@@ -78,6 +78,119 @@ afterEach(() => {
   });
   act(() => {
     uiStore.getState().setViewMode('edit');
+    uiStore.getState().setPlanView('timetable');
+  });
+});
+
+/** Two placed subjects, one of them a lecture and practice pair. */
+function seedTwoSubjects(): void {
+  const meetings = [makeMeeting({ day: 1, startMin: 540, endMin: 720 })];
+  seed([
+    makePlanEntry({
+      snapshot: makeSnapshot({
+        teachTableId: 'p1',
+        subjectId: '90000001',
+        section: '901',
+        meetings,
+      }),
+    }),
+    makePlanEntry({
+      snapshot: makeSnapshot({
+        teachTableId: 'p2',
+        subjectId: '90000001',
+        section: '902',
+        meetings: [makeMeeting({ day: 2, startMin: 540, endMin: 720 })],
+      }),
+    }),
+    makePlanEntry({
+      snapshot: makeSnapshot({
+        teachTableId: 's1',
+        subjectId: '90000002',
+        section: '1',
+        meetings: [makeMeeting({ day: 3, startMin: 540, endMin: 720 })],
+      }),
+    }),
+  ]);
+}
+
+describe('PlannerPanel plan views', () => {
+  it('shows the plan view tabs with the subject count on a laptop', () => {
+    installViewport(1366);
+    seedTwoSubjects();
+    renderPanel();
+    expect(screen.getByRole('tablist', { name: 'มุมมองตาราง' })).toBeVisible();
+    expect(screen.getByRole('tab', { name: 'ตารางเรียน' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(
+      screen.getByRole('tabpanel', { name: 'ตารางเรียน' }),
+    ).toContainElement(
+      screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
+    );
+    expect(
+      screen.getByRole('tab', { name: 'วิชาที่เลือก (2)' }),
+    ).toBeInTheDocument();
+  });
+
+  it('switches the region to the selected courses list', () => {
+    installViewport(1366);
+    seedTwoSubjects();
+    renderPanel();
+    fireEvent.click(screen.getByRole('tab', { name: 'วิชาที่เลือก (2)' }));
+    const panel = screen.getByRole('tabpanel', { name: 'วิชาที่เลือก (2)' });
+    expect(panel).toContainElement(
+      screen.getByRole('list', { name: 'วิชาที่เลือก' }),
+    );
+    expect(
+      screen.queryByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
+    ).toBeNull();
+    expect(uiStore.getState().planView).toBe('selected');
+  });
+
+  it('clears an open block popover when the selected view replaces the grid', () => {
+    installViewport(1366);
+    seedTwoSubjects();
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /90000002/ }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'วิชาที่เลือก (2)' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('shows the timetable without tabs on a phone', () => {
+    installViewport(390);
+    seedTwoSubjects();
+    act(() => {
+      uiStore.getState().setPlanView('selected');
+    });
+    renderPanel();
+    expect(screen.queryByRole('tablist')).toBeNull();
+    expect(screen.queryByRole('tabpanel')).toBeNull();
+    expect(
+      screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders no tabs in preview', () => {
+    installViewport(1366);
+    seedTwoSubjects();
+    act(() => {
+      uiStore.getState().setViewMode('preview');
+    });
+    renderPanel();
+    expect(screen.queryByRole('tablist')).toBeNull();
+    expect(screen.queryByRole('list', { name: 'วิชาที่เลือก' })).toBeNull();
+  });
+
+  it('has no serious accessibility violations in the selected view', async () => {
+    installViewport(1366);
+    seedTwoSubjects();
+    act(() => {
+      uiStore.getState().setPlanView('selected');
+    });
+    const { container } = renderPanel();
+    await expectNoSeriousA11yViolations(container);
   });
 });
 
