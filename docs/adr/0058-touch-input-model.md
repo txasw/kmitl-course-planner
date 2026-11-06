@@ -78,3 +78,30 @@ drag, and the pressed state and the vibration make that wait visible.
 
 The touch drag specs drive real touch events through the Chrome DevTools Protocol, so they run in
 Chromium only. Firefox keeps the same sensors and its touch behaviour is checked by hand.
+
+## Amendment, 2026-11-06: coarse pointer targets and the block remove control
+
+Every control has a 24 px target in each direction, the WCAG 2.5.8 minimum, and grows to 44 px
+under a coarse pointer through the shared target classes that read the --kcp-target-min and
+--kcp-target-touch tokens. The switch follows the pointer media query, not the width, so a
+touch laptop gets finger sized targets and a narrow mouse window keeps the dense layout. A
+control that is a wide strip, such as the plan rows or the search submit, grows only in height;
+the add rail widens from w-8 to w-11; and a small visual such as a template pager dot keeps its
+size inside a full sized button.
+
+- The remove control on a placed block is hidden under a coarse pointer. A 44 px button in the
+  corner of a block would cover most of a one hour block, and a tap on the block opens the
+  detail sheet, which carries the remove action. Under a fine pointer it keeps the 24 px floor.
+- This amends the keyboard parity of ADR-0024, which gave each placed block its own focusable
+  remove control so the grid can be edited by keyboard. A coarse pointer device can still have a
+  keyboard, such as a touch laptop, so the keyboard path moves rather than disappears: the block
+  is a focusable button, and Enter or Space on it opens the detail surface with the remove action
+  and focus on its heading. Removal also stays reachable from the added row in the catalog.
+- The rename, duplicate and delete actions on each plan row show by default and fade out only
+  under a hover capable fine pointer, where hovering or focusing the row reveals them. Fading
+  them everywhere except under a coarse pointer was rejected because a screen with neither hover
+  nor a coarse pointer would hide them with no way to find them.
+
+Shrinking the block remove control on touch was rejected because it would keep a target too
+small for the finger it is shown to. Keeping it at 44 px and letting it cover the block was
+rejected because it would hide the subject name, the one field a block never drops.
