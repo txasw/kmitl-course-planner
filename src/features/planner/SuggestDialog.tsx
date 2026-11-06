@@ -32,6 +32,7 @@ import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { SuggestionCard } from './SuggestionCard';
 import { useSuggestions } from './useSuggestions';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 const OBJECTIVES: readonly SuggestObjective[] = ['coverAll', 'maxCredits'];
 
@@ -98,7 +99,7 @@ function PreferenceChips({
               onClick={() => {
                 onChange(preference);
               }}
-              className={`rounded-full px-3 py-1 text-xs ${
+              className={`rounded-full px-3 py-1 text-xs ${TARGET_SIZE} ${
                 active
                   ? 'bg-primary-strong text-surface'
                   : 'bg-surface-alt text-ink-soft hover:text-ink'

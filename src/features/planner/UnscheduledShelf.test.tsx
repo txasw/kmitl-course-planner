@@ -7,6 +7,7 @@ import {
   cleanup,
 } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import { UnscheduledShelf } from './UnscheduledShelf';
 import type { PlacedSection } from './placedSection';
 
@@ -65,7 +66,13 @@ describe('UnscheduledShelf', () => {
         onRemove={onRemove}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'นำออก' }));
+    const remove = screen.getByRole('button', { name: 'นำออก' });
+    // The shelf remove is the only remove path for a course with no block, so it takes
+    // the shared target that grows to a finger size under a coarse pointer.
+    for (const token of TARGET_SIZE.split(' ')) {
+      expect(remove).toHaveClass(token);
+    }
+    fireEvent.click(remove);
     expect(onRemove).toHaveBeenCalledWith('o1');
   });
 

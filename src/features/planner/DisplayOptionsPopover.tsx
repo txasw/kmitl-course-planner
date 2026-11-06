@@ -19,6 +19,7 @@ import {
 } from '@/features/shell/usePanelPopover';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { Switch } from '@/components/Switch';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 // Fit to content is retired from the poster: the smart window (grid.ts) now decides the
 // window and day run for every template, so the option no longer has a job. Its schema
@@ -30,7 +31,7 @@ const OPTIONS: { key: keyof DisplayOptions; labelKey: TranslationKey }[] = [
   { key: 'showEnglishNames', labelKey: 'preview.showEnglishNames' },
 ];
 
-const TRIGGER = `inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm text-ink hover:bg-surface-alt ${FOCUS_RING}`;
+const TRIGGER = `inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm text-ink hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`;
 
 export function DisplayOptionsPopover() {
   const { t, language } = useTranslation();

@@ -17,6 +17,7 @@ import { toSnapshot } from '@/lib/planner/transaction';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { isScheduled, toPlacedSection } from './placedSection';
 import { WeeklyGrid } from './WeeklyGrid';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 /** The mini grid labels each block by its name and section; room and English stay out. */
 const MINI_DISPLAY: DisplayOptions = {
@@ -138,7 +139,7 @@ export function SuggestionCard({
           type="button"
           aria-describedby={headingId}
           onClick={onApply}
-          className={`ml-auto rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover ${FOCUS_OUTLINE}`}
+          className={`ml-auto rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover ${TARGET_SIZE} ${FOCUS_OUTLINE}`}
         >
           {t('suggest.apply')}
         </button>

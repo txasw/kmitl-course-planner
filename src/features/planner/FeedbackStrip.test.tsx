@@ -7,6 +7,7 @@ import {
   act,
 } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { planStore } from '@/features/plans/planStore';
 import { confirmAdd } from '@/features/plans/addToPlan';
@@ -101,7 +102,10 @@ describe('FeedbackStrip', () => {
     });
     render(<FeedbackStrip t={t} />);
     expect(screen.getByText(/90000001/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /902/ })).toBeInTheDocument();
+    const chip = screen.getByRole('button', { name: /902/ });
+    for (const token of TARGET_SIZE.split(' ')) {
+      expect(chip).toHaveClass(token);
+    }
   });
 
   it('adds a section from an alternative chip and clears the reason', () => {
