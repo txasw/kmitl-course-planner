@@ -2,10 +2,11 @@
 // in one. Pointer users drag the grip onto the grid; keyboard users focus it, which
 // previews the target cells, and press Enter or Space, which commits the section or
 // routes to the blocked feedback exactly like the add button, since arrow key
-// movement is meaningless when every placement is fixed. Hovering the row or
-// focusing the grip previews the section's cells at low emphasis.
+// movement is meaningless when every placement is fixed. Hovering the row with a mouse
+// or focusing the grip previews the section's cells at low emphasis; a finger never
+// hovers, so a tap does not draw the preview (ADR-0058).
 
-import type { ReactNode } from 'react';
+import type { PointerEvent, ReactNode } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { GripVertical } from 'lucide-react';
 import type { Course, Section } from '@/lib/domain/types';
@@ -44,14 +45,19 @@ export function DraggableSection({
   const clearPreview = () => {
     dragStore.getState().clearHover();
   };
+  const handlePointerEnter = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === 'mouse') {
+      preview();
+    }
+  };
 
   return (
     <div
       ref={setNodeRef}
       data-drag-surface="section"
       className={`touch-drag flex cursor-grab items-stretch gap-1 ${isDragging ? 'opacity-50' : ''}`}
-      onMouseEnter={preview}
-      onMouseLeave={clearPreview}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={clearPreview}
       {...listeners}
     >
       <button

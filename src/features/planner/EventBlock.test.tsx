@@ -54,6 +54,30 @@ function overflowWhileShowing(text: string): void {
 }
 
 describe('EventBlock', () => {
+  it('reports a hover for a mouse pointer only', () => {
+    const onHoverEnter = vi.fn();
+    const onHoverLeave = vi.fn();
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        onHoverEnter={onHoverEnter}
+        onHoverLeave={onHoverLeave}
+      />,
+    );
+    const block = screen.getByLabelText(/90592033/);
+    fireEvent.pointerEnter(block, { pointerType: 'touch' });
+    fireEvent.pointerEnter(block, { pointerType: 'pen' });
+    expect(onHoverEnter).not.toHaveBeenCalled();
+    fireEvent.pointerEnter(block, { pointerType: 'mouse' });
+    expect(onHoverEnter).toHaveBeenCalledWith(block);
+    fireEvent.pointerLeave(block, { pointerType: 'mouse' });
+    expect(onHoverLeave).toHaveBeenCalledTimes(1);
+  });
+
   it('lets a swipe on a draggable block scroll and leaves a long press to the drag', () => {
     render(
       <EventBlock
