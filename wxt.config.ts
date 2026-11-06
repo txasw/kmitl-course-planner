@@ -1,5 +1,6 @@
 import { defineConfig } from 'wxt';
 import tailwindcss from '@tailwindcss/vite';
+import { HOST_MATCH_PATTERNS } from './src/lib/shell/hostTab';
 
 const PRODUCT_NAME = 'Course Planner for KMITL';
 
@@ -20,10 +21,7 @@ export default defineConfig({
     description:
       'Weekly timetable planner for KMITL pre registration course selection.',
     permissions: ['storage'],
-    host_permissions: [
-      'https://regis.reg.kmitl.ac.th/*',
-      'https://api.reg.kmitl.ac.th/*',
-    ],
+    host_permissions: [...HOST_MATCH_PATTERNS],
     browser_specific_settings: {
       gecko: {
         id: 'kmitl-course-planner@txasw.github.io',
