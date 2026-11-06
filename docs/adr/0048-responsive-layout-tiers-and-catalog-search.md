@@ -403,3 +403,31 @@ subject id search for it in the active plan's term instead.
 The strip entry in the live region inventory changes with it: the strip is no longer inert while
 the sheet is open. Its screen reader only added line still stays empty while the sheet covers
 the timetable, and the add toast speaks instead, so an add is still read once.
+
+## Amendment, 2026-11-06: the phone safe areas
+
+The panel ignored the device safe area insets, so on a notched phone a control could sit under the
+cutout or the home indicator, and the toast region sat over the bottom nav. Every surface pinned
+to a viewport edge now pads by the matching `--kcp-safe-*` token, which resolves to zero on a
+device with no inset.
+
+- The header already pads the top and side insets. The overlay body pads the side insets, and the
+  bottom inset everywhere except while the bottom nav runs along its foot, the compact tier in
+  edit mode. The nav pads below its items by the bottom inset instead, so its fill reaches the
+  screen edge and its items stay clear of the home indicator. Padding the whole overlay root was
+  rejected because the header would pad the top and side insets twice.
+- The toast region and the launcher keep their 16 px and 20 px edge offsets, or the inset where
+  that is larger, through `max()`. While the nav shows in the open panel, the toast region rises
+  72 px above the bottom inset, so a toast no longer covers the nav item its action leads to.
+- During a block drag the nav turns into the remove bar of ADR-0059. Its items hide and go inert,
+  and the bar lays over the nav's own box, padded by the bottom inset as the nav is. The nav keeps
+  its height, so the timetable above does not resize mid drag. On the medium tier and while the
+  docked column is hidden the bar stays at the panel bottom, which the overlay body already keeps
+  clear of the inset.
+- The floating feedback strip adds the bottom inset to its offsets below 640 px, where its
+  container runs to the screen edge behind the nav, and above a toast it rises clear of the
+  lifted toast region. It stays at most 32rem wide over either pane, and a sheet left open on a
+  window that narrowed below 640 px no longer gives it the sheet's width.
+
+This closes both gaps the compact panes amendment recorded. The live region inventory is
+unchanged.
