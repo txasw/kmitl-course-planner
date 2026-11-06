@@ -286,6 +286,7 @@
   "exam.selfArranged": "Arranged by instructor",
   "exam.midterm.short": "Midterm",
   "exam.final.short": "Final",
+  "exam.schedule.title": "Exam schedule",
   "detail.meetings": "Class times",
   "detail.noMeetings": "No scheduled class",
   "detail.kindCredits": "Type and credits",
@@ -397,5 +398,6 @@
   "poster.dataAsOf": "Data as of {dateTime}",
   "poster.unverified": "Data not yet checked",
   "poster.honesty.missing": "Sections not listed at the last check: {count}",
-  "poster.honesty.conflict": "Conflicting pairs: {count}"
+  "poster.honesty.conflict": "Conflicting pairs: {count}",
+  "poster.exams.more": "{count} more"
 }

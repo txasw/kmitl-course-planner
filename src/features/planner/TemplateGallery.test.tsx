@@ -12,6 +12,7 @@ import { DEFAULT_WINDOW } from '@/lib/planner/grid';
 import { WEEK_DAYS } from '@/lib/parsing/days';
 import { DEFAULT_DISPLAY_OPTIONS } from '@/lib/planner/displayOptions';
 import { EXPORT_TEMPLATES } from '@/lib/planner/exportTemplates';
+import { buildExamSchedule } from '@/lib/planner/examSchedule';
 import { uiStore } from '@/features/shell/uiStore';
 import { TemplateGallery } from './TemplateGallery';
 import type { PosterData } from './PreviewPoster';
@@ -33,6 +34,7 @@ function makePoster(): PosterData {
       missingCount: 0,
       conflictPairCount: 0,
     },
+    examSchedule: buildExamSchedule([]),
     locale: 'th',
     t,
   };

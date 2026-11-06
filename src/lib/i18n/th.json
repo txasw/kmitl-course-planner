@@ -286,6 +286,7 @@
   "exam.selfArranged": "จัดสอบเอง",
   "exam.midterm.short": "กลางภาค",
   "exam.final.short": "ปลายภาค",
+  "exam.schedule.title": "ตารางสอบ",
   "detail.meetings": "เวลาเรียน",
   "detail.noMeetings": "ไม่มีคาบเรียน",
   "detail.kindCredits": "ประเภทและหน่วยกิต",
@@ -397,5 +398,6 @@
   "poster.dataAsOf": "ข้อมูล ณ {dateTime}",
   "poster.unverified": "ยังไม่ได้ตรวจสอบข้อมูล",
   "poster.honesty.missing": "{count} รายวิชาไม่พบในระบบ ณ วันที่ตรวจสอบ",
-  "poster.honesty.conflict": "มีรายวิชาที่เวลาชนกัน {count} คู่"
+  "poster.honesty.conflict": "มีรายวิชาที่เวลาชนกัน {count} คู่",
+  "poster.exams.more": "อีก {count} รายการ"
 }
