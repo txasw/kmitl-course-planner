@@ -24,6 +24,7 @@ import { computeRowStatus, isConflictStatus } from '@/lib/catalog/rowStatus';
 import type { SectionRelation } from '@/lib/planner/sectionState';
 import { describeConflicts } from '@/lib/planner/describeConflict';
 import { FOCUS_OUTLINE } from '@/lib/ui/focus';
+import { NO_DRAG_ARMING } from '@/features/planner/dragArming';
 import { ConflictCallout } from './ConflictCallout';
 import { RemarkLine } from './RemarkLine';
 import { RulesNotice } from './RulesNotice';
@@ -137,9 +138,7 @@ export function SectionRow({
             onSwitchTerm !== undefined ? (
               <button
                 type="button"
-                onPointerDown={(event) => {
-                  event.stopPropagation();
-                }}
+                {...NO_DRAG_ARMING}
                 onClick={() => {
                   onSwitchTerm(relation.browsedTerm);
                 }}
@@ -278,9 +277,7 @@ function AddRail({
           {...(describedBy !== undefined
             ? { 'aria-describedby': describedBy }
             : {})}
-          onPointerDown={(event) => {
-            event.stopPropagation();
-          }}
+          {...NO_DRAG_ARMING}
           onClick={onAdd}
           className={`flex w-8 shrink-0 items-center justify-center border-l border-border bg-primary-soft text-primary-strong hover:bg-primary-strong hover:text-white focus-visible:bg-primary-strong focus-visible:text-white ${FOCUS_OUTLINE}`}
         >
@@ -314,9 +311,7 @@ function DisabledRail({
           aria-disabled="true"
           aria-label={label}
           aria-describedby={reasonId}
-          onPointerDown={(event) => {
-            event.stopPropagation();
-          }}
+          {...NO_DRAG_ARMING}
           className={`flex w-8 shrink-0 cursor-not-allowed items-center justify-center border-l border-border bg-surface-alt text-ink-soft ${FOCUS_OUTLINE}`}
         >
           <Plus size={16} aria-hidden className="opacity-40" />

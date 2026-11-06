@@ -220,7 +220,7 @@ function EventBlockComponent({
             : undefined
         }
         onMouseLeave={onHoverLeave}
-        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-kcp py-1.5 pr-2 pl-2.5 text-[1em] ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink outline-none ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'cursor-grab touch-none' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''} ${interactive ? 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary' : ''}`}
+        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-kcp py-1.5 pr-2 pl-2.5 text-[1em] ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink outline-none ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'touch-drag cursor-grab' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''} ${interactive ? 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary' : ''}`}
         style={{ backgroundColor: hashTint(section.subjectId) }}
         {...dragListeners}
       >
