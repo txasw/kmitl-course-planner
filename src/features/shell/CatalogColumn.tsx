@@ -21,6 +21,11 @@
 // press first and the overlay behind stays open (ADR-0056). Every sheet close returns
 // focus to the header toggle, because the control that closed it turns inert.
 //
+// While a section or course dragged out of the open sheet is live, the sheet yields: it
+// slides to a 24 px peek and its scrim fades and lets the pointer through, so the grid is
+// the live target, and both return when the drag ends. The sheet stays mounted through
+// the slide, so the list keeps its scroll offset (ADR-0059).
+//
 // The docked column can be hidden to give the grid the full width; hidden, it leaves the
 // flow but stays mounted, laid out at its width and inert, so its scroll offset and
 // search state wait for its return, and the edge rail takes its place as the way back.
@@ -42,6 +47,7 @@ import {
   selectFormOpen,
 } from '@/features/search/searchStore';
 import { SuggestAction } from '@/features/catalog/SuggestAction';
+import { dragStore, type DragStore } from '@/features/planner/dragStore';
 import {
   isDockedTier,
   type DockedTier,
@@ -90,10 +96,33 @@ const DOCKED_WIDTH: Record<DockedTier, string> = {
 
 const SURFACE = 'flex flex-col border-r border-border bg-surface';
 
+/** Whether a drag that starts in the catalog is live: a section or a course drag. A block
+ * drag starts on the grid, so the sheet has nothing to yield to it. */
+function selectCatalogDrag(state: DragStore): boolean {
+  return state.active !== null || state.courseDrag !== null;
+}
+
+/** Whether an open sheet yields to the grid. The docked column sits beside the grid and
+ * never yields, so a docked tier reads false and skips the re-render a drag would cause. */
+function useSheetYield(tier: LayoutTier): boolean {
+  return useStore(
+    dragStore,
+    (state) => !isDockedTier(tier) && selectCatalogDrag(state),
+  );
+}
+
+function sheetPlacement(sheetOpen: boolean, yielded: boolean): string {
+  if (!sheetOpen) {
+    return '-translate-x-full';
+  }
+  return yielded ? 'translate-x-[calc(24px-100%)]' : 'translate-x-0';
+}
+
 function containerClass(
   tier: LayoutTier,
   sheetOpen: boolean,
   catalogVisible: boolean,
+  yielded: boolean,
 ): string {
   if (isDockedTier(tier)) {
     // Hidden, the column leaves the flow so the grid takes the width, but keeps its box
@@ -105,9 +134,32 @@ function containerClass(
       : 'invisible absolute inset-y-0 left-0 z-drawer';
     return `${SURFACE} ${placement} ${DOCKED_WIDTH[tier]}`;
   }
-  return `${SURFACE} absolute inset-y-0 left-0 z-drawer w-[24rem] max-w-[90vw] shadow-kcp outline-none transition-transform duration-base motion-reduce:transition-none ${
-    sheetOpen ? 'translate-x-0' : '-translate-x-full'
-  }`;
+  return `${SURFACE} absolute inset-y-0 left-0 z-drawer w-[24rem] max-w-[90vw] shadow-kcp outline-none transition-transform duration-base motion-reduce:transition-none ${sheetPlacement(sheetOpen, yielded)}`;
+}
+
+/** The scrim over the grid while the sheet is open. It is a pointer target only, not a
+ * tab stop, because the sheet header close carries the same action. While the sheet
+ * yields to a drag it fades and lets the pointer through, so the grid it covers is the
+ * visible target. */
+export function SheetScrim({ tier }: { tier: LayoutTier }) {
+  const sheetOpen = useStore(uiStore, (state) => state.sheetOpen);
+  const yielded = useSheetYield(tier);
+  if (isDockedTier(tier) || !sheetOpen) {
+    return null;
+  }
+  return (
+    <button
+      type="button"
+      tabIndex={-1}
+      aria-hidden="true"
+      onClick={(event) => {
+        closeSheet(event.currentTarget);
+      }}
+      className={`absolute inset-0 z-scrim bg-ink/30 transition-opacity duration-base motion-reduce:transition-none ${
+        yielded ? 'pointer-events-none opacity-0' : ''
+      }`}
+    />
+  );
 }
 
 function SheetHeader() {
@@ -183,6 +235,7 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
   // The trap contains Tab only; it takes no Escape callback, so the press is left to the
   // layers that own it.
   useFocusTrap(columnRef, sheetModal);
+  const yielded = useSheetYield(tier) && sheetOpen;
   // While the bar exists and the form is open, the results keep a 12rem minimum, so a
   // tall form scrolls in its own region rather than pushing the results out of view.
   const keepResults = useStore(
@@ -209,7 +262,8 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
       onKeyDown={sheetModal ? handleSheetKeyDown : undefined}
       aria-hidden={shown ? undefined : true}
       inert={!shown || undefined}
-      className={containerClass(tier, sheetOpen, catalogVisible)}
+      data-yielded={yielded || undefined}
+      className={containerClass(tier, sheetOpen, catalogVisible, yielded)}
     >
       {docked ? (
         <>

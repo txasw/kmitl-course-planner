@@ -4,7 +4,7 @@ import { PlannerPanel } from '@/features/planner/PlannerPanel';
 import { PlannerDnd } from '@/features/planner/PlannerDnd';
 import { PlannerDropZone } from '@/features/planner/PlannerDropZone';
 import { isDockedTier } from '@/lib/ui/breakpoints';
-import { CatalogColumn, closeSheet } from './CatalogColumn';
+import { CatalogColumn, SheetScrim } from './CatalogColumn';
 import { EdgeRail } from './EdgeRail';
 import { uiStore } from './uiStore';
 import { useCatalogFocusRepair } from './useCatalogFocusRepair';
@@ -53,17 +53,7 @@ export function Layout() {
           </PlannerDropZone>
         </div>
 
-        {sheetModal ? (
-          <button
-            type="button"
-            tabIndex={-1}
-            aria-hidden="true"
-            onClick={(event) => {
-              closeSheet(event.currentTarget);
-            }}
-            className="absolute inset-0 z-scrim bg-ink/30"
-          />
-        ) : null}
+        <SheetScrim tier={tier} />
       </div>
     </PlannerDnd>
   );
