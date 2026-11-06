@@ -8,6 +8,7 @@ import {
 import {
   buildUpdateReview,
   hasUpdateItems,
+  withRemovedItems,
   type ConflictsById,
 } from './updateReview';
 
@@ -171,5 +172,32 @@ describe('hasUpdateItems', () => {
     expect(hasUpdateItems([makePlanEntry({ verifyStatus: 'missing' })])).toBe(
       true,
     );
+  });
+});
+
+describe('withRemovedItems', () => {
+  const missing = reviewed('1', ['missing'], { verifyStatus: 'missing' });
+  const moved = reviewed('2', ['room_changed']);
+
+  it('lists a removed item in the clash group while its entry is gone', () => {
+    const removedItem = review([missing]).groups[0]?.items[0];
+    if (removedItem === undefined) throw new Error('expected an item');
+    const live = review([moved]).groups;
+    const result = withRemovedItems(live, [removedItem], [moved]);
+    expect(result.groups.map((group) => group.key)).toEqual([
+      'clash',
+      'timeRoom',
+    ]);
+    expect(result.groups[0]?.items).toEqual([removedItem]);
+    expect(result.removedIds).toEqual(new Set(['1']));
+  });
+
+  it('drops a removed item once an undo brings its entry back', () => {
+    const live = review([missing]).groups;
+    const removedItem = live[0]?.items[0];
+    if (removedItem === undefined) throw new Error('expected an item');
+    const result = withRemovedItems(live, [removedItem], [missing]);
+    expect(result.groups).toEqual(live);
+    expect(result.removedIds.size).toBe(0);
   });
 });

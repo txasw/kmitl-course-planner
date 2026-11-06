@@ -152,3 +152,32 @@ export function buildUpdateReview(input: UpdateReviewInput): UpdateReview {
     unchanged,
   };
 }
+
+/**
+ * The groups with the items the student removed from the dialog put back, so each stays
+ * listed as removed with its undo. A removed item is no longer in the plan, so it is not
+ * in the live groups; it joins the clash group, where a missing section is listed, and
+ * leaves the list again once an undo brings its entry back. Returns the ids shown as
+ * removed alongside the groups.
+ */
+export function withRemovedItems(
+  groups: readonly UpdateGroup[],
+  removed: readonly UpdateItem[],
+  entries: readonly Pick<PlanEntry, 'teachTableId'>[],
+): { groups: UpdateGroup[]; removedIds: Set<string> } {
+  const present = new Set(entries.map((entry) => entry.teachTableId));
+  const gone = removed.filter((item) => !present.has(item.entry.teachTableId));
+  const removedIds = new Set(gone.map((item) => item.entry.teachTableId));
+  if (gone.length === 0) {
+    return { groups: [...groups], removedIds };
+  }
+  const clash = groups.find((group) => group.key === 'clash');
+  const rest = groups.filter((group) => group.key !== 'clash');
+  return {
+    groups: [
+      { key: 'clash', items: [...(clash?.items ?? []), ...gone] },
+      ...rest,
+    ],
+    removedIds,
+  };
+}
