@@ -92,6 +92,16 @@ test('keeps verification badges out of the poster and states the data date', asy
   mock.setFreshSynthetic(true);
   await banner.getByRole('button', { name: 'รีเฟรช' }).click();
 
+  // The check found changes, so the updates dialog opens directly. Review later keeps
+  // both reviews open and clears the way to the preview toggle.
+  const dialog = page.getByRole('dialog', {
+    name: 'ข้อมูลในตารางมีการเปลี่ยนแปลง',
+  });
+  await dialog.getByRole('button', { name: 'ดูภายหลัง' }).click({
+    timeout: 15_000,
+  });
+  await expect(dialog).toHaveCount(0);
+
   // Edit mode keeps every badge, where the owner can act on it.
   await expect(
     page.locator(`${block('900001')}[data-verify="warn"]`),
