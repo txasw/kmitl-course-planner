@@ -48,6 +48,13 @@ button. Never skip it.
       and it appears on the preview poster.
 - [ ] Unscheduled filter: toggle the hide unscheduled filter in the catalog and
       confirm the no meeting sections drop out of the list.
+- [ ] Curriculum filter: run a category search, open the filters, and turn on the open
+      to my curriculum switch. With no saved curriculum a picker opens with no term and no
+      all options, prefilled from the class search; the switch stays off until a complete
+      curriculum applies, and cancel leaves it off. After applying, only sections open to
+      that curriculum and year remain, a removable chip shows, and the saved curriculum is
+      named after a reload. Open a placed block's details and confirm the open to row
+      names its curricula with the note about the search it was added from.
 - [ ] Multi-meeting section: search subject 01476101 by subject id. Section 34 lists
       two Thursday periods in its catalog row, 08:45 to 10:15 and 10:30 to 12:00. Add
       it and confirm two blocks land on the grid, both on Thursday, and that copy as
