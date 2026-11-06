@@ -34,6 +34,16 @@ button. Never skip it.
       conflicting section. The strip floats at the foot of the sheet above the dimmed
       backdrop and above the add toast, focus lands on the first alternative chip, and
       a tap on the chip adds it while the sheet stays open.
+- [ ] Phone safe areas: on a phone with a notch and a home indicator, open the planner
+      below 640 px. The header, the bottom nav items, the toast, and the launcher sit
+      clear of the cutout and the home indicator, and the nav fill reaches the screen
+      edge. Add a section from the catalog pane: the add toast sits above the nav. Add a
+      time conflicting section: the strip floats above the nav, and above the toast when
+      one shows.
+- [ ] Phone remove bar: below 640 px, long press a placed block and drag it. The bottom
+      nav turns into the remove bar, the timetable keeps its height, and dropping on the
+      bar removes the section and its pair with an undo that restores them. The nav
+      items return after the drop.
 - [ ] Blocked add via the button: pressing add on a time conflicting section routes
       to the same feedback strip with the same alternatives rather than doing
       nothing.
