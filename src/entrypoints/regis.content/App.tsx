@@ -24,6 +24,7 @@ import {
   type WorkerHandshakeDeps,
 } from '@/features/onboarding/useWorkerHandshake';
 import { WelcomeLayer } from '@/features/onboarding/WelcomeLayer';
+import { EntryToast } from '@/features/onboarding/EntryToast';
 import {
   useWelcomeClaim,
   type WelcomeClaimDeps,
@@ -38,14 +39,15 @@ interface AppProps {
   welcome: WelcomeClaimDeps;
 }
 
-// Root component for the content script UI. It renders the launcher, the overlay
-// and, while it is open, the welcome above everything else, since the shadow root
-// stacks its host layer nodes by mount order. It hydrates and persists the language,
-// the plans and the onboarding record through the injected repositories, listens
-// for the worker and sends it the mount handshake, decides whether this document
-// claims the welcome, and provides the search dependencies so the deep form
-// components stay free of the browser binding. The storage and messaging bindings
-// stay at the entrypoint.
+// Root component for the content script UI. It renders the launcher, the entry toast
+// beside it, the overlay and, while it is open, the welcome above everything else,
+// since the shadow root stacks its host layer nodes by mount order. The entry toast
+// follows the launcher, so Tab from the launcher reaches it. It hydrates and persists
+// the language, the plans and the onboarding record through the injected
+// repositories, listens for the worker and sends it the mount handshake, decides
+// whether this document claims the welcome, and provides the search dependencies so
+// the deep form components stay free of the browser binding. The storage and
+// messaging bindings stay at the entrypoint.
 export function App({
   prefs,
   plans,
@@ -63,6 +65,7 @@ export function App({
     <SearchDepsProvider value={search}>
       <RevalidationTriggers />
       <Launcher />
+      <EntryToast record={onboarding.record} />
       <Overlay />
       <DiagnosticsGate />
       <Toaster />

@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import {
   render,
   screen,
@@ -13,6 +13,8 @@ import {
   onboardingStore,
 } from '@/features/onboarding/onboardingStore';
 import { applyRequestedOpen } from '@/features/onboarding/useWorkerHandshake';
+import { planStore } from '@/features/plans/planStore';
+import { ENTRY_TOAST_DELAY_MS } from '@/lib/onboarding/entryToast';
 import type { PrefsRepository } from '@/lib/storage/prefs';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { fakePlanDeps } from '../../../tests/support/planDeps';
@@ -35,7 +37,9 @@ afterEach(() => {
     uiStore.getState().close();
     uiStore.getState().setLanguage('th');
   });
+  vi.useRealTimers();
   onboardingStore.setState(initialOnboardingData());
+  planStore.setState({ loaded: false });
   document.documentElement.style.overflow = '';
 });
 
@@ -138,5 +142,24 @@ describe('App', () => {
     const launcher = screen.getByRole('button', { name: LAUNCHER });
     showWelcome();
     expect(launcher).toHaveAttribute('inert');
+  });
+
+  it('places the entry toast right after the launcher in the tab order', () => {
+    vi.useFakeTimers();
+    renderApp();
+    act(() => {
+      planStore.setState({ loaded: true });
+      const store = onboardingStore.getState();
+      store.hydrate(null, { schemaVersion: 1 });
+      store.settleHandshake();
+      store.settleWelcome();
+    });
+    act(() => {
+      vi.advanceTimersByTime(ENTRY_TOAST_DELAY_MS);
+    });
+    const buttons = screen.getAllByRole('button');
+    const launcher = screen.getByRole('button', { name: LAUNCHER });
+    const action = screen.getByRole('button', { name: 'เปิด Planner' });
+    expect(buttons.indexOf(action)).toBe(buttons.indexOf(launcher) + 1);
   });
 });
