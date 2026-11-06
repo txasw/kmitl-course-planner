@@ -133,6 +133,21 @@ describe('CatalogPanel', () => {
     ).toBeInTheDocument();
   });
 
+  it('offers to edit the search instead of a retry for a 404', () => {
+    act(() => {
+      searchStore
+        .getState()
+        .setResult({ status: 'error', error: httpError(404, 'missing') }, null);
+    });
+    renderPanel();
+    expect(
+      screen.getByRole('button', { name: 'แก้ไขการค้นหา' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'ลองอีกครั้ง' }),
+    ).not.toBeInTheDocument();
+  });
+
   it('shows an empty result with the search summary', () => {
     act(() => {
       searchStore.getState().setResult(

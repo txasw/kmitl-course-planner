@@ -10,6 +10,7 @@ import { CONTROL_BOUNDARY } from '@/lib/ui/control';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { sanitizeSubjectId } from '@/lib/search/formState';
 import { Combobox } from './Combobox';
+import { SEARCH_SUBJECT_ID_INPUT_ID } from './searchIds';
 import type { Translate } from '@/lib/i18n/t';
 import type { Locale } from '@/lib/i18n/t';
 import type { RawFaculty } from '@/lib/domain/schemas';
@@ -81,6 +82,7 @@ export function SubjectIdInput({
         </span>
         <input
           ref={inputRef}
+          id={SEARCH_SUBJECT_ID_INPUT_ID}
           type="text"
           inputMode="numeric"
           value={value}

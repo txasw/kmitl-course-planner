@@ -19,6 +19,7 @@ import {
 } from '@/lib/search/formState';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { makeCourse } from '../../../tests/support/domain-builders';
+import { loadFixture } from '../../../tests/support/fixtures';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
 import { SearchDepsProvider } from './SearchDepsContext';
 import { SearchHeader } from './SearchHeader';
@@ -26,10 +27,17 @@ import {
   SEARCH_BAR_ID,
   SEARCH_DISCLOSURE_ID,
   SEARCH_FORM_ID,
+  SEARCH_SUBJECT_ID_INPUT_ID,
 } from './searchIds';
 import { searchStore } from './searchStore';
 
 const term = { year: '2569', semester: '1' } as const;
+
+// The exact 400 body the registration server returns for a subject id whose length is
+// not eight. The cast names the shape the test reads from the untrusted fixture.
+const subjectIdRejection = loadFixture(
+  'regressions/teach-table.subject-id-length.error.json',
+) as { message: Record<string, string[]> };
 
 const subjectQuery: TeachTableQuery = {
   mode: 'by_subject_id',
@@ -290,6 +298,45 @@ describe('search focus', () => {
     fireEvent.click(refresh);
     expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true');
     expect(document.activeElement?.id).toBe(SEARCH_BAR_ID);
+  });
+
+  // The error card's edit action shares the disclosure's label, so it is the one of the
+  // two that controls no region.
+  async function findEditAction(): Promise<HTMLElement> {
+    await screen.findByRole('heading', { name: 'โหลดรายวิชาไม่สำเร็จ' });
+    const action = screen
+      .getAllByRole('button', { name: 'แก้ไขการค้นหา' })
+      .find((button) => button.id !== SEARCH_DISCLOSURE_ID);
+    if (action === undefined) throw new Error('the edit action is missing');
+    return action;
+  }
+
+  it('opens the form and focuses the disclosure for a rejected query', async () => {
+    const { container } = renderColumn(
+      answerOnceSend(err(httpError(400, 'rejected'))),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'ค้นหา' }));
+    fireEvent.click(await findEditAction());
+    expect(formRegion(container)).toHaveAttribute('data-open', 'true');
+    expect(document.activeElement?.id).toBe(SEARCH_DISCLOSURE_ID);
+  });
+
+  it('opens the subject id tab and focuses the field for a rejected id', async () => {
+    const { container } = renderColumn(
+      answerOnceSend(
+        err(httpError(400, 'rejected', subjectIdRejection.message)),
+      ),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'ค้นหา' }));
+    const action = await findEditAction();
+    act(() => {
+      searchStore.getState().setActiveTab('by_class');
+    });
+    fireEvent.click(action);
+    expect(searchStore.getState().activeTab).toBe('by_subject_id');
+    expect(formRegion(container)).toHaveAttribute('data-open', 'true');
+    expect(document.activeElement?.id).toBe(SEARCH_SUBJECT_ID_INPUT_ID);
+    expect(screen.getByRole('textbox', { name: 'รหัสวิชา' })).toHaveFocus();
   });
 
   it('reopens the form and focuses submit when a slow search is cancelled', () => {
