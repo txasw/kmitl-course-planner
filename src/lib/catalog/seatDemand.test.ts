@@ -9,7 +9,7 @@ import {
 } from '../domain/schemas';
 import type { Section } from '../domain/types';
 import { createTranslator } from '../i18n/t';
-import { computeSeatDemand, seatLineText } from './seatDemand';
+import { computeSeatDemand, demandFigures, seatLineText } from './seatDemand';
 
 const th = createTranslator('th');
 const en = createTranslator('en');
@@ -191,5 +191,53 @@ describe('computeSeatDemand edge cases', () => {
       }),
     );
     expect(demand.oversubscribed).toBe(false);
+  });
+});
+
+describe('demandFigures', () => {
+  it('lists the host counts for an oversubscribed full section', () => {
+    const demand = computeSeatDemand(
+      findSection(capturedSections(), '96642083', '101'),
+    );
+    expect(demand).toMatchObject({
+      state: 'full',
+      limit: 45,
+      preCount: 171,
+      queueLeft: 83,
+      oversubscribed: true,
+    });
+    // The API sends only the full marker for enrolled, so that figure is left out.
+    expect(demandFigures(demand)).toEqual([
+      { key: 'limit', value: 45 },
+      { key: 'pre', value: 171 },
+      { key: 'queue', value: 83 },
+    ]);
+  });
+
+  it('lists all four counts in the host column order', () => {
+    const demand = computeSeatDemand(
+      makeSection({
+        seats: { limit: 45, preCount: 10, queueLeft: 5, enrolled: 33 },
+      }),
+    );
+    expect(demandFigures(demand).map((figure) => figure.key)).toEqual([
+      'limit',
+      'enrolled',
+      'pre',
+      'queue',
+    ]);
+  });
+
+  it('leaves the capacity out of an uncapped section', () => {
+    const demand = computeSeatDemand(
+      makeSection({
+        seats: { limit: null, preCount: 3, queueLeft: 0, enrolled: 9 },
+      }),
+    );
+    expect(demandFigures(demand)).toEqual([
+      { key: 'enrolled', value: 9 },
+      { key: 'pre', value: 3 },
+      { key: 'queue', value: 0 },
+    ]);
   });
 });

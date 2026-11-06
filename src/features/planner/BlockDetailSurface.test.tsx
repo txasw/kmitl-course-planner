@@ -361,7 +361,9 @@ describe('BlockDetailSurface on a fine pointer from 640 px', () => {
       ]);
     });
     renderPopover();
-    expect(rowValues('Seats')).toEqual(['12 of 45 open']);
+    expect(rowValues('Seats')).toEqual([
+      '12 of 45 openCapacity 45 Enrolled 33 Pre registered 0 Queue 0',
+    ]);
     expect(rowValues('Conditions')).toEqual(['Year 1 only']);
     expect(rowValues('Remark')).toEqual(['Shared with another faculty']);
     expect(rowValues('Last checked')).toEqual(['6 Nov 2569 08:05']);
