@@ -328,6 +328,8 @@
   "view.dayPicker": "วันที่แสดง",
   "view.dayHasClasses": "มีเรียน",
   "view.dayHasConflict": "มีรายการชนกัน",
+  "view.dayGrid": "ตารางเรียน{day}",
+  "view.freeDay": "วันว่าง",
   "shelf.title": "รายวิชาที่ไม่มีคาบเรียน",
   "footer.credits": "หน่วยกิต",
   "footer.subjects": "วิชา",

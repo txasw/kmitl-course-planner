@@ -73,6 +73,18 @@ function timetableControl(page: Page): Locator {
         .getByRole('button', { name: 'ปิดรายการรายวิชา' });
 }
 
+/**
+ * Show the given day on the phone, whose timetable reads one day at a time, so a
+ * block on that day is in the grid. The wider tiers show the whole week already.
+ */
+async function showDay(page: Page, dayName: string): Promise<void> {
+  if (!isPhone(page)) return;
+  await page
+    .getByRole('radiogroup', { name: 'วันที่แสดง' })
+    .getByRole('radio', { name: new RegExp(`^${dayName}`) })
+    .tap();
+}
+
 /** Search the owner 32 category from the catalog the page has open. */
 async function categorySearch(page: Page, catalog: Locator): Promise<void> {
   await catalog.getByRole('tab', { name: 'หมวดวิชา', exact: true }).click();
@@ -194,10 +206,12 @@ test('close and preview stay in view and work at 320 px', async ({
 
 test('the edit grid keeps its derived minimum and fits where the column allows', async ({
   context,
-}) => {
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name === 'phone',
+    'the phone timetable is the day view, which has no week minimum',
+  );
   const page = await openPlanner(context);
-  // An empty plan opens the phone on the catalog pane.
-  if (isPhone(page)) await timetableControl(page).tap();
   const grid = page.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
   await expect(grid).toBeVisible();
   const scroll = await grid.evaluate((node) => {
@@ -210,7 +224,8 @@ test('the edit grid keeps its derived minimum and fits where the column allows',
   });
   // An empty plan shows the 08:00 to 18:00 working day: 40 px of day labels plus 14 px
   // for each of its 40 quarters. A column at least that wide shows it whole, as on the
-  // tablet; a narrower one, as on the phone, scrolls rather than shrinking the quarters.
+  // tablet; a narrower one scrolls rather than shrinking the quarters, until under 640 px
+  // the day view takes over.
   const minimum = 40 + 14 * 40;
   expect(scroll.gridWidth).toBeGreaterThanOrEqual(minimum);
   if (scroll.clientWidth >= minimum) {
@@ -443,10 +458,13 @@ test('the strip chips stay tappable over the open catalog', async ({
   ).toBe(true);
 
   await chip.tap();
-  await expect(page.locator(block('910003'))).toHaveCount(1);
-  await expect(page.locator(block('910002'))).toHaveCount(0);
   // The catalog stays open for the next pick.
   await expect(catalog).toBeVisible();
+  // Section 902 meets on Thursday and 901 on Wednesday, so the phone shows Thursday.
+  if (isPhone(page)) await timetableControl(page).tap();
+  await showDay(page, 'วันพฤหัสบดี');
+  await expect(page.locator(block('910003'))).toHaveCount(1);
+  await expect(page.locator(block('910002'))).toHaveCount(0);
 });
 
 // In the synthetic catalog under 90000000, Course B 90000002 overlaps Course A and has
@@ -630,7 +648,8 @@ test.describe('the phone layout', () => {
       page.locator('header').getByRole('button', { name: /^รายวิชา/ }),
     ).toHaveCount(0);
     const column = page.locator('#kcp-catalog-column');
-    const grid = page.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+    // The phone timetable is the day view, which opens on Monday for an empty plan.
+    const grid = page.getByRole('group', { name: 'ตารางเรียนวันจันทร์' });
     await expect(column.getByRole('tab', { name: 'หมวดวิชา' })).toBeVisible();
     await expect(grid).toBeHidden();
     await expectNoHorizontalOverflow(page);
@@ -766,6 +785,8 @@ test.describe('the phone layout', () => {
     await expect(nav.getByRole('button', { name: 'ตารางเรียน' })).toBeVisible();
     await page.getByRole('button', { name: 'เลิกทำ' }).tap();
     await expect(page.locator(block('900006'))).toBeVisible();
+    // The pair's other half meets on Tuesday, a day the phone shows on its own.
+    await showDay(page, 'วันอังคาร');
     await expect(page.locator(block('900007'))).toBeVisible();
   });
 });

@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import {
   render,
   screen,
@@ -183,7 +183,7 @@ describe('PlannerPanel plan views', () => {
       uiStore.getState().setPlanView('timetable');
     });
     expect(
-      screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
+      screen.getByRole('group', { name: 'ตารางเรียนวันจันทร์' }),
     ).toBeInTheDocument();
   });
 
@@ -210,6 +210,11 @@ describe('PlannerPanel plan views', () => {
 });
 
 describe('PlannerPanel', () => {
+  // The week grid shows on a laptop; a test that needs the phone installs its own width.
+  beforeEach(() => {
+    installViewport(1366);
+  });
+
   it('shows the designed empty state when the plan has no sections', () => {
     renderPanel();
     expect(screen.getByText('ตารางยังว่าง')).toBeInTheDocument();
@@ -460,6 +465,10 @@ describe('PlannerPanel', () => {
 });
 
 describe('PlannerPanel focus after a remove', () => {
+  beforeEach(() => {
+    installViewport(1366);
+  });
+
   afterEach(() => {
     act(() => {
       resetPlanStore();
