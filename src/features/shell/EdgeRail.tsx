@@ -7,6 +7,8 @@
 // state, since it can only show the column. It owns its own store subscriptions, so the
 // unmemoized panel tree in Layout never re-renders for them, and during any drag it takes
 // no pointer events, because nothing may resize the grid while a drag holds its frame.
+// Hovering it, or reaching it with the keyboard, slides a thin shadowed edge of the
+// column out from behind it as a hint; the hint is pure CSS on the kcp-rail classes.
 
 import { useStore } from 'zustand';
 import { PanelLeftOpen } from 'lucide-react';
@@ -55,10 +57,14 @@ export function EdgeRail() {
       onClick={(event) => {
         showCatalog(event.currentTarget, event.detail);
       }}
-      className={`relative z-drawer flex w-11 shrink-0 flex-col items-center border-r border-border bg-surface text-ink-soft transition-colors hover:bg-surface-alt hover:text-ink ${
+      className={`kcp-rail relative z-drawer flex w-11 shrink-0 flex-col items-center border-r border-border bg-surface text-ink-soft transition-colors hover:bg-surface-alt hover:text-ink ${
         dragging ? 'pointer-events-none' : ''
       } ${FOCUS_RING}`}
     >
+      <span
+        aria-hidden
+        className="kcp-rail-ghost pointer-events-none absolute inset-y-0 left-full w-3 border-r border-border-strong bg-surface shadow-kcp"
+      />
       <span className="flex h-12 w-full shrink-0 items-center justify-center border-b border-border">
         <PanelLeftOpen size={16} strokeWidth={2} aria-hidden />
       </span>

@@ -38,12 +38,35 @@ function mayToggle(detail: number): boolean {
   return true;
 }
 
+/** The rail attribute that holds its peek off until the pointer first moves off it. */
+const PEEK_HELD_ATTRIBUTE = 'data-peek-held';
+
+/**
+ * Holds the rail's peek off after a pointer hide, which mounts the rail under the
+ * pointer; otherwise the hint would slide out as the column slides away. The hold ends
+ * at the first pointer move that lands outside the rail. A pointerleave on the rail
+ * cannot end it, because the rail mounted under a still pointer and Chromium sends no
+ * enter or leave to an element the pointer has not moved over. The attribute is set on
+ * the element rather than declared in the rail's markup, so a render never resets it.
+ */
+function holdPeek(rail: HTMLElement): void {
+  rail.setAttribute(PEEK_HELD_ATTRIBUTE, '');
+  const root = rail.getRootNode();
+  const release = (event: Event): void => {
+    if (event.composedPath().includes(rail)) return;
+    rail.removeAttribute(PEEK_HELD_ATTRIBUTE);
+    root.removeEventListener('pointermove', release);
+  };
+  root.addEventListener('pointermove', release);
+}
+
 /** Hide the docked column from its hide control and move focus to the edge rail. */
 export function hideCatalog(control: Element, detail: number): void {
   if (!mayToggle(detail)) return;
-  commitAndFocus(control, CATALOG_RAIL_ID, () => {
+  const rail = commitAndFocus(control, CATALOG_RAIL_ID, () => {
     uiStore.getState().setCatalogVisible(false);
   });
+  if (detail > 0 && rail !== null) holdPeek(rail);
 }
 
 /**

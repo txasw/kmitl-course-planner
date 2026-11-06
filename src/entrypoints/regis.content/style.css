@@ -348,6 +348,50 @@ html {
   }
 }
 
+/* The edge rail peek of ADR-0048: hovering the rail, or reaching it with the keyboard,
+   slides a 12 px shadowed edge of the hidden catalog out from behind it, a hint of what
+   the rail opens. Hover only hints and never opens. The hover rule lives inside
+   (hover: hover), so a tap on a touch screen never leaves the hint stuck. The hint waits
+   the intent delay before it appears, so a pointer passing toward the browser edge does
+   not flash it, and leaves at once. It is held off while data-peek-held is set, which a
+   pointer hide puts on the rail it mounts under the pointer and the first pointer move
+   off the rail clears, and while any drag runs. */
+.kcp-rail-ghost {
+  transform: translateX(-100%);
+  opacity: 0;
+  transition:
+    transform var(--kcp-duration-fast) ease-in,
+    opacity var(--kcp-duration-fast) ease-in;
+}
+
+@media (hover: hover) {
+  .kcp-rail:not([data-peek-held]):not([data-dragging]):hover .kcp-rail-ghost {
+    transform: none;
+    opacity: 1;
+    transition:
+      transform var(--kcp-duration-fast) ease-out var(--kcp-delay-intent),
+      opacity var(--kcp-duration-fast) ease-out var(--kcp-delay-intent);
+  }
+}
+
+.kcp-rail:not([data-dragging]):focus-visible .kcp-rail-ghost {
+  transform: none;
+  opacity: 1;
+  transition:
+    transform var(--kcp-duration-fast) ease-out var(--kcp-delay-intent),
+    opacity var(--kcp-duration-fast) ease-out var(--kcp-delay-intent);
+}
+
+/* Reduced motion shows and hides the hint in the same frame, with no intent delay. It
+   repeats the shown selectors so it matches their specificity and wins by order. */
+@media (prefers-reduced-motion: reduce) {
+  .kcp-rail-ghost,
+  .kcp-rail:not([data-peek-held]):not([data-dragging]):hover .kcp-rail-ghost,
+  .kcp-rail:not([data-dragging]):focus-visible .kcp-rail-ghost {
+    transition: none;
+  }
+}
+
 /* Toast entrance: a short rise into place. The reduced motion path drops the
    motion so the toast appears instantly, keeping the color and text feedback. */
 @keyframes kcp-toast-in {
