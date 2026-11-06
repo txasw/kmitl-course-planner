@@ -10,6 +10,7 @@ import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
 import { snapshotToSection, type Plan } from '@/lib/domain/plan';
 import type { Section } from '@/lib/domain/types';
+import type { Term } from '@/lib/routing/academicTerms';
 import { createPlanCrudSlice, type PlanCrudActions } from './planCrudSlice';
 import { createPlanEntrySlice, type PlanEntryActions } from './planEntrySlice';
 import {
@@ -49,6 +50,18 @@ function defaultDeps(): PlanStoreDeps {
 
 /** The single plan store instance the catalog and grid read. */
 export const planStore = createPlanStore();
+
+/**
+ * The active plan's term, read when needed rather than subscribed to, because plans
+ * hydrate on their own and a caller such as a search seed wants the latest value.
+ */
+export function activePlanTerm(): Term | null {
+  const { plans, activePlanId } = planStore.getState();
+  const active = plans.find((plan) => plan.id === activePlanId);
+  return active === undefined
+    ? null
+    : { year: active.year, semester: active.semester };
+}
 
 /** The active plan object, or null when no plan is active. */
 export function useActivePlan(): Plan | null {
