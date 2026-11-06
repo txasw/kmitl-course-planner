@@ -12,6 +12,7 @@ import {
 } from '../../messaging/router';
 import { err, ok, unknownError } from '../../utils/result';
 import type { RequestMessage } from '../../messaging/protocol';
+import type { ActionClickOutcome, ClickedTab } from '../../shell/actionClick';
 import { createAuditInterceptor } from './audit';
 import { createSimulationInterceptor } from './simulation';
 import { createDebugState, type DebugState } from './state';
@@ -20,6 +21,11 @@ export const DEBUG_CANARY = 'kcp-debug-canary';
 
 export interface DebugHandle {
   send(message: RequestMessage): Promise<unknown>;
+  /**
+   * Runs the toolbar icon handler for a tab, since a browser driven test cannot click
+   * the toolbar.
+   */
+  action(tab: ClickedTab): Promise<ActionClickOutcome>;
 }
 
 export function createDebugDispatch(
@@ -60,6 +66,7 @@ export interface InstallDebugDeps {
   runtimeId: string;
   router: RouterListener;
   clearCache: () => Promise<void>;
+  actionClick: (tab: ClickedTab) => Promise<ActionClickOutcome>;
   now?: () => string;
   fixtures?: Record<string, unknown>;
 }
@@ -105,6 +112,7 @@ export function installDebug(deps: InstallDebugDeps): DebugState {
     send: (message) =>
       deps.router(message, { id: deps.runtimeId }) ??
       Promise.resolve(err(unknownError('router dropped the message'))),
+    action: (tab) => deps.actionClick(tab),
   };
 
   return state;

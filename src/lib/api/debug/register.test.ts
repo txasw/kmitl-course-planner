@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createDebugDispatch, installDebug } from './register';
+import {
+  createDebugDispatch,
+  installDebug,
+  type DebugHandle,
+} from './register';
 import {
   getAudit,
   getRecorder,
@@ -32,6 +36,7 @@ function fakeAdapter(): StorageAdapter {
 }
 
 const noopClear = () => Promise.resolve();
+const noopAction = () => Promise.resolve('delivered' as const);
 
 function readHandle(): unknown {
   return (globalThis as { __kcp?: unknown }).__kcp;
@@ -50,6 +55,7 @@ describe('installDebug', () => {
       runtimeId: 'id',
       router: noopRouter,
       clearCache: noopClear,
+      actionClick: noopAction,
       now: () => 'T',
     });
     expect(getSimulation()).not.toBeNull();
@@ -58,12 +64,28 @@ describe('installDebug', () => {
     expect(readHandle()).toBeDefined();
   });
 
+  it('runs the toolbar action handler from the console handle', async () => {
+    const actionClick = vi.fn(() => Promise.resolve('created' as const));
+    installDebug({
+      extensionVersion: '0.0.0',
+      runtimeId: 'id',
+      router: noopRouter,
+      clearCache: noopClear,
+      actionClick,
+    });
+    // Test only assertion: installDebug has just written this handle shape.
+    const handle = readHandle() as DebugHandle;
+    expect(await handle.action({ id: 7 })).toBe('created');
+    expect(actionClick).toHaveBeenCalledWith({ id: 7 });
+  });
+
   it('serves the request log, report, and settings via the dispatch', async () => {
     const state = installDebug({
       extensionVersion: '0.0.0',
       runtimeId: 'id',
       router: noopRouter,
       clearCache: noopClear,
+      actionClick: noopAction,
       now: () => 'T',
     });
     const clearCache = vi.fn(() => Promise.resolve());
@@ -99,6 +121,7 @@ describe('installDebug', () => {
       runtimeId: 'id',
       router: noopRouter,
       clearCache: noopClear,
+      actionClick: noopAction,
       now: () => 'T',
     });
     const audit = getAudit();
@@ -125,6 +148,7 @@ describe('installDebug', () => {
       runtimeId: 'id',
       router: noopRouter,
       clearCache: noopClear,
+      actionClick: noopAction,
       now: () => 'T',
     });
     state.setSettings({ mutationId: 'inject_unknown_field' });
