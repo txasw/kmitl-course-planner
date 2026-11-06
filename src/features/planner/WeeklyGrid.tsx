@@ -193,7 +193,11 @@ export function WeeklyGrid({
     <div
       role="group"
       aria-label={t('grid.label')}
-      className={`grid h-full leading-normal text-ink ${floor} ${blocked ? 'cursor-not-allowed' : ''}`}
+      // The edit grid is the landing point when a remove leaves no block to focus, so it
+      // takes programmatic focus, though it is not a tab stop.
+      data-edit-grid={editable ? '' : undefined}
+      tabIndex={editable ? -1 : undefined}
+      className={`grid h-full leading-normal text-ink outline-none ${floor} ${blocked ? 'cursor-not-allowed' : ''}`}
       style={{ ...gridStyle, fontSize: `${String(fontPx)}px` }}
     >
       <GridAxis window={window} orientation={orientation} sticky={editable} />

@@ -22,8 +22,10 @@ import { posterHonesty } from '@/lib/planner/posterHonesty';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
 import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
+import { commitThenFocus } from '@/features/shell/restoreFocus';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { removalOrder, targetsAfterRemoval } from './blockFocus';
 import { isScheduled, toPlacedSection } from './placedSection';
 import { dragStore, selectDragging } from './dragStore';
 import { BlockDetailSurface } from './BlockDetailSurface';
@@ -138,8 +140,19 @@ export function PlannerPanel() {
     () => smartVisibleDays(scheduledMeetings),
     [scheduledMeetings],
   );
+  // Every remove from the grid, the shelf, the block popover, or the context menu takes
+  // the pressed control with it, so focus moves on in the same commit to the next placed
+  // item in time order, or the grid when none is left.
+  const rootRef = useRef<HTMLDivElement>(null);
   const handleRemove = useCallback((teachTableId: string) => {
-    planStore.getState().remove(teachTableId);
+    const scope = rootRef.current;
+    const removed = scope === null ? null : removalOrder(scope, teachTableId);
+    commitThenFocus(
+      () => {
+        planStore.getState().remove(teachTableId);
+      },
+      () => (scope === null ? [] : targetsAfterRemoval(scope, removed)),
+    );
   }, []);
   const [detail, setDetail] = useState<{
     teachTableId: string;
@@ -244,7 +257,7 @@ export function PlannerPanel() {
   );
 
   return (
-    <div className="flex h-full flex-col gap-2">
+    <div ref={rootRef} className="flex h-full flex-col gap-2">
       {isPreview ? (
         <PreviewToolbar
           posterRef={posterRef}
@@ -333,6 +346,7 @@ export function PlannerPanel() {
       {viewMode === 'edit' && contextMenu !== null ? (
         <BlockContextMenu
           teachTableId={contextMenu.teachTableId}
+          anchor={contextMenu.anchor}
           x={contextMenu.x}
           y={contextMenu.y}
           t={t}

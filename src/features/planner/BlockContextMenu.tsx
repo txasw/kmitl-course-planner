@@ -3,7 +3,8 @@
 // pointer only shortcuts that already exist on the block, remove and details. Every
 // keyboard and popover path stays intact; this is an enhancement, not a replacement. It is
 // positioned with floating-ui against a virtual reference at the pointer, dismisses on an
-// outside press, and intercepts Escape so it closes only the menu and not the overlay. The
+// outside press, and intercepts Escape so it closes only the menu and not the overlay. A
+// close returns focus to the block it opened on, unless a remove took the block away. The
 // planner grid has no transformed ancestor, so it needs no portal.
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -11,6 +12,7 @@ import { useDismiss, useInteractions } from '@floating-ui/react';
 import { Info, Trash2 } from 'lucide-react';
 import type { Translate } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { useReturnFocus } from '@/features/shell/restoreFocus';
 import {
   PANEL_POPOVER_SCROLL,
   usePanelPopover,
@@ -18,6 +20,8 @@ import {
 
 interface BlockContextMenuProps {
   teachTableId: string;
+  /** The block the menu opened on; focus returns to it when the menu closes. */
+  anchor: HTMLElement;
   x: number;
   y: number;
   t: Translate;
@@ -28,6 +32,7 @@ interface BlockContextMenuProps {
 
 export function BlockContextMenu({
   teachTableId,
+  anchor,
   x,
   y,
   t,
@@ -93,6 +98,8 @@ export function BlockContextMenu({
       document.removeEventListener('keydown', handleKey, true);
     };
   }, [onClose]);
+
+  useReturnFocus(anchor);
 
   const firstItem = useRef<HTMLButtonElement>(null);
   useEffect(() => {
