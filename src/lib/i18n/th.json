@@ -304,6 +304,8 @@
   "preview.gallery.prev": "แม่แบบก่อนหน้า",
   "preview.gallery.next": "แม่แบบถัดไป",
   "preview.watermark": "สร้างโดยตัววางแผนตารางเรียน สจล.",
+  "preview.preShare.notice": "มี {count} รายการที่ข้อมูลเปลี่ยนหรือไม่พบในระบบ ตรวจก่อนแชร์",
+  "preview.preShare.review": "ดูรายการ",
   "poster.dataAsOf": "ข้อมูล ณ {dateTime}",
   "poster.unverified": "ยังไม่ได้ตรวจสอบข้อมูล",
   "poster.honesty.missing": "{count} รายวิชาไม่พบในระบบ ณ วันที่ตรวจสอบ",
