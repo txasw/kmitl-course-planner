@@ -12,6 +12,7 @@
 // so the overlay behind it stays open. The body is capped at 85 percent of the dynamic
 // viewport height and scrolls inside, and the optional footer stays pinned below it. A
 // list dialog takes the narrow width, a review the medium one, a table the wide one.
+// While mounted the dialog counts as an open surface, so an unasked one waits for it.
 
 import {
   useEffect,
@@ -24,6 +25,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
+import { useOpenSurface } from '@/features/shell/attentionStore';
 import { useEscapeLayer } from '@/features/shell/useEscapeLayer';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
 import { TARGET_SIZE } from '@/lib/ui/target';
@@ -67,6 +69,7 @@ export function ModalDialog({
   const titleId = useId();
 
   useFocusTrap(dialogRef, true);
+  useOpenSurface(true);
   useEscapeLayer(dialogRef, onClose);
   useEffect(() => {
     (initialFocusRef?.current ?? headingRef.current)?.focus();
