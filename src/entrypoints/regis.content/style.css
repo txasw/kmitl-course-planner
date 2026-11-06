@@ -188,6 +188,13 @@
      way elsewhere does not flash the hint. */
   --kcp-delay-intent: 80ms;
 
+  /* The launcher ring of ADR-0063: a 200 ms delay, then two 900 ms pulses, which end
+     2000 ms after the ring starts, as the entry toast appears. The reduced motion ring
+     holds still for the same 2000 ms. */
+  --kcp-delay-ring: 200ms;
+  --kcp-duration-ring: 900ms;
+  --kcp-duration-ring-static: 2000ms;
+
   /* The standard keyboard focus indicator from ADR-0034, read by FOCUS_RING and
      FOCUS_OUTLINE in lib/ui/focus.ts. */
   --kcp-focus-color: var(--kcp-primary);
@@ -425,6 +432,54 @@ html {
 @media (prefers-reduced-motion: reduce) {
   .kcp-toast-enter {
     animation: none;
+  }
+}
+
+/* The launcher ring asks for a first open (ADR-0063): after a 200 ms delay a 2 px ring
+   in the brand orange grows twice from the pill's edge to 8 px beyond it while it
+   fades, ending as the entry toast appears. The growth is a fixed 8 px on every side
+   rather than a scale, so on a wide pill it still stays inside the 20 px edge offset
+   and below the toast. Reduced motion shows a static ring for the same 2000 ms and
+   removes it in one step, with no movement. */
+@keyframes kcp-launcher-ring {
+  from {
+    inset: 0;
+    opacity: 0.6;
+  }
+
+  to {
+    inset: -8px;
+    opacity: 0;
+  }
+}
+
+@keyframes kcp-launcher-ring-static {
+  from {
+    opacity: 0.6;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+.kcp-launcher-ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--kcp-primary);
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  animation: kcp-launcher-ring var(--kcp-duration-ring) ease-out
+    var(--kcp-delay-ring) 2 both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kcp-launcher-ring::after {
+    inset: -4px;
+    animation: kcp-launcher-ring-static var(--kcp-duration-ring-static) steps(1)
+      forwards;
   }
 }
 

@@ -212,6 +212,27 @@ describe('shadow stylesheet tokens', () => {
     expect(reduced?.[2]).toContain('transition: none;');
   });
 
+  it('grows the launcher ring by a fixed 8 px twice and holds it still when reduced', () => {
+    expect(css).toMatch(
+      /@keyframes kcp-launcher-ring \{\s*from \{\s*inset: 0;\s*opacity: 0\.6;\s*\}\s*to \{\s*inset: -8px;\s*opacity: 0;\s*\}/,
+    );
+    expect(css).toMatch(
+      /\.kcp-launcher-ring::after \{[^}]*animation: kcp-launcher-ring var\(--kcp-duration-ring\) ease-out\s+var\(--kcp-delay-ring\) 2 both;/,
+    );
+    const reduced = [
+      ...css.matchAll(
+        /@media \(prefers-reduced-motion: reduce\) \{([^{}]*)\{([^}]*)\}/g,
+      ),
+    ].find((match) => match[1]?.includes('.kcp-launcher-ring::after'));
+    expect(reduced?.[2]).toMatch(
+      /animation: kcp-launcher-ring-static var\(--kcp-duration-ring-static\)\s+steps\(1\)/,
+    );
+    // The static ring only fades out; nothing in it moves.
+    expect(css).toMatch(
+      /@keyframes kcp-launcher-ring-static \{\s*from \{\s*opacity: 0\.6;\s*\}\s*to \{\s*opacity: 0;\s*\}\s*\}/,
+    );
+  });
+
   it('reads every fixed animation duration from a motion token', () => {
     expect(css).not.toMatch(/animation:[^;]*\b\d+m?s\b/);
     expect(css).toMatch(/animation:[^;]*var\(--kcp-duration-/);
