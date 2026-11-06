@@ -4,8 +4,10 @@
 // it is worth it. Each section's seat status and plan relation are computed here from
 // the placed sections. A card starts collapsed and the catalog owns whether it is
 // open, so the state survives a remount.
+// Resting the mouse on the header, or focusing the toggle from the keyboard, previews
+// where the course's sections would land on the grid.
 
-import { memo, useId, useMemo, type ReactNode } from 'react';
+import { memo, useId, useMemo, type PointerEvent, type ReactNode } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { ChevronDown, GripVertical } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -31,6 +33,8 @@ import {
   dragSourceClass,
   useTouchPress,
 } from '@/features/planner/useTouchPress';
+import { useCoursePreview } from './useCoursePreview';
+import type { HoverIntentHandlers } from './useHoverIntent';
 
 const HEADER = 'flex items-start gap-1';
 
@@ -43,9 +47,11 @@ const HEADER = 'flex items-start gap-1';
 // with the header marked pressed on the way and dimmed once it drags (ADR-0058).
 function CourseDragHeader({
   course,
+  hover,
   children,
 }: {
   course: Course;
+  hover: HoverIntentHandlers;
   children: ReactNode;
 }) {
   const { setNodeRef, listeners, isDragging } = useDraggable({
@@ -53,11 +59,18 @@ function CourseDragHeader({
     data: { course },
   });
   const press = useTouchPress();
+  // The press and the hover intent both follow the pointer, so one move feeds both.
+  const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
+    press.handlers.onPointerMove(event);
+    hover.onPointerMove(event);
+  };
   return (
     <header
       ref={setNodeRef}
       {...press.handlers}
       {...listeners}
+      {...hover}
+      onPointerMove={handlePointerMove}
       data-drag-surface="course"
       className={`${HEADER} touch-drag rounded-kcp ${dragSourceClass(isDragging, press.pressed)}`}
     >
@@ -144,6 +157,7 @@ function CourseCardComponent({
         : { added: true, section: placedSection },
     [placedSection, course, placed, crossTerm, locale],
   );
+  const preview = useCoursePreview(course, !added && !crossTerm);
   const { cardRef, scheduleReveal } = useRevealOnExpand(DISCLOSURE_MS);
   const handleToggle = () => {
     scheduleReveal(!open);
@@ -173,6 +187,7 @@ function CourseCardComponent({
           aria-labelledby={`${titleId} ${creditId}`}
           aria-describedby={metaId}
           onClick={handleToggle}
+          {...preview.focus}
           className={`group flex min-h-6 min-w-0 flex-1 cursor-pointer flex-col gap-0.5 rounded-kcp text-left pointer-coarse:min-h-11 ${FOCUS_RING}`}
         >
           <span className="flex w-full min-w-0 items-start gap-2">
@@ -227,9 +242,13 @@ function CourseCardComponent({
       className={`rounded-kcp border border-border px-3 py-2 hover:border-ink-soft ${added ? 'bg-surface-alt' : 'bg-surface'}`}
     >
       {draggable ? (
-        <CourseDragHeader course={course}>{headerContent}</CourseDragHeader>
+        <CourseDragHeader course={course} hover={preview.hover}>
+          {headerContent}
+        </CourseDragHeader>
       ) : (
-        <header className={HEADER}>{headerContent}</header>
+        <header className={HEADER} {...preview.hover}>
+          {headerContent}
+        </header>
       )}
       {/* Keyed by placement: an add or a remove remounts the body at its new state
           with no transition, so a card never plays the exit of rows that just

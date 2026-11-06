@@ -17,7 +17,14 @@ import {
   makeMeeting,
   makeSection,
 } from '../../../tests/support/domain-builders';
+import { installViewport } from '../../../tests/support/viewport';
+import { fakeSearchDeps } from '../../../tests/support/searchDeps';
+import { dragStore } from '@/features/planner/dragStore';
+import { Overlay } from '@/features/shell/Overlay';
+import { uiStore } from '@/features/shell/uiStore';
+import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { CourseCard } from './CourseCard';
+import { HOVER_REST_MS } from './useHoverIntent';
 
 const t = createTranslator('th');
 const en = createTranslator('en');
@@ -727,6 +734,188 @@ describe('CourseCard secondary name language', () => {
   it('shows the secondary name only when the card is open', () => {
     render(<Controlled course={course} placed={[]} locale="th" t={t} />);
     expect(screen.queryByText('Test subject')).not.toBeInTheDocument();
+  });
+});
+
+describe('CourseCard grid preview', () => {
+  const course = makeCourse({
+    subjectId: '90592008',
+    sections: [makeSection({ teachTableId: 'p1', subjectId: '90592008' })],
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    act(() => {
+      dragStore.setState({ hoverCourse: null });
+      uiStore.getState().close();
+    });
+  });
+
+  function header(): HTMLElement {
+    const node = toggle().closest('header');
+    if (node === null) throw new Error('expected the card header');
+    return node;
+  }
+
+  // A deliberate mouse rest on the header: enter, move past the arming distance, rest.
+  function restOnHeader(): void {
+    fireEvent.pointerEnter(header(), {
+      pointerType: 'mouse',
+      clientX: 10,
+      clientY: 10,
+    });
+    fireEvent.pointerMove(header(), {
+      pointerType: 'mouse',
+      clientX: 20,
+      clientY: 10,
+      buttons: 0,
+    });
+    act(() => {
+      vi.advanceTimersByTime(HOVER_REST_MS);
+    });
+  }
+
+  function previewed(): string | null {
+    return dragStore.getState().hoverCourse?.subjectId ?? null;
+  }
+
+  function card(overrides: Partial<CardProps> = {}) {
+    return (
+      <Controlled
+        course={course}
+        placed={[]}
+        locale="th"
+        t={t}
+        onAdd={() => undefined}
+        {...overrides}
+      />
+    );
+  }
+
+  it('previews the course after a mouse rest on a docked tier', () => {
+    installViewport(1366);
+    vi.useFakeTimers();
+    render(card());
+    restOnHeader();
+    expect(previewed()).toBe('90592008');
+    fireEvent.pointerLeave(header(), { pointerType: 'mouse' });
+    expect(previewed()).toBeNull();
+  });
+
+  it('offers no preview below the docked tiers', () => {
+    installViewport(800);
+    vi.useFakeTimers();
+    render(card());
+    restOnHeader();
+    expect(previewed()).toBeNull();
+  });
+
+  it('offers no preview on an added card', () => {
+    installViewport(1366);
+    vi.useFakeTimers();
+    render(card({ placed: [makeSection({ subjectId: '90592008' })] }));
+    restOnHeader();
+    expect(previewed()).toBeNull();
+  });
+
+  it('offers no preview on a cross term card', () => {
+    installViewport(1366);
+    vi.useFakeTimers();
+    render(
+      card({
+        term: {
+          planTerm: { year: '2569', semester: '2' },
+          browsedTerm: { year: '2569', semester: '1' },
+        },
+      }),
+    );
+    restOnHeader();
+    expect(previewed()).toBeNull();
+  });
+
+  it('previews on a keyboard focus of the toggle and clears on blur', () => {
+    installViewport(1366);
+    render(card());
+    vi.spyOn(toggle(), 'matches').mockImplementation(
+      (selector) => selector === ':focus-visible',
+    );
+    fireEvent.focus(toggle());
+    expect(previewed()).toBe('90592008');
+    fireEvent.blur(toggle());
+    expect(previewed()).toBeNull();
+  });
+
+  it('offers no preview on a programmatic focus', () => {
+    installViewport(1366);
+    render(card());
+    act(() => {
+      toggle().focus();
+    });
+    expect(previewed()).toBeNull();
+  });
+
+  it('clears the preview on Escape and keeps the overlay open', () => {
+    installViewport(1366, { reducedMotion: true });
+    vi.useFakeTimers();
+    act(() => {
+      uiStore.getState().open();
+    });
+    render(
+      <SearchDepsProvider value={fakeSearchDeps()}>
+        <Overlay />
+        {card()}
+      </SearchDepsProvider>,
+    );
+    restOnHeader();
+    expect(previewed()).toBe('90592008');
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+    expect(previewed()).toBeNull();
+    expect(uiStore.getState().isOpen).toBe(true);
+    // The preview stays dismissed until the pointer enters again.
+    fireEvent.pointerMove(header(), {
+      pointerType: 'mouse',
+      clientX: 30,
+      clientY: 10,
+      buttons: 0,
+    });
+    act(() => {
+      vi.advanceTimersByTime(HOVER_REST_MS);
+    });
+    expect(previewed()).toBeNull();
+    // With nothing left to dismiss, the next Escape closes the overlay as usual.
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+    expect(uiStore.getState().isOpen).toBe(false);
+  });
+
+  it('clears the preview when the card unmounts', () => {
+    installViewport(1366);
+    vi.useFakeTimers();
+    const { unmount } = render(card());
+    restOnHeader();
+    expect(previewed()).toBe('90592008');
+    unmount();
+    expect(previewed()).toBeNull();
+  });
+
+  it('clears the preview when the course is added', () => {
+    installViewport(1366);
+    vi.useFakeTimers();
+    const { rerender } = render(card());
+    restOnHeader();
+    rerender(card({ placed: [makeSection({ subjectId: '90592008' })] }));
+    expect(previewed()).toBeNull();
+  });
+
+  it('follows a refiltered course while previewing', () => {
+    installViewport(1366);
+    vi.useFakeTimers();
+    const { rerender } = render(card());
+    restOnHeader();
+    const refiltered = { ...course, sections: [...course.sections] };
+    rerender(card({ course: refiltered }));
+    expect(dragStore.getState().hoverCourse).toBe(refiltered);
   });
 });
 
