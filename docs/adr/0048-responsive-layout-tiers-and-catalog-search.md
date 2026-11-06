@@ -368,8 +368,38 @@ the whole grid it adds to. The compact tier now ships as the decision above desc
   between the nav, the sheet toggle and the docked controls, and below 640 px it lands on the
   nav item of the pane on screen.
 
-Two gaps remain for the safe area change that follows. The toast region still sits at the panel
-bottom, over the nav, and the feedback strip still renders in the plan pane, so a blocked add
-made from the catalog pane routes its alternatives to a hidden strip. That change floats the
-strip above the nav and pads the nav, the toaster and the launcher for the device safe areas.
-The phone support gate above is unchanged.
+Two gaps remained for the safe area change that follows. The toast region still sits at the
+panel bottom, over the nav, and the feedback strip rendered in the plan pane, so a blocked add
+made from the catalog pane routed its alternatives to a hidden strip. The amendment below floats
+the strip above the nav, which closes the second gap. The safe area change pads the nav, the
+toaster and the launcher for the device safe areas. The phone support gate above is unchanged.
+
+## Amendment, 2026-11-06: the feedback strip floats above the sheet
+
+The open sheet's inert scope left the strip in the grid region, so below 1024 px a blocked add
+from the sheet showed alternative chips under the scrim that could not be tapped, and focus
+could not move to the first of them. The strip now mounts by tier, still once, so one polite
+node speaks each outcome.
+
+- On the docked tiers it stays at the top of the grid column with its reserved height, so a
+  notice never shifts the grid.
+- Below them `Layout` renders it after the scrim and outside the inert grid region. It floats at
+  the foot of the open sheet at the sheet's width, or at the foot of the grid while the sheet is
+  closed. Below 640 px it floats over whichever pane shows, 72 px above the container foot, so
+  it clears the 56 px bottom nav.
+- While a toast or the undo toast shows, the floating strip rises above the toast region,
+  because the add toast left by the previous pick would otherwise cover the chips of the next.
+- While the floating strip has a height it sets `--kcp-overlay-bottom` on its container, and the
+  catalog results and search form scrollers use it as their bottom scroll padding, so a control
+  focused at their foot is not hidden under the strip (WCAG 2.4.11).
+
+Each notice waits on one pausable window from `useAutoClear`: it holds while a hovering pointer
+rests on the strip or focus is inside it, and resumes with the time left (WCAG 2.2.1). Every
+visible notice ends with a dismiss control, ปิดข้อความ. The show in the list action shows the
+catalog pane, opens the sheet, or slides a hidden column back, scrolls the course into view and
+focuses its toggle, and when the result no longer lists the course the notice offers a by
+subject id search for it in the active plan's term instead.
+
+The strip entry in the live region inventory changes with it: the strip is no longer inert while
+the sheet is open. Its screen reader only added line still stays empty while the sheet covers
+the timetable, and the add toast speaks instead, so an add is still read once.
