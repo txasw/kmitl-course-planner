@@ -390,6 +390,7 @@
   "stats.region": "สรุปตาราง",
   "stats.conflicts": "ชนกัน {count} รายการ",
   "stats.noConflicts": "ไม่มีรายการชนกัน",
+  "stats.freeDays": "วันว่าง {days}",
   "mode.select": "โหมดการแสดงผล",
   "mode.edit": "แก้ไข",
   "mode.preview": "ดูตัวอย่าง",

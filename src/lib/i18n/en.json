@@ -390,6 +390,7 @@
   "stats.region": "Plan summary",
   "stats.conflicts": "Conflicts: {count}",
   "stats.noConflicts": "No conflicts",
+  "stats.freeDays": "Free days {days}",
   "mode.select": "View mode",
   "mode.edit": "Edit",
   "mode.preview": "Preview",
