@@ -54,8 +54,13 @@ export interface ExamWindowText {
 
 /** The exam windows a section announces, midterm before final, each formatted through
  * formatExamRange. A window the API left empty is absent, so an empty list means the
- * section announces no exam date, which the surfaces read as arranged by the instructor. */
-export function examWindowTexts(exam: Exam, t: Translate): ExamWindowText[] {
+ * section announces no exam date, which the surfaces read as arranged by the instructor.
+ * It takes the windows of a section or of a stored snapshot, whose optional fields may
+ * hold undefined. */
+export function examWindowTexts(
+  exam: { readonly [K in keyof Exam]?: Exam[K] | undefined },
+  t: Translate,
+): ExamWindowText[] {
   return EXAM_KINDS.flatMap((kind) => {
     const range = exam[kind];
     return range === undefined
