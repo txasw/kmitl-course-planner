@@ -27,6 +27,31 @@ export const PREFS_KEY = 'kcp:prefs';
  */
 export const SEARCH_KEY = 'kcp:search';
 
+/**
+ * Worker owned install record in storage.local, written once when the extension
+ * is first installed and never overwritten. Content only reads it, so the two
+ * sides never write the same key.
+ */
+export const INSTALL_KEY = 'kcp:install';
+
+/**
+ * Content owned onboarding record in storage.local: when the welcome showed, when
+ * the panel first opened, and when the entry toast was turned off. The worker never
+ * writes it.
+ */
+export const ONBOARDING_KEY = 'kcp:onboarding';
+
+/**
+ * Worker owned tab intents in storage.session, which content scripts cannot reach
+ * by default. It records which tab the worker opened and why, so a content script
+ * mounting in that tab can learn it through the mount handshake. The session area
+ * clears when the browser restarts, which bounds a stale intent.
+ */
+export const TAB_INTENTS_KEY = 'kcp:session:tabIntents';
+
+/** How long a recorded tab intent stays valid before it is ignored and pruned. */
+export const TAB_INTENT_TTL_MS = 60 * 1000;
+
 /** Key under which a corrupt root blob is preserved for later export. */
 export function quarantineKey(timestamp: string): string {
   return `kcp:quarantine:${timestamp}`;
