@@ -39,11 +39,11 @@ export interface WorkerHandshakeDeps {
 /**
  * Opens the panel because the worker asked, from the handshake or a later command. It
  * closes a welcome that is showing, so the two never stack, and marks the document so
- * the entry prompts stay quiet.
+ * the entry prompts stay quiet and the welcome is not claimed here.
  */
 export function applyRequestedOpen(): void {
   const onboarding = onboardingStore.getState();
-  onboarding.suppressDocument();
+  onboarding.markOpenRequested();
   onboarding.setWelcomeOpen(false);
   openPanelAt('resume');
 }

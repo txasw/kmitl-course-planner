@@ -1,5 +1,6 @@
 import type { OnboardingPersistenceDeps } from '../../src/features/onboarding/useOnboardingPersistence';
 import type { WorkerHandshakeDeps } from '../../src/features/onboarding/useWorkerHandshake';
+import type { WelcomeClaimDeps } from '../../src/features/onboarding/useWelcomeClaim';
 
 /** Inert onboarding deps for tests that render the App shell but do not exercise
  * onboarding: there is no install record, the onboarding record is empty, and a
@@ -28,5 +29,14 @@ export function fakeHandshakeDeps(): WorkerHandshakeDeps {
         ok: true,
         value: { openPanel: false, shortcut: null },
       }),
+  };
+}
+
+/** Inert welcome claim deps: the onboarding record is empty and the worker denies
+ * the claim. */
+export function fakeWelcomeDeps(): WelcomeClaimDeps {
+  return {
+    record: fakeOnboardingDeps().record,
+    send: () => Promise.resolve({ ok: true, value: { granted: false } }),
   };
 }

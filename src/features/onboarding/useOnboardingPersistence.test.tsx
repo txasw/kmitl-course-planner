@@ -177,14 +177,14 @@ describe('useOnboardingPersistence', () => {
     expect(onboardingStore.getState().documentSuppressed).toBe(false);
   });
 
-  it('settles the welcome decision after the read and leaves the handshake', async () => {
+  it('leaves the welcome decision and the handshake to their own hooks', async () => {
     const deps = storageDeps();
     renderHook(() => {
       useOnboardingPersistence(deps);
     });
-    expect(onboardingStore.getState().welcomeSettled).toBe(false);
     await flush();
-    expect(onboardingStore.getState().welcomeSettled).toBe(true);
+    expect(onboardingStore.getState().loaded).toBe(true);
+    expect(onboardingStore.getState().welcomeSettled).toBe(false);
     expect(onboardingStore.getState().handshakeSettled).toBe(false);
   });
 
