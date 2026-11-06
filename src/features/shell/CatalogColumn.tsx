@@ -72,7 +72,10 @@ export function closeSheet(control: Element): void {
   });
 }
 
+// The Escape that ends an input method composition in a sheet field belongs to the
+// editor, as the overlay trap already rules, so it never closes the sheet.
 function handleSheetKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
+  if (event.nativeEvent.isComposing) return;
   if (claimEscape(event)) {
     closeSheet(event.currentTarget);
   }
