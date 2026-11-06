@@ -5,7 +5,7 @@
 // movement is meaningless when every placement is fixed. Hovering the row or
 // focusing the grip previews the section's cells at low emphasis.
 
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { GripVertical } from 'lucide-react';
 import type { Course, Section } from '@/lib/domain/types';
@@ -43,6 +43,18 @@ export function DraggableSection({
   const clearPreview = () => {
     dragStore.getState().clearHover();
   };
+
+  // A row can unmount under a resting pointer, through a collapse, a filter edit or a new
+  // result, and then never sees its mouse leave, so it clears its own preview on the way
+  // out. Only its own: a preview another row has taken since stays.
+  const { teachTableId } = section;
+  useEffect(
+    () => () => {
+      const { hover, clearHover } = dragStore.getState();
+      if (hover?.teachTableId === teachTableId) clearHover();
+    },
+    [teachTableId],
+  );
 
   return (
     <div
