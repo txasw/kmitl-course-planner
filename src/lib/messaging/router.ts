@@ -80,16 +80,17 @@ function toValidationError(
   );
 }
 
-// Chrome reports tabs.TAB_ID_NONE (-1) for a sender outside a browser tab, so only
-// a non negative integer counts as a tab.
+/**
+ * Whether a tab id names a real tab. Chrome reports tabs.TAB_ID_NONE (-1) for a
+ * sender or a click outside a browser tab, so only a non negative integer counts.
+ */
+export function isTabId(id: number | undefined): id is number {
+  return id !== undefined && Number.isInteger(id) && id >= 0;
+}
+
 function contextOf(sender: MessageSender): HandlerContext {
   const tabId = sender.tab?.id;
-  return {
-    tabId:
-      tabId !== undefined && Number.isInteger(tabId) && tabId >= 0
-        ? tabId
-        : null,
-  };
+  return { tabId: isTabId(tabId) ? tabId : null };
 }
 
 export function createRouter({
