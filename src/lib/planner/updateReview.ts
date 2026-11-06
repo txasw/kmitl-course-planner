@@ -70,13 +70,24 @@ function itemKinds(entry: PlanEntry): ReviewKind[] {
   return kinds;
 }
 
+type UpdateItemFields = Pick<PlanEntry, 'review' | 'verifyStatus'>;
+
+function isUpdateItem(entry: UpdateItemFields): boolean {
+  return entry.review !== undefined || entry.verifyStatus === 'missing';
+}
+
+/**
+ * How many items the updates dialog lists: the entries holding an open review or still
+ * not listed. The entry toast states this count, and hasUpdateItems reads it, so the
+ * toast and the dialog never disagree about whether there is anything to review.
+ */
+export function countUpdateItems(entries: readonly UpdateItemFields[]): number {
+  return entries.filter(isUpdateItem).length;
+}
+
 /** Whether the plan has anything for the updates dialog to list. */
-export function hasUpdateItems(
-  entries: readonly Pick<PlanEntry, 'review' | 'verifyStatus'>[],
-): boolean {
-  return entries.some(
-    (entry) => entry.review !== undefined || entry.verifyStatus === 'missing',
-  );
+export function hasUpdateItems(entries: readonly UpdateItemFields[]): boolean {
+  return countUpdateItems(entries) > 0;
 }
 
 function clashesOf(
