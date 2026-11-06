@@ -283,6 +283,103 @@ describe('teachtime_str additional meetings', () => {
   });
 });
 
+describe('grouping membership collected during dedupe', () => {
+  function grouping(
+    ids: [string, string, string, string],
+    blocks: RawSectionRow[][],
+  ): unknown {
+    const [faculty, department, curriculum, classYear] = ids;
+    return {
+      faculty_id: faculty,
+      department_id: department,
+      curriculum2_id: curriculum,
+      class: classYear,
+      faculty_name_th: 'คณะ',
+      faculty_name_en: 'Faculty',
+      department_name_th: null,
+      department_name_en: null,
+      curriculum_name_th: null,
+      curriculum_name_en: null,
+      teachtable: blocks.map((data, index) => ({
+        subject_type_name_th: `กลุ่ม ${String(index + 1)}`,
+        subject_type_name_en: `Group ${String(index + 1)}`,
+        data,
+      })),
+    };
+  }
+
+  it('keeps the 22 groupings of 90641007/101 without changing the dedupe counts', () => {
+    const { courses, duplicateCount } = normalizeFixture(
+      'teach-table.by_subject_id.capture.json',
+    );
+    expect(totalSections(courses)).toBe(44);
+    expect(duplicateCount).toBe(455);
+    const offeredTo = findSection(courses, '90641007', '101').offeredTo ?? [];
+    expect(offeredTo).toHaveLength(22);
+    expect(offeredTo[0]).toEqual({
+      facultyId: '01',
+      departmentId: '01',
+      curriculumId: '128',
+      classYear: '1',
+    });
+  });
+
+  it('gives every section at least one grouping and most of them several', () => {
+    const { courses } = normalizeFixture(
+      'teach-table.by_subject_id.capture.json',
+    );
+    const sections = courses.flatMap((course) => course.sections);
+    const sizes = sections.map((section) => section.offeredTo?.length ?? 0);
+    expect(sizes.every((size) => size >= 1)).toBe(true);
+    expect(sizes.filter((size) => size > 1)).toHaveLength(41);
+  });
+
+  it('records the single grouping of a by_class result', () => {
+    const { courses } = normalizeFixture('teach-table.by_class.capture.json');
+    for (const section of courses.flatMap((course) => course.sections)) {
+      expect(section.offeredTo).toHaveLength(1);
+    }
+  });
+
+  it('keeps raw ids, first seen order, and one item per grouping', () => {
+    const row = makeRow({ teach_table_id: '7' });
+    const result = normalizeTeachTable([
+      grouping(['01', '08', '08', '4'], [[row], [row]]),
+      grouping(['1', 'x', 'x', '0'], [[row]]),
+      grouping(['01', '08', '08', '4'], [[row]]),
+    ]);
+    if (!result.ok) {
+      throw new Error('normalize failed');
+    }
+    expect(result.value.duplicateCount).toBe(3);
+    const [section] = result.value.courses[0]?.sections ?? [];
+    expect(section?.offeredTo).toEqual([
+      {
+        facultyId: '01',
+        departmentId: '08',
+        curriculumId: '08',
+        classYear: '4',
+      },
+      { facultyId: '1', departmentId: 'x', curriculumId: 'x', classYear: '0' },
+    ]);
+  });
+
+  it('keeps the first row fields when a later grouping repeats the id', () => {
+    const first = makeRow({ teach_table_id: '7', room_no: 'FIRST' });
+    const later = makeRow({ teach_table_id: '7', room_no: 'LATER' });
+    const result = normalizeTeachTable([
+      grouping(['01', '01', '01', '1'], [[first]]),
+      grouping(['01', '02', '02', '1'], [[later]]),
+    ]);
+    if (!result.ok) {
+      throw new Error('normalize failed');
+    }
+    const [section] = result.value.courses[0]?.sections ?? [];
+    expect(section?.meetings[0]?.room).toBe('FIRST');
+    expect(section?.offeredTo).toHaveLength(2);
+  });
+});
+
 describe('pair linking and field normalization', () => {
   const { courses } = normalizeFixture(
     'teach-table.by_subject_owner_id-32.capture.json',

@@ -24,6 +24,7 @@ import type {
   Exam,
   Meeting,
   MeetingKind,
+  OfferedTo,
   Section,
 } from './types';
 
@@ -48,17 +49,30 @@ interface TaggedRow {
   row: RawSectionRow;
   groupNameTh: string;
   groupNameEn: string;
+  grouping: OfferedTo;
+}
+
+/** A deduplicated row: the first occurrence plus every grouping its id appeared under. */
+interface UniqueRow extends TaggedRow {
+  offeredTo: OfferedTo[];
 }
 
 function flatten(response: RawTeachTableResponse): TaggedRow[] {
   const rows: TaggedRow[] = [];
   for (const group of response) {
+    const grouping: OfferedTo = {
+      facultyId: group.faculty_id,
+      departmentId: group.department_id,
+      curriculumId: group.curriculum2_id,
+      classYear: group.class,
+    };
     for (const block of group.teachtable) {
       for (const row of block.data) {
         rows.push({
           row,
           groupNameTh: block.subject_type_name_th,
           groupNameEn: block.subject_type_name_en,
+          grouping,
         });
       }
     }
@@ -66,19 +80,38 @@ function flatten(response: RawTeachTableResponse): TaggedRow[] {
   return rows;
 }
 
+function groupingKey(grouping: OfferedTo): string {
+  return [
+    grouping.facultyId,
+    grouping.departmentId,
+    grouping.curriculumId,
+    grouping.classYear,
+  ].join('|');
+}
+
+// The first row of each teach_table_id is kept whole, since the repeats are whole row
+// copies. Only the grouping membership differs between them, and it is the one signal of
+// which curricula a section is meant for, so it is collected rather than dropped. A
+// grouping seen twice for one id, from its two subject type blocks, is recorded once.
 function dedupe(rows: TaggedRow[]): {
-  unique: TaggedRow[];
+  unique: UniqueRow[];
   duplicateCount: number;
 } {
-  const seen = new Set<string>();
-  const unique: TaggedRow[] = [];
+  const byId = new Map<string, { kept: UniqueRow; keys: Set<string> }>();
   for (const tagged of rows) {
-    if (seen.has(tagged.row.teach_table_id)) {
-      continue;
+    const key = groupingKey(tagged.grouping);
+    const seen = byId.get(tagged.row.teach_table_id);
+    if (seen === undefined) {
+      byId.set(tagged.row.teach_table_id, {
+        kept: { ...tagged, offeredTo: [tagged.grouping] },
+        keys: new Set([key]),
+      });
+    } else if (!seen.keys.has(key)) {
+      seen.keys.add(key);
+      seen.kept.offeredTo.push(tagged.grouping);
     }
-    seen.add(tagged.row.teach_table_id);
-    unique.push(tagged);
   }
+  const unique = [...byId.values()].map((entry) => entry.kept);
   return { unique, duplicateCount: rows.length - unique.length };
 }
 
@@ -240,7 +273,7 @@ function warnRow(
 }
 
 function toSection(
-  tagged: TaggedRow,
+  tagged: UniqueRow,
   warnings: NormalizationWarning[],
 ): Section {
   const { row } = tagged;
@@ -309,6 +342,7 @@ function toSection(
     rulesTh: sanitizeToLines(row.rules_th).join('\n'),
     rulesEn: sanitizeToLines(row.rules_en).join('\n'),
     remark: toRemark(row.remark),
+    offeredTo: tagged.offeredTo,
   };
 }
 
