@@ -8,10 +8,22 @@ import { test as base, chromium } from '@playwright/test';
 import type { BrowserContext, Page, Worker } from '@playwright/test';
 import { resolve } from 'node:path';
 import { startMockServer, type MockServer } from './mockServer';
+import {
+  INSTALL_TAB_URL,
+  settleOnboarding,
+  type OnboardingState,
+} from './onboarding';
+import { extensionWorker } from './worker';
 
 export interface TestOptions {
   /** Absolute or relative path to the built extension directory to load. */
   extensionDir: string;
+  /**
+   * Settled, the default, closes the tab the worker opens on install and seeds the
+   * first run as done, so a spec starts from the context's first page as before.
+   * Fresh leaves the install as a student meets it.
+   */
+  onboarding: OnboardingState;
 }
 
 interface Fixtures extends TestOptions {
@@ -23,6 +35,7 @@ interface Fixtures extends TestOptions {
 
 export const test = base.extend<Fixtures>({
   extensionDir: ['', { option: true }],
+  onboarding: ['settled', { option: true }],
 
   mock: async ({}, use) => {
     const mock = await startMockServer();
@@ -31,7 +44,15 @@ export const test = base.extend<Fixtures>({
   },
 
   context: async (
-    { extensionDir, mock, viewport, isMobile, hasTouch, deviceScaleFactor },
+    {
+      extensionDir,
+      onboarding,
+      mock,
+      viewport,
+      isMobile,
+      hasTouch,
+      deviceScaleFactor,
+    },
     use,
   ) => {
     if (extensionDir === '') {
@@ -54,14 +75,15 @@ export const test = base.extend<Fixtures>({
         '--ignore-certificate-errors',
       ],
     });
+    if (onboarding === 'settled') {
+      await settleOnboarding(context);
+    }
     await use(context);
     await context.close();
   },
 
   serviceWorker: async ({ context }, use) => {
-    const existing = context.serviceWorkers();
-    const worker = existing[0] ?? (await context.waitForEvent('serviceworker'));
-    await use(worker);
+    await use(await extensionWorker(context));
   },
 
   extensionId: async ({ serviceWorker }, use) => {
@@ -71,9 +93,8 @@ export const test = base.extend<Fixtures>({
 
 export const expect = test.expect;
 
-/** The host route the content script injects on. */
-export const SELECTOR_URL =
-  'https://regis.reg.kmitl.ac.th/#/teach_table_selector';
+/** The host route the content script injects on, which is also the install tab. */
+export const SELECTOR_URL = INSTALL_TAB_URL;
 
 /** Navigate the context's page to the host selector route. */
 export async function gotoSelector(context: BrowserContext): Promise<Page> {
