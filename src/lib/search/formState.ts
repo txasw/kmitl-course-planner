@@ -250,3 +250,19 @@ export function missingField(
 }
 
 export type { Semester };
+
+/**
+ * The forms with the given tab's fields back at their defaults. The term is not part
+ * of a tab form: it is shared by every tab and seeded from the registrar, so clearing a
+ * search never leaves the student to pick the year and semester again.
+ */
+export function clearTabForm(tab: SearchTab, forms: SearchForms): SearchForms {
+  switch (tab) {
+    case 'by_class':
+      return { ...forms, byClass: defaultClassForm() };
+    case 'by_subject_id':
+      return { ...forms, bySubjectId: defaultSubjectIdForm() };
+    case 'by_subject_owner_id':
+      return { ...forms, byCategory: defaultCategoryForm() };
+  }
+}

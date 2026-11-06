@@ -108,6 +108,7 @@
   "search.missing.curriculum": "เลือกหลักสูตรก่อนค้นหา",
   "search.missing.subjectOwner": "เลือกหมวดวิชาก่อนค้นหา",
   "search.busyReason": "รอผลการค้นหาปัจจุบันก่อนค้นหาใหม่",
+  "search.clear": "ล้างการค้นหา",
   "search.subjectIdHint": "รหัสวิชา 8 หลัก",
   "search.subjectIdInvalid": "กรอกรหัสวิชาเป็นตัวเลข 8 หลัก",
   "search.referenceErrorTitle": "โหลดตัวเลือกไม่สำเร็จ",

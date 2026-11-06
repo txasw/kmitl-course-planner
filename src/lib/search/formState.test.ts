@@ -7,6 +7,7 @@ import {
   buildClassQuery,
   buildSubjectIdQuery,
   buildTeachTableQueryForTab,
+  clearTabForm,
   defaultCategoryForm,
   defaultClassForm,
   defaultSubjectIdForm,
@@ -316,6 +317,36 @@ describe('buildTeachTableQueryForTab', () => {
       mode: 'by_subject_owner_id',
       selected_year: '2569',
       selected_semester: '2',
+    });
+  });
+});
+
+describe('clearTabForm', () => {
+  const filled: SearchForms = {
+    byClass: {
+      faculty: '01',
+      department: '08',
+      curriculum: '121',
+      classYear: '3',
+    },
+    bySubjectId: { subjectId: '90592033' },
+    byCategory: { faculty: '01', subjectOwner: '32' },
+  };
+
+  it('resets only the given tab', () => {
+    const cleared = clearTabForm('by_class', filled);
+    expect(cleared.byClass).toEqual(defaultClassForm());
+    expect(cleared.bySubjectId).toBe(filled.bySubjectId);
+    expect(cleared.byCategory).toBe(filled.byCategory);
+  });
+
+  it('clears the subject id and the category fields', () => {
+    expect(clearTabForm('by_subject_id', filled).bySubjectId).toEqual({
+      subjectId: '',
+    });
+    expect(clearTabForm('by_subject_owner_id', filled).byCategory).toEqual({
+      faculty: '',
+      subjectOwner: '',
     });
   });
 });

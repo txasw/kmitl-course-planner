@@ -310,10 +310,13 @@ describe('SearchForm', () => {
     renderSearch(deps());
     fireEvent.click(screen.getByRole('tab', { name: 'หมวดวิชา' }));
     const submit = screen.getByRole('button', { name: 'ค้นหา' });
-    const stack = submit.parentElement?.parentElement;
-    expect(stack?.lastElementChild).toContainElement(submit);
-    expect(stack).toContainElement(
+    // The submit block follows the last field, with only the clear action after it.
+    const block = submit.parentElement;
+    expect(block?.previousElementSibling).toContainElement(
       screen.getByRole('combobox', { name: 'หมวดวิชา' }),
+    );
+    expect(block?.nextElementSibling).toBe(
+      screen.getByRole('button', { name: 'ล้างการค้นหา' }),
     );
     expect(submit).toHaveClass('w-full');
   });
@@ -354,5 +357,30 @@ describe('SearchForm', () => {
       year: '2569',
       semester: '3',
     });
+  });
+
+  it('clears the fields but keeps the running search and its result', async () => {
+    renderSearch(deps());
+    fireEvent.click(screen.getByRole('tab', { name: 'หมวดวิชา' }));
+    await waitEnabled('คณะ');
+    selectCombobox('คณะ', '01');
+    await waitEnabled('หมวดวิชา');
+    selectCombobox('หมวดวิชา', '90592xxx');
+    fireEvent.click(screen.getByRole('button', { name: 'ค้นหา' }));
+    expect(await screen.findByText('90592033')).toBeInTheDocument();
+    const { barQuery, term } = searchStore.getState();
+
+    const clear = screen.getByRole('button', { name: 'ล้างการค้นหา' });
+    fireEvent.click(clear);
+    const state = searchStore.getState();
+    expect(state.byCategory).toEqual({ faculty: '', subjectOwner: '' });
+    expect(state.term).toEqual(term);
+    expect(state.barQuery).toBe(barQuery);
+    expect(state.result.status).toBe('ready');
+    expect(screen.getByText('90592033')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'ค้นหา' }),
+    ).toHaveAccessibleDescription('เลือกคณะก่อนค้นหา');
+    expect(clear).toBeInTheDocument();
   });
 });
