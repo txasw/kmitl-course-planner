@@ -141,11 +141,12 @@ describe('DraggableSection', () => {
     fireEvent.mouseUp(document, { clientX: 60, clientY: 10 });
   });
 
-  it('starts no drag and shows no grab cursor where the catalog turns drag off', () => {
+  it('starts no drag and shows no grab cursor or grip where the catalog turns drag off', () => {
     vi.useFakeTimers();
     try {
       render(<Harness dragEnabled={false} />);
       expect(surface()).not.toHaveClass('cursor-grab');
+      expect(screen.queryByRole('button', { name: 'ลาก s1' })).toBeNull();
       const row = screen.getByText('row');
       fireEvent.mouseDown(row, { button: 0, clientX: 10, clientY: 10 });
       fireEvent.mouseMove(document, { clientX: 60, clientY: 10 });
