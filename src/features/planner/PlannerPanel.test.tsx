@@ -620,3 +620,117 @@ describe('PlannerPanel focus after a remove', () => {
     expect(block('90000002')).toHaveFocus();
   });
 });
+
+describe('PlannerPanel stats bar', () => {
+  /** A Monday section that clashes with nothing, then two Wednesday sections that clash. */
+  function seedClash(): void {
+    const entry = (
+      teachTableId: string,
+      subjectId: string,
+      meeting: Meeting,
+    ): PlanEntry =>
+      makePlanEntry({
+        snapshot: makeSnapshot({
+          teachTableId,
+          subjectId,
+          section: '1',
+          meetings: [meeting],
+        }),
+      });
+    seed([
+      entry(
+        'a1',
+        '90000001',
+        makeMeeting({ day: 1, startMin: 540, endMin: 600 }),
+      ),
+      entry(
+        'c2',
+        '90000003',
+        makeMeeting({ day: 3, startMin: 660, endMin: 720 }),
+      ),
+      entry(
+        'c1',
+        '90000002',
+        makeMeeting({ day: 3, startMin: 600, endMin: 720 }),
+      ),
+    ]);
+  }
+
+  function stats(): HTMLElement {
+    return screen.getByRole('group', { name: 'สรุปตาราง' });
+  }
+
+  it('sums the plan under the selected view as under the timetable', () => {
+    installViewport(1366);
+    seedTwoSubjects();
+    renderPanel();
+    expect(stats()).toHaveTextContent('ไม่มีรายการชนกัน');
+    fireEvent.click(screen.getByRole('tab', { name: 'วิชาที่เลือก (2)' }));
+    expect(stats()).toBeInTheDocument();
+  });
+
+  it('renders no stats bar in preview or for an empty plan', () => {
+    renderPanel();
+    expect(screen.queryByRole('group', { name: 'สรุปตาราง' })).toBeNull();
+    seedTwoSubjects();
+    act(() => {
+      uiStore.getState().setViewMode('preview');
+    });
+    expect(screen.queryByRole('group', { name: 'สรุปตาราง' })).toBeNull();
+  });
+
+  it('focuses the first clashing block in time order from the clash button', () => {
+    Element.prototype.scrollIntoView = vi.fn();
+    installViewport(1366);
+    seedClash();
+    renderPanel();
+    fireEvent.click(
+      within(stats()).getByRole('button', { name: 'ชนกัน 1 รายการ' }),
+    );
+    const first = document.querySelector<HTMLElement>(
+      '[data-teach-table-id="c1"][data-block-order]',
+    );
+    expect(first).toHaveFocus();
+    expect(first).toHaveClass('kcp-locate');
+  });
+
+  it('shows the day of the clash in the day view before focusing its block', () => {
+    Element.prototype.scrollIntoView = vi.fn();
+    installViewport(390);
+    seedClash();
+    renderPanel();
+    // The day view opens on Monday, the first day with a class, where nothing clashes.
+    expect(
+      document.querySelector('[data-teach-table-id="c1"][data-block-order]'),
+    ).toBeNull();
+    fireEvent.click(
+      within(stats()).getByRole('button', { name: 'ชนกัน 1 รายการ' }),
+    );
+    expect(screen.getByRole('radio', { name: /^วันพุธ/ })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    expect(
+      document.querySelector('[data-teach-table-id="c1"][data-block-order]'),
+    ).toHaveFocus();
+  });
+
+  it('shows the timetable first when the clash button is pressed from the selected view', async () => {
+    Element.prototype.scrollIntoView = vi.fn();
+    installViewport(1366);
+    seedClash();
+    act(() => {
+      uiStore.getState().setPlanView('selected');
+    });
+    renderPanel();
+    fireEvent.click(
+      within(stats()).getByRole('button', { name: 'ชนกัน 1 รายการ' }),
+    );
+    expect(uiStore.getState().planView).toBe('timetable');
+    await waitFor(() => {
+      expect(
+        document.querySelector('[data-teach-table-id="c1"][data-block-order]'),
+      ).toHaveFocus();
+    });
+  });
+});
