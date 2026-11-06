@@ -1,9 +1,21 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, within, cleanup } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import { DEFAULT_WINDOW } from '@/lib/planner/grid';
 import { WEEK_DAYS } from '@/lib/parsing/days';
-import { DEFAULT_DISPLAY_OPTIONS } from '@/lib/planner/displayOptions';
+import {
+  makePlanEntry,
+  makeSection,
+  makeSnapshot,
+} from '../../../tests/support/domain-builders';
+import {
+  DEFAULT_DISPLAY_OPTIONS,
+  type DisplayOptions,
+} from '@/lib/planner/displayOptions';
+import {
+  buildExamSchedule,
+  type ExamSchedule,
+} from '@/lib/planner/examSchedule';
 import { DEFAULT_TEMPLATE } from '@/lib/planner/exportTemplates';
 import type { PosterHonesty } from '@/lib/planner/posterHonesty';
 import { PreviewPoster } from './PreviewPoster';
@@ -54,12 +66,16 @@ interface PosterInputs {
   scheduled?: PlacedSection[];
   unscheduled?: PlacedSection[];
   honesty?: PosterHonesty;
+  displayOptions?: DisplayOptions;
+  examSchedule?: ExamSchedule;
 }
 
 function renderPoster({
   scheduled = [section],
   unscheduled = [],
   honesty = CLEAN,
+  displayOptions = DEFAULT_DISPLAY_OPTIONS,
+  examSchedule = buildExamSchedule([]),
 }: PosterInputs = {}) {
   return render(
     <PreviewPoster
@@ -71,8 +87,9 @@ function renderPoster({
       unscheduled={unscheduled}
       window={DEFAULT_WINDOW}
       days={WEEK_DAYS}
-      displayOptions={DEFAULT_DISPLAY_OPTIONS}
+      displayOptions={displayOptions}
       honesty={honesty}
+      examSchedule={examSchedule}
       locale="th"
       t={t}
     />,
@@ -217,5 +234,146 @@ describe('PreviewPoster data line', () => {
     const { container } = renderPoster({ scheduled: [] });
     expect(container.querySelector('[data-poster-data-line]')).toBeNull();
     expect(container.querySelector('[data-poster-watermark]')).not.toBeNull();
+  });
+});
+
+function examEntry(teachTableId: string, subjectId: string, day: number) {
+  const date = `2026-12-${String(day).padStart(2, '0')}`;
+  return makePlanEntry({
+    snapshot: makeSnapshot({
+      ...makeSection({
+        teachTableId,
+        subjectId,
+        section: '1',
+        exam: {
+          midterm: { start: `${date} 09:00:00`, end: `${date} 12:00:00` },
+        },
+      }),
+      subjectMeta: {
+        subjectId,
+        nameTh: `วิชา ${subjectId}`,
+        nameEn: `Subject ${subjectId}`,
+        credit: 3,
+        creditStr: '3(3-0-6)',
+      },
+    }),
+  });
+}
+
+const EXAMS = buildExamSchedule([
+  examEntry('e1', '90000011', 10),
+  examEntry('e2', '90000012', 11),
+  examEntry('e3', '90000013', 12),
+  examEntry('e4', '90000014', 13),
+  makePlanEntry(),
+]);
+
+const SHOW_EXAMS: DisplayOptions = {
+  ...DEFAULT_DISPLAY_OPTIONS,
+  showEnglishNames: false,
+  showExams: true,
+};
+
+function queryExamBlock(container: HTMLElement): HTMLElement | null {
+  const block = container.querySelector('[data-poster-exams]');
+  return block instanceof HTMLElement ? block : null;
+}
+
+function examBlock(container: HTMLElement): HTMLElement {
+  const block = queryExamBlock(container);
+  if (block === null) {
+    throw new Error('expected the poster exam block');
+  }
+  return block;
+}
+
+describe('PreviewPoster exam schedule', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('leaves the poster a class timetable while the option is off', () => {
+    const { container } = renderPoster({ examSchedule: EXAMS });
+    expect(queryExamBlock(container)).toBeNull();
+  });
+
+  it('lists the exams below the shelf and above the footer when the option is on', () => {
+    const { container } = renderPoster({
+      unscheduled: [online],
+      displayOptions: SHOW_EXAMS,
+      examSchedule: EXAMS,
+    });
+    const block = examBlock(container);
+    expect(within(block).getByRole('heading')).toHaveTextContent('ตารางสอบ');
+    const rows = within(block).getAllByRole('listitem');
+    expect(rows.map((row) => row.textContent)).toEqual([
+      'กลางภาค 10 ธ.ค. 2569 09:00-12:00 วิชา 90000011 (1)',
+      'กลางภาค 11 ธ.ค. 2569 09:00-12:00 วิชา 90000012 (1)',
+      'กลางภาค 12 ธ.ค. 2569 09:00-12:00 วิชา 90000013 (1)',
+      'กลางภาค 13 ธ.ค. 2569 09:00-12:00 วิชา 90000014 (1)',
+      'จัดสอบเอง วิชา (901)',
+    ]);
+    const shelf = screen.getByRole('region', {
+      name: 'รายวิชาที่ไม่มีคาบเรียน',
+    });
+    const order = (a: Node, b: Node) =>
+      a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING;
+    expect(order(shelf, block)).toBeTruthy();
+    expect(order(block, footerRow(container))).toBeTruthy();
+  });
+
+  it('draws the block in ink only, with no danger or warn colour', () => {
+    const { container } = renderPoster({
+      displayOptions: SHOW_EXAMS,
+      examSchedule: EXAMS,
+    });
+    const block = examBlock(container);
+    const classes = [block, ...block.querySelectorAll('*')].map((el) =>
+      el.getAttribute('class'),
+    );
+    expect(classes.join(' ')).not.toMatch(/danger|warn/);
+  });
+
+  it('caps the block at a quarter of the template height', () => {
+    const { container } = renderPoster({
+      displayOptions: SHOW_EXAMS,
+      examSchedule: EXAMS,
+    });
+    expect(examBlock(container).style.maxHeight).toBe('135px');
+  });
+
+  it('is absent when the plan has no subjects', () => {
+    const { container } = renderPoster({
+      scheduled: [],
+      displayOptions: SHOW_EXAMS,
+      examSchedule: buildExamSchedule([]),
+    });
+    expect(queryExamBlock(container)).toBeNull();
+  });
+
+  it('drops whole rows from the end and counts them when the rows overflow the cap', () => {
+    // jsdom performs no layout, so model the block as a 100 px box whose content is a 30 px
+    // heading plus 20 px per row and per closing count line.
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(100);
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        if (!this.hasAttribute('data-poster-exams')) {
+          return 100;
+        }
+        const rows = this.querySelectorAll('li, p').length;
+        return 30 + rows * 20;
+      },
+    );
+    const { container } = renderPoster({
+      displayOptions: SHOW_EXAMS,
+      examSchedule: EXAMS,
+    });
+    const block = examBlock(container);
+    const rows = within(block).getAllByRole('listitem');
+    expect(rows.map((row) => row.textContent)).toEqual([
+      'กลางภาค 10 ธ.ค. 2569 09:00-12:00 วิชา 90000011 (1)',
+      'กลางภาค 11 ธ.ค. 2569 09:00-12:00 วิชา 90000012 (1)',
+    ]);
+    expect(within(block).getByText('อีก 3 รายการ')).toBeInTheDocument();
   });
 });

@@ -1,23 +1,26 @@
 // One preview poster, the shareable composition for a single export template: the header,
-// the weekly grid, the unscheduled shelf, the footer summary, the data date, and the
-// watermark, laid out at the template's exact layout box and type scale. It is read only,
-// never editable, so it carries no drag or remove wiring, and no verification or conflict
-// marks: those are editing signals the people who receive the image cannot act on, so the
-// footer states them as text instead (ADR-0055). The template gallery renders one of these
-// per visible template; only the selected one holds the capture ref, which html-to-image
-// reads at the poster's own box so the export lands the exact template pixels regardless
-// of the display scale around it (ADR-0041, ADR-0045). Memoized so paging between
-// templates and a display option change re-render at most the posters whose inputs moved.
+// the weekly grid, the unscheduled shelf, the exam schedule when the display option asks for
+// it (ADR-0064), the footer summary, the data date, and the watermark, laid out at the
+// template's exact layout box and type scale. It is read only, never editable, so it carries
+// no drag or remove wiring, and no verification or conflict marks: those are editing signals
+// the people who receive the image cannot act on, so the footer states them as text instead
+// (ADR-0055). The template gallery renders one of these per visible template; only the
+// selected one holds the capture ref, which html-to-image reads at the poster's own box so
+// the export lands the exact template pixels regardless of the display scale around it
+// (ADR-0041, ADR-0045). Memoized so paging between templates and a display option change
+// re-render at most the posters whose inputs moved.
 
 import { memo, type RefObject } from 'react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import type { GridWindow } from '@/lib/planner/grid';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
+import type { ExamSchedule } from '@/lib/planner/examSchedule';
 import type { ExportTemplate } from '@/lib/planner/exportTemplates';
 import type { PosterHonesty } from '@/lib/planner/posterHonesty';
 import { GridEmptyState } from './GridEmptyState';
 import { PosterDataLine } from './PosterDataLine';
+import { PosterExamBlock } from './PosterExamBlock';
 import { PosterHeader } from './PosterHeader';
 import { PosterWatermark } from './PosterWatermark';
 import { GridFooter } from './GridFooter';
@@ -38,6 +41,8 @@ export interface PosterData {
   displayOptions: DisplayOptions;
   /** The data date, missing count, and conflicting pair count the footer states as text. */
   honesty: PosterHonesty;
+  /** The plan's exam schedule, which the poster lists when the show exams option is on. */
+  examSchedule: ExamSchedule;
   locale: Locale;
   t: Translate;
 }
@@ -60,6 +65,7 @@ function PreviewPosterComponent({
   days,
   displayOptions,
   honesty,
+  examSchedule,
   locale,
   t,
 }: PreviewPosterProps) {
@@ -104,6 +110,15 @@ function PreviewPosterComponent({
           showEnglishName={displayOptions.showEnglishNames}
           showSubjectId={displayOptions.showSubjectId}
           showVerification={false}
+        />
+      ) : null}
+      {displayOptions.showExams && sections.length > 0 ? (
+        <PosterExamBlock
+          schedule={examSchedule}
+          template={template}
+          displayOptions={displayOptions}
+          locale={locale}
+          t={t}
         />
       ) : null}
       {/* The honesty footer is one baseline row inside the poster's equal margins: the credits

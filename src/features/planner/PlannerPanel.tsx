@@ -21,6 +21,7 @@ import { templateBySlug } from '@/lib/planner/exportTemplates';
 import { isDockedTier } from '@/lib/ui/breakpoints';
 import { planConflicts } from '@/lib/planner/planConflicts';
 import { planExamConflicts } from '@/lib/planner/examOverlap';
+import { buildExamSchedule } from '@/lib/planner/examSchedule';
 import { posterHonesty } from '@/lib/planner/posterHonesty';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
@@ -107,6 +108,8 @@ export function PlannerPanel() {
     () => posterHonesty({ entries, timeConflicts, examConflicts }),
     [entries, timeConflicts, examConflicts],
   );
+  // The exam schedule the poster lists when the show exams option is on (ADR-0064).
+  const examSchedule = useMemo(() => buildExamSchedule(entries), [entries]);
   const subjectGroups = useMemo(
     () => groupEntriesBySubject(entries),
     [entries],
@@ -247,6 +250,7 @@ export function PlannerPanel() {
       days: smartDays,
       displayOptions,
       honesty,
+      examSchedule,
       locale: language,
       t,
     }),
@@ -259,6 +263,7 @@ export function PlannerPanel() {
       smartDays,
       displayOptions,
       honesty,
+      examSchedule,
       language,
       t,
     ],
