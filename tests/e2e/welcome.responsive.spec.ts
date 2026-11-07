@@ -1,6 +1,7 @@
-import type { Locator, Page } from '@playwright/test';
+import type { Locator } from '@playwright/test';
 import { test, expect } from './support/fixtures';
 import { waitForInstallTab } from './support/onboarding';
+import { isPhone } from './support/tiers';
 
 // The welcome at the phone and tablet sizes (ADR-0062). Below 640 px it is a bottom
 // sheet across the full width, and from 640 px a narrow dialog centred in the
@@ -13,10 +14,6 @@ test.use({ onboarding: 'fresh' });
 const WELCOME = 'ขอบคุณที่ติดตั้ง Course Planner for KMITL';
 const START = 'เริ่มวางแผน';
 const MIN_TARGET_PX = 44;
-
-function isPhone(page: Page): boolean {
-  return (page.viewportSize()?.width ?? 0) < 640;
-}
 
 async function box(locator: Locator) {
   const measured = await locator.boundingBox();
