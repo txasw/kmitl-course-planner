@@ -1,8 +1,9 @@
-// Writes the landing site into site/ (ADR-0066): the pages from site-files.mjs, and the
-// favicons rasterized from the extension icon. The pages are generated so the dedupe
-// table, the counts around it and the version are always read from their sources, never
-// typed by hand. Run with pnpm site:build after editing the copy, the renderer, the
-// stylesheet or the script, and after pnpm site:encode when the images change.
+// Writes the landing site into site/ (ADR-0066): the pages and the sitemap from
+// site-files.mjs, and the favicons rasterized from the extension icon. The pages are
+// generated so the dedupe table, the counts around it and the version are always read
+// from their sources, never typed by hand. Run with pnpm site:build after editing the
+// copy, the renderer, the stylesheet or the script, and after pnpm site:encode when the
+// images change.
 
 import { copyFile, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';

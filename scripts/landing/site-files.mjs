@@ -1,7 +1,8 @@
-// The text files of the landing site (ADR-0066): both language pages and the shared not
-// found page, rendered and formatted exactly as they are committed in site/.
-// build-site.mjs writes them. The output depends only on the repository, never on the
-// date or the machine.
+// The text files of the landing site (ADR-0066): both language pages, the shared not
+// found page, and the sitemap with its language alternates, rendered and formatted
+// exactly as they are committed in site/. build-site.mjs writes them, and the site test
+// renders them again and compares, so the committed pages never drift from their
+// sources. The output depends only on the repository, never on the date or the machine.
 
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
@@ -10,7 +11,7 @@ import path from 'node:path';
 import prettier from 'prettier';
 import { th } from './copy.th.mjs';
 import { en } from './copy.en.mjs';
-import { renderNotFound, renderPage } from './render-page.mjs';
+import { ORIGIN, renderNotFound, renderPage } from './render-page.mjs';
 import {
   dedupeCounts,
   extensionVersion,
@@ -47,6 +48,34 @@ async function format(relative, source) {
   return prettier.format(source, { ...options, filepath: file });
 }
 
+// No lastmod: a date taken from the clock would change the file on every build, and a
+// guessed one would be wrong. Crawlers read the language alternates either way.
+function sitemap() {
+  const alternates = [
+    ['th', `${ORIGIN}/`],
+    ['en', `${ORIGIN}/en/`],
+    ['x-default', `${ORIGIN}/`],
+  ]
+    .map(
+      ([lang, href]) =>
+        `<xhtml:link rel="alternate" hreflang="${lang}" href="${href}"/>`,
+    )
+    .join('\n    ');
+  const urls = [`${ORIGIN}/`, `${ORIGIN}/en/`]
+    .map(
+      (loc) => `  <url>
+    <loc>${loc}</loc>
+    ${alternates}
+  </url>`,
+    )
+    .join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${urls}
+</urlset>
+`;
+}
+
 /** Every generated text file of the site, keyed by its path inside site/. */
 export async function siteTextFiles() {
   const manifest = JSON.parse(
@@ -72,5 +101,6 @@ export async function siteTextFiles() {
     '404.html',
     await format('404.html', versionAssets(renderNotFound(th, en))),
   );
+  files.set('sitemap.xml', sitemap());
   return files;
 }
