@@ -390,6 +390,33 @@ describe('EntryToast route offer', () => {
     expect(ui.mobilePane).toBe('catalog');
   });
 
+  it('hands focus to the launcher when a route change hides the offer', () => {
+    const { send } = querySpy();
+    window.history.replaceState(null, '', RESULT_HASH);
+    render(
+      <SearchDepsProvider
+        value={{
+          send,
+          repo: {
+            load: () => Promise.resolve(persisted),
+            save: () => Promise.resolve(),
+          },
+        }}
+      >
+        <Launcher />
+        <EntryToast record={fakeRecord()} />
+      </SearchDepsProvider>,
+    );
+    show();
+    screen.getByRole('button', { name: ROUTE_ACTION }).focus();
+    act(() => {
+      window.history.replaceState(null, '', '#/teach_table_selector');
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    });
+    expect(screen.queryByText(ROUTE)).toBeNull();
+    expect(document.activeElement?.id).toBe(LAUNCHER_ID);
+  });
+
   it('sends nothing for a prefill the form cannot submit and still opens the catalog', async () => {
     vi.mocked(routeSearchPrefill).mockReturnValueOnce({
       tab: 'by_subject_owner_id',

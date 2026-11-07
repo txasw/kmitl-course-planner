@@ -29,15 +29,13 @@ import type { OnboardingRepository } from '@/lib/storage/onboarding';
 import { fillTemplate } from '@/lib/i18n/template';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_HEIGHT, TARGET_SIZE } from '@/lib/ui/target';
-import { LAUNCHER_ID } from '@/features/shell/Launcher';
 import { openPanelAt } from '@/features/shell/openPanel';
-import { commitThenFocus } from '@/features/shell/restoreFocus';
-import { activeElementWithin, rootOf } from '@/features/shell/useFocusTrap';
 import { useHoverFocusHold } from '@/features/shell/useHoverFocusHold';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { searchStore } from '@/features/search/searchStore';
 import { useSearchActions } from '@/features/search/useSearchController';
+import { leaveEntryToast } from './leaveEntryToast';
 import { recordOnboardingMoment } from './recordOnboardingMoment';
 import { useEntryToastSchedule } from './useEntryToastSchedule';
 
@@ -91,19 +89,12 @@ export interface EntryToastProps {
 export function EntryToast({ record }: EntryToastProps) {
   const { t, language } = useTranslation();
   const { held, handlers } = useHoverFocusHold(HOLD_KEY);
-  const { content, end } = useEntryToastSchedule(held);
   const boxRef = useRef<HTMLDivElement>(null);
+  const { content, end } = useEntryToastSchedule(held, boxRef);
 
   /** Hides the toast, handing focus to the launcher when it was inside the toast. */
   const leave = (): void => {
-    const box = boxRef.current;
-    const active = box === null ? null : activeElementWithin(box);
-    if (box === null || active === null || !box.contains(active)) {
-      end();
-      return;
-    }
-    const root = rootOf(box);
-    commitThenFocus(end, () => [root?.getElementById(LAUNCHER_ID)]);
+    leaveEntryToast(boxRef.current, end);
   };
 
   const handleKeyDown: ActionKeyDown = (event) => {

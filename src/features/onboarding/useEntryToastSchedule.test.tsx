@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import {
@@ -59,7 +60,8 @@ function advance(ms: number): void {
 }
 
 function renderSchedule(held = false) {
-  return renderHook(({ hold }) => useEntryToastSchedule(hold), {
+  const box = createRef<HTMLElement>();
+  return renderHook(({ hold }) => useEntryToastSchedule(hold, box), {
     initialProps: { hold: held },
   });
 }
