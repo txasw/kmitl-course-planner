@@ -261,7 +261,7 @@ function ComparisonTable({
               />
               <ComparisonAddCell
                 row={row}
-                surface={index % 2 === 1 ? 'bg-surface-alt' : 'bg-surface'}
+                zebra={index % 2 === 1}
                 blocked={row.section.teachTableId === blockedId}
                 t={t}
                 onAdd={onAdd}
