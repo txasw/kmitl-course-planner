@@ -38,7 +38,7 @@ The planner runs only on the registration site at `regis.reg.kmitl.ac.th`.
 
 ## Requirements
 
-- Node 24, pinned in `.nvmrc`. The `engines` floor in `package.json` is 20.19, but the
+- Node 24, pinned in `.nvmrc`. The `engines` floor in `package.json` is 22, but the
   build, the tests, and the release run on Node 24.
 - pnpm 10.12.1, pinned in the `packageManager` field. Enable it with `corepack enable`.
 
@@ -63,7 +63,7 @@ of the source and nothing else.
 Toolchain:
 
 - Node 24 (the version in `.nvmrc`; the Firefox Add-ons reviewer default of Node 24
-  matches). The `engines` floor is 20.19.
+  matches). The `engines` floor is 22.
 - pnpm 10.12.1, pinned in the `packageManager` field. Use corepack so the pinned version
   runs rather than a separately installed pnpm.
 

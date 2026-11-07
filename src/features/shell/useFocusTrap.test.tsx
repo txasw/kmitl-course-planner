@@ -258,21 +258,21 @@ describe('useFocusTrap', () => {
     expect(onEscape).not.toHaveBeenCalled();
   });
 
-  it('still routes Escape beneath a key guard on the body', () => {
-    // The shadow body carries WXT's isolateEvents guard, registered before the panel
-    // mounts, which stops keys from reaching the host page. Model it on the document
-    // body to prove the trap decides on that node rather than above it.
+  it('still routes Escape beneath a key guard on the root node', () => {
+    // The shadow root carries WXT's isolateEvents guard, registered before the panel
+    // mounts, which stops keys from reaching the host page. Model it on the document,
+    // the root node in tests, to prove the trap decides on that node rather than above it.
     const guard = (event: Event): void => {
       event.stopPropagation();
     };
-    document.body.addEventListener('keydown', guard);
+    document.addEventListener('keydown', guard);
     try {
       const onEscape = vi.fn();
       render(<Harness active={true} onEscape={onEscape} />);
       fireEvent.keyDown(screen.getByTestId('first'), { key: 'Escape' });
       expect(onEscape).toHaveBeenCalledOnce();
     } finally {
-      document.body.removeEventListener('keydown', guard);
+      document.removeEventListener('keydown', guard);
     }
   });
 
@@ -292,7 +292,7 @@ describe('useFocusTrap', () => {
     fireEvent.keyDown(panel, { key: 'Escape' });
     expect(onEscape).not.toHaveBeenCalled();
 
-    // The stopped press left its decider on the body; a later key must not wake it.
+    // The stopped press left its decider on the root; a later key must not wake it.
     wrapper.removeEventListener('keydown', stopper);
     fireEvent.keyDown(panel, { key: 'Enter' });
     expect(onEscape).not.toHaveBeenCalled();
