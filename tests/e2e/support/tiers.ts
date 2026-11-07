@@ -37,6 +37,11 @@ export function tierKind(page: Page): TierKind {
   return 'pane';
 }
 
+/** Whether the page lays out at the phone tier, below 640 px, behind a bottom nav. */
+export function isPhone(page: Page): boolean {
+  return tierKind(page) === 'pane';
+}
+
 export function bottomNav(page: Page): Locator {
   return page.getByRole('navigation', { name: 'ส่วนของตัววางแผน' });
 }

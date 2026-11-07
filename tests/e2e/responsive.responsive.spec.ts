@@ -13,6 +13,7 @@ import { denseSubjectId } from './support/denseCatalog';
 import { expectLauncherInSafeArea } from './support/launcher';
 import { allowEntryToast } from './support/onboarding';
 import { addCourse, block, syntheticSearch } from './support/synthetic';
+import { bottomNav, isPhone } from './support/tiers';
 import {
   LONG_PRESS_MS,
   longPress,
@@ -31,7 +32,9 @@ import type { Plan } from '../../src/lib/domain/plan';
 // the device width and at 320 px, the touch helper delivers real touch events, the edit
 // grid keeps its derived minimum width, a tapped block opens its details as a bottom
 // sheet, the controls a finger reaches are 44 px targets, since both projects are
-// coarse pointers, and the feedback strip's chips stay tappable over the open catalog.
+// coarse pointers, the feedback strip's chips stay tappable over the open catalog, and
+// a control keyboard focus reaches is never covered by the sticky submit, the strip, or
+// the nav.
 // The tablet holds the catalog in a sheet that is modal over the grid and closes alone
 // on Escape. The phone, below 640 px, shows one pane at a time behind a bottom nav, so
 // the catalog and the timetable each take the whole body in turn, its timetable reads
@@ -47,15 +50,6 @@ const OVERLAY = 'ตัววางแผนตารางเรียน ส�
 // The reserved subject id the mock server answers with the synthetic dense catalog,
 // hundreds of collapsed one section courses, so the list is long enough to scroll.
 const DENSE_SUBJECT_ID = '90000500';
-
-/** Whether the page lays out at the phone tier, below 640 px, behind a bottom nav. */
-function isPhone(page: Page): boolean {
-  return (page.viewportSize()?.width ?? 0) < 640;
-}
-
-function bottomNav(page: Page): Locator {
-  return page.getByRole('navigation', { name: 'ส่วนของตัววางแผน' });
-}
 
 /**
  * Bring the catalog into view, the catalog pane on the phone and the sheet on the
@@ -538,6 +532,93 @@ test('the reveal action opens the catalog on the blocked course', async ({
   await expect(card).toBeFocused();
   await expect(card).toBeInViewport();
   await expect(reveal).toHaveCount(0);
+});
+
+/**
+ * Assert the focused control lies wholly in the viewport and is what a press lands on at
+ * its centre and near each corner, so no sticky submit, strip, toast, or nav covers any
+ * part of it (WCAG 2.4.11). The corner points sit inside the corner radius.
+ */
+async function expectUnobscured(control: Locator, name: string): Promise<void> {
+  await expect(control, name).toBeFocused();
+  await expect(control, name).toBeInViewport({ ratio: 1 });
+  const covered = await control.evaluate((node) => {
+    const root = node.getRootNode();
+    if (!(root instanceof ShadowRoot)) return ['outside the panel'];
+    const box = node.getBoundingClientRect();
+    const inset = Math.min(8, box.width / 4, box.height / 4);
+    const points: [string, number, number][] = [
+      ['centre', box.left + box.width / 2, box.top + box.height / 2],
+      ['top left', box.left + inset, box.top + inset],
+      ['top right', box.right - inset, box.top + inset],
+      ['bottom left', box.left + inset, box.bottom - inset],
+      ['bottom right', box.right - inset, box.bottom - inset],
+    ];
+    // Each covered point names what lies on top, by its closest labelled ancestor.
+    return points.flatMap(([point, x, y]) => {
+      const hit = root.elementFromPoint(x, y);
+      if (hit !== null && node.contains(hit)) return [];
+      const cover = hit?.closest('[id], [role], [aria-label]') ?? hit;
+      const label =
+        cover === null
+          ? 'nothing'
+          : `${cover.tagName.toLowerCase()} ${cover.id} ${cover.getAttribute('role') ?? ''} ${cover.getAttribute('aria-label') ?? ''}`;
+      return [`${point} under ${label.trim()}`];
+    });
+  });
+  expect(covered, `${name} covered at`).toEqual([]);
+}
+
+/** Whether the locator holds the focused element of the panel's shadow root. */
+async function isFocused(control: Locator): Promise<boolean> {
+  return control.evaluate((node) => {
+    const root = node.getRootNode();
+    return root instanceof ShadowRoot && root.activeElement === node;
+  });
+}
+
+test('keeps keyboard focus clear of the sticky submit, the strip, and the nav', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  const catalog = await openCatalog(page);
+
+  // Tab from the first control of the search form to its last: each one focus reaches
+  // sits in view, clear of the pinned submit on the phone and of the nav.
+  const form = page.locator('#kcp-search-form');
+  await form.getByRole('combobox', { name: 'ปีการศึกษา' }).focus();
+  const visited: string[] = [];
+  while ((await form.locator(':focus').count()) > 0 && visited.length < 30) {
+    const focused = form.locator(':focus');
+    const name = await focused.evaluate(
+      (node) => node.getAttribute('aria-label') ?? node.textContent,
+    );
+    visited.push(name);
+    await expectUnobscured(focused, `form control ${name}`);
+    await page.keyboard.press('Tab');
+  }
+  expect(visited).toContain('ค้นหา');
+
+  // A blocked add floats the strip over the foot of the catalog, and the pointer resting
+  // on it holds it there. Tab to the last add button of the open list: the list scrolls
+  // it clear of the strip and the nav rather than under them.
+  await syntheticSearch(page);
+  await catalog.getByRole('button', { name: 'ขยายทั้งหมด' }).click();
+  await catalogAtRest(page);
+  await addCourse(page, '90000001');
+  await addCourse(page, '90000002');
+  const reveal = page.getByRole('button', { name: 'แสดงในรายการ' });
+  await expect(reveal).toBeFocused();
+  await reveal.hover();
+
+  const lastCard = catalog.locator('[data-course-card]').last();
+  const lastAdd = lastCard.getByRole('button', { name: /^เพิ่ม / }).last();
+  await lastCard.locator('[data-course-toggle]').focus();
+  for (let step = 0; step < 12 && !(await isFocused(lastAdd)); step += 1) {
+    await page.keyboard.press('Tab');
+  }
+  await expect(reveal).toBeVisible();
+  await expectUnobscured(lastAdd, 'last add button');
 });
 
 /** The control that shows the summary: the nav item on the phone, the tab on the tablet. */
