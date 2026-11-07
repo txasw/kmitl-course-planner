@@ -16,7 +16,7 @@ import { installViewport } from '../../../tests/support/viewport';
 import { initialOnboardingData, onboardingStore } from './onboardingStore';
 import { WelcomeDialog } from './WelcomeDialog';
 
-const TITLE = 'ขอบคุณที่ติดตั้ง Course Planner for KMITL';
+const TITLE = 'ขอบคุณที่ติดตั้ง KCP: Course Planner for KMITL';
 const START = 'เริ่มวางแผน';
 const CLOSE = 'ปิดข้อความต้อนรับ';
 
@@ -174,7 +174,7 @@ describe('WelcomeDialog', () => {
       uiStore.getState().setLanguage('en');
     });
     expect(showWelcome()).toHaveAccessibleName(
-      'Thank you for installing Course Planner for KMITL',
+      'Thank you for installing KCP: Course Planner for KMITL',
     );
     expect(
       screen.getByRole('button', { name: 'Start planning' }),

@@ -107,7 +107,7 @@ export async function gotoSelector(context: BrowserContext): Promise<Page> {
 export async function openPlanner(context: BrowserContext): Promise<Page> {
   const page = await gotoSelector(context);
   await page
-    .getByRole('button', { name: 'เปิด Course Planner for KMITL' })
+    .getByRole('button', { name: 'เปิด KCP: Course Planner for KMITL' })
     .click();
   return page;
 }

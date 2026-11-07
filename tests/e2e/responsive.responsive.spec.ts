@@ -47,10 +47,10 @@ import type { Plan } from '../../src/lib/domain/plan';
 // side by side under a pinned field column.
 // The entry toast beside the launcher fits inside the viewport above the launcher.
 
-const LAUNCHER = 'เปิด Course Planner for KMITL';
+const LAUNCHER = 'เปิด KCP: Course Planner for KMITL';
 // A grid block carries a data-teach-table-id; the catalog rows do not.
 const GRID_BLOCK = '[data-teach-table-id]';
-const OVERLAY = 'ตัววางแผนตารางเรียน สจล.';
+const OVERLAY = 'KCP: ตัววางแผนตารางเรียน สจล.';
 // The reserved subject id the mock server answers with the synthetic dense catalog,
 // hundreds of collapsed one section courses, so the list is long enough to scroll.
 const DENSE_SUBJECT_ID = '90000500';

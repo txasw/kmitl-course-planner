@@ -1,7 +1,7 @@
 import type { ConfigEnv, UserManifest } from 'wxt';
 import { HOST_MATCH_PATTERNS } from './src/lib/shell/hostTab';
 
-const PRODUCT_NAME = 'Course Planner for KMITL';
+const PRODUCT_NAME = 'KCP: Course Planner for KMITL';
 
 /** The parts of the WXT config environment the manifest depends on. */
 export type ManifestEnv = Pick<ConfigEnv, 'mode' | 'browser'>;
@@ -18,7 +18,7 @@ export function buildManifest({ mode, browser }: ManifestEnv): UserManifest {
   return {
     name,
     description:
-      'Weekly timetable planner for KMITL pre registration course selection.',
+      'KCP is a timetable planner for KMITL students. Search course offerings and plan sections on a weekly grid with conflict checks.',
     permissions: ['storage'],
     host_permissions: [...HOST_MATCH_PATTERNS],
     // The toolbar icon opens the panel and has no popup, since the panel is the

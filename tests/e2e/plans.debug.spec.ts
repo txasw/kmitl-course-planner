@@ -16,7 +16,7 @@ import type { Page } from '@playwright/test';
 // student then reviews and acknowledges in the updates dialog. These run against the
 // synthetic by subject id catalog so the sections are known and stable.
 
-const LAUNCHER = 'เปิด Course Planner for KMITL';
+const LAUNCHER = 'เปิด KCP: Course Planner for KMITL';
 
 /** Run the by subject id search after setting the term, since the term test needs a
  * specific semester rather than the form default. */

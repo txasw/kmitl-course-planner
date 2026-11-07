@@ -56,8 +56,8 @@ function renderApp(): void {
   );
 }
 
-const LAUNCHER = 'เปิด Course Planner for KMITL';
-const WELCOME = 'ขอบคุณที่ติดตั้ง Course Planner for KMITL';
+const LAUNCHER = 'เปิด KCP: Course Planner for KMITL';
+const WELCOME = 'ขอบคุณที่ติดตั้ง KCP: Course Planner for KMITL';
 
 function showWelcome(): void {
   act(() => {
@@ -79,7 +79,9 @@ describe('App', () => {
     );
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     fireEvent.click(
-      screen.getByRole('button', { name: 'เปิด Course Planner for KMITL' }),
+      screen.getByRole('button', {
+        name: 'เปิด KCP: Course Planner for KMITL',
+      }),
     );
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
@@ -96,7 +98,7 @@ describe('App', () => {
       />,
     );
     const launcher = screen.getByRole('button', {
-      name: 'เปิด Course Planner for KMITL',
+      name: 'เปิด KCP: Course Planner for KMITL',
     });
     act(() => {
       uiStore.getState().open();

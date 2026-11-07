@@ -67,7 +67,7 @@ describe('Overlay', () => {
     render(<Overlay />, { wrapper });
     const dialog = screen.getByRole('dialog');
     expect(dialog).toHaveAttribute('aria-modal', 'true');
-    expect(dialog).toHaveAccessibleName('ตัววางแผนตารางเรียน สจล.');
+    expect(dialog).toHaveAccessibleName('KCP: ตัววางแผนตารางเรียน สจล.');
   });
 
   it('marks the panel with the active language, not the host one', () => {
@@ -198,7 +198,7 @@ describe('Overlay', () => {
     });
     render(<Overlay />, { wrapper });
     const panel = screen.getByRole('dialog', {
-      name: 'ตัววางแผนตารางเรียน สจล.',
+      name: 'KCP: ตัววางแผนตารางเรียน สจล.',
     });
     fireEvent.click(screen.getByRole('button', { name: 'เลือกตาราง' }));
     const sheet = screen.getByRole('dialog', { name: 'เลือกตาราง' });

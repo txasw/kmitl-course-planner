@@ -7,7 +7,7 @@ import type { Page } from '@playwright/test';
 import { expect } from './fixtures';
 
 /** The launcher's accessible name in the default locale. */
-const LAUNCHER_NAME = 'เปิด Course Planner for KMITL';
+const LAUNCHER_NAME = 'เปิด KCP: Course Planner for KMITL';
 
 const EDGE_OFFSET = 20;
 const TARGET_MIN = 44;

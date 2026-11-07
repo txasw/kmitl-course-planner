@@ -136,7 +136,7 @@ describe('PreviewToolbar', () => {
     const text = writeText.mock.calls[0]?.[0];
     // The subject id is off by default, so the line leads with the course name.
     expect(text).toContain('สังคมไทยในวันนี้');
-    expect(text).toContain('ตัววางแผนตารางเรียน สจล.');
+    expect(text).toContain('KCP: ตัววางแผนตารางเรียน สจล.');
   });
 
   it('appends the exam schedule to the copied text when the option is on', () => {

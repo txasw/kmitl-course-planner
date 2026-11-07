@@ -45,7 +45,7 @@ describe('Header', () => {
   it('keeps the title labelling the dialog while it is visually hidden below lg', () => {
     render(<Header titleId="title" />);
     const title = screen.getByRole('heading', { level: 2 });
-    expect(title).toHaveTextContent('ตัววางแผนตารางเรียน สจล.');
+    expect(title).toHaveTextContent('KCP: ตัววางแผนตารางเรียน สจล.');
     expect(title).toHaveClass('sr-only', 'lg:not-sr-only');
   });
 

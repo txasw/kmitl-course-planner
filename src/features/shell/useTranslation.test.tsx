@@ -16,7 +16,7 @@ describe('useTranslation', () => {
     const { result } = renderHook(() => useTranslation());
     expect(result.current.language).toBe('th');
     expect(result.current.t('launcher.open')).toBe(
-      'เปิด Course Planner for KMITL',
+      'เปิด KCP: Course Planner for KMITL',
     );
 
     act(() => {
@@ -25,7 +25,7 @@ describe('useTranslation', () => {
 
     expect(result.current.language).toBe('en');
     expect(result.current.t('launcher.open')).toBe(
-      'Open Course Planner for KMITL',
+      'Open KCP: Course Planner for KMITL',
     );
   });
 });
