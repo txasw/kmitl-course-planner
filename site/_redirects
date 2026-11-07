@@ -1,0 +1,6 @@
+# Redirects for the landing site on Cloudflare Workers static assets (ADR-0066).
+# Cloudflare reads this file at deploy and never serves it. The Thai page is the root,
+# so a guessed /th/ address lands on it instead of the not found page.
+/th / 301
+/th/ / 301
+/th/* / 301
