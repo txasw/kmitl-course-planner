@@ -364,7 +364,9 @@ export function jsonLd(copy, version) {
         applicationCategory: 'EducationalApplication',
         applicationSubCategory: 'Browser extension',
         operatingSystem: 'Windows, macOS, Linux, ChromeOS',
-        browserRequirements:
+        // browserRequirements belongs to WebApplication; an installed extension states
+        // the browser it runs in as a software requirement.
+        softwareRequirements:
           'Chrome, Microsoft Edge, Brave, Opera or Firefox on a computer',
         softwareVersion: version,
         inLanguage: copy.lang,
