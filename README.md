@@ -1,40 +1,58 @@
-# Course Planner for KMITL
+# KCP: Course Planner for KMITL
 
-A cross browser extension that turns the KMITL registration course search into
-an interactive weekly timetable planner. It reads the same public course data
-the registration site already uses, removes the duplicate rows the site repeats
-across curriculum groupings, and presents the result as a drag and drop weekly
-grid with conflict detection, saved plans, and image export.
+KCP is a browser extension that turns the KMITL registration course search into an
+interactive weekly timetable planner.
+KCP คือส่วนขยายเบราว์เซอร์สำหรับจัดตารางเรียนและวางแผนลงทะเบียนเรียนของ สจล. (KMITL)
+บนตารางรายสัปดาห์ จากข้อมูลรายวิชาที่เปิดสอน
+
+- [Install from the Chrome Web Store](https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef)
+  for Chrome, Edge, Brave, Opera, and other Chromium browsers
+- [Install from Firefox Add-ons](https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/)
+  for Firefox
+- [Project site at kcp.cecs.sh](https://kcp.cecs.sh/)
+
+KCP reads the same public course data the registration site already uses, removes the
+duplicate rows the site repeats across curriculum groupings, and presents the result as
+a drag and drop weekly grid with conflict detection, saved plans, and image export.
 
 The extension is read only with respect to the host site. It never touches
 authentication, never submits forms, and never performs registration actions.
 
-Course Planner for KMITL (KCP) is an independent tool built by a student. It is
-not affiliated with, sponsored by, endorsed by, or officially connected to King
-Mongkut's Institute of Technology Ladkrabang (KMITL). It reads only the public
-course data the registration site already exposes.
-
-## Status
-
-Version 1.0.0. The store listings are being prepared. Until they are live, install the
-unpacked build as described below.
+KCP: Course Planner for KMITL is an independent tool built by a student. It is not
+affiliated with, sponsored by, endorsed by, or officially connected to King Mongkut's
+Institute of Technology Ladkrabang (KMITL). It reads only the public course data the
+registration site already exposes.
 
 ## Install
 
-Once published, install from the store listings:
+Install KCP from the store for your browser:
 
-- Chrome Web Store: link to be added
-- Firefox Add-ons: link to be added
+- Chrome, Edge, Brave, Opera, and other Chromium browsers:
+  [Chrome Web Store](https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef)
+- Firefox:
+  [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/)
 
-To run it now, on any Chromium browser or Firefox, use the zips from the latest release
-(or build them, see Building from source):
+Each store reviews a new version on its own schedule, so an update can reach one store
+before the other. Release notes for every version are in [CHANGELOG.md](CHANGELOG.md) and
+on the [releases page](https://github.com/txasw/kmitl-course-planner/releases).
 
-- Chrome or Edge: open the extensions page, enable developer mode, and use Load unpacked
-  on the unzipped Chrome build.
+After installing, open the registration site at `regis.reg.kmitl.ac.th` and select the
+Planner launcher in the bottom right corner. From version 1.4.0, the toolbar icon and the
+shortcut Alt+Shift+P (Option+Shift+P on macOS) also open the planner. On a registration
+page they open the panel in place; on any other tab they open the registration search
+page with the panel.
+
+### Unpacked install for development or testing
+
+To try a release build or a local build without the store, use the zips from the
+[releases page](https://github.com/txasw/kmitl-course-planner/releases), or build them as
+described in Building from source:
+
+- Chromium browsers: open the extensions page, enable developer mode, and use Load
+  unpacked on the unzipped Chrome build.
 - Firefox: open `about:debugging`, choose This Firefox, and use Load Temporary Add-on on
-  the unzipped build's `manifest.json`.
-
-The planner runs only on the registration site at `regis.reg.kmitl.ac.th`.
+  the unzipped build's `manifest.json`. A temporary add-on is removed when Firefox
+  restarts.
 
 ## Requirements
 
@@ -50,9 +68,12 @@ pnpm dev            # Chrome and Chromium browsers
 pnpm dev:firefox    # Firefox
 ```
 
-`pnpm dev` starts the development build with hot reload. Load the unpacked
-extension from the `.output` directory in your browser to try it against the
-live registration site.
+`pnpm dev` builds the extension with hot reload and launches a separate browser profile
+with it already loaded. The development build is the debug flavor: its name carries the
+(Debug) suffix and the panel includes the diagnostics drawer. Each fresh development
+profile shows the install welcome. To load the development build into an existing
+browser profile instead, use Load unpacked on `.output/chrome-mv3-dev` (or
+`.output/firefox-mv3-dev` for Firefox).
 
 ## Building from source
 
@@ -94,20 +115,39 @@ pnpm typecheck      # TypeScript, no emit
 pnpm lint           # ESLint
 pnpm format:check   # Prettier
 pnpm test           # unit and component tests
-pnpm test:e2e       # Playwright
 pnpm build          # production build for Chrome
 pnpm build -b firefox
+pnpm build:debug    # debug flavor build for Chrome
 pnpm zip:chrome     # package the Chrome build
 pnpm zip:firefox    # package the Firefox build and the AMO sources zip
 pnpm icons          # regenerate the icon PNGs from assets/icon.svg
 ```
 
+The end to end suite loads the built extension, so build both flavors and install the
+Playwright Chromium first:
+
+```
+pnpm exec playwright install chromium
+pnpm build
+pnpm build:debug
+pnpm test:e2e       # Playwright projects: smoke, debug, production, phone, tablet
+```
+
+The smoke project checks the production manifest, the production project runs against
+`.output/chrome-mv3`, and the debug, phone, and tablet projects run against
+`.output/chrome-mv3-debug`.
+
 ## Project layout
 
 - `src/entrypoints` background service worker and the content script UI
-- `src/features` interface features (shell, search, catalog, planner, plans)
+- `src/features` interface features (shell, search, catalog, planner, plans,
+  onboarding, and the debug only diagnostics drawer)
+- `src/components` shared presentational components
 - `src/lib` framework free domain logic, validation, storage, and utilities
-- `tests` fixtures and end to end specs
+- `tests/e2e` end to end specs and their mock host and API server
+- `tests/fixtures` captured API responses and regression payloads
+- `tests/scripts` unit tests for the repository scripts and the manifest
+- `tests/support` and `tests/setup.ts` shared test helpers and setup
 - `docs/adr` architecture decision records
 
 ## Privacy
