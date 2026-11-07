@@ -296,6 +296,18 @@ describe('CatalogColumn', () => {
     expect(node).toHaveClass('[overflow-anchor:none]');
   });
 
+  it('leaves room under the results for a floating strip', () => {
+    installViewport(390);
+    const { container } = render(<Harness />);
+    const node = scroller(container);
+    // The strip's height stops focus scrolling short of it and pads the list foot, so
+    // the last control can scroll above the strip rather than stay under it.
+    expect(node).toHaveClass(
+      '[scroll-padding-bottom:var(--kcp-overlay-bottom,0px)]',
+    );
+    expect(node).toHaveClass('pb-[calc(1.5rem+var(--kcp-overlay-bottom,0px))]');
+  });
+
   it('makes the results a tab stop only while they hold no control', () => {
     installViewport(1440);
     render(<Harness />);
