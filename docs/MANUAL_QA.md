@@ -65,7 +65,7 @@ button. Never skip it.
       that curriculum and year remain, a removable chip shows, and the saved curriculum is
       named after a reload. Open a placed block's details and confirm the open to row
       names its curricula with the note about the search it was added from.
-- [ ] Multi-meeting section: search subject 01476101 by subject id. Section 34 lists
+- [ ] Multi meeting section: search subject 01476101 by subject id. Section 34 lists
       two Thursday periods in its catalog row, 08:45 to 10:15 and 10:30 to 12:00. Add
       it and confirm two blocks land on the grid, both on Thursday, and that copy as
       text emits a line for each. Then add another section that meets Thursday 10:30 to
@@ -222,9 +222,10 @@ the header segmented control.
       dropdown. Switch back to edit and confirm they leave the DOM. The toolbar and its
       verification status are never part of an exported image.
 - [ ] Download PNG: populate a plan including one unscheduled course. In preview, download
-      the image and open it. The poster header, the grid with block colours and any
-      revalidation badges, the unscheduled shelf, and the footer credits all render, and
-      Thai text is correct. The file name is kmitl-plan-year-semester-name-template.
+      the image and open it. The poster header, the grid with block colours, the unscheduled
+      shelf, and the footer credits all render, and Thai text is correct. The blocks carry no
+      verification badge; the footer shows the ข้อมูล ณ data line with any missing or clash
+      counts instead. The file name is kmitl-plan-year-semester-name-template.
 - [ ] Export templates: with the gallery picker, step through Share 16:9, Phone wallpaper
       landscape, Phone wallpaper portrait, Tablet wallpaper portrait, Tablet wallpaper
       landscape, and Print A4. The centred poster reflows to each aspect, and the caption below
@@ -264,10 +265,10 @@ the header segmented control.
       window to the hour that clears it; a Saturday meeting reveals both Saturday and Sunday.
       The time axis hour labels are centred on their gridline with a stronger rule at midday and
       the window edges.
-- [ ] Watermark: every export carries the quiet credit line in the bottom-right, in every
-      template including portrait, legible but unobtrusive, never over a block, and present in
+- [ ] Watermark: every export carries the quiet credit line in the bottom right corner, in
+      every template including portrait, legible but unobtrusive, never over a block, and present in
       the downloaded and the copied image.
-- [ ] Day-color accent: in preview, confirm the day labels carry the traditional Thai day
+- [ ] Day color accent: in preview, confirm the day labels carry the traditional Thai day
       colours as a faint tint, the label text stays legible, and the accent appears in the
       exported image. In edit mode the day rows stay the plain alternating shade, and the
       subject block colours are unchanged in both modes.
@@ -279,14 +280,19 @@ the header segmented control.
       Sunday through Saturday, the unscheduled sections under a label, a missing marker on
       any dropped section, and a footer with the app name. There is no markdown.
 - [ ] Display options are what you get: toggle show room, show section, show subject id,
-      and show English names. The preview updates in place, and a re exported PNG and a
-      re copied text reflect the same options. The options persist across a reopen.
+      show English names, and show exam schedule. The preview updates in place, and a re
+      exported PNG and a re copied text reflect the same options. The options persist
+      across a reopen.
 - [ ] Show subject id: the option is off by default, so the poster blocks, the shelf, and the
       copy as text lines carry no numeric id and read name first. Turn it on and the id appears
       in all three. In edit mode the id always shows on the blocks regardless of the option.
-- [ ] Fit to content: with fit on, the poster trims to the hours and days the plan uses and
-      never hides the unscheduled shelf. With fit off, the full week and the default hours
-      show.
+- [ ] Exam schedule: the show exam schedule option is off by default, and with it off
+      neither the poster nor the copied text lists exams. Turn it on with a plan that holds
+      midterm and final windows: the exam block appears below the poster grid and the shelf,
+      above the footer, midterms before finals in date order, then the subjects whose exams
+      the instructor arranges. The copied text carries every exam. On the smallest canvas the
+      block lists the earliest exams and closes with a count of the rest, and no row is
+      clipped.
 - [ ] JSON export and import: from the plan menu, export the active plan to JSON. Open the
       file and confirm it is the durable plan. Tamper one field and import it: the menu
       lists the exact invalid fields and commits nothing. Import the clean file: a new
@@ -304,7 +310,8 @@ add and remove controls, so no action is a dead end for the keyboard.
 
 - [ ] Reach and open: Tab from the page to the launcher and open the panel with Enter. Focus
       moves into the panel and Escape closes it and returns focus to the launcher.
-- [ ] Search: Tab through the tab bar (the active tab reads pressed), open a combobox and
+- [ ] Search: Tab to the search tablist (the active tab reads selected), use the arrow keys
+      to move between tabs, then Tab into the fields. Open a combobox and
       filter with the arrow keys, Home, End, and Enter, then submit. The catalog announces
       loading, then the result count or the empty state.
 - [ ] Add from a row: Tab to a section's add button and press Enter. The screen reader
@@ -314,8 +321,9 @@ add and remove controls, so no action is a dead end for the keyboard.
       reachable and the feedback strip states the reason and offers alternative section
       chips, and focus moves to the first chip; press Enter to add it. When none fit,
       the reveal control filters the catalog to the subject and moves focus to its card.
-- [ ] Exam overlap: add a section whose exam overlaps a placed one. The add succeeds and the
-      strip states the exam overlap; the placed block reads its warn state in its label.
+- [ ] Exam overlap: add a section whose exam overlaps a placed one. The add is blocked,
+      nothing lands on the grid, the strip states the exam reason, and focus moves to the
+      first alternative chip.
 - [ ] Grid blocks: Tab through the placed blocks. The tab order follows the day then time
       order, each block announces subject, name, section, day, time, room, and any state,
       and its details and remove controls are reachable and labeled.
@@ -343,7 +351,7 @@ add and remove controls, so no action is a dead end for the keyboard.
       catalog filter field, the day chips, the credit control, the summary bar refresh, the plan
       rename field, and the preview toolbar buttons. Each light control shows the inset
       orange ring fully inside its box, never clipped, including a field scrolled to the rail
-      edge and a control inside the narrow viewport catalog drawer. The filled primary
+      edge and a control inside the catalog sheet at a width between 640 and 1024 px. The filled primary
       buttons, submit, retry, and the active day chip, show the orange ring on the
       surrounding surface.
 
@@ -408,7 +416,7 @@ itself and the shortcut are checked here by hand, in Chrome, Edge, Opera and Fir
       page, or assign Alt+Shift+P to another extension first. The icon still opens the
       panel, and a shortcut hint, where one shows, names only a shortcut the browser
       reports.
-- [ ] Tooltip: hover the icon. It reads Course Planner for KMITL, with the (Debug)
+- [ ] Tooltip: hover the icon. It reads KCP: Course Planner for KMITL, with the (Debug)
       suffix in the debug build.
 - [ ] Site access on click (Chrome): set the extension's site access to on click, then
       click the icon on a regis tab that has not been granted. Known limitation: the
