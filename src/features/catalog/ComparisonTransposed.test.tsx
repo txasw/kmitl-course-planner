@@ -67,7 +67,7 @@ describe('ComparisonTransposed', () => {
     expect(
       within(table)
         .getAllByRole('columnheader')
-        .map((head) => head.querySelector('span')?.textContent),
+        .map((head) => head.querySelector('span > span')?.textContent),
     ).toEqual(['901', '902', '903']);
     for (const head of within(table).getAllByRole('columnheader')) {
       expect(head).toHaveAttribute('scope', 'col');
@@ -103,6 +103,12 @@ describe('ComparisonTransposed', () => {
       'overflow-auto',
       'snap-x',
     );
+    // The snap area is a block in the heading, since a table cell gives none.
+    for (const head of within(screen.getByRole('table')).getAllByRole(
+      'columnheader',
+    )) {
+      expect(head.firstElementChild).toHaveClass('snap-start', 'scroll-ml-2');
+    }
   });
 
   it('reads each field down its section column and adds from the last row', () => {

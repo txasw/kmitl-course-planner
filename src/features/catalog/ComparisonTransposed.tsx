@@ -97,9 +97,14 @@ export function ComparisonTransposed({
               <th
                 key={row.section.teachTableId}
                 scope="col"
-                className={`${HEAD_CELL} ${headPinClass(undefined)} snap-start`}
+                className={`${HEAD_CELL} ${headPinClass(undefined)}`}
               >
-                <SectionHeading section={row.section} t={t} />
+                {/* Chrome takes no snap area from a table cell, so a block inside the
+                    heading snaps, its margin reaching back over the cell padding so
+                    the column edge lands on the field column. */}
+                <span className="block snap-start scroll-ml-2">
+                  <SectionHeading section={row.section} t={t} />
+                </span>
               </th>
             ))}
           </tr>
