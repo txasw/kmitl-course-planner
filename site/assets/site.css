@@ -1013,8 +1013,14 @@ h4 {
     grid-column: 3 / 4;
   }
 
+  /* The row carries the tint here, so the cells stay clear and the subject edge the row
+     paints shows through. */
   .is-merged tr[data-row='first'] {
     background: var(--site-primary-soft);
+  }
+
+  .is-merged tr[data-row='first'] td {
+    background: transparent;
   }
 }
 
