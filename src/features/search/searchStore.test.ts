@@ -20,6 +20,18 @@ import {
 const fallback: Term = { year: '2570', semester: '1' };
 const fetched: Term = { year: '2569', semester: '2' };
 
+// A search run under the fallback term, before the fetched default arrives.
+const fallbackQuery: TeachTableQuery = {
+  mode: 'by_subject_id',
+  selected_year: fallback.year,
+  selected_semester: fallback.semester,
+  search_all_faculty: true,
+  search_all_department: true,
+  search_all_curriculum: true,
+  search_all_class_year: true,
+  selected_subject_id: '90592033',
+};
+
 function termLabel(store: ReturnType<typeof createSearchStore>): string {
   const { term } = store.getState();
   return `${term.semester}/${term.year}`;
@@ -90,6 +102,25 @@ describe('the fetched default term', () => {
     store.getState().seedTerm({ year: '2568', semester: '3' });
     store.getState().applyDefaultTerm(fetched);
     expect(termLabel(store)).toBe('3/2568');
+  });
+
+  it('is ignored after a user search runs under the fallback', () => {
+    const store = createSearchStore();
+    store.getState().seedFallbackTerm(fallback);
+    store.getState().startQuery(fallbackQuery, 'user');
+    store.getState().applyDefaultTerm(fetched);
+    // The form keeps the term the summary bar names.
+    expect(termLabel(store)).toBe('1/2570');
+    expect(store.getState().barQuery?.selected_semester).toBe('1');
+    expect(store.getState().barQuery?.selected_year).toBe('2570');
+  });
+
+  it('still applies after a background run under the fallback', () => {
+    const store = createSearchStore();
+    store.getState().seedFallbackTerm(fallback);
+    store.getState().startQuery(fallbackQuery, 'background');
+    store.getState().applyDefaultTerm(fetched);
+    expect(termLabel(store)).toBe('2/2569');
   });
 
   it('never applies without a pending fallback', () => {

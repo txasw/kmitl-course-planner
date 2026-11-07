@@ -97,3 +97,15 @@ saved search ran under, and the per tab copies are dropped. Keeping three copies
 every write was rejected because it leaves three sources of truth that a later write can split
 again, and taking the newest of the three terms was rejected because it can name a term the
 student never searched.
+
+## Amendment: a search ends the pending default (2026-11-07)
+
+A student could press search while the form still showed the fallback, because the form never
+waits for the registrar. The search ran under 1/2570 and the summary bar named it, and then the
+late answer moved the form to 2/2569 behind the bar. The next search, or a new plan, would then
+take a term the student never chose, and the catalog would read as a different term from the
+plan it was searched for. A user search now clears `defaultTermPending` in the same write that
+starts the query, for the reason this record already gives for an edit: running a search under
+the term shown is a choice of that term. A retry or a refresh is a background run and leaves the
+flag alone, since it repeats a search rather than choosing a term. Blocking the submit until the
+answer arrives stays rejected for the reason above.

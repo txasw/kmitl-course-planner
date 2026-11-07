@@ -56,8 +56,9 @@ export interface SearchStore {
   hasInitialized: boolean;
   /**
    * Whether the term in the forms is the local fallback seeded while the current
-   * registration term is still being fetched. Any other term write clears it, so the
-   * fetched default replaces only a term nothing else has set.
+   * registration term is still being fetched. Any other term write clears it, and so
+   * does a user search, which runs under the term shown and so chooses it. The fetched
+   * default therefore replaces only a term nothing else has set or searched.
    */
   defaultTermPending: boolean;
   activeTab: SearchTab;
@@ -286,6 +287,8 @@ export function createSearchStore() {
               barQuery: query,
               searchFormOpen: false,
               lastSubmitAt: Date.now(),
+              // A late default must not move the form off the term the bar names.
+              defaultTermPending: false,
             }
           : {
               result: { status: 'loading' },
