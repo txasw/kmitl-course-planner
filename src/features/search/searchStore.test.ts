@@ -70,12 +70,36 @@ describe('the shared term', () => {
     });
     expect(termLabel(store)).toBe('2/2568');
   });
+
+  it('seeds the persisted forms and a route term in one write', () => {
+    const store = createSearchStore();
+    let writes = 0;
+    store.subscribe(() => {
+      writes += 1;
+    });
+    store.getState().seedSearch(
+      {
+        schemaVersion: 2,
+        activeTab: 'by_subject_id',
+        term: { year: '2569', semester: '1' },
+        byClass: defaultClassForm(),
+        bySubjectId: { subjectId: '90592033' },
+        byCategory: defaultCategoryForm(),
+      },
+      { term: { year: '2568', semester: '2' }, source: 'route' },
+    );
+    expect(writes).toBe(1);
+    expect(store.getState().activeTab).toBe('by_subject_id');
+    expect(store.getState().bySubjectId).toEqual({ subjectId: '90592033' });
+    expect(termLabel(store)).toBe('2/2568');
+    expect(store.getState().defaultTermPending).toBe(false);
+  });
 });
 
 describe('the fetched default term', () => {
   it('replaces an untouched fallback', () => {
     const store = createSearchStore();
-    store.getState().seedFallbackTerm(fallback);
+    store.getState().seedSearch(null, { term: fallback, source: 'fallback' });
     store.getState().applyDefaultTerm(fetched);
     expect(termLabel(store)).toBe('2/2569');
     expect(store.getState().defaultTermPending).toBe(false);
@@ -83,7 +107,7 @@ describe('the fetched default term', () => {
 
   it('is ignored once the student edits a term field', () => {
     const store = createSearchStore();
-    store.getState().seedFallbackTerm(fallback);
+    store.getState().seedSearch(null, { term: fallback, source: 'fallback' });
     store.getState().patchTerm({ year: '2570' });
     store.getState().applyDefaultTerm(fetched);
     expect(termLabel(store)).toBe('1/2570');
@@ -91,7 +115,7 @@ describe('the fetched default term', () => {
 
   it('survives an edit that leaves the term alone', () => {
     const store = createSearchStore();
-    store.getState().seedFallbackTerm(fallback);
+    store.getState().seedSearch(null, { term: fallback, source: 'fallback' });
     store.getState().patchClassForm({ faculty: '01' });
     store.getState().applyDefaultTerm(fetched);
     expect(termLabel(store)).toBe('2/2569');
@@ -99,7 +123,7 @@ describe('the fetched default term', () => {
 
   it('is ignored after another source seeds the term', () => {
     const store = createSearchStore();
-    store.getState().seedFallbackTerm(fallback);
+    store.getState().seedSearch(null, { term: fallback, source: 'fallback' });
     store.getState().seedTerm({ year: '2568', semester: '3' });
     store.getState().applyDefaultTerm(fetched);
     expect(termLabel(store)).toBe('3/2568');
@@ -107,7 +131,7 @@ describe('the fetched default term', () => {
 
   it('is ignored after a user search runs under the fallback', () => {
     const store = createSearchStore();
-    store.getState().seedFallbackTerm(fallback);
+    store.getState().seedSearch(null, { term: fallback, source: 'fallback' });
     store.getState().startQuery(fallbackQuery, 'user');
     store.getState().applyDefaultTerm(fetched);
     // The form keeps the term the summary bar names.
@@ -118,7 +142,7 @@ describe('the fetched default term', () => {
 
   it('still applies after a background run under the fallback', () => {
     const store = createSearchStore();
-    store.getState().seedFallbackTerm(fallback);
+    store.getState().seedSearch(null, { term: fallback, source: 'fallback' });
     store.getState().startQuery(fallbackQuery, 'background');
     store.getState().applyDefaultTerm(fetched);
     expect(termLabel(store)).toBe('2/2569');
@@ -139,13 +163,13 @@ describe('the settled term', () => {
 
   it('is not settled while the fallback awaits the fetched default', () => {
     const store = createSearchStore();
-    store.getState().seedFallbackTerm(fallback);
+    store.getState().seedSearch(null, { term: fallback, source: 'fallback' });
     expect(selectTermSettled(store.getState())).toBe(false);
   });
 
   it('settles once the default applies or another source seeds the term', () => {
     const store = createSearchStore();
-    store.getState().seedFallbackTerm(fallback);
+    store.getState().seedSearch(null, { term: fallback, source: 'fallback' });
     store.getState().applyDefaultTerm(fetched);
     expect(selectTermSettled(store.getState())).toBe(true);
     const seeded = createSearchStore();
@@ -337,7 +361,7 @@ describe('applying a route prefill', () => {
 
   it('ends a pending default so the fetched term cannot replace it', async () => {
     const store = createSearchStore();
-    store.getState().seedFallbackTerm(fallback);
+    store.getState().seedSearch(null, { term: fallback, source: 'fallback' });
     await store.getState().applyRoutePrefill(
       prefill,
       repoLoading(() => Promise.resolve(null)),

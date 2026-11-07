@@ -19,7 +19,7 @@ import type {
   RawSubjectOwner,
 } from '@/lib/domain/schemas';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
-import type { Term } from '@/lib/routing/academicTerms';
+import type { InitialTerm, Term } from '@/lib/routing/academicTerms';
 import {
   type CategoryForm,
   type ClassForm,
@@ -110,9 +110,16 @@ export interface SearchStore {
    * result stay, since they describe the search that ran, not the form being edited.
    */
   clearActiveForm: () => void;
+  /** Set the term from another source, such as a plan switch, ending any default. */
   seedTerm: (term: Term) => void;
-  /** Seed the fallback term and mark it replaceable by the fetched default. */
-  seedFallbackTerm: (term: Term) => void;
+  /**
+   * Apply the persisted search and the initial term in one write, so the head paints
+   * the seeded search once. A fallback term stays replaceable by the fetched default.
+   */
+  seedSearch: (
+    persisted: PersistedSearchState | null,
+    initial: InitialTerm,
+  ) => void;
   /** Apply the fetched default term, only while the fallback is still pending. */
   applyDefaultTerm: (term: Term) => void;
   hydrate: (state: PersistedSearchState) => void;
@@ -159,6 +166,17 @@ async function loadPersisted(
   } catch {
     return null;
   }
+}
+
+/** The fields a persisted search restores. */
+function persistedFields(persisted: PersistedSearchState) {
+  return {
+    activeTab: persisted.activeTab,
+    term: persisted.term,
+    byClass: persisted.byClass,
+    bySubjectId: persisted.bySubjectId,
+    byCategory: persisted.byCategory,
+  };
 }
 
 /** The state with a prefill's tab, term, and form laid over it, ending any default. */
@@ -248,8 +266,12 @@ export function createSearchStore() {
     seedTerm: (term) => {
       set({ term, defaultTermPending: false });
     },
-    seedFallbackTerm: (term) => {
-      set({ term, defaultTermPending: true });
+    seedSearch: (persisted, initial) => {
+      set({
+        ...(persisted === null ? {} : persistedFields(persisted)),
+        term: initial.term,
+        defaultTermPending: initial.source === 'fallback',
+      });
     },
     applyDefaultTerm: (term) => {
       set((state) =>
@@ -257,14 +279,7 @@ export function createSearchStore() {
       );
     },
     hydrate: (persisted) => {
-      set({
-        defaultTermPending: false,
-        activeTab: persisted.activeTab,
-        term: persisted.term,
-        byClass: persisted.byClass,
-        bySubjectId: persisted.bySubjectId,
-        byCategory: persisted.byCategory,
-      });
+      set({ ...persistedFields(persisted), defaultTermPending: false });
     },
     applyRoutePrefill: async (prefill, repo) => {
       const load = get().claimInitialization(repo);
