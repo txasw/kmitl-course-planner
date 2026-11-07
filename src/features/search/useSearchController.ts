@@ -7,12 +7,13 @@
 // plan, then the term after the registrar's current term. That last source needs a
 // fetch, so the form renders with the local fallback first and takes the fetched
 // default only if nothing else has set the term and no search has run under it by
-// then. A later host navigation never clobbers an in session edit. useSearchActions builds the active tab query, runs it
-// guarded against a superseded response, and persists the last search. A submit runs
-// with the user intent, which folds the form into the bar; retry and refresh run in the
-// background and leave the disclosure as the student set it. The stores
-// are plain objects, so writing to them after unmount is safe and needs no
-// cancellation guard; the query guard exists only to drop a stale response.
+// then. A later host navigation never clobbers an in session edit. useSearchActions
+// builds the active tab query, runs it guarded against a superseded response, and
+// persists the last search. A submit and a rerun run with the user intent, which folds
+// the form into the bar; retry and refresh run in the background and leave the
+// disclosure as the student set it. The stores are plain objects, so writing to them
+// after unmount is safe and needs no cancellation guard; the query guard exists only
+// to drop a stale response.
 
 import { useCallback, useEffect, useRef } from 'react';
 import { buildTeachTableQueryForTab } from '@/lib/search/formState';
@@ -143,6 +144,7 @@ export type RefreshOutcome = 'changed' | 'unchanged' | 'error';
 
 export interface SearchActions {
   submit: () => Promise<void>;
+  rerun: () => Promise<void>;
   retry: () => Promise<void>;
   refreshResult: () => Promise<RefreshOutcome>;
   cancel: () => Promise<void>;
@@ -199,6 +201,16 @@ export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
     await runQuery(query, { intent: 'user' });
   }, [runQuery, repo]);
 
+  // Run the search the bar names again as the student's own search. After a reload the
+  // bar is restored with no result; the worker cache answers while it is still valid.
+  const rerun = useCallback(async () => {
+    const { barQuery } = searchStore.getState();
+    if (barQuery === null) {
+      return;
+    }
+    await runQuery(barQuery, { intent: 'user' });
+  }, [runQuery]);
+
   const retry = useCallback(async () => {
     const { resultQuery } = searchStore.getState();
     if (resultQuery === null) {
@@ -247,5 +259,5 @@ export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
     await send({ type: 'teachTable/cancel', query: resultQuery });
   }, [send]);
 
-  return { submit, retry, refreshResult, cancel };
+  return { submit, rerun, retry, refreshResult, cancel };
 }

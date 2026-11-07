@@ -5,7 +5,7 @@
 // name clamps to two lines, while the scope chips beside the term never truncate, so a
 // long Thai category name cannot hide the faculty or class year that sets two alike
 // searches apart. Once a catalog settles the bar says when its data was fetched, which
-// turns warn past the cache lifetime, beside the action that loads the results again.
+// turns warn past the cache lifetime, beside the action that runs the search again.
 // It is a focusable region, not a live region: the busy text is read when focus lands
 // on the bar, and settled outcomes stay with the panel's existing announcers. The
 // disclosure keeps one label and reports its state through aria-expanded, so it never
@@ -131,10 +131,6 @@ export function SearchSummaryBar({ query }: SearchSummaryBarProps) {
   const courses = useStore(searchStore, (state) =>
     state.result.status === 'ready' ? state.result.data.courses.length : null,
   );
-  const hasResult = useStore(
-    searchStore,
-    (state) => state.resultQuery !== null,
-  );
   const fetchedAt = useStore(searchStore, (state) =>
     state.result.status === 'ready' ? state.resultFetchedAt : null,
   );
@@ -215,7 +211,7 @@ export function SearchSummaryBar({ query }: SearchSummaryBarProps) {
           <StatusSlot busy={busy} courses={courses} t={t} />
         </span>
         {fetchedAt === null ? null : <DataTime fetchedAt={fetchedAt} t={t} />}
-        {hasResult ? <ResultAction statusId={STATUS_ID} /> : null}
+        <ResultAction statusId={STATUS_ID} />
       </div>
     </div>
   );
