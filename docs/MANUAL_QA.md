@@ -338,6 +338,45 @@ add and remove controls, so no action is a dead end for the keyboard.
       buttons, submit, retry, and the active day chip, show the orange ring on the
       surrounding surface.
 
+## Layout tiers
+
+The panel changes form at 640 px and at 1024 px (ADR-0048), so the catalog, the block
+details, and the plan menu each have more than one shape. The axe and focus specs scan
+the panel in Chromium at 1440 by 900, 1024 by 768, 768 by 1024, and 390 by 844; this
+list is the hand check at the same sizes, in Chrome and in Firefox, with the window
+resized or the responsive design mode set to each size. Run it with the keyboard first,
+then with a pointer.
+
+- [ ] Desktop, 1280 px and wider: the catalog column docks beside the grid. Hide it; the
+      edge rail takes its place and takes focus, Tab from the header close control
+      reaches the rail before the plan views and the grid, and the rail brings the column
+      back at the scroll offset it had.
+- [ ] Small desktop, 1024 by 768: the column docks at its narrow width and the form
+      leaves the results little height. Before any search, Tab reaches the results
+      region under the form, its focus ring shows, and the arrow keys scroll the hint.
+      After a search with results, the region adds no tab stop of its own.
+- [ ] Tablet, 768 by 1024: the catalog opens as a sheet over the grid with focus inside
+      it, and Tab and Shift+Tab wrap inside the sheet. Reopen the search form and open a
+      list: Escape closes the list, then folds the form, then closes the sheet with focus
+      on the header toggle, and only then closes the panel.
+- [ ] Phone, 390 by 844: one pane at a time behind the bottom nav. The block details,
+      the plan menu, and the display options open as bottom sheets, and Escape closes
+      each one alone.
+- [ ] Layers at every tier: open a block's details, then its right click menu, then the
+      plan menu. Escape closes only the surface that is open, and focus returns to the
+      block or to the plan switcher; one more Escape closes the panel.
+- [ ] Keyboard add and remove at every tier: add a section from its row by keyboard;
+      the card collapses and focus lands on its toggle. Remove the section from the
+      block details; focus lands on the next block, or on the grid when none is left.
+      Tab never leaves the panel.
+- [ ] Focus not obscured, tablet and phone: Tab through the search form from its first
+      field to the submit; every control stays in view above the pinned submit and the
+      nav. Then add a time conflicting section so the strip shows, rest the pointer on
+      the strip, open every card, and Tab to the last add button in the list. The list
+      scrolls it clear of the strip, the add toast, and the nav.
+- [ ] Zoom: at each tier, zoom the browser to 200 percent. Nothing is cut off, the
+      panel takes the tier the zoomed width falls in, and every control stays reachable.
+
 ## Toolbar icon and shortcut
 
 The end to end suite runs the click handler through the debug console handle, because
@@ -525,3 +564,39 @@ from Chromium.
 - [ ] Welcome with tabs already open: open two regis tabs, then load the add-on so
       Firefox injects into them. The welcome shows in the install tab only, and neither
       earlier tab shows it when brought to the front.
+
+## Firefox for Android
+
+The phone tier is checked in Chromium with an emulated touch screen. Firefox for Android
+is the mobile browser that can run the extension, so this pass runs the phone layout on
+a real device with a real finger and on screen keyboard. Enable USB debugging on the
+phone and Remote debugging via USB in Firefox settings, connect it, build with `pnpm
+build:debug -b firefox`, and run `pnpm dlx web-ext run --target=firefox-android
+--android-device=<device id> --source-dir .output/firefox-mv3-debug`, where `adb
+devices` lists the device id. Open `https://regis.reg.kmitl.ac.th/#/teach_table_selector`
+in the Firefox window that opens on the phone.
+
+- [ ] Launch: the launcher sits clear of the browser toolbar and the home indicator,
+      and a tap opens the panel at the phone layout, on the catalog pane for an empty
+      plan.
+- [ ] Search with the on screen keyboard: on the by subject id tab, tap the field and
+      type a code. The field and the pinned submit stay in view above the keyboard, and
+      submit folds the form into the summary bar with the results below.
+- [ ] Add by tap: open a card and tap a section's add button. The add toast sits above
+      the nav, and its action switches to the timetable pane.
+- [ ] Blocked add: add a time conflicting section. The strip floats above the nav and
+      above the toast, a tap on an alternative chip adds it, and the last row of the list
+      can still scroll clear of the strip.
+- [ ] Day view: the timetable shows one day; the day chips and a horizontal swipe step
+      the day, and a vertical scroll of the page never steps it.
+- [ ] Long press and remove bar: long press a placed block and drag it. The nav turns
+      into the remove bar, a drop on it removes the section and its pair, and undo
+      restores them. A short tap on a block opens its details as a bottom sheet instead.
+- [ ] Bottom sheets: the block details, the plan menu, and the display options open from
+      the bottom, scroll inside, and close from their close button and from the scrim.
+      The host page behind does not scroll while one is open.
+- [ ] Rotation: turn the phone to landscape and back. The panel takes the tier the new
+      width falls in and keeps the search, the result, and the plan.
+- [ ] Download image: in preview, download the image. Firefox saves the PNG, and the Thai
+      text in it renders correctly.
+- [ ] Close: the close control leaves the host page as it was, scrolling again.
