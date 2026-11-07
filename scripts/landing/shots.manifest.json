@@ -31,12 +31,12 @@
   },
   "s-search-form-th": {
     "widths": [600, 768],
-    "sizes": { "600": 1281, "768": 1640 },
+    "sizes": { "600": 1061, "768": 1358 },
     "fallback": 600
   },
   "s-search-form-en": {
     "widths": [600, 768],
-    "sizes": { "600": 1281, "768": 1640 },
+    "sizes": { "600": 1108, "768": 1418 },
     "fallback": 600
   },
   "s-drag-blocked-th": {
@@ -71,12 +71,12 @@
   },
   "s-summary-th": {
     "widths": [500, 1000],
-    "sizes": { "500": 1169, "1000": 2338 },
+    "sizes": { "500": 855, "1000": 1710 },
     "fallback": 500
   },
   "s-summary-en": {
     "widths": [500, 1000],
-    "sizes": { "500": 1169, "1000": 2338 },
+    "sizes": { "500": 855, "1000": 1710 },
     "fallback": 500
   },
   "n-catalog-th": {
@@ -140,13 +140,13 @@
     "fallback": 600
   },
   "s-plan-menu-th": {
-    "widths": [480, 640],
-    "sizes": { "480": 369, "640": 492 },
+    "widths": [480, 576],
+    "sizes": { "480": 372, "576": 446 },
     "fallback": 480
   },
   "s-plan-menu-en": {
-    "widths": [480, 640],
-    "sizes": { "480": 369, "640": 492 },
+    "widths": [480, 576],
+    "sizes": { "480": 372, "576": 446 },
     "fallback": 480
   },
   "s-suggest-th": {

@@ -1091,11 +1091,11 @@ figcaption:empty {
 }
 
 .plate--inset {
-  max-width: 420px;
+  max-width: 340px;
 }
 
 .plate--column .plate__img {
-  max-width: 520px;
+  max-width: 440px;
 }
 
 @media (min-width: 1024px) {
@@ -1126,11 +1126,11 @@ figcaption:empty {
   }
 }
 
-/* From 640 px the exam card and the tall Summary view sit side by side, so neither
-   fills a tablet screen on its own. */
+/* From 640 px the exam card and the exam schedule sit side by side, the schedule on
+   the wider share so its rows stay readable. */
 @media (min-width: 640px) {
   .pair {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 3fr) minmax(0, 5fr);
   }
 }
 

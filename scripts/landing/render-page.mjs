@@ -102,8 +102,13 @@ const HERO_SIZES =
 const CROP_SIZES = 'calc(100vw - 40px)';
 const PLATE_8 = '(min-width: 1024px) 792px, calc(100vw - 40px)';
 const PLATE_6 = '(min-width: 1024px) 588px, calc(100vw - 40px)';
-const PLATE_4 =
-  '(min-width: 1024px) 384px, (min-width: 640px) calc(50vw - 56px), calc(100vw - 40px)';
+// The exam pair splits the eight image columns three to five, so the exam schedule is
+// shown large enough to read beside the narrow exam card.
+const PAIR_NARROW =
+  '(min-width: 1024px) 288px, (min-width: 640px) calc(34vw - 12px), calc(100vw - 40px)';
+const PAIR_WIDE =
+  '(min-width: 1024px) 480px, (min-width: 640px) calc(56vw - 20px), calc(100vw - 40px)';
+const INSET = '(min-width: 640px) 340px, calc(100vw - 40px)';
 const PROBLEM_SHOT =
   '(min-width: 1280px) 384px, (min-width: 520px) 480px, calc(100vw - 40px)';
 const FULL = '(min-width: 1280px) 1200px, calc(100vw - 40px)';
@@ -241,10 +246,10 @@ function features(copy, manifest) {
 <h2 id="features-title" class="features__title">${c.featuresH2}</h2>
 ${feature('search', c.search.h3, c.search.body, figure(manifest, 's-search-form', l, c.search.alt, c.search.h3, PLATE_8, 'plate plate--column'))}
 ${feature('conflict', c.conflict.h3, c.conflict.body, `<div class="stack">${figure(manifest, 's-drag-blocked', l, c.conflict.alt1, c.conflict.fig1, PLATE_8)}${figure(manifest, 's-feedback-alternatives', l, c.conflict.alt2, c.conflict.fig2, PLATE_8)}</div>`)}
-${feature('exam', c.exam.h3, c.exam.body, `<div class="pair">${figure(manifest, 's-exam-row', l, c.exam.alt1, c.exam.fig1, PLATE_4)}${figure(manifest, 's-summary', l, c.exam.alt2, c.exam.fig2, PLATE_4)}</div>`)}
+${feature('exam', c.exam.h3, c.exam.body, `<div class="pair">${figure(manifest, 's-exam-row', l, c.exam.alt1, c.exam.fig1, PAIR_NARROW)}${figure(manifest, 's-summary', l, c.exam.alt2, c.exam.fig2, PAIR_WIDE)}</div>`)}
 ${feature('layouts', c.layouts.h3, c.layouts.body, `<div class="strip" role="region" aria-label="${attr(c.layouts.region)}" tabindex="0">${narrow}</div><p class="footnote">${c.layouts.footnote}</p>`, ' feature--wide')}
 ${feature('export', c.export.h3, c.export.body, `<div class="posters">${figure(manifest, 'x-share169', l, c.export.alt1, '', FULL, 'poster poster--wide')}${figure(manifest, 'x-phone-portrait', l, c.export.alt2, '', '(min-width: 1024px) 264px, 40vw', 'poster poster--phone')}</div><p class="footnote">${c.export.templates}</p>`, ' feature--wide')}
-${feature('plans', c.plans.h3, c.plans.body, `<div class="stack">${figure(manifest, 's-updates', l, c.plans.alt1, c.plans.fig1, PLATE_8)}${figure(manifest, 's-plan-menu', l, c.plans.alt2, c.plans.fig2, PLATE_4, 'plate plate--inset')}</div>`)}
+${feature('plans', c.plans.h3, c.plans.body, `<div class="stack">${figure(manifest, 's-updates', l, c.plans.alt1, c.plans.fig1, PLATE_8)}${figure(manifest, 's-plan-menu', l, c.plans.alt2, c.plans.fig2, INSET, 'plate plate--inset')}</div>`)}
 </div>
 <div class="privacy-band">
 <div class="container">
