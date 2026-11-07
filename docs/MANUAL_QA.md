@@ -152,6 +152,13 @@ button. Never skip it.
       item carries a warn dot. The chip reopens the dialog and focus returns to it on close.
       A screen reader reads the chip wording once when it first appears, and the nav item
       name includes it. Acknowledge every item and the chip and the dot leave.
+- [ ] Workload: with weekdays left free, the stats bar ends its totals with วันว่าง and the
+      free weekdays. Open สรุป, below 640 px from the bottom nav. After the exam schedule,
+      ภาระการเรียน states the ทฤษฎี, ปฏิบัติ and ศึกษาด้วยตนเอง hours per week, the class
+      time of each day, the free weekdays, and each break of three hours or more between
+      two classes, such as วันพุธ ว่าง 10:00 ถึง 13:00. Switch to English and confirm the
+      same parts read in English. Neither the free days nor the workload reach the poster
+      or the copied text.
 - [ ] Missing section: a section dropped upstream stays on the grid with a danger badge
       and a suggested remove. Confirm nothing is deleted without the action.
 - [ ] Block detail popover: in edit mode, open a block's details control. The popover
