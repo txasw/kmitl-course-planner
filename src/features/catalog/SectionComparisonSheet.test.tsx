@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { useState } from 'react';
 import {
   render,
@@ -25,6 +25,7 @@ import {
 import { searchStore } from '@/features/search/searchStore';
 import { expectNoSeriousA11yViolations } from '../../../tests/support/axe';
 import { loadFixture } from '../../../tests/support/fixtures';
+import { installViewport } from '../../../tests/support/viewport';
 import {
   makeCourse,
   makeMeeting,
@@ -53,6 +54,7 @@ const SEARCH_QUERY: TeachTableQuery = {
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals();
   act(() => {
     resetPlanStore();
     searchStore.setState({ resultQuery: null, result: { status: 'idle' } });
@@ -180,6 +182,11 @@ function rowCodes(): string[] {
 }
 
 describe('SectionComparisonSheet', () => {
+  // The table with a row per section opens from 768 px; below it is the phone sheet.
+  beforeEach(() => {
+    installViewport(1366);
+  });
+
   it('lists every section of the capture in a table with scoped headers', () => {
     renderSheet(captureCourse());
     const dialog = screen.getByRole('dialog', {
@@ -397,6 +404,88 @@ describe('SectionComparisonSheet', () => {
       ],
     });
     renderSheet(course);
+    await expectNoSeriousA11yViolations(screen.getByRole('dialog'));
+  });
+});
+
+/** The section codes of the transposed table's columns, read from their headers. */
+function columnCodes(): string[] {
+  return within(screen.getByRole('table'))
+    .getAllByRole('columnheader')
+    .map((cell) => cell.querySelector('span > span')?.textContent ?? '');
+}
+
+/** The cell of the transposed add row under a section's column. */
+function phoneAddCell(code: string): HTMLElement {
+  const rows = within(screen.getByRole('table')).getAllByRole('row');
+  const addRow = rows[rows.length - 1];
+  if (addRow === undefined) throw new Error('no add row');
+  const cell = within(addRow).getAllByRole('cell')[columnCodes().indexOf(code)];
+  if (cell === undefined) throw new Error(`no add cell for ${code}`);
+  return cell;
+}
+
+describe('SectionComparisonSheet below 768 px', () => {
+  it('opens a full height sheet with a column per section', () => {
+    installViewport(390);
+    renderSheet(captureCourse());
+    const dialog = screen.getByRole('dialog', {
+      name: /เปรียบเทียบกลุ่มเรียน 90641007/,
+    });
+    expect(dialog).toHaveClass('h-dvh', 'rounded-t-kcp-sheet');
+    expect(
+      screen.getByRole('heading', { name: /เปรียบเทียบกลุ่มเรียน/ }),
+    ).toHaveFocus();
+    expect(columnCodes()).toHaveLength(44);
+    const fields = within(dialog).getAllByRole('rowheader');
+    expect(fields[0]).toHaveTextContent('กลุ่ม');
+    expect(fields[fields.length - 1]).toHaveTextContent('เพิ่มลงตาราง');
+    // The sheet body leaves the scroll to the table, so its headers stick.
+    const scroller = within(dialog).getByRole('region');
+    expect(scroller).toHaveClass('overflow-auto', 'flex-1');
+    expect(scroller.parentElement).not.toHaveClass('overflow-y-auto');
+  });
+
+  it('turns the table at the 768 px edge', () => {
+    const viewport = installViewport(767);
+    renderSheet(TWO_SECTIONS);
+    expect(columnCodes()).toEqual(['901', '902']);
+    act(() => {
+      viewport.resize(768);
+    });
+    expect(screen.getByRole('dialog')).toHaveClass('max-w-[64rem]');
+    expect(rowCodes()).toEqual(['901', '902']);
+  });
+
+  it('adds from the add row and announces it once in the sheet node', () => {
+    installViewport(390);
+    seedActivePlan([]);
+    renderStoreSheet(TWO_SECTIONS);
+    fireEvent.click(
+      within(phoneAddCell('902')).getByRole('button', {
+        name: 'เพิ่ม 90000001 กลุ่มเรียน 902',
+      }),
+    );
+    expect(planStore.getState().entries.map((e) => e.section)).toEqual(['902']);
+    expect(phoneAddCell('902')).toHaveTextContent('เพิ่มแล้ว');
+    expect(phoneAddCell('901')).toHaveTextContent('เพิ่มไม่ได้');
+    expect(tableStatus()).toHaveTextContent(
+      /^เพิ่ม 90000001 กลุ่มเรียน 902 แล้ว$/,
+    );
+    expect(toastStore.getState().toast).toBeNull();
+    expect(screen.getByRole('region')).toHaveFocus();
+  });
+
+  it('closes on Escape', () => {
+    installViewport(390);
+    const { onClose } = renderSheet(TWO_SECTIONS);
+    fireEvent.keyDown(screen.getByRole('table'), { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('has no serious accessibility violations', async () => {
+    installViewport(390);
+    renderSheet(TWO_SECTIONS);
     await expectNoSeriousA11yViolations(screen.getByRole('dialog'));
   });
 });

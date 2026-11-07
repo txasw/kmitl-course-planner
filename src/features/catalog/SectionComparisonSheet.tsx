@@ -1,14 +1,16 @@
-// The section comparison table: every section of one course side by side, one row per
-// section, so a student weighs times, places, instructors, seats, exams, conditions,
-// and eligibility without reading a long column of stacked rows. It opens as a modal
-// dialog over the panel. The table owns its scroll on both axes, so its header row and
-// its section column stay in view while a 44 section course scrolls under them. The
-// student narrows the rows to the sections that can be added now and sorts them by the
-// earliest start or by the most open seats. The status column reads the catalog row
+// The section comparison: every section of one course side by side, so a student weighs
+// times, places, instructors, seats, exams, conditions, and eligibility without reading a
+// long column of stacked rows. From 768 px it opens as a modal dialog over the panel
+// with a table of one row per section. Below that it opens as a full height bottom sheet
+// with the table transposed, the fields as rows and the sections as columns, two side
+// by side, because nine columns do not fit a phone. Either table owns its scroll on both
+// axes, so its headers stay in view as a 44 section course scrolls under them. The
+// student narrows the sections to those that can be added now and sorts them by the
+// earliest start or by the most open seats. The status field reads the catalog row
 // status, so the table and the card never disagree. Escape and the close button close
-// the table only, and focus returns to the compare control that opened it.
-// The last column adds a section through the normal add path, so the plan's own checks
-// decide, and a blocked add states its reason in the row. The modal hides the rest of the
+// the comparison only, and focus returns to the compare control that opened it.
+// The add field adds a section through the normal add path, so the plan's own checks
+// decide, and a blocked add states its reason in its cell. The modal hides the rest of the
 // panel from assistive technology, the persistent live regions with it, so the table
 // speaks its add outcomes in a polite node of its own, the scoped node the live region
 // inventory of ADR-0048 allows a modal, and leaves the strip and the toast silent, so each
@@ -17,6 +19,7 @@
 
 import { useMemo, useRef, useState } from 'react';
 import { ListFilter } from 'lucide-react';
+import { BottomSheet } from '@/components/BottomSheet';
 import { EmptyState } from '@/components/EmptyState';
 import { ModalDialog } from '@/components/ModalDialog';
 import { SegmentedControl } from '@/components/SegmentedControl';
@@ -30,6 +33,10 @@ import {
   type ComparisonSort,
 } from '@/lib/catalog/compareSections';
 import type { TermContext } from '@/lib/planner/sectionState';
+import {
+  COMPARISON_TABLE_MIN_WIDTH,
+  minWidthQuery,
+} from '@/lib/ui/breakpoints';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { addSectionToPlan } from '@/features/plans/addToPlan';
@@ -37,8 +44,10 @@ import { planStore } from '@/features/plans/planStore';
 import { activePlanOf } from '@/features/plans/planStoreState';
 import { switchOrCreatePlanForTerm } from '@/features/plans/switchPlanTerm';
 import { commitThenFocus } from '@/features/shell/restoreFocus';
+import { useMediaQuery } from '@/features/shell/useMediaQuery';
 import { addOutcomeText } from './ComparisonAddCell';
 import { ComparisonTable } from './ComparisonTable';
+import { ComparisonTransposed } from './ComparisonTransposed';
 
 interface Announcement {
   id: number;
@@ -70,6 +79,7 @@ export function SectionComparisonSheet({
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const showAllRef = useRef<HTMLButtonElement>(null);
+  const wide = useMediaQuery(minWidthQuery(COMPARISON_TABLE_MIN_WIDTH));
   const rows = useMemo(
     () => compareSections(course, placed, term, { onlyAddable, sort }),
     [course, placed, term, onlyAddable, sort],
@@ -109,15 +119,10 @@ export function SectionComparisonSheet({
       }
     }, tableTargets);
   };
+  const Layout = wide ? ComparisonTable : ComparisonTransposed;
 
-  return (
-    <ModalDialog
-      title={title}
-      closeLabel={t('compare.close')}
-      onClose={onClose}
-      width="table"
-      scroll="content"
-    >
+  const body = (
+    <>
       <div role="status" className="sr-only">
         {announcement === null ? null : (
           <span key={announcement.id}>{announcement.text}</span>
@@ -172,7 +177,7 @@ export function SectionComparisonSheet({
           />
         </div>
       ) : (
-        <ComparisonTable
+        <Layout
           rows={rows}
           title={title}
           locale={locale}
@@ -183,6 +188,28 @@ export function SectionComparisonSheet({
           onSwitchTerm={handleSwitchTerm}
         />
       )}
+    </>
+  );
+
+  return wide ? (
+    <ModalDialog
+      title={title}
+      closeLabel={t('compare.close')}
+      onClose={onClose}
+      width="table"
+      scroll="content"
+    >
+      {body}
     </ModalDialog>
+  ) : (
+    <BottomSheet
+      title={title}
+      closeLabel={t('compare.close')}
+      onClose={onClose}
+      fullHeight
+      scroll="content"
+    >
+      {body}
+    </BottomSheet>
   );
 }
