@@ -25,6 +25,7 @@ import type { RequestMessage } from '@/lib/messaging/protocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import { networkError, err, ok, type Result } from '@/lib/utils/result';
 import { loadFixture } from '../../../tests/support/fixtures';
+import { teachTableResult } from '../../../tests/support/searchDeps';
 import { planStore } from '@/features/plans/planStore';
 import { searchStore, selectTermSettled } from './searchStore';
 import type { SearchDeps } from './SearchDepsContext';
@@ -363,6 +364,36 @@ describe('useSearchActions', () => {
     expect(state.searchFormOpen).toBe(true);
     expect(state.barQuery).toBe(barQuery);
     expect(state.lastSubmitAt).toBe(lastSubmitAt);
+  });
+
+  it('keeps the fetch time with a settled catalog', async () => {
+    act(() => {
+      searchStore.getState().setActiveTab('by_subject_id');
+      searchStore.getState().patchSubjectIdForm({ subjectId: '90592033' });
+    });
+    const catalog = {
+      courses: [],
+      duplicateCount: 0,
+      multiMeetingCount: 0,
+      warnings: [],
+    };
+    // A single arrow cannot satisfy the generic send signature, so it is cast here.
+    const send = ((message: RequestMessage) =>
+      Promise.resolve(
+        message.type === 'teachTable/query'
+          ? ok(teachTableResult(catalog, 1_234))
+          : ok(null),
+      )) as unknown as TypedSend;
+    const { result } = renderHook(() =>
+      useSearchActions({ send, repo: repoReturning(null) }),
+    );
+    await act(() => result.current.submit());
+    expect(searchStore.getState().resultFetchedAt).toBe(1_234);
+    // A new run clears it until its own answer arrives.
+    const retried = result.current.retry();
+    expect(searchStore.getState().resultFetchedAt).toBeNull();
+    await act(() => retried);
+    expect(searchStore.getState().resultFetchedAt).toBe(1_234);
   });
 
   it('clears the bar and opens the form on cancel', async () => {

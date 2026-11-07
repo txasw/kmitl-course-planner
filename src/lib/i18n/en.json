@@ -123,6 +123,7 @@
   "search.loading": "Searching for courses",
   "search.bar.label": "Current search",
   "search.bar.edit": "Edit search",
+  "search.bar.dataAsOf": "Data as of {time}",
   "search.summary.term": "Semester {semester}/{year}",
   "search.summary.count": "{courses} courses",
   "search.summary.bySubjectId": "Subject {id}",

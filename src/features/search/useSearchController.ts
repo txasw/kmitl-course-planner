@@ -162,14 +162,16 @@ export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
       if (searchStore.getState().resultQuery !== query) {
         return;
       }
-      searchStore
-        .getState()
-        .setResult(
-          result.ok
-            ? { status: 'ready', data: result.value.catalog }
-            : { status: 'error', error: result.error },
+      const { setResult } = searchStore.getState();
+      if (result.ok) {
+        setResult(
+          { status: 'ready', data: result.value.catalog },
           query,
+          result.value.fetchedAt,
         );
+      } else {
+        setResult({ status: 'error', error: result.error }, query);
+      }
     },
     [send],
   );
