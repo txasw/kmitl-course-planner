@@ -29,10 +29,12 @@ interface ColumnHead {
   note?: TranslationKey;
   /** The column's minimum width, so a long value wraps instead of squeezing it. */
   width: string;
+  /** The edge a column stays pinned to as the table scrolls sideways. */
+  pin?: 'left' | 'right';
 }
 
 export const COLUMN_HEADS: readonly ColumnHead[] = [
-  { key: 'compare.col.section', width: 'min-w-[5.5rem]' },
+  { key: 'compare.col.section', width: 'min-w-[5.5rem]', pin: 'left' },
   { key: 'compare.col.timePlace', width: 'min-w-[10rem]' },
   { key: 'detail.teachers', width: 'min-w-[9rem]' },
   { key: 'detail.seats', width: 'min-w-[9rem]' },
@@ -40,7 +42,15 @@ export const COLUMN_HEADS: readonly ColumnHead[] = [
   { key: 'section.rules.label', width: 'min-w-[10rem]' },
   { key: 'offeredTo.label', note: 'offeredTo.scope', width: 'min-w-[14rem]' },
   { key: 'compare.col.status', width: 'min-w-[7rem]' },
+  { key: 'compare.col.add', width: 'min-w-[7rem]', pin: 'right' },
 ];
+
+/** The stacking and edge of a heading cell: a pinned heading is a corner over both axes. */
+export function headPinClass(pin: ColumnHead['pin']): string {
+  if (pin === 'left') return 'left-0 z-20';
+  if (pin === 'right') return 'right-0 z-20 border-l';
+  return 'z-10';
+}
 
 export const HEAD_CELL =
   'sticky top-0 border-b border-border bg-surface-alt px-2 py-1.5 text-left align-bottom font-semibold text-ink';
