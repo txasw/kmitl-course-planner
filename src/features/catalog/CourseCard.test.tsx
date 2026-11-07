@@ -982,6 +982,10 @@ describe('CourseCard memoization', () => {
 });
 
 describe('CourseCard section comparison', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   const twoSections = makeCourse({
     subjectId: '90000001',
     sections: [
@@ -1033,6 +1037,7 @@ describe('CourseCard section comparison', () => {
   });
 
   it('opens the table and returns focus to the control on Escape', () => {
+    installViewport(1366);
     render(<PortalPanel course={twoSections} />);
     const trigger = screen.getByRole('button', {
       name: 'เปรียบเทียบกลุ่มเรียน',

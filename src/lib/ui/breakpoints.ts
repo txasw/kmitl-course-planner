@@ -39,6 +39,11 @@ export function minWidthQuery(px: number): string {
   return `(min-width: ${String(px)}px)`;
 }
 
+/** The width the section comparison opens as a table with a row per section from, the
+ * Tailwind md breakpoint. It is not a tier cut: below it the nine comparison columns do
+ * not fit, so the comparison opens as a sheet with the table transposed. */
+export const COMPARISON_TABLE_MIN_WIDTH = 768;
+
 /** The edit grid font size on a narrow scroller, in CSS pixels. */
 export const BASE_GRID_FONT_PX = 11;
 
