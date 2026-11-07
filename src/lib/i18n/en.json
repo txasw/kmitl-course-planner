@@ -125,6 +125,7 @@
   "search.bar.edit": "Edit search",
   "search.bar.dataAsOf": "Data as of {time}",
   "search.bar.refresh": "Refresh results",
+  "search.bar.rerun": "Search again",
   "search.summary.term": "Semester {semester}/{year}",
   "search.summary.count": "{courses} courses",
   "search.summary.bySubjectId": "Subject {id}",

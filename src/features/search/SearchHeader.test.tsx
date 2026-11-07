@@ -571,15 +571,24 @@ describe('search head after a reload', () => {
     };
   }
 
-  function bootAndRender(repo: SearchStateRepository) {
+  function bootAndRender(
+    repo: SearchStateRepository,
+    send: TypedSend = fakeSearchDeps().send,
+  ) {
     // The app boots the load at mount, ahead of the first open.
     searchStore.getState().bootSearch(repo);
     return render(
-      <SearchDepsProvider value={fakeSearchDeps({ repo })}>
+      <SearchDepsProvider value={fakeSearchDeps({ repo, send })}>
         <SearchHeader />
+        <CatalogPanel />
       </SearchDepsProvider>,
     );
   }
+
+  const restoredRepo: SearchStateRepository = {
+    load: () => Promise.resolve(lastSearch),
+    save: () => Promise.resolve(),
+  };
 
   afterEach(() => {
     window.location.hash = '';
@@ -603,10 +612,7 @@ describe('search head after a reload', () => {
   it('opens the form with no bar for a host route on another term', async () => {
     window.location.hash =
       '#/teach_table?mode=by_subject_id&selected_year=2568&selected_semester=2';
-    const { container } = bootAndRender({
-      load: () => Promise.resolve(lastSearch),
-      save: () => Promise.resolve(),
-    });
+    const { container } = bootAndRender(restoredRepo);
     await waitFor(() => {
       expect(formRegion(container)).toHaveAttribute('data-open', 'true');
     });
@@ -617,6 +623,25 @@ describe('search head after a reload', () => {
       year: '2568',
       semester: '2',
     });
+  });
+
+  it('runs the restored search again as a user search and keeps focus', async () => {
+    const counting = countingSend();
+    bootAndRender(restoredRepo, counting.send);
+    const rerun = await screen.findByRole('button', { name: 'ค้นหาอีกครั้ง' });
+    rerun.focus();
+    fireEvent.click(rerun);
+    expect(counting.queries()).toBe(1);
+    const state = searchStore.getState();
+    expect(state.resultQuery).toBe(state.barQuery);
+    expect(state.resultIntent).toBe('user');
+    // The same control turns into the held refresh, so focus never leaves it.
+    expect(rerun).toHaveFocus();
+    expect(rerun).toHaveAccessibleName('โหลดผลค้นหาใหม่');
+    expect(rerun).toHaveAttribute('aria-disabled', 'true');
+    expect(rerun).toHaveAccessibleDescription('กำลังค้นหารายวิชา');
+    fireEvent.click(rerun);
+    expect(counting.queries()).toBe(1);
   });
 });
 
