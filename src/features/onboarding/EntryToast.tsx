@@ -12,12 +12,19 @@
 // Leaving the toast while focus is inside it hands focus to the launcher first, so focus
 // never falls back to the host page, and the panel records the launcher as its opener.
 //
+// The route offer's action runs the search the host result route shows. It hydrates the
+// persisted search with the prefill on top, runs it once as the student's explicit
+// action (Section 4.7), and opens the catalog on it. The submit writes the loading state
+// before its first await, so the catalog's first frame already shows the search. A
+// prefill the form cannot build sends nothing, and the catalog still opens.
+//
 // It sits 60 px above the launcher's bottom offset, which clears the 48 px launcher by
 // 12 px, and its width is capped at the viewport less both side offsets, so it never
 // crosses the left inset on a narrow screen.
 
 import { useRef, type KeyboardEvent } from 'react';
 import { Info, X } from 'lucide-react';
+import type { SearchPrefill } from '@/lib/search/queryForms';
 import type { OnboardingRepository } from '@/lib/storage/onboarding';
 import { fillTemplate } from '@/lib/i18n/template';
 import { FOCUS_RING } from '@/lib/ui/focus';
@@ -28,6 +35,9 @@ import { commitThenFocus } from '@/features/shell/restoreFocus';
 import { activeElementWithin, rootOf } from '@/features/shell/useFocusTrap';
 import { useHoverFocusHold } from '@/features/shell/useHoverFocusHold';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { useSearchDeps } from '@/features/search/SearchDepsContext';
+import { searchStore } from '@/features/search/searchStore';
+import { useSearchActions } from '@/features/search/useSearchController';
 import { recordOnboardingMoment } from './recordOnboardingMoment';
 import { useEntryToastSchedule } from './useEntryToastSchedule';
 
@@ -35,6 +45,43 @@ import { useEntryToastSchedule } from './useEntryToastSchedule';
 const HOLD_KEY = 'entry-toast';
 
 const TEXT_BUTTON = `shrink-0 rounded-kcp px-1 underline ${TARGET_HEIGHT} ${FOCUS_RING}`;
+const ACTION_BUTTON = `${TEXT_BUTTON} font-semibold text-primary-strong`;
+
+type ActionKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => void;
+
+interface RouteActionProps {
+  prefill: SearchPrefill;
+  label: string;
+  onLeave: () => void;
+  onKeyDown: ActionKeyDown;
+}
+
+// Its own component, since only the route offer needs the search dependencies.
+function RouteAction({ prefill, label, onLeave, onKeyDown }: RouteActionProps) {
+  const deps = useSearchDeps();
+  const { submit } = useSearchActions(deps);
+
+  const handleClick = (): void => {
+    onLeave();
+    void (async () => {
+      await searchStore.getState().applyRoutePrefill(prefill, deps.repo);
+      const search = submit();
+      openPanelAt('catalog');
+      await search;
+    })();
+  };
+
+  return (
+    <button
+      type="button"
+      onKeyDown={onKeyDown}
+      onClick={handleClick}
+      className={ACTION_BUTTON}
+    >
+      {label}
+    </button>
+  );
+}
 
 export interface EntryToastProps {
   /** Only the patch: the opt out records its moment through the repository. */
@@ -59,7 +106,7 @@ export function EntryToast({ record }: EntryToastProps) {
     commitThenFocus(end, () => [root?.getElementById(LAUNCHER_ID)]);
   };
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
+  const handleKeyDown: ActionKeyDown = (event) => {
     if (event.key !== 'Escape') return;
     event.stopPropagation();
     leave();
@@ -90,17 +137,26 @@ export function EntryToast({ record }: EntryToastProps) {
               {fillTemplate(t(content.messageKey), content.params)}
             </p>
             <div className="flex flex-wrap items-center gap-x-3">
-              <button
-                type="button"
-                onKeyDown={handleKeyDown}
-                onClick={() => {
-                  leave();
-                  openPanelAt(content.target);
-                }}
-                className={`${TEXT_BUTTON} font-semibold text-primary-strong`}
-              >
-                {t(content.actionKey)}
-              </button>
+              {content.kind === 'route' ? (
+                <RouteAction
+                  prefill={content.prefill}
+                  label={t(content.actionKey)}
+                  onLeave={leave}
+                  onKeyDown={handleKeyDown}
+                />
+              ) : (
+                <button
+                  type="button"
+                  onKeyDown={handleKeyDown}
+                  onClick={() => {
+                    leave();
+                    openPanelAt(content.target);
+                  }}
+                  className={ACTION_BUTTON}
+                >
+                  {t(content.actionKey)}
+                </button>
+              )}
               <button
                 type="button"
                 onKeyDown={handleKeyDown}

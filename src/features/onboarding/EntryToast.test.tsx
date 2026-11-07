@@ -13,11 +13,22 @@ import {
   ENTRY_TOAST_DELAY_MS,
   ENTRY_TOAST_VISIBLE_MS,
 } from '@/lib/onboarding/entryToast';
+import type { RequestMessage } from '@/lib/messaging/protocol';
+import type { TypedSend } from '@/lib/messaging/sendTyped';
+import {
+  defaultCategoryForm,
+  defaultClassForm,
+  defaultSubjectIdForm,
+} from '@/lib/search/formState';
+import { routeSearchPrefill } from '@/lib/search/queryForms';
+import type { SearchState } from '@/lib/storage/lastSearch';
 import type { OnboardingRecord } from '@/lib/storage/onboarding';
 import { planStore } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
 import { Launcher, LAUNCHER_ID } from '@/features/shell/Launcher';
 import { uiStore } from '@/features/shell/uiStore';
+import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
+import { searchStore } from '@/features/search/searchStore';
 import { makePlanEntry } from '../../../tests/support/domain-builders';
 import {
   resetPlanStore,
@@ -28,10 +39,22 @@ import { installViewport } from '../../../tests/support/viewport';
 import { EntryToast } from './EntryToast';
 import { initialOnboardingData, onboardingStore } from './onboardingStore';
 
+// The route mapping stays real; one test swaps in a prefill the form cannot submit,
+// which no real route maps to, to prove the action then sends nothing.
+vi.mock('@/lib/search/queryForms', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@/lib/search/queryForms')>();
+  return { ...actual, routeSearchPrefill: vi.fn(actual.routeSearchPrefill) };
+});
+
 const NO_PLAN =
   'ใช้ Planner วางแผนตารางเรียนจากรายวิชาที่เปิดสอนในเว็บไซต์นี้ได้';
 const CLOSE = 'ปิดข้อความนี้';
 const OPT_OUT = 'ไม่ต้องแสดงข้อความนี้อีก';
+const ROUTE = 'เปิดผลการค้นหานี้ใน Planner เพื่อจัดกลุ่มเรียนลงตาราง';
+const ROUTE_ACTION = 'เปิดใน Planner';
+const RESULT_HASH =
+  '#/teach_table?mode=by_subject_owner_id&selected_year=2569&selected_semester=1&selected_faculty=01&search_all_faculty=false&selected_subject_owner_id=46';
 
 function fakeRecord() {
   return {
@@ -78,6 +101,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  window.history.replaceState(null, '', '#');
   vi.useRealTimers();
   vi.unstubAllGlobals();
   act(() => {
@@ -255,5 +279,130 @@ describe('EntryToast actions', () => {
     expect(ui.viewMode).toBe('edit');
     expect(ui.planView).toBe('timetable');
     expect(revalidationStore.getState().updatesOpen).toBe(true);
+  });
+});
+
+describe('EntryToast route offer', () => {
+  const persisted: SearchState = {
+    schemaVersion: 2,
+    activeTab: 'by_subject_id',
+    term: { year: '2568', semester: '2' },
+    byClass: defaultClassForm(),
+    bySubjectId: { subjectId: '90592033' },
+    byCategory: defaultCategoryForm(),
+  };
+
+  // A send whose query never answers, so the store can be read while it is in flight.
+  // The cast is required because a single arrow cannot satisfy the generic send.
+  function querySpy() {
+    const spy = vi.fn((message: RequestMessage) =>
+      message.type === 'teachTable/query'
+        ? new Promise<never>(() => undefined)
+        : Promise.resolve({ ok: true, value: null }),
+    );
+    return { spy, send: spy as unknown as TypedSend };
+  }
+
+  function queries(spy: ReturnType<typeof querySpy>['spy']): RequestMessage[] {
+    return spy.mock.calls
+      .map(([message]) => message)
+      .filter((message) => message.type === 'teachTable/query');
+  }
+
+  function renderOnRoute(send: TypedSend): void {
+    window.history.replaceState(null, '', RESULT_HASH);
+    render(
+      <SearchDepsProvider
+        value={{
+          send,
+          repo: {
+            load: () => Promise.resolve(persisted),
+            save: () => Promise.resolve(),
+          },
+        }}
+      >
+        <EntryToast record={fakeRecord()} />
+      </SearchDepsProvider>,
+    );
+    show();
+  }
+
+  async function pressRouteAction(): Promise<void> {
+    fireEvent.click(screen.getByRole('button', { name: ROUTE_ACTION }));
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+  }
+
+  beforeEach(() => {
+    const state = searchStore.getState();
+    state.hydrate({
+      schemaVersion: 2,
+      activeTab: 'by_class',
+      term: { year: '2569', semester: '1' },
+      byClass: defaultClassForm(),
+      bySubjectId: defaultSubjectIdForm(),
+      byCategory: defaultCategoryForm(),
+    });
+    state.setInitialized(false);
+  });
+
+  afterEach(() => {
+    act(() => {
+      searchStore.getState().cancelSearch();
+    });
+  });
+
+  it('offers the search of the result route the document loaded on', () => {
+    const { send } = querySpy();
+    renderOnRoute(send);
+    expect(screen.getByText(ROUTE)).toBeInTheDocument();
+  });
+
+  it('runs the route search once over the persisted search and opens the catalog', async () => {
+    const { spy, send } = querySpy();
+    renderOnRoute(send);
+    await pressRouteAction();
+
+    expect(screen.queryByText(ROUTE)).toBeNull();
+    expect(queries(spy)).toEqual([
+      {
+        type: 'teachTable/query',
+        refresh: false,
+        query: {
+          mode: 'by_subject_owner_id',
+          selected_year: '2569',
+          selected_semester: '1',
+          search_all_faculty: false,
+          selected_faculty: '01',
+          selected_subject_owner_id: '46',
+        },
+      },
+    ]);
+    const search = searchStore.getState();
+    expect(search.activeTab).toBe('by_subject_owner_id');
+    expect(search.byCategory).toEqual({ faculty: '01', subjectOwner: '46' });
+    expect(search.bySubjectId).toEqual({ subjectId: '90592033' });
+    expect(search.result.status).toBe('loading');
+    const ui = uiStore.getState();
+    expect(ui.isOpen).toBe(true);
+    expect(ui.viewMode).toBe('edit');
+    expect(ui.mobilePane).toBe('catalog');
+  });
+
+  it('sends nothing for a prefill the form cannot submit and still opens the catalog', async () => {
+    vi.mocked(routeSearchPrefill).mockReturnValueOnce({
+      tab: 'by_subject_owner_id',
+      term: { year: '2569', semester: '1' },
+      form: { faculty: '01', subjectOwner: '' },
+    });
+    const { spy, send } = querySpy();
+    renderOnRoute(send);
+    await pressRouteAction();
+
+    expect(queries(spy)).toEqual([]);
+    expect(searchStore.getState().activeTab).toBe('by_subject_owner_id');
+    expect(uiStore.getState().isOpen).toBe(true);
+    expect(uiStore.getState().mobilePane).toBe('catalog');
   });
 });
