@@ -1,0 +1,2004 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KCP: Course Planner for KMITL, a weekly timetable extension</title>
+    <meta
+      name="description"
+      content="KCP is a free Chrome and Firefox extension for KMITL students. It turns the registration course search into a drag and drop weekly timetable that flags clashing class and exam times."
+    />
+    <link rel="canonical" href="https://kcp.cecs.sh/en/" />
+    <link rel="alternate" hreflang="th" href="https://kcp.cecs.sh/" />
+    <link rel="alternate" hreflang="en" href="https://kcp.cecs.sh/en/" />
+    <link rel="alternate" hreflang="x-default" href="https://kcp.cecs.sh/" />
+    <meta name="theme-color" content="#FFFFFF" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link
+      rel="preload"
+      href="/assets/fonts/kcp-display.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="image"
+      type="image/avif"
+      imagesrcset="/shots/s-hero-en-960.avif?v=02f146be25 960w, /shots/s-hero-en-1440.avif?v=4be617f178 1440w, /shots/s-hero-en-2160.avif?v=2c5a4e1881 2160w, /shots/s-hero-en-2880.avif?v=38838e4ef3 2880w"
+      imagesizes="(min-width: 1440px) 1264px, calc(100vw - 2 * clamp(20px, 5vw, 64px))"
+      media="(min-width: 640px)"
+      fetchpriority="high"
+    />
+    <link
+      rel="preload"
+      as="image"
+      type="image/avif"
+      imagesrcset="/shots/s-hero-crop-en-750.avif?v=b971402666 750w, /shots/s-hero-crop-en-1100.avif?v=90a5da5621 1100w"
+      imagesizes="calc(100vw - 40px)"
+      media="(max-width: 639px)"
+      fetchpriority="high"
+    />
+    <link rel="stylesheet" href="/assets/site.css?v=3bcd1a450f" />
+    <script src="/assets/site.js?v=9d035bcb2c" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="KCP" />
+    <meta
+      property="og:title"
+      content="KCP: Course Planner for KMITL, a weekly timetable extension"
+    />
+    <meta
+      property="og:description"
+      content="KCP is a free Chrome and Firefox extension for KMITL students. It turns the registration course search into a drag and drop weekly timetable that flags clashing class and exam times."
+    />
+    <meta property="og:url" content="https://kcp.cecs.sh/en/" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="th_TH" />
+    <meta property="og:image" content="https://kcp.cecs.sh/og/og-en.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/png" />
+    <meta
+      property="og:image:alt"
+      content="A weekly timetable exported from KCP, with the name KCP: Course Planner for KMITL."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="KCP: Course Planner for KMITL, a weekly timetable extension"
+    />
+    <meta
+      name="twitter:description"
+      content="KCP is a free Chrome and Firefox extension for KMITL students. It turns the registration course search into a drag and drop weekly timetable that flags clashing class and exam times."
+    />
+    <meta name="twitter:image" content="https://kcp.cecs.sh/og/og-en.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://kcp.cecs.sh/#website",
+            "url": "https://kcp.cecs.sh/",
+            "name": "KCP",
+            "alternateName": [
+              "KCP KMITL",
+              "Course Planner for KMITL",
+              "ตัววางแผนตารางเรียน สจล."
+            ],
+            "inLanguage": ["th", "en"],
+            "publisher": { "@id": "https://kcp.cecs.sh/#author" }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://kcp.cecs.sh/#app",
+            "name": "KCP: Course Planner for KMITL",
+            "alternateName": [
+              "KCP",
+              "KCP KMITL",
+              "Course Planner for KMITL",
+              "ตัววางแผนตารางเรียน สจล."
+            ],
+            "url": "https://kcp.cecs.sh/en/",
+            "description": "KCP is a free Chrome and Firefox extension for KMITL students. It turns the registration course search into a drag and drop weekly timetable that flags clashing class and exam times.",
+            "applicationCategory": "EducationalApplication",
+            "applicationSubCategory": "Browser extension",
+            "operatingSystem": "Windows, macOS, Linux, ChromeOS",
+            "browserRequirements": "Chrome, Microsoft Edge, Brave, Opera or Firefox on a computer",
+            "softwareVersion": "1.3.1",
+            "inLanguage": "en",
+            "isAccessibleForFree": true,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "THB",
+              "availability": "https://schema.org/InStock"
+            },
+            "installUrl": [
+              "https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef",
+              "https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/"
+            ],
+            "downloadUrl": [
+              "https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef",
+              "https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/"
+            ],
+            "sameAs": [
+              "https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef",
+              "https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/",
+              "https://github.com/txasw/kmitl-course-planner"
+            ],
+            "image": "https://kcp.cecs.sh/og/og-en.png",
+            "screenshot": [
+              "https://kcp.cecs.sh/shots/s-hero-en-1440.webp",
+              "https://kcp.cecs.sh/shots/x-share169-en-1440.webp"
+            ],
+            "license": "https://opensource.org/licenses/MIT",
+            "author": {
+              "@type": "Person",
+              "@id": "https://kcp.cecs.sh/#author",
+              "name": "txasw",
+              "url": "https://github.com/txasw"
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#content">Skip to content</a>
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="brand" href="/en/"
+          ><svg
+            class="mark"
+            width="28"
+            height="28"
+            viewBox="0 0 128 128"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <rect width="128" height="128" rx="28" fill="#E35205" />
+            <g fill="#FFFFFF">
+              <rect x="22" y="22" width="38" height="38" rx="6" />
+              <rect x="68" y="22" width="38" height="38" rx="6" />
+              <rect x="22" y="68" width="38" height="38" rx="6" />
+            </g>
+            <rect
+              x="68"
+              y="68"
+              width="38"
+              height="38"
+              rx="6"
+              fill="#B8400A"
+            /></svg
+          ><span class="brand__word" lang="en">KCP</span
+          ><span class="visually-hidden">KCP home</span></a
+        >
+        <nav class="site-nav" aria-label="Main">
+          <ul>
+            <li class="site-nav__wide"><a href="#features">Features</a></li>
+            <li class="site-nav__wide">
+              <a href="#get-started">Get started</a>
+            </li>
+            <li class="site-nav__wide"><a href="#faq">FAQ</a></li>
+            <li><a href="/" lang="th" hreflang="th">ภาษาไทย</a></li>
+            <li><a class="nav-install" href="#download">Install</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <main id="content" tabindex="-1">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="field" aria-hidden="true">
+          <div class="field__ruler">
+            <span>08:00</span><span>09:00</span><span>10:00</span
+            ><span>11:00</span><span>12:00</span><span>13:00</span
+            ><span>14:00</span><span>15:00</span><span>16:00</span
+            ><span>17:00</span><span>18:00</span>
+          </div>
+        </div>
+        <div class="container hero__inner">
+          <div class="hero__text">
+            <h1 id="hero-title">
+              <span class="hero__lockup">KCP: Course Planner for KMITL</span
+              ><span class="hero__display"
+                >See your whole week
+                <span class="hero__break">before you register.</span></span
+              >
+            </h1>
+            <p class="lede">
+              A browser extension for KMITL students. It turns the course search
+              on the registration site into a drag and drop weekly timetable,
+              merges the repeated rows, flags clashing class and exam times, and
+              keeps your plans in your browser only.
+            </p>
+            <div class="cta-row cta-row--hero">
+              <a
+                class="cta cta--chrome"
+                href="https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef"
+                ><svg
+                  class="icon"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"
+                  /></svg
+                ><span class="cta__text"
+                  ><span class="cta__label">Add to Chrome</span
+                  ><span class="cta__sub"
+                    >Also for Edge, Brave and Opera</span
+                  ></span
+                ></a
+              >
+              <a
+                class="cta cta--firefox"
+                href="https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/"
+                ><svg
+                  class="icon"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"
+                  /></svg
+                ><span class="cta__text"
+                  ><span class="cta__label">Add to Firefox</span
+                  ><span class="cta__sub">From Firefox Add-ons</span></span
+                ></a
+              >
+              <button
+                type="button"
+                class="cta cta--soon"
+                aria-disabled="true"
+                aria-describedby="web-soon-note-hero"
+              >
+                <svg
+                  class="icon"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+                  <path d="M2 12h20" /></svg
+                ><span class="cta__text"
+                  ><span class="cta__label"
+                    >Use on the web <span class="badge">Coming soon</span></span
+                  ></span
+                >
+              </button>
+            </div>
+            <p class="cta-note" id="web-soon-note-hero">
+              The web version is in development and has no release date yet.
+              Until then, use the extension on Chrome or Firefox.
+            </p>
+            <p class="cta-coarse">
+              Extensions install on a computer. Open this page on a computer to
+              install.
+            </p>
+            <p class="micro">Free and open source. No account, no tracking.</p>
+            <p class="micro">
+              An independent tool built by a student. Not an official KMITL
+              system.
+            </p>
+          </div>
+          <div class="frame">
+            <div class="frame__bar" aria-hidden="true">
+              <span class="frame__dots"><i></i><i></i><i></i></span
+              ><span class="frame__url"
+                ><svg
+                  class="icon"
+                  width="14"
+                  height="14"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
+                ><span>regis.reg.kmitl.ac.th/#/teach_table_selector</span></span
+              >
+            </div>
+            <picture
+              ><source
+                media="(max-width: 639px)"
+                type="image/avif"
+                srcset="
+                  /shots/s-hero-crop-en-750.avif?v=b971402666   750w,
+                  /shots/s-hero-crop-en-1100.avif?v=90a5da5621 1100w
+                "
+                sizes="calc(100vw - 40px)" />
+              <source
+                media="(max-width: 639px)"
+                type="image/webp"
+                srcset="
+                  /shots/s-hero-crop-en-750.webp?v=cfcccb02c1   750w,
+                  /shots/s-hero-crop-en-1100.webp?v=ec8d00c168 1100w
+                "
+                sizes="calc(100vw - 40px)" />
+              <source
+                type="image/avif"
+                srcset="
+                  /shots/s-hero-en-960.avif?v=02f146be25   960w,
+                  /shots/s-hero-en-1440.avif?v=4be617f178 1440w,
+                  /shots/s-hero-en-2160.avif?v=2c5a4e1881 2160w,
+                  /shots/s-hero-en-2880.avif?v=38838e4ef3 2880w
+                "
+                sizes="(min-width: 1440px) 1264px, calc(100vw - 2 * clamp(20px, 5vw, 64px))" />
+              <source
+                type="image/webp"
+                srcset="
+                  /shots/s-hero-en-960.webp?v=fc28b8eb77   960w,
+                  /shots/s-hero-en-1440.webp?v=1ae2c0980c 1440w,
+                  /shots/s-hero-en-2160.webp?v=2c3ef93bbf 2160w,
+                  /shots/s-hero-en-2880.webp?v=6408d19b38 2880w
+                "
+                sizes="(min-width: 1440px) 1264px, calc(100vw - 2 * clamp(20px, 5vw, 64px))" />
+              <img
+                src="/shots/s-hero-en-1440.webp?v=1ae2c0980c"
+                width="1440"
+                height="900"
+                alt="The KCP planner open on the course search page. On the left, the courses of the Computer Engineering and Cyber Security curriculum, year 1; on the right, a weekly timetable with 7 subjects from Monday to Friday and 19 credits and no conflicts."
+                loading="eager"
+                fetchpriority="high"
+                decoding="async"
+                class="frame__img"
+            /></picture>
+          </div>
+        </div>
+      </section>
+      <section class="band problem" aria-labelledby="problem-title">
+        <div class="container problem__grid">
+          <div class="problem__text">
+            <h2 id="problem-title">
+              The registration site lists the same section again and again.
+            </h2>
+            <p class="body">
+              One section is open to many curricula, so the result page repeats
+              it under every curriculum it is open to. A search for subject
+              90641007, Digital Citizen, in semester 1/2569 returns 499 rows
+              that hold only 44 real sections. KCP reads the same public data
+              the registration site uses and merges the repeats into one entry
+              per section.
+            </p>
+            <div
+              class="dedupe-wrap"
+              data-dedupe
+              data-label="Merge repeated rows"
+              data-merged="Merged into 4 sections from 13 rows."
+              data-unmerged="Showing all 13 rows."
+            >
+              <table class="dedupe" id="dedupe-table" role="table">
+                <caption>
+                  Real data from a search of category 90592xxx in semester
+                  1/2569: 13 rows across 6 curricula.
+                </caption>
+                <thead role="rowgroup">
+                  <tr role="row">
+                    <th scope="col" role="columnheader">Listed under</th>
+                    <th scope="col" role="columnheader">Subject id</th>
+                    <th scope="col" role="columnheader">Subject</th>
+                    <th scope="col" role="columnheader">Section</th>
+                    <th scope="col" role="columnheader">Day and time</th>
+                    <th scope="col" role="columnheader">Seats</th>
+                  </tr>
+                </thead>
+                <tbody role="rowgroup">
+                  <tr role="row" class="dedupe__row subject-8" data-row="first">
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold">
+                        <div>
+                          Civil Engineering, year 4
+                          <span class="dedupe__chip"
+                            >Listed under 4 curricula</span
+                          >
+                        </div>
+                      </div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592008</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>TODAY'S THAI SOCIETY</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 Lecture</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>Fri 09:00-12:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>62/80</div></div>
+                    </td>
+                  </tr>
+                  <tr role="row" class="dedupe__row subject-0" data-row="first">
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold">
+                        <div>
+                          Civil Engineering, year 4
+                          <span class="dedupe__chip"
+                            >Listed under 3 curricula</span
+                          >
+                        </div>
+                      </div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592033</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 Lecture</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>Fri 08:00-10:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>Full</div></div>
+                    </td>
+                  </tr>
+                  <tr role="row" class="dedupe__row subject-0" data-row="first">
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold">
+                        <div>
+                          Civil Engineering, year 4
+                          <span class="dedupe__chip"
+                            >Listed under 3 curricula</span
+                          >
+                        </div>
+                      </div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592033</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>902 Practice</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>Fri 10:00-12:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>Full</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-8"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold">
+                        <div>Chemical Engineering, year 4</div>
+                      </div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592008</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>TODAY'S THAI SOCIETY</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 Lecture</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>Fri 09:00-12:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>62/80</div></div>
+                    </td>
+                  </tr>
+                  <tr role="row" class="dedupe__row subject-4" data-row="first">
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold">
+                        <div>
+                          Industrial Engineering, year 4
+                          <span class="dedupe__chip"
+                            >Listed under 3 curricula</span
+                          >
+                        </div>
+                      </div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592004</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>CONTEMPORARY CULTURE</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 Lecture</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>Fri 13:00-16:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>85/90</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-4"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold">
+                        <div>Faculty of Engineering, no curriculum, year 4</div>
+                      </div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592004</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>CONTEMPORARY CULTURE</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 Lecture</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>Fri 13:00-16:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>85/90</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-8"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold"><div>Architecture, year 5</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592008</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>TODAY'S THAI SOCIETY</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 Lecture</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>Fri 09:00-12:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>62/80</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-0"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold"><div>Architecture, year 5</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592033</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 Lecture</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>Fri 08:00-10:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>Full</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-0"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold"><div>Architecture, year 5</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592033</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>902 Practice</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>Fri 10:00-12:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>Full</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-4"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold"><div>General Education</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592004</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>CONTEMPORARY CULTURE</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 Lecture</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>Fri 13:00-16:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>85/90</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-8"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold"><div>General Education</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592008</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>TODAY'S THAI SOCIETY</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 Lecture</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>Fri 09:00-12:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>62/80</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-0"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold"><div>General Education</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592033</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 Lecture</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>Fri 08:00-10:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>Full</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-0"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold"><div>General Education</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592033</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>902 Practice</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>Fri 10:00-12:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>Full</div></div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="dedupe__result">
+                In KCP these 13 rows merge into 4 sections, each listed once.
+              </p>
+              <p
+                class="visually-hidden"
+                role="status"
+                aria-live="polite"
+                data-dedupe-status
+              ></p>
+            </div>
+          </div>
+          <figure class="plate problem__shot">
+            <picture
+              ><source
+                type="image/avif"
+                srcset="
+                  /shots/s-catalog-dedupe-en-600.avif?v=34b7f173cb 600w,
+                  /shots/s-catalog-dedupe-en-768.avif?v=fe8b954213 768w
+                "
+                sizes="(min-width: 1280px) 384px, (min-width: 520px) 480px, calc(100vw - 40px)" />
+              <source
+                type="image/webp"
+                srcset="
+                  /shots/s-catalog-dedupe-en-600.webp?v=d1a61e2e6d 600w,
+                  /shots/s-catalog-dedupe-en-768.webp?v=c0ba275a1c 768w
+                "
+                sizes="(min-width: 1280px) 384px, (min-width: 520px) 480px, calc(100vw - 40px)" />
+              <img
+                src="/shots/s-catalog-dedupe-en-600.webp?v=d1a61e2e6d"
+                width="600"
+                height="1567"
+                alt="The KCP course list for a search of category 90592xxx, summarised as 3 courses, 4 sections and 9 merged repeats. The cards for 90592008 and 90592033 are open, showing each section with its day, time, room and seats."
+                loading="lazy"
+                decoding="async"
+                class="plate__img"
+            /></picture>
+            <figcaption>
+              The same search in KCP: 3 courses and 4 sections, each with its
+              day, time, place and seats on one row.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+      <section class="features" id="features" aria-labelledby="features-title">
+        <div class="container">
+          <h2 id="features-title" class="features__title">
+            Everything you need to plan a term, in one panel.
+          </h2>
+          <article class="feature" aria-labelledby="search-title">
+            <div class="feature__caption">
+              <h3 id="search-title">
+                Search the three ways the registration site does
+              </h3>
+              <p class="body">
+                Search by curriculum and class year, by subject id, or by
+                subject category. Results arrive as one line course cards that
+                open to show sections, open seats, enrollment conditions and
+                exam dates, with filters for day, credits and full sections.
+              </p>
+            </div>
+            <div class="feature__media">
+              <figure class="plate plate--column">
+                <picture
+                  ><source
+                    type="image/avif"
+                    srcset="
+                      /shots/s-search-form-en-600.avif?v=d02846647f 600w,
+                      /shots/s-search-form-en-768.avif?v=e4321dd05b 768w
+                    "
+                    sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
+                  <source
+                    type="image/webp"
+                    srcset="
+                      /shots/s-search-form-en-600.webp?v=cd11dbc95e 600w,
+                      /shots/s-search-form-en-768.webp?v=d4a92cd629 768w
+                    "
+                    sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
+                  <img
+                    src="/shots/s-search-form-en-600.webp?v=cd11dbc95e"
+                    width="600"
+                    height="1281"
+                    alt="The search panel on the curriculum tab, with the engineering faculty, the Computer Engineering department, the Computer Engineering and Cyber Security curriculum and year 1 selected. Below it, the course cards already added to the plan."
+                    loading="lazy"
+                    decoding="async"
+                    class="plate__img"
+                /></picture>
+                <figcaption>
+                  Search the three ways the registration site does
+                </figcaption>
+              </figure>
+            </div>
+          </article>
+          <article class="feature" aria-labelledby="conflict-title">
+            <div class="feature__caption">
+              <h3 id="conflict-title">
+                Drag a section in and see a clash before you drop
+              </h3>
+              <p class="body">
+                As soon as you pick up a section, the timetable shows where each
+                of its meetings will land. A green outline means it fits; red
+                hatching marks a clash with a subject already in your plan,
+                named with the time it overlaps. If it cannot be placed, KCP
+                offers other sections of the same subject that fit. Lecture and
+                practice pairs are always added and removed together.
+              </p>
+            </div>
+            <div class="feature__media">
+              <div class="stack">
+                <figure class="plate">
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/s-drag-blocked-en-800.avif?v=15bebf3cf6   800w,
+                        /shots/s-drag-blocked-en-1600.avif?v=dd74a6a307 1600w
+                      "
+                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/s-drag-blocked-en-800.webp?v=067cddba97   800w,
+                        /shots/s-drag-blocked-en-1600.webp?v=80cb0675d7 1600w
+                      "
+                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
+                    <img
+                      src="/shots/s-drag-blocked-en-800.webp?v=067cddba97"
+                      width="800"
+                      height="573"
+                      alt="The timetable during a drag of section 3. The Tuesday 09:00 to 12:00 slot over General Physics 1 is marked, with a chip naming the clash with 01006020 section 4."
+                      loading="lazy"
+                      decoding="async"
+                      class="plate__img"
+                  /></picture>
+                  <figcaption>
+                    Dragging General Physics Laboratory 1, section 3, onto
+                    Tuesday, where it clashes with General Physics 1, section 4.
+                  </figcaption>
+                </figure>
+                <figure class="plate">
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/s-feedback-alternatives-en-800.avif?v=d45d453bc3   800w,
+                        /shots/s-feedback-alternatives-en-1600.avif?v=09733185e5 1600w
+                      "
+                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/s-feedback-alternatives-en-800.webp?v=8a92e7e133   800w,
+                        /shots/s-feedback-alternatives-en-1600.webp?v=42be9a7115 1600w
+                      "
+                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
+                    <img
+                      src="/shots/s-feedback-alternatives-en-800.webp?v=8a92e7e133"
+                      width="800"
+                      height="352"
+                      alt="A message under the timetable header says the section cannot be placed because of a time clash, with a button to add section 5 on Wednesday 13:00 to 16:00."
+                      loading="lazy"
+                      decoding="async"
+                      class="plate__img"
+                  /></picture>
+                  <figcaption>
+                    The drop is refused, and KCP offers section 5 on Wednesday,
+                    13:00-16:00, which fits.
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+          <article class="feature" aria-labelledby="exam-title">
+            <div class="feature__caption">
+              <h3 id="exam-title">
+                Exam dates are checked too, not only class times
+              </h3>
+              <p class="body">
+                Two subjects that meet on different days can still share a
+                midterm slot. KCP compares the midterm and final windows of
+                every subject in your plan and will not add a section whose exam
+                clashes. The Summary view lists the term’s exams by date, with
+                your weekly hours and free days.
+              </p>
+            </div>
+            <div class="feature__media">
+              <div class="pair">
+                <figure class="plate">
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/s-exam-row-en-500.avif?v=6aeee0449a 500w,
+                        /shots/s-exam-row-en-702.avif?v=cf159cb4f3 702w
+                      "
+                      sizes="(min-width: 1024px) 384px, (min-width: 640px) calc(50vw - 56px), calc(100vw - 40px)" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/s-exam-row-en-500.webp?v=2ba1674f38 500w,
+                        /shots/s-exam-row-en-702.webp?v=d5b567bf77 702w
+                      "
+                      sizes="(min-width: 1024px) 384px, (min-width: 640px) calc(50vw - 56px), calc(100vw - 40px)" />
+                    <img
+                      src="/shots/s-exam-row-en-500.webp?v=2ba1674f38"
+                      width="500"
+                      height="809"
+                      alt="The course card for 01076112. Its sections carry an exam clash badge, and a soft red box says the exam clashes with 01006020 section 4, midterm on 21 Aug 2569."
+                      loading="lazy"
+                      decoding="async"
+                      class="plate__img"
+                  /></picture>
+                  <figcaption>
+                    Digital System Fundamentals meets on Monday, but its midterm
+                    on 21 Aug 2569 falls at the same time as General Physics 1.
+                  </figcaption>
+                </figure>
+                <figure class="plate">
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/s-summary-en-500.avif?v=9abec7bb3f   500w,
+                        /shots/s-summary-en-1000.avif?v=a372f8a2c2 1000w
+                      "
+                      sizes="(min-width: 1024px) 384px, (min-width: 640px) calc(50vw - 56px), calc(100vw - 40px)" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/s-summary-en-500.webp?v=db6c2518e5   500w,
+                        /shots/s-summary-en-1000.webp?v=9cc53e7522 1000w
+                      "
+                      sizes="(min-width: 1024px) 384px, (min-width: 640px) calc(50vw - 56px), calc(100vw - 40px)" />
+                    <img
+                      src="/shots/s-summary-en-500.webp?v=db6c2518e5"
+                      width="500"
+                      height="1169"
+                      alt="Midterm and final exams of the subjects in the plan listed by date, followed by weekly lecture, practice and self study hours."
+                      loading="lazy"
+                      decoding="async"
+                      class="plate__img"
+                  /></picture>
+                  <figcaption>
+                    The plan’s Summary view, with exams by date and the weekly
+                    workload.
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+          <article
+            class="feature feature--wide"
+            aria-labelledby="layouts-title"
+          >
+            <div class="feature__caption">
+              <h3 id="layouts-title">
+                Built for wide screens, narrow windows and touch
+              </h3>
+              <p class="body">
+                On a laptop the course list sits beside the timetable. On a
+                tablet it opens as a side sheet. In a window narrower than 640
+                px, the planner shows one pane at a time behind a bottom bar,
+                the timetable reads one day at a time, and a long press picks up
+                a section on a touch screen.
+              </p>
+            </div>
+            <div class="feature__media">
+              <div
+                class="strip"
+                role="region"
+                aria-label="Narrow window examples"
+                tabindex="0"
+              >
+                <figure class="narrow">
+                  <div class="narrow__bar" aria-hidden="true">
+                    <span class="frame__url"
+                      ><svg
+                        class="icon"
+                        width="14"
+                        height="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <rect
+                          width="18"
+                          height="11"
+                          x="3"
+                          y="11"
+                          rx="2"
+                          ry="2"
+                        />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
+                      ><span>regis.reg.kmitl.ac.th</span></span
+                    >
+                  </div>
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/n-catalog-en-400.avif?v=84a06765f0 400w,
+                        /shots/n-catalog-en-800.avif?v=d78a0c06e3 800w
+                      "
+                      sizes="(min-width: 1024px) 340px, 280px" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/n-catalog-en-400.webp?v=8f462e9da0 400w,
+                        /shots/n-catalog-en-800.webp?v=51ede69405 800w
+                      "
+                      sizes="(min-width: 1024px) 340px, 280px" />
+                    <img
+                      src="/shots/n-catalog-en-400.webp?v=8f462e9da0"
+                      width="400"
+                      height="866"
+                      alt="The planner in a narrow window, on the courses pane with the Calculus 1 card open and the bottom bar below."
+                      loading="lazy"
+                      decoding="async"
+                      class="narrow__img"
+                  /></picture>
+                  <figcaption>Courses and search</figcaption>
+                </figure>
+                <figure class="narrow">
+                  <div class="narrow__bar" aria-hidden="true">
+                    <span class="frame__url"
+                      ><svg
+                        class="icon"
+                        width="14"
+                        height="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <rect
+                          width="18"
+                          height="11"
+                          x="3"
+                          y="11"
+                          rx="2"
+                          ry="2"
+                        />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
+                      ><span>regis.reg.kmitl.ac.th</span></span
+                    >
+                  </div>
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/n-day-en-400.avif?v=37bb4e0000 400w,
+                        /shots/n-day-en-800.avif?v=c96f7542e0 800w
+                      "
+                      sizes="(min-width: 1024px) 340px, 280px" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/n-day-en-400.webp?v=8fad6da034 400w,
+                        /shots/n-day-en-800.webp?v=29372be138 800w
+                      "
+                      sizes="(min-width: 1024px) 340px, 280px" />
+                    <img
+                      src="/shots/n-day-en-400.webp?v=8fad6da034"
+                      width="400"
+                      height="866"
+                      alt="The Tuesday timetable in a narrow window, with General Physics 1 at 09:00 to 12:00 and Introduction to Psychology at 13:00 to 16:00."
+                      loading="lazy"
+                      decoding="async"
+                      class="narrow__img"
+                  /></picture>
+                  <figcaption>Tuesday timetable</figcaption>
+                </figure>
+                <figure class="narrow">
+                  <div class="narrow__bar" aria-hidden="true">
+                    <span class="frame__url"
+                      ><svg
+                        class="icon"
+                        width="14"
+                        height="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <rect
+                          width="18"
+                          height="11"
+                          x="3"
+                          y="11"
+                          rx="2"
+                          ry="2"
+                        />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
+                      ><span>regis.reg.kmitl.ac.th</span></span
+                    >
+                  </div>
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/n-sheet-en-400.avif?v=6412992736 400w,
+                        /shots/n-sheet-en-800.avif?v=c2da42563d 800w
+                      "
+                      sizes="(min-width: 1024px) 340px, 280px" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/n-sheet-en-400.webp?v=b54ae780fd 400w,
+                        /shots/n-sheet-en-800.webp?v=58f6f5ed04 800w
+                      "
+                      sizes="(min-width: 1024px) 340px, 280px" />
+                    <img
+                      src="/shots/n-sheet-en-400.webp?v=b54ae780fd"
+                      width="400"
+                      height="866"
+                      alt="The details of General Physics 1, section 4, open from the bottom of the screen with its class time, room, instructors, seats and exam dates."
+                      loading="lazy"
+                      decoding="async"
+                      class="narrow__img"
+                  /></picture>
+                  <figcaption>
+                    Section details from the bottom of the screen
+                  </figcaption>
+                </figure>
+              </div>
+              <p class="footnote">
+                The extension runs on computer browsers that support extensions.
+                See the FAQ about phones.
+              </p>
+            </div>
+          </article>
+          <article class="feature feature--wide" aria-labelledby="export-title">
+            <div class="feature__caption">
+              <h3 id="export-title">
+                Share your timetable as a ready to send image
+              </h3>
+              <p class="body">
+                Preview mode lays your plan out as a poster. Pick a template for
+                a 16:9 share, a phone or tablet wallpaper, or an A4 print, then
+                download it, copy the image, or copy it as text for chat apps.
+                The image comes out at the same size whatever screen you export
+                from, and can carry your exam schedule under the timetable.
+              </p>
+            </div>
+            <div class="feature__media">
+              <div class="posters">
+                <figure class="poster poster--wide">
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/x-share169-en-960.avif?v=6c01ca6726   960w,
+                        /shots/x-share169-en-1440.avif?v=784d40bfe4 1440w,
+                        /shots/x-share169-en-1920.avif?v=f27c0cf49b 1920w
+                      "
+                      sizes="(min-width: 1280px) 1200px, calc(100vw - 40px)" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/x-share169-en-960.webp?v=2714f0425b   960w,
+                        /shots/x-share169-en-1440.webp?v=71769053d8 1440w,
+                        /shots/x-share169-en-1920.webp?v=ea37a28e8f 1920w
+                      "
+                      sizes="(min-width: 1280px) 1200px, calc(100vw - 40px)" />
+                    <img
+                      src="/shots/x-share169-en-960.webp?v=2714f0425b"
+                      width="960"
+                      height="540"
+                      alt="A timetable image exported from KCP at 1920 by 1080, with the plan name, semester 1/2569, total credits, and subject blocks from Monday to Friday."
+                      loading="lazy"
+                      decoding="async"
+                      class="plate__img"
+                  /></picture>
+                  <figcaption></figcaption>
+                </figure>
+                <figure class="poster poster--phone">
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/x-phone-portrait-en-320.avif?v=ce94004dde 320w,
+                        /shots/x-phone-portrait-en-640.avif?v=2b41ccbdb0 640w
+                      "
+                      sizes="(min-width: 1024px) 264px, 40vw" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/x-phone-portrait-en-320.webp?v=eea9f4c25c 320w,
+                        /shots/x-phone-portrait-en-640.webp?v=1e90d00ebe 640w
+                      "
+                      sizes="(min-width: 1024px) 264px, 40vw" />
+                    <img
+                      src="/shots/x-phone-portrait-en-320.webp?v=eea9f4c25c"
+                      width="320"
+                      height="693"
+                      alt="A portrait phone wallpaper of the same plan, with days as columns and the exam schedule below."
+                      loading="lazy"
+                      decoding="async"
+                      class="plate__img"
+                  /></picture>
+                  <figcaption></figcaption>
+                </figure>
+              </div>
+              <p class="footnote">
+                Templates: Share 16:9, phone wallpaper in portrait and
+                landscape, tablet wallpaper in portrait and landscape, Print A4.
+              </p>
+            </div>
+          </article>
+          <article class="feature" aria-labelledby="plans-title">
+            <div class="feature__caption">
+              <h3 id="plans-title">
+                Keep several plans, checked against the latest data every time
+                you open them
+              </h3>
+              <p class="body">
+                Keep several named plans per term, duplicate them, and export
+                them as a file. Each time you open a plan, KCP checks its
+                sections against the latest data. If a time, room or exam date
+                changed, or a section is no longer listed, it shows the old and
+                new values for you to review, and never removes anything on its
+                own.
+              </p>
+            </div>
+            <div class="feature__media">
+              <div class="stack">
+                <figure class="plate">
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/s-updates-en-600.avif?v=b76e0a19f1   600w,
+                        /shots/s-updates-en-1200.avif?v=3af0010257 1200w
+                      "
+                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/s-updates-en-600.webp?v=4b5b48306b   600w,
+                        /shots/s-updates-en-1200.webp?v=b55cdf8c22 1200w
+                      "
+                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
+                    <img
+                      src="/shots/s-updates-en-600.webp?v=4b5b48306b"
+                      width="600"
+                      height="493"
+                      alt="The Changes to your planned sections dialog. Calculus 1, section 33, shows its old and new time, with a Mark all as reviewed button."
+                      loading="lazy"
+                      decoding="async"
+                      class="plate__img"
+                  /></picture>
+                  <figcaption>
+                    The updates dialog shows the old and new time of a section
+                    that changed.
+                  </figcaption>
+                </figure>
+                <figure class="plate plate--inset">
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/s-plan-menu-en-480.avif?v=2873f34a29 480w,
+                        /shots/s-plan-menu-en-640.avif?v=1c4f0248a2 640w
+                      "
+                      sizes="(min-width: 1024px) 384px, (min-width: 640px) calc(50vw - 56px), calc(100vw - 40px)" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/s-plan-menu-en-480.webp?v=a7d6dbf8d1 480w,
+                        /shots/s-plan-menu-en-640.webp?v=7adc286752 640w
+                      "
+                      sizes="(min-width: 1024px) 384px, (min-width: 640px) calc(50vw - 56px), calc(100vw - 40px)" />
+                    <img
+                      src="/shots/s-plan-menu-en-480.webp?v=a7d6dbf8d1"
+                      width="480"
+                      height="369"
+                      alt="The plan menu with two plans for semester 1/2569, the Create plan button, and the Import JSON and Export JSON actions."
+                      loading="lazy"
+                      decoding="async"
+                      class="plate__img"
+                  /></picture>
+                  <figcaption>
+                    The plan menu, where you create, switch, import and export
+                    plans.
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+        </div>
+        <div class="privacy-band">
+          <div class="container">
+            <article class="feature" aria-labelledby="privacy-title">
+              <div class="feature__caption">
+                <h3 id="privacy-title">
+                  Your data stays in your browser, and access is read only
+                </h3>
+                <p class="body">
+                  KCP has no account, no server and no usage statistics. The
+                  extension reads only the public course data the registration
+                  site already uses. It never touches your sign in, never fills
+                  in or submits forms, and never registers on your behalf.
+                </p>
+              </div>
+              <div class="feature__media">
+                <h4>Permissions the extension asks for, and why</h4>
+                <dl class="perms">
+                  <div class="perm">
+                    <dt lang="en">storage</dt>
+                    <dd>
+                      Saves your plans and reference lists on this device, so
+                      the planner opens quickly and your plans survive a reload.
+                    </dd>
+                  </div>
+                  <div class="perm">
+                    <dt lang="en">regis.reg.kmitl.ac.th</dt>
+                    <dd>
+                      Shows the planner on the registration site and reads the
+                      public course data the page already loads.
+                    </dd>
+                  </div>
+                  <div class="perm">
+                    <dt lang="en">api.reg.kmitl.ac.th</dt>
+                    <dd>
+                      Reads the public faculty, department, curriculum and
+                      category lists used in the search options.
+                    </dd>
+                  </div>
+                </dl>
+                <p>
+                  <a
+                    class="text-link"
+                    href="https://github.com/txasw/kmitl-course-planner/blob/main/docs/PRIVACY.md"
+                    >Read the privacy policy</a
+                  >
+                </p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+      <section class="more" aria-labelledby="more-title">
+        <div class="container more__grid">
+          <div>
+            <h2 id="more-title">More help with the decisions</h2>
+            <dl class="more__list">
+              <div class="more__item">
+                <dt>Suggest a plan</dt>
+                <dd>
+                  After a curriculum search, KCP offers up to three clash free
+                  timetables of the curriculum subjects, shaped for mornings,
+                  afternoons or fewer days.
+                </dd>
+              </div>
+              <div class="more__item">
+                <dt>Compare sections</dt>
+                <dd>
+                  See every section of a course in one table, with times,
+                  instructors, seats, exams and conditions, and add one from
+                  there.
+                </dd>
+              </div>
+              <div class="more__item">
+                <dt>Seats and demand</dt>
+                <dd>
+                  Every section shows its open seats, and flags when pre
+                  registrations exceed capacity.
+                </dd>
+              </div>
+              <div class="more__item">
+                <dt>Open it your way</dt>
+                <dd>
+                  Open the planner from the Planner button at the bottom right,
+                  the extension icon, or Alt+Shift+P.
+                </dd>
+              </div>
+              <div class="more__item">
+                <dt>Thai and English</dt>
+                <dd>Switch the interface language at any time.</dd>
+              </div>
+            </dl>
+          </div>
+          <figure class="plate">
+            <picture
+              ><source
+                type="image/avif"
+                srcset="
+                  /shots/s-suggest-en-800.avif?v=28ecf39761   800w,
+                  /shots/s-suggest-en-1600.avif?v=bacc0c2f16 1600w
+                "
+                sizes="(min-width: 1024px) 588px, calc(100vw - 40px)" />
+              <source
+                type="image/webp"
+                srcset="
+                  /shots/s-suggest-en-800.webp?v=b446a19369   800w,
+                  /shots/s-suggest-en-1600.webp?v=3648b7a76e 1600w
+                "
+                sizes="(min-width: 1024px) 588px, calc(100vw - 40px)" />
+              <img
+                src="/shots/s-suggest-en-800.webp?v=b446a19369"
+                width="800"
+                height="531"
+                alt="The suggested plans dialog with Mornings selected, showing options 1 to 3 with credits, subjects, class days, a small timetable and a Use this plan button."
+                loading="lazy"
+                decoding="async"
+                class="plate__img"
+            /></picture>
+            <figcaption>
+              Suggested plans shaped for mornings, three options side by side.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+      <section class="steps" id="get-started" aria-labelledby="steps-title">
+        <div class="container">
+          <h2 id="steps-title">Get started in three steps</h2>
+          <p class="body steps__intro">
+            After you install, the registration site’s course search opens with
+            a short welcome, and you can open the planner any time from the
+            Planner button at the bottom right.
+          </p>
+          <ol class="steps__list">
+            <li class="step">
+              <span class="step__num" aria-hidden="true">1</span>
+              <h3 class="step__title">Search for courses</h3>
+              <p>
+                Search by curriculum and class year, subject id, or subject
+                category.
+              </p>
+            </li>
+            <li class="step">
+              <span class="step__num" aria-hidden="true">2</span>
+              <h3 class="step__title">Drag sections into the timetable</h3>
+              <p>
+                Clashing class times and exam times are flagged as you place
+                them.
+              </p>
+            </li>
+            <li class="step">
+              <span class="step__num" aria-hidden="true">3</span>
+              <h3 class="step__title">Share as an image</h3>
+              <p>
+                Download or copy your timetable as an image to send to others.
+              </p>
+            </li>
+          </ol>
+          <figure class="plate steps__shot">
+            <picture
+              ><source
+                type="image/avif"
+                srcset="
+                  /shots/s-welcome-en-600.avif?v=1ee243ed2b   600w,
+                  /shots/s-welcome-en-1152.avif?v=7f6ec26117 1152w
+                "
+                sizes="(min-width: 1024px) 720px, calc(100vw - 40px)" />
+              <source
+                type="image/webp"
+                srcset="
+                  /shots/s-welcome-en-600.webp?v=c7f27a1fc9   600w,
+                  /shots/s-welcome-en-1152.webp?v=d9a91b03d0 1152w
+                "
+                sizes="(min-width: 1024px) 720px, calc(100vw - 40px)" />
+              <img
+                src="/shots/s-welcome-en-600.webp?v=c7f27a1fc9"
+                width="600"
+                height="698"
+                alt="The welcome shown after install, Thank you for installing KCP: Course Planner for KMITL, with three steps and a Start planning button."
+                loading="lazy"
+                decoding="async"
+                class="plate__img"
+            /></picture>
+            <figcaption>
+              Search for courses, Drag sections into the timetable, Share as an
+              image
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+      <section
+        class="band download"
+        id="download"
+        aria-labelledby="download-title"
+      >
+        <div class="container download__grid">
+          <svg
+            class="mark download__mark"
+            width="96"
+            height="96"
+            viewBox="0 0 128 128"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <rect width="128" height="128" rx="28" fill="#E35205" />
+            <g fill="#FFFFFF">
+              <rect x="22" y="22" width="38" height="38" rx="6" />
+              <rect x="68" y="22" width="38" height="38" rx="6" />
+              <rect x="22" y="68" width="38" height="38" rx="6" />
+            </g>
+            <rect x="68" y="68" width="38" height="38" rx="6" fill="#B8400A" />
+          </svg>
+          <div>
+            <h2 id="download-title">Install KCP for free</h2>
+            <p class="body">
+              Works on Chrome, Microsoft Edge, Brave, Opera and Firefox on a
+              computer. The planner runs only on the registration site at
+              regis.reg.kmitl.ac.th.
+            </p>
+            <div class="cta-row cta-row--band">
+              <a
+                class="cta cta--chrome"
+                href="https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef"
+                ><svg
+                  class="icon"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"
+                  /></svg
+                ><span class="cta__text"
+                  ><span class="cta__label">Add to Chrome</span
+                  ><span class="cta__sub"
+                    >Also for Edge, Brave and Opera</span
+                  ></span
+                ></a
+              >
+              <a
+                class="cta cta--firefox"
+                href="https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/"
+                ><svg
+                  class="icon"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"
+                  /></svg
+                ><span class="cta__text"
+                  ><span class="cta__label">Add to Firefox</span
+                  ><span class="cta__sub">From Firefox Add-ons</span></span
+                ></a
+              >
+              <button
+                type="button"
+                class="cta cta--soon"
+                aria-disabled="true"
+                aria-describedby="web-soon-note-band"
+              >
+                <svg
+                  class="icon"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+                  <path d="M2 12h20" /></svg
+                ><span class="cta__text"
+                  ><span class="cta__label"
+                    >Use on the web <span class="badge">Coming soon</span></span
+                  ></span
+                >
+              </button>
+            </div>
+            <p class="cta-note" id="web-soon-note-band">
+              The web version is in development and has no release date yet.
+              Until then, use the extension on Chrome or Firefox.
+            </p>
+            <p class="cta-coarse">
+              Extensions install on a computer. Open this page on a computer to
+              install.
+            </p>
+            <p class="micro">
+              Version 1.3.1. Free under the MIT license.
+              <a
+                class="text-link"
+                href="https://github.com/txasw/kmitl-course-planner"
+                >View the source on GitHub</a
+              >.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="faq" id="faq" aria-labelledby="faq-title">
+        <div class="container">
+          <h2 id="faq-title">Frequently asked questions</h2>
+          <div class="faq__list">
+            <details class="faq__item">
+              <summary>
+                <span>What is KCP?</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                KCP, or Course Planner for KMITL, is a browser extension for
+                planning your timetable before registration, using the course
+                offerings on the KMITL registration site.
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>Is KCP an official KMITL system?</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                No. KCP is an independent tool built by a student. It is not
+                affiliated with, sponsored by, or endorsed by King Mongkut’s
+                Institute of Technology Ladkrabang.
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>Can KCP register for courses for me?</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                No. KCP is for planning before registration. You still register
+                on the institute’s registration site as usual. The extension
+                never fills in forms or sends requests on your behalf.
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>Does any of my data leave my computer?</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                No. Saved plans live in your browser’s storage on this device.
+                There is no account, no server and no usage tracking. Removing
+                the extension removes this data.
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>Which browsers does it work on?</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                Chrome, Microsoft Edge, Brave, Opera and other Chromium browsers
+                install it from the Chrome Web Store, and Firefox installs it
+                from Firefox Add-ons, all on a computer. Opera may first need
+                its helper for Chrome Web Store extensions.
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>Can I use it on my phone?</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                Not yet. Chrome on phones does not support extensions, and
+                support for Firefox for Android is not yet confirmed. The
+                planner already adapts to narrow windows and touch screens, and
+                the web version in development is planned to work without
+                installing an extension.
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>When will the web version open?</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                There is no date yet. When it opens, the Use on the web button
+                on this page becomes a working link. Until then, use the
+                extension on Chrome or Firefox.
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>How current is the course data?</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                KCP shows the same data the registration site sends and checks
+                its shape before showing it. Results show when they were
+                fetched, and saved plans are checked against the latest data
+                when you open them. Check against the registration site before
+                you register.
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>Can I move a plan to another computer?</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                Yes. Export the plan as a JSON file from the plan menu and
+                import it on the other computer. An imported plan is checked
+                against the latest data the first time you open it.
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>Does KCP cost anything?</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>No. KCP is free and open source under the MIT license.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="container site-footer__grid">
+        <div class="site-footer__text">
+          <p>
+            KCP: Course Planner for KMITL is an independent tool built by a
+            student. It is not affiliated with, sponsored by, or endorsed by
+            King Mongkut’s Institute of Technology Ladkrabang (KMITL). The names
+            KMITL and <span lang="th">สจล.</span> are used only to identify the
+            site this tool works with.
+          </p>
+          <p>
+            This site uses no cookies, no analytics and no files from other
+            servers.
+          </p>
+        </div>
+        <nav aria-label="Links">
+          <ul class="site-footer__links">
+            <li>
+              <a
+                href="https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef"
+                lang="en"
+                >Chrome Web Store</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/"
+                lang="en"
+                >Firefox Add-ons</a
+              >
+            </li>
+            <li>
+              <a href="https://github.com/txasw/kmitl-course-planner"
+                >Source on GitHub</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://github.com/txasw/kmitl-course-planner/blob/main/docs/PRIVACY.md"
+                >Privacy policy</a
+              >
+            </li>
+            <li>
+              <a href="https://github.com/txasw/kmitl-course-planner/issues"
+                >Report an issue</a
+              >
+            </li>
+            <li><a href="/" lang="th" hreflang="th">ภาษาไทย</a></li>
+          </ul>
+        </nav>
+        <p class="site-footer__legal">
+          Chrome and Chrome Web Store are trademarks of Google LLC. Firefox is a
+          trademark of the Mozilla Foundation.
+        </p>
+        <p class="site-footer__legal">MIT license</p>
+      </div>
+    </footer>
+  </body>
+</html>
