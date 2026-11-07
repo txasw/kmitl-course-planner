@@ -403,6 +403,7 @@ describe('Cloudflare hosting', () => {
       "style-src 'self'",
       "img-src 'self'",
       "font-src 'self'",
+      "connect-src 'self'",
       "base-uri 'none'",
       "form-action 'none'",
       "frame-ancestors 'none'",

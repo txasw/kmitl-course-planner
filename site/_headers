@@ -2,10 +2,11 @@
 # Cloudflare reads this file at deploy and never serves it. Every response gets the
 # security headers. The page loads only its own stylesheet, script, font and images, and
 # its one inline script is structured data that browsers never execute, so the policy
-# allows nothing beyond the site itself.
+# allows nothing beyond the site itself. connect-src admits same origin requests only, so a
+# crawler or audit tool that reads robots.txt from the page context is not refused.
 
 /*
-  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests
   Strict-Transport-Security: max-age=63072000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin

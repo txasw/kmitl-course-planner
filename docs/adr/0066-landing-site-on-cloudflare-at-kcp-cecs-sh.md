@@ -39,7 +39,7 @@ creates the DNS record for the custom domain. The repository holds no deploy wor
 Cloudflare credentials.
 
 Response headers live in `site/_headers`, which Cloudflare reads at deploy and never serves.
-Every path gets a Content Security Policy that allows scripts, styles, images and fonts from the
+Every path gets a Content Security Policy that allows scripts, styles, images, fonts and fetches from the
 site itself only, with `default-src 'none'`, no inline script or style, and
 `frame-ancestors 'none'`, plus Strict-Transport-Security, `X-Content-Type-Options: nosniff`, a
 strict-origin-when-cross-origin referrer policy, a Permissions-Policy that turns off every
