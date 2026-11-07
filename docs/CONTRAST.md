@@ -27,11 +27,12 @@ table below for the shipped pairs.
 ## Event block tinted surface
 
 Each block fills with the subject color composited over white at 15 percent (ADR-0035),
-carries a solid subject color left bar, and uses ink text for the time, the subject name,
+carries a solid subject color left bar, and uses ink text for the subject name, the place,
 and the section chip. Ink on every tint clears 4.5:1 with wide margin, and the solid bar
-clears the 3:1 UI bar against its own tint. The redesigned block sets the quieter meta,
-the subject id, the place, and an English secondary name, in ink soft, which clears 4.5:1
-on every tint (minimum 5.21), enforced alongside the ink pair in `hash-color.test.ts`.
+clears the 3:1 UI bar against its own tint. Since the hierarchy inversion (ADR-0047) the
+block sets the quieter meta, the time, the subject id, and an English secondary name, in
+ink soft, which clears 4.5:1 on every tint (minimum 5.21), enforced alongside the ink pair
+in `hash-color.test.ts`.
 
 | Color     | Tint      | Ink on tint | Bar on tint |
 | --------- | --------- | ----------- | ----------- |
@@ -46,9 +47,9 @@ on every tint (minimum 5.21), enforced alongside the ink pair in `hash-color.tes
 | `#5D4037` | `#E7E2E1` | 13.56       | 7.26        |
 | `#455A64` | `#E3E6E8` | 13.88       | 5.78        |
 
-## Export template day-color accent
+## Export template day color accent
 
-The export template day-row labels tint with the traditional Thai day colors, each
+The export template day row labels tint with the traditional Thai day colors, each
 composited over white at 16 percent to an opaque hex (ADR-0042). The accent is on only in
 the preview template render, never in edit mode, and the label text is ink. Ink on every
 day tint clears 4.5:1 with wide margin, enforced in `dayColors.test.ts`.
@@ -68,7 +69,9 @@ day tint clears 4.5:1 with wide margin, enforced in `dayColors.test.ts`.
 Each pair is a usage the UI renders. The brand orange `--kcp-primary` (`#E35205`) is an
 accent only, on borders, focus rings, and the active tab, so it carries the 3:1 UI bar;
 its text uses the darker `--kcp-primary-strong` (`#B8400A`), which clears 4.5:1 on every
-background it appears on, including the danger soft notice. Form controls draw their
+background it appears on, including the danger soft notice. The launcher pill fills with
+`--kcp-primary-strong` and turns to `--kcp-primary-hover` (`#A3380A`) on hover, and both
+carry its white text above 4.5:1. Form controls draw their
 boundary with `--kcp-border-strong` (`#838389`), which clears the 3:1 UI bar on both panel
 surfaces, while dividers and gridlines keep the quieter `--kcp-border` (ADR-0051). The
 quiet warn fill `--kcp-warn-soft` (`#FDF3E1`) carries the pre share notice, with ink text
@@ -80,6 +83,7 @@ danger border and text clear 4.5:1 on both (ADR-0059).
 | Foreground     | Background       | Ratio | Bar |
 | -------------- | ---------------- | ----- | --- |
 | ink            | surface          | 17.40 | 4.5 |
+| ink            | surface-alt      | 16.26 | 4.5 |
 | ink            | primary-soft     | 15.36 | 4.5 |
 | ink-soft       | surface          | 6.69  | 4.5 |
 | ink-soft       | surface-alt      | 6.25  | 4.5 |
@@ -93,9 +97,13 @@ danger border and text clear 4.5:1 on both (ADR-0059).
 | warn           | primary-soft     | 4.83  | 4.5 |
 | warn           | warn-soft        | 4.97  | 4.5 |
 | ink            | warn-soft        | 15.82 | 4.5 |
+| success        | surface-alt      | 5.05  | 4.5 |
 | success        | success-soft     | 4.74  | 4.5 |
 | white          | primary-strong   | 5.56  | 4.5 |
+| white          | primary-hover    | 6.71  | 4.5 |
 | primary-strong | surface          | 5.56  | 4.5 |
+| primary-strong | surface-alt      | 5.19  | 4.5 |
+| primary-strong | primary-soft     | 4.91  | 4.5 |
 | primary-strong | danger-soft      | 4.78  | 4.5 |
 | primary accent | surface          | 3.84  | 3.0 |
 | primary accent | surface-alt      | 3.58  | 3.0 |
