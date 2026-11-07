@@ -113,6 +113,10 @@ const SURFACE = 'flex flex-col border-r border-border bg-surface';
 const REMOVE_DIM =
   '[&>:not([data-remove-zone],[data-catalog-shadow])]:opacity-30';
 
+// The results foot: the 1.5rem of the scroller's padding, plus the height a floating
+// strip covers while it shows.
+const RESULTS_FOOT = 'pb-[calc(1.5rem+var(--kcp-overlay-bottom,0px))]';
+
 /**
  * Whether the results show a state that holds no control: the idle hint before any
  * search, the loading skeleton, or a search that found nothing. A short column scrolls
@@ -354,7 +358,10 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
             is the containing block of the screen reader text in the cards. Otherwise
             that text takes the body above as its containing block, escapes the clip,
             and gives the panel body scrollable overflow, which a scroll into view
-            then uses to move the whole panel up. */}
+            then uses to move the whole panel up. A floating strip over its foot sets
+            the overlay height, which both stops focus scrolling short of the strip
+            and adds that much room under the list, so even its last control can
+            scroll clear of the strip. */}
         <div
           ref={results}
           data-catalog-scroller
@@ -363,7 +370,7 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
           tabIndex={resultsStop ? 0 : undefined}
           inert={editing || undefined}
           aria-hidden={editing || undefined}
-          className={`kcp-scroll relative flex flex-1 flex-col overflow-y-auto p-6 [overflow-anchor:none] [scroll-padding-bottom:var(--kcp-overlay-bottom,0px)] ${FOCUS_RING} ${
+          className={`kcp-scroll relative flex flex-1 flex-col overflow-y-auto px-6 pt-6 ${RESULTS_FOOT} [overflow-anchor:none] [scroll-padding-bottom:var(--kcp-overlay-bottom,0px)] ${FOCUS_RING} ${
             keepResults ? 'min-h-48' : 'min-h-0'
           } ${editing ? 'invisible' : ''}`}
         >
