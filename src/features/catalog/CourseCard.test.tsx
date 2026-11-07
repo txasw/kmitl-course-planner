@@ -1048,4 +1048,47 @@ describe('CourseCard section comparison', () => {
     expect(trigger).toHaveFocus();
     expect(toggle()).toHaveAttribute('aria-expanded', 'true');
   });
+
+  // The catalog shape after an add from the table: the course is placed and its card
+  // collapses under the open dialog, taking the compare control with it.
+  function CatalogPanel({
+    placed,
+    open,
+  }: {
+    placed: Section[];
+    open: boolean;
+  }) {
+    const [node, setNode] = useState<HTMLDivElement | null>(null);
+    return (
+      <div ref={setNode}>
+        <PanelPortalContext.Provider value={node}>
+          <CourseCard
+            course={twoSections}
+            placed={placed}
+            locale="th"
+            t={t}
+            open={open}
+            instant
+            onToggle={() => undefined}
+          />
+        </PanelPortalContext.Provider>
+      </div>
+    );
+  }
+
+  it('hands focus to the card toggle when an add took the control away', () => {
+    const { rerender } = render(<CatalogPanel placed={[]} open />);
+    const trigger = screen.getByRole('button', {
+      name: 'เปรียบเทียบกลุ่มเรียน',
+    });
+    trigger.focus();
+    fireEvent.click(trigger);
+    const [added] = twoSections.sections;
+    if (added === undefined) throw new Error('expected a section');
+    rerender(<CatalogPanel placed={[added]} open={false} />);
+    expect(trigger.isConnected).toBe(false);
+    fireEvent.keyDown(screen.getByRole('table'), { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(toggle()).toHaveFocus();
+  });
 });
