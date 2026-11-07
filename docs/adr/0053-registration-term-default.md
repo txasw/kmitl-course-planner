@@ -109,3 +109,9 @@ starts the query, for the reason this record already gives for an edit: running 
 the term shown is a choice of that term. A retry or a refresh is a background run and leaves the
 flag alone, since it repeats a search rather than choosing a term. Blocking the submit until the
 answer arrives stays rejected for the reason above.
+
+A failed request now ends the pending flag as well. It resolves the term again with no current
+term, so the form keeps the fallback, or takes a plan that hydrated while the request was out,
+the same rule the answered path follows. The search form names the outcome on its root as
+`data-term-state`, `pending` while a fetched default may still replace the term and `settled`
+once nothing will, so the end to end suite can wait for the default term instead of racing it.

@@ -55,9 +55,13 @@ function ownerCatalog(): NormalizedCatalog {
   return result.value;
 }
 
-// A resolving send backed by the captures. The cast is required because a single
-// arrow cannot satisfy the generic send signature.
-function resolvingSend(catalog: NormalizedCatalog): TypedSend {
+// A resolving send backed by the captures, whose current term can be held back so
+// the fallback stays pending. The cast is required because a single arrow cannot
+// satisfy the generic send signature.
+function resolvingSend(
+  catalog: NormalizedCatalog,
+  answerTerm = true,
+): TypedSend {
   const handler = (message: RequestMessage) => {
     switch (message.type) {
       case 'ref/faculty':
@@ -69,7 +73,9 @@ function resolvingSend(catalog: NormalizedCatalog): TypedSend {
       case 'ref/subjectOwner':
         return Promise.resolve(ok(subjectOwners));
       case 'ref/currentTerm':
-        return Promise.resolve(ok(currentTerm));
+        return answerTerm
+          ? Promise.resolve(ok(currentTerm))
+          : new Promise<never>(() => undefined);
       case 'teachTable/query':
         return Promise.resolve(ok(catalog));
       default:
@@ -359,6 +365,31 @@ describe('SearchForm', () => {
       year: '2569',
       semester: '3',
     });
+  });
+
+  it('marks the term pending until the registrar answers', async () => {
+    const { container } = renderSearch({
+      ...deps(),
+      send: resolvingSend(ownerCatalog(), false),
+    });
+    const form = container.querySelector('[data-term-state]');
+    await waitFor(() => {
+      expect(form).toHaveAttribute('data-term-state', 'pending');
+    });
+    cleanup();
+    act(() => {
+      searchStore.getState().setInitialized(false);
+    });
+    const settled = renderSearch(deps()).container;
+    await waitFor(() => {
+      expect(settled.querySelector('[data-term-state]')).toHaveAttribute(
+        'data-term-state',
+        'settled',
+      );
+    });
+    expect(screen.getByRole('combobox', { name: 'ภาคการศึกษา' })).toHaveValue(
+      '2',
+    );
   });
 
   it('clears the fields but keeps the running search and its result', async () => {

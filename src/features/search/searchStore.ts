@@ -164,6 +164,14 @@ function withPrefill(state: SearchStore, prefill: SearchPrefill) {
   };
 }
 
+/**
+ * Whether the term is final for now: seeded from some source, with no fetched default
+ * still able to replace it. Before the first seed the year is empty.
+ */
+export function selectTermSettled(state: SearchStore): boolean {
+  return state.term.year !== '' && !state.defaultTermPending;
+}
+
 /** Whether the summary bar exists, which is whenever a user search has run. */
 export function selectBarVisible(state: SearchStore): boolean {
   return state.barQuery !== null;

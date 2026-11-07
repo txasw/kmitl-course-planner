@@ -15,6 +15,7 @@ import {
   createSearchStore,
   selectBarVisible,
   selectFormOpen,
+  selectTermSettled,
 } from './searchStore';
 
 const fallback: Term = { year: '2570', semester: '1' };
@@ -128,6 +129,28 @@ describe('the fetched default term', () => {
     store.getState().seedTerm(fallback);
     store.getState().applyDefaultTerm(fetched);
     expect(termLabel(store)).toBe('1/2570');
+  });
+});
+
+describe('the settled term', () => {
+  it('is not settled before any source seeds the term', () => {
+    expect(selectTermSettled(createSearchStore().getState())).toBe(false);
+  });
+
+  it('is not settled while the fallback awaits the fetched default', () => {
+    const store = createSearchStore();
+    store.getState().seedFallbackTerm(fallback);
+    expect(selectTermSettled(store.getState())).toBe(false);
+  });
+
+  it('settles once the default applies or another source seeds the term', () => {
+    const store = createSearchStore();
+    store.getState().seedFallbackTerm(fallback);
+    store.getState().applyDefaultTerm(fetched);
+    expect(selectTermSettled(store.getState())).toBe(true);
+    const seeded = createSearchStore();
+    seeded.getState().seedTerm(fetched);
+    expect(selectTermSettled(seeded.getState())).toBe(true);
   });
 });
 
