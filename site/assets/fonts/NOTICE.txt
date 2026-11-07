@@ -1,0 +1,7 @@
+kcp-display.woff2 is a subset of IBM Plex Sans Thai SemiBold, Copyright 2019 IBM Corp.,
+licensed under the SIL Open Font License 1.1 in OFL.txt next to this file.
+
+The subset keeps Basic Latin, the no-break space, the Thai block and the right single
+quotation mark, with every OpenType layout feature so Thai marks stack correctly. As a
+modified version it is renamed KCP Display, as the license's Reserved Font Name clause
+requires.

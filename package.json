@@ -20,6 +20,7 @@
     "icons": "node scripts/generate-icons.mjs",
     "site:shots": "wxt build --mode debug -b chrome && playwright test -c scripts/landing/playwright.config.ts",
     "site:encode": "node scripts/landing/encode-shots.mjs",
+    "site:build": "node scripts/landing/build-site.mjs",
     "prepare": "husky",
     "postinstall": "wxt prepare",
     "typecheck": "wxt prepare && tsc --noEmit",

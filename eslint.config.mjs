@@ -149,6 +149,12 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.node } },
   },
 
+  // The landing site's one script runs in the visitor's browser.
+  {
+    files: ['site/**/*.js'],
+    languageOptions: { globals: { ...globals.browser } },
+  },
+
   // Must stay last so it can turn off rules that conflict with Prettier.
   eslintConfigPrettier,
 );
