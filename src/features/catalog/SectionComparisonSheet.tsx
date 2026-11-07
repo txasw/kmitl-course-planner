@@ -7,14 +7,22 @@
 // earliest start or by the most open seats. The status column reads the catalog row
 // status, so the table and the card never disagree. Escape and the close button close
 // the table only, and focus returns to the compare control that opened it.
+// The last column adds a section through the normal add path, so the plan's own checks
+// decide, and a blocked add states its reason in the row. The modal hides the rest of the
+// panel from assistive technology, the persistent live regions with it, so the table
+// speaks its add outcomes in a polite node of its own, the scoped node the live region
+// inventory of ADR-0048 allows a modal, and leaves the strip and the toast silent, so each
+// outcome is read once. An add or a term switch turns the pressed control into a mark or
+// drops its row from an addable only view, so focus moves on to the table.
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState, type RefObject } from 'react';
 import { ListFilter } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
 import { ModalDialog } from '@/components/ModalDialog';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { Switch } from '@/components/Switch';
 import type { Course, Section } from '@/lib/domain/types';
+import type { Term } from '@/lib/routing/academicTerms';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
 import {
@@ -25,11 +33,23 @@ import {
 import type { TermContext } from '@/lib/planner/sectionState';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
+import { addSectionToPlan } from '@/features/plans/addToPlan';
+import { planStore } from '@/features/plans/planStore';
+import { activePlanOf } from '@/features/plans/planStoreState';
+import { switchOrCreatePlanForTerm } from '@/features/plans/switchPlanTerm';
+import { commitThenFocus } from '@/features/shell/restoreFocus';
+import { addOutcomeText, ComparisonAddCell } from './ComparisonAddCell';
 import {
   ComparisonCells,
   COLUMN_HEADS,
   HEAD_CELL,
+  headPinClass,
 } from './SectionComparisonCells';
+
+interface Announcement {
+  id: number;
+  text: string;
+}
 
 const SORTS: readonly ComparisonSort[] = ['start', 'seats'];
 
@@ -52,6 +72,10 @@ export function SectionComparisonSheet({
 }: SectionComparisonSheetProps) {
   const [onlyAddable, setOnlyAddable] = useState(false);
   const [sort, setSort] = useState<ComparisonSort>('start');
+  const [blockedId, setBlockedId] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState<Announcement | null>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const showAllRef = useRef<HTMLButtonElement>(null);
   const rows = useMemo(
     () => compareSections(course, placed, term, { onlyAddable, sort }),
     [course, placed, term, onlyAddable, sort],
@@ -60,6 +84,37 @@ export function SectionComparisonSheet({
   const title = fillTemplate(t('compare.title'), {
     subject: `${course.subjectId} ${name}`,
   });
+  // Each outcome replaces the node's child, so the same words said twice are read twice.
+  const announce = (text: string) => {
+    setAnnouncement((current) => ({ id: (current?.id ?? 0) + 1, text }));
+  };
+  // The table stays put as rows change state; it is gone only when an addable only view
+  // empties, and then the action that shows every section takes over.
+  const tableTargets = () => [scrollerRef.current, showAllRef.current];
+
+  const handleAdd = (section: Section) => {
+    commitThenFocus(
+      () => {
+        const outcome = addSectionToPlan(course, section);
+        const blocked = !outcome.ok && !('crossTerm' in outcome);
+        setBlockedId(blocked ? section.teachTableId : null);
+        announce(addOutcomeText(outcome, section, t));
+        return blocked;
+      },
+      // A blocked add keeps its button, which keeps focus.
+      (blocked) => (blocked ? [] : tableTargets()),
+    );
+  };
+  const handleSwitchTerm = (target: Term) => {
+    commitThenFocus(() => {
+      switchOrCreatePlanForTerm(target);
+      setBlockedId(null);
+      const plan = activePlanOf(planStore.getState());
+      if (plan !== undefined) {
+        announce(fillTemplate(t('compare.switched'), { plan: plan.name }));
+      }
+    }, tableTargets);
+  };
 
   return (
     <ModalDialog
@@ -69,6 +124,11 @@ export function SectionComparisonSheet({
       width="table"
       scroll="content"
     >
+      <div role="status" className="sr-only">
+        {announcement === null ? null : (
+          <span key={announcement.id}>{announcement.text}</span>
+        )}
+      </div>
       <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 pb-3">
         {/* The switch fills its container, so a wrapper sized to its content keeps
             it beside the sort control instead of across the whole toolbar. */}
@@ -105,6 +165,7 @@ export function SectionComparisonSheet({
             description={t('compare.empty.description')}
             action={
               <button
+                ref={showAllRef}
                 type="button"
                 onClick={() => {
                   setOnlyAddable(false);
@@ -117,7 +178,16 @@ export function SectionComparisonSheet({
           />
         </div>
       ) : (
-        <ComparisonTable rows={rows} title={title} locale={locale} t={t} />
+        <ComparisonTable
+          rows={rows}
+          title={title}
+          locale={locale}
+          t={t}
+          blockedId={blockedId}
+          scrollerRef={scrollerRef}
+          onAdd={handleAdd}
+          onSwitchTerm={handleSwitchTerm}
+        />
       )}
     </ModalDialog>
   );
@@ -128,16 +198,31 @@ interface ComparisonTableProps {
   title: string;
   locale: Locale;
   t: Translate;
+  /** The section whose last add was blocked, whose cell states the reason. */
+  blockedId: string | null;
+  scrollerRef: RefObject<HTMLDivElement | null>;
+  onAdd: (section: Section) => void;
+  onSwitchTerm: (term: Term) => void;
 }
 
-function ComparisonTable({ rows, title, locale, t }: ComparisonTableProps) {
+function ComparisonTable({
+  rows,
+  title,
+  locale,
+  t,
+  blockedId,
+  scrollerRef,
+  onAdd,
+  onSwitchTerm,
+}: ComparisonTableProps) {
   return (
-    // The table holds no control, so the scroller is a tab stop of its own and a
-    // keyboard user can scroll it with the arrow keys. The browser's implicit stop for
-    // such a scroller is not enough: the dialog's focus trap wraps Tab from its last
-    // control and only counts explicit stops, so it would skip the table. The ring
-    // shows where focus is.
+    // The scroller is a tab stop of its own, so a keyboard user can scroll it with the
+    // arrow keys even when no row holds a control, and an add or a switch that removes
+    // its control hands focus to it. The browser's implicit stop for a scroller is not
+    // enough: the dialog's focus trap only counts explicit stops. The ring shows where
+    // focus is.
     <div
+      ref={scrollerRef}
       role="region"
       aria-label={title}
       tabIndex={0}
@@ -149,11 +234,11 @@ function ComparisonTable({ rows, title, locale, t }: ComparisonTableProps) {
         <caption className="sr-only">{title}</caption>
         <thead>
           <tr>
-            {COLUMN_HEADS.map((head, index) => (
+            {COLUMN_HEADS.map((head) => (
               <th
                 key={head.key}
                 scope="col"
-                className={`${HEAD_CELL} ${head.width} ${index === 0 ? 'left-0 z-20' : 'z-10'}`}
+                className={`${HEAD_CELL} ${head.width} ${headPinClass(head.pin)}`}
               >
                 {t(head.key)}
                 {head.note === undefined ? null : (
@@ -173,6 +258,14 @@ function ComparisonTable({ rows, title, locale, t }: ComparisonTableProps) {
                 zebra={index % 2 === 1}
                 locale={locale}
                 t={t}
+              />
+              <ComparisonAddCell
+                row={row}
+                surface={index % 2 === 1 ? 'bg-surface-alt' : 'bg-surface'}
+                blocked={row.section.teachTableId === blockedId}
+                t={t}
+                onAdd={onAdd}
+                onSwitchTerm={onSwitchTerm}
               />
             </tr>
           ))}

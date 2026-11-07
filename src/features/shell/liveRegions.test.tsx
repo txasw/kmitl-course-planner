@@ -26,6 +26,9 @@ const INVENTORY: Readonly<Record<string, number>> = {
   'features/catalog/CatalogPanel.tsx': 1,
   // The scoped node of a modal that hides the persistent regions while it is open.
   'features/planner/SuggestDialog.tsx': 1,
+  // The add and term switch outcomes of the comparison table, whose modal hides the
+  // persistent regions while it is open.
+  'features/catalog/SectionComparisonSheet.tsx': 1,
   // Error alerts of the recovery and quarantine cards.
   'components/PanelRecoveryCard.tsx': 1,
   'features/plans/QuarantineCard.tsx': 1,

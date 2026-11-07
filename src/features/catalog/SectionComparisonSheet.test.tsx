@@ -6,23 +6,60 @@ import {
   fireEvent,
   cleanup,
   within,
+  act,
 } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import { normalizeTeachTable } from '@/lib/domain/normalize';
 import type { Course } from '@/lib/domain/types';
+import type { TeachTableQuery } from '@/lib/messaging/protocol';
+import { termFromQueryFields } from '@/lib/routing/academicTerms';
+import type { TermContext } from '@/lib/planner/sectionState';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
+import { toastStore } from '@/features/shell/toastStore';
+import { dragStore } from '@/features/planner/dragStore';
+import {
+  planStore,
+  useActivePlan,
+  usePlacedSections,
+} from '@/features/plans/planStore';
+import { searchStore } from '@/features/search/searchStore';
 import { expectNoSeriousA11yViolations } from '../../../tests/support/axe';
 import { loadFixture } from '../../../tests/support/fixtures';
 import {
   makeCourse,
   makeMeeting,
+  makePlanEntry,
   makeSection,
+  makeSnapshot,
 } from '../../../tests/support/domain-builders';
+import {
+  resetPlanStore,
+  seedActivePlan,
+} from '../../../tests/support/plan-store';
 import { SectionComparisonSheet } from './SectionComparisonSheet';
 
 const t = createTranslator('th');
 
-afterEach(cleanup);
+const SEARCH_QUERY: TeachTableQuery = {
+  mode: 'by_subject_id',
+  selected_year: '2569',
+  selected_semester: '1',
+  search_all_faculty: true,
+  search_all_department: true,
+  search_all_curriculum: true,
+  search_all_class_year: true,
+  selected_subject_id: '90000001',
+};
+
+afterEach(() => {
+  cleanup();
+  act(() => {
+    resetPlanStore();
+    searchStore.setState({ resultQuery: null, result: { status: 'idle' } });
+    dragStore.setState({ blocked: null, crossTerm: null, announcement: null });
+    toastStore.getState().dismiss();
+  });
+});
 
 function captureCourse(): Course {
   const result = normalizeTeachTable(
@@ -61,6 +98,79 @@ function renderSheet(course: Course) {
   return { onClose };
 }
 
+// The catalog shape: the placed sections and the term follow the plan store, as the
+// course card hands them on, so an add from the table changes the rows under it.
+function StorePanel({ course }: { course: Course }) {
+  const [node, setNode] = useState<HTMLDivElement | null>(null);
+  const placed = usePlacedSections();
+  const plan = useActivePlan();
+  const term: TermContext = {
+    planTerm:
+      plan === null ? null : { year: plan.year, semester: plan.semester },
+    browsedTerm: termFromQueryFields(
+      SEARCH_QUERY.selected_year,
+      SEARCH_QUERY.selected_semester,
+    ),
+  };
+  return (
+    <div ref={setNode}>
+      <PanelPortalContext.Provider value={node}>
+        {node === null ? null : (
+          <SectionComparisonSheet
+            course={course}
+            placed={placed}
+            locale="th"
+            t={t}
+            term={term}
+            onClose={() => undefined}
+          />
+        )}
+      </PanelPortalContext.Provider>
+    </div>
+  );
+}
+
+/** Two sections of 90000001: 901 on Monday morning and 902 on Wednesday. */
+const TWO_SECTIONS = makeCourse({
+  sections: [
+    makeSection({ teachTableId: 'a', section: '901' }),
+    makeSection({
+      teachTableId: 'b',
+      section: '902',
+      meetings: [makeMeeting({ day: 3 })],
+    }),
+  ],
+});
+
+function renderStoreSheet(course: Course) {
+  searchStore.setState({ resultQuery: SEARCH_QUERY });
+  render(<StorePanel course={course} />);
+}
+
+/** The body row of a section, found by its row header code. */
+function sectionRow(code: string): HTMLElement {
+  const row = within(screen.getByRole('table'))
+    .getAllByRole('row')
+    .find(
+      (node) =>
+        node.querySelector('th[scope="row"] span')?.textContent === code,
+    );
+  if (row === undefined) throw new Error(`no row for section ${code}`);
+  return row;
+}
+
+/** The add cell of a row, the last cell. */
+function addCell(code: string): HTMLElement {
+  const cell = sectionRow(code).lastElementChild;
+  if (!(cell instanceof HTMLElement)) throw new Error('no add cell');
+  return cell;
+}
+
+/** The table's own polite node, inside the dialog. */
+function tableStatus(): HTMLElement {
+  return within(screen.getByRole('dialog')).getByRole('status');
+}
+
 /** The section codes of the body rows, read from their row headers. */
 function rowCodes(): string[] {
   const table = screen.getByRole('table');
@@ -86,6 +196,7 @@ describe('SectionComparisonSheet', () => {
       'เงื่อนไข',
       'เปิดให้อ้างอิงจากผลการค้นหานี้',
       'สถานะ',
+      'เพิ่มลงตาราง',
     ]);
     for (const head of heads) {
       expect(head).toHaveAttribute('scope', 'col');
@@ -161,13 +272,109 @@ describe('SectionComparisonSheet', () => {
     });
     expect(scroller).toHaveAttribute('tabindex', '0');
     expect(within(scroller).getByRole('table')).toBeInTheDocument();
-    // The trap wraps Tab from its last stop, so the scroller must be that stop for a
-    // keyboard user to reach it after the sort control.
-    scroller.focus();
+    // The trap wraps Tab from its last stop, the last add button inside the scroller.
+    const adds = within(scroller).getAllByRole('button', { name: /^เพิ่ม / });
+    const last = adds[adds.length - 1];
+    if (last === undefined) throw new Error('expected an add button');
+    last.focus();
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Tab' });
     expect(
       screen.getByRole('button', { name: 'ปิดการเปรียบเทียบ' }),
     ).toHaveFocus();
+  });
+
+  it('adds a section and announces it once in the table node', () => {
+    seedActivePlan([]);
+    renderStoreSheet(TWO_SECTIONS);
+    fireEvent.click(
+      within(addCell('901')).getByRole('button', {
+        name: 'เพิ่ม 90000001 กลุ่มเรียน 901',
+      }),
+    );
+    expect(planStore.getState().entries.map((e) => e.section)).toEqual(['901']);
+    expect(addCell('901')).toHaveTextContent('เพิ่มแล้ว');
+    expect(addCell('902')).toHaveTextContent('เพิ่มไม่ได้');
+    expect(tableStatus()).toHaveTextContent(
+      /^เพิ่ม 90000001 กลุ่มเรียน 901 แล้ว$/,
+    );
+    // The persistent regions sit under the modal, so they stay silent.
+    expect(dragStore.getState().announcement).toBeNull();
+    expect(toastStore.getState().toast).toBeNull();
+    // The pressed button became a mark, so focus moved on to the table.
+    expect(screen.getByRole('region')).toHaveFocus();
+  });
+
+  it('states a blocked add in its cell and commits nothing', () => {
+    const blocker = makePlanEntry({
+      snapshot: makeSnapshot({
+        teachTableId: 'x',
+        subjectId: '90000002',
+        section: '101',
+      }),
+    });
+    seedActivePlan([blocker]);
+    renderStoreSheet(TWO_SECTIONS);
+    const add = within(addCell('901')).getByRole('button', {
+      name: 'เพิ่ม 90000001 กลุ่มเรียน 901',
+    });
+    expect(within(addCell('901')).queryByText(/ชนกับ/)).toBeNull();
+    fireEvent.click(add);
+    expect(planStore.getState().entries).toEqual([blocker]);
+    const callout = within(addCell('901')).getByText(
+      /^ชนกับ 90000002 กลุ่มเรียน 101/,
+    );
+    expect(add).toHaveAccessibleDescription(callout.textContent);
+    expect(tableStatus()).toHaveTextContent(callout.textContent);
+    expect(dragStore.getState().blocked).toBeNull();
+    // The section that fits still adds, and the reason leaves with the block.
+    fireEvent.click(
+      within(addCell('902')).getByRole('button', {
+        name: 'เพิ่ม 90000001 กลุ่มเรียน 902',
+      }),
+    );
+    expect(planStore.getState().entries).toHaveLength(2);
+    expect(within(addCell('901')).queryByText(/ชนกับ/)).toBeNull();
+  });
+
+  it('switches to a plan for the browsed term from a different term row', () => {
+    seedActivePlan([], { id: 'p2', year: '2569', semester: '2' });
+    renderStoreSheet(TWO_SECTIONS);
+    expect(
+      within(addCell('901')).queryByRole('button', { name: /^เพิ่ม / }),
+    ).toBeNull();
+    fireEvent.click(
+      within(addCell('901')).getByRole('button', {
+        name: 'สลับไปตารางภาคนี้',
+      }),
+    );
+    const plan = planStore
+      .getState()
+      .plans.find((entry) => entry.id === planStore.getState().activePlanId);
+    expect(plan).toMatchObject({ year: '2569', semester: '1' });
+    expect(tableStatus()).toHaveTextContent('สลับไปที่ ตาราง 1/2569 แล้ว');
+    expect(
+      within(addCell('901')).getByRole('button', {
+        name: 'เพิ่ม 90000001 กลุ่มเรียน 901',
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('says a full or closed section cannot be added', () => {
+    seedActivePlan([]);
+    renderStoreSheet(
+      makeCourse({
+        sections: [
+          makeSection({ teachTableId: 'a', section: '901', isClosed: true }),
+          makeSection({
+            teachTableId: 'b',
+            section: '902',
+            meetings: [makeMeeting({ day: 3 })],
+          }),
+        ],
+      }),
+    );
+    expect(addCell('901')).toHaveTextContent('เพิ่มไม่ได้');
+    expect(within(addCell('901')).queryByRole('button')).toBeNull();
   });
 
   it('closes on Escape and from the close button', () => {

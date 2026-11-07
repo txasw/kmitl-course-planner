@@ -488,3 +488,18 @@ visit. Its polite region joins the audited inventory as the one node anchored to
 - The prompt is a separate surface from the one toast pattern of brief section 8.2, a deviation
   that ADR-0063 records and that sets no precedent: action feedback still goes through the toast
   store and the `Toaster` region.
+
+## Amendment, 2026-11-07: the comparison table node
+
+The section comparison table now adds sections, so it takes the scoped node the decision above
+set aside for a modal that hides the rest of the panel from assistive technology.
+
+- One visually hidden status node inside the dialog speaks the outcome of each add from the
+  table: the section added, the reason a blocked add was rejected, or the plan a term switch
+  made active. The add goes through the same add path as the catalog row, so the plan's checks
+  decide, but the table leaves the feedback strip and the toast silent, because both sit under
+  the modal, and each outcome is read once.
+- The node lives as long as the dialog. Closing the table ends it, and the persistent regions
+  speak again from there.
+
+`src/features/shell/liveRegions.test.tsx` lists the node with the table that owns it.
