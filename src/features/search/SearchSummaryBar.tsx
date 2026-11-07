@@ -4,19 +4,22 @@
 // press is visibly accepted even when a cached answer changes nothing else. The query
 // name clamps to two lines, while the scope chips beside the term never truncate, so a
 // long Thai category name cannot hide the faculty or class year that sets two alike
-// searches apart. It is a focusable region, not a live region: the busy text is read
-// when focus lands on the bar, and settled outcomes stay with the panel's existing
-// announcers. The disclosure keeps one label and reports its state through
-// aria-expanded, so it never moves under the pointer.
+// searches apart. Once a catalog settles the bar says when its data was fetched, which
+// turns warn past the cache lifetime. It is a focusable region, not a live region: the
+// busy text is read when focus lands on the bar, and settled outcomes stay with the
+// panel's existing announcers. The disclosure keeps one label and reports its state
+// through aria-expanded, so it never moves under the pointer.
 
 import { useMemo } from 'react';
 import { useStore } from 'zustand';
-import { ChevronDown, LoaderCircle } from 'lucide-react';
+import { AlertTriangle, ChevronDown, Clock, LoaderCircle } from 'lucide-react';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import type { Translate } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
 import { describeQuery } from '@/lib/search/describeQuery';
+import { TEACH_TABLE_TTL_MS } from '@/lib/storage/keys';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { checkedTime } from '@/features/planner/verificationText';
 import { useTranslation } from '@/features/shell/useTranslation';
 import {
   SEARCH_BAR_ID,
@@ -25,10 +28,12 @@ import {
 } from './searchIds';
 import { searchStore, selectFormOpen } from './searchStore';
 import { TAB_ICON } from './searchTabs';
+import { useIsPast } from './useIsPast';
 
 const SUMMARY_ID = 'kcp-search-bar-summary';
 const TERM_ID = 'kcp-search-bar-term';
 const STATUS_ID = 'kcp-search-bar-status';
+const DATA_TIME_ID = 'kcp-search-bar-data-time';
 const QUALIFIER_ID_PREFIX = 'kcp-search-bar-qualifier-';
 const CHIP =
   'shrink-0 whitespace-nowrap rounded-kcp-inner bg-surface-alt px-1.5 py-0.5';
@@ -66,6 +71,32 @@ function StatusSlot({ busy, courses, t }: StatusSlotProps) {
   );
 }
 
+interface DataTimeProps {
+  fetchedAt: number;
+  t: Translate;
+}
+
+// How old the courses on screen are: the clock time of the fetch behind them, or the
+// date and time for one from an earlier day. Past the cache lifetime a search would
+// fetch again, so the line turns warn and its clock becomes a warning sign, a cue that
+// does not rest on colour alone, and the refresh beside it is the way forward.
+function DataTime({ fetchedAt, t }: DataTimeProps) {
+  const stale = useIsPast(fetchedAt + TEACH_TABLE_TTL_MS);
+  const Icon = stale ? AlertTriangle : Clock;
+  return (
+    <span
+      id={DATA_TIME_ID}
+      data-stale={stale ? 'true' : 'false'}
+      className={`inline-flex items-center gap-1 tabular-nums ${stale ? 'text-warn' : ''}`}
+    >
+      <Icon size={12} strokeWidth={2} aria-hidden />
+      {fillTemplate(t('search.bar.dataAsOf'), {
+        time: checkedTime(new Date(fetchedAt).toISOString(), new Date(), t),
+      })}
+    </span>
+  );
+}
+
 interface SearchSummaryBarProps {
   query: TeachTableQuery;
 }
@@ -98,6 +129,9 @@ export function SearchSummaryBar({ query }: SearchSummaryBarProps) {
   const courses = useStore(searchStore, (state) =>
     state.result.status === 'ready' ? state.result.data.courses.length : null,
   );
+  const fetchedAt = useStore(searchStore, (state) =>
+    state.result.status === 'ready' ? state.resultFetchedAt : null,
+  );
   const TabIcon = TAB_ICON[query.mode];
 
   return (
@@ -106,9 +140,13 @@ export function SearchSummaryBar({ query }: SearchSummaryBarProps) {
       role="region"
       tabIndex={-1}
       aria-label={t('search.bar.label')}
-      aria-describedby={[SUMMARY_ID, TERM_ID, ...qualifierIds, STATUS_ID].join(
-        ' ',
-      )}
+      aria-describedby={[
+        SUMMARY_ID,
+        TERM_ID,
+        ...qualifierIds,
+        STATUS_ID,
+        ...(fetchedAt === null ? [] : [DATA_TIME_ID]),
+      ].join(' ')}
       className={`flex flex-none flex-col gap-1 border-b border-border bg-surface px-4 py-2 ${FOCUS_RING}`}
     >
       {/* Top aligned, so the disclosure stays put when the name grows to two lines
@@ -170,6 +208,7 @@ export function SearchSummaryBar({ query }: SearchSummaryBarProps) {
         <span id={STATUS_ID}>
           <StatusSlot busy={busy} courses={courses} t={t} />
         </span>
+        {fetchedAt === null ? null : <DataTime fetchedAt={fetchedAt} t={t} />}
       </div>
     </div>
   );

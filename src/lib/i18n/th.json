@@ -123,6 +123,7 @@
   "search.loading": "กำลังค้นหารายวิชา",
   "search.bar.label": "การค้นหาปัจจุบัน",
   "search.bar.edit": "แก้ไขการค้นหา",
+  "search.bar.dataAsOf": "ข้อมูล ณ {time}",
   "search.summary.term": "ภาค {semester}/{year}",
   "search.summary.count": "{courses} รายวิชา",
   "search.summary.bySubjectId": "รหัสวิชา {id}",

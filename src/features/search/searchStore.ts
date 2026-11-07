@@ -74,6 +74,11 @@ export interface SearchStore {
   result: AsyncState<NormalizedCatalog>;
   resultQuery: TeachTableQuery | null;
   /**
+   * When the data of the settled result was fetched, which a cache hit takes from the
+   * original fetch, or null while no catalog has settled.
+   */
+  resultFetchedAt: number | null;
+  /**
    * Who started the query behind the current result, written with the query in one
    * write, so a settle can tell a user search, which the status announcer speaks, from
    * a background run such as a refresh, which it does not. Null while no query has run.
@@ -128,9 +133,11 @@ export interface SearchStore {
   setDepartments: (state: AsyncState<RawDepartment[]>) => void;
   setCurricula: (state: AsyncState<RawCurriculum[]>) => void;
   setSubjectOwners: (state: AsyncState<RawSubjectOwner[]>) => void;
+  /** Settle a query, with the fetch time behind a ready catalog. */
   setResult: (
     result: AsyncState<NormalizedCatalog>,
     query: TeachTableQuery | null,
+    fetchedAt?: number | null,
   ) => void;
   /**
    * Mark a query as loading in one write. The stored resultQuery and barQuery are the
@@ -201,6 +208,7 @@ export function createSearchStore() {
     subjectOwners: { status: 'idle' },
     result: { status: 'idle' },
     resultQuery: null,
+    resultFetchedAt: null,
     resultIntent: null,
     barQuery: null,
     searchFormOpen: true,
@@ -282,8 +290,8 @@ export function createSearchStore() {
     setSubjectOwners: (subjectOwners) => {
       set({ subjectOwners });
     },
-    setResult: (result, query) => {
-      set({ result, resultQuery: query });
+    setResult: (result, query, fetchedAt = null) => {
+      set({ result, resultQuery: query, resultFetchedAt: fetchedAt });
     },
     startQuery: (query, intent) => {
       set(
@@ -292,6 +300,7 @@ export function createSearchStore() {
               result: { status: 'loading' },
               resultQuery: query,
               resultIntent: intent,
+              resultFetchedAt: null,
               barQuery: query,
               searchFormOpen: false,
               lastSubmitAt: Date.now(),
@@ -302,6 +311,7 @@ export function createSearchStore() {
               result: { status: 'loading' },
               resultQuery: query,
               resultIntent: intent,
+              resultFetchedAt: null,
             },
       );
     },
@@ -313,6 +323,7 @@ export function createSearchStore() {
         result: { status: 'idle' },
         resultQuery: null,
         resultIntent: null,
+        resultFetchedAt: null,
         barQuery: null,
         searchFormOpen: true,
       });

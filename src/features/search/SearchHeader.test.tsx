@@ -23,6 +23,7 @@ import {
 } from '../../../tests/support/searchDeps';
 import { makeCourse } from '../../../tests/support/domain-builders';
 import { loadFixture } from '../../../tests/support/fixtures';
+import { TEACH_TABLE_TTL_MS } from '@/lib/storage/keys';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
 import { SearchDepsProvider } from './SearchDepsContext';
 import { SearchHeader } from './SearchHeader';
@@ -135,6 +136,38 @@ describe('SearchHeader', () => {
     });
     expect(bar).toHaveAccessibleDescription(/2 รายวิชา/);
     expect(bar).not.toHaveAccessibleDescription(/กำลังค้นหารายวิชา/);
+  });
+
+  it('says when the data was fetched and turns warn past the cache lifetime', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 7, 14, 32));
+    try {
+      renderHeader();
+      act(() => {
+        searchStore.getState().startQuery(subjectQuery, 'user');
+      });
+      const bar = screen.getByRole('region', { name: 'การค้นหาปัจจุบัน' });
+      expect(bar).not.toHaveAccessibleDescription(/ข้อมูล ณ/);
+      act(() => {
+        searchStore
+          .getState()
+          .setResult(
+            { status: 'ready', data: catalog },
+            subjectQuery,
+            Date.now(),
+          );
+      });
+      expect(bar).toHaveAccessibleDescription(/ข้อมูล ณ 14:32/);
+      const time = screen.getByText('ข้อมูล ณ 14:32');
+      expect(time).toHaveAttribute('data-stale', 'false');
+      act(() => {
+        vi.advanceTimersByTime(TEACH_TABLE_TTL_MS);
+      });
+      expect(time).toHaveAttribute('data-stale', 'true');
+      expect(time).toHaveClass('text-warn');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('keeps the disclosure label and focus while it toggles the form', () => {
