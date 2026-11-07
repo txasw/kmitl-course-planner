@@ -185,6 +185,30 @@ describe('useSearchInit', () => {
     expect(formTerm()).toEqual(fallback);
   });
 
+  it('keeps the term of a search that ran before the answer', async () => {
+    const controlled = controlledSend();
+    const deps = { send: controlled.send, repo: repoReturning(null) };
+    render(<InitProbe deps={deps} />);
+    await waitFor(() => {
+      expect(controlled.requested()).toBe(true);
+    });
+    const { result } = renderHook(() => useSearchActions(deps));
+    act(() => {
+      searchStore.getState().setActiveTab('by_subject_id');
+      searchStore.getState().patchSubjectIdForm({ subjectId: '90592033' });
+    });
+    await act(() => result.current.submit());
+    await controlled.answer(ok(capture));
+    // The form and the summary bar keep naming the term the search ran under.
+    expect(formTerm()).toEqual(fallback);
+    const { barQuery } = searchStore.getState();
+    expect(barQuery?.selected_year).toBe(fallback.year);
+    expect(barQuery?.selected_semester).toBe(fallback.semester);
+    act(() => {
+      searchStore.getState().cancelSearch();
+    });
+  });
+
   it('keeps the fallback when the registrar request fails', async () => {
     const controlled = controlledSend();
     render(

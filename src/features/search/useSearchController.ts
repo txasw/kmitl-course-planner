@@ -5,8 +5,8 @@
 // one: the teach table route captured at mount, the persisted search, the active
 // plan, then the term after the registrar's current term. That last source needs a
 // fetch, so the form renders with the local fallback first and takes the fetched
-// default only if nothing else has set the term by then. A later host navigation
-// never clobbers an in session edit. useSearchActions builds the active tab query, runs it
+// default only if nothing else has set the term and no search has run under it by
+// then. A later host navigation never clobbers an in session edit. useSearchActions builds the active tab query, runs it
 // guarded against a superseded response, and persists the last search. A submit runs
 // with the user intent, which folds the form into the bar; retry and refresh run in the
 // background and leave the disclosure as the student set it. The stores
