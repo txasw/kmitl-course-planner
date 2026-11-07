@@ -839,6 +839,15 @@ h4 {
   white-space: nowrap;
 }
 
+/* With the table at full width a subject name and a section stay on one line, so a Thai
+   name never breaks inside a word and every row keeps one line. */
+@media (min-width: 1024px) {
+  .dedupe__name,
+  .dedupe__section {
+    white-space: nowrap;
+  }
+}
+
 .dedupe__chip {
   display: none;
   margin-top: 4px;
@@ -1025,7 +1034,7 @@ figcaption:empty {
   }
 
   .problem__text {
-    grid-column: 1 / span 7;
+    grid-column: 1 / span 8;
   }
 
   .problem__shot {
