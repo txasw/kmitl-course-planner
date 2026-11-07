@@ -9,6 +9,7 @@ import {
   catalogAtRest,
   expandCourse,
   waitForResultsInput,
+  submitSearch,
 } from './fixtures';
 import type { Page } from '@playwright/test';
 
@@ -21,7 +22,7 @@ export function block(id: string): string {
 export async function syntheticSearch(page: Page): Promise<void> {
   await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000000');
-  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(page);
   await expect(page.getByText('90000001').first()).toBeVisible({
     timeout: 15_000,
   });

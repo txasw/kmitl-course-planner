@@ -12,7 +12,13 @@
 // upper bounds that only catch a gross regression, since absolute timings vary by
 // machine; the memoization is proven by the unit tests, not by a tight timing here.
 
-import { test, expect, expandCourse, openPlanner } from './support/fixtures';
+import {
+  test,
+  expect,
+  expandCourse,
+  openPlanner,
+  submitSearch,
+} from './support/fixtures';
 import { FAT_COURSE_ID, denseSubjectId } from './support/denseCatalog';
 import type { Page, BrowserContext } from '@playwright/test';
 
@@ -60,7 +66,7 @@ async function openCdp(context: BrowserContext, page: Page): Promise<Cdp> {
 async function searchDense(page: Page): Promise<void> {
   await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill(DENSE_SUBJECT_ID);
-  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(page);
   await expect(
     page.getByText(denseSubjectId(0), { exact: true }).first(),
   ).toBeVisible({ timeout: 20_000 });
@@ -224,7 +230,7 @@ test('profiles the real capture normalize and render', async ({
   const before = await scriptMs(client);
   await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill(REAL_SUBJECT_ID);
-  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(page);
   await expect(
     page.getByText(REAL_COURSE_ID, { exact: true }).first(),
   ).toBeVisible({ timeout: 20_000 });
