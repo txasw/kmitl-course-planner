@@ -237,11 +237,57 @@ describe('createGateway', () => {
     const result = await gateway.teachTable(ownerQuery);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.courses.length).toBeGreaterThan(0);
-      expect(result.value.duplicateCount).toBeGreaterThan(0);
+      expect(result.value.catalog.courses.length).toBeGreaterThan(0);
+      expect(result.value.catalog.duplicateCount).toBeGreaterThan(0);
     }
     await gateway.teachTable(ownerQuery);
     expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the fetch time and keeps it on a cache hit', async () => {
+    const fixture = loadFixture(
+      'teach-table.by_subject_owner_id-32.capture.json',
+    );
+    // A fresh response per call, since a body can be read only once.
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockImplementation(() => Promise.resolve(okResponse(fixture)));
+    let clock = 1_000;
+    const gateway = createGateway({
+      cache: newCache(),
+      env: makeEnv(fetchImpl, () => clock),
+    });
+    const fresh = await gateway.teachTable(ownerQuery);
+    expect(fresh.ok && fresh.value.fetchedAt).toBe(1_000);
+    // A hit reports when its data was fetched, not when it was read.
+    clock = 61_000;
+    const hit = await gateway.teachTable(ownerQuery);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(hit.ok && hit.value.fetchedAt).toBe(1_000);
+    // A refresh fetches again and reports the new time.
+    const refreshed = await gateway.teachTable(ownerQuery, true);
+    expect(refreshed.ok && refreshed.value.fetchedAt).toBe(61_000);
+  });
+
+  it('keeps the fetch time of a storage hit after a worker restart', async () => {
+    const fixture = loadFixture(
+      'teach-table.by_subject_owner_id-32.capture.json',
+    );
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(okResponse(fixture));
+    const adapter = fakeAdapter();
+    let clock = 5_000;
+    const env = makeEnv(fetchImpl, () => clock);
+    await createGateway({ cache: createCacheStore(adapter), env }).teachTable(
+      ownerQuery,
+    );
+    clock = 65_000;
+    // A fresh cache over the same storage models a respawned worker.
+    const revived = createGateway({ cache: createCacheStore(adapter), env });
+    const hit = await revived.teachTable(ownerQuery);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(hit.ok && hit.value.fetchedAt).toBe(5_000);
   });
 
   it('cancels an in flight teach table query so a retry re-fetches', async () => {

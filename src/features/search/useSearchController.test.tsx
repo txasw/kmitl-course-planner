@@ -67,6 +67,16 @@ function controlledSend(): ControlledSend {
   let release: ((result: Result<RawCurrentTerm>) => void) | null = null;
   let pending: Promise<Result<RawCurrentTerm>> | null = null;
   const handler = (message: RequestMessage) => {
+    // A search settles at once on an empty catalog, so a submit can be awaited.
+    if (message.type === 'teachTable/query') {
+      const catalog = {
+        courses: [],
+        duplicateCount: 0,
+        multiMeetingCount: 0,
+        warnings: [],
+      };
+      return Promise.resolve(ok({ catalog, fetchedAt: 0 }));
+    }
     if (message.type !== 'ref/currentTerm') {
       return Promise.resolve(ok(null));
     }

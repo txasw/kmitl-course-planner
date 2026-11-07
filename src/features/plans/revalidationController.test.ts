@@ -1,6 +1,8 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { ok, err, networkError, type Result } from '@/lib/utils/result';
+import type { TeachTableResult } from '@/lib/api/types';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
+import { teachTableResult } from '../../../tests/support/searchDeps';
 import type { Plan, SourceQuery } from '@/lib/domain/plan';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import {
@@ -48,9 +50,7 @@ function catalogOf(
 
 // The controller only ever sends teachTable/query, so a single-shape fake is enough;
 // the cast is confined to this test seam.
-function fakeSend(
-  handler: () => Promise<Result<NormalizedCatalog>>,
-): TypedSend {
+function fakeSend(handler: () => Promise<Result<TeachTableResult>>): TypedSend {
   return handler as unknown as TypedSend;
 }
 
@@ -93,7 +93,9 @@ describe('revalidatePlanNow', () => {
       section: '901',
       meetings: [makeMeeting({ startMin: 600, endMin: 780 })],
     });
-    const send = fakeSend(() => Promise.resolve(ok(catalogOf(fresh))));
+    const send = fakeSend(() =>
+      Promise.resolve(ok(teachTableResult(catalogOf(fresh)))),
+    );
 
     await revalidatePlanNow(plan, { send, ...deps }, false);
 
@@ -169,7 +171,7 @@ describe('revalidatePlanNow', () => {
     const send = fakeSend(() => {
       call += 1;
       return call === 1
-        ? Promise.resolve(ok(catalogOf(freshA)))
+        ? Promise.resolve(ok(teachTableResult(catalogOf(freshA))))
         : Promise.resolve(err(networkError('down')));
     });
 

@@ -15,7 +15,10 @@ import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { searchStore } from '@/features/search/searchStore';
 import { toastStore } from '@/features/shell/toastStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
-import { fakeSearchDeps } from '../../../tests/support/searchDeps';
+import {
+  fakeSearchDeps,
+  teachTableResult,
+} from '../../../tests/support/searchDeps';
 import { makeCourse } from '../../../tests/support/domain-builders';
 import { CatalogPanel, useResultCourseCount } from './CatalogPanel';
 
@@ -200,7 +203,7 @@ describe('CatalogPanel', () => {
     // The refresh replays the query and gets the same catalog back.
     const send = ((message: { type: string }) =>
       message.type === 'teachTable/query'
-        ? Promise.resolve(ok(catalog))
+        ? Promise.resolve(ok(teachTableResult(catalog)))
         : new Promise(() => undefined)) as unknown as TypedSend;
     render(
       <SearchDepsProvider value={fakeSearchDeps({ send })}>

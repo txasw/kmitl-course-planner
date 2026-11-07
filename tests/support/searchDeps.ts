@@ -4,8 +4,18 @@
 // their own resolving fakes through the overrides.
 
 import type { SearchDeps } from '@/features/search/SearchDepsContext';
+import type { TeachTableResult } from '@/lib/api/types';
+import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import type { SearchState } from '@/lib/storage/lastSearch';
+
+/** The worker's teach table answer for a catalog, fetched at the given time. */
+export function teachTableResult(
+  catalog: NormalizedCatalog,
+  fetchedAt = 0,
+): TeachTableResult {
+  return { catalog, fetchedAt };
+}
 
 export function fakeSearchDeps(
   overrides: Partial<SearchDeps> = {},

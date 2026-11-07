@@ -13,8 +13,12 @@ import type {
   RawSubjectOwner,
   RawCurrentTerm,
 } from '../domain/schemas';
-import type { NormalizedCatalog } from '../domain/normalize';
-import type { LatestRaw, RequestLogEntry, SimSettings } from '../api/types';
+import type {
+  LatestRaw,
+  RequestLogEntry,
+  SimSettings,
+  TeachTableResult,
+} from '../api/types';
 import type { DataQualityReport } from '../contract/report';
 
 // The three search modes mirror Section 4.1. Booleans stay booleans here; the
@@ -154,7 +158,7 @@ export interface ResponseMap {
   'ref/curriculum': Result<RawCurriculum[]>;
   'ref/subjectOwner': Result<RawSubjectOwner[]>;
   'ref/currentTerm': Result<RawCurrentTerm>;
-  'teachTable/query': Result<NormalizedCatalog>;
+  'teachTable/query': Result<TeachTableResult>;
   'teachTable/cancel': Result<void>;
   'shell/mounted': Result<MountHandshake>;
   'onboarding/claimWelcome': Result<WelcomeClaim>;

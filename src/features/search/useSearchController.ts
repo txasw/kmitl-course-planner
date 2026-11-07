@@ -166,7 +166,7 @@ export function useSearchActions({ send, repo }: SearchDeps): SearchActions {
         .getState()
         .setResult(
           result.ok
-            ? { status: 'ready', data: result.value }
+            ? { status: 'ready', data: result.value.catalog }
             : { status: 'error', error: result.error },
           query,
         );

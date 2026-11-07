@@ -9,6 +9,7 @@ import {
   within,
 } from '@testing-library/react';
 import { loadFixture } from '../../../tests/support/fixtures';
+import { teachTableResult } from '../../../tests/support/searchDeps';
 import { normalizeTeachTable } from '@/lib/domain/normalize';
 import {
   currentTermSchema,
@@ -77,7 +78,7 @@ function resolvingSend(
           ? Promise.resolve(ok(currentTerm))
           : new Promise<never>(() => undefined);
       case 'teachTable/query':
-        return Promise.resolve(ok(catalog));
+        return Promise.resolve(ok(teachTableResult(catalog)));
       default:
         return Promise.resolve(ok(null));
     }
