@@ -164,6 +164,43 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
     expect(JSON.stringify(data)).not.toMatch(/aggregateRating|"review"/);
   });
 
+  it('gives the application only properties schema.org defines for it', () => {
+    const script = doc.querySelector('script[type="application/ld+json"]');
+    const data = JSON.parse(script?.textContent ?? '') as {
+      '@graph': Record<string, unknown>[];
+    };
+    const app = data['@graph'].find(
+      (node) => node['@type'] === 'SoftwareApplication',
+    );
+    // SoftwareApplication and the CreativeWork and Thing properties it inherits.
+    const allowed = new Set([
+      '@type',
+      '@id',
+      'name',
+      'alternateName',
+      'url',
+      'description',
+      'applicationCategory',
+      'applicationSubCategory',
+      'operatingSystem',
+      'softwareRequirements',
+      'softwareVersion',
+      'inLanguage',
+      'isAccessibleForFree',
+      'offers',
+      'installUrl',
+      'downloadUrl',
+      'sameAs',
+      'image',
+      'screenshot',
+      'license',
+      'author',
+    ]);
+    expect(Object.keys(app ?? {}).filter((key) => !allowed.has(key))).toEqual(
+      [],
+    );
+  });
+
   it('links both stores from the page', () => {
     const hrefs = [...doc.querySelectorAll('a[href]')].map((a) =>
       a.getAttribute('href'),
