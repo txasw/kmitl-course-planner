@@ -1,6 +1,7 @@
-// The text files of the landing site (ADR-0066): the Thai page, rendered and formatted
-// exactly as they are committed in site/. build-site.mjs writes them. The output
-// depends only on the repository, never on the date or the machine.
+// The text files of the landing site (ADR-0066): both language pages and the shared not
+// found page, rendered and formatted exactly as they are committed in site/.
+// build-site.mjs writes them. The output depends only on the repository, never on the
+// date or the machine.
 
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
@@ -8,7 +9,8 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import prettier from 'prettier';
 import { th } from './copy.th.mjs';
-import { renderPage } from './render-page.mjs';
+import { en } from './copy.en.mjs';
+import { renderNotFound, renderPage } from './render-page.mjs';
 import {
   dedupeCounts,
   extensionVersion,
@@ -56,8 +58,8 @@ export async function siteTextFiles() {
   const counts = dedupeCounts();
   const version = extensionVersion();
   const files = new Map();
-  for (const copy of [th]) {
-    const relative = 'index.html';
+  for (const copy of [th, en]) {
+    const relative = copy.lang === 'th' ? 'index.html' : 'en/index.html';
     const html = renderPage(copy, {
       manifest,
       rowsHtml: renderDedupeRows(copy.lang),
@@ -66,5 +68,9 @@ export async function siteTextFiles() {
     });
     files.set(relative, await format(relative, versionAssets(html)));
   }
+  files.set(
+    '404.html',
+    await format('404.html', versionAssets(renderNotFound(th, en))),
+  );
   return files;
 }
