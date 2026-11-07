@@ -1,4 +1,10 @@
-import { test, expect, openPlanner, pickOption } from './support/fixtures';
+import {
+  test,
+  expect,
+  openPlanner,
+  pickOption,
+  submitSearch,
+} from './support/fixtures';
 
 // The teach table request fails, so the catalog shows the typed error with a
 // retry. Once the fault clears, retrying loads the results. Reference requests
@@ -9,7 +15,7 @@ test('recovers a failed query on retry', async ({ context, mock }) => {
   await page.getByRole('tab', { name: 'หมวดวิชา', exact: true }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
-  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(page);
 
   await expect(
     page.getByRole('heading', { name: 'โหลดรายวิชาไม่สำเร็จ' }),

@@ -5,6 +5,7 @@ import {
   openPlanner,
   pickOption,
   waitForResultsInput,
+  submitSearch,
 } from './support/fixtures';
 import { denseSubjectId } from './support/denseCatalog';
 import type { Page } from '@playwright/test';
@@ -22,7 +23,7 @@ async function collapsedCategorySearch(page: Page): Promise<void> {
   await page.getByRole('tab', { name: 'หมวดวิชา', exact: true }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
-  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(page);
   await expect(page.getByText('90592033').first()).toBeVisible({
     timeout: 15_000,
   });
@@ -100,7 +101,7 @@ test.describe('at 1024x768', () => {
     // the window widens to 08:00 to 20:00, 48 quarters, past the docked grid column.
     await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
     await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000700');
-    await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+    await submitSearch(page);
     await expect(page.getByText('01006020').first()).toBeVisible({
       timeout: 15_000,
     });
@@ -355,7 +356,7 @@ test('lists an added unscheduled course on the shelf', async ({ context }) => {
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'ภาควิชา', '08');
   await pickOption(page, 'หลักสูตร', 'ทุกหลักสูตร');
-  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(page);
   await expect(page.getByText('01006029').first()).toBeVisible({
     timeout: 15_000,
   });
@@ -480,7 +481,7 @@ test.describe('course hover preview at 1366x768', () => {
     // category result fits the column.
     await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
     await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000500');
-    await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+    await submitSearch(page);
     await expect(
       page.getByText(denseSubjectId(0), { exact: true }).first(),
     ).toBeVisible({ timeout: 20_000 });

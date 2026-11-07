@@ -5,6 +5,7 @@ import {
   expandCourse,
   openPlanner,
   waitForResultsInput,
+  submitSearch,
 } from './support/fixtures';
 import { denseSubjectId } from './support/denseCatalog';
 import { addCourse, block, syntheticSearch } from './support/synthetic';
@@ -39,7 +40,7 @@ async function denseSearch(page: Page): Promise<void> {
   await page.getByRole('button', { name: /^รายวิชา/ }).click();
   await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill(DENSE_SUBJECT_ID);
-  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(page);
   await expect(
     page.getByText(denseSubjectId(0), { exact: true }).first(),
   ).toBeVisible({ timeout: 20_000 });

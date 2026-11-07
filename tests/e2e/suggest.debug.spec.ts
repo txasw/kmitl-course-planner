@@ -5,6 +5,7 @@ import {
   openPlanner,
   pickOption,
   waitForResultsInput,
+  submitSearch,
 } from './support/fixtures';
 import { axeViolations } from './support/axe';
 
@@ -20,7 +21,7 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'ภาควิชา', '05');
   await pickOption(page, 'หลักสูตร', 'ความปลอดภัยไซเบอร์');
-  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(page);
   await expect(page.getByText('01006020').first()).toBeVisible({
     timeout: 15_000,
   });

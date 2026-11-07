@@ -5,6 +5,7 @@ import {
   openPlanner,
   pickOption,
   waitForResultsInput,
+  submitSearch,
 } from './support/fixtures';
 import { swipe } from './support/touch';
 import { bottomNav, isPhone } from './support/tiers';
@@ -31,7 +32,7 @@ async function curriculumSearch(page: Page): Promise<Locator> {
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'ภาควิชา', '05');
   await pickOption(page, 'หลักสูตร', 'ความปลอดภัยไซเบอร์');
-  await catalog.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(catalog);
   await expect(catalog.getByText('01006020').first()).toBeVisible({
     timeout: 15_000,
   });

@@ -1,4 +1,4 @@
-import { test, expect, openPlanner } from './support/fixtures';
+import { test, expect, openPlanner, submitSearch } from './support/fixtures';
 import { addCourse, block } from './support/synthetic';
 
 // The reserved id 90000010 serves two subjects: Exam Course A on Tue and Exam Course B with
@@ -13,7 +13,7 @@ test('an exam conflicting add blocks and a clean alternative succeeds', async ({
 
   await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000010');
-  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(page);
   await expect(page.getByText('90000010').first()).toBeVisible({
     timeout: 15_000,
   });
