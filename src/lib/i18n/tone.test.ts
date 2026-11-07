@@ -5,37 +5,14 @@ import ts from 'typescript';
 import { describe, it, expect } from 'vitest';
 import th from './th.json';
 import en from './en.json';
+import { BANNED, BANNED_THAI, DECORATIVE, EMOJI } from './toneRules';
 
 // Guards the Section 2 tone rules on every rendered string: no emojis, no decorative
 // punctuation such as em or en dashes, arrows, or symbol bullets, no exclamation marks,
 // and no LLM filler words. Both dictionaries are checked for the punctuation and emoji
-// rules; the banned word list is English, so it runs against the English copy. The emoji
-// test covers pictographs, flag pairs, and the emoji presentation selector so a sequence
-// emoji is caught, not only a lone pictograph. Tracked docs and source comments get the
-// same emoji, punctuation, and banned word checks.
-
-const EMOJI = /\p{Extended_Pictographic}|\p{Regional_Indicator}|\u{FE0F}/u;
-const DECORATIVE = /[—–―‒−→←↔⇒⇐•●▪◦‣]/;
-const BANNED = [
-  'seamless',
-  'delve',
-  'robust',
-  'leverage',
-  'empower',
-  'elevate',
-  'supercharge',
-  'cutting edge',
-  'effortless',
-  'revolutioni',
-  'game changer',
-  "let's",
-];
-
-// The host registration site's own vocabulary is canonical (docs/TERMINOLOGY.md). These
-// are the near synonyms the host does not use; the section term is กลุ่มเรียน, not ตอน.
-// ปฏิบัติการ is listed in full so the canonical ปฏิบัติ, the practice section kind, is not
-// caught.
-const BANNED_THAI = ['ตอน', 'ตอนเรียน', 'ภาคเรียน', 'ปฏิบัติการ'] as const;
+// rules; the banned word list is English, so it runs against the English copy. The
+// patterns live in toneRules.ts, shared with every test that guards copy. Tracked docs and
+// source comments get the same emoji, punctuation, and banned word checks.
 
 function collectSourceFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
