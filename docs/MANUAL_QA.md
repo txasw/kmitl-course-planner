@@ -412,6 +412,24 @@ in the service worker console, which keeps the welcome recorded as shown.
 - [ ] Changes to review: with a plan whose revalidation found a change not yet reviewed,
       reload. The prompt counts the changes, and Review opens the timetable in edit mode
       with the updates dialog over it.
+- [ ] Result route: run a category search on the host, then reload its result page, or
+      open a saved link to one. The prompt offers to open this search in Planner, ahead of
+      the plan prompts but behind changes to review. Open in Planner opens the catalog in
+      edit mode with the summary bar and the results of the same search, the other search
+      tabs keep their last search, and the host page address does not change. Repeat with
+      a by subject id result page and a by curriculum result page.
+- [ ] Result route reached later: load the selector page, then run a search on the host
+      so it moves to its result page without a reload. No route offer appears, since the
+      offer belongs to the page the document loaded on; the plan prompts follow their
+      usual order. This is by design, not a fault.
+- [ ] Result route left: while the route offer shows, move to another host route with the
+      host page's own links or the back button. The offer hides at once and nothing takes
+      its place. Repeat with focus on a prompt button and the browser back shortcut: focus
+      moves to the Planner button.
+- [ ] Result route in another term: with an active plan for 1/2569, reload a result page
+      for 2/2569 and press Open in Planner. The catalog shows the search, and the different
+      term banner explains that its sections belong to another term, with the action to
+      switch to or create a plan for that term.
 - [ ] Timing: the prompt hides by itself after about eight seconds. Rest the pointer on it,
       or tab into it, and it stays until the pointer leaves or focus moves out.
 - [ ] Once per load: while it shows, and after it hides, move between host routes with
