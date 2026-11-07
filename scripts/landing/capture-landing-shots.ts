@@ -401,17 +401,28 @@ for (const locale of LOCALES) {
 
   test(`search form ${locale}`, async ({ context }) => {
     const page = await openIn(context, locale);
+    // The open form scrolls inside the catalog column once it outgrows the window, so a
+    // taller window shows the whole form without a cut edge.
+    await page.setViewportSize({ width: 1440, height: 1240 });
     await buildPlan(page, locale);
     await expandCourse(page, '01006030');
     await page
       .getByRole('button', { name: tr(locale, 'search.bar.edit') })
       .click();
     await catalogAtRest(page);
+    // The course list scrolls under the open form, so it returns to the top first and
+    // the shot ends under the clear search action, the last control of the form.
+    await page.locator('[data-catalog-scroller]').evaluate((node) => {
+      node.scrollTop = 0;
+    });
     await restPointer(page);
     const column = await box(catalogColumn(page));
+    const clear = await box(
+      page.getByRole('button', { name: tr(locale, 'search.clear') }),
+    );
     await shot(page, 's-search-form', locale, {
       ...column,
-      height: Math.min(column.height, 820),
+      height: clear.y + clear.height + 16 - column.y,
     });
   });
 
@@ -596,11 +607,12 @@ for (const locale of LOCALES) {
       .locator('xpath=ancestor::div[@style][1]');
     await expect(menu).toBeVisible();
     await restPointer(page);
+    // No margin: any margin shows cut off fragments of the panel behind the menu.
     await shot(
       page,
       's-plan-menu',
       locale,
-      pad(page, union(await box(switcher), await box(menu)), 16),
+      union(await box(switcher), await box(menu)),
     );
   });
 }
@@ -660,21 +672,17 @@ test.describe('tall plan column', () => {
         })
         .click();
       await restPointer(page);
-      const tabpanel = page.getByRole('tabpanel');
-      const panel = await box(tabpanel);
-      // The panel fills the window; crop at the bottom of its last line of content.
-      const bottom = await tabpanel.evaluate((node) =>
-        Math.max(
-          ...[...node.querySelectorAll('*')].map(
-            (child) => child.getBoundingClientRect().bottom,
-          ),
-        ),
+      // The exam schedule only: the whole Summary view is so tall that the page would
+      // have to show it too small to read beside the exam card.
+      const panel = await box(page.getByRole('tabpanel'));
+      const exams = await box(
+        page.getByRole('region', { name: tr(locale, 'examSchedule.title') }),
       );
       await shot(
         page,
         's-summary',
         locale,
-        pad(page, { ...panel, height: bottom - panel.y }, 16),
+        pad(page, { ...panel, y: exams.y, height: exams.height }, 16),
       );
     });
   }

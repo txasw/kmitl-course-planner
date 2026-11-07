@@ -72,7 +72,7 @@ export const en = {
   search: {
     h3: 'Search the three ways the registration site does',
     body: 'Search by curriculum and class year, by subject id, or by subject category. Results arrive as one line course cards that open to show sections, open seats, enrollment conditions and exam dates, with filters for day, credits and full sections.',
-    alt: 'The search panel on the curriculum tab, with the engineering faculty, the Computer Engineering department, the Computer Engineering and Cyber Security curriculum and year 1 selected. Below it, the course cards already added to the plan.',
+    alt: 'The search panel on the curriculum tab, with the engineering faculty, the Computer Engineering department, the Computer Engineering and Cyber Security curriculum and year 1 selected, above the Search and Clear search buttons.',
   },
   conflict: {
     h3: 'Drag a section in and see a clash before you drop',
@@ -86,9 +86,9 @@ export const en = {
     h3: 'Exam dates are checked too, not only class times',
     body: 'Two subjects that meet on different days can still share a midterm slot. KCP compares the midterm and final windows of every subject in your plan and will not add a section whose exam clashes. The Summary view lists the term’s exams by date, with your weekly hours and free days.',
     fig1: 'Digital System Fundamentals meets on Monday, but its midterm on 21 Aug 2569 falls at the same time as General Physics 1.',
-    fig2: 'The plan’s Summary view, with exams by date and the weekly workload.',
+    fig2: 'The exam schedule in the Summary view, with every midterm and final in the plan by date.',
     alt1: 'The course card for 01076112. Its sections carry an exam clash badge, and a soft red box says the exam clashes with 01006020 section 4, midterm on 21 Aug 2569.',
-    alt2: 'Midterm and final exams of the subjects in the plan listed by date, followed by weekly lecture, practice and self study hours.',
+    alt2: 'The exam schedule of the plan: four midterm days and five final exam days in date order, each with the time, subject id, subject name and section, then two subjects whose exams the instructor arranges.',
   },
   layouts: {
     h3: 'Built for wide screens, narrow windows and touch',
