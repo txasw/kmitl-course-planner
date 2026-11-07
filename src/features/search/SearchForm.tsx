@@ -27,7 +27,7 @@ import {
   TermFields,
 } from './fields';
 import { SEARCH_BAR_ID, SEARCH_TABPANEL_ID, searchTabId } from './searchIds';
-import { searchStore } from './searchStore';
+import { searchStore, selectTermSettled } from './searchStore';
 import {
   SearchSubmit,
   missingFieldReason,
@@ -58,6 +58,7 @@ export function SearchForm({ dock }: SearchFormProps = {}) {
 
   const activeTab = useStore(searchStore, (state) => state.activeTab);
   const term = useStore(searchStore, (state) => state.term);
+  const termSettled = useStore(searchStore, selectTermSettled);
   const byClass = useStore(searchStore, (state) => state.byClass);
   const bySubjectId = useStore(searchStore, (state) => state.bySubjectId);
   const byCategory = useStore(searchStore, (state) => state.byCategory);
@@ -132,7 +133,13 @@ export function SearchForm({ dock }: SearchFormProps = {}) {
   };
 
   return (
-    <div className="flex flex-col gap-4" {...focusTracking}>
+    <div
+      className="flex flex-col gap-4"
+      // Names whether the term may still change on its own, so a scripted search can
+      // wait for the default term rather than race it.
+      data-term-state={termSettled ? 'settled' : 'pending'}
+      {...focusTracking}
+    >
       <TermFields
         term={term}
         years={years}

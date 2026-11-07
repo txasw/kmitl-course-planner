@@ -122,15 +122,13 @@ export function useSearchInit(
       }
       searchStore.getState().seedFallbackTerm(initial.term);
       void send({ type: 'ref/currentTerm' }).then((result) => {
-        // A failed fetch keeps the fallback the form already shows.
-        if (!result.ok) {
-          return;
-        }
-        // The plan is read again because plans may have hydrated meanwhile.
+        // The plan is read again because plans may have hydrated meanwhile. A failed
+        // fetch resolves without a current term, so the term settles on that plan or
+        // on the fallback the form already shows and is no longer pending.
         const resolved = resolveInitialTerm({
           ...sources,
           plan: activePlanTerm(),
-          current: toCurrentTerm(result.value),
+          current: result.ok ? toCurrentTerm(result.value) : null,
         });
         searchStore.getState().applyDefaultTerm(resolved.term);
       });

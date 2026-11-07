@@ -26,7 +26,7 @@ import type { TypedSend } from '@/lib/messaging/sendTyped';
 import { networkError, err, ok, type Result } from '@/lib/utils/result';
 import { loadFixture } from '../../../tests/support/fixtures';
 import { planStore } from '@/features/plans/planStore';
-import { searchStore } from './searchStore';
+import { searchStore, selectTermSettled } from './searchStore';
 import type { SearchDeps } from './SearchDepsContext';
 import { useSearchActions, useSearchInit } from './useSearchController';
 
@@ -217,8 +217,25 @@ describe('useSearchInit', () => {
     await waitFor(() => {
       expect(controlled.requested()).toBe(true);
     });
+    expect(selectTermSettled(searchStore.getState())).toBe(false);
     await controlled.answer(err(networkError('offline')));
     expect(formTerm()).toEqual(fallback);
+    // The fallback is final now, so nothing is left to wait for.
+    expect(selectTermSettled(searchStore.getState())).toBe(true);
+  });
+
+  it('takes a plan that hydrated while the failed request was out', async () => {
+    const controlled = controlledSend();
+    render(
+      <InitProbe deps={{ send: controlled.send, repo: repoReturning(null) }} />,
+    );
+    await waitFor(() => {
+      expect(controlled.requested()).toBe(true);
+    });
+    const planTerm: Term = { year: '2568', semester: '3' };
+    planStore.getState().createPlan('plan', planTerm);
+    await controlled.answer(err(networkError('offline')));
+    expect(formTerm()).toEqual(planTerm);
   });
 
   it('seeds the active plan term without asking the registrar', async () => {
