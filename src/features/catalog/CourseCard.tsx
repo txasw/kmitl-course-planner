@@ -8,12 +8,14 @@
 // where the course's sections would land on the grid. A course with two or more sections
 // opens its body with a compare control first, which shows every section side by side
 // in a table. The body stays mounted while the table is open, so closing it returns
-// focus to the control.
+// focus to the control. An add from the table collapses the card under it, taking the
+// control away, so closing the table then hands focus to the card's toggle.
 
 import {
   memo,
   useId,
   useMemo,
+  useRef,
   useState,
   type PointerEvent,
   type ReactNode,
@@ -45,6 +47,7 @@ import {
   dragSourceClass,
   useTouchPress,
 } from '@/features/planner/useTouchPress';
+import { commitThenFocus } from '@/features/shell/restoreFocus';
 import { useCatalogDragEnabled } from './catalogDrag';
 import { useCoursePreview } from './useCoursePreview';
 import type { HoverIntentHandlers } from './useHoverIntent';
@@ -178,6 +181,18 @@ function CourseCardComponent({
   const preview = useCoursePreview(course, !added && !crossTerm);
   const { cardRef, scheduleReveal } = useRevealOnExpand(DISCLOSURE_MS);
   const [comparing, setComparing] = useState(false);
+  const compareRef = useRef<HTMLButtonElement>(null);
+  const handleCloseCompare = () => {
+    commitThenFocus(
+      () => {
+        setComparing(false);
+      },
+      () => [
+        compareRef.current,
+        cardRef.current?.querySelector<HTMLElement>('[data-course-toggle]'),
+      ],
+    );
+  };
   const comparable = course.sections.length >= 2;
   const handleToggle = () => {
     scheduleReveal(!open);
@@ -301,6 +316,7 @@ function CourseCardComponent({
             ) : null}
             {comparable ? (
               <button
+                ref={compareRef}
                 type="button"
                 aria-haspopup="dialog"
                 aria-describedby={titleId}
@@ -338,9 +354,7 @@ function CourseCardComponent({
           locale={locale}
           t={t}
           term={term}
-          onClose={() => {
-            setComparing(false);
-          }}
+          onClose={handleCloseCompare}
         />
       ) : null}
     </article>
