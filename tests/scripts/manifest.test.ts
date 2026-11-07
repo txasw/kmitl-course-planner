@@ -43,9 +43,18 @@ describe.each(COMBINATIONS)('manifest for $browser in $mode', (env) => {
   it('names the build flavor', () => {
     expect(manifest.name).toBe(
       env.mode === 'production'
-        ? 'Course Planner for KMITL'
-        : 'Course Planner for KMITL (Debug)',
+        ? 'KCP: Course Planner for KMITL'
+        : 'KCP: Course Planner for KMITL (Debug)',
     );
+  });
+
+  it('describes the product within the store summary limit', () => {
+    // The Chrome Web Store shows the manifest description as the summary and
+    // caps it at 132 characters. Both search terms stay in it (ADR-0065).
+    expect(manifest.description).toBeDefined();
+    expect(manifest.description?.length).toBeLessThanOrEqual(132);
+    expect(manifest.description).toContain('KCP');
+    expect(manifest.description).toContain('KMITL');
   });
 });
 
@@ -81,14 +90,14 @@ describe('toolbar action title in debug', () => {
   it('carries the debug suffix', () => {
     expect(
       buildManifest({ browser: 'chrome', mode: 'debug' }).action?.default_title,
-    ).toBe('Course Planner for KMITL (Debug)');
+    ).toBe('KCP: Course Planner for KMITL (Debug)');
   });
 });
 
 describe('manifest name in development', () => {
   it('carries the debug suffix outside a production build', () => {
     expect(buildManifest({ browser: 'chrome', mode: 'development' }).name).toBe(
-      'Course Planner for KMITL (Debug)',
+      'KCP: Course Planner for KMITL (Debug)',
     );
   });
 });

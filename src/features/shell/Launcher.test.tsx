@@ -61,7 +61,7 @@ describe('Launcher', () => {
   it('renders an accessible launcher button in the default locale', () => {
     render(<Launcher />);
     const button = screen.getByRole('button', {
-      name: 'เปิด Course Planner for KMITL',
+      name: 'เปิด KCP: Course Planner for KMITL',
     });
     expect(button).toBeInTheDocument();
     expect(button).toHaveTextContent('Planner');
@@ -70,7 +70,9 @@ describe('Launcher', () => {
   it('opens the overlay when activated', () => {
     render(<Launcher />);
     fireEvent.click(
-      screen.getByRole('button', { name: 'เปิด Course Planner for KMITL' }),
+      screen.getByRole('button', {
+        name: 'เปิด KCP: Course Planner for KMITL',
+      }),
     );
     expect(uiStore.getState().isOpen).toBe(true);
   });
@@ -81,7 +83,9 @@ describe('Launcher', () => {
     });
     render(<Launcher />);
     expect(
-      screen.getByRole('button', { name: 'Open Course Planner for KMITL' }),
+      screen.getByRole('button', {
+        name: 'Open KCP: Course Planner for KMITL',
+      }),
     ).toBeInTheDocument();
   });
 
@@ -203,7 +207,7 @@ describe('Launcher', () => {
         onboardingStore.getState().settleWelcome();
       });
       const button = screen.getByRole('button', {
-        name: 'เปิด Course Planner for KMITL',
+        name: 'เปิด KCP: Course Planner for KMITL',
       });
       expect(button).toHaveClass(RING);
       fireEvent.click(button);
@@ -212,7 +216,7 @@ describe('Launcher', () => {
         uiStore.getState().close();
       });
       expect(button).not.toHaveClass(RING);
-      expect(button).toHaveAccessibleName('เปิด Course Planner for KMITL');
+      expect(button).toHaveAccessibleName('เปิด KCP: Course Planner for KMITL');
     });
 
     it('keeps the ring off a document whose stored record shows a first open', () => {

@@ -7,7 +7,7 @@ import {
   showTimetableByClick,
 } from './support/tiers';
 
-const OVERLAY = 'ตัววางแผนตารางเรียน สจล.';
+const OVERLAY = 'KCP: ตัววางแผนตารางเรียน สจล.';
 
 // Runs axe-core against the panel across its surfaces: populated edit mode, the catalog
 // filter popover, preview with the sharing toolbar, the display options popover, and the

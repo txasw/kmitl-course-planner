@@ -6,8 +6,8 @@ import { test, expect, gotoSelector, SELECTOR_URL } from './support/fixtures';
 // worker handler through the debug console handle, on the tab the browser reports
 // as active, which is the tab a real click would carry.
 
-const OVERLAY_NAME = 'ตัววางแผนตารางเรียน สจล.';
-const LAUNCHER_NAME = 'เปิด Course Planner for KMITL';
+const OVERLAY_NAME = 'KCP: ตัววางแผนตารางเรียน สจล.';
+const LAUNCHER_NAME = 'เปิด KCP: Course Planner for KMITL';
 
 // The debug worker exposes the extension API and the console handle as globals; the
 // test describes only the part it calls.

@@ -152,7 +152,7 @@ describe('PreviewPoster footer', () => {
     expect(svg?.querySelector('rect[rx="28"]')).not.toBeNull();
     expect(svg?.querySelector('rect[opacity="0.45"]')).not.toBeNull();
     expect(
-      screen.getByText('สร้างโดยตัววางแผนตารางเรียน สจล.'),
+      screen.getByText('สร้างโดย KCP: ตัววางแผนตารางเรียน สจล.'),
     ).toBeInTheDocument();
   });
 });

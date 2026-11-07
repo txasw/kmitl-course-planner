@@ -21,9 +21,9 @@ const NO_PLAN =
   'ใช้ Planner วางแผนตารางเรียนจากรายวิชาที่เปิดสอนในเว็บไซต์นี้ได้';
 const OPEN_PLANNER = 'เปิด Planner';
 const OPT_OUT = 'ไม่ต้องแสดงข้อความนี้อีก';
-const WELCOME = 'ขอบคุณที่ติดตั้ง Course Planner for KMITL';
-const LAUNCHER = 'เปิด Course Planner for KMITL';
-const OVERLAY = 'ตัววางแผนตารางเรียน สจล.';
+const WELCOME = 'ขอบคุณที่ติดตั้ง KCP: Course Planner for KMITL';
+const LAUNCHER = 'เปิด KCP: Course Planner for KMITL';
+const OVERLAY = 'KCP: ตัววางแผนตารางเรียน สจล.';
 const ROUTE = 'เปิดผลการค้นหานี้ใน Planner เพื่อจัดกลุ่มเรียนลงตาราง';
 const OPEN_IN_PLANNER = 'เปิดใน Planner';
 const SEARCH_BAR = 'การค้นหาปัจจุบัน';

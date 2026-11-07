@@ -11,7 +11,7 @@ import { isPhone } from './support/tiers';
 
 test.use({ onboarding: 'fresh' });
 
-const WELCOME = 'ขอบคุณที่ติดตั้ง Course Planner for KMITL';
+const WELCOME = 'ขอบคุณที่ติดตั้ง KCP: Course Planner for KMITL';
 const START = 'เริ่มวางแผน';
 const MIN_TARGET_PX = 44;
 

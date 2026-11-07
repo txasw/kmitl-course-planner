@@ -25,7 +25,7 @@ import type { JSHandle, Locator, Page } from '@playwright/test';
 // sheet, and Escape closes the innermost open layer first. With the docked column
 // hidden, Tab from the header reaches the edge rail before the grid.
 
-const OVERLAY_NAME = 'ตัววางแผนตารางเรียน สจล.';
+const OVERLAY_NAME = 'KCP: ตัววางแผนตารางเรียน สจล.';
 const GRID_NAME = 'ตารางเรียนรายสัปดาห์';
 // The week grid on the wider tiers and the one day grid on the phone share this prefix.
 const ANY_GRID_NAME = /^ตารางเรียน/;

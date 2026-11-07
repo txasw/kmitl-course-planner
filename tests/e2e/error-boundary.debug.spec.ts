@@ -30,7 +30,7 @@ test('the panel error boundary shows a recovery card and recovers', async ({
     page.getByRole('button', { name: 'ปิด', exact: true }),
   ).toBeVisible();
   await expect(
-    page.locator('button[aria-label="เปิด Course Planner for KMITL"]'),
+    page.locator('button[aria-label="เปิด KCP: Course Planner for KMITL"]'),
   ).toBeAttached();
 
   // Reloading the panel clears the error and rebuilds the body, so the search tabs

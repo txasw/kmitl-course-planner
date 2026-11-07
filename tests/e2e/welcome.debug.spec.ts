@@ -11,10 +11,10 @@ import { waitForInstallTab } from './support/onboarding';
 
 test.use({ onboarding: 'fresh' });
 
-const WELCOME = 'ขอบคุณที่ติดตั้ง Course Planner for KMITL';
+const WELCOME = 'ขอบคุณที่ติดตั้ง KCP: Course Planner for KMITL';
 const START = 'เริ่มวางแผน';
-const LAUNCHER = 'เปิด Course Planner for KMITL';
-const OVERLAY = 'ตัววางแผนตารางเรียน สจล.';
+const LAUNCHER = 'เปิด KCP: Course Planner for KMITL';
+const OVERLAY = 'KCP: ตัววางแผนตารางเรียน สจล.';
 
 function selectorTabs(context: BrowserContext): Page[] {
   return context.pages().filter((page) => page.url() === SELECTOR_URL);
