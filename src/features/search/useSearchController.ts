@@ -96,9 +96,6 @@ export function useSearchInit(
       return;
     }
     void load.then((persisted) => {
-      if (persisted) {
-        searchStore.getState().hydrate(persisted);
-      }
       const sources = {
         route: initialRoute.current,
         persisted:
@@ -112,15 +109,11 @@ export function useSearchInit(
         plan: activePlanTerm(),
         current: null,
       });
-      // The hydrated search already carries its shared term.
-      if (initial.source === 'persisted') {
-        return;
-      }
+      // One write lands the forms and the term together.
+      searchStore.getState().seedSearch(persisted, initial);
       if (initial.source !== 'fallback') {
-        searchStore.getState().seedTerm(initial.term);
         return;
       }
-      searchStore.getState().seedFallbackTerm(initial.term);
       void send({ type: 'ref/currentTerm' }).then((result) => {
         // The plan is read again because plans may have hydrated meanwhile. A failed
         // fetch resolves without a current term, so the term settles on that plan or
