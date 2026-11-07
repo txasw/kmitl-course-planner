@@ -1,53 +1,78 @@
-# Store listing and submission runbook
+# Store listing and update runbook
 
-This document is the submission runbook for the first public release. It holds the
-listing copy in Thai and English, the single purpose statement, the permission
-justifications, the data disclosure answers, the screenshot plan, the compliance
-sweep results, and the exact dashboard steps for a manual first submission to each
-store. Publishing stays a manual dashboard action for the first listed release.
+This document is the runbook for updating the published store listings. It holds the
+listing copy in Thai and English, the fields to paste into each store dashboard, the
+single purpose statement, the permission justifications, the data disclosure answers,
+the screenshot plan, the compliance sweep results, and the steps for uploading a new
+version to each store.
 
 ## Product identity
 
-- Display name: Course Planner for KMITL (short form KCP).
+- Display name: KCP: Course Planner for KMITL (ADR-0065).
+- Chrome Web Store listing:
+  https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef. Chrome,
+  Edge, Brave, Opera, and other Chromium browsers install from it.
+- Firefox Add-ons listing: https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/.
+  The listing is live, with version 1.3.0 listed at the time of writing.
+- Project site: https://kcp.cecs.sh/
 - This is an independent student tool. It is not affiliated with, sponsored by, or
   endorsed by King Mongkut's Institute of Technology Ladkrabang (KMITL).
 - Category: Chrome Web Store, Education (Productivity is an acceptable alternative);
   Firefox Add-ons, Other.
 - Primary language: Thai. Secondary language: English.
 - Privacy policy URL: https://github.com/txasw/kmitl-course-planner/blob/main/docs/PRIVACY.md
-- Homepage and support URL: https://github.com/txasw/kmitl-course-planner
+- Support URL: https://github.com/txasw/kmitl-course-planner/issues
+- Source repository: https://github.com/txasw/kmitl-course-planner
 
 ## Descriptions
 
+Every full description opens with the independence notice. The Chrome Web Store summary
+comes from the manifest and is capped at 132 characters, which leaves no room for the
+notice, so the full description carries it first.
+
 ### English, short summary
 
-A weekly timetable planner for KMITL course registration. Search offerings, remove
-the duplicated rows, and plan your sections on a drag and drop grid with conflict
-detection.
+This is the manifest `description`, which the Chrome Web Store shows as the summary:
+
+KCP is a timetable planner for KMITL students. Search course offerings and plan sections
+on a weekly grid with conflict checks.
+
+### English, Firefox Add-ons summary
+
+KCP is a KMITL course planner for pre registration. Search the course offerings, merge
+the duplicate rows, and plan your sections on a weekly grid with conflict checks. An
+independent student tool, not affiliated with KMITL.
 
 ### English, full description
 
-Course Planner for KMITL (KCP) is an independent tool built by a student. It is not
+KCP: Course Planner for KMITL is an independent tool built by a student. It is not
 affiliated with, sponsored by, endorsed by, or officially connected to King Mongkut's
 Institute of Technology Ladkrabang (KMITL). It reads only the public course data the
 registration site already exposes.
 
-The KMITL registration site lists course offerings as a dense table that repeats the
-same section across curriculum groupings, which makes it hard to plan by hand. This
-extension reads that same public data, removes the duplicated rows, and presents it as
-an interactive weekly timetable.
+KCP is a KMITL course planner for pre registration. The KMITL registration site lists
+course offerings as a dense table that repeats the same section across curriculum
+groupings, which makes it hard to plan by hand. KCP reads that same public data, removes
+the duplicated rows, and presents it as an interactive weekly timetable.
 
 What it does:
 
 - Search the course offerings by curriculum and class year, by subject id, or by
   subject category, the same three ways the registration site offers.
-- Build a weekly plan by adding sections to a drag and drop grid.
-- See time conflicts before you commit a section, with clear reasons and suggested
-  alternatives.
-- Keep several named plans per term, saved on your device and restored on reload.
+- Scan the results as compact course cards, open the sections you need, and compare the
+  sections of a course in one table.
+- Build a weekly plan by dragging sections onto the timetable or with the add buttons.
+- See time and exam conflicts before you commit a section, with clear reasons and
+  suggested alternatives.
+- Get up to three conflict free timetable suggestions from a curriculum search.
+- Keep several named plans per term, saved on your device and restored on reload, and
+  review them as a timetable, a list of selected courses, or an exam summary.
 - Revalidate a plan against the live data when you open it, so a changed time or a
   removed section is flagged rather than silently wrong.
-- Export a plan as an image to share, or copy it as plain text for chat apps.
+- Export a plan as an image at a fixed size for sharing, a phone or tablet wallpaper, or
+  print, or copy it as plain text for chat apps, with an optional exam schedule.
+- Open the planner from the Planner button on the registration site, from the toolbar
+  icon, or with Alt+Shift+P (Option+Shift+P on macOS).
 
 Privacy: all data stays in your browser. There is no account, no backend, and no
 analytics or telemetry of any kind. The extension is read only with respect to the
@@ -55,50 +80,96 @@ registration site; it never submits forms and never performs registration action
 
 ### Thai, short summary
 
-โปรแกรมช่วยจัดตารางเรียนรายสัปดาห์สำหรับการลงทะเบียนเรียนของ สจล. ค้นหารายวิชา รวมรายการที่ซ้ำ
-และวางแผนกลุ่มเรียนบนตารางแบบลากวาง พร้อมตรวจเวลาที่ชนกัน
+KCP ส่วนขยายสำหรับจัดตารางเรียน สจล. ค้นหารายวิชาที่เปิดสอน รวมรายการที่ซ้ำ และวางแผนกลุ่มเรียน
+บนตารางรายสัปดาห์พร้อมตรวจเวลาที่ชนกัน เป็นเครื่องมืออิสระของนักศึกษา ไม่เกี่ยวข้องกับ สจล.
 
 ### Thai, full description
 
-Course Planner for KMITL (KCP) เป็นเครื่องมือที่พัฒนาโดยนักศึกษาอย่างอิสระ ไม่มีความเกี่ยวข้อง
+KCP: Course Planner for KMITL เป็นเครื่องมือที่พัฒนาโดยนักศึกษาอย่างอิสระ ไม่มีความเกี่ยวข้อง
 ไม่ได้รับการสนับสนุน และไม่ได้รับการรับรองจากสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง (สจล.)
 โปรแกรมอ่านเฉพาะข้อมูลรายวิชาที่เปิดเผยเป็นสาธารณะบนหน้าลงทะเบียนอยู่แล้วเท่านั้น
 
-หน้าลงทะเบียนของ สจล. แสดงรายวิชาที่เปิดสอนเป็นตารางที่มีรายการเดียวกันซ้ำกันในหลายกลุ่มหลักสูตร
-ทำให้วางแผนด้วยตนเองได้ยาก ส่วนขยายนี้อ่านข้อมูลสาธารณะชุดเดียวกัน รวมรายการที่ซ้ำ และแสดงผลเป็น
-ตารางเรียนรายสัปดาห์ที่ใช้งานแบบโต้ตอบได้
+KCP ช่วยจัดตารางเรียน สจล. และวางแผนลงทะเบียนเรียน KMITL ล่วงหน้า หน้าลงทะเบียนของ สจล.
+แสดงรายวิชาที่เปิดสอนเป็นตารางที่มีรายการเดียวกันซ้ำกันในหลายกลุ่มหลักสูตร ทำให้วางแผนด้วยตนเองได้ยาก
+KCP อ่านข้อมูลสาธารณะชุดเดียวกัน รวมรายการที่ซ้ำ และแสดงผลเป็นตารางเรียนรายสัปดาห์ที่ใช้งานแบบโต้ตอบได้
 
 ความสามารถ:
 
 - ค้นหารายวิชาตามหลักสูตรและชั้นปี ตามรหัสวิชา หรือตามหมวดวิชา ตรงกับสามวิธีที่หน้าลงทะเบียนมีให้
-- จัดตารางรายสัปดาห์โดยเพิ่มกลุ่มเรียนลงในตารางแบบลากวาง
-- เห็นเวลาที่ชนกันก่อนเพิ่มกลุ่มเรียน พร้อมเหตุผลและตัวเลือกอื่นที่แนะนำ
+- ดูผลการค้นหาเป็นการ์ดรายวิชาแบบย่อ เปิดดูเฉพาะกลุ่มเรียนที่ต้องการ และเปรียบเทียบกลุ่มเรียนของวิชาเดียวกันในตารางเดียว
+- จัดตารางรายสัปดาห์โดยลากกลุ่มเรียนลงในตาราง หรือใช้ปุ่มเพิ่ม
+- เห็นเวลาเรียนและเวลาสอบที่ชนกันก่อนเพิ่มกลุ่มเรียน พร้อมเหตุผลและตัวเลือกอื่นที่แนะนำ
+- รับตารางที่แนะนำซึ่งไม่มีเวลาชนกันได้สูงสุดสามแบบจากการค้นหาตามหลักสูตร
 - เก็บตารางที่ตั้งชื่อได้หลายตารางต่อหนึ่งภาคการศึกษา บันทึกไว้บนเครื่องและกลับมาแสดงเมื่อโหลดหน้าใหม่
+  และดูได้ทั้งแบบตารางเรียน รายการวิชาที่เลือก และสรุปตารางสอบ
 - ตรวจสอบตารางกับข้อมูลจริงเมื่อเปิด เพื่อแจ้งเตือนเมื่อเวลาถูกเปลี่ยนหรือกลุ่มเรียนถูกถอนออก
-- ส่งออกตารางเป็นรูปภาพเพื่อแชร์ หรือคัดลอกเป็นข้อความสำหรับแอปแชท
+- ส่งออกตารางเป็นรูปภาพตามขนาดที่กำหนดสำหรับแชร์ ภาพพื้นหลังโทรศัพท์หรือแท็บเล็ต หรือพิมพ์
+  หรือคัดลอกเป็นข้อความสำหรับแอปแชท และเลือกแสดงตารางสอบได้
+- เปิดตัววางแผนได้จากปุ่ม Planner บนหน้าลงทะเบียน จากไอคอนบนแถบเครื่องมือ หรือกด Alt+Shift+P
+  (Option+Shift+P บน macOS)
 
 ความเป็นส่วนตัว: ข้อมูลทั้งหมดอยู่ในเบราว์เซอร์ของคุณ ไม่มีบัญชีผู้ใช้ ไม่มีเซิร์ฟเวอร์ และไม่มีการเก็บสถิติ
 หรือการติดตามใด ๆ ส่วนขยายนี้อ่านข้อมูลอย่างเดียวจากหน้าลงทะเบียน ไม่กรอกหรือส่งแบบฟอร์ม และไม่ทำ
 รายการลงทะเบียนแทนผู้ใช้
 
+## Search and discovery
+
+Students look for the tool with phrases such as KCP KMITL, KMITL course planner,
+จัดตารางเรียน สจล., and วางแผนลงทะเบียนเรียน KMITL. The title carries KCP and KMITL
+together, and the descriptions above work the other phrases into plain sentences. Do not
+add keyword lists, repeated terms, or other brand names: both stores treat keyword
+stuffing as spam.
+
+Only two fields come from the package. The manifest `name` sets the item title, KCP:
+Course Planner for KMITL, and the manifest `description` sets the Chrome Web Store
+summary. Both update when a new package is uploaded. Every other field is set by hand.
+
+Chrome Web Store developer dashboard, Store listing tab:
+
+- Description: paste the English full description, a blank line, and then the Thai full
+  description. The package declares no locale folders, so the listing has one
+  description field.
+- Category: Education.
+- Homepage URL: https://kcp.cecs.sh/
+- Support URL: https://github.com/txasw/kmitl-course-planner/issues
+- Screenshots: the five shots below, in order.
+
+Firefox Add-on Developer Hub, Edit Product Page:
+
+- Name: KCP: Course Planner for KMITL. Check it after each upload, since the hub keeps
+  its own copy of the listing name.
+- Summary: the English Firefox Add-ons summary, and the Thai short summary in the Thai
+  locale.
+- Description: the English full description, and the Thai full description in the Thai
+  locale.
+- Homepage: https://kcp.cecs.sh/
+- Support site: https://github.com/txasw/kmitl-course-planner/issues
+
+The README heading and the project site lead with the same name, so a web search for
+KCP KMITL finds the repository, the project site, and both listings under one title.
+
 ## Chrome Web Store, single purpose statement
 
-Course Planner for KMITL is a visual weekly timetable planner for KMITL students. It
-reads the public course offering data the registration site already exposes, removes
+KCP: Course Planner for KMITL is a visual weekly timetable planner for KMITL students.
+It reads the public course offering data the registration site already exposes, removes
 duplicate rows, and presents it as an interactive weekly grid with conflict detection,
-saved plans, and image export. It does not register for courses and does not modify
-the registration site.
+saved plans, and image export. It does not register for courses and does not modify the
+registration site.
 
 ## Permission justifications
 
 These are written for the Chrome Web Store privacy tab and reused for the AMO notes to
 reviewers. Each states what the permission is for and that data stays on the device.
 
-- storage: Save the student's timetable plans and cache the public reference data
-  (faculty, department, curriculum, and subject lists) on the device, so the interface
-  loads quickly and plans survive page reloads. No data leaves the browser.
+- storage: Save the student's timetable plans, interface preferences, the last search on
+  each search tab, and the install and onboarding records on the device. Cache the
+  public reference data (faculty, department, curriculum, and subject lists, and the
+  current registration term) for a day and recent course search results for ten minutes, so the interface loads quickly and
+  plans survive page reloads. Session storage holds a short lived record of a tab the
+  extension opened, so that tab can open the planner. No data leaves the browser.
 - Host access to https://regis.reg.kmitl.ac.th/*: Mount the planner interface on the
-  registration site and read the public teach table course data the site itself loads.
+  registration site, read the public teach table course data the site itself loads, and
+  read the current registration term that sets the default term of the search form.
   Read only; the extension never submits forms and never performs registration actions.
 - Host access to https://api.reg.kmitl.ac.th/*: Read the public faculty, department,
   curriculum, and subject owner reference lists used to build the search filters. Read
@@ -108,9 +179,17 @@ reviewers. Each states what the permission is for and that data stays on the dev
 First run note for reviewers. On first install the extension opens one tab at
 https://regis.reg.kmitl.ac.th/#/teach_table_selector, the registration site's own
 course search page, and shows a one time welcome there that explains the planner. It
-opens the tab only when both host permissions are granted, never on an update, and
-never again after the first install. The tab is opened with `tabs.create`, which needs
-no `tabs` permission.
+opens that tab only when both host permissions are granted and never on an update. The
+tab is opened with `tabs.create`, which needs no `tabs` permission.
+
+Toolbar note for reviewers. The toolbar icon and its shortcut, Alt+Shift+P, open the
+planner only when the user clicks or presses them. On a registration page the panel
+opens in that tab through `tabs.sendMessage`. From any other tab the extension brings
+forward the search page it opened moments before with `tabs.update` and
+`windows.update`, or opens the search page with `tabs.create`. None of these calls needs
+the `tabs` permission. On Firefox, where host access can be withheld, each click asks for
+the two KMITL origins through `permissions.request`, and Firefox shows a prompt only
+while they are not granted.
 
 ## Data disclosure
 
@@ -145,15 +224,16 @@ notice.
 
 Using the institution name is a nominative reference to the site the tool serves, not a
 claim of affiliation. The mitigations are recorded and in place: the display name leads
-with the function (Course Planner for KMITL, not KMITL Course Planner), the independence
-notice appears in the listing, the README, and the privacy statement, and the icon is an
-original mark, never the university seal or logo. If a reviewer still objects to the
-institution appearing in the name, the fallback is the bare KCP form (ADR 0033 records
-the identity decision path).
+with the product's own short form and its function (KCP: Course Planner for KMITL, not
+KMITL Course Planner), the independence notice appears in every listing description, the
+README, and the privacy statement, and the icon is an original mark, never the university
+seal or logo. If a reviewer still objects to the institution appearing in the name, the
+fallback is the bare KCP form (ADR-0032 records the identity decision path, and ADR-0065
+the KCP prefix).
 
 ## Compliance sweep results
 
-Reviewed against current store policies on 2026-07-11.
+Reviewed against current store policies on 2026-07-11, for the first release.
 
 Chrome Web Store:
 
@@ -183,14 +263,17 @@ To reproduce the lint: `pnpm build -b firefox` then
 ## Images and screenshots
 
 Assets to capture on the live site at
-https://regis.reg.kmitl.ac.th/#/teach_table_selector before submission.
+https://regis.reg.kmitl.ac.th/#/teach_table_selector with the built production
+extension.
 
-Capture all five screenshots on v1.2.0, the debut submission build, with the built
-production extension. The v1.2.0 design-review train changed the catalog rows, the timetable
-blocks, and the preview export surface, so every screenshot must show the shipped v1.2.0
-interface: the redesigned blocks that lead with the time and show the building, the vertical
-add rail on a section row, and the export template picker in preview mode. This one session
-supersedes the earlier owed recapture.
+Capture all five screenshots on v1.4.0, the build the next update ships. The v1.4.0
+layout train changed most of the captured surfaces, so earlier screenshots no longer
+match: the launcher is an orange pill with the Planner label, the search form sits at the
+top of the course column with no separate search column, course cards start collapsed,
+each section row carries one status badge, timetable blocks lead with the subject name
+and show the building and room on the second line with the time at the foot, a stats bar
+under the plan replaces the footer and the revalidation banner, and plan view tabs sit
+above the timetable.
 
 - Store icon: 128 by 128 pixels. Reuse `public/icon/128.png`.
 - Screenshots: 1280 by 800 pixels, at least one and up to five. Full bleed, square
@@ -200,15 +283,17 @@ supersedes the earlier owed recapture.
 
 Screenshot shot list, each captioned:
 
-1. The launcher on the registration site. Caption: Open the planner from any page of the
-   registration site.
-2. Search and the deduplicated course list, showing the vertical add rail on a section
-   row. Caption: Search offerings and see unique sections, with duplicate rows merged.
-3. The weekly grid with a placed schedule, showing the redesigned blocks that lead with
-   the time and name the room and building. Caption: Build your week on a drag and drop
-   timetable.
-4. Conflict feedback during a blocked placement. Caption: See time conflicts before you
-   commit, with suggested alternatives.
+1. The Planner pill launcher on the registration site, with the entry prompt beside it.
+   Caption: Open the planner from the registration site, the toolbar icon, or
+   Alt+Shift+P.
+2. The course column with the search form on top and the deduplicated results, one card
+   open to show its section rows and their status badges. Caption: Search offerings and
+   see unique sections, with duplicate rows merged.
+3. The weekly grid with a placed schedule, showing blocks that lead with the subject name
+   and show the building and room as the second line, the plan view tabs above it, and
+   the stats bar below. Caption: Build your week on a drag and drop timetable.
+4. Conflict feedback during a blocked placement. Caption: See time and exam conflicts
+   before you commit, with suggested alternatives.
 5. Preview mode with the export gallery: the selected poster centred, the neighbouring
    templates peeking at both edges, and the dot picker with the size caption below. Caption:
    Preview and pick an export at a fixed size, a phone or tablet wallpaper in either
@@ -223,57 +308,62 @@ working material by construction (see the zip config in `wxt.config.ts`) and con
 lockfile and everything needed to rebuild. The build instructions the reviewer follows
 are the Building from source section of the README.
 
-## Chrome Web Store submission steps (manual, first release)
+## Chrome Web Store update steps
 
-1. Sign in to the Chrome Web Store developer dashboard with the developer account
-   (a one time registration fee applies to the account, not to each item).
-2. Choose Add new item and upload the Chrome zip from the GitHub release,
-   `kmitl-course-planner-<version>-chrome.zip`.
-3. On the Store listing tab, set the display name Course Planner for KMITL, paste the
-   English and Thai descriptions, choose the Education category, set the language, and
-   upload the store icon and the screenshots.
-4. On the Privacy tab, paste the single purpose statement, add the permission
-   justification for storage and for each host permission, answer No to remote code,
-   leave every data type unchecked, affirm the three limited use certifications, and set
-   the privacy policy URL.
-5. Submit for review. Keep the item in the account until the review completes.
+1. Sign in to the Chrome Web Store developer dashboard with the developer account.
+2. Open the existing item, id `bkjijmajieoojchaknjdpbkaomnofnef`. On the Package tab,
+   choose Upload new package and upload the Chrome zip from the GitHub release,
+   `kmitl-course-planner-<version>-chrome.zip`. The `publish-chrome` job in the release
+   workflow can upload the same zip instead, after its environment approval (see
+   Publishing credentials).
+3. On the Store listing tab, confirm the name and summary read from the new package,
+   and update the fields listed in Search and discovery when the listing copy or the
+   screenshots changed.
+4. On the Privacy tab, update the permission justifications when they changed, keep the
+   single purpose statement, answer No to remote code, leave every data type unchecked,
+   and keep the privacy policy URL.
+5. Submit for review. The listed version stays live until the review completes.
 
-## Firefox Add-ons submission steps (manual, first release)
+## Firefox Add-ons update steps
 
-1. Sign in to the Firefox Add-on Developer Hub with the AMO account.
-2. Choose Submit a New Add-on and upload the Firefox zip from the GitHub release,
-   `kmitl-course-planner-<version>-firefox.zip`. The add-on id is
-   `kmitl-course-planner@txasw.github.io`.
-3. When asked whether the add-on needs its source code submitted, choose yes and upload
+1. Sign in to the Firefox Add-on Developer Hub with the AMO account and open the
+   existing add-on, id `kmitl-course-planner@txasw.github.io`.
+2. Choose Upload New Version and upload the Firefox zip from the GitHub release,
+   `kmitl-course-planner-<version>-firefox.zip`. The `publish-firefox` job in the release
+   workflow can submit the same zip and the sources zip instead, after its environment
+   approval.
+3. When asked whether the version needs its source code submitted, choose yes and upload
    the sources zip, `kmitl-course-planner-<version>-sources.zip`. Point the build notes
-   to the README Building from source section.
-4. Complete the listing with the display name, the English and Thai summaries and
-   descriptions, the Other category, the screenshots, and the privacy policy URL.
-5. Submit for review.
+   to the README Building from source section, and paste the reviewer notes from
+   Permission justifications.
+4. On Edit Product Page, update the fields listed in Search and discovery when the
+   listing copy or the screenshots changed.
+5. Submit the version for review.
 
 ## Publishing credentials
 
-The automated publish jobs stay gated behind the `chrome-web-store` and `amo` GitHub
-environments, each with a required reviewer. They are not used for the first release,
-which is submitted manually through the dashboards above. Before enabling automated
-submission for a later release, add these environment secrets.
+The automated publish jobs in `.github/workflows/release.yml` are gated behind the
+`chrome-web-store` and `amo` GitHub environments, each with a required reviewer, so no
+upload runs without an explicit approval. The environment secrets are configured.
 
-Chrome Web Store, from the Chrome Web Store API setup for an OAuth client:
+Chrome Web Store, on the `chrome-web-store` environment, from the Chrome Web Store API
+setup for an OAuth client:
 
 - CHROME_EXTENSION_ID
 - CHROME_CLIENT_ID
 - CHROME_CLIENT_SECRET
 - CHROME_REFRESH_TOKEN
 
-Firefox AMO, from the AMO API key page, along with the gecko add-on id recorded in the
-manifest:
+Firefox AMO, on the `amo` environment, from the AMO API key page and the gecko add-on id
+recorded in the manifest:
 
+- FIREFOX_EXTENSION_ID
 - FIREFOX_JWT_ISSUER
 - FIREFOX_JWT_SECRET
 
-## Account credentials to have ready
+## Accounts
 
-- A Chrome Web Store developer account (the one time registration fee is paid once per
-  account).
-- A Firefox Add-ons (AMO) developer account.
-- The five listing images described above, captured at the stated dimensions.
+- The Chrome Web Store developer account that owns the item.
+- The Firefox Add-ons (AMO) developer account that owns the add-on.
+- The five listing images described above, captured at the stated dimensions, when a
+  release changes the captured surfaces.
