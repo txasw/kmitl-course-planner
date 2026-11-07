@@ -109,6 +109,15 @@ button. Never skip it.
       blocked drags. Outcomes convey through color and text with no settle, pulse, or
       shake.
 - [ ] Persistence: reload the page. The last used mode and language persist.
+- [ ] Data time: run a search. The summary bar reads ข้อมูล ณ with the fetch time
+      beside the course count. Leave the panel open past ten minutes; the line turns
+      warn and its clock becomes a warning sign. Press โหลดผลค้นหาใหม่; focus stays on
+      it while the results load, and the time moves to the new fetch.
+- [ ] Rerun after reload: run a search, then reload the page and open the panel. The
+      catalog shows the summary bar of that search, folded, with ค้นหาอีกครั้ง, and the
+      full form never flashes first. Press ค้นหาอีกครั้ง; the results load and focus
+      stays on the control, which becomes the refresh. Reload a host result page on
+      another term instead, and the form opens on that term with no bar.
 - [ ] Large category latency: run a by subject owner or all curricula search on a
       large category. If it runs past eight seconds, the catalog shows the slow query
       notice with a cancel action while the request continues. Let one such search
