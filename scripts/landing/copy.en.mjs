@@ -19,7 +19,7 @@ export const en = {
     features: 'Features',
     start: 'Get started',
     faq: 'FAQ',
-    home: 'KCP home',
+    home: 'home',
   },
   other: { text: 'ภาษาไทย', lang: 'th', href: '/' },
   install: 'Install',
