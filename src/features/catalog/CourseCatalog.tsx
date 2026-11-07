@@ -12,7 +12,7 @@ import {
   type MouseEvent,
 } from 'react';
 import { useStore } from 'zustand';
-import { ChevronsDownUp, ChevronsUpDown, RefreshCw } from 'lucide-react';
+import { ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
@@ -136,11 +136,9 @@ const SUMMARY_ACTION = `inline-flex shrink-0 items-center gap-1 rounded-kcp bord
 
 interface CourseCatalogProps {
   catalog: NormalizedCatalog;
-  /** Called with the pressed control, which unmounts once the refresh starts loading. */
-  onRefresh: (from: Element) => void;
 }
 
-export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
+export function CourseCatalog({ catalog }: CourseCatalogProps) {
   const { t, language } = useTranslation();
   const placed = usePlacedSections();
   const activePlan = useActivePlan();
@@ -326,34 +324,22 @@ export function CourseCatalog({ catalog, onRefresh }: CourseCatalogProps) {
           multiMeeting={catalog.multiMeetingCount}
           t={t}
         />
-        <div className="flex shrink-0 items-center gap-2">
-          {/* A one course result opens on its own, and an empty filter leaves
-              nothing to act on, so the control shows only for a list. */}
-          {singleCourse || filtered.length === 0 ? null : (
-            <button
-              type="button"
-              onClick={handleToggleAll}
-              className={SUMMARY_ACTION}
-            >
-              {anyOpen ? (
-                <ChevronsDownUp size={12} strokeWidth={2} aria-hidden />
-              ) : (
-                <ChevronsUpDown size={12} strokeWidth={2} aria-hidden />
-              )}
-              {t(anyOpen ? 'catalog.collapseAll' : 'catalog.expandAll')}
-            </button>
-          )}
+        {/* A one course result opens on its own, and an empty filter leaves nothing
+            to act on, so the control shows only for a list. */}
+        {singleCourse || filtered.length === 0 ? null : (
           <button
             type="button"
-            onClick={(event) => {
-              onRefresh(event.currentTarget);
-            }}
+            onClick={handleToggleAll}
             className={SUMMARY_ACTION}
           >
-            <RefreshCw size={12} strokeWidth={2} aria-hidden />
-            {t('catalog.refresh')}
+            {anyOpen ? (
+              <ChevronsDownUp size={12} strokeWidth={2} aria-hidden />
+            ) : (
+              <ChevronsUpDown size={12} strokeWidth={2} aria-hidden />
+            )}
+            {t(anyOpen ? 'catalog.collapseAll' : 'catalog.expandAll')}
           </button>
-        </div>
+        )}
       </div>
       {banner}
       <FilterBar creditOptions={creditOptions} />

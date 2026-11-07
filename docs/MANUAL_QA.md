@@ -331,7 +331,7 @@ add and remove controls, so no action is a dead end for the keyboard.
       with the credit, subject, clash, and per day load totals, each day read by its full
       name. The poster footer line reads as its own labeled group.
 - [ ] Focus ring sweep: keyboard only, Tab through the search selects and inputs, the
-      catalog filter field, the day chips, the credit control, the refresh button, the plan
+      catalog filter field, the day chips, the credit control, the summary bar refresh, the plan
       rename field, and the preview toolbar buttons. Each light control shows the inset
       orange ring fully inside its box, never clipped, including a field scrolled to the rail
       edge and a control inside the narrow viewport catalog drawer. The filled primary
