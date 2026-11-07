@@ -503,3 +503,33 @@ set aside for a modal that hides the rest of the panel from assistive technology
   speak again from there.
 
 `src/features/shell/liveRegions.test.tsx` lists the node with the table that owns it.
+
+## Amendment, 2026-11-07: the data time and the search after a reload
+
+The decision above opened the form whenever no result existed, so a page reload always met the
+student with the full form, even though the last search is kept in storage. The bar now carries
+the data time and the one action on the result, and a reload restores the bar.
+
+- Once a catalog settles, the bar reads ข้อมูล ณ with the time the worker fetched the courses. A
+  cache hit reports the time of the fetch that filled the cache, not the time it was read, and an
+  entry stored before fetch times were kept reads as a miss rather than showing an invented age.
+  Past the ten minute cache lifetime the line turns warn and its clock becomes a warning sign, so
+  the cue does not rest on colour alone. One timer is armed for that moment instead of a ticking
+  clock. The time is transport metadata, so it travels beside the normalized catalog in the
+  worker answer rather than inside it.
+- The catalog refresh moves into the bar as an icon button named โหลดผลค้นหาใหม่, beside the time
+  it acts on, so it no longer shares a label with the plan check. It runs in the background and
+  bypasses the cache, and only a refresh that changed nothing confirms itself through a toast.
+- After a reload the persisted search reopens folded into its bar, with ค้นหาอีกครั้ง in place of
+  the refresh. The rerun is a user search, so the status announcer speaks its outcome and the
+  input guard applies, and it reuses the worker cache while that is still valid. It runs only when
+  pressed, since the host should see one request per explicit action. The rerun and the refresh
+  are one element, so focus stays on it when the press turns one into the other, and it stays
+  mounted while the query runs, held through aria-disabled and described by the busy text beside
+  it.
+- The stored search starts loading when the content script mounts, so it is ready by the first
+  open, while the term seed still waits for that open, so a host result route captured then wins.
+  A route on another term opens the form on that term with no bar, since a bar naming the other
+  term would describe a search the form no longer holds. The forms, the term and the restored bar
+  land in one store write, and until it lands the search head holds a fixed placeholder with
+  neither the form nor the bar, so nothing paints and then flips.
