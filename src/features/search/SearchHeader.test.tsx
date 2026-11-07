@@ -6,6 +6,7 @@ import {
   fireEvent,
   cleanup,
   act,
+  waitFor,
 } from '@testing-library/react';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import type { RequestMessage, TeachTableQuery } from '@/lib/messaging/protocol';
@@ -24,6 +25,7 @@ import {
 import { makeCourse } from '../../../tests/support/domain-builders';
 import { loadFixture } from '../../../tests/support/fixtures';
 import { TEACH_TABLE_TTL_MS } from '@/lib/storage/keys';
+import { toastStore } from '@/features/shell/toastStore';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
 import { SearchDepsProvider } from './SearchDepsContext';
 import { SearchHeader } from './SearchHeader';
@@ -338,14 +340,44 @@ describe('search focus', () => {
     expect(document.activeElement?.id).toBe(SEARCH_BAR_ID);
   });
 
-  it('moves focus to the bar when a refresh replaces the catalog', async () => {
+  it('keeps focus on the refresh while it runs', async () => {
     renderColumn(answerOnceSend(ok(catalog)));
     fireEvent.click(screen.getByRole('button', { name: 'ค้นหา' }));
-    const refresh = await screen.findByRole('button', { name: 'รีเฟรช' });
+    await screen.findByText('ข้อมูล ณ', { exact: false });
+    const refresh = screen.getByRole('button', { name: 'โหลดผลค้นหาใหม่' });
     refresh.focus();
     fireEvent.click(refresh);
     expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true');
-    expect(document.activeElement?.id).toBe(SEARCH_BAR_ID);
+    // The control stays in place, held and described by the busy text beside it.
+    expect(refresh).toHaveFocus();
+    expect(refresh).toHaveAttribute('aria-disabled', 'true');
+    expect(refresh).toHaveAccessibleDescription('กำลังค้นหารายวิชา');
+  });
+
+  it('starts nothing from a held refresh', () => {
+    const counting = countingSend();
+    renderColumn(counting.send);
+    fireEvent.click(screen.getByRole('button', { name: 'ค้นหา' }));
+    const refresh = screen.getByRole('button', { name: 'โหลดผลค้นหาใหม่' });
+    expect(refresh).toHaveAttribute('aria-disabled', 'true');
+    fireEvent.click(refresh);
+    expect(counting.queries()).toBe(1);
+  });
+
+  it('toasts when a refresh returns unchanged data', async () => {
+    const send = ((message: RequestMessage) =>
+      message.type === 'teachTable/query'
+        ? Promise.resolve(ok(teachTableResult(catalog)))
+        : Promise.resolve(ok(null))) as unknown as TypedSend;
+    renderColumn(send);
+    fireEvent.click(screen.getByRole('button', { name: 'ค้นหา' }));
+    await screen.findByText('ข้อมูล ณ', { exact: false });
+    fireEvent.click(screen.getByRole('button', { name: 'โหลดผลค้นหาใหม่' }));
+    await waitFor(() => {
+      expect(toastStore.getState().toast?.message).toBe(
+        'ข้อมูลเป็นปัจจุบัน ไม่มีการเปลี่ยนแปลง',
+      );
+    });
   });
 
   // The error card's edit action shares the disclosure's label, so it is the one of the

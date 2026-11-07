@@ -102,9 +102,7 @@ afterEach(() => {
 
 describe('CourseCatalog', () => {
   it('reports the dedupe summary from the normalized totals', () => {
-    const { container } = render(
-      <CourseCatalog catalog={catalog} onRefresh={() => undefined} />,
-    );
+    const { container } = render(<CourseCatalog catalog={catalog} />);
     // The owner 32 capture dedupes 13 raw rows to 4 sections across 3 courses.
     expect(container.textContent).toContain('3 รายวิชา');
     expect(container.textContent).toContain('4 กลุ่มเรียน');
@@ -120,23 +118,13 @@ describe('CourseCatalog', () => {
     if (!result.ok) {
       throw new Error('fixture failed to normalize');
     }
-    const { container } = render(
-      <CourseCatalog catalog={result.value} onRefresh={() => undefined} />,
-    );
+    const { container } = render(<CourseCatalog catalog={result.value} />);
     expect(container.textContent).toContain('6 กลุ่มเรียนหลายคาบ');
-  });
-
-  it('invokes the refresh callback with the refresh control', () => {
-    const onRefresh = vi.fn();
-    render(<CourseCatalog catalog={catalog} onRefresh={onRefresh} />);
-    const refresh = screen.getByRole('button', { name: 'รีเฟรช' });
-    fireEvent.click(refresh);
-    expect(onRefresh).toHaveBeenCalledExactlyOnceWith(refresh);
   });
 
   it('renders the deduped courses under their subject type heading', () => {
     // After dedupe every owner 32 subject resolves to the GenEd heading.
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     expect(
       screen.getByRole('heading', { name: /กลุ่ม 1/ }),
     ).toBeInTheDocument();
@@ -162,7 +150,7 @@ describe('CourseCatalog', () => {
         }),
       ],
     };
-    render(<CourseCatalog catalog={multiGroup} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={multiGroup} />);
     expect(
       screen.getByRole('heading', { name: 'กลุ่มเอ' }),
     ).toBeInTheDocument();
@@ -172,7 +160,7 @@ describe('CourseCatalog', () => {
   });
 
   it('filters the courses by free text', () => {
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     expect(screen.getAllByRole('article')).toHaveLength(3);
     fireEvent.change(screen.getByRole('searchbox', { name: 'กรองรายการ' }), {
       target: { value: '90592033' },
@@ -183,7 +171,7 @@ describe('CourseCatalog', () => {
   });
 
   it('adds an open section to the plan from its add button', () => {
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     expandAll();
     const addButton = screen
       .getAllByRole('button', { name: /^เพิ่ม/ })
@@ -225,9 +213,7 @@ describe('CourseCatalog', () => {
         }),
       ],
     };
-    render(
-      <CourseCatalog catalog={conflictCatalog} onRefresh={() => undefined} />,
-    );
+    render(<CourseCatalog catalog={conflictCatalog} />);
     const addButton = screen
       .getAllByRole('button', { name: /^เพิ่ม/ })
       .find((button) => button.getAttribute('aria-disabled') !== 'true');
@@ -239,7 +225,7 @@ describe('CourseCatalog', () => {
   });
 
   it('announces a successful add', () => {
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     expandAll();
     const addButton = screen
       .getAllByRole('button', { name: /^เพิ่ม/ })
@@ -256,7 +242,7 @@ describe('CourseCatalog', () => {
     act(() => {
       seedActivePlan([], { id: 'p2', year: '2569', semester: '2' });
     });
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     expandAll();
     expect(screen.getAllByText('คนละภาค').length).toBeGreaterThan(0);
     // The banner names the browsed term and every add rail is disabled.
@@ -281,7 +267,7 @@ describe('CourseCatalog', () => {
 
 describe('CourseCatalog card disclosure', () => {
   it('collapses every card of a multi course result', () => {
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     const toggles = document.querySelectorAll('[data-course-toggle]');
     expect(toggles).toHaveLength(3);
     for (const node of toggles) {
@@ -294,7 +280,7 @@ describe('CourseCatalog card disclosure', () => {
       ...catalog,
       courses: catalog.courses.slice(0, 1),
     };
-    render(<CourseCatalog catalog={single} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={single} />);
     expect(document.querySelector('[data-course-toggle]')).toHaveAttribute(
       'aria-expanded',
       'true',
@@ -302,7 +288,7 @@ describe('CourseCatalog card disclosure', () => {
   });
 
   it('opens a card whose subject id the text filter names exactly', () => {
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     const filterBox = screen.getByRole('searchbox', { name: 'กรองรายการ' });
     fireEvent.change(filterBox, { target: { value: '9059203' } });
     expect(cardToggle('90592033')).toHaveAttribute('aria-expanded', 'false');
@@ -311,7 +297,7 @@ describe('CourseCatalog card disclosure', () => {
   });
 
   it('keeps a choice across a refresh and drops it for a new query', () => {
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     fireEvent.click(cardToggle('90592033'));
     expect(cardToggle('90592033')).toHaveAttribute('aria-expanded', 'true');
 
@@ -330,7 +316,7 @@ describe('CourseCatalog card disclosure', () => {
   });
 
   it('collapses an opened card once added and keeps it collapsed after a remove', () => {
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     expandAll();
     const addButton = screen
       .getAllByRole('button', { name: /^เพิ่ม/ })
@@ -361,7 +347,7 @@ describe('CourseCatalog expand all', () => {
   }
 
   it('opens every card, then flips to collapse every card', () => {
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     fireEvent.click(screen.getByRole('button', { name: 'ขยายทั้งหมด' }));
     for (const node of document.querySelectorAll('[data-course-toggle]')) {
       expect(node).toHaveAttribute('aria-expanded', 'true');
@@ -373,7 +359,7 @@ describe('CourseCatalog expand all', () => {
   });
 
   it('offers collapse once any visible card is open', () => {
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     fireEvent.click(cardToggle('90592033'));
     expect(
       screen.getByRole('button', { name: 'ย่อทั้งหมด' }),
@@ -381,7 +367,7 @@ describe('CourseCatalog expand all', () => {
   });
 
   it('changes every card with no transition stage', () => {
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     fireEvent.click(screen.getByRole('button', { name: 'ขยายทั้งหมด' }));
     expect(bodyStages()).toEqual(['open', 'open', 'open']);
     fireEvent.click(screen.getByRole('button', { name: 'ย่อทั้งหมด' }));
@@ -389,7 +375,7 @@ describe('CourseCatalog expand all', () => {
   });
 
   it('animates a single card toggled after a bulk change, and only that card', () => {
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     fireEvent.click(screen.getByRole('button', { name: 'ขยายทั้งหมด' }));
     fireEvent.click(cardToggle('90592008'));
     expect(bodyStages()).toContain('leaving');
@@ -397,7 +383,7 @@ describe('CourseCatalog expand all', () => {
   });
 
   it('acts only on the cards the filters show', () => {
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     const filterBox = screen.getByRole('searchbox', { name: 'กรองรายการ' });
     fireEvent.change(filterBox, { target: { value: '9059200' } });
     fireEvent.click(screen.getByRole('button', { name: 'ขยายทั้งหมด' }));
@@ -412,14 +398,14 @@ describe('CourseCatalog expand all', () => {
       ...catalog,
       courses: catalog.courses.slice(0, 1),
     };
-    render(<CourseCatalog catalog={single} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={single} />);
     expect(
       screen.queryByRole('button', { name: /ทั้งหมด$/ }),
     ).not.toBeInTheDocument();
   });
 
   it('moves focus from a row to its card toggle before collapsing', () => {
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     fireEvent.click(screen.getByRole('button', { name: 'ขยายทั้งหมด' }));
     const toggleNode = cardToggle('90592008');
     const row = toggleNode
@@ -445,7 +431,7 @@ describe('CourseCatalog focus', () => {
   }
 
   it('lands a keyboard add from an expanded row on the collapsed card toggle', () => {
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     expandAll();
     const add = firstAddButton();
     const toggleId = add
@@ -466,7 +452,7 @@ describe('CourseCatalog focus', () => {
       uiStore.getState().setSheetOpen(true);
     });
     try {
-      render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+      render(<CourseCatalog catalog={catalog} />);
       expandAll();
       const add = firstAddButton();
       const article = add.closest('article');
@@ -488,7 +474,7 @@ describe('CourseCatalog focus', () => {
   });
 
   it('lands a grip commit on the collapsed card toggle', () => {
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     expandAll();
     const grip = screen.getAllByRole('button', { name: /^ลากเพื่อเพิ่ม/ })[0];
     if (grip === undefined) throw new Error('expected a section grip');
@@ -502,7 +488,7 @@ describe('CourseCatalog focus', () => {
   });
 
   it('moves focus to the card toggle after a remove from the card', () => {
-    render(<CourseCatalog catalog={catalog} onRefresh={() => undefined} />);
+    render(<CourseCatalog catalog={catalog} />);
     expandAll();
     const article = firstAddButton().closest('article');
     fireEvent.click(firstAddButton());
@@ -557,7 +543,7 @@ describe('CourseCatalog focus', () => {
     render(
       <>
         <FeedbackStrip t={createTranslator('th')} />
-        <CourseCatalog catalog={conflictCatalog} onRefresh={() => undefined} />
+        <CourseCatalog catalog={conflictCatalog} />
       </>,
     );
     const add = firstAddButton();

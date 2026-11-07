@@ -761,10 +761,10 @@ test('the controls a finger reaches are 44 px targets', async ({ context }) => {
   });
   await waitForResultsInput(page);
 
-  // The catalog: the summary actions, the filter toggle, the add rail, and the remove
-  // control the added card shows.
+  // The results refresh in the summary bar, then the catalog: the summary action, the
+  // filter toggle, the add rail, and the remove control the added card shows.
   await expectTouchTarget(
-    sheet.getByRole('button', { name: 'รีเฟรช' }),
+    sheet.getByRole('button', { name: 'โหลดผลค้นหาใหม่' }),
     'refresh',
   );
   await expectTouchTarget(

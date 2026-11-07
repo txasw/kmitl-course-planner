@@ -2,8 +2,8 @@
 // result: the initial prompt, a loading skeleton, a typed error with one action, an
 // empty result carrying the search summary, or the courses. The course rendering
 // is filled in by the catalog cards; this panel owns the surrounding states. A retry
-// or a refresh replaces its own control with the loading state, so focus moves to the
-// summary bar above, which stays in place and reads the busy text.
+// replaces its own control with the loading state, so focus moves to the summary bar
+// above, which stays in place and reads the busy text. The refresh lives in that bar.
 
 import { useEffect, useState } from 'react';
 import { useStore } from 'zustand';
@@ -12,11 +12,10 @@ import { EmptyState } from '@/components/EmptyState';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import type { Translate } from '@/lib/i18n/t';
 import { searchStore } from '@/features/search/searchStore';
-import { toastStore } from '@/features/shell/toastStore';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { useSearchActions } from '@/features/search/useSearchController';
 import { errorAction, errorMessageKey } from '@/features/search/errorMessage';
-import { SEARCH_BAR_ID, SEARCH_SUBMIT_ID } from '@/features/search/searchIds';
+import { SEARCH_SUBMIT_ID } from '@/features/search/searchIds';
 import { commitAndFocus } from '@/features/shell/commitAndFocus';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { CourseCatalog } from './CourseCatalog';
@@ -110,7 +109,7 @@ export function useResultCourseCount(): number | null {
 
 function CatalogState() {
   const deps = useSearchDeps();
-  const { retry, refreshResult, cancel } = useSearchActions(deps);
+  const { retry, cancel } = useSearchActions(deps);
   const { t } = useTranslation();
   const result = useStore(searchStore, (state) => state.result);
   const query = useStore(searchStore, (state) => state.resultQuery);
@@ -171,24 +170,7 @@ function CatalogState() {
     );
   }
 
-  return (
-    <CourseCatalog
-      catalog={result.data}
-      onRefresh={(from) => {
-        commitAndFocus(from, SEARCH_BAR_ID, () => {
-          void (async () => {
-            // A changed result is visible in the catalog; only a no op refresh
-            // needs a toast so the action does not feel ignored.
-            if ((await refreshResult()) === 'unchanged') {
-              toastStore
-                .getState()
-                .show('success', t('toast.refreshUnchanged'));
-            }
-          })();
-        });
-      }}
-    />
-  );
+  return <CourseCatalog catalog={result.data} />;
 }
 
 /** The catalog region, guarded against stray pointer input just after a submit. The
