@@ -758,7 +758,8 @@ h4 {
 }
 
 .dedupe-toggle__box {
-  display: inline-block;
+  display: inline-grid;
+  place-items: center;
   width: 18px;
   height: 18px;
   border: 1.5px solid var(--site-ink);
@@ -767,10 +768,18 @@ h4 {
 
 .dedupe-toggle[aria-pressed='true'] .dedupe-toggle__box {
   border-color: var(--site-primary-strong);
-  background:
-    linear-gradient(45deg, transparent 45%, #fff 45% 58%, transparent 58%) 3px
-      2px / 7px 10px no-repeat,
-    var(--site-primary-strong);
+  background: var(--site-primary-strong);
+}
+
+/* The tick is two borders of a narrow box turned 45 degrees. */
+.dedupe-toggle[aria-pressed='true'] .dedupe-toggle__box::after {
+  content: '';
+  width: 5px;
+  height: 10px;
+  margin-top: -2px;
+  border: solid #ffffff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
 .dedupe {
