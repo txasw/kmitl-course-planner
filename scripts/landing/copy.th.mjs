@@ -20,7 +20,7 @@ export const th = {
     features: 'ความสามารถ',
     start: 'วิธีเริ่มใช้',
     faq: 'คำถามที่พบบ่อย',
-    home: 'KCP หน้าแรก',
+    home: 'หน้าแรก',
   },
   other: { text: 'English', lang: 'en', href: '/en/' },
   install: 'ติดตั้ง',
