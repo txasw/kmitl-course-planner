@@ -22,12 +22,12 @@ import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { conflictReasonText } from '@/features/planner/conflictText';
 import { ConflictCallout } from './ConflictCallout';
+import { CELL, rowSurface } from './SectionComparisonCells';
 import { addSectionName } from './SectionRow';
 
 const ACTION = `inline-flex items-center gap-1 whitespace-nowrap rounded-kcp border border-primary px-2 py-0.5 text-primary-strong hover:bg-primary-soft ${TARGET_SIZE} ${FOCUS_RING}`;
 
-export const ADD_CELL =
-  'sticky right-0 z-[1] border-b border-l border-border px-2 py-1.5 text-left align-top';
+const ADD_CELL = `${CELL} sticky right-0 z-[1] border-l`;
 
 /** What the table's live node says once an add from the table settles. */
 export function addOutcomeText(
@@ -52,8 +52,8 @@ export function addOutcomeText(
 
 interface ComparisonAddCellProps {
   row: ComparisonRow;
-  /** The row's surface class, so the pinned cell hides the cells under it. */
-  surface: string;
+  /** Whether the row takes the alternate surface. */
+  zebra: boolean;
   /** Whether the student's last add from this row was blocked. */
   blocked: boolean;
   t: Translate;
@@ -63,7 +63,7 @@ interface ComparisonAddCellProps {
 
 export function ComparisonAddCell({
   row,
-  surface,
+  zebra,
   blocked,
   t,
   onAdd,
@@ -71,7 +71,7 @@ export function ComparisonAddCell({
 }: ComparisonAddCellProps) {
   const calloutId = useId();
   const { section, relation, seat } = row;
-  const className = `${ADD_CELL} ${surface}`;
+  const className = `${ADD_CELL} ${rowSurface(zebra)}`;
 
   if (relation.kind === 'added') {
     return (

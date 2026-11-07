@@ -55,7 +55,13 @@ export function headPinClass(pin: ColumnHead['pin']): string {
 export const HEAD_CELL =
   'sticky top-0 border-b border-border bg-surface-alt px-2 py-1.5 text-left align-bottom font-semibold text-ink';
 
-const CELL = 'border-b border-border px-2 py-1.5 text-left align-top';
+export const CELL = 'border-b border-border px-2 py-1.5 text-left align-top';
+
+/** The surface of a body row, alternating so a wide row is easy to follow. Every cell of
+ * the row takes it, so a pinned cell hides the cells that pass under it. */
+export function rowSurface(zebra: boolean): string {
+  return zebra ? 'bg-surface-alt' : 'bg-surface';
+}
 
 function NoneText({ t }: { t: Translate }) {
   return <span className="text-ink-soft">{t('compare.none')}</span>;
@@ -184,7 +190,7 @@ export function ComparisonCells({
   t,
 }: ComparisonCellsProps) {
   const { section, status } = row;
-  const surface = zebra ? 'bg-surface-alt' : 'bg-surface';
+  const surface = rowSurface(zebra);
   const teachers = pickLocalizedWithLang(
     section.teachersTh,
     section.teachersEn,
