@@ -72,3 +72,4 @@ a new record that supersedes the old one rather than editing history.
 63. [Entry toast and launcher attention cue](0063-entry-toast-and-launcher-attention.md)
 64. [Exam schedule poster block](0064-exam-schedule-poster-block.md)
 65. [Product name carries KCP](0065-product-name-carries-kcp.md)
+66. [Landing site on Cloudflare at kcp.cecs.sh](0066-landing-site-on-cloudflare-at-kcp-cecs-sh.md)
