@@ -26,7 +26,7 @@ import { ConflictCallout } from './ConflictCallout';
 import { CELL, rowSurface } from './SectionComparisonCells';
 import { addSectionName } from './SectionRow';
 
-const ACTION = `inline-flex items-center gap-1 whitespace-nowrap rounded-kcp border border-primary px-2 py-0.5 text-primary-strong hover:bg-primary-soft ${TARGET_SIZE} ${FOCUS_RING}`;
+const ACTION = `inline-flex items-center gap-1 rounded-kcp border border-primary px-2 py-0.5 text-primary-strong hover:bg-primary-soft ${TARGET_SIZE} ${FOCUS_RING}`;
 
 const PINNED = 'sticky right-0 z-[1] border-l';
 
@@ -76,6 +76,9 @@ export function ComparisonAddCell({
   const calloutId = useId();
   const { section, relation, seat } = row;
   const className = `${CELL} ${rowSurface(zebra)} ${pinned ? PINNED : ''}`;
+  // A pinned cell keeps its action on one line; a narrow section column lets a long
+  // label wrap inside it.
+  const action = `${ACTION} ${pinned ? 'whitespace-nowrap' : 'text-left'}`;
 
   if (relation.kind === 'added') {
     return (
@@ -95,7 +98,7 @@ export function ComparisonAddCell({
           onClick={() => {
             onSwitchTerm(relation.browsedTerm);
           }}
-          className={ACTION}
+          className={action}
         >
           {t('term.switch')}
         </button>
@@ -124,7 +127,7 @@ export function ComparisonAddCell({
         onClick={() => {
           onAdd(section);
         }}
-        className={ACTION}
+        className={action}
       >
         <Plus size={12} strokeWidth={2.5} aria-hidden />
         {t('action.add')}
