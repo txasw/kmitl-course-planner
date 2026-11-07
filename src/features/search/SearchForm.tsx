@@ -2,9 +2,8 @@
 // a tablist over the three official search modes, the active tab's fields, and a
 // submit directly under the last field that streams results into the catalog below.
 // The search header around it owns the fold and the scroller, so the form lays out at
-// its natural height. Reference data loads once on mount; the term seeds from the host
-// route, a persisted search, the active plan, or the term after the registrar's current
-// one. The four async surfaces each render a deliberate state. Focus within the form is
+// its natural height. Reference data loads once on mount, and the search head seeds the
+// term. The four async surfaces each render a deliberate state. Focus within the form is
 // tracked, so the updates dialog never opens on its own while the student types a search.
 
 import { useMemo, useRef, useState } from 'react';
@@ -35,12 +34,7 @@ import {
 } from './SearchSubmit';
 import { SearchTabList } from './SearchTabList';
 import { useSearchDeps } from './SearchDepsContext';
-import { useHashRoute } from './useHashRoute';
-import {
-  useReferenceData,
-  useSearchActions,
-  useSearchInit,
-} from './useSearchController';
+import { useReferenceData, useSearchActions } from './useSearchController';
 
 interface SearchFormProps {
   /** Where the submit row sits, handed down by the search head. */
@@ -49,9 +43,7 @@ interface SearchFormProps {
 
 export function SearchForm({ dock }: SearchFormProps = {}) {
   const deps = useSearchDeps();
-  const route = useHashRoute();
   const reloadReference = useReferenceData(deps.send);
-  useSearchInit(deps, route);
   const { submit } = useSearchActions(deps);
   const { t, language } = useTranslation();
   const focusTracking = useSearchFocusTracking();

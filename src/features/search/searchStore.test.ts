@@ -270,6 +270,92 @@ describe('the search disclosure', () => {
   });
 });
 
+describe('restoring the last search', () => {
+  const lastSearch: PersistedSearchState = {
+    schemaVersion: 2,
+    activeTab: 'by_subject_id',
+    term: { year: '2569', semester: '1' },
+    byClass: defaultClassForm(),
+    bySubjectId: { subjectId: '90592033' },
+    byCategory: defaultCategoryForm(),
+  };
+
+  it('folds the form under the restored bar in the seed write', () => {
+    const store = createSearchStore();
+    const writes: boolean[] = [];
+    store.subscribe((state) => {
+      writes.push(state.barQuery !== null && !selectFormOpen(state));
+    });
+    store
+      .getState()
+      .seedSearch(lastSearch, { term: lastSearch.term, source: 'persisted' });
+    // One write lands the forms, the term and the folded bar together.
+    expect(writes).toEqual([true]);
+    const state = store.getState();
+    expect(state.activeTab).toBe('by_subject_id');
+    expect(state.barQuery).toMatchObject({
+      mode: 'by_subject_id',
+      selected_subject_id: '90592033',
+    });
+    expect(state.result).toEqual({ status: 'idle' });
+  });
+
+  it('opens the form with no bar when the route names another term', () => {
+    const store = createSearchStore();
+    const routeTerm: Term = { year: '2568', semester: '2' };
+    store
+      .getState()
+      .seedSearch(lastSearch, { term: routeTerm, source: 'route' });
+    const state = store.getState();
+    expect(state.barQuery).toBeNull();
+    expect(selectFormOpen(state)).toBe(true);
+    expect(state.term).toEqual(routeTerm);
+    expect(state.bySubjectId).toEqual(lastSearch.bySubjectId);
+  });
+
+  it('keeps the bar of a search that already ran', () => {
+    const store = createSearchStore();
+    store.getState().startQuery(ownerQuery, 'user');
+    store
+      .getState()
+      .seedSearch(lastSearch, { term: lastSearch.term, source: 'persisted' });
+    expect(store.getState().barQuery).toBe(ownerQuery);
+  });
+
+  it('holds the head at boot until the seed and loads storage once', async () => {
+    const store = createSearchStore();
+    let loads = 0;
+    const repo = {
+      load: () => {
+        loads += 1;
+        return Promise.resolve(lastSearch);
+      },
+    };
+    store.getState().bootSearch(repo);
+    store.getState().bootSearch(repo);
+    expect(store.getState().restorePending).toBe(true);
+    const claimed = store.getState().claimInitialization(repo);
+    expect(await claimed).toBe(lastSearch);
+    // A search to fold into its bar keeps the head held until the seed lands.
+    expect(store.getState().restorePending).toBe(true);
+    expect(loads).toBe(1);
+    store
+      .getState()
+      .seedSearch(lastSearch, { term: lastSearch.term, source: 'persisted' });
+    expect(store.getState().restorePending).toBe(false);
+  });
+
+  it('releases the head at boot when there is nothing to restore', async () => {
+    const store = createSearchStore();
+    const load = Promise.resolve(null);
+    store.getState().bootSearch({ load: () => load });
+    expect(store.getState().restorePending).toBe(true);
+    await load;
+    await Promise.resolve();
+    expect(store.getState().restorePending).toBe(false);
+  });
+});
+
 describe('clearing the active form', () => {
   it('resets only the active tab and leaves the bar and result alone', () => {
     const store = createSearchStore();

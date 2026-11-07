@@ -14,6 +14,7 @@ import {
   useSearchDeps,
   type SearchDeps,
 } from '@/features/search/SearchDepsContext';
+import { useSearchBoot } from '@/features/search/useSearchController';
 import { DiagnosticsGate } from '@/features/diagnostics/DiagnosticsGate';
 import {
   useOnboardingPersistence,
@@ -63,6 +64,7 @@ export function App({
   useWelcomeClaim(welcome);
   return (
     <SearchDepsProvider value={search}>
+      <SearchBoot />
       <RevalidationTriggers />
       <Launcher />
       <EntryToast record={onboarding.record} />
@@ -72,6 +74,14 @@ export function App({
       <WelcomeLayer />
     </SearchDepsProvider>
   );
+}
+
+// A zero render child that starts loading the last search when the content script
+// mounts, so a reload's first open finds it loaded. The term seed waits for that open,
+// so a host route captured then still wins.
+function SearchBoot() {
+  useSearchBoot(useSearchDeps());
+  return null;
 }
 
 // A zero render child so the revalidation triggers can read the injected send from

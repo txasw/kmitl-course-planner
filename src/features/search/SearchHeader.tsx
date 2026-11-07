@@ -16,6 +16,10 @@
 // bottom nav, and the scroller pads its focus scroll by the row's measured height so a
 // focused field never sits under it (WCAG 2.4.11). While a bar exists the row carries a
 // cancel that folds the form back under it, the same fold Escape gives.
+//
+// The head seeds the search on the first open of the page session. A search persisted
+// before a reload reopens folded into its bar; until the seed lands the head holds a
+// fixed placeholder with neither the form nor the bar, so nothing paints and then flips.
 
 import { useLayoutEffect, useRef, type KeyboardEvent } from 'react';
 import { useStore } from 'zustand';
@@ -23,9 +27,12 @@ import { claimEscape } from '@/lib/ui/escape';
 import { commitAndFocus } from '@/features/shell/commitAndFocus';
 import { useElementSize } from '@/features/shell/useElementSize';
 import { SearchForm } from './SearchForm';
+import { useSearchDeps } from './SearchDepsContext';
 import { SEARCH_DISCLOSURE_ID, SEARCH_FORM_ID } from './searchIds';
 import { SearchSummaryBar } from './SearchSummaryBar';
 import { searchStore, selectFormOpen } from './searchStore';
+import { useHashRoute } from './useHashRoute';
+import { useSearchInit } from './useSearchController';
 
 /** The fold back under the bar; it turns the form inert, so focus moves to the
  * disclosure that reopens it. */
@@ -41,6 +48,17 @@ interface SearchHeaderProps {
 }
 
 export function SearchHeader({ compact = false }: SearchHeaderProps) {
+  useSearchInit(useSearchDeps(), useHashRoute());
+  const restorePending = useStore(searchStore, (state) => state.restorePending);
+  // The height of a folded bar, so the results below do not jump when it lands.
+  return restorePending ? (
+    <div aria-hidden className="h-14 flex-none border-b border-border" />
+  ) : (
+    <SearchHead compact={compact} />
+  );
+}
+
+function SearchHead({ compact = false }: SearchHeaderProps) {
   const barQuery = useStore(searchStore, (state) => state.barQuery);
   const formOpen = useStore(searchStore, selectFormOpen);
   const formScroller = useRef<HTMLDivElement>(null);
