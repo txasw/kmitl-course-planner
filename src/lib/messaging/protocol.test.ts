@@ -1,9 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
+import type { TeachTableResult } from '../api/types';
+import type { Result } from '../utils/result';
 import {
   claimWelcomeReplySchema,
   mountedReplySchema,
   requestMessageSchema,
   teachTableQuerySchema,
+  type ResponseMap,
 } from './protocol';
 
 const byClassQuery = {
@@ -178,5 +181,13 @@ describe('claimWelcomeReplySchema', () => {
     ]) {
       expect(claimWelcomeReplySchema.safeParse(reply).success).toBe(false);
     }
+  });
+});
+
+describe('teach table response', () => {
+  it('carries the catalog with its fetch time', () => {
+    expectTypeOf<ResponseMap['teachTable/query']>().toEqualTypeOf<
+      Result<TeachTableResult>
+    >();
   });
 });

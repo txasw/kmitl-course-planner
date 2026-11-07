@@ -16,6 +16,7 @@ import {
   seedActivePlan,
 } from '../../../tests/support/plan-store';
 import { uiStore } from '@/features/shell/uiStore';
+import { teachTableResult } from '../../../tests/support/searchDeps';
 import { planStore } from './planStore';
 import { revalidationStore } from './revalidationStore';
 import { useRevalidationTriggers } from './useRevalidationTriggers';
@@ -68,7 +69,8 @@ function movedCatalog(): NormalizedCatalog {
 // The triggers only ever send teachTable/query, so a single shape fake is enough; the
 // cast is confined to this test seam.
 function fakeSend(result: Result<NormalizedCatalog>): TypedSend {
-  return (() => Promise.resolve(result)) as unknown as TypedSend;
+  const answer = result.ok ? ok(teachTableResult(result.value)) : result;
+  return (() => Promise.resolve(answer)) as unknown as TypedSend;
 }
 
 function openPanel(): void {

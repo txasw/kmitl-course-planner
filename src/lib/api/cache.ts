@@ -3,20 +3,27 @@
 // the worker, an in memory fake in tests). Expiry is lazy on read. The store is
 // generic over a string key; callers derive that key from the endpoint and its
 // normalized params. Because the MV3 worker is ephemeral, the memory tier is per
-// lifetime and the storage tier is the durable one.
+// lifetime and the storage tier is the durable one. Each entry keeps the time it was
+// fetched, so a hit can say how old its data is rather than when it was last read.
 
 import type { StorageAdapter } from '../storage/repo';
 import { CACHE_PREFIX } from '../storage/keys';
 
-export interface CacheEntry {
-  value: unknown;
+export interface EntryTimes {
+  /** Epoch milliseconds at which the value was fetched from the network. */
+  fetchedAt: number;
   /** Epoch milliseconds after which the entry is stale. */
   expiresAt: number;
+}
+
+export interface CacheEntry extends EntryTimes {
+  value: unknown;
 }
 
 export interface CacheHit {
   value: unknown;
   source: 'memory' | 'storage';
+  fetchedAt: number;
 }
 
 const DEFAULT_MEMORY_CAP = 50;
@@ -39,18 +46,22 @@ export function hashKey(input: string): string {
   return (hash >>> 0).toString(36);
 }
 
+// An entry stored before fetch times were kept has no fetchedAt. It reads as a miss,
+// so it is fetched once more rather than shown with an invented age.
 function isCacheEntry(value: unknown): value is CacheEntry {
   return (
     typeof value === 'object' &&
     value !== null &&
     'expiresAt' in value &&
-    typeof value.expiresAt === 'number'
+    typeof value.expiresAt === 'number' &&
+    'fetchedAt' in value &&
+    typeof value.fetchedAt === 'number'
   );
 }
 
 export interface CacheStore {
   get(key: string, now: number): Promise<CacheHit | null>;
-  set(key: string, value: unknown, expiresAt: number): Promise<void>;
+  set(key: string, value: unknown, times: EntryTimes): Promise<void>;
   /** Drop every cached entry from memory and storage. Debug tooling only. */
   clear(): Promise<void>;
 }
@@ -83,19 +94,27 @@ export function createCacheStore(
       if (inMemory) {
         if (inMemory.expiresAt > now) {
           remember(key, inMemory);
-          return { value: inMemory.value, source: 'memory' };
+          return {
+            value: inMemory.value,
+            source: 'memory',
+            fetchedAt: inMemory.fetchedAt,
+          };
         }
         memory.delete(key);
       }
       const stored: unknown = await adapter.get(key);
       if (isCacheEntry(stored) && stored.expiresAt > now) {
         remember(key, stored);
-        return { value: stored.value, source: 'storage' };
+        return {
+          value: stored.value,
+          source: 'storage',
+          fetchedAt: stored.fetchedAt,
+        };
       }
       return null;
     },
-    async set(key, value, expiresAt) {
-      const entry: CacheEntry = { value, expiresAt };
+    async set(key, value, times) {
+      const entry: CacheEntry = { value, ...times };
       remember(key, entry);
       written.add(key);
       await adapter.set(key, entry);

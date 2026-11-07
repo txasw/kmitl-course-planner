@@ -3,6 +3,19 @@
 // protocol can reference these shapes without dragging diagnostic code into the
 // production bundle.
 
+import type { NormalizedCatalog } from '../domain/normalize';
+
+/**
+ * A teach table answer: the normalized catalog and when its data was fetched from the
+ * network. A cache hit carries the time of the fetch that filled the cache, so the
+ * search can say how old the courses on screen are.
+ */
+export interface TeachTableResult {
+  catalog: NormalizedCatalog;
+  /** Epoch milliseconds of the network fetch behind the catalog. */
+  fetchedAt: number;
+}
+
 /**
  * The ambient dependencies the gateway needs, injected so tests can supply
  * deterministic fetch, clock, jitter, and delay implementations.

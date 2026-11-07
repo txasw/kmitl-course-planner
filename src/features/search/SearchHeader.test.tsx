@@ -17,7 +17,10 @@ import {
   defaultClassForm,
   defaultSubjectIdForm,
 } from '@/lib/search/formState';
-import { fakeSearchDeps } from '../../../tests/support/searchDeps';
+import {
+  fakeSearchDeps,
+  teachTableResult,
+} from '../../../tests/support/searchDeps';
 import { makeCourse } from '../../../tests/support/domain-builders';
 import { loadFixture } from '../../../tests/support/fixtures';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
@@ -232,12 +235,13 @@ function countingSend(): CountingSend {
 // in flight, so a retry or refresh stays loading while the test reads focus. The cast is
 // required for the same reason as above.
 function answerOnceSend(first: Result<NormalizedCatalog>): TypedSend {
+  const answer = first.ok ? ok(teachTableResult(first.value)) : first;
   let queries = 0;
   const handler = (message: RequestMessage) => {
     if (message.type === 'teachTable/query') {
       queries += 1;
       return queries === 1
-        ? Promise.resolve(first)
+        ? Promise.resolve(answer)
         : new Promise<never>(() => undefined);
     }
     return Promise.resolve(ok(null));

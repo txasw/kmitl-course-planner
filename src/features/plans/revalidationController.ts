@@ -100,7 +100,7 @@ export async function revalidatePlanNow(
         refresh: manual,
       });
       if (result.ok) {
-        catalogs.push(result.value);
+        catalogs.push(result.value.catalog);
         succeeded.add(key);
       } else {
         anyFailure = true;

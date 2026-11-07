@@ -5,15 +5,13 @@
 // and recorder calls are cheap no-ops. The audit runs on the raw payload before
 // validation so the diagnostics report captures drift even when it also breaks the
 // hard gate. Reference responses return the validated raw arrays; the teach table
-// response is normalized after validation.
+// response is normalized after validation and returned with the time of the fetch
+// behind it, which a cache hit takes from its entry.
 
 import type { z } from 'zod';
 import { ok, type Result } from '../utils/result';
 import { validate } from '../domain/schemas';
-import {
-  normalizeTeachTable,
-  type NormalizedCatalog,
-} from '../domain/normalize';
+import { normalizeTeachTable } from '../domain/normalize';
 import type { TeachTableQuery } from '../messaging/protocol';
 import type { CacheStore } from './cache';
 import {
@@ -30,7 +28,12 @@ import {
   type ReferenceEndpoint,
 } from './endpoints';
 import { getAudit, getRecorder, getSimulation } from './interceptors';
-import type { FaultOutcome, GatewayEnv, RequestContext } from './types';
+import type {
+  FaultOutcome,
+  GatewayEnv,
+  RequestContext,
+  TeachTableResult,
+} from './types';
 import { logger } from '../utils/logger';
 
 export interface GatewayDeps {
@@ -46,9 +49,15 @@ export interface Gateway {
   teachTable(
     query: TeachTableQuery,
     refresh?: boolean,
-  ): Promise<Result<NormalizedCatalog>>;
+  ): Promise<Result<TeachTableResult>>;
   /** Abort an in flight teach table query so the UI can cancel a slow one. */
   cancelTeachTable(query: TeachTableQuery): void;
+}
+
+/** A validated value and when it was fetched from the network. */
+interface Loaded<T> {
+  value: T;
+  fetchedAt: number;
 }
 
 interface LogMetrics {
@@ -93,7 +102,7 @@ function withFault(env: GatewayEnv, fault: FaultOutcome): GatewayEnv {
 
 export function createGateway(deps: GatewayDeps): Gateway {
   const { cache, env } = deps;
-  const inFlight = new Map<string, Promise<Result<unknown>>>();
+  const inFlight = new Map<string, Promise<Result<Loaded<unknown>>>>();
   const aborts = new Map<string, AbortController>();
 
   function record(context: RequestContext, metrics: LogMetrics): void {
@@ -149,7 +158,7 @@ export function createGateway(deps: GatewayDeps): Gateway {
     refresh: boolean,
     schema: z.ZodType<T>,
     signal: AbortSignal,
-  ): Promise<Result<T>> {
+  ): Promise<Result<Loaded<T>>> {
     if (!refresh) {
       const hit = await cache.get(cacheKey, env.now());
       if (hit) {
@@ -164,9 +173,13 @@ export function createGateway(deps: GatewayDeps): Gateway {
         });
         // A memory hit was validated before it was cached, so it is trusted. A
         // storage hit crosses a trust boundary and is re-validated.
-        return hit.source === 'memory'
-          ? ok(hit.value as T)
-          : validate(schema, hit.value);
+        const value =
+          hit.source === 'memory'
+            ? ok(hit.value as T)
+            : validate(schema, hit.value);
+        return value.ok
+          ? ok({ value: value.value, fetchedAt: hit.fetchedAt })
+          : value;
       }
     }
     const start = env.now();
@@ -204,8 +217,14 @@ export function createGateway(deps: GatewayDeps): Gateway {
       logger.warn('response failed validation', context.endpoint);
       return validated;
     }
-    await cache.set(cacheKey, validated.value, env.now() + ttlMs);
-    return validated;
+    // The fetch time is when the response arrived, before validation, so the stored
+    // entry and this caller report the same age.
+    const fetchedAt = start + fetchMs;
+    await cache.set(cacheKey, validated.value, {
+      fetchedAt,
+      expiresAt: env.now() + ttlMs,
+    });
+    return ok({ value: validated.value, fetchedAt });
   }
 
   function load<T>(
@@ -214,10 +233,10 @@ export function createGateway(deps: GatewayDeps): Gateway {
     ttlMs: number,
     refresh: boolean,
     schema: z.ZodType<T>,
-  ): Promise<Result<T>> {
+  ): Promise<Result<Loaded<T>>> {
     const existing = inFlight.get(cacheKey);
     if (existing) {
-      return existing.then((shared) => shared as Result<T>);
+      return existing.then((shared) => shared as Result<Loaded<T>>);
     }
     // One abort controller per in flight request, keyed like the coalescing map, so
     // a cancel can abort the shared request every coalesced caller is waiting on.
@@ -250,20 +269,21 @@ export function createGateway(deps: GatewayDeps): Gateway {
   }
 
   return {
-    reference(endpoint, refresh = false) {
+    async reference(endpoint, refresh = false) {
       const context: RequestContext = {
         endpoint: endpoint.endpoint,
         params: {},
         url: endpoint.url,
         timeoutMs: endpoint.timeoutMs,
       };
-      return load(
+      const loaded = await load(
         context,
         endpoint.cacheKey,
         endpoint.ttlMs,
         refresh,
         endpoint.schema,
       );
+      return loaded.ok ? ok(loaded.value.value) : loaded;
     },
     async teachTable(query, refresh = false) {
       const context: RequestContext = {
@@ -282,7 +302,10 @@ export function createGateway(deps: GatewayDeps): Gateway {
       if (!validated.ok) {
         return validated;
       }
-      return normalizeTeachTable(validated.value);
+      const catalog = normalizeTeachTable(validated.value.value);
+      return catalog.ok
+        ? ok({ catalog: catalog.value, fetchedAt: validated.value.fetchedAt })
+        : catalog;
     },
     cancelTeachTable(query) {
       cancel(teachTableCacheKey(query));

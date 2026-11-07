@@ -22,22 +22,27 @@ function fakeAdapter(): StorageAdapter & { store: Map<string, unknown> } {
 describe('createCacheStore', () => {
   it('serves an unexpired entry from memory', async () => {
     const store = createCacheStore(fakeAdapter());
-    await store.set('k', { a: 1 }, 100);
+    await store.set('k', { a: 1 }, { fetchedAt: 40, expiresAt: 100 });
     expect(await store.get('k', 99)).toEqual({
       value: { a: 1 },
       source: 'memory',
+      fetchedAt: 40,
     });
   });
 
   it('serves from storage after the memory tier is lost, then hydrates', async () => {
     const adapter = fakeAdapter();
-    await createCacheStore(adapter).set('k', 42, 100);
+    await createCacheStore(adapter).set('k', 42, {
+      fetchedAt: 30,
+      expiresAt: 100,
+    });
     // A fresh store models an ephemeral worker restart: memory is empty but the
-    // durable storage tier survives.
+    // durable storage tier survives, and so does the time of the original fetch.
     const revived = createCacheStore(adapter);
     expect(await revived.get('k', 50)).toEqual({
       value: 42,
       source: 'storage',
+      fetchedAt: 30,
     });
     // The storage hit hydrates memory, so the next read is a memory hit.
     expect((await revived.get('k', 50))?.source).toBe('memory');
@@ -45,8 +50,14 @@ describe('createCacheStore', () => {
 
   it('clears cache entries across worker sessions and spares other keys', async () => {
     const adapter = fakeAdapter();
-    await createCacheStore(adapter).set('kcp:cache:teach:a', 1, 100);
-    await createCacheStore(adapter).set('kcp:cache:ref:b', 2, 100);
+    await createCacheStore(adapter).set('kcp:cache:teach:a', 1, {
+      fetchedAt: 0,
+      expiresAt: 100,
+    });
+    await createCacheStore(adapter).set('kcp:cache:ref:b', 2, {
+      fetchedAt: 0,
+      expiresAt: 100,
+    });
     adapter.store.set('kcp:v1', { plans: [] });
     // A fresh store models a respawned worker with an empty written set; clear
     // must still drop the durable entries by enumerating storage.
@@ -61,14 +72,21 @@ describe('createCacheStore', () => {
 
   it('treats an entry at or past its expiry as a miss', async () => {
     const store = createCacheStore(fakeAdapter());
-    await store.set('k', 1, 100);
+    await store.set('k', 1, { fetchedAt: 0, expiresAt: 100 });
     expect(await store.get('k', 100)).toBeNull();
     expect(await store.get('k', 150)).toBeNull();
   });
 
   it('ignores an expired entry read from storage', async () => {
     const adapter = fakeAdapter();
-    adapter.store.set('k', { value: 1, expiresAt: 10 });
+    adapter.store.set('k', { value: 1, fetchedAt: 0, expiresAt: 10 });
+    expect(await createCacheStore(adapter).get('k', 20)).toBeNull();
+  });
+
+  it('treats a stored entry with no fetch time as a miss', async () => {
+    const adapter = fakeAdapter();
+    // The shape written before entries kept their fetch time.
+    adapter.store.set('k', { value: 1, expiresAt: 100 });
     expect(await createCacheStore(adapter).get('k', 20)).toBeNull();
   });
 
@@ -81,9 +99,9 @@ describe('createCacheStore', () => {
   it('evicts the oldest key from memory past the cap but keeps storage', async () => {
     const adapter = fakeAdapter();
     const store = createCacheStore(adapter, 2);
-    await store.set('a', 1, 1000);
-    await store.set('b', 2, 1000);
-    await store.set('c', 3, 1000);
+    await store.set('a', 1, { fetchedAt: 0, expiresAt: 1000 });
+    await store.set('b', 2, { fetchedAt: 0, expiresAt: 1000 });
+    await store.set('c', 3, { fetchedAt: 0, expiresAt: 1000 });
     // 'a' was evicted from memory but is still durable in storage.
     expect((await store.get('a', 0))?.source).toBe('storage');
   });
