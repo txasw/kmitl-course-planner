@@ -2,14 +2,14 @@
 
 Describe what this change does and why.
 
-## Phase reference
+## Plan reference
 
-Which implementation phase or task does this address.
+Name the train, task, ADR, or maintenance item this change addresses.
 
 ## Security checklist
 
-Confirm none of the following regressed (see docs and the security section of the
-project brief):
+Confirm none of the following regressed (see the permission list in docs/PRIVACY.md and
+the decision records in docs/adr):
 
 - [ ] Manifest permissions unchanged from the least privilege set.
 - [ ] No eval, Function constructor, innerHTML, or dangerouslySetInnerHTML.
