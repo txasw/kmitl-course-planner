@@ -1284,20 +1284,13 @@ figcaption:empty {
   max-width: var(--measure-th);
 }
 
+/* The suggestion dialog compares three plans side by side, so it takes the full width
+   under the list, where its text stays readable. */
 @media (min-width: 1024px) {
-  .more__grid {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
+  .more__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     column-gap: var(--gutter);
-  }
-
-  .more__grid > div {
-    grid-column: 1 / span 5;
-  }
-
-  .more__grid > figure {
-    grid-column: 7 / span 6;
-    align-self: start;
-    margin-top: 80px;
   }
 }
 

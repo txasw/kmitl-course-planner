@@ -101,7 +101,6 @@ const HERO_SIZES =
   '(min-width: 1440px) 1264px, calc(100vw - 2 * clamp(20px, 5vw, 64px))';
 const CROP_SIZES = 'calc(100vw - 40px)';
 const PLATE_8 = '(min-width: 1024px) 792px, calc(100vw - 40px)';
-const PLATE_6 = '(min-width: 1024px) 588px, calc(100vw - 40px)';
 // The exam pair splits the eight image columns three to five, so the exam schedule is
 // shown large enough to read beside the narrow exam card.
 const PAIR_NARROW =
@@ -269,7 +268,7 @@ function more(copy, manifest) {
   return `<section class="more" aria-labelledby="more-title">
 <div class="container more__grid">
 <div><h2 id="more-title">${copy.more.h2}</h2><dl class="more__list">${items}</dl></div>
-${figure(manifest, 's-suggest', copy.lang, copy.more.alt, copy.more.fig, PLATE_6)}
+${figure(manifest, 's-suggest', copy.lang, copy.more.alt, copy.more.fig, FULL)}
 </div>
 </section>`;
 }

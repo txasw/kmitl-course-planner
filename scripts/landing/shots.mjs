@@ -20,7 +20,7 @@ export const SHOTS = {
   'x-phone-portrait': { widths: [320, 640], fallback: 320 },
   's-updates': { widths: [600, 1200], fallback: 600 },
   's-plan-menu': { widths: [480, 960], fallback: 480 },
-  's-suggest': { widths: [800, 1600], fallback: 800 },
+  's-suggest': { widths: [800, 1600, 2304], fallback: 800 },
   's-welcome': { widths: [600, 1200], fallback: 600 },
 };
 
