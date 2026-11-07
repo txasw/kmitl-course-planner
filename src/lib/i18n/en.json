@@ -187,6 +187,7 @@
   "compare.col.status": "Status",
   "compare.addable": "Can be added",
   "compare.none": "None",
+  "compare.cannotAdd": "Cannot add",
   "compare.empty.title": "No addable sections",
   "compare.empty.description": "No section of this course can be added to this plan right now.",
   "compare.showAll": "Show all sections",

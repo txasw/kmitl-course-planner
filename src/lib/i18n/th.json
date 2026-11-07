@@ -187,6 +187,7 @@
   "compare.col.status": "สถานะ",
   "compare.addable": "เพิ่มได้",
   "compare.none": "ไม่มี",
+  "compare.cannotAdd": "เพิ่มไม่ได้",
   "compare.empty.title": "ไม่มีกลุ่มเรียนที่เพิ่มได้",
   "compare.empty.description": "ไม่มีกลุ่มเรียนของวิชานี้ที่เพิ่มลงตารางนี้ได้ขณะนี้",
   "compare.showAll": "แสดงทุกกลุ่มเรียน",
