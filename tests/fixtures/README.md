@@ -3,9 +3,10 @@
 ## Provenance
 
 Every JSON fixture with a `.capture.json` suffix is a real response captured
-verbatim from the live registration API on 2026-07-07. These are the fixtures the
-project brief intends the domain layer to be tested against. They contain only
-public course data.
+verbatim from the live registration API. The original captures date from
+2026-07-07; the multi meeting and with exams captures were added on 2026-07-12 and
+the current term capture on 2026-11-05. These are the fixtures the domain layer is
+tested against. They contain only public course data.
 
 | Fixture | Endpoint | Source URL |
 | :-- | :-- | :-- |
@@ -17,6 +18,7 @@ public course data.
 | `teach-table.by_subject_id.capture.json` | GET teach table, mode by_subject_id | `https://regis.reg.kmitl.ac.th/api/?function=get-teach-table-show&mode=by_subject_id&selected_year=2569&selected_semester=1&selected_subject_id=90641007` |
 | `teach-table.by_subject_owner_id-32.capture.json` | GET teach table, mode by_subject_owner_id | `https://regis.reg.kmitl.ac.th/api/?function=get-teach-table-show&mode=by_subject_owner_id&selected_year=2569&selected_semester=1&selected_faculty=01&selected_subject_owner_id=32` |
 | `teach-table.multi-meeting.capture.json` | GET teach table, mode by_class, all curricula | `https://regis.reg.kmitl.ac.th/api/?function=get-teach-table-show&mode=by_class&selected_year=2569&selected_semester=1&selected_faculty=01&selected_department=05&selected_curriculum=x&selected_class_year=0&search_all_curriculum=true&search_all_class_year=true` |
+| `teach-table.with-exams.capture.json` | GET teach table, mode by_class, faculty 01 department 05, several curricula and class years | Query string not recorded with the capture |
 | `year-semester-now.capture.json` | GET current registration term, level 1 | `https://regis.reg.kmitl.ac.th/api/?function=get-year-semester-now&level_id=1` |
 
 ## What each teach table capture exercises
@@ -44,6 +46,18 @@ rows. It carries subject `01476101` section `34` with a second Thursday period
 `01076311` section `1` with two extra periods on one day, so it exercises the parser, the
 day that differs from `teach_day`, and a section that totals three meetings. See ADR-0037.
 
+`teach-table.with-exams.capture.json` was added on 2026-07-12. It is a broad `by_class`
+result for faculty 01 department 05 that spans several curricula and class years, and the
+broadest capture: 24 curriculum groupings whose 331 raw rows collapse to 255 unique
+sections across 154 subjects. Its `teach_day` values span the full `0` through `7` range,
+including unscheduled rows and both weekend days, meetings run as late as 20:00, and it is
+the capture that populates the exam fields, with 78 rows carrying a midterm window and 107
+a final window. It drives the exam datetime parser, the contract auditor, the normalizer,
+the exam schedule, the seat demand, the credit split, and the sanitize tests, a few
+catalog component tests, and the measurements in ADR-0054. The mock server serves it for
+the reserved subject id `90000700`, so the grid window spec can load a result that widens
+the edit grid.
+
 ## Current term capture
 
 `year-semester-now.capture.json` was captured later, on 2026-11-05, and is kept as the
@@ -61,15 +75,24 @@ only the public markup is kept.
 
 ## Synthetic fixtures
 
-`synthetic.block-interactions.json` is the one fixture that is not a live capture. It
-is a hand built teach table response, in the exact captured shape, that the end to end
-block interaction specs need: overlapping open sections and a multi section subject
-that the real captures do not provide (their multi section subject is full and their
-open sections do not overlap). The mock server serves it only for the reserved subject
-id `90000000`, so no other spec sees it. It carries only synthetic course data. Its
-`synthetic.block-interactions.fresh.json` variant is what the mock serves after a spec
+The synthetic fixtures are hand built teach table responses in the exact captured shape,
+for cases the real captures do not provide. Each carries only synthetic course data and is
+served by the mock server for a reserved subject id, so no other spec sees it.
+`regressions/teach-table.fit-regression.json` is synthetic too; see the regressions
+README.
+
+`synthetic.block-interactions.json` serves the end to end block interaction specs for the
+reserved subject id `90000000`. They need overlapping open sections and a multi section
+subject, which the real captures do not provide (their multi section subject is full and
+their open sections do not overlap). Its `synthetic.block-interactions.fresh.json` variant is what the mock serves after a spec
 asks for fresh data: Course A (`900001`) moves to a new day and time and Course E (`900005`)
 is dropped, so a revalidation sees one changed and one missing entry.
+
+`synthetic.exam-overlap.json` serves the exam overlap spec for the reserved subject id
+`90000010`. It holds two subjects on different days, so neither blocks the other by time:
+`90000010` section `901` on Monday and `90000011` section `901` on Wednesday, whose
+midterm windows overlap on 2026-08-21. A second section of `90000011`, `902` on Thursday,
+has its midterm on the next day, so the blocked add offers it as a clean alternative.
 
 The performance profiling spec needs a catalog at the acceptance scale, hundreds of
 sections, which no real capture reaches: the largest, `teach-table.by_subject_id.capture.json`,
