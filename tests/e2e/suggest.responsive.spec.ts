@@ -7,6 +7,7 @@ import {
   waitForResultsInput,
 } from './support/fixtures';
 import { swipe } from './support/touch';
+import { bottomNav, isPhone } from './support/tiers';
 
 // The plan suggestion flow on the phone and tablet projects, on the real by_class
 // capture for curriculum 137. The phone shows the suggestions as a bottom sheet that
@@ -15,14 +16,6 @@ import { swipe } from './support/touch';
 // plan and find its sections on the timetable with no conflict.
 
 const GRID_BLOCK = '[data-teach-table-id]';
-
-function isPhone(page: Page): boolean {
-  return (page.viewportSize()?.width ?? 0) < 640;
-}
-
-function bottomNav(page: Page): Locator {
-  return page.getByRole('navigation', { name: 'ส่วนของตัววางแผน' });
-}
 
 /** Search curriculum 137 from the catalog, the pane on the phone and the sheet on the
  * tablet, and return the container that holds it. */
