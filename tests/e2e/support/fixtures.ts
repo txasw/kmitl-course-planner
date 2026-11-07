@@ -5,7 +5,7 @@
 // channel runs the extension in headless mode, so no display server is needed.
 
 import { test as base, chromium } from '@playwright/test';
-import type { BrowserContext, Page, Worker } from '@playwright/test';
+import type { BrowserContext, Locator, Page, Worker } from '@playwright/test';
 import { resolve } from 'node:path';
 import { startMockServer, type MockServer } from './mockServer';
 import {
@@ -110,6 +110,31 @@ export async function openPlanner(context: BrowserContext): Promise<Page> {
     .getByRole('button', { name: 'เปิด Course Planner for KMITL' })
     .click();
   return page;
+}
+
+// A cold or contended worker can take many seconds to answer its first requests, the
+// current term among them, so the wait for the settled term allows for that rather
+// than eating into the budget each spec gives its search results.
+const TERM_SETTLE_TIMEOUT_MS = 30_000;
+
+/**
+ * Wait until the search form's term can no longer change on its own. The form shows
+ * the fallback term while the worker fetches the current registration term, and a
+ * search pressed in that window runs under the fallback, so a spec that searches at
+ * once races the worker for which term its query carries.
+ */
+export async function waitForTermSettled(scope: Page | Locator): Promise<void> {
+  await expect(scope.locator('[data-term-state]')).toHaveAttribute(
+    'data-term-state',
+    'settled',
+    { timeout: TERM_SETTLE_TIMEOUT_MS },
+  );
+}
+
+/** Press the search submit in scope once its term has settled. */
+export async function submitSearch(scope: Page | Locator): Promise<void> {
+  await waitForTermSettled(scope);
+  await scope.getByRole('button', { name: 'ค้นหา', exact: true }).click();
 }
 
 /**
