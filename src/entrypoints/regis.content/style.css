@@ -204,11 +204,12 @@
 
 /* The text base. WXT resets the shadow host with all: initial !important, which
    clears every property on :host except the custom properties above, so the base
-   is declared on the html element that roots the tree inside the shadow root and
-   that every panel surface inherits from. The rule cannot match outside the
-   shadow root. The em scaled grid and poster set their own relative line height,
-   because a px line height inherits as a fixed length. */
-html {
+   is declared on the React root element that every panel surface inherits from.
+   The shadow root holds only the style sheet and a plain container around that
+   element, so the base cannot sit on an html element there. The rule cannot match
+   outside the shadow root. The em scaled grid and poster set their own relative
+   line height, because a px line height inherits as a fixed length. */
+#kcp-app {
   color: var(--kcp-ink);
   font-family: var(--font-sans);
   font-size: 14px;

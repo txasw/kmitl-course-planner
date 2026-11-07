@@ -74,3 +74,13 @@ accessibility lint forbids a key handler on a static or non interactive containe
 on the surface's controls or in a native listener instead. The decision relies on WXT mounting the
 React root inside the guarded shadow body; if the mount structure changes, the unit test that models
 the guard on the body and the browser tests that press Escape catch the regression.
+
+## Amendment, 2026-11-07: the shadow root replaces the shadow body
+
+WXT 0.21 mounts the UI through `@webext-core/isolated-element` v3, which no longer builds an html
+and body tree inside the shadow root. The shadow root now holds the style sheet and a plain
+container around the React root, and the `isolateEvents` guard is a listener on the shadow root
+itself. The trap therefore hands Escape to a one time listener on the panel's root node: the shadow
+root in the extension, the document in tests. That node still sits above the React root and still
+carries the guard, so the decision above holds unchanged. The unit test models the guard on the
+document, and the text base in the shadow style sheet moved from the html element to `#kcp-app`.

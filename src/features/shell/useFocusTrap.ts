@@ -3,19 +3,19 @@
 // the panel and remembers the opener, unless a nested layer mounted with it already
 // holds focus inside; on deactivation it restores focus to the opener. It attaches its keydown listener to the panel element rather than the
 // document, which is the correct place inside a closed shadow root: the
-// isolateEvents guard stops keys only at the shadow body above the panel, so
+// isolateEvents guard stops keys only at the shadow root above the panel, so
 // this listener still sees them, and host page scripts never do. Active focus is
 // read through getRootNode so it stays correct in a closed shadow root, where
 // document.activeElement reports only the host.
 //
 // Escape is decided later than Tab, recorded in ADR-0056. The panel listener runs
 // before the React handlers delegated at the React root above it, so it hands the
-// press to a one time listener on the panel's nearest body ancestor, the shadow
-// body in the extension and the document body in tests. That node sits above the
-// React root, so by the time the listener runs every inner surface, native or
-// React, has had the press, and one that claimed it through claimEscape or its
-// own preventDefault leaves the overlay open. The guard on the same body only
-// stops propagation, which does not skip other listeners on that node. Nested
+// press to a one time listener on the panel's root node, the shadow root in the
+// extension and the document in tests. That node sits above the React root, so by
+// the time the listener runs every inner surface, native or React, has had the
+// press, and one that claimed it through claimEscape or its own preventDefault
+// leaves the overlay open. The guard on the shadow root only stops propagation,
+// which does not skip other listeners on that node. Nested
 // traps hand off innermost first, because their panel listeners run in that
 // order, so the innermost trap closes alone.
 //
@@ -115,9 +115,9 @@ export function useFocusTrap(
       panel.focus();
     }
 
-    const deciderNode: Node = panel.closest('body') ?? panel.getRootNode();
+    const deciderNode: Node = panel.getRootNode();
     // The decider for the latest handed off press. A press an inner surface stopped
-    // before the body leaves it attached; the next key to reach the body removes it,
+    // before the root leaves it attached; the next key to reach the root removes it,
     // and the identity check keeps it from acting on that later key.
     let pendingDecider: ((settled: Event) => void) | null = null;
     const clearDecider = (): void => {

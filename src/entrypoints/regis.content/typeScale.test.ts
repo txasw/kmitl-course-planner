@@ -49,8 +49,8 @@ describe('type scale', () => {
     ]);
   });
 
-  it('declares the 14 px base on the shadow tree root, not the reset host', () => {
-    const base = ruleBody('html');
+  it('declares the 14 px base on the React root, not the reset host', () => {
+    const base = ruleBody('#kcp-app');
     expect(base).toContain('font-size: 14px;');
     expect(base).toContain('line-height: 22px;');
     expect(base).toContain('-webkit-text-size-adjust: 100%;');
