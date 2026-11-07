@@ -1,0 +1,172 @@
+{
+  "s-hero-th": {
+    "widths": [960, 1440, 2160, 2880],
+    "sizes": { "960": 600, "1440": 900, "2160": 1350, "2880": 1800 },
+    "fallback": 1440
+  },
+  "s-hero-en": {
+    "widths": [960, 1440, 2160, 2880],
+    "sizes": { "960": 600, "1440": 900, "2160": 1350, "2880": 1800 },
+    "fallback": 1440
+  },
+  "s-hero-crop-th": {
+    "widths": [750, 1100],
+    "sizes": { "750": 537, "1100": 788 },
+    "fallback": 750
+  },
+  "s-hero-crop-en": {
+    "widths": [750, 1100],
+    "sizes": { "750": 537, "1100": 788 },
+    "fallback": 750
+  },
+  "s-catalog-dedupe-th": {
+    "widths": [600, 768],
+    "sizes": { "600": 1567, "768": 2006 },
+    "fallback": 600
+  },
+  "s-catalog-dedupe-en": {
+    "widths": [600, 768],
+    "sizes": { "600": 1567, "768": 2006 },
+    "fallback": 600
+  },
+  "s-search-form-th": {
+    "widths": [600, 768],
+    "sizes": { "600": 1281, "768": 1640 },
+    "fallback": 600
+  },
+  "s-search-form-en": {
+    "widths": [600, 768],
+    "sizes": { "600": 1281, "768": 1640 },
+    "fallback": 600
+  },
+  "s-drag-blocked-th": {
+    "widths": [800, 1600],
+    "sizes": { "800": 573, "1600": 1147 },
+    "fallback": 800
+  },
+  "s-drag-blocked-en": {
+    "widths": [800, 1600],
+    "sizes": { "800": 573, "1600": 1147 },
+    "fallback": 800
+  },
+  "s-feedback-alternatives-th": {
+    "widths": [800, 1600],
+    "sizes": { "800": 352, "1600": 704 },
+    "fallback": 800
+  },
+  "s-feedback-alternatives-en": {
+    "widths": [800, 1600],
+    "sizes": { "800": 352, "1600": 704 },
+    "fallback": 800
+  },
+  "s-exam-row-th": {
+    "widths": [500, 702],
+    "sizes": { "500": 764, "702": 1072 },
+    "fallback": 500
+  },
+  "s-exam-row-en": {
+    "widths": [500, 702],
+    "sizes": { "500": 809, "702": 1136 },
+    "fallback": 500
+  },
+  "s-summary-th": {
+    "widths": [500, 1000],
+    "sizes": { "500": 1169, "1000": 2338 },
+    "fallback": 500
+  },
+  "s-summary-en": {
+    "widths": [500, 1000],
+    "sizes": { "500": 1169, "1000": 2338 },
+    "fallback": 500
+  },
+  "n-catalog-th": {
+    "widths": [400, 800],
+    "sizes": { "400": 866, "800": 1731 },
+    "fallback": 400
+  },
+  "n-catalog-en": {
+    "widths": [400, 800],
+    "sizes": { "400": 866, "800": 1731 },
+    "fallback": 400
+  },
+  "n-day-th": {
+    "widths": [400, 800],
+    "sizes": { "400": 866, "800": 1731 },
+    "fallback": 400
+  },
+  "n-day-en": {
+    "widths": [400, 800],
+    "sizes": { "400": 866, "800": 1731 },
+    "fallback": 400
+  },
+  "n-sheet-th": {
+    "widths": [400, 800],
+    "sizes": { "400": 866, "800": 1731 },
+    "fallback": 400
+  },
+  "n-sheet-en": {
+    "widths": [400, 800],
+    "sizes": { "400": 866, "800": 1731 },
+    "fallback": 400
+  },
+  "x-share169-th": {
+    "widths": [960, 1440, 1920],
+    "sizes": { "960": 540, "1440": 810, "1920": 1080 },
+    "fallback": 960
+  },
+  "x-share169-en": {
+    "widths": [960, 1440, 1920],
+    "sizes": { "960": 540, "1440": 810, "1920": 1080 },
+    "fallback": 960
+  },
+  "x-phone-portrait-th": {
+    "widths": [320, 640],
+    "sizes": { "320": 693, "640": 1387 },
+    "fallback": 320
+  },
+  "x-phone-portrait-en": {
+    "widths": [320, 640],
+    "sizes": { "320": 693, "640": 1387 },
+    "fallback": 320
+  },
+  "s-updates-th": {
+    "widths": [600, 1200],
+    "sizes": { "600": 493, "1200": 987 },
+    "fallback": 600
+  },
+  "s-updates-en": {
+    "widths": [600, 1200],
+    "sizes": { "600": 493, "1200": 987 },
+    "fallback": 600
+  },
+  "s-plan-menu-th": {
+    "widths": [480, 640],
+    "sizes": { "480": 369, "640": 492 },
+    "fallback": 480
+  },
+  "s-plan-menu-en": {
+    "widths": [480, 640],
+    "sizes": { "480": 369, "640": 492 },
+    "fallback": 480
+  },
+  "s-suggest-th": {
+    "widths": [800, 1600],
+    "sizes": { "800": 531, "1600": 1063 },
+    "fallback": 800
+  },
+  "s-suggest-en": {
+    "widths": [800, 1600],
+    "sizes": { "800": 531, "1600": 1063 },
+    "fallback": 800
+  },
+  "s-welcome-th": {
+    "widths": [600, 1152],
+    "sizes": { "600": 594, "1152": 1140 },
+    "fallback": 600
+  },
+  "s-welcome-en": {
+    "widths": [600, 1152],
+    "sizes": { "600": 698, "1152": 1340 },
+    "fallback": 600
+  }
+}

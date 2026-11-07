@@ -1,7 +1,7 @@
 // The landing page images (ADR-0066): each screenshot id with the widths it is encoded
 // at, chosen from the width it is shown at on the page so a 2x screen gets sharp text
-// without shipping larger files than it can use. The fallback width is the JPEG the img
-// element names for browsers that read neither AVIF nor WebP. Shared by the encoder and
+// without shipping larger files than it can use. The fallback width is the WebP the img
+// element names for a browser that reads no AVIF. Shared by the encoder and
 // the page renderer so the two never disagree on a file name.
 
 export const SHOTS = {

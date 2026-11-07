@@ -1,7 +1,8 @@
 // Encodes the captured landing page masters into the committed site images
 // (ADR-0066). Every master becomes AVIF and WebP at each width listed in shots.mjs,
-// plus one JPEG fallback, and the widths and dimensions written are recorded in
-// shots.manifest.json for the page renderer. AVIF keeps full chroma so thin Thai
+// and the widths and dimensions written are recorded in shots.manifest.json for the
+// page renderer. No JPEG is written: every browser that reads the picture element also
+// reads WebP, so the img element falls back to the WebP at the fallback width. AVIF keeps full chroma so thin Thai
 // strokes and small coloured accents do not smear. The open graph images are
 // compressed as palette PNGs. Run after pnpm site:shots; never edits the pixels.
 
@@ -9,6 +10,7 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import prettier from 'prettier';
 import sharp from 'sharp';
 import { LOCALES, SHOTS } from './shots.mjs';
 
@@ -57,13 +59,10 @@ for (const [id, spec] of Object.entries(SHOTS)) {
         .toFile(`${base}.webp`);
     }
     const fallback = Math.min(spec.fallback, meta.width);
+    if (!widths.includes(fallback)) {
+      throw new Error(`The fallback width of ${id} is not one of its widths.`);
+    }
     entry.fallback = fallback;
-    entry.sizes[fallback] = Math.round((meta.height * fallback) / meta.width);
-    await sharp(source)
-      .resize({ width: fallback, kernel: 'lanczos3' })
-      .flatten({ background: '#ffffff' })
-      .jpeg({ quality: 84, mozjpeg: true })
-      .toFile(path.join(outDir, `${id}-${locale}-${String(fallback)}.jpg`));
     manifest[`${id}-${locale}`] = entry;
     total += 1;
   }
@@ -77,7 +76,15 @@ for (const locale of LOCALES) {
     .toFile(path.join(ogDir, `og-${locale}.png`));
 }
 
-await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+// Formatted as the repository formats JSON, so a fresh encode leaves nothing to tidy.
+const options = (await prettier.resolveConfig(manifestPath)) ?? {};
+await writeFile(
+  manifestPath,
+  await prettier.format(JSON.stringify(manifest), {
+    ...options,
+    filepath: manifestPath,
+  }),
+);
 console.log(
   `encoded ${String(total)} masters into ${path.relative(root, outDir)}`,
 );
