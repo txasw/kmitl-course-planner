@@ -11,14 +11,20 @@
 // so the route offer can tell the page the document loaded on from a route the host
 // navigated to later. A route offer speaks about the page on screen, so a route change
 // while it shows hides it for good; nothing replaces it, and the plan kinds keep
-// showing across a route change since they do not depend on the page.
+// showing across a route change since they do not depend on the page. That hide leaves
+// the toast the way its own controls do, so focus inside it moves to the launcher.
 //
 // Once shown, the toast hides after ENTRY_TOAST_VISIBLE_MS. A hold from the pointer or
 // focus within it pauses that timer, and releasing the hold starts the full time again,
 // the same as the panel toasts. Opening the panel, at any point, ends the schedule for
 // good, so closing the panel never brings the toast back.
 
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import {
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type RefObject,
+} from 'react';
 import { useStore } from 'zustand';
 import {
   ENTRY_TOAST_DELAY_MS,
@@ -34,6 +40,7 @@ import {
   readLocationHash,
   subscribeHashRoute,
 } from '@/features/search/useHashRoute';
+import { leaveEntryToast } from './leaveEntryToast';
 import { onboardingStore } from './onboardingStore';
 
 type Phase =
@@ -83,7 +90,11 @@ function currentInput(mountHash: string): EntryToastInput {
   };
 }
 
-export function useEntryToastSchedule(held: boolean): EntryToastSchedule {
+export function useEntryToastSchedule(
+  held: boolean,
+  /** The toast's box, so a hide the host route causes can hand focus on. */
+  boxRef: RefObject<HTMLElement | null>,
+): EntryToastSchedule {
   const [phase, setPhase] = useState<Phase>(WAITING);
   const [mountHash] = useState(readLocationHash);
   const planLoaded = useStore(planStore, (state) => state.loaded);
@@ -126,9 +137,12 @@ export function useEntryToastSchedule(held: boolean): EntryToastSchedule {
     if (!routeShown) return undefined;
     // A popstate that left the hash as it was keeps the offer, since the page is the same.
     return subscribeHashRoute(() => {
-      if (readLocationHash() !== mountHash) setPhase(DONE);
+      if (readLocationHash() === mountHash) return;
+      leaveEntryToast(boxRef.current, () => {
+        setPhase(DONE);
+      });
     });
-  }, [routeShown, mountHash]);
+  }, [routeShown, mountHash, boxRef]);
 
   const shown = phase.stage === 'shown';
   useEffect(() => {
