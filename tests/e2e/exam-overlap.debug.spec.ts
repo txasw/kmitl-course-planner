@@ -1,9 +1,9 @@
 import { test, expect, openPlanner, submitSearch } from './support/fixtures';
 import { addCourse, block } from './support/synthetic';
 
-// The reserved id 90000010 serves two subjects: Exam Course A on Tue and Exam Course B with
-// two sections. B section 901 is on Thu, so it never collides in time with A, but its
-// midterm overlaps A's, and B section 902 is on Fri with a midterm on another day, a clean
+// The reserved id 90000010 serves two subjects: Exam Course A on Mon and Exam Course B with
+// two sections. B section 901 is on Wed, so it never collides in time with A, but its
+// midterm overlaps A's, and B section 902 is on Thu with a midterm on another day, a clean
 // alternative. Adding A then B section 901 must be blocked on exam grounds, and adding the
 // clean alternative from the strip must succeed.
 test('an exam conflicting add blocks and a clean alternative succeeds', async ({
