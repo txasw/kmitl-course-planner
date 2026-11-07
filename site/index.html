@@ -1,0 +1,2005 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KCP: Course Planner for KMITL ตัววางแผนตารางเรียน สจล.</title>
+    <meta
+      name="description"
+      content="KCP ส่วนขยาย Chrome และ Firefox สำหรับนักศึกษา สจล. (KMITL) เปลี่ยนผลค้นหารายวิชาเป็นตารางเรียนรายสัปดาห์แบบลากวาง รวมรายการที่ซ้ำ แจ้งเวลาเรียนและเวลาสอบที่ชนกัน ใช้ฟรี"
+    />
+    <link rel="canonical" href="https://kcp.cecs.sh/" />
+    <link rel="alternate" hreflang="th" href="https://kcp.cecs.sh/" />
+    <link rel="alternate" hreflang="en" href="https://kcp.cecs.sh/en/" />
+    <link rel="alternate" hreflang="x-default" href="https://kcp.cecs.sh/" />
+    <meta name="theme-color" content="#FFFFFF" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link
+      rel="preload"
+      href="/assets/fonts/kcp-display.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="image"
+      type="image/avif"
+      imagesrcset="/shots/s-hero-th-960.avif?v=99e5037597 960w, /shots/s-hero-th-1440.avif?v=764ec3d03d 1440w, /shots/s-hero-th-2160.avif?v=eb0083189d 2160w, /shots/s-hero-th-2880.avif?v=6444ac0617 2880w"
+      imagesizes="(min-width: 1440px) 1264px, calc(100vw - 2 * clamp(20px, 5vw, 64px))"
+      media="(min-width: 640px)"
+      fetchpriority="high"
+    />
+    <link
+      rel="preload"
+      as="image"
+      type="image/avif"
+      imagesrcset="/shots/s-hero-crop-th-750.avif?v=b282f1ea49 750w, /shots/s-hero-crop-th-1100.avif?v=d5cb72909a 1100w"
+      imagesizes="calc(100vw - 40px)"
+      media="(max-width: 639px)"
+      fetchpriority="high"
+    />
+    <link rel="stylesheet" href="/assets/site.css?v=3bcd1a450f" />
+    <script src="/assets/site.js?v=9d035bcb2c" defer></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="KCP" />
+    <meta
+      property="og:title"
+      content="KCP: Course Planner for KMITL ตัววางแผนตารางเรียน สจล."
+    />
+    <meta
+      property="og:description"
+      content="KCP ส่วนขยาย Chrome และ Firefox สำหรับนักศึกษา สจล. (KMITL) เปลี่ยนผลค้นหารายวิชาเป็นตารางเรียนรายสัปดาห์แบบลากวาง รวมรายการที่ซ้ำ แจ้งเวลาเรียนและเวลาสอบที่ชนกัน ใช้ฟรี"
+    />
+    <meta property="og:url" content="https://kcp.cecs.sh/" />
+    <meta property="og:locale" content="th_TH" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:image" content="https://kcp.cecs.sh/og/og-th.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/png" />
+    <meta
+      property="og:image:alt"
+      content="ตารางเรียนรายสัปดาห์ที่ส่งออกจาก KCP พร้อมชื่อ KCP: Course Planner for KMITL"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="KCP: Course Planner for KMITL ตัววางแผนตารางเรียน สจล."
+    />
+    <meta
+      name="twitter:description"
+      content="KCP ส่วนขยาย Chrome และ Firefox สำหรับนักศึกษา สจล. (KMITL) เปลี่ยนผลค้นหารายวิชาเป็นตารางเรียนรายสัปดาห์แบบลากวาง รวมรายการที่ซ้ำ แจ้งเวลาเรียนและเวลาสอบที่ชนกัน ใช้ฟรี"
+    />
+    <meta name="twitter:image" content="https://kcp.cecs.sh/og/og-th.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://kcp.cecs.sh/#website",
+            "url": "https://kcp.cecs.sh/",
+            "name": "KCP",
+            "alternateName": [
+              "KCP KMITL",
+              "Course Planner for KMITL",
+              "ตัววางแผนตารางเรียน สจล."
+            ],
+            "inLanguage": ["th", "en"],
+            "publisher": { "@id": "https://kcp.cecs.sh/#author" }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://kcp.cecs.sh/#app",
+            "name": "KCP: Course Planner for KMITL",
+            "alternateName": [
+              "KCP",
+              "KCP KMITL",
+              "Course Planner for KMITL",
+              "ตัววางแผนตารางเรียน สจล."
+            ],
+            "url": "https://kcp.cecs.sh/",
+            "description": "KCP ส่วนขยาย Chrome และ Firefox สำหรับนักศึกษา สจล. (KMITL) เปลี่ยนผลค้นหารายวิชาเป็นตารางเรียนรายสัปดาห์แบบลากวาง รวมรายการที่ซ้ำ แจ้งเวลาเรียนและเวลาสอบที่ชนกัน ใช้ฟรี",
+            "applicationCategory": "EducationalApplication",
+            "applicationSubCategory": "Browser extension",
+            "operatingSystem": "Windows, macOS, Linux, ChromeOS",
+            "browserRequirements": "Chrome, Microsoft Edge, Brave, Opera or Firefox on a computer",
+            "softwareVersion": "1.3.1",
+            "inLanguage": "th",
+            "isAccessibleForFree": true,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "THB",
+              "availability": "https://schema.org/InStock"
+            },
+            "installUrl": [
+              "https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef",
+              "https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/"
+            ],
+            "downloadUrl": [
+              "https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef",
+              "https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/"
+            ],
+            "sameAs": [
+              "https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef",
+              "https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/",
+              "https://github.com/txasw/kmitl-course-planner"
+            ],
+            "image": "https://kcp.cecs.sh/og/og-th.png",
+            "screenshot": [
+              "https://kcp.cecs.sh/shots/s-hero-th-1440.webp",
+              "https://kcp.cecs.sh/shots/x-share169-th-1440.webp"
+            ],
+            "license": "https://opensource.org/licenses/MIT",
+            "author": {
+              "@type": "Person",
+              "@id": "https://kcp.cecs.sh/#author",
+              "name": "txasw",
+              "url": "https://github.com/txasw"
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#content">ข้ามไปยังเนื้อหา</a>
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="brand" href="/"
+          ><svg
+            class="mark"
+            width="28"
+            height="28"
+            viewBox="0 0 128 128"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <rect width="128" height="128" rx="28" fill="#E35205" />
+            <g fill="#FFFFFF">
+              <rect x="22" y="22" width="38" height="38" rx="6" />
+              <rect x="68" y="22" width="38" height="38" rx="6" />
+              <rect x="22" y="68" width="38" height="38" rx="6" />
+            </g>
+            <rect
+              x="68"
+              y="68"
+              width="38"
+              height="38"
+              rx="6"
+              fill="#B8400A"
+            /></svg
+          ><span class="brand__word" lang="en">KCP</span
+          ><span class="visually-hidden">KCP หน้าแรก</span></a
+        >
+        <nav class="site-nav" aria-label="เมนูหลัก">
+          <ul>
+            <li class="site-nav__wide"><a href="#features">ความสามารถ</a></li>
+            <li class="site-nav__wide">
+              <a href="#get-started">วิธีเริ่มใช้</a>
+            </li>
+            <li class="site-nav__wide"><a href="#faq">คำถามที่พบบ่อย</a></li>
+            <li><a href="/en/" lang="en" hreflang="en">English</a></li>
+            <li><a class="nav-install" href="#download">ติดตั้ง</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <main id="content" tabindex="-1">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="field" aria-hidden="true">
+          <div class="field__ruler">
+            <span>08:00</span><span>09:00</span><span>10:00</span
+            ><span>11:00</span><span>12:00</span><span>13:00</span
+            ><span>14:00</span><span>15:00</span><span>16:00</span
+            ><span>17:00</span><span>18:00</span>
+          </div>
+        </div>
+        <div class="container hero__inner">
+          <div class="hero__text">
+            <h1 id="hero-title">
+              <span class="hero__lockup"
+                ><span lang="en">KCP: Course Planner for KMITL</span></span
+              ><span class="hero__display"
+                >เห็นตารางเรียนทั้งสัปดาห์<wbr /><span class="hero__break"
+                  >ก่อนลงทะเบียนจริง</span
+                ></span
+              >
+            </h1>
+            <p class="lede">
+              ส่วนขยายเบราว์เซอร์สำหรับนักศึกษา สจล.
+              เปลี่ยนผลค้นหารายวิชาบนเว็บไซต์ลงทะเบียนให้เป็นตารางเรียนรายสัปดาห์แบบลากวาง
+              รวมรายการที่ซ้ำ แจ้งเวลาเรียนและเวลาสอบที่ชนกัน
+              และเก็บตารางไว้ในเบราว์เซอร์ของคุณเท่านั้น
+            </p>
+            <div class="cta-row cta-row--hero">
+              <a
+                class="cta cta--chrome"
+                href="https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef"
+                ><svg
+                  class="icon"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"
+                  /></svg
+                ><span class="cta__text"
+                  ><span class="cta__label"
+                    >ติดตั้งบน <span lang="en">Chrome</span></span
+                  ><span class="cta__sub"
+                    >ใช้กับ <span lang="en">Edge, Brave</span> และ
+                    <span lang="en">Opera</span> ได้</span
+                  ></span
+                ></a
+              >
+              <a
+                class="cta cta--firefox"
+                href="https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/"
+                ><svg
+                  class="icon"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"
+                  /></svg
+                ><span class="cta__text"
+                  ><span class="cta__label"
+                    >ติดตั้งบน <span lang="en">Firefox</span></span
+                  ><span class="cta__sub"
+                    >จาก <span lang="en">Firefox Add-ons</span></span
+                  ></span
+                ></a
+              >
+              <button
+                type="button"
+                class="cta cta--soon"
+                aria-disabled="true"
+                aria-describedby="web-soon-note-hero"
+              >
+                <svg
+                  class="icon"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+                  <path d="M2 12h20" /></svg
+                ><span class="cta__text"
+                  ><span class="cta__label"
+                    >ใช้งานบนเว็บ <span class="badge">เร็ว ๆ นี้</span></span
+                  ></span
+                >
+              </button>
+            </div>
+            <p class="cta-note" id="web-soon-note-hero">
+              เวอร์ชันเว็บอยู่ระหว่างพัฒนา ยังไม่มีกำหนดเปิด
+              ระหว่างนี้ใช้ส่วนขยายบน Chrome หรือ Firefox ได้
+            </p>
+            <p class="cta-coarse">
+              ส่วนขยายติดตั้งบนคอมพิวเตอร์ เปิดหน้านี้บนคอมพิวเตอร์เพื่อติดตั้ง
+            </p>
+            <p class="micro">
+              ใช้ฟรี โอเพนซอร์ส ไม่มีบัญชีผู้ใช้ และไม่เก็บข้อมูลการใช้งาน
+            </p>
+            <p class="micro">
+              เครื่องมืออิสระที่นักศึกษาพัฒนา ไม่ใช่ระบบทางการของ สจล.
+            </p>
+          </div>
+          <div class="frame">
+            <div class="frame__bar" aria-hidden="true">
+              <span class="frame__dots"><i></i><i></i><i></i></span
+              ><span class="frame__url"
+                ><svg
+                  class="icon"
+                  width="14"
+                  height="14"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
+                ><span>regis.reg.kmitl.ac.th/#/teach_table_selector</span></span
+              >
+            </div>
+            <picture
+              ><source
+                media="(max-width: 639px)"
+                type="image/avif"
+                srcset="
+                  /shots/s-hero-crop-th-750.avif?v=b282f1ea49   750w,
+                  /shots/s-hero-crop-th-1100.avif?v=d5cb72909a 1100w
+                "
+                sizes="calc(100vw - 40px)" />
+              <source
+                media="(max-width: 639px)"
+                type="image/webp"
+                srcset="
+                  /shots/s-hero-crop-th-750.webp?v=967ae6bcec   750w,
+                  /shots/s-hero-crop-th-1100.webp?v=dcdec98c78 1100w
+                "
+                sizes="calc(100vw - 40px)" />
+              <source
+                type="image/avif"
+                srcset="
+                  /shots/s-hero-th-960.avif?v=99e5037597   960w,
+                  /shots/s-hero-th-1440.avif?v=764ec3d03d 1440w,
+                  /shots/s-hero-th-2160.avif?v=eb0083189d 2160w,
+                  /shots/s-hero-th-2880.avif?v=6444ac0617 2880w
+                "
+                sizes="(min-width: 1440px) 1264px, calc(100vw - 2 * clamp(20px, 5vw, 64px))" />
+              <source
+                type="image/webp"
+                srcset="
+                  /shots/s-hero-th-960.webp?v=337c4c1b24   960w,
+                  /shots/s-hero-th-1440.webp?v=0b9f2c80e3 1440w,
+                  /shots/s-hero-th-2160.webp?v=d0103834e0 2160w,
+                  /shots/s-hero-th-2880.webp?v=f701d3af4f 2880w
+                "
+                sizes="(min-width: 1440px) 1264px, calc(100vw - 2 * clamp(20px, 5vw, 64px))" />
+              <img
+                src="/shots/s-hero-th-1440.webp?v=0b9f2c80e3"
+                width="1440"
+                height="900"
+                alt="ตัววางแผน KCP เปิดอยู่บนหน้าค้นหารายวิชา ด้านซ้ายเป็นรายวิชาของหลักสูตรวิศวกรรมคอมพิวเตอร์และความปลอดภัยไซเบอร์ ชั้นปี 1 ด้านขวาเป็นตารางเรียนรายสัปดาห์ที่มีวิชาเรียนวันจันทร์ถึงวันศุกร์ 7 วิชา 19 หน่วยกิต ไม่มีรายการชนกัน"
+                loading="eager"
+                fetchpriority="high"
+                decoding="async"
+                class="frame__img"
+            /></picture>
+          </div>
+        </div>
+      </section>
+      <section class="band problem" aria-labelledby="problem-title">
+        <div class="container problem__grid">
+          <div class="problem__text">
+            <h2 id="problem-title">
+              หน้าลงทะเบียนแสดงกลุ่มเรียนเดียวกันซ้ำหลายครั้ง
+            </h2>
+            <p class="body">
+              กลุ่มเรียนหนึ่งกลุ่มเปิดให้หลายหลักสูตร
+              หน้าผลค้นหาจึงแสดงแถวเดียวกันซ้ำใต้ทุกหลักสูตรที่เปิดให้
+              การค้นหารหัสวิชา 90641007 พลเมืองดิจิทัล ภาคการศึกษา 1/2569 ได้
+              499 แถว แต่มีกลุ่มเรียนจริงเพียง 44 กลุ่ม KCP
+              อ่านข้อมูลสาธารณะชุดเดียวกับที่หน้าลงทะเบียนใช้
+              แล้วรวมแถวที่ซ้ำให้เหลือกลุ่มเรียนละหนึ่งรายการ
+            </p>
+            <div
+              class="dedupe-wrap"
+              data-dedupe
+              data-label="รวมแถวที่ซ้ำ"
+              data-merged="รวมแล้ว เหลือ 4 กลุ่มเรียนจาก 13 แถว"
+              data-unmerged="แสดงครบ 13 แถว"
+            >
+              <table class="dedupe" id="dedupe-table" role="table">
+                <caption>
+                  ข้อมูลจริงจากการค้นหาหมวดวิชา 90592xxx ภาคการศึกษา 1/2569 ได้
+                  13 แถวจาก 6 หลักสูตร
+                </caption>
+                <thead role="rowgroup">
+                  <tr role="row">
+                    <th scope="col" role="columnheader">
+                      หลักสูตรที่แสดงแถวนี้
+                    </th>
+                    <th scope="col" role="columnheader">รหัสวิชา</th>
+                    <th scope="col" role="columnheader">ชื่อวิชา</th>
+                    <th scope="col" role="columnheader">กลุ่มเรียน</th>
+                    <th scope="col" role="columnheader">วันและเวลา</th>
+                    <th scope="col" role="columnheader">ที่นั่ง</th>
+                  </tr>
+                </thead>
+                <tbody role="rowgroup">
+                  <tr role="row" class="dedupe__row subject-8" data-row="first">
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold">
+                        <div>
+                          วิศวกรรมโยธา ชั้นปี 4
+                          <span class="dedupe__chip">พบใน 4 หลักสูตร</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592008</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>สังคมไทยในวันนี้</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 ทฤษฎี</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>ศ 09:00-12:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>62/80</div></div>
+                    </td>
+                  </tr>
+                  <tr role="row" class="dedupe__row subject-0" data-row="first">
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold">
+                        <div>
+                          วิศวกรรมโยธา ชั้นปี 4
+                          <span class="dedupe__chip">พบใน 3 หลักสูตร</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592033</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>สังคมสูงวัยเชิงรุก</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 ทฤษฎี</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>ศ 08:00-10:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>เต็ม</div></div>
+                    </td>
+                  </tr>
+                  <tr role="row" class="dedupe__row subject-0" data-row="first">
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold">
+                        <div>
+                          วิศวกรรมโยธา ชั้นปี 4
+                          <span class="dedupe__chip">พบใน 3 หลักสูตร</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592033</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>สังคมสูงวัยเชิงรุก</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>902 ปฏิบัติ</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>ศ 10:00-12:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>เต็ม</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-8"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold"><div>วิศวกรรมเคมี ชั้นปี 4</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592008</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>สังคมไทยในวันนี้</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 ทฤษฎี</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>ศ 09:00-12:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>62/80</div></div>
+                    </td>
+                  </tr>
+                  <tr role="row" class="dedupe__row subject-4" data-row="first">
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold">
+                        <div>
+                          วิศวกรรมอุตสาหการ ชั้นปี 4
+                          <span class="dedupe__chip">พบใน 3 หลักสูตร</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592004</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>วัฒนธรรมร่วมสมัย</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 ทฤษฎี</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>ศ 13:00-16:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>85/90</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-4"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold">
+                        <div>คณะวิศวกรรมศาสตร์ ไม่ระบุหลักสูตร ชั้นปี 4</div>
+                      </div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592004</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>วัฒนธรรมร่วมสมัย</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 ทฤษฎี</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>ศ 13:00-16:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>85/90</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-8"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold">
+                        <div>สถาปัตยกรรมหลัก ชั้นปี 5</div>
+                      </div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592008</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>สังคมไทยในวันนี้</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 ทฤษฎี</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>ศ 09:00-12:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>62/80</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-0"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold">
+                        <div>สถาปัตยกรรมหลัก ชั้นปี 5</div>
+                      </div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592033</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>สังคมสูงวัยเชิงรุก</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 ทฤษฎี</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>ศ 08:00-10:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>เต็ม</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-0"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold">
+                        <div>สถาปัตยกรรมหลัก ชั้นปี 5</div>
+                      </div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592033</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>สังคมสูงวัยเชิงรุก</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>902 ปฏิบัติ</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>ศ 10:00-12:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>เต็ม</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-4"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold"><div>ศึกษาทั่วไป</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592004</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>วัฒนธรรมร่วมสมัย</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 ทฤษฎี</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>ศ 13:00-16:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>85/90</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-8"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold"><div>ศึกษาทั่วไป</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592008</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>สังคมไทยในวันนี้</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 ทฤษฎี</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>ศ 09:00-12:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>62/80</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-0"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold"><div>ศึกษาทั่วไป</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592033</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>สังคมสูงวัยเชิงรุก</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>901 ทฤษฎี</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>ศ 08:00-10:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>เต็ม</div></div>
+                    </td>
+                  </tr>
+                  <tr
+                    role="row"
+                    class="dedupe__row subject-0"
+                    data-row="repeat"
+                  >
+                    <td role="cell" class="dedupe__grouping">
+                      <div class="fold"><div>ศึกษาทั่วไป</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__id">
+                      <div class="fold"><div>90592033</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__name">
+                      <div class="fold"><div>สังคมสูงวัยเชิงรุก</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__section">
+                      <div class="fold"><div>902 ปฏิบัติ</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__time">
+                      <div class="fold"><div>ศ 10:00-12:00</div></div>
+                    </td>
+                    <td role="cell" class="dedupe__seats">
+                      <div class="fold"><div>เต็ม</div></div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="dedupe__result">
+                ใน KCP ทั้ง 13 แถวนี้รวมเหลือ 4 กลุ่มเรียน
+                แต่ละกลุ่มแสดงเพียงครั้งเดียว
+              </p>
+              <p
+                class="visually-hidden"
+                role="status"
+                aria-live="polite"
+                data-dedupe-status
+              ></p>
+            </div>
+          </div>
+          <figure class="plate problem__shot">
+            <picture
+              ><source
+                type="image/avif"
+                srcset="
+                  /shots/s-catalog-dedupe-th-600.avif?v=d94d66e3c8 600w,
+                  /shots/s-catalog-dedupe-th-768.avif?v=dbcf5e4c98 768w
+                "
+                sizes="(min-width: 1280px) 384px, (min-width: 520px) 480px, calc(100vw - 40px)" />
+              <source
+                type="image/webp"
+                srcset="
+                  /shots/s-catalog-dedupe-th-600.webp?v=0c8696807a 600w,
+                  /shots/s-catalog-dedupe-th-768.webp?v=19add0b43f 768w
+                "
+                sizes="(min-width: 1280px) 384px, (min-width: 520px) 480px, calc(100vw - 40px)" />
+              <img
+                src="/shots/s-catalog-dedupe-th-600.webp?v=0c8696807a"
+                width="600"
+                height="1567"
+                alt="รายการรายวิชาใน KCP จากการค้นหาหมวดวิชา 90592xxx สรุปว่ามี 3 รายวิชา 4 กลุ่มเรียน และรวมรายการที่ซ้ำแล้ว 9 รายการ การ์ดวิชา 90592008 และ 90592033 เปิดแสดงกลุ่มเรียนพร้อมวันเวลา ห้อง และที่นั่ง"
+                loading="lazy"
+                decoding="async"
+                class="plate__img"
+            /></picture>
+            <figcaption>
+              ผลค้นหาเดียวกันใน KCP มี 3 รายวิชา 4 กลุ่มเรียน
+              แต่ละกลุ่มแสดงวันเวลา สถานที่ และที่นั่งในแถวเดียว
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+      <section class="features" id="features" aria-labelledby="features-title">
+        <div class="container">
+          <h2 id="features-title" class="features__title">
+            ทุกอย่างที่ใช้ในการจัดตารางเรียน อยู่ในแผงเดียว
+          </h2>
+          <article class="feature" aria-labelledby="search-title">
+            <div class="feature__caption">
+              <h3 id="search-title">ค้นหาได้สามแบบ เหมือนหน้าลงทะเบียน</h3>
+              <p class="body">
+                ค้นหาตามหลักสูตรและชั้นปี รหัสวิชา หรือหมวดวิชา
+                ผลค้นหาแสดงเป็นการ์ดรายวิชาที่ย่อไว้หนึ่งบรรทัด เปิดดูกลุ่มเรียน
+                ที่นั่งว่าง เงื่อนไขการลงทะเบียน และวันสอบได้ในที่เดียว
+                และกรองตามวัน หน่วยกิต หรือซ่อนกลุ่มเรียนที่เต็มได้ทันที
+              </p>
+            </div>
+            <div class="feature__media">
+              <figure class="plate plate--column">
+                <picture
+                  ><source
+                    type="image/avif"
+                    srcset="
+                      /shots/s-search-form-th-600.avif?v=50259960d7 600w,
+                      /shots/s-search-form-th-768.avif?v=3dcd370c92 768w
+                    "
+                    sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
+                  <source
+                    type="image/webp"
+                    srcset="
+                      /shots/s-search-form-th-600.webp?v=d3aafe0fa1 600w,
+                      /shots/s-search-form-th-768.webp?v=4e37cf696f 768w
+                    "
+                    sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
+                  <img
+                    src="/shots/s-search-form-th-600.webp?v=d3aafe0fa1"
+                    width="600"
+                    height="1281"
+                    alt="แผงค้นหาแท็บหลักสูตร เลือกคณะวิศวกรรมศาสตร์ ภาควิชาวิศวกรรมคอมพิวเตอร์ หลักสูตรวิศวกรรมคอมพิวเตอร์และความปลอดภัยไซเบอร์ และชั้นปี 1 ใต้ฟอร์มเป็นการ์ดรายวิชาที่เพิ่มลงตารางแล้ว"
+                    loading="lazy"
+                    decoding="async"
+                    class="plate__img"
+                /></picture>
+                <figcaption>ค้นหาได้สามแบบ เหมือนหน้าลงทะเบียน</figcaption>
+              </figure>
+            </div>
+          </article>
+          <article class="feature" aria-labelledby="conflict-title">
+            <div class="feature__caption">
+              <h3 id="conflict-title">ลากลงตาราง แล้วเห็นทันทีว่าชนหรือไม่</h3>
+              <p class="body">
+                เมื่อเริ่มลากกลุ่มเรียน ตารางจะแสดงตำแหน่งของทุกคาบเรียนล่วงหน้า
+                กรอบสีเขียวคือวางได้ ลายเส้นสีแดงคือชนกับวิชาที่อยู่ในตาราง
+                พร้อมชื่อวิชาและเวลาที่ชน ถ้าวางไม่ได้ KCP
+                จะเสนอกลุ่มเรียนอื่นของวิชาเดียวกันที่ลงได้
+                กลุ่มเรียนที่จับคู่ทฤษฎีกับปฏิบัติจะถูกเพิ่มและนำออกพร้อมกันเสมอ
+              </p>
+            </div>
+            <div class="feature__media">
+              <div class="stack">
+                <figure class="plate">
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/s-drag-blocked-th-800.avif?v=86c419e679   800w,
+                        /shots/s-drag-blocked-th-1600.avif?v=83af7f16f0 1600w
+                      "
+                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/s-drag-blocked-th-800.webp?v=44f7487a37   800w,
+                        /shots/s-drag-blocked-th-1600.webp?v=73090d1b30 1600w
+                      "
+                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
+                    <img
+                      src="/shots/s-drag-blocked-th-800.webp?v=44f7487a37"
+                      width="800"
+                      height="573"
+                      alt="ตารางเรียนขณะลากกลุ่มเรียน 3 ช่องวันอังคาร 09:00 ถึง 12:00 ทับวิชาฟิสิกส์ทั่วไป 1 และขึ้นป้ายบอกว่าชนกับ 01006020 กลุ่มเรียน 4"
+                      loading="lazy"
+                      decoding="async"
+                      class="plate__img"
+                  /></picture>
+                  <figcaption>
+                    ลากวิชาปฏิบัติฟิสิกส์ทั่วไป 1 กลุ่มเรียน 3 ลงวันอังคาร
+                    ซึ่งชนกับฟิสิกส์ทั่วไป 1 กลุ่มเรียน 4
+                  </figcaption>
+                </figure>
+                <figure class="plate">
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/s-feedback-alternatives-th-800.avif?v=442e3d3023   800w,
+                        /shots/s-feedback-alternatives-th-1600.avif?v=75718932bf 1600w
+                      "
+                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/s-feedback-alternatives-th-800.webp?v=74ed701646   800w,
+                        /shots/s-feedback-alternatives-th-1600.webp?v=cb2ac13172 1600w
+                      "
+                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
+                    <img
+                      src="/shots/s-feedback-alternatives-th-800.webp?v=74ed701646"
+                      width="800"
+                      height="352"
+                      alt="แถบข้อความใต้หัวตารางแจ้งว่าวางไม่ได้เพราะเวลาชน และมีปุ่มเพิ่มกลุ่มเรียน 5 วันพุธ 13:00 ถึง 16:00"
+                      loading="lazy"
+                      decoding="async"
+                      class="plate__img"
+                  /></picture>
+                  <figcaption>
+                    วางไม่ได้ KCP จึงเสนอกลุ่มเรียน 5 วันพุธ 13:00-16:00
+                    ที่ลงได้
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+          <article class="feature" aria-labelledby="exam-title">
+            <div class="feature__caption">
+              <h3 id="exam-title">ตรวจวันสอบให้ด้วย ไม่ใช่แค่เวลาเรียน</h3>
+              <p class="body">
+                สองวิชาที่เรียนคนละวันอาจสอบกลางภาคเวลาเดียวกัน KCP
+                เทียบช่วงสอบกลางภาคและปลายภาคของทุกวิชาในตาราง
+                และไม่ให้เพิ่มกลุ่มเรียนที่สอบชนกัน
+                มุมมองสรุปเรียงตารางสอบทั้งภาคตามวันที่
+                พร้อมชั่วโมงเรียนต่อสัปดาห์และวันว่าง
+              </p>
+            </div>
+            <div class="feature__media">
+              <div class="pair">
+                <figure class="plate">
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/s-exam-row-th-500.avif?v=6feec159b8 500w,
+                        /shots/s-exam-row-th-702.avif?v=41a4f86c51 702w
+                      "
+                      sizes="(min-width: 1024px) 384px, (min-width: 640px) calc(50vw - 56px), calc(100vw - 40px)" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/s-exam-row-th-500.webp?v=bd371386c2 500w,
+                        /shots/s-exam-row-th-702.webp?v=934cbd075e 702w
+                      "
+                      sizes="(min-width: 1024px) 384px, (min-width: 640px) calc(50vw - 56px), calc(100vw - 40px)" />
+                    <img
+                      src="/shots/s-exam-row-th-500.webp?v=bd371386c2"
+                      width="500"
+                      height="764"
+                      alt="การ์ดรายวิชา 01076112 กลุ่มเรียนมีป้ายสอบชนกัน และกล่องสีแดงอ่อนระบุว่าเวลาสอบชนกับ 01006020 กลุ่มเรียน 4 สอบกลางภาค 21 ส.ค. 2569"
+                      loading="lazy"
+                      decoding="async"
+                      class="plate__img"
+                  /></picture>
+                  <figcaption>
+                    <span lang="en">Digital System Fundamentals</span>
+                    เรียนวันจันทร์ แต่สอบกลางภาควันที่ 21 ส.ค. 2569
+                    เวลาเดียวกับฟิสิกส์ทั่วไป 1
+                  </figcaption>
+                </figure>
+                <figure class="plate">
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/s-summary-th-500.avif?v=c9431552bc   500w,
+                        /shots/s-summary-th-1000.avif?v=3fb33fcf75 1000w
+                      "
+                      sizes="(min-width: 1024px) 384px, (min-width: 640px) calc(50vw - 56px), calc(100vw - 40px)" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/s-summary-th-500.webp?v=b2b7807cd0   500w,
+                        /shots/s-summary-th-1000.webp?v=a249b92984 1000w
+                      "
+                      sizes="(min-width: 1024px) 384px, (min-width: 640px) calc(50vw - 56px), calc(100vw - 40px)" />
+                    <img
+                      src="/shots/s-summary-th-500.webp?v=b2b7807cd0"
+                      width="500"
+                      height="1169"
+                      alt="รายการสอบกลางภาคและปลายภาคของวิชาในตารางเรียงตามวันที่ ตามด้วยชั่วโมงทฤษฎี ปฏิบัติ และศึกษาด้วยตนเองต่อสัปดาห์"
+                      loading="lazy"
+                      decoding="async"
+                      class="plate__img"
+                  /></picture>
+                  <figcaption>
+                    มุมมองสรุปของตาราง เรียงวันสอบและสรุปภาระการเรียนต่อสัปดาห์
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+          <article
+            class="feature feature--wide"
+            aria-labelledby="layouts-title"
+          >
+            <div class="feature__caption">
+              <h3 id="layouts-title">
+                ใช้ได้ทั้งจอใหญ่ หน้าต่างแคบ และจอสัมผัส
+              </h3>
+              <p class="body">
+                บนแล็ปท็อป รายวิชาอยู่ข้างตาราง
+                บนแท็บเล็ตรายวิชาเปิดเป็นแผ่นด้านข้าง และในหน้าต่างที่แคบกว่า
+                640 px ตัววางแผนจะแสดงทีละส่วนพร้อมแถบนำทางด้านล่าง
+                ตารางแสดงทีละวัน และแตะค้างเพื่อลากกลุ่มเรียนบนจอสัมผัส
+              </p>
+            </div>
+            <div class="feature__media">
+              <div
+                class="strip"
+                role="region"
+                aria-label="ภาพตัวอย่างในหน้าต่างแคบ"
+                tabindex="0"
+              >
+                <figure class="narrow">
+                  <div class="narrow__bar" aria-hidden="true">
+                    <span class="frame__url"
+                      ><svg
+                        class="icon"
+                        width="14"
+                        height="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <rect
+                          width="18"
+                          height="11"
+                          x="3"
+                          y="11"
+                          rx="2"
+                          ry="2"
+                        />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
+                      ><span>regis.reg.kmitl.ac.th</span></span
+                    >
+                  </div>
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/n-catalog-th-400.avif?v=651f86ba28 400w,
+                        /shots/n-catalog-th-800.avif?v=0fbe9dc2e5 800w
+                      "
+                      sizes="(min-width: 1024px) 340px, 280px" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/n-catalog-th-400.webp?v=a52130a2a7 400w,
+                        /shots/n-catalog-th-800.webp?v=20b579626a 800w
+                      "
+                      sizes="(min-width: 1024px) 340px, 280px" />
+                    <img
+                      src="/shots/n-catalog-th-400.webp?v=a52130a2a7"
+                      width="400"
+                      height="866"
+                      alt="ตัววางแผนในหน้าต่างแคบ แสดงส่วนรายวิชา การ์ดแคลคูลัส 1 เปิดอยู่ และแถบนำทางด้านล่าง"
+                      loading="lazy"
+                      decoding="async"
+                      class="narrow__img"
+                  /></picture>
+                  <figcaption>รายวิชาและการค้นหา</figcaption>
+                </figure>
+                <figure class="narrow">
+                  <div class="narrow__bar" aria-hidden="true">
+                    <span class="frame__url"
+                      ><svg
+                        class="icon"
+                        width="14"
+                        height="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <rect
+                          width="18"
+                          height="11"
+                          x="3"
+                          y="11"
+                          rx="2"
+                          ry="2"
+                        />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
+                      ><span>regis.reg.kmitl.ac.th</span></span
+                    >
+                  </div>
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/n-day-th-400.avif?v=2de9dd62dc 400w,
+                        /shots/n-day-th-800.avif?v=9afdf5be11 800w
+                      "
+                      sizes="(min-width: 1024px) 340px, 280px" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/n-day-th-400.webp?v=c80d0e8b50 400w,
+                        /shots/n-day-th-800.webp?v=c4fb6d7a62 800w
+                      "
+                      sizes="(min-width: 1024px) 340px, 280px" />
+                    <img
+                      src="/shots/n-day-th-400.webp?v=c80d0e8b50"
+                      width="400"
+                      height="866"
+                      alt="ตารางเรียนวันอังคารในหน้าต่างแคบ มีฟิสิกส์ทั่วไป 1 เวลา 09:00 ถึง 12:00 และจิตวิทยาเบื้องต้น เวลา 13:00 ถึง 16:00"
+                      loading="lazy"
+                      decoding="async"
+                      class="narrow__img"
+                  /></picture>
+                  <figcaption>ตารางวันอังคาร</figcaption>
+                </figure>
+                <figure class="narrow">
+                  <div class="narrow__bar" aria-hidden="true">
+                    <span class="frame__url"
+                      ><svg
+                        class="icon"
+                        width="14"
+                        height="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <rect
+                          width="18"
+                          height="11"
+                          x="3"
+                          y="11"
+                          rx="2"
+                          ry="2"
+                        />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
+                      ><span>regis.reg.kmitl.ac.th</span></span
+                    >
+                  </div>
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/n-sheet-th-400.avif?v=81d880b37d 400w,
+                        /shots/n-sheet-th-800.avif?v=1b521e3001 800w
+                      "
+                      sizes="(min-width: 1024px) 340px, 280px" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/n-sheet-th-400.webp?v=8f549b4f73 400w,
+                        /shots/n-sheet-th-800.webp?v=fddb6c47f0 800w
+                      "
+                      sizes="(min-width: 1024px) 340px, 280px" />
+                    <img
+                      src="/shots/n-sheet-th-400.webp?v=8f549b4f73"
+                      width="400"
+                      height="866"
+                      alt="รายละเอียดฟิสิกส์ทั่วไป 1 กลุ่มเรียน 4 เปิดจากด้านล่างจอ แสดงเวลาเรียน ห้อง ผู้สอน ที่นั่ง และวันสอบ"
+                      loading="lazy"
+                      decoding="async"
+                      class="narrow__img"
+                  /></picture>
+                  <figcaption>รายละเอียดกลุ่มเรียนจากด้านล่างจอ</figcaption>
+                </figure>
+              </div>
+              <p class="footnote">
+                ส่วนขยายทำงานบนเบราว์เซอร์คอมพิวเตอร์ที่รองรับส่วนขยาย
+                ดูเรื่องการใช้บนโทรศัพท์ได้ในคำถามที่พบบ่อย
+              </p>
+            </div>
+          </article>
+          <article class="feature feature--wide" aria-labelledby="export-title">
+            <div class="feature__caption">
+              <h3 id="export-title">แชร์ตารางเป็นรูปภาพที่พร้อมส่ง</h3>
+              <p class="body">
+                โหมดดูตัวอย่างจัดตารางเป็นภาพโปสเตอร์ เลือกแม่แบบสำหรับแชร์ 16:9
+                ภาพพื้นหลังโทรศัพท์ ภาพพื้นหลังแท็บเล็ต หรือพิมพ์ A4
+                แล้วดาวน์โหลด คัดลอกรูปภาพ หรือคัดลอกเป็นข้อความสำหรับแอปแชท
+                ภาพที่ได้มีขนาดเท่ากันทุกครั้งไม่ว่าจะส่งออกจากหน้าจอขนาดใด
+                และเลือกแสดงตารางสอบใต้ตารางเรียนได้
+              </p>
+            </div>
+            <div class="feature__media">
+              <div class="posters">
+                <figure class="poster poster--wide">
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/x-share169-th-960.avif?v=c45add6c45   960w,
+                        /shots/x-share169-th-1440.avif?v=b4721336cd 1440w,
+                        /shots/x-share169-th-1920.avif?v=4d42af8b28 1920w
+                      "
+                      sizes="(min-width: 1280px) 1200px, calc(100vw - 40px)" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/x-share169-th-960.webp?v=de6a2b5431   960w,
+                        /shots/x-share169-th-1440.webp?v=08e0d4b1bc 1440w,
+                        /shots/x-share169-th-1920.webp?v=b3a5b46622 1920w
+                      "
+                      sizes="(min-width: 1280px) 1200px, calc(100vw - 40px)" />
+                    <img
+                      src="/shots/x-share169-th-960.webp?v=de6a2b5431"
+                      width="960"
+                      height="540"
+                      alt="ภาพตารางเรียนที่ส่งออกจาก KCP ขนาด 1920 x 1080 แสดงชื่อตาราง ภาคการศึกษา 1/2569 หน่วยกิตรวม และบล็อกวิชาวันจันทร์ถึงวันศุกร์"
+                      loading="lazy"
+                      decoding="async"
+                      class="plate__img"
+                  /></picture>
+                  <figcaption></figcaption>
+                </figure>
+                <figure class="poster poster--phone">
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/x-phone-portrait-th-320.avif?v=47dd2b12ac 320w,
+                        /shots/x-phone-portrait-th-640.avif?v=df654e62a3 640w
+                      "
+                      sizes="(min-width: 1024px) 264px, 40vw" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/x-phone-portrait-th-320.webp?v=6f4a724e32 320w,
+                        /shots/x-phone-portrait-th-640.webp?v=bfdb77e580 640w
+                      "
+                      sizes="(min-width: 1024px) 264px, 40vw" />
+                    <img
+                      src="/shots/x-phone-portrait-th-320.webp?v=6f4a724e32"
+                      width="320"
+                      height="693"
+                      alt="ภาพพื้นหลังโทรศัพท์แนวตั้งจากตารางเดียวกัน วันเรียงเป็นคอลัมน์ และมีตารางสอบอยู่ด้านล่าง"
+                      loading="lazy"
+                      decoding="async"
+                      class="plate__img"
+                  /></picture>
+                  <figcaption></figcaption>
+                </figure>
+              </div>
+              <p class="footnote">
+                แม่แบบ แชร์ 16:9, ภาพพื้นหลังโทรศัพท์แนวตั้งและแนวนอน,
+                ภาพพื้นหลังแท็บเล็ตแนวตั้งและแนวนอน, พิมพ์ A4
+              </p>
+            </div>
+          </article>
+          <article class="feature" aria-labelledby="plans-title">
+            <div class="feature__caption">
+              <h3 id="plans-title">
+                เก็บได้หลายตาราง และตรวจกับข้อมูลล่าสุดทุกครั้งที่เปิด
+              </h3>
+              <p class="body">
+                สร้างตารางได้หลายตารางต่อภาคการศึกษา ตั้งชื่อ ทำสำเนา
+                และส่งออกเป็นไฟล์ได้ ทุกครั้งที่เปิด KCP
+                จะตรวจกลุ่มเรียนในตารางกับข้อมูลล่าสุด ถ้าเวลา ห้อง
+                หรือวันสอบเปลี่ยน หรือกลุ่มเรียนไม่อยู่ในระบบแล้ว
+                จะแสดงค่าเดิมและค่าใหม่ให้ตรวจ โดยไม่ลบสิ่งใดออกเอง
+              </p>
+            </div>
+            <div class="feature__media">
+              <div class="stack">
+                <figure class="plate">
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/s-updates-th-600.avif?v=c38dc0be2f   600w,
+                        /shots/s-updates-th-1200.avif?v=00211385a6 1200w
+                      "
+                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/s-updates-th-600.webp?v=54a7676d58   600w,
+                        /shots/s-updates-th-1200.webp?v=847d5577b3 1200w
+                      "
+                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
+                    <img
+                      src="/shots/s-updates-th-600.webp?v=54a7676d58"
+                      width="600"
+                      height="493"
+                      alt="หน้าต่างข้อมูลในตารางมีการเปลี่ยนแปลง รายการแคลคูลัส 1 กลุ่มเรียน 33 แสดงเวลาเดิมและเวลาใหม่ พร้อมปุ่มรับทราบทั้งหมด"
+                      loading="lazy"
+                      decoding="async"
+                      class="plate__img"
+                  /></picture>
+                  <figcaption>
+                    หน้าต่างแจ้งการเปลี่ยนแปลงแสดงเวลาเดิมและเวลาใหม่ของกลุ่มเรียนที่เปลี่ยน
+                  </figcaption>
+                </figure>
+                <figure class="plate plate--inset">
+                  <picture
+                    ><source
+                      type="image/avif"
+                      srcset="
+                        /shots/s-plan-menu-th-480.avif?v=7e7feec25d 480w,
+                        /shots/s-plan-menu-th-640.avif?v=a1e67f3f1a 640w
+                      "
+                      sizes="(min-width: 1024px) 384px, (min-width: 640px) calc(50vw - 56px), calc(100vw - 40px)" />
+                    <source
+                      type="image/webp"
+                      srcset="
+                        /shots/s-plan-menu-th-480.webp?v=a904aa8d02 480w,
+                        /shots/s-plan-menu-th-640.webp?v=d2c47bbcc0 640w
+                      "
+                      sizes="(min-width: 1024px) 384px, (min-width: 640px) calc(50vw - 56px), calc(100vw - 40px)" />
+                    <img
+                      src="/shots/s-plan-menu-th-480.webp?v=a904aa8d02"
+                      width="480"
+                      height="369"
+                      alt="เมนูเลือกตารางที่มีสองตารางของภาคการศึกษา 1/2569 ปุ่มสร้างตาราง และคำสั่งนำเข้าและส่งออก JSON"
+                      loading="lazy"
+                      decoding="async"
+                      class="plate__img"
+                  /></picture>
+                  <figcaption>
+                    เมนูตาราง สร้าง สลับ นำเข้า และส่งออกตาราง
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+        </div>
+        <div class="privacy-band">
+          <div class="container">
+            <article class="feature" aria-labelledby="privacy-title">
+              <div class="feature__caption">
+                <h3 id="privacy-title">
+                  ข้อมูลอยู่ในเบราว์เซอร์ของคุณ และอ่านอย่างเดียว
+                </h3>
+                <p class="body">
+                  KCP ไม่มีบัญชีผู้ใช้ ไม่มีเซิร์ฟเวอร์ และไม่เก็บสถิติการใช้งาน
+                  ส่วนขยายอ่านเฉพาะข้อมูลรายวิชาสาธารณะที่หน้าลงทะเบียนใช้อยู่แล้ว
+                  ไม่แตะการเข้าสู่ระบบ ไม่กรอกหรือส่งแบบฟอร์ม
+                  และไม่ลงทะเบียนแทนคุณ
+                </p>
+              </div>
+              <div class="feature__media">
+                <h4>สิทธิ์ที่ส่วนขยายขอ และเหตุผล</h4>
+                <dl class="perms">
+                  <div class="perm">
+                    <dt lang="en">storage</dt>
+                    <dd>
+                      บันทึกตารางและรายการข้อมูลอ้างอิงไว้บนเครื่องนี้
+                      เพื่อให้เปิดได้เร็วและตารางยังอยู่หลังโหลดหน้าใหม่
+                    </dd>
+                  </div>
+                  <div class="perm">
+                    <dt lang="en">regis.reg.kmitl.ac.th</dt>
+                    <dd>
+                      แสดงตัววางแผนบนเว็บไซต์ลงทะเบียน
+                      และอ่านข้อมูลรายวิชาสาธารณะที่หน้าเว็บโหลดอยู่แล้ว
+                    </dd>
+                  </div>
+                  <div class="perm">
+                    <dt lang="en">api.reg.kmitl.ac.th</dt>
+                    <dd>
+                      อ่านรายชื่อคณะ ภาควิชา หลักสูตร
+                      และหมวดวิชาที่เปิดเผยเป็นสาธารณะ
+                      เพื่อใช้ในตัวเลือกการค้นหา
+                    </dd>
+                  </div>
+                </dl>
+                <p>
+                  <a
+                    class="text-link"
+                    href="https://github.com/txasw/kmitl-course-planner/blob/main/docs/PRIVACY.md"
+                    >อ่านนโยบายความเป็นส่วนตัว</a
+                  >
+                </p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+      <section class="more" aria-labelledby="more-title">
+        <div class="container more__grid">
+          <div>
+            <h2 id="more-title">ความสามารถอื่นที่ช่วยตัดสินใจ</h2>
+            <dl class="more__list">
+              <div class="more__item">
+                <dt>แนะนำตาราง</dt>
+                <dd>
+                  หลังค้นหาตามหลักสูตร KCP
+                  เสนอตารางที่ไม่ชนกันได้สูงสุดสามแบบจากวิชาในหลักสูตร
+                  เลือกเน้นเช้า เน้นบ่าย หรือเรียนน้อยวันได้
+                </dd>
+              </div>
+              <div class="more__item">
+                <dt>เปรียบเทียบกลุ่มเรียน</dt>
+                <dd>
+                  ดูทุกกลุ่มเรียนของวิชาในตารางเดียว ทั้งเวลา ผู้สอน ที่นั่ง
+                  วันสอบ และเงื่อนไข แล้วเพิ่มลงตารางจากตรงนั้นได้
+                </dd>
+              </div>
+              <div class="more__item">
+                <dt>ที่นั่งและผู้ลงทะเบียนล่วงหน้า</dt>
+                <dd>
+                  ทุกกลุ่มเรียนแสดงที่นั่งว่างจากจำนวนรับ
+                  และแจ้งเมื่อผู้ลงทะเบียนล่วงหน้ามากกว่าที่นั่ง
+                </dd>
+              </div>
+              <div class="more__item">
+                <dt>เปิดได้หลายทาง</dt>
+                <dd>
+                  เปิดตัววางแผนจากปุ่ม <span lang="en">Planner</span> มุมขวาล่าง
+                  ไอคอนส่วนขยาย หรือแป้นลัด <span lang="en">Alt+Shift+P</span>
+                </dd>
+              </div>
+              <div class="more__item">
+                <dt>สองภาษา</dt>
+                <dd>สลับหน้าจอเป็นภาษาไทยหรือภาษาอังกฤษได้ทุกเมื่อ</dd>
+              </div>
+            </dl>
+          </div>
+          <figure class="plate">
+            <picture
+              ><source
+                type="image/avif"
+                srcset="
+                  /shots/s-suggest-th-800.avif?v=bc2e569596   800w,
+                  /shots/s-suggest-th-1600.avif?v=89a0ec5e1c 1600w
+                "
+                sizes="(min-width: 1024px) 588px, calc(100vw - 40px)" />
+              <source
+                type="image/webp"
+                srcset="
+                  /shots/s-suggest-th-800.webp?v=098ead4ffb   800w,
+                  /shots/s-suggest-th-1600.webp?v=9beafc7369 1600w
+                "
+                sizes="(min-width: 1024px) 588px, calc(100vw - 40px)" />
+              <img
+                src="/shots/s-suggest-th-800.webp?v=098ead4ffb"
+                width="800"
+                height="531"
+                alt="หน้าต่างแนะนำตาราง เลือกรูปแบบเน้นเช้า มีตัวเลือกที่ 1 ถึง 3 พร้อมหน่วยกิต จำนวนวิชา วันเรียน ตารางย่อ และปุ่มใช้ตารางนี้"
+                loading="lazy"
+                decoding="async"
+                class="plate__img"
+            /></picture>
+            <figcaption>
+              แนะนำตารางแบบเน้นเช้า สามตัวเลือกวางเทียบกัน
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+      <section class="steps" id="get-started" aria-labelledby="steps-title">
+        <div class="container">
+          <h2 id="steps-title">เริ่มใช้งานใน 3 ขั้น</h2>
+          <p class="body steps__intro">
+            หลังติดตั้ง
+            หน้าค้นหารายวิชาของเว็บไซต์ลงทะเบียนจะเปิดขึ้นพร้อมคำแนะนำสั้น ๆ
+            และเปิดตัววางแผนได้ทุกเมื่อจากปุ่ม
+            <span lang="en">Planner</span> มุมขวาล่าง
+          </p>
+          <ol class="steps__list">
+            <li class="step">
+              <span class="step__num" aria-hidden="true">1</span>
+              <h3 class="step__title">ค้นหารายวิชา</h3>
+              <p>ค้นหาตามหลักสูตรและชั้นปี รหัสวิชา หรือหมวดวิชา</p>
+            </li>
+            <li class="step">
+              <span class="step__num" aria-hidden="true">2</span>
+              <h3 class="step__title">ลากกลุ่มเรียนลงตาราง</h3>
+              <p>ระบบจะแจ้งทันทีเมื่อเวลาเรียนหรือเวลาสอบชนกัน</p>
+            </li>
+            <li class="step">
+              <span class="step__num" aria-hidden="true">3</span>
+              <h3 class="step__title">แชร์เป็นรูปภาพ</h3>
+              <p>ดาวน์โหลดหรือคัดลอกตารางเป็นรูปภาพเพื่อส่งต่อ</p>
+            </li>
+          </ol>
+          <figure class="plate steps__shot">
+            <picture
+              ><source
+                type="image/avif"
+                srcset="
+                  /shots/s-welcome-th-600.avif?v=61117e3ff0   600w,
+                  /shots/s-welcome-th-1152.avif?v=f8cad9c4e5 1152w
+                "
+                sizes="(min-width: 1024px) 720px, calc(100vw - 40px)" />
+              <source
+                type="image/webp"
+                srcset="
+                  /shots/s-welcome-th-600.webp?v=40e8458f9d   600w,
+                  /shots/s-welcome-th-1152.webp?v=fd06f02097 1152w
+                "
+                sizes="(min-width: 1024px) 720px, calc(100vw - 40px)" />
+              <img
+                src="/shots/s-welcome-th-600.webp?v=40e8458f9d"
+                width="600"
+                height="594"
+                alt="ข้อความต้อนรับหลังติดตั้ง ขอบคุณที่ติดตั้ง KCP: Course Planner for KMITL พร้อมสามขั้นและปุ่มเริ่มวางแผน"
+                loading="lazy"
+                decoding="async"
+                class="plate__img"
+            /></picture>
+            <figcaption>
+              ค้นหารายวิชา, ลากกลุ่มเรียนลงตาราง, แชร์เป็นรูปภาพ
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+      <section
+        class="band download"
+        id="download"
+        aria-labelledby="download-title"
+      >
+        <div class="container download__grid">
+          <svg
+            class="mark download__mark"
+            width="96"
+            height="96"
+            viewBox="0 0 128 128"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <rect width="128" height="128" rx="28" fill="#E35205" />
+            <g fill="#FFFFFF">
+              <rect x="22" y="22" width="38" height="38" rx="6" />
+              <rect x="68" y="22" width="38" height="38" rx="6" />
+              <rect x="22" y="68" width="38" height="38" rx="6" />
+            </g>
+            <rect x="68" y="68" width="38" height="38" rx="6" fill="#B8400A" />
+          </svg>
+          <div>
+            <h2 id="download-title">ติดตั้ง KCP ฟรี</h2>
+            <p class="body">
+              ใช้ได้บน
+              <span lang="en">Chrome, Microsoft Edge, Brave, Opera</span> และ
+              <span lang="en">Firefox</span> บนคอมพิวเตอร์
+              ตัววางแผนทำงานเฉพาะบนเว็บไซต์ลงทะเบียน
+              <span lang="en">regis.reg.kmitl.ac.th</span>
+            </p>
+            <div class="cta-row cta-row--band">
+              <a
+                class="cta cta--chrome"
+                href="https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef"
+                ><svg
+                  class="icon"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"
+                  /></svg
+                ><span class="cta__text"
+                  ><span class="cta__label"
+                    >ติดตั้งบน <span lang="en">Chrome</span></span
+                  ><span class="cta__sub"
+                    >ใช้กับ <span lang="en">Edge, Brave</span> และ
+                    <span lang="en">Opera</span> ได้</span
+                  ></span
+                ></a
+              >
+              <a
+                class="cta cta--firefox"
+                href="https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/"
+                ><svg
+                  class="icon"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"
+                  /></svg
+                ><span class="cta__text"
+                  ><span class="cta__label"
+                    >ติดตั้งบน <span lang="en">Firefox</span></span
+                  ><span class="cta__sub"
+                    >จาก <span lang="en">Firefox Add-ons</span></span
+                  ></span
+                ></a
+              >
+              <button
+                type="button"
+                class="cta cta--soon"
+                aria-disabled="true"
+                aria-describedby="web-soon-note-band"
+              >
+                <svg
+                  class="icon"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+                  <path d="M2 12h20" /></svg
+                ><span class="cta__text"
+                  ><span class="cta__label"
+                    >ใช้งานบนเว็บ <span class="badge">เร็ว ๆ นี้</span></span
+                  ></span
+                >
+              </button>
+            </div>
+            <p class="cta-note" id="web-soon-note-band">
+              เวอร์ชันเว็บอยู่ระหว่างพัฒนา ยังไม่มีกำหนดเปิด
+              ระหว่างนี้ใช้ส่วนขยายบน Chrome หรือ Firefox ได้
+            </p>
+            <p class="cta-coarse">
+              ส่วนขยายติดตั้งบนคอมพิวเตอร์ เปิดหน้านี้บนคอมพิวเตอร์เพื่อติดตั้ง
+            </p>
+            <p class="micro">
+              เวอร์ชัน 1.3.1 ใช้ฟรีภายใต้สัญญาอนุญาต MIT
+              <a
+                class="text-link"
+                href="https://github.com/txasw/kmitl-course-planner"
+                >ดูซอร์สโค้ดบน GitHub</a
+              >
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="faq" id="faq" aria-labelledby="faq-title">
+        <div class="container">
+          <h2 id="faq-title">คำถามที่พบบ่อย</h2>
+          <div class="faq__list">
+            <details class="faq__item">
+              <summary>
+                <span>KCP คืออะไร</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                KCP หรือ
+                <span lang="en">Course Planner for KMITL</span>
+                เป็นส่วนขยายเบราว์เซอร์สำหรับวางแผนตารางเรียนก่อนลงทะเบียน
+                โดยใช้ข้อมูลรายวิชาที่เปิดสอนจากเว็บไซต์ลงทะเบียนของ สจล.
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>KCP เป็นระบบของ สจล. หรือไม่</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                ไม่ใช่ KCP เป็นเครื่องมืออิสระที่นักศึกษาพัฒนา
+                ไม่มีความเกี่ยวข้อง ไม่ได้รับการสนับสนุน
+                และไม่ได้รับการรับรองจากสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>KCP ลงทะเบียนเรียนให้ได้ไหม</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                ไม่ได้ KCP ใช้วางแผนก่อนลงทะเบียนเท่านั้น
+                การลงทะเบียนจริงยังทำบนเว็บไซต์ลงทะเบียนของสถาบันตามปกติ
+                ส่วนขยายไม่กรอกแบบฟอร์มและไม่ส่งคำขอใดแทนคุณ
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>ข้อมูลของฉันถูกส่งไปที่ใดหรือไม่</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                ไม่ ตารางที่บันทึกอยู่ในพื้นที่จัดเก็บของเบราว์เซอร์บนเครื่องนี้
+                ไม่มีบัญชีผู้ใช้ ไม่มีเซิร์ฟเวอร์ และไม่มีการติดตามการใช้งาน
+                การนำส่วนขยายออกจะลบข้อมูลเหล่านี้ด้วย
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>ใช้กับเบราว์เซอร์ใดได้บ้าง</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                <span lang="en">Chrome, Microsoft Edge, Brave, Opera</span>
+                และเบราว์เซอร์ <span lang="en">Chromium</span> อื่นติดตั้งจาก
+                <span lang="en">Chrome Web Store</span> ส่วน
+                <span lang="en">Firefox</span> ติดตั้งจาก
+                <span lang="en">Firefox Add-ons</span> ทั้งหมดใช้บนคอมพิวเตอร์
+                บน <span lang="en">Opera</span> อาจต้องติดตั้งตัวช่วยของ
+                <span lang="en">Opera</span> สำหรับส่วนขยายจาก
+                <span lang="en">Chrome Web Store</span> ก่อน
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>ใช้บนโทรศัพท์ได้ไหม</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                ขณะนี้ยังไม่ได้
+                <span lang="en">Chrome</span> บนโทรศัพท์ไม่รองรับส่วนขยาย
+                และยังไม่ได้ยืนยันการรองรับ
+                <span lang="en">Firefox</span> สำหรับ
+                <span lang="en">Android</span>
+                ตัววางแผนจัดหน้าจอสำหรับหน้าต่างแคบและจอสัมผัสไว้แล้ว
+                และเวอร์ชันเว็บที่อยู่ระหว่างพัฒนามีแผนให้ใช้ได้โดยไม่ต้องติดตั้งส่วนขยาย
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>เวอร์ชันเว็บจะเปิดเมื่อไร</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                ยังไม่มีกำหนด เมื่อเปิดใช้
+                ปุ่มใช้งานบนเว็บในหน้านี้จะเปลี่ยนเป็นลิงก์ที่ใช้ได้
+                ระหว่างนี้ใช้ส่วนขยายบน <span lang="en">Chrome</span> หรือ
+                <span lang="en">Firefox</span> ได้
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>ข้อมูลรายวิชาเป็นปัจจุบันแค่ไหน</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                KCP แสดงข้อมูลเดียวกับที่เว็บไซต์ลงทะเบียนส่งมา
+                และตรวจรูปแบบข้อมูลทุกครั้งก่อนแสดง ผลค้นหาบอกเวลาที่ดึงข้อมูล
+                และตารางที่บันทึกไว้จะถูกตรวจกับข้อมูลล่าสุดเมื่อเปิด
+                ก่อนลงทะเบียนจริงควรตรวจกับเว็บไซต์ลงทะเบียนอีกครั้ง
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>ย้ายตารางไปเครื่องอื่นได้ไหม</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                ได้ ส่งออกตารางเป็นไฟล์ <span lang="en">JSON</span> จากเมนูตาราง
+                แล้วนำเข้าบนเครื่องอื่น
+                ตารางที่นำเข้าจะถูกตรวจกับข้อมูลล่าสุดเมื่อเปิดครั้งแรก
+              </p>
+            </details>
+            <details class="faq__item">
+              <summary>
+                <span>KCP มีค่าใช้จ่ายไหม</span
+                ><svg
+                  class="icon faq__chevron"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <p>
+                ไม่มี KCP ใช้ได้ฟรีและเป็นซอร์สโค้ดเปิดภายใต้สัญญาอนุญาต
+                <span lang="en">MIT</span>
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="container site-footer__grid">
+        <div class="site-footer__text">
+          <p>
+            <span lang="en">KCP: Course Planner for KMITL</span>
+            เป็นเครื่องมืออิสระที่นักศึกษาพัฒนา ไม่มีความเกี่ยวข้อง
+            ไม่ได้รับการสนับสนุน
+            และไม่ได้รับการรับรองจากสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง
+            (สจล.) ชื่อ สจล. และ
+            <span lang="en">KMITL</span>
+            ใช้เพื่อระบุเว็บไซต์ที่เครื่องมือนี้ทำงานด้วยเท่านั้น
+          </p>
+          <p>
+            เว็บไซต์นี้ไม่ใช้คุกกี้ ไม่มีระบบวิเคราะห์การใช้งาน
+            และไม่โหลดไฟล์จากภายนอก
+          </p>
+        </div>
+        <nav aria-label="ลิงก์">
+          <ul class="site-footer__links">
+            <li>
+              <a
+                href="https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef"
+                lang="en"
+                >Chrome Web Store</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/"
+                lang="en"
+                >Firefox Add-ons</a
+              >
+            </li>
+            <li>
+              <a href="https://github.com/txasw/kmitl-course-planner"
+                >ซอร์สโค้ดบน GitHub</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://github.com/txasw/kmitl-course-planner/blob/main/docs/PRIVACY.md"
+                >นโยบายความเป็นส่วนตัว</a
+              >
+            </li>
+            <li>
+              <a href="https://github.com/txasw/kmitl-course-planner/issues"
+                >แจ้งปัญหา</a
+              >
+            </li>
+            <li><a href="/en/" lang="en" hreflang="en">English</a></li>
+          </ul>
+        </nav>
+        <p class="site-footer__legal">
+          <span lang="en">Chrome</span> และ
+          <span lang="en">Chrome Web Store</span> เป็นเครื่องหมายการค้าของ
+          <span lang="en">Google LLC</span>
+          <span lang="en">Firefox</span> เป็นเครื่องหมายการค้าของ
+          <span lang="en">Mozilla Foundation</span>
+        </p>
+        <p class="site-footer__legal">สัญญาอนุญาต MIT</p>
+      </div>
+    </footer>
+  </body>
+</html>
