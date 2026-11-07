@@ -7,6 +7,8 @@ import {
   openPlanner,
   pickOption,
   waitForResultsInput,
+  waitForTermSettled,
+  submitSearch,
 } from './support/fixtures';
 import { axeViolations } from './support/axe';
 import { denseSubjectId } from './support/denseCatalog';
@@ -119,7 +121,7 @@ async function categorySearch(page: Page, catalog: Locator): Promise<void> {
   await catalog.getByRole('tab', { name: 'หมวดวิชา', exact: true }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
-  await catalog.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(catalog);
   await expect(catalog.getByText('90592033').first()).toBeVisible({
     timeout: 15_000,
   });
@@ -348,7 +350,7 @@ test('the catalog sheet holds its search and results and closes alone on Escape'
   await sheet.getByRole('tab', { name: 'หมวดวิชา', exact: true }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
-  await sheet.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(sheet);
   await expect(sheet.getByText('90592033').first()).toBeVisible({
     timeout: 15_000,
   });
@@ -466,7 +468,7 @@ test('the strip chips stay tappable over the open catalog', async ({
   const catalog = await openCatalog(page);
   await catalog.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await catalog.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000010');
-  await catalog.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(catalog);
   await expect(catalog.getByText('90000011').first()).toBeVisible({
     timeout: 15_000,
   });
@@ -641,7 +643,7 @@ test('the summary marks an imported exam clash and lists it', async ({
   const catalog = await openCatalog(page);
   await catalog.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await catalog.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000010');
-  await catalog.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(catalog);
   await expect(catalog.getByText('90000011').first()).toBeVisible({
     timeout: 15_000,
   });
@@ -752,6 +754,7 @@ test('the controls a finger reaches are 44 px targets', async ({ context }) => {
   await pickOption(page, 'หมวดวิชา', '90592xxx');
   const submit = sheet.getByRole('button', { name: 'ค้นหา', exact: true });
   await expectTouchTarget(submit, 'search submit');
+  await waitForTermSettled(sheet);
   await submit.click();
   await expect(sheet.getByText('90592033').first()).toBeVisible({
     timeout: 15_000,
@@ -888,7 +891,7 @@ test.describe('the phone layout', () => {
     await column
       .getByRole('textbox', { name: 'รหัสวิชา' })
       .fill(DENSE_SUBJECT_ID);
-    await column.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+    await submitSearch(column);
     await expect(
       column.getByText(denseSubjectId(0), { exact: true }).first(),
     ).toBeVisible({ timeout: 20_000 });

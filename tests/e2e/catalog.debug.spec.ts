@@ -4,6 +4,7 @@ import {
   expandCourse,
   openPlanner,
   pickOption,
+  submitSearch,
 } from './support/fixtures';
 
 // With no persisted search, no result route, and no plan, the form opens on the term
@@ -30,7 +31,7 @@ test('renders the deduped catalog for a category search', async ({
   await page.getByRole('tab', { name: 'หมวดวิชา', exact: true }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
-  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(page);
 
   // The catalog mounts once, so each subject and the summary match exactly one
   // node.
@@ -84,7 +85,7 @@ test.describe('at 1280x720', () => {
     await pickOption(page, 'คณะ', '01');
     await pickOption(page, 'ภาควิชา', '08');
     await pickOption(page, 'หลักสูตร', 'ทุกหลักสูตร');
-    await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+    await submitSearch(page);
 
     await expect(
       page.getByRole('region', { name: 'การค้นหาปัจจุบัน' }),
@@ -108,7 +109,7 @@ test('opens and closes a course card from the keyboard', async ({
   await page.getByRole('tab', { name: 'หมวดวิชา', exact: true }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
-  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(page);
 
   const toggle = page
     .getByRole('article')

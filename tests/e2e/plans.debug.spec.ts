@@ -5,6 +5,7 @@ import {
   expandCourse,
   openPlanner,
   pickOption,
+  submitSearch,
 } from './support/fixtures';
 import { addCourse, block, syntheticSearch } from './support/synthetic';
 import type { Page } from '@playwright/test';
@@ -26,7 +27,7 @@ async function searchSyntheticInSemester(
   await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await pickOption(page, 'ภาคการศึกษา', semester);
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000000');
-  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(page);
   await expect(page.getByText('90000001').first()).toBeVisible({
     timeout: 15_000,
   });

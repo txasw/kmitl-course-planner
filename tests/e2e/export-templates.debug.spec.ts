@@ -4,6 +4,7 @@ import {
   expandCourse,
   openPlanner,
   pickOption,
+  submitSearch,
 } from './support/fixtures';
 import { addCourse, block, syntheticSearch } from './support/synthetic';
 import type { Page } from '@playwright/test';
@@ -25,7 +26,7 @@ async function categorySearch(page: Page): Promise<void> {
   await page.getByRole('tab', { name: 'หมวดวิชา', exact: true }).click();
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
-  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(page);
   await expect(page.getByText('90592033').first()).toBeVisible({
     timeout: 15_000,
   });

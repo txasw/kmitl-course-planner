@@ -1,4 +1,4 @@
-import { test, expect, openPlanner } from './support/fixtures';
+import { test, expect, openPlanner, submitSearch } from './support/fixtures';
 import { addCourse } from './support/synthetic';
 import type { Page } from '@playwright/test';
 
@@ -25,7 +25,7 @@ const PRESETS = [
 async function fitRegressionSearch(page: Page): Promise<void> {
   await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000600');
-  await page.getByRole('button', { name: 'ค้นหา', exact: true }).click();
+  await submitSearch(page);
   await expect(page.getByText('90000601').first()).toBeVisible({
     timeout: 15_000,
   });
