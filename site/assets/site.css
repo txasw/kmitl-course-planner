@@ -1491,9 +1491,22 @@ figcaption:empty {
 
 /* Narrow screens */
 
+/* A Thai headline phrase stays whole wherever it fits on one line. */
+@media (min-width: 360px) {
+  .phrase {
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 1023px) {
   .hero__break {
     display: inline;
+  }
+
+  /* Thai sets no space between the two phrases, so a narrow line would split the second
+     one; it keeps a line of its own instead. */
+  .hero__break:lang(th) {
+    display: block;
   }
 }
 
