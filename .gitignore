@@ -10,6 +10,7 @@ node_modules/
 # Build and generated output
 .output/
 .wxt/
+.wrangler/
 dist/
 stats.html
 web-ext-artifacts/

@@ -11,7 +11,13 @@ const NO_HTML = 'Injecting HTML is forbidden; render through React nodes.';
 
 export default tseslint.config(
   {
-    ignores: ['.wxt/**', '.output/**', 'coverage/**', 'node_modules/**'],
+    ignores: [
+      '.wxt/**',
+      '.output/**',
+      '.wrangler/**',
+      'coverage/**',
+      'node_modules/**',
+    ],
   },
   js.configs.recommended,
 
