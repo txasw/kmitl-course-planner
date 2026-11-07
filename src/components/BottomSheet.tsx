@@ -12,7 +12,10 @@
 // scrolls and a tap there activates. The body is capped at 85 percent of the dynamic
 // viewport height and scrolls inside, or the sheet fills the viewport when its content
 // is a long review, and the optional footer stays pinned below it, padded clear of the
-// home indicator. A sheet can name the control that takes focus on open in place of the
+// home indicator. A table that keeps its header row in view while it scrolls owns its
+// scroll instead, as in the modal dialog: a sticky header sticks to its nearest scrolling
+// ancestor, so the body then only bounds the content and leaves the scroll to it. A
+// sheet can name the control that takes focus on open in place of the
 // heading, as the modal dialog can. Reduced motion drops the entrance and the swipe
 // tracking, leaving the close button, the scrim, and Escape. While mounted the sheet
 // counts as an open surface, so an unasked dialog waits for it to close.
@@ -36,6 +39,11 @@ import { useSwipeGesture } from '@/features/shell/useSwipeGesture';
 
 const SAFE_BOTTOM_PADDING = 'pb-[max(16px,var(--kcp-safe-bottom))]';
 
+const BODY_CLASS = {
+  body: 'kcp-scroll overflow-y-auto',
+  content: 'flex flex-col',
+} as const;
+
 interface BottomSheetProps {
   /** The heading that names the sheet; it labels the dialog and takes focus on open. */
   title: ReactNode;
@@ -51,6 +59,8 @@ interface BottomSheetProps {
   initialFocusRef?: RefObject<HTMLElement | null>;
   /** The id of the element in the body that describes the dialog. */
   describedBy?: string;
+  /** Who scrolls the content: the sheet body by default, or the content itself. */
+  scroll?: keyof typeof BODY_CLASS;
 }
 
 export function BottomSheet({
@@ -62,6 +72,7 @@ export function BottomSheet({
   fullHeight = false,
   initialFocusRef,
   describedBy,
+  scroll = 'body',
 }: BottomSheetProps) {
   const portalRoot = usePanelPortal();
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -148,7 +159,7 @@ export function BottomSheet({
           </div>
         </div>
         <div
-          className={`kcp-scroll min-h-0 flex-1 overflow-y-auto px-4 text-sm ${hasFooter ? 'pb-4' : SAFE_BOTTOM_PADDING}`}
+          className={`min-h-0 flex-1 px-4 text-sm ${BODY_CLASS[scroll]} ${hasFooter ? 'pb-4' : SAFE_BOTTOM_PADDING}`}
         >
           {children}
         </div>

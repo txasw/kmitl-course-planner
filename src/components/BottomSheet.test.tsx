@@ -222,4 +222,23 @@ describe('BottomSheet', () => {
     expect(dialog).toHaveClass('h-dvh');
     expect(dialog).not.toHaveClass('max-h-[85dvh]');
   });
+
+  it('leaves the scroll to a content that owns it', () => {
+    render(
+      <PanelPortalContext.Provider value={document.body}>
+        <BottomSheet
+          title="Table"
+          closeLabel="Close"
+          onClose={vi.fn()}
+          fullHeight
+          scroll="content"
+        >
+          <div data-testid="content" />
+        </BottomSheet>
+      </PanelPortalContext.Provider>,
+    );
+    const body = screen.getByTestId('content').parentElement;
+    expect(body).toHaveClass('flex', 'flex-col', 'min-h-0', 'flex-1');
+    expect(body).not.toHaveClass('overflow-y-auto');
+  });
 });
