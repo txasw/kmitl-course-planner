@@ -42,7 +42,9 @@ import type { Plan } from '../../src/lib/domain/plan';
 // the catalog and the timetable each take the whole body in turn, its timetable reads
 // one day at a time, stepped by the day chips or a swipe, and during a block drag the
 // nav turns into the remove bar. There the open search form fills the catalog pane over
-// a pinned submit, and the plan menu and the display options open as bottom sheets.
+// a pinned submit, and the plan menu and the display options open as bottom sheets. The
+// section comparison opens as a full height sheet with its table turned, two sections
+// side by side under a pinned field column.
 // The entry toast beside the launcher fits inside the viewport above the launcher.
 
 const LAUNCHER = 'เปิด Course Planner for KMITL';
@@ -52,6 +54,9 @@ const OVERLAY = 'ตัววางแผนตารางเรียน ส�
 // The reserved subject id the mock server answers with the synthetic dense catalog,
 // hundreds of collapsed one section courses, so the list is long enough to scroll.
 const DENSE_SUBJECT_ID = '90000500';
+// The reserved subject id the mock server answers with the real by_subject_id capture,
+// one course of 44 sections, so a comparison has more sections than fit side by side.
+const CAPTURE_SUBJECT_ID = '90000499';
 
 /**
  * Bring the catalog into view, the catalog pane on the phone and the sheet on the
@@ -1130,6 +1135,72 @@ test.describe('the phone layout', () => {
     // The chip is the path back, and the plan kept its class.
     await friday.tap();
     await expect(page.locator(GRID_BLOCK)).toHaveCount(1);
+  });
+
+  test('compares sections in a transposed sheet, two side by side under a pinned field column', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    const column = page.locator('#kcp-catalog-column');
+    await column.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
+    await column
+      .getByRole('textbox', { name: 'รหัสวิชา' })
+      .fill(CAPTURE_SUBJECT_ID);
+    await submitSearch(column);
+    await expect(column.getByText('90641007').first()).toBeVisible({
+      timeout: 20_000,
+    });
+    await waitForResultsInput(page);
+    await expandCourse(page, '90641007');
+    await column
+      .getByRole('button', { name: 'เปรียบเทียบกลุ่มเรียน', exact: true })
+      .tap();
+    const sheet = await expectBottomSheet(
+      page,
+      'เปรียบเทียบกลุ่มเรียน 90641007',
+    );
+    const scroller = sheet.getByRole('region');
+    const sections = sheet.getByRole('columnheader');
+    const field = sheet.getByRole('rowheader', { name: 'เวลาและสถานที่' });
+    await expect(sections).toHaveCount(44);
+
+    // Two sections sit wholly in view beside the field column, and the third starts
+    // past the edge.
+    const visibleSections = async (): Promise<number> => {
+      const area = await scroller.boundingBox();
+      const fieldBox = await field.boundingBox();
+      if (area === null || fieldBox === null) return -1;
+      const left = fieldBox.x + fieldBox.width - 1;
+      const right = area.x + area.width + 1;
+      let count = 0;
+      for (const box of await sections.evaluateAll((nodes) =>
+        nodes.map((node) => {
+          const rect = node.getBoundingClientRect();
+          return { x: rect.x, width: rect.width };
+        }),
+      )) {
+        if (box.x >= left && box.x + box.width <= right) count += 1;
+      }
+      return count;
+    };
+    expect(await visibleSections()).toBe(2);
+    const fieldBefore = await field.boundingBox();
+
+    // A sideways swipe moves the sections under the field column, which stays put,
+    // and settles on a section edge with two sections in view again.
+    const area = await scroller.boundingBox();
+    if (area === null) throw new Error('expected a laid out table');
+    const from: Point = {
+      x: area.x + area.width - 40,
+      y: area.y + area.height / 2,
+    };
+    await swipe(page, from, { x: from.x - 170, y: from.y }, 10);
+    await expect
+      .poll(() => scroller.evaluate((node) => node.scrollLeft))
+      .toBeGreaterThan(0);
+    await expect.poll(visibleSections).toBe(2);
+    expect(await field.boundingBox()).toEqual(fieldBefore);
+    await expectNoHorizontalOverflow(page);
   });
 });
 
