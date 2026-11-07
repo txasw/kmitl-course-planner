@@ -1,0 +1,450 @@
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import ts from 'typescript';
+import { describe, expect, it } from 'vitest';
+import {
+  BANNED,
+  BANNED_THAI,
+  DECORATIVE,
+  EMOJI,
+} from '../../src/lib/i18n/toneRules';
+import { dedupeRows } from '../../scripts/landing/site-data.mjs';
+import { siteTextFiles } from '../../scripts/landing/site-files.mjs';
+
+// Guards the landing site in site/ (ADR-0066): its titles and language alternates, the
+// structured data, the disabled web control, links and images that resolve inside the
+// folder, no asset or script from another origin and no analytics, markup the content
+// security policy allows, the dedupe table against the capture it is generated from,
+// the copy tone rules, and the Cloudflare configuration that serves it.
+
+const ROOT = process.cwd();
+const SITE = resolve(ROOT, 'site');
+const ORIGIN = 'https://kcp.cecs.sh';
+const CHROME =
+  'https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef';
+const FIREFOX =
+  'https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/';
+
+// Hosts a page may link to. Assets themselves must come from the site.
+const LINK_HOSTS = new Set([
+  'chromewebstore.google.com',
+  'addons.mozilla.org',
+  'github.com',
+  'kcp.cecs.sh',
+]);
+
+const ANALYTICS =
+  /google-analytics|googletagmanager|gtag\(|plausible|umami|matomo|segment\.|hotjar|clarity\.ms|cloudflareinsights|statcounter/i;
+
+interface Page {
+  locale: 'th' | 'en';
+  file: string;
+  url: string;
+}
+
+const PAGES: readonly Page[] = [
+  { locale: 'th', file: 'index.html', url: `${ORIGIN}/` },
+  { locale: 'en', file: 'en/index.html', url: `${ORIGIN}/en/` },
+];
+
+function load(file: string): Document {
+  return new DOMParser().parseFromString(
+    readFileSync(join(SITE, file), 'utf8'),
+    'text/html',
+  );
+}
+
+/** The URLs one element carries in href, src, srcset or imagesrcset. */
+function elementUrls(el: Element): string[] {
+  const found: string[] = [];
+  for (const name of ['href', 'src']) {
+    const value = el.getAttribute(name);
+    if (value !== null) found.push(value);
+  }
+  for (const name of ['srcset', 'imagesrcset']) {
+    for (const candidate of (el.getAttribute(name) ?? '').split(',')) {
+      const url = candidate.trim().split(/\s+/)[0];
+      if (url !== undefined && url !== '') found.push(url);
+    }
+  }
+  return found;
+}
+
+/** Every URL the document's elements carry. */
+function urls(doc: Document): string[] {
+  return [
+    ...doc.querySelectorAll('[href], [src], [srcset], [imagesrcset]'),
+  ].flatMap(elementUrls);
+}
+
+/** Map a same site URL to the file it names in site/, or null for another origin. */
+function siteFile(url: string): string | null {
+  const path = url.startsWith(ORIGIN)
+    ? url.slice(ORIGIN.length)
+    : url.startsWith('/')
+      ? url
+      : null;
+  if (path === null) return null;
+  const clean = path.split(/[?#]/)[0] ?? '';
+  return join(SITE, clean.endsWith('/') ? `${clean}index.html` : clean);
+}
+
+/** The first ten hex digits of a file's SHA-256, the version the build writes. */
+function contentHash(file: string): string {
+  return createHash('sha256')
+    .update(readFileSync(file))
+    .digest('hex')
+    .slice(0, 10);
+}
+
+/** The header lines _headers sets for one exact path pattern. */
+function headerRule(pattern: string): string[] {
+  const lines = readFileSync(join(SITE, '_headers'), 'utf8').split(/\r?\n/);
+  const start = lines.indexOf(pattern);
+  if (start === -1) return [];
+  const rule: string[] = [];
+  for (const line of lines.slice(start + 1)) {
+    if (!/^\s+\S/.test(line)) break;
+    rule.push(line.trim());
+  }
+  return rule;
+}
+
+function visibleText(doc: Document): string {
+  const alts = [...doc.querySelectorAll('img[alt]')].map(
+    (img) => img.getAttribute('alt') ?? '',
+  );
+  const metas = [
+    ...doc.querySelectorAll('meta[name="description"], meta[property$=":alt"]'),
+  ].map((meta) => meta.getAttribute('content') ?? '');
+  return [doc.title, doc.body.textContent, ...alts, ...metas].join('\n');
+}
+
+describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
+  const doc = load(file);
+
+  it('declares its language and leads its title with KCP', () => {
+    expect(doc.documentElement.lang).toBe(locale);
+    expect(doc.title.startsWith('KCP')).toBe(true);
+    expect(doc.querySelectorAll('h1')).toHaveLength(1);
+  });
+
+  it('names itself canonical and lists both language alternates', () => {
+    expect(
+      doc.querySelector('link[rel="canonical"]')?.getAttribute('href'),
+    ).toBe(url);
+    const alternates: Record<string, string | null> = {};
+    for (const link of doc.querySelectorAll(
+      'link[rel="alternate"][hreflang]',
+    )) {
+      alternates[link.getAttribute('hreflang') ?? ''] =
+        link.getAttribute('href');
+    }
+    expect(alternates).toEqual({
+      th: `${ORIGIN}/`,
+      en: `${ORIGIN}/en/`,
+      'x-default': `${ORIGIN}/`,
+    });
+    expect(
+      doc.querySelector('meta[property="og:url"]')?.getAttribute('content'),
+    ).toBe(url);
+  });
+
+  it('carries structured data that parses and names both install URLs', () => {
+    const scripts = doc.querySelectorAll('script[type="application/ld+json"]');
+    expect(scripts).toHaveLength(1);
+    const data = JSON.parse(scripts[0]?.textContent ?? '') as {
+      '@graph': { '@type': string; installUrl?: string[] }[];
+    };
+    const app = data['@graph'].find(
+      (node) => node['@type'] === 'SoftwareApplication',
+    );
+    expect(app?.installUrl).toEqual([CHROME, FIREFOX]);
+    expect(JSON.stringify(data)).not.toMatch(/aggregateRating|"review"/);
+  });
+
+  it('links both stores from the page', () => {
+    const hrefs = [...doc.querySelectorAll('a[href]')].map((a) =>
+      a.getAttribute('href'),
+    );
+    expect(hrefs.filter((href) => href === CHROME).length).toBeGreaterThan(1);
+    expect(hrefs.filter((href) => href === FIREFOX).length).toBeGreaterThan(1);
+  });
+
+  it('shows the web version as a disabled button, never a link', () => {
+    const soon = [...doc.querySelectorAll('.cta--soon')];
+    expect(soon.length).toBeGreaterThan(0);
+    for (const control of soon) {
+      expect(control.tagName).toBe('BUTTON');
+      expect(control.getAttribute('type')).toBe('button');
+      expect(control.getAttribute('aria-disabled')).toBe('true');
+      expect(control.hasAttribute('href')).toBe(false);
+      const note = control.getAttribute('aria-describedby') ?? '';
+      expect(doc.getElementById(note)?.textContent).not.toBe('');
+    }
+  });
+
+  it('resolves every internal link and image inside site/', () => {
+    for (const value of urls(doc)) {
+      if (value.startsWith('#')) {
+        expect(doc.getElementById(value.slice(1)), value).not.toBeNull();
+        continue;
+      }
+      const target = siteFile(value);
+      if (target !== null) {
+        expect(existsSync(target), value).toBe(true);
+      }
+    }
+  });
+
+  it('gives every image alt text and its dimensions', () => {
+    const images = [...doc.querySelectorAll('img')];
+    expect(images.length).toBeGreaterThan(10);
+    for (const img of images) {
+      expect(img.getAttribute('alt')?.trim(), img.outerHTML).toBeTruthy();
+      expect(Number(img.getAttribute('width'))).toBeGreaterThan(0);
+      expect(Number(img.getAttribute('height'))).toBeGreaterThan(0);
+    }
+    const lazy = images.filter((img) => img.getAttribute('loading') === 'lazy');
+    expect(lazy.length).toBe(images.length - 1);
+    expect(images[0]?.getAttribute('fetchpriority')).toBe('high');
+  });
+
+  it('loads no asset from another origin and links only to known hosts', () => {
+    for (const value of urls(doc)) {
+      if (value.startsWith('#') || value.startsWith('/')) continue;
+      const parsed = new URL(value);
+      expect(parsed.protocol, value).toBe('https:');
+      expect(LINK_HOSTS.has(parsed.hostname), value).toBe(true);
+    }
+    for (const el of doc.querySelectorAll(
+      'script[src], link[rel="stylesheet"], link[rel="preload"], link[rel="icon"], img, source',
+    )) {
+      for (const value of elementUrls(el)) {
+        expect(value.startsWith('/'), value).toBe(true);
+      }
+    }
+  });
+
+  it('runs no analytics', () => {
+    const scripts = [...doc.querySelectorAll('script[src]')].map(
+      (script) => script.getAttribute('src')?.split('?')[0],
+    );
+    expect(scripts).toEqual(['/assets/site.js']);
+    for (const script of doc.querySelectorAll('script:not([src])')) {
+      expect(script.getAttribute('type')).toBe('application/ld+json');
+    }
+    const head = doc.head.innerHTML;
+    expect(head).not.toMatch(ANALYTICS);
+    expect(readFileSync(join(SITE, 'assets/site.js'), 'utf8')).not.toMatch(
+      ANALYTICS,
+    );
+    expect(readFileSync(join(SITE, 'assets/site.js'), 'utf8')).not.toMatch(
+      /fetch\(|XMLHttpRequest|sendBeacon|localStorage|cookie/,
+    );
+  });
+
+  it('renders the dedupe table from the capture in response order', () => {
+    const rows = [...doc.querySelectorAll('#dedupe-table tbody tr')];
+    const expected = dedupeRows(locale);
+    expect(rows).toHaveLength(expected.length);
+    rows.forEach((row, index) => {
+      const want = expected[index];
+      const cells = [...row.querySelectorAll('td')].map((td) =>
+        td.textContent.replace(/\s+/g, ' ').trim(),
+      );
+      expect(row.getAttribute('data-row')).toBe(
+        want?.duplicate === true ? 'repeat' : 'first',
+      );
+      expect(row.classList.contains(want?.subjectClass ?? '')).toBe(true);
+      expect(cells.slice(1)).toEqual([
+        want?.subjectId,
+        want?.name,
+        want?.section,
+        want?.time,
+        want?.seats,
+      ]);
+      expect(cells[0]?.startsWith(want?.grouping ?? '')).toBe(true);
+    });
+  });
+
+  it('names the cached assets by the hash of their content', () => {
+    const versioned = urls(doc).filter((value) =>
+      /^\/(?:assets\/site\.(?:css|js)|shots\/)/.test(value),
+    );
+    expect(versioned.length).toBeGreaterThan(10);
+    for (const value of versioned) {
+      const target = siteFile(value);
+      expect(target, value).not.toBeNull();
+      expect(value.split('?')[1], value).toBe(`v=${contentHash(target ?? '')}`);
+    }
+  });
+
+  it('holds no markup the content security policy would block', () => {
+    expect(doc.querySelectorAll('style, [style]')).toHaveLength(0);
+    expect(doc.querySelectorAll('meta[http-equiv]')).toHaveLength(0);
+    for (const el of doc.querySelectorAll('*')) {
+      for (const name of el.getAttributeNames()) {
+        expect(name.startsWith('on'), `${el.tagName} ${name}`).toBe(false);
+      }
+    }
+    for (const value of urls(doc)) {
+      expect(/^(?:javascript|data):/.test(value), value).toBe(false);
+    }
+  });
+
+  it('follows the copy tone rules', () => {
+    const text = visibleText(doc);
+    expect(EMOJI.test(text)).toBe(false);
+    expect(text.match(DECORATIVE)).toBeNull();
+    expect(text.includes('!')).toBe(false);
+    const lower = text.toLowerCase();
+    for (const word of BANNED) {
+      expect(lower.includes(word), word).toBe(false);
+    }
+    if (locale === 'th') {
+      for (const term of BANNED_THAI) {
+        expect(text.includes(term), term).toBe(false);
+      }
+    }
+  });
+});
+
+describe('site files', () => {
+  it('match what pnpm site:build renders from the sources', async () => {
+    const files = await siteTextFiles();
+    expect([...files.keys()].sort()).toEqual([
+      '404.html',
+      'en/index.html',
+      'index.html',
+      'sitemap.xml',
+    ]);
+    for (const [relative, content] of files) {
+      expect(readFileSync(join(SITE, relative), 'utf8'), relative).toBe(
+        content,
+      );
+    }
+  });
+
+  it('serves the sitemap and the robots rules', () => {
+    expect(readFileSync(join(SITE, 'robots.txt'), 'utf8')).toContain(
+      `Sitemap: ${ORIGIN}/sitemap.xml`,
+    );
+    const sitemap = readFileSync(join(SITE, 'sitemap.xml'), 'utf8');
+    for (const loc of [`${ORIGIN}/`, `${ORIGIN}/en/`]) {
+      expect(sitemap).toContain(`<loc>${loc}</loc>`);
+    }
+    expect(sitemap.match(/hreflang="x-default"/g)).toHaveLength(2);
+  });
+
+  it('keeps the not found page out of the index', () => {
+    const doc = load('404.html');
+    expect(
+      doc.querySelector('meta[name="robots"]')?.getAttribute('content'),
+    ).toBe('noindex');
+    for (const value of urls(doc)) {
+      const target = siteFile(value);
+      if (target !== null) {
+        expect(existsSync(target), value).toBe(true);
+      }
+    }
+  });
+
+  it('loads no remote url from the stylesheet', () => {
+    const css = readFileSync(join(SITE, 'assets/site.css'), 'utf8');
+    for (const match of css.matchAll(/url\(\s*['"]?([^'")]+)/g)) {
+      expect(match[1]?.startsWith('/'), match[1]).toBe(true);
+    }
+  });
+});
+
+interface WranglerConfig {
+  name?: string;
+  main?: string;
+  compatibility_date?: string;
+  assets?: Record<string, string>;
+  routes?: { pattern?: string; custom_domain?: boolean }[];
+  workers_dev?: boolean;
+}
+
+describe('Cloudflare hosting', () => {
+  it('deploys site/ as static assets on the kcp.cecs.sh custom domain', () => {
+    const file = join(ROOT, 'wrangler.jsonc');
+    const parsed = ts.parseConfigFileTextToJson(
+      file,
+      readFileSync(file, 'utf8'),
+    );
+    expect(parsed.error).toBeUndefined();
+    // The parser returns the JSON as any; the fields read here are checked below.
+    const config = parsed.config as WranglerConfig;
+    expect(config.name).toBe('kcp-landing');
+    expect(config.main).toBeUndefined();
+    expect(config.compatibility_date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(config.assets).toEqual({
+      directory: './site',
+      html_handling: 'auto-trailing-slash',
+      not_found_handling: '404-page',
+    });
+    expect(config.routes).toEqual([
+      { pattern: 'kcp.cecs.sh', custom_domain: true },
+    ]);
+    expect(config.workers_dev).toBe(false);
+  });
+
+  it('sends the security headers on every path', () => {
+    const all = headerRule('/*');
+    const csp = all.find((line) =>
+      line.startsWith('Content-Security-Policy: '),
+    );
+    for (const directive of [
+      "default-src 'none'",
+      "script-src 'self'",
+      "style-src 'self'",
+      "img-src 'self'",
+      "font-src 'self'",
+      "base-uri 'none'",
+      "form-action 'none'",
+      "frame-ancestors 'none'",
+    ]) {
+      expect(csp, directive).toContain(directive);
+    }
+    expect(csp).not.toMatch(/unsafe-inline|unsafe-eval|https?:|\*/);
+    expect(all).toContain(
+      'Strict-Transport-Security: max-age=63072000; includeSubDomains',
+    );
+    expect(all).toContain('X-Content-Type-Options: nosniff');
+    expect(all).toContain('Referrer-Policy: strict-origin-when-cross-origin');
+    expect(all.some((line) => line.startsWith('Permissions-Policy: '))).toBe(
+      true,
+    );
+    // Values of a header set by two matching rules are joined, so the catch all rule
+    // never sets the cache policy the narrower rules own.
+    expect(all.some((line) => line.startsWith('Cache-Control'))).toBe(false);
+  });
+
+  it('revalidates the pages and caches the versioned assets for a year', () => {
+    for (const page of ['/', '/en/']) {
+      expect(headerRule(page)).toEqual(['Cache-Control: no-cache']);
+    }
+    for (const assets of ['/assets/*', '/shots/*']) {
+      expect(headerRule(assets)).toEqual([
+        'Cache-Control: public, max-age=31536000, immutable',
+      ]);
+    }
+  });
+
+  it('redirects the guessed Thai path to the root', () => {
+    const rules = readFileSync(join(SITE, '_redirects'), 'utf8')
+      .split(/\r?\n/)
+      .filter((line) => line !== '' && !line.startsWith('#'));
+    expect(rules).toEqual(['/th / 301', '/th/ / 301', '/th/* / 301']);
+  });
+
+  it('keeps no GitHub Pages configuration', () => {
+    expect(existsSync(join(SITE, 'CNAME'))).toBe(false);
+    expect(existsSync(join(ROOT, '.github', 'workflows', 'pages.yml'))).toBe(
+      false,
+    );
+  });
+});
