@@ -18,7 +18,12 @@ export default tseslint.config(
   // Type checked linting for product and test sources. The manifest builder is
   // product code at the root, so it gets the same rule set as src.
   {
-    files: ['src/**/*.{ts,tsx}', 'tests/**/*.{ts,tsx}', 'manifest.config.ts'],
+    files: [
+      'src/**/*.{ts,tsx}',
+      'tests/**/*.{ts,tsx}',
+      'scripts/**/*.ts',
+      'manifest.config.ts',
+    ],
     extends: [
       tseslint.configs.strictTypeChecked,
       tseslint.configs.stylisticTypeChecked,
@@ -117,11 +122,12 @@ export default tseslint.config(
     },
   },
 
-  // End to end tests run in Node and drive the built extension. They need Node
-  // globals, and the Playwright fixture convention passes an empty destructuring
-  // pattern for a fixture that depends on nothing, which is allowed here.
+  // End to end tests and the landing page capture run in Node and drive the built
+  // extension. They need Node globals, and the Playwright fixture convention passes an
+  // empty destructuring pattern for a fixture that depends on nothing, which is
+  // allowed here.
   {
-    files: ['tests/e2e/**/*.ts'],
+    files: ['tests/e2e/**/*.ts', 'scripts/landing/**/*.ts'],
     languageOptions: { globals: { ...globals.node } },
     rules: {
       'no-empty-pattern': ['error', { allowObjectPatternsAsParameters: true }],
