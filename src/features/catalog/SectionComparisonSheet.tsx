@@ -15,7 +15,7 @@
 // outcome is read once. An add or a term switch turns the pressed control into a mark or
 // drops its row from an addable only view, so focus moves on to the table.
 
-import { useMemo, useRef, useState, type RefObject } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ListFilter } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
 import { ModalDialog } from '@/components/ModalDialog';
@@ -27,7 +27,6 @@ import type { Locale, Translate } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
 import {
   compareSections,
-  type ComparisonRow,
   type ComparisonSort,
 } from '@/lib/catalog/compareSections';
 import type { TermContext } from '@/lib/planner/sectionState';
@@ -38,13 +37,8 @@ import { planStore } from '@/features/plans/planStore';
 import { activePlanOf } from '@/features/plans/planStoreState';
 import { switchOrCreatePlanForTerm } from '@/features/plans/switchPlanTerm';
 import { commitThenFocus } from '@/features/shell/restoreFocus';
-import { addOutcomeText, ComparisonAddCell } from './ComparisonAddCell';
-import {
-  ComparisonCells,
-  COLUMN_HEADS,
-  HEAD_CELL,
-  headPinClass,
-} from './SectionComparisonCells';
+import { addOutcomeText } from './ComparisonAddCell';
+import { ComparisonTable } from './ComparisonTable';
 
 interface Announcement {
   id: number;
@@ -190,87 +184,5 @@ export function SectionComparisonSheet({
         />
       )}
     </ModalDialog>
-  );
-}
-
-interface ComparisonTableProps {
-  rows: ComparisonRow[];
-  title: string;
-  locale: Locale;
-  t: Translate;
-  /** The section whose last add was blocked, whose cell states the reason. */
-  blockedId: string | null;
-  scrollerRef: RefObject<HTMLDivElement | null>;
-  onAdd: (section: Section) => void;
-  onSwitchTerm: (term: Term) => void;
-}
-
-function ComparisonTable({
-  rows,
-  title,
-  locale,
-  t,
-  blockedId,
-  scrollerRef,
-  onAdd,
-  onSwitchTerm,
-}: ComparisonTableProps) {
-  return (
-    // The scroller is a tab stop of its own, so a keyboard user can scroll it with the
-    // arrow keys even when no row holds a control, and an add or a switch that removes
-    // its control hands focus to it. The browser's implicit stop for a scroller is not
-    // enough: the dialog's focus trap only counts explicit stops. The ring shows where
-    // focus is.
-    <div
-      ref={scrollerRef}
-      role="region"
-      aria-label={title}
-      tabIndex={0}
-      className={`kcp-scroll min-h-0 flex-1 overflow-auto rounded-kcp border border-border ${FOCUS_RING}`}
-    >
-      {/* Separate borders keep each cell's rule on the cell, so the rules travel with
-          the sticky header and column instead of staying behind as they scroll. */}
-      <table className="w-full min-w-[60rem] border-separate border-spacing-0 text-xs">
-        <caption className="sr-only">{title}</caption>
-        <thead>
-          <tr>
-            {COLUMN_HEADS.map((head) => (
-              <th
-                key={head.key}
-                scope="col"
-                className={`${HEAD_CELL} ${head.width} ${headPinClass(head.pin)}`}
-              >
-                {t(head.key)}
-                {head.note === undefined ? null : (
-                  <span className="block font-normal text-ink-soft">
-                    {t(head.note)}
-                  </span>
-                )}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, index) => (
-            <tr key={row.section.teachTableId}>
-              <ComparisonCells
-                row={row}
-                zebra={index % 2 === 1}
-                locale={locale}
-                t={t}
-              />
-              <ComparisonAddCell
-                row={row}
-                zebra={index % 2 === 1}
-                blocked={row.section.teachTableId === blockedId}
-                t={t}
-                onAdd={onAdd}
-                onSwitchTerm={onSwitchTerm}
-              />
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
   );
 }

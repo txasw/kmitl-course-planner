@@ -5,9 +5,10 @@
 // it routes through the normal add path, which rejects it, and the cell then states the
 // reason in the same callout the card row uses, so the student sees why without leaving
 // the table. A full, closed, or duplicate subject section cannot be added by any path, so
-// the cell says so in words beside the status column that names the reason. The cell
-// stays in view on the trailing edge as the table scrolls sideways, on the row's own
-// surface.
+// the cell says so in words beside the status field that names the reason. In the table
+// with a row per section the cell stays in view on the trailing edge as the table
+// scrolls sideways, on the row's own surface; in the transposed table it is one cell of
+// the add row and scrolls with its section.
 
 import { useId } from 'react';
 import { Check, Plus } from 'lucide-react';
@@ -27,7 +28,7 @@ import { addSectionName } from './SectionRow';
 
 const ACTION = `inline-flex items-center gap-1 whitespace-nowrap rounded-kcp border border-primary px-2 py-0.5 text-primary-strong hover:bg-primary-soft ${TARGET_SIZE} ${FOCUS_RING}`;
 
-const ADD_CELL = `${CELL} sticky right-0 z-[1] border-l`;
+const PINNED = 'sticky right-0 z-[1] border-l';
 
 /** What the table's live node says once an add from the table settles. */
 export function addOutcomeText(
@@ -54,6 +55,8 @@ interface ComparisonAddCellProps {
   row: ComparisonRow;
   /** Whether the row takes the alternate surface. */
   zebra: boolean;
+  /** Whether the cell stays in view on the trailing edge as the table scrolls. */
+  pinned: boolean;
   /** Whether the student's last add from this row was blocked. */
   blocked: boolean;
   t: Translate;
@@ -64,6 +67,7 @@ interface ComparisonAddCellProps {
 export function ComparisonAddCell({
   row,
   zebra,
+  pinned,
   blocked,
   t,
   onAdd,
@@ -71,7 +75,7 @@ export function ComparisonAddCell({
 }: ComparisonAddCellProps) {
   const calloutId = useId();
   const { section, relation, seat } = row;
-  const className = `${ADD_CELL} ${rowSurface(zebra)}`;
+  const className = `${CELL} ${rowSurface(zebra)} ${pinned ? PINNED : ''}`;
 
   if (relation.kind === 'added') {
     return (
