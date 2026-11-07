@@ -1,8 +1,9 @@
 // The search hooks that talk to the worker. useReferenceData fetches the four
 // reference lists once, coalescing on their status so reopening the overlay does
-// not refetch, and returns a reload for the error retry path. useSearchInit
-// hydrates a persisted search and seeds the term from the first source that has
-// one: the teach table route captured at mount, the persisted search, the active
+// not refetch, and returns a reload for the error retry path. useSearchBoot starts
+// loading the persisted search when the app mounts, so it is ready by the first open.
+// useSearchInit, at that open, applies it and seeds the term from the first source
+// that has one: the teach table route captured then, the persisted search, the active
 // plan, then the term after the registrar's current term. That last source needs a
 // fetch, so the form renders with the local fallback first and takes the fetched
 // default only if nothing else has set the term and no search has run under it by
@@ -77,6 +78,13 @@ export function useReferenceData(send: TypedSend): () => void {
   };
 }
 
+/** Start loading the persisted search at mount, ahead of the first open. */
+export function useSearchBoot({ repo }: Pick<SearchDeps, 'repo'>): void {
+  useEffect(() => {
+    searchStore.getState().bootSearch(repo);
+  }, [repo]);
+}
+
 export function useSearchInit(
   { repo, send }: SearchDeps,
   route: TeachTableRoute | null,
@@ -109,7 +117,8 @@ export function useSearchInit(
         plan: activePlanTerm(),
         current: null,
       });
-      // One write lands the forms and the term together.
+      // One write lands the forms, the term and any restored bar, so the head paints
+      // the bar or the form once rather than one and then the other.
       searchStore.getState().seedSearch(persisted, initial);
       if (initial.source !== 'fallback') {
         return;

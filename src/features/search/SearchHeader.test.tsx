@@ -25,6 +25,10 @@ import {
 import { makeCourse } from '../../../tests/support/domain-builders';
 import { loadFixture } from '../../../tests/support/fixtures';
 import { TEACH_TABLE_TTL_MS } from '@/lib/storage/keys';
+import type {
+  SearchState,
+  SearchStateRepository,
+} from '@/lib/storage/lastSearch';
 import { toastStore } from '@/features/shell/toastStore';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
 import { SearchDepsProvider } from './SearchDepsContext';
@@ -514,6 +518,105 @@ describe('search head Escape', () => {
     fireEvent.keyDown(field, { key: 'Escape' });
     expect(onEscape).toHaveBeenCalledOnce();
     expect(formRegion(container)).toHaveAttribute('data-open', 'true');
+  });
+});
+
+describe('search head after a reload', () => {
+  const lastSearch: SearchState = {
+    schemaVersion: 2,
+    activeTab: 'by_subject_id',
+    term,
+    byClass: defaultClassForm(),
+    bySubjectId: { subjectId: '90592033' },
+    byCategory: defaultCategoryForm(),
+  };
+
+  interface Release {
+    repo: SearchStateRepository;
+    release: () => void;
+  }
+
+  // A repository whose load the test settles, so the placeholder can be read first.
+  function heldRepo(): Release {
+    let resolve: (state: SearchState) => void = () => undefined;
+    const pending = new Promise<SearchState>((settle) => {
+      resolve = settle;
+    });
+    return {
+      repo: { load: () => pending, save: () => Promise.resolve() },
+      release: () => {
+        resolve(lastSearch);
+      },
+    };
+  }
+
+  // Watches every commit for an open form, which a reload must never paint.
+  function watchOpenForm(container: HTMLElement): () => boolean {
+    let seen = false;
+    const check = () => {
+      seen ||=
+        container.querySelector(`#${SEARCH_FORM_ID}[data-open="true"]`) !==
+        null;
+    };
+    const observer = new MutationObserver(check);
+    observer.observe(container, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+    });
+    return () => {
+      check();
+      observer.disconnect();
+      return seen;
+    };
+  }
+
+  function bootAndRender(repo: SearchStateRepository) {
+    // The app boots the load at mount, ahead of the first open.
+    searchStore.getState().bootSearch(repo);
+    return render(
+      <SearchDepsProvider value={fakeSearchDeps({ repo })}>
+        <SearchHeader />
+      </SearchDepsProvider>,
+    );
+  }
+
+  afterEach(() => {
+    window.location.hash = '';
+  });
+
+  it('paints the placeholder, then the folded bar, and never the open form', async () => {
+    const held = heldRepo();
+    const openFormSeen = watchOpenForm(document.body);
+    const { container } = bootAndRender(held.repo);
+    expect(container.querySelector(`#${SEARCH_FORM_ID}`)).toBeNull();
+    expect(
+      screen.queryByRole('region', { name: 'การค้นหาปัจจุบัน' }),
+    ).not.toBeInTheDocument();
+    held.release();
+    const bar = await screen.findByRole('region', { name: 'การค้นหาปัจจุบัน' });
+    expect(bar).toHaveAccessibleDescription(/ภาค 1\/2569/);
+    expect(formRegion(container)).toHaveAttribute('data-open', 'false');
+    expect(openFormSeen()).toBe(false);
+  });
+
+  it('opens the form with no bar for a host route on another term', async () => {
+    window.location.hash =
+      '#/teach_table?mode=by_subject_id&selected_year=2568&selected_semester=2';
+    const { container } = bootAndRender({
+      load: () => Promise.resolve(lastSearch),
+      save: () => Promise.resolve(),
+    });
+    await waitFor(() => {
+      expect(formRegion(container)).toHaveAttribute('data-open', 'true');
+    });
+    expect(
+      screen.queryByRole('region', { name: 'การค้นหาปัจจุบัน' }),
+    ).not.toBeInTheDocument();
+    expect(searchStore.getState().term).toEqual({
+      year: '2568',
+      semester: '2',
+    });
   });
 });
 

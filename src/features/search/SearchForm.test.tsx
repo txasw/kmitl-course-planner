@@ -29,6 +29,7 @@ import {
 } from '@/lib/search/formState';
 import { CatalogPanel } from '@/features/catalog/CatalogPanel';
 import { SearchForm } from './SearchForm';
+import { SearchHeader } from './SearchHeader';
 import { searchStore } from './searchStore';
 import { SearchDepsProvider, type SearchDeps } from './SearchDepsContext';
 
@@ -98,6 +99,14 @@ function renderSearch(searchDeps: SearchDeps) {
     <SearchDepsProvider value={searchDeps}>
       <SearchForm />
       <CatalogPanel />
+    </SearchDepsProvider>,
+  );
+}
+
+function renderHead(searchDeps: SearchDeps) {
+  return render(
+    <SearchDepsProvider value={searchDeps}>
+      <SearchHeader />
     </SearchDepsProvider>,
   );
 }
@@ -341,13 +350,8 @@ describe('SearchForm', () => {
     expect(await screen.findByText('90592033')).toBeInTheDocument();
   });
 
-  it('renders the term once above the tabs and keeps it across a tab switch', async () => {
+  it('renders the term once above the tabs and keeps it across a tab switch', () => {
     renderSearch(deps());
-    const semester = screen.getByRole('combobox', { name: 'ภาคการศึกษา' });
-    // Wait for the default term to settle so the pick is not replaced by it.
-    await waitFor(() => {
-      expect(semester).toHaveValue('2');
-    });
     const termRow = screen.getByRole('group', { name: 'ปีและภาคการศึกษา' });
     const tabs = screen.getByRole('tab', { name: 'รหัสวิชา' });
     expect(
@@ -368,8 +372,9 @@ describe('SearchForm', () => {
     });
   });
 
+  // The search head seeds the term, so these render the form under it.
   it('marks the term pending until the registrar answers', async () => {
-    const { container } = renderSearch({
+    const { container } = renderHead({
       ...deps(),
       send: resolvingSend(ownerCatalog(), false),
     });
@@ -381,7 +386,7 @@ describe('SearchForm', () => {
     act(() => {
       searchStore.getState().setInitialized(false);
     });
-    const settled = renderSearch(deps()).container;
+    const settled = renderHead(deps()).container;
     await waitFor(() => {
       expect(settled.querySelector('[data-term-state]')).toHaveAttribute(
         'data-term-state',

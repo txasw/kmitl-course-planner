@@ -8,7 +8,10 @@
 // disclosure is session state too: barQuery names the search the summary bar
 // describes, and searchFormOpen says whether the student has opened the form under
 // that bar. Without a bar the form is always shown, so the form is open when either
-// holds.
+// holds. The persisted search starts loading when the app mounts, ahead of the first
+// open, while the term seed waits for that open so a host route captured then still
+// wins; the head shows a placeholder until the seed lands, so a restored bar never
+// paints over a form that flashed first.
 
 import { createStore } from 'zustand/vanilla';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
@@ -31,6 +34,7 @@ import {
   defaultSubjectIdForm,
 } from '@/lib/search/formState';
 import { applyPrefillForms, type SearchPrefill } from '@/lib/search/queryForms';
+import { persistedBarQuery, restoredBar } from '@/lib/search/restoredBar';
 import type {
   SearchState as PersistedSearchState,
   SearchStateRepository,
@@ -54,6 +58,11 @@ export interface SearchStore {
    * clobbering in session edits. It resets only on a full page reload.
    */
   hasInitialized: boolean;
+  /**
+   * Whether a persisted search loaded at mount may still fold the form into its bar
+   * once the first open seeds it. The search head holds a placeholder meanwhile.
+   */
+  restorePending: boolean;
   /**
    * Whether the term in the forms is the local fallback seeded while the current
    * registration term is still being fetched. Any other term write clears it, and so
@@ -90,7 +99,13 @@ export interface SearchStore {
   searchFormOpen: boolean;
   /** When the latest user search was accepted, so the results can guard input. */
   lastSubmitAt: number | null;
+  /** Set the one time flag; clearing it also forgets the loaded persisted search. */
   setInitialized: (value: boolean) => void;
+  /**
+   * Start loading the persisted search once per page session, ahead of the first open.
+   * The load is shared with the initialization that later claims it.
+   */
+  bootSearch: (repo: Pick<SearchStateRepository, 'load'>) => void;
   /**
    * Claim the one time initialization and start loading the persisted search, or
    * return null when this page session already claimed it. The claim is synchronous,
@@ -113,8 +128,10 @@ export interface SearchStore {
   /** Set the term from another source, such as a plan switch, ending any default. */
   seedTerm: (term: Term) => void;
   /**
-   * Apply the persisted search and the initial term in one write, so the head paints
-   * the seeded search once. A fallback term stays replaceable by the fetched default.
+   * Apply the persisted search and the initial term in one write: the forms, the term,
+   * and the bar a reload restores, with the form folded under it. A fallback term stays
+   * replaceable by the fetched default. A search that already ran this session keeps its
+   * bar. It ends any pending restore.
    */
   seedSearch: (
     persisted: PersistedSearchState | null,
@@ -208,12 +225,17 @@ export function selectFormOpen(state: SearchStore): boolean {
 }
 
 export function createSearchStore() {
-  // The load the claimed initialization started. A prefill that arrives while it is in
-  // flight awaits it, and since the init hook subscribed to it first, the hook's
-  // hydrate and term seed settle before the prefill lands rather than over it.
-  let initialLoad: Promise<PersistedSearchState | null> = Promise.resolve(null);
+  // The one load of the persisted search, started at boot or by the claim. A prefill
+  // that arrives while it is in flight awaits it, and since the init hook subscribed to
+  // it first, the hook's seed settles before the prefill lands rather than over it.
+  let persistedLoad: Promise<PersistedSearchState | null> | null = null;
+  function loadOnce(repo: Pick<SearchStateRepository, 'load'>) {
+    persistedLoad ??= loadPersisted(repo);
+    return persistedLoad;
+  }
   return createStore<SearchStore>((set, get) => ({
     hasInitialized: false,
+    restorePending: false,
     defaultTermPending: false,
     activeTab: 'by_class',
     term: NEUTRAL_TERM,
@@ -232,15 +254,30 @@ export function createSearchStore() {
     searchFormOpen: true,
     lastSubmitAt: null,
     setInitialized: (value) => {
+      if (!value) {
+        persistedLoad = null;
+      }
       set({ hasInitialized: value });
+    },
+    bootSearch: (repo) => {
+      if (persistedLoad !== null) {
+        return;
+      }
+      const load = loadOnce(repo);
+      set({ restorePending: true });
+      void load.then((persisted) => {
+        // With nothing to fold into a bar, the open form may paint before the seed.
+        if (persistedBarQuery(persisted) === null) {
+          set({ restorePending: false });
+        }
+      });
     },
     claimInitialization: (repo) => {
       if (get().hasInitialized) {
         return null;
       }
       set({ hasInitialized: true });
-      initialLoad = loadPersisted(repo);
-      return initialLoad;
+      return loadOnce(repo);
     },
     setActiveTab: (tab) => {
       set({ activeTab: tab });
@@ -267,10 +304,18 @@ export function createSearchStore() {
       set({ term, defaultTermPending: false });
     },
     seedSearch: (persisted, initial) => {
-      set({
-        ...(persisted === null ? {} : persistedFields(persisted)),
-        term: initial.term,
-        defaultTermPending: initial.source === 'fallback',
+      set((state) => {
+        const bar = restoredBar(persisted, initial);
+        return {
+          ...(persisted === null ? {} : persistedFields(persisted)),
+          term: initial.term,
+          defaultTermPending: initial.source === 'fallback',
+          // A search that already ran this session keeps its bar and disclosure.
+          ...(state.barQuery === null
+            ? { barQuery: bar, searchFormOpen: bar === null }
+            : {}),
+          restorePending: false,
+        };
       });
     },
     applyDefaultTerm: (term) => {
@@ -284,14 +329,17 @@ export function createSearchStore() {
     applyRoutePrefill: async (prefill, repo) => {
       const load = get().claimInitialization(repo);
       if (load === null) {
-        await initialLoad;
+        await persistedLoad;
       } else {
         const persisted = await load;
         if (persisted !== null) {
           get().hydrate(persisted);
         }
       }
-      set((state) => withPrefill(state, prefill));
+      set((state) => ({
+        ...withPrefill(state, prefill),
+        restorePending: false,
+      }));
     },
     setFaculties: (faculties) => {
       set({ faculties });
