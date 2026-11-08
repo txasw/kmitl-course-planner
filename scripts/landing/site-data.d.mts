@@ -1,6 +1,7 @@
 export interface DedupeRow {
   id: string;
   duplicate: boolean;
+  slot: number;
   chip: string | null;
   subjectClass: string;
   grouping: string;

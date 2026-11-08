@@ -310,6 +310,12 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
       expect(row.getAttribute('data-row')).toBe(
         want?.duplicate === true ? 'repeat' : 'first',
       );
+      expect(row.getAttribute('data-i')).toBe(String(index));
+      expect(row.getAttribute('data-slot')).toBe(String(want?.slot));
+      const first = expected.findIndex((r) => r.id === want?.id);
+      expect(want?.slot).toBe(
+        new Set(expected.slice(0, first + 1).map((r) => r.id)).size - 1,
+      );
       expect(row.classList.contains(want?.subjectClass ?? '')).toBe(true);
       expect(cells.slice(1)).toEqual([
         want?.subjectId,

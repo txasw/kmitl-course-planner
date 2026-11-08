@@ -110,15 +110,20 @@ export function dedupeRows(locale) {
       (listings.get(row.teach_table_id) ?? 0) + 1,
     );
   }
-  const seen = new Set();
+  // A section's slot is its place among the unique sections in first appearance order,
+  // the row it keeps once the repeats merge into it.
+  const slots = new Map();
   return raw.map(({ group, row }) => {
-    const duplicate = seen.has(row.teach_table_id);
-    seen.add(row.teach_table_id);
+    const duplicate = slots.has(row.teach_table_id);
+    if (!duplicate) {
+      slots.set(row.teach_table_id, slots.size);
+    }
     const day = DAY_MAP.get(row.teach_day);
     const color = hashColor(row.subject_id);
     return {
       id: row.teach_table_id,
       duplicate,
+      slot: slots.get(row.teach_table_id),
       chip: duplicate ? null : copy.chip(listings.get(row.teach_table_id)),
       subjectClass: `subject-${String(EVENT_PALETTE.indexOf(color))}`,
       grouping: groupingLabel(group, locale),
@@ -250,10 +255,14 @@ function escapeHtml(value) {
 }
 
 function cell(content, extra = '') {
-  return `<td role="cell"${extra}><div class="fold"><div>${content}</div></div></td>`;
+  return `<td role="cell"${extra}>${content}</td>`;
 }
 
-/** The table body rows as HTML, one tr per raw row. */
+/**
+ * The table body rows as HTML, one tr per raw row. Each row carries its raw index and its
+ * section's slot, from which the stylesheet works out how far the row travels when the
+ * repeats merge. A cell that may be cut to one line carries its whole text as a title.
+ */
 export function renderDedupeRows(locale) {
   const seatsLabel = escapeHtml(COPY[locale].seats);
   // A Thai subject name is one compound to its reader, so it never breaks inside.
@@ -262,17 +271,23 @@ export function renderDedupeRows(locale) {
       ? `<span class="nw">${escapeHtml(text)}</span>`
       : escapeHtml(text);
   return dedupeRows(locale)
-    .map((row) => {
+    .map((row, index) => {
       const chip =
         row.chip === null
           ? ''
           : ` <span class="dedupe__chip">${escapeHtml(row.chip)}</span>`;
       const kind = row.duplicate ? 'repeat' : 'first';
       return [
-        `<tr role="row" class="dedupe__row ${row.subjectClass}" data-row="${kind}">`,
-        cell(`${escapeHtml(row.grouping)}${chip}`, ' class="dedupe__grouping"'),
+        `<tr role="row" class="dedupe__row ${row.subjectClass}" data-row="${kind}" data-i="${String(index)}" data-slot="${String(row.slot)}">`,
+        cell(
+          `<span class="dedupe__group">${escapeHtml(row.grouping)}</span>${chip}`,
+          ` class="dedupe__grouping" title="${escapeHtml(row.grouping)}"`,
+        ),
         cell(escapeHtml(row.subjectId), ' class="dedupe__id"'),
-        cell(name(row.name), ' class="dedupe__name"'),
+        cell(
+          name(row.name),
+          ` class="dedupe__name" title="${escapeHtml(row.name)}"`,
+        ),
         cell(escapeHtml(row.section), ' class="dedupe__section"'),
         cell(escapeHtml(row.time), ' class="dedupe__time"'),
         cell(

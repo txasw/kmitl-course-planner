@@ -61,6 +61,10 @@ export const en = {
     merged: (c) => `Merged into ${c.sections} sections from ${c.rows} rows.`,
     unmerged: (c) => `Showing all ${c.rows} rows.`,
     staticResult: () => 'Each section is listed once.',
+    countRows: (c) => `<span class="count__num">${c.rows}</span> rows`,
+    countJoin: 'into',
+    countSections: (c) =>
+      `<span class="count__num">${c.sections}</span> sections`,
   },
   story: {
     h2: 'Plan by drag and drop',

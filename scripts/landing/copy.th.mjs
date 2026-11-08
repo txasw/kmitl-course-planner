@@ -66,6 +66,10 @@ export const th = {
     merged: (c) => `รวมแล้ว เหลือ ${c.sections} กลุ่มเรียนจาก ${c.rows} แถว`,
     unmerged: (c) => `แสดงครบ ${c.rows} แถว`,
     staticResult: () => 'แต่ละกลุ่มเรียนแสดงเพียงครั้งเดียว',
+    countRows: (c) => `<span class="count__num">${c.rows}</span> แถว`,
+    countJoin: 'เหลือ',
+    countSections: (c) =>
+      `<span class="count__num">${c.sections}</span> กลุ่มเรียน`,
   },
   story: {
     h2: 'จัดตารางแบบลากวาง',
