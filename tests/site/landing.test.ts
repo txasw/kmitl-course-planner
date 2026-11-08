@@ -724,6 +724,38 @@ describe('site files', () => {
     }
   });
 
+  // The closing band is the page's last call to action: its heading and badges rise on
+  // their own view like every revealed block, so they stand at full strength once their
+  // top is 85 percent down the window, and the band clips its glow without becoming a
+  // scroll container that would capture that view.
+  it('lets the closing heading and badges finish rising as a revealed block does', () => {
+    const rules = cssRules();
+    const animation = (selector: string) =>
+      rules
+        .find(
+          (rule) =>
+            rule.selectors.includes(selector) &&
+            rule.decls.some((d) => d.startsWith('animation-timeline:')),
+        )
+        ?.decls.filter((d) => d.startsWith('animation-'));
+    const reveal = animation('.motion:not(.no-sda) [data-reveal]');
+    const range = reveal?.find((d) => d.startsWith('animation-range:'));
+    expect(reveal).toContain('animation-timeline: view()');
+    for (const part of ['.statement__h', '.cta-row']) {
+      const decls = animation(`.motion:not(.no-sda) .download ${part}`);
+      expect(decls).toContain('animation-timeline: view()');
+      expect(decls?.find((d) => d.startsWith('animation-range:'))).toBe(range);
+    }
+    const band = rules.find(
+      (rule) =>
+        rule.selectors.includes('.download') &&
+        rule.decls.some((d) => d.startsWith('overflow')),
+    );
+    expect(band?.decls.filter((d) => d.startsWith('overflow')).at(-1)).toBe(
+      'overflow: clip',
+    );
+  });
+
   it('listens to no scroll event', () => {
     const script = readFileSync(join(SITE, 'assets/site.js'), 'utf8');
     expect(script).not.toMatch(/addEventListener\(\s*['"]scroll/);

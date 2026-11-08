@@ -3411,10 +3411,13 @@ h4 {
 
 /* The closing call to action. A soft orange glow stands behind the mark; it is
    decoration, so it shows at rest too. As the band comes into view the glow grows, the
-   mark turns upright and the heading, the line under it and each button rise in turn. */
+   mark turns upright and the heading, the line under it and each button rise in turn.
+   The band clips the glow without becoming a scroll container, so the heading and the
+   badges can follow their own view of the window. */
 .download {
   position: relative;
   overflow: hidden;
+  overflow: clip;
 }
 
 .download::before {
@@ -3471,12 +3474,14 @@ h4 {
     animation-range: entry 10% cover 40%;
   }
 
+  /* The heading and the badges are the page's last call to action, so each rises on
+     its own view like a revealed block and stands at full strength once its top is 85
+     percent down the window, where a reader at rest finds it. */
   .motion:not(.no-sda) .download .statement__h,
   .motion:not(.no-sda) .download .cta-row {
     animation: rise linear both;
-    animation-timeline: --close;
-    animation-range: entry calc(25% + 4% * var(--e)) cover
-      calc(45% + 4% * var(--e));
+    animation-timeline: view();
+    animation-range: entry min(10%, 2svh) entry min(70%, 15svh);
     --rise: 24px;
   }
 }
