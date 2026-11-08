@@ -174,8 +174,9 @@
     const drive = () => {
       pin.dataset.drive = scrollDriven() && pinned.matches ? 'scroll' : 'class';
     };
-    // The line sits where the sections close up, midway through the merge.
-    watchSentinels(track, [0.33], (index) => {
+    // The line sits where the sections close up, after the thirteen rows have held and
+    // with the track's last quarter left for the merged state to hold.
+    watchSentinels(track, [0.4], (index) => {
       pin.classList.toggle('is-merged', index >= 0);
     });
     pinned.addEventListener('change', drive);
@@ -184,8 +185,8 @@
 
   // The story's three beats start at these fractions of its pinned scroll; the first
   // while the dark band is still rising to the header, so the grid is drawn by the time
-  // it pins.
-  const STORY_BEATS = [-0.15, 0.38, 0.64];
+  // it pins. Each beat then holds for about a third of the track before the next.
+  const STORY_BEATS = [-0.15, 0.34, 0.65];
 
   function enhanceStory(track) {
     const pin = track.querySelector('.story__pin');

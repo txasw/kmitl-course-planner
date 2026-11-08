@@ -2365,14 +2365,15 @@ h4 {
 
 /* The hero frame on scroll. On a window tall enough to hold it, the frame stands in a
    pinned stage: it starts tilted back like a laptop lid under the buttons and stands up
-   to full size over the first half screen of scroll, while the hero text steps back.
-   Elsewhere it scales in as it enters the view. */
+   to full size over three quarters of a screen of scroll, while the hero text steps
+   back, then holds standing for a while before the page moves on. Elsewhere it scales
+   in as it enters the view. */
 
 @media (min-width: 768px) and (min-height: 680px) {
   /* The tilted frame sits lower than its box, so the stage starts a little higher to
      keep the lid close under the buttons. */
   .motion .hero__track {
-    height: calc(100svh - var(--header-h) + 45svh);
+    height: calc(100svh - var(--header-h) + 100svh);
     margin-top: -64px;
   }
 
@@ -2394,7 +2395,7 @@ h4 {
   }
 
   .motion.no-sda .frame {
-    transition: transform 1100ms var(--ease-out-expo);
+    transition: transform 1500ms var(--ease-out-expo);
   }
 
   .motion.no-sda .hero__track:not(.is-in) .frame {
@@ -2412,7 +2413,7 @@ h4 {
 
 @media (max-width: 767px), (max-height: 679px) {
   .motion.no-sda .frame {
-    transition: transform 1100ms var(--ease-out-expo);
+    transition: transform 1500ms var(--ease-out-expo);
   }
 
   .motion.no-sda .hero__track:not(.is-in) .frame {
@@ -2425,7 +2426,7 @@ h4 {
     .motion:not(.no-sda) .frame {
       animation: hero-zoom linear both;
       animation-timeline: scroll(root block);
-      animation-range: 0 55svh;
+      animation-range: 0 75svh;
     }
 
     /* The deep shadow is drawn once and only its opacity changes. */
@@ -2438,13 +2439,13 @@ h4 {
       box-shadow: 0 40px 80px rgba(0, 0, 0, 0.18);
       animation: fade linear both;
       animation-timeline: scroll(root block);
-      animation-range: 0 55svh;
+      animation-range: 0 75svh;
     }
 
     .motion:not(.no-sda) .hero__text {
       animation: hero-recede linear both;
       animation-timeline: scroll(root block);
-      animation-range: 8svh 45svh;
+      animation-range: 10svh 60svh;
     }
 
     /* The fine print sits where the standing frame's top edge passes, so it is gone
@@ -2661,17 +2662,17 @@ h4 {
 }
 
 /* Played from the class. Towards the merged state the repeats fade, the sections close
-   up, the counts swap, the labels swap and the result rises; back again the same steps
-   run in the opposite order. */
+   up, the counts swap, the labels swap and the result rises, each step unhurried, over
+   about three seconds; back again the same steps run in the opposite order. */
 .motion [data-drive='class'] tbody tr[data-row='repeat'] {
   transition:
-    opacity 250ms linear calc(1000ms + var(--i) * 20ms),
-    transform 250ms var(--ease-out-expo) calc(1000ms + var(--i) * 20ms);
+    opacity 375ms linear calc(1500ms + var(--i) * 30ms),
+    transform 375ms var(--ease-out-expo) calc(1500ms + var(--i) * 30ms);
 }
 
 .motion [data-drive='class'] tbody tr[data-row='first'] {
   transition:
-    transform var(--dur-move) var(--ease-in-out) 300ms,
+    transform var(--dur-move) var(--ease-in-out) 450ms,
     background-color var(--dur-fade) linear;
 }
 
@@ -2679,44 +2680,44 @@ h4 {
 .motion [data-drive='class'] .dedupe-card,
 .motion [data-drive='class'] .dedupe-stage,
 .motion [data-drive='class'] .dedupe-stage::after {
-  transition: transform var(--dur-move) var(--ease-in-out) 300ms;
+  transition: transform var(--dur-move) var(--ease-in-out) 450ms;
 }
 
 .motion [data-drive='class'] .count__rows {
   transition:
-    opacity 280ms linear 260ms,
-    transform 280ms var(--ease-out-expo) 260ms;
+    opacity 420ms linear 390ms,
+    transform 420ms var(--ease-out-expo) 390ms;
 }
 
 .motion [data-drive='class'] .count__sections {
   transition:
-    opacity 220ms linear,
-    transform 220ms var(--ease-in-out);
+    opacity 330ms linear,
+    transform 330ms var(--ease-in-out);
 }
 
 .motion [data-drive='class'] tr[data-row='first'] .dedupe__group {
-  transition: opacity 220ms linear 220ms;
+  transition: opacity 330ms linear 330ms;
 }
 
 .motion [data-drive='class'] tr[data-row='first'] .dedupe__chip {
-  transition: opacity 180ms linear;
+  transition: opacity 270ms linear;
 }
 
 .motion [data-drive='class'] .dedupe__result {
   transition:
-    opacity 200ms linear,
-    transform 200ms linear;
+    opacity 300ms linear,
+    transform 300ms linear;
 }
 
 .motion [data-drive='class'].is-merged tbody tr[data-row='repeat'] {
   opacity: 0;
   transform: scale(0.96);
-  transition-delay: calc(var(--i) * 20ms);
+  transition-delay: calc(var(--i) * 30ms);
 }
 
 .motion [data-drive='class'].is-merged tbody tr[data-row='first'] {
   transform: translateY(var(--shift));
-  transition-delay: 450ms, 0ms;
+  transition-delay: 675ms, 0ms;
 }
 
 .motion [data-drive='class'].is-merged .dedupe caption,
@@ -2736,51 +2737,51 @@ h4 {
 .motion [data-drive='class'].is-merged .dedupe-card,
 .motion [data-drive='class'].is-merged .dedupe-stage,
 .motion [data-drive='class'].is-merged .dedupe-stage::after {
-  transition-delay: 450ms;
+  transition-delay: 675ms;
 }
 
 .motion [data-drive='class'].is-merged .count__rows {
   opacity: 0;
   transform: translateY(calc(-100% - 0.2em));
   transition:
-    opacity 220ms linear 450ms,
-    transform 220ms var(--ease-in-out) 450ms;
+    opacity 330ms linear 675ms,
+    transform 330ms var(--ease-in-out) 675ms;
 }
 
 .motion [data-drive='class'].is-merged .count__sections {
   opacity: 1;
   transform: none;
   transition:
-    opacity 280ms linear 720ms,
-    transform 280ms var(--ease-out-expo) 720ms;
+    opacity 420ms linear 1080ms,
+    transform 420ms var(--ease-out-expo) 1080ms;
 }
 
 .motion [data-drive='class'].is-merged tr[data-row='first'] .dedupe__group {
   opacity: 0;
-  transition: opacity 180ms linear 1150ms;
+  transition: opacity 270ms linear 1725ms;
 }
 
 .motion [data-drive='class'].is-merged tr[data-row='first'] .dedupe__chip {
   opacity: 1;
-  transition: opacity 220ms linear 1350ms;
+  transition: opacity 330ms linear 2025ms;
 }
 
 .motion [data-drive='class'].is-merged .dedupe__result {
   opacity: 1;
   transform: none;
   transition:
-    opacity 400ms linear 1250ms,
-    transform var(--dur-reveal) var(--ease-out-expo) 1250ms;
+    opacity 600ms linear 1875ms,
+    transform var(--dur-reveal) var(--ease-out-expo) 1875ms;
 }
 
 /* The pinned stage: on any window at least 540 px tall it holds still while the reader
    scrolls the length of its track and stays centred in the window as the card shrinks.
    A shorter window gets denser rows rather than an unpinned table, so the whole merge
    stays on one screen. The track ends soon
-   after the result line, so the pin lets go once the merge has been read. */
+   after the merged state has held, so the pin lets go once the merge has been read. */
 @media (min-height: 540px) {
   .motion .dedupe-track {
-    height: calc(100svh - var(--header-h) + 85svh);
+    height: calc(100svh - var(--header-h) + 150svh);
   }
 
   .motion .dedupe-pin {
@@ -2914,12 +2915,14 @@ h4 {
       view-timeline-inset: var(--header-h) 0;
     }
 
-    /* Step one: each repeat fades where it stands, one after another. */
+    /* The thirteen rows hold still for the first eighth of the track, so the reader
+       sees the repeats before anything moves. Step one: each repeat fades where it
+       stands, one after another. */
     .motion:not(.no-sda) [data-drive='scroll'] tbody tr[data-row='repeat'] {
       animation: row-leave linear both;
       animation-timeline: --dedupe;
-      animation-range: contain calc(4% + var(--i) * 1%) contain
-        calc(12% + var(--i) * 1%);
+      animation-range: contain calc(12% + var(--i) * 1.2%) contain
+        calc(20% + var(--i) * 1.2%);
     }
 
     /* Step two, once every repeat is gone: the sections close up and the card with
@@ -2927,7 +2930,7 @@ h4 {
     .motion:not(.no-sda) [data-drive='scroll'] tbody tr[data-row='first'] {
       animation: row-close linear both;
       animation-timeline: --dedupe;
-      animation-range: contain 24% contain 42%;
+      animation-range: contain 36% contain 54%;
       will-change: transform;
     }
 
@@ -2935,32 +2938,32 @@ h4 {
     .motion:not(.no-sda) [data-drive='scroll'] .dedupe-card {
       animation: close-under linear both;
       animation-timeline: --dedupe;
-      animation-range: contain 24% contain 42%;
+      animation-range: contain 36% contain 54%;
     }
 
     .motion:not(.no-sda) [data-drive='scroll'] .dedupe-stage {
       animation: recentre linear both;
       animation-timeline: --dedupe;
-      animation-range: contain 24% contain 42%;
+      animation-range: contain 36% contain 54%;
     }
 
     .motion:not(.no-sda) [data-drive='scroll'] .dedupe-stage::after {
       animation: fold linear both;
       animation-timeline: --dedupe;
-      animation-range: contain 24% contain 42%;
+      animation-range: contain 36% contain 54%;
     }
 
     /* Step three: each swap empties its box before the next text enters it. */
     .motion:not(.no-sda) [data-drive='scroll'] .count__rows {
       animation: slide-out linear both;
       animation-timeline: --dedupe;
-      animation-range: contain 26% contain 32%;
+      animation-range: contain 38% contain 44%;
     }
 
     .motion:not(.no-sda) [data-drive='scroll'] .count__sections {
       animation: slide-in linear both;
       animation-timeline: --dedupe;
-      animation-range: contain 34% contain 40%;
+      animation-range: contain 46% contain 52%;
     }
 
     .motion:not(.no-sda)
@@ -2969,7 +2972,7 @@ h4 {
       .dedupe__group {
       animation: fade linear reverse both;
       animation-timeline: --dedupe;
-      animation-range: contain 43% contain 47%;
+      animation-range: contain 56% contain 60%;
     }
 
     .motion:not(.no-sda)
@@ -2978,13 +2981,14 @@ h4 {
       .dedupe__chip {
       animation: appear linear both;
       animation-timeline: --dedupe;
-      animation-range: contain 49% contain 54%;
+      animation-range: contain 62% contain 67%;
     }
 
+    /* The merged state then holds for the last quarter of the track. */
     .motion:not(.no-sda) [data-drive='scroll'] .dedupe__result {
       animation: rise-in linear both;
       animation-timeline: --dedupe;
-      animation-range: contain 52% contain 60%;
+      animation-range: contain 64% contain 72%;
     }
   }
 }
@@ -3098,9 +3102,11 @@ h4 {
    beats: the plan's blocks land one by one; 01006021 section 3 is dragged over Tuesday
    morning, where it clashes with 01006020 and the chip names the clash; then it travels
    to Wednesday afternoon, turns green, and lands as section 5 while the readout counts
-   the plan. Chrome and Safari scrub it on the track's view timeline; elsewhere sentinels
-   set data-beat and transitions play each beat. Both end on the same final state, which
-   is also what a reader without motion sees. */
+   the plan. Each beat holds still and fully readable for a stretch of scroll before the
+   next begins: the landed blocks under beat one, the clash and its chip under beat two,
+   the finished plan under beat three. Chrome and Safari scrub it on the track's view
+   timeline; elsewhere sentinels set data-beat and transitions play each beat. Both end
+   on the same final state, which is also what a reader without motion sees. */
 
 .ghost__lift {
   position: relative;
@@ -3171,7 +3177,7 @@ h4 {
 
   .motion .story__track {
     position: relative;
-    height: 300svh;
+    height: 400svh;
   }
 
   .motion .story__pin {
@@ -3335,13 +3341,13 @@ h4 {
 
 @media (min-width: 640px) and (max-width: 1023px) and (min-height: 820px) {
   .motion .story__track {
-    height: 280svh;
+    height: 370svh;
   }
 }
 
 @media (max-width: 639px) and (min-height: 640px) {
   .motion .story__track {
-    height: 260svh;
+    height: 340svh;
   }
 
   .motion.no-sda .story__pin[data-beat='3'] .story__ghost {
@@ -3371,62 +3377,62 @@ h4 {
     .motion:not(.no-sda) .story__beat:nth-child(1) {
       animation: beat-1 linear both;
       animation-timeline: --story;
-      animation-range: entry 55% contain 40%;
+      animation-range: entry 55% contain 32%;
     }
 
     .motion:not(.no-sda) .story__beat:nth-child(2) {
       animation: beat-2 linear both;
       animation-timeline: --story;
-      animation-range: contain 40% contain 68%;
+      animation-range: contain 33% contain 63%;
     }
 
     .motion:not(.no-sda) .story__beat:nth-child(3) {
       animation: beat-3 linear both;
       animation-timeline: --story;
-      animation-range: contain 68% contain 100%;
+      animation-range: contain 64% contain 100%;
     }
 
     .motion:not(.no-sda) .story__block:not(.story__landed) {
       animation: block-in linear both;
       animation-timeline: --story;
-      animation-range: contain calc(1% + 5% * var(--b)) contain
-        calc(9% + 5% * var(--b));
+      animation-range: contain calc(1% + 3.5% * var(--b)) contain
+        calc(6% + 3.5% * var(--b));
     }
 
     .motion:not(.no-sda) .ghost__lift {
       animation: ghost-in linear both;
       animation-timeline: --story;
-      animation-range: contain 40% contain 46%;
+      animation-range: contain 34% contain 39%;
     }
 
     .motion:not(.no-sda) .story__block.is-blocker .story__card::after {
       animation: pulse linear both;
       animation-timeline: --story;
-      animation-range: contain 44% contain 58%;
+      animation-range: contain 39% contain 49%;
     }
 
     .motion:not(.no-sda) .story__chip {
       animation: chip-pass linear both;
       animation-timeline: --story;
-      animation-range: contain 46% contain 65%;
+      animation-range: contain 41% contain 61%;
     }
 
     .motion:not(.no-sda) .story__ghost {
       animation: travel linear both;
       animation-timeline: --story;
-      animation-range: contain 66% contain 76%;
+      animation-range: contain 66% contain 75%;
     }
 
     .motion:not(.no-sda) .ghost__danger {
       animation: fade linear reverse both;
       animation-timeline: --story;
-      animation-range: contain 66% contain 70%;
+      animation-range: contain 66% contain 69%;
     }
 
     .motion:not(.no-sda) .ghost__success {
       animation: success-pass linear both;
       animation-timeline: --story;
-      animation-range: contain 66% contain 82%;
+      animation-range: contain 66% contain 80%;
     }
 
     .motion:not(.no-sda) .ghost__block {
@@ -3435,14 +3441,14 @@ h4 {
         settle linear both;
       animation-timeline: --story, --story;
       animation-range:
-        contain 76% contain 82%,
-        contain 82% contain 86%;
+        contain 75% contain 80%,
+        contain 80% contain 83%;
     }
 
     .motion:not(.no-sda) .story__readout {
       animation: rise-in linear both;
       animation-timeline: --story;
-      animation-range: contain 84% contain 90%;
+      animation-range: contain 82% contain 87%;
     }
   }
 
@@ -3454,6 +3460,25 @@ h4 {
 }
 
 @keyframes beat-1 {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+    animation-timing-function: var(--ease-out-expo);
+  }
+
+  8%,
+  92% {
+    opacity: 1;
+    transform: none;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+}
+
+@keyframes beat-2 {
   0% {
     opacity: 0;
     transform: translateY(16px);
@@ -3472,25 +3497,6 @@ h4 {
   }
 }
 
-@keyframes beat-2 {
-  0% {
-    opacity: 0;
-    transform: translateY(16px);
-    animation-timing-function: var(--ease-out-expo);
-  }
-
-  14%,
-  86% {
-    opacity: 1;
-    transform: none;
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateY(-16px);
-  }
-}
-
 @keyframes beat-3 {
   0% {
     opacity: 0;
@@ -3498,7 +3504,7 @@ h4 {
     animation-timing-function: var(--ease-out-expo);
   }
 
-  12.5%,
+  8%,
   100% {
     opacity: 1;
     transform: none;
