@@ -1013,6 +1013,11 @@ h4 {
   background: var(--site-paper-alt);
 }
 
+/* The foot of the card the merge raises exists only for the motion. */
+.dedupe-card {
+  display: none;
+}
+
 .count {
   grid-area: count;
   font-family: var(--font-display);
@@ -2480,12 +2485,16 @@ h4 {
   }
 }
 
-/* The dedupe merge. Under motion every row has a fixed height, so a row moves up into
-   its section's slot by translateY((slot - index) * row height) and the table never
-   changes height. A first row stays on top; each repeat slides under its section and
-   fades. site.js sets data-drive: 'scroll' lets the pinned scroll play the merge on a
-   view timeline, 'class' plays it from .is-merged with transitions, which path B, the
-   toggle and an unpinned window use. */
+/* The dedupe merge plays in three steps, so no two texts ever share a place at partial
+   opacity. The repeat rows fade where they stand; then the four sections close up into
+   their slots while the card shrinks to them; then each swapping text slides out of its
+   own clipped box before the next one slides in. Under motion every row has a fixed
+   height, so a section row moves by translateY((slot - index) * row height) and the
+   table keeps its height. The card shrinks by transforms alone: its head has the merged
+   size, its body folds up into the head, and its rounded foot rises with the caption by
+   the height the repeats leave. site.js sets data-drive: 'scroll' plays the merge on the
+   pinned track's view timeline, 'class' plays it from .is-merged with transitions, which
+   path B, the toggle and an unpinned window use. */
 
 .sentinel {
   position: absolute;
@@ -2502,10 +2511,58 @@ h4 {
 
 .motion .dedupe-stage {
   --head-h: 0px;
+  --result-space: 40px;
+  --recenter: 0;
+  --controls-move: 0;
+  /* How far everything under the table rises once merged: the rows the repeats held,
+     less the room the result line takes under the sections. site.js sets --gone and
+     --kept from the counts the page is built from. */
+  --close: max(0px, var(--gone, 0) * var(--row-h) - var(--result-space));
+
+  position: relative;
+  isolation: isolate;
+  background: none;
+}
+
+.motion .dedupe-stage::before,
+.motion .dedupe-stage::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: -1;
+  background: var(--site-paper-alt);
+}
+
+/* The head of the card: the size of the merged stage, rounded on every corner. */
+.motion .dedupe-stage::before {
+  top: 0;
+  bottom: var(--close);
+  border-radius: 16px;
+}
+
+/* The body: the height the repeats leave, folding up into the head as they go. */
+.motion .dedupe-stage::after {
+  bottom: 16px;
+  height: var(--close);
+  transform-origin: top;
+}
+
+/* The foot: the card's rounded lower edge, rising with the caption. */
+.motion .dedupe-card {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  display: block;
+  height: 16px;
+  border-radius: 0 0 16px 16px;
+  background: var(--site-paper-alt);
 }
 
 .motion .dedupe thead tr {
-  height: 44px;
+  height: var(--row-h);
 }
 
 .motion .dedupe tbody tr {
@@ -2521,6 +2578,8 @@ h4 {
   z-index: 2;
 }
 
+/* The curriculum and the chip that replaces it share one cell, one fading out before
+   the other fades in. */
 .motion .dedupe__grouping {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -2545,10 +2604,13 @@ h4 {
   opacity: 0;
 }
 
-/* Both counts share one cell; the rows give way to the sections. */
+/* Both counts share one clipped cell; the rows slide out before the sections slide in. */
 .motion .count {
   display: grid;
   justify-items: start;
+  overflow: clip;
+  padding-block: 0.15em;
+  margin-block: -0.15em;
 }
 
 .motion .count > span {
@@ -2561,13 +2623,13 @@ h4 {
 
 .motion .count__sections {
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(calc(100% + 0.2em));
 }
 
-/* The result fills the space the merged rows leave, under the four sections. */
+/* The result takes the place under the sections, which the caption rises to meet. */
 .motion .dedupe__result {
   position: absolute;
-  top: calc(var(--head-h) + 4 * var(--row-h) + 24px);
+  top: calc(var(--head-h) + var(--kept, 4) * var(--row-h) + 14px);
   right: 16px;
   left: 16px;
   margin: 0;
@@ -2577,7 +2639,7 @@ h4 {
 
 @container dedupe (min-width: 720px) {
   .motion .dedupe__result {
-    --head-h: 44px;
+    --head-h: var(--row-h);
   }
 
   .motion .dedupe__grouping {
@@ -2585,67 +2647,134 @@ h4 {
   }
 }
 
-.motion [data-drive='class'] tbody tr {
+/* Played from the class. Towards the merged state the repeats fade, the sections close
+   up, the counts swap, the labels swap and the result rises; back again the same steps
+   run in the opposite order. */
+.motion [data-drive='class'] tbody tr[data-row='repeat'] {
   transition:
-    transform var(--dur-move) var(--ease-in-out) calc(var(--i) * 30ms),
-    opacity var(--dur-fade) linear calc(var(--i) * 30ms + 300ms),
+    opacity 250ms linear calc(1000ms + var(--i) * 20ms),
+    transform 250ms var(--ease-out-expo) calc(1000ms + var(--i) * 20ms);
+}
+
+.motion [data-drive='class'] tbody tr[data-row='first'] {
+  transition:
+    transform var(--dur-move) var(--ease-in-out) 300ms,
     background-color var(--dur-fade) linear;
 }
 
-.motion [data-drive='class'] .count__rows,
-.motion [data-drive='class'] .count__sections {
-  transition:
-    opacity var(--dur-fade) linear 300ms,
-    transform var(--dur-fade) var(--ease-out-expo) 300ms;
+.motion [data-drive='class'] .dedupe caption,
+.motion [data-drive='class'] .dedupe-card,
+.motion [data-drive='class'] .dedupe-controls,
+.motion [data-drive='class'] .dedupe-stage,
+.motion [data-drive='class'] .dedupe-stage::after {
+  transition: transform var(--dur-move) var(--ease-in-out) 300ms;
 }
 
-.motion [data-drive='class'] .dedupe__group,
-.motion [data-drive='class'] .dedupe__chip {
-  transition: opacity var(--dur-fade) linear 500ms;
+.motion [data-drive='class'] .count__rows {
+  transition:
+    opacity 280ms linear 260ms,
+    transform 280ms var(--ease-out-expo) 260ms;
+}
+
+.motion [data-drive='class'] .count__sections {
+  transition:
+    opacity 220ms linear,
+    transform 220ms var(--ease-in-out);
+}
+
+.motion [data-drive='class'] tr[data-row='first'] .dedupe__group {
+  transition: opacity 220ms linear 220ms;
+}
+
+.motion [data-drive='class'] tr[data-row='first'] .dedupe__chip {
+  transition: opacity 180ms linear;
 }
 
 .motion [data-drive='class'] .dedupe__result {
   transition:
-    opacity var(--dur-fade) linear 600ms,
-    transform var(--dur-reveal) var(--ease-out-expo) 600ms;
-}
-
-.motion [data-drive='class'].is-merged tbody tr {
-  transform: translateY(var(--shift));
+    opacity 200ms linear,
+    transform 200ms linear;
 }
 
 .motion [data-drive='class'].is-merged tbody tr[data-row='repeat'] {
   opacity: 0;
-  transform: translateY(var(--shift)) scale(0.97);
+  transform: scale(0.96);
+  transition-delay: calc(var(--i) * 20ms);
+}
+
+.motion [data-drive='class'].is-merged tbody tr[data-row='first'] {
+  transform: translateY(var(--shift));
+  transition-delay: 450ms, 0ms;
+}
+
+.motion [data-drive='class'].is-merged .dedupe caption,
+.motion [data-drive='class'].is-merged .dedupe-card {
+  transform: translateY(calc(-1 * var(--close)));
+}
+
+.motion [data-drive='class'].is-merged .dedupe-controls {
+  transform: translateY(calc(-1 * var(--close) * var(--controls-move)));
+}
+
+.motion [data-drive='class'].is-merged .dedupe-stage {
+  transform: translateY(calc(var(--close) / 2 * var(--recenter)));
+}
+
+.motion [data-drive='class'].is-merged .dedupe-stage::after {
+  transform: scaleY(0);
+}
+
+.motion [data-drive='class'].is-merged .dedupe caption,
+.motion [data-drive='class'].is-merged .dedupe-card,
+.motion [data-drive='class'].is-merged .dedupe-controls,
+.motion [data-drive='class'].is-merged .dedupe-stage,
+.motion [data-drive='class'].is-merged .dedupe-stage::after {
+  transition-delay: 450ms;
 }
 
 .motion [data-drive='class'].is-merged .count__rows {
   opacity: 0;
-  transform: translateY(-12px);
+  transform: translateY(calc(-100% - 0.2em));
+  transition:
+    opacity 220ms linear 450ms,
+    transform 220ms var(--ease-in-out) 450ms;
 }
 
-.motion [data-drive='class'].is-merged .count__sections,
-.motion [data-drive='class'].is-merged .dedupe__result {
+.motion [data-drive='class'].is-merged .count__sections {
   opacity: 1;
   transform: none;
+  transition:
+    opacity 280ms linear 720ms,
+    transform 280ms var(--ease-out-expo) 720ms;
 }
 
 .motion [data-drive='class'].is-merged tr[data-row='first'] .dedupe__group {
   opacity: 0;
+  transition: opacity 180ms linear 1150ms;
 }
 
 .motion [data-drive='class'].is-merged tr[data-row='first'] .dedupe__chip {
   opacity: 1;
+  transition: opacity 220ms linear 1350ms;
+}
+
+.motion [data-drive='class'].is-merged .dedupe__result {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 400ms linear 1250ms,
+    transform var(--dur-reveal) var(--ease-out-expo) 1250ms;
 }
 
 /* The pinned stage: on a window tall enough to hold the whole stage, it holds still
-   while the reader scrolls the length of its track, and the toggle sits at its foot on
-   a phone, always in reach. */
+   while the reader scrolls the length of its track, stays centred in the window as the
+   card shrinks, and the toggle sits at its foot on a phone, always in reach. The track
+   ends soon after the result line, so the pin lets go once the merge has been read. */
 @media (max-width: 639px) and (min-height: 600px),
   (min-width: 640px) and (max-width: 1023px) and (min-height: 820px),
   (min-width: 1024px) and (min-height: 728px) {
   .motion .dedupe-track {
-    height: calc(100svh - var(--header-h) + 120svh);
+    height: calc(100svh - var(--header-h) + 85svh);
   }
 
   .motion .dedupe-pin {
@@ -2655,10 +2784,22 @@ h4 {
     height: calc(100svh - var(--header-h));
     align-content: center;
   }
+
+  .motion .dedupe-stage {
+    --recenter: 1;
+  }
+
+  /* The centred card leaves half the height it gave up under it, which is gap enough
+     before the next section. */
+  .motion .problem {
+    padding-bottom: 0;
+  }
 }
 
 @media (max-width: 639px) and (min-height: 600px) {
   .motion .dedupe-stage {
+    --controls-move: 1;
+
     grid-template-areas:
       'count'
       'table'
@@ -2690,17 +2831,7 @@ h4 {
   }
 }
 
-@media (min-width: 640px) and (max-width: 1023px) and (min-height: 820px) {
-  .motion .dedupe-track {
-    height: calc(100svh - var(--header-h) + 130svh);
-  }
-}
-
 @media (min-width: 1024px) and (min-height: 728px) {
-  .motion .dedupe-track {
-    height: calc(100svh - var(--header-h) + 140svh);
-  }
-
   .motion .dedupe-stage {
     padding-block: 24px;
   }
@@ -2715,28 +2846,59 @@ h4 {
       view-timeline-inset: var(--header-h) 0;
     }
 
-    .motion:not(.no-sda) [data-drive='scroll'] tbody tr {
-      animation: row-merge linear both;
+    /* Step one: each repeat fades where it stands, one after another. */
+    .motion:not(.no-sda) [data-drive='scroll'] tbody tr[data-row='repeat'] {
+      animation: row-leave linear both;
       animation-timeline: --dedupe;
-      animation-range: contain calc(15% + var(--i) * 1.5%) contain
-        calc(55% + var(--i) * 1.5%);
+      animation-range: contain calc(4% + var(--i) * 1%) contain
+        calc(12% + var(--i) * 1%);
+    }
+
+    /* Step two, once every repeat is gone: the sections close up and the card with
+       everything under the table follows them on the same range and easing. */
+    .motion:not(.no-sda) [data-drive='scroll'] tbody tr[data-row='first'] {
+      animation: row-close linear both;
+      animation-timeline: --dedupe;
+      animation-range: contain 24% contain 42%;
       will-change: transform;
     }
 
-    .motion:not(.no-sda) [data-drive='scroll'] tbody tr[data-row='repeat'] {
-      animation-name: repeat-merge;
+    .motion:not(.no-sda) [data-drive='scroll'] .dedupe caption,
+    .motion:not(.no-sda) [data-drive='scroll'] .dedupe-card {
+      animation: close-under linear both;
+      animation-timeline: --dedupe;
+      animation-range: contain 24% contain 42%;
     }
 
-    .motion:not(.no-sda) [data-drive='scroll'] .count__rows {
-      animation: rise-out linear both;
+    .motion:not(.no-sda) [data-drive='scroll'] .dedupe-controls {
+      animation: close-controls linear both;
       animation-timeline: --dedupe;
-      animation-range: contain 45% contain 60%;
+      animation-range: contain 24% contain 42%;
+    }
+
+    .motion:not(.no-sda) [data-drive='scroll'] .dedupe-stage {
+      animation: recentre linear both;
+      animation-timeline: --dedupe;
+      animation-range: contain 24% contain 42%;
+    }
+
+    .motion:not(.no-sda) [data-drive='scroll'] .dedupe-stage::after {
+      animation: fold linear both;
+      animation-timeline: --dedupe;
+      animation-range: contain 24% contain 42%;
+    }
+
+    /* Step three: each swap empties its box before the next text enters it. */
+    .motion:not(.no-sda) [data-drive='scroll'] .count__rows {
+      animation: slide-out linear both;
+      animation-timeline: --dedupe;
+      animation-range: contain 26% contain 32%;
     }
 
     .motion:not(.no-sda) [data-drive='scroll'] .count__sections {
-      animation: rise-in linear both;
+      animation: slide-in linear both;
       animation-timeline: --dedupe;
-      animation-range: contain 45% contain 60%;
+      animation-range: contain 34% contain 40%;
     }
 
     .motion:not(.no-sda)
@@ -2745,7 +2907,7 @@ h4 {
       .dedupe__group {
       animation: fade linear reverse both;
       animation-timeline: --dedupe;
-      animation-range: contain 60% contain 70%;
+      animation-range: contain 43% contain 47%;
     }
 
     .motion:not(.no-sda)
@@ -2754,18 +2916,30 @@ h4 {
       .dedupe__chip {
       animation: appear linear both;
       animation-timeline: --dedupe;
-      animation-range: contain 60% contain 70%;
+      animation-range: contain 49% contain 54%;
     }
 
     .motion:not(.no-sda) [data-drive='scroll'] .dedupe__result {
       animation: rise-in linear both;
       animation-timeline: --dedupe;
-      animation-range: contain 65% contain 75%;
+      animation-range: contain 52% contain 60%;
     }
   }
 }
 
-@keyframes row-merge {
+@keyframes row-leave {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes row-close {
   from {
     transform: none;
     animation-timing-function: var(--ease-in-out);
@@ -2776,29 +2950,73 @@ h4 {
   }
 }
 
-@keyframes repeat-merge {
+@keyframes close-under {
   from {
     transform: none;
     animation-timing-function: var(--ease-in-out);
   }
 
-  60% {
-    opacity: 1;
-  }
-
   to {
-    opacity: 0;
-    transform: translateY(var(--shift)) scale(0.97);
+    transform: translateY(calc(-1 * var(--close)));
   }
 }
 
-@keyframes appear {
+@keyframes close-controls {
+  from {
+    transform: none;
+    animation-timing-function: var(--ease-in-out);
+  }
+
+  to {
+    transform: translateY(calc(-1 * var(--close) * var(--controls-move)));
+  }
+}
+
+@keyframes recentre {
+  from {
+    transform: none;
+    animation-timing-function: var(--ease-in-out);
+  }
+
+  to {
+    transform: translateY(calc(var(--close) / 2 * var(--recenter)));
+  }
+}
+
+@keyframes fold {
+  from {
+    transform: none;
+    animation-timing-function: var(--ease-in-out);
+  }
+
+  to {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes slide-out {
+  from {
+    opacity: 1;
+    transform: none;
+    animation-timing-function: var(--ease-in-out);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(calc(-100% - 0.2em));
+  }
+}
+
+@keyframes slide-in {
   from {
     opacity: 0;
+    transform: translateY(calc(100% + 0.2em));
+    animation-timing-function: var(--ease-out-expo);
   }
 
   to {
     opacity: 1;
+    transform: none;
   }
 }
 
@@ -2815,15 +3033,13 @@ h4 {
   }
 }
 
-@keyframes rise-out {
+@keyframes appear {
   from {
-    opacity: 1;
-    transform: none;
+    opacity: 0;
   }
 
   to {
-    opacity: 0;
-    transform: translateY(-12px);
+    opacity: 1;
   }
 }
 
