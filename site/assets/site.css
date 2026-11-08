@@ -3541,6 +3541,15 @@ h4 {
   transform: translateY(calc(24px * var(--k)));
 }
 
+/* A button the reader tabs to shows at full strength at once, wherever the scroll has
+   left its rise: moving focus scrolls the button only just into view, short of where
+   the band finishes rising. */
+.motion .download .cta-row .cta:focus-visible {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
 @keyframes glow-in {
   from {
     opacity: 0;
