@@ -1042,7 +1042,12 @@ h4 {
   color: var(--site-primary-strong);
 }
 
+/* Where the stage is not pinned the table runs longer than the window, so the toggle
+   stays under the header while its table is in view instead of scrolling away. */
 .dedupe-controls {
+  position: sticky;
+  top: calc(var(--header-h) + 12px);
+  z-index: 3;
   grid-area: controls;
 }
 
@@ -2766,13 +2771,12 @@ h4 {
     transform var(--dur-reveal) var(--ease-out-expo) 1250ms;
 }
 
-/* The pinned stage: on a window tall enough to hold the whole stage, it holds still
-   while the reader scrolls the length of its track, stays centred in the window as the
-   card shrinks, and the toggle sits at its foot on a phone, always in reach. The track
-   ends soon after the result line, so the pin lets go once the merge has been read. */
-@media (max-width: 639px) and (min-height: 600px),
-  (min-width: 640px) and (max-width: 1023px) and (min-height: 820px),
-  (min-width: 1024px) and (min-height: 728px) {
+/* The pinned stage: on any window at least 540 px tall it holds still while the reader
+   scrolls the length of its track, stays centred in the window as the card shrinks, and
+   keeps the toggle inside the window. A shorter window gets denser rows rather than an
+   unpinned table, so the merge and its toggle stay on one screen. The track ends soon
+   after the result line, so the pin lets go once the merge has been read. */
+@media (min-height: 540px) {
   .motion .dedupe-track {
     height: calc(100svh - var(--header-h) + 85svh);
   }
@@ -2789,6 +2793,10 @@ h4 {
     --recenter: 1;
   }
 
+  .motion .dedupe-controls {
+    position: static;
+  }
+
   /* The centred card leaves half the height it gave up under it, which is gap enough
      before the next section. */
   .motion .problem {
@@ -2796,7 +2804,8 @@ h4 {
   }
 }
 
-@media (max-width: 639px) and (min-height: 600px) {
+/* A tall phone: the count above, two lines a row, and the toggle at the foot. */
+@media (max-width: 639px) and (min-height: 760px) {
   .motion .dedupe-stage {
     --controls-move: 1;
 
@@ -2809,38 +2818,110 @@ h4 {
   }
 }
 
-/* A short phone keeps one line a row: the subject id, the section and the time. */
-@media (max-width: 639px) and (min-height: 600px) and (max-height: 759px) {
+/* A shorter phone puts the count and the toggle on one line above the table. */
+@media (max-width: 639px) and (min-height: 540px) and (max-height: 759px) {
   .motion .dedupe-stage {
-    --row-h: 30px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'count controls'
+      'table table';
+    align-items: center;
+    gap: 10px 12px;
+    padding: 12px;
   }
 
-  .motion .dedupe tbody tr {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-areas: 'id section time';
-    padding-block: 0;
-  }
-
-  .motion .dedupe .dedupe__name,
-  .motion .dedupe .dedupe__grouping {
-    display: none;
+  .motion .count {
+    font-size: 18px;
   }
 
   .motion .count__num {
-    font-size: 44px;
+    font-size: 40px;
   }
 }
 
-@media (min-width: 1024px) and (min-height: 728px) {
+@media (min-width: 640px) and (min-height: 540px) and (max-height: 819px) {
+  .motion .dedupe-stage {
+    padding-block: 20px;
+  }
+
+  .motion .count__num {
+    font-size: 64px;
+  }
+}
+
+@media (min-width: 1024px) and (min-height: 820px) {
   .motion .dedupe-stage {
     padding-block: 24px;
   }
 }
 
+/* Two denser row heights: 34 px keeps two short lines a row where the table is narrow,
+   and 26 px keeps one line, the subject id, the section and the time. */
+@media (max-width: 639px) and (min-height: 540px) and (max-height: 759px),
+  (min-width: 640px) and (min-height: 540px) and (max-height: 819px) {
+  .motion .dedupe-stage {
+    --row-h: 34px;
+    --result-space: 36px;
+  }
+
+  .motion .dedupe__result {
+    font-size: 16px;
+  }
+
+  @container dedupe (max-width: 719.98px) {
+    .motion .dedupe tbody tr {
+      padding-block: 1px;
+    }
+
+    .motion .dedupe__id,
+    .motion .dedupe__name,
+    .motion .dedupe__section {
+      font-size: 12px;
+      line-height: 16px;
+    }
+
+    .motion .dedupe__grouping,
+    .motion .dedupe__time,
+    .motion .dedupe__chip {
+      font-size: 11px;
+      line-height: 15px;
+    }
+  }
+}
+
+@media (max-width: 639px) and (min-height: 540px) and (max-height: 619px),
+  (min-width: 640px) and (min-height: 540px) and (max-height: 659px) {
+  .motion .dedupe-stage {
+    --row-h: 26px;
+  }
+
+  .motion .dedupe {
+    font-size: 13px;
+  }
+
+  @container dedupe (max-width: 719.98px) {
+    .motion .dedupe tbody tr {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas: 'id section time';
+      padding-block: 0;
+    }
+
+    .motion .dedupe .dedupe__name,
+    .motion .dedupe .dedupe__grouping {
+      display: none;
+    }
+
+    .motion .dedupe__id,
+    .motion .dedupe__section,
+    .motion .dedupe__time {
+      font-size: 12px;
+      line-height: 16px;
+    }
+  }
+}
+
 @supports (animation-timeline: view()) {
-  @media (max-width: 639px) and (min-height: 600px),
-    (min-width: 640px) and (max-width: 1023px) and (min-height: 820px),
-    (min-width: 1024px) and (min-height: 728px) {
+  @media (min-height: 540px) {
     .motion:not(.no-sda) .dedupe-track {
       view-timeline: --dedupe block;
       view-timeline-inset: var(--header-h) 0;
