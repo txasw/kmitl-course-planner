@@ -107,36 +107,44 @@
   }
 
   /**
-   * Watch zero height sentinels placed at fractions of a pinned track's scroll distance,
-   * and report the index of the last one above the line under the header, or -1. Each
-   * sentinel sits one header height above its point, so it meets the window's top edge
-   * as its point meets the line under the header, and the observed band runs from far
-   * above the window down to that edge. Its margins are set in pixels and percentages
-   * alone, so setting it up reads no size and forces no layout, and it follows any change
-   * of window size by itself. A fast scroll that jumps a sentinel past the edge in one
-   * frame still changes its state.
+   * Watch a pinned track's lines, each a fraction of the track's scroll distance, and
+   * report how many of them lie above the line under the header, and for each crossed
+   * line whether the reader reached it fast. Every line has a gate a little before it,
+   * `gap` of the distance, and a reader who crosses the gate and then the line within
+   * GATE_MS is moving at a few hundred pixels a second or more. Each point is a zero
+   * height sentinel one header height above it, so it meets the window's top edge as its
+   * point meets the line under the header, and the observed band runs from far above the
+   * window down to that edge. Its margins are set in pixels and percentages alone, so
+   * setting it up reads no size and forces no layout, and it follows any change of window
+   * size by itself. A fast scroll that jumps a sentinel past the edge in one frame still
+   * changes its state, and the entry's own time says when.
    */
-  function watchSentinels(track, fractions, onIndex) {
-    const sentinels = fractions.map((fraction) => {
+  function watchLines(track, lines, gap, onChange) {
+    const points = lines.flatMap((at) => [at - gap, at]);
+    const since = points.map(() => -1);
+    const sentinels = points.map((at) => {
       const sentinel = document.createElement('div');
       sentinel.className = 'sentinel';
       sentinel.setAttribute('aria-hidden', 'true');
-      sentinel.style.setProperty('--at', String(fraction));
+      sentinel.style.setProperty('--at', String(at));
       track.append(sentinel);
       return sentinel;
     });
-    const above = new Set();
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          const index = sentinels.indexOf(entry.target);
-          if (entry.isIntersecting) {
-            above.add(index);
-          } else {
-            above.delete(index);
-          }
+          since[sentinels.indexOf(entry.target)] = entry.isIntersecting
+            ? entry.time
+            : -1;
         });
-        onIndex(above.size === 0 ? -1 : Math.max(...above));
+        let crossed = 0;
+        const fast = lines.map((_, k) => {
+          const gate = since[2 * k] ?? -1;
+          const line = since[2 * k + 1] ?? -1;
+          if (line >= 0) crossed = k + 1;
+          return gate >= 0 && line >= 0 && line - gate < GATE_MS;
+        });
+        onChange(crossed, fast);
       },
       { rootMargin: '100000px 0px -100% 0px' },
     );
@@ -145,44 +153,94 @@
     });
   }
 
-  // A step that has played stays in view this long before a queued step follows it.
-  const HOLD = 600;
+  // A reader who crosses a gate and its line within this many ms is scrolling on.
+  const GATE_MS = 250;
+  // A step that has played stays whole this long before the next one plays, unless the
+  // reader had already crossed the next one's line while it played.
+  const HOLD = 650;
+  // A reader already past the next line gets the next step after this short beat.
+  const CHAIN = 100;
+  // A step for a reader who is scrolling on plays its transitions at this share of their
+  // length, which site.css reads as --pace.
+  const QUICK = 0.45;
   // Stepping back plays the reverse transitions, which are short.
   const STEP_BACK = 350;
 
   /**
-   * Move a scene one step at a time toward the step its scroll position asks for. Each
-   * step plays on its own clock, its transition in site.css, and the next step waits
-   * until it has finished and held, so a fast flick that crosses every line at once still
-   * shows each step whole instead of a blur, while a slow reader, whose lines come further
-   * apart than that, sees no wait. Scrolling back steps down the same way.
+   * Move a scene one step at a time toward the step its scroll position asks for, which
+   * `goalFor` reads from the number of lines crossed. Each step plays on its own clock,
+   * its transitions in site.css, so a fast flick that crosses every line at once still
+   * shows each step whole instead of a blur. The pace follows the reader. A reader who
+   * stops before the next line gets each step at full length, and the next step waits
+   * until this one has finished and held, so a line crossed soon after still leaves the
+   * finished step in view. A reader who is scrolling on, who crossed the line fast or had
+   * already passed the next line when a step finished, gets the steps quick and chained,
+   * so the scene finishes while it is still pinned instead of trailing the scroll.
+   * Scrolling back steps down at once, the same way.
    */
-  function stepper(el, durations) {
+  function stepper(el, durations, goalFor) {
     let shown = 0;
-    let wanted = 0;
+    let crossed = 0;
+    let fast = [];
     let timer = 0;
-    const advance = () => {
-      timer = 0;
-      if (shown === wanted) return;
-      const forward = wanted > shown;
-      const wait = forward ? (durations[shown] ?? 0) + HOLD : STEP_BACK;
-      shown += forward ? 1 : -1;
+    let readyAt = 0;
+    let chained = false;
+    const wait = (ms) => {
+      timer = window.setTimeout(() => {
+        timer = 0;
+        move();
+      }, ms);
+    };
+    const move = () => {
+      const goal = goalFor(crossed);
+      if (goal < shown) {
+        shown -= 1;
+        chained = false;
+        readyAt = 0;
+        el.dataset.step = String(shown);
+        wait(STEP_BACK);
+        return;
+      }
+      if (goal === shown) return;
+      const early = readyAt - performance.now();
+      if (early > 0) {
+        wait(early);
+        return;
+      }
+      const pace = chained || fast[shown] === true ? QUICK : 1;
+      shown += 1;
+      el.style.setProperty('--pace', String(pace));
       el.dataset.step = String(shown);
-      timer = window.setTimeout(advance, wait);
+      timer = window.setTimeout(
+        () => {
+          timer = 0;
+          chained = crossed > shown;
+          readyAt = performance.now() + (chained ? CHAIN : HOLD);
+          move();
+        },
+        (durations[shown - 1] ?? 0) * pace,
+      );
     };
     el.dataset.step = '0';
-    return (index) => {
-      wanted = index + 1;
-      if (timer === 0) advance();
+    return (lines, gates) => {
+      crossed = lines;
+      fast = gates;
+      if (timer !== 0 && goalFor(crossed) < shown) {
+        window.clearTimeout(timer);
+        timer = 0;
+      }
+      if (timer === 0) move();
     };
   }
 
-  // The dedupe stage plays two steps: the repeats fade while the counter turns from rows
-  // to sections, then the sections close up and take their labels. The thirteen rows
-  // hold before the first line and the merged sections hold for most of the track after
-  // the second. Each number is the step's longest transition in site.css, in ms.
-  const DEDUPE_STEPS = [0.16, 0.32];
-  const DEDUPE_TIMES = [900, 1200];
+  // The dedupe stage plays two steps from its first line: the repeats fade while the
+  // counter turns from rows to sections, then, after the hold, the sections close up and
+  // take their labels, so no stop shows a card the repeats have left half empty. The
+  // second line only tells the stage the reader has moved on, which chains the close up.
+  // The thirteen rows hold before the first line and the merged sections for the rest of
+  // the track. Each time is the step's longest transition in site.css, in ms.
+  const DEDUPE_LINES = [0.08, 0.18];
+  const DEDUPE_TIMES = [800, 1000];
 
   function enhanceDedupe(pin) {
     const track = pin.closest('.dedupe-track');
@@ -194,13 +252,19 @@
     // How many rows stay and go, which size the merged card.
     indexVar(pin, 'data-kept', '--kept');
     indexVar(pin, 'data-gone', '--gone');
-    watchSentinels(track, DEDUPE_STEPS, stepper(pin, DEDUPE_TIMES));
+    watchLines(
+      track,
+      DEDUPE_LINES,
+      0.065,
+      stepper(pin, DEDUPE_TIMES, (crossed) => (crossed > 0 ? 2 : 0)),
+    );
   }
 
   // The story's three beats start at these fractions of its pinned scroll; the first
   // while the dark band is still rising to the header, so the grid is drawn by the time
-  // it pins. Each beat then holds for about a third of the track before the next.
-  const STORY_BEATS = [-0.15, 0.34, 0.65];
+  // it pins. The lines leave each beat room to play and hold at a steady scroll, and the
+  // last beat a stretch of the track to stay in view before the pin lets go.
+  const STORY_LINES = [-0.15, 0.23, 0.58];
   const STORY_TIMES = [1000, 1000, 1100];
 
   function enhanceStory(track) {
@@ -209,7 +273,12 @@
     track.querySelectorAll('.story__block[data-b]').forEach((block) => {
       indexVar(block, 'data-b', '--b');
     });
-    watchSentinels(track, STORY_BEATS, stepper(pin, STORY_TIMES));
+    watchLines(
+      track,
+      STORY_LINES,
+      0.04,
+      stepper(pin, STORY_TIMES, (crossed) => crossed),
+    );
   }
 
   // Both language pages share their section ids, so switching language keeps the reader

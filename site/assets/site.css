@@ -2683,41 +2683,50 @@ h4 {
     transform 150ms linear;
 }
 
-/* Step one, about 900 ms: the repeats fade one after another while the rows count slides
+/* Every forward step scales its transitions by --pace, which site.js sets on the stepped
+   element: 1 for a reader who stops to read, less for one who is scrolling on. */
+.motion [data-step] {
+  --pace: 1;
+}
+
+/* Step one, about 800 ms: the repeats fade one after another while the rows count slides
    out of its box and the sections count slides in behind it, so the number changes with
    the rows it counts. */
 .motion [data-step]:not([data-step='0']) tbody tr[data-row='repeat'] {
   opacity: 0;
   transform: scale(0.96);
   transition:
-    opacity 450ms linear calc(var(--i) * 25ms),
-    transform 450ms var(--ease-out-expo) calc(var(--i) * 25ms);
+    opacity calc(450ms * var(--pace)) linear calc(var(--i) * 25ms * var(--pace)),
+    transform calc(450ms * var(--pace)) var(--ease-out-expo)
+      calc(var(--i) * 25ms * var(--pace));
 }
 
 .motion [data-step]:not([data-step='0']) .count__rows {
   opacity: 0;
   transform: translateY(calc(-100% - 0.2em));
   transition:
-    opacity 300ms linear 150ms,
-    transform 450ms var(--ease-in-out) 150ms;
+    opacity calc(300ms * var(--pace)) linear calc(150ms * var(--pace)),
+    transform calc(450ms * var(--pace)) var(--ease-in-out)
+      calc(150ms * var(--pace));
 }
 
 .motion [data-step]:not([data-step='0']) .count__sections {
   opacity: 1;
   transform: none;
   transition:
-    opacity 300ms linear 350ms,
-    transform 550ms var(--ease-out-expo) 350ms;
+    opacity calc(300ms * var(--pace)) linear calc(350ms * var(--pace)),
+    transform calc(450ms * var(--pace)) var(--ease-out-expo)
+      calc(350ms * var(--pace));
 }
 
-/* Step two, about 1200 ms: the sections close up with the card, then trade their
+/* Step two, about 1000 ms: the sections close up with the card, then trade their
    curriculum for the chip that counts their listings while the result rises. */
 .motion [data-step='2'] tbody tr[data-row='first'] {
   background: var(--site-primary-soft);
   transform: translateY(var(--shift));
   transition:
-    transform var(--dur-move) var(--ease-in-out),
-    background-color 0s linear 300ms;
+    transform calc(var(--dur-move) * var(--pace)) var(--ease-in-out),
+    background-color 0s linear calc(300ms * var(--pace));
 }
 
 .motion [data-step='2'] .dedupe caption,
@@ -2737,25 +2746,26 @@ h4 {
 .motion [data-step='2'] .dedupe-card,
 .motion [data-step='2'] .dedupe-stage,
 .motion [data-step='2'] .dedupe-stage::after {
-  transition: transform var(--dur-move) var(--ease-in-out);
+  transition: transform calc(var(--dur-move) * var(--pace)) var(--ease-in-out);
 }
 
 .motion [data-step='2'] tr[data-row='first'] .dedupe__group {
   opacity: 0;
-  transition: opacity 250ms linear 450ms;
+  transition: opacity calc(250ms * var(--pace)) linear calc(400ms * var(--pace));
 }
 
 .motion [data-step='2'] tr[data-row='first'] .dedupe__chip {
   opacity: 1;
-  transition: opacity 300ms linear 750ms;
+  transition: opacity calc(250ms * var(--pace)) linear calc(700ms * var(--pace));
 }
 
 .motion [data-step='2'] .dedupe__result {
   opacity: 1;
   transform: none;
   transition:
-    opacity 400ms linear 600ms,
-    transform 600ms var(--ease-out-expo) 600ms;
+    opacity calc(350ms * var(--pace)) linear calc(550ms * var(--pace)),
+    transform calc(500ms * var(--pace)) var(--ease-out-expo)
+      calc(550ms * var(--pace));
 }
 
 /* The pinned stage: on any window at least 540 px tall it holds still while the reader
@@ -2765,7 +2775,7 @@ h4 {
    after the merged state has held, so the pin lets go once the merge has been read. */
 @media (min-height: 540px) {
   .motion .dedupe-track {
-    height: calc(100svh - var(--header-h) + 150svh);
+    height: calc(100svh - var(--header-h) + 175svh);
   }
 
   .motion .dedupe-pin {
@@ -3036,7 +3046,7 @@ h4 {
   .motion .story__rules,
   .motion .story__axis,
   .motion .story__day {
-    transition: opacity var(--dur-fade) linear;
+    transition: opacity calc(var(--dur-fade) * var(--pace)) linear;
   }
 
   .motion .story__pin[data-step='0'] .story__rules,
@@ -3051,15 +3061,18 @@ h4 {
     opacity: 1;
     transform: none;
     transition:
-      opacity 400ms linear 200ms,
-      transform 700ms var(--ease-out-expo) 200ms;
+      opacity calc(400ms * var(--pace)) linear calc(200ms * var(--pace)),
+      transform calc(700ms * var(--pace)) var(--ease-out-expo)
+        calc(200ms * var(--pace));
   }
 
   /* Beat one, about a second: the six blocks drop in one after another. */
   .motion .story__block {
     transition:
-      opacity 400ms linear calc(var(--b) * 70ms),
-      transform 600ms var(--ease-out-expo) calc(var(--b) * 70ms);
+      opacity calc(400ms * var(--pace)) linear
+        calc(var(--b) * 70ms * var(--pace)),
+      transform calc(600ms * var(--pace)) var(--ease-out-expo)
+        calc(var(--b) * 70ms * var(--pace));
   }
 
   .motion .story__pin[data-step='0'] .story__block {
@@ -3074,8 +3087,8 @@ h4 {
      block it clashes with pulses, and the chip names the clash. */
   .motion .ghost__lift {
     transition:
-      opacity 300ms linear,
-      transform 600ms var(--ease-out-expo);
+      opacity calc(300ms * var(--pace)) linear,
+      transform calc(600ms * var(--pace)) var(--ease-out-expo);
   }
 
   .motion .story__pin:not([data-step='2']):not([data-step='3']) .ghost__lift {
@@ -3087,7 +3100,8 @@ h4 {
   }
 
   .motion .story__pin[data-step='2'] .is-blocker .story__card::after {
-    animation: pulse 1200ms linear 300ms both;
+    animation: pulse calc(1200ms * var(--pace)) linear calc(300ms * var(--pace))
+      both;
   }
 
   .motion .story__chip {
@@ -3103,8 +3117,9 @@ h4 {
 
   .motion .story__pin[data-step='2'] .story__chip {
     transition:
-      opacity 300ms linear 400ms,
-      transform 400ms var(--ease-out-expo) 400ms;
+      opacity calc(300ms * var(--pace)) linear calc(400ms * var(--pace)),
+      transform calc(400ms * var(--pace)) var(--ease-out-expo)
+        calc(400ms * var(--pace));
   }
 
   /* Beat three, about a second and a quarter: the section travels to Wednesday
@@ -3116,7 +3131,7 @@ h4 {
 
   .motion .story__pin[data-step='3'] .story__ghost {
     transform: translate(133.333%, 100%);
-    transition: transform var(--dur-move) var(--ease-in-out);
+    transition: transform calc(var(--dur-move) * var(--pace)) var(--ease-in-out);
   }
 
   .motion .ghost__danger {
@@ -3128,7 +3143,7 @@ h4 {
   }
 
   .motion .story__pin[data-step='3'] .ghost__success {
-    animation: success-pass 900ms linear both;
+    animation: success-pass calc(900ms * var(--pace)) linear both;
   }
 
   .motion .ghost__block {
@@ -3137,8 +3152,10 @@ h4 {
 
   .motion .story__pin[data-step='3'] .ghost__block {
     opacity: 1;
-    transition: opacity 300ms linear 600ms;
-    animation: settle 300ms var(--ease-out-expo) 800ms both;
+    transition: opacity calc(300ms * var(--pace)) linear
+      calc(600ms * var(--pace));
+    animation: settle calc(300ms * var(--pace)) var(--ease-out-expo)
+      calc(800ms * var(--pace)) both;
   }
 
   .motion .story__readout {
@@ -3154,8 +3171,9 @@ h4 {
 
   .motion .story__pin[data-step='3'] .story__readout {
     transition:
-      opacity 400ms linear 800ms,
-      transform 600ms var(--ease-out-expo) 800ms;
+      opacity calc(400ms * var(--pace)) linear calc(700ms * var(--pace)),
+      transform calc(500ms * var(--pace)) var(--ease-out-expo)
+        calc(700ms * var(--pace));
   }
 }
 
@@ -3180,10 +3198,6 @@ h4 {
 @media (max-width: 639px) and (min-height: 540px) {
   .motion .story {
     --q: clamp(5.5px, (100svh - 314px) / 40, 9px);
-  }
-
-  .motion .story__track {
-    height: 340svh;
   }
 
   .motion .story__pin[data-step='3'] .story__ghost {
