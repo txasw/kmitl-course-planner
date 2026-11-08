@@ -351,7 +351,7 @@ ${storyGrid(copy, story)}
 
 function exam(copy, manifest) {
   const c = copy.exam;
-  return `<section class="screen screen--full exam" aria-labelledby="exam-title">
+  return `<section class="screen exam" aria-labelledby="exam-title">
 <div class="container screen__grid">
 ${statement('exam', c.h2, c.sub)}
 ${plate(manifest, 's-exam-row', copy.lang, c.alt1, EXAM_SIZES, 'plate exam__plate')}
@@ -372,7 +372,7 @@ ${statement('export', c.h2, c.sub)}
 
 function plans(copy, manifest) {
   const c = copy.plans;
-  return `<section class="screen screen--full plans" aria-labelledby="plans-title">
+  return `<section class="screen plans" aria-labelledby="plans-title">
 <div class="container screen__grid">
 ${statement('plans', c.h2, c.sub)}
 ${plate(manifest, 's-updates', copy.lang, c.alt1, UPDATES_SIZES, 'plate plans__plate')}
@@ -403,7 +403,7 @@ function privacy(copy) {
         `<div class="perm"><dt lang="en">${token}</dt><dd>${reason}</dd></div>`,
     )
     .join('');
-  return `<section class="screen screen--full privacy" id="privacy" aria-labelledby="privacy-title">
+  return `<section class="screen privacy" id="privacy" aria-labelledby="privacy-title">
 <div class="container screen__grid">
 ${statement('privacy', c.h2, c.sub)}
 <div class="privacy__perms">

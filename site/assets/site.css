@@ -57,8 +57,9 @@
   --container: 1200px;
   --header-h: 64px;
 
-  /* The page rhythm: one idea per screen, separated by a generous section gap, with
-     the space between a statement, its sub line and its visual on one scale. */
+  /* The page rhythm: one idea per block, separated by one section gap that grows a
+     little with the window, with the space between a statement, its sub line and its
+     visual on one scale. Only the pinned scenes take more room than this. */
   --space-section: 96px;
   --space-media: 40px;
   --space-sub: 16px;
@@ -103,7 +104,7 @@
 
 @media (min-width: 640px) {
   :root {
-    --space-section: 128px;
+    --space-section: clamp(96px, 12vh, 128px);
     --space-media: 56px;
     --space-sub: 20px;
     --space-cta: 40px;
@@ -113,7 +114,7 @@
 
 @media (min-width: 1024px) {
   :root {
-    --space-section: 160px;
+    --space-section: clamp(112px, 13vh, 144px);
     --space-media: 72px;
     --space-sub: 24px;
     --space-cta: 48px;
@@ -989,16 +990,6 @@ h4 {
 
   .statement__sub {
     font-size: 22px;
-  }
-}
-
-/* A screen of its own on a laptop or larger: the statement sits in the middle of the
-   window with nothing else in view. */
-@media (min-width: 1024px) and (min-height: 720px) {
-  .screen--full {
-    display: grid;
-    min-height: calc(100svh - var(--header-h));
-    align-content: center;
   }
 }
 
