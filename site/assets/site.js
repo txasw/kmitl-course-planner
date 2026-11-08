@@ -3,9 +3,11 @@
 // switch the motion on exist before the first layout and nothing shifts or flashes:
 // .motion unless the reader prefers reduced motion, and .no-sda where the browser has no
 // scroll driven animations, so the stylesheet plays each moment from the classes this
-// file adds as blocks come into view. It also marks a Firefox visitor so the Firefox
-// button is the filled one, and carries the section in the address across the language
-// switch. It listens to no scroll event, sends nothing anywhere and stores nothing.
+// file adds as blocks come into view. The two pinned scenes step on their own clock in
+// every browser once the scroll crosses each of their lines. It also marks a Firefox
+// visitor so the Firefox badge comes first, and carries the section in the address
+// across the language switch. It listens to no scroll event, sends nothing anywhere and
+// stores nothing.
 
 (() => {
   const root = document.documentElement;
@@ -104,6 +106,12 @@
     observer.observe(track);
   }
 
+  // The header is 56 px tall on a phone and 64 px elsewhere, as site.css sets
+  // --header-h. A media query answers without a layout, so setting up the scenes never
+  // forces the first layout inside the script's own task.
+  const narrow = window.matchMedia('(max-width: 639px)');
+  const headerHeight = () => (narrow.matches ? 56 : 64);
+
   /**
    * Watch zero height sentinels placed at fractions of a pinned track's scroll distance,
    * and report the index of the last one above the line under the header, or -1. The
@@ -111,10 +119,6 @@
    * that jumps a sentinel past the line in one frame still changes its state.
    */
   function watchSentinels(track, fractions, onIndex) {
-    // Read the header height before the sentinels go in, so the read costs no layout.
-    const headerHeight = () =>
-      parseFloat(getComputedStyle(root).getPropertyValue('--header-h')) || 0;
-    let header = headerHeight();
     const sentinels = fractions.map((fraction) => {
       const sentinel = document.createElement('div');
       sentinel.className = 'sentinel';
@@ -128,7 +132,7 @@
     const build = () => {
       observer?.disconnect();
       above.clear();
-      const bottom = Math.max(0, window.innerHeight - header);
+      const bottom = Math.max(0, window.innerHeight - headerHeight());
       observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
@@ -148,14 +152,47 @@
       });
     };
     build();
-    window.addEventListener('resize', () => {
-      header = headerHeight();
-      build();
-    });
+    window.addEventListener('resize', build);
   }
 
-  // The stage pins on any window tall enough to hold it with its densest rows.
-  const DEDUPE_PIN = '(min-height: 540px)';
+  // A step that has played stays in view this long before a queued step follows it.
+  const HOLD = 600;
+  // Stepping back plays the reverse transitions, which are short.
+  const STEP_BACK = 350;
+
+  /**
+   * Move a scene one step at a time toward the step its scroll position asks for. Each
+   * step plays on its own clock, its transition in site.css, and the next step waits
+   * until it has finished and held, so a fast flick that crosses every line at once still
+   * shows each step whole instead of a blur, while a slow reader, whose lines come further
+   * apart than that, sees no wait. Scrolling back steps down the same way.
+   */
+  function stepper(el, durations) {
+    let shown = 0;
+    let wanted = 0;
+    let timer = 0;
+    const advance = () => {
+      timer = 0;
+      if (shown === wanted) return;
+      const forward = wanted > shown;
+      const wait = forward ? (durations[shown] ?? 0) + HOLD : STEP_BACK;
+      shown += forward ? 1 : -1;
+      el.dataset.step = String(shown);
+      timer = window.setTimeout(advance, wait);
+    };
+    el.dataset.step = '0';
+    return (index) => {
+      wanted = index + 1;
+      if (timer === 0) advance();
+    };
+  }
+
+  // The dedupe stage plays two steps: the repeats fade while the counter turns from rows
+  // to sections, then the sections close up and take their labels. The thirteen rows
+  // hold before the first line and the merged sections hold for most of the track after
+  // the second. Each number is the step's longest transition in site.css, in ms.
+  const DEDUPE_STEPS = [0.16, 0.32];
+  const DEDUPE_TIMES = [900, 1200];
 
   function enhanceDedupe(pin) {
     const track = pin.closest('.dedupe-track');
@@ -167,26 +204,14 @@
     // How many rows stay and go, which size the merged card.
     indexVar(pin, 'data-kept', '--kept');
     indexVar(pin, 'data-gone', '--gone');
-
-    // A pinned stage in a browser with scroll driven animations scrubs the merge on its
-    // view timeline; elsewhere the merge plays from .is-merged with transitions.
-    const pinned = window.matchMedia(DEDUPE_PIN);
-    const drive = () => {
-      pin.dataset.drive = scrollDriven() && pinned.matches ? 'scroll' : 'class';
-    };
-    // The line sits where the sections close up, after the thirteen rows have held and
-    // with the track's last quarter left for the merged state to hold.
-    watchSentinels(track, [0.4], (index) => {
-      pin.classList.toggle('is-merged', index >= 0);
-    });
-    pinned.addEventListener('change', drive);
-    drive();
+    watchSentinels(track, DEDUPE_STEPS, stepper(pin, DEDUPE_TIMES));
   }
 
   // The story's three beats start at these fractions of its pinned scroll; the first
   // while the dark band is still rising to the header, so the grid is drawn by the time
   // it pins. Each beat then holds for about a third of the track before the next.
   const STORY_BEATS = [-0.15, 0.34, 0.65];
+  const STORY_TIMES = [1000, 1000, 1100];
 
   function enhanceStory(track) {
     const pin = track.querySelector('.story__pin');
@@ -194,11 +219,7 @@
     track.querySelectorAll('.story__block[data-b]').forEach((block) => {
       indexVar(block, 'data-b', '--b');
     });
-    if (scrollDriven()) return;
-    pin.dataset.beat = '0';
-    watchSentinels(track, STORY_BEATS, (index) => {
-      pin.dataset.beat = String(index + 1);
-    });
+    watchSentinels(track, STORY_BEATS, stepper(pin, STORY_TIMES));
   }
 
   // Both language pages share their section ids, so switching language keeps the reader
