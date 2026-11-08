@@ -158,9 +158,9 @@ H, which now lives in `scripts/landing/story-plan.mjs` for both the capture and 
 the clash, so nothing in the grid is typed by hand. Blocks are placed by day, hour and span
 classes the stylesheet defines for each orientation, days as rows from 640 px and as columns
 below, as ADR-0043 orients the product. Every block leads with its subject id and shows its name
-under it where the page may; 01006021, whose Thai name holds a reserved term, shows its id alone in
-both languages, and a phone, whose day columns would break Thai names inside words, labels every
-block by its id. The dedupe statement quotes the same category sample the table under it shows,
+under it where the page may; the Thai name of 01006021 holds a reserved term, so the page names it
+with the host's own word for that term, ปฏิบัติฟิสิกส์ทั่วไป 1 (docs/TERMINOLOGY.md), and a phone,
+whose day columns would break Thai names inside words, labels every block by its id. The dedupe statement quotes the same category sample the table under it shows,
 from `dedupeCounts`, so the claim and the proof are one sample.
 
 Motion. This reverses the first version's still page. `site.js` now loads in the head, before the
@@ -212,7 +212,9 @@ it shows; Mozilla's words name no browser, so its alt text reads Get the add-on 
 badges render at one height, 56 px, or on a narrow phone the height at which the pair fits one row
 with 12 px between them, measured against the install row itself with 4 px to spare, since Firefox
 rounded a badge a fraction of a pixel wider and wrapped the pair at 320 px. A Firefox visitor sees
-the Firefox badge first. The touch note follows the badges on a coarse pointer, and the web version
+the Firefox badge first: `site.js` moves it before the Chrome badge in the document as the parser
+inserts it, before any paint, so focus reaches the badges in the order they show and nothing
+shifts; the stylesheet never reorders them on screen alone. The touch note follows the badges on a coarse pointer, and the web version
 waits on a line of its own under the pair as a smaller pill, 40 px tall with a dashed edge and a
 grey coming soon label, so the two badges read as the primary pair. The Firefox logo file the
 earlier button used is removed. The footer's
@@ -278,3 +280,34 @@ ahead and the third beat by three quarters of its track. A
 4,000 px/s flick that stops inside a scene plays it to its end at the quick pace; a flick that
 passes a whole scene in under half a second still sees none of it. Firefox, driven by wheel
 events, steps the same way.
+
+Short phones, the lead in and jumps. A second measurement, settle aware (`data-step` at its end
+state, no transition running but the blocker pulse, the parts inside the band under the header),
+found three gaps. A track sized in screens alone gives a short phone little scroll: at 375 by 553
+the dedupe track pinned for about 970 px and the story for about 1,715 px, so at 850 px/s the
+merged card was fully visible for 50 ms in Chromium and 82 ms in Firefox, beat two for 116 ms and
+beat three for 67 ms, and 360 by 640 showed beat three for 0 ms. Each track now keeps a pixel
+floor under its screen length: the dedupe pins for max(175svh, 1,500 px) and the story for
+max(three screens and a header, 2,800 px), on a tablet two and seven tenths screens and a header.
+Second, a reader who stopped between the dedupe lines saw the repeats fade and then a 650 ms hold
+on the half empty card before the close up, and the merge was still moving 1.5 s after the first
+line. The fade is now a lead in step: it plays at 0.65 of its length, the close up follows 100 ms
+after it at 0.75 of its length, and the merge completes about 1.4 s after the first line, with the
+counter still turning from rows to sections as the repeats fade. Third, a jump that crossed every
+line at once, an anchor link, a restored scroll position or the End key, chained all the steps,
+and beat three was still moving 1.5 s later. A crossing that passes a line together with its gate,
+or several lines, in one frame now sets the passed steps at once, their transitions at zero
+length, and plays only the last at full length, so a jump into the story settles in about 1.3 s.
+For margin the quick pace drops from 0.45 to 0.4, the dedupe lines move to 0.05 and 0.15 of the
+track and the story lines to -0.15, 0.24 and 0.6. Measured again with the same probes, every end
+state, the merged dedupe and each beat, is fully visible while pinned for at least 750 ms in
+Chromium and 687 ms in Firefox at 300, 500 and 850 px/s on 1440 by 900, 390 by 844, 375 by 553 and
+360 by 640 windows. The floors lengthen the Thai page by about 36 px on a laptop, 235 px on a
+390 by 844 phone, 1,620 px at 375 by 553 and 1,200 px at 360 by 640 and 320 by 640.
+
+The closing band. Its heading and badges rose on the band's own view timeline over a range that
+ended halfway through the band's cover, so a reader at rest with the band in view found the
+heading at about half strength and the badges short of full. They now rise on their own view like
+every revealed block and stand at full strength once their top is 85 percent down the window, and
+the band clips its glow with `overflow: clip`, which unlike `overflow: hidden` makes it no scroll
+container that would capture that view.
