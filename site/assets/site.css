@@ -2435,6 +2435,14 @@ h4 {
   .motion.no-sda .hero__track:not(.is-in) .frame {
     transform: perspective(2000px) rotateX(16deg) scale(0.86);
   }
+
+  .motion.no-sda .hero__fine > span {
+    transition: opacity var(--dur-fade) linear;
+  }
+
+  .motion.no-sda .hero:has(.hero__track.is-in) .hero__fine > span {
+    opacity: 0;
+  }
 }
 
 @media (max-width: 767px), (max-height: 679px) {
@@ -2472,6 +2480,14 @@ h4 {
       animation: hero-recede linear both;
       animation-timeline: scroll(root block);
       animation-range: 8svh 45svh;
+    }
+
+    /* The fine print sits where the standing frame's top edge passes, so it is gone
+       before the frame reaches it. */
+    .motion:not(.no-sda) .hero__fine > span {
+      animation: fade linear reverse both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 7svh;
     }
   }
 
