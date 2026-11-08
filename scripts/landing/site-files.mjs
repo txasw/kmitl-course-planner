@@ -1,5 +1,5 @@
-// The text files of the landing site (ADR-0066): both language pages, the shared not
-// found page, and the sitemap with its language alternates, rendered and formatted
+// The text files of the landing site (ADR-0066): both language pages, a not found page
+// led by each language, and the sitemap with its language alternates, rendered and formatted
 // exactly as they are committed in site/. build-site.mjs writes them, and the site test
 // renders them again and compares, so the committed pages never drift from their
 // sources. The output depends only on the repository, never on the date or the machine.
@@ -100,6 +100,10 @@ export async function siteTextFiles() {
   files.set(
     '404.html',
     await format('404.html', versionAssets(renderNotFound(th, en))),
+  );
+  files.set(
+    'en/404.html',
+    await format('en/404.html', versionAssets(renderNotFound(en, th))),
   );
   files.set('sitemap.xml', sitemap());
   return files;

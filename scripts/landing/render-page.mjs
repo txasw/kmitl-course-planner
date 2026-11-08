@@ -563,21 +563,26 @@ ${copy.lang === 'th' ? keepThaiWords(body) : body}
 `;
 }
 
-/** The not found page, both languages on one page since the host serves one 404. */
-export function renderNotFound(th, en) {
-  const block = (copy) =>
-    `<div lang="${copy.lang}" class="notfound__block"><h${copy.lang === 'th' ? '1' : '2'}>${copy.notFound.title}</h${copy.lang === 'th' ? '1' : '2'}><p class="body">${copy.notFound.body}</p><p><a class="text-link" href="${copy.path}">${copy.notFound.back}</a></p></div>`;
+/**
+ * A not found page with both languages, led by one. The host serves the 404.html nearest
+ * the missing path, so a miss under /en/ gets the English led page and any other miss
+ * the Thai led one at the root.
+ */
+export function renderNotFound(lead, other) {
+  const block = (copy, level) =>
+    `<div lang="${copy.lang}" class="notfound__block"><h${level}>${copy.notFound.title}</h${level}><p class="body">${copy.notFound.body}</p><p><a class="text-link" href="${copy.path}">${copy.notFound.back}</a></p></div>`;
+  const body = `${header(lead, lead.path)}
+<main id="content" tabindex="-1" class="notfound">
+<div class="container">${mark(64)}${block(lead, 1)}${block(other, 2)}</div>
+</main>
+${footer(lead)}`;
   return `<!doctype html>
-<html lang="th">
+<html lang="${lead.lang}">
 <head>
-${head(th, { title: `${th.notFound.title} | KCP`, description: th.description, canonical: null, preload: '', ld: null })}
+${head(lead, { title: `${lead.notFound.title} | KCP`, description: lead.description, canonical: null, preload: '', ld: null })}
 </head>
 <body>
-${header(th, th.path)}
-<main id="content" tabindex="-1" class="notfound">
-<div class="container">${mark(64)}${block(th)}${block(en)}</div>
-</main>
-${footer(th)}
+${keepThaiWords(body)}
 </body>
 </html>
 `;
