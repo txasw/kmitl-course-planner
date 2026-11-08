@@ -146,8 +146,9 @@ crowding every screen.
 Content. The page now holds one idea per screen. The search, conflict, narrow window, suggestion
 and getting started sections are gone, with six of the ten FAQ entries; each remaining feature is
 one headline with one line under it, and the main text without the dedupe table and the story
-grid fell from about 8,100 to about 2,400 Thai characters and from about 1,600 to about 450
-English words. Ten screenshots are cut from the shot list and their capture steps removed; the
+grid fell from about 8,100 to about 2,250 Thai characters and from about 1,600 to about 420
+English words, and each fact is said once: the touch note sits only in the closing band, the
+footer disclaimer is one sentence, and the FAQ answers only what the body does not. Ten screenshots are cut from the shot list and their capture steps removed; the
 kept masters are re-encoded without a recapture. Spacing runs on one scale of section, media, sub
 line and call to action gaps.
 
@@ -177,7 +178,12 @@ fast scroll that jumps a sentinel past the line in one frame still changes its s
 The dedupe table is now a set of fixed height grid rows on a stage card, two short lines a row on
 a phone. Each row carries its raw index and its section's slot, and the merge moves it by
 `translateY((slot - index) * row height)`; the earlier fold, which animated row height, is
-removed. The merge toggle the first version added is removed too, because the scroll already
+removed. The merge runs in steps so no two texts share a place at partial opacity: the repeats
+fade where they stand, the sections close up, then each counter and label swap empties its box
+before the next text enters. The stage card is drawn as a head, a body that folds away and a foot
+that rises, so it shrinks to the merged rows by transforms alone. The stage pins on any window at
+least 540 px tall, with 34 px and then 26 px rows on shorter windows. The merge toggle the first
+version added is removed too, because the scroll already
 plays the merge. Without the motion the table rests in its merged state: the four sections with
 the chips that count their listings, under a counter that names both numbers. The repeat rows
 are hidden from assistive technology in every state and the caption states the merged count in
@@ -199,3 +205,13 @@ is granted. The guidelines this relies on:
 - https://partnermarketinghub.withgoogle.com/brands/google/branding-guidelines/how-to-show-googles-brand/
 - https://www.mozilla.org/en-US/foundation/trademarks/policy/
 - https://extensionworkshop.com/documentation/publish/promoting-your-extension/
+
+Pacing. Readers who scroll fast found the pinned moments over too soon, so each scene now holds
+still between its changes, and the extra length stays inside the pinned scenes. The hero frame
+stands up over three quarters of a screen and then holds. The dedupe stage holds its thirteen
+rows, merges, and holds the merged sections for the last quarter of a track one and a half
+screens long. The story track is four screens long on a laptop: its grid draws while the dark
+band rises, and each beat holds fully readable before the next starts. Path B mirrors the holds
+through its sentinel positions. Scroll snapping was rejected because it fights a reader who wants
+to move on. Outside the pinned scenes the sections share one gap that grows with the window
+height, from 96 px to 144 px, and the statement screens no longer fill a whole window each.
