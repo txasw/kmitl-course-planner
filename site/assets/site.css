@@ -800,11 +800,6 @@ h4 {
   height: var(--badge-h);
 }
 
-/* A Firefox visitor finds the Firefox badge first. */
-.is-firefox .store--firefox {
-  order: -1;
-}
-
 /* The web version reads as a control that is not open yet: a small outlined pill with a
    dashed edge and its coming soon label, under the badges. It stays disabled to
    assistive technology and takes no hover state. */
