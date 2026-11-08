@@ -1259,12 +1259,14 @@ figcaption:empty {
   max-width: 48rem;
 }
 
+/* The narrow plates sit on the start edge of the column at the size the product draws
+   them, so every plate on the page sets the product's text at one size. */
 .plate--inset {
-  max-width: 340px;
+  max-width: 288px;
 }
 
 .plate--column .plate__img {
-  max-width: 440px;
+  max-width: 384px;
 }
 
 @media (min-width: 1024px) {
@@ -1305,14 +1307,17 @@ figcaption:empty {
 
 /* Narrow window strip */
 
+/* Below 1024 px the strip scrolls and runs to both screen edges, so the next frame
+   peeks in from the edge as a cue to swipe; its snap points keep to the text column. */
 .strip {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 280px;
   gap: 24px;
   overflow-x: auto;
-  padding: 4px 4px 16px;
-  margin-inline: -4px;
+  padding: 4px var(--margin-inline) 16px;
+  margin-inline: calc(-1 * var(--margin-inline));
+  scroll-padding-inline: var(--margin-inline);
   scroll-snap-type: x mandatory;
   scrollbar-color: var(--site-rule-strong) transparent;
 }
@@ -1348,7 +1353,9 @@ figcaption:empty {
 @media (min-width: 1024px) {
   .strip {
     grid-auto-flow: row;
-    grid-template-columns: repeat(3, minmax(0, 340px));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding-inline: 4px;
+    margin-inline: -4px;
     overflow: visible;
   }
 }
@@ -1364,20 +1371,15 @@ figcaption:empty {
   max-width: 220px;
 }
 
+/* The landscape poster runs the full width, and the phone wallpaper stands over its
+   empty late afternoon columns, clear of the header and of the footer credit, bleeding
+   a little past the right edge so the overlap reads as placed. */
 @media (min-width: 640px) {
-  .posters {
-    padding-bottom: 48px;
-  }
-
-  .poster--wide {
-    padding-right: calc(22% - 32px);
-  }
-
   .poster--phone {
     position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 22%;
+    top: 12%;
+    right: -4%;
+    width: 20%;
     max-width: none;
     margin: 0;
   }

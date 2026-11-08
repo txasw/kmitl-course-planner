@@ -107,10 +107,20 @@ const PAIR_NARROW =
   '(min-width: 1024px) 288px, (min-width: 640px) calc(34vw - 12px), calc(100vw - 40px)';
 const PAIR_WIDE =
   '(min-width: 1024px) 480px, (min-width: 640px) calc(56vw - 20px), calc(100vw - 40px)';
-const INSET = '(min-width: 640px) 340px, calc(100vw - 40px)';
+// The narrow plates, the search form and the plan menu, show at the size the product
+// draws them, so their text matches the cropped grid plates instead of a zoomed shot.
+const SEARCH = '(min-width: 424px) 384px, calc(100vw - 40px)';
+const MENU = '(min-width: 328px) 288px, calc(100vw - 40px)';
 const PROBLEM_SHOT =
   '(min-width: 1280px) 384px, (min-width: 520px) 480px, calc(100vw - 40px)';
-const FULL = '(min-width: 1280px) 1200px, calc(100vw - 40px)';
+const FULL =
+  '(min-width: 1328px) 1200px, calc(100vw - 2 * clamp(20px, 5vw, 64px))';
+// The three narrow window shots fill the container in thirds from 1024 px.
+const THIRD =
+  '(min-width: 1328px) 384px, (min-width: 1024px) calc(30vw - 16px), 280px';
+// The phone wallpaper overlaps the poster at a fifth of the container.
+const PHONE_POSTER =
+  '(min-width: 1328px) 240px, (min-width: 640px) 18vw, 220px';
 
 // The touch note leads, so a phone visitor reads that the stores install on a computer
 // before any button. The hero keeps its fine print short: the trust line first, then
@@ -245,7 +255,7 @@ function features(copy, manifest) {
   const narrow = ['n-catalog', 'n-day', 'n-sheet']
     .map(
       (id, i) =>
-        `<figure class="narrow"><div class="narrow__bar" aria-hidden="true"><span class="frame__url">${ICONS.lock}<span>regis.reg.kmitl.ac.th</span></span></div>${picture(manifest, id, l, { alt: c.layouts.alts[i], sizes: '(min-width: 1024px) 340px, 280px', className: 'narrow__img' })}<figcaption>${c.layouts.figs[i]}</figcaption></figure>`,
+        `<figure class="narrow"><div class="narrow__bar" aria-hidden="true"><span class="frame__url">${ICONS.lock}<span>regis.reg.kmitl.ac.th</span></span></div>${picture(manifest, id, l, { alt: c.layouts.alts[i], sizes: THIRD, className: 'narrow__img' })}<figcaption>${c.layouts.figs[i]}</figcaption></figure>`,
     )
     .join('');
   const perms = c.privacy.perms
@@ -257,12 +267,12 @@ function features(copy, manifest) {
   return `<section class="features" id="features" aria-labelledby="features-title">
 <div class="container">
 <h2 id="features-title" class="features__title">${c.featuresH2}</h2>
-${feature('search', c.search.h3, c.search.body, figure(manifest, 's-search-form', l, c.search.alt, c.search.h3, PLATE_8, 'plate plate--column'))}
+${feature('search', c.search.h3, c.search.body, figure(manifest, 's-search-form', l, c.search.alt, c.search.h3, SEARCH, 'plate plate--column'))}
 ${feature('conflict', c.conflict.h3, c.conflict.body, `<div class="stack">${figure(manifest, 's-drag-blocked', l, c.conflict.alt1, c.conflict.fig1, PLATE_8, 'plate', 's-drag-blocked-crop')}${figure(manifest, 's-feedback-alternatives', l, c.conflict.alt2, c.conflict.fig2, PLATE_8, 'plate', 's-feedback-crop')}</div>`)}
 ${feature('exam', c.exam.h3, c.exam.body, `<div class="pair">${figure(manifest, 's-exam-row', l, c.exam.alt1, c.exam.fig1, PAIR_NARROW)}${figure(manifest, 's-summary', l, c.exam.alt2, c.exam.fig2, PAIR_WIDE, 'plate', 's-summary-crop')}</div>`)}
 ${feature('layouts', c.layouts.h3, c.layouts.body, `<div class="strip" role="region" aria-label="${attr(c.layouts.region)}" tabindex="0">${narrow}</div><p class="footnote">${c.layouts.footnote}</p>`, ' feature--wide')}
-${feature('export', c.export.h3, c.export.body, `<div class="posters">${figure(manifest, 'x-share169', l, c.export.alt1, '', FULL, 'poster poster--wide')}${figure(manifest, 'x-phone-portrait', l, c.export.alt2, '', '(min-width: 1024px) 264px, 40vw', 'poster poster--phone')}</div><p class="footnote">${c.export.templates}</p>`, ' feature--wide')}
-${feature('plans', c.plans.h3, c.plans.body, `<div class="stack">${figure(manifest, 's-updates', l, c.plans.alt1, c.plans.fig1, PLATE_8)}${figure(manifest, 's-plan-menu', l, c.plans.alt2, c.plans.fig2, INSET, 'plate plate--inset')}</div>`)}
+${feature('export', c.export.h3, c.export.body, `<div class="posters">${figure(manifest, 'x-share169', l, c.export.alt1, '', FULL, 'poster poster--wide')}${figure(manifest, 'x-phone-portrait', l, c.export.alt2, '', PHONE_POSTER, 'poster poster--phone')}</div><p class="footnote">${c.export.templates}</p>`, ' feature--wide')}
+${feature('plans', c.plans.h3, c.plans.body, `<div class="stack">${figure(manifest, 's-updates', l, c.plans.alt1, c.plans.fig1, PLATE_8)}${figure(manifest, 's-plan-menu', l, c.plans.alt2, c.plans.fig2, MENU, 'plate plate--inset')}</div>`)}
 </div>
 <div class="privacy-band">
 <div class="container">
