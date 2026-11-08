@@ -1965,20 +1965,34 @@ h4 {
   }
 }
 
-/* And more */
+/* And more: four tiles in a staggered strip, each led by its glyph on a soft orange
+   square, so the row reads as a set of objects rather than a column of captions. */
 
 .facts {
   display: grid;
-  gap: 40px;
+  gap: 16px;
   margin-top: var(--space-media);
 }
 
+.fact {
+  padding: 24px 24px 28px;
+  border-radius: 16px;
+  background: var(--site-paper-alt);
+}
+
 .fact .icon {
+  display: block;
+  box-sizing: content-box;
+  width: 28px;
+  height: 28px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--site-primary-soft);
   color: var(--site-primary-strong);
 }
 
 .fact dt {
-  margin-top: 16px;
+  margin-top: 24px;
   font-family: var(--font-display);
   font-size: 20px;
   font-weight: 600;
@@ -1998,13 +2012,26 @@ h4 {
 @media (min-width: 640px) {
   .facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: var(--gutter);
+    align-items: start;
+    gap: var(--gutter);
+  }
+
+  .fact {
+    padding: 28px 28px 32px;
+  }
+
+  .fact:nth-child(even) {
+    margin-top: 48px;
   }
 }
 
 @media (min-width: 1024px) {
   .facts {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .fact {
+    min-height: 260px;
   }
 }
 
