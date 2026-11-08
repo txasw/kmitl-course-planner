@@ -55,6 +55,35 @@
     });
   }
 
+  // Path B: the hero frame stands up once its track is well in view; a third of the
+  // track on a window that pins it, a fifth elsewhere.
+  function standHeroFrame() {
+    const track = document.querySelector('.hero__track');
+    if (
+      track === null ||
+      scrollDriven() ||
+      !('IntersectionObserver' in window)
+    ) {
+      return;
+    }
+    const pinned = window.matchMedia(
+      '(min-width: 768px) and (min-height: 680px)',
+    );
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (
+          entry !== undefined &&
+          entry.intersectionRatio >= (pinned.matches ? 0.35 : 0.2)
+        ) {
+          track.classList.add('is-in');
+          observer.disconnect();
+        }
+      },
+      { threshold: [0.2, 0.35] },
+    );
+    observer.observe(track);
+  }
+
   function enhanceDedupe(pin) {
     const table = pin.querySelector('table');
     const controls = pin.querySelector('.dedupe-controls');
@@ -116,6 +145,7 @@
       indexVar(fact, 'data-i', '--i');
     });
     revealOnView();
+    standHeroFrame();
     document.querySelectorAll('[data-dedupe]').forEach(enhanceDedupe);
     keepSectionAcrossLanguages();
   });

@@ -29,12 +29,12 @@
       as="image"
       type="image/avif"
       imagesrcset="/shots/s-hero-en-960.avif?v=bc5066398f 960w, /shots/s-hero-en-1440.avif?v=b6c56ad2d8 1440w, /shots/s-hero-en-2160.avif?v=9b4785a3c8 2160w, /shots/s-hero-en-2880.avif?v=c52f98bb7a 2880w"
-      imagesizes="(min-width: 1440px) 1264px, calc(100vw - 2 * clamp(20px, 5vw, 64px))"
+      imagesizes="(min-width: 1328px) 1200px, calc(100vw - 2 * clamp(32px, 5vw, 64px))"
       media="(min-width: 640px)"
       fetchpriority="high"
     />
-    <script src="/assets/site.js?v=f7a990dcb3"></script>
-    <link rel="stylesheet" href="/assets/site.css?v=58ccb97a18" />
+    <script src="/assets/site.js?v=96f956e384"></script>
+    <link rel="stylesheet" href="/assets/site.css?v=da18ee21d5" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="KCP" />
     <meta
@@ -299,77 +299,81 @@
               The web version is in development, with no release date yet.
             </p>
           </div>
-          <div class="frame-rise">
-            <div class="frame">
-              <div class="frame__bar" aria-hidden="true">
-                <span class="frame__dots"><i></i><i></i><i></i></span
-                ><span class="frame__url"
-                  ><svg
-                    class="icon"
-                    width="14"
-                    height="14"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                    focusable="false"
+        </div>
+        <div class="hero__track">
+          <div class="hero__pin">
+            <div class="frame-rise">
+              <div class="frame">
+                <div class="frame__bar" aria-hidden="true">
+                  <span class="frame__dots"><i></i><i></i><i></i></span
+                  ><span class="frame__url"
+                    ><svg
+                      class="icon"
+                      width="14"
+                      height="14"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
+                    ><span
+                      >regis.reg.kmitl.ac.th/#/teach_table_selector</span
+                    ></span
                   >
-                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
-                  ><span
-                    >regis.reg.kmitl.ac.th/#/teach_table_selector</span
-                  ></span
-                >
+                </div>
+                <picture
+                  ><source
+                    media="(max-width: 639px)"
+                    type="image/avif"
+                    srcset="
+                      /shots/s-hero-crop-en-750.avif?v=9e9ad1d5b4 750w,
+                      /shots/s-hero-crop-en-898.avif?v=d2047317cd 898w
+                    "
+                    sizes="calc(100vw - 40px)" />
+                  <source
+                    media="(max-width: 639px)"
+                    type="image/webp"
+                    srcset="
+                      /shots/s-hero-crop-en-750.webp?v=a0abd2b6ed 750w,
+                      /shots/s-hero-crop-en-898.webp?v=ce699996e2 898w
+                    "
+                    sizes="calc(100vw - 40px)" />
+                  <source
+                    type="image/avif"
+                    srcset="
+                      /shots/s-hero-en-960.avif?v=bc5066398f   960w,
+                      /shots/s-hero-en-1440.avif?v=b6c56ad2d8 1440w,
+                      /shots/s-hero-en-2160.avif?v=9b4785a3c8 2160w,
+                      /shots/s-hero-en-2880.avif?v=c52f98bb7a 2880w
+                    "
+                    sizes="(min-width: 1328px) 1200px, calc(100vw - 2 * clamp(32px, 5vw, 64px))" />
+                  <source
+                    type="image/webp"
+                    srcset="
+                      /shots/s-hero-en-960.webp?v=7d6419265a   960w,
+                      /shots/s-hero-en-1440.webp?v=4efcb185a6 1440w,
+                      /shots/s-hero-en-2160.webp?v=978ea6edaf 2160w,
+                      /shots/s-hero-en-2880.webp?v=867eed2f4e 2880w
+                    "
+                    sizes="(min-width: 1328px) 1200px, calc(100vw - 2 * clamp(32px, 5vw, 64px))" />
+                  <img
+                    src="/shots/s-hero-en-1440.webp?v=4efcb185a6"
+                    width="1440"
+                    height="900"
+                    alt="The KCP planner on the registration site, with a weekly timetable from Monday to Friday that holds Programming Fundamental, General Physics 1, Calculus 1 and Discrete Mathematics in the mornings."
+                    loading="eager"
+                    fetchpriority="high"
+                    decoding="async"
+                    class="frame__img"
+                /></picture>
               </div>
-              <picture
-                ><source
-                  media="(max-width: 639px)"
-                  type="image/avif"
-                  srcset="
-                    /shots/s-hero-crop-en-750.avif?v=9e9ad1d5b4 750w,
-                    /shots/s-hero-crop-en-898.avif?v=d2047317cd 898w
-                  "
-                  sizes="calc(100vw - 40px)" />
-                <source
-                  media="(max-width: 639px)"
-                  type="image/webp"
-                  srcset="
-                    /shots/s-hero-crop-en-750.webp?v=a0abd2b6ed 750w,
-                    /shots/s-hero-crop-en-898.webp?v=ce699996e2 898w
-                  "
-                  sizes="calc(100vw - 40px)" />
-                <source
-                  type="image/avif"
-                  srcset="
-                    /shots/s-hero-en-960.avif?v=bc5066398f   960w,
-                    /shots/s-hero-en-1440.avif?v=b6c56ad2d8 1440w,
-                    /shots/s-hero-en-2160.avif?v=9b4785a3c8 2160w,
-                    /shots/s-hero-en-2880.avif?v=c52f98bb7a 2880w
-                  "
-                  sizes="(min-width: 1440px) 1264px, calc(100vw - 2 * clamp(20px, 5vw, 64px))" />
-                <source
-                  type="image/webp"
-                  srcset="
-                    /shots/s-hero-en-960.webp?v=7d6419265a   960w,
-                    /shots/s-hero-en-1440.webp?v=4efcb185a6 1440w,
-                    /shots/s-hero-en-2160.webp?v=978ea6edaf 2160w,
-                    /shots/s-hero-en-2880.webp?v=867eed2f4e 2880w
-                  "
-                  sizes="(min-width: 1440px) 1264px, calc(100vw - 2 * clamp(20px, 5vw, 64px))" />
-                <img
-                  src="/shots/s-hero-en-1440.webp?v=4efcb185a6"
-                  width="1440"
-                  height="900"
-                  alt="The KCP planner on the registration site, with a weekly timetable from Monday to Friday that holds Programming Fundamental, General Physics 1, Calculus 1 and Discrete Mathematics in the mornings."
-                  loading="eager"
-                  fetchpriority="high"
-                  decoding="async"
-                  class="frame__img"
-              /></picture>
             </div>
           </div>
         </div>
