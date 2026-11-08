@@ -92,20 +92,19 @@ export const en = {
     alt2: 'The exam schedule of the plan, with its exam days in date order, each with the time, subject id, subject name and section.',
   },
   layouts: {
-    h3: 'Built for wide screens, narrow windows and touch',
-    body: 'On a laptop the course list sits beside the timetable. On a tablet it opens as a side sheet. In a window narrower than 640 px, the planner shows one pane at a time behind a bottom bar, the timetable reads one day at a time, and a long press picks up a section on a touch screen.',
+    h3: 'Built for wide screens, narrow windows and touch screen laptops',
+    body: 'KCP runs in computer browsers that support extensions, at any window size. On a wide screen the course list sits beside the timetable, and in a medium window it opens as a side sheet. In a window narrower than 640 px, the planner shows one pane at a time behind a bottom bar, the timetable reads one day at a time, and a long press picks up a section on a touch screen laptop.',
     figs: [
-      'Courses and search',
-      'Tuesday timetable',
-      'Section details from the bottom of the screen',
+      'Courses and search in a narrow window',
+      'The Tuesday timetable in a narrow window',
+      'Section details from the bottom of the window',
     ],
     alts: [
       'The planner in a narrow window, on the courses pane with the Calculus 1 card open and the bottom bar below.',
       'The Tuesday timetable in a narrow window, with General Physics 1 at 09:00 to 12:00 and Introduction to Psychology at 13:00 to 16:00.',
-      'The details of General Physics 1, section 4, open from the bottom of the screen with its class time, room, instructors, seats and exam dates.',
+      'The details of General Physics 1, section 4, open from the bottom of the window with its class time, room, instructors, seats and exam dates.',
     ],
-    footnote:
-      'The extension runs on computer browsers that support extensions. See the FAQ about phones.',
+    footnote: 'KCP does not run on phones yet. The FAQ explains why.',
     region: 'Narrow window examples',
   },
   export: {

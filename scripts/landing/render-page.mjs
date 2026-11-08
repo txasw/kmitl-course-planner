@@ -255,7 +255,7 @@ function features(copy, manifest) {
   const narrow = ['n-catalog', 'n-day', 'n-sheet']
     .map(
       (id, i) =>
-        `<figure class="narrow"><div class="narrow__bar" aria-hidden="true"><span class="frame__url">${ICONS.lock}<span>regis.reg.kmitl.ac.th</span></span></div>${picture(manifest, id, l, { alt: c.layouts.alts[i], sizes: THIRD, className: 'narrow__img' })}<figcaption>${c.layouts.figs[i]}</figcaption></figure>`,
+        `<figure class="narrow"><div class="narrow__bar" aria-hidden="true"><span class="frame__dots"><i></i><i></i><i></i></span><span class="frame__url">${ICONS.lock}<span>regis.reg.kmitl.ac.th</span></span></div>${picture(manifest, id, l, { alt: c.layouts.alts[i], sizes: THIRD, className: 'narrow__img' })}<figcaption>${c.layouts.figs[i]}</figcaption></figure>`,
     )
     .join('');
   const perms = c.privacy.perms
