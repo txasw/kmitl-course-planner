@@ -2798,11 +2798,13 @@ h4 {
 /* The pinned stage: on any window at least 540 px tall it holds still while the reader
    scrolls the length of its track and stays centred in the window as the card shrinks.
    A shorter window gets denser rows rather than an unpinned table, so the whole merge
-   stays on one screen. The track ends soon
-   after the merged state has held, so the pin lets go once the merge has been read. */
+   stays on one screen. The track ends soon after the merged state has held, so the pin
+   lets go once the merge has been read. Its pinned scroll is at least 1500 px, so on a
+   short phone, where 175svh is under 1000 px, a reader scrolling at a steady pace still
+   sees the merged card whole for most of a second before the pin lets go. */
 @media (min-height: 540px) {
   .motion .dedupe-track {
-    height: calc(100svh - var(--header-h) + 175svh);
+    height: calc(100svh - var(--header-h) + max(175svh, 1500px));
   }
 
   .motion .dedupe-pin {
@@ -3008,7 +3010,9 @@ h4 {
 
 /* The story pins on any window at least 540 px tall, the dedupe stage's floor. Its rows
    take their height from the window, so the label, the beat and the whole week fit under
-   the header on a short phone as on a laptop. */
+   the header on a short phone as on a laptop. Its pinned scroll is three screens and a
+   header, and at least 2800 px, so each beat holds whole for most of a second at a
+   steady scroll on a short phone as on a laptop. */
 @media (min-height: 540px) {
   .motion .story {
     --story-row: clamp(52px, (100svh - 160px) / 5, 88px);
@@ -3018,7 +3022,9 @@ h4 {
 
   .motion .story__track {
     position: relative;
-    height: 400svh;
+    height: calc(
+      100svh - var(--header-h) + max(300svh + var(--header-h), 2800px)
+    );
   }
 
   .motion .story__pin {
@@ -3210,7 +3216,9 @@ h4 {
   }
 
   .motion .story__track {
-    height: 370svh;
+    height: calc(
+      100svh - var(--header-h) + max(270svh + var(--header-h), 2800px)
+    );
   }
 }
 

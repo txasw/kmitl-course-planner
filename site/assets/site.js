@@ -173,7 +173,7 @@
   const CHAIN = 100;
   // A step for a reader who is scrolling on plays its transitions at this share of their
   // length, which site.css reads as --pace.
-  const QUICK = 0.45;
+  const QUICK = 0.4;
   // Stepping back plays the reverse transitions, which are short.
   const STEP_BACK = 350;
 
@@ -290,7 +290,7 @@
   // stop rests on a card the repeats have left half empty. The second line only tells
   // the stage the reader has moved on, which quickens the close up. The thirteen rows
   // hold before the first line and the merged sections for the rest of the track.
-  const DEDUPE_LINES = [0.08, 0.18];
+  const DEDUPE_LINES = [0.05, 0.15];
   const DEDUPE_STEPS = [
     { time: 800, scale: 0.65, lead: true },
     { time: 1000, scale: 0.75 },
@@ -309,7 +309,7 @@
     watchLines(
       track,
       DEDUPE_LINES,
-      0.065,
+      0.06,
       stepper(pin, DEDUPE_STEPS, (crossed) => (crossed > 0 ? 2 : 0)),
     );
   }
@@ -318,7 +318,7 @@
   // while the dark band is still rising to the header, so the grid is drawn by the time
   // it pins. The lines leave each beat room to play and hold at a steady scroll, and the
   // last beat a stretch of the track to stay in view before the pin lets go.
-  const STORY_LINES = [-0.15, 0.23, 0.58];
+  const STORY_LINES = [-0.15, 0.24, 0.6];
   const STORY_STEPS = [{ time: 1000 }, { time: 1000 }, { time: 1100 }];
 
   function enhanceStory(track) {
