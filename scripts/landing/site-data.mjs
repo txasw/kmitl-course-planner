@@ -152,6 +152,11 @@ function cell(content, extra = '') {
 
 /** The table body rows as HTML, one tr per raw row. */
 export function renderDedupeRows(locale) {
+  // A Thai subject name is one compound to its reader, so it never breaks inside.
+  const name = (text) =>
+    locale === 'th'
+      ? `<span class="nw">${escapeHtml(text)}</span>`
+      : escapeHtml(text);
   return dedupeRows(locale)
     .map((row) => {
       const chip =
@@ -163,7 +168,7 @@ export function renderDedupeRows(locale) {
         `<tr role="row" class="dedupe__row ${row.subjectClass}" data-row="${kind}">`,
         cell(`${escapeHtml(row.grouping)}${chip}`, ' class="dedupe__grouping"'),
         cell(escapeHtml(row.subjectId), ' class="dedupe__id"'),
-        cell(escapeHtml(row.name), ' class="dedupe__name"'),
+        cell(name(row.name), ' class="dedupe__name"'),
         cell(escapeHtml(row.section), ' class="dedupe__section"'),
         cell(escapeHtml(row.time), ' class="dedupe__time"'),
         cell(escapeHtml(row.seats), ' class="dedupe__seats"'),

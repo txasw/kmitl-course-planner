@@ -1591,6 +1591,11 @@ figcaption:empty {
 
 /* Narrow screens */
 
+/* A Thai compound the line breaker would split stays whole at every width. */
+.nw {
+  white-space: nowrap;
+}
+
 /* A Thai headline phrase stays whole wherever it fits on one line. */
 @media (min-width: 360px) {
   .phrase {
