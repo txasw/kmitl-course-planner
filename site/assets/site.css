@@ -1844,8 +1844,9 @@ h4 {
   }
 }
 
-/* And more: four tiles in a staggered strip, each led by its glyph on a soft orange
-   square, so the row reads as a set of objects rather than a column of captions. */
+/* And more: four tiles on one baseline, each led by its glyph on a soft orange square, so
+   the row reads as a set of objects rather than a column of captions. The tiles stagger
+   only as they enter. */
 
 .facts {
   display: grid;
@@ -1888,6 +1889,37 @@ h4 {
   color: var(--site-ink-soft);
 }
 
+/* A phone sets each tile as a row, its glyph beside the term, so the four facts take
+   about half a screen rather than more than one. */
+@media (max-width: 639px) {
+  .fact {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 16px;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .fact .icon {
+    grid-row: 1 / span 2;
+    align-self: start;
+    width: 24px;
+    height: 24px;
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .fact dt {
+    margin-top: 0;
+    font-size: 18px;
+  }
+
+  .fact dd {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+}
+
 @media (min-width: 640px) {
   .facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1897,10 +1929,6 @@ h4 {
 
   .fact {
     padding: 28px 28px 32px;
-  }
-
-  .fact:nth-child(even) {
-    margin-top: 48px;
   }
 }
 
@@ -1927,10 +1955,13 @@ h4 {
   text-align: center;
 }
 
+/* The band's cluster sits optically centred: a mark sized under the headline, the badges
+   a call to action gap under it, the meta line a step under them, and as much room under
+   the cluster as over it. */
 .download__mark {
-  width: 80px;
-  height: 80px;
-  margin-bottom: var(--space-media);
+  width: 72px;
+  height: 72px;
+  margin-bottom: 32px;
 }
 
 .download .statement__h {
@@ -1943,14 +1974,19 @@ h4 {
 
 @media (min-width: 1024px) {
   .download__mark {
-    width: 112px;
-    height: 112px;
+    width: 88px;
+    height: 88px;
+    margin-bottom: 40px;
   }
 }
 
 .download .cta-row,
 .download .stores {
   justify-content: center;
+}
+
+.download .micro {
+  margin-top: 20px;
 }
 
 /* FAQ */
@@ -3313,7 +3349,7 @@ h4 {
 .download::before {
   content: '';
   position: absolute;
-  top: calc(var(--space-section) + 40px - 210px);
+  top: calc(var(--space-section) + 36px - 210px);
   left: calc(50% - 210px);
   width: 420px;
   height: 420px;
@@ -3332,10 +3368,10 @@ h4 {
 
 @media (min-width: 1024px) {
   .download::before {
-    top: calc(var(--space-section) + 56px - 360px);
-    left: calc(50% - 360px);
-    width: 720px;
-    height: 720px;
+    top: calc(var(--space-section) + 44px - 300px);
+    left: calc(50% - 300px);
+    width: 600px;
+    height: 600px;
   }
 }
 
