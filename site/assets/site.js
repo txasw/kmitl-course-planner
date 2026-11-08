@@ -108,13 +108,15 @@
 
   /**
    * Watch a pinned track's lines, each a fraction of the track's scroll distance, and
-   * report how many of them lie above the line under the header, and for each crossed
-   * line whether the reader reached it fast. Every line has a gate a little before it,
-   * `gap` of the distance, and a reader who crosses the gate and then the line within
-   * GATE_MS is moving at a few hundred pixels a second or more. Each point is a zero
-   * height sentinel one header height above it, so it meets the window's top edge as its
-   * point meets the line under the header, and the observed band runs from far above the
-   * window down to that edge. Its margins are set in pixels and percentages alone, so
+   * report how many of them lie above the line under the header, for each crossed line
+   * whether the reader reached it fast, and whether the scroll jumped there. Every line
+   * has a gate a little before it, `gap` of the distance, and a reader who crosses the
+   * gate and then the line within GATE_MS is moving at a few hundred pixels a second or
+   * more. A scroll that crosses a line together with its gate, or several lines, in one
+   * frame is a jump: an anchor link, a restored position, the End key. Each point is a
+   * zero height sentinel one header height above it, so it meets the window's top edge as
+   * its point meets the line under the header, and the observed band runs from far above
+   * the window down to that edge. Its margins are set in pixels and percentages alone, so
    * setting it up reads no size and forces no layout, and it follows any change of window
    * size by itself. A fast scroll that jumps a sentinel past the edge in one frame still
    * changes its state, and the entry's own time says when.
@@ -130,12 +132,14 @@
       track.append(sentinel);
       return sentinel;
     });
+    let before = 0;
     const observer = new IntersectionObserver(
       (entries) => {
+        const moved = new Set();
         entries.forEach((entry) => {
-          since[sentinels.indexOf(entry.target)] = entry.isIntersecting
-            ? entry.time
-            : -1;
+          const index = sentinels.indexOf(entry.target);
+          moved.add(index);
+          since[index] = entry.isIntersecting ? entry.time : -1;
         });
         let crossed = 0;
         const fast = lines.map((_, k) => {
@@ -144,7 +148,13 @@
           if (line >= 0) crossed = k + 1;
           return gate >= 0 && line >= 0 && line - gate < GATE_MS;
         });
-        onChange(crossed, fast);
+        const jumped =
+          crossed - before > 1 ||
+          (crossed > before &&
+            moved.has(2 * crossed - 2) &&
+            moved.has(2 * crossed - 1));
+        before = crossed;
+        onChange(crossed, fast, jumped);
       },
       { rootMargin: '100000px 0px -100% 0px' },
     );
@@ -178,16 +188,19 @@
    * finished and held, so a line crossed soon after still leaves the finished step in
    * view. A reader who is scrolling on, who crossed the line fast or had already passed
    * the next line when a step finished, gets the steps quick and chained, so the scene
-   * finishes while it is still pinned instead of trailing the scroll. Scrolling back
-   * steps down at once, the same way.
+   * finishes while it is still pinned instead of trailing the scroll. A jump sets the
+   * steps it passed at once and plays only the last, at full length, since the reader has
+   * landed. Scrolling back steps down at once, the same way.
    */
   function stepper(el, steps, goalFor) {
     let shown = 0;
     let crossed = 0;
     let fast = [];
+    let jump = false;
     let cancel = null;
     let readyAt = 0;
     let quick = false;
+    let landed = false;
     const show = (step, pace) => {
       shown = step;
       el.style.setProperty('--pace', String(pace));
@@ -202,16 +215,41 @@
         window.clearTimeout(id);
       };
     };
+    // Two frames, so the state set now is styled before the next step plays from it.
+    const afterStyle = (next) => {
+      let id = window.requestAnimationFrame(() => {
+        id = window.requestAnimationFrame(() => {
+          cancel = null;
+          next();
+        });
+      });
+      cancel = () => {
+        window.cancelAnimationFrame(id);
+      };
+    };
     const move = () => {
       const goal = goalFor(crossed);
       if (goal < shown) {
+        jump = false;
         quick = false;
+        landed = false;
         readyAt = 0;
         show(shown - 1, 1);
         after(STEP_BACK, move);
         return;
       }
       if (goal === shown) return;
+      if (jump) {
+        jump = false;
+        quick = false;
+        landed = true;
+        readyAt = 0;
+        if (goal > shown + 1) {
+          show(goal - 1, 0);
+          afterStyle(move);
+          return;
+        }
+      }
       const early = readyAt - performance.now();
       if (early > 0) {
         after(early, move);
@@ -220,7 +258,10 @@
       const step = steps[shown] ?? { time: 0 };
       const scale = step.scale ?? 1;
       const pace =
-        quick || fast[shown] === true ? Math.min(QUICK, scale) : scale;
+        !landed && (quick || fast[shown] === true)
+          ? Math.min(QUICK, scale)
+          : scale;
+      landed = false;
       show(shown + 1, pace);
       after(step.time * pace, () => {
         quick = crossed > shown;
@@ -230,10 +271,12 @@
       });
     };
     el.dataset.step = '0';
-    return (lines, gates) => {
+    return (lines, gates, jumped) => {
       crossed = lines;
       fast = gates;
-      if (cancel !== null && goalFor(crossed) < shown) {
+      const goal = goalFor(crossed);
+      jump = jumped || (jump && goal > shown);
+      if (cancel !== null && (goal < shown || (jump && goal > shown + 1))) {
         cancel();
         cancel = null;
       }
