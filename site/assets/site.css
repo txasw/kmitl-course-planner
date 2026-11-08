@@ -1579,8 +1579,19 @@ figcaption:empty {
   gap: 24px;
 }
 
+/* The close answers the hero: its heading takes the display scale, so the page ends
+   on a deliberate counterpart rather than a modest band. */
+.download h2 {
+  font-size: clamp(32px, 1rem + 3.4vw, 64px);
+  line-height: 1.25;
+}
+
+:lang(en) .download h2 {
+  letter-spacing: -0.015em;
+}
+
 .download .body {
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
 .download .micro {
@@ -1588,6 +1599,10 @@ figcaption:empty {
 }
 
 @media (min-width: 1024px) {
+  .download {
+    padding-block: 128px;
+  }
+
   .download__grid {
     grid-template-columns: 96px minmax(0, 1fr);
     column-gap: 40px;
