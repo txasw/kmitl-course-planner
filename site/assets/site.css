@@ -1824,7 +1824,7 @@ h4 {
   }
 
   .story__card {
-    padding: 8px 4px 4px 6px;
+    padding: 8px 3px 4px 5px;
     box-shadow: inset 0 4px 0 var(--subject);
   }
 
@@ -1832,6 +1832,13 @@ h4 {
     padding-right: 0;
     -webkit-line-clamp: 3;
     line-clamp: 3;
+  }
+
+  /* An English subject name is one long capitalised word too wide for a day column, so
+     it breaks with a hyphen instead of being cut at the edge. */
+  .story__name:lang(en) {
+    overflow-wrap: anywhere;
+    hyphens: auto;
   }
 
   .story__sec {
@@ -2791,5 +2798,533 @@ h4 {
   to {
     opacity: 0;
     transform: translateY(-12px);
+  }
+}
+
+/* The story on a pinned scroll. The stage holds still while the reader scrolls three
+   beats: the plan's blocks land one by one; 01006021 section 3 is dragged over Tuesday
+   morning, where it clashes with 01006020 and the chip names the clash; then it travels
+   to Wednesday afternoon, turns green, and lands as section 5 while the readout counts
+   the plan. Chrome and Safari scrub it on the track's view timeline; elsewhere sentinels
+   set data-beat and transitions play each beat. Both end on the same final state, which
+   is also what a reader without motion sees. */
+
+.ghost__lift {
+  position: relative;
+  height: 100%;
+}
+
+.ghost__layer {
+  position: absolute;
+  inset: 0;
+}
+
+.ghost__danger,
+.ghost__success {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 8px 6px 12px;
+  border: 2px solid;
+  border-radius: 6px;
+  color: #1a1a1a;
+}
+
+.ghost__danger {
+  border-color: #c62828;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(198, 40, 40, 0.22) 0 6px,
+      transparent 6px 12px
+    ),
+    #fbeaea;
+}
+
+.ghost__success {
+  border-color: #1b7f3b;
+  background: #e7f3eb;
+}
+
+.story__chip {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 2px;
+  z-index: 3;
+  flex-direction: column;
+  width: max-content;
+  max-width: 240px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow:
+    inset 3px 0 0 #c62828,
+    0 4px 16px rgba(0, 0, 0, 0.3);
+  color: #1a1a1a;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.story__chip span:first-child {
+  color: #c62828;
+  font-weight: 600;
+}
+
+@media (min-width: 1024px) and (min-height: 680px),
+  (min-width: 640px) and (max-width: 1023px) and (min-height: 820px),
+  (max-width: 639px) and (min-height: 640px) {
+  .motion .story {
+    padding-block: 0;
+  }
+
+  .motion .story__track {
+    position: relative;
+    height: 300svh;
+  }
+
+  .motion .story__pin {
+    position: sticky;
+    top: var(--header-h);
+    height: calc(100svh - var(--header-h));
+    align-content: center;
+  }
+
+  .motion .story__beats {
+    display: grid;
+  }
+
+  .motion .story__beat {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  .motion .story__ghost {
+    z-index: 2;
+    display: block;
+  }
+
+  .motion .story__chip {
+    display: flex;
+  }
+
+  .motion .story__landed {
+    display: none;
+  }
+
+  .motion .ghost__success,
+  .motion .ghost__block {
+    opacity: 0;
+  }
+
+  .motion .story__block.is-blocker .story__card::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border: 2px solid #c62828;
+    border-radius: 8px;
+    opacity: 0;
+  }
+
+  /* Path B: the state of each beat, reached with transitions. */
+  .motion.no-sda .story__rules,
+  .motion.no-sda .story__axis,
+  .motion.no-sda .story__day {
+    transition: opacity var(--dur-fade) linear;
+  }
+
+  .motion.no-sda .story__pin[data-beat='0'] .story__rules,
+  .motion.no-sda .story__pin[data-beat='0'] .story__axis,
+  .motion.no-sda .story__pin[data-beat='0'] .story__day {
+    opacity: 0;
+  }
+
+  .motion.no-sda .story__beat {
+    transition:
+      opacity var(--dur-fade) linear,
+      transform var(--dur-reveal) var(--ease-out-expo);
+  }
+
+  .motion.no-sda .story__pin[data-beat='1'] .story__beat:nth-child(1),
+  .motion.no-sda .story__pin[data-beat='2'] .story__beat:nth-child(2),
+  .motion.no-sda .story__pin[data-beat='3'] .story__beat:nth-child(3) {
+    opacity: 1;
+    transform: none;
+  }
+
+  .motion.no-sda .story__block {
+    transition:
+      opacity var(--dur-fade) linear calc(var(--b) * 90ms),
+      transform var(--dur-reveal) var(--ease-out-expo) calc(var(--b) * 90ms);
+  }
+
+  .motion.no-sda .story__pin[data-beat='0'] .story__block {
+    opacity: 0;
+    transform: translateY(-32px) scale(1.04);
+  }
+
+  .motion.no-sda .ghost__lift {
+    transition:
+      opacity var(--dur-fade) linear 400ms,
+      transform var(--dur-reveal) var(--ease-out-expo) 400ms;
+  }
+
+  .motion.no-sda
+    .story__pin:not([data-beat='2']):not([data-beat='3'])
+    .ghost__lift {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
+
+  .motion.no-sda .story__pin[data-beat='2'] .is-blocker .story__card::after {
+    animation: pulse 1200ms linear 400ms both;
+  }
+
+  .motion.no-sda .story__chip {
+    transition:
+      opacity var(--dur-fade) linear,
+      transform var(--dur-fade) var(--ease-out-expo);
+  }
+
+  .motion.no-sda .story__pin:not([data-beat='2']) .story__chip {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  .motion.no-sda .story__pin[data-beat='2'] .story__chip {
+    transition-delay: 600ms;
+  }
+
+  .motion.no-sda .story__ghost {
+    transition: transform var(--dur-move) var(--ease-in-out);
+  }
+
+  .motion.no-sda .story__pin[data-beat='3'] .story__ghost {
+    transform: translate(133.333%, 100%);
+  }
+
+  .motion.no-sda .ghost__danger {
+    transition: opacity var(--dur-fade) linear;
+  }
+
+  .motion.no-sda .story__pin[data-beat='3'] .ghost__danger {
+    opacity: 0;
+  }
+
+  .motion.no-sda .story__pin[data-beat='3'] .ghost__success {
+    animation: success-pass 1100ms linear both;
+  }
+
+  .motion.no-sda .ghost__block {
+    transition: opacity var(--dur-fade) linear;
+  }
+
+  .motion.no-sda .story__pin[data-beat='3'] .ghost__block {
+    opacity: 1;
+    transition-delay: 700ms;
+    animation: settle 400ms var(--ease-out-expo) 1100ms both;
+  }
+
+  .motion.no-sda .story__readout {
+    transition:
+      opacity var(--dur-fade) linear,
+      transform var(--dur-reveal) var(--ease-out-expo);
+  }
+
+  .motion.no-sda .story__pin:not([data-beat='3']) .story__readout {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  .motion.no-sda .story__pin[data-beat='3'] .story__readout {
+    transition-delay: 1300ms;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) and (min-height: 820px) {
+  .motion .story__track {
+    height: 280svh;
+  }
+}
+
+@media (max-width: 639px) and (min-height: 640px) {
+  .motion .story__track {
+    height: 260svh;
+  }
+
+  .motion.no-sda .story__pin[data-beat='3'] .story__ghost {
+    transform: translate(100%, 133.333%);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (min-width: 1024px) and (min-height: 680px),
+    (min-width: 640px) and (max-width: 1023px) and (min-height: 820px),
+    (max-width: 639px) and (min-height: 640px) {
+    .motion:not(.no-sda) .story__track {
+      view-timeline: --story block;
+      view-timeline-inset: var(--header-h) 0;
+    }
+
+    .motion:not(.no-sda) .story__rules,
+    .motion:not(.no-sda) .story__axis,
+    .motion:not(.no-sda) .story__day {
+      animation: appear linear both;
+      animation-timeline: --story;
+      animation-range: contain 0% contain 6%;
+    }
+
+    .motion:not(.no-sda) .story__beat:nth-child(1) {
+      animation: beat-1 linear both;
+      animation-timeline: --story;
+      animation-range: contain 0% contain 40%;
+    }
+
+    .motion:not(.no-sda) .story__beat:nth-child(2) {
+      animation: beat-2 linear both;
+      animation-timeline: --story;
+      animation-range: contain 40% contain 68%;
+    }
+
+    .motion:not(.no-sda) .story__beat:nth-child(3) {
+      animation: beat-3 linear both;
+      animation-timeline: --story;
+      animation-range: contain 68% contain 100%;
+    }
+
+    .motion:not(.no-sda) .story__block:not(.story__landed) {
+      animation: block-in linear both;
+      animation-timeline: --story;
+      animation-range: contain calc(4% + 5% * var(--b)) contain
+        calc(12% + 5% * var(--b));
+    }
+
+    .motion:not(.no-sda) .ghost__lift {
+      animation: ghost-in linear both;
+      animation-timeline: --story;
+      animation-range: contain 40% contain 46%;
+    }
+
+    .motion:not(.no-sda) .story__block.is-blocker .story__card::after {
+      animation: pulse linear both;
+      animation-timeline: --story;
+      animation-range: contain 44% contain 58%;
+    }
+
+    .motion:not(.no-sda) .story__chip {
+      animation: chip-pass linear both;
+      animation-timeline: --story;
+      animation-range: contain 46% contain 65%;
+    }
+
+    .motion:not(.no-sda) .story__ghost {
+      animation: travel linear both;
+      animation-timeline: --story;
+      animation-range: contain 66% contain 76%;
+    }
+
+    .motion:not(.no-sda) .ghost__danger {
+      animation: fade linear reverse both;
+      animation-timeline: --story;
+      animation-range: contain 66% contain 70%;
+    }
+
+    .motion:not(.no-sda) .ghost__success {
+      animation: success-pass linear both;
+      animation-timeline: --story;
+      animation-range: contain 66% contain 82%;
+    }
+
+    .motion:not(.no-sda) .ghost__block {
+      animation:
+        appear linear both,
+        settle linear both;
+      animation-timeline: --story, --story;
+      animation-range:
+        contain 76% contain 82%,
+        contain 82% contain 86%;
+    }
+
+    .motion:not(.no-sda) .story__readout {
+      animation: rise-in linear both;
+      animation-timeline: --story;
+      animation-range: contain 84% contain 90%;
+    }
+  }
+
+  @media (max-width: 639px) and (min-height: 640px) {
+    .motion:not(.no-sda) .story__ghost {
+      animation-name: travel-down;
+    }
+  }
+}
+
+@keyframes beat-1 {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+    animation-timing-function: var(--ease-out-expo);
+  }
+
+  10%,
+  90% {
+    opacity: 1;
+    transform: none;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+}
+
+@keyframes beat-2 {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+    animation-timing-function: var(--ease-out-expo);
+  }
+
+  14%,
+  86% {
+    opacity: 1;
+    transform: none;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+}
+
+@keyframes beat-3 {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+    animation-timing-function: var(--ease-out-expo);
+  }
+
+  12.5%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes block-in {
+  from {
+    opacity: 0;
+    transform: translateY(-32px) scale(1.04);
+    animation-timing-function: var(--ease-out-expo);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ghost-in {
+  from {
+    opacity: 0;
+    transform: translateY(-24px);
+    animation-timing-function: var(--ease-out-expo);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  25%,
+  75% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes chip-pass {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+    animation-timing-function: var(--ease-out-expo);
+  }
+
+  21%,
+  84% {
+    opacity: 1;
+    transform: none;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes travel {
+  from {
+    transform: none;
+    animation-timing-function: var(--ease-in-out);
+  }
+
+  to {
+    transform: translate(133.333%, 100%);
+  }
+}
+
+@keyframes travel-down {
+  from {
+    transform: none;
+    animation-timing-function: var(--ease-in-out);
+  }
+
+  to {
+    transform: translate(100%, 133.333%);
+  }
+}
+
+@keyframes success-pass {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  25%,
+  62.5% {
+    opacity: 1;
+  }
+}
+
+@keyframes settle {
+  from {
+    transform: scale(1.03);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+/* On a phone the dragged section's skins keep the subject id on one line. */
+@media (max-width: 639px) {
+  .ghost__danger,
+  .ghost__success {
+    padding: 8px 2px 4px 4px;
+    font-size: 10px;
+  }
+
+  .ghost__danger .story__name,
+  .ghost__success .story__name {
+    overflow-wrap: normal;
   }
 }
