@@ -10,6 +10,9 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { EVENT_PALETTE, hashColor } from '../../src/lib/utils/hash-color.ts';
 import { DAY_MAP } from '../../src/lib/parsing/days.ts';
+import { parseTimeToMinutes } from '../../src/lib/parsing/time.ts';
+import { BANNED_THAI } from '../../src/lib/i18n/toneRules.ts';
+import { PLAN_H, STORY_GHOST } from './story-plan.mjs';
 
 const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -155,6 +158,87 @@ export function subjectSearchCounts() {
     }
   }
   return { rows: ids.length, sections: new Set(ids).size };
+}
+
+/** The capture the story grid is generated from, which holds every section of plan H. */
+export const STORY_FIXTURE =
+  'tests/fixtures/teach-table.with-exams.capture.json';
+
+function minutes(time) {
+  const parsed = parseTimeToMinutes(time);
+  if (parsed === null) {
+    throw new Error(`The story capture holds an unreadable time ${time}.`);
+  }
+  return parsed;
+}
+
+/**
+ * The plan H timetable the story builds, in the page language: the six blocks that land
+ * first in landing order, morning before afternoon and Monday first, then the section
+ * dragged in and refused, the section that lands in its place, and the block it clashes
+ * with. A subject whose Thai name holds a term the Thai tone rules reserve is named by its
+ * id in both languages, as the rest of the page names it.
+ */
+export function storyBlocks(locale) {
+  const rows = [];
+  for (const group of readJson(STORY_FIXTURE)) {
+    for (const type of group.teachtable) {
+      rows.push(...type.data);
+    }
+  }
+  const dict = DICTS[locale];
+  const block = ([subjectId, section]) => {
+    const row = rows.find(
+      (r) => r.subject_id === subjectId && r.section === section,
+    );
+    if (row === undefined) {
+      throw new Error(`The story capture lacks ${subjectId} ${section}.`);
+    }
+    const day = DAY_MAP.get(row.teach_day);
+    if (day === undefined) {
+      throw new Error(`${subjectId} ${section} has no weekday.`);
+    }
+    const reserved = BANNED_THAI.some((term) =>
+      row.subject_name_th.includes(term),
+    );
+    return {
+      subjectId,
+      section,
+      day,
+      dayLabel: dict[`day.${String(day)}`],
+      start: minutes(row.teach_time),
+      end: minutes(row.teach_time2),
+      time: `${hhmm(row.teach_time)}-${hhmm(row.teach_time2)}`,
+      name: reserved
+        ? subjectId
+        : locale === 'th'
+          ? row.subject_name_th
+          : row.subject_name_en,
+      credit: Number(row.credit),
+      subjectClass: `subject-${String(EVENT_PALETTE.indexOf(hashColor(subjectId)))}`,
+    };
+  };
+  const [ghostId] = STORY_GHOST;
+  const plan = PLAN_H.map(block);
+  const blocks = plan
+    .filter((b) => b.subjectId !== ghostId)
+    .sort((a, b) => a.start - b.start || a.day - b.day);
+  const landed = plan.find((b) => b.subjectId === ghostId);
+  const ghost = block(STORY_GHOST);
+  const blocker = blocks.find(
+    (b) => b.day === ghost.day && b.start < ghost.end && ghost.start < b.end,
+  );
+  if (landed === undefined || blocker === undefined) {
+    throw new Error('The story needs a landed section and a clash.');
+  }
+  return {
+    blocks,
+    ghost,
+    landed,
+    blocker,
+    credits: plan.reduce((sum, b) => sum + b.credit, 0),
+    subjects: plan.length,
+  };
 }
 
 function escapeHtml(value) {

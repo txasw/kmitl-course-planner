@@ -22,7 +22,31 @@ export interface SubjectSearchCounts {
   sections: number;
 }
 
+export interface StoryBlock {
+  subjectId: string;
+  section: string;
+  day: number;
+  dayLabel: string;
+  start: number;
+  end: number;
+  time: string;
+  name: string;
+  credit: number;
+  subjectClass: string;
+}
+
+export interface Story {
+  blocks: StoryBlock[];
+  ghost: StoryBlock;
+  landed: StoryBlock;
+  blocker: StoryBlock;
+  credits: number;
+  subjects: number;
+}
+
 export const DEDUPE_FIXTURE: string;
+export const STORY_FIXTURE: string;
+export function storyBlocks(locale: 'th' | 'en'): Story;
 export const SUBJECT_SEARCH_FIXTURE: string;
 export function subjectSearchCounts(): SubjectSearchCounts;
 export function dedupeRows(locale: 'th' | 'en'): DedupeRow[];

@@ -62,6 +62,19 @@ export const en = {
     unmerged: (c) => `Showing all ${c.rows} rows.`,
     staticResult: () => 'Each section is listed once.',
   },
+  story: {
+    h2: 'Plan by drag and drop',
+    beats: [
+      'Drag sections into your week.',
+      'See a clash before you drop.',
+      'Get a section that fits, right away.',
+    ],
+    chip: (b) => [
+      `Clashes with ${b.subjectId} section ${b.section}`,
+      `${b.dayLabel} ${b.time}`,
+    ],
+    readout: (s) => `${s.credits} credits, ${s.subjects} subjects, no clashes`,
+  },
   exam: {
     h2: 'Exam clashes are checked too.',
     sub: 'Two subjects on different days can share an exam slot. KCP will not add one that clashes.',

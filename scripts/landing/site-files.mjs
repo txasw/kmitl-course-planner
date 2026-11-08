@@ -16,6 +16,7 @@ import {
   dedupeCounts,
   extensionVersion,
   renderDedupeRows,
+  storyBlocks,
   subjectSearchCounts,
 } from './site-data.mjs';
 
@@ -95,6 +96,7 @@ export async function siteTextFiles() {
       rowsHtml: renderDedupeRows(copy.lang),
       counts,
       search: subjectSearchCounts(),
+      story: storyBlocks(copy.lang),
       version,
     });
     files.set(relative, await format(relative, versionAssets(html)));

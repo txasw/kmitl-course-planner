@@ -229,9 +229,88 @@ ${rowsHtml}
 </section>`;
 }
 
+// The story grid covers the working day from 08:00 to 18:00 on the hour, so a block is
+// placed by a day class, a start hour class and a span class that site.css defines for
+// each orientation; no position is computed in the browser and none sits in a style
+// attribute.
+const STORY_FIRST_HOUR = 8;
+const STORY_LAST_HOUR = 18;
+
+function placement(block) {
+  const hour = block.start / 60;
+  const span = (block.end - block.start) / 60;
+  if (
+    !Number.isInteger(hour) ||
+    !Number.isInteger(span) ||
+    hour < STORY_FIRST_HOUR ||
+    hour + span > STORY_LAST_HOUR
+  ) {
+    throw new Error(
+      `${block.subjectId} ${block.section} is off the story grid.`,
+    );
+  }
+  return `d-${String(block.day)} h-${String(hour)} span-${String(span)}`;
+}
+
+/** One block's skin as the product draws it: name first, the section in a corner chip,
+ * the time quiet at the foot. */
+function storyCard(block, extra = '') {
+  return `<div class="story__card ${block.subjectClass}${extra}"><span class="story__name">${block.name}</span><span class="story__sec">${block.section}</span><span class="story__time">${block.time}</span></div>`;
+}
+
+function storyGrid(copy, story) {
+  const hours = [];
+  for (let h = STORY_FIRST_HOUR; h <= STORY_LAST_HOUR; h += 1) {
+    hours.push(`<span><span>${String(h).padStart(2, '0')}:00</span></span>`);
+  }
+  const days = [1, 2, 3, 4, 5]
+    .map((day) => {
+      const label = [...story.blocks, story.landed].find(
+        (b) => b.day === day,
+      )?.dayLabel;
+      return `<span class="story__day d-${String(day)}">${label ?? ''}</span>`;
+    })
+    .join('');
+  const blocks = story.blocks
+    .map((block, i) => {
+      const blocker = block === story.blocker ? ' is-blocker' : '';
+      return `<div class="story__block ${placement(block)}${blocker}" data-b="${String(i)}">${storyCard(block)}</div>`;
+    })
+    .join('');
+  const g = story.ghost;
+  const [chipLine1, chipLine2] = copy.story.chip(story.blocker);
+  const ghost = `<div class="story__ghost ${placement(g)}"><div class="ghost__lift"><div class="ghost__layer ghost__danger"><span class="story__name">${g.name}</span><span class="story__sec">${g.section}</span></div><div class="ghost__layer ghost__success"><span class="story__name">${g.name}</span><span class="story__sec">${story.landed.section}</span></div>${storyCard(story.landed, ' ghost__layer ghost__block')}</div><p class="story__chip"><span>${chipLine1}</span><span>${chipLine2}</span></p></div>`;
+  return `<div class="story__grid" aria-hidden="true">
+<div class="story__rules"></div>
+<div class="story__axis">${hours.join('')}</div>
+${days}
+${blocks}
+<div class="story__block story__landed ${placement(story.landed)}">${storyCard(story.landed)}</div>
+${ghost}
+<p class="story__readout">${copy.story.readout(story)}</p>
+</div>`;
+}
+
+function storySection(copy, story) {
+  const beats = copy.story.beats
+    .map((beat) => `<li class="story__beat">${beat}</li>`)
+    .join('');
+  return `<section class="story" id="features" aria-labelledby="story-title">
+<div class="story__track">
+<div class="container story__pin">
+<div class="story__text">
+<h2 id="story-title" class="story__h">${copy.story.h2}</h2>
+<ol class="story__beats">${beats}</ol>
+</div>
+${storyGrid(copy, story)}
+</div>
+</div>
+</section>`;
+}
+
 function exam(copy, manifest) {
   const c = copy.exam;
-  return `<section class="screen screen--full exam" id="features" aria-labelledby="exam-title">
+  return `<section class="screen screen--full exam" aria-labelledby="exam-title">
 <div class="container screen__grid">
 ${statement('exam', c.h2, c.sub)}
 ${plate(manifest, 's-exam-row', copy.lang, c.alt1, EXAM_SIZES, 'plate exam__plate')}
@@ -530,12 +609,13 @@ export function keepThaiWords(html) {
 /** The whole landing page for one locale. */
 export function renderPage(
   copy,
-  { manifest, rowsHtml, counts, search, version },
+  { manifest, rowsHtml, counts, search, story, version },
 ) {
   const body = `${header(copy)}
 <main id="content" tabindex="-1">
 ${hero(copy, manifest)}
 ${problem(copy, rowsHtml, counts, search)}
+${storySection(copy, story)}
 ${exam(copy, manifest)}
 ${exportScreen(copy, manifest)}
 ${plans(copy, manifest)}
