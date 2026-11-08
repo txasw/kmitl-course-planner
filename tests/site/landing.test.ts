@@ -441,7 +441,8 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
         day: pick('d-'),
         start: pick('h-') * 60,
         span: pick('span-') * 60,
-        name: el?.querySelector('.story__name')?.textContent,
+        id: el?.querySelector('.story__id')?.textContent,
+        name: el?.querySelector('.story__name')?.textContent ?? null,
         section: el?.querySelector('.story__sec')?.textContent,
         time: el?.querySelector('.story__time')?.textContent,
       };
@@ -454,6 +455,7 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
         day: b.day,
         start: b.start,
         span: b.end - b.start,
+        id: b.subjectId,
         name: b.name,
         section: b.section,
         time: b.time,
@@ -479,7 +481,8 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
       day: 3,
       start: 780,
       span: 180,
-      name: '01006021',
+      id: '01006021',
+      name: null,
     });
     expect(placed(grid?.querySelector('.story__ghost'))).toMatchObject({
       day: 2,
