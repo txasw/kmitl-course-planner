@@ -29,19 +29,15 @@ export const en = {
     line1: '<span class="phrase">See your whole week</span>',
     line2: '<span class="phrase">before you register.</span>',
     lede: 'An extension that turns the KMITL course search into a drag and drop timetable.',
-    fine: 'Free and open source.',
+    fine: 'Free and open source. Also for Edge, Brave and Opera.',
     alt: 'The KCP planner on the registration site, with a weekly timetable from Monday to Friday that holds Programming Fundamental, General Physics 1, Calculus 1 and Discrete Mathematics in the mornings.',
   },
   cta: {
-    chrome: 'Add to Chrome',
-    chromeSub: 'Also for Edge, Brave and Opera',
-    firefox: 'Add to Firefox',
-    firefoxSub: 'From Firefox Add-ons',
     web: 'Use on the web',
     webBadge: 'Coming soon',
     webNoteShort:
       'The web version is in development, with no release date yet.',
-    coarse: 'Installs on a computer only.',
+    coarse: 'For computers only.',
   },
   problem: {
     h2: (c) =>
@@ -149,7 +145,7 @@ export const en = {
     privacy: 'Privacy policy',
     issues: 'Report an issue',
     trademarks:
-      'Chrome and Chrome Web Store are trademarks of Google LLC. Firefox and the Firefox logo are trademarks of the Mozilla Foundation in the US and other countries.',
+      'Chrome, the Chrome logo and Chrome Web Store are trademarks of Google LLC. Firefox and the Firefox logo are trademarks of the Mozilla Foundation in the US and other countries.',
     license: 'MIT license',
   },
   frame: 'Browser window',

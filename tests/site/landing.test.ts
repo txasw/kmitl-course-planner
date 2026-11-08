@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
@@ -9,7 +9,7 @@ import {
   DECORATIVE,
   EMOJI,
 } from '../../src/lib/i18n/toneRules';
-import { THAI_KEEP } from '../../scripts/landing/render-page.mjs';
+import { STORE_BADGES, THAI_KEEP } from '../../scripts/landing/render-page.mjs';
 import {
   dedupeRows,
   storyBlocks,
@@ -108,6 +108,19 @@ function contentHash(file: string): string {
     .update(readFileSync(file))
     .digest('hex')
     .slice(0, 10);
+}
+
+/** The width and height a brand file declares: a PNG's header, an SVG's view box. */
+function intrinsicSize(src: string): number[] {
+  const file = join(SITE, src);
+  if (src.endsWith('.png')) {
+    const bytes = readFileSync(file);
+    return [bytes.readUInt32BE(16), bytes.readUInt32BE(20)];
+  }
+  const box = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(
+    readFileSync(file, 'utf8'),
+  );
+  return [Number(box?.[1]), Number(box?.[2])];
 }
 
 /** The header lines _headers sets for one exact path pattern. */
@@ -226,7 +239,7 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
   });
 
   it('shows the web version as a disabled button, never a link', () => {
-    const soon = [...doc.querySelectorAll('.cta--soon')];
+    const soon = [...doc.querySelectorAll('.soon')];
     expect(soon.length).toBeGreaterThan(0);
     for (const control of soon) {
       expect(control.tagName).toBe('BUTTON');
@@ -251,20 +264,53 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
     }
   });
 
-  // A browser logo inside an install link is decorative: the label names the browser,
-  // so its alt is empty and the file is served from the site like every other asset.
-  it('marks the browser logos decorative inside their store links', () => {
-    const logos = [...doc.querySelectorAll('img.cta__logo')];
-    expect(logos.length).toBeGreaterThan(1);
-    for (const logo of logos) {
-      expect(logo.getAttribute('alt')).toBe('');
-      expect(logo.getAttribute('src')).toMatch(/^\/assets\/brand\//);
-      expect(logo.closest('a')?.getAttribute('href')).toBe(FIREFOX);
+  // Each install row is the stores' own badge pair, in the same order in the hero and the
+  // closing band: each badge links to its listing, is served from the site at its own
+  // proportions, and is named by the words it shows.
+  it('installs through the official store badges, named by their words', () => {
+    const rows = [...doc.querySelectorAll('.cta-row')];
+    expect(rows).toHaveLength(2);
+    for (const row of rows) {
+      const links = [...row.querySelectorAll('a.store')];
+      expect(links.map((a) => a.getAttribute('href'))).toEqual([
+        CHROME,
+        FIREFOX,
+      ]);
+      links.forEach((link, i) => {
+        const badge = STORE_BADGES[i];
+        const img = link.querySelector('img.store__badge');
+        expect(link.textContent.trim()).toBe('');
+        expect(img?.getAttribute('alt')).toBe(badge?.alt);
+        expect(img?.getAttribute('lang')).toBe('en');
+        expect(img?.getAttribute('src')?.split('?')[0]).toBe(badge?.src);
+        expect([
+          Number(img?.getAttribute('width')),
+          Number(img?.getAttribute('height')),
+        ]).toEqual(intrinsicSize(badge?.src ?? ''));
+      });
     }
+    expect(STORE_BADGES.map((b) => b.alt)).toEqual([
+      'Available in the Chrome Web Store',
+      'Get the add-on',
+    ]);
+  });
+
+  // Every brand file is one the pages show, so a retired mark leaves the site with its use.
+  it('serves only the brand files the page shows', () => {
+    const used = new Set(
+      urls(doc)
+        .map((value) => value.split('?')[0])
+        .filter((value) => value?.startsWith('/assets/brand/')),
+    );
+    expect(
+      readdirSync(join(SITE, 'assets/brand'))
+        .map((name) => `/assets/brand/${name}`)
+        .sort(),
+    ).toEqual([...used].sort());
   });
 
   it('gives every image alt text and its dimensions', () => {
-    const images = [...doc.querySelectorAll('img:not(.cta__logo)')];
+    const images = [...doc.querySelectorAll('img:not(.store__badge)')];
     expect(images).toHaveLength(5);
     for (const img of images) {
       expect(img.getAttribute('alt')?.trim(), img.outerHTML).toBeTruthy();

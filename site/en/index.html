@@ -34,7 +34,7 @@
       fetchpriority="high"
     />
     <script src="/assets/site.js?v=85bce0188d"></script>
-    <link rel="stylesheet" href="/assets/site.css?v=9682cfe2a4" />
+    <link rel="stylesheet" href="/assets/site.css?v=cc13fcb002" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="KCP" />
     <meta
@@ -209,34 +209,35 @@
               drop timetable.
             </p>
             <div class="cta-row cta-row--hero">
-              <a
-                class="cta cta--chrome"
-                href="https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef"
-                ><span class="cta__text"
-                  ><span class="cta__label">Add to Chrome</span
-                  ><span class="cta__sub"
-                    >Also for Edge, Brave and Opera</span
-                  ></span
-                ></a
-              >
-              <a
-                class="cta cta--firefox"
-                href="https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/"
-                ><img
-                  class="cta__logo"
-                  src="/assets/brand/firefox-logo.svg?v=f3dd297ee9"
-                  width="24"
-                  height="24"
-                  alt=""
-                  decoding="async"
-                /><span class="cta__text"
-                  ><span class="cta__label">Add to Firefox</span
-                  ><span class="cta__sub">From Firefox Add-ons</span></span
-                ></a
-              >
+              <div class="stores">
+                <a
+                  class="store store--chrome"
+                  href="https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef"
+                  ><img
+                    class="store__badge"
+                    src="/assets/brand/chrome-web-store-badge.png?v=98ac999ce8"
+                    width="496"
+                    height="150"
+                    alt="Available in the Chrome Web Store"
+                    lang="en"
+                    decoding="async" /></a
+                ><a
+                  class="store store--firefox"
+                  href="https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/"
+                  ><img
+                    class="store__badge"
+                    src="/assets/brand/firefox-get-the-add-on.svg?v=38e327e26e"
+                    width="172"
+                    height="60"
+                    alt="Get the add-on"
+                    lang="en"
+                    decoding="async"
+                /></a>
+              </div>
+              <p class="cta-coarse">For computers only.</p>
               <button
                 type="button"
-                class="cta cta--soon"
+                class="soon"
                 aria-disabled="true"
                 aria-describedby="web-soon-note-hero"
               >
@@ -257,14 +258,13 @@
                   <circle cx="12" cy="12" r="10" />
                   <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
                   <path d="M2 12h20" /></svg
-                ><span class="cta__text"
-                  ><span class="cta__label"
-                    >Use on the web <span class="badge">Coming soon</span></span
-                  ></span
-                >
+                ><span>Use on the web</span
+                ><span class="badge">Coming soon</span>
               </button>
             </div>
-            <p class="micro hero__fine"><span>Free and open source.</span></p>
+            <p class="micro hero__fine">
+              <span>Free and open source. Also for Edge, Brave and Opera.</span>
+            </p>
             <p class="visually-hidden" id="web-soon-note-hero">
               The web version is in development, with no release date yet.
             </p>
@@ -1228,36 +1228,38 @@
             <rect x="68" y="68" width="38" height="38" rx="6" fill="#B8400A" />
           </svg>
           <h2 id="download-title" class="statement__h">Install KCP for free</h2>
-          <p class="cta-coarse">Installs on a computer only.</p>
           <div class="cta-row cta-row--band">
-            <a
-              class="cta cta--chrome"
-              href="https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef"
-              ><span class="cta__text"
-                ><span class="cta__label">Add to Chrome</span
-                ><span class="cta__sub"
-                  >Also for Edge, Brave and Opera</span
-                ></span
-              ></a
-            >
-            <a
-              class="cta cta--firefox"
-              href="https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/"
-              ><img
-                class="cta__logo"
-                src="/assets/brand/firefox-logo.svg?v=f3dd297ee9"
-                width="24"
-                height="24"
-                alt=""
-                decoding="async"
-              /><span class="cta__text"
-                ><span class="cta__label">Add to Firefox</span
-                ><span class="cta__sub">From Firefox Add-ons</span></span
-              ></a
-            >
+            <div class="stores">
+              <a
+                class="store store--chrome"
+                href="https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef"
+                ><img
+                  class="store__badge"
+                  src="/assets/brand/chrome-web-store-badge.png?v=98ac999ce8"
+                  width="496"
+                  height="150"
+                  alt="Available in the Chrome Web Store"
+                  lang="en"
+                  decoding="async"
+                  loading="lazy" /></a
+              ><a
+                class="store store--firefox"
+                href="https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/"
+                ><img
+                  class="store__badge"
+                  src="/assets/brand/firefox-get-the-add-on.svg?v=38e327e26e"
+                  width="172"
+                  height="60"
+                  alt="Get the add-on"
+                  lang="en"
+                  decoding="async"
+                  loading="lazy"
+              /></a>
+            </div>
+            <p class="cta-coarse">For computers only.</p>
             <button
               type="button"
-              class="cta cta--soon"
+              class="soon"
               aria-disabled="true"
               aria-describedby="web-soon-note-band"
             >
@@ -1278,11 +1280,7 @@
                 <circle cx="12" cy="12" r="10" />
                 <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
                 <path d="M2 12h20" /></svg
-              ><span class="cta__text"
-                ><span class="cta__label"
-                  >Use on the web <span class="badge">Coming soon</span></span
-                ></span
-              >
+              ><span>Use on the web</span><span class="badge">Coming soon</span>
             </button>
           </div>
           <p class="visually-hidden" id="web-soon-note-band">
@@ -1459,9 +1457,9 @@
           </ul>
         </nav>
         <p class="site-footer__legal">
-          Chrome and Chrome Web Store are trademarks of Google LLC. Firefox and
-          the Firefox logo are trademarks of the Mozilla Foundation in the US
-          and other countries.
+          Chrome, the Chrome logo and Chrome Web Store are trademarks of Google
+          LLC. Firefox and the Firefox logo are trademarks of the Mozilla
+          Foundation in the US and other countries.
         </p>
         <p class="site-footer__legal">MIT license</p>
       </div>

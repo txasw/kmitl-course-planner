@@ -35,18 +35,15 @@ export const th = {
       '<span class="phrase">เห็นตารางเรียน</span><wbr><span class="phrase">ทั้งสัปดาห์</span>',
     line2: '<span class="phrase">ก่อนลงทะเบียนจริง</span>',
     lede: 'ส่วนขยายที่เปลี่ยนผลค้นหารายวิชาของ สจล. เป็นตารางเรียนแบบลากวาง',
-    fine: 'ใช้ฟรี โอเพนซอร์ส',
+    // The Chrome badge names one browser, so the line beside it names the others it serves.
+    fine: `ใช้ฟรี โอเพนซอร์ส รองรับ ${EN('Edge, Brave')} และ ${EN('Opera')} ด้วย`,
     alt: 'ตัววางแผน KCP บนเว็บไซต์ลงทะเบียน แสดงตารางเรียนรายสัปดาห์วันจันทร์ถึงวันศุกร์ ช่วงเช้ามีพื้นฐานการเขียนโปรแกรมคอมพิวเตอร์ ฟิสิกส์ทั่วไป 1 แคลคูลัส 1 และคณิตศาสตร์ไม่ต่อเนื่อง',
   },
   cta: {
-    chrome: `ติดตั้งบน ${EN('Chrome')}`,
-    chromeSub: `ใช้กับ ${EN('Edge, Brave')} และ ${EN('Opera')} ได้`,
-    firefox: `ติดตั้งบน ${EN('Firefox')}`,
-    firefoxSub: `จาก ${EN('Firefox Add-ons')}`,
     web: 'ใช้งานบนเว็บ',
     webBadge: 'เร็ว ๆ นี้',
     webNoteShort: 'เวอร์ชันเว็บอยู่ระหว่างพัฒนา ยังไม่มีกำหนดเปิด',
-    coarse: 'ติดตั้งได้บนคอมพิวเตอร์เท่านั้น',
+    coarse: 'ใช้บนคอมพิวเตอร์เท่านั้น',
   },
   problem: {
     h2: (c) =>
@@ -154,7 +151,7 @@ export const th = {
     source: 'ซอร์สโค้ดบน GitHub',
     privacy: 'นโยบายความเป็นส่วนตัว (ภาษาอังกฤษ)',
     issues: 'แจ้งปัญหา',
-    trademarks: `${EN('Chrome')} และ ${EN('Chrome Web Store')} เป็นเครื่องหมายการค้าของ ${EN('Google LLC')} ส่วน ${EN('Firefox')} และโลโก้ ${EN('Firefox')} เป็นเครื่องหมายการค้าของ ${EN('Mozilla Foundation')} ในสหรัฐอเมริกาและประเทศอื่น`,
+    trademarks: `${EN('Chrome')} โลโก้ ${EN('Chrome')} และ ${EN('Chrome Web Store')} เป็นเครื่องหมายการค้าของ ${EN('Google LLC')} ส่วน ${EN('Firefox')} และโลโก้ ${EN('Firefox')} เป็นเครื่องหมายการค้าของ ${EN('Mozilla Foundation')} ในสหรัฐอเมริกาและประเทศอื่น`,
     license: 'สัญญาอนุญาต MIT',
   },
   frame: 'หน้าต่างเบราว์เซอร์',

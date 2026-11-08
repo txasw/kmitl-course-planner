@@ -121,29 +121,50 @@ const FULL =
 const PHONE_POSTER =
   '(min-width: 1328px) 240px, (min-width: 640px) 18vw, 220px';
 
-// The Firefox button carries the Firefox logo, unmodified, which Mozilla's trademark
-// policy allows in a link to a product it hosts, here the add-on's listing on
-// addons.mozilla.org; the footer carries the notice the policy asks for. Google asks for
-// written approval before the Chrome logo or the Web Store icon appears on another
-// site, and its Web Store badge may not be shrunk or changed, so the Chrome button
-// carries its label alone. The logo is decorative: the label names the browser.
-const FIREFOX_LOGO =
-  '<img class="cta__logo" src="/assets/brand/firefox-logo.svg" width="24" height="24" alt="" decoding="async">';
+// The install links are the stores' own badges, served from the site under a content
+// hash and shown unmodified, resized only in proportion, at one shared height. Google's
+// Chrome Web Store badge needs no approval when it links to the item's store page, and
+// Mozilla offers its Get the add-on badge for a link to the add-on's listing. Neither
+// store publishes a Thai badge, so both pages show the English ones, and each badge's alt
+// text is its own words, so the link is named by what it shows. The bordered Chrome badge
+// keeps an edge on the grey closing band as on white. The badges stay a pair: the touch
+// note follows them, and the web version waits after them as a quiet pill.
+export const STORE_BADGES = [
+  {
+    store: 'chrome',
+    href: CHROME_URL,
+    src: '/assets/brand/chrome-web-store-badge.png',
+    width: 496,
+    height: 150,
+    alt: 'Available in the Chrome Web Store',
+  },
+  {
+    store: 'firefox',
+    href: FIREFOX_URL,
+    src: '/assets/brand/firefox-get-the-add-on.svg',
+    width: 172,
+    height: 60,
+    alt: 'Get the add-on',
+  },
+];
 
-// The closing band, where the header's install link lands, leads with the touch note,
-// so a phone visitor reads there that the stores install on a computer. The web version
-// note is read out by the disabled button, while its badge already says it is coming.
+function storeBadges(lazy) {
+  const loading = lazy ? ' loading="lazy"' : '';
+  return STORE_BADGES.map(
+    (b) =>
+      `<a class="store store--${b.store}" href="${b.href}"><img class="store__badge" src="${b.src}" width="${String(b.width)}" height="${String(b.height)}" alt="${b.alt}" lang="en" decoding="async"${loading}></a>`,
+  ).join('');
+}
+
+// The touch note shows only on a coarse pointer, once in each row: a phone visitor reads
+// beside the badges that the stores install on a computer. The web version note is read
+// out by the disabled pill, while its badge already says it is coming.
 function ctaRow(copy, size) {
   const hero = size === 'hero';
-  return `${
-    hero
-      ? ''
-      : `<p class="cta-coarse">${copy.cta.coarse}</p>
-`
-  }<div class="cta-row cta-row--${size}">
-<a class="cta cta--chrome" href="${CHROME_URL}"><span class="cta__text"><span class="cta__label">${copy.cta.chrome}</span><span class="cta__sub">${copy.cta.chromeSub}</span></span></a>
-<a class="cta cta--firefox" href="${FIREFOX_URL}">${FIREFOX_LOGO}<span class="cta__text"><span class="cta__label">${copy.cta.firefox}</span><span class="cta__sub">${copy.cta.firefoxSub}</span></span></a>
-<button type="button" class="cta cta--soon" aria-disabled="true" aria-describedby="web-soon-note-${size}">${ICONS.globe}<span class="cta__text"><span class="cta__label">${copy.cta.web} <span class="badge">${copy.cta.webBadge}</span></span></span></button>
+  return `<div class="cta-row cta-row--${size}">
+<div class="stores">${storeBadges(!hero)}</div>
+<p class="cta-coarse">${copy.cta.coarse}</p>
+<button type="button" class="soon" aria-disabled="true" aria-describedby="web-soon-note-${size}">${ICONS.globe}<span>${copy.cta.web}</span><span class="badge">${copy.cta.webBadge}</span></button>
 </div>
 ${
   hero
