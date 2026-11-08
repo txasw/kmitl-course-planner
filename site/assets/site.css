@@ -2570,11 +2570,12 @@ h4 {
 }
 
 /* The result takes the place under the sections, which the caption rises to meet. */
+/* It starts on the table's left edge, as the caption under it does. */
 .motion .dedupe__result {
   position: absolute;
   top: calc(var(--head-h) + var(--kept, 4) * var(--row-h) + 14px);
-  right: 16px;
-  left: 16px;
+  right: 0;
+  left: 0;
   margin: 0;
   opacity: 0;
   transform: translateY(12px);
@@ -2732,10 +2733,16 @@ h4 {
     --recenter: 1;
   }
 
-  /* The centred card leaves half the height it gave up under it, which is gap enough
-     before the next section. */
+  /* The centred card leaves half the height it gave up under it, more than a section
+     gap, so the dark band rises over the end of the pinned track and the page turns dark
+     while the reader is still moving. */
   .motion .problem {
     padding-bottom: 0;
+  }
+
+  .motion .problem + .story {
+    position: relative;
+    margin-top: calc(85px - 24.5svh);
   }
 }
 
