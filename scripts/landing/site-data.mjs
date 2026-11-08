@@ -181,8 +181,8 @@ function minutes(time) {
  * The plan H timetable the story builds, in the page language: the six blocks that land
  * first in landing order, morning before afternoon and Monday first, then the section
  * dragged in and refused, the section that lands in its place, and the block it clashes
- * with. A subject whose Thai name holds a term the Thai tone rules reserve is named by its
- * id in both languages, as the rest of the page names it.
+ * with. A subject whose Thai name holds a term the Thai tone rules reserve carries no name
+ * in either language, and the page shows its id alone, as it names it everywhere else.
  */
 export function storyBlocks(locale) {
   const rows = [];
@@ -215,7 +215,7 @@ export function storyBlocks(locale) {
       end: minutes(row.teach_time2),
       time: `${hhmm(row.teach_time)}-${hhmm(row.teach_time2)}`,
       name: reserved
-        ? subjectId
+        ? null
         : locale === 'th'
           ? row.subject_name_th
           : row.subject_name_en,

@@ -1547,10 +1547,19 @@ h4 {
   color: #1a1a1a;
 }
 
+/* Every block leads with its subject id, so the one subject the page names by its id
+   alone reads as the same skin with a shorter body, not as a block missing its name. */
+.story__id {
+  padding-right: 28px;
+  color: #5c5c5c;
+  font-size: 12px;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
 .story__name {
   display: -webkit-box;
   overflow: hidden;
-  padding-right: 24px;
   font-weight: 600;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -1569,11 +1578,6 @@ h4 {
   line-height: 18px;
   text-align: center;
   font-variant-numeric: tabular-nums;
-}
-
-/* The subject id stands in for an English name only where a day column is too narrow. */
-.story__id {
-  display: none;
 }
 
 .story__time {
@@ -1652,6 +1656,11 @@ h4 {
 @media (min-width: 640px) and (max-width: 1023px) {
   .story {
     --story-row: 72px;
+  }
+
+  .story__name {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
   }
 }
 
@@ -1747,29 +1756,21 @@ h4 {
     box-shadow: inset 0 4px 0 var(--subject);
   }
 
+  /* A day column is too narrow for a subject name in either language, which would break
+     inside a Thai word or a long English one, so a phone labels every block by its
+     subject id, and an id never breaks. */
   .story__name {
-    padding-right: 0;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-  }
-
-  /* An English subject name is a long capitalised word wider than a day column, so a
-     phone labels the English blocks by subject id, and an id never breaks. */
-  .story__name:lang(en) {
     display: none;
   }
 
-  .story__id:lang(en) {
-    display: block;
-  }
-
-  .story__id,
-  .story__name--id {
+  .story__id {
     overflow: hidden;
+    padding-right: 0;
+    color: #1a1a1a;
     font-size: min(10px, 2.6vw);
+    line-height: 1.4;
     letter-spacing: -0.01em;
     font-weight: 600;
-    font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
 
@@ -2909,7 +2910,7 @@ h4 {
   line-height: 1.45;
 }
 
-.story__chip span:first-child {
+.story__chip > span:first-child {
   color: #c62828;
   font-weight: 600;
 }
@@ -3188,8 +3189,9 @@ h4 {
   }
 }
 
-/* On a phone the dragged section's skins are set a step smaller, and the clash chip
-   reaches from the Tuesday column to the grid's right edge, no further. */
+/* On a phone the dragged section's skins are set a step smaller, and the clash chip is
+   one line in the empty noon hour under the Tuesday morning block, so it never covers the
+   afternoon block below; the pulsing block beside it already shows the time. */
 @media (max-width: 639px) {
   .ghost__danger,
   .ghost__success {
@@ -3198,7 +3200,16 @@ h4 {
   }
 
   .story__chip {
+    top: calc(100% + 1px);
     max-width: calc(400% - 6px);
+    padding: 2px 8px;
+    font-size: 11px;
+    line-height: 16px;
+    white-space: nowrap;
+  }
+
+  .story__chip > span:last-child {
+    display: none;
   }
 }
 
