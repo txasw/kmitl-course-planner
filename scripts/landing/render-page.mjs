@@ -470,6 +470,7 @@ ${preload}
 <meta name="twitter:title" content="${attr(title)}">
 <meta name="twitter:description" content="${attr(description)}">
 <meta name="twitter:image" content="${og}">
+<meta name="twitter:image:alt" content="${attr(copy.ogImageAlt)}">
 ${ld === null ? '' : `<script type="application/ld+json">${ld}</script>`}`;
 }
 

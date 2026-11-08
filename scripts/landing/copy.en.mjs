@@ -7,8 +7,9 @@ export const en = {
   lang: 'en',
   path: '/en/',
   title: 'KCP: Course Planner for KMITL, a weekly timetable extension',
+  // Under 155 characters, so a search result shows the whole claim.
   description:
-    'KCP is a free Chrome and Firefox extension for KMITL students. It turns the registration course search into a drag and drop weekly timetable that flags clashing class and exam times.',
+    'Free Chrome and Firefox extension for KMITL students: turn the course search into a drag and drop weekly timetable that flags class and exam clashes.',
   ogLocale: 'en_US',
   ogLocaleAlt: 'th_TH',
   ogImageAlt:
