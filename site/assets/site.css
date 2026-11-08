@@ -780,6 +780,13 @@ h4 {
   flex-direction: column;
 }
 
+/* A browser's own logo, at its own colours and proportions. */
+.cta__logo {
+  flex: none;
+  width: 24px;
+  height: 24px;
+}
+
 .cta__label {
   font-family: var(--font-display);
   font-size: 16px;

@@ -182,3 +182,20 @@ plays the merge. Without the motion the table rests in its merged state: the fou
 the chips that count their listings, under a counter that names both numbers. The repeat rows
 are hidden from assistive technology in every state and the caption states the merged count in
 text, so a screen reader always hears the same result the page shows at rest.
+
+Browser marks. The install buttons first carried a generic extension glyph. The Firefox button
+now carries the Firefox logo, served from `site/assets/brand/` under a content hash like the other
+assets and shown unmodified at its own colours and proportions, with empty alt text because the
+label names the browser. Mozilla's trademark policy lets a site use its logos to link to a product
+Mozilla hosts, here the add-on's listing on addons.mozilla.org, and asks for a notice, which joins
+the footer's trademark sentence. Google asks for approval through its Partner Marketing Hub before
+a Google product icon, the Chrome logo or the Web Store icon, appears on another site, and its
+Chrome Web Store badge may only be resized, never altered, and must stay legible, which it is not
+at the height of a button. The Chrome button therefore carries its label alone until that approval
+is granted. The guidelines this relies on:
+
+- https://developer.chrome.com/docs/webstore/branding
+- https://about.google/brand-resource-center/guidance/
+- https://partnermarketinghub.withgoogle.com/brands/google/branding-guidelines/how-to-show-googles-brand/
+- https://www.mozilla.org/en-US/foundation/trademarks/policy/
+- https://extensionworkshop.com/documentation/publish/promoting-your-extension/

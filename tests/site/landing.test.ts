@@ -251,8 +251,20 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
     }
   });
 
+  // A browser logo inside an install link is decorative: the label names the browser,
+  // so its alt is empty and the file is served from the site like every other asset.
+  it('marks the browser logos decorative inside their store links', () => {
+    const logos = [...doc.querySelectorAll('img.cta__logo')];
+    expect(logos.length).toBeGreaterThan(1);
+    for (const logo of logos) {
+      expect(logo.getAttribute('alt')).toBe('');
+      expect(logo.getAttribute('src')).toMatch(/^\/assets\/brand\//);
+      expect(logo.closest('a')?.getAttribute('href')).toBe(FIREFOX);
+    }
+  });
+
   it('gives every image alt text and its dimensions', () => {
-    const images = [...doc.querySelectorAll('img')];
+    const images = [...doc.querySelectorAll('img:not(.cta__logo)')];
     expect(images).toHaveLength(5);
     for (const img of images) {
       expect(img.getAttribute('alt')?.trim(), img.outerHTML).toBeTruthy();
@@ -433,7 +445,7 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
 
   it('names the cached assets by the hash of their content', () => {
     const versioned = urls(doc).filter((value) =>
-      /^\/(?:assets\/site\.(?:css|js)|shots\/)/.test(value),
+      /^\/(?:assets\/site\.(?:css|js)|assets\/brand\/|shots\/)/.test(value),
     );
     expect(versioned.length).toBeGreaterThan(10);
     for (const value of versioned) {

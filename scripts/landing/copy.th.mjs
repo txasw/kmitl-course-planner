@@ -154,7 +154,7 @@ export const th = {
     source: 'ซอร์สโค้ดบน GitHub',
     privacy: 'นโยบายความเป็นส่วนตัว (ภาษาอังกฤษ)',
     issues: 'แจ้งปัญหา',
-    trademarks: `${EN('Chrome')} และ ${EN('Chrome Web Store')} เป็นเครื่องหมายการค้าของ ${EN('Google LLC')} ส่วน ${EN('Firefox')} เป็นเครื่องหมายการค้าของ ${EN('Mozilla Foundation')}`,
+    trademarks: `${EN('Chrome')} และ ${EN('Chrome Web Store')} เป็นเครื่องหมายการค้าของ ${EN('Google LLC')} ส่วน ${EN('Firefox')} และโลโก้ ${EN('Firefox')} เป็นเครื่องหมายการค้าของ ${EN('Mozilla Foundation')} ในสหรัฐอเมริกาและประเทศอื่น`,
     license: 'สัญญาอนุญาต MIT',
   },
   frame: 'หน้าต่างเบราว์เซอร์',
