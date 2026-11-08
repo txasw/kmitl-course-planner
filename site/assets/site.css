@@ -79,6 +79,26 @@
   --dur-slow: 300ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Motion: a long exponential settle for entrances and reveals, a symmetric ease for
+     moves inside a stage. --k scales every travel distance; a phone travels less. */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-reveal: 900ms;
+  --dur-move: 700ms;
+  --dur-fade: 400ms;
+  --stagger: 80ms;
+  --k: 1;
+  --reveal-y: 48px;
+  --ruler-stagger: 40ms;
+}
+
+@media (max-width: 639px) {
+  :root {
+    --k: 0.75;
+    --reveal-y: 32px;
+    --ruler-stagger: 30ms;
+  }
 }
 
 @media (min-width: 640px) {
@@ -105,6 +125,10 @@
   :root {
     --dur-fast: 0ms;
     --dur-slow: 0ms;
+    --dur-reveal: 0ms;
+    --dur-move: 0ms;
+    --dur-fade: 0ms;
+    --stagger: 0ms;
   }
 }
 
@@ -219,14 +243,12 @@ h4 {
 }
 
 .body,
-.lede,
 .faq__item p {
   text-wrap: pretty;
   max-width: var(--measure-th);
 }
 
-:lang(en) .body,
-:lang(en) .lede {
+:lang(en) .body {
   max-width: var(--measure-en);
 }
 
@@ -476,38 +498,49 @@ h4 {
 }
 
 .field__ruler span:nth-child(1) {
+  --n: 0;
   left: 0;
 }
 .field__ruler span:nth-child(2) {
+  --n: 1;
   left: 10%;
 }
 .field__ruler span:nth-child(3) {
+  --n: 2;
   left: 20%;
 }
 .field__ruler span:nth-child(4) {
+  --n: 3;
   left: 30%;
 }
 .field__ruler span:nth-child(5) {
+  --n: 4;
   left: 40%;
   color: var(--site-primary-strong);
 }
 .field__ruler span:nth-child(6) {
+  --n: 5;
   left: 50%;
 }
 .field__ruler span:nth-child(7) {
+  --n: 6;
   left: 60%;
 }
 .field__ruler span:nth-child(8) {
+  --n: 7;
   left: 70%;
 }
 .field__ruler span:nth-child(9) {
+  --n: 8;
   left: 80%;
 }
 .field__ruler span:nth-child(10) {
+  --n: 9;
   left: 90%;
 }
 /* The closing hour sits inside the right edge rather than past it. */
 .field__ruler span:nth-child(11) {
+  --n: 10;
   right: 0;
   padding-right: 6px;
   padding-left: 0;
@@ -572,6 +605,8 @@ h4 {
 }
 
 .lede {
+  max-width: 32em;
+  text-wrap: pretty;
   margin-top: var(--space-sub);
   font-size: 18px;
   line-height: 1.65;
@@ -2139,4 +2174,161 @@ h4 {
   .site-nav a {
     padding-inline: 8px;
   }
+}
+
+/* Motion (ADR-0066, revision 2). site.js sets .motion on the root before first layout,
+   unless the reader prefers reduced motion; without it, or without the script, every
+   block above is its final state and nothing below applies. Where the browser runs
+   scroll driven animations the motion follows the scroll (path A); elsewhere
+   .no-sda marks path B, where site.js adds classes as blocks come into view and
+   transitions play them. Only transform and opacity ever animate. */
+
+/* The hero entrance plays once on load, on a timeline in both paths. */
+
+.motion .field__ruler span {
+  animation: rise 500ms var(--ease-out-expo) both;
+  animation-delay: calc(var(--n) * var(--ruler-stagger));
+  --rise: 6px;
+}
+
+.motion .field__ruler span:nth-child(5)::before {
+  transform-origin: top;
+  animation: grow-y 600ms var(--ease-out-expo) 200ms both;
+}
+
+.motion .hero__lockup {
+  animation: rise 700ms var(--ease-out-expo) 100ms both;
+  --rise: 12px;
+}
+
+/* The headline rises phrase by phrase, never letter by letter, so no Thai mark is ever
+   split from its base. */
+.motion .hero h1 .phrase {
+  display: inline-block;
+  animation: rise 1000ms var(--ease-out-expo) both;
+  animation-delay: calc(200ms + 140ms * var(--p, 0));
+  --rise: 0.35em;
+}
+
+.motion .hero__display > .phrase:nth-of-type(2) {
+  --p: 1;
+}
+
+.motion .hero__break .phrase {
+  --p: 2;
+}
+
+.motion :lang(en) .hero__break .phrase {
+  --p: 1;
+}
+
+.motion .hero .lede {
+  animation: rise 800ms var(--ease-out-expo) 560ms both;
+  --rise: 16px;
+}
+
+.motion:lang(en) .hero .lede {
+  animation-delay: 420ms;
+}
+
+.motion .hero .cta-coarse,
+.motion .hero .cta-row .cta {
+  animation: rise 700ms var(--ease-out-expo) both;
+  animation-delay: calc(700ms + 80ms * var(--c, 0));
+  --rise: 16px;
+}
+
+.motion .hero .cta-row .cta:nth-child(2) {
+  --c: 1;
+}
+
+.motion .hero .cta-row .cta:nth-child(3) {
+  --c: 2;
+}
+
+.motion .hero__fine {
+  animation: fade 600ms linear 1000ms both;
+}
+
+/* The frame only lifts; its opacity never changes, so the largest paint is not held
+   back. */
+.motion .frame-rise {
+  animation: lift 1100ms var(--ease-out-expo) 300ms both;
+  --rise: 40px;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--rise) * var(--k)));
+  }
+}
+
+@keyframes lift {
+  from {
+    transform: translateY(calc(var(--rise) * var(--k)));
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes grow-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+/* Section reveals: one per block, never per paragraph. */
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(var(--reveal-y));
+    animation-timing-function: var(--ease-out-expo);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .motion:not(.no-sda) [data-reveal] {
+    animation: reveal linear both;
+    animation-timeline: view();
+    animation-range: entry 10% entry 70%;
+  }
+
+  .motion:not(.no-sda) .statement__sub[data-reveal] {
+    animation-range: entry 20% entry 80%;
+  }
+
+  .motion:not(.no-sda) .fact[data-reveal] {
+    animation-range: entry calc(10% + 6% * var(--i)) entry
+      calc(60% + 6% * var(--i));
+  }
+}
+
+.motion.no-sda [data-reveal] {
+  transition:
+    opacity var(--dur-reveal) var(--ease-out-expo),
+    transform var(--dur-reveal) var(--ease-out-expo);
+}
+
+.motion.no-sda [data-reveal]:not(.is-in) {
+  opacity: 0;
+  transform: translateY(var(--reveal-y));
+}
+
+.motion.no-sda .statement__sub[data-reveal] {
+  transition-delay: 120ms;
+}
+
+.motion.no-sda .fact[data-reveal] {
+  transition-delay: calc(80ms * var(--i));
 }
