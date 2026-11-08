@@ -139,7 +139,7 @@ function ctaRow(copy, size) {
 </div>
 ${
   hero
-    ? `<p class="micro hero__fine">${copy.hero.fine}</p>
+    ? `<p class="micro hero__fine"><span>${copy.hero.fine}</span></p>
 `
     : ''
 }<p class="visually-hidden" id="web-soon-note-${size}">${copy.cta.webNoteShort}</p>`;
