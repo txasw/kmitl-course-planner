@@ -19,6 +19,7 @@ export const en = {
     features: 'Features',
     start: 'Get started',
     faq: 'FAQ',
+    faqShort: 'FAQ',
     home: 'home',
   },
   other: { text: 'ภาษาไทย', lang: 'th', href: '/' },

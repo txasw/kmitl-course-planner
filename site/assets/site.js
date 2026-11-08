@@ -1,7 +1,8 @@
 // Progressive enhancement for the KCP landing page (ADR-0066). The page is complete
 // without this file: it only adds the merge toggle to the dedupe table, marks a Firefox
-// visitor so the stylesheet can fill the Firefox button instead of Chrome's, and keeps
-// the narrow window strip out of the tab order while it has nothing to scroll.
+// visitor so the stylesheet can fill the Firefox button instead of Chrome's, keeps the
+// narrow window strip out of the tab order while it has nothing to scroll, and carries
+// the section in the address across the language switch.
 // It sends nothing anywhere and stores nothing.
 
 if (navigator.userAgent.includes('Firefox/')) {
@@ -86,6 +87,19 @@ function enhanceDedupe(wrap) {
 }
 
 document.querySelectorAll('[data-dedupe]').forEach(enhanceDedupe);
+
+// Both language pages share their section ids, so switching language keeps the reader
+// at the section the address names instead of returning them to the top.
+const SHARED_SECTIONS = new Set(['features', 'get-started', 'faq', 'download']);
+
+document.querySelectorAll('a[lang][hreflang]').forEach((link) => {
+  link.addEventListener('click', () => {
+    const id = window.location.hash.slice(1);
+    if (SHARED_SECTIONS.has(id)) {
+      link.hash = id;
+    }
+  });
+});
 
 // The narrow window strip is a focus stop so a keyboard can scroll it, which the markup
 // sets for a visitor without this script. Where all three frames fit and nothing

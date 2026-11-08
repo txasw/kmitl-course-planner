@@ -313,9 +313,40 @@ h4 {
   display: none;
 }
 
+/* Below 1024 px the header keeps one section link, the FAQ, under a short name, so the
+   answers about phones and the web version are one tap away. */
 @media (min-width: 1024px) {
   .site-nav__wide {
     display: list-item;
+  }
+
+  .site-nav__narrow {
+    display: none;
+  }
+}
+
+/* The narrowest phones tighten the header so its four links fit on one line. */
+@media (max-width: 359px) {
+  .site-nav ul {
+    gap: 0;
+  }
+
+  .site-nav a {
+    padding-inline: 6px;
+    white-space: nowrap;
+  }
+
+  .site-nav .nav-install {
+    margin-left: 4px;
+    padding-inline: 10px;
+  }
+}
+
+/* A full size touch target for the header install link on a touch screen. */
+@media (pointer: coarse) {
+  .site-nav .nav-install {
+    min-height: 44px;
+    margin-block: 0;
   }
 }
 

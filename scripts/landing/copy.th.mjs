@@ -20,6 +20,9 @@ export const th = {
     features: 'ความสามารถ',
     start: 'วิธีเริ่มใช้',
     faq: 'คำถามที่พบบ่อย',
+    // The narrow header has room for one short section link, so the FAQ keeps a place
+    // there under a shorter name.
+    faqShort: 'คำถาม',
     home: 'หน้าแรก',
   },
   other: { text: 'English', lang: 'en', href: '/en/' },

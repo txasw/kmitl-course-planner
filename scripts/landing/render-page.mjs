@@ -175,6 +175,7 @@ function header(copy, base = '') {
 <li class="site-nav__wide"><a href="${base}#features">${copy.nav.features}</a></li>
 <li class="site-nav__wide"><a href="${base}#get-started">${copy.nav.start}</a></li>
 <li class="site-nav__wide"><a href="${base}#faq">${copy.nav.faq}</a></li>
+<li class="site-nav__narrow"><a href="${base}#faq">${copy.nav.faqShort}</a></li>
 <li><a href="${other.href}" lang="${other.lang}" hreflang="${other.lang}">${other.text}</a></li>
 <li><a class="nav-install" href="${base}#download">${copy.install}</a></li>
 </ul>
