@@ -586,9 +586,14 @@ h4 {
   width: 100%;
 }
 
+/* The frame bleeds right into the side margin but always stops short of the window
+   edge, with room for a classic scrollbar inside 100vw, so its border and corner stay
+   whole: about 16 px of bleed at 1280 px, the full 64 px from about 1376 px. */
 @media (min-width: 1280px) {
   .frame {
-    margin-right: calc(-1 * min(64px, var(--margin-inline)));
+    margin-right: calc(
+      -1 * clamp(0px, (100vw - var(--container)) / 2 - 24px, 64px)
+    );
   }
 }
 
