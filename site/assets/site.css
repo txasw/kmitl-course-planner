@@ -2487,9 +2487,10 @@ h4 {
   display: grid;
 }
 
+/* One header height above its point, where site.js watches it cross the window's top. */
 .sentinel {
   position: absolute;
-  top: calc(var(--at) * (100% - 100svh + var(--header-h)));
+  top: calc(var(--at) * (100% - 100svh + var(--header-h)) - var(--header-h));
   left: 0;
   width: 1px;
   height: 0;

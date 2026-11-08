@@ -106,17 +106,15 @@
     observer.observe(track);
   }
 
-  // The header is 56 px tall on a phone and 64 px elsewhere, as site.css sets
-  // --header-h. A media query answers without a layout, so setting up the scenes never
-  // forces the first layout inside the script's own task.
-  const narrow = window.matchMedia('(max-width: 639px)');
-  const headerHeight = () => (narrow.matches ? 56 : 64);
-
   /**
    * Watch zero height sentinels placed at fractions of a pinned track's scroll distance,
-   * and report the index of the last one above the line under the header, or -1. The
-   * observed band runs from far above the window down to that line, so a fast scroll
-   * that jumps a sentinel past the line in one frame still changes its state.
+   * and report the index of the last one above the line under the header, or -1. Each
+   * sentinel sits one header height above its point, so it meets the window's top edge
+   * as its point meets the line under the header, and the observed band runs from far
+   * above the window down to that edge. Its margins are set in pixels and percentages
+   * alone, so setting it up reads no size and forces no layout, and it follows any change
+   * of window size by itself. A fast scroll that jumps a sentinel past the edge in one
+   * frame still changes its state.
    */
   function watchSentinels(track, fractions, onIndex) {
     const sentinels = fractions.map((fraction) => {
@@ -128,31 +126,23 @@
       return sentinel;
     });
     const above = new Set();
-    let observer = null;
-    const build = () => {
-      observer?.disconnect();
-      above.clear();
-      const bottom = Math.max(0, window.innerHeight - headerHeight());
-      observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            const index = sentinels.indexOf(entry.target);
-            if (entry.isIntersecting) {
-              above.add(index);
-            } else {
-              above.delete(index);
-            }
-          });
-          onIndex(above.size === 0 ? -1 : Math.max(...above));
-        },
-        { rootMargin: `100000px 0px -${String(bottom)}px 0px` },
-      );
-      sentinels.forEach((sentinel) => {
-        observer.observe(sentinel);
-      });
-    };
-    build();
-    window.addEventListener('resize', build);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const index = sentinels.indexOf(entry.target);
+          if (entry.isIntersecting) {
+            above.add(index);
+          } else {
+            above.delete(index);
+          }
+        });
+        onIndex(above.size === 0 ? -1 : Math.max(...above));
+      },
+      { rootMargin: '100000px 0px -100% 0px' },
+    );
+    sentinels.forEach((sentinel) => {
+      observer.observe(sentinel);
+    });
   }
 
   // A step that has played stays in view this long before a queued step follows it.
