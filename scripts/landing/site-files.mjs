@@ -26,13 +26,13 @@ export const ROOT = path.resolve(
 );
 export const SITE = path.join(ROOT, 'site');
 
-// The stylesheet, the script and the screenshots are served with a year long immutable
+// The stylesheet, the script, the brand marks and the screenshots are served with a year long immutable
 // cache (site/_headers), so every page reference carries a hash of the file's content:
 // a changed file gets a new URL and a returning visitor never sees a stale copy. The
 // font is left out because the stylesheet names it too; a new subset takes a new file
 // name instead. Absolute URLs, as in the structured data, are left as they are.
 const VERSIONED =
-  /(?<=["\s,])\/(?:assets\/site\.(?:css|js)|shots\/[\w.-]+)(?=["\s,])/g;
+  /(?<=["\s,])\/(?:assets\/site\.(?:css|js)|assets\/brand\/[\w.-]+|shots\/[\w.-]+)(?=["\s,])/g;
 
 function versionAssets(html) {
   return html.replace(VERSIONED, (url) => {

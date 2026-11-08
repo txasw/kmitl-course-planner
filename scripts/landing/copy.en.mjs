@@ -149,7 +149,7 @@ export const en = {
     privacy: 'Privacy policy',
     issues: 'Report an issue',
     trademarks:
-      'Chrome and Chrome Web Store are trademarks of Google LLC. Firefox is a trademark of the Mozilla Foundation.',
+      'Chrome and Chrome Web Store are trademarks of Google LLC. Firefox and the Firefox logo are trademarks of the Mozilla Foundation in the US and other countries.',
     license: 'MIT license',
   },
   frame: 'Browser window',

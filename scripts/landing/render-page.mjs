@@ -19,7 +19,6 @@ const ISSUES_URL = `${REPO_URL}/issues`;
 const STROKE =
   'xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"';
 const ICONS = {
-  puzzle: `<svg class="icon" width="20" height="20" ${STROKE}><path d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"/></svg>`,
   globe: `<svg class="icon" width="20" height="20" ${STROKE}><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>`,
   chevron: `<svg class="icon faq__chevron" width="20" height="20" ${STROKE}><path d="m6 9 6 6 6-6"/></svg>`,
   lock: `<svg class="icon" width="14" height="14" ${STROKE}><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
@@ -122,6 +121,15 @@ const FULL =
 const PHONE_POSTER =
   '(min-width: 1328px) 240px, (min-width: 640px) 18vw, 220px';
 
+// The Firefox button carries the Firefox logo, unmodified, which Mozilla's trademark
+// policy allows in a link to a product it hosts, here the add-on's listing on
+// addons.mozilla.org; the footer carries the notice the policy asks for. Google asks for
+// written approval before the Chrome logo or the Web Store icon appears on another
+// site, and its Web Store badge may not be shrunk or changed, so the Chrome button
+// carries its label alone. The logo is decorative: the label names the browser.
+const FIREFOX_LOGO =
+  '<img class="cta__logo" src="/assets/brand/firefox-logo.svg" width="24" height="24" alt="" decoding="async">';
+
 // The closing band, where the header's install link lands, leads with the touch note,
 // so a phone visitor reads there that the stores install on a computer. The web version
 // note is read out by the disabled button, while its badge already says it is coming.
@@ -133,8 +141,8 @@ function ctaRow(copy, size) {
       : `<p class="cta-coarse">${copy.cta.coarse}</p>
 `
   }<div class="cta-row cta-row--${size}">
-<a class="cta cta--chrome" href="${CHROME_URL}">${ICONS.puzzle}<span class="cta__text"><span class="cta__label">${copy.cta.chrome}</span><span class="cta__sub">${copy.cta.chromeSub}</span></span></a>
-<a class="cta cta--firefox" href="${FIREFOX_URL}">${ICONS.puzzle}<span class="cta__text"><span class="cta__label">${copy.cta.firefox}</span><span class="cta__sub">${copy.cta.firefoxSub}</span></span></a>
+<a class="cta cta--chrome" href="${CHROME_URL}"><span class="cta__text"><span class="cta__label">${copy.cta.chrome}</span><span class="cta__sub">${copy.cta.chromeSub}</span></span></a>
+<a class="cta cta--firefox" href="${FIREFOX_URL}">${FIREFOX_LOGO}<span class="cta__text"><span class="cta__label">${copy.cta.firefox}</span><span class="cta__sub">${copy.cta.firefoxSub}</span></span></a>
 <button type="button" class="cta cta--soon" aria-disabled="true" aria-describedby="web-soon-note-${size}">${ICONS.globe}<span class="cta__text"><span class="cta__label">${copy.cta.web} <span class="badge">${copy.cta.webBadge}</span></span></span></button>
 </div>
 ${
