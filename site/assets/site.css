@@ -666,6 +666,7 @@ h4 {
    1440 by 900 ratio of the capture plus its 40 px bar. */
 .hero__pin {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   padding-top: var(--space-media);
 }
@@ -1456,7 +1457,7 @@ h4 {
   .poster--phone {
     position: absolute;
     top: 12%;
-    right: -4%;
+    right: max(-4%, 8px - var(--margin-inline));
     width: 20%;
     margin: 0;
   }
