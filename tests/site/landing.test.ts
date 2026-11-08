@@ -418,6 +418,17 @@ describe('site files', () => {
     }
   });
 
+  // The font is served at a fixed path under a year long immutable cache, so a subset
+  // regenerated in place would leave returning visitors on the old glyphs for a year.
+  // Pinning its hash makes such an edit fail here; a new subset takes a new file name,
+  // and this hash moves with it.
+  it('never changes the display font in place', () => {
+    const font = readFileSync(join(SITE, 'assets/fonts/kcp-display.woff2'));
+    expect(createHash('sha256').update(font).digest('hex')).toBe(
+      '8a40a0047c48358d30aad097d5e6739d8da1122d4664524c514fd5818756ac4a',
+    );
+  });
+
   it('loads no remote url from the stylesheet', () => {
     const css = readFileSync(join(SITE, 'assets/site.css'), 'utf8');
     for (const match of css.matchAll(/url\(\s*['"]?([^'")]+)/g)) {
