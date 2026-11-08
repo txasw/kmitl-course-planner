@@ -1483,6 +1483,10 @@ figcaption:empty {
   margin-top: 16px;
 }
 
+.steps__link {
+  margin-top: 8px;
+}
+
 .steps__list {
   display: grid;
   gap: 32px;

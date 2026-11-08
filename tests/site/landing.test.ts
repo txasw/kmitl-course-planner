@@ -27,12 +27,14 @@ const CHROME =
 const FIREFOX =
   'https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/';
 
-// Hosts a page may link to. Assets themselves must come from the site.
+// Hosts a page may link to: the stores, the source, the site, and the registration
+// site's course search where the planner runs. Assets themselves must come from the site.
 const LINK_HOSTS = new Set([
   'chromewebstore.google.com',
   'addons.mozilla.org',
   'github.com',
   'kcp.cecs.sh',
+  'regis.reg.kmitl.ac.th',
 ]);
 
 const ANALYTICS =
