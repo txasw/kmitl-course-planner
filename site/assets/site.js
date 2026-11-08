@@ -234,7 +234,11 @@
 
     button.addEventListener('click', () => {
       manual = motion();
+      const was = pin.dataset.drive;
       drive();
+      // Leaving the scroll drive drops its animations; the styles they leave must be
+      // in place before the state changes, or the change jumps instead of playing.
+      if (was !== pin.dataset.drive) pin.getBoundingClientRect();
       show(button.getAttribute('aria-pressed') !== 'true');
     });
 
