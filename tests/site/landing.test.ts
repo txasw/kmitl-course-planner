@@ -266,7 +266,8 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
 
   // Each install row is the stores' own badge pair, in the same order in the hero and the
   // closing band: each badge links to its listing, is served from the site at its own
-  // proportions, and is named by the words it shows.
+  // proportions, and is named by the words it shows, with the browser added where the
+  // words name none.
   it('installs through the official store badges, named by their words', () => {
     const rows = [...doc.querySelectorAll('.cta-row')];
     expect(rows).toHaveLength(2);
@@ -291,7 +292,7 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
     }
     expect(STORE_BADGES.map((b) => b.alt)).toEqual([
       'Available in the Chrome Web Store',
-      'Get the add-on',
+      'Get the add-on for Firefox',
     ]);
   });
 
