@@ -112,6 +112,10 @@
    * that jumps a sentinel past the line in one frame still changes its state.
    */
   function watchSentinels(track, fractions, onIndex) {
+    // Read the header height before the sentinels go in, so the read costs no layout.
+    const headerHeight = () =>
+      parseFloat(getComputedStyle(root).getPropertyValue('--header-h')) || 0;
+    let header = headerHeight();
     const sentinels = fractions.map((fraction) => {
       const sentinel = document.createElement('div');
       sentinel.className = 'sentinel';
@@ -125,8 +129,6 @@
     const build = () => {
       observer?.disconnect();
       above.clear();
-      const header =
-        parseFloat(getComputedStyle(root).getPropertyValue('--header-h')) || 0;
       const bottom = Math.max(0, window.innerHeight - header);
       observer = new IntersectionObserver(
         (entries) => {
@@ -147,7 +149,10 @@
       });
     };
     build();
-    window.addEventListener('resize', build);
+    window.addEventListener('resize', () => {
+      header = headerHeight();
+      build();
+    });
   }
 
   // The stage pins on any window tall enough to hold it with its densest rows.
