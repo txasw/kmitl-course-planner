@@ -677,13 +677,16 @@ for (const locale of LOCALES) {
     await expect(apply).toHaveCount(3);
     await restPointer(page);
     await shot(page, 's-suggest', locale, await box(dialog));
-    // A phone shows one option, the width it reads at, instead of three at a third.
-    await shot(
-      page,
-      's-suggest-crop',
-      locale,
-      await box(dialog.getByRole('article').first()),
-    );
+    // A phone shows one option, the width it reads at, instead of three at a third. The
+    // card runs on under the dialog's foot, so the crop stops where the dialog ends.
+    const dialogBox = await box(dialog);
+    const option = await box(dialog.getByRole('article').first());
+    await shot(page, 's-suggest-crop', locale, {
+      ...option,
+      height:
+        Math.min(option.y + option.height, dialogBox.y + dialogBox.height - 4) -
+        option.y,
+    });
 
     await apply.first().click();
     await expect(dialog).toHaveCount(0);
