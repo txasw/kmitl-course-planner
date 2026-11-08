@@ -191,12 +191,12 @@
   },
   "s-suggest-crop-th": {
     "widths": [730],
-    "sizes": { "730": 1024 },
+    "sizes": { "730": 988 },
     "fallback": 730
   },
   "s-suggest-crop-en": {
     "widths": [730],
-    "sizes": { "730": 1024 },
+    "sizes": { "730": 988 },
     "fallback": 730
   },
   "s-welcome-th": {
