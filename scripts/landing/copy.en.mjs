@@ -41,10 +41,10 @@ export const en = {
   },
   problem: {
     h2: (c) =>
-      `<span class="statement__line">Search one subject, get ${c.rows} rows.</span> <span class="statement__line">Only <span class="keep">${c.sections} real sections.</span></span>`,
+      `<span class="statement__line">Search one category, get ${c.rows} rows.</span> <span class="statement__line">Only <span class="keep">${c.sections} real sections.</span></span>`,
     sub: 'KCP merges the repeats into one entry per section.',
     caption: (c) =>
-      `Real sample: category 90592xxx, semester 1/2569, ${c.rows} rows from ${c.groupings} curricula.`,
+      `${c.rows} rows from ${c.groupings} curricula. Real sample: category 90592xxx, semester 1/2569.`,
     headers: [
       'Listed under',
       'Subject id',
@@ -80,13 +80,13 @@ export const en = {
   },
   export: {
     h2: 'Share it as a ready to send image.',
-    sub: 'Fixed size posters for sharing, phone wallpapers or A4 print.',
+    sub: 'Sized for sharing, phone wallpapers or A4 print.',
     alt1: 'A timetable image exported from KCP at 1920 by 1080, with the plan name, semester 1/2569, total credits, and subject blocks from Monday to Friday.',
     alt2: 'A portrait phone wallpaper of the same plan, with days as columns and the exam schedule below.',
   },
   plans: {
     h2: 'Your plan stays current.',
-    sub: 'Each time you open it, KCP checks your plan against the latest data and shows any changed time or room beside the old one. It never removes a section for you.',
+    sub: 'Changed times and rooms show beside the old ones, and nothing is removed for you.',
     alt1: 'The Changes to your planned sections dialog. Calculus 1, section 33, shows its old and new time, with a Mark all as reviewed button.',
   },
   more: {
@@ -111,8 +111,7 @@ export const en = {
   },
   download: {
     h2: 'Install KCP for free',
-    meta: (version, source) =>
-      `Version ${version}. Free under the MIT license. ${source}.`,
+    meta: (version, source) => `Version ${version}, MIT license. ${source}.`,
     source: 'View the source on GitHub',
   },
   faq: {

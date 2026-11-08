@@ -17,7 +17,6 @@ import {
   extensionVersion,
   renderDedupeRows,
   storyBlocks,
-  subjectSearchCounts,
 } from './site-data.mjs';
 
 export const ROOT = path.resolve(
@@ -95,7 +94,6 @@ export async function siteTextFiles() {
       manifest,
       rowsHtml: renderDedupeRows(copy.lang),
       counts,
-      search: subjectSearchCounts(),
       story: storyBlocks(copy.lang),
       version,
     });

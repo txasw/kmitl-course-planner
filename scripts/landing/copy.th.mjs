@@ -47,10 +47,10 @@ export const th = {
   },
   problem: {
     h2: (c) =>
-      `<span class="statement__line"><span class="phrase">ค้นหาวิชาเดียว</span><wbr><span class="phrase">ได้ ${c.rows} แถว</span></span><span class="statement__line"><span class="phrase">เป็นกลุ่มเรียนจริง</span><wbr><span class="phrase">เพียง ${c.sections} กลุ่ม</span></span>`,
+      `<span class="statement__line"><span class="phrase">ค้นหาหมวดวิชาเดียว</span><wbr><span class="phrase">ได้ ${c.rows} แถว</span></span><span class="statement__line"><span class="phrase">เป็นกลุ่มเรียนจริง</span><wbr><span class="phrase">เพียง ${c.sections} กลุ่ม</span></span>`,
     sub: 'KCP รวมแถวที่ซ้ำ ให้เหลือกลุ่มเรียนละหนึ่งรายการ',
     caption: (c) =>
-      `ตัวอย่างจริง หมวดวิชา 90592xxx ภาคการศึกษา 1/2569 ${c.rows} แถวจาก ${c.groupings} หลักสูตร`,
+      `${c.rows} แถวจาก ${c.groupings} หลักสูตร ตัวอย่างจริงจากหมวดวิชา 90592xxx ภาคการศึกษา 1/2569`,
     headers: [
       'หลักสูตรที่แสดงแถวนี้',
       'รหัสวิชา',
@@ -86,13 +86,13 @@ export const th = {
   },
   export: {
     h2: '<span class="phrase">แชร์ตารางเป็นรูปภาพ</span><wbr><span class="phrase">พร้อมส่ง</span>',
-    sub: 'โปสเตอร์ขนาดคงที่ สำหรับแชร์ ภาพพื้นหลังโทรศัพท์ หรือพิมพ์ A4',
+    sub: 'ขนาดพอดีสำหรับแชร์ ภาพพื้นหลังโทรศัพท์ หรือพิมพ์ A4',
     alt1: 'ภาพตารางเรียนที่ส่งออกจาก KCP ขนาด 1920 x 1080 แสดงชื่อตาราง ภาคการศึกษา 1/2569 หน่วยกิตรวม และบล็อกวิชาวันจันทร์ถึงวันศุกร์',
     alt2: 'ภาพพื้นหลังโทรศัพท์แนวตั้งจากตารางเดียวกัน วันเรียงเป็นคอลัมน์ และมีตารางสอบอยู่ด้านล่าง',
   },
   plans: {
     h2: '<span class="phrase">ตารางอัปเดต</span><wbr><span class="phrase">ทุกครั้งที่เปิด</span>',
-    sub: 'KCP ตรวจตารางกับข้อมูลล่าสุด ถ้าเวลาหรือห้องเปลี่ยนจะแสดงค่าเดิมคู่กับค่าใหม่ และไม่ลบรายการใดให้เอง',
+    sub: 'แสดงเวลาหรือห้องที่เปลี่ยนคู่กับค่าเดิม และไม่ลบรายการใดให้เอง',
     alt1: 'หน้าต่างข้อมูลในตารางมีการเปลี่ยนแปลง รายการแคลคูลัส 1 กลุ่มเรียน 33 แสดงเวลาเดิมและเวลาใหม่ พร้อมปุ่มรับทราบทั้งหมด',
   },
   more: {
@@ -118,8 +118,7 @@ export const th = {
   },
   download: {
     h2: 'ติดตั้ง KCP ฟรี',
-    meta: (version, source) =>
-      `เวอร์ชัน ${version} ใช้ฟรีภายใต้สัญญาอนุญาต MIT ${source}`,
+    meta: (version, source) => `เวอร์ชัน ${version} สัญญาอนุญาต MIT ${source}`,
     source: 'ดูซอร์สโค้ดบน GitHub',
   },
   faq: {
