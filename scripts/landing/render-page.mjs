@@ -649,6 +649,7 @@ export const THAI_KEEP = [
   'เวอร์ชัน',
   'ระหว่างพัฒนา',
   'ข้อมูลล่าสุด',
+  'เคียงกัน',
 ];
 
 // Longest first, so a longer compound wins over a shorter one inside it.
