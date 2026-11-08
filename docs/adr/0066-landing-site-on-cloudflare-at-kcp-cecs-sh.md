@@ -208,10 +208,14 @@ and its three PNG sizes differ in proportion, so a srcset across them would chan
 shape between screens. The bordered variant keeps an edge on the grey closing band as on white.
 Neither store publishes a Thai badge, so both pages show the English ones, each with the lang
 attribute set to English and alt text equal to the badge's own words, so the link is named by what
-it shows. Both badges render at one height, 56 px, or on a narrow phone the height at which the
-pair fits one row with 12 px between them. A Firefox visitor sees the Firefox badge first. The web
-version stays as a quiet pill of the same height after the pair, the touch note follows the badges
-on a coarse pointer, and the Firefox logo file the earlier button used is removed. The footer's
+it shows; Mozilla's words name no browser, so its alt text reads Get the add-on for Firefox. Both
+badges render at one height, 56 px, or on a narrow phone the height at which the pair fits one row
+with 12 px between them, measured against the install row itself with 4 px to spare, since Firefox
+rounded a badge a fraction of a pixel wider and wrapped the pair at 320 px. A Firefox visitor sees
+the Firefox badge first. The touch note follows the badges on a coarse pointer, and the web version
+waits on a line of its own under the pair as a smaller pill, 40 px tall with a dashed edge and a
+grey coming soon label, so the two badges read as the primary pair. The Firefox logo file the
+earlier button used is removed. The footer's
 trademark sentence names Chrome, the Chrome logo and Chrome Web Store as Google's, and Firefox and
 the Firefox logo as Mozilla's, since both badges carry those marks. The guidelines this relies on:
 
@@ -222,9 +226,9 @@ the Firefox logo as Mozilla's, since both badges carry those marks. The guidelin
 Pacing. Readers who scroll fast found the pinned moments over too soon, so each scene now holds
 still between its changes, and the extra length stays inside the pinned scenes. The hero frame
 stands up over three quarters of a screen and then holds. The dedupe stage holds its thirteen
-rows, merges, and holds the merged sections for the last quarter of a track one and a half
-screens long. The story track is four screens long on a laptop: its grid draws while the dark
-band rises, and each beat holds fully readable before the next starts. Path B mirrors the holds
+rows, merges, and holds the merged sections for the rest of a track one and three quarter
+screens long. The story track is four screens long on a laptop and a phone: its grid draws while
+the dark band rises, and each beat holds fully readable before the next starts. Path B mirrors the holds
 through its sentinel positions. Scroll snapping was rejected because it fights a reader who wants
 to move on. Outside the pinned scenes the sections share one gap that grows with the window
 height, from 96 px to 144 px, and the statement screens no longer fill a whole window each.
@@ -247,3 +251,30 @@ was tried again with snap points at each rest and rejected: a slow wheel scroll 
 point was pulled back to it on every notch and could not move on. Smooth scrolling is dropped for
 the same reason it hurt here: a focus move or a section link ran through several screens of pinned
 track and played every scene in fast forward.
+
+Steady scrollers. The fixed clock then failed the most common reader, one who scrolls steadily
+without stopping. Every step cost its whole transition and a 600 ms hold whatever the speed, so at
+500 to 850 px/s the steps trailed the scroll: measured with CDP constant speed gestures in
+Chromium, the merged dedupe state was fully visible while pinned for 0 ms at 500 and 850 px/s on
+both a 1440 by 900 and a 390 by 844 window, and the third story beat for 0 ms at 850 px/s on both,
+and at 500 px/s on the phone, where it finished after the pin let go. A reader who stopped between
+the two dedupe lines rested on a card the repeats had left half empty. The pace now follows the
+reader, still without a scroll listener. Each line has a gate a little before it, and the
+intersection observer's own entry time says how long the reader took between the two: a reader
+who crosses both within 250 ms, a few hundred px/s or more, is scrolling on. So is one who had
+already crossed the next line when a step finished. For that reader a step plays at 0.45 of its
+length, its transitions scaled by a --pace property `site.js` sets through the CSSOM, and the next
+step follows 100 ms after it. A reader who stops gets each step at full length, and a line crossed
+after a step finished still waits out a 650 ms hold, so the finished step stays in view. The
+dedupe plays both of its steps from its first line, the close up after the hold, so no stop shows
+a half empty card; its second line only marks a reader who has moved on. The dedupe lines move from
+0.16 and 0.32 to 0.08 and 0.18 of a track 25svh longer, the story lines from -0.15, 0.34 and 0.65
+to -0.15, 0.23 and 0.58, and the phone story track grows from 340svh to the laptop's 400svh, so
+the page is about 225 px longer on a laptop and about 720 px, some 6 percent, on a phone.
+Measured again with the same gestures, every end state, the merged dedupe and each of the three
+beats, is fully visible while pinned for at least 650 ms at 300, 500, 800 and 850 px/s on both
+windows, and at 800 px/s the merge completes with more than 40 percent of its pinned track still
+ahead and the third beat by three quarters of its track. A
+4,000 px/s flick that stops inside a scene plays it to its end at the quick pace; a flick that
+passes a whole scene in under half a second still sees none of it. Firefox, driven by wheel
+events, steps the same way.
