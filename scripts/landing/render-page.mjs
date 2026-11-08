@@ -451,9 +451,8 @@ ${ld === null ? '' : `<script type="application/ld+json">${ld}</script>`}`;
 
 /**
  * Thai compounds the browser's line breaker would split, which a Thai reader sees as a
- * broken word: ลง and ทะเบียน on two lines reads as two words. Longest first, so a
- * longer compound wins over a shorter one inside it. Each stays short enough that it
- * never overflows a 320 px column.
+ * broken word: ลง and ทะเบียน on two lines reads as two words. Each stays short enough
+ * that it never overflows a 320 px column.
  */
 export const THAI_KEEP = [
   'เว็บไซต์ลงทะเบียน',
@@ -485,9 +484,29 @@ export const THAI_KEEP = [
   'สีแดง',
   'วันพุธ',
   'ชนกัน',
+  'รายสัปดาห์',
+  'รายวิชา',
+  'หลักสูตร',
+  'ลากวาง',
+  'วันสอบ',
+  'ผู้สอน',
+  'ทุกครั้ง',
+  'ค่าเดิม',
+  'ค่าใหม่',
+  'บัญชีผู้ใช้',
+  'เซิร์ฟเวอร์',
+  'สาธารณะ',
+  'โทรศัพท์',
+  'เวอร์ชัน',
+  'ระหว่างพัฒนา',
+  'ข้อมูลล่าสุด',
 ];
 
-const THAI_KEEP_PATTERN = new RegExp(THAI_KEEP.join('|'), 'g');
+// Longest first, so a longer compound wins over a shorter one inside it.
+const THAI_KEEP_PATTERN = new RegExp(
+  [...THAI_KEEP].sort((a, b) => b.length - a.length).join('|'),
+  'g',
+);
 
 /**
  * Wrap every listed compound in the text of a Thai page in a span that keeps it on one
