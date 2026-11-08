@@ -813,11 +813,21 @@ h4 {
   color: var(--site-ink);
 }
 
+/* The web version reads as a finished control that is not open yet: a quiet pill with
+   its coming soon badge, never a dashed ghost. It stays disabled to assistive
+   technology and takes no hover state. */
 .cta--soon {
-  border: 1px dashed var(--site-rule-strong);
-  background: var(--site-paper-alt);
+  border: 1px solid var(--site-rule);
+  border-radius: var(--r-pill);
+  background: var(--site-paper);
   color: var(--site-ink-soft);
-  cursor: not-allowed;
+  cursor: default;
+}
+
+.cta--soon .badge {
+  background: var(--site-primary-soft);
+  color: var(--site-primary-strong);
+  font-weight: 600;
 }
 
 .badge {
@@ -905,7 +915,7 @@ h4 {
   }
 
   .cta--soon {
-    border: 1px dashed GrayText;
+    border: 1px solid GrayText;
     color: GrayText;
   }
 
