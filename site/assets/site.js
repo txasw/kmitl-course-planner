@@ -4,8 +4,8 @@
 // .motion unless the reader prefers reduced motion, and .no-sda where the browser has no
 // scroll driven animations, so the stylesheet plays each moment from the classes this
 // file adds as blocks come into view. The two pinned scenes step on their own clock in
-// every browser once the scroll crosses each of their lines. It also marks a Firefox
-// visitor so the Firefox badge comes first, and carries the section in the address
+// every browser once the scroll crosses each of their lines. It also puts the Firefox
+// badge first for a Firefox visitor, and carries the section in the address
 // across the language switch. It listens to no scroll event, sends nothing anywhere and
 // stores nothing.
 
@@ -27,8 +27,33 @@
   if (!CSS.supports('animation-timeline: view()')) {
     root.classList.add('no-sda');
   }
+  // A Firefox visitor finds the Firefox badge first, and focus reaches it first too, so
+  // the badge moves in the document, not only on screen. It moves as the parser inserts
+  // it, in the microtask before any paint can show the other order, so nothing shifts.
   if (navigator.userAgent.includes('Firefox/')) {
-    root.classList.add('is-firefox');
+    const firefoxFirst = (badge) => {
+      const chrome = badge.previousElementSibling;
+      if (chrome?.classList.contains('store--chrome') === true) {
+        chrome.before(badge);
+      }
+    };
+    const parsing = new MutationObserver((records) => {
+      records.forEach((record) => {
+        record.addedNodes.forEach((node) => {
+          if (
+            node instanceof Element &&
+            node.classList.contains('store--firefox')
+          ) {
+            firefoxFirst(node);
+          }
+        });
+      });
+    });
+    parsing.observe(root, { childList: true, subtree: true });
+    document.addEventListener('DOMContentLoaded', () => {
+      parsing.disconnect();
+      document.querySelectorAll('.store--firefox').forEach(firefoxFirst);
+    });
   }
 
   const scrollDriven = () => !root.classList.contains('no-sda');

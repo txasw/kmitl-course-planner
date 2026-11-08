@@ -756,6 +756,21 @@ describe('site files', () => {
     );
   });
 
+  // A Firefox visitor finds the Firefox badge first. site.js moves it in the document,
+  // so focus reaches the badges in the order they show; the stylesheet never reorders
+  // them on screen alone.
+  it('never reorders the install badges on screen alone', () => {
+    const reordered = cssRules().filter(
+      (rule) =>
+        rule.selectors.some((s) => /\.stores?\b|\.store--/.test(s)) &&
+        rule.decls.some(
+          (d) =>
+            d.startsWith('order:') || /^flex-direction: \S*reverse/.test(d),
+        ),
+    );
+    expect(reordered).toEqual([]);
+  });
+
   it('listens to no scroll event', () => {
     const script = readFileSync(join(SITE, 'assets/site.js'), 'utf8');
     expect(script).not.toMatch(/addEventListener\(\s*['"]scroll/);
