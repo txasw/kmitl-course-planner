@@ -2378,17 +2378,21 @@ h4 {
     margin-top: -64px;
   }
 
+  /* The stage box is taller than the frame it centres and starts above it, over the
+     install buttons, so only the frame itself takes the pointer. */
   .motion .hero__pin {
     position: sticky;
     top: var(--header-h);
     height: calc(100svh - var(--header-h));
     align-items: center;
     padding-top: 0;
+    pointer-events: none;
   }
 
   .motion .frame {
     isolation: isolate;
     transform-origin: 50% 100%;
+    pointer-events: auto;
   }
 
   .motion.no-sda .frame {

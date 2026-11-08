@@ -574,6 +574,38 @@ describe('site files', () => {
     expect(offenders).toEqual([]);
   });
 
+  // The pinned hero stage is a window tall box that starts above the frame it centres,
+  // over the install buttons; were it to take the pointer, a click on a button's centre
+  // would land on the empty stage and do nothing.
+  it('lets the pinned hero stage pass the pointer through to the buttons', () => {
+    const css = readFileSync(join(SITE, 'assets/site.css'), 'utf8').replace(
+      /\/\*[\s\S]*?\*\//g,
+      '',
+    );
+    const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(
+      ([, prelude = '', body = '']) => ({
+        selectors: prelude.split(',').map((s) => s.trim()),
+        decls: body.split(';').map((d) => d.trim().replace(/\s+/g, ' ')),
+      }),
+    );
+    const pins = rules.filter(
+      (rule) =>
+        rule.selectors.some((s) => s.endsWith('.hero__pin')) &&
+        rule.decls.includes('position: sticky'),
+    );
+    expect(pins.length).toBeGreaterThan(0);
+    for (const pin of pins) {
+      expect(pin.decls).toContain('pointer-events: none');
+    }
+    expect(
+      rules.some(
+        (rule) =>
+          rule.selectors.some((s) => s.endsWith('.frame')) &&
+          rule.decls.includes('pointer-events: auto'),
+      ),
+    ).toBe(true);
+  });
+
   it('listens to no scroll event', () => {
     const script = readFileSync(join(SITE, 'assets/site.js'), 'utf8');
     expect(script).not.toMatch(/addEventListener\(\s*['"]scroll/);
