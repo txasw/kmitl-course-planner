@@ -265,8 +265,10 @@
     drive();
   }
 
-  // The story's three beats start at these fractions of its pinned scroll.
-  const STORY_BEATS = [0, 0.38, 0.64];
+  // The story's three beats start at these fractions of its pinned scroll; the first
+  // while the dark band is still rising to the header, so the grid is drawn by the time
+  // it pins.
+  const STORY_BEATS = [-0.15, 0.38, 0.64];
 
   function enhanceStory(track) {
     const pin = track.querySelector('.story__pin');

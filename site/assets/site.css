@@ -3388,18 +3388,20 @@ h4 {
       view-timeline-inset: var(--header-h) 0;
     }
 
+    /* The grid draws and the first beat rises while the dark band is still coming up,
+       so something is building on it from the first screen of dark. */
     .motion:not(.no-sda) .story__rules,
     .motion:not(.no-sda) .story__axis,
     .motion:not(.no-sda) .story__day {
       animation: appear linear both;
       animation-timeline: --story;
-      animation-range: contain 0% contain 6%;
+      animation-range: entry 35% entry 85%;
     }
 
     .motion:not(.no-sda) .story__beat:nth-child(1) {
       animation: beat-1 linear both;
       animation-timeline: --story;
-      animation-range: contain 0% contain 40%;
+      animation-range: entry 55% contain 40%;
     }
 
     .motion:not(.no-sda) .story__beat:nth-child(2) {
@@ -3417,8 +3419,8 @@ h4 {
     .motion:not(.no-sda) .story__block:not(.story__landed) {
       animation: block-in linear both;
       animation-timeline: --story;
-      animation-range: contain calc(4% + 5% * var(--b)) contain
-        calc(12% + 5% * var(--b));
+      animation-range: contain calc(1% + 5% * var(--b)) contain
+        calc(9% + 5% * var(--b));
     }
 
     .motion:not(.no-sda) .ghost__lift {
