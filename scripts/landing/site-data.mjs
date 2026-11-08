@@ -40,6 +40,7 @@ const COPY = {
     lecture: 'ทฤษฎี',
     practice: 'ปฏิบัติ',
     full: 'เต็ม',
+    seats: 'ที่นั่ง',
     chip: (n) => `พบใน ${n} หลักสูตร`,
   },
   en: {
@@ -50,6 +51,7 @@ const COPY = {
     lecture: 'Lecture',
     practice: 'Practice',
     full: 'Full',
+    seats: 'Seats',
     chip: (n) => `Listed under ${n} curricula`,
   },
 };
@@ -152,6 +154,7 @@ function cell(content, extra = '') {
 
 /** The table body rows as HTML, one tr per raw row. */
 export function renderDedupeRows(locale) {
+  const seatsLabel = escapeHtml(COPY[locale].seats);
   // A Thai subject name is one compound to its reader, so it never breaks inside.
   const name = (text) =>
     locale === 'th'
@@ -171,7 +174,10 @@ export function renderDedupeRows(locale) {
         cell(name(row.name), ' class="dedupe__name"'),
         cell(escapeHtml(row.section), ' class="dedupe__section"'),
         cell(escapeHtml(row.time), ' class="dedupe__time"'),
-        cell(escapeHtml(row.seats), ' class="dedupe__seats"'),
+        cell(
+          `<span data-label="${seatsLabel}">${escapeHtml(row.seats)}</span>`,
+          ' class="dedupe__seats"',
+        ),
         '</tr>',
       ].join('');
     })
