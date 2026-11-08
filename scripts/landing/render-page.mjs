@@ -122,6 +122,10 @@ function ctaRow(copy, size) {
 <p class="cta-coarse">${copy.cta.coarse}</p>`;
 }
 
+// A phone shows a plate's crop where one exists: the desktop capture scaled to a phone
+// would set the product's text at a few pixels.
+const PHONE = '(max-width: 639px)';
+
 function figure(
   manifest,
   id,
@@ -130,8 +134,11 @@ function figure(
   caption,
   sizes,
   className = 'plate',
+  crop = null,
 ) {
-  return `<figure class="${className}">${picture(manifest, id, locale, { alt, sizes, className: 'plate__img' })}<figcaption>${caption}</figcaption></figure>`;
+  const art =
+    crop === null ? [] : [{ id: crop, media: PHONE, sizes: CROP_SIZES }];
+  return `<figure class="${className}">${picture(manifest, id, locale, { alt, sizes, className: 'plate__img', art })}<figcaption>${caption}</figcaption></figure>`;
 }
 
 // The section links name the page they belong to only when the header sits on another
@@ -184,7 +191,7 @@ ${picture(manifest, 's-hero', locale, {
   sizes: HERO_SIZES,
   eager: true,
   className: 'frame__img',
-  art: [{ id: 's-hero-crop', media: '(max-width: 639px)', sizes: CROP_SIZES }],
+  art: [{ id: 's-hero-crop', media: PHONE, sizes: CROP_SIZES }],
 })}
 </div>
 </div>
@@ -244,8 +251,8 @@ function features(copy, manifest) {
 <div class="container">
 <h2 id="features-title" class="features__title">${c.featuresH2}</h2>
 ${feature('search', c.search.h3, c.search.body, figure(manifest, 's-search-form', l, c.search.alt, c.search.h3, PLATE_8, 'plate plate--column'))}
-${feature('conflict', c.conflict.h3, c.conflict.body, `<div class="stack">${figure(manifest, 's-drag-blocked', l, c.conflict.alt1, c.conflict.fig1, PLATE_8)}${figure(manifest, 's-feedback-alternatives', l, c.conflict.alt2, c.conflict.fig2, PLATE_8)}</div>`)}
-${feature('exam', c.exam.h3, c.exam.body, `<div class="pair">${figure(manifest, 's-exam-row', l, c.exam.alt1, c.exam.fig1, PAIR_NARROW)}${figure(manifest, 's-summary', l, c.exam.alt2, c.exam.fig2, PAIR_WIDE)}</div>`)}
+${feature('conflict', c.conflict.h3, c.conflict.body, `<div class="stack">${figure(manifest, 's-drag-blocked', l, c.conflict.alt1, c.conflict.fig1, PLATE_8, 'plate', 's-drag-blocked-crop')}${figure(manifest, 's-feedback-alternatives', l, c.conflict.alt2, c.conflict.fig2, PLATE_8, 'plate', 's-feedback-crop')}</div>`)}
+${feature('exam', c.exam.h3, c.exam.body, `<div class="pair">${figure(manifest, 's-exam-row', l, c.exam.alt1, c.exam.fig1, PAIR_NARROW)}${figure(manifest, 's-summary', l, c.exam.alt2, c.exam.fig2, PAIR_WIDE, 'plate', 's-summary-crop')}</div>`)}
 ${feature('layouts', c.layouts.h3, c.layouts.body, `<div class="strip" role="region" aria-label="${attr(c.layouts.region)}" tabindex="0">${narrow}</div><p class="footnote">${c.layouts.footnote}</p>`, ' feature--wide')}
 ${feature('export', c.export.h3, c.export.body, `<div class="posters">${figure(manifest, 'x-share169', l, c.export.alt1, '', FULL, 'poster poster--wide')}${figure(manifest, 'x-phone-portrait', l, c.export.alt2, '', '(min-width: 1024px) 264px, 40vw', 'poster poster--phone')}</div><p class="footnote">${c.export.templates}</p>`, ' feature--wide')}
 ${feature('plans', c.plans.h3, c.plans.body, `<div class="stack">${figure(manifest, 's-updates', l, c.plans.alt1, c.plans.fig1, PLATE_8)}${figure(manifest, 's-plan-menu', l, c.plans.alt2, c.plans.fig2, INSET, 'plate plate--inset')}</div>`)}
@@ -268,7 +275,7 @@ function more(copy, manifest) {
   return `<section class="more" aria-labelledby="more-title">
 <div class="container more__grid">
 <div><h2 id="more-title">${copy.more.h2}</h2><dl class="more__list">${items}</dl></div>
-${figure(manifest, 's-suggest', copy.lang, copy.more.alt, copy.more.fig, FULL)}
+${figure(manifest, 's-suggest', copy.lang, copy.more.alt, copy.more.fig, FULL, 'plate', 's-suggest-crop')}
 </div>
 </section>`;
 }
@@ -285,7 +292,7 @@ function steps(copy, manifest) {
 <h2 id="steps-title">${copy.steps.h2}</h2>
 <p class="body steps__intro">${copy.steps.intro}</p>
 <ol class="steps__list">${items}</ol>
-${figure(manifest, 's-welcome', copy.lang, copy.steps.alt, copy.steps.items.map(([t]) => t).join(', '), '(min-width: 1024px) 720px, calc(100vw - 40px)', 'plate steps__shot')}
+${figure(manifest, 's-welcome', copy.lang, copy.steps.alt, copy.steps.fig, '(min-width: 640px) 448px, calc(100vw - 40px)', 'plate steps__shot')}
 </div>
 </section>`;
 }

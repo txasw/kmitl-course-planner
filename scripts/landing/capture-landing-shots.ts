@@ -317,6 +317,49 @@ function gridBlock(page: Page, subjectId: string): Locator {
   return page.locator('[data-teach-table-id]').filter({ hasText: subjectId });
 }
 
+/** The x of an hour line, the centre of its axis label, which centres on the line. */
+async function hourLine(
+  page: Page,
+  locale: Locale,
+  hour: string,
+): Promise<number> {
+  const label = await box(
+    gridGroup(page, locale).getByText(hour, { exact: true }).first(),
+  );
+  return label.x + label.width / 2;
+}
+
+/** The band of one day row, read from its label, which spans the whole row. */
+async function dayRow(page: Page, locale: Locale, day: Key): Promise<Box> {
+  return box(
+    gridGroup(page, locale)
+      .locator(`[aria-label="${tr(locale, day)}"]`)
+      .first(),
+  );
+}
+
+/**
+ * A crop of the grid from the day labels to a closing hour, across a run of day rows.
+ * The page shows these crops near their natural size, so the block text reads at the
+ * size the product draws it instead of a full week scaled down to a few pixels.
+ */
+async function gridCrop(
+  page: Page,
+  locale: Locale,
+  from: Key,
+  to: Key,
+  right: number,
+): Promise<Box> {
+  const first = await dayRow(page, locale, from);
+  const last = await dayRow(page, locale, to);
+  return {
+    x: first.x,
+    y: first.y,
+    width: right - first.x,
+    height: last.y + last.height - first.y,
+  };
+}
+
 async function restPointer(page: Page): Promise<void> {
   const viewport = page.viewportSize() ?? { width: 1440, height: 900 };
   await page.mouse.move(viewport.width - 10, viewport.height - 10);
@@ -394,9 +437,20 @@ for (const locale of LOCALES) {
     await restPointer(page);
     await expect(statsBar(page, locale)).toBeVisible();
     await shot(page, 's-hero', locale);
-    const grid = await box(gridGroup(page, locale));
-    const stats = await box(statsBar(page, locale));
-    await shot(page, 's-hero-crop', locale, pad(page, union(grid, stats), 12));
+    // A phone shows the working week up to noon, large enough to read, rather than the
+    // whole grid at a third of its size.
+    await shot(
+      page,
+      's-hero-crop',
+      locale,
+      await gridCrop(
+        page,
+        locale,
+        'day.full.1',
+        'day.full.5',
+        (await hourLine(page, locale, '12:00')) + 16,
+      ),
+    );
   });
 
   test(`search form ${locale}`, async ({ context }) => {
@@ -465,16 +519,43 @@ for (const locale of LOCALES) {
     await page.mouse.move(from.x + from.width / 2 + 24, from.y + 24, {
       steps: 6,
     });
-    // Rest the pointer in the lower right of the Tuesday block, so the grab card and
-    // its reason chip leave the swap label readable.
+    // Rest the pointer in the lower left of the Tuesday block, so the grab card and its
+    // reason chip leave the swap label readable and stay inside the morning columns
+    // that the phone crop keeps.
     await page.mouse.move(
-      target.x + target.width * 0.62,
-      target.y + target.height * 0.58,
+      target.x + target.width * 0.3,
+      target.y + target.height * 0.66,
       { steps: 20 },
     );
     const grid = await box(gridGroup(page, locale));
-    const area = union(grid, await box(statsBar(page, locale)));
-    await shot(page, 's-drag-blocked', locale, pad(page, area, 12));
+    // The morning and afternoon blocks of Monday to Wednesday, with the clash in the
+    // middle row, shown near the size the product draws them.
+    const afternoon = (await hourLine(page, locale, '16:00')) + 16;
+    await shot(
+      page,
+      's-drag-blocked',
+      locale,
+      await gridCrop(page, locale, 'day.full.1', 'day.full.3', afternoon),
+    );
+    const chip = page
+      .locator('div.shadow-kcp')
+      .filter({ hasText: tr(locale, 'section.reason.conflictWith') })
+      .last();
+    const chipBox = await box(chip);
+    const noon = (await hourLine(page, locale, '12:00')) + 16;
+    const monday = await dayRow(page, locale, 'day.full.1');
+    const tuesday = await dayRow(page, locale, 'day.full.2');
+    const phoneRight = Math.max(noon, chipBox.x + chipBox.width + 12);
+    const phoneBottom = Math.max(
+      tuesday.y + tuesday.height,
+      chipBox.y + chipBox.height + 12,
+    );
+    await shot(page, 's-drag-blocked-crop', locale, {
+      x: monday.x,
+      y: monday.y,
+      width: phoneRight - monday.x,
+      height: phoneBottom - monday.y,
+    });
     // Release away from every drop target, so the blocked drag commits nothing.
     await page.mouse.move(grid.x + 40, 20, { steps: 10 });
     await page.mouse.up();
@@ -487,25 +568,28 @@ for (const locale of LOCALES) {
       .filter({ has: page.getByRole('button') });
     await expect(strip).toBeVisible();
     await strip.hover();
-    const tabs = await box(
-      page.getByRole('tablist', { name: tr(locale, 'planView.label') }),
-    );
-    const tuesday = await box(gridBlock(page, '01006020'));
-    await shot(
-      page,
-      's-feedback-alternatives',
-      locale,
-      pad(
-        page,
-        {
-          x: grid.x,
-          y: tabs.y,
-          width: grid.width,
-          height: tuesday.y + tuesday.height - tabs.y,
-        },
-        12,
-      ),
-    );
+    const stripBox = await box(strip);
+    // The rows move down under the strip, so the Tuesday row is read again here.
+    const tuesdayRow = await dayRow(page, locale, 'day.full.2');
+    const top = stripBox.y - 8;
+    const bottom = tuesdayRow.y + tuesdayRow.height;
+    // The strip over the grid down to the Tuesday clash, cut at the same afternoon line
+    // as the drag shot so the two plates share one scale.
+    await shot(page, 's-feedback-alternatives', locale, {
+      x: grid.x - 8,
+      y: top,
+      width: afternoon - grid.x + 8,
+      height: bottom - top,
+    });
+    // The phone keeps the message and its alternative, cut where the morning ends.
+    const alternative = await box(strip.getByRole('button').first());
+    const phoneEdge = Math.max(noon, alternative.x + alternative.width + 16);
+    await shot(page, 's-feedback-crop', locale, {
+      x: grid.x - 8,
+      y: top,
+      width: phoneEdge - grid.x + 8,
+      height: bottom - top,
+    });
   });
 
   test(`exam row ${locale}`, async ({ context }) => {
@@ -593,6 +677,13 @@ for (const locale of LOCALES) {
     await expect(apply).toHaveCount(3);
     await restPointer(page);
     await shot(page, 's-suggest', locale, await box(dialog));
+    // A phone shows one option, the width it reads at, instead of three at a third.
+    await shot(
+      page,
+      's-suggest-crop',
+      locale,
+      await box(dialog.getByRole('article').first()),
+    );
 
     await apply.first().click();
     await expect(dialog).toHaveCount(0);
@@ -714,7 +805,9 @@ test.describe('first run', () => {
         name: tr(locale, 'welcome.title'),
       });
       await expect(dialog).toBeVisible({ timeout: 15_000 });
-      await shot(tab, 's-welcome', locale, pad(tab, await box(dialog), 64));
+      // The dialog alone: the page frames it, so the scrim of the registration site
+      // behind it would only add a flat grey slab.
+      await shot(tab, 's-welcome', locale, await box(dialog));
     });
   }
 });
@@ -753,6 +846,32 @@ test.describe('narrow window', () => {
 
       await gridBlock(page, '01006020').first().click();
       await shot(page, 'n-sheet', locale);
+
+      // The exam schedule as a phone shows it, its first two days, for the page's
+      // phone layout, where the desktop capture would shrink to a few pixels a letter.
+      await page.keyboard.press('Escape');
+      await nav
+        .getByRole('button', {
+          name: new RegExp(`^${escapeRegExp(tr(locale, 'planView.summary'))}`),
+        })
+        .click();
+      const exams = page.getByRole('region', {
+        name: tr(locale, 'examSchedule.title'),
+      });
+      await exams.evaluate((node) => {
+        node.scrollIntoView({ block: 'start' });
+      });
+      const secondDay = exams.locator('ol > li').nth(1);
+      await expect(secondDay).toBeVisible();
+      const schedule = await box(exams);
+      const second = await box(secondDay);
+      // A margin on three sides; the foot stops at the second day, clear of the third.
+      await shot(page, 's-summary-crop', locale, {
+        x: schedule.x - 12,
+        y: schedule.y - 12,
+        width: schedule.width + 24,
+        height: second.y + second.height + 4 - (schedule.y - 12),
+      });
     });
   }
 });
