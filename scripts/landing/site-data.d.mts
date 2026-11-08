@@ -26,7 +26,7 @@ export interface StoryBlock {
   start: number;
   end: number;
   time: string;
-  name: string | null;
+  name: string;
   credit: number;
   subjectClass: string;
 }

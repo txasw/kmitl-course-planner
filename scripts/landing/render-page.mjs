@@ -318,13 +318,11 @@ function placement(block) {
 }
 
 /**
- * A block's label: its subject id, then its name where the page may show one. A phone
- * shows the id alone, since a day column is too narrow for a name.
+ * A block's label: its subject id, then its name. A phone shows the id alone, since a
+ * day column is too narrow for a name.
  */
 function storyLabel(block) {
-  const name =
-    block.name === null ? '' : `<span class="story__name">${block.name}</span>`;
-  return `<span class="story__id">${block.subjectId}</span>${name}`;
+  return `<span class="story__id">${block.subjectId}</span><span class="story__name">${block.name}</span>`;
 }
 
 /** One block's skin as the product draws it: name first, the section in a corner chip,

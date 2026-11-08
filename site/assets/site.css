@@ -1559,8 +1559,7 @@ h4 {
   color: #1a1a1a;
 }
 
-/* Every block leads with its subject id, so the one subject the page names by its id
-   alone reads as the same skin with a shorter body, not as a block missing its name. */
+/* Every block leads with its subject id, the label a phone keeps when it drops the name. */
 .story__id {
   padding-right: 28px;
   color: #5c5c5c;

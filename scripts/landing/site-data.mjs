@@ -160,12 +160,32 @@ function minutes(time) {
   return parsed;
 }
 
+// The host's own word for each term the Thai tone rules reserve (docs/TERMINOLOGY.md).
+const CANONICAL_THAI = new Map([['ปฏิบัติการ', 'ปฏิบัติ']]);
+
+/**
+ * A subject's Thai name in the page's vocabulary: a reserved term becomes the host's own
+ * word for it, so 01006021, a physics practice subject, reads ปฏิบัติฟิสิกส์ทั่วไป 1 beside
+ * ฟิสิกส์ทั่วไป 1, the subject it clashes with.
+ */
+function thaiName(subjectId, name) {
+  let named = name;
+  for (const [reserved, canonical] of CANONICAL_THAI) {
+    named = named.replaceAll(reserved, canonical);
+  }
+  if (BANNED_THAI.some((term) => named.includes(term))) {
+    throw new Error(
+      `${subjectId} has a Thai name that holds a reserved term with no canonical word.`,
+    );
+  }
+  return named;
+}
+
 /**
  * The plan H timetable the story builds, in the page language: the six blocks that land
  * first in landing order, morning before afternoon and Monday first, then the section
  * dragged in and refused, the section that lands in its place, and the block it clashes
- * with. A subject whose Thai name holds a term the Thai tone rules reserve carries no name
- * in either language, and the page shows its id alone, as it names it everywhere else.
+ * with. Every block carries its subject's name, in Thai through the page's vocabulary.
  */
 export function storyBlocks(locale) {
   const rows = [];
@@ -186,9 +206,6 @@ export function storyBlocks(locale) {
     if (day === undefined) {
       throw new Error(`${subjectId} ${section} has no weekday.`);
     }
-    const reserved = BANNED_THAI.some((term) =>
-      row.subject_name_th.includes(term),
-    );
     return {
       subjectId,
       section,
@@ -197,10 +214,9 @@ export function storyBlocks(locale) {
       start: minutes(row.teach_time),
       end: minutes(row.teach_time2),
       time: `${hhmm(row.teach_time)}-${hhmm(row.teach_time2)}`,
-      name: reserved
-        ? null
-        : locale === 'th'
-          ? row.subject_name_th
+      name:
+        locale === 'th'
+          ? thaiName(subjectId, row.subject_name_th)
           : row.subject_name_en,
       credit: Number(row.credit),
       subjectClass: `subject-${String(EVENT_PALETTE.indexOf(hashColor(subjectId)))}`,
