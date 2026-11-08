@@ -267,7 +267,7 @@ function features(copy, manifest) {
   return `<section class="features" id="features" aria-labelledby="features-title">
 <div class="container">
 <h2 id="features-title" class="features__title">${c.featuresH2}</h2>
-${feature('search', c.search.h3, c.search.body, figure(manifest, 's-search-form', l, c.search.alt, c.search.h3, SEARCH, 'plate plate--column'))}
+${feature('search', c.search.h3, c.search.body, figure(manifest, 's-search-form', l, c.search.alt, c.search.fig, SEARCH, 'plate plate--column'))}
 ${feature('conflict', c.conflict.h3, c.conflict.body, `<div class="stack">${figure(manifest, 's-drag-blocked', l, c.conflict.alt1, c.conflict.fig1, PLATE_8, 'plate', 's-drag-blocked-crop')}${figure(manifest, 's-feedback-alternatives', l, c.conflict.alt2, c.conflict.fig2, PLATE_8, 'plate', 's-feedback-crop')}</div>`)}
 ${feature('exam', c.exam.h3, c.exam.body, `<div class="pair">${figure(manifest, 's-exam-row', l, c.exam.alt1, c.exam.fig1, PAIR_NARROW)}${figure(manifest, 's-summary', l, c.exam.alt2, c.exam.fig2, PAIR_WIDE, 'plate', 's-summary-crop')}</div>`)}
 ${feature('layouts', c.layouts.h3, c.layouts.body, `<div class="strip" role="region" aria-label="${attr(c.layouts.region)}" tabindex="0">${narrow}</div><p class="footnote">${c.layouts.footnote}</p>`, ' feature--wide')}

@@ -64,7 +64,7 @@ export const en = {
     staticResult: (c) =>
       `In KCP these ${c.rows} rows merge into ${c.sections} sections, each listed once.`,
     shotCaption:
-      'The same search in KCP: 3 courses and 4 sections, each with its day, time, place and seats on one row.',
+      'The same search in KCP: 3 courses and 4 sections, each listed once with its day, time, place and seats.',
     shotAlt:
       'The KCP course list for a search of category 90592xxx, summarised as 3 courses, 4 sections and 9 merged repeats. The cards for 90592008 and 90592033 are open, showing each section with its day, time, room and seats.',
   },
@@ -72,12 +72,13 @@ export const en = {
   search: {
     h3: 'Search the three ways the registration site does',
     body: 'Search by curriculum and class year, by subject id, or by subject category. Results arrive as one line course cards that open to show sections, open seats, enrollment conditions and exam dates, with filters for day, credits and full sections.',
+    fig: 'The curriculum tab, set to the Computer Engineering and Cyber Security curriculum, year 1.',
     alt: 'The search panel on the curriculum tab, with the engineering faculty, the Computer Engineering department, the Computer Engineering and Cyber Security curriculum and year 1 selected, above the Search and Clear search buttons.',
   },
   conflict: {
     h3: 'Drag a section in and see a clash before you drop',
-    body: 'As soon as you pick up a section, the timetable shows where each of its meetings will land. A green outline means it fits; red hatching marks a clash with a subject already in your plan, named with the time it overlaps. If it cannot be placed, KCP offers other sections of the same subject that fit. Lecture and practice pairs are always added and removed together.',
-    fig1: 'Dragging General Physics Laboratory 1, section 3, onto Tuesday, where it clashes with General Physics 1, section 4.',
+    body: 'As soon as you pick up a section, the timetable shows where each of its meetings will land. A green outline means it fits; red hatching marks a clash with a subject already in your plan, named with the time it overlaps. Drop it on the subject it clashes with to swap the two. If it cannot be placed, KCP offers other sections of the same subject that fit. Lecture and practice pairs are always added and removed together.',
+    fig1: 'Dragging General Physics Laboratory 1, section 3, which meets Tuesday 09:00 to 12:00, where it clashes with General Physics 1, section 4.',
     fig2: 'The drop is refused, and KCP offers section 5 on Wednesday, 13:00-16:00, which fits.',
     alt1: 'The timetable during a drag of section 3. Over General Physics 1 on Tuesday 09:00 to 12:00, an orange target offers a swap for section 3, and a chip names the clash with 01006020 section 4.',
     alt2: 'A message above the timetable says the section cannot be placed because of a time clash, with a button to add section 5 instead.',
@@ -111,13 +112,13 @@ export const en = {
     h3: 'Share your timetable as a ready to send image',
     body: 'Preview mode lays your plan out as a poster. Pick a template for a 16:9 share, a phone or tablet wallpaper, or an A4 print, then download it, copy the image, or copy it as text for chat apps. The image comes out at the same size whatever screen you export from, and can carry your exam schedule under the timetable.',
     templates:
-      'Templates: Share 16:9, phone wallpaper in portrait and landscape, tablet wallpaper in portrait and landscape, Print A4.',
+      'Templates include Share 16:9, phone and tablet wallpapers in portrait and landscape, and Print A4.',
     alt1: 'A timetable image exported from KCP at 1920 by 1080, with the plan name, semester 1/2569, total credits, and subject blocks from Monday to Friday.',
     alt2: 'A portrait phone wallpaper of the same plan, with days as columns and the exam schedule below.',
   },
   plans: {
-    h3: 'Keep several plans, checked against the latest data every time you open them',
-    body: 'Keep several named plans per term, duplicate them, and export them as a file. Each time you open a plan, KCP checks its sections against the latest data. If a time, room or exam date changed, or a section is no longer listed, it shows the old and new values for you to review, and never removes anything on its own.',
+    h3: 'Keep several plans, checked against the latest data when you open them',
+    body: 'Keep several named plans per term, duplicate them, and export them as a file. When you open a plan, KCP checks its sections against the latest data. If a time, room or exam date changed, or a section is no longer listed, it shows the old and new values for you to review, and never removes anything on its own.',
     fig1: 'The updates dialog shows the old and new time of a section that changed.',
     fig2: 'The plan menu, where you create, switch, import and export plans.',
     alt1: 'The Changes to your planned sections dialog. Calculus 1, section 33, shows its old and new time, with a Mark all as reviewed button.',
@@ -148,7 +149,7 @@ export const en = {
     items: [
       [
         'Suggest a plan',
-        'After a curriculum search, KCP offers up to three clash free timetables of the curriculum subjects, shaped for mornings, afternoons or fewer days.',
+        'After a curriculum search, KCP offers up to three clash free timetables from the faculty and curriculum subjects of group 2, never GenEd or free electives, shaped for mornings, afternoons, fewer days and more.',
       ],
       [
         'Compare sections',
@@ -164,7 +165,7 @@ export const en = {
       ],
       ['Thai and English', 'Switch the interface language at any time.'],
     ],
-    fig: 'Suggested plans shaped for mornings, three options side by side.',
+    fig: 'Suggested plans for mornings, up to three clash free options side by side, each ready to use.',
     alt: 'A suggested plan for mornings, with its credits, subjects, class days, a small timetable and a Use this plan button.',
   },
   steps: {
