@@ -1718,6 +1718,20 @@ figcaption:empty {
   margin-top: 8px;
 }
 
+/* The leading block's h1 takes the h2 scale, so both language blocks share one rhythm
+   and a Thai heading never sits in a line box shorter than its marks. */
+.notfound__block h1 {
+  font-size: 36px;
+  line-height: 48px;
+}
+
+@media (max-width: 639px) {
+  .notfound__block h1 {
+    font-size: 30px;
+    line-height: 42px;
+  }
+}
+
 /* Narrow screens */
 
 /* A Thai compound the line breaker would split stays whole at every width. */

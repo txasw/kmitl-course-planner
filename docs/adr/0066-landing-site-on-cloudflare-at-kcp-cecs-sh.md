@@ -30,7 +30,8 @@ same alternates.
 `wrangler.jsonc` at the repository root describes the deployment: a Worker named `kcp-landing`
 with no script, `assets.directory` set to `./site`, `html_handling` set to `auto-trailing-slash`
 so `/en` resolves to `/en/`, `not_found_handling` set to `404-page` so an unknown path answers
-404 with the bilingual `404.html`, and one route, `kcp.cecs.sh`, attached as a custom domain. The
+404 with the bilingual not found page nearest it, `404.html` led in Thai at the root and
+`en/404.html` led in English under `/en/`, and one route, `kcp.cecs.sh`, attached as a custom domain. The
 `workers.dev` address and preview URLs are off, so the pages are public at one address only and
 are never indexed twice. The owner deploys it, either through Workers Builds connected to the
 repository with no build command and `npx wrangler deploy` as the deploy command, or by running

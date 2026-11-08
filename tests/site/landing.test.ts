@@ -375,6 +375,7 @@ describe('site files', () => {
     const files = await siteTextFiles();
     expect([...files.keys()].sort()).toEqual([
       '404.html',
+      'en/404.html',
       'en/index.html',
       'index.html',
       'sitemap.xml',
@@ -397,8 +398,15 @@ describe('site files', () => {
     expect(sitemap.match(/hreflang="x-default"/g)).toHaveLength(2);
   });
 
-  it('keeps the not found page out of the index', () => {
-    const doc = load('404.html');
+  it.each([
+    ['404.html', 'th'],
+    ['en/404.html', 'en'],
+  ])('keeps the not found page %s out of the index', (file, lang) => {
+    const doc = load(file);
+    expect(doc.documentElement.lang).toBe(lang);
+    expect(
+      doc.querySelector('h1')?.closest('[lang]')?.getAttribute('lang'),
+    ).toBe(lang);
     expect(
       doc.querySelector('meta[name="robots"]')?.getAttribute('content'),
     ).toBe('noindex');
