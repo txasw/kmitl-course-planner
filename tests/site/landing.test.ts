@@ -280,6 +280,22 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
     }
   });
 
+  it('loads the script in the head before the stylesheet, without defer', () => {
+    const head = [...doc.head.children];
+    const script = head.findIndex(
+      (el) =>
+        el.tagName === 'SCRIPT' &&
+        el.getAttribute('src')?.startsWith('/assets/site.js') === true,
+    );
+    const sheet = head.findIndex(
+      (el) => el.tagName === 'LINK' && el.getAttribute('rel') === 'stylesheet',
+    );
+    expect(script).toBeGreaterThan(-1);
+    expect(script).toBeLessThan(sheet);
+    expect(head[script]?.hasAttribute('defer')).toBe(false);
+    expect(head[script]?.hasAttribute('async')).toBe(false);
+  });
+
   it('runs no analytics', () => {
     const scripts = [...doc.querySelectorAll('script[src]')].map(
       (script) => script.getAttribute('src')?.split('?')[0],
@@ -526,6 +542,41 @@ describe('site files', () => {
         tintOverWhite(color, EVENT_TINT_ALPHA),
       );
     });
+  });
+
+  // Progressive enhancement: a reader without the script, or who prefers reduced motion,
+  // sees every block. Any rule that hides or moves something at rest therefore applies
+  // only under the .motion class the script sets. The FAQ chevron's turn is a state,
+  // not motion.
+  it('hides and moves nothing at rest outside the motion class', () => {
+    const css = readFileSync(join(SITE, 'assets/site.css'), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/@keyframes[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '');
+    const offenders: string[] = [];
+    for (const [, prelude = '', body = ''] of css.matchAll(
+      /([^{}]+)\{([^{}]*)\}/g,
+    )) {
+      const decls = body.split(';').map((d) => d.trim());
+      const hides = decls.some((d) => /^opacity:\s*0$/.test(d));
+      const moves = decls.some((d) => {
+        const value = /^transform:\s*(.+)$/.exec(d)?.[1];
+        return (
+          value !== undefined && value !== 'none' && value !== 'rotate(180deg)'
+        );
+      });
+      if (!hides && !moves) continue;
+      for (const selector of prelude.split(',')) {
+        if (!selector.trim().startsWith('.motion')) {
+          offenders.push(selector.trim());
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it('listens to no scroll event', () => {
+    const script = readFileSync(join(SITE, 'assets/site.js'), 'utf8');
+    expect(script).not.toMatch(/addEventListener\(\s*['"]scroll/);
   });
 
   it('loads no remote url from the stylesheet', () => {

@@ -1,6 +1,7 @@
 // Renders one locale of the landing page to static HTML (ADR-0066). The page carries
-// no framework runtime: plain HTML, one local stylesheet, and one script that only
-// enhances the page. Copy comes from copy.th.mjs and copy.en.mjs, the dedupe rows and
+// no framework runtime: plain HTML, one local stylesheet, and one small script in the
+// head that turns the motion on and enhances the page; without it every block shows its
+// final state. Copy comes from copy.th.mjs and copy.en.mjs, the dedupe rows and
 // counts from site-data.mjs, and the image files from the encoder's manifest.
 
 import { shotPath } from './shots.mjs';
@@ -140,7 +141,7 @@ const PHONE = '(max-width: 639px)';
 
 /** A screenshot plate with no caption: the statement beside it says what it shows. */
 function plate(manifest, id, locale, alt, sizes, className = 'plate') {
-  return `<figure class="${className}">${picture(manifest, id, locale, { alt, sizes, className: 'plate__img' })}</figure>`;
+  return `<figure class="${className}" data-reveal>${picture(manifest, id, locale, { alt, sizes, className: 'plate__img' })}</figure>`;
 }
 
 // The section links name the page they belong to only when the header sits on another
@@ -184,7 +185,7 @@ ${ruler()}
 <p class="lede">${copy.hero.lede}</p>
 ${ctaRow(copy, 'hero')}
 </div>
-<div class="frame">
+<div class="frame-rise"><div class="frame">
 <div class="frame__bar" aria-hidden="true"><span class="frame__dots"><i></i><i></i><i></i></span><span class="frame__url">${ICONS.lock}<span>regis.reg.kmitl.ac.th/#/teach_table_selector</span></span></div>
 ${picture(manifest, 's-hero', locale, {
   alt: copy.hero.alt,
@@ -193,7 +194,7 @@ ${picture(manifest, 's-hero', locale, {
   className: 'frame__img',
   art: [{ id: 's-hero-crop', media: PHONE, sizes: CROP_SIZES }],
 })}
-</div>
+</div></div>
 </div>
 </section>`;
 }
@@ -201,8 +202,8 @@ ${picture(manifest, 's-hero', locale, {
 /** A statement: one headline and one line under it, the unit every screen is built on. */
 function statement(id, h2, sub) {
   return `<div class="statement">
-<h2 id="${id}-title" class="statement__h">${h2}</h2>
-<p class="statement__sub">${sub}</p>
+<h2 id="${id}-title" class="statement__h" data-reveal>${h2}</h2>
+<p class="statement__sub" data-reveal>${sub}</p>
 </div>`;
 }
 
@@ -353,12 +354,12 @@ function more(copy) {
   const items = copy.more.items
     .map(
       ([term, def], i) =>
-        `<div class="fact">${FACT_ICONS[i] ?? ''}<dt>${term}</dt><dd>${def}</dd></div>`,
+        `<div class="fact" data-reveal data-i="${String(i)}">${FACT_ICONS[i] ?? ''}<dt>${term}</dt><dd>${def}</dd></div>`,
     )
     .join('');
   return `<section class="screen more" aria-labelledby="more-title">
 <div class="container">
-<h2 id="more-title" class="statement__h">${copy.more.h2}</h2>
+<h2 id="more-title" class="statement__h" data-reveal>${copy.more.h2}</h2>
 <dl class="facts">${items}</dl>
 </div>
 </section>`;
@@ -404,7 +405,7 @@ function faq(copy) {
     )
     .join('');
   return `<section class="screen faq" id="faq" aria-labelledby="faq-title">
-<div class="container"><h2 id="faq-title" class="statement__h">${copy.faq.h2}</h2><div class="faq__list">${items}</div></div>
+<div class="container"><h2 id="faq-title" class="statement__h" data-reveal>${copy.faq.h2}</h2><div class="faq__list">${items}</div></div>
 </section>`;
 }
 
@@ -516,8 +517,8 @@ ${
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/kcp-display.woff2" as="font" type="font/woff2" crossorigin>
 ${preload}
+<script src="/assets/site.js"></script>
 <link rel="stylesheet" href="/assets/site.css">
-<script src="/assets/site.js" defer></script>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KCP">
 <meta property="og:title" content="${attr(title)}">
