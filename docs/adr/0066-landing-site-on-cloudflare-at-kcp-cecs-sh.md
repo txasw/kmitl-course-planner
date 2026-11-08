@@ -147,7 +147,7 @@ Content. The page now holds one idea per screen. The search, conflict, narrow wi
 and getting started sections are gone, with six of the ten FAQ entries; each remaining feature is
 one headline with one line under it, and the main text without the dedupe table and the story
 grid fell from about 8,100 to about 2,250 Thai characters and from about 1,600 to about 420
-English words, and each fact is said once: the touch note sits only in the closing band, the
+English words, and each fact is said once: the touch note shows once in each install row and only on a coarse pointer, the
 footer disclaimer is one sentence, and the FAQ answers only what the body does not. Ten screenshots are cut from the shot list and their capture steps removed; the
 kept masters are re-encoded without a recapture. Spacing runs on one scale of section, media, sub
 line and call to action gaps.
@@ -157,8 +157,11 @@ H, which now lives in `scripts/landing/story-plan.mjs` for both the capture and 
 `storyBlocks` reads the exam capture for every block's day, times, name, section and credits, and
 the clash, so nothing in the grid is typed by hand. Blocks are placed by day, hour and span
 classes the stylesheet defines for each orientation, days as rows from 640 px and as columns
-below, as ADR-0043 orients the product. The dedupe statement quotes the subject search capture,
-499 rows that hold 44 sections, from `subjectSearchCounts`.
+below, as ADR-0043 orients the product. Every block leads with its subject id and shows its name
+under it where the page may; 01006021, whose Thai name holds a reserved term, shows its id alone in
+both languages, and a phone, whose day columns would break Thai names inside words, labels every
+block by its id. The dedupe statement quotes the same category sample the table under it shows,
+from `dedupeCounts`, so the claim and the proof are one sample.
 
 Motion. This reverses the first version's still page. `site.js` now loads in the head, before the
 stylesheet and without defer, and sets `.motion` unless the reader prefers reduced motion and
@@ -166,20 +169,22 @@ stylesheet and without defer, and sets `.motion` unless the reader prefers reduc
 before the first layout. Without the script, or with reduced motion, every block renders its
 final state; a site test fails if any rule outside `.motion` sets opacity 0 or a transform. Only
 transform and opacity animate, rows and blocks move inside boxes that keep their size, and
-measured cumulative layout shift is 0. Path A, in Chrome, Edge and Safari 26, scrubs each moment on
-a scroll or view timeline; path B, elsewhere, plays the same end states with transitions from
-classes that intersection observers set, with no scroll listener anywhere. The moments are a
-timed hero entrance, the product frame standing up from a tilt in a pinned stage, the dedupe
-merge in a pinned stage that the scroll alone plays, the three beat timetable story, one reveal per statement, plate parallax on wide
-windows, and the closing band. Path B finds pinned progress with zero height sentinels watched by
-an observer whose band runs from far above the window down to the line under the header, so a
-fast scroll that jumps a sentinel past the line in one frame still changes its state.
+measured cumulative layout shift is 0. Path A, in Chrome, Edge and Safari 26, scrubs the reveals,
+the hero frame, the plate parallax and the closing band on a scroll or view timeline; path B,
+elsewhere, plays the same end states with transitions from classes that intersection observers
+set, with no scroll listener anywhere. The two pinned scenes, the dedupe merge and the three beat
+timetable story, step on their own clock in both paths, as the pacing note below records. Pinned
+progress comes from zero height sentinels, each placed one header height above its point and
+watched by an observer whose band runs from far above the window down to its top edge, with
+margins in pixels and percentages only: setting them up reads no size and forces no layout, and a
+fast scroll that jumps a sentinel past the edge in one frame still changes its state.
 
 The dedupe table is now a set of fixed height grid rows on a stage card, two short lines a row on
 a phone. Each row carries its raw index and its section's slot, and the merge moves it by
 `translateY((slot - index) * row height)`; the earlier fold, which animated row height, is
-removed. The merge runs in steps so no two texts share a place at partial opacity: the repeats
-fade where they stand, the sections close up, then each counter and label swap empties its box
+removed. The merge runs in two steps so no two texts share a place at partial opacity and the
+counter always names what the table shows: the repeats fade where they stand while the counter
+turns from rows to sections, then the sections close up and each label swap empties its box
 before the next text enters. The stage card is drawn as a head, a body that folds away and a foot
 that rises, so it shrinks to the merged rows by transforms alone. The stage pins on any window at
 least 540 px tall, with 34 px and then 26 px rows on shorter windows. The merge toggle the first
@@ -189,20 +194,28 @@ the chips that count their listings, under a counter that names both numbers. Th
 are hidden from assistive technology in every state and the caption states the merged count in
 text, so a screen reader always hears the same result the page shows at rest.
 
-Browser marks. The install buttons first carried a generic extension glyph. The Firefox button
-now carries the Firefox logo, served from `site/assets/brand/` under a content hash like the other
-assets and shown unmodified at its own colours and proportions, with empty alt text because the
-label names the browser. Mozilla's trademark policy lets a site use its logos to link to a product
-Mozilla hosts, here the add-on's listing on addons.mozilla.org, and asks for a notice, which joins
-the footer's trademark sentence. Google asks for approval through its Partner Marketing Hub before
-a Google product icon, the Chrome logo or the Web Store icon, appears on another site, and its
-Chrome Web Store badge may only be resized, never altered, and must stay legible, which it is not
-at the height of a button. The Chrome button therefore carries its label alone until that approval
-is granted. The guidelines this relies on:
+Browser marks. The install buttons first carried a generic extension glyph, then a labelled
+Firefox button with the Firefox logo beside a Chrome button with its label alone. The owner then
+chose the stores' own badges: both install rows, in the hero and the closing band, are now Google's
+Available in the Chrome Web Store badge and Mozilla's Get the add-on badge. Google lets a site use
+its badge without approval when the badge links to the item's page in the store, is changed in no
+way but resizing in proportion, stays legible and fully visible, keeps some distance from other
+logos and is not the page's primary element. Mozilla offers its badge, as two PNG sizes and an SVG,
+to link to the add-on's listing on addons.mozilla.org. The files were downloaded once and are
+served from `site/assets/brand/` under a content hash like every other asset: the SVG for Mozilla,
+and for Google the largest PNG of the bordered variant, 496 by 150, since Google publishes no SVG
+and its three PNG sizes differ in proportion, so a srcset across them would change the badge's
+shape between screens. The bordered variant keeps an edge on the grey closing band as on white.
+Neither store publishes a Thai badge, so both pages show the English ones, each with the lang
+attribute set to English and alt text equal to the badge's own words, so the link is named by what
+it shows. Both badges render at one height, 56 px, or on a narrow phone the height at which the
+pair fits one row with 12 px between them. A Firefox visitor sees the Firefox badge first. The web
+version stays as a quiet pill of the same height after the pair, the touch note follows the badges
+on a coarse pointer, and the Firefox logo file the earlier button used is removed. The footer's
+trademark sentence names Chrome, the Chrome logo and Chrome Web Store as Google's, and Firefox and
+the Firefox logo as Mozilla's, since both badges carry those marks. The guidelines this relies on:
 
 - https://developer.chrome.com/docs/webstore/branding
-- https://about.google/brand-resource-center/guidance/
-- https://partnermarketinghub.withgoogle.com/brands/google/branding-guidelines/how-to-show-googles-brand/
 - https://www.mozilla.org/en-US/foundation/trademarks/policy/
 - https://extensionworkshop.com/documentation/publish/promoting-your-extension/
 
@@ -215,3 +228,22 @@ band rises, and each beat holds fully readable before the next starts. Path B mi
 through its sentinel positions. Scroll snapping was rejected because it fights a reader who wants
 to move on. Outside the pinned scenes the sections share one gap that grows with the window
 height, from 96 px to 144 px, and the statement screens no longer fill a whole window each.
+
+Fast scrollers. Scrubbing still let a fast flick blur the pinned scenes: measured with CDP scroll
+gestures at 3,000 to 6,000 px/s, each story beat was fully visible for 16 to 116 ms and the merged
+dedupe state for 17 to 200 ms. Both scenes now step when the scroll crosses each of their lines:
+`site.js` moves `data-step` one step at a time, each step plays its transitions in about a second
+on its own clock, and a queued step waits until the one before has finished and held for 600 ms,
+so a reader who flicks and stops anywhere in a scene sees every step whole, in order. Scrolling
+back steps down the same way with short reverse transitions. Measured again with the same
+gestures, a flick that stops inside the dedupe track shows the first step for about 1.4 s and then
+the merged state for the rest of the window, and a flick that stops inside the story shows each
+beat it passes for about 0.9 s before the next, then holds the current one. A flick that passes a
+whole scene in under half a second now sees none of it rather than a blur, which is the trade the
+owner chose. The long tracks and their rest ranges stay, the story now pins on any window at least
+540 px tall with rows sized from the window height, and the dark band rises over the end of the
+dedupe track so the page turns dark while the reader is still moving. Proximity scroll snapping
+was tried again with snap points at each rest and rejected: a slow wheel scroll that came near a
+point was pulled back to it on every notch and could not move on. Smooth scrolling is dropped for
+the same reason it hurt here: a focus move or a section link ran through several screens of pinned
+track and played every scene in fast forward.
