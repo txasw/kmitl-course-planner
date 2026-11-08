@@ -232,6 +232,22 @@
     drive();
   }
 
+  // The story's three beats start at these fractions of its pinned scroll.
+  const STORY_BEATS = [0, 0.38, 0.64];
+
+  function enhanceStory(track) {
+    const pin = track.querySelector('.story__pin');
+    if (pin === null) return;
+    track.querySelectorAll('.story__block[data-b]').forEach((block) => {
+      indexVar(block, 'data-b', '--b');
+    });
+    if (scrollDriven()) return;
+    pin.dataset.beat = '0';
+    watchSentinels(track, STORY_BEATS, (index) => {
+      pin.dataset.beat = String(index + 1);
+    });
+  }
+
   // Both language pages share their section ids, so switching language keeps the reader
   // at the section the address names instead of returning them to the top.
   const SHARED_SECTIONS = new Set(['features', 'privacy', 'faq', 'download']);
@@ -255,6 +271,7 @@
     standHeroFrame();
     if ('IntersectionObserver' in window) {
       document.querySelectorAll('[data-dedupe]').forEach(enhanceDedupe);
+      document.querySelectorAll('.story__track').forEach(enhanceStory);
     }
     keepSectionAcrossLanguages();
   });
