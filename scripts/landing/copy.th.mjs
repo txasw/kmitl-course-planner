@@ -7,9 +7,11 @@ const NAME = EN('KCP: Course Planner for KMITL');
 export const th = {
   lang: 'th',
   path: '/',
-  title: 'KCP: Course Planner for KMITL ตัววางแผนตารางเรียน สจล.',
+  // The verb phrase students search with leads the Thai half of the title and the
+  // description, after the brand.
+  title: 'KCP: Course Planner for KMITL | จัดตารางเรียน สจล.',
   description:
-    'KCP ส่วนขยาย Chrome และ Firefox สำหรับนักศึกษา สจล. (KMITL) เปลี่ยนผลค้นหารายวิชาเป็นตารางเรียนรายสัปดาห์แบบลากวาง รวมรายการที่ซ้ำ แจ้งเวลาเรียนและเวลาสอบที่ชนกัน ใช้ฟรี',
+    'จัดตารางเรียน สจล. (KMITL) ก่อนลงทะเบียนด้วย KCP ส่วนขยาย Chrome และ Firefox เปลี่ยนผลค้นหารายวิชาเป็นตารางเรียนรายสัปดาห์แบบลากวาง รวมรายการที่ซ้ำ แจ้งเวลาเรียนและเวลาสอบที่ชนกัน ใช้ฟรี',
   ogLocale: 'th_TH',
   ogLocaleAlt: 'en_US',
   ogImageAlt:
