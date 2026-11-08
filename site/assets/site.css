@@ -352,13 +352,20 @@ h4 {
       var(--grid-quarter) 0 1px,
       transparent 1px 2.5%
     );
+  /* Full strength in the ruler band, then faint behind the headline and the lede, so
+     no hairline cuts through the text. */
   -webkit-mask-image: linear-gradient(
     to bottom,
-    #000 0%,
-    #000 55%,
+    #000 0 40px,
+    rgba(0, 0, 0, 0.4) 40px,
     transparent 100%
   );
-  mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0 40px,
+    rgba(0, 0, 0, 0.4) 40px,
+    transparent 100%
+  );
   pointer-events: none;
 }
 
@@ -378,6 +385,25 @@ h4 {
   position: absolute;
   top: 9px;
   padding-left: 6px;
+}
+
+/* The day opens and closes on a stronger rule than the hours between. */
+.field__ruler::before,
+.field__ruler::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 40px;
+  background: var(--grid-noon);
+}
+
+.field__ruler::before {
+  left: 0;
+}
+
+.field__ruler::after {
+  right: 0;
 }
 
 .field__ruler span:nth-child(1) {
@@ -411,13 +437,19 @@ h4 {
 .field__ruler span:nth-child(10) {
   left: 90%;
 }
+/* The closing hour sits inside the right edge rather than past it. */
 .field__ruler span:nth-child(11) {
-  display: none;
+  left: 100%;
+  padding-right: 6px;
+  padding-left: 0;
+  transform: translateX(-100%);
 }
 
-/* Below 640 px every other hour is hidden so the labels never touch; noon stays. */
+/* Below 640 px every other hour is hidden so the labels never touch; noon stays. The
+   closing hour would meet 16:00, so the end rule alone marks it there. */
 @media (max-width: 639px) {
-  .field__ruler span:nth-child(even) {
+  .field__ruler span:nth-child(even),
+  .field__ruler span:nth-child(11) {
     display: none;
   }
 }
