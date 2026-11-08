@@ -33,8 +33,8 @@
       media="(min-width: 640px)"
       fetchpriority="high"
     />
-    <link rel="stylesheet" href="/assets/site.css?v=1ad72e208b" />
-    <script src="/assets/site.js?v=ed7ab2c09b" defer></script>
+    <link rel="stylesheet" href="/assets/site.css?v=d999206e5c" />
+    <script src="/assets/site.js?v=77632fe131" defer></script>
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="KCP" />
     <meta
@@ -383,359 +383,445 @@
               KCP merges the repeats into one entry per section.
             </p>
           </div>
+        </div>
+        <div class="container dedupe-track">
           <div
-            class="dedupe-wrap"
+            class="dedupe-pin"
             data-dedupe
             data-label="Merge repeated rows"
             data-merged="Merged into 4 sections from 13 rows."
             data-unmerged="Showing all 13 rows."
           >
-            <table class="dedupe" id="dedupe-table" role="table">
-              <caption>
-                Real sample: category 90592xxx, semester 1/2569, 13 rows from 6
-                curricula.<span
-                  class="visually-hidden"
-                  data-dedupe-state
-                ></span>
-              </caption>
-              <thead role="rowgroup">
-                <tr role="row">
-                  <th scope="col" role="columnheader">Listed under</th>
-                  <th scope="col" role="columnheader">Subject id</th>
-                  <th scope="col" role="columnheader">Subject</th>
-                  <th scope="col" role="columnheader">Section</th>
-                  <th scope="col" role="columnheader">Day and time</th>
-                  <th scope="col" role="columnheader">Seats</th>
-                </tr>
-              </thead>
-              <tbody role="rowgroup">
-                <tr role="row" class="dedupe__row subject-8" data-row="first">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold">
-                      <div>
-                        Civil Engineering, year 4
+            <div class="dedupe-stage">
+              <p class="count" aria-hidden="true">
+                <span class="count__rows"
+                  ><span class="count__num">13</span> rows</span
+                >
+                <span class="count__join">into</span>
+                <span class="count__sections"
+                  ><span class="count__num">4</span> sections</span
+                >
+              </p>
+              <div class="dedupe-controls"></div>
+              <div class="dedupe-table">
+                <table class="dedupe" id="dedupe-table" role="table">
+                  <caption>
+                    Real sample: category 90592xxx, semester 1/2569, 13 rows
+                    from 6 curricula.<span
+                      class="visually-hidden"
+                      data-dedupe-state
+                    ></span>
+                  </caption>
+                  <thead role="rowgroup">
+                    <tr role="row">
+                      <th scope="col" role="columnheader">Listed under</th>
+                      <th scope="col" role="columnheader">Subject id</th>
+                      <th scope="col" role="columnheader">Subject</th>
+                      <th scope="col" role="columnheader">Section</th>
+                      <th scope="col" role="columnheader">Day and time</th>
+                      <th scope="col" role="columnheader">Seats</th>
+                    </tr>
+                  </thead>
+                  <tbody role="rowgroup">
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-8"
+                      data-row="first"
+                      data-i="0"
+                      data-slot="0"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="Civil Engineering, year 4"
+                      >
+                        <span class="dedupe__group"
+                          >Civil Engineering, year 4</span
+                        >
                         <span class="dedupe__chip"
                           >Listed under 4 curricula</span
                         >
-                      </div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592008</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold"><div>TODAY'S THAI SOCIETY</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 Lecture</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>Fri 09:00-12:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="Seats">62/80</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-0" data-row="first">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold">
-                      <div>
-                        Civil Engineering, year 4
+                      </td>
+                      <td role="cell" class="dedupe__id">90592008</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="TODAY'S THAI SOCIETY"
+                      >
+                        TODAY'S THAI SOCIETY
+                      </td>
+                      <td role="cell" class="dedupe__section">901 Lecture</td>
+                      <td role="cell" class="dedupe__time">Fri 09:00-12:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="Seats">62/80</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-0"
+                      data-row="first"
+                      data-i="1"
+                      data-slot="1"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="Civil Engineering, year 4"
+                      >
+                        <span class="dedupe__group"
+                          >Civil Engineering, year 4</span
+                        >
                         <span class="dedupe__chip"
                           >Listed under 3 curricula</span
                         >
-                      </div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592033</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 Lecture</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>Fri 08:00-10:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="Seats">Full</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-0" data-row="first">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold">
-                      <div>
-                        Civil Engineering, year 4
+                      </td>
+                      <td role="cell" class="dedupe__id">90592033</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="ACTIVE AGING SOCIETY"
+                      >
+                        ACTIVE AGING SOCIETY
+                      </td>
+                      <td role="cell" class="dedupe__section">901 Lecture</td>
+                      <td role="cell" class="dedupe__time">Fri 08:00-10:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="Seats">Full</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-0"
+                      data-row="first"
+                      data-i="2"
+                      data-slot="2"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="Civil Engineering, year 4"
+                      >
+                        <span class="dedupe__group"
+                          >Civil Engineering, year 4</span
+                        >
                         <span class="dedupe__chip"
                           >Listed under 3 curricula</span
                         >
-                      </div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592033</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>902 Practice</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>Fri 10:00-12:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="Seats">Full</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-8" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold">
-                      <div>Chemical Engineering, year 4</div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592008</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold"><div>TODAY'S THAI SOCIETY</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 Lecture</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>Fri 09:00-12:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="Seats">62/80</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-4" data-row="first">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold">
-                      <div>
-                        Industrial Engineering, year 4
+                      </td>
+                      <td role="cell" class="dedupe__id">90592033</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="ACTIVE AGING SOCIETY"
+                      >
+                        ACTIVE AGING SOCIETY
+                      </td>
+                      <td role="cell" class="dedupe__section">902 Practice</td>
+                      <td role="cell" class="dedupe__time">Fri 10:00-12:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="Seats">Full</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-8"
+                      data-row="repeat"
+                      data-i="3"
+                      data-slot="0"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="Chemical Engineering, year 4"
+                      >
+                        <span class="dedupe__group"
+                          >Chemical Engineering, year 4</span
+                        >
+                      </td>
+                      <td role="cell" class="dedupe__id">90592008</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="TODAY'S THAI SOCIETY"
+                      >
+                        TODAY'S THAI SOCIETY
+                      </td>
+                      <td role="cell" class="dedupe__section">901 Lecture</td>
+                      <td role="cell" class="dedupe__time">Fri 09:00-12:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="Seats">62/80</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-4"
+                      data-row="first"
+                      data-i="4"
+                      data-slot="3"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="Industrial Engineering, year 4"
+                      >
+                        <span class="dedupe__group"
+                          >Industrial Engineering, year 4</span
+                        >
                         <span class="dedupe__chip"
                           >Listed under 3 curricula</span
                         >
-                      </div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592004</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold"><div>CONTEMPORARY CULTURE</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 Lecture</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>Fri 13:00-16:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="Seats">85/90</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-4" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold">
-                      <div>Faculty of Engineering, no curriculum, year 4</div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592004</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold"><div>CONTEMPORARY CULTURE</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 Lecture</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>Fri 13:00-16:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="Seats">85/90</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-8" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold"><div>Architecture, year 5</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592008</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold"><div>TODAY'S THAI SOCIETY</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 Lecture</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>Fri 09:00-12:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="Seats">62/80</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-0" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold"><div>Architecture, year 5</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592033</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 Lecture</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>Fri 08:00-10:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="Seats">Full</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-0" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold"><div>Architecture, year 5</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592033</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>902 Practice</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>Fri 10:00-12:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="Seats">Full</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-4" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold"><div>General Education</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592004</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold"><div>CONTEMPORARY CULTURE</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 Lecture</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>Fri 13:00-16:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="Seats">85/90</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-8" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold"><div>General Education</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592008</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold"><div>TODAY'S THAI SOCIETY</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 Lecture</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>Fri 09:00-12:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="Seats">62/80</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-0" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold"><div>General Education</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592033</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 Lecture</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>Fri 08:00-10:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="Seats">Full</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-0" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold"><div>General Education</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592033</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>902 Practice</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>Fri 10:00-12:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="Seats">Full</span></div>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <p class="dedupe__result">Each section is listed once.</p>
-            <p
-              class="visually-hidden"
-              role="status"
-              aria-live="polite"
-              data-dedupe-status
-            ></p>
+                      </td>
+                      <td role="cell" class="dedupe__id">90592004</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="CONTEMPORARY CULTURE"
+                      >
+                        CONTEMPORARY CULTURE
+                      </td>
+                      <td role="cell" class="dedupe__section">901 Lecture</td>
+                      <td role="cell" class="dedupe__time">Fri 13:00-16:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="Seats">85/90</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-4"
+                      data-row="repeat"
+                      data-i="5"
+                      data-slot="3"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="Faculty of Engineering, no curriculum, year 4"
+                      >
+                        <span class="dedupe__group"
+                          >Faculty of Engineering, no curriculum, year 4</span
+                        >
+                      </td>
+                      <td role="cell" class="dedupe__id">90592004</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="CONTEMPORARY CULTURE"
+                      >
+                        CONTEMPORARY CULTURE
+                      </td>
+                      <td role="cell" class="dedupe__section">901 Lecture</td>
+                      <td role="cell" class="dedupe__time">Fri 13:00-16:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="Seats">85/90</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-8"
+                      data-row="repeat"
+                      data-i="6"
+                      data-slot="0"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="Architecture, year 5"
+                      >
+                        <span class="dedupe__group">Architecture, year 5</span>
+                      </td>
+                      <td role="cell" class="dedupe__id">90592008</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="TODAY'S THAI SOCIETY"
+                      >
+                        TODAY'S THAI SOCIETY
+                      </td>
+                      <td role="cell" class="dedupe__section">901 Lecture</td>
+                      <td role="cell" class="dedupe__time">Fri 09:00-12:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="Seats">62/80</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-0"
+                      data-row="repeat"
+                      data-i="7"
+                      data-slot="1"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="Architecture, year 5"
+                      >
+                        <span class="dedupe__group">Architecture, year 5</span>
+                      </td>
+                      <td role="cell" class="dedupe__id">90592033</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="ACTIVE AGING SOCIETY"
+                      >
+                        ACTIVE AGING SOCIETY
+                      </td>
+                      <td role="cell" class="dedupe__section">901 Lecture</td>
+                      <td role="cell" class="dedupe__time">Fri 08:00-10:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="Seats">Full</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-0"
+                      data-row="repeat"
+                      data-i="8"
+                      data-slot="2"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="Architecture, year 5"
+                      >
+                        <span class="dedupe__group">Architecture, year 5</span>
+                      </td>
+                      <td role="cell" class="dedupe__id">90592033</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="ACTIVE AGING SOCIETY"
+                      >
+                        ACTIVE AGING SOCIETY
+                      </td>
+                      <td role="cell" class="dedupe__section">902 Practice</td>
+                      <td role="cell" class="dedupe__time">Fri 10:00-12:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="Seats">Full</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-4"
+                      data-row="repeat"
+                      data-i="9"
+                      data-slot="3"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="General Education"
+                      >
+                        <span class="dedupe__group">General Education</span>
+                      </td>
+                      <td role="cell" class="dedupe__id">90592004</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="CONTEMPORARY CULTURE"
+                      >
+                        CONTEMPORARY CULTURE
+                      </td>
+                      <td role="cell" class="dedupe__section">901 Lecture</td>
+                      <td role="cell" class="dedupe__time">Fri 13:00-16:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="Seats">85/90</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-8"
+                      data-row="repeat"
+                      data-i="10"
+                      data-slot="0"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="General Education"
+                      >
+                        <span class="dedupe__group">General Education</span>
+                      </td>
+                      <td role="cell" class="dedupe__id">90592008</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="TODAY'S THAI SOCIETY"
+                      >
+                        TODAY'S THAI SOCIETY
+                      </td>
+                      <td role="cell" class="dedupe__section">901 Lecture</td>
+                      <td role="cell" class="dedupe__time">Fri 09:00-12:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="Seats">62/80</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-0"
+                      data-row="repeat"
+                      data-i="11"
+                      data-slot="1"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="General Education"
+                      >
+                        <span class="dedupe__group">General Education</span>
+                      </td>
+                      <td role="cell" class="dedupe__id">90592033</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="ACTIVE AGING SOCIETY"
+                      >
+                        ACTIVE AGING SOCIETY
+                      </td>
+                      <td role="cell" class="dedupe__section">901 Lecture</td>
+                      <td role="cell" class="dedupe__time">Fri 08:00-10:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="Seats">Full</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-0"
+                      data-row="repeat"
+                      data-i="12"
+                      data-slot="2"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="General Education"
+                      >
+                        <span class="dedupe__group">General Education</span>
+                      </td>
+                      <td role="cell" class="dedupe__id">90592033</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="ACTIVE AGING SOCIETY"
+                      >
+                        ACTIVE AGING SOCIETY
+                      </td>
+                      <td role="cell" class="dedupe__section">902 Practice</td>
+                      <td role="cell" class="dedupe__time">Fri 10:00-12:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="Seats">Full</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p class="dedupe__result">Each section is listed once.</p>
+              </div>
+              <p
+                class="visually-hidden"
+                role="status"
+                aria-live="polite"
+                data-dedupe-status
+              ></p>
+            </div>
           </div>
         </div>
       </section>

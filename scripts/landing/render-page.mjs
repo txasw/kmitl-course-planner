@@ -211,10 +211,18 @@ function problem(copy, rowsHtml, counts, search) {
   const headers = p.headers
     .map((h) => `<th scope="col" role="columnheader">${h}</th>`)
     .join('');
+  // The counter repeats what the caption and the live status already say, so it is
+  // hidden from assistive technology. The toggle is added to the controls by site.js.
   return `<section class="screen problem" aria-labelledby="problem-title">
 <div class="container">
 ${statement('problem', p.h2(search), p.sub)}
-<div class="dedupe-wrap" data-dedupe data-label="${attr(p.toggle)}" data-merged="${attr(p.merged(counts))}" data-unmerged="${attr(p.unmerged(counts))}">
+</div>
+<div class="container dedupe-track">
+<div class="dedupe-pin" data-dedupe data-label="${attr(p.toggle)}" data-merged="${attr(p.merged(counts))}" data-unmerged="${attr(p.unmerged(counts))}">
+<div class="dedupe-stage">
+<p class="count" aria-hidden="true"><span class="count__rows">${p.countRows(counts)}</span> <span class="count__join">${p.countJoin}</span> <span class="count__sections">${p.countSections(counts)}</span></p>
+<div class="dedupe-controls"></div>
+<div class="dedupe-table">
 <table class="dedupe" id="dedupe-table" role="table">
 <caption>${p.caption(counts)}<span class="visually-hidden" data-dedupe-state></span></caption>
 <thead role="rowgroup"><tr role="row">${headers}</tr></thead>
@@ -223,7 +231,9 @@ ${rowsHtml}
 </tbody>
 </table>
 <p class="dedupe__result">${p.staticResult(counts)}</p>
+</div>
 <p class="visually-hidden" role="status" aria-live="polite" data-dedupe-status></p>
+</div>
 </div>
 </div>
 </section>`;

@@ -33,8 +33,8 @@
       media="(min-width: 640px)"
       fetchpriority="high"
     />
-    <link rel="stylesheet" href="/assets/site.css?v=1ad72e208b" />
-    <script src="/assets/site.js?v=ed7ab2c09b" defer></script>
+    <link rel="stylesheet" href="/assets/site.css?v=d999206e5c" />
+    <script src="/assets/site.js?v=77632fe131" defer></script>
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="KCP" />
     <meta
@@ -417,396 +417,455 @@
               >ละหนึ่งรายการ
             </p>
           </div>
+        </div>
+        <div class="container dedupe-track">
           <div
-            class="dedupe-wrap"
+            class="dedupe-pin"
             data-dedupe
             data-label="รวมแถวที่ซ้ำ"
             data-merged="รวมแล้ว เหลือ 4 กลุ่มเรียนจาก 13 แถว"
             data-unmerged="แสดงครบ 13 แถว"
           >
-            <table class="dedupe" id="dedupe-table" role="table">
-              <caption>
-                ตัวอย่างจริง หมวดวิชา 90592xxx
-                <span class="nw">ภาคการศึกษา</span>
-                1/2569 13 แถวจาก 6
-                <span class="nw">หลักสูตร</span
-                ><span class="visually-hidden" data-dedupe-state></span>
-              </caption>
-              <thead role="rowgroup">
-                <tr role="row">
-                  <th scope="col" role="columnheader">
-                    <span class="nw">หลักสูตร</span>ที่แสดงแถวนี้
-                  </th>
-                  <th scope="col" role="columnheader">รหัสวิชา</th>
-                  <th scope="col" role="columnheader">ชื่อวิชา</th>
-                  <th scope="col" role="columnheader">
-                    <span class="nw">กลุ่มเรียน</span>
-                  </th>
-                  <th scope="col" role="columnheader">วันและเวลา</th>
-                  <th scope="col" role="columnheader">
-                    <span class="nw">ที่นั่ง</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody role="rowgroup">
-                <tr role="row" class="dedupe__row subject-8" data-row="first">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold">
-                      <div>
-                        วิศวกรรมโยธา ชั้นปี 4
+            <div class="dedupe-stage">
+              <p class="count" aria-hidden="true">
+                <span class="count__rows"
+                  ><span class="count__num">13</span> แถว</span
+                >
+                <span class="count__join">เหลือ</span>
+                <span class="count__sections"
+                  ><span class="count__num">4</span>
+                  <span class="nw">กลุ่มเรียน</span></span
+                >
+              </p>
+              <div class="dedupe-controls"></div>
+              <div class="dedupe-table">
+                <table class="dedupe" id="dedupe-table" role="table">
+                  <caption>
+                    ตัวอย่างจริง หมวดวิชา 90592xxx
+                    <span class="nw">ภาคการศึกษา</span>
+                    1/2569 13 แถวจาก 6
+                    <span class="nw">หลักสูตร</span
+                    ><span class="visually-hidden" data-dedupe-state></span>
+                  </caption>
+                  <thead role="rowgroup">
+                    <tr role="row">
+                      <th scope="col" role="columnheader">
+                        <span class="nw">หลักสูตร</span>ที่แสดงแถวนี้
+                      </th>
+                      <th scope="col" role="columnheader">รหัสวิชา</th>
+                      <th scope="col" role="columnheader">ชื่อวิชา</th>
+                      <th scope="col" role="columnheader">
+                        <span class="nw">กลุ่มเรียน</span>
+                      </th>
+                      <th scope="col" role="columnheader">วันและเวลา</th>
+                      <th scope="col" role="columnheader">
+                        <span class="nw">ที่นั่ง</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody role="rowgroup">
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-8"
+                      data-row="first"
+                      data-i="0"
+                      data-slot="0"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="วิศวกรรมโยธา ชั้นปี 4"
+                      >
+                        <span class="dedupe__group">วิศวกรรมโยธา ชั้นปี 4</span>
                         <span class="dedupe__chip"
                           >พบใน 4 <span class="nw">หลักสูตร</span></span
                         >
-                      </div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592008</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold">
-                      <div><span class="nw">สังคมไทยในวันนี้</span></div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 ทฤษฎี</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>ศ 09:00-12:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="ที่นั่ง">62/80</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-0" data-row="first">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold">
-                      <div>
-                        วิศวกรรมโยธา ชั้นปี 4
+                      </td>
+                      <td role="cell" class="dedupe__id">90592008</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="สังคมไทยในวันนี้"
+                      >
+                        <span class="nw">สังคมไทยในวันนี้</span>
+                      </td>
+                      <td role="cell" class="dedupe__section">901 ทฤษฎี</td>
+                      <td role="cell" class="dedupe__time">ศ 09:00-12:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="ที่นั่ง">62/80</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-0"
+                      data-row="first"
+                      data-i="1"
+                      data-slot="1"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="วิศวกรรมโยธา ชั้นปี 4"
+                      >
+                        <span class="dedupe__group">วิศวกรรมโยธา ชั้นปี 4</span>
                         <span class="dedupe__chip"
                           >พบใน 3 <span class="nw">หลักสูตร</span></span
                         >
-                      </div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592033</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold">
-                      <div><span class="nw">สังคมสูงวัยเชิงรุก</span></div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 ทฤษฎี</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>ศ 08:00-10:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="ที่นั่ง">เต็ม</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-0" data-row="first">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold">
-                      <div>
-                        วิศวกรรมโยธา ชั้นปี 4
+                      </td>
+                      <td role="cell" class="dedupe__id">90592033</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="สังคมสูงวัยเชิงรุก"
+                      >
+                        <span class="nw">สังคมสูงวัยเชิงรุก</span>
+                      </td>
+                      <td role="cell" class="dedupe__section">901 ทฤษฎี</td>
+                      <td role="cell" class="dedupe__time">ศ 08:00-10:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="ที่นั่ง">เต็ม</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-0"
+                      data-row="first"
+                      data-i="2"
+                      data-slot="2"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="วิศวกรรมโยธา ชั้นปี 4"
+                      >
+                        <span class="dedupe__group">วิศวกรรมโยธา ชั้นปี 4</span>
                         <span class="dedupe__chip"
                           >พบใน 3 <span class="nw">หลักสูตร</span></span
                         >
-                      </div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592033</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold">
-                      <div><span class="nw">สังคมสูงวัยเชิงรุก</span></div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>902 ปฏิบัติ</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>ศ 10:00-12:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="ที่นั่ง">เต็ม</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-8" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold"><div>วิศวกรรมเคมี ชั้นปี 4</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592008</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold">
-                      <div><span class="nw">สังคมไทยในวันนี้</span></div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 ทฤษฎี</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>ศ 09:00-12:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="ที่นั่ง">62/80</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-4" data-row="first">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold">
-                      <div>
-                        วิศวกรรมอุตสาหการ ชั้นปี 4
+                      </td>
+                      <td role="cell" class="dedupe__id">90592033</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="สังคมสูงวัยเชิงรุก"
+                      >
+                        <span class="nw">สังคมสูงวัยเชิงรุก</span>
+                      </td>
+                      <td role="cell" class="dedupe__section">902 ปฏิบัติ</td>
+                      <td role="cell" class="dedupe__time">ศ 10:00-12:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="ที่นั่ง">เต็ม</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-8"
+                      data-row="repeat"
+                      data-i="3"
+                      data-slot="0"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="วิศวกรรมเคมี ชั้นปี 4"
+                      >
+                        <span class="dedupe__group">วิศวกรรมเคมี ชั้นปี 4</span>
+                      </td>
+                      <td role="cell" class="dedupe__id">90592008</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="สังคมไทยในวันนี้"
+                      >
+                        <span class="nw">สังคมไทยในวันนี้</span>
+                      </td>
+                      <td role="cell" class="dedupe__section">901 ทฤษฎี</td>
+                      <td role="cell" class="dedupe__time">ศ 09:00-12:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="ที่นั่ง">62/80</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-4"
+                      data-row="first"
+                      data-i="4"
+                      data-slot="3"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="วิศวกรรมอุตสาหการ ชั้นปี 4"
+                      >
+                        <span class="dedupe__group"
+                          >วิศวกรรมอุตสาหการ ชั้นปี 4</span
+                        >
                         <span class="dedupe__chip"
                           >พบใน 3 <span class="nw">หลักสูตร</span></span
                         >
-                      </div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592004</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold">
-                      <div><span class="nw">วัฒนธรรมร่วมสมัย</span></div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 ทฤษฎี</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>ศ 13:00-16:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="ที่นั่ง">85/90</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-4" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold">
-                      <div>
-                        คณะวิศวกรรมศาสตร์ ไม่ระบุ<span class="nw"
-                          >หลักสูตร</span
+                      </td>
+                      <td role="cell" class="dedupe__id">90592004</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="วัฒนธรรมร่วมสมัย"
+                      >
+                        <span class="nw">วัฒนธรรมร่วมสมัย</span>
+                      </td>
+                      <td role="cell" class="dedupe__section">901 ทฤษฎี</td>
+                      <td role="cell" class="dedupe__time">ศ 13:00-16:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="ที่นั่ง">85/90</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-4"
+                      data-row="repeat"
+                      data-i="5"
+                      data-slot="3"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="คณะวิศวกรรมศาสตร์ ไม่ระบุหลักสูตร ชั้นปี 4"
+                      >
+                        <span class="dedupe__group"
+                          >คณะวิศวกรรมศาสตร์ ไม่ระบุ<span class="nw"
+                            >หลักสูตร</span
+                          >
+                          ชั้นปี 4</span
                         >
-                        ชั้นปี 4
-                      </div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592004</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold">
-                      <div><span class="nw">วัฒนธรรมร่วมสมัย</span></div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 ทฤษฎี</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>ศ 13:00-16:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="ที่นั่ง">85/90</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-8" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold"><div>สถาปัตยกรรมหลัก ชั้นปี 5</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592008</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold">
-                      <div><span class="nw">สังคมไทยในวันนี้</span></div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 ทฤษฎี</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>ศ 09:00-12:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="ที่นั่ง">62/80</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-0" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold"><div>สถาปัตยกรรมหลัก ชั้นปี 5</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592033</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold">
-                      <div><span class="nw">สังคมสูงวัยเชิงรุก</span></div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 ทฤษฎี</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>ศ 08:00-10:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="ที่นั่ง">เต็ม</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-0" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold"><div>สถาปัตยกรรมหลัก ชั้นปี 5</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592033</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold">
-                      <div><span class="nw">สังคมสูงวัยเชิงรุก</span></div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>902 ปฏิบัติ</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>ศ 10:00-12:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="ที่นั่ง">เต็ม</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-4" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold"><div>ศึกษาทั่วไป</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592004</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold">
-                      <div><span class="nw">วัฒนธรรมร่วมสมัย</span></div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 ทฤษฎี</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>ศ 13:00-16:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="ที่นั่ง">85/90</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-8" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold"><div>ศึกษาทั่วไป</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592008</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold">
-                      <div><span class="nw">สังคมไทยในวันนี้</span></div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 ทฤษฎี</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>ศ 09:00-12:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="ที่นั่ง">62/80</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-0" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold"><div>ศึกษาทั่วไป</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592033</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold">
-                      <div><span class="nw">สังคมสูงวัยเชิงรุก</span></div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>901 ทฤษฎี</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>ศ 08:00-10:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="ที่นั่ง">เต็ม</span></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr role="row" class="dedupe__row subject-0" data-row="repeat">
-                  <td role="cell" class="dedupe__grouping">
-                    <div class="fold"><div>ศึกษาทั่วไป</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__id">
-                    <div class="fold"><div>90592033</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__name">
-                    <div class="fold">
-                      <div><span class="nw">สังคมสูงวัยเชิงรุก</span></div>
-                    </div>
-                  </td>
-                  <td role="cell" class="dedupe__section">
-                    <div class="fold"><div>902 ปฏิบัติ</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__time">
-                    <div class="fold"><div>ศ 10:00-12:00</div></div>
-                  </td>
-                  <td role="cell" class="dedupe__seats">
-                    <div class="fold">
-                      <div><span data-label="ที่นั่ง">เต็ม</span></div>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <p class="dedupe__result">
-              แต่ละ<span class="nw">กลุ่มเรียน</span>แสดงเพียงครั้งเดียว
-            </p>
-            <p
-              class="visually-hidden"
-              role="status"
-              aria-live="polite"
-              data-dedupe-status
-            ></p>
+                      </td>
+                      <td role="cell" class="dedupe__id">90592004</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="วัฒนธรรมร่วมสมัย"
+                      >
+                        <span class="nw">วัฒนธรรมร่วมสมัย</span>
+                      </td>
+                      <td role="cell" class="dedupe__section">901 ทฤษฎี</td>
+                      <td role="cell" class="dedupe__time">ศ 13:00-16:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="ที่นั่ง">85/90</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-8"
+                      data-row="repeat"
+                      data-i="6"
+                      data-slot="0"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="สถาปัตยกรรมหลัก ชั้นปี 5"
+                      >
+                        <span class="dedupe__group"
+                          >สถาปัตยกรรมหลัก ชั้นปี 5</span
+                        >
+                      </td>
+                      <td role="cell" class="dedupe__id">90592008</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="สังคมไทยในวันนี้"
+                      >
+                        <span class="nw">สังคมไทยในวันนี้</span>
+                      </td>
+                      <td role="cell" class="dedupe__section">901 ทฤษฎี</td>
+                      <td role="cell" class="dedupe__time">ศ 09:00-12:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="ที่นั่ง">62/80</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-0"
+                      data-row="repeat"
+                      data-i="7"
+                      data-slot="1"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="สถาปัตยกรรมหลัก ชั้นปี 5"
+                      >
+                        <span class="dedupe__group"
+                          >สถาปัตยกรรมหลัก ชั้นปี 5</span
+                        >
+                      </td>
+                      <td role="cell" class="dedupe__id">90592033</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="สังคมสูงวัยเชิงรุก"
+                      >
+                        <span class="nw">สังคมสูงวัยเชิงรุก</span>
+                      </td>
+                      <td role="cell" class="dedupe__section">901 ทฤษฎี</td>
+                      <td role="cell" class="dedupe__time">ศ 08:00-10:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="ที่นั่ง">เต็ม</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-0"
+                      data-row="repeat"
+                      data-i="8"
+                      data-slot="2"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="สถาปัตยกรรมหลัก ชั้นปี 5"
+                      >
+                        <span class="dedupe__group"
+                          >สถาปัตยกรรมหลัก ชั้นปี 5</span
+                        >
+                      </td>
+                      <td role="cell" class="dedupe__id">90592033</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="สังคมสูงวัยเชิงรุก"
+                      >
+                        <span class="nw">สังคมสูงวัยเชิงรุก</span>
+                      </td>
+                      <td role="cell" class="dedupe__section">902 ปฏิบัติ</td>
+                      <td role="cell" class="dedupe__time">ศ 10:00-12:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="ที่นั่ง">เต็ม</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-4"
+                      data-row="repeat"
+                      data-i="9"
+                      data-slot="3"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="ศึกษาทั่วไป"
+                      >
+                        <span class="dedupe__group">ศึกษาทั่วไป</span>
+                      </td>
+                      <td role="cell" class="dedupe__id">90592004</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="วัฒนธรรมร่วมสมัย"
+                      >
+                        <span class="nw">วัฒนธรรมร่วมสมัย</span>
+                      </td>
+                      <td role="cell" class="dedupe__section">901 ทฤษฎี</td>
+                      <td role="cell" class="dedupe__time">ศ 13:00-16:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="ที่นั่ง">85/90</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-8"
+                      data-row="repeat"
+                      data-i="10"
+                      data-slot="0"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="ศึกษาทั่วไป"
+                      >
+                        <span class="dedupe__group">ศึกษาทั่วไป</span>
+                      </td>
+                      <td role="cell" class="dedupe__id">90592008</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="สังคมไทยในวันนี้"
+                      >
+                        <span class="nw">สังคมไทยในวันนี้</span>
+                      </td>
+                      <td role="cell" class="dedupe__section">901 ทฤษฎี</td>
+                      <td role="cell" class="dedupe__time">ศ 09:00-12:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="ที่นั่ง">62/80</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-0"
+                      data-row="repeat"
+                      data-i="11"
+                      data-slot="1"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="ศึกษาทั่วไป"
+                      >
+                        <span class="dedupe__group">ศึกษาทั่วไป</span>
+                      </td>
+                      <td role="cell" class="dedupe__id">90592033</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="สังคมสูงวัยเชิงรุก"
+                      >
+                        <span class="nw">สังคมสูงวัยเชิงรุก</span>
+                      </td>
+                      <td role="cell" class="dedupe__section">901 ทฤษฎี</td>
+                      <td role="cell" class="dedupe__time">ศ 08:00-10:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="ที่นั่ง">เต็ม</span>
+                      </td>
+                    </tr>
+                    <tr
+                      role="row"
+                      class="dedupe__row subject-0"
+                      data-row="repeat"
+                      data-i="12"
+                      data-slot="2"
+                    >
+                      <td
+                        role="cell"
+                        class="dedupe__grouping"
+                        title="ศึกษาทั่วไป"
+                      >
+                        <span class="dedupe__group">ศึกษาทั่วไป</span>
+                      </td>
+                      <td role="cell" class="dedupe__id">90592033</td>
+                      <td
+                        role="cell"
+                        class="dedupe__name"
+                        title="สังคมสูงวัยเชิงรุก"
+                      >
+                        <span class="nw">สังคมสูงวัยเชิงรุก</span>
+                      </td>
+                      <td role="cell" class="dedupe__section">902 ปฏิบัติ</td>
+                      <td role="cell" class="dedupe__time">ศ 10:00-12:00</td>
+                      <td role="cell" class="dedupe__seats">
+                        <span data-label="ที่นั่ง">เต็ม</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p class="dedupe__result">
+                  แต่ละ<span class="nw">กลุ่มเรียน</span>แสดงเพียงครั้งเดียว
+                </p>
+              </div>
+              <p
+                class="visually-hidden"
+                role="status"
+                aria-live="polite"
+                data-dedupe-status
+              ></p>
+            </div>
           </div>
         </div>
       </section>

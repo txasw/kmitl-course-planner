@@ -8,18 +8,19 @@ if (navigator.userAgent.includes('Firefox/')) {
   document.documentElement.classList.add('is-firefox');
 }
 
-const FOLD_MS = 300;
-const STAGGER_MS = 24;
-
-function reducedMotion() {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
-
-function enhanceDedupe(wrap) {
-  const table = wrap.querySelector('table');
-  const status = wrap.querySelector('[data-dedupe-status]');
-  const state = wrap.querySelector('[data-dedupe-state]');
-  if (table === null || status === null || state === null) return;
+function enhanceDedupe(pin) {
+  const table = pin.querySelector('table');
+  const controls = pin.querySelector('.dedupe-controls');
+  const status = pin.querySelector('[data-dedupe-status]');
+  const state = pin.querySelector('[data-dedupe-state]');
+  if (
+    table === null ||
+    controls === null ||
+    status === null ||
+    state === null
+  ) {
+    return;
+  }
   const repeats = [...table.querySelectorAll('tr[data-row="repeat"]')];
 
   const button = document.createElement('button');
@@ -30,51 +31,21 @@ function enhanceDedupe(wrap) {
   const box = document.createElement('span');
   box.className = 'dedupe-toggle__box';
   box.setAttribute('aria-hidden', 'true');
-  button.append(box, document.createTextNode(wrap.dataset.label ?? ''));
-  wrap.insertBefore(button, table);
-
-  let timer = 0;
-
-  repeats.forEach((row, index) => {
-    row.style.setProperty('--fold-delay', `${String(index * STAGGER_MS)}ms`);
-  });
-
-  function settle(merged) {
-    window.clearTimeout(timer);
-    const wait = reducedMotion() ? 0 : FOLD_MS + STAGGER_MS * repeats.length;
-    timer = window.setTimeout(() => {
-      if (merged) {
-        repeats.forEach((row) => {
-          row.hidden = true;
-        });
-        wrap.classList.add('is-merged');
-      } else {
-        wrap.classList.remove('is-unfolding');
-      }
-    }, wait);
-  }
+  button.append(box, document.createTextNode(pin.dataset.label ?? ''));
+  controls.append(button);
 
   button.addEventListener('click', () => {
     const merged = button.getAttribute('aria-pressed') !== 'true';
     button.setAttribute('aria-pressed', String(merged));
     // The caption keeps naming where the rows came from and adds the state shown, so
     // the table's name never states a row count the table no longer shows.
-    state.textContent = ` ${(merged ? wrap.dataset.merged : wrap.dataset.unmerged) ?? ''}`;
-    if (merged) {
-      wrap.classList.add('is-folding');
-      status.textContent = wrap.dataset.merged ?? '';
-    } else {
-      wrap.classList.remove('is-merged');
-      wrap.classList.add('is-unfolding');
-      repeats.forEach((row) => {
-        row.hidden = false;
-      });
-      // Read layout once so the rows return at zero height before they unfold.
-      void table.offsetHeight;
-      wrap.classList.remove('is-folding');
-      status.textContent = wrap.dataset.unmerged ?? '';
-    }
-    settle(merged);
+    state.textContent = ` ${(merged ? pin.dataset.merged : pin.dataset.unmerged) ?? ''}`;
+    status.textContent =
+      (merged ? pin.dataset.merged : pin.dataset.unmerged) ?? '';
+    pin.classList.toggle('is-merged', merged);
+    repeats.forEach((row) => {
+      row.hidden = merged;
+    });
   });
 }
 
