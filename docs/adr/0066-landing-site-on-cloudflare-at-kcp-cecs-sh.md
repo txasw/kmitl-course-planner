@@ -135,3 +135,47 @@ and dimensions on every image, no remote asset outside the stores, GitHub and th
 no analytics, the same tone rules the extension's copy follows, a `wrangler.jsonc` that deploys
 `./site` to the kcp.cecs.sh custom domain, the security and cache headers, and no GitHub Pages
 configuration.
+
+## Amendment, 2026-11-08: the owner review of the landing page
+
+The owner reviewed the first version and asked for four changes: cut the content that explains
+how to use the product, add motion in the spirit of a product launch page, fix the phone layout
+of the dedupe demonstration, whose toggle sat above 1,330 px of rows, and stop the text from
+crowding every screen.
+
+Content. The page now holds one idea per screen. The search, conflict, narrow window, suggestion
+and getting started sections are gone, with six of the ten FAQ entries; each remaining feature is
+one headline with one line under it, and the main text without the dedupe table and the story
+grid fell from about 8,100 to about 2,400 Thai characters and from about 1,600 to about 450
+English words. Ten screenshots are cut from the shot list and their capture steps removed; the
+kept masters are re-encoded without a recapture. Spacing runs on one scale of section, media, sub
+line and call to action gaps.
+
+The story. One dark section replaces the conflict screenshots: a timetable built in HTML from plan
+H, which now lives in `scripts/landing/story-plan.mjs` for both the capture and the page.
+`storyBlocks` reads the exam capture for every block's day, times, name, section and credits, and
+the clash, so nothing in the grid is typed by hand. Blocks are placed by day, hour and span
+classes the stylesheet defines for each orientation, days as rows from 640 px and as columns
+below, as ADR-0043 orients the product. The dedupe statement quotes the subject search capture,
+499 rows that hold 44 sections, from `subjectSearchCounts`.
+
+Motion. This reverses the first version's still page. `site.js` now loads in the head, before the
+stylesheet and without defer, and sets `.motion` unless the reader prefers reduced motion and
+`.no-sda` where the browser has no scroll driven animations, so every hidden start state exists
+before the first layout. Without the script, or with reduced motion, every block renders its
+final state; a site test fails if any rule outside `.motion` sets opacity 0 or a transform. Only
+transform and opacity animate, rows and blocks move inside boxes that keep their size, and
+measured cumulative layout shift is 0. Path A, in Chrome, Edge and Safari 26, scrubs each moment on
+a scroll or view timeline; path B, elsewhere, plays the same end states with transitions from
+classes that intersection observers set, with no scroll listener anywhere. The moments are a
+timed hero entrance, the product frame standing up from a tilt in a pinned stage, the dedupe
+merge in a pinned stage whose toggle stays in reach at the foot on a phone and replays the merge
+either way, the three beat timetable story, one reveal per statement, plate parallax on wide
+windows, and the closing band. Path B finds pinned progress with zero height sentinels watched by
+an observer whose band runs from far above the window down to the line under the header, so a
+fast scroll that jumps a sentinel past the line in one frame still changes its state.
+
+The dedupe table is now a set of fixed height grid rows on a stage card, two short lines a row on
+a phone. Each row carries its raw index and its section's slot, and the merge moves it by
+`translateY((slot - index) * row height)`; the earlier fold, which animated row height, is
+removed.
