@@ -506,13 +506,27 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
       '01006021',
       '5',
     ]);
+    // The landed section is named like every other block, in Thai through the host's own
+    // word for the term the tone rules reserve.
+    expect(story.landed.name).toBe(
+      locale === 'th'
+        ? 'ปฏิบัติฟิสิกส์ทั่วไป 1'
+        : 'GENERAL PHYSICS LABORATORY 1',
+    );
     expect(placed(grid?.querySelector('.story__landed'))).toMatchObject({
       day: 3,
       start: 780,
       span: 180,
       id: '01006021',
-      name: null,
+      name: story.landed.name,
     });
+    const layers = [...(grid?.querySelectorAll('.ghost__layer') ?? [])];
+    expect(layers).toHaveLength(3);
+    for (const layer of layers) {
+      expect(layer.querySelector('.story__name')?.textContent).toBe(
+        story.ghost.name,
+      );
+    }
     expect(placed(grid?.querySelector('.story__ghost'))).toMatchObject({
       day: 2,
       start: 540,
