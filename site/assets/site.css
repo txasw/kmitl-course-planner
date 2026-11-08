@@ -1346,18 +1346,20 @@ figcaption:empty {
   margin-top: 4px;
 }
 
+/* The welcome dialog alone, at its own size, lifted like the hero frame. */
 .steps__shot {
+  max-width: 448px;
   margin-top: 48px;
+}
+
+.steps__shot .plate__img {
+  box-shadow: var(--shadow-frame);
 }
 
 @media (min-width: 1024px) {
   .steps__list {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     column-gap: var(--gutter);
-  }
-
-  .steps__shot {
-    max-width: 720px;
   }
 }
 

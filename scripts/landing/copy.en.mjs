@@ -31,7 +31,7 @@ export const en = {
     trust: 'Free and open source. No account, no tracking.',
     independence:
       'An independent tool built by a student. Not an official KMITL system.',
-    alt: 'The KCP planner open on the course search page. On the left, the courses of the Computer Engineering and Cyber Security curriculum, year 1; on the right, a weekly timetable with 7 subjects from Monday to Friday and 19 credits and no conflicts.',
+    alt: 'The KCP planner on the registration site, with a weekly timetable from Monday to Friday that holds Programming Fundamental, General Physics 1, Calculus 1 and Discrete Mathematics in the mornings.',
   },
   cta: {
     chrome: 'Add to Chrome',
@@ -79,8 +79,8 @@ export const en = {
     body: 'As soon as you pick up a section, the timetable shows where each of its meetings will land. A green outline means it fits; red hatching marks a clash with a subject already in your plan, named with the time it overlaps. If it cannot be placed, KCP offers other sections of the same subject that fit. Lecture and practice pairs are always added and removed together.',
     fig1: 'Dragging General Physics Laboratory 1, section 3, onto Tuesday, where it clashes with General Physics 1, section 4.',
     fig2: 'The drop is refused, and KCP offers section 5 on Wednesday, 13:00-16:00, which fits.',
-    alt1: 'The timetable during a drag of section 3. The Tuesday 09:00 to 12:00 slot over General Physics 1 is marked, with a chip naming the clash with 01006020 section 4.',
-    alt2: 'A message under the timetable header says the section cannot be placed because of a time clash, with a button to add section 5 on Wednesday 13:00 to 16:00.',
+    alt1: 'The timetable during a drag of section 3. Over General Physics 1 on Tuesday 09:00 to 12:00, an orange target offers a swap for section 3, and a chip names the clash with 01006020 section 4.',
+    alt2: 'A message above the timetable says the section cannot be placed because of a time clash, with a button to add section 5 instead.',
   },
   exam: {
     h3: 'Exam dates are checked too, not only class times',
@@ -88,7 +88,7 @@ export const en = {
     fig1: 'Digital System Fundamentals meets on Monday, but its midterm on 21 Aug 2569 falls at the same time as General Physics 1.',
     fig2: 'The exam schedule in the Summary view, with every midterm and final in the plan by date.',
     alt1: 'The course card for 01076112. Its sections carry an exam clash badge, and a soft red box says the exam clashes with 01006020 section 4, midterm on 21 Aug 2569.',
-    alt2: 'The exam schedule of the plan: four midterm days and five final exam days in date order, each with the time, subject id, subject name and section, then two subjects whose exams the instructor arranges.',
+    alt2: 'The exam schedule of the plan, with its exam days in date order, each with the time, subject id, subject name and section.',
   },
   layouts: {
     h3: 'Built for wide screens, narrow windows and touch',
@@ -165,7 +165,7 @@ export const en = {
       ['Thai and English', 'Switch the interface language at any time.'],
     ],
     fig: 'Suggested plans shaped for mornings, three options side by side.',
-    alt: 'The suggested plans dialog with Mornings selected, showing options 1 to 3 with credits, subjects, class days, a small timetable and a Use this plan button.',
+    alt: 'A suggested plan for mornings, with its credits, subjects, class days, a small timetable and a Use this plan button.',
   },
   steps: {
     h2: 'Get started in three steps',
@@ -185,6 +185,7 @@ export const en = {
         'Download or copy your timetable as an image to send to others.',
       ],
     ],
+    fig: 'The welcome shown on the registration site after you install.',
     alt: 'The welcome shown after install, Thank you for installing KCP: Course Planner for KMITL, with three steps and a Start planning button.',
   },
   download: {

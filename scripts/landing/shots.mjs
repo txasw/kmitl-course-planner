@@ -7,12 +7,15 @@
 export const SHOTS = {
   's-hero': { widths: [960, 1440, 2160, 2880], fallback: 1440 },
   's-hero-crop': { widths: [750, 1100], fallback: 750 },
-  's-catalog-dedupe': { widths: [600, 1200], fallback: 600 },
+  's-catalog-dedupe': { widths: [400, 600, 1200], fallback: 600 },
   's-search-form': { widths: [600, 1200], fallback: 600 },
   's-drag-blocked': { widths: [800, 1600], fallback: 800 },
+  's-drag-blocked-crop': { widths: [750, 1100], fallback: 750 },
   's-feedback-alternatives': { widths: [800, 1600], fallback: 800 },
+  's-feedback-crop': { widths: [750, 1100], fallback: 750 },
   's-exam-row': { widths: [500, 1000], fallback: 500 },
   's-summary': { widths: [500, 1000], fallback: 500 },
+  's-summary-crop': { widths: [750, 1100], fallback: 750 },
   'n-catalog': { widths: [400, 800], fallback: 400 },
   'n-day': { widths: [400, 800], fallback: 400 },
   'n-sheet': { widths: [400, 800], fallback: 400 },
@@ -21,6 +24,7 @@ export const SHOTS = {
   's-updates': { widths: [600, 1200], fallback: 600 },
   's-plan-menu': { widths: [480, 960], fallback: 480 },
   's-suggest': { widths: [800, 1600, 2304], fallback: 800 },
+  's-suggest-crop': { widths: [750, 1100], fallback: 750 },
   's-welcome': { widths: [600, 1200], fallback: 600 },
 };
 
