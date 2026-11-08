@@ -1,6 +1,7 @@
 // Progressive enhancement for the KCP landing page (ADR-0066). The page is complete
-// without this file: it only adds the merge toggle to the dedupe table and marks a
-// Firefox visitor so the stylesheet can fill the Firefox button instead of Chrome's.
+// without this file: it only adds the merge toggle to the dedupe table, marks a Firefox
+// visitor so the stylesheet can fill the Firefox button instead of Chrome's, and keeps
+// the narrow window strip out of the tab order while it has nothing to scroll.
 // It sends nothing anywhere and stores nothing.
 
 if (navigator.userAgent.includes('Firefox/')) {
@@ -85,3 +86,23 @@ function enhanceDedupe(wrap) {
 }
 
 document.querySelectorAll('[data-dedupe]').forEach(enhanceDedupe);
+
+// The narrow window strip is a focus stop so a keyboard can scroll it, which the markup
+// sets for a visitor without this script. Where all three frames fit and nothing
+// scrolls, the stop does nothing, so it is taken out of the tab order until the strip
+// overflows again.
+function trackStripFocus(strip) {
+  const update = () => {
+    if (strip.scrollWidth > strip.clientWidth) {
+      strip.setAttribute('tabindex', '0');
+    } else {
+      strip.removeAttribute('tabindex');
+    }
+  };
+  update();
+  new ResizeObserver(update).observe(strip);
+}
+
+if ('ResizeObserver' in window) {
+  document.querySelectorAll('.strip').forEach(trackStripFocus);
+}
