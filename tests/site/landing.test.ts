@@ -10,7 +10,10 @@ import {
   EMOJI,
 } from '../../src/lib/i18n/toneRules';
 import { THAI_KEEP } from '../../scripts/landing/render-page.mjs';
-import { dedupeRows } from '../../scripts/landing/site-data.mjs';
+import {
+  dedupeRows,
+  subjectSearchCounts,
+} from '../../scripts/landing/site-data.mjs';
 import { siteTextFiles } from '../../scripts/landing/site-files.mjs';
 
 // Guards the landing site in site/ (ADR-0066): its titles and language alternates, the
@@ -28,7 +31,7 @@ const FIREFOX =
   'https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/';
 
 // Hosts a page may link to: the stores, the source, the site, and the registration
-// site's course search where the planner runs. Assets themselves must come from the site.
+// site. Assets themselves must come from the site.
 const LINK_HOSTS = new Set([
   'chromewebstore.google.com',
   'addons.mozilla.org',
@@ -204,6 +207,10 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
     );
   });
 
+  it('answers the four questions students ask before installing', () => {
+    expect(doc.querySelectorAll('#faq details')).toHaveLength(4);
+  });
+
   it('links both stores from the page', () => {
     const hrefs = [...doc.querySelectorAll('a[href]')].map((a) =>
       a.getAttribute('href'),
@@ -240,7 +247,7 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
 
   it('gives every image alt text and its dimensions', () => {
     const images = [...doc.querySelectorAll('img')];
-    expect(images.length).toBeGreaterThan(10);
+    expect(images).toHaveLength(5);
     for (const img of images) {
       expect(img.getAttribute('alt')?.trim(), img.outerHTML).toBeTruthy();
       expect(Number(img.getAttribute('width'))).toBeGreaterThan(0);
@@ -307,6 +314,14 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
       ]);
       expect(cells[0]?.startsWith(want?.grouping ?? '')).toBe(true);
     });
+  });
+
+  it('states the subject search numbers the capture holds', () => {
+    const { rows, sections } = subjectSearchCounts();
+    expect([rows, sections]).toEqual([499, 44]);
+    const heading = doc.getElementById('problem-title')?.textContent ?? '';
+    const numbers = heading.match(/\d+/g)?.map(Number);
+    expect(numbers).toEqual([rows, sections]);
   });
 
   it('names the cached assets by the hash of their content', () => {
