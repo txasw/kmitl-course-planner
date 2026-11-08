@@ -459,8 +459,78 @@ ${preload}
 ${ld === null ? '' : `<script type="application/ld+json">${ld}</script>`}`;
 }
 
+/**
+ * Thai compounds the browser's line breaker would split, which a Thai reader sees as a
+ * broken word: ลง and ทะเบียน on two lines reads as two words. Longest first, so a
+ * longer compound wins over a shorter one inside it. Each stays short enough that it
+ * never overflows a 320 px column.
+ */
+export const THAI_KEEP = [
+  'เว็บไซต์ลงทะเบียน',
+  'วันพฤหัสบดี',
+  'ภาคการศึกษา',
+  'ภาพพื้นหลัง',
+  'คอมพิวเตอร์',
+  'ลงทะเบียน',
+  'ตารางเรียน',
+  'กลุ่มเรียน',
+  'วันอังคาร',
+  'โอเพนซอร์ส',
+  'เบราว์เซอร์',
+  'ส่วนขยาย',
+  'วันจันทร์',
+  'วันศุกร์',
+  'หน่วยกิต',
+  'ตารางสอบ',
+  'ผลค้นหา',
+  'กลางภาค',
+  'ปลายภาค',
+  'มุมขวาล่าง',
+  'เปิดเผย',
+  'ที่นั่ง',
+  'ใช้งาน',
+  'คัดลอก',
+  'สีเขียว',
+  'ติดตั้ง',
+  'สีแดง',
+  'วันพุธ',
+  'ชนกัน',
+];
+
+const THAI_KEEP_PATTERN = new RegExp(THAI_KEEP.join('|'), 'g');
+
+/**
+ * Wrap every listed compound in the text of a Thai page in a span that keeps it on one
+ * line. Only text between tags changes, so no attribute, alt text or structured data
+ * ever carries the markup.
+ */
+export function keepThaiWords(html) {
+  return html
+    .split(/(<[^>]*>)/)
+    .map((part) =>
+      part.startsWith('<')
+        ? part
+        : part.replace(
+            THAI_KEEP_PATTERN,
+            (word) => `<span class="nw">${word}</span>`,
+          ),
+    )
+    .join('');
+}
+
 /** The whole landing page for one locale. */
 export function renderPage(copy, { manifest, rowsHtml, counts, version }) {
+  const body = `${header(copy)}
+<main id="content" tabindex="-1">
+${hero(copy, manifest)}
+${problem(copy, manifest, rowsHtml, counts)}
+${features(copy, manifest)}
+${more(copy, manifest)}
+${steps(copy, manifest)}
+${download(copy, version)}
+${faq(copy)}
+</main>
+${footer(copy)}`;
   return `<!doctype html>
 <html lang="${copy.lang}">
 <head>
@@ -473,17 +543,7 @@ ${head(copy, {
 })}
 </head>
 <body>
-${header(copy)}
-<main id="content" tabindex="-1">
-${hero(copy, manifest)}
-${problem(copy, manifest, rowsHtml, counts)}
-${features(copy, manifest)}
-${more(copy, manifest)}
-${steps(copy, manifest)}
-${download(copy, version)}
-${faq(copy)}
-</main>
-${footer(copy)}
+${copy.lang === 'th' ? keepThaiWords(body) : body}
 </body>
 </html>
 `;

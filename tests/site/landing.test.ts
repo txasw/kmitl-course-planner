@@ -9,6 +9,7 @@ import {
   DECORATIVE,
   EMOJI,
 } from '../../src/lib/i18n/toneRules';
+import { THAI_KEEP } from '../../scripts/landing/render-page.mjs';
 import { dedupeRows } from '../../scripts/landing/site-data.mjs';
 import { siteTextFiles } from '../../scripts/landing/site-files.mjs';
 
@@ -345,6 +346,25 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
         expect(text.includes(term), term).toBe(false);
       }
     }
+  });
+});
+
+describe('Thai line breaking', () => {
+  it('keeps every listed compound of the Thai page on one line', () => {
+    const doc = load('index.html');
+    const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+    const loose: string[] = [];
+    for (
+      let node = walker.nextNode();
+      node !== null;
+      node = walker.nextNode()
+    ) {
+      if (node.parentElement?.closest('.nw') != null) continue;
+      const text = node.textContent ?? '';
+      loose.push(...THAI_KEEP.filter((word) => text.includes(word)));
+    }
+    expect(THAI_KEEP.length).toBeGreaterThan(10);
+    expect(loose).toEqual([]);
   });
 });
 
