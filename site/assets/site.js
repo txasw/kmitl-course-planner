@@ -175,6 +175,9 @@
       indexVar(row, 'data-i', '--i');
       indexVar(row, 'data-slot', '--t');
     });
+    // How many rows stay and go, which size the merged card.
+    indexVar(pin, 'data-kept', '--kept');
+    indexVar(pin, 'data-gone', '--gone');
 
     const button = document.createElement('button');
     button.type = 'button';
@@ -235,7 +238,8 @@
       show(button.getAttribute('aria-pressed') !== 'true');
     });
 
-    watchSentinels(track, [0.45], (index) => {
+    // The line sits where the sections close up, midway through the merge.
+    watchSentinels(track, [0.33], (index) => {
       past = index >= 0;
       if (followScroll()) show(past);
     });
