@@ -3,10 +3,9 @@
 // switch the motion on exist before the first layout and nothing shifts or flashes:
 // .motion unless the reader prefers reduced motion, and .no-sda where the browser has no
 // scroll driven animations, so the stylesheet plays each moment from the classes this
-// file adds as blocks come into view. It also adds the merge toggle to the dedupe table,
-// marks a Firefox visitor so the Firefox button is the filled one, and carries the
-// section in the address across the language switch. It listens to no scroll event,
-// sends nothing anywhere and stores nothing.
+// file adds as blocks come into view. It also marks a Firefox visitor so the Firefox
+// button is the filled one, and carries the section in the address across the language
+// switch. It listens to no scroll event, sends nothing anywhere and stores nothing.
 
 (() => {
   const root = document.documentElement;
@@ -160,22 +159,8 @@
 
   function enhanceDedupe(pin) {
     const track = pin.closest('.dedupe-track');
-    const table = pin.querySelector('table');
-    const controls = pin.querySelector('.dedupe-controls');
-    const status = pin.querySelector('[data-dedupe-status]');
-    const state = pin.querySelector('[data-dedupe-state]');
-    if (
-      track === null ||
-      table === null ||
-      controls === null ||
-      status === null ||
-      state === null
-    ) {
-      return;
-    }
-    const rows = [...table.querySelectorAll('tbody tr')];
-    const repeats = rows.filter((row) => row.dataset.row === 'repeat');
-    rows.forEach((row) => {
+    if (track === null) return;
+    pin.querySelectorAll('tbody tr').forEach((row) => {
       indexVar(row, 'data-i', '--i');
       indexVar(row, 'data-slot', '--t');
     });
@@ -183,90 +168,17 @@
     indexVar(pin, 'data-kept', '--kept');
     indexVar(pin, 'data-gone', '--gone');
 
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'dedupe-toggle';
-    button.setAttribute('aria-pressed', 'false');
-    button.setAttribute('aria-controls', table.id);
-    const box = document.createElement('span');
-    box.className = 'dedupe-toggle__box';
-    box.setAttribute('aria-hidden', 'true');
-    button.append(box, document.createTextNode(pin.dataset.label ?? ''));
-    controls.append(button);
-
+    // A pinned stage in a browser with scroll driven animations scrubs the merge on its
+    // view timeline; elsewhere the merge plays from .is-merged with transitions.
     const pinned = window.matchMedia(DEDUPE_PIN);
-    const motion = () => root.classList.contains('motion');
-    // Pressed by the reader since the stage last left the view.
-    let manual = false;
-    // Whether the reader has scrolled past the point where the merge happens.
-    let past = false;
-
     const drive = () => {
-      pin.dataset.drive =
-        scrollDriven() && pinned.matches && !manual ? 'scroll' : 'class';
+      pin.dataset.drive = scrollDriven() && pinned.matches ? 'scroll' : 'class';
     };
-
-    // The pressed state, the caption and the live status always name the state shown.
-    // The caption keeps naming where the rows came from and adds the state, so the
-    // table's name never states a row count the table no longer shows.
-    const show = (merged) => {
-      if (button.getAttribute('aria-pressed') === String(merged)) return;
-      button.setAttribute('aria-pressed', String(merged));
-      const text = (merged ? pin.dataset.merged : pin.dataset.unmerged) ?? '';
-      state.textContent = ` ${text}`;
-      status.textContent = text;
-      pin.classList.toggle('is-merged', merged);
-      foldRepeats();
-    };
-
-    const followScroll = () => motion() && pinned.matches && !manual;
-
-    // Merged repeat rows leave the table. Without motion they are hidden outright; with
-    // it they only fade and slide, so they also leave the accessibility tree, and a
-    // screen reader finds the same four rows the caption names.
-    function foldRepeats() {
-      const merged = button.getAttribute('aria-pressed') === 'true';
-      repeats.forEach((row) => {
-        row.hidden = merged && !motion();
-        if (merged && motion()) {
-          row.setAttribute('aria-hidden', 'true');
-        } else {
-          row.removeAttribute('aria-hidden');
-        }
-      });
-    }
-
-    button.addEventListener('click', () => {
-      manual = motion();
-      const was = pin.dataset.drive;
-      drive();
-      // Leaving the scroll drive drops its animations; the styles they leave must be
-      // in place before the state changes, or the change jumps instead of playing.
-      if (was !== pin.dataset.drive) pin.getBoundingClientRect();
-      show(button.getAttribute('aria-pressed') !== 'true');
-    });
-
     // The line sits where the sections close up, midway through the merge.
     watchSentinels(track, [0.33], (index) => {
-      past = index >= 0;
-      if (followScroll()) show(past);
+      pin.classList.toggle('is-merged', index >= 0);
     });
-
-    // Once the stage leaves the view, the scroll drives the merge again.
-    new IntersectionObserver(([entry]) => {
-      if (entry === undefined || entry.isIntersecting || !manual) return;
-      manual = false;
-      drive();
-      if (followScroll()) show(past);
-    }).observe(track);
-
-    const reset = () => {
-      manual = false;
-      drive();
-      foldRepeats();
-    };
-    pinned.addEventListener('change', reset);
-    reduce.addEventListener('change', reset);
+    pinned.addEventListener('change', drive);
     drive();
   }
 

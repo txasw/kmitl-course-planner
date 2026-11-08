@@ -169,8 +169,7 @@ measured cumulative layout shift is 0. Path A, in Chrome, Edge and Safari 26, sc
 a scroll or view timeline; path B, elsewhere, plays the same end states with transitions from
 classes that intersection observers set, with no scroll listener anywhere. The moments are a
 timed hero entrance, the product frame standing up from a tilt in a pinned stage, the dedupe
-merge in a pinned stage whose toggle stays in reach at the foot on a phone and replays the merge
-either way, the three beat timetable story, one reveal per statement, plate parallax on wide
+merge in a pinned stage that the scroll alone plays, the three beat timetable story, one reveal per statement, plate parallax on wide
 windows, and the closing band. Path B finds pinned progress with zero height sentinels watched by
 an observer whose band runs from far above the window down to the line under the header, so a
 fast scroll that jumps a sentinel past the line in one frame still changes its state.
@@ -178,4 +177,8 @@ fast scroll that jumps a sentinel past the line in one frame still changes its s
 The dedupe table is now a set of fixed height grid rows on a stage card, two short lines a row on
 a phone. Each row carries its raw index and its section's slot, and the merge moves it by
 `translateY((slot - index) * row height)`; the earlier fold, which animated row height, is
-removed.
+removed. The merge toggle the first version added is removed too, because the scroll already
+plays the merge. Without the motion the table rests in its merged state: the four sections with
+the chips that count their listings, under a counter that names both numbers. The repeat rows
+are hidden from assistive technology in every state and the caption states the merged count in
+text, so a screen reader always hears the same result the page shows at rest.

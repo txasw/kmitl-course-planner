@@ -344,6 +344,26 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
     });
   });
 
+  // The scroll plays the merge, so the stage has no control of its own, and a reader
+  // without the motion or the sight of it gets the merged result in text.
+  it('tells the merge in text with no control to press', () => {
+    const stage = doc.querySelector('[data-dedupe]');
+    expect(stage?.querySelector('button, [role="status"]')).toBeNull();
+    const repeats = [
+      ...doc.querySelectorAll('#dedupe-table tbody tr[data-row="repeat"]'),
+    ];
+    expect(repeats.length).toBeGreaterThan(0);
+    for (const row of repeats) {
+      expect(row.getAttribute('aria-hidden')).toBe('true');
+    }
+    const first = doc.querySelectorAll(
+      '#dedupe-table tbody tr[data-row="first"]',
+    ).length;
+    const caption = doc.querySelector('#dedupe-table caption')?.textContent;
+    expect(caption).toContain(String(first));
+    expect(caption).toContain(String(first + repeats.length));
+  });
+
   it('states the subject search numbers the capture holds', () => {
     const { rows, sections } = subjectSearchCounts();
     expect([rows, sections]).toEqual([499, 44]);

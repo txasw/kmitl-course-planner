@@ -230,23 +230,24 @@ function problem(copy, rowsHtml, counts, search) {
         `<th scope="col" role="columnheader"${i === p.headers.length - 1 ? ' class="dedupe__seats"' : ''}>${h}</th>`,
     )
     .join('');
-  // The counter repeats what the caption and the live status already say, so it is
-  // hidden from assistive technology. The toggle is added to the controls by site.js,
-  // which also reads how many rows stay and go to size the merge, and the card element
-  // is the foot of the stage card that rises as the merged table shrinks.
+  // The caption names where the rows came from and, in hidden text, what they merge
+  // into, so the counter that shows the same numbers is hidden from assistive
+  // technology, and so are the repeat rows: a screen reader finds the four sections the
+  // caption names whatever the scroll shows. site.js reads how many rows stay and go to
+  // size the merge, and the card element is the foot of the stage card that rises as
+  // the merged table shrinks.
   return `<section class="screen problem" aria-labelledby="problem-title">
 <div class="container">
 ${statement('problem', p.h2(search), p.sub)}
 </div>
 <div class="container dedupe-track">
-<div class="dedupe-pin" data-dedupe data-label="${attr(p.toggle)}" data-merged="${attr(p.merged(counts))}" data-unmerged="${attr(p.unmerged(counts))}" data-kept="${String(counts.sections)}" data-gone="${String(counts.rows - counts.sections)}">
+<div class="dedupe-pin" data-dedupe data-kept="${String(counts.sections)}" data-gone="${String(counts.rows - counts.sections)}">
 <div class="dedupe-stage">
 <div class="dedupe-card" aria-hidden="true"></div>
 <p class="count" aria-hidden="true"><span class="count__rows">${p.countRows(counts)}</span> <span class="count__join">${p.countJoin}</span> <span class="count__sections">${p.countSections(counts)}</span></p>
-<div class="dedupe-controls"></div>
 <div class="dedupe-table">
 <table class="dedupe" id="dedupe-table" role="table">
-<caption>${p.caption(counts)}<span class="visually-hidden" data-dedupe-state></span></caption>
+<caption>${p.caption(counts)}<span class="visually-hidden"> ${p.merged(counts)}</span></caption>
 <thead role="rowgroup"><tr role="row">${headers}</tr></thead>
 <tbody role="rowgroup">
 ${rowsHtml}
@@ -254,7 +255,6 @@ ${rowsHtml}
 </table>
 <p class="dedupe__result">${p.staticResult(counts)}</p>
 </div>
-<p class="visually-hidden" role="status" aria-live="polite" data-dedupe-status></p>
 </div>
 </div>
 </div>

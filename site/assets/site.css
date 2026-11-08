@@ -1014,7 +1014,6 @@ h4 {
   display: grid;
   grid-template-areas:
     'count'
-    'controls'
     'table';
   gap: 16px;
   padding: 24px;
@@ -1051,15 +1050,6 @@ h4 {
   color: var(--site-primary-strong);
 }
 
-/* Where the stage is not pinned the table runs longer than the window, so the toggle
-   stays under the header while its table is in view instead of scrolling away. */
-.dedupe-controls {
-  position: sticky;
-  top: calc(var(--header-h) + 12px);
-  z-index: 3;
-  grid-area: controls;
-}
-
 /* The rows lay out by the width the table gets, not the window: the stage puts the table
    in a full width row on a tablet and in eight of twelve columns on a desktop, so a
    narrow table can sit in a wide window. */
@@ -1068,53 +1058,6 @@ h4 {
   grid-area: table;
   min-width: 0;
   container: dedupe / inline-size;
-}
-
-.dedupe-toggle {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 18px;
-  border: 1px solid var(--site-ink);
-  border-radius: var(--r-control);
-  background: var(--site-paper);
-  color: var(--site-ink);
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 24px;
-  cursor: pointer;
-  transition: background-color var(--dur-fast) var(--ease-standard);
-}
-
-.dedupe-toggle:hover {
-  background: var(--site-paper-alt);
-}
-
-.dedupe-toggle__box {
-  display: inline-grid;
-  place-items: center;
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid var(--site-ink);
-  border-radius: var(--r-chip);
-}
-
-.dedupe-toggle[aria-pressed='true'] .dedupe-toggle__box {
-  border-color: var(--site-primary-strong);
-  background: var(--site-primary-strong);
-}
-
-/* The tick is two borders of a narrow box turned 45 degrees. */
-.dedupe-toggle[aria-pressed='true'] .dedupe-toggle__box::after {
-  content: '';
-  width: 5px;
-  height: 10px;
-  margin-top: -2px;
-  border: solid #ffffff;
-  border-width: 0 2px 2px 0;
-  rotate: 45deg;
 }
 
 .dedupe {
@@ -1151,10 +1094,6 @@ h4 {
   border-bottom: 1px solid var(--site-rule);
   background: var(--site-paper);
   box-shadow: inset 4px 0 0 var(--subject);
-}
-
-.dedupe tr[hidden] {
-  display: none;
 }
 
 .dedupe th,
@@ -1206,6 +1145,14 @@ h4 {
   text-wrap: balance;
 }
 
+/* At rest the table shows its merged state: the four sections, tinted, each with the
+   chip that counts its listings, under the counter that names both numbers. The repeat
+   rows stay in the markup for the motion and the data. */
+.dedupe tbody tr[data-row='repeat'] {
+  display: none;
+}
+
+:root:not(.motion) .dedupe tbody tr[data-row='first'],
 .is-merged tbody tr[data-row='first'] {
   background: var(--site-primary-soft);
 }
@@ -1280,11 +1227,6 @@ h4 {
 
 @media (min-width: 640px) {
   .dedupe-stage {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'count controls'
-      'table table';
-    align-items: center;
     row-gap: 24px;
   }
 
@@ -1331,12 +1273,8 @@ h4 {
     grid-area: 1 / 1 / 2 / span 4;
   }
 
-  .dedupe-controls {
-    grid-area: 2 / 1 / 3 / span 4;
-  }
-
   .dedupe-table {
-    grid-area: 1 / 5 / 4 / -1;
+    grid-area: 1 / 5 / 2 / -1;
   }
 
   .count {
@@ -2565,7 +2503,12 @@ h4 {
    size, its body folds up into the head, and its rounded foot rises with the caption by
    the height the repeats leave. site.js sets data-drive: 'scroll' plays the merge on the
    pinned track's view timeline, 'class' plays it from .is-merged with transitions, which
-   path B, the toggle and an unpinned window use. */
+   path B and an unpinned window use. */
+
+/* Under motion the table starts with all of its rows. */
+.motion .dedupe tbody tr[data-row='repeat'] {
+  display: grid;
+}
 
 .sentinel {
   position: absolute;
@@ -2584,7 +2527,6 @@ h4 {
   --head-h: 0px;
   --result-space: 40px;
   --recenter: 0;
-  --controls-move: 0;
   /* How far everything under the table rises once merged: the rows the repeats held,
      less the room the result line takes under the sections. site.js sets --gone and
      --kept from the counts the page is built from. */
@@ -2735,7 +2677,6 @@ h4 {
 
 .motion [data-drive='class'] .dedupe caption,
 .motion [data-drive='class'] .dedupe-card,
-.motion [data-drive='class'] .dedupe-controls,
 .motion [data-drive='class'] .dedupe-stage,
 .motion [data-drive='class'] .dedupe-stage::after {
   transition: transform var(--dur-move) var(--ease-in-out) 300ms;
@@ -2783,10 +2724,6 @@ h4 {
   transform: translateY(calc(-1 * var(--close)));
 }
 
-.motion [data-drive='class'].is-merged .dedupe-controls {
-  transform: translateY(calc(-1 * var(--close) * var(--controls-move)));
-}
-
 .motion [data-drive='class'].is-merged .dedupe-stage {
   transform: translateY(calc(var(--close) / 2 * var(--recenter)));
 }
@@ -2797,7 +2734,6 @@ h4 {
 
 .motion [data-drive='class'].is-merged .dedupe caption,
 .motion [data-drive='class'].is-merged .dedupe-card,
-.motion [data-drive='class'].is-merged .dedupe-controls,
 .motion [data-drive='class'].is-merged .dedupe-stage,
 .motion [data-drive='class'].is-merged .dedupe-stage::after {
   transition-delay: 450ms;
@@ -2838,9 +2774,9 @@ h4 {
 }
 
 /* The pinned stage: on any window at least 540 px tall it holds still while the reader
-   scrolls the length of its track, stays centred in the window as the card shrinks, and
-   keeps the toggle inside the window. A shorter window gets denser rows rather than an
-   unpinned table, so the merge and its toggle stay on one screen. The track ends soon
+   scrolls the length of its track and stays centred in the window as the card shrinks.
+   A shorter window gets denser rows rather than an unpinned table, so the whole merge
+   stays on one screen. The track ends soon
    after the result line, so the pin lets go once the merge has been read. */
 @media (min-height: 540px) {
   .motion .dedupe-track {
@@ -2859,10 +2795,6 @@ h4 {
     --recenter: 1;
   }
 
-  .motion .dedupe-controls {
-    position: static;
-  }
-
   /* The centred card leaves half the height it gave up under it, which is gap enough
      before the next section. */
   .motion .problem {
@@ -2870,29 +2802,18 @@ h4 {
   }
 }
 
-/* A tall phone: the count above, two lines a row, and the toggle at the foot. */
+/* A tall phone: the count above two lines a row. */
 @media (max-width: 639px) and (min-height: 760px) {
   .motion .dedupe-stage {
-    --controls-move: 1;
-
-    grid-template-areas:
-      'count'
-      'table'
-      'controls';
     gap: 12px;
     padding: 16px 12px;
   }
 }
 
-/* A shorter phone puts the count and the toggle on one line above the table. */
+/* A shorter phone sets a smaller count over denser rows. */
 @media (max-width: 639px) and (min-height: 540px) and (max-height: 759px) {
   .motion .dedupe-stage {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'count controls'
-      'table table';
-    align-items: center;
-    gap: 10px 12px;
+    gap: 10px;
     padding: 12px;
   }
 
@@ -3017,12 +2938,6 @@ h4 {
       animation-range: contain 24% contain 42%;
     }
 
-    .motion:not(.no-sda) [data-drive='scroll'] .dedupe-controls {
-      animation: close-controls linear both;
-      animation-timeline: --dedupe;
-      animation-range: contain 24% contain 42%;
-    }
-
     .motion:not(.no-sda) [data-drive='scroll'] .dedupe-stage {
       animation: recentre linear both;
       animation-timeline: --dedupe;
@@ -3105,17 +3020,6 @@ h4 {
 
   to {
     transform: translateY(calc(-1 * var(--close)));
-  }
-}
-
-@keyframes close-controls {
-  from {
-    transform: none;
-    animation-timing-function: var(--ease-in-out);
-  }
-
-  to {
-    transform: translateY(calc(-1 * var(--close) * var(--controls-move)));
   }
 }
 

@@ -261,7 +261,9 @@ function cell(content, extra = '') {
 /**
  * The table body rows as HTML, one tr per raw row. Each row carries its raw index and its
  * section's slot, from which the stylesheet works out how far the row travels when the
- * repeats merge. A cell that may be cut to one line carries its whole text as a title.
+ * repeats merge. A repeat row is hidden from assistive technology, which reads the four
+ * sections the caption names. A cell that may be cut to one line carries its whole text
+ * as a title.
  */
 export function renderDedupeRows(locale) {
   const seatsLabel = escapeHtml(COPY[locale].seats);
@@ -278,7 +280,7 @@ export function renderDedupeRows(locale) {
           : ` <span class="dedupe__chip">${escapeHtml(row.chip)}</span>`;
       const kind = row.duplicate ? 'repeat' : 'first';
       return [
-        `<tr role="row" class="dedupe__row ${row.subjectClass}" data-row="${kind}" data-i="${String(index)}" data-slot="${String(row.slot)}">`,
+        `<tr role="row" class="dedupe__row ${row.subjectClass}" data-row="${kind}" data-i="${String(index)}" data-slot="${String(row.slot)}"${row.duplicate ? ' aria-hidden="true"' : ''}>`,
         cell(
           `<span class="dedupe__group">${escapeHtml(row.grouping)}</span>${chip}`,
           ` class="dedupe__grouping" title="${escapeHtml(row.grouping)}"`,

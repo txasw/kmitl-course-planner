@@ -33,8 +33,8 @@
       media="(min-width: 640px)"
       fetchpriority="high"
     />
-    <script src="/assets/site.js?v=b1c68eee37"></script>
-    <link rel="stylesheet" href="/assets/site.css?v=2ada525860" />
+    <script src="/assets/site.js?v=7a23e7f959"></script>
+    <link rel="stylesheet" href="/assets/site.css?v=e29657899c" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="KCP" />
     <meta
@@ -422,15 +422,7 @@
           </div>
         </div>
         <div class="container dedupe-track">
-          <div
-            class="dedupe-pin"
-            data-dedupe
-            data-label="รวมแถวที่ซ้ำ"
-            data-merged="รวมแล้ว เหลือ 4 กลุ่มเรียนจาก 13 แถว"
-            data-unmerged="แสดงครบ 13 แถว"
-            data-kept="4"
-            data-gone="9"
-          >
+          <div class="dedupe-pin" data-dedupe data-kept="4" data-gone="9">
             <div class="dedupe-stage">
               <div class="dedupe-card" aria-hidden="true"></div>
               <p class="count" aria-hidden="true">
@@ -443,7 +435,6 @@
                   <span class="nw">กลุ่มเรียน</span></span
                 >
               </p>
-              <div class="dedupe-controls"></div>
               <div class="dedupe-table">
                 <table class="dedupe" id="dedupe-table" role="table">
                   <caption>
@@ -451,7 +442,9 @@
                     <span class="nw">ภาคการศึกษา</span>
                     1/2569 13 แถวจาก 6
                     <span class="nw">หลักสูตร</span
-                    ><span class="visually-hidden" data-dedupe-state></span>
+                    ><span class="visually-hidden">
+                      รวมแล้วเหลือ 4 <span class="nw">กลุ่มเรียน</span></span
+                    >
                   </caption>
                   <thead role="rowgroup">
                     <tr role="row">
@@ -569,6 +562,7 @@
                       data-row="repeat"
                       data-i="3"
                       data-slot="0"
+                      aria-hidden="true"
                     >
                       <td
                         role="cell"
@@ -630,6 +624,7 @@
                       data-row="repeat"
                       data-i="5"
                       data-slot="3"
+                      aria-hidden="true"
                     >
                       <td
                         role="cell"
@@ -663,6 +658,7 @@
                       data-row="repeat"
                       data-i="6"
                       data-slot="0"
+                      aria-hidden="true"
                     >
                       <td
                         role="cell"
@@ -693,6 +689,7 @@
                       data-row="repeat"
                       data-i="7"
                       data-slot="1"
+                      aria-hidden="true"
                     >
                       <td
                         role="cell"
@@ -723,6 +720,7 @@
                       data-row="repeat"
                       data-i="8"
                       data-slot="2"
+                      aria-hidden="true"
                     >
                       <td
                         role="cell"
@@ -753,6 +751,7 @@
                       data-row="repeat"
                       data-i="9"
                       data-slot="3"
+                      aria-hidden="true"
                     >
                       <td
                         role="cell"
@@ -781,6 +780,7 @@
                       data-row="repeat"
                       data-i="10"
                       data-slot="0"
+                      aria-hidden="true"
                     >
                       <td
                         role="cell"
@@ -809,6 +809,7 @@
                       data-row="repeat"
                       data-i="11"
                       data-slot="1"
+                      aria-hidden="true"
                     >
                       <td
                         role="cell"
@@ -837,6 +838,7 @@
                       data-row="repeat"
                       data-i="12"
                       data-slot="2"
+                      aria-hidden="true"
                     >
                       <td
                         role="cell"
@@ -865,12 +867,6 @@
                   แต่ละ<span class="nw">กลุ่มเรียน</span>แสดงเพียงครั้งเดียว
                 </p>
               </div>
-              <p
-                class="visually-hidden"
-                role="status"
-                aria-live="polite"
-                data-dedupe-status
-              ></p>
             </div>
           </div>
         </div>
