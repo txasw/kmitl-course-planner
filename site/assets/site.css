@@ -139,16 +139,12 @@
   box-sizing: border-box;
 }
 
+/* No smooth scrolling: a jump to a section or a focus move would otherwise run through
+   several screens of pinned track, playing every scene in fast forward on the way. */
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   scroll-padding-top: calc(var(--header-h) + 16px);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
 }
 
 body {
@@ -2190,8 +2186,8 @@ h4 {
    split from its base. */
 .motion .hero h1 .phrase {
   display: inline-block;
-  animation: rise 1000ms var(--ease-out-expo) both;
-  animation-delay: calc(200ms + 140ms * var(--p, 0));
+  animation: rise 900ms var(--ease-out-expo) both;
+  animation-delay: calc(80ms + 100ms * var(--p, 0));
   --rise: 0.35em;
 }
 
@@ -2208,12 +2204,8 @@ h4 {
 }
 
 .motion .hero .lede {
-  animation: rise 800ms var(--ease-out-expo) 560ms both;
+  animation: rise 700ms var(--ease-out-expo) 200ms both;
   --rise: 16px;
-}
-
-.motion:lang(en) .hero .lede {
-  animation-delay: 420ms;
 }
 
 /* The install row is the page's action, so it shows at once: it is close to full
@@ -2224,7 +2216,7 @@ h4 {
 }
 
 .motion .hero__fine {
-  animation: fade 600ms linear 1000ms both;
+  animation: fade 400ms linear 300ms both;
 }
 
 /* The frame only lifts; its opacity never changes, so the largest paint is not held
