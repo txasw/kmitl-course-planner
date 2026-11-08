@@ -223,8 +223,12 @@ function statement(id, h2, sub) {
 
 function problem(copy, rowsHtml, counts, search) {
   const p = copy.problem;
+  // The seats header carries the class of its cells, so a narrow table hides both.
   const headers = p.headers
-    .map((h) => `<th scope="col" role="columnheader">${h}</th>`)
+    .map(
+      (h, i) =>
+        `<th scope="col" role="columnheader"${i === p.headers.length - 1 ? ' class="dedupe__seats"' : ''}>${h}</th>`,
+    )
     .join('');
   // The counter repeats what the caption and the live status already say, so it is
   // hidden from assistive technology. The toggle is added to the controls by site.js,
