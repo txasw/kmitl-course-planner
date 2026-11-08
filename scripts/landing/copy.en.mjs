@@ -18,7 +18,6 @@ export const en = {
   nav: {
     label: 'Main',
     features: 'Features',
-    start: 'Get started',
     faq: 'FAQ',
     faqShort: 'FAQ',
     home: 'home',
@@ -27,10 +26,10 @@ export const en = {
   install: 'Install',
   hero: {
     lockup: 'KCP: Course Planner for KMITL',
-    line1: 'See your whole week',
-    line2: 'before you register.',
-    lede: 'A browser extension that turns the KMITL course search into a drag and drop weekly timetable.',
-    fine: 'Free and open source. No account, no tracking. An independent student tool, not an official KMITL system.',
+    line1: '<span class="phrase">See your whole week</span>',
+    line2: '<span class="phrase">before you register.</span>',
+    lede: 'An extension that turns the KMITL course search into a drag and drop timetable.',
+    fine: 'Free and open source. Not an official KMITL system.',
     alt: 'The KCP planner on the registration site, with a weekly timetable from Monday to Friday that holds Programming Fundamental, General Physics 1, Calculus 1 and Discrete Mathematics in the mornings.',
   },
   cta: {
@@ -40,18 +39,16 @@ export const en = {
     firefoxSub: 'From Firefox Add-ons',
     web: 'Use on the web',
     webBadge: 'Coming soon',
-    webNote:
-      'The web version is in development and has no release date yet. Until then, use the extension on Chrome or Firefox.',
     webNoteShort:
       'The web version is in development, with no release date yet.',
-    coarse:
-      'Installs on a computer only. Open this page on a computer to install.',
+    coarse: 'Installs on a computer only.',
   },
   problem: {
-    h2: 'The registration site lists the same section again and again.',
-    body: 'One section is open to many curricula, so the result page repeats it under every curriculum it is open to. A search for subject 90641007, Digital Citizen, in semester 1/2569 returns 499 rows that hold only 44 real sections. KCP reads the same public data the registration site uses and merges the repeats into one entry per section.',
+    h2: (c) =>
+      `<span class="statement__line">Search one subject, get ${c.rows} rows.</span> <span class="statement__line">Only ${c.sections} are real sections.</span>`,
+    sub: 'KCP merges the repeats into one entry per section.',
     caption: (c) =>
-      `Real data from a search of category 90592xxx in semester 1/2569: ${c.rows} rows across ${c.groupings} curricula.`,
+      `Real sample: category 90592xxx, semester 1/2569, ${c.rows} rows from ${c.groupings} curricula.`,
     headers: [
       'Listed under',
       'Subject id',
@@ -63,137 +60,47 @@ export const en = {
     toggle: 'Merge repeated rows',
     merged: (c) => `Merged into ${c.sections} sections from ${c.rows} rows.`,
     unmerged: (c) => `Showing all ${c.rows} rows.`,
-    staticResult: (c) =>
-      `In KCP these ${c.rows} rows merge into ${c.sections} sections, each listed once.`,
-    shotCaption:
-      'The same search in KCP: 3 courses and 4 sections, each listed once with its day, time, place and seats.',
-    shotAlt:
-      'The KCP course list for a search of category 90592xxx, summarised as 3 courses, 4 sections and 9 merged repeats. The cards for 90592008 and 90592033 are open, showing each section with its day, time, room and seats.',
-  },
-  featuresH2: 'Everything you need to plan a term, in one panel.',
-  search: {
-    h3: 'Search the three ways the registration site does',
-    body: 'Search by curriculum and class year, by subject id, or by subject category. Results arrive as one line course cards that open to show sections, open seats, enrollment conditions and exam dates, with filters for day, credits and full sections.',
-    fig: 'The curriculum tab, set to the Computer Engineering and Cyber Security curriculum, year 1.',
-    alt: 'The search panel on the curriculum tab, with the engineering faculty, the Computer Engineering department, the Computer Engineering and Cyber Security curriculum and year 1 selected, above the Search and Clear search buttons.',
-  },
-  conflict: {
-    h3: 'Drag a section in and see a clash before you drop',
-    body: 'As soon as you pick up a section, the timetable shows where each of its meetings will land. A green outline means it fits; red hatching marks a clash with a subject already in your plan, named with the time it overlaps. Drop it on the subject it clashes with to swap the two. If it cannot be placed, KCP offers other sections of the same subject that fit. Lecture and practice pairs are always added and removed together.',
-    fig1: 'Dragging General Physics Laboratory 1, section 3, which meets Tuesday 09:00 to 12:00, where it clashes with General Physics 1, section 4.',
-    fig2: 'The drop is refused, and KCP offers section 5 on Wednesday, 13:00-16:00, which fits.',
-    alt1: 'The timetable during a drag of section 3. Over General Physics 1 on Tuesday 09:00 to 12:00, an orange target offers a swap for section 3, and a chip names the clash with 01006020 section 4.',
-    alt2: 'A message above the timetable says the section cannot be placed because of a time clash, with a button to add section 5 instead.',
+    staticResult: () => 'Each section is listed once.',
   },
   exam: {
-    h3: 'Exam dates are checked too, not only class times',
-    body: 'Two subjects that meet on different days can still share a midterm slot. KCP compares the midterm and final windows of every subject in your plan and will not add a section whose exam clashes. The Summary view lists the term’s exams by date, with your weekly hours and free days.',
-    fig1: 'Digital System Fundamentals meets on Monday, but its midterm on 21 Aug 2569 falls at the same time as General Physics 1.',
-    fig2: 'The exam schedule in the Summary view, with every midterm and final in the plan by date.',
+    h2: 'Exam clashes are checked too.',
+    sub: 'Two subjects on different days can share an exam slot. KCP will not add one that clashes.',
     alt1: 'The course card for 01076112. Its sections carry an exam clash badge, and a soft red box says the exam clashes with 01006020 section 4, midterm on 21 Aug 2569.',
-    alt2: 'The exam schedule of the plan, with its exam days in date order, each with the time, subject id, subject name and section.',
-  },
-  layouts: {
-    h3: 'Built for wide screens, narrow windows and touch screen laptops',
-    body: 'KCP runs in computer browsers that support extensions, at any window size. On a wide screen the course list sits beside the timetable, and in a medium window it opens as a side sheet. In a window narrower than 640 px, the planner shows one pane at a time behind a bottom bar, the timetable reads one day at a time, and a long press picks up a section on a touch screen laptop.',
-    figs: [
-      'Courses and search in a narrow window',
-      'The Tuesday timetable in a narrow window',
-      'Section details from the bottom of the window',
-    ],
-    alts: [
-      'The planner in a narrow window, on the courses pane with the Calculus 1 card open and the bottom bar below.',
-      'The Tuesday timetable in a narrow window, with General Physics 1 at 09:00 to 12:00 and Introduction to Psychology at 13:00 to 16:00.',
-      'The details of General Physics 1, section 4, open from the bottom of the window with its class time, room, instructors, seats and exam dates.',
-    ],
-    footnote: 'KCP does not run on phones yet. The FAQ explains why.',
-    region: 'Narrow window examples',
   },
   export: {
-    h3: 'Share your timetable as a ready to send image',
-    body: 'Preview mode lays your plan out as a poster. Pick a template for a 16:9 share, a phone or tablet wallpaper, or an A4 print, then download it, copy the image, or copy it as text for chat apps. The image comes out at the same size whatever screen you export from, and can carry your exam schedule under the timetable.',
-    templates:
-      'Templates include Share 16:9, phone and tablet wallpapers in portrait and landscape, and Print A4.',
+    h2: 'Share it as a ready to send image.',
+    sub: 'Fixed size posters for sharing, phone wallpapers or A4 print.',
     alt1: 'A timetable image exported from KCP at 1920 by 1080, with the plan name, semester 1/2569, total credits, and subject blocks from Monday to Friday.',
     alt2: 'A portrait phone wallpaper of the same plan, with days as columns and the exam schedule below.',
   },
   plans: {
-    h3: 'Keep several plans, checked against the latest data when you open them',
-    body: 'Keep several named plans per term, duplicate them, and export them as a file. When you open a plan, KCP checks its sections against the latest data. If a time, room or exam date changed, or a section is no longer listed, it shows the old and new values for you to review, and never removes anything on its own.',
-    fig1: 'The updates dialog shows the old and new time of a section that changed.',
-    fig2: 'The plan menu, where you create, switch, import and export plans.',
+    h2: 'Saved plans are checked against the latest data.',
+    sub: 'If a time or room changes, you see the old and new values. Nothing is removed on its own.',
     alt1: 'The Changes to your planned sections dialog. Calculus 1, section 33, shows its old and new time, with a Mark all as reviewed button.',
-    alt2: 'The plan menu with two plans for semester 1/2569, the Create plan button, and the Import JSON and Export JSON actions.',
+  },
+  more: {
+    h2: 'And more',
+    items: [
+      ['Three ways to search', 'By curriculum, subject id or category.'],
+      ['Suggested plans', 'Clash free timetables from your curriculum.'],
+      ['Compare sections', 'Times, instructors, seats and exams side by side.'],
+      ['Open seats', 'See the open seats of every section.'],
+    ],
   },
   privacy: {
-    h3: 'Your data stays in your browser, and access is read only',
-    body: 'KCP has no account, no server and no usage statistics. The extension reads only the public course data the registration site already uses. It never touches your sign in, never fills in or submits forms, and never registers on your behalf.',
-    heading: 'Permissions the extension asks for, and why',
+    h2: 'Your data stays in your browser.',
+    sub: 'No account, no server, no tracking. KCP only reads public course data and never registers for you.',
+    heading: 'Permissions',
     perms: [
-      [
-        'storage',
-        'Saves your plans and reference lists on this device, so the planner opens quickly and your plans survive a reload.',
-      ],
-      [
-        'regis.reg.kmitl.ac.th',
-        'Shows the planner on the registration site and reads the public course data the page already loads.',
-      ],
-      [
-        'api.reg.kmitl.ac.th',
-        'Reads the public faculty, department, curriculum and category lists used in the search options.',
-      ],
+      ['storage', 'Keeps your plans on this device.'],
+      ['regis.reg.kmitl.ac.th', 'Shows the planner on the registration site.'],
+      ['api.reg.kmitl.ac.th', 'Reads faculty, curriculum and category lists.'],
     ],
     link: 'Read the privacy policy',
   },
-  more: {
-    h2: 'More help with the decisions',
-    items: [
-      [
-        'Suggest a plan',
-        'After a curriculum search, KCP offers up to three clash free timetables from the faculty and curriculum subjects of group 2, never GenEd or free electives, shaped for mornings, afternoons, fewer days and more.',
-      ],
-      [
-        'Compare sections',
-        'See every section of a course in one table, with times, instructors, seats, exams and conditions, and add one from there.',
-      ],
-      [
-        'Seats and demand',
-        'Every section shows its open seats, and flags when pre registrations exceed capacity.',
-      ],
-      [
-        'Open it your way',
-        'Open the planner from the Planner button at the bottom right, the extension icon, or Alt+Shift+P.',
-      ],
-      ['Thai and English', 'Switch the interface language at any time.'],
-    ],
-    fig: 'Suggested plans for mornings, up to three clash free options side by side, each ready to use.',
-    alt: 'A suggested plan for mornings, with its credits, subjects, class days, a small timetable and a Use this plan button.',
-  },
-  steps: {
-    h2: 'Get started in three steps',
-    intro:
-      'After you install, the registration site’s course search opens with a short welcome, and you can open the planner any time from the Planner button at the bottom right.',
-    items: [
-      [
-        'Search for courses',
-        'Search by curriculum and class year, subject id, or subject category.',
-      ],
-      [
-        'Drag sections into the timetable',
-        'Clashing class times and exam times are flagged as you place them.',
-      ],
-      [
-        'Share as an image',
-        'Download or copy your timetable as an image to send to others.',
-      ],
-    ],
-    link: 'Open the course search',
-    fig: 'The welcome shown on the registration site after you install.',
-    alt: 'The welcome shown after install, Thank you for installing KCP: Course Planner for KMITL, with three steps and a Start planning button.',
-  },
   download: {
     h2: 'Install KCP for free',
-    body: 'Works on Chrome, Microsoft Edge, Brave, Opera and Firefox on a computer. The planner runs only on the registration site at regis.reg.kmitl.ac.th.',
+    body: 'For Chrome, Edge, Brave, Opera and Firefox on a computer.',
     meta: (version, source) =>
       `Version ${version}. Free under the MIT license. ${source}.`,
     source: 'View the source on GitHub',
@@ -202,44 +109,20 @@ export const en = {
     h2: 'Frequently asked questions',
     items: [
       [
-        'What is KCP?',
-        'KCP, or Course Planner for KMITL, is a browser extension for planning your timetable before registration, using the course offerings on the KMITL registration site.',
-      ],
-      [
         'Is KCP an official KMITL system?',
-        'No. KCP is an independent tool built by a student. It is not affiliated with, sponsored by, or endorsed by King Mongkut’s Institute of Technology Ladkrabang.',
+        'No. KCP is an independent tool built by a student and is not endorsed by KMITL.',
       ],
       [
         'Can KCP register for courses for me?',
-        'No. KCP is for planning before registration. You still register on the institute’s registration site as usual. The extension never fills in forms or sends requests on your behalf.',
-      ],
-      [
-        'Does any of my data leave my computer?',
-        'No. Saved plans live in your browser’s storage on this device. There is no account, no server and no usage tracking. Removing the extension removes this data.',
-      ],
-      [
-        'Which browsers does it work on?',
-        'Chrome, Microsoft Edge, Brave, Opera and other Chromium browsers install it from the Chrome Web Store, and Firefox installs it from Firefox Add-ons, all on a computer. Opera may first need its helper for Chrome Web Store extensions.',
+        'No. KCP is for planning only. You still register on the registration site.',
       ],
       [
         'Can I use it on my phone?',
-        'Not yet. Chrome on phones does not support extensions, and support for Firefox for Android is not yet confirmed. The planner already adapts to narrow windows and touch screens, and the web version in development is planned to work without installing an extension.',
-      ],
-      [
-        'When will the web version open?',
-        'There is no date yet. When it opens, the Use on the web button on this page becomes a working link. Until then, use the extension on Chrome or Firefox.',
+        'Not yet. Chrome on phones does not support extensions. The web version in development is planned to work without installing.',
       ],
       [
         'How current is the course data?',
-        'KCP shows the same data the registration site sends and checks its shape before showing it. Results show when they were fetched, and saved plans are checked against the latest data when you open them. Check against the registration site before you register.',
-      ],
-      [
-        'Can I move a plan to another computer?',
-        'Yes. Export the plan as a JSON file from the plan menu and import it on the other computer. An imported plan is checked against the latest data the first time you open it.',
-      ],
-      [
-        'Does KCP cost anything?',
-        'No. KCP is free and open source under the MIT license.',
+        'It is the same data the registration site uses, checked again when you open a plan. Check the registration site before you register.',
       ],
     ],
   },

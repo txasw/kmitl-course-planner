@@ -1,7 +1,6 @@
 // Progressive enhancement for the KCP landing page (ADR-0066). The page is complete
 // without this file: it only adds the merge toggle to the dedupe table, marks a Firefox
-// visitor so the stylesheet can fill the Firefox button instead of Chrome's, keeps the
-// narrow window strip out of the tab order while it has nothing to scroll, and carries
+// visitor so the stylesheet can fill the Firefox button instead of Chrome's, and carries
 // the section in the address across the language switch.
 // It sends nothing anywhere and stores nothing.
 
@@ -21,9 +20,6 @@ function enhanceDedupe(wrap) {
   const status = wrap.querySelector('[data-dedupe-status]');
   const state = wrap.querySelector('[data-dedupe-state]');
   if (table === null || status === null || state === null) return;
-  // Beside the tall screenshot the section keeps its height when the rows fold, so the
-  // page below does not jump; elsewhere the screenshot follows the table up.
-  const besideShot = window.matchMedia('(min-width: 1280px)');
   const repeats = [...table.querySelectorAll('tr[data-row="repeat"]')];
 
   const button = document.createElement('button');
@@ -65,13 +61,9 @@ function enhanceDedupe(wrap) {
     // the table's name never states a row count the table no longer shows.
     state.textContent = ` ${(merged ? wrap.dataset.merged : wrap.dataset.unmerged) ?? ''}`;
     if (merged) {
-      if (besideShot.matches) {
-        wrap.style.minHeight = `${String(wrap.offsetHeight)}px`;
-      }
       wrap.classList.add('is-folding');
       status.textContent = wrap.dataset.merged ?? '';
     } else {
-      wrap.style.minHeight = '';
       wrap.classList.remove('is-merged');
       wrap.classList.add('is-unfolding');
       repeats.forEach((row) => {
@@ -90,7 +82,7 @@ document.querySelectorAll('[data-dedupe]').forEach(enhanceDedupe);
 
 // Both language pages share their section ids, so switching language keeps the reader
 // at the section the address names instead of returning them to the top.
-const SHARED_SECTIONS = new Set(['features', 'get-started', 'faq', 'download']);
+const SHARED_SECTIONS = new Set(['features', 'privacy', 'faq', 'download']);
 
 document.querySelectorAll('a[lang][hreflang]').forEach((link) => {
   link.addEventListener('click', () => {
@@ -100,23 +92,3 @@ document.querySelectorAll('a[lang][hreflang]').forEach((link) => {
     }
   });
 });
-
-// The narrow window strip is a focus stop so a keyboard can scroll it, which the markup
-// sets for a visitor without this script. Where all three frames fit and nothing
-// scrolls, the stop does nothing, so it is taken out of the tab order until the strip
-// overflows again.
-function trackStripFocus(strip) {
-  const update = () => {
-    if (strip.scrollWidth > strip.clientWidth) {
-      strip.setAttribute('tabindex', '0');
-    } else {
-      strip.removeAttribute('tabindex');
-    }
-  };
-  update();
-  new ResizeObserver(update).observe(strip);
-}
-
-if ('ResizeObserver' in window) {
-  document.querySelectorAll('.strip').forEach(trackStripFocus);
-}

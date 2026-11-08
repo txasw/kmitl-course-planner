@@ -19,14 +19,10 @@ import {
   waitForResultsInput,
   waitForTermSettled,
 } from '../../tests/e2e/support/fixtures';
-import { waitForInstallTab } from '../../tests/e2e/support/onboarding';
 import { extensionWorker } from '../../tests/e2e/support/worker';
 import type thDict from '../../src/lib/i18n/th.json';
-import {
-  ONBOARDING_KEY,
-  PREFS_KEY,
-  ROOT_KEY,
-} from '../../src/lib/storage/keys';
+import { PREFS_KEY, ROOT_KEY } from '../../src/lib/storage/keys';
+import { PLAN_H } from './story-plan.mjs';
 
 type Locale = 'th' | 'en';
 type Key = keyof typeof thDict;
@@ -76,7 +72,6 @@ interface WorkerGlobals {
         get(key: string): Promise<Record<string, unknown>>;
         set(items: Record<string, unknown>): Promise<void>;
       };
-      session: { clear(): Promise<void> };
     };
   };
 }
@@ -87,14 +82,6 @@ async function box(locator: Locator): Promise<Box> {
     throw new Error('A capture target has no layout box.');
   }
   return found;
-}
-
-function union(...boxes: Box[]): Box {
-  const x = Math.min(...boxes.map((b) => b.x));
-  const y = Math.min(...boxes.map((b) => b.y));
-  const right = Math.max(...boxes.map((b) => b.x + b.width));
-  const bottom = Math.max(...boxes.map((b) => b.y + b.height));
-  return { x, y, width: right - x, height: bottom - y };
 }
 
 /** Grow a box by a margin, kept inside the viewport. */
@@ -241,17 +228,6 @@ async function addSection(
   await catalogAtRest(page);
 }
 
-/** Plan H: seven subjects of the cybersecurity curriculum, year 1, 19 credits. */
-const PLAN_H: readonly (readonly [string, string])[] = [
-  ['01476101', '33'],
-  ['04186098', '1'],
-  ['01006020', '4'],
-  ['01006503', '1'],
-  ['01006021', '5'],
-  ['01006030', '33'],
-  ['01476012', '33'],
-];
-
 /**
  * A new plan takes the Thai default name in either language, so the English shots
  * rename it through the plan menu, as a student reading the panel in English would.
@@ -298,10 +274,6 @@ async function buildPlan(
   await nameInEnglish(page, locale);
 }
 
-function catalogColumn(page: Page): Locator {
-  return page.locator('#kcp-catalog-column');
-}
-
 function statsBar(page: Page, locale: Locale): Locator {
   return page.getByRole('group', {
     name: tr(locale, 'stats.region'),
@@ -311,10 +283,6 @@ function statsBar(page: Page, locale: Locale): Locator {
 
 function gridGroup(page: Page, locale: Locale): Locator {
   return page.getByRole('group', { name: tr(locale, 'grid.label') });
-}
-
-function gridBlock(page: Page, subjectId: string): Locator {
-  return page.locator('[data-teach-table-id]').filter({ hasText: subjectId });
 }
 
 /** The x of an hour line, the centre of its axis label, which centres on the line. */
@@ -376,15 +344,6 @@ async function saveDownload(
     .click();
   const download = await downloadPromise;
   await download.saveAs(resolve(MASTER_DIR, `${id}-${locale}.png`));
-}
-
-function sectionRow(page: Page, subjectId: string, section: string): Locator {
-  return page
-    .getByRole('article')
-    .filter({ hasText: subjectId })
-    .first()
-    .locator('[data-drag-surface="section"]')
-    .filter({ hasText: new RegExp(`(กลุ่มเรียน|Section) ${section}(?!\\d)`) });
 }
 
 /**
@@ -453,33 +412,6 @@ for (const locale of LOCALES) {
     );
   });
 
-  test(`search form ${locale}`, async ({ context }) => {
-    const page = await openIn(context, locale);
-    // The open form scrolls inside the catalog column once it outgrows the window, so a
-    // taller window shows the whole form without a cut edge.
-    await page.setViewportSize({ width: 1440, height: 1240 });
-    await buildPlan(page, locale);
-    await expandCourse(page, '01006030');
-    await page
-      .getByRole('button', { name: tr(locale, 'search.bar.edit') })
-      .click();
-    await catalogAtRest(page);
-    // The course list scrolls under the open form, so it returns to the top first and
-    // the shot ends under the clear search action, the last control of the form.
-    await page.locator('[data-catalog-scroller]').evaluate((node) => {
-      node.scrollTop = 0;
-    });
-    await restPointer(page);
-    const column = await box(catalogColumn(page));
-    const clear = await box(
-      page.getByRole('button', { name: tr(locale, 'search.clear') }),
-    );
-    await shot(page, 's-search-form', locale, {
-      ...column,
-      height: clear.y + clear.height + 16 - column.y,
-    });
-  });
-
   test(`exports ${locale}`, async ({ context }) => {
     const page = await openIn(context, locale);
     await buildPlan(page, locale);
@@ -505,91 +437,6 @@ for (const locale of LOCALES) {
     await page.keyboard.press('Escape');
     await settle(page);
     await saveDownload(page, locale, 'x-phone-portrait');
-  });
-
-  test(`drag blocked and alternatives ${locale}`, async ({ context }) => {
-    const page = await openIn(context, locale);
-    await buildPlan(page, locale, '01006021');
-    await expandCourse(page, '01006021');
-
-    const from = await box(sectionRow(page, '01006021', '3'));
-    const target = await box(gridBlock(page, '01006020'));
-    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
-    await page.mouse.down();
-    await page.mouse.move(from.x + from.width / 2 + 24, from.y + 24, {
-      steps: 6,
-    });
-    // Rest the pointer in the lower left of the Tuesday block, so the grab card and its
-    // reason chip leave the swap label readable and stay inside the morning columns
-    // that the phone crop keeps.
-    await page.mouse.move(
-      target.x + target.width * 0.3,
-      target.y + target.height * 0.66,
-      { steps: 20 },
-    );
-    const grid = await box(gridGroup(page, locale));
-    // The morning and afternoon blocks of Monday to Wednesday, with the clash in the
-    // middle row, shown near the size the product draws them.
-    const afternoon = (await hourLine(page, locale, '16:00')) + 16;
-    await shot(
-      page,
-      's-drag-blocked',
-      locale,
-      await gridCrop(page, locale, 'day.full.1', 'day.full.3', afternoon),
-    );
-    const chip = page
-      .locator('div.shadow-kcp')
-      .filter({ hasText: tr(locale, 'section.reason.conflictWith') })
-      .last();
-    const chipBox = await box(chip);
-    const noon = (await hourLine(page, locale, '12:00')) + 16;
-    const monday = await dayRow(page, locale, 'day.full.1');
-    const tuesday = await dayRow(page, locale, 'day.full.2');
-    const phoneRight = Math.max(noon, chipBox.x + chipBox.width + 12);
-    const phoneBottom = Math.max(
-      tuesday.y + tuesday.height,
-      chipBox.y + chipBox.height + 12,
-    );
-    await shot(page, 's-drag-blocked-crop', locale, {
-      x: monday.x,
-      y: monday.y,
-      width: phoneRight - monday.x,
-      height: phoneBottom - monday.y,
-    });
-    // Release away from every drop target, so the blocked drag commits nothing.
-    await page.mouse.move(grid.x + 40, 20, { steps: 10 });
-    await page.mouse.up();
-    await settle(page);
-    await page.waitForTimeout(6500);
-
-    await addButton(page, locale, '01006021', '3').click();
-    const strip = page
-      .locator('[aria-live="polite"]')
-      .filter({ has: page.getByRole('button') });
-    await expect(strip).toBeVisible();
-    await strip.hover();
-    const stripBox = await box(strip);
-    // The rows move down under the strip, so the Tuesday row is read again here.
-    const tuesdayRow = await dayRow(page, locale, 'day.full.2');
-    const top = stripBox.y - 8;
-    const bottom = tuesdayRow.y + tuesdayRow.height;
-    // The strip over the grid down to the Tuesday clash, cut at the same afternoon line
-    // as the drag shot so the two plates share one scale.
-    await shot(page, 's-feedback-alternatives', locale, {
-      x: grid.x - 8,
-      y: top,
-      width: afternoon - grid.x + 8,
-      height: bottom - top,
-    });
-    // The phone keeps the message and its alternative, cut where the morning ends.
-    const alternative = await box(strip.getByRole('button').first());
-    const phoneEdge = Math.max(noon, alternative.x + alternative.width + 16);
-    await shot(page, 's-feedback-crop', locale, {
-      x: grid.x - 8,
-      y: top,
-      width: phoneEdge - grid.x + 8,
-      height: bottom - top,
-    });
   });
 
   test(`exam row ${locale}`, async ({ context }) => {
@@ -655,229 +502,7 @@ for (const locale of LOCALES) {
     await restPointer(page);
     await shot(page, 's-updates', locale, pad(page, await box(dialog), 48));
   });
-
-  test(`suggest and plan menu ${locale}`, async ({ context }) => {
-    const page = await openIn(context, locale);
-    await curriculumSearch(page, locale);
-    await addSection(page, locale, '04186098', '1');
-    await nameInEnglish(page, locale);
-    await page
-      .getByRole('button', { name: tr(locale, 'suggest.open') })
-      .click();
-    const dialog = page.getByRole('dialog', {
-      name: tr(locale, 'suggest.title'),
-    });
-    await expect(dialog).toBeVisible();
-    await dialog
-      .getByRole('button', { name: tr(locale, 'suggest.pref.morning') })
-      .click();
-    const apply = dialog.getByRole('button', {
-      name: tr(locale, 'suggest.apply'),
-    });
-    await expect(apply).toHaveCount(3);
-    await restPointer(page);
-    await shot(page, 's-suggest', locale, await box(dialog));
-    // A phone shows one option, the width it reads at, instead of three at a third. The
-    // card runs on under the dialog's foot, so the crop stops where the dialog ends.
-    const dialogBox = await box(dialog);
-    const option = await box(dialog.getByRole('article').first());
-    await shot(page, 's-suggest-crop', locale, {
-      ...option,
-      height:
-        Math.min(option.y + option.height, dialogBox.y + dialogBox.height - 4) -
-        option.y,
-    });
-
-    await apply.first().click();
-    await expect(dialog).toHaveCount(0);
-    // Let the undo toast of the apply time out, so the menu shot carries no toast.
-    await page.waitForTimeout(11_000);
-    const switcher = page.getByRole('button', {
-      name: tr(locale, 'planSwitcher.label'),
-    });
-    await switcher.click();
-    const menu = page
-      .getByRole('button', { name: tr(locale, 'planSwitcher.create') })
-      .locator('xpath=ancestor::div[@style][1]');
-    await expect(menu).toBeVisible();
-    await restPointer(page);
-    // No margin: any margin shows cut off fragments of the panel behind the menu.
-    await shot(
-      page,
-      's-plan-menu',
-      locale,
-      union(await box(switcher), await box(menu)),
-    );
-  });
 }
-
-test.describe('tall desktop', () => {
-  test.use({ viewport: { width: 1440, height: 1240 } });
-
-  for (const locale of LOCALES) {
-    test(`dedupe catalog ${locale}`, async ({ context }) => {
-      const page = await openIn(context, locale);
-      await pickTerm(page, locale);
-      await page
-        .getByRole('tab', {
-          name: tr(locale, 'search.tab.byCategory'),
-          exact: true,
-        })
-        .click();
-      await pick(page, tr(locale, 'search.faculty'), '01');
-      await pick(page, tr(locale, 'search.subjectOwner'), '90592xxx');
-      await submit(page, locale);
-      await expect(page.getByText('90592033').first()).toBeVisible({
-        timeout: 15_000,
-      });
-      await waitForResultsInput(page);
-      await expandCourse(page, '90592008');
-      await expandCourse(page, '90592033');
-      await page.locator('[data-catalog-scroller]').evaluate((node) => {
-        node.scrollTop = 0;
-      });
-      await restPointer(page);
-      await settle(page);
-      const column = await box(catalogColumn(page));
-      const last = await box(
-        page.getByRole('article').filter({ hasText: '90592033' }).first(),
-      );
-      await shot(page, 's-catalog-dedupe', locale, {
-        ...column,
-        height: Math.min(column.height, last.y + last.height + 16 - column.y),
-      });
-    });
-  }
-});
-
-// The Summary view runs longer than a desktop screen, so it is captured in a tall window
-// narrow enough that the plan column keeps a readable measure beside the catalog.
-test.describe('tall plan column', () => {
-  test.use({ viewport: { width: 1024, height: 2300 } });
-
-  for (const locale of LOCALES) {
-    test(`summary ${locale}`, async ({ context }) => {
-      const page = await openIn(context, locale);
-      await buildPlan(page, locale);
-      await page
-        .getByRole('tab', {
-          name: tr(locale, 'planView.summary'),
-          exact: true,
-        })
-        .click();
-      await restPointer(page);
-      // The exam schedule only: the whole Summary view is so tall that the page would
-      // have to show it too small to read beside the exam card.
-      const panel = await box(page.getByRole('tabpanel'));
-      const exams = await box(
-        page.getByRole('region', { name: tr(locale, 'examSchedule.title') }),
-      );
-      await shot(
-        page,
-        's-summary',
-        locale,
-        pad(page, { ...panel, y: exams.y, height: exams.height }, 16),
-      );
-    });
-  }
-});
-
-test.describe('first run', () => {
-  test.use({ onboarding: 'fresh' });
-
-  for (const locale of LOCALES) {
-    test(`welcome ${locale}`, async ({ context }) => {
-      const tab = await waitForInstallTab(context);
-      if (locale === 'en') {
-        // The welcome follows the panel language. Seed English, clear the record of
-        // the welcome just shown in Thai and the worker's session grant, and reload.
-        const service = await extensionWorker(context);
-        await service.evaluate(async () => {
-          // Capture only assertion: an extension worker carries the global described above.
-          const globals = globalThis as unknown as WorkerGlobals;
-          await globals.chrome.storage.session.clear();
-        });
-        await storageSet(context, {
-          [PREFS_KEY]: { schemaVersion: 1, language: 'en' },
-          [ONBOARDING_KEY]: { schemaVersion: 1 },
-        });
-        await tab.reload();
-      }
-      await tab.emulateMedia({ reducedMotion: 'reduce' });
-      const dialog = tab.getByRole('dialog', {
-        name: tr(locale, 'welcome.title'),
-      });
-      await expect(dialog).toBeVisible({ timeout: 15_000 });
-      // The dialog alone: the page frames it, so the scrim of the registration site
-      // behind it would only add a flat grey slab.
-      await shot(tab, 's-welcome', locale, await box(dialog));
-    });
-  }
-});
-
-test.describe('narrow window', () => {
-  test.use({
-    viewport: { width: 390, height: 844 },
-    deviceScaleFactor: 3,
-    isMobile: true,
-    hasTouch: true,
-  });
-
-  for (const locale of LOCALES) {
-    test(`narrow shots ${locale}`, async ({ context }) => {
-      const page = await openIn(context, locale);
-      const nav = page.getByRole('navigation', {
-        name: tr(locale, 'nav.label'),
-      });
-      const courses = nav.getByRole('button', { name: /^(รายวิชา|Courses)/ });
-      await courses.click();
-      await buildPlan(page, locale);
-      await expandCourse(page, '01006030');
-      await courses.click();
-      // Let the confirmation of the last add time out, so the shot carries no toast.
-      await page.waitForTimeout(9000);
-      await shot(page, 'n-catalog', locale);
-
-      await nav
-        .getByRole('button', { name: tr(locale, 'planView.timetable') })
-        .click();
-      await page
-        .getByRole('radiogroup', { name: tr(locale, 'view.dayPicker') })
-        .getByRole('radio', { name: /^(วันอังคาร|Tuesday)/ })
-        .click();
-      await shot(page, 'n-day', locale);
-
-      await gridBlock(page, '01006020').first().click();
-      await shot(page, 'n-sheet', locale);
-
-      // The exam schedule as a phone shows it, its first two days, for the page's
-      // phone layout, where the desktop capture would shrink to a few pixels a letter.
-      await page.keyboard.press('Escape');
-      await nav
-        .getByRole('button', {
-          name: new RegExp(`^${escapeRegExp(tr(locale, 'planView.summary'))}`),
-        })
-        .click();
-      const exams = page.getByRole('region', {
-        name: tr(locale, 'examSchedule.title'),
-      });
-      await exams.evaluate((node) => {
-        node.scrollIntoView({ block: 'start' });
-      });
-      const secondDay = exams.locator('ol > li').nth(1);
-      await expect(secondDay).toBeVisible();
-      const schedule = await box(exams);
-      const second = await box(secondDay);
-      // A margin on three sides; the foot stops at the second day, clear of the third.
-      await shot(page, 's-summary-crop', locale, {
-        x: schedule.x - 12,
-        y: schedule.y - 12,
-        width: schedule.width + 24,
-        height: second.y + second.height + 4 - (schedule.y - 12),
-      });
-    });
-  }
-});
 
 const OG_LINES: Record<Locale, string> = {
   th: 'เห็นตารางเรียนทั้งสัปดาห์<br>ก่อนลงทะเบียนจริง',

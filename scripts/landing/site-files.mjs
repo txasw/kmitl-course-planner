@@ -16,6 +16,7 @@ import {
   dedupeCounts,
   extensionVersion,
   renderDedupeRows,
+  subjectSearchCounts,
 } from './site-data.mjs';
 
 export const ROOT = path.resolve(
@@ -93,6 +94,7 @@ export async function siteTextFiles() {
       manifest,
       rowsHtml: renderDedupeRows(copy.lang),
       counts,
+      search: subjectSearchCounts(),
       version,
     });
     files.set(relative, await format(relative, versionAssets(html)));

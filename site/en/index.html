@@ -33,8 +33,8 @@
       media="(min-width: 640px)"
       fetchpriority="high"
     />
-    <link rel="stylesheet" href="/assets/site.css?v=03128ea5a8" />
-    <script src="/assets/site.js?v=bf519a3603" defer></script>
+    <link rel="stylesheet" href="/assets/site.css?v=250de848ac" />
+    <script src="/assets/site.js?v=ed7ab2c09b" defer></script>
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="KCP" />
     <meta
@@ -175,9 +175,6 @@
         <nav class="site-nav" aria-label="Main">
           <ul>
             <li class="site-nav__wide"><a href="#features">Features</a></li>
-            <li class="site-nav__wide">
-              <a href="#get-started">Get started</a>
-            </li>
             <li class="site-nav__wide"><a href="#faq">FAQ</a></li>
             <li class="site-nav__narrow"><a href="#faq">FAQ</a></li>
             <li><a href="/" lang="th" hreflang="th">ภาษาไทย</a></li>
@@ -201,18 +198,17 @@
             <h1 id="hero-title">
               <span class="hero__lockup">KCP: Course Planner for KMITL</span
               ><span class="hero__display"
-                >See your whole week
-                <span class="hero__break">before you register.</span></span
+                ><span class="phrase">See your whole week</span>
+                <span class="hero__break"
+                  ><span class="phrase">before you register.</span></span
+                ></span
               >
             </h1>
             <p class="lede">
-              A browser extension that turns the KMITL course search into a drag
-              and drop weekly timetable.
+              An extension that turns the KMITL course search into a drag and
+              drop timetable.
             </p>
-            <p class="cta-coarse">
-              Installs on a computer only. Open this page on a computer to
-              install.
-            </p>
+            <p class="cta-coarse">Installs on a computer only.</p>
             <div class="cta-row cta-row--hero">
               <a
                 class="cta cta--chrome"
@@ -296,11 +292,10 @@
                 >
               </button>
             </div>
-            <p class="micro">
-              Free and open source. No account, no tracking. An independent
-              student tool, not an official KMITL system.
+            <p class="micro hero__fine">
+              Free and open source. Not an official KMITL system.
             </p>
-            <p class="cta-note" id="web-soon-note-hero">
+            <p class="visually-hidden" id="web-soon-note-hero">
               The web version is in development, with no release date yet.
             </p>
           </div>
@@ -375,1283 +370,670 @@
           </div>
         </div>
       </section>
-      <section class="band problem" aria-labelledby="problem-title">
-        <div class="container problem__grid">
-          <div class="problem__text">
-            <h2 id="problem-title">
-              The registration site lists the same section again and again.
-            </h2>
-            <p class="body">
-              One section is open to many curricula, so the result page repeats
-              it under every curriculum it is open to. A search for subject
-              90641007, Digital Citizen, in semester 1/2569 returns 499 rows
-              that hold only 44 real sections. KCP reads the same public data
-              the registration site uses and merges the repeats into one entry
-              per section.
-            </p>
-            <div
-              class="dedupe-wrap"
-              data-dedupe
-              data-label="Merge repeated rows"
-              data-merged="Merged into 4 sections from 13 rows."
-              data-unmerged="Showing all 13 rows."
-            >
-              <table class="dedupe" id="dedupe-table" role="table">
-                <caption>
-                  Real data from a search of category 90592xxx in semester
-                  1/2569: 13 rows across 6 curricula.<span
-                    class="visually-hidden"
-                    data-dedupe-state
-                  ></span>
-                </caption>
-                <thead role="rowgroup">
-                  <tr role="row">
-                    <th scope="col" role="columnheader">Listed under</th>
-                    <th scope="col" role="columnheader">Subject id</th>
-                    <th scope="col" role="columnheader">Subject</th>
-                    <th scope="col" role="columnheader">Section</th>
-                    <th scope="col" role="columnheader">Day and time</th>
-                    <th scope="col" role="columnheader">Seats</th>
-                  </tr>
-                </thead>
-                <tbody role="rowgroup">
-                  <tr role="row" class="dedupe__row subject-8" data-row="first">
-                    <td role="cell" class="dedupe__grouping">
-                      <div class="fold">
-                        <div>
-                          Civil Engineering, year 4
-                          <span class="dedupe__chip"
-                            >Listed under 4 curricula</span
-                          >
-                        </div>
-                      </div>
-                    </td>
-                    <td role="cell" class="dedupe__id">
-                      <div class="fold"><div>90592008</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__name">
-                      <div class="fold"><div>TODAY'S THAI SOCIETY</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__section">
-                      <div class="fold"><div>901 Lecture</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__time">
-                      <div class="fold"><div>Fri 09:00-12:00</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__seats">
-                      <div class="fold">
-                        <div><span data-label="Seats">62/80</span></div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr role="row" class="dedupe__row subject-0" data-row="first">
-                    <td role="cell" class="dedupe__grouping">
-                      <div class="fold">
-                        <div>
-                          Civil Engineering, year 4
-                          <span class="dedupe__chip"
-                            >Listed under 3 curricula</span
-                          >
-                        </div>
-                      </div>
-                    </td>
-                    <td role="cell" class="dedupe__id">
-                      <div class="fold"><div>90592033</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__name">
-                      <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__section">
-                      <div class="fold"><div>901 Lecture</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__time">
-                      <div class="fold"><div>Fri 08:00-10:00</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__seats">
-                      <div class="fold">
-                        <div><span data-label="Seats">Full</span></div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr role="row" class="dedupe__row subject-0" data-row="first">
-                    <td role="cell" class="dedupe__grouping">
-                      <div class="fold">
-                        <div>
-                          Civil Engineering, year 4
-                          <span class="dedupe__chip"
-                            >Listed under 3 curricula</span
-                          >
-                        </div>
-                      </div>
-                    </td>
-                    <td role="cell" class="dedupe__id">
-                      <div class="fold"><div>90592033</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__name">
-                      <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__section">
-                      <div class="fold"><div>902 Practice</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__time">
-                      <div class="fold"><div>Fri 10:00-12:00</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__seats">
-                      <div class="fold">
-                        <div><span data-label="Seats">Full</span></div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr
-                    role="row"
-                    class="dedupe__row subject-8"
-                    data-row="repeat"
-                  >
-                    <td role="cell" class="dedupe__grouping">
-                      <div class="fold">
-                        <div>Chemical Engineering, year 4</div>
-                      </div>
-                    </td>
-                    <td role="cell" class="dedupe__id">
-                      <div class="fold"><div>90592008</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__name">
-                      <div class="fold"><div>TODAY'S THAI SOCIETY</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__section">
-                      <div class="fold"><div>901 Lecture</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__time">
-                      <div class="fold"><div>Fri 09:00-12:00</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__seats">
-                      <div class="fold">
-                        <div><span data-label="Seats">62/80</span></div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr role="row" class="dedupe__row subject-4" data-row="first">
-                    <td role="cell" class="dedupe__grouping">
-                      <div class="fold">
-                        <div>
-                          Industrial Engineering, year 4
-                          <span class="dedupe__chip"
-                            >Listed under 3 curricula</span
-                          >
-                        </div>
-                      </div>
-                    </td>
-                    <td role="cell" class="dedupe__id">
-                      <div class="fold"><div>90592004</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__name">
-                      <div class="fold"><div>CONTEMPORARY CULTURE</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__section">
-                      <div class="fold"><div>901 Lecture</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__time">
-                      <div class="fold"><div>Fri 13:00-16:00</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__seats">
-                      <div class="fold">
-                        <div><span data-label="Seats">85/90</span></div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr
-                    role="row"
-                    class="dedupe__row subject-4"
-                    data-row="repeat"
-                  >
-                    <td role="cell" class="dedupe__grouping">
-                      <div class="fold">
-                        <div>Faculty of Engineering, no curriculum, year 4</div>
-                      </div>
-                    </td>
-                    <td role="cell" class="dedupe__id">
-                      <div class="fold"><div>90592004</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__name">
-                      <div class="fold"><div>CONTEMPORARY CULTURE</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__section">
-                      <div class="fold"><div>901 Lecture</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__time">
-                      <div class="fold"><div>Fri 13:00-16:00</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__seats">
-                      <div class="fold">
-                        <div><span data-label="Seats">85/90</span></div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr
-                    role="row"
-                    class="dedupe__row subject-8"
-                    data-row="repeat"
-                  >
-                    <td role="cell" class="dedupe__grouping">
-                      <div class="fold"><div>Architecture, year 5</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__id">
-                      <div class="fold"><div>90592008</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__name">
-                      <div class="fold"><div>TODAY'S THAI SOCIETY</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__section">
-                      <div class="fold"><div>901 Lecture</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__time">
-                      <div class="fold"><div>Fri 09:00-12:00</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__seats">
-                      <div class="fold">
-                        <div><span data-label="Seats">62/80</span></div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr
-                    role="row"
-                    class="dedupe__row subject-0"
-                    data-row="repeat"
-                  >
-                    <td role="cell" class="dedupe__grouping">
-                      <div class="fold"><div>Architecture, year 5</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__id">
-                      <div class="fold"><div>90592033</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__name">
-                      <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__section">
-                      <div class="fold"><div>901 Lecture</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__time">
-                      <div class="fold"><div>Fri 08:00-10:00</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__seats">
-                      <div class="fold">
-                        <div><span data-label="Seats">Full</span></div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr
-                    role="row"
-                    class="dedupe__row subject-0"
-                    data-row="repeat"
-                  >
-                    <td role="cell" class="dedupe__grouping">
-                      <div class="fold"><div>Architecture, year 5</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__id">
-                      <div class="fold"><div>90592033</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__name">
-                      <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__section">
-                      <div class="fold"><div>902 Practice</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__time">
-                      <div class="fold"><div>Fri 10:00-12:00</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__seats">
-                      <div class="fold">
-                        <div><span data-label="Seats">Full</span></div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr
-                    role="row"
-                    class="dedupe__row subject-4"
-                    data-row="repeat"
-                  >
-                    <td role="cell" class="dedupe__grouping">
-                      <div class="fold"><div>General Education</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__id">
-                      <div class="fold"><div>90592004</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__name">
-                      <div class="fold"><div>CONTEMPORARY CULTURE</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__section">
-                      <div class="fold"><div>901 Lecture</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__time">
-                      <div class="fold"><div>Fri 13:00-16:00</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__seats">
-                      <div class="fold">
-                        <div><span data-label="Seats">85/90</span></div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr
-                    role="row"
-                    class="dedupe__row subject-8"
-                    data-row="repeat"
-                  >
-                    <td role="cell" class="dedupe__grouping">
-                      <div class="fold"><div>General Education</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__id">
-                      <div class="fold"><div>90592008</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__name">
-                      <div class="fold"><div>TODAY'S THAI SOCIETY</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__section">
-                      <div class="fold"><div>901 Lecture</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__time">
-                      <div class="fold"><div>Fri 09:00-12:00</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__seats">
-                      <div class="fold">
-                        <div><span data-label="Seats">62/80</span></div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr
-                    role="row"
-                    class="dedupe__row subject-0"
-                    data-row="repeat"
-                  >
-                    <td role="cell" class="dedupe__grouping">
-                      <div class="fold"><div>General Education</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__id">
-                      <div class="fold"><div>90592033</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__name">
-                      <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__section">
-                      <div class="fold"><div>901 Lecture</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__time">
-                      <div class="fold"><div>Fri 08:00-10:00</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__seats">
-                      <div class="fold">
-                        <div><span data-label="Seats">Full</span></div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr
-                    role="row"
-                    class="dedupe__row subject-0"
-                    data-row="repeat"
-                  >
-                    <td role="cell" class="dedupe__grouping">
-                      <div class="fold"><div>General Education</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__id">
-                      <div class="fold"><div>90592033</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__name">
-                      <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__section">
-                      <div class="fold"><div>902 Practice</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__time">
-                      <div class="fold"><div>Fri 10:00-12:00</div></div>
-                    </td>
-                    <td role="cell" class="dedupe__seats">
-                      <div class="fold">
-                        <div><span data-label="Seats">Full</span></div>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              <p class="dedupe__result">
-                In KCP these 13 rows merge into 4 sections, each listed once.
-              </p>
-              <p
-                class="visually-hidden"
-                role="status"
-                aria-live="polite"
-                data-dedupe-status
-              ></p>
-            </div>
-          </div>
-          <figure class="plate problem__shot">
-            <picture
-              ><source
-                type="image/avif"
-                srcset="
-                  /shots/s-catalog-dedupe-en-400.avif?v=9bed16f71d 400w,
-                  /shots/s-catalog-dedupe-en-600.avif?v=e2b1b950c6 600w,
-                  /shots/s-catalog-dedupe-en-768.avif?v=2662831f64 768w
-                "
-                sizes="(min-width: 1280px) 384px, (min-width: 520px) 480px, calc(100vw - 40px)" />
-              <source
-                type="image/webp"
-                srcset="
-                  /shots/s-catalog-dedupe-en-400.webp?v=1ef047bd98 400w,
-                  /shots/s-catalog-dedupe-en-600.webp?v=d58f2d315f 600w,
-                  /shots/s-catalog-dedupe-en-768.webp?v=04a262c6c6 768w
-                "
-                sizes="(min-width: 1280px) 384px, (min-width: 520px) 480px, calc(100vw - 40px)" />
-              <img
-                src="/shots/s-catalog-dedupe-en-600.webp?v=d58f2d315f"
-                width="600"
-                height="1567"
-                alt="The KCP course list for a search of category 90592xxx, summarised as 3 courses, 4 sections and 9 merged repeats. The cards for 90592008 and 90592033 are open, showing each section with its day, time, room and seats."
-                loading="lazy"
-                decoding="async"
-                class="plate__img"
-            /></picture>
-            <figcaption>
-              The same search in KCP: 3 courses and 4 sections, each listed once
-              with its day, time, place and seats.
-            </figcaption>
-          </figure>
-        </div>
-      </section>
-      <section class="features" id="features" aria-labelledby="features-title">
+      <section class="screen problem" aria-labelledby="problem-title">
         <div class="container">
-          <h2 id="features-title" class="features__title">
-            Everything you need to plan a term, in one panel.
-          </h2>
-          <article class="feature" aria-labelledby="search-title">
-            <div class="feature__caption">
-              <h3 id="search-title">
-                Search the three ways the registration site does
-              </h3>
-              <p class="body">
-                Search by curriculum and class year, by subject id, or by
-                subject category. Results arrive as one line course cards that
-                open to show sections, open seats, enrollment conditions and
-                exam dates, with filters for day, credits and full sections.
-              </p>
-            </div>
-            <div class="feature__media">
-              <figure class="plate plate--column">
-                <picture
-                  ><source
-                    type="image/avif"
-                    srcset="
-                      /shots/s-search-form-en-600.avif?v=d8e16ee40e 600w,
-                      /shots/s-search-form-en-768.avif?v=787cd1d881 768w
-                    "
-                    sizes="(min-width: 424px) 384px, calc(100vw - 40px)" />
-                  <source
-                    type="image/webp"
-                    srcset="
-                      /shots/s-search-form-en-600.webp?v=0c05bae8b8 600w,
-                      /shots/s-search-form-en-768.webp?v=80b8ab42cf 768w
-                    "
-                    sizes="(min-width: 424px) 384px, calc(100vw - 40px)" />
-                  <img
-                    src="/shots/s-search-form-en-600.webp?v=0c05bae8b8"
-                    width="600"
-                    height="1108"
-                    alt="The search panel on the curriculum tab, with the engineering faculty, the Computer Engineering department, the Computer Engineering and Cyber Security curriculum and year 1 selected, above the Search and Clear search buttons."
-                    loading="lazy"
-                    decoding="async"
-                    class="plate__img"
-                /></picture>
-                <figcaption>
-                  The curriculum tab, set to the Computer Engineering and Cyber
-                  Security curriculum, year 1.
-                </figcaption>
-              </figure>
-            </div>
-          </article>
-          <article class="feature" aria-labelledby="conflict-title">
-            <div class="feature__caption">
-              <h3 id="conflict-title">
-                Drag a section in and see a clash before you drop
-              </h3>
-              <p class="body">
-                As soon as you pick up a section, the timetable shows where each
-                of its meetings will land. A green outline means it fits; red
-                hatching marks a clash with a subject already in your plan,
-                named with the time it overlaps. Drop it on the subject it
-                clashes with to swap the two. If it cannot be placed, KCP offers
-                other sections of the same subject that fit. Lecture and
-                practice pairs are always added and removed together.
-              </p>
-            </div>
-            <div class="feature__media">
-              <div class="stack">
-                <figure class="plate">
-                  <picture
-                    ><source
-                      media="(max-width: 639px)"
-                      type="image/avif"
-                      srcset="
-                        /shots/s-drag-blocked-crop-en-750.avif?v=c6ab2d90f1 750w,
-                        /shots/s-drag-blocked-crop-en-914.avif?v=27e6d98411 914w
-                      "
-                      sizes="calc(100vw - 40px)" />
-                    <source
-                      media="(max-width: 639px)"
-                      type="image/webp"
-                      srcset="
-                        /shots/s-drag-blocked-crop-en-750.webp?v=84c9196b4a 750w,
-                        /shots/s-drag-blocked-crop-en-914.webp?v=6c76b83ac1 914w
-                      "
-                      sizes="calc(100vw - 40px)" />
-                    <source
-                      type="image/avif"
-                      srcset="
-                        /shots/s-drag-blocked-en-800.avif?v=bf005070c0   800w,
-                        /shots/s-drag-blocked-en-1600.avif?v=9357bf1f4a 1600w
-                      "
-                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
-                    <source
-                      type="image/webp"
-                      srcset="
-                        /shots/s-drag-blocked-en-800.webp?v=2b7f6a351c   800w,
-                        /shots/s-drag-blocked-en-1600.webp?v=d9a2b7d861 1600w
-                      "
-                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
-                    <img
-                      src="/shots/s-drag-blocked-en-800.webp?v=2b7f6a351c"
-                      width="800"
-                      height="317"
-                      alt="The timetable during a drag of section 3. Over General Physics 1 on Tuesday 09:00 to 12:00, an orange target offers a swap for section 3, and a chip names the clash with 01006020 section 4."
-                      loading="lazy"
-                      decoding="async"
-                      class="plate__img"
-                  /></picture>
-                  <figcaption>
-                    Dragging General Physics Laboratory 1, section 3, which
-                    meets Tuesday 09:00 to 12:00, where it clashes with General
-                    Physics 1, section 4.
-                  </figcaption>
-                </figure>
-                <figure class="plate">
-                  <picture
-                    ><source
-                      media="(max-width: 639px)"
-                      type="image/avif"
-                      srcset="
-                        /shots/s-feedback-crop-en-750.avif?v=ee0a29958a 750w,
-                        /shots/s-feedback-crop-en-914.avif?v=d84a1c0b04 914w
-                      "
-                      sizes="calc(100vw - 40px)" />
-                    <source
-                      media="(max-width: 639px)"
-                      type="image/webp"
-                      srcset="
-                        /shots/s-feedback-crop-en-750.webp?v=2f0f746a06 750w,
-                        /shots/s-feedback-crop-en-914.webp?v=b6e3a76ca8 914w
-                      "
-                      sizes="calc(100vw - 40px)" />
-                    <source
-                      type="image/avif"
-                      srcset="
-                        /shots/s-feedback-alternatives-en-800.avif?v=8ce5992dba   800w,
-                        /shots/s-feedback-alternatives-en-1600.avif?v=502dfb5629 1600w
-                      "
-                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
-                    <source
-                      type="image/webp"
-                      srcset="
-                        /shots/s-feedback-alternatives-en-800.webp?v=2041c344a7   800w,
-                        /shots/s-feedback-alternatives-en-1600.webp?v=aeaef8ceed 1600w
-                      "
-                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
-                    <img
-                      src="/shots/s-feedback-alternatives-en-800.webp?v=2041c344a7"
-                      width="800"
-                      height="374"
-                      alt="A message above the timetable says the section cannot be placed because of a time clash, with a button to add section 5 instead."
-                      loading="lazy"
-                      decoding="async"
-                      class="plate__img"
-                  /></picture>
-                  <figcaption>
-                    The drop is refused, and KCP offers section 5 on Wednesday,
-                    13:00-16:00, which fits.
-                  </figcaption>
-                </figure>
-              </div>
-            </div>
-          </article>
-          <article class="feature" aria-labelledby="exam-title">
-            <div class="feature__caption">
-              <h3 id="exam-title">
-                Exam dates are checked too, not only class times
-              </h3>
-              <p class="body">
-                Two subjects that meet on different days can still share a
-                midterm slot. KCP compares the midterm and final windows of
-                every subject in your plan and will not add a section whose exam
-                clashes. The Summary view lists the term’s exams by date, with
-                your weekly hours and free days.
-              </p>
-            </div>
-            <div class="feature__media">
-              <div class="pair">
-                <figure class="plate">
-                  <picture
-                    ><source
-                      type="image/avif"
-                      srcset="
-                        /shots/s-exam-row-en-500.avif?v=6aeee0449a 500w,
-                        /shots/s-exam-row-en-702.avif?v=cf159cb4f3 702w
-                      "
-                      sizes="(min-width: 1024px) 288px, (min-width: 640px) calc(34vw - 12px), calc(100vw - 40px)" />
-                    <source
-                      type="image/webp"
-                      srcset="
-                        /shots/s-exam-row-en-500.webp?v=2ba1674f38 500w,
-                        /shots/s-exam-row-en-702.webp?v=d5b567bf77 702w
-                      "
-                      sizes="(min-width: 1024px) 288px, (min-width: 640px) calc(34vw - 12px), calc(100vw - 40px)" />
-                    <img
-                      src="/shots/s-exam-row-en-500.webp?v=2ba1674f38"
-                      width="500"
-                      height="809"
-                      alt="The course card for 01076112. Its sections carry an exam clash badge, and a soft red box says the exam clashes with 01006020 section 4, midterm on 21 Aug 2569."
-                      loading="lazy"
-                      decoding="async"
-                      class="plate__img"
-                  /></picture>
-                  <figcaption>
-                    Digital System Fundamentals meets on Monday, but its midterm
-                    on 21 Aug 2569 falls at the same time as General Physics 1.
-                  </figcaption>
-                </figure>
-                <figure class="plate">
-                  <picture
-                    ><source
-                      media="(max-width: 639px)"
-                      type="image/avif"
-                      srcset="
-                        /shots/s-summary-crop-en-750.avif?v=ef12dc7b82   750w,
-                        /shots/s-summary-crop-en-1100.avif?v=0eda6f831d 1100w
-                      "
-                      sizes="calc(100vw - 40px)" />
-                    <source
-                      media="(max-width: 639px)"
-                      type="image/webp"
-                      srcset="
-                        /shots/s-summary-crop-en-750.webp?v=c4c54ff9f4   750w,
-                        /shots/s-summary-crop-en-1100.webp?v=2145218136 1100w
-                      "
-                      sizes="calc(100vw - 40px)" />
-                    <source
-                      type="image/avif"
-                      srcset="
-                        /shots/s-summary-en-500.avif?v=8164487c25   500w,
-                        /shots/s-summary-en-1000.avif?v=b10ab50371 1000w
-                      "
-                      sizes="(min-width: 1024px) 480px, (min-width: 640px) calc(56vw - 20px), calc(100vw - 40px)" />
-                    <source
-                      type="image/webp"
-                      srcset="
-                        /shots/s-summary-en-500.webp?v=e5cc92af6e   500w,
-                        /shots/s-summary-en-1000.webp?v=c157375524 1000w
-                      "
-                      sizes="(min-width: 1024px) 480px, (min-width: 640px) calc(56vw - 20px), calc(100vw - 40px)" />
-                    <img
-                      src="/shots/s-summary-en-500.webp?v=e5cc92af6e"
-                      width="500"
-                      height="855"
-                      alt="The exam schedule of the plan, with its exam days in date order, each with the time, subject id, subject name and section."
-                      loading="lazy"
-                      decoding="async"
-                      class="plate__img"
-                  /></picture>
-                  <figcaption>
-                    The exam schedule in the Summary view, with every midterm
-                    and final in the plan by date.
-                  </figcaption>
-                </figure>
-              </div>
-            </div>
-          </article>
-          <article
-            class="feature feature--wide"
-            aria-labelledby="layouts-title"
-          >
-            <div class="feature__caption">
-              <h3 id="layouts-title">
-                Built for wide screens, narrow windows and touch screen laptops
-              </h3>
-              <p class="body">
-                KCP runs in computer browsers that support extensions, at any
-                window size. On a wide screen the course list sits beside the
-                timetable, and in a medium window it opens as a side sheet. In a
-                window narrower than 640 px, the planner shows one pane at a
-                time behind a bottom bar, the timetable reads one day at a time,
-                and a long press picks up a section on a touch screen laptop.
-              </p>
-            </div>
-            <div class="feature__media">
-              <div
-                class="strip"
-                role="region"
-                aria-label="Narrow window examples"
-                tabindex="0"
+          <div class="statement">
+            <h2 id="problem-title" class="statement__h">
+              <span class="statement__line"
+                >Search one subject, get 499 rows.</span
               >
-                <figure class="narrow">
-                  <div class="narrow__bar" aria-hidden="true">
-                    <span class="frame__dots"><i></i><i></i><i></i></span
-                    ><span class="frame__url"
-                      ><svg
-                        class="icon"
-                        width="14"
-                        height="14"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <rect
-                          width="18"
-                          height="11"
-                          x="3"
-                          y="11"
-                          rx="2"
-                          ry="2"
-                        />
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
-                      ><span>regis.reg.kmitl.ac.th</span></span
-                    >
-                  </div>
-                  <picture
-                    ><source
-                      type="image/avif"
-                      srcset="
-                        /shots/n-catalog-en-400.avif?v=6fa46046af 400w,
-                        /shots/n-catalog-en-800.avif?v=e3670ba015 800w
-                      "
-                      sizes="(min-width: 1328px) 384px, (min-width: 1024px) calc(30vw - 16px), 280px" />
-                    <source
-                      type="image/webp"
-                      srcset="
-                        /shots/n-catalog-en-400.webp?v=c1f9a02ac2 400w,
-                        /shots/n-catalog-en-800.webp?v=726752f374 800w
-                      "
-                      sizes="(min-width: 1328px) 384px, (min-width: 1024px) calc(30vw - 16px), 280px" />
-                    <img
-                      src="/shots/n-catalog-en-400.webp?v=c1f9a02ac2"
-                      width="400"
-                      height="866"
-                      alt="The planner in a narrow window, on the courses pane with the Calculus 1 card open and the bottom bar below."
-                      loading="lazy"
-                      decoding="async"
-                      class="narrow__img"
-                  /></picture>
-                  <figcaption>Courses and search in a narrow window</figcaption>
-                </figure>
-                <figure class="narrow">
-                  <div class="narrow__bar" aria-hidden="true">
-                    <span class="frame__dots"><i></i><i></i><i></i></span
-                    ><span class="frame__url"
-                      ><svg
-                        class="icon"
-                        width="14"
-                        height="14"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <rect
-                          width="18"
-                          height="11"
-                          x="3"
-                          y="11"
-                          rx="2"
-                          ry="2"
-                        />
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
-                      ><span>regis.reg.kmitl.ac.th</span></span
-                    >
-                  </div>
-                  <picture
-                    ><source
-                      type="image/avif"
-                      srcset="
-                        /shots/n-day-en-400.avif?v=b5e81b73cc 400w,
-                        /shots/n-day-en-800.avif?v=a6f9a00a8a 800w
-                      "
-                      sizes="(min-width: 1328px) 384px, (min-width: 1024px) calc(30vw - 16px), 280px" />
-                    <source
-                      type="image/webp"
-                      srcset="
-                        /shots/n-day-en-400.webp?v=e049327656 400w,
-                        /shots/n-day-en-800.webp?v=befda56399 800w
-                      "
-                      sizes="(min-width: 1328px) 384px, (min-width: 1024px) calc(30vw - 16px), 280px" />
-                    <img
-                      src="/shots/n-day-en-400.webp?v=e049327656"
-                      width="400"
-                      height="866"
-                      alt="The Tuesday timetable in a narrow window, with General Physics 1 at 09:00 to 12:00 and Introduction to Psychology at 13:00 to 16:00."
-                      loading="lazy"
-                      decoding="async"
-                      class="narrow__img"
-                  /></picture>
-                  <figcaption>
-                    The Tuesday timetable in a narrow window
-                  </figcaption>
-                </figure>
-                <figure class="narrow">
-                  <div class="narrow__bar" aria-hidden="true">
-                    <span class="frame__dots"><i></i><i></i><i></i></span
-                    ><span class="frame__url"
-                      ><svg
-                        class="icon"
-                        width="14"
-                        height="14"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <rect
-                          width="18"
-                          height="11"
-                          x="3"
-                          y="11"
-                          rx="2"
-                          ry="2"
-                        />
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
-                      ><span>regis.reg.kmitl.ac.th</span></span
-                    >
-                  </div>
-                  <picture
-                    ><source
-                      type="image/avif"
-                      srcset="
-                        /shots/n-sheet-en-400.avif?v=6412992736 400w,
-                        /shots/n-sheet-en-800.avif?v=c2da42563d 800w
-                      "
-                      sizes="(min-width: 1328px) 384px, (min-width: 1024px) calc(30vw - 16px), 280px" />
-                    <source
-                      type="image/webp"
-                      srcset="
-                        /shots/n-sheet-en-400.webp?v=b54ae780fd 400w,
-                        /shots/n-sheet-en-800.webp?v=58f6f5ed04 800w
-                      "
-                      sizes="(min-width: 1328px) 384px, (min-width: 1024px) calc(30vw - 16px), 280px" />
-                    <img
-                      src="/shots/n-sheet-en-400.webp?v=b54ae780fd"
-                      width="400"
-                      height="866"
-                      alt="The details of General Physics 1, section 4, open from the bottom of the window with its class time, room, instructors, seats and exam dates."
-                      loading="lazy"
-                      decoding="async"
-                      class="narrow__img"
-                  /></picture>
-                  <figcaption>
-                    Section details from the bottom of the window
-                  </figcaption>
-                </figure>
-              </div>
-              <p class="footnote">
-                KCP does not run on phones yet. The FAQ explains why.
-              </p>
-            </div>
-          </article>
-          <article class="feature feature--wide" aria-labelledby="export-title">
-            <div class="feature__caption">
-              <h3 id="export-title">
-                Share your timetable as a ready to send image
-              </h3>
-              <p class="body">
-                Preview mode lays your plan out as a poster. Pick a template for
-                a 16:9 share, a phone or tablet wallpaper, or an A4 print, then
-                download it, copy the image, or copy it as text for chat apps.
-                The image comes out at the same size whatever screen you export
-                from, and can carry your exam schedule under the timetable.
-              </p>
-            </div>
-            <div class="feature__media">
-              <div class="posters">
-                <figure class="poster poster--wide">
-                  <picture
-                    ><source
-                      type="image/avif"
-                      srcset="
-                        /shots/x-share169-en-960.avif?v=7b7029560a   960w,
-                        /shots/x-share169-en-1440.avif?v=1ea9674b30 1440w,
-                        /shots/x-share169-en-1920.avif?v=9575c2b6dd 1920w
-                      "
-                      sizes="(min-width: 1328px) 1200px, calc(100vw - 2 * clamp(20px, 5vw, 64px))" />
-                    <source
-                      type="image/webp"
-                      srcset="
-                        /shots/x-share169-en-960.webp?v=a630a2b580   960w,
-                        /shots/x-share169-en-1440.webp?v=f6450424db 1440w,
-                        /shots/x-share169-en-1920.webp?v=9bdf889649 1920w
-                      "
-                      sizes="(min-width: 1328px) 1200px, calc(100vw - 2 * clamp(20px, 5vw, 64px))" />
-                    <img
-                      src="/shots/x-share169-en-960.webp?v=a630a2b580"
-                      width="960"
-                      height="540"
-                      alt="A timetable image exported from KCP at 1920 by 1080, with the plan name, semester 1/2569, total credits, and subject blocks from Monday to Friday."
-                      loading="lazy"
-                      decoding="async"
-                      class="plate__img"
-                  /></picture>
-                  <figcaption></figcaption>
-                </figure>
-                <figure class="poster poster--phone">
-                  <picture
-                    ><source
-                      type="image/avif"
-                      srcset="
-                        /shots/x-phone-portrait-en-320.avif?v=953f208da6 320w,
-                        /shots/x-phone-portrait-en-640.avif?v=b41fb2328c 640w
-                      "
-                      sizes="(min-width: 1328px) 240px, (min-width: 640px) 18vw, 220px" />
-                    <source
-                      type="image/webp"
-                      srcset="
-                        /shots/x-phone-portrait-en-320.webp?v=f50ec93241 320w,
-                        /shots/x-phone-portrait-en-640.webp?v=4e5187eb74 640w
-                      "
-                      sizes="(min-width: 1328px) 240px, (min-width: 640px) 18vw, 220px" />
-                    <img
-                      src="/shots/x-phone-portrait-en-320.webp?v=f50ec93241"
-                      width="320"
-                      height="693"
-                      alt="A portrait phone wallpaper of the same plan, with days as columns and the exam schedule below."
-                      loading="lazy"
-                      decoding="async"
-                      class="plate__img"
-                  /></picture>
-                  <figcaption></figcaption>
-                </figure>
-              </div>
-              <p class="footnote">
-                Templates include Share 16:9, phone and tablet wallpapers in
-                portrait and landscape, and Print A4.
-              </p>
-            </div>
-          </article>
-          <article class="feature" aria-labelledby="plans-title">
-            <div class="feature__caption">
-              <h3 id="plans-title">
-                Keep several plans, checked against the latest data when you
-                open them
-              </h3>
-              <p class="body">
-                Keep several named plans per term, duplicate them, and export
-                them as a file. When you open a plan, KCP checks its sections
-                against the latest data. If a time, room or exam date changed,
-                or a section is no longer listed, it shows the old and new
-                values for you to review, and never removes anything on its own.
-              </p>
-            </div>
-            <div class="feature__media">
-              <div class="stack">
-                <figure class="plate">
-                  <picture
-                    ><source
-                      type="image/avif"
-                      srcset="
-                        /shots/s-updates-en-600.avif?v=b76e0a19f1   600w,
-                        /shots/s-updates-en-1200.avif?v=3af0010257 1200w
-                      "
-                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
-                    <source
-                      type="image/webp"
-                      srcset="
-                        /shots/s-updates-en-600.webp?v=4b5b48306b   600w,
-                        /shots/s-updates-en-1200.webp?v=b55cdf8c22 1200w
-                      "
-                      sizes="(min-width: 1024px) 792px, calc(100vw - 40px)" />
-                    <img
-                      src="/shots/s-updates-en-600.webp?v=4b5b48306b"
-                      width="600"
-                      height="493"
-                      alt="The Changes to your planned sections dialog. Calculus 1, section 33, shows its old and new time, with a Mark all as reviewed button."
-                      loading="lazy"
-                      decoding="async"
-                      class="plate__img"
-                  /></picture>
-                  <figcaption>
-                    The updates dialog shows the old and new time of a section
-                    that changed.
-                  </figcaption>
-                </figure>
-                <figure class="plate plate--inset">
-                  <picture
-                    ><source
-                      type="image/avif"
-                      srcset="
-                        /shots/s-plan-menu-en-480.avif?v=242c6afc41 480w,
-                        /shots/s-plan-menu-en-576.avif?v=828fb42309 576w
-                      "
-                      sizes="(min-width: 328px) 288px, calc(100vw - 40px)" />
-                    <source
-                      type="image/webp"
-                      srcset="
-                        /shots/s-plan-menu-en-480.webp?v=138514c6ef 480w,
-                        /shots/s-plan-menu-en-576.webp?v=bdb9b54c0a 576w
-                      "
-                      sizes="(min-width: 328px) 288px, calc(100vw - 40px)" />
-                    <img
-                      src="/shots/s-plan-menu-en-480.webp?v=138514c6ef"
-                      width="480"
-                      height="372"
-                      alt="The plan menu with two plans for semester 1/2569, the Create plan button, and the Import JSON and Export JSON actions."
-                      loading="lazy"
-                      decoding="async"
-                      class="plate__img"
-                  /></picture>
-                  <figcaption>
-                    The plan menu, where you create, switch, import and export
-                    plans.
-                  </figcaption>
-                </figure>
-              </div>
-            </div>
-          </article>
-        </div>
-        <div class="privacy-band">
-          <div class="container">
-            <article class="feature" aria-labelledby="privacy-title">
-              <div class="feature__caption">
-                <h3 id="privacy-title">
-                  Your data stays in your browser, and access is read only
-                </h3>
-                <p class="body">
-                  KCP has no account, no server and no usage statistics. The
-                  extension reads only the public course data the registration
-                  site already uses. It never touches your sign in, never fills
-                  in or submits forms, and never registers on your behalf.
-                </p>
-              </div>
-              <div class="feature__media">
-                <h4>Permissions the extension asks for, and why</h4>
-                <dl class="perms">
-                  <div class="perm">
-                    <dt lang="en">storage</dt>
-                    <dd>
-                      Saves your plans and reference lists on this device, so
-                      the planner opens quickly and your plans survive a reload.
-                    </dd>
-                  </div>
-                  <div class="perm">
-                    <dt lang="en">regis.reg.kmitl.ac.th</dt>
-                    <dd>
-                      Shows the planner on the registration site and reads the
-                      public course data the page already loads.
-                    </dd>
-                  </div>
-                  <div class="perm">
-                    <dt lang="en">api.reg.kmitl.ac.th</dt>
-                    <dd>
-                      Reads the public faculty, department, curriculum and
-                      category lists used in the search options.
-                    </dd>
-                  </div>
-                </dl>
-                <p>
-                  <a
-                    class="text-link"
-                    href="https://github.com/txasw/kmitl-course-planner/blob/main/docs/PRIVACY.md"
-                    hreflang="en"
-                    >Read the privacy policy</a
-                  >
-                </p>
-              </div>
-            </article>
+              <span class="statement__line">Only 44 are real sections.</span>
+            </h2>
+            <p class="statement__sub">
+              KCP merges the repeats into one entry per section.
+            </p>
           </div>
-        </div>
-      </section>
-      <section class="more" aria-labelledby="more-title">
-        <div class="container more__grid">
-          <div>
-            <h2 id="more-title">More help with the decisions</h2>
-            <dl class="more__list">
-              <div class="more__item">
-                <dt>Suggest a plan</dt>
-                <dd>
-                  After a curriculum search, KCP offers up to three clash free
-                  timetables from the faculty and curriculum subjects of group
-                  2, never GenEd or free electives, shaped for mornings,
-                  afternoons, fewer days and more.
-                </dd>
-              </div>
-              <div class="more__item">
-                <dt>Compare sections</dt>
-                <dd>
-                  See every section of a course in one table, with times,
-                  instructors, seats, exams and conditions, and add one from
-                  there.
-                </dd>
-              </div>
-              <div class="more__item">
-                <dt>Seats and demand</dt>
-                <dd>
-                  Every section shows its open seats, and flags when pre
-                  registrations exceed capacity.
-                </dd>
-              </div>
-              <div class="more__item">
-                <dt>Open it your way</dt>
-                <dd>
-                  Open the planner from the Planner button at the bottom right,
-                  the extension icon, or Alt+Shift+P.
-                </dd>
-              </div>
-              <div class="more__item">
-                <dt>Thai and English</dt>
-                <dd>Switch the interface language at any time.</dd>
-              </div>
-            </dl>
+          <div
+            class="dedupe-wrap"
+            data-dedupe
+            data-label="Merge repeated rows"
+            data-merged="Merged into 4 sections from 13 rows."
+            data-unmerged="Showing all 13 rows."
+          >
+            <table class="dedupe" id="dedupe-table" role="table">
+              <caption>
+                Real sample: category 90592xxx, semester 1/2569, 13 rows from 6
+                curricula.<span
+                  class="visually-hidden"
+                  data-dedupe-state
+                ></span>
+              </caption>
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader">Listed under</th>
+                  <th scope="col" role="columnheader">Subject id</th>
+                  <th scope="col" role="columnheader">Subject</th>
+                  <th scope="col" role="columnheader">Section</th>
+                  <th scope="col" role="columnheader">Day and time</th>
+                  <th scope="col" role="columnheader">Seats</th>
+                </tr>
+              </thead>
+              <tbody role="rowgroup">
+                <tr role="row" class="dedupe__row subject-8" data-row="first">
+                  <td role="cell" class="dedupe__grouping">
+                    <div class="fold">
+                      <div>
+                        Civil Engineering, year 4
+                        <span class="dedupe__chip"
+                          >Listed under 4 curricula</span
+                        >
+                      </div>
+                    </div>
+                  </td>
+                  <td role="cell" class="dedupe__id">
+                    <div class="fold"><div>90592008</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__name">
+                    <div class="fold"><div>TODAY'S THAI SOCIETY</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__section">
+                    <div class="fold"><div>901 Lecture</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__time">
+                    <div class="fold"><div>Fri 09:00-12:00</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__seats">
+                    <div class="fold">
+                      <div><span data-label="Seats">62/80</span></div>
+                    </div>
+                  </td>
+                </tr>
+                <tr role="row" class="dedupe__row subject-0" data-row="first">
+                  <td role="cell" class="dedupe__grouping">
+                    <div class="fold">
+                      <div>
+                        Civil Engineering, year 4
+                        <span class="dedupe__chip"
+                          >Listed under 3 curricula</span
+                        >
+                      </div>
+                    </div>
+                  </td>
+                  <td role="cell" class="dedupe__id">
+                    <div class="fold"><div>90592033</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__name">
+                    <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__section">
+                    <div class="fold"><div>901 Lecture</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__time">
+                    <div class="fold"><div>Fri 08:00-10:00</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__seats">
+                    <div class="fold">
+                      <div><span data-label="Seats">Full</span></div>
+                    </div>
+                  </td>
+                </tr>
+                <tr role="row" class="dedupe__row subject-0" data-row="first">
+                  <td role="cell" class="dedupe__grouping">
+                    <div class="fold">
+                      <div>
+                        Civil Engineering, year 4
+                        <span class="dedupe__chip"
+                          >Listed under 3 curricula</span
+                        >
+                      </div>
+                    </div>
+                  </td>
+                  <td role="cell" class="dedupe__id">
+                    <div class="fold"><div>90592033</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__name">
+                    <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__section">
+                    <div class="fold"><div>902 Practice</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__time">
+                    <div class="fold"><div>Fri 10:00-12:00</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__seats">
+                    <div class="fold">
+                      <div><span data-label="Seats">Full</span></div>
+                    </div>
+                  </td>
+                </tr>
+                <tr role="row" class="dedupe__row subject-8" data-row="repeat">
+                  <td role="cell" class="dedupe__grouping">
+                    <div class="fold">
+                      <div>Chemical Engineering, year 4</div>
+                    </div>
+                  </td>
+                  <td role="cell" class="dedupe__id">
+                    <div class="fold"><div>90592008</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__name">
+                    <div class="fold"><div>TODAY'S THAI SOCIETY</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__section">
+                    <div class="fold"><div>901 Lecture</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__time">
+                    <div class="fold"><div>Fri 09:00-12:00</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__seats">
+                    <div class="fold">
+                      <div><span data-label="Seats">62/80</span></div>
+                    </div>
+                  </td>
+                </tr>
+                <tr role="row" class="dedupe__row subject-4" data-row="first">
+                  <td role="cell" class="dedupe__grouping">
+                    <div class="fold">
+                      <div>
+                        Industrial Engineering, year 4
+                        <span class="dedupe__chip"
+                          >Listed under 3 curricula</span
+                        >
+                      </div>
+                    </div>
+                  </td>
+                  <td role="cell" class="dedupe__id">
+                    <div class="fold"><div>90592004</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__name">
+                    <div class="fold"><div>CONTEMPORARY CULTURE</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__section">
+                    <div class="fold"><div>901 Lecture</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__time">
+                    <div class="fold"><div>Fri 13:00-16:00</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__seats">
+                    <div class="fold">
+                      <div><span data-label="Seats">85/90</span></div>
+                    </div>
+                  </td>
+                </tr>
+                <tr role="row" class="dedupe__row subject-4" data-row="repeat">
+                  <td role="cell" class="dedupe__grouping">
+                    <div class="fold">
+                      <div>Faculty of Engineering, no curriculum, year 4</div>
+                    </div>
+                  </td>
+                  <td role="cell" class="dedupe__id">
+                    <div class="fold"><div>90592004</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__name">
+                    <div class="fold"><div>CONTEMPORARY CULTURE</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__section">
+                    <div class="fold"><div>901 Lecture</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__time">
+                    <div class="fold"><div>Fri 13:00-16:00</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__seats">
+                    <div class="fold">
+                      <div><span data-label="Seats">85/90</span></div>
+                    </div>
+                  </td>
+                </tr>
+                <tr role="row" class="dedupe__row subject-8" data-row="repeat">
+                  <td role="cell" class="dedupe__grouping">
+                    <div class="fold"><div>Architecture, year 5</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__id">
+                    <div class="fold"><div>90592008</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__name">
+                    <div class="fold"><div>TODAY'S THAI SOCIETY</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__section">
+                    <div class="fold"><div>901 Lecture</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__time">
+                    <div class="fold"><div>Fri 09:00-12:00</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__seats">
+                    <div class="fold">
+                      <div><span data-label="Seats">62/80</span></div>
+                    </div>
+                  </td>
+                </tr>
+                <tr role="row" class="dedupe__row subject-0" data-row="repeat">
+                  <td role="cell" class="dedupe__grouping">
+                    <div class="fold"><div>Architecture, year 5</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__id">
+                    <div class="fold"><div>90592033</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__name">
+                    <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__section">
+                    <div class="fold"><div>901 Lecture</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__time">
+                    <div class="fold"><div>Fri 08:00-10:00</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__seats">
+                    <div class="fold">
+                      <div><span data-label="Seats">Full</span></div>
+                    </div>
+                  </td>
+                </tr>
+                <tr role="row" class="dedupe__row subject-0" data-row="repeat">
+                  <td role="cell" class="dedupe__grouping">
+                    <div class="fold"><div>Architecture, year 5</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__id">
+                    <div class="fold"><div>90592033</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__name">
+                    <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__section">
+                    <div class="fold"><div>902 Practice</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__time">
+                    <div class="fold"><div>Fri 10:00-12:00</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__seats">
+                    <div class="fold">
+                      <div><span data-label="Seats">Full</span></div>
+                    </div>
+                  </td>
+                </tr>
+                <tr role="row" class="dedupe__row subject-4" data-row="repeat">
+                  <td role="cell" class="dedupe__grouping">
+                    <div class="fold"><div>General Education</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__id">
+                    <div class="fold"><div>90592004</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__name">
+                    <div class="fold"><div>CONTEMPORARY CULTURE</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__section">
+                    <div class="fold"><div>901 Lecture</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__time">
+                    <div class="fold"><div>Fri 13:00-16:00</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__seats">
+                    <div class="fold">
+                      <div><span data-label="Seats">85/90</span></div>
+                    </div>
+                  </td>
+                </tr>
+                <tr role="row" class="dedupe__row subject-8" data-row="repeat">
+                  <td role="cell" class="dedupe__grouping">
+                    <div class="fold"><div>General Education</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__id">
+                    <div class="fold"><div>90592008</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__name">
+                    <div class="fold"><div>TODAY'S THAI SOCIETY</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__section">
+                    <div class="fold"><div>901 Lecture</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__time">
+                    <div class="fold"><div>Fri 09:00-12:00</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__seats">
+                    <div class="fold">
+                      <div><span data-label="Seats">62/80</span></div>
+                    </div>
+                  </td>
+                </tr>
+                <tr role="row" class="dedupe__row subject-0" data-row="repeat">
+                  <td role="cell" class="dedupe__grouping">
+                    <div class="fold"><div>General Education</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__id">
+                    <div class="fold"><div>90592033</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__name">
+                    <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__section">
+                    <div class="fold"><div>901 Lecture</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__time">
+                    <div class="fold"><div>Fri 08:00-10:00</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__seats">
+                    <div class="fold">
+                      <div><span data-label="Seats">Full</span></div>
+                    </div>
+                  </td>
+                </tr>
+                <tr role="row" class="dedupe__row subject-0" data-row="repeat">
+                  <td role="cell" class="dedupe__grouping">
+                    <div class="fold"><div>General Education</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__id">
+                    <div class="fold"><div>90592033</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__name">
+                    <div class="fold"><div>ACTIVE AGING SOCIETY</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__section">
+                    <div class="fold"><div>902 Practice</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__time">
+                    <div class="fold"><div>Fri 10:00-12:00</div></div>
+                  </td>
+                  <td role="cell" class="dedupe__seats">
+                    <div class="fold">
+                      <div><span data-label="Seats">Full</span></div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="dedupe__result">Each section is listed once.</p>
+            <p
+              class="visually-hidden"
+              role="status"
+              aria-live="polite"
+              data-dedupe-status
+            ></p>
           </div>
-          <figure class="plate">
-            <picture
-              ><source
-                media="(max-width: 639px)"
-                type="image/avif"
-                srcset="/shots/s-suggest-crop-en-730.avif?v=ff4cd1a30d 730w"
-                sizes="calc(100vw - 40px)" />
-              <source
-                media="(max-width: 639px)"
-                type="image/webp"
-                srcset="/shots/s-suggest-crop-en-730.webp?v=7d1743d637 730w"
-                sizes="calc(100vw - 40px)" />
-              <source
-                type="image/avif"
-                srcset="
-                  /shots/s-suggest-en-800.avif?v=28ecf39761   800w,
-                  /shots/s-suggest-en-1600.avif?v=bacc0c2f16 1600w,
-                  /shots/s-suggest-en-2304.avif?v=05bb14c107 2304w
-                "
-                sizes="(min-width: 1328px) 1200px, calc(100vw - 2 * clamp(20px, 5vw, 64px))" />
-              <source
-                type="image/webp"
-                srcset="
-                  /shots/s-suggest-en-800.webp?v=b446a19369   800w,
-                  /shots/s-suggest-en-1600.webp?v=3648b7a76e 1600w,
-                  /shots/s-suggest-en-2304.webp?v=2f301f2c5a 2304w
-                "
-                sizes="(min-width: 1328px) 1200px, calc(100vw - 2 * clamp(20px, 5vw, 64px))" />
-              <img
-                src="/shots/s-suggest-en-800.webp?v=b446a19369"
-                width="800"
-                height="531"
-                alt="A suggested plan for mornings, with its credits, subjects, class days, a small timetable and a Use this plan button."
-                loading="lazy"
-                decoding="async"
-                class="plate__img"
-            /></picture>
-            <figcaption>
-              Suggested plans for mornings, up to three clash free options side
-              by side, each ready to use.
-            </figcaption>
-          </figure>
-        </div>
-      </section>
-      <section class="steps" id="get-started" aria-labelledby="steps-title">
-        <div class="container">
-          <h2 id="steps-title">Get started in three steps</h2>
-          <p class="body steps__intro">
-            After you install, the registration site’s course search opens with
-            a short welcome, and you can open the planner any time from the
-            Planner button at the bottom right.
-          </p>
-          <p class="steps__link">
-            <a
-              class="text-link"
-              href="https://regis.reg.kmitl.ac.th/#/teach_table_selector"
-              >Open the course search</a
-            >
-          </p>
-          <ol class="steps__list">
-            <li class="step">
-              <span class="step__num" aria-hidden="true">1</span>
-              <h3 class="step__title">Search for courses</h3>
-              <p>
-                Search by curriculum and class year, subject id, or subject
-                category.
-              </p>
-            </li>
-            <li class="step">
-              <span class="step__num" aria-hidden="true">2</span>
-              <h3 class="step__title">Drag sections into the timetable</h3>
-              <p>
-                Clashing class times and exam times are flagged as you place
-                them.
-              </p>
-            </li>
-            <li class="step">
-              <span class="step__num" aria-hidden="true">3</span>
-              <h3 class="step__title">Share as an image</h3>
-              <p>
-                Download or copy your timetable as an image to send to others.
-              </p>
-            </li>
-          </ol>
-          <figure class="plate steps__shot">
-            <picture
-              ><source
-                type="image/avif"
-                srcset="
-                  /shots/s-welcome-en-600.avif?v=e7e88fb539 600w,
-                  /shots/s-welcome-en-896.avif?v=1d871fa69a 896w
-                "
-                sizes="(min-width: 640px) 448px, calc(100vw - 40px)" />
-              <source
-                type="image/webp"
-                srcset="
-                  /shots/s-welcome-en-600.webp?v=5aac9ce839 600w,
-                  /shots/s-welcome-en-896.webp?v=d116e00252 896w
-                "
-                sizes="(min-width: 640px) 448px, calc(100vw - 40px)" />
-              <img
-                src="/shots/s-welcome-en-600.webp?v=5aac9ce839"
-                width="600"
-                height="726"
-                alt="The welcome shown after install, Thank you for installing KCP: Course Planner for KMITL, with three steps and a Start planning button."
-                loading="lazy"
-                decoding="async"
-                class="plate__img"
-            /></picture>
-            <figcaption>
-              The welcome shown on the registration site after you install.
-            </figcaption>
-          </figure>
         </div>
       </section>
       <section
-        class="band download"
-        id="download"
-        aria-labelledby="download-title"
+        class="screen screen--full exam"
+        id="features"
+        aria-labelledby="exam-title"
       >
-        <div class="container download__grid">
+        <div class="container screen__grid">
+          <div class="statement">
+            <h2 id="exam-title" class="statement__h">
+              Exam clashes are checked too.
+            </h2>
+            <p class="statement__sub">
+              Two subjects on different days can share an exam slot. KCP will
+              not add one that clashes.
+            </p>
+          </div>
+          <figure class="plate exam__plate">
+            <picture
+              ><source
+                type="image/avif"
+                srcset="
+                  /shots/s-exam-row-en-500.avif?v=6aeee0449a 500w,
+                  /shots/s-exam-row-en-702.avif?v=cf159cb4f3 702w
+                "
+                sizes="(min-width: 1024px) 480px, calc(100vw - 40px)" />
+              <source
+                type="image/webp"
+                srcset="
+                  /shots/s-exam-row-en-500.webp?v=2ba1674f38 500w,
+                  /shots/s-exam-row-en-702.webp?v=d5b567bf77 702w
+                "
+                sizes="(min-width: 1024px) 480px, calc(100vw - 40px)" />
+              <img
+                src="/shots/s-exam-row-en-500.webp?v=2ba1674f38"
+                width="500"
+                height="809"
+                alt="The course card for 01076112. Its sections carry an exam clash badge, and a soft red box says the exam clashes with 01006020 section 4, midterm on 21 Aug 2569."
+                loading="lazy"
+                decoding="async"
+                class="plate__img"
+            /></picture>
+          </figure>
+        </div>
+      </section>
+      <section class="screen export" aria-labelledby="export-title">
+        <div class="container">
+          <div class="statement">
+            <h2 id="export-title" class="statement__h">
+              Share it as a ready to send image.
+            </h2>
+            <p class="statement__sub">
+              Fixed size posters for sharing, phone wallpapers or A4 print.
+            </p>
+          </div>
+          <div class="posters">
+            <figure class="poster poster--wide">
+              <picture
+                ><source
+                  type="image/avif"
+                  srcset="
+                    /shots/x-share169-en-960.avif?v=7b7029560a   960w,
+                    /shots/x-share169-en-1440.avif?v=1ea9674b30 1440w,
+                    /shots/x-share169-en-1920.avif?v=9575c2b6dd 1920w
+                  "
+                  sizes="(min-width: 1328px) 1200px, calc(100vw - 2 * clamp(20px, 5vw, 64px))" />
+                <source
+                  type="image/webp"
+                  srcset="
+                    /shots/x-share169-en-960.webp?v=a630a2b580   960w,
+                    /shots/x-share169-en-1440.webp?v=f6450424db 1440w,
+                    /shots/x-share169-en-1920.webp?v=9bdf889649 1920w
+                  "
+                  sizes="(min-width: 1328px) 1200px, calc(100vw - 2 * clamp(20px, 5vw, 64px))" />
+                <img
+                  src="/shots/x-share169-en-960.webp?v=a630a2b580"
+                  width="960"
+                  height="540"
+                  alt="A timetable image exported from KCP at 1920 by 1080, with the plan name, semester 1/2569, total credits, and subject blocks from Monday to Friday."
+                  loading="lazy"
+                  decoding="async"
+                  class="plate__img"
+              /></picture>
+            </figure>
+            <figure class="poster poster--phone">
+              <picture
+                ><source
+                  type="image/avif"
+                  srcset="
+                    /shots/x-phone-portrait-en-320.avif?v=953f208da6 320w,
+                    /shots/x-phone-portrait-en-640.avif?v=b41fb2328c 640w
+                  "
+                  sizes="(min-width: 1328px) 240px, (min-width: 640px) 18vw, 220px" />
+                <source
+                  type="image/webp"
+                  srcset="
+                    /shots/x-phone-portrait-en-320.webp?v=f50ec93241 320w,
+                    /shots/x-phone-portrait-en-640.webp?v=4e5187eb74 640w
+                  "
+                  sizes="(min-width: 1328px) 240px, (min-width: 640px) 18vw, 220px" />
+                <img
+                  src="/shots/x-phone-portrait-en-320.webp?v=f50ec93241"
+                  width="320"
+                  height="693"
+                  alt="A portrait phone wallpaper of the same plan, with days as columns and the exam schedule below."
+                  loading="lazy"
+                  decoding="async"
+                  class="plate__img"
+              /></picture>
+            </figure>
+          </div>
+        </div>
+      </section>
+      <section class="screen screen--full plans" aria-labelledby="plans-title">
+        <div class="container screen__grid">
+          <div class="statement">
+            <h2 id="plans-title" class="statement__h">
+              Saved plans are checked against the latest data.
+            </h2>
+            <p class="statement__sub">
+              If a time or room changes, you see the old and new values. Nothing
+              is removed on its own.
+            </p>
+          </div>
+          <figure class="plate plans__plate">
+            <picture
+              ><source
+                type="image/avif"
+                srcset="
+                  /shots/s-updates-en-700.avif?v=ffa0657d42   700w,
+                  /shots/s-updates-en-1216.avif?v=e20750c4ab 1216w
+                "
+                sizes="(min-width: 1024px) 680px, calc(100vw - 40px)" />
+              <source
+                type="image/webp"
+                srcset="
+                  /shots/s-updates-en-700.webp?v=05d1fc8407   700w,
+                  /shots/s-updates-en-1216.webp?v=26a11b418c 1216w
+                "
+                sizes="(min-width: 1024px) 680px, calc(100vw - 40px)" />
+              <img
+                src="/shots/s-updates-en-700.webp?v=05d1fc8407"
+                width="700"
+                height="576"
+                alt="The Changes to your planned sections dialog. Calculus 1, section 33, shows its old and new time, with a Mark all as reviewed button."
+                loading="lazy"
+                decoding="async"
+                class="plate__img"
+            /></picture>
+          </figure>
+        </div>
+      </section>
+      <section class="screen more" aria-labelledby="more-title">
+        <div class="container">
+          <h2 id="more-title" class="statement__h">And more</h2>
+          <dl class="facts">
+            <div class="fact">
+              <svg
+                class="icon"
+                width="24"
+                height="24"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d="m21 21-4.34-4.34" />
+                <circle cx="11" cy="11" r="8" />
+              </svg>
+              <dt>Three ways to search</dt>
+              <dd>By curriculum, subject id or category.</dd>
+            </div>
+            <div class="fact">
+              <svg
+                class="icon"
+                width="24"
+                height="24"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d="M13 5h8" />
+                <path d="M13 12h8" />
+                <path d="M13 19h8" />
+                <path d="m3 17 2 2 4-4" />
+                <path d="m3 7 2 2 4-4" />
+              </svg>
+              <dt>Suggested plans</dt>
+              <dd>Clash free timetables from your curriculum.</dd>
+            </div>
+            <div class="fact">
+              <svg
+                class="icon"
+                width="24"
+                height="24"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <rect width="18" height="18" x="3" y="3" rx="2" />
+                <path d="M9 3v18" />
+                <path d="M15 3v18" />
+              </svg>
+              <dt>Compare sections</dt>
+              <dd>Times, instructors, seats and exams side by side.</dd>
+            </div>
+            <div class="fact">
+              <svg
+                class="icon"
+                width="24"
+                height="24"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <path d="M16 3.128a4 4 0 0 1 0 7.744" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <circle cx="9" cy="7" r="4" />
+              </svg>
+              <dt>Open seats</dt>
+              <dd>See the open seats of every section.</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+      <section
+        class="screen screen--full privacy"
+        id="privacy"
+        aria-labelledby="privacy-title"
+      >
+        <div class="container screen__grid">
+          <div class="statement">
+            <h2 id="privacy-title" class="statement__h">
+              Your data stays in your browser.
+            </h2>
+            <p class="statement__sub">
+              No account, no server, no tracking. KCP only reads public course
+              data and never registers for you.
+            </p>
+          </div>
+          <div class="privacy__perms">
+            <h3>Permissions</h3>
+            <dl class="perms">
+              <div class="perm">
+                <dt lang="en">storage</dt>
+                <dd>Keeps your plans on this device.</dd>
+              </div>
+              <div class="perm">
+                <dt lang="en">regis.reg.kmitl.ac.th</dt>
+                <dd>Shows the planner on the registration site.</dd>
+              </div>
+              <div class="perm">
+                <dt lang="en">api.reg.kmitl.ac.th</dt>
+                <dd>Reads faculty, curriculum and category lists.</dd>
+              </div>
+            </dl>
+            <p>
+              <a
+                class="text-link"
+                href="https://github.com/txasw/kmitl-course-planner/blob/main/docs/PRIVACY.md"
+                hreflang="en"
+                >Read the privacy policy</a
+              >
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="download" id="download" aria-labelledby="download-title">
+        <div class="container download__inner">
           <svg
             class="mark download__mark"
-            width="96"
-            height="96"
+            width="112"
+            height="112"
             viewBox="0 0 128 128"
             aria-hidden="true"
             focusable="false"
@@ -1664,145 +1046,113 @@
             </g>
             <rect x="68" y="68" width="38" height="38" rx="6" fill="#B8400A" />
           </svg>
-          <div>
-            <h2 id="download-title">Install KCP for free</h2>
-            <p class="body">
-              Works on Chrome, Microsoft Edge, Brave, Opera and Firefox on a
-              computer. The planner runs only on the registration site at
-              regis.reg.kmitl.ac.th.
-            </p>
-            <p class="cta-coarse">
-              Installs on a computer only. Open this page on a computer to
-              install.
-            </p>
-            <div class="cta-row cta-row--band">
-              <a
-                class="cta cta--chrome"
-                href="https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef"
-                ><svg
-                  class="icon"
-                  width="20"
-                  height="20"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"
-                  /></svg
-                ><span class="cta__text"
-                  ><span class="cta__label">Add to Chrome</span
-                  ><span class="cta__sub"
-                    >Also for Edge, Brave and Opera</span
-                  ></span
-                ></a
+          <h2 id="download-title" class="statement__h">Install KCP for free</h2>
+          <p class="statement__sub">
+            For Chrome, Edge, Brave, Opera and Firefox on a computer.
+          </p>
+          <p class="cta-coarse">Installs on a computer only.</p>
+          <div class="cta-row cta-row--band">
+            <a
+              class="cta cta--chrome"
+              href="https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef"
+              ><svg
+                class="icon"
+                width="20"
+                height="20"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
               >
-              <a
-                class="cta cta--firefox"
-                href="https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/"
-                ><svg
-                  class="icon"
-                  width="20"
-                  height="20"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"
-                  /></svg
-                ><span class="cta__text"
-                  ><span class="cta__label">Add to Firefox</span
-                  ><span class="cta__sub">From Firefox Add-ons</span></span
-                ></a
+                <path
+                  d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"
+                /></svg
+              ><span class="cta__text"
+                ><span class="cta__label">Add to Chrome</span
+                ><span class="cta__sub"
+                  >Also for Edge, Brave and Opera</span
+                ></span
+              ></a
+            >
+            <a
+              class="cta cta--firefox"
+              href="https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/"
+              ><svg
+                class="icon"
+                width="20"
+                height="20"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
               >
-              <button
-                type="button"
-                class="cta cta--soon"
-                aria-disabled="true"
-                aria-describedby="web-soon-note-band"
+                <path
+                  d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"
+                /></svg
+              ><span class="cta__text"
+                ><span class="cta__label">Add to Firefox</span
+                ><span class="cta__sub">From Firefox Add-ons</span></span
+              ></a
+            >
+            <button
+              type="button"
+              class="cta cta--soon"
+              aria-disabled="true"
+              aria-describedby="web-soon-note-band"
+            >
+              <svg
+                class="icon"
+                width="20"
+                height="20"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
               >
-                <svg
-                  class="icon"
-                  width="20"
-                  height="20"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
-                  <path d="M2 12h20" /></svg
-                ><span class="cta__text"
-                  ><span class="cta__label"
-                    >Use on the web <span class="badge">Coming soon</span></span
-                  ></span
-                >
-              </button>
-            </div>
-            <p class="cta-note" id="web-soon-note-band">
-              The web version is in development and has no release date yet.
-              Until then, use the extension on Chrome or Firefox.
-            </p>
-            <p class="micro">
-              Version 1.3.1. Free under the MIT license.
-              <a
-                class="text-link"
-                href="https://github.com/txasw/kmitl-course-planner"
-                >View the source on GitHub</a
-              >.
-            </p>
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+                <path d="M2 12h20" /></svg
+              ><span class="cta__text"
+                ><span class="cta__label"
+                  >Use on the web <span class="badge">Coming soon</span></span
+                ></span
+              >
+            </button>
           </div>
+          <p class="cta-note" id="web-soon-note-band">
+            The web version is in development, with no release date yet.
+          </p>
+          <p class="micro">
+            Version 1.3.1. Free under the MIT license.
+            <a
+              class="text-link"
+              href="https://github.com/txasw/kmitl-course-planner"
+              >View the source on GitHub</a
+            >.
+          </p>
         </div>
       </section>
-      <section class="faq" id="faq" aria-labelledby="faq-title">
+      <section class="screen faq" id="faq" aria-labelledby="faq-title">
         <div class="container">
-          <h2 id="faq-title">Frequently asked questions</h2>
+          <h2 id="faq-title" class="statement__h">
+            Frequently asked questions
+          </h2>
           <div class="faq__list">
-            <details class="faq__item">
-              <summary>
-                <span>What is KCP?</span
-                ><svg
-                  class="icon faq__chevron"
-                  width="20"
-                  height="20"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </summary>
-              <p>
-                KCP, or Course Planner for KMITL, is a browser extension for
-                planning your timetable before registration, using the course
-                offerings on the KMITL registration site.
-              </p>
-            </details>
             <details class="faq__item">
               <summary>
                 <span>Is KCP an official KMITL system?</span
@@ -1824,9 +1174,8 @@
                 </svg>
               </summary>
               <p>
-                No. KCP is an independent tool built by a student. It is not
-                affiliated with, sponsored by, or endorsed by King Mongkut’s
-                Institute of Technology Ladkrabang.
+                No. KCP is an independent tool built by a student and is not
+                endorsed by KMITL.
               </p>
             </details>
             <details class="faq__item">
@@ -1850,62 +1199,8 @@
                 </svg>
               </summary>
               <p>
-                No. KCP is for planning before registration. You still register
-                on the institute’s registration site as usual. The extension
-                never fills in forms or sends requests on your behalf.
-              </p>
-            </details>
-            <details class="faq__item">
-              <summary>
-                <span>Does any of my data leave my computer?</span
-                ><svg
-                  class="icon faq__chevron"
-                  width="20"
-                  height="20"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </summary>
-              <p>
-                No. Saved plans live in your browser’s storage on this device.
-                There is no account, no server and no usage tracking. Removing
-                the extension removes this data.
-              </p>
-            </details>
-            <details class="faq__item">
-              <summary>
-                <span>Which browsers does it work on?</span
-                ><svg
-                  class="icon faq__chevron"
-                  width="20"
-                  height="20"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </summary>
-              <p>
-                Chrome, Microsoft Edge, Brave, Opera and other Chromium browsers
-                install it from the Chrome Web Store, and Firefox installs it
-                from Firefox Add-ons, all on a computer. Opera may first need
-                its helper for Chrome Web Store extensions.
+                No. KCP is for planning only. You still register on the
+                registration site.
               </p>
             </details>
             <details class="faq__item">
@@ -1929,37 +1224,8 @@
                 </svg>
               </summary>
               <p>
-                Not yet. Chrome on phones does not support extensions, and
-                support for Firefox for Android is not yet confirmed. The
-                planner already adapts to narrow windows and touch screens, and
-                the web version in development is planned to work without
-                installing an extension.
-              </p>
-            </details>
-            <details class="faq__item">
-              <summary>
-                <span>When will the web version open?</span
-                ><svg
-                  class="icon faq__chevron"
-                  width="20"
-                  height="20"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </summary>
-              <p>
-                There is no date yet. When it opens, the Use on the web button
-                on this page becomes a working link. Until then, use the
-                extension on Chrome or Firefox.
+                Not yet. Chrome on phones does not support extensions. The web
+                version in development is planned to work without installing.
               </p>
             </details>
             <details class="faq__item">
@@ -1983,60 +1249,10 @@
                 </svg>
               </summary>
               <p>
-                KCP shows the same data the registration site sends and checks
-                its shape before showing it. Results show when they were
-                fetched, and saved plans are checked against the latest data
-                when you open them. Check against the registration site before
-                you register.
+                It is the same data the registration site uses, checked again
+                when you open a plan. Check the registration site before you
+                register.
               </p>
-            </details>
-            <details class="faq__item">
-              <summary>
-                <span>Can I move a plan to another computer?</span
-                ><svg
-                  class="icon faq__chevron"
-                  width="20"
-                  height="20"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </summary>
-              <p>
-                Yes. Export the plan as a JSON file from the plan menu and
-                import it on the other computer. An imported plan is checked
-                against the latest data the first time you open it.
-              </p>
-            </details>
-            <details class="faq__item">
-              <summary>
-                <span>Does KCP cost anything?</span
-                ><svg
-                  class="icon faq__chevron"
-                  width="20"
-                  height="20"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </summary>
-              <p>No. KCP is free and open source under the MIT license.</p>
             </details>
           </div>
         </div>

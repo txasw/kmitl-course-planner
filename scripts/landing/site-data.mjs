@@ -140,6 +140,23 @@ export function dedupeCounts() {
   };
 }
 
+/** The subject search the dedupe statement quotes, a single subject with many listings. */
+export const SUBJECT_SEARCH_FIXTURE =
+  'tests/fixtures/teach-table.by_subject_id.capture.json';
+
+/** The raw rows and the real sections of the subject search capture. */
+export function subjectSearchCounts() {
+  const ids = [];
+  for (const group of readJson(SUBJECT_SEARCH_FIXTURE)) {
+    for (const type of group.teachtable) {
+      for (const row of type.data) {
+        ids.push(row.teach_table_id);
+      }
+    }
+  }
+  return { rows: ids.length, sections: new Set(ids).size };
+}
+
 function escapeHtml(value) {
   return value
     .replaceAll('&', '&amp;')

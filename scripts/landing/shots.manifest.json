@@ -19,66 +19,6 @@
     "sizes": { "750": 930, "898": 1114 },
     "fallback": 750
   },
-  "s-catalog-dedupe-th": {
-    "widths": [400, 600, 768],
-    "sizes": { "400": 1045, "600": 1567, "768": 2006 },
-    "fallback": 600
-  },
-  "s-catalog-dedupe-en": {
-    "widths": [400, 600, 768],
-    "sizes": { "400": 1045, "600": 1567, "768": 2006 },
-    "fallback": 600
-  },
-  "s-search-form-th": {
-    "widths": [600, 768],
-    "sizes": { "600": 1061, "768": 1358 },
-    "fallback": 600
-  },
-  "s-search-form-en": {
-    "widths": [600, 768],
-    "sizes": { "600": 1108, "768": 1418 },
-    "fallback": 600
-  },
-  "s-drag-blocked-th": {
-    "widths": [800, 1600],
-    "sizes": { "800": 317, "1600": 634 },
-    "fallback": 800
-  },
-  "s-drag-blocked-en": {
-    "widths": [800, 1600],
-    "sizes": { "800": 317, "1600": 634 },
-    "fallback": 800
-  },
-  "s-drag-blocked-crop-th": {
-    "widths": [750, 898],
-    "sizes": { "750": 454, "898": 544 },
-    "fallback": 750
-  },
-  "s-drag-blocked-crop-en": {
-    "widths": [750, 914],
-    "sizes": { "750": 446, "914": 544 },
-    "fallback": 750
-  },
-  "s-feedback-alternatives-th": {
-    "widths": [800, 1600],
-    "sizes": { "800": 374, "1600": 748 },
-    "fallback": 800
-  },
-  "s-feedback-alternatives-en": {
-    "widths": [800, 1600],
-    "sizes": { "800": 374, "1600": 748 },
-    "fallback": 800
-  },
-  "s-feedback-crop-th": {
-    "widths": [750, 914],
-    "sizes": { "750": 653, "914": 796 },
-    "fallback": 750
-  },
-  "s-feedback-crop-en": {
-    "widths": [750, 914],
-    "sizes": { "750": 653, "914": 796 },
-    "fallback": 750
-  },
   "s-exam-row-th": {
     "widths": [500, 702],
     "sizes": { "500": 764, "702": 1072 },
@@ -88,56 +28,6 @@
     "widths": [500, 702],
     "sizes": { "500": 809, "702": 1136 },
     "fallback": 500
-  },
-  "s-summary-th": {
-    "widths": [500, 1000],
-    "sizes": { "500": 855, "1000": 1710 },
-    "fallback": 500
-  },
-  "s-summary-en": {
-    "widths": [500, 1000],
-    "sizes": { "500": 855, "1000": 1710 },
-    "fallback": 500
-  },
-  "s-summary-crop-th": {
-    "widths": [750, 1100],
-    "sizes": { "750": 562, "1100": 824 },
-    "fallback": 750
-  },
-  "s-summary-crop-en": {
-    "widths": [750, 1100],
-    "sizes": { "750": 562, "1100": 824 },
-    "fallback": 750
-  },
-  "n-catalog-th": {
-    "widths": [400, 800],
-    "sizes": { "400": 866, "800": 1731 },
-    "fallback": 400
-  },
-  "n-catalog-en": {
-    "widths": [400, 800],
-    "sizes": { "400": 866, "800": 1731 },
-    "fallback": 400
-  },
-  "n-day-th": {
-    "widths": [400, 800],
-    "sizes": { "400": 866, "800": 1731 },
-    "fallback": 400
-  },
-  "n-day-en": {
-    "widths": [400, 800],
-    "sizes": { "400": 866, "800": 1731 },
-    "fallback": 400
-  },
-  "n-sheet-th": {
-    "widths": [400, 800],
-    "sizes": { "400": 866, "800": 1731 },
-    "fallback": 400
-  },
-  "n-sheet-en": {
-    "widths": [400, 800],
-    "sizes": { "400": 866, "800": 1731 },
-    "fallback": 400
   },
   "x-share169-th": {
     "widths": [960, 1440, 1920],
@@ -160,53 +50,13 @@
     "fallback": 320
   },
   "s-updates-th": {
-    "widths": [600, 1200],
-    "sizes": { "600": 493, "1200": 987 },
-    "fallback": 600
+    "widths": [700, 1216],
+    "sizes": { "700": 576, "1216": 1000 },
+    "fallback": 700
   },
   "s-updates-en": {
-    "widths": [600, 1200],
-    "sizes": { "600": 493, "1200": 987 },
-    "fallback": 600
-  },
-  "s-plan-menu-th": {
-    "widths": [480, 576],
-    "sizes": { "480": 372, "576": 446 },
-    "fallback": 480
-  },
-  "s-plan-menu-en": {
-    "widths": [480, 576],
-    "sizes": { "480": 372, "576": 446 },
-    "fallback": 480
-  },
-  "s-suggest-th": {
-    "widths": [800, 1600, 2304],
-    "sizes": { "800": 531, "1600": 1063, "2304": 1530 },
-    "fallback": 800
-  },
-  "s-suggest-en": {
-    "widths": [800, 1600, 2304],
-    "sizes": { "800": 531, "1600": 1063, "2304": 1530 },
-    "fallback": 800
-  },
-  "s-suggest-crop-th": {
-    "widths": [730],
-    "sizes": { "730": 988 },
-    "fallback": 730
-  },
-  "s-suggest-crop-en": {
-    "widths": [730],
-    "sizes": { "730": 988 },
-    "fallback": 730
-  },
-  "s-welcome-th": {
-    "widths": [600, 896],
-    "sizes": { "600": 592, "896": 884 },
-    "fallback": 600
-  },
-  "s-welcome-en": {
-    "widths": [600, 896],
-    "sizes": { "600": 726, "896": 1084 },
-    "fallback": 600
+    "widths": [700, 1216],
+    "sizes": { "700": 576, "1216": 1000 },
+    "fallback": 700
   }
 }

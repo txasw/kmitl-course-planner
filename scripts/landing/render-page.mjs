@@ -1,8 +1,7 @@
 // Renders one locale of the landing page to static HTML (ADR-0066). The page carries
-// no framework runtime: plain HTML, one local stylesheet, and one deferred script that
-// only enhances the dedupe table and the Firefox button order. Copy comes from
-// copy.th.mjs and copy.en.mjs, the dedupe rows and counts from site-data.mjs, and the
-// image files from the encoder's manifest.
+// no framework runtime: plain HTML, one local stylesheet, and one script that only
+// enhances the page. Copy comes from copy.th.mjs and copy.en.mjs, the dedupe rows and
+// counts from site-data.mjs, and the image files from the encoder's manifest.
 
 import { shotPath } from './shots.mjs';
 
@@ -14,8 +13,6 @@ export const FIREFOX_URL =
 export const REPO_URL = 'https://github.com/txasw/kmitl-course-planner';
 const PRIVACY_URL = `${REPO_URL}/blob/main/docs/PRIVACY.md`;
 const ISSUES_URL = `${REPO_URL}/issues`;
-// The registration site's course search, where the planner runs.
-const SEARCH_URL = 'https://regis.reg.kmitl.ac.th/#/teach_table_selector';
 
 // Stroke icons drawn from the lucide set the extension already ships (ISC license).
 const STROKE =
@@ -25,7 +22,14 @@ const ICONS = {
   globe: `<svg class="icon" width="20" height="20" ${STROKE}><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>`,
   chevron: `<svg class="icon faq__chevron" width="20" height="20" ${STROKE}><path d="m6 9 6 6 6-6"/></svg>`,
   lock: `<svg class="icon" width="14" height="14" ${STROKE}><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+  search: `<svg class="icon" width="24" height="24" ${STROKE}><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>`,
+  listChecks: `<svg class="icon" width="24" height="24" ${STROKE}><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></svg>`,
+  columns: `<svg class="icon" width="24" height="24" ${STROKE}><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>`,
+  users: `<svg class="icon" width="24" height="24" ${STROKE}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg>`,
 };
+
+// The four facts of the and more block, in copy order.
+const FACT_ICONS = [ICONS.search, ICONS.listChecks, ICONS.columns, ICONS.users];
 
 /** The KCP mark, the extension icon drawn inline. Decorative where it sits beside text. */
 export function mark(size, className = 'mark') {
@@ -102,31 +106,18 @@ function heroPreload(manifest, locale) {
 const HERO_SIZES =
   '(min-width: 1440px) 1264px, calc(100vw - 2 * clamp(20px, 5vw, 64px))';
 const CROP_SIZES = 'calc(100vw - 40px)';
-const PLATE_8 = '(min-width: 1024px) 792px, calc(100vw - 40px)';
-// The exam pair splits the eight image columns three to five, so the exam schedule is
-// shown large enough to read beside the narrow exam card.
-const PAIR_NARROW =
-  '(min-width: 1024px) 288px, (min-width: 640px) calc(34vw - 12px), calc(100vw - 40px)';
-const PAIR_WIDE =
-  '(min-width: 1024px) 480px, (min-width: 640px) calc(56vw - 20px), calc(100vw - 40px)';
-// The narrow plates, the search form and the plan menu, show at the size the product
-// draws them, so their text matches the cropped grid plates instead of a zoomed shot.
-const SEARCH = '(min-width: 424px) 384px, calc(100vw - 40px)';
-const MENU = '(min-width: 328px) 288px, calc(100vw - 40px)';
-const PROBLEM_SHOT =
-  '(min-width: 1280px) 384px, (min-width: 520px) 480px, calc(100vw - 40px)';
+const EXAM_SIZES = '(min-width: 1024px) 480px, calc(100vw - 40px)';
+const UPDATES_SIZES = '(min-width: 1024px) 680px, calc(100vw - 40px)';
 const FULL =
   '(min-width: 1328px) 1200px, calc(100vw - 2 * clamp(20px, 5vw, 64px))';
-// The three narrow window shots fill the container in thirds from 1024 px.
-const THIRD =
-  '(min-width: 1328px) 384px, (min-width: 1024px) calc(30vw - 16px), 280px';
 // The phone wallpaper overlaps the poster at a fifth of the container.
 const PHONE_POSTER =
   '(min-width: 1328px) 240px, (min-width: 640px) 18vw, 220px';
 
 // The touch note leads, so a phone visitor reads that the stores install on a computer
-// before any button. The hero keeps its fine print short: the trust line first, then
-// the web version note in one clause; the download band carries the full note.
+// before any button. The hero ends at one fine line: its web version note is read out
+// by the disabled button, while the badge already says it is coming. The closing band
+// shows the note.
 function ctaRow(copy, size) {
   const hero = size === 'hero';
   return `<p class="cta-coarse">${copy.cta.coarse}</p>
@@ -137,29 +128,19 @@ function ctaRow(copy, size) {
 </div>
 ${
   hero
-    ? `<p class="micro">${copy.hero.fine}</p>
-`
-    : ''
-}<p class="cta-note" id="web-soon-note-${size}">${hero ? copy.cta.webNoteShort : copy.cta.webNote}</p>`;
+    ? `<p class="micro hero__fine">${copy.hero.fine}</p>
+<p class="visually-hidden" id="web-soon-note-${size}">${copy.cta.webNoteShort}</p>`
+    : `<p class="cta-note" id="web-soon-note-${size}">${copy.cta.webNoteShort}</p>`
+}`;
 }
 
-// A phone shows a plate's crop where one exists: the desktop capture scaled to a phone
-// would set the product's text at a few pixels.
+// A phone shows the hero crop: the desktop capture scaled to a phone would set the
+// product's text at a few pixels.
 const PHONE = '(max-width: 639px)';
 
-function figure(
-  manifest,
-  id,
-  locale,
-  alt,
-  caption,
-  sizes,
-  className = 'plate',
-  crop = null,
-) {
-  const art =
-    crop === null ? [] : [{ id: crop, media: PHONE, sizes: CROP_SIZES }];
-  return `<figure class="${className}">${picture(manifest, id, locale, { alt, sizes, className: 'plate__img', art })}<figcaption>${caption}</figcaption></figure>`;
+/** A screenshot plate with no caption: the statement beside it says what it shows. */
+function plate(manifest, id, locale, alt, sizes, className = 'plate') {
+  return `<figure class="${className}">${picture(manifest, id, locale, { alt, sizes, className: 'plate__img' })}</figure>`;
 }
 
 // The section links name the page they belong to only when the header sits on another
@@ -173,7 +154,6 @@ function header(copy, base = '') {
 <nav class="site-nav" aria-label="${copy.nav.label}">
 <ul>
 <li class="site-nav__wide"><a href="${base}#features">${copy.nav.features}</a></li>
-<li class="site-nav__wide"><a href="${base}#get-started">${copy.nav.start}</a></li>
 <li class="site-nav__wide"><a href="${base}#faq">${copy.nav.faq}</a></li>
 <li class="site-nav__narrow"><a href="${base}#faq">${copy.nav.faqShort}</a></li>
 <li><a href="${other.href}" lang="${other.lang}" hreflang="${other.lang}">${other.text}</a></li>
@@ -218,16 +198,22 @@ ${picture(manifest, 's-hero', locale, {
 </section>`;
 }
 
-function problem(copy, manifest, rowsHtml, counts) {
+/** A statement: one headline and one line under it, the unit every screen is built on. */
+function statement(id, h2, sub) {
+  return `<div class="statement">
+<h2 id="${id}-title" class="statement__h">${h2}</h2>
+<p class="statement__sub">${sub}</p>
+</div>`;
+}
+
+function problem(copy, rowsHtml, counts, search) {
   const p = copy.problem;
   const headers = p.headers
     .map((h) => `<th scope="col" role="columnheader">${h}</th>`)
     .join('');
-  return `<section class="band problem" aria-labelledby="problem-title">
-<div class="container problem__grid">
-<div class="problem__text">
-<h2 id="problem-title">${p.h2}</h2>
-<p class="body">${p.body}</p>
+  return `<section class="screen problem" aria-labelledby="problem-title">
+<div class="container">
+${statement('problem', p.h2(search), p.sub)}
 <div class="dedupe-wrap" data-dedupe data-label="${attr(p.toggle)}" data-merged="${attr(p.merged(counts))}" data-unmerged="${attr(p.unmerged(counts))}">
 <table class="dedupe" id="dedupe-table" role="table">
 <caption>${p.caption(counts)}<span class="visually-hidden" data-dedupe-state></span></caption>
@@ -240,94 +226,83 @@ ${rowsHtml}
 <p class="visually-hidden" role="status" aria-live="polite" data-dedupe-status></p>
 </div>
 </div>
-${figure(manifest, 's-catalog-dedupe', copy.lang, p.shotAlt, p.shotCaption, PROBLEM_SHOT, 'plate problem__shot')}
+</section>`;
+}
+
+function exam(copy, manifest) {
+  const c = copy.exam;
+  return `<section class="screen screen--full exam" id="features" aria-labelledby="exam-title">
+<div class="container screen__grid">
+${statement('exam', c.h2, c.sub)}
+${plate(manifest, 's-exam-row', copy.lang, c.alt1, EXAM_SIZES, 'plate exam__plate')}
 </div>
 </section>`;
 }
 
-function feature(id, h3, body, media, modifier = '') {
-  return `<article class="feature${modifier}" aria-labelledby="${id}-title">
-<div class="feature__caption"><h3 id="${id}-title">${h3}</h3><p class="body">${body}</p></div>
-<div class="feature__media">${media}</div>
-</article>`;
+function exportScreen(copy, manifest) {
+  const c = copy.export;
+  const l = copy.lang;
+  return `<section class="screen export" aria-labelledby="export-title">
+<div class="container">
+${statement('export', c.h2, c.sub)}
+<div class="posters">${plate(manifest, 'x-share169', l, c.alt1, FULL, 'poster poster--wide')}${plate(manifest, 'x-phone-portrait', l, c.alt2, PHONE_POSTER, 'poster poster--phone')}</div>
+</div>
+</section>`;
 }
 
-function features(copy, manifest) {
-  const l = copy.lang;
-  const c = copy;
-  const narrow = ['n-catalog', 'n-day', 'n-sheet']
+function plans(copy, manifest) {
+  const c = copy.plans;
+  return `<section class="screen screen--full plans" aria-labelledby="plans-title">
+<div class="container screen__grid">
+${statement('plans', c.h2, c.sub)}
+${plate(manifest, 's-updates', copy.lang, c.alt1, UPDATES_SIZES, 'plate plans__plate')}
+</div>
+</section>`;
+}
+
+function more(copy) {
+  const items = copy.more.items
     .map(
-      (id, i) =>
-        `<figure class="narrow"><div class="narrow__bar" aria-hidden="true"><span class="frame__dots"><i></i><i></i><i></i></span><span class="frame__url">${ICONS.lock}<span>regis.reg.kmitl.ac.th</span></span></div>${picture(manifest, id, l, { alt: c.layouts.alts[i], sizes: THIRD, className: 'narrow__img' })}<figcaption>${c.layouts.figs[i]}</figcaption></figure>`,
+      ([term, def], i) =>
+        `<div class="fact">${FACT_ICONS[i] ?? ''}<dt>${term}</dt><dd>${def}</dd></div>`,
     )
     .join('');
-  const perms = c.privacy.perms
+  return `<section class="screen more" aria-labelledby="more-title">
+<div class="container">
+<h2 id="more-title" class="statement__h">${copy.more.h2}</h2>
+<dl class="facts">${items}</dl>
+</div>
+</section>`;
+}
+
+function privacy(copy) {
+  const c = copy.privacy;
+  const perms = c.perms
     .map(
       ([token, reason]) =>
         `<div class="perm"><dt lang="en">${token}</dt><dd>${reason}</dd></div>`,
     )
     .join('');
-  return `<section class="features" id="features" aria-labelledby="features-title">
-<div class="container">
-<h2 id="features-title" class="features__title">${c.featuresH2}</h2>
-${feature('search', c.search.h3, c.search.body, figure(manifest, 's-search-form', l, c.search.alt, c.search.fig, SEARCH, 'plate plate--column'))}
-${feature('conflict', c.conflict.h3, c.conflict.body, `<div class="stack">${figure(manifest, 's-drag-blocked', l, c.conflict.alt1, c.conflict.fig1, PLATE_8, 'plate', 's-drag-blocked-crop')}${figure(manifest, 's-feedback-alternatives', l, c.conflict.alt2, c.conflict.fig2, PLATE_8, 'plate', 's-feedback-crop')}</div>`)}
-${feature('exam', c.exam.h3, c.exam.body, `<div class="pair">${figure(manifest, 's-exam-row', l, c.exam.alt1, c.exam.fig1, PAIR_NARROW)}${figure(manifest, 's-summary', l, c.exam.alt2, c.exam.fig2, PAIR_WIDE, 'plate', 's-summary-crop')}</div>`)}
-${feature('layouts', c.layouts.h3, c.layouts.body, `<div class="strip" role="region" aria-label="${attr(c.layouts.region)}" tabindex="0">${narrow}</div><p class="footnote">${c.layouts.footnote}</p>`, ' feature--wide')}
-${feature('export', c.export.h3, c.export.body, `<div class="posters">${figure(manifest, 'x-share169', l, c.export.alt1, '', FULL, 'poster poster--wide')}${figure(manifest, 'x-phone-portrait', l, c.export.alt2, '', PHONE_POSTER, 'poster poster--phone')}</div><p class="footnote">${c.export.templates}</p>`, ' feature--wide')}
-${feature('plans', c.plans.h3, c.plans.body, `<div class="stack">${figure(manifest, 's-updates', l, c.plans.alt1, c.plans.fig1, PLATE_8)}${figure(manifest, 's-plan-menu', l, c.plans.alt2, c.plans.fig2, MENU, 'plate plate--inset')}</div>`)}
+  return `<section class="screen screen--full privacy" id="privacy" aria-labelledby="privacy-title">
+<div class="container screen__grid">
+${statement('privacy', c.h2, c.sub)}
+<div class="privacy__perms">
+<h3>${c.heading}</h3>
+<dl class="perms">${perms}</dl>
+<p><a class="text-link" href="${PRIVACY_URL}" hreflang="en">${c.link}</a></p>
 </div>
-<div class="privacy-band">
-<div class="container">
-${feature('privacy', c.privacy.h3, c.privacy.body, `<h4>${c.privacy.heading}</h4><dl class="perms">${perms}</dl><p><a class="text-link" href="${PRIVACY_URL}" hreflang="en">${c.privacy.link}</a></p>`)}
-</div>
-</div>
-</section>`;
-}
-
-function more(copy, manifest) {
-  const items = copy.more.items
-    .map(
-      ([term, def]) =>
-        `<div class="more__item"><dt>${term}</dt><dd>${def}</dd></div>`,
-    )
-    .join('');
-  return `<section class="more" aria-labelledby="more-title">
-<div class="container more__grid">
-<div><h2 id="more-title">${copy.more.h2}</h2><dl class="more__list">${items}</dl></div>
-${figure(manifest, 's-suggest', copy.lang, copy.more.alt, copy.more.fig, FULL, 'plate', 's-suggest-crop')}
-</div>
-</section>`;
-}
-
-function steps(copy, manifest) {
-  const items = copy.steps.items
-    .map(
-      ([title, body], i) =>
-        `<li class="step"><span class="step__num" aria-hidden="true">${String(i + 1)}</span><h3 class="step__title">${title}</h3><p>${body}</p></li>`,
-    )
-    .join('');
-  return `<section class="steps" id="get-started" aria-labelledby="steps-title">
-<div class="container">
-<h2 id="steps-title">${copy.steps.h2}</h2>
-<p class="body steps__intro">${copy.steps.intro}</p>
-<p class="steps__link"><a class="text-link" href="${SEARCH_URL}">${copy.steps.link}</a></p>
-<ol class="steps__list">${items}</ol>
-${figure(manifest, 's-welcome', copy.lang, copy.steps.alt, copy.steps.fig, '(min-width: 640px) 448px, calc(100vw - 40px)', 'plate steps__shot')}
 </div>
 </section>`;
 }
 
 function download(copy, version) {
-  return `<section class="band download" id="download" aria-labelledby="download-title">
-<div class="container download__grid">
-${mark(96, 'mark download__mark')}
-<div>
-<h2 id="download-title">${copy.download.h2}</h2>
-<p class="body">${copy.download.body}</p>
+  return `<section class="download" id="download" aria-labelledby="download-title">
+<div class="container download__inner">
+${mark(112, 'mark download__mark')}
+<h2 id="download-title" class="statement__h">${copy.download.h2}</h2>
+<p class="statement__sub">${copy.download.body}</p>
 ${ctaRow(copy, 'band')}
 <p class="micro">${copy.download.meta(version, `<a class="text-link" href="${REPO_URL}">${copy.download.source}</a>`)}</p>
-</div>
 </div>
 </section>`;
 }
@@ -339,8 +314,8 @@ function faq(copy) {
         `<details class="faq__item"><summary><span>${q}</span>${ICONS.chevron}</summary><p>${a}</p></details>`,
     )
     .join('');
-  return `<section class="faq" id="faq" aria-labelledby="faq-title">
-<div class="container"><h2 id="faq-title">${copy.faq.h2}</h2><div class="faq__list">${items}</div></div>
+  return `<section class="screen faq" id="faq" aria-labelledby="faq-title">
+<div class="container"><h2 id="faq-title" class="statement__h">${copy.faq.h2}</h2><div class="faq__list">${items}</div></div>
 </section>`;
 }
 
@@ -534,14 +509,19 @@ export function keepThaiWords(html) {
 }
 
 /** The whole landing page for one locale. */
-export function renderPage(copy, { manifest, rowsHtml, counts, version }) {
+export function renderPage(
+  copy,
+  { manifest, rowsHtml, counts, search, version },
+) {
   const body = `${header(copy)}
 <main id="content" tabindex="-1">
 ${hero(copy, manifest)}
-${problem(copy, manifest, rowsHtml, counts)}
-${features(copy, manifest)}
-${more(copy, manifest)}
-${steps(copy, manifest)}
+${problem(copy, rowsHtml, counts, search)}
+${exam(copy, manifest)}
+${exportScreen(copy, manifest)}
+${plans(copy, manifest)}
+${more(copy)}
+${privacy(copy)}
 ${download(copy, version)}
 ${faq(copy)}
 </main>
