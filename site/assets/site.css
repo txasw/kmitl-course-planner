@@ -2446,3 +2446,350 @@ h4 {
     transform: none;
   }
 }
+
+/* The dedupe merge. Under motion every row has a fixed height, so a row moves up into
+   its section's slot by translateY((slot - index) * row height) and the table never
+   changes height. A first row stays on top; each repeat slides under its section and
+   fades. site.js sets data-drive: 'scroll' lets the pinned scroll play the merge on a
+   view timeline, 'class' plays it from .is-merged with transitions, which path B, the
+   toggle and an unpinned window use. */
+
+.sentinel {
+  position: absolute;
+  top: calc(var(--at) * (100% - 100svh + var(--header-h)));
+  left: 0;
+  width: 1px;
+  height: 0;
+  pointer-events: none;
+}
+
+.motion .dedupe-track {
+  position: relative;
+}
+
+.motion .dedupe-stage {
+  --head-h: 0px;
+}
+
+.motion .dedupe thead tr {
+  height: 44px;
+}
+
+.motion .dedupe tbody tr {
+  --shift: calc((var(--t) - var(--i)) * var(--row-h));
+
+  z-index: 1;
+  height: var(--row-h);
+  min-height: 0;
+  transition: background-color var(--dur-fade) linear;
+}
+
+.motion .dedupe tbody tr[data-row='first'] {
+  z-index: 2;
+}
+
+.motion .dedupe__grouping {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.motion .dedupe__group,
+.motion .dedupe__chip {
+  grid-area: 1 / 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.motion .dedupe__group {
+  justify-self: stretch;
+}
+
+.motion .dedupe__chip {
+  justify-self: start;
+  margin-top: 0;
+  opacity: 0;
+}
+
+/* Both counts share one cell; the rows give way to the sections. */
+.motion .count {
+  display: grid;
+  justify-items: start;
+}
+
+.motion .count > span {
+  grid-area: 1 / 1;
+}
+
+.motion .count__join {
+  display: none;
+}
+
+.motion .count__sections {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+/* The result fills the space the merged rows leave, under the four sections. */
+.motion .dedupe__result {
+  position: absolute;
+  top: calc(var(--head-h) + 4 * var(--row-h) + 24px);
+  right: 16px;
+  left: 16px;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+@media (min-width: 640px) {
+  .motion .dedupe-stage {
+    --head-h: 44px;
+  }
+
+  .motion .dedupe__grouping {
+    align-self: center;
+  }
+}
+
+.motion [data-drive='class'] tbody tr {
+  transition:
+    transform var(--dur-move) var(--ease-in-out) calc(var(--i) * 30ms),
+    opacity var(--dur-fade) linear calc(var(--i) * 30ms + 300ms),
+    background-color var(--dur-fade) linear;
+}
+
+.motion [data-drive='class'] .count__rows,
+.motion [data-drive='class'] .count__sections {
+  transition:
+    opacity var(--dur-fade) linear 300ms,
+    transform var(--dur-fade) var(--ease-out-expo) 300ms;
+}
+
+.motion [data-drive='class'] .dedupe__group,
+.motion [data-drive='class'] .dedupe__chip {
+  transition: opacity var(--dur-fade) linear 500ms;
+}
+
+.motion [data-drive='class'] .dedupe__result {
+  transition:
+    opacity var(--dur-fade) linear 600ms,
+    transform var(--dur-reveal) var(--ease-out-expo) 600ms;
+}
+
+.motion [data-drive='class'].is-merged tbody tr {
+  transform: translateY(var(--shift));
+}
+
+.motion [data-drive='class'].is-merged tbody tr[data-row='repeat'] {
+  opacity: 0;
+  transform: translateY(var(--shift)) scale(0.97);
+}
+
+.motion [data-drive='class'].is-merged .count__rows {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+
+.motion [data-drive='class'].is-merged .count__sections,
+.motion [data-drive='class'].is-merged .dedupe__result {
+  opacity: 1;
+  transform: none;
+}
+
+.motion [data-drive='class'].is-merged tr[data-row='first'] .dedupe__group {
+  opacity: 0;
+}
+
+.motion [data-drive='class'].is-merged tr[data-row='first'] .dedupe__chip {
+  opacity: 1;
+}
+
+/* The pinned stage: on a window tall enough to hold the whole stage, it holds still
+   while the reader scrolls the length of its track, and the toggle sits at its foot on
+   a phone, always in reach. */
+@media (max-width: 639px) and (min-height: 600px),
+  (min-width: 640px) and (max-width: 1023px) and (min-height: 820px),
+  (min-width: 1024px) and (min-height: 728px) {
+  .motion .dedupe-track {
+    height: calc(100svh - var(--header-h) + 120svh);
+  }
+
+  .motion .dedupe-pin {
+    position: sticky;
+    top: var(--header-h);
+    display: grid;
+    height: calc(100svh - var(--header-h));
+    align-content: center;
+  }
+}
+
+@media (max-width: 639px) and (min-height: 600px) {
+  .motion .dedupe-stage {
+    grid-template-areas:
+      'count'
+      'table'
+      'controls';
+    gap: 12px;
+    padding: 16px 12px;
+  }
+}
+
+/* A short phone keeps one line a row: the subject id, the section and the time. */
+@media (max-width: 639px) and (min-height: 600px) and (max-height: 759px) {
+  .motion .dedupe-stage {
+    --row-h: 30px;
+  }
+
+  .motion .dedupe tbody tr {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: 'id section time';
+    padding-block: 0;
+  }
+
+  .motion .dedupe .dedupe__name,
+  .motion .dedupe .dedupe__grouping {
+    display: none;
+  }
+
+  .motion .count__num {
+    font-size: 44px;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) and (min-height: 820px) {
+  .motion .dedupe-track {
+    height: calc(100svh - var(--header-h) + 130svh);
+  }
+}
+
+@media (min-width: 1024px) and (min-height: 728px) {
+  .motion .dedupe-track {
+    height: calc(100svh - var(--header-h) + 140svh);
+  }
+
+  .motion .dedupe-stage {
+    padding-block: 24px;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (max-width: 639px) and (min-height: 600px),
+    (min-width: 640px) and (max-width: 1023px) and (min-height: 820px),
+    (min-width: 1024px) and (min-height: 728px) {
+    .motion:not(.no-sda) .dedupe-track {
+      view-timeline: --dedupe block;
+      view-timeline-inset: var(--header-h) 0;
+    }
+
+    .motion:not(.no-sda) [data-drive='scroll'] tbody tr {
+      animation: row-merge linear both;
+      animation-timeline: --dedupe;
+      animation-range: contain calc(15% + var(--i) * 1.5%) contain
+        calc(55% + var(--i) * 1.5%);
+      will-change: transform;
+    }
+
+    .motion:not(.no-sda) [data-drive='scroll'] tbody tr[data-row='repeat'] {
+      animation-name: repeat-merge;
+    }
+
+    .motion:not(.no-sda) [data-drive='scroll'] .count__rows {
+      animation: rise-out linear both;
+      animation-timeline: --dedupe;
+      animation-range: contain 45% contain 60%;
+    }
+
+    .motion:not(.no-sda) [data-drive='scroll'] .count__sections {
+      animation: rise-in linear both;
+      animation-timeline: --dedupe;
+      animation-range: contain 45% contain 60%;
+    }
+
+    .motion:not(.no-sda)
+      [data-drive='scroll']
+      tr[data-row='first']
+      .dedupe__group {
+      animation: fade linear reverse both;
+      animation-timeline: --dedupe;
+      animation-range: contain 60% contain 70%;
+    }
+
+    .motion:not(.no-sda)
+      [data-drive='scroll']
+      tr[data-row='first']
+      .dedupe__chip {
+      animation: appear linear both;
+      animation-timeline: --dedupe;
+      animation-range: contain 60% contain 70%;
+    }
+
+    .motion:not(.no-sda) [data-drive='scroll'] .dedupe__result {
+      animation: rise-in linear both;
+      animation-timeline: --dedupe;
+      animation-range: contain 65% contain 75%;
+    }
+  }
+}
+
+@keyframes row-merge {
+  from {
+    transform: none;
+    animation-timing-function: var(--ease-in-out);
+  }
+
+  to {
+    transform: translateY(var(--shift));
+  }
+}
+
+@keyframes repeat-merge {
+  from {
+    transform: none;
+    animation-timing-function: var(--ease-in-out);
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(var(--shift)) scale(0.97);
+  }
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    animation-timing-function: var(--ease-out-expo);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rise-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}

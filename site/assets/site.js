@@ -12,8 +12,13 @@
   const root = document.documentElement;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 
+  // Every moment needs an observer to find its place, so a browser without one keeps
+  // the still page.
   function syncMotion() {
-    root.classList.toggle('motion', !reduce.matches);
+    root.classList.toggle(
+      'motion',
+      !reduce.matches && 'IntersectionObserver' in window,
+    );
   }
 
   syncMotion();
@@ -38,7 +43,7 @@
   // Path B: each block reveals once, the first time a fifth of it is in view.
   function revealOnView() {
     const blocks = document.querySelectorAll('[data-reveal]');
-    if (scrollDriven() || !('IntersectionObserver' in window)) return;
+    if (scrollDriven()) return;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -84,12 +89,63 @@
     observer.observe(track);
   }
 
+  /**
+   * Watch zero height sentinels placed at fractions of a pinned track's scroll distance,
+   * and report the index of the last one above the line under the header, or -1. The
+   * observed band runs from far above the window down to that line, so a fast scroll
+   * that jumps a sentinel past the line in one frame still changes its state.
+   */
+  function watchSentinels(track, fractions, onIndex) {
+    const sentinels = fractions.map((fraction) => {
+      const sentinel = document.createElement('div');
+      sentinel.className = 'sentinel';
+      sentinel.setAttribute('aria-hidden', 'true');
+      sentinel.style.setProperty('--at', String(fraction));
+      track.append(sentinel);
+      return sentinel;
+    });
+    const above = new Set();
+    let observer = null;
+    const build = () => {
+      observer?.disconnect();
+      above.clear();
+      const header =
+        parseFloat(getComputedStyle(root).getPropertyValue('--header-h')) || 0;
+      const bottom = Math.max(0, window.innerHeight - header);
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const index = sentinels.indexOf(entry.target);
+            if (entry.isIntersecting) {
+              above.add(index);
+            } else {
+              above.delete(index);
+            }
+          });
+          onIndex(above.size === 0 ? -1 : Math.max(...above));
+        },
+        { rootMargin: `100000px 0px -${String(bottom)}px 0px` },
+      );
+      sentinels.forEach((sentinel) => {
+        observer.observe(sentinel);
+      });
+    };
+    build();
+    window.addEventListener('resize', build);
+  }
+
+  // The stage pins only where the whole of it fits the window.
+  const DEDUPE_PIN =
+    '(max-width: 639px) and (min-height: 600px), (min-width: 640px) and (max-width: 1023px) and (min-height: 820px), (min-width: 1024px) and (min-height: 728px)';
+
   function enhanceDedupe(pin) {
+    const track = pin.closest('.dedupe-track');
     const table = pin.querySelector('table');
     const controls = pin.querySelector('.dedupe-controls');
     const status = pin.querySelector('[data-dedupe-status]');
     const state = pin.querySelector('[data-dedupe-state]');
     if (
+      track === null ||
       table === null ||
       controls === null ||
       status === null ||
@@ -97,7 +153,12 @@
     ) {
       return;
     }
-    const repeats = [...table.querySelectorAll('tr[data-row="repeat"]')];
+    const rows = [...table.querySelectorAll('tbody tr')];
+    const repeats = rows.filter((row) => row.dataset.row === 'repeat');
+    rows.forEach((row) => {
+      indexVar(row, 'data-i', '--i');
+      indexVar(row, 'data-slot', '--t');
+    });
 
     const button = document.createElement('button');
     button.type = 'button';
@@ -110,19 +171,65 @@
     button.append(box, document.createTextNode(pin.dataset.label ?? ''));
     controls.append(button);
 
-    button.addEventListener('click', () => {
-      const merged = button.getAttribute('aria-pressed') !== 'true';
+    const pinned = window.matchMedia(DEDUPE_PIN);
+    const motion = () => root.classList.contains('motion');
+    // Pressed by the reader since the stage last left the view.
+    let manual = false;
+    // Whether the reader has scrolled past the point where the merge happens.
+    let past = false;
+
+    const drive = () => {
+      pin.dataset.drive =
+        scrollDriven() && pinned.matches && !manual ? 'scroll' : 'class';
+    };
+
+    // The pressed state, the caption and the live status always name the state shown.
+    // The caption keeps naming where the rows came from and adds the state, so the
+    // table's name never states a row count the table no longer shows.
+    const show = (merged) => {
+      if (button.getAttribute('aria-pressed') === String(merged)) return;
       button.setAttribute('aria-pressed', String(merged));
-      // The caption keeps naming where the rows came from and adds the state shown, so
-      // the table's name never states a row count the table no longer shows.
       const text = (merged ? pin.dataset.merged : pin.dataset.unmerged) ?? '';
       state.textContent = ` ${text}`;
       status.textContent = text;
       pin.classList.toggle('is-merged', merged);
       repeats.forEach((row) => {
-        row.hidden = merged;
+        row.hidden = merged && !motion();
       });
+    };
+
+    const followScroll = () => motion() && pinned.matches && !manual;
+
+    button.addEventListener('click', () => {
+      manual = motion();
+      drive();
+      show(button.getAttribute('aria-pressed') !== 'true');
     });
+
+    watchSentinels(track, [0.45], (index) => {
+      past = index >= 0;
+      if (followScroll()) show(past);
+    });
+
+    // Once the stage leaves the view, the scroll drives the merge again.
+    new IntersectionObserver(([entry]) => {
+      if (entry === undefined || entry.isIntersecting || !manual) return;
+      manual = false;
+      drive();
+      if (followScroll()) show(past);
+    }).observe(track);
+
+    const reset = () => {
+      manual = false;
+      drive();
+      repeats.forEach((row) => {
+        row.hidden =
+          button.getAttribute('aria-pressed') === 'true' && !motion();
+      });
+    };
+    pinned.addEventListener('change', reset);
+    reduce.addEventListener('change', reset);
+    drive();
   }
 
   // Both language pages share their section ids, so switching language keeps the reader
@@ -146,7 +253,9 @@
     });
     revealOnView();
     standHeroFrame();
-    document.querySelectorAll('[data-dedupe]').forEach(enhanceDedupe);
+    if ('IntersectionObserver' in window) {
+      document.querySelectorAll('[data-dedupe]').forEach(enhanceDedupe);
+    }
     keepSectionAcrossLanguages();
   });
 })();
