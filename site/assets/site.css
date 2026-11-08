@@ -581,9 +581,16 @@ h4 {
   position: relative;
 }
 
+/* The lockup stands clear of the ruler band above it. */
 .hero__text {
   max-width: 1040px;
-  padding-top: 8px;
+  padding-top: 32px;
+}
+
+@media (min-width: 640px) {
+  .hero__text {
+    padding-top: 40px;
+  }
 }
 
 .hero h1 {
