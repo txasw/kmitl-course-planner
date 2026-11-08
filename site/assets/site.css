@@ -2331,7 +2331,9 @@ h4 {
   .motion:not(.no-sda) [data-reveal] {
     animation: reveal linear both;
     animation-timeline: view();
-    animation-range: entry 10% entry 70%;
+    /* A tall block finishes by the time its top is 85 percent down the window, so text
+       at rest is rarely short of full strength. */
+    animation-range: entry min(10%, 2svh) entry min(70%, 15svh);
   }
 
   .motion:not(.no-sda) .statement__sub[data-reveal] {
