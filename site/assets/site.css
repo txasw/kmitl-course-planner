@@ -385,8 +385,13 @@ h4 {
   }
 }
 
-/* The narrowest phones tighten the header so its four links fit on one line. */
+/* The narrowest phones tighten the header so its four links fit on one line, and the
+   story grid gives its day columns the room for a subject id. */
 @media (max-width: 359px) {
+  .story {
+    --story-label: 34px;
+  }
+
   .site-nav ul {
     gap: 0;
   }
@@ -613,7 +618,6 @@ h4 {
   color: var(--site-ink-soft);
 }
 
-.hero .cta-coarse,
 .hero .cta-row {
   margin-top: var(--space-cta);
 }
@@ -830,14 +834,6 @@ h4 {
   vertical-align: 1px;
 }
 
-.cta-note {
-  margin-top: 10px;
-  font-size: 14px;
-  line-height: 22px;
-  color: var(--site-ink-soft);
-  max-width: 40rem;
-}
-
 .cta-coarse {
   display: none;
   margin-top: 24px;
@@ -944,6 +940,11 @@ h4 {
 
 .statement__line {
   display: block;
+}
+
+/* Words that read as one unit stay on one line. */
+.keep {
+  white-space: nowrap;
 }
 
 .statement__sub {
@@ -1881,7 +1882,8 @@ h4 {
   .story__id,
   .story__name--id {
     overflow: hidden;
-    font-size: min(10px, 2.9vw);
+    font-size: min(10px, 2.6vw);
+    letter-spacing: -0.01em;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -2021,12 +2023,13 @@ h4 {
   max-width: none;
 }
 
+.download .cta-coarse,
 .download .cta-row {
   margin-top: var(--space-cta);
 }
 
-.download .cta-note {
-  margin-top: 16px;
+.download .cta-coarse + .cta-row {
+  margin-top: 12px;
 }
 
 @media (min-width: 1024px) {
@@ -2039,11 +2042,6 @@ h4 {
 .download .cta-row {
   justify-content: center;
   text-align: left;
-}
-
-.download .statement__sub,
-.download .cta-note {
-  max-width: none;
 }
 
 /* FAQ */
@@ -2291,7 +2289,6 @@ h4 {
   animation-delay: 420ms;
 }
 
-.motion .hero .cta-coarse,
 .motion .hero .cta-row .cta {
   animation: rise 700ms var(--ease-out-expo) both;
   animation-delay: calc(700ms + 80ms * var(--c, 0));
@@ -3663,7 +3660,7 @@ h4 {
 @media (max-width: 639px) {
   .ghost__danger,
   .ghost__success {
-    padding: 8px 2px 4px 4px;
+    padding: 8px 2px 4px;
     font-size: 10px;
   }
 
@@ -3785,20 +3782,16 @@ h4 {
   --e: 0;
 }
 
-.motion .download .statement__sub {
+.motion .download .cta:nth-child(1) {
   --e: 1;
 }
 
-.motion .download .cta:nth-child(1) {
+.motion .download .cta:nth-child(2) {
   --e: 2;
 }
 
-.motion .download .cta:nth-child(2) {
-  --e: 3;
-}
-
 .motion .download .cta:nth-child(3) {
-  --e: 4;
+  --e: 3;
 }
 
 @supports (animation-timeline: view()) {
@@ -3819,7 +3812,6 @@ h4 {
   }
 
   .motion:not(.no-sda) .download .statement__h,
-  .motion:not(.no-sda) .download .statement__sub,
   .motion:not(.no-sda) .download .cta {
     animation: rise linear both;
     animation-timeline: --close;
@@ -3832,7 +3824,6 @@ h4 {
 .motion.no-sda .download::before,
 .motion.no-sda .download__mark,
 .motion.no-sda .download .statement__h,
-.motion.no-sda .download .statement__sub,
 .motion.no-sda .download .cta {
   transition:
     opacity var(--dur-reveal) var(--ease-out-expo),
@@ -3840,7 +3831,6 @@ h4 {
 }
 
 .motion.no-sda .download .statement__h,
-.motion.no-sda .download .statement__sub,
 .motion.no-sda .download .cta {
   transition-delay: calc(150ms + 85ms * var(--e));
 }
@@ -3856,7 +3846,6 @@ h4 {
 }
 
 .motion.no-sda .download:not(.is-in) .statement__h,
-.motion.no-sda .download:not(.is-in) .statement__sub,
 .motion.no-sda .download:not(.is-in) .cta {
   opacity: 0;
   transform: translateY(calc(24px * var(--k)));
