@@ -36,7 +36,8 @@ export const th = {
     line2: '<span class="phrase">ก่อนลงทะเบียนจริง</span>',
     lede: 'ส่วนขยายที่เปลี่ยนผลค้นหารายวิชาของ สจล. เป็นตารางเรียนแบบลากวาง',
     // The Chrome badge names one browser, so the line beside it names the others it serves.
-    fine: `ใช้ฟรี โอเพนซอร์ส รองรับ ${EN('Edge, Brave')} และ ${EN('Opera')} ด้วย`,
+    // Its last words stay together, so a narrow phone never leaves ด้วย alone on a line.
+    fine: `ใช้ฟรี โอเพนซอร์ส รองรับ ${EN('Edge, Brave')} <span class="nw">และ ${EN('Opera')} ด้วย</span>`,
     alt: 'ตัววางแผน KCP บนเว็บไซต์ลงทะเบียน แสดงตารางเรียนรายสัปดาห์วันจันทร์ถึงวันศุกร์ ช่วงเช้ามีพื้นฐานการเขียนโปรแกรมคอมพิวเตอร์ ฟิสิกส์ทั่วไป 1 แคลคูลัส 1 และคณิตศาสตร์ไม่ต่อเนื่อง',
   },
   cta: {
