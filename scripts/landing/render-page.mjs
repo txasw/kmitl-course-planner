@@ -14,6 +14,8 @@ export const FIREFOX_URL =
 export const REPO_URL = 'https://github.com/txasw/kmitl-course-planner';
 const PRIVACY_URL = `${REPO_URL}/blob/main/docs/PRIVACY.md`;
 const ISSUES_URL = `${REPO_URL}/issues`;
+// The registration site's course search, where the planner runs.
+const SEARCH_URL = 'https://regis.reg.kmitl.ac.th/#/teach_table_selector';
 
 // Stroke icons drawn from the lucide set the extension already ships (ISC license).
 const STROKE =
@@ -276,7 +278,7 @@ ${feature('plans', c.plans.h3, c.plans.body, `<div class="stack">${figure(manife
 </div>
 <div class="privacy-band">
 <div class="container">
-${feature('privacy', c.privacy.h3, c.privacy.body, `<h4>${c.privacy.heading}</h4><dl class="perms">${perms}</dl><p><a class="text-link" href="${PRIVACY_URL}">${c.privacy.link}</a></p>`)}
+${feature('privacy', c.privacy.h3, c.privacy.body, `<h4>${c.privacy.heading}</h4><dl class="perms">${perms}</dl><p><a class="text-link" href="${PRIVACY_URL}" hreflang="en">${c.privacy.link}</a></p>`)}
 </div>
 </div>
 </section>`;
@@ -308,6 +310,7 @@ function steps(copy, manifest) {
 <div class="container">
 <h2 id="steps-title">${copy.steps.h2}</h2>
 <p class="body steps__intro">${copy.steps.intro}</p>
+<p class="steps__link"><a class="text-link" href="${SEARCH_URL}">${copy.steps.link}</a></p>
 <ol class="steps__list">${items}</ol>
 ${figure(manifest, 's-welcome', copy.lang, copy.steps.alt, copy.steps.fig, '(min-width: 640px) 448px, calc(100vw - 40px)', 'plate steps__shot')}
 </div>
@@ -350,7 +353,7 @@ function footer(copy) {
 <li><a href="${CHROME_URL}" lang="en">Chrome Web Store</a></li>
 <li><a href="${FIREFOX_URL}" lang="en">Firefox Add-ons</a></li>
 <li><a href="${REPO_URL}">${f.source}</a></li>
-<li><a href="${PRIVACY_URL}">${f.privacy}</a></li>
+<li><a href="${PRIVACY_URL}" hreflang="en">${f.privacy}</a></li>
 <li><a href="${ISSUES_URL}">${f.issues}</a></li>
 <li><a href="${other.href}" lang="${other.lang}" hreflang="${other.lang}">${other.text}</a></li>
 </ul></nav>

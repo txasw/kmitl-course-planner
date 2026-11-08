@@ -185,6 +185,7 @@ export const en = {
         'Download or copy your timetable as an image to send to others.',
       ],
     ],
+    link: 'Open the course search',
     fig: 'The welcome shown on the registration site after you install.',
     alt: 'The welcome shown after install, Thank you for installing KCP: Course Planner for KMITL, with three steps and a Start planning button.',
   },
