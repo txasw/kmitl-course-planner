@@ -969,8 +969,10 @@ h4 {
 }
 
 @media (min-width: 1024px) {
+  /* A split screen gives its statement five of twelve columns, so the display size
+     reaches its full 64 px only where those columns are wide enough. */
   .statement__h {
-    font-size: 64px;
+    font-size: clamp(48px, 4.5vw, 64px);
   }
 
   .statement__sub {
@@ -1374,11 +1376,15 @@ h4 {
   gap: var(--space-media);
 }
 
+/* A plate fills its column up to the size it reads best at; justified to the end of the
+   grid, it still needs that width, or it shrinks around its percentage image. */
 .exam__plate {
+  width: 100%;
   max-width: 420px;
 }
 
 .plans__plate {
+  width: 100%;
   max-width: 680px;
 }
 
