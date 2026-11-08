@@ -67,7 +67,8 @@ function manifestEntry(manifest, id, locale) {
 /**
  * A screenshot as a picture element: AVIF, then WebP, with the img naming the WebP at
  * the fallback width and the intrinsic size, so the box is reserved before the bytes
- * arrive.
+ * arrive. An art directed source of another shape states its own size, or the box would
+ * take the img's shape until the source loaded and then grow under the reader.
  */
 export function picture(manifest, id, locale, options) {
   const entry = manifestEntry(manifest, id, locale);
@@ -76,10 +77,12 @@ export function picture(manifest, id, locale, options) {
   const artSources = art
     .map((source) => {
       const artEntry = manifestEntry(manifest, source.id, locale);
+      const artWidth = artEntry.fallback;
+      const artHeight = artEntry.sizes[String(artWidth)];
       return ['avif', 'webp']
         .map(
           (ext) =>
-            `<source media="${source.media}" type="image/${ext}" srcset="${srcset(source.id, locale, artEntry, ext)}" sizes="${source.sizes}">`,
+            `<source media="${source.media}" type="image/${ext}" srcset="${srcset(source.id, locale, artEntry, ext)}" sizes="${source.sizes}" width="${String(artWidth)}" height="${String(artHeight)}">`,
         )
         .join('');
     })
