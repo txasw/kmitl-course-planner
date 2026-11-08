@@ -136,6 +136,25 @@ function headerRule(pattern: string): string[] {
   return rule;
 }
 
+interface CssRule {
+  selectors: string[];
+  decls: string[];
+}
+
+/** The stylesheet's innermost rules, comments removed, whitespace in values collapsed. */
+function cssRules(): CssRule[] {
+  const css = readFileSync(join(SITE, 'assets/site.css'), 'utf8').replace(
+    /\/\*[\s\S]*?\*\//g,
+    '',
+  );
+  return [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(
+    ([, prelude = '', body = '']) => ({
+      selectors: prelude.split(',').map((s) => s.trim()),
+      decls: body.split(';').map((d) => d.trim().replace(/\s+/g, ' ')),
+    }),
+  );
+}
+
 function visibleText(doc: Document): string {
   const alts = [...doc.querySelectorAll('img[alt]')].map(
     (img) => img.getAttribute('alt') ?? '',
@@ -669,16 +688,7 @@ describe('site files', () => {
   // over the install buttons; were it to take the pointer, a click on a button's centre
   // would land on the empty stage and do nothing.
   it('lets the pinned hero stage pass the pointer through to the buttons', () => {
-    const css = readFileSync(join(SITE, 'assets/site.css'), 'utf8').replace(
-      /\/\*[\s\S]*?\*\//g,
-      '',
-    );
-    const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(
-      ([, prelude = '', body = '']) => ({
-        selectors: prelude.split(',').map((s) => s.trim()),
-        decls: body.split(';').map((d) => d.trim().replace(/\s+/g, ' ')),
-      }),
-    );
+    const rules = cssRules();
     const pins = rules.filter(
       (rule) =>
         rule.selectors.some((s) => s.endsWith('.hero__pin')) &&
@@ -695,6 +705,23 @@ describe('site files', () => {
           rule.decls.includes('pointer-events: auto'),
       ),
     ).toBe(true);
+  });
+
+  // A short phone gives few pixels of scroll to a track sized in screens alone, and a
+  // steady scroll would pass a scene's end state before it had held. Every pinned scene
+  // track keeps a pixel floor under its screen based length.
+  it('keeps a pixel floor under every pinned scene track', () => {
+    const heights = cssRules()
+      .filter((rule) =>
+        rule.selectors.some(
+          (s) => s === '.motion .dedupe-track' || s === '.motion .story__track',
+        ),
+      )
+      .flatMap((rule) => rule.decls.filter((d) => d.startsWith('height:')));
+    expect(heights.length).toBeGreaterThanOrEqual(3);
+    for (const height of heights) {
+      expect(height).toMatch(/max\(\d+svh[^,]*, \d+px\)/);
+    }
   });
 
   it('listens to no scroll event', () => {
