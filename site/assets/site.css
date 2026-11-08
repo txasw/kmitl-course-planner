@@ -1040,10 +1040,14 @@ h4 {
   grid-area: controls;
 }
 
+/* The rows lay out by the width the table gets, not the window: the stage puts the table
+   in a full width row on a tablet and in eight of twelve columns on a desktop, so a
+   narrow table can sit in a wide window. */
 .dedupe-table {
   position: relative;
   grid-area: table;
   min-width: 0;
+  container: dedupe / inline-size;
 }
 
 .dedupe-toggle {
@@ -1160,13 +1164,16 @@ h4 {
 }
 
 .dedupe__chip {
+  max-width: 100%;
   margin-top: 2px;
+  overflow: hidden;
   padding: 0 8px;
   border-radius: var(--r-chip);
   background: var(--site-primary-soft);
   color: var(--site-primary-strong);
   font-size: 12px;
   line-height: 20px;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -1183,9 +1190,11 @@ h4 {
   background: var(--site-primary-soft);
 }
 
-/* A phone draws each row as two short lines: the subject id, name and section, then the
-   curriculum and the day and time. The seats stay in the markup for the data. */
-@media (max-width: 639px) {
+/* A table narrower than its six columns draws each row as two short lines: the subject
+   id, name and section, then the curriculum and the day and time. The seats stay in the
+   markup for the data. Six columns need 720 px, so the curriculum keeps room for its
+   name and for the chip that replaces it. */
+@container dedupe (max-width: 719.98px) {
   .dedupe thead {
     position: absolute;
     width: 1px;
@@ -1259,6 +1268,16 @@ h4 {
     row-gap: 24px;
   }
 
+  .count {
+    font-size: 22px;
+  }
+
+  .count__num {
+    font-size: 80px;
+  }
+}
+
+@container dedupe (min-width: 720px) {
   .dedupe tr {
     grid-template-columns: minmax(0, 1fr) 84px 150px 96px 116px 64px;
   }
@@ -1276,14 +1295,6 @@ h4 {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .count {
-    font-size: 22px;
-  }
-
-  .count__num {
-    font-size: 80px;
   }
 }
 
@@ -2559,8 +2570,8 @@ h4 {
   transform: translateY(12px);
 }
 
-@media (min-width: 640px) {
-  .motion .dedupe-stage {
+@container dedupe (min-width: 720px) {
+  .motion .dedupe__result {
     --head-h: 44px;
   }
 
