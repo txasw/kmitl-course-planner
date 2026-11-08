@@ -18,11 +18,6 @@ export interface DedupeCounts {
   groupings: number;
 }
 
-export interface SubjectSearchCounts {
-  rows: number;
-  sections: number;
-}
-
 export interface StoryBlock {
   subjectId: string;
   section: string;
@@ -48,8 +43,6 @@ export interface Story {
 export const DEDUPE_FIXTURE: string;
 export const STORY_FIXTURE: string;
 export function storyBlocks(locale: 'th' | 'en'): Story;
-export const SUBJECT_SEARCH_FIXTURE: string;
-export function subjectSearchCounts(): SubjectSearchCounts;
 export function dedupeRows(locale: 'th' | 'en'): DedupeRow[];
 export function dedupeCounts(): DedupeCounts;
 export function renderDedupeRows(locale: 'th' | 'en'): string;

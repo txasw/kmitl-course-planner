@@ -11,9 +11,9 @@ import {
 } from '../../src/lib/i18n/toneRules';
 import { STORE_BADGES, THAI_KEEP } from '../../scripts/landing/render-page.mjs';
 import {
+  dedupeCounts,
   dedupeRows,
   storyBlocks,
-  subjectSearchCounts,
 } from '../../scripts/landing/site-data.mjs';
 import {
   EVENT_PALETTE,
@@ -422,9 +422,10 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
     expect(caption).toContain(String(first + repeats.length));
   });
 
-  it('states the subject search numbers the capture holds', () => {
-    const { rows, sections } = subjectSearchCounts();
-    expect([rows, sections]).toEqual([499, 44]);
+  // The statement's claim and the table under it are the same sample.
+  it('states the numbers of the sample the table shows', () => {
+    const { rows, sections } = dedupeCounts();
+    expect([rows, sections]).toEqual([13, 4]);
     const heading = doc.getElementById('problem-title')?.textContent ?? '';
     const numbers = heading.match(/\d+/g)?.map(Number);
     expect(numbers).toEqual([rows, sections]);

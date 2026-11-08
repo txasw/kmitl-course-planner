@@ -250,7 +250,7 @@ function statement(id, h2, sub) {
 </div>`;
 }
 
-function problem(copy, rowsHtml, counts, search) {
+function problem(copy, rowsHtml, counts) {
   const p = copy.problem;
   // The seats header carries the class of its cells, so a narrow table hides both.
   const headers = p.headers
@@ -267,7 +267,7 @@ function problem(copy, rowsHtml, counts, search) {
   // the merged table shrinks.
   return `<section class="screen problem" aria-labelledby="problem-title">
 <div class="container">
-${statement('problem', p.h2(search), p.sub)}
+${statement('problem', p.h2(counts), p.sub)}
 </div>
 <div class="container dedupe-track">
 <div class="dedupe-pin" data-dedupe data-kept="${String(counts.sections)}" data-gone="${String(counts.rows - counts.sections)}">
@@ -679,12 +679,12 @@ export function keepThaiWords(html) {
 /** The whole landing page for one locale. */
 export function renderPage(
   copy,
-  { manifest, rowsHtml, counts, search, story, version },
+  { manifest, rowsHtml, counts, story, version },
 ) {
   const body = `${header(copy)}
 <main id="content" tabindex="-1">
 ${hero(copy, manifest)}
-${problem(copy, rowsHtml, counts, search)}
+${problem(copy, rowsHtml, counts)}
 ${storySection(copy, story)}
 ${exam(copy, manifest)}
 ${exportScreen(copy, manifest)}

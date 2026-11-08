@@ -137,7 +137,7 @@ export function dedupeRows(locale) {
   });
 }
 
-/** The counts the copy around the table states. */
+/** The counts the statement, the counter and the caption state, from the table's own sample. */
 export function dedupeCounts() {
   const rows = dedupeRows('th');
   const groups = readJson(DEDUPE_FIXTURE);
@@ -146,23 +146,6 @@ export function dedupeCounts() {
     sections: rows.filter((row) => !row.duplicate).length,
     groupings: groups.length,
   };
-}
-
-/** The subject search the dedupe statement quotes, a single subject with many listings. */
-export const SUBJECT_SEARCH_FIXTURE =
-  'tests/fixtures/teach-table.by_subject_id.capture.json';
-
-/** The raw rows and the real sections of the subject search capture. */
-export function subjectSearchCounts() {
-  const ids = [];
-  for (const group of readJson(SUBJECT_SEARCH_FIXTURE)) {
-    for (const type of group.teachtable) {
-      for (const row of type.data) {
-        ids.push(row.teach_table_id);
-      }
-    }
-  }
-  return { rows: ids.length, sections: new Set(ids).size };
 }
 
 /** The capture the story grid is generated from, which holds every section of plan H. */
