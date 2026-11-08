@@ -129,7 +129,7 @@ const PHONE_POSTER =
 // text is its own words, so the link is named by what it shows; Mozilla's words name no
 // browser, so its alt adds the one it is for. The bordered Chrome badge keeps an edge on
 // the grey closing band as on white. The badges stay a pair: the touch note follows them,
-// and the web version waits after them as a quiet pill.
+// and the web version waits on a line of its own under them as a smaller, quieter pill.
 export const STORE_BADGES = [
   {
     store: 'chrome',

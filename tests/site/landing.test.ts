@@ -238,10 +238,18 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
     expect(hrefs.filter((href) => href === FIREFOX).length).toBeGreaterThan(1);
   });
 
+  // The web version waits after the badge pair, outside it, so the badges stay the
+  // row's primary pair.
   it('shows the web version as a disabled button, never a link', () => {
     const soon = [...doc.querySelectorAll('.soon')];
     expect(soon.length).toBeGreaterThan(0);
     for (const control of soon) {
+      const stores = control.closest('.cta-row')?.querySelector('.stores');
+      expect(control.closest('.stores')).toBeNull();
+      expect(
+        (stores?.compareDocumentPosition(control) ?? 0) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).not.toBe(0);
       expect(control.tagName).toBe('BUTTON');
       expect(control.getAttribute('type')).toBe('button');
       expect(control.getAttribute('aria-disabled')).toBe('true');
