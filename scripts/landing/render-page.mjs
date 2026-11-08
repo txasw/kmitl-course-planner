@@ -87,14 +87,14 @@ export function picture(manifest, id, locale, options) {
   return `<picture>${artSources}${sources}<img src="${shotPath(id, locale, width, 'webp')}" width="${String(width)}" height="${String(height)}" alt="${attr(options.alt)}" ${loading}${options.className === undefined ? '' : ` class="${options.className}"`}></picture>`;
 }
 
-/** The preload hints for the hero image, the matching source per viewport. */
+/**
+ * The preload hint for the hero image on wide screens, where it is the largest paint
+ * on a tall window. A phone gets no preload: its crop starts below the first screen,
+ * and a high priority request would only compete with the stylesheet and the font.
+ */
 function heroPreload(manifest, locale) {
   const hero = manifestEntry(manifest, 's-hero', locale);
-  const crop = manifestEntry(manifest, 's-hero-crop', locale);
-  return [
-    `<link rel="preload" as="image" type="image/avif" imagesrcset="${srcset('s-hero', locale, hero, 'avif')}" imagesizes="${HERO_SIZES}" media="(min-width: 640px)" fetchpriority="high">`,
-    `<link rel="preload" as="image" type="image/avif" imagesrcset="${srcset('s-hero-crop', locale, crop, 'avif')}" imagesizes="${CROP_SIZES}" media="(max-width: 639px)" fetchpriority="high">`,
-  ].join('\n');
+  return `<link rel="preload" as="image" type="image/avif" imagesrcset="${srcset('s-hero', locale, hero, 'avif')}" imagesizes="${HERO_SIZES}" media="(min-width: 640px)" fetchpriority="high">`;
 }
 
 const HERO_SIZES =
