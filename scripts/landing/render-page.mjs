@@ -104,8 +104,10 @@ function heroPreload(manifest, locale) {
   return `<link rel="preload" as="image" type="image/avif" imagesrcset="${srcset('s-hero', locale, hero, 'avif')}" imagesizes="${HERO_SIZES}" media="(min-width: 640px)" fetchpriority="high">`;
 }
 
+// The frame is never wider than the container, and on a short window it is narrower,
+// sized so the whole product fits the window when it stands.
 const HERO_SIZES =
-  '(min-width: 1440px) 1264px, calc(100vw - 2 * clamp(20px, 5vw, 64px))';
+  '(min-width: 1328px) 1200px, calc(100vw - 2 * clamp(32px, 5vw, 64px))';
 const CROP_SIZES = 'calc(100vw - 40px)';
 const EXAM_SIZES = '(min-width: 1024px) 480px, calc(100vw - 40px)';
 const UPDATES_SIZES = '(min-width: 1024px) 680px, calc(100vw - 40px)';
@@ -185,6 +187,9 @@ ${ruler()}
 <p class="lede">${copy.hero.lede}</p>
 ${ctaRow(copy, 'hero')}
 </div>
+</div>
+<div class="hero__track">
+<div class="hero__pin">
 <div class="frame-rise"><div class="frame">
 <div class="frame__bar" aria-hidden="true"><span class="frame__dots"><i></i><i></i><i></i></span><span class="frame__url">${ICONS.lock}<span>regis.reg.kmitl.ac.th/#/teach_table_selector</span></span></div>
 ${picture(manifest, 's-hero', locale, {
@@ -195,6 +200,7 @@ ${picture(manifest, 's-hero', locale, {
   art: [{ id: 's-hero-crop', media: PHONE, sizes: CROP_SIZES }],
 })}
 </div></div>
+</div>
 </div>
 </section>`;
 }

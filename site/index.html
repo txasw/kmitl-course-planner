@@ -29,12 +29,12 @@
       as="image"
       type="image/avif"
       imagesrcset="/shots/s-hero-th-960.avif?v=3b93548b31 960w, /shots/s-hero-th-1440.avif?v=9092cb0fef 1440w, /shots/s-hero-th-2160.avif?v=2da4db32af 2160w, /shots/s-hero-th-2880.avif?v=2a9b5635f5 2880w"
-      imagesizes="(min-width: 1440px) 1264px, calc(100vw - 2 * clamp(20px, 5vw, 64px))"
+      imagesizes="(min-width: 1328px) 1200px, calc(100vw - 2 * clamp(32px, 5vw, 64px))"
       media="(min-width: 640px)"
       fetchpriority="high"
     />
-    <script src="/assets/site.js?v=f7a990dcb3"></script>
-    <link rel="stylesheet" href="/assets/site.css?v=58ccb97a18" />
+    <script src="/assets/site.js?v=96f956e384"></script>
+    <link rel="stylesheet" href="/assets/site.css?v=da18ee21d5" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="KCP" />
     <meta
@@ -326,77 +326,81 @@
               ยังไม่มีกำหนดเปิด
             </p>
           </div>
-          <div class="frame-rise">
-            <div class="frame">
-              <div class="frame__bar" aria-hidden="true">
-                <span class="frame__dots"><i></i><i></i><i></i></span
-                ><span class="frame__url"
-                  ><svg
-                    class="icon"
-                    width="14"
-                    height="14"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                    focusable="false"
+        </div>
+        <div class="hero__track">
+          <div class="hero__pin">
+            <div class="frame-rise">
+              <div class="frame">
+                <div class="frame__bar" aria-hidden="true">
+                  <span class="frame__dots"><i></i><i></i><i></i></span
+                  ><span class="frame__url"
+                    ><svg
+                      class="icon"
+                      width="14"
+                      height="14"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
+                    ><span
+                      >regis.reg.kmitl.ac.th/#/teach_table_selector</span
+                    ></span
                   >
-                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
-                  ><span
-                    >regis.reg.kmitl.ac.th/#/teach_table_selector</span
-                  ></span
-                >
+                </div>
+                <picture
+                  ><source
+                    media="(max-width: 639px)"
+                    type="image/avif"
+                    srcset="
+                      /shots/s-hero-crop-th-750.avif?v=c32968bd93 750w,
+                      /shots/s-hero-crop-th-898.avif?v=5a5a7b2e9b 898w
+                    "
+                    sizes="calc(100vw - 40px)" />
+                  <source
+                    media="(max-width: 639px)"
+                    type="image/webp"
+                    srcset="
+                      /shots/s-hero-crop-th-750.webp?v=59e00590e4 750w,
+                      /shots/s-hero-crop-th-898.webp?v=26306e78ff 898w
+                    "
+                    sizes="calc(100vw - 40px)" />
+                  <source
+                    type="image/avif"
+                    srcset="
+                      /shots/s-hero-th-960.avif?v=3b93548b31   960w,
+                      /shots/s-hero-th-1440.avif?v=9092cb0fef 1440w,
+                      /shots/s-hero-th-2160.avif?v=2da4db32af 2160w,
+                      /shots/s-hero-th-2880.avif?v=2a9b5635f5 2880w
+                    "
+                    sizes="(min-width: 1328px) 1200px, calc(100vw - 2 * clamp(32px, 5vw, 64px))" />
+                  <source
+                    type="image/webp"
+                    srcset="
+                      /shots/s-hero-th-960.webp?v=0cc16225cc   960w,
+                      /shots/s-hero-th-1440.webp?v=73079c4e9d 1440w,
+                      /shots/s-hero-th-2160.webp?v=0a052625bb 2160w,
+                      /shots/s-hero-th-2880.webp?v=09aa3f1458 2880w
+                    "
+                    sizes="(min-width: 1328px) 1200px, calc(100vw - 2 * clamp(32px, 5vw, 64px))" />
+                  <img
+                    src="/shots/s-hero-th-1440.webp?v=73079c4e9d"
+                    width="1440"
+                    height="900"
+                    alt="ตัววางแผน KCP บนเว็บไซต์ลงทะเบียน แสดงตารางเรียนรายสัปดาห์วันจันทร์ถึงวันศุกร์ ช่วงเช้ามีพื้นฐานการเขียนโปรแกรมคอมพิวเตอร์ ฟิสิกส์ทั่วไป 1 แคลคูลัส 1 และคณิตศาสตร์ไม่ต่อเนื่อง"
+                    loading="eager"
+                    fetchpriority="high"
+                    decoding="async"
+                    class="frame__img"
+                /></picture>
               </div>
-              <picture
-                ><source
-                  media="(max-width: 639px)"
-                  type="image/avif"
-                  srcset="
-                    /shots/s-hero-crop-th-750.avif?v=c32968bd93 750w,
-                    /shots/s-hero-crop-th-898.avif?v=5a5a7b2e9b 898w
-                  "
-                  sizes="calc(100vw - 40px)" />
-                <source
-                  media="(max-width: 639px)"
-                  type="image/webp"
-                  srcset="
-                    /shots/s-hero-crop-th-750.webp?v=59e00590e4 750w,
-                    /shots/s-hero-crop-th-898.webp?v=26306e78ff 898w
-                  "
-                  sizes="calc(100vw - 40px)" />
-                <source
-                  type="image/avif"
-                  srcset="
-                    /shots/s-hero-th-960.avif?v=3b93548b31   960w,
-                    /shots/s-hero-th-1440.avif?v=9092cb0fef 1440w,
-                    /shots/s-hero-th-2160.avif?v=2da4db32af 2160w,
-                    /shots/s-hero-th-2880.avif?v=2a9b5635f5 2880w
-                  "
-                  sizes="(min-width: 1440px) 1264px, calc(100vw - 2 * clamp(20px, 5vw, 64px))" />
-                <source
-                  type="image/webp"
-                  srcset="
-                    /shots/s-hero-th-960.webp?v=0cc16225cc   960w,
-                    /shots/s-hero-th-1440.webp?v=73079c4e9d 1440w,
-                    /shots/s-hero-th-2160.webp?v=0a052625bb 2160w,
-                    /shots/s-hero-th-2880.webp?v=09aa3f1458 2880w
-                  "
-                  sizes="(min-width: 1440px) 1264px, calc(100vw - 2 * clamp(20px, 5vw, 64px))" />
-                <img
-                  src="/shots/s-hero-th-1440.webp?v=73079c4e9d"
-                  width="1440"
-                  height="900"
-                  alt="ตัววางแผน KCP บนเว็บไซต์ลงทะเบียน แสดงตารางเรียนรายสัปดาห์วันจันทร์ถึงวันศุกร์ ช่วงเช้ามีพื้นฐานการเขียนโปรแกรมคอมพิวเตอร์ ฟิสิกส์ทั่วไป 1 แคลคูลัส 1 และคณิตศาสตร์ไม่ต่อเนื่อง"
-                  loading="eager"
-                  fetchpriority="high"
-                  decoding="async"
-                  class="frame__img"
-              /></picture>
             </div>
           </div>
         </div>
