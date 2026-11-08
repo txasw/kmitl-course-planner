@@ -126,9 +126,10 @@ const PHONE_POSTER =
 // Chrome Web Store badge needs no approval when it links to the item's store page, and
 // Mozilla offers its Get the add-on badge for a link to the add-on's listing. Neither
 // store publishes a Thai badge, so both pages show the English ones, and each badge's alt
-// text is its own words, so the link is named by what it shows. The bordered Chrome badge
-// keeps an edge on the grey closing band as on white. The badges stay a pair: the touch
-// note follows them, and the web version waits after them as a quiet pill.
+// text is its own words, so the link is named by what it shows; Mozilla's words name no
+// browser, so its alt adds the one it is for. The bordered Chrome badge keeps an edge on
+// the grey closing band as on white. The badges stay a pair: the touch note follows them,
+// and the web version waits after them as a quiet pill.
 export const STORE_BADGES = [
   {
     store: 'chrome',
@@ -144,7 +145,7 @@ export const STORE_BADGES = [
     src: '/assets/brand/firefox-get-the-add-on.svg',
     width: 172,
     height: 60,
-    alt: 'Get the add-on',
+    alt: 'Get the add-on for Firefox',
   },
 ];
 
