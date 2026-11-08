@@ -748,25 +748,40 @@ h4 {
 }
 
 /* Calls to action: the two store badges as one pair at one height, the touch note on a
-   coarse pointer, then the web version as a quiet pill of the same height. A badge is
-   never changed beyond resizing in proportion, so its height is set and its width
-   follows; on a narrow phone the height shrinks until both fit one row. */
+   coarse pointer, then the web version on a line of its own as a smaller, quieter
+   control, so the badges read as the primary pair. A badge is never changed beyond
+   resizing in proportion, so its height is set and its width follows; on a narrow phone
+   the height shrinks until both fit one row. The row is measured against its own width
+   less a few pixels, since a scrollbar or a width rounded up by a pixel fraction would
+   otherwise push the second badge onto a row of its own. */
 
 .cta-row {
-  --badge-h: min(52px, (100vw - 2 * var(--margin-inline) - 12px) / 6.1733);
-
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px 32px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
   margin-top: 24px;
+  container-type: inline-size;
 }
 
 .stores {
+  --badge-gap: 12px;
+  /* The two badges are 6.1733 times as wide as they are tall, side by side. */
+  --badge-h: min(
+    52px,
+    (100vw - 2 * var(--margin-inline) - var(--badge-gap) - 24px) / 6.1733
+  );
+
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: var(--badge-gap);
+}
+
+@supports (width: 1cqi) {
+  .stores {
+    --badge-h: min(52px, (100cqi - var(--badge-gap) - 4px) / 6.1733);
+  }
 }
 
 .store {
@@ -790,30 +805,34 @@ h4 {
   order: -1;
 }
 
-/* The web version reads as a finished control that is not open yet: a quiet pill with
-   its coming soon badge. It stays disabled to assistive technology and takes no hover
-   state. */
+/* The web version reads as a control that is not open yet: a small outlined pill with a
+   dashed edge and its coming soon label, under the badges. It stays disabled to
+   assistive technology and takes no hover state. */
 .soon {
   display: inline-flex;
-  height: var(--badge-h);
+  height: 40px;
   align-items: center;
-  gap: 8px;
-  padding: 0 16px;
-  border: 1px solid var(--site-rule);
+  gap: 6px;
+  padding: 0 6px 0 12px;
+  border: 1px dashed var(--site-rule-strong);
   border-radius: var(--r-pill);
-  background: var(--site-paper);
+  background: transparent;
   color: var(--site-ink-soft);
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 20px;
   cursor: default;
 }
 
+.soon .icon {
+  width: 16px;
+  height: 16px;
+}
+
 .soon .badge {
-  margin-left: 0;
-  background: var(--site-primary-soft);
-  color: var(--site-primary-strong);
-  font-weight: 600;
+  margin-left: 2px;
+  background: var(--site-chip);
+  color: var(--site-ink-soft);
 }
 
 .badge {
@@ -832,8 +851,7 @@ h4 {
 
 .cta-coarse {
   display: none;
-  flex-basis: 100%;
-  margin-top: -4px;
+  margin-top: -8px;
   font-size: 14px;
   line-height: 20px;
   color: var(--site-ink-soft);
@@ -847,12 +865,9 @@ h4 {
 }
 
 @media (min-width: 640px) {
-  .cta-row {
-    --badge-h: 56px;
-  }
-
   .stores {
-    gap: 16px;
+    --badge-gap: 16px;
+    --badge-h: 56px;
   }
 }
 
@@ -1980,7 +1995,11 @@ h4 {
   }
 }
 
-.download .cta-row,
+.download .cta-row {
+  justify-self: stretch;
+  align-items: center;
+}
+
 .download .stores {
   justify-content: center;
 }
