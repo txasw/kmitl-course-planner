@@ -989,6 +989,12 @@ h4 {
   color: var(--site-primary-strong);
 }
 
+/* Each count keeps its number with its unit. */
+.count__rows,
+.count__sections {
+  white-space: nowrap;
+}
+
 /* The rows lay out by the width the table gets, not the window: the stage puts the table
    in a full width row on a tablet and in eight of twelve columns on a desktop, so a
    narrow table can sit in a wide window. */
@@ -2100,6 +2106,18 @@ h4 {
    group words for the entrance, so they wrap at any space. */
 @media (min-width: 360px) {
   .phrase:lang(th) {
+    white-space: nowrap;
+  }
+}
+
+/* Under 360 px the hero sets its display a step smaller, so each Thai phrase still fits
+   whole on its line and no short word is left alone. */
+@media (max-width: 359px) {
+  .hero__display:lang(th) {
+    font-size: 34px;
+  }
+
+  .hero__display .phrase:lang(th) {
     white-space: nowrap;
   }
 }

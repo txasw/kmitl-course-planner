@@ -237,6 +237,14 @@ function escapeHtml(value) {
     .replaceAll('"', '&quot;');
 }
 
+/** A class year keeps its number on its line: "year 4" never breaks before the 4. */
+function keepYear(html) {
+  return html.replace(
+    /(?:ชั้นปี|year) \d+/g,
+    (year) => `<span class="nw">${year}</span>`,
+  );
+}
+
 function cell(content, extra = '') {
   return `<td role="cell"${extra}>${content}</td>`;
 }
@@ -265,7 +273,7 @@ export function renderDedupeRows(locale) {
       return [
         `<tr role="row" class="dedupe__row ${row.subjectClass}" data-row="${kind}" data-i="${String(index)}" data-slot="${String(row.slot)}"${row.duplicate ? ' aria-hidden="true"' : ''}>`,
         cell(
-          `<span class="dedupe__group">${escapeHtml(row.grouping)}</span>${chip}`,
+          `<span class="dedupe__group">${keepYear(escapeHtml(row.grouping))}</span>${chip}`,
           ` class="dedupe__grouping" title="${escapeHtml(row.grouping)}"`,
         ),
         cell(escapeHtml(row.subjectId), ' class="dedupe__id"'),
