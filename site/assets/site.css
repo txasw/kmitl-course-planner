@@ -929,12 +929,58 @@ h4 {
   white-space: nowrap;
 }
 
-/* With the table at full width a subject name and a section stay on one line, so a Thai
-   name never breaks inside a word and every row keeps one line. */
-@media (min-width: 1024px) {
-  .dedupe__name,
+/* From 768 px a section stays on one line and the curriculum column takes the wrap,
+   since it is a label rather than the repeated data. A Thai subject name is kept whole by
+   its own span; an English one may wrap at a space. */
+@media (min-width: 768px) {
   .dedupe__section {
     white-space: nowrap;
+  }
+}
+
+/* With the table at full width its columns are fixed, so merging the repeats never
+   moves a column sideways. The widths hold the longest value in each language with room
+   for a wider system face, and a section may wrap there rather than be clipped; the
+   curriculum column takes the rest. */
+@media (min-width: 1024px) {
+  .dedupe {
+    table-layout: fixed;
+  }
+
+  .dedupe__section {
+    white-space: normal;
+  }
+
+  .dedupe th:nth-child(2) {
+    width: 92px;
+  }
+
+  .dedupe th:nth-child(3) {
+    width: 156px;
+  }
+
+  .dedupe th:nth-child(4) {
+    width: 96px;
+  }
+
+  .dedupe th:nth-child(5) {
+    width: 124px;
+  }
+
+  .dedupe th:nth-child(6) {
+    width: 66px;
+  }
+
+  .dedupe:lang(en) th:nth-child(3) {
+    width: 210px;
+  }
+
+  .dedupe:lang(en) th:nth-child(4) {
+    width: 108px;
+  }
+
+  .dedupe:lang(en) th:nth-child(5) {
+    width: 128px;
   }
 }
 
@@ -956,6 +1002,19 @@ h4 {
   font-size: 14px;
   line-height: 22px;
   color: var(--site-ink-soft);
+}
+
+/* Once merged, the result is the point of the demonstration, so it is set large in the
+   space the folded rows leave. */
+.is-merged .dedupe__result {
+  margin-top: 24px;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 36px;
+  color: var(--site-ink);
+  text-wrap: balance;
+  animation: chip-in var(--dur-slow) var(--ease-standard) both;
 }
 
 .is-folding tr[data-row='repeat'] .fold {
@@ -1017,7 +1076,8 @@ h4 {
   --subject: #455a64;
 }
 
-@media (max-width: 639px) {
+/* Below 768 px each row is drawn as a short card. */
+@media (max-width: 767px) {
   .dedupe thead {
     position: absolute;
     width: 1px;
@@ -1031,15 +1091,25 @@ h4 {
     display: block;
   }
 
+  /* A fixed first track, so the subject name starts at one x on every card whatever
+     the width of its section label. */
   .dedupe tr {
     display: grid;
-    grid-template-columns: auto auto 1fr;
+    grid-template-columns: 8rem auto 1fr;
     border-bottom: 1px solid var(--site-rule);
     box-shadow: inset 4px 0 0 var(--subject);
   }
 
   .dedupe tr[hidden] {
     display: none;
+  }
+
+  /* Under 360 px the fixed track would push the seats past the edge, so the tracks
+     size to their content again. */
+  @media (max-width: 359px) {
+    .dedupe tr {
+      grid-template-columns: auto auto 1fr;
+    }
   }
 
   .dedupe td {
@@ -1085,6 +1155,16 @@ h4 {
 
   .dedupe__seats {
     grid-column: 3 / 4;
+  }
+
+  /* The column header is hidden here, so the seat count names itself. The empty
+     alternative keeps the label out of the accessible text, where the header already
+     names the cell; a browser without that syntax shows no label. */
+  .dedupe__seats [data-label]::before {
+    content: attr(data-label) / '';
+    margin-right: 6px;
+    color: var(--site-ink-soft);
+    font-size: 14px;
   }
 
   /* The row carries the tint here, so the cells stay clear and the subject edge the row

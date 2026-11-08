@@ -17,7 +17,11 @@ function reducedMotion() {
 function enhanceDedupe(wrap) {
   const table = wrap.querySelector('table');
   const status = wrap.querySelector('[data-dedupe-status]');
-  if (table === null || status === null) return;
+  const state = wrap.querySelector('[data-dedupe-state]');
+  if (table === null || status === null || state === null) return;
+  // Beside the tall screenshot the section keeps its height when the rows fold, so the
+  // page below does not jump; elsewhere the screenshot follows the table up.
+  const besideShot = window.matchMedia('(min-width: 1280px)');
   const repeats = [...table.querySelectorAll('tr[data-row="repeat"]')];
 
   const button = document.createElement('button');
@@ -55,10 +59,17 @@ function enhanceDedupe(wrap) {
   button.addEventListener('click', () => {
     const merged = button.getAttribute('aria-pressed') !== 'true';
     button.setAttribute('aria-pressed', String(merged));
+    // The caption keeps naming where the rows came from and adds the state shown, so
+    // the table's name never states a row count the table no longer shows.
+    state.textContent = ` ${(merged ? wrap.dataset.merged : wrap.dataset.unmerged) ?? ''}`;
     if (merged) {
+      if (besideShot.matches) {
+        wrap.style.minHeight = `${String(wrap.offsetHeight)}px`;
+      }
       wrap.classList.add('is-folding');
       status.textContent = wrap.dataset.merged ?? '';
     } else {
+      wrap.style.minHeight = '';
       wrap.classList.remove('is-merged');
       wrap.classList.add('is-unfolding');
       repeats.forEach((row) => {

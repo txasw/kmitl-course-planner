@@ -217,7 +217,7 @@ function problem(copy, manifest, rowsHtml, counts) {
 <p class="body">${p.body}</p>
 <div class="dedupe-wrap" data-dedupe data-label="${attr(p.toggle)}" data-merged="${attr(p.merged(counts))}" data-unmerged="${attr(p.unmerged(counts))}">
 <table class="dedupe" id="dedupe-table" role="table">
-<caption>${p.caption(counts)}</caption>
+<caption>${p.caption(counts)}<span class="visually-hidden" data-dedupe-state></span></caption>
 <thead role="rowgroup"><tr role="row">${headers}</tr></thead>
 <tbody role="rowgroup">
 ${rowsHtml}
