@@ -158,7 +158,8 @@
   // A step that has played stays whole this long before the next one plays, unless the
   // reader had already crossed the next one's line while it played.
   const HOLD = 650;
-  // A reader already past the next line gets the next step after this short beat.
+  // A reader already past the next line gets the next step after this short beat, and a
+  // lead in step always hands on to the next one after it.
   const CHAIN = 100;
   // A step for a reader who is scrolling on plays its transitions at this share of their
   // length, which site.css reads as --pace.
@@ -168,79 +169,89 @@
 
   /**
    * Move a scene one step at a time toward the step its scroll position asks for, which
-   * `goalFor` reads from the number of lines crossed. Each step plays on its own clock,
-   * its transitions in site.css, so a fast flick that crosses every line at once still
-   * shows each step whole instead of a blur. The pace follows the reader. A reader who
-   * stops before the next line gets each step at full length, and the next step waits
-   * until this one has finished and held, so a line crossed soon after still leaves the
-   * finished step in view. A reader who is scrolling on, who crossed the line fast or had
-   * already passed the next line when a step finished, gets the steps quick and chained,
-   * so the scene finishes while it is still pinned instead of trailing the scroll.
-   * Scrolling back steps down at once, the same way.
+   * `goalFor` reads from the number of lines crossed. Each step names its longest
+   * transition in site.css, `time` in ms, and the share of it a reader who stops gets,
+   * `scale`; a `lead` step only opens the next one and never holds. Each step plays on
+   * its own clock, so a fast flick that crosses every line at once still shows each step
+   * whole instead of a blur. The pace follows the reader. A reader who stops before the
+   * next line gets each step at full length, and the next step waits until this one has
+   * finished and held, so a line crossed soon after still leaves the finished step in
+   * view. A reader who is scrolling on, who crossed the line fast or had already passed
+   * the next line when a step finished, gets the steps quick and chained, so the scene
+   * finishes while it is still pinned instead of trailing the scroll. Scrolling back
+   * steps down at once, the same way.
    */
-  function stepper(el, durations, goalFor) {
+  function stepper(el, steps, goalFor) {
     let shown = 0;
     let crossed = 0;
     let fast = [];
-    let timer = 0;
+    let cancel = null;
     let readyAt = 0;
-    let chained = false;
-    const wait = (ms) => {
-      timer = window.setTimeout(() => {
-        timer = 0;
-        move();
+    let quick = false;
+    const show = (step, pace) => {
+      shown = step;
+      el.style.setProperty('--pace', String(pace));
+      el.dataset.step = String(step);
+    };
+    const after = (ms, next) => {
+      const id = window.setTimeout(() => {
+        cancel = null;
+        next();
       }, ms);
+      cancel = () => {
+        window.clearTimeout(id);
+      };
     };
     const move = () => {
       const goal = goalFor(crossed);
       if (goal < shown) {
-        shown -= 1;
-        chained = false;
+        quick = false;
         readyAt = 0;
-        el.dataset.step = String(shown);
-        wait(STEP_BACK);
+        show(shown - 1, 1);
+        after(STEP_BACK, move);
         return;
       }
       if (goal === shown) return;
       const early = readyAt - performance.now();
       if (early > 0) {
-        wait(early);
+        after(early, move);
         return;
       }
-      const pace = chained || fast[shown] === true ? QUICK : 1;
-      shown += 1;
-      el.style.setProperty('--pace', String(pace));
-      el.dataset.step = String(shown);
-      timer = window.setTimeout(
-        () => {
-          timer = 0;
-          chained = crossed > shown;
-          readyAt = performance.now() + (chained ? CHAIN : HOLD);
-          move();
-        },
-        (durations[shown - 1] ?? 0) * pace,
-      );
+      const step = steps[shown] ?? { time: 0 };
+      const scale = step.scale ?? 1;
+      const pace =
+        quick || fast[shown] === true ? Math.min(QUICK, scale) : scale;
+      show(shown + 1, pace);
+      after(step.time * pace, () => {
+        quick = crossed > shown;
+        readyAt =
+          performance.now() + (quick || step.lead === true ? CHAIN : HOLD);
+        move();
+      });
     };
     el.dataset.step = '0';
     return (lines, gates) => {
       crossed = lines;
       fast = gates;
-      if (timer !== 0 && goalFor(crossed) < shown) {
-        window.clearTimeout(timer);
-        timer = 0;
+      if (cancel !== null && goalFor(crossed) < shown) {
+        cancel();
+        cancel = null;
       }
-      if (timer === 0) move();
+      if (cancel === null) move();
     };
   }
 
-  // The dedupe stage plays two steps from its first line: the repeats fade while the
-  // counter turns from rows to sections, then, after the hold, the sections close up and
-  // take their labels, so no stop shows a card the repeats have left half empty. The
-  // second line only tells the stage the reader has moved on, which chains the close up.
-  // The thirteen rows hold before the first line and the merged sections for the rest of
-  // the track. Each time is the step's longest transition in site.css, in ms.
+  // The dedupe stage plays from its first line. Its first step is a lead in: the repeats
+  // fade while the counter turns from rows to sections, and a beat later the sections
+  // close up and take their labels, so the merge completes within about 1.4 s and no
+  // stop rests on a card the repeats have left half empty. The second line only tells
+  // the stage the reader has moved on, which quickens the close up. The thirteen rows
+  // hold before the first line and the merged sections for the rest of the track.
   const DEDUPE_LINES = [0.08, 0.18];
-  const DEDUPE_TIMES = [800, 1000];
+  const DEDUPE_STEPS = [
+    { time: 800, scale: 0.65, lead: true },
+    { time: 1000, scale: 0.75 },
+  ];
 
   function enhanceDedupe(pin) {
     const track = pin.closest('.dedupe-track');
@@ -256,7 +267,7 @@
       track,
       DEDUPE_LINES,
       0.065,
-      stepper(pin, DEDUPE_TIMES, (crossed) => (crossed > 0 ? 2 : 0)),
+      stepper(pin, DEDUPE_STEPS, (crossed) => (crossed > 0 ? 2 : 0)),
     );
   }
 
@@ -265,7 +276,7 @@
   // it pins. The lines leave each beat room to play and hold at a steady scroll, and the
   // last beat a stretch of the track to stay in view before the pin lets go.
   const STORY_LINES = [-0.15, 0.23, 0.58];
-  const STORY_TIMES = [1000, 1000, 1100];
+  const STORY_STEPS = [{ time: 1000 }, { time: 1000 }, { time: 1100 }];
 
   function enhanceStory(track) {
     const pin = track.querySelector('.story__pin');
@@ -277,7 +288,7 @@
       track,
       STORY_LINES,
       0.04,
-      stepper(pin, STORY_TIMES, (crossed) => crossed),
+      stepper(pin, STORY_STEPS, (crossed) => crossed),
     );
   }
 
