@@ -12,8 +12,14 @@ import {
 import { THAI_KEEP } from '../../scripts/landing/render-page.mjs';
 import {
   dedupeRows,
+  storyBlocks,
   subjectSearchCounts,
 } from '../../scripts/landing/site-data.mjs';
+import {
+  EVENT_PALETTE,
+  EVENT_TINT_ALPHA,
+  tintOverWhite,
+} from '../../src/lib/utils/hash-color';
 import { siteTextFiles } from '../../scripts/landing/site-files.mjs';
 
 // Guards the landing site in site/ (ADR-0066): its titles and language alternates, the
@@ -324,6 +330,65 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
     expect(numbers).toEqual([rows, sections]);
   });
 
+  it('builds the story grid from plan H in the capture', () => {
+    const story = storyBlocks(locale);
+    const grid = doc.querySelector('.story__grid');
+    const placed = (el: Element | null | undefined) => {
+      const classes = [...(el?.classList ?? [])];
+      const pick = (prefix: string) =>
+        Number(classes.find((c) => c.startsWith(prefix))?.slice(prefix.length));
+      return {
+        day: pick('d-'),
+        start: pick('h-') * 60,
+        span: pick('span-') * 60,
+        name: el?.querySelector('.story__name')?.textContent,
+        section: el?.querySelector('.story__sec')?.textContent,
+        time: el?.querySelector('.story__time')?.textContent,
+      };
+    };
+    const blocks = [
+      ...(grid?.querySelectorAll('.story__block:not(.story__landed)') ?? []),
+    ];
+    expect(blocks.map(placed)).toEqual(
+      story.blocks.map((b) => ({
+        day: b.day,
+        start: b.start,
+        span: b.end - b.start,
+        name: b.name,
+        section: b.section,
+        time: b.time,
+      })),
+    );
+    expect(story.blocks.map((b) => [b.day, b.start])).toEqual([
+      [1, 540],
+      [2, 540],
+      [4, 540],
+      [5, 540],
+      [1, 780],
+      [2, 780],
+    ]);
+    expect([story.ghost.subjectId, story.ghost.section]).toEqual([
+      '01006021',
+      '3',
+    ]);
+    expect([story.landed.subjectId, story.landed.section]).toEqual([
+      '01006021',
+      '5',
+    ]);
+    expect(placed(grid?.querySelector('.story__landed'))).toMatchObject({
+      day: 3,
+      start: 780,
+      span: 180,
+      name: '01006021',
+    });
+    expect(placed(grid?.querySelector('.story__ghost'))).toMatchObject({
+      day: 2,
+      start: 540,
+      span: 180,
+    });
+    expect([story.credits, story.subjects]).toEqual([19, 7]);
+  });
+
   it('names the cached assets by the hash of their content', () => {
     const versioned = urls(doc).filter((value) =>
       /^\/(?:assets\/site\.(?:css|js)|shots\/)/.test(value),
@@ -442,6 +507,19 @@ describe('site files', () => {
     expect(createHash('sha256').update(font).digest('hex')).toBe(
       '8a40a0047c48358d30aad097d5e6739d8da1122d4664524c514fd5818756ac4a',
     );
+  });
+
+  it('tints every subject as the product does', () => {
+    const css = readFileSync(join(SITE, 'assets/site.css'), 'utf8');
+    EVENT_PALETTE.forEach((color, index) => {
+      const rule = new RegExp(
+        String.raw`\.subject-${String(index)} \{[^}]*--subject: ([^;]+);[^}]*--tint: ([^;]+);`,
+      ).exec(css);
+      expect(rule?.[1], `subject-${String(index)}`).toBe(color.toLowerCase());
+      expect(rule?.[2], `subject-${String(index)}`).toBe(
+        tintOverWhite(color, EVENT_TINT_ALPHA),
+      );
+    });
   });
 
   it('loads no remote url from the stylesheet', () => {
