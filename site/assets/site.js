@@ -209,12 +209,25 @@
       state.textContent = ` ${text}`;
       status.textContent = text;
       pin.classList.toggle('is-merged', merged);
-      repeats.forEach((row) => {
-        row.hidden = merged && !motion();
-      });
+      foldRepeats();
     };
 
     const followScroll = () => motion() && pinned.matches && !manual;
+
+    // Merged repeat rows leave the table. Without motion they are hidden outright; with
+    // it they only fade and slide, so they also leave the accessibility tree, and a
+    // screen reader finds the same four rows the caption names.
+    function foldRepeats() {
+      const merged = button.getAttribute('aria-pressed') === 'true';
+      repeats.forEach((row) => {
+        row.hidden = merged && !motion();
+        if (merged && motion()) {
+          row.setAttribute('aria-hidden', 'true');
+        } else {
+          row.removeAttribute('aria-hidden');
+        }
+      });
+    }
 
     button.addEventListener('click', () => {
       manual = motion();
@@ -238,10 +251,7 @@
     const reset = () => {
       manual = false;
       drive();
-      repeats.forEach((row) => {
-        row.hidden =
-          button.getAttribute('aria-pressed') === 'true' && !motion();
-      });
+      foldRepeats();
     };
     pinned.addEventListener('change', reset);
     reduce.addEventListener('change', reset);
