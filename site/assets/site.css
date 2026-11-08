@@ -2161,14 +2161,20 @@ h4 {
   }
 }
 
-/* Under 360 px the hero sets its display a step smaller, so each Thai phrase still fits
-   whole on its line and no short word is left alone. */
+/* Under 360 px the hero and the statements set their display a step smaller, so each Thai
+   phrase still fits whole on its line, an English phrase kept together fits too, and no
+   short word is left alone. */
 @media (max-width: 359px) {
   .hero__display:lang(th) {
     font-size: 34px;
   }
 
-  .hero__display .phrase:lang(th) {
+  .statement__h {
+    font-size: 30px;
+  }
+
+  .hero__display .phrase:lang(th),
+  .statement__h .phrase:lang(th) {
     white-space: nowrap;
   }
 }

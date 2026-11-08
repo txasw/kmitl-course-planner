@@ -29,7 +29,7 @@ export const en = {
     line1: '<span class="phrase">See your whole week</span>',
     line2: '<span class="phrase">before you register.</span>',
     lede: 'An extension that turns the KMITL course search into a drag and drop timetable.',
-    fine: 'Free and open source. Also for Edge, Brave and Opera.',
+    fine: 'Free and open source. Also for Edge, Brave <span class="keep">and Opera.</span>',
     alt: 'The KCP planner on the registration site, with a weekly timetable from Monday to Friday that holds Programming Fundamental, General Physics 1, Calculus 1 and Discrete Mathematics in the mornings.',
   },
   cta: {
@@ -41,7 +41,7 @@ export const en = {
   },
   problem: {
     h2: (c) =>
-      `<span class="statement__line">Search one category, get ${c.rows} rows.</span> <span class="statement__line">Only <span class="keep">${c.sections} real sections.</span></span>`,
+      `<span class="statement__line">Search one category, get ${c.rows} rows.</span> <span class="statement__line"><span class="keep">Only ${c.sections} real sections.</span></span>`,
     sub: 'KCP merges the repeats into one entry per section.',
     caption: (c) =>
       `${c.rows} rows from ${c.groupings} curricula. Real sample: category 90592xxx, semester 1/2569.`,
@@ -86,7 +86,7 @@ export const en = {
   },
   plans: {
     h2: 'Your plan stays current.',
-    sub: 'Changed times and rooms show beside the old ones, and nothing is removed for you.',
+    sub: 'Changed times and rooms show beside the old ones, and nothing is removed <span class="keep">for you.</span>',
     alt1: 'The Changes to your planned sections dialog. Calculus 1, section 33, shows its old and new time, with a Mark all as reviewed button.',
   },
   more: {
