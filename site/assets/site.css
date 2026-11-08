@@ -1535,6 +1535,7 @@ h4 {
   --story-readout: 32px;
 
   padding-block: var(--space-section);
+  overflow-x: clip;
   background: var(--ink-bg);
   color: var(--ink-text);
 }
@@ -1683,6 +1684,11 @@ h4 {
   line-height: 18px;
   text-align: center;
   font-variant-numeric: tabular-nums;
+}
+
+/* The subject id stands in for an English name only where a day column is too narrow. */
+.story__id {
+  display: none;
 }
 
 .story__time {
@@ -1862,11 +1868,23 @@ h4 {
     line-clamp: 3;
   }
 
-  /* An English subject name is one long capitalised word too wide for a day column, so
-     it breaks with a hyphen instead of being cut at the edge. */
+  /* An English subject name is a long capitalised word wider than a day column, so a
+     phone labels the English blocks by subject id, and an id never breaks. */
   .story__name:lang(en) {
-    overflow-wrap: anywhere;
-    hyphens: auto;
+    display: none;
+  }
+
+  .story__id:lang(en) {
+    display: block;
+  }
+
+  .story__id,
+  .story__name--id {
+    overflow: hidden;
+    font-size: min(10px, 2.9vw);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
   .story__sec {
@@ -3640,7 +3658,8 @@ h4 {
   }
 }
 
-/* On a phone the dragged section's skins keep the subject id on one line. */
+/* On a phone the dragged section's skins are set a step smaller, and the clash chip
+   reaches from the Tuesday column to the grid's right edge, no further. */
 @media (max-width: 639px) {
   .ghost__danger,
   .ghost__success {
@@ -3648,9 +3667,8 @@ h4 {
     font-size: 10px;
   }
 
-  .ghost__danger .story__name,
-  .ghost__success .story__name {
-    overflow-wrap: normal;
+  .story__chip {
+    max-width: calc(400% - 6px);
   }
 }
 

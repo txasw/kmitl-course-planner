@@ -272,10 +272,19 @@ function placement(block) {
   return `d-${String(block.day)} h-${String(hour)} span-${String(span)}`;
 }
 
+/**
+ * A block's label: its name, and its subject id, which a phone shows in place of an
+ * English name too long for a day column. A subject named by its id keeps the id whole.
+ */
+function storyLabel(block) {
+  const id = block.name === block.subjectId ? ' story__name--id' : '';
+  return `<span class="story__name${id}">${block.name}</span><span class="story__id">${block.subjectId}</span>`;
+}
+
 /** One block's skin as the product draws it: name first, the section in a corner chip,
  * the time quiet at the foot. */
 function storyCard(block, extra = '') {
-  return `<div class="story__card ${block.subjectClass}${extra}"><span class="story__name">${block.name}</span><span class="story__sec">${block.section}</span><span class="story__time">${block.time}</span></div>`;
+  return `<div class="story__card ${block.subjectClass}${extra}">${storyLabel(block)}<span class="story__sec">${block.section}</span><span class="story__time">${block.time}</span></div>`;
 }
 
 function storyGrid(copy, story) {
@@ -299,7 +308,7 @@ function storyGrid(copy, story) {
     .join('');
   const g = story.ghost;
   const [chipLine1, chipLine2] = copy.story.chip(story.blocker);
-  const ghost = `<div class="story__ghost ${placement(g)}"><div class="ghost__lift"><div class="ghost__layer ghost__danger"><span class="story__name">${g.name}</span><span class="story__sec">${g.section}</span></div><div class="ghost__layer ghost__success"><span class="story__name">${g.name}</span><span class="story__sec">${story.landed.section}</span></div>${storyCard(story.landed, ' ghost__layer ghost__block')}</div><p class="story__chip"><span>${chipLine1}</span><span>${chipLine2}</span></p></div>`;
+  const ghost = `<div class="story__ghost ${placement(g)}"><div class="ghost__lift"><div class="ghost__layer ghost__danger">${storyLabel(g)}<span class="story__sec">${g.section}</span></div><div class="ghost__layer ghost__success">${storyLabel(g)}<span class="story__sec">${story.landed.section}</span></div>${storyCard(story.landed, ' ghost__layer ghost__block')}</div><p class="story__chip"><span>${chipLine1}</span><span>${chipLine2}</span></p></div>`;
   return `<div class="story__grid" aria-hidden="true">
 <div class="story__rules"></div>
 <div class="story__axis">${hours.join('')}</div>
