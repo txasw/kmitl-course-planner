@@ -1330,12 +1330,24 @@ figcaption:empty {
   scroll-snap-align: start;
 }
 
+/* A narrowed desktop window, with the window controls of the hero frame, so the shots
+   read as a computer browser rather than a phone. */
 .narrow__bar {
   height: 28px;
+  gap: 10px;
   border: 1px solid var(--site-rule);
   border-bottom: 0;
   border-radius: var(--r-frame) var(--r-frame) 0 0;
-  padding-inline: 8px;
+  padding-inline: 10px;
+}
+
+.narrow__bar .frame__dots {
+  gap: 6px;
+}
+
+.narrow__bar .frame__dots i {
+  width: 8px;
+  height: 8px;
 }
 
 .narrow__bar .frame__url {
