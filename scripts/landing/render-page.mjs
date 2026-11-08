@@ -112,14 +112,23 @@ const PROBLEM_SHOT =
   '(min-width: 1280px) 384px, (min-width: 520px) 480px, calc(100vw - 40px)';
 const FULL = '(min-width: 1280px) 1200px, calc(100vw - 40px)';
 
+// The touch note leads, so a phone visitor reads that the stores install on a computer
+// before any button. The hero keeps its fine print short: the trust line first, then
+// the web version note in one clause; the download band carries the full note.
 function ctaRow(copy, size) {
-  return `<div class="cta-row cta-row--${size}">
+  const hero = size === 'hero';
+  return `<p class="cta-coarse">${copy.cta.coarse}</p>
+<div class="cta-row cta-row--${size}">
 <a class="cta cta--chrome" href="${CHROME_URL}">${ICONS.puzzle}<span class="cta__text"><span class="cta__label">${copy.cta.chrome}</span><span class="cta__sub">${copy.cta.chromeSub}</span></span></a>
 <a class="cta cta--firefox" href="${FIREFOX_URL}">${ICONS.puzzle}<span class="cta__text"><span class="cta__label">${copy.cta.firefox}</span><span class="cta__sub">${copy.cta.firefoxSub}</span></span></a>
 <button type="button" class="cta cta--soon" aria-disabled="true" aria-describedby="web-soon-note-${size}">${ICONS.globe}<span class="cta__text"><span class="cta__label">${copy.cta.web} <span class="badge">${copy.cta.webBadge}</span></span></span></button>
 </div>
-<p class="cta-note" id="web-soon-note-${size}">${copy.cta.webNote}</p>
-<p class="cta-coarse">${copy.cta.coarse}</p>`;
+${
+  hero
+    ? `<p class="micro">${copy.hero.fine}</p>
+`
+    : ''
+}<p class="cta-note" id="web-soon-note-${size}">${hero ? copy.cta.webNoteShort : copy.cta.webNote}</p>`;
 }
 
 // A phone shows a plate's crop where one exists: the desktop capture scaled to a phone
@@ -181,8 +190,6 @@ ${ruler()}
 <h1 id="hero-title"><span class="hero__lockup">${copy.hero.lockup}</span><span class="hero__display">${copy.hero.line1}${copy.lang === 'th' ? '<wbr>' : ' '}<span class="hero__break">${copy.hero.line2}</span></span></h1>
 <p class="lede">${copy.hero.lede}</p>
 ${ctaRow(copy, 'hero')}
-<p class="micro">${copy.hero.trust}</p>
-<p class="micro">${copy.hero.independence}</p>
 </div>
 <div class="frame">
 <div class="frame__bar" aria-hidden="true"><span class="frame__dots"><i></i><i></i><i></i></span><span class="frame__url">${ICONS.lock}<span>regis.reg.kmitl.ac.th/#/teach_table_selector</span></span></div>

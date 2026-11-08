@@ -27,10 +27,8 @@ export const en = {
     lockup: 'KCP: Course Planner for KMITL',
     line1: 'See your whole week',
     line2: 'before you register.',
-    lede: 'A browser extension for KMITL students. It turns the course search on the registration site into a drag and drop weekly timetable, merges the repeated rows, flags clashing class and exam times, and keeps your plans in your browser only.',
-    trust: 'Free and open source. No account, no tracking.',
-    independence:
-      'An independent tool built by a student. Not an official KMITL system.',
+    lede: 'A browser extension that turns the KMITL course search into a drag and drop weekly timetable.',
+    fine: 'Free and open source. No account, no tracking. An independent student tool, not an official KMITL system.',
     alt: 'The KCP planner on the registration site, with a weekly timetable from Monday to Friday that holds Programming Fundamental, General Physics 1, Calculus 1 and Discrete Mathematics in the mornings.',
   },
   cta: {
@@ -42,8 +40,10 @@ export const en = {
     webBadge: 'Coming soon',
     webNote:
       'The web version is in development and has no release date yet. Until then, use the extension on Chrome or Firefox.',
+    webNoteShort:
+      'The web version is in development, with no release date yet.',
     coarse:
-      'Extensions install on a computer. Open this page on a computer to install.',
+      'Installs on a computer only. Open this page on a computer to install.',
   },
   problem: {
     h2: 'The registration site lists the same section again and again.',
