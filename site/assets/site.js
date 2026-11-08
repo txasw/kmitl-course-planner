@@ -150,9 +150,8 @@
     window.addEventListener('resize', build);
   }
 
-  // The stage pins only where the whole of it fits the window.
-  const DEDUPE_PIN =
-    '(max-width: 639px) and (min-height: 600px), (min-width: 640px) and (max-width: 1023px) and (min-height: 820px), (min-width: 1024px) and (min-height: 728px)';
+  // The stage pins on any window tall enough to hold it with its densest rows.
+  const DEDUPE_PIN = '(min-height: 540px)';
 
   function enhanceDedupe(pin) {
     const track = pin.closest('.dedupe-track');
