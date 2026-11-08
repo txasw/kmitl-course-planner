@@ -1979,6 +1979,10 @@ h4 {
   margin-top: var(--space-cta);
 }
 
+.download .cta-note {
+  margin-top: 16px;
+}
+
 @media (min-width: 1024px) {
   .download__mark {
     width: 112px;
@@ -3326,5 +3330,220 @@ h4 {
   .ghost__danger .story__name,
   .ghost__success .story__name {
     overflow-wrap: normal;
+  }
+}
+
+/* Plate parallax: on a wide window each feature screen's visual drifts against the page
+   as it passes, the phone wallpaper faster than the poster behind it, so it reads as a
+   nearer layer. Path A only; elsewhere the plates use the plain reveal. */
+@supports (animation-timeline: view()) {
+  @media (min-width: 768px) {
+    .motion:not(.no-sda) .exam__plate {
+      animation: drift-exam linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+
+    .motion:not(.no-sda) .poster--wide {
+      animation: drift-wide linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+
+    .motion:not(.no-sda) .poster--phone {
+      animation: drift-phone linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+
+    .motion:not(.no-sda) .plans__plate {
+      animation: plate-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 45%;
+    }
+  }
+}
+
+@keyframes drift-exam {
+  from {
+    transform: translateY(64px);
+  }
+
+  to {
+    transform: translateY(-24px);
+  }
+}
+
+@keyframes drift-wide {
+  from {
+    transform: translateY(32px);
+  }
+
+  to {
+    transform: translateY(-32px);
+  }
+}
+
+@keyframes drift-phone {
+  from {
+    transform: translateY(120px);
+  }
+
+  to {
+    transform: translateY(-60px);
+  }
+}
+
+@keyframes plate-in {
+  from {
+    transform: scale(0.94) translateY(48px);
+    animation-timing-function: var(--ease-out-expo);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+/* The closing call to action. A soft orange glow stands behind the mark; it is
+   decoration, so it shows at rest too. As the band comes into view the glow grows, the
+   mark turns upright and the heading, the line under it and each button rise in turn. */
+.download {
+  position: relative;
+  overflow: hidden;
+}
+
+.download::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--space-section) + 40px - 210px);
+  left: calc(50% - 210px);
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgba(227, 82, 5, 0.16),
+    transparent
+  );
+  pointer-events: none;
+}
+
+.download__inner {
+  position: relative;
+}
+
+@media (min-width: 1024px) {
+  .download::before {
+    top: calc(var(--space-section) + 56px - 360px);
+    left: calc(50% - 360px);
+    width: 720px;
+    height: 720px;
+  }
+}
+
+.motion .download .statement__h {
+  --e: 0;
+}
+
+.motion .download .statement__sub {
+  --e: 1;
+}
+
+.motion .download .cta:nth-child(1) {
+  --e: 2;
+}
+
+.motion .download .cta:nth-child(2) {
+  --e: 3;
+}
+
+.motion .download .cta:nth-child(3) {
+  --e: 4;
+}
+
+@supports (animation-timeline: view()) {
+  .motion:not(.no-sda) .download {
+    view-timeline: --close block;
+  }
+
+  .motion:not(.no-sda) .download::before {
+    animation: glow-in linear both;
+    animation-timeline: --close;
+    animation-range: entry 20% cover 50%;
+  }
+
+  .motion:not(.no-sda) .download__mark {
+    animation: mark-in linear both;
+    animation-timeline: --close;
+    animation-range: entry 10% cover 40%;
+  }
+
+  .motion:not(.no-sda) .download .statement__h,
+  .motion:not(.no-sda) .download .statement__sub,
+  .motion:not(.no-sda) .download .cta {
+    animation: rise linear both;
+    animation-timeline: --close;
+    animation-range: entry calc(25% + 4% * var(--e)) cover
+      calc(45% + 4% * var(--e));
+    --rise: 24px;
+  }
+}
+
+.motion.no-sda .download::before,
+.motion.no-sda .download__mark,
+.motion.no-sda .download .statement__h,
+.motion.no-sda .download .statement__sub,
+.motion.no-sda .download .cta {
+  transition:
+    opacity var(--dur-reveal) var(--ease-out-expo),
+    transform var(--dur-reveal) var(--ease-out-expo);
+}
+
+.motion.no-sda .download .statement__h,
+.motion.no-sda .download .statement__sub,
+.motion.no-sda .download .cta {
+  transition-delay: calc(150ms + 85ms * var(--e));
+}
+
+.motion.no-sda .download:not(.is-in)::before {
+  opacity: 0;
+  transform: scale(0.6);
+}
+
+.motion.no-sda .download:not(.is-in) .download__mark {
+  opacity: 0;
+  transform: scale(0.7) rotate(-10deg);
+}
+
+.motion.no-sda .download:not(.is-in) .statement__h,
+.motion.no-sda .download:not(.is-in) .statement__sub,
+.motion.no-sda .download:not(.is-in) .cta {
+  opacity: 0;
+  transform: translateY(calc(24px * var(--k)));
+}
+
+@keyframes glow-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes mark-in {
+  from {
+    opacity: 0;
+    transform: scale(0.7) rotate(-10deg);
+    animation-timing-function: var(--ease-out-expo);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
   }
 }

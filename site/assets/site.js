@@ -60,6 +60,22 @@
     });
   }
 
+  // Path B: the closing band plays once, when a third of it is in view.
+  function playClose() {
+    const band = document.querySelector('.download');
+    if (band === null || scrollDriven()) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting === true) {
+          band.classList.add('is-in');
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 },
+    );
+    observer.observe(band);
+  }
+
   // Path B: the hero frame stands up once its track is well in view; a third of the
   // track on a window that pins it, a fifth elsewhere.
   function standHeroFrame() {
@@ -269,6 +285,7 @@
     });
     revealOnView();
     standHeroFrame();
+    playClose();
     if ('IntersectionObserver' in window) {
       document.querySelectorAll('[data-dedupe]').forEach(enhanceDedupe);
       document.querySelectorAll('.story__track').forEach(enhanceStory);
