@@ -1091,8 +1091,7 @@ h4 {
   display: none;
 }
 
-:root:not(.motion) .dedupe tbody tr[data-row='first'],
-.is-merged tbody tr[data-row='first'] {
+:root:not(.motion) .dedupe tbody tr[data-row='first'] {
   background: var(--site-primary-soft);
 }
 
@@ -1698,7 +1697,7 @@ h4 {
 
   .story__grid {
     grid-template-columns: var(--story-label) repeat(5, minmax(0, 1fr));
-    grid-template-rows: 28px repeat(40, 9px) 28px;
+    grid-template-rows: 28px repeat(40, var(--q, 9px)) 28px;
     font-size: 11px;
   }
 
@@ -2144,9 +2143,11 @@ h4 {
 /* Motion (ADR-0066, revision 2). site.js sets .motion on the root before first layout,
    unless the reader prefers reduced motion; without it, or without the script, every
    block above is its final state and nothing below applies. Where the browser runs
-   scroll driven animations the motion follows the scroll (path A); elsewhere
-   .no-sda marks path B, where site.js adds classes as blocks come into view and
-   transitions play them. Only transform and opacity ever animate. */
+   scroll driven animations the reveals, the hero frame and the closing band follow the
+   scroll (path A); elsewhere .no-sda marks path B, where site.js adds classes as blocks
+   come into view and transitions play them. The two pinned scenes step on their own
+   clock in both paths. Only transform and opacity ever animate; the merged rows' tint
+   swaps at once. */
 
 /* The hero entrance plays once on load, on a timeline in both paths. */
 
@@ -2422,16 +2423,17 @@ h4 {
   }
 }
 
-/* The dedupe merge plays in three steps, so no two texts ever share a place at partial
-   opacity. The repeat rows fade where they stand; then the four sections close up into
-   their slots while the card shrinks to them; then each swapping text slides out of its
-   own clipped box before the next one slides in. Under motion every row has a fixed
+/* The dedupe merge plays in two steps, so no two texts ever share a place at partial
+   opacity and the counter always names what the table shows. Step one: the repeat rows
+   fade where they stand while the counter turns from rows to sections. Step two: the four
+   sections close up into their slots while the card shrinks to them, and each label swap
+   empties its box before the next text enters it. Under motion every row has a fixed
    height, so a section row moves by translateY((slot - index) * row height) and the
    table keeps its height. The card shrinks by transforms alone: its head has the merged
    size, its body folds up into the head, and its rounded foot rises with the caption by
-   the height the repeats leave. site.js sets data-drive: 'scroll' plays the merge on the
-   pinned track's view timeline, 'class' plays it from .is-merged with transitions, which
-   path B and an unpinned window use. */
+   the height the repeats leave. site.js sets data-step as the scroll crosses each line,
+   one step at a time, and each step plays on its own clock with transitions, so a fast
+   scroll still sees every step whole. */
 
 /* Under motion the table starts with all of its rows. */
 .motion .dedupe tbody tr[data-row='repeat'] {
@@ -2512,7 +2514,6 @@ h4 {
   z-index: 1;
   height: var(--row-h);
   min-height: 0;
-  transition: background-color var(--dur-fade) linear;
 }
 
 .motion .dedupe tbody tr[data-row='first'] {
@@ -2588,117 +2589,124 @@ h4 {
   }
 }
 
-/* Played from the class. Towards the merged state the repeats fade, the sections close
-   up, the counts swap, the labels swap and the result rises, each step unhurried, over
-   about three seconds; back again the same steps run in the opposite order. */
-.motion [data-drive='class'] tbody tr[data-row='repeat'] {
+/* Back towards the thirteen rows each step reverses quickly; the transitions written on
+   the step states play it forward. */
+.motion [data-step] tbody tr[data-row='repeat'] {
   transition:
-    opacity 375ms linear calc(1500ms + var(--i) * 30ms),
-    transform 375ms var(--ease-out-expo) calc(1500ms + var(--i) * 30ms);
+    opacity 250ms linear,
+    transform 250ms var(--ease-out-expo);
 }
 
-.motion [data-drive='class'] tbody tr[data-row='first'] {
+.motion [data-step] tbody tr[data-row='first'] {
+  transition: transform 350ms var(--ease-in-out);
+}
+
+.motion [data-step] .dedupe caption,
+.motion [data-step] .dedupe-card,
+.motion [data-step] .dedupe-stage,
+.motion [data-step] .dedupe-stage::after {
+  transition: transform 350ms var(--ease-in-out);
+}
+
+.motion [data-step] .count__rows {
   transition:
-    transform var(--dur-move) var(--ease-in-out) 450ms,
-    background-color var(--dur-fade) linear;
+    opacity 200ms linear 100ms,
+    transform 300ms var(--ease-out-expo) 100ms;
 }
 
-.motion [data-drive='class'] .dedupe caption,
-.motion [data-drive='class'] .dedupe-card,
-.motion [data-drive='class'] .dedupe-stage,
-.motion [data-drive='class'] .dedupe-stage::after {
-  transition: transform var(--dur-move) var(--ease-in-out) 450ms;
-}
-
-.motion [data-drive='class'] .count__rows {
+.motion [data-step] .count__sections {
   transition:
-    opacity 420ms linear 390ms,
-    transform 420ms var(--ease-out-expo) 390ms;
+    opacity 150ms linear,
+    transform 200ms var(--ease-in-out);
 }
 
-.motion [data-drive='class'] .count__sections {
+.motion [data-step] tr[data-row='first'] .dedupe__group {
+  transition: opacity 150ms linear 100ms;
+}
+
+.motion [data-step] tr[data-row='first'] .dedupe__chip {
+  transition: opacity 100ms linear;
+}
+
+.motion [data-step] .dedupe__result {
   transition:
-    opacity 330ms linear,
-    transform 330ms var(--ease-in-out);
+    opacity 150ms linear,
+    transform 150ms linear;
 }
 
-.motion [data-drive='class'] tr[data-row='first'] .dedupe__group {
-  transition: opacity 330ms linear 330ms;
-}
-
-.motion [data-drive='class'] tr[data-row='first'] .dedupe__chip {
-  transition: opacity 270ms linear;
-}
-
-.motion [data-drive='class'] .dedupe__result {
-  transition:
-    opacity 300ms linear,
-    transform 300ms linear;
-}
-
-.motion [data-drive='class'].is-merged tbody tr[data-row='repeat'] {
+/* Step one, about 900 ms: the repeats fade one after another while the rows count slides
+   out of its box and the sections count slides in behind it, so the number changes with
+   the rows it counts. */
+.motion [data-step]:not([data-step='0']) tbody tr[data-row='repeat'] {
   opacity: 0;
   transform: scale(0.96);
-  transition-delay: calc(var(--i) * 30ms);
+  transition:
+    opacity 450ms linear calc(var(--i) * 25ms),
+    transform 450ms var(--ease-out-expo) calc(var(--i) * 25ms);
 }
 
-.motion [data-drive='class'].is-merged tbody tr[data-row='first'] {
-  transform: translateY(var(--shift));
-  transition-delay: 675ms, 0ms;
-}
-
-.motion [data-drive='class'].is-merged .dedupe caption,
-.motion [data-drive='class'].is-merged .dedupe-card {
-  transform: translateY(calc(-1 * var(--close)));
-}
-
-.motion [data-drive='class'].is-merged .dedupe-stage {
-  transform: translateY(calc(var(--close) / 2 * var(--recenter)));
-}
-
-.motion [data-drive='class'].is-merged .dedupe-stage::after {
-  transform: scaleY(0);
-}
-
-.motion [data-drive='class'].is-merged .dedupe caption,
-.motion [data-drive='class'].is-merged .dedupe-card,
-.motion [data-drive='class'].is-merged .dedupe-stage,
-.motion [data-drive='class'].is-merged .dedupe-stage::after {
-  transition-delay: 675ms;
-}
-
-.motion [data-drive='class'].is-merged .count__rows {
+.motion [data-step]:not([data-step='0']) .count__rows {
   opacity: 0;
   transform: translateY(calc(-100% - 0.2em));
   transition:
-    opacity 330ms linear 675ms,
-    transform 330ms var(--ease-in-out) 675ms;
+    opacity 300ms linear 150ms,
+    transform 450ms var(--ease-in-out) 150ms;
 }
 
-.motion [data-drive='class'].is-merged .count__sections {
+.motion [data-step]:not([data-step='0']) .count__sections {
   opacity: 1;
   transform: none;
   transition:
-    opacity 420ms linear 1080ms,
-    transform 420ms var(--ease-out-expo) 1080ms;
+    opacity 300ms linear 350ms,
+    transform 550ms var(--ease-out-expo) 350ms;
 }
 
-.motion [data-drive='class'].is-merged tr[data-row='first'] .dedupe__group {
+/* Step two, about 1200 ms: the sections close up with the card, then trade their
+   curriculum for the chip that counts their listings while the result rises. */
+.motion [data-step='2'] tbody tr[data-row='first'] {
+  background: var(--site-primary-soft);
+  transform: translateY(var(--shift));
+  transition:
+    transform var(--dur-move) var(--ease-in-out),
+    background-color 0s linear 300ms;
+}
+
+.motion [data-step='2'] .dedupe caption,
+.motion [data-step='2'] .dedupe-card {
+  transform: translateY(calc(-1 * var(--close)));
+}
+
+.motion [data-step='2'] .dedupe-stage {
+  transform: translateY(calc(var(--close) / 2 * var(--recenter)));
+}
+
+.motion [data-step='2'] .dedupe-stage::after {
+  transform: scaleY(0);
+}
+
+.motion [data-step='2'] .dedupe caption,
+.motion [data-step='2'] .dedupe-card,
+.motion [data-step='2'] .dedupe-stage,
+.motion [data-step='2'] .dedupe-stage::after {
+  transition: transform var(--dur-move) var(--ease-in-out);
+}
+
+.motion [data-step='2'] tr[data-row='first'] .dedupe__group {
   opacity: 0;
-  transition: opacity 270ms linear 1725ms;
+  transition: opacity 250ms linear 450ms;
 }
 
-.motion [data-drive='class'].is-merged tr[data-row='first'] .dedupe__chip {
+.motion [data-step='2'] tr[data-row='first'] .dedupe__chip {
   opacity: 1;
-  transition: opacity 330ms linear 2025ms;
+  transition: opacity 300ms linear 750ms;
 }
 
-.motion [data-drive='class'].is-merged .dedupe__result {
+.motion [data-step='2'] .dedupe__result {
   opacity: 1;
   transform: none;
   transition:
-    opacity 600ms linear 1875ms,
-    transform var(--dur-reveal) var(--ease-out-expo) 1875ms;
+    opacity 400ms linear 600ms,
+    transform 600ms var(--ease-out-expo) 600ms;
 }
 
 /* The pinned stage: on any window at least 540 px tall it holds still while the reader
@@ -2835,205 +2843,16 @@ h4 {
   }
 }
 
-@supports (animation-timeline: view()) {
-  @media (min-height: 540px) {
-    .motion:not(.no-sda) .dedupe-track {
-      view-timeline: --dedupe block;
-      view-timeline-inset: var(--header-h) 0;
-    }
-
-    /* The thirteen rows hold still for the first eighth of the track, so the reader
-       sees the repeats before anything moves. Step one: each repeat fades where it
-       stands, one after another. */
-    .motion:not(.no-sda) [data-drive='scroll'] tbody tr[data-row='repeat'] {
-      animation: row-leave linear both;
-      animation-timeline: --dedupe;
-      animation-range: contain calc(12% + var(--i) * 1.2%) contain
-        calc(20% + var(--i) * 1.2%);
-    }
-
-    /* Step two, once every repeat is gone: the sections close up and the card with
-       everything under the table follows them on the same range and easing. */
-    .motion:not(.no-sda) [data-drive='scroll'] tbody tr[data-row='first'] {
-      animation: row-close linear both;
-      animation-timeline: --dedupe;
-      animation-range: contain 36% contain 54%;
-      will-change: transform;
-    }
-
-    .motion:not(.no-sda) [data-drive='scroll'] .dedupe caption,
-    .motion:not(.no-sda) [data-drive='scroll'] .dedupe-card {
-      animation: close-under linear both;
-      animation-timeline: --dedupe;
-      animation-range: contain 36% contain 54%;
-    }
-
-    .motion:not(.no-sda) [data-drive='scroll'] .dedupe-stage {
-      animation: recentre linear both;
-      animation-timeline: --dedupe;
-      animation-range: contain 36% contain 54%;
-    }
-
-    .motion:not(.no-sda) [data-drive='scroll'] .dedupe-stage::after {
-      animation: fold linear both;
-      animation-timeline: --dedupe;
-      animation-range: contain 36% contain 54%;
-    }
-
-    /* Step three: each swap empties its box before the next text enters it. */
-    .motion:not(.no-sda) [data-drive='scroll'] .count__rows {
-      animation: slide-out linear both;
-      animation-timeline: --dedupe;
-      animation-range: contain 38% contain 44%;
-    }
-
-    .motion:not(.no-sda) [data-drive='scroll'] .count__sections {
-      animation: slide-in linear both;
-      animation-timeline: --dedupe;
-      animation-range: contain 46% contain 52%;
-    }
-
-    .motion:not(.no-sda)
-      [data-drive='scroll']
-      tr[data-row='first']
-      .dedupe__group {
-      animation: fade linear reverse both;
-      animation-timeline: --dedupe;
-      animation-range: contain 56% contain 60%;
-    }
-
-    .motion:not(.no-sda)
-      [data-drive='scroll']
-      tr[data-row='first']
-      .dedupe__chip {
-      animation: appear linear both;
-      animation-timeline: --dedupe;
-      animation-range: contain 62% contain 67%;
-    }
-
-    /* The merged state then holds for the last quarter of the track. */
-    .motion:not(.no-sda) [data-drive='scroll'] .dedupe__result {
-      animation: rise-in linear both;
-      animation-timeline: --dedupe;
-      animation-range: contain 64% contain 72%;
-    }
-  }
-}
-
-@keyframes row-leave {
-  from {
-    opacity: 1;
-    transform: none;
-  }
-
-  to {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-}
-
-@keyframes row-close {
-  from {
-    transform: none;
-    animation-timing-function: var(--ease-in-out);
-  }
-
-  to {
-    transform: translateY(var(--shift));
-  }
-}
-
-@keyframes close-under {
-  from {
-    transform: none;
-    animation-timing-function: var(--ease-in-out);
-  }
-
-  to {
-    transform: translateY(calc(-1 * var(--close)));
-  }
-}
-
-@keyframes recentre {
-  from {
-    transform: none;
-    animation-timing-function: var(--ease-in-out);
-  }
-
-  to {
-    transform: translateY(calc(var(--close) / 2 * var(--recenter)));
-  }
-}
-
-@keyframes fold {
-  from {
-    transform: none;
-    animation-timing-function: var(--ease-in-out);
-  }
-
-  to {
-    transform: scaleY(0);
-  }
-}
-
-@keyframes slide-out {
-  from {
-    opacity: 1;
-    transform: none;
-    animation-timing-function: var(--ease-in-out);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateY(calc(-100% - 0.2em));
-  }
-}
-
-@keyframes slide-in {
-  from {
-    opacity: 0;
-    transform: translateY(calc(100% + 0.2em));
-    animation-timing-function: var(--ease-out-expo);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes rise-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-    animation-timing-function: var(--ease-out-expo);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes appear {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
 /* The story on a pinned scroll. The stage holds still while the reader scrolls three
    beats: the plan's blocks land one by one; 01006021 section 3 is dragged over Tuesday
    morning, where it clashes with 01006020 and the chip names the clash; then it travels
    to Wednesday afternoon, turns green, and lands as section 5 while the readout counts
    the plan. Each beat holds still and fully readable for a stretch of scroll before the
    next begins: the landed blocks under beat one, the clash and its chip under beat two,
-   the finished plan under beat three. Chrome and Safari scrub it on the track's view
-   timeline; elsewhere sentinels set data-beat and transitions play each beat. Both end
-   on the same final state, which is also what a reader without motion sees. */
+   the finished plan under beat three. In every browser site.js sets data-step as the
+   scroll crosses each beat's line, one beat at a time, and transitions play each beat on
+   its own clock in under a second and a quarter, so a fast scroll still sees it whole.
+   The final state is also what a reader without motion sees. */
 
 .ghost__lift {
   position: relative;
@@ -3095,10 +2914,13 @@ h4 {
   font-weight: 600;
 }
 
-@media (min-width: 1024px) and (min-height: 680px),
-  (min-width: 640px) and (max-width: 1023px) and (min-height: 820px),
-  (max-width: 639px) and (min-height: 640px) {
+/* The story pins on any window at least 540 px tall, the dedupe stage's floor. Its rows
+   take their height from the window, so the label, the beat and the whole week fit under
+   the header on a short phone as on a laptop. */
+@media (min-height: 540px) {
   .motion .story {
+    --story-row: clamp(52px, (100svh - 160px) / 5, 88px);
+
     padding-block: 0;
   }
 
@@ -3111,7 +2933,7 @@ h4 {
     position: sticky;
     top: var(--header-h);
     height: calc(100svh - var(--header-h));
-    align-content: center;
+    align-content: safe center;
   }
 
   .motion .story__beats {
@@ -3122,6 +2944,9 @@ h4 {
     grid-area: 1 / 1;
     opacity: 0;
     transform: translateY(16px);
+    transition:
+      opacity 200ms linear,
+      transform 300ms var(--ease-out-expo);
   }
 
   .motion .story__ghost {
@@ -3151,316 +2976,177 @@ h4 {
     opacity: 0;
   }
 
-  /* Path B: the state of each beat, reached with transitions. */
-  .motion.no-sda .story__rules,
-  .motion.no-sda .story__axis,
-  .motion.no-sda .story__day {
+  /* Each beat's state. The transitions on a beat play it forward; those on the state
+     before it play it back, quickly. */
+  .motion .story__rules,
+  .motion .story__axis,
+  .motion .story__day {
     transition: opacity var(--dur-fade) linear;
   }
 
-  .motion.no-sda .story__pin[data-beat='0'] .story__rules,
-  .motion.no-sda .story__pin[data-beat='0'] .story__axis,
-  .motion.no-sda .story__pin[data-beat='0'] .story__day {
+  .motion .story__pin[data-step='0'] .story__rules,
+  .motion .story__pin[data-step='0'] .story__axis,
+  .motion .story__pin[data-step='0'] .story__day {
     opacity: 0;
   }
 
-  .motion.no-sda .story__beat {
-    transition:
-      opacity var(--dur-fade) linear,
-      transform var(--dur-reveal) var(--ease-out-expo);
-  }
-
-  .motion.no-sda .story__pin[data-beat='1'] .story__beat:nth-child(1),
-  .motion.no-sda .story__pin[data-beat='2'] .story__beat:nth-child(2),
-  .motion.no-sda .story__pin[data-beat='3'] .story__beat:nth-child(3) {
+  .motion .story__pin[data-step='1'] .story__beat:nth-child(1),
+  .motion .story__pin[data-step='2'] .story__beat:nth-child(2),
+  .motion .story__pin[data-step='3'] .story__beat:nth-child(3) {
     opacity: 1;
     transform: none;
-  }
-
-  .motion.no-sda .story__block {
     transition:
-      opacity var(--dur-fade) linear calc(var(--b) * 90ms),
-      transform var(--dur-reveal) var(--ease-out-expo) calc(var(--b) * 90ms);
+      opacity 400ms linear 200ms,
+      transform 700ms var(--ease-out-expo) 200ms;
   }
 
-  .motion.no-sda .story__pin[data-beat='0'] .story__block {
+  /* Beat one, about a second: the six blocks drop in one after another. */
+  .motion .story__block {
+    transition:
+      opacity 400ms linear calc(var(--b) * 70ms),
+      transform 600ms var(--ease-out-expo) calc(var(--b) * 70ms);
+  }
+
+  .motion .story__pin[data-step='0'] .story__block {
     opacity: 0;
     transform: translateY(-32px) scale(1.04);
-  }
-
-  .motion.no-sda .ghost__lift {
     transition:
-      opacity var(--dur-fade) linear 400ms,
-      transform var(--dur-reveal) var(--ease-out-expo) 400ms;
+      opacity 250ms linear,
+      transform 250ms var(--ease-out-expo);
   }
 
-  .motion.no-sda
-    .story__pin:not([data-beat='2']):not([data-beat='3'])
-    .ghost__lift {
+  /* Beat two, under a second: the dragged section lifts in over Tuesday morning, the
+     block it clashes with pulses, and the chip names the clash. */
+  .motion .ghost__lift {
+    transition:
+      opacity 300ms linear,
+      transform 600ms var(--ease-out-expo);
+  }
+
+  .motion .story__pin:not([data-step='2']):not([data-step='3']) .ghost__lift {
     opacity: 0;
     transform: translateY(-24px);
-  }
-
-  .motion.no-sda .story__pin[data-beat='2'] .is-blocker .story__card::after {
-    animation: pulse 1200ms linear 400ms both;
-  }
-
-  .motion.no-sda .story__chip {
     transition:
-      opacity var(--dur-fade) linear,
-      transform var(--dur-fade) var(--ease-out-expo);
+      opacity 250ms linear,
+      transform 250ms var(--ease-out-expo);
   }
 
-  .motion.no-sda .story__pin:not([data-beat='2']) .story__chip {
+  .motion .story__pin[data-step='2'] .is-blocker .story__card::after {
+    animation: pulse 1200ms linear 300ms both;
+  }
+
+  .motion .story__chip {
+    transition:
+      opacity 200ms linear,
+      transform 200ms var(--ease-out-expo);
+  }
+
+  .motion .story__pin:not([data-step='2']) .story__chip {
     opacity: 0;
     transform: translateY(8px);
   }
 
-  .motion.no-sda .story__pin[data-beat='2'] .story__chip {
-    transition-delay: 600ms;
+  .motion .story__pin[data-step='2'] .story__chip {
+    transition:
+      opacity 300ms linear 400ms,
+      transform 400ms var(--ease-out-expo) 400ms;
   }
 
-  .motion.no-sda .story__ghost {
+  /* Beat three, about a second and a quarter: the section travels to Wednesday
+     afternoon, turns green, lands as section 5 and settles, and the readout counts the
+     plan. */
+  .motion .story__ghost {
+    transition: transform 350ms var(--ease-in-out);
+  }
+
+  .motion .story__pin[data-step='3'] .story__ghost {
+    transform: translate(133.333%, 100%);
     transition: transform var(--dur-move) var(--ease-in-out);
   }
 
-  .motion.no-sda .story__pin[data-beat='3'] .story__ghost {
-    transform: translate(133.333%, 100%);
+  .motion .ghost__danger {
+    transition: opacity 250ms linear;
   }
 
-  .motion.no-sda .ghost__danger {
-    transition: opacity var(--dur-fade) linear;
-  }
-
-  .motion.no-sda .story__pin[data-beat='3'] .ghost__danger {
+  .motion .story__pin[data-step='3'] .ghost__danger {
     opacity: 0;
   }
 
-  .motion.no-sda .story__pin[data-beat='3'] .ghost__success {
-    animation: success-pass 1100ms linear both;
+  .motion .story__pin[data-step='3'] .ghost__success {
+    animation: success-pass 900ms linear both;
   }
 
-  .motion.no-sda .ghost__block {
-    transition: opacity var(--dur-fade) linear;
+  .motion .ghost__block {
+    transition: opacity 250ms linear;
   }
 
-  .motion.no-sda .story__pin[data-beat='3'] .ghost__block {
+  .motion .story__pin[data-step='3'] .ghost__block {
     opacity: 1;
-    transition-delay: 700ms;
-    animation: settle 400ms var(--ease-out-expo) 1100ms both;
+    transition: opacity 300ms linear 600ms;
+    animation: settle 300ms var(--ease-out-expo) 800ms both;
   }
 
-  .motion.no-sda .story__readout {
+  .motion .story__readout {
     transition:
-      opacity var(--dur-fade) linear,
-      transform var(--dur-reveal) var(--ease-out-expo);
+      opacity 200ms linear,
+      transform 200ms var(--ease-out-expo);
   }
 
-  .motion.no-sda .story__pin:not([data-beat='3']) .story__readout {
+  .motion .story__pin:not([data-step='3']) .story__readout {
     opacity: 0;
     transform: translateY(8px);
   }
 
-  .motion.no-sda .story__pin[data-beat='3'] .story__readout {
-    transition-delay: 1300ms;
+  .motion .story__pin[data-step='3'] .story__readout {
+    transition:
+      opacity 400ms linear 800ms,
+      transform 600ms var(--ease-out-expo) 800ms;
   }
 }
 
-@media (min-width: 640px) and (max-width: 1023px) and (min-height: 820px) {
+@media (min-width: 640px) and (max-width: 1023px) and (min-height: 540px) {
+  .motion .story {
+    --story-row: clamp(40px, (100svh - 340px) / 5, 72px);
+  }
+
   .motion .story__track {
     height: 370svh;
   }
 }
 
-@media (max-width: 639px) and (min-height: 640px) {
+@media (min-width: 640px) and (min-height: 540px) and (max-height: 759px) {
+  .motion .story__pin {
+    gap: 24px;
+  }
+}
+
+/* A phone's quarter hour tracks take what the window leaves under the text, at most the
+   9 px they rest at. */
+@media (max-width: 639px) and (min-height: 540px) {
+  .motion .story {
+    --q: clamp(5.5px, (100svh - 314px) / 40, 9px);
+  }
+
   .motion .story__track {
     height: 340svh;
   }
 
-  .motion.no-sda .story__pin[data-beat='3'] .story__ghost {
+  .motion .story__pin[data-step='3'] .story__ghost {
     transform: translate(100%, 133.333%);
   }
 }
 
-@supports (animation-timeline: view()) {
-  @media (min-width: 1024px) and (min-height: 680px),
-    (min-width: 640px) and (max-width: 1023px) and (min-height: 820px),
-    (max-width: 639px) and (min-height: 640px) {
-    .motion:not(.no-sda) .story__track {
-      view-timeline: --story block;
-      view-timeline-inset: var(--header-h) 0;
-    }
-
-    /* The grid draws and the first beat rises while the dark band is still coming up,
-       so something is building on it from the first screen of dark. */
-    .motion:not(.no-sda) .story__rules,
-    .motion:not(.no-sda) .story__axis,
-    .motion:not(.no-sda) .story__day {
-      animation: appear linear both;
-      animation-timeline: --story;
-      animation-range: entry 35% entry 85%;
-    }
-
-    .motion:not(.no-sda) .story__beat:nth-child(1) {
-      animation: beat-1 linear both;
-      animation-timeline: --story;
-      animation-range: entry 55% contain 32%;
-    }
-
-    .motion:not(.no-sda) .story__beat:nth-child(2) {
-      animation: beat-2 linear both;
-      animation-timeline: --story;
-      animation-range: contain 33% contain 63%;
-    }
-
-    .motion:not(.no-sda) .story__beat:nth-child(3) {
-      animation: beat-3 linear both;
-      animation-timeline: --story;
-      animation-range: contain 64% contain 100%;
-    }
-
-    .motion:not(.no-sda) .story__block:not(.story__landed) {
-      animation: block-in linear both;
-      animation-timeline: --story;
-      animation-range: contain calc(1% + 3.5% * var(--b)) contain
-        calc(6% + 3.5% * var(--b));
-    }
-
-    .motion:not(.no-sda) .ghost__lift {
-      animation: ghost-in linear both;
-      animation-timeline: --story;
-      animation-range: contain 34% contain 39%;
-    }
-
-    .motion:not(.no-sda) .story__block.is-blocker .story__card::after {
-      animation: pulse linear both;
-      animation-timeline: --story;
-      animation-range: contain 39% contain 49%;
-    }
-
-    .motion:not(.no-sda) .story__chip {
-      animation: chip-pass linear both;
-      animation-timeline: --story;
-      animation-range: contain 41% contain 61%;
-    }
-
-    .motion:not(.no-sda) .story__ghost {
-      animation: travel linear both;
-      animation-timeline: --story;
-      animation-range: contain 66% contain 75%;
-    }
-
-    .motion:not(.no-sda) .ghost__danger {
-      animation: fade linear reverse both;
-      animation-timeline: --story;
-      animation-range: contain 66% contain 69%;
-    }
-
-    .motion:not(.no-sda) .ghost__success {
-      animation: success-pass linear both;
-      animation-timeline: --story;
-      animation-range: contain 66% contain 80%;
-    }
-
-    .motion:not(.no-sda) .ghost__block {
-      animation:
-        appear linear both,
-        settle linear both;
-      animation-timeline: --story, --story;
-      animation-range:
-        contain 75% contain 80%,
-        contain 80% contain 83%;
-    }
-
-    .motion:not(.no-sda) .story__readout {
-      animation: rise-in linear both;
-      animation-timeline: --story;
-      animation-range: contain 82% contain 87%;
-    }
+@media (max-width: 639px) and (min-height: 540px) and (max-height: 759px) {
+  .motion .story__pin {
+    gap: 20px;
   }
 
-  @media (max-width: 639px) and (min-height: 640px) {
-    .motion:not(.no-sda) .story__ghost {
-      animation-name: travel-down;
-    }
-  }
-}
-
-@keyframes beat-1 {
-  0% {
-    opacity: 0;
-    transform: translateY(16px);
-    animation-timing-function: var(--ease-out-expo);
+  .motion .story__beats {
+    margin-top: 8px;
   }
 
-  8%,
-  92% {
-    opacity: 1;
-    transform: none;
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateY(-16px);
-  }
-}
-
-@keyframes beat-2 {
-  0% {
-    opacity: 0;
-    transform: translateY(16px);
-    animation-timing-function: var(--ease-out-expo);
-  }
-
-  10%,
-  90% {
-    opacity: 1;
-    transform: none;
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateY(-16px);
-  }
-}
-
-@keyframes beat-3 {
-  0% {
-    opacity: 0;
-    transform: translateY(16px);
-    animation-timing-function: var(--ease-out-expo);
-  }
-
-  8%,
-  100% {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes block-in {
-  from {
-    opacity: 0;
-    transform: translateY(-32px) scale(1.04);
-    animation-timing-function: var(--ease-out-expo);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes ghost-in {
-  from {
-    opacity: 0;
-    transform: translateY(-24px);
-    animation-timing-function: var(--ease-out-expo);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
+  .motion .story__beat {
+    font-size: 24px;
   }
 }
 
@@ -3477,47 +3163,6 @@ h4 {
 
   50% {
     opacity: 0.3;
-  }
-}
-
-@keyframes chip-pass {
-  0% {
-    opacity: 0;
-    transform: translateY(8px);
-    animation-timing-function: var(--ease-out-expo);
-  }
-
-  21%,
-  84% {
-    opacity: 1;
-    transform: none;
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-}
-
-@keyframes travel {
-  from {
-    transform: none;
-    animation-timing-function: var(--ease-in-out);
-  }
-
-  to {
-    transform: translate(133.333%, 100%);
-  }
-}
-
-@keyframes travel-down {
-  from {
-    transform: none;
-    animation-timing-function: var(--ease-in-out);
-  }
-
-  to {
-    transform: translate(100%, 133.333%);
   }
 }
 
