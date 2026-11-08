@@ -29,7 +29,7 @@ export const en = {
     line1: '<span class="phrase">See your whole week</span>',
     line2: '<span class="phrase">before you register.</span>',
     lede: 'An extension that turns the KMITL course search into a drag and drop timetable.',
-    fine: 'Free and open source. Not an official KMITL system.',
+    fine: 'Free and open source.',
     alt: 'The KCP planner on the registration site, with a weekly timetable from Monday to Friday that holds Programming Fundamental, General Physics 1, Calculus 1 and Discrete Mathematics in the mornings.',
   },
   cta: {
@@ -45,7 +45,7 @@ export const en = {
   },
   problem: {
     h2: (c) =>
-      `<span class="statement__line">Search one subject, get ${c.rows} rows.</span> <span class="statement__line">Only ${c.sections} are real sections.</span>`,
+      `<span class="statement__line">Search one subject, get ${c.rows} rows.</span> <span class="statement__line">Only <span class="keep">${c.sections} real sections.</span></span>`,
     sub: 'KCP merges the repeats into one entry per section.',
     caption: (c) =>
       `Real sample: category 90592xxx, semester 1/2569, ${c.rows} rows from ${c.groupings} curricula.`,
@@ -91,8 +91,8 @@ export const en = {
     alt2: 'A portrait phone wallpaper of the same plan, with days as columns and the exam schedule below.',
   },
   plans: {
-    h2: 'Saved plans are checked against the latest data.',
-    sub: 'If a time or room changes, you see the old and new values. Nothing is removed on its own.',
+    h2: 'Your plan stays current.',
+    sub: 'Each time you open it, KCP checks your plan against the latest data and shows any changed time or room beside the old one. It never removes a section for you.',
     alt1: 'The Changes to your planned sections dialog. Calculus 1, section 33, shows its old and new time, with a Mark all as reviewed button.',
   },
   more: {
@@ -101,12 +101,12 @@ export const en = {
       ['Three ways to search', 'By curriculum, subject id or category.'],
       ['Suggested plans', 'Clash free timetables from your curriculum.'],
       ['Compare sections', 'Times, instructors, seats and exams side by side.'],
-      ['Open seats', 'See the open seats of every section.'],
+      ['Copy as text', 'Paste your whole week into a chat as plain text.'],
     ],
   },
   privacy: {
     h2: 'Your data stays in your browser.',
-    sub: 'No account, no server, no tracking. KCP only reads public course data and never registers for you.',
+    sub: 'No account, no server, no tracking. KCP only reads public course data.',
     heading: 'Permissions',
     perms: [
       ['storage', 'Keeps your plans on this device.'],
@@ -117,7 +117,6 @@ export const en = {
   },
   download: {
     h2: 'Install KCP for free',
-    body: 'For Chrome, Edge, Brave, Opera and Firefox on a computer.',
     meta: (version, source) =>
       `Version ${version}. Free under the MIT license. ${source}.`,
     source: 'View the source on GitHub',
@@ -138,13 +137,13 @@ export const en = {
         'Not yet. Chrome on phones does not support extensions. The web version in development is planned to work without installing.',
       ],
       [
-        'How current is the course data?',
-        'It is the same data the registration site uses, checked again when you open a plan. Check the registration site before you register.',
+        'Does it work for every faculty?',
+        'Yes. KCP reads the same course data as the registration site, so it covers every faculty and curriculum.',
       ],
     ],
   },
   footer: {
-    disclaimer: `KCP: Course Planner for KMITL is an independent tool built by a student. It is not affiliated with, sponsored by, or endorsed by King Mongkut’s Institute of Technology Ladkrabang (KMITL). The names KMITL and ${TH('สจล.')} are used only to identify the site this tool works with.`,
+    disclaimer: `KCP: Course Planner for KMITL is not affiliated with King Mongkut’s Institute of Technology Ladkrabang (KMITL), and uses the names KMITL and ${TH('สจล.')} only to identify the site it works with.`,
     sitePrivacy:
       'This site uses no cookies, no analytics and no files from other servers.',
     linksLabel: 'Links',

@@ -34,7 +34,7 @@
       fetchpriority="high"
     />
     <script src="/assets/site.js?v=78f481d099"></script>
-    <link rel="stylesheet" href="/assets/site.css?v=6c7f5ed565" />
+    <link rel="stylesheet" href="/assets/site.css?v=74ab35996f" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="KCP" />
     <meta
@@ -208,7 +208,6 @@
               An extension that turns the KMITL course search into a drag and
               drop timetable.
             </p>
-            <p class="cta-coarse">Installs on a computer only.</p>
             <div class="cta-row cta-row--hero">
               <a
                 class="cta cta--chrome"
@@ -292,9 +291,7 @@
                 >
               </button>
             </div>
-            <p class="micro hero__fine">
-              Free and open source. Not an official KMITL system.
-            </p>
+            <p class="micro hero__fine">Free and open source.</p>
             <p class="visually-hidden" id="web-soon-note-hero">
               The web version is in development, with no release date yet.
             </p>
@@ -385,7 +382,9 @@
               <span class="statement__line"
                 >Search one subject, get 499 rows.</span
               >
-              <span class="statement__line">Only 44 are real sections.</span>
+              <span class="statement__line"
+                >Only <span class="keep">44 real sections.</span></span
+              >
             </h2>
             <p class="statement__sub" data-reveal>
               KCP merges the repeats into one entry per section.
@@ -1065,11 +1064,12 @@
         <div class="container screen__grid">
           <div class="statement">
             <h2 id="plans-title" class="statement__h" data-reveal>
-              Saved plans are checked against the latest data.
+              Your plan stays current.
             </h2>
             <p class="statement__sub" data-reveal>
-              If a time or room changes, you see the old and new values. Nothing
-              is removed on its own.
+              Each time you open it, KCP checks your plan against the latest
+              data and shows any changed time or room beside the old one. It
+              never removes a section for you.
             </p>
           </div>
           <figure class="plate plans__plate" data-reveal>
@@ -1186,13 +1186,15 @@
                 aria-hidden="true"
                 focusable="false"
               >
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                <path d="M16 3.128a4 4 0 0 1 0 7.744" />
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                <circle cx="9" cy="7" r="4" />
+                <path
+                  d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"
+                />
+                <path d="M7 11h10" />
+                <path d="M7 15h6" />
+                <path d="M7 7h8" />
               </svg>
-              <dt>Open seats</dt>
-              <dd>See the open seats of every section.</dd>
+              <dt>Copy as text</dt>
+              <dd>Paste your whole week into a chat as plain text.</dd>
             </div>
           </dl>
         </div>
@@ -1209,7 +1211,7 @@
             </h2>
             <p class="statement__sub" data-reveal>
               No account, no server, no tracking. KCP only reads public course
-              data and never registers for you.
+              data.
             </p>
           </div>
           <div class="privacy__perms">
@@ -1258,9 +1260,6 @@
             <rect x="68" y="68" width="38" height="38" rx="6" fill="#B8400A" />
           </svg>
           <h2 id="download-title" class="statement__h">Install KCP for free</h2>
-          <p class="statement__sub">
-            For Chrome, Edge, Brave, Opera and Firefox on a computer.
-          </p>
           <p class="cta-coarse">Installs on a computer only.</p>
           <div class="cta-row cta-row--band">
             <a
@@ -1345,7 +1344,7 @@
               >
             </button>
           </div>
-          <p class="cta-note" id="web-soon-note-band">
+          <p class="visually-hidden" id="web-soon-note-band">
             The web version is in development, with no release date yet.
           </p>
           <p class="micro">
@@ -1441,7 +1440,7 @@
             </details>
             <details class="faq__item">
               <summary>
-                <span>How current is the course data?</span
+                <span>Does it work for every faculty?</span
                 ><svg
                   class="icon faq__chevron"
                   width="20"
@@ -1460,9 +1459,8 @@
                 </svg>
               </summary>
               <p>
-                It is the same data the registration site uses, checked again
-                when you open a plan. Check the registration site before you
-                register.
+                Yes. KCP reads the same course data as the registration site, so
+                it covers every faculty and curriculum.
               </p>
             </details>
           </div>
@@ -1473,11 +1471,10 @@
       <div class="container site-footer__grid">
         <div class="site-footer__text">
           <p>
-            KCP: Course Planner for KMITL is an independent tool built by a
-            student. It is not affiliated with, sponsored by, or endorsed by
-            King Mongkut’s Institute of Technology Ladkrabang (KMITL). The names
-            KMITL and <span lang="th">สจล.</span> are used only to identify the
-            site this tool works with.
+            KCP: Course Planner for KMITL is not affiliated with King Mongkut’s
+            Institute of Technology Ladkrabang (KMITL), and uses the names KMITL
+            and <span lang="th">สจล.</span> only to identify the site it works
+            with.
           </p>
           <p>
             This site uses no cookies, no analytics and no files from other

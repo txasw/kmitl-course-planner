@@ -26,11 +26,16 @@ const ICONS = {
   search: `<svg class="icon" width="24" height="24" ${STROKE}><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>`,
   listChecks: `<svg class="icon" width="24" height="24" ${STROKE}><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></svg>`,
   columns: `<svg class="icon" width="24" height="24" ${STROKE}><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>`,
-  users: `<svg class="icon" width="24" height="24" ${STROKE}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg>`,
+  messageText: `<svg class="icon" width="24" height="24" ${STROKE}><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/><path d="M7 11h10"/><path d="M7 15h6"/><path d="M7 7h8"/></svg>`,
 };
 
 // The four facts of the and more block, in copy order.
-const FACT_ICONS = [ICONS.search, ICONS.listChecks, ICONS.columns, ICONS.users];
+const FACT_ICONS = [
+  ICONS.search,
+  ICONS.listChecks,
+  ICONS.columns,
+  ICONS.messageText,
+];
 
 /** The KCP mark, the extension icon drawn inline. Decorative where it sits beside text. */
 export function mark(size, className = 'mark') {
@@ -117,14 +122,17 @@ const FULL =
 const PHONE_POSTER =
   '(min-width: 1328px) 240px, (min-width: 640px) 18vw, 220px';
 
-// The touch note leads, so a phone visitor reads that the stores install on a computer
-// before any button. The hero ends at one fine line: its web version note is read out
-// by the disabled button, while the badge already says it is coming. The closing band
-// shows the note.
+// The closing band, where the header's install link lands, leads with the touch note,
+// so a phone visitor reads there that the stores install on a computer. The web version
+// note is read out by the disabled button, while its badge already says it is coming.
 function ctaRow(copy, size) {
   const hero = size === 'hero';
-  return `<p class="cta-coarse">${copy.cta.coarse}</p>
-<div class="cta-row cta-row--${size}">
+  return `${
+    hero
+      ? ''
+      : `<p class="cta-coarse">${copy.cta.coarse}</p>
+`
+  }<div class="cta-row cta-row--${size}">
 <a class="cta cta--chrome" href="${CHROME_URL}">${ICONS.puzzle}<span class="cta__text"><span class="cta__label">${copy.cta.chrome}</span><span class="cta__sub">${copy.cta.chromeSub}</span></span></a>
 <a class="cta cta--firefox" href="${FIREFOX_URL}">${ICONS.puzzle}<span class="cta__text"><span class="cta__label">${copy.cta.firefox}</span><span class="cta__sub">${copy.cta.firefoxSub}</span></span></a>
 <button type="button" class="cta cta--soon" aria-disabled="true" aria-describedby="web-soon-note-${size}">${ICONS.globe}<span class="cta__text"><span class="cta__label">${copy.cta.web} <span class="badge">${copy.cta.webBadge}</span></span></span></button>
@@ -132,9 +140,9 @@ function ctaRow(copy, size) {
 ${
   hero
     ? `<p class="micro hero__fine">${copy.hero.fine}</p>
-<p class="visually-hidden" id="web-soon-note-${size}">${copy.cta.webNoteShort}</p>`
-    : `<p class="cta-note" id="web-soon-note-${size}">${copy.cta.webNoteShort}</p>`
-}`;
+`
+    : ''
+}<p class="visually-hidden" id="web-soon-note-${size}">${copy.cta.webNoteShort}</p>`;
 }
 
 // A phone shows the hero crop: the desktop capture scaled to a phone would set the
@@ -408,7 +416,6 @@ function download(copy, version) {
 <div class="container download__inner">
 ${mark(112, 'mark download__mark')}
 <h2 id="download-title" class="statement__h">${copy.download.h2}</h2>
-<p class="statement__sub">${copy.download.body}</p>
 ${ctaRow(copy, 'band')}
 <p class="micro">${copy.download.meta(version, `<a class="text-link" href="${REPO_URL}">${copy.download.source}</a>`)}</p>
 </div>
