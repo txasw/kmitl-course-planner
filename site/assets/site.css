@@ -3716,21 +3716,21 @@ h4 {
     animation-range: entry 20% cover 50%;
   }
 
-  .motion:not(.no-sda) .download__mark {
-    animation: mark-in linear both;
-    animation-timeline: --close;
-    animation-range: entry 10% cover 40%;
-  }
-
-  /* The heading and the badges are the page's last call to action, so each rises on
-     its own view like a revealed block and stands at full strength once its top is 85
-     percent down the window, where a reader at rest finds it. */
+  /* The mark, the heading and the badges are the page's last call to action, so each
+     rises on its own view like a revealed block and stands at full strength once its
+     top is 85 percent down the window, where a reader at rest finds it. The mark sits
+     above the heading, so it is upright before the heading has risen. */
+  .motion:not(.no-sda) .download__mark,
   .motion:not(.no-sda) .download .statement__h,
   .motion:not(.no-sda) .download .cta-row {
     animation: rise linear both;
     animation-timeline: view();
     animation-range: entry min(10%, 2svh) entry min(70%, 15svh);
     --rise: 24px;
+  }
+
+  .motion:not(.no-sda) .download__mark {
+    animation-name: mark-in;
   }
 }
 
