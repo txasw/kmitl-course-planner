@@ -13,7 +13,7 @@ version to each store.
   https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef. Chrome,
   Edge, Brave, Opera, and other Chromium browsers install from it.
 - Firefox Add-ons listing: https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/.
-  The listing is live, with version 1.3.0 listed at the time of writing.
+  The listing is live. Check the version shown on the listing after each upload.
 - Project site: https://kcp.cecs.sh/
 - This is an independent student tool. It is not affiliated with, sponsored by, or
   endorsed by King Mongkut's Institute of Technology Ladkrabang (KMITL).
