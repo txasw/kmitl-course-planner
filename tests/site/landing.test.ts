@@ -560,6 +560,23 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
     }
   });
 
+  // Each pinned scene carries a rail and a keep scrolling cue, so a long hold never
+  // reads as a page that has stopped. They are decoration: hidden from assistive
+  // technology and holding nothing that takes focus.
+  it('marks the pinned scene meters as decoration', () => {
+    for (const pin of ['.dedupe-pin', '.story__pin']) {
+      const meters = doc.querySelectorAll(`${pin} .scene-meter`);
+      expect(meters.length, pin).toBe(1);
+      const meter = meters[0];
+      expect(meter?.getAttribute('aria-hidden')).toBe('true');
+      expect(meter?.querySelector('.scene-cue')?.textContent.trim()).not.toBe(
+        '',
+      );
+      expect(meter?.querySelector('.scene-cue svg')).not.toBeNull();
+      expect(meter?.querySelector('a, button, input, [tabindex]')).toBeNull();
+    }
+  });
+
   it('follows the copy tone rules', () => {
     const text = visibleText(doc);
     expect(EMOJI.test(text)).toBe(false);
@@ -785,9 +802,28 @@ describe('site files', () => {
     expect(reordered).toEqual([]);
   });
 
-  it('listens to no scroll event', () => {
+  // The pinned scenes follow the scroll through intersection observers and scroll
+  // driven animations only, never through an event fired on every scroll frame.
+  it('listens to no scroll, wheel or touch move event', () => {
     const script = readFileSync(join(SITE, 'assets/site.js'), 'utf8');
-    expect(script).not.toMatch(/addEventListener\(\s*['"]scroll/);
+    expect(script).not.toMatch(
+      /addEventListener\(\s*['"](?:scroll|wheel|touchmove)/,
+    );
+    expect(script).not.toMatch(/\bon(?:scroll|wheel|touchmove)\b/);
+  });
+
+  // The rail and the cue show only under the motion class, so a reader without the
+  // script or with reduced motion meets neither.
+  it('shows the pinned scene meters only under the motion class', () => {
+    const outside = cssRules().filter((rule) =>
+      rule.selectors.some(
+        (s) => s.includes('.scene-') && !s.startsWith('.motion'),
+      ),
+    );
+    expect(outside.length).toBeGreaterThan(0);
+    for (const rule of outside) {
+      expect(rule.decls.filter(Boolean)).toEqual(['display: none']);
+    }
   });
 
   it('loads no remote url from the stylesheet', () => {

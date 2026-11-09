@@ -21,6 +21,7 @@ const STROKE =
 const ICONS = {
   globe: `<svg class="icon" width="20" height="20" ${STROKE}><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>`,
   chevron: `<svg class="icon faq__chevron" width="20" height="20" ${STROKE}><path d="m6 9 6 6 6-6"/></svg>`,
+  scrollOn: `<svg class="icon scene-cue__chevron" width="16" height="16" ${STROKE}><path d="m6 9 6 6 6-6"/></svg>`,
   lock: `<svg class="icon" width="14" height="14" ${STROKE}><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
   search: `<svg class="icon" width="24" height="24" ${STROKE}><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>`,
   listChecks: `<svg class="icon" width="24" height="24" ${STROKE}><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></svg>`,
@@ -254,6 +255,14 @@ function statement(id, h2, sub) {
 </div>`;
 }
 
+// The quiet companion of a pinned scene, decoration only: a rail that fills as the
+// scene's track scrolls, which site.js marks with each of the scene's steps, and a keep
+// scrolling cue it shows once a reader has stopped on a finished step, so a long hold
+// never reads as a page that has stopped working.
+function sceneMeter(copy) {
+  return `<div class="scene-meter" aria-hidden="true"><p class="scene-cue"><span>${copy.scrollOn}</span>${ICONS.scrollOn}</p><div class="scene-rail"><span class="scene-rail__fill"></span></div></div>`;
+}
+
 function problem(copy, rowsHtml, counts) {
   const p = copy.problem;
   // The seats header carries the class of its cells, so a narrow table hides both.
@@ -289,6 +298,7 @@ ${rowsHtml}
 <p class="dedupe__result">${p.staticResult(counts)}</p>
 </div>
 </div>
+${sceneMeter(copy)}
 </div>
 </div>
 </section>`;
@@ -376,6 +386,7 @@ function storySection(copy, story) {
 <ol class="story__beats">${beats}</ol>
 </div>
 ${storyGrid(copy, story)}
+${sceneMeter(copy)}
 </div>
 </div>
 </section>`;
