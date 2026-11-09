@@ -2174,6 +2174,19 @@ h4 {
   }
 }
 
+/* Under 390 px the English headline sets its size from the window width, so its second
+   phrase, before you register, stays on one line instead of leaving its last word alone
+   on a line of its own. */
+@media (max-width: 389px) {
+  .hero__display:lang(en) {
+    font-size: clamp(30px, (100vw - 40px) / 8.9, 40px);
+  }
+
+  .hero__break .phrase:lang(en) {
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 1023px) {
   .hero__break {
     display: inline;
