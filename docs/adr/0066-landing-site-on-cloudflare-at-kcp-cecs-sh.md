@@ -491,9 +491,35 @@ and 390 by 844, path A dropped 0 to 2.2 percent of the frames in each hold over 
 previous round and 0 to 2.8 percent for round six, apart from one 13 percent outlier, on the same
 machine. Forced path B dropped 0 to 1.6 percent in every run but one, which dropped 5.7 and 6.6
 percent and 0 and 0.5 percent when repeated. With the rail masked the longest stretch of
-unchanged content while pinned is 27 to 166 px in Chromium and 109 to 199 px in Firefox across
+unchanged content while pinned was 27 to 166 px in Chromium and 109 to 199 px in Firefox across
 two runs at 150 and 300 px/s on 1440 by 900, 390 by 844 and 375 by 553 windows, and at most
 96 px in forced path B in Chromium; no revealed block changes its opacity by more than 0.3 in one
-frame. With the round five pacing probes, every end state, the merged dedupe and each beat, is
+frame. Those two runs understate the range. Repeated independent runs found the shortest window
+to be the longest case: at 375 by 553 the merged rows held fully lit for 180 to 190 px of scroll,
+and Firefox measured 219 px on an idle machine and 241 to 255 px under load, against the 250 px
+gate. The next amendment shortens that rest. With the round five pacing probes, every end state, the merged dedupe and each beat, is
 fully visible while pinned for at least 733 ms in Chromium and 714 ms in Firefox at 300, 500 and
+850 px/s on 1440 by 900, 390 by 844, 375 by 553 and 360 by 640 windows.
+
+## Amendment, 2026-11-10: shorter rests on the short windows
+
+On the short windows the pinned dedupe track runs on its pixel floor, so the rest of each merged
+row, 40 percent of its window at 30 percent fades, held the card unchanged for 180 to 190 px of
+scroll, and where the compact rows hide the listing chips nothing else moved through it. Under
+the denser row tiers, up to 759 px tall on a phone and 819 px on a wider window, each row now
+fades in and out over 35 percent of a window of 0.3749 of the pinned scroll, still one row every
+0.2437, so the fall of one row is still the rise of the next, the rest is 30 percent of the
+window, and the last row is still whole as the pin lets go. Every ring stays on its own row's
+panel and nothing translates across text. Where the chips show, each takes its ring from 0.15
+of its row's window, the middle of the shorter rest. Path B scales its fade to the same 35
+percent. Taller windows keep the 30 percent fades, since their chips already change inside the
+rest.
+
+Measured with the still stretch probe, three independent runs at 150 and 300 px/s on 375 by 553
+and 360 by 640 windows, rail masked, any change over 40 px counted: the longest stretch of
+unchanged content while the dedupe card is pinned is 88 to 175 px in Firefox and 25 to 120 px
+in Chromium, against 90 to 191 px in Firefox before the change in one run on the same machine,
+and 30 to 60 px in forced path B in Chromium; the shortest window remains the longest case.
+With the round five pacing probes, every end state, the merged dedupe and each beat, is fully
+visible while pinned for at least 732 ms in Chromium and 697 ms in Firefox at 300, 500 and
 850 px/s on 1440 by 900, 390 by 844, 375 by 553 and 360 by 640 windows.
