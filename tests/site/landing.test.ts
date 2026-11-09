@@ -830,9 +830,10 @@ describe('site files', () => {
     }
   });
 
-  // A released scene leaves on purpose rather than sliding off at once: on a scroll
-  // driven browser over the exit range of its track, elsewhere on the class site.js
-  // sets once its pin has let go. Neither end state hides it outright.
+  // A released scene leaves on purpose rather than sliding off at once, at the pace of
+  // the scroll: on a scroll driven browser over the exit range of its track, elsewhere
+  // from --leave, which site.js steps from the sentinels past the release. Neither end
+  // state hides it outright.
   it('gives each pinned scene a designed exit', () => {
     const rules = cssRules();
     for (const pin of ['.dedupe-pin', '.story__pin']) {
@@ -844,11 +845,21 @@ describe('site files', () => {
       expect(scrolled?.decls, pin).toContain(
         'animation-range: exit 0% exit 80%',
       );
-      const leaving = rules.find((rule) =>
-        rule.selectors.includes(`.motion.no-sda ${pin}.is-leaving`),
+      const leaving = rules.filter((rule) =>
+        rule.selectors.includes(`.motion.no-sda ${pin}`),
       );
-      expect(leaving?.decls.some((d) => d.startsWith('opacity:'))).toBe(true);
-      expect(leaving?.decls).not.toContain('opacity: 0');
+      const fades = leaving.flatMap((rule) =>
+        rule.decls.filter((d) => d.startsWith('opacity:')),
+      );
+      expect(fades, pin).toEqual(['opacity: calc(1 - 0.8 * var(--leave, 0))']);
+      expect(
+        leaving.some((rule) =>
+          rule.decls.some(
+            (d) => d.startsWith('transform:') && d.includes('var(--leave, 0)'),
+          ),
+        ),
+        pin,
+      ).toBe(true);
     }
   });
 
