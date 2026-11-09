@@ -4,6 +4,7 @@
 // final state. Copy comes from copy.th.mjs and copy.en.mjs, the dedupe rows and
 // counts from site-data.mjs, and the image files from the encoder's manifest.
 
+import { en } from './copy.en.mjs';
 import { shotPath } from './shots.mjs';
 
 export const ORIGIN = 'https://kcp.cecs.sh';
@@ -504,7 +505,20 @@ function footer(copy) {
 </footer>`;
 }
 
+/** Markup removed, for structured data that repeats text the page shows inside lang spans. */
+function plainText(html) {
+  return html.replace(/<[^>]+>/g, '');
+}
+
+/**
+ * The structured data of one page. The site, the application and the author are the same
+ * entities on both pages, so their nodes are identical wherever they appear: crawlers
+ * that merge nodes by @id never see two values for one fact. What belongs to one page,
+ * its address, language, description and questions, sits on that page's WebPage and
+ * FAQPage nodes. The FAQ answers are the visible answers with their markup removed.
+ */
 export function jsonLd(copy, version) {
+  const page = `${ORIGIN}${copy.path}`;
   const graph = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -522,6 +536,22 @@ export function jsonLd(copy, version) {
         publisher: { '@id': `${ORIGIN}/#author` },
       },
       {
+        '@type': 'WebPage',
+        '@id': `${page}#webpage`,
+        url: page,
+        name: copy.title,
+        description: copy.description,
+        inLanguage: copy.lang,
+        isPartOf: { '@id': `${ORIGIN}/#website` },
+        about: { '@id': `${ORIGIN}/#app` },
+        primaryImageOfPage: {
+          '@type': 'ImageObject',
+          url: `${ORIGIN}/og/og-${copy.lang}.png`,
+          width: 1200,
+          height: 630,
+        },
+      },
+      {
         '@type': 'SoftwareApplication',
         '@id': `${ORIGIN}/#app`,
         name: 'KCP: Course Planner for KMITL',
@@ -531,8 +561,8 @@ export function jsonLd(copy, version) {
           'Course Planner for KMITL',
           'ตัววางแผนตารางเรียน สจล.',
         ],
-        url: `${ORIGIN}${copy.path}`,
-        description: copy.description,
+        url: `${ORIGIN}/`,
+        description: en.description,
         applicationCategory: 'EducationalApplication',
         applicationSubCategory: 'Browser extension',
         operatingSystem: 'Windows, macOS, Linux, ChromeOS',
@@ -541,7 +571,8 @@ export function jsonLd(copy, version) {
         softwareRequirements:
           'Chrome, Microsoft Edge, Brave, Opera or Firefox on a computer',
         softwareVersion: version,
-        inLanguage: copy.lang,
+        // The extension's interface is in Thai and English, whichever page names it.
+        inLanguage: ['th', 'en'],
         isAccessibleForFree: true,
         offers: {
           '@type': 'Offer',
@@ -552,11 +583,11 @@ export function jsonLd(copy, version) {
         installUrl: [CHROME_URL, FIREFOX_URL],
         downloadUrl: [CHROME_URL, FIREFOX_URL],
         sameAs: [CHROME_URL, FIREFOX_URL, REPO_URL],
-        image: `${ORIGIN}/og/og-${copy.lang}.png`,
-        screenshot: [
-          `${ORIGIN}/shots/s-hero-${copy.lang}-1440.webp`,
-          `${ORIGIN}/shots/x-share169-${copy.lang}-1440.webp`,
-        ],
+        image: [`${ORIGIN}/og/og-th.png`, `${ORIGIN}/og/og-en.png`],
+        screenshot: ['th', 'en'].flatMap((lang) => [
+          `${ORIGIN}/shots/s-hero-${lang}-1440.webp`,
+          `${ORIGIN}/shots/x-share169-${lang}-1440.webp`,
+        ]),
         license: 'https://opensource.org/licenses/MIT',
         author: {
           '@type': 'Person',
@@ -564,6 +595,17 @@ export function jsonLd(copy, version) {
           name: 'txasw',
           url: 'https://github.com/txasw',
         },
+      },
+      {
+        '@type': 'FAQPage',
+        '@id': `${page}#faq`,
+        inLanguage: copy.lang,
+        isPartOf: { '@id': `${page}#webpage` },
+        mainEntity: copy.faq.items.map(([question, answer]) => ({
+          '@type': 'Question',
+          name: plainText(question),
+          acceptedAnswer: { '@type': 'Answer', text: plainText(answer) },
+        })),
       },
     ],
   };
