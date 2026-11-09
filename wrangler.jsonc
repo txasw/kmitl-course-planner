@@ -9,7 +9,8 @@
     "directory": "./site",
     // /en redirects to /en/, which serves en/index.html, and /index.html to /.
     "html_handling": "auto-trailing-slash",
-    // An unknown path answers 404 with the nearest 404.html, here the bilingual root one.
+    // An unknown path answers 404 with the nearest 404.html: en/404.html, led in English,
+    // under /en/, and the root one, led in Thai, everywhere else. Both carry both languages.
     "not_found_handling": "404-page",
   },
   "routes": [{ "pattern": "kcp.cecs.sh", "custom_domain": true }],
