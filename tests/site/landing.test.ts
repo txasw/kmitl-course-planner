@@ -755,10 +755,10 @@ describe('site files', () => {
     }
   });
 
-  // The closing band is the page's last call to action: its heading and badges rise on
-  // their own view like every revealed block, so they stand at full strength once their
-  // top is 85 percent down the window, and the band clips its glow without becoming a
-  // scroll container that would capture that view.
+  // The closing band is the page's last call to action: its mark, heading and badges
+  // rise on their own view like every revealed block, so they stand at full strength
+  // once their top is 85 percent down the window, and the band clips its glow without
+  // becoming a scroll container that would capture that view.
   it('lets the closing heading and badges finish rising as a revealed block does', () => {
     const rules = cssRules();
     const animation = (selector: string) =>
@@ -772,8 +772,12 @@ describe('site files', () => {
     const reveal = animation('.motion:not(.no-sda) [data-reveal]');
     const range = reveal?.find((d) => d.startsWith('animation-range:'));
     expect(reveal).toContain('animation-timeline: view()');
-    for (const part of ['.statement__h', '.cta-row']) {
-      const decls = animation(`.motion:not(.no-sda) .download ${part}`);
+    for (const selector of [
+      '.motion:not(.no-sda) .download__mark',
+      '.motion:not(.no-sda) .download .statement__h',
+      '.motion:not(.no-sda) .download .cta-row',
+    ]) {
+      const decls = animation(selector);
       expect(decls).toContain('animation-timeline: view()');
       expect(decls?.find((d) => d.startsWith('animation-range:'))).toBe(range);
     }
