@@ -51,7 +51,7 @@ export const th = {
   },
   problem: {
     h2: (c) =>
-      `<span class="statement__line"><span class="phrase">ค้นหาหมวดวิชาเดียว</span><wbr><span class="phrase">ได้ ${c.rows} แถว</span></span><span class="statement__line"><span class="phrase">เป็นกลุ่มเรียนจริง</span><wbr><span class="phrase">เพียง ${c.sections} กลุ่ม</span></span>`,
+      `<span class="statement__line"><span class="phrase">ค้นหาหมวดวิชาเดียว</span><wbr><span class="phrase">ได้ ${c.rows} แถว</span></span> <span class="statement__line"><span class="phrase">เป็นกลุ่มเรียนจริง</span><wbr><span class="phrase">เพียง ${c.sections} กลุ่ม</span></span>`,
     sub: 'KCP รวมแถวที่ซ้ำ ให้เหลือกลุ่มเรียนละหนึ่งรายการ',
     caption: (c) =>
       `${c.rows} แถวจาก ${c.groupings} หลักสูตร ตัวอย่างจริงจากหมวดวิชา 90592xxx ภาคการศึกษา 1/2569`,
