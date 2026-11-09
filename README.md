@@ -3,8 +3,7 @@
 KCP is a browser extension that turns the KMITL registration course search into a weekly
 timetable you can plan on before registration. Website: [kcp.cecs.sh](https://kcp.cecs.sh/).
 
-KCP คือส่วนขยายเบราว์เซอร์สำหรับจัดตารางเรียน สจล. (KMITL) ที่แปลงผลการค้นหารายวิชาบนเว็บไซต์ลงทะเบียน
-ให้เป็นตารางเรียนรายสัปดาห์ เพื่อช่วยวางแผนก่อนลงทะเบียนเรียน
+KCP คือส่วนขยายเบราว์เซอร์สำหรับจัดตารางเรียน สจล. (KMITL) ที่แปลงผลการค้นหารายวิชาบนเว็บไซต์ลงทะเบียนให้เป็นตารางเรียนรายสัปดาห์ เพื่อช่วยวางแผนก่อนลงทะเบียนเรียน
 
 ![The KCP planner open over the KMITL registration site, with the course list beside a weekly timetable](site/shots/s-hero-en-1440.webp)
 
@@ -19,7 +18,7 @@ KCP works in desktop browsers. Mobile browsers are not supported.
 ## What it does
 
 - Searches course offerings the same three ways as the registration site: by curriculum
-  and class year, by subject code, and by subject category.
+  and class year, by subject id, and by subject category.
 - Merges the rows the site repeats across curriculum groupings, so each section appears
   once.
 - Places sections on a weekly timetable by drag and drop or with an add button, and blocks
