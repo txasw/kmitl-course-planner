@@ -899,6 +899,50 @@ describe('site files', () => {
     }
   });
 
+  // A slow reader in a pinned hold always sees the content move with the scroll, not
+  // only the rail: each hold has highlights on a window of the pinned scroll, played on
+  // the track's view timeline where the browser has one and from --progress elsewhere.
+  it('moves the content of every pinned hold with the scroll', () => {
+    const rules = cssRules();
+    const scrolled = (target: string) =>
+      rules.some(
+        (rule) =>
+          rule.selectors.some(
+            (s) => s.startsWith('.motion:not(.no-sda) ') && s.includes(target),
+          ) &&
+          rule.decls.includes('animation-timeline: --scene') &&
+          rule.decls.some(
+            (d) =>
+              d.startsWith('animation-range:') && d.includes('var(--from)'),
+          ),
+      );
+    const stepped = (target: string) =>
+      rules.some(
+        (rule) =>
+          rule.selectors.some(
+            (s) => s.startsWith('.motion.no-sda ') && s.includes(target),
+          ) && rule.decls.some((d) => d.includes('var(--progress, 0)')),
+      );
+    for (const target of [
+      '.dedupe::before',
+      ".dedupe tr[data-row='first']::before",
+      ".dedupe tr[data-row='first'] .dedupe__chip::before",
+      '.ghost__danger::after',
+      '.story__chip::after',
+      '.story__ghost::after',
+      '.story__ghost::before',
+      '.story__readout::before',
+    ]) {
+      expect(scrolled(target), target).toBe(true);
+      expect(stepped(target), target).toBe(true);
+    }
+    const cards = rules.find((rule) =>
+      rule.selectors.includes('.motion:not(.no-sda) .story__card::before'),
+    );
+    expect(cards?.decls).toContain('animation-timeline: --scene, --scene');
+    expect(stepped('.story__card::before')).toBe(true);
+  });
+
   // A revealed block fades in step with the scroll, so a steady scroll never sees it
   // jump most of the way to full strength in one frame; only its rise is eased.
   it('fades every revealed block linearly with the scroll', () => {
