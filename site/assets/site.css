@@ -2820,14 +2820,14 @@ h4 {
    scrolls the length of its track and stays centred in the window as the card shrinks.
    A shorter window gets denser rows rather than an unpinned table, so the whole merge
    stays on one screen. The track ends soon after the merged state has held, so the pin
-   lets go once the merge has been read. Its pinned scroll, --pinned, is one and three
-   quarter screens and at least 1300 px, so on a short phone, where 175svh is under
-   1000 px, a reader scrolling at a steady pace still sees the merged card whole for most
-   of a second before the pin lets go; the merge starts as the card rises the last
-   stretch to the header, which lets the floor stay that short. */
+   lets go once the merge has been read. Its pinned scroll, --pinned, is one and a half
+   screens and at least 1300 px, so on a short phone, where 150svh is under 1000 px, a
+   reader scrolling at a steady pace still sees the merged card whole for most of a second
+   before the pin lets go; the merge starts as the card rises the last stretch to the
+   header, which lets the floor stay that short. */
 @media (min-height: 540px) {
   .motion .dedupe-track {
-    --pinned: max(175svh, 1300px);
+    --pinned: max(150svh, 1300px);
 
     height: calc(100svh - var(--header-h) + var(--pinned));
   }
@@ -3036,7 +3036,7 @@ h4 {
 /* The story pins on any window at least 540 px tall, the dedupe stage's floor. Its rows
    take their height from the window, so the label, the beat and the whole week fit under
    the header on a short phone as on a laptop. Its pinned scroll, --pinned, is three
-   screens and a header, and at least 2800 px, so each beat holds whole for most of a
+   screens and a header, and at least 2760 px, so each beat holds whole for most of a
    second at a steady scroll on a short phone as on a laptop. */
 @media (min-height: 540px) {
   .motion .story {
@@ -3046,7 +3046,7 @@ h4 {
   }
 
   .motion .story__track {
-    --pinned: max(300svh + var(--header-h), 2800px);
+    --pinned: max(300svh + var(--header-h), 2760px);
 
     position: relative;
     height: calc(100svh - var(--header-h) + var(--pinned));
@@ -3241,7 +3241,7 @@ h4 {
   }
 
   .motion .story__track {
-    --pinned: max(270svh + var(--header-h), 2800px);
+    --pinned: max(270svh + var(--header-h), 2760px);
   }
 }
 

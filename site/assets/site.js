@@ -484,7 +484,7 @@
   // while the dark band is still rising to the header, so the grid is drawn by the time
   // it pins. The lines leave each beat room to play and hold at a steady scroll, and the
   // last beat a stretch of the track to stay in view before the pin lets go.
-  const STORY_LINES = [-0.15, 0.24, 0.6];
+  const STORY_LINES = [-0.15, 0.245, 0.61];
   const STORY_STEPS = [{ time: 1000 }, { time: 1000 }, { time: 1100 }];
 
   function enhanceStory(track) {
