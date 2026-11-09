@@ -63,8 +63,68 @@ logic, copy tone, and commit history quality. Record the findings in the pull re
 description using the template. Split a pull request whose diff grows large into
 reviewable slices when practical.
 
+A change that users will notice needs a changeset, recorded with `pnpm changeset`. The
+changesets feed the changelog and the release notes.
+
 ## Design and copy
 
 User facing copy and documentation use plain, neutral, professional English, and
 Thai copy follows the same tone. Do not use emoji, decorative punctuation, or
 marketing language. Use icon components for visual affordances.
+
+## Landing site deploys
+
+The project site at https://kcp.cecs.sh/ is the committed `site/` folder, rendered by
+`pnpm site:build` from `scripts/landing` and served by Cloudflare Workers static assets as
+`wrangler.jsonc` describes (ADR-0066). Cloudflare Workers Builds deploys it from `main`.
+The repository holds no Cloudflare credentials and no deploy workflow.
+
+### Rules
+
+- Run `pnpm site:build` after any change to the landing copy, the renderer, the stylesheet,
+  the script, or the images, and commit the result. Continuous integration renders the site
+  again and fails when `site/` differs, so `main` never holds a stale page.
+- The page states the version in `package.json`. Merge a release first, wait until that
+  version is live on both the Chrome Web Store and Firefox Add-ons, then rebuild the site on
+  the landing branch and merge it. Every merge to `main` that changes `site/` deploys at
+  once, so this order is the only gate between a release and the page that describes it.
+
+### Workers Builds settings
+
+Create the Worker once from the Cloudflare dashboard with Workers & Pages, Create, Import a
+repository, and enter these settings. Connect it after the first landing change is on
+`main`, so the first build deploys a finished page.
+
+| Setting                                             | Value                                                                            |
+| --------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Git repository                                      | `txasw/kmitl-course-planner`                                                     |
+| Worker name                                         | `kcp-landing`, the `name` in `wrangler.jsonc`, which the build requires to match |
+| Production branch (Settings, Build, Branch control) | `main`                                                                           |
+| Enable Preview Builds (Branch control)              | Off                                                                              |
+| Root directory                                      | Empty, the repository root                                                       |
+| Build command                                       | Empty, because `site/` is committed                                              |
+| Deploy command                                      | `pnpm exec wrangler deploy`                                                      |
+| Build watch paths, include                          | `site/*` and `wrangler.jsonc`                                                    |
+| Build watch paths, exclude                          | Empty                                                                            |
+| API token                                           | Create new token, the default                                                    |
+| Build variables                                     | None                                                                             |
+
+The build image reads Node 24 from `.nvmrc` and runs pnpm 10.12.1 from the
+`packageManager` field through Corepack, then installs the dependencies from
+`pnpm-lock.yaml`. The deploy command runs the Wrangler version pinned in `package.json`,
+and it fails rather than fetch another version if that pin is missing.
+
+Do not add the domain in the dashboard. The route in `wrangler.jsonc`, `kcp.cecs.sh` with
+`custom_domain` set, makes the first deploy create the DNS record and the certificate on the
+`cecs.sh` zone, which is on the same account. The `workers.dev` address and preview URLs
+stay off through the same file, so the site has one public address.
+
+A push that changes no watched path, such as a change to the extension alone, starts no
+build. To roll back, revert the change on `main`, or pick an earlier version under the
+Worker's Deployments in the dashboard. To deploy by hand, run `pnpm exec wrangler login`
+once and then `pnpm exec wrangler deploy` from the repository root.
+
+After the first deploy, verify the domain in Google Search Console through a DNS TXT record
+on `cecs.sh` and submit https://kcp.cecs.sh/sitemap.xml. Set the repository website and both
+store listings' homepage to https://kcp.cecs.sh/. Bing reads the same sitemap, and the
+Crawler Hints setting on the `cecs.sh` zone tells it when a page changes.

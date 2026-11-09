@@ -523,3 +523,47 @@ and 30 to 60 px in forced path B in Chromium; the shortest window remains the lo
 With the round five pacing probes, every end state, the merged dedupe and each beat, is fully
 visible while pinned for at least 732 ms in Chromium and 697 ms in Firefox at 300, 500 and
 850 px/s on 1440 by 900, 390 by 844, 375 by 553 and 360 by 640 windows.
+
+## Amendment, 2026-11-10: search details and automatic deploys
+
+Search details. The Thai body now says จัดตารางเรียน, the phrase students search for, in the
+story heading and the hero lede, where before only the head tags carried it; the Thai
+description is shortened to about 135 characters with the free and clash claims first, and
+the English title names a weekly timetable planner. The hero heading and the Thai dedupe
+heading put a space between their block lines, so their text no longer joins KMITL to the
+next word. The structured data gives the site, the application and the author the same node
+on both pages, since crawlers merge nodes by @id, and adds a WebPage node for each page's
+address, language and description and a FAQPage node that repeats the visible questions
+and answers word for word. The phone crop of the hero image, measured as the largest paint
+at 390 by 844, gets its own preload under the phone media query. `/en`, `/index.html` and
+`/en/index.html` redirect permanently through `_redirects`; under `wrangler dev` each lands in
+one hop and `/en/` still answers 200.
+
+Not done. `site.js` stays one blocking script in the head: it sets the motion classes before
+the first layout, the stylesheet blocks rendering anyway, and splitting it would add a second
+request for a gain the audit measured as small. The sitemap carries no lastmod: a date typed
+by hand goes stale, and a stale date teaches crawlers to ignore it; Crawler Hints on the
+`cecs.sh` zone tells Bing when a page changes instead. A `homepage_url` in the extension
+manifest would link both store listings to the site, but it changes the extension package
+and waits for an extension release.
+
+Screenshots show course data as the product renders it. The term rule binds the project's
+own copy, and the page text follows it, as the story grid's ปฏิบัติฟิสิกส์ทั่วไป 1 shows. The
+screenshots and the social cards are pictures of the extension, which displays each subject
+name exactly as the registration service publishes it, so they show the official Thai name
+of 01006021 unaltered, reserved term included, rather than a name the product never
+displays.
+
+Automatic deploys. Cloudflare Workers Builds deploys `site/` from `main`, with no build
+command, since the folder is committed, and `pnpm exec wrangler deploy` as the deploy command.
+Wrangler is a pinned dev dependency, so the deploy runs a known version whose dependency
+tree the lockfile audit and the OSV scan cover, instead of whatever npx fetches on the day;
+its workerd install script stays off because deploying needs no local runtime, and
+`send_metrics` is off in `wrangler.jsonc`. Build watch paths limit builds to `site/*` and
+`wrangler.jsonc`, and preview builds are off, so only a change to the site on `main` deploys.
+The quality job in continuous integration renders the site and fails when `site/` differs
+from what is committed, so `main` never deploys a stale page; a Linux run of the build
+matched the files committed from Windows byte for byte. The order in Consequences still
+holds and is now the only gate: merge the release, wait until it is live on both stores,
+rebuild the site, then merge the landing change. CONTRIBUTING.md lists the exact Workers
+Builds settings and the owner steps after the first deploy.
