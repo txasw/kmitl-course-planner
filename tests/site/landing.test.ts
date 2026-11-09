@@ -942,6 +942,48 @@ describe('site files', () => {
     expect(stepped('.story__card::before')).toBe(true);
   });
 
+  // A point the scroll crosses restyles only what reads it. Where the browser has no
+  // scroll driven animations site.js sets --progress on the scene's followers, never on
+  // the pin, and every element the stylesheet moves from --progress is a follower or
+  // sits inside one; --leave goes on the pin, registered as not inherited so the scene
+  // inside it is not restyled. Where the browser plays both on a view timeline, neither
+  // is written.
+  it('restyles only the elements that follow the scroll', () => {
+    const script = readFileSync(join(SITE, 'assets/site.js'), 'utf8');
+    const list =
+      /const FOLLOWERS = \[([\s\S]*?)\]\.join/.exec(script)?.[1] ?? '';
+    const followers = [...list.matchAll(/(['"])(.+?)\1/g)]
+      .map(([, , selector = '']) => selector)
+      .join(', ');
+    expect(followers).not.toBe('');
+    expect(script).toMatch(/const stepped = !scrollDriven\(\);/);
+    const writes = [
+      ...script.matchAll(/(\w+)\.style\.setProperty\('--(progress|leave)'/g),
+    ].map(([, target = '', name = '']) => `${target} ${name}`);
+    expect(writes.sort()).toEqual(['follower progress', 'pin leave']);
+    const css = readFileSync(join(SITE, 'assets/site.css'), 'utf8');
+    expect(css).toMatch(
+      /@property --leave \{\s*syntax: '<number>';\s*inherits: false;\s*initial-value: 0;\s*\}/,
+    );
+    const doc = load('index.html');
+    const readers = cssRules()
+      .filter((rule) => rule.decls.some((d) => d.includes('var(--progress')))
+      .flatMap((rule) => rule.selectors)
+      .map((selector) =>
+        selector
+          .replace(/^\.motion(?:\.no-sda|:not\(\.no-sda\))? /, '')
+          .replace(/::(?:before|after)$/, ''),
+      );
+    expect(readers.length).toBeGreaterThan(0);
+    for (const selector of readers) {
+      const found = [...doc.querySelectorAll(selector)];
+      expect(found.length, selector).toBeGreaterThan(0);
+      for (const el of found) {
+        expect(el.closest(followers), selector).not.toBeNull();
+      }
+    }
+  });
+
   // The merged dedupe card is read one row at a time by a ring that never moves: each
   // row lights in place and fades as the next row lights, so no edge ever crosses a
   // row's text, in either path, and the fall of one row is the rise of the next.

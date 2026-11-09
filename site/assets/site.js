@@ -370,15 +370,29 @@
   // exist only while the cue shows, are passive and never read or change the scroll.
   const NUDGES = ['wheel', 'touchstart', 'keydown'];
 
+  // The elements of a pinned scene that read --progress where the browser has no scroll
+  // driven animations: the rail's fill and the hosts of the scene's highlights.
+  const FOLLOWERS = [
+    '.scene-rail__fill',
+    ".dedupe tbody tr[data-row='first']",
+    '.story__card',
+    '.story__ghost',
+    '.story__readout',
+  ].join(', ');
+
   /**
    * Drive a pinned scene's meter and its scroll linked layer. The rail takes a mark for
    * each step line, filled once its step has played. Where the browser has no scroll
-   * driven animations the pin carries --progress, from 0 to 1 across the pinned scroll,
-   * which fills the rail and moves the scene's highlights, and --leave, from 0 to 1 across
-   * the exit, which plays the exit at the pace of the scroll. The cue shows when a step
-   * has finished, the scene is pinned and no progress point has moved for IDLE_MS, and it
-   * hides at the next point the scroll crosses, the next step, or the reader's first
-   * nudge.
+   * driven animations the scene's followers carry --progress, from 0 to 1 across the
+   * pinned scroll, which fills the rail and moves the highlights, and the pin carries
+   * --leave, from 0 to 1 across the exit, which plays the exit at the pace of the scroll.
+   * --progress is set on the few small elements that read it rather than on the pin, and
+   * site.css registers --leave as not inherited, so a point the scroll crosses restyles
+   * those elements alone and never the whole scene; each is written only when its value
+   * changes. Where the browser plays both on the track's view timeline, neither is
+   * written. The cue shows when a step has finished, the scene is pinned and no progress
+   * point has moved for IDLE_MS, and it hides at the next point the scroll crosses, the
+   * next step, or the reader's first nudge.
    */
   function sceneMeter(pin, track, lines) {
     const meter = pin.querySelector('.scene-meter');
@@ -396,7 +410,9 @@
     let listening = null;
     const rest = () => {
       window.clearTimeout(timer);
-      meter?.classList.remove('is-idle');
+      if (meter?.classList.contains('is-idle') === true) {
+        meter.classList.remove('is-idle');
+      }
       listening?.abort();
       listening = null;
     };
@@ -418,15 +434,29 @@
         timer = window.setTimeout(idle, IDLE_MS);
       }
     };
+    const stepped = !scrollDriven();
+    const followers = stepped ? [...pin.querySelectorAll(FOLLOWERS)] : [];
+    let shownProgress = -1;
+    let shownLeave = -1;
     watchProgress(track, (count) => {
       crossed = count;
-      const progress = Math.min(Math.max((count - 1) / RAIL_STEPS, 0), 1);
-      const leave = Math.min(
-        Math.max((count - RAIL_STEPS - 1) / EXIT_STEPS, 0),
-        1,
-      );
-      pin.style.setProperty('--progress', String(progress));
-      pin.style.setProperty('--leave', String(leave));
+      if (stepped) {
+        const nextProgress = Math.min(Math.max((count - 1) / RAIL_STEPS, 0), 1);
+        const nextLeave = Math.min(
+          Math.max((count - RAIL_STEPS - 1) / EXIT_STEPS, 0),
+          1,
+        );
+        if (nextProgress !== shownProgress) {
+          shownProgress = nextProgress;
+          followers.forEach((follower) => {
+            follower.style.setProperty('--progress', String(shownProgress));
+          });
+        }
+        if (nextLeave !== shownLeave) {
+          shownLeave = nextLeave;
+          pin.style.setProperty('--leave', String(shownLeave));
+        }
+      }
       wait();
     });
     return {
