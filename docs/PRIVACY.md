@@ -29,7 +29,7 @@ site calls:
 Requests are made only when you open the planner, run or refresh a search, or open a saved
 plan, which is then checked against the current course data. There is no background
 polling. A request carries only the search you chose, such as the term, the faculty, the
-curriculum, or a subject code. As with any web request, those servers also receive your IP
+curriculum, or a subject id. As with any web request, those servers also receive your IP
 address and basic browser details. KCP never signs in, never reads your KMITL login, and
 never sends your plans anywhere.
 
