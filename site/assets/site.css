@@ -2320,32 +2320,41 @@ h4 {
   }
 }
 
-/* Section reveals: one per block, never per paragraph. */
+/* Section reveals: one per block, never per paragraph. The block fades in step with the
+   scroll and only its rise settles on the long exponential curve, so a steady scroll
+   never sees the text jump most of the way to full strength in one frame. */
 
-@keyframes reveal {
+@keyframes reveal-fade {
   from {
     opacity: 0;
+  }
+}
+
+@keyframes reveal-rise {
+  from {
     transform: translateY(var(--reveal-y));
     animation-timing-function: var(--ease-out-expo);
   }
 
   to {
-    opacity: 1;
     transform: none;
   }
 }
 
 @supports (animation-timeline: view()) {
   .motion:not(.no-sda) [data-reveal] {
-    animation: reveal linear both;
+    animation:
+      reveal-fade linear both,
+      reveal-rise linear both;
     animation-timeline: view();
     /* A tall block finishes by the time its top is 85 percent down the window, so text
-       at rest is rarely short of full strength. */
-    animation-range: entry min(10%, 2svh) entry min(70%, 15svh);
+       at rest is rarely short of full strength; a short one still takes at least 96 px of
+       scroll, so it never snaps in. */
+    animation-range: entry min(10%, 2svh) entry max(min(70%, 15svh), 96px);
   }
 
   .motion:not(.no-sda) .statement__sub[data-reveal] {
-    animation-range: entry 20% entry 80%;
+    animation-range: entry 20% entry max(80%, 20% + 96px);
   }
 
   .motion:not(.no-sda) .fact[data-reveal] {
@@ -3739,7 +3748,7 @@ h4 {
   .motion:not(.no-sda) .download .cta-row {
     animation: rise linear both;
     animation-timeline: view();
-    animation-range: entry min(10%, 2svh) entry min(70%, 15svh);
+    animation-range: entry min(10%, 2svh) entry max(min(70%, 15svh), 96px);
     --rise: 24px;
   }
 
