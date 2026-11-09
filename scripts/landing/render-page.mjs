@@ -258,7 +258,8 @@ function statement(id, h2, sub) {
 // The quiet companion of a pinned scene, decoration only: a rail that fills as the
 // scene's track scrolls, which site.js marks with each of the scene's steps, and a keep
 // scrolling cue it shows once a reader has stopped on a finished step, so a long hold
-// never reads as a page that has stopped working.
+// never reads as a page that has stopped working. It sits just under the scene's
+// content, the merged card or the timetable, where the reader's eye already is.
 function sceneMeter(copy) {
   return `<div class="scene-meter" aria-hidden="true"><p class="scene-cue"><span>${copy.scrollOn}</span>${ICONS.scrollOn}</p><div class="scene-rail"><span class="scene-rail__fill"></span></div></div>`;
 }
@@ -297,8 +298,8 @@ ${rowsHtml}
 </table>
 <p class="dedupe__result">${p.staticResult(counts)}</p>
 </div>
-</div>
 ${sceneMeter(copy)}
+</div>
 </div>
 </div>
 </section>`;
@@ -371,6 +372,7 @@ ${blocks}
 <div class="story__block story__landed ${placement(story.landed)}">${storyCard(story.landed)}</div>
 ${ghost}
 <p class="story__readout">${copy.story.readout(story)}</p>
+${sceneMeter(copy)}
 </div>`;
 }
 
@@ -386,7 +388,6 @@ function storySection(copy, story) {
 <ol class="story__beats">${beats}</ol>
 </div>
 ${storyGrid(copy, story)}
-${sceneMeter(copy)}
 </div>
 </div>
 </section>`;
