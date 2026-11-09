@@ -155,6 +155,16 @@ function cssRules(): CssRule[] {
   );
 }
 
+/** The nodes of the page's one structured data graph. */
+function graph(doc: Document): Record<string, unknown>[] {
+  const script = doc.querySelector('script[type="application/ld+json"]');
+  return (
+    JSON.parse(script?.textContent ?? '') as {
+      '@graph': Record<string, unknown>[];
+    }
+  )['@graph'];
+}
+
 function visibleText(doc: Document): string {
   const alts = [...doc.querySelectorAll('img[alt]')].map(
     (img) => img.getAttribute('alt') ?? '',
@@ -259,6 +269,29 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
 
   it('answers the four questions students ask before installing', () => {
     expect(doc.querySelectorAll('#faq details')).toHaveLength(4);
+  });
+
+  it('describes this page and its questions in the structured data', () => {
+    const nodes = graph(doc);
+    const page = nodes.find((node) => node['@type'] === 'WebPage');
+    expect(page?.['@id']).toBe(`${url}#webpage`);
+    expect(page?.url).toBe(url);
+    expect(page?.inLanguage).toBe(locale);
+    expect(page?.name).toBe(doc.title);
+    // The questions in the structured data are the ones the page shows, word for word.
+    const faq = nodes.find((node) => node['@type'] === 'FAQPage') as
+      | { mainEntity: { name: string; acceptedAnswer: { text: string } }[] }
+      | undefined;
+    // The formatter wraps long answers, which a browser renders as one space.
+    const text = (el: Element | null) =>
+      el?.textContent.replace(/\s+/g, ' ').trim();
+    const shown = [...doc.querySelectorAll('#faq details')].map((item) => [
+      text(item.querySelector('summary')),
+      text(item.querySelector('p')),
+    ]);
+    expect(faq?.mainEntity.map((q) => [q.name, q.acceptedAnswer.text])).toEqual(
+      shown,
+    );
   });
 
   it('links both stores from the page', () => {
@@ -631,6 +664,18 @@ describe('Thai line breaking', () => {
 });
 
 describe('site files', () => {
+  // Crawlers merge nodes that share an @id, so a node both pages carry must state the
+  // same facts on each.
+  it('give the shared structured data nodes the same facts on both pages', () => {
+    const [th, en] = PAGES.map((page) => graph(load(page.file)));
+    const shared = (nodes: Record<string, unknown>[] | undefined) =>
+      (nodes ?? []).filter((node) =>
+        ['WebSite', 'SoftwareApplication'].includes(String(node['@type'])),
+      );
+    expect(shared(th)).toHaveLength(2);
+    expect(shared(th)).toEqual(shared(en));
+  });
+
   it('match what pnpm site:build renders from the sources', async () => {
     const files = await siteTextFiles();
     expect([...files.keys()].sort()).toEqual([
