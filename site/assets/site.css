@@ -3774,6 +3774,34 @@ h4 {
   }
 }
 
+/* On the shorter windows the pinned track runs on its pixel floor, so a row's full rest,
+   40 percent of its window at 30 percent fades, held the card unchanged for close to
+   200 px of scroll, and where the compact rows hide the listing chips nothing else moved
+   through it. There each row fades in and out over 35 percent of a window of 0.3749, the
+   same row every 0.2437, so the fall of one row is still the rise of the next, the rest
+   shrinks to 30 percent of the window and the last row is still whole as the pin lets go.
+   The chip takes its ring from 0.15 of the row's window, the middle of the shorter rest. */
+@media (max-width: 639px) and (min-height: 540px) and (max-height: 759px),
+  (min-width: 640px) and (min-height: 540px) and (max-height: 819px) {
+  .motion .dedupe tbody tr[data-row='first'] {
+    --from: calc(0.231 + var(--t, 0) * 0.2437);
+  }
+
+  .motion .dedupe tr[data-row='first']::before {
+    --to: calc(var(--from) + 0.3749);
+  }
+
+  .motion.no-sda .dedupe tr[data-row='first']::before {
+    opacity: clamp(0, min(var(--u), 1 - var(--u)) * 20 / 7, 1);
+  }
+
+  @supports (animation-timeline: view()) {
+    .motion:not(.no-sda) .dedupe tr[data-row='first']::before {
+      animation-name: hand-on-short;
+    }
+  }
+}
+
 @keyframes cue-bob {
   0%,
   100% {
@@ -3850,6 +3878,19 @@ h4 {
 
   30%,
   70% {
+    opacity: 1;
+  }
+}
+
+/* A dedupe row's ring and panel on the shorter windows, with longer fades. */
+@keyframes hand-on-short {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  35%,
+  65% {
     opacity: 1;
   }
 }
