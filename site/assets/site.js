@@ -313,24 +313,35 @@
     };
   }
 
-  // A pinned scene's progress, in RAIL_STEPS equal parts of its pinned scroll, from
-  // sentinels placed as the step lines are: so a rail can follow the scroll where the
-  // browser has no scroll driven animations, and so the scene knows the reader is
-  // moving, without a scroll listener. Reports how many points lie above the line under
-  // the header: 0 before the pin, RAIL_STEPS + 1 once the pin has let go.
+  // A pinned scene's progress, in RAIL_STEPS equal parts of its pinned scroll, and how far
+  // it has left, in EXIT_STEPS equal parts of the scroll over which its stage leaves the
+  // window, from sentinels placed as the step lines are: so the rail and the exit can
+  // follow the scroll where the browser has no scroll driven animations, and so the scene
+  // knows the reader is moving, without a scroll listener.
+  // Reports how many points lie above the line under the header: 0 before the pin,
+  // RAIL_STEPS + 1 once the pin has let go, RAIL_STEPS + 1 + EXIT_STEPS once the exit is
+  // done.
   const RAIL_STEPS = 60;
+  const EXIT_STEPS = 12;
+  // The exit plays over this share of a window of scroll after the pin lets go, the range
+  // the scroll driven exit uses.
+  const EXIT_SPAN = 0.8;
 
   function watchProgress(track, onChange) {
-    const points = Array.from(
-      { length: RAIL_STEPS + 1 },
-      (_, k) => k / RAIL_STEPS,
-    );
+    const points = [
+      ...Array.from({ length: RAIL_STEPS + 1 }, (_, k) => [k / RAIL_STEPS, 0]),
+      ...Array.from({ length: EXIT_STEPS }, (_, k) => [
+        1,
+        ((k + 1) / EXIT_STEPS) * EXIT_SPAN,
+      ]),
+    ];
     const above = points.map(() => false);
-    const sentinels = points.map((at) => {
+    const sentinels = points.map(([at, past]) => {
       const sentinel = document.createElement('div');
       sentinel.className = 'sentinel';
       sentinel.setAttribute('aria-hidden', 'true');
       sentinel.style.setProperty('--at', String(at));
+      sentinel.style.setProperty('--past', String(past));
       track.append(sentinel);
       return sentinel;
     });
@@ -356,10 +367,12 @@
 
   /**
    * Drive a pinned scene's meter. The rail takes a mark for each step line, filled once
-   * its step has played; where the browser has no scroll driven animations the rail fills
-   * from --progress, and the scene leaves with .is-leaving once its pin lets go. The cue
-   * shows when a step has finished, the scene is pinned and no progress point has moved
-   * for IDLE_MS, and it hides at the next point the scroll crosses or the next step.
+   * its step has played. Where the browser has no scroll driven animations the pin
+   * carries --progress, from 0 to 1 across the pinned scroll, which fills the rail, and
+   * --leave, from 0 to 1 across the exit, which plays the exit at the pace of the scroll.
+   * The cue shows when a step has finished, the scene is pinned and no progress point has
+   * moved for IDLE_MS, and it hides at the next point the scroll crosses or the next
+   * step.
    */
   function sceneMeter(pin, track, lines) {
     const meter = pin.querySelector('.scene-meter');
@@ -390,8 +403,12 @@
     watchProgress(track, (count) => {
       crossed = count;
       const progress = Math.min(Math.max((count - 1) / RAIL_STEPS, 0), 1);
-      meter?.style.setProperty('--progress', String(progress));
-      pin.classList.toggle('is-leaving', count > RAIL_STEPS);
+      const leave = Math.min(
+        Math.max((count - RAIL_STEPS - 1) / EXIT_STEPS, 0),
+        1,
+      );
+      pin.style.setProperty('--progress', String(progress));
+      pin.style.setProperty('--leave', String(leave));
       wait();
     });
     return {

@@ -2531,10 +2531,14 @@ h4 {
   display: grid;
 }
 
-/* One header height above its point, where site.js watches it cross the window's top. */
+/* One header height above its point, where site.js watches it cross the window's top: a
+   share of the pinned scroll, --at, and past the release a share of a window, --past. */
 .sentinel {
   position: absolute;
-  top: calc(var(--at) * (100% - 100svh + var(--header-h)) - var(--header-h));
+  top: calc(
+    var(--at) * (100% - 100svh + var(--header-h)) + var(--past, 0) *
+      (100svh - var(--header-h)) - var(--header-h)
+  );
   left: 0;
   width: 1px;
   height: 0;
@@ -3303,7 +3307,8 @@ h4 {
    of it is decoration on elements of its own, hidden from assistive technology and never
    on a stepped element, so it never fights the steps' own clock. Path A fills the rail
    on the track's view timeline and grows each mark as the scroll nears it; path B fills
-   it from the points site.js watches, with a short transition from one to the next. */
+   it from --progress, the points site.js watches, with a short transition from one to
+   the next. */
 .scene-meter {
   display: none;
 }
@@ -3413,24 +3418,27 @@ h4 {
     opacity: 1;
     transition: opacity 400ms linear 400ms;
   }
+}
 
-  /* Path B: a scene whose pin has let go eases back and dims as the next section takes
-     the window, on a clock, since only the point where it lets go is known. */
+/* Path B: a scene whose pin has let go sinks or lifts, shrinks and dims at the pace of
+   the scroll, --leave, as the scroll driven exit does. */
+@media (min-height: 540px) {
   .motion.no-sda .dedupe-pin,
   .motion.no-sda .story__pin {
+    opacity: calc(1 - 0.8 * var(--leave, 0));
     transition:
-      opacity 600ms linear,
-      transform 800ms var(--ease-out-expo);
+      opacity 250ms linear,
+      transform 250ms linear;
   }
 
-  .motion.no-sda .dedupe-pin.is-leaving {
-    opacity: 0.35;
-    transform: translateY(6svh) scale(0.96);
+  .motion.no-sda .dedupe-pin {
+    transform: translateY(calc(14svh * var(--leave, 0)))
+      scale(calc(1 - 0.06 * var(--leave, 0)));
   }
 
-  .motion.no-sda .story__pin.is-leaving {
-    opacity: 0.35;
-    transform: translateY(-3svh) scale(0.98);
+  .motion.no-sda .story__pin {
+    transform: translateY(calc(-6svh * var(--leave, 0)))
+      scale(calc(1 - 0.02 * var(--leave, 0)));
   }
 }
 
