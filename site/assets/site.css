@@ -3269,6 +3269,179 @@ h4 {
   }
 }
 
+/* The scene meter. A pinned scene holds still for a long stretch of scroll, which a
+   reader who scrolls slowly could take for a page that has stopped working, so each
+   scene keeps something moving with the scroll while its steps hold: a short rail under
+   the stage that fills across the scene's pinned scroll, with a mark at each step that
+   fills once its step has played. A reader who stops on a finished step finds a quiet
+   keep scrolling cue over the rail a second later, gone again at the next movement. All
+   of it is decoration on elements of its own, hidden from assistive technology and never
+   on a stepped element, so it never fights the steps' own clock. Path A fills the rail
+   on the track's view timeline and grows each mark as the scroll nears it; path B fills
+   it from the points site.js watches, with a short transition from one to the next. */
+.scene-meter {
+  display: none;
+}
+
+@media (min-height: 540px) {
+  .motion .scene-meter {
+    --meter-track: var(--site-rule);
+    --meter-fill: var(--site-primary);
+    --meter-bg: var(--site-paper);
+
+    position: absolute;
+    right: 0;
+    bottom: 12px;
+    left: 0;
+    z-index: 3;
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    color: var(--site-ink-soft);
+    pointer-events: none;
+  }
+
+  .motion .story .scene-meter {
+    --meter-track: var(--ink-hour);
+    --meter-fill: var(--focus-color);
+    --meter-bg: var(--ink-bg);
+
+    color: var(--ink-soft);
+  }
+
+  .motion .scene-cue {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    line-height: 16px;
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity 150ms linear,
+      transform 150ms var(--ease-out-expo);
+  }
+
+  .motion .scene-cue__chevron {
+    width: 14px;
+    height: 14px;
+    animation: cue-bob 1600ms var(--ease-in-out) infinite paused;
+  }
+
+  .motion .is-idle > .scene-cue {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 400ms linear,
+      transform 600ms var(--ease-out-expo);
+  }
+
+  .motion .is-idle .scene-cue__chevron {
+    animation-play-state: running;
+  }
+
+  .motion .scene-rail {
+    position: relative;
+    width: min(200px, 50%);
+    height: 2px;
+    border-radius: 1px;
+    background: var(--meter-track);
+  }
+
+  .motion .scene-rail__fill {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--meter-fill);
+    transform: scaleX(var(--progress, 0));
+    transform-origin: left;
+    transition: transform 250ms linear;
+  }
+
+  .motion .scene-rail__mark {
+    position: absolute;
+    top: -3px;
+    left: calc(var(--at) * 100% - 4px);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--meter-bg);
+    box-shadow: inset 0 0 0 2px var(--meter-track);
+    transition:
+      background-color 300ms linear,
+      box-shadow 300ms linear;
+  }
+
+  .motion .scene-rail__mark.is-passed {
+    background: var(--meter-fill);
+    box-shadow: inset 0 0 0 2px var(--meter-fill);
+  }
+
+  /* The dedupe rail and cue sit under the merged card, where the thirteen rows reach on
+     a short window, so they show only once the merge has played. */
+  .motion .dedupe-pin .scene-meter {
+    opacity: 0;
+    transition: opacity 200ms linear;
+  }
+
+  .motion .dedupe-pin[data-step='2'] .scene-meter {
+    opacity: 1;
+    transition: opacity 400ms linear 400ms;
+  }
+}
+
+/* Path A. Each pinned track is a view timeline measured below the header, so its contain
+   range is exactly the pinned scroll, the stretch the rail fills. */
+@supports (animation-timeline: view()) {
+  @media (min-height: 540px) {
+    .motion:not(.no-sda) .dedupe-track,
+    .motion:not(.no-sda) .story__track {
+      view-timeline: --scene block;
+      view-timeline-inset: var(--header-h) 0px;
+    }
+
+    .motion:not(.no-sda) .scene-rail__fill {
+      animation: rail-fill linear both;
+      animation-timeline: --scene;
+      animation-range: contain 0% contain 100%;
+    }
+
+    .motion:not(.no-sda) .scene-rail__mark {
+      animation: mark-near linear both;
+      animation-timeline: --scene;
+      animation-range: contain calc(var(--at) * 100% - 12%) contain
+        calc(var(--at) * 100%);
+    }
+  }
+}
+
+@keyframes cue-bob {
+  0%,
+  100% {
+    transform: none;
+  }
+
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+@keyframes rail-fill {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+@keyframes mark-near {
+  to {
+    transform: scale(1.4);
+  }
+}
+
 @keyframes pulse {
   0%,
   100% {

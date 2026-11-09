@@ -217,7 +217,7 @@
    * steps it passed at once and plays only the last, at full length, since the reader has
    * landed. Scrolling back steps down at once, the same way.
    */
-  function stepper(el, steps, goalFor) {
+  function stepper(el, steps, goalFor, meter) {
     let shown = 0;
     let crossed = 0;
     let fast = [];
@@ -230,6 +230,7 @@
       shown = step;
       el.style.setProperty('--pace', String(pace));
       el.dataset.step = String(step);
+      meter.playing(step);
     };
     const after = (ms, next) => {
       const id = window.setTimeout(() => {
@@ -263,7 +264,10 @@
         after(STEP_BACK, move);
         return;
       }
-      if (goal === shown) return;
+      if (goal === shown) {
+        meter.settled();
+        return;
+      }
       if (jump) {
         jump = false;
         quick = false;
@@ -309,6 +313,101 @@
     };
   }
 
+  // A pinned scene's progress, in RAIL_STEPS equal parts of its pinned scroll, from
+  // sentinels placed as the step lines are: so a rail can follow the scroll where the
+  // browser has no scroll driven animations, and so the scene knows the reader is
+  // moving, without a scroll listener. Reports how many points lie above the line under
+  // the header: 0 before the pin, RAIL_STEPS + 1 once the pin has let go.
+  const RAIL_STEPS = 60;
+
+  function watchProgress(track, onChange) {
+    const points = Array.from(
+      { length: RAIL_STEPS + 1 },
+      (_, k) => k / RAIL_STEPS,
+    );
+    const above = points.map(() => false);
+    const sentinels = points.map((at) => {
+      const sentinel = document.createElement('div');
+      sentinel.className = 'sentinel';
+      sentinel.setAttribute('aria-hidden', 'true');
+      sentinel.style.setProperty('--at', String(at));
+      track.append(sentinel);
+      return sentinel;
+    });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          above[sentinels.indexOf(entry.target)] = entry.isIntersecting;
+        });
+        onChange(above.filter(Boolean).length);
+      },
+      { rootMargin: '100000px 0px -100% 0px' },
+    );
+    sentinels.forEach((sentinel) => {
+      observer.observe(sentinel);
+    });
+  }
+
+  // A reader who has stopped this long on a finished step is told the page goes on.
+  const IDLE_MS = 1000;
+  // Past this share of its pinned scroll a scene is about to let go and the next section
+  // is coming into view, so the cue stays away.
+  const CUE_UNTIL = 0.9;
+
+  /**
+   * Drive a pinned scene's meter. The rail takes a mark for each step line, filled once
+   * its step has played; where the browser has no scroll driven animations the rail fills
+   * from --progress. The cue shows when a step has finished, the scene is pinned and no
+   * progress point has moved for IDLE_MS, and it hides at the next point the scroll
+   * crosses or the next step.
+   */
+  function sceneMeter(pin, track, lines) {
+    const meter = pin.querySelector('.scene-meter');
+    const rail = meter?.querySelector('.scene-rail');
+    const marks = lines.map((at) => {
+      const mark = document.createElement('i');
+      mark.className = 'scene-rail__mark';
+      mark.style.setProperty('--at', String(Math.max(0, at)));
+      rail?.append(mark);
+      return mark;
+    });
+    let crossed = 0;
+    let busy = false;
+    let timer = 0;
+    const rest = () => {
+      window.clearTimeout(timer);
+      meter?.classList.remove('is-idle');
+    };
+    const wait = () => {
+      rest();
+      const progress = (crossed - 1) / RAIL_STEPS;
+      if (!busy && progress >= 0 && progress < CUE_UNTIL) {
+        timer = window.setTimeout(() => {
+          meter?.classList.add('is-idle');
+        }, IDLE_MS);
+      }
+    };
+    watchProgress(track, (count) => {
+      crossed = count;
+      const progress = Math.min(Math.max((count - 1) / RAIL_STEPS, 0), 1);
+      meter?.style.setProperty('--progress', String(progress));
+      wait();
+    });
+    return {
+      playing(step) {
+        busy = true;
+        rest();
+        marks.forEach((mark, k) => {
+          mark.classList.toggle('is-passed', step > k);
+        });
+      },
+      settled() {
+        busy = false;
+        wait();
+      },
+    };
+  }
+
   // The dedupe stage plays from its first line. Its first step is a lead in: the repeats
   // fade while the counter turns from rows to sections, and a beat later the sections
   // close up and take their labels, so the merge completes within about 1.4 s and no
@@ -335,7 +434,12 @@
       track,
       DEDUPE_LINES,
       0.06,
-      stepper(pin, DEDUPE_STEPS, (crossed) => (crossed > 0 ? 2 : 0)),
+      stepper(
+        pin,
+        DEDUPE_STEPS,
+        (crossed) => (crossed > 0 ? 2 : 0),
+        sceneMeter(pin, track, DEDUPE_LINES.slice(0, 1)),
+      ),
     );
   }
 
@@ -356,7 +460,12 @@
       track,
       STORY_LINES,
       0.04,
-      stepper(pin, STORY_STEPS, (crossed) => crossed),
+      stepper(
+        pin,
+        STORY_STEPS,
+        (crossed) => crossed,
+        sceneMeter(pin, track, STORY_LINES),
+      ),
     );
   }
 
