@@ -104,17 +104,19 @@ export function picture(manifest, id, locale, options) {
 }
 
 /**
- * The preload hints for the hero image, the largest paint on the first screen at every
- * width: the full frame from 640 px and the phone crop below it. Measured at 390 by 844,
- * the crop's top edge shows on the first screen and is the largest paint, so without a
- * hint it waited behind the script, the stylesheet and both store badges. The media
- * queries match the picture's sources, so each window fetches one of the two.
+ * The preload hints for the hero image where it is the largest paint on the first
+ * screen: the full frame from 640 px, and the phone crop on a phone at least 740 px tall.
+ * The crop starts 656 to 705 px down, so at 390 by 844 its top is the largest paint and
+ * without a hint it waited behind the script, the stylesheet and both store badges,
+ * while on a 640 px or shorter phone it starts below the first screen and a high priority
+ * request would only compete with the stylesheet and the font. Each window preloads at
+ * most one of the two, and only the source its picture uses.
  */
 function heroPreload(manifest, locale) {
   const hero = manifestEntry(manifest, 's-hero', locale);
   const crop = manifestEntry(manifest, 's-hero-crop', locale);
   return `<link rel="preload" as="image" type="image/avif" imagesrcset="${srcset('s-hero', locale, hero, 'avif')}" imagesizes="${HERO_SIZES}" media="(min-width: 640px)" fetchpriority="high">
-<link rel="preload" as="image" type="image/avif" imagesrcset="${srcset('s-hero-crop', locale, crop, 'avif')}" imagesizes="${CROP_SIZES}" media="${PHONE}" fetchpriority="high">`;
+<link rel="preload" as="image" type="image/avif" imagesrcset="${srcset('s-hero-crop', locale, crop, 'avif')}" imagesizes="${CROP_SIZES}" media="${PHONE} and (min-height: 740px)" fetchpriority="high">`;
 }
 
 // The frame is never wider than the container, and on a short window it is narrower,
