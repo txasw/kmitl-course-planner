@@ -6,7 +6,9 @@ const TH = (text) => `<span lang="th">${text}</span>`;
 export const en = {
   lang: 'en',
   path: '/en/',
-  title: 'KCP: Course Planner for KMITL, a weekly timetable extension',
+  // The brand already answers KMITL course planner; the rest names the phrase English
+  // searchers pair with it.
+  title: 'KCP: Course Planner for KMITL | Weekly timetable planner',
   // Under 155 characters, so a search result shows the whole claim.
   description:
     'Free Chrome and Firefox extension for KMITL students: turn the course search into a drag and drop weekly timetable that flags class and exam clashes.',
@@ -30,7 +32,7 @@ export const en = {
     lockup: 'KCP: Course Planner for KMITL',
     line1: '<span class="phrase">See your whole week</span>',
     line2: '<span class="phrase">before you register.</span>',
-    lede: 'An extension that turns the KMITL course search into a drag and drop timetable.',
+    lede: 'A browser extension that turns the KMITL course search into a drag and drop weekly timetable planner.',
     fine: 'Free and open source. Also for Edge, Brave <span class="keep">and Opera.</span>',
     alt: 'The KCP planner on the registration site, with a weekly timetable from Monday to Friday that holds Programming Fundamental, General Physics 1, Calculus 1 and Discrete Mathematics in the mornings.',
   },
