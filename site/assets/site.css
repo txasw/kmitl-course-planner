@@ -3391,7 +3391,10 @@ h4 {
 }
 
 /* Path A. Each pinned track is a view timeline measured below the header, so its contain
-   range is exactly the pinned scroll, the stretch the rail fills. */
+   range is exactly the pinned scroll, the stretch the rail fills. During the long merged
+   hold, each section's chip fills with a deeper tint behind the curricula it counts, one
+   after another down the table, as the scroll moves on; a fill, not a line, so no chip
+   reads as a link. */
 @supports (animation-timeline: view()) {
   @media (min-height: 540px) {
     .motion:not(.no-sda) .dedupe-track,
@@ -3411,6 +3414,24 @@ h4 {
       animation-timeline: --scene;
       animation-range: contain calc(var(--at) * 100% - 12%) contain
         calc(var(--at) * 100%);
+    }
+
+    .motion:not(.no-sda) .dedupe tr[data-row='first'] .dedupe__chip {
+      position: relative;
+      isolation: isolate;
+    }
+
+    .motion:not(.no-sda) .dedupe tr[data-row='first'] .dedupe__chip::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: rgba(227, 82, 5, 0.12);
+      transform-origin: left;
+      animation: chip-read linear both;
+      animation-timeline: --scene;
+      animation-range: contain calc(20% + var(--t) * 16%) contain
+        calc(34% + var(--t) * 16%);
     }
   }
 }
@@ -3439,6 +3460,16 @@ h4 {
 @keyframes mark-near {
   to {
     transform: scale(1.4);
+  }
+}
+
+@keyframes chip-read {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: none;
   }
 }
 
