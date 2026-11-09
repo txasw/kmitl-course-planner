@@ -555,7 +555,8 @@ manifest would link both store listings to the site, but it changes the extensio
 and waits for an extension release.
 
 Screenshots show course data as the product renders it. The term rule binds the project's
-own copy, and the page text follows it, as the story grid's ปฏิบัติฟิสิกส์ทั่วไป 1 shows. The
+own copy, and the page text follows it, as the story grid's ปฏิบัติฟิสิกส์ทั่วไป 1 shows; that
+text deliberately differs from the official name of 01006021, which holds the reserved term. The
 screenshots and the social cards are pictures of the extension, which displays each subject
 name exactly as the registration service publishes it, so they show the official Thai name
 of 01006021 unaltered, reserved term included, rather than a name the product never
