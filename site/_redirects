@@ -4,3 +4,9 @@
 /th / 301
 /th/ / 301
 /th/* / 301
+# The asset router would answer these with a temporary redirect, so a link to one of
+# them would pass to the page only through a temporary hop. A permanent one tells a
+# crawler which address to keep. Checked under wrangler dev: each lands in one hop.
+/en /en/ 301
+/index.html / 301
+/en/index.html /en/ 301

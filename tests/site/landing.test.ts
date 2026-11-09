@@ -1201,11 +1201,18 @@ describe('Cloudflare hosting', () => {
     }
   });
 
-  it('redirects the guessed Thai path to the root', () => {
+  it('redirects the guessed Thai path and the page aliases permanently', () => {
     const rules = readFileSync(join(SITE, '_redirects'), 'utf8')
       .split(/\r?\n/)
       .filter((line) => line !== '' && !line.startsWith('#'));
-    expect(rules).toEqual(['/th / 301', '/th/ / 301', '/th/* / 301']);
+    expect(rules).toEqual([
+      '/th / 301',
+      '/th/ / 301',
+      '/th/* / 301',
+      '/en /en/ 301',
+      '/index.html / 301',
+      '/en/index.html /en/ 301',
+    ]);
   });
 
   it('keeps no GitHub Pages configuration', () => {
