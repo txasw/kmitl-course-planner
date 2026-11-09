@@ -5,6 +5,7 @@
   "version": "1.4.0",
   "type": "module",
   "license": "MIT",
+  "homepage": "https://kcp.cecs.sh/",
   "packageManager": "pnpm@10.12.1",
   "engines": {
     "node": ">=22.22.1"
