@@ -69,7 +69,7 @@ export const en = {
     beats: [
       'Drag sections into your week.',
       'See a clash before you drop.',
-      'Get a section that fits, right away.',
+      'See sections that fit, right away.',
     ],
     chip: (b) => [
       `Clashes with ${b.subjectId} section ${b.section}`,
@@ -79,7 +79,7 @@ export const en = {
   },
   exam: {
     h2: 'Exam clashes are checked too.',
-    sub: 'Two subjects on different days can share an exam slot. KCP will not add one that clashes.',
+    sub: 'Two subjects on different days can share an exam slot. KCP will not add a section whose exam clashes.',
     alt1: 'The course card for 01076112. Its sections carry an exam clash badge, and a soft red box says the exam clashes with 01006020 section 4, midterm on 21 Aug 2569.',
   },
   export: {
@@ -104,7 +104,7 @@ export const en = {
   },
   privacy: {
     h2: 'Your data stays in your browser.',
-    sub: 'No account, no server, no tracking. KCP only reads public course data.',
+    sub: 'No account, no server of its own, no tracking. KCP only reads public course data.',
     heading: 'Permissions',
     perms: [
       ['storage', 'Keeps your plans on this device.'],
