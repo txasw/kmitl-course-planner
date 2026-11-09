@@ -2820,14 +2820,16 @@ h4 {
    scrolls the length of its track and stays centred in the window as the card shrinks.
    A shorter window gets denser rows rather than an unpinned table, so the whole merge
    stays on one screen. The track ends soon after the merged state has held, so the pin
-   lets go once the merge has been read. Its pinned scroll is at least 1300 px, so on a
-   short phone, where 175svh is under 1000 px, a reader scrolling at a steady pace still
-   sees the merged card whole for most of a second before the pin lets go; the merge
-   starts as the card rises the last stretch to the header, which lets the floor stay
-   that short. */
+   lets go once the merge has been read. Its pinned scroll, --pinned, is one and three
+   quarter screens and at least 1300 px, so on a short phone, where 175svh is under
+   1000 px, a reader scrolling at a steady pace still sees the merged card whole for most
+   of a second before the pin lets go; the merge starts as the card rises the last
+   stretch to the header, which lets the floor stay that short. */
 @media (min-height: 540px) {
   .motion .dedupe-track {
-    height: calc(100svh - var(--header-h) + max(175svh, 1300px));
+    --pinned: max(175svh, 1300px);
+
+    height: calc(100svh - var(--header-h) + var(--pinned));
   }
 
   .motion .dedupe-pin {
@@ -3033,9 +3035,9 @@ h4 {
 
 /* The story pins on any window at least 540 px tall, the dedupe stage's floor. Its rows
    take their height from the window, so the label, the beat and the whole week fit under
-   the header on a short phone as on a laptop. Its pinned scroll is three screens and a
-   header, and at least 2800 px, so each beat holds whole for most of a second at a
-   steady scroll on a short phone as on a laptop. */
+   the header on a short phone as on a laptop. Its pinned scroll, --pinned, is three
+   screens and a header, and at least 2800 px, so each beat holds whole for most of a
+   second at a steady scroll on a short phone as on a laptop. */
 @media (min-height: 540px) {
   .motion .story {
     --story-row: clamp(52px, (100svh - 160px) / 5, 88px);
@@ -3044,10 +3046,10 @@ h4 {
   }
 
   .motion .story__track {
+    --pinned: max(300svh + var(--header-h), 2800px);
+
     position: relative;
-    height: calc(
-      100svh - var(--header-h) + max(300svh + var(--header-h), 2800px)
-    );
+    height: calc(100svh - var(--header-h) + var(--pinned));
   }
 
   .motion .story__pin {
@@ -3239,9 +3241,7 @@ h4 {
   }
 
   .motion .story__track {
-    height: calc(
-      100svh - var(--header-h) + max(270svh + var(--header-h), 2800px)
-    );
+    --pinned: max(270svh + var(--header-h), 2800px);
   }
 }
 
@@ -3300,15 +3300,16 @@ h4 {
 
 /* The scene meter. A pinned scene holds still for a long stretch of scroll, which a
    reader who scrolls slowly could take for a page that has stopped working, so each
-   scene keeps something moving with the scroll while its steps hold: a short rail under
-   the stage that fills across the scene's pinned scroll, with a mark at each step that
-   fills once its step has played. A reader who stops on a finished step finds a quiet
-   keep scrolling cue over the rail a second later, gone again at the next movement. All
-   of it is decoration on elements of its own, hidden from assistive technology and never
-   on a stepped element, so it never fights the steps' own clock. Path A fills the rail
-   on the track's view timeline and grows each mark as the scroll nears it; path B fills
-   it from --progress, the points site.js watches, with a short transition from one to
-   the next. */
+   scene keeps something moving with the scroll while its steps hold: a rail just under
+   the scene's content that fills across the scene's pinned scroll, with a mark at each
+   step that fills once its step has played. Every rail fills at one rate, a tenth of a
+   pixel for each pixel of pinned scroll, so its width follows its track's --pinned. A
+   reader who stops on a finished step finds a quiet keep scrolling cue over the rail a
+   second later, gone again at the next movement. All of it is decoration on elements of
+   its own, hidden from assistive technology and never on a stepped element, so it never
+   fights the steps' own clock. Path A fills the rail on the track's view timeline and
+   grows each mark as the scroll nears it; path B fills it from --progress, the points
+   site.js watches, with a short transition from one to the next. */
 .scene-meter {
   display: none;
 }
@@ -3320,15 +3321,22 @@ h4 {
     --meter-bg: var(--site-paper);
 
     position: absolute;
+    top: calc(100% + 8px);
     right: 0;
-    bottom: 12px;
     left: 0;
     z-index: 3;
     display: grid;
+    width: max-content;
+    margin-inline: auto;
     justify-items: center;
-    gap: 8px;
+    gap: 4px;
     color: var(--site-ink-soft);
     pointer-events: none;
+  }
+
+  /* Under the merged card, which ends the repeats' height above the stage's foot. */
+  .motion .dedupe-stage > .scene-meter {
+    top: calc(100% - var(--close) + 16px);
   }
 
   .motion .story .scene-meter {
@@ -3372,9 +3380,9 @@ h4 {
 
   .motion .scene-rail {
     position: relative;
-    width: min(200px, 50%);
-    height: 2px;
-    border-radius: 1px;
+    width: min(calc(var(--pinned) / 10), 100vw - 72px);
+    height: 3px;
+    border-radius: 2px;
     background: var(--meter-track);
   }
 
@@ -3391,9 +3399,9 @@ h4 {
   .motion .scene-rail__mark {
     position: absolute;
     top: -3px;
-    left: calc(var(--at) * 100% - 4px);
-    width: 8px;
-    height: 8px;
+    left: calc(var(--at) * 100% - 4.5px);
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     background: var(--meter-bg);
     box-shadow: inset 0 0 0 2px var(--meter-track);
@@ -3407,8 +3415,8 @@ h4 {
     box-shadow: inset 0 0 0 2px var(--meter-fill);
   }
 
-  /* The dedupe rail and cue sit under the merged card, where the thirteen rows reach on
-     a short window, so they show only once the merge has played. */
+  /* The dedupe rail and cue sit under the merged card, where the thirteen rows reach, so
+     they show only once the merge has played. */
   .motion .dedupe-pin .scene-meter {
     opacity: 0;
     transition: opacity 200ms linear;
