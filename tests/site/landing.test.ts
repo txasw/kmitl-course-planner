@@ -174,6 +174,18 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
     expect(doc.querySelectorAll('h1')).toHaveLength(1);
   });
 
+  // The lockup and the headline are separate block lines, so only a space between them
+  // keeps a parser from reading the brand and the headline as one word.
+  it('separates the words of its headings in their text', () => {
+    expect(doc.querySelector('h1')?.textContent).toMatch(/KMITL\s+\S/);
+    const problem = doc.getElementById('problem-title');
+    const lines = [...(problem?.querySelectorAll('.statement__line') ?? [])];
+    expect(lines).toHaveLength(2);
+    expect(problem?.textContent.replace(/\s+/g, ' ').trim()).toBe(
+      `${lines[0]?.textContent ?? ''} ${lines[1]?.textContent ?? ''}`,
+    );
+  });
+
   it('names itself canonical and lists both language alternates', () => {
     expect(
       doc.querySelector('link[rel="canonical"]')?.getAttribute('href'),

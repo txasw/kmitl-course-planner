@@ -218,14 +218,16 @@ function ruler() {
 }
 
 // Thai sets no space between the two phrases of the headline, so the break between them
-// is a <wbr>; English joins them with a plain space.
+// is a <wbr>; English joins them with a plain space. The lockup and the headline are
+// block lines, so the space after the lockup shows nowhere, but the heading's text
+// reads as two words to a parser instead of KMITLSee.
 function hero(copy, manifest) {
   const locale = copy.lang;
   return `<section class="hero" aria-labelledby="hero-title">
 ${ruler()}
 <div class="container hero__inner">
 <div class="hero__text">
-<h1 id="hero-title"><span class="hero__lockup">${copy.hero.lockup}</span><span class="hero__display">${copy.hero.line1}${copy.lang === 'th' ? '<wbr>' : ' '}<span class="hero__break">${copy.hero.line2}</span></span></h1>
+<h1 id="hero-title"><span class="hero__lockup">${copy.hero.lockup}</span> <span class="hero__display">${copy.hero.line1}${copy.lang === 'th' ? '<wbr>' : ' '}<span class="hero__break">${copy.hero.line2}</span></span></h1>
 <p class="lede">${copy.hero.lede}</p>
 ${ctaRow(copy, 'hero')}
 </div>
