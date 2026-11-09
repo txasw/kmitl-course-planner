@@ -2677,6 +2677,7 @@ h4 {
 }
 
 @container dedupe (min-width: 720px) {
+  .motion .dedupe,
   .motion .dedupe__result {
     --head-h: var(--row-h);
   }
@@ -3428,9 +3429,256 @@ h4 {
   }
 }
 
-/* Path B: a scene whose pin has let go sinks or lifts, shrinks and dims at the pace of
-   the scroll, --leave, as the scroll driven exit does. */
+/* The scroll linked layer. Through every hold something in the content itself moves with
+   the scroll, slowly and in one direction, while the stepped end state stays whole, in
+   place and legible: a highlight lights one item, holds and hands on to the next. Each
+   item names its window as shares of the pinned scroll, --from and --to; path A plays
+   it on the track's view timeline over that range, path B reads it from --progress,
+   which site.js steps every sixtieth of the pinned scroll and a transition smooths. A
+   sweep rises over the first 40 percent of its window, holds and falls over the last 40,
+   so the next item's rise is this one's fall; a ramp only rises. Every highlight is a
+   ring, a lit panel under the text or a dashed slot, on a pseudo element of its own, so
+   it never touches a stepped transform or the text's own contrast.
+
+   On the merged dedupe card one orange ring reads down the four sections: it rests on a
+   row, then glides to the next, over --from to --to of the pinned scroll. A white panel
+   lights under the row it rests on, and each row's chip, the count of its listings, keeps
+   a thin ring once its row has been read, so the card never returns to a state it has
+   shown. */
 @media (min-height: 540px) {
+  .motion .dedupe {
+    --from: 0.1;
+    --to: 0.95;
+
+    position: relative;
+  }
+
+  /* Each row's rest on the ring's path, which the panel and the chip follow. */
+  .motion .dedupe tbody tr[data-row='first'] {
+    --from: calc(0.151 + var(--t, 0) * 0.2437);
+    --to: calc(var(--from) + 0.085);
+  }
+
+  .motion .dedupe::before,
+  .motion .dedupe tr[data-row='first']::before,
+  .motion .dedupe tr[data-row='first'] .dedupe__chip::before {
+    content: '';
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .motion .dedupe::before {
+    top: var(--head-h);
+    right: 0;
+    left: 0;
+    z-index: 3;
+    height: var(--row-h);
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 2px var(--site-primary);
+  }
+
+  .motion .dedupe tr[data-row='first']::before {
+    --from: calc(0.081 + var(--t, 0) * 0.2437);
+    --to: calc(var(--from) + 0.225);
+
+    inset: 0 0 0 4px;
+    z-index: -1;
+    background: rgba(255, 255, 255, 0.85);
+  }
+
+  .motion .dedupe tr[data-row='first'] .dedupe__chip {
+    position: relative;
+  }
+
+  .motion .dedupe tr[data-row='first'] .dedupe__chip::before {
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px var(--site-primary);
+  }
+
+  .motion .dedupe-pin:not([data-step='2']) .dedupe::before,
+  .motion .dedupe-pin:not([data-step='2']) tr[data-row='first']::before {
+    display: none;
+  }
+
+  /* On the story each beat's hold has its own motion. Under beat one, then again under
+     beat three, a ring visits the placed blocks one after another, the landed section
+     last, and under beat three a soft panel lights behind the credit readout. Before beat
+     two a dashed slot brightens where the dragged section will drop; under beat two the
+     ring turns red and visits the dragged section where it clashes, then the chip that
+     names the clash, and a green slot brightens, dims a little and brightens again where
+     it will land in beat three. */
+  .motion .story__card {
+    --from: calc(0.01 + var(--b, 0) * 0.03);
+    --to: calc(var(--from) + 0.05);
+    --from3: calc(0.645 + var(--b, 0) * 0.039);
+    --to3: calc(var(--from3) + 0.065);
+  }
+
+  .motion .ghost__block {
+    --b: 6;
+    --from: 2;
+    --to: 3;
+  }
+
+  .motion .story__card::before,
+  .motion .ghost__danger::after,
+  .motion .story__chip::after,
+  .motion .story__ghost::before,
+  .motion .story__ghost::after,
+  .motion .story__readout::before {
+    content: '';
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .motion .story__card::before {
+    inset: -1px;
+    border-radius: 7px;
+    box-shadow:
+      0 0 0 2px var(--focus-color),
+      0 0 18px rgba(255, 138, 76, 0.35);
+  }
+
+  .motion .ghost__danger::after {
+    --from: 0.28;
+    --to: 0.38;
+
+    inset: -3px;
+    border-radius: 9px;
+    box-shadow:
+      0 0 0 2px #ff6b6b,
+      0 0 18px rgba(255, 107, 107, 0.4);
+  }
+
+  .motion .story__chip::after {
+    --from: 0.34;
+    --to: 0.44;
+
+    inset: -1px;
+    border-radius: 7px;
+    box-shadow: 0 0 0 2px #ff6b6b;
+  }
+
+  /* The slot before beat two, over the Tuesday morning the section drops onto. */
+  .motion .story__ghost::after {
+    --from: 0.15;
+    --to: 0.245;
+
+    inset: 0;
+    border-radius: 8px;
+    outline: 2px dashed var(--focus-color);
+    outline-offset: -3px;
+  }
+
+  /* The slot before beat three, over the Wednesday afternoon the section travels to. */
+  .motion .story__ghost::before {
+    --from: 0.43;
+    --to: 0.61;
+
+    inset: 0;
+    border-radius: 8px;
+    background: rgba(63, 191, 111, 0.12);
+    outline: 2px dashed #3fbf6f;
+    outline-offset: -3px;
+    transform: translate(133.333%, 100%);
+  }
+
+  .motion .story__readout {
+    position: relative;
+    isolation: isolate;
+    justify-self: start;
+  }
+
+  .motion .story__readout::before {
+    --from: 0.88;
+    --to: 0.98;
+
+    inset: -2px -8px;
+    z-index: -1;
+    border-radius: 6px;
+    background: rgba(255, 138, 76, 0.22);
+  }
+
+  .motion .story__pin:not([data-step='1']) .story__ghost::after,
+  .motion .story__pin:not([data-step='2']) .story__ghost::before,
+  .motion .story__pin:not([data-step='2']) .ghost__danger::after {
+    display: none;
+  }
+}
+
+@media (max-width: 639px) and (min-height: 540px) {
+  .motion .story__ghost::before {
+    transform: translate(100%, 133.333%);
+  }
+}
+
+/* Path B: the scroll linked layer and the exits read the points site.js watches. A sweep
+   follows the share of its window the scroll has passed, --u, and a scene whose pin has
+   let go sinks or lifts, shrinks and dims at the pace of the scroll, --leave, as the
+   scroll driven exit does. */
+@media (min-height: 540px) {
+  .motion.no-sda .dedupe::before {
+    --u: clamp(
+      0,
+      (var(--progress, 0) - var(--from)) / (var(--to) - var(--from)),
+      1
+    );
+
+    opacity: min(1, var(--u) * 16);
+    transform: translateY(calc(3 * var(--u) * var(--row-h)));
+    transition:
+      opacity 250ms linear,
+      transform 250ms linear;
+  }
+
+  .motion.no-sda .dedupe tr[data-row='first']::before,
+  .motion.no-sda .ghost__danger::after,
+  .motion.no-sda .story__chip::after {
+    --u: clamp(
+      0,
+      (var(--progress, 0) - var(--from)) / (var(--to) - var(--from)),
+      1
+    );
+
+    opacity: clamp(0, min(var(--u), 1 - var(--u)) * 2.5, 1);
+    transition: opacity 250ms linear;
+  }
+
+  .motion.no-sda .story__card::before {
+    --u: clamp(
+      0,
+      (var(--progress, 0) - var(--from)) / (var(--to) - var(--from)),
+      1
+    );
+    --u3: clamp(
+      0,
+      (var(--progress, 0) - var(--from3)) / (var(--to3) - var(--from3)),
+      1
+    );
+
+    opacity: clamp(
+      0,
+      max(min(var(--u), 1 - var(--u)), min(var(--u3), 1 - var(--u3))) * 2.5,
+      1
+    );
+    transition: opacity 250ms linear;
+  }
+
+  .motion.no-sda .dedupe tr[data-row='first'] .dedupe__chip::before,
+  .motion.no-sda .story__ghost::before,
+  .motion.no-sda .story__ghost::after,
+  .motion.no-sda .story__readout::before {
+    opacity: clamp(
+      0,
+      (var(--progress, 0) - var(--from)) / (var(--to) - var(--from)),
+      1
+    );
+    transition: opacity 250ms linear;
+  }
+
   .motion.no-sda .dedupe-pin,
   .motion.no-sda .story__pin {
     opacity: calc(1 - 0.8 * var(--leave, 0));
@@ -3451,13 +3699,12 @@ h4 {
 }
 
 /* Path A. Each pinned track is a view timeline measured below the header, so its contain
-   range is exactly the pinned scroll, the stretch the rail fills, and its exit range is
-   the scroll over which the released stage leaves the window. The dedupe stage sinks a
-   little slower than the page, shrinks and dims as the dark band rises over it; the story
-   lifts a little faster than its band and dims as the next section comes up. During the
-   long merged hold, each section's chip fills with a deeper tint behind the curricula it
-   counts, one after another down the table, as the scroll moves on; a fill, not a line,
-   so no chip reads as a link. */
+   range is exactly the pinned scroll, the stretch the rail fills and the highlights move
+   through, and its exit range is the scroll over which the released stage leaves the
+   window. The dedupe stage sinks a little slower than the page, shrinks and dims as the
+   dark band rises over it; the story lifts a little faster than its band and dims as the
+   next section comes up. A block that the ring visits twice, under beat one and beat
+   three, plays two sweeps that each fill nothing outside their own window. */
 @supports (animation-timeline: view()) {
   @media (min-height: 540px) {
     .motion:not(.no-sda) .dedupe-track,
@@ -3491,22 +3738,46 @@ h4 {
       animation-range: exit 0% exit 80%;
     }
 
-    .motion:not(.no-sda) .dedupe tr[data-row='first'] .dedupe__chip {
-      position: relative;
-      isolation: isolate;
+    .motion:not(.no-sda) .dedupe::before {
+      animation: read-rows linear both;
+      animation-timeline: --scene;
+      animation-range: contain calc(var(--from) * 100%) contain
+        calc(var(--to) * 100%);
     }
 
-    .motion:not(.no-sda) .dedupe tr[data-row='first'] .dedupe__chip::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      z-index: -1;
-      background: rgba(227, 82, 5, 0.12);
-      transform-origin: left;
-      animation: chip-read linear both;
+    .motion:not(.no-sda) .dedupe tr[data-row='first']::before,
+    .motion:not(.no-sda) .ghost__danger::after,
+    .motion:not(.no-sda) .story__chip::after {
+      animation: sweep linear both;
       animation-timeline: --scene;
-      animation-range: contain calc(20% + var(--t) * 16%) contain
-        calc(34% + var(--t) * 16%);
+      animation-range: contain calc(var(--from) * 100%) contain
+        calc(var(--to) * 100%);
+    }
+
+    .motion:not(.no-sda) .story__card::before {
+      animation:
+        sweep linear,
+        sweep linear;
+      animation-timeline: --scene, --scene;
+      animation-range:
+        contain calc(var(--from) * 100%) contain calc(var(--to) * 100%),
+        contain calc(var(--from3) * 100%) contain calc(var(--to3) * 100%);
+    }
+
+    .motion:not(.no-sda) .dedupe tr[data-row='first'] .dedupe__chip::before,
+    .motion:not(.no-sda) .story__ghost::after,
+    .motion:not(.no-sda) .story__readout::before {
+      animation: brighten linear both;
+      animation-timeline: --scene;
+      animation-range: contain calc(var(--from) * 100%) contain
+        calc(var(--to) * 100%);
+    }
+
+    .motion:not(.no-sda) .story__ghost::before {
+      animation: beckon linear both;
+      animation-timeline: --scene;
+      animation-range: contain calc(var(--from) * 100%) contain
+        calc(var(--to) * 100%);
     }
   }
 }
@@ -3538,13 +3809,88 @@ h4 {
   }
 }
 
-@keyframes chip-read {
+@keyframes sweep {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  40%,
+  60% {
+    opacity: 1;
+  }
+}
+
+@keyframes brighten {
   from {
-    transform: scaleX(0);
+    opacity: 0;
   }
 
   to {
+    opacity: 1;
+  }
+}
+
+/* The slot beat three lands on brightens, dims a little and brightens again. */
+@keyframes beckon {
+  0% {
+    opacity: 0;
+  }
+
+  30%,
+  70%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+
+  85% {
+    opacity: 0.6;
+  }
+}
+
+/* The dedupe ring: in, a rest on each of the four rows, and an eased glide between. */
+@keyframes read-rows {
+  0% {
+    opacity: 0;
     transform: none;
+  }
+
+  6% {
+    opacity: 1;
+    transform: none;
+  }
+
+  16% {
+    transform: none;
+    animation-timing-function: ease-in-out;
+  }
+
+  34.67% {
+    transform: translateY(var(--row-h));
+  }
+
+  44.67% {
+    transform: translateY(var(--row-h));
+    animation-timing-function: ease-in-out;
+  }
+
+  63.33% {
+    transform: translateY(calc(2 * var(--row-h)));
+  }
+
+  73.33% {
+    transform: translateY(calc(2 * var(--row-h)));
+    animation-timing-function: ease-in-out;
+  }
+
+  92%,
+  100% {
+    opacity: 1;
+    transform: translateY(calc(3 * var(--row-h)));
   }
 }
 
