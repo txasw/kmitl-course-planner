@@ -924,7 +924,6 @@ describe('site files', () => {
           ) && rule.decls.some((d) => d.includes('var(--progress, 0)')),
       );
     for (const target of [
-      '.dedupe::before',
       ".dedupe tr[data-row='first']::before",
       ".dedupe tr[data-row='first'] .dedupe__chip::before",
       '.ghost__danger::after',
@@ -941,6 +940,41 @@ describe('site files', () => {
     );
     expect(cards?.decls).toContain('animation-timeline: --scene, --scene');
     expect(stepped('.story__card::before')).toBe(true);
+  });
+
+  // The merged dedupe card is read one row at a time by a ring that never moves: each
+  // row lights in place and fades as the next row lights, so no edge ever crosses a
+  // row's text, in either path, and the fall of one row is the rise of the next.
+  it('lights each merged dedupe row in place, one handing on to the next', () => {
+    const rules = cssRules();
+    const ring = ".dedupe tr[data-row='first']::before";
+    const css = readFileSync(join(SITE, 'assets/site.css'), 'utf8');
+    expect(css).not.toMatch(/\.dedupe::(?:before|after)/);
+    const moving = rules.filter(
+      (rule) =>
+        rule.selectors.some((s) => s.endsWith(ring)) &&
+        rule.decls.some(
+          (d) =>
+            /^(?:transform|translate|animation):/.test(d) &&
+            !d.includes('hand-on'),
+        ),
+    );
+    expect(moving).toEqual([]);
+    const hand = /@keyframes hand-on \{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
+    expect(hand).not.toBe('');
+    expect(hand).not.toMatch(/transform|translate/);
+    const rowWindow = rules.find(
+      (rule) =>
+        rule.selectors.includes(`.motion ${ring}`) &&
+        rule.decls.some((d) => d.startsWith('--to:')),
+    );
+    const from = rowWindow?.decls.find((d) => d.startsWith('--from:'));
+    const to = rowWindow?.decls.find((d) => d.startsWith('--to:'));
+    const step = Number(/\* ([\d.]+)\)/.exec(from ?? '')?.[1]);
+    const span = Number(/\+ ([\d.]+)\)/.exec(to ?? '')?.[1]);
+    // In for the first 30 percent, out for the last 30: the next row rises as this falls.
+    expect(Math.abs(span * 0.7 - step)).toBeLessThan(0.001);
+    expect(hand.replace(/\s+/g, ' ')).toContain('30%, 70% { opacity: 1; }');
   });
 
   // A revealed block fades in step with the scroll, so a steady scroll never sees it

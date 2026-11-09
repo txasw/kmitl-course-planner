@@ -3440,26 +3440,20 @@ h4 {
    ring, a lit panel under the text or a dashed slot, on a pseudo element of its own, so
    it never touches a stepped transform or the text's own contrast.
 
-   On the merged dedupe card one orange ring reads down the four sections: it rests on a
-   row, then glides to the next, over --from to --to of the pinned scroll. A white panel
-   lights under the row it rests on, and each row's chip, the count of its listings, keeps
-   a thin ring once its row has been read, so the card never returns to a state it has
-   shown. */
+   On the merged dedupe card the four sections are read one at a time: an orange ring
+   lights on a white panel inside a row, holds, and fades as the next row's lights, a
+   cross fade over a stretch of the scroll in which each ring stays inside its own row.
+   No ring moves, so no edge ever crosses a row's text, and a reader who stops anywhere
+   finds one row lit, or two faint ones while one hands on to the next. Each row's chip,
+   the count of its listings, keeps a thin ring once its row has been read, lit in the
+   middle of the row's rest, so the card never returns to a state it has shown. */
 @media (min-height: 540px) {
-  .motion .dedupe {
-    --from: 0.1;
-    --to: 0.95;
-
-    position: relative;
-  }
-
-  /* Each row's rest on the ring's path, which the panel and the chip follow. */
+  /* The middle of each row's rest, where its chip takes its ring. */
   .motion .dedupe tbody tr[data-row='first'] {
-    --from: calc(0.151 + var(--t, 0) * 0.2437);
-    --to: calc(var(--from) + 0.085);
+    --from: calc(0.191 + var(--t, 0) * 0.2437);
+    --to: calc(var(--from) + 0.075);
   }
 
-  .motion .dedupe::before,
   .motion .dedupe tr[data-row='first']::before,
   .motion .dedupe tr[data-row='first'] .dedupe__chip::before {
     content: '';
@@ -3468,23 +3462,18 @@ h4 {
     pointer-events: none;
   }
 
-  .motion .dedupe::before {
-    top: var(--head-h);
-    right: 0;
-    left: 0;
-    z-index: 3;
-    height: var(--row-h);
-    border-radius: 4px;
-    box-shadow: inset 0 0 0 2px var(--site-primary);
-  }
-
+  /* Each row's ring and panel: in over the first 30 percent of the window, out over the
+     last 30, so with one row every 0.2437 of the pinned scroll the next row's rise is
+     this one's fall. The last row is still whole as the pin lets go. */
   .motion .dedupe tr[data-row='first']::before {
     --from: calc(0.081 + var(--t, 0) * 0.2437);
-    --to: calc(var(--from) + 0.225);
+    --to: calc(var(--from) + 0.3481);
 
     inset: 0 0 0 4px;
     z-index: -1;
+    border-radius: 0 4px 4px 0;
     background: rgba(255, 255, 255, 0.85);
+    box-shadow: inset 0 0 0 2px var(--site-primary);
   }
 
   .motion .dedupe tr[data-row='first'] .dedupe__chip {
@@ -3497,7 +3486,6 @@ h4 {
     box-shadow: inset 0 0 0 1px var(--site-primary);
   }
 
-  .motion .dedupe-pin:not([data-step='2']) .dedupe::before,
   .motion .dedupe-pin:not([data-step='2']) tr[data-row='first']::before {
     display: none;
   }
@@ -3620,21 +3608,18 @@ h4 {
    let go sinks or lifts, shrinks and dims at the pace of the scroll, --leave, as the
    scroll driven exit does. */
 @media (min-height: 540px) {
-  .motion.no-sda .dedupe::before {
+  /* The dedupe rows hand on at the points site.js watches, each step a short fade. */
+  .motion.no-sda .dedupe tr[data-row='first']::before {
     --u: clamp(
       0,
       (var(--progress, 0) - var(--from)) / (var(--to) - var(--from)),
       1
     );
 
-    opacity: min(1, var(--u) * 16);
-    transform: translateY(calc(3 * var(--u) * var(--row-h)));
-    transition:
-      opacity 250ms linear,
-      transform 250ms linear;
+    opacity: clamp(0, min(var(--u), 1 - var(--u)) * 10 / 3, 1);
+    transition: opacity 250ms linear;
   }
 
-  .motion.no-sda .dedupe tr[data-row='first']::before,
   .motion.no-sda .ghost__danger::after,
   .motion.no-sda .story__chip::after {
     --u: clamp(
@@ -3738,14 +3723,13 @@ h4 {
       animation-range: exit 0% exit 80%;
     }
 
-    .motion:not(.no-sda) .dedupe::before {
-      animation: read-rows linear both;
+    .motion:not(.no-sda) .dedupe tr[data-row='first']::before {
+      animation: hand-on linear both;
       animation-timeline: --scene;
       animation-range: contain calc(var(--from) * 100%) contain
         calc(var(--to) * 100%);
     }
 
-    .motion:not(.no-sda) .dedupe tr[data-row='first']::before,
     .motion:not(.no-sda) .ghost__danger::after,
     .motion:not(.no-sda) .story__chip::after {
       animation: sweep linear both;
@@ -3852,45 +3836,16 @@ h4 {
   }
 }
 
-/* The dedupe ring: in, a rest on each of the four rows, and an eased glide between. */
-@keyframes read-rows {
-  0% {
-    opacity: 0;
-    transform: none;
-  }
-
-  6% {
-    opacity: 1;
-    transform: none;
-  }
-
-  16% {
-    transform: none;
-    animation-timing-function: ease-in-out;
-  }
-
-  34.67% {
-    transform: translateY(var(--row-h));
-  }
-
-  44.67% {
-    transform: translateY(var(--row-h));
-    animation-timing-function: ease-in-out;
-  }
-
-  63.33% {
-    transform: translateY(calc(2 * var(--row-h)));
-  }
-
-  73.33% {
-    transform: translateY(calc(2 * var(--row-h)));
-    animation-timing-function: ease-in-out;
-  }
-
-  92%,
+/* A dedupe row's ring and panel, whose fall is the next row's rise. */
+@keyframes hand-on {
+  0%,
   100% {
+    opacity: 0;
+  }
+
+  30%,
+  70% {
     opacity: 1;
-    transform: translateY(calc(3 * var(--row-h)));
   }
 }
 
