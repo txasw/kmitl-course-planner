@@ -3823,7 +3823,8 @@ h4 {
   }
 }
 
-/* The slot beat three lands on brightens, dims a little and brightens again. */
+/* The slot beat three lands on brightens, dims a little once and brightens again, so
+   it stands whole as beat three lands. */
 @keyframes beckon {
   0% {
     opacity: 0;
@@ -3837,10 +3838,6 @@ h4 {
 
   50% {
     opacity: 0.45;
-  }
-
-  85% {
-    opacity: 0.6;
   }
 }
 
