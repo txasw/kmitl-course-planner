@@ -14,12 +14,13 @@ import {
 } from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
+import { SITE_VERSION_FILE, siteVersion } from './site-data.mjs';
 import { ROOT, SITE, siteTextFiles } from './site-files.mjs';
 
-// The page states the version in package.json, while it may already describe features
-// that wait in pending changesets. Pending minor or major changesets are the normal state
-// between releases, so the build only warns: deploy the site after the release that
-// carries them is live on both stores, then rebuild (ADR-0066).
+// The page states the released version in site-version.json, while it may already
+// describe features that wait in pending changesets or in a release not yet live on both
+// stores. Both are the normal state between releases, so the build only reminds: bump
+// site-version.json once the release is live on both stores, then rebuild (ADR-0066).
 const changesetDir = path.join(ROOT, '.changeset');
 const pending = [];
 for (const name of await readdir(changesetDir)) {
@@ -31,7 +32,16 @@ for (const name of await readdir(changesetDir)) {
 }
 if (pending.length > 0) {
   console.warn(
-    `warning: ${String(pending.length)} pending minor or major changesets. The page may describe features the stated version lacks; deploy only after that release is live on both stores, then rebuild.`,
+    `warning: ${String(pending.length)} pending minor or major changesets. The page may describe features the stated version lacks; deploy only after that release is live on both stores.`,
+  );
+}
+const stated = siteVersion();
+const { version: packaged } = JSON.parse(
+  await readFile(path.join(ROOT, 'package.json'), 'utf8'),
+);
+if (stated !== packaged) {
+  console.warn(
+    `note: the page states ${stated} and package.json holds ${packaged}. Once ${packaged} is live on both stores, set it in ${SITE_VERSION_FILE} and rebuild.`,
   );
 }
 

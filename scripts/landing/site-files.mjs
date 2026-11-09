@@ -14,8 +14,8 @@ import { en } from './copy.en.mjs';
 import { ORIGIN, renderNotFound, renderPage } from './render-page.mjs';
 import {
   dedupeCounts,
-  extensionVersion,
   renderDedupeRows,
+  siteVersion,
   storyBlocks,
 } from './site-data.mjs';
 
@@ -86,7 +86,7 @@ export async function siteTextFiles() {
     ),
   );
   const counts = dedupeCounts();
-  const version = extensionVersion();
+  const version = siteVersion();
   const files = new Map();
   for (const copy of [th, en]) {
     const relative = copy.lang === 'th' ? 'index.html' : 'en/index.html';

@@ -46,4 +46,5 @@ export function storyBlocks(locale: 'th' | 'en'): Story;
 export function dedupeRows(locale: 'th' | 'en'): DedupeRow[];
 export function dedupeCounts(): DedupeCounts;
 export function renderDedupeRows(locale: 'th' | 'en'): string;
-export function extensionVersion(): string;
+export const SITE_VERSION_FILE: string;
+export function siteVersion(): string;
