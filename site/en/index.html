@@ -88,6 +88,22 @@
             "publisher": { "@id": "https://kcp.cecs.sh/#author" }
           },
           {
+            "@type": "WebPage",
+            "@id": "https://kcp.cecs.sh/en/#webpage",
+            "url": "https://kcp.cecs.sh/en/",
+            "name": "KCP: Course Planner for KMITL | Weekly timetable planner",
+            "description": "Free Chrome and Firefox extension for KMITL students: turn the course search into a drag and drop weekly timetable that flags class and exam clashes.",
+            "inLanguage": "en",
+            "isPartOf": { "@id": "https://kcp.cecs.sh/#website" },
+            "about": { "@id": "https://kcp.cecs.sh/#app" },
+            "primaryImageOfPage": {
+              "@type": "ImageObject",
+              "url": "https://kcp.cecs.sh/og/og-en.png",
+              "width": 1200,
+              "height": 630
+            }
+          },
+          {
             "@type": "SoftwareApplication",
             "@id": "https://kcp.cecs.sh/#app",
             "name": "KCP: Course Planner for KMITL",
@@ -97,14 +113,14 @@
               "Course Planner for KMITL",
               "ตัววางแผนตารางเรียน สจล."
             ],
-            "url": "https://kcp.cecs.sh/en/",
+            "url": "https://kcp.cecs.sh/",
             "description": "Free Chrome and Firefox extension for KMITL students: turn the course search into a drag and drop weekly timetable that flags class and exam clashes.",
             "applicationCategory": "EducationalApplication",
             "applicationSubCategory": "Browser extension",
             "operatingSystem": "Windows, macOS, Linux, ChromeOS",
             "softwareRequirements": "Chrome, Microsoft Edge, Brave, Opera or Firefox on a computer",
             "softwareVersion": "1.4.0",
-            "inLanguage": "en",
+            "inLanguage": ["th", "en"],
             "isAccessibleForFree": true,
             "offers": {
               "@type": "Offer",
@@ -125,8 +141,13 @@
               "https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/",
               "https://github.com/txasw/kmitl-course-planner"
             ],
-            "image": "https://kcp.cecs.sh/og/og-en.png",
+            "image": [
+              "https://kcp.cecs.sh/og/og-th.png",
+              "https://kcp.cecs.sh/og/og-en.png"
+            ],
             "screenshot": [
+              "https://kcp.cecs.sh/shots/s-hero-th-1440.webp",
+              "https://kcp.cecs.sh/shots/x-share169-th-1440.webp",
               "https://kcp.cecs.sh/shots/s-hero-en-1440.webp",
               "https://kcp.cecs.sh/shots/x-share169-en-1440.webp"
             ],
@@ -137,6 +158,46 @@
               "name": "txasw",
               "url": "https://github.com/txasw"
             }
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://kcp.cecs.sh/en/#faq",
+            "inLanguage": "en",
+            "isPartOf": { "@id": "https://kcp.cecs.sh/en/#webpage" },
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Is KCP an official KMITL system?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. KCP is an independent tool built by a student and is not endorsed by KMITL."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can KCP register for courses for me?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. KCP is for planning only. You still register on the registration site."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I use it on my phone?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Not yet. Chrome on phones does not support extensions. The web version in development is planned to work without installing."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does it work for every faculty?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. KCP reads the same course data as the registration site, so it covers every faculty and curriculum."
+                }
+              }
+            ]
           }
         ]
       }

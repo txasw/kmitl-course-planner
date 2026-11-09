@@ -90,6 +90,22 @@
             "publisher": { "@id": "https://kcp.cecs.sh/#author" }
           },
           {
+            "@type": "WebPage",
+            "@id": "https://kcp.cecs.sh/#webpage",
+            "url": "https://kcp.cecs.sh/",
+            "name": "KCP: Course Planner for KMITL | จัดตารางเรียน สจล. ก่อนลงทะเบียน",
+            "description": "จัดตารางเรียน สจล. (KMITL) ก่อนลงทะเบียนเรียน ด้วย KCP ส่วนขยายฟรีสำหรับ Chrome และ Firefox ลากกลุ่มเรียนลงตารางรายสัปดาห์ เห็นเวลาเรียนและวันสอบที่ชนกันทันที",
+            "inLanguage": "th",
+            "isPartOf": { "@id": "https://kcp.cecs.sh/#website" },
+            "about": { "@id": "https://kcp.cecs.sh/#app" },
+            "primaryImageOfPage": {
+              "@type": "ImageObject",
+              "url": "https://kcp.cecs.sh/og/og-th.png",
+              "width": 1200,
+              "height": 630
+            }
+          },
+          {
             "@type": "SoftwareApplication",
             "@id": "https://kcp.cecs.sh/#app",
             "name": "KCP: Course Planner for KMITL",
@@ -100,13 +116,13 @@
               "ตัววางแผนตารางเรียน สจล."
             ],
             "url": "https://kcp.cecs.sh/",
-            "description": "จัดตารางเรียน สจล. (KMITL) ก่อนลงทะเบียนเรียน ด้วย KCP ส่วนขยายฟรีสำหรับ Chrome และ Firefox ลากกลุ่มเรียนลงตารางรายสัปดาห์ เห็นเวลาเรียนและวันสอบที่ชนกันทันที",
+            "description": "Free Chrome and Firefox extension for KMITL students: turn the course search into a drag and drop weekly timetable that flags class and exam clashes.",
             "applicationCategory": "EducationalApplication",
             "applicationSubCategory": "Browser extension",
             "operatingSystem": "Windows, macOS, Linux, ChromeOS",
             "softwareRequirements": "Chrome, Microsoft Edge, Brave, Opera or Firefox on a computer",
             "softwareVersion": "1.4.0",
-            "inLanguage": "th",
+            "inLanguage": ["th", "en"],
             "isAccessibleForFree": true,
             "offers": {
               "@type": "Offer",
@@ -127,10 +143,15 @@
               "https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/",
               "https://github.com/txasw/kmitl-course-planner"
             ],
-            "image": "https://kcp.cecs.sh/og/og-th.png",
+            "image": [
+              "https://kcp.cecs.sh/og/og-th.png",
+              "https://kcp.cecs.sh/og/og-en.png"
+            ],
             "screenshot": [
               "https://kcp.cecs.sh/shots/s-hero-th-1440.webp",
-              "https://kcp.cecs.sh/shots/x-share169-th-1440.webp"
+              "https://kcp.cecs.sh/shots/x-share169-th-1440.webp",
+              "https://kcp.cecs.sh/shots/s-hero-en-1440.webp",
+              "https://kcp.cecs.sh/shots/x-share169-en-1440.webp"
             ],
             "license": "https://opensource.org/licenses/MIT",
             "author": {
@@ -139,6 +160,46 @@
               "name": "txasw",
               "url": "https://github.com/txasw"
             }
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://kcp.cecs.sh/#faq",
+            "inLanguage": "th",
+            "isPartOf": { "@id": "https://kcp.cecs.sh/#webpage" },
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "KCP เป็นระบบของ สจล. หรือไม่",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "ไม่ใช่ KCP เป็นเครื่องมืออิสระที่นักศึกษาพัฒนา และไม่ได้รับการรับรองจาก สจล."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "KCP ลงทะเบียนเรียนให้ได้ไหม",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "ไม่ได้ KCP ใช้วางแผนเท่านั้น การลงทะเบียนจริงยังทำบนเว็บไซต์ลงทะเบียนตามปกติ"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "ใช้บนโทรศัพท์ได้ไหม",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "ยังไม่ได้ เพราะ Chrome บนโทรศัพท์ไม่รองรับส่วนขยาย เวอร์ชันเว็บที่อยู่ระหว่างพัฒนามีแผนให้ใช้ได้โดยไม่ต้องติดตั้ง"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "ใช้ได้กับทุกคณะไหม",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "ได้ KCP อ่านข้อมูลเดียวกับเว็บไซต์ลงทะเบียน จึงค้นหาได้ทุกคณะและทุกหลักสูตร"
+                }
+              }
+            ]
           }
         ]
       }
