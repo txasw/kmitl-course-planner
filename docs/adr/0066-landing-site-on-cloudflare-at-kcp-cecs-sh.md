@@ -169,10 +169,12 @@ stylesheet and without defer, and sets `.motion` unless the reader prefers reduc
 before the first layout. Without the script, or with reduced motion, every block renders its
 final state; a site test fails if any rule outside `.motion` sets opacity 0 or a transform. Only
 transform and opacity animate, rows and blocks move inside boxes that keep their size, and
-measured cumulative layout shift is 0. Path A, in Chrome, Edge and Safari 26, scrubs the reveals,
-the hero frame, the plate parallax and the closing band on a scroll or view timeline; path B,
-elsewhere, plays the same end states with transitions from classes that intersection observers
-set, with no scroll listener anywhere. The two pinned scenes, the dedupe merge and the three beat
+measured cumulative layout shift is 0. Path A, in every browser with scroll driven animations,
+which includes Chrome, Edge, Safari 26 and current Firefox (the Firefox 159 that Playwright drives
+runs path A), scrubs the reveals, the hero frame, the plate parallax and the closing band on a
+scroll or view timeline; path B, the fallback for a browser without scroll driven animations,
+plays the same end states with transitions from classes that intersection observers set, with no
+scroll listener anywhere. The two pinned scenes, the dedupe merge and the three beat
 timetable story, step on their own clock in both paths, as the pacing note below records. Pinned
 progress comes from zero height sentinels, each placed one header height above its point and
 watched by an observer whose band runs from far above the window down to its top edge, with
@@ -339,7 +341,7 @@ next step, fades it out in 150 ms. Progress, rest and resumption all come from t
 sentinels, so the page still has no scroll, wheel or touch listener, and a site test now checks
 all three. The cue stays away past nine tenths of a scene's pinned scroll, where the pin is about
 to let go and the next section is coming into view, which also covers the last beat of the last
-scene. Its text is #5c5c5c on white, 6.9 to 1, and #a1a1a6 on the story's #111113, about 7.6 to 1.
+scene. Its text is #5c5c5c on white, 6.69 to 1, and #a1a1a6 on the story's #111113, 7.33 to 1.
 Without the script or with reduced motion the scenes do not pin and the meter is not displayed,
 which a site test checks. Measured in Chromium and Firefox at 1440 by 900 and 375 by 553, the cue
 shows about a second after the step settles and is gone 250 ms after a 60 px wheel turn.
@@ -372,3 +374,78 @@ at 13 px, still 40 px tall. Under 390 px the English headline sets its size from
 width, `clamp(30px, (100vw - 40px) / 8.9, 40px)`, and keeps its second phrase on one line, so
 "before you register." no longer leaves its last word alone at 320 to 375 px, with or without
 the script; the English page is 50 to 70 px shorter there as a result.
+
+## Amendment, 2026-11-09: content that moves through every hold
+
+The rail and the cue did not settle the owner's point. A reader who scrolls slowly and does not
+stop never sees the cue, and the rail, a 2 px hairline at the window's foot, was the only thing
+that moved: on the story it advanced 6 to 7 px for each 100 px of scroll. Measured with a
+reader's eye probe, which screenshots every frame of a continuous 150 and 300 px/s scroll,
+averages each 4 by 4 pixel box in greyscale, counts a box as changed past 20 levels and a frame
+as unchanged while no more than two boxes differ from the first frame of a stretch, allows 3 px
+of vertical shift and masks the header and the meter, the content stood still for up to 601 px
+of scroll in Firefox and 638 px in Chromium while pinned. Six changes answer that, and none of
+them touches the steps' own clock.
+
+Content that moves. Every hold now moves its content with the scroll, while the stepped end
+state stays whole, in place and legible. On the merged dedupe card an orange ring reads down the
+four sections: it rests on a row, then glides to the next, a white panel lights under the row it
+rests on, and each row's chip, the count of its listings, keeps a thin ring once its row has
+been read, so the card never returns to a state it has shown. On the story a ring visits the
+placed blocks one after another under beat one and again under beat three, the landed section
+last; before beat two a dashed slot brightens over the Tuesday morning the dragged section drops
+onto, under beat two a red ring visits the clash and then the chip that names it, and a green
+dashed slot brightens, dims a little and brightens again over the Wednesday afternoon it will
+move to; under beat three a soft
+panel lights behind the credit readout. Each item names its window as shares of the pinned
+scroll, `--from` and `--to`. Path A plays it on the track's view timeline over that range, and
+path B reads it from `--progress`, which `site.js` now sets on the pin from the same 61
+sentinels and a 250 ms transition smooths. Every highlight is a ring, a panel or a dashed slot
+on a pseudo element of its own that animates opacity and transform only, so no stepped
+transition is touched and no text loses contrast. The chip tint of the previous round is
+removed: it brought the chip's text under 4.5 to 1. A slow scale drift of the card and the grid
+was left out, since a scaled layer can rest with soft text and a larger story grid would leave a
+short window.
+
+The rail. It is now 3 px tall and sits just under the scene's content, under the merged card and
+under the timetable, instead of at the window's edge. Its width is a tenth of the track's pinned
+scroll, which each track now names `--pinned` and also uses for its height, so both rails fill
+at 10 px per 100 px of scroll, capped by the window on a narrow phone. The meter box hugs the
+rail and the cue.
+
+The cue. While it shows, the reader's first wheel, touch or key hides it at once, through
+passive listeners on the window that exist only while the cue shows and are removed together by
+one AbortController when it hides. A 4 px wheel turn, a key press or a tap starts its 150 ms
+fade at once in Chromium and Firefox at 1440 by 900 and 375 by 553. The page still has no
+scroll or touch move listener, and the site test now checks the nudge listeners in place of the
+wheel rule.
+
+Exits in path B. Path B is the fallback for a browser without scroll driven animations; the
+Firefox that Playwright drives runs path A. Its exit no longer fades to 0.35 on a clock once the
+pin lets go. Twelve more sentinels sit past each release, over the 80 percent of a window the
+scroll driven exit uses, and `site.js` sets `--leave` from them, so the stage dims, shrinks and
+moves at the pace of the scroll and a reader who stops just past the release is not left with a
+ghosted card.
+
+Reveals. A revealed block fades linearly with the scroll and only its rise keeps the long
+exponential curve, and a short block takes at least 96 px of scroll, so the heading and sub after
+the story no longer jump from about half to nearly full strength in one frame. The closing band
+shares the range, so its heading and badges stand whole once their top is 96 px above the
+window's foot when that is later than 85 percent down.
+
+Shorter tails. The dedupe track pins for `max(150svh, 1300px)` instead of 175svh, so the merged
+card no longer holds about 1.15 s at 850 px/s on a laptop. The story floor drops from 2,800 to
+2,760 px with its lines at -0.15, 0.245 and 0.61, so the first two beats keep their pixel
+positions and the stretch after beat three falls from 1,120 to 1,076 px. A cut to the 600 px a
+700 ms hold alone would need was not possible: a reader at 850 px/s spends about 440 ms of that
+stretch watching beat three play, and a trim to 1,055 px already measured beat three at 701 ms in
+Chromium. The Thai page is 261 px shorter at 1440 by 900, 217 px at 390 by 844 and 40 px at
+375 by 553, 360 by 640 and 320 by 640.
+
+Measured again, the longest stretch of unchanged content while pinned, with the rail masked, is at
+most 172 px in Firefox and 135 px in Chromium at 150 and 300 px/s on 1440 by 900, 390 by 844
+and 375 by 553 windows, against up to 601 px and 638 px before, and no revealed block changes
+its opacity by more than 0.3 in one frame. With the round five pacing probes, every end state,
+the merged dedupe and each beat, is fully visible while pinned for at least 733 ms in Chromium
+and 684 ms in Firefox at 300, 500 and 850 px/s on 1440 by 900, 390 by 844, 375 by 553 and
+360 by 640 windows.
