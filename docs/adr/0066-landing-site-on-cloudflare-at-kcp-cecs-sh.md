@@ -442,10 +442,58 @@ stretch watching beat three play, and a trim to 1,055 px already measured beat t
 Chromium. The Thai page is 261 px shorter at 1440 by 900, 217 px at 390 by 844 and 40 px at
 375 by 553, 360 by 640 and 320 by 640.
 
-Measured again, the longest stretch of unchanged content while pinned, with the rail masked, is at
-most 172 px in Firefox and 135 px in Chromium at 150 and 300 px/s on 1440 by 900, 390 by 844
-and 375 by 553 windows, against up to 601 px and 638 px before, and no revealed block changes
+Measured again, the longest stretch of unchanged content while pinned, with the rail masked, was
+172 to 195 px in Firefox and 135 to 168 px in Chromium across two independent runs at 150 and
+300 px/s on 1440 by 900, 390 by 844 and 375 by 553 windows, against up to 601 px and 638 px
+before, and no revealed block changes
 its opacity by more than 0.3 in one frame. With the round five pacing probes, every end state,
 the merged dedupe and each beat, is fully visible while pinned for at least 733 ms in Chromium
 and 684 ms in Firefox at 300, 500 and 850 px/s on 1440 by 900, 390 by 844, 375 by 553 and
 360 by 640 windows.
+
+## Amendment, 2026-11-09: rows that light in place and writes that stay small
+
+An independent review of the previous round passed its still stretch gate and found three faults
+in what it added.
+
+Rows that light in place. The ring that glided down the merged dedupe card straddled two rows for
+about half of its window, so its top and bottom edges ran through row text, which on a card about
+merged duplicates read as rows being struck out, and a reader who stopped mid glide was left
+there with the keep scrolling cue under it. Path B moved it by a linear translate with no rests.
+The gliding ring is gone. Each kept row carries its own orange ring on the white panel it
+already lit, both on one pseudo element that never moves: in over the first 30 percent of a
+window of 0.3481 of the pinned scroll, out over the last 30, one row every 0.2437, so the fall
+of one row is the rise of the next and the last row is whole as the pin lets go. No edge can
+cross text on the six column table or the compact phone rows, and a reader who stops anywhere
+finds one row lit, or two faint ones while one hands on to the next. Path B fades the same
+windows from the progress points with its 250 ms transition. Each chip takes its thin ring in
+the middle of its row's rest, from 0.11 of the row's window for 0.075 of the pinned scroll.
+
+Writes that stay small. `site.js` wrote `--progress` and `--leave` on the whole pin at each of
+the 73 progress points, every 22 to 46 px of scroll, even in path A, where nothing reads them.
+An inherited custom property set on the pin restyles the scene's whole subtree, and at a 4x CPU
+throttle in Chromium the dedupe hold dropped up to 45 percent of its frames against under 3
+percent in round six. Path A now writes neither. Path B writes `--progress` only on the rail fill
+and the elements that host the highlights, the kept dedupe rows, the story cards, the ghost and
+the readout, and `--leave` only on the pin, where `site.css` registers it with `@property` as a
+number that is not inherited, so a new value restyles the pin alone; a write that would not
+change its value is skipped. The site test checks that every element the stylesheet moves from
+`--progress` is one of those followers or sits inside one.
+
+One dip. The green slot over the Wednesday afternoon dimmed twice, to 0.45 halfway through its
+window and to 0.6 at 85 percent, a flicker just before beat three lands. The second dip is gone,
+so it brightens, dims a little and brightens again, as described, and stands whole for the last
+30 percent of its window.
+
+Measured with the same probes. At a 4x CPU throttle in Chromium, 300 and 850 px/s, 1440 by 900
+and 390 by 844, path A dropped 0 to 2.2 percent of the frames in each hold over two runs, with a
+95th percentile frame of 16.7 to 16.8 ms, against 5 to 92 percent and 33 to 50 ms for the
+previous round and 0 to 2.8 percent for round six, apart from one 13 percent outlier, on the same
+machine. Forced path B dropped 0 to 1.6 percent in every run but one, which dropped 5.7 and 6.6
+percent and 0 and 0.5 percent when repeated. With the rail masked the longest stretch of
+unchanged content while pinned is 27 to 166 px in Chromium and 109 to 199 px in Firefox across
+two runs at 150 and 300 px/s on 1440 by 900, 390 by 844 and 375 by 553 windows, and at most
+96 px in forced path B in Chromium; no revealed block changes its opacity by more than 0.3 in one
+frame. With the round five pacing probes, every end state, the merged dedupe and each beat, is
+fully visible while pinned for at least 733 ms in Chromium and 714 ms in Firefox at 300, 500 and
+850 px/s on 1440 by 900, 390 by 844, 375 by 553 and 360 by 640 windows.
