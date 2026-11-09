@@ -409,13 +409,15 @@
     };
   }
 
-  // The dedupe stage plays from its first line. Its first step is a lead in: the repeats
-  // fade while the counter turns from rows to sections, and a beat later the sections
-  // close up and take their labels, so the merge completes within about 1.4 s and no
-  // stop rests on a card the repeats have left half empty. The second line only tells
-  // the stage the reader has moved on, which quickens the close up. The thirteen rows
-  // hold before the first line and the merged sections for the rest of the track.
-  const DEDUPE_LINES = [0.05, 0.15];
+  // The dedupe stage plays from its first line, which it crosses while the card is still
+  // rising the last tenth of its track to the header, so the merge is done early in the
+  // pinned scroll. Its first step is a lead in: the repeats fade while the counter turns
+  // from rows to sections, and a beat later the sections close up and take their labels,
+  // so the merge completes within about 1.4 s and no stop rests on a card the repeats
+  // have left half empty. The second line only tells the stage the reader has moved on,
+  // which quickens the close up. The thirteen rows show before the first line and the
+  // merged sections hold for the rest of the track.
+  const DEDUPE_LINES = [-0.1, 0.05];
   const DEDUPE_STEPS = [
     { time: 800, scale: 0.65, lead: true },
     { time: 1000, scale: 0.75 },
