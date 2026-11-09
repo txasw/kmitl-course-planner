@@ -3606,7 +3606,15 @@ h4 {
 /* Path B: the scroll linked layer and the exits read the points site.js watches. A sweep
    follows the share of its window the scroll has passed, --u, and a scene whose pin has
    let go sinks or lifts, shrinks and dims at the pace of the scroll, --leave, as the
-   scroll driven exit does. */
+   scroll driven exit does. site.js sets --progress on the few elements that read it, and
+   --leave on the pin, which alone reads it: registered as not inherited, a new value
+   restyles the pin and none of the scene inside it. */
+@property --leave {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
 @media (min-height: 540px) {
   /* The dedupe rows hand on at the points site.js watches, each step a short fade. */
   .motion.no-sda .dedupe tr[data-row='first']::before {
