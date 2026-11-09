@@ -311,3 +311,64 @@ heading at about half strength and the badges short of full. They now rise on th
 every revealed block and stand at full strength once their top is 85 percent down the window, and
 the band clips its glow with `overflow: clip`, which unlike `overflow: hidden` makes it no scroll
 container that would capture that view.
+
+## Amendment, 2026-11-09: holds that keep moving and scenes that leave on purpose
+
+The owner found that a slow scroll through a pinned hold changed nothing for a long stretch, so
+the page looked frozen: on a 375 by 553 phone the merged dedupe card held for about 1,100 px,
+3.6 s at 300 px/s, and the story held between its beats and after the third. A scene that let go
+also just slid away. Five changes answer that, and none of them touches the steps' own clock.
+
+The scene meter. Each pinned stage carries a meter at its foot, decoration hidden from assistive
+technology and holding nothing that takes focus: a 200 px rail that fills across the scene's
+pinned scroll, with a mark at each step line that fills once its step has played. In path A the
+rail fills on the track's own view timeline, measured below the header with
+`view-timeline-inset`, so its contain range is exactly the pinned scroll, and each mark grows as
+the scroll nears it, a hint that the next beat is close. In path B the rail fills from 61 zero
+height sentinels per track, at sixtieths of the pinned scroll and watched like the step lines,
+with a 250 ms transition from one point to the next, so it moves every 22 to 47 px of scroll. The
+dedupe meter shows only once the merge has played, since the thirteen rows reach the foot of a
+short window. During the long merged hold path A also fills each section's chip, the one that
+counts its curricula, with a deeper tint, one chip after another down the table; a first try drew
+a line under each chip instead, which read as a link. Path B keeps the chips still.
+
+The keep scrolling cue. When a step has finished, the scene is pinned and no progress point has
+moved for one second, a 13 px label, เลื่อนต่อ or Keep scrolling, with a chevron drawn as inline
+SVG fades in above the rail and the chevron bobs 3 px. The next point the scroll crosses, or the
+next step, fades it out in 150 ms. Progress, rest and resumption all come from the same
+sentinels, so the page still has no scroll, wheel or touch listener, and a site test now checks
+all three. The cue stays away past nine tenths of a scene's pinned scroll, where the pin is about
+to let go and the next section is coming into view, which also covers the last beat of the last
+scene. Its text is #5c5c5c on white, 6.9 to 1, and #a1a1a6 on the story's #111113, about 7.6 to 1.
+Without the script or with reduced motion the scenes do not pin and the meter is not displayed,
+which a site test checks. Measured in Chromium and Firefox at 1440 by 900 and 375 by 553, the cue
+shows about a second after the step settles and is gone 250 ms after a 60 px wheel turn.
+
+Designed exits. In path A each pin plays over the first 80 percent of its track's exit range,
+which begins exactly where the pin lets go: the dedupe stage sinks 14svh slower than the page,
+shrinks to 0.94 and dims to 0.2 while the dark band rises over it, and the story lifts 6svh
+faster than its band, shrinks to 0.98 and dims to 0.2 as the next section comes up. In path B a
+pin takes `.is-leaving` once the sentinel at its release point has crossed and eases to 0.35
+opacity over 600 ms, on a clock, since only that point is known there. Both start at release, so
+they take nothing from the pinned holds.
+
+The short phone hold. The dedupe floor drops from 1,500 px to 1,300 px of pinned scroll. The
+merge takes about 0.9 s at 850 px/s, so the shorter floor alone would have cut the merged hold
+under the target; its first line therefore moves from 0.05 to -0.1 of the track, crossed while the
+card rises its last stretch to the header, and its second from 0.15 to 0.05. Measured with the
+round five probes, which now leave out animations on a scroll timeline and anything inside the
+meter when they ask whether a scene has settled, and which now also require the pin at full
+opacity, every end state, the merged dedupe and each beat, is fully visible while pinned for at
+least 766 ms in Chromium and 717 ms in Firefox at 300, 500 and 850 px/s on 1440 by 900, 390 by
+844, 375 by 553 and 360 by 640 windows, and every slow or jumping stop inside the dedupe track
+rests on the merged card. The Thai page is 200 px shorter at 375 by 553, 360 by 640 and 320 by
+640, 23 px shorter at 390 by 844, where 175svh is 1,477 px, and unchanged at 1440 by 900.
+
+Three smaller fixes. The closing band's mark rose on the band's own view timeline over a range
+that ended late, so at rest it sat at about two thirds strength under a heading already whole; it
+now rises on its own view over the same range as the heading and the badges and is upright first,
+since it sits above them. The web version pill sets its label at 14 px and its coming soon badge
+at 13 px, still 40 px tall. Under 390 px the English headline sets its size from the window
+width, `clamp(30px, (100vw - 40px) / 8.9, 40px)`, and keeps its second phrase on one line, so
+"before you register." no longer leaves its last word alone at 320 to 375 px, with or without
+the script; the English page is 50 to 70 px shorter there as a result.
