@@ -357,9 +357,9 @@
   /**
    * Drive a pinned scene's meter. The rail takes a mark for each step line, filled once
    * its step has played; where the browser has no scroll driven animations the rail fills
-   * from --progress. The cue shows when a step has finished, the scene is pinned and no
-   * progress point has moved for IDLE_MS, and it hides at the next point the scroll
-   * crosses or the next step.
+   * from --progress, and the scene leaves with .is-leaving once its pin lets go. The cue
+   * shows when a step has finished, the scene is pinned and no progress point has moved
+   * for IDLE_MS, and it hides at the next point the scroll crosses or the next step.
    */
   function sceneMeter(pin, track, lines) {
     const meter = pin.querySelector('.scene-meter');
@@ -391,6 +391,7 @@
       crossed = count;
       const progress = Math.min(Math.max((count - 1) / RAIL_STEPS, 0), 1);
       meter?.style.setProperty('--progress', String(progress));
+      pin.classList.toggle('is-leaving', count > RAIL_STEPS);
       wait();
     });
     return {

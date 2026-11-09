@@ -3388,13 +3388,35 @@ h4 {
     opacity: 1;
     transition: opacity 400ms linear 400ms;
   }
+
+  /* Path B: a scene whose pin has let go eases back and dims as the next section takes
+     the window, on a clock, since only the point where it lets go is known. */
+  .motion.no-sda .dedupe-pin,
+  .motion.no-sda .story__pin {
+    transition:
+      opacity 600ms linear,
+      transform 800ms var(--ease-out-expo);
+  }
+
+  .motion.no-sda .dedupe-pin.is-leaving {
+    opacity: 0.35;
+    transform: translateY(6svh) scale(0.96);
+  }
+
+  .motion.no-sda .story__pin.is-leaving {
+    opacity: 0.35;
+    transform: translateY(-3svh) scale(0.98);
+  }
 }
 
 /* Path A. Each pinned track is a view timeline measured below the header, so its contain
-   range is exactly the pinned scroll, the stretch the rail fills. During the long merged
-   hold, each section's chip fills with a deeper tint behind the curricula it counts, one
-   after another down the table, as the scroll moves on; a fill, not a line, so no chip
-   reads as a link. */
+   range is exactly the pinned scroll, the stretch the rail fills, and its exit range is
+   the scroll over which the released stage leaves the window. The dedupe stage sinks a
+   little slower than the page, shrinks and dims as the dark band rises over it; the story
+   lifts a little faster than its band and dims as the next section comes up. During the
+   long merged hold, each section's chip fills with a deeper tint behind the curricula it
+   counts, one after another down the table, as the scroll moves on; a fill, not a line,
+   so no chip reads as a link. */
 @supports (animation-timeline: view()) {
   @media (min-height: 540px) {
     .motion:not(.no-sda) .dedupe-track,
@@ -3414,6 +3436,18 @@ h4 {
       animation-timeline: --scene;
       animation-range: contain calc(var(--at) * 100% - 12%) contain
         calc(var(--at) * 100%);
+    }
+
+    .motion:not(.no-sda) .dedupe-pin {
+      animation: dedupe-leave linear both;
+      animation-timeline: --scene;
+      animation-range: exit 0% exit 80%;
+    }
+
+    .motion:not(.no-sda) .story__pin {
+      animation: story-leave linear both;
+      animation-timeline: --scene;
+      animation-range: exit 0% exit 80%;
     }
 
     .motion:not(.no-sda) .dedupe tr[data-row='first'] .dedupe__chip {
@@ -3470,6 +3504,20 @@ h4 {
 
   to {
     transform: none;
+  }
+}
+
+@keyframes dedupe-leave {
+  to {
+    opacity: 0.2;
+    transform: translateY(14svh) scale(0.94);
+  }
+}
+
+@keyframes story-leave {
+  to {
+    opacity: 0.2;
+    transform: translateY(-6svh) scale(0.98);
   }
 }
 
