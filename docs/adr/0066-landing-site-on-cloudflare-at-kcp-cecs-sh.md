@@ -535,7 +535,8 @@ next word. The structured data gives the site, the application and the author th
 on both pages, since crawlers merge nodes by @id, and adds a WebPage node for each page's
 address, language and description and a FAQPage node that repeats the visible questions
 and answers word for word. The phone crop of the hero image, measured as the largest paint
-at 390 by 844, gets its own preload under the phone media query. `/en`, `/index.html` and
+at 390 by 844, gets its own preload on phones at least 740 px tall; on a phone 640 px tall or
+shorter it starts below the first screen and keeps no preload. `/en`, `/index.html` and
 `/en/index.html` redirect permanently through `_redirects`; under `wrangler dev` each lands in
 one hop and `/en/` still answers 200.
 
