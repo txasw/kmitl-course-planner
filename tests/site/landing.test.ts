@@ -575,6 +575,11 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
       expect(meter?.querySelector('.scene-cue svg')).not.toBeNull();
       expect(meter?.querySelector('a, button, input, [tabindex]')).toBeNull();
     }
+    // Each sits just under its scene's content, where the reader's eye already is.
+    expect(doc.querySelectorAll('.dedupe-stage > .scene-meter')).toHaveLength(
+      1,
+    );
+    expect(doc.querySelectorAll('.story__grid > .scene-meter')).toHaveLength(1);
   });
 
   it('follows the copy tone rules', () => {
@@ -740,19 +745,37 @@ describe('site files', () => {
 
   // A short phone gives few pixels of scroll to a track sized in screens alone, and a
   // steady scroll would pass a scene's end state before it had held. Every pinned scene
-  // track keeps a pixel floor under its screen based length.
+  // track keeps a pixel floor under its screen based length, its --pinned scroll, which
+  // also sizes the track and the scene's rail.
   it('keeps a pixel floor under every pinned scene track', () => {
-    const heights = cssRules()
-      .filter((rule) =>
-        rule.selectors.some(
-          (s) => s === '.motion .dedupe-track' || s === '.motion .story__track',
-        ),
-      )
-      .flatMap((rule) => rule.decls.filter((d) => d.startsWith('height:')));
-    expect(heights.length).toBeGreaterThanOrEqual(3);
-    for (const height of heights) {
-      expect(height).toMatch(/max\(\d+svh[^,]*, \d+px\)/);
+    const tracks = cssRules().filter((rule) =>
+      rule.selectors.some(
+        (s) => s === '.motion .dedupe-track' || s === '.motion .story__track',
+      ),
+    );
+    const pinned = tracks.flatMap((rule) =>
+      rule.decls.filter((d) => d.startsWith('--pinned:')),
+    );
+    expect(pinned.length).toBeGreaterThanOrEqual(3);
+    for (const length of pinned) {
+      expect(length).toMatch(/max\(\d+svh[^,]*, \d+px\)/);
     }
+    const heights = tracks.flatMap((rule) =>
+      rule.decls.filter((d) => d.startsWith('height:')),
+    );
+    expect(heights.length).toBe(2);
+    for (const height of heights) {
+      expect(height).toBe(
+        'height: calc(100svh - var(--header-h) + var(--pinned))',
+      );
+    }
+    // Every rail fills a tenth of a pixel for each pixel of pinned scroll.
+    const rail = cssRules().find((rule) =>
+      rule.selectors.includes('.motion .scene-rail'),
+    );
+    expect(rail?.decls).toContain(
+      'width: min(calc(var(--pinned) / 10), 100vw - 72px)',
+    );
   });
 
   // The closing band is the page's last call to action: its mark, heading and badges
