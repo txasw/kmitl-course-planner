@@ -196,13 +196,15 @@ function plate(manifest, id, locale, alt, sizes, className = 'plate') {
 }
 
 // The section links name the page they belong to only when the header sits on another
-// page, the not found page, so they never point at an anchor the page lacks.
+// page, the not found page, so they never point at an anchor the page lacks. The brand
+// link is a flex row, which drops any space between its items from the name a browser
+// computes, so the link states its name, KCP and the word for home, in a label.
 function header(copy, base = '') {
   const other = copy.other;
   return `<a class="skip" href="#content">${copy.skip}</a>
 <header class="site-header">
 <div class="container site-header__inner">
-<a class="brand" href="${copy.path}">${mark(28)}<span class="brand__word" lang="en">KCP</span><span class="visually-hidden">${copy.nav.home}</span></a>
+<a class="brand" href="${copy.path}" aria-label="KCP ${copy.nav.home}">${mark(28)}<span class="brand__word" lang="en">KCP</span></a>
 <nav class="site-nav" aria-label="${copy.nav.label}">
 <ul>
 <li class="site-nav__wide"><a href="${base}#features">${copy.nav.features}</a></li>
