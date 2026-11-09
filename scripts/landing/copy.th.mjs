@@ -8,10 +8,11 @@ export const th = {
   lang: 'th',
   path: '/',
   // The verb phrase students search with leads the Thai half of the title and the
-  // description, after the brand.
-  title: 'KCP: Course Planner for KMITL | จัดตารางเรียน สจล.',
+  // description, after the brand. The description leads with what wins the click, free
+  // and the clash check, and stays near 135 characters so a result shows all of it.
+  title: 'KCP: Course Planner for KMITL | จัดตารางเรียน สจล. ก่อนลงทะเบียน',
   description:
-    'จัดตารางเรียน สจล. (KMITL) ก่อนลงทะเบียนด้วย KCP ส่วนขยาย Chrome และ Firefox เปลี่ยนผลค้นหารายวิชาเป็นตารางเรียนรายสัปดาห์แบบลากวาง รวมรายการที่ซ้ำ แจ้งเวลาเรียนและเวลาสอบที่ชนกัน ใช้ฟรี',
+    'จัดตารางเรียน สจล. (KMITL) ก่อนลงทะเบียนเรียน ด้วย KCP ส่วนขยายฟรีสำหรับ Chrome และ Firefox ลากกลุ่มเรียนลงตารางรายสัปดาห์ เห็นเวลาเรียนและวันสอบที่ชนกันทันที',
   ogLocale: 'th_TH',
   ogLocaleAlt: 'en_US',
   ogImageAlt:
@@ -36,7 +37,7 @@ export const th = {
     line1:
       '<span class="phrase">เห็นตารางเรียน</span><wbr><span class="phrase">ทั้งสัปดาห์</span>',
     line2: '<span class="phrase">ก่อนลงทะเบียนจริง</span>',
-    lede: 'ส่วนขยายที่เปลี่ยนผลค้นหารายวิชาของ สจล. เป็นตารางเรียนแบบลากวาง',
+    lede: 'ส่วนขยายสำหรับจัดตารางเรียน สจล. ที่เปลี่ยนผลค้นหารายวิชาเป็นตารางรายสัปดาห์แบบลากวาง',
     // The Chrome badge names one browser, so the line beside it names the others it serves.
     // Its last words stay together, so a narrow phone never leaves ด้วย alone on a line.
     fine: `ใช้ฟรี โอเพนซอร์ส รองรับ ${EN('Edge, Brave')} <span class="nw">และ ${EN('Opera')} ด้วย</span>`,
@@ -70,7 +71,7 @@ export const th = {
       `<span class="count__num">${c.sections}</span> กลุ่มเรียน`,
   },
   story: {
-    h2: 'จัดตารางแบบลากวาง',
+    h2: 'จัดตารางเรียนแบบลากวาง',
     beats: [
       'ลากกลุ่มเรียนลงตาราง',
       'ชนกันก็เห็นก่อนวาง',
