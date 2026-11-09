@@ -852,6 +852,21 @@ describe('site files', () => {
     }
   });
 
+  // A revealed block fades in step with the scroll, so a steady scroll never sees it
+  // jump most of the way to full strength in one frame; only its rise is eased.
+  it('fades every revealed block linearly with the scroll', () => {
+    const css = readFileSync(join(SITE, 'assets/site.css'), 'utf8');
+    const fade = /@keyframes reveal-fade \{([\s\S]*?)\n\}/.exec(css)?.[1];
+    expect(fade).toBeDefined();
+    expect(fade).not.toContain('animation-timing-function');
+    const reveal = cssRules().find((rule) =>
+      rule.selectors.includes('.motion:not(.no-sda) [data-reveal]'),
+    );
+    expect(reveal?.decls).toContain(
+      'animation: reveal-fade linear both, reveal-rise linear both',
+    );
+  });
+
   it('loads no remote url from the stylesheet', () => {
     const css = readFileSync(join(SITE, 'assets/site.css'), 'utf8');
     for (const match of css.matchAll(/url\(\s*['"]?([^'")]+)/g)) {
