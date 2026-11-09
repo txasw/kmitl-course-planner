@@ -126,7 +126,9 @@ Do not add the domain in the dashboard. The route in `wrangler.jsonc`, `kcp.cecs
 stay off through the same file, so the site has one public address.
 
 A push that changes no watched path, such as a change to the extension alone, starts no
-build. To roll back, revert the change on `main`, or pick an earlier version under the
+build. Cloudflare does not state whether the `*` in a watch path crosses a `/`, so after
+connecting the Worker, confirm once that a change only under `site/en/` starts a build and
+a change only under `src/` does not. To roll back, revert the change on `main`, or pick an earlier version under the
 Worker's Deployments in the dashboard. To deploy by hand, run `pnpm exec wrangler login`
 once and then `pnpm exec wrangler deploy` from the repository root.
 
