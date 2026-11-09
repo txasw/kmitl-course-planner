@@ -186,8 +186,14 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
   });
 
   // The lockup and the headline are separate block lines, so only a space between them
-  // keeps a parser from reading the brand and the headline as one word.
-  it('separates the words of its headings in their text', () => {
+  // keeps a parser from reading the brand and the headline as one word. The brand link
+  // is a flex row, whose item gaps no name computation keeps, so it carries a label.
+  it('separates the words of its headings and its home link in their text', () => {
+    const home = doc.querySelector('a.brand');
+    expect(home?.getAttribute('aria-label')).toBe(
+      locale === 'th' ? 'KCP หน้าแรก' : 'KCP home',
+    );
+    expect(home?.textContent.trim()).toBe('KCP');
     expect(doc.querySelector('h1')?.textContent).toMatch(/KMITL\s+\S/);
     const problem = doc.getElementById('problem-title');
     const lines = [...(problem?.querySelectorAll('.statement__line') ?? [])];
