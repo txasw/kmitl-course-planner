@@ -316,9 +316,9 @@
 
   // A pinned scene's progress, in RAIL_STEPS equal parts of its pinned scroll, and how far
   // it has left, in EXIT_STEPS equal parts of the scroll over which its stage leaves the
-  // window, from sentinels placed as the step lines are: so the rail and the exit can
-  // follow the scroll where the browser has no scroll driven animations, and so the scene
-  // knows the reader is moving, without a scroll listener.
+  // window, from sentinels placed as the step lines are: so the rail, the scene's moving
+  // highlights and its exit can follow the scroll where the browser has no scroll driven
+  // animations, and so the scene knows the reader is moving, without a scroll listener.
   // Reports how many points lie above the line under the header: 0 before the pin,
   // RAIL_STEPS + 1 once the pin has let go, RAIL_STEPS + 1 + EXIT_STEPS once the exit is
   // done.
@@ -371,13 +371,14 @@
   const NUDGES = ['wheel', 'touchstart', 'keydown'];
 
   /**
-   * Drive a pinned scene's meter. The rail takes a mark for each step line, filled once
-   * its step has played. Where the browser has no scroll driven animations the pin
-   * carries --progress, from 0 to 1 across the pinned scroll, which fills the rail, and
-   * --leave, from 0 to 1 across the exit, which plays the exit at the pace of the scroll.
-   * The cue shows when a step has finished, the scene is pinned and no progress point has
-   * moved for IDLE_MS, and it hides at the next point the scroll crosses, the next step,
-   * or the reader's first nudge.
+   * Drive a pinned scene's meter and its scroll linked layer. The rail takes a mark for
+   * each step line, filled once its step has played. Where the browser has no scroll
+   * driven animations the pin carries --progress, from 0 to 1 across the pinned scroll,
+   * which fills the rail and moves the scene's highlights, and --leave, from 0 to 1 across
+   * the exit, which plays the exit at the pace of the scroll. The cue shows when a step
+   * has finished, the scene is pinned and no progress point has moved for IDLE_MS, and it
+   * hides at the next point the scroll crosses, the next step, or the reader's first
+   * nudge.
    */
   function sceneMeter(pin, track, lines) {
     const meter = pin.querySelector('.scene-meter');
