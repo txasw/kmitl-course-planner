@@ -814,7 +814,7 @@ h4 {
   background: transparent;
   color: var(--site-ink-soft);
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 20px;
   cursor: default;
 }
@@ -826,6 +826,7 @@ h4 {
 
 .soon .badge {
   margin-left: 2px;
+  font-size: 13px;
   background: var(--site-chip);
   color: var(--site-ink-soft);
 }
