@@ -826,6 +826,28 @@ describe('site files', () => {
     }
   });
 
+  // A released scene leaves on purpose rather than sliding off at once: on a scroll
+  // driven browser over the exit range of its track, elsewhere on the class site.js
+  // sets once its pin has let go. Neither end state hides it outright.
+  it('gives each pinned scene a designed exit', () => {
+    const rules = cssRules();
+    for (const pin of ['.dedupe-pin', '.story__pin']) {
+      const scrolled = rules.find(
+        (rule) =>
+          rule.selectors.includes(`.motion:not(.no-sda) ${pin}`) &&
+          rule.decls.some((d) => d.startsWith('animation-timeline:')),
+      );
+      expect(scrolled?.decls, pin).toContain(
+        'animation-range: exit 0% exit 80%',
+      );
+      const leaving = rules.find((rule) =>
+        rule.selectors.includes(`.motion.no-sda ${pin}.is-leaving`),
+      );
+      expect(leaving?.decls.some((d) => d.startsWith('opacity:'))).toBe(true);
+      expect(leaving?.decls).not.toContain('opacity: 0');
+    }
+  });
+
   it('loads no remote url from the stylesheet', () => {
     const css = readFileSync(join(SITE, 'assets/site.css'), 'utf8');
     for (const match of css.matchAll(/url\(\s*['"]?([^'")]+)/g)) {
