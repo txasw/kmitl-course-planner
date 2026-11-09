@@ -15,6 +15,8 @@ export const en = {
   ogImageAlt:
     'A weekly timetable exported from KCP, with the name KCP: Course Planner for KMITL.',
   skip: 'Skip to content',
+  // The quiet cue under a pinned scene that has stopped on a finished step.
+  scrollOn: 'Keep scrolling',
   nav: {
     label: 'Main',
     features: 'Features',

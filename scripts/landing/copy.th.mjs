@@ -17,6 +17,8 @@ export const th = {
   ogImageAlt:
     'ตารางเรียนรายสัปดาห์ที่ส่งออกจาก KCP พร้อมชื่อ KCP: Course Planner for KMITL',
   skip: 'ข้ามไปยังเนื้อหา',
+  // The quiet cue under a pinned scene that has stopped on a finished step.
+  scrollOn: 'เลื่อนต่อ',
   nav: {
     label: 'เมนูหลัก',
     features: 'ความสามารถ',
