@@ -1019,6 +1019,32 @@ describe('site files', () => {
     expect(hand.replace(/\s+/g, ' ')).toContain('30%, 70% { opacity: 1; }');
   });
 
+  // The slot beat three lands on brightens, dims once and brightens again, and stands
+  // whole for the last stretch of its window, so nothing flickers as beat three lands.
+  it('dims the beat three slot once before it lands', () => {
+    const css = readFileSync(join(SITE, 'assets/site.css'), 'utf8');
+    const beckon = /@keyframes beckon \{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
+    const stops = [
+      ...beckon.matchAll(/((?:\d+%,?\s*)+)\{\s*opacity: ([\d.]+);/g),
+    ]
+      .flatMap(([, at = '', value = '']) =>
+        at
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .map((s) => [Number.parseFloat(s), Number(value)] as const),
+      )
+      .sort(([a], [b]) => a - b);
+    expect(stops.length).toBeGreaterThan(0);
+    const dips = stops.filter(
+      ([, value], k) => k > 0 && value < (stops[k - 1]?.[1] ?? 0),
+    );
+    expect(dips).toHaveLength(1);
+    expect(stops.filter(([at]) => at >= 70).every(([, v]) => v === 1)).toBe(
+      true,
+    );
+  });
+
   // A revealed block fades in step with the scroll, so a steady scroll never sees it
   // jump most of the way to full strength in one frame; only its rise is eased.
   it('fades every revealed block linearly with the scroll', () => {
