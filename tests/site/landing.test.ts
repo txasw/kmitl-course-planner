@@ -807,13 +807,26 @@ describe('site files', () => {
   });
 
   // The pinned scenes follow the scroll through intersection observers and scroll
-  // driven animations only, never through an event fired on every scroll frame.
-  it('listens to no scroll, wheel or touch move event', () => {
+  // driven animations only, never through an event fired on every scroll frame. The one
+  // exception is the keep scrolling cue: while it shows, the reader's first wheel, touch
+  // or key hides it, through passive listeners that are removed together once it hides.
+  it('listens to no scroll or touch move event, and to a nudge only while the cue shows', () => {
     const script = readFileSync(join(SITE, 'assets/site.js'), 'utf8');
     expect(script).not.toMatch(
-      /addEventListener\(\s*['"](?:scroll|wheel|touchmove)/,
+      /addEventListener\(\s*['"](?:scroll|wheel|touchmove|touchstart|keydown)/,
     );
     expect(script).not.toMatch(/\bon(?:scroll|wheel|touchmove)\b/);
+    expect(script).not.toMatch(/['"](?:scroll|touchmove)['"]/);
+    expect(script).toContain(
+      "const NUDGES = ['wheel', 'touchstart', 'keydown'];",
+    );
+    const listeners = [...script.matchAll(/addEventListener\(([^)]*)/g)].map(
+      ([, args = '']) => args.replace(/\s+/g, ' '),
+    );
+    const nudges = listeners.filter((args) => args.startsWith('type,'));
+    expect(nudges).toHaveLength(1);
+    expect(nudges[0]).toMatch(/passive: true, signal: nudged\.signal/);
+    expect(script).toMatch(/listening\?\.abort\(\)/);
   });
 
   // The rail and the cue show only under the motion class, so a reader without the
