@@ -6,8 +6,9 @@
 // file adds as blocks come into view. The two pinned scenes step on their own clock in
 // every browser once the scroll crosses each of their lines. It also puts the Firefox
 // badge first for a Firefox visitor, and carries the section in the address
-// across the language switch. It listens to no scroll event, sends nothing anywhere and
-// stores nothing.
+// across the language switch. It listens to no scroll event; while a keep scrolling cue
+// shows, it listens for the reader's next wheel, touch or key alone. It sends nothing
+// anywhere and stores nothing.
 
 (() => {
   const root = document.documentElement;
@@ -364,6 +365,10 @@
   // Past this share of its pinned scroll a scene is about to let go and the next section
   // is coming into view, so the cue stays away.
   const CUE_UNTIL = 0.9;
+  // The first touch of a wheel, a screen or a key while the cue shows hides it at once,
+  // even when the nudge is too small to cross the next progress point. These listeners
+  // exist only while the cue shows, are passive and never read or change the scroll.
+  const NUDGES = ['wheel', 'touchstart', 'keydown'];
 
   /**
    * Drive a pinned scene's meter. The rail takes a mark for each step line, filled once
@@ -371,8 +376,8 @@
    * carries --progress, from 0 to 1 across the pinned scroll, which fills the rail, and
    * --leave, from 0 to 1 across the exit, which plays the exit at the pace of the scroll.
    * The cue shows when a step has finished, the scene is pinned and no progress point has
-   * moved for IDLE_MS, and it hides at the next point the scroll crosses or the next
-   * step.
+   * moved for IDLE_MS, and it hides at the next point the scroll crosses, the next step,
+   * or the reader's first nudge.
    */
   function sceneMeter(pin, track, lines) {
     const meter = pin.querySelector('.scene-meter');
@@ -387,17 +392,29 @@
     let crossed = 0;
     let busy = false;
     let timer = 0;
+    let listening = null;
     const rest = () => {
       window.clearTimeout(timer);
       meter?.classList.remove('is-idle');
+      listening?.abort();
+      listening = null;
+    };
+    const idle = () => {
+      meter?.classList.add('is-idle');
+      const nudged = new AbortController();
+      listening = nudged;
+      NUDGES.forEach((type) => {
+        window.addEventListener(type, rest, {
+          passive: true,
+          signal: nudged.signal,
+        });
+      });
     };
     const wait = () => {
       rest();
       const progress = (crossed - 1) / RAIL_STEPS;
       if (!busy && progress >= 0 && progress < CUE_UNTIL) {
-        timer = window.setTimeout(() => {
-          meter?.classList.add('is-idle');
-        }, IDLE_MS);
+        timer = window.setTimeout(idle, IDLE_MS);
       }
     };
     watchProgress(track, (count) => {
