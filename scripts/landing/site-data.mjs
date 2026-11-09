@@ -309,7 +309,20 @@ export function renderDedupeRows(locale) {
     .join('\n');
 }
 
-/** The extension version the pages state, read from package.json. */
-export function extensionVersion() {
-  return readJson('package.json').version;
+/** The file that holds the version the pages state, bumped by hand (ADR-0066). */
+export const SITE_VERSION_FILE = 'scripts/landing/site-version.json';
+
+/**
+ * The extension version the pages state: the release live on both stores, kept apart from
+ * package.json. A release pull request bumps package.json before either store carries the
+ * new version, so a page that read it would fail the freshness check on that pull request,
+ * or, rebuilt there, deploy the new version early. The owner bumps this file once both stores
+ * carry the release, and that commit is the one that deploys it.
+ */
+export function siteVersion() {
+  const { version } = readJson(SITE_VERSION_FILE);
+  if (typeof version !== 'string' || !/^\d+\.\d+\.\d+$/.test(version)) {
+    throw new Error(`${SITE_VERSION_FILE} must hold a version such as 1.4.0.`);
+  }
+  return version;
 }
