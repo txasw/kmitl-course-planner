@@ -107,7 +107,7 @@ repository, and enter these settings. Connect it after the first landing change 
 | Worker name                                         | `kcp-landing`, the `name` in `wrangler.jsonc`, which the build requires to match |
 | Production branch (Settings, Build, Branch control) | `main`                                                                           |
 | Enable Preview Builds (Branch control)              | Off                                                                              |
-| Root directory                                      | Empty, the repository root                                                       |
+| Root directory                                      | `/`, the repository root, since an empty value fails the build                   |
 | Build command                                       | Empty, because `site/` is committed                                              |
 | Deploy command                                      | `pnpm exec wrangler deploy`                                                      |
 | Build watch paths, include                          | `site/*` and `wrangler.jsonc`                                                    |
