@@ -346,13 +346,33 @@ The automated publish jobs in `.github/workflows/release.yml` are gated behind t
 `chrome-web-store` and `amo` GitHub environments, each with a required reviewer, so no
 upload runs without an explicit approval. The environment secrets are configured.
 
-Chrome Web Store, on the `chrome-web-store` environment, from the Chrome Web Store API
-setup for an OAuth client:
+Chrome Web Store, on the `chrome-web-store` environment. The job uses Chrome Web Store
+API v2 with a service account, because Google retired the v1.1 API and its OAuth refresh
+token:
 
-- CHROME_EXTENSION_ID
-- CHROME_CLIENT_ID
-- CHROME_CLIENT_SECRET
-- CHROME_REFRESH_TOKEN
+- CHROME_EXTENSION_ID: the item id, `bkjijmajieoojchaknjdpbkaomnofnef`.
+- CHROME_PUBLISHER_ID: shown in the Developer Dashboard under Publisher, Settings.
+- CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL: the `client_email` field of the service account
+  JSON key.
+- CHROME_SERVICE_ACCOUNT_PRIVATE_KEY: the `private_key` field of the same key. The job
+  accepts it with real line breaks or with the escaped `
+` sequences of the JSON file.
+
+To create the service account, following
+https://developer.chrome.com/docs/webstore/service-accounts:
+
+1. In the Google Cloud console, create or select a project and enable the Chrome Web
+   Store API.
+2. Create a service account in IAM and admin, Service accounts. It needs no role.
+3. On the service account, create a key of type JSON and keep the downloaded file
+   private. Delete it once the two secrets are saved.
+4. In the Chrome Web Store Developer Dashboard, open Account and add the service account
+   email. A publisher can hold one service account.
+5. Save the four secrets on the `chrome-web-store` environment, then delete the retired
+   CHROME_CLIENT_ID, CHROME_CLIENT_SECRET, and CHROME_REFRESH_TOKEN secrets.
+
+The upload fails when a version is already waiting for review, rather than cancel that
+review, so publish the next version only after the previous one clears review.
 
 Firefox AMO, on the `amo` environment, from the AMO API key page and the gecko add-on id
 recorded in the manifest:
