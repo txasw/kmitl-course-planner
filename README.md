@@ -9,7 +9,7 @@ KCP คือส่วนขยายเบราว์เซอร์สำห�
 
 - [Chrome Web Store](https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef)
   for Chrome, Edge, Brave, Opera, and other Chromium browsers
-- [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/)
+- [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/kcp/)
   for Firefox
 - [Project site](https://kcp.cecs.sh/) in Thai, and in [English](https://kcp.cecs.sh/en/)
 
@@ -42,7 +42,7 @@ Ladkrabang (KMITL).
 
 Install KCP from the
 [Chrome Web Store](https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef)
-or [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/).
+or [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/kcp/).
 Each store reviews a new version on its own schedule, so an update can reach one store
 before the other. Release notes are in [CHANGELOG.md](CHANGELOG.md) and on the
 [releases page](https://github.com/txasw/kmitl-course-planner/releases).

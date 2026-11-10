@@ -34,8 +34,7 @@ const SITE = resolve(ROOT, 'site');
 const ORIGIN = 'https://kcp.cecs.sh';
 const CHROME =
   'https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef';
-const FIREFOX =
-  'https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/';
+const FIREFOX = 'https://addons.mozilla.org/firefox/addon/kcp/';
 
 // Hosts a page may link to: the stores, the source, the site, and the registration
 // site. Assets themselves must come from the site.

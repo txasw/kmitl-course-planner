@@ -10,8 +10,7 @@ import { shotPath } from './shots.mjs';
 export const ORIGIN = 'https://kcp.cecs.sh';
 export const CHROME_URL =
   'https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef';
-export const FIREFOX_URL =
-  'https://addons.mozilla.org/firefox/addon/course-planner-for-kmitl/';
+export const FIREFOX_URL = 'https://addons.mozilla.org/firefox/addon/kcp/';
 export const REPO_URL = 'https://github.com/txasw/kmitl-course-planner';
 const PRIVACY_URL = `${REPO_URL}/blob/main/docs/PRIVACY.md`;
 const ISSUES_URL = `${REPO_URL}/issues`;
