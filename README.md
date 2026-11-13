@@ -70,8 +70,9 @@ itself uses. The project site sets no cookies and runs no analytics. See
 
 ## Development
 
-Requirements: Node 24, pinned in `.nvmrc` (the `engines` floor is 22.22.1, but the build,
-the tests, and the release run on Node 24), and pnpm 10.12.1, pinned in the
+Requirements: Node 24, pinned in `.nvmrc` (the `engines` range also accepts 22.22.2 or later
+on Node 22 and 26 or later, and needs 24.15 or later on Node 24; the build, the tests, and
+the release run on Node 24), and pnpm 10.12.1, pinned in the
 `packageManager` field. Run `corepack enable` so the pinned pnpm runs rather than a
 separately installed one.
 
