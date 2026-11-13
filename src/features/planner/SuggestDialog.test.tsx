@@ -23,6 +23,7 @@ import {
   SUGGEST_QUERY,
   SUGGEST_TERM,
 } from '../../../tests/support/suggest';
+import { serializedCss } from '../../../tests/support/css';
 import { installViewport } from '../../../tests/support/viewport';
 import { SuggestDialog } from './SuggestDialog';
 
@@ -141,7 +142,9 @@ describe('SuggestDialog', () => {
     renderDialog(1440);
     expect(await findCards()).toHaveLength(3);
     const list = screen.getAllByRole('listitem')[0]?.parentElement;
-    expect(list?.style.gridTemplateColumns).toBe('repeat(3, minmax(0, 1fr))');
+    expect(list?.style.gridTemplateColumns).toBe(
+      serializedCss('grid-template-columns', 'repeat(3, minmax(0, 1fr))'),
+    );
     const columns = gridColumns();
     expect(columns).toHaveLength(3);
     expect(columns[0]).not.toMatch(PORTRAIT);
