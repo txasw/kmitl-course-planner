@@ -858,24 +858,35 @@ describe('CourseCard grid preview', () => {
     expect(previewed()).toBeNull();
   });
 
+  // Whether a focus is focus-visible is the browser's call, made from how the focus
+  // arrived. jsdom does not model that heuristic, and its answer has changed between
+  // releases, so each focus test states the verdict a browser gives for its case.
+  function browserMarksFocusVisible(visible: boolean): void {
+    const node = toggle();
+    const matches = node.matches.bind(node);
+    vi.spyOn(node, 'matches').mockImplementation((selector) =>
+      selector === ':focus-visible' ? visible : matches(selector),
+    );
+  }
+
   it('previews on a keyboard focus of the toggle and clears on blur', () => {
     installViewport(1366);
     render(card());
-    vi.spyOn(toggle(), 'matches').mockImplementation(
-      (selector) => selector === ':focus-visible',
-    );
+    browserMarksFocusVisible(true);
     fireEvent.focus(toggle());
     expect(previewed()).toBe('90592008');
     fireEvent.blur(toggle());
     expect(previewed()).toBeNull();
   });
 
-  it('offers no preview on a programmatic focus', () => {
+  it('offers no preview on a focus moved by code after a pointer action', () => {
     installViewport(1366);
     render(card());
+    browserMarksFocusVisible(false);
     act(() => {
       toggle().focus();
     });
+    expect(toggle()).toHaveFocus();
     expect(previewed()).toBeNull();
   });
 
