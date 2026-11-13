@@ -33,15 +33,21 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Version 2 of the action pushes the version commit and the tag through the
+      # GitHub API unless told otherwise, which turns the annotated v{version} tag
+      # into a lightweight one. push-with-git-cli keeps the git CLI path that every
+      # release so far used. The token comes from the github-token input, which
+      # defaults to the workflow token; the action rejects a different GITHUB_TOKEN
+      # in the environment. git-tag writes the tags it creates to the file named by
+      # CHANGESETS_OUTPUT, which the action reads to set the published output.
       - id: changesets
         uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         with:
-          version: pnpm changeset version
-          publish: pnpm changeset tag
-          commit: 'chore: release version packages'
-          title: 'chore: release version packages'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          version-script: pnpm changeset version
+          publish-script: pnpm changeset git-tag
+          commit-message: 'chore: release version packages'
+          pr-title: 'chore: release version packages'
+          push-with-git-cli: true
       # When a version was tagged, build and package both browsers and attach the
       # Chrome zip, the Firefox zip, and the Firefox sources zip to the release the
       # changesets action created for the tag. The tag is pushed with GITHUB_TOKEN,
