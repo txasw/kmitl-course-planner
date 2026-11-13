@@ -59,3 +59,18 @@ in one run. The sources zip rebuilds the Firefox zip and excludes private materi
 construction. The store publish jobs stay gated behind their environments; the first
 submission is manual, and the zip steps make later automated submits work without more
 changes.
+
+## Amendment, 2026-11-14: Changesets 3 and action 2
+
+Changesets 3 no longer versions private packages by default, and an absent
+`privatePackages` key now skips both versioning and tagging. The explicit
+`{ version: true, tag: true }` setting therefore also keeps the version step working,
+not only the tag. The tag command is now `changeset git-tag`; it records each tag it
+creates in the file named by `CHANGESETS_OUTPUT`, and version 2 of the changesets
+action reads that file, not the command output, to set the `published` output that the
+artifact and store steps depend on.
+
+Version 2 of the action pushes commits and tags through the GitHub API by default,
+which would turn the annotated `v{version}` tag into a lightweight one on the merge
+commit. The release job sets `push-with-git-cli` so the version commit and the
+annotated tag keep the git CLI path every earlier release used.
