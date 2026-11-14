@@ -74,6 +74,143 @@ describe('filterCourses', () => {
     ).toHaveLength(1);
   });
 
+  it('narrows a course to the sections an instructor teaches', () => {
+    const shared = makeCourse({
+      subjectId: '90592004',
+      nameTh: 'วัฒนธรรมร่วมสมัย',
+      nameEn: 'Contemporary Culture',
+      sections: [
+        makeSection({
+          teachTableId: 's1',
+          section: '901',
+          teachersTh: ['อาจารย์ วัลลภ รุจิขจร', 'รศ. ดร. รวิภัทร ลาภเจริญสุข'],
+          teachersEn: [
+            'Lecturer Wanlop Ruchikachorn',
+            'Mr. RAVIPAT LAPCHAROENSUK',
+          ],
+        }),
+        makeSection({
+          teachTableId: 's2',
+          section: '902',
+          teachersTh: ['อาจารย์ วัลลภ รุจิขจร'],
+          teachersEn: ['Lecturer Wanlop Ruchikachorn'],
+        }),
+      ],
+    });
+    for (const text of ['ลาภเจริญสุข', 'ravipat', '  RAVIPAT ']) {
+      const result = filterCourses(
+        [...courses, shared],
+        { ...EMPTY_FILTER, text },
+        NO_PREDICATES,
+      );
+      expect(result).toHaveLength(1);
+      expect(result[0]?.sections.map((section) => section.section)).toEqual([
+        '901',
+      ]);
+    }
+    const both = filterCourses(
+      [shared],
+      { ...EMPTY_FILTER, text: 'wanlop' },
+      NO_PREDICATES,
+    );
+    expect(both[0]).toBe(shared);
+  });
+
+  it('narrows a course to the sections held in a room or building', () => {
+    const lab = makeCourse({
+      subjectId: '90592033',
+      sections: [
+        makeSection({
+          teachTableId: 'r1',
+          section: '901',
+          meetings: [makeMeeting({ building: 'D01', room: 'D-110' })],
+        }),
+        makeSection({
+          teachTableId: 'r2',
+          section: '902',
+          meetings: [makeMeeting({ building: 'E12', room: '505' })],
+        }),
+      ],
+    });
+    const byRoom = filterCourses(
+      [lab],
+      { ...EMPTY_FILTER, text: 'd-110' },
+      NO_PREDICATES,
+    );
+    expect(byRoom[0]?.sections.map((section) => section.section)).toEqual([
+      '901',
+    ]);
+    const byBuilding = filterCourses(
+      [lab],
+      { ...EMPTY_FILTER, text: 'e12' },
+      NO_PREDICATES,
+    );
+    expect(byBuilding[0]?.sections.map((section) => section.section)).toEqual([
+      '902',
+    ]);
+  });
+
+  it('keeps every section when the text matches the course itself', () => {
+    const result = filterCourses(
+      courses,
+      { ...EMPTY_FILTER, text: '90592033' },
+      NO_PREDICATES,
+    );
+    expect(result).toEqual([physics]);
+    expect(result[0]).toBe(physics);
+  });
+
+  it('applies the facets on top of an instructor match', () => {
+    const result = filterCourses(
+      [
+        makeCourse({
+          sections: [
+            makeSection({
+              teachTableId: 'f1',
+              section: '1',
+              teachersEn: ['Mr. RAVIPAT LAPCHAROENSUK'],
+              meetings: [makeMeeting({ day: 1 })],
+            }),
+            makeSection({
+              teachTableId: 'f2',
+              section: '2',
+              teachersEn: ['Mr. RAVIPAT LAPCHAROENSUK'],
+              meetings: [makeMeeting({ day: 2 })],
+            }),
+          ],
+        }),
+      ],
+      { ...EMPTY_FILTER, text: 'ravipat', days: [2] },
+      NO_PREDICATES,
+    );
+    expect(result[0]?.sections.map((section) => section.section)).toEqual([
+      '2',
+    ]);
+  });
+
+  it('finds the multi instructor sections of the subject id capture', () => {
+    const result = normalizeTeachTable(
+      loadFixture('teach-table.by_subject_id.capture.json'),
+    );
+    if (!result.ok) {
+      throw new Error('fixture failed to normalize');
+    }
+    const [course] = result.value.courses;
+    expect(course?.sections).toHaveLength(44);
+    for (const text of ['ravipat', 'ลาภเจริญสุข']) {
+      const kept = filterCourses(
+        result.value.courses,
+        { ...EMPTY_FILTER, text },
+        NO_PREDICATES,
+      ).flatMap((match) => match.sections);
+      expect(kept).toHaveLength(19);
+      for (const section of kept) {
+        expect(section.teachersEn).toContain('Mr. RAVIPAT LAPCHAROENSUK');
+        expect(section.teachersEn.length).toBeGreaterThan(1);
+      }
+    }
+  });
+
   it('filters by credit', () => {
     const result = filterCourses(
       courses,

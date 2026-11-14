@@ -1,16 +1,17 @@
 // The instant, local catalog filter. Free text matches a course by its subject
-// id or either name; the credit filter matches a course; the day, hide full, hide
-// conflicting, and open to my curriculum filters narrow a course's sections. A
-// course drops out when no section survives. The seat and conflict tests are
-// injected as predicates so this module stays free of the planner and seat logic
-// and remains pure.
+// id or either name, which keeps every section, or else a section by an instructor
+// or its place, which narrows the course to the matching sections; the credit
+// filter matches a course; the day, hide full, hide conflicting, and open to my
+// curriculum filters narrow a course's sections. A course drops out when no
+// section survives. The seat and conflict tests are injected as predicates so
+// this module stays free of the planner and seat logic and remains pure.
 
 import type { Course, DayOfWeek, OfferedTo, Section } from '../domain/types';
 import { idsEqual } from '../reference/filters';
 import type { CurriculumProfile } from './curriculumProfile';
 
 export interface CatalogFilter {
-  /** Free text over subject id and both names. */
+  /** Free text over subject id, both names, instructors, and the room or building. */
   text: string;
   /** Selected days; empty means every day. */
   days: DayOfWeek[];
@@ -70,24 +71,44 @@ export interface SectionPredicates {
   isConflicting: (course: Course, section: Section) => boolean;
 }
 
-function matchesText(course: Course, text: string): boolean {
-  if (text === '') {
-    return true;
-  }
-  const needle = text.toLowerCase();
+function includesNeedle(value: string, needle: string): boolean {
+  return value.toLowerCase().includes(needle);
+}
+
+function courseMatchesText(course: Course, needle: string): boolean {
   return (
-    course.subjectId.toLowerCase().includes(needle) ||
-    course.nameTh.toLowerCase().includes(needle) ||
-    course.nameEn.toLowerCase().includes(needle)
+    includesNeedle(course.subjectId, needle) ||
+    includesNeedle(course.nameTh, needle) ||
+    includesNeedle(course.nameEn, needle)
   );
 }
 
+function sectionMatchesText(section: Section, needle: string): boolean {
+  return (
+    section.teachersTh.some((name) => includesNeedle(name, needle)) ||
+    section.teachersEn.some((name) => includesNeedle(name, needle)) ||
+    section.meetings.some(
+      (meeting) =>
+        includesNeedle(meeting.room, needle) ||
+        includesNeedle(meeting.building, needle),
+    )
+  );
+}
+
+/**
+ * Keep a section against the facets and, when the text did not already match its
+ * course, against the text. An empty sectionNeedle means no text test applies.
+ */
 function keepSection(
   course: Course,
   section: Section,
+  sectionNeedle: string,
   filter: CatalogFilter,
   predicates: SectionPredicates,
 ): boolean {
+  if (sectionNeedle !== '' && !sectionMatchesText(section, sectionNeedle)) {
+    return false;
+  }
   if (
     filter.days.length > 0 &&
     !section.meetings.some((meeting) => filter.days.includes(meeting.day))
@@ -117,17 +138,18 @@ export function filterCourses(
   filter: CatalogFilter,
   predicates: SectionPredicates,
 ): Course[] {
-  const text = filter.text.trim();
+  const needle = filter.text.trim().toLowerCase();
   const result: Course[] = [];
   for (const course of courses) {
-    if (!matchesText(course, text)) {
-      continue;
-    }
     if (filter.credit !== null && course.credit !== filter.credit) {
       continue;
     }
+    // A course hit by id or name keeps every section; otherwise the text must
+    // match a section's instructor or place, which narrows the course.
+    const sectionNeedle =
+      needle === '' || courseMatchesText(course, needle) ? '' : needle;
     const sections = course.sections.filter((section) =>
-      keepSection(course, section, filter, predicates),
+      keepSection(course, section, sectionNeedle, filter, predicates),
     );
     if (sections.length === 0) {
       continue;
