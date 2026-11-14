@@ -192,6 +192,43 @@ test('the planner opens and closes with focus back on the launcher', async ({
   await expect(page.getByRole('button', { name: LAUNCHER })).toBeFocused();
 });
 
+test('back, Escape and close each leave the host route and history state as they were', async ({
+  context,
+}) => {
+  const page = await gotoSelector(context);
+  // Stand in for the key the host router keeps in the state of each of its entries.
+  const hostState = { key: '1234.567' };
+  await page.evaluate((state) => {
+    window.history.replaceState(state, '');
+  }, hostState);
+  const hostUrl = page.url();
+  const hostLength = await page.evaluate(() => window.history.length);
+  const launcher = page.getByRole('button', { name: LAUNCHER });
+  const dialog = page.getByRole('dialog', { name: OVERLAY });
+
+  const leaves: (() => Promise<unknown>)[] = [
+    () => page.goBack(),
+    () => page.keyboard.press('Escape'),
+    () => dialog.getByRole('button', { name: 'ปิด', exact: true }).click(),
+  ];
+  for (const leave of leaves) {
+    await launcher.click();
+    await expect(dialog).toBeVisible();
+    // One entry of its own on top of the host's, with the same URL.
+    expect(await page.evaluate(() => window.history.length)).toBe(
+      hostLength + 1,
+    );
+    expect(page.url()).toBe(hostUrl);
+    await leave();
+    await expect(dialog).toBeHidden();
+    await expect(launcher).toBeFocused();
+    await expect
+      .poll(() => page.evaluate(() => window.history.state as unknown))
+      .toEqual(hostState);
+    expect(page.url()).toBe(hostUrl);
+  }
+});
+
 test('the launcher pill stays inside the safe area, with no ring after a first open', async ({
   context,
 }) => {
