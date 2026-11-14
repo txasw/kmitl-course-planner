@@ -25,30 +25,37 @@ transitions to the current hash. When that hash names the current route, `confir
 `ensureURL`, which writes nothing because the URL already matches, and aborts with a duplicated
 navigation failure, which it neither logs nor reports. Its own entries carry a `key` in
 `history.state`, and when a scroll behaviour is configured it restores scroll by the `key` it reads
-from `event.state` on `popstate`. The live application configures none today, but the key is the
-router's contract and must survive.
+from `event.state` on `popstate`. The live application configures none today, so the router reads
+no `key` on these traversals.
+
+A content script cannot read `history.state` reliably. Chromium caches the value per JavaScript
+world and refreshes the cache only for the world that read it most recently, so once the page reads
+`history.state`, which the host router and other extensions do, the content script keeps seeing a
+stale value. A check on the live site confirmed it: after the page read the state, the content
+script read `null` while the page read the marker.
 
 ## Decision
 
 Opening the overlay pushes one entry on top of the current one, with the same URL, so no
-`hashchange` fires and the router does not see it. Its state is a shallow copy of the current
-`history.state` plus one marker field, `kcpOverlay`, holding a random token for this opening. The
-copy keeps the router `key`, so a `popstate` that lands on or leaves this entry reads the same key
-the router already holds. The extension never calls `replaceState`, so no host entry is rewritten.
+`hashchange` fires and the router does not see it. Its state holds one marker field, `kcpOverlay`,
+with a random token for this opening, and nothing copied from the host, because a copy read from
+the content script could be stale. The router reads no `key` from this entry while no scroll
+behaviour is configured. The extension never calls `replaceState`, so no host entry is rewritten.
 
 While the overlay is open, a `popstate` means the student left that entry, and the overlay closes
 through the same `close` action as Escape and the close control, so focus returns to the launcher
 and the scroll lock releases. The traversal itself already removed the entry from the top, so
 nothing more is done to history.
 
-A close by Escape, the close control, or an unmount calls `history.back()` once, and only when the
-current state still carries this opening's token. When the host or anything else pushed an entry
-in the meantime, the extension leaves history alone rather than unwind an entry it does not own.
+A close by Escape, the close control, or an unmount calls `history.back()` once, and only when
+`history.length` and the URL are still what they were right after the push. When the host or
+anything else pushed an entry, or replaced the entry with another URL, in the meantime, the
+extension leaves history alone rather than unwind an entry it does not own. The decision never
+reads `history.state`, for the reason given above.
 An opening that starts before the `popstate` of an earlier close has arrived waits for it before
 pushing, so a quick close and reopen cannot reorder the two traversals.
 
-The push is skipped when the current state is neither null nor a plain object, since it cannot be
-copied faithfully, and when the document has no transient user activation. Chromium marks the entry
+The push is skipped when the document has no transient user activation. Chromium marks the entry
 below a push made without user activation as skipped by the back gesture, so a back from the
 overlay entry would pass over the host's own entry and leave the page the student was on. Sticky
 activation is not enough: after a same document back or forward, which every close by back is,
@@ -73,10 +80,15 @@ browsers, and it would still need an entry to intercept.
 ## Consequences
 
 Closing the overlay reveals the host with the same route, the same URL, and the same
-`history.state` it had before opening. The one trace is a forward entry carrying the marker, which
+`history.state` it had before opening, since the host's own entry was never touched. The one trace is a forward entry carrying the marker, which
 the browser's forward control can reach and which the next host navigation discards. Moving forward
 onto it is a same hash `popstate`, which the router ignores and which the closed overlay does not
 hear, and leaves one back step that changes nothing visible.
+
+Two edge cases fall outside the length and URL check. A host `replaceState` that keeps the URL
+would be unwound by the close, and at the browser's cap of 50 entries a host push does not change
+the length. Neither happens while the overlay covers the page, since the host navigates only on
+the student's input.
 
 A back gesture closes the whole overlay, not an inner sheet or dialog. Session state lives in the
 ui store, so reopening resumes where the student left off.
