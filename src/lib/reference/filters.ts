@@ -88,6 +88,81 @@ export function curriculaFor(
   );
 }
 
+/** One curriculum select option: the curriculum and the label it shows. */
+export interface CurriculumOption {
+  curriculum: RawCurriculum;
+  label: string;
+}
+
+// Whitespace runs collapse so two names that render the same also compare the same.
+function labelKey(name: string): string {
+  return name.trim().replace(/\s+/g, ' ');
+}
+
+// Newest revision first; entries of one year follow their id, so the order never
+// depends on the order the endpoint happened to return.
+function newestFirst(a: RawCurriculum, b: RawCurriculum): number {
+  return (
+    b.YEAR.localeCompare(a.YEAR, undefined, { numeric: true }) ||
+    a.REGISTRAR_CURRICULUM2_ID.localeCompare(
+      b.REGISTRAR_CURRICULUM2_ID,
+      undefined,
+      { numeric: true },
+    )
+  );
+}
+
+// The revision year tells a colliding entry apart, and the curriculum id joins it
+// when two entries of the group share that year too.
+function revisionLabel(
+  curriculum: RawCurriculum,
+  group: readonly RawCurriculum[],
+  locale: Locale,
+): string {
+  const year = curriculum.YEAR;
+  const yearSeparates =
+    year !== '' && group.filter((c) => c.YEAR === year).length === 1;
+  const parts = [
+    ...(year === '' ? [] : [year]),
+    ...(yearSeparates ? [] : [curriculum.REGISTRAR_CURRICULUM2_ID]),
+  ];
+  return `${curriculumName(curriculum, locale)} (${parts.join(', ')})`;
+}
+
+/**
+ * Labels for a filtered curriculum list in the active locale. A revision of a
+ * curriculum often keeps its predecessor's short name, so only names that collide
+ * get a revision suffix. Colliding entries sit together at the first one's
+ * position, newest revision first; every other entry keeps its order and its
+ * plain name.
+ */
+export function disambiguateCurricula(
+  curricula: readonly RawCurriculum[],
+  locale: Locale,
+): CurriculumOption[] {
+  const groups = new Map<string, RawCurriculum[]>();
+  for (const curriculum of curricula) {
+    const key = labelKey(curriculumName(curriculum, locale));
+    const group = groups.get(key);
+    if (group === undefined) {
+      groups.set(key, [curriculum]);
+    } else {
+      group.push(curriculum);
+    }
+  }
+  return [...groups.values()].flatMap((group) =>
+    group.length === 1
+      ? group.map((curriculum) => ({
+          curriculum,
+          label: curriculumName(curriculum, locale),
+        }))
+      : [...group].sort(newestFirst).map((curriculum) => ({
+          curriculum,
+          label: revisionLabel(curriculum, group, locale),
+        })),
+  );
+}
+
 /** Subject owner groups sorted by their display name in the active locale. */
 export function sortSubjectOwners(
   owners: readonly RawSubjectOwner[],
