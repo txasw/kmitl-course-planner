@@ -352,6 +352,19 @@ describe('PlannerPanel', () => {
   it('shows the designed empty state when the plan has no sections', () => {
     renderPanel();
     expect(screen.getByText('ตารางยังว่าง')).toBeInTheDocument();
+    // The landscape week has no hour column down its edge, so the notice spans it.
+    expect(document.querySelector('[data-grid-notice="empty"]')).toHaveStyle({
+      left: '0px',
+    });
+  });
+
+  it('offers an action on the empty edit grid that brings the search into view', () => {
+    searchStore.setState({ searchFormOpen: false });
+    uiStore.getState().setCatalogVisible(false);
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: 'ไปที่การค้นหา' }));
+    expect(searchStore.getState().searchFormOpen).toBe(true);
+    expect(uiStore.getState().catalogVisible).toBe(true);
   });
 
   it('renders a scheduled block, the unscheduled shelf, and the grid', () => {

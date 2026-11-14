@@ -256,6 +256,7 @@
   "seat.full": "Full",
   "grid.emptyTitle": "Your timetable is empty",
   "grid.emptyBody": "Add courses from the list to see them here.",
+  "grid.goToSearch": "Go to search",
   "panel.error.title": "The panel stopped working",
   "panel.error.body": "This part of the planner ran into an error. Reload the panel to try again. The registration page is not affected.",
   "panel.error.reload": "Reload panel",

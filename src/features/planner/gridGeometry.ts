@@ -19,6 +19,9 @@ export const QUARTERS_PER_HOUR = 4;
 /** The size of the leading axis track, in em of the grid font. */
 export const AXIS_TRACK_EM = 1.4;
 
+/** The width of the portrait hour column, the leading track down the grid's edge. */
+export const PORTRAIT_AXIS_TRACK = '2.75rem';
+
 /** The grid root font size in edit mode before the scroller is measured, in CSS pixels;
  * a wider scroller steps it up and a template sets its own. */
 export const EDIT_FONT_PX = BASE_GRID_FONT_PX;

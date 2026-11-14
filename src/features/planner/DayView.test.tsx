@@ -27,6 +27,7 @@ import { swipe } from '../../../tests/support/swipe';
 import { installViewport } from '../../../tests/support/viewport';
 import { DayChips } from './DayChips';
 import { dragStore } from './dragStore';
+import { PORTRAIT_AXIS_TRACK } from './gridGeometry';
 import { PlannerDnd } from './PlannerDnd';
 import { PlannerPanel } from './PlannerPanel';
 
@@ -182,6 +183,12 @@ function renderPanel() {
   );
 }
 
+/** The inline leading offset of a grid notice, as the notice sets it. */
+function noticeLeft(notice: string): string | undefined {
+  const node = document.querySelector(`[data-grid-notice="${notice}"]`);
+  return node instanceof HTMLElement ? node.style.left : undefined;
+}
+
 function block(subjectId: string): HTMLElement | null {
   return screen.queryByRole('button', { name: new RegExp(subjectId) });
 }
@@ -215,6 +222,14 @@ describe('DayView', () => {
     const note = document.querySelector('[data-grid-notice="free-day"]');
     expect(note).toHaveTextContent('วันอังคาร');
     expect(note).toHaveTextContent('วันว่าง');
+    // The sticky hour column would otherwise cover the card's leading edge.
+    expect(noticeLeft('free-day')).toBe(PORTRAIT_AXIS_TRACK);
+  });
+
+  it('centers the empty plan notice over the lanes, clear of the hour column', () => {
+    installViewport(390);
+    renderPanel();
+    expect(noticeLeft('empty')).toBe(PORTRAIT_AXIS_TRACK);
   });
 
   it('keeps the picked day across a switch to the selected courses and back', () => {

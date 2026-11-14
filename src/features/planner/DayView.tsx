@@ -124,7 +124,7 @@ export function DayView({
                 label={fillTemplate(t('view.dayGrid'), { day: dayName })}
               />
               {planEmpty ? (
-                <GridEmptyState t={t} />
+                <GridEmptyState t={t} orientation="portrait" searchAction />
               ) : flags[day].hasClass ? null : (
                 <FreeDayNotice dayName={dayName} t={t} />
               )}
