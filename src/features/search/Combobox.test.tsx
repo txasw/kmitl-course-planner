@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { useRef } from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { Building2 } from 'lucide-react';
 import { expectNoSeriousA11yViolations } from '../../../tests/support/axe';
 import { Combobox, type ComboboxOption } from './Combobox';
 import { PanelPortalContext } from '../shell/PanelPortalContext';
@@ -232,5 +233,65 @@ describe('Combobox inside a trapped panel', () => {
 
     fireEvent.keyDown(trigger, { key: 'Escape' });
     expect(onEscape).toHaveBeenCalledOnce();
+  });
+});
+
+describe('Combobox leading icon', () => {
+  function renderWithIcon(searchable: boolean) {
+    const { container } = render(
+      <Combobox
+        label="Faculty"
+        value="01"
+        options={OPTIONS}
+        placeholder="Select"
+        disabled={false}
+        searchable={searchable}
+        icon={Building2}
+        onChange={() => undefined}
+      />,
+    );
+    return {
+      container,
+      control: screen.getByRole('combobox', { name: 'Faculty' }),
+    };
+  }
+
+  it.each([true, false])(
+    'draws an aria hidden icon beside the control (searchable %s)',
+    (searchable) => {
+      const { control } = renderWithIcon(searchable);
+      const icon = control.parentElement?.querySelector('svg');
+      expect(icon).toHaveAttribute('aria-hidden', 'true');
+      expect(icon).toHaveClass('lucide-building-2');
+      expect(control).toHaveClass('pl-8');
+    },
+  );
+
+  it('keeps the accessible name to the label alone', () => {
+    const { control } = renderWithIcon(true);
+    expect(control).toHaveAccessibleName('Faculty');
+  });
+
+  it('draws no icon and keeps the even inset when none is given', () => {
+    const { container } = render(
+      <Combobox
+        label="Faculty"
+        value=""
+        options={OPTIONS}
+        placeholder="Select"
+        disabled={false}
+        onChange={() => undefined}
+      />,
+    );
+    expect(container.querySelector('svg')).toBeNull();
+    expect(screen.getByRole('combobox', { name: 'Faculty' })).toHaveClass(
+      'px-2',
+    );
+  });
+
+  it('has no serious accessibility violations with an icon', async () => {
+    const { container, control } = renderWithIcon(true);
+    fireEvent.focus(control);
+    await expectNoSeriousA11yViolations(container);
   });
 });

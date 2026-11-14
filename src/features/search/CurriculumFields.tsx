@@ -6,6 +6,7 @@
 // it stays outside. A faculty change clears the department and curriculum, and a
 // department change clears the curriculum, because their options depend on it.
 
+import { GraduationCap } from 'lucide-react';
 import { Combobox } from './Combobox';
 import { FacultySelect } from './FacultySelect';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -97,6 +98,7 @@ export function CurriculumFields({
       />
       <Combobox
         label={t('search.curriculum')}
+        icon={GraduationCap}
         value={value.curriculum}
         placeholder={t('search.selectPlaceholder')}
         disabled={

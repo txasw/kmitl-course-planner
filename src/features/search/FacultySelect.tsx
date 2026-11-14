@@ -2,6 +2,7 @@
 // curriculum profile picker. It lists faculties by id and stays disabled until the
 // faculty reference list is ready.
 
+import { Building2 } from 'lucide-react';
 import { Combobox } from './Combobox';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { RawFaculty } from '@/lib/domain/schemas';
@@ -43,6 +44,7 @@ export function FacultySelect({
   return (
     <Combobox
       label={t('search.faculty')}
+      icon={Building2}
       value={value}
       placeholder={
         faculties.status === 'ready'

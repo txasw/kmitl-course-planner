@@ -20,6 +20,18 @@ import { CurriculumFields } from './CurriculumFields';
 
 afterEach(cleanup);
 
+// The leading icon a search select draws beside its control, or null when it has none.
+function leadingIcon(name: string): SVGElement | null {
+  const control = screen.getByRole('combobox', { name });
+  return control.parentElement?.querySelector('svg') ?? null;
+}
+
+function expectLeadingIcon(name: string, iconClass: string) {
+  const icon = leadingIcon(name);
+  expect(icon).toHaveClass(iconClass);
+  expect(icon).toHaveAttribute('aria-hidden', 'true');
+}
+
 // A controlled harness so the input reflects the sanitized value the way it does in the
 // search form, which is what a composition end reads back.
 function Harness({
@@ -324,5 +336,58 @@ describe('CurriculumFields', () => {
     expect(patch).toHaveBeenCalledWith(
       expect.objectContaining({ department: '', curriculum: '' }),
     );
+  });
+});
+
+describe('select icons', () => {
+  const t = createTranslator('en');
+  const reference: ReferenceLists = {
+    faculties: { status: 'idle' },
+    departments: { status: 'idle' },
+    curricula: { status: 'idle' },
+    subjectOwners: { status: 'idle' },
+  };
+
+  it('marks the year and semester with a calendar and a hash', () => {
+    render(
+      <TermFields
+        term={{ year: '2569', semester: '1' }}
+        years={['2569']}
+        t={t}
+        onChange={() => undefined}
+      />,
+    );
+    expectLeadingIcon(t('search.year'), 'lucide-calendar-days');
+    expectLeadingIcon(t('search.semester'), 'lucide-hash');
+  });
+
+  it('marks the faculty and the category on the category tab', () => {
+    render(
+      <CategoryFields
+        form={defaultCategoryForm()}
+        reference={reference}
+        locale="en"
+        t={t}
+        patch={() => undefined}
+      />,
+    );
+    expectLeadingIcon(t('search.faculty'), 'lucide-building-2');
+    expectLeadingIcon(t('search.subjectOwner'), 'lucide-layout-grid');
+  });
+
+  it('marks the curriculum and leaves the department and class year plain', () => {
+    render(
+      <ClassFields
+        form={defaultClassForm()}
+        reference={reference}
+        locale="en"
+        t={t}
+        patch={() => undefined}
+      />,
+    );
+    expectLeadingIcon(t('search.faculty'), 'lucide-building-2');
+    expectLeadingIcon(t('search.curriculum'), 'lucide-graduation-cap');
+    expect(leadingIcon(t('search.department'))).toBeNull();
+    expect(leadingIcon(t('search.classYear'))).toBeNull();
   });
 });
