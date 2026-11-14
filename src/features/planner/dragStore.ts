@@ -2,7 +2,8 @@
 // section has a fixed footprint, and the result holds for the whole drag: the grid
 // ghosts and the reason chip read it without recomputing per frame. A rejected
 // drop moves the active drag into a blocked feedback the strip renders with its
-// reason and alternatives. A hover, from a focused grip or a hovered row, previews
+// reason and alternatives, and holds the rejected footprint just long enough for
+// its ghosts to shake and fade. A hover, from a focused grip or a hovered row, previews
 // the target cells at low emphasis without arming a drag, a hovered course card
 // previews where all of its sections would land, and an announcement
 // carries a keyboard outcome to the strip's live region. The grid frame is frozen
@@ -73,6 +74,12 @@ export interface BlockMoveDrag {
   candidates: Candidate[];
 }
 
+/** The footprint of a rejected section drop, held while its ghosts shake and fade. */
+export interface RejectedFootprint {
+  /** The rejected section and its declared pair, the group the ghosts drew. */
+  group: Section[];
+}
+
 export interface CourseDrag {
   course: Course;
   candidates: Candidate[];
@@ -96,6 +103,10 @@ export interface DragStore {
   blocked: BlockedFeedback | null;
   /** A cross term add rejected by the domain guard, or null. */
   crossTerm: CrossTermFeedback | null;
+  /** The footprint of a rejected drop while its ghosts play the shake, or null. The
+   * grid clears it when the animation ends; any later drag, outcome, or dismissal
+   * clears it too, so a footprint that drew no ghost never lingers. */
+  rejecting: RejectedFootprint | null;
   /** The section whose cells are previewed at low emphasis, or null. */
   hover: Section | null;
   /** The catalog course whose sections are previewed on the grid, or null. Only the
@@ -121,8 +132,11 @@ export interface DragStore {
   start: (course: Course, section: Section, placed: Section[]) => void;
   /** End a valid or cancelled drag, clearing the active state with no feedback. */
   clearActive: () => void;
-  /** End a blocked drop: surface the reason and alternatives, clear the drag. */
+  /** End a blocked drop: surface the reason and alternatives, hold the footprint
+   * for the shake, and clear the drag. */
   reject: () => void;
+  /** Release the rejected footprint once its shake has played. */
+  clearRejecting: () => void;
   /** Surface a blocked outcome that did not come from a drag, such as a blocked
    * add from the button, so keyboard users get the same reason and alternatives. */
   showBlocked: (feedback: BlockedFeedback) => void;
@@ -171,6 +185,7 @@ export function createDragStore() {
     active: null,
     blocked: null,
     crossTerm: null,
+    rejecting: null,
     hover: null,
     hoverCourse: null,
     announcement: null,
@@ -198,11 +213,15 @@ export function createDragStore() {
         blockMove: null,
         blocked: null,
         crossTerm: null,
+        rejecting: null,
         hover: null,
         hoverCourse: null,
         raised: null,
         hint: null,
       });
+    },
+    clearRejecting: () => {
+      set({ rejecting: null });
     },
     clearActive: () => {
       set({ active: null, swapContext: null, frame: null });
@@ -215,6 +234,7 @@ export function createDragStore() {
           swapContext: null,
           frame: null,
           crossTerm: null,
+          rejecting: { group: active.group },
           blocked: {
             course: active.course,
             section: active.section,
@@ -230,17 +250,19 @@ export function createDragStore() {
         active: null,
         blocked: feedback,
         crossTerm: null,
+        rejecting: null,
         announcement: null,
         swapContext: null,
       });
     },
     clearBlocked: () => {
-      set({ blocked: null });
+      set({ blocked: null, rejecting: null });
     },
     showCrossTerm: ({ planTerm, incomingTerm }) => {
       set({
         active: null,
         blocked: null,
+        rejecting: null,
         crossTerm:
           planTerm !== null && incomingTerm !== null
             ? { planTerm, browsedTerm: incomingTerm }
@@ -282,6 +304,7 @@ export function createDragStore() {
         blockMove: null,
         blocked: null,
         crossTerm: null,
+        rejecting: null,
         hover: null,
         hoverCourse: null,
         raised: null,
@@ -312,6 +335,7 @@ export function createDragStore() {
         courseDrag: null,
         blocked: null,
         crossTerm: null,
+        rejecting: null,
         hover: null,
         hoverCourse: null,
         raised: null,
@@ -335,7 +359,7 @@ export function createDragStore() {
       set({ hint: null });
     },
     dismissNotice: () => {
-      set({ blocked: null, crossTerm: null, hint: null });
+      set({ blocked: null, crossTerm: null, hint: null, rejecting: null });
     },
     freezeFrame: (frame) => {
       set({ frame });
