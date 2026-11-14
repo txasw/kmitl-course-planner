@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   alphaOver,
   contrastRatio,
-  hexToRgb,
-  linearizeChannel,
+  deltaE76,
+  shadowToken,
 } from '../../../tests/support/contrast';
 import {
   EVENT_PALETTE,
@@ -12,38 +12,24 @@ import {
   hashTint,
 } from './hash-color';
 
-type Rgb = [number, number, number];
-
 const KMITL_ORANGE = '#e35205';
 const WHITE = '#ffffff';
 const INK = '#1a1a1a';
 const INK_SOFT = '#5c5c5c';
 const HEX_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
-function labFold(t: number): number {
-  return t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
-}
+// Two block tints must differ by more than a just noticeable difference (about 2.3), so
+// neighbouring subjects never read as one color. The closest shipped pair is blue and
+// indigo at 2.96.
+const MIN_TINT_SEPARATION = 2.5;
+// A tint must stand off the grey panel it sits on. Bronze, brown, and slate fell at 7.47
+// and below and read as grey; the lowest shipped tint, teal, is 7.76.
+const MIN_TINT_OFF_SURFACE = 7.5;
 
-/** Convert a hex color to CIELAB under the D65 reference white. */
-function toLab(hex: string): Rgb {
-  const [r, g, b] = hexToRgb(hex);
-  const rl = linearizeChannel(r);
-  const gl = linearizeChannel(g);
-  const bl = linearizeChannel(b);
-  const x = (rl * 0.4124 + gl * 0.3576 + bl * 0.1805) / 0.95047;
-  const y = rl * 0.2126 + gl * 0.7152 + bl * 0.0722;
-  const z = (rl * 0.0193 + gl * 0.1192 + bl * 0.9505) / 1.08883;
-  const fx = labFold(x);
-  const fy = labFold(y);
-  const fz = labFold(z);
-  return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
-}
-
-/** CIE76 perceptual distance between two colors. */
-function deltaE76(a: string, b: string): number {
-  const [l1, a1, b1] = toLab(a);
-  const [l2, a2, b2] = toLab(b);
-  return Math.hypot(l1 - l2, a1 - a2, b1 - b2);
+function tints(): string[] {
+  return EVENT_PALETTE.map((color) =>
+    alphaOver(color, EVENT_TINT_ALPHA, WHITE),
+  );
 }
 
 describe('EVENT_PALETTE', () => {
@@ -132,6 +118,31 @@ describe('event block tinted surface', () => {
     for (const color of EVENT_PALETTE) {
       const tint = alphaOver(color, EVENT_TINT_ALPHA, WHITE);
       expect(contrastRatio(color, tint)).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('keeps every pair of tints apart by more than a noticeable difference', () => {
+    const all = tints();
+    let min = Infinity;
+    for (let i = 0; i < all.length; i += 1) {
+      for (let j = i + 1; j < all.length; j += 1) {
+        const a = all[i];
+        const b = all[j];
+        if (a === undefined || b === undefined) {
+          continue;
+        }
+        min = Math.min(min, deltaE76(a, b));
+      }
+    }
+    expect(min).toBeGreaterThanOrEqual(MIN_TINT_SEPARATION);
+  });
+
+  it('keeps every tint distinct from the surface-alt panel', () => {
+    const surfaceAlt = shadowToken('surface-alt');
+    for (const tint of tints()) {
+      expect(deltaE76(tint, surfaceAlt), tint).toBeGreaterThanOrEqual(
+        MIN_TINT_OFF_SURFACE,
+      );
     }
   });
 

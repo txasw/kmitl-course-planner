@@ -34,6 +34,12 @@ block sets the quieter meta, the time, the subject id, and an English secondary 
 ink soft, which clears 4.5:1 on every tint (minimum 5.05), enforced alongside the ink pair
 in `hash-color.test.ts`.
 
+Contrast alone does not keep a tint reading as a color. A low chroma hue such as brown or
+slate composites to a near grey tint that blends into the `--kcp-surface-alt` panel, so
+the same suite also measures CIE76 delta E: every tint stands at least 7.5 off
+surface-alt (lowest shipped, teal, 7.76) and every pair of tints differs by at least 2.5,
+above the 2.3 just noticeable difference (closest shipped pair, blue and indigo, 2.96).
+
 | Color     | Tint      | Ink on tint | Bar on tint |
 | --------- | --------- | ----------- | ----------- |
 | `#1F5FA8` | `#DDE7F2` | 13.91       | 5.15        |
