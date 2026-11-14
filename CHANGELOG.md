@@ -1,5 +1,89 @@
 # kmitl-course-planner
 
+## 1.5.0
+
+### Minor Changes
+
+- 2753b10: The catalog remembers the hide full, hide conflicting, and hide unscheduled toggles across page
+  reloads, while the text, day, and credit filters still belong to the current search. The empty
+  timetable notice now sits on a card with a tinted icon and offers a Go to search action that opens
+  the search form beside the grid, or the courses pane on a phone. The preview poster shows the same
+  notice without the action.
+- 359c2e1: The catalog can sort the courses inside each subject type heading by subject id, by most open
+  seats, or by earliest start, from a Sort by control beside the filters. Clearing the filters keeps
+  the chosen order. Each heading now names how many courses it holds and can be collapsed to set a
+  group aside; a new search opens every heading again.
+- be7b4c7: Copy registration list, in the selected courses heading and in the plan menu, copies the plan as
+  plain text with one line per subject: the subject id, its name, and every section to register,
+  listing both the lecture and the practice section of a pair. A student can read from it while
+  entering the plan into the official registration system. The details of a planned section and the
+  block's right click menu also gain Copy subject id. A toast confirms each copy.
+- 9e4ad97: Note when a plan's credits leave the usual load. The plan summary bar shows the credit total in
+  the warning color with a short note when it falls below 9 or rises above 22 credits in semester
+  1 or 2, or rises above 9 credits in semester 3, the special term. The numbers follow clause 14.4
+  of the KMITL undergraduate regulation B.E. 2565. An empty plan carries no note, the total
+  includes sections with no meeting, and the note is advice only: nothing is blocked, since final
+  year students and approved loads may sit outside the range.
+- 2baacfe: The catalog filter now finds sections by instructor, room, or building as well as by subject id
+  and name. A match on an instructor or a place narrows each course to the sections that match, and
+  the field hint reads Code, name, or instructor. A Clear filters action appears whenever the text or
+  any filter narrows the list, and clears both at once.
+- d6031a6: The details of a planned section now end with a link, View in the official timetable, that opens
+  the registration site's own listing for that subject and term in a new tab, so a student can check
+  the source next to the plan. The planner stays open where it was, and the link only opens the page.
+- 1aed2b6: Creating a plan now offers year and semester selects that open on the searched term, and the
+  default name follows the chosen term until it is edited. The delete prompt states how many sections
+  the plan holds and that the delete cannot be undone, and each plan in the switcher shows its credits
+  and subject count.
+- 4c15b11: Edit the whole week on a narrow timetable. When the timetable is narrower than 640 px, a
+  รายวัน or รายสัปดาห์ (Day or Week) toggle sits above it. The day view stays the default; the
+  week shows every day as a column with the time running down, and keeps every edit action: drag
+  a block to move or remove it, see the sections of a dragged course as slots, and swap past a
+  conflict. The choice is remembered for the next visit. From 640 px the landscape week shows as
+  before and the toggle is hidden.
+- ebdb4c8: Frame and scale the preview poster to its stage. The preview now sits on a quiet grey stage
+  with a framed poster that grows up to twice its layout size on a large screen, while the
+  exported image stays at the exact template pixels and carries no frame. A stage taller than
+  wide, as on a phone or a narrow window, opens on the portrait phone wallpaper until a
+  template is chosen. Below 900 px of stage width the neighbor previews at the edges give way to
+  the full poster width, paged by swipe and by larger template dots. While an image is being
+  created, the pressed action reads กำลังสร้างรูปภาพ, Creating image, and the sharing actions
+  wait until it finishes, so a second press cannot start another capture.
+- fbfd292: A section dropped on the timetable while it conflicts no longer vanishes at once. Its hatched
+  footprint gives a short shake and fades over 200 ms while the feedback strip states the reason
+  and offers alternatives. With reduced motion the footprint only fades, with no movement.
+- 4a5a1ba: The panel header now shows whether your latest plan change is saved in this browser, beside the
+  plan switcher. On a phone it shows the icon alone. When a save fails, one message says so and
+  offers to try again, and the indicator stays as a button that saves again until a save succeeds.
+- 5df6e2a: The search form selects now carry a small leading icon, so the year, semester, faculty,
+  category, and curriculum fields are easy to tell apart at a glance. The icons are decorative
+  and screen readers continue to announce each field by its label.
+- adfb9a7: Preview gains share image, which sends the poster through the system share sheet wherever the
+  browser can share a file, such as Chrome on Android. If the image takes too long to create for
+  the browser to open the sheet, a toast offers to share the ready image with one more press. On a
+  phone the sharing toolbar now sits at the bottom of the preview within thumb reach, as one row of
+  icon buttons.
+
+### Patch Changes
+
+- c4e94e6: The meeting place now shows the readable building name, such as สำนักหอสมุดกลาง, instead of an
+  internal code such as D01, and leaves the building out when the room already names it, so a block
+  reads D-510 rather than D01 D-510. Plans saved earlier are not marked as moved to another room on
+  their next check.
+- ed0c47f: A section or search from another semester now states the mismatch in one sentence, such as
+  ตารางนี้เป็นภาคการศึกษา 1/2569 แต่กลุ่มเรียนนี้อยู่ในภาคการศึกษา 2/2569, and its action says what it
+  will do: เปิดตารางภาค 2/2569 when a plan for that semester exists, or สร้างตารางภาค 2/2569 when it
+  will make one. The day loads in the stats bar and the poster footer read 6 ชม. in Thai and 6h in
+  English. The segmented controls and day chips use even 4 px insets with matching inner corners.
+- 994d062: The curriculum select tells apart revisions that share a name by adding the revision year, newest first, and the curriculum id when the year is the same.
+- 0d215bf: When the background service answers with an empty or unexpected reply, for example while the
+  browser restarts it, the panel now shows the usual connection error with a retry action instead
+  of failing on the reply.
+- 9872fa8: The brown, bronze, and slate subject colors looked grey on the timetable and are replaced
+  with deep cyan, olive, and berry, so every block reads as a color against the panel.
+  Subjects that used one of the three retired colors now show one of the new ones, in the
+  editor and in exported images. Every other subject keeps its color.
+
 ## 1.4.0
 
 ### Minor Changes
