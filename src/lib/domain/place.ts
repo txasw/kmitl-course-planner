@@ -51,3 +51,17 @@ export function readableBuilding(
   }
   return name !== '' ? name : code;
 }
+
+/**
+ * The key two meetings are compared by when deciding whether a section moved room. It is
+ * the room alone, trimmed with inner whitespace collapsed. The building is left out on
+ * purpose: snapshots saved before the readable name was preferred store building_no, and
+ * no snapshot keeps the raw fields that would let the new rule be replayed, so comparing
+ * the building would flag every stored entry as moved on its next revalidation. The room
+ * string carries the building code on most rows, and a snapshot always takes the fresh
+ * building on reconcile, so only a move between two rooms of the same name in different
+ * buildings goes unreported.
+ */
+export function placeKey(meeting: { room: string }): string {
+  return meeting.room.trim().replace(/\s+/g, ' ');
+}

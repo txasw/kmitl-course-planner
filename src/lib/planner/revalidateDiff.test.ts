@@ -6,6 +6,9 @@ import {
   makeSection,
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
+import { loadFixture } from '../../../tests/support/fixtures';
+import { normalizeTeachTable } from '../domain/normalize';
+import { teachTableResponseSchema } from '../domain/schemas';
 import type { OfferedTo, Section } from '../domain/types';
 import {
   buildSectionIndex,
@@ -162,4 +165,97 @@ describe('offeredTo is outside the diff', () => {
       'teacher_changed',
     ]);
   });
+});
+
+describe('room comparison through the normalized place', () => {
+  it('does not report a move for a snapshot that stored the building code', () => {
+    // A plan saved before the readable building was preferred stores D01 beside the
+    // room; the fresh section drops it because D-510 already names the building.
+    const snapshot = makeSnapshot({
+      meetings: [makeMeeting({ room: 'D-510', building: 'D01' })],
+    });
+    const fresh = makeSection({
+      meetings: [makeMeeting({ room: 'D-510', building: '' })],
+    });
+    expect(diffSnapshot(snapshot, fresh)).toEqual([]);
+  });
+
+  it('does not report a move when only the building name changed source', () => {
+    const snapshot = makeSnapshot({
+      meetings: [makeMeeting({ room: 'ชั้น 5', building: 'ห้องประชุม' })],
+    });
+    const fresh = makeSection({
+      meetings: [makeMeeting({ room: 'ชั้น 5', building: 'สำนักหอสมุดกลาง' })],
+    });
+    expect(diffSnapshot(snapshot, fresh)).toEqual([]);
+  });
+
+  it('ignores surrounding and repeated whitespace in the room', () => {
+    const snapshot = makeSnapshot({
+      meetings: [makeMeeting({ room: ' KBS  - 205 ' })],
+    });
+    const fresh = makeSection({
+      meetings: [makeMeeting({ room: 'KBS - 205' })],
+    });
+    expect(diffSnapshot(snapshot, fresh)).toEqual([]);
+  });
+
+  it('still reports a move to a different room', () => {
+    const snapshot = makeSnapshot({
+      meetings: [makeMeeting({ room: 'D-510', building: 'D01' })],
+    });
+    const fresh = makeSection({
+      meetings: [makeMeeting({ room: 'D-511', building: '' })],
+    });
+    expect(diffSnapshot(snapshot, fresh)).toEqual(['room_changed']);
+  });
+
+  const CAPTURES = [
+    'teach-table.by_class.capture.json',
+    'teach-table.by_subject_id.capture.json',
+    'teach-table.by_subject_owner_id-32.capture.json',
+    'teach-table.multi-meeting.capture.json',
+    'teach-table.with-exams.capture.json',
+  ];
+
+  it.each(CAPTURES)(
+    'keeps every %s section unchanged against its old style snapshot',
+    (name) => {
+      // The old rule read building_no first. Rebuild each section as a snapshot saved
+      // under that rule and check the fresh section never reads as moved.
+      const raw = loadFixture(name);
+      const oldBuilding = new Map<string, string>();
+      for (const grouping of teachTableResponseSchema.parse(raw)) {
+        for (const block of grouping.teachtable) {
+          for (const row of block.data) {
+            oldBuilding.set(
+              row.teach_table_id,
+              row.building_no ?? row.classbuilding ?? '',
+            );
+          }
+        }
+      }
+      const result = normalizeTeachTable(raw);
+      if (!result.ok) {
+        throw new Error(`capture ${name} failed to normalize`);
+      }
+      const sections = result.value.courses.flatMap(
+        (course) => course.sections,
+      );
+      let sourceChanged = 0;
+      for (const fresh of sections) {
+        const building = oldBuilding.get(fresh.teachTableId) ?? '';
+        const old: Section = {
+          ...fresh,
+          meetings: fresh.meetings.map((meeting) => ({ ...meeting, building })),
+        };
+        if (fresh.meetings.some((meeting) => meeting.building !== building)) {
+          sourceChanged += 1;
+        }
+        expect(diffSnapshot(old, fresh)).toEqual([]);
+      }
+      expect(sections.length).toBeGreaterThan(0);
+      expect(sourceChanged).toBeGreaterThan(0);
+    },
+  );
 });
