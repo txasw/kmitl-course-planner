@@ -1,8 +1,10 @@
 // The list view of the plan switcher menu: the create button, the saved plans grouped
-// by term with their per row actions, and the JSON import and export row. It owns no
-// state; the switcher decides what each action does.
+// by term with their per row actions, and the JSON import and export row. Each row
+// states its credits and subjects, counted as the stats bar counts them, so plans of
+// one term can be told apart before switching. It owns no state; the switcher decides
+// what each action does.
 
-import { useMemo } from 'react';
+import { useId, useMemo } from 'react';
 import {
   Check,
   Copy,
@@ -14,6 +16,8 @@ import {
 } from 'lucide-react';
 import { Tooltip } from '@/components/Tooltip';
 import type { Plan } from '@/lib/domain/plan';
+import { fillTemplate } from '@/lib/i18n/template';
+import { planCredits } from '@/lib/planner/transaction';
 import type { Term } from '@/lib/routing/academicTerms';
 import type { Translate } from '@/lib/i18n/t';
 import { useTranslation } from '@/features/shell/useTranslation';
@@ -28,6 +32,14 @@ interface TermGroup {
 /** A term as the plan menu names it, such as ภาคการศึกษา 1/2569. */
 export function termLabel(term: Term, t: Translate): string {
   return `${t('search.semester')} ${term.semester}/${term.year}`;
+}
+
+function planSummary(plan: Plan, t: Translate): string {
+  if (plan.entries.length === 0) {
+    return t('planSwitcher.rowEmpty');
+  }
+  const { credits, subjects } = planCredits(plan.entries);
+  return fillTemplate(t('planSwitcher.rowSummary'), { credits, subjects });
 }
 
 function groupByTerm(plans: Plan[]): TermGroup[] {
@@ -77,6 +89,7 @@ export function PlanList({
 }: PlanListProps) {
   const { t } = useTranslation();
   const groups = useMemo(() => groupByTerm(plans), [plans]);
+  const idBase = useId();
 
   return (
     <div className="flex flex-col gap-1">
@@ -102,9 +115,13 @@ export function PlanList({
                 key={plan.id}
                 className="group/row flex items-center gap-1 rounded-kcp hover:bg-surface-alt focus-within:bg-surface-alt"
               >
+                {/* The plan name alone names the button, and the summary line
+                    describes it, so a row reads as its plan first. */}
                 <button
                   type="button"
                   aria-current={plan.id === activePlanId ? 'true' : undefined}
+                  aria-labelledby={`${idBase}-${plan.id}-name`}
+                  aria-describedby={`${idBase}-${plan.id}-summary`}
                   onClick={() => {
                     onSelect(plan);
                   }}
@@ -120,7 +137,17 @@ export function PlanList({
                         : 'text-transparent'
                     }`}
                   />
-                  <span className="truncate">{plan.name}</span>
+                  <span className="flex min-w-0 flex-col">
+                    <span id={`${idBase}-${plan.id}-name`} className="truncate">
+                      {plan.name}
+                    </span>
+                    <span
+                      id={`${idBase}-${plan.id}-summary`}
+                      className="truncate text-2xs text-ink-soft"
+                    >
+                      {planSummary(plan, t)}
+                    </span>
+                  </span>
                 </button>
                 {/* Per-row actions. They show by default and fade out only where the
                     device can hover with a fine pointer, so a finger never has to find

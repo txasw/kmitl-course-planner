@@ -27,6 +27,8 @@
   "planSwitcher.nameLabel": "Plan name",
   "planSwitcher.save": "Save",
   "planSwitcher.copySuffix": "copy",
+  "planSwitcher.rowSummary": "Credits {credits}, subjects {subjects}",
+  "planSwitcher.rowEmpty": "No subjects yet",
   "suggest.open": "Suggest a plan",
   "suggest.title": "Suggested plans",
   "suggest.close": "Close suggestions",
