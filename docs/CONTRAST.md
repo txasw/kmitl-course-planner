@@ -20,9 +20,9 @@ table below for the shipped pairs.
 | `#B0355F` | 5.97  |
 | `#3949AB` | 7.73  |
 | `#A21CAF` | 6.32  |
-| `#8D5A2B` | 5.79  |
-| `#5D4037` | 9.32  |
-| `#455A64` | 7.24  |
+| `#00729F` | 5.37  |
+| `#736B00` | 5.48  |
+| `#A50060` | 7.58  |
 
 ## Event block tinted surface
 
@@ -31,7 +31,7 @@ carries a solid subject color left bar, and uses ink text for the subject name, 
 and the section chip. Ink on every tint clears 4.5:1 with wide margin, and the solid bar
 clears the 3:1 UI bar against its own tint. Since the hierarchy inversion (ADR-0047) the
 block sets the quieter meta, the time, the subject id, and an English secondary name, in
-ink soft, which clears 4.5:1 on every tint (minimum 5.21), enforced alongside the ink pair
+ink soft, which clears 4.5:1 on every tint (minimum 5.05), enforced alongside the ink pair
 in `hash-color.test.ts`.
 
 | Color     | Tint      | Ink on tint | Bar on tint |
@@ -43,9 +43,9 @@ in `hash-color.test.ts`.
 | `#B0355F` | `#F3E1E7` | 13.87       | 4.75        |
 | `#3949AB` | `#E1E4F2` | 13.74       | 6.11        |
 | `#A21CAF` | `#F1DDF3` | 13.57       | 4.93        |
-| `#8D5A2B` | `#EEE6DF` | 14.11       | 4.69        |
-| `#5D4037` | `#E7E2E1` | 13.56       | 7.26        |
-| `#455A64` | `#E3E6E8` | 13.88       | 5.78        |
+| `#00729F` | `#D9EAF1` | 14.08       | 4.35        |
+| `#736B00` | `#EAE9D9` | 14.22       | 4.48        |
+| `#A50060` | `#F2D9E7` | 13.14       | 5.73        |
 
 ## Export template day color accent
 

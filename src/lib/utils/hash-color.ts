@@ -9,12 +9,14 @@
  * prove the hashed index is in range. The modulo keeps the index inside the
  * palette in practice, so this is never returned.
  */
-const FALLBACK_COLOR = '#455A64';
+const FALLBACK_COLOR = '#A50060';
 
 /**
  * Ten curated event block fills, dark enough that white text clears WCAG AA
  * contrast. The order is fixed so the subject to color mapping is stable, and the
- * set avoids the KMITL orange (#E35205) reserved for accents.
+ * set avoids the KMITL orange (#E35205) reserved for accents. Every hue keeps enough
+ * chroma that its pale block tint still reads as a color rather than as the grey panel
+ * behind it, which is why the set has no brown, bronze, or slate.
  */
 export const EVENT_PALETTE: readonly string[] = [
   '#1F5FA8', // blue
@@ -24,9 +26,9 @@ export const EVENT_PALETTE: readonly string[] = [
   '#B0355F', // raspberry
   '#3949AB', // indigo
   '#A21CAF', // magenta
-  '#8D5A2B', // bronze
-  '#5D4037', // brown
-  FALLBACK_COLOR, // slate
+  '#00729F', // deep cyan
+  '#736B00', // olive
+  FALLBACK_COLOR, // berry
 ];
 
 const FNV_OFFSET_BASIS = 2166136261;
