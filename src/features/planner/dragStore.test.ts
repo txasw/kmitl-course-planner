@@ -214,6 +214,83 @@ describe('frozen frame', () => {
   });
 });
 
+describe('rejecting', () => {
+  function rejected() {
+    const store = createDragStore();
+    const { section, course } = draggedSection();
+    store.getState().start(course, section, clashingPlaced());
+    store.getState().reject();
+    return { store, section, course };
+  }
+
+  it('holds no footprint before any drop', () => {
+    expect(createDragStore().getState().rejecting).toBeNull();
+  });
+
+  it('holds the rejected group once a blocked drop rejects', () => {
+    const { store, section } = rejected();
+    expect(store.getState().rejecting?.group).toEqual([section]);
+    expect(store.getState().active).toBeNull();
+  });
+
+  it('holds nothing when a valid drag ends through reject', () => {
+    const store = createDragStore();
+    const { section, course } = draggedSection();
+    store.getState().start(course, section, []);
+    store.getState().reject();
+    expect(store.getState().rejecting).toBeNull();
+  });
+
+  it('releases the footprint when the shake ends', () => {
+    const { store } = rejected();
+    store.getState().clearRejecting();
+    expect(store.getState().rejecting).toBeNull();
+    // The blocked reason outlives the shake in the strip.
+    expect(store.getState().blocked).not.toBeNull();
+  });
+
+  it('releases the footprint when the next drag starts', () => {
+    const first = rejected();
+    first.store.getState().start(first.course, first.section, []);
+    expect(first.store.getState().rejecting).toBeNull();
+
+    const second = rejected();
+    second.store.getState().startCourse(second.course, []);
+    expect(second.store.getState().rejecting).toBeNull();
+
+    const third = rejected();
+    third.store.getState().startBlockMove(third.section, [third.section], null);
+    expect(third.store.getState().rejecting).toBeNull();
+  });
+
+  it('releases the footprint when the blocked notice clears', () => {
+    const cleared = rejected();
+    cleared.store.getState().clearBlocked();
+    expect(cleared.store.getState().rejecting).toBeNull();
+
+    const dismissed = rejected();
+    dismissed.store.getState().dismissNotice();
+    expect(dismissed.store.getState().rejecting).toBeNull();
+  });
+
+  it('releases the footprint when another outcome replaces the strip', () => {
+    const blocked = rejected();
+    blocked.store.getState().showBlocked({
+      course: blocked.course,
+      section: blocked.section,
+      conflicts: [],
+    });
+    expect(blocked.store.getState().rejecting).toBeNull();
+
+    const crossTerm = rejected();
+    crossTerm.store.getState().showCrossTerm({
+      planTerm: { year: '2569', semester: '1' },
+      incomingTerm: { year: '2569', semester: '2' },
+    });
+    expect(crossTerm.store.getState().rejecting).toBeNull();
+  });
+});
+
 describe('showCrossTerm', () => {
   it('names both terms for a readable mismatch', () => {
     const store = createDragStore();
