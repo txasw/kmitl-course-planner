@@ -7,20 +7,24 @@
 // articles, since the catalog course cards own the article role. Removing a card removes
 // the subject, both halves of a pair at once, so its remove control names every section
 // it takes out. Focus then moves to the next card's heading, or to the list heading when
-// no card follows, so focus never falls back to the page.
+// no card follows, so focus never falls back to the page. While the plan holds a subject,
+// the heading row carries the registration list copy, the lines a student reads from in the
+// official registration system.
 
 import { useId, useRef } from 'react';
-import { ListChecks } from 'lucide-react';
+import { ClipboardCopy, ListChecks } from 'lucide-react';
 import { snapshotToSection } from '@/lib/domain/plan';
 import type { SubjectGroup } from '@/lib/planner/subjectGroups';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_HEIGHT } from '@/lib/ui/target';
 import { EmptyState } from '@/components/EmptyState';
 import { RulesNotice } from '@/features/catalog/RulesNotice';
 import {
   RemoveButton,
   removeSectionName,
 } from '@/features/catalog/RemoveButton';
+import { copyRegistrationList } from '@/features/plans/copyRegistrationList';
 import { SectionDetailList } from './SectionDetailList';
 import { VerificationPill } from './VerificationPill';
 
@@ -73,14 +77,32 @@ export function SelectedCoursesList({
       aria-labelledby={headingId}
       className="flex max-w-3xl flex-col gap-2"
     >
-      <h3
-        ref={listHeadingRef}
-        id={headingId}
-        tabIndex={-1}
-        className={`rounded-kcp text-sm font-semibold text-ink ${FOCUS_RING}`}
-      >
-        {t('selected.title')}
-      </h3>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3
+          ref={listHeadingRef}
+          id={headingId}
+          tabIndex={-1}
+          className={`rounded-kcp text-sm font-semibold text-ink ${FOCUS_RING}`}
+        >
+          {t('selected.title')}
+        </h3>
+        {groups.length === 0 ? null : (
+          <button
+            type="button"
+            onClick={() => {
+              copyRegistrationList(
+                groups.flatMap((group) => group.entries),
+                locale,
+                t,
+              );
+            }}
+            className={`inline-flex items-center gap-1.5 rounded-kcp border border-border bg-surface px-2 text-xs text-ink hover:bg-surface-alt ${TARGET_HEIGHT} ${FOCUS_RING}`}
+          >
+            <ClipboardCopy size={14} strokeWidth={2} aria-hidden />
+            {t('registration.copy')}
+          </button>
+        )}
+      </div>
       {groups.length === 0 ? (
         <EmptyState
           icon={ListChecks}

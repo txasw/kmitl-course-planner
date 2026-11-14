@@ -1,5 +1,6 @@
 // The plan switcher in the overlay header. It lists the saved plans grouped by term,
-// switches the active plan, and creates, renames, duplicates, or deletes a plan.
+// switches the active plan, and creates, renames, duplicates, or deletes a plan. Its
+// data row imports and exports a plan as JSON and copies the registration list.
 // Switching a plan snaps the search form to that plan's term so the next search
 // reflects it. A new plan offers the term the search tabs share and lets the user pick
 // another, and creating it snaps the search form to that term. The dropdown is
@@ -34,6 +35,7 @@ import { useTranslation } from '@/features/shell/useTranslation';
 import { BottomSheet } from '@/components/BottomSheet';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_HEIGHT } from '@/lib/ui/target';
+import { copyRegistrationList } from './copyRegistrationList';
 import { DeleteConfirm } from './DeleteConfirm';
 import { ImportErrorView } from './ImportErrorView';
 import { NameForm } from './NameForm';
@@ -55,7 +57,7 @@ type Mode =
   | { kind: 'importError'; issues: string[] };
 
 export function PlanSwitcher() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const plans = useStore(planStore, (state) => state.plans);
   const activePlan = useActivePlan();
   // A new plan defaults to the one term every search tab shares, so the active tab
@@ -192,6 +194,14 @@ export function PlanSwitcher() {
     closeMenu();
   };
 
+  const handleCopyRegistration = () => {
+    if (activePlan === null) {
+      return;
+    }
+    copyRegistrationList(activePlan.entries, language, t);
+    closeMenu();
+  };
+
   // Validate the imported blob at the trust boundary and, on any issue, list the
   // exact failing fields without committing anything. On success importPlan lands a
   // new unverified plan that revalidation reconciles on first open.
@@ -324,6 +334,11 @@ export function PlanSwitcher() {
           fileInputRef.current?.click();
         }}
         onExport={activePlan !== null ? handleExport : null}
+        onCopyRegistration={
+          activePlan !== null && activePlan.entries.length > 0
+            ? handleCopyRegistration
+            : null
+        }
       />
     );
 

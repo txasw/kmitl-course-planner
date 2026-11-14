@@ -6,6 +6,7 @@ import {
   within,
   fireEvent,
   cleanup,
+  waitFor,
 } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import type { PlanEntry, VerifyStatus } from '@/lib/domain/plan';
@@ -15,6 +16,7 @@ import {
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
 import { groupEntriesBySubject } from '@/lib/planner/subjectGroups';
+import { toastStore } from '@/features/shell/toastStore';
 import { SelectedCoursesList } from './SelectedCoursesList';
 
 const t = createTranslator('th');
@@ -73,7 +75,10 @@ function cards(): HTMLElement[] {
     .filter((item) => item.parentElement === list);
 }
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 describe('SelectedCoursesList', () => {
   it('renders one card per subject with the pair halves inside it', () => {
@@ -217,5 +222,57 @@ describe('SelectedCoursesList', () => {
       screen.getByRole('heading', { level: 3, name: 'วิชาที่เลือก' }),
     ).toHaveFocus();
     expect(screen.getByText('ยังไม่ได้เลือกรายวิชา')).toBeVisible();
+  });
+
+  it('copies the registration list with both halves of a pair', async () => {
+    const writeText = vi.fn<(text: string) => Promise<void>>(() =>
+      Promise.resolve(),
+    );
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+    render(
+      <Harness
+        initial={[
+          entry('s1', '90000002', '1'),
+          entry('p2', '90000001', '902'),
+          entry('p1', '90000001', '901'),
+        ]}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'คัดลอกรายการลงทะเบียน' }),
+    );
+    expect(writeText).toHaveBeenCalledWith(
+      [
+        '90000001 วิชา 90000001 (กลุ่มเรียน ทฤษฎี 901, ทฤษฎี 902)',
+        '90000002 วิชา 90000002 (กลุ่มเรียน ทฤษฎี 1)',
+      ].join('\n'),
+    );
+    await waitFor(() => {
+      expect(toastStore.getState().toast?.message).toBe(
+        'คัดลอกรายการลงทะเบียนแล้ว',
+      );
+    });
+  });
+
+  it('reports a failed registration list copy', async () => {
+    vi.stubGlobal('navigator', {
+      clipboard: { writeText: () => Promise.reject(new Error('denied')) },
+    });
+    render(<Harness initial={[entry('a1', '90000001', '1')]} />);
+    fireEvent.click(
+      screen.getByRole('button', { name: 'คัดลอกรายการลงทะเบียน' }),
+    );
+    await waitFor(() => {
+      expect(toastStore.getState().toast?.message).toBe(
+        'คัดลอกรายการลงทะเบียนไม่สำเร็จ',
+      );
+    });
+  });
+
+  it('offers no registration list copy while the plan is empty', () => {
+    render(<Harness initial={[]} />);
+    expect(
+      screen.queryByRole('button', { name: 'คัดลอกรายการลงทะเบียน' }),
+    ).not.toBeInTheDocument();
   });
 });
