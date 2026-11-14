@@ -1033,3 +1033,202 @@ describe('WeeklyGrid', () => {
     }
   });
 });
+
+// The portrait week of a narrow timetable runs the same edit layers as the landscape week,
+// with days as columns and time flowing down. A five day run puts Monday in column 2 and
+// Wednesday in column 4, and the default 07:00 window puts 09:00 on row 10.
+describe('WeeklyGrid portrait edit', () => {
+  const WEEK: readonly DayOfWeek[] = [1, 2, 3, 4, 5];
+
+  function renderPortraitWeek(sections: PlacedSection[] = []) {
+    return render(
+      <WeeklyGrid
+        sections={sections}
+        window={DEFAULT_WINDOW}
+        days={WEEK}
+        orientation="portrait"
+        locale="th"
+        t={t}
+        editable
+        onRemove={() => undefined}
+      />,
+    );
+  }
+
+  // Three sections of one course on the same Wednesday morning, so their candidate
+  // footprints share a cell and stack.
+  function stackedCourse() {
+    return makeCourse({
+      subjectId: 'S1',
+      sections: ['901', '902', '903'].map((code) =>
+        makeSection({
+          teachTableId: `c${code}`,
+          subjectId: 'S1',
+          section: code,
+          meetings: [makeMeeting({ day: 3, startMin: 540, endMin: 660 })],
+        }),
+      ),
+    });
+  }
+
+  function candidateStyles(): CSSStyleDeclaration[] {
+    return Array.from(
+      document.querySelectorAll<HTMLElement>('[data-candidate]'),
+      (node) => node.style,
+    );
+  }
+
+  it('places the placed blocks in their day columns with a remove control', () => {
+    renderPortraitWeek([
+      makePlaced({
+        meetings: [
+          makeMeeting({ day: 1, startMin: 540, endMin: 660 }),
+          makeMeeting({ day: 5, startMin: 780, endMin: 900 }),
+        ],
+      }),
+    ]);
+    const items = screen
+      .getAllByLabelText(/90592033/)
+      .map((node) => node.parentElement?.style);
+    expect(items.map((style) => style?.gridColumn)).toEqual(['2', '6']);
+    expect(items.map((style) => style?.gridRow)).toEqual([
+      '10 / 18',
+      '26 / 34',
+    ]);
+    expect(screen.getAllByRole('button', { name: /^นำออก/ })).toHaveLength(2);
+  });
+
+  it('paints a section drag footprint in each day column it meets', () => {
+    const dragged = makeSection({
+      teachTableId: 'd',
+      subjectId: 'S1',
+      meetings: [
+        makeMeeting({ day: 2, startMin: 540, endMin: 660 }),
+        makeMeeting({ day: 4, startMin: 540, endMin: 660 }),
+      ],
+    });
+    dragStore
+      .getState()
+      .start(makeCourse({ subjectId: 'S1', sections: [dragged] }), dragged, []);
+    renderPortraitWeek();
+    const ghosts = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-ghost="valid"]'),
+    );
+    expect(ghosts.map((ghost) => ghost.style.gridColumn)).toEqual(['3', '5']);
+    expect(ghosts.map((ghost) => ghost.style.gridRow)).toEqual([
+      '10 / 18',
+      '10 / 18',
+    ]);
+  });
+
+  it('places course drag candidates in their day column and time rows', () => {
+    dragStore.getState().startCourse(stackedCourse(), []);
+    renderPortraitWeek();
+    const styles = candidateStyles();
+    expect(styles).toHaveLength(3);
+    for (const style of styles) {
+      expect(style.gridColumn).toBe('4');
+      expect(style.gridRow).toBe('10 / 18');
+    }
+    expect(screen.getByText('902')).toBeInTheDocument();
+  });
+
+  it('fans stacked candidates down the time axis and barely across the column', () => {
+    dragStore.getState().startCourse(stackedCourse(), []);
+    renderPortraitWeek();
+    expect(
+      candidateStyles().map((style) => [style.marginLeft, style.marginTop]),
+    ).toEqual([
+      ['0px', '0px'],
+      ['2px', '5px'],
+      ['4px', '10px'],
+    ]);
+  });
+
+  it('keeps the full fan on both sides in landscape', () => {
+    dragStore.getState().startCourse(stackedCourse(), []);
+    render(
+      <WeeklyGrid
+        sections={[]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+        editable
+      />,
+    );
+    expect(
+      candidateStyles().map((style) => [style.marginLeft, style.marginTop]),
+    ).toEqual([
+      ['0px', '0px'],
+      ['5px', '5px'],
+      ['10px', '10px'],
+    ]);
+  });
+
+  it('raises swap targets over the blockers in their day columns', () => {
+    const blocker = makePlaced({
+      teachTableId: 'p',
+      subjectId: 'OTHER',
+      section: '900',
+      meetings: [
+        makeMeeting({ day: 2, startMin: 540, endMin: 660 }),
+        makeMeeting({ day: 4, startMin: 780, endMin: 900 }),
+      ],
+    });
+    const incoming = makeSection({
+      teachTableId: 'i',
+      subjectId: 'S1',
+      section: '901',
+      meetings: [makeMeeting({ day: 2, startMin: 540, endMin: 660 })],
+    });
+    dragStore.getState().setSwapContext({
+      incoming,
+      course: makeCourse({ subjectId: 'S1', sections: [incoming] }),
+      originId: null,
+      blockers: ['p'],
+    });
+    renderPortraitWeek([blocker]);
+    const targets = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-swap-target]'),
+    );
+    expect(targets.map((target) => target.style.gridColumn)).toEqual([
+      '3',
+      '5',
+    ]);
+    expect(targets.map((target) => target.style.gridRow)).toEqual([
+      '10 / 18',
+      '26 / 34',
+    ]);
+    expect(targets[0]).toHaveTextContent('สลับเป็นกลุ่ม 901');
+  });
+
+  it('marks a lifted block origin and labels its move candidate in portrait', () => {
+    const origin = makeSection({
+      teachTableId: 'm1',
+      subjectId: 'S1',
+      section: '901',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 660 })],
+    });
+    const other = makeSection({
+      teachTableId: 'm2',
+      subjectId: 'S1',
+      section: '902',
+      meetings: [makeMeeting({ day: 4, startMin: 540, endMin: 660 })],
+    });
+    dragStore
+      .getState()
+      .startBlockMove(
+        origin,
+        [origin],
+        makeCourse({ subjectId: 'S1', sections: [origin, other] }),
+      );
+    renderPortraitWeek();
+    const lifted = document.querySelector<HTMLElement>('[data-lifted-origin]');
+    expect(lifted?.style.gridColumn).toBe('2');
+    const candidate = document.querySelector<HTMLElement>(
+      '[data-candidate="valid"]',
+    );
+    expect(candidate?.style.gridColumn).toBe('5');
+    expect(candidate).toHaveTextContent('ย้ายไปกลุ่ม 902');
+  });
+});

@@ -63,10 +63,23 @@ export function onShownDay(
 
 const MAX_STACK_OFFSET = 4;
 const STACK_STEP_PX = 5;
+// The portrait week packs up to seven day columns into a phone width, about 45 px each, so
+// the full step across a column would leave a fourth footprint too narrow for its label.
+const PORTRAIT_CROSS_STEP_PX = 2;
 
 // Footprints that share a cell fan out by their stack index so each one stays legible,
-// capped so a crowded cell never pushes a footprint out of its track.
-export function stackOffsetStyle(stack: number): CSSProperties {
-  const offset = `${String(Math.min(stack, MAX_STACK_OFFSET) * STACK_STEP_PX)}px`;
-  return { marginLeft: offset, marginTop: offset };
+// capped so a crowded cell never pushes a footprint out of its track. Landscape fans by the
+// full step on both sides. Portrait keeps the full step down the time axis, which has the
+// room, and takes the narrow step across the day column.
+export function stackOffsetStyle(
+  stack: number,
+  orientation: Orientation,
+): CSSProperties {
+  const level = Math.min(stack, MAX_STACK_OFFSET);
+  const leftStep =
+    orientation === 'portrait' ? PORTRAIT_CROSS_STEP_PX : STACK_STEP_PX;
+  return {
+    marginLeft: `${String(level * leftStep)}px`,
+    marginTop: `${String(level * STACK_STEP_PX)}px`,
+  };
 }
