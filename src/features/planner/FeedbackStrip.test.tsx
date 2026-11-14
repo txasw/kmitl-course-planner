@@ -20,13 +20,16 @@ import { installViewport } from '../../../tests/support/viewport';
 import {
   makeCourse,
   makeMeeting,
+  makePlanEntry,
   makeSection,
 } from '../../../tests/support/domain-builders';
+import type { PlanEntry } from '@/lib/domain/plan';
+import { toSnapshot } from '@/lib/planner/transaction';
 import {
   resetPlanStore,
   seedActivePlan,
 } from '../../../tests/support/plan-store';
-import type { Course } from '@/lib/domain/types';
+import type { Course, Section } from '@/lib/domain/types';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
@@ -61,6 +64,18 @@ const QUERY_S2: TeachTableQuery = {
   search_all_class_year: true,
   selected_subject_id: '90000000',
 };
+
+const QUERY_S1: TeachTableQuery = { ...QUERY_S2, selected_semester: '1' };
+
+/** A plan entry placing the section, with the subject metadata of a default course. */
+function entryFromSection(section: Section): PlanEntry {
+  return makePlanEntry({
+    snapshot: toSnapshot(
+      makeCourse({ subjectId: section.subjectId, sections: [section] }),
+      section,
+    ),
+  });
+}
 
 afterEach(() => {
   cleanup();
@@ -236,6 +251,99 @@ describe('FeedbackStrip', () => {
       planStore.getState().entries.some((entry) => entry.section === '902'),
     ).toBe(true);
     expect(dragStore.getState().blocked).toBeNull();
+  });
+
+  describe('the replace action', () => {
+    // A placed subject S2 on Monday at nine, and a blocked add of S1 at the same time
+    // whose alternative 902 on Tuesday fits, in the plan's own term.
+    function showBlockedByPlaced(extra: PlanEntry[] = []): void {
+      const placed = makeSection({
+        teachTableId: 'p2',
+        subjectId: 'S2',
+        section: '903',
+        meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 600 })],
+      });
+      const blocked = makeSection({
+        teachTableId: 'b',
+        subjectId: 'S1',
+        section: '901',
+        meetings: [
+          makeMeeting({ day: 1, startMin: 540, endMin: 600 }),
+          makeMeeting({ day: 4, startMin: 540, endMin: 600 }),
+        ],
+      });
+      const alternative = makeSection({
+        teachTableId: 'a',
+        subjectId: 'S1',
+        section: '902',
+        meetings: [makeMeeting({ day: 2, startMin: 600, endMin: 660 })],
+      });
+      act(() => {
+        seedActivePlan([entryFromSection(placed), ...extra]);
+        searchStore.setState({ resultQuery: QUERY_S1 });
+        dragStore.setState({
+          active: null,
+          blocked: {
+            course: makeCourse({
+              subjectId: 'S1',
+              sections: [blocked, alternative],
+            }),
+            section: blocked,
+            conflicts: [
+              {
+                kind: 'time',
+                blocking: {
+                  teachTableId: 'p2',
+                  subjectId: 'S2',
+                  section: '903',
+                },
+                day: 1,
+                startMin: 540,
+                endMin: 600,
+              },
+            ],
+          },
+        });
+      });
+    }
+
+    it('takes the place of the blocking subject in one undoable step', () => {
+      showBlockedByPlaced();
+      render(<FeedbackStrip t={t} />);
+      const replace = screen.getByRole('button', {
+        name: 'แทนที่ S2 กลุ่มเรียน 903',
+      });
+      // The alternative comes first, since it changes less than a replacement.
+      expect(
+        screen
+          .getAllByRole('button')
+          .indexOf(screen.getByRole('button', { name: /902/ })),
+      ).toBeLessThan(screen.getAllByRole('button').indexOf(replace));
+      fireEvent.click(replace);
+      const sections = () =>
+        planStore.getState().entries.map((entry) => entry.teachTableId);
+      expect(sections()).toEqual(['b']);
+      expect(dragStore.getState().blocked).toBeNull();
+      expect(planStore.getState().pendingUndo).toMatchObject({ kind: 'swap' });
+      act(() => {
+        planStore.getState().undo();
+      });
+      expect(sections()).toEqual(['p2']);
+    });
+
+    it('is not offered while another subject would still clash', () => {
+      const other = makeSection({
+        teachTableId: 'p3',
+        subjectId: 'S3',
+        section: '904',
+        meetings: [makeMeeting({ day: 4, startMin: 540, endMin: 600 })],
+      });
+      showBlockedByPlaced([entryFromSection(other)]);
+      render(<FeedbackStrip t={t} />);
+      expect(
+        screen.queryByRole('button', { name: /^แทนที่/ }),
+      ).not.toBeInTheDocument();
+    });
   });
 
   it('routes a cross term alternative to the cross term notice', () => {

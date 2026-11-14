@@ -241,6 +241,7 @@
   "feedback.revealInCatalog": "แสดงในรายการ",
   "feedback.dismiss": "ปิดข้อความ",
   "feedback.searchCourse": "ค้นหารายวิชานี้",
+  "feedback.replace": "แทนที่ {subject} {section}",
   "feedback.added": "เพิ่มลงตารางแล้ว",
   "feedback.courseDropHint": "วางบนช่องที่ไฮไลต์เพื่อเพิ่มกลุ่มเรียน",
   "feedback.moveHint": "วางบนช่องที่ไฮไลต์หรือพื้นที่นำออก",

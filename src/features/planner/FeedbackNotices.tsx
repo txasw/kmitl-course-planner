@@ -1,6 +1,7 @@
 // The notices the feedback strip shows, one at a time: a blocked reason with up to two
-// fitting alternatives or an action that shows the course, a cross term switch, and a
-// drag hint. Each ends with the same dismiss control. Their actions carry
+// fitting alternatives or an action that shows the course, then a replace action for
+// each blocking subject it could take the place of, a cross term switch, and a drag
+// hint. Each ends with the same dismiss control. Their actions carry
 // data-feedback-action, so a blocked or cross term add can move focus to the first of
 // them; the dismiss control does not, since the way forward comes before the way out.
 
@@ -31,16 +32,8 @@ import {
   type CrossTermFeedback,
 } from './dragStore';
 import { conflictReasonText } from './conflictText';
-
-/**
- * The first action of the notice the strip shows: the first alternative chip of a
- * blocked notice, or its reveal action when none fits, or the switch of a cross term
- * notice. A blocked or cross term add moves focus here, so a keyboard user can take the
- * way forward without hunting for it.
- */
-export function firstFeedbackAction(root: ParentNode): HTMLElement | null {
-  return root.querySelector<HTMLElement>('[data-feedback-action]');
-}
+import { firstFeedbackAction } from './feedbackAction';
+import { ReplaceActions } from './ReplaceActions';
 
 /**
  * The close control every visible notice ends with, so a student can clear one without
@@ -203,6 +196,7 @@ export function BlockedNotice({
       ) : (
         <CourseRevealAction subjectId={blocked.section.subjectId} t={t} />
       )}
+      <ReplaceActions blocked={blocked} t={t} />
       <DismissButton t={t} />
     </div>
   );
