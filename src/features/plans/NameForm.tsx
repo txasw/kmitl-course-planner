@@ -1,19 +1,85 @@
 // The name field of the plan switcher menu, shared by create and rename. Enter saves,
-// and save stays disabled while the name is blank.
+// and save stays disabled while the name is blank. A create also picks the plan's year
+// and semester, since a plan belongs to one term for life; a rename never offers it.
 
 import { useEffect, useRef } from 'react';
+import { useTranslation } from '@/features/shell/useTranslation';
+import {
+  SEMESTERS,
+  parseSemester,
+  type Term,
+} from '@/lib/routing/academicTerms';
 import { CONTROL_BOUNDARY } from '@/lib/ui/control';
 import { FOCUS_RING } from '@/lib/ui/focus';
-import { TARGET_SIZE } from '@/lib/ui/target';
+import { TARGET_HEIGHT, TARGET_SIZE } from '@/lib/ui/target';
+
+/** The term choice of a create: the chosen term, the years offered, ascending. */
+export interface NameFormTerm {
+  value: Term;
+  years: readonly string[];
+  onChange: (term: Term) => void;
+}
 
 export interface NameFormProps {
   value: string;
   label: string;
   save: string;
   cancel: string;
+  /** Present for a create, absent for a rename. */
+  term?: NameFormTerm;
   onChange: (value: string) => void;
   onSubmit: () => void;
   onCancel: () => void;
+}
+
+const SELECT_CLASS = `rounded-kcp border px-2 py-1 text-ink ${CONTROL_BOUNDARY} ${FOCUS_RING} ${TARGET_HEIGHT}`;
+
+function TermSelects({ value, years, onChange }: NameFormTerm) {
+  const { t } = useTranslation();
+  return (
+    <div
+      role="group"
+      aria-label={t('search.termGroup')}
+      className="grid grid-cols-2 gap-2 *:min-w-0"
+    >
+      <label className="flex flex-col gap-1 text-ink">
+        <span className="font-semibold">{t('search.year')}</span>
+        <select
+          value={value.year}
+          onChange={(event) => {
+            onChange({ ...value, year: event.target.value });
+          }}
+          className={SELECT_CLASS}
+        >
+          {/* Newest first, as the search form lists them. */}
+          {[...years].reverse().map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex flex-col gap-1 text-ink">
+        <span className="font-semibold">{t('search.semester')}</span>
+        <select
+          value={value.semester}
+          onChange={(event) => {
+            const semester = parseSemester(event.target.value);
+            if (semester !== null) {
+              onChange({ ...value, semester });
+            }
+          }}
+          className={SELECT_CLASS}
+        >
+          {SEMESTERS.map((semester) => (
+            <option key={semester} value={semester}>
+              {semester}
+            </option>
+          ))}
+        </select>
+      </label>
+    </div>
+  );
 }
 
 export function NameForm({
@@ -21,6 +87,7 @@ export function NameForm({
   label,
   save,
   cancel,
+  term,
   onChange,
   onSubmit,
   onCancel,
@@ -52,6 +119,7 @@ export function NameForm({
           className={`rounded-kcp border px-2 py-1 text-ink ${CONTROL_BOUNDARY} ${FOCUS_RING}`}
         />
       </label>
+      {term === undefined ? null : <TermSelects {...term} />}
       <div className="flex justify-end gap-2">
         <button
           type="button"

@@ -167,6 +167,67 @@ describe('PlanSwitcher', () => {
     expect(plans[0]?.semester).toBe('3');
   });
 
+  it('creates a plan for a chosen term and snaps the search form to it', () => {
+    render(<PlanSwitcher />);
+    openMenu();
+    fireEvent.click(screen.getByRole('button', { name: 'สร้างตาราง' }));
+    const year = screen.getByRole('combobox', { name: 'ปีการศึกษา' });
+    const semester = screen.getByRole('combobox', { name: 'ภาคการศึกษา' });
+    expect(year).toHaveValue('2569');
+    expect(semester).toHaveValue('1');
+    fireEvent.change(year, { target: { value: '2568' } });
+    fireEvent.change(semester, { target: { value: '2' } });
+    // The default name follows the chosen term while it is untouched.
+    expect(screen.getByRole('textbox')).toHaveValue('ตาราง 2/2568');
+    fireEvent.click(screen.getByRole('button', { name: 'บันทึก' }));
+    const plans = planStore.getState().plans;
+    expect(plans[0]?.name).toBe('ตาราง 2/2568');
+    expect(plans[0]?.year).toBe('2568');
+    expect(plans[0]?.semester).toBe('2');
+    expect(searchStore.getState().term).toEqual({
+      year: '2568',
+      semester: '2',
+    });
+  });
+
+  it('keeps offering the shown year when the search term moves', () => {
+    act(() => {
+      searchStore.getState().seedTerm({ year: '2550', semester: '1' });
+    });
+    render(<PlanSwitcher />);
+    openMenu();
+    fireEvent.click(screen.getByRole('button', { name: 'สร้างตาราง' }));
+    act(() => {
+      searchStore.getState().seedTerm({ year: '2569', semester: '1' });
+    });
+    expect(screen.getByRole('combobox', { name: 'ปีการศึกษา' })).toHaveValue(
+      '2550',
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'บันทึก' }));
+    expect(planStore.getState().plans[0]?.year).toBe('2550');
+  });
+
+  it('keeps an edited name when the term changes', () => {
+    render(<PlanSwitcher />);
+    openMenu();
+    fireEvent.click(screen.getByRole('button', { name: 'สร้างตาราง' }));
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: 'ตารางหลัก' },
+    });
+    fireEvent.change(screen.getByRole('combobox', { name: 'ภาคการศึกษา' }), {
+      target: { value: '3' },
+    });
+    expect(screen.getByRole('textbox')).toHaveValue('ตารางหลัก');
+  });
+
+  it('offers no term choice when renaming', () => {
+    seedTwoPlans();
+    render(<PlanSwitcher />);
+    openMenu();
+    fireEvent.click(screen.getByRole('button', { name: 'เปลี่ยนชื่อ A' }));
+    expect(screen.queryByRole('combobox')).toBeNull();
+  });
+
   it('draws the plan name field boundary with the form control token', () => {
     render(<PlanSwitcher />);
     openMenu();

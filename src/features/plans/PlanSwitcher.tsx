@@ -1,18 +1,24 @@
 // The plan switcher in the overlay header. It lists the saved plans grouped by term,
 // switches the active plan, and creates, renames, duplicates, or deletes a plan.
 // Switching a plan snaps the search form to that plan's term so the next search
-// reflects it. A new plan takes the term the search tabs share. The dropdown is
+// reflects it. A new plan offers the term the search tabs share and lets the user pick
+// another, and creating it snaps the search form to that term. The dropdown is
 // positioned with floating-ui, a fixed strategy that escapes the header, and
 // dismisses on an outside click or Escape. Below 640 px a w-72 dropdown leaves almost
 // no margin and its row actions sit under a thumb, so the same menu opens as a bottom
 // sheet instead, which carries its own scrim, focus trap and Escape layer.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { CalendarRange, ChevronDown } from 'lucide-react';
 import { useClick, useDismiss, useInteractions } from '@floating-ui/react';
 import { planSchema, type Plan } from '@/lib/domain/plan';
-import type { Term } from '@/lib/routing/academicTerms';
+import {
+  buddhistYears,
+  toBuddhistYear,
+  yearsWith,
+  type Term,
+} from '@/lib/routing/academicTerms';
 import { isTermReady } from '@/lib/search/formState';
 import { planExportBaseName } from '@/lib/planner/exportName';
 import { parsePlanImport } from '@/lib/plans/parsePlanImport';
@@ -37,12 +43,14 @@ import { planStore, useActivePlan } from './planStore';
 type Mode =
   | { kind: 'list' }
   | {
-      kind: 'name';
-      action: 'create' | 'rename';
+      kind: 'create';
       value: string;
-      /** The plan a rename targets; absent for a create. */
-      planId?: string;
+      term: Term;
+      /** True once the name differs from the default for the chosen term, which
+       * stops a term change from rewriting it. */
+      edited: boolean;
     }
+  | { kind: 'rename'; value: string; planId: string }
   | { kind: 'confirmDelete'; planId: string }
   | { kind: 'importError'; issues: string[] };
 
@@ -63,6 +71,10 @@ export function PlanSwitcher() {
   // A plan needs a real term or its sections could never be added; block create
   // until the search form has a seeded year.
   const canCreate = isTermReady(searchTerm);
+  const spanYears = useMemo(
+    () => buddhistYears(toBuddhistYear(new Date().getFullYear())),
+    [],
+  );
 
   const { refs, floatingStyles, context } = usePanelPopover({
     gap: 4,
@@ -149,12 +161,15 @@ export function PlanSwitcher() {
 
   const submitName = (value: string) => {
     const name = value.trim();
-    if (mode.kind !== 'name' || name === '') {
+    if (name === '') {
       return;
     }
-    if (mode.action === 'create') {
-      planStore.getState().createPlan(name, searchTerm);
-    } else if (mode.planId !== undefined) {
+    if (mode.kind === 'create') {
+      planStore.getState().createPlan(name, mode.term);
+      // The chosen term may differ from the search form's; snap the form to the new
+      // plan as a switch does, so the next search can add to it.
+      snapToActivePlan();
+    } else if (mode.kind === 'rename') {
       planStore.getState().renamePlan(mode.planId, name);
     }
     closeMenu();
@@ -196,7 +211,40 @@ export function PlanSwitcher() {
     activePlan === null ? t('planSwitcher.noPlan') : activePlan.name;
 
   const menu =
-    mode.kind === 'name' ? (
+    mode.kind === 'create' ? (
+      <NameForm
+        value={mode.value}
+        label={t('planSwitcher.nameLabel')}
+        save={t('planSwitcher.save')}
+        cancel={t('action.cancel')}
+        term={{
+          value: mode.term,
+          // Offered from the term the form shows, which can sit outside the span and
+          // stays put if the search term moves while the form is open.
+          years: yearsWith(spanYears, mode.term.year),
+          onChange: (term) => {
+            setMode({
+              ...mode,
+              term,
+              value: mode.edited ? mode.value : defaultName(term),
+            });
+          },
+        }}
+        onChange={(value) => {
+          setMode({
+            ...mode,
+            value,
+            edited: value !== defaultName(mode.term),
+          });
+        }}
+        onSubmit={() => {
+          submitName(mode.value);
+        }}
+        onCancel={() => {
+          setMode({ kind: 'list' });
+        }}
+      />
+    ) : mode.kind === 'rename' ? (
       <NameForm
         value={mode.value}
         label={t('planSwitcher.nameLabel')}
@@ -239,16 +287,16 @@ export function PlanSwitcher() {
         canCreate={canCreate}
         onCreate={() => {
           setMode({
-            kind: 'name',
-            action: 'create',
+            kind: 'create',
             value: defaultName(searchTerm),
+            term: searchTerm,
+            edited: false,
           });
         }}
         onSelect={selectPlan}
         onRename={(plan) => {
           setMode({
-            kind: 'name',
-            action: 'rename',
+            kind: 'rename',
             value: plan.name,
             planId: plan.id,
           });

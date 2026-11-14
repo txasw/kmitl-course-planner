@@ -7,6 +7,7 @@ import {
   resolveInitialTerm,
   termFromQueryFields,
   toBuddhistYear,
+  yearsWith,
   type Term,
 } from './academicTerms';
 import type { TeachTableRoute } from './parseTeachTableRoute';
@@ -28,6 +29,26 @@ describe('buddhistYears', () => {
 
   it('never returns fewer than the earliest year for an old input', () => {
     expect(buddhistYears(2555)).toEqual([String(EARLIEST_BUDDHIST_YEAR)]);
+  });
+});
+
+describe('yearsWith', () => {
+  it('keeps the list when the year is already offered or empty', () => {
+    expect(yearsWith(['2568', '2569'], '2569')).toEqual(['2568', '2569']);
+    expect(yearsWith(['2568', '2569'], '')).toEqual(['2568', '2569']);
+  });
+
+  it('merges a year outside the span in ascending order', () => {
+    expect(yearsWith(['2568', '2569'], '2575')).toEqual([
+      '2568',
+      '2569',
+      '2575',
+    ]);
+    expect(yearsWith(['2568', '2569'], '2559')).toEqual([
+      '2559',
+      '2568',
+      '2569',
+    ]);
   });
 });
 
