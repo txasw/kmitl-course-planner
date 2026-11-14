@@ -98,7 +98,7 @@ export function CoursePreviewLayer({
             className={`pointer-events-none relative z-grid m-px overflow-hidden rounded-kcp border-2 border-dotted ${BORDER[kind]}`}
             style={{
               ...blockStyle(meeting, window, days, orientation),
-              ...stackOffsetStyle(footprint.stack),
+              ...stackOffsetStyle(footprint.stack, orientation),
             }}
           >
             {kind === 'clash' ? (

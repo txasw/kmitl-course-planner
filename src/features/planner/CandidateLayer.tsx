@@ -181,7 +181,7 @@ export function CandidateLayer({
                   label={candidateLabel(footprint.candidate)}
                   style={{
                     ...blockStyle(footprint.meeting, window, days, orientation),
-                    ...stackOffsetStyle(footprint.stack),
+                    ...stackOffsetStyle(footprint.stack, orientation),
                   }}
                 />
               );
