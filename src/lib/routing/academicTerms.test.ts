@@ -6,6 +6,7 @@ import {
   nextTerm,
   resolveInitialTerm,
   termFromQueryFields,
+  termText,
   toBuddhistYear,
   yearsWith,
   type Term,
@@ -70,6 +71,12 @@ describe('termFromQueryFields', () => {
     expect(termFromQueryFields('2569', undefined)).toBeNull();
     expect(termFromQueryFields('', '1')).toBeNull();
     expect(termFromQueryFields(undefined, '1')).toBeNull();
+  });
+});
+
+describe('termText', () => {
+  it('writes the semester over the year', () => {
+    expect(termText({ year: '2569', semester: '3' })).toBe('3/2569');
   });
 });
 

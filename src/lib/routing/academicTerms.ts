@@ -70,6 +70,11 @@ export function termsEqual(a: Term, b: Term): boolean {
   return a.year === b.year && a.semester === b.semester;
 }
 
+/** A term as the semester over the year, for example 1/2569, the form both locales read. */
+export function termText(term: Term): string {
+  return `${term.semester}/${term.year}`;
+}
+
 /**
  * The term after the given one: semester 1 and 2 advance within the year, and
  * semester 3 rolls over to the first semester of the next year. Students plan the

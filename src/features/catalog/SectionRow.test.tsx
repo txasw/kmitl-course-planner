@@ -240,7 +240,7 @@ describe('SectionRow actions', () => {
     const rail = screen.getByRole('button', { name: /^เพิ่ม/ });
     expect(rail).toHaveAttribute('aria-disabled', 'true');
     expect(rail).toHaveAccessibleDescription(
-      'ตารางอยู่ในภาคการศึกษา 2/2569. กลุ่มเรียนอยู่ในภาค 1/2569',
+      'ตารางนี้เป็นภาคการศึกษา 2/2569 แต่กลุ่มเรียนนี้อยู่ในภาคการศึกษา 1/2569',
     );
   });
 });
