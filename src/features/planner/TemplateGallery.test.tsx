@@ -110,6 +110,22 @@ function radioAt(index: number): HTMLElement {
   return radio;
 }
 
+// The stage viewport, which takes the swipe and the wheel; jsdom lacks pointer capture.
+function stageOf(container: HTMLElement): HTMLElement {
+  const stage = container.querySelector<HTMLElement>('.touch-pan-y');
+  if (stage === null) {
+    throw new Error('no stage');
+  }
+  stage.setPointerCapture = vi.fn();
+  stage.releasePointerCapture = vi.fn();
+  return stage;
+}
+
+function swipe(stage: HTMLElement, dx: number) {
+  fireEvent.pointerDown(stage, { button: 0, pointerId: 1, clientX: 300 });
+  fireEvent.pointerUp(stage, { button: 0, pointerId: 1, clientX: 300 + dx });
+}
+
 beforeEach(() => {
   act(() => {
     uiStore.getState().setSelectedTemplate(EXPORT_TEMPLATES[0]?.slug ?? '');
@@ -118,6 +134,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
@@ -245,15 +262,54 @@ describe('TemplateGallery', () => {
     }
 
     // Swipe still pages on a narrow stage.
-    const stage = container.querySelector<HTMLElement>('.touch-pan-y');
-    if (stage === null) {
-      throw new Error('no stage');
-    }
-    stage.setPointerCapture = vi.fn();
-    stage.releasePointerCapture = vi.fn();
-    fireEvent.pointerDown(stage, { button: 0, pointerId: 1, clientX: 300 });
-    fireEvent.pointerUp(stage, { button: 0, pointerId: 1, clientX: 200 });
+    swipe(stageOf(container), -100);
     expect(uiStore.getState().selectedTemplate).toBe(EXPORT_TEMPLATES[1]?.slug);
+  });
+
+  it('pages by swipe and clamps at the first and last template', () => {
+    const { container } = renderGallery();
+    const stage = stageOf(container);
+    const last = EXPORT_TEMPLATES.length - 1;
+    // A swipe toward the previous page at the first template stays on the first.
+    swipe(stage, 100);
+    expect(uiStore.getState().selectedTemplate).toBe(EXPORT_TEMPLATES[0]?.slug);
+    // A short drag below the threshold does not page.
+    swipe(stage, -20);
+    expect(uiStore.getState().selectedTemplate).toBe(EXPORT_TEMPLATES[0]?.slug);
+    fireEvent.keyDown(radioAt(0), { key: 'End' });
+    // A swipe toward the next page at the last template stays on the last.
+    swipe(stage, -100);
+    expect(uiStore.getState().selectedTemplate).toBe(
+      EXPORT_TEMPLATES[last]?.slug,
+    );
+    swipe(stage, 100);
+    expect(uiStore.getState().selectedTemplate).toBe(
+      EXPORT_TEMPLATES[last - 1]?.slug,
+    );
+  });
+
+  it('pages one template per wheel notch and keeps the page from scrolling', () => {
+    vi.useFakeTimers();
+    const { container } = renderGallery();
+    const stage = stageOf(container);
+    // A vertical notch pages forward and its default scroll is prevented.
+    expect(fireEvent.wheel(stage, { deltaY: 100 })).toBe(false);
+    expect(uiStore.getState().selectedTemplate).toBe(EXPORT_TEMPLATES[1]?.slug);
+    // A second notch inside the cooldown is swallowed without paging.
+    expect(fireEvent.wheel(stage, { deltaY: 100 })).toBe(false);
+    expect(uiStore.getState().selectedTemplate).toBe(EXPORT_TEMPLATES[1]?.slug);
+    act(() => {
+      vi.advanceTimersByTime(320);
+    });
+    // A dominant horizontal delta pages by its own sign.
+    fireEvent.wheel(stage, { deltaX: -100, deltaY: 10 });
+    expect(uiStore.getState().selectedTemplate).toBe(EXPORT_TEMPLATES[0]?.slug);
+    act(() => {
+      vi.advanceTimersByTime(320);
+    });
+    // A tiny delta is left to the page and does not page.
+    expect(fireEvent.wheel(stage, { deltaY: 2 })).toBe(true);
+    expect(uiStore.getState().selectedTemplate).toBe(EXPORT_TEMPLATES[0]?.slug);
   });
 
   it('opens a tall stage on the portrait phone wallpaper when nothing is chosen', () => {
