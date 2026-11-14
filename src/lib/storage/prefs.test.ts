@@ -224,4 +224,42 @@ describe('prefs repository', () => {
     expect(loaded?.suggestObjective).toBe('maxCredits');
     expect(loaded?.suggestPreference).toBeUndefined();
   });
+
+  it('round trips the timetable view', async () => {
+    const adapter = fakeAdapter();
+    const repo = createPrefsRepository(adapter);
+    const withView: Prefs = {
+      schemaVersion: 1,
+      language: 'th',
+      timetableView: 'week',
+    };
+    await repo.save(withView);
+    expect(await repo.load()).toEqual(withView);
+  });
+
+  it('loads a blob written before the timetable view existed', async () => {
+    const repo = createPrefsRepository(
+      fakeAdapter({ [PREFS_KEY]: { schemaVersion: 1, language: 'en' } }),
+    );
+    const loaded = await repo.load();
+    expect(loaded?.language).toBe('en');
+    expect(loaded).not.toHaveProperty('timetableView');
+  });
+
+  it('reads an unknown timetable view as absent and keeps the rest', async () => {
+    const repo = createPrefsRepository(
+      fakeAdapter({
+        [PREFS_KEY]: {
+          schemaVersion: 1,
+          language: 'en',
+          viewMode: 'preview',
+          timetableView: 'month',
+        },
+      }),
+    );
+    const loaded = await repo.load();
+    expect(loaded?.language).toBe('en');
+    expect(loaded?.viewMode).toBe('preview');
+    expect(loaded?.timetableView).toBeUndefined();
+  });
 });

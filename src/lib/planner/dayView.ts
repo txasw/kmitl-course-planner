@@ -11,6 +11,15 @@ import { WORKING_DAYS } from './freePeriods';
 import type { ConflictDetail } from './placement';
 
 /**
+ * The layouts a narrow timetable offers: one day at a time under the day chips, or the whole
+ * week in portrait. The day is the default; the week is the student's choice, remembered as
+ * a preference.
+ */
+export const TIMETABLE_VIEWS = ['day', 'week'] as const;
+export type TimetableView = (typeof TIMETABLE_VIEWS)[number];
+export const DEFAULT_TIMETABLE_VIEW: TimetableView = 'day';
+
+/**
  * Whether a grid scroller of the given CSS pixel width shows one day at a time. The cut is
  * the compact tier edge, but it reads the measured scroller, so a docked catalog that
  * squeezes the grid counts too. Before the first measurement the width is zero, and the
