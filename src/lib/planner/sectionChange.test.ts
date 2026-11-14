@@ -10,7 +10,7 @@ import {
 } from '../../../tests/support/domain-builders';
 import { checkPlacement, expandSectionGroup } from './placement';
 import { placedSections } from './transaction';
-import { replaceOptions } from './sectionChange';
+import { changeOptions, replaceOptions } from './sectionChange';
 
 function entryOf(section: Section): PlanEntry {
   return makePlanEntry({
@@ -147,5 +147,99 @@ describe('replaceOptions', () => {
     const { course, conflicts } = conflictsOf(entries, incoming);
     expect(conflicts.map((conflict) => conflict.kind)).toEqual(['exam']);
     expect(replaceOptions(entries, course, incoming, conflicts)).toEqual([]);
+  });
+});
+
+describe('changeOptions', () => {
+  it('lists each other open group once, soonest first, against the plan without the current one', () => {
+    const current = makeSection({
+      teachTableId: 'A1',
+      subjectId: 'A',
+      section: '1',
+      pairedSection: '101',
+      meetings: [MONDAY_NINE],
+    });
+    const currentPractice = makeSection({
+      teachTableId: 'A101',
+      subjectId: 'A',
+      section: '101',
+      pairedSection: '1',
+      meetings: [WEDNESDAY_NINE],
+    });
+    // Group 2 sits where the current group does, which is free once it leaves.
+    const second = makeSection({
+      teachTableId: 'A2',
+      subjectId: 'A',
+      section: '2',
+      pairedSection: '102',
+      meetings: [WEDNESDAY_NINE],
+    });
+    const secondPractice = makeSection({
+      teachTableId: 'A102',
+      subjectId: 'A',
+      section: '102',
+      pairedSection: '2',
+      meetings: [MONDAY_NINE],
+    });
+    const early = makeSection({
+      teachTableId: 'A3',
+      subjectId: 'A',
+      section: '3',
+      meetings: [makeMeeting({ day: 1, startMin: 420, endMin: 480 })],
+    });
+    const course = makeCourse({
+      subjectId: 'A',
+      sections: [current, second, early, currentPractice, secondPractice],
+    });
+    const entries = [entryOf(current), entryOf(currentPractice)];
+    const options = changeOptions(entries, course, 'A101');
+    expect(
+      options.map((option) => option.group.map((member) => member.section)),
+    ).toEqual([['3'], ['2', '102']]);
+  });
+
+  it('leaves out a group that clashes with another subject or is full', () => {
+    const current = makeSection({
+      teachTableId: 'A1',
+      subjectId: 'A',
+      section: '1',
+      meetings: [MONDAY_NINE],
+    });
+    const clashing = makeSection({
+      teachTableId: 'A2',
+      subjectId: 'A',
+      section: '2',
+      meetings: [TUESDAY_NINE],
+    });
+    const full = makeSection({
+      teachTableId: 'A3',
+      subjectId: 'A',
+      section: '3',
+      meetings: [WEDNESDAY_NINE],
+      seats: { limit: 40, preCount: 0, queueLeft: 0, enrolled: 'full' },
+    });
+    const other = makeSection({
+      teachTableId: 'B',
+      subjectId: 'B',
+      meetings: [TUESDAY_NINE],
+    });
+    const course = makeCourse({
+      subjectId: 'A',
+      sections: [current, clashing, full],
+    });
+    expect(
+      changeOptions([entryOf(current), entryOf(other)], course, 'A1'),
+    ).toEqual([]);
+  });
+
+  it('matches the placed group by section code when its id moved', () => {
+    const placed = makeSection({ teachTableId: 'old', subjectId: 'A' });
+    const listed = makeSection({ teachTableId: 'new', subjectId: 'A' });
+    const course = makeCourse({ subjectId: 'A', sections: [listed] });
+    expect(changeOptions([entryOf(placed)], course, 'old')).toEqual([]);
+  });
+
+  it('lists nothing for an entry the plan does not hold', () => {
+    expect(changeOptions([], makeCourse(), 'gone')).toEqual([]);
   });
 });
