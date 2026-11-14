@@ -41,7 +41,7 @@ import { planExportBaseName } from '@/lib/planner/exportName';
 import type { ExportTemplate } from '@/lib/planner/exportTemplates';
 import { useActivePlan } from '@/features/plans/planStore';
 import { useTranslation } from '@/features/shell/useTranslation';
-import { toastStore } from '@/features/shell/toastStore';
+import { copyText } from '@/features/shell/copyText';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { DisplayOptionsPopover } from './DisplayOptionsPopover';
 import { examScheduleLines } from './examScheduleLines';
@@ -140,14 +140,7 @@ export function PreviewToolbar({
       locale: language,
       t,
     });
-    void navigator.clipboard.writeText(text).then(
-      () => {
-        toastStore.getState().show('success', t('preview.textCopied'));
-      },
-      () => {
-        toastStore.getState().show('error', t('preview.copyTextFailed'));
-      },
-    );
+    copyText(text, t('preview.textCopied'), t('preview.copyTextFailed'));
   };
 
   const shareAction = canShareImage()
