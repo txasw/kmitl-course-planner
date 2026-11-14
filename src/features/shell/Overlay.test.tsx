@@ -92,6 +92,22 @@ describe('Overlay', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
+  it('opens the shortcut help on the question mark and closes it alone on Escape', () => {
+    act(() => {
+      uiStore.getState().open();
+    });
+    render(<Overlay />, { wrapper });
+    const panel = screen.getByRole('dialog');
+    fireEvent.keyDown(panel, { key: '?', code: 'Slash', shiftKey: true });
+    const help = screen.getByRole('dialog', { name: 'แป้นพิมพ์ลัด' });
+    expect(panel).toContainElement(help);
+    fireEvent.keyDown(help, { key: 'Escape' });
+    expect(
+      screen.queryByRole('dialog', { name: 'แป้นพิมพ์ลัด' }),
+    ).not.toBeInTheDocument();
+    expect(uiStore.getState().isOpen).toBe(true);
+  });
+
   it('closes when the close control is activated', () => {
     act(() => {
       uiStore.getState().open();

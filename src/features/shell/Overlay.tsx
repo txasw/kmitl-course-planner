@@ -8,6 +8,7 @@ import { uiStore } from './uiStore';
 import { PanelPortalContext } from './PanelPortalContext';
 import { Header } from './Header';
 import { Layout } from './Layout';
+import { ShortcutHelp } from './ShortcutHelp';
 import { CrashProbe } from './CrashProbe';
 import { useBottomNavShown } from './mobilePane';
 import { useTranslation } from './useTranslation';
@@ -44,11 +45,17 @@ export function Overlay() {
   }, []);
   const { mounted, stage } = usePresence(isOpen);
   const navShown = useBottomNavShown();
+  const [helpOpen, setHelpOpen] = useState(false);
+  // A panel that closes takes the shortcut help with it, so a reopen starts without it.
+  if (!isOpen && helpOpen) setHelpOpen(false);
+  const openHelp = useCallback(() => {
+    setHelpOpen(true);
+  }, []);
 
   // Focus enters the panel only once it is mounted; the lock follows the logical
   // open flag so it never waits on the leave animation.
   useFocusTrap(panelRef, isOpen && mounted, close);
-  usePanelShortcuts(panelRef, { enabled: isOpen && mounted });
+  usePanelShortcuts(panelRef, { enabled: isOpen && mounted, onHelp: openHelp });
   useScrollLock(isOpen);
 
   if (!mounted) return null;
@@ -83,6 +90,13 @@ export function Overlay() {
             <Layout />
           </main>
         </ErrorBoundary>
+        {helpOpen ? (
+          <ShortcutHelp
+            onClose={() => {
+              setHelpOpen(false);
+            }}
+          />
+        ) : null}
       </PanelPortalContext.Provider>
     </div>
   );

@@ -121,19 +121,23 @@ function undoPending(): boolean {
 interface PanelShortcutOptions {
   /** Whether the panel is open and mounted, so its keys are live. */
   enabled: boolean;
+  /** Open the shortcut help. */
+  onHelp: () => void;
 }
 
 export function usePanelShortcuts(
   panelRef: RefObject<HTMLElement | null>,
-  { enabled }: PanelShortcutOptions,
+  { enabled, onHelp }: PanelShortcutOptions,
 ): void {
   const tier = useLayoutTier();
   const tierRef = useRef(tier);
+  const helpRef = useRef(onHelp);
 
-  // Keep the latest tier without re-attaching the listener on every resize.
+  // Keep the latest tier and callback without re-attaching the listener on every render.
   useEffect(() => {
     tierRef.current = tier;
-  }, [tier]);
+    helpRef.current = onHelp;
+  }, [tier, onHelp]);
 
   useEffect(() => {
     if (!enabled) return undefined;
@@ -146,12 +150,15 @@ export function usePanelShortcuts(
       if (shortcut === null || isEditableTarget(event.target)) return;
       if (attentionStore.getState().openSurfaces > 0) return;
       if (selectDragging(dragStore.getState())) return;
+      if (shortcut === 'help') {
+        event.preventDefault();
+        helpRef.current();
+        return;
+      }
       const handled =
         shortcut === 'filter'
           ? focusFilter(panel, tierRef.current)
-          : shortcut === 'undo'
-            ? undoPending()
-            : false;
+          : undoPending();
       if (handled) event.preventDefault();
     };
 
