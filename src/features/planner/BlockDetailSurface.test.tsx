@@ -26,6 +26,7 @@ import {
 import { planStore } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
+import { toastStore } from '@/features/shell/toastStore';
 import { installViewport } from '../../../tests/support/viewport';
 import { uiStore } from '@/features/shell/uiStore';
 import { parseTeachTableRoute } from '@/lib/routing/parseTeachTableRoute';
@@ -469,6 +470,32 @@ describe('BlockDetailSurface on a fine pointer from 640 px', () => {
     });
     renderPopover();
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    // The copy action needs no term, so it stays when the link cannot form.
+    expect(
+      screen.getByRole('button', { name: 'Copy subject id' }),
+    ).toBeInTheDocument();
+  });
+
+  it('copies the subject id and names it in the toast', async () => {
+    const writeText = vi.fn<(text: string) => Promise<void>>(() =>
+      Promise.resolve(),
+    );
+    // Only the clipboard is replaced, since the popover's floating-ui reads the platform.
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    });
+    act(() => {
+      seedActivePlan([makePlanEntry()]);
+    });
+    renderPopover();
+    fireEvent.click(screen.getByRole('button', { name: 'Copy subject id' }));
+    expect(writeText).toHaveBeenCalledWith('90000001');
+    await waitFor(() => {
+      expect(toastStore.getState().toast?.message).toBe(
+        'Subject id 90000001 copied',
+      );
+    });
   });
 
   it('closes when the entry leaves the plan', () => {

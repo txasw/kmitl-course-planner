@@ -46,6 +46,7 @@ import { isScheduled, toPlacedSection } from './placedSection';
 import { dragStore, selectDragging } from './dragStore';
 import { BlockDetailSurface } from './BlockDetailSurface';
 import { BlockContextMenu } from './BlockContextMenu';
+import { copySubjectId } from './copySubjectId';
 import { FeedbackStrip } from './FeedbackStrip';
 import { PlanViewTabs, planViewPanelId, planViewTabId } from './PlanViewTabs';
 import { type PosterData } from './PreviewPoster';
@@ -453,6 +454,15 @@ export function PlannerPanel() {
           }}
           onDetails={() => {
             openDetail(contextMenu.anchor);
+            closeContextMenu();
+          }}
+          onCopySubjectId={() => {
+            const subjectId = entries.find(
+              (entry) => entry.teachTableId === contextMenu.teachTableId,
+            )?.subjectId;
+            if (subjectId !== undefined) {
+              copySubjectId(subjectId, t);
+            }
             closeContextMenu();
           }}
         />

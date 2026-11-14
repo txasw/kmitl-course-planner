@@ -1,15 +1,16 @@
 // A small custom context menu for a placed block, opened by a right click on the block in
-// edit mode. It replaces the browser menu on a block and nowhere else, and offers the two
-// pointer only shortcuts that already exist on the block, remove and details. Every
-// keyboard and popover path stays intact; this is an enhancement, not a replacement. It is
-// positioned with floating-ui against a virtual reference at the pointer, dismisses on an
-// outside press, and intercepts Escape so it closes only the menu and not the overlay. A
-// close returns focus to the block it opened on, unless a remove took the block away. The
-// planner grid has no transformed ancestor, so it needs no portal.
+// edit mode. It replaces the browser menu on a block and nowhere else, and offers the
+// shortcuts that already exist on the block and its detail surface: details, copy subject
+// id, and remove. Every keyboard and popover path stays intact; this is an enhancement,
+// not a replacement. It is positioned with floating-ui against a virtual reference at
+// the pointer, dismisses on an outside press, and intercepts Escape so it closes only the
+// menu and not the overlay. A close returns focus to the block it opened on, unless a
+// remove took the block away. The planner grid has no transformed ancestor, so it needs
+// no portal.
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDismiss, useInteractions } from '@floating-ui/react';
-import { Info, Trash2 } from 'lucide-react';
+import { ClipboardCopy, Info, Trash2 } from 'lucide-react';
 import type { Translate } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { useReturnFocus } from '@/features/shell/restoreFocus';
@@ -28,6 +29,7 @@ interface BlockContextMenuProps {
   onClose: () => void;
   onRemove: (teachTableId: string) => void;
   onDetails: () => void;
+  onCopySubjectId: () => void;
 }
 
 export function BlockContextMenu({
@@ -39,6 +41,7 @@ export function BlockContextMenu({
   onClose,
   onRemove,
   onDetails,
+  onCopySubjectId,
 }: BlockContextMenuProps) {
   const reference = useMemo(
     () => ({
@@ -130,6 +133,15 @@ export function BlockContextMenu({
       >
         <Info size={14} aria-hidden />
         {t('block.details')}
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        onClick={onCopySubjectId}
+        className={`${itemClass} text-ink`}
+      >
+        <ClipboardCopy size={14} aria-hidden />
+        {t('block.copySubjectId')}
       </button>
       <button
         type="button"
