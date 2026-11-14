@@ -55,7 +55,7 @@ export function SegmentedControl<T extends string>({
     <div
       role="group"
       aria-label={ariaLabel}
-      className="inline-flex shrink-0 rounded-kcp border border-border p-0.5"
+      className="inline-flex shrink-0 rounded-kcp border border-border p-1"
     >
       {options.map((option) => {
         const active = option.value === value;
@@ -68,7 +68,7 @@ export function SegmentedControl<T extends string>({
             onClick={() => {
               onChange(option.value);
             }}
-            className={`inline-flex items-center justify-center whitespace-nowrap rounded-[6px] px-2.5 py-1 text-xs transition-colors ${
+            className={`inline-flex items-center justify-center whitespace-nowrap rounded-kcp-inner px-2 py-1 text-xs transition-colors ${
               Icon === undefined ? '' : 'max-sm:size-8 max-sm:p-0'
             } ${TARGET_SIZE} ${FOCUS[variant]} ${
               active ? ACTIVE[variant] : INACTIVE

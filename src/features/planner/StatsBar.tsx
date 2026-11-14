@@ -82,7 +82,7 @@ export function StatsBar({
         <button
           type="button"
           onClick={onShowConflict}
-          className={`inline-flex items-center gap-1 rounded-kcp border border-danger bg-surface px-2 py-0.5 text-danger hover:bg-danger-soft ${TARGET_SIZE} ${FOCUS_RING}`}
+          className={`inline-flex items-center gap-1 rounded-kcp border border-danger bg-surface px-2 py-1 text-danger hover:bg-danger-soft ${TARGET_SIZE} ${FOCUS_RING}`}
         >
           <AlertTriangle size={14} strokeWidth={2} aria-hidden />
           {fillTemplate(t('stats.conflicts'), { count: conflictCount })}

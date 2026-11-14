@@ -320,14 +320,14 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
   const browsedTerm = term.browsedTerm;
   const banner =
     crossTerm && planTerm !== null && browsedTerm !== null ? (
-      <div className="flex flex-wrap items-center gap-2 rounded-kcp border border-warn bg-primary-soft px-2 py-1.5 text-xs text-ink">
+      <div className="flex flex-wrap items-center gap-2 rounded-kcp border border-warn bg-primary-soft px-2 py-2 text-xs text-ink">
         <span>{termMismatchText(planTerm, browsedTerm, 'browsing', t)}</span>
         <button
           type="button"
           onClick={() => {
             handleSwitchTerm(browsedTerm);
           }}
-          className="rounded-kcp border border-primary bg-surface px-2 py-0.5 text-primary-strong outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className="rounded-kcp border border-primary bg-surface px-2 py-1 text-primary-strong outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
           <TermSwitchLabel term={browsedTerm} t={t} />
         </button>
