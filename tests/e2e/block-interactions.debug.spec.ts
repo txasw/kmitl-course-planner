@@ -195,3 +195,70 @@ test('rejects a swap that still conflicts after removing the blocker', async ({
   await expect(page.locator(block('900006'))).toHaveCount(0);
   await expect(page.locator(block('900007'))).toHaveCount(0);
 });
+
+test('fades a rejected drop without the shake when motion is reduced', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await syntheticSearch(page);
+  // Course A occupies Mon 09-11; Course B overlaps it at Mon 10-12, so B is blocked.
+  await addCourse(page, '90000001');
+  await expect(page.locator(block('900001'))).toBeVisible();
+
+  await expandCourse(page, '90000002');
+  const gripBox = await page
+    .getByRole('article')
+    .filter({ hasText: '90000002' })
+    .first()
+    .locator('[data-drag-surface="section"]')
+    .first()
+    .boundingBox();
+  const grid = page.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+  const gridBox = await grid.boundingBox();
+  if (gripBox === null || gridBox === null) {
+    throw new Error('missing drag source or grid');
+  }
+
+  // The rejected ghosts live for one short animation, so an observer on the grid records
+  // the animation each one mounts with, rather than racing a locator against it.
+  await grid.evaluate((node) => {
+    new MutationObserver((records) => {
+      for (const record of records) {
+        for (const added of record.addedNodes) {
+          if (
+            added instanceof HTMLElement &&
+            added.dataset.ghost === 'rejected'
+          ) {
+            node.dataset.rejectedAnimation =
+              getComputedStyle(added).animationName;
+          }
+        }
+      }
+    }).observe(node, { childList: true });
+  });
+
+  const from = center(gripBox);
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(from.x + 24, from.y + 12, { steps: 6 });
+  await expect(page.locator('[data-ghost="blocked"]').first()).toBeVisible();
+  // Release on open grid away from A, so the drop is a plain blocked drop, not a swap.
+  await page.mouse.move(
+    gridBox.x + gridBox.width * 0.8,
+    gridBox.y + gridBox.height * 0.8,
+    { steps: 15 },
+  );
+  await page.mouse.up();
+
+  // The ghosts fade with the static variant, which moves nothing, and then release.
+  await expect(grid).toHaveAttribute(
+    'data-rejected-animation',
+    'kcp-shake-static',
+  );
+  await expect(page.locator('[data-ghost="rejected"]')).toHaveCount(0);
+
+  // Nothing was added: A stays and B is not placed.
+  await expect(page.locator(block('900001'))).toBeVisible();
+  await expect(page.locator(block('900002'))).toHaveCount(0);
+});

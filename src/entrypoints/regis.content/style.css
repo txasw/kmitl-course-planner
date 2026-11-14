@@ -623,6 +623,54 @@
   animation: kcp-settle var(--kcp-duration-fast) ease-out;
 }
 
+/* The ghosts of a rejected drop shake and fade over the base duration, then the grid
+   releases them on animationend. Forwards holds the faded frame until they unmount, so
+   a ghost never flashes back at full strength. */
+@keyframes kcp-shake {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  20% {
+    transform: translateX(-4px);
+  }
+
+  40% {
+    transform: translateX(4px);
+  }
+
+  60% {
+    transform: translateX(-3px);
+    opacity: 1;
+  }
+
+  80% {
+    transform: translateX(2px);
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+}
+
+/* The reduced motion shake only fades. It stays an animation of the same duration, so
+   animationend still fires and the grid still releases the ghosts. */
+@keyframes kcp-shake-static {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+.kcp-shake {
+  animation: kcp-shake var(--kcp-duration-base) ease-out forwards;
+}
+
 /* The reduced motion path drops every placement animation, keeping the color and
    text cues that carry the same meaning. */
 @media (prefers-reduced-motion: reduce) {
@@ -634,6 +682,10 @@
 
   .kcp-locate {
     box-shadow: 0 0 0 2px var(--kcp-primary);
+  }
+
+  .kcp-shake {
+    animation-name: kcp-shake-static;
   }
 }
 
