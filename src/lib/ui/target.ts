@@ -19,4 +19,11 @@ export const TARGET_MIN = 'min-h-(--kcp-target-min) min-w-(--kcp-target-min)';
 export const TARGET_HEIGHT =
   'min-h-(--kcp-target-min) pointer-coarse:min-h-(--kcp-target-touch)';
 
+/**
+ * The 44 px touch size at every pointer, for a control that is the main way to act in its
+ * region whatever the input, such as the template dots on a narrow preview stage.
+ */
+export const TARGET_TOUCH =
+  'min-h-(--kcp-target-touch) min-w-(--kcp-target-touch)';
+
 export const TARGET_SIZE = `${TARGET_HEIGHT} min-w-(--kcp-target-min) pointer-coarse:min-w-(--kcp-target-touch)`;

@@ -4,8 +4,11 @@
 // twice its layout box, so a wide screen shows the poster at a readable size rather than as a
 // small card in a wide empty frame; the cap keeps a small template from turning into an
 // oversized blur. A neighbor template shows as a sliver at each edge, sitting a touch shorter
-// than the selection. With no template chosen yet, a tall stage opens on the portrait phone
-// wallpaper, so a phone shows a poster that fills its screen rather than a thin landscape band.
+// than the selection. Below NARROW_STAGE_PX of stage width the slivers would crowd the
+// selection, so a narrow stage drops them and their edge reserve and pages by swipe and large
+// dots instead, giving the poster the full width. With no template chosen yet, a tall stage
+// opens on the portrait phone wallpaper, so a phone shows a poster that fills its screen
+// rather than a thin landscape band.
 
 import {
   DEFAULT_TEMPLATE,
@@ -22,6 +25,8 @@ export interface StageSize {
 export const MAX_STAGE_SCALE = 2;
 /** The width each edge keeps clear so the selection never touches a sliver. */
 export const EDGE_RESERVE_PX = 60;
+/** Below this stage width the gallery drops the slivers and their edge reserve. */
+export const NARROW_STAGE_PX = 900;
 /** The share of the stage height the selected poster fills, leaving room for its frame. */
 const POSTER_FIT = 0.94;
 /** A neighbor sits a touch shorter than the selection. */
@@ -29,13 +34,21 @@ const NEIGHBOR_HEIGHT_SCALE = 0.9;
 /** The scale an unmeasured or collapsed stage falls back to, so a poster never vanishes. */
 const MIN_SCALE = 0.1;
 
+/** A stage too narrow for the edge slivers, which then pages by swipe and dots alone. */
+export function isNarrowStage(stage: StageSize): boolean {
+  return stage.width < NARROW_STAGE_PX;
+}
+
 /** The scale that centers the selected poster full height and unclipped, within the width
- * left after the edge reserve, capped at MAX_STAGE_SCALE. */
+ * left after the edge reserve, capped at MAX_STAGE_SCALE. A narrow stage has no reserve and
+ * fits the same share of its width as of its height, so the frame stays in view. */
 export function selectedScale(
   template: ExportTemplate,
   stage: StageSize,
 ): number {
-  const usableWidth = stage.width - 2 * EDGE_RESERVE_PX;
+  const usableWidth = isNarrowStage(stage)
+    ? stage.width * POSTER_FIT
+    : stage.width - 2 * EDGE_RESERVE_PX;
   if (usableWidth <= 0 || stage.height <= 0) {
     return MIN_SCALE;
   }

@@ -4,7 +4,8 @@
 // move clamps at the first and last page rather than wrapping, and it lands focus on the
 // selected dot, so a keyboard user who pages from an arrow that then disables keeps a
 // focused control. The dots take the arrow keys, Home, and End through the hook's key
-// handler; each dot stays small while its button keeps the shared target size.
+// handler; each dot stays small while its button keeps the shared target size, or the full
+// touch size where a consumer makes the dots its main paging control.
 
 import {
   useCallback,
@@ -113,6 +114,8 @@ interface PagerDotsProps {
   itemLabels: readonly string[];
   selected: number;
   onSelect: (index: number) => void;
+  /** The target size class of each dot button; the shared target size unless given. */
+  targetClassName?: string;
 }
 
 export function PagerDots({
@@ -122,6 +125,7 @@ export function PagerDots({
   itemLabels,
   selected,
   onSelect,
+  targetClassName = TARGET_SIZE,
 }: PagerDotsProps) {
   return (
     <div
@@ -147,7 +151,7 @@ export function PagerDots({
                 onClick={() => {
                   onSelect(index);
                 }}
-                className={`group/dot inline-flex items-center justify-center rounded-full ${TARGET_SIZE} ${FOCUS_RING}`}
+                className={`group/dot inline-flex items-center justify-center rounded-full ${targetClassName} ${FOCUS_RING}`}
               >
                 <span
                   aria-hidden
