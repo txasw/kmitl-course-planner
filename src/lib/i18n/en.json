@@ -422,6 +422,7 @@
   "preview.downloadPng": "Download image",
   "preview.pngDownloaded": "Image downloaded",
   "preview.exportFailed": "Could not export the image",
+  "preview.capturing": "Creating image",
   "preview.copyImage": "Copy image",
   "preview.imageCopied": "Image copied",
   "preview.copyImageUnsupported": "This browser cannot copy images; use download instead",
