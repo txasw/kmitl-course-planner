@@ -208,11 +208,13 @@ describe('TemplateGallery', () => {
   });
 
   it('scales the selected poster from the measured stage and follows a resize', () => {
-    const resize = stubStage({ width: 600, height: 400 });
+    const resize = stubStage({ width: 1000, height: 600 });
     const { container } = renderGallery();
-    // Share 16:9 lays out at 960 by 540. The 600 px stage keeps 60 px clear at each edge, so
-    // the width bound of 480 / 960 wins over the height bound.
-    expect(selectedBox(container)).toEqual({ width: 480, height: 270 });
+    // Share 16:9 lays out at 960 by 540. The 1000 px stage keeps 60 px clear at each edge, so
+    // the width bound of 880 / 960 wins over the height bound.
+    const wide = selectedBox(container);
+    expect(wide.width).toBeCloseTo(880);
+    expect(wide.height).toBeCloseTo(495);
 
     resize({ width: 1080, height: 300 });
     // Now the height bound wins: 300 * 0.94 / 540 of the layout box.
@@ -224,6 +226,34 @@ describe('TemplateGallery', () => {
     // A large stage scales the poster past its layout box, up to the cap of two.
     resize({ width: 4000, height: 3000 });
     expect(selectedBox(container)).toEqual({ width: 1920, height: 1080 });
+  });
+
+  it('drops the slivers and grows the dots on a narrow stage', () => {
+    const resize = stubStage({ width: 1200, height: 600 });
+    const { container } = renderGallery();
+    // A wide stage shows the selected poster and, at the first template, the next sliver.
+    expect(container.querySelectorAll('.kcp-poster')).toHaveLength(2);
+    expect(radioAt(0)).not.toHaveClass('min-h-(--kcp-target-touch)');
+
+    resize({ width: 600, height: 400 });
+    // Below 900 px only the selected poster renders, at 0.94 of the full width.
+    expect(container.querySelectorAll('.kcp-poster')).toHaveLength(1);
+    expect(selectedBox(container).width).toBeCloseTo(600 * 0.94);
+    for (const radio of screen.getAllByRole('radio')) {
+      expect(radio).toHaveClass('min-h-(--kcp-target-touch)');
+      expect(radio).toHaveClass('min-w-(--kcp-target-touch)');
+    }
+
+    // Swipe still pages on a narrow stage.
+    const stage = container.querySelector<HTMLElement>('.touch-pan-y');
+    if (stage === null) {
+      throw new Error('no stage');
+    }
+    stage.setPointerCapture = vi.fn();
+    stage.releasePointerCapture = vi.fn();
+    fireEvent.pointerDown(stage, { button: 0, pointerId: 1, clientX: 300 });
+    fireEvent.pointerUp(stage, { button: 0, pointerId: 1, clientX: 200 });
+    expect(uiStore.getState().selectedTemplate).toBe(EXPORT_TEMPLATES[1]?.slug);
   });
 
   it('opens a tall stage on the portrait phone wallpaper when nothing is chosen', () => {

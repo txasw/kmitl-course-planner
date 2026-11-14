@@ -20,6 +20,10 @@
 // display option change re-renders the visible poster at once and the slivers lazily. Paging
 // clamps at the first and last template rather than wrapping. Reduced motion drops the settle
 // (via kcp-settle), keeping the switch instant.
+//
+// A narrow stage, below 900 px wide, renders no slivers and keeps no edge reserve, so the
+// poster takes the full width; it pages by swipe and by dots grown to the 44 px touch size,
+// with the arrows, keys, and wheel unchanged.
 
 import {
   useCallback,
@@ -41,10 +45,12 @@ import { useTranslation } from '@/features/shell/useTranslation';
 import { useElementSize } from '@/features/shell/useElementSize';
 import { PagerArrow, PagerDots, usePager } from '@/components/Pager';
 import {
+  isNarrowStage,
   isTallStage,
   neighborScale,
   selectedScale,
 } from '@/lib/planner/previewStage';
+import { TARGET_SIZE, TARGET_TOUCH } from '@/lib/ui/target';
 import { PreviewPoster, type PosterData } from './PreviewPoster';
 
 interface TemplateGalleryProps {
@@ -87,6 +93,7 @@ export function TemplateGallery({
   const viewportRef = useRef<HTMLDivElement>(null);
   const area = useElementSize(viewportRef);
   const stageTall = isTallStage(area);
+  const narrow = isNarrowStage(area);
   useEffect(() => {
     onStageTallChange(stageTall);
   }, [stageTall, onStageTallChange]);
@@ -234,8 +241,8 @@ export function TemplateGallery({
           onPointerCancel={handlePointerUp}
           className="relative min-h-0 flex-1 touch-pan-y select-none overflow-hidden rounded-kcp bg-surface-alt"
         >
-          {renderSliver(selectedIndex - 1, 'left')}
-          {renderSliver(selectedIndex + 1, 'right')}
+          {narrow ? null : renderSliver(selectedIndex - 1, 'left')}
+          {narrow ? null : renderSliver(selectedIndex + 1, 'right')}
           <div className="absolute inset-0 flex items-center justify-center">
             <div
               key={selectedTemplate.slug}
@@ -286,6 +293,7 @@ export function TemplateGallery({
         itemLabels={EXPORT_TEMPLATES.map(templateLabel)}
         selected={selectedIndex}
         onSelect={select}
+        targetClassName={narrow ? TARGET_TOUCH : TARGET_SIZE}
       />
     </div>
   );

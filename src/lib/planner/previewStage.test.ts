@@ -3,6 +3,8 @@ import { DEFAULT_TEMPLATE, templateBySlug } from './exportTemplates';
 import {
   EDGE_RESERVE_PX,
   MAX_STAGE_SCALE,
+  NARROW_STAGE_PX,
+  isNarrowStage,
   TALL_STAGE_TEMPLATE_SLUG,
   isTallStage,
   neighborScale,
@@ -41,10 +43,20 @@ describe('selectedScale', () => {
     expect(MAX_STAGE_SCALE).toBe(2);
   });
 
+  it('drops the edge reserve on a narrow stage', () => {
+    // 600 px is narrow, so the poster fits 0.94 of the full width rather than 600 - 120.
+    expect(selectedScale(share, { width: 600, height: 800 })).toBeCloseTo(
+      (600 * 0.94) / 960,
+    );
+    // At the boundary the reserve applies again.
+    expect(
+      selectedScale(share, { width: NARROW_STAGE_PX, height: 2000 }),
+    ).toBeCloseTo((NARROW_STAGE_PX - 2 * EDGE_RESERVE_PX) / 960);
+  });
+
   it('falls back to a small positive scale on an unmeasured stage', () => {
     expect(selectedScale(share, { width: 0, height: 0 })).toBe(0.1);
-    // A stage no wider than both reserves has no usable width either.
-    expect(selectedScale(share, { width: 100, height: 600 })).toBe(0.1);
+    expect(selectedScale(share, { width: 300, height: 0 })).toBe(0.1);
   });
 });
 
@@ -63,6 +75,15 @@ describe('neighborScale', () => {
 
   it('falls back to a small positive scale with no height', () => {
     expect(neighborScale(share, { width: 900, height: 0 })).toBe(0.1);
+  });
+});
+
+describe('isNarrowStage', () => {
+  it('is narrow below 900 px of stage width', () => {
+    expect(NARROW_STAGE_PX).toBe(900);
+    expect(isNarrowStage({ width: 899, height: 600 })).toBe(true);
+    expect(isNarrowStage({ width: 900, height: 600 })).toBe(false);
+    expect(isNarrowStage({ width: 390, height: 700 })).toBe(true);
   });
 });
 
