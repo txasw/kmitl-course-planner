@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
+  CREDIT_RANGE,
+  creditLoad,
   summarizeCredits,
   summarizeWeeklyHours,
   totalCredits,
@@ -58,5 +60,46 @@ describe('summarizeWeeklyHours', () => {
         { subjectId: 'C', creditStr: '' },
       ]),
     ).toEqual({ lecture: 0, practice: 2, selfStudy: 1, unstated: 2 });
+  });
+});
+
+describe('creditLoad', () => {
+  it('states the regulation load for each semester', () => {
+    expect(CREDIT_RANGE).toEqual({
+      '1': { min: 9, max: 22 },
+      '2': { min: 9, max: 22 },
+      '3': { min: null, max: 9 },
+    });
+  });
+
+  it.each(['1', '2'] as const)(
+    'keeps 9 through 22 credits within the regular load of semester %s',
+    (semester) => {
+      expect(creditLoad(9, semester, 3)).toEqual({ kind: 'within' });
+      expect(creditLoad(22, semester, 7)).toEqual({ kind: 'within' });
+    },
+  );
+
+  it.each(['1', '2'] as const)(
+    'notes a total below 9 or above 22 in semester %s',
+    (semester) => {
+      expect(creditLoad(8, semester, 3)).toEqual({ kind: 'below', min: 9 });
+      expect(creditLoad(23, semester, 8)).toEqual({ kind: 'above', max: 22 });
+    },
+  );
+
+  it('never notes an empty plan as below the load', () => {
+    expect(creditLoad(0, '1', 0)).toEqual({ kind: 'within' });
+    expect(creditLoad(0, '2', 0)).toEqual({ kind: 'within' });
+  });
+
+  it('notes a plan whose entries carry no credit as below the load', () => {
+    expect(creditLoad(0, '1', 1)).toEqual({ kind: 'below', min: 9 });
+  });
+
+  it('caps the special term at 9 credits with no minimum', () => {
+    expect(creditLoad(1, '3', 1)).toEqual({ kind: 'within' });
+    expect(creditLoad(9, '3', 3)).toEqual({ kind: 'within' });
+    expect(creditLoad(10, '3', 4)).toEqual({ kind: 'above', max: 9 });
   });
 });
