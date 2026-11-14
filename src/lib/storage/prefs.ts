@@ -13,6 +13,18 @@ import { SUGGEST_OBJECTIVES } from '../planner/suggestRank';
 import { SUGGEST_PREFERENCES } from '../planner/suggestScore';
 import { TIMETABLE_VIEWS } from '../planner/dayView';
 
+/**
+ * The catalog's hide full, hide conflicting, and hide unscheduled toggles. Unlike the
+ * rest of the catalog filter, which belongs to one search, these express how the student
+ * likes to browse, so they outlast a page reload.
+ */
+export const catalogHidesSchema = z.object({
+  full: z.boolean(),
+  conflicting: z.boolean(),
+  unscheduled: z.boolean(),
+});
+export type CatalogHides = z.infer<typeof catalogHidesSchema>;
+
 // language mirrors the i18n Locale union and viewMode mirrors the ui store's view
 // mode; both are declared inline so the storage layer does not depend on the i18n
 // or shell modules. viewMode and displayOptions are optional so a preferences blob
@@ -39,6 +51,9 @@ export const prefsSchema = z.object({
   // The layout a narrow timetable shows, the day or the week (ADR-0049). An unknown
   // value reads as absent like the suggestion options, so the view opens on the day.
   timetableView: z.enum(TIMETABLE_VIEWS).optional().catch(undefined),
+  // The catalog hide toggles. A malformed value reads as absent like the options above,
+  // so every toggle opens off and the other preferences survive.
+  catalogHides: catalogHidesSchema.optional().catch(undefined),
 });
 export type Prefs = z.infer<typeof prefsSchema>;
 

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { isCardInstant, isCardOpen } from '@/lib/catalog/cardDisclosure';
 import { DEFAULT_COURSE_SORT } from '@/lib/catalog/sortCourses';
-import { createCatalogStore } from './catalogStore';
+import { createCatalogStore, sameHides, selectHides } from './catalogStore';
 
 describe('catalogStore disclosure', () => {
   it('holds a card choice for its query and keeps it across a filter reset', () => {
@@ -57,5 +57,27 @@ describe('catalogStore sort', () => {
     store.getState().setSort('earliestStart');
     store.getState().resetFilter();
     expect(store.getState().sort).toBe('earliestStart');
+  });
+});
+
+describe('catalogStore hides', () => {
+  it('sets the three hide toggles together and keeps the rest of the filter', () => {
+    const store = createCatalogStore();
+    store.getState().setText('math');
+    store
+      .getState()
+      .setHides({ full: true, conflicting: false, unscheduled: true });
+    expect(store.getState().filter.text).toBe('math');
+    expect(selectHides(store.getState())).toEqual({
+      full: true,
+      conflicting: false,
+      unscheduled: true,
+    });
+  });
+
+  it('compares hide toggle sets by value', () => {
+    const off = { full: false, conflicting: false, unscheduled: false };
+    expect(sameHides(off, { ...off })).toBe(true);
+    expect(sameHides(off, { ...off, conflicting: true })).toBe(false);
   });
 });

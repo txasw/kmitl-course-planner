@@ -262,4 +262,42 @@ describe('prefs repository', () => {
     expect(loaded?.viewMode).toBe('preview');
     expect(loaded?.timetableView).toBeUndefined();
   });
+
+  it('round trips the catalog hide toggles', async () => {
+    const adapter = fakeAdapter();
+    const repo = createPrefsRepository(adapter);
+    const withHides: Prefs = {
+      schemaVersion: 1,
+      language: 'th',
+      catalogHides: { full: true, conflicting: false, unscheduled: true },
+    };
+    await repo.save(withHides);
+    expect(await repo.load()).toEqual(withHides);
+  });
+
+  it('loads a blob written before the catalog hide toggles existed', async () => {
+    const repo = createPrefsRepository(
+      fakeAdapter({ [PREFS_KEY]: { schemaVersion: 1, language: 'en' } }),
+    );
+    const loaded = await repo.load();
+    expect(loaded?.language).toBe('en');
+    expect(loaded).not.toHaveProperty('catalogHides');
+  });
+
+  it('reads malformed catalog hide toggles as absent and keeps the rest', async () => {
+    const repo = createPrefsRepository(
+      fakeAdapter({
+        [PREFS_KEY]: {
+          schemaVersion: 1,
+          language: 'en',
+          timetableView: 'week',
+          catalogHides: { full: 'yes', conflicting: false },
+        },
+      }),
+    );
+    const loaded = await repo.load();
+    expect(loaded?.language).toBe('en');
+    expect(loaded?.timetableView).toBe('week');
+    expect(loaded?.catalogHides).toBeUndefined();
+  });
 });

@@ -3,6 +3,7 @@ import { renderHook, cleanup, act } from '@testing-library/react';
 import { DEFAULT_DISPLAY_OPTIONS } from '@/lib/planner/displayOptions';
 import { usePrefsPersistence } from './usePrefsPersistence';
 import { uiStore } from './uiStore';
+import { catalogStore } from '@/features/catalog/catalogStore';
 import type { Prefs, PrefsRepository } from '@/lib/storage/prefs';
 
 interface RecordingRepo extends PrefsRepository {
@@ -40,8 +41,11 @@ afterEach(() => {
     uiStore.getState().setSuggestObjective('coverAll');
     uiStore.getState().setSuggestPreference('balanced');
     uiStore.getState().setTimetableView('day');
+    catalogStore.getState().resetFilter();
   });
 });
+
+const NO_HIDES = { full: false, conflicting: false, unscheduled: false };
 
 const PROFILE = {
   facultyId: '01',
@@ -85,6 +89,7 @@ describe('usePrefsPersistence', () => {
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
         timetableView: 'day',
+        catalogHides: NO_HIDES,
       },
     ]);
   });
@@ -108,6 +113,7 @@ describe('usePrefsPersistence', () => {
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
         timetableView: 'day',
+        catalogHides: NO_HIDES,
       },
     ]);
   });
@@ -159,6 +165,7 @@ describe('usePrefsPersistence', () => {
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
         timetableView: 'day',
+        catalogHides: NO_HIDES,
       },
     ]);
   });
@@ -214,6 +221,7 @@ describe('usePrefsPersistence', () => {
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
         timetableView: 'day',
+        catalogHides: NO_HIDES,
       },
     ]);
   });
@@ -253,6 +261,7 @@ describe('usePrefsPersistence', () => {
         suggestObjective: 'coverAll',
         suggestPreference: 'morning',
         timetableView: 'day',
+        catalogHides: NO_HIDES,
       },
     ]);
   });
@@ -290,6 +299,7 @@ describe('usePrefsPersistence', () => {
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
         timetableView: 'week',
+        catalogHides: NO_HIDES,
       },
     ]);
   });
@@ -328,7 +338,81 @@ describe('usePrefsPersistence', () => {
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
         timetableView: 'day',
+        catalogHides: NO_HIDES,
       },
     ]);
+  });
+
+  it('hydrates the stored catalog hide toggles without writing them back', async () => {
+    const repo = makeRepo({
+      schemaVersion: 1,
+      language: 'th',
+      catalogHides: { full: true, conflicting: true, unscheduled: false },
+    });
+    renderHook(() => {
+      usePrefsPersistence(repo);
+    });
+    await flush();
+    const { filter } = catalogStore.getState();
+    expect(filter.hideFull).toBe(true);
+    expect(filter.hideConflicting).toBe(true);
+    expect(filter.hideUnscheduled).toBe(false);
+    expect(repo.saved).toHaveLength(0);
+  });
+
+  it('keeps a hide toggle changed during the read over the stored one', async () => {
+    const repo = makeRepo({
+      schemaVersion: 1,
+      language: 'th',
+      catalogHides: { full: true, conflicting: false, unscheduled: false },
+    });
+    renderHook(() => {
+      usePrefsPersistence(repo);
+    });
+    act(() => {
+      catalogStore.getState().setHideUnscheduled(true);
+    });
+    await flush();
+    const { filter } = catalogStore.getState();
+    expect(filter.hideFull).toBe(false);
+    expect(filter.hideUnscheduled).toBe(true);
+  });
+
+  it('persists a hide toggle change with the other preferences', async () => {
+    const repo = makeRepo(null);
+    renderHook(() => {
+      usePrefsPersistence(repo);
+    });
+    await flush();
+
+    act(() => {
+      catalogStore.getState().setHideFull(true);
+    });
+    expect(repo.saved).toEqual([
+      {
+        schemaVersion: 1,
+        language: 'th',
+        viewMode: 'edit',
+        displayOptions: DEFAULT_DISPLAY_OPTIONS,
+        suggestObjective: 'coverAll',
+        suggestPreference: 'balanced',
+        timetableView: 'day',
+        catalogHides: { ...NO_HIDES, full: true },
+      },
+    ]);
+  });
+
+  it('does not save for a catalog change that leaves the hides alone', async () => {
+    const repo = makeRepo(null);
+    renderHook(() => {
+      usePrefsPersistence(repo);
+    });
+    await flush();
+
+    act(() => {
+      catalogStore.getState().setText('math');
+      catalogStore.getState().toggleDay(1);
+    });
+    expect(repo.saved).toHaveLength(0);
   });
 });
