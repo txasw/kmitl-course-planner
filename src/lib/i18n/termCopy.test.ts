@@ -1,10 +1,30 @@
 import { describe, expect, it } from 'vitest';
 import type { Term } from '@/lib/routing/academicTerms';
 import { createTranslator } from './t';
-import { termMismatchText } from './termCopy';
+import { termMismatchText, termSwitchLabel } from './termCopy';
 
 const PLAN: Term = { year: '2569', semester: '1' };
 const OTHER: Term = { year: '2569', semester: '2' };
+
+describe('termSwitchLabel', () => {
+  it('opens the existing plan for the term', () => {
+    expect(termSwitchLabel(true, OTHER, createTranslator('th'))).toBe(
+      'เปิดตารางภาค 2/2569',
+    );
+    expect(termSwitchLabel(true, OTHER, createTranslator('en'))).toBe(
+      'Open the 2/2569 plan',
+    );
+  });
+
+  it('says it creates a plan when the term has none', () => {
+    expect(termSwitchLabel(false, OTHER, createTranslator('th'))).toBe(
+      'สร้างตารางภาค 2/2569',
+    );
+    expect(termSwitchLabel(false, OTHER, createTranslator('en'))).toBe(
+      'Create a 2/2569 plan',
+    );
+  });
+});
 
 describe('termMismatchText', () => {
   it('states a section from another term in one Thai sentence', () => {

@@ -351,7 +351,7 @@ describe('SectionComparisonSheet', () => {
     ).toBeNull();
     fireEvent.click(
       within(addCell('901')).getByRole('button', {
-        name: 'สลับไปตารางภาคนี้',
+        name: 'สร้างตารางภาค 1/2569',
       }),
     );
     const plan = planStore

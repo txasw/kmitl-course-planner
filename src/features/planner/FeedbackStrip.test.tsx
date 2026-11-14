@@ -280,7 +280,7 @@ describe('FeedbackStrip', () => {
     ).toBe(false);
     // The chip left with its notice, so focus moves on to the switch that replaced it.
     expect(
-      screen.getByRole('button', { name: t('term.switch') }),
+      screen.getByRole('button', { name: /^สร้างตารางภาค / }),
     ).toHaveFocus();
   });
 

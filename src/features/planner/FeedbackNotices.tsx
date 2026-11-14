@@ -13,6 +13,7 @@ import { describeConflicts } from '@/lib/planner/describeConflict';
 import { alternativeSections } from '@/lib/planner/suggestions';
 import { addSectionToPlan } from '@/features/plans/addToPlan';
 import { switchOrCreatePlanForTerm } from '@/features/plans/switchPlanTerm';
+import { TermSwitchLabel } from '@/features/plans/TermSwitchLabel';
 import type { LayoutTier } from '@/lib/ui/breakpoints';
 import { revealCourse, searchForCourse } from '@/features/catalog/revealCourse';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
@@ -233,7 +234,7 @@ export function CrossTermNotice({
         }}
         className={LINK_ACTION}
       >
-        {t('term.switch')}
+        <TermSwitchLabel term={feedback.browsedTerm} t={t} />
       </button>
       <DismissButton t={t} />
     </div>

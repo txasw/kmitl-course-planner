@@ -15,6 +15,7 @@ import { Check, Plus } from 'lucide-react';
 import type { Section } from '@/lib/domain/types';
 import type { Translate } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
+import { TermSwitchLabel } from '@/features/plans/TermSwitchLabel';
 import type { ComparisonRow } from '@/lib/catalog/compareSections';
 import { describeConflicts } from '@/lib/planner/describeConflict';
 import type { AddOutcome } from '@/lib/planner/transaction';
@@ -100,7 +101,7 @@ export function ComparisonAddCell({
           }}
           className={action}
         >
-          {t('term.switch')}
+          <TermSwitchLabel term={relation.browsedTerm} t={t} />
         </button>
       </td>
     );

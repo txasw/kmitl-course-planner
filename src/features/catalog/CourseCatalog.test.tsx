@@ -264,7 +264,7 @@ describe('CourseCatalog', () => {
     }
     // The switch action creates a plan for the browsed term.
     const [switchButton] = screen.getAllByRole('button', {
-      name: 'สลับไปตารางภาคนี้',
+      name: 'สร้างตารางภาค 1/2569',
     });
     if (switchButton) {
       fireEvent.click(switchButton);

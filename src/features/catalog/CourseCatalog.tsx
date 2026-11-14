@@ -48,6 +48,7 @@ import {
 } from '@/features/plans/planStore';
 import { addSectionToPlan, confirmAdd } from '@/features/plans/addToPlan';
 import { switchOrCreatePlanForTerm } from '@/features/plans/switchPlanTerm';
+import { TermSwitchLabel } from '@/features/plans/TermSwitchLabel';
 import { searchStore } from '@/features/search/searchStore';
 import { dragStore } from '@/features/planner/dragStore';
 import { firstFeedbackAction } from '@/features/planner/FeedbackNotices';
@@ -328,7 +329,7 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
           }}
           className="rounded-kcp border border-primary bg-surface px-2 py-0.5 text-primary-strong outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
-          {t('term.switch')}
+          <TermSwitchLabel term={browsedTerm} t={t} />
         </button>
       </div>
     ) : null;
