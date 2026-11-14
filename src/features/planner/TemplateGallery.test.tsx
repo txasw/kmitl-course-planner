@@ -194,5 +194,28 @@ describe('TemplateGallery', () => {
     const resized = selectedBox(container);
     expect(resized.width).toBeCloseTo(960 * scale);
     expect(resized.height).toBeCloseTo(540 * scale);
+
+    // A large stage scales the poster past its layout box, up to the cap of two.
+    stage = { width: 4000, height: 3000 };
+    act(() => {
+      for (const callback of callbacks) callback();
+    });
+    expect(selectedBox(container)).toEqual({ width: 1920, height: 1080 });
+  });
+
+  it('frames the scaled wrapper, never the capture node', () => {
+    const ref: RefObject<HTMLDivElement | null> = { current: null };
+    const { container } = render(
+      <TemplateGallery poster={makePoster()} posterRef={ref} />,
+    );
+    const frame = container.querySelector<HTMLElement>('[data-poster-frame]');
+    expect(frame).not.toBeNull();
+    expect(frame).toHaveClass('shadow-kcp', 'ring-1');
+    // The capture node is the bare poster inside the frame, so the export carries no frame.
+    const poster = ref.current;
+    expect(poster).not.toBeNull();
+    expect(frame?.contains(poster ?? null)).toBe(true);
+    expect(poster).not.toHaveClass('shadow-kcp');
+    expect(poster).not.toHaveClass('rounded-kcp');
   });
 });

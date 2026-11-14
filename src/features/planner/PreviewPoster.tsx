@@ -7,8 +7,10 @@
 // (ADR-0055). The template gallery renders one of these per visible template; only the
 // selected one holds the capture ref, which html-to-image reads at the poster's own box so
 // the export lands the exact template pixels regardless of the display scale around it
-// (ADR-0041, ADR-0045). Memoized so paging between templates and a display option change
-// re-render at most the posters whose inputs moved.
+// (ADR-0041, ADR-0045). The poster carries no frame of its own: the gallery's scaled
+// wrapper draws the border, corner, and shadow, so none of them reach the export. Memoized
+// so paging between templates and a display option change re-render at most the posters
+// whose inputs moved.
 
 import { memo, type RefObject } from 'react';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -77,7 +79,7 @@ function PreviewPosterComponent({
         height: template.layoutHeight,
         fontSize: `${String(template.posterFontPx)}px`,
       }}
-      className="kcp-poster flex flex-col gap-2 rounded-kcp bg-surface p-3"
+      className="kcp-poster flex flex-col gap-2 bg-surface p-3"
     >
       <PosterHeader
         planName={planName}

@@ -7,6 +7,11 @@
 // caption carries the localized name with the exact output pixels. The dropdown and the corner
 // size label it replaces are gone.
 //
+// Framing: the stage is a quiet surface-alt field, and the scaled wrapper around the selected
+// poster, not the poster itself, carries the border and the shadow, so the frame reads on
+// screen while the capture node stays the bare poster and the export carries no frame. The
+// stage math lives in lib/planner/previewStage, which caps the display scale at two.
+//
 // Rendering discipline: only the selected poster renders eagerly and holds the capture ref; the
 // two slivers render from a deferred copy of the plan data, and no other template renders, so a
 // display option change re-renders the visible poster at once and the slivers lazily. Paging
@@ -34,6 +39,7 @@ import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { useElementSize } from '@/features/shell/useElementSize';
 import { PagerArrow, PagerDots, usePager } from '@/components/Pager';
+import { neighborScale, selectedScale } from '@/lib/planner/previewStage';
 import { PreviewPoster, type PosterData } from './PreviewPoster';
 
 interface TemplateGalleryProps {
@@ -43,10 +49,7 @@ interface TemplateGalleryProps {
 }
 
 const SLIVER_PX = 44; // the visible width of a neighbor at each edge
-const EDGE_RESERVE_PX = 60; // width each edge keeps clear so the selection never touches a sliver
-const NEIGHBOR_HEIGHT_SCALE = 0.9; // a neighbor sits a touch shorter than the selection
-const NEIGHBOR_OPACITY = 0.4; // and dimmed, so it reads as a cue not an option
-const POSTER_FIT = 0.94;
+const NEIGHBOR_OPACITY = 0.4; // dimmed, so a neighbor reads as a cue not an option
 const SWIPE_THRESHOLD_PX = 48;
 const WHEEL_THRESHOLD_PX = 6;
 const WHEEL_COOLDOWN_MS = 320; // one wheel notch is one page
@@ -55,35 +58,6 @@ const LAST_INDEX = EXPORT_TEMPLATES.length - 1;
 
 function clampIndex(index: number): number {
   return Math.max(0, Math.min(LAST_INDEX, index));
-}
-
-// The scale that centers the selected poster full height and unclipped, within the width left
-// after reserving a sliver zone at each edge.
-function selectedScale(
-  template: ExportTemplate,
-  width: number,
-  height: number,
-): number {
-  const usableWidth = width - 2 * EDGE_RESERVE_PX;
-  if (usableWidth <= 0 || height <= 0) {
-    return 0.1;
-  }
-  return Math.min(
-    usableWidth / template.layoutWidth,
-    (height * POSTER_FIT) / template.layoutHeight,
-    1,
-  );
-}
-
-// A neighbor is scaled to a slightly shorter height; only its sliver shows, so width is free.
-function neighborScale(template: ExportTemplate, height: number): number {
-  if (height <= 0) {
-    return 0.1;
-  }
-  return Math.min(
-    (height * POSTER_FIT * NEIGHBOR_HEIGHT_SCALE) / template.layoutHeight,
-    1,
-  );
 }
 
 export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
@@ -179,7 +153,7 @@ export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
 
   const selectedTemplate = templateBySlug(selectedSlug);
   const deferredPoster = useDeferredValue(poster);
-  const selScale = selectedScale(selectedTemplate, area.width, area.height);
+  const selScale = selectedScale(selectedTemplate, area);
 
   const templateLabel = (template: ExportTemplate) =>
     `${t(template.labelKey)} · ${String(
@@ -191,7 +165,7 @@ export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
     if (template === undefined) {
       return null;
     }
-    const scale = neighborScale(template, area.height);
+    const scale = neighborScale(template, area);
     return (
       <div
         aria-hidden
@@ -242,14 +216,15 @@ export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
           onPointerDown={handlePointerDown}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
-          className="relative min-h-0 flex-1 touch-pan-y select-none overflow-hidden"
+          className="relative min-h-0 flex-1 touch-pan-y select-none overflow-hidden rounded-kcp bg-surface-alt"
         >
           {renderSliver(selectedIndex - 1, 'left')}
           {renderSliver(selectedIndex + 1, 'right')}
           <div className="absolute inset-0 flex items-center justify-center">
             <div
               key={selectedTemplate.slug}
-              className="kcp-settle"
+              data-poster-frame
+              className="kcp-settle overflow-hidden rounded-kcp bg-surface shadow-kcp ring-1 ring-border"
               style={{
                 width: selectedTemplate.layoutWidth * selScale,
                 height: selectedTemplate.layoutHeight * selScale,
