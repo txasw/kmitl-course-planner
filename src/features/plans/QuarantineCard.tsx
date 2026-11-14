@@ -7,7 +7,7 @@ import { useStore } from 'zustand';
 import { AlertTriangle } from 'lucide-react';
 import type { TranslationKey } from '@/lib/i18n/t';
 import { useTranslation } from '@/features/shell/useTranslation';
-import { toastStore } from '@/features/shell/toastStore';
+import { copyText } from '@/features/shell/copyText';
 import { storageIssueStore, type StorageIssue } from './storageIssueStore';
 
 function messageKey(issue: StorageIssue): TranslationKey {
@@ -41,15 +41,10 @@ export function QuarantineCard() {
         <button
           type="button"
           onClick={() => {
-            // The host is a secure context, so clipboard write is available; a denied
-            // or failed write is reported through the rejection branch.
-            void navigator.clipboard.writeText(issue.data).then(
-              () => {
-                toastStore.getState().show('success', t('storage.exported'));
-              },
-              () => {
-                toastStore.getState().show('error', t('storage.exportFailed'));
-              },
+            copyText(
+              issue.data,
+              t('storage.exported'),
+              t('storage.exportFailed'),
             );
           }}
           className="rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
