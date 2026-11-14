@@ -36,6 +36,9 @@ export const CATALOG_HIDE_ID = 'kcp-catalog-hide';
 /** Id of the header catalog toggle, the sheet control on the tiers below the dock. */
 export const CATALOG_TOGGLE_ID = 'kcp-catalog-toggle';
 
+/** Id of the catalog filter field, which the slash shortcut focuses. One renders at most. */
+export const CATALOG_FILTER_ID = 'kcp-catalog-filter';
+
 /** Id of the edge rail, which takes the column's place and focus when it is hidden. */
 export const CATALOG_RAIL_ID = 'kcp-catalog-rail';
 

@@ -5,7 +5,7 @@
 // happens in the pure filter over the catalog store state, which is untouched; the
 // redesign only reshapes the controls.
 
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import {
   useClick,
@@ -19,6 +19,7 @@ import type { DayOfWeek } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { CatalogFilter } from '@/lib/catalog/filter';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { CATALOG_FILTER_ID } from '@/features/shell/catalogVisibility';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
 import {
   PANEL_POPOVER_SCROLL,
@@ -48,7 +49,6 @@ interface Chip {
 export function FilterBar({ creditOptions }: FilterBarProps) {
   const { t, language } = useTranslation();
   const filter = useStore(catalogStore, (state) => state.filter);
-  const textId = useId();
   const textRef = useRef<HTMLInputElement | null>(null);
   const activeCount = activeCountOf(filter);
   const filtering = filter.text.trim() !== '' || activeCount > 0;
@@ -130,13 +130,16 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
       {/* A persistent visible label names the field, since the placeholder hint
           disappears as soon as the student types. */}
       <div className="flex flex-col gap-1">
-        <label htmlFor={textId} className="text-sm font-semibold text-ink">
+        <label
+          htmlFor={CATALOG_FILTER_ID}
+          className="text-sm font-semibold text-ink"
+        >
           {t('catalog.filter.fieldLabel')}
         </label>
         <div className="flex gap-2">
           <input
             ref={textRef}
-            id={textId}
+            id={CATALOG_FILTER_ID}
             type="search"
             value={filter.text}
             placeholder={t('catalog.filter.text')}

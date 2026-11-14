@@ -12,6 +12,7 @@ import { CrashProbe } from './CrashProbe';
 import { useBottomNavShown } from './mobilePane';
 import { useTranslation } from './useTranslation';
 import { useFocusTrap } from './useFocusTrap';
+import { usePanelShortcuts } from './usePanelShortcuts';
 import { useScrollLock } from './useScrollLock';
 import { usePresence } from './usePresence';
 
@@ -47,6 +48,7 @@ export function Overlay() {
   // Focus enters the panel only once it is mounted; the lock follows the logical
   // open flag so it never waits on the leave animation.
   useFocusTrap(panelRef, isOpen && mounted, close);
+  usePanelShortcuts(panelRef, { enabled: isOpen && mounted });
   useScrollLock(isOpen);
 
   if (!mounted) return null;
