@@ -1,14 +1,25 @@
 // Binds the plan store to storage. On mount it hydrates the saved plans, then
 // autosaves the whole plan list on any change with a short debounce, and flushes a
-// pending save on unmount so a last moment change is not lost. A quarantined, refused,
-// or save refused outcome is surfaced through the storage issue store for the card to
-// render. The subscription attaches only after hydration, so a hydrated value is not
-// written straight back. Every settled read, hydrated, refused, or failed, marks the
-// plan store loaded.
+// pending save on unmount so a last moment change is not lost. A quarantined or refused
+// load is surfaced through the storage issue store for the card to render. The
+// subscription attaches only after hydration, so a hydrated value is not written
+// straight back. Every settled read, hydrated, refused, or failed, marks the plan store
+// loaded.
+//
+// The autosave state goes to the autosave store for the header indicator: saving from
+// the first change until the latest save settles, then saved or failed. A failed save
+// raises one error toast with a retry, which is its announcement, since the indicator is
+// no live region. Later failures stay quiet until a save succeeds or the student retries,
+// so a run of failing autosaves never repeats the toast. A successful save raises nothing.
 
 import { useEffect } from 'react';
 import { CURRENT_SCHEMA_VERSION } from '@/lib/storage/keys';
 import type { PlanRepository, StorageAdapter } from '@/lib/storage/repo';
+import { createTranslator } from '@/lib/i18n/t';
+import { commitAndFocus } from '@/features/shell/commitAndFocus';
+import { toastStore } from '@/features/shell/toastStore';
+import { uiStore } from '@/features/shell/uiStore';
+import { autosaveStore, SAVE_INDICATOR_ID } from './autosaveStore';
 import { planStore } from './planStore';
 import { storageIssueStore } from './storageIssueStore';
 
@@ -30,8 +41,39 @@ export function usePlanPersistence({
     const isCancelled = () => cancelled;
     let unsubscribe: (() => void) | undefined;
     let timer: ReturnType<typeof setTimeout> | undefined;
+    // The latest save started, so an older save that settles late does not overwrite
+    // the state of a newer one.
+    let latest = 0;
+    let announceFailure = true;
+
+    const showFailure = (): void => {
+      const t = createTranslator(uiStore.getState().language);
+      toastStore.getState().show('error', t('save.failedToast'), {
+        label: t('action.retry'),
+        run: (control) => {
+          commitAndFocus(control, SAVE_INDICATOR_ID, retry);
+        },
+      });
+    };
+
+    const settle = (run: number, saved: boolean): void => {
+      // A newer save, started or still debounced, owns the state from here.
+      if (isCancelled() || run !== latest || timer !== undefined) return;
+      if (saved) {
+        announceFailure = true;
+        autosaveStore.getState().setStatus('saved');
+        return;
+      }
+      autosaveStore.getState().setStatus('failed');
+      if (announceFailure) {
+        announceFailure = false;
+        showFailure();
+      }
+    };
 
     const save = (): void => {
+      latest += 1;
+      const run = latest;
       void repo
         .save({
           schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -39,21 +81,34 @@ export function usePlanPersistence({
         })
         .then(
           (result) => {
-            if (!result.ok) {
-              storageIssueStore.getState().setIssue({ kind: 'saveRefused' });
-            }
+            settle(run, result.ok);
           },
           () => {
-            storageIssueStore.getState().setIssue({ kind: 'saveRefused' });
+            settle(run, false);
           },
         );
     };
 
+    // A retry the student asks for is announced again when it fails, so pressing it
+    // never meets silence.
+    const retry = (): void => {
+      if (isCancelled()) return;
+      if (timer !== undefined) {
+        clearTimeout(timer);
+        timer = undefined;
+      }
+      announceFailure = true;
+      autosaveStore.getState().setStatus('saving');
+      save();
+    };
+
     const subscribe = (): void => {
       if (isCancelled() || unsubscribe !== undefined) return;
+      autosaveStore.getState().attach(retry);
       unsubscribe = planStore.subscribe((state, previous) => {
         if (state.plans !== previous.plans) {
           if (timer !== undefined) clearTimeout(timer);
+          autosaveStore.getState().setStatus('saving');
           timer = setTimeout(() => {
             timer = undefined;
             save();
@@ -113,6 +168,7 @@ export function usePlanPersistence({
         clearTimeout(timer);
         save();
       }
+      autosaveStore.getState().detach();
     };
   }, [repo, adapter]);
 }

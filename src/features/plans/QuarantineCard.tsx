@@ -1,8 +1,7 @@
-// A card shown when plan storage had a problem on load or save: a corrupt blob that
-// was quarantined and set aside, a stored schema newer than this build knows, or a
-// refused save. For a quarantine it offers to copy the set aside data so the user can
-// keep it. It renders inside the overlay so the message reaches the user when they
-// open the planner.
+// A card shown when plan storage had a problem on load: a corrupt blob that was
+// quarantined and set aside, or a stored schema newer than this build knows. For a
+// quarantine it offers to copy the set aside data so the user can keep it. It renders
+// inside the overlay so the message reaches the user when they open the planner.
 
 import { useStore } from 'zustand';
 import { AlertTriangle } from 'lucide-react';
@@ -17,8 +16,6 @@ function messageKey(issue: StorageIssue): TranslationKey {
       return 'storage.quarantined';
     case 'refused':
       return 'storage.refused';
-    case 'saveRefused':
-      return 'storage.saveRefused';
   }
 }
 
