@@ -1,7 +1,8 @@
-// Session scoped catalog filter and card disclosure state. Held in memory like the
-// other panel stores, it survives closing and reopening the overlay within a page
-// session. Every update produces a new filter object so the shared empty filter is
-// never mutated.
+// Session scoped catalog filter, sort, and card disclosure state. Held in memory
+// like the other panel stores, it survives closing and reopening the overlay within
+// a page session. Every update produces a new filter object so the shared empty
+// filter is never mutated, and clearing the filters leaves the sort as the student
+// chose it.
 
 import { createStore } from 'zustand/vanilla';
 import { EMPTY_FILTER, type CatalogFilter } from '@/lib/catalog/filter';
@@ -16,6 +17,10 @@ import {
   type CardDisclosure,
   type CardTarget,
 } from '@/lib/catalog/cardDisclosure';
+import {
+  DEFAULT_COURSE_SORT,
+  type CourseSortKey,
+} from '@/lib/catalog/sortCourses';
 
 export interface CatalogStore {
   filter: CatalogFilter;
@@ -42,6 +47,9 @@ export interface CatalogStore {
   ) => void;
   /** Drops the card choices a plan change has made stale. */
   syncPlacement: (addedIds: ReadonlySet<string>) => void;
+  /** The order of the courses inside each heading, kept apart from the filter. */
+  sort: CourseSortKey;
+  setSort: (sort: CourseSortKey) => void;
 }
 
 export function createCatalogStore() {
@@ -91,6 +99,10 @@ export function createCatalogStore() {
       set((state) => ({
         disclosure: withPlacement(state.disclosure, addedIds),
       }));
+    },
+    sort: DEFAULT_COURSE_SORT,
+    setSort: (sort) => {
+      set({ sort });
     },
   }));
 }

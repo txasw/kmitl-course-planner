@@ -49,6 +49,9 @@ interface ComboboxProps {
   searchable?: boolean;
   /** A decorative leading icon drawn inside the control, before its value. */
   icon?: LucideIcon;
+  /** When true the label sits beside the field rather than above it, for a compact
+   * control in a toolbar row such as the catalog sort. Defaults to false. */
+  inline?: boolean;
 }
 
 export function Combobox({
@@ -60,6 +63,7 @@ export function Combobox({
   onChange,
   searchable = true,
   icon: Icon,
+  inline = false,
 }: ComboboxProps) {
   const listboxId = useId();
   const optionIdBase = useId();
@@ -101,17 +105,22 @@ export function Combobox({
   const { refs, floatingStyles } = useFloating({
     open: listVisible,
     strategy: 'fixed',
-    placement: 'bottom-start',
+    // An inline field closes its row, so its list aligns to the field's end and
+    // grows back across the row.
+    placement: inline ? 'bottom-end' : 'bottom-start',
     middleware: [
       offset(4),
       flip({ padding: 8 }),
       size({
         padding: 8,
         apply({ availableHeight, rects, elements }) {
-          // Match the input width and cap the height to the space available,
+          // Match the input width, or for a compact inline trigger at least that
+          // width so no option wraps, and cap the height to the space available,
           // scrolling internally beyond that.
+          const fieldWidth = `${String(rects.reference.width)}px`;
           Object.assign(elements.floating.style, {
-            width: `${String(rects.reference.width)}px`,
+            width: inline ? 'max-content' : fieldWidth,
+            minWidth: fieldWidth,
             maxHeight: `${String(Math.min(availableHeight, MAX_LIST_HEIGHT))}px`,
           });
         },
@@ -321,11 +330,17 @@ export function Combobox({
   );
 
   return (
-    <div className="relative flex flex-col gap-1 text-sm">
+    <div
+      className={`relative flex text-sm ${
+        inline ? 'items-center gap-2' : 'flex-col gap-1'
+      }`}
+    >
       <label
         id={labelId}
         htmlFor={searchable ? inputId : undefined}
-        className="font-semibold text-ink"
+        className={
+          inline ? 'shrink-0 text-xs text-ink-soft' : 'font-semibold text-ink'
+        }
       >
         {label}
       </label>

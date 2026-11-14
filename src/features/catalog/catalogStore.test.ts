@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { isCardInstant, isCardOpen } from '@/lib/catalog/cardDisclosure';
+import { DEFAULT_COURSE_SORT } from '@/lib/catalog/sortCourses';
 import { createCatalogStore } from './catalogStore';
 
 describe('catalogStore disclosure', () => {
@@ -46,5 +47,15 @@ describe('catalogStore disclosure', () => {
     store.getState().setCardOpen('q1', 'S1', { open: false, added: false });
     expect(isCardInstant(store.getState().disclosure, 'q1', 'S1')).toBe(false);
     expect(isCardInstant(store.getState().disclosure, 'q1', 'S2')).toBe(true);
+  });
+});
+
+describe('catalogStore sort', () => {
+  it('starts on the default sort and keeps a chosen sort past a filter reset', () => {
+    const store = createCatalogStore();
+    expect(store.getState().sort).toBe(DEFAULT_COURSE_SORT);
+    store.getState().setSort('earliestStart');
+    store.getState().resetFilter();
+    expect(store.getState().sort).toBe('earliestStart');
   });
 });
