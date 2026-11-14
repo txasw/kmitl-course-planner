@@ -643,6 +643,78 @@ describe('WeeklyGrid', () => {
     expect(screen.getByLabelText(/OTHER/).className).toContain('kcp-pulse');
   });
 
+  it('shakes the rejected footprint and releases it when the shake ends', () => {
+    const placed = makeSection({
+      teachTableId: 'p',
+      subjectId: 'OTHER',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+    });
+    const dragged = makeSection({
+      teachTableId: 'd',
+      subjectId: 'S1',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+    });
+    dragStore
+      .getState()
+      .start(makeCourse({ subjectId: 'S1', sections: [dragged] }), dragged, [
+        placed,
+      ]);
+    dragStore.getState().reject();
+    render(
+      <WeeklyGrid
+        sections={[]}
+        window={DEFAULT_WINDOW}
+        locale="th"
+        t={t}
+        editable
+      />,
+    );
+    const ghost = document.querySelector('[data-ghost="rejected"]');
+    expect(ghost?.className).toContain('kcp-shake');
+    expect(document.querySelector('[data-ghost="blocked"]')).toBeNull();
+    if (ghost === null) throw new Error('rejected ghost missing');
+    // jsdom has no AnimationEvent, so React listens for the prefixed end event there.
+    fireEvent(ghost, new Event('webkitAnimationEnd', { bubbles: true }));
+    expect(document.querySelector('[data-ghost="rejected"]')).toBeNull();
+    expect(dragStore.getState().rejecting).toBeNull();
+    // The strip keeps the reason after the ghosts are gone.
+    expect(dragStore.getState().blocked).not.toBeNull();
+  });
+
+  it('releases a rejected footprint that draws no ghost on the shown days', () => {
+    const placed = makeSection({
+      teachTableId: 'p',
+      subjectId: 'OTHER',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+    });
+    const dragged = makeSection({
+      teachTableId: 'd',
+      subjectId: 'S1',
+      meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+    });
+    dragStore
+      .getState()
+      .start(makeCourse({ subjectId: 'S1', sections: [dragged] }), dragged, [
+        placed,
+      ]);
+    dragStore.getState().reject();
+    // A day view showing Tuesday cannot draw the Monday footprint, so no shake can end it.
+    render(
+      <WeeklyGrid
+        sections={[]}
+        window={DEFAULT_WINDOW}
+        days={[2]}
+        orientation="portrait"
+        locale="th"
+        t={t}
+        editable
+      />,
+    );
+    expect(document.querySelector('[data-ghost="rejected"]')).toBeNull();
+    expect(dragStore.getState().rejecting).toBeNull();
+    expect(dragStore.getState().blocked).not.toBeNull();
+  });
+
   it('renders a low emphasis hover ghost while previewing', () => {
     const preview = makeSection({
       teachTableId: 'h',

@@ -233,6 +233,22 @@ describe('shadow stylesheet tokens', () => {
     );
   });
 
+  it('shakes a rejected drop over the base duration and only fades it when reduced', () => {
+    expect(css).toMatch(
+      /\.kcp-shake \{\s*animation: kcp-shake var\(--kcp-duration-base\) ease-out forwards;/,
+    );
+    const reduced = [
+      ...css.matchAll(
+        /@media \(prefers-reduced-motion: reduce\) \{([^@]*?)\.kcp-shake \{([^}]*)\}/g,
+      ),
+    ][0];
+    expect(reduced?.[2]).toContain('animation-name: kcp-shake-static;');
+    // The static variant moves nothing, so it carries opacity alone.
+    expect(css).toMatch(
+      /@keyframes kcp-shake-static \{\s*from \{\s*opacity: 1;\s*\}\s*to \{\s*opacity: 0;\s*\}\s*\}/,
+    );
+  });
+
   it('reads every fixed animation duration from a motion token', () => {
     expect(css).not.toMatch(/animation:[^;]*\b\d+m?s\b/);
     expect(css).toMatch(/animation:[^;]*var\(--kcp-duration-/);
