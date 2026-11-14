@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { readableBuilding } from './place';
+import { makeMeeting } from '../../../tests/support/domain-builders';
+import { placeKey, readableBuilding } from './place';
 
 describe('readableBuilding', () => {
   it('prefers the readable classbuilding over the building code', () => {
@@ -52,5 +53,21 @@ describe('readableBuilding', () => {
     expect(
       readableBuilding('อาคาร B เรียนรวม (ชุมพร)', '1000', '1000-17'),
     ).toBe('อาคาร B เรียนรวม (ชุมพร)');
+  });
+});
+
+describe('placeKey', () => {
+  it('keys a meeting by its room alone, ignoring the building', () => {
+    const coded = makeMeeting({ room: 'D-510', building: 'D01' });
+    const dropped = makeMeeting({ room: 'D-510', building: '' });
+    expect(placeKey(coded)).toBe(placeKey(dropped));
+  });
+
+  it('trims the room and collapses inner whitespace', () => {
+    expect(placeKey({ room: '  KBS   - 205 ' })).toBe('KBS - 205');
+  });
+
+  it('keeps distinct rooms distinct', () => {
+    expect(placeKey({ room: 'D-510' })).not.toBe(placeKey({ room: 'D-511' }));
   });
 });

@@ -8,6 +8,7 @@
 import type { Section } from '../domain/types';
 import type { PlanEntry, SectionSnapshot } from '../domain/plan';
 import type { NormalizedCatalog } from '../domain/normalize';
+import { placeKey } from '../domain/place';
 
 export type ChangeKind =
   | 'time_changed'
@@ -104,11 +105,10 @@ function timeFootprint(section: Pick<Section, 'meetings'>): string {
     .join(',');
 }
 
+// Rooms compare through the normalized place key, so a snapshot that stored the
+// internal building code does not read as moved once the readable name is preferred.
 function roomFootprint(section: Pick<Section, 'meetings'>): string {
-  return section.meetings
-    .map((m) => `${m.building}/${m.room}`)
-    .sort()
-    .join(',');
+  return section.meetings.map(placeKey).sort().join(',');
 }
 
 function arraysEqual(a: string[], b: string[]): boolean {
