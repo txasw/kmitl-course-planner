@@ -32,6 +32,18 @@ export function buddhistYears(currentBuddhistYear: number): string[] {
   return years;
 }
 
+/**
+ * The year options with one more year merged in, ascending. A term can arrive from a
+ * route or a stored search outside the generated span, and a select must still offer
+ * the year it shows. An empty year adds nothing.
+ */
+export function yearsWith(years: readonly string[], year: string): string[] {
+  if (year.length === 0 || years.includes(year)) {
+    return [...years];
+  }
+  return [...years, year].sort((a, b) => Number(a) - Number(b));
+}
+
 export interface Term {
   year: string;
   semester: Semester;
