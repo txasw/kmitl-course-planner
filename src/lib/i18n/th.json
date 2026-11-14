@@ -393,6 +393,8 @@
   "stats.region": "สรุปตาราง",
   "stats.conflicts": "ชนกัน {count} รายการ",
   "stats.noConflicts": "ไม่มีรายการชนกัน",
+  "stats.creditsBelow": "ต่ำกว่าเกณฑ์ขั้นต่ำปกติ {min} หน่วยกิต",
+  "stats.creditsAbove": "เกินเกณฑ์ขั้นสูงปกติ {max} หน่วยกิต",
   "stats.freeDays": "วันว่าง {days}",
   "mode.select": "โหมดการแสดงผล",
   "mode.edit": "แก้ไข",

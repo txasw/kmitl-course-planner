@@ -3,6 +3,7 @@ import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import type { Meeting } from '@/lib/domain/types';
 import { WORKING_DAYS } from '@/lib/planner/freePeriods';
+import type { Semester } from '@/lib/routing/academicTerms';
 import { StatsBar } from './StatsBar';
 import type { PlacedSection } from './placedSection';
 
@@ -45,10 +46,12 @@ function renderBar(
   sections: PlacedSection[],
   conflictCount = 0,
   onShowConflict = vi.fn(),
+  semester: Semester | null = null,
 ) {
   return render(
     <StatsBar
       sections={sections}
+      semester={semester}
       conflictCount={conflictCount}
       onShowConflict={onShowConflict}
       t={t}
@@ -133,6 +136,7 @@ describe('StatsBar', () => {
     render(
       <StatsBar
         sections={[scheduled]}
+        semester={null}
         conflictCount={0}
         onShowConflict={vi.fn()}
         t={createTranslator('en')}
@@ -142,5 +146,78 @@ describe('StatsBar', () => {
     expect(
       screen.getByText('Free days Tuesday Wednesday Thursday Friday'),
     ).toHaveClass('sr-only');
+  });
+
+  describe('credit load', () => {
+    const withCredits = (credits: number[]): PlacedSection[] =>
+      credits.map((credit, index) => ({
+        ...scheduled,
+        teachTableId: `c${String(index)}`,
+        subjectId: `9100000${String(index)}`,
+        credit,
+      }));
+
+    function renderLoad(credits: number[], semester: Semester) {
+      renderBar(withCredits(credits), 0, vi.fn(), semester);
+    }
+
+    it('keeps the total in plain ink with no note at the edges of the regular load', () => {
+      renderLoad([3, 3, 3], '1');
+      expect(screen.getByText('9')).toHaveClass('text-ink');
+      expect(screen.queryByText(/เกณฑ์/)).not.toBeInTheDocument();
+      cleanup();
+      renderLoad([3, 3, 3, 3, 3, 3, 4], '2');
+      expect(screen.getByText('22')).toHaveClass('text-ink');
+      expect(screen.queryByText(/เกณฑ์/)).not.toBeInTheDocument();
+    });
+
+    it('notes a total below 9 credits in a regular semester in warn ink', () => {
+      renderLoad([3, 3, 2], '1');
+      expect(screen.getByText('8')).toHaveClass('text-warn');
+      expect(
+        screen.getByText('ต่ำกว่าเกณฑ์ขั้นต่ำปกติ 9 หน่วยกิต'),
+      ).toHaveClass('text-warn');
+    });
+
+    it('notes a total above 22 credits in a regular semester', () => {
+      renderLoad([3, 3, 3, 3, 3, 3, 3, 2], '2');
+      expect(screen.getByText('23')).toHaveClass('text-warn');
+      expect(
+        screen.getByText('เกินเกณฑ์ขั้นสูงปกติ 22 หน่วยกิต'),
+      ).toBeInTheDocument();
+    });
+
+    it('caps the special term at 9 credits with no minimum', () => {
+      renderLoad([1], '3');
+      expect(screen.queryByText(/เกณฑ์/)).not.toBeInTheDocument();
+      cleanup();
+      renderLoad([3, 3, 3, 1], '3');
+      expect(
+        screen.getByText('เกินเกณฑ์ขั้นสูงปกติ 9 หน่วยกิต'),
+      ).toBeInTheDocument();
+    });
+
+    it('warns without adding a control, so nothing is blocked', () => {
+      renderLoad([3], '1');
+      expect(
+        screen.getByText('ต่ำกว่าเกณฑ์ขั้นต่ำปกติ 9 หน่วยกิต'),
+      ).toBeInTheDocument();
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    });
+
+    it('reads the note in English', () => {
+      render(
+        <StatsBar
+          sections={withCredits([3, 3, 3, 3, 3, 3, 3, 2])}
+          semester="1"
+          conflictCount={0}
+          onShowConflict={vi.fn()}
+          t={createTranslator('en')}
+        />,
+      );
+      expect(
+        screen.getByText('Above the usual maximum of 22 credits'),
+      ).toBeInTheDocument();
+    });
   });
 });

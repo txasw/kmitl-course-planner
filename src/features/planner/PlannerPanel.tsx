@@ -406,6 +406,7 @@ export function PlannerPanel() {
       {!isPreview && sections.length > 0 ? (
         <StatsBar
           sections={sections}
+          semester={activePlan?.semester ?? null}
           conflictCount={honesty.conflictPairCount}
           onShowConflict={handleShowConflict}
           status={<VerificationStatus />}
