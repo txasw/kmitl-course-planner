@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import {
   render,
   screen,
@@ -304,4 +304,154 @@ describe('PreviewToolbar', () => {
       screen.queryByRole('button', { name: 'ดูรายการ' }),
     ).not.toBeInTheDocument();
   });
+});
+
+describe('PreviewToolbar share image', () => {
+  const SHARE = 'แชร์รูปภาพ';
+  type Share = (data: ShareData) => Promise<void>;
+
+  // The earlier cases leave their toast behind, and these assert there is none.
+  beforeEach(() => {
+    toastStore.getState().dismiss();
+  });
+
+  // Let the capture, the share, and their toasts settle.
+  const settle = () =>
+    act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+  function stubShare(share: Share) {
+    const spy = vi.fn(share);
+    vi.stubGlobal('ClipboardItem', undefined);
+    vi.stubGlobal('navigator', { share: spy, canShare: () => true });
+    vi.mocked(capturePng).mockResolvedValue(
+      new Blob(['png'], { type: 'image/png' }),
+    );
+    return spy;
+  }
+
+  function renderWithPoster(
+    node: HTMLDivElement = document.createElement('div'),
+  ) {
+    renderToolbar(DEFAULT_DISPLAY_OPTIONS, buildExamSchedule([]), {
+      current: node,
+    });
+  }
+
+  it('offers no share action where the browser cannot share a file', () => {
+    renderToolbar();
+    expect(
+      screen.queryByRole('button', { name: SHARE }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('offers no share action where the browser cannot share a PNG', () => {
+    vi.stubGlobal('navigator', { share: vi.fn(), canShare: () => false });
+    renderToolbar();
+    expect(
+      screen.queryByRole('button', { name: SHARE }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shares the captured poster as a PNG file through the share sheet', async () => {
+    const share = stubShare(() => Promise.resolve());
+    renderWithPoster();
+
+    fireEvent.click(screen.getByRole('button', { name: SHARE }));
+    await settle();
+    expect(share).toHaveBeenCalledTimes(1);
+    const file = share.mock.calls[0]?.[0].files?.[0];
+    expect(file?.type).toBe('image/png');
+    expect(file?.name).toBe(`kmitl-plan-${DEFAULT_TEMPLATE.slug}.png`);
+    // The share sheet is the visible outcome, so no toast follows a share.
+    expect(toastStore.getState().toast).toBeNull();
+  });
+
+  it('stays silent when the student closes the share sheet', async () => {
+    stubShare(() => Promise.reject(new DOMException('closed', 'AbortError')));
+    renderWithPoster();
+
+    fireEvent.click(screen.getByRole('button', { name: SHARE }));
+    await settle();
+    expect(toastStore.getState().toast).toBeNull();
+  });
+
+  it('reports a share the browser refused for another reason', async () => {
+    stubShare(() => Promise.reject(new DOMException('bad', 'DataError')));
+    renderWithPoster();
+
+    fireEvent.click(screen.getByRole('button', { name: SHARE }));
+    await settle();
+    expect(toastStore.getState().toast?.message).toBe('แชร์รูปภาพไม่สำเร็จ');
+  });
+
+  it('holds the image for a fresh press when the capture outlasted the press', async () => {
+    let calls = 0;
+    const share = stubShare(() => {
+      calls += 1;
+      return calls === 1
+        ? Promise.reject(new DOMException('no gesture', 'NotAllowedError'))
+        : Promise.resolve();
+    });
+    renderWithPoster();
+    const button = screen.getByRole('button', { name: SHARE });
+
+    fireEvent.click(button);
+    await settle();
+    const toast = toastStore.getState().toast;
+    expect(toast?.message).toBe('รูปภาพพร้อมแชร์แล้ว');
+    expect(toast?.action?.label).toBe(SHARE);
+
+    // The toast action opens the sheet with the held file, without a second capture.
+    act(() => {
+      toast?.action?.run(button);
+    });
+    await settle();
+    expect(capturePng).toHaveBeenCalledTimes(1);
+    expect(share).toHaveBeenCalledTimes(2);
+    expect(share.mock.calls[1]?.[0].files?.[0]).toBe(
+      share.mock.calls[0]?.[0].files?.[0],
+    );
+  });
+
+  it('takes down the share offer when the toolbar leaves preview', async () => {
+    stubShare(() =>
+      Promise.reject(new DOMException('no gesture', 'NotAllowedError')),
+    );
+    renderWithPoster();
+
+    fireEvent.click(screen.getByRole('button', { name: SHARE }));
+    await settle();
+    expect(toastStore.getState().toast?.message).toBe('รูปภาพพร้อมแชร์แล้ว');
+    cleanup();
+    expect(toastStore.getState().toast).toBeNull();
+  });
+
+  // The change reaches the observer either before the press, or still queued at the press.
+  it.each([
+    ['delivered', true],
+    ['still queued', false],
+  ])(
+    'captures again when the poster changed after the image was held, %s',
+    async (_label, deliverFirst) => {
+      const share = stubShare(() =>
+        Promise.reject(new DOMException('no gesture', 'NotAllowedError')),
+      );
+      const node = document.createElement('div');
+      renderWithPoster(node);
+      const button = screen.getByRole('button', { name: SHARE });
+
+      fireEvent.click(button);
+      await settle();
+      node.append(document.createElement('span'));
+      if (deliverFirst) {
+        await settle();
+      }
+      fireEvent.click(button);
+      await settle();
+      expect(capturePng).toHaveBeenCalledTimes(2);
+      expect(share).toHaveBeenCalledTimes(2);
+    },
+  );
 });

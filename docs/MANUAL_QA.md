@@ -217,10 +217,11 @@ Run these against a debug build in Chrome and Firefox. Preview mode is entered f
 the header segmented control.
 
 - [ ] Preview toolbar presence: in edit mode there are no sharing controls. Switch to
-      preview and confirm the toolbar shows the display options, copy image, download image,
-      and copy as text, and that the template picker is the preview gallery itself, not a
-      dropdown. Switch back to edit and confirm they leave the DOM. The toolbar and its
-      verification status are never part of an exported image.
+      preview and confirm the toolbar shows the display options, share image where the
+      browser can share files, copy image, download image, and copy as text, and that the
+      template picker is the preview gallery itself, not a dropdown. Switch back to edit and
+      confirm they leave the DOM. The toolbar and its verification status are never part of
+      an exported image.
 - [ ] Download PNG: populate a plan including one unscheduled course. In preview, download
       the image and open it. The poster header, the grid with block colours, the unscheduled
       shelf, and the footer credits all render, and Thai text is correct. The blocks carry no
@@ -275,6 +276,12 @@ the header segmented control.
 - [ ] Copy image: use copy image, then paste into a chat app. The pasted image matches the
       poster. Where the browser lacks image clipboard support the control is a one line
       note pointing at download, never a dead button.
+- [ ] Share image: on a phone browser with file sharing, such as Chrome on Android, use
+      share image; the system share sheet opens with the poster PNG under its export file
+      name, and closing the sheet shows no error. On the print A4 template, if the browser
+      refuses the share because the capture took too long, a toast says the image is ready
+      and its share action opens the sheet without capturing again. Where the browser cannot
+      share files, as Firefox on desktop, the action is absent.
 - [ ] Copy as text: use copy as text, then paste into LINE. The text reads cleanly in
       Thai with a header line of plan, term, and credits, one line per meeting ordered
       Sunday through Saturday, the unscheduled sections under a label, a missing marker on

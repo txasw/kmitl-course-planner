@@ -1,11 +1,13 @@
 // The preview sharing toolbar. It is rendered only in preview mode and sits above
 // the poster capture node, so its controls never appear in an exported image. It
-// carries the display options popover and the sharing actions: copy the poster
-// image, download it, and copy the plan as plain text. Every action reports through
-// the shared toast, since a copy or download has no other visible result on screen.
-// Copy image is feature detected; where the browser lacks image clipboard support
-// the control is replaced by a one line note pointing at the always present
-// download, never a dead button. JSON export and import live in the plan menu, not
+// carries the display options popover and the sharing actions: share the poster
+// image through the native share sheet, copy it, download it, and copy the plan as
+// plain text. A copy or download reports through the shared toast, since it has no
+// other visible result on screen. Copy image is feature detected; where the browser
+// lacks image clipboard support the control is replaced by a one line note pointing
+// at the always present download, never a dead button. Share image is feature
+// detected too and is simply absent where the browser cannot share a file, since
+// download and copy remain. JSON export and import live in the plan menu, not
 // here, because they are data management rather than visual sharing. The verification
 // status ends the toolbar row, so an offline or partial check and its retry stay in
 // view while sharing (brief section 6.6 step 6, ADR-0060), and the pre share notice
@@ -20,7 +22,13 @@
 // useImageActions.
 
 import { type ReactNode, type RefObject } from 'react';
-import { Clipboard, ClipboardCopy, Download, LoaderCircle } from 'lucide-react';
+import {
+  Clipboard,
+  ClipboardCopy,
+  Download,
+  LoaderCircle,
+  Share2,
+} from 'lucide-react';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
 import type { ExamSchedule } from '@/lib/planner/examSchedule';
 import { formatPlanText } from '@/lib/export/planText';
@@ -32,7 +40,9 @@ import { toastStore } from '@/features/shell/toastStore';
 import { DisplayOptionsPopover } from './DisplayOptionsPopover';
 import { examScheduleLines } from './examScheduleLines';
 import { PreShareNotice } from './PreShareNotice';
+import { canShareImage } from './imageShare';
 import {
+  SHARE_IMAGE_ID,
   canCopyImage,
   useImageActions,
   type ImageAction,
@@ -71,7 +81,7 @@ export function PreviewToolbar({
     activePlan === null ? 'kmitl-plan' : planExportBaseName(activePlan);
   const fileName = `${base}-${template.slug}.png`;
 
-  const { capturing, download, copyImage } = useImageActions(
+  const { capturing, download, copyImage, share } = useImageActions(
     posterRef,
     template.pixelRatio,
     fileName,
@@ -131,6 +141,21 @@ export function PreviewToolbar({
         className="flex shrink-0 flex-wrap items-end gap-2"
       >
         <DisplayOptionsPopover />
+        {canShareImage() ? (
+          <button
+            id={SHARE_IMAGE_ID}
+            type="button"
+            onClick={share}
+            aria-disabled={busy}
+            className={BUTTON}
+          >
+            {actionLabel(
+              'share',
+              <Share2 size={16} strokeWidth={2} aria-hidden />,
+              t('preview.shareImage'),
+            )}
+          </button>
+        ) : null}
         {canCopyImage() ? (
           <button
             type="button"
