@@ -9,7 +9,8 @@
 // opens its body with a compare control first, which shows every section side by side
 // in a table. The body stays mounted while the table is open, so closing it returns
 // focus to the control. An add from the table collapses the card under it, taking the
-// control away, so closing the table then hands focus to the card's toggle.
+// control away, so closing the table then hands focus to the card's toggle. A bookmark
+// beside the toggle saves the course to the browsed term's shortlist (ADR-0069).
 
 import {
   memo,
@@ -37,6 +38,7 @@ import {
 import { DraggableSection } from './DraggableSection';
 import { SectionRow } from './SectionRow';
 import { RemoveButton, removeSectionName } from './RemoveButton';
+import { ShortlistButton } from './ShortlistButton';
 import { AddedLine, FitLine } from './CourseMeta';
 import { CourseBody, DISCLOSURE_MS } from './CourseBody';
 import { FOCUS_RING } from '@/lib/ui/focus';
@@ -113,6 +115,10 @@ interface CourseCardProps {
   onAdd?: ((course: Course, section: Section) => void) | undefined;
   onRemove?: ((teachTableId: string) => void) | undefined;
   onSwitchTerm?: ((term: Term) => void) | undefined;
+  /** Whether the course is on the browsed term's shortlist. */
+  shortlisted?: boolean | undefined;
+  /** Saves or removes the course; the bookmark shows only when this is given. */
+  onToggleShortlist?: ((subjectId: string) => void) | undefined;
 }
 
 /** The second line of the toggle: the placed section, or the course summary. */
@@ -132,8 +138,8 @@ function isCrossTerm(term: TermContext | undefined): boolean {
 // change that does not touch this course) skips its whole subtree. The default
 // shallow comparison is sufficient because the parent keeps every prop identity
 // stable: the course reference survives an unfiltering pass (filterCourses), the
-// callbacks and term are memoized, open and instant are booleans, and placed
-// changes only when the plan does.
+// callbacks and term are memoized, open, instant, and shortlisted are booleans, and
+// placed changes only when the plan does.
 function CourseCardComponent({
   course,
   placed,
@@ -146,6 +152,8 @@ function CourseCardComponent({
   onAdd,
   onRemove,
   onSwitchTerm,
+  shortlisted = false,
+  onToggleShortlist,
 }: CourseCardProps) {
   const id = useId();
   const titleId = `${id}-title`;
@@ -252,6 +260,16 @@ function CourseCardComponent({
           )}
         </button>
       </h4>
+      {onToggleShortlist !== undefined ? (
+        <ShortlistButton
+          saved={shortlisted}
+          describedBy={titleId}
+          t={t}
+          onToggle={() => {
+            onToggleShortlist(course.subjectId);
+          }}
+        />
+      ) : null}
       {placedSection !== undefined && onRemove !== undefined ? (
         <RemoveButton
           label={t('action.remove')}
