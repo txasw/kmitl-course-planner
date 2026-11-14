@@ -13,6 +13,10 @@ import { installViewport } from '../../../tests/support/viewport';
 import { makePlan } from '../../../tests/support/domain-builders';
 import { resetPlanStore } from '../../../tests/support/plan-store';
 import { planStore } from '@/features/plans/planStore';
+import {
+  autosaveStore,
+  SAVE_INDICATOR_ID,
+} from '@/features/plans/autosaveStore';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
 afterEach(() => {
@@ -20,6 +24,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
   resetPlanStore();
   act(() => {
+    autosaveStore.getState().detach();
     uiStore.getState().close();
     uiStore.getState().setCatalogVisible(true);
     uiStore.getState().setLanguage('th');
@@ -82,6 +87,23 @@ describe('Header', () => {
     const trigger = screen.getByRole('button', { name: 'เลือกตาราง' });
     expect(trigger).toHaveTextContent('แผนหลัก');
     expect(trigger).toHaveTextContent('ภาคการศึกษา 1/2569');
+  });
+
+  it('shows the save state beside the plan switcher once autosave runs', () => {
+    const { container } = render(<Header titleId="title" />);
+    expect(document.getElementById(SAVE_INDICATOR_ID)).toBeNull();
+    act(() => {
+      planStore.getState().hydrate([makePlan({ id: 'a' })]);
+      autosaveStore.getState().attach(vi.fn());
+    });
+    const indicator = document.getElementById(SAVE_INDICATOR_ID);
+    expect(indicator).toHaveTextContent('บันทึกแล้ว');
+    const leading = container.querySelector('header')?.firstElementChild;
+    expect(indicator?.parentElement).toBe(leading);
+    // The plan switcher sits right before it in the leading group.
+    expect(indicator?.previousElementSibling).toContainElement(
+      screen.getByRole('button', { name: 'เลือกตาราง' }),
+    );
   });
 
   it('closes the overlay from the close control', () => {
