@@ -328,3 +328,55 @@ describe('FilterBar', () => {
     });
   });
 });
+
+describe('FilterBar saved chip', () => {
+  it('is absent while the result holds no saved course', () => {
+    render(<FilterBar creditOptions={[3]} savedCount={0} />);
+    expect(screen.queryByRole('button', { name: /^ที่บันทึกไว้/ })).toBeNull();
+  });
+
+  it('shows the saved count and turns the saved filter on and off', () => {
+    render(<FilterBar creditOptions={[3]} savedCount={2} />);
+    const chip = screen.getByRole('button', { name: 'ที่บันทึกไว้ 2' });
+    expect(chip).toHaveAttribute('aria-pressed', 'false');
+    // The chip is not a popover facet, so the filter button shows no count for it.
+    fireEvent.click(chip);
+    expect(catalogStore.getState().filter.savedOnly).toBe(true);
+    expect(chip).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      screen.getByRole('button', { name: FILTER_BUTTON }).textContent,
+    ).toBe('ตัวกรอง');
+    fireEvent.click(chip);
+    expect(catalogStore.getState().filter.savedOnly).toBe(false);
+  });
+
+  it('stays while on with no saved course left, and clearing the filters turns it off', () => {
+    act(() => {
+      catalogStore.getState().setSavedOnly(true);
+    });
+    render(<FilterBar creditOptions={[3]} savedCount={0} />);
+    const chip = screen.getByRole('button', { name: 'ที่บันทึกไว้ 0' });
+    expect(chip).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'ล้างตัวกรอง' }));
+    expect(catalogStore.getState().filter.savedOnly).toBe(false);
+    expect(screen.queryByRole('button', { name: /^ที่บันทึกไว้/ })).toBeNull();
+  });
+
+  it('reads Saved in English', () => {
+    act(() => {
+      uiStore.getState().setLanguage('en');
+    });
+    render(<FilterBar creditOptions={[3]} savedCount={1} />);
+    expect(screen.getByRole('button', { name: 'Saved 1' })).toBeInTheDocument();
+  });
+
+  it('has no serious accessibility violations with the chip on', async () => {
+    act(() => {
+      catalogStore.getState().setSavedOnly(true);
+    });
+    const { container } = render(
+      <FilterBar creditOptions={[3]} savedCount={1} />,
+    );
+    await expectNoSeriousA11yViolations(container);
+  });
+});

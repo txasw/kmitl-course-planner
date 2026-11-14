@@ -49,6 +49,8 @@ export interface CatalogStore {
   setHides: (hides: CatalogHides) => void;
   /** Keep only the sections offered to this curriculum, or null to show every section. */
   setCurriculum: (profile: CurriculumProfile | null) => void;
+  /** Keep only the courses on the browsed term's shortlist. */
+  setSavedOnly: (value: boolean) => void;
   resetFilter: () => void;
   disclosure: CardDisclosure;
   setCardOpen: (
@@ -137,6 +139,9 @@ export function createCatalogStore() {
     },
     setCurriculum: (curriculum) => {
       set((state) => ({ filter: { ...state.filter, curriculum } }));
+    },
+    setSavedOnly: (savedOnly) => {
+      set((state) => ({ filter: { ...state.filter, savedOnly } }));
     },
     resetFilter: () => {
       set({ filter: EMPTY_FILTER });

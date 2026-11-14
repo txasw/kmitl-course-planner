@@ -18,6 +18,7 @@ import {
 const NO_PREDICATES: SectionPredicates = {
   isFull: () => false,
   isConflicting: () => false,
+  isShortlisted: () => false,
 };
 
 const physics = makeCourse({
@@ -234,6 +235,7 @@ describe('filterCourses', () => {
 
   it('hides full sections and drops empty courses', () => {
     const predicates: SectionPredicates = {
+      ...NO_PREDICATES,
       isFull: (section) => section.section === '801',
       isConflicting: () => false,
     };
@@ -248,7 +250,7 @@ describe('filterCourses', () => {
 
   it('hides conflicting sections', () => {
     const predicates: SectionPredicates = {
-      isFull: () => false,
+      ...NO_PREDICATES,
       isConflicting: (_course, section) => section.section === '902',
     };
     const result = filterCourses(
@@ -258,6 +260,33 @@ describe('filterCourses', () => {
     );
     expect(result[0]?.sections).toHaveLength(1);
     expect(result[0]?.sections[0]?.section).toBe('901');
+  });
+
+  it('keeps only the shortlisted courses when saved only is on', () => {
+    const predicates: SectionPredicates = {
+      ...NO_PREDICATES,
+      isShortlisted: (course) => course.subjectId === '90592033',
+    };
+    const saved = filterCourses(
+      courses,
+      { ...EMPTY_FILTER, savedOnly: true },
+      predicates,
+    );
+    expect(saved.map((course) => course.subjectId)).toEqual(['90592033']);
+    expect(saved[0]).toBe(physics);
+    expect(filterCourses(courses, EMPTY_FILTER, predicates)).toHaveLength(2);
+  });
+
+  it('applies the other facets to the shortlisted courses', () => {
+    const result = filterCourses(
+      courses,
+      { ...EMPTY_FILTER, savedOnly: true, days: [1] },
+      { ...NO_PREDICATES, isShortlisted: () => true },
+    );
+    expect(result).toHaveLength(1);
+    expect(result[0]?.sections.map((section) => section.section)).toEqual([
+      '901',
+    ]);
   });
 
   it('keeps the original course reference when no section is dropped', () => {
