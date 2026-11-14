@@ -1,19 +1,47 @@
 import { useEffect } from 'react';
-import type { PrefsRepository } from '@/lib/storage/prefs';
+import type { Prefs, PrefsRepository } from '@/lib/storage/prefs';
+import {
+  catalogStore,
+  sameHides,
+  selectHides,
+} from '@/features/catalog/catalogStore';
 import { uiStore } from './uiStore';
+
+/** The whole preferences object as the two stores hold it now. */
+function currentPrefs(): Prefs {
+  const state = uiStore.getState();
+  return {
+    schemaVersion: 1,
+    language: state.language,
+    viewMode: state.viewMode,
+    displayOptions: state.displayOptions,
+    // A template the student never chose stays unsaved, so the preview keeps
+    // resolving it from the stage shape on the next open.
+    ...(state.selectedTemplate === null
+      ? {}
+      : { exportTemplate: state.selectedTemplate }),
+    ...(state.curriculumProfile === null
+      ? {}
+      : { curriculumProfile: state.curriculumProfile }),
+    suggestObjective: state.suggestObjective,
+    suggestPreference: state.suggestPreference,
+    timetableView: state.timetableView,
+    catalogHides: selectHides(catalogStore.getState()),
+  };
+}
 
 // Hydrates the stored UI preferences, the language, the view mode, the poster
 // display options, the export template, the curriculum profile, the suggestion
-// options, and the narrow timetable view, on mount, then persists explicit changes
-// to any of them. They live under one storage key, so a single hook writes the whole
-// preferences object on any change rather than several hooks clobbering each other's
-// field. The subscription attaches only after hydration, so a hydrated value is not
-// written straight back, and a change made during the async read is respected rather
-// than overwritten by the stored value.
+// options, the narrow timetable view, and the catalog hide toggles, on mount, then
+// persists explicit changes to any of them. They live under one storage key, so a
+// single hook writes the whole preferences object on any change rather than several
+// hooks clobbering each other's field. The subscriptions attach only after hydration,
+// so a hydrated value is not written straight back, and a change made during the
+// async read is respected rather than overwritten by the stored value.
 export function usePrefsPersistence(repo: PrefsRepository): void {
   useEffect(() => {
     let cancelled = false;
-    let unsubscribe: (() => void) | undefined;
+    const unsubscribes: (() => void)[] = [];
     const initialLanguage = uiStore.getState().language;
     const initialViewMode = uiStore.getState().viewMode;
     const initialDisplayOptions = uiStore.getState().displayOptions;
@@ -22,6 +50,7 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
     const initialObjective = uiStore.getState().suggestObjective;
     const initialPreference = uiStore.getState().suggestPreference;
     const initialTimetableView = uiStore.getState().timetableView;
+    const initialHides = selectHides(catalogStore.getState());
 
     void repo.load().then((stored) => {
       if (cancelled) return;
@@ -72,42 +101,43 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
         ) {
           state.setTimetableView(stored.timetableView);
         }
-      }
-      unsubscribe = uiStore.subscribe((state, previous) => {
+        const catalog = catalogStore.getState();
         if (
-          state.language !== previous.language ||
-          state.viewMode !== previous.viewMode ||
-          state.displayOptions !== previous.displayOptions ||
-          state.selectedTemplate !== previous.selectedTemplate ||
-          state.curriculumProfile !== previous.curriculumProfile ||
-          state.suggestObjective !== previous.suggestObjective ||
-          state.suggestPreference !== previous.suggestPreference ||
-          state.timetableView !== previous.timetableView
+          stored.catalogHides !== undefined &&
+          sameHides(selectHides(catalog), initialHides)
         ) {
-          void repo.save({
-            schemaVersion: 1,
-            language: state.language,
-            viewMode: state.viewMode,
-            displayOptions: state.displayOptions,
-            // A template the student never chose stays unsaved, so the preview keeps
-            // resolving it from the stage shape on the next open.
-            ...(state.selectedTemplate === null
-              ? {}
-              : { exportTemplate: state.selectedTemplate }),
-            ...(state.curriculumProfile === null
-              ? {}
-              : { curriculumProfile: state.curriculumProfile }),
-            suggestObjective: state.suggestObjective,
-            suggestPreference: state.suggestPreference,
-            timetableView: state.timetableView,
-          });
+          catalog.setHides(stored.catalogHides);
         }
-      });
+      }
+      const save = () => {
+        void repo.save(currentPrefs());
+      };
+      unsubscribes.push(
+        uiStore.subscribe((state, previous) => {
+          if (
+            state.language !== previous.language ||
+            state.viewMode !== previous.viewMode ||
+            state.displayOptions !== previous.displayOptions ||
+            state.selectedTemplate !== previous.selectedTemplate ||
+            state.curriculumProfile !== previous.curriculumProfile ||
+            state.suggestObjective !== previous.suggestObjective ||
+            state.suggestPreference !== previous.suggestPreference ||
+            state.timetableView !== previous.timetableView
+          ) {
+            save();
+          }
+        }),
+        catalogStore.subscribe((state, previous) => {
+          if (!sameHides(selectHides(state), selectHides(previous))) {
+            save();
+          }
+        }),
+      );
     });
 
     return () => {
       cancelled = true;
-      unsubscribe?.();
+      for (const unsubscribe of unsubscribes) unsubscribe();
     };
   }, [repo]);
 }

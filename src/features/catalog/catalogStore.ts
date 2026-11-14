@@ -2,12 +2,15 @@
 // state. Held in memory like the other panel stores, it survives closing and
 // reopening the overlay within a page session. Every update produces a new filter
 // object so the shared empty filter is never mutated, and clearing the filters
-// leaves the sort as the student chose it.
+// leaves the sort as the student chose it. The three hide toggles are also stored
+// with the preferences, so they read back through selectHides and restore through
+// setHides in one update.
 
 import { createStore } from 'zustand/vanilla';
 import { EMPTY_FILTER, type CatalogFilter } from '@/lib/catalog/filter';
 import type { CurriculumProfile } from '@/lib/catalog/curriculumProfile';
 import type { DayOfWeek } from '@/lib/domain/types';
+import type { CatalogHides } from '@/lib/storage/prefs';
 import {
   EMPTY_DISCLOSURE,
   withAllCards,
@@ -35,6 +38,8 @@ export interface CatalogStore {
   setHideFull: (value: boolean) => void;
   setHideConflicting: (value: boolean) => void;
   setHideUnscheduled: (value: boolean) => void;
+  /** Sets the three hide toggles together, as restored from the preferences. */
+  setHides: (hides: CatalogHides) => void;
   /** Keep only the sections offered to this curriculum, or null to show every section. */
   setCurriculum: (profile: CurriculumProfile | null) => void;
   resetFilter: () => void;
@@ -63,6 +68,24 @@ export interface CatalogStore {
   ) => void;
 }
 
+/** The hide toggles of the current filter, in the shape the preferences store. */
+export function selectHides(state: Pick<CatalogStore, 'filter'>): CatalogHides {
+  return {
+    full: state.filter.hideFull,
+    conflicting: state.filter.hideConflicting,
+    unscheduled: state.filter.hideUnscheduled,
+  };
+}
+
+/** Whether two hide toggle sets hold the same three values. */
+export function sameHides(a: CatalogHides, b: CatalogHides): boolean {
+  return (
+    a.full === b.full &&
+    a.conflicting === b.conflicting &&
+    a.unscheduled === b.unscheduled
+  );
+}
+
 export function createCatalogStore() {
   return createStore<CatalogStore>((set) => ({
     filter: EMPTY_FILTER,
@@ -88,6 +111,16 @@ export function createCatalogStore() {
     },
     setHideUnscheduled: (hideUnscheduled) => {
       set((state) => ({ filter: { ...state.filter, hideUnscheduled } }));
+    },
+    setHides: (hides) => {
+      set((state) => ({
+        filter: {
+          ...state.filter,
+          hideFull: hides.full,
+          hideConflicting: hides.conflicting,
+          hideUnscheduled: hides.unscheduled,
+        },
+      }));
     },
     setCurriculum: (curriculum) => {
       set((state) => ({ filter: { ...state.filter, curriculum } }));
