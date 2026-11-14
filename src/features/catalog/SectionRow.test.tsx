@@ -653,6 +653,24 @@ describe('SectionRow density and read only', () => {
     expect(screen.getByText(/10:30-12:00/)).toBeInTheDocument();
   });
 
+  it('shows a room whose building was dropped with a single separating space', () => {
+    const coded = makeSection({
+      teachTableId: 'coded',
+      meetings: [makeMeeting({ room: 'D-510', building: '' })],
+    });
+    render(
+      <SectionRow
+        course={course}
+        section={coded}
+        relation={{ kind: 'addable' }}
+        seat={computeSeatStatus(coded)}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.getByText(/D-510/).textContent).toMatch(/\d{2}:\d{2} D-510$/);
+  });
+
   it('truncates the teachers to one line with the full list in a tooltip', async () => {
     const many = makeSection({
       teachTableId: 'm',
