@@ -73,3 +73,4 @@ a new record that supersedes the old one rather than editing history.
 64. [Exam schedule poster block](0064-exam-schedule-poster-block.md)
 65. [Product name carries KCP](0065-product-name-carries-kcp.md)
 66. [Landing site on Cloudflare at kcp.cecs.sh](0066-landing-site-on-cloudflare-at-kcp-cecs-sh.md)
+67. [Closing the overlay on back navigation](0067-overlay-back-gesture.md)
