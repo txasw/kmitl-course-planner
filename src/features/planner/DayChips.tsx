@@ -82,7 +82,7 @@ export function DayChips({
     <div
       role="radiogroup"
       aria-label={t('view.dayPicker')}
-      className="flex shrink-0 gap-0.5 rounded-kcp border border-border p-0.5"
+      className="flex shrink-0 gap-1 rounded-kcp border border-border p-1"
     >
       {days.map((day) => {
         const isSelected = day === selected;
@@ -107,7 +107,7 @@ export function DayChips({
             onClick={() => {
               onSelect(day);
             }}
-            className={`inline-flex min-h-9 flex-1 flex-col items-center justify-center gap-0.5 rounded-[6px] text-xs transition-colors ${TARGET_SIZE} ${FOCUS_RING} ${
+            className={`inline-flex min-h-9 flex-1 flex-col items-center justify-center gap-1 rounded-kcp-inner text-xs transition-colors ${TARGET_SIZE} ${FOCUS_RING} ${
               isSelected
                 ? 'bg-surface-alt font-semibold text-ink'
                 : 'text-ink-soft hover:text-ink'

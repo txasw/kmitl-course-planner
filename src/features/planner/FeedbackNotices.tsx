@@ -191,7 +191,7 @@ export function BlockedNotice({
                   },
                 );
               }}
-              className={`rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
+              className={`rounded-kcp border border-border bg-surface px-2 py-1 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
             >
               {t('section.code')} {alternative.section}
               {alternative.meetings.length === 0

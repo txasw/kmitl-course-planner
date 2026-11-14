@@ -146,7 +146,7 @@ export function SectionRow({
                 onClick={() => {
                   onSwitchTerm(relation.browsedTerm);
                 }}
-                className={`rounded-kcp border border-primary px-2 py-0.5 text-primary-strong outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
+                className={`rounded-kcp border border-primary px-2 py-1 text-primary-strong outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
               >
                 <TermSwitchLabel term={relation.browsedTerm} t={t} />
               </button>
@@ -154,7 +154,7 @@ export function SectionRow({
           </div>
         </div>
 
-        <div className="mt-1 flex flex-col gap-0.5 text-ink-soft">
+        <div className="mt-1 flex flex-col gap-1 text-ink-soft">
           {section.meetings.map((meeting) => (
             <span
               key={`${String(meeting.day)}-${String(meeting.startMin)}-${String(meeting.endMin)}`}
@@ -180,7 +180,7 @@ export function SectionRow({
         ) : null}
         {/* The reason id stays on the seat line alone, so a disabled rail names the seat
             state without the demand counts. */}
-        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
           <div id={relation.kind === 'different_term' ? undefined : reasonId}>
             <SeatDemand demand={demand} t={t} />
           </div>
