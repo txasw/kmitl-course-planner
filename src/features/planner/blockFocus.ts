@@ -4,7 +4,8 @@
 // unscheduled shelf rows in their listed order. When the removed section came last, the
 // last item left takes focus, and when none is left the grid itself does. Items are read
 // from the DOM before and after the commit, by the data attributes the grid and the shelf
-// render, so the order is the one on screen.
+// render, so the order is the one on screen. A change of section lands focus on the new
+// section's first item the same way.
 
 import type { Meeting } from '@/lib/domain/types';
 
@@ -44,6 +45,18 @@ function placedItems(scope: ParentNode): PlacedItem[] {
     }),
   );
   return [...blocks, ...shelf];
+}
+
+/**
+ * The first placed item of a section in time order, its earliest block or its shelf row,
+ * for the focus move after a change puts it on the grid. Read after the commit.
+ */
+export function placedItemOf(
+  scope: ParentNode,
+  teachTableId: string,
+): HTMLElement | undefined {
+  return placedItems(scope).find((item) => item.teachTableId === teachTableId)
+    ?.element;
 }
 
 /**

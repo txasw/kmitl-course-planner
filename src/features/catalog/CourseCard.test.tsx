@@ -553,7 +553,9 @@ describe('CourseCard collapsed added course', () => {
     );
     fireEvent.click(toggle());
     expect(
-      screen.getByText('เปลี่ยนกลุ่มเรียนโดยลากบล็อกในตาราง'),
+      screen.getByText(
+        'เปลี่ยนกลุ่มเรียนได้จากรายละเอียดของบล็อกในตาราง หรือในวิชาที่เลือก',
+      ),
     ).toBeInTheDocument();
     expect(within(body()).getByText(/กลุ่มเรียน 901/)).toBeInTheDocument();
     expect(
