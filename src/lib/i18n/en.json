@@ -176,6 +176,8 @@
   "catalog.sort.subjectId": "Subject id",
   "catalog.sort.openSeats": "Most open seats",
   "catalog.sort.earliestStart": "Earliest start",
+  "catalog.group.count": "{n} courses",
+  "catalog.group.countOne": "1 course",
   "offeredTo.filter": "Only sections open to my curriculum",
   "offeredTo.scope": "Based on this search",
   "offeredTo.setProfile": "Choose my curriculum",

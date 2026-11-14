@@ -1,6 +1,6 @@
 // The course catalog: a dedupe summary that reports the value of merging repeated
 // rows, the filter bar, and the courses grouped by their subject type heading, each
-// group in the chosen sort order.
+// heading a disclosure and each group in the chosen sort order.
 // Section states are computed against the placed sections read from the plan
 // store, so the catalog is ready for the planner phase without rework.
 
@@ -31,6 +31,7 @@ import {
 } from '@/lib/planner/sectionState';
 import { filterCourses, type SectionPredicates } from '@/lib/catalog/filter';
 import { sortCourses, type CourseSortKey } from '@/lib/catalog/sortCourses';
+import { courseGroupKey, isGroupCollapsed } from '@/lib/catalog/groupCollapse';
 import {
   catalogQueryKey,
   isCardInstant,
@@ -53,6 +54,7 @@ import { commitThenFocus } from '@/features/shell/restoreFocus';
 import { rootOf } from '@/features/shell/useFocusTrap';
 import { courseToggle } from './courseFocus';
 import { catalogStore } from './catalogStore';
+import { CatalogGroup } from './CatalogGroup';
 import { CourseCard } from './CourseCard';
 import { FilterBar } from './FilterBar';
 
@@ -71,7 +73,7 @@ function groupByHeading(
   const groups: HeadingGroup[] = [];
   const index = new Map<string, HeadingGroup>();
   for (const course of courses) {
-    const key = course.groupNameTh;
+    const key = courseGroupKey(course);
     let group = index.get(key);
     if (group === undefined) {
       const heading =
@@ -156,6 +158,7 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
   const filter = useStore(catalogStore, (state) => state.filter);
   const disclosure = useStore(catalogStore, (state) => state.disclosure);
   const sort = useStore(catalogStore, (state) => state.sort);
+  const groupCollapse = useStore(catalogStore, (state) => state.groups);
   const queryKey = useMemo(() => catalogQueryKey(resultQuery), [resultQuery]);
   const addedIds = useMemo(
     () => new Set(placed.map((section) => section.subjectId)),
@@ -274,15 +277,25 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
     () => groupByHeading(filtered, language, sort),
     [filtered, language, sort],
   );
+  const isCollapsed = (group: HeadingGroup): boolean =>
+    isGroupCollapsed(groupCollapse, queryKey, group.key);
+  const handleToggleGroup = (group: HeadingGroup) => {
+    catalogStore
+      .getState()
+      .setGroupCollapsed(queryKey, group.key, !isCollapsed(group));
+  };
 
-  // The control acts on the cards the filters show. A bulk change sets every card
-  // without a transition, and the transition keeps input responsive while a dense
-  // catalog mounts its rows.
-  const anyOpen = filtered.some(isOpen);
+  // The control acts on the cards the filters show under an expanded heading. A bulk
+  // change sets every card without a transition, and the transition keeps input
+  // responsive while a dense catalog mounts its rows.
+  const shown = groups.flatMap((group) =>
+    isCollapsed(group) ? [] : group.courses,
+  );
+  const anyOpen = shown.some(isOpen);
   const handleToggleAll = (event: MouseEvent<HTMLButtonElement>) => {
     const open = !anyOpen;
     if (!open) moveFocusOutOfCardBody(event.currentTarget);
-    const cards = filtered.map((course) => ({
+    const cards = shown.map((course) => ({
       subjectId: course.subjectId,
       added: addedIds.has(course.subjectId),
     }));
@@ -335,9 +348,9 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
           multiMeeting={catalog.multiMeetingCount}
           t={t}
         />
-        {/* A one course result opens on its own, and an empty filter leaves nothing
-            to act on, so the control shows only for a list. */}
-        {singleCourse || filtered.length === 0 ? null : (
+        {/* A one course result opens on its own, and an empty filter or collapsed
+            headings leave nothing to act on, so the control shows only for a list. */}
+        {singleCourse || shown.length === 0 ? null : (
           <button
             type="button"
             onClick={handleToggleAll}
@@ -358,10 +371,16 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
         <p className="text-sm text-ink-soft">{t('catalog.filterEmpty')}</p>
       ) : (
         groups.map((group) => (
-          <section key={group.key} className="flex flex-col gap-2">
-            <h3 className="text-xs font-semibold text-ink-soft">
-              {group.heading}
-            </h3>
+          <CatalogGroup
+            key={group.key}
+            heading={group.heading}
+            count={group.courses.length}
+            collapsed={isCollapsed(group)}
+            onToggle={() => {
+              handleToggleGroup(group);
+            }}
+            t={t}
+          >
             {group.courses.map((course) => (
               <CourseCard
                 key={course.subjectId}
@@ -378,7 +397,7 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
                 onSwitchTerm={handleSwitchTerm}
               />
             ))}
-          </section>
+          </CatalogGroup>
         ))
       )}
     </div>

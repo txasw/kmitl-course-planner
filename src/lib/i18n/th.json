@@ -176,6 +176,8 @@
   "catalog.sort.subjectId": "รหัสวิชา",
   "catalog.sort.openSeats": "ที่นั่งว่างมากที่สุด",
   "catalog.sort.earliestStart": "เริ่มเรียนเร็วที่สุด",
+  "catalog.group.count": "{n} รายวิชา",
+  "catalog.group.countOne": "1 รายวิชา",
   "offeredTo.filter": "เฉพาะที่เปิดให้หลักสูตรของฉัน",
   "offeredTo.scope": "อ้างอิงจากผลการค้นหานี้",
   "offeredTo.setProfile": "เลือกหลักสูตรของฉัน",

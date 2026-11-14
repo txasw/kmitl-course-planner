@@ -1,8 +1,8 @@
-// Session scoped catalog filter, sort, and card disclosure state. Held in memory
-// like the other panel stores, it survives closing and reopening the overlay within
-// a page session. Every update produces a new filter object so the shared empty
-// filter is never mutated, and clearing the filters leaves the sort as the student
-// chose it.
+// Session scoped catalog filter, sort, card disclosure, and heading collapse
+// state. Held in memory like the other panel stores, it survives closing and
+// reopening the overlay within a page session. Every update produces a new filter
+// object so the shared empty filter is never mutated, and clearing the filters
+// leaves the sort as the student chose it.
 
 import { createStore } from 'zustand/vanilla';
 import { EMPTY_FILTER, type CatalogFilter } from '@/lib/catalog/filter';
@@ -21,6 +21,11 @@ import {
   DEFAULT_COURSE_SORT,
   type CourseSortKey,
 } from '@/lib/catalog/sortCourses';
+import {
+  EMPTY_GROUP_COLLAPSE,
+  withGroupCollapsed,
+  type GroupCollapse,
+} from '@/lib/catalog/groupCollapse';
 
 export interface CatalogStore {
   filter: CatalogFilter;
@@ -50,6 +55,12 @@ export interface CatalogStore {
   /** The order of the courses inside each heading, kept apart from the filter. */
   sort: CourseSortKey;
   setSort: (sort: CourseSortKey) => void;
+  groups: GroupCollapse;
+  setGroupCollapsed: (
+    queryKey: string | null,
+    groupKey: string,
+    collapsed: boolean,
+  ) => void;
 }
 
 export function createCatalogStore() {
@@ -103,6 +114,12 @@ export function createCatalogStore() {
     sort: DEFAULT_COURSE_SORT,
     setSort: (sort) => {
       set({ sort });
+    },
+    groups: EMPTY_GROUP_COLLAPSE,
+    setGroupCollapsed: (queryKey, groupKey, collapsed) => {
+      set((state) => ({
+        groups: withGroupCollapsed(state.groups, queryKey, groupKey, collapsed),
+      }));
     },
   }));
 }

@@ -4,12 +4,17 @@ import {
   catalogQueryKey,
   isCardOpen,
 } from '@/lib/catalog/cardDisclosure';
+import {
+  EMPTY_GROUP_COLLAPSE,
+  isGroupCollapsed,
+} from '@/lib/catalog/groupCollapse';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { dragStore } from '@/features/planner/dragStore';
 import { SEARCH_BAR_ID, searchTabId } from '@/features/search/searchIds';
 import { searchStore, selectFormOpen } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
 import {
+  makeCourse,
   makePlanEntry,
   makeSection,
   makeSnapshot,
@@ -56,8 +61,12 @@ beforeEach(() => {
 afterEach(() => {
   document.body.replaceChildren();
   catalogStore.getState().resetFilter();
-  catalogStore.setState({ disclosure: EMPTY_DISCLOSURE });
+  catalogStore.setState({
+    disclosure: EMPTY_DISCLOSURE,
+    groups: EMPTY_GROUP_COLLAPSE,
+  });
   searchStore.setState({
+    result: { status: 'idle' },
     resultQuery: null,
     barQuery: null,
     searchFormOpen: false,
@@ -125,6 +134,27 @@ describe('revealCourse', () => {
     revealCourse(control, SUBJECT, 'xl');
     const { disclosure } = catalogStore.getState();
     expect(isCardOpen(disclosure, key, SUBJECT, false, false)).toBe(true);
+  });
+
+  it('expands the heading the student collapsed over the course', () => {
+    const course = makeCourse({ subjectId: SUBJECT, groupNameTh: 'กลุ่ม 1' });
+    searchStore.setState({
+      resultQuery: QUERY,
+      result: {
+        status: 'ready',
+        data: {
+          courses: [course],
+          duplicateCount: 0,
+          multiMeetingCount: 0,
+          warnings: [],
+        },
+      },
+    });
+    const key = catalogQueryKey(QUERY);
+    catalogStore.getState().setGroupCollapsed(key, 'กลุ่ม 1', true);
+    revealCourse(control, SUBJECT, 'xl');
+    const { groups } = catalogStore.getState();
+    expect(isGroupCollapsed(groups, key, 'กลุ่ม 1')).toBe(false);
   });
 
   it('opens the card of a course already in the plan', () => {

@@ -29,6 +29,7 @@ import { dragStore } from '@/features/planner/dragStore';
 import { FeedbackStrip } from '@/features/planner/FeedbackStrip';
 import { createTranslator } from '@/lib/i18n/t';
 import { EMPTY_DISCLOSURE } from '@/lib/catalog/cardDisclosure';
+import { EMPTY_GROUP_COLLAPSE } from '@/lib/catalog/groupCollapse';
 import { DEFAULT_COURSE_SORT } from '@/lib/catalog/sortCourses';
 import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
@@ -84,6 +85,7 @@ beforeEach(() => {
     catalogStore.getState().resetFilter();
     catalogStore.setState({
       disclosure: EMPTY_DISCLOSURE,
+      groups: EMPTY_GROUP_COLLAPSE,
       sort: DEFAULT_COURSE_SORT,
     });
     searchStore.setState({ resultQuery: SEARCH_QUERY });
@@ -156,10 +158,10 @@ describe('CourseCatalog', () => {
     };
     render(<CourseCatalog catalog={multiGroup} />);
     expect(
-      screen.getByRole('heading', { name: 'กลุ่มเอ' }),
+      screen.getByRole('heading', { name: 'กลุ่มเอ 1 รายวิชา' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'กลุ่มบี' }),
+      screen.getByRole('heading', { name: 'กลุ่มบี 1 รายวิชา' }),
     ).toBeInTheDocument();
   });
 
@@ -607,5 +609,76 @@ describe('CourseCatalog sort', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'ล้างตัวกรอง' }));
     expect(cardOrder()).toEqual(['90000003', '90000002', '90000001']);
+  });
+});
+
+describe('CourseCatalog heading disclosure', () => {
+  const twoGroups: NormalizedCatalog = {
+    duplicateCount: 0,
+    multiMeetingCount: 0,
+    warnings: [],
+    courses: [
+      makeCourse({ subjectId: '90000001', groupNameTh: 'กลุ่มเอ' }),
+      makeCourse({ subjectId: '90000002', groupNameTh: 'กลุ่มเอ' }),
+      makeCourse({ subjectId: '90000003', groupNameTh: 'กลุ่มบี' }),
+    ],
+  };
+
+  function groupToggle(name: RegExp): HTMLElement {
+    return screen.getByRole('button', { name });
+  }
+
+  it('names each heading with its course count and starts expanded', () => {
+    render(<CourseCatalog catalog={twoGroups} />);
+    expect(groupToggle(/^กลุ่มเอ 2 รายวิชา$/)).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+    expect(groupToggle(/^กลุ่มบี 1 รายวิชา$/)).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+  });
+
+  it('collapses a heading, hides its cards, and expands it again', () => {
+    render(<CourseCatalog catalog={twoGroups} />);
+    fireEvent.click(groupToggle(/^กลุ่มเอ/));
+    expect(groupToggle(/^กลุ่มเอ/)).toHaveAttribute('aria-expanded', 'false');
+    expect(groupToggle(/^กลุ่มเอ/)).not.toHaveAttribute('aria-controls');
+    expect(screen.getAllByRole('article')).toHaveLength(1);
+    fireEvent.click(groupToggle(/^กลุ่มเอ/));
+    expect(groupToggle(/^กลุ่มเอ/)).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getAllByRole('article')).toHaveLength(3);
+  });
+
+  it('keeps a collapsed heading for the query and expands it for a new one', () => {
+    const { rerender } = render(<CourseCatalog catalog={twoGroups} />);
+    fireEvent.click(groupToggle(/^กลุ่มบี/));
+    rerender(<CourseCatalog catalog={twoGroups} />);
+    expect(groupToggle(/^กลุ่มบี/)).toHaveAttribute('aria-expanded', 'false');
+    act(() => {
+      searchStore.setState({
+        resultQuery: { ...SEARCH_QUERY, selected_subject_id: '90000003' },
+      });
+    });
+    expect(groupToggle(/^กลุ่มบี/)).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('expands all only the cards under an expanded heading', () => {
+    render(<CourseCatalog catalog={twoGroups} />);
+    fireEvent.click(groupToggle(/^กลุ่มเอ/));
+    fireEvent.click(screen.getByRole('button', { name: 'ขยายทั้งหมด' }));
+    fireEvent.click(groupToggle(/^กลุ่มเอ/));
+    expect(cardToggle('90000001')).toHaveAttribute('aria-expanded', 'false');
+    expect(cardToggle('90000003')).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('hides expand all while every heading is collapsed', () => {
+    render(<CourseCatalog catalog={twoGroups} />);
+    fireEvent.click(groupToggle(/^กลุ่มเอ/));
+    fireEvent.click(groupToggle(/^กลุ่มบี/));
+    expect(
+      screen.queryByRole('button', { name: 'ขยายทั้งหมด' }),
+    ).not.toBeInTheDocument();
   });
 });

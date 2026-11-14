@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { makeCourse } from '../../../tests/support/domain-builders';
 import {
+  courseGroupKey,
   EMPTY_GROUP_COLLAPSE,
   isGroupCollapsed,
   withGroupCollapsed,
@@ -35,5 +37,13 @@ describe('group collapse', () => {
     expect(isGroupCollapsed(first, 'q2', 'g1')).toBe(false);
     const second = withGroupCollapsed(first, 'q2', 'g2', true);
     expect(second).toEqual({ queryKey: 'q2', collapsed: ['g2'] });
+  });
+
+  it('keys a course by its Thai heading whatever its English one', () => {
+    const course = makeCourse({
+      groupNameTh: 'กลุ่ม 1',
+      groupNameEn: 'Group 1',
+    });
+    expect(courseGroupKey(course)).toBe('กลุ่ม 1');
   });
 });
