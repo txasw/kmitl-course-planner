@@ -7,7 +7,9 @@
 // articles, since the catalog course cards own the article role. Removing a card removes
 // the subject, both halves of a pair at once, so its remove control names every section
 // it takes out. Focus then moves to the next card's heading, or to the list heading when
-// no card follows, so focus never falls back to the page. While the plan holds a subject,
+// no card follows, so focus never falls back to the page. Each card ends with a change
+// section disclosure (ADR-0068); the card outlives the change, so focus returns to its
+// toggle. While the plan holds a subject,
 // the heading row carries the registration list copy, the lines a student reads from in the
 // official registration system.
 
@@ -25,6 +27,7 @@ import {
   removeSectionName,
 } from '@/features/catalog/RemoveButton';
 import { copyRegistrationList } from '@/features/plans/copyRegistrationList';
+import { ChangeSectionList } from './ChangeSectionList';
 import { SectionDetailList } from './SectionDetailList';
 import { VerificationPill } from './VerificationPill';
 
@@ -228,6 +231,9 @@ function SubjectCard({
           </li>
         ))}
       </ul>
+      <div className="mt-2 border-t border-border pt-2">
+        <ChangeSectionList entry={first} t={t} />
+      </div>
     </li>
   );
 }

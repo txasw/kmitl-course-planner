@@ -3,7 +3,9 @@
 // compact, so the surface that touch and keyboard users reach carries every meeting, the
 // seats from the latest verification, and the exam dates. Above the list sit its
 // verification state with old versus new values for a changed field and any exam overlap,
-// and a pinned footer carries the acknowledge and remove actions. The body ends with a copy
+// and a pinned footer carries the acknowledge and remove actions. Under the list a change
+// section disclosure moves the subject to another section that fits (ADR-0068), and focus
+// then lands on the new section's block, since this block leaves. The body ends with a copy
 // subject id action and a link to the subject's listing on the host's own result page,
 // opened in a new tab so the plan stays where it is; following a link is the only contact
 // with the host (section 2, rule 6).
@@ -38,7 +40,21 @@ import { useMediaQuery } from '@/features/shell/useMediaQuery';
 import { uiStore } from '@/features/shell/uiStore';
 import { BlockDetailActions, BlockDetailBody } from './BlockDetailContent';
 import { BlockDetailPopover } from './BlockDetailPopover';
+import { placedItemOf } from './blockFocus';
+import { ChangeSectionList } from './ChangeSectionList';
 import { copySubjectId } from './copySubjectId';
+
+/** After a change of section the surface closes with the block that opened it, so focus
+ * moves to the new section on the grid, or to the grid when it shows nowhere. */
+function focusNewSection(
+  root: Document | ShadowRoot,
+  added: PlanEntry[],
+): (HTMLElement | null | undefined)[] {
+  return [
+    ...added.map((entry) => placedItemOf(root, entry.teachTableId)),
+    root.querySelector<HTMLElement>('[data-edit-grid]'),
+  ];
+}
 
 interface BlockDetailSurfaceProps {
   teachTableId: string;
@@ -157,6 +173,14 @@ export function BlockDetailSurface({
         locale={locale}
         t={t}
       />
+      <div className="mt-2 border-t border-border pt-2">
+        <ChangeSectionList
+          entry={entry}
+          t={t}
+          touch={!anchored}
+          focusAfterChange={focusNewSection}
+        />
+      </div>
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-2">
         <CopySubjectIdButton entry={entry} t={t} touch={!anchored} />
         <OfficialListingLink entry={entry} t={t} touch={!anchored} />
