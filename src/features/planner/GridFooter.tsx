@@ -4,17 +4,18 @@
 // own, since it shares the poster footer row that carries the divider. Edit mode states
 // the same totals in the stats bar.
 
-import type { Translate } from '@/lib/i18n/t';
+import type { Locale, Translate } from '@/lib/i18n/t';
 import { DayLoads } from './DayLoads';
 import { planTotals } from './planTotals';
 import type { PlacedSection } from './placedSection';
 
 interface GridFooterProps {
   sections: PlacedSection[];
+  locale: Locale;
   t: Translate;
 }
 
-export function GridFooter({ sections, t }: GridFooterProps) {
+export function GridFooter({ sections, locale, t }: GridFooterProps) {
   const totals = planTotals(sections);
 
   return (
@@ -29,7 +30,7 @@ export function GridFooter({ sections, t }: GridFooterProps) {
       <span>
         {totals.subjects} {t('footer.subjects')}
       </span>
-      <DayLoads load={totals.load} t={t} />
+      <DayLoads load={totals.load} locale={locale} t={t} />
       {totals.unscheduled > 0 ? (
         <span>
           {totals.unscheduled} {t('footer.unscheduled')}

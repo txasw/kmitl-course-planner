@@ -12,7 +12,7 @@
 
 import type { ReactNode } from 'react';
 import { AlertTriangle, CheckCircle2, Info } from 'lucide-react';
-import type { Translate, TranslationKey } from '@/lib/i18n/t';
+import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
 import { fillTemplate } from '@/lib/i18n/template';
 import type { DayOfWeek } from '@/lib/parsing/days';
@@ -35,6 +35,7 @@ interface StatsBarProps {
   onShowConflict: () => void;
   /** The verification status, pushed to the end of the bar. */
   status?: ReactNode;
+  locale: Locale;
   t: Translate;
 }
 
@@ -47,6 +48,7 @@ export function StatsBar({
   conflictCount,
   onShowConflict,
   status,
+  locale,
   t,
 }: StatsBarProps) {
   const totals = planTotals(sections);
@@ -91,7 +93,7 @@ export function StatsBar({
           {t('stats.noConflicts')}
         </span>
       )}
-      <DayLoads load={totals.load} t={t} />
+      <DayLoads load={totals.load} locale={locale} t={t} />
       {totals.unscheduled > 0 ? (
         <span>
           {totals.unscheduled} {t('footer.unscheduled')}

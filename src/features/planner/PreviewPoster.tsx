@@ -131,7 +131,7 @@ function PreviewPosterComponent({
         className="flex shrink-0 items-baseline justify-between gap-3 border-t border-border pt-2"
       >
         {sections.length > 0 ? (
-          <GridFooter sections={sections} t={t} />
+          <GridFooter sections={sections} locale={locale} t={t} />
         ) : (
           <span />
         )}

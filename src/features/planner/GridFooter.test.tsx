@@ -49,28 +49,39 @@ afterEach(cleanup);
 
 describe('GridFooter', () => {
   it('totals credits including unscheduled sections and counts subjects', () => {
-    render(<GridFooter sections={[scheduled, online]} t={t} />);
+    render(<GridFooter sections={[scheduled, online]} locale="th" t={t} />);
     expect(screen.getByText('5 หน่วยกิต')).toBeInTheDocument();
     expect(screen.getByText('2 วิชา')).toBeInTheDocument();
   });
 
   it('shows the scheduled load per day and the unscheduled count', () => {
-    render(<GridFooter sections={[scheduled, online]} t={t} />);
+    render(<GridFooter sections={[scheduled, online]} locale="th" t={t} />);
     // The abbreviation and the screen reader day name are sibling spans of the load.
     const day = screen.getByText('จ').parentElement;
     expect(day).toContainElement(screen.getByText('วันจันทร์'));
-    expect(day).toHaveTextContent(/3ชม\.$/);
+    expect(day).toHaveTextContent(/ 3 ชม\.$/);
     expect(screen.getByText('1 ไม่มีคาบเรียน')).toBeInTheDocument();
   });
 
+  it('joins the English hour unit to the number', () => {
+    render(
+      <GridFooter
+        sections={[scheduled]}
+        locale="en"
+        t={createTranslator('en')}
+      />,
+    );
+    expect(screen.getByText('Mon').parentElement).toHaveTextContent(/ 3h$/);
+  });
+
   it('reads the full day name to assistive technology, not the abbreviation', () => {
-    render(<GridFooter sections={[scheduled]} t={t} />);
+    render(<GridFooter sections={[scheduled]} locale="th" t={t} />);
     expect(screen.getByText('จ')).toHaveAttribute('aria-hidden', 'true');
     expect(screen.getByText('วันจันทร์')).toHaveClass('sr-only');
   });
 
   it('omits the unscheduled count when every section is scheduled', () => {
-    render(<GridFooter sections={[scheduled]} t={t} />);
+    render(<GridFooter sections={[scheduled]} locale="th" t={t} />);
     expect(screen.queryByText(/ไม่มีคาบเรียน/)).not.toBeInTheDocument();
   });
 });
