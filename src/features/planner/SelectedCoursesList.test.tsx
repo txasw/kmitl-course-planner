@@ -14,10 +14,8 @@ import {
   makeSection,
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
-import {
-  SelectedCoursesList,
-  groupEntriesBySubject,
-} from './SelectedCoursesList';
+import { groupEntriesBySubject } from '@/lib/planner/subjectGroups';
+import { SelectedCoursesList } from './SelectedCoursesList';
 
 const t = createTranslator('th');
 
@@ -76,24 +74,6 @@ function cards(): HTMLElement[] {
 }
 
 afterEach(cleanup);
-
-describe('groupEntriesBySubject', () => {
-  it('orders subjects by id and each subject by section code', () => {
-    const groups = groupEntriesBySubject([
-      entry('b2', '90000002', '12'),
-      entry('a1', '90000001', '901'),
-      entry('b1', '90000002', '2'),
-    ]);
-    expect(groups.map((group) => group.subjectId)).toEqual([
-      '90000001',
-      '90000002',
-    ]);
-    expect(groups[1]?.entries.map((e) => e.snapshot.section)).toEqual([
-      '2',
-      '12',
-    ]);
-  });
-});
 
 describe('SelectedCoursesList', () => {
   it('renders one card per subject with the pair halves inside it', () => {

@@ -29,7 +29,7 @@ import {
 import { CountChip } from '@/components/CountChip';
 import { useResultCourseCount } from '@/features/catalog/CatalogPanel';
 import { NavRemoveBar, useNavRemoving } from '@/features/planner/RemoveZone';
-import { groupEntriesBySubject } from '@/features/planner/SelectedCoursesList';
+import { groupEntriesBySubject } from '@/lib/planner/subjectGroups';
 import { useExamSchedule } from '@/features/planner/useExamSchedule';
 import { planStore } from '@/features/plans/planStore';
 import type { Translate, TranslationKey } from '@/lib/i18n/t';

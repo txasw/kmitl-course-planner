@@ -27,6 +27,7 @@ import { planConflicts } from '@/lib/planner/planConflicts';
 import { planExamConflicts } from '@/lib/planner/examOverlap';
 import { buildExamSchedule } from '@/lib/planner/examSchedule';
 import { summarizeWeeklyHours } from '@/lib/planner/credits';
+import { groupEntriesBySubject } from '@/lib/planner/subjectGroups';
 import { posterHonesty } from '@/lib/planner/posterHonesty';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
@@ -50,10 +51,7 @@ import { PlanViewTabs, planViewPanelId, planViewTabId } from './PlanViewTabs';
 import { type PosterData } from './PreviewPoster';
 import { PreviewToolbar } from './PreviewToolbar';
 import { SummaryView } from './SummaryView';
-import {
-  SelectedCoursesList,
-  groupEntriesBySubject,
-} from './SelectedCoursesList';
+import { SelectedCoursesList } from './SelectedCoursesList';
 import { StatsBar } from './StatsBar';
 import { TemplateGallery } from './TemplateGallery';
 import { TimetableView } from './TimetableView';

@@ -11,8 +11,8 @@
 
 import { useId, useRef } from 'react';
 import { ListChecks } from 'lucide-react';
-import type { PlanEntry } from '@/lib/domain/plan';
 import { snapshotToSection } from '@/lib/domain/plan';
+import type { SubjectGroup } from '@/lib/planner/subjectGroups';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { EmptyState } from '@/components/EmptyState';
@@ -23,33 +23,6 @@ import {
 } from '@/features/catalog/RemoveButton';
 import { SectionDetailList } from './SectionDetailList';
 import { VerificationPill } from './VerificationPill';
-
-/** The placed sections of one subject: one section, or the two halves of a pair. */
-export interface SubjectGroup {
-  subjectId: string;
-  entries: PlanEntry[];
-}
-
-const byCode = (a: string, b: string): number =>
-  a.localeCompare(b, 'en', { numeric: true });
-
-/** Group the plan entries by subject, ordered by subject id, each subject's sections
- * ordered by section code. */
-export function groupEntriesBySubject(entries: PlanEntry[]): SubjectGroup[] {
-  const groups = new Map<string, PlanEntry[]>();
-  for (const entry of entries) {
-    const subjectId = entry.snapshot.subjectId;
-    groups.set(subjectId, [...(groups.get(subjectId) ?? []), entry]);
-  }
-  return [...groups.entries()]
-    .sort(([a], [b]) => byCode(a, b))
-    .map(([subjectId, grouped]) => ({
-      subjectId,
-      entries: [...grouped].sort((a, b) =>
-        byCode(a.snapshot.section, b.snapshot.section),
-      ),
-    }));
-}
 
 interface SelectedCoursesListProps {
   groups: SubjectGroup[];
