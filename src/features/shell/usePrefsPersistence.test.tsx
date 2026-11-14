@@ -1,7 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { renderHook, cleanup, act } from '@testing-library/react';
 import { DEFAULT_DISPLAY_OPTIONS } from '@/lib/planner/displayOptions';
-import { DEFAULT_TEMPLATE } from '@/lib/planner/exportTemplates';
 import { usePrefsPersistence } from './usePrefsPersistence';
 import { uiStore } from './uiStore';
 import type { Prefs, PrefsRepository } from '@/lib/storage/prefs';
@@ -36,7 +35,7 @@ afterEach(() => {
     uiStore.getState().setLanguage('th');
     uiStore.getState().setViewMode('edit');
     uiStore.getState().setDisplayOptions(DEFAULT_DISPLAY_OPTIONS);
-    uiStore.getState().setSelectedTemplate(DEFAULT_TEMPLATE.slug);
+    uiStore.setState({ selectedTemplate: null });
     uiStore.getState().setCurriculumProfile(null);
     uiStore.getState().setSuggestObjective('coverAll');
     uiStore.getState().setSuggestPreference('balanced');
@@ -82,7 +81,6 @@ describe('usePrefsPersistence', () => {
         language: 'en',
         viewMode: 'edit',
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
-        exportTemplate: DEFAULT_TEMPLATE.slug,
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
       },
@@ -105,7 +103,6 @@ describe('usePrefsPersistence', () => {
         language: 'th',
         viewMode: 'preview',
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
-        exportTemplate: DEFAULT_TEMPLATE.slug,
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
       },
@@ -156,7 +153,6 @@ describe('usePrefsPersistence', () => {
         language: 'th',
         viewMode: 'edit',
         displayOptions: { ...DEFAULT_DISPLAY_OPTIONS, showRoom: false },
-        exportTemplate: DEFAULT_TEMPLATE.slug,
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
       },
@@ -175,6 +171,23 @@ describe('usePrefsPersistence', () => {
     await flush();
     expect(uiStore.getState().selectedTemplate).toBe('phone-wallpaper');
     expect(repo.saved).toHaveLength(0);
+  });
+
+  it('leaves an unchosen export template unsaved', async () => {
+    // With no choice, the saved prefs carry no template, so the preview keeps resolving it
+    // from the stage shape rather than freezing the default as a choice.
+    const repo = makeRepo(null);
+    renderHook(() => {
+      usePrefsPersistence(repo);
+    });
+    await flush();
+
+    act(() => {
+      uiStore.getState().setLanguage('en');
+    });
+    expect(repo.saved).toHaveLength(1);
+    expect(repo.saved[0]).not.toHaveProperty('exportTemplate');
+    expect(uiStore.getState().selectedTemplate).toBeNull();
   });
 
   it('persists an export template change', async () => {
@@ -232,7 +245,6 @@ describe('usePrefsPersistence', () => {
         language: 'th',
         viewMode: 'edit',
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
-        exportTemplate: DEFAULT_TEMPLATE.slug,
         suggestObjective: 'coverAll',
         suggestPreference: 'morning',
       },
@@ -269,7 +281,6 @@ describe('usePrefsPersistence', () => {
         language: 'th',
         viewMode: 'edit',
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
-        exportTemplate: DEFAULT_TEMPLATE.slug,
         curriculumProfile: PROFILE,
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',

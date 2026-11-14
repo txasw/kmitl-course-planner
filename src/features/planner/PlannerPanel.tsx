@@ -20,7 +20,7 @@ import {
   editWindow,
   smartVisibleDays,
 } from '@/lib/planner/grid';
-import { templateBySlug } from '@/lib/planner/exportTemplates';
+import { resolveStageTemplate } from '@/lib/planner/previewStage';
 import { isDockedTier } from '@/lib/ui/breakpoints';
 import { planConflicts } from '@/lib/planner/planConflicts';
 import { planExamConflicts } from '@/lib/planner/examOverlap';
@@ -75,6 +75,7 @@ export function PlannerPanel() {
     revalidationStore.getState().setUpdatesOpen(false);
   }, []);
   const selectedTemplate = useStore(uiStore, (state) => state.selectedTemplate);
+  const [stageTall, setStageTall] = useState(false);
   const catalogResult = useStore(searchStore, (state) => state.result);
   const frozenFrame = useStore(dragStore, (state) => state.frame);
 
@@ -273,7 +274,9 @@ export function PlannerPanel() {
         'aria-labelledby': planViewTabId(planView),
       }
     : {};
-  const template = templateBySlug(selectedTemplate);
+  // With no chosen template, a tall preview stage opens on the portrait phone wallpaper; the
+  // gallery measures the stage and the one resolved template drives it and the toolbar.
+  const template = resolveStageTemplate(selectedTemplate, stageTall);
   // The template independent poster inputs, bundled once so the gallery renders the selected
   // poster and its peeking neighbors from one plan snapshot and can defer the neighbors.
   const posterData = useMemo<PosterData>(
@@ -341,7 +344,12 @@ export function PlannerPanel() {
         <FeedbackStrip t={t} />
       ) : null}
       {isPreview ? (
-        <TemplateGallery poster={posterData} posterRef={posterRef} />
+        <TemplateGallery
+          poster={posterData}
+          posterRef={posterRef}
+          template={template}
+          onStageTallChange={setStageTall}
+        />
       ) : planView === 'summary' ? (
         <div
           {...panelProps}

@@ -4,9 +4,14 @@
 // twice its layout box, so a wide screen shows the poster at a readable size rather than as a
 // small card in a wide empty frame; the cap keeps a small template from turning into an
 // oversized blur. A neighbor template shows as a sliver at each edge, sitting a touch shorter
-// than the selection.
+// than the selection. With no template chosen yet, a tall stage opens on the portrait phone
+// wallpaper, so a phone shows a poster that fills its screen rather than a thin landscape band.
 
-import type { ExportTemplate } from './exportTemplates';
+import {
+  DEFAULT_TEMPLATE,
+  templateBySlug,
+  type ExportTemplate,
+} from './exportTemplates';
 
 export interface StageSize {
   width: number;
@@ -53,5 +58,29 @@ export function neighborScale(
   return Math.min(
     (stage.height * POSTER_FIT * NEIGHBOR_HEIGHT_SCALE) / template.layoutHeight,
     MAX_STAGE_SCALE,
+  );
+}
+
+/** The template a tall stage opens on when the student has not chosen one: the portrait
+ * phone wallpaper, the canvas whose shape matches a stage taller than wide. */
+export const TALL_STAGE_TEMPLATE_SLUG = 'phone-wallpaper-portrait';
+
+/** A stage taller than wide, the shape a phone or a narrow window gives the preview. */
+export function isTallStage(stage: StageSize): boolean {
+  return stage.height > stage.width;
+}
+
+/** The template the preview shows and every export uses. A chosen slug always wins, so the
+ * stage shape never overrides the student's pick; with no choice yet, a tall stage opens on
+ * the portrait phone wallpaper and any other stage on the default template. */
+export function resolveStageTemplate(
+  chosen: string | null,
+  tall: boolean,
+): ExportTemplate {
+  if (chosen !== null) {
+    return templateBySlug(chosen);
+  }
+  return templateBySlug(
+    tall ? TALL_STAGE_TEMPLATE_SLUG : DEFAULT_TEMPLATE.slug,
   );
 }

@@ -81,7 +81,11 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
             language: state.language,
             viewMode: state.viewMode,
             displayOptions: state.displayOptions,
-            exportTemplate: state.selectedTemplate,
+            // A template the student never chose stays unsaved, so the preview keeps
+            // resolving it from the stage shape on the next open.
+            ...(state.selectedTemplate === null
+              ? {}
+              : { exportTemplate: state.selectedTemplate }),
             ...(state.curriculumProfile === null
               ? {}
               : { curriculumProfile: state.curriculumProfile }),
