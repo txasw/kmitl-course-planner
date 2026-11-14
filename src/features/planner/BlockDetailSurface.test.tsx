@@ -329,8 +329,8 @@ describe('BlockDetailSurface on a fine pointer from 640 px', () => {
     });
     renderPopover({ teachTableId: entry.teachTableId });
     expect(rowValues('Class times')).toEqual([
-      'Monday 13:00-14:30ECC ECC-608',
-      'Monday 14:45-16:15ECC ECC-608',
+      'Monday 13:00-14:30ECC-608',
+      'Monday 14:45-16:15ECC-608',
     ]);
     expect(rowValues('Midterm')).toEqual(['26 Aug 2568 09:30-12:30']);
     expect(rowValues('Final')).toEqual(['21 Oct 2568 09:30-12:30']);

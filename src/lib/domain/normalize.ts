@@ -11,6 +11,7 @@ import { parseTeachTimeStr } from '../parsing/teachTimeStr';
 import { isExamDateTime } from '../parsing/examDateTime';
 import { sanitizeTextToLines, sanitizeToLines } from '../parsing/sanitize';
 import { ok, type Result, type ValidationError } from '../utils/result';
+import { readableBuilding } from './place';
 import {
   validate,
   teachTableResponseSchema,
@@ -133,7 +134,7 @@ function pickRoom(row: RawSectionRow): string {
 }
 
 function pickBuilding(row: RawSectionRow): string {
-  return row.building_no ?? row.classbuilding ?? '';
+  return readableBuilding(row.classbuilding, row.building_no, pickRoom(row));
 }
 
 // The remark is unaudited free text that reaches the catalog, the block popover, and
