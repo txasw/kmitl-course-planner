@@ -23,7 +23,9 @@ import type { JSHandle, Locator, Page } from '@playwright/test';
 // catalog column and the grid share the panel, and again below them, where the catalog
 // is a sheet or a pane. At every tier Tab wraps at the ends of the panel and of the open
 // sheet, and Escape closes the innermost open layer first. With the docked column
-// hidden, Tab from the header reaches the edge rail before the grid.
+// hidden, Tab from the header reaches the edge rail before the grid. On the docked widths
+// a change of section from the block details and a replace from the blocked notice run by
+// keyboard alone, and the change hands focus to the new block.
 
 const OVERLAY_NAME = 'KCP: ตัววางแผนตารางเรียน สจล.';
 const GRID_NAME = 'ตารางเรียนรายสัปดาห์';
@@ -175,6 +177,51 @@ for (const viewport of [
       await expect(overlay).toBeVisible();
       await page.keyboard.press('Escape');
       await expect(overlay).toBeHidden();
+    });
+
+    test('changes a section and replaces a blocker by keyboard alone', async ({
+      context,
+    }) => {
+      const page = await openPlanner(context);
+      await syntheticSearch(page);
+
+      // Course C sits on Tuesday at nine; its details offer its other section, on
+      // Wednesday at nine, which fits.
+      await addCourse(page, '90000003');
+      const first = page.locator(block('900003'));
+      await first.focus();
+      await page.keyboard.press('Enter');
+      const change = page.getByRole('button', { name: 'เปลี่ยนกลุ่มเรียน' });
+      await change.focus();
+      await page.keyboard.press('Enter');
+      await expect(change).toHaveAttribute('aria-expanded', 'true');
+      await page.getByRole('button', { name: /^กลุ่มเรียน 902/ }).focus();
+      await page.keyboard.press('Enter');
+
+      // The change moves the subject in one undoable step, and focus follows it to its
+      // new block, since the block that opened the details left with the old section.
+      await expect(first).toHaveCount(0);
+      await expect(page.locator(block('900004'))).toBeFocused();
+      await expect(page.getByRole('button', { name: 'เลิกทำ' })).toBeVisible();
+
+      // Course B overlaps Course A on Monday, so a keyboard add of B is blocked and
+      // the notice offers to replace A.
+      await addCourse(page, '90000001');
+      await expandCourse(page, '90000002');
+      await page
+        .getByRole('article')
+        .filter({ hasText: '90000002' })
+        .first()
+        .getByRole('button', { name: /^เพิ่ม/ })
+        .first()
+        .focus();
+      await page.keyboard.press('Enter');
+      await page
+        .getByRole('button', { name: 'แทนที่ 90000001 กลุ่มเรียน 901' })
+        .focus();
+      await page.keyboard.press('Enter');
+      await expect(page.locator(block('900001'))).toHaveCount(0);
+      await expect(page.locator(block('900002'))).toBeVisible();
     });
 
     test('reaches the edge rail before the grid by Tab from the header', async ({
