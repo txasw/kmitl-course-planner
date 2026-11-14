@@ -171,3 +171,36 @@ export interface ResponseMap {
   'debug/setFault': Result<void>;
   'debug/setMutation': Result<void>;
 }
+
+// The sealed error taxonomy from utils/result as a schema, so the error arm of a
+// reply is checked down to the kind the UI branches on.
+const apiErrorSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('network'), message: z.string() }),
+  z.object({ kind: z.literal('timeout'), message: z.string() }),
+  z.object({
+    kind: z.literal('http'),
+    status: z.number(),
+    message: z.string(),
+    fields: z.record(z.string(), z.array(z.string())).optional(),
+  }),
+  z.object({
+    kind: z.literal('validation'),
+    issues: z.array(z.object({ path: z.string(), message: z.string() })),
+    message: z.string(),
+  }),
+  z.object({ kind: z.literal('storage'), message: z.string() }),
+  z.object({ kind: z.literal('unknown'), message: z.string() }),
+]);
+
+/**
+ * The Result envelope every worker reply arrives in. Only the envelope is checked:
+ * the success value is the worker's own gateway output, validated at the network
+ * boundary, and the replies the content side reads field by field carry their own
+ * schema above.
+ */
+export const resultEnvelopeSchema = z.union([
+  // Optional because a void success loses its undefined value key when the
+  // message is serialized to JSON on the way across.
+  z.object({ ok: z.literal(true), value: z.unknown().optional() }),
+  z.object({ ok: z.literal(false), error: apiErrorSchema }),
+]);
