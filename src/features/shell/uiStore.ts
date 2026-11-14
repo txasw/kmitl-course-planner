@@ -14,6 +14,10 @@ import {
 import type { CurriculumProfile } from '@/lib/catalog/curriculumProfile';
 import type { SuggestObjective } from '@/lib/planner/suggestRank';
 import type { SuggestPreference } from '@/lib/planner/suggestScore';
+import {
+  DEFAULT_TIMETABLE_VIEW,
+  type TimetableView,
+} from '@/lib/planner/dayView';
 
 /** The timetable presentation mode: full editing, or the inert preview poster. */
 export type ViewMode = 'edit' | 'preview';
@@ -78,6 +82,11 @@ export interface UiState {
   /** The preference the suggestion dialog last searched with, persisted with the prefs. */
   suggestPreference: SuggestPreference;
   /**
+   * The layout a timetable narrower than 640 px shows, the day or the week (ADR-0049),
+   * persisted with the prefs. A wider timetable shows the landscape week whatever it holds.
+   */
+  timetableView: TimetableView;
+  /**
    * Count of error and warning issues in the latest data quality report, or null
    * when there is no report. The launcher shows a badge from it. It stays null in
    * production because only the debug diagnostics writes it; the launcher badge
@@ -107,6 +116,7 @@ export interface UiState {
   setCurriculumProfile: (profile: CurriculumProfile | null) => void;
   setSuggestObjective: (objective: SuggestObjective) => void;
   setSuggestPreference: (preference: SuggestPreference) => void;
+  setTimetableView: (view: TimetableView) => void;
   setDiagnosticsIssueCount: (count: number | null) => void;
   setCrashPanel: (crash: boolean) => void;
 }
@@ -129,6 +139,7 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     curriculumProfile: null,
     suggestObjective: 'coverAll',
     suggestPreference: 'balanced',
+    timetableView: DEFAULT_TIMETABLE_VIEW,
     diagnosticsIssueCount: null,
     crashPanel: false,
     open: () => {
@@ -191,6 +202,9 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     },
     setSuggestPreference: (suggestPreference) => {
       set({ suggestPreference });
+    },
+    setTimetableView: (timetableView) => {
+      set({ timetableView });
     },
     setDiagnosticsIssueCount: (count) => {
       set({ diagnosticsIssueCount: count });

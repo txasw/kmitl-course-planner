@@ -39,6 +39,7 @@ afterEach(() => {
     uiStore.getState().setCurriculumProfile(null);
     uiStore.getState().setSuggestObjective('coverAll');
     uiStore.getState().setSuggestPreference('balanced');
+    uiStore.getState().setTimetableView('day');
   });
 });
 
@@ -83,6 +84,7 @@ describe('usePrefsPersistence', () => {
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
+        timetableView: 'day',
       },
     ]);
   });
@@ -105,6 +107,7 @@ describe('usePrefsPersistence', () => {
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
+        timetableView: 'day',
       },
     ]);
   });
@@ -155,6 +158,7 @@ describe('usePrefsPersistence', () => {
         displayOptions: { ...DEFAULT_DISPLAY_OPTIONS, showRoom: false },
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
+        timetableView: 'day',
       },
     ]);
   });
@@ -209,6 +213,7 @@ describe('usePrefsPersistence', () => {
         exportTemplate: 'print-a4',
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
+        timetableView: 'day',
       },
     ]);
   });
@@ -247,6 +252,44 @@ describe('usePrefsPersistence', () => {
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
         suggestObjective: 'coverAll',
         suggestPreference: 'morning',
+        timetableView: 'day',
+      },
+    ]);
+  });
+
+  it('hydrates the stored timetable view without writing it back', async () => {
+    const repo = makeRepo({
+      schemaVersion: 1,
+      language: 'th',
+      timetableView: 'week',
+    });
+    renderHook(() => {
+      usePrefsPersistence(repo);
+    });
+    await flush();
+    expect(uiStore.getState().timetableView).toBe('week');
+    expect(repo.saved).toHaveLength(0);
+  });
+
+  it('persists a timetable view change', async () => {
+    const repo = makeRepo(null);
+    renderHook(() => {
+      usePrefsPersistence(repo);
+    });
+    await flush();
+
+    act(() => {
+      uiStore.getState().setTimetableView('week');
+    });
+    expect(repo.saved).toEqual([
+      {
+        schemaVersion: 1,
+        language: 'th',
+        viewMode: 'edit',
+        displayOptions: DEFAULT_DISPLAY_OPTIONS,
+        suggestObjective: 'coverAll',
+        suggestPreference: 'balanced',
+        timetableView: 'week',
       },
     ]);
   });
@@ -284,6 +327,7 @@ describe('usePrefsPersistence', () => {
         curriculumProfile: PROFILE,
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
+        timetableView: 'day',
       },
     ]);
   });
