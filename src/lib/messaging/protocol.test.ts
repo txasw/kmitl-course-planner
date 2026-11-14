@@ -1,10 +1,21 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
+import type { z } from 'zod';
 import type { TeachTableResult } from '../api/types';
-import type { Result } from '../utils/result';
+import {
+  httpError,
+  networkError,
+  storageError,
+  timeoutError,
+  unknownError,
+  validationError,
+  type ApiError,
+  type Result,
+} from '../utils/result';
 import {
   claimWelcomeReplySchema,
   mountedReplySchema,
   requestMessageSchema,
+  resultEnvelopeSchema,
   teachTableQuerySchema,
   type ResponseMap,
 } from './protocol';
@@ -180,6 +191,46 @@ describe('claimWelcomeReplySchema', () => {
       undefined,
     ]) {
       expect(claimWelcomeReplySchema.safeParse(reply).success).toBe(false);
+    }
+  });
+});
+
+describe('resultEnvelopeSchema', () => {
+  it('covers exactly the kinds of the sealed error taxonomy', () => {
+    // A kind added to ApiError but not to the schema would turn every such error
+    // into a malformed reply, so the two sets must stay equal.
+    type EnvelopeError = Extract<
+      z.infer<typeof resultEnvelopeSchema>,
+      { ok: false }
+    >['error'];
+    expectTypeOf<EnvelopeError['kind']>().toEqualTypeOf<ApiError['kind']>();
+  });
+
+  it('accepts every error the result constructors build', () => {
+    for (const error of [
+      networkError('down'),
+      timeoutError('slow'),
+      httpError(503, 'busy'),
+      httpError(400, 'bad', { id: ['short'] }),
+      validationError([{ path: 'a', message: 'b' }]),
+      storageError('full'),
+      unknownError('odd'),
+    ]) {
+      expect(resultEnvelopeSchema.safeParse({ ok: false, error }).success).toBe(
+        true,
+      );
+    }
+  });
+
+  it('rejects an error whose fields drift from the taxonomy', () => {
+    for (const error of [
+      { kind: 'http', message: 'no status' },
+      { kind: 'validation', message: 'no issues' },
+      { kind: 'network', message: 3 },
+    ]) {
+      expect(resultEnvelopeSchema.safeParse({ ok: false, error }).success).toBe(
+        false,
+      );
     }
   });
 });
