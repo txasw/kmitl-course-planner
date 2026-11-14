@@ -1108,3 +1108,92 @@ describe('CourseCard section comparison', () => {
     expect(toggle()).toHaveFocus();
   });
 });
+
+describe('CourseCard shortlist bookmark', () => {
+  const course = makeCourse({ subjectId: '90592008' });
+
+  function bookmark(): HTMLElement {
+    const node = document.querySelector<HTMLElement>('[data-shortlist-toggle]');
+    if (node === null) throw new Error('expected the shortlist bookmark');
+    return node;
+  }
+
+  it('shows no bookmark without a shortlist handler', () => {
+    render(<Controlled course={course} placed={[]} locale="th" t={t} />);
+    expect(document.querySelector('[data-shortlist-toggle]')).toBeNull();
+  });
+
+  it('saves the course from a sibling of the toggle described by the title', () => {
+    const onToggleShortlist = vi.fn();
+    render(
+      <Controlled
+        course={course}
+        placed={[]}
+        locale="th"
+        t={t}
+        onToggleShortlist={onToggleShortlist}
+      />,
+    );
+    const button = screen.getByRole('button', { name: 'บันทึกไว้ดูภายหลัง' });
+    expect(button).toBe(bookmark());
+    expect(toggle().contains(button)).toBe(false);
+    const titleId = button.getAttribute('aria-describedby') ?? '';
+    expect(document.getElementById(titleId)?.textContent).toContain('90592008');
+    fireEvent.click(button);
+    expect(onToggleShortlist).toHaveBeenCalledWith('90592008');
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('offers the remove name and a filled icon once saved', () => {
+    render(
+      <Controlled
+        course={course}
+        placed={[]}
+        locale="en"
+        t={en}
+        shortlisted
+        onToggleShortlist={() => undefined}
+      />,
+    );
+    expect(bookmark()).toHaveAccessibleName('Remove from saved');
+    expect(bookmark()).toHaveClass('text-primary-strong');
+    expect(bookmark().querySelector('svg')).toHaveAttribute(
+      'fill',
+      'currentColor',
+    );
+  });
+
+  it('never arms the course drag of the header around it', () => {
+    function Harness() {
+      const sensors = usePlannerSensors();
+      return (
+        <DndContext sensors={sensors}>
+          <CatalogDragContext.Provider value>
+            <Controlled
+              course={course}
+              placed={[]}
+              locale="th"
+              t={t}
+              onAdd={() => undefined}
+              onToggleShortlist={() => undefined}
+            />
+          </CatalogDragContext.Provider>
+        </DndContext>
+      );
+    }
+    render(<Harness />);
+    const header = document.querySelector('[data-drag-surface="course"]');
+    expect(header?.contains(bookmark())).toBe(true);
+    const drag = (from: HTMLElement) => {
+      fireEvent.mouseDown(from, { button: 0, clientX: 10, clientY: 10 });
+      fireEvent.mouseMove(document, { clientX: 60, clientY: 12 });
+    };
+    drag(bookmark());
+    expect(header).not.toHaveClass('opacity-40');
+    fireEvent.mouseUp(document, { clientX: 60, clientY: 12 });
+    // The same gesture from the toggle does start the drag, so the check above holds.
+    drag(toggle());
+    expect(header).toHaveClass('opacity-40');
+    fireEvent.mouseUp(document, { clientX: 60, clientY: 12 });
+  });
+});
