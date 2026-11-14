@@ -13,6 +13,7 @@ import {
   validationError,
   type Result,
 } from '../utils/result';
+import { errorName } from '../utils/errorName';
 import type { GatewayEnv } from './types';
 
 /** Default per attempt timeout, used when an endpoint does not set its own. */
@@ -62,16 +63,6 @@ interface Attempt {
 function payloadSize(response: Response, text: string): number {
   const header = Number(response.headers.get('content-length'));
   return Number.isFinite(header) && header > 0 ? header : text.length;
-}
-
-function errorName(error: unknown): string {
-  if (error instanceof Error) {
-    return error.name;
-  }
-  if (typeof error === 'object' && error !== null && 'name' in error) {
-    return typeof error.name === 'string' ? error.name : '';
-  }
-  return '';
 }
 
 function messageOf(error: unknown): string {
