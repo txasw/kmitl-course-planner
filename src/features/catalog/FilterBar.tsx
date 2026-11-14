@@ -1,6 +1,7 @@
 // The catalog filter: an always visible search field, a filter button that opens a popover
 // with the day, credit, hide, and open to my curriculum facets, and the active facets
-// rendered as removable chips under the field. Filtering itself happens in the pure filter
+// rendered as removable chips under the field, followed by one clear action whenever the
+// text or any facet narrows the list. Filtering itself happens in the pure filter
 // over the catalog store state, which is untouched; the redesign only reshapes the controls.
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
@@ -46,14 +47,16 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
   const { t, language } = useTranslation();
   const filter = useStore(catalogStore, (state) => state.filter);
   const textId = useId();
+  const textRef = useRef<HTMLInputElement | null>(null);
+  const activeCount = activeCountOf(filter);
+  const filtering = filter.text.trim() !== '' || activeCount > 0;
 
-  const activeCount =
-    (filter.days.length > 0 ? 1 : 0) +
-    (filter.credit !== null ? 1 : 0) +
-    Number(filter.hideFull) +
-    Number(filter.hideConflicting) +
-    Number(filter.hideUnscheduled) +
-    (filter.curriculum !== null ? 1 : 0);
+  const handleClear = () => {
+    catalogStore.getState().resetFilter();
+    // The action unmounts once nothing is filtered, so focus returns to the field
+    // rather than falling to the document body.
+    textRef.current?.focus();
+  };
 
   const chips: Chip[] = [
     ...filter.days.map((day) => ({
@@ -130,6 +133,7 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
         </label>
         <div className="flex gap-2">
           <input
+            ref={textRef}
             id={textId}
             type="search"
             value={filter.text}
@@ -148,7 +152,7 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
           />
         </div>
       </div>
-      {chips.length > 0 ? (
+      {filtering ? (
         <div className="flex flex-wrap items-center gap-1 text-xs">
           {chips.map((chip) => (
             <button
@@ -164,9 +168,7 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
           ))}
           <button
             type="button"
-            onClick={() => {
-              catalogStore.getState().resetFilter();
-            }}
+            onClick={handleClear}
             className={`rounded-kcp px-2 py-0.5 text-primary-strong hover:bg-primary-soft ${TARGET_SIZE} ${FOCUS_RING}`}
           >
             {t('catalog.filter.clearAll')}
@@ -174,6 +176,18 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
         </div>
       ) : null}
     </div>
+  );
+}
+
+/** The number of popover facets in use, which the filter button shows as a count. */
+function activeCountOf(filter: CatalogFilter): number {
+  return (
+    (filter.days.length > 0 ? 1 : 0) +
+    (filter.credit !== null ? 1 : 0) +
+    Number(filter.hideFull) +
+    Number(filter.hideConflicting) +
+    Number(filter.hideUnscheduled) +
+    (filter.curriculum !== null ? 1 : 0)
   );
 }
 

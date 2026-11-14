@@ -102,6 +102,42 @@ describe('FilterBar', () => {
     expect(catalogStore.getState().filter.days).toHaveLength(0);
   });
 
+  it('offers the clear action for text alone and clears it with the facets', () => {
+    render(<FilterBar creditOptions={[3, 4]} />);
+    expect(screen.queryByRole('button', { name: 'ล้างตัวกรอง' })).toBeNull();
+    const field = screen.getByLabelText('กรองรายการ');
+    fireEvent.change(field, { target: { value: 'ลาภเจริญสุข' } });
+    act(() => {
+      catalogStore.getState().setHideFull(true);
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'ล้างตัวกรอง' }));
+    expect(catalogStore.getState().filter.text).toBe('');
+    expect(catalogStore.getState().filter.hideFull).toBe(false);
+    expect(screen.queryByRole('button', { name: 'ล้างตัวกรอง' })).toBeNull();
+    expect(field).toHaveFocus();
+  });
+
+  it('hides the clear action for whitespace only text', () => {
+    catalogStore.getState().setText('   ');
+    render(<FilterBar creditOptions={[3, 4]} />);
+    expect(screen.queryByRole('button', { name: 'ล้างตัวกรอง' })).toBeNull();
+  });
+
+  it('names the clear action and the hint in English', () => {
+    act(() => {
+      uiStore.getState().setLanguage('en');
+    });
+    catalogStore.getState().setText('d-110');
+    render(<FilterBar creditOptions={[3, 4]} />);
+    expect(screen.getByLabelText('Filter results')).toHaveAttribute(
+      'placeholder',
+      'Code, name, or instructor',
+    );
+    expect(
+      screen.getByRole('button', { name: 'Clear filters' }),
+    ).toBeInTheDocument();
+  });
+
   it('renders the hide facets as switches that update the store', () => {
     render(<FilterBar creditOptions={[3, 4]} />);
     openFilters();
