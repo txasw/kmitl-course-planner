@@ -1,5 +1,6 @@
 // The course catalog: a dedupe summary that reports the value of merging repeated
-// rows, the filter bar, and the courses grouped by their subject type heading.
+// rows, the filter bar, and the courses grouped by their subject type heading, each
+// group in the chosen sort order.
 // Section states are computed against the placed sections read from the plan
 // store, so the catalog is ready for the planner phase without rework.
 
@@ -29,6 +30,7 @@ import {
   type TermContext,
 } from '@/lib/planner/sectionState';
 import { filterCourses, type SectionPredicates } from '@/lib/catalog/filter';
+import { sortCourses, type CourseSortKey } from '@/lib/catalog/sortCourses';
 import {
   catalogQueryKey,
   isCardInstant,
@@ -60,7 +62,12 @@ interface HeadingGroup {
   courses: Course[];
 }
 
-function groupByHeading(courses: Course[], locale: Locale): HeadingGroup[] {
+// The headings keep the order the result gives them; the sort applies within each.
+function groupByHeading(
+  courses: Course[],
+  locale: Locale,
+  sort: CourseSortKey,
+): HeadingGroup[] {
   const groups: HeadingGroup[] = [];
   const index = new Map<string, HeadingGroup>();
   for (const course of courses) {
@@ -77,7 +84,10 @@ function groupByHeading(courses: Course[], locale: Locale): HeadingGroup[] {
     }
     group.courses.push(course);
   }
-  return groups;
+  return groups.map((group) => ({
+    ...group,
+    courses: sortCourses(group.courses, sort),
+  }));
 }
 
 function Summary({
@@ -145,6 +155,7 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
   const resultQuery = useStore(searchStore, (state) => state.resultQuery);
   const filter = useStore(catalogStore, (state) => state.filter);
   const disclosure = useStore(catalogStore, (state) => state.disclosure);
+  const sort = useStore(catalogStore, (state) => state.sort);
   const queryKey = useMemo(() => catalogQueryKey(resultQuery), [resultQuery]);
   const addedIds = useMemo(
     () => new Set(placed.map((section) => section.subjectId)),
@@ -260,8 +271,8 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
   );
 
   const groups = useMemo(
-    () => groupByHeading(filtered, language),
-    [filtered, language],
+    () => groupByHeading(filtered, language, sort),
+    [filtered, language, sort],
   );
 
   // The control acts on the cards the filters show. A bulk change sets every card

@@ -29,6 +29,7 @@ import { dragStore } from '@/features/planner/dragStore';
 import { FeedbackStrip } from '@/features/planner/FeedbackStrip';
 import { createTranslator } from '@/lib/i18n/t';
 import { EMPTY_DISCLOSURE } from '@/lib/catalog/cardDisclosure';
+import { DEFAULT_COURSE_SORT } from '@/lib/catalog/sortCourses';
 import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { installViewport } from '../../../tests/support/viewport';
@@ -81,7 +82,10 @@ function expandAll(): void {
 beforeEach(() => {
   act(() => {
     catalogStore.getState().resetFilter();
-    catalogStore.setState({ disclosure: EMPTY_DISCLOSURE });
+    catalogStore.setState({
+      disclosure: EMPTY_DISCLOSURE,
+      sort: DEFAULT_COURSE_SORT,
+    });
     searchStore.setState({ resultQuery: SEARCH_QUERY });
   });
 });
@@ -552,5 +556,56 @@ describe('CourseCatalog focus', () => {
     expect(dragStore.getState().blocked).not.toBeNull();
     // S2 has no other section, so the strip's one action reveals it in the catalog.
     expect(document.activeElement).toHaveAttribute('data-feedback-action');
+  });
+});
+
+describe('CourseCatalog sort', () => {
+  function seatCourse(subjectId: string, enrolled: number) {
+    return makeCourse({
+      subjectId,
+      sections: [
+        makeSection({
+          teachTableId: subjectId,
+          subjectId,
+          seats: { limit: 40, preCount: 0, queueLeft: 0, enrolled },
+        }),
+      ],
+    });
+  }
+
+  const sortCatalog: NormalizedCatalog = {
+    duplicateCount: 0,
+    multiMeetingCount: 0,
+    warnings: [],
+    courses: [
+      seatCourse('90000003', 0),
+      seatCourse('90000001', 39),
+      seatCourse('90000002', 20),
+    ],
+  };
+
+  function cardOrder(): string[] {
+    return screen
+      .getAllByRole('article')
+      .map((node) => node.getAttribute('data-course-card') ?? '');
+  }
+
+  it('orders the courses by subject id by default', () => {
+    render(<CourseCatalog catalog={sortCatalog} />);
+    expect(cardOrder()).toEqual(['90000001', '90000002', '90000003']);
+  });
+
+  it('reorders the courses by the chosen sort and keeps it past a filter clear', () => {
+    render(<CourseCatalog catalog={sortCatalog} />);
+    fireEvent.click(screen.getByRole('combobox', { name: 'เรียงตาม' }));
+    fireEvent.mouseDown(
+      screen.getByRole('option', { name: 'ที่นั่งว่างมากที่สุด' }),
+    );
+    expect(cardOrder()).toEqual(['90000003', '90000002', '90000001']);
+    fireEvent.change(screen.getByRole('searchbox', { name: 'กรองรายการ' }), {
+      target: { value: '9000' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'ล้างตัวกรอง' }));
+    expect(cardOrder()).toEqual(['90000003', '90000002', '90000001']);
   });
 });

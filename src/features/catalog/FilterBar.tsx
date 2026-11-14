@@ -1,8 +1,9 @@
 // The catalog filter: an always visible search field, a filter button that opens a popover
 // with the day, credit, hide, and open to my curriculum facets, and the active facets
 // rendered as removable chips under the field, followed by one clear action whenever the
-// text or any facet narrows the list. Filtering itself happens in the pure filter
-// over the catalog store state, which is untouched; the redesign only reshapes the controls.
+// text or any facet narrows the list. The sort control closes that row. Filtering itself
+// happens in the pure filter over the catalog store state, which is untouched; the
+// redesign only reshapes the controls.
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useStore } from 'zustand';
@@ -30,6 +31,7 @@ import { TARGET_HEIGHT, TARGET_SIZE } from '@/lib/ui/target';
 import { Combobox, type ComboboxOption } from '@/features/search/Combobox';
 import { catalogStore } from './catalogStore';
 import { CurriculumFilter } from './CurriculumProfilePicker';
+import { SortControl } from './SortControl';
 
 const DAYS: DayOfWeek[] = [0, 1, 2, 3, 4, 5, 6];
 
@@ -152,29 +154,34 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
           />
         </div>
       </div>
-      {filtering ? (
-        <div className="flex flex-wrap items-center gap-1 text-xs">
-          {chips.map((chip) => (
+      <div className="flex flex-wrap items-center gap-2">
+        {filtering ? (
+          <div className="flex flex-wrap items-center gap-1 text-xs">
+            {chips.map((chip) => (
+              <button
+                key={chip.key}
+                type="button"
+                aria-label={`${t('action.remove')} ${chip.label}`}
+                onClick={chip.onRemove}
+                className={`inline-flex items-center gap-1 rounded-kcp bg-surface-alt px-2 py-0.5 text-ink-soft hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
+              >
+                {chip.label}
+                <X size={12} aria-hidden />
+              </button>
+            ))}
             <button
-              key={chip.key}
               type="button"
-              aria-label={`${t('action.remove')} ${chip.label}`}
-              onClick={chip.onRemove}
-              className={`inline-flex items-center gap-1 rounded-kcp bg-surface-alt px-2 py-0.5 text-ink-soft hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
+              onClick={handleClear}
+              className={`rounded-kcp px-2 py-0.5 text-primary-strong hover:bg-primary-soft ${TARGET_SIZE} ${FOCUS_RING}`}
             >
-              {chip.label}
-              <X size={12} aria-hidden />
+              {t('catalog.filter.clearAll')}
             </button>
-          ))}
-          <button
-            type="button"
-            onClick={handleClear}
-            className={`rounded-kcp px-2 py-0.5 text-primary-strong hover:bg-primary-soft ${TARGET_SIZE} ${FOCUS_RING}`}
-          >
-            {t('catalog.filter.clearAll')}
-          </button>
+          </div>
+        ) : null}
+        <div className="ml-auto">
+          <SortControl t={t} />
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }
