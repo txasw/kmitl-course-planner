@@ -11,6 +11,7 @@ import { CATALOG_COLUMN_ID } from './catalogVisibility';
 import { Overlay } from './Overlay';
 import { openPanelAt } from './openPanel';
 import { uiStore } from './uiStore';
+import { OVERLAY_HISTORY_MARKER } from './useBackToClose';
 import { revalidationStore } from '@/features/plans/revalidationStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { makePlanEntry } from '../../../tests/support/domain-builders';
@@ -44,7 +45,29 @@ function stubReducedMotion() {
 
 beforeEach(stubReducedMotion);
 
-afterEach(() => {
+/** Resolve on the next popstate, the end of a queued traversal. */
+function nextPopState(): Promise<void> {
+  return new Promise((resolve) => {
+    window.addEventListener(
+      'popstate',
+      () => {
+        resolve();
+      },
+      { once: true },
+    );
+  });
+}
+
+afterEach(async () => {
+  // While the panel holds its history entry, closing it goes back through a queued
+  // traversal; wait for it, so the next test opens from a settled history.
+  const state: unknown = window.history.state;
+  const settled =
+    typeof state === 'object' &&
+    state !== null &&
+    OVERLAY_HISTORY_MARKER in state
+      ? nextPopState()
+      : Promise.resolve();
   cleanup();
   vi.unstubAllGlobals();
   act(() => {
@@ -52,6 +75,7 @@ afterEach(() => {
     uiStore.getState().setLanguage('th');
     uiStore.getState().setViewMode('edit');
   });
+  await settled;
 });
 
 describe('Overlay', () => {
@@ -121,6 +145,62 @@ describe('Overlay', () => {
       uiStore.getState().close();
     });
     expect(opener).toHaveFocus();
+  });
+
+  // Each path ends on the host entry it opened from, with the same route and the same
+  // history state, router key included, as before the panel opened.
+  describe('history', () => {
+    const HOST_HASH = '#/teach_table_selector';
+    const HOST_STATE = { key: '1234.567' };
+
+    function openFrom(opener: boolean): void {
+      window.history.replaceState(HOST_STATE, '', `/${HOST_HASH}`);
+      render(
+        <div>
+          {opener ? <button data-testid="opener">opener</button> : null}
+          <Overlay />
+        </div>,
+        { wrapper },
+      );
+      if (opener) screen.getByTestId('opener').focus();
+      act(() => {
+        uiStore.getState().open();
+      });
+    }
+
+    function expectHostEntry(): void {
+      expect(window.location.hash).toBe(HOST_HASH);
+      expect(window.history.state).toEqual(HOST_STATE);
+    }
+
+    it('closes on a back gesture and restores focus', async () => {
+      openFrom(true);
+      const popped = nextPopState();
+      window.history.back();
+      await act(() => popped);
+      expect(uiStore.getState().isOpen).toBe(false);
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.getByTestId('opener')).toHaveFocus();
+      expectHostEntry();
+    });
+
+    it('returns to the host entry when closed on Escape', async () => {
+      openFrom(false);
+      const popped = nextPopState();
+      fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+      await act(() => popped);
+      expect(uiStore.getState().isOpen).toBe(false);
+      expectHostEntry();
+    });
+
+    it('returns to the host entry when the close control is activated', async () => {
+      openFrom(false);
+      const popped = nextPopState();
+      fireEvent.click(screen.getByRole('button', { name: 'ปิด' }));
+      await act(() => popped);
+      expect(uiStore.getState().isOpen).toBe(false);
+      expectHostEntry();
+    });
   });
 
   describe('safe area insets', () => {

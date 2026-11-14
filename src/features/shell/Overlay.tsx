@@ -13,12 +13,14 @@ import { useBottomNavShown } from './mobilePane';
 import { useTranslation } from './useTranslation';
 import { useFocusTrap } from './useFocusTrap';
 import { useScrollLock } from './useScrollLock';
+import { useBackToClose } from './useBackToClose';
 import { usePresence } from './usePresence';
 
 // The full viewport overlay panel. It renders inside the closed shadow root as a
 // modal dialog: focus is trapped while open, Escape and the close control return
 // to the host, the host document scroll is locked, and enter and leave fade with
-// a reduced motion path. Session state lives in the ui store, so closing and
+// a reduced motion path. A back gesture closes it too, through one history entry it holds
+// while open, recorded in ADR-0067. Session state lives in the ui store, so closing and
 // reopening within a page session resumes where the user left off. The root
 // carries the panel language, because the host document's own lang does not follow
 // the language toggle, and the popovers portal into this node so they inherit it.
@@ -48,6 +50,7 @@ export function Overlay() {
   // open flag so it never waits on the leave animation.
   useFocusTrap(panelRef, isOpen && mounted, close);
   useScrollLock(isOpen);
+  useBackToClose(isOpen, close);
 
   if (!mounted) return null;
 
