@@ -211,22 +211,28 @@ describe('Toaster', () => {
     );
   });
 
-  it('rises above the phone nav while the panel is open in edit mode', () => {
-    installViewport(390);
+  it('rises above the phone foot controls while the panel is open', () => {
+    const viewport = installViewport(390);
     const { container } = render(<Toaster />);
     const region = container.querySelector('[aria-live="polite"]');
-    const ABOVE_NAV = 'bottom-[calc(72px+var(--kcp-safe-bottom))]';
+    const ABOVE_FOOT = 'bottom-[calc(72px+var(--kcp-safe-bottom))]';
     const AT_FOOT = 'bottom-[max(16px,var(--kcp-safe-bottom))]';
-    // Over the bare host page there is no nav to clear.
+    // Over the bare host page there are no controls to clear.
     expect(region).toHaveClass(AT_FOOT);
     act(() => {
       uiStore.getState().open();
     });
-    expect(region).toHaveClass(ABOVE_NAV);
+    // Edit runs the bottom nav along the foot.
+    expect(region).toHaveClass(ABOVE_FOOT);
     expect(region).not.toHaveClass(AT_FOOT);
-    // Preview has no nav.
+    // Preview runs the sharing toolbar along the foot instead.
     act(() => {
       uiStore.getState().setViewMode('preview');
+    });
+    expect(region).toHaveClass(ABOVE_FOOT);
+    // From 640 px up the toolbar heads the poster, so the foot is clear.
+    act(() => {
+      viewport.resize(768);
     });
     expect(region).toHaveClass(AT_FOOT);
   });

@@ -49,13 +49,21 @@ export function useMobilePane(): MobilePane {
 /**
  * Whether the bottom nav runs along the panel foot: the compact tier in edit mode, the
  * one state the layout renders it in. The nav pads itself clear of the bottom safe area
- * inset, so the overlay body leaves that inset to it, and a surface pinned to the panel
- * foot, such as the toast region, rises above it.
+ * inset, so the overlay body leaves that inset to it.
  */
 export function useBottomNavShown(): boolean {
   const compact = useLayoutTier() === 'compact';
   const editing = useStore(uiStore, (state) => state.viewMode === 'edit');
   return compact && editing;
+}
+
+/**
+ * Whether controls run along the panel foot: the compact tier, where edit mode shows the
+ * bottom nav and preview the sharing toolbar in the thumb zone. A surface pinned to the
+ * panel foot, such as the toast region, rises above them.
+ */
+export function useFootControlsShown(): boolean {
+  return useLayoutTier() === 'compact';
 }
 
 /** Show the pane of a nav item, setting the plan view first for a plan item. */
