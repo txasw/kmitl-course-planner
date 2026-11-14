@@ -5,6 +5,7 @@
 // notation states follow the same rule, since both halves of a pair carry one notation.
 
 import { parseCreditLps } from '../parsing/creditLps';
+import type { Semester } from '../routing/academicTerms';
 
 export interface CreditedSubject {
   subjectId: string;
@@ -82,4 +83,45 @@ export function summarizeWeeklyHours(
     }
   }
   return sums;
+}
+
+export interface CreditRange {
+  /** The fewest credits of the usual load, or null when the term sets no minimum. */
+  min: number | null;
+  max: number;
+}
+
+// The usual credit load per semester from clause 14.4 of the KMITL undergraduate
+// regulation B.E. 2565. Semesters 1 and 2 are the regular semesters. Semester 3 is the
+// special term, read as such from the API, which the regulation caps with no minimum.
+// The load is advisory here: final year students and loads the Academic Council approves
+// may fall outside it, so leaving the range is a note and never a block.
+export const CREDIT_RANGE: Readonly<Record<Semester, CreditRange>> = {
+  '1': { min: 9, max: 22 },
+  '2': { min: 9, max: 22 },
+  '3': { min: null, max: 9 },
+};
+
+export type CreditLoad =
+  | { kind: 'within' }
+  | { kind: 'below'; min: number }
+  | { kind: 'above'; max: number };
+
+/**
+ * Where a credit total sits against the usual load of its semester. A plan with no
+ * entries is never below the range, so an empty plan carries no note.
+ */
+export function creditLoad(
+  credits: number,
+  semester: Semester,
+  entryCount: number,
+): CreditLoad {
+  const range = CREDIT_RANGE[semester];
+  if (credits > range.max) {
+    return { kind: 'above', max: range.max };
+  }
+  if (entryCount > 0 && range.min !== null && credits < range.min) {
+    return { kind: 'below', min: range.min };
+  }
+  return { kind: 'within' };
 }
