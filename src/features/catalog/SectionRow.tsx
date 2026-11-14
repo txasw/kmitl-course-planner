@@ -34,7 +34,7 @@ import { RemarkLine } from './RemarkLine';
 import { RulesNotice } from './RulesNotice';
 import { DemandChip, SeatDemand } from './SeatDemand';
 import { StatusBadge } from './StatusBadge';
-import { meetingLabel } from './meetingFormat';
+import { meetingLabel, meetingPlace } from './meetingFormat';
 
 /** The accessible name of a section's add control: the action, the subject id and the
  * section, for example เพิ่ม 90592033 กลุ่มเรียน 901. */
@@ -166,9 +166,7 @@ export function SectionRow({
               key={`${String(meeting.day)}-${String(meeting.startMin)}-${String(meeting.endMin)}`}
             >
               {meetingLabel(meeting, t)}
-              {meeting.building !== '' || meeting.room !== ''
-                ? ` ${meeting.building} ${meeting.room}`.trimEnd()
-                : ''}
+              {` ${meetingPlace(meeting)}`.trimEnd()}
             </span>
           ))}
         </div>
