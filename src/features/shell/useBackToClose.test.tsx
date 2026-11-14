@@ -31,8 +31,10 @@ function markerOf(state: unknown): unknown {
     : undefined;
 }
 
+// A push drops the forward entries a back leaves behind, so every test starts on a top entry
+// and a push adds exactly one.
 beforeEach(() => {
-  window.history.replaceState(HOST_STATE, '', `/${HOST_HASH}`);
+  window.history.pushState(HOST_STATE, '', `/${HOST_HASH}`);
 });
 
 afterEach(() => {
@@ -48,13 +50,15 @@ describe('useBackToClose', () => {
     expect(window.history.state).toEqual(HOST_STATE);
   });
 
-  it('pushes one same URL entry that keeps the host state and its key', async () => {
+  it('pushes one same URL entry that carries only the marker', async () => {
     const length = window.history.length;
     const url = window.location.href;
     const { unmount } = render(<Harness active={true} onBack={vi.fn()} />);
     expect(window.history.length).toBe(length + 1);
     expect(window.location.href).toBe(url);
-    expect(window.history.state).toMatchObject(HOST_STATE);
+    expect(Object.keys(window.history.state as object)).toEqual([
+      OVERLAY_HISTORY_MARKER,
+    ]);
     expect(typeof markerOf(window.history.state)).toBe('string');
     // Settle the back the close queues, so the next test starts on the host entry.
     const popped = nextPopState();
@@ -103,19 +107,30 @@ describe('useBackToClose', () => {
     back.mockRestore();
   });
 
-  it.each([
-    ['a string', 'host'],
-    ['an array', ['host']],
-  ])('pushes nothing when the host state is %s', (_label, hostState) => {
-    window.history.replaceState(hostState, '');
-    const length = window.history.length;
-    const back = vi.spyOn(window.history, 'back');
+  it('leaves history alone when the host replaced the entry with another URL', () => {
     const { rerender } = render(<Harness active={true} onBack={vi.fn()} />);
-    expect(window.history.length).toBe(length);
+    const back = vi.spyOn(window.history, 'back');
+    window.history.replaceState({ key: '9.9' }, '', '/#/teach_table');
     rerender(<Harness active={false} onBack={vi.fn()} />);
     expect(back).not.toHaveBeenCalled();
-    expect(window.history.state).toEqual(hostState);
+    expect(window.location.hash).toBe('#/teach_table');
     back.mockRestore();
+  });
+
+  // A content script can read a stale history.state once the page itself has read it, so the
+  // hook must decide from history length and URL alone.
+  it('goes back on a normal close even when history.state reads stale', async () => {
+    const onBack = vi.fn();
+    const { rerender } = render(<Harness active={true} onBack={onBack} />);
+    const stale = vi
+      .spyOn(History.prototype, 'state', 'get')
+      .mockReturnValue(null);
+    const popped = nextPopState();
+    rerender(<Harness active={false} onBack={onBack} />);
+    stale.mockRestore();
+    await act(() => popped);
+    expect(onBack).not.toHaveBeenCalled();
+    expect(window.history.state).toEqual(HOST_STATE);
   });
 
   // jsdom has no userActivation, so stand in a navigator that inherits the real one.
@@ -160,7 +175,6 @@ describe('useBackToClose', () => {
     expect(markerOf(window.history.state)).toBeDefined();
     await act(() => popped);
     expect(onBack).not.toHaveBeenCalled();
-    expect(window.history.state).toMatchObject(HOST_STATE);
     expect(typeof markerOf(window.history.state)).toBe('string');
     const closed = nextPopState();
     rerender(<Harness active={false} onBack={onBack} />);
