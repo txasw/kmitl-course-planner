@@ -16,23 +16,27 @@
 // busy: the action that started it reads as creating the image with a spinner, and every
 // sharing action is marked disabled and ignores presses, so a second press cannot start a
 // parallel capture. The actions use aria-disabled rather than disabled so the focused
-// button keeps focus through the capture.
+// button keeps focus through the capture. The capture and its delivery live in
+// useImageActions.
 
-import { useState, type ReactNode, type RefObject } from 'react';
+import { type ReactNode, type RefObject } from 'react';
 import { Clipboard, ClipboardCopy, Download, LoaderCircle } from 'lucide-react';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
 import type { ExamSchedule } from '@/lib/planner/examSchedule';
 import { formatPlanText } from '@/lib/export/planText';
-import { downloadBlob } from '@/lib/utils/download';
 import { planExportBaseName } from '@/lib/planner/exportName';
 import type { ExportTemplate } from '@/lib/planner/exportTemplates';
 import { useActivePlan } from '@/features/plans/planStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { toastStore } from '@/features/shell/toastStore';
-import { capturePng } from './capture';
 import { DisplayOptionsPopover } from './DisplayOptionsPopover';
 import { examScheduleLines } from './examScheduleLines';
 import { PreShareNotice } from './PreShareNotice';
+import {
+  canCopyImage,
+  useImageActions,
+  type ImageAction,
+} from './useImageActions';
 import { VerificationStatus } from './VerificationStatus';
 import type { PlacedSection } from './placedSection';
 import { FOCUS_RING } from '@/lib/ui/focus';
@@ -53,18 +57,6 @@ interface PreviewToolbarProps {
 
 const BUTTON = `inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm text-ink hover:bg-surface-alt aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-transparent ${TARGET_SIZE} ${FOCUS_RING}`;
 
-/** The image action whose capture is running, or null when the toolbar is idle. */
-type Capturing = 'copyImage' | 'download' | null;
-
-/** Whether the browser can write an image to the clipboard. The host is a secure
- * context, so navigator.clipboard is present; ClipboardItem is the real gate. */
-function canCopyImage(): boolean {
-  return (
-    typeof ClipboardItem !== 'undefined' &&
-    typeof navigator.clipboard.write === 'function'
-  );
-}
-
 export function PreviewToolbar({
   posterRef,
   template,
@@ -79,62 +71,16 @@ export function PreviewToolbar({
     activePlan === null ? 'kmitl-plan' : planExportBaseName(activePlan);
   const fileName = `${base}-${template.slug}.png`;
 
-  const [capturing, setCapturing] = useState<Capturing>(null);
+  const { capturing, download, copyImage } = useImageActions(
+    posterRef,
+    template.pixelRatio,
+    fileName,
+  );
   const busy = capturing !== null;
-
-  // Capture the poster, hand the image to its destination, and toast the outcome, holding
-  // the toolbar busy from the press until the outcome is known.
-  const runCapture = (
-    action: Exclude<Capturing, null>,
-    deliver: (blob: Blob) => Promise<void> | void,
-    successMessage: string,
-  ) => {
-    const node = posterRef.current;
-    if (node === null || busy) {
-      return;
-    }
-    setCapturing(action);
-    void capturePng(node, template.pixelRatio)
-      .then(deliver)
-      .then(
-        () => {
-          toastStore.getState().show('success', successMessage);
-        },
-        () => {
-          toastStore.getState().show('error', t('preview.exportFailed'));
-        },
-      )
-      .finally(() => {
-        setCapturing(null);
-      });
-  };
-
-  const handleDownloadPng = () => {
-    runCapture(
-      'download',
-      (blob) => {
-        downloadBlob(fileName, blob);
-      },
-      t('preview.pngDownloaded'),
-    );
-  };
-
-  const handleCopyImage = () => {
-    runCapture(
-      'copyImage',
-      (blob) =>
-        navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]),
-      t('preview.imageCopied'),
-    );
-  };
 
   // The label of an image action: its own while idle, creating the image while its capture
   // runs, so the busy state names what is happening where the student pressed.
-  const actionLabel = (
-    action: Exclude<Capturing, null>,
-    icon: ReactNode,
-    label: string,
-  ) =>
+  const actionLabel = (action: ImageAction, icon: ReactNode, label: string) =>
     capturing === action ? (
       <>
         <LoaderCircle
@@ -188,7 +134,7 @@ export function PreviewToolbar({
         {canCopyImage() ? (
           <button
             type="button"
-            onClick={handleCopyImage}
+            onClick={copyImage}
             aria-disabled={busy}
             className={BUTTON}
           >
@@ -205,7 +151,7 @@ export function PreviewToolbar({
         )}
         <button
           type="button"
-          onClick={handleDownloadPng}
+          onClick={download}
           aria-disabled={busy}
           className={BUTTON}
         >
