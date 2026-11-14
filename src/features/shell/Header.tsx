@@ -12,6 +12,7 @@ import { LanguageToggle } from './LanguageToggle';
 import { ModeToggle } from './ModeToggle';
 import { CatalogToggle } from './CatalogToggle';
 import { HeaderOverflowMenu } from './HeaderOverflowMenu';
+import { SaveIndicator } from './SaveIndicator';
 
 interface HeaderProps {
   titleId: string;
@@ -20,9 +21,9 @@ interface HeaderProps {
 // The overlay header: one row that never wraps, 56 px high and 48 px on a short
 // viewport, padded clear of the device safe areas. Below 640 px the padding and gaps
 // tighten so six touch sized controls still fit a 320 px screen. The leading group
-// holds the brand mark from 640 px, the panel title, and the plan switcher; it is the
-// only part that shrinks, and the switcher truncates the plan name before anything else
-// gives way.
+// holds the brand mark from 640 px, the panel title, the plan switcher, and the save
+// indicator beside it, which narrows to its mark below 640 px; it is the only part that
+// shrinks, and the switcher truncates the plan name before anything else gives way.
 // The title shows from 1024 px and stays in the accessibility tree below as sr-only
 // text, so the dialog's aria-labelledby always resolves. The trailing group never
 // shrinks and carries the catalog toggle on the sheet tiers, the mode toggle, the
@@ -45,6 +46,7 @@ export function Header({ titleId }: HeaderProps) {
           {t('app.title')}
         </h2>
         <PlanSwitcher />
+        <SaveIndicator />
       </div>
       <div className="flex shrink-0 items-center gap-1 sm:gap-2">
         <CatalogToggle />
