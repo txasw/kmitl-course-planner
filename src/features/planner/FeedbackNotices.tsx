@@ -8,6 +8,7 @@ import { X } from 'lucide-react';
 import { useStore } from 'zustand';
 import type { Section } from '@/lib/domain/types';
 import type { Translate } from '@/lib/i18n/t';
+import { termMismatchText } from '@/lib/i18n/termCopy';
 import { describeConflicts } from '@/lib/planner/describeConflict';
 import { alternativeSections } from '@/lib/planner/suggestions';
 import { addSectionToPlan } from '@/features/plans/addToPlan';
@@ -213,12 +214,15 @@ export function CrossTermNotice({
   feedback: CrossTermFeedback;
   t: Translate;
 }) {
-  const planTerm = `${feedback.planTerm.semester}/${feedback.planTerm.year}`;
-  const browsedTerm = `${feedback.browsedTerm.semester}/${feedback.browsedTerm.year}`;
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-kcp border border-warn bg-primary-soft px-2 py-1 text-xs text-ink">
       <span>
-        {t('term.planIs')} {planTerm}. {t('term.sectionIs')} {browsedTerm}
+        {termMismatchText(
+          feedback.planTerm,
+          feedback.browsedTerm,
+          'section',
+          t,
+        )}
       </span>
       <button
         type="button"

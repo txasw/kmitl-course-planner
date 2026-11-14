@@ -18,6 +18,7 @@ import { Plus } from 'lucide-react';
 import { Tooltip } from '@/components/Tooltip';
 import { RemoveButton, removeSectionName } from './RemoveButton';
 import type { Locale, Translate } from '@/lib/i18n/t';
+import { termMismatchText } from '@/lib/i18n/termCopy';
 import type { Course, Section } from '@/lib/domain/types';
 import type { Term } from '@/lib/routing/academicTerms';
 import type { SeatStatus } from '@/lib/catalog/seatStatus';
@@ -40,14 +41,6 @@ import { meetingLabel, meetingPlace } from './meetingFormat';
  * section, for example เพิ่ม 90592033 กลุ่มเรียน 901. */
 export function addSectionName(section: Section, t: Translate): string {
   return `${t('action.add')} ${section.subjectId} ${t('section.code')} ${section.section}`;
-}
-
-function termLabel(term: Term): string {
-  return `${term.semester}/${term.year}`;
-}
-
-function termReason(planTerm: Term, browsedTerm: Term, t: Translate): string {
-  return `${t('term.planIs')} ${termLabel(planTerm)}. ${t('term.sectionIs')} ${termLabel(browsedTerm)}`;
 }
 
 interface SectionRowProps {
@@ -100,7 +93,7 @@ export function SectionRow({
   // which outranks the seat state, or the full or closed seat line.
   const disabledReason =
     relation.kind === 'different_term'
-      ? termReason(relation.planTerm, relation.browsedTerm, t)
+      ? termMismatchText(relation.planTerm, relation.browsedTerm, 'section', t)
       : seatLineText(demand, t);
   const status = readOnly ? null : computeRowStatus(relation, seat);
   // The callout follows the badge: a full or closed row that also clashes shows only
@@ -209,7 +202,12 @@ export function SectionRow({
         ) : null}
         {!readOnly && relation.kind === 'different_term' ? (
           <p id={reasonId} className="mt-1 text-ink-soft">
-            {termReason(relation.planTerm, relation.browsedTerm, t)}
+            {termMismatchText(
+              relation.planTerm,
+              relation.browsedTerm,
+              'section',
+              t,
+            )}
           </p>
         ) : null}
       </div>

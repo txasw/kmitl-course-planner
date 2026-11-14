@@ -252,7 +252,11 @@ describe('CourseCatalog', () => {
     expandAll();
     expect(screen.getAllByText('คนละภาค').length).toBeGreaterThan(0);
     // The banner names the browsed term and every add rail is disabled.
-    expect(screen.getByText(/กำลังดูภาค/)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'ตารางนี้เป็นภาคการศึกษา 2/2569 แต่กำลังดูภาคการศึกษา 1/2569',
+      ),
+    ).toBeInTheDocument();
     const addRails = screen.getAllByRole('button', { name: /^เพิ่ม/ });
     expect(addRails.length).toBeGreaterThan(0);
     for (const rail of addRails) {

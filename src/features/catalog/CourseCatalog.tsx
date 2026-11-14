@@ -15,6 +15,7 @@ import {
 import { useStore } from 'zustand';
 import { ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
+import { termMismatchText } from '@/lib/i18n/termCopy';
 import type { Course, Section } from '@/lib/domain/types';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import type { AddOutcome } from '@/lib/planner/transaction';
@@ -319,10 +320,7 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
   const banner =
     crossTerm && planTerm !== null && browsedTerm !== null ? (
       <div className="flex flex-wrap items-center gap-2 rounded-kcp border border-warn bg-primary-soft px-2 py-1.5 text-xs text-ink">
-        <span>
-          {t('term.planIs')} {planTerm.semester}/{planTerm.year}.{' '}
-          {t('term.browsedIs')} {browsedTerm.semester}/{browsedTerm.year}
-        </span>
+        <span>{termMismatchText(planTerm, browsedTerm, 'browsing', t)}</span>
         <button
           type="button"
           onClick={() => {
