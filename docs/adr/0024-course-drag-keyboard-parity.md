@@ -65,3 +65,11 @@ the course picker was: it adds a focus trap, a roving selection, and a second
 announcement vocabulary to reach an outcome the remove control and the add buttons
 already deliver. The one honest gap, that re-placing depends on the subject being
 listed, is closed by the reveal action rather than by a new grid widget.
+
+## Amendment, 2026-11-14: non drag move and swap
+
+ADR-0068 gives the move and the swap their own keyboard, touch, and screen reader paths: a
+replace action in the blocked notice and a change section list in the block details and the
+selected courses view. Parity for those outcomes no longer rests on removing from the block and
+adding from the catalog. The drag gestures stay pointer only, and the rejection of a keyboard
+picker over the grid stands.
