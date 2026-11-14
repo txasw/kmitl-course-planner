@@ -688,6 +688,8 @@ describe('CourseCatalog heading disclosure', () => {
 });
 
 describe('CourseCatalog shortlist', () => {
+  const SAVED = /^ที่บันทึกไว้/;
+
   function bookmarkOf(subjectId: string): HTMLElement {
     const node = cardToggle(subjectId)
       .closest('article')
@@ -702,8 +704,9 @@ describe('CourseCatalog shortlist', () => {
     });
   });
 
-  it('saves a course for the browsed term and removes it again', () => {
+  it('saves a course for the browsed term and narrows to the saved courses', () => {
     render(<CourseCatalog catalog={catalog} />);
+    expect(screen.queryByRole('button', { name: SAVED })).toBeNull();
     fireEvent.click(bookmarkOf('90592033'));
     expect(catalogStore.getState().shortlist).toEqual({
       '1/2569': ['90592033'],
@@ -711,8 +714,13 @@ describe('CourseCatalog shortlist', () => {
     expect(bookmarkOf('90592033')).toHaveAccessibleName(
       'นำออกจากรายการที่บันทึกไว้',
     );
-    fireEvent.click(bookmarkOf('90592033'));
-    expect(catalogStore.getState().shortlist).toEqual({});
+    const chip = screen.getByRole('button', { name: 'ที่บันทึกไว้ 1' });
+    expect(chip).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(chip);
+    expect(chip).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getAllByRole('article')).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'ล้างตัวกรอง' }));
+    expect(screen.getAllByRole('article')).toHaveLength(3);
   });
 
   it('keeps the saved courses of another term apart', () => {
@@ -720,6 +728,7 @@ describe('CourseCatalog shortlist', () => {
       catalogStore.getState().setShortlist({ '2/2569': ['90592033'] });
     });
     render(<CourseCatalog catalog={catalog} />);
+    expect(screen.queryByRole('button', { name: SAVED })).toBeNull();
     expect(bookmarkOf('90592033')).toHaveAccessibleName('บันทึกไว้ดูภายหลัง');
   });
 
@@ -729,5 +738,28 @@ describe('CourseCatalog shortlist', () => {
     });
     render(<CourseCatalog catalog={catalog} />);
     expect(document.querySelector('[data-shortlist-toggle]')).toBeNull();
+  });
+
+  it('moves focus to the saved chip when the filter drops the removed course', () => {
+    act(() => {
+      catalogStore.getState().setShortlist({ '1/2569': ['90592033'] });
+      catalogStore.getState().setSavedOnly(true);
+    });
+    render(<CourseCatalog catalog={catalog} />);
+    const bookmark = bookmarkOf('90592033');
+    bookmark.focus();
+    fireEvent.click(bookmark);
+    expect(screen.queryAllByRole('article')).toHaveLength(0);
+    const chip = screen.getByRole('button', { name: 'ที่บันทึกไว้ 0' });
+    expect(chip).toHaveFocus();
+    expect(chip).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('keeps focus on the bookmark when the course stays listed', () => {
+    render(<CourseCatalog catalog={catalog} />);
+    const bookmark = bookmarkOf('90592033');
+    bookmark.focus();
+    fireEvent.click(bookmark);
+    expect(bookmarkOf('90592033')).toHaveFocus();
   });
 });

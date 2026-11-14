@@ -1,9 +1,10 @@
 // The catalog filter: an always visible search field, a filter button that opens a popover
 // with the day, credit, hide, and open to my curriculum facets, and the active facets
 // rendered as removable chips under the field, followed by one clear action whenever the
-// text or any facet narrows the list. The sort control closes that row. Filtering itself
-// happens in the pure filter over the catalog store state, which is untouched; the
-// redesign only reshapes the controls.
+// text or any facet narrows the list. A saved chip leads that row whenever the result
+// holds a course on the browsed term's shortlist (ADR-0069), and the sort control closes
+// it. Filtering itself happens in the pure filter over the catalog store state, which is
+// untouched; the redesign only reshapes the controls.
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useStore } from 'zustand';
@@ -13,7 +14,7 @@ import {
   useInteractions,
   FloatingPortal,
 } from '@floating-ui/react';
-import { SlidersHorizontal, X } from 'lucide-react';
+import { Bookmark, SlidersHorizontal, X } from 'lucide-react';
 import { Switch } from '@/components/Switch';
 import type { DayOfWeek } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -37,6 +38,8 @@ const DAYS: DayOfWeek[] = [0, 1, 2, 3, 4, 5, 6];
 
 interface FilterBarProps {
   creditOptions: number[];
+  /** How many courses of the result are on the browsed term's shortlist; none by default. */
+  savedCount?: number;
 }
 
 interface Chip {
@@ -45,13 +48,14 @@ interface Chip {
   onRemove: () => void;
 }
 
-export function FilterBar({ creditOptions }: FilterBarProps) {
+export function FilterBar({ creditOptions, savedCount = 0 }: FilterBarProps) {
   const { t, language } = useTranslation();
   const filter = useStore(catalogStore, (state) => state.filter);
   const textId = useId();
   const textRef = useRef<HTMLInputElement | null>(null);
   const activeCount = activeCountOf(filter);
-  const filtering = filter.text.trim() !== '' || activeCount > 0;
+  const filtering =
+    filter.text.trim() !== '' || activeCount > 0 || filter.savedOnly;
 
   const handleClear = () => {
     catalogStore.getState().resetFilter();
@@ -155,6 +159,11 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2">
+        {/* The chip stays while it is on, so a student who removes the last saved
+            course can still turn the filter off. */}
+        {savedCount > 0 || filter.savedOnly ? (
+          <SavedChip t={t} pressed={filter.savedOnly} count={savedCount} />
+        ) : null}
         {filtering ? (
           <div className="flex flex-wrap items-center gap-1 text-xs">
             {chips.map((chip) => (
@@ -183,6 +192,40 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+function SavedChip({
+  t,
+  pressed,
+  count,
+}: {
+  t: Translate;
+  pressed: boolean;
+  count: number;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={pressed}
+      data-saved-filter
+      onClick={() => {
+        catalogStore.getState().setSavedOnly(!pressed);
+      }}
+      className={`inline-flex items-center gap-1 rounded-kcp px-2 py-0.5 text-xs ${TARGET_SIZE} ${
+        pressed
+          ? 'bg-primary-strong text-surface'
+          : 'bg-surface-alt text-ink-soft hover:text-ink'
+      } ${FOCUS_OUTLINE}`}
+    >
+      <Bookmark
+        size={12}
+        strokeWidth={2}
+        aria-hidden
+        fill={pressed ? 'currentColor' : 'none'}
+      />
+      {t('shortlist.filter')} <span className="tabular-nums">{count}</span>
+    </button>
   );
 }
 
