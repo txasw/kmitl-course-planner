@@ -67,6 +67,13 @@ describe('ui store', () => {
     expect(store.getState().planView).toBe('selected');
   });
 
+  it('starts the narrow timetable on the day view and switches to the week', () => {
+    const store = createUiStore();
+    expect(store.getState().timetableView).toBe('day');
+    store.getState().setTimetableView('week');
+    expect(store.getState().timetableView).toBe('week');
+  });
+
   it('starts with no compact pane until one is settled', () => {
     expect(createUiStore().getState().mobilePane).toBeNull();
   });

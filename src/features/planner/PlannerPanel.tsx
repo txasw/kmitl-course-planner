@@ -6,9 +6,9 @@
 // selected courses list, and the summary: through the tabs above the region on the medium
 // and wide tiers, and through the bottom nav below 640 px, where the region carries no
 // tabs and so no tabpanel semantics. A timetable narrower than 640 px reads one day at a
-// time through the day view. The stats bar sits under every view, since it sums the plan
-// rather than the view. In preview the sharing toolbar heads the poster, or below 640 px
-// follows it at the panel foot.
+// time through the day view, or the portrait week when the student picks it. The stats
+// bar sits under every view, since it sums the plan rather than the view. In preview the
+// sharing toolbar heads the poster, or below 640 px follows it at the panel foot.
 
 import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { flushSync } from 'react-dom';
