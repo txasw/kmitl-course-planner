@@ -31,9 +31,15 @@ import {
 
 // A stand in for the overlay: the panel element the shortcuts bind to, a filter field
 // under the catalog's id, and the kinds of control a press can start from.
-function Panel({ withFilter = true }: { withFilter?: boolean }) {
+function Panel({
+  withFilter = true,
+  onHelp = () => undefined,
+}: {
+  withFilter?: boolean;
+  onHelp?: () => void;
+}) {
   const ref = useRef<HTMLDivElement>(null);
-  usePanelShortcuts(ref, { enabled: true });
+  usePanelShortcuts(ref, { enabled: true, onHelp });
   return (
     <div ref={ref} data-testid="panel" tabIndex={-1}>
       <button type="button">plain control</button>
@@ -252,6 +258,24 @@ describe('usePanelShortcuts', () => {
     expect(planStore.getState().pendingUndo).not.toBeNull();
     expect(document.activeElement).not.toBe(screen.getByLabelText('filter'));
     release();
+  });
+
+  it('opens the help on the question mark outside a field', () => {
+    const onHelp = vi.fn();
+    render(<Panel onHelp={onHelp} />);
+    const control = screen.getByRole('button', { name: 'plain control' });
+    expect(press(control, { key: '?', code: 'Slash', shiftKey: true })).toBe(
+      false,
+    );
+    expect(onHelp).toHaveBeenCalledOnce();
+    for (const label of ['name', 'note', 'filter']) {
+      press(screen.getByLabelText(label), {
+        key: '?',
+        code: 'Slash',
+        shiftKey: true,
+      });
+    }
+    expect(onHelp).toHaveBeenCalledOnce();
   });
 
   it('ignores a press while an input method is composing', () => {

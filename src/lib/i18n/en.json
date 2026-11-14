@@ -508,5 +508,13 @@
   "entryToast.route": "Open this search in Planner to place its sections on a timetable.",
   "entryToast.route.action": "Open in Planner",
   "entryToast.optOut": "Do not show again",
-  "entryToast.close": "Dismiss this message"
+  "entryToast.close": "Dismiss this message",
+  "shortcuts.title": "Keyboard shortcuts",
+  "shortcuts.close": "Close keyboard shortcuts",
+  "shortcuts.filter": "Go to the results filter",
+  "shortcuts.undo": "Undo the last change to the plan while its undo message shows",
+  "shortcuts.help": "Show this list",
+  "shortcuts.escape": "Close the open window, or the panel",
+  "shortcuts.or": "or",
+  "shortcuts.note": "Shortcuts do not apply while you type in a field."
 }
