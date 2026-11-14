@@ -102,7 +102,7 @@ export interface WeeklyGridProps {
    * renders into an export template (preview), never in edit mode (ADR-0042). */
   dayAccent?: boolean;
   /** Landscape (days as rows) or portrait (days as columns). Portrait renders the export
-   * templates that ask for it and the edit day view. */
+   * templates that ask for it and the narrow edit timetable, its day view and its week. */
   orientation?: Orientation;
   /** The grid root font size in CSS pixels; every grid text node scales from it. Edit
    * passes the step for the measured scroller width, and a template passes its own

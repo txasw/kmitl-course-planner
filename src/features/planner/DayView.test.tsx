@@ -6,6 +6,7 @@ import {
   fireEvent,
   cleanup,
   act,
+  within,
 } from '@testing-library/react';
 import { planStore } from '@/features/plans/planStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
@@ -38,6 +39,7 @@ afterEach(() => {
   act(() => {
     planStore.setState({ entries: [] });
     uiStore.getState().setPlanView('timetable');
+    uiStore.getState().setTimetableView('day');
     dragStore.getState().clearActive();
     dragStore.getState().clearBlockMove();
   });
@@ -285,6 +287,85 @@ describe('DayView', () => {
     act(() => {
       vi.runOnlyPendingTimers();
     });
+  });
+});
+
+describe('Timetable layout toggle', () => {
+  function layout(name: string): HTMLElement {
+    return within(screen.getByRole('group', { name: 'รูปแบบตาราง' })).getByRole(
+      'button',
+      { name },
+    );
+  }
+
+  // The grid item that carries the grid coordinates wraps the labeled block button.
+  function blockItem(subjectId: string): HTMLElement {
+    const wrapper = block(subjectId)?.parentElement;
+    if (!(wrapper instanceof HTMLElement)) {
+      throw new Error('expected a grid item wrapper');
+    }
+    return wrapper;
+  }
+
+  it('opens on the day view with the day pressed below 640 px', () => {
+    installViewport(390);
+    seedPlan();
+    renderPanel();
+    expect(layout('รายวัน')).toHaveAttribute('aria-pressed', 'true');
+    expect(layout('รายสัปดาห์')).toHaveAttribute('aria-pressed', 'false');
+    expect(
+      screen.getByRole('radiogroup', { name: 'วันที่แสดง' }),
+    ).toBeVisible();
+  });
+
+  it('switches to the portrait week and back, remembering the choice', () => {
+    installViewport(390);
+    seedPlan();
+    renderPanel();
+    fireEvent.click(layout('รายสัปดาห์'));
+    expect(uiStore.getState().timetableView).toBe('week');
+    expect(screen.queryByRole('radiogroup')).toBeNull();
+    expect(
+      screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
+    ).toBeInTheDocument();
+    // Both days show at once, as day columns from Monday: Wednesday is column 4 and
+    // Friday column 6, with the time flowing down the rows.
+    expect(blockItem('90000001').style.gridColumn).toBe('4');
+    expect(blockItem('90000002').style.gridColumn).toBe('6');
+    expect(blockItem('90000001').style.gridRow).toContain(' / ');
+    expect(layout('รายสัปดาห์')).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.click(layout('รายวัน'));
+    expect(uiStore.getState().timetableView).toBe('day');
+    expect(
+      screen.getByRole('radiogroup', { name: 'วันที่แสดง' }),
+    ).toBeVisible();
+    expect(block('90000002')).toBeNull();
+  });
+
+  it('opens on a remembered week', () => {
+    act(() => {
+      uiStore.getState().setTimetableView('week');
+    });
+    installViewport(390);
+    seedPlan();
+    renderPanel();
+    expect(screen.queryByRole('radiogroup')).toBeNull();
+    expect(block('90000001')).not.toBeNull();
+    expect(block('90000002')).not.toBeNull();
+  });
+
+  it('hides the toggle and shows the landscape week from 640 px', () => {
+    act(() => {
+      uiStore.getState().setTimetableView('week');
+    });
+    installViewport(1366);
+    seedPlan();
+    renderPanel();
+    expect(screen.queryByRole('group', { name: 'รูปแบบตาราง' })).toBeNull();
+    // Landscape puts the day on the row and the time on the columns.
+    expect(blockItem('90000001').style.gridColumn).toContain(' / ');
+    expect(blockItem('90000001').style.gridRow).toBe('4');
   });
 });
 

@@ -3,13 +3,13 @@ import type { PrefsRepository } from '@/lib/storage/prefs';
 import { uiStore } from './uiStore';
 
 // Hydrates the stored UI preferences, the language, the view mode, the poster
-// display options, the export template, the curriculum profile, and the suggestion
-// options, on mount, then persists explicit changes to any of them. They live under
-// one storage key, so a single hook writes the whole preferences object on any change
-// rather than several hooks clobbering each other's field. The subscription attaches
-// only after hydration, so a hydrated value is not written straight back, and a
-// change made during the async read is respected rather than overwritten by the
-// stored value.
+// display options, the export template, the curriculum profile, the suggestion
+// options, and the narrow timetable view, on mount, then persists explicit changes
+// to any of them. They live under one storage key, so a single hook writes the whole
+// preferences object on any change rather than several hooks clobbering each other's
+// field. The subscription attaches only after hydration, so a hydrated value is not
+// written straight back, and a change made during the async read is respected rather
+// than overwritten by the stored value.
 export function usePrefsPersistence(repo: PrefsRepository): void {
   useEffect(() => {
     let cancelled = false;
@@ -21,6 +21,7 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
     const initialProfile = uiStore.getState().curriculumProfile;
     const initialObjective = uiStore.getState().suggestObjective;
     const initialPreference = uiStore.getState().suggestPreference;
+    const initialTimetableView = uiStore.getState().timetableView;
 
     void repo.load().then((stored) => {
       if (cancelled) return;
@@ -65,6 +66,12 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
         ) {
           state.setSuggestPreference(stored.suggestPreference);
         }
+        if (
+          stored.timetableView !== undefined &&
+          state.timetableView === initialTimetableView
+        ) {
+          state.setTimetableView(stored.timetableView);
+        }
       }
       unsubscribe = uiStore.subscribe((state, previous) => {
         if (
@@ -74,7 +81,8 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
           state.selectedTemplate !== previous.selectedTemplate ||
           state.curriculumProfile !== previous.curriculumProfile ||
           state.suggestObjective !== previous.suggestObjective ||
-          state.suggestPreference !== previous.suggestPreference
+          state.suggestPreference !== previous.suggestPreference ||
+          state.timetableView !== previous.timetableView
         ) {
           void repo.save({
             schemaVersion: 1,
@@ -91,6 +99,7 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
               : { curriculumProfile: state.curriculumProfile }),
             suggestObjective: state.suggestObjective,
             suggestPreference: state.suggestPreference,
+            timetableView: state.timetableView,
           });
         }
       });

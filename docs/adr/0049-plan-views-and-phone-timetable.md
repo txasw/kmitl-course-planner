@@ -51,8 +51,12 @@ the chips stay the accessible path. A day with no classes reads วันว่�
 name. A quiet รายวัน or รายสัปดาห์ (Day or Week) toggle, remembered in an optional preference field
 with no schema version bump, switches to the week, which renders the weekly grid in portrait
 using the smart visible days and the measured fit. At 640 px and up only the landscape week shows
-and the toggle is hidden. The day view ships first, and the week toggle arrives when the portrait
-grid carries its editable layers.
+and the toggle is hidden. The day view shipped first, and the week toggle followed once the
+portrait grid carried its editable layers: candidates, swap targets, the lifted origin and the
+ghosts place by the same track math, and stacked candidates fan down the time axis by the full
+step but across a day column by a narrow one, so a seven column phone week keeps each label
+legible. The week takes the edit frame's smart days, which already cover the placed meetings and
+every catalog meeting a course drag or block move can paint, so a drag never reflows it.
 
 This amends ADR-0043: portrait becomes an on screen orientation of the edit grid as well as an
 export template property. Template orientation still governs every export, and the pure minute to

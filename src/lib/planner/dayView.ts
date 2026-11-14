@@ -1,8 +1,9 @@
-// The narrow timetable of ADR-0049, which shows one day at a time. A grid scroller under
-// 640 px reads the plan day by day, and a row of day chips keeps the shape of the week in
-// view: Monday to Friday always, Saturday and Sunday only when a meeting falls on them,
-// each chip marked for a class day and for a time conflict. This module holds the pure
-// rules behind that view, so the chips, the swipe, and their tests share one source.
+// The narrow timetable of ADR-0049, which shows one day at a time unless the student picks
+// the portrait week. A grid scroller under 640 px reads the plan day by day, and a row of
+// day chips keeps the shape of the week in view: Monday to Friday always, Saturday and
+// Sunday only when a meeting falls on them, each chip marked for a class day and for a
+// time conflict. This module holds the pure rules behind that view, so the chips, the
+// swipe, and their tests share one source.
 
 import type { DayOfWeek } from '../parsing/days';
 import type { Meeting } from '../domain/types';
@@ -20,10 +21,11 @@ export type TimetableView = (typeof TIMETABLE_VIEWS)[number];
 export const DEFAULT_TIMETABLE_VIEW: TimetableView = 'day';
 
 /**
- * Whether a grid scroller of the given CSS pixel width shows one day at a time. The cut is
+ * Whether a grid scroller of the given CSS pixel width is narrow, so it shows the day view
+ * or, by the student's choice, the portrait week rather than the landscape week. The cut is
  * the compact tier edge, but it reads the measured scroller, so a docked catalog that
  * squeezes the grid counts too. Before the first measurement the width is zero, and the
- * layout tier stands in for it, so a phone never paints the week for one frame.
+ * layout tier stands in for it, so a phone never paints the landscape week for one frame.
  */
 export function isDayViewWidth(width: number, compactTier: boolean): boolean {
   if (width === 0) {
