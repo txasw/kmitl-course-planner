@@ -422,6 +422,7 @@
   "preview.downloadPng": "ดาวน์โหลดรูปภาพ",
   "preview.pngDownloaded": "ดาวน์โหลดรูปภาพแล้ว",
   "preview.exportFailed": "ส่งออกรูปภาพไม่สำเร็จ",
+  "preview.capturing": "กำลังสร้างรูปภาพ",
   "preview.copyImage": "คัดลอกรูปภาพ",
   "preview.imageCopied": "คัดลอกรูปภาพแล้ว",
   "preview.copyImageUnsupported": "เบราว์เซอร์นี้คัดลอกรูปภาพไม่ได้ ใช้ดาวน์โหลดแทน",
