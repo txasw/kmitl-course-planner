@@ -4,13 +4,20 @@
 // object so the shared empty filter is never mutated, and clearing the filters
 // leaves the sort as the student chose it. The three hide toggles are also stored
 // with the preferences, so they read back through selectHides and restore through
-// setHides in one update.
+// setHides in one update. The per term shortlist lives here too, apart from the
+// filter, and is stored with the preferences as well (ADR-0069).
 
 import { createStore } from 'zustand/vanilla';
 import { EMPTY_FILTER, type CatalogFilter } from '@/lib/catalog/filter';
 import type { CurriculumProfile } from '@/lib/catalog/curriculumProfile';
 import type { DayOfWeek } from '@/lib/domain/types';
 import type { CatalogHides } from '@/lib/storage/prefs';
+import type { Term } from '@/lib/routing/academicTerms';
+import {
+  EMPTY_SHORTLIST,
+  toggleShortlisted,
+  type Shortlist,
+} from '@/lib/catalog/shortlist';
 import {
   EMPTY_DISCLOSURE,
   withAllCards,
@@ -66,6 +73,12 @@ export interface CatalogStore {
     groupKey: string,
     collapsed: boolean,
   ) => void;
+  /** The saved courses per term, which a filter reset leaves alone. */
+  shortlist: Shortlist;
+  /** Saves the course for the term, or removes it when it is already saved. */
+  toggleShortlisted: (term: Term, subjectId: string) => void;
+  /** Replaces the whole shortlist, as restored from the preferences. */
+  setShortlist: (shortlist: Shortlist) => void;
 }
 
 /** The hide toggles of the current filter, in the shape the preferences store. */
@@ -153,6 +166,15 @@ export function createCatalogStore() {
       set((state) => ({
         groups: withGroupCollapsed(state.groups, queryKey, groupKey, collapsed),
       }));
+    },
+    shortlist: EMPTY_SHORTLIST,
+    toggleShortlisted: (term, subjectId) => {
+      set((state) => ({
+        shortlist: toggleShortlisted(state.shortlist, term, subjectId),
+      }));
+    },
+    setShortlist: (shortlist) => {
+      set({ shortlist });
     },
   }));
 }
