@@ -16,6 +16,7 @@ import {
 import { installViewport } from '../../../tests/support/viewport';
 import { searchStore } from '@/features/search/searchStore';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
+import { toastStore } from '@/features/shell/toastStore';
 import { planStore } from './planStore';
 import { PlanSwitcher } from './PlanSwitcher';
 
@@ -312,6 +313,46 @@ describe('PlanSwitcher', () => {
     expect(
       screen.getByRole('button', { name: 'ส่งออก JSON' }),
     ).toHaveTextContent('ส่งออก JSON');
+  });
+
+  it('copies the registration list of the active plan and closes the menu', async () => {
+    const writeText = vi.fn<(text: string) => Promise<void>>(() =>
+      Promise.resolve(),
+    );
+    // Only the clipboard is replaced, since the menu's floating-ui reads the platform.
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    });
+    act(() => {
+      planStore.getState().hydrate([makePlan({ id: 'a', name: 'A' })]);
+      planStore.getState().setActivePlan('a');
+    });
+    render(<PlanSwitcher />);
+    openMenu();
+    fireEvent.click(
+      screen.getByRole('button', { name: 'คัดลอกรายการลงทะเบียน' }),
+    );
+    expect(writeText).toHaveBeenCalledWith(
+      '90000001 วิชา (กลุ่มเรียน ทฤษฎี 901)',
+    );
+    expect(
+      screen.queryByRole('button', { name: 'สร้างตาราง' }),
+    ).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(toastStore.getState().toast?.message).toBe(
+        'คัดลอกรายการลงทะเบียนแล้ว',
+      );
+    });
+  });
+
+  it('offers no registration list copy for an empty plan', () => {
+    seedTwoPlans();
+    render(<PlanSwitcher />);
+    openMenu();
+    expect(
+      screen.queryByRole('button', { name: 'คัดลอกรายการลงทะเบียน' }),
+    ).not.toBeInTheDocument();
   });
 
   it('shows the per-row actions unless the device hovers with a fine pointer', () => {

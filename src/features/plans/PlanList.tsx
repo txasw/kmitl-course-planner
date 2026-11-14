@@ -1,12 +1,13 @@
 // The list view of the plan switcher menu: the create button, the saved plans grouped
-// by term with their per row actions, and the JSON import and export row. Each row
-// states its credits and subjects, counted as the stats bar counts them, so plans of
-// one term can be told apart before switching. It owns no state; the switcher decides
-// what each action does.
+// by term with their per row actions, and the data row: JSON import and export and the
+// registration list copy. Each plan row states its credits and subjects, counted as the
+// stats bar counts them, so plans of one term can be told apart before switching. It
+// owns no state; the switcher decides what each action does.
 
 import { useId, useMemo } from 'react';
 import {
   Check,
+  ClipboardCopy,
   Copy,
   Download,
   Pencil,
@@ -73,6 +74,8 @@ export interface PlanListProps {
   onImport: () => void;
   /** Null when there is no active plan to export. */
   onExport: (() => void) | null;
+  /** Null when the active plan has no entry to list for registration. */
+  onCopyRegistration: (() => void) | null;
 }
 
 export function PlanList({
@@ -86,6 +89,7 @@ export function PlanList({
   onDelete,
   onImport,
   onExport,
+  onCopyRegistration,
 }: PlanListProps) {
   const { t } = useTranslation();
   const groups = useMemo(() => groupByTerm(plans), [plans]);
@@ -187,7 +191,7 @@ export function PlanList({
           </div>
         ))
       )}
-      <div className="mt-1 flex items-center gap-1 border-t border-border pt-1">
+      <div className="mt-1 flex flex-wrap items-center gap-1 border-t border-border pt-1">
         <ActionButton
           icon={<Upload size={14} strokeWidth={2} aria-hidden />}
           label={t('planData.import')}
@@ -198,6 +202,13 @@ export function PlanList({
             icon={<Download size={14} strokeWidth={2} aria-hidden />}
             label={t('planData.export')}
             onClick={onExport}
+          />
+        ) : null}
+        {onCopyRegistration !== null ? (
+          <ActionButton
+            icon={<ClipboardCopy size={14} strokeWidth={2} aria-hidden />}
+            label={t('registration.copy')}
+            onClick={onCopyRegistration}
           />
         ) : null}
       </div>
