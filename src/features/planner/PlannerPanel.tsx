@@ -423,6 +423,7 @@ export function PlannerPanel() {
           conflictCount={honesty.conflictPairCount}
           onShowConflict={handleShowConflict}
           status={<VerificationStatus />}
+          locale={language}
           t={t}
         />
       ) : null}

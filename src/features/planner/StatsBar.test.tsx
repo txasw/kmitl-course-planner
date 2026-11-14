@@ -54,6 +54,7 @@ function renderBar(
       semester={semester}
       conflictCount={conflictCount}
       onShowConflict={onShowConflict}
+      locale="th"
       t={t}
     />,
   );
@@ -97,7 +98,7 @@ describe('StatsBar', () => {
     renderBar([scheduled]);
     expect(screen.getByText('จ')).toHaveAttribute('aria-hidden', 'true');
     expect(screen.getByText('วันจันทร์')).toHaveClass('sr-only');
-    expect(screen.getByText('จ').parentElement).toHaveTextContent(/3ชม\.$/);
+    expect(screen.getByText('จ').parentElement).toHaveTextContent(/ 3 ชม\.$/);
   });
 
   it('counts the sections with no meeting only when there are some', () => {
@@ -139,9 +140,11 @@ describe('StatsBar', () => {
         semester={null}
         conflictCount={0}
         onShowConflict={vi.fn()}
+        locale="en"
         t={createTranslator('en')}
       />,
     );
+    expect(screen.getByText('Mon').parentElement).toHaveTextContent(/ 3h$/);
     expect(screen.getByText('Free days Tue Wed Thu Fri')).toBeInTheDocument();
     expect(
       screen.getByText('Free days Tuesday Wednesday Thursday Friday'),
@@ -212,6 +215,7 @@ describe('StatsBar', () => {
           semester="1"
           conflictCount={0}
           onShowConflict={vi.fn()}
+          locale="en"
           t={createTranslator('en')}
         />,
       );

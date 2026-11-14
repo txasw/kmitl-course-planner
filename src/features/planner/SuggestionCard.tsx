@@ -18,7 +18,8 @@ import { Maximize2 } from 'lucide-react';
 import { Tooltip } from '@/components/Tooltip';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
-import { formatHours, formatMinutes } from '@/lib/parsing/time';
+import { formatMinutes } from '@/lib/parsing/time';
+import { hoursText } from '@/lib/i18n/hours';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
 import type { LeftOutCourse, Suggestion } from '@/lib/planner/suggest';
 import type { LeftOutReason } from '@/lib/planner/suggestReasons';
@@ -176,10 +177,7 @@ export function SuggestionCard({
     ['suggest.stats.days', String(stats.days)],
     ['suggest.stats.earliest', clock(stats.earliestStartMin, t)],
     ['suggest.stats.latest', clock(stats.latestEndMin, t)],
-    [
-      'suggest.stats.idle',
-      `${formatHours(stats.idleMinutes)} ${t('footer.hourUnit')}`,
-    ],
+    ['suggest.stats.idle', hoursText(stats.idleMinutes, locale, t)],
   ];
   const expandLabel = t('suggest.expand');
 
