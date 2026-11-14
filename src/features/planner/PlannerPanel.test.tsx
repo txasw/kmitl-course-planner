@@ -199,6 +199,26 @@ describe('PlannerPanel plan views', () => {
     expect(screen.queryByRole('list', { name: 'วิชาที่เลือก' })).toBeNull();
   });
 
+  // The template dots close the gallery, so the toolbar's place is read against them.
+  it.each([
+    [1366, 'heads the poster from 640 px up', true],
+    [390, 'follows the poster at the panel foot on a phone', false],
+  ])('at %i px the preview toolbar %s', (width, _label, toolbarFirst) => {
+    installViewport(width);
+    seedTwoSubjects();
+    act(() => {
+      uiStore.getState().setViewMode('preview');
+    });
+    renderPanel();
+    const toolbar = screen.getByRole('toolbar');
+    const gallery = screen.getByRole('radiogroup');
+    const following = Boolean(
+      toolbar.compareDocumentPosition(gallery) &
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(following).toBe(toolbarFirst);
+  });
+
   it('switches the region to the summary with the exam schedule, then the workload', () => {
     installViewport(1366);
     seedTwoSubjects();

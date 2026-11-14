@@ -15,9 +15,11 @@
 // a screen reader announces a toast in the voice of the language it is written in. It
 // keeps its 16 px offset from the viewport edges, or the device safe area inset where
 // that is larger, so a toast never sits under the home indicator or a rounded corner.
-// While the phone layout's bottom nav runs along the open panel's foot, the region rises
-// 72 px above the bottom inset, clear of the 56 px nav, so a toast never covers the item
-// its own action, such as ดูตาราง, leads to.
+// While the phone layout's controls run along the open panel's foot, the bottom nav in
+// edit or the sharing toolbar in preview, the region rises 72 px above the bottom inset,
+// clear of the 56 px nav and of the toolbar's 44 px action row inside the 16 px panel
+// padding, so a toast never covers the item its own action, such as ดูตาราง, leads to,
+// nor the share action a share toast offers again.
 
 import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { useStore } from 'zustand';
@@ -27,7 +29,7 @@ import type { Translate } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { toastStore, type Toast } from './toastStore';
-import { useBottomNavShown } from './mobilePane';
+import { useFootControlsShown } from './mobilePane';
 import { useHoverFocusHold, type HoldHandlers } from './useHoverFocusHold';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
@@ -134,7 +136,7 @@ export function Toaster() {
   const pendingUndo = useStore(planStore, (state) => state.pendingUndo);
   const isOpen = useStore(uiStore, (state) => state.isOpen);
   const { t, language } = useTranslation();
-  const aboveNav = useBottomNavShown() && isOpen;
+  const aboveFoot = useFootControlsShown() && isOpen;
 
   // The undo toast owns the region while the panel is open; an ordinary toast waits.
   const showUndo = pendingUndo !== null && isOpen;
@@ -188,7 +190,7 @@ export function Toaster() {
       aria-atomic="true"
       lang={language}
       className={`pointer-events-none fixed inset-x-0 z-host flex justify-center pr-[max(16px,var(--kcp-safe-right))] pl-[max(16px,var(--kcp-safe-left))] ${
-        aboveNav
+        aboveFoot
           ? 'bottom-[calc(72px+var(--kcp-safe-bottom))]'
           : 'bottom-[max(16px,var(--kcp-safe-bottom))]'
       }`}
