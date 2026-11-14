@@ -69,8 +69,7 @@ function errorName(error: unknown): string {
     return error.name;
   }
   if (typeof error === 'object' && error !== null && 'name' in error) {
-    const name = (error as Record<string, unknown>).name;
-    return typeof name === 'string' ? name : '';
+    return typeof error.name === 'string' ? error.name : '';
   }
   return '';
 }
@@ -97,10 +96,10 @@ function extractFieldErrors(
   } catch {
     return undefined;
   }
-  if (typeof parsed !== 'object' || parsed === null) {
+  if (typeof parsed !== 'object' || parsed === null || !('message' in parsed)) {
     return undefined;
   }
-  const message = (parsed as Record<string, unknown>).message;
+  const message = parsed.message;
   if (typeof message !== 'object' || message === null) {
     return undefined;
   }

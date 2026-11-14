@@ -60,6 +60,17 @@ interface Loaded<T> {
   fetchedAt: number;
 }
 
+/** Narrow an untyped loaded value through a schema, keeping its fetch time. */
+function narrowLoaded<T>(
+  schema: z.ZodType<T>,
+  loaded: Loaded<unknown>,
+): Result<Loaded<T>> {
+  const validated = validate(schema, loaded.value);
+  return validated.ok
+    ? ok({ value: validated.value, fetchedAt: loaded.fetchedAt })
+    : validated;
+}
+
 interface LogMetrics {
   cacheHit: boolean;
   status: number | null;
@@ -171,15 +182,14 @@ export function createGateway(deps: GatewayDeps): Gateway {
           timings: NO_TIMINGS,
           validateMs: 0,
         });
-        // A memory hit was validated before it was cached, so it is trusted. A
-        // storage hit crosses a trust boundary and is re-validated.
-        const value =
-          hit.source === 'memory'
-            ? ok(hit.value as T)
-            : validate(schema, hit.value);
-        return value.ok
-          ? ok({ value: value.value, fetchedAt: hit.fetchedAt })
-          : value;
+        // The cache holds untyped values, so a hit from either tier is narrowed
+        // through the schema again. A storage hit crosses a trust boundary; a memory
+        // hit was validated before it was cached, and re-checking it costs a few
+        // milliseconds on the largest payload rather than an unchecked assertion.
+        return narrowLoaded(schema, {
+          value: hit.value,
+          fetchedAt: hit.fetchedAt,
+        });
       }
     }
     const start = env.now();
@@ -236,7 +246,12 @@ export function createGateway(deps: GatewayDeps): Gateway {
   ): Promise<Result<Loaded<T>>> {
     const existing = inFlight.get(cacheKey);
     if (existing) {
-      return existing.then((shared) => shared as Result<Loaded<T>>);
+      // One map holds the slots of every endpoint, so it types the value as
+      // unknown and a joining caller narrows it through its own schema. Only the
+      // rare concurrent duplicate pays for that second check.
+      return existing.then((shared) =>
+        shared.ok ? narrowLoaded(schema, shared.value) : shared,
+      );
     }
     // One abort controller per in flight request, keyed like the coalescing map, so
     // a cancel can abort the shared request every coalesced caller is waiting on.

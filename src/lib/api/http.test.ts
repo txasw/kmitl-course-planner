@@ -104,6 +104,38 @@ describe('fetchJson', () => {
     }
   });
 
+  it.each([
+    ['an empty body', ''],
+    ['plain text', 'bad request'],
+    ['a JSON null', 'null'],
+    ['a JSON array', '[1]'],
+    ['an object with no message', '{"code":400}'],
+    ['a string message', '{"message":"bad"}'],
+    ['a message with no string lists', '{"message":{"a":[1],"b":"c"}}'],
+  ])('leaves the fields absent for %s', async (_label, body) => {
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response(body, { status: 400 }));
+    const outcome = await fetchJson('https://x', makeEnv(fetchImpl));
+    if (!outcome.result.ok && outcome.result.error.kind === 'http') {
+      expect(outcome.result.error).not.toHaveProperty('fields');
+    } else {
+      expect.unreachable('expected an http error');
+    }
+  });
+
+  it('maps a thrown non Error abort object to a timeout error', async () => {
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockRejectedValue({ name: 'AbortError' });
+    const outcome = await fetchJson('https://x', makeEnv(fetchImpl));
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(outcome.result).toMatchObject({
+      ok: false,
+      error: { kind: 'timeout' },
+    });
+  });
+
   it('retries a network failure and surfaces a network error', async () => {
     const fetchImpl = vi
       .fn<typeof fetch>()
