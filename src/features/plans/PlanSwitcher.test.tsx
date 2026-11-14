@@ -8,7 +8,10 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import { makePlan } from '../../../tests/support/domain-builders';
+import {
+  makePlan,
+  makePlanEntry,
+} from '../../../tests/support/domain-builders';
 import { installViewport } from '../../../tests/support/viewport';
 import { searchStore } from '@/features/search/searchStore';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
@@ -349,6 +352,41 @@ describe('PlanSwitcher', () => {
     fireEvent.click(screen.getByRole('button', { name: 'ลบ A' }));
     fireEvent.click(screen.getByRole('button', { name: 'ลบ' }));
     expect(planStore.getState().plans).toHaveLength(0);
+  });
+
+  it('states the section count and that a delete cannot be undone', () => {
+    act(() => {
+      planStore.getState().hydrate([
+        makePlan({
+          id: 'a',
+          name: 'A',
+          entries: [
+            makePlanEntry({ teachTableId: '1', section: '101' }),
+            makePlanEntry({ teachTableId: '2', section: '102' }),
+          ],
+        }),
+        makePlan({ id: 'b', name: 'B', entries: [makePlanEntry()] }),
+        makePlan({ id: 'c', name: 'C', entries: [] }),
+      ]);
+    });
+    render(<PlanSwitcher />);
+    openMenu();
+    fireEvent.click(screen.getByRole('button', { name: 'ลบ A' }));
+    expect(
+      screen.getByText('ลบตาราง "A" ที่มี 2 กลุ่มเรียน การลบนี้ย้อนกลับไม่ได้'),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'ยกเลิก' }));
+    fireEvent.click(screen.getByRole('button', { name: 'ลบ B' }));
+    expect(
+      screen.getByText('ลบตาราง "B" ที่มี 1 กลุ่มเรียน การลบนี้ย้อนกลับไม่ได้'),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'ยกเลิก' }));
+    fireEvent.click(screen.getByRole('button', { name: 'ลบ C' }));
+    expect(
+      screen.getByText(
+        'ลบตาราง "C" ซึ่งยังไม่มีกลุ่มเรียน การลบนี้ย้อนกลับไม่ได้',
+      ),
+    ).toBeInTheDocument();
   });
 
   it('lists the invalid fields of a tampered import and commits nothing', async () => {

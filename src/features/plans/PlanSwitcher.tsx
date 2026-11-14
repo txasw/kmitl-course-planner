@@ -207,6 +207,11 @@ export function PlanSwitcher() {
     toastStore.getState().show('success', t('planData.imported'));
   };
 
+  const deleteTarget =
+    mode.kind === 'confirmDelete'
+      ? plans.find((plan) => plan.id === mode.planId)
+      : undefined;
+
   const triggerLabel =
     activePlan === null ? t('planSwitcher.noPlan') : activePlan.name;
 
@@ -262,7 +267,8 @@ export function PlanSwitcher() {
       />
     ) : mode.kind === 'confirmDelete' ? (
       <DeleteConfirm
-        planName={plans.find((plan) => plan.id === mode.planId)?.name ?? ''}
+        planName={deleteTarget?.name ?? ''}
+        sectionCount={deleteTarget?.entries.length ?? 0}
         onCancel={() => {
           setMode({ kind: 'list' });
         }}
