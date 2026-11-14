@@ -105,6 +105,42 @@ describe('createGateway', () => {
     expect(first.ok).toBe(true);
   });
 
+  it('narrows a coalesced value through the joining caller schema', async () => {
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(okResponse([{ id: 'a' }]));
+    const gateway = createGateway({
+      cache: newCache(),
+      env: makeEnv(fetchImpl),
+    });
+    // Same cache key, stricter schema: the joiner must not receive the value the
+    // first caller's schema accepted without checking it against its own.
+    const strictEndpoint: ReferenceEndpoint<{ id: 'b' }[]> = {
+      ...probeEndpoint,
+      schema: z.array(z.object({ id: z.literal('b') })),
+    };
+    const [first, second] = await Promise.all([
+      gateway.reference(probeEndpoint),
+      gateway.reference(strictEndpoint),
+    ]);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(first).toEqual({ ok: true, value: [{ id: 'a' }] });
+    expect(second).toMatchObject({ ok: false, error: { kind: 'validation' } });
+  });
+
+  it('narrows a memory cache hit through the schema', async () => {
+    const fetchImpl = vi.fn<typeof fetch>();
+    const cache = newCache();
+    await cache.set(probeEndpoint.cacheKey, [{ id: 1 }], {
+      fetchedAt: 0,
+      expiresAt: 1000,
+    });
+    const gateway = createGateway({ cache, env: makeEnv(fetchImpl) });
+    const result = await gateway.reference(probeEndpoint);
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ ok: false, error: { kind: 'validation' } });
+  });
+
   it('serves the second call from cache without refetching', async () => {
     const fetchImpl = vi
       .fn<typeof fetch>()
