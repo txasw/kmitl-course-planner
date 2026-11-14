@@ -74,6 +74,43 @@ test('exports each template at its exact pixel dimensions', async ({
   }
 });
 
+test('exports exact template pixels whatever the display scale', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await categorySearch(page);
+  await page
+    .getByRole('button', { name: /^เพิ่ม/ })
+    .first()
+    .click();
+  await page.getByRole('button', { name: 'ดูตัวอย่าง' }).click();
+  await page.getByRole('radio', { name: /แชร์ 16:9/ }).click();
+
+  // A large screen scales the poster past its 960 px layout box on the stage, and a small
+  // one scales it down; the export reads the poster's own box, so both land 1920 by 1080.
+  const frame = page.locator('[data-poster-frame]');
+  for (const viewport of [
+    { width: 2560, height: 1440, scaledUp: true },
+    { width: 1280, height: 720, scaledUp: false },
+  ]) {
+    await page.setViewportSize({
+      width: viewport.width,
+      height: viewport.height,
+    });
+    await expect
+      .poll(async () => {
+        const box = await frame.boundingBox();
+        return box !== null && box.width > 960;
+      })
+      .toBe(viewport.scaledUp);
+    expect(pngSize(await downloadPng(page))).toEqual({
+      width: 1920,
+      height: 1080,
+    });
+  }
+});
+
 test('keeps verification badges out of the poster and states the data date', async ({
   context,
   mock,
