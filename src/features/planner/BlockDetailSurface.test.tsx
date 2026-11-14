@@ -28,6 +28,8 @@ import { revalidationStore } from '@/features/plans/revalidationStore';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { installViewport } from '../../../tests/support/viewport';
 import { uiStore } from '@/features/shell/uiStore';
+import { parseTeachTableRoute } from '@/lib/routing/parseTeachTableRoute';
+import { REGIS_ORIGIN } from '@/lib/shell/hostTab';
 import { BlockDetailSurface } from './BlockDetailSurface';
 
 const t = createTranslator('en');
@@ -415,6 +417,60 @@ describe('BlockDetailSurface on a fine pointer from 640 px', () => {
     expect(outer).not.toHaveBeenCalled();
   });
 
+  it('links the subject to its official listing in a new tab', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry()]);
+    });
+    renderPopover();
+    const link = screen.getByRole('link', {
+      name: 'View in the official timetable (opens in a new tab)',
+    });
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(link).not.toHaveClass('min-h-11');
+    const url = new URL(link.getAttribute('href') ?? '');
+    expect(url.origin).toBe(REGIS_ORIGIN);
+    // The term comes from the query the entry was added from, so the listing is the
+    // same term the plan holds even though that query searched by class.
+    expect(parseTeachTableRoute(url.hash)?.params).toEqual({
+      mode: 'by_subject_id',
+      selected_year: '2569',
+      selected_semester: '1',
+      search_all_faculty: 'true',
+      search_all_department: 'true',
+      search_all_curriculum: 'true',
+      search_all_class_year: 'true',
+      selected_subject_id: '90000001',
+    });
+  });
+
+  it('names the listing link in Thai', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry()]);
+    });
+    renderPopover({ locale: 'th' });
+    expect(
+      screen.getByRole('link', {
+        name: 'ดูในตารางสอนของสำนักทะเบียน (เปิดในแท็บใหม่)',
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('omits the listing link when the source query carries no term', () => {
+    act(() => {
+      seedActivePlan([
+        makePlanEntry({
+          sourceQuery: {
+            endpoint: 'get-teach-table-show',
+            params: { mode: 'by_class' },
+          },
+        }),
+      ]);
+    });
+    renderPopover();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
   it('closes when the entry leaves the plan', () => {
     act(() => {
       seedActivePlan([makePlanEntry()]);
@@ -462,6 +518,18 @@ describe('BlockDetailSurface below 640 px', () => {
     fireEvent.click(remove);
     expect(onRemove).toHaveBeenCalledWith('t1');
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('sizes the listing link as a touch target in the sheet', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry()]);
+    });
+    renderPopover();
+    expect(
+      screen.getByRole('link', {
+        name: 'View in the official timetable (opens in a new tab)',
+      }),
+    ).toHaveClass('min-h-11');
   });
 
   it('closes on Escape without the press reaching the overlay', () => {

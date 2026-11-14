@@ -298,6 +298,8 @@
   "block.acknowledge": "รับทราบ",
   "block.removeFromPlan": "นำออกจากตาราง",
   "block.menu": "ตัวเลือกบล็อก",
+  "block.officialListing": "ดูในตารางสอนของสำนักทะเบียน",
+  "block.opensNewTab": "(เปิดในแท็บใหม่)",
   "exam.midterm": "สอบกลางภาค",
   "exam.final": "สอบปลายภาค",
   "exam.selfArranged": "จัดสอบเอง",
