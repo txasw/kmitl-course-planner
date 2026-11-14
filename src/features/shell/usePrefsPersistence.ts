@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import type { Prefs, PrefsRepository } from '@/lib/storage/prefs';
+import { hasShortlist, rebaseShortlist } from '@/lib/catalog/shortlist';
 import {
   catalogStore,
   sameHides,
@@ -10,6 +11,7 @@ import { uiStore } from './uiStore';
 /** The whole preferences object as the two stores hold it now. */
 function currentPrefs(): Prefs {
   const state = uiStore.getState();
+  const catalog = catalogStore.getState();
   return {
     schemaVersion: 1,
     language: state.language,
@@ -26,18 +28,23 @@ function currentPrefs(): Prefs {
     suggestObjective: state.suggestObjective,
     suggestPreference: state.suggestPreference,
     timetableView: state.timetableView,
-    catalogHides: selectHides(catalogStore.getState()),
+    catalogHides: selectHides(catalog),
+    // An empty shortlist stays unsaved, so removing the last saved course drops the
+    // field rather than storing an empty map.
+    ...(hasShortlist(catalog.shortlist)
+      ? { shortlist: catalog.shortlist }
+      : {}),
   };
 }
 
 // Hydrates the stored UI preferences, the language, the view mode, the poster
 // display options, the export template, the curriculum profile, the suggestion
-// options, the narrow timetable view, and the catalog hide toggles, on mount, then
-// persists explicit changes to any of them. They live under one storage key, so a
-// single hook writes the whole preferences object on any change rather than several
-// hooks clobbering each other's field. The subscriptions attach only after hydration,
-// so a hydrated value is not written straight back, and a change made during the
-// async read is respected rather than overwritten by the stored value.
+// options, the narrow timetable view, the catalog hide toggles, and the per term
+// shortlist, on mount, then persists explicit changes to any of them. They live under
+// one storage key, so a single hook writes the whole preferences object on any change
+// rather than several hooks clobbering each other's field. The subscriptions attach
+// only after hydration, so a hydrated value is not written straight back, and a change
+// made during the async read is respected rather than overwritten by the stored value.
 export function usePrefsPersistence(repo: PrefsRepository): void {
   useEffect(() => {
     let cancelled = false;
@@ -51,9 +58,11 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
     const initialPreference = uiStore.getState().suggestPreference;
     const initialTimetableView = uiStore.getState().timetableView;
     const initialHides = selectHides(catalogStore.getState());
+    const initialShortlist = catalogStore.getState().shortlist;
 
     void repo.load().then((stored) => {
       if (cancelled) return;
+      let rebased = false;
       if (stored) {
         const state = uiStore.getState();
         if (state.language === initialLanguage) {
@@ -108,6 +117,22 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
         ) {
           catalog.setHides(stored.catalogHides);
         }
+        // The shortlist is a collection, so a course saved during the read joins the
+        // stored ones rather than replacing them, and the joined map is written back.
+        if (stored.shortlist !== undefined) {
+          if (catalog.shortlist === initialShortlist) {
+            catalog.setShortlist(stored.shortlist);
+          } else {
+            catalog.setShortlist(
+              rebaseShortlist(
+                stored.shortlist,
+                initialShortlist,
+                catalog.shortlist,
+              ),
+            );
+            rebased = true;
+          }
+        }
       }
       const save = () => {
         void repo.save(currentPrefs());
@@ -128,11 +153,15 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
           }
         }),
         catalogStore.subscribe((state, previous) => {
-          if (!sameHides(selectHides(state), selectHides(previous))) {
+          if (
+            !sameHides(selectHides(state), selectHides(previous)) ||
+            state.shortlist !== previous.shortlist
+          ) {
             save();
           }
         }),
       );
+      if (rebased) save();
     });
 
     return () => {
