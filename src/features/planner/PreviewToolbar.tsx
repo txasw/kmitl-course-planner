@@ -1,4 +1,4 @@
-// The preview sharing toolbar. It is rendered only in preview mode and sits above
+// The preview sharing toolbar. It is rendered only in preview mode and sits outside
 // the poster capture node, so its controls never appear in an exported image. It
 // carries the display options popover and the sharing actions: share the poster
 // image through the native share sheet, copy it, download it, and copy the plan as
@@ -14,20 +14,25 @@
 // follows the toolbar, both outside the capture node, when the plan holds entries to
 // review before sharing.
 //
+// Below 640 px the panel renders the toolbar under the poster, along the panel foot in the
+// thumb zone, and the actions become one row of icon buttons named by their aria-labels,
+// since five labelled buttons do not fit a phone width. The verification status and any
+// copy image note move to their own lines above that row, and the pre share notice
+// precedes the toolbar there, so the actions stay nearest the edge.
+//
 // An image capture takes a moment on a large template, so while one runs the toolbar is
 // busy: the action that started it reads as creating the image with a spinner, and every
 // sharing action is marked disabled and ignores presses, so a second press cannot start a
-// parallel capture. The actions use aria-disabled rather than disabled so the focused
-// button keeps focus through the capture. The capture and its delivery live in
-// useImageActions.
+// parallel capture. The capture and its delivery live in useImageActions.
 
-import { type ReactNode, type RefObject } from 'react';
+import type { RefObject } from 'react';
 import {
   Clipboard,
   ClipboardCopy,
   Download,
   LoaderCircle,
   Share2,
+  type LucideIcon,
 } from 'lucide-react';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
 import type { ExamSchedule } from '@/lib/planner/examSchedule';
@@ -37,9 +42,11 @@ import type { ExportTemplate } from '@/lib/planner/exportTemplates';
 import { useActivePlan } from '@/features/plans/planStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { toastStore } from '@/features/shell/toastStore';
+import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { DisplayOptionsPopover } from './DisplayOptionsPopover';
 import { examScheduleLines } from './examScheduleLines';
 import { PreShareNotice } from './PreShareNotice';
+import { PreviewToolbarAction, toolbarIconSize } from './PreviewToolbarAction';
 import { canShareImage } from './imageShare';
 import {
   SHARE_IMAGE_ID,
@@ -49,8 +56,6 @@ import {
 } from './useImageActions';
 import { VerificationStatus } from './VerificationStatus';
 import type { PlacedSection } from './placedSection';
-import { FOCUS_RING } from '@/lib/ui/focus';
-import { TARGET_SIZE } from '@/lib/ui/target';
 
 interface PreviewToolbarProps {
   /** The poster node captured by the image actions. */
@@ -65,8 +70,6 @@ interface PreviewToolbarProps {
   examSchedule: ExamSchedule;
 }
 
-const BUTTON = `inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm text-ink hover:bg-surface-alt aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-transparent ${TARGET_SIZE} ${FOCUS_RING}`;
-
 export function PreviewToolbar({
   posterRef,
   template,
@@ -76,6 +79,12 @@ export function PreviewToolbar({
 }: PreviewToolbarProps) {
   const { t, language } = useTranslation();
   const activePlan = useActivePlan();
+  const compact = useLayoutTier() === 'compact';
+  const iconProps = {
+    size: toolbarIconSize(compact),
+    strokeWidth: 2,
+    'aria-hidden': true,
+  } as const;
 
   const base =
     activePlan === null ? 'kmitl-plan' : planExportBaseName(activePlan);
@@ -88,25 +97,34 @@ export function PreviewToolbar({
   );
   const busy = capturing !== null;
 
-  // The label of an image action: its own while idle, creating the image while its capture
+  // An image action reads as itself while idle and as creating the image while its capture
   // runs, so the busy state names what is happening where the student pressed.
-  const actionLabel = (action: ImageAction, icon: ReactNode, label: string) =>
-    capturing === action ? (
-      <>
-        <LoaderCircle
-          size={16}
-          strokeWidth={2}
-          aria-hidden
-          className="animate-spin motion-reduce:animate-none"
-        />
-        {t('preview.capturing')}
-      </>
-    ) : (
-      <>
-        {icon}
-        {label}
-      </>
+  const imageAction = (
+    action: ImageAction,
+    icon: LucideIcon,
+    label: string,
+    onClick: () => void,
+  ) => {
+    const running = capturing === action;
+    const Icon = running ? LoaderCircle : icon;
+    return (
+      <PreviewToolbarAction
+        icon={
+          <Icon
+            {...iconProps}
+            className={
+              running ? 'animate-spin motion-reduce:animate-none' : undefined
+            }
+          />
+        }
+        label={running ? t('preview.capturing') : label}
+        compact={compact}
+        busy={busy}
+        onClick={onClick}
+        {...(action === 'share' ? { id: SHARE_IMAGE_ID } : {})}
+      />
     );
+  };
 
   const handleCopyText = () => {
     if (busy) {
@@ -132,69 +150,63 @@ export function PreviewToolbar({
     );
   };
 
+  const shareAction = canShareImage()
+    ? imageAction('share', Share2, t('preview.shareImage'), share)
+    : null;
+  const copyImageAction = canCopyImage()
+    ? imageAction('copyImage', Clipboard, t('preview.copyImage'), copyImage)
+    : null;
+  const copyImageNote =
+    copyImageAction === null ? (
+      <span className="text-xs text-ink-soft">
+        {t('preview.copyImageUnsupported')}
+      </span>
+    ) : null;
+  const actions = (
+    <>
+      <DisplayOptionsPopover />
+      {shareAction}
+      {copyImageAction ?? (compact ? null : copyImageNote)}
+      {imageAction('download', Download, t('preview.downloadPng'), download)}
+      <PreviewToolbarAction
+        icon={<ClipboardCopy {...iconProps} />}
+        label={t('preview.copyText')}
+        compact={compact}
+        busy={busy}
+        onClick={handleCopyText}
+      />
+    </>
+  );
+  const toolbarProps = {
+    role: 'toolbar',
+    'aria-label': t('preview.toolbar'),
+    'aria-busy': busy,
+  } as const;
+
+  if (compact) {
+    return (
+      <>
+        <PreShareNotice />
+        <div {...toolbarProps} className="flex shrink-0 flex-col gap-2">
+          <span className="self-start text-xs empty:hidden">
+            <VerificationStatus />
+          </span>
+          {copyImageNote}
+          <div className="flex items-center justify-between gap-2">
+            {actions}
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <div
-        role="toolbar"
-        aria-label={t('preview.toolbar')}
-        aria-busy={busy}
+        {...toolbarProps}
         className="flex shrink-0 flex-wrap items-end gap-2"
       >
-        <DisplayOptionsPopover />
-        {canShareImage() ? (
-          <button
-            id={SHARE_IMAGE_ID}
-            type="button"
-            onClick={share}
-            aria-disabled={busy}
-            className={BUTTON}
-          >
-            {actionLabel(
-              'share',
-              <Share2 size={16} strokeWidth={2} aria-hidden />,
-              t('preview.shareImage'),
-            )}
-          </button>
-        ) : null}
-        {canCopyImage() ? (
-          <button
-            type="button"
-            onClick={copyImage}
-            aria-disabled={busy}
-            className={BUTTON}
-          >
-            {actionLabel(
-              'copyImage',
-              <Clipboard size={16} strokeWidth={2} aria-hidden />,
-              t('preview.copyImage'),
-            )}
-          </button>
-        ) : (
-          <span className="text-xs text-ink-soft">
-            {t('preview.copyImageUnsupported')}
-          </span>
-        )}
-        <button
-          type="button"
-          onClick={download}
-          aria-disabled={busy}
-          className={BUTTON}
-        >
-          {actionLabel(
-            'download',
-            <Download size={16} strokeWidth={2} aria-hidden />,
-            t('preview.downloadPng'),
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={handleCopyText}
-          aria-disabled={busy}
-          className={BUTTON}
-        >
-          <ClipboardCopy size={16} strokeWidth={2} aria-hidden />
-          {t('preview.copyText')}
-        </button>
+        {actions}
         <span className="ml-auto self-center text-xs">
           <VerificationStatus />
         </span>

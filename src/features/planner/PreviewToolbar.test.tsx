@@ -25,6 +25,7 @@ import type { PlacedSection } from './placedSection';
 import { revalidationStore } from '@/features/plans/revalidationStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
+import { installViewport } from '../../../tests/support/viewport';
 import {
   makePlanEntry,
   makeSection,
@@ -454,4 +455,98 @@ describe('PreviewToolbar share image', () => {
       expect(share).toHaveBeenCalledTimes(2);
     },
   );
+});
+
+describe('PreviewToolbar layout by width', () => {
+  const LABELS = [
+    'ตัวเลือกการแสดงผล',
+    'แชร์รูปภาพ',
+    'คัดลอกรูปภาพ',
+    'ดาวน์โหลดรูปภาพ',
+    'คัดลอกข้อความ',
+  ];
+
+  // Every action available, so each one's form can be read.
+  function renderEveryAction(
+    ref: RefObject<HTMLDivElement | null> = posterRef,
+  ) {
+    vi.stubGlobal('ClipboardItem', {});
+    vi.stubGlobal('navigator', {
+      clipboard: { write: vi.fn() },
+      share: vi.fn(),
+      canShare: () => true,
+    });
+    act(() => {
+      seedActivePlan([makePlanEntry({ verifyStatus: 'missing' })]);
+    });
+    renderToolbar(DEFAULT_DISPLAY_OPTIONS, buildExamSchedule([]), ref);
+  }
+
+  it('makes every action an icon button named by its aria-label on a phone', () => {
+    installViewport(390);
+    renderEveryAction();
+    for (const label of LABELS) {
+      const button = screen.getByRole('button', { name: label });
+      expect(button).toHaveAttribute('aria-label', label);
+      expect(button).toHaveAttribute('title', label);
+      expect(button).toHaveTextContent('');
+      expect(button).toHaveClass('min-h-(--kcp-target-touch)');
+    }
+  });
+
+  it('labels every action with visible text from 640 px up', () => {
+    installViewport(1366);
+    renderEveryAction();
+    for (const label of LABELS) {
+      const button = screen.getByRole('button', { name: label });
+      expect(button).not.toHaveAttribute('aria-label');
+      expect(button).toHaveTextContent(label);
+    }
+  });
+
+  it('names the running capture on an icon button', async () => {
+    installViewport(390);
+    vi.mocked(capturePng).mockReturnValue(new Promise<Blob>(() => undefined));
+    renderEveryAction({ current: document.createElement('div') });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' }));
+      await Promise.resolve();
+    });
+    const busy = screen.getByRole('button', { name: 'กำลังสร้างรูปภาพ' });
+    expect(busy).toHaveAttribute('aria-disabled', 'true');
+    expect(busy).toHaveTextContent('');
+  });
+
+  // Below 640 px the toolbar is the last thing at the foot, so the notice moves above it.
+  it.each([
+    [390, true],
+    [1366, false],
+  ])(
+    'at %i px the pre share notice precedes the toolbar: %s',
+    (width, first) => {
+      installViewport(width);
+      renderEveryAction();
+      const notice = screen.getByText(
+        'มี 1 รายการที่ข้อมูลเปลี่ยนหรือไม่พบในระบบ ตรวจก่อนแชร์',
+      );
+      const toolbarFollows = Boolean(
+        notice.compareDocumentPosition(screen.getByRole('toolbar')) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+      expect(toolbarFollows).toBe(first);
+    },
+  );
+
+  it('keeps the copy image note above the phone action row', () => {
+    installViewport(390);
+    vi.stubGlobal('ClipboardItem', undefined);
+    renderToolbar();
+    const note = within(screen.getByRole('toolbar')).getByText(
+      'เบราว์เซอร์นี้คัดลอกรูปภาพไม่ได้ ใช้ดาวน์โหลดแทน',
+    );
+    const download = screen.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' });
+    expect(
+      note.compareDocumentPosition(download) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
 });

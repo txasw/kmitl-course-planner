@@ -4,7 +4,8 @@
 // like the plan switcher, a fixed strategy that escapes the toolbar, dismisses on
 // an outside click, and intercepts Escape so it closes only the popover rather than
 // the whole overlay. Below 640 px the four switches open in a bottom sheet instead, so
-// they take the full width under a thumb and leave the poster in view above them.
+// they take the full width under a thumb and leave the poster in view above them, and the
+// trigger is an icon button like the other toolbar actions there.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
@@ -19,10 +20,13 @@ import {
   PANEL_POPOVER_SCROLL,
   usePanelPopover,
 } from '@/features/shell/usePanelPopover';
-import { FOCUS_RING } from '@/lib/ui/focus';
 import { BottomSheet } from '@/components/BottomSheet';
 import { Switch } from '@/components/Switch';
-import { TARGET_SIZE } from '@/lib/ui/target';
+import {
+  TOOLBAR_BUTTON,
+  TOOLBAR_ICON_BUTTON,
+  toolbarIconSize,
+} from './PreviewToolbarAction';
 
 // Fit to content is retired from the poster: the smart window (grid.ts) now decides the
 // window and day run for every template, so the option no longer has a job. Its schema
@@ -34,8 +38,6 @@ const OPTIONS: { key: keyof DisplayOptions; labelKey: TranslationKey }[] = [
   { key: 'showEnglishNames', labelKey: 'preview.showEnglishNames' },
   { key: 'showExams', labelKey: 'preview.showExams' },
 ];
-
-const TRIGGER = `inline-flex items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm text-ink hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`;
 
 export function DisplayOptionsPopover() {
   const { t, language } = useTranslation();
@@ -124,11 +126,17 @@ export function DisplayOptionsPopover() {
         type="button"
         aria-haspopup={sheet ? 'dialog' : undefined}
         aria-expanded={open}
-        className={TRIGGER}
+        aria-label={sheet ? t('preview.displayOptions') : undefined}
+        title={sheet ? t('preview.displayOptions') : undefined}
+        className={sheet ? TOOLBAR_ICON_BUTTON : TOOLBAR_BUTTON}
         {...getReferenceProps()}
       >
-        <SlidersHorizontal size={16} strokeWidth={2} aria-hidden />
-        {t('preview.displayOptions')}
+        <SlidersHorizontal
+          size={toolbarIconSize(sheet)}
+          strokeWidth={2}
+          aria-hidden
+        />
+        {sheet ? null : t('preview.displayOptions')}
       </button>
       {open && sheet ? (
         <BottomSheet
