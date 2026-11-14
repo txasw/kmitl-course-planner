@@ -44,7 +44,10 @@ describe('FilterBar', () => {
     const field = screen.getByLabelText('กรองรายการ');
     expect(field).toBe(screen.getByRole('searchbox', { name: 'กรองรายการ' }));
     expect(screen.getByText('กรองรายการ').tagName).toBe('LABEL');
-    expect(field).toHaveAttribute('placeholder', 'ค้นหาในรายการ');
+    expect(field).toHaveAttribute(
+      'placeholder',
+      'รหัสวิชา ชื่อวิชา หรืออาจารย์',
+    );
     fireEvent.change(field, { target: { value: '9059' } });
     expect(catalogStore.getState().filter.text).toBe('9059');
   });

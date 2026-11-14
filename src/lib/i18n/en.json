@@ -158,7 +158,7 @@
   "toast.refreshUnchanged": "Already up to date, nothing changed",
   "toast.added": "Added {subject} section {section}",
   "toast.viewTimetable": "View timetable",
-  "catalog.filter.text": "Filter courses",
+  "catalog.filter.text": "Code, name, or instructor",
   "catalog.filter.fieldLabel": "Filter results",
   "catalog.filter.day": "Day",
   "catalog.filter.credit": "Credits",

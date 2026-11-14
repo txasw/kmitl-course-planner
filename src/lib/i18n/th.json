@@ -158,7 +158,7 @@
   "toast.refreshUnchanged": "ข้อมูลเป็นปัจจุบัน ไม่มีการเปลี่ยนแปลง",
   "toast.added": "เพิ่ม {subject} กลุ่มเรียน {section} แล้ว",
   "toast.viewTimetable": "ดูตาราง",
-  "catalog.filter.text": "ค้นหาในรายการ",
+  "catalog.filter.text": "รหัสวิชา ชื่อวิชา หรืออาจารย์",
   "catalog.filter.fieldLabel": "กรองรายการ",
   "catalog.filter.day": "วัน",
   "catalog.filter.credit": "หน่วยกิต",
