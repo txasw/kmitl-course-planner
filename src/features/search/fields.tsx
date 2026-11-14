@@ -6,6 +6,7 @@
 // curriculum lists are long.
 
 import { useId, useRef, type RefObject } from 'react';
+import { CalendarDays, Hash, LayoutGrid } from 'lucide-react';
 import { CONTROL_BOUNDARY } from '@/lib/ui/control';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { sanitizeSubjectId } from '@/lib/search/formState';
@@ -126,6 +127,7 @@ export function TermFields({ term, years, t, onChange }: TermFieldsProps) {
     >
       <Combobox
         label={t('search.year')}
+        icon={CalendarDays}
         value={term.year}
         placeholder={t('search.selectPlaceholder')}
         disabled={false}
@@ -139,6 +141,7 @@ export function TermFields({ term, years, t, onChange }: TermFieldsProps) {
       />
       <Combobox
         label={t('search.semester')}
+        icon={Hash}
         value={term.semester}
         placeholder={t('search.selectPlaceholder')}
         disabled={false}
@@ -218,6 +221,7 @@ export function CategoryFields({
       />
       <Combobox
         label={t('search.subjectOwner')}
+        icon={LayoutGrid}
         value={form.subjectOwner}
         placeholder={
           reference.subjectOwners.status === 'ready'

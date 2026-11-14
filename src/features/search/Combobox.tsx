@@ -10,6 +10,10 @@
 // establishes a containing block for fixed elements. The catalog sheet's
 // translate-x transform is such an ancestor, so the popup renders through a
 // floating-ui portal into the panel node and stays clip free in every container.
+//
+// A field may carry a leading icon that names what it selects at a glance. The icon
+// is decorative, since the visible label already names the field, so it is hidden
+// from assistive tech and ignores the pointer so a click lands on the control.
 
 import { useCallback, useId, useMemo, useState } from 'react';
 import {
@@ -20,6 +24,7 @@ import {
   autoUpdate,
   FloatingPortal,
 } from '@floating-ui/react';
+import type { LucideIcon } from 'lucide-react';
 import { CONTROL_BOUNDARY, CONTROL_DISABLED } from '@/lib/ui/control';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
@@ -42,6 +47,8 @@ interface ComboboxProps {
    * opens a listbox navigated by the keyboard. Defaults to true for the long searchable
    * lists such as faculty and curriculum. */
   searchable?: boolean;
+  /** A decorative leading icon drawn inside the control, before its value. */
+  icon?: LucideIcon;
 }
 
 export function Combobox({
@@ -52,6 +59,7 @@ export function Combobox({
   disabled,
   onChange,
   searchable = true,
+  icon: Icon,
 }: ComboboxProps) {
   const listboxId = useId();
   const optionIdBase = useId();
@@ -218,6 +226,8 @@ export function Combobox({
   };
 
   const activeOption = open ? visible[activeIndex] : undefined;
+  // The leading icon takes the start padding, so the value text clears it.
+  const inset = Icon ? 'pl-8 pr-2' : 'px-2';
 
   const listbox = listVisible ? (
     <ul
@@ -252,6 +262,64 @@ export function Combobox({
     </ul>
   ) : null;
 
+  const control = searchable ? (
+    <input
+      ref={setReference}
+      id={inputId}
+      type="text"
+      role="combobox"
+      aria-expanded={listVisible}
+      aria-controls={listVisible ? listboxId : undefined}
+      aria-autocomplete="list"
+      aria-activedescendant={activeOption ? optionId(activeIndex) : undefined}
+      value={displayValue}
+      disabled={disabled}
+      placeholder={placeholder}
+      onChange={(event) => {
+        setQuery(event.target.value);
+        setDirty(true);
+        setOpen(true);
+        setActiveIndex(0);
+      }}
+      onFocus={openList}
+      onClick={openList}
+      onKeyDown={handleKeyDown}
+      onBlur={close}
+      className={`rounded-kcp border ${inset} py-1.5 ${
+        disabled ? CONTROL_DISABLED : `${CONTROL_BOUNDARY} text-ink`
+      } ${FOCUS_RING}`}
+    />
+  ) : (
+    <div
+      ref={setReference}
+      id={inputId}
+      role="combobox"
+      tabIndex={disabled ? -1 : 0}
+      aria-haspopup="listbox"
+      aria-expanded={listVisible}
+      aria-controls={listVisible ? listboxId : undefined}
+      aria-labelledby={labelId}
+      aria-activedescendant={activeOption ? optionId(activeIndex) : undefined}
+      aria-disabled={disabled || undefined}
+      onClick={() => {
+        if (disabled) return;
+        if (open) close();
+        else openList();
+      }}
+      onKeyDown={handleKeyDown}
+      onBlur={close}
+      className={`flex items-center rounded-kcp border ${inset} py-1.5 ${
+        disabled
+          ? `cursor-not-allowed ${CONTROL_DISABLED}`
+          : `cursor-pointer ${CONTROL_BOUNDARY} ${
+              selectedLabel ? 'text-ink' : 'text-ink-soft'
+            }`
+      } ${FOCUS_RING}`}
+    >
+      {selectedLabel || placeholder}
+    </div>
+  );
+
   return (
     <div className="relative flex flex-col gap-1 text-sm">
       <label
@@ -261,66 +329,18 @@ export function Combobox({
       >
         {label}
       </label>
-      {searchable ? (
-        <input
-          ref={setReference}
-          id={inputId}
-          type="text"
-          role="combobox"
-          aria-expanded={listVisible}
-          aria-controls={listVisible ? listboxId : undefined}
-          aria-autocomplete="list"
-          aria-activedescendant={
-            activeOption ? optionId(activeIndex) : undefined
-          }
-          value={displayValue}
-          disabled={disabled}
-          placeholder={placeholder}
-          onChange={(event) => {
-            setQuery(event.target.value);
-            setDirty(true);
-            setOpen(true);
-            setActiveIndex(0);
-          }}
-          onFocus={openList}
-          onClick={openList}
-          onKeyDown={handleKeyDown}
-          onBlur={close}
-          className={`rounded-kcp border px-2 py-1.5 ${
-            disabled ? CONTROL_DISABLED : `${CONTROL_BOUNDARY} text-ink`
-          } ${FOCUS_RING}`}
-        />
-      ) : (
-        <div
-          ref={setReference}
-          id={inputId}
-          role="combobox"
-          tabIndex={disabled ? -1 : 0}
-          aria-haspopup="listbox"
-          aria-expanded={listVisible}
-          aria-controls={listVisible ? listboxId : undefined}
-          aria-labelledby={labelId}
-          aria-activedescendant={
-            activeOption ? optionId(activeIndex) : undefined
-          }
-          aria-disabled={disabled || undefined}
-          onClick={() => {
-            if (disabled) return;
-            if (open) close();
-            else openList();
-          }}
-          onKeyDown={handleKeyDown}
-          onBlur={close}
-          className={`flex items-center rounded-kcp border px-2 py-1.5 ${
-            disabled
-              ? `cursor-not-allowed ${CONTROL_DISABLED}`
-              : `cursor-pointer ${CONTROL_BOUNDARY} ${
-                  selectedLabel ? 'text-ink' : 'text-ink-soft'
-                }`
-          } ${FOCUS_RING}`}
-        >
-          {selectedLabel || placeholder}
+      {Icon ? (
+        <div className="relative flex flex-col">
+          <Icon
+            size={16}
+            strokeWidth={2}
+            aria-hidden
+            className="pointer-events-none absolute top-1/2 left-2 -translate-y-1/2 text-ink-soft"
+          />
+          {control}
         </div>
+      ) : (
+        control
       )}
       {portalRoot ? (
         <FloatingPortal root={portalRoot}>{listbox}</FloatingPortal>
