@@ -6,13 +6,15 @@ import {
   fireEvent,
   act,
 } from '@testing-library/react';
-import type { RefObject } from 'react';
+import { useState, type RefObject } from 'react';
+import { useStore } from 'zustand';
 import { createTranslator } from '@/lib/i18n/t';
 import { DEFAULT_WINDOW } from '@/lib/planner/grid';
 import { WEEK_DAYS } from '@/lib/parsing/days';
 import { DEFAULT_DISPLAY_OPTIONS } from '@/lib/planner/displayOptions';
 import { EXPORT_TEMPLATES } from '@/lib/planner/exportTemplates';
 import { buildExamSchedule } from '@/lib/planner/examSchedule';
+import { resolveStageTemplate } from '@/lib/planner/previewStage';
 import { uiStore } from '@/features/shell/uiStore';
 import { TemplateGallery } from './TemplateGallery';
 import type { PosterData } from './PreviewPoster';
@@ -42,10 +44,62 @@ function makePoster(): PosterData {
 
 const posterRef: RefObject<HTMLDivElement | null> = { current: null };
 
-function renderGallery() {
-  return render(
-    <TemplateGallery poster={makePoster()} posterRef={posterRef} />,
+// Stands in for the panel: it resolves the template from the choice and the reported stage
+// shape, the way the planner panel does, so the gallery is exercised through its props.
+function Harness({
+  captureRef,
+}: {
+  captureRef: RefObject<HTMLDivElement | null>;
+}) {
+  const chosen = useStore(uiStore, (state) => state.selectedTemplate);
+  const [tall, setTall] = useState(false);
+  return (
+    <TemplateGallery
+      poster={makePoster()}
+      posterRef={captureRef}
+      template={resolveStageTemplate(chosen, tall)}
+      onStageTallChange={setTall}
+    />
   );
+}
+
+function renderGallery(captureRef = posterRef) {
+  return render(<Harness captureRef={captureRef} />);
+}
+
+// jsdom performs no layout, so a stage reports a hand set client box, and resizes fire by hand.
+function stubStage(initial: { width: number; height: number }) {
+  const callbacks: (() => void)[] = [];
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      constructor(callback: () => void) {
+        callbacks.push(callback);
+      }
+      observe(): void {
+        /* resizes are fired by hand */
+      }
+      unobserve(): void {
+        /* nothing to release */
+      }
+      disconnect(): void {
+        /* nothing to release */
+      }
+    },
+  );
+  let stage = initial;
+  vi.spyOn(Element.prototype, 'clientWidth', 'get').mockImplementation(
+    () => stage.width,
+  );
+  vi.spyOn(Element.prototype, 'clientHeight', 'get').mockImplementation(
+    () => stage.height,
+  );
+  return (next: { width: number; height: number }) => {
+    stage = next;
+    act(() => {
+      for (const callback of callbacks) callback();
+    });
+  };
 }
 
 function radioAt(index: number): HTMLElement {
@@ -154,41 +208,13 @@ describe('TemplateGallery', () => {
   });
 
   it('scales the selected poster from the measured stage and follows a resize', () => {
-    const callbacks: (() => void)[] = [];
-    vi.stubGlobal(
-      'ResizeObserver',
-      class {
-        constructor(callback: () => void) {
-          callbacks.push(callback);
-        }
-        observe(): void {
-          /* resizes are fired by hand below */
-        }
-        unobserve(): void {
-          /* nothing to release */
-        }
-        disconnect(): void {
-          /* nothing to release */
-        }
-      },
-    );
-    // jsdom performs no layout, so the stage reports a hand set client box.
-    let stage = { width: 600, height: 400 };
-    vi.spyOn(Element.prototype, 'clientWidth', 'get').mockImplementation(
-      () => stage.width,
-    );
-    vi.spyOn(Element.prototype, 'clientHeight', 'get').mockImplementation(
-      () => stage.height,
-    );
+    const resize = stubStage({ width: 600, height: 400 });
     const { container } = renderGallery();
     // Share 16:9 lays out at 960 by 540. The 600 px stage keeps 60 px clear at each edge, so
     // the width bound of 480 / 960 wins over the height bound.
     expect(selectedBox(container)).toEqual({ width: 480, height: 270 });
 
-    stage = { width: 1080, height: 300 };
-    act(() => {
-      for (const callback of callbacks) callback();
-    });
+    resize({ width: 1080, height: 300 });
     // Now the height bound wins: 300 * 0.94 / 540 of the layout box.
     const scale = (300 * 0.94) / 540;
     const resized = selectedBox(container);
@@ -196,18 +222,35 @@ describe('TemplateGallery', () => {
     expect(resized.height).toBeCloseTo(540 * scale);
 
     // A large stage scales the poster past its layout box, up to the cap of two.
-    stage = { width: 4000, height: 3000 };
-    act(() => {
-      for (const callback of callbacks) callback();
-    });
+    resize({ width: 4000, height: 3000 });
     expect(selectedBox(container)).toEqual({ width: 1920, height: 1080 });
+  });
+
+  it('opens a tall stage on the portrait phone wallpaper when nothing is chosen', () => {
+    act(() => {
+      uiStore.setState({ selectedTemplate: null });
+    });
+    const resize = stubStage({ width: 360, height: 640 });
+    renderGallery();
+    expect(
+      screen.getByRole('radio', { name: /ภาพพื้นหลังโทรศัพท์แนวตั้ง/ }),
+    ).toHaveAttribute('aria-checked', 'true');
+    // The stage shape alone records no choice, and a wide stage returns to the default.
+    expect(uiStore.getState().selectedTemplate).toBeNull();
+    resize({ width: 1200, height: 600 });
+    expect(radioAt(0)).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('keeps a chosen template on a tall stage', () => {
+    stubStage({ width: 360, height: 640 });
+    renderGallery();
+    // The default share template is the chosen one here, so the tall stage leaves it.
+    expect(radioAt(0)).toHaveAttribute('aria-checked', 'true');
   });
 
   it('frames the scaled wrapper, never the capture node', () => {
     const ref: RefObject<HTMLDivElement | null> = { current: null };
-    const { container } = render(
-      <TemplateGallery poster={makePoster()} posterRef={ref} />,
-    );
+    const { container } = renderGallery(ref);
     const frame = container.querySelector<HTMLElement>('[data-poster-frame]');
     expect(frame).not.toBeNull();
     expect(frame).toHaveClass('shadow-kcp', 'ring-1');

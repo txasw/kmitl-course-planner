@@ -11,7 +11,6 @@ import {
   DEFAULT_DISPLAY_OPTIONS,
   type DisplayOptions,
 } from '@/lib/planner/displayOptions';
-import { DEFAULT_TEMPLATE } from '@/lib/planner/exportTemplates';
 import type { CurriculumProfile } from '@/lib/catalog/curriculumProfile';
 import type { SuggestObjective } from '@/lib/planner/suggestRank';
 import type { SuggestPreference } from '@/lib/planner/suggestScore';
@@ -66,8 +65,12 @@ export interface UiState {
   mobilePane: MobilePane | null;
   /** Poster display options, applied to the preview and every export. */
   displayOptions: DisplayOptions;
-  /** The chosen export template slug, applied to the preview and every image export. */
-  selectedTemplate: string;
+  /**
+   * The chosen export template slug, applied to the preview and every image export, or null
+   * until the student picks one or a stored choice hydrates. With no choice, the preview
+   * resolves the template from its stage shape (lib/planner/previewStage).
+   */
+  selectedTemplate: string | null;
   /** The student's curriculum for the open to my curriculum filter, or null until chosen. */
   curriculumProfile: CurriculumProfile | null;
   /** The objective the suggestion dialog last searched with, persisted with the prefs. */
@@ -122,7 +125,7 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     planView: 'timetable',
     mobilePane: null,
     displayOptions: DEFAULT_DISPLAY_OPTIONS,
-    selectedTemplate: DEFAULT_TEMPLATE.slug,
+    selectedTemplate: null,
     curriculumProfile: null,
     suggestObjective: 'coverAll',
     suggestPreference: 'balanced',

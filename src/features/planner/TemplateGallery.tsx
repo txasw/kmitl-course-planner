@@ -10,7 +10,10 @@
 // Framing: the stage is a quiet surface-alt field, and the scaled wrapper around the selected
 // poster, not the poster itself, carries the border and the shadow, so the frame reads on
 // screen while the capture node stays the bare poster and the export carries no frame. The
-// stage math lives in lib/planner/previewStage, which caps the display scale at two.
+// stage math lives in lib/planner/previewStage, which caps the display scale at two. The
+// gallery reports whether its stage is taller than wide, so the panel can open a tall stage on
+// the portrait phone wallpaper when the student has not chosen a template; the resolved
+// template comes back as a prop and drives the selection, the toolbar, and every export.
 //
 // Rendering discipline: only the selected poster renders eagerly and holds the capture ref; the
 // two slivers render from a deferred copy of the plan data, and no other template renders, so a
@@ -27,10 +30,8 @@ import {
   type RefObject,
 } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useStore } from 'zustand';
 import {
   EXPORT_TEMPLATES,
-  templateBySlug,
   templateOutputHeight,
   templateOutputWidth,
   type ExportTemplate,
@@ -39,13 +40,21 @@ import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { useElementSize } from '@/features/shell/useElementSize';
 import { PagerArrow, PagerDots, usePager } from '@/components/Pager';
-import { neighborScale, selectedScale } from '@/lib/planner/previewStage';
+import {
+  isTallStage,
+  neighborScale,
+  selectedScale,
+} from '@/lib/planner/previewStage';
 import { PreviewPoster, type PosterData } from './PreviewPoster';
 
 interface TemplateGalleryProps {
   poster: PosterData;
   /** The capture node ref, attached to the selected poster for the export actions. */
   posterRef: RefObject<HTMLDivElement | null>;
+  /** The template on show, resolved by the panel from the choice and the stage shape. */
+  template: ExportTemplate;
+  /** Reports whether the measured stage is taller than wide. */
+  onStageTallChange: (tall: boolean) => void;
 }
 
 const SLIVER_PX = 44; // the visible width of a neighbor at each edge
@@ -60,19 +69,27 @@ function clampIndex(index: number): number {
   return Math.max(0, Math.min(LAST_INDEX, index));
 }
 
-export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
+export function TemplateGallery({
+  poster,
+  posterRef,
+  template: selectedTemplate,
+  onStageTallChange,
+}: TemplateGalleryProps) {
   const { t } = useTranslation();
-  const selectedSlug = useStore(uiStore, (state) => state.selectedTemplate);
 
   const selectedIndex = (() => {
     const found = EXPORT_TEMPLATES.findIndex(
-      (template) => template.slug === selectedSlug,
+      (template) => template.slug === selectedTemplate.slug,
     );
     return found === -1 ? 0 : found;
   })();
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const area = useElementSize(viewportRef);
+  const stageTall = isTallStage(area);
+  useEffect(() => {
+    onStageTallChange(stageTall);
+  }, [stageTall, onStageTallChange]);
   const swipe = useRef<{ pointerId: number; startX: number } | null>(null);
 
   const select = useCallback((index: number) => {
@@ -151,7 +168,6 @@ export function TemplateGallery({ poster, posterRef }: TemplateGalleryProps) {
     }
   };
 
-  const selectedTemplate = templateBySlug(selectedSlug);
   const deferredPoster = useDeferredValue(poster);
   const selScale = selectedScale(selectedTemplate, area);
 

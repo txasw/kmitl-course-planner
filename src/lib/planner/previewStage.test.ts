@@ -1,9 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { templateBySlug } from './exportTemplates';
+import { DEFAULT_TEMPLATE, templateBySlug } from './exportTemplates';
 import {
   EDGE_RESERVE_PX,
   MAX_STAGE_SCALE,
+  TALL_STAGE_TEMPLATE_SLUG,
+  isTallStage,
   neighborScale,
+  resolveStageTemplate,
   selectedScale,
 } from './previewStage';
 
@@ -60,5 +63,37 @@ describe('neighborScale', () => {
 
   it('falls back to a small positive scale with no height', () => {
     expect(neighborScale(share, { width: 900, height: 0 })).toBe(0.1);
+  });
+});
+
+describe('isTallStage', () => {
+  it('is tall only when the stage is taller than wide', () => {
+    expect(isTallStage({ width: 360, height: 640 })).toBe(true);
+    expect(isTallStage({ width: 1200, height: 600 })).toBe(false);
+    expect(isTallStage({ width: 500, height: 500 })).toBe(false);
+    // An unmeasured stage is not tall, so the first frame keeps the default.
+    expect(isTallStage({ width: 0, height: 0 })).toBe(false);
+  });
+});
+
+describe('resolveStageTemplate', () => {
+  it('opens a tall stage on the portrait phone wallpaper when nothing is chosen', () => {
+    expect(resolveStageTemplate(null, true).slug).toBe(
+      TALL_STAGE_TEMPLATE_SLUG,
+    );
+    expect(TALL_STAGE_TEMPLATE_SLUG).toBe('phone-wallpaper-portrait');
+  });
+
+  it('opens any other stage on the default template when nothing is chosen', () => {
+    expect(resolveStageTemplate(null, false)).toBe(DEFAULT_TEMPLATE);
+  });
+
+  it('keeps a chosen template whatever the stage shape', () => {
+    expect(resolveStageTemplate('share-16-9', true).slug).toBe('share-16-9');
+    expect(resolveStageTemplate('print-a4', false).slug).toBe('print-a4');
+  });
+
+  it('falls back to the default for an unknown chosen slug', () => {
+    expect(resolveStageTemplate('does-not-exist', true)).toBe(DEFAULT_TEMPLATE);
   });
 });
