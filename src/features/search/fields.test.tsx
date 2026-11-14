@@ -313,6 +313,26 @@ describe('CurriculumFields', () => {
     ]);
   });
 
+  it('tells curriculum revisions with one name apart', () => {
+    render(
+      <CurriculumFields
+        value={{ ...selection, faculty: '11', department: '01' }}
+        includeAll={false}
+        reference={loaded}
+        locale="en"
+        t={t}
+        patch={() => undefined}
+      />,
+    );
+    const continuing = optionNames(t('search.curriculum')).filter((name) =>
+      name?.startsWith('Manufacturing System Engineering (Continuing Program)'),
+    );
+    expect(continuing).toEqual([
+      'Manufacturing System Engineering (Continuing Program) (2567)',
+      'Manufacturing System Engineering (Continuing Program) (2566)',
+    ]);
+  });
+
   it('clears the department and curriculum when the faculty changes', () => {
     const patch = vi.fn();
     render(

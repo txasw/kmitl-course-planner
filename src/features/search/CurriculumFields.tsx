@@ -12,9 +12,9 @@ import { FacultySelect } from './FacultySelect';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import {
   curriculaFor,
-  curriculumName,
   departmentName,
   departmentsForFaculty,
+  disambiguateCurricula,
   readyData,
   type ReferenceLists,
 } from '@/lib/reference/filters';
@@ -56,13 +56,16 @@ export function CurriculumFields({
     ...(includeAll
       ? [{ value: ALL_OPTION, label: t('search.curriculumAll') }]
       : []),
-    ...curriculaFor(
-      readyData(reference.curricula),
-      value.faculty,
-      value.department,
-    ).map((curriculum) => ({
+    ...disambiguateCurricula(
+      curriculaFor(
+        readyData(reference.curricula),
+        value.faculty,
+        value.department,
+      ),
+      locale,
+    ).map(({ curriculum, label }) => ({
       value: curriculum.REGISTRAR_CURRICULUM2_ID,
-      label: curriculumName(curriculum, locale),
+      label,
     })),
   ];
 
