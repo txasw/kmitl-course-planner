@@ -104,3 +104,25 @@ export function revealSearch(control: Element, tier: LayoutTier): void {
     search.barQuery === null ? searchTabId(search.activeTab) : SEARCH_BAR_ID;
   revealCatalog(control, tier, focusId);
 }
+
+/**
+ * Bring the search form itself into view, for the empty timetable's action. On the
+ * docked and medium tiers the catalog shows beside or over the grid, so a form folded
+ * under the summary bar expands and focus lands on its active tab. Below 640 px the
+ * catalog takes the whole pane, so the action only switches to it, as revealSearch
+ * does, and leaves the results the student had in view. A no op while a drag is in
+ * flight.
+ */
+export function openSearch(control: Element, tier: LayoutTier): void {
+  if (selectDragging(dragStore.getState())) return;
+  if (tier === 'compact') {
+    revealSearch(control, tier);
+    return;
+  }
+  // The form drops inert in the same commit that opens it, so it commits before the
+  // reveal moves focus to the tab inside it.
+  flushSync(() => {
+    searchStore.getState().setSearchFormOpen(true);
+  });
+  revealCatalog(control, tier, searchTabId(searchStore.getState().activeTab));
+}

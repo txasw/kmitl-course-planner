@@ -25,7 +25,12 @@ import {
 } from '../../../tests/support/plan-store';
 import { catalogStore } from './catalogStore';
 import { courseToggleId } from './courseFocus';
-import { revealCourse, revealSearch, searchForCourse } from './revealCourse';
+import {
+  openSearch,
+  revealCourse,
+  revealSearch,
+  searchForCourse,
+} from './revealCourse';
 
 const QUERY: TeachTableQuery = {
   mode: 'by_subject_owner_id',
@@ -246,6 +251,50 @@ describe('revealSearch', () => {
     const section = makeSection({ subjectId: SUBJECT });
     dragStore.getState().startBlockMove(section, [section], null);
     revealSearch(control, 'medium');
+    expect(uiStore.getState().sheetOpen).toBe(false);
+    expect(control).toHaveFocus();
+  });
+});
+
+describe('openSearch', () => {
+  let tab: HTMLButtonElement;
+
+  beforeEach(() => {
+    tab = document.createElement('button');
+    tab.id = searchTabId('by_subject_id');
+    document.body.append(tab);
+    searchStore.getState().setActiveTab('by_subject_id');
+    searchStore.setState({ barQuery: QUERY, searchFormOpen: false });
+  });
+
+  it('expands the folded form in the docked column and focuses its tab', () => {
+    uiStore.getState().setCatalogVisible(false);
+    openSearch(control, 'xl');
+    expect(searchStore.getState().searchFormOpen).toBe(true);
+    expect(uiStore.getState().catalogVisible).toBe(true);
+    expect(tab).toHaveFocus();
+  });
+
+  it('expands the folded form in the sheet on the medium tier', () => {
+    openSearch(control, 'medium');
+    expect(searchStore.getState().searchFormOpen).toBe(true);
+    expect(uiStore.getState().sheetOpen).toBe(true);
+    expect(tab).toHaveFocus();
+  });
+
+  it('switches to the catalog pane below 640 px and leaves the form folded', () => {
+    uiStore.setState({ mobilePane: 'plan' });
+    openSearch(control, 'compact');
+    expect(uiStore.getState().mobilePane).toBe('catalog');
+    expect(searchStore.getState().searchFormOpen).toBe(false);
+    expect(bar).toHaveFocus();
+  });
+
+  it('does nothing while a drag is in flight', () => {
+    const section = makeSection({ subjectId: SUBJECT });
+    dragStore.getState().startBlockMove(section, [section], null);
+    openSearch(control, 'medium');
+    expect(searchStore.getState().searchFormOpen).toBe(false);
     expect(uiStore.getState().sheetOpen).toBe(false);
     expect(control).toHaveFocus();
   });

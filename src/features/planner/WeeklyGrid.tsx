@@ -30,7 +30,12 @@ import { DayLanes } from './DayLanes';
 import { GridAxis } from './GridAxis';
 import { GridRules } from './GridRules';
 import type { PlacedSection } from './placedSection';
-import { AXIS_TRACK_EM, EDIT_FONT_PX, type Orientation } from './gridGeometry';
+import {
+  AXIS_TRACK_EM,
+  EDIT_FONT_PX,
+  PORTRAIT_AXIS_TRACK,
+  type Orientation,
+} from './gridGeometry';
 
 const HOVER_DELAY_MS = 400;
 
@@ -46,7 +51,7 @@ function gridTemplate(
   // labels, and the axis keeps one size across windows, locales, and templates.
   if (orientation === 'portrait') {
     return {
-      gridTemplateColumns: `2.75rem repeat(${String(dayCount)}, minmax(0, 1fr))`,
+      gridTemplateColumns: `${PORTRAIT_AXIS_TRACK} repeat(${String(dayCount)}, minmax(0, 1fr))`,
       gridTemplateRows: `${String(AXIS_TRACK_EM)}em repeat(${String(quarters)}, minmax(0, 1fr))`,
     };
   }

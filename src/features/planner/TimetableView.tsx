@@ -86,7 +86,13 @@ export function TimetableView({
                 editable
                 fontPx={fontPx}
               />
-              {planEmpty ? <GridEmptyState t={grid.t} /> : null}
+              {planEmpty ? (
+                <GridEmptyState
+                  t={grid.t}
+                  orientation={narrow ? 'portrait' : 'landscape'}
+                  searchAction
+                />
+              ) : null}
             </>
           )}
         </GridScroller>

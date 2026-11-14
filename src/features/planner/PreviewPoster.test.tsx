@@ -237,6 +237,15 @@ describe('PreviewPoster data line', () => {
   });
 });
 
+describe('PreviewPoster empty state', () => {
+  it('shows the empty plan notice with no action, since a poster is a picture', () => {
+    const { container } = renderPoster({ scheduled: [] });
+    const notice = container.querySelector('[data-grid-notice="empty"]');
+    expect(notice).toHaveTextContent('ตารางยังว่าง');
+    expect(screen.queryByRole('button', { name: 'ไปที่การค้นหา' })).toBeNull();
+  });
+});
+
 function examEntry(teachTableId: string, subjectId: string, day: number) {
   const date = `2026-12-${String(day).padStart(2, '0')}`;
   return makePlanEntry({

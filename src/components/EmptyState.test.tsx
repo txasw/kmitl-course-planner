@@ -28,6 +28,29 @@ describe('EmptyState', () => {
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
   });
 
+  it('renders as a bordered card with a tinted icon when asked', () => {
+    const { container } = render(
+      <EmptyState
+        variant="card"
+        icon={Search}
+        title="No data"
+        description="Try a search."
+      />,
+    );
+    const root = container.querySelector('[data-empty-variant="card"]');
+    expect(root).toHaveClass('bg-surface', 'border');
+    expect(root?.querySelector('span')).toHaveClass('bg-primary-soft');
+  });
+
+  it('fills its region by default', () => {
+    const { container } = render(
+      <EmptyState icon={Search} title="No data" description="Try a search." />,
+    );
+    expect(
+      container.querySelector('[data-empty-variant="region"]'),
+    ).toHaveClass('h-full');
+  });
+
   it('omits the action when none is given', () => {
     render(
       <EmptyState icon={Search} title="No data" description="Try a search." />,
