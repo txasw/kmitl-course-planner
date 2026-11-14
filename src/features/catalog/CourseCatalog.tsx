@@ -51,7 +51,7 @@ import { switchOrCreatePlanForTerm } from '@/features/plans/switchPlanTerm';
 import { TermSwitchLabel } from '@/features/plans/TermSwitchLabel';
 import { searchStore } from '@/features/search/searchStore';
 import { dragStore } from '@/features/planner/dragStore';
-import { firstFeedbackAction } from '@/features/planner/FeedbackNotices';
+import { firstFeedbackAction } from '@/features/planner/feedbackAction';
 import { commitThenFocus } from '@/features/shell/restoreFocus';
 import { rootOf } from '@/features/shell/useFocusTrap';
 import { courseToggle } from './courseFocus';
