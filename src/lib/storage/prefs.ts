@@ -11,6 +11,7 @@ import { displayOptionsSchema } from '../planner/displayOptions';
 import { curriculumProfileSchema } from '../catalog/curriculumProfile';
 import { SUGGEST_OBJECTIVES } from '../planner/suggestRank';
 import { SUGGEST_PREFERENCES } from '../planner/suggestScore';
+import { TIMETABLE_VIEWS } from '../planner/dayView';
 
 // language mirrors the i18n Locale union and viewMode mirrors the ui store's view
 // mode; both are declared inline so the storage layer does not depend on the i18n
@@ -35,6 +36,9 @@ export const prefsSchema = z.object({
   // language and the other preferences survive and the dialog opens on its default.
   suggestObjective: z.enum(SUGGEST_OBJECTIVES).optional().catch(undefined),
   suggestPreference: z.enum(SUGGEST_PREFERENCES).optional().catch(undefined),
+  // The layout a narrow timetable shows, the day or the week (ADR-0049). An unknown
+  // value reads as absent like the suggestion options, so the view opens on the day.
+  timetableView: z.enum(TIMETABLE_VIEWS).optional().catch(undefined),
 });
 export type Prefs = z.infer<typeof prefsSchema>;
 
