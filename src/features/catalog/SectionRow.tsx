@@ -29,6 +29,7 @@ import { describeConflicts } from '@/lib/planner/describeConflict';
 import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { NO_DRAG_ARMING } from '@/features/planner/dragArming';
+import { TermSwitchLabel } from '@/features/plans/TermSwitchLabel';
 import { ConflictCallout } from './ConflictCallout';
 import { ExamLine } from './ExamLine';
 import { RemarkLine } from './RemarkLine';
@@ -147,7 +148,7 @@ export function SectionRow({
                 }}
                 className={`rounded-kcp border border-primary px-2 py-0.5 text-primary-strong outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
               >
-                {t('term.switch')}
+                <TermSwitchLabel term={relation.browsedTerm} t={t} />
               </button>
             ) : null}
           </div>

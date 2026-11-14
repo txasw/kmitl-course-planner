@@ -60,20 +60,22 @@ test('refuses a section from another term and switches on request', async ({
 
   // Browsing semester 2 while the plan is bound to semester 1 puts every row in the
   // different term state: the add rail is disabled, and a switch action shows instead.
+  // No plan exists for semester 2 yet, so the action says it creates one.
   // The first search folded the form, so it is reopened from the summary bar.
   await editSearch(page);
   await searchSyntheticInSemester(page, '2');
   await expandCourse(page, '90000003');
-  await expect(
-    page.getByRole('button', { name: 'สลับไปตารางภาคนี้' }).first(),
-  ).toBeVisible();
+  const createPlan = page
+    .getByRole('button', { name: /^สร้างตารางภาค 2\// })
+    .first();
+  await expect(createPlan).toBeVisible();
   await expect(
     page.getByRole('button', { name: /^เพิ่ม/, disabled: false }),
   ).toHaveCount(0);
 
   // Switching creates and activates a plan for the browsed term, so the rows become
   // addable again.
-  await page.getByRole('button', { name: 'สลับไปตารางภาคนี้' }).first().click();
+  await createPlan.click();
   await expect(
     page.getByRole('button', { name: /^เพิ่ม/, disabled: false }).first(),
   ).toBeVisible();
