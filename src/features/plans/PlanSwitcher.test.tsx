@@ -11,6 +11,7 @@ import {
 import {
   makePlan,
   makePlanEntry,
+  makeSnapshot,
 } from '../../../tests/support/domain-builders';
 import { installViewport } from '../../../tests/support/viewport';
 import { searchStore } from '@/features/search/searchStore';
@@ -110,6 +111,46 @@ describe('PlanSwitcher', () => {
     // button ("A") and not the per-row action buttons ("Rename A" and the rest).
     expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'B' })).toBeInTheDocument();
+  });
+
+  it('summarizes the credits and subjects of each plan row', () => {
+    act(() => {
+      planStore.getState().hydrate([
+        makePlan({
+          id: 'a',
+          name: 'A',
+          entries: [
+            // A lecture and practice pair of one subject counts its credit once.
+            makePlanEntry({ teachTableId: '1', section: '101' }),
+            makePlanEntry({ teachTableId: '2', section: '102' }),
+            makePlanEntry({
+              teachTableId: '3',
+              subjectId: '90592033',
+              snapshot: makeSnapshot({
+                teachTableId: '3',
+                subjectId: '90592033',
+                subjectMeta: {
+                  subjectId: '90592033',
+                  nameTh: 'วิชา',
+                  nameEn: 'Subject',
+                  credit: 2,
+                  creditStr: '2(2-0-4)',
+                },
+              }),
+            }),
+          ],
+        }),
+        makePlan({ id: 'b', name: 'B', entries: [] }),
+      ]);
+    });
+    render(<PlanSwitcher />);
+    openMenu();
+    // The name alone names the row button; the summary describes it.
+    const rowA = screen.getByRole('button', { name: 'A' });
+    expect(rowA).toHaveAccessibleDescription('5 หน่วยกิต 2 วิชา');
+    expect(
+      screen.getByRole('button', { name: 'B' }),
+    ).toHaveAccessibleDescription('ยังไม่มีวิชา');
   });
 
   it('caps the menu height to the available space so a long list scrolls', async () => {
