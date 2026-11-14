@@ -53,9 +53,9 @@ function makeRow(overrides: Partial<RawSectionRow> = {}): RawSectionRow {
     teach_time2: '12:00:00',
     teachtime_str: '',
     classroom: null,
-    room_no: 'A101',
-    classbuilding: null,
-    building_no: 'A',
+    room_no: '101',
+    classbuilding: 'อาคารเรียนรวม',
+    building_no: 'L1',
     teacher_list_th: '<div>อ. ทดสอบ</div>',
     teacher_list_en: '<div>Mr. Test</div>',
     midterm_start_date_time: null,
@@ -153,7 +153,7 @@ describe('teachtime_str additional meetings', () => {
         startMin: 525,
         endMin: 615,
         room: 'E12- 506',
-        building: 'E12',
+        building: '',
         kind: 'lecture',
       },
       {
@@ -161,7 +161,7 @@ describe('teachtime_str additional meetings', () => {
         startMin: 630,
         endMin: 720,
         room: 'E12- 506',
-        building: 'E12',
+        building: '',
         kind: 'lecture',
       },
     ]);
@@ -207,16 +207,16 @@ describe('teachtime_str additional meetings', () => {
           day: 1,
           startMin: 540,
           endMin: 720,
-          room: 'A101',
-          building: 'A',
+          room: '101',
+          building: 'อาคารเรียนรวม',
           kind: 'lecture',
         },
         {
           day: 4,
           startMin: 630,
           endMin: 720,
-          room: 'A101',
-          building: 'A',
+          room: '101',
+          building: 'อาคารเรียนรวม',
           kind: 'lecture',
         },
       ]);
@@ -269,8 +269,8 @@ describe('teachtime_str additional meetings', () => {
           day: 2,
           startMin: 630,
           endMin: 720,
-          room: 'A101',
-          building: 'A',
+          room: '101',
+          building: 'อาคารเรียนรวม',
           kind: 'lecture',
         },
       ]);
@@ -626,6 +626,55 @@ describe('rule and remark text', () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.courses[0]?.sections[0]?.remark).toBe(exact);
+    }
+  });
+});
+
+describe('meeting place', () => {
+  it('shows the readable building name instead of the internal code', () => {
+    const { courses } = normalizeFixture('teach-table.by_class.capture.json');
+    const meeting = findSection(courses, '90641007', '109').meetings[0];
+    expect(meeting?.building).toBe('สำนักหอสมุดกลาง');
+    expect(meeting?.room).toBe('ชั้น 5');
+  });
+
+  it('drops the building when the room already opens with its code', () => {
+    const { courses } = normalizeFixture('teach-table.by_class.capture.json');
+    const meeting = findSection(courses, '90641007', '108').meetings[0];
+    expect(meeting?.building).toBe('');
+    expect(meeting?.room).toBe('D-510');
+  });
+
+  it('falls back to building_no when classbuilding is null', () => {
+    const result = normalizeTeachTable(
+      makeResponse([makeRow({ classbuilding: null, building_no: ' L1 ' })]),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.courses[0]?.sections[0]?.meetings[0]?.building).toBe(
+        'L1',
+      );
+    }
+  });
+
+  it('gives the teachtime_str meetings the same place as the primary', () => {
+    const result = normalizeTeachTable(
+      makeResponse([
+        makeRow({
+          room_no: 'L1-204',
+          teachtime_str: '5x10:30-12:00',
+        }),
+      ]),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const meetings = result.value.courses[0]?.sections[0]?.meetings ?? [];
+      expect(
+        meetings.map((meeting) => [meeting.building, meeting.room]),
+      ).toEqual([
+        ['', 'L1-204'],
+        ['', 'L1-204'],
+      ]);
     }
   });
 });
