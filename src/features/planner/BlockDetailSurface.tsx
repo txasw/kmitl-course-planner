@@ -3,7 +3,9 @@
 // compact, so the surface that touch and keyboard users reach carries every meeting, the
 // seats from the latest verification, and the exam dates. Above the list sit its
 // verification state with old versus new values for a changed field and any exam overlap,
-// and a pinned footer carries the acknowledge and remove actions.
+// and a pinned footer carries the acknowledge and remove actions. The body ends with a link
+// to the subject's listing on the host's own result page, opened in a new tab so the plan
+// stays where it is; following a link is the only contact with the host (section 2, rule 6).
 //
 // It picks its form from the pointer as well as the width (ADR-0049). On a fine pointer at
 // 640 px and up it is a popover anchored to the block. Below 640 px there is no room beside
@@ -13,14 +15,20 @@
 // interaction (section 6.4), so the surface renders nothing there.
 
 import { useEffect } from 'react';
+import { ExternalLink } from 'lucide-react';
 import { useStore } from 'zustand';
+import type { PlanEntry } from '@/lib/domain/plan';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { ExamOverlap } from '@/lib/planner/examOverlap';
+import { termFromSourceQueryParams } from '@/lib/planner/sourceQuery';
+import { subjectListingUrl } from '@/lib/routing/teachTableUrl';
 import {
   BREAKPOINTS,
   COARSE_POINTER_QUERY,
   minWidthQuery,
 } from '@/lib/ui/breakpoints';
+import { FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import { BottomSheet } from '@/components/BottomSheet';
 import { planStore } from '@/features/plans/planStore';
 import { useActiveRun } from '@/features/plans/revalidationStore';
@@ -41,6 +49,43 @@ interface BlockDetailSurfaceProps {
   /** Exam window overlaps this block has with other entries, listed as a distinct
    * section so the reason reads apart from a revalidation change. */
   examOverlaps?: ExamOverlap[];
+}
+
+interface OfficialListingLinkProps {
+  entry: PlanEntry;
+  t: Translate;
+  /** Size the link as a 44 px touch target, for the sheet. */
+  touch: boolean;
+}
+
+/**
+ * A link to the subject's listing on the host result page for the term the entry was
+ * added from, or nothing when that term or the subject id cannot form one.
+ */
+function OfficialListingLink({ entry, t, touch }: OfficialListingLinkProps) {
+  const term = termFromSourceQueryParams(entry.sourceQuery.params);
+  const href = term === null ? null : subjectListingUrl(term, entry.subjectId);
+  if (href === null) {
+    return null;
+  }
+  const label = t('block.officialListing');
+  const size = touch ? 'min-h-11 text-sm' : TARGET_SIZE;
+  // The name carries the visible label first, so speech input still finds it by what it
+  // shows, and then says that it leaves the panel for a new tab.
+  return (
+    <p className="mt-2 border-t border-border pt-2">
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`${label} ${t('block.opensNewTab')}`}
+        className={`inline-flex items-center gap-1 rounded-kcp px-1 text-primary-strong underline underline-offset-2 ${size} ${FOCUS_RING}`}
+      >
+        <ExternalLink size={touch ? 16 : 12} aria-hidden />
+        {label}
+      </a>
+    </p>
+  );
 }
 
 export function BlockDetailSurface({
@@ -80,15 +125,18 @@ export function BlockDetailSurface({
       : entry.snapshot.subjectMeta.nameEn;
   const code = `${entry.subjectId} ${t('section.code')} ${entry.section}`;
   const body = (
-    <BlockDetailBody
-      entry={entry}
-      diff={run?.report?.entries.find(
-        (item) => item.teachTableId === teachTableId,
-      )}
-      examOverlaps={examOverlaps}
-      locale={locale}
-      t={t}
-    />
+    <>
+      <BlockDetailBody
+        entry={entry}
+        diff={run?.report?.entries.find(
+          (item) => item.teachTableId === teachTableId,
+        )}
+        examOverlaps={examOverlaps}
+        locale={locale}
+        t={t}
+      />
+      <OfficialListingLink entry={entry} t={t} touch={!anchored} />
+    </>
   );
   const actions = (
     <BlockDetailActions

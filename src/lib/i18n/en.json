@@ -298,6 +298,8 @@
   "block.acknowledge": "Acknowledge",
   "block.removeFromPlan": "Remove from plan",
   "block.menu": "Block actions",
+  "block.officialListing": "View in the official timetable",
+  "block.opensNewTab": "(opens in a new tab)",
   "exam.midterm": "Midterm",
   "exam.final": "Final",
   "exam.selfArranged": "Arranged by instructor",
