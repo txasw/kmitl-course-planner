@@ -480,6 +480,33 @@ describe('PlannerPanel', () => {
     expect(screen.getByRole('menu')).toBeInTheDocument();
   });
 
+  it('copies the subject id of the block from its context menu', () => {
+    installViewport(1366);
+    const writeText = vi.fn<(text: string) => Promise<void>>(() =>
+      Promise.resolve(),
+    );
+    // Only the clipboard is replaced, since the menu's floating-ui reads the platform.
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    });
+    seed([
+      makePlanEntry({
+        snapshot: makeSnapshot({
+          teachTableId: 's1',
+          subjectId: '90000001',
+          section: '901',
+          meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+        }),
+      }),
+    ]);
+    renderPanel();
+    fireEvent.contextMenu(screen.getByRole('button', { name: /90000001/ }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'คัดลอกรหัสวิชา' }));
+    expect(writeText).toHaveBeenCalledWith('90000001');
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
+
   it('opens the block details as a bottom sheet on a phone', () => {
     installViewport(390);
     seed([

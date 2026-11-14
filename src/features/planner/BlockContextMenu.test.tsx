@@ -34,6 +34,7 @@ function setup(
     onClose: vi.fn(),
     onRemove: vi.fn(),
     onDetails: vi.fn(),
+    onCopySubjectId: vi.fn(),
     ...overrides,
   };
   render(<BlockContextMenu {...props} />);
@@ -67,6 +68,7 @@ function ClosableMenu({
           }}
           onRemove={() => undefined}
           onDetails={() => undefined}
+          onCopySubjectId={() => undefined}
         />
       ) : null}
     </>
@@ -74,12 +76,15 @@ function ClosableMenu({
 }
 
 describe('BlockContextMenu', () => {
-  it('renders the details and remove actions', () => {
+  it('renders the details, copy subject id, and remove actions', () => {
     setup();
     expect(screen.getByRole('menu')).toBeInTheDocument();
-    expect(screen.getAllByRole('menuitem')).toHaveLength(2);
+    expect(screen.getAllByRole('menuitem')).toHaveLength(3);
     expect(
       screen.getByRole('menuitem', { name: /รายละเอียด/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: 'คัดลอกรหัสวิชา' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: /นำออก/ })).toBeInTheDocument();
   });
@@ -99,6 +104,12 @@ describe('BlockContextMenu', () => {
     const { onDetails } = setup();
     fireEvent.click(screen.getByRole('menuitem', { name: /รายละเอียด/ }));
     expect(onDetails).toHaveBeenCalledTimes(1);
+  });
+
+  it('copy subject id calls onCopySubjectId', () => {
+    const { onCopySubjectId } = setup();
+    fireEvent.click(screen.getByRole('menuitem', { name: 'คัดลอกรหัสวิชา' }));
+    expect(onCopySubjectId).toHaveBeenCalledTimes(1);
   });
 
   it('Escape closes only the menu', () => {
@@ -139,6 +150,7 @@ describe('BlockContextMenu', () => {
         onClose={() => undefined}
         onRemove={() => undefined}
         onDetails={() => undefined}
+        onCopySubjectId={() => undefined}
       />,
     );
     await expectNoSeriousA11yViolations(container);

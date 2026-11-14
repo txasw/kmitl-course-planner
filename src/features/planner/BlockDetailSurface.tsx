@@ -3,9 +3,10 @@
 // compact, so the surface that touch and keyboard users reach carries every meeting, the
 // seats from the latest verification, and the exam dates. Above the list sit its
 // verification state with old versus new values for a changed field and any exam overlap,
-// and a pinned footer carries the acknowledge and remove actions. The body ends with a link
-// to the subject's listing on the host's own result page, opened in a new tab so the plan
-// stays where it is; following a link is the only contact with the host (section 2, rule 6).
+// and a pinned footer carries the acknowledge and remove actions. The body ends with a copy
+// subject id action and a link to the subject's listing on the host's own result page,
+// opened in a new tab so the plan stays where it is; following a link is the only contact
+// with the host (section 2, rule 6).
 //
 // It picks its form from the pointer as well as the width (ADR-0049). On a fine pointer at
 // 640 px and up it is a popover anchored to the block. Below 640 px there is no room beside
@@ -15,7 +16,7 @@
 // interaction (section 6.4), so the surface renders nothing there.
 
 import { useEffect } from 'react';
-import { ExternalLink } from 'lucide-react';
+import { ClipboardCopy, ExternalLink } from 'lucide-react';
 import { useStore } from 'zustand';
 import type { PlanEntry } from '@/lib/domain/plan';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -37,6 +38,7 @@ import { useMediaQuery } from '@/features/shell/useMediaQuery';
 import { uiStore } from '@/features/shell/uiStore';
 import { BlockDetailActions, BlockDetailBody } from './BlockDetailContent';
 import { BlockDetailPopover } from './BlockDetailPopover';
+import { copySubjectId } from './copySubjectId';
 
 interface BlockDetailSurfaceProps {
   teachTableId: string;
@@ -51,40 +53,60 @@ interface BlockDetailSurfaceProps {
   examOverlaps?: ExamOverlap[];
 }
 
-interface OfficialListingLinkProps {
+interface DetailLinkProps {
   entry: PlanEntry;
   t: Translate;
-  /** Size the link as a 44 px touch target, for the sheet. */
+  /** Size the control as a 44 px touch target, for the sheet. */
   touch: boolean;
+}
+
+const LINK_ROW_ITEM = 'inline-flex items-center gap-1 rounded-kcp px-1';
+
+function linkRowSize(touch: boolean): string {
+  return touch ? 'min-h-11 text-sm' : TARGET_SIZE;
+}
+
+/** Copies the subject id, the value a student types into the official system, so the
+ * surface spares retyping it from the heading. */
+function CopySubjectIdButton({ entry, t, touch }: DetailLinkProps) {
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        copySubjectId(entry.subjectId, t);
+      }}
+      className={`${LINK_ROW_ITEM} text-ink hover:bg-surface-alt ${linkRowSize(touch)} ${FOCUS_RING}`}
+    >
+      <ClipboardCopy size={touch ? 16 : 12} aria-hidden />
+      {t('block.copySubjectId')}
+    </button>
+  );
 }
 
 /**
  * A link to the subject's listing on the host result page for the term the entry was
  * added from, or nothing when that term or the subject id cannot form one.
  */
-function OfficialListingLink({ entry, t, touch }: OfficialListingLinkProps) {
+function OfficialListingLink({ entry, t, touch }: DetailLinkProps) {
   const term = termFromSourceQueryParams(entry.sourceQuery.params);
   const href = term === null ? null : subjectListingUrl(term, entry.subjectId);
   if (href === null) {
     return null;
   }
   const label = t('block.officialListing');
-  const size = touch ? 'min-h-11 text-sm' : TARGET_SIZE;
   // The name carries the visible label first, so speech input still finds it by what it
   // shows, and then says that it leaves the panel for a new tab.
   return (
-    <p className="mt-2 border-t border-border pt-2">
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={`${label} ${t('block.opensNewTab')}`}
-        className={`inline-flex items-center gap-1 rounded-kcp px-1 text-primary-strong underline underline-offset-2 ${size} ${FOCUS_RING}`}
-      >
-        <ExternalLink size={touch ? 16 : 12} aria-hidden />
-        {label}
-      </a>
-    </p>
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${label} ${t('block.opensNewTab')}`}
+      className={`${LINK_ROW_ITEM} text-primary-strong underline underline-offset-2 ${linkRowSize(touch)} ${FOCUS_RING}`}
+    >
+      <ExternalLink size={touch ? 16 : 12} aria-hidden />
+      {label}
+    </a>
   );
 }
 
@@ -135,7 +157,10 @@ export function BlockDetailSurface({
         locale={locale}
         t={t}
       />
-      <OfficialListingLink entry={entry} t={t} touch={!anchored} />
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-2">
+        <CopySubjectIdButton entry={entry} t={t} touch={!anchored} />
+        <OfficialListingLink entry={entry} t={t} touch={!anchored} />
+      </div>
     </>
   );
   const actions = (
