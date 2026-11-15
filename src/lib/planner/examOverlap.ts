@@ -75,10 +75,12 @@ export function sectionExamOverlaps(
   for (const kind of EXAM_KINDS) {
     const self = incoming.exam[kind];
     const other = existing.exam[kind];
+    // The undefined checks only narrow the types for the overlap record;
+    // examWindowsOverlap holds the rule.
     if (
-      isExamWindow(self) &&
-      isExamWindow(other) &&
-      windowsIntersect(self, other)
+      self !== undefined &&
+      other !== undefined &&
+      examWindowsOverlap(self, other)
     ) {
       overlaps.push({ blocking: toRef(existing), kind, self, other });
     }
