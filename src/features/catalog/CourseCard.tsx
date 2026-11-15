@@ -26,7 +26,7 @@ import { ChevronDown, Columns3, GripVertical } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Course, Section } from '@/lib/domain/types';
 import { termsEqual, type Term } from '@/lib/routing/academicTerms';
-import { computeSeatStatus } from '@/lib/catalog/seatStatus';
+import { computeSeatStatus, isSelectable } from '@/lib/catalog/seatStatus';
 import {
   summarizeCourse,
   type CourseSummary,
@@ -430,7 +430,7 @@ function CourseSection({
   const dragSource =
     !readOnly &&
     (relation.kind === 'addable' || relation.kind === 'conflicting') &&
-    seat.kind === 'open';
+    isSelectable(section);
   if (!dragSource) return row;
   return (
     <DraggableSection
