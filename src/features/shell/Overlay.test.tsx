@@ -58,16 +58,16 @@ function nextPopState(): Promise<void> {
   });
 }
 
-afterEach(async () => {
-  // While the panel holds its history entry, closing it goes back through a queued
-  // traversal; wait for it, so the next test opens from a settled history.
+function holdsPanelEntry(): boolean {
   const state: unknown = window.history.state;
-  const settled =
+  return (
     typeof state === 'object' &&
     state !== null &&
     OVERLAY_HISTORY_MARKER in state
-      ? nextPopState()
-      : Promise.resolve();
+  );
+}
+
+afterEach(async () => {
   cleanup();
   vi.unstubAllGlobals();
   act(() => {
@@ -75,7 +75,9 @@ afterEach(async () => {
     uiStore.getState().setLanguage('th');
     uiStore.getState().setViewMode('edit');
   });
-  await settled;
+  // While the panel and the shortcut help hold history entries, closing them goes back
+  // through queued traversals; wait for each, so the next test opens from a settled history.
+  while (holdsPanelEntry()) await nextPopState();
 });
 
 describe('Overlay', () => {
@@ -205,6 +207,30 @@ describe('Overlay', () => {
       const popped = nextPopState();
       fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
       await act(() => popped);
+      expect(uiStore.getState().isOpen).toBe(false);
+      expectHostEntry();
+    });
+
+    it('closes the shortcut help alone on a back gesture and the panel on a second', async () => {
+      openFrom(false);
+      fireEvent.keyDown(screen.getByRole('dialog'), {
+        key: '?',
+        code: 'Slash',
+        shiftKey: true,
+      });
+      expect(
+        screen.getByRole('dialog', { name: 'แป้นพิมพ์ลัด' }),
+      ).toBeInTheDocument();
+      const first = nextPopState();
+      window.history.back();
+      await act(() => first);
+      expect(
+        screen.queryByRole('dialog', { name: 'แป้นพิมพ์ลัด' }),
+      ).not.toBeInTheDocument();
+      expect(uiStore.getState().isOpen).toBe(true);
+      const second = nextPopState();
+      window.history.back();
+      await act(() => second);
       expect(uiStore.getState().isOpen).toBe(false);
       expectHostEntry();
     });

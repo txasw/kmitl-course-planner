@@ -1,13 +1,16 @@
-// Closes the overlay on the system back gesture, recorded in ADR-0067. While active it holds
-// one session history entry on top of the host's, with the same URL so the host router never
-// sees a navigation, and a marker naming this opening as its state. A popstate while active
-// means the student left that entry, so it calls onBack and leaves history alone. Any other
-// close goes back once, and only when history still has the length and URL it had right after
-// the push, so an entry someone else pushed is never unwound. It never reads history.state:
-// Chromium caches that value per world and refreshes it only for the world that read it last,
-// so once the page reads it the content script keeps seeing a stale value.
-// A back is a queued traversal, so an opening that starts before the popstate of an earlier
-// back waits for it, and the two traversals cannot cross.
+// Closes a layer of the panel on the system back gesture, recorded in ADR-0067. While active
+// each layer holds one session history entry on top of the host's, with the same URL so the
+// host router never sees a navigation, and a marker naming this opening as its state. The
+// layers that pushed form a stack, the overlay at the bottom and the shortcut help above it,
+// and a popstate belongs to the topmost one only: it means the student left that entry, so
+// that layer alone calls onBack and leaves history alone. Any other close goes back once, and
+// only when history still has the length and URL the layer expects, so an entry someone else
+// pushed is never unwound. It never reads history.state: Chromium caches that value per world
+// and refreshes it only for the world that read it last, so once the page reads it the content
+// script keeps seeing a stale value.
+// A back is a queued traversal whose popstate belongs to no layer, so an opening or a close
+// that starts before the popstate of an earlier back waits for it, and the two traversals
+// cannot cross.
 
 import { useEffect, useRef } from 'react';
 
@@ -18,6 +21,12 @@ interface PushedEntry {
   href: string;
 }
 
+interface Layer {
+  entry: PushedEntry;
+  onBack: () => void;
+}
+
+const layers: Layer[] = [];
 let backPending = false;
 const waiting = new Set<() => void>();
 
@@ -39,19 +48,54 @@ function isStillOnTop(entry: PushedEntry): boolean {
   );
 }
 
+// A run that goes back queues a traversal of its own, so the rest wait for its popstate.
+function runWaiting(): void {
+  for (const run of [...waiting]) {
+    if (backPending) return;
+    waiting.delete(run);
+    run();
+  }
+}
+
+function handlePopState(): void {
+  if (backPending) {
+    backPending = false;
+    runWaiting();
+  } else {
+    const top = layers.at(-1);
+    if (top !== undefined) {
+      removeLayer(top);
+      top.onBack();
+    }
+  }
+  syncListener();
+}
+
+function syncListener(): void {
+  if (backPending || layers.length > 0) {
+    window.addEventListener('popstate', handlePopState);
+  } else {
+    window.removeEventListener('popstate', handlePopState);
+  }
+}
+
+// A traversal never changes history.length, so the layer below the one leaving takes over the
+// length the leaving layer saw, which still counts the entry left above as a forward entry.
+// It reports whether the layer was on top, since only the top one may unwind its entry.
+function removeLayer(layer: Layer): boolean {
+  const index = layers.indexOf(layer);
+  if (index === -1) return false;
+  layers.splice(index, 1);
+  const wasTop = index === layers.length;
+  const below = layers.at(-1);
+  if (wasTop && below !== undefined) below.entry.length = layer.entry.length;
+  syncListener();
+  return wasTop;
+}
+
 function goBack(): void {
   backPending = true;
-  window.addEventListener(
-    'popstate',
-    () => {
-      backPending = false;
-      for (const run of [...waiting]) {
-        waiting.delete(run);
-        run();
-      }
-    },
-    { once: true },
-  );
+  syncListener();
   window.history.back();
 }
 
@@ -76,13 +120,7 @@ export function useBackToClose(active: boolean, onBack: () => void): void {
 
   useEffect(() => {
     if (!active) return undefined;
-    let pushed: PushedEntry | null = null;
-    let popped = false;
-
-    const handlePopState = (): void => {
-      popped = true;
-      onBackRef.current();
-    };
+    let layer: Layer | null = null;
 
     const push = (): void => {
       if (!hasUserActivation()) return;
@@ -90,19 +128,26 @@ export function useBackToClose(active: boolean, onBack: () => void): void {
         { [OVERLAY_HISTORY_MARKER]: crypto.randomUUID() },
         '',
       );
-      pushed = {
-        length: window.history.length,
-        href: window.location.href,
+      layer = {
+        entry: { length: window.history.length, href: window.location.href },
+        onBack: () => {
+          onBackRef.current();
+        },
       };
-      window.addEventListener('popstate', handlePopState);
+      layers.push(layer);
+      syncListener();
     };
 
     const cancelWait = afterPendingBack(push);
+    // A layer nested in the React tree cleans up before its parent, so the layers close top
+    // down; one that is no longer on top, or already left by a back, unwinds nothing.
     return () => {
       cancelWait();
-      if (pushed === null) return;
-      window.removeEventListener('popstate', handlePopState);
-      if (!popped && isStillOnTop(pushed)) goBack();
+      if (layer === null || !removeLayer(layer)) return;
+      const { entry } = layer;
+      afterPendingBack(() => {
+        if (isStillOnTop(entry)) goBack();
+      });
     };
   }, [active]);
 }
