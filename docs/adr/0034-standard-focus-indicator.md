@@ -54,3 +54,23 @@ was rejected because the orange on orange ring fails the 3:1 bar.
 rather than writing focus classes. The debug only diagnostics controls were left on the
 old pattern because they never ship. The remaining offset outline controls that already
 sit outside any clipping context are visually equivalent and migrate opportunistically.
+
+## Amendment: one source, enforced, and a painting outline (2026-11-15)
+
+The opportunistic migration is finished. Every hand written focus class, including the
+debug drawer controls, now takes `FOCUS_RING` or `FOCUS_OUTLINE`, and an ESLint
+`no-restricted-syntax` guard rejects any string or template literal that writes a
+`focus`, `focus-visible`, or `focus-within` ring or outline class outside
+`src/lib/ui/focus.ts`. The rule for which constant a control takes is unchanged, with
+two cases named here. A danger filled button keeps the offset outline for the same
+reason the primary filled buttons do. A timetable block keeps the offset outline
+because its inset ring already carries the danger badge, and a focus ring on the same
+channel would hide that badge while the block is focused.
+
+Migrating exposed a defect in the outline itself. In Tailwind v4, `outline-none` sets
+the `--tw-outline-style` variable to `none` on the element, and the outline width
+utility draws in that variable's style, so `outline-none` with a `focus-visible`
+outline width painted no outline at all: every offset outline control showed no focus
+indicator. `FOCUS_OUTLINE` now carries `focus-visible:outline-solid`, which restores the
+style on keyboard focus only. A unit test pins the class, and the computed style was
+checked in Chromium. The inset ring is a box shadow and was never affected.
