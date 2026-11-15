@@ -333,7 +333,6 @@
   "workload.lecture": "Lecture",
   "workload.practice": "Practice",
   "workload.selfStudy": "Self study",
-  "workload.hours": "{hours} h",
   "workload.unstated": "Subjects with no stated hours, not in these totals: {count}",
   "workload.perDayTitle": "Class time per day",
   "workload.noMeetings": "No class with a set day and time yet",

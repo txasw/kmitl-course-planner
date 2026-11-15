@@ -333,7 +333,6 @@
   "workload.lecture": "ทฤษฎี",
   "workload.practice": "ปฏิบัติ",
   "workload.selfStudy": "ศึกษาด้วยตนเอง",
-  "workload.hours": "{hours} ชม.",
   "workload.unstated": "ไม่รวม {count} วิชาที่ไม่ระบุชั่วโมงเรียน",
   "workload.perDayTitle": "เวลาเรียนรายวัน",
   "workload.noMeetings": "ยังไม่มีคาบเรียนที่กำหนดวันและเวลา",
