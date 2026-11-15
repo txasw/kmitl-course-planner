@@ -377,3 +377,38 @@ for (const tier of TIERS) {
     });
   });
 }
+
+// A solid filled control draws its keyboard focus as an offset outline. Tailwind v4
+// outline-none zeroes the outline style the width utility draws in, so this reads the
+// computed style in the built extension to prove the outline paints: Escape closes the
+// panel by keyboard and hands focus back to the launcher, a filled pill.
+test('paints the offset focus outline on the launcher after Escape', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  const overlay = page.getByRole('dialog', { name: OVERLAY_NAME });
+  await expect(overlay).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(overlay).toBeHidden();
+  await expect
+    .poll(async () =>
+      (await focusedElement(page)).evaluate((element) => {
+        if (!(element instanceof HTMLElement)) {
+          return null;
+        }
+        const style = getComputedStyle(element);
+        return {
+          id: element.id,
+          focusVisible: element.matches(':focus-visible'),
+          outlineStyle: style.outlineStyle,
+          outlineWidth: style.outlineWidth,
+        };
+      }),
+    )
+    .toEqual({
+      id: 'kcp-launcher',
+      focusVisible: true,
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+    });
+});
