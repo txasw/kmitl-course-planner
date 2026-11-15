@@ -75,3 +75,4 @@ a new record that supersedes the old one rather than editing history.
 66. [Landing site on Cloudflare at kcp.cecs.sh](0066-landing-site-on-cloudflare-at-kcp-cecs-sh.md)
 67. [Non drag swap and change section paths](0068-non-drag-swap-and-change-section.md)
 68. [Per term course shortlist](0069-per-term-course-shortlist.md)
+69. [Firefox for Android support and the host viewport](0070-firefox-android-and-host-viewport.md)
