@@ -1,0 +1,7 @@
+# Advisories the vulnerability scan accepts, each with its reason and an expiry
+# so the scan fails again once the date passes and the entry is revisited.
+
+[[IgnoredVulns]]
+id = "GHSA-gcqx-w48m-w2h4"
+ignoreUntil = 2027-02-15T00:00:00Z
+reason = "deepmerge 4.3.1 is pinned by the dev only addons-linter, which merges its own bundled schemas with it and runs only in CI against the extension build. No fixed release exists and it never ships in the bundle (ADR-0070)."
