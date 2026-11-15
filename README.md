@@ -130,7 +130,7 @@ Firefox Add-ons review are unaffected.
 
 ```
 pnpm typecheck      # TypeScript, no emit
-pnpm lint           # ESLint
+pnpm lint           # ESLint, then knip for unused files, exports, and dependencies
 pnpm lint:fix       # ESLint with fixes
 pnpm format:check   # Prettier, check
 pnpm format         # Prettier, write

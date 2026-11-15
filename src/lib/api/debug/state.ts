@@ -9,6 +9,7 @@ import type { LatestRaw, RequestLogEntry, SimSettings } from '../types';
 import type { DataQualityReport } from '../../contract/report';
 import type { Recorder } from '../interceptors';
 
+/** @canary The marker the CI bundle check greps for (ADR-0014). */
 export const DEBUG_CANARY = 'kcp-debug-canary';
 
 const RING_CAP = 50;
