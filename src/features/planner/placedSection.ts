@@ -51,3 +51,17 @@ export function toPlacedSection(
 export function isScheduled(section: PlacedSection): boolean {
   return section.meetings.length > 0;
 }
+
+/** Split the placed sections in one pass into those the grid places and those the
+ * unscheduled shelf lists, each keeping the plan order. */
+export function partitionScheduled(sections: readonly PlacedSection[]): {
+  scheduled: PlacedSection[];
+  unscheduled: PlacedSection[];
+} {
+  const scheduled: PlacedSection[] = [];
+  const unscheduled: PlacedSection[] = [];
+  for (const section of sections) {
+    (isScheduled(section) ? scheduled : unscheduled).push(section);
+  }
+  return { scheduled, unscheduled };
+}

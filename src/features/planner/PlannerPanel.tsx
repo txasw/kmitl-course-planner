@@ -13,7 +13,6 @@
 import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { flushSync } from 'react-dom';
 import { useStore } from 'zustand';
-import { snapshotToSection } from '@/lib/domain/plan';
 import { catalogMeetings } from '@/lib/catalog/catalogMeetings';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import {
@@ -29,7 +28,11 @@ import { buildExamSchedule } from '@/lib/planner/examSchedule';
 import { summarizeWeeklyHours } from '@/lib/planner/credits';
 import { groupEntriesBySubject } from '@/lib/planner/subjectGroups';
 import { posterHonesty } from '@/lib/planner/posterHonesty';
-import { planStore, useActivePlan } from '@/features/plans/planStore';
+import {
+  planStore,
+  useActivePlan,
+  usePlacedSections,
+} from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
 import { UpdatesDialog } from '@/features/plans/UpdatesDialog';
 import { UpdatesIndicator } from '@/features/plans/UpdatesIndicator';
@@ -42,7 +45,7 @@ import { useTranslation } from '@/features/shell/useTranslation';
 import { removalOrder, targetsAfterRemoval } from './blockFocus';
 import { firstClash } from './clashTarget';
 import { locateSection } from './locateSection';
-import { isScheduled, toPlacedSection } from './placedSection';
+import { partitionScheduled, toPlacedSection } from './placedSection';
 import { dragStore, selectDragging } from './dragStore';
 import { BlockDetailSurface } from './BlockDetailSurface';
 import { BlockContextMenu } from './BlockContextMenu';
@@ -86,12 +89,13 @@ export function PlannerPanel() {
       ),
     [entries],
   );
+  // The full domain sections of the placed entries, derived once for both conflict checks.
+  const planSections = usePlacedSections();
   // The time conflicts a time change put among the placed entries, computed from the full
   // sections so declared pairs are excluded correctly. Its keys drive the danger badge.
   const timeConflicts = useMemo(
-    () =>
-      planConflicts(entries.map((entry) => snapshotToSection(entry.snapshot))),
-    [entries],
+    () => planConflicts(planSections),
+    [planSections],
   );
   const conflictIds = useMemo(
     () => new Set(timeConflicts.keys()),
@@ -102,11 +106,8 @@ export function PlannerPanel() {
   // the time conflicts. The full map feeds the block popover; its keys drive the danger
   // badge, since an exam overlap discovered among placed entries is a hard conflict.
   const examConflicts = useMemo(
-    () =>
-      planExamConflicts(
-        entries.map((entry) => snapshotToSection(entry.snapshot)),
-      ),
-    [entries],
+    () => planExamConflicts(planSections),
+    [planSections],
   );
   const examConflictIds = useMemo(
     () => new Set(examConflicts.keys()),
@@ -131,9 +132,8 @@ export function PlannerPanel() {
     () => groupEntriesBySubject(entries),
     [entries],
   );
-  const scheduled = useMemo(() => sections.filter(isScheduled), [sections]);
-  const unscheduled = useMemo(
-    () => sections.filter((section) => !isScheduled(section)),
+  const { scheduled, unscheduled } = useMemo(
+    () => partitionScheduled(sections),
     [sections],
   );
   const scheduledMeetings = useMemo(
