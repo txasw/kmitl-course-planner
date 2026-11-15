@@ -32,6 +32,7 @@ function renderSummary(
     <WorkloadSummary
       hours={hours}
       meetings={meetings}
+      locale={locale}
       t={createTranslator(locale)}
     />,
   );
@@ -129,7 +130,18 @@ describe('WorkloadSummary', () => {
 
   it('reads in English', () => {
     renderSummary(MEETINGS, { ...HOURS, unstated: 1 }, 'en');
-    expect(part('Weekly hours by credit')).toHaveTextContent('Lecture5 h');
+    // The hour unit joins the number in English, as on the stats bar.
+    const hours = part('Weekly hours by credit');
+    expect(
+      within(hours)
+        .getAllByRole('definition')
+        .map((value) => value.textContent),
+    ).toEqual(['5h', '3h', '12h']);
+    expect(
+      within(part('Class time per day'))
+        .getAllByRole('definition')
+        .map((value) => value.textContent),
+    ).toEqual(['3h', '4h', '4h']);
     expect(part('Weekly hours by credit')).toHaveTextContent(
       'Subjects with no stated hours, not in these totals: 1',
     );

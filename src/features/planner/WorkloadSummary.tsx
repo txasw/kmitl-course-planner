@@ -3,12 +3,14 @@
 // time each day, the weekdays with no class, and the breaks of three hours or more between
 // two classes, as in วันพฤหัสบดี ว่าง 10:00 ถึง 13:00. Students plan around a day off or a
 // long break, and the timetable shows neither as text. Every day reads as its full name, so
-// nothing depends on a short form. Like the grid, it renders only from the plan snapshots,
-// and none of it reaches the poster.
+// nothing depends on a short form. Every hour count goes through the shared hour unit
+// helper, so it reads 5 ชม. or 5h as the stats bar does. Like the grid, it renders only
+// from the plan snapshots, and none of it reaches the poster.
 
 import { useId } from 'react';
-import type { Translate, TranslationKey } from '@/lib/i18n/t';
+import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
+import { hoursText } from '@/lib/i18n/hours';
 import { fillTemplate } from '@/lib/i18n/template';
 import { WEEK_DAYS } from '@/lib/parsing/days';
 import { formatHours, formatMinutes } from '@/lib/parsing/time';
@@ -36,10 +38,16 @@ interface WorkloadSummaryProps {
   hours: WeeklyHours;
   /** The plan's scheduled meetings; an unscheduled section adds none. */
   meetings: readonly MeetingSpan[];
+  locale: Locale;
   t: Translate;
 }
 
-export function WorkloadSummary({ hours, meetings, t }: WorkloadSummaryProps) {
+export function WorkloadSummary({
+  hours,
+  meetings,
+  locale,
+  t,
+}: WorkloadSummaryProps) {
   const headingId = `${useId()}-heading`;
   const load = perDayLoad(meetings);
   const loadedDays = WEEK_DAYS.filter((day) => load[day] > 0);
@@ -61,9 +69,7 @@ export function WorkloadSummary({ hours, meetings, t }: WorkloadSummaryProps) {
             >
               <dt className="text-xs text-ink-soft">{t(key)}</dt>
               <dd className="text-base font-semibold text-ink tabular-nums">
-                {fillTemplate(t('workload.hours'), {
-                  hours: formatHours(hours[field] * 60),
-                })}
+                {hoursText(hours[field] * 60, locale, t)}
               </dd>
             </div>
           ))}
@@ -84,9 +90,7 @@ export function WorkloadSummary({ hours, meetings, t }: WorkloadSummaryProps) {
               <div key={day} className="contents">
                 <dt className="text-ink">{t(dayFullLabelKey(day))}</dt>
                 <dd className="text-ink tabular-nums">
-                  {fillTemplate(t('workload.hours'), {
-                    hours: formatHours(load[day]),
-                  })}
+                  {hoursText(load[day], locale, t)}
                 </dd>
               </div>
             ))}

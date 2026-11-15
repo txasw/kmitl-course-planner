@@ -62,7 +62,12 @@ export function SummaryView({
   return (
     <div className="flex max-w-3xl flex-col gap-4">
       <ExamSchedulePanel schedule={schedule} locale={locale} t={t} />
-      <WorkloadSummary hours={hours} meetings={meetings} t={t} />
+      <WorkloadSummary
+        hours={hours}
+        meetings={meetings}
+        locale={locale}
+        t={t}
+      />
     </div>
   );
 }
