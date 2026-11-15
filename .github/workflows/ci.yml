@@ -185,9 +185,11 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       # The e2e specs load both flavors: production for the isolation checks and
       # debug for the browser driven specs. WXT suffixes the debug output dir, so
-      # the two builds coexist.
+      # the two builds coexist. The Firefox production build is only read by the
+      # manifest smoke spec, which checks its Android declaration.
       - run: pnpm wxt build -b chrome
       - run: pnpm build:debug -b chrome
+      - run: pnpm wxt build -b firefox
       - run: pnpm test:e2e
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
