@@ -5,6 +5,7 @@
 import { useTranslation } from '@/features/shell/useTranslation';
 import { fillTemplate } from '@/lib/i18n/template';
 import type { Translate } from '@/lib/i18n/t';
+import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
 export interface DeleteConfirmProps {
@@ -39,14 +40,14 @@ export function DeleteConfirm({
         <button
           type="button"
           onClick={onCancel}
-          className={`rounded-kcp border border-border px-2 py-1 text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
+          className={`rounded-kcp border border-border px-2 py-1 text-ink-soft hover:bg-surface-alt hover:text-ink ${FOCUS_RING} ${TARGET_SIZE}`}
         >
           {t('action.cancel')}
         </button>
         <button
           type="button"
           onClick={onConfirm}
-          className={`rounded-kcp bg-danger px-2 py-1 font-semibold text-white outline-none hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
+          className={`rounded-kcp bg-danger px-2 py-1 font-semibold text-white hover:opacity-90 ${FOCUS_OUTLINE} ${TARGET_SIZE}`}
         >
           {t('planSwitcher.delete')}
         </button>

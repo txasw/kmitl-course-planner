@@ -13,13 +13,13 @@ import { snapshotToSection } from '@/lib/domain/plan';
 import type { ExamOverlap } from '@/lib/planner/examOverlap';
 import type { EntryDiff } from '@/lib/planner/reconcile';
 import { planStore } from '@/features/plans/planStore';
+import { FOCUS_RING } from '@/lib/ui/focus';
 import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 import { describeEntryDiff } from './describeEntryDiff';
 import { formatExamRange } from './examText';
 import { SectionDetailList } from './SectionDetailList';
 
-const ACTION =
-  'inline-flex items-center gap-1 rounded-kcp border outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
+const ACTION = `inline-flex items-center gap-1 rounded-kcp border ${FOCUS_RING}`;
 
 interface BlockDetailBodyProps {
   entry: PlanEntry;

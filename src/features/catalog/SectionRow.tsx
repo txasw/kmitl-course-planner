@@ -26,7 +26,7 @@ import { computeSeatDemand, seatLineText } from '@/lib/catalog/seatDemand';
 import { computeRowStatus, isConflictStatus } from '@/lib/catalog/rowStatus';
 import type { SectionRelation } from '@/lib/planner/sectionState';
 import { describeConflicts } from '@/lib/planner/describeConflict';
-import { FOCUS_OUTLINE } from '@/lib/ui/focus';
+import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { NO_DRAG_ARMING } from '@/features/planner/dragArming';
 import { TermSwitchLabel } from '@/features/plans/TermSwitchLabel';
@@ -129,7 +129,7 @@ export function SectionRow({
                 onClick={() => {
                   onSwitchTerm(relation.browsedTerm);
                 }}
-                className={`rounded-kcp border border-primary px-2 py-1 text-primary-strong outline-none hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
+                className={`rounded-kcp border border-primary px-2 py-1 text-primary-strong hover:bg-primary-soft ${FOCUS_RING} ${TARGET_SIZE}`}
               >
                 <TermSwitchLabel term={relation.browsedTerm} t={t} />
               </button>

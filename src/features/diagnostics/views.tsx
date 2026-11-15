@@ -11,6 +11,7 @@ import type { DataQualityReport } from '@/lib/contract/report';
 import { FAULT_PRESETS } from '@/lib/api/debug/faults';
 import { MUTATION_PRESETS } from '@/lib/contract/mutations';
 import { searchStore } from '@/features/search/searchStore';
+import { FOCUS_RING } from '@/lib/ui/focus';
 
 /** @canary The marker the CI bundle check greps for (ADR-0014). */
 export const DEBUG_CANARY = 'kcp-debug-canary';
@@ -137,8 +138,7 @@ export function RawNormalizedView({
   );
 }
 
-const SELECT =
-  'rounded-kcp border border-border bg-surface px-2 py-1.5 text-ink focus:ring-2 focus:ring-primary focus:outline-none';
+const SELECT = `rounded-kcp border border-border bg-surface px-2 py-1.5 text-ink ${FOCUS_RING}`;
 
 interface SimulationControlsProps {
   simulation: SimSettings;

@@ -55,7 +55,7 @@ function DismissButton({ t }: { t: Translate }) {
   );
 }
 
-const LINK_ACTION = `text-primary-strong underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`;
+const LINK_ACTION = `text-primary-strong underline ${FOCUS_RING} ${TARGET_SIZE}`;
 
 /** Whether the current catalog result lists the subject, so a reveal has a card to show. */
 function useInResult(subjectId: string): boolean {
@@ -184,7 +184,7 @@ export function BlockedNotice({
                   },
                 );
               }}
-              className={`rounded-kcp border border-border bg-surface px-2 py-1 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
+              className={`rounded-kcp border border-border bg-surface px-2 py-1 text-ink hover:bg-surface-alt ${FOCUS_RING} ${TARGET_SIZE}`}
             >
               {t('section.code')} {alternative.section}
               {alternative.meetings.length === 0

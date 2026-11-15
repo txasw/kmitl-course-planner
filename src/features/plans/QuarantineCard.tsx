@@ -8,6 +8,7 @@ import { AlertTriangle } from 'lucide-react';
 import type { TranslationKey } from '@/lib/i18n/t';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { copyText } from '@/features/shell/copyText';
+import { FOCUS_RING } from '@/lib/ui/focus';
 import { storageIssueStore, type StorageIssue } from './storageIssueStore';
 
 function messageKey(issue: StorageIssue): TranslationKey {
@@ -47,7 +48,7 @@ export function QuarantineCard() {
               t('storage.exportFailed'),
             );
           }}
-          className="rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className={`rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink hover:bg-surface-alt ${FOCUS_RING}`}
         >
           {t('storage.export')}
         </button>
@@ -57,7 +58,7 @@ export function QuarantineCard() {
         onClick={() => {
           storageIssueStore.getState().setIssue(null);
         }}
-        className="text-ink-soft underline outline-none hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        className={`text-ink-soft underline hover:text-ink ${FOCUS_RING}`}
       >
         {t('action.close')}
       </button>

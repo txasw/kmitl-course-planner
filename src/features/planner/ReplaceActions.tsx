@@ -12,6 +12,7 @@ import {
   replaceOptions,
   type ReplaceOption,
 } from '@/lib/planner/sectionChange';
+import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { swapSectionInPlan } from '@/features/plans/addToPlan';
 import { planStore } from '@/features/plans/planStore';
@@ -21,7 +22,7 @@ import { rootOf } from '@/features/shell/useFocusTrap';
 import { dragStore, type BlockedFeedback } from './dragStore';
 import { firstFeedbackAction } from './feedbackAction';
 
-const REPLACE_ACTION = `rounded-kcp border border-danger bg-surface px-2 py-1 text-danger outline-none hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`;
+const REPLACE_ACTION = `rounded-kcp border border-danger bg-surface px-2 py-1 text-danger hover:bg-surface-alt ${FOCUS_RING} ${TARGET_SIZE}`;
 
 /** Commit a replacement and route its outcome: clear the notice when it lands, or say
  * why it did not through the notice that takes this one's place. */
