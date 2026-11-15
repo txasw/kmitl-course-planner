@@ -9,9 +9,13 @@
 // primary-strong filled controls only: an inset orange ring on an orange fill is about
 // 1.2:1, under the 3:1 UI bar, so those keep an offset outline that sits on the
 // surrounding surface at the accepted 3:1 accent ratio.
+//
+// In Tailwind v4, outline-none sets the --tw-outline-style variable to none on the element,
+// and the outline width utility draws in that variable's style, so the outline needs
+// focus-visible:outline-solid to restore the style or it never paints.
 
 export const FOCUS_RING =
   'outline-none focus-visible:ring-(length:--kcp-focus-width) focus-visible:ring-inset focus-visible:ring-(color:--kcp-focus-color)';
 
 export const FOCUS_OUTLINE =
-  'outline-none focus-visible:outline-(length:--kcp-focus-width) focus-visible:outline-offset-(--kcp-focus-offset) focus-visible:outline-(color:--kcp-focus-color)';
+  'outline-none focus-visible:outline-solid focus-visible:outline-(length:--kcp-focus-width) focus-visible:outline-offset-(--kcp-focus-offset) focus-visible:outline-(color:--kcp-focus-color)';
