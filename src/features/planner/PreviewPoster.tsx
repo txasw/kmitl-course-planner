@@ -100,10 +100,8 @@ function PreviewPosterComponent({
           dayAccent
           orientation={template.orientation}
           fontPx={template.posterFontPx}
+          notice={sections.length === 0 ? <GridEmptyState t={t} /> : null}
         />
-        {sections.length === 0 ? (
-          <GridEmptyState t={t} orientation={template.orientation} />
-        ) : null}
       </div>
       {unscheduled.length > 0 ? (
         <UnscheduledShelf

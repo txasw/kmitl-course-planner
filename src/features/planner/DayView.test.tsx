@@ -27,7 +27,6 @@ import { swipe } from '../../../tests/support/swipe';
 import { installViewport } from '../../../tests/support/viewport';
 import { DayChips } from './DayChips';
 import { dragStore } from './dragStore';
-import { PORTRAIT_AXIS_TRACK } from './gridGeometry';
 import { PlannerDnd } from './PlannerDnd';
 import { PlannerPanel } from './PlannerPanel';
 
@@ -183,10 +182,15 @@ function renderPanel() {
   );
 }
 
-/** The inline leading offset of a grid notice, as the notice sets it. */
-function noticeLeft(notice: string): string | undefined {
+/** Whether a grid notice is an item of the edit grid spanning its body, past the axis. */
+function noticeOverBody(notice: string): boolean {
   const node = document.querySelector(`[data-grid-notice="${notice}"]`);
-  return node instanceof HTMLElement ? node.style.left : undefined;
+  return (
+    node instanceof HTMLElement &&
+    node.parentElement?.hasAttribute('data-edit-grid') === true &&
+    node.style.gridRow === '2 / -1' &&
+    node.style.gridColumn === '2 / -1'
+  );
 }
 
 function block(subjectId: string): HTMLElement | null {
@@ -223,13 +227,13 @@ describe('DayView', () => {
     expect(note).toHaveTextContent('วันอังคาร');
     expect(note).toHaveTextContent('วันว่าง');
     // The sticky hour column would otherwise cover the card's leading edge.
-    expect(noticeLeft('free-day')).toBe(PORTRAIT_AXIS_TRACK);
+    expect(noticeOverBody('free-day')).toBe(true);
   });
 
   it('centers the empty plan notice over the lanes, clear of the hour column', () => {
     installViewport(390);
     renderPanel();
-    expect(noticeLeft('empty')).toBe(PORTRAIT_AXIS_TRACK);
+    expect(noticeOverBody('empty')).toBe(true);
   });
 
   it('keeps the picked day across a switch to the selected courses and back', () => {

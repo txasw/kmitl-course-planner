@@ -3,10 +3,16 @@
 // and the free day of the day view (ADR-0049). One layout keeps the two alike: a card
 // variant of the shared empty state, so the gridlines under it do not cross the text.
 // Only the edit grid passes the empty plan its action, which brings the search into
-// view; a poster is a picture to share and never carries a control. In portrait the hour
-// column runs down the leading edge, sticky over the lanes in edit, so a notice centers
-// over the day lanes beside it rather than across it, or the column would cover the
-// card's edge and, on a narrow phone, the start of its text.
+// view; a poster is a picture to share and never carries a control. The grid renders the
+// notice as one of its own items over the grid body, so it centers on the day rows and
+// the time tracks rather than on the scroller around them: a landscape week packs its
+// rows to the top of a taller scroller, where a notice centered on the scroller would sit
+// low or below the rows. Spanning the body also keeps the notice clear of the leading
+// axis, the day column in landscape and the hour column in portrait, both sticky over the
+// lanes in edit, which would otherwise cover the card's edge and, on a narrow phone, the
+// start of its text. Where the body runs taller than the scroller, as the phone's day view
+// does, the card sticks inside the visible part, below the sticky axis row, so a short
+// screen never leaves it below the fold.
 
 import { CalendarCheck, CalendarPlus, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -16,7 +22,11 @@ import { TARGET_SIZE } from '@/lib/ui/target';
 import { EmptyState } from '@/components/EmptyState';
 import { openSearch } from '@/features/catalog/revealCourse';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
-import { PORTRAIT_AXIS_TRACK, type Orientation } from './gridGeometry';
+import { AXIS_TRACK_EM, GRID_BODY_PLACEMENT } from './gridGeometry';
+
+// The sticky edges of the card, in em of the grid font it inherits: the axis row above,
+// and the scroller's foot below.
+const STICKY_EDGES = { top: `${String(AXIS_TRACK_EM)}em`, bottom: 0 } as const;
 
 interface GridNoticeProps {
   /** Names the notice in the DOM, so a test finds the one it means. */
@@ -25,32 +35,26 @@ interface GridNoticeProps {
   title: string;
   body: string;
   action?: ReactNode;
-  orientation: Orientation;
 }
 
 // The wrapper lets pointer events through to the grid, so a drag or a hover over the
 // notice still reaches the cells; only the action takes them back.
-function GridNotice({
-  notice,
-  icon,
-  title,
-  body,
-  action,
-  orientation,
-}: GridNoticeProps) {
+function GridNotice({ notice, icon, title, body, action }: GridNoticeProps) {
   return (
     <div
       data-grid-notice={notice}
-      className="pointer-events-none absolute right-0 top-1/2 flex -translate-y-1/2 justify-center px-4"
-      style={{ left: orientation === 'portrait' ? PORTRAIT_AXIS_TRACK : 0 }}
+      className="pointer-events-none relative flex min-h-0 min-w-0 items-center justify-center px-4"
+      style={GRID_BODY_PLACEMENT}
     >
-      <EmptyState
-        variant="card"
-        icon={icon}
-        title={title}
-        description={body}
-        action={action}
-      />
+      <div className="sticky" style={STICKY_EDGES}>
+        <EmptyState
+          variant="card"
+          icon={icon}
+          title={title}
+          description={body}
+          action={action}
+        />
+      </div>
     </div>
   );
 }
@@ -72,21 +76,17 @@ function GoToSearchButton({ t }: { t: Translate }) {
 
 interface GridEmptyStateProps {
   t: Translate;
-  /** The grid's orientation, so the notice clears a portrait hour column. */
-  orientation: Orientation;
   /** Whether to offer the action that brings the search into view; the edit grid only. */
   searchAction?: boolean;
 }
 
 export function GridEmptyState({
   t,
-  orientation,
   searchAction = false,
 }: GridEmptyStateProps) {
   return (
     <GridNotice
       notice="empty"
-      orientation={orientation}
       icon={CalendarPlus}
       title={t('grid.emptyTitle')}
       body={t('grid.emptyBody')}
@@ -106,7 +106,6 @@ export function FreeDayNotice({
   return (
     <GridNotice
       notice="free-day"
-      orientation="portrait"
       icon={CalendarCheck}
       title={dayName}
       body={t('view.freeDay')}

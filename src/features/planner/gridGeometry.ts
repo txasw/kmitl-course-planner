@@ -22,6 +22,16 @@ export const AXIS_TRACK_EM = 1.4;
 /** The width of the portrait hour column, the leading track down the grid's edge. */
 export const PORTRAIT_AXIS_TRACK = '2.75rem';
 
+/**
+ * The grid body, every track past the leading axis on both axes: the day rows and the
+ * quarter columns in landscape, the quarter rows and the day columns in portrait. The day
+ * and time tracks both begin at the second line, so one placement serves both orientations.
+ */
+export const GRID_BODY_PLACEMENT = {
+  gridRow: `${String(FIRST_DAY_INDEX)} / -1`,
+  gridColumn: `${String(FIRST_TIME_INDEX)} / -1`,
+} as const satisfies CSSProperties;
+
 /** The grid root font size in edit mode before the scroller is measured, in CSS pixels;
  * a wider scroller steps it up and a template sets its own. */
 export const EDIT_FONT_PX = BASE_GRID_FONT_PX;

@@ -76,24 +76,18 @@ export function TimetableView({
       ) : (
         <GridScroller>
           {(fontPx) => (
-            <>
-              <WeeklyGrid
-                {...grid}
-                sections={sections}
-                window={frame.window}
-                days={frame.days}
-                orientation={narrow ? 'portrait' : 'landscape'}
-                editable
-                fontPx={fontPx}
-              />
-              {planEmpty ? (
-                <GridEmptyState
-                  t={grid.t}
-                  orientation={narrow ? 'portrait' : 'landscape'}
-                  searchAction
-                />
-              ) : null}
-            </>
+            <WeeklyGrid
+              {...grid}
+              sections={sections}
+              window={frame.window}
+              days={frame.days}
+              orientation={narrow ? 'portrait' : 'landscape'}
+              editable
+              fontPx={fontPx}
+              notice={
+                planEmpty ? <GridEmptyState t={grid.t} searchAction /> : null
+              }
+            />
           )}
         </GridScroller>
       )}
