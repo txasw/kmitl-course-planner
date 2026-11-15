@@ -120,9 +120,10 @@ export default tseslint.config(
     },
   },
 
-  // The focus module is the one place the focus classes are written.
+  // The focus module is the one place the focus classes are written, and its test
+  // asserts them.
   {
-    files: ['src/lib/ui/focus.ts'],
+    files: ['src/lib/ui/focus.ts', 'src/lib/ui/focus.test.ts'],
     rules: { 'no-restricted-syntax': ['error', ...HTML_SYNTAX] },
   },
 
