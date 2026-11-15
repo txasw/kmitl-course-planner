@@ -400,7 +400,7 @@ export function PlannerPanel() {
               examOverlaps: examConflicts,
               onOpenDetail: openDetail,
               onContextMenu: openContextMenu,
-              detailOpen: detail !== null,
+              surfaceOpen: detail !== null || contextMenu !== null,
             }}
           />
           {unscheduled.length > 0 ? (
