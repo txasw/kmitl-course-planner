@@ -624,3 +624,34 @@ in the Firefox window that opens on the phone.
 - [ ] Download image: in preview, download the image. Firefox saves the PNG, and the Thai
       text in it renders correctly.
 - [ ] Close: the close control leaves the host page as it was, scrolling again.
+
+## Firefox for Android support gate
+
+ADR-0070 declares Firefox for Android support, and its merge waits on this run on a real
+phone with the production build, the one that carries the declaration. The back gesture
+step needs the overlay back gesture handling, so build from a branch that includes it.
+Install Firefox 142 or later from Google Play, turn on Developer options and USB debugging
+in Android settings and Remote debugging via USB in Firefox settings, and connect the
+phone to a computer with the Android platform tools installed; `adb devices` lists its
+device id. Run `pnpm install --frozen-lockfile` and `pnpm
+wxt build -b firefox`, then `pnpm dlx web-ext@10.8.0 run --target=firefox-android
+--android-device=<device id> --firefox-apk=org.mozilla.firefox --source-dir
+.output/firefox-mv3`. Record the phone model, the Android version, the Firefox version,
+the date, and the result of each item in the pull request. A failed item blocks the merge.
+
+- [ ] Site access: in Firefox, open Extensions from the menu and then the add-on's
+      permissions. They list storage and access to the two KMITL sites only, and the site
+      access is on. If it is off, turn it on and record that in the result.
+- [ ] Host page: open `https://regis.reg.kmitl.ac.th/#/teach_table_selector`. The page
+      fits the screen width with no horizontal scroll.
+- [ ] Launcher: a tap on the launcher opens the panel at the phone layout.
+- [ ] Search: on the by subject id tab, type an 8 digit code with the on screen keyboard
+      and submit. The results list below the folded form.
+- [ ] Add a section: open a course card and tap a section's add button. The add toast
+      shows, and its action switches to the timetable pane, where the block is placed.
+- [ ] Open a block: a tap on the placed block opens its details as a bottom sheet, which
+      closes from its close button.
+- [ ] Back gesture: with the panel open, use the system back gesture. The overlay
+      closes, the host page stays on its route, and it scrolls again.
+- [ ] Export: reopen the panel, switch to preview, and download the image. Firefox saves
+      the PNG, and the Thai text in it renders correctly.
