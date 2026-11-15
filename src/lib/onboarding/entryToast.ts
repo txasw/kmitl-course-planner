@@ -25,9 +25,6 @@ export const ENTRY_TOAST_NAME_MAX = 40;
 
 const NAME_MARKER = '...';
 
-/** Where the toast's action opens the panel. */
-export type EntryToastTarget = 'updates' | 'timetable' | 'catalog';
-
 export type EntryToastContent =
   | {
       kind: 'updates';

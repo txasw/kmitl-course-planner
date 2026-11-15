@@ -116,14 +116,6 @@ describe('ui store', () => {
     expect(store.getState().isOpen).toBe(false);
   });
 
-  it('toggles the open state', () => {
-    const store = createUiStore();
-    store.getState().toggle();
-    expect(store.getState().isOpen).toBe(true);
-    store.getState().toggle();
-    expect(store.getState().isOpen).toBe(false);
-  });
-
   it('resets the catalog sheet when closing', () => {
     const store = createUiStore();
     store.getState().open();

@@ -4,7 +4,6 @@ import {
   creditLoad,
   summarizeCredits,
   summarizeWeeklyHours,
-  totalCredits,
 } from './credits';
 
 describe('summarizeCredits', () => {
@@ -23,11 +22,11 @@ describe('summarizeCredits', () => {
 
   it('sums distinct subjects', () => {
     expect(
-      totalCredits([
+      summarizeCredits([
         { subjectId: 'A', credit: 3 },
         { subjectId: 'B', credit: 1 },
         { subjectId: 'C', credit: 4 },
-      ]),
+      ]).credits,
     ).toBe(8);
   });
 });

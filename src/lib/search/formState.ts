@@ -8,7 +8,7 @@
 
 import { z } from 'zod';
 import type { TeachTableQuery } from '../messaging/protocol';
-import { SEMESTERS, type Semester, type Term } from '../routing/academicTerms';
+import { SEMESTERS, type Term } from '../routing/academicTerms';
 
 export const SEARCH_TABS = [
   'by_class',
@@ -248,8 +248,6 @@ export function missingField(
       return missingCategoryField(forms.byCategory);
   }
 }
-
-export type { Semester };
 
 /**
  * The forms with the given tab's fields back at their defaults. The term is not part

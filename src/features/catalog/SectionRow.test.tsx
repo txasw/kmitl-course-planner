@@ -82,27 +82,6 @@ describe('SectionRow actions', () => {
     expect(add.closest('.flex-1')).toBeNull();
   });
 
-  it('removes an added section on click', () => {
-    const onRemove = vi.fn();
-    render(
-      <SectionRow
-        course={course}
-        section={section}
-        relation={{ kind: 'added' }}
-        seat={openSeat}
-        locale="th"
-        t={t}
-        onRemove={onRemove}
-      />,
-    );
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: `นำออก ${section.subjectId} กลุ่มเรียน ${section.section}`,
-      }),
-    );
-    expect(onRemove).toHaveBeenCalledWith(section.teachTableId);
-  });
-
   it('offers an add button on a conflicting open section that fires the handler', () => {
     const onAdd = vi.fn();
     render(
@@ -708,7 +687,6 @@ describe('SectionRow density and read only', () => {
         seat={computeSeatStatus(withRemark)}
         locale="th"
         t={t}
-        onRemove={vi.fn()}
         readOnly
       />,
     );

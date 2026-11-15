@@ -101,7 +101,6 @@ export interface UiState {
   crashPanel: boolean;
   open: () => void;
   close: () => void;
-  toggle: () => void;
   setSheetOpen: (open: boolean) => void;
   setCatalogVisible: (visible: boolean) => void;
   setLanguage: (language: Locale) => void;
@@ -149,9 +148,6 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
       // Closing the overlay also resets the catalog sheet, which is only meaningful
       // while the overlay is open.
       set({ isOpen: false, sheetOpen: false });
-    },
-    toggle: () => {
-      set((state) => ({ isOpen: !state.isOpen }));
     },
     setSheetOpen: (open) => {
       // Opening the sheet asks for the catalog, so a window widened past the dock finds
