@@ -20,9 +20,7 @@ import {
   type PlanStoreState,
 } from './planStoreState';
 
-export type { SuggestionPlanInput } from './planCrudSlice';
 export type {
-  CreatedPlanUndoRecord,
   EntryUndoRecord,
   PlanStoreDeps,
   UndoRecord,

@@ -32,11 +32,6 @@ export function summarizeCredits(subjects: CreditedSubject[]): CreditSummary {
   return { credits, subjects: creditBySubject.size };
 }
 
-/** Total credits across distinct subjects. */
-export function totalCredits(subjects: CreditedSubject[]): number {
-  return summarizeCredits(subjects).credits;
-}
-
 export interface HourlySubject {
   subjectId: string;
   /** The credit notation, for example `3(2-3-6)`. */

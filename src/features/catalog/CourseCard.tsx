@@ -358,7 +358,6 @@ function CourseCardComponent({
                 term={term}
                 readOnly={added}
                 onAdd={onAdd}
-                onRemove={onRemove}
                 onSwitchTerm={onSwitchTerm}
               />
             ))}
@@ -388,7 +387,6 @@ interface CourseSectionProps {
   term: TermContext | undefined;
   readOnly: boolean;
   onAdd: ((course: Course, section: Section) => void) | undefined;
-  onRemove: ((teachTableId: string) => void) | undefined;
   onSwitchTerm: ((term: Term) => void) | undefined;
 }
 
@@ -403,7 +401,6 @@ function CourseSection({
   term,
   readOnly,
   onAdd,
-  onRemove,
   onSwitchTerm,
 }: CourseSectionProps) {
   const relation = computeSectionRelation(placed, course, section, term);
@@ -427,7 +424,6 @@ function CourseSection({
       locale={locale}
       t={t}
       onAdd={onAdd}
-      onRemove={onRemove}
       onSwitchTerm={onSwitchTerm}
     />
   );

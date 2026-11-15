@@ -196,6 +196,4 @@ export const groupingSchema = z.object({
 export const teachTableResponseSchema = z.array(groupingSchema);
 
 export type RawSectionRow = z.infer<typeof sectionRowSchema>;
-export type RawTeachtableBlock = z.infer<typeof teachtableBlockSchema>;
-export type RawGrouping = z.infer<typeof groupingSchema>;
 export type RawTeachTableResponse = z.infer<typeof teachTableResponseSchema>;

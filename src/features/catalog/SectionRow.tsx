@@ -9,14 +9,14 @@
 // overlap, and its reason but stays actionable: its add button routes to the blocked
 // feedback strip instead of being disabled, so a keyboard user gets the same reason
 // and alternatives a drag would give.
-// A duplicate reads on a muted surface with its reason. When handlers are supplied the
-// row offers an add button for an addable or conflicting open section and a remove
-// button for an added one.
+// A duplicate reads on a muted surface with its reason. When an add handler is supplied
+// the row offers an add button for an addable or conflicting open section. An added
+// section only ever renders read only, inside the added course card, whose header
+// carries the remove control.
 
 import { useId } from 'react';
 import { Plus } from 'lucide-react';
 import { Tooltip } from '@/components/Tooltip';
-import { RemoveButton, removeSectionName } from './RemoveButton';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { termMismatchText } from '@/lib/i18n/termCopy';
 import type { Course, Section } from '@/lib/domain/types';
@@ -52,7 +52,6 @@ interface SectionRowProps {
   locale: Locale;
   t: Translate;
   onAdd?: ((course: Course, section: Section) => void) | undefined;
-  onRemove?: ((teachTableId: string) => void) | undefined;
   onSwitchTerm?: ((term: Term) => void) | undefined;
   /** Reference only: no action buttons, no state badge, no reason lines. Used by the
    * collapsed added course card when its sections are revealed. */
@@ -67,7 +66,6 @@ export function SectionRow({
   locale,
   t,
   onAdd,
-  onRemove,
   onSwitchTerm,
   readOnly = false,
 }: SectionRowProps) {
@@ -122,21 +120,6 @@ export function SectionRow({
           </span>
           <div className="ml-auto flex flex-wrap items-center justify-end gap-1">
             <StatusBadge status={status} t={t} />
-            {!readOnly &&
-            relation.kind === 'added' &&
-            onRemove !== undefined ? (
-              <RemoveButton
-                label={t('action.remove')}
-                accessibleName={removeSectionName(
-                  t,
-                  section.subjectId,
-                  section.section,
-                )}
-                onRemove={() => {
-                  onRemove(section.teachTableId);
-                }}
-              />
-            ) : null}
             {!readOnly &&
             relation.kind === 'different_term' &&
             onSwitchTerm !== undefined ? (

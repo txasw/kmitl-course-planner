@@ -16,9 +16,6 @@ export const DEFAULT_WINDOW_START_MIN = 7 * 60;
 /** The full window end, 21:00 as minutes since midnight. */
 export const DEFAULT_WINDOW_END_MIN = 21 * 60;
 
-/** Days shown on the grid, Sunday through Saturday. */
-export const GRID_DAY_COUNT = 7;
-
 const MINUTES_PER_HOUR = 60;
 
 /** The visible time window. Both bounds sit on an hour boundary. */
