@@ -10,6 +10,34 @@ function Harness({ active, onBack }: { active: boolean; onBack: () => void }) {
   return null;
 }
 
+// The overlay holds its layer and renders the shortcut help inside it, as Overlay does, so the
+// help cleans up before the overlay when both close in one commit.
+interface LayersProps {
+  overlay: boolean;
+  help: boolean;
+  onOverlayBack: () => void;
+  onHelpBack: () => void;
+}
+
+function Layers({ overlay, help, onOverlayBack, onHelpBack }: LayersProps) {
+  useBackToClose(overlay, onOverlayBack);
+  return overlay && help ? <Harness active={true} onBack={onHelpBack} /> : null;
+}
+
+/** Resolve after the given number of popstates, the ends of that many traversals. */
+function popStates(count: number): Promise<void> {
+  return new Promise((resolve) => {
+    let left = count;
+    const handle = (): void => {
+      left -= 1;
+      if (left > 0) return;
+      window.removeEventListener('popstate', handle);
+      resolve();
+    };
+    window.addEventListener('popstate', handle);
+  });
+}
+
 /** Resolve on the next popstate, the end of a queued traversal. */
 function nextPopState(): Promise<void> {
   return new Promise((resolve) => {
@@ -180,5 +208,92 @@ describe('useBackToClose', () => {
     rerender(<Harness active={false} onBack={onBack} />);
     await act(() => closed);
     expect(window.history.state).toEqual(HOST_STATE);
+  });
+
+  describe('with the shortcut help open above the overlay', () => {
+    function openBoth() {
+      const onOverlayBack = vi.fn();
+      const onHelpBack = vi.fn();
+      const props = { onOverlayBack, onHelpBack };
+      const length = window.history.length;
+      const view = render(<Layers overlay={true} help={false} {...props} />);
+      view.rerender(<Layers overlay={true} help={true} {...props} />);
+      expect(window.history.length).toBe(length + 2);
+      const show = (overlay: boolean, help: boolean): void => {
+        view.rerender(<Layers overlay={overlay} help={help} {...props} />);
+      };
+      return { onOverlayBack, onHelpBack, show };
+    }
+
+    it('closes only the help on a back and the overlay on a second', async () => {
+      const { onOverlayBack, onHelpBack, show } = openBoth();
+      const first = nextPopState();
+      window.history.back();
+      await act(() => first);
+      expect(onHelpBack).toHaveBeenCalledTimes(1);
+      expect(onOverlayBack).not.toHaveBeenCalled();
+      const back = vi.spyOn(window.history, 'back');
+      show(true, false);
+      expect(back).not.toHaveBeenCalled();
+      expect(typeof markerOf(window.history.state)).toBe('string');
+      back.mockRestore();
+
+      const second = nextPopState();
+      window.history.back();
+      await act(() => second);
+      expect(onOverlayBack).toHaveBeenCalledTimes(1);
+      expect(onHelpBack).toHaveBeenCalledTimes(1);
+      show(false, false);
+      expect(window.history.state).toEqual(HOST_STATE);
+    });
+
+    it('unwinds one entry when the help closes by its own control', async () => {
+      const { onOverlayBack, onHelpBack, show } = openBoth();
+      const back = vi.spyOn(window.history, 'back');
+      const popped = nextPopState();
+      show(true, false);
+      await act(() => popped);
+      expect(back).toHaveBeenCalledTimes(1);
+      expect(onHelpBack).not.toHaveBeenCalled();
+      expect(onOverlayBack).not.toHaveBeenCalled();
+      expect(typeof markerOf(window.history.state)).toBe('string');
+
+      const closed = nextPopState();
+      show(false, false);
+      await act(() => closed);
+      expect(back).toHaveBeenCalledTimes(2);
+      expect(window.history.state).toEqual(HOST_STATE);
+      back.mockRestore();
+    });
+
+    it('unwinds both entries once each when the overlay closes with the help open', async () => {
+      const { onOverlayBack, onHelpBack, show } = openBoth();
+      const length = window.history.length;
+      const back = vi.spyOn(window.history, 'back');
+      const popped = popStates(2);
+      show(false, false);
+      await act(() => popped);
+      expect(back).toHaveBeenCalledTimes(2);
+      expect(onHelpBack).not.toHaveBeenCalled();
+      expect(onOverlayBack).not.toHaveBeenCalled();
+      expect(window.history.length).toBe(length);
+      expect(window.history.state).toEqual(HOST_STATE);
+      back.mockRestore();
+    });
+
+    it('reopens the overlay only after both entries are unwound', async () => {
+      const { show } = openBoth();
+      const length = window.history.length;
+      const popped = popStates(2);
+      show(false, false);
+      show(true, false);
+      await act(() => popped);
+      expect(window.history.length).toBe(length - 1);
+      expect(typeof markerOf(window.history.state)).toBe('string');
+      const closed = nextPopState();
+      show(false, false);
+      await act(() => closed);
+      expect(window.history.state).toEqual(HOST_STATE);
+    });
   });
 });

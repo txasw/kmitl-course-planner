@@ -3,12 +3,15 @@
 // types in a field. It is a narrow centred dialog from 640 px and a bottom sheet below,
 // like the welcome, so it reuses their focus trap, Escape layer and safe area padding:
 // Escape closes the help only and focus returns to the control that held it before the
-// question mark. The keys show as the labels printed on the keycaps, which read the same
-// under either panel language, so they are data here rather than dictionary entries.
+// question mark. A back gesture closes the help only too, through a history entry it holds
+// above the overlay's, recorded in ADR-0067. The keys show as the labels printed on the
+// keycaps, which read the same under either panel language, so they are data here rather
+// than dictionary entries.
 
 import { BottomSheet } from '@/components/BottomSheet';
 import { ModalDialog } from '@/components/ModalDialog';
 import type { TranslationKey } from '@/lib/i18n/t';
+import { useBackToClose } from './useBackToClose';
 import { useLayoutTier } from './useLayoutTier';
 import { useTranslation } from './useTranslation';
 
@@ -44,6 +47,7 @@ interface ShortcutHelpProps {
 export function ShortcutHelp({ onClose }: ShortcutHelpProps) {
   const { t } = useTranslation();
   const tier = useLayoutTier();
+  useBackToClose(true, onClose);
 
   const body = (
     <div className="flex flex-col gap-4">
