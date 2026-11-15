@@ -95,9 +95,10 @@ export interface WeeklyGridProps {
   onOpenDetail?: (anchor: HTMLElement) => void;
   /** Open the block context menu at the pointer on a right click, edit mode only. */
   onContextMenu?: (event: MouseEvent<HTMLElement>) => void;
-  /** Whether a block detail popover is pinned open. The hover card never spawns while a
-   * popover is pinned, so the two detail surfaces never show at once. */
-  detailOpen?: boolean;
+  /** Whether a block surface is open: the pinned detail popover or the context menu. The
+   * hover card never spawns while one is open, so it never sits over the popover or clips
+   * the menu, which share its popover layer. */
+  surfaceOpen?: boolean;
   /** The day tracks to render, in order. Defaults to the full week; preview passes a
    * trimmed contiguous run. */
   days?: readonly DayOfWeek[];
@@ -136,7 +137,7 @@ export type EditGridProps = Pick<
   | 'examOverlaps'
   | 'onOpenDetail'
   | 'onContextMenu'
-  | 'detailOpen'
+  | 'surfaceOpen'
 >;
 
 export function WeeklyGrid({
@@ -151,7 +152,7 @@ export function WeeklyGrid({
   examOverlaps,
   onOpenDetail,
   onContextMenu,
-  detailOpen = false,
+  surfaceOpen = false,
   days = WEEK_DAYS,
   display,
   dayAccent = false,
@@ -215,14 +216,14 @@ export function WeeklyGrid({
   const closeHoverCard = useCallback(() => {
     setHoverDetail(null);
   }, []);
-  // When a detail popover pins or unpins, drop any shown hover card so it never lingers next
-  // to the pinned popover and none flashes as the popover closes. The render gate below keeps
-  // a pending hover from surfacing while pinned, and a pending timer is cleared on mouse leave
-  // or replaced by the next hover, so only the shown card needs clearing here. This is the
-  // render time adjust on change pattern, not an effect.
-  const [prevDetailOpen, setPrevDetailOpen] = useState(detailOpen);
-  if (detailOpen !== prevDetailOpen) {
-    setPrevDetailOpen(detailOpen);
+  // When a detail popover pins or the context menu opens, or either closes, drop any shown
+  // hover card so it never lingers over the surface and none flashes as it closes. The render
+  // gate below keeps a pending hover from surfacing while one is open, and a pending timer is
+  // cleared on mouse leave or replaced by the next hover, so only the shown card needs
+  // clearing here. This is the render time adjust on change pattern, not an effect.
+  const [prevSurfaceOpen, setPrevSurfaceOpen] = useState(surfaceOpen);
+  if (surfaceOpen !== prevSurfaceOpen) {
+    setPrevSurfaceOpen(surfaceOpen);
     if (hoverDetail !== null) {
       setHoverDetail(null);
     }
@@ -283,7 +284,7 @@ export function WeeklyGrid({
         />
       ) : null}
 
-      {editable && active === null && !detailOpen && hoverDetail !== null ? (
+      {editable && active === null && !surfaceOpen && hoverDetail !== null ? (
         <BlockHoverCard
           // One card per block, so a card replaced by the next hover drops the close
           // tracking it started for the block before.

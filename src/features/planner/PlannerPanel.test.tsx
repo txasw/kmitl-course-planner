@@ -493,6 +493,43 @@ describe('PlannerPanel', () => {
     expect(screen.getByRole('menu')).toBeInTheDocument();
   });
 
+  it('dismisses the hover card when the block context menu opens', () => {
+    installViewport(1366);
+    vi.useFakeTimers();
+    try {
+      seed([
+        makePlanEntry({
+          snapshot: makeSnapshot({
+            teachTableId: 's1',
+            subjectId: '90000001',
+            section: '901',
+            meetings: [makeMeeting({ day: 1, startMin: 540, endMin: 720 })],
+          }),
+        }),
+      ]);
+      renderPanel();
+      const block = screen.getByRole('button', { name: /90000001/ });
+      fireEvent.pointerEnter(block, { pointerType: 'mouse' });
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      expect(screen.getByRole('tooltip')).toBeInTheDocument();
+
+      // The card and the menu share the popover layer, so the menu drops the card rather
+      // than open under it, and a hover while the menu is open never brings it back.
+      fireEvent.contextMenu(block);
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+      fireEvent.pointerEnter(block, { pointerType: 'mouse' });
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('copies the subject id of the block from its context menu', () => {
     installViewport(1366);
     const writeText = vi.fn<(text: string) => Promise<void>>(() =>

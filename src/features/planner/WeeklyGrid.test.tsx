@@ -1004,10 +1004,12 @@ describe('WeeklyGrid', () => {
         t,
         editable: true,
         onOpenDetail: () => {
-          /* no op: the test drives detailOpen directly */
+          /* no op: the test drives surfaceOpen directly */
         },
       };
-      const { rerender } = render(<WeeklyGrid {...props} detailOpen={false} />);
+      const { rerender } = render(
+        <WeeklyGrid {...props} surfaceOpen={false} />,
+      );
       const block = screen.getByRole('button', { name: /90592033/ });
 
       // With no popover pinned, hovering opens the read only card after the delay.
@@ -1018,7 +1020,7 @@ describe('WeeklyGrid', () => {
       expect(screen.getByRole('tooltip')).toBeInTheDocument();
 
       // Pinning a popover drops the shown card at once.
-      rerender(<WeeklyGrid {...props} detailOpen />);
+      rerender(<WeeklyGrid {...props} surfaceOpen />);
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
       // Hovering again while pinned never brings it back, so the two detail surfaces
