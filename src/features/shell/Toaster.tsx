@@ -19,7 +19,9 @@
 // edit or the sharing toolbar in preview, the region rises 72 px above the bottom inset,
 // clear of the 56 px nav and of the toolbar's 44 px action row inside the 16 px panel
 // padding, so a toast never covers the item its own action, such as ดูตาราง, leads to,
-// nor the share action a share toast offers again.
+// nor the share action a share toast offers again. While a bottom sheet is open it covers
+// those controls and owns the foot, so the region drops back to the foot and the sheet
+// ends in a band the toast sits in, clear of the sheet's content.
 
 import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { useStore } from 'zustand';
@@ -30,6 +32,7 @@ import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { toastStore, type Toast } from './toastStore';
 import { useFootControlsShown } from './mobilePane';
+import { useBottomSheetOpen } from './sheetToastBand';
 import { useHoverFocusHold, type HoldHandlers } from './useHoverFocusHold';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
@@ -136,7 +139,8 @@ export function Toaster() {
   const pendingUndo = useStore(planStore, (state) => state.pendingUndo);
   const isOpen = useStore(uiStore, (state) => state.isOpen);
   const { t, language } = useTranslation();
-  const aboveFoot = useFootControlsShown() && isOpen;
+  const sheetOpen = useBottomSheetOpen();
+  const aboveFoot = useFootControlsShown() && isOpen && !sheetOpen;
 
   // The undo toast owns the region while the panel is open; an ordinary toast waits.
   const showUndo = pendingUndo !== null && isOpen;

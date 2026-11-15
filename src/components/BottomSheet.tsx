@@ -18,7 +18,9 @@
 // sheet can name the control that takes focus on open in place of the
 // heading, as the modal dialog can. Reduced motion drops the entrance and the swipe
 // tracking, leaving the close button, the scrim, and Escape. While mounted the sheet
-// counts as an open surface, so an unasked dialog waits for it to close.
+// counts as an open surface, so an unasked dialog waits for it to close. While a toast
+// shows, the sheet ends in the toast band, so the toast that floats over its foot covers
+// none of its body or footer.
 
 import {
   useEffect,
@@ -32,6 +34,11 @@ import { X } from 'lucide-react';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
 import { useOpenSurface } from '@/features/shell/attentionStore';
+import {
+  SHEET_TOAST_BAND,
+  useBottomSheetPresence,
+  useToastShown,
+} from '@/features/shell/sheetToastBand';
 import { useEscapeLayer } from '@/features/shell/useEscapeLayer';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
 import { usePrefersReducedMotion } from '@/features/shell/usePresence';
@@ -85,6 +92,8 @@ export function BottomSheet({
   const portalReady = portalRoot !== null;
   useFocusTrap(sheetRef, portalReady);
   useOpenSurface(true);
+  useBottomSheetPresence();
+  const toastShown = useToastShown();
   useEscapeLayer(sheetRef, onClose, portalReady);
   // The trap focuses the sheet itself; the heading is the clearer landing point because
   // it is read first and sits above the content.
@@ -169,6 +178,9 @@ export function BottomSheet({
           >
             {footer}
           </div>
+        ) : null}
+        {toastShown ? (
+          <div aria-hidden="true" className={`${SHEET_TOAST_BAND} shrink-0`} />
         ) : null}
       </div>
     </div>,

@@ -18,6 +18,7 @@ import {
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { swipe } from '../../../tests/support/swipe';
 import { installViewport } from '../../../tests/support/viewport';
+import { useBottomSheetPresence } from './sheetToastBand';
 import { Toaster } from './Toaster';
 import { toastStore } from './toastStore';
 import { uiStore } from './uiStore';
@@ -235,6 +236,31 @@ describe('Toaster', () => {
       viewport.resize(768);
     });
     expect(region).toHaveClass(AT_FOOT);
+  });
+
+  it('drops to the foot while a bottom sheet covers the phone foot controls', () => {
+    installViewport(390);
+    act(() => {
+      uiStore.getState().open();
+    });
+    function OpenSheet() {
+      useBottomSheetPresence();
+      return null;
+    }
+    const { container, rerender } = render(<Toaster />);
+    const region = container.querySelector('[aria-live="polite"]');
+    expect(region).toHaveClass('bottom-[calc(72px+var(--kcp-safe-bottom))]');
+    // The sheet covers the bottom nav and ends in the band the toast sits in, so the
+    // region sits at the foot rather than over the sheet's content.
+    rerender(
+      <>
+        <Toaster />
+        <OpenSheet />
+      </>,
+    );
+    expect(region).toHaveClass('bottom-[max(16px,var(--kcp-safe-bottom))]');
+    rerender(<Toaster />);
+    expect(region).toHaveClass('bottom-[calc(72px+var(--kcp-safe-bottom))]');
   });
 
   it('marks the live region with the active language', () => {

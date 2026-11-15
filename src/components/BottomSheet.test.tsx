@@ -1,7 +1,14 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { useRef, useState } from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  cleanup,
+  act,
+} from '@testing-library/react';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
+import { toastStore } from '@/features/shell/toastStore';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
 import { installViewport } from '../../tests/support/viewport';
 import { swipe } from '../../tests/support/swipe';
@@ -10,6 +17,9 @@ import { BottomSheet } from './BottomSheet';
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  act(() => {
+    toastStore.getState().dismiss();
+  });
 });
 
 // The overlay shape: a trapped panel that is also the portal root, with the sheet opened
@@ -240,5 +250,24 @@ describe('BottomSheet', () => {
     const body = screen.getByTestId('content').parentElement;
     expect(body).toHaveClass('flex', 'flex-col', 'min-h-0', 'flex-1');
     expect(body).not.toHaveClass('overflow-y-auto');
+  });
+
+  it('ends in a band below its footer while a toast shows, so the toast covers no content', () => {
+    openSheet({ footer: true });
+    const dialog = screen.getByRole('dialog');
+    const footer = screen.getByRole('button', { name: 'Act' }).parentElement;
+    // At rest the footer is the last thing in the sheet.
+    expect(dialog.lastElementChild).toBe(footer);
+    act(() => {
+      toastStore.getState().show('success', 'Copied');
+    });
+    const band = dialog.lastElementChild;
+    expect(band).not.toBe(footer);
+    expect(band).toHaveClass('h-20', 'shrink-0');
+    expect(band).toHaveAttribute('aria-hidden', 'true');
+    act(() => {
+      toastStore.getState().dismiss();
+    });
+    expect(dialog.lastElementChild).toBe(footer);
   });
 });
