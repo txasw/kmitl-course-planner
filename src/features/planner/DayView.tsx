@@ -112,23 +112,23 @@ export function DayView({
       >
         <GridScroller>
           {(fontPx) => (
-            <>
-              <WeeklyGrid
-                {...grid}
-                sections={sections}
-                window={window}
-                days={run}
-                orientation="portrait"
-                editable
-                fontPx={fontPx}
-                label={fillTemplate(t('view.dayGrid'), { day: dayName })}
-              />
-              {planEmpty ? (
-                <GridEmptyState t={t} orientation="portrait" searchAction />
-              ) : flags[day].hasClass ? null : (
-                <FreeDayNotice dayName={dayName} t={t} />
-              )}
-            </>
+            <WeeklyGrid
+              {...grid}
+              sections={sections}
+              window={window}
+              days={run}
+              orientation="portrait"
+              editable
+              fontPx={fontPx}
+              label={fillTemplate(t('view.dayGrid'), { day: dayName })}
+              notice={
+                planEmpty ? (
+                  <GridEmptyState t={t} searchAction />
+                ) : flags[day].hasClass ? null : (
+                  <FreeDayNotice dayName={dayName} t={t} />
+                )
+              }
+            />
           )}
         </GridScroller>
       </div>

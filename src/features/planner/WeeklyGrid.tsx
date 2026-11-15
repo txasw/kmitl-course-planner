@@ -11,7 +11,7 @@
 // wider or taller than its column stays readable; the poster is flat (ADR-0050).
 
 import { useCallback, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, MouseEvent } from 'react';
+import type { CSSProperties, MouseEvent, ReactNode } from 'react';
 import { useStore } from 'zustand';
 import type { ExamOverlap } from '@/lib/planner/examOverlap';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -99,6 +99,9 @@ export interface WeeklyGridProps {
    * hover card never spawns while one is open, so it never sits over the popover or clips
    * the menu, which share its popover layer. */
   surfaceOpen?: boolean;
+  /** A notice the grid centers over its body, such as the empty plan, as its own item
+   * so it centers on the day rows rather than on whatever box holds the grid. */
+  notice?: ReactNode;
   /** The day tracks to render, in order. Defaults to the full week; preview passes a
    * trimmed contiguous run. */
   days?: readonly DayOfWeek[];
@@ -153,6 +156,7 @@ export function WeeklyGrid({
   onOpenDetail,
   onContextMenu,
   surfaceOpen = false,
+  notice,
   days = WEEK_DAYS,
   display,
   dayAccent = false,
@@ -273,6 +277,8 @@ export function WeeklyGrid({
         orientation={orientation}
         startEdgeDrawn={editable && orientation === 'landscape'}
       />
+
+      {notice}
 
       {editable ? (
         <CandidateLayer

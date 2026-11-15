@@ -352,10 +352,12 @@ describe('PlannerPanel', () => {
   it('shows the designed empty state when the plan has no sections', () => {
     renderPanel();
     expect(screen.getByText('ตารางยังว่าง')).toBeInTheDocument();
-    // The landscape week has no hour column down its edge, so the notice spans it.
-    expect(document.querySelector('[data-grid-notice="empty"]')).toHaveStyle({
-      left: '0px',
-    });
+    // The notice is an item of the grid over its body, the day rows and the quarter
+    // columns, so it centers on the week rather than on the taller scroller its rows pack
+    // to the top of, and clears the sticky day column and hour row.
+    const notice = document.querySelector('[data-grid-notice="empty"]');
+    expect(notice?.parentElement).toHaveAttribute('data-edit-grid');
+    expect(notice).toHaveStyle({ gridRow: '2 / -1', gridColumn: '2 / -1' });
   });
 
   it('offers an action on the empty edit grid that brings the search into view', () => {
