@@ -33,7 +33,6 @@ import { WeeklyGrid } from './WeeklyGrid';
 
 /** The mini grid labels each block by its name and section; room and English stay out. */
 const MINI_DISPLAY: DisplayOptions = {
-  fitToContent: false,
   showRoom: false,
   showSection: true,
   showEnglishNames: false,

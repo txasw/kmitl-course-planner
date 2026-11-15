@@ -57,7 +57,6 @@ describe('prefs repository', () => {
       language: 'th',
       viewMode: 'preview',
       displayOptions: {
-        fitToContent: false,
         showRoom: true,
         showSection: false,
         showEnglishNames: true,
@@ -80,7 +79,6 @@ describe('prefs repository', () => {
           schemaVersion: 1,
           language: 'th',
           displayOptions: {
-            fitToContent: true,
             showRoom: true,
             showSection: true,
             showEnglishNames: true,
@@ -92,7 +90,6 @@ describe('prefs repository', () => {
       schemaVersion: 1,
       language: 'th',
       displayOptions: {
-        fitToContent: true,
         showRoom: true,
         showSection: true,
         showEnglishNames: true,
@@ -111,7 +108,6 @@ describe('prefs repository', () => {
           schemaVersion: 1,
           language: 'th',
           displayOptions: {
-            fitToContent: true,
             showRoom: false,
             showSection: true,
             showEnglishNames: true,
@@ -121,7 +117,6 @@ describe('prefs repository', () => {
       }),
     );
     expect((await repo.load())?.displayOptions).toEqual({
-      fitToContent: true,
       showRoom: false,
       showSection: true,
       showEnglishNames: true,
@@ -130,13 +125,44 @@ describe('prefs repository', () => {
     });
   });
 
+  it('drops the retired fit to content flag from an older blob', async () => {
+    // ADR-0043 retired fit to content and the field later left the schema. A display
+    // options blob written while it existed still loads, with the flag stripped, so the
+    // student keeps every other stored choice rather than falling back to the defaults.
+    const repo = createPrefsRepository(
+      fakeAdapter({
+        [PREFS_KEY]: {
+          schemaVersion: 1,
+          language: 'th',
+          displayOptions: {
+            fitToContent: true,
+            showRoom: false,
+            showSection: true,
+            showEnglishNames: false,
+            showSubjectId: true,
+            showExams: true,
+          },
+        },
+      }),
+    );
+    const loaded = await repo.load();
+    expect(loaded?.displayOptions).toEqual({
+      showRoom: false,
+      showSection: true,
+      showEnglishNames: false,
+      showSubjectId: true,
+      showExams: true,
+    });
+    expect(loaded?.displayOptions).not.toHaveProperty('fitToContent');
+  });
+
   it('rejects display options with a missing field', async () => {
     const repo = createPrefsRepository(
       fakeAdapter({
         [PREFS_KEY]: {
           schemaVersion: 1,
           language: 'th',
-          displayOptions: { fitToContent: true },
+          displayOptions: { showRoom: true },
         },
       }),
     );

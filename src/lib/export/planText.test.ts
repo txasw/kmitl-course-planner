@@ -95,7 +95,6 @@ describe('formatPlanText', () => {
       sections: [scheduled],
       exams: [],
       options: {
-        fitToContent: true,
         showRoom: false,
         showSection: false,
         showEnglishNames: false,

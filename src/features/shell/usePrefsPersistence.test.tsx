@@ -132,7 +132,6 @@ describe('usePrefsPersistence', () => {
 
   it('hydrates stored display options without writing them back', async () => {
     const displayOptions = {
-      fitToContent: false,
       showRoom: false,
       showSection: true,
       showEnglishNames: false,

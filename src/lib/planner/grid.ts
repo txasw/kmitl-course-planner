@@ -4,16 +4,16 @@
 // bounds, the quarter model, and the minute to column conversion, so the React
 // grid and its tests share one geometry.
 
-import { WEEK_DAYS, type DayOfWeek } from '../parsing/days';
+import type { DayOfWeek } from '../parsing/days';
 import type { Meeting } from '../domain/types';
 
 /** Minutes covered by one grid column. */
 export const QUARTER_MIN = 15;
 
-/** Default visible window start, 07:00 as minutes since midnight. */
+/** The full window start, 07:00 as minutes since midnight. */
 export const DEFAULT_WINDOW_START_MIN = 7 * 60;
 
-/** Default visible window end, 21:00 as minutes since midnight. */
+/** The full window end, 21:00 as minutes since midnight. */
 export const DEFAULT_WINDOW_END_MIN = 21 * 60;
 
 /** Days shown on the grid, Sunday through Saturday. */
@@ -27,7 +27,10 @@ export interface GridWindow {
   endMin: number;
 }
 
-/** The 07:00 to 21:00 window, the fit to content fallback for a plan with no meetings. */
+/**
+ * The full 07:00 to 21:00 window. The grid frames itself with the smart window below;
+ * this fixed frame holds every fixture meeting, so geometry tests read against it.
+ */
 export const DEFAULT_WINDOW: GridWindow = {
   startMin: DEFAULT_WINDOW_START_MIN,
   endMin: DEFAULT_WINDOW_END_MIN,
@@ -52,64 +55,12 @@ function ceilToHour(min: number): number {
 }
 
 /**
- * The tightest hour aligned window that shows every given meeting, for the fit to
- * content preview option. Unlike the smart window it has no base bounds and trims
- * to the meetings themselves, so a plan that runs 09:00 to 15:00 shows only those
- * hours. With no scheduled meetings it falls back to the default window, so an all
- * unscheduled plan still renders a sensible empty grid beside its shelf.
- */
-export function computeFitWindow(meetings: Meeting[]): GridWindow {
-  if (meetings.length === 0) {
-    return DEFAULT_WINDOW;
-  }
-  let startMin = Infinity;
-  let endMin = -Infinity;
-  for (const meeting of meetings) {
-    if (meeting.startMin < startMin) {
-      startMin = meeting.startMin;
-    }
-    if (meeting.endMin > endMin) {
-      endMin = meeting.endMin;
-    }
-  }
-  return { startMin: floorToHour(startMin), endMin: ceilToHour(endMin) };
-}
-
-/**
- * The contiguous run of day rows from the first to the last day that carries a
- * meeting, for the fit to content preview option. Interior days with no meeting
- * stay in the run so the week reads continuously, while empty leading and trailing
- * days are trimmed. With no meetings it returns the full week, so an all
- * unscheduled plan keeps a complete grid rather than collapsing to nothing.
- */
-export function visibleDays(meetings: Meeting[]): DayOfWeek[] {
-  if (meetings.length === 0) {
-    return [...WEEK_DAYS];
-  }
-  let first: DayOfWeek = 6;
-  let last: DayOfWeek = 0;
-  for (const meeting of meetings) {
-    if (meeting.day < first) {
-      first = meeting.day;
-    }
-    if (meeting.day > last) {
-      last = meeting.day;
-    }
-  }
-  const days: DayOfWeek[] = [];
-  for (let day = first; day <= last; day += 1) {
-    days.push(day);
-  }
-  return days;
-}
-
-/**
  * The template poster window: the 08:00 to 18:00 teaching day, extended to the hour
  * boundary that clears any meeting falling outside it (down to the floor hour of an early
- * start, up to the ceil hour of a late end). This supersedes the fit to content window for
- * templates: a poster reads as a familiar working day, not a band trimmed to whatever hours
- * the plan happens to use. With no meetings it returns the base window (ADR, precedence is
- * template canvas, then this window, then display options).
+ * start, up to the ceil hour of a late end). It replaced the retired fit to content window,
+ * so a poster reads as a familiar working day, not a band trimmed to whatever hours the
+ * plan happens to use. With no meetings it returns the base window (ADR-0043, precedence
+ * is template canvas, then this window, then display options).
  */
 export function computeSmartWindow(meetings: Meeting[]): GridWindow {
   let startMin = SMART_WINDOW_START_MIN;
