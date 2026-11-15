@@ -101,6 +101,12 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm wxt build -b ${{ matrix.browser }}
+      # Warnings fail the step, since an Android unsupported manifest key is only
+      # a warning. The two rules the bundled third party code trips are off and
+      # ESLint enforces them on the project source (ADR-0070).
+      - name: Lint the Firefox bundle with addons-linter
+        if: matrix.browser == 'firefox'
+        run: pnpm lint:firefox
       - run: pnpm wxt zip -b ${{ matrix.browser }}
       - name: Canary check on production bundle
         run: |

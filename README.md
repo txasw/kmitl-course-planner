@@ -132,6 +132,7 @@ Firefox Add-ons review are unaffected.
 pnpm typecheck      # TypeScript, no emit
 pnpm lint           # ESLint, then knip for unused files, exports, and dependencies
 pnpm lint:fix       # ESLint with fixes
+pnpm lint:firefox   # addons-linter on the Firefox build, after pnpm build -b firefox
 pnpm format:check   # Prettier, check
 pnpm format         # Prettier, write
 pnpm test           # unit and component tests
