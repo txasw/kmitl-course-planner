@@ -3,6 +3,7 @@
 // machine, and this module ships only in debug builds and tests. It embeds a
 // canary the production bundle check greps for.
 
+/** @canary The marker the CI bundle check greps for (ADR-0014). */
 export const DEBUG_CANARY = 'kcp-debug-canary';
 
 export type IssueKind =

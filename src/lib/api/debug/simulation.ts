@@ -9,6 +9,7 @@ import { findFault } from './faults';
 import type { SimDirective, SimulationInterceptor } from '../interceptors';
 import type { SimSettings } from '../types';
 
+/** @canary The marker the CI bundle check greps for (ADR-0014). */
 export const DEBUG_CANARY = 'kcp-debug-canary';
 
 export interface SimulationDeps {

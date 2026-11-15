@@ -19,6 +19,7 @@ import type { DataQualityReport } from '../../contract/report';
 import type { AuditInterceptor } from '../interceptors';
 import type { RequestContext } from '../types';
 
+/** @canary The marker the CI bundle check greps for (ADR-0014). */
 export const DEBUG_CANARY = 'kcp-debug-canary';
 
 export interface AuditDeps {

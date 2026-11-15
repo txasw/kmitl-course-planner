@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/knip/schema.json",
+  "entry": [
+    "src/entrypoints/background.ts",
+    "src/entrypoints/regis.content/index.tsx",
+    "scripts/**/*.{mjs,ts}",
+    "tests/**/*.{ts,mjs}"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx,css}",
+    "scripts/**/*.{mjs,mts,ts}",
+    "tests/**/*.{ts,tsx,mjs}"
+  ],
+  "ignoreExportsUsedInFile": true,
+  "ignoreDependencies": ["wrangler"],
+  "tags": ["-canary"]
+}

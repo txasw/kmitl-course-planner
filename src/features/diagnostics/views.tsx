@@ -12,6 +12,7 @@ import { FAULT_PRESETS } from '@/lib/api/debug/faults';
 import { MUTATION_PRESETS } from '@/lib/contract/mutations';
 import { searchStore } from '@/features/search/searchStore';
 
+/** @canary The marker the CI bundle check greps for (ADR-0014). */
 export const DEBUG_CANARY = 'kcp-debug-canary';
 
 const CELL = 'border border-border px-1.5 py-1 text-left align-top';

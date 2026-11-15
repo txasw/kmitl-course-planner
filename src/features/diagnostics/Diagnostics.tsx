@@ -20,6 +20,7 @@ import {
   SimulationControls,
 } from './views';
 
+/** @canary The marker the CI bundle check greps for (ADR-0014). */
 export const DEBUG_CANARY = 'kcp-debug-canary';
 
 type Tab = 'requests' | 'report' | 'raw' | 'simulation';

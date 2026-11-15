@@ -11,6 +11,7 @@ import type { TypedSend } from '@/lib/messaging/sendTyped';
 import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
 
+/** @canary The marker the CI bundle check greps for (ADR-0014). */
 export const DEBUG_CANARY = 'kcp-debug-canary';
 
 const IDLE_SIMULATION: SimSettings = {

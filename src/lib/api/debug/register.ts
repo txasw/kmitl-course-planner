@@ -17,6 +17,7 @@ import { createAuditInterceptor } from './audit';
 import { createSimulationInterceptor } from './simulation';
 import { createDebugState, type DebugState } from './state';
 
+/** @canary The marker the CI bundle check greps for (ADR-0014). */
 export const DEBUG_CANARY = 'kcp-debug-canary';
 
 export interface DebugHandle {
