@@ -44,6 +44,9 @@ export function buildManifest({ mode, browser }: ManifestEnv): UserManifest {
           required: ['none'],
         },
       },
+      // Lists the add-on for Firefox for Android (ADR-0070). 142 is the first
+      // Android release that supports data_collection_permissions above.
+      gecko_android: { strict_min_version: '142.0' },
     },
     icons: {
       16: '/icon/16.png',

@@ -31,12 +31,13 @@ describe.each(COMBINATIONS)('manifest for $browser in $mode', (env) => {
     ]);
   });
 
-  it('keeps the gecko id and declares no data collection', () => {
+  it('keeps the gecko id, declares no data collection, and targets Android', () => {
     expect(manifest.browser_specific_settings).toEqual({
       gecko: {
         id: 'kmitl-course-planner@txasw.github.io',
         data_collection_permissions: { required: ['none'] },
       },
+      gecko_android: { strict_min_version: '142.0' },
     });
   });
 

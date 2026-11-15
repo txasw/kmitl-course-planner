@@ -148,19 +148,20 @@ pnpm site:encode    # encode the screenshots to AVIF and WebP
 pnpm site:build     # render the landing site into site/
 ```
 
-The end to end suite loads the built extension, so build both flavors and install the
-Playwright Chromium first:
+The end to end suite loads the built extension, so build both Chrome flavors and the
+Firefox production bundle, and install the Playwright Chromium first:
 
 ```
 pnpm exec playwright install chromium
 pnpm build
 pnpm build:debug
+pnpm build -b firefox
 pnpm test:e2e       # Playwright projects: smoke, debug, production, phone, tablet
 ```
 
-The smoke project checks the production manifest, the production project runs against
-`.output/chrome-mv3`, and the debug, phone, and tablet projects run against
-`.output/chrome-mv3-debug`.
+The smoke project checks the Chrome and Firefox production manifests, the production
+project runs against `.output/chrome-mv3`, and the debug, phone, and tablet projects run
+against `.output/chrome-mv3-debug`.
 
 ### Project layout
 
