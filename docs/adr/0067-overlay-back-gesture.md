@@ -63,6 +63,31 @@ Chromium stops honouring an earlier activation for new entries until a fresh one
 opened from the launcher always has a fresh activation; one opened from the toolbar action or its
 shortcut has none, and keeps the behaviour from before this change.
 
+### Nested layers
+
+Amended 2026-11-16. The shortcut help, opened with the question mark, sits above the overlay, and
+Escape closes it alone. A back gesture follows the same order: the first back closes only the
+help, and a second back closes the panel.
+
+Each layer that takes part holds its own entry through the same hook, pushed with the same marker,
+URL, and activation rule as the overlay's, and the layers that pushed form a stack in the order
+they opened. A `popstate` that no close of the extension queued belongs to the topmost layer only:
+that layer leaves the stack and closes, and every layer below it stays open and hears nothing. A
+traversal does not change `history.length`, so the layer below takes over the length the leaving
+layer recorded, and its own check still matches the forward entry the back left above it.
+
+A layer closed any other way unwinds its entry with the rules above, and only while it is the
+topmost layer, so closing the help by its close control or Escape goes back once and leaves the
+overlay open on its own entry. When the overlay closes with the help open, React cleans up the
+help before the overlay, so the help goes back first and the overlay goes back once that
+traversal ends, and each entry is unwound once. A layer already left by a back, or no longer on
+top, unwinds nothing. A queued close runs only after the `popstate` of an earlier back, and a run
+that goes back holds the rest until its own `popstate`, so two traversals never cross.
+
+Two layers take part: the overlay and the shortcut help. Other popovers, sheets, and dialogs keep
+closing only by Escape and their own controls, and any of them can join later by calling the
+same hook while open, with no change to the stack.
+
 ## Alternatives considered
 
 Rewriting the current entry with `replaceState` to add a marker was rejected. It edits an entry the
@@ -70,6 +95,9 @@ host owns, and the marker would outlive the panel in the host's history.
 
 Pushing an entry with a hash of its own was rejected. The router would read it as a navigation to a
 route it does not know, which is exactly the interference rule 6 forbids.
+
+Having the overlay ignore a `popstate` while its help is open, as a special case in the overlay,
+was rejected. Every later layer would need its own case, and the stack keeps the rule in one hook.
 
 Listening to `hashchange` alone was rejected. A back gesture to the entry below fires `popstate` and
 no `hashchange` when the hash is the same, so the overlay would never hear it.
@@ -90,8 +118,9 @@ would be unwound by the close, and at the browser's cap of 50 entries a host pus
 the length. Neither happens while the overlay covers the page, since the host navigates only on
 the student's input.
 
-A back gesture closes the whole overlay, not an inner sheet or dialog. Session state lives in the
-ui store, so reopening resumes where the student left off.
+A back gesture closes the shortcut help when it is open and the whole overlay otherwise, not any
+other inner sheet or dialog. Session state lives in the ui store, so reopening resumes where the
+student left off.
 
 The router behaviour this depends on was read from the live bundle. A host upgrade to a router that
 treats a same hash `popstate` as a navigation would surface as a reload of the current route behind
