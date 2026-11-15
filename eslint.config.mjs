@@ -8,6 +8,39 @@ import globals from 'globals';
 
 const NO_FETCH = 'Network egress must go through the background gateway.';
 const NO_HTML = 'Injecting HTML is forbidden; render through React nodes.';
+const NO_FOCUS_LITERAL =
+  'Write focus styles through FOCUS_RING or FOCUS_OUTLINE from lib/ui/focus (ADR-0034).';
+
+// Raw HTML sinks, forbidden in every product source file.
+const HTML_SYNTAX = [
+  {
+    selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+    message: NO_HTML,
+  },
+  {
+    selector: "MemberExpression[property.name='innerHTML']",
+    message: NO_HTML,
+  },
+  {
+    selector: "MemberExpression[property.name='outerHTML']",
+    message: NO_HTML,
+  },
+  {
+    selector: "CallExpression[callee.property.name='insertAdjacentHTML']",
+    message: NO_HTML,
+  },
+];
+
+// A focus ring or outline class written by hand, in a string or a template literal.
+// The shared constants hold the one indicator, so the tokens change it in one place.
+const FOCUS_CLASS = String.raw`/focus(-visible|-within)?:(ring|outline)/`;
+const FOCUS_SYNTAX = [
+  { selector: `Literal[value=${FOCUS_CLASS}]`, message: NO_FOCUS_LITERAL },
+  {
+    selector: `TemplateElement[value.raw=${FOCUS_CLASS}]`,
+    message: NO_FOCUS_LITERAL,
+  },
+];
 
 export default tseslint.config(
   {
@@ -83,26 +116,14 @@ export default tseslint.config(
       'no-eval': 'error',
       'no-new-func': 'error',
       'no-console': 'error',
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
-          message: NO_HTML,
-        },
-        {
-          selector: "MemberExpression[property.name='innerHTML']",
-          message: NO_HTML,
-        },
-        {
-          selector: "MemberExpression[property.name='outerHTML']",
-          message: NO_HTML,
-        },
-        {
-          selector: "CallExpression[callee.property.name='insertAdjacentHTML']",
-          message: NO_HTML,
-        },
-      ],
+      'no-restricted-syntax': ['error', ...HTML_SYNTAX, ...FOCUS_SYNTAX],
     },
+  },
+
+  // The focus module is the one place the focus classes are written.
+  {
+    files: ['src/lib/ui/focus.ts'],
+    rules: { 'no-restricted-syntax': ['error', ...HTML_SYNTAX] },
   },
 
   // The logger is the single sanctioned console sink; the console is disabled
