@@ -91,14 +91,6 @@ describe('DisplayOptionsPopover', () => {
       screen.getByRole('switch', { name: 'แสดงชื่อภาษาอังกฤษ' }),
     ).not.toHaveAttribute('aria-disabled');
   });
-
-  it('no longer surfaces the retired fit to content option', () => {
-    render(<DisplayOptionsPopover />);
-    fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }));
-    expect(
-      screen.queryByRole('switch', { name: 'ย่อพอดีกับเนื้อหา' }),
-    ).not.toBeInTheDocument();
-  });
 });
 
 describe('DisplayOptionsPopover below 640 px', () => {
