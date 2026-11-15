@@ -11,6 +11,7 @@ import { Bug, RefreshCw, X } from 'lucide-react';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
+import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { downloadText } from '@/lib/utils/download';
 import { isSimulationArmed, useDiagnosticsData } from './useDiagnosticsData';
 import {
@@ -32,8 +33,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'simulation', label: 'Simulation' },
 ];
 
-const ACTION =
-  'rounded-kcp border border-border px-2 py-1 text-xs text-ink hover:bg-surface-alt focus:ring-2 focus:ring-primary focus:outline-none';
+const ACTION = `rounded-kcp border border-border px-2 py-1 text-xs text-ink hover:bg-surface-alt ${FOCUS_RING}`;
 
 export function Diagnostics() {
   const { send } = useSearchDeps();
@@ -62,7 +62,7 @@ export function Diagnostics() {
           setOpen(true);
         }}
         aria-label={armed ? 'Diagnostics, simulation armed' : 'Diagnostics'}
-        className="fixed bottom-[max(20px,var(--kcp-safe-bottom))] left-[max(20px,var(--kcp-safe-left))] z-host inline-flex max-sm:bottom-[calc(80px+var(--kcp-safe-bottom))] items-center gap-2 rounded-kcp border border-border bg-surface px-3 py-2 text-sm text-ink shadow-kcp hover:bg-surface-alt focus:ring-2 focus:ring-primary focus:outline-none"
+        className={`fixed bottom-[max(20px,var(--kcp-safe-bottom))] left-[max(20px,var(--kcp-safe-left))] z-host inline-flex max-sm:bottom-[calc(80px+var(--kcp-safe-bottom))] items-center gap-2 rounded-kcp border border-border bg-surface px-3 py-2 text-sm text-ink shadow-kcp hover:bg-surface-alt ${FOCUS_RING}`}
       >
         <Bug size={16} strokeWidth={2} aria-hidden />
         Diagnostics
@@ -118,10 +118,10 @@ export function Diagnostics() {
             onClick={() => {
               setTab(entry.id);
             }}
-            className={`inline-flex items-center gap-1 rounded-kcp px-2 py-1 text-xs focus:ring-2 focus:ring-primary focus:outline-none ${
+            className={`inline-flex items-center gap-1 rounded-kcp px-2 py-1 text-xs ${
               tab === entry.id
-                ? 'bg-primary-strong text-surface'
-                : 'text-ink-soft hover:text-ink'
+                ? `bg-primary-strong text-surface ${FOCUS_OUTLINE}`
+                : `text-ink-soft hover:text-ink ${FOCUS_RING}`
             }`}
           >
             {entry.label}

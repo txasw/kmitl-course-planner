@@ -6,6 +6,7 @@
 
 import { AlertTriangle } from 'lucide-react';
 import type { Translate } from '@/lib/i18n/t';
+import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { EmptyState } from './EmptyState';
 
 interface PanelRecoveryCardProps {
@@ -24,7 +25,7 @@ export function PanelRecoveryCard({ t, onReload }: PanelRecoveryCardProps) {
           <button
             type="button"
             onClick={onReload}
-            className="rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className={`rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-hover ${FOCUS_OUTLINE}`}
           >
             {t('panel.error.reload')}
           </button>

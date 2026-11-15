@@ -3,6 +3,7 @@ import { useStore } from 'zustand';
 import { onboardingStore } from '@/features/onboarding/onboardingStore';
 import { planStore } from '@/features/plans/planStore';
 import { needsLauncherAttention } from '@/lib/onboarding/launcherAttention';
+import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
 
@@ -22,8 +23,7 @@ import { useTranslation } from './useTranslation';
 /** The launcher's id, so a layer that closes over it can hand it focus. */
 export const LAUNCHER_ID = 'kcp-launcher';
 
-const LAUNCHER_CLASS =
-  'fixed right-[max(20px,var(--kcp-safe-right))] bottom-[max(20px,var(--kcp-safe-bottom))] z-host inline-flex min-h-12 items-center gap-2 rounded-full bg-primary-strong px-5 py-3 text-sm font-semibold text-white shadow-kcp outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white motion-safe:transition-[translate,background-color] motion-safe:duration-fast motion-safe:ease-out motion-safe:hover:-translate-y-0.5 motion-safe:focus-visible:-translate-y-0.5';
+const LAUNCHER_CLASS = `fixed right-[max(20px,var(--kcp-safe-right))] bottom-[max(20px,var(--kcp-safe-bottom))] z-host inline-flex min-h-12 items-center gap-2 rounded-full bg-primary-strong px-5 py-3 text-sm font-semibold text-white shadow-kcp hover:bg-primary-hover motion-safe:transition-[translate,background-color] motion-safe:duration-fast motion-safe:ease-out motion-safe:hover:-translate-y-0.5 motion-safe:focus-visible:-translate-y-0.5 ${FOCUS_OUTLINE}`;
 
 // The welcome decision counts as part of the load, so the ring never starts in the
 // moment before a welcome opens over it and then plays a second time after it closes.

@@ -10,7 +10,7 @@ import {
   type Term,
 } from '@/lib/routing/academicTerms';
 import { CONTROL_BOUNDARY } from '@/lib/ui/control';
-import { FOCUS_RING } from '@/lib/ui/focus';
+import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_HEIGHT, TARGET_SIZE } from '@/lib/ui/target';
 
 /** The term choice of a create: the chosen term, the years offered, ascending. */
@@ -124,7 +124,7 @@ export function NameForm({
         <button
           type="button"
           onClick={onCancel}
-          className={`rounded-kcp border border-border px-2 py-1 text-ink-soft outline-none hover:bg-surface-alt hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${TARGET_SIZE}`}
+          className={`rounded-kcp border border-border px-2 py-1 text-ink-soft hover:bg-surface-alt hover:text-ink ${FOCUS_RING} ${TARGET_SIZE}`}
         >
           {cancel}
         </button>
@@ -132,7 +132,7 @@ export function NameForm({
           type="button"
           onClick={onSubmit}
           disabled={value.trim() === ''}
-          className={`rounded-kcp bg-primary-strong px-2 py-1 font-semibold text-white outline-none hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 ${TARGET_SIZE}`}
+          className={`rounded-kcp bg-primary-strong px-2 py-1 font-semibold text-white hover:bg-primary-hover disabled:opacity-50 ${FOCUS_OUTLINE} ${TARGET_SIZE}`}
         >
           {save}
         </button>

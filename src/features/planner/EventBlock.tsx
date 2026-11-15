@@ -44,6 +44,7 @@ import type { Locale, Translate } from '@/lib/i18n/t';
 import { hashColor, hashTint } from '@/lib/utils/hash-color';
 import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
 import { formatMinutes } from '@/lib/parsing/time';
+import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_MIN } from '@/lib/ui/target';
 import { buildEligibility } from '@/lib/planner/blockDensity';
 import type { PlacedSection } from './placedSection';
@@ -122,6 +123,15 @@ interface EventBlockProps {
  * pointer event that names its pointer type; an event without one is a mouse or a key. */
 function isTouchContextMenu(event: globalThis.MouseEvent): boolean {
   return 'pointerType' in event && event.pointerType === 'touch';
+}
+
+/** The block outline: the pressed look while a finger holds it, otherwise the focus
+ * outline on an interactive block, and no outline on a static one. */
+function blockOutlineClass(pressed: boolean, interactive: boolean): string {
+  if (pressed) {
+    return PRESSED_CLASS;
+  }
+  return interactive ? FOCUS_OUTLINE : 'outline-none';
 }
 
 function EventBlockComponent({
@@ -253,8 +263,10 @@ function EventBlockComponent({
         }
         onPointerLeave={onHoverLeave}
         // The pressed outline replaces outline-none, which would otherwise zero the
-        // outline style the pressed look sets.
-        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-kcp py-1.5 pr-2 pl-2.5 text-[1em] ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink ${pressed ? PRESSED_CLASS : 'outline-none'} ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'touch-drag cursor-grab' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''} ${interactive ? 'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary' : ''}`}
+        // outline style the pressed look sets. An interactive block takes the offset
+        // focus outline rather than the inset ring, because the inset ring carries the
+        // danger badge.
+        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-kcp py-1.5 pr-2 pl-2.5 text-[1em] ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink ${blockOutlineClass(pressed, interactive)} ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'touch-drag cursor-grab' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''}`}
         style={{ backgroundColor: hashTint(section.subjectId) }}
         {...dragListeners}
       >
@@ -347,7 +359,7 @@ function EventBlockComponent({
           onClick={() => {
             onRemove(section.teachTableId);
           }}
-          className={`absolute top-0.5 right-0.5 z-grid inline-flex items-center justify-center rounded bg-ink/5 p-0.5 text-ink-soft opacity-0 outline-none group-hover/block:opacity-100 group-focus-within/block:opacity-100 hover:bg-ink/10 hover:text-ink focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary pointer-coarse:hidden ${TARGET_MIN}`}
+          className={`absolute top-0.5 right-0.5 z-grid inline-flex items-center justify-center rounded bg-ink/5 p-0.5 text-ink-soft opacity-0 group-hover/block:opacity-100 group-focus-within/block:opacity-100 hover:bg-ink/10 hover:text-ink focus-visible:opacity-100 pointer-coarse:hidden ${FOCUS_RING} ${TARGET_MIN}`}
         >
           <X size={12} aria-hidden />
         </button>
