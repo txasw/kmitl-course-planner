@@ -5,7 +5,12 @@ import {
   makeSection,
 } from '../../../tests/support/domain-builders';
 import type { GridFrame } from '@/lib/planner/grid';
-import { blockerIds, createDragStore, selectDragging } from './dragStore';
+import {
+  blockerIds,
+  createDragStore,
+  selectDragging,
+  selectGridFeedback,
+} from './dragStore';
 
 function clashingPlaced() {
   return [
@@ -455,5 +460,66 @@ describe('hoverCourse', () => {
     store.getState().startCourse(course, []);
     store.getState().setHoverCourse(course);
     expect(store.getState().hoverCourse).toBeNull();
+  });
+});
+
+describe('selectGridFeedback', () => {
+  it('is false with nothing painted over the grid', () => {
+    expect(selectGridFeedback(createDragStore().getState())).toBe(false);
+  });
+
+  it('holds through every drag kind and releases when each ends', () => {
+    const store = createDragStore();
+    const { section, course } = draggedSection();
+    store.getState().start(course, section, []);
+    expect(selectGridFeedback(store.getState())).toBe(true);
+    store.getState().clearActive();
+    expect(selectGridFeedback(store.getState())).toBe(false);
+    store.getState().startCourse(course, []);
+    expect(selectGridFeedback(store.getState())).toBe(true);
+    store.getState().clearCourse();
+    expect(selectGridFeedback(store.getState())).toBe(false);
+    store.getState().startBlockMove(section, [section], null);
+    expect(selectGridFeedback(store.getState())).toBe(true);
+    store.getState().clearBlockMove();
+    expect(selectGridFeedback(store.getState())).toBe(false);
+  });
+
+  it('holds while a rejected footprint shakes and releases after it', () => {
+    const store = createDragStore();
+    const { section, course } = draggedSection();
+    store.getState().start(course, section, clashingPlaced());
+    store.getState().reject();
+    expect(selectGridFeedback(store.getState())).toBe(true);
+    store.getState().clearRejecting();
+    expect(selectGridFeedback(store.getState())).toBe(false);
+  });
+
+  it('holds while a focused grip or a hovered course previews its cells', () => {
+    const store = createDragStore();
+    const { section, course } = draggedSection();
+    store.getState().setHover(section);
+    expect(selectGridFeedback(store.getState())).toBe(true);
+    store.getState().clearHover();
+    store.getState().setHoverCourse(course);
+    expect(selectGridFeedback(store.getState())).toBe(true);
+    store.getState().clearHoverCourse();
+    expect(selectGridFeedback(store.getState())).toBe(false);
+  });
+
+  it('ignores a preview that paints no cell', () => {
+    const store = createDragStore();
+    const online = makeSection({
+      teachTableId: 'u',
+      subjectId: 'S2',
+      meetings: [],
+    });
+    store.getState().setHover(online);
+    expect(selectGridFeedback(store.getState())).toBe(false);
+    store.getState().clearHover();
+    store
+      .getState()
+      .setHoverCourse(makeCourse({ subjectId: 'S2', sections: [online] }));
+    expect(selectGridFeedback(store.getState())).toBe(false);
   });
 });

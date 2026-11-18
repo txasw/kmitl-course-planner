@@ -17,6 +17,7 @@ import type { DayOfWeek } from '@/lib/parsing/days';
 import { dayChipDays, dayFlags } from '@/lib/planner/dayView';
 import { planConflicts } from '@/lib/planner/planConflicts';
 import {
+  makeCourse,
   makeMeeting,
   makePlanEntry,
   makeSection,
@@ -234,6 +235,51 @@ describe('DayView', () => {
     installViewport(390);
     renderPanel();
     expect(noticeOverBody('empty')).toBe(true);
+  });
+
+  it('hides the day notices under a drag or a grip preview and brings them back', () => {
+    installViewport(390);
+    const section = makeSection({
+      teachTableId: 'd1',
+      subjectId: '90000009',
+      // Monday is the day an empty plan shows, Tuesday the free day picked below.
+      meetings: [
+        makeMeeting({ day: 1, startMin: 540, endMin: 720 }),
+        makeMeeting({ day: 2, startMin: 540, endMin: 720 }),
+      ],
+    });
+    const course = makeCourse({ subjectId: '90000009', sections: [section] });
+    renderPanel();
+    const empty = document.querySelector('[data-grid-notice="empty"]');
+    expect(empty).toBeVisible();
+    act(() => {
+      dragStore.getState().start(course, section, []);
+    });
+    expect(document.querySelector('[data-ghost="valid"]')).not.toBeNull();
+    expect(empty).not.toBeVisible();
+    // A cancelled drag ends the same way as a drop that commits nothing.
+    act(() => {
+      dragStore.getState().clearActive();
+    });
+    expect(empty).toBeVisible();
+    cleanup();
+
+    // The free day of a plan with classes yields too, here to the preview a focused grip
+    // paints, the keyboard path to the same cells.
+    seedPlan();
+    renderPanel();
+    fireEvent.click(chip('วันอังคาร'));
+    const free = document.querySelector('[data-grid-notice="free-day"]');
+    expect(free).toBeVisible();
+    act(() => {
+      dragStore.getState().setHover(section);
+    });
+    expect(document.querySelector('[data-ghost="hover"]')).not.toBeNull();
+    expect(free).not.toBeVisible();
+    act(() => {
+      dragStore.getState().clearHover();
+    });
+    expect(free).toBeVisible();
   });
 
   it('keeps the picked day across a switch to the selected courses and back', () => {
