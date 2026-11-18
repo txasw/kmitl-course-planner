@@ -13,15 +13,23 @@
 // start of its text. Where the body runs taller than the scroller, as the phone's day view
 // does, the card sticks inside the visible part, below the sticky axis row, so a short
 // screen never leaves it below the fold.
+//
+// The notice yields to the drag feedback. It paints as a positioned item over the body, so
+// it would cover the footprint ghosts, which are not positioned, and cross the candidate
+// slots and the commit zone, which are. While the grid paints feedback the notice is
+// hidden but keeps its box, so the day rows it spans never resize under the pointer, and
+// it returns when the drag ends, is cancelled, or the preview clears.
 
 import { CalendarCheck, CalendarPlus, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useStore } from 'zustand';
 import type { Translate } from '@/lib/i18n/t';
 import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { EmptyState } from '@/components/EmptyState';
 import { openSearch } from '@/features/catalog/revealCourse';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
+import { dragStore, selectGridFeedback } from './dragStore';
 import { AXIS_TRACK_EM, GRID_BODY_PLACEMENT } from './gridGeometry';
 
 // The sticky edges of the card, in em of the grid font it inherits: the axis row above,
@@ -40,11 +48,16 @@ interface GridNoticeProps {
 // The wrapper lets pointer events through to the grid, so a drag or a hover over the
 // notice still reaches the cells; only the action takes them back.
 function GridNotice({ notice, icon, title, body, action }: GridNoticeProps) {
+  const yielding = useStore(dragStore, selectGridFeedback);
   return (
     <div
       data-grid-notice={notice}
       className="pointer-events-none relative flex min-h-0 min-w-0 items-center justify-center px-4"
-      style={GRID_BODY_PLACEMENT}
+      style={
+        yielding
+          ? { ...GRID_BODY_PLACEMENT, visibility: 'hidden' }
+          : GRID_BODY_PLACEMENT
+      }
     >
       <div className="sticky" style={STICKY_EDGES}>
         <EmptyState

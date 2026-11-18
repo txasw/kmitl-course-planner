@@ -380,6 +380,26 @@ export function selectDragging(state: DragStore): boolean {
   );
 }
 
+const hasMeeting = (section: Section): boolean => section.meetings.length > 0;
+
+/**
+ * Whether the grid paints feedback over its body: a drag of any kind with its ghosts,
+ * candidates, or commit zone, the footprint of a rejected drop while it shakes, or the
+ * preview of a hovered or focused section grip, the keyboard path, or a hovered course
+ * card. A notice over the body yields to it, since the feedback is what the student is
+ * reading at that moment. A preview of an unscheduled section, or of a course with no
+ * scheduled section, paints no cell, so it leaves the notice in place rather than an
+ * empty grid.
+ */
+export function selectGridFeedback(state: DragStore): boolean {
+  return (
+    selectDragging(state) ||
+    state.rejecting !== null ||
+    (state.hover !== null && hasMeeting(state.hover)) ||
+    (state.hoverCourse?.sections.some(hasMeeting) ?? false)
+  );
+}
+
 /** Whether a placed block is being dragged, the one drag that shows a remove zone. */
 export function selectBlockMoving(state: DragStore): boolean {
   return state.blockMove !== null;

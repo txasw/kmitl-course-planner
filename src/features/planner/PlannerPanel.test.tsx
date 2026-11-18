@@ -360,6 +360,42 @@ describe('PlannerPanel', () => {
     expect(notice).toHaveStyle({ gridRow: '2 / -1', gridColumn: '2 / -1' });
   });
 
+  it('hides the empty week notice under a drag and brings it back when the drag ends', () => {
+    const section = makeSection({
+      teachTableId: 'd1',
+      subjectId: '90000009',
+      meetings: [makeMeeting({ day: 2, startMin: 540, endMin: 720 })],
+    });
+    const course = makeCourse({ subjectId: '90000009', sections: [section] });
+    renderPanel();
+    const notice = document.querySelector('[data-grid-notice="empty"]');
+    expect(notice).toBeVisible();
+
+    // A section drag paints its footprint where the notice sits. The notice keeps its
+    // box, so the day rows it spans hold their size under the pointer.
+    act(() => {
+      dragStore.getState().start(course, section, []);
+    });
+    expect(document.querySelector('[data-ghost="valid"]')).not.toBeNull();
+    expect(notice).toBeInTheDocument();
+    expect(notice).not.toBeVisible();
+    act(() => {
+      dragStore.getState().clearActive();
+    });
+    expect(notice).toBeVisible();
+
+    // A course drag paints its droppable slots there too.
+    act(() => {
+      dragStore.getState().startCourse(course, []);
+    });
+    expect(document.querySelector('[data-candidate="valid"]')).not.toBeNull();
+    expect(notice).not.toBeVisible();
+    act(() => {
+      dragStore.getState().clearCourse();
+    });
+    expect(notice).toBeVisible();
+  });
+
   it('offers an action on the empty edit grid that brings the search into view', () => {
     searchStore.setState({ searchFormOpen: false });
     uiStore.getState().setCatalogVisible(false);
