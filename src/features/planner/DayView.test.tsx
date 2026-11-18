@@ -194,6 +194,19 @@ function noticeOverBody(notice: string): boolean {
   );
 }
 
+/**
+ * Whether a grid notice is the shared empty state with nothing floating over the
+ * gridlines: no bordered or shadowed surface and no tinted icon disc inside it.
+ */
+function noticeBelongsToGrid(notice: string): boolean {
+  const node = document.querySelector(`[data-grid-notice="${notice}"]`);
+  return (
+    node !== null &&
+    node.querySelector('[data-empty-state]') !== null &&
+    node.querySelector('.border, .shadow-kcp, .bg-primary-soft') === null
+  );
+}
+
 function block(subjectId: string): HTMLElement | null {
   return screen.queryByRole('button', { name: new RegExp(subjectId) });
 }
@@ -229,12 +242,16 @@ describe('DayView', () => {
     expect(note).toHaveTextContent('วันว่าง');
     // The sticky hour column would otherwise cover the card's leading edge.
     expect(noticeOverBody('free-day')).toBe(true);
+    // The free day reads like every other empty state in the panel, not a card laid over
+    // the lanes.
+    expect(noticeBelongsToGrid('free-day')).toBe(true);
   });
 
   it('centers the empty plan notice over the lanes, clear of the hour column', () => {
     installViewport(390);
     renderPanel();
     expect(noticeOverBody('empty')).toBe(true);
+    expect(noticeBelongsToGrid('empty')).toBe(true);
   });
 
   it('hides the day notices under a drag or a grip preview and brings them back', () => {

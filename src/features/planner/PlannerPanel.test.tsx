@@ -358,6 +358,11 @@ describe('PlannerPanel', () => {
     const notice = document.querySelector('[data-grid-notice="empty"]');
     expect(notice?.parentElement).toHaveAttribute('data-edit-grid');
     expect(notice).toHaveStyle({ gridRow: '2 / -1', gridColumn: '2 / -1' });
+    // It is the shared empty state over a wash of the body, with no card of its own.
+    expect(notice?.querySelector('[data-empty-state]')).not.toBeNull();
+    expect(
+      notice?.querySelector('.border, .shadow-kcp, .bg-primary-soft'),
+    ).toBeNull();
   });
 
   it('hides the empty week notice under a drag and brings it back when the drag ends', () => {
