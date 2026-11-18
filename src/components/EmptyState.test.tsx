@@ -28,27 +28,17 @@ describe('EmptyState', () => {
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
   });
 
-  it('renders as a bordered card with a tinted icon when asked', () => {
-    const { container } = render(
-      <EmptyState
-        variant="card"
-        icon={Search}
-        title="No data"
-        description="Try a search."
-      />,
-    );
-    const root = container.querySelector('[data-empty-variant="card"]');
-    expect(root).toHaveClass('bg-surface', 'border');
-    expect(root?.querySelector('span')).toHaveClass('bg-primary-soft');
-  });
-
-  it('fills its region by default', () => {
+  it('fills its region with no surface of its own and a neutral icon disc', () => {
     const { container } = render(
       <EmptyState icon={Search} title="No data" description="Try a search." />,
     );
-    expect(
-      container.querySelector('[data-empty-variant="region"]'),
-    ).toHaveClass('h-full');
+    const root = container.querySelector('[data-empty-state]');
+    expect(root).toHaveClass('h-full');
+    expect(root).not.toHaveClass('border', 'bg-surface', 'shadow-kcp');
+    expect(root?.querySelector('span')).toHaveClass(
+      'bg-surface-alt',
+      'text-ink-soft',
+    );
   });
 
   it('omits the action when none is given', () => {
