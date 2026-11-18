@@ -135,3 +135,15 @@ uses a build of a branch that includes it.
     and the Thai text in it renders correctly.
 12. Record the phone model, the Android version, the Firefox version, the date and the result of
     each step in the pull request. A failed step blocks the merge.
+
+### Result
+
+The owner ran the check on 2026-11-19 on a real Android phone. Without a computer connection
+for steps 1 to 3, the add-on was installed in Firefox Nightly from file instead: the signature
+requirement turned off with `xpinstall.signatures.required` in `about:config`, and the build
+installed through Install add-on from file in the Nightly debug menu. The build was main with
+this change and the overlay back gesture merged in. Installing, opening the panel at the phone
+layout, searching, adding a section, the block details bottom sheet, the back gesture closing the
+overlay, and the PNG export with Thai text all passed. The phone model, the Android version and
+the Nightly version were not recorded. The same run raised phone layout polish notes, which are
+tracked separately and do not affect this decision.
