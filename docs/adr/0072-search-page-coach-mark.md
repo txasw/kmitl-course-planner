@@ -20,8 +20,10 @@ only: the page dimmed, the launcher lit as a spotlight, a short burst of strokes
 drawn pointer from a large callout down to it, and an outlined white pill to dismiss.
 
 The host is a single page application with hash routing, so arriving on the search form is either
-a document load on that route or a hash change that makes it active. The extension renders only
-inside its own shadow root and never touches the host page, its styles, or its scroll.
+a document load on that route or a host navigation that makes it active. The host runs Vue Router
+in hash mode on `pushState` (ADR-0067), so its own navigation fires no `hashchange`, and `popstate`
+fires only on back and forward. A content script cannot hook the page's `pushState`. The extension
+renders only inside its own shadow root and never touches the host page, its styles, or its scroll.
 
 ## Decision
 
@@ -66,8 +68,20 @@ read, the worker handshake and the welcome decision have settled. It does not sh
 is open or the welcome is open, in a document that found the welcome pending at load or applied an
 open the worker requested (the same document suppression as the entry toast), after a dismissal in
 the current visit, or on the local day the student chose not again today. A visit is the stretch of
-time the route stays active: a hash change away ends it and hides the coach mark, and a hash change
+time the route stays active: a navigation away ends it and hides the coach mark, and a navigation
 back starts a new visit, so it shows again.
+
+Route signal. The shared host route listener in `features/search/useHashRoute.ts` hears a
+navigation by any of four read only signals: `hashchange`, `popstate`, the Navigation API's
+`currententrychange` where the browser provides it, and a mutation observer on the host document,
+since the router swaps its route view as it navigates. The Navigation API reports a `pushState`
+made from the page's world to a listener in the content script's isolated world, which the end to
+end specs prove in Chromium by navigating with `pushState` and no event on a replica page with no
+route view to swap. The observer runs alongside it rather than only in its absence, so a browser
+that exposes the API without delivering its events to a content script still hears the host; it
+reports only a hash that moved, so the host's own rendering wakes no subscriber. One set of
+listeners serves every subscriber and is removed after the last one. Nothing in it writes to the
+host.
 
 Dismissal. Maybe later, Escape and a press on the scrim hide it for the visit. Not again today hides
 it and writes `coachMarkSnoozedOn`, the local calendar day as YYYY-MM-DD, to `kcp:onboarding`.
