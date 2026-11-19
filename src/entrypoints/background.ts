@@ -1,5 +1,4 @@
 import '@/lib/zodConfig';
-import { IS_DEBUG } from '@/lib/env';
 import { browser } from 'wxt/browser';
 import { defineBackground } from 'wxt/utils/define-background';
 import {
@@ -142,7 +141,9 @@ export default defineBackground(() => {
     return true;
   });
 
-  if (IS_DEBUG) {
+  // Reads the define, not IS_DEBUG, so the debug import leaves the module graph
+  // before it is scanned (see kcp-globals.d.ts).
+  if (__KCP_DEBUG__) {
     void import('@/lib/api/debug/register').then((module) => {
       module.installDebug({
         extensionVersion: browser.runtime.getManifest().version,
