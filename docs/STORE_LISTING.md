@@ -14,6 +14,12 @@ version to each store.
   Edge, Brave, Opera, and other Chromium browsers install from it.
 - Firefox Add-ons listing: https://addons.mozilla.org/firefox/addon/kcp/.
   The listing is live. Check the version shown on the listing after each upload.
+  Firefox on desktop and Firefox for Android 142 or later install from it. The listing
+  offers the Android build from the first version whose manifest declares
+  `gecko_android` (ADR-0070); check that the listing shows Android after that upload.
+- Supported browsers: Chrome, Edge, Opera, and other Chromium browsers on desktop,
+  Firefox on desktop, and Firefox for Android 142 or later. Other mobile browsers are not
+  supported.
 - Project site: https://kcp.cecs.sh/
 - This is an independent student tool. It is not affiliated with, sponsored by, or
   endorsed by King Mongkut's Institute of Technology Ladkrabang (KMITL).
@@ -258,7 +264,9 @@ Firefox Add-ons:
   source package is produced by `pnpm zip:firefox` as the sources zip described below.
 
 To reproduce the lint: `pnpm build -b firefox` then
-`pnpm dlx web-ext lint --source-dir .output/firefox-mv3 --self-hosted`.
+`pnpm dlx web-ext lint --source-dir .output/firefox-mv3 --self-hosted`. CI now runs the
+same linter on every Firefox build through `pnpm lint:firefox`, which treats warnings as
+errors and turns off only the two bundled code rules above (ADR-0070).
 
 ## Images and screenshots
 
@@ -266,14 +274,18 @@ Assets to capture on the live site at
 https://regis.reg.kmitl.ac.th/#/teach_table_selector with the built production
 extension.
 
-Capture all five screenshots on v1.4.0, the build the next update ships. The v1.4.0
-layout train changed most of the captured surfaces, so earlier screenshots no longer
-match: the launcher is an orange pill with the Planner label, the search form sits at the
-top of the course column with no separate search column, course cards start collapsed,
-each section row carries one status badge, timetable blocks lead with the subject name
-and show the building and room on the second line with the time at the foot, a stats bar
-under the plan replaces the footer and the revalidation banner, and plan view tabs sit
-above the timetable.
+Capture all five screenshots on the production build of the release the next update
+ships, built from its release tag, so the listing shows what a student installs.
+Screenshots taken before v1.4.0 no longer match, because the v1.4.0 layout train changed
+most of the captured surfaces: the launcher is an orange pill with the Planner label,
+the search form sits at the top of the course column with no separate search column,
+course cards start collapsed, each section row carries one status badge, timetable blocks
+lead with the subject name and show the building and room on the second line with the
+time at the foot, a stats bar under the plan replaces the footer and the revalidation
+banner, and plan view tabs sit above the timetable. Later changes show in the shots as
+well: the header carries the save indicator beside the plan switcher, each course card
+carries a bookmark and the catalog a Sort by control, and preview frames the poster on a
+grey stage.
 
 - Store icon: 128 by 128 pixels. Reuse `public/icon/128.png`.
 - Screenshots: 1280 by 800 pixels, at least one and up to five. Full bleed, square

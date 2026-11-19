@@ -8,12 +8,13 @@ KCP คือส่วนขยายเบราว์เซอร์สำห�
 ![The KCP planner open over the KMITL registration site, with the course list beside a weekly timetable](site/shots/s-hero-en-1440.webp)
 
 - [Chrome Web Store](https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef)
-  for Chrome, Edge, Brave, Opera, and other Chromium browsers
+  for Chrome, Edge, Brave, Opera, and other Chromium browsers on desktop
 - [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/kcp/)
-  for Firefox
+  for Firefox on desktop and Firefox for Android
 - [Project site](https://kcp.cecs.sh/) in Thai, and in [English](https://kcp.cecs.sh/en/)
 
-KCP works in desktop browsers. Mobile browsers are not supported.
+Supported browsers: Chrome, Edge, Opera, and other Chromium browsers on desktop, Firefox on
+desktop, and Firefox for Android 142 or later. Other mobile browsers are not supported.
 
 ## What it does
 
@@ -42,7 +43,8 @@ Ladkrabang (KMITL).
 
 Install KCP from the
 [Chrome Web Store](https://chromewebstore.google.com/detail/bkjijmajieoojchaknjdpbkaomnofnef)
-or [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/kcp/).
+or [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/kcp/). On an Android phone,
+open Firefox Add-ons in Firefox for Android and add KCP there.
 Each store reviews a new version on its own schedule, so an update can reach one store
 before the other. Release notes are in [CHANGELOG.md](CHANGELOG.md) and on the
 [releases page](https://github.com/txasw/kmitl-course-planner/releases).
@@ -52,7 +54,8 @@ before the other. Release notes are in [CHANGELOG.md](CHANGELOG.md) and on the
 1. Open the course search page at https://regis.reg.kmitl.ac.th/#/teach_table_selector.
 2. Open the planner with the Planner button at the bottom right of the page, the KCP icon
    in the browser toolbar, or Alt+Shift+P (Option+Shift+P on macOS). On any other tab, the
-   icon and the shortcut open the registration search page with the planner.
+   icon and the shortcut open the registration search page with the planner. On a phone,
+   tap the Planner button.
 3. Choose the term, run a search, and add sections to the timetable.
 4. Switch to Preview to export the plan as an image or copy it as text.
 
