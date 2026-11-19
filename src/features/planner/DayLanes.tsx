@@ -68,6 +68,10 @@ interface DayLanesProps {
   /** Show a block's name alone while it is narrower than 7em, where the block width is a
    * day column or a thumbnail track rather than a meeting length (ADR-0047). */
   narrowBlocks: boolean;
+  /** Whether this grid is the poster the export rasterizes: its blocks raise the line height
+   * for the raster and pin the foot for its measured fit. A plan suggestion is read only but
+   * never exported, so it packs its lines like the edit grid. */
+  exported: boolean;
 }
 
 export function DayLanes({
@@ -91,6 +95,7 @@ export function DayLanes({
   sticky,
   surface,
   narrowBlocks,
+  exported,
 }: DayLanesProps) {
   const showRoom = display?.showRoom ?? true;
   const showSection = display?.showSection ?? true;
@@ -98,10 +103,6 @@ export function DayLanes({
   const showSubjectId = display?.showSubjectId ?? false;
   const isPortrait = orientation === 'portrait';
   const removeLabel = t('action.remove');
-  // The flat surface is the poster, the one read only grid that is rasterized, so only it
-  // raises the line height for the raster and pins the foot for its measured fit; a soft
-  // read only grid, a plan suggestion, packs its lines like the edit grid.
-  const exported = surface === 'flat';
 
   const active = useStore(dragStore, (state) => state.active);
   const blockMove = useStore(dragStore, (state) => state.blockMove);
