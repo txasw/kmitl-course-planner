@@ -81,15 +81,3 @@ describe('catalogStore hides', () => {
     expect(sameHides(off, { ...off, conflicting: true })).toBe(false);
   });
 });
-
-describe('catalogStore shortlist', () => {
-  it('saves and removes a course for a term and survives a filter reset', () => {
-    const store = createCatalogStore();
-    const term = { year: '2569', semester: '1' } as const;
-    store.getState().toggleShortlisted(term, '90592033');
-    store.getState().resetFilter();
-    expect(store.getState().shortlist).toEqual({ '1/2569': ['90592033'] });
-    store.getState().toggleShortlisted(term, '90592033');
-    expect(store.getState().shortlist).toEqual({});
-  });
-});

@@ -326,47 +326,4 @@ describe('prefs repository', () => {
     expect(loaded?.timetableView).toBe('week');
     expect(loaded?.catalogHides).toBeUndefined();
   });
-
-  it('round trips a per term shortlist', async () => {
-    const repo = createPrefsRepository(fakeAdapter());
-    const withShortlist: Prefs = {
-      schemaVersion: 1,
-      language: 'th',
-      shortlist: { '1/2569': ['90592033', '01006001'], '2/2569': ['01006002'] },
-    };
-    await repo.save(withShortlist);
-    expect(await repo.load()).toEqual(withShortlist);
-  });
-
-  it('loads a blob written before the shortlist existed', async () => {
-    const repo = createPrefsRepository(
-      fakeAdapter({
-        [PREFS_KEY]: {
-          schemaVersion: 1,
-          language: 'en',
-          catalogHides: { full: true, conflicting: false, unscheduled: false },
-        },
-      }),
-    );
-    const loaded = await repo.load();
-    expect(loaded?.catalogHides?.full).toBe(true);
-    expect(loaded).not.toHaveProperty('shortlist');
-  });
-
-  it('reads a malformed shortlist as absent and keeps the rest', async () => {
-    const repo = createPrefsRepository(
-      fakeAdapter({
-        [PREFS_KEY]: {
-          schemaVersion: 1,
-          language: 'en',
-          timetableView: 'week',
-          shortlist: { '1/2569': [42] },
-        },
-      }),
-    );
-    const loaded = await repo.load();
-    expect(loaded?.language).toBe('en');
-    expect(loaded?.timetableView).toBe('week');
-    expect(loaded?.shortlist).toBeUndefined();
-  });
 });

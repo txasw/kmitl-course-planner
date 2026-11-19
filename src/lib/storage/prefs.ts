@@ -9,7 +9,6 @@ import type { StorageAdapter } from './repo';
 import { PREFS_KEY } from './keys';
 import { displayOptionsSchema } from '../planner/displayOptions';
 import { curriculumProfileSchema } from '../catalog/curriculumProfile';
-import { shortlistSchema } from '../catalog/shortlist';
 import { SUGGEST_OBJECTIVES } from '../planner/suggestRank';
 import { SUGGEST_PREFERENCES } from '../planner/suggestScore';
 import { TIMETABLE_VIEWS } from '../planner/dayView';
@@ -55,9 +54,6 @@ export const prefsSchema = z.object({
   // The catalog hide toggles. A malformed value reads as absent like the options above,
   // so every toggle opens off and the other preferences survive.
   catalogHides: catalogHidesSchema.optional().catch(undefined),
-  // The per term course shortlist (ADR-0069). A malformed map reads as absent like
-  // the options above, so the saved courses are lost but every other preference holds.
-  shortlist: shortlistSchema.optional().catch(undefined),
 });
 export type Prefs = z.infer<typeof prefsSchema>;
 
