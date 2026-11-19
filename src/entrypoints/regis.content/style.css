@@ -583,8 +583,10 @@
    not an elevation, so the one shadow level of section 8.2 still holds. It sits below
    the coach mark's own copy and controls, and the launcher stacks above the whole
    layer by mount order. The underline is revealed from the left, the pointer stroke is
-   drawn along its length, which pathLength 1 normalises, and the burst strokes pop out
-   from the launcher's corner. Reduced motion shows every part in place at once. */
+   drawn along its length, which pathLength 1 normalises, the burst strokes pop out
+   from the launcher's corner, and the arrowhead pops about its own tip. Each part sets
+   its own transform origin, since an SVG path scales in its view box by default.
+   Reduced motion shows every part in place at once. */
 .kcp-coach-spot::before {
   content: '';
   position: absolute;
@@ -647,7 +649,6 @@
 }
 
 .kcp-coach-pop {
-  transform-origin: left bottom;
   animation: kcp-coach-pop var(--kcp-duration-base) ease-out
     var(--kcp-delay-coach-burst) both;
 }

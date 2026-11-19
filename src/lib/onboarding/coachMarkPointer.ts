@@ -15,6 +15,8 @@ export interface PointerGeometry {
   curve: string;
   /** The two arrowhead strokes at the launcher end, as one SVG path. */
   head: string;
+  /** The arrowhead's tip in the box's pixels, which the head pops from in place. */
+  tip: { x: number; y: number };
 }
 
 /** Where the stroke leaves the callout: a few pixels past its end, on its line. */
@@ -69,5 +71,6 @@ export function pointerGeometry(
   return {
     curve: `M ${point(START_X, startY)} C ${point(c1x, c1y)}, ${point(c2x, c2y)}, ${point(endX, endY)}`,
     head: `M ${wing(1)} L ${point(endX, endY)} L ${wing(-1)}`,
+    tip: { x: endX, y: endY },
   };
 }

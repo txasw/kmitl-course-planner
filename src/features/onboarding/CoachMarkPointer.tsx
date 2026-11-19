@@ -46,6 +46,8 @@ export function CoachMarkPointer() {
               strokeLinecap="round"
               className="kcp-coach-draw"
             />
+            {/* The head scales about its own tip, given in the view box's pixels, so
+                it pops in place rather than sliding from a corner of the box. */}
             <path
               d={geometry.head}
               fill="none"
@@ -53,7 +55,10 @@ export function CoachMarkPointer() {
               strokeWidth={3}
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="kcp-coach-pop"
+              className="kcp-coach-pop transform-view"
+              style={{
+                transformOrigin: `${String(geometry.tip.x)}px ${String(geometry.tip.y)}px`,
+              }}
             />
           </svg>
         )}
@@ -71,7 +76,7 @@ export function CoachMarkPointer() {
             stay inside the 20 px edge offset. */}
         <svg
           viewBox="0 0 24 24"
-          className="kcp-coach-pop absolute -top-5.5 -right-3.75 size-6 overflow-visible"
+          className="kcp-coach-pop absolute -top-5.5 -right-3.75 size-6 origin-bottom-left overflow-visible"
         >
           <g fill="none" stroke={STROKE} strokeWidth={3} strokeLinecap="round">
             <path d="M3.3 12.2 L1.5 2.3" />
