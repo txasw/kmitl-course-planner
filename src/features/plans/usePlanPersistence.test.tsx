@@ -328,7 +328,7 @@ describe('usePlanPersistence autosave state', () => {
     expect(toasts).toHaveLength(1);
     expect(toasts[0]?.kind).toBe('error');
     expect(toasts[0]?.message).toBe('บันทึกตารางไม่สำเร็จ');
-    expect(toasts[0]?.action?.label).toBe('ลองอีกครั้ง');
+    expect(toasts[0]?.action?.label).toBe('บันทึกอีกครั้ง');
 
     edit();
     await advance(300);

@@ -51,7 +51,7 @@ export function usePlanPersistence({
     const showFailure = (): void => {
       const t = createTranslator(uiStore.getState().language);
       toastStore.getState().show('error', t('save.failedToast'), {
-        label: t('action.retry'),
+        label: t('save.retry'),
         run: (control) => {
           commitAndFocus(control, PLAN_SWITCHER_TRIGGER_ID, retry);
         },
