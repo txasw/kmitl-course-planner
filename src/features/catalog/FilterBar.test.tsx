@@ -20,7 +20,7 @@ import { catalogStore } from './catalogStore';
 import { FilterBar } from './FilterBar';
 
 const CREDIT = /หน่วยกิต|Credit/i;
-const FILTER_BUTTON = /^(?:ตัวกรอง|Filters)$/;
+const FILTER_BUTTON = /^(?:ตัวกรอง|Filters)/;
 
 afterEach(() => {
   cleanup();
@@ -28,6 +28,7 @@ afterEach(() => {
     uiStore.getState().setLanguage('th');
     uiStore.getState().setCurriculumProfile(null);
     searchStore.getState().patchClassForm(defaultClassForm());
+    catalogStore.getState().setSort('subjectId');
   });
 });
 beforeEach(() => {
@@ -39,11 +40,13 @@ function openFilters() {
 }
 
 describe('FilterBar', () => {
-  it('names the text field by its visible label and keeps the hint as placeholder', () => {
+  it('names the text field for assistive technology and keeps the hint as placeholder', () => {
     render(<FilterBar creditOptions={[3, 4]} />);
     const field = screen.getByLabelText('กรองรายการ');
     expect(field).toBe(screen.getByRole('searchbox', { name: 'กรองรายการ' }));
-    expect(screen.getByText('กรองรายการ').tagName).toBe('LABEL');
+    // The search glyph and the hint name the field for the eye, so no line is spent
+    // on a visible label.
+    expect(screen.queryByText('กรองรายการ')).toBeNull();
     expect(field).toHaveAttribute('placeholder', 'รหัสวิชา ชื่อวิชา หรืออาจารย์');
     fireEvent.change(field, { target: { value: '9059' } });
     expect(catalogStore.getState().filter.text).toBe('9059');
@@ -72,13 +75,50 @@ describe('FilterBar', () => {
     expect(catalogStore.getState().filter.credit).toBe(3);
   });
 
-  it('shows the active facet count on the filter button', () => {
+  it('draws the filter as an icon named by its label alone while nothing is in use', () => {
+    render(<FilterBar creditOptions={[3, 4]} />);
+    const button = screen.getByRole('button', { name: 'ตัวกรอง' });
+    expect(button).toHaveTextContent('');
+  });
+
+  it('shows the active facet count as a badge the filter name reads', () => {
     catalogStore.getState().setHideFull(true);
     catalogStore.getState().toggleDay(1);
     render(<FilterBar creditOptions={[3, 4]} />);
+    const button = screen.getByRole('button', {
+      name: 'ตัวกรอง ใช้อยู่ 2 รายการ',
+    });
+    expect(button).toHaveTextContent('2');
+  });
+
+  it('shows the filter name in a tooltip on keyboard focus', async () => {
+    render(<FilterBar creditOptions={[3, 4]} />);
+    const button = screen.getByRole('button', { name: 'ตัวกรอง' });
+    fireEvent.focus(button);
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('ตัวกรอง');
+  });
+
+  it('draws the sort as an icon combobox that names the chosen order', () => {
+    render(<FilterBar creditOptions={[3, 4]} />);
+    const sort = screen.getByRole('combobox', { name: 'เรียงตาม รหัสวิชา' });
+    expect(sort).toHaveTextContent('รหัสวิชา');
+    fireEvent.click(sort);
+    fireEvent.mouseDown(screen.getByRole('option', { name: 'เริ่มเรียนเร็วที่สุด' }));
+    expect(catalogStore.getState().sort).toBe('earliestStart');
     expect(
-      screen.getByRole('button', { name: FILTER_BUTTON }),
-    ).toHaveTextContent('2');
+      screen.getByRole('combobox', { name: 'เรียงตาม เริ่มเรียนเร็วที่สุด' }),
+    ).toBeInTheDocument();
+  });
+
+  it('closes the row with the controls the catalog passes', () => {
+    render(
+      <FilterBar creditOptions={[3, 4]}>
+        <button type="button">ขยายทั้งหมด</button>
+      </FilterBar>,
+    );
+    expect(
+      screen.getByRole('button', { name: 'ขยายทั้งหมด' }),
+    ).toBeInTheDocument();
   });
 
   it('removes a facet from its chip', () => {

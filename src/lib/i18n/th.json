@@ -181,6 +181,7 @@
   "catalog.filter.hideConflicting": "ซ่อนรายการที่ชนกัน",
   "catalog.filter.hideUnscheduled": "ซ่อนวิชาที่ไม่มีคาบเรียน",
   "catalog.filter.label": "ตัวกรอง",
+  "catalog.filter.labelActive": "ตัวกรอง ใช้อยู่ {n} รายการ",
   "catalog.filter.clearAll": "ล้างตัวกรอง",
   "catalog.sort.label": "เรียงตาม",
   "catalog.sort.subjectId": "รหัสวิชา",

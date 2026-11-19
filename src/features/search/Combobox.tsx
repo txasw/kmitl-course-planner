@@ -14,6 +14,9 @@
 // A field may carry a leading icon that names what it selects at a glance. The icon
 // is decorative, since the visible label already names the field, so it is hidden
 // from assistive tech and ignores the pointer so a click lands on the control.
+// A select only field in a toolbar row may instead be an icon only trigger, such as the
+// catalog sort: the icon is the whole visible control, the label and the chosen option
+// move into its accessible name, and a tooltip shows both on hover and keyboard focus.
 
 import { useCallback, useId, useMemo, useState } from 'react';
 import {
@@ -25,8 +28,10 @@ import {
   FloatingPortal,
 } from '@floating-ui/react';
 import type { LucideIcon } from 'lucide-react';
+import { Tooltip } from '@/components/Tooltip';
 import { CONTROL_BOUNDARY, CONTROL_DISABLED } from '@/lib/ui/control';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
 
 const MAX_LIST_HEIGHT = 224;
@@ -52,6 +57,9 @@ interface ComboboxProps {
   /** When true the label sits beside the field rather than above it, for a compact
    * control in a toolbar row such as the catalog sort. Defaults to false. */
   inline?: boolean;
+  /** When set on a select only field, the trigger shows this icon alone and the label
+   * and the chosen option are read from its accessible name and its tooltip. */
+  iconOnly?: LucideIcon;
 }
 
 export function Combobox({
@@ -64,8 +72,10 @@ export function Combobox({
   searchable = true,
   icon: Icon,
   inline = false,
+  iconOnly: TriggerIcon,
 }: ComboboxProps) {
   const listboxId = useId();
+  const valueId = useId();
   const optionIdBase = useId();
   const inputId = useId();
   const labelId = useId();
@@ -78,6 +88,8 @@ export function Combobox({
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const iconTrigger = !searchable && TriggerIcon !== undefined;
+  const compact = inline || iconTrigger;
   // Until the field is edited it shows every option; typing switches to filtering.
   const [dirty, setDirty] = useState(false);
   // Index of the highlighted option, or -1 when none is highlighted so Enter on a
@@ -105,9 +117,9 @@ export function Combobox({
   const { refs, floatingStyles } = useFloating({
     open: listVisible,
     strategy: 'fixed',
-    // An inline field closes its row, so its list aligns to the field's end and
-    // grows back across the row.
-    placement: inline ? 'bottom-end' : 'bottom-start',
+    // An inline or icon only field closes its row, so its list aligns to the field's
+    // end and grows back across the row.
+    placement: compact ? 'bottom-end' : 'bottom-start',
     middleware: [
       offset(4),
       flip({ padding: 8 }),
@@ -119,7 +131,7 @@ export function Combobox({
           // scrolling internally beyond that.
           const fieldWidth = `${String(rects.reference.width)}px`;
           Object.assign(elements.floating.style, {
-            width: inline ? 'max-content' : fieldWidth,
+            width: compact ? 'max-content' : fieldWidth,
             minWidth: fieldWidth,
             maxHeight: `${String(Math.min(availableHeight, MAX_LIST_HEIGHT))}px`,
           });
@@ -234,6 +246,12 @@ export function Combobox({
     }
   };
 
+  const toggleList = () => {
+    if (disabled) return;
+    if (open) close();
+    else openList();
+  };
+
   const activeOption = open ? visible[activeIndex] : undefined;
   // The leading icon takes the start padding, so the value text clears it.
   const inset = Icon ? 'pl-8 pr-2' : 'px-2';
@@ -298,6 +316,28 @@ export function Combobox({
         disabled ? CONTROL_DISABLED : `${CONTROL_BOUNDARY} text-ink`
       } ${FOCUS_RING}`}
     />
+  ) : iconTrigger ? (
+    <div
+      ref={setReference}
+      id={inputId}
+      role="combobox"
+      tabIndex={disabled ? -1 : 0}
+      aria-haspopup="listbox"
+      aria-expanded={listVisible}
+      aria-controls={listVisible ? listboxId : undefined}
+      aria-labelledby={`${labelId} ${valueId}`}
+      aria-activedescendant={activeOption ? optionId(activeIndex) : undefined}
+      aria-disabled={disabled || undefined}
+      onClick={toggleList}
+      onKeyDown={handleKeyDown}
+      onBlur={close}
+      className={`inline-flex cursor-pointer items-center justify-center rounded-kcp text-ink hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`}
+    >
+      <TriggerIcon size={18} strokeWidth={2} aria-hidden />
+      <span id={valueId} className="sr-only">
+        {selectedLabel || placeholder}
+      </span>
+    </div>
   ) : (
     <div
       ref={setReference}
@@ -310,11 +350,7 @@ export function Combobox({
       aria-labelledby={labelId}
       aria-activedescendant={activeOption ? optionId(activeIndex) : undefined}
       aria-disabled={disabled || undefined}
-      onClick={() => {
-        if (disabled) return;
-        if (open) close();
-        else openList();
-      }}
+      onClick={toggleList}
       onKeyDown={handleKeyDown}
       onBlur={close}
       className={`flex items-center rounded-kcp border ${inset} py-1.5 ${
@@ -328,6 +364,35 @@ export function Combobox({
       {selectedLabel || placeholder}
     </div>
   );
+
+  const popup = portalRoot ? (
+    <FloatingPortal root={portalRoot}>{listbox}</FloatingPortal>
+  ) : (
+    listbox
+  );
+
+  if (iconTrigger) {
+    // The tooltip anchors to a wrapper, so the trigger keeps its own handlers and the
+    // list's floating reference; it stays shut while the list is open.
+    return (
+      <div className="relative flex text-sm">
+        <label id={labelId} className="sr-only">
+          {label}
+        </label>
+        <Tooltip
+          label={`${label} ${selectedLabel || placeholder}`}
+          disabled={listVisible}
+        >
+          {(triggerProps, ref) => (
+            <span ref={ref} {...triggerProps} className="inline-flex">
+              {control}
+            </span>
+          )}
+        </Tooltip>
+        {popup}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -357,11 +422,7 @@ export function Combobox({
       ) : (
         control
       )}
-      {portalRoot ? (
-        <FloatingPortal root={portalRoot}>{listbox}</FloatingPortal>
-      ) : (
-        listbox
-      )}
+      {popup}
     </div>
   );
 }
