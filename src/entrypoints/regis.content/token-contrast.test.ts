@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { contrastRatio, shadowToken } from '../../../tests/support/contrast';
+import { EVENT_PALETTE } from '@/lib/utils/hash-color';
+import {
+  alphaOver,
+  contrastRatio,
+  shadowFraction,
+  shadowToken,
+} from '../../../tests/support/contrast';
 
 // Reads the authored token hex values from the shadow stylesheet and asserts that every
 // text on background pair the UI actually renders meets its WCAG AA threshold: 4.5 for
@@ -196,10 +202,85 @@ const PAIRS: Pair[] = [
     bg: shadowToken('surface-alt'),
     min: AA_UI,
   },
+  {
+    name: 'ink on surface-sunken',
+    fg: shadowToken('ink'),
+    bg: shadowToken('surface-sunken'),
+    min: AA_NORMAL,
+  },
+  {
+    name: 'ink-soft on surface-sunken',
+    fg: shadowToken('ink-soft'),
+    bg: shadowToken('surface-sunken'),
+    min: AA_NORMAL,
+  },
+  {
+    name: 'ink-muted on surface',
+    fg: shadowToken('ink-muted'),
+    bg: shadowToken('surface'),
+    min: AA_NORMAL,
+  },
+  {
+    name: 'ink-muted on surface-alt',
+    fg: shadowToken('ink-muted'),
+    bg: shadowToken('surface-alt'),
+    min: AA_NORMAL,
+  },
+  {
+    name: 'ink-muted on surface-sunken',
+    fg: shadowToken('ink-muted'),
+    bg: shadowToken('surface-sunken'),
+    min: AA_NORMAL,
+  },
+  {
+    name: 'ink-muted on primary-soft',
+    fg: shadowToken('ink-muted'),
+    bg: shadowToken('primary-soft'),
+    min: AA_NORMAL,
+  },
 ];
 
+// The soft depth card of ADR-0071 mixes its tint into the surface, from the strong stop
+// at the top to the weak stop from 70 percent down. The tint is a subject color from the
+// event palette or, on a neutral card, the muted ink. Ink and ink soft may sit anywhere
+// on the card, so they are proven on the strong stop, the darkest fill; ink muted is
+// meant for the foot line only, so it is proven on the weak stop where the foot sits.
+const SOFT_CARD_TINTS: readonly string[] = [
+  shadowToken('ink-muted'),
+  ...EVENT_PALETTE,
+];
+
+function softCardStop(tint: string, stop: 'strong' | 'weak'): string {
+  return alphaOver(
+    tint,
+    shadowFraction(`tint-${stop}`),
+    shadowToken('surface'),
+  );
+}
+
+const SOFT_CARD_PAIRS: Pair[] = SOFT_CARD_TINTS.flatMap((tint) => [
+  {
+    name: `ink on the strong stop of a ${tint} soft card`,
+    fg: shadowToken('ink'),
+    bg: softCardStop(tint, 'strong'),
+    min: AA_NORMAL,
+  },
+  {
+    name: `ink-soft on the strong stop of a ${tint} soft card`,
+    fg: shadowToken('ink-soft'),
+    bg: softCardStop(tint, 'strong'),
+    min: AA_NORMAL,
+  },
+  {
+    name: `ink-muted on the weak stop of a ${tint} soft card`,
+    fg: shadowToken('ink-muted'),
+    bg: softCardStop(tint, 'weak'),
+    min: AA_NORMAL,
+  },
+]);
+
 describe('design token contrast', () => {
-  for (const pair of PAIRS) {
+  for (const pair of [...PAIRS, ...SOFT_CARD_PAIRS]) {
     it(`${pair.name} meets ${String(pair.min)}:1`, () => {
       expect(contrastRatio(pair.fg, pair.bg)).toBeGreaterThanOrEqual(pair.min);
     });
