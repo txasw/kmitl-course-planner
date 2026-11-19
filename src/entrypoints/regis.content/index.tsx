@@ -1,6 +1,9 @@
 import '@/lib/zodConfig';
 import './style.css';
 import { createRoot, type Root } from 'react-dom/client';
+import { browser } from 'wxt/browser';
+import { createShadowRootUi } from 'wxt/utils/content-script-ui/shadow-root';
+import { defineContentScript } from 'wxt/utils/define-content-script';
 import { IS_DEBUG } from '@/lib/env';
 import { REGIS_MATCH_PATTERN } from '@/lib/shell/hostTab';
 import { sendTyped } from '@/lib/messaging/sendTyped';
