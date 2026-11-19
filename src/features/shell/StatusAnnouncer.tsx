@@ -15,7 +15,8 @@
 // some items, as a check records changes or a switch lands on a plan with open reviews.
 // A count that only changes while the indicator shows says nothing, and a plan that
 // already had items when the panel opened says nothing, since the indicator did not
-// just appear.
+// just appear. A feature that alone can count an outcome, such as the catalog filter
+// result, hands its resolved line through the status store, and that line is read too.
 
 import { useEffect, useRef, useState } from 'react';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
@@ -31,6 +32,7 @@ import { verificationText } from '@/features/planner/verificationText';
 import { planStore } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
 import { searchStore } from '@/features/search/searchStore';
+import { statusStore } from './statusStore';
 import { useTranslation } from './useTranslation';
 
 interface Announcement {
@@ -148,6 +150,16 @@ export function StatusAnnouncer() {
         }
       }),
     [t],
+  );
+
+  useEffect(
+    () =>
+      statusStore.subscribe((state, previous) => {
+        if (state.line !== null && state.line !== previous.line) {
+          setAnnouncement(replacing(state.line.text));
+        }
+      }),
+    [],
   );
 
   return (

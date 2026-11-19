@@ -533,3 +533,19 @@ the data time and the one action on the result, and a reload restores the bar.
   term would describe a search the form no longer holds. The forms, the term and the restored bar
   land in one store write, and until it lands the search head holds a fixed placeholder with
   neither the form nor the bar, so nothing paints and then flips.
+
+## Amendment, 2026-11-19: the filter result
+
+The catalog filters narrow the list in place without moving focus, and nothing spoke the
+outcome, not even the line that no course matches. That is a status message under WCAG 4.1.3,
+so `StatusAnnouncer` now reads it as well.
+
+- Once a filter change has held still for 500 ms, the announcer reads the filtered course and
+  section count, or the no match line. Typing a word restarts the wait, so it reads one result
+  rather than one per key.
+- Only a filter change arms it. A re-render, a plan change that shifts the count, or a language
+  change says nothing, as the search outcome already behaves.
+- The catalog alone can count the filtered result, since the conflict and shortlist tests depend
+  on its derived state, so it hands a resolved line to the announcer through a small status
+  store rather than the announcer repeating that work. No live region is added, so the inventory
+  above is unchanged.
