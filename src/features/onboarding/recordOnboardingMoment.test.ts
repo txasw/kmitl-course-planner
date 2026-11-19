@@ -4,7 +4,10 @@ import type {
   OnboardingRecord,
 } from '@/lib/storage/onboarding';
 import { initialOnboardingData, onboardingStore } from './onboardingStore';
-import { recordOnboardingMoment } from './recordOnboardingMoment';
+import {
+  recordCoachMarkSnooze,
+  recordOnboardingMoment,
+} from './recordOnboardingMoment';
 
 const EARLIER = '2026-11-01T08:00:00.000Z';
 
@@ -68,5 +71,34 @@ describe('recordOnboardingMoment', () => {
     recordOnboardingMoment(record, 'panelFirstOpenedAt');
     await flush();
     expect(onboardingStore.getState().record.panelFirstOpenedAt).toBeDefined();
+  });
+});
+
+describe('recordCoachMarkSnooze', () => {
+  it('takes the day in the store before the write and writes each call', async () => {
+    const record = fakeRecord((fields) => ({ schemaVersion: 1, ...fields }));
+    recordCoachMarkSnooze(record, '2026-11-19');
+    expect(onboardingStore.getState().record.coachMarkSnoozedOn).toBe(
+      '2026-11-19',
+    );
+    recordCoachMarkSnooze(record, '2026-11-20');
+    expect(record.patch).toHaveBeenNthCalledWith(2, {
+      coachMarkSnoozedOn: '2026-11-20',
+    });
+    await flush();
+    expect(onboardingStore.getState().record.coachMarkSnoozedOn).toBe(
+      '2026-11-20',
+    );
+  });
+
+  it('keeps the optimistic day when the write fails', async () => {
+    const record = {
+      patch: vi.fn(() => Promise.reject(new Error('quota'))),
+    };
+    recordCoachMarkSnooze(record, '2026-11-20');
+    await flush();
+    expect(onboardingStore.getState().record.coachMarkSnoozedOn).toBe(
+      '2026-11-20',
+    );
   });
 });
