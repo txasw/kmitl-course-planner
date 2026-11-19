@@ -1,7 +1,9 @@
 // What the entry toast near the launcher says on a visit, as a pure choice, following the
 // entry toast and launcher attention ADR. The toast is a prompt, not action feedback: it
 // shows at most once per document, after everything it depends on has settled, and never
-// while the panel or the welcome is open. The content follows a fixed precedence, most
+// while the panel, the welcome or the selector coach mark is open, nor in a document the
+// coach mark has spoken in, since on the search page the coach mark takes precedence
+// (ADR-0072). The content follows a fixed precedence, most
 // useful first: changes that still wait for review, then the host result route the
 // document loaded on, then a plan with subjects, then an empty plan, then no plan at all.
 //
@@ -84,6 +86,8 @@ export interface EntryToastInput {
   /** True once this document showed the welcome, applied a requested open, or found the
    * welcome pending at load. */
   documentSuppressed: boolean;
+  /** True once the selector coach mark has shown in this document. */
+  coachMarkShown: boolean;
   /** The plan and the onboarding record are loaded, and the handshake and the welcome
    * decision have settled. */
   settled: boolean;
@@ -139,7 +143,8 @@ export function selectEntryToast(
     input.onboarding.entryToastOptOutAt !== undefined ||
     input.isOpen ||
     input.welcomeOpen ||
-    input.documentSuppressed
+    input.documentSuppressed ||
+    input.coachMarkShown
   ) {
     return null;
   }

@@ -54,6 +54,7 @@ function input(overrides: Partial<EntryToastInput> = {}): EntryToastInput {
     isOpen: false,
     welcomeOpen: false,
     documentSuppressed: false,
+    coachMarkShown: false,
     settled: true,
     ...overrides,
   };
@@ -82,6 +83,7 @@ describe('selectEntryToast gating', () => {
     ['the panel is open', { isOpen: true }],
     ['the welcome is open', { welcomeOpen: true }],
     ['the document is suppressed', { documentSuppressed: true }],
+    ['the coach mark has shown', { coachMarkShown: true }],
   ])('shows nothing when %s', (_label, overrides) => {
     expect(selectEntryToast(input(overrides))).toBeNull();
     expect(selectEntryToast(input({ ...overrides, plan: null }))).toBeNull();

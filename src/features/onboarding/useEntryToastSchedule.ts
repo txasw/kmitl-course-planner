@@ -17,7 +17,10 @@
 // Once shown, the toast hides after ENTRY_TOAST_VISIBLE_MS. A hold from the pointer or
 // focus within it pauses that timer, and releasing the hold starts the full time again,
 // the same as the panel toasts. Opening the panel, at any point, ends the schedule for
-// good, so closing the panel never brings the toast back.
+// good, so closing the panel never brings the toast back. So does the selector coach mark
+// opening, which takes precedence on the search page (ADR-0072): a toast that showed on
+// another route goes when the host navigates to the search page and the coach mark speaks,
+// so the two never stack, and a toast still waiting finds the coach mark has shown.
 
 import {
   useEffect,
@@ -81,6 +84,7 @@ function currentInput(mountHash: string): EntryToastInput {
     isOpen: uiStore.getState().isOpen,
     welcomeOpen: onboarding.welcomeOpen,
     documentSuppressed: onboarding.documentSuppressed,
+    coachMarkShown: onboarding.coachMarkShown,
     settled:
       plans.loaded &&
       onboarding.loaded &&
@@ -116,6 +120,16 @@ export function useEntryToastSchedule(
     () =>
       uiStore.subscribe((state, previous) => {
         if (state.isOpen && !previous.isOpen) setPhase(DONE);
+      }),
+    [],
+  );
+
+  // So does the coach mark opening. Focus inside the toast is not handed on here, since
+  // the coach mark moves focus to its own first action as it opens.
+  useEffect(
+    () =>
+      onboardingStore.subscribe((state, previous) => {
+        if (state.coachMarkOpen && !previous.coachMarkOpen) setPhase(DONE);
       }),
     [],
   );

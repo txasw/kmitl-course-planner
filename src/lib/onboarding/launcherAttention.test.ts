@@ -12,6 +12,7 @@ function input(
     record: {},
     hasStoredPlans: false,
     welcomeOpen: false,
+    coachMarkOpen: false,
     ...overrides,
   };
 }
@@ -39,5 +40,9 @@ describe('needsLauncherAttention', () => {
 
   it('stays quiet while the welcome is open', () => {
     expect(needsLauncherAttention(input({ welcomeOpen: true }))).toBe(false);
+  });
+
+  it('stays quiet while the selector coach mark is open', () => {
+    expect(needsLauncherAttention(input({ coachMarkOpen: true }))).toBe(false);
   });
 });
