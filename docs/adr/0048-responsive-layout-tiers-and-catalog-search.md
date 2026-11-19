@@ -565,7 +565,9 @@ from 1024 px and an overflow menu below it, so the same setting lived in two pla
   the width the plan name and term need and cut both short; in its own strip every word wraps
   and shows in full, and the strip pushes the body down rather than covering it.
 - Because the strip leaves as soon as a retry starts saving, a retry from its button or from
-  the toast moves focus to the plan switcher trigger, never to the body.
+  the toast moves focus to the plan switcher trigger, never to the body. Both surfaces name the
+  action the same way, บันทึกอีกครั้ง in Thai and Save again in English, so one action has one
+  name.
 - The overflow menu is present on every tier and is the one place the language is chosen. The
   header segmented language toggle is removed.
 - Each language item shows its flag, drawn inline as SVG: the Thai flag for Thai and the United
