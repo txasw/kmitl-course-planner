@@ -259,6 +259,12 @@ Firefox Add-ons:
   `eval`, the `Function` constructor, and `innerHTML` through ESLint. They are warnings,
   not errors, and do not block review; the source package lets a reviewer confirm their
   origin.
+- The two `DANGEROUS_EVAL` warnings are the `Function` constructor in the bundled Zod
+  validation library, which it uses to compile a faster parser when the environment allows
+  it. The extension sets Zod to jitless mode in `src/lib/zodConfig.ts`, the first import of
+  both entrypoints, so that code path and its runtime capability check never run and
+  validation uses the interpreted parser. The constructor remains in the bundled library
+  text, so the static warning remains.
 - The missing data collection permissions warning was resolved by declaring none.
 - Source code submission is required because the build is bundled and minified. The
   source package is produced by `pnpm zip:firefox` as the sources zip described below.
