@@ -853,7 +853,7 @@ h4 {
   color: var(--site-ink-soft);
 }
 
-/* A phone cannot install from the stores, so the note says where the badges lead. */
+/* On a phone only Firefox for Android installs the extension, so the note names it. */
 @media (pointer: coarse) and (max-width: 1023px) {
   .cta-coarse {
     display: block;

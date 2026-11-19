@@ -168,7 +168,7 @@ function storeBadges(lazy) {
 }
 
 // The touch note shows only on a coarse pointer, once in each row: a phone visitor reads
-// beside the badges that the stores install on a computer. The web version note is read
+// beside the badges that only Firefox for Android installs on a phone. The web version note is read
 // out by the disabled pill, while its badge already says it is coming.
 function ctaRow(copy, size) {
   const hero = size === 'hero';
@@ -572,11 +572,11 @@ export function jsonLd(copy, version) {
         description: en.description,
         applicationCategory: 'EducationalApplication',
         applicationSubCategory: 'Browser extension',
-        operatingSystem: 'Windows, macOS, Linux, ChromeOS',
+        operatingSystem: 'Windows, macOS, Linux, ChromeOS, Android',
         // browserRequirements belongs to WebApplication; an installed extension states
         // the browser it runs in as a software requirement.
         softwareRequirements:
-          'Chrome, Microsoft Edge, Brave, Opera or Firefox on a computer',
+          'Chrome, Microsoft Edge, Brave, Opera or Firefox on a computer, or Firefox 142 or later on Android',
         softwareVersion: version,
         // The extension's interface is in Thai and English, whichever page names it.
         inLanguage: ['th', 'en'],

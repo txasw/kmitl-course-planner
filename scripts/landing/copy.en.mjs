@@ -41,7 +41,7 @@ export const en = {
     webBadge: 'Coming soon',
     webNoteShort:
       'The web version is in development, with no release date yet.',
-    coarse: 'For computers only.',
+    coarse: 'On a phone, use Firefox for Android 142 or later.',
   },
   problem: {
     h2: (c) =>
@@ -131,7 +131,7 @@ export const en = {
       ],
       [
         'Can I use it on my phone?',
-        'Not yet. Chrome on phones does not support extensions. The web version in development is planned to work without installing.',
+        'Yes, on Android in Firefox 142 or later. Install it from Firefox Add-ons in Firefox on your phone. Chrome on phones does not support extensions, and iPhone is not supported yet. The web version in development is planned to work without installing.',
       ],
       [
         'Does it work for every faculty?',
