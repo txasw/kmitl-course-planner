@@ -3,7 +3,7 @@
 // and the toasts by mount order. The modal dialog and the bottom sheet portal through
 // PanelPortalContext, which only the overlay provides, so this layer provides its own
 // node; it also carries the panel language, since the host document's lang does not
-// follow the language toggle. It holds the host scroll lock while it is open, counted
+// follow the language choice. It holds the host scroll lock while it is open, counted
 // with the overlay's, so the welcome handing over to the panel in one commit keeps the
 // host locked and closing both leaves it as it was.
 

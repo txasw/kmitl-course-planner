@@ -19,12 +19,13 @@ interface HeaderProps {
 // tighten so the touch sized controls still fit a 320 px screen. The leading group
 // holds the brand mark from 640 px, the panel title, and the plan switcher; it is the
 // only part that shrinks, and the switcher truncates the plan name before anything else
-// gives way. A failed save shows in its own strip under the header, never in this row. The title shows from 1024 px and stays in the
-// accessibility tree below as sr-only text, so the dialog's aria-labelledby always
-// resolves. The trailing group never shrinks and carries the catalog toggle in edit mode
-// on the medium tier, where the catalog is a sheet, then the mode toggle, the overflow
-// menu that holds the language on every tier, and the close control, which is always
-// last so leaving the overlay stays one action away at every width.
+// gives way. A failed save shows in its own strip under the header, never in this row.
+// The title shows from 1024 px and stays in the accessibility tree below as sr-only
+// text, so the dialog's aria-labelledby always resolves. The trailing group never
+// shrinks and carries the catalog toggle in edit mode on the medium tier, where the
+// catalog is a sheet, then the mode toggle, the overflow menu that holds the language
+// on every tier, and the close control, which is always last so leaving the overlay
+// stays one action away at every width.
 export function Header({ titleId }: HeaderProps) {
   const close = useStore(uiStore, (state) => state.close);
   const { t } = useTranslation();

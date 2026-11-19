@@ -28,7 +28,7 @@ import { VIEWPORT_FIT } from '@/lib/ui/viewportInset';
 // while open, recorded in ADR-0067. Session state lives in the ui store, so closing and
 // reopening within a page session resumes where the user left off. The root
 // carries the panel language, because the host document's own lang does not follow
-// the language toggle, and the popovers portal into this node so they inherit it.
+// the language choice, and the popovers portal into this node so they inherit it.
 // The header pads itself clear of the top and side safe area insets, and the body pads
 // clear of the side insets and of the bottom one, except while the bottom nav runs along
 // its foot: the nav pads itself there, so its fill reaches the screen edge under the
