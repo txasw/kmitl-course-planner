@@ -55,6 +55,24 @@ pnpm format:check
 pnpm test
 ```
 
+## Bundle size budget
+
+CI zips each production target and fails the build when a zip is larger than its
+budget in `scripts/bundle-budget.mjs`. The budget sits a little above the current
+size, so the package does not grow by accident. To check a build by hand:
+
+```
+pnpm wxt zip -b chrome
+pnpm wxt zip -b firefox
+node scripts/check-bundle-size.mjs chrome firefox
+```
+
+When a change needs more room, first look for what it pulls in, such as a new
+dependency or a heavy import. If the growth is
+justified, raise the budget in the same pull request and give the new size and the
+reason in the description. When a change makes the package smaller, lower the budget
+to keep the margin small.
+
 ## Pull requests
 
 Before requesting a merge, perform a written self review of the full diff against

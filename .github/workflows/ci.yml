@@ -108,6 +108,10 @@ jobs:
         if: matrix.browser == 'firefox'
         run: pnpm lint:firefox
       - run: pnpm wxt zip -b ${{ matrix.browser }}
+      # Growth past the budget in scripts/bundle-budget.mjs fails the build, so a
+      # larger package is a decision made in review rather than drift.
+      - name: Check the packed size against its budget
+        run: node scripts/check-bundle-size.mjs ${{ matrix.browser }}
       - name: Canary check on production bundle
         run: |
           if grep -rIl 'kcp-debug-canary' .output/; then
