@@ -740,8 +740,8 @@ test('an add made over the covered timetable is confirmed once by a toast that l
 // The reserved id 90000010 serves Exam Course A and Exam Course B, whose section 901
 // clashes with A's midterm while section 902 fits. With the catalog open, the sheet on
 // the tablet and the catalog pane on the phone, the blocked add of B 901 floats the
-// strip over it, above the scrim, the add toast A left, and the bottom nav, so its
-// alternative chip takes focus and a finger.
+// strip over it, above the scrim and the bottom nav, so its alternative chip takes focus
+// and a finger. The strip notice replaces the add toast A left, so the two never stack.
 test('the strip chips stay tappable over the open catalog', async ({
   context,
 }) => {
@@ -765,6 +765,14 @@ test('the strip chips stay tappable over the open catalog', async ({
   });
   await expect(chip).toBeFocused();
   await expect(chip).toBeInViewport({ ratio: 1 });
+  await expect(page.getByText(/^เพิ่ม 90000010 กลุ่มเรียน/)).toHaveCount(0);
+  // The debug build's diagnostics launcher floats over the phone's foot, and the
+  // production build has none, so it is set aside before the hit test.
+  await page
+    .getByRole('button', { name: 'Diagnostics', exact: true })
+    .evaluate((node) => {
+      if (node instanceof HTMLElement) node.style.visibility = 'hidden';
+    });
   // The chip is the element a tap at its centre lands on: no scrim, sheet, toast, or
   // nav covers it.
   expect(
