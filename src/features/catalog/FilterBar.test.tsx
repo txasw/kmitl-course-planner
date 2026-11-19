@@ -168,7 +168,7 @@ describe('FilterBar', () => {
     render(<FilterBar creditOptions={[3, 4]} />);
     expect(screen.getByLabelText('Filter results')).toHaveAttribute(
       'placeholder',
-      'Code, name, or instructor',
+      'Code, name, instructor',
     );
     expect(
       screen.getByRole('button', { name: 'Clear filters' }),
