@@ -1,8 +1,9 @@
 // Search the current result for conflict free timetables. Only the subjects the
 // student ticked are candidates, the curriculum subjects by default, and the
-// entries already in the active plan are kept as fixed constraints. The hard rules are exactly the add rules: a section group
-// joins only when checkPlacement accepts it, so time, exam, pair, and duplicate
-// subject rules match the add path, and a full or closed section is never chosen.
+// entries already in the active plan are kept as fixed constraints. The hard rules
+// are exactly the add rules: a section group joins only when checkPlacement accepts
+// it, so time, exam, pair, and duplicate subject rules match the add path, and a
+// full or closed section is never chosen.
 //
 // The search is exhaustive depth first over the courses with the fewest options
 // first, each course taking one of its section groups or being skipped. Every rule

@@ -1,4 +1,4 @@
-// Why a curriculum course is left out of a suggested timetable. The reason is
+// Why a ticked course is left out of a suggested timetable. The reason is
 // worked out from the same checkPlacement results the search used, so it names
 // what the student would meet trying to add the course by hand.
 //

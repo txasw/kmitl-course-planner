@@ -1,9 +1,10 @@
 // Runs the plan suggestion search for the suggestion dialog. The first search runs as
 // soon as the dialog opens; a later change of the ticked subjects, the objective, the
-// preference, the result, or the plan waits a short debounce so a quick run of chip presses searches once. The
-// last finished result stays on screen while a new one is pending, and the hook reports
-// busy only once the wait has outlasted a frame, so a search that settles at once never
-// flashes a loading state. A quick run of ticks searches once the same way. The search itself is synchronous and bounded by its node cap.
+// preference, the result, or the plan waits a short debounce so a quick run of ticks
+// or chip presses searches once. The last finished result stays on screen while a new
+// one is pending, and the hook reports busy only once the wait has outlasted a frame,
+// so a search that settles at once never flashes a loading state. The search itself
+// is synchronous and bounded by its node cap.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PlanEntry } from '@/lib/domain/plan';

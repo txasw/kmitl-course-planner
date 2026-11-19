@@ -1,5 +1,5 @@
 // The order plan suggestions are ranked in. The objective comes first: coverAll
-// prefers more curriculum courses and then more credits, maxCredits the reverse.
+// prefers more ticked courses and then more credits, maxCredits the reverse.
 // A tie on the objective goes to the lower preference penalty, and a tie on both
 // to the chosen set that sorts first by subject id and then by section code, so
 // the ranking is a total order and the same input always ranks the same way.
@@ -10,7 +10,7 @@ import type { SuggestChoice } from './suggestCandidates';
 /** The objectives in the order the suggestion dialog offers them. */
 export const SUGGEST_OBJECTIVES = ['coverAll', 'maxCredits'] as const;
 
-/** coverAll ranks by curriculum courses, then credits; maxCredits the reverse. */
+/** coverAll ranks by ticked courses, then credits; maxCredits the reverse. */
 export type SuggestObjective = (typeof SUGGEST_OBJECTIVES)[number];
 
 /** The objective as a pair compared left to right, higher is better. */
