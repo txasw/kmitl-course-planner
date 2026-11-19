@@ -123,7 +123,8 @@ fields would let main hold a page whose stated version no build reproduces, and 
 site inside the release pull request would publish the version before the stores approve it.
 Workers Builds deploys on every merge to main, so copy for an unreleased version waits on its
 landing branch. `pnpm site:build` warns while minor or major changesets are pending, as a
-reminder; it does not fail, since pending changesets are the normal state between releases.
+reminder; it does not fail, since pending changesets are the normal state between releases. The
+amendment of 2026-11-20 replaces this order and the file.
 Any edit to the stylesheet, the script or an image needs `pnpm site:build` before it is
 committed, so the hashed references move with it; the site test fails otherwise.
 
@@ -574,4 +575,38 @@ from what is committed, so `main` never deploys a stale page; a Linux run of the
 matched the files committed from Windows byte for byte. The order in Consequences still
 holds and is now the only gate: merge the release, wait until it is live on both stores,
 set the version in `site-version.json`, rebuild the site, then merge that change. CONTRIBUTING.md lists the exact Workers
-Builds settings and the owner steps after the first deploy.
+Builds settings and the owner steps after the first deploy. The amendment of 2026-11-20 replaces
+that gate.
+
+## Amendment, 2026-11-20: the page follows each release
+
+The owner wants the landing page current at every release, without a separate bump. The manual
+gate above failed in practice: 1.5.0 was released and live on both stores while the page still
+stated 1.4.0 and still said the extension runs on computers only.
+
+Decision. The pages state the version in `package.json`, and `scripts/landing/site-version.json`
+is removed. On `main`, `package.json` changes only in the Changesets release pull request, so
+between releases it already holds the latest released version. The release workflow now runs
+`pnpm release:version`, which is `changeset version` followed by `pnpm site:build`, as the
+action's version script. The action commits every changed file, so the release pull request
+carries the regenerated `site/` that states the new version, and merging it deploys that page
+through Workers Builds on the same push to `main` that tags the release. The site test requires the
+committed page to state exactly the `package.json` version, so the freshness check in continuous
+integration still fails when a version bump lands without a rebuilt site. `pnpm site:build` no
+longer warns about pending changesets or a version mismatch: neither describes a state that needs
+attention now, and the pending warning printed on every run between releases.
+
+Why the earlier decoupling is dropped. It existed so the page never named a version before both
+stores carried it. Chrome Web Store and Firefox Add-ons review usually takes hours, and the owner
+accepts that the page may name the new version for those hours before a store serves it. The
+store buttons link to the listings, which always install what the store serves, so a reader in
+that window installs the previous version and receives the new one through the browser's own
+update check. That small lag costs less than a page that falls a whole release behind.
+
+Alternatives rejected. A post release workflow that rebuilds and commits `site/` after the tag
+would land the page as a second unreviewed commit on `main`, and a push made with the workflow
+token starts no further workflow. Keeping `site-version.json` and having the version script
+write it would keep a file whose only value is now a copy of `package.json`.
+
+Copy that describes a feature of an unreleased version still waits on its landing branch, since
+every merge to `main` that changes `site/` deploys at once.
