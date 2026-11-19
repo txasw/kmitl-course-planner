@@ -206,6 +206,18 @@ export function PlannerPanel() {
       locateSection(scope, clash.teachTableId, reducedMotion);
     }
   }, [sections, conflictIds, examConflictIds, reducedMotion, setPlanView]);
+  // The updates dialog's show on timetable action locates the block itself once it closes;
+  // the day view first turns to the day of the section's earliest meeting, or the block
+  // would not render to be found.
+  const handleShowUpdate = useCallback(
+    (teachTableId: string) => {
+      const target = firstClash(sections, new Set([teachTableId]));
+      if (target?.day != null) {
+        setTimetableDay(target.day);
+      }
+    },
+    [sections],
+  );
   const [detail, setDetail] = useState<{
     teachTableId: string;
     anchor: HTMLElement;
@@ -439,7 +451,7 @@ export function PlannerPanel() {
         />
       ) : null}
       {viewMode === 'edit' && updatesOpen ? (
-        <UpdatesDialog onClose={closeUpdates} />
+        <UpdatesDialog onClose={closeUpdates} onShow={handleShowUpdate} />
       ) : null}
       {viewMode === 'edit' && contextMenu !== null ? (
         <BlockContextMenu
