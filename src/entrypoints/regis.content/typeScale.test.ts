@@ -16,6 +16,9 @@ const TEXT_SCALE = {
   sm: [14, 22],
   base: [16, 24],
   lg: [18, 28],
+  // The display sizes of the search page coach mark callout alone (ADR-0072).
+  xl: [24, 36],
+  '2xl': [28, 40],
 } as const;
 
 function ruleBody(selector: string): string {

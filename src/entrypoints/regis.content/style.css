@@ -30,6 +30,12 @@
   --text-base--line-height: 24px;
   --text-lg: 18px;
   --text-lg--line-height: 28px;
+  /* The two display sizes are for the selector coach mark callout alone (ADR-0072),
+     the one line on the page that must be read from across the room. */
+  --text-xl: 24px;
+  --text-xl--line-height: 36px;
+  --text-2xl: 28px;
+  --text-2xl--line-height: 40px;
 
   /* Two weights only, regular and semibold, so a third weight cannot reach the
      screen through a utility. */
@@ -225,6 +231,20 @@
   --kcp-delay-ring: 200ms;
   --kcp-duration-ring: 900ms;
   --kcp-duration-ring-static: 2000ms;
+
+  /* The selector coach mark of ADR-0072. Its scrim is the ink at this strength, so white
+     text on it clears 4.5:1 over a white host page, and the contrast suite flattens it to
+     prove that. Its entrance fades the scrim and the copy in, draws the pointer stroke
+     after a short delay, and pops the burst strokes last, then holds still. */
+  --kcp-scrim-coach-strength: 78%;
+  --kcp-scrim-coach: color-mix(
+    in srgb,
+    var(--kcp-ink) var(--kcp-scrim-coach-strength),
+    transparent
+  );
+  --kcp-duration-draw: 400ms;
+  --kcp-delay-coach-draw: 150ms;
+  --kcp-delay-coach-burst: 450ms;
 
   /* The standard keyboard focus indicator from ADR-0034, read by FOCUS_RING and
      FOCUS_OUTLINE in lib/ui/focus.ts. */
@@ -554,6 +574,91 @@
     inset: -4px;
     animation: kcp-launcher-ring-static var(--kcp-duration-ring-static) steps(1)
       forwards;
+  }
+}
+
+/* The selector coach mark of ADR-0072. The spotlight is a rounded hole 8 px around the
+   launcher's box, and the scrim is that hole's spread, so the dim covers the viewport
+   and the launcher stays lit without measuring where it sits. The spread is the scrim,
+   not an elevation, so the one shadow level of section 8.2 still holds. It sits below
+   the coach mark's own copy and controls, and the launcher stacks above the whole
+   layer by mount order. The underline is revealed from the left, the pointer stroke is
+   drawn along its length, which pathLength 1 normalises, and the burst strokes pop out
+   from the launcher's corner. Reduced motion shows every part in place at once. */
+.kcp-coach-spot::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  z-index: -1;
+  border-radius: 9999px;
+  box-shadow:
+    0 0 0 3px var(--kcp-primary-soft),
+    0 0 0 200vmax var(--kcp-scrim-coach);
+  pointer-events: none;
+  animation: kcp-fade-in var(--kcp-duration-slow) ease-out both;
+}
+
+.kcp-coach-enter {
+  animation: kcp-fade-in var(--kcp-duration-slow) ease-out both;
+}
+
+@keyframes kcp-coach-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0);
+  }
+}
+
+.kcp-coach-reveal {
+  animation: kcp-coach-reveal var(--kcp-duration-draw) ease-out
+    var(--kcp-delay-coach-draw) both;
+}
+
+@keyframes kcp-coach-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.kcp-coach-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: kcp-coach-draw var(--kcp-duration-draw) ease-in-out
+    var(--kcp-delay-coach-draw) both;
+}
+
+@keyframes kcp-coach-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.kcp-coach-pop {
+  transform-origin: left bottom;
+  animation: kcp-coach-pop var(--kcp-duration-base) ease-out
+    var(--kcp-delay-coach-burst) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kcp-coach-spot::before,
+  .kcp-coach-enter,
+  .kcp-coach-reveal,
+  .kcp-coach-draw,
+  .kcp-coach-pop {
+    animation: none;
   }
 }
 
