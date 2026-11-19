@@ -167,9 +167,9 @@ function storeBadges(lazy) {
   ).join('');
 }
 
-// The touch note shows only on a coarse pointer, once in each row: a phone visitor reads
-// beside the badges that only Firefox for Android installs on a phone. The web version note is read
-// out by the disabled pill, while its badge already says it is coming.
+// The touch note shows only on a coarse pointer, once in each row: beside the badges it tells
+// a phone visitor that only Firefox for Android installs the extension there. The web version
+// note is read out by the disabled pill, while its badge already says it is coming.
 function ctaRow(copy, size) {
   const hero = size === 'hero';
   return `<div class="cta-row cta-row--${size}">
