@@ -40,10 +40,13 @@ jobs:
       # defaults to the workflow token; the action rejects a different GITHUB_TOKEN
       # in the environment. git-tag writes the tags it creates to the file named by
       # CHANGESETS_OUTPUT, which the action reads to set the published output.
+      # release:version runs changeset version and then rebuilds the landing site, and
+      # the action commits every changed file, so the release pull request carries the
+      # page that states the new version and merging it deploys that page (ADR-0066).
       - id: changesets
         uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         with:
-          version-script: pnpm changeset version
+          version-script: pnpm release:version
           publish-script: pnpm changeset git-tag
           commit-message: 'chore: release version packages'
           pr-title: 'chore: release version packages'
