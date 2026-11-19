@@ -591,3 +591,61 @@ The search page coach mark of ADR-0072 adds one polite region, and
   focus moves into it, so the region does not repeat it.
 - It never coexists with the entry toast region speaking, since on the search page the coach mark
   takes the toast's place, and it never speaks while the panel is open.
+
+## Amendment, 2026-11-20: the query chip and the icon filter row
+
+Owner feedback on the redesign named three problems at the top of the catalog. The edit
+search control was text heavy and did not say what pressing it would do. The head took about
+475 px of a 390 by 844 phone before the first card, and the course count showed in four places:
+the sheet header, the bar's status slot, the catalog summary line, and the group heading. A Thai
+reader also wanted the English subject name, which the card showed only once it was opened.
+Testing on phones found a blocked notice in the feedback strip stacked over the green toast of
+the add before it, two answers to one press. The hard rule of the redesign holds throughout: no
+layout overlaps or clips text, and every label shows in full.
+
+- The summary bar becomes a query chip. The whole chip is the one control that opens and folds
+  the form. It shows the query name in full, wrapping rather than clamped, over a line with the
+  term, the scope, and the busy text while the query runs, and a pencil tile says it can be
+  edited; open, the tile turns to a chevron. Its accessible name is the edit action followed by
+  the visible summary, so a voice command that speaks what the chip shows reaches it, and it
+  keeps aria-expanded and aria-controls. The chip row stays the focusable region that takes
+  focus when a search is accepted or retried.
+- The data time leaves the bar text. It names the refresh beside the chip in a tooltip and
+  describes it for assistive technology. Past the cache lifetime it also shows as a warn line
+  under the chip with a warning sign, since that is when the refresh is worth pressing. The
+  rerun after a reload keeps its visible text and stays the same element as the refresh.
+- The course count shows once in the catalog column, in the summary line under the filters,
+  which still reports the sections and the merged duplicates that section 6.3 of the brief
+  requires. Each figure leads with an icon and keeps its unit word, since a bare number does
+  not say what it counts. The chip and the sheet header no longer repeat it. The counts on the
+  bottom nav, the header sheet toggle, and the edge rail stay, because they label controls that
+  bring the catalog into view from outside it.
+- The filter row is one line: the text field, then icon buttons for the filter popover, the
+  sort, and expand or collapse all. The facets themselves, day, credit, hide full, hide
+  conflicting, hide unscheduled, and open to my curriculum, stay in the popover. Each icon
+  control is named for assistive technology and shows its name in a tooltip on hover and on
+  keyboard focus. The filter icon is followed by a badge counting the facets in use, set beside
+  the icon rather than over it, and its name reads the count. The sort is the same select only
+  combobox drawn as an icon, named by its label and the chosen order. The text field drops its
+  visible label; the search glyph and the hint name it for the eye and the label names it for
+  assistive technology. Active facets still show as removable chips under the row.
+- A course card shows the other language's name as a secondary line under the primary name,
+  in muted ink, wrapping and never clamped, on a collapsed card as well as an open one, as
+  section 6.7 of the brief asks. It describes the card toggle after the primary name and the
+  credits name it. Because the title no longer clamps, the open body no longer repeats the name.
+- One outcome shows at a time. A strip notice, a blocked reason, a cross term switch, or a
+  hint, dismisses the ordinary toast on screen, and a toast that arrives clears the strip
+  notice. The stores are linked by subscription so the later write wins even inside one
+  handler. The undo toast is left alone, since it holds the only way back from a removal, and
+  the screen reader only add line is not a visible notice. No live region is added or removed,
+  so the inventory above is unchanged.
+
+Alternatives considered: the one line query name with an ellipsis that the redesign mockup
+drew was rejected under the hard rule, and the chip wraps instead. A badge laid over the
+filter icon, as the mockup drew, was rejected because it covered the glyph it counts. Dropping
+the merged duplicates figure along with the repeated counts, as owner item 12 suggested, was
+rejected because the brief keeps it as the visible value of the dedupe; it now shows once. A
+row of separate icon toggles for each facet was rejected because six toggles do not fit a 360
+px row beside the field, and the popover already groups them with their labels. Keeping the
+English name inside the opened body only was rejected because the request was to read it while
+scanning the list.
