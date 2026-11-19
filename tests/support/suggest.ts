@@ -20,8 +20,7 @@ export const SUGGEST_QUERY: SourceQuery = {
 export const SUGGEST_NOW = '2026-11-06T00:00:00.000Z';
 
 const GROUP_2 = {
-  groupNameTh:
-    'กลุ่ม 2 (วิชาบังคับคณะฯ / วิชาบังคับหลักสูตร / วิชาเลือกหลักสูตร)',
+  groupNameTh: 'กลุ่ม 2 (วิชาบังคับคณะฯ / วิชาบังคับหลักสูตร / วิชาเลือกหลักสูตร)',
   groupNameEn:
     'Group 2 (Required Subject / Compulsory Courses / Elective Courses)',
 };

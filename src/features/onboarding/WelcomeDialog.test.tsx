@@ -77,9 +77,7 @@ describe('WelcomeDialog', () => {
       expect(dialog).toHaveAccessibleName(TITLE);
       expect(dialog).toHaveAttribute('aria-modal', 'true');
       expect(dialog).toHaveClass('max-w-md');
-      expect(dialog).toHaveAccessibleDescription(
-        /วางแผนตารางเรียนก่อนลงทะเบียน/,
-      );
+      expect(dialog).toHaveAccessibleDescription(/วางแผนตารางเรียนก่อนลงทะเบียน/);
     },
   );
 

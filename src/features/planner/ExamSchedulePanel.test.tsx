@@ -120,9 +120,7 @@ describe('ExamSchedulePanel', () => {
     renderPanel([entry('d', '10000004', {})]);
     expect(screen.getByText('ยังไม่มีวันสอบในตารางนี้')).toBeVisible();
     expect(screen.queryByRole('region', { name: 'สอบกลางภาค' })).toBeNull();
-    expect(
-      screen.getByRole('region', { name: 'วิชาที่จัดสอบเอง' }),
-    ).toBeVisible();
+    expect(screen.getByRole('region', { name: 'วิชาที่จัดสอบเอง' })).toBeVisible();
   });
 
   it('tags a row whose review holds an exam change', () => {

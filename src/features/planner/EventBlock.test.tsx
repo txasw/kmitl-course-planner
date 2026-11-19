@@ -179,9 +179,7 @@ describe('EventBlock', () => {
     );
     const block = screen.getByLabelText(/90592033/);
     // The name is pinned so it never disappears while a lower priority field remains.
-    expect(within(block).getByText('วิชาทดสอบ').className).toContain(
-      'shrink-0',
-    );
+    expect(within(block).getByText('วิชาทดสอบ').className).toContain('shrink-0');
     // The time now sits in the foot beside the id and can be squeezed away; it is not pinned.
     const foot = within(block).getByText('09:00-12:00').closest('.mt-1');
     expect(foot).not.toBeNull();

@@ -94,9 +94,7 @@ describe('SectionDetailList', () => {
       />,
     );
     expect(
-      screen.getByText(
-        'ทฤษฎี 2 ชม. ปฏิบัติ 2 ชม. ศึกษาด้วยตนเอง 5 ชม. ต่อสัปดาห์',
-      ),
+      screen.getByText('ทฤษฎี 2 ชม. ปฏิบัติ 2 ชม. ศึกษาด้วยตนเอง 5 ชม. ต่อสัปดาห์'),
     ).toBeVisible();
     expect(rowValues('ประเภทและหน่วยกิต')).toEqual([
       'ปฏิบัติ 3(2-2-5)ทฤษฎี 2 ชม. ปฏิบัติ 2 ชม. ศึกษาด้วยตนเอง 5 ชม. ต่อสัปดาห์',
@@ -270,10 +268,7 @@ describe('SectionDetailList', () => {
       />,
     );
     expect(rowValues('รายละเอียดสอบ')).toEqual(['Take home exam']);
-    expect(rowValues('เงื่อนไข')).toEqual([
-      'เฉพาะชั้นปี 1',
-      'เฉพาะหลักสูตรนานาชาติ',
-    ]);
+    expect(rowValues('เงื่อนไข')).toEqual(['เฉพาะชั้นปี 1', 'เฉพาะหลักสูตรนานาชาติ']);
     expect(rowValues('หมายเหตุ')).toEqual(['เปิดสอนร่วมกับคณะอื่น']);
     expect(rowValues('ตรวจสอบล่าสุด')).toEqual(['6 พ.ย. 2569 08:05']);
 
@@ -287,12 +282,7 @@ describe('SectionDetailList', () => {
         lastVerifiedAt={new Date(2026, 10, 6, 8, 5).toISOString()}
       />,
     );
-    for (const label of [
-      'รายละเอียดสอบ',
-      'เงื่อนไข',
-      'หมายเหตุ',
-      'ตรวจสอบล่าสุด',
-    ]) {
+    for (const label of ['รายละเอียดสอบ', 'เงื่อนไข', 'หมายเหตุ', 'ตรวจสอบล่าสุด']) {
       expect(screen.queryByText(label)).not.toBeInTheDocument();
     }
   });

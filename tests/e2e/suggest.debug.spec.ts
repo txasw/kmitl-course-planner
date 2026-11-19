@@ -65,9 +65,7 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
     dialog.getByRole('heading', { name: 'ตัวเลือกที่ 2' }),
   ).toBeFocused();
   await expect(apply).toHaveCount(1);
-  await dialog
-    .getByRole('button', { name: 'กลับไปที่ตัวเลือกทั้งหมด' })
-    .click();
+  await dialog.getByRole('button', { name: 'กลับไปที่ตัวเลือกทั้งหมด' }).click();
   await expect(apply).toHaveCount(3);
   await expect(expand.nth(1)).toBeFocused();
 

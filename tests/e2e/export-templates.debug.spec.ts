@@ -48,10 +48,7 @@ test('exports each template at its exact pixel dimensions', async ({
   // Reduced motion keeps the capture deterministic: no settle or pulse mid frame.
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await categorySearch(page);
-  await page
-    .getByRole('button', { name: /^เพิ่ม/ })
-    .first()
-    .click();
+  await page.getByRole('button', { name: /^เพิ่ม/ }).first().click();
   await page.getByRole('button', { name: 'ดูตัวอย่าง' }).click();
 
   // Every template lands its exact output pixels through the same capture seam, independent
@@ -80,10 +77,7 @@ test('exports exact template pixels whatever the display scale', async ({
   const page = await openPlanner(context);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await categorySearch(page);
-  await page
-    .getByRole('button', { name: /^เพิ่ม/ })
-    .first()
-    .click();
+  await page.getByRole('button', { name: /^เพิ่ม/ }).first().click();
   await page.getByRole('button', { name: 'ดูตัวอย่าง' }).click();
   await page.getByRole('radio', { name: /แชร์ 16:9/ }).click();
 

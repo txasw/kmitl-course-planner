@@ -17,9 +17,7 @@ describe('RemarkLine', () => {
   it('shows the first line inline under the remark label', () => {
     render(<RemarkLine remark="รับเฉพาะนักศึกษาเก็บตกเท่านั้น" t={th} />);
     expect(screen.getByText('หมายเหตุ')).toBeInTheDocument();
-    expect(
-      screen.getByText('รับเฉพาะนักศึกษาเก็บตกเท่านั้น'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('รับเฉพาะนักศึกษาเก็บตกเท่านั้น')).toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 

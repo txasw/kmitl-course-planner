@@ -42,9 +42,7 @@ describe('Header', () => {
     expect(
       screen.getByRole('button', { name: 'เลือกตาราง' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('group', { name: 'เลือกภาษา' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'เลือกภาษา' })).toBeInTheDocument();
   });
 
   it('keeps the title labelling the dialog while it is visually hidden below lg', () => {
@@ -150,9 +148,7 @@ describe('Header', () => {
     expect(
       screen.queryByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('group', { name: 'เลือกภาษา' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'เลือกภาษา' })).toBeInTheDocument();
   });
 
   it('toggles the catalog sheet below the lg tier', () => {

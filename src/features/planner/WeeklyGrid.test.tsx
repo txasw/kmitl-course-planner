@@ -117,8 +117,7 @@ describe('WeeklyGrid', () => {
       />,
     );
     expect(
-      screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }).style
-        .fontSize,
+      screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }).style.fontSize,
     ).toBe('14px');
   });
 
@@ -410,9 +409,7 @@ describe('WeeklyGrid', () => {
         dayAccent
       />,
     );
-    expect(screen.getByLabelText('วันจันทร์').style.backgroundColor).not.toBe(
-      '',
-    );
+    expect(screen.getByLabelText('วันจันทร์').style.backgroundColor).not.toBe('');
   });
 
   it('shows an hour label at the window start and its last hour', () => {

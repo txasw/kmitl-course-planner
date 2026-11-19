@@ -110,9 +110,7 @@ describe('describeQuery by category', () => {
       faculty: 'all',
       subjectOwner: '6',
     });
-    expect(describeQuery(query, ready, 'th', th).qualifiers).toEqual([
-      'ทุกคณะ',
-    ]);
+    expect(describeQuery(query, ready, 'th', th).qualifiers).toEqual(['ทุกคณะ']);
     expect(describeQuery(query, ready, 'en', en).qualifiers).toEqual([
       'All faculties',
     ]);
@@ -145,9 +143,7 @@ describe('describeQuery by class', () => {
   it('reads all class years for the class year 0 sentinel', () => {
     const query = classQuery({ classYear: 'all' });
     expect(query).toMatchObject({ selected_class_year: '0' });
-    expect(describeQuery(query, ready, 'th', th).qualifiers).toEqual([
-      'ทุกชั้นปี',
-    ]);
+    expect(describeQuery(query, ready, 'th', th).qualifiers).toEqual(['ทุกชั้นปี']);
     expect(describeQuery(query, ready, 'en', en).qualifiers).toEqual([
       'All years',
     ]);

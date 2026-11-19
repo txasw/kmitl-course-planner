@@ -468,9 +468,7 @@ describe('SectionRow demand chip', () => {
     const chip = screen.getByText(/ล่วงหน้า 171 คิว 83$/);
     expect(chip).toHaveClass('bg-warn-soft', 'text-warn');
     // A screen reader hears the fact the counts stand for ahead of them.
-    expect(chip).toHaveTextContent(
-      'ลงทะเบียนล่วงหน้าเกินจำนวนรับ ล่วงหน้า 171 คิว 83',
-    );
+    expect(chip).toHaveTextContent('ลงทะเบียนล่วงหน้าเกินจำนวนรับ ล่วงหน้า 171 คิว 83');
     // The chip sits on the seat line rather than adding a line of its own.
     expect(chip.parentElement).toBe(
       screen.getByText('เต็ม เพิ่มไม่ได้').closest('p')?.parentElement
@@ -746,9 +744,10 @@ describe('SectionRow conditions and remark', () => {
     });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(toggle);
-    expect(
-      screen.getByRole('button', { name: 'ซ่อนเงื่อนไข' }),
-    ).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('button', { name: 'ซ่อนเงื่อนไข' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
     expect(
       screen.getByText(
         'เฉพาะสาขาเทคโนโลยีวัสดุชาญฉลาดและหุ่นยนต์และปัญญาประดิษฐ์ <สองปริญญา><หลักสูตรนานาชาติ> (นน.)',
@@ -790,12 +789,8 @@ describe('SectionRow conditions and remark', () => {
       />,
     );
     expect(screen.getByText('หมายเหตุ')).toBeInTheDocument();
-    expect(
-      screen.getByText('รับเฉพาะนักศึกษาเก็บตกเท่านั้น'),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText('ติดต่อภาควิชาก่อนลงทะเบียน'),
-    ).not.toBeInTheDocument();
+    expect(screen.getByText('รับเฉพาะนักศึกษาเก็บตกเท่านั้น')).toBeInTheDocument();
+    expect(screen.queryByText('ติดต่อภาควิชาก่อนลงทะเบียน')).not.toBeInTheDocument();
     const toggle = screen.getByRole('button', { name: 'ดูหมายเหตุทั้งหมด' });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(toggle);

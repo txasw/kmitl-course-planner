@@ -298,14 +298,14 @@ describe('PlanSwitcher', () => {
     render(<PlanSwitcher />);
     openMenu();
     // Create is a prominent labelled button at the top of the menu.
-    expect(
-      screen.getByRole('button', { name: 'สร้างตาราง' }),
-    ).toHaveTextContent('สร้างตาราง');
+    expect(screen.getByRole('button', { name: 'สร้างตาราง' })).toHaveTextContent(
+      'สร้างตาราง',
+    );
     // The per-row actions keep their accessible name from aria-label but drop the visible
     // text, so an icon only button renders no label text.
-    expect(
-      screen.getByRole('button', { name: 'เปลี่ยนชื่อ A' }).textContent,
-    ).toBe('');
+    expect(screen.getByRole('button', { name: 'เปลี่ยนชื่อ A' }).textContent).toBe(
+      '',
+    );
     // Import and export keep their visible text because file actions read better with words.
     expect(
       screen.getByRole('button', { name: 'นำเข้า JSON' }),
@@ -333,9 +333,7 @@ describe('PlanSwitcher', () => {
     fireEvent.click(
       screen.getByRole('button', { name: 'คัดลอกรายการลงทะเบียน' }),
     );
-    expect(writeText).toHaveBeenCalledWith(
-      '90000001 วิชา (กลุ่มเรียน ทฤษฎี 901)',
-    );
+    expect(writeText).toHaveBeenCalledWith('90000001 วิชา (กลุ่มเรียน ทฤษฎี 901)');
     expect(
       screen.queryByRole('button', { name: 'สร้างตาราง' }),
     ).not.toBeInTheDocument();
@@ -465,9 +463,7 @@ describe('PlanSwitcher', () => {
     fireEvent.click(screen.getByRole('button', { name: 'ยกเลิก' }));
     fireEvent.click(screen.getByRole('button', { name: 'ลบ C' }));
     expect(
-      screen.getByText(
-        'ลบตาราง "C" ซึ่งยังไม่มีกลุ่มเรียน การลบนี้ย้อนกลับไม่ได้',
-      ),
+      screen.getByText('ลบตาราง "C" ซึ่งยังไม่มีกลุ่มเรียน การลบนี้ย้อนกลับไม่ได้'),
     ).toBeInTheDocument();
   });
 
@@ -478,9 +474,7 @@ describe('PlanSwitcher', () => {
     selectFile(fileInput(container), { ...validBlob, semester: '9' });
 
     await waitFor(() => {
-      expect(
-        screen.getByText('นำเข้าไม่สำเร็จ ข้อมูลไม่ถูกต้อง'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('นำเข้าไม่สำเร็จ ข้อมูลไม่ถูกต้อง')).toBeInTheDocument();
     });
     // The field path is kept and the reason is localized, not the library's English.
     expect(
@@ -507,9 +501,7 @@ describe('PlanSwitcher', () => {
     openMenu();
     selectFile(fileInput(container), { id: 'x', name: 'x' });
     await waitFor(() => {
-      expect(
-        screen.getByText('นำเข้าไม่สำเร็จ ข้อมูลไม่ถูกต้อง'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('นำเข้าไม่สำเร็จ ข้อมูลไม่ถูกต้อง')).toBeInTheDocument();
     });
     fireEvent.click(screen.getByRole('button', { name: 'ย้อนกลับ' }));
     expect(

@@ -210,18 +210,14 @@ describe('TemplateGallery', () => {
   it('pages with the arrow buttons and disables them at the clamped ends', () => {
     renderGallery();
     // At the first template there is no previous, matching the clamp boundary.
-    expect(
-      screen.getByRole('button', { name: 'แม่แบบก่อนหน้า' }),
-    ).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'แม่แบบก่อนหน้า' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'แม่แบบถัดไป' })).toBeEnabled();
     fireEvent.click(screen.getByRole('button', { name: 'แม่แบบถัดไป' }));
     expect(uiStore.getState().selectedTemplate).toBe(EXPORT_TEMPLATES[1]?.slug);
     // At the last template the next arrow disables and the previous enables.
     fireEvent.keyDown(radioAt(1), { key: 'End' });
     expect(screen.getByRole('button', { name: 'แม่แบบถัดไป' })).toBeDisabled();
-    expect(
-      screen.getByRole('button', { name: 'แม่แบบก่อนหน้า' }),
-    ).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'แม่แบบก่อนหน้า' })).toBeEnabled();
   });
 
   it('scales the selected poster from the measured stage and follows a resize', () => {

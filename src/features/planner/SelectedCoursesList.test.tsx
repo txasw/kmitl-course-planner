@@ -111,9 +111,7 @@ describe('SelectedCoursesList', () => {
   it('shows the section details and the enrollment conditions', () => {
     render(
       <Harness
-        initial={[
-          entry('s1', '90000001', '1', { rulesTh: 'เฉพาะชั้นปีที่ 1' }),
-        ]}
+        initial={[entry('s1', '90000001', '1', { rulesTh: 'เฉพาะชั้นปีที่ 1' })]}
       />,
     );
     const [card] = cards();

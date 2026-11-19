@@ -433,10 +433,7 @@ test('a tapped block opens its details as a sheet with the remove action', async
   await categorySearch(page, await openCatalog(page));
   // Course cards start collapsed, so the first card opens before its add button exists.
   await expandCourse(page, '90592008');
-  await page
-    .getByRole('button', { name: /^เพิ่ม/ })
-    .first()
-    .tap();
+  await page.getByRole('button', { name: /^เพิ่ม/ }).first().tap();
   await timetableControl(page).tap();
 
   const block = page.locator(GRID_BLOCK).first();
@@ -470,17 +467,12 @@ test('an add made over the covered timetable is confirmed once by a toast that l
   ).toHaveCount(1);
 
   await expandCourse(page, '90592008');
-  await page
-    .getByRole('button', { name: /^เพิ่ม/ })
-    .first()
-    .tap();
+  await page.getByRole('button', { name: /^เพิ่ม/ }).first().tap();
 
   // The sheet or the catalog pane covers the timetable, so the add is confirmed by the
   // toast alone and the catalog stays in view for the next pick.
   const column = page.locator('#kcp-catalog-column');
-  await expect(
-    page.getByText(/^เพิ่ม 90592008 กลุ่มเรียน \d+ แล้ว$/),
-  ).toBeVisible();
+  await expect(page.getByText(/^เพิ่ม 90592008 กลุ่มเรียน \d+ แล้ว$/)).toBeVisible();
   await expect(
     page.locator('[aria-live]').filter({ hasText: '90592008' }),
   ).toHaveCount(1);
@@ -1075,10 +1067,7 @@ test.describe('the phone layout', () => {
     ).toHaveText(/3/);
 
     await expandCourse(page, '90592008');
-    await page
-      .getByRole('button', { name: /^เพิ่ม/ })
-      .first()
-      .tap();
+    await page.getByRole('button', { name: /^เพิ่ม/ }).first().tap();
     await expect(
       nav.getByRole('button', { name: 'ที่เลือก 1', exact: true }),
     ).toBeVisible();
@@ -1135,10 +1124,7 @@ test.describe('the phone layout', () => {
     const page = await openPlanner(context);
     await categorySearch(page, page.locator('#kcp-catalog-column'));
     await expandCourse(page, '90592008');
-    await page
-      .getByRole('button', { name: /^เพิ่ม/ })
-      .first()
-      .tap();
+    await page.getByRole('button', { name: /^เพิ่ม/ }).first().tap();
     await timetableControl(page).tap();
 
     // The one class falls on Friday, so the day view opens there, its chip marked.
@@ -1158,9 +1144,10 @@ test.describe('the phone layout', () => {
     if (box === null) throw new Error('expected a laid out block');
     const from: Point = { x: box.x + 40, y: box.y + box.height / 2 };
     await swipe(page, from, { x: from.x + 200, y: from.y }, 10);
-    await expect(
-      days.getByRole('radio', { name: 'วันพฤหัสบดี' }),
-    ).toHaveAttribute('aria-checked', 'true');
+    await expect(days.getByRole('radio', { name: 'วันพฤหัสบดี' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
     // The timetable claims the sideways finger, so the browser never reads it as a back
     // navigation away from the host page.
     expect(page.url()).toContain('regis.reg.kmitl.ac.th');
@@ -1192,10 +1179,7 @@ test.describe('the phone layout', () => {
     await column
       .getByRole('button', { name: 'เปรียบเทียบกลุ่มเรียน', exact: true })
       .tap();
-    const sheet = await expectBottomSheet(
-      page,
-      'เปรียบเทียบกลุ่มเรียน 90641007',
-    );
+    const sheet = await expectBottomSheet(page, 'เปรียบเทียบกลุ่มเรียน 90641007');
     const scroller = sheet.getByRole('region');
     const sections = sheet.getByRole('columnheader');
     const field = sheet.getByRole('rowheader', { name: 'เวลาและสถานที่' });

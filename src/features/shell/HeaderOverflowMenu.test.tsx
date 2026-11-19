@@ -48,9 +48,7 @@ describe('HeaderOverflowMenu', () => {
     const menu = screen.getByRole('menu', { name: MORE });
     expect(trigger()).toHaveAttribute('aria-expanded', 'true');
     expect(trigger()).toHaveAttribute('aria-controls', menu.id);
-    expect(
-      screen.getByRole('group', { name: 'เลือกภาษา' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'เลือกภาษา' })).toBeInTheDocument();
     expect(item('ไทย')).toHaveFocus();
     expect(item('ไทย')).toHaveAttribute('aria-checked', 'true');
     expect(item('English')).toHaveAttribute('aria-checked', 'false');

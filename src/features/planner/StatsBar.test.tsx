@@ -65,9 +65,7 @@ afterEach(cleanup);
 describe('StatsBar', () => {
   it('is a group named for the plan summary', () => {
     renderBar([scheduled]);
-    expect(
-      screen.getByRole('group', { name: 'สรุปตาราง' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'สรุปตาราง' })).toBeInTheDocument();
   });
 
   it('leads with the credit total, unscheduled sections included, and counts subjects', () => {
@@ -115,9 +113,9 @@ describe('StatsBar', () => {
       'aria-hidden',
       'true',
     );
-    expect(
-      screen.getByText('วันว่าง วันอังคาร วันพุธ วันพฤหัสบดี วันศุกร์'),
-    ).toHaveClass('sr-only');
+    expect(screen.getByText('วันว่าง วันอังคาร วันพุธ วันพฤหัสบดี วันศุกร์')).toHaveClass(
+      'sr-only',
+    );
   });
 
   it('leaves the free days out when every weekday has a class', () => {
@@ -177,17 +175,15 @@ describe('StatsBar', () => {
     it('notes a total below 9 credits in a regular semester in warn ink', () => {
       renderLoad([3, 3, 2], '1');
       expect(screen.getByText('8')).toHaveClass('text-warn');
-      expect(
-        screen.getByText('ต่ำกว่าเกณฑ์ขั้นต่ำปกติ 9 หน่วยกิต'),
-      ).toHaveClass('text-warn');
+      expect(screen.getByText('ต่ำกว่าเกณฑ์ขั้นต่ำปกติ 9 หน่วยกิต')).toHaveClass(
+        'text-warn',
+      );
     });
 
     it('notes a total above 22 credits in a regular semester', () => {
       renderLoad([3, 3, 3, 3, 3, 3, 3, 2], '2');
       expect(screen.getByText('23')).toHaveClass('text-warn');
-      expect(
-        screen.getByText('เกินเกณฑ์ขั้นสูงปกติ 22 หน่วยกิต'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('เกินเกณฑ์ขั้นสูงปกติ 22 หน่วยกิต')).toBeInTheDocument();
     });
 
     it('caps the special term at 9 credits with no minimum', () => {
@@ -195,16 +191,12 @@ describe('StatsBar', () => {
       expect(screen.queryByText(/เกณฑ์/)).not.toBeInTheDocument();
       cleanup();
       renderLoad([3, 3, 3, 1], '3');
-      expect(
-        screen.getByText('เกินเกณฑ์ขั้นสูงปกติ 9 หน่วยกิต'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('เกินเกณฑ์ขั้นสูงปกติ 9 หน่วยกิต')).toBeInTheDocument();
     });
 
     it('warns without adding a control, so nothing is blocked', () => {
       renderLoad([3], '1');
-      expect(
-        screen.getByText('ต่ำกว่าเกณฑ์ขั้นต่ำปกติ 9 หน่วยกิต'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('ต่ำกว่าเกณฑ์ขั้นต่ำปกติ 9 หน่วยกิต')).toBeInTheDocument();
       expect(screen.queryByRole('button')).not.toBeInTheDocument();
     });
 

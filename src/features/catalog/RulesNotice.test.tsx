@@ -124,9 +124,7 @@ describe('RulesNotice', () => {
         t={th}
       />,
     );
-    fireEvent.click(
-      screen.getByRole('button', { name: 'ดูเงื่อนไขทั้งหมด (3)' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'ดูเงื่อนไขทั้งหมด (3)' }));
     const toggle = screen.getByRole('button', { name: 'ซ่อนเงื่อนไข' });
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
     const list = screen.getByRole('list');
@@ -158,12 +156,7 @@ describe('RulesNotice', () => {
 
   it('falls back to the other language and marks it', () => {
     render(
-      <RulesNotice
-        rulesTh="เฉพาะนักศึกษาชั้นปี 1"
-        rulesEn=""
-        locale="en"
-        t={en}
-      />,
+      <RulesNotice rulesTh="เฉพาะนักศึกษาชั้นปี 1" rulesEn="" locale="en" t={en} />,
     );
     expect(screen.getByRole('list')).toHaveAttribute('lang', 'th');
     expect(screen.getByText('เฉพาะนักศึกษาชั้นปี 1')).toBeInTheDocument();
@@ -184,20 +177,16 @@ describe('RulesNotice', () => {
         t={th}
       />,
     );
-    const line = screen.getByText(
-      'เฉพาะสาขาวิศวกรรมคอมพิวเตอร์ (ไม่รับนักศึกษาอื่น)',
-    );
+    const line = screen.getByText('เฉพาะสาขาวิศวกรรมคอมพิวเตอร์ (ไม่รับนักศึกษาอื่น)');
     expect(observed.has(line)).toBe(true);
     reportClipped(line);
-    fireEvent.click(
-      screen.getByRole('button', { name: 'ดูเงื่อนไขทั้งหมด (1)' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'ดูเงื่อนไขทั้งหมด (1)' }));
     expect(
-      screen.getByText('เฉพาะสาขาวิศวกรรมคอมพิวเตอร์ (ไม่รับนักศึกษาอื่น)')
-        .className,
+      screen.getByText('เฉพาะสาขาวิศวกรรมคอมพิวเตอร์ (ไม่รับนักศึกษาอื่น)').className,
     ).toContain('break-words');
-    expect(
-      screen.getByRole('button', { name: 'ซ่อนเงื่อนไข' }),
-    ).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('button', { name: 'ซ่อนเงื่อนไข' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
   });
 });

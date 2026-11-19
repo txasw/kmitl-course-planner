@@ -29,9 +29,4 @@ export const BANNED: readonly string[] = [
 // are the near synonyms the host does not use; the section term is กลุ่มเรียน, not ตอน.
 // ปฏิบัติการ is listed in full so the canonical ปฏิบัติ, the practice section kind, is not
 // caught.
-export const BANNED_THAI = [
-  'ตอน',
-  'ตอนเรียน',
-  'ภาคเรียน',
-  'ปฏิบัติการ',
-] as const;
+export const BANNED_THAI = ['ตอน', 'ตอนเรียน', 'ภาคเรียน', 'ปฏิบัติการ'] as const;

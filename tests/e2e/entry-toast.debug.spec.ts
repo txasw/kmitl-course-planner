@@ -17,8 +17,7 @@ import {
 // quiet, and it appears on the next load instead. A page loaded on a host result route
 // offers that search, and the offer runs it in the catalog.
 
-const NO_PLAN =
-  'ใช้ Planner วางแผนตารางเรียนจากรายวิชาที่เปิดสอนในเว็บไซต์นี้ได้';
+const NO_PLAN = 'ใช้ Planner วางแผนตารางเรียนจากรายวิชาที่เปิดสอนในเว็บไซต์นี้ได้';
 const OPEN_PLANNER = 'เปิด Planner';
 const OPT_OUT = 'ไม่ต้องแสดงข้อความนี้อีก';
 const WELCOME = 'ขอบคุณที่ติดตั้ง KCP: Course Planner for KMITL';

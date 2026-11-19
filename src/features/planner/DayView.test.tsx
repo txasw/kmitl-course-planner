@@ -93,9 +93,7 @@ function chip(name: string): HTMLElement {
 describe('DayChips', () => {
   it('names the group and each chip by its full day name and state', () => {
     render(<ChipsHarness initial={3} />);
-    expect(
-      screen.getByRole('radiogroup', { name: 'วันที่แสดง' }),
-    ).toBeVisible();
+    expect(screen.getByRole('radiogroup', { name: 'วันที่แสดง' })).toBeVisible();
     expect(chip('วันจันทร์ มีรายการชนกัน')).toBeVisible();
     expect(chip('วันอังคาร')).toBeVisible();
     expect(chip('วันพุธ มีเรียน')).toBeVisible();
@@ -114,9 +112,10 @@ describe('DayChips', () => {
     expect(dot('วันจันทร์ มีรายการชนกัน')).toBe('conflict');
     expect(dot('วันพุธ มีเรียน')).toBe('class');
     expect(dot('วันอังคาร')).toBe('none');
-    expect(
-      chip('วันพุธ มีเรียน').querySelector('[data-day-dot]'),
-    ).toHaveAttribute('aria-hidden', 'true');
+    expect(chip('วันพุธ มีเรียน').querySelector('[data-day-dot]')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    );
   });
 
   it('checks the shown day and keeps only it in the tab order', () => {
@@ -136,10 +135,7 @@ describe('DayChips', () => {
   it('moves the choice and focus with the arrow keys, wrapping at the ends', () => {
     render(<ChipsHarness initial={6} />);
     fireEvent.keyDown(chip('วันเสาร์ มีเรียน'), { key: 'ArrowRight' });
-    expect(chip('วันจันทร์ มีรายการชนกัน')).toHaveAttribute(
-      'aria-checked',
-      'true',
-    );
+    expect(chip('วันจันทร์ มีรายการชนกัน')).toHaveAttribute('aria-checked', 'true');
     expect(chip('วันจันทร์ มีรายการชนกัน')).toHaveFocus();
     fireEvent.keyDown(chip('วันจันทร์ มีรายการชนกัน'), { key: 'ArrowLeft' });
     expect(chip('วันเสาร์ มีเรียน')).toHaveFocus();
@@ -221,9 +217,7 @@ describe('DayView', () => {
     installViewport(390);
     seedPlan();
     renderPanel();
-    expect(
-      screen.getByRole('radiogroup', { name: 'วันที่แสดง' }),
-    ).toBeVisible();
+    expect(screen.getByRole('radiogroup', { name: 'วันที่แสดง' })).toBeVisible();
     expect(chip('วันพุธ มีเรียน')).toHaveAttribute('aria-checked', 'true');
     expect(
       screen.getByRole('group', { name: 'ตารางเรียนวันพุธ' }),
@@ -480,9 +474,7 @@ describe('Timetable layout toggle', () => {
     renderPanel();
     expect(layout('รายวัน')).toHaveAttribute('aria-pressed', 'true');
     expect(layout('รายสัปดาห์')).toHaveAttribute('aria-pressed', 'false');
-    expect(
-      screen.getByRole('radiogroup', { name: 'วันที่แสดง' }),
-    ).toBeVisible();
+    expect(screen.getByRole('radiogroup', { name: 'วันที่แสดง' })).toBeVisible();
   });
 
   it('switches to the portrait week and back, remembering the choice', () => {
@@ -504,9 +496,7 @@ describe('Timetable layout toggle', () => {
 
     fireEvent.click(layout('รายวัน'));
     expect(uiStore.getState().timetableView).toBe('day');
-    expect(
-      screen.getByRole('radiogroup', { name: 'วันที่แสดง' }),
-    ).toBeVisible();
+    expect(screen.getByRole('radiogroup', { name: 'วันที่แสดง' })).toBeVisible();
     expect(block('90000002')).toBeNull();
   });
 

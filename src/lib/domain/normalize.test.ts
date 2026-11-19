@@ -599,9 +599,7 @@ describe('rule and remark text', () => {
   it('keeps the leading remark text and drops its markup', () => {
     const { courses } = normalizeFixture('teach-table.with-exams.capture.json');
     const { remark } = findSection(courses, '90641009', '942');
-    expect(remark.startsWith('วิชาบังคับภาษา: การจัดการสมาร์ตฟาร์ม')).toBe(
-      true,
-    );
+    expect(remark.startsWith('วิชาบังคับภาษา: การจัดการสมาร์ตฟาร์ม')).toBe(true);
     expect(remark.endsWith('ปี2,\n(รายวิชาปิด/Course Closed)')).toBe(true);
     expect(remark).not.toMatch(/[<>]/);
   });

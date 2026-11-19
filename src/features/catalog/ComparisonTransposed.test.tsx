@@ -126,9 +126,7 @@ describe('ComparisonTransposed', () => {
     ]);
     const addRow = rows[rows.length - 1];
     if (addRow === undefined) throw new Error('no add row');
-    expect(within(addRow).getAllByRole('cell')[2]).toHaveTextContent(
-      'เพิ่มไม่ได้',
-    );
+    expect(within(addRow).getAllByRole('cell')[2]).toHaveTextContent('เพิ่มไม่ได้');
     fireEvent.click(
       within(addRow).getByRole('button', {
         name: 'เพิ่ม 90000001 กลุ่มเรียน 902',

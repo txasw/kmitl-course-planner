@@ -199,9 +199,7 @@ describe('UnscheduledShelf conditions and remark', () => {
     // remark there would enter every shared image and change the measured fit.
     render(<UnscheduledShelf sections={[restricted]} locale="th" t={t} />);
     expect(screen.queryByText('เงื่อนไข')).not.toBeInTheDocument();
-    expect(
-      screen.queryByText('เฉพาะคณะวิศวกรรมศาสตร์'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText('เฉพาะคณะวิศวกรรมศาสตร์')).not.toBeInTheDocument();
     expect(screen.queryByText('หมายเหตุ')).not.toBeInTheDocument();
     expect(
       screen.queryByText('เรียนออนไลน์ผ่าน MS Teams'),

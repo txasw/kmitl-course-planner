@@ -155,9 +155,7 @@ describe('UpdatesDialog', () => {
 
   it('starts focus on the acknowledgement', () => {
     openDialog([reviewed('1', ['room_changed'])]);
-    expect(
-      screen.getByRole('button', { name: 'รับทราบทั้งหมด' }),
-    ).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'รับทราบทั้งหมด' })).toHaveFocus();
   });
 
   it('lists the groups in order with before and now lines, never as articles', () => {
@@ -170,10 +168,7 @@ describe('UpdatesDialog', () => {
     const headings = within(dialog)
       .getAllByRole('heading', { level: 3 })
       .map((heading) => heading.textContent);
-    expect(headings).toEqual([
-      'เวลาชนกันหรือไม่พบในระบบ',
-      'เวลาเรียนและห้องเรียน',
-    ]);
+    expect(headings).toEqual(['เวลาชนกันหรือไม่พบในระบบ', 'เวลาเรียนและห้องเรียน']);
     expect(within(dialog).getByText('ไม่พบในระบบแล้ว')).toBeInTheDocument();
     expect(within(dialog).getByText('ห้องเรียนเปลี่ยน')).toBeInTheDocument();
     expect(within(dialog).getByText('เดิม')).toBeInTheDocument();
@@ -259,9 +254,7 @@ describe('UpdatesDialog', () => {
       name: 'ข้อมูลในตารางมีการเปลี่ยนแปลง',
     });
     expect(dialog).toHaveClass('h-dvh');
-    expect(
-      screen.getByRole('button', { name: 'รับทราบทั้งหมด' }),
-    ).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'รับทราบทั้งหมด' })).toHaveFocus();
   });
 
   it('shows an item on the timetable: it closes, focuses and pulses the block', async () => {

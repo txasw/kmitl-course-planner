@@ -65,9 +65,7 @@ test('the panel passes axe across the edit, preview, and dialog surfaces', async
     mimeType: 'application/json',
     buffer: Buffer.from('{"id":"x","name":"x"}'),
   });
-  await expect(
-    page.getByText('นำเข้าไม่สำเร็จ ข้อมูลไม่ถูกต้อง'),
-  ).toBeVisible();
+  await expect(page.getByText('นำเข้าไม่สำเร็จ ข้อมูลไม่ถูกต้อง')).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
 });
 

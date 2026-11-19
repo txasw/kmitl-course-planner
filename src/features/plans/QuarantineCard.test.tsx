@@ -30,9 +30,7 @@ describe('QuarantineCard', () => {
     });
     render(<QuarantineCard />);
     expect(screen.getByRole('alert')).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'คัดลอกข้อมูลที่กันไว้' }),
-    ).toBeNull();
+    expect(screen.queryByRole('button', { name: 'คัดลอกข้อมูลที่กันไว้' })).toBeNull();
   });
 
   it('copies the quarantined data on the export action', () => {
@@ -47,9 +45,7 @@ describe('QuarantineCard', () => {
         .setIssue({ kind: 'quarantined', data: '{"a":1}' });
     });
     render(<QuarantineCard />);
-    fireEvent.click(
-      screen.getByRole('button', { name: 'คัดลอกข้อมูลที่กันไว้' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'คัดลอกข้อมูลที่กันไว้' }));
     expect(writeText).toHaveBeenCalledWith('{"a":1}');
   });
 });

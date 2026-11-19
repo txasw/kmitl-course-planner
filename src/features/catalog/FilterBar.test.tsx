@@ -44,10 +44,7 @@ describe('FilterBar', () => {
     const field = screen.getByLabelText('กรองรายการ');
     expect(field).toBe(screen.getByRole('searchbox', { name: 'กรองรายการ' }));
     expect(screen.getByText('กรองรายการ').tagName).toBe('LABEL');
-    expect(field).toHaveAttribute(
-      'placeholder',
-      'รหัสวิชา ชื่อวิชา หรืออาจารย์',
-    );
+    expect(field).toHaveAttribute('placeholder', 'รหัสวิชา ชื่อวิชา หรืออาจารย์');
     fireEvent.change(field, { target: { value: '9059' } });
     expect(catalogStore.getState().filter.text).toBe('9059');
   });
@@ -237,9 +234,7 @@ describe('FilterBar', () => {
         screen.getByRole('group', { name: 'เลือกหลักสูตรของฉัน' }),
       ).toBeInTheDocument();
       expect(screen.queryByRole('combobox', { name: 'ปีการศึกษา' })).toBeNull();
-      expect(
-        screen.queryByRole('combobox', { name: 'ภาคการศึกษา' }),
-      ).toBeNull();
+      expect(screen.queryByRole('combobox', { name: 'ภาคการศึกษา' })).toBeNull();
       const curricula = optionTexts('หลักสูตร');
       expect(curricula.length).toBeGreaterThan(0);
       expect(curricula).not.toContain('ทุกหลักสูตร');

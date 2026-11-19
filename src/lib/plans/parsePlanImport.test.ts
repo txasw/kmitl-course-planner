@@ -49,9 +49,7 @@ describe('parsePlanImport', () => {
       ...makePlan({ entries: [] }),
       semester: '9',
     });
-    expect(rejectionOf(text, th)).toEqual([
-      'semester: ค่าไม่อยู่ในตัวเลือกที่รองรับ',
-    ]);
+    expect(rejectionOf(text, th)).toEqual(['semester: ค่าไม่อยู่ในตัวเลือกที่รองรับ']);
     for (const message of rejectionOf(text, en)) {
       expect(message).not.toMatch(/Invalid option|expected one of/i);
     }

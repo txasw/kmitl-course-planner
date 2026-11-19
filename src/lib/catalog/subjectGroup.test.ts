@@ -6,8 +6,7 @@ import { classifySubjectGroup, isCurriculumCourse } from './subjectGroup';
 
 const GROUP_1_TH = 'กลุ่ม 1 (วิชา GenEd / วิชาเลือกเสรี)';
 const GROUP_1_EN = 'Group 1 (General Education / Elective Subject)';
-const GROUP_2_TH =
-  'กลุ่ม 2 (วิชาบังคับคณะฯ / วิชาบังคับหลักสูตร / วิชาเลือกหลักสูตร)';
+const GROUP_2_TH = 'กลุ่ม 2 (วิชาบังคับคณะฯ / วิชาบังคับหลักสูตร / วิชาเลือกหลักสูตร)';
 const GROUP_2_EN =
   'Group 2 (Required Subject / Compulsory Courses / Elective Courses)';
 

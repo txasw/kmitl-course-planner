@@ -217,13 +217,9 @@ describe('SectionComparisonSheet', () => {
 
   it('narrows to the addable sections and sorts by the most open seats', () => {
     renderSheet(captureCourse());
-    fireEvent.click(
-      screen.getByRole('switch', { name: 'เฉพาะกลุ่มที่เพิ่มได้' }),
-    );
+    fireEvent.click(screen.getByRole('switch', { name: 'เฉพาะกลุ่มที่เพิ่มได้' }));
     expect(rowCodes()).toEqual(['10', '12', '13', '14', '15', '17', '704']);
-    fireEvent.click(
-      screen.getByRole('button', { name: 'ที่นั่งว่างมากที่สุด' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'ที่นั่งว่างมากที่สุด' }));
     expect(rowCodes()).toEqual(['13', '10', '17', '14', '15', '12', '704']);
   });
 
@@ -246,9 +242,7 @@ describe('SectionComparisonSheet', () => {
       ],
     });
     renderSheet(course);
-    fireEvent.click(
-      screen.getByRole('switch', { name: 'เฉพาะกลุ่มที่เพิ่มได้' }),
-    );
+    fireEvent.click(screen.getByRole('switch', { name: 'เฉพาะกลุ่มที่เพิ่มได้' }));
     expect(screen.queryByRole('table')).toBeNull();
     expect(screen.getByText('ไม่มีกลุ่มเรียนที่เพิ่มได้')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'แสดงทุกกลุ่มเรียน' }));
@@ -301,9 +295,7 @@ describe('SectionComparisonSheet', () => {
     expect(planStore.getState().entries.map((e) => e.section)).toEqual(['901']);
     expect(addCell('901')).toHaveTextContent('เพิ่มแล้ว');
     expect(addCell('902')).toHaveTextContent('เพิ่มไม่ได้');
-    expect(tableStatus()).toHaveTextContent(
-      /^เพิ่ม 90000001 กลุ่มเรียน 901 แล้ว$/,
-    );
+    expect(tableStatus()).toHaveTextContent(/^เพิ่ม 90000001 กลุ่มเรียน 901 แล้ว$/);
     // The persistent regions sit under the modal, so they stay silent.
     expect(dragStore.getState().announcement).toBeNull();
     expect(toastStore.getState().toast).toBeNull();
@@ -469,9 +461,7 @@ describe('SectionComparisonSheet below 768 px', () => {
     expect(planStore.getState().entries.map((e) => e.section)).toEqual(['902']);
     expect(phoneAddCell('902')).toHaveTextContent('เพิ่มแล้ว');
     expect(phoneAddCell('901')).toHaveTextContent('เพิ่มไม่ได้');
-    expect(tableStatus()).toHaveTextContent(
-      /^เพิ่ม 90000001 กลุ่มเรียน 902 แล้ว$/,
-    );
+    expect(tableStatus()).toHaveTextContent(/^เพิ่ม 90000001 กลุ่มเรียน 902 แล้ว$/);
     expect(toastStore.getState().toast).toBeNull();
     expect(screen.getByRole('region')).toHaveFocus();
   });

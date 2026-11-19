@@ -113,9 +113,7 @@ describe('WorkloadSummary', () => {
     renderSummary(
       WORKING_DAYS.map((day) => ({ day, startMin: 540, endMin: 720 })),
     );
-    expect(part('วันว่าง')).toHaveTextContent(
-      'ไม่มีวันว่างในวันจันทร์ถึงวันศุกร์',
-    );
+    expect(part('วันว่าง')).toHaveTextContent('ไม่มีวันว่างในวันจันทร์ถึงวันศุกร์');
     expect(part('ช่วงว่างระหว่างคาบตั้งแต่ 3 ชั่วโมง')).toHaveTextContent(
       'ไม่มีช่วงว่างระหว่างคาบตั้งแต่ 3 ชั่วโมง',
     );
