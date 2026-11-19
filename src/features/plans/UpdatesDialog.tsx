@@ -40,9 +40,14 @@ import { useReviewRemoval } from './useReviewRemoval';
 
 interface UpdatesDialogProps {
   onClose: () => void;
+  /**
+   * Readies the timetable for a shown item before the dialog closes, so the day view can
+   * turn to the day the section meets on and its block renders to be located.
+   */
+  onShow?: (teachTableId: string) => void;
 }
 
-export function UpdatesDialog({ onClose }: UpdatesDialogProps) {
+export function UpdatesDialog({ onClose, onShow }: UpdatesDialogProps) {
   const { t, language } = useTranslation();
   const tier = useLayoutTier();
   const entries = useStore(planStore, (state) => state.entries);
@@ -90,6 +95,7 @@ export function UpdatesDialog({ onClose }: UpdatesDialogProps) {
     const root = bodyRef.current === null ? null : rootOf(bodyRef.current);
     planStore.getState().markNotified(itemIds);
     uiStore.getState().setPlanView('timetable');
+    onShow?.(item.entry.teachTableId);
     onClose();
     // Wait for the dialog to unmount and the timetable to render, so the block takes focus
     // after the dialog has handed it back to its opener.

@@ -6,9 +6,11 @@ import {
   fireEvent,
   cleanup,
   act,
+  waitFor,
   within,
 } from '@testing-library/react';
 import { planStore } from '@/features/plans/planStore';
+import { revalidationStore } from '@/features/plans/revalidationStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { uiStore } from '@/features/shell/uiStore';
@@ -286,6 +288,48 @@ describe('DayView', () => {
     expect(friday?.scrollTop).toBe(40);
     fireEvent.click(chip('วันอังคาร'));
     expect(scroller('วันอังคาร')?.scrollTop).toBe(0);
+  });
+
+  it('shows the day an updated section meets on from the updates dialog', async () => {
+    installViewport(390);
+    // jsdom has no layout and does not implement scrollIntoView.
+    Element.prototype.scrollIntoView = vi.fn();
+    seedPlan();
+    const friday = planStore.getState().entries[1];
+    if (friday === undefined) throw new Error('seed lost its Friday entry');
+    act(() => {
+      planStore.setState({
+        entries: [
+          ...planStore.getState().entries.slice(0, 1),
+          {
+            ...friday,
+            verifyStatus: 'changed',
+            review: {
+              kinds: ['room_changed'],
+              before: friday.snapshot,
+              detectedAt: '2026-11-06T00:00:00.000Z',
+              notifiedAt: null,
+            },
+          },
+        ],
+      });
+    });
+    renderPanel();
+    expect(chip('วันพุธ มีเรียน')).toHaveAttribute('aria-checked', 'true');
+    act(() => {
+      revalidationStore.getState().setUpdatesOpen(true);
+    });
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: `ดูในตาราง 90000002 กลุ่มเรียน ${friday.section}`,
+      }),
+    );
+    expect(chip('วันศุกร์ มีเรียน')).toHaveAttribute('aria-checked', 'true');
+    const target = block('90000002');
+    await waitFor(() => {
+      expect(target).toHaveFocus();
+    });
+    expect(target).toHaveClass('kcp-locate');
   });
 
   it('centers the empty plan notice over the lanes, clear of the hour column', () => {
