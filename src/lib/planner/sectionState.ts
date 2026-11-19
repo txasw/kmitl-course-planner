@@ -1,9 +1,11 @@
-// Classify a catalog section against the sections already placed in the plan, so
-// the catalog can render one of four states per section. The plan is empty in
-// this phase, so every open section is addable; the added, conflicting, and
-// duplicate branches are exercised by tests and become live when Phase 5 fills
-// the plan store. The classification is a thin composition of the existing
-// placement engine and duplicate rule, kept pure and framework free.
+// Classify a catalog section against the sections placed in the active plan, so
+// the catalog card, the catalog filters, and the section comparison all read one
+// of five states per section: different term, added, addable, duplicate subject,
+// or conflicting. Conflicting covers both a time clash and an exam overlap, since
+// both come from checkPlacement. Seat state is not part of the relation; full and
+// closed sections are gated separately by the seat status. The classification is a
+// thin composition of the placement engine and the term check, kept pure and
+// framework free.
 
 import type { Course, Section } from '../domain/types';
 import { termsEqual, type Term } from '../routing/academicTerms';
@@ -38,7 +40,7 @@ function isPlaced(placed: Section[], section: Section): boolean {
  * section belongs to no comparison with the plan and is not addable to it. Otherwise
  * it is added when already in the plan by durable identity, then, for an unplaced
  * section, addable when its atomic group places cleanly, duplicate when it repeats an
- * existing subject, or conflicting when it overlaps an existing meeting in time.
+ * existing subject, or conflicting when it clashes with a placed meeting or exam.
  */
 export function computeSectionRelation(
   placed: Section[],

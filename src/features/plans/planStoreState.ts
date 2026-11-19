@@ -29,7 +29,7 @@ export interface PlanStoreState {
   plans: Plan[];
   /** The plan the catalog and grid act on, or null when none exist yet. */
   activePlanId: string | null;
-  /** The active plan's entries, mirrored so existing readers stay unchanged. */
+  /** The active plan's entries, mirrored so readers subscribe to them alone. */
   entries: PlanEntry[];
   /** The last mutation's added and removed entries, held to reverse it, or null. */
   pendingUndo: UndoRecord | null;
