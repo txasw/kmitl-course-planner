@@ -197,17 +197,31 @@ export function showCatalog(
   if (column !== null) slideCatalog(column, 'in');
 }
 
+interface RevealOptions {
+  /**
+   * Show where focus landed when the docked column already shows: the target paints its
+   * focus ring and scrolls into view. For an action with no other visible result.
+   */
+  markFocus?: boolean;
+}
+
 /**
  * Bring the catalog into view from a control outside it, such as an action in the
  * feedback strip, and move focus to a target inside it: below 640 px the catalog pane
  * shows, on the medium tier the sheet opens, and on a docked tier a hidden column slides
- * back while a shown one stays. Nothing happens while a drag is in flight, since the
- * drag owns the grid width and the sheet.
+ * back while a shown one stays. A shown column changes nothing on screen, and a focus
+ * moved by script after a pointer press does not match :focus-visible, so the target's
+ * ring never paints and the action reads as dead. A caller whose action has no other
+ * visible result, such as the summary view's go to courses, asks to mark the focus: the
+ * move then asks the browser for the ring and lets the focus scroll the target into view
+ * in its own region. Nothing happens while a drag is in flight, since the drag owns the
+ * grid width and the sheet.
  */
 export function revealCatalog(
   control: Element,
   tier: LayoutTier,
   focusId: string,
+  { markFocus = false }: RevealOptions = {},
 ): void {
   if (selectDragging(dragStore.getState())) return;
   if (tier === 'compact') {
@@ -226,9 +240,10 @@ export function revealCatalog(
     showCatalog(control, 0, focusId);
     return;
   }
-  focusFirst([rootOf(control)?.getElementById(focusId)], {
-    preventScroll: true,
-  });
+  focusFirst(
+    [rootOf(control)?.getElementById(focusId)],
+    markFocus ? { focusVisible: true } : { preventScroll: true },
+  );
 }
 
 /**

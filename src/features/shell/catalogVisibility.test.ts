@@ -20,6 +20,7 @@ import {
   finishCatalogSlide,
   hideCatalog,
   readMotionToken,
+  revealCatalog,
   showCatalog,
 } from './catalogVisibility';
 import { uiStore } from './uiStore';
@@ -122,6 +123,46 @@ describe('catalog visibility funnel', () => {
     advance(POINTER_TOGGLE_GUARD_MS);
     showCatalog(rail, 1);
     expect(uiStore.getState().catalogVisible).toBe(true);
+  });
+});
+
+// A docked column already in view changes nothing on screen when a reveal lands, and a
+// focus moved by script after a pointer press paints no ring, so a reveal that asks to
+// mark its focus asks the browser for the ring and lets the focus scroll. jsdom matches no
+// :focus-visible, so the options of the focus call are recorded instead.
+describe('revealCatalog into a docked column already shown', () => {
+  let target: HTMLButtonElement;
+  let control: HTMLButtonElement;
+
+  beforeEach(() => {
+    control = document.createElement('button');
+    target = document.createElement('button');
+    target.id = 'kcp-reveal-target';
+    document.body.append(control, target);
+  });
+
+  it('paints the ring and lets the focus scroll when asked to mark it', () => {
+    const focus = vi.spyOn(target, 'focus');
+    revealCatalog(control, 'xl', target.id, { markFocus: true });
+    expect(uiStore.getState().catalogVisible).toBe(true);
+    expect(target).toHaveFocus();
+    expect(focus).toHaveBeenCalledWith({ focusVisible: true });
+  });
+
+  it('moves focus without a scroll when the caller does not ask', () => {
+    const focus = vi.spyOn(target, 'focus');
+    revealCatalog(control, 'xl', target.id);
+    expect(target).toHaveFocus();
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+  });
+
+  it('leaves a hidden column to its slide', () => {
+    const focus = vi.spyOn(target, 'focus');
+    uiStore.getState().setCatalogVisible(false);
+    revealCatalog(control, 'xl', target.id, { markFocus: true });
+    expect(uiStore.getState().catalogVisible).toBe(true);
+    expect(target).toHaveFocus();
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
   });
 });
 

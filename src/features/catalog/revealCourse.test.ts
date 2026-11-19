@@ -275,6 +275,17 @@ describe('openSearch', () => {
     expect(tab).toHaveFocus();
   });
 
+  // A form that was open already and a column that shows leave nothing on screen to
+  // change, so the tab paints its ring, which jsdom cannot match, so the focus options
+  // are recorded.
+  it('marks the focus on the tab when the docked column already shows', () => {
+    const focus = vi.spyOn(tab, 'focus');
+    openSearch(control, 'xl');
+    expect(searchStore.getState().searchFormOpen).toBe(true);
+    expect(tab).toHaveFocus();
+    expect(focus).toHaveBeenCalledWith({ focusVisible: true });
+  });
+
   it('expands the folded form in the sheet on the medium tier', () => {
     openSearch(control, 'medium');
     expect(searchStore.getState().searchFormOpen).toBe(true);
