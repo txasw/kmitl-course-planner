@@ -34,6 +34,8 @@ const INVENTORY: Readonly<Record<string, number>> = {
   'features/plans/QuarantineCard.tsx': 1,
   // The entry prompt beside the launcher, shown only while the panel is closed.
   'features/onboarding/EntryToast.tsx': 1,
+  // Where the planner is, said once as the search page coach mark appears (ADR-0072).
+  'features/onboarding/CoachMark.tsx': 1,
 };
 
 // The drag library mounts one region of its own inside the drag context, which no source

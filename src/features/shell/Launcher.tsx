@@ -24,7 +24,25 @@ import { useTranslation } from './useTranslation';
 /** The launcher's id, so a layer that closes over it can hand it focus. */
 export const LAUNCHER_ID = 'kcp-launcher';
 
-const LAUNCHER_CLASS = `fixed right-[max(20px,var(--kcp-safe-right))] bottom-[max(20px,var(--kcp-safe-bottom))] z-host inline-flex min-h-12 items-center gap-2 rounded-full bg-primary-strong px-5 py-3 text-sm font-semibold text-white shadow-kcp hover:bg-primary-hover motion-safe:transition-[translate,background-color] motion-safe:duration-fast motion-safe:ease-out motion-safe:hover:-translate-y-0.5 motion-safe:focus-visible:-translate-y-0.5 ${FOCUS_OUTLINE}`;
+/**
+ * The launcher's box: its size comes from these classes and its face alone, so a layer
+ * that must leave room for it, such as the coach mark, takes the same box and face.
+ */
+export const LAUNCHER_BOX =
+  'inline-flex min-h-12 items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold';
+
+/** The launcher's icon and label, which with LAUNCHER_BOX give the launcher its size. */
+export function LauncherFace() {
+  const { t } = useTranslation();
+  return (
+    <>
+      <CalendarDays size={20} strokeWidth={2} aria-hidden />
+      <span>{t('launcher.label')}</span>
+    </>
+  );
+}
+
+const LAUNCHER_CLASS = `fixed right-[max(20px,var(--kcp-safe-right))] bottom-[max(20px,var(--kcp-safe-bottom))] z-host ${LAUNCHER_BOX} bg-primary-strong text-white shadow-kcp hover:bg-primary-hover motion-safe:transition-[translate,background-color] motion-safe:duration-fast motion-safe:ease-out motion-safe:hover:-translate-y-0.5 motion-safe:focus-visible:-translate-y-0.5 ${FOCUS_OUTLINE}`;
 
 // The welcome decision counts as part of the load, so the ring never starts in the
 // moment before a welcome opens over it and then plays a second time after it closes.
@@ -74,8 +92,7 @@ export function Launcher() {
         attention ? `${LAUNCHER_CLASS} kcp-launcher-ring` : LAUNCHER_CLASS
       }
     >
-      <CalendarDays size={20} strokeWidth={2} aria-hidden />
-      <span>{t('launcher.label')}</span>
+      <LauncherFace />
       {issueCount !== null && issueCount > 0 ? (
         <span
           aria-hidden

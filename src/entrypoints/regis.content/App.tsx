@@ -26,6 +26,7 @@ import {
 } from '@/features/onboarding/useWorkerHandshake';
 import { WelcomeLayer } from '@/features/onboarding/WelcomeLayer';
 import { EntryToast } from '@/features/onboarding/EntryToast';
+import { CoachMark } from '@/features/onboarding/CoachMark';
 import {
   useWelcomeClaim,
   type WelcomeClaimDeps,
@@ -40,9 +41,10 @@ interface AppProps {
   welcome: WelcomeClaimDeps;
 }
 
-// Root component for the content script UI. It renders the launcher, the entry toast
-// beside it, the overlay and, while it is open, the welcome above everything else,
-// since the shadow root stacks its host layer nodes by mount order. The entry toast
+// Root component for the content script UI. It renders the selector coach mark, the
+// launcher above it so the coach mark's spotlight leaves the launcher lit and live, the
+// entry toast beside the launcher, the overlay and, while it is open, the welcome above
+// everything else, since the shadow root stacks its host layer nodes by mount order. The entry toast
 // follows the launcher, so Tab from the launcher reaches it. It hydrates and persists
 // the language, the plans and the onboarding record through the injected
 // repositories, listens for the worker and sends it the mount handshake, decides
@@ -66,6 +68,7 @@ export function App({
     <SearchDepsProvider value={search}>
       <SearchBoot />
       <RevalidationTriggers />
+      <CoachMark record={onboarding.record} />
       <Launcher />
       <EntryToast record={onboarding.record} />
       <Overlay />

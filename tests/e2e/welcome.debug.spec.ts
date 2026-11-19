@@ -41,7 +41,7 @@ test('shows the welcome once, in the one tab opened on install', async ({
   const other = await context.newPage();
   await other.goto(SELECTOR_URL);
   await expect(other.getByRole('button', { name: LAUNCHER })).toBeVisible();
-  await expect(other.getByRole('dialog')).toHaveCount(0);
+  await expect(other.getByRole('dialog', { name: WELCOME })).toHaveCount(0);
   await other.close();
 
   await tab.bringToFront();
@@ -52,7 +52,7 @@ test('shows the welcome once, in the one tab opened on install', async ({
 
   await tab.reload();
   await expect(tab.getByRole('button', { name: LAUNCHER })).toBeVisible();
-  await expect(tab.getByRole('dialog')).toHaveCount(0);
+  await expect(tab.getByRole('dialog', { name: WELCOME })).toHaveCount(0);
   expect(selectorTabs(context)).toHaveLength(1);
 });
 
