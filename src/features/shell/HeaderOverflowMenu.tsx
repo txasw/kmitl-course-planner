@@ -7,7 +7,10 @@
 // so the current language is announced as checked and shown with a check mark rather
 // than by colour or by the flag alone. Escape closes the menu only, through
 // useEscapeLayer, and returns focus to the trigger, so the overlay behind it stays open.
-// Tab or a press outside closes it and lets focus move on.
+// Tab or a press outside closes it and lets focus move on. Below 640 px, where the
+// header hides the brand mark and its version pill, a muted line under the menu shows
+// the extension version. It sits in the popover but outside the menu role, so it is
+// neither an item nor focusable, and a screen reader reads it as a phrase.
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useStore } from 'zustand';
@@ -15,8 +18,10 @@ import { Check, MoreHorizontal } from 'lucide-react';
 import { useDismiss, useInteractions } from '@floating-ui/react';
 import { LanguageFlag } from '@/components/LanguageFlag';
 import type { Locale, TranslationKey } from '@/lib/i18n/t';
+import { fillTemplate } from '@/lib/i18n/template';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
+import { useExtensionVersion } from './ExtensionVersionContext';
 import { uiStore } from './uiStore';
 import { useEscapeLayer } from './useEscapeLayer';
 import { usePanelPopover } from './usePanelPopover';
@@ -35,6 +40,7 @@ type OpenFocus = 'first' | 'last';
 
 export function HeaderOverflowMenu() {
   const { t } = useTranslation();
+  const version = useExtensionVersion();
   const language = useStore(uiStore, (state) => state.language);
   const setLanguage = useStore(uiStore, (state) => state.setLanguage);
   const [openFocus, setOpenFocus] = useState<OpenFocus | null>(null);
@@ -151,54 +157,63 @@ export function HeaderOverflowMenu() {
       {open ? (
         <div
           ref={setFloating}
-          id={menuId}
-          role="menu"
-          aria-label={t('header.more')}
           style={floatingStyles}
           {...getFloatingProps({ onKeyDown: handleMenuKeyDown })}
           className="z-popover min-w-44 rounded-kcp border border-border bg-surface p-1 text-sm shadow-kcp"
         >
-          <div role="group" aria-labelledby={groupLabelId}>
-            <div
-              id={groupLabelId}
-              className="px-2 pt-1 pb-0.5 text-2xs text-ink-soft"
-            >
-              {t('language.select')}
+          <div id={menuId} role="menu" aria-label={t('header.more')}>
+            <div role="group" aria-labelledby={groupLabelId}>
+              <div
+                id={groupLabelId}
+                className="px-2 pt-1 pb-0.5 text-2xs text-ink-soft"
+              >
+                {t('language.select')}
+              </div>
+              {LOCALES.map((locale, index) => {
+                const checked = locale === language;
+                return (
+                  <button
+                    key={locale}
+                    ref={(node) => {
+                      itemRefs.current[index] = node;
+                    }}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={checked}
+                    tabIndex={-1}
+                    lang={locale}
+                    onClick={() => {
+                      choose(locale);
+                    }}
+                    className={`flex w-full items-center gap-2 rounded-kcp px-2 py-1.5 text-left text-ink hover:bg-surface-alt ${
+                      checked ? 'font-semibold' : ''
+                    } ${TARGET_SIZE} ${FOCUS_RING}`}
+                  >
+                    <Check
+                      size={16}
+                      strokeWidth={2}
+                      aria-hidden
+                      className={`shrink-0 text-primary-strong ${checked ? '' : 'invisible'}`}
+                    />
+                    <LanguageFlag locale={locale} />
+                    <span className="min-w-0 break-words">
+                      {t(LANGUAGE_NAME[locale])}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-            {LOCALES.map((locale, index) => {
-              const checked = locale === language;
-              return (
-                <button
-                  key={locale}
-                  ref={(node) => {
-                    itemRefs.current[index] = node;
-                  }}
-                  type="button"
-                  role="menuitemradio"
-                  aria-checked={checked}
-                  tabIndex={-1}
-                  lang={locale}
-                  onClick={() => {
-                    choose(locale);
-                  }}
-                  className={`flex w-full items-center gap-2 rounded-kcp px-2 py-1.5 text-left text-ink hover:bg-surface-alt ${
-                    checked ? 'font-semibold' : ''
-                  } ${TARGET_SIZE} ${FOCUS_RING}`}
-                >
-                  <Check
-                    size={16}
-                    strokeWidth={2}
-                    aria-hidden
-                    className={`shrink-0 text-primary-strong ${checked ? '' : 'invisible'}`}
-                  />
-                  <LanguageFlag locale={locale} />
-                  <span className="min-w-0 break-words">
-                    {t(LANGUAGE_NAME[locale])}
-                  </span>
-                </button>
-              );
-            })}
           </div>
+          {version === null ? null : (
+            <p className="mx-1 mt-1 border-t border-border px-1 pt-1.5 pb-0.5 text-2xs break-words text-ink-muted tabular-nums sm:hidden">
+              <span aria-hidden>
+                {fillTemplate(t('header.versionLine'), { version })}
+              </span>
+              <span className="sr-only">
+                {fillTemplate(t('header.version'), { version })}
+              </span>
+            </p>
+          )}
         </div>
       ) : null}
     </div>
