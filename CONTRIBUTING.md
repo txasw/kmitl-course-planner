@@ -84,16 +84,13 @@ The repository holds no Cloudflare credentials and no deploy workflow.
 - Run `pnpm site:build` after any change to the landing copy, the renderer, the stylesheet,
   the script, or the images, and commit the result. Continuous integration renders the site
   again and fails when `site/` differs, so `main` never holds a stale page.
-- The page states the version in `scripts/landing/site-version.json`, not the one in
-  `package.json`, so the Changesets release pull request changes nothing in `site/`, passes
-  the freshness check, and deploys nothing. Once that release is live on both the Chrome Web
-  Store and Firefox Add-ons, set its version in `site-version.json`, run `pnpm site:build`,
-  and merge that commit; it is the one that deploys the new version. The site test fails if
-  the file names a version above `package.json`, and `pnpm site:build` prints a note while
-  the two differ.
+- The page states the version in `package.json`. The release workflow runs
+  `pnpm release:version`, which is `changeset version` followed by `pnpm site:build`, so the
+  Changesets release pull request carries the rebuilt `site/` and merging it deploys the page
+  that states the new version. Nothing needs bumping by hand after a release. The site test
+  fails when the committed page states any other version than `package.json`.
 - Copy that describes features of an unreleased version waits on its landing branch until
-  that release is live on both stores. Every merge to `main` that changes `site/` deploys at
-  once, so this order is the only gate between a release and the page that describes it.
+  that release is merged. Every merge to `main` that changes `site/` deploys at once.
 
 ### Workers Builds settings
 
