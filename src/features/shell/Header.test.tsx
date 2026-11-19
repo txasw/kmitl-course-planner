@@ -86,23 +86,15 @@ describe('Header', () => {
     expect(trigger).toHaveTextContent('ภาคการศึกษา 1/2569');
   });
 
-  it('shows the save state beside the plan switcher only when a save fails', () => {
+  it('keeps a failed save out of the header row', () => {
     const { container } = render(<Header titleId="title" />);
-    const retry = { name: 'ยังไม่ได้บันทึก บันทึกอีกครั้ง' };
     act(() => {
       planStore.getState().hydrate([makePlan({ id: 'a' })]);
       autosaveStore.getState().attach(vi.fn());
-    });
-    expect(screen.queryByRole('button', retry)).not.toBeInTheDocument();
-    act(() => {
       autosaveStore.getState().setStatus('failed');
     });
-    const indicator = screen.getByRole('button', retry);
-    const leading = container.querySelector('header')?.firstElementChild;
-    expect(indicator.parentElement).toBe(leading);
-    // The plan switcher sits right before it in the leading group.
-    expect(indicator.previousElementSibling).toContainElement(
-      screen.getByRole('button', { name: 'เลือกตาราง' }),
+    expect(container.querySelector('header')?.textContent ?? '').not.toContain(
+      'บันทึกอีกครั้ง',
     );
   });
 

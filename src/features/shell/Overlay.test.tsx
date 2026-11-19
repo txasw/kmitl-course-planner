@@ -20,6 +20,7 @@ import { Overlay } from './Overlay';
 import { openPanelAt } from './openPanel';
 import { uiStore } from './uiStore';
 import { OVERLAY_HISTORY_MARKER } from './useBackToClose';
+import { autosaveStore } from '@/features/plans/autosaveStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { makePlanEntry } from '../../../tests/support/domain-builders';
@@ -104,6 +105,27 @@ describe('Overlay', () => {
     const dialog = screen.getByRole('dialog');
     expect(dialog).toHaveAttribute('aria-modal', 'true');
     expect(dialog).toHaveAccessibleName('KCP: ตัววางแผนตารางเรียน สจล.');
+  });
+
+  it('shows a failed save in a strip right under the header', () => {
+    act(() => {
+      uiStore.getState().open();
+      autosaveStore.getState().attach(vi.fn());
+    });
+    onTestFinished(() => {
+      act(() => {
+        autosaveStore.getState().detach();
+      });
+    });
+    render(<Overlay />, { wrapper });
+    const header = screen.getByRole('dialog').querySelector('header');
+    expect(header?.nextElementSibling).not.toHaveTextContent('บันทึกอีกครั้ง');
+    act(() => {
+      autosaveStore.getState().setStatus('failed');
+    });
+    const retry = screen.getByRole('button', { name: 'บันทึกอีกครั้ง' });
+    expect(header?.nextElementSibling).toContainElement(retry);
+    expect(header).not.toContainElement(retry);
   });
 
   it('marks the panel with the active language, not the host one', () => {
