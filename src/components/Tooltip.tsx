@@ -38,6 +38,9 @@ interface TooltipProps {
    * this to point the tooltip away from the popover body so it never covers the very
    * options being chosen; the plan menu action buttons pass bottom for this reason. */
   placement?: Placement;
+  /** Keep the tooltip from opening, for a trigger that sometimes shows its own visible
+   * label, so the trigger element stays the same while its label changes. */
+  disabled?: boolean;
   /** Render the trigger. Attach `ref` through the element's JSX ref and spread
    * `triggerProps` onto it so the tooltip anchors to it and receives hover and
    * focus, while the element keeps its own handlers and classes. */
@@ -47,7 +50,12 @@ interface TooltipProps {
   ) => ReactNode;
 }
 
-export function Tooltip({ label, placement = 'top', children }: TooltipProps) {
+export function Tooltip({
+  label,
+  placement = 'top',
+  disabled = false,
+  children,
+}: TooltipProps) {
   const [open, setOpen] = useState(false);
   const portalRoot = usePanelPortal();
 
@@ -66,11 +74,12 @@ export function Tooltip({ label, placement = 'top', children }: TooltipProps) {
   });
 
   const hover = useHover(context, {
+    enabled: !disabled,
     move: false,
     delay: { open: 350, close: 0 },
     handleClose: safePolygon(),
   });
-  const focus = useFocus(context);
+  const focus = useFocus(context, { enabled: !disabled });
   const role = useRole(context, { role: 'tooltip' });
   const { getReferenceProps, getFloatingProps } = useInteractions([
     hover,
@@ -101,17 +110,18 @@ export function Tooltip({ label, placement = 'top', children }: TooltipProps) {
   }, []);
   useEscapeDismiss(open, dismiss);
 
-  const content = open ? (
-    <div
-      ref={setFloating}
-      style={floatingStyles}
-      {...getFloatingProps()}
-      data-placement={resolvedPlacement}
-      className="z-tooltip max-w-56 rounded-kcp border border-border bg-surface px-2 py-1 text-xs text-ink shadow-kcp"
-    >
-      {label}
-    </div>
-  ) : null;
+  const content =
+    open && !disabled ? (
+      <div
+        ref={setFloating}
+        style={floatingStyles}
+        {...getFloatingProps()}
+        data-placement={resolvedPlacement}
+        className="z-tooltip max-w-56 rounded-kcp border border-border bg-surface px-2 py-1 text-xs text-ink shadow-kcp"
+      >
+        {label}
+      </div>
+    ) : null;
 
   return (
     <>
