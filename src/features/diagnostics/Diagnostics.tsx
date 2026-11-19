@@ -7,7 +7,9 @@
 // English because the drawer is never user facing.
 
 import { useState } from 'react';
+import { useStore } from 'zustand';
 import { Bug, RefreshCw, X } from 'lucide-react';
+import { onboardingStore } from '@/features/onboarding/onboardingStore';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
@@ -40,6 +42,10 @@ export function Diagnostics() {
   const { data, refresh, setSimulation } = useDiagnosticsData(send);
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>('requests');
+  const coachMarkOpen = useStore(
+    onboardingStore,
+    (state) => state.coachMarkOpen,
+  );
 
   const armed = isSimulationArmed(data.simulation);
 
@@ -51,6 +57,10 @@ export function Diagnostics() {
     setSimulation({ ...data.simulation, mutationId });
     void send({ type: 'debug/setMutation', mutationId }).then(refresh);
   };
+
+  // The trigger steps aside while the search page coach mark shows, since on a phone it
+  // would sit over the coach mark's buttons and it is not what the coach mark points at.
+  if (!open && coachMarkOpen) return null;
 
   // Below 640 px the launcher rides above the 56 px bottom nav of the phone layout and the
   // safe area inset the nav pads by, so it never covers the nav item at the leading edge.
