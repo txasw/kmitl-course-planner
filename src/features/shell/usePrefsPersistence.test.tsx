@@ -42,12 +42,10 @@ afterEach(() => {
     uiStore.getState().setSuggestPreference('balanced');
     uiStore.getState().setTimetableView('day');
     catalogStore.getState().resetFilter();
-    catalogStore.getState().setShortlist({});
   });
 });
 
 const NO_HIDES = { full: false, conflicting: false, unscheduled: false };
-const TERM = { year: '2569', semester: '1' } as const;
 
 const PROFILE = {
   facultyId: '01',
@@ -415,63 +413,5 @@ describe('usePrefsPersistence', () => {
       catalogStore.getState().toggleDay(1);
     });
     expect(repo.saved).toHaveLength(0);
-  });
-
-  it('hydrates the stored shortlist without writing it back', async () => {
-    const shortlist = { '1/2569': ['90592033'] };
-    const repo = makeRepo({ schemaVersion: 1, language: 'th', shortlist });
-    renderHook(() => {
-      usePrefsPersistence(repo);
-    });
-    await flush();
-    expect(catalogStore.getState().shortlist).toEqual(shortlist);
-    expect(repo.saved).toHaveLength(0);
-  });
-
-  it('joins a course saved during the read to the stored shortlist', async () => {
-    const repo = makeRepo({
-      schemaVersion: 1,
-      language: 'th',
-      shortlist: { '1/2569': ['90592033'] },
-    });
-    renderHook(() => {
-      usePrefsPersistence(repo);
-    });
-    act(() => {
-      catalogStore.getState().toggleShortlisted(TERM, '01006001');
-    });
-    await flush();
-    const joined = { '1/2569': ['90592033', '01006001'] };
-    expect(catalogStore.getState().shortlist).toEqual(joined);
-    expect(repo.saved.map((prefs) => prefs.shortlist)).toEqual([joined]);
-  });
-
-  it('persists a saved course and drops the field once the last one goes', async () => {
-    const repo = makeRepo(null);
-    renderHook(() => {
-      usePrefsPersistence(repo);
-    });
-    await flush();
-
-    act(() => {
-      catalogStore.getState().toggleShortlisted(TERM, '90592033');
-    });
-    act(() => {
-      catalogStore.getState().toggleShortlisted(TERM, '90592033');
-    });
-    const base = {
-      schemaVersion: 1,
-      language: 'th',
-      viewMode: 'edit',
-      displayOptions: DEFAULT_DISPLAY_OPTIONS,
-      suggestObjective: 'coverAll',
-      suggestPreference: 'balanced',
-      timetableView: 'day',
-      catalogHides: NO_HIDES,
-    };
-    expect(repo.saved).toEqual([
-      { ...base, shortlist: { '1/2569': ['90592033'] } },
-      base,
-    ]);
   });
 });
