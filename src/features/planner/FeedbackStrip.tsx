@@ -18,7 +18,8 @@
 // swap is an undo toast in the bottom region, where the eye already is on the block
 // that changed. A notice that clears while one of its controls holds focus hands focus
 // back to the control it came from, so the timer that clears it never drops focus to
-// the document body. The notices themselves live in FeedbackNotices.
+// the document body. A notice and an ordinary toast never stack: the newer of the two
+// replaces the older. The notices themselves live in FeedbackNotices.
 
 import {
   useEffect,
@@ -42,6 +43,7 @@ import { uiStore } from '@/features/shell/uiStore';
 import { toastStore } from '@/features/shell/toastStore';
 import { dragStore } from './dragStore';
 import { BlockedNotice, CrossTermNotice, HintNotice } from './FeedbackNotices';
+import { useOneOutcomeSurface } from './useOneOutcomeSurface';
 
 const BLOCKED_WINDOW_MS = 6_000;
 const ANNOUNCE_WINDOW_MS = 4_000;
@@ -159,6 +161,7 @@ export function FeedbackStrip({
   const floating = placement !== 'inline';
   const offset = floatOffset(aboveToast, aboveNav);
   useOverlayClearance(stripRef, floating ? offset : null);
+  useOneOutcomeSurface();
   // The control focus came from when it entered the strip, such as the add button whose
   // blocked add moved focus to the first alternative. It is forgotten once focus moves on
   // to a control outside the strip, which then owns it.
