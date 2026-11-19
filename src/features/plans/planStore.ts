@@ -1,9 +1,10 @@
-// The plan store. It holds every saved plan and which one is active, and mirrors the
-// active plan's entries at the top level so the catalog and grid keep reading the same
-// `entries` and placed sections as before the store learned about multiple plans. The
-// plan list actions live in the CRUD slice and the section mutations in the entry
-// slice; this module composes both into one store, so callers keep a single store
-// instance and a single API.
+// The plan store. It holds every saved plan, which one is active, the pending undo
+// record, whether the stored plans read has settled, and the plan a first add just
+// created. It mirrors the active plan's entries at the top level, so the catalog and
+// grid subscribe to `entries` alone and rerender only when the active plan's entries
+// change. The plan list actions live in the CRUD slice and the entry mutations in the
+// entry slice; this module composes both into one store, so callers keep a single
+// store instance and a single API.
 
 import { useMemo } from 'react';
 import { useStore } from 'zustand';

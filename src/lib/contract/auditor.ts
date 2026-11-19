@@ -1,8 +1,13 @@
-// The contract auditor. After a live response passes the hard Zod gate, the
-// auditor walks the raw rows against the expectation table and produces a data
-// quality report. It runs only in debug builds and tests, so it observes the same
-// data the production normalizer sees without adding cost to production. It embeds
-// a canary the production bundle check greps for.
+// The contract auditor. The debug audit interceptor runs it on the raw payload
+// before the hard Zod gate, so drift that also breaks the gate still reaches the
+// report. It reads the payload as plain unknown records, so unknown keys survive,
+// and checks the subject type blocks and every teach table row against the
+// expectation table, its cross field rules, and the list of known fields; a
+// reference response gets the minimal presence and type checks of its own table.
+// The result is a data quality report with per kind totals, aggregates, the
+// unscheduled and extra meeting counts, and issues capped at the report limit. It
+// runs only in debug builds and tests, and embeds a canary the production bundle
+// check greps for.
 
 import { FULL_MARKER } from '../domain/schemas';
 import { isUnscheduledRow } from '../parsing/days';

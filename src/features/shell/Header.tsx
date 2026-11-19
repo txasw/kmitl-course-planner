@@ -26,10 +26,10 @@ interface HeaderProps {
 // shrinks, and the switcher truncates the plan name before anything else gives way.
 // The title shows from 1024 px and stays in the accessibility tree below as sr-only
 // text, so the dialog's aria-labelledby always resolves. The trailing group never
-// shrinks and carries the catalog toggle on the sheet tiers, the mode toggle, the
-// language toggle from 1024 px or the overflow menu that holds the language below it,
-// and the close control, which is always last so leaving the overlay stays one action
-// away at every width.
+// shrinks and carries the catalog toggle in edit mode on the medium tier, where the
+// catalog is a sheet, then the mode toggle, the language toggle from 1024 px or the
+// overflow menu that holds the language below it, and the close control, which is
+// always last so leaving the overlay stays one action away at every width.
 export function Header({ titleId }: HeaderProps) {
   const close = useStore(uiStore, (state) => state.close);
   const { t } = useTranslation();

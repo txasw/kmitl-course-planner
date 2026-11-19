@@ -1,9 +1,11 @@
 // The concrete key value adapters over the browser storage areas. The local adapter
-// serves the worker owned cache and the content owned plan, preference and search
-// records; the session adapter serves the worker owned tab intents, which must not
-// outlive the browser session. Each reads a single key and returns its value or
-// undefined, narrowing through unknown because the storage API types the result
-// loosely.
+// serves the worker owned cache and install record, which the content script only
+// reads, and the content owned plan, preference, search and onboarding records. The
+// session adapter serves the worker owned tab intents, which must not outlive the
+// browser session. Each reads a single key and returns its value or undefined,
+// narrowing through unknown because the storage API types the result loosely. The
+// value is validated through Zod above it: by each repository on read, and by the
+// gateway for a cache hit.
 
 import { browser, type Browser } from 'wxt/browser';
 import type { StorageAdapter } from './repo';

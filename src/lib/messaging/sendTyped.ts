@@ -1,8 +1,12 @@
 // The content side client. It sends a typed request across the worker boundary
-// and returns the typed Result the worker produced. A thrown sendMessage (for
-// example when the worker is not yet ready) and a reply that is not a Result
-// envelope both map to a NetworkError Result, so the caller never sees a raw
-// exception or an unchecked shape.
+// and returns the typed Result the worker produced. A thrown sendMessage, for
+// example after the extension reloaded under an open page, maps to a NetworkError
+// Result. The reply is checked against the Result envelope: a true ok flag with
+// an optional value, or a false one carrying a valid tagged error. Anything else,
+// such as the undefined a send resolves to when no listener answers, also maps to
+// a NetworkError.
+// The success value itself is not parsed again here, because the worker built it
+// from data it already validated; the caller never sees a raw exception.
 
 import { browser } from 'wxt/browser';
 import { err, networkError } from '../utils/result';
