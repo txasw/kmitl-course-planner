@@ -369,6 +369,10 @@ test('the failed save strip fits whole at 320 px in Thai and English', async ({
   );
 });
 
+// The clearance ADR-0072 keeps between the version pill and the first text in the
+// header row: the pill reaches 4 px into the 12 px gap after the mark.
+const PILL_CLEARANCE_PX = 8;
+
 /** Whether two boxes share any area. */
 function boxesOverlap(
   a: { x: number; y: number; width: number; height: number },
@@ -417,11 +421,14 @@ async function expectVersionPill(page: Page, version: string): Promise<void> {
   expect(pillBox.y + pillBox.height).toBeLessThanOrEqual(
     headerBox.y + headerBox.height,
   );
+  const pillRight = pillBox.x + pillBox.width;
   expect(boxesOverlap(pillBox, switcher)).toBe(false);
+  expect(switcher.x - pillRight).toBeGreaterThanOrEqual(PILL_CLEARANCE_PX);
   const title = header.getByRole('heading', { level: 2 });
   const titleBox = await title.boundingBox();
   if (titleBox !== null && titleBox.width > 1) {
     expect(boxesOverlap(pillBox, titleBox)).toBe(false);
+    expect(titleBox.x - pillRight).toBeGreaterThanOrEqual(PILL_CLEARANCE_PX);
   }
 }
 
