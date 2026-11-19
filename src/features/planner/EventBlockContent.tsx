@@ -10,6 +10,12 @@
 // resort, for a word wider than the whole line. The name shows in full until the density fit
 // clamps it to the lines the box holds, and the block itself is the expand affordance, opening
 // the full detail.
+//
+// A block narrower than 7em, a day column of the phone week or a suggestion thumbnail, shows the
+// name alone with tight padding, so the name has the width it needs to break between words; the
+// place, the chip, and the foot return as soon as the block is wide enough. The rule is a
+// container query on the block wrapper, in em of the grid type size, so it follows the block's
+// own width at every grid scale.
 
 import type { RefObject } from 'react';
 import { MapPin } from 'lucide-react';
@@ -88,7 +94,7 @@ export function EventBlockContent({
         lang={locale}
         className={`shrink-0 font-semibold break-words hyphens-auto ${
           level.nameLines === 'all' ? '' : 'line-clamp-(--kcp-name-lines)'
-        } ${reserveRemove ? 'not-pointer-coarse:pr-5' : ''}`}
+        } ${reserveRemove ? 'not-pointer-coarse:@min-[7em]:pr-5' : ''}`}
         style={nameClampStyle(level.nameLines)}
       >
         {badge !== null ? (
@@ -104,13 +110,13 @@ export function EventBlockContent({
       {level.showEnglish ? (
         <span
           lang="en"
-          className={`shrink-0 font-normal break-words hyphens-auto ${quiet}`}
+          className={`shrink-0 font-normal break-words hyphens-auto @max-[7em]:hidden ${quiet}`}
         >
           {nameEn}
         </span>
       ) : null}
       {showRow ? (
-        <span className="mt-0.5 flex shrink-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-ink">
+        <span className="mt-0.5 flex shrink-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-ink @max-[7em]:hidden">
           {level.showPlace ? (
             <span className="min-w-0 break-words">
               <MapPin
@@ -142,7 +148,7 @@ export function EventBlockContent({
           margin never costs the name a line. */}
       {level.showTime || level.showId ? (
         <div
-          className={`${footAtBottom ? 'mt-auto' : 'mt-1'} min-h-0 pt-0.5 ${quiet}`}
+          className={`${footAtBottom ? 'mt-auto' : 'mt-1'} min-h-0 pt-0.5 @max-[7em]:hidden ${quiet}`}
         >
           {level.showTime ? (
             <span className="block text-[0.9em] tabular-nums">{time}</span>

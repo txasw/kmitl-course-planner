@@ -386,8 +386,8 @@ describe('EventBlock', () => {
     expect(screen.getByText('901')).toBeInTheDocument();
   });
 
-  it('keeps the name clear of the remove corner only where that control shows', () => {
-    const { container, rerender } = render(
+  it('shows the name alone on a block narrower than 7em', () => {
+    const { container } = render(
       <EventBlock
         section={section}
         meeting={meeting}
@@ -396,22 +396,25 @@ describe('EventBlock', () => {
         t={t}
         onRemove={vi.fn()}
         removeLabel={t('action.remove')}
+        onOpenDetail={vi.fn()}
       />,
     );
+    // The wrapper is the size container the narrow rule queries.
+    const block = screen.getByRole('button', { name: /90592033/ });
+    expect(block.parentElement).toHaveClass('@container');
+    expect(block).toHaveClass('@max-[7em]:pl-1.5', '@max-[7em]:pr-0.5');
+    // The place row and the foot hide, and the remove control hides with them, since the
+    // details the block opens carry Remove.
+    expect(screen.getByText('901').parentElement).toHaveClass(
+      '@max-[7em]:hidden',
+    );
+    expect(container.querySelector('.mt-1')).toHaveClass('@max-[7em]:hidden');
+    expect(
+      screen.getByRole('button', { name: t('action.remove') }),
+    ).toHaveClass('@max-[7em]:hidden');
+    // The name keeps clear of the remove corner only where that control can show.
     expect(container.querySelector('[data-fit-name]')).toHaveClass(
-      'not-pointer-coarse:pr-5',
-    );
-    rerender(
-      <EventBlock
-        section={section}
-        meeting={meeting}
-        style={{}}
-        locale="th"
-        t={t}
-      />,
-    );
-    expect(container.querySelector('[data-fit-name]')?.className).not.toMatch(
-      /pr-5/,
+      'not-pointer-coarse:@min-[7em]:pr-5',
     );
   });
 
