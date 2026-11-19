@@ -588,13 +588,14 @@ Decision. The pages state the version in `package.json`, and `scripts/landing/si
 is removed. On `main`, the `version` field in `package.json` changes only in the Changesets
 release pull request, so between releases it already holds the latest released version. The
 release workflow now runs `pnpm release:version`, which is `changeset version` followed by
-`pnpm site:build`, as the action's version script. The action commits every changed file, so the release pull request
-carries the regenerated `site/` that states the new version, and merging it deploys that page
-through Workers Builds on the same push to `main` that tags the release. The site test requires the
-committed page to state exactly the `package.json` version, so the freshness check in continuous
-integration still fails when a version bump lands without a rebuilt site. `pnpm site:build` no
-longer warns about pending changesets or a version mismatch: neither describes a state that needs
-attention now, and the pending warning printed on every run between releases.
+`pnpm site:build`, as the action's version script. The action commits every changed file, so the
+release pull request carries the regenerated `site/` that states the new version, and merging it
+deploys that page through Workers Builds on the same push to `main` that tags the release. The
+site test requires the committed page to state exactly the `package.json` version, so the
+freshness check in continuous integration still fails when a version bump lands without a rebuilt
+site. `pnpm site:build` no longer warns about pending changesets or a version mismatch: neither
+describes a state that needs attention now, and the pending warning printed on every run between
+releases.
 
 Why the earlier decoupling is dropped. It existed so the page never named a version before both
 stores carried it. Chrome Web Store and Firefox Add-ons review usually takes hours, so the page may
