@@ -21,6 +21,7 @@ import {
 } from '../../../tests/support/plan-store';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { installViewport } from '../../../tests/support/viewport';
+import { VIEWPORT_BOTTOM_PROPERTY, VIEWPORT_FIT } from '@/lib/ui/viewportInset';
 
 const deps = fakeSearchDeps();
 
@@ -70,6 +71,8 @@ function holdsPanelEntry(): boolean {
 afterEach(async () => {
   cleanup();
   vi.unstubAllGlobals();
+  // The keyboard test pins the layout viewport height jsdom reports as zero.
+  Reflect.deleteProperty(document.documentElement, 'clientHeight');
   act(() => {
     uiStore.getState().close();
     uiStore.getState().setLanguage('th');
@@ -327,5 +330,33 @@ describe('Overlay', () => {
     expect(panel).toContainElement(sheet);
     // The sheet sits on the panel itself, outside the header it opened from.
     expect(sheet.closest('header')).toBeNull();
+  });
+
+  it('fits the panel above an open phone keyboard', () => {
+    installViewport(390, { reducedMotion: true });
+    // A phone keyboard shrinks the visual viewport only; the layout viewport the fixed
+    // panel resolves against keeps its 844 px.
+    const keyboard = Object.assign(new EventTarget(), {
+      offsetTop: 0,
+      height: 420,
+      scale: 1,
+    });
+    vi.stubGlobal('visualViewport', keyboard);
+    Object.defineProperty(document.documentElement, 'clientHeight', {
+      configurable: true,
+      value: 844,
+    });
+    act(() => {
+      uiStore.getState().open();
+    });
+    render(<Overlay />, { wrapper });
+    const panel = screen.getByRole('dialog', {
+      name: 'KCP: ตัววางแผนตารางเรียน สจล.',
+    });
+    expect(panel.style.getPropertyValue(VIEWPORT_BOTTOM_PROPERTY)).toBe(
+      '424px',
+    );
+    expect(panel).toHaveClass(...VIEWPORT_FIT.split(' '));
+    expect(panel).not.toHaveClass('inset-0');
   });
 });

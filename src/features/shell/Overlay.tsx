@@ -17,6 +17,8 @@ import { usePanelShortcuts } from './usePanelShortcuts';
 import { useScrollLock } from './useScrollLock';
 import { useBackToClose } from './useBackToClose';
 import { usePresence } from './usePresence';
+import { useVisualViewportInset } from './useVisualViewportInset';
+import { VIEWPORT_FIT } from '@/lib/ui/viewportInset';
 
 // The full viewport overlay panel. It renders inside the closed shadow root as a
 // modal dialog: focus is trapped while open, Escape and the close control return
@@ -31,6 +33,8 @@ import { usePresence } from './usePresence';
 // its foot: the nav pads itself there, so its fill reaches the screen edge under the
 // home indicator. The portal context covers the header as well as the body, so a header
 // control such as the plan switcher can open its bottom sheet over the whole panel.
+// The panel fills the visible part of the viewport rather than the layout viewport, so a
+// phone keyboard shrinks it instead of covering its foot.
 const TITLE_ID = 'kcp-overlay-title';
 
 export function Overlay() {
@@ -60,6 +64,7 @@ export function Overlay() {
   usePanelShortcuts(panelRef, { enabled: isOpen && mounted, onHelp: openHelp });
   useScrollLock(isOpen);
   useBackToClose(isOpen, close);
+  useVisualViewportInset(panelRef, mounted);
 
   if (!mounted) return null;
 
@@ -71,7 +76,7 @@ export function Overlay() {
       aria-labelledby={TITLE_ID}
       lang={language}
       tabIndex={-1}
-      className={`fixed inset-0 z-host flex flex-col bg-surface text-ink outline-none transition-opacity duration-fast motion-reduce:transition-none ${
+      className={`fixed ${VIEWPORT_FIT} z-host flex flex-col bg-surface text-ink outline-none transition-opacity duration-fast motion-reduce:transition-none ${
         stage === 'open' ? 'opacity-100' : 'opacity-0'
       }`}
     >
