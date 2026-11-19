@@ -5,6 +5,7 @@ import {
   storedOnboarding,
   waitForInstallTab,
 } from './support/onboarding';
+import { coachMark } from './support/coachMark';
 import {
   ENTRY_TOAST_DELAY_MS,
   ENTRY_TOAST_VISIBLE_MS,
@@ -14,8 +15,9 @@ import {
 // off, so these specs turn it back on before loading a page. With no plan stored the
 // prompt names the planner and opens it at the catalog. Do not show again keeps it away
 // on the next load. On the install visit the welcome speaks first and the prompt stays
-// quiet, and it appears on the next load instead. A page loaded on a host result route
-// offers that search, and the offer runs it in the catalog.
+// quiet. On the search page the next load brings the coach mark of ADR-0072 in the
+// prompt's place, since there the coach mark takes precedence. A page loaded on a host
+// result route offers that search, and the offer runs it in the catalog.
 
 const NO_PLAN = 'ใช้ Planner วางแผนตารางเรียนจากรายวิชาที่เปิดสอนในเว็บไซต์นี้ได้';
 const OPEN_PLANNER = 'เปิด Planner';
@@ -122,7 +124,7 @@ test.describe('with the prompt on', () => {
 test.describe('on a fresh install', () => {
   test.use({ onboarding: 'fresh' });
 
-  test('the install tab shows the welcome and no prompt, and a reload shows it', async ({
+  test('the install tab shows the welcome and no prompt, and a reload shows the coach mark in its place', async ({
     context,
   }) => {
     const tab = await waitForInstallTab(context);
@@ -138,8 +140,9 @@ test.describe('on a fresh install', () => {
     await expect(toast).toHaveCount(0);
 
     await tab.reload();
-    await expect(toast).toBeVisible({ timeout: SHOW_TIMEOUT_MS });
-    await expect(toast).toContainText(NO_PLAN);
-    await expect(tab.getByRole('dialog')).toHaveCount(0);
+    await expect(coachMark(tab)).toBeVisible({ timeout: SHOW_TIMEOUT_MS });
+    await tab.waitForTimeout(QUIET_MS);
+    await expect(toast).toHaveCount(0);
+    await expect(tab.getByRole('dialog', { name: WELCOME })).toHaveCount(0);
   });
 });

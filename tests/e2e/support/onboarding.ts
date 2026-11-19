@@ -2,14 +2,17 @@
 // is a fresh profile, so the worker sees an install, opens the search page in a tab of
 // its own, and the welcome is due. A spec that is not about the first run settles that
 // state: the install tab is closed and the onboarding record is seeded as if the
-// student had seen the welcome, opened the panel, and turned the entry prompt off. A
-// spec about the first run asks for the fresh state and meets the install as a student
-// would, and a spec about the entry prompt turns it back on before it loads a page.
+// student had seen the welcome, opened the panel, turned the entry prompt off, and
+// chosen not again today on the search page coach mark (ADR-0072). A spec about the
+// first run asks for the fresh state and meets the install as a student would, a spec
+// about the entry prompt turns it back on before it loads a page, and a spec about the
+// coach mark lets it speak again.
 
 import type { BrowserContext, Page } from '@playwright/test';
 import { SELECTOR_URL } from '../../../src/lib/shell/hostTab';
 import { ONBOARDING_KEY } from '../../../src/lib/storage/keys';
 import type { OnboardingRecord } from '../../../src/lib/storage/onboarding';
+import { localDayStamp } from '../../../src/lib/onboarding/coachMark';
 import { extensionWorker } from './worker';
 
 /** Whether a context starts as a fresh install or as a student past the first run. */
@@ -26,19 +29,34 @@ const POLL_MS = 100;
 
 const SETTLED_AT = '2026-11-06T08:00:00.000Z';
 
-// The first run as done with the entry prompt still on: the welcome seen, the panel
-// opened.
-const PROMPTED_RECORD: OnboardingRecord = {
+// The first run as done: the welcome seen and the panel opened.
+const FIRST_RUN_DONE: OnboardingRecord = {
   schemaVersion: 1,
   welcomeShownAt: SETTLED_AT,
   panelFirstOpenedAt: SETTLED_AT,
 };
 
-// The first run as done: the welcome seen, the panel opened, the entry prompt off.
-const SETTLED_RECORD: OnboardingRecord = {
-  ...PROMPTED_RECORD,
+// The day the harness runs on, in the same local zone the browser it launches reads.
+function today(): string {
+  return localDayStamp(new Date());
+}
+
+// The first run as done with the entry prompt still on. The coach mark stays away for
+// the day, so on the search page the entry prompt speaks rather than giving way to it.
+function promptedRecord(): OnboardingRecord {
+  return { ...FIRST_RUN_DONE, coachMarkSnoozedOn: today() };
+}
+
+// The first run as done with the coach mark free to speak and the entry prompt off.
+const COACHED_RECORD: OnboardingRecord = {
+  ...FIRST_RUN_DONE,
   entryToastOptOutAt: SETTLED_AT,
 };
+
+// The first run as done: the entry prompt off, the coach mark away for the day.
+function settledRecord(): OnboardingRecord {
+  return { ...COACHED_RECORD, coachMarkSnoozedOn: today() };
+}
 
 // The worker exposes the extension API as a global; the harness describes only the
 // part it calls.
@@ -89,7 +107,7 @@ export async function waitForInstallTab(
 export async function settleOnboarding(context: BrowserContext): Promise<void> {
   const tab = await waitForInstallTab(context);
   await tab.close();
-  await seedOnboarding(context, SETTLED_RECORD);
+  await seedOnboarding(context, settledRecord());
 }
 
 /**
@@ -98,21 +116,45 @@ export async function settleOnboarding(context: BrowserContext): Promise<void> {
  * seed it replaces.
  */
 export async function allowEntryToast(context: BrowserContext): Promise<void> {
-  await seedOnboarding(context, PROMPTED_RECORD);
+  await seedOnboarding(context, promptedRecord());
+}
+
+/**
+ * Lets the search page coach mark speak again in a settled context, as for a student
+ * who has not chosen not again today. The entry prompt stays off unless asked for, for
+ * a spec about which of the two speaks. A test harness write, like the seed it replaces.
+ */
+export async function allowCoachMark(
+  context: BrowserContext,
+  { entryToast = false }: { entryToast?: boolean } = {},
+): Promise<void> {
+  await seedOnboarding(context, entryToast ? FIRST_RUN_DONE : COACHED_RECORD);
 }
 
 async function seedOnboarding(
   context: BrowserContext,
   record: OnboardingRecord,
 ): Promise<void> {
+  await seedStorage(context, ONBOARDING_KEY, record);
+}
+
+/**
+ * Writes one storage.local key through the worker, such as the preferences a spec loads
+ * a page under. A test harness write: in the product only the owning side writes a key.
+ */
+export async function seedStorage(
+  context: BrowserContext,
+  key: string,
+  value: unknown,
+): Promise<void> {
   const worker = await extensionWorker(context);
   await worker.evaluate(
-    async ({ key, value }) => {
+    async (items) => {
       // Test only assertion: an extension worker carries the global described above.
       const globals = globalThis as unknown as WorkerGlobals;
-      await globals.chrome.storage.local.set({ [key]: value });
+      await globals.chrome.storage.local.set(items);
     },
-    { key: ONBOARDING_KEY, value: record },
+    { [key]: value },
   );
 }
 
