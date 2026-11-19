@@ -95,3 +95,44 @@ interface runs the search in idle chunks. Because the rules come from `checkPlac
 suggestions in the same step. A heading wording change that keeps the group number has no
 effect. One that drops the number turns the affected courses unknown, and the debug report shows
 the drift.
+
+## Amendment, 2026-11-20: a ticked subject set and distinct suggestions
+
+Feedback from 1.4 users and the owner changed two parts of this record. The rest stands: the
+hard rules are still the add rules, locked entries stay fixed, apply still creates a new plan,
+and the search still returns three suggestions.
+
+The subject set is what the student ticks. The rule that only group 2 courses are chosen is
+reversed. The dialog opens on a tick list of every course of the result that is not already in
+the plan. The group 2 curriculum subjects start ticked, as the old scope chose them. GenEd, free
+electives, and a course whose heading names no group start unticked and join when the student
+ticks them, so a student can fit a group 1 subject around the curriculum instead of placing it by
+hand first. There is no separate number of subjects to choose: the ticked set is the count, and
+the objectives rank by how many ticked subjects fit. `suggestPlans` takes the set as `subjects`,
+defaulting to the group 2 subjects through `defaultSuggestSubjects` in
+`lib/planner/suggestSubjects.ts`, and `suggestCandidates` keeps only ticked courses. A ticked
+group 1 course is a candidate like any other, so its left out reason reads the same way. An
+unknown course is still never chosen unless ticked, which keeps the original guard against
+heading drift. A subject already in the plan is not listed, because it is a locked entry. The
+entry point is unchanged: the action still shows only for a by_class result that holds a
+curriculum course.
+
+The three suggestions differ in time. Users found the suggestions nearly identical, because the
+search often kept three timetables that only swapped a section for another meeting at the same
+hours. The time footprint of a timetable, in `lib/planner/suggestFootprint.ts`, is every chosen
+subject with the days and minute ranges its section group meets, a declared pair counted as one
+group. Two timetables with the same footprint are one option. Inside a course, section groups
+with the same meeting times and the same exam windows are interchangeable for every rule
+`checkPlacement` applies, so only the lowest section code stays an option, which also spares the
+search from walking copies. Groups with the same times but different exam windows stay separate
+options, since one may clash where the other does not, and the search keeps at most one timetable
+per footprint instead: a timetable replaces a kept one of its footprint only when it ranks first,
+which on a tie is the lower section codes subject by subject. Branch and bound is unchanged,
+because a twin of a kept timetable has the same objective and penalty and is never pruned before
+it is compared. When a result allows fewer than three footprints, the search returns fewer
+suggestions and the cards and left out reasons read as before.
+
+A similarity threshold over meeting minutes, which would also drop timetables that differ by a
+small shift, was rejected: it needs a tuning constant with no clear value, and the reported
+problem was exact repeats. A count stepper for the number of subjects was rejected at the
+owner's request, since ticking the subjects already says how many.
