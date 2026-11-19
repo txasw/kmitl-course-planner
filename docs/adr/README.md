@@ -80,3 +80,4 @@ withdrawal note above the original text, which is kept as written.
 69. [Per term course shortlist](0069-per-term-course-shortlist.md) (withdrawn)
 70. [Firefox for Android support and the host viewport](0070-firefox-android-and-host-viewport.md)
 71. [Soft depth tokens and cool neutrals](0071-soft-depth-tokens-and-cool-neutrals.md)
+72. [Search page coach mark](0072-search-page-coach-mark.md)

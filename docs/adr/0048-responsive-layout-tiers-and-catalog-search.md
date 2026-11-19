@@ -579,3 +579,15 @@ from 1024 px and an overflow menu below it, so the same setting lived in two pla
   mockup drew, was rejected because the header still spends a slot on a rarely changed setting
   and a flag alone does not say what pressing it does. A two letter code beside the flag was
   rejected as redundant with the language name the menu already shows.
+
+## Amendment, 2026-11-20: the coach mark live region
+
+The search page coach mark of ADR-0072 adds one polite region, and
+`src/features/shell/liveRegions.test.tsx` lists `features/onboarding/CoachMark.tsx` with it.
+
+- `CoachMark` owns one sentence that says where the planner is and what it does, read once as the
+  coach mark appears. The region is mounted empty from the start and carries the panel language in
+  `lang`, since it sits outside the overlay root. The dialog's own name, the callout, is read as
+  focus moves into it, so the region does not repeat it.
+- It never coexists with the entry toast region speaking, since on the search page the coach mark
+  takes the toast's place, and it never speaks while the panel is open.
