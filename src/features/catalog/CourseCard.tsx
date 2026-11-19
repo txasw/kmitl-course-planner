@@ -3,9 +3,9 @@
 // name follows as a quieter secondary line, so a Thai reader still meets the English
 // name the registration documents use, and both names wrap in full rather than clamp.
 // A last line inside the toggle summarizes the course's fit, so a collapsed card answers
-// whether opening it is worth it. Each section's seat status and plan relation are computed here from
-// the placed sections. A card starts collapsed and the catalog owns whether it is
-// open, so the state survives a remount.
+// whether opening it is worth it. Each section's seat status and plan relation are
+// computed here from the placed sections. A card starts collapsed and the catalog owns
+// whether it is open, so the state survives a remount.
 // Resting the mouse on the header, or focusing the toggle from the keyboard, previews
 // where the course's sections would land on the grid. A course with two or more sections
 // opens its body with a compare control first, which shows every section side by side
