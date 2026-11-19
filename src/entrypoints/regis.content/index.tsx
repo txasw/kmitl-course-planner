@@ -1,3 +1,4 @@
+import '@/lib/zodConfig';
 import './style.css';
 import { createRoot, type Root } from 'react-dom/client';
 import { IS_DEBUG } from '@/lib/env';

@@ -1,3 +1,4 @@
+import '@/lib/zodConfig';
 import { IS_DEBUG } from '@/lib/env';
 import {
   createBrowserStorageAdapter,
