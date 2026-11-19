@@ -326,4 +326,36 @@ describe('prefs repository', () => {
     expect(loaded?.timetableView).toBe('week');
     expect(loaded?.catalogHides).toBeUndefined();
   });
+
+  it.each([
+    ['a saved map', { '1/2569': ['90592033'], '2/2569': ['01006001'] }],
+    ['a malformed map', { '1/2569': [42] }],
+  ])(
+    'loads a blob holding the withdrawn shortlist field with %s',
+    async (_name, shortlist) => {
+      // A build that shipped the per term shortlist (ADR-0069, withdrawn) wrote this
+      // field; the object schema strips it, so the rest loads and no version bump is due.
+      const repo = createPrefsRepository(
+        fakeAdapter({
+          [PREFS_KEY]: {
+            schemaVersion: 1,
+            language: 'en',
+            timetableView: 'week',
+            catalogHides: {
+              full: true,
+              conflicting: false,
+              unscheduled: false,
+            },
+            shortlist,
+          },
+        }),
+      );
+      expect(await repo.load()).toEqual({
+        schemaVersion: 1,
+        language: 'en',
+        timetableView: 'week',
+        catalogHides: { full: true, conflicting: false, unscheduled: false },
+      });
+    },
+  );
 });
