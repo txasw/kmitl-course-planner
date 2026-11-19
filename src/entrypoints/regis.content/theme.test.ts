@@ -260,6 +260,29 @@ describe('shadow stylesheet tokens', () => {
     );
   });
 
+  it('enters the coach mark from motion tokens and holds every part still when reduced', () => {
+    expect(css).toContain('--kcp-scrim-coach-strength: 78%;');
+    expect(css).toContain('--kcp-duration-draw: 400ms;');
+    expect(css).toMatch(
+      /\.kcp-coach-draw \{[^}]*stroke-dasharray: 1;[^}]*animation: kcp-coach-draw var\(--kcp-duration-draw\)/,
+    );
+    const reduced = [
+      ...css.matchAll(
+        /@media \(prefers-reduced-motion: reduce\) \{([^{}]*)\{([^}]*)\}/g,
+      ),
+    ].find((match) => match[1]?.includes('.kcp-coach-draw'));
+    for (const part of [
+      '.kcp-coach-spot::before',
+      '.kcp-coach-enter',
+      '.kcp-coach-reveal',
+      '.kcp-coach-draw',
+      '.kcp-coach-pop',
+    ]) {
+      expect(reduced?.[1]).toContain(part);
+    }
+    expect(reduced?.[2]).toContain('animation: none;');
+  });
+
   it('shakes a rejected drop over the base duration and only fades it when reduced', () => {
     expect(css).toMatch(
       /\.kcp-shake \{\s*animation: kcp-shake var\(--kcp-duration-base\) ease-out forwards;/,

@@ -318,8 +318,26 @@ describe('soft card muted text bound', () => {
   }
 });
 
+// The search page coach mark of ADR-0072 sets white copy on its scrim, the ink mixed in
+// at the scrim strength. The lightest page the scrim can lie over is white, so the copy
+// is checked there; any darker host colour under it only raises the ratio.
+const COACH_SCRIM_OVER_WHITE = alphaOver(
+  shadowToken('ink'),
+  shadowFraction('scrim-coach-strength'),
+  WHITE,
+);
+
+const COACH_MARK_PAIRS: Pair[] = [
+  {
+    name: 'white callout and Not again today on the coach mark scrim',
+    fg: WHITE,
+    bg: COACH_SCRIM_OVER_WHITE,
+    min: AA_NORMAL,
+  },
+];
+
 describe('design token contrast', () => {
-  for (const pair of [...PAIRS, ...SOFT_CARD_PAIRS]) {
+  for (const pair of [...PAIRS, ...SOFT_CARD_PAIRS, ...COACH_MARK_PAIRS]) {
     it(`${pair.name} meets ${String(pair.min)}:1`, () => {
       expect(contrastRatio(pair.fg, pair.bg)).toBeGreaterThanOrEqual(pair.min);
     });
