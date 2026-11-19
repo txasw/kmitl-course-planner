@@ -13,35 +13,17 @@ export function courseToggleId(subjectId: string): string {
   return `kcp-course-toggle-${subjectId}`;
 }
 
-function courseCard(scope: ParentNode, subjectId: string): HTMLElement | null {
-  for (const card of scope.querySelectorAll<HTMLElement>(
-    '[data-course-card]',
-  )) {
-    if (card.dataset.courseCard === subjectId) return card;
-  }
-  return null;
-}
-
 /** The disclosure toggle of the card for the subject, or null when none is rendered. */
 export function courseToggle(
   scope: ParentNode,
   subjectId: string,
 ): HTMLElement | null {
-  return (
-    courseCard(scope, subjectId)?.querySelector<HTMLElement>(
-      '[data-course-toggle]',
-    ) ?? null
-  );
-}
-
-/** The shortlist bookmark of the card for the subject, or null when none is rendered. */
-export function courseShortlistToggle(
-  scope: ParentNode,
-  subjectId: string,
-): HTMLElement | null {
-  return (
-    courseCard(scope, subjectId)?.querySelector<HTMLElement>(
-      '[data-shortlist-toggle]',
-    ) ?? null
-  );
+  for (const card of scope.querySelectorAll<HTMLElement>(
+    '[data-course-card]',
+  )) {
+    if (card.dataset.courseCard === subjectId) {
+      return card.querySelector<HTMLElement>('[data-course-toggle]');
+    }
+  }
+  return null;
 }

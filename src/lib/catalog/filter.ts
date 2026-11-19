@@ -1,11 +1,10 @@
 // The instant, local catalog filter. Free text matches a course by its subject
 // id or either name, which keeps every section, or else a section by an instructor
 // or its place, which narrows the course to the matching sections; the credit
-// filter and the saved only filter match a course; the day, hide full, hide
-// conflicting, and open to my curriculum filters narrow a course's sections. A
-// course drops out when no section survives. The seat, conflict, and shortlist tests
-// are injected as predicates so this module stays free of the planner, the seat
-// logic, and the store, and remains pure.
+// filter matches a course; the day, hide full, hide conflicting, and open to my
+// curriculum filters narrow a course's sections. A course drops out when no
+// section survives. The seat and conflict tests are injected as predicates so
+// this module stays free of the planner and seat logic and remains pure.
 
 import type { Course, DayOfWeek, OfferedTo, Section } from '../domain/types';
 import { idsEqual } from '../reference/filters';
@@ -24,8 +23,6 @@ export interface CatalogFilter {
   hideUnscheduled: boolean;
   /** Keep only the sections offered to this curriculum, or null for every section. */
   curriculum: CurriculumProfile | null;
-  /** Keep only the courses on the browsed term's shortlist (ADR-0069). */
-  savedOnly: boolean;
 }
 
 export const EMPTY_FILTER: CatalogFilter = {
@@ -36,7 +33,6 @@ export const EMPTY_FILTER: CatalogFilter = {
   hideConflicting: false,
   hideUnscheduled: false,
   curriculum: null,
-  savedOnly: false,
 };
 
 // The catch all groupings of a response carry these in place of a real id, and
@@ -73,8 +69,6 @@ export function matchesOfferedTo(
 export interface SectionPredicates {
   isFull: (section: Section) => boolean;
   isConflicting: (course: Course, section: Section) => boolean;
-  /** Whether the course is saved for the browsed term; read only when savedOnly is on. */
-  isShortlisted: (course: Course) => boolean;
 }
 
 function includesNeedle(value: string, needle: string): boolean {
@@ -148,9 +142,6 @@ export function filterCourses(
   const result: Course[] = [];
   for (const course of courses) {
     if (filter.credit !== null && course.credit !== filter.credit) {
-      continue;
-    }
-    if (filter.savedOnly && !predicates.isShortlisted(course)) {
       continue;
     }
     // A course hit by id or name keeps every section; otherwise the text must
