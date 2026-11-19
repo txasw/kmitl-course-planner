@@ -15,6 +15,7 @@ import { useMemo } from 'react';
 import { useStore } from 'zustand';
 import { AlertTriangle, ChevronDown, Clock, LoaderCircle } from 'lucide-react';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
+import { courseCountLabel } from '@/lib/i18n/counts';
 import type { Translate } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
 import { describeQuery } from '@/lib/search/describeQuery';
@@ -68,7 +69,7 @@ function StatusSlot({ busy, courses, t }: StatusSlotProps) {
   }
   return (
     <span className="kcp-fade-in tabular-nums">
-      {fillTemplate(t('search.summary.count'), { courses })}
+      {courseCountLabel(t, courses)}
     </span>
   );
 }

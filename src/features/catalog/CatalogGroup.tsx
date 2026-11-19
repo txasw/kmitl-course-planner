@@ -5,7 +5,7 @@
 import { useId, type ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
 import type { Translate } from '@/lib/i18n/t';
-import { fillTemplate } from '@/lib/i18n/template';
+import { courseCountLabel } from '@/lib/i18n/counts';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_HEIGHT } from '@/lib/ui/target';
 
@@ -27,10 +27,7 @@ export function CatalogGroup({
   children,
 }: CatalogGroupProps) {
   const listId = useId();
-  const countLabel =
-    count === 1
-      ? t('catalog.group.countOne')
-      : fillTemplate(t('catalog.group.count'), { n: count });
+  const countLabel = courseCountLabel(t, count);
   return (
     <section className="flex flex-col gap-2">
       <h3 className="text-xs font-semibold text-ink-soft">

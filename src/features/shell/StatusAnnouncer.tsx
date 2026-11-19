@@ -20,6 +20,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
+import { courseCountLabel, sectionCountLabel } from '@/lib/i18n/counts';
 import type { Translate } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
@@ -66,8 +67,8 @@ function outcomeText(
     return `${t('catalog.resultEmptyTitle')} ${termSummary(query, t)}`;
   }
   return fillTemplate(t('status.resultsFound'), {
-    courses: courses.length,
-    sections: countSections(courses),
+    courses: courseCountLabel(t, courses.length),
+    sections: sectionCountLabel(t, countSections(courses)),
   });
 }
 
