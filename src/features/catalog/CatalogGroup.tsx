@@ -1,6 +1,8 @@
 // One subject type heading of the catalog as a disclosure. The heading holds a button
 // that names the group and how many courses the filters leave in it, and a collapsed
-// group unmounts its cards, so a long group the student set aside costs no render.
+// group unmounts its cards, so a long group the student set aside costs no render. The
+// caller leaves the count out when it would only repeat the catalog summary line, as on
+// a single heading result with no filter narrowing it.
 
 import { useId, type ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
@@ -11,7 +13,8 @@ import { TARGET_HEIGHT } from '@/lib/ui/target';
 
 interface CatalogGroupProps {
   heading: string;
-  count: number;
+  /** Courses the filters leave in the group, or null to show the heading alone. */
+  count: number | null;
   collapsed: boolean;
   onToggle: () => void;
   t: Translate;
@@ -27,7 +30,7 @@ export function CatalogGroup({
   children,
 }: CatalogGroupProps) {
   const listId = useId();
-  const countLabel = courseCountLabel(t, count);
+  const countLabel = count === null ? null : courseCountLabel(t, count);
   return (
     <section className="flex flex-col gap-2">
       <h3 className="text-xs font-semibold text-ink-soft">
@@ -43,8 +46,13 @@ export function CatalogGroup({
             aria-hidden
             className={`shrink-0 transition-transform duration-fast motion-reduce:transition-none ${collapsed ? '-rotate-90' : ''}`}
           />
-          <span className="min-w-0 flex-1">{heading}</span>{' '}
-          <span className="shrink-0 font-normal">{countLabel}</span>
+          <span className="min-w-0 flex-1">{heading}</span>
+          {countLabel === null ? null : (
+            <>
+              {' '}
+              <span className="shrink-0 font-normal">{countLabel}</span>
+            </>
+          )}
         </button>
       </h3>
       {collapsed ? null : (
