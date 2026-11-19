@@ -8,7 +8,8 @@
 // Until the student picks a day, the view follows the first day with a class, so a class
 // added from the catalog pane is in view on return; a picked day holds until its chip
 // leaves the row. The planner panel holds the picked day, so an action outside the view,
-// such as the stats bar conflict action, can show the day its target sits on.
+// such as the stats bar conflict action, can show the day its target sits on. Each shown
+// day opens scrolled to its first class, so an afternoon class is in view on arrival.
 //
 // A horizontal swipe over the timetable steps the day, stopping at either end of the row.
 // It starts only past 24 px along the row and never while a drag is live. A touch drag
@@ -110,7 +111,7 @@ export function DayView({
         className={`flex min-h-0 flex-1 flex-col ${touchClass}`}
         style={reducedMotion ? undefined : style}
       >
-        <GridScroller>
+        <GridScroller revealKey={day}>
           {(fontPx) => (
             <WeeklyGrid
               {...grid}

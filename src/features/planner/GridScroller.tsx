@@ -10,8 +10,15 @@
 // stepped size to its content, so a wide panel or a hidden catalog reads at a larger size.
 // It measures the outer region rather than the scroll box, so a scrollbar that appears or
 // goes as the type steps cannot change the width that chose the step.
+//
+// The day view also asks the scroller to open each day on its first class. Its grid runs
+// from the window start, so on a phone a day whose classes begin after noon would otherwise
+// open on empty morning rows. Each time the reveal key changes, and when the measured font
+// steps, the scroller lifts its earliest block to just under the sticky header; a later
+// manual scroll on the same day is left alone.
 
-import { useRef, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, type ReactNode } from 'react';
+import { revealScrollTop } from '@/lib/planner/dayView';
 import { EDIT_DAY_AXIS_PX } from '@/lib/planner/grid';
 import { gridFontPx } from '@/lib/ui/breakpoints';
 import { useElementSize } from '@/features/shell/useElementSize';
@@ -27,14 +34,38 @@ const FADE_START_X = EDIT_DAY_AXIS_PX + 1;
 interface GridScrollerProps {
   /** Renders the scroller content at the edit grid font size for the measured width. */
   children: (fontPx: number) => ReactNode;
+  /** Changes when the content should open on its earliest block, as on a new day. */
+  revealKey?: string | number;
 }
 
-export function GridScroller({ children }: GridScrollerProps) {
+/** The tops of the placed blocks, measured from the top of the scrolled content. */
+function blockTops(scroller: HTMLElement): number[] {
+  const origin = scroller.getBoundingClientRect().top - scroller.scrollTop;
+  return Array.from(
+    scroller.querySelectorAll<HTMLElement>('[data-block-order]'),
+    (block) => block.getBoundingClientRect().top - origin,
+  );
+}
+
+export function GridScroller({ children, revealKey }: GridScrollerProps) {
   const regionRef = useRef<HTMLDivElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const edges = useScrollEdges(scrollerRef);
   const fontPx = gridFontPx(useElementSize(regionRef).width);
   const fadeStartY = AXIS_TRACK_EM * fontPx + 1;
+
+  useLayoutEffect(() => {
+    const scroller = scrollerRef.current;
+    if (revealKey === undefined || scroller === null) {
+      return;
+    }
+    // The margin of one grid em keeps the block's hour label clear of the header.
+    scroller.scrollTop = revealScrollTop(
+      blockTops(scroller),
+      AXIS_TRACK_EM * fontPx,
+      fontPx,
+    );
+  }, [revealKey, fontPx]);
 
   return (
     <div ref={regionRef} className="relative flex min-h-0 flex-1 flex-col">

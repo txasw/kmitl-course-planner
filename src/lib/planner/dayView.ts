@@ -139,3 +139,22 @@ export function stepDay(
   }
   return days[Math.max(0, Math.min(days.length - 1, next))] ?? current;
 }
+
+/**
+ * The scroll offset that opens a day on its first class. The grid runs from the window start
+ * under a sticky day header, so a class after noon can open below the fold of a phone. The
+ * offset lifts the earliest block to just under the header, leaving a margin above it so its
+ * hour label, centred on the gridline, stays readable. A day whose first class starts at the
+ * window start, or a free day, opens at the top. Block tops are measured from the top of the
+ * scrolled content, in CSS pixels.
+ */
+export function revealScrollTop(
+  blockTops: readonly number[],
+  headerPx: number,
+  marginPx: number,
+): number {
+  if (blockTops.length === 0) {
+    return 0;
+  }
+  return Math.max(0, Math.round(Math.min(...blockTops) - headerPx - marginPx));
+}
