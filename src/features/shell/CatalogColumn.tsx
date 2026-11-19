@@ -50,10 +50,7 @@
 import { useLayoutEffect, useRef, type KeyboardEvent } from 'react';
 import { useStore } from 'zustand';
 import { PanelLeftClose, X } from 'lucide-react';
-import {
-  CatalogPanel,
-  useResultCourseCount,
-} from '@/features/catalog/CatalogPanel';
+import { CatalogPanel } from '@/features/catalog/CatalogPanel';
 import { SearchHeader } from '@/features/search/SearchHeader';
 import {
   searchStore,
@@ -215,22 +212,17 @@ export function SheetScrim({ tier }: { tier: LayoutTier }) {
   );
 }
 
-/** The header of the sheet and of the compact pane: the catalog name, the result count
- * and the plan suggestion action, with a close only on the sheet. */
+/** The header of the sheet and of the compact pane: the catalog name and the plan
+ * suggestion action, with a close only on the sheet. The result count is left to the
+ * catalog summary line, so the column reads it once. */
 function SheetHeader({ closable }: { closable: boolean }) {
   const { t } = useTranslation();
-  const count = useResultCourseCount();
 
   return (
     <div className="flex items-center gap-2 border-b border-border px-4 py-3">
       <h3 id={SHEET_TITLE_ID} className="text-sm font-semibold text-ink">
         {t('catalog.sheet.title')}
       </h3>
-      {count === null ? null : (
-        <span className="text-xs text-ink-soft">
-          {count} {t('catalog.units.course')}
-        </span>
-      )}
       <div className="ml-auto flex items-center gap-1">
         <SuggestAction />
         {closable ? (
