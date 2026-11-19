@@ -412,3 +412,27 @@ test('paints the offset focus outline on the launcher after Escape', async ({
       outlineWidth: '2px',
     });
 });
+
+// The summary view's go to courses action, on a docked width with the column already
+// shown, changes nothing else on screen. A focus moved by script after a click matches
+// no :focus-visible, so the action once read as dead; it now lands on the search tab
+// with its focus ring painted, read here in the built extension, and the tab in view.
+test.describe('at 1366 by 768', () => {
+  test.use({ viewport: { width: 1366, height: 768 } });
+
+  test('marks the search focus from the summary with the column shown', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    await page.getByRole('tab', { name: /^สรุป/ }).click();
+    await page.getByRole('button', { name: 'ไปที่รายวิชา' }).click();
+    const tab = page.getByRole('tab', { name: 'หลักสูตร', exact: true });
+    await expect(tab).toBeFocused();
+    await expect(tab).toBeInViewport();
+    await expect
+      .poll(async () =>
+        tab.evaluate((element) => element.matches(':focus-visible')),
+      )
+      .toBe(true);
+  });
+});

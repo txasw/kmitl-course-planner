@@ -11,7 +11,8 @@
 // hidden, inert results, so the reveal folds it first, or the card it opens could take
 // neither the view nor the focus. An action that sends the student to look for courses,
 // such as the summary view's empty state, brings the catalog into view at its search
-// the same way.
+// the same way. Where the docked column already shows, such an action changes nothing
+// else on screen, so the search it focuses also paints its ring and scrolls into view.
 
 import { flushSync } from 'react-dom';
 import { catalogQueryKey } from '@/lib/catalog/cardDisclosure';
@@ -102,7 +103,7 @@ export function revealSearch(control: Element, tier: LayoutTier): void {
   const search = searchStore.getState();
   const focusId =
     search.barQuery === null ? searchTabId(search.activeTab) : SEARCH_BAR_ID;
-  revealCatalog(control, tier, focusId);
+  revealCatalog(control, tier, focusId, { markFocus: true });
 }
 
 /**
@@ -124,5 +125,7 @@ export function openSearch(control: Element, tier: LayoutTier): void {
   flushSync(() => {
     searchStore.getState().setSearchFormOpen(true);
   });
-  revealCatalog(control, tier, searchTabId(searchStore.getState().activeTab));
+  revealCatalog(control, tier, searchTabId(searchStore.getState().activeTab), {
+    markFocus: true,
+  });
 }
