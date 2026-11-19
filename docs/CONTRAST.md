@@ -53,6 +53,36 @@ above the 2.3 just noticeable difference (closest shipped pair, blue and indigo,
 | `#736B00` | `#EAE9D9` | 14.22       | 4.48        |
 | `#A50060` | `#F2D9E7` | 13.14       | 5.73        |
 
+Since the soft depth amendment of ADR-0047 this flat tint fills the preview poster and its
+export only; the edit grid and the plan suggestion cards take the soft depth block below.
+
+## Soft depth event block
+
+The edit grid and the plan suggestion cards fill a block with the soft depth card of ADR-0071
+tinted by the subject color, fading from 17 percent at the top to 8 percent from 70 percent
+down, with a 3 px stripe of the solid color down the left edge (the ADR-0047 amendment of
+2026-11-20). Ink and ink soft sit anywhere on it, so the table proves them on the 17 percent
+stop. The stripe is a UI element and clears 3:1 against both stops. A flagged block leads its
+name with a danger or warn status dot, which clears 3:1 against both stops on every tint
+(lowest 4.08 for danger and 3.97 for warn). A danger block lays a hatch of the danger color at
+24 percent with an inset danger ring over the fill. Ink soft falls under 4.5:1 on a hatch
+stripe, so a hatched block sets its quiet lines, the English name, the section chip, and the
+foot, in ink, which clears 4.5:1 through the hatch on both stops. Enforced in
+`hash-color.test.ts`.
+
+| Color     | 17 percent | 8 percent | Ink   | Ink soft | Stripe | Ink through hatch |
+| --------- | ---------- | --------- | ----- | -------- | ------ | ----------------- |
+| `#1F5FA8` | `#D9E4F0`  | `#EDF2F8` | 13.51 | 5.19     | 5.00   | 9.39              |
+| `#0E7C7B` | `#D6E9E9`  | `#ECF5F4` | 13.83 | 5.31     | 3.99   | 9.59              |
+| `#2E7D32` | `#DBE9DC`  | `#EEF5EF` | 13.84 | 5.32     | 4.08   | 9.62              |
+| `#6A3FA0` | `#E6DEEF`  | `#F3F0F7` | 13.31 | 5.11     | 5.67   | 9.30              |
+| `#B0355F` | `#F2DDE4`  | `#F9EFF2` | 13.46 | 5.17     | 4.61   | 9.49              |
+| `#3949AB` | `#DDE0F1`  | `#EFF0F8` | 13.27 | 5.10     | 5.90   | 9.27              |
+| `#A21CAF` | `#EFD8F1`  | `#F8EDF9` | 13.06 | 5.02     | 4.75   | 9.25              |
+| `#00729F` | `#D4E7EF`  | `#EBF4F7` | 13.66 | 5.25     | 4.22   | 9.45              |
+| `#736B00` | `#E7E6D4`  | `#F4F3EB` | 13.81 | 5.31     | 4.35   | 9.60              |
+| `#A50060` | `#F0D4E4`  | `#F8EBF2` | 12.63 | 4.85     | 5.51   | 9.01              |
+
 ## Export template day color accent
 
 The export template day row labels tint with the traditional Thai day colors, each
