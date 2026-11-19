@@ -8,6 +8,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
+import { isCurriculumCourse } from '@/lib/catalog/subjectGroup';
 import type { PlanEntry } from '@/lib/domain/plan';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { planStore } from '@/features/plans/planStore';
@@ -256,9 +257,71 @@ describe('SuggestDialog', () => {
     });
     renderDialog();
     expect(
-      await screen.findByText('วิชาในหลักสูตรทุกวิชาของผลการค้นหานี้อยู่ในตารางแล้ว'),
+      await screen.findByText('เลือกอย่างน้อยหนึ่งวิชาเพื่อดูตารางที่แนะนำ'),
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'ใช้ตารางนี้' })).toBeNull();
+    expect(
+      screen.queryByRole('region', { name: 'วิชาในหลักสูตร กลุ่ม 2' }),
+    ).toBeNull();
+
+    // The GenEd courses are still there to tick, collapsed until opened.
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'วิชาศึกษาทั่วไป วิชาเลือกเสรี และวิชาอื่น 0 จาก 6',
+      }),
+    );
+    const boxes = screen.getAllByRole('checkbox');
+    expect(boxes).toHaveLength(6);
+    for (const box of boxes) {
+      expect(box).not.toBeChecked();
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'เลือกทั้งหมด' }));
+    expect(await findCards()).not.toHaveLength(0);
+  });
+
+  it('ticks the curriculum subjects by default and searches the ticked set', async () => {
+    renderDialog();
+    await findCards();
+    const curriculum = screen.getByRole('region', {
+      name: 'วิชาในหลักสูตร กลุ่ม 2',
+    });
+    const boxes = within(curriculum).getAllByRole('checkbox');
+    expect(boxes).toHaveLength(6);
+    for (const box of boxes) {
+      expect(box).toBeChecked();
+    }
+    expect(screen.getByText('เลือกไว้ 6 วิชา')).toBeInTheDocument();
+    // The GenEd group starts collapsed and unticked.
+    expect(
+      screen.getByRole('button', {
+        name: 'วิชาศึกษาทั่วไป วิชาเลือกเสรี และวิชาอื่น 0 จาก 6',
+        expanded: false,
+      }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      within(curriculum).getByRole('button', { name: 'ไม่เลือกทั้งหมด' }),
+    );
+    expect(
+      await screen.findByText('เลือกอย่างน้อยหนึ่งวิชาเพื่อดูตารางที่แนะนำ'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('เลือกไว้ 0 วิชา')).toBeInTheDocument();
+
+    const [first] = boxes;
+    if (first === undefined) throw new Error('no checkbox');
+    fireEvent.click(first);
+    expect(await findCards()).not.toHaveLength(0);
+    // Only the one ticked subject is placed, so every block on the card is one of its
+    // sections.
+    const firstCourse = courses.find(isCurriculumCourse);
+    const ids = new Set(firstCourse?.sections.map((s) => s.teachTableId));
+    expect(firstCardBlocks().length).toBeGreaterThan(0);
+    for (const id of firstCardBlocks()) {
+      expect(ids.has(id)).toBe(true);
+    }
+    expect(
+      within(curriculum).getByRole('button', { name: 'เลือกทั้งหมด' }),
+    ).toBeInTheDocument();
   });
 
   it.each([390, 1366])(

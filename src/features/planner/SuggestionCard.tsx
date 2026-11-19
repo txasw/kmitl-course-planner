@@ -1,7 +1,7 @@
 // One suggested timetable. It shows the whole week the suggestion would produce, the
 // entries already in the plan included, as a read only mini grid in the frame the dialog
 // shares across the cards, then the stats a student compares suggestions by, one per row
-// in a fixed order, then the curriculum courses it leaves out with the reason each one
+// in a fixed order, then the ticked courses it leaves out with the reason each one
 // stayed out, collapsed by default, then the apply action, which creates a new plan from
 // it. The grid itself takes no input.
 //

@@ -1,7 +1,9 @@
-// The plan suggestion dialog of ADR-0054. It searches the curriculum courses of the
-// current by_class result for timetables that fit beside the active plan, keeping the
-// plan's entries as fixed constraints, and lists up to three as cards. The student picks
-// an objective and a preference; every change searches again. Applying a card creates a
+// The plan suggestion dialog of ADR-0054. It searches the courses the student ticks in
+// the current by_class result, the curriculum courses by default, for timetables that
+// fit beside the active plan, keeping the plan's entries as fixed constraints, and lists
+// up to three as cards whose meeting times differ. The student ticks the subjects and
+// picks an objective and a preference; every change searches again. The ticks last for
+// the dialog only, since a new result holds other courses. Applying a card creates a
 // new plan for the term, so the active plan is never rewritten, and the undo toast can
 // take it back. The objective and the preference last used persist with the prefs, so
 // the dialog opens on them. It is a centered dialog at the full width on the medium and
@@ -34,6 +36,10 @@ import {
   type SuggestEmptyReason,
 } from '@/lib/planner/suggestEmpty';
 import {
+  defaultSuggestSubjects,
+  suggestableCourses,
+} from '@/lib/planner/suggestSubjects';
+import {
   SUGGEST_OBJECTIVES,
   type SuggestObjective,
 } from '@/lib/planner/suggestRank';
@@ -54,6 +60,7 @@ import {
   suggestionKey,
   type SuggestionView,
 } from './SuggestionResults';
+import { SuggestSubjects } from './SuggestSubjects';
 import { useSuggestions } from './useSuggestions';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
@@ -67,6 +74,7 @@ const PREFERENCE_LABEL: Record<SuggestPreference, TranslationKey> = {
 
 const EMPTY_KEY: Record<SuggestEmptyReason, TranslationKey> = {
   allPlaced: 'suggest.empty.allPlaced',
+  noneTicked: 'suggest.empty.noneTicked',
   seats: 'suggest.empty.seats',
   conflicts: 'suggest.empty.conflicts',
 };
@@ -146,7 +154,7 @@ function LoadingCards({ t }: { t: Translate }) {
 }
 
 interface SuggestDialogProps {
-  /** The courses of the current result; only its curriculum courses are chosen. */
+  /** The courses of the current result; only the ticked ones are chosen. */
   courses: readonly Course[];
   /** The query of that result, stamped on every entry the suggestion adds. */
   sourceQuery: SourceQuery;
@@ -170,8 +178,16 @@ export function SuggestDialog({
   const bodyRef = useRef<HTMLDivElement>(null);
   const returnFocus = useRef<number | null>(null);
   const locked = useLockedEntries(term);
+  const groups = useMemo(
+    () => suggestableCourses(courses, locked),
+    [courses, locked],
+  );
+  const [ticked, setTicked] = useState<ReadonlySet<string>>(() =>
+    defaultSuggestSubjects(courses, locked),
+  );
   const { result, busy } = useSuggestions(
     courses,
+    ticked,
     locked,
     objective,
     preference,
@@ -225,7 +241,12 @@ export function SuggestDialog({
   const orientation = compact ? 'portrait' : 'landscape';
   const current = Math.min(page, Math.max(0, cards.length - 1));
 
-  // A new objective or preference ranks the cards again, so the pager returns to the best.
+  // New ticks, a new objective, or a new preference rank the cards again, so the pager
+  // returns to the best.
+  const handleTicked = (next: ReadonlySet<string>) => {
+    setTicked(next);
+    setPage(0);
+  };
   const handleObjective = (value: SuggestObjective) => {
     uiStore.getState().setSuggestObjective(value);
     setPage(0);
@@ -264,7 +285,15 @@ export function SuggestDialog({
     onClose();
   };
 
-  const emptyReason = result === null ? null : suggestEmptyReason(result);
+  const tickable = [...groups.curriculum, ...groups.other];
+  const emptyReason =
+    result === null
+      ? null
+      : suggestEmptyReason(result, {
+          tickable: tickable.length,
+          ticked: tickable.filter((course) => ticked.has(course.subjectId))
+            .length,
+        });
   const fullBody =
     full === undefined ? null : (
       <div className="flex flex-col gap-3 pt-1">
@@ -300,6 +329,13 @@ export function SuggestDialog({
           <p>{fillTemplate(t('suggest.locked'), { count: lockedSubjects })}</p>
         ) : null}
       </div>
+      <SuggestSubjects
+        groups={groups}
+        ticked={ticked}
+        onChange={handleTicked}
+        locale={language}
+        t={t}
+      />
       <div className="flex flex-col items-start gap-1.5">
         <span className="text-xs text-ink-soft" aria-hidden>
           {t('suggest.objective')}
