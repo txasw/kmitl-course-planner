@@ -1,5 +1,6 @@
 import type { PrefsRepository } from '@/lib/storage/prefs';
 import { Launcher } from '@/features/shell/Launcher';
+import { ExtensionVersionContext } from '@/features/shell/ExtensionVersionContext';
 import { Overlay } from '@/features/shell/Overlay';
 import { Toaster } from '@/features/shell/Toaster';
 import { usePrefsPersistence } from '@/features/shell/usePrefsPersistence';
@@ -39,6 +40,8 @@ interface AppProps {
   onboarding: OnboardingPersistenceDeps;
   handshake: WorkerHandshakeDeps;
   welcome: WelcomeClaimDeps;
+  /** The loaded extension's version from its manifest, or null when it is unreadable. */
+  version: string | null;
 }
 
 // Root component for the content script UI. It renders the selector coach mark, the
@@ -48,9 +51,9 @@ interface AppProps {
 // follows the launcher, so Tab from the launcher reaches it. It hydrates and persists
 // the language, the plans and the onboarding record through the injected
 // repositories, listens for the worker and sends it the mount handshake, decides
-// whether this document claims the welcome, and provides the search dependencies so
-// the deep form components stay free of the browser binding. The storage and
-// messaging bindings stay at the entrypoint.
+// whether this document claims the welcome, and provides the search dependencies and
+// the extension version so the deep components stay free of the browser binding. The
+// storage and messaging bindings stay at the entrypoint.
 export function App({
   prefs,
   plans,
@@ -58,6 +61,7 @@ export function App({
   onboarding,
   handshake,
   welcome,
+  version,
 }: AppProps) {
   usePrefsPersistence(prefs);
   usePlanPersistence(plans);
@@ -65,17 +69,19 @@ export function App({
   useWorkerHandshake(handshake);
   useWelcomeClaim(welcome);
   return (
-    <SearchDepsProvider value={search}>
-      <SearchBoot />
-      <RevalidationTriggers />
-      <CoachMark record={onboarding.record} />
-      <Launcher />
-      <EntryToast record={onboarding.record} />
-      <Overlay />
-      <DiagnosticsGate />
-      <Toaster />
-      <WelcomeLayer />
-    </SearchDepsProvider>
+    <ExtensionVersionContext.Provider value={version}>
+      <SearchDepsProvider value={search}>
+        <SearchBoot />
+        <RevalidationTriggers />
+        <CoachMark record={onboarding.record} />
+        <Launcher />
+        <EntryToast record={onboarding.record} />
+        <Overlay />
+        <DiagnosticsGate />
+        <Toaster />
+        <WelcomeLayer />
+      </SearchDepsProvider>
+    </ExtensionVersionContext.Provider>
   );
 }
 

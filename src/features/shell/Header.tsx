@@ -1,6 +1,5 @@
 import { useStore } from 'zustand';
 import { X } from 'lucide-react';
-import { BrandMark } from '@/components/BrandMark';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { uiStore } from './uiStore';
@@ -9,6 +8,7 @@ import { PlanSwitcher } from '@/features/plans/PlanSwitcher';
 import { ModeToggle } from './ModeToggle';
 import { CatalogToggle } from './CatalogToggle';
 import { HeaderOverflowMenu } from './HeaderOverflowMenu';
+import { HeaderBrand } from './HeaderBrand';
 
 interface HeaderProps {
   titleId: string;
@@ -17,9 +17,10 @@ interface HeaderProps {
 // The overlay header: one row that never wraps, 56 px high and 48 px on a short
 // viewport, padded clear of the device safe areas. Below 640 px the padding and gaps
 // tighten so the touch sized controls still fit a 320 px screen. The leading group
-// holds the brand mark from 640 px, the panel title, and the plan switcher; it is the
-// only part that shrinks, and the switcher truncates the plan name before anything else
-// gives way. A failed save shows in its own strip under the header, never in this row.
+// holds the brand mark with its version pill from 640 px, the panel title, and the plan
+// switcher; it is the only part that shrinks, and the switcher truncates the plan name
+// before anything else gives way. A failed save shows in its own strip under the
+// header, never in this row.
 // The title shows from 1024 px and stays in the accessibility tree below as sr-only
 // text, so the dialog's aria-labelledby always resolves. The trailing group never
 // shrinks and carries the catalog toggle in edit mode on the medium tier, where the
@@ -33,7 +34,7 @@ export function Header({ titleId }: HeaderProps) {
   return (
     <header className="box-content flex h-14 shrink-0 items-center gap-2 border-b border-border pt-(--kcp-safe-top) pr-[calc(12px_+_var(--kcp-safe-right))] pl-[calc(12px_+_var(--kcp-safe-left))] sm:gap-4 sm:pr-[calc(16px_+_var(--kcp-safe-right))] sm:pl-[calc(16px_+_var(--kcp-safe-left))] [@media(max-height:800px)]:h-12">
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        <BrandMark className="hidden size-6 shrink-0 text-primary sm:block" />
+        <HeaderBrand />
         <h2
           id={titleId}
           className="sr-only shrink-0 text-base font-semibold text-ink lg:not-sr-only"

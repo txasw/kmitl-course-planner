@@ -13,19 +13,20 @@ import { createBrowserStorageAdapter } from '@/lib/storage/browserAdapter';
 import { createPlanRepository } from '@/lib/storage/repo';
 import { createInstallRepository } from '@/lib/storage/install';
 import { createOnboardingRepository } from '@/lib/storage/onboarding';
+import { readExtensionVersion } from '@/lib/shell/extensionVersion';
 import { App } from './App';
 
 // The content script runs once per document on the registration site. It mounts
 // the React app inside a shadow root so host styles and extension styles never
 // leak across the boundary, and it is the one place that binds the app to the
 // browser: it builds the storage repositories over storage.local and injects the
-// typed worker client, the runtime id, and the message listener, so the components
-// below never call the extension APIs directly. The host is a hash routed single
-// page application that never reloads, so route awareness lives in the app's
-// hashchange and popstate listeners rather than here. Production uses a closed
-// root for host isolation; debug builds use an open root so in browser
-// accessibility scans and browser driven tests can reach the tree without a source
-// edit (ADR-0019).
+// typed worker client, the runtime id, the message listener, and the manifest
+// version, so the components below never call the extension APIs directly. The host
+// is a hash routed single page application that never reloads, so route awareness
+// lives in the app's hashchange and popstate listeners rather than here. Production
+// uses a closed root for host isolation; debug builds use an open root so in
+// browser accessibility scans and browser driven tests can reach the tree without a
+// source edit (ADR-0019).
 export default defineContentScript({
   matches: [REGIS_MATCH_PATTERN],
   runAt: 'document_idle',
@@ -70,6 +71,7 @@ export default defineContentScript({
             onboarding={onboarding}
             handshake={handshake}
             welcome={welcome}
+            version={readExtensionVersion(() => browser.runtime.getManifest())}
           />,
         );
         return root;

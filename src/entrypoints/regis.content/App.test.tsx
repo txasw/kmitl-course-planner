@@ -52,6 +52,7 @@ function renderApp(): void {
       onboarding={fakeOnboardingDeps()}
       handshake={fakeHandshakeDeps()}
       welcome={fakeWelcomeDeps()}
+      version="1.5.0"
     />,
   );
 }
@@ -75,6 +76,7 @@ describe('App', () => {
         onboarding={fakeOnboardingDeps()}
         handshake={fakeHandshakeDeps()}
         welcome={fakeWelcomeDeps()}
+        version="1.5.0"
       />,
     );
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -95,6 +97,7 @@ describe('App', () => {
         onboarding={fakeOnboardingDeps()}
         handshake={fakeHandshakeDeps()}
         welcome={fakeWelcomeDeps()}
+        version="1.5.0"
       />,
     );
     const launcher = screen.getByRole('button', {
