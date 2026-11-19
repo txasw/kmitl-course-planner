@@ -89,6 +89,10 @@ describe('SuggestionCard', () => {
       expect(placed.has(choice.section.teachTableId)).toBe(true);
     }
     expect(grid.querySelector('button')).toBeNull();
+    // The card is read only but never exported, so its blocks take the soft card.
+    for (const block of grid.querySelectorAll('[data-teach-table-id]')) {
+      expect(block).toHaveAttribute('data-surface', 'soft');
+    }
   });
 
   it('lists the courses left out with their reasons, collapsed', () => {

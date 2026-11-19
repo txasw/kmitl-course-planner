@@ -7,14 +7,19 @@
 // not encode it, which is why it is prominent on the hover card and the text export but quiet
 // here (the H3 principle), and a glyph marks a promoted field only, which is why the promoted
 // place keeps its location pin while the demoted time carries no glyph.
-// The fill is a soft tint of the subject's stable color under ink text with the solid color
-// as a left bar (ADR-0035); the KMITL orange is never used here. On the export poster and
-// in the edit grid alike the content is measured against the box and whole low
-// priority fields are dropped rather than a line clipped mid glyph: the fit walks the
-// density ladder in useDensityFit, dropping the subject id, then the English name, then the
-// time, then clamping the name to the lines that fit, then the section chip, then reducing
-// the name to one line, then the place, with the name never dropping (ADR-0046, ADR-0047). The place outlives the name's second line and
-// the time never outlives the place. The edit block keeps its tighter line height and always
+// The fill is a tint of the subject's stable color under ink text with the solid color as a
+// left stripe; the KMITL orange is never used here. The edit grid and the suggestion mini
+// grids take the soft depth card, a fill that fades from a stronger tint at the top with a
+// tinted edge and a light shadow; the preview poster and its export keep the flat tint and
+// bar of ADR-0035, so the raster never depends on a gradient (ADR-0047 amendment of
+// 2026-11-20). The danger state draws its ring and hatch on an overlay rather than on the
+// fill, so it reads the same on either surface. On the export poster and in the edit grid
+// alike the content is measured against the box and whole low priority fields are dropped
+// rather than a line clipped mid glyph: the fit walks the density ladder in useDensityFit,
+// dropping the subject id, then the English name, then the time, then clamping the name to
+// the lines that fit, then the section chip, then reducing the name to one line, then the
+// place, with the name never dropping (ADR-0046, ADR-0047). The place outlives the name's
+// second line and the time never outlives the place. The edit block keeps its tighter line height and always
 // carries the subject id for cross referencing, so the id is the first field it drops; the
 // hover card and the details still show it (ADR-0050). The edit fit pauses during a drag.
 // In edit mode the block is a drag source (the ref and
@@ -38,10 +43,10 @@ import {
   type MouseEvent,
 } from 'react';
 import type { DraggableSyntheticListeners } from '@dnd-kit/core';
-import { MapPin, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { Meeting } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
-import { hashColor, hashTint } from '@/lib/utils/hash-color';
+import { hashColor } from '@/lib/utils/hash-color';
 import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
 import { formatMinutes } from '@/lib/parsing/time';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
@@ -50,6 +55,13 @@ import { buildEligibility } from '@/lib/planner/blockDensity';
 import type { PlacedSection } from './placedSection';
 import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 import { useDensityFit } from './useDensityFit';
+import { EventBlockContent } from './EventBlockContent';
+import {
+  stripeClass,
+  surfaceClass,
+  surfaceStyle,
+  type BlockSurface,
+} from './blockSurface';
 import { PRESSED_CLASS } from './useTouchPress';
 import { meetingOrder } from './blockFocus';
 
@@ -117,6 +129,8 @@ interface EventBlockProps {
   /** Pin the foot to the bottom of the box. On for the export poster, so its measured fit
    * and export pixels hold; the edit foot follows the place line instead. */
   footAtBottom?: boolean;
+  /** The fill: the soft depth card, the default, or the flat tint the poster keeps. */
+  surface?: BlockSurface;
 }
 
 /** Whether a context menu event came from a finger. Chromium delivers the event as a
@@ -162,6 +176,7 @@ function EventBlockComponent({
   thaiHeadroom = false,
   showVerification = true,
   footAtBottom = false,
+  surface = 'soft',
 }: EventBlockProps) {
   const name = locale === 'th' ? section.nameTh : section.nameEn;
   // The English name is guaranteed visible when the option is on: it is the primary
@@ -169,6 +184,7 @@ function EventBlockComponent({
   const englishSecondary =
     showEnglishName && locale === 'th' && section.nameEn !== '';
   const time = `${formatMinutes(meeting.startMin)}-${formatMinutes(meeting.endMin)}`;
+  const color = hashColor(section.subjectId);
   const badge = showVerification
     ? blockBadge(section.verifyStatus, conflicted, examConflicted)
     : null;
@@ -239,6 +255,7 @@ function EventBlockComponent({
         data-teach-table-id={section.teachTableId}
         data-block-order={interactive ? meetingOrder(meeting) : undefined}
         data-verify={badge ?? undefined}
+        data-surface={surface}
         aria-label={label}
         role={interactive ? 'button' : undefined}
         tabIndex={interactive ? 0 : undefined}
@@ -264,99 +281,41 @@ function EventBlockComponent({
         onPointerLeave={onHoverLeave}
         // The pressed outline replaces outline-none, which would otherwise zero the
         // outline style the pressed look sets. An interactive block takes the offset
-        // focus outline rather than the inset ring, because the inset ring carries the
-        // danger badge.
-        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-kcp py-1.5 pr-2 pl-2.5 text-[1em] ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink ${blockOutlineClass(pressed, interactive)} ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'touch-drag cursor-grab' : ''} ${badge === 'danger' ? 'ring-2 ring-danger ring-inset' : ''}`}
-        style={{ backgroundColor: hashTint(section.subjectId) }}
+        // focus outline rather than an inset ring, because the danger overlay carries the
+        // inset ring.
+        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden py-1.5 pr-2 pl-2.5 text-[1em] ${surfaceClass(surface)} ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink ${blockOutlineClass(pressed, interactive)} ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'touch-drag cursor-grab' : ''}`}
+        style={surfaceStyle(surface, section.subjectId)}
         {...dragListeners}
       >
-        {/* The solid subject color as a left bar carries the identity; the fill is a soft
+        {/* The solid subject color as a left stripe carries the identity; the fill is a
             tint of it under ink text. */}
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 left-0 w-1"
-          style={{ backgroundColor: hashColor(section.subjectId) }}
+          className={`pointer-events-none absolute inset-y-0 left-0 ${stripeClass(surface)}`}
+          style={{ backgroundColor: color }}
         />
         {badge === 'danger' ? (
           <span
             aria-hidden
-            className="kcp-hatch pointer-events-none absolute inset-0 rounded-kcp"
+            className="kcp-hatch pointer-events-none absolute inset-0 rounded-[inherit] ring-2 ring-danger ring-inset"
           />
         ) : null}
-        {badge !== null ? (
-          <span
-            aria-hidden
-            className={`absolute left-0.5 top-0.5 h-2 w-2 rounded-full ring-1 ring-white ${
-              badge === 'danger' ? 'bg-danger' : 'bg-warn'
-            }`}
-          />
-        ) : null}
-        {/* Section as a small floating chip in the top right corner. It steps aside on hover
-            and focus in edit mode, where the remove control takes that corner. A coarse
-            pointer hides the remove control, so there the chip stays in place. */}
-        {level.showSection ? (
-          <span className="pointer-events-none absolute top-1 right-1 rounded bg-ink/10 px-1 text-[0.85em] text-ink not-pointer-coarse:group-hover/block:opacity-0 not-pointer-coarse:group-focus-within/block:opacity-0">
-            {section.section}
-          </span>
-        ) : null}
-        {/* The measured content column. This is a positioned block, the row and the block's
-            extent already encode the time, so the hierarchy inverts (ADR-0047): the subject name
-            is the primary anchor at the top, the place is the promoted second line with a
-            location glyph, and the time demotes to quiet metadata at the foot beside the subject
-            id. The name is pinned and never drops; the fit measures this column and drops the
-            lowest priority fields whole rather than clipping a line. The absolute chip
-            and badges sit outside this column so they never skew the measurement. */}
-        <div
-          ref={contentRef}
-          data-fit
-          className="flex min-h-0 flex-1 flex-col overflow-hidden"
-        >
-          <span
-            data-fit-name
-            lang={locale}
-            className={`${level.nameLines === 'all' ? '' : 'overflow-hidden [display:-webkit-box] [-webkit-box-orient:vertical]'} shrink-0 pr-6 font-semibold break-words hyphens-auto`}
-            style={
-              level.nameLines === 'all'
-                ? undefined
-                : { WebkitLineClamp: level.nameLines }
-            }
-          >
-            {name}
-          </span>
-          {level.showEnglish ? (
-            <span
-              lang="en"
-              className="line-clamp-1 shrink-0 font-normal break-words text-ink-soft hyphens-auto"
-            >
-              {section.nameEn}
-            </span>
-          ) : null}
-          {level.showPlace ? (
-            <span className="mt-0.5 flex shrink-0 items-center gap-1 text-ink">
-              <MapPin
-                size="0.85em"
-                strokeWidth={2}
-                aria-hidden
-                className="shrink-0"
-                style={{ color: hashColor(section.subjectId) }}
-              />
-              <span className="truncate">{place}</span>
-            </span>
-          ) : null}
-          {/* On the poster the foot sits at the bottom of the fitted box. In edit it follows
-              the place closely, so a tall block reads as one cluster with its spare height
-              below rather than split into a top and a bottom group. */}
-          <div
-            className={`${footAtBottom ? 'mt-auto' : 'mt-1'} min-h-0 pt-0.5 text-ink-soft`}
-          >
-            {level.showTime ? (
-              <span className="block text-[0.9em] tabular-nums">{time}</span>
-            ) : null}
-            {level.showId ? (
-              <span className="block truncate">{section.subjectId}</span>
-            ) : null}
-          </div>
-        </div>
+        <EventBlockContent
+          contentRef={contentRef}
+          level={level}
+          locale={locale}
+          name={name}
+          nameEn={section.nameEn}
+          place={place}
+          sectionCode={section.section}
+          time={time}
+          subjectId={section.subjectId}
+          color={color}
+          badge={badge}
+          surface={surface}
+          reserveRemove={onRemove !== undefined}
+          footAtBottom={footAtBottom}
+        />
       </div>
       {onRemove !== undefined ? (
         <button
