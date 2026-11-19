@@ -148,8 +148,15 @@ who asked for it on every arrival; Not again today is the student's control over
 
 `liveRegions.test.tsx` and ADR-0048 gain one entry for the coach mark's polite region.
 
-The end to end harness seeds a settled context with the coach mark snoozed for the day, so the
-specs that open the search page are not covered by it, and `allowCoachMark` lets a spec meet it.
+The end to end harness seeds a settled context with the coach mark snoozed through tomorrow, so
+the specs that open the search page are not covered by it even across local midnight, and
+`allowCoachMark` lets a spec meet it.
+
+Not again today reaches other tabs only when they next load. A tab reads the onboarding record
+once, at load, and does not follow later writes, so a tab already open when the student chose it
+in another still shows the coach mark on its next arrival that day, where either choice settles it
+again. Following `storage.onChanged` for the record was left out: the other onboarding fields are
+read once per document too, and one live field would make the record half live.
 
 A student who uses the planner every day sees the coach mark on every arrival on the search page
 until they choose Not again today, and again on the next day, by owner decision. The owner can
