@@ -19,13 +19,13 @@
 // dropping the subject id, then the English name, then the time, then clamping the name to
 // the lines that fit, then the section chip, then reducing the name to one line, then the
 // place, with the name never dropping (ADR-0046, ADR-0047). The place outlives the name's
-// second line and the time never outlives the place. The edit block keeps its tighter line height and always
-// carries the subject id for cross referencing, so the id is the first field it drops; the
-// hover card and the details still show it (ADR-0050). The edit fit pauses during a drag.
-// In edit mode the block is a drag source (the ref and
-// listeners come from the draggable wrapper so this stays free of the drag library) and
-// is itself the button that opens the pinned detail popover on click or Enter and Space,
-// the keyboard path to details and actions; the hover card shows the same detail on hover
+// second line and the time never outlives the place. The edit block keeps its tighter line
+// height and always carries the subject id for cross referencing, so the id is the first
+// field it drops; the hover card and the details still show it (ADR-0050). The edit fit
+// pauses during a drag. In edit mode the block is a drag source (the ref and listeners
+// come from the draggable wrapper so this stays free of the drag library) and is itself
+// the button that opens the pinned detail popover on click or Enter and Space, the
+// keyboard path to details and actions; the hover card shows the same detail on hover
 // (ADR-0044), so the block carries no separate info affordance. The only chrome control is
 // the quiet remove button, kept a sibling of the interactive block rather than nested
 // inside it so no interactive control nests in another; a positioning wrapper holds both.
