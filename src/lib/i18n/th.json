@@ -17,6 +17,7 @@
   "header.more": "ตัวเลือกเพิ่มเติม",
   "header.version": "KCP เวอร์ชัน {version}",
   "header.versionTag": "v{version}",
+  "header.versionLine": "KCP v{version}",
   "planSwitcher.label": "เลือกตาราง",
   "planSwitcher.noPlan": "ยังไม่มีตาราง",
   "planSwitcher.create": "สร้างตาราง",

@@ -5,11 +5,13 @@ import {
   fireEvent,
   cleanup,
   act,
+  within,
 } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { installViewport } from '../../../tests/support/viewport';
+import { ExtensionVersionContext } from './ExtensionVersionContext';
 import { HeaderOverflowMenu } from './HeaderOverflowMenu';
 import { Overlay } from './Overlay';
 import { uiStore } from './uiStore';
@@ -72,6 +74,51 @@ describe('HeaderOverflowMenu', () => {
     render(<HeaderOverflowMenu />);
     fireEvent.keyDown(trigger(), { key: 'ArrowUp' });
     expect(item('English')).toHaveFocus();
+  });
+
+  it('ends the popover with a muted version line outside the menu, shown below sm', () => {
+    render(
+      <ExtensionVersionContext.Provider value="1.5.0">
+        <HeaderOverflowMenu />
+      </ExtensionVersionContext.Provider>,
+    );
+    fireEvent.click(trigger());
+    const menu = screen.getByRole('menu', { name: MORE });
+    const visible = screen.getByText('KCP v1.5.0');
+    expect(visible).toHaveAttribute('aria-hidden', 'true');
+    const line = visible.parentElement;
+    expect(line).toHaveClass('sm:hidden', 'text-2xs', 'text-ink-muted');
+    // The last thing in the popover, after the menu, and never an item or a tab stop.
+    expect(line?.parentElement?.lastElementChild).toBe(line);
+    expect(menu.contains(line ?? null)).toBe(false);
+    expect(line?.querySelector('button, [tabindex]')).toBeNull();
+    expect(screen.getAllByRole('menuitemradio')).toHaveLength(2);
+    expect(
+      within(line ?? document.body).getByText('KCP เวอร์ชัน 1.5.0'),
+    ).toHaveClass('sr-only');
+  });
+
+  it('reads the version line in English', () => {
+    act(() => {
+      uiStore.getState().setLanguage('en');
+    });
+    render(
+      <ExtensionVersionContext.Provider value="1.5.0-debug">
+        <HeaderOverflowMenu />
+      </ExtensionVersionContext.Provider>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
+    expect(screen.getByText('KCP v1.5.0-debug')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    );
+    expect(screen.getByText('KCP version 1.5.0-debug')).toHaveClass('sr-only');
+  });
+
+  it('leaves the version line out when the version is unreadable', () => {
+    render(<HeaderOverflowMenu />);
+    fireEvent.click(trigger());
+    expect(screen.queryByText(/KCP v/)).not.toBeInTheDocument();
   });
 
   it('moves between items with the arrow keys, Home, and End', () => {
