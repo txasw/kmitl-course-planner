@@ -7,10 +7,12 @@
 // focus stays on it as the press turns one into the other, and it stays mounted while
 // the query runs: aria-disabled then and described by the busy text beside it, rather
 // than replaced by it. A changed result is visible in the catalog, so only a refresh that
-// changed nothing confirms itself through a toast.
+// changed nothing confirms itself through a toast. The refresh icon carries a tooltip that
+// names it and says when the data on screen was fetched, and that time also describes it.
 
 import { useStore } from 'zustand';
 import { RefreshCw, RotateCcw } from 'lucide-react';
+import { Tooltip } from '@/components/Tooltip';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { toastStore } from '@/features/shell/toastStore';
@@ -22,9 +24,21 @@ import { useSearchActions } from './useSearchController';
 interface ResultActionProps {
   /** The id of the status slot that reads the busy text while the query runs. */
   statusId: string;
+  /** When the data on screen was fetched, already localized, or null before a result. */
+  dataTime: string | null;
+  /** The id of the element that reads the data time, which describes the refresh. */
+  dataTimeId: string;
 }
 
-export function ResultAction({ statusId }: ResultActionProps) {
+const ACTION = `inline-flex shrink-0 items-center justify-center gap-1 rounded-kcp ${TARGET_SIZE} ${FOCUS_RING}`;
+const BUSY = 'cursor-not-allowed text-ink-soft';
+const IDLE = 'text-ink hover:bg-surface-alt';
+
+export function ResultAction({
+  statusId,
+  dataTime,
+  dataTimeId,
+}: ResultActionProps) {
   const { t } = useTranslation();
   const { rerun, refreshResult } = useSearchActions(useSearchDeps());
   const status = useStore(searchStore, (state) => state.result.status);
@@ -46,29 +60,47 @@ export function ResultAction({ statusId }: ResultActionProps) {
   };
 
   return (
-    <button
-      type="button"
-      aria-label={restored ? undefined : refreshLabel}
-      title={restored ? undefined : refreshLabel}
-      aria-disabled={busy || undefined}
-      aria-describedby={busy ? statusId : undefined}
-      onClick={handleClick}
-      className={`ml-auto inline-flex shrink-0 items-center justify-center gap-1 rounded-kcp border border-border bg-surface ${
-        restored ? 'px-2' : 'px-1'
-      } ${
-        busy
-          ? 'cursor-not-allowed text-ink-soft'
-          : 'text-ink hover:bg-surface-alt'
-      } ${TARGET_SIZE} ${FOCUS_RING}`}
+    <Tooltip
+      label={
+        dataTime === null ? (
+          refreshLabel
+        ) : (
+          <>
+            <span className="block">{refreshLabel}</span>
+            <span className="block text-ink-soft tabular-nums">{dataTime}</span>
+          </>
+        )
+      }
+      placement="bottom-end"
+      disabled={restored}
     >
-      {restored ? (
-        <>
-          <RotateCcw size={14} strokeWidth={2} aria-hidden />
-          {t('search.bar.rerun')}
-        </>
-      ) : (
-        <RefreshCw size={14} strokeWidth={2} aria-hidden />
+      {(triggerProps, ref) => (
+        <button
+          ref={ref}
+          {...triggerProps}
+          type="button"
+          aria-label={restored ? undefined : refreshLabel}
+          aria-disabled={busy || undefined}
+          aria-describedby={
+            busy
+              ? statusId
+              : restored || dataTime === null
+                ? undefined
+                : dataTimeId
+          }
+          onClick={handleClick}
+          className={`${ACTION} ${restored ? 'border border-border bg-surface px-2 text-sm' : 'px-1'} ${busy ? BUSY : IDLE}`}
+        >
+          {restored ? (
+            <>
+              <RotateCcw size={14} strokeWidth={2} aria-hidden />
+              {t('search.bar.rerun')}
+            </>
+          ) : (
+            <RefreshCw size={16} strokeWidth={2} aria-hidden />
+          )}
+        </button>
       )}
-    </button>
+    </Tooltip>
   );
 }
