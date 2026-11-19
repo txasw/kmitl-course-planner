@@ -84,19 +84,30 @@ export function deltaE76(a: string, b: string): number {
 
 let shadowCss: string | undefined;
 
-/** Read an authored `--kcp-` token hex from the shadow stylesheet, so a contrast test
- * checks the value that ships rather than a copy of it. The stylesheet is read on first
- * use, so a suite that only needs the contrast math never touches the file system. */
-export function shadowToken(name: string): string {
+// Returns the first capture of `--kcp-{name}:` followed by the value pattern. The
+// stylesheet is read on first use, so a suite that only needs the contrast math never
+// touches the file system.
+function readShadowToken(name: string, valuePattern: string): string {
   shadowCss ??= readFileSync(
     resolve(process.cwd(), 'src/entrypoints/regis.content/style.css'),
     'utf8',
   );
-  const match = new RegExp(`--kcp-${name}:\\s*(#[0-9a-fA-F]{6})`).exec(
-    shadowCss,
-  );
+  const match = new RegExp(`--kcp-${name}:\\s*${valuePattern}`).exec(shadowCss);
   if (match?.[1] === undefined) {
     throw new Error(`token --kcp-${name} not found in the stylesheet`);
   }
   return match[1];
+}
+
+/** Read an authored `--kcp-` token hex from the shadow stylesheet, so a contrast test
+ * checks the value that ships rather than a copy of it. */
+export function shadowToken(name: string): string {
+  return readShadowToken(name, '(#[0-9a-fA-F]{6})');
+}
+
+/** Read an authored `--kcp-` percentage token, such as a soft card tint stop, as a
+ * fraction from 0 to 1, so the color-mix the runtime paints can be flattened with
+ * alphaOver before its contrast is checked. */
+export function shadowFraction(name: string): number {
+  return Number(readShadowToken(name, '(\\d+(?:\\.\\d+)?)%')) / 100;
 }

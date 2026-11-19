@@ -116,3 +116,25 @@ danger border and text clear 4.5:1 on both (ADR-0059).
 | primary accent | danger-soft      | 3.30  | 3.0 |
 | border-strong  | surface          | 3.77  | 3.0 |
 | border-strong  | surface-alt      | 3.52  | 3.0 |
+| ink            | surface-sunken   | 15.17 | 4.5 |
+| ink-soft       | surface-sunken   | 5.83  | 4.5 |
+| ink-muted      | surface          | 5.30  | 4.5 |
+| ink-muted      | surface-alt      | 4.95  | 4.5 |
+| ink-muted      | surface-sunken   | 4.62  | 4.5 |
+| ink-muted      | primary-soft     | 4.68  | 4.5 |
+
+## Soft depth card
+
+The soft depth card of ADR-0071 mixes its tint into the surface, from 17 percent at the top
+to 8 percent from 70 percent of its height down. The tint is a subject color from the event
+palette, or the muted ink `--kcp-ink-muted` (`#6B6B70`) on a neutral card. Ink and ink soft
+may sit anywhere on the card, so they are proven on the 17 percent stop. Ink muted is meant
+for the foot line only and is proven on the 8 percent stop; on the 17 percent stop it falls
+to between 3.85 and 4.25, so it never sits at the top of a soft card. Each row lists the
+lowest ratio across the eleven tints, enforced in `token-contrast.test.ts`.
+
+| Foreground | Stop       | Lowest ratio | Lowest tint | Bar |
+| ---------- | ---------- | ------------ | ----------- | --- |
+| ink        | 17 percent | 12.63        | `#A50060`   | 4.5 |
+| ink-soft   | 17 percent | 4.85         | `#A50060`   | 4.5 |
+| ink-muted  | 8 percent  | 4.58         | `#A50060`   | 4.5 |
