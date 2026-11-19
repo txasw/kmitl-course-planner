@@ -13,7 +13,6 @@ import { STORE_BADGES, THAI_KEEP } from '../../scripts/landing/render-page.mjs';
 import {
   dedupeCounts,
   dedupeRows,
-  siteVersion,
   storyBlocks,
 } from '../../scripts/landing/site-data.mjs';
 import {
@@ -202,22 +201,19 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
     );
   });
 
-  it('states the version in site-version.json, no higher than package.json', () => {
-    const stated = siteVersion();
+  // The release pull request bumps package.json and rebuilds the site in one commit, so the
+  // committed page always states the version package.json holds (ADR-0066).
+  it('states the version package.json holds', () => {
     const packaged = (
       JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as {
         version: string;
       }
     ).version;
-    const parts = (version: string) => version.split('.').map(Number);
-    const [a = 0, b = 0, c = 0] = parts(stated);
-    const [x = 0, y = 0, z = 0] = parts(packaged);
-    expect(a * 1e6 + b * 1e3 + c).toBeLessThanOrEqual(x * 1e6 + y * 1e3 + z);
     const app = graph(doc).find(
       (node) => node['@type'] === 'SoftwareApplication',
     );
-    expect(app?.softwareVersion).toBe(stated);
-    expect(doc.getElementById('download')?.textContent).toContain(stated);
+    expect(app?.softwareVersion).toBe(packaged);
+    expect(doc.getElementById('download')?.textContent).toContain(packaged);
   });
 
   it('names itself canonical and lists both language alternates', () => {
