@@ -41,7 +41,12 @@ import {
 } from './searchIds';
 import { searchStore } from './searchStore';
 
+const DATA_TIME_ID = 'kcp-search-bar-data-time';
+
 const term = { year: '2569', semester: '1' } as const;
+
+// The query chip is named by its edit action followed by the search it summarizes.
+const EDIT_SEARCH = /^แก้ไขการค้นหา/;
 
 // The exact 400 body the registration server returns for a subject id whose length is
 // not eight. The cast names the shape the test reads from the untrusted fixture.
@@ -122,7 +127,7 @@ describe('SearchHeader', () => {
     expect(region).not.toHaveAttribute('inert');
   });
 
-  it('folds the form into a bar that reads the term and the busy text', () => {
+  it('folds the form into a chip that reads the term and the busy text', () => {
     const { container } = renderHeader();
     act(() => {
       searchStore.getState().startQuery(subjectQuery, 'user');
@@ -140,7 +145,8 @@ describe('SearchHeader', () => {
         .getState()
         .setResult({ status: 'ready', data: catalog }, subjectQuery);
     });
-    expect(bar).toHaveAccessibleDescription(/2 รายวิชา/);
+    // The course count is read once, from the catalog summary line, not here.
+    expect(bar).not.toHaveAccessibleDescription(/รายวิชา$/);
     expect(bar).not.toHaveAccessibleDescription(/กำลังค้นหารายวิชา/);
   });
 
@@ -164,24 +170,29 @@ describe('SearchHeader', () => {
           );
       });
       expect(bar).toHaveAccessibleDescription(/ข้อมูล ณ 14:32/);
-      const time = screen.getByText('ข้อมูล ณ 14:32');
+      const refresh = screen.getByRole('button', { name: 'โหลดผลค้นหาใหม่' });
+      expect(refresh).toHaveAccessibleDescription('ข้อมูล ณ 14:32');
+      // Fresh, the time is read only, through the refresh description and tooltip.
+      const time = document.getElementById(DATA_TIME_ID);
       expect(time).toHaveAttribute('data-stale', 'false');
+      expect(time).toHaveClass('sr-only');
       act(() => {
         vi.advanceTimersByTime(TEACH_TABLE_TTL_MS);
       });
       expect(time).toHaveAttribute('data-stale', 'true');
       expect(time).toHaveClass('text-warn');
+      expect(time).not.toHaveClass('sr-only');
     } finally {
       vi.useRealTimers();
     }
   });
 
-  it('keeps the disclosure label and focus while it toggles the form', () => {
+  it('keeps the chip name and focus while it toggles the form', () => {
     const { container } = renderHeader();
     act(() => {
       searchStore.getState().startQuery(subjectQuery, 'user');
     });
-    const disclosure = screen.getByRole('button', { name: 'แก้ไขการค้นหา' });
+    const disclosure = screen.getByRole('button', { name: EDIT_SEARCH });
     expect(disclosure).toHaveAttribute('aria-expanded', 'false');
     expect(disclosure).toHaveAttribute('aria-controls', SEARCH_FORM_ID);
     disclosure.focus();
@@ -190,9 +201,7 @@ describe('SearchHeader', () => {
     expect(disclosure).toHaveAttribute('aria-expanded', 'true');
     expect(formRegion(container)).toHaveAttribute('data-open', 'true');
     expect(formRegion(container)).not.toHaveAttribute('inert');
-    expect(screen.getByRole('button', { name: 'แก้ไขการค้นหา' })).toBe(
-      disclosure,
-    );
+    expect(screen.getByRole('button', { name: EDIT_SEARCH })).toBe(disclosure);
     expect(disclosure).toHaveFocus();
 
     fireEvent.click(disclosure, { detail: 1 });
@@ -201,7 +210,7 @@ describe('SearchHeader', () => {
     expect(disclosure).toHaveFocus();
   });
 
-  it('clamps a long category name and keeps the scope chip whole', () => {
+  it('wraps a long category name in full and names the chip by what it shows', () => {
     const longName =
       '90641xxx กลุ่มวิชาเลือกเสรีด้านนวัตกรรมการผลิตขั้นสูงและการจัดการอุตสาหกรรมเพื่อความยั่งยืนของชุมชน';
     const categoryQuery: TeachTableQuery = {
@@ -227,12 +236,17 @@ describe('SearchHeader', () => {
     });
     const bar = screen.getByRole('region', { name: 'การค้นหาปัจจุบัน' });
     const primary = screen.getByText(`หมวดวิชา ${longName}`);
-    expect(primary).toHaveClass('line-clamp-2');
-    expect(primary).not.toHaveAttribute('title');
-    const chip = screen.getByText('ทุกคณะ');
-    expect(chip).toHaveClass('whitespace-nowrap', 'shrink-0');
-    expect(chip).not.toHaveClass('truncate');
-    expect(primary).not.toContainElement(chip);
+    expect(primary).toHaveClass('break-words');
+    expect(primary).not.toHaveClass('line-clamp-2');
+    expect(primary).not.toHaveClass('truncate');
+    const qualifier = screen.getByText('ทุกคณะ');
+    expect(qualifier).not.toHaveClass('truncate');
+    expect(primary).not.toContainElement(qualifier);
+    const chip = screen.getByRole('button', { name: EDIT_SEARCH });
+    expect(chip).toHaveAccessibleName(
+      `แก้ไขการค้นหา หมวดวิชา ${longName} ภาค 2/2569 ทุกคณะ`,
+    );
+    expect(chip).toContainElement(primary);
     expect(bar).toHaveAccessibleDescription(
       `หมวดวิชา ${longName} ภาค 2/2569 ทุกคณะ กำลังค้นหารายวิชา`,
     );
@@ -243,7 +257,7 @@ describe('SearchHeader', () => {
     act(() => {
       searchStore.getState().startQuery(subjectQuery, 'user');
     });
-    const disclosure = screen.getByRole('button', { name: 'แก้ไขการค้นหา' });
+    const disclosure = screen.getByRole('button', { name: EDIT_SEARCH });
     fireEvent.click(disclosure, { detail: 1 });
     fireEvent.click(disclosure, { detail: 2 });
     expect(disclosure).toHaveAttribute('aria-expanded', 'true');
@@ -469,7 +483,7 @@ describe('search head Escape', () => {
     act(() => {
       searchStore.getState().startQuery(subjectQuery, 'user');
     });
-    fireEvent.click(screen.getByRole('button', { name: 'แก้ไขการค้นหา' }), {
+    fireEvent.click(screen.getByRole('button', { name: EDIT_SEARCH }), {
       detail: 1,
     });
     const year = screen.getByRole('combobox', { name: 'ปีการศึกษา' });
@@ -499,7 +513,7 @@ describe('search head Escape', () => {
     act(() => {
       searchStore.getState().startQuery(subjectQuery, 'user');
     });
-    fireEvent.click(screen.getByRole('button', { name: 'แก้ไขการค้นหา' }), {
+    fireEvent.click(screen.getByRole('button', { name: EDIT_SEARCH }), {
       detail: 1,
     });
     const field = screen.getByRole('textbox', { name: 'รหัสวิชา' });
@@ -680,7 +694,7 @@ describe('SearchHeader on the phone layout', () => {
     expect(head).not.toHaveClass('absolute');
     expect(submitRow()).not.toHaveClass('sticky');
 
-    fireEvent.click(screen.getByRole('button', { name: 'แก้ไขการค้นหา' }), {
+    fireEvent.click(screen.getByRole('button', { name: EDIT_SEARCH }), {
       detail: 1,
     });
     expect(head).toHaveClass('absolute');
@@ -692,7 +706,7 @@ describe('SearchHeader on the phone layout', () => {
     fireEvent.click(cancel);
     expect(formRegion(container)).toHaveAttribute('data-open', 'false');
     expect(formRegion(container)).toHaveAttribute('inert');
-    expect(screen.getByRole('button', { name: 'แก้ไขการค้นหา' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: EDIT_SEARCH })).toHaveFocus();
     // The cancel only folds; the running search keeps its bar.
     expect(searchStore.getState().barQuery).toBe(subjectQuery);
   });

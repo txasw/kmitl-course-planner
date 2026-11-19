@@ -50,9 +50,10 @@ interface SearchHeaderProps {
 export function SearchHeader({ compact = false }: SearchHeaderProps) {
   useSearchInit(useSearchDeps(), useHashRoute());
   const restorePending = useStore(searchStore, (state) => state.restorePending);
-  // The height of a folded bar, so the results below do not jump when it lands.
+  // The height of a folded query chip on one line, so the results below do not jump
+  // when it lands.
   return restorePending ? (
-    <div aria-hidden className="h-14 flex-none border-b border-border" />
+    <div aria-hidden className="h-15 flex-none border-b border-border" />
   ) : (
     <SearchHead compact={compact} />
   );

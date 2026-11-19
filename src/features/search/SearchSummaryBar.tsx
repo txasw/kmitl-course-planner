@@ -1,21 +1,24 @@
-// The summary bar the search form folds into once a user search starts. It names what
-// was searched, the scope and the term of that search, and carries a status slot that
-// reads the busy text while the query runs and the course count once it settles, so the
-// press is visibly accepted even when a cached answer changes nothing else. The query
-// name clamps to two lines, while the scope chips beside the term never truncate, so a
-// long Thai category name cannot hide the faculty or class year that sets two alike
-// searches apart. Once a catalog settles the bar says when its data was fetched, which
-// turns warn past the cache lifetime, beside the action that runs the search again.
-// It is a focusable region, not a live region: the busy text is read when focus lands
-// on the bar, and settled outcomes stay with the panel's existing announcers. The
-// disclosure keeps one label and reports its state through aria-expanded, so it never
-// moves under the pointer.
+// The query chip the search form folds into once a user search starts. The whole chip is
+// the one control that reopens the form: it names what was searched in full, wrapping
+// rather than clamping, over a line with the term and the scope, and a pencil tile says
+// it can be edited. Its accessible name starts with the edit action and carries the
+// visible summary, so a voice command that speaks what the chip shows reaches it. While
+// the query runs the scope line ends in the busy text, so the press is visibly accepted
+// even when a cached answer changes nothing else. The course count is not repeated here,
+// because the catalog summary line under the filters carries it once.
+// The refresh beside the chip says when the data on screen was fetched in its tooltip
+// and description. Past the cache lifetime that time also shows as a warn line under the
+// chip, with a warning sign so the cue does not rest on colour alone, since that is the
+// moment the refresh is worth pressing.
+// The chip row is a focusable region, not a live region: the busy text is read when
+// focus lands on it, and settled outcomes stay with the panel's existing announcers. The
+// chip keeps one name while it toggles and reports its state through aria-expanded, so
+// it never moves under the pointer.
 
 import { useMemo } from 'react';
 import { useStore } from 'zustand';
-import { AlertTriangle, ChevronDown, Clock, LoaderCircle } from 'lucide-react';
+import { AlertTriangle, ChevronUp, LoaderCircle, Pencil } from 'lucide-react';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
-import { courseCountLabel } from '@/lib/i18n/counts';
 import type { Translate } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
 import { describeQuery } from '@/lib/search/describeQuery';
@@ -33,71 +36,75 @@ import { ResultAction } from './ResultAction';
 import { TAB_ICON } from './searchTabs';
 import { useIsPast } from './useIsPast';
 
+const EDIT_ID = 'kcp-search-bar-edit';
 const SUMMARY_ID = 'kcp-search-bar-summary';
 const TERM_ID = 'kcp-search-bar-term';
 const STATUS_ID = 'kcp-search-bar-status';
 const DATA_TIME_ID = 'kcp-search-bar-data-time';
 const QUALIFIER_ID_PREFIX = 'kcp-search-bar-qualifier-';
-const CHIP =
-  'shrink-0 whitespace-nowrap rounded-kcp-inner bg-surface-alt px-1.5 py-0.5';
 
-interface StatusSlotProps {
-  busy: boolean;
-  courses: number | null;
-  t: Translate;
-}
-
-function StatusSlot({ busy, courses, t }: StatusSlotProps) {
-  if (busy) {
-    // The spinner stops after eight turns, about when the slow notice takes over, and
-    // is a static icon under reduced motion.
-    return (
-      <span className="kcp-fade-in inline-flex items-center gap-1">
-        <LoaderCircle
-          size={14}
-          strokeWidth={2}
-          aria-hidden
-          className="animate-spin [animation-iteration-count:8] motion-reduce:animate-none"
-        />
-        {t('search.loading')}
-      </span>
-    );
-  }
-  // An error leaves the slot empty, because the error card below carries the message.
-  if (courses === null) {
-    return null;
-  }
+function BusyText({ t }: { t: Translate }) {
+  // The spinner stops after eight turns, about when the slow notice takes over, and is
+  // a static icon under reduced motion.
   return (
-    <span className="kcp-fade-in tabular-nums">
-      {courseCountLabel(t, courses)}
+    <span className="kcp-fade-in inline-flex items-center gap-1">
+      <LoaderCircle
+        size={12}
+        strokeWidth={2}
+        aria-hidden
+        className="animate-spin [animation-iteration-count:8] motion-reduce:animate-none"
+      />
+      {t('search.loading')}
     </span>
   );
 }
 
 interface DataTimeProps {
-  fetchedAt: number;
-  t: Translate;
+  text: string;
+  stale: boolean;
 }
 
-// How old the courses on screen are: the clock time of the fetch behind them, or the
-// date and time for one from an earlier day. Past the cache lifetime a search would
-// fetch again, so the line turns warn and its clock becomes a warning sign, a cue that
-// does not rest on colour alone, and the refresh beside it is the way forward.
-function DataTime({ fetchedAt, t }: DataTimeProps) {
-  const stale = useIsPast(fetchedAt + TEACH_TABLE_TTL_MS);
-  const Icon = stale ? AlertTriangle : Clock;
+// How old the courses on screen are. Fresh, it is read through the refresh's tooltip and
+// description only; stale, it shows as a warn line, because a search would fetch again.
+function DataTime({ text, stale }: DataTimeProps) {
   return (
-    <span
+    <p
       id={DATA_TIME_ID}
       data-stale={stale ? 'true' : 'false'}
-      className={`inline-flex items-center gap-1 tabular-nums ${stale ? 'text-warn' : ''}`}
+      className={
+        stale
+          ? 'flex items-center gap-1 px-1 text-xs text-warn tabular-nums'
+          : 'sr-only'
+      }
     >
-      <Icon size={12} strokeWidth={2} aria-hidden />
-      {fillTemplate(t('search.bar.dataAsOf'), {
-        time: checkedTime(new Date(fetchedAt).toISOString(), new Date(), t),
-      })}
-    </span>
+      {stale ? (
+        <AlertTriangle
+          size={12}
+          strokeWidth={2}
+          aria-hidden
+          className="shrink-0"
+        />
+      ) : null}
+      <span>{text}</span>
+    </p>
   );
+}
+
+/** The clock time of the fetch behind the courses, or null before one settles. */
+function useDataTime(t: Translate): { text: string; stale: boolean } | null {
+  const fetchedAt = useStore(searchStore, (state) =>
+    state.result.status === 'ready' ? state.resultFetchedAt : null,
+  );
+  const stale = useIsPast(
+    fetchedAt === null ? null : fetchedAt + TEACH_TABLE_TTL_MS,
+  );
+  if (fetchedAt === null) return null;
+  return {
+    text: fillTemplate(t('search.bar.dataAsOf'), {
+      time: checkedTime(new Date(fetchedAt).toISOString(), new Date(), t),
+    }),
+    stale,
+  };
 }
 
 interface SearchSummaryBarProps {
@@ -120,7 +127,7 @@ export function SearchSummaryBar({ query }: SearchSummaryBarProps) {
       ),
     [query, faculties, departments, curricula, subjectOwners, language, t],
   );
-  // Each chip is referenced on its own, so the description reads the chips apart.
+  // Each qualifier is referenced on its own, so the name reads them apart.
   const qualifierIds = summary.qualifiers.map(
     (_, index) => `${QUALIFIER_ID_PREFIX}${String(index)}`,
   );
@@ -129,13 +136,10 @@ export function SearchSummaryBar({ query }: SearchSummaryBarProps) {
     searchStore,
     (state) => state.result.status === 'loading',
   );
-  const courses = useStore(searchStore, (state) =>
-    state.result.status === 'ready' ? state.result.data.courses.length : null,
-  );
-  const fetchedAt = useStore(searchStore, (state) =>
-    state.result.status === 'ready' ? state.resultFetchedAt : null,
-  );
+  const dataTime = useDataTime(t);
   const TabIcon = TAB_ICON[query.mode];
+  const TrailIcon = formOpen ? ChevronUp : Pencil;
+  const queryIds = [SUMMARY_ID, TERM_ID, ...qualifierIds];
 
   return (
     <div
@@ -144,34 +148,19 @@ export function SearchSummaryBar({ query }: SearchSummaryBarProps) {
       tabIndex={-1}
       aria-label={t('search.bar.label')}
       aria-describedby={[
-        SUMMARY_ID,
-        TERM_ID,
-        ...qualifierIds,
+        ...queryIds,
         STATUS_ID,
-        ...(fetchedAt === null ? [] : [DATA_TIME_ID]),
+        ...(dataTime === null ? [] : [DATA_TIME_ID]),
       ].join(' ')}
-      className={`flex flex-none flex-col gap-1 border-b border-border bg-surface px-4 py-2 ${FOCUS_RING}`}
+      className={`flex flex-none flex-col gap-1 border-b border-border bg-surface px-3 py-2 ${FOCUS_RING}`}
     >
-      {/* Top aligned, so the disclosure stays put when the name grows to two lines
-          as the reference lists arrive. */}
-      <div className="flex items-start gap-2 text-sm text-ink">
-        <TabIcon
-          size={16}
-          strokeWidth={2}
-          aria-hidden
-          className="mt-1 shrink-0 text-ink-soft"
-        />
-        <span
-          id={SUMMARY_ID}
-          className="line-clamp-2 min-w-0 flex-1 py-0.5 break-words"
-        >
-          {summary.primary}
-        </span>
+      <div className="flex items-center gap-1">
         <button
           id={SEARCH_DISCLOSURE_ID}
           type="button"
           aria-expanded={formOpen}
           aria-controls={SEARCH_FORM_ID}
+          aria-labelledby={[EDIT_ID, ...queryIds].join(' ')}
           onClick={(event) => {
             // The second click of a double click would close the form it just opened.
             if (event.detail > 1) {
@@ -179,41 +168,52 @@ export function SearchSummaryBar({ query }: SearchSummaryBarProps) {
             }
             searchStore.getState().setSearchFormOpen(!formOpen);
           }}
-          className={`inline-flex min-h-6 shrink-0 items-center gap-1 rounded-kcp px-2 py-0.5 text-sm text-ink transition-colors hover:bg-surface-alt pointer-coarse:min-h-11 ${FOCUS_RING}`}
+          className={`kcp-soft-card flex min-h-11 min-w-0 flex-1 items-center gap-2.5 py-1 pr-1.5 pl-2 text-left text-ink hover:[--kcp-tint:var(--kcp-ink-soft)] ${FOCUS_RING}`}
         >
-          {t('search.bar.edit')}
-          <ChevronDown
-            size={16}
+          <span id={EDIT_ID} className="sr-only">
+            {t('search.bar.edit')}
+          </span>
+          <TabIcon
+            size={18}
             strokeWidth={2}
             aria-hidden
-            className={`transition-transform duration-base motion-reduce:transition-none ${
-              formOpen ? 'rotate-180' : ''
-            }`}
+            className="shrink-0 text-ink-soft"
           />
-        </button>
-      </div>
-      <div className="flex flex-wrap items-center gap-2 text-xs text-ink-soft">
-        <span id={TERM_ID} className={CHIP}>
-          {fillTemplate(t('search.summary.term'), {
-            semester: query.selected_semester,
-            year: query.selected_year,
-          })}
-        </span>
-        {summary.qualifiers.map((qualifier, index) => (
-          <span
-            key={qualifierIds[index]}
-            id={qualifierIds[index]}
-            className={CHIP}
-          >
-            {qualifier}
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span id={SUMMARY_ID} className="text-sm font-semibold break-words">
+              {summary.primary}
+            </span>
+            <span className="flex flex-wrap items-center gap-x-2.5 text-xs text-ink-soft">
+              <span id={TERM_ID} className="tabular-nums">
+                {fillTemplate(t('search.summary.term'), {
+                  semester: query.selected_semester,
+                  year: query.selected_year,
+                })}
+              </span>
+              {summary.qualifiers.map((qualifier, index) => (
+                <span key={qualifierIds[index]} id={qualifierIds[index]}>
+                  {qualifier}
+                </span>
+              ))}
+              <span id={STATUS_ID}>{busy ? <BusyText t={t} /> : null}</span>
+            </span>
           </span>
-        ))}
-        <span id={STATUS_ID}>
-          <StatusSlot busy={busy} courses={courses} t={t} />
-        </span>
-        {fetchedAt === null ? null : <DataTime fetchedAt={fetchedAt} t={t} />}
-        <ResultAction statusId={STATUS_ID} />
+          <span
+            aria-hidden
+            className="flex size-8 shrink-0 items-center justify-center rounded-kcp-sm bg-surface-sunken text-ink"
+          >
+            <TrailIcon size={16} strokeWidth={2} />
+          </span>
+        </button>
+        <ResultAction
+          statusId={STATUS_ID}
+          dataTime={dataTime === null ? null : dataTime.text}
+          dataTimeId={DATA_TIME_ID}
+        />
       </div>
+      {dataTime === null ? null : (
+        <DataTime text={dataTime.text} stale={dataTime.stale} />
+      )}
     </div>
   );
 }
