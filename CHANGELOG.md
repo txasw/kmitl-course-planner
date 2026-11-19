@@ -1,5 +1,140 @@
 # kmitl-course-planner
 
+## 1.5.0
+
+### Minor Changes
+
+- d88c448: Close the planner with the back gesture or the browser back button. While the panel is open it
+  holds one history entry of its own, with the same address, so going back closes the panel and
+  returns to the registration page as it was, instead of moving that page to its previous screen.
+  Closing the panel any other way removes the entry again, and the page's own route and history are
+  left unchanged. With the keyboard shortcut list open, the first back closes only the list and a
+  second back closes the panel, the same as Escape.
+- 2753b10: The catalog remembers the hide full, hide conflicting, and hide unscheduled toggles across page
+  reloads, while the text, day, and credit filters still belong to the current search. The empty
+  timetable notice now sits on a card with a tinted icon and offers a Go to search action that opens
+  the search form beside the grid, or the courses pane on a phone. The preview poster shows the same
+  notice without the action.
+- 359c2e1: The catalog can sort the courses inside each subject type heading by subject id, by most open
+  seats, or by earliest start, from a Sort by control beside the filters. Clearing the filters keeps
+  the chosen order. Each heading now names how many courses it holds and can be collapsed to set a
+  group aside; a new search opens every heading again.
+- c700838: Sections can be changed and swapped without dragging. When an add is blocked by a time conflict,
+  the notice offers to replace each blocking subject that the new section could take the place of,
+  in one step with one undo. The block details and each card in Selected courses carry a Change
+  section list of the subject's other open sections that fit the plan, a lecture and practice pair
+  as one choice, and picking one moves the subject with a single undo. The hint on an added course
+  now points to these paths instead of the drag.
+- be7b4c7: Copy registration list, in the selected courses heading and in the plan menu, copies the plan as
+  plain text with one line per subject: the subject id, its name, and every section to register,
+  listing both the lecture and the practice section of a pair. A student can read from it while
+  entering the plan into the official registration system. The details of a planned section and the
+  block's right click menu also gain Copy subject id. A toast confirms each copy.
+- 1a4bfe1: Each course card carries a bookmark that saves the course for later, kept per semester and year
+  across page reloads. A Saved chip beside the sort control shows how many saved courses the current
+  result lists and narrows the catalog to them, with the other filters still applied.
+- 9e4ad97: Note when a plan's credits leave the usual load. The plan summary bar shows the credit total in
+  the warning color with a short note when it falls below 9 or rises above 22 credits in semester
+  1 or 2, or rises above 9 credits in semester 3, the special term. The numbers follow clause 14.4
+  of the KMITL undergraduate regulation B.E. 2565. An empty plan carries no note, the total
+  includes sections with no meeting, and the note is advice only: nothing is blocked, since final
+  year students and approved loads may sit outside the range.
+- 79eda82: The Firefox add-on now declares support for Firefox for Android 142 and later, so it can be
+  installed from Firefox Add-ons on an Android phone and opens the planner in its phone layout on
+  the registration site. It asks for the same storage permission and the same two KMITL sites as
+  before.
+- 2baacfe: The catalog filter now finds sections by instructor, room, or building as well as by subject id
+  and name. A match on an instructor or a place narrows each course to the sections that match, and
+  the field hint reads Code, name, or instructor. A Clear filters action appears whenever the text or
+  any filter narrows the list, and clears both at once.
+- d6031a6: The details of a planned section now end with a link, View in the official timetable, that opens
+  the registration site's own listing for that subject and term in a new tab, so a student can check
+  the source next to the plan. The planner stays open where it was, and the link only opens the page.
+- 815c112: The panel has keyboard shortcuts. Slash moves to the results filter, Ctrl+Z or Cmd+Z undoes the
+  last plan change while its undo message shows, and the question mark lists the shortcuts. None of
+  them fire while you type in a field, and they work under the Thai keyboard layout too.
+- 1aed2b6: Creating a plan now offers year and semester selects that open on the searched term, and the
+  default name follows the chosen term until it is edited. The delete prompt states how many sections
+  the plan holds and that the delete cannot be undone, and each plan in the switcher shows its credits
+  and subject count.
+- 4c15b11: Edit the whole week on a narrow timetable. When the timetable is narrower than 640 px, a
+  รายวัน or รายสัปดาห์ (Day or Week) toggle sits above it. The day view stays the default; the
+  week shows every day as a column with the time running down, and keeps every edit action: drag
+  a block to move or remove it, see the sections of a dragged course as slots, and swap past a
+  conflict. The choice is remembered for the next visit. From 640 px the landscape week shows as
+  before and the toggle is hidden.
+- ebdb4c8: Frame and scale the preview poster to its stage. The preview now sits on a quiet grey stage
+  with a framed poster that grows up to twice its layout size on a large screen, while the
+  exported image stays at the exact template pixels and carries no frame. A stage taller than
+  wide, as on a phone or a narrow window, opens on the portrait phone wallpaper until a
+  template is chosen. Below 900 px of stage width the neighbor previews at the edges give way to
+  the full poster width, paged by swipe and by larger template dots. While an image is being
+  created, the pressed action reads กำลังสร้างรูปภาพ, Creating image, and the sharing actions
+  wait until it finishes, so a second press cannot start another capture.
+- fbfd292: A section dropped on the timetable while it conflicts no longer vanishes at once. Its hatched
+  footprint gives a short shake and fades over 200 ms while the feedback strip states the reason
+  and offers alternatives. With reduced motion the footprint only fades, with no movement.
+- 4a5a1ba: The panel header now shows whether your latest plan change is saved in this browser, beside the
+  plan switcher. On a phone it shows the icon alone. When a save fails, one message says so and
+  offers to try again, and the indicator stays as a button that saves again until a save succeeds.
+- 5df6e2a: The search form selects now carry a small leading icon, so the year, semester, faculty,
+  category, and curriculum fields are easy to tell apart at a glance. The icons are decorative
+  and screen readers continue to announce each field by its label.
+- adfb9a7: Preview gains share image, which sends the poster through the system share sheet wherever the
+  browser can share a file, such as Chrome on Android. If the image takes too long to create for
+  the browser to open the sheet, a toast offers to share the ready image with one more press. On a
+  phone the sharing toolbar now sits at the bottom of the preview within thumb reach, as one row of
+  icon buttons.
+
+### Patch Changes
+
+- c4e94e6: The meeting place now shows the readable building name, such as สำนักหอสมุดกลาง, instead of an
+  internal code such as D01, and leaves the building out when the room already names it, so a block
+  reads D-510 rather than D01 D-510. Plans saved earlier are not marked as moved to another room on
+  their next check.
+- ed0c47f: A section or search from another semester now states the mismatch in one sentence, such as
+  ตารางนี้เป็นภาคการศึกษา 1/2569 แต่กลุ่มเรียนนี้อยู่ในภาคการศึกษา 2/2569, and its action says what it
+  will do: เปิดตารางภาค 2/2569 when a plan for that semester exists, or สร้างตารางภาค 2/2569 when it
+  will make one. The day loads in the stats bar and the poster footer read 6 ชม. in Thai and 6h in
+  English. The segmented controls and day chips use even 4 px insets with matching inner corners.
+- 994d062: The curriculum select tells apart revisions that share a name by adding the revision year, newest first, and the curriculum id when the year is the same.
+- 10d538c: Refresh the build and test dependencies to their latest patch and minor releases.
+- f35cac8: Show the orange keyboard focus indicator on every control. The filled buttons, the launcher,
+  the timetable blocks, and more than a dozen other buttons and links drew no visible focus
+  before, so a keyboard user could not see where focus was.
+- db88d5b: Fix two timetable notice details. The empty timetable notice now steps aside while a section
+  or a course is dragged over the timetable, so the green drop slots and footprints are no longer
+  covered, and it comes back when the drag ends or is cancelled. The empty timetable and free day
+  notices now look like the other empty states in the panel, with a neutral icon and no card
+  floating over the gridlines.
+- e7bd686: Fix four layout details. A right click on a hovered timetable block now closes the hover card,
+  so it no longer covers the block menu. A toast shown over an open bottom sheet on a phone or
+  tablet now sits below the sheet's content and actions instead of covering them. The Summary
+  view writes hours as 5h in English, matching the stats bar. The empty timetable notice now
+  centers on the day rows rather than low in the timetable area.
+- 0d215bf: When the background service answers with an empty or unexpected reply, for example while the
+  browser restarts it, the panel now shows the usual connection error with a retry action instead
+  of failing on the reply.
+- 736d90f: Keep fields visible above the phone keyboard. On a phone the planner now shrinks to the part of
+  the screen the on screen keyboard leaves, so the curriculum search field, its option list, the
+  subject id field, and the plan name field in the plan menu stay in view while typing. The focused
+  field scrolls into view as the keyboard opens. Desktop layout is unchanged.
+- 0223ea9: English counts now read 1 course and 1 section, and the welcome steps no longer tell phone users to drag.
+- f8e0919: On a phone, each day of the timetable now opens scrolled to its first class, so a day whose
+  classes start in the afternoon no longer opens on empty morning rows. Showing an updated course on
+  the timetable from the updates list now turns the day view to the day that course meets on. The
+  summary and the selected courses list each open at their top, so the summary always starts with the
+  exam schedule. Screen readers now hear the result of a catalog filter, including when no course
+  matches.
+- 9872fa8: The brown, bronze, and slate subject colors looked grey on the timetable and are replaced
+  with deep cyan, olive, and berry, so every block reads as a color against the panel.
+  Subjects that used one of the three retired colors now show one of the new ones, in the
+  editor and in exported images. Every other subject keeps its color.
+- 4070e45: Fix the Go to courses action in the Summary view on desktop while the course list is open
+  beside the timetable. It used to move focus to the search without any visible change, so it
+  looked like it did nothing. It now shows the focus ring on the search tab and scrolls it into
+  view. The Go to search action on the empty timetable gets the same fix.
+
 ## 1.4.0
 
 ### Minor Changes
