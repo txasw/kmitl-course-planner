@@ -116,3 +116,70 @@ describe('onboarding repository', () => {
     });
   });
 });
+
+describe('the coach mark snooze day', () => {
+  it('loads a record written before the day existed as version 1', async () => {
+    const repo = createOnboardingRepository(
+      createMemoryStorage({
+        [ONBOARDING_KEY]: { schemaVersion: 1, welcomeShownAt: FIRST },
+      }),
+    );
+    expect(await repo.load()).toEqual({
+      schemaVersion: 1,
+      welcomeShownAt: FIRST,
+    });
+  });
+
+  it.each([
+    ['a timestamp', FIRST],
+    ['a day out of range', '2026-13-40'],
+    ['a number', 20261120],
+  ])('drops %s alone', async (_label, value) => {
+    const repo = createOnboardingRepository(
+      createMemoryStorage({
+        [ONBOARDING_KEY]: {
+          schemaVersion: 1,
+          panelFirstOpenedAt: FIRST,
+          coachMarkSnoozedOn: value,
+        },
+      }),
+    );
+    expect(await repo.load()).toEqual({
+      schemaVersion: 1,
+      panelFirstOpenedAt: FIRST,
+    });
+  });
+
+  it('replaces an earlier day with a later one', async () => {
+    const storage = createMemoryStorage({
+      [ONBOARDING_KEY]: { schemaVersion: 1, coachMarkSnoozedOn: '2026-11-19' },
+    });
+    const repo = createOnboardingRepository(storage);
+    const merged = await repo.patch({ coachMarkSnoozedOn: '2026-11-20' });
+    expect(merged.coachMarkSnoozedOn).toBe('2026-11-20');
+    expect(storage.store[ONBOARDING_KEY]).toEqual(merged);
+  });
+
+  it('keeps a later day another tab wrote over an earlier one', async () => {
+    const storage = createMemoryStorage({
+      [ONBOARDING_KEY]: { schemaVersion: 1, coachMarkSnoozedOn: '2026-11-21' },
+    });
+    const repo = createOnboardingRepository(storage);
+    const merged = await repo.patch({ coachMarkSnoozedOn: '2026-11-20' });
+    expect(merged.coachMarkSnoozedOn).toBe('2026-11-21');
+    expect(storage.set).not.toHaveBeenCalled();
+  });
+
+  it('carries the day through a patch of another field', async () => {
+    const storage = createMemoryStorage({
+      [ONBOARDING_KEY]: { schemaVersion: 1, coachMarkSnoozedOn: '2026-11-20' },
+    });
+    const repo = createOnboardingRepository(storage);
+    const merged = await repo.patch({ panelFirstOpenedAt: FIRST });
+    expect(merged).toEqual({
+      schemaVersion: 1,
+      panelFirstOpenedAt: FIRST,
+      coachMarkSnoozedOn: '2026-11-20',
+    });
+  });
+});
