@@ -300,7 +300,7 @@ describe('SuggestDialog', () => {
     ).toBeInTheDocument();
 
     fireEvent.click(
-      within(curriculum).getByRole('button', { name: 'ไม่เลือกทั้งหมด' }),
+      within(curriculum).getByRole('button', { name: 'ยกเลิกการเลือกทั้งหมด' }),
     );
     expect(
       await screen.findByText('เลือกอย่างน้อยหนึ่งวิชาเพื่อดูตารางที่แนะนำ'),
