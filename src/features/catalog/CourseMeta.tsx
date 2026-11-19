@@ -5,6 +5,7 @@
 // icon only reinforce it. An added card names the section the plan holds instead.
 
 import { AlertTriangle, Check } from 'lucide-react';
+import { sectionCountLabel } from '@/lib/i18n/counts';
 import type { Translate } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
 import { dayLabelKey } from '@/lib/i18n/dayLabel';
@@ -50,12 +51,7 @@ interface FitLineProps {
 }
 
 export function FitLine({ id, summary, t }: FitLineProps) {
-  const count =
-    summary.sectionCount === 1
-      ? t('catalog.card.sectionCountOne')
-      : fillTemplate(t('catalog.card.sectionCount'), {
-          n: summary.sectionCount,
-        });
+  const count = sectionCountLabel(t, summary.sectionCount);
   return (
     <span id={id} data-course-meta className={META}>
       <span>{count}</span>

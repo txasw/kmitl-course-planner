@@ -14,6 +14,7 @@ import {
 } from 'react';
 import { useStore } from 'zustand';
 import { ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
+import { courseCountLabel, sectionCountLabel } from '@/lib/i18n/counts';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { termMismatchText } from '@/lib/i18n/termCopy';
 import { fillTemplate } from '@/lib/i18n/template';
@@ -332,8 +333,8 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
     filtered.length === 0
       ? t('catalog.filterEmpty')
       : fillTemplate(t('status.filterResults'), {
-          courses: filtered.length,
-          sections: countSections(filtered),
+          courses: courseCountLabel(t, filtered.length),
+          sections: sectionCountLabel(t, countSections(filtered)),
         }),
   );
   const isCollapsed = (group: HeadingGroup): boolean =>
