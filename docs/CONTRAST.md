@@ -128,13 +128,37 @@ danger border and text clear 4.5:1 on both (ADR-0059).
 The soft depth card of ADR-0071 mixes its tint into the surface, from 17 percent at the top
 to 8 percent from 70 percent of its height down. The tint is a subject color from the event
 palette, or the muted ink `--kcp-ink-muted` (`#6B6B70`) on a neutral card. Ink and ink soft
-may sit anywhere on the card, so they are proven on the 17 percent stop. Ink muted is meant
-for the foot line only and is proven on the 8 percent stop; on the 17 percent stop it falls
-to between 3.85 and 4.25, so it never sits at the top of a soft card. Each row lists the
-lowest ratio across the eleven tints, enforced in `token-contrast.test.ts`.
+may sit anywhere on the card, so they are proven on the 17 percent stop. Ink muted is bounded
+by position, not by role: it may sit only where the top edge of its glyphs is at or below 70
+percent of the card height, on the flat 8 percent stop, and it is proven there. Above that
+point the gradient darkens toward the 17 percent stop, where ink muted falls to between 3.85
+and 4.25. A foot line pinned to the bottom of a short card, such as a one hour event block,
+can rise above the bound, so a card that cannot keep its muted text at or below 70 percent uses
+ink soft for it. Each row lists the lowest ratio across the eleven tints, enforced in
+`token-contrast.test.ts`.
 
 | Foreground | Stop       | Lowest ratio | Lowest tint | Bar |
 | ---------- | ---------- | ------------ | ----------- | --- |
 | ink        | 17 percent | 12.63        | `#A50060`   | 4.5 |
 | ink-soft   | 17 percent | 4.85         | `#A50060`   | 4.5 |
 | ink-muted  | 8 percent  | 4.58         | `#A50060`   | 4.5 |
+
+The bound is the same 70 percent for every tint, but the gradient turns too dark for ink muted
+at a different height on each. The table lists, per tint, the highest point from the top at
+which ink muted still clears 4.5:1 all the way down, computed by the muted text bound check in
+`token-contrast.test.ts`. The check asserts that every limit is at most 70 percent, so the
+one documented bound holds for every tint.
+
+| Tint            | Hex       | Muted text limit from the top |
+| --------------- | --------- | ----------------------------- |
+| neutral (muted) | `#6B6B70` | 35 percent                    |
+| blue            | `#1F5FA8` | 48 percent                    |
+| teal            | `#0E7C7B` | 41 percent                    |
+| green           | `#2E7D32` | 38 percent                    |
+| purple          | `#6A3FA0` | 50 percent                    |
+| raspberry       | `#B0355F` | 49 percent                    |
+| indigo          | `#3949AB` | 52 percent                    |
+| magenta         | `#A21CAF` | 56 percent                    |
+| deep cyan       | `#00729F` | 42 percent                    |
+| olive           | `#736B00` | 40 percent                    |
+| berry           | `#A50060` | 64 percent                    |
