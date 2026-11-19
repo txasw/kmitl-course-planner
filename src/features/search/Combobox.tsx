@@ -41,7 +41,7 @@ export interface ComboboxOption {
   label: string;
 }
 
-interface ComboboxProps {
+interface ComboboxBaseProps {
   label: string;
   value: string;
   options: ComboboxOption[];
@@ -54,10 +54,20 @@ interface ComboboxProps {
   searchable?: boolean;
   /** A decorative leading icon drawn inside the control, before its value. */
   icon?: LucideIcon;
-  /** When set on a select only field, the trigger shows this icon alone and the label
-   * and the chosen option are read from its accessible name and its tooltip. */
-  iconOnly?: LucideIcon;
 }
+
+// The icon only trigger exists for the select only field alone, so the type pairs it
+// with searchable false rather than letting a searchable field drop the icon unseen.
+type ComboboxProps = ComboboxBaseProps &
+  (
+    | { iconOnly?: never }
+    | {
+        searchable: false;
+        /** The trigger shows this icon alone, and the label and the chosen option are
+         * read from its accessible name and its tooltip. */
+        iconOnly: LucideIcon;
+      }
+  );
 
 export function Combobox({
   label,
