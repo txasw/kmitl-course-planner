@@ -30,6 +30,7 @@ import { DayLanes } from './DayLanes';
 import { GridAxis } from './GridAxis';
 import { GridRules } from './GridRules';
 import type { PlacedSection } from './placedSection';
+import type { BlockSurface } from './blockSurface';
 import {
   AXIS_TRACK_EM,
   EDIT_FONT_PX,
@@ -126,6 +127,9 @@ export interface WeeklyGridProps {
   /** Label every nth hour on the time axis; the suggestion thumbnails thin their labels
    * so a narrow card keeps them apart. Defaults to every hour. */
   hourLabelStep?: number;
+  /** The block fill. Edit takes the soft depth card and the poster the flat tint its export
+   * captures; the plan suggestion cards, read only but never exported, ask for the soft card. */
+  blockSurface?: BlockSurface;
 }
 
 /** The edit grid inputs that hold whatever days and layout render them, so the week grid
@@ -165,6 +169,7 @@ export function WeeklyGrid({
   label,
   posterFloor = true,
   hourLabelStep = 1,
+  blockSurface = editable ? 'soft' : 'flat',
 }: WeeklyGridProps) {
   // The grid template follows only the window, the day count, the orientation, and the
   // mode, so it holds stable across a drag or a plan change and is computed once per those
@@ -270,6 +275,7 @@ export function WeeklyGrid({
         dayAccent={dayAccent}
         fontPx={fontPx}
         sticky={editable}
+        surface={blockSurface}
       />
 
       <GridRules

@@ -3,7 +3,7 @@
 // content may overflow; rather than clip a line mid glyph, this hook starts at the full field
 // set and demotes one rung at a time until the content fits, all inside a layout effect so
 // the settled field set is committed before the browser paints and before the poster is
-// captured. The measured element is the content wrapper only, so the absolute chip and badges
+// captured. The measured element is the content wrapper only, so the absolute stripe and hatch
 // never contaminate the height. When the ladder reaches the name, the hook also reads how many
 // lines the name renders and how many lines of content stand past the box, so the name clamps
 // to the lines that fit in one step rather than one line per pass.

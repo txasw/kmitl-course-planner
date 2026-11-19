@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react';
 import { createTranslator, type Translate } from '@/lib/i18n/t';
 import type { Meeting } from '@/lib/domain/types';
+import { hashColor } from '@/lib/utils/hash-color';
 import { EventBlock } from './EventBlock';
 import type { PlacedSection } from './placedSection';
 
@@ -268,7 +269,7 @@ describe('EventBlock', () => {
     );
   });
 
-  it('floats the section as a corner chip while the place is promoted above the foot', () => {
+  it('sets the section chip in flow at the end of the place row, above the foot', () => {
     render(
       <EventBlock
         section={section}
@@ -279,13 +280,139 @@ describe('EventBlock', () => {
       />,
     );
     const block = screen.getByLabelText(/90592033/);
-    // The section reads as a floating chip in the corner, absolutely positioned.
-    expect(within(block).getByText('901').className).toContain('absolute');
+    // The chip trails the place in the same wrapping row, so it never sits over text.
+    const chip = within(block).getByText('901');
+    expect(chip.className).not.toContain('absolute');
+    expect(chip).toHaveClass('ml-auto');
+    expect(chip.parentElement?.textContent).toContain('A · A101');
     // The foot holds the quiet time and id; the promoted place line sits above it, not in it.
     const foot = within(block).getByText('90592033').closest('.mt-1');
     expect(foot).not.toBeNull();
     expect(foot?.textContent).not.toContain('901');
     expect(foot?.textContent).not.toContain('A · A101');
+  });
+
+  it('sets the chip at the start of its row when there is no place', () => {
+    render(
+      <EventBlock
+        section={section}
+        meeting={{ ...meeting, room: '', building: '' }}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.getByText('901')).not.toHaveClass('ml-auto');
+  });
+
+  it('wraps every field rather than ellipsizing it', () => {
+    const { container } = render(
+      <EventBlock
+        section={{ ...section, nameEn: 'A long English secondary name' }}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        showEnglishName
+      />,
+    );
+    expect(container.querySelector('.truncate, .line-clamp-1')).toBeNull();
+    // At full density the name carries no clamp, so a name the box holds shows in full.
+    const name = container.querySelector<HTMLElement>('[data-fit-name]');
+    expect(name?.style.getPropertyValue('--kcp-name-lines')).toBe('');
+    expect(name).toHaveClass('break-words', 'hyphens-auto');
+  });
+
+  it('leaves out an empty foot so its margin never costs the name a line', () => {
+    // The column overflows while it holds the time, so the fit drops the id, then the time,
+    // and the foot that held them goes with them.
+    overflowWhileShowing('09:00-12:00');
+    const { container } = render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.queryByText('09:00-12:00')).not.toBeInTheDocument();
+    expect(screen.queryByText('90592033')).not.toBeInTheDocument();
+    expect(container.querySelector('.mt-1')).toBeNull();
+  });
+
+  it('clamps the name to the lines that fit, measured from its line height', () => {
+    // A column with 20 px of overflow under a name of six 15 px lines sheds two lines in one
+    // step once the id and the time have gone, keeping the place and the chip.
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(80);
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        const name = this.querySelector<HTMLElement>('[data-fit-name]');
+        return name !== null &&
+          name.style.getPropertyValue('--kcp-name-lines') === ''
+          ? 100
+          : 80;
+      },
+    );
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(90);
+    const computed = window.getComputedStyle.bind(window);
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((element) => {
+      const style = computed(element);
+      // jsdom resolves no line height, so the name reports the 15 px a layout would.
+      return element.hasAttribute('data-fit-name')
+        ? new Proxy(style, {
+            get: (target, property): unknown => {
+              if (property === 'lineHeight') {
+                return '15px';
+              }
+              const value: unknown = Reflect.get(target, property, target);
+              return value;
+            },
+          })
+        : style;
+    });
+    const { container } = render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    const name = container.querySelector<HTMLElement>('[data-fit-name]');
+    expect(name?.style.getPropertyValue('--kcp-name-lines')).toBe('4');
+    expect(screen.getByText('A · A101')).toBeInTheDocument();
+    expect(screen.getByText('901')).toBeInTheDocument();
+  });
+
+  it('keeps the name clear of the remove corner only where that control shows', () => {
+    const { container, rerender } = render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        onRemove={vi.fn()}
+        removeLabel={t('action.remove')}
+      />,
+    );
+    expect(container.querySelector('[data-fit-name]')).toHaveClass(
+      'not-pointer-coarse:pr-5',
+    );
+    rerender(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(container.querySelector('[data-fit-name]')?.className).not.toMatch(
+      /pr-5/,
+    );
   });
 
   it('names the room in the accessible label when the room shows', () => {
@@ -405,7 +532,7 @@ describe('EventBlock', () => {
     expect(container.querySelector('.bg-warn')).toBeNull();
   });
 
-  it('fills with the subject stable color', () => {
+  it('tints the soft card with the subject stable color', () => {
     render(
       <EventBlock
         section={section}
@@ -416,7 +543,69 @@ describe('EventBlock', () => {
       />,
     );
     const block = screen.getByLabelText(/90592033/);
+    expect(block).toHaveClass('kcp-soft-card');
+    expect(block).toHaveAttribute('data-surface', 'soft');
+    expect(block.style.getPropertyValue('--kcp-tint')).toBe(
+      hashColor('90592033'),
+    );
+    expect(block.style.backgroundColor).toBe('');
+  });
+
+  it('keeps the flat tint the poster captures on the flat surface', () => {
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        surface="flat"
+      />,
+    );
+    const block = screen.getByLabelText(/90592033/);
+    expect(block).not.toHaveClass('kcp-soft-card');
+    expect(block).toHaveClass('rounded-kcp');
     expect(block.style.backgroundColor).not.toBe('');
+    expect(block.style.getPropertyValue('--kcp-tint')).toBe('');
+  });
+
+  it('draws the danger ring on the hatch overlay, apart from the soft fill', () => {
+    const { container } = render(
+      <EventBlock
+        section={{ ...section, verifyStatus: 'missing' }}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    // The soft card draws its edge and shadow with box-shadow, so a ring on the block itself
+    // would replace them; the overlay carries the ring instead.
+    const hatch = container.querySelector('.kcp-hatch');
+    expect(hatch).toHaveClass('ring-2', 'ring-danger', 'ring-inset');
+    expect(screen.getByLabelText(/90592033/).className).not.toContain(
+      'ring-danger',
+    );
+    // Ink soft drops under 4.5:1 on a hatch stripe, so the quiet lines read ink there.
+    expect(screen.getByText('901')).toHaveClass('text-ink');
+    expect(container.querySelector('.mt-1')).toHaveClass('text-ink');
+    expect(container.querySelector('.text-ink-soft')).toBeNull();
+  });
+
+  it('leads the name with the status dot in flow rather than over it', () => {
+    const { container } = render(
+      <EventBlock
+        section={{ ...section, verifyStatus: 'changed' }}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    const dot = container.querySelector('.bg-warn');
+    expect(dot).not.toBeNull();
+    expect(dot?.className).not.toContain('absolute');
+    expect(dot?.parentElement).toHaveAttribute('data-fit-name');
   });
 
   it('omits the room line when there is no room', () => {

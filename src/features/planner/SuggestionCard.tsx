@@ -243,6 +243,7 @@ export function SuggestionCard({
           fontPx={GRID_FONT_PX[size]}
           posterFloor={false}
           hourLabelStep={hourLabelStep}
+          blockSurface="soft"
         />
       </div>
       <LeftOutList leftOut={suggestion.leftOut} locale={locale} t={t} />

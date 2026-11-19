@@ -22,6 +22,7 @@ import { dragStore } from './dragStore';
 import { EventBlock } from './EventBlock';
 import { DraggableBlock } from './DraggableBlock';
 import type { PlacedSection } from './placedSection';
+import type { BlockSurface } from './blockSurface';
 import {
   FIRST_DAY_INDEX,
   FIRST_TIME_INDEX,
@@ -62,6 +63,8 @@ interface DayLanesProps {
   fontPx: number;
   /** Pin the day labels to the scroller edge, edit mode only. */
   sticky: boolean;
+  /** The fill of a read only block; an edit block always takes the soft card. */
+  surface: BlockSurface;
 }
 
 export function DayLanes({
@@ -83,6 +86,7 @@ export function DayLanes({
   dayAccent,
   fontPx,
   sticky,
+  surface,
 }: DayLanesProps) {
   const showRoom = display?.showRoom ?? true;
   const showSection = display?.showSection ?? true;
@@ -90,6 +94,10 @@ export function DayLanes({
   const showSubjectId = display?.showSubjectId ?? false;
   const isPortrait = orientation === 'portrait';
   const removeLabel = t('action.remove');
+  // The flat surface is the poster, the one read only grid that is rasterized, so only it
+  // raises the line height for the raster and pins the foot for its measured fit; a soft
+  // read only grid, a plan suggestion, packs its lines like the edit grid.
+  const exported = surface === 'flat';
 
   const active = useStore(dragStore, (state) => state.active);
   const blockMove = useStore(dragStore, (state) => state.blockMove);
@@ -219,9 +227,10 @@ export function DayLanes({
             showSection={showSection}
             showEnglishName={showEnglishName}
             showSubjectId={showSubjectId}
-            thaiHeadroom
+            thaiHeadroom={exported}
             showVerification={editable}
-            footAtBottom
+            footAtBottom={exported}
+            surface={surface}
           />
         );
       })}
