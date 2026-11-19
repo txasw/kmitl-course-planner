@@ -55,6 +55,12 @@ pnpm format:check
 pnpm test
 ```
 
+## Imports
+
+WXT auto imports are off (`imports: false` in `wxt.config.ts`). Every module imports
+what it uses explicitly, including `browser`, the WXT helpers such as `defineBackground`,
+and React hooks, so code that relies on an auto import fails the type check.
+
 ## Bundle size budget
 
 CI zips each production target and fails the build when a zip is larger than its
