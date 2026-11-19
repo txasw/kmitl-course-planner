@@ -172,6 +172,25 @@ describe('SuggestDialog', () => {
     ).toHaveFocus();
   });
 
+  it('keeps an expanded subject group expanded after a full size view', async () => {
+    renderDialog(1440);
+    await findCards();
+    const otherName = 'วิชาศึกษาทั่วไป วิชาเลือกเสรี และวิชาอื่น 0 จาก 6';
+    fireEvent.click(screen.getByRole('button', { name: otherName }));
+    expect(
+      screen.getByRole('button', { name: otherName, expanded: true }),
+    ).toBeInTheDocument();
+
+    const [first] = screen.getAllByRole('button', { name: 'ดูขนาดเต็ม' });
+    if (first === undefined) throw new Error('no card');
+    fireEvent.click(first);
+    fireEvent.click(screen.getByRole('button', { name: 'กลับไปที่ตัวเลือกทั้งหมด' }));
+    await findCards();
+    expect(
+      screen.getByRole('button', { name: otherName, expanded: true }),
+    ).toBeInTheDocument();
+  });
+
   it('leaves full size when a new search no longer holds the card', async () => {
     renderDialog(1440);
     await findCards();

@@ -60,7 +60,11 @@ import {
   suggestionKey,
   type SuggestionView,
 } from './SuggestionResults';
-import { SuggestSubjects } from './SuggestSubjects';
+import {
+  DEFAULT_GROUP_OPEN,
+  SuggestSubjects,
+  type SuggestGroupOpen,
+} from './SuggestSubjects';
 import { useSuggestions } from './useSuggestions';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
@@ -185,6 +189,8 @@ export function SuggestDialog({
   const [ticked, setTicked] = useState<ReadonlySet<string>>(() =>
     defaultSuggestSubjects(courses, locked),
   );
+  const [groupOpen, setGroupOpen] =
+    useState<SuggestGroupOpen>(DEFAULT_GROUP_OPEN);
   const { result, busy } = useSuggestions(
     courses,
     ticked,
@@ -333,6 +339,8 @@ export function SuggestDialog({
         groups={groups}
         ticked={ticked}
         onChange={handleTicked}
+        open={groupOpen}
+        onOpenChange={setGroupOpen}
         locale={language}
         t={t}
       />

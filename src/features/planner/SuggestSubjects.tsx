@@ -5,9 +5,10 @@
 // long GenEd list stays out of the way until the student wants one of it. Each group
 // heading is a disclosure and sits beside a tick all or untick all action, never
 // inside it. A row is a native checkbox inside its label, so the whole row is the
-// target and every name wraps in full.
+// target and every name wraps in full. The dialog holds which groups are open, beside
+// the ticks, so a group the student expanded stays expanded after a full size view.
 
-import { useId, useState } from 'react';
+import { useId } from 'react';
 import { ChevronDown } from 'lucide-react';
 import type { Course } from '@/lib/domain/types';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
@@ -17,6 +18,15 @@ import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_HEIGHT, TARGET_SIZE } from '@/lib/ui/target';
 
 type GroupKind = keyof SuggestSubjectGroups;
+
+/** Which tick list groups are expanded. */
+export type SuggestGroupOpen = Readonly<Record<GroupKind, boolean>>;
+
+/** The curriculum group opens expanded and every other course collapsed. */
+export const DEFAULT_GROUP_OPEN: SuggestGroupOpen = {
+  curriculum: true,
+  other: false,
+};
 
 const HEADING_KEY: Record<GroupKind, TranslationKey> = {
   curriculum: 'suggest.subjects.curriculum',
@@ -28,6 +38,8 @@ interface SubjectGroupProps {
   courses: Course[];
   ticked: ReadonlySet<string>;
   onChange: (next: ReadonlySet<string>) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   locale: Locale;
   t: Translate;
 }
@@ -37,10 +49,11 @@ function SubjectGroup({
   courses,
   ticked,
   onChange,
+  open,
+  onOpenChange,
   locale,
   t,
 }: SubjectGroupProps) {
-  const [open, setOpen] = useState(kind === 'curriculum');
   const nameId = useId();
   const listId = useId();
   const tickedHere = courses.filter((course) =>
@@ -81,7 +94,7 @@ function SubjectGroup({
             aria-expanded={open}
             aria-controls={open ? listId : undefined}
             onClick={() => {
-              setOpen(!open);
+              onOpenChange(!open);
             }}
             className={`flex w-full items-center gap-1.5 rounded-kcp px-1 text-left text-ink hover:text-ink-soft ${TARGET_HEIGHT} ${FOCUS_RING}`}
           >
@@ -149,6 +162,8 @@ interface SuggestSubjectsProps {
   groups: SuggestSubjectGroups;
   ticked: ReadonlySet<string>;
   onChange: (next: ReadonlySet<string>) => void;
+  open: SuggestGroupOpen;
+  onOpenChange: (next: SuggestGroupOpen) => void;
   locale: Locale;
   t: Translate;
 }
@@ -157,6 +172,8 @@ export function SuggestSubjects({
   groups,
   ticked,
   onChange,
+  open,
+  onOpenChange,
   locale,
   t,
 }: SuggestSubjectsProps) {
@@ -185,6 +202,10 @@ export function SuggestSubjects({
           courses={groups[kind]}
           ticked={ticked}
           onChange={onChange}
+          open={open[kind]}
+          onOpenChange={(next) => {
+            onOpenChange({ ...open, [kind]: next });
+          }}
           locale={locale}
           t={t}
         />
