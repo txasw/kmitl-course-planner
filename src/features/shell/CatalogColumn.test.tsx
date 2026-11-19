@@ -18,9 +18,6 @@ import { catalogStore } from '@/features/catalog/catalogStore';
 import { EMPTY_DISCLOSURE } from '@/lib/catalog/cardDisclosure';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
-
-// The query chip is named by its edit action followed by the search it summarizes.
-const EDIT_SEARCH = /^แก้ไขการค้นหา/;
 import {
   makeCourse,
   makeSection,
@@ -34,6 +31,9 @@ import { CatalogToggle } from './CatalogToggle';
 import { EdgeRail } from './EdgeRail';
 import { uiStore } from './uiStore';
 import { useFocusTrap } from './useFocusTrap';
+
+// The query chip is named by its edit action followed by the search it summarizes.
+const EDIT_SEARCH = /^แก้ไขการค้นหา/;
 
 // Every mounted useDraggable call counts against its id while it stays mounted, so a
 // second copy of the catalog anywhere in the tree would show as a count of two.
