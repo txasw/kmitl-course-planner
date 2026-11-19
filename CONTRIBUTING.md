@@ -68,10 +68,9 @@ node scripts/check-bundle-size.mjs chrome firefox
 ```
 
 When a change needs more room, first look for what it pulls in, such as a new
-dependency or a heavy import. If the growth is
-justified, raise the budget in the same pull request and give the new size and the
-reason in the description. When a change makes the package smaller, lower the budget
-to keep the margin small.
+dependency or a heavy import. If the growth is justified, raise the budget in the same
+pull request and give the new size and the reason in the description. When a change
+makes the package smaller, lower the budget to keep the margin small.
 
 ## Pull requests
 
