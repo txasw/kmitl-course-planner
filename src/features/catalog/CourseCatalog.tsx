@@ -57,7 +57,7 @@ import { dragStore } from '@/features/planner/dragStore';
 import { firstFeedbackAction } from '@/features/planner/feedbackAction';
 import { commitThenFocus } from '@/features/shell/restoreFocus';
 import { rootOf } from '@/features/shell/useFocusTrap';
-import { courseShortlistToggle, courseToggle } from './courseFocus';
+import { courseToggle } from './courseFocus';
 import { catalogStore } from './catalogStore';
 import { CatalogGroup } from './CatalogGroup';
 import { CourseCard } from './CourseCard';
@@ -150,18 +150,6 @@ function addFocusTargets(
   return root === null ? [] : [firstFeedbackAction(root)];
 }
 
-/** Where focus goes after a bookmark press: the same bookmark, or the saved chip. */
-function shortlistFocusTargets(
-  scope: HTMLElement | null,
-  subjectId: string,
-): (HTMLElement | null)[] {
-  if (scope === null) return [];
-  return [
-    courseShortlistToggle(scope, subjectId),
-    scope.querySelector<HTMLElement>('[data-saved-filter]'),
-  ];
-}
-
 const SUMMARY_ACTION = `inline-flex shrink-0 items-center gap-1 rounded-kcp border border-border px-2 py-1 text-xs text-ink-soft hover:bg-surface-alt hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`;
 
 interface CourseCatalogProps {
@@ -228,14 +216,12 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
     term.browsedTerm !== null &&
     !termsEqual(term.planTerm, term.browsedTerm);
 
-  const rootRef = useRef<HTMLDivElement>(null);
   const handleSwitchTerm = useCallback((target: Term) => {
     switchOrCreatePlanForTerm(target);
   }, []);
 
   // The shortlist is keyed by the browsed term, so a result with no term shows no
-  // bookmark and nothing counts as saved. With the saved filter on, removing a course
-  // drops its card and the pressed bookmark with it, so focus moves to the saved chip.
+  // bookmark and nothing counts as saved.
   const browsedTerm = term.browsedTerm;
   const saved = useMemo(
     () =>
@@ -249,25 +235,16 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
       browsedTerm === null
         ? undefined
         : (subjectId: string) => {
-            commitThenFocus(
-              () => {
-                catalogStore
-                  .getState()
-                  .toggleShortlisted(browsedTerm, subjectId);
-              },
-              () => shortlistFocusTargets(rootRef.current, subjectId),
-            );
+            catalogStore.getState().toggleShortlisted(browsedTerm, subjectId);
           },
     [browsedTerm],
   );
-  const savedCount = catalog.courses.filter((course) =>
-    saved.has(course.subjectId),
-  ).length;
 
   // An add or a remove from a row or the card header unmounts the control that was
   // pressed, so focus moves on in the same commit: to the card's toggle, which stays in
   // place as the card collapses or turns addable again, or, after a blocked or cross
   // term add, to the first action of the feedback strip, which offers the way forward.
+  const rootRef = useRef<HTMLDivElement>(null);
   const handleAdd = useCallback(
     (course: Course, section: Section) => {
       commitThenFocus(
@@ -314,9 +291,8 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
       isConflicting: (course, section) =>
         computeSectionRelation(placed, course, section, term).kind ===
         'conflicting',
-      isShortlisted: (course) => saved.has(course.subjectId),
     }),
-    [placed, term, saved],
+    [placed, term],
   );
 
   const filtered = useMemo(
@@ -422,7 +398,7 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
         )}
       </div>
       {banner}
-      <FilterBar creditOptions={creditOptions} savedCount={savedCount} />
+      <FilterBar creditOptions={creditOptions} />
       {groups.length === 0 ? (
         <p className="text-sm text-ink-soft">{t('catalog.filterEmpty')}</p>
       ) : (

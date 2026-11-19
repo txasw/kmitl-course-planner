@@ -173,7 +173,6 @@
   "catalog.filter.clearAll": "ล้างตัวกรอง",
   "shortlist.add": "บันทึกไว้ดูภายหลัง",
   "shortlist.remove": "นำออกจากรายการที่บันทึกไว้",
-  "shortlist.filter": "ที่บันทึกไว้",
   "catalog.sort.label": "เรียงตาม",
   "catalog.sort.subjectId": "รหัสวิชา",
   "catalog.sort.openSeats": "ที่นั่งว่างมากที่สุด",
