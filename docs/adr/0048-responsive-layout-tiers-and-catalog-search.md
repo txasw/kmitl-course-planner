@@ -549,3 +549,31 @@ so `StatusAnnouncer` now reads it as well.
   on its derived state, so it hands a resolved line to the announcer through a small status
   store rather than the announcer repeating that work. No live region is added, so the inventory
   above is unchanged.
+
+## Amendment, 2026-11-20: the quieter header
+
+Feedback from students testing on phones named the header save mark as a distraction: it
+changed on every edit and asked nothing of them. The header also carried the language toggle
+from 1024 px and an overflow menu below it, so the same setting lived in two places.
+
+- The save indicator renders only for a failed save. A save in progress or a save that landed
+  shows nothing. The failure is still announced once by its error toast, and the indicator stays
+  no live region, so the inventory above is unchanged.
+- The failed state is a danger strip directly under the header, not a control in the header
+  row: a sentence that says the latest changes are not stored and a button that saves again,
+  described by that sentence. Beside the plan switcher on a 360 px phone the failed button took
+  the width the plan name and term need and cut both short; in its own strip every word wraps
+  and shows in full, and the strip pushes the body down rather than covering it.
+- Because the strip leaves as soon as a retry starts saving, a retry from its button or from
+  the toast moves focus to the plan switcher trigger, never to the body.
+- The overflow menu is present on every tier and is the one place the language is chosen. The
+  header segmented language toggle is removed.
+- Each language item shows its flag, drawn inline as SVG: the Thai flag for Thai and the United
+  States flag for English. The flag is aria-hidden; the language name beside it is the item's
+  accessible name, and the check mark with menuitemradio checked marks the current language, so
+  neither the flag nor colour carries the state alone. The menu keeps its keyboard model: roving
+  focus with the arrow keys, Home and End, Escape back to the trigger, and Tab out.
+- Alternatives considered: a flag only header button that switches on press, as the redesign
+  mockup drew, was rejected because the header still spends a slot on a rarely changed setting
+  and a flag alone does not say what pressing it does. A two letter code beside the flag was
+  rejected as redundant with the language name the menu already shows.
