@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { useRef } from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { Building2 } from 'lucide-react';
+import { ArrowUpDown, Building2 } from 'lucide-react';
 import { expectNoSeriousA11yViolations } from '../../../tests/support/axe';
 import { Combobox, type ComboboxOption } from './Combobox';
 import { PanelPortalContext } from '../shell/PanelPortalContext';
@@ -175,6 +175,34 @@ describe('Combobox select only mode', () => {
     fireEvent.keyDown(trigger, { key: 'ArrowDown' });
     fireEvent.keyDown(trigger, { key: ' ' });
     expect(onChange).toHaveBeenCalledWith('01');
+  });
+});
+
+describe('Combobox icon only trigger', () => {
+  it('closes the list on the first Escape after a keyboard open', () => {
+    render(
+      <Combobox
+        label="Sort"
+        value="01"
+        options={OPTIONS}
+        placeholder="Any"
+        disabled={false}
+        searchable={false}
+        iconOnly={ArrowUpDown}
+        onChange={() => undefined}
+      />,
+    );
+    const trigger = screen.getByRole('combobox', { name: 'Sort Engineering' });
+    // Focus opens the tooltip, and the open list then hides it; the hidden tooltip
+    // must not keep the Escape listener that would swallow the list's own Escape.
+    fireEvent.focus(trigger);
+    expect(screen.getByRole('tooltip')).toBeInTheDocument();
+    fireEvent.keyDown(trigger, { key: 'Enter' });
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.queryByRole('tooltip')).toBeNull();
+
+    fireEvent.keyDown(trigger, { key: 'Escape' });
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
   });
 });
 
