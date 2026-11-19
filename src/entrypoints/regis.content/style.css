@@ -103,7 +103,9 @@
   --kcp-ink-soft: #5c5c5c;
   /* The third text step, for quiet metadata such as hour labels, counts, and a card's
      foot line. A cool grey like the surface and border neutrals, and still 4.5:1 on
-     every neutral surface and on the weak stop of a soft card fill. See ADR-0071. */
+     every neutral surface. On a soft card it clears 4.5:1 only where its glyph tops sit
+     at or below 70 percent of the card height, on the flat weak stop, so a short card
+     that cannot keep its foot line that low uses ink soft there. See ADR-0071. */
   --kcp-ink-muted: #6b6b70;
   --kcp-surface: #ffffff;
   --kcp-surface-alt: #f7f7f8;

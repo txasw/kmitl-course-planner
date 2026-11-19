@@ -243,8 +243,10 @@ const PAIRS: Pair[] = [
 // The soft depth card of ADR-0071 mixes its tint into the surface, from the strong stop
 // at the top to the weak stop from 70 percent down. The tint is a subject color from the
 // event palette or, on a neutral card, the muted ink. Ink and ink soft may sit anywhere
-// on the card, so they are proven on the strong stop, the darkest fill; ink muted is
-// meant for the foot line only, so it is proven on the weak stop where the foot sits.
+// on the card, so they are proven on the strong stop, the darkest fill. Ink muted is
+// bounded by position, not by role: its glyph tops must sit at or below the weak stop,
+// where the fill is flat, so it is proven on the weak stop and the per tint limits below
+// show how far above that stop the gradient is still too dark for it.
 const SOFT_CARD_TINTS: readonly string[] = [
   shadowToken('ink-muted'),
   ...EVENT_PALETTE,
@@ -278,6 +280,43 @@ const SOFT_CARD_PAIRS: Pair[] = SOFT_CARD_TINTS.flatMap((tint) => [
     min: AA_NORMAL,
   },
 ]);
+
+// The position, in percent of the card height from the top, where the gradient reaches
+// the weak stop. It matches the 70% stop of the kcp-soft-card utility in style.css and
+// the bound that ADR-0071 and docs/CONTRAST.md state for muted text.
+const WEAK_STOP_AT = 70;
+
+// The soft card fill at a position from the top. color-mix and the gradient are both
+// linear in sRGB, so the fill at a position is the tint mixed in at the linearly
+// interpolated percentage between the two stops.
+function softCardFillAt(tint: string, position: number): string {
+  const strong = shadowFraction('tint-strong');
+  const weak = shadowFraction('tint-weak');
+  const at = Math.min(position, WEAK_STOP_AT) / WEAK_STOP_AT;
+  return alphaOver(tint, strong + (weak - strong) * at, shadowToken('surface'));
+}
+
+// The highest whole percent position from which ink muted clears 4.5:1 all the way down
+// to the bottom of the card. The fill lightens monotonically toward the weak stop, so
+// the first passing position going down is the limit.
+function mutedTextLimit(tint: string): number {
+  for (let position = 0; position <= WEAK_STOP_AT; position += 1) {
+    const ratio = contrastRatio(
+      shadowToken('ink-muted'),
+      softCardFillAt(tint, position),
+    );
+    if (ratio >= AA_NORMAL) return position;
+  }
+  return Number.POSITIVE_INFINITY;
+}
+
+describe('soft card muted text bound', () => {
+  for (const tint of SOFT_CARD_TINTS) {
+    it(`ink-muted clears 4.5:1 at and below the ${String(WEAK_STOP_AT)} percent bound on a ${tint} soft card`, () => {
+      expect(mutedTextLimit(tint)).toBeLessThanOrEqual(WEAK_STOP_AT);
+    });
+  }
+});
 
 describe('design token contrast', () => {
   for (const pair of [...PAIRS, ...SOFT_CARD_PAIRS]) {

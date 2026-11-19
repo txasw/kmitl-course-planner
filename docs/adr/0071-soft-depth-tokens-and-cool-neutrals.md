@@ -46,9 +46,12 @@ shadow is drawn from the muted ink rather than black. No existing token value ch
 Text use is bounded by contrast, and the token contrast suite proves each bound. Ink muted clears
 4.5:1 on surface (5.30), surface alt (4.95), surface sunken (4.62), and primary soft (4.68). On a
 soft card ink and ink soft may sit anywhere, and are proven on the strong stop for the muted ink
-and all ten event palette tints (lowest 4.85 for ink soft). Ink muted is for the foot line only,
-proven on the weak stop (lowest 4.58); on the strong stop it falls under 4.5:1, so it never sits
-at the top of a soft card.
+and all ten event palette tints (lowest 4.85 for ink soft). Ink muted is bounded by position
+rather than by role: it may sit only where the top edge of its glyphs is at or below 70 percent
+of the card height, on the flat weak stop, where it is proven (lowest 4.58). Above that point the
+gradient darkens toward the strong stop, where ink muted falls under 4.5:1, and the height at
+which it first fails differs per tint, up to 64 percent from the top for berry. A foot line
+pinned to the bottom of a short card can rise above the bound, so such a card uses ink soft.
 
 ## Alternatives considered
 
@@ -66,7 +69,7 @@ that redesign closes is removed.
 
 Component changes use the new utilities instead of literal colors, radii, or shadows, and a
 neutral card and an event block share one treatment that differs only in its tint. A card that
-places muted text must keep it on the weak stop of the fill, and `docs/CONTRAST.md` lists the
-bounds. A token edit that drops a pair under its bar fails `token-contrast.test.ts`. The fallback
+places muted text must keep its glyph tops at or below 70 percent of the card height, or use ink
+soft instead, and `docs/CONTRAST.md` lists the bound and the per tint limits. A token edit that drops a pair under its bar fails `token-contrast.test.ts`. The fallback
 that Tailwind emits for a browser without `color-mix` paints the solid tint, which no supported
 browser reaches, since the Tailwind v4 baseline already requires `color-mix`.
