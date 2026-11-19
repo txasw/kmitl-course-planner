@@ -1,8 +1,12 @@
 // The content owned onboarding record: when the welcome showed, when the panel first
-// opened, and when the student turned the entry toast off. Each moment is recorded
-// once and kept, so a later write never moves it. Reads validate through Zod; each
-// field is caught on its own, so one bad timestamp drops alone instead of costing
-// the others, and an absent or unreadable blob loads as an empty record.
+// opened, when the student turned the entry toast off, and the local day the student
+// last asked the selector coach mark to stay away (ADR-0072). Each moment is recorded
+// once and kept, so a later write never moves it. The day is the exception: it is a
+// snooze rather than a moment, so a later day replaces an earlier one. Reads validate
+// through Zod; each field is caught on its own, so one bad value drops alone instead
+// of costing the others, and an absent or unreadable blob loads as an empty record.
+// The day is optional, so a record written before it existed still reads as version 1
+// and needs no migration.
 
 import { z } from 'zod';
 import { createSerialQueue } from '../utils/serialQueue';
@@ -18,16 +22,35 @@ export type OnboardingField = (typeof ONBOARDING_FIELDS)[number];
 
 const timestampSchema = z.iso.datetime().optional().catch(undefined);
 
+/** A local calendar day as YYYY-MM-DD, which sorts in calendar order as a string. */
+const dayStampSchema = z.iso.date().optional().catch(undefined);
+
 export const onboardingRecordSchema = z.object({
   schemaVersion: z.literal(1),
   welcomeShownAt: timestampSchema,
   panelFirstOpenedAt: timestampSchema,
   entryToastOptOutAt: timestampSchema,
+  coachMarkSnoozedOn: dayStampSchema,
 });
 export type OnboardingRecord = z.infer<typeof onboardingRecordSchema>;
 
-/** The timestamps to record; a field already set keeps its first value. */
-export type OnboardingPatch = Partial<Record<OnboardingField, string>>;
+/**
+ * The timestamps to record, where a field already set keeps its first value, and the
+ * coach mark snooze day, where the later day wins.
+ */
+export type OnboardingPatch = Partial<Record<OnboardingField, string>> & {
+  coachMarkSnoozedOn?: string;
+};
+
+/** The later of two day stamps, or the one that is set. */
+function laterDay(
+  kept: string | undefined,
+  incoming: string | undefined,
+): string | undefined {
+  if (kept === undefined) return incoming;
+  if (incoming === undefined) return kept;
+  return incoming > kept ? incoming : kept;
+}
 
 export interface OnboardingRepository {
   load(): Promise<OnboardingRecord>;
@@ -68,6 +91,9 @@ export function createOnboardingRepository(
         changed = true;
       }
     }
+    const day = laterDay(current.coachMarkSnoozedOn, fields.coachMarkSnoozedOn);
+    if (day !== undefined) merged.coachMarkSnoozedOn = day;
+    if (day !== current.coachMarkSnoozedOn) changed = true;
     if (changed) await adapter.set(ONBOARDING_KEY, merged);
     return merged;
   }

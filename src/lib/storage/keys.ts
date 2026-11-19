@@ -36,8 +36,8 @@ export const INSTALL_KEY = 'kcp:install';
 
 /**
  * Content owned onboarding record in storage.local: when the welcome showed, when
- * the panel first opened, and when the entry toast was turned off. The worker never
- * writes it.
+ * the panel first opened, when the entry toast was turned off, and the local day the
+ * search page coach mark was asked to stay away. The worker never writes it.
  */
 export const ONBOARDING_KEY = 'kcp:onboarding';
 
