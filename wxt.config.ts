@@ -13,6 +13,10 @@ export default defineConfig({
   // entrypoint.
   manifestVersion: 3,
   modules: ['@wxt-dev/module-react'],
+  // Every module imports what it uses. Auto imports matched free identifiers by
+  // name and missed function parameters, so a parameter called storage once pulled
+  // the unused WXT storage module into both bundles.
+  imports: false,
   manifest: buildManifest,
   // The Firefox sources zip that AMO requires is produced by `wxt zip -b firefox`.
   // WXT already drops hidden paths and node_modules from the sources by default;

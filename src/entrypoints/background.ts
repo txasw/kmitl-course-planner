@@ -1,5 +1,7 @@
 import '@/lib/zodConfig';
 import { IS_DEBUG } from '@/lib/env';
+import { browser } from 'wxt/browser';
+import { defineBackground } from 'wxt/utils/define-background';
 import {
   createBrowserStorageAdapter,
   createSessionStorageAdapter,
