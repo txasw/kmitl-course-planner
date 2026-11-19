@@ -7,9 +7,17 @@ import {
 } from '../../../tests/support/suggest';
 import { suggestPlans } from './suggest';
 import { suggestEmptyReason } from './suggestEmpty';
+import { defaultSuggestSubjects, suggestableCourses } from './suggestSubjects';
 
-function reasonFor(...args: Parameters<typeof suggestPlans>) {
-  return suggestEmptyReason(suggestPlans(...args));
+/** The reason for a search over the default tick list, or the given one. */
+function reasonFor(input: Parameters<typeof suggestPlans>[0]) {
+  const groups = suggestableCourses(input.courses, input.locked);
+  const subjects =
+    input.subjects ?? defaultSuggestSubjects(input.courses, input.locked);
+  return suggestEmptyReason(suggestPlans({ ...input, subjects }), {
+    tickable: groups.curriculum.length + groups.other.length,
+    ticked: subjects.size,
+  });
 }
 
 describe('suggestEmptyReason', () => {
@@ -24,7 +32,19 @@ describe('suggestEmptyReason', () => {
     ).toBeNull();
   });
 
-  it('names a result whose curriculum courses are all in the plan', () => {
+  it('names a result whose courses are all in the plan', () => {
+    const courses = [curriculumCourse('11111111', [{}])];
+    expect(
+      reasonFor({
+        courses,
+        locked: lockSections(courses, [['11111111', '1']]),
+        objective: 'coverAll',
+        preference: 'balanced',
+      }),
+    ).toBe('allPlaced');
+  });
+
+  it('asks for a tick once the curriculum courses are all in the plan', () => {
     const courses = byClassCourses();
     const locked = lockSections(courses, [
       ['01006020', '4'],
@@ -41,7 +61,19 @@ describe('suggestEmptyReason', () => {
         objective: 'coverAll',
         preference: 'balanced',
       }),
-    ).toBe('allPlaced');
+    ).toBe('noneTicked');
+  });
+
+  it('asks for a tick when the student clears every subject', () => {
+    expect(
+      reasonFor({
+        courses: byClassCourses(),
+        subjects: new Set(),
+        locked: [],
+        objective: 'coverAll',
+        preference: 'balanced',
+      }),
+    ).toBe('noneTicked');
   });
 
   it('names full or closed sections when no other reason applies', () => {
