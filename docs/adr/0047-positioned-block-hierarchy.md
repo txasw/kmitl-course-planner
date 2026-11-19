@@ -72,3 +72,56 @@ least redundant information. The change is contained to the one block component 
 ladder; the color, tint, and left bar systems are unchanged, which is why this amends rather than
 replaces ADR-0040, and the fit measurement and guard from ADR-0046 are unchanged, only the field
 order they walk. The other detail surfaces are untouched.
+
+## Amendment, 2026-11-20: soft depth blocks and names in full
+
+The redesign of 2026-11-20 settles on soft depth for every card (ADR-0071), and it sets a hard
+layout rule: no layout may overlap or clip text, and every label shows in full. A gate pass then
+found long Thai names breaking one character per line in the phone week view and in the plan
+suggestion mini grids. The cause was the 1.5rem right padding the name kept clear of the floating
+section chip: in a 60 px day column it left the name about 18 px, so every glyph wrapped alone.
+
+Fill. The edit grid and the plan suggestion cards fill a block with the soft depth card, the
+tinted gradient, tinted edge, white top highlight, and light shadow of ADR-0071, tinted by the
+subject color, with a 3 px stripe of the solid color down the left edge in place of the 4 px bar.
+The preview poster and its export keep the flat tint and bar of ADR-0035, because the capture
+inlines a concrete hex fill and a gradient over color-mix would put the raster at the mercy of the
+capture library; the redesign mockup also leaves the poster block out of the soft style.
+The danger state moves its inset ring from the block onto the hatch overlay, since the soft card
+draws its edge with box-shadow and a ring on the block would replace it. Over the hatch the quiet
+lines switch from ink soft to ink, because ink soft falls under 4.5:1 on a hatch stripe; the flat
+tint had the same gap, and docs/CONTRAST.md lists every pair.
+
+Anatomy. Nothing is positioned over text. The section chip leaves the corner and trails the place
+at the end of the same wrapping row, and starts the row when there is no place. The status dot
+leaves the corner and leads the name in flow. The name keeps a right reserve only where the remove
+control can show, a fine pointer on a block at least 7em wide, and the chip steps aside while that
+control shows, as the corner chip did. Every field wraps rather than ellipsizes: the place, the
+English line, and the subject id lose their single line truncation, and an empty foot is left out.
+
+Names in full. At full density the name is no longer clamped. The ladder gains a rung after the
+time drops: the name clamps to the lines that fit, measured in one step from its line height and
+the overflow, never below two lines while the section chip shows. The rest of the ladder holds,
+so the drop order is the subject id, the English name, the time, the name past its second line,
+the section chip, the name to one line, then the place, and both binding constraints stand. A name
+the box cannot hold is clamped with an ellipsis, and the block itself is the expand affordance: it
+opens the full detail in edit, and a suggestion thumbnail offers its full size card.
+
+Narrow blocks. A block narrower than 7em, measured by a container query on the block wrapper in em
+of the grid type size, shows the name alone at 0.9em with tight padding, the shape the mockup
+gives the phone week and the suggestion thumbnails. The place row, the English line, the foot, and
+the remove control hide there; the block opens its details, which carry them and Remove, the same
+path ADR-0058 gives a coarse pointer. The name breaks at the browser's dictionary word boundaries
+for Thai and at spaces and hyphenation points for English, and a break inside a word stays the
+last resort, for a word wider than the whole line. A layout check at 360, 390, 768, and 1366 px
+found no break inside any word, as Intl.Segmenter bounds it, that fits its line, so inserting
+break hints from Intl.Segmenter would add nothing over the native breaker in Chromium; keep-all
+was rejected because Thai has no spaces for it to break at. Hiding the name for the subject id in
+a block too narrow for one word was rejected because the eight digit id is as wide as the longest
+common Thai words, so it would trade a readable name for an id that wraps too.
+
+Consequences. The phone week and the suggestion grids break names between words wherever a word
+fits the column. In a five to seven column phone week, a word wider than the column, such as
+ประสบการณ์ or an all capitals English word, still breaks inside the word, since the column holds
+about 40 px of text; the day view, the default on a phone, shows every name in full. The poster
+gains the chip in flow and the unclamped name but keeps its flat fill, and its fit guard holds.
