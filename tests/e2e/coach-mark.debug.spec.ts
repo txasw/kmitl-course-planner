@@ -46,9 +46,13 @@ const HEIGHTS: Record<(typeof WIDTHS)[number], number> = {
   1366: 768,
 };
 
+// The host router navigates with pushState from the page's own world, which fires no
+// hashchange and no popstate (ADR-0067), so the specs navigate the same way. The replica
+// page has no route view to swap, so this also proves the content script hears the
+// Navigation API from its isolated world.
 async function navigateHash(page: Page, hash: string): Promise<void> {
   await page.evaluate((next) => {
-    window.location.hash = next;
+    window.history.pushState(window.history.state, '', next);
   }, hash);
 }
 

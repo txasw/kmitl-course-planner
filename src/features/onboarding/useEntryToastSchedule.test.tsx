@@ -34,6 +34,19 @@ function navigateTo(hash: string): void {
   });
 }
 
+/** Moves the host the way its router does: a pushState with no event, then a swap of
+ * the route view, which is all a content script observes of it. */
+async function routerNavigate(hash: string): Promise<void> {
+  await act(async () => {
+    window.history.pushState(null, '', hash);
+    // The swap is observed even though the view leaves again at once.
+    const view = document.createElement('div');
+    document.body.append(view);
+    view.remove();
+    await Promise.resolve();
+  });
+}
+
 function setVisibility(next: DocumentVisibilityState): void {
   visibility = next;
   act(() => {
@@ -325,6 +338,16 @@ describe('useEntryToastSchedule route offer', () => {
     expect(result.current.content).toBeNull();
     navigateTo(RESULT_HASH);
     advance(ENTRY_TOAST_DELAY_MS + ENTRY_TOAST_VISIBLE_MS);
+    expect(result.current.content).toBeNull();
+  });
+
+  it('hides the route offer when the host router pushes another route', async () => {
+    placeHash(RESULT_HASH);
+    const { result } = renderSchedule();
+    settle();
+    advance(ENTRY_TOAST_DELAY_MS);
+    expect(result.current.content?.kind).toBe('route');
+    await routerNavigate(SELECTOR_HASH);
     expect(result.current.content).toBeNull();
   });
 

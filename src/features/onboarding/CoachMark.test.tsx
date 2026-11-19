@@ -40,6 +40,19 @@ function navigateTo(hash: string): void {
   });
 }
 
+// The host router navigates with pushState and no event, then swaps its route view,
+// which is all a content script observes of it (ADR-0067).
+async function routerNavigate(hash: string): Promise<void> {
+  await act(async () => {
+    window.history.pushState(null, '', hash);
+    // The swap is observed even though the view leaves again at once.
+    const view = document.createElement('div');
+    document.body.append(view);
+    view.remove();
+    await Promise.resolve();
+  });
+}
+
 function settle(record: OnboardingRecord = { schemaVersion: 1 }): void {
   act(() => {
     const store = onboardingStore.getState();
@@ -166,6 +179,20 @@ describe('CoachMark dismissing', () => {
     navigateTo(RESULT_HASH);
     navigateTo(SELECTOR_HASH);
     expect(dialog()).toBeInTheDocument();
+  });
+
+  it('returns on the next visit when the host router navigates with pushState', async () => {
+    renderCoachMark();
+    settle();
+    fireEvent.click(within(dialog()).getByRole('button', { name: LATER }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    await routerNavigate(RESULT_HASH);
+    expect(screen.queryByRole('dialog')).toBeNull();
+    await routerNavigate(SELECTOR_HASH);
+    expect(dialog()).toBeInTheDocument();
+    await routerNavigate(RESULT_HASH);
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   it('hides on Not again today and records the local day', () => {
