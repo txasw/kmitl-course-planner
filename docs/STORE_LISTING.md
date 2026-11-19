@@ -283,7 +283,8 @@ course cards start collapsed, each section row carries one status badge, timetab
 lead with the subject name and show the building and room on the second line with the
 time at the foot, a stats bar under the plan replaces the footer and the revalidation
 banner, and plan view tabs sit above the timetable. Later changes show in the shots as
-well: the header carries the save indicator beside the plan switcher, each course card
+well: a strip under the header appears only when a save fails, the language is chosen from
+the more options menu with a flag beside each name, each course card
 carries a bookmark and the catalog a Sort by control, and preview frames the poster on a
 grey stage.
 
