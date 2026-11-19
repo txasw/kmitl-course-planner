@@ -7,6 +7,7 @@ import { IS_DEBUG } from '@/lib/env';
 import { uiStore } from './uiStore';
 import { PanelPortalContext } from './PanelPortalContext';
 import { Header } from './Header';
+import { SaveIndicator } from './SaveIndicator';
 import { Layout } from './Layout';
 import { ShortcutHelp } from './ShortcutHelp';
 import { CrashProbe } from './CrashProbe';
@@ -83,6 +84,7 @@ export function Overlay() {
     >
       <PanelPortalContext.Provider value={panelNode}>
         <Header titleId={TITLE_ID} />
+        <SaveIndicator />
         <QuarantineCard />
         {/* The boundary wraps the panel body, not the whole overlay, so a render
             error in the search, catalog, or planner shows the recovery card while the

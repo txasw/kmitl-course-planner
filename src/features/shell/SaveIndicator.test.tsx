@@ -14,7 +14,8 @@ import {
 import { SaveIndicator } from './SaveIndicator';
 import { uiStore } from './uiStore';
 
-const RETRY = 'ยังไม่ได้บันทึก บันทึกอีกครั้ง';
+const RETRY = 'บันทึกอีกครั้ง';
+const MESSAGE = 'บันทึกตารางไม่สำเร็จ การแก้ไขล่าสุดยังไม่ได้เก็บไว้ในเบราว์เซอร์นี้';
 
 function setStatus(status: AutosaveStatus, retry: () => void = vi.fn()) {
   act(() => {
@@ -60,29 +61,18 @@ describe('SaveIndicator', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
-  it('offers a retry in a danger state while the latest save failed', () => {
+  it('offers a retry in a danger strip while the latest save failed', () => {
     const retry = vi.fn();
     setStatus('failed', retry);
-    render(<SaveIndicator />);
+    const { container } = render(<SaveIndicator />);
+    const strip = container.firstElementChild;
+    expect(strip).toHaveClass('bg-danger-soft', 'border-danger', 'flex-wrap');
+    const message = screen.getByText(MESSAGE);
     const button = screen.getByRole('button', { name: RETRY });
-    expect(button).toHaveTextContent('ยังไม่ได้บันทึก');
-    expect(button).toHaveAttribute('title', RETRY);
-    expect(button).toHaveClass(
-      'text-danger',
-      'bg-danger-soft',
-      'border-danger',
-    );
+    expect(button).toHaveAttribute('aria-describedby', message.id);
+    expect(button).toHaveAccessibleDescription(MESSAGE);
     fireEvent.click(button);
     expect(retry).toHaveBeenCalledTimes(1);
-  });
-
-  it('keeps the word for a screen reader and shows the mark alone below 640 px', () => {
-    setStatus('failed');
-    render(<SaveIndicator />);
-    expect(screen.getByText('ยังไม่ได้บันทึก')).toHaveClass(
-      'sr-only',
-      'sm:not-sr-only',
-    );
   });
 
   it('is no live region, since its toast announces the failure', () => {
@@ -143,7 +133,9 @@ describe('SaveIndicator', () => {
     setStatus('failed');
     render(<SaveIndicator />);
     expect(
-      screen.getByRole('button', { name: 'Not saved, save again' }),
-    ).toHaveTextContent('Not saved');
+      screen.getByRole('button', { name: 'Save again' }),
+    ).toHaveAccessibleDescription(
+      'The plan could not be saved. The latest changes are not stored in this browser.',
+    );
   });
 });
