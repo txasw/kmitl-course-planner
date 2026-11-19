@@ -15,7 +15,7 @@ import type {
 } from '@/lib/storage/repo';
 import { makePlan } from '../../../tests/support/domain-builders';
 import { toastStore, type Toast } from '@/features/shell/toastStore';
-import { autosaveStore, SAVE_INDICATOR_ID } from './autosaveStore';
+import { autosaveStore, PLAN_SWITCHER_TRIGGER_ID } from './autosaveStore';
 import { planStore } from './planStore';
 import { storageIssueStore } from './storageIssueStore';
 import {
@@ -363,15 +363,14 @@ describe('usePlanPersistence autosave state', () => {
     expect(toasts).toHaveLength(2);
   });
 
-  it('saves now from the toast retry and moves focus to the indicator', async () => {
+  it('saves now from the toast retry and moves focus to the plan switcher', async () => {
     const { save, settleNext } = deferredSaves();
     await mountWithSaves(save);
     const toasts = recordToasts();
-    const indicator = document.createElement('span');
-    indicator.id = SAVE_INDICATOR_ID;
-    indicator.tabIndex = -1;
+    const switcher = document.createElement('button');
+    switcher.id = PLAN_SWITCHER_TRIGGER_ID;
     const control = document.createElement('button');
-    document.body.append(indicator, control);
+    document.body.append(switcher, control);
     try {
       edit();
       await advance(300);
@@ -381,11 +380,11 @@ describe('usePlanPersistence autosave state', () => {
       });
       expect(save).toHaveBeenCalledTimes(2);
       expect(autosaveStore.getState().status).toBe('saving');
-      expect(document.activeElement).toBe(indicator);
+      expect(document.activeElement).toBe(switcher);
       await settleNext(ok(undefined));
       expect(autosaveStore.getState().status).toBe('saved');
     } finally {
-      indicator.remove();
+      switcher.remove();
       control.remove();
     }
   });

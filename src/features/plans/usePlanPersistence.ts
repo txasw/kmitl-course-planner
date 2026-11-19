@@ -9,8 +9,10 @@
 // The autosave state goes to the autosave store for the header indicator: saving from
 // the first change until the latest save settles, then saved or failed. A failed save
 // raises one error toast with a retry, which is its announcement, since the indicator is
-// no live region. Later failures stay quiet until a save succeeds or the student retries,
-// so a run of failing autosaves never repeats the toast. A successful save raises nothing.
+// no live region. Later failures stay quiet until a save succeeds or the student
+// retries, so a run of failing autosaves never repeats the toast. A successful save
+// raises nothing. The indicator shows only the failed state and leaves once a retry
+// starts saving, so a retry from the toast moves focus to the plan switcher trigger.
 
 import { useEffect } from 'react';
 import { CURRENT_SCHEMA_VERSION } from '@/lib/storage/keys';
@@ -19,7 +21,7 @@ import { createTranslator } from '@/lib/i18n/t';
 import { commitAndFocus } from '@/features/shell/commitAndFocus';
 import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
-import { autosaveStore, SAVE_INDICATOR_ID } from './autosaveStore';
+import { autosaveStore, PLAN_SWITCHER_TRIGGER_ID } from './autosaveStore';
 import { planStore } from './planStore';
 import { storageIssueStore } from './storageIssueStore';
 
@@ -51,7 +53,7 @@ export function usePlanPersistence({
       toastStore.getState().show('error', t('save.failedToast'), {
         label: t('action.retry'),
         run: (control) => {
-          commitAndFocus(control, SAVE_INDICATOR_ID, retry);
+          commitAndFocus(control, PLAN_SWITCHER_TRIGGER_ID, retry);
         },
       });
     };
