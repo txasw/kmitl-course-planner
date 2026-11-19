@@ -138,6 +138,22 @@ describe('CourseCatalog', () => {
     expect(screen.getByText('90592033')).toBeInTheDocument();
   });
 
+  it('leaves the count off a single heading that would repeat the summary', () => {
+    render(<CourseCatalog catalog={catalog} />);
+    const heading = screen.getByRole('heading', { name: /กลุ่ม 1/ });
+    expect(heading).not.toHaveTextContent('รายวิชา');
+  });
+
+  it('counts a single heading once a filter narrows it below the summary', () => {
+    render(<CourseCatalog catalog={catalog} />);
+    fireEvent.change(screen.getByRole('searchbox', { name: 'กรองรายการ' }), {
+      target: { value: '90592033' },
+    });
+    expect(screen.getByRole('heading', { name: /กลุ่ม 1/ })).toHaveTextContent(
+      '1 รายวิชา',
+    );
+  });
+
   it('splits courses into separate heading groups', () => {
     const multiGroup: NormalizedCatalog = {
       duplicateCount: 0,

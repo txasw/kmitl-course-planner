@@ -617,7 +617,10 @@ layout overlaps or clips text, and every label shows in full.
 - The course count shows once in the catalog column, in the summary line under the filters,
   which still reports the sections and the merged duplicates that section 6.3 of the brief
   requires. Each figure leads with an icon and keeps its unit word, since a bare number does
-  not say what it counts. The chip and the sheet header no longer repeat it. The counts on the
+  not say what it counts. The chip and the sheet header no longer repeat it, and a group
+  heading shows its own count only when that count differs from the summary line: under
+  several headings, or when a filter narrows the one heading. A single heading result such as
+  a category search therefore shows the figure once. The counts on the
   bottom nav, the header sheet toggle, and the edge rail stay, because they label controls that
   bring the catalog into view from outside it.
 - The filter row is one line: the text field, then icon buttons for the filter popover, the

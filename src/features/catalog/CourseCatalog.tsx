@@ -420,7 +420,13 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
           <CatalogGroup
             key={group.key}
             heading={group.heading}
-            count={group.courses.length}
+            count={
+              // The summary line already counts every course, so a heading that holds
+              // them all would repeat it; a count that differs still says something.
+              group.courses.length === catalog.courses.length
+                ? null
+                : group.courses.length
+            }
             collapsed={isCollapsed(group)}
             onToggle={() => {
               handleToggleGroup(group);
