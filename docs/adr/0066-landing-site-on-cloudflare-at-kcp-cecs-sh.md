@@ -585,10 +585,10 @@ gate above failed in practice: 1.5.0 was released and live on both stores while 
 stated 1.4.0 and still said the extension runs on computers only.
 
 Decision. The pages state the version in `package.json`, and `scripts/landing/site-version.json`
-is removed. On `main`, `package.json` changes only in the Changesets release pull request, so
-between releases it already holds the latest released version. The release workflow now runs
-`pnpm release:version`, which is `changeset version` followed by `pnpm site:build`, as the
-action's version script. The action commits every changed file, so the release pull request
+is removed. On `main`, the `version` field in `package.json` changes only in the Changesets
+release pull request, so between releases it already holds the latest released version. The
+release workflow now runs `pnpm release:version`, which is `changeset version` followed by
+`pnpm site:build`, as the action's version script. The action commits every changed file, so the release pull request
 carries the regenerated `site/` that states the new version, and merging it deploys that page
 through Workers Builds on the same push to `main` that tags the release. The site test requires the
 committed page to state exactly the `package.json` version, so the freshness check in continuous
@@ -597,11 +597,11 @@ longer warns about pending changesets or a version mismatch: neither describes a
 attention now, and the pending warning printed on every run between releases.
 
 Why the earlier decoupling is dropped. It existed so the page never named a version before both
-stores carried it. Chrome Web Store and Firefox Add-ons review usually takes hours, and the owner
-accepts that the page may name the new version for those hours before a store serves it. The
-store buttons link to the listings, which always install what the store serves, so a reader in
+stores carried it. Chrome Web Store and Firefox Add-ons review usually takes hours, so the page may
+name the new version for those hours before a store serves it. That lag is accepted because the
+store buttons link to the listings, which always install what the store serves: a reader in
 that window installs the previous version and receives the new one through the browser's own
-update check. That small lag costs less than a page that falls a whole release behind.
+update check. The small lag costs less than a page that falls a whole release behind.
 
 Alternatives rejected. A post release workflow that rebuilds and commits `site/` after the tag
 would land the page as a second unreviewed commit on `main`, and a push made with the workflow
