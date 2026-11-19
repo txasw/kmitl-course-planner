@@ -296,6 +296,49 @@ describe('WeeklyGrid', () => {
     expect(block.textContent).toContain('09:00-12:00');
   });
 
+  it('takes the name only rule only where the block width is a day column or a thumbnail', () => {
+    // A 60 minute meeting, the case a landscape grid must not reduce to its name.
+    const short = makePlaced({
+      meetings: [
+        {
+          day: 1,
+          startMin: 540,
+          endMin: 600,
+          room: 'A101',
+          building: 'A',
+          kind: 'lecture',
+        },
+      ],
+    });
+    const cases = [
+      { editable: true, orientation: 'landscape', narrowBlocks: undefined },
+      { editable: false, orientation: 'landscape', narrowBlocks: undefined },
+      { editable: false, orientation: 'portrait', narrowBlocks: undefined },
+      { editable: true, orientation: 'portrait', narrowBlocks: undefined },
+      { editable: false, orientation: 'landscape', narrowBlocks: true },
+    ] as const;
+    const applied = cases.map(({ editable, orientation, narrowBlocks }) => {
+      const { unmount } = render(
+        <WeeklyGrid
+          sections={[short]}
+          window={SMART_WINDOW}
+          locale="th"
+          t={t}
+          editable={editable}
+          orientation={orientation}
+          {...(editable ? { onRemove: vi.fn() } : {})}
+          {...(narrowBlocks === undefined ? {} : { narrowBlocks })}
+        />,
+      );
+      const container = blockItem().classList.contains('@container');
+      unmount();
+      return container;
+    });
+    // The landscape edit grid and the poster, landscape or portrait, keep every field; the
+    // portrait edit week and a suggestion thumbnail take the rule.
+    expect(applied).toEqual([false, false, false, true, true]);
+  });
+
   it('caps the edit day rows at 7rem and packs them to the top', () => {
     render(
       <WeeklyGrid

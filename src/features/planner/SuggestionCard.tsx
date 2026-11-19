@@ -244,6 +244,7 @@ export function SuggestionCard({
           posterFloor={false}
           hourLabelStep={hourLabelStep}
           blockSurface="soft"
+          narrowBlocks
         />
       </div>
       <LeftOutList leftOut={suggestion.leftOut} locale={locale} t={t} />

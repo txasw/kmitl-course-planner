@@ -386,7 +386,7 @@ describe('EventBlock', () => {
     expect(screen.getByText('901')).toBeInTheDocument();
   });
 
-  it('shows the name alone on a block narrower than 7em', () => {
+  it('shows the name alone on a block narrower than 7em under the name only rule', () => {
     const { container } = render(
       <EventBlock
         section={section}
@@ -397,6 +397,7 @@ describe('EventBlock', () => {
         onRemove={vi.fn()}
         removeLabel={t('action.remove')}
         onOpenDetail={vi.fn()}
+        nameOnlyWhenNarrow
       />,
     );
     // The wrapper is the size container the narrow rule queries.
@@ -415,6 +416,33 @@ describe('EventBlock', () => {
     // The name keeps clear of the remove corner only where that control can show.
     expect(container.querySelector('[data-fit-name]')).toHaveClass(
       'not-pointer-coarse:@min-[7em]:pr-5',
+    );
+  });
+
+  it('keeps every field of a short landscape block without the name only rule', () => {
+    // A 60 minute meeting in a landscape grid is under 7em wide, so the rule must not
+    // apply there: the block walks the density ladder and keeps its place.
+    const { container } = render(
+      <EventBlock
+        section={section}
+        meeting={{ ...meeting, endMin: meeting.startMin + 60 }}
+        style={{}}
+        locale="th"
+        t={t}
+        onRemove={vi.fn()}
+        removeLabel={t('action.remove')}
+        onOpenDetail={vi.fn()}
+      />,
+    );
+    const block = screen.getByRole('button', { name: /90592033/ });
+    expect(block.parentElement).not.toHaveClass('@container');
+    expect(container.querySelector('[class*="7em"]')).toBeNull();
+    expect(screen.getByText('A · A101')).toBeVisible();
+    expect(
+      screen.getByRole('button', { name: t('action.remove') }),
+    ).not.toHaveClass('@max-[7em]:hidden');
+    expect(container.querySelector('[data-fit-name]')).toHaveClass(
+      'not-pointer-coarse:pr-5',
     );
   });
 

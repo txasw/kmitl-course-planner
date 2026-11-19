@@ -30,6 +30,7 @@ interface DraggableBlockProps {
   onContextMenu?: (event: MouseEvent<HTMLElement>) => void;
   fitKey?: string;
   fitPaused?: boolean;
+  nameOnlyWhenNarrow?: boolean;
 }
 
 export function DraggableBlock({
