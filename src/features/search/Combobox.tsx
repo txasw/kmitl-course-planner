@@ -54,9 +54,6 @@ interface ComboboxProps {
   searchable?: boolean;
   /** A decorative leading icon drawn inside the control, before its value. */
   icon?: LucideIcon;
-  /** When true the label sits beside the field rather than above it, for a compact
-   * control in a toolbar row such as the catalog sort. Defaults to false. */
-  inline?: boolean;
   /** When set on a select only field, the trigger shows this icon alone and the label
    * and the chosen option are read from its accessible name and its tooltip. */
   iconOnly?: LucideIcon;
@@ -71,7 +68,6 @@ export function Combobox({
   onChange,
   searchable = true,
   icon: Icon,
-  inline = false,
   iconOnly: TriggerIcon,
 }: ComboboxProps) {
   const listboxId = useId();
@@ -89,7 +85,6 @@ export function Combobox({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const iconTrigger = !searchable && TriggerIcon !== undefined;
-  const compact = inline || iconTrigger;
   // Until the field is edited it shows every option; typing switches to filtering.
   const [dirty, setDirty] = useState(false);
   // Index of the highlighted option, or -1 when none is highlighted so Enter on a
@@ -117,21 +112,21 @@ export function Combobox({
   const { refs, floatingStyles } = useFloating({
     open: listVisible,
     strategy: 'fixed',
-    // An inline or icon only field closes its row, so its list aligns to the field's
-    // end and grows back across the row.
-    placement: compact ? 'bottom-end' : 'bottom-start',
+    // An icon only field closes its row, so its list aligns to the field's end and
+    // grows back across the row.
+    placement: iconTrigger ? 'bottom-end' : 'bottom-start',
     middleware: [
       offset(4),
       flip({ padding: 8 }),
       size({
         padding: 8,
         apply({ availableHeight, rects, elements }) {
-          // Match the input width, or for a compact inline trigger at least that
+          // Match the input width, or for an icon only trigger at least that
           // width so no option wraps, and cap the height to the space available,
           // scrolling internally beyond that.
           const fieldWidth = `${String(rects.reference.width)}px`;
           Object.assign(elements.floating.style, {
-            width: compact ? 'max-content' : fieldWidth,
+            width: iconTrigger ? 'max-content' : fieldWidth,
             minWidth: fieldWidth,
             maxHeight: `${String(Math.min(availableHeight, MAX_LIST_HEIGHT))}px`,
           });
@@ -395,17 +390,11 @@ export function Combobox({
   }
 
   return (
-    <div
-      className={`relative flex text-sm ${
-        inline ? 'items-center gap-2' : 'flex-col gap-1'
-      }`}
-    >
+    <div className="relative flex flex-col gap-1 text-sm">
       <label
         id={labelId}
         htmlFor={searchable ? inputId : undefined}
-        className={
-          inline ? 'shrink-0 text-xs text-ink-soft' : 'font-semibold text-ink'
-        }
+        className="font-semibold text-ink"
       >
         {label}
       </label>
