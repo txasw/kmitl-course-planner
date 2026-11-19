@@ -50,9 +50,9 @@ describe('readableBuilding', () => {
     expect(readableBuilding('อาคาร 12 ชั้น', 'E12', 'ประชุม-2')).toBe(
       'อาคาร 12 ชั้น',
     );
-    expect(
-      readableBuilding('อาคาร B เรียนรวม (ชุมพร)', '1000', '1000-17'),
-    ).toBe('อาคาร B เรียนรวม (ชุมพร)');
+    expect(readableBuilding('อาคาร B เรียนรวม (ชุมพร)', '1000', '1000-17')).toBe(
+      'อาคาร B เรียนรวม (ชุมพร)',
+    );
   });
 });
 

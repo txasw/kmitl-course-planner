@@ -133,9 +133,7 @@ describe('CourseCatalog', () => {
   it('renders the deduped courses under their subject type heading', () => {
     // After dedupe every owner 32 subject resolves to the GenEd heading.
     render(<CourseCatalog catalog={catalog} />);
-    expect(
-      screen.getByRole('heading', { name: /กลุ่ม 1/ }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /กลุ่ม 1/ })).toBeInTheDocument();
     expect(screen.getAllByRole('article')).toHaveLength(3);
     expect(screen.getByText('90592033')).toBeInTheDocument();
   });
@@ -255,9 +253,7 @@ describe('CourseCatalog', () => {
     expect(screen.getAllByText('คนละภาค').length).toBeGreaterThan(0);
     // The banner names the browsed term and every add rail is disabled.
     expect(
-      screen.getByText(
-        'ตารางนี้เป็นภาคการศึกษา 2/2569 แต่กำลังดูภาคการศึกษา 1/2569',
-      ),
+      screen.getByText('ตารางนี้เป็นภาคการศึกษา 2/2569 แต่กำลังดูภาคการศึกษา 1/2569'),
     ).toBeInTheDocument();
     const addRails = screen.getAllByRole('button', { name: /^เพิ่ม/ });
     expect(addRails.length).toBeGreaterThan(0);
@@ -373,9 +369,7 @@ describe('CourseCatalog expand all', () => {
   it('offers collapse once any visible card is open', () => {
     render(<CourseCatalog catalog={catalog} />);
     fireEvent.click(cardToggle('90592033'));
-    expect(
-      screen.getByRole('button', { name: 'ย่อทั้งหมด' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ย่อทั้งหมด' })).toBeInTheDocument();
   });
 
   it('changes every card with no transition stage', () => {
@@ -606,9 +600,7 @@ describe('CourseCatalog sort', () => {
   it('reorders the courses by the chosen sort and keeps it past a filter clear', () => {
     render(<CourseCatalog catalog={sortCatalog} />);
     fireEvent.click(screen.getByRole('combobox', { name: 'เรียงตาม' }));
-    fireEvent.mouseDown(
-      screen.getByRole('option', { name: 'ที่นั่งว่างมากที่สุด' }),
-    );
+    fireEvent.mouseDown(screen.getByRole('option', { name: 'ที่นั่งว่างมากที่สุด' }));
     expect(cardOrder()).toEqual(['90000003', '90000002', '90000001']);
     fireEvent.change(screen.getByRole('searchbox', { name: 'กรองรายการ' }), {
       target: { value: '9000' },
@@ -654,9 +646,7 @@ describe('CourseCatalog filter announcement', () => {
     act(() => {
       vi.advanceTimersByTime(1);
     });
-    expect(region).toHaveTextContent(
-      /^ตรงกับตัวกรอง 1 รายวิชา \d+ กลุ่มเรียน$/,
-    );
+    expect(region).toHaveTextContent(/^ตรงกับตัวกรอง 1 รายวิชา \d+ กลุ่มเรียน$/);
 
     filterTo('zzzz');
     act(() => {

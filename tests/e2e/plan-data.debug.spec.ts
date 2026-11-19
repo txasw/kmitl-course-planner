@@ -14,9 +14,9 @@ test('shows the sharing toolbar only in preview mode', async ({ context }) => {
   await expect(page.locator(block('900001'))).toBeVisible();
 
   // Edit mode carries no sharing controls.
-  await expect(
-    page.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' }),
-  ).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' })).toHaveCount(
+    0,
+  );
   await expect(page.getByRole('button', { name: 'คัดลอกข้อความ' })).toHaveCount(
     0,
   );
@@ -29,15 +29,13 @@ test('shows the sharing toolbar only in preview mode', async ({ context }) => {
   await expect(
     page.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' }),
   ).toBeVisible();
-  await expect(
-    page.getByRole('button', { name: 'คัดลอกข้อความ' }),
-  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'คัดลอกข้อความ' })).toBeVisible();
 
   // Returning to edit removes them from the DOM again.
   await page.getByRole('button', { name: 'แก้ไข' }).click();
-  await expect(
-    page.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' }),
-  ).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' })).toHaveCount(
+    0,
+  );
 });
 
 test('round trips a plan through JSON export and import', async ({

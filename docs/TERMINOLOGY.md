@@ -9,25 +9,25 @@ Thai copy consistent with this list.
 | Concept                   | Canonical Thai | Note                                                 |
 | ------------------------- | -------------- | ---------------------------------------------------- |
 | Faculty                   | คณะ            |                                                      |
-| Department                | ภาควิชา        |                                                      |
-| Curriculum                | หลักสูตร       |                                                      |
-| Class year                | ชั้นปี         |                                                      |
-| Academic year             | ปีการศึกษา     |                                                      |
-| Semester                  | ภาคการศึกษา    | Not ภาคเรียน.                                        |
-| Section                   | กลุ่มเรียน     | Not ตอน or ตอนเรียน.                                 |
-| Subject category          | หมวดวิชา       | The by category tab.                                 |
-| Subject id                | รหัสวิชา       |                                                      |
-| Subject name              | ชื่อวิชา       |                                                      |
-| Credits                   | หน่วยกิต       |                                                      |
-| Lecture (lect_or_prac ท)  | ทฤษฎี          |                                                      |
-| Practice (lect_or_prac ป) | ปฏิบัติ        | Not ปฏิบัติการ.                                      |
-| Seat full                 | เต็ม           | The API sends the marker เต็ม/Full.                  |
-| Seat closed               | ปิด            | The section is not open for enrollment.              |
-| Instructor                | อาจารย์ผู้สอน  | ผู้สอน where space is tight.                         |
-| Room                      | ห้อง           |                                                      |
+| Department                | ภาควิชา         |                                                      |
+| Curriculum                | หลักสูตร         |                                                      |
+| Class year                | ชั้นปี            |                                                      |
+| Academic year             | ปีการศึกษา       |                                                      |
+| Semester                  | ภาคการศึกษา     | Not ภาคเรียน.                                         |
+| Section                   | กลุ่มเรียน        | Not ตอน or ตอนเรียน.                                  |
+| Subject category          | หมวดวิชา        | The by category tab.                                 |
+| Subject id                | รหัสวิชา         |                                                      |
+| Subject name              | ชื่อวิชา          |                                                      |
+| Credits                   | หน่วยกิต         |                                                      |
+| Lecture (lect_or_prac ท)  | ทฤษฎี           |                                                      |
+| Practice (lect_or_prac ป) | ปฏิบัติ           | Not ปฏิบัติการ.                                         |
+| Seat full                 | เต็ม            | The API sends the marker เต็ม/Full.                   |
+| Seat closed               | ปิด             | The section is not open for enrollment.              |
+| Instructor                | อาจารย์ผู้สอน     | ผู้สอน where space is tight.                           |
+| Room                      | ห้อง            |                                                      |
 | Building                  | อาคาร          |                                                      |
 | Plan (a saved timetable)  | ตาราง          | English label Plan; the domain type stays Plan.      |
-| Unscheduled section       | ไม่มีคาบเรียน  | A section with no meeting, such as an online course. |
+| Unscheduled section       | ไม่มีคาบเรียน     | A section with no meeting, such as an online course. |
 
 Copy that is the extension's own and has no host equivalent (empty and error
 states, section state badges, and the like) follows the plain, formal tone in

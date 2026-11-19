@@ -203,9 +203,7 @@ describe('SearchForm', () => {
     expect(bySubjectId).toHaveFocus();
     expect(bySubjectId).toHaveAttribute('aria-selected', 'true');
     expect(searchStore.getState().activeTab).toBe('by_subject_id');
-    expect(
-      screen.getByRole('textbox', { name: 'รหัสวิชา' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'รหัสวิชา' })).toBeInTheDocument();
 
     fireEvent.keyDown(bySubjectId, { key: 'End' });
     expect(screen.getByRole('tab', { name: 'หมวดวิชา' })).toHaveFocus();
@@ -231,9 +229,7 @@ describe('SearchForm', () => {
     act(() => {
       searchStore.getState().patchSubjectIdForm({ subjectId: '123456789' });
     });
-    expect(
-      screen.getByText('กรอกรหัสวิชาเป็นตัวเลข 8 หลัก'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('กรอกรหัสวิชาเป็นตัวเลข 8 หลัก')).toBeInTheDocument();
   });
 
   it('messages and focuses the field when an incomplete subject id is submitted', () => {
@@ -248,9 +244,7 @@ describe('SearchForm', () => {
     // message rather than being an inert disabled control.
     expect(submit).toBeEnabled();
     fireEvent.click(submit);
-    expect(
-      screen.getByText('กรอกรหัสวิชาเป็นตัวเลข 8 หลัก'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('กรอกรหัสวิชาเป็นตัวเลข 8 หลัก')).toBeInTheDocument();
     expect(field).toHaveFocus();
   });
 
@@ -306,9 +300,7 @@ describe('SearchForm', () => {
     });
     const submit = screen.getByRole('button', { name: 'ค้นหา' });
     expect(submit).toHaveAttribute('aria-disabled', 'true');
-    expect(submit).toHaveAccessibleDescription(
-      'รอผลการค้นหาปัจจุบันก่อนค้นหาใหม่',
-    );
+    expect(submit).toHaveAccessibleDescription('รอผลการค้นหาปัจจุบันก่อนค้นหาใหม่');
     fireEvent.click(submit);
     fireEvent.keyDown(screen.getByRole('textbox', { name: 'รหัสวิชา' }), {
       key: 'Enter',

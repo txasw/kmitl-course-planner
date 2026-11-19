@@ -139,9 +139,7 @@ describe('BottomNav', () => {
       entry('90000002', 't2'),
     ]);
     render(<BottomNav />);
-    expect(
-      screen.getByRole('button', { name: 'ที่เลือก 2' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ที่เลือก 2' })).toBeInTheDocument();
   });
 
   it('marks an exam clash on the summary item with a dot and in its name', () => {

@@ -141,10 +141,7 @@ test('a tap on a placed block opens its details and never the hover card', async
 }) => {
   const page = await openPlanner(context);
   await denseSearch(page);
-  await page
-    .getByRole('button', { name: /^เพิ่ม/ })
-    .first()
-    .tap();
+  await page.getByRole('button', { name: /^เพิ่ม/ }).first().tap();
   await page
     .locator('#kcp-catalog-column')
     .getByRole('button', { name: 'ปิดรายการรายวิชา' })

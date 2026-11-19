@@ -578,9 +578,7 @@ describe.each(PAGES)('landing page $file', ({ locale, file, url }) => {
     // The landed section is named like every other block, in Thai through the host's own
     // word for the term the tone rules reserve.
     expect(story.landed.name).toBe(
-      locale === 'th'
-        ? 'ปฏิบัติฟิสิกส์ทั่วไป 1'
-        : 'GENERAL PHYSICS LABORATORY 1',
+      locale === 'th' ? 'ปฏิบัติฟิสิกส์ทั่วไป 1' : 'GENERAL PHYSICS LABORATORY 1',
     );
     expect(placed(grid?.querySelector('.story__landed'))).toMatchObject({
       day: 3,

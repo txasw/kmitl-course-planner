@@ -47,8 +47,7 @@ vi.mock('@/lib/search/queryForms', async (importOriginal) => {
   return { ...actual, routeSearchPrefill: vi.fn(actual.routeSearchPrefill) };
 });
 
-const NO_PLAN =
-  'ใช้ Planner วางแผนตารางเรียนจากรายวิชาที่เปิดสอนในเว็บไซต์นี้ได้';
+const NO_PLAN = 'ใช้ Planner วางแผนตารางเรียนจากรายวิชาที่เปิดสอนในเว็บไซต์นี้ได้';
 const CLOSE = 'ปิดข้อความนี้';
 const OPT_OUT = 'ไม่ต้องแสดงข้อความนี้อีก';
 const ROUTE = 'เปิดผลการค้นหานี้ใน Planner เพื่อจัดกลุ่มเรียนลงตาราง';

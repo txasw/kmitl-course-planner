@@ -207,9 +207,7 @@ describe('StatusAnnouncer plan checks', () => {
     });
     render(<StatusAnnouncer />);
     check(true, { status: 'offline', report: null });
-    expect(region()).toHaveTextContent(
-      'ยังตรวจสอบไม่ได้ แสดงข้อมูลที่บันทึกไว้',
-    );
+    expect(region()).toHaveTextContent('ยังตรวจสอบไม่ได้ แสดงข้อมูลที่บันทึกไว้');
   });
 
   it('names the changes a manual check found', () => {

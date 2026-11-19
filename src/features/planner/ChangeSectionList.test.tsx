@@ -141,9 +141,7 @@ describe('ChangeSectionList', () => {
     renderList();
     fireEvent.click(toggle());
     expect(
-      screen.getByText(
-        'ค้นหารายวิชานี้ในภาคการศึกษาของตารางก่อน จึงจะเปลี่ยนกลุ่มเรียนได้',
-      ),
+      screen.getByText('ค้นหารายวิชานี้ในภาคการศึกษาของตารางก่อน จึงจะเปลี่ยนกลุ่มเรียนได้'),
     ).toBeInTheDocument();
   });
 

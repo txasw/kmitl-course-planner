@@ -58,8 +58,7 @@ function validRow(): Record<string, unknown> {
   };
 }
 
-const GROUP_2_TH =
-  'กลุ่ม 2 (วิชาบังคับคณะฯ / วิชาบังคับหลักสูตร / วิชาเลือกหลักสูตร)';
+const GROUP_2_TH = 'กลุ่ม 2 (วิชาบังคับคณะฯ / วิชาบังคับหลักสูตร / วิชาเลือกหลักสูตร)';
 const GROUP_2_EN =
   'Group 2 (Required Subject / Compulsory Courses / Elective Courses)';
 

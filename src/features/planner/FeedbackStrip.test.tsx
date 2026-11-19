@@ -832,8 +832,6 @@ describe('FeedbackStrip', () => {
       dragStore.setState({ hint: 'วางบนช่องที่ไฮไลต์เพื่อเพิ่มกลุ่มเรียน' });
     });
     render(<FeedbackStrip t={t} />);
-    expect(
-      screen.getByText('วางบนช่องที่ไฮไลต์เพื่อเพิ่มกลุ่มเรียน'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('วางบนช่องที่ไฮไลต์เพื่อเพิ่มกลุ่มเรียน')).toBeInTheDocument();
   });
 });

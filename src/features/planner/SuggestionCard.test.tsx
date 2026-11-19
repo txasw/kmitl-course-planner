@@ -120,9 +120,7 @@ describe('SuggestionCard', () => {
 
   it('focuses the heading of a full size card', () => {
     renderCard({ size: 'full' });
-    expect(
-      screen.getByRole('heading', { name: 'ตัวเลือกที่ 1' }),
-    ).toHaveFocus();
+    expect(screen.getByRole('heading', { name: 'ตัวเลือกที่ 1' })).toHaveFocus();
   });
 
   it('draws a portrait grid without the poster floor', () => {

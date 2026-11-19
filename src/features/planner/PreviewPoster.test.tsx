@@ -214,9 +214,7 @@ describe('PreviewPoster data line', () => {
     expect(
       within(line).getByText('2 รายวิชาไม่พบในระบบ ณ วันที่ตรวจสอบ'),
     ).toBeInTheDocument();
-    expect(
-      within(line).getByText('มีรายวิชาที่เวลาชนกัน 1 คู่'),
-    ).toBeInTheDocument();
+    expect(within(line).getByText('มีรายวิชาที่เวลาชนกัน 1 คู่')).toBeInTheDocument();
   });
 
   it('states only the count that applies', () => {
@@ -224,9 +222,7 @@ describe('PreviewPoster data line', () => {
       honesty: { ...CLEAN, conflictPairCount: 3 },
     });
     const line = dataLine(container);
-    expect(
-      within(line).getByText('มีรายวิชาที่เวลาชนกัน 3 คู่'),
-    ).toBeInTheDocument();
+    expect(within(line).getByText('มีรายวิชาที่เวลาชนกัน 3 คู่')).toBeInTheDocument();
     expect(line).not.toHaveTextContent('ไม่พบในระบบ');
   });
 

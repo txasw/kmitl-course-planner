@@ -34,9 +34,7 @@ describe('DisplayOptionsPopover', () => {
     expect(trigger).not.toHaveAttribute('aria-haspopup');
     fireEvent.click(trigger);
     expect(screen.queryByRole('dialog')).toBeNull();
-    expect(
-      screen.getByRole('switch', { name: 'แสดงห้อง' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('switch', { name: 'แสดงห้อง' })).toBeInTheDocument();
   });
 
   it('opens the popover and toggles an option in the store', () => {
@@ -66,9 +64,7 @@ describe('DisplayOptionsPopover', () => {
     render(<DisplayOptionsPopover />);
     fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }));
     expect(screen.getByRole('switch', { name: 'แสดงห้อง' })).not.toBeChecked();
-    expect(
-      screen.getByRole('switch', { name: 'แสดงกลุ่มเรียน' }),
-    ).toBeChecked();
+    expect(screen.getByRole('switch', { name: 'แสดงกลุ่มเรียน' })).toBeChecked();
   });
 
   it('disables the show English names option in English', () => {

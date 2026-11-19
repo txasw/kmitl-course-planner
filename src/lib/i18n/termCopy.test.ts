@@ -30,9 +30,7 @@ describe('termMismatchText', () => {
   it('states a section from another term in one Thai sentence', () => {
     expect(
       termMismatchText(PLAN, OTHER, 'section', createTranslator('th')),
-    ).toBe(
-      'ตารางนี้เป็นภาคการศึกษา 1/2569 แต่กลุ่มเรียนนี้อยู่ในภาคการศึกษา 2/2569',
-    );
+    ).toBe('ตารางนี้เป็นภาคการศึกษา 1/2569 แต่กลุ่มเรียนนี้อยู่ในภาคการศึกษา 2/2569');
   });
 
   it('states a browsed term in one English sentence', () => {

@@ -23,9 +23,7 @@ describe('fillTemplate', () => {
   });
 
   it('returns a template with no tokens unchanged', () => {
-    expect(fillTemplate('ไม่จำกัดที่นั่ง', { remaining: 1 })).toBe(
-      'ไม่จำกัดที่นั่ง',
-    );
+    expect(fillTemplate('ไม่จำกัดที่นั่ง', { remaining: 1 })).toBe('ไม่จำกัดที่นั่ง');
   });
 });
 

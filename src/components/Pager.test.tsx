@@ -70,9 +70,7 @@ describe('Pager', () => {
 
   it('names the group and keeps one dot in the tab order', () => {
     render(<Harness />);
-    expect(
-      screen.getByRole('radiogroup', { name: 'หน้า' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('radiogroup', { name: 'หน้า' })).toBeInTheDocument();
     const tabbable = screen
       .getAllByRole('radio')
       .filter((radio) => radio.tabIndex === 0);

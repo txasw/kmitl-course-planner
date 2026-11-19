@@ -70,10 +70,7 @@ for (const viewport of [
       // The real owner 32 capture meets only on Friday, 08:00 to 16:00, inside the
       // 08:00 to 18:00 working day.
       await categorySearch(page);
-      await page
-        .getByRole('button', { name: /^เพิ่ม/ })
-        .first()
-        .click();
+      await page.getByRole('button', { name: /^เพิ่ม/ }).first().click();
       await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
 
       const grid = page.getByRole('group', { name: GRID_NAME });
@@ -142,10 +139,7 @@ test('adds a section from its button, then removes it with undo', async ({
   const page = await openPlanner(context);
   await categorySearch(page);
 
-  await page
-    .getByRole('button', { name: /^เพิ่ม/ })
-    .first()
-    .click();
+  await page.getByRole('button', { name: /^เพิ่ม/ }).first().click();
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
 
   await page
@@ -213,10 +207,7 @@ test('cancels a block drag silently when the block goes back in place', async ({
 }) => {
   const page = await openPlanner(context);
   await categorySearch(page);
-  await page
-    .getByRole('button', { name: /^เพิ่ม/ })
-    .first()
-    .click();
+  await page.getByRole('button', { name: /^เพิ่ม/ }).first().click();
   const placed = page.locator(GRID_BLOCK).first();
   await expect(placed).toBeVisible();
   const from = await placed.boundingBox();
@@ -237,9 +228,7 @@ test('cancels a block drag silently when the block goes back in place', async ({
 
   await expect(page.locator('[data-lifted-origin]')).toHaveCount(0);
   await expect(page.locator(GRID_BLOCK)).toHaveCount(1);
-  await expect(
-    page.getByText('วางบนช่องที่ไฮไลต์หรือพื้นที่นำออก'),
-  ).toHaveCount(0);
+  await expect(page.getByText('วางบนช่องที่ไฮไลต์หรือพื้นที่นำออก')).toHaveCount(0);
 });
 
 test.describe('on the medium sheet tier', () => {
@@ -379,10 +368,7 @@ test('opens a block detail popover and removes the section through it', async ({
   const page = await openPlanner(context);
   await categorySearch(page);
 
-  await page
-    .getByRole('button', { name: /^เพิ่ม/ })
-    .first()
-    .click();
+  await page.getByRole('button', { name: /^เพิ่ม/ }).first().click();
   const block = page.locator(GRID_BLOCK).first();
   await expect(block).toBeVisible();
 
@@ -404,10 +390,7 @@ test('preview removes the mutating controls and keeps the grid', async ({
 }) => {
   const page = await openPlanner(context);
   await categorySearch(page);
-  await page
-    .getByRole('button', { name: /^เพิ่ม/ })
-    .first()
-    .click();
+  await page.getByRole('button', { name: /^เพิ่ม/ }).first().click();
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
 
   await page.getByRole('button', { name: 'ดูตัวอย่าง' }).click();

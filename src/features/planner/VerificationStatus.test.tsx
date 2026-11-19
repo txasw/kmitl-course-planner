@@ -139,17 +139,15 @@ describe('VerificationStatus', () => {
     seed({ status: 'running', report: null });
     renderStatus();
     expect(screen.getByText('กำลังตรวจสอบข้อมูล')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'ตรวจสอบอีกครั้ง' }),
-    ).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'ตรวจสอบอีกครั้ง' })).toBeDisabled();
   });
 
   it('warns offline that it shows saved data and offers a retry', () => {
     seed({ status: 'offline', report: null });
     const { container } = renderStatus();
-    expect(
-      screen.getByText('ยังตรวจสอบไม่ได้ แสดงข้อมูลที่บันทึกไว้'),
-    ).toHaveClass('text-warn');
+    expect(screen.getByText('ยังตรวจสอบไม่ได้ แสดงข้อมูลที่บันทึกไว้')).toHaveClass(
+      'text-warn',
+    );
     expect(container.querySelector('[data-verification]')).toHaveAttribute(
       'data-verification',
       'warn',

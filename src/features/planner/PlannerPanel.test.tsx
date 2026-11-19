@@ -176,9 +176,7 @@ describe('PlannerPanel plan views', () => {
     renderPanel();
     expect(screen.queryByRole('tablist')).toBeNull();
     expect(screen.queryByRole('tabpanel')).toBeNull();
-    expect(
-      screen.getByRole('list', { name: 'วิชาที่เลือก' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'วิชาที่เลือก' })).toBeInTheDocument();
 
     act(() => {
       uiStore.getState().setPlanView('timetable');
@@ -230,9 +228,7 @@ describe('PlannerPanel plan views', () => {
       renderPanel();
       const scroller = (node: HTMLElement): Element | null =>
         node.closest('.kcp-scroll');
-      const selected = scroller(
-        screen.getByRole('list', { name: 'วิชาที่เลือก' }),
-      );
+      const selected = scroller(screen.getByRole('list', { name: 'วิชาที่เลือก' }));
       if (selected !== null) selected.scrollTop = 300;
 
       act(() => {
@@ -292,12 +288,8 @@ describe('PlannerPanel plan views', () => {
       ),
     );
     renderPanel();
-    fireEvent.click(
-      screen.getByRole('tab', { name: 'สรุป มีวิชาที่สอบชนกัน' }),
-    );
-    expect(
-      screen.getByText(/^สอบชนกับ 90000002 .* กลุ่มเรียน 901$/),
-    ).toBeVisible();
+    fireEvent.click(screen.getByRole('tab', { name: 'สรุป มีวิชาที่สอบชนกัน' }));
+    expect(screen.getByText(/^สอบชนกับ 90000002 .* กลุ่มเรียน 901$/)).toBeVisible();
   });
 
   it('offers the way to the catalog when the plan is empty', () => {

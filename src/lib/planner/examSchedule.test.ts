@@ -189,12 +189,7 @@ describe('buildExamSchedule edge cases', () => {
   it('merges sections of one subject that share a window and keeps the note', () => {
     const schedule = buildExamSchedule([
       entryWith('a', '10000001', { midterm: MID }, '102'),
-      entryWith(
-        'b',
-        '10000001',
-        { midterm: MID, note: ' สอบที่ห้อง E12 ' },
-        '2',
-      ),
+      entryWith('b', '10000001', { midterm: MID, note: ' สอบที่ห้อง E12 ' }, '2'),
     ]);
     const row = schedule.groups[0]?.days[0]?.rows[0];
     expect(row?.sections).toEqual(['2', '102']);

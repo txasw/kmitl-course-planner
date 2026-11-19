@@ -93,9 +93,7 @@ describe('formatRegistrationList', () => {
       'en',
       createTranslator('en'),
     );
-    expect(lines).toBe(
-      '90000001 การเขียนโปรแกรมคอมพิวเตอร์ (Section Lecture 1)',
-    );
+    expect(lines).toBe('90000001 การเขียนโปรแกรมคอมพิวเตอร์ (Section Lecture 1)');
   });
 
   it('marks a subject with a section upstream no longer lists', () => {

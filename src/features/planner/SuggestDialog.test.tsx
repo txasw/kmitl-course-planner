@@ -113,9 +113,7 @@ describe('SuggestDialog', () => {
     expect(
       screen.getByRole('heading', { name: 'ตัวเลือกที่ 3' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'ตัวเลือกถัดไป' }),
-    ).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'ตัวเลือกถัดไป' })).toBeDisabled();
 
     // A new preference ranks the cards again, so the pager returns to the best one.
     fireEvent.click(screen.getByRole('button', { name: 'เน้นบ่าย' }));
@@ -162,17 +160,11 @@ describe('SuggestDialog', () => {
     if (second === undefined) throw new Error('no second card');
     fireEvent.click(second);
 
-    expect(
-      screen.getByRole('heading', { name: 'ตัวเลือกที่ 2' }),
-    ).toHaveFocus();
-    expect(screen.getAllByRole('button', { name: 'ใช้ตารางนี้' })).toHaveLength(
-      1,
-    );
+    expect(screen.getByRole('heading', { name: 'ตัวเลือกที่ 2' })).toHaveFocus();
+    expect(screen.getAllByRole('button', { name: 'ใช้ตารางนี้' })).toHaveLength(1);
     expect(screen.queryByRole('button', { name: 'สมดุล' })).toBeNull();
 
-    fireEvent.click(
-      screen.getByRole('button', { name: 'กลับไปที่ตัวเลือกทั้งหมด' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'กลับไปที่ตัวเลือกทั้งหมด' }));
     expect(await findCards()).toHaveLength(3);
     expect(
       screen.getAllByRole('button', { name: 'ดูขนาดเต็ม' })[1],
@@ -185,9 +177,7 @@ describe('SuggestDialog', () => {
     const [, second] = screen.getAllByRole('button', { name: 'ดูขนาดเต็ม' });
     if (second === undefined) throw new Error('no second card');
     fireEvent.click(second);
-    expect(screen.getAllByRole('button', { name: 'ใช้ตารางนี้' })).toHaveLength(
-      1,
-    );
+    expect(screen.getAllByRole('button', { name: 'ใช้ตารางนี้' })).toHaveLength(1);
 
     // A placed entry changes every suggestion, so the card opened is gone and the view
     // returns to the list rather than showing another card in its place.
@@ -195,9 +185,9 @@ describe('SuggestDialog', () => {
       seedActivePlan(lockSections(courses, [['04186098', '2']]));
     });
     await waitFor(() => {
-      expect(
-        screen.getAllByRole('button', { name: 'ใช้ตารางนี้' }),
-      ).toHaveLength(3);
+      expect(screen.getAllByRole('button', { name: 'ใช้ตารางนี้' })).toHaveLength(
+        3,
+      );
     });
     expect(
       screen.getAllByRole('button', { name: 'ดูขนาดเต็ม' })[1],
@@ -266,9 +256,7 @@ describe('SuggestDialog', () => {
     });
     renderDialog();
     expect(
-      await screen.findByText(
-        'วิชาในหลักสูตรทุกวิชาของผลการค้นหานี้อยู่ในตารางแล้ว',
-      ),
+      await screen.findByText('วิชาในหลักสูตรทุกวิชาของผลการค้นหานี้อยู่ในตารางแล้ว'),
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'ใช้ตารางนี้' })).toBeNull();
   });

@@ -39,9 +39,7 @@ describe('ModeToggle', () => {
     expect(edit.querySelector('svg.lucide-pencil')).toHaveClass('sm:hidden');
     expect(preview.querySelector('svg.lucide-eye')).toHaveClass('sm:hidden');
     expect(within(edit).getByText('แก้ไข')).toHaveClass('max-sm:sr-only');
-    expect(within(preview).getByText('ดูตัวอย่าง')).toHaveClass(
-      'max-sm:sr-only',
-    );
+    expect(within(preview).getByText('ดูตัวอย่าง')).toHaveClass('max-sm:sr-only');
   });
 
   it('keeps the filled look for the active mode', () => {
