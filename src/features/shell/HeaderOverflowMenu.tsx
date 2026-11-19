@@ -1,18 +1,20 @@
-// The header overflow menu below 1024 px, where the header has no room for the language
-// toggle. It follows the menu button pattern: the trigger opens a menu and moves focus to
+// The header overflow menu, on every layout tier, and the one place the UI language is
+// chosen, since a language is changed rarely and a header toggle spent room on every
+// width. It follows the menu button pattern: the trigger opens a menu and moves focus to
 // the first item, or to the last on ArrowUp; the arrow keys, Home, and End move between
 // items; choosing an item applies it, closes the menu, and returns focus to the trigger.
-// The language choice is a pair of menuitemradio items, so the current language is
-// announced as checked and shown with a check mark rather than by colour alone. Escape
-// closes the menu only, through useEscapeLayer, and returns focus to the trigger, so the
-// overlay behind it stays open. Tab or a press outside closes it and lets focus move on.
-
+// The language choice is a pair of menuitemradio items, each with its flag and its name,
+// so the current language is announced as checked and shown with a check mark rather
+// than by colour or by the flag alone. Escape closes the menu only, through
+// useEscapeLayer, and returns focus to the trigger, so the overlay behind it stays open.
+// Tab or a press outside closes it and lets focus move on.
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useStore } from 'zustand';
 import { Check, MoreHorizontal } from 'lucide-react';
 import { useDismiss, useInteractions } from '@floating-ui/react';
-import type { Locale } from '@/lib/i18n/t';
+import { LanguageFlag } from '@/components/LanguageFlag';
+import type { Locale, TranslationKey } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { uiStore } from './uiStore';
@@ -21,6 +23,12 @@ import { usePanelPopover } from './usePanelPopover';
 import { useTranslation } from './useTranslation';
 
 const LOCALES: readonly Locale[] = ['th', 'en'];
+
+// Each language's own name, written out so every dictionary key is named in source.
+const LANGUAGE_NAME: Record<Locale, TranslationKey> = {
+  th: 'language.th',
+  en: 'language.en',
+};
 
 /** Where focus lands when the menu opens: the first item, or the last for ArrowUp. */
 type OpenFocus = 'first' | 'last';
@@ -183,7 +191,10 @@ export function HeaderOverflowMenu() {
                     aria-hidden
                     className={`shrink-0 text-primary-strong ${checked ? '' : 'invisible'}`}
                   />
-                  {t(`language.${locale}`)}
+                  <LanguageFlag locale={locale} />
+                  <span className="min-w-0 break-words">
+                    {t(LANGUAGE_NAME[locale])}
+                  </span>
                 </button>
               );
             })}

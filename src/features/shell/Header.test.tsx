@@ -29,7 +29,7 @@ afterEach(() => {
 });
 
 describe('Header', () => {
-  it('renders the title, plan switcher, and language toggle from lg', () => {
+  it('renders the title, plan switcher, and overflow menu from lg', () => {
     installViewport(1024);
     render(<Header titleId="title" />);
     expect(screen.getByRole('heading', { level: 2 })).toHaveAttribute(
@@ -39,7 +39,9 @@ describe('Header', () => {
     expect(
       screen.getByRole('button', { name: 'เลือกตาราง' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('group', { name: 'เลือกภาษา' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }),
+    ).toBeInTheDocument();
   });
 
   it('keeps the title labelling the dialog while it is visually hidden below lg', () => {
@@ -113,30 +115,26 @@ describe('Header', () => {
     expect(uiStore.getState().isOpen).toBe(false);
   });
 
-  it('switches the language through the toggle', () => {
-    installViewport(1024);
-    render(<Header titleId="title" />);
-    fireEvent.click(screen.getByRole('button', { name: 'English' }));
-    expect(uiStore.getState().language).toBe('en');
-    expect(screen.getByRole('button', { name: 'English' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+  it('keeps the language choice in the overflow menu on every tier', () => {
+    for (const width of [360, 768, 1024, 1440]) {
+      installViewport(width);
+      const { unmount } = render(<Header titleId="title" />);
+      expect(
+        screen.queryByRole('group', { name: 'เลือกภาษา' }),
+        `${String(width)} px`,
+      ).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }));
+      fireEvent.click(screen.getByRole('menuitemradio', { name: 'English' }));
+      expect(uiStore.getState().language).toBe('en');
+      unmount();
+      act(() => {
+        uiStore.getState().setLanguage('th');
+      });
+      vi.unstubAllGlobals();
+    }
   });
 
-  it('moves the language choice into the overflow menu below lg', () => {
-    installViewport(1023);
-    render(<Header titleId="title" />);
-    expect(
-      screen.queryByRole('group', { name: 'เลือกภาษา' }),
-    ).not.toBeInTheDocument();
-    const more = screen.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' });
-    fireEvent.click(more);
-    fireEvent.click(screen.getByRole('menuitemradio', { name: 'English' }));
-    expect(uiStore.getState().language).toBe('en');
-  });
-
-  it('swaps the overflow menu for the toggle when the panel widens', () => {
+  it('keeps the overflow menu when the panel widens', () => {
     const viewport = installViewport(768);
     render(<Header titleId="title" />);
     expect(
@@ -146,9 +144,8 @@ describe('Header', () => {
       viewport.resize(1024);
     });
     expect(
-      screen.queryByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }),
-    ).not.toBeInTheDocument();
-    expect(screen.getByRole('group', { name: 'เลือกภาษา' })).toBeInTheDocument();
+      screen.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }),
+    ).toBeInTheDocument();
   });
 
   it('toggles the catalog sheet below the lg tier', () => {
