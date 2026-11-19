@@ -45,8 +45,10 @@
   --color-primary-soft: var(--kcp-primary-soft);
   --color-ink: var(--kcp-ink);
   --color-ink-soft: var(--kcp-ink-soft);
+  --color-ink-muted: var(--kcp-ink-muted);
   --color-surface: var(--kcp-surface);
   --color-surface-alt: var(--kcp-surface-alt);
+  --color-surface-sunken: var(--kcp-surface-sunken);
   --color-border: var(--kcp-border);
   --color-border-strong: var(--kcp-border-strong);
   --color-grid-strong: var(--kcp-grid-strong);
@@ -59,9 +61,11 @@
   --color-success: var(--kcp-success);
   --color-success-soft: var(--kcp-success-soft);
   --radius-kcp: var(--kcp-radius);
+  --radius-kcp-sm: var(--kcp-radius-sm);
   --radius-kcp-inner: var(--kcp-radius-inner);
   --radius-kcp-sheet: var(--kcp-radius-sheet);
   --shadow-kcp: var(--kcp-shadow);
+  --shadow-kcp-soft: var(--kcp-shadow-soft);
 
   /* The layer and motion tokens map into the z-index and transition duration
      namespaces the same way, so z-popover or duration-base read the token. */
@@ -97,8 +101,15 @@
   --kcp-primary-soft: #fdeee5;
   --kcp-ink: #1a1a1a;
   --kcp-ink-soft: #5c5c5c;
+  /* The third text step, for quiet metadata such as hour labels, counts, and a card's
+     foot line. A cool grey like the surface and border neutrals, and still 4.5:1 on
+     every neutral surface and on the weak stop of a soft card fill. See ADR-0071. */
+  --kcp-ink-muted: #6b6b70;
   --kcp-surface: #ffffff;
   --kcp-surface-alt: #f7f7f8;
+  /* A recessed well one step below surface-alt, such as a field or icon tile set into
+     a card, in the same cool neutral family. */
+  --kcp-surface-sunken: #efeff2;
   --kcp-border: #e4e4e7;
   /* Form control boundaries only, so a field clears the 3:1 non text bar on both
      surfaces while dividers and gridlines keep the quiet border. See ADR-0051. */
@@ -123,6 +134,9 @@
   --kcp-danger-zone: #fcf2f2;
   --kcp-danger-zone-over: #f8e5e5;
   --kcp-radius: 8px;
+  /* The control radius between the card and the nested inner radius, for buttons,
+     chips, and event blocks that sit on a card or in a grid cell. */
+  --kcp-radius-sm: 6px;
   /* The smaller radius for elements that sit inside a rounded container, such as
      badges, chips, and the inline conflict callout, so a nested corner reads
      tighter than the card around it rather than matching it. */
@@ -131,6 +145,19 @@
      surface raised from the screen edge. */
   --kcp-radius-sheet: 12px;
   --kcp-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  /* The soft depth card of ADR-0071: a tinted fill that fades from the strong stop at
+     the top to the weak stop, an edge line of the tint, a white top highlight, and a
+     light shadow of the tint. The stops are mix percentages of the tint into the
+     surface, so the contrast suite flattens them over white to prove the text on them.
+     shadow-soft is the same light shadow for an untinted surface, drawn from the
+     muted ink so the depth stays cool. */
+  --kcp-tint-strong: 17%;
+  --kcp-tint-weak: 8%;
+  --kcp-tint-edge: 28%;
+  --kcp-tint-shadow: 16%;
+  --kcp-highlight-soft: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  --kcp-shadow-soft: 0 1px 2px rgba(107, 107, 112, 0.16);
 
   /* The device safe area insets, zero where the device has none: the notch and the
      rounded corners at the top and sides, and the home indicator at the bottom. A
@@ -239,6 +266,45 @@
    would turn 2147483647 into 2147480000 and let a host page layer above it. */
 @utility z-host {
   z-index: 2147483647;
+}
+
+/* The soft depth card of ADR-0071. The tint is the subject color an event block sets
+   through --kcp-tint, or the muted ink for a neutral card, so the fill, the edge, and
+   the shadow all derive from one color. It is a utility rather than a token because a
+   custom property declared on the host resolves its var() references there, so only a
+   rule on the element itself can read the element's own tint. */
+@utility kcp-soft-card {
+  border-radius: var(--kcp-radius);
+  background-color: var(--kcp-surface);
+  background-image: linear-gradient(
+    180deg,
+    color-mix(
+        in srgb,
+        var(--kcp-tint, var(--kcp-ink-muted)) var(--kcp-tint-strong),
+        var(--kcp-surface)
+      )
+      0%,
+    color-mix(
+        in srgb,
+        var(--kcp-tint, var(--kcp-ink-muted)) var(--kcp-tint-weak),
+        var(--kcp-surface)
+      )
+      70%
+  );
+  box-shadow:
+    inset 0 0 0 1px
+      color-mix(
+        in srgb,
+        var(--kcp-tint, var(--kcp-ink-muted)) var(--kcp-tint-edge),
+        var(--kcp-surface)
+      ),
+    var(--kcp-highlight-soft),
+    0 1px 2px
+      color-mix(
+        in srgb,
+        var(--kcp-tint, var(--kcp-ink-muted)) var(--kcp-tint-shadow),
+        transparent
+      );
 }
 
 /* A drag surface on a touch screen (ADR-0058). The browser keeps its pan and pinch, so
