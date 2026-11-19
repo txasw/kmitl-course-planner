@@ -1,11 +1,21 @@
-// The catalog filter: an always visible search field, a filter button that opens a popover
-// with the day, credit, hide, and open to my curriculum facets, and the active facets
-// rendered as removable chips under the field, followed by one clear action whenever the
-// text or any facet narrows the list. The sort control closes that row. Filtering itself
-// happens in the pure filter over the catalog store state, which is untouched; the
-// redesign only reshapes the controls.
+// The catalog filter row: an always visible search field, then icon controls, a filter
+// button that opens a popover with the day, credit, hide, and open to my curriculum
+// facets, the sort, and any trailing action the catalog passes, such as expand all. Each
+// icon control is named for assistive technology and shows its name in a tooltip, and
+// the filter icon is followed by a badge counting the facets in use, set beside the icon
+// rather than over it, which the button's name reads too.
+// The active facets render as removable chips under the row, followed by one clear
+// action whenever the text or any facet narrows the list. Filtering itself happens in
+// the pure filter over the catalog store state, which is untouched; the redesign only
+// reshapes the controls.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useStore } from 'zustand';
 import {
   useClick,
@@ -13,11 +23,13 @@ import {
   useInteractions,
   FloatingPortal,
 } from '@floating-ui/react';
-import { SlidersHorizontal, X } from 'lucide-react';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { Switch } from '@/components/Switch';
+import { Tooltip } from '@/components/Tooltip';
 import type { DayOfWeek } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { CatalogFilter } from '@/lib/catalog/filter';
+import { fillTemplate } from '@/lib/i18n/template';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { CATALOG_FILTER_ID } from '@/features/shell/catalogVisibility';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
@@ -38,6 +50,8 @@ const DAYS: DayOfWeek[] = [0, 1, 2, 3, 4, 5, 6];
 
 interface FilterBarProps {
   creditOptions: number[];
+  /** Icon controls that close the row after the sort, such as expand all. */
+  children?: ReactNode;
 }
 
 interface Chip {
@@ -46,7 +60,7 @@ interface Chip {
   onRemove: () => void;
 }
 
-export function FilterBar({ creditOptions }: FilterBarProps) {
+export function FilterBar({ creditOptions, children }: FilterBarProps) {
   const { t, language } = useTranslation();
   const filter = useStore(catalogStore, (state) => state.filter);
   const textRef = useRef<HTMLInputElement | null>(null);
@@ -127,64 +141,62 @@ export function FilterBar({ creditOptions }: FilterBarProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      {/* A persistent visible label names the field, since the placeholder hint
-          disappears as soon as the student types. */}
-      <div className="flex flex-col gap-1">
-        <label
-          htmlFor={CATALOG_FILTER_ID}
-          className="text-sm font-semibold text-ink"
-        >
-          {t('catalog.filter.fieldLabel')}
-        </label>
-        <div className="flex gap-2">
+      <div className="flex items-center gap-1">
+        {/* The field is named for assistive technology, and the search glyph and the
+            hint name it for the eye, so the row spends no line on a visible label. */}
+        <div className="relative flex min-w-0 flex-1">
+          <Search
+            size={16}
+            strokeWidth={2}
+            aria-hidden
+            className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-ink-soft"
+          />
           <input
             ref={textRef}
             id={CATALOG_FILTER_ID}
             type="search"
             value={filter.text}
+            aria-label={t('catalog.filter.fieldLabel')}
             placeholder={t('catalog.filter.text')}
             onChange={(event) => {
               catalogStore.getState().setText(event.target.value);
             }}
-            className={`min-w-0 flex-1 rounded-kcp border px-2 py-1.5 text-sm text-ink ${TARGET_HEIGHT} ${CONTROL_BOUNDARY} ${FOCUS_RING}`}
-          />
-          <FilterPopover
-            t={t}
-            locale={language}
-            filter={filter}
-            creditOptions={creditOptions}
-            activeCount={activeCount}
+            className={`min-w-0 flex-1 rounded-kcp border py-1.5 pr-2 pl-8 text-sm text-ink ${TARGET_HEIGHT} ${CONTROL_BOUNDARY} ${FOCUS_RING}`}
           />
         </div>
+        <FilterPopover
+          t={t}
+          locale={language}
+          filter={filter}
+          creditOptions={creditOptions}
+          activeCount={activeCount}
+        />
+        <SortControl t={t} />
+        {children}
       </div>
-      <div className="flex flex-wrap items-center gap-2">
-        {filtering ? (
-          <div className="flex flex-wrap items-center gap-1 text-xs">
-            {chips.map((chip) => (
-              <button
-                key={chip.key}
-                type="button"
-                aria-label={`${t('action.remove')} ${chip.label}`}
-                onClick={chip.onRemove}
-                className={`inline-flex items-center gap-1 rounded-kcp bg-surface-alt px-2 py-0.5 text-ink-soft hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
-              >
-                {chip.label}
-                <X size={12} aria-hidden />
-              </button>
-            ))}
+      {filtering ? (
+        <div className="flex flex-wrap items-center gap-1 text-xs">
+          {chips.map((chip) => (
             <button
+              key={chip.key}
               type="button"
-              onClick={handleClear}
-              className={`rounded-kcp px-2 py-0.5 text-primary-strong hover:bg-primary-soft ${TARGET_SIZE} ${FOCUS_RING}`}
+              aria-label={`${t('action.remove')} ${chip.label}`}
+              onClick={chip.onRemove}
+              className={`inline-flex items-center gap-1 rounded-kcp bg-surface-alt px-2 py-0.5 text-left text-ink-soft hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
             >
-              {t('catalog.filter.clearAll')}
+              {chip.label}
+              <X size={12} aria-hidden className="shrink-0" />
             </button>
-          </div>
-        ) : null}
-        <div className="ml-auto">
-          <SortControl t={t} />
+          ))}
+          <button
+            type="button"
+            onClick={handleClear}
+            className={`rounded-kcp px-2 py-0.5 text-primary-strong hover:bg-primary-soft ${TARGET_SIZE} ${FOCUS_RING}`}
+          >
+            {t('catalog.filter.clearAll')}
+          </button>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
@@ -353,24 +365,42 @@ function FilterPopover({
     </div>
   ) : null;
 
+  const label = t('catalog.filter.label');
+  const name =
+    activeCount > 0
+      ? fillTemplate(t('catalog.filter.labelActive'), {
+          n: String(activeCount),
+        })
+      : label;
+
   return (
     <div className="relative">
-      <button
-        ref={setReference}
-        type="button"
-        aria-expanded={open}
-        aria-label={t('catalog.filter.label')}
-        className={`inline-flex shrink-0 items-center gap-1.5 rounded-kcp border border-border px-2.5 py-1.5 text-sm text-ink hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`}
-        {...getReferenceProps()}
-      >
-        <SlidersHorizontal size={16} strokeWidth={2} aria-hidden />
-        {t('catalog.filter.label')}
-        {activeCount > 0 ? (
-          <span className="ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-strong px-1 text-[10px] font-semibold text-surface">
-            {activeCount}
+      {/* The tooltip anchors to a wrapper, so the trigger keeps the popover's own
+          reference and handlers; it stays shut while the popover is open. */}
+      <Tooltip label={label} disabled={open}>
+        {(triggerProps, ref) => (
+          <span ref={ref} {...triggerProps} className="inline-flex">
+            <button
+              ref={setReference}
+              type="button"
+              aria-expanded={open}
+              aria-label={name}
+              className={`inline-flex shrink-0 items-center justify-center gap-1 rounded-kcp text-ink hover:bg-surface-alt ${activeCount > 0 ? 'px-1.5' : ''} ${TARGET_SIZE} ${FOCUS_RING}`}
+              {...getReferenceProps()}
+            >
+              <SlidersHorizontal size={18} strokeWidth={2} aria-hidden />
+              {activeCount > 0 ? (
+                <span
+                  aria-hidden
+                  className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-strong px-1 text-[10px] font-semibold text-surface tabular-nums"
+                >
+                  {activeCount}
+                </span>
+              ) : null}
+            </button>
           </span>
-        ) : null}
-      </button>
+        )}
+      </Tooltip>
       {portalRoot ? (
         <FloatingPortal root={portalRoot}>{panel}</FloatingPortal>
       ) : (

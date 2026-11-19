@@ -181,6 +181,7 @@
   "catalog.filter.hideConflicting": "Hide conflicts",
   "catalog.filter.hideUnscheduled": "Hide unscheduled",
   "catalog.filter.label": "Filters",
+  "catalog.filter.labelActive": "Filters, {n} in use",
   "catalog.filter.clearAll": "Clear filters",
   "catalog.sort.label": "Sort by",
   "catalog.sort.subjectId": "Subject id",

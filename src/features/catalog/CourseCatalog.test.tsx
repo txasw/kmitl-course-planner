@@ -599,7 +599,7 @@ describe('CourseCatalog sort', () => {
 
   it('reorders the courses by the chosen sort and keeps it past a filter clear', () => {
     render(<CourseCatalog catalog={sortCatalog} />);
-    fireEvent.click(screen.getByRole('combobox', { name: 'เรียงตาม' }));
+    fireEvent.click(screen.getByRole('combobox', { name: /^เรียงตาม/ }));
     fireEvent.mouseDown(screen.getByRole('option', { name: 'ที่นั่งว่างมากที่สุด' }));
     expect(cardOrder()).toEqual(['90000003', '90000002', '90000001']);
     fireEvent.change(screen.getByRole('searchbox', { name: 'กรองรายการ' }), {

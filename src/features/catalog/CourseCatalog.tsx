@@ -1,6 +1,8 @@
-// The course catalog: a dedupe summary that reports the value of merging repeated
-// rows, the filter bar, and the courses grouped by their subject type heading, each
-// heading a disclosure and each group in the chosen sort order.
+// The course catalog: the filter row, a one line result summary that also reports the
+// value of merging repeated rows, and the courses grouped by their subject type heading,
+// each heading a disclosure and each group in the chosen sort order. The summary is the
+// one place the result's course count shows in the catalog column; the query chip above
+// and the sheet header leave it out, so the count is read once.
 // Section states are computed against the placed sections read from the plan
 // store, so the catalog is ready for the planner phase without rework.
 
@@ -13,7 +15,16 @@ import {
   type MouseEvent,
 } from 'react';
 import { useStore } from 'zustand';
-import { ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
+import {
+  BookOpen,
+  CalendarRange,
+  ChevronsDownUp,
+  ChevronsUpDown,
+  Merge,
+  Rows3,
+  type LucideIcon,
+} from 'lucide-react';
+import { Tooltip } from '@/components/Tooltip';
 import { courseCountLabel, sectionCountLabel } from '@/lib/i18n/counts';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { termMismatchText } from '@/lib/i18n/termCopy';
@@ -97,6 +108,13 @@ function groupByHeading(
   }));
 }
 
+interface SummaryItem {
+  icon: LucideIcon;
+  text: string;
+}
+
+// Each figure leads with an icon and keeps its unit word, since a bare number does not
+// say what it counts. The items wrap as whole words at any width.
 function Summary({
   courses,
   sections,
@@ -110,16 +128,30 @@ function Summary({
   multiMeeting: number;
   t: Translate;
 }) {
+  const items: SummaryItem[] = [
+    { icon: BookOpen, text: `${String(courses)} ${t('catalog.units.course')}` },
+    { icon: Rows3, text: `${String(sections)} ${t('catalog.units.section')}` },
+    { icon: Merge, text: `${String(merged)} ${t('catalog.units.merged')}` },
+    ...(multiMeeting > 0
+      ? [
+          {
+            icon: CalendarRange,
+            text: `${String(multiMeeting)} ${t('catalog.units.multiMeeting')}`,
+          },
+        ]
+      : []),
+  ];
   return (
-    <p className="text-xs text-ink-soft">
-      {courses} {t('catalog.units.course')} {sections}{' '}
-      {t('catalog.units.section')} {merged} {t('catalog.units.merged')}
-      {multiMeeting > 0 ? (
-        <>
-          {' '}
-          {multiMeeting} {t('catalog.units.multiMeeting')}
-        </>
-      ) : null}
+    <p
+      data-catalog-summary
+      className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-soft tabular-nums"
+    >
+      {items.map(({ icon: Icon, text }) => (
+        <span key={text} className="inline-flex items-center gap-1">
+          <Icon size={14} strokeWidth={2} aria-hidden className="shrink-0" />
+          {text}
+        </span>
+      ))}
     </p>
   );
 }
@@ -149,7 +181,7 @@ function addFocusTargets(
   return root === null ? [] : [firstFeedbackAction(root)];
 }
 
-const SUMMARY_ACTION = `inline-flex shrink-0 items-center gap-1 rounded-kcp border border-border px-2 py-1 text-xs text-ink-soft hover:bg-surface-alt hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`;
+const ICON_ACTION = `inline-flex shrink-0 items-center justify-center rounded-kcp text-ink hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`;
 
 interface CourseCatalogProps {
   catalog: NormalizedCatalog;
@@ -346,38 +378,41 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
       </div>
     ) : null;
 
+  const toggleAllLabel = t(
+    anyOpen ? 'catalog.collapseAll' : 'catalog.expandAll',
+  );
+  const ToggleAllIcon = anyOpen ? ChevronsDownUp : ChevronsUpDown;
+
   return (
     <div ref={rootRef} className="flex flex-col gap-3">
-      <div
-        data-catalog-summary
-        className="flex items-center justify-between gap-2"
-      >
-        <Summary
-          courses={catalog.courses.length}
-          sections={totalSections}
-          merged={catalog.duplicateCount}
-          multiMeeting={catalog.multiMeetingCount}
-          t={t}
-        />
+      <FilterBar creditOptions={creditOptions}>
         {/* A one course result opens on its own, and an empty filter or collapsed
             headings leave nothing to act on, so the control shows only for a list. */}
         {singleCourse || shown.length === 0 ? null : (
-          <button
-            type="button"
-            onClick={handleToggleAll}
-            className={SUMMARY_ACTION}
-          >
-            {anyOpen ? (
-              <ChevronsDownUp size={12} strokeWidth={2} aria-hidden />
-            ) : (
-              <ChevronsUpDown size={12} strokeWidth={2} aria-hidden />
+          <Tooltip label={toggleAllLabel}>
+            {(triggerProps, ref) => (
+              <button
+                ref={ref}
+                {...triggerProps}
+                type="button"
+                aria-label={toggleAllLabel}
+                onClick={handleToggleAll}
+                className={ICON_ACTION}
+              >
+                <ToggleAllIcon size={18} strokeWidth={2} aria-hidden />
+              </button>
             )}
-            {t(anyOpen ? 'catalog.collapseAll' : 'catalog.expandAll')}
-          </button>
+          </Tooltip>
         )}
-      </div>
+      </FilterBar>
       {banner}
-      <FilterBar creditOptions={creditOptions} />
+      <Summary
+        courses={catalog.courses.length}
+        sections={totalSections}
+        merged={catalog.duplicateCount}
+        multiMeeting={catalog.multiMeetingCount}
+        t={t}
+      />
       {groups.length === 0 ? (
         <p className="text-sm text-ink-soft">{t('catalog.filterEmpty')}</p>
       ) : (

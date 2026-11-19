@@ -1,7 +1,9 @@
 // The catalog sort control beside the filters: a select only combobox over the sort
-// orders. Sorting is not a filter, so it adds no chip and clearing the filters keeps it.
+// orders, drawn as an icon whose name and tooltip read the label and the chosen order.
+// Sorting is not a filter, so it adds no chip and clearing the filters keeps it.
 
 import { useStore } from 'zustand';
+import { ArrowUpDown } from 'lucide-react';
 import {
   COURSE_SORT_KEYS,
   type CourseSortKey,
@@ -24,7 +26,7 @@ export function SortControl({ t }: { t: Translate }) {
   const sort = useStore(catalogStore, (state) => state.sort);
   return (
     <Combobox
-      inline
+      iconOnly={ArrowUpDown}
       label={t('catalog.sort.label')}
       value={sort}
       placeholder={t(SORT_LABEL_KEYS[sort])}
