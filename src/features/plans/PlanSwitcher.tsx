@@ -40,6 +40,7 @@ import { DeleteConfirm } from './DeleteConfirm';
 import { ImportErrorView } from './ImportErrorView';
 import { NameForm } from './NameForm';
 import { PlanList, termLabel } from './PlanList';
+import { PLAN_SWITCHER_TRIGGER_ID } from './autosaveStore';
 import { planStore, useActivePlan } from './planStore';
 
 type Mode =
@@ -351,6 +352,7 @@ export function PlanSwitcher() {
     <div ref={wrapperRef} className="relative min-w-0 max-w-[16rem]">
       <button
         ref={setReference}
+        id={PLAN_SWITCHER_TRIGGER_ID}
         type="button"
         {...getReferenceProps()}
         aria-label={t('planSwitcher.label')}

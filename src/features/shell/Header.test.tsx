@@ -13,10 +13,7 @@ import { installViewport } from '../../../tests/support/viewport';
 import { makePlan } from '../../../tests/support/domain-builders';
 import { resetPlanStore } from '../../../tests/support/plan-store';
 import { planStore } from '@/features/plans/planStore';
-import {
-  autosaveStore,
-  SAVE_INDICATOR_ID,
-} from '@/features/plans/autosaveStore';
+import { autosaveStore } from '@/features/plans/autosaveStore';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
 afterEach(() => {
@@ -87,19 +84,22 @@ describe('Header', () => {
     expect(trigger).toHaveTextContent('ภาคการศึกษา 1/2569');
   });
 
-  it('shows the save state beside the plan switcher once autosave runs', () => {
+  it('shows the save state beside the plan switcher only when a save fails', () => {
     const { container } = render(<Header titleId="title" />);
-    expect(document.getElementById(SAVE_INDICATOR_ID)).toBeNull();
+    const retry = { name: 'ยังไม่ได้บันทึก บันทึกอีกครั้ง' };
     act(() => {
       planStore.getState().hydrate([makePlan({ id: 'a' })]);
       autosaveStore.getState().attach(vi.fn());
     });
-    const indicator = document.getElementById(SAVE_INDICATOR_ID);
-    expect(indicator).toHaveTextContent('บันทึกแล้ว');
+    expect(screen.queryByRole('button', retry)).not.toBeInTheDocument();
+    act(() => {
+      autosaveStore.getState().setStatus('failed');
+    });
+    const indicator = screen.getByRole('button', retry);
     const leading = container.querySelector('header')?.firstElementChild;
-    expect(indicator?.parentElement).toBe(leading);
+    expect(indicator.parentElement).toBe(leading);
     // The plan switcher sits right before it in the leading group.
-    expect(indicator?.previousElementSibling).toContainElement(
+    expect(indicator.previousElementSibling).toContainElement(
       screen.getByRole('button', { name: 'เลือกตาราง' }),
     );
   });
