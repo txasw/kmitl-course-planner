@@ -64,6 +64,11 @@ function toggle(): HTMLElement {
   return node;
 }
 
+/** The ids describing the toggle: the secondary name when it differs, then the meta. */
+function describedIds(): string[] {
+  return (toggle().getAttribute('aria-describedby') ?? '').split(' ');
+}
+
 describe('CourseCard seat status', () => {
   it('shows the remaining count, full, and closed seat lines', () => {
     const course = makeCourse({
@@ -204,12 +209,13 @@ describe('CourseCard disclosure', () => {
     expect(onToggle).toHaveBeenCalledWith('90592008', true, false);
   });
 
-  it('clamps a long title to two lines instead of truncating it', () => {
+  it('wraps a long title in full instead of clamping it', () => {
     render(<Controlled course={course} placed={[]} locale="th" t={t} />);
     const title = document.getElementById(
       toggle().getAttribute('aria-labelledby')?.split(' ')[0] ?? '',
     );
-    expect(title).toHaveClass('line-clamp-2', 'break-words');
+    expect(title).toHaveClass('break-words');
+    expect(title).not.toHaveClass('line-clamp-2');
     expect(title).toHaveTextContent(`90592008 ${course.nameTh}`);
   });
 });
@@ -234,7 +240,7 @@ describe('CourseCard fit line', () => {
   });
 
   function meta(): HTMLElement {
-    const id = toggle().getAttribute('aria-describedby') ?? '';
+    const id = describedIds().at(-1) ?? '';
     const node = document.getElementById(id);
     if (node === null) throw new Error('expected the described meta line');
     return node;
@@ -474,9 +480,7 @@ describe('CourseCard collapsed added course', () => {
 
   it('names the chosen section and its first meeting on the second line', () => {
     render(<Controlled course={course} placed={placed} locale="th" t={t} />);
-    const meta = document.getElementById(
-      toggle().getAttribute('aria-describedby') ?? '',
-    );
+    const meta = document.getElementById(describedIds().at(-1) ?? '');
     if (meta === null) throw new Error('expected the described meta line');
     expect(toggle().contains(meta)).toBe(true);
     expect(within(meta).getByText('เพิ่มแล้ว')).toBeInTheDocument();
@@ -731,16 +735,16 @@ describe('CourseCard secondary name language', () => {
   });
 
   it('marks the English secondary name as English in the Thai locale', () => {
-    render(
-      <Controlled initialOpen course={course} placed={[]} locale="th" t={t} />,
-    );
-    expect(screen.getByText('Test subject')).toHaveAttribute('lang', 'en');
-    // The body repeats the clamped primary name for the eye only.
-    const repeated = screen
-      .getAllByText('วิชาทดสอบ')
-      .filter((node) => !toggle().contains(node));
-    expect(repeated).toHaveLength(1);
-    expect(repeated[0]).toHaveAttribute('aria-hidden', 'true');
+    render(<Controlled course={course} placed={[]} locale="th" t={t} />);
+    const secondary = screen.getByText('Test subject');
+    expect(secondary).toHaveAttribute('lang', 'en');
+    expect(secondary).toHaveClass('text-ink-muted', 'break-words');
+    expect(toggle().contains(secondary)).toBe(true);
+    // The name stays the primary title and the credits; the secondary name describes.
+    expect(toggle()).toHaveAccessibleName('90000001 วิชาทดสอบ 3(3-0-6)');
+    expect(describedIds()[0]).toBe(secondary.id);
+    // The body no longer repeats the name, since the title is never clamped.
+    expect(screen.getAllByText('วิชาทดสอบ')).toHaveLength(1);
   });
 
   it('marks the Thai secondary name as Thai in the English locale', () => {
@@ -756,9 +760,23 @@ describe('CourseCard secondary name language', () => {
     expect(screen.getByText('วิชาทดสอบ')).toHaveAttribute('lang', 'th');
   });
 
-  it('shows the secondary name only when the card is open', () => {
+  it('shows the secondary name on a collapsed card', () => {
     render(<Controlled course={course} placed={[]} locale="th" t={t} />);
-    expect(screen.queryByText('Test subject')).not.toBeInTheDocument();
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByText('Test subject')).toBeVisible();
+  });
+
+  it('leaves the secondary line out when both names are the same', () => {
+    render(
+      <Controlled
+        course={{ ...course, nameEn: 'วิชาทดสอบ' }}
+        placed={[]}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(describedIds()).toHaveLength(1);
+    expect(screen.getAllByText('วิชาทดสอบ')).toHaveLength(1);
   });
 });
 

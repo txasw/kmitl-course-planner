@@ -1,7 +1,9 @@
 // A course card: a header with the subject id, the locale primary name and the credit
-// string, which is also the disclosure for the card's sections. A second line inside
-// the toggle summarizes the course's fit, so a collapsed card answers whether opening
-// it is worth it. Each section's seat status and plan relation are computed here from
+// string, which is also the disclosure for the card's sections. The other language's
+// name follows as a quieter secondary line, so a Thai reader still meets the English
+// name the registration documents use, and both names wrap in full rather than clamp.
+// A last line inside the toggle summarizes the course's fit, so a collapsed card answers
+// whether opening it is worth it. Each section's seat status and plan relation are computed here from
 // the placed sections. A card starts collapsed and the catalog owns whether it is
 // open, so the state survives a remount.
 // Resting the mouse on the header, or focusing the toggle from the keyboard, previews
@@ -151,6 +153,7 @@ function CourseCardComponent({
   const titleId = `${id}-title`;
   const creditId = `${id}-credit`;
   const metaId = `${id}-meta`;
+  const secondaryId = `${id}-secondary`;
   const bodyId = `${id}-body`;
   const primary = locale === 'th' ? course.nameTh : course.nameEn;
   const secondary = locale === 'th' ? course.nameEn : course.nameTh;
@@ -199,10 +202,9 @@ function CourseCardComponent({
     onToggle(course.subjectId, !open, added);
   };
 
-  // The title clamps to two lines and breaks inside a long Thai word rather than
-  // cutting to one line, so the name stays readable without a tooltip, which could
-  // not sit inside the button. The button is named by the title and the credits and
-  // described by the summary line under them.
+  // The title and the secondary name wrap in full and break inside a long Thai word,
+  // so no name is ever cut. The button is named by the title and the credits and
+  // described by the secondary name and the summary line under them.
   const headerContent = (
     <>
       {draggable ? (
@@ -221,20 +223,28 @@ function CourseCardComponent({
           aria-expanded={open}
           aria-controls={bodyId}
           aria-labelledby={`${titleId} ${creditId}`}
-          aria-describedby={metaId}
+          aria-describedby={hasSecondary ? `${secondaryId} ${metaId}` : metaId}
           onClick={handleToggle}
           {...preview.focus}
           className={`group flex min-h-6 min-w-0 flex-1 cursor-pointer flex-col gap-0.5 rounded-kcp text-left pointer-coarse:min-h-11 ${FOCUS_RING}`}
         >
           <span className="flex w-full min-w-0 items-start gap-2">
-            <span
-              id={titleId}
-              className="line-clamp-2 min-w-0 flex-1 break-words text-ink"
-            >
-              <span className="font-semibold tabular-nums">
-                {course.subjectId}
-              </span>{' '}
-              {primary}
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span id={titleId} className="break-words text-ink">
+                <span className="font-semibold tabular-nums">
+                  {course.subjectId}
+                </span>{' '}
+                {primary}
+              </span>
+              {hasSecondary ? (
+                <span
+                  id={secondaryId}
+                  lang={secondaryLang}
+                  className="text-xs break-words text-ink-muted"
+                >
+                  {secondary}
+                </span>
+              ) : null}
             </span>
             <span id={creditId} className="shrink-0 text-xs text-ink-soft">
               {course.creditStr}
@@ -297,18 +307,6 @@ function CourseCardComponent({
         instant={instant}
         renderContent={() => (
           <div className="flex flex-col gap-1.5 pt-2">
-            {/* The full name repeats for the eye when the title clamps; the button
-                already reads it, so it is hidden from assistive technology. */}
-            <p className="text-xs break-words">
-              <span aria-hidden className="text-ink">
-                {primary}
-              </span>
-              {hasSecondary ? (
-                <span lang={secondaryLang} className="ml-1 text-ink-soft">
-                  {secondary}
-                </span>
-              ) : null}
-            </p>
             {added ? (
               <p className="text-xs text-ink-soft">
                 {t('catalog.card.addedHint')}
