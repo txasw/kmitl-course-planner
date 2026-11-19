@@ -1,4 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  onTestFinished,
+  vi,
+} from 'vitest';
 import {
   render,
   screen,
@@ -21,6 +29,7 @@ import {
 } from '../../../tests/support/plan-store';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { installViewport } from '../../../tests/support/viewport';
+import { installVisualViewport } from '../../../tests/support/visualViewport';
 import { VIEWPORT_BOTTOM_PROPERTY, VIEWPORT_FIT } from '@/lib/ui/viewportInset';
 
 const deps = fakeSearchDeps();
@@ -71,8 +80,6 @@ function holdsPanelEntry(): boolean {
 afterEach(async () => {
   cleanup();
   vi.unstubAllGlobals();
-  // The keyboard test pins the layout viewport height jsdom reports as zero.
-  Reflect.deleteProperty(document.documentElement, 'clientHeight');
   act(() => {
     uiStore.getState().close();
     uiStore.getState().setLanguage('th');
@@ -336,16 +343,9 @@ describe('Overlay', () => {
     installViewport(390, { reducedMotion: true });
     // A phone keyboard shrinks the visual viewport only; the layout viewport the fixed
     // panel resolves against keeps its 844 px.
-    const keyboard = Object.assign(new EventTarget(), {
-      offsetTop: 0,
-      height: 420,
-      scale: 1,
-    });
-    vi.stubGlobal('visualViewport', keyboard);
-    Object.defineProperty(document.documentElement, 'clientHeight', {
-      configurable: true,
-      value: 844,
-    });
+    const keyboard = installVisualViewport(844);
+    onTestFinished(keyboard.restore);
+    keyboard.height = 420;
     act(() => {
       uiStore.getState().open();
     });
