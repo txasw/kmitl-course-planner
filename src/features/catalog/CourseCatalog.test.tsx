@@ -32,10 +32,12 @@ import { EMPTY_DISCLOSURE } from '@/lib/catalog/cardDisclosure';
 import { EMPTY_GROUP_COLLAPSE } from '@/lib/catalog/groupCollapse';
 import { DEFAULT_COURSE_SORT } from '@/lib/catalog/sortCourses';
 import { toastStore } from '@/features/shell/toastStore';
+import { StatusAnnouncer } from '@/features/shell/StatusAnnouncer';
 import { uiStore } from '@/features/shell/uiStore';
 import { installViewport } from '../../../tests/support/viewport';
 import { catalogStore } from './catalogStore';
 import { CourseCatalog } from './CourseCatalog';
+import { FILTER_ANNOUNCE_MS } from './useFilterAnnouncement';
 
 // A search context in the plan's own term (2569 semester 1) so an add stamps a
 // matching source query rather than the term-less fallback.
@@ -613,6 +615,63 @@ describe('CourseCatalog sort', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'ล้างตัวกรอง' }));
     expect(cardOrder()).toEqual(['90000003', '90000002', '90000001']);
+  });
+});
+
+describe('CourseCatalog filter announcement', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    act(() => {
+      uiStore.getState().setLanguage('th');
+    });
+  });
+
+  function filterTo(value: string): void {
+    fireEvent.change(screen.getByRole('searchbox', { name: 'กรองรายการ' }), {
+      target: { value },
+    });
+  }
+
+  it('speaks the result once the filter holds still, and says when nothing matches', () => {
+    vi.useFakeTimers();
+    render(
+      <>
+        <CourseCatalog catalog={catalog} />
+        <StatusAnnouncer />
+      </>,
+    );
+    const region = screen.getByRole('status');
+    // Typing restarts the wait, so a word reads one result rather than one per key.
+    filterTo('9059');
+    act(() => {
+      vi.advanceTimersByTime(FILTER_ANNOUNCE_MS - 100);
+    });
+    filterTo('90592033');
+    act(() => {
+      vi.advanceTimersByTime(FILTER_ANNOUNCE_MS - 1);
+    });
+    expect(region).toBeEmptyDOMElement();
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(region).toHaveTextContent(
+      /^ตรงกับตัวกรอง 1 รายวิชา \d+ กลุ่มเรียน$/,
+    );
+
+    filterTo('zzzz');
+    act(() => {
+      vi.advanceTimersByTime(FILTER_ANNOUNCE_MS);
+    });
+    expect(region).toHaveTextContent('ไม่มีรายวิชาที่ตรงกับตัวกรอง');
+
+    // A language change re-renders the list without a filter change, so it says nothing.
+    act(() => {
+      uiStore.getState().setLanguage('en');
+    });
+    act(() => {
+      vi.advanceTimersByTime(FILTER_ANNOUNCE_MS * 2);
+    });
+    expect(region).toHaveTextContent('ไม่มีรายวิชาที่ตรงกับตัวกรอง');
   });
 });
 

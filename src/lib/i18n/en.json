@@ -146,6 +146,7 @@
   "catalog.units.merged": "merged duplicates",
   "catalog.units.multiMeeting": "multi meeting sections",
   "status.resultsFound": "Found {courses} courses and {sections} sections",
+  "status.filterResults": "{courses} courses and {sections} sections match the filters",
   "catalog.filterEmpty": "No courses match the filters",
   "catalog.card.addedHint": "Change the section from the block details on the timetable or in Selected courses",
   "catalog.card.sectionCount": "{n} sections",

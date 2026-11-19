@@ -16,6 +16,7 @@ import { useStore } from 'zustand';
 import { ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { termMismatchText } from '@/lib/i18n/termCopy';
+import { fillTemplate } from '@/lib/i18n/template';
 import type { Course, Section } from '@/lib/domain/types';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import type { AddOutcome } from '@/lib/planner/transaction';
@@ -60,6 +61,7 @@ import { catalogStore } from './catalogStore';
 import { CatalogGroup } from './CatalogGroup';
 import { CourseCard } from './CourseCard';
 import { FilterBar } from './FilterBar';
+import { useFilterAnnouncement } from './useFilterAnnouncement';
 
 interface HeadingGroup {
   key: string;
@@ -324,6 +326,15 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
   const groups = useMemo(
     () => groupByHeading(filtered, language, sort),
     [filtered, language, sort],
+  );
+  useFilterAnnouncement(
+    filter,
+    filtered.length === 0
+      ? t('catalog.filterEmpty')
+      : fillTemplate(t('status.filterResults'), {
+          courses: filtered.length,
+          sections: countSections(filtered),
+        }),
   );
   const isCollapsed = (group: HeadingGroup): boolean =>
     isGroupCollapsed(groupCollapse, queryKey, group.key);
