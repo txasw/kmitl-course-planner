@@ -369,6 +369,118 @@ test('the failed save strip fits whole at 320 px in Thai and English', async ({
   );
 });
 
+/** Whether two boxes share any area. */
+function boxesOverlap(
+  a: { x: number; y: number; width: number; height: number },
+  b: { x: number; y: number; width: number; height: number },
+): boolean {
+  return (
+    a.x < b.x + b.width &&
+    b.x < a.x + a.width &&
+    a.y < b.y + b.height &&
+    b.y < a.y + a.height
+  );
+}
+
+/** Assert the element shows its text whole: not cut in either direction. */
+async function expectNotClipped(part: Locator): Promise<void> {
+  const clipped = await part.evaluate(
+    (node) =>
+      node.scrollWidth > node.clientWidth ||
+      node.scrollHeight > node.clientHeight,
+  );
+  expect(clipped).toBe(false);
+}
+
+/**
+ * Assert the version pill rides the brand mark whole, inside the header row, clear of
+ * the title and the plan switcher, with the header kept to its one row.
+ */
+async function expectVersionPill(page: Page, version: string): Promise<void> {
+  const dialog = page.getByRole('dialog');
+  const header = dialog.locator('header');
+  const pill = header.getByText(`v${version}`, { exact: true });
+  await expect(pill).toBeVisible();
+  await expectNotClipped(pill);
+  const pillBox = await pill.boundingBox();
+  const headerBox = await header.boundingBox();
+  const switcher = await header
+    .getByRole('button', { name: 'เลือกตาราง' })
+    .or(header.getByRole('button', { name: 'Select plan' }))
+    .boundingBox();
+  expect(pillBox).not.toBeNull();
+  expect(headerBox).not.toBeNull();
+  expect(switcher).not.toBeNull();
+  if (pillBox === null || headerBox === null || switcher === null) return;
+  expect(headerBox.height).toBeLessThanOrEqual(57);
+  expect(pillBox.x).toBeGreaterThanOrEqual(headerBox.x);
+  expect(pillBox.y + pillBox.height).toBeLessThanOrEqual(
+    headerBox.y + headerBox.height,
+  );
+  expect(boxesOverlap(pillBox, switcher)).toBe(false);
+  const title = header.getByRole('heading', { level: 2 });
+  const titleBox = await title.boundingBox();
+  if (titleBox !== null && titleBox.width > 1) {
+    expect(boxesOverlap(pillBox, titleBox)).toBe(false);
+  }
+}
+
+// The header shows the extension version as a quiet pill on the brand mark from 640 px,
+// and on the phone, where the mark is hidden, as a line at the foot of the overflow
+// menu. Either way the version shows whole, overlaps no text, and leaves the header one
+// row, in Thai and in English. The tablet also checks the desktop width, where the
+// title shows beside the mark.
+test('the version shows whole on the mark or in the menu in Thai and English', async ({
+  context,
+  serviceWorker,
+}) => {
+  const version = await serviceWorker.evaluate(() => {
+    // Test only assertion: the worker carries the runtime API described here.
+    const { chrome } = globalThis as unknown as {
+      chrome: { runtime: { getManifest(): { version: string } } };
+    };
+    return chrome.runtime.getManifest().version;
+  });
+  const page = await openPlanner(context);
+  const dialog = page.getByRole('dialog');
+  const phone = isPhone(page);
+  const menus = [
+    { more: 'ตัวเลือกเพิ่มเติม', next: 'English' },
+    { more: 'More options', next: 'ไทย' },
+  ];
+  for (const { more, next } of menus) {
+    const trigger = dialog.getByRole('button', { name: more });
+    if (phone) {
+      await expect(
+        dialog.getByText(`v${version}`, { exact: true }),
+      ).toBeHidden();
+      await trigger.click();
+      const line = page.getByText(`KCP v${version}`, { exact: true });
+      await expect(line).toBeVisible();
+      await expectNotClipped(line.locator('..'));
+      const lineBox = await line.boundingBox();
+      for (const item of await page.getByRole('menuitemradio').all()) {
+        const itemBox = await item.boundingBox();
+        if (lineBox !== null && itemBox !== null) {
+          expect(boxesOverlap(lineBox, itemBox)).toBe(false);
+        }
+      }
+      await expect(line).toBeInViewport({ ratio: 1 });
+    } else {
+      await expectVersionPill(page, version);
+      const size = page.viewportSize();
+      await page.setViewportSize({ width: 1366, height: 900 });
+      await expectVersionPill(page, version);
+      if (size !== null) await page.setViewportSize(size);
+      await trigger.click();
+      await expect(
+        page.getByText(`KCP v${version}`, { exact: true }),
+      ).toBeHidden();
+    }
+    await page.getByRole('menuitemradio', { name: next }).click();
+  }
+});
+
 test('the edit grid keeps its derived minimum and fits where the column allows', async ({
   context,
 }, testInfo) => {
