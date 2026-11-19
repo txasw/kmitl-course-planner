@@ -10,7 +10,8 @@
 // action, such as a review that ends in an acknowledgement, can name that control as the
 // landing point instead. Escape closes the dialog only, through the shared escape layer,
 // so the overlay behind it stays open. The body is capped at 85 percent of the dynamic
-// viewport height and scrolls inside, and the optional footer stays pinned below it. A
+// viewport height, and at the visible part of the viewport the panel tracks while a
+// keyboard is open, and scrolls inside, and the optional footer stays pinned below it. A
 // list dialog takes the narrow width, a review the medium one, a card list the wide one,
 // a comparison table the table width, and a side by side comparison the full one. A table
 // that keeps its header row in view while it scrolls owns its scroll instead: a sticky
@@ -33,6 +34,7 @@ import { useOpenSurface } from '@/features/shell/attentionStore';
 import { useEscapeLayer } from '@/features/shell/useEscapeLayer';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
 import { TARGET_SIZE } from '@/lib/ui/target';
+import { VIEWPORT_FIT } from '@/lib/ui/viewportInset';
 
 const WIDTH_CLASS = {
   narrow: 'max-w-md',
@@ -97,7 +99,9 @@ export function ModalDialog({
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-sheet flex items-center justify-center p-4">
+    <div
+      className={`fixed ${VIEWPORT_FIT} z-sheet flex items-center justify-center p-4`}
+    >
       <button
         type="button"
         tabIndex={-1}
@@ -112,7 +116,7 @@ export function ModalDialog({
         aria-labelledby={titleId}
         aria-describedby={describedBy}
         tabIndex={-1}
-        className={`relative flex max-h-[85dvh] w-full ${WIDTH_CLASS[width]} flex-col rounded-kcp bg-surface text-ink shadow-kcp outline-none`}
+        className={`relative flex max-h-[min(85dvh,100%)] w-full ${WIDTH_CLASS[width]} flex-col rounded-kcp bg-surface text-ink shadow-kcp outline-none`}
       >
         <div className="flex shrink-0 items-center gap-2 border-b border-border py-2 pr-2 pl-4">
           <h2

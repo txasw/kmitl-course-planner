@@ -7,7 +7,8 @@
 //
 // While active the hook follows window.visualViewport and sets the top and bottom inset
 // as custom properties on the panel node, where the layers that place themselves with
-// VIEWPORT_FIT read them. When the visible area shrinks, the focused text field inside
+// VIEWPORT_FIT read them: the panel itself, and the sheets and dialogs portalled into it
+// by inheritance. When the visible area shrinks, the focused text field inside
 // the panel is scrolled into view within its own scroller, since the browser scrolled it
 // for the taller panel when it took focus. A browser without the visual viewport API, and
 // any desktop browser, whose visual viewport matches the layout one, keeps the full

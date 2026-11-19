@@ -332,7 +332,7 @@ describe('Overlay', () => {
     expect(sheet.closest('header')).toBeNull();
   });
 
-  it('fits the panel above an open phone keyboard', () => {
+  it('fits the panel and its sheets above an open phone keyboard', () => {
     installViewport(390, { reducedMotion: true });
     // A phone keyboard shrinks the visual viewport only; the layout viewport the fixed
     // panel resolves against keeps its 844 px.
@@ -358,5 +358,11 @@ describe('Overlay', () => {
     );
     expect(panel).toHaveClass(...VIEWPORT_FIT.split(' '));
     expect(panel).not.toHaveClass('inset-0');
+    // The plan name field lives in a sheet on this tier, which reads the same inset.
+    fireEvent.click(screen.getByRole('button', { name: 'เลือกตาราง' }));
+    const layer = screen.getByRole('dialog', {
+      name: 'เลือกตาราง',
+    }).parentElement;
+    expect(layer).toHaveClass(...VIEWPORT_FIT.split(' '));
   });
 });

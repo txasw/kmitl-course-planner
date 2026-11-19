@@ -12,15 +12,17 @@
 // scrolls and a tap there activates. The body is capped at 85 percent of the dynamic
 // viewport height and scrolls inside, or the sheet fills the viewport when its content
 // is a long review, and the optional footer stays pinned below it, padded clear of the
-// home indicator. A table that keeps its header row in view while it scrolls owns its
-// scroll instead, as in the modal dialog: a sticky header sticks to its nearest scrolling
-// ancestor, so the body then only bounds the content and leaves the scroll to it. A
-// sheet can name the control that takes focus on open in place of the
-// heading, as the modal dialog can. Reduced motion drops the entrance and the swipe
-// tracking, leaving the close button, the scrim, and Escape. While mounted the sheet
-// counts as an open surface, so an unasked dialog waits for it to close. While a toast
-// shows, the sheet ends in the toast band, so the toast that floats over its foot covers
-// none of its body or footer.
+// home indicator. The layer fills the visible part of the viewport the panel tracks, and
+// the sheet is capped at that height too, so an open phone keyboard pushes the sheet up
+// and shrinks it rather than covering a field near its foot. A table that keeps its
+// header row in view while it scrolls owns its scroll instead, as in the modal dialog: a
+// sticky header sticks to its nearest scrolling ancestor, so the body then only bounds
+// the content and leaves the scroll to it. A sheet can name the control that takes focus
+// on open in place of the heading, as the modal dialog can. Reduced motion drops the
+// entrance and the swipe tracking, leaving the close button, the scrim, and Escape. While
+// mounted the sheet counts as an open surface, so an unasked dialog waits for it to
+// close. While a toast shows, the sheet ends in the toast band, so the toast that floats
+// over its foot covers none of its body or footer.
 
 import {
   useEffect,
@@ -32,6 +34,7 @@ import {
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { VIEWPORT_FIT } from '@/lib/ui/viewportInset';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
 import { useOpenSurface } from '@/features/shell/attentionStore';
 import {
@@ -117,7 +120,7 @@ export function BottomSheet({
   const hasFooter = footer !== undefined && footer !== null;
 
   return createPortal(
-    <div className="fixed inset-0 z-sheet flex flex-col justify-end">
+    <div className={`fixed ${VIEWPORT_FIT} z-sheet flex flex-col justify-end`}>
       <button
         type="button"
         tabIndex={-1}
@@ -133,7 +136,7 @@ export function BottomSheet({
         aria-describedby={describedBy}
         tabIndex={-1}
         style={swipe.style}
-        className={`relative flex ${fullHeight ? 'h-dvh' : 'max-h-[85dvh]'} w-full flex-col rounded-t-kcp-sheet bg-surface text-ink shadow-kcp outline-none ${reducedMotion ? '' : 'kcp-sheet-enter'}`}
+        className={`relative flex ${fullHeight ? 'h-dvh max-h-full' : 'max-h-[min(85dvh,100%)]'} w-full flex-col rounded-t-kcp-sheet bg-surface text-ink shadow-kcp outline-none ${reducedMotion ? '' : 'kcp-sheet-enter'}`}
       >
         <div
           {...swipe.handlers}

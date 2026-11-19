@@ -5,6 +5,7 @@ import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
 import { ModalDialog } from './ModalDialog';
 import { TARGET_SIZE } from '@/lib/ui/target';
+import { VIEWPORT_FIT } from '@/lib/ui/viewportInset';
 
 afterEach(() => {
   cleanup();
@@ -86,6 +87,15 @@ describe('ModalDialog', () => {
     expect(screen.getByRole('heading', { name: 'Dialog title' })).toHaveFocus();
     expect(dialog.closest('[aria-live]')).toBeNull();
     expect(screen.getByTestId('panel')).toContainElement(dialog);
+  });
+
+  it('fits the visible part of the viewport the panel tracks above a keyboard', () => {
+    openDialog();
+    const dialog = screen.getByRole('dialog', { name: 'Dialog title' });
+    const layer = dialog.parentElement;
+    expect(layer).toHaveClass(...VIEWPORT_FIT.split(' '));
+    expect(layer).not.toHaveClass('inset-0');
+    expect(dialog).toHaveClass('max-h-[min(85dvh,100%)]');
   });
 
   it('takes focus and Escape when it mounts before its portal root', () => {

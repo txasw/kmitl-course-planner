@@ -169,7 +169,7 @@ describe('BottomSheet', () => {
     const footer = screen.getByRole('button', { name: 'Act' }).parentElement;
     expect(body).toHaveClass('overflow-y-auto', 'min-h-0', 'flex-1');
     expect(footer).toHaveClass('shrink-0');
-    expect(screen.getByRole('dialog')).toHaveClass('max-h-[85dvh]');
+    expect(screen.getByRole('dialog')).toHaveClass('max-h-[min(85dvh,100%)]');
   });
 
   it('closes on a downward swipe on the header', () => {
@@ -229,8 +229,8 @@ describe('BottomSheet', () => {
     render(<FullSheet />);
     expect(screen.getByRole('button', { name: 'Act' })).toHaveFocus();
     const dialog = screen.getByRole('dialog');
-    expect(dialog).toHaveClass('h-dvh');
-    expect(dialog).not.toHaveClass('max-h-[85dvh]');
+    expect(dialog).toHaveClass('h-dvh', 'max-h-full');
+    expect(dialog).not.toHaveClass('max-h-[min(85dvh,100%)]');
   });
 
   it('leaves the scroll to a content that owns it', () => {
