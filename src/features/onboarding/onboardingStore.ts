@@ -2,8 +2,9 @@
 // install record and the content owned onboarding record once both are read, and
 // tracks what this document has decided about the first run surfaces: whether the
 // mount handshake and the welcome decision have settled, whether the welcome is
-// open, and whether this document must stay quiet because it showed the welcome,
-// applied a requested open, or found the welcome pending when it loaded. It carries
+// open, whether the selector coach mark is open or has shown, and whether this
+// document must stay quiet because it showed the welcome, applied a requested open,
+// or found the welcome pending when it loaded. It carries
 // no browser or React imports and no persistence; the persistence hook writes the
 // record through the storage repository.
 
@@ -41,6 +42,13 @@ export interface OnboardingData {
   documentSuppressed: boolean;
   /** The open shortcut in words, or null when none is assigned. */
   shortcut: string | null;
+  /** Whether the selector coach mark is open (ADR-0072). */
+  coachMarkOpen: boolean;
+  /**
+   * Whether the coach mark has shown in this document. It took the entry prompt's place
+   * on the search page, so the entry toast stays quiet for the rest of the document.
+   */
+  coachMarkShown: boolean;
 }
 
 export interface OnboardingState extends OnboardingData {
@@ -54,6 +62,8 @@ export interface OnboardingState extends OnboardingData {
   markOpenRequested: () => void;
   suppressDocument: () => void;
   setShortcut: (shortcut: string | null) => void;
+  /** Opens or closes the coach mark; opening it also records that it has shown. */
+  setCoachMarkOpen: (open: boolean) => void;
 }
 
 /** The state a document starts with, before either record is read. */
@@ -69,6 +79,8 @@ export function initialOnboardingData(): OnboardingData {
     openRequested: false,
     documentSuppressed: false,
     shortcut: null,
+    coachMarkOpen: false,
+    coachMarkShown: false,
   };
 }
 
@@ -115,6 +127,12 @@ export function createOnboardingStore() {
     },
     setShortcut: (shortcut) => {
       set({ shortcut });
+    },
+    setCoachMarkOpen: (coachMarkOpen) => {
+      set((state) => ({
+        coachMarkOpen,
+        coachMarkShown: state.coachMarkShown || coachMarkOpen,
+      }));
     },
   }));
 }

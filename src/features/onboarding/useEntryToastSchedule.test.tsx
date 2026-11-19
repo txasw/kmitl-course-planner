@@ -244,6 +244,33 @@ describe('useEntryToastSchedule once per document', () => {
     expect(result.current.content).toBeNull();
   });
 
+  it('hides when the coach mark opens and stays hidden after it closes', () => {
+    const { result } = renderSchedule();
+    settle();
+    advance(ENTRY_TOAST_DELAY_MS);
+    expect(result.current.content).not.toBeNull();
+    act(() => {
+      onboardingStore.getState().setCoachMarkOpen(true);
+    });
+    expect(result.current.content).toBeNull();
+    act(() => {
+      onboardingStore.getState().setCoachMarkOpen(false);
+    });
+    advance(ENTRY_TOAST_DELAY_MS + ENTRY_TOAST_VISIBLE_MS);
+    expect(result.current.content).toBeNull();
+  });
+
+  it('never shows once the coach mark has shown during the wait', () => {
+    const { result } = renderSchedule();
+    settle();
+    act(() => {
+      onboardingStore.getState().setCoachMarkOpen(true);
+      onboardingStore.getState().setCoachMarkOpen(false);
+    });
+    advance(ENTRY_TOAST_DELAY_MS + ENTRY_TOAST_VISIBLE_MS);
+    expect(result.current.content).toBeNull();
+  });
+
   it('ends for the document when the caller hides it', () => {
     const { result } = renderSchedule();
     settle();

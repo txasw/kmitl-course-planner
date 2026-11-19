@@ -97,6 +97,18 @@ describe('onboarding store', () => {
     expect(state.shortcut).toBe('Alt+Shift+P');
   });
 
+  it('records that the coach mark has shown, and keeps it after it closes', () => {
+    const store = createOnboardingStore();
+    expect(store.getState().coachMarkOpen).toBe(false);
+    expect(store.getState().coachMarkShown).toBe(false);
+    store.getState().setCoachMarkOpen(true);
+    expect(store.getState().coachMarkOpen).toBe(true);
+    expect(store.getState().coachMarkShown).toBe(true);
+    store.getState().setCoachMarkOpen(false);
+    expect(store.getState().coachMarkOpen).toBe(false);
+    expect(store.getState().coachMarkShown).toBe(true);
+  });
+
   it('resets to the initial data through setState', () => {
     const store = createOnboardingStore();
     store.getState().hydrate(INSTALL, { schemaVersion: 1 });
