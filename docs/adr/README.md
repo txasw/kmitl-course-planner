@@ -3,7 +3,9 @@
 Each record captures one significant technical decision with its context,
 the choice made, the alternatives weighed, and the consequences. Records are
 numbered in order and are immutable once accepted. When a decision changes, add
-a new record that supersedes the old one rather than editing history.
+a new record that supersedes the old one rather than editing history. A record
+whose feature is removed may instead be marked Withdrawn, with a dated
+withdrawal note above the original text, which is kept as written.
 
 ## Index
 
