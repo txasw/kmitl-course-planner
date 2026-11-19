@@ -4,7 +4,7 @@
 // active option with the strong brand orange and is kept for the view mode choice,
 // the one header control whose state changes the whole panel. The quiet variant
 // marks the active option with the alternate surface, ink text, and the semibold
-// weight, for settings such as the language, so the header never shows two orange
+// weight, for settings such as the timetable view, so a bar never shows two orange
 // blocks side by side. Labels never wrap, and every option keeps the shared target
 // size. An option may carry an icon: below 640 px the option then shows the icon alone
 // in a square segment and keeps its label as sr-only text, so its accessible name is

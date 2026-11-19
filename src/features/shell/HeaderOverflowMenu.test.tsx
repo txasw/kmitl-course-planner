@@ -54,6 +54,20 @@ describe('HeaderOverflowMenu', () => {
     expect(item('English')).toHaveAttribute('aria-checked', 'false');
   });
 
+  it('marks each language with its flag beside its name', () => {
+    render(<HeaderOverflowMenu />);
+    fireEvent.click(trigger());
+    for (const name of ['ไทย', 'English']) {
+      const flag = item(name).querySelector('svg:not(.lucide)');
+      expect(flag, name).not.toBeNull();
+      expect(flag).toHaveAttribute('aria-hidden', 'true');
+      expect(item(name)).toHaveTextContent(name);
+    }
+    // The check mark, not the flag, tells the current language apart.
+    expect(item('ไทย').querySelector('.lucide')).not.toHaveClass('invisible');
+    expect(item('English').querySelector('.lucide')).toHaveClass('invisible');
+  });
+
   it('opens on ArrowUp with focus on the last item', () => {
     render(<HeaderOverflowMenu />);
     fireEvent.keyDown(trigger(), { key: 'ArrowUp' });
