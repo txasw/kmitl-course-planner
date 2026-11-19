@@ -57,9 +57,9 @@ describe('HeaderBrand', () => {
     expect(screen.getByText('KCP version 1.5.0')).toHaveClass('sr-only');
   });
 
-  it('shows a debug suffix as the manifest states it', () => {
-    const { container } = renderBrand('1.5.0-debug');
-    expect(pill(container)).toHaveTextContent(/^v1\.5\.0-debug$/);
+  it('shows a four part version as the manifest states it', () => {
+    const { container } = renderBrand('1.5.0.2');
+    expect(pill(container)).toHaveTextContent(/^v1\.5\.0\.2$/);
   });
 
   it('keeps the bare mark when the version is unreadable', () => {

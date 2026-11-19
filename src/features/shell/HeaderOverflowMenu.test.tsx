@@ -103,16 +103,16 @@ describe('HeaderOverflowMenu', () => {
       uiStore.getState().setLanguage('en');
     });
     render(
-      <ExtensionVersionContext.Provider value="1.5.0-debug">
+      <ExtensionVersionContext.Provider value="1.5.0.2">
         <HeaderOverflowMenu />
       </ExtensionVersionContext.Provider>,
     );
     fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    expect(screen.getByText('KCP v1.5.0-debug')).toHaveAttribute(
+    expect(screen.getByText('KCP v1.5.0.2')).toHaveAttribute(
       'aria-hidden',
       'true',
     );
-    expect(screen.getByText('KCP version 1.5.0-debug')).toHaveClass('sr-only');
+    expect(screen.getByText('KCP version 1.5.0.2')).toHaveClass('sr-only');
   });
 
   it('leaves the version line out when the version is unreadable', () => {

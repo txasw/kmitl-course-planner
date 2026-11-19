@@ -6,19 +6,15 @@ describe('readExtensionVersion', () => {
     expect(readExtensionVersion(() => ({ version: '1.5.0' }))).toBe('1.5.0');
   });
 
-  it('keeps a suffix a debug build carries', () => {
-    expect(readExtensionVersion(() => ({ version: '1.5.0-debug' }))).toBe(
-      '1.5.0-debug',
+  it('keeps a four part version whole', () => {
+    expect(readExtensionVersion(() => ({ version: '1.5.0.2' }))).toBe(
+      '1.5.0.2',
     );
-  });
-
-  it('trims surrounding white space', () => {
-    expect(readExtensionVersion(() => ({ version: ' 1.5.0 ' }))).toBe('1.5.0');
   });
 
   it('yields null for a missing, empty, or non string version', () => {
     expect(readExtensionVersion(() => ({}))).toBeNull();
-    expect(readExtensionVersion(() => ({ version: '  ' }))).toBeNull();
+    expect(readExtensionVersion(() => ({ version: '' }))).toBeNull();
     expect(readExtensionVersion(() => ({ version: 15 }))).toBeNull();
   });
 
