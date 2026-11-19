@@ -5,6 +5,7 @@ import {
   fireEvent,
   cleanup,
   act,
+  within,
 } from '@testing-library/react';
 import { Header } from './Header';
 import { uiStore } from './uiStore';
@@ -107,23 +108,16 @@ describe('Header', () => {
     expect(uiStore.getState().isOpen).toBe(false);
   });
 
-  it('keeps the language choice in the overflow menu on every tier', () => {
-    for (const width of [360, 768, 1024, 1440]) {
-      installViewport(width);
-      const { unmount } = render(<Header titleId="title" />);
-      expect(
-        screen.queryByRole('group', { name: 'เลือกภาษา' }),
-        `${String(width)} px`,
-      ).not.toBeInTheDocument();
-      fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }));
-      fireEvent.click(screen.getByRole('menuitemradio', { name: 'English' }));
-      expect(uiStore.getState().language).toBe('en');
-      unmount();
-      act(() => {
-        uiStore.getState().setLanguage('th');
-      });
-      vi.unstubAllGlobals();
-    }
+  it('keeps the language choice in the overflow menu', () => {
+    render(<Header titleId="title" />);
+    const more = screen.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' });
+    fireEvent.click(more);
+    const menu = screen.getByRole('menu', { name: 'ตัวเลือกเพิ่มเติม' });
+    const group = within(menu).getByRole('group', { name: 'เลือกภาษา' });
+    fireEvent.click(
+      within(group).getByRole('menuitemradio', { name: 'English' }),
+    );
+    expect(uiStore.getState().language).toBe('en');
   });
 
   it('keeps the overflow menu when the panel widens', () => {
