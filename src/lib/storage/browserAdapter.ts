@@ -48,8 +48,8 @@ export function createSessionStorageAdapter(): StorageAdapter | null {
 
 // The types declare the session area always present, so reading it through this
 // wider parameter type keeps the absence check that older Firefox builds need.
-function optionalSessionArea(storage: {
+function optionalSessionArea(storageApi: {
   session?: Browser.storage.StorageArea;
 }): Browser.storage.StorageArea | undefined {
-  return storage.session;
+  return storageApi.session;
 }
