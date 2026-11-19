@@ -6,7 +6,8 @@
 // record in place for this document.
 //
 // The coach mark snooze day (ADR-0072) goes through the same optimistic write, but it is
-// not a moment kept once: a later day replaces an earlier one, so it is always written.
+// not a moment kept once: the latest choice replaces the stored day, so it is always
+// written.
 
 import type {
   OnboardingField,

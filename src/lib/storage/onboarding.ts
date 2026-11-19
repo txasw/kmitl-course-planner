@@ -2,7 +2,7 @@
 // opened, when the student turned the entry toast off, and the local day the student
 // last asked the selector coach mark to stay away (ADR-0072). Each moment is recorded
 // once and kept, so a later write never moves it. The day is the exception: it is a
-// snooze rather than a moment, so a later day replaces an earlier one. Reads validate
+// snooze rather than a moment, so the latest write replaces it. Reads validate
 // through Zod; each field is caught on its own, so one bad value drops alone instead
 // of costing the others, and an absent or unreadable blob loads as an empty record.
 // The day is optional, so a record written before it existed still reads as version 1
@@ -36,21 +36,11 @@ export type OnboardingRecord = z.infer<typeof onboardingRecordSchema>;
 
 /**
  * The timestamps to record, where a field already set keeps its first value, and the
- * coach mark snooze day, where the later day wins.
+ * coach mark snooze day, which replaces the stored one.
  */
 export type OnboardingPatch = Partial<Record<OnboardingField, string>> & {
   coachMarkSnoozedOn?: string;
 };
-
-/** The later of two day stamps, or the one that is set. */
-function laterDay(
-  kept: string | undefined,
-  incoming: string | undefined,
-): string | undefined {
-  if (kept === undefined) return incoming;
-  if (incoming === undefined) return kept;
-  return incoming > kept ? incoming : kept;
-}
 
 export interface OnboardingRepository {
   load(): Promise<OnboardingRecord>;
@@ -91,7 +81,10 @@ export function createOnboardingRepository(
         changed = true;
       }
     }
-    const day = laterDay(current.coachMarkSnoozedOn, fields.coachMarkSnoozedOn);
+    // Every writer stamps its own today, so the latest write is the student's latest
+    // choice. Keeping the later of the two instead would let a day written under a
+    // clock set far ahead outlive every correct day after it.
+    const day = fields.coachMarkSnoozedOn ?? current.coachMarkSnoozedOn;
     if (day !== undefined) merged.coachMarkSnoozedOn = day;
     if (day !== current.coachMarkSnoozedOn) changed = true;
     if (changed) await adapter.set(ONBOARDING_KEY, merged);

@@ -92,9 +92,15 @@ is never prevented.
 
 Storage. The day is an optional field of the onboarding record, validated by `z.iso.date()` and
 caught on its own like the timestamps, so a record written before it existed reads as version 1 and
-no migration is needed. It is the one field that is not kept once: a later day replaces an earlier
-one, and the repository merges by the later day, so two tabs never move it back. A day after today,
-which only a clock moved back can produce, keeps the coach mark quiet through that day.
+no migration is needed. It is the one field that is not kept once: every writer stamps its own
+today, so the latest write replaces the stored day. The coach mark stays quiet when the stored day
+is today or tomorrow. A day one ahead comes from a clock moved back a little or a time zone crossed
+after the choice, and keeping it honours the choice. A day further ahead was written under a clock
+set far forward, so it reads as no choice: the coach mark shows, and the next Not again today
+replaces it. Merging by the later day was rejected, because such a day would then outlive every
+correct day after it and silence the coach mark until that date with no way for the student to undo
+it. The cost is a choice made just before midnight in one tab and written after another tab wrote
+the next day, which moves the day back and shows the coach mark once more the next day.
 
 Precedence. On the search page the coach mark takes the entry toast's place. The store records that
 the coach mark has shown in the document, and `selectEntryToast` returns nothing once it has, so a

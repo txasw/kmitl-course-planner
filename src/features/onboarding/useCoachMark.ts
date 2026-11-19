@@ -17,6 +17,7 @@ import { useStore } from 'zustand';
 import {
   isSelectorRoute,
   localDayStamp,
+  nextLocalDayStamp,
   shouldShowCoachMark,
 } from '@/lib/onboarding/coachMark';
 import type { OnboardingRepository } from '@/lib/storage/onboarding';
@@ -64,6 +65,7 @@ export function useCoachMark(
   if (!onRoute && dismissed) setDismissed(false);
   if (onRoute && isOpen && !dismissed) setDismissed(true);
 
+  const now = new Date();
   const open = shouldShowCoachMark({
     settled,
     hash,
@@ -71,7 +73,8 @@ export function useCoachMark(
     welcomeOpen,
     documentSuppressed,
     snoozedOn,
-    today: localDayStamp(new Date()),
+    today: localDayStamp(now),
+    tomorrow: nextLocalDayStamp(now),
     dismissedThisVisit: dismissed,
   });
 
