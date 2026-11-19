@@ -31,7 +31,9 @@
 // inside it so no interactive control nests in another; a positioning wrapper holds both.
 // Under a coarse pointer the remove button is hidden: a 44 px target would cover a short
 // block, and the detail sheet that a tap or Enter on the block opens carries Remove, so a
-// touch laptop used with a keyboard keeps a keyboard path to removal (ADR-0058).
+// touch laptop used with a keyboard keeps a keyboard path to removal (ADR-0058). A block
+// narrower than 7em hides it too, for the same reason and with the same path, so it never
+// covers the name such a block shows alone.
 // The verification marks are an editing signal for the plan owner, so the export poster
 // renders the block without them (ADR-0055).
 
@@ -247,7 +249,7 @@ function EventBlockComponent({
   // interactive control nests inside another (axe nested-interactive).
   return (
     <div
-      className={`group/block relative m-px flex min-w-0 ${dimmed ? 'opacity-40' : ''}`}
+      className={`group/block @container relative m-px flex min-w-0 ${dimmed ? 'opacity-40' : ''}`}
       style={style}
     >
       <div
@@ -282,8 +284,9 @@ function EventBlockComponent({
         // The pressed outline replaces outline-none, which would otherwise zero the
         // outline style the pressed look sets. An interactive block takes the offset
         // focus outline rather than an inset ring, because the danger overlay carries the
-        // inset ring.
-        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden py-1.5 pr-2 pl-2.5 text-[1em] ${surfaceClass(surface)} ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink ${blockOutlineClass(pressed, interactive)} ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'touch-drag cursor-grab' : ''}`}
+        // inset ring. A block narrower than 7em tightens its padding so its name keeps the
+        // width to break between words.
+        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden py-1.5 pr-2 pl-2.5 text-[1em] @max-[7em]:pr-0.5 @max-[7em]:pl-1.5 @max-[7em]:text-[0.9em] ${surfaceClass(surface)} ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink ${blockOutlineClass(pressed, interactive)} ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'touch-drag cursor-grab' : ''}`}
         style={surfaceStyle(surface, section.subjectId)}
         {...dragListeners}
       >
@@ -324,7 +327,7 @@ function EventBlockComponent({
           onClick={() => {
             onRemove(section.teachTableId);
           }}
-          className={`absolute top-0.5 right-0.5 z-grid inline-flex items-center justify-center rounded bg-ink/5 p-0.5 text-ink-soft opacity-0 group-hover/block:opacity-100 group-focus-within/block:opacity-100 hover:bg-ink/10 hover:text-ink focus-visible:opacity-100 pointer-coarse:hidden ${FOCUS_RING} ${TARGET_MIN}`}
+          className={`absolute top-0.5 right-0.5 z-grid inline-flex items-center justify-center rounded bg-ink/5 p-0.5 text-ink-soft opacity-0 group-hover/block:opacity-100 group-focus-within/block:opacity-100 hover:bg-ink/10 hover:text-ink focus-visible:opacity-100 pointer-coarse:hidden @max-[7em]:hidden ${FOCUS_RING} ${TARGET_MIN}`}
         >
           <X size={12} aria-hidden />
         </button>
