@@ -3,7 +3,7 @@
 Status: Accepted
 Date: 2026-11-20
 
-Builds on ADR-0071 (soft depth tokens) and the header layout of brief section 6.1.
+Builds on the header layout of brief section 6.1.
 
 ## Context
 
@@ -50,5 +50,5 @@ and the export already carries a credit line.
 
 The version is one glance away on every tier without a new control. A future header change must
 keep the 8 px clearance between the pill and the first text in the row; the responsive end to end
-suite asserts that the pill overlaps neither the title nor the switcher and that the header stays
-one row, in Thai and in English, at the phone, tablet, and desktop widths.
+suite asserts that the pill keeps that 8 px clear of the switcher and of the title and that the
+header stays one row, in Thai and in English, at the phone, tablet, and desktop widths.
