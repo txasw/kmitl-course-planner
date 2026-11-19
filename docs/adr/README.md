@@ -77,3 +77,4 @@ a new record that supersedes the old one rather than editing history.
 68. [Non drag swap and change section paths](0068-non-drag-swap-and-change-section.md)
 69. [Per term course shortlist](0069-per-term-course-shortlist.md)
 70. [Firefox for Android support and the host viewport](0070-firefox-android-and-host-viewport.md)
+71. [Soft depth tokens and cool neutrals](0071-soft-depth-tokens-and-cool-neutrals.md)
