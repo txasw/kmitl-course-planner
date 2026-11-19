@@ -81,3 +81,4 @@ withdrawal note above the original text, which is kept as written.
 70. [Firefox for Android support and the host viewport](0070-firefox-android-and-host-viewport.md)
 71. [Soft depth tokens and cool neutrals](0071-soft-depth-tokens-and-cool-neutrals.md)
 72. [Search page coach mark](0072-search-page-coach-mark.md)
+73. [Extension version in the header](0073-extension-version-in-the-header.md)
