@@ -22,8 +22,10 @@ const COLOR_TOKENS = [
   'primary-soft',
   'ink',
   'ink-soft',
+  'ink-muted',
   'surface',
   'surface-alt',
+  'surface-sunken',
   'border',
   'border-strong',
   'danger',
@@ -53,6 +55,8 @@ const LAYER_TOKENS = {
 
 const DURATION_TOKENS = { fast: 150, base: 200, slow: 300 } as const;
 
+const TINT_STOPS = ['strong', 'weak', 'edge', 'shadow'] as const;
+
 describe('shadow stylesheet tokens', () => {
   it('declares every kcp token on the shadow host', () => {
     for (const token of COLOR_TOKENS) {
@@ -70,6 +74,29 @@ describe('shadow stylesheet tokens', () => {
     expect(css).toContain('--radius-kcp: var(--kcp-radius)');
     expect(css).toContain('--radius-kcp-inner: var(--kcp-radius-inner)');
     expect(css).toContain('--shadow-kcp: var(--kcp-shadow)');
+  });
+
+  it('declares the soft depth tokens and maps them into tailwind', () => {
+    expect(css).toContain('--kcp-radius-sm: 6px;');
+    expect(css).toContain('--radius-kcp-sm: var(--kcp-radius-sm)');
+    expect(css).toContain('--kcp-shadow-soft:');
+    expect(css).toContain('--shadow-kcp-soft: var(--kcp-shadow-soft)');
+    expect(css).toContain('--kcp-highlight-soft: inset 0 1px 0');
+    for (const stop of TINT_STOPS) {
+      expect(css).toMatch(new RegExp(`--kcp-tint-${stop}: \\d+%;`));
+    }
+  });
+
+  it('derives every part of the soft card from the one element tint', () => {
+    const card = /@utility kcp-soft-card \{([\s\S]*?)\n\}/.exec(css)?.[1];
+    expect(card).toBeDefined();
+    for (const stop of TINT_STOPS) {
+      expect(card).toContain(
+        `var(--kcp-tint, var(--kcp-ink-muted)) var(--kcp-tint-${stop})`,
+      );
+    }
+    expect(card).toContain('var(--kcp-highlight-soft)');
+    expect(card).toContain('border-radius: var(--kcp-radius);');
   });
 
   it('declares the sheet radius', () => {
