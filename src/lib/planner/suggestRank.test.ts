@@ -20,7 +20,7 @@ function ranked(
   penalty: number,
   choices: SuggestChoice[],
 ): RankedTimetable {
-  return { objective, penalty, choices };
+  return { objective, penalty, choices, footprint: '' };
 }
 
 describe('objectiveValue', () => {

@@ -14,7 +14,10 @@
 //
 // A timetable is kept only when it is maximal: a skipped course that still has a
 // fitting section would make a strictly better timetable, so leaving it out is
-// never offered.
+// never offered. No two kept timetables share a time footprint: a timetable that
+// only swaps a section for another meeting at the same times is the same week, so
+// it takes the place of its twin only when it ranks first, and the suggestions
+// differ in at least one meeting time or subject.
 
 import type { Course, Meeting, Section } from '../domain/types';
 import type { PlanEntry } from '../domain/plan';
@@ -31,9 +34,11 @@ import {
   compareObjective,
   compareRanked,
   objectiveValue,
+  type RankedOrder,
   type RankedTimetable,
   type SuggestObjective,
 } from './suggestRank';
+import { keepDistinct, timetableFootprint } from './suggestFootprint';
 import { leftOutReason, type LeftOutReason } from './suggestReasons';
 import {
   penaltyLowerBound,
@@ -137,7 +142,7 @@ export function suggestPlans(input: SuggestInput): SuggestResult {
       .reduce((credits, candidate) => credits + candidate.course.credit, 0),
   );
 
-  const kept: RankedTimetable[] = [];
+  let kept: RankedTimetable[] = [];
   const chosen: SuggestOption[] = [];
   const skipped: SuggestCandidate[] = [];
   let chosenCredits = 0;
@@ -150,21 +155,25 @@ export function suggestPlans(input: SuggestInput): SuggestResult {
     kept.length >= limit ? kept[kept.length - 1] : undefined;
 
   const keepLeaf = (): void => {
-    const ranked: RankedTimetable = {
+    const order: RankedOrder = {
       objective: objectiveValue(input.objective, chosen.length, chosenCredits),
       penalty: preferencePenalty(meetings, input.preference),
       choices: chosen.map((option) => option.choice).sort(bySubject),
     };
     const bar = worstKept();
-    if (bar !== undefined && compareRanked(ranked, bar) >= 0) {
+    if (bar !== undefined && compareRanked(order, bar) >= 0) {
       return;
     }
     if (skipped.some((candidate) => candidate.options.some(fitsChosen))) {
       return;
     }
-    kept.push(ranked);
-    kept.sort(compareRanked);
-    kept.length = Math.min(kept.length, limit);
+    // The footprint is built only for a leaf that would be kept, since most leaves
+    // of a large search fall below the bar.
+    kept = keepDistinct(
+      kept,
+      { ...order, footprint: timetableFootprint(order.choices) },
+      limit,
+    );
   };
 
   const cannotImprove = (depth: number): boolean => {

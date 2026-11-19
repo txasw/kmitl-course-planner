@@ -2,13 +2,16 @@
 // take. A candidate is a course of the current result whose subject the student
 // ticked and which is not already in the plan. Its options are the distinct section
 // groups, a section with its declared pair, whose members are all open and which fit
-// the locked entries; a full or closed section is never an option. The open groups
-// are kept as well, so a course with no option can still say why it was left out.
+// the locked entries; a full or closed section is never an option, and groups that
+// are interchangeable by time and exam collapse to the lowest section code. The open
+// groups are kept as well, so a course with no option can still say why it was left
+// out.
 
 import { isSelectable } from '../catalog/seatStatus';
 import type { Course, Section } from '../domain/types';
 import type { PlanEntry } from '../domain/plan';
 import { checkPlacement, expandSectionGroup } from './placement';
+import { collapseInterchangeable } from './suggestFootprint';
 
 /** One chosen course: the section to add and the group the add places with it. */
 export interface SuggestChoice {
@@ -65,7 +68,7 @@ export function suggestCandidates(
     )
     .map((course) => {
       const open = openChoices(course);
-      const options = open
+      const options = collapseInterchangeable(open)
         .filter((choice) => checkPlacement(locked, choice.group).ok)
         .map((choice) => ({ index: index++, choice }));
       return { course, open: open.map((choice) => choice.group), options };
