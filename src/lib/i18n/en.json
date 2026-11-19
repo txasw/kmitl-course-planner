@@ -15,6 +15,8 @@
   "language.th": "ไทย",
   "language.en": "English",
   "header.more": "More options",
+  "header.version": "KCP version {version}",
+  "header.versionTag": "v{version}",
   "planSwitcher.label": "Select plan",
   "planSwitcher.noPlan": "No plan yet",
   "planSwitcher.create": "Create plan",
