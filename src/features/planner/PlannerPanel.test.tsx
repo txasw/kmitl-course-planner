@@ -219,6 +219,40 @@ describe('PlannerPanel plan views', () => {
     expect(following).toBe(toolbarFirst);
   });
 
+  it.each([1366, 390])(
+    'at %i px opens the summary and the selected list at their top',
+    (width) => {
+      installViewport(width);
+      seedTwoSubjects();
+      act(() => {
+        uiStore.getState().setPlanView('selected');
+      });
+      renderPanel();
+      const scroller = (node: HTMLElement): Element | null =>
+        node.closest('.kcp-scroll');
+      const selected = scroller(
+        screen.getByRole('list', { name: 'วิชาที่เลือก' }),
+      );
+      if (selected !== null) selected.scrollTop = 300;
+
+      act(() => {
+        uiStore.getState().setPlanView('summary');
+      });
+      const summary = scroller(
+        screen.getByRole('region', { name: 'ตารางสอบ' }),
+      );
+      expect(summary?.scrollTop).toBe(0);
+
+      if (summary !== null) summary.scrollTop = 200;
+      act(() => {
+        uiStore.getState().setPlanView('selected');
+      });
+      expect(
+        scroller(screen.getByRole('list', { name: 'วิชาที่เลือก' }))?.scrollTop,
+      ).toBe(0);
+    },
+  );
+
   it('switches the region to the summary with the exam schedule, then the workload', () => {
     installViewport(1366);
     seedTwoSubjects();

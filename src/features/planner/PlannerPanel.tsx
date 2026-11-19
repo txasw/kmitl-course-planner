@@ -367,7 +367,11 @@ export function PlannerPanel() {
           onStageTallChange={setStageTall}
         />
       ) : planView === 'summary' ? (
+        // The summary and the selected list each key their own scroller. Unkeyed, React
+        // would keep one node across the switch and its scroll offset with it, so the
+        // summary would open part way down, past the exam schedule it leads with.
         <div
+          key="summary"
           {...panelProps}
           className="kcp-scroll min-h-0 flex-1 overflow-y-auto"
         >
@@ -382,6 +386,7 @@ export function PlannerPanel() {
         </div>
       ) : planView === 'selected' ? (
         <div
+          key="selected"
           {...panelProps}
           className="kcp-scroll min-h-0 flex-1 overflow-y-auto"
         >
