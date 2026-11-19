@@ -24,7 +24,7 @@ import {
   touchDrag,
   type Point,
 } from './support/touch';
-import type { Locator, Page } from '@playwright/test';
+import type { Locator, Page, Worker } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import type { Plan } from '../../src/lib/domain/plan';
 
@@ -286,6 +286,87 @@ test('close and preview stay in view and work at 320 px', async ({
   const page = await openPlanner(context);
   await page.setViewportSize({ width: 320, height: 640 });
   await expectHeaderExitsReachable(page);
+});
+
+// The extension API the worker exposes as a global; the test describes only the part
+// it calls to fill storage.
+interface StorageWorkerGlobals {
+  chrome: {
+    storage: {
+      local: {
+        QUOTA_BYTES: number;
+        getBytesInUse(keys: null): Promise<number>;
+        set(items: Record<string, unknown>): Promise<void>;
+      };
+    };
+  };
+}
+
+/** Fill extension storage to within a few bytes of its quota, so the next plan save fails. */
+async function fillStorage(serviceWorker: Worker): Promise<void> {
+  await serviceWorker.evaluate(async () => {
+    // Test only assertion: the worker carries the extension API described above.
+    const { local } = (globalThis as unknown as StorageWorkerGlobals).chrome
+      .storage;
+    const room = local.QUOTA_BYTES - (await local.getBytesInUse(null));
+    await local.set({ 'e2e:filler': 'x'.repeat(room - 32) });
+  });
+}
+
+/** Assert the failed save strip shows its sentence and button whole inside 320 px. */
+async function expectSaveStripWhole(
+  page: Page,
+  sentence: string,
+  retry: string,
+): Promise<void> {
+  const message = page.getByText(sentence, { exact: true });
+  // The error toast carries a button of the same name, so the strip's is found inside it.
+  const strip = message.locator('..');
+  const button = strip.getByRole('button', { name: retry, exact: true });
+  for (const part of [message, button, strip]) {
+    await expect(part).toBeVisible();
+    const fit = await part.evaluate((node) => {
+      const box = node.getBoundingClientRect();
+      return {
+        clipped:
+          node.scrollWidth > node.clientWidth ||
+          node.scrollHeight > node.clientHeight,
+        left: box.left,
+        right: box.right,
+      };
+    });
+    expect(fit.clipped, sentence).toBe(false);
+    expect(fit.left).toBeGreaterThanOrEqual(0);
+    expect(fit.right).toBeLessThanOrEqual(320);
+  }
+}
+
+// A save that fails shows a strip under the header. At 320 px its sentence wraps onto
+// more rows and its button may drop below it, but no word is cut in either language.
+test('the failed save strip fits whole at 320 px in Thai and English', async ({
+  context,
+  serviceWorker,
+}) => {
+  const page = await openPlanner(context);
+  await page.setViewportSize({ width: 320, height: 640 });
+  await openCatalog(page);
+  await syntheticSearch(page);
+  await fillStorage(serviceWorker);
+  await addCourse(page, '90000001');
+  await timetableControl(page).tap();
+  await expectSaveStripWhole(
+    page,
+    'บันทึกตารางไม่สำเร็จ การแก้ไขล่าสุดยังไม่ได้เก็บไว้ในเบราว์เซอร์นี้',
+    'บันทึกอีกครั้ง',
+  );
+
+  await page.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }).click();
+  await page.getByRole('menuitemradio', { name: 'English' }).click();
+  await expectSaveStripWhole(
+    page,
+    'The plan could not be saved. The latest changes are not stored in this browser.',
+    'Save again',
+  );
 });
 
 test('the edit grid keeps its derived minimum and fits where the column allows', async ({
