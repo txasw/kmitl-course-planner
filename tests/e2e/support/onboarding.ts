@@ -12,7 +12,7 @@ import type { BrowserContext, Page } from '@playwright/test';
 import { SELECTOR_URL } from '../../../src/lib/shell/hostTab';
 import { ONBOARDING_KEY } from '../../../src/lib/storage/keys';
 import type { OnboardingRecord } from '../../../src/lib/storage/onboarding';
-import { localDayStamp } from '../../../src/lib/onboarding/coachMark';
+import { nextLocalDayStamp } from '../../../src/lib/onboarding/coachMark';
 import { extensionWorker } from './worker';
 
 /** Whether a context starts as a fresh install or as a student past the first run. */
@@ -36,15 +36,18 @@ const FIRST_RUN_DONE: OnboardingRecord = {
   panelFirstOpenedAt: SETTLED_AT,
 };
 
-// The day the harness runs on, in the same local zone the browser it launches reads.
-function today(): string {
-  return localDayStamp(new Date());
+// The snooze day the harness seeds, in the same local zone the browser it launches
+// reads. It is tomorrow rather than today because the gate stays quiet through both, so a
+// spec that starts before local midnight and runs past it still finds the coach mark
+// away, rather than meeting its scrim over an unrelated page.
+function snoozeDay(): string {
+  return nextLocalDayStamp(new Date());
 }
 
 // The first run as done with the entry prompt still on. The coach mark stays away for
 // the day, so on the search page the entry prompt speaks rather than giving way to it.
 function promptedRecord(): OnboardingRecord {
-  return { ...FIRST_RUN_DONE, coachMarkSnoozedOn: today() };
+  return { ...FIRST_RUN_DONE, coachMarkSnoozedOn: snoozeDay() };
 }
 
 // The first run as done with the coach mark free to speak and the entry prompt off.
@@ -55,7 +58,7 @@ const COACHED_RECORD: OnboardingRecord = {
 
 // The first run as done: the entry prompt off, the coach mark away for the day.
 function settledRecord(): OnboardingRecord {
-  return { ...COACHED_RECORD, coachMarkSnoozedOn: today() };
+  return { ...COACHED_RECORD, coachMarkSnoozedOn: snoozeDay() };
 }
 
 // The worker exposes the extension API as a global; the harness describes only the
