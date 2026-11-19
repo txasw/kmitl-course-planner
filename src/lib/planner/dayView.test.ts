@@ -8,6 +8,7 @@ import {
   dayFlags,
   initialDay,
   isDayViewWidth,
+  revealScrollTop,
   shownDay,
   stepDay,
 } from './dayView';
@@ -170,5 +171,21 @@ describe('stepDay', () => {
 
   it('starts from the first day when the current day is not offered', () => {
     expect(stepDay(WEEK, 0, 1, false)).toBe(1);
+  });
+});
+
+describe('revealScrollTop', () => {
+  it('lifts the earliest block to just under the sticky header', () => {
+    // A 14:00 class 360 px down a day grid with a 17 px header and a 12 px margin.
+    expect(revealScrollTop([520, 360], 17, 12)).toBe(331);
+  });
+
+  it('keeps the window start in view when the first class opens the window', () => {
+    expect(revealScrollTop([17], 17, 12)).toBe(0);
+    expect(revealScrollTop([25], 17, 12)).toBe(0);
+  });
+
+  it('opens a free day at the top', () => {
+    expect(revealScrollTop([], 17, 12)).toBe(0);
   });
 });

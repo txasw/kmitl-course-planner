@@ -16,6 +16,7 @@ import { createTranslator } from '@/lib/i18n/t';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import { dayChipDays, dayFlags } from '@/lib/planner/dayView';
 import { planConflicts } from '@/lib/planner/planConflicts';
+import { gridFontPx } from '@/lib/ui/breakpoints';
 import {
   makeCourse,
   makeMeeting,
@@ -28,6 +29,7 @@ import { swipe } from '../../../tests/support/swipe';
 import { installViewport } from '../../../tests/support/viewport';
 import { DayChips } from './DayChips';
 import { dragStore } from './dragStore';
+import { AXIS_TRACK_EM } from './gridGeometry';
 import { PlannerDnd } from './PlannerDnd';
 import { PlannerPanel } from './PlannerPanel';
 
@@ -35,6 +37,7 @@ const t = createTranslator('th');
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.useRealTimers();
   act(() => {
@@ -245,6 +248,44 @@ describe('DayView', () => {
     // The free day reads like every other empty state in the panel, not a card laid over
     // the lanes.
     expect(noticeBelongsToGrid('free-day')).toBe(true);
+  });
+
+  it('opens each shown day scrolled to its first class', () => {
+    installViewport(390);
+    // jsdom has no layout, so a block reports its top from its start time: 0.8 px a
+    // minute down from an 08:00 window start, under a 17 px header, less the scroll.
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: HTMLElement) {
+        const order = this.dataset.blockOrder;
+        const scrolled = this.closest('.overflow-auto')?.scrollTop ?? 0;
+        const top =
+          order === undefined
+            ? 0
+            : ((Number(order) % 1440) - 480) * 0.8 + 17 - scrolled;
+        return DOMRect.fromRect({ x: 0, y: top, width: 100, height: 40 });
+      },
+    );
+    const fontPx = gridFontPx(0);
+    const opensAt = (top: number): number =>
+      Math.round(top - AXIS_TRACK_EM * fontPx - fontPx);
+    const scroller = (day: string): HTMLElement | null =>
+      screen.getByRole('group', { name: `ตารางเรียน${day}` }).parentElement;
+    seedPlan();
+    renderPanel();
+    // Wednesday at 09:00 and Friday at 13:00.
+    expect(scroller('วันพุธ')?.scrollTop).toBe(opensAt(65));
+    fireEvent.click(chip('วันศุกร์ มีเรียน'));
+    expect(scroller('วันศุกร์')?.scrollTop).toBe(opensAt(257));
+
+    // A manual scroll on the same day holds; a free day opens at the top.
+    const friday = scroller('วันศุกร์');
+    if (friday !== null) friday.scrollTop = 40;
+    act(() => {
+      uiStore.getState().setPlanView('timetable');
+    });
+    expect(friday?.scrollTop).toBe(40);
+    fireEvent.click(chip('วันอังคาร'));
+    expect(scroller('วันอังคาร')?.scrollTop).toBe(0);
   });
 
   it('centers the empty plan notice over the lanes, clear of the hour column', () => {
