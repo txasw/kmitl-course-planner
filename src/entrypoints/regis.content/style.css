@@ -1,6 +1,8 @@
 /* Content script UI stylesheet. It is injected into the closed shadow root
-   through WXT cssInjectionMode 'ui', so nothing here reaches the host page. */
-@import 'tailwindcss';
+   through WXT cssInjectionMode 'ui', so nothing here reaches the host page.
+   Class detection is scoped to src, so class names that appear only in the
+   landing site, the docs, or the test suites never reach the shipped sheet. */
+@import 'tailwindcss' source('../../');
 
 /* Spacing is pinned to pixels so the layout does not rescale with the host page
    root font size, and the font stack carries Thai support. Tailwind v4 emits the
