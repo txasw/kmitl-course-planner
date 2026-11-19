@@ -1,0 +1,136 @@
+# 72. Search page coach mark
+
+Status: Accepted
+Date: 2026-11-20
+
+Amends ADR-0063 (entry toast and launcher attention cue), where the entry toast is the one prompt
+on a visit and the launcher ring the one attention cue, and the live region inventory of ADR-0048.
+Extends the type scale of ADR-0052 with two display sizes. Builds on the first run gating of
+ADR-0062.
+
+## Context
+
+The owner reports that students on the host search form, `#/teach_table_selector`, still do not
+notice the planner. The launcher is a small pill in a corner, the ring plays only for a student
+with no plans until the first open, and the entry toast is a quiet card that speaks once per
+document. The owner asked for a prompt that takes the student's attention at once every time they
+arrive on the search form, with two ways out: try later, which keeps the ring as it is, and do not
+show again today. The owner supplied a reference sketch made with an image generator, for the idea
+only: the page dimmed, the launcher lit as a spotlight, a short burst of strokes beside it, a hand
+drawn pointer from a large callout down to it, and an outlined white pill to dismiss.
+
+The host is a single page application with hash routing, so arriving on the search form is either
+a document load on that route or a hash change that makes it active. The extension renders only
+inside its own shadow root and never touches the host page, its styles, or its scroll.
+
+## Decision
+
+Surface. The coach mark is a layer of the content script UI, `features/onboarding/CoachMark.tsx`,
+mounted before the launcher so the launcher stacks above it by mount order, and before the overlay
+so the overlay covers both. It dims the viewport with its own fixed scrim, the ink at 78 percent,
+and leaves a rounded hole 8 px around the launcher, ringed in the primary soft colour, so the
+launcher stays lit and pressable. A large white callout, "ลองใช้ดูสิ" in Thai and "Give it a try" in
+English, carries an orange underline stroke. A pointer stroke runs from the end of the callout to
+just above the launcher and ends in an arrowhead, and three short orange strokes fan out from the
+launcher's top right corner. Left of the launcher sit a white pill, "ลองภายหลัง" or "Maybe later",
+and a quieter white text button, "ไม่แสดงอีกวันนี้" or "Not again today". The strokes are inline SVG,
+hidden from assistive technology. The callout uses the semibold heading weight and the system font
+stack, with no remote font.
+
+Design system fit. Every colour is a token: the scrim is `--kcp-ink` at `--kcp-scrim-coach-strength`,
+the strokes are `--kcp-primary`, the pill is surface on ink with the strong border, and the ring is
+`--kcp-primary-soft`. The scrim is the spread of the spotlight hole's box shadow, which is a scrim
+and not an elevation, so the one shadow level rule holds. The callout takes two new display sizes
+on the pinned type scale, `text-xl` at 24 px over 36 px below 640 px and `text-2xl` at 28 px over
+40 px from 640 px, with line heights that leave room for Thai marks. They exist for this callout
+alone. White text on the scrim over a white page clears 4.5:1, which the token contrast suite
+proves. The orange focus ring would sit on the dark scrim below 3:1, so a focused text button turns
+into a white chip that carries the standard inset ring, and the pill is white already.
+
+Layout. One grid is anchored to the launcher's corner. A spacer in its last column takes the
+launcher's own box classes and face, invisible, so it covers the launcher exactly at every width
+and in both languages without measuring the launcher; the spotlight and the burst hang off it. The
+callout and the buttons sit in the first column. The buttons wrap onto their own lines on a narrow
+screen, Not again today above and Maybe later level with the launcher, so nothing overlaps the
+launcher or each other and no text clips. The pointer box spans the gap column and the launcher
+column above the launcher, and the stroke is computed in its measured pixels by the pure
+`lib/onboarding/coachMarkPointer.ts`, so the curve keeps its shape. An end to end guard checks at
+360, 390, 768 and 1366 px in both languages that the callout, both buttons and the launcher lie
+inside the viewport, do not overlap, are not covered by a stroke, do not overflow, and receive a
+press at their centre. The debug only diagnostics trigger steps aside while the coach mark shows,
+since on a phone it would sit over the buttons.
+
+Gating. The pure `shouldShowCoachMark` in `lib/onboarding/coachMark.ts` decides. The coach mark
+shows when the location hash is the search route, with or without a query, after the onboarding
+read, the worker handshake and the welcome decision have settled. It does not show while the panel
+is open or the welcome is open, in a document that found the welcome pending at load or applied an
+open the worker requested (the same document suppression as the entry toast), after a dismissal in
+the current visit, or on the local day the student chose not again today. A visit is the stretch of
+time the route stays active: a hash change away ends it and hides the coach mark, and a hash change
+back starts a new visit, so it shows again.
+
+Dismissal. Maybe later, Escape and a press on the scrim hide it for the visit. Not again today hides
+it and writes `coachMarkSnoozedOn`, the local calendar day as YYYY-MM-DD, to `kcp:onboarding`.
+Pressing the launcher opens the panel and ends the coach mark for the visit, so closing the panel on
+the same page does not bring it back. Escape is read on the shadow root, which also sees a press on
+the launcher, and on the window for a press while focus sits on the host page; the host's own press
+is never prevented.
+
+Storage. The day is an optional field of the onboarding record, validated by `z.iso.date()` and
+caught on its own like the timestamps, so a record written before it existed reads as version 1 and
+no migration is needed. It is the one field that is not kept once: a later day replaces an earlier
+one, and the repository merges by the later day, so two tabs never move it back. A day after today,
+which only a clock moved back can produce, keeps the coach mark quiet through that day.
+
+Precedence. On the search page the coach mark takes the entry toast's place. The store records that
+the coach mark has shown in the document, and `selectEntryToast` returns nothing once it has, so a
+document that loads on the search route with the coach mark due shows no entry toast. A toast that
+showed on another route ends when the host navigates to the search page and the coach mark opens,
+so the two never stack. With the coach mark snoozed for the day, or on any other route, the entry
+toast keeps the behaviour of ADR-0063. The launcher ring keeps its rules and also waits while the
+coach mark is open, as it waits for the welcome, so after Maybe later or Not again today it plays as
+before for a student it applies to.
+
+Accessibility. The coach mark is `role="dialog"` with `aria-modal="false"`, labelled by the callout.
+The launcher, the action it points at, lives outside the dialog node, and the host page under the
+scrim cannot be made inert without touching it, so a modal claim would hide the launcher from a
+screen reader and promise an isolation that does not exist. Focus starts on Maybe later, and Tab
+cycles through Not again today, Maybe later and the launcher, the only controls the scrim leaves in
+reach. When the coach mark hides while focus is inside it, focus moves to the launcher, so it never
+falls back to the host page. A polite live region, mounted empty from the start, says where the
+planner is and what it does once the coach mark appears.
+
+Motion. When motion is allowed the scrim and the copy fade in, the underline is revealed from the
+left, the pointer stroke draws along its length after 150 ms, and the arrowhead and the burst pop
+last, all within about 650 ms, then everything holds still. Every duration and delay is a motion
+token. Under reduced motion every part appears in place with no animation and the highlight is
+static.
+
+## Alternatives considered
+
+Growing the entry toast into the coach mark was rejected. The toast is once per document and its
+content follows a precedence of its own; the coach mark is once per visit of one route and says one
+thing, and folding the two together would change the toast everywhere.
+
+A modal dialog with a copy of the launcher inside it was rejected. Two launchers, one of them fake,
+would confuse both pointer and screen reader users, and the real launcher would still be covered.
+
+Locking the host scroll while the coach mark shows was rejected. The read only rule keeps the host
+page untouched, and the scrim covers the viewport at any scroll position.
+
+Measuring the launcher with a resize observer to place the spotlight was rejected in favour of the
+spacer with the launcher's own box and face, which matches it by construction.
+
+Showing the coach mark only until the first panel open, like the ring, was rejected by the owner,
+who asked for it on every arrival; Not again today is the student's control over that.
+
+## Consequences
+
+`liveRegions.test.tsx` and ADR-0048 gain one entry for the coach mark's polite region.
+
+The end to end harness seeds a settled context with the coach mark snoozed for the day, so the
+specs that open the search page are not covered by it, and `allowCoachMark` lets a spec meet it.
+
+A student who uses the planner every day sees the coach mark on every arrival on the search page
+until they choose Not again today, and again on the next day, by owner decision. The owner can
+revisit whether a returning student with stored plans should see it.

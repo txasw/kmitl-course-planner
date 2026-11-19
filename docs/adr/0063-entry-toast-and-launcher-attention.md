@@ -100,3 +100,15 @@ offer, by design, since the offer belongs to the page the student arrived on.
 
 Opt out has no surface to turn the toast back on, since section 6.9 rules out an options page. This
 is an accepted gap; a toggle in the panel menu is a possible later change.
+
+## Amendment, 2026-11-20: the search page coach mark
+
+ADR-0072 adds a coach mark on the host search route, `#/teach_table_selector`. On that route it
+takes the entry toast's place: the toast never shows in a document the coach mark has shown in, and
+a toast that showed on another route ends when the host navigates to the search page and the coach
+mark opens, so the two never stack. With the coach mark snoozed for the day, and on every other
+route, the entry toast keeps the behaviour recorded above. The launcher ring keeps its rules and
+also waits while the coach mark is open, as it waits for the welcome, so it plays as before after
+the student dismisses the coach mark. The coach mark mounts before the launcher, so the shadow root
+stacking order becomes coach mark, launcher, entry toast, overlay, diagnostics, toaster, then the
+welcome.
