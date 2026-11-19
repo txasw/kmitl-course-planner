@@ -39,6 +39,7 @@ export default defineConfig({
       'dist/**',
       'web-ext-artifacts/**',
       'stats.html',
+      'site/**',
     ],
   },
   vite: (env) => ({
