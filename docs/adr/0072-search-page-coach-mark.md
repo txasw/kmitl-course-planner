@@ -122,9 +122,9 @@ planner is and what it does once the coach mark appears.
 
 Motion. When motion is allowed the scrim and the copy fade in, the underline is revealed from the
 left, the pointer stroke draws along its length after 150 ms, and the arrowhead and the burst pop
-last, all within about 650 ms, then everything holds still. Every duration and delay is a motion
-token. Under reduced motion every part appears in place with no animation and the highlight is
-static.
+last, the arrowhead in place about its tip and the burst out of the launcher's corner, all within
+about 650 ms, then everything holds still. Every duration and delay is a motion token. Under
+reduced motion every part appears in place with no animation and the highlight is static.
 
 ## Alternatives considered
 

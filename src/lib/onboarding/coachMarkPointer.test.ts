@@ -50,6 +50,7 @@ describe('pointerGeometry', () => {
     if (geometry === null) throw new Error('no pointer');
     const [leftX, leftY, tipX, tipY, rightX, rightY] = numbers(geometry.head);
     expect([tipX, tipY]).toEqual([100, 80]);
+    expect(geometry.tip).toEqual({ x: 100, y: 80 });
     // Both wings trail above the tip, since the stroke arrives from above.
     expect(leftY).toBeLessThan(80);
     expect(rightY).toBeLessThan(80);
