@@ -160,13 +160,22 @@ describe('the coach mark snooze day', () => {
     expect(storage.store[ONBOARDING_KEY]).toEqual(merged);
   });
 
-  it('keeps a later day another tab wrote over an earlier one', async () => {
+  it('replaces a later day, which only a clock set ahead leaves', async () => {
     const storage = createMemoryStorage({
-      [ONBOARDING_KEY]: { schemaVersion: 1, coachMarkSnoozedOn: '2026-11-21' },
+      [ONBOARDING_KEY]: { schemaVersion: 1, coachMarkSnoozedOn: '2030-01-01' },
     });
     const repo = createOnboardingRepository(storage);
     const merged = await repo.patch({ coachMarkSnoozedOn: '2026-11-20' });
-    expect(merged.coachMarkSnoozedOn).toBe('2026-11-21');
+    expect(merged.coachMarkSnoozedOn).toBe('2026-11-20');
+    expect(storage.store[ONBOARDING_KEY]).toEqual(merged);
+  });
+
+  it('writes nothing when the same day is stored already', async () => {
+    const storage = createMemoryStorage({
+      [ONBOARDING_KEY]: { schemaVersion: 1, coachMarkSnoozedOn: '2026-11-20' },
+    });
+    const repo = createOnboardingRepository(storage);
+    await repo.patch({ coachMarkSnoozedOn: '2026-11-20' });
     expect(storage.set).not.toHaveBeenCalled();
   });
 

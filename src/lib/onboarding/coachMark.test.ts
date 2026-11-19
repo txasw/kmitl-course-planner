@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest';
 import {
   isSelectorRoute,
   localDayStamp,
+  nextLocalDayStamp,
   shouldShowCoachMark,
   type CoachMarkInput,
 } from './coachMark';
 
 const SELECTOR = '#/teach_table_selector';
 const TODAY = '2026-11-20';
+const TOMORROW = '2026-11-21';
 
 function input(overrides: Partial<CoachMarkInput> = {}): CoachMarkInput {
   return {
@@ -18,6 +20,7 @@ function input(overrides: Partial<CoachMarkInput> = {}): CoachMarkInput {
     documentSuppressed: false,
     snoozedOn: undefined,
     today: TODAY,
+    tomorrow: TOMORROW,
     dismissedThisVisit: false,
     ...overrides,
   };
@@ -53,6 +56,16 @@ describe('localDayStamp', () => {
   it('reads the local calendar day at both ends of it', () => {
     expect(localDayStamp(new Date(2026, 10, 20, 0, 0, 0))).toBe(TODAY);
     expect(localDayStamp(new Date(2026, 10, 20, 23, 59, 59))).toBe(TODAY);
+  });
+});
+
+describe('nextLocalDayStamp', () => {
+  it('names the local day after, across a month and a year boundary', () => {
+    expect(nextLocalDayStamp(new Date(2026, 10, 20, 23, 59, 59))).toBe(
+      TOMORROW,
+    );
+    expect(nextLocalDayStamp(new Date(2026, 10, 30, 12))).toBe('2026-12-01');
+    expect(nextLocalDayStamp(new Date(2026, 11, 31, 0, 0))).toBe('2027-01-01');
   });
 });
 
@@ -103,14 +116,23 @@ describe('shouldShowCoachMark', () => {
     ).toBe(true);
   });
 
-  it('keeps quiet through a stored day after today, after the clock moved back', () => {
-    expect(shouldShowCoachMark(input({ snoozedOn: '2026-11-21' }))).toBe(false);
+  it('keeps quiet through a stored day one day ahead, after the clock moved back', () => {
+    expect(shouldShowCoachMark(input({ snoozedOn: TOMORROW }))).toBe(false);
+  });
+
+  it('shows past a stored day further ahead, which a clock set forward left', () => {
+    expect(shouldShowCoachMark(input({ snoozedOn: '2026-11-22' }))).toBe(true);
+    expect(shouldShowCoachMark(input({ snoozedOn: '2030-01-01' }))).toBe(true);
   });
 
   it('compares across a month and a year boundary', () => {
     expect(
       shouldShowCoachMark(
-        input({ snoozedOn: '2026-12-31', today: '2027-01-01' }),
+        input({
+          snoozedOn: '2026-12-31',
+          today: '2027-01-01',
+          tomorrow: '2027-01-02',
+        }),
       ),
     ).toBe(true);
   });

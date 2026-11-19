@@ -35,6 +35,13 @@ export function localDayStamp(at: Date): string {
   return `${String(at.getFullYear())}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}`;
 }
 
+/** The local calendar day after the one a moment falls on, as YYYY-MM-DD. */
+export function nextLocalDayStamp(at: Date): string {
+  return localDayStamp(
+    new Date(at.getFullYear(), at.getMonth(), at.getDate() + 1),
+  );
+}
+
 export interface CoachMarkInput {
   /** The plan and onboarding reads, the worker handshake and the welcome decision have
    * all settled. */
@@ -50,15 +57,24 @@ export interface CoachMarkInput {
   snoozedOn: string | undefined;
   /** Today's local day stamp. */
   today: string;
+  /** Tomorrow's local day stamp. */
+  tomorrow: string;
   /** The student dismissed the coach mark during the current visit of the route. */
   dismissedThisVisit: boolean;
 }
 
-// A stamp after today only exists when the clock moved back since it was written. The
-// stored day only ever moves forward, so it is read the same way: as quiet through that
-// day, which keeps the choice the student made rather than reopening it.
-function snoozedThrough(snoozedOn: string | undefined, today: string): boolean {
-  return snoozedOn !== undefined && snoozedOn >= today;
+// A stamp after today only exists when the clock moved back since it was written. One
+// day ahead is a small correction or a time zone crossed, so it keeps the choice the
+// student made rather than reopening it. A stamp further ahead was written under a clock
+// set far forward; honouring it would silence the coach mark until that date with no way
+// for the student to undo it, so it reads as no choice at all and the next Not again
+// today replaces it.
+function snoozedNow(
+  snoozedOn: string | undefined,
+  today: string,
+  tomorrow: string,
+): boolean {
+  return snoozedOn === today || snoozedOn === tomorrow;
 }
 
 /** Whether the coach mark shows now. */
@@ -70,6 +86,6 @@ export function shouldShowCoachMark(input: CoachMarkInput): boolean {
     !input.welcomeOpen &&
     !input.documentSuppressed &&
     !input.dismissedThisVisit &&
-    !snoozedThrough(input.snoozedOn, input.today)
+    !snoozedNow(input.snoozedOn, input.today, input.tomorrow)
   );
 }
