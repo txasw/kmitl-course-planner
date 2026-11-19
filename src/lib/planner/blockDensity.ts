@@ -10,12 +10,16 @@
 //
 // The priority inverts the usual reading order because position carries the time. Drop order,
 // first dropped to last: the subject id, then the English name, then the time (redundant here,
-// the row and extent encode it), then the section chip, then the name reduces from two clamped
-// lines to one, then the place. The name alone never drops. Two constraints are binding: the
-// place outlives the name's second line, since a one line ellipsized name still identifies the
-// course while a lost room is recoverable nowhere else on the sheet, and the time never outlives
-// the place, since the place is the field position cannot encode. The time is kept present as a
-// quiet foot line rather than deleted, so a ninety minute block still reads its exact minutes.
+// the row and extent encode it), then the name gives up the lines past its second, then the
+// section chip, then the name reduces from two clamped lines to one, then the place. The name
+// alone never drops. At full density the name is not clamped, so a name the box can hold shows
+// in full (the ADR-0047 amendment of 2026-11-20); its first reduction clamps it to the lines
+// that fit in one step, from a measurement the caller passes, and never below two. Two
+// constraints are binding: the place outlives the name's second line, since a one line
+// ellipsized name still identifies the course while a lost room is recoverable nowhere else on
+// the sheet, and the time never outlives the place, since the place is the field position
+// cannot encode. The time is kept present as a quiet foot line rather than deleted, so a ninety
+// minute block still reads its exact minutes.
 
 /** Which fields a block could show before any measurement, from its data and the display
  * options. `mask` is a stable primitive so a reset key can compare eligibility cheaply. */
@@ -28,16 +32,31 @@ export interface DensityEligibility {
   mask: string;
 }
 
-/** A chosen field set for one block. `nameLines` is never 0: the name is the primary anchor and
- * always shows at least one clamped line. The time can drop because position encodes it. */
+/** How many lines the name may take: every line it needs, or a clamp of at least one line. */
+export type NameLines = 'all' | number;
+
+/** A chosen field set for one block. `nameLines` is never below 1: the name is the primary
+ * anchor and always shows at least one clamped line. The time can drop because position
+ * encodes it. */
 export interface DensityLevel {
-  nameLines: 1 | 2;
+  nameLines: NameLines;
   showEnglish: boolean;
   showPlace: boolean;
   showSection: boolean;
   showTime: boolean;
   showId: boolean;
 }
+
+/** What the block measured of its name when its content overflowed: the lines the name now
+ * renders, and how many lines of content stand past the box. The ladder uses it to clamp the
+ * name to the lines that fit in one step rather than a line at a time. */
+export interface NameFit {
+  lines: number;
+  excessLines: number;
+}
+
+/** The fewest lines the name keeps while the section chip still shows. */
+const NAME_LINES_BEFORE_SECTION = 2;
 
 /** Build the eligibility from the raw field predicates, deriving the stable mask. */
 export function buildEligibility(
@@ -48,12 +67,12 @@ export function buildEligibility(
   return { ...e, mask };
 }
 
-/** The fullest level for an eligibility: every eligible field shown, the name at two lines, the
+/** The fullest level for an eligibility: every eligible field shown, the name unclamped, the
  * time present. The time is always eligible on a placed meeting, so it is not an eligibility
  * predicate. */
 export function fullLevel(e: DensityEligibility): DensityLevel {
   return {
-    nameLines: 2,
+    nameLines: 'all',
     showEnglish: e.hasEnglish,
     showPlace: e.hasPlace,
     showSection: e.hasSection,
@@ -74,12 +93,35 @@ export function sameLevel(a: DensityLevel, b: DensityLevel): boolean {
   );
 }
 
-/** The next sparser level, dropping exactly one field in the fixed priority, or null when only
- * the name remains and nothing more can yield. A field already absent is skipped, so an
- * eligibility that never had a field walks straight past its rung. The name reduction to one
- * line comes before the place drops, so the place outlives the name's second line; the time
- * drops before both, so it never outlives the place. */
-export function nextDensityLevel(level: DensityLevel): DensityLevel | null {
+/** Whether the name may still give up lines before the section chip drops: it is unclamped,
+ * or clamped above two lines. */
+function nameAboveSectionFloor(nameLines: NameLines): boolean {
+  return nameLines === 'all' || nameLines > NAME_LINES_BEFORE_SECTION;
+}
+
+/** The clamp that sheds the measured excess, never below two lines. Without a measurement the
+ * clamp falls straight to two lines. */
+function clampToFit(nameLines: NameLines, fit: NameFit | undefined): number {
+  if (fit === undefined) {
+    return NAME_LINES_BEFORE_SECTION;
+  }
+  const current = nameLines === 'all' ? fit.lines : nameLines;
+  return Math.max(
+    NAME_LINES_BEFORE_SECTION,
+    current - Math.max(1, fit.excessLines),
+  );
+}
+
+/** The next sparser level, dropping exactly one field or clamping the name in the fixed
+ * priority, or null when only the one line name remains and nothing more can yield. A field
+ * already absent is skipped, so an eligibility that never had a field walks straight past its
+ * rung. The name clamps past its second line before the section chip drops and reduces to one
+ * line before the place drops, so the place outlives the name's second line; the time drops
+ * before both, so it never outlives the place. */
+export function nextDensityLevel(
+  level: DensityLevel,
+  fit?: NameFit,
+): DensityLevel | null {
   if (level.showId) {
     return { ...level, showId: false };
   }
@@ -89,10 +131,13 @@ export function nextDensityLevel(level: DensityLevel): DensityLevel | null {
   if (level.showTime) {
     return { ...level, showTime: false };
   }
+  if (nameAboveSectionFloor(level.nameLines)) {
+    return { ...level, nameLines: clampToFit(level.nameLines, fit) };
+  }
   if (level.showSection) {
     return { ...level, showSection: false };
   }
-  if (level.nameLines === 2) {
+  if (level.nameLines !== 1) {
     return { ...level, nameLines: 1 };
   }
   if (level.showPlace) {

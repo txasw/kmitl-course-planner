@@ -12,8 +12,8 @@
 // in the edit grid alike the content is measured against the box and whole low
 // priority fields are dropped rather than a line clipped mid glyph: the fit walks the
 // density ladder in useDensityFit, dropping the subject id, then the English name, then the
-// time, then the section chip, then reducing the name to one line, then the place, with the
-// name never dropping (ADR-0046, ADR-0047). The place outlives the name's second line and
+// time, then clamping the name to the lines that fit, then the section chip, then reducing
+// the name to one line, then the place, with the name never dropping (ADR-0046, ADR-0047). The place outlives the name's second line and
 // the time never outlives the place. The edit block keeps its tighter line height and always
 // carries the subject id for cross referencing, so the id is the first field it drops; the
 // hover card and the details still show it (ADR-0050). The edit fit pauses during a drag.
@@ -312,8 +312,14 @@ function EventBlockComponent({
           className="flex min-h-0 flex-1 flex-col overflow-hidden"
         >
           <span
+            data-fit-name
             lang={locale}
-            className={`${level.nameLines === 2 ? 'line-clamp-2' : 'line-clamp-1'} shrink-0 pr-6 font-semibold break-words hyphens-auto`}
+            className={`${level.nameLines === 'all' ? '' : 'overflow-hidden [display:-webkit-box] [-webkit-box-orient:vertical]'} shrink-0 pr-6 font-semibold break-words hyphens-auto`}
+            style={
+              level.nameLines === 'all'
+                ? undefined
+                : { WebkitLineClamp: level.nameLines }
+            }
           >
             {name}
           </span>

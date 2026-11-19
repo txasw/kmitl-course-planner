@@ -4,7 +4,9 @@
 // set and demotes one rung at a time until the content fits, all inside a layout effect so
 // the settled field set is committed before the browser paints and before the poster is
 // captured. The measured element is the content wrapper only, so the absolute chip and badges
-// never contaminate the height.
+// never contaminate the height. When the ladder reaches the name, the hook also reads how many
+// lines the name renders and how many lines of content stand past the box, so the name clamps
+// to the lines that fit in one step rather than one line per pass.
 //
 // Convergence and no loop: within one reset key the level is monotonic down, and a demotion
 // only hides a field, which never changes the block's box size (the cell size comes from the
@@ -32,6 +34,7 @@ import {
   sameLevel,
   type DensityEligibility,
   type DensityLevel,
+  type NameFit,
 } from '@/lib/planner/blockDensity';
 import { useFontsReady } from './fontsReady';
 
@@ -39,6 +42,31 @@ import { useFontsReady } from './fontsReady';
 // threshold sits just above zero and biases to the safe side: it would rather drop a field
 // that barely fit, which the text export still carries, than keep one clipped by a pixel.
 const OVERFLOW_EPS = 0.5;
+
+/** The marker on the name element inside a measured content wrapper. */
+const FIT_NAME_ATTR = 'data-fit-name';
+
+/** Read how many lines the name renders and how many lines of content stand past the box, so
+ * the ladder can clamp the name to what fits in one step. Layout sizes, not client rects, so a
+ * scale transform on the poster stage never skews the count. Absent when the block has no
+ * marked name or the line height does not resolve to pixels. */
+function measureNameFit(
+  content: HTMLElement,
+  overflow: number,
+): NameFit | undefined {
+  const name = content.querySelector<HTMLElement>(`[${FIT_NAME_ATTR}]`);
+  if (name === null) {
+    return undefined;
+  }
+  const lineHeight = parseFloat(getComputedStyle(name).lineHeight);
+  if (!(lineHeight > 0)) {
+    return undefined;
+  }
+  return {
+    lines: Math.max(1, Math.round(name.offsetHeight / lineHeight)),
+    excessLines: Math.ceil((overflow - OVERFLOW_EPS) / lineHeight),
+  };
+}
 
 /** Choose the field set for a block by measuring its content wrapper against its box.
  * `fitKey` encodes everything that changes the box pixel size, so a change resets the level
@@ -80,8 +108,9 @@ export function useDensityFit(
       }
     }
     // Measure the committed content and demote one rung while it overflows.
-    if (el.scrollHeight - el.clientHeight > OVERFLOW_EPS) {
-      const next = nextDensityLevel(level);
+    const overflow = el.scrollHeight - el.clientHeight;
+    if (overflow > OVERFLOW_EPS) {
+      const next = nextDensityLevel(level, measureNameFit(el, overflow));
       if (next !== null) {
         setLevel(next);
       }

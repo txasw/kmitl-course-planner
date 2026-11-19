@@ -5,6 +5,7 @@ import {
   sameLevel,
   nextDensityLevel,
   type DensityLevel,
+  type NameFit,
 } from './blockDensity';
 
 const allEligible = buildEligibility({
@@ -16,15 +17,24 @@ const allEligible = buildEligibility({
 });
 
 /** Walk the ladder from a starting level to the terminus, collecting every level. */
-function walk(start: DensityLevel): DensityLevel[] {
+function walk(start: DensityLevel, fit?: NameFit): DensityLevel[] {
   const steps: DensityLevel[] = [];
   let level: DensityLevel | null = start;
   while (level !== null) {
     steps.push(level);
-    level = nextDensityLevel(level);
+    level = nextDensityLevel(level, fit);
   }
   return steps;
 }
+
+const bare: DensityLevel = {
+  nameLines: 1,
+  showEnglish: false,
+  showPlace: false,
+  showSection: false,
+  showTime: false,
+  showId: false,
+};
 
 describe('buildEligibility', () => {
   it('derives a stable mask that distinguishes field sets', () => {
@@ -48,9 +58,9 @@ describe('buildEligibility', () => {
 });
 
 describe('fullLevel', () => {
-  it('shows every eligible field with the name at two lines and the time on', () => {
+  it('shows every eligible field with the name in full and the time on', () => {
     expect(fullLevel(allEligible)).toEqual({
-      nameLines: 2,
+      nameLines: 'all',
       showEnglish: true,
       showPlace: true,
       showSection: true,
@@ -68,7 +78,7 @@ describe('fullLevel', () => {
       hasPlace: false,
     });
     expect(fullLevel(noEnglishNoPlace)).toEqual({
-      nameLines: 2,
+      nameLines: 'all',
       showEnglish: false,
       showPlace: false,
       showSection: true,
@@ -80,38 +90,18 @@ describe('fullLevel', () => {
 
 describe('nextDensityLevel', () => {
   it('walks the inverted drop order, id first and the name last', () => {
-    expect(walk(fullLevel(allEligible))).toEqual([
+    const full = fullLevel(allEligible);
+    expect(walk(full)).toEqual([
+      full,
+      { ...full, showId: false },
+      { ...full, showId: false, showEnglish: false },
+      { ...full, showId: false, showEnglish: false, showTime: false },
       {
-        nameLines: 2,
-        showEnglish: true,
-        showPlace: true,
-        showSection: true,
-        showTime: true,
-        showId: true,
-      },
-      {
-        nameLines: 2,
-        showEnglish: true,
-        showPlace: true,
-        showSection: true,
-        showTime: true,
+        ...full,
         showId: false,
-      },
-      {
-        nameLines: 2,
         showEnglish: false,
-        showPlace: true,
-        showSection: true,
-        showTime: true,
-        showId: false,
-      },
-      {
-        nameLines: 2,
-        showEnglish: false,
-        showPlace: true,
-        showSection: true,
         showTime: false,
-        showId: false,
+        nameLines: 2,
       },
       {
         nameLines: 2,
@@ -129,33 +119,70 @@ describe('nextDensityLevel', () => {
         showTime: false,
         showId: false,
       },
-      {
-        nameLines: 1,
-        showEnglish: false,
-        showPlace: false,
-        showSection: false,
-        showTime: false,
-        showId: false,
-      },
+      bare,
     ]);
   });
 
   it('never drops the name below one line', () => {
-    const bare: DensityLevel = {
-      nameLines: 1,
-      showEnglish: false,
-      showPlace: false,
-      showSection: false,
-      showTime: false,
-      showId: false,
-    };
     expect(nextDensityLevel(bare)).toBeNull();
+    expect(nextDensityLevel(bare, { lines: 4, excessLines: 9 })).toBeNull();
+  });
+
+  it('clamps a full name to the lines that fit in one step', () => {
+    // Six rendered lines with two lines of content past the box keep four.
+    const level: DensityLevel = { ...bare, nameLines: 'all', showPlace: true };
+    expect(nextDensityLevel(level, { lines: 6, excessLines: 2 })).toEqual({
+      ...level,
+      nameLines: 4,
+    });
+  });
+
+  it('keeps shedding lines from a clamp still above two', () => {
+    const level: DensityLevel = { ...bare, nameLines: 4, showSection: true };
+    expect(nextDensityLevel(level, { lines: 4, excessLines: 1 })).toEqual({
+      ...level,
+      nameLines: 3,
+    });
+  });
+
+  it('never clamps below two lines while the section chip shows', () => {
+    const level: DensityLevel = {
+      ...bare,
+      nameLines: 'all',
+      showSection: true,
+    };
+    expect(nextDensityLevel(level, { lines: 3, excessLines: 5 })).toEqual({
+      ...level,
+      nameLines: 2,
+    });
+  });
+
+  it('sheds at least one line even when the measured excess rounds to none', () => {
+    const level: DensityLevel = { ...bare, nameLines: 5 };
+    expect(nextDensityLevel(level, { lines: 5, excessLines: 0 })).toEqual({
+      ...level,
+      nameLines: 4,
+    });
+  });
+
+  it('falls to two lines when no measurement is passed', () => {
+    const level: DensityLevel = { ...bare, nameLines: 'all' };
+    expect(nextDensityLevel(level)).toEqual({ ...level, nameLines: 2 });
+  });
+
+  it('clamps the name only after the time drops', () => {
+    // The time is redundant on a positioned block, so it goes before the name loses a line.
+    const steps = walk(fullLevel(allEligible), { lines: 5, excessLines: 1 });
+    const timeDropped = steps.findIndex((s) => !s.showTime);
+    const nameClamped = steps.findIndex((s) => s.nameLines !== 'all');
+    expect(timeDropped).toBeGreaterThanOrEqual(0);
+    expect(nameClamped).toBeGreaterThan(timeDropped);
   });
 
   it('keeps the place alive past the name second line', () => {
     // Binding constraint: a one line ellipsized name still identifies the course while a lost
     // room is unrecoverable, so the name must reduce to one line before the place drops.
-    const steps = walk(fullLevel(allEligible));
+    const steps = walk(fullLevel(allEligible), { lines: 4, excessLines: 1 });
     const nameReduced = steps.findIndex((s) => s.nameLines === 1);
     const placeDropped = steps.findIndex((s) => !s.showPlace);
     expect(nameReduced).toBeGreaterThanOrEqual(0);
@@ -193,17 +220,11 @@ describe('nextDensityLevel', () => {
       false,
       false,
       false,
+      false,
     ]);
     expect(steps[1]).toEqual({ ...fullLevel(edit), showId: false });
     expect(steps[2]?.showTime).toBe(false);
-    expect(steps.at(-1)).toEqual({
-      nameLines: 1,
-      showEnglish: false,
-      showPlace: false,
-      showSection: false,
-      showTime: false,
-      showId: false,
-    });
+    expect(steps.at(-1)).toEqual(bare);
   });
 
   it('skips a rung for a field the block never had', () => {
@@ -230,5 +251,8 @@ describe('sameLevel', () => {
     expect(sameLevel(base, { ...base })).toBe(true);
     expect(sameLevel(base, { ...base, showTime: false })).toBe(false);
     expect(sameLevel(base, { ...base, nameLines: 1 })).toBe(false);
+    expect(
+      sameLevel({ ...base, nameLines: 3 }, { ...base, nameLines: 2 }),
+    ).toBe(false);
   });
 });
