@@ -631,7 +631,10 @@ layout overlaps or clips text, and every label shows in full.
   the icon rather than over it, and its name reads the count. The sort is the same select only
   combobox drawn as an icon, named by its label and the chosen order. The text field drops its
   visible label; the search glyph and the hint name it for the eye and the label names it for
-  assistive technology. Active facets still show as removable chips under the row.
+  assistive technology. Since the hint is then the only visible name, it is kept short enough
+  to show whole at 360 px beside the facet badge in both languages, which was measured in the
+  built extension because a placeholder is not a text node the layout spec can see. Active
+  facets still show as removable chips under the row.
 - A course card shows the other language's name as a secondary line under the primary name,
   in muted ink, wrapping and never clamped, on a collapsed card as well as an open one, as
   section 6.7 of the brief asks. It describes the card toggle after the primary name and the
