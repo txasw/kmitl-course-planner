@@ -136,8 +136,8 @@
   --kcp-danger-zone: #fcf2f2;
   --kcp-danger-zone-over: #f8e5e5;
   --kcp-radius: 8px;
-  /* The control radius between the card and the nested inner radius, for buttons,
-     chips, and event blocks that sit on a card or in a grid cell. */
+  /* The control radius between the card and the nested inner radius, for buttons and
+     chips that sit on a card or in a grid cell. The soft card keeps the card radius. */
   --kcp-radius-sm: 6px;
   /* The smaller radius for elements that sit inside a rounded container, such as
      badges, chips, and the inline conflict callout, so a nested corner reads
@@ -274,7 +274,10 @@
    through --kcp-tint, or the muted ink for a neutral card, so the fill, the edge, and
    the shadow all derive from one color. It is a utility rather than a token because a
    custom property declared on the host resolves its var() references there, so only a
-   rule on the element itself can read the element's own tint. */
+   rule on the element itself can read the element's own tint. The tint inherits, so a
+   neutral card nested inside a tinted element sets --kcp-tint to the muted ink itself.
+   The left accent stripe of an event block belongs to the block component, not to this
+   utility, so a neutral card carries no stripe. */
 @utility kcp-soft-card {
   border-radius: var(--kcp-radius);
   background-color: var(--kcp-surface);

@@ -15,8 +15,8 @@ may overlap or clip text, and every label shows in full.
 The current tokens cannot express that treatment. There are two text steps, ink and ink soft, but
 the redesign uses a third, quieter step for metadata such as hour labels, counts, and a card's
 foot line. There is no recessed surface for a field or icon tile set into a card. The radius
-scale jumps from the 8 px card to the 4 px inner radius with nothing for a button, chip, or event
-block. The one shadow is the overlay shadow, too heavy for a card.
+scale jumps from the 8 px card to the 4 px inner radius with nothing for a button or chip. The
+one shadow is the overlay shadow, too heavy for a card.
 
 ## Decision
 
@@ -37,7 +37,14 @@ at the top to `--kcp-tint-weak` (8 percent) from 70 percent down. The edge is th
 `--kcp-tint-edge` (28 percent), then the white top highlight, then a light shadow of the tint at
 `--kcp-tint-shadow` (16 percent). The card is a utility rather than a token because a custom
 property declared on the host resolves its `var()` references on the host, so it cannot follow a
-tint that each card sets for itself.
+tint that each card sets for itself. The card keeps the 8 px card radius.
+
+Because `--kcp-tint` is an inherited custom property, a neutral card nested inside a tinted
+element, such as a popover inside an event block subtree, would take the ancestor's tint. Such a
+card sets `--kcp-tint: var(--kcp-ink-muted)` itself. Registering the property with
+`inherits: false` was rejected because `@property` is ignored inside a shadow root. The redesign
+draws a 3 px left accent stripe of the tint on an event block. That stripe belongs to the event
+block component and is left out of the utility on purpose, so a neutral card has no stripe.
 
 Neutrals stay cool. The new greys carry a slight blue bias, like the existing `--kcp-surface-alt`
 `#F7F7F8`, `--kcp-border` `#E4E4E7`, and `--kcp-border-strong` `#838389`, and the neutral card
