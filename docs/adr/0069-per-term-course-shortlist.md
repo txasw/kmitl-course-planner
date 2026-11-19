@@ -1,7 +1,17 @@
 # 69. Per term course shortlist
 
-Status: Accepted
+Status: Withdrawn
 Date: 2026-11-14
+Withdrawn: 2026-11-20
+
+## Withdrawal
+
+The owner withdrew the shortlist on 2026-11-20 on feedback from students who tried the build and
+asked for the bookmark to be removed. The bookmark, the saved filter chip, the catalog store
+slice, and the `shortlist` preferences field are removed. A preferences blob that still holds the
+field loads as before, because the preferences object schema strips keys it does not know, so no
+schema version bump is needed and the stale field drops on the next preferences write. The record
+below is kept as written for history.
 
 ## Context
 
