@@ -6,7 +6,7 @@
 // open page, or a manifest without a version yields null, and the UI then shows no
 // version rather than a broken one.
 
-export interface ManifestWithVersion {
+interface ManifestWithVersion {
   version?: unknown;
 }
 
