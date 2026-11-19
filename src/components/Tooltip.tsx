@@ -58,6 +58,11 @@ export function Tooltip({
 }: TooltipProps) {
   const [open, setOpen] = useState(false);
   const portalRoot = usePanelPortal();
+  // A disabled tooltip counts as shut everywhere, not only in what it renders: a
+  // hover or focus that opened it before the trigger disabled it would otherwise keep
+  // the Escape listener armed, and that capture listener stops the keystroke before
+  // the trigger's own Escape handler, such as a combobox closing its list, can run.
+  const shown = open && !disabled;
 
   const {
     refs,
@@ -65,7 +70,7 @@ export function Tooltip({
     context,
     placement: resolvedPlacement,
   } = useFloating({
-    open,
+    open: shown,
     onOpenChange: setOpen,
     strategy: 'fixed',
     placement,
@@ -108,20 +113,19 @@ export function Tooltip({
   const dismiss = useCallback(() => {
     setOpen(false);
   }, []);
-  useEscapeDismiss(open, dismiss);
+  useEscapeDismiss(shown, dismiss);
 
-  const content =
-    open && !disabled ? (
-      <div
-        ref={setFloating}
-        style={floatingStyles}
-        {...getFloatingProps()}
-        data-placement={resolvedPlacement}
-        className="z-tooltip max-w-56 rounded-kcp border border-border bg-surface px-2 py-1 text-xs text-ink shadow-kcp"
-      >
-        {label}
-      </div>
-    ) : null;
+  const content = shown ? (
+    <div
+      ref={setFloating}
+      style={floatingStyles}
+      {...getFloatingProps()}
+      data-placement={resolvedPlacement}
+      className="z-tooltip max-w-56 rounded-kcp border border-border bg-surface px-2 py-1 text-xs text-ink shadow-kcp"
+    >
+      {label}
+    </div>
+  ) : null;
 
   return (
     <>
