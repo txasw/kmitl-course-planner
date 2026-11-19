@@ -13,8 +13,13 @@ import { placedSections } from './transaction';
 const monday = [makeMeeting({ day: 1, startMin: 540, endMin: 720 })];
 const tuesday = [makeMeeting({ day: 2, startMin: 540, endMin: 720 })];
 
+/** Every subject of the given courses, ticked. */
+function ticked(...courses: { subjectId: string }[]): Set<string> {
+  return new Set(courses.map((course) => course.subjectId));
+}
+
 describe('suggestCandidates', () => {
-  it('keeps curriculum courses that are not already in the plan', () => {
+  it('keeps ticked courses that are not already in the plan', () => {
     const general = makeCourse({ subjectId: '90000001' });
     const placed = curriculumCourse('11111111', [{}]);
     const open = curriculumCourse('22222222', [{}]);
@@ -23,10 +28,23 @@ describe('suggestCandidates', () => {
     });
     const candidates = suggestCandidates(
       [general, placed, open],
+      ticked(placed, open),
       [entry],
       placedSections([entry]),
     );
     expect(candidates.map((c) => c.course.subjectId)).toEqual(['22222222']);
+  });
+
+  it('takes a ticked general course and drops an unticked curriculum one', () => {
+    const general = makeCourse({ subjectId: '90000001' });
+    const curriculum = curriculumCourse('11111111', [{}]);
+    const candidates = suggestCandidates(
+      [general, curriculum],
+      ticked(general),
+      [],
+      [],
+    );
+    expect(candidates.map((c) => c.course.subjectId)).toEqual(['90000001']);
   });
 
   it('drops full, closed, and locked clashing groups from the options', () => {
@@ -46,7 +64,7 @@ describe('suggestCandidates', () => {
         meetings: monday,
       }),
     ];
-    const [candidate] = suggestCandidates([course], [], locked);
+    const [candidate] = suggestCandidates([course], ticked(course), [], locked);
     expect(candidate?.open.map((g) => g.map((s) => s.section))).toEqual([
       ['1'],
       ['2'],
@@ -61,8 +79,16 @@ describe('suggestCandidates', () => {
       { pairedSection: '2', meetings: monday },
       { kind: 'practice', pairedSection: '1', meetings: tuesday },
     ]);
-    const single = curriculumCourse('66666666', [{}, {}]);
-    const candidates = suggestCandidates([paired, single], [], []);
+    const single = curriculumCourse('66666666', [
+      { meetings: monday },
+      { meetings: tuesday },
+    ]);
+    const candidates = suggestCandidates(
+      [paired, single],
+      ticked(paired, single),
+      [],
+      [],
+    );
     expect(
       candidates[0]?.options.map((o) => o.choice.group.map((s) => s.section)),
     ).toEqual([['1', '2']]);

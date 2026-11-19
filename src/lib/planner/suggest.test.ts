@@ -416,7 +416,7 @@ describe('suggestPlans on synthetic courses', () => {
     ]);
   });
 
-  it('ignores general courses', () => {
+  it('ignores general courses unless they are ticked', () => {
     const general = makeCourse({ subjectId: '88888888' });
     const { suggestions } = suggestPlans({
       courses: [general],
@@ -425,6 +425,30 @@ describe('suggestPlans on synthetic courses', () => {
       preference: 'balanced',
     });
     expect(suggestions.map((s) => [s.choices, s.leftOut])).toEqual([[[], []]]);
+    const [best] = suggestPlans({
+      courses: [general],
+      subjects: new Set(['88888888']),
+      locked: [],
+      objective: 'coverAll',
+      preference: 'balanced',
+    }).suggestions;
+    expect(best?.choices.map((c) => c.course.subjectId)).toEqual(['88888888']);
+  });
+
+  it('leaves an unticked curriculum course out without a reason', () => {
+    const a = curriculumCourse('11111111', [{}]);
+    const b = curriculumCourse('22222222', [
+      { meetings: [makeMeeting({ day: 3 })] },
+    ]);
+    const [best] = suggestPlans({
+      courses: [a, b],
+      subjects: new Set(['22222222']),
+      locked: [],
+      objective: 'coverAll',
+      preference: 'balanced',
+    }).suggestions;
+    expect(best?.choices.map((c) => c.course.subjectId)).toEqual(['22222222']);
+    expect(best?.leftOut).toEqual([]);
   });
 
   // The default cap is the subject here, so the test walks every one of its nodes;
