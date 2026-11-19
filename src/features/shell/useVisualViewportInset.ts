@@ -6,19 +6,21 @@
 // scroller's box is never scrolled, because that box runs under the keyboard too.
 //
 // While active the hook follows window.visualViewport and sets the top and bottom inset
-// as custom properties on the panel node, where the layers that place themselves with
-// VIEWPORT_FIT read them: the panel itself, and the sheets and dialogs portalled into it
-// by inheritance. When the visible area shrinks, the focused text field inside
-// the panel is scrolled into view within its own scroller, since the browser scrolled it
-// for the taller panel when it took focus. A browser without the visual viewport API, and
-// any desktop browser, whose visual viewport matches the layout one, keeps the full
-// viewport. Leaving clears the properties.
+// as custom properties on the panel node, measured against the band the panel itself
+// resolves against. The layers that place themselves with VIEWPORT_FIT read them: the
+// panel itself, and the sheets and dialogs portalled into it by inheritance. When the
+// visible area shrinks, the focused text field inside the panel is scrolled into view
+// within its own scroller, since the browser scrolled it for the taller panel when it
+// took focus. A browser without the visual viewport API, and any desktop browser, whose
+// visual viewport matches the layout one, keeps the full viewport. Leaving clears the
+// properties.
 
 import { useLayoutEffect, type RefObject } from 'react';
 import {
   NO_INSET,
   VIEWPORT_BOTTOM_PROPERTY,
   VIEWPORT_TOP_PROPERTY,
+  bandBehind,
   sameInset,
   viewportInset,
   type ViewportInset,
@@ -58,7 +60,7 @@ export function useVisualViewportInset(
     let applied = NO_INSET;
     const update = () => {
       const next = viewportInset(
-        document.documentElement.clientHeight,
+        bandBehind(node.getBoundingClientRect(), applied),
         viewport,
       );
       if (sameInset(next, applied)) {

@@ -4,6 +4,13 @@
 // keyboard. The inset is the band above and below the visual viewport, so a fixed layer
 // that takes it as its top and bottom fits the part of the screen the keyboard leaves.
 //
+// The band a fixed layer resolves against is measured from a layer that fills it, not
+// read from documentElement.clientHeight. On a phone that height is the initial
+// containing block, sized with the browser toolbar shown, while a fixed layer follows the
+// layout viewport, which grows by the toolbar height whenever the browser hides its
+// toolbar, so an inset taken from it would leave the foot of the layer that far under the
+// keyboard.
+//
 // A pinch zoom also shrinks the visual viewport, but there the student pans around a
 // magnified page on purpose, so a zoomed viewport reports no inset and the layer keeps
 // its layout. Each side is floored to whole pixels and never negative, because a desktop
@@ -28,6 +35,12 @@ export interface ViewportInset {
   bottom: number;
 }
 
+/** The top and bottom edges of the box a fixed layer resolves against, in client pixels. */
+export interface LayoutBand {
+  top: number;
+  bottom: number;
+}
+
 /** The visual viewport fields the inset reads, as window.visualViewport reports them. */
 export interface VisualViewportBox {
   offsetTop: number;
@@ -41,18 +54,29 @@ export const NO_INSET: ViewportInset = { top: 0, bottom: 0 };
 const SCALE_TOLERANCE = 0.01;
 
 export function viewportInset(
-  layoutHeight: number,
+  layout: LayoutBand,
   viewport: VisualViewportBox,
 ): ViewportInset {
   if (Math.abs(viewport.scale - 1) > SCALE_TOLERANCE) {
     return NO_INSET;
   }
-  const top = Math.max(0, Math.floor(viewport.offsetTop));
+  const top = Math.max(0, Math.floor(viewport.offsetTop - layout.top));
   const bottom = Math.max(
     0,
-    Math.floor(layoutHeight - viewport.offsetTop - viewport.height),
+    Math.floor(layout.bottom - viewport.offsetTop - viewport.height),
   );
   return top === 0 && bottom === 0 ? NO_INSET : { top, bottom };
+}
+
+/**
+ * The band behind a fixed layer that takes the inset, from its client rect and the inset
+ * it currently carries: the layer sits that far inside the band on each side.
+ */
+export function bandBehind(
+  rect: LayoutBand,
+  applied: ViewportInset,
+): LayoutBand {
+  return { top: rect.top - applied.top, bottom: rect.bottom + applied.bottom };
 }
 
 export function sameInset(a: ViewportInset, b: ViewportInset): boolean {

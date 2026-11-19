@@ -4,34 +4,23 @@ import { createRoot } from 'react-dom/client';
 import { useRef } from 'react';
 import {
   VIEWPORT_BOTTOM_PROPERTY,
+  VIEWPORT_FIT,
   VIEWPORT_TOP_PROPERTY,
 } from '@/lib/ui/viewportInset';
 import { useVisualViewportInset } from './useVisualViewportInset';
 
+import {
+  installVisualViewport,
+  type FakeVisualViewport,
+} from '../../../tests/support/visualViewport';
+
 const LAYOUT_HEIGHT = 844;
-
-// A stand in for window.visualViewport, which jsdom does not implement: the fields the
-// hook reads and the resize and scroll events a phone browser fires as its keyboard
-// opens and as it pans the visual viewport.
-class FakeVisualViewport extends EventTarget {
-  offsetTop = 0;
-  height = LAYOUT_HEIGHT;
-  scale = 1;
-
-  move(next: { offsetTop?: number; height?: number }, type: string): void {
-    this.offsetTop = next.offsetTop ?? this.offsetTop;
-    this.height = next.height ?? this.height;
-    act(() => {
-      this.dispatchEvent(new Event(type));
-    });
-  }
-}
 
 function Panel({ active = true }: { active?: boolean }) {
   const ref = useRef<HTMLDivElement | null>(null);
   useVisualViewportInset(ref, active);
   return (
-    <div ref={ref} data-testid="panel">
+    <div ref={ref} data-testid="panel" className={`fixed ${VIEWPORT_FIT}`}>
       <input aria-label="Curriculum" />
       <button type="button">Search</button>
     </div>
@@ -46,18 +35,14 @@ const nativeScrollIntoView = Object.getOwnPropertyDescriptor(
 );
 
 beforeEach(() => {
-  viewport = new FakeVisualViewport();
-  vi.stubGlobal('visualViewport', viewport);
-  Object.defineProperty(document.documentElement, 'clientHeight', {
-    configurable: true,
-    value: LAYOUT_HEIGHT,
-  });
+  viewport = installVisualViewport(LAYOUT_HEIGHT);
   scrollIntoView.mockReset();
   Element.prototype.scrollIntoView = scrollIntoView;
 });
 
 afterEach(() => {
   cleanup();
+  viewport.restore();
   vi.unstubAllGlobals();
   Reflect.deleteProperty(document.documentElement, 'clientHeight');
   if (nativeScrollIntoView === undefined) {
@@ -106,6 +91,25 @@ describe('useVisualViewportInset', () => {
       top: '100px',
       bottom: '324px',
     });
+  });
+
+  it('measures the band the panel resolves against, not the initial containing block', () => {
+    // A phone browser that hides its toolbar grows the layout viewport the fixed panel
+    // follows, while documentElement.clientHeight keeps the height with the toolbar shown.
+    Object.defineProperty(document.documentElement, 'clientHeight', {
+      configurable: true,
+      value: LAYOUT_HEIGHT,
+    });
+    viewport.setLayoutHeight(LAYOUT_HEIGHT + 56);
+    const { getByTestId } = render(<Panel />);
+    viewport.move({ height: 420 }, 'resize');
+    expect(insetOf(getByTestId('panel'))).toEqual({
+      top: '0px',
+      bottom: '480px',
+    });
+    // A later event measures the band through the inset the panel already carries.
+    viewport.move({ height: 400 }, 'resize');
+    expect(insetOf(getByTestId('panel')).bottom).toBe('500px');
   });
 
   it('reads an inset already open when the panel mounts', () => {
