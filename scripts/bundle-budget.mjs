@@ -10,6 +10,14 @@ export const BUNDLE_BUDGETS = Object.freeze({
   firefox: 305 * KIB,
 });
 
+/**
+ * The file name WXT gives a target's zip. It carries the package version, so a
+ * long lived .output that still holds an older release's zip is not ambiguous.
+ */
+export function zipFileName(version, browser) {
+  return `kmitl-course-planner-${version}-${browser}.zip`;
+}
+
 function formatKib(bytes) {
   return `${(bytes / KIB).toFixed(1)} KiB`;
 }

@@ -3,6 +3,7 @@ import {
   BUNDLE_BUDGETS,
   checkBundleSize,
   describeBundleSize,
+  zipFileName,
 } from '../../scripts/bundle-budget.mjs';
 
 describe('bundle budget', () => {
@@ -30,6 +31,12 @@ describe('bundle budget', () => {
   it('reports the size in KiB and bytes', () => {
     expect(describeBundleSize('chrome', 2048)).toBe(
       'chrome zip is 2.0 KiB (2048 bytes) against a budget of 305.0 KiB (312320 bytes)',
+    );
+  });
+
+  it('names the zip by version so an older release zip is not picked up', () => {
+    expect(zipFileName('1.6.0', 'chrome')).toBe(
+      'kmitl-course-planner-1.6.0-chrome.zip',
     );
   });
 });

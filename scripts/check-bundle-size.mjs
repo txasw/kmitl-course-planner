@@ -3,10 +3,15 @@
 //
 //   node scripts/check-bundle-size.mjs chrome firefox
 //
-// It reads the zips from .output, where WXT writes them, and ignores the sources zip.
-import { readdirSync, statSync } from 'node:fs';
+// It reads the zips for the current package version from .output, where WXT writes
+// them, so zips left over from an earlier version are ignored.
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { checkBundleSize, describeBundleSize } from './bundle-budget.mjs';
+import {
+  checkBundleSize,
+  describeBundleSize,
+  zipFileName,
+} from './bundle-budget.mjs';
 
 const OUTPUT_DIR = '.output';
 const browsers = process.argv.slice(2);
@@ -15,19 +20,19 @@ if (browsers.length === 0) {
   process.exit(1);
 }
 
-const zips = readdirSync(OUTPUT_DIR).filter((name) => name.endsWith('.zip'));
+const { version } = JSON.parse(readFileSync('package.json', 'utf8'));
 let failed = false;
 
 for (const browser of browsers) {
-  const matches = zips.filter((name) => name.endsWith(`-${browser}.zip`));
-  if (matches.length !== 1) {
+  const zipPath = join(OUTPUT_DIR, zipFileName(version, browser));
+  if (!existsSync(zipPath)) {
     console.error(
-      `bundle size check: expected one ${browser} zip in ${OUTPUT_DIR}, found ${matches.length}; run wxt zip -b ${browser} first`,
+      `bundle size check: ${zipPath} does not exist; run wxt zip -b ${browser} first`,
     );
     failed = true;
     continue;
   }
-  const bytes = statSync(join(OUTPUT_DIR, matches[0])).size;
+  const bytes = statSync(zipPath).size;
   const error = checkBundleSize(browser, bytes);
   if (error === null) {
     console.log(describeBundleSize(browser, bytes));
