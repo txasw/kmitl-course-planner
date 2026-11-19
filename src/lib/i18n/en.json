@@ -171,8 +171,6 @@
   "catalog.filter.hideUnscheduled": "Hide unscheduled",
   "catalog.filter.label": "Filters",
   "catalog.filter.clearAll": "Clear filters",
-  "shortlist.add": "Save for later",
-  "shortlist.remove": "Remove from saved",
   "catalog.sort.label": "Sort by",
   "catalog.sort.subjectId": "Subject id",
   "catalog.sort.openSeats": "Most open seats",

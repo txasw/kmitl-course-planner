@@ -33,7 +33,6 @@ import {
   type TermContext,
 } from '@/lib/planner/sectionState';
 import { filterCourses, type SectionPredicates } from '@/lib/catalog/filter';
-import { termShortlist } from '@/lib/catalog/shortlist';
 import { sortCourses, type CourseSortKey } from '@/lib/catalog/sortCourses';
 import { courseGroupKey, isGroupCollapsed } from '@/lib/catalog/groupCollapse';
 import {
@@ -165,7 +164,6 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
   const disclosure = useStore(catalogStore, (state) => state.disclosure);
   const sort = useStore(catalogStore, (state) => state.sort);
   const groupCollapse = useStore(catalogStore, (state) => state.groups);
-  const shortlist = useStore(catalogStore, (state) => state.shortlist);
   const queryKey = useMemo(() => catalogQueryKey(resultQuery), [resultQuery]);
   const addedIds = useMemo(
     () => new Set(placed.map((section) => section.subjectId)),
@@ -219,26 +217,6 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
   const handleSwitchTerm = useCallback((target: Term) => {
     switchOrCreatePlanForTerm(target);
   }, []);
-
-  // The shortlist is keyed by the browsed term, so a result with no term shows no
-  // bookmark and nothing counts as saved.
-  const browsedTerm = term.browsedTerm;
-  const saved = useMemo(
-    () =>
-      new Set(
-        browsedTerm === null ? [] : termShortlist(shortlist, browsedTerm),
-      ),
-    [shortlist, browsedTerm],
-  );
-  const handleToggleShortlist = useMemo(
-    () =>
-      browsedTerm === null
-        ? undefined
-        : (subjectId: string) => {
-            catalogStore.getState().toggleShortlisted(browsedTerm, subjectId);
-          },
-    [browsedTerm],
-  );
 
   // An add or a remove from a row or the card header unmounts the control that was
   // pressed, so focus moves on in the same commit: to the card's toggle, which stays in
@@ -351,6 +329,7 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
   const totalSections = countSections(catalog.courses);
 
   const planTerm = term.planTerm;
+  const browsedTerm = term.browsedTerm;
   const banner =
     crossTerm && planTerm !== null && browsedTerm !== null ? (
       <div className="flex flex-wrap items-center gap-2 rounded-kcp border border-warn bg-primary-soft px-2 py-2 text-xs text-ink">
@@ -427,8 +406,6 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
                 onAdd={handleAdd}
                 onRemove={handleRemove}
                 onSwitchTerm={handleSwitchTerm}
-                shortlisted={saved.has(course.subjectId)}
-                onToggleShortlist={handleToggleShortlist}
               />
             ))}
           </CatalogGroup>
