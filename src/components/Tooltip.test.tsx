@@ -38,6 +38,22 @@ describe('Tooltip', () => {
     });
   });
 
+  it('stays shut on focus and hover while disabled', () => {
+    render(
+      <Tooltip label="Full name" disabled>
+        {(triggerProps, ref) => (
+          <button type="button" ref={ref} {...triggerProps}>
+            Trigger
+          </button>
+        )}
+      </Tooltip>,
+    );
+    const trigger = screen.getByRole('button', { name: 'Trigger' });
+    fireEvent.focus(trigger);
+    fireEvent.mouseEnter(trigger);
+    expect(screen.queryByRole('tooltip')).toBeNull();
+  });
+
   it('shows on hover after the open delay', async () => {
     renderTooltip();
     const trigger = screen.getByRole('button', { name: 'Trigger' });
