@@ -14,6 +14,7 @@ import type { DataQualityReport } from '@/lib/contract/report';
 import { emptyByKind } from '@/lib/contract/report';
 import { ok } from '@/lib/utils/result';
 import { uiStore } from '@/features/shell/uiStore';
+import { onboardingStore } from '@/features/onboarding/onboardingStore';
 import {
   SearchDepsProvider,
   type SearchDeps,
@@ -121,6 +122,24 @@ afterEach(() => {
 });
 
 describe('Diagnostics drawer', () => {
+  it('steps the trigger aside while the search page coach mark shows', async () => {
+    render(
+      <SearchDepsProvider value={deps()}>
+        <Diagnostics />
+      </SearchDepsProvider>,
+    );
+    act(() => {
+      onboardingStore.getState().setCoachMarkOpen(true);
+    });
+    expect(screen.queryByRole('button', { name: 'Diagnostics' })).toBeNull();
+    act(() => {
+      onboardingStore.getState().setCoachMarkOpen(false);
+    });
+    expect(
+      await screen.findByRole('button', { name: 'Diagnostics' }),
+    ).toBeInTheDocument();
+  });
+
   it('surfaces a missing field in the report and sets the launcher badge', async () => {
     render(
       <SearchDepsProvider value={deps()}>
