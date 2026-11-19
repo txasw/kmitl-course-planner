@@ -108,7 +108,11 @@ export async function startMockServer(): Promise<MockServer> {
           // rejected as "not integer". Absent (by_subject_id) or 0 is accepted.
           if (url.searchParams.get('selected_class_year') === '') {
             res.writeHead(400, { 'content-type': 'application/json' });
-            res.end(JSON.stringify({ selected_class_year: ['not integer'] }));
+            res.end(
+              fixtureBody(
+                'regressions/teach-table.class-year-empty.error.json',
+              ),
+            );
             return;
           }
           // The by_class all curricula query returns a broader result that
