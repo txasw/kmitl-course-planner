@@ -18,6 +18,9 @@ import { catalogStore } from '@/features/catalog/catalogStore';
 import { EMPTY_DISCLOSURE } from '@/lib/catalog/cardDisclosure';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
+
+// The query chip is named by its edit action followed by the search it summarizes.
+const EDIT_SEARCH = /^แก้ไขการค้นหา/;
 import {
   makeCourse,
   makeSection,
@@ -273,7 +276,7 @@ describe('CatalogColumn', () => {
     node.scrollTop = 240;
 
     // Reopening the form hides the results again, kept mounted with their offset.
-    fireEvent.click(screen.getByRole('button', { name: 'แก้ไขการค้นหา' }));
+    fireEvent.click(screen.getByRole('button', { name: EDIT_SEARCH }));
     expect(node).toHaveAttribute('inert');
     expect(node).toHaveClass('invisible');
     expect(node.scrollTop).toBe(240);
@@ -367,7 +370,7 @@ describe('CatalogColumn', () => {
     }
   });
 
-  it('shows the sheet header with the result count only on a sheet tier', () => {
+  it('shows the sheet header only on a sheet tier, leaving the count to the catalog', () => {
     const viewport = installViewport(768);
     act(() => {
       searchStore
@@ -377,7 +380,13 @@ describe('CatalogColumn', () => {
     const { container } = render(<Harness />);
     const column = container.querySelector(`#${CATALOG_COLUMN_ID}`);
     expect(column).toHaveTextContent('ค้นหารายวิชา');
-    expect(column).toHaveTextContent('2 รายวิชา');
+    // The catalog summary line reads the count once; the header does not repeat it.
+    const heading = column?.querySelector('h3');
+    expect(heading).toHaveTextContent('ค้นหารายวิชา');
+    expect(heading?.parentElement).not.toHaveTextContent('2 รายวิชา');
+    expect(column?.querySelector('[data-catalog-summary]')).toHaveTextContent(
+      '2 รายวิชา',
+    );
 
     act(() => {
       viewport.resize(1280);
@@ -701,10 +710,10 @@ describe('CatalogColumn', () => {
     expect(node).toHaveClass('min-h-0');
     node.scrollTop = 240;
 
-    fireEvent.click(screen.getByRole('button', { name: 'แก้ไขการค้นหา' }));
+    fireEvent.click(screen.getByRole('button', { name: EDIT_SEARCH }));
     expect(node).toHaveClass('min-h-48');
     expect(node.scrollTop).toBe(240);
-    fireEvent.click(screen.getByRole('button', { name: 'แก้ไขการค้นหา' }));
+    fireEvent.click(screen.getByRole('button', { name: EDIT_SEARCH }));
     expect(node).toHaveClass('min-h-0');
     expect(node.scrollTop).toBe(240);
 
