@@ -1,12 +1,11 @@
 // The courses a plan suggestion may choose from, and the section groups each can
-// take. A candidate is a curriculum course of the current result whose subject is
-// not already in the plan. Its options are the distinct section groups, a section
-// with its declared pair, whose members are all open and which fit the locked
-// entries; a full or closed section is never an option. The open groups are kept
-// as well, so a course with no option can still say why it was left out.
+// take. A candidate is a course of the current result whose subject the student
+// ticked and which is not already in the plan. Its options are the distinct section
+// groups, a section with its declared pair, whose members are all open and which fit
+// the locked entries; a full or closed section is never an option. The open groups
+// are kept as well, so a course with no option can still say why it was left out.
 
 import { isSelectable } from '../catalog/seatStatus';
-import { isCurriculumCourse } from '../catalog/subjectGroup';
 import type { Course, Section } from '../domain/types';
 import type { PlanEntry } from '../domain/plan';
 import { checkPlacement, expandSectionGroup } from './placement';
@@ -50,9 +49,10 @@ function openChoices(course: Course): SuggestChoice[] {
   return choices;
 }
 
-/** The curriculum candidates of a result, with options numbered from zero. */
+/** The ticked candidates of a result, with options numbered from zero. */
 export function suggestCandidates(
   courses: readonly Course[],
+  subjects: ReadonlySet<string>,
   lockedEntries: readonly PlanEntry[],
   locked: Section[],
 ): SuggestCandidate[] {
@@ -61,7 +61,7 @@ export function suggestCandidates(
   return courses
     .filter(
       (course) =>
-        isCurriculumCourse(course) && !lockedSubjects.has(course.subjectId),
+        subjects.has(course.subjectId) && !lockedSubjects.has(course.subjectId),
     )
     .map((course) => {
       const open = openChoices(course);

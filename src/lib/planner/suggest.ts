@@ -1,7 +1,6 @@
-// Search the current result for conflict free curriculum timetables. Only the
-// curriculum subjects of the result are candidates; GenEd and free electives stay
-// the student's own choice, and the entries already in the active plan are kept as
-// fixed constraints. The hard rules are exactly the add rules: a section group
+// Search the current result for conflict free timetables. Only the subjects the
+// student ticked are candidates, the curriculum subjects by default, and the
+// entries already in the active plan are kept as fixed constraints. The hard rules are exactly the add rules: a section group
 // joins only when checkPlacement accepts it, so time, exam, pair, and duplicate
 // subject rules match the add path, and a full or closed section is never chosen.
 //
@@ -43,6 +42,7 @@ import {
   type SuggestPreference,
   type TimetableStats,
 } from './suggestScore';
+import { defaultSuggestSubjects } from './suggestSubjects';
 import { placedSections } from './transaction';
 
 /** How many suggestions a search returns by default. */
@@ -52,8 +52,10 @@ export const SUGGEST_LIMIT = 3;
 export const SUGGEST_NODE_CAP = 200_000;
 
 export interface SuggestInput {
-  /** The courses of the current result; only curriculum courses are candidates. */
+  /** The courses of the current result; only the ticked ones are candidates. */
   courses: readonly Course[];
+  /** The ticked subject ids; the group 2 curriculum subjects when omitted. */
+  subjects?: ReadonlySet<string>;
   /** The entries of the active plan, kept as fixed constraints. */
   locked: readonly PlanEntry[];
   objective: SuggestObjective;
@@ -74,11 +76,11 @@ export interface SuggestStats extends TimetableStats {
 }
 
 export interface Suggestion {
-  /** The chosen curriculum courses, by subject id. */
+  /** The chosen courses, by subject id. */
   choices: SuggestChoice[];
   stats: SuggestStats;
   penalty: number;
-  /** Every curriculum candidate not chosen, by subject id, with the reason. */
+  /** Every ticked candidate not chosen, by subject id, with the reason. */
   leftOut: LeftOutCourse[];
 }
 
@@ -112,7 +114,14 @@ export function suggestPlans(input: SuggestInput): SuggestResult {
   // The locked meetings followed by the chosen ones, grown and shrunk with the
   // search so a bound or a leaf never rebuilds it.
   const meetings: Meeting[] = locked.flatMap((section) => section.meetings);
-  const candidates = suggestCandidates(input.courses, input.locked, locked);
+  const subjects =
+    input.subjects ?? defaultSuggestSubjects(input.courses, input.locked);
+  const candidates = suggestCandidates(
+    input.courses,
+    subjects,
+    input.locked,
+    locked,
+  );
   const active = candidates
     .filter((candidate) => candidate.options.length > 0)
     .sort((a, b) => a.options.length - b.options.length || bySubject(a, b));
