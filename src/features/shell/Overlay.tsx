@@ -34,7 +34,8 @@ import { VIEWPORT_FIT } from '@/lib/ui/viewportInset';
 // home indicator. The portal context covers the header as well as the body, so a header
 // control such as the plan switcher can open its bottom sheet over the whole panel.
 // The panel fills the visible part of the viewport rather than the layout viewport, so a
-// phone keyboard shrinks it instead of covering its foot.
+// phone keyboard shrinks it instead of covering its foot, and the sheets and dialogs it
+// hosts fit the same area.
 const TITLE_ID = 'kcp-overlay-title';
 
 export function Overlay() {
