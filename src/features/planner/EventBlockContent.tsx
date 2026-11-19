@@ -11,11 +11,11 @@
 // clamps it to the lines the box holds, and the block itself is the expand affordance, opening
 // the full detail.
 //
-// A block narrower than 7em, a day column of the phone week or a suggestion thumbnail, shows the
-// name alone with tight padding, so the name has the width it needs to break between words; the
-// place, the chip, and the foot return as soon as the block is wide enough. The rule is a
-// container query on the block wrapper, in em of the grid type size, so it follows the block's
-// own width at every grid scale.
+// Where the grid asks for the name only rule, a day column of the phone week or a suggestion
+// thumbnail, a block narrower than 7em shows the name alone with tight padding, so the name has
+// the width it needs to break between words; the place, the chip, and the foot return as soon
+// as the block is wide enough. A landscape block never takes the rule, since its width is the
+// meeting length, so a 60 minute meeting there keeps its place (see narrowBlock).
 
 import type { RefObject } from 'react';
 import { MapPin } from 'lucide-react';
@@ -27,6 +27,7 @@ import {
   type BlockSurface,
   type StyleWithVars,
 } from './blockSurface';
+import { NARROW_HIDDEN, removeClearance } from './narrowBlock';
 
 interface EventBlockContentProps {
   contentRef: RefObject<HTMLDivElement | null>;
@@ -45,6 +46,8 @@ interface EventBlockContentProps {
    * and focus under a fine pointer, and step the section chip aside while it shows. */
   reserveRemove: boolean;
   footAtBottom: boolean;
+  /** Hide every line but the name while the block wrapper is narrower than 7em. */
+  nameOnlyWhenNarrow: boolean;
 }
 
 // The section chip trails the place, so on a block whose name takes one line it can sit in
@@ -79,8 +82,10 @@ export function EventBlockContent({
   surface,
   reserveRemove,
   footAtBottom,
+  nameOnlyWhenNarrow,
 }: EventBlockContentProps) {
   const showRow = level.showPlace || level.showSection;
+  const narrowHidden = nameOnlyWhenNarrow ? NARROW_HIDDEN : '';
   // The quiet lines read ink soft, except over the danger hatch, where only ink keeps 4.5:1.
   const quiet = badge === 'danger' ? 'text-ink' : 'text-ink-soft';
   return (
@@ -94,7 +99,7 @@ export function EventBlockContent({
         lang={locale}
         className={`shrink-0 font-semibold break-words hyphens-auto ${
           level.nameLines === 'all' ? '' : 'line-clamp-(--kcp-name-lines)'
-        } ${reserveRemove ? 'not-pointer-coarse:@min-[7em]:pr-5' : ''}`}
+        } ${reserveRemove ? removeClearance(nameOnlyWhenNarrow) : ''}`}
         style={nameClampStyle(level.nameLines)}
       >
         {badge !== null ? (
@@ -110,13 +115,15 @@ export function EventBlockContent({
       {level.showEnglish ? (
         <span
           lang="en"
-          className={`shrink-0 font-normal break-words hyphens-auto @max-[7em]:hidden ${quiet}`}
+          className={`shrink-0 font-normal break-words hyphens-auto ${narrowHidden} ${quiet}`}
         >
           {nameEn}
         </span>
       ) : null}
       {showRow ? (
-        <span className="mt-0.5 flex shrink-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-ink @max-[7em]:hidden">
+        <span
+          className={`mt-0.5 flex shrink-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-ink ${narrowHidden}`}
+        >
           {level.showPlace ? (
             <span className="min-w-0 break-words">
               <MapPin
@@ -148,7 +155,7 @@ export function EventBlockContent({
           margin never costs the name a line. */}
       {level.showTime || level.showId ? (
         <div
-          className={`${footAtBottom ? 'mt-auto' : 'mt-1'} min-h-0 pt-0.5 @max-[7em]:hidden ${quiet}`}
+          className={`${footAtBottom ? 'mt-auto' : 'mt-1'} min-h-0 pt-0.5 ${narrowHidden} ${quiet}`}
         >
           {level.showTime ? (
             <span className="block text-[0.9em] tabular-nums">{time}</span>
