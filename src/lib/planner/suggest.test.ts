@@ -21,6 +21,7 @@ import type { SuggestObjective } from './suggestRank';
 import { preferencePenalty, type SuggestPreference } from './suggestScore';
 import { addSectionGroup, placedSections } from './transaction';
 import { SUGGEST_NODE_CAP, suggestPlans, type Suggestion } from './suggest';
+import { timetableFootprint } from './suggestFootprint';
 
 const OBJECTIVES: SuggestObjective[] = ['coverAll', 'maxCredits'];
 const PREFERENCES: SuggestPreference[] = [
@@ -482,4 +483,149 @@ describe('suggestPlans on synthetic courses', () => {
       expect(passesAsAWhole([], suggestion)).toBe(true);
     }
   }, 15_000);
+});
+
+describe('suggestPlans diversity', () => {
+  const mon = [makeMeeting({ day: 1, startMin: 540, endMin: 720 })];
+  const tue = [makeMeeting({ day: 2, startMin: 540, endMin: 720 })];
+  const wed = [makeMeeting({ day: 3, startMin: 540, endMin: 720 })];
+  const thu = [makeMeeting({ day: 4, startMin: 780, endMin: 960 })];
+  const finalOn = (date: string) => ({
+    final: { start: `${date} 09:30:00`, end: `${date} 12:30:00` },
+  });
+
+  function sectionsOf(suggestion: Suggestion | undefined): string[][] {
+    return (suggestion?.choices ?? []).map((c) => [
+      c.course.subjectId,
+      ...c.group.map((s) => s.section),
+    ]);
+  }
+
+  function footprints(suggestions: Suggestion[]): string[] {
+    return suggestions.map((s) => timetableFootprint(s.choices));
+  }
+
+  it('offers sections that meet at the same times once, lowest section first', () => {
+    const a = curriculumCourse('11111111', [
+      { meetings: mon },
+      { meetings: mon },
+      { meetings: tue },
+      { meetings: tue },
+    ]);
+    const b = curriculumCourse('22222222', [
+      { meetings: wed },
+      { meetings: wed },
+    ]);
+    const { suggestions } = suggestPlans({
+      courses: [a, b],
+      locked: [],
+      objective: 'coverAll',
+      preference: 'balanced',
+    });
+    expect(suggestions.map(sectionsOf)).toEqual([
+      [
+        ['11111111', '1'],
+        ['22222222', '1'],
+      ],
+      [
+        ['11111111', '3'],
+        ['22222222', '1'],
+      ],
+    ]);
+    expect(new Set(footprints(suggestions)).size).toBe(suggestions.length);
+  });
+
+  it('keeps one timetable per footprint when same time sections sit different exams', () => {
+    const a = curriculumCourse('11111111', [
+      { meetings: mon, exam: finalOn('2026-10-05') },
+      { meetings: mon, exam: finalOn('2026-10-06') },
+      { meetings: tue, exam: finalOn('2026-10-07') },
+    ]);
+    const { suggestions } = suggestPlans({
+      courses: [a],
+      locked: [],
+      objective: 'coverAll',
+      preference: 'balanced',
+    });
+    expect(suggestions.map(sectionsOf)).toEqual([
+      [['11111111', '1']],
+      [['11111111', '3']],
+    ]);
+  });
+
+  it('still excludes an exam clash hidden behind a same time section', () => {
+    const a = curriculumCourse('11111111', [
+      { meetings: mon, exam: finalOn('2026-10-05') },
+      { meetings: mon, exam: finalOn('2026-10-06') },
+    ]);
+    const b = curriculumCourse('22222222', [
+      { meetings: wed, exam: finalOn('2026-10-05') },
+    ]);
+    const { suggestions } = suggestPlans({
+      courses: [a, b],
+      locked: [],
+      objective: 'coverAll',
+      preference: 'balanced',
+    });
+    expect(sectionsOf(suggestions[0])).toEqual([
+      ['11111111', '2'],
+      ['22222222', '1'],
+    ]);
+    for (const suggestion of suggestions) {
+      expect(passesAsAWhole([], suggestion)).toBe(true);
+    }
+    expect(new Set(footprints(suggestions)).size).toBe(suggestions.length);
+  });
+
+  it('collapses declared pairs by both halves and keeps each pair whole', () => {
+    const paired = curriculumCourse('33333333', [
+      { pairedSection: '2', meetings: mon },
+      { kind: 'practice', pairedSection: '1', meetings: thu },
+      { pairedSection: '4', meetings: mon },
+      { kind: 'practice', pairedSection: '3', meetings: thu },
+      { pairedSection: '6', meetings: mon },
+      { kind: 'practice', pairedSection: '5', meetings: tue },
+    ]);
+    const { suggestions } = suggestPlans({
+      courses: [paired],
+      locked: [],
+      objective: 'coverAll',
+      preference: 'balanced',
+    });
+    expect(suggestions.map(sectionsOf)).toEqual([
+      [['33333333', '1', '2']],
+      [['33333333', '5', '6']],
+    ]);
+  });
+
+  it('returns fewer than three when the times allow fewer, with the left out reason', () => {
+    const a = curriculumCourse('11111111', [
+      { meetings: mon },
+      { meetings: mon },
+    ]);
+    const full = curriculumCourse('44444444', [
+      { seats: { limit: 40, preCount: 0, queueLeft: 0, enrolled: 'full' } },
+    ]);
+    const { suggestions } = suggestPlans({
+      courses: [a, full],
+      locked: [],
+      objective: 'coverAll',
+      preference: 'balanced',
+    });
+    expect(suggestions.map(sectionsOf)).toEqual([[['11111111', '1']]]);
+    expect(suggestions[0]?.leftOut[0]?.reason).toEqual({ kind: 'seats' });
+  });
+
+  it('gives distinct footprints on the by_class capture', () => {
+    for (const preference of PREFERENCES) {
+      const { suggestions } = suggestPlans({
+        courses: byClassCourses(),
+        locked: [],
+        objective: 'coverAll',
+        preference,
+      });
+      expect(suggestions).toHaveLength(3);
+      expect(new Set(footprints(suggestions)).size).toBe(3);
+    }
+  });
 });

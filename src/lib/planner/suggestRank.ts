@@ -16,11 +16,17 @@ export type SuggestObjective = (typeof SUGGEST_OBJECTIVES)[number];
 /** The objective as a pair compared left to right, higher is better. */
 export type ObjectiveValue = [number, number];
 
-export interface RankedTimetable {
+/** What a timetable is ranked by. */
+export interface RankedOrder {
   objective: ObjectiveValue;
   penalty: number;
   /** The chosen courses, by subject id. */
   choices: SuggestChoice[];
+}
+
+export interface RankedTimetable extends RankedOrder {
+  /** The meeting times of the chosen courses, which no two kept timetables share. */
+  footprint: string;
 }
 
 export function objectiveValue(
@@ -62,7 +68,7 @@ function compareChoices(a: SuggestChoice[], b: SuggestChoice[]): number {
 }
 
 /** Negative when a ranks before b. */
-export function compareRanked(a: RankedTimetable, b: RankedTimetable): number {
+export function compareRanked(a: RankedOrder, b: RankedOrder): number {
   return (
     compareObjective(b.objective, a.objective) ||
     a.penalty - b.penalty ||

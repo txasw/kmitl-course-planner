@@ -96,4 +96,44 @@ describe('suggestCandidates', () => {
       0, 1, 2,
     ]);
   });
+
+  it('offers sections that meet at the same times and exams once, lowest first', () => {
+    const exam = {
+      midterm: { start: '2026-08-17 09:30:00', end: '2026-08-17 12:30:00' },
+    };
+    const course = curriculumCourse('77777777', [
+      { meetings: monday, exam },
+      { meetings: tuesday, exam },
+      { meetings: monday, exam },
+      { meetings: tuesday, exam },
+    ]);
+    const [candidate] = suggestCandidates([course], ticked(course), [], []);
+    expect(candidate?.open).toHaveLength(4);
+    expect(candidate?.options.map((o) => o.choice.section.section)).toEqual([
+      '1',
+      '2',
+    ]);
+  });
+
+  it('keeps same time sections apart when their exams differ', () => {
+    const course = curriculumCourse('88888888', [
+      {
+        meetings: monday,
+        exam: {
+          final: { start: '2026-10-05 09:30:00', end: '2026-10-05 12:30:00' },
+        },
+      },
+      {
+        meetings: monday,
+        exam: {
+          final: { start: '2026-10-06 09:30:00', end: '2026-10-06 12:30:00' },
+        },
+      },
+    ]);
+    const [candidate] = suggestCandidates([course], ticked(course), [], []);
+    expect(candidate?.options.map((o) => o.choice.section.section)).toEqual([
+      '1',
+      '2',
+    ]);
+  });
 });
