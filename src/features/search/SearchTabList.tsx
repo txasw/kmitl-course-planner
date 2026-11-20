@@ -4,7 +4,9 @@
 // in the tab order, so Tab moves from the tablist straight into the fields. The base
 // line is an inset shadow rather than a border the tabs overlap, because the overflow
 // scroller clips anything past its padding box, which would cut the 2 px indicator to
-// 1 px and add a stray pixel of vertical scroll.
+// 1 px and add a stray pixel of vertical scroll. A label wraps inside its tab rather
+// than running past the edge of a narrow panel, so a phone shows every tab whole and the
+// scroller is only a fallback below the widths the panel is laid out for (ADR-0048).
 
 import { useRef, type KeyboardEvent } from 'react';
 import { SEARCH_TABS, type SearchTab } from '@/lib/search/formState';
@@ -90,7 +92,7 @@ export function SearchTabList({
               onSelect(tab);
             }}
             onKeyDown={handleKeyDown}
-            className={`inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 border-b-2 px-2 text-sm whitespace-nowrap pointer-coarse:min-h-11 ${FOCUS_RING} ${
+            className={`inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 border-b-2 px-2 py-1 text-center text-sm leading-tight pointer-coarse:min-h-11 ${FOCUS_RING} ${
               selected
                 ? 'border-primary font-semibold text-primary-strong'
                 : 'border-transparent text-ink-soft hover:text-ink'
