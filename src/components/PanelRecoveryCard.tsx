@@ -6,8 +6,7 @@
 
 import { AlertTriangle } from 'lucide-react';
 import type { Translate } from '@/lib/i18n/t';
-import { FOCUS_OUTLINE } from '@/lib/ui/focus';
-import { EmptyState } from './EmptyState';
+import { EmptyState, EmptyStateAction } from './EmptyState';
 
 interface PanelRecoveryCardProps {
   t: Translate;
@@ -22,13 +21,10 @@ export function PanelRecoveryCard({ t, onReload }: PanelRecoveryCardProps) {
         title={t('panel.error.title')}
         description={t('panel.error.body')}
         action={
-          <button
-            type="button"
+          <EmptyStateAction
+            label={t('panel.error.reload')}
             onClick={onReload}
-            className={`rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-hover ${FOCUS_OUTLINE}`}
-          >
-            {t('panel.error.reload')}
-          </button>
+          />
         }
       />
     </div>
