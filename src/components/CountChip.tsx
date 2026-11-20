@@ -1,5 +1,6 @@
-// The one count badge of the panel: a small ink filled pill with white figures and a ring
-// of the surface, so it reads the same beside a label, over an icon, or in the edge rail.
+// The shared count badge of the panel controls: a small ink filled pill with white
+// figures and a ring of the surface, so it reads the same beside a label, over an icon,
+// or in the edge rail.
 // It counts the courses of the last search on the header sheet toggle, the edge rail, and
 // the bottom nav, the selected subjects on the bottom nav, and the filters in use on the
 // filter button. Ink rather than the brand orange, because the orange marks what can be
