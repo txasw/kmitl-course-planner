@@ -401,7 +401,7 @@ describe('WeeklyGrid', () => {
     expect(applied).toEqual([false, false, false, true, true]);
   });
 
-  it('caps the edit day rows at 7rem and packs them to the top', () => {
+  it('lets the edit day rows share the free height of the scroller', () => {
     render(
       <WeeklyGrid
         sections={[]}
@@ -414,9 +414,9 @@ describe('WeeklyGrid', () => {
     );
     const grid = screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
     expect(grid.style.gridTemplateRows).toBe(
-      '1.4em repeat(5, minmax(2.5rem, 7rem))',
+      '1.4em repeat(5, minmax(2.5rem, 1fr))',
     );
-    expect(grid.style.alignContent).toBe('start');
+    expect(grid.style.alignContent).toBe('');
   });
 
   it('lets the poster day rows share the template canvas', () => {
