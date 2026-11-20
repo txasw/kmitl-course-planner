@@ -13,7 +13,9 @@
 // A press keeps its own target: the swipe starts only once the pointer has travelled past a
 // slop, so a tap on the apply action or the left out list is never taken by the gesture. A
 // page change from a key inside the outgoing slide moves focus to the carousel, since that
-// slide turns inert under the focused control; a key on a dot moves focus to the new dot.
+// slide turns inert under the focused control; a key on a dot moves focus to the new dot. A
+// chevron that reaches the first or last slide disables, so it hands focus to the other
+// chevron beside it, which needs no scroll, rather than to a dot below the slide.
 //
 // Each slide keeps a few px of padding inside the clipping viewport. The viewport's inset
 // focus ring paints in that gap, where the card and the moving track would cover it, and a
@@ -58,7 +60,7 @@ export function suggestionKey(suggestion: Suggestion): string {
 /** The distance a pointer travels before the swipe takes it, as the day view swipe does. */
 const SWIPE_SLOP_PX = 24;
 
-type FocusAfter = 'dot' | 'viewport' | null;
+type FocusAfter = 'dot' | 'viewport' | 'previous' | 'next' | null;
 
 interface SuggestionCarouselProps {
   cards: readonly SuggestionView[];
@@ -172,6 +174,7 @@ export function SuggestionCarousel({
   const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const dotsRef = useRef<HTMLDivElement>(null);
+  const arrowsRef = useRef<HTMLDivElement>(null);
   const focusAfter = useRef<FocusAfter>(null);
   const last = cards.length - 1;
   const paged = cards.length > 1;
@@ -185,6 +188,14 @@ export function SuggestionCarousel({
         ?.focus();
     } else if (target === 'viewport') {
       viewportRef.current?.focus();
+    } else if (target !== null) {
+      arrowsRef.current
+        ?.querySelector<HTMLElement>(
+          target === 'previous'
+            ? 'button:first-of-type'
+            : 'button:last-of-type',
+        )
+        ?.focus();
     }
   }, [page]);
 
@@ -244,12 +255,12 @@ export function SuggestionCarousel({
       className={`flex flex-col gap-2 transition-opacity duration-base motion-reduce:transition-none ${busy ? 'opacity-60' : ''}`}
     >
       {paged ? (
-        <div className="flex items-center gap-1">
+        <div ref={arrowsRef} className="flex items-center gap-1">
           <PagerArrow
             label={t('suggest.prev')}
             disabled={page === 0}
             onActivate={() => {
-              go(page - 1, page - 1 === 0 ? 'dot' : null);
+              go(page - 1, page - 1 === 0 ? 'next' : null);
             }}
           >
             <ChevronLeft size={18} strokeWidth={2} aria-hidden />
@@ -266,7 +277,7 @@ export function SuggestionCarousel({
             label={t('suggest.next')}
             disabled={page === last}
             onActivate={() => {
-              go(page + 1, page + 1 === last ? 'dot' : null);
+              go(page + 1, page + 1 === last ? 'previous' : null);
             }}
           >
             <ChevronRight size={18} strokeWidth={2} aria-hidden />

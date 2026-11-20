@@ -133,15 +133,23 @@ describe('SuggestionCarousel', () => {
     expect(dot(2)).toHaveAttribute('aria-current', 'true');
     expect(previous).toBeEnabled();
 
-    // The last step disables the next chevron, so focus lands on the shown dot.
+    // The last step disables the next chevron, so focus moves to the previous chevron
+    // beside it rather than to a dot below the slide.
     fireEvent.click(next);
     expect(shownHeading()).toBe('ตัวเลือกที่ 3');
     expect(next).toBeDisabled();
-    expect(dot(3)).toHaveFocus();
+    expect(previous).toHaveFocus();
 
     fireEvent.click(previous);
     expect(shownHeading()).toBe('ตัวเลือกที่ 2');
     expect(liveRegion()).toHaveTextContent('ตัวเลือก 2 จาก 3');
+    expect(previous).toHaveFocus();
+
+    // The first step back disables the previous chevron, so focus moves to the next one.
+    fireEvent.click(previous);
+    expect(shownHeading()).toBe('ตัวเลือกที่ 1');
+    expect(previous).toBeDisabled();
+    expect(next).toHaveFocus();
   });
 
   it('jumps to a suggestion from its dot', () => {
