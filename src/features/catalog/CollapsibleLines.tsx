@@ -49,7 +49,10 @@ export function CollapsibleLines({
   const shown = expanded ? lines : [first];
 
   return (
-    <div className={`mt-1 flex flex-wrap items-start gap-x-1 ${toneClass}`}>
+    <div
+      data-collapsible-lines={expanded ? 'expanded' : 'collapsed'}
+      className={`mt-1 flex flex-wrap items-start gap-x-1 ${toneClass}`}
+    >
       <span className="flex shrink-0 items-center gap-1 font-semibold">
         {icon}
         {label}
