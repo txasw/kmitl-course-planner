@@ -204,10 +204,9 @@ still crossed the glyphs and made a dense Thai name hard to read.
 Decision. Over the hatch the block content is positioned so it paints above the overlay, and each
 text line, the name, the secondary name, the place row, and the foot, sits on a solid backdrop as
 wide as its text and never wider than the column, so the hatch shows around the text and beside a
-short line. On the soft card the backdrop is the card's top tint made opaque. On the flat poster
-fill it is the block's own concrete tint, set by the fill style, so the capture inlines a hex
-rather than a color-mix and the backdrop matches the block rather than reading grey. The text
-keeps the ink the contrast tests prove on the block fill.
+short line. The backdrop is the soft card's top tint made opaque, and the text keeps the ink the
+contrast tests prove on the card fill. Only the soft card needs it: the flat fill renders on the
+preview poster and its export alone, and that path draws no hatch (ADR-0055).
 
-Consequences. A hatched block reads as text on its fill with stripes in the gaps, on screen and
-in every export. The ring and the stripes still mark the block as missing or in conflict.
+Consequences. A hatched block in the edit grid reads as text on its fill with stripes in the
+gaps. The ring and the stripes still mark the block as missing or in conflict.
