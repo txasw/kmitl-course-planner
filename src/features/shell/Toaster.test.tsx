@@ -212,7 +212,7 @@ describe('Toaster', () => {
     );
   });
 
-  it('rises above the phone foot controls while the panel is open', () => {
+  it('rises above the phone bottom nav while the panel is open', () => {
     const viewport = installViewport(390);
     const { container } = render(<Toaster />);
     const region = container.querySelector('[aria-live="polite"]');
@@ -226,13 +226,15 @@ describe('Toaster', () => {
     // Edit runs the bottom nav along the foot.
     expect(region).toHaveClass(ABOVE_FOOT);
     expect(region).not.toHaveClass(AT_FOOT);
-    // Preview runs the sharing toolbar along the foot instead.
+    // The export page has no nav; its sharing toolbar rises above the toast through the
+    // plan region's band instead.
     act(() => {
       uiStore.getState().setViewMode('preview');
     });
-    expect(region).toHaveClass(ABOVE_FOOT);
-    // From 640 px up the toolbar heads the poster, so the foot is clear.
+    expect(region).toHaveClass(AT_FOOT);
+    // From 640 px up there is no nav in edit either.
     act(() => {
+      uiStore.getState().setViewMode('edit');
       viewport.resize(768);
     });
     expect(region).toHaveClass(AT_FOOT);

@@ -15,13 +15,14 @@
 // a screen reader announces a toast in the voice of the language it is written in. It
 // keeps its 16 px offset from the viewport edges, or the device safe area inset where
 // that is larger, so a toast never sits under the home indicator or a rounded corner.
-// While the phone layout's controls run along the open panel's foot, the bottom nav in
-// edit or the sharing toolbar in preview, the region rises 72 px above the bottom inset,
-// clear of the 56 px nav and of the toolbar's 44 px action row inside the 16 px panel
-// padding, so a toast never covers the item its own action, such as ดูตาราง, leads to,
-// nor the share action a share toast offers again. While a bottom sheet is open it covers
-// those controls and owns the foot, so the region drops back to the foot and the sheet
-// ends in a band the toast sits in, clear of the sheet's content.
+// While the phone layout's bottom nav runs along the open panel's foot in edit, the region
+// rises 72 px above the bottom inset, clear of the 56 px nav, so a toast never covers the
+// item its own action, such as ดูตาราง, leads to. The sharing toolbar of the phone export
+// page is part of the plan region, which ends in a band as tall as the toast, so the
+// toolbar, its status line, and the share action a share toast offers again all rise above
+// a toast at the foot. While a bottom sheet is open it covers the nav and owns the foot, so
+// the region drops back to the foot and the sheet ends in a band the toast sits in, clear
+// of the sheet's content.
 //
 // The panel focus trap follows the region by its id, so a toast's controls join the Tab
 // order after the panel's last control while the panel is open; Tab reaches an undo
@@ -44,7 +45,7 @@ import type { Translate } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { TOAST_REGION_ID, toastStore, type Toast } from './toastStore';
-import { useFootControlsShown } from './mobilePane';
+import { useBottomNavShown } from './mobilePane';
 import { setToastHeight, useBottomSheetOpen } from './sheetToastBand';
 import { useElementSize } from './useElementSize';
 import { useHoverFocusHold, type HoldHandlers } from './useHoverFocusHold';
@@ -155,7 +156,7 @@ export function Toaster() {
   const touring = useStore(onboardingStore, (state) => state.tourOpen);
   const { t, language } = useTranslation();
   const sheetOpen = useBottomSheetOpen();
-  const aboveFoot = useFootControlsShown() && isOpen && !sheetOpen;
+  const aboveFoot = useBottomNavShown() && isOpen && !sheetOpen;
   const regionRef = useRef<HTMLDivElement>(null);
   const { height } = useElementSize(regionRef);
   useEffect(() => {

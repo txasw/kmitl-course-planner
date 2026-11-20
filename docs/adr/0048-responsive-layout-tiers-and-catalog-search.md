@@ -755,3 +755,13 @@ below supersedes the earlier text it names.
   in the empty run beside each arrow, rather than above, where the next arrow's tooltip covered
   the dialog's close button, or below, where the previous arrow's would cover the option
   heading.
+- No toast sits over the plan status row. A failed save showed both its strip under the header
+  and an error toast at the panel foot, and the toast hid the credits, the subject count, and
+  the clash line of the status row. The strip is now the one place a failed save shows; a
+  polite live region beside it speaks the failure once, as the toast did, and a run of failing
+  autosaves stays quiet. Any other toast makes room: the toast region reports the height of
+  the toast on show, and the plan region ends in a band of that height while it shows, so the
+  status row, the export page caption and dots, and the phone sharing toolbar rise above the
+  toast. The toast region therefore rises over the phone foot only for the bottom nav in edit;
+  on the phone export page it rests at the foot and the toolbar rises above it. Lifting the
+  toast over the status row was rejected, since it would then cover the timetable blocks.
