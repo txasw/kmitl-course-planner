@@ -23,6 +23,7 @@ export function PanelRecoveryCard({ t, onReload }: PanelRecoveryCardProps) {
         action={
           <EmptyStateAction
             label={t('panel.error.reload')}
+            variant="primary"
             onClick={onReload}
           />
         }

@@ -78,6 +78,7 @@ function GoToSearchButton({ t }: { t: Translate }) {
   return (
     <EmptyStateAction
       label={t('grid.goToSearch')}
+      variant="ghost"
       onClick={(event) => {
         openSearch(event.currentTarget, tier);
       }}
@@ -126,6 +127,7 @@ export function FreeDayNotice({
       action={
         <EmptyStateAction
           label={t('view.showWeek')}
+          variant="ghost"
           onClick={(event) => {
             onShowWeek(event.currentTarget);
           }}

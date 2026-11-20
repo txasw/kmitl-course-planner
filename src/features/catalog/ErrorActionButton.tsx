@@ -6,7 +6,10 @@
 // rejected the id.
 
 import type { Translate } from '@/lib/i18n/t';
-import { EmptyStateAction } from '@/components/EmptyState';
+import {
+  EmptyStateAction,
+  type EmptyStateActionVariant,
+} from '@/components/EmptyState';
 import type { ErrorAction } from '@/features/search/errorMessage';
 import {
   SEARCH_BAR_ID,
@@ -31,28 +34,39 @@ export function ErrorActionButton({
     return (
       <EmptyStateAction
         label={t('action.retry')}
+        variant="primary"
         onClick={(event) => {
           commitAndFocus(event.currentTarget, SEARCH_BAR_ID, onRetry);
         }}
       />
     );
   }
-  return <EditSearchAction subjectId={action === 'editSubjectId'} t={t} />;
+  return (
+    <EditSearchAction
+      subjectId={action === 'editSubjectId'}
+      variant="primary"
+      t={t}
+    />
+  );
 }
 
 interface EditSearchActionProps {
   t: Translate;
   /** Whether the server rejected the subject id, so the edit opens on its tab. */
   subjectId?: boolean;
+  /** Primary on the error card, neutral on the empty result. */
+  variant?: EmptyStateActionVariant;
 }
 
 export function EditSearchAction({
   t,
   subjectId = false,
+  variant = 'neutral',
 }: EditSearchActionProps) {
   return (
     <EmptyStateAction
       label={t('search.bar.edit')}
+      variant={variant}
       onClick={(event) => {
         commitAndFocus(
           event.currentTarget,

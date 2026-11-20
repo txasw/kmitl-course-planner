@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import type { MouseEvent, ReactNode, Ref } from 'react';
-import { FOCUS_OUTLINE } from '@/lib/ui/focus';
+import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
 interface EmptyStateProps {
@@ -36,26 +36,42 @@ export function EmptyState({
   );
 }
 
+/**
+ * How loud the action is. Neutral is the bordered button the mockup draws for an empty
+ * state's way out. Ghost is the borderless text button of a notice over the timetable, which
+ * stays quiet over the lanes. Primary is the filled orange of the search error card, whose
+ * retry is the one thing left to do in the catalog.
+ */
+export type EmptyStateActionVariant = 'neutral' | 'ghost' | 'primary';
+
+const VARIANT_CLASS: Readonly<Record<EmptyStateActionVariant, string>> = {
+  neutral: `rounded-kcp border border-border bg-surface px-3 py-1.5 text-sm text-ink hover:bg-surface-alt ${FOCUS_RING}`,
+  ghost: `rounded-kcp px-2 py-1 text-sm text-primary-strong hover:bg-primary-soft ${FOCUS_RING}`,
+  primary: `rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover ${FOCUS_OUTLINE}`,
+};
+
 interface EmptyStateActionProps {
   label: string;
   onClick: (event: MouseEvent<HTMLButtonElement>) => void;
   buttonRef?: Ref<HTMLButtonElement>;
+  variant?: EmptyStateActionVariant;
 }
 
-// The one action of an empty state, a filled primary button at the touch target size. It
-// takes pointer events back where the state sits over the grid, whose notice lets them
-// through to the cells.
+// The one action of an empty state at the touch target size, neutral unless the surface
+// asks otherwise. It takes pointer events back where the state sits over the grid, whose
+// notice lets them through to the cells.
 export function EmptyStateAction({
   label,
   onClick,
   buttonRef,
+  variant = 'neutral',
 }: EmptyStateActionProps) {
   return (
     <button
       ref={buttonRef}
       type="button"
       onClick={onClick}
-      className={`pointer-events-auto rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover ${TARGET_SIZE} ${FOCUS_OUTLINE}`}
+      className={`pointer-events-auto ${VARIANT_CLASS[variant]} ${TARGET_SIZE}`}
     >
       {label}
     </button>
