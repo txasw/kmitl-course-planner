@@ -335,4 +335,36 @@ describe('nextReclaim', () => {
     }
     expect(tried).toEqual(['time', 'secondary', 'id']);
   });
+
+  it('never offers a field back once the walk dropped the place, so the time never outlives it', () => {
+    // A short block whose place wrapped walked past every rung to the bare one line name.
+    const placeDropped = { ...bare, showPlace: false };
+    expect(allEligible.hasPlace).toBe(true);
+    expect(nextReclaim(placeDropped, allEligible, [])).toBeNull();
+    expect(nextReclaim(placeDropped, allEligible, ['time'])).toBeNull();
+  });
+
+  it('never offers a field back while the section chip ranked above it stays hidden', () => {
+    const chipDropped = {
+      ...fullLevel(allEligible),
+      nameLines: 2 as const,
+      showSection: false,
+      showTime: false,
+      showSecondary: false,
+      showId: false,
+    };
+    expect(nextReclaim(chipDropped, allEligible, [])).toBeNull();
+  });
+
+  it('still offers fields back when the place and chip are absent only by eligibility', () => {
+    const noPlaceOrChip = buildEligibility({
+      hasName: true,
+      hasSecondary: true,
+      hasSection: false,
+      hasId: true,
+      hasPlace: false,
+    });
+    const level = { ...fullLevel(noPlaceOrChip), showTime: false };
+    expect(nextReclaim(level, noPlaceOrChip, [])?.field).toBe('time');
+  });
 });

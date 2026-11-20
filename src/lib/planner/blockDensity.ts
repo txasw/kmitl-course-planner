@@ -203,15 +203,25 @@ function withField(level: DensityLevel, field: ReclaimField): DensityLevel {
   }
 }
 
+/** Whether the walk stopped above the section chip and the place, so both still show where
+ * eligible. Past that point a reclaimed field would show while a field the ladder ranks higher
+ * stays hidden, and a returned time would outlive the place, which ADR-0047 forbids. */
+function lowerRungsIntact(level: DensityLevel, e: DensityEligibility): boolean {
+  return level.showSection === e.hasSection && level.showPlace === e.hasPlace;
+}
+
 /** The next dropped field to offer back once the content fits, or null when every eligible
- * dropped field has been tried. Only the three top rungs are offered: each is the first field
- * the ladder drops while shown, so an offer that overflows is undone by the next demotion and
- * never costs a field ranked above it. */
+ * dropped field has been tried or the walk already reached the section chip or the place. Only
+ * the three top rungs are offered: each is the first field the ladder drops while shown, so an
+ * offer that overflows is undone by the next demotion and never costs a field ranked above it. */
 export function nextReclaim(
   level: DensityLevel,
   e: DensityEligibility,
   tried: readonly ReclaimField[],
 ): { field: ReclaimField; level: DensityLevel } | null {
+  if (!lowerRungsIntact(level, e)) {
+    return null;
+  }
   for (const field of RECLAIM_ORDER) {
     if (!tried.includes(field) && canReclaim(field, level, e)) {
       return { field, level: withField(level, field) };
