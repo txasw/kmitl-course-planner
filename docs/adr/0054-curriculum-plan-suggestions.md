@@ -216,3 +216,12 @@ tab in the bottom nav, so the two never read as one destination. The status row 
 primary button at rest, primary strong with surface text and the offset focus outline the other
 filled buttons use, since an inset ring would vanish into the fill; the catalog head keeps its
 quiet bordered entry. This replaces the primary soft style of the status row entry above.
+
+## Amendment, 2026-11-21: the slide lists use the system disclosure
+
+The lists on a slide that name the placed sections and the left out courses no longer use a
+native details element, whose browser triangle sat outside the icon set and fell under the rule
+against symbol markers. They use the system disclosure in `components/Disclosure.tsx`: a button
+that states aria-expanded and names its panel, with a chevron that points right while collapsed
+and down while expanded, turning without motion under reduced motion, as the catalog groups and
+the tick list do. Each list still starts collapsed.

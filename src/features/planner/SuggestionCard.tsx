@@ -3,7 +3,8 @@
 // mini grid in the frame the dialog shares across the slides, then the stats a student
 // compares suggestions by, then the sections it places named in full, then the ticked
 // courses it leaves out with the reason each one stayed out, both lists collapsed by
-// default, then the apply action, which creates a new plan from it. The grid itself takes
+// default behind the system chevron disclosure, then the apply action, which creates a
+// new plan from it. The grid itself takes
 // no input; the placed list is where a name the grid clamps reads whole. The carousel keeps
 // a drag from selecting text, so both lists opt back in and their names can be copied.
 //
@@ -14,6 +15,7 @@
 // dialog never pushes a value across to the next label; a label wraps rather than cuts.
 
 import { useId, useRef } from 'react';
+import { Disclosure } from '@/components/Disclosure';
 import { useElementSize } from '@/features/shell/useElementSize';
 import { hourTicks } from '@/lib/planner/grid';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
@@ -23,7 +25,7 @@ import { hoursText } from '@/lib/i18n/hours';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
 import type { LeftOutCourse, Suggestion } from '@/lib/planner/suggest';
 import type { LeftOutReason } from '@/lib/planner/suggestReasons';
-import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
+import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import type { Orientation } from './gridGeometry';
 import { isScheduled, type PlacedSection } from './placedSection';
@@ -105,13 +107,8 @@ function PlacedList({
 }) {
   const subjects = new Set(sections.map((section) => section.subjectId)).size;
   return (
-    <details className="text-xs">
-      <summary
-        className={`w-fit cursor-pointer rounded-kcp text-ink-soft hover:text-ink ${FOCUS_RING}`}
-      >
-        {fillTemplate(t('suggest.placed'), { count: subjects })}
-      </summary>
-      <ul className="mt-2 flex flex-col gap-1.5 select-text">
+    <Disclosure label={fillTemplate(t('suggest.placed'), { count: subjects })}>
+      <ul className="mt-1 flex flex-col gap-1.5 select-text">
         {sections.map((section) => (
           <li key={section.teachTableId} className="flex flex-col">
             <span className="text-ink">
@@ -127,7 +124,7 @@ function PlacedList({
           </li>
         ))}
       </ul>
-    </details>
+    </Disclosure>
   );
 }
 
@@ -141,16 +138,15 @@ function LeftOutList({
   t: Translate;
 }) {
   if (leftOut.length === 0) {
-    return <p className="text-xs text-ink-soft">{t('suggest.leftOut.none')}</p>;
+    return (
+      <p className="px-1 text-xs text-ink-soft">{t('suggest.leftOut.none')}</p>
+    );
   }
   return (
-    <details className="text-xs">
-      <summary
-        className={`w-fit cursor-pointer rounded-kcp text-ink-soft hover:text-ink ${FOCUS_RING}`}
-      >
-        {fillTemplate(t('suggest.leftOut'), { count: leftOut.length })}
-      </summary>
-      <ul className="mt-2 flex flex-col gap-1.5 select-text">
+    <Disclosure
+      label={fillTemplate(t('suggest.leftOut'), { count: leftOut.length })}
+    >
+      <ul className="mt-1 flex flex-col gap-1.5 select-text">
         {leftOut.map(({ course, reason }) => (
           <li key={course.subjectId} className="flex flex-col">
             <span className="text-ink">
@@ -161,7 +157,7 @@ function LeftOutList({
           </li>
         ))}
       </ul>
-    </details>
+    </Disclosure>
   );
 }
 

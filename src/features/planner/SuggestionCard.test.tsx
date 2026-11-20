@@ -91,38 +91,44 @@ describe('SuggestionCard', () => {
     }
   });
 
-  it('lists the courses left out with their reasons, collapsed', () => {
+  it('lists the courses left out with their reasons behind a collapsed disclosure', () => {
     renderCard();
-    const summary = screen.getByText('วิชาที่ไม่ได้จัดลงตาราง 2 วิชา');
-    expect(summary.closest('details')).not.toHaveAttribute('open');
-    expect(
-      screen.getByText('ชนกับ 01006021 ในตารางปัจจุบัน', {
-        ignore: 'summary',
-      }),
-    ).toBeInTheDocument();
+    const toggle = screen.getByRole('button', {
+      name: 'วิชาที่ไม่ได้จัดลงตาราง 2 วิชา',
+    });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText('ชนกับ 01006021 ในตารางปัจจุบัน')).toBeNull();
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText('ชนกับ 01006021 ในตารางปัจจุบัน')).toBeInTheDocument();
   });
 
   it('names every placed section in full, collapsed', () => {
     const { suggestion: shown } = renderCard();
     const sections = suggestionSections(locked, shown);
-    const subjects = new Set(sections.map((section) => section.subjectId));
-    const summary = screen.getByText(
-      `วิชาในตัวเลือกนี้ ${String(subjects.size)} วิชา`,
+    const placedSubjects = new Set(
+      sections.map((section) => section.subjectId),
     );
-    const details = summary.closest('details');
-    expect(details).not.toHaveAttribute('open');
+    const toggle = screen.getByRole('button', {
+      name: `วิชาในตัวเลือกนี้ ${String(placedSubjects.size)} วิชา`,
+    });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle.querySelector('svg')).not.toBeNull();
+    fireEvent.click(toggle);
+    const panelId = toggle.getAttribute('aria-controls');
+    const panel = document.getElementById(panelId ?? '');
+    expect(panel).not.toBeNull();
     for (const section of sections) {
       expect(
-        within(details ?? document.body).getAllByText(
+        within(panel ?? document.body).getAllByText(
           `${section.subjectId} ${section.nameTh}`,
         ).length,
       ).toBeGreaterThan(0);
     }
     expect(
-      within(details ?? document.body).getAllByText(
-        /^กลุ่มเรียน \S+ (ทฤษฎี|ปฏิบัติ)$/,
-      ),
+      within(panel ?? document.body).getAllByText(/^กลุ่มเรียน \S+ (ทฤษฎี|ปฏิบัติ)$/),
     ).toHaveLength(sections.length);
+    expect(document.querySelector('details')).toBeNull();
   });
 
   it('applies the suggestion', () => {
