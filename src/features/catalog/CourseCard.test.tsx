@@ -95,6 +95,26 @@ describe('CourseCard seat status', () => {
   });
 });
 
+describe('CourseCard section list', () => {
+  it('sets the open sections in one inset panel ruled by hairlines, not a card per row', () => {
+    const course = makeCourse({
+      sections: [
+        makeSection({ teachTableId: 'a', section: '901' }),
+        makeSection({ teachTableId: 'b', section: '902' }),
+      ],
+    });
+    const { container } = render(
+      <Controlled initialOpen course={course} placed={[]} locale="th" t={t} />,
+    );
+    const list = container.querySelector('[data-section-list]');
+    expect(list).not.toBeNull();
+    expect(list?.className.split(' ')).toEqual(
+      expect.arrayContaining(['divide-y', 'bg-surface', 'shadow-kcp-soft']),
+    );
+    expect(list?.children).toHaveLength(2);
+  });
+});
+
 describe('CourseCard plan relation', () => {
   it('marks a time overlap with a different subject as conflicting', () => {
     const section = makeSection({
@@ -500,13 +520,25 @@ describe('CourseCard collapsed added course', () => {
     expect(screen.getByText('No scheduled meeting')).toBeInTheDocument();
   });
 
-  it('de-emphasizes an added course with surface-alt, not opacity', () => {
+  it('de-emphasizes an added course with the settled soft card, not opacity', () => {
     const { container } = render(
       <Controlled course={course} placed={placed} locale="th" t={t} />,
     );
-    const article = container.querySelector('article');
-    expect(article?.className).toContain('bg-surface-alt');
-    expect(article?.className).not.toContain('opacity');
+    const tokens = container.querySelector('article')?.className.split(' ');
+    expect(tokens).toContain('kcp-soft-card');
+    expect(tokens).toContain('kcp-soft-settled');
+    expect(tokens).not.toContain('kcp-soft-quiet');
+    expect(tokens?.some((token) => token.includes('opacity'))).toBe(false);
+  });
+
+  it('draws an open course as the quiet soft card with no flat border', () => {
+    const { container } = render(
+      <Controlled course={course} placed={[]} locale="th" t={t} />,
+    );
+    const tokens = container.querySelector('article')?.className.split(' ');
+    expect(tokens).toContain('kcp-soft-card');
+    expect(tokens).toContain('kcp-soft-quiet');
+    expect(tokens).not.toContain('border');
   });
 
   it('removes the placed section from a control outside the toggle', () => {
