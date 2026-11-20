@@ -239,6 +239,138 @@ describe('EventBlock', () => {
     expect(nameEl).toHaveAttribute('lang', 'th');
   });
 
+  it('wraps an English name only at its spaces, so no word breaks inside', () => {
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="en"
+        t={createTranslator('en')}
+      />,
+    );
+    const nameEl = screen.getByText('Test subject');
+    expect(nameEl.className).toContain('break-normal');
+    expect(nameEl.className).not.toContain('break-words');
+    expect(nameEl).toHaveAttribute('lang', 'en');
+  });
+
+  it('steps an English name a type step down while a word is wider than its line', () => {
+    // A word is wider than the name line at the full size and fits one step smaller.
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(40);
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return this.hasAttribute('data-fit-name') &&
+          !this.className.includes('text-[0.9em]')
+          ? 52
+          : 40;
+      },
+    );
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="en"
+        t={createTranslator('en')}
+      />,
+    );
+    const nameEl = screen.getByText('Test subject');
+    expect(nameEl.className).toContain('text-[0.9em]');
+  });
+
+  it('shows the subject id in place of an English name too wide by a word at either size', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(40);
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return this.hasAttribute('data-fit-name') &&
+          this.textContent.includes('Test subject')
+          ? 52
+          : 40;
+      },
+    );
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="en"
+        t={createTranslator('en')}
+      />,
+    );
+    expect(screen.queryByText('Test subject')).not.toBeInTheDocument();
+    // The id stands in for the name and leaves the foot, so it shows once, never broken.
+    const ids = screen.getAllByText('90592033');
+    expect(ids).toHaveLength(1);
+    expect(ids[0]).toHaveAttribute('data-fit-name');
+    expect(ids[0]?.className).toContain('whitespace-nowrap');
+    // The accessible name still carries the whole course name.
+    expect(screen.getByLabelText(/Test subject/)).toBeInTheDocument();
+  });
+
+  it('shows no name text where even the subject id is wider than the line', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(40);
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return this.hasAttribute('data-fit-name') &&
+          this.textContent.trim() !== ''
+          ? 52
+          : 40;
+      },
+    );
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="en"
+        t={createTranslator('en')}
+      />,
+    );
+    const block = screen.getByLabelText(/90592033 Test subject/);
+    expect(screen.queryByText('Test subject')).not.toBeInTheDocument();
+    const nameEl = block.querySelector('[data-fit-name]');
+    expect(nameEl?.textContent).toBe('');
+  });
+
+  it('keeps a Thai name on its dictionary breaks whatever its width', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(40);
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(40);
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    const nameEl = screen.getByText('วิชาทดสอบ');
+    expect(nameEl.className).not.toContain('text-[0.9em]');
+  });
+
+  it('drops a second name whole when one of its words is wider than its line', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(40);
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return this.dataset.fitWhole === 'secondary' ? 58 : 40;
+      },
+    );
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        nameLanguage="both"
+      />,
+    );
+    expect(screen.queryByText('Test subject')).not.toBeInTheDocument();
+    expect(screen.getByText('วิชาทดสอบ')).toBeInTheDocument();
+    expect(screen.getByText('90592033')).toBeInTheDocument();
+  });
+
   it('gives block text Thai headroom only on the export poster', () => {
     // The edit grid keeps the tight line height even while it fits its box; the export poster
     // raises it so stacked Thai vowels and tone marks are never cropped (F3, ADR-0046).

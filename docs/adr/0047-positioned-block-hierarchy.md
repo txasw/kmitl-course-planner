@@ -143,3 +143,38 @@ while it shows and the card returns when the class drops. A browser check in the
 suite reads the laid out names of the suggestion slides and the phone week and fails on a
 clipped name or a line holding one grapheme of a longer word, and a desktop check keeps the place
 on a 60 minute landscape block.
+
+## Amendment, 2026-11-21: English words stay whole
+
+Context. A conformance review of the redesign read the phone week and the suggestion slides in
+English at 360 and 390 px and found names broken inside words with no hyphen, among them
+INTRODUCTION TO COMPUTE then R and PSYCHOLOG then Y, a single letter stranded on its line. The
+owner's rule is that no text shows incomplete at any width in Thai and English, and the block name
+guard counted only the single stranded letter, and only in the Thai interface.
+
+Decision. An English name breaks only at its spaces. It no longer takes `overflow-wrap:
+break-word`, so a word wider than the name's line overflows the name, and the measured fit reads
+that overflow from the name itself, ahead of the height walk, as it reads a whole field. The name
+form then steps down: first one type step smaller, 0.9em of the block, then the subject id in the
+name's place on one line that never wraps, one type step smaller, and last, where even the id is
+wider than the line, no text. The id leaves the foot while it stands in for the name, so it never
+shows twice. A block with no name text keeps its color, stripe, status dot, and accessible name,
+and opens the full detail like any block. A Thai name keeps the browser's dictionary breaks, and a
+Thai word wider than the whole line still breaks inside the word as before, since the Thai break
+falls between whole graphemes and Thai has no spaces to fall back on. The secondary name joins the
+whole fields: it wraps only between its words in either language and drops whole when a word is
+wider than its line, before the ladder walks.
+
+This supersedes the rejection above of the subject id in a block too narrow for one word for
+English names only. The reason given there, that the id wraps too, does not hold: the id is one
+whole field on one line that never wraps, and a block too narrow for it shows no text rather than
+a broken code.
+
+The block name guard reads English as well as Thai: a name that is not Thai fails on any word
+whose letters run over two lines, and the clipped text sweep runs the guard on the timetable, the
+phone week, and the suggestion slides at 360, 390, 768, and 1366 px in both languages.
+
+Consequences. In a five column phone week at 360 and 390 px most English course names have a
+word wider than the column, so those blocks read as the subject id, and the day view, the phone
+default, shows the whole name. A one hour landscape block whose English name holds a long word
+reads its name a step smaller or as the id. No English block name breaks inside a word anywhere.
