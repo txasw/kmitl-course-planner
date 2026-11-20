@@ -343,7 +343,9 @@ describe('Layout', () => {
       expect(
         within(region).getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
       ).toBeInTheDocument();
-      expect(node).toHaveClass('min-h-[1.75rem]');
+      // At rest it reserves no band above the grid; a notice gives it its height.
+      expect(node).toHaveClass('-mb-2');
+      expect(node).not.toHaveClass('absolute');
     });
 
     it('floats over the open sheet outside the inert grid at 768 px', () => {
