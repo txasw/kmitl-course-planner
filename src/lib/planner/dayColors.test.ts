@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { contrastRatio } from '../../../tests/support/contrast';
+import { contrastRatio, shadowToken } from '../../../tests/support/contrast';
 import { WEEK_DAYS } from '@/lib/parsing/days';
 import { dayTint } from './dayColors';
 
 // --kcp-ink, the label text color on the accented template day rows. The tint must keep
 // the ink label well clear of WCAG AA for normal text, since a poster is read at a glance.
-const INK = '#1a1a1a';
+const INK = shadowToken('ink');
 const AA_NORMAL = 4.5;
 
 describe('Thai day color tints', () => {

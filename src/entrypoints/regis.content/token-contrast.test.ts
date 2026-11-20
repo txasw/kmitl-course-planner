@@ -1,8 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { EVENT_PALETTE } from '@/lib/utils/hash-color';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
   alphaOver,
   contrastRatio,
+  hexToRgb,
   shadowFraction,
   shadowToken,
 } from '../../../tests/support/contrast';
@@ -245,6 +248,52 @@ const PAIRS: Pair[] = [
     bg: shadowToken('ink'),
     min: AA_NORMAL,
   },
+  // The cool neutral amendment of ADR-0071 moved ink and ink soft, so every soft notice
+  // and selection fill they sit on is proven too: ink soft secondary lines on a selected
+  // primary soft row and on the warn notice, and ink body copy on the danger soft
+  // quarantine card and on the success and danger zone fills.
+  {
+    name: 'ink-soft on primary-soft',
+    fg: shadowToken('ink-soft'),
+    bg: shadowToken('primary-soft'),
+    min: AA_NORMAL,
+  },
+  {
+    name: 'ink-soft on warn-soft',
+    fg: shadowToken('ink-soft'),
+    bg: shadowToken('warn-soft'),
+    min: AA_NORMAL,
+  },
+  {
+    name: 'ink on danger-soft',
+    fg: shadowToken('ink'),
+    bg: shadowToken('danger-soft'),
+    min: AA_NORMAL,
+  },
+  {
+    name: 'ink-soft on danger-soft',
+    fg: shadowToken('ink-soft'),
+    bg: shadowToken('danger-soft'),
+    min: AA_NORMAL,
+  },
+  {
+    name: 'ink on success-soft',
+    fg: shadowToken('ink'),
+    bg: shadowToken('success-soft'),
+    min: AA_NORMAL,
+  },
+  {
+    name: 'ink-soft on success-soft',
+    fg: shadowToken('ink-soft'),
+    bg: shadowToken('success-soft'),
+    min: AA_NORMAL,
+  },
+  {
+    name: 'ink on danger-zone-over',
+    fg: shadowToken('ink'),
+    bg: shadowToken('danger-zone-over'),
+    min: AA_NORMAL,
+  },
 ];
 
 // The soft depth card of ADR-0071 mixes its tint into the surface, from the strong stop
@@ -383,4 +432,46 @@ describe('design token contrast', () => {
       expect(contrastRatio(pair.fg, pair.bg)).toBeGreaterThanOrEqual(pair.min);
     });
   }
+});
+
+// Every neutral the panel draws carries the same slight blue bias, so text, surfaces,
+// borders and shadows read as one cool family rather than a pure grey beside a cool one
+// (ADR-0071 and its cool neutral amendment). A neutral is cool when its blue channel is
+// the largest and leads red by a little, and it stays a neutral when no channel leads
+// another by more than a small spread.
+const COOL_NEUTRALS = [
+  'ink',
+  'ink-soft',
+  'ink-muted',
+  'surface-alt',
+  'surface-sunken',
+  'border',
+  'border-strong',
+] as const;
+const MAX_NEUTRAL_SPREAD = 12;
+
+describe('cool neutrals', () => {
+  for (const token of COOL_NEUTRALS) {
+    it(`${token} has a slight blue bias and stays neutral`, () => {
+      const [r, g, b] = hexToRgb(shadowToken(token));
+      expect(b).toBeGreaterThan(r);
+      expect(b).toBeGreaterThanOrEqual(g);
+      expect(b - Math.min(r, g)).toBeLessThanOrEqual(MAX_NEUTRAL_SPREAD);
+    });
+  }
+
+  it('draws the overlay and card shadows from a cool ink, not black', () => {
+    const css = readFileSync(
+      resolve(process.cwd(), 'src/entrypoints/regis.content/style.css'),
+      'utf8',
+    );
+    for (const token of ['shadow', 'shadow-soft']) {
+      const value = new RegExp(`--kcp-${token}:([^;]+);`).exec(css)?.[1];
+      const rgba = /rgba\((\d+), (\d+), (\d+),/.exec(value ?? '');
+      expect(rgba).not.toBeNull();
+      const [r, g, b] = [rgba?.[1], rgba?.[2], rgba?.[3]].map(Number);
+      expect(b).toBeGreaterThan(r ?? 0);
+      expect(b).toBeGreaterThanOrEqual(g ?? 0);
+    }
+  });
 });

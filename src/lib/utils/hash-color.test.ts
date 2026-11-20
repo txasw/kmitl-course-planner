@@ -15,8 +15,10 @@ import {
 
 const KMITL_ORANGE = '#e35205';
 const WHITE = '#ffffff';
-const INK = '#1a1a1a';
-const INK_SOFT = '#5c5c5c';
+// The shipped text tokens, read from the shadow stylesheet so a token edit is proven
+// here against every tint rather than a stale copy of the old value.
+const INK = shadowToken('ink');
+const INK_SOFT = shadowToken('ink-soft');
 const HEX_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
 // Two block tints must differ by more than a just noticeable difference (about 2.3), so

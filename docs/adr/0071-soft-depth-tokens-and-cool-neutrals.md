@@ -116,3 +116,32 @@ rejected because the owner picked the full soft set for every card. Applying the
 to the catalog cards was rejected because a column of them reads as a grey wash, the fault the
 review found in the query chip. A brand orange badge was rejected because the orange marks what
 can be pressed, and a count is a figure, not a control.
+
+## Amendment, 2026-11-21: ink, ink soft and the overlay shadow turn cool
+
+The conformance review of the redesign found the cool neutrals only half applied: the surfaces,
+borders and the new muted ink carry the slight blue bias, but `--kcp-ink` `#1A1A1A` and
+`--kcp-ink-soft` `#5C5C5C` stayed pure grey and `--kcp-shadow` stayed black, so text and the
+overlay shadow read warmer than the chrome around them. The components of the redesign have now
+been restyled, which removes the reason this ADR gave for holding the text tokens back.
+
+Decision. `--kcp-ink` becomes `#1A1B1F`, `--kcp-ink-soft` becomes `#5B5D66`, and `--kcp-shadow`
+becomes `0 4px 16px rgba(26, 27, 31, 0.1)`, the same blur and strength drawn from the cool ink.
+Everything that mixes the ink, such as the coach mark and tour scrims and the strong grid rule,
+follows through `var()`. The token contrast suite now reads ink and ink soft from the stylesheet in
+every suite, including the event palette and day colour tests that held copies of the old values,
+and it gains the soft notice pairs the text tokens sit on: ink soft on primary soft, warn soft,
+danger soft and success soft, and ink on danger soft, success soft and the remove zone. A new cool
+neutral check asserts that every neutral, text included, has its blue channel largest and within a
+small spread of the others, and that both shadows are drawn from a cool colour, so a later pure grey
+or black fails the build.
+
+Every pair still clears its bar. Ink falls by about 0.2 on each surface, to 17.21 on white, and
+ink soft by about 0.1, to 6.56 on white and 5.64 on danger soft. On the soft card the lowest ink
+soft pair, on the strong stop of berry, moves from 4.85 to 4.76; on the flat poster tint the lowest
+moves from 5.05 to 4.95. White on the coach mark scrim over white moves from 8.59 to 8.45.
+`docs/CONTRAST.md` lists the new ratios.
+
+A darker ink soft, `#585A63`, was considered to keep the old margins exactly. It was set aside
+because it closes the step between ink soft and ink muted that the three step hierarchy relies on,
+and the lighter value already clears every bar with room.
