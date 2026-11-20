@@ -91,6 +91,8 @@ afterEach(() => {
   act(() => {
     searchStore.getState().setResult({ status: 'idle' }, null);
     resetPlanStore();
+    // A test that reads the English labels must not leave them for the next one.
+    uiStore.getState().setLanguage('th');
   });
 });
 
@@ -120,9 +122,6 @@ describe('SuggestAction', () => {
     );
     const button = screen.getByRole('button', { name: 'Suggest' });
     expect(button).toHaveClass('bg-primary-soft', 'font-semibold', 'shrink-0');
-    act(() => {
-      uiStore.getState().setLanguage('th');
-    });
   });
 
   it('shows for the active plan of the same term', () => {
