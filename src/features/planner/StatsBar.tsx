@@ -1,17 +1,28 @@
-// The edit mode plan summary, a bar pinned to the foot of the plan region. It states the
-// credits as the lead number, in warn ink with a short note when the total leaves the usual
-// load of the plan's semester (advisory only, nothing is blocked), the distinct subject
-// count, whether any section pair clashes, the scheduled load per day, the count of sections
-// with no meeting when the plan holds any, the weekdays with no class, and at the end the
-// verification status the panel slots in.
+// The edit mode plan status row, pinned to the foot of the plan region under every plan view
+// and at every tier, so the thumb reaches it on a phone. Its facts lead with icons: the credits
+// as the lead number, in warn ink with a short note when the total leaves the usual load of the
+// plan's semester (advisory only, nothing is blocked), the distinct subject count, whether any
+// section pair clashes, the count of sections with no meeting when the plan holds any, and the
+// verification status the panel slots in. From 640 px up the row also states the scheduled
+// load per day and the weekdays with no class; on a phone the day chips above the timetable
+// already mark the class days and the summary view carries the load, so the row stays slim.
+// The suggest action the panel slots in sits at the end of the row, outside the wrapping facts,
+// so it keeps its place at the right edge (ADR-0049 amendment).
 // A clash is the one item the student acts on, so it is a danger button that points at the
-// first clashing section on the timetable; with none the bar says so quietly with a check.
+// first clashing section on the timetable; with none the row says so quietly with a check, as
+// an icon alone on a phone with the words kept for assistive technology.
 // The poster states the same totals in its own footer line, without the clash control and
 // without the free days, which describe the student's week rather than the timetable
 // being shared.
 
 import type { ReactNode } from 'react';
-import { AlertTriangle, CheckCircle2, Info } from 'lucide-react';
+import {
+  AlertTriangle,
+  BookOpen,
+  CheckCircle2,
+  Info,
+  Layers,
+} from 'lucide-react';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
 import { fillTemplate } from '@/lib/i18n/template';
@@ -33,14 +44,20 @@ interface StatsBarProps {
   conflictCount: number;
   /** Bring the first clashing section into view and focus it. */
   onShowConflict: () => void;
-  /** The verification status, pushed to the end of the bar. */
+  /** The verification status, pushed to the end of the facts. */
   status?: ReactNode;
+  /** The action at the end of the row, outside the wrapping facts. */
+  action?: ReactNode;
+  /** Whether the row sits on a phone, which keeps it to the slim facts. */
+  compact?: boolean;
   locale: Locale;
   t: Translate;
 }
 
 const NUMBER_TYPE = 'text-base font-semibold tabular-nums';
 const NUMBER = `${NUMBER_TYPE} text-ink`;
+const FACT = 'inline-flex items-center gap-1';
+const ICON = { size: 14, strokeWidth: 2, 'aria-hidden': true } as const;
 
 export function StatsBar({
   sections,
@@ -48,9 +65,49 @@ export function StatsBar({
   conflictCount,
   onShowConflict,
   status,
+  action,
+  compact = false,
   locale,
   t,
 }: StatsBarProps) {
+  return (
+    <div
+      role="group"
+      aria-label={t('stats.region')}
+      className="flex shrink-0 items-center gap-2 border-t border-border pt-2 text-xs text-ink-soft"
+    >
+      {sections.length > 0 ? (
+        <PlanFacts
+          sections={sections}
+          semester={semester}
+          conflictCount={conflictCount}
+          onShowConflict={onShowConflict}
+          status={status}
+          compact={compact}
+          locale={locale}
+          t={t}
+        />
+      ) : null}
+      {action === undefined ? null : <div className="ml-auto">{action}</div>}
+    </div>
+  );
+}
+
+type PlanFactsProps = Omit<StatsBarProps, 'action' | 'compact'> & {
+  compact: boolean;
+};
+
+/** The wrapping facts of the row, which take the room the action leaves. */
+function PlanFacts({
+  sections,
+  semester,
+  conflictCount,
+  onShowConflict,
+  status,
+  compact,
+  locale,
+  t,
+}: PlanFactsProps) {
   const totals = planTotals(sections);
   const load: CreditLoad =
     semester === null
@@ -61,22 +118,25 @@ export function StatsBar({
   );
 
   return (
-    <div
-      role="group"
-      aria-label={t('stats.region')}
-      className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 border-t border-border pt-2 text-xs text-ink-soft"
-    >
-      <span>
-        <span
-          className={`${NUMBER_TYPE} ${load.kind === 'within' ? 'text-ink' : 'text-warn'}`}
-        >
-          {totals.credits}
-        </span>{' '}
-        {t('footer.credits')}
+    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1">
+      <span className={FACT}>
+        <BookOpen {...ICON} />
+        <span>
+          <span
+            className={`${NUMBER_TYPE} ${load.kind === 'within' ? 'text-ink' : 'text-warn'}`}
+          >
+            {totals.credits}
+          </span>{' '}
+          {t('footer.credits')}
+        </span>
       </span>
       {load.kind === 'within' ? null : <CreditLoadNote load={load} t={t} />}
-      <span>
-        <span className={NUMBER}>{totals.subjects}</span> {t('footer.subjects')}
+      <span className={FACT}>
+        <Layers {...ICON} />
+        <span>
+          <span className={NUMBER}>{totals.subjects}</span>{' '}
+          {t('footer.subjects')}
+        </span>
       </span>
       {conflictCount > 0 ? (
         <button
@@ -84,22 +144,30 @@ export function StatsBar({
           onClick={onShowConflict}
           className={`inline-flex items-center gap-1 rounded-kcp border border-danger bg-surface px-2 py-1 text-danger hover:bg-danger-soft ${TARGET_SIZE} ${FOCUS_RING}`}
         >
-          <AlertTriangle size={14} strokeWidth={2} aria-hidden />
+          <AlertTriangle {...ICON} />
           {fillTemplate(t('stats.conflicts'), { count: conflictCount })}
         </button>
       ) : (
-        <span className="inline-flex items-center gap-1">
-          <CheckCircle2 size={14} strokeWidth={2} aria-hidden />
-          {t('stats.noConflicts')}
+        <span
+          className={FACT}
+          data-no-conflicts
+          title={compact ? t('stats.noConflicts') : undefined}
+        >
+          <CheckCircle2 {...ICON} className="text-success" />
+          <span className={compact ? 'sr-only' : undefined}>
+            {t('stats.noConflicts')}
+          </span>
         </span>
       )}
-      <DayLoads load={totals.load} locale={locale} t={t} />
+      {compact ? null : <DayLoads load={totals.load} locale={locale} t={t} />}
       {totals.unscheduled > 0 ? (
         <span>
           {totals.unscheduled} {t('footer.unscheduled')}
         </span>
       ) : null}
-      {freeDays.length > 0 ? <FreeDays days={freeDays} t={t} /> : null}
+      {!compact && freeDays.length > 0 ? (
+        <FreeDays days={freeDays} t={t} />
+      ) : null}
       {status === undefined ? null : <span className="ml-auto">{status}</span>}
     </div>
   );
