@@ -218,7 +218,7 @@ export function HeaderOverflowMenu() {
               })}
             </div>
             <div
-              aria-hidden="true"
+              role="separator"
               className="mx-1 my-1 border-t border-border"
             />
             <button

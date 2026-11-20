@@ -170,6 +170,9 @@ describe('HeaderOverflowMenu', () => {
   it('reopens the product tour from its own item and closes to the trigger', () => {
     render(<HeaderOverflowMenu />);
     fireEvent.click(trigger());
+    expect(
+      within(screen.getByRole('menu')).getByRole('separator'),
+    ).toBeInTheDocument();
     fireEvent.click(tourItem());
     expect(onboardingStore.getState().tourOpen).toBe(true);
     expect(onboardingStore.getState().tourStarted).toBe(true);
