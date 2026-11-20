@@ -202,6 +202,10 @@ describe('StatsBar', () => {
       expect(screen.queryByText(/วันว่าง/)).toBeNull();
       // The words stay for assistive technology, so the icon never stands alone.
       expect(screen.getByText('ไม่มีรายการชนกัน')).toHaveClass('sr-only');
+      // A shield, so the bare glyph never reads as the verified check beside it.
+      const clear = document.querySelector('[data-no-conflicts] svg');
+      expect(clear).toHaveClass('lucide-shield-check');
+      expect(clear).not.toHaveClass('lucide-circle-check');
       // The credits, the subjects, the unscheduled count, and the status still show.
       expect(screen.getByText('5').parentElement).toHaveTextContent('5 หน่วยกิต');
       expect(screen.getByText('1 ไม่มีคาบเรียน')).toBeInTheDocument();
