@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { ClientRect } from '@dnd-kit/core';
-import { activatorCoordinates, snapDragCardToCursor } from './snapToCursor';
+import {
+  activatorCoordinates,
+  keepOverlayInWindow,
+  OVERLAY_EDGE_GAP,
+  snapDragCardToCursor,
+} from './snapToCursor';
 
 function rect(left: number, top: number): ClientRect {
   return {
@@ -115,5 +120,58 @@ describe('snapDragCardToCursor', () => {
         }),
       ),
     ).toBe(transform);
+  });
+});
+
+describe('keepOverlayInWindow', () => {
+  const windowRect: ClientRect = {
+    left: 0,
+    top: 0,
+    right: 360,
+    bottom: 800,
+    width: 360,
+    height: 800,
+  };
+  const size = { width: 240, height: 90 };
+
+  function clamp(
+    transform: { x: number; y: number; scaleX: number; scaleY: number },
+    measured: { width: number; height: number } | null = size,
+  ) {
+    return keepOverlayInWindow(measured)({
+      ...args({
+        activatorEvent: null,
+        draggingNodeRect: rect(100, 60),
+        transform,
+      }),
+      windowRect,
+    });
+  }
+
+  it('leaves an overlay that fits the window where it is', () => {
+    expect(clamp({ x: 10, y: 20, scaleX: 1, scaleY: 1 })).toEqual({
+      x: 10,
+      y: 20,
+      scaleX: 1,
+      scaleY: 1,
+    });
+  });
+
+  it('slides an overlay back from the right and bottom edges', () => {
+    // At left 330 and top 760 the 240 by 90 content would run past 360 and 800.
+    const result = clamp({ x: 230, y: 700, scaleX: 1, scaleY: 1 });
+    expect(100 + result.x + size.width).toBe(360 - OVERLAY_EDGE_GAP);
+    expect(60 + result.y + size.height).toBe(800 - OVERLAY_EDGE_GAP);
+  });
+
+  it('keeps the overlay off the left and top edges', () => {
+    const result = clamp({ x: -150, y: -100, scaleX: 1, scaleY: 1 });
+    expect(100 + result.x).toBe(OVERLAY_EDGE_GAP);
+    expect(60 + result.y).toBe(OVERLAY_EDGE_GAP);
+  });
+
+  it('passes the transform through before the content lays out', () => {
+    const transform = { x: 230, y: 700, scaleX: 1, scaleY: 1 };
+    expect(clamp(transform, null)).toBe(transform);
   });
 });
