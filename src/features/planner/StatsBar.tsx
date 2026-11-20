@@ -9,8 +9,9 @@
 // The suggest action the panel slots in sits at the end of the row, outside the wrapping facts,
 // so it keeps its place at the right edge (ADR-0049 amendment).
 // A clash is the one item the student acts on, so it is a danger button that points at the
-// first clashing section on the timetable; with none the row says so quietly with a check, as
-// an icon alone on a phone with the words kept for assistive technology.
+// first clashing section on the timetable; with none the row says so quietly with a shield
+// check, as an icon alone on a phone with the words kept for assistive technology. The shield
+// keeps that glyph apart from the plain check of a verified plan beside it.
 // The poster states the same totals in its own footer line, without the clash control and
 // without the free days, which describe the student's week rather than the timetable
 // being shared.
@@ -19,9 +20,9 @@ import type { ReactNode } from 'react';
 import {
   AlertTriangle,
   BookOpen,
-  CheckCircle2,
   Info,
   Layers,
+  ShieldCheck,
 } from 'lucide-react';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
@@ -153,7 +154,7 @@ function PlanFacts({
           data-no-conflicts
           title={compact ? t('stats.noConflicts') : undefined}
         >
-          <CheckCircle2 {...ICON} className="text-success" />
+          <ShieldCheck {...ICON} className="text-success" />
           <span className={compact ? 'sr-only' : undefined}>
             {t('stats.noConflicts')}
           </span>
