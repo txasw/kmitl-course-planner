@@ -1,7 +1,7 @@
 // The enrollment conditions of a section, such as a faculty, a curriculum, or a student
 // id range it is limited to. They decide whether a student can register at all, so they
 // read in the warn tone with a shield icon and the conditions label, one rule per line,
-// resting as the first rule on one line with a control that shows them all. The rules
+// resting at two lines with a control that shows them all when there are more. The rules
 // are sanitized plain text whose angle bracket qualifiers, for example <สองปริญญา>, stay
 // as written because they tell the eligible programs apart. The locale primary list falls
 // back to the other language when it is empty, with lang set to the list shown.

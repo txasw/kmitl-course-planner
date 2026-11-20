@@ -46,8 +46,9 @@ class RecordingObserver implements ResizeObserver {
 globalThis.ResizeObserver = RecordingObserver;
 
 function reportClipped(node: HTMLElement): void {
-  Object.defineProperty(node, 'scrollWidth', { value: 400 });
-  Object.defineProperty(node, 'clientWidth', { value: 120 });
+  // The two line clamp hides the rest below its box, so the scroll height passes it.
+  Object.defineProperty(node, 'scrollHeight', { value: 80 });
+  Object.defineProperty(node, 'clientHeight', { value: 32 });
   act(() => {
     report?.(node);
   });
@@ -64,7 +65,7 @@ describe('TeacherLine', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('offers no control while the list fits on its line', () => {
+  it('offers no control while the list fits in two lines', () => {
     render(<TeacherLine teachers={TEACHERS} t={th} />);
     expect(screen.getByText('ผู้สอน')).toBeInTheDocument();
     expect(screen.getByText(JOINED)).toBeInTheDocument();
@@ -78,7 +79,7 @@ describe('TeacherLine', () => {
 
     const toggle = screen.getByRole('button', { name: 'ดูผู้สอนทั้งหมด' });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    expect(line.className.split(' ')).toContain('truncate');
+    expect(line.className.split(' ')).toContain('line-clamp-2');
 
     fireEvent.click(toggle);
     const collapse = screen.getByRole('button', { name: 'ย่อรายชื่อผู้สอน' });

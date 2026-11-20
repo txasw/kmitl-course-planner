@@ -51,7 +51,7 @@ const EXCEPTIONS: readonly TextFitException[] = [
     scope: '[data-collapsible-lines="collapsed"]',
     control: ':scope > button[aria-expanded="false"]',
     reason:
-      'a teacher, condition, or remark line rests as one line, and its expand control wraps every line in full',
+      'a teacher, condition, or remark list longer than two lines rests at two, and its expand control wraps every line in full',
   },
   {
     // Only the last step clamps; a name that two lines of a smaller step hold is whole.
@@ -174,7 +174,7 @@ for (const language of ['th', 'en'] as const) {
         await sweep.scan('catalog collapsed', catalog);
         await expandCourse(sweep, '90642036');
         await sweep.scan('catalog many teachers', catalog);
-        // The long list rests on one line behind an expand control that wraps it whole.
+        // The long list rests at two lines behind an expand control that wraps it whole.
         await catalog
           .getByRole('button', { name: sweep.t('section.teachers.showAll') })
           .first()

@@ -757,7 +757,7 @@ describe('SectionRow conditions and remark', () => {
       />,
     );
     expect(screen.getByText('เงื่อนไข')).toBeInTheDocument();
-    expect(screen.getByText('เฉพาะคณะวิศวกรรมศาสตร์')).toBeInTheDocument();
+    expect(screen.getByText(/^เฉพาะคณะวิศวกรรมศาสตร์/)).toBeInTheDocument();
     const toggle = screen.getByRole('button', {
       name: 'ดูเงื่อนไขทั้งหมด (3)',
     });
@@ -786,15 +786,12 @@ describe('SectionRow conditions and remark', () => {
         t={createTranslator('en')}
       />,
     );
-    expect(screen.getByText('Only School of Engineering').className).toContain(
-      'truncate',
-    );
-    expect(
-      screen.getByText('Only School of Engineering').closest('ul'),
-    ).toHaveAttribute('lang', 'en');
+    const rest = screen.getByText(/^Only School of Engineering/);
+    expect(rest.className).toContain('line-clamp-2');
+    expect(rest.closest('ul')).toHaveAttribute('lang', 'en');
   });
 
-  it('shows the remark first line inline with a labelled expand control', () => {
+  it('shows a short two line remark whole with no control', () => {
     const withRemark = makeSection({
       teachTableId: 'r',
       remark: 'รับเฉพาะนักศึกษาเก็บตกเท่านั้น\nติดต่อภาควิชาก่อนลงทะเบียน',
@@ -810,7 +807,31 @@ describe('SectionRow conditions and remark', () => {
       />,
     );
     expect(screen.getByText('หมายเหตุ')).toBeInTheDocument();
-    expect(screen.getByText('รับเฉพาะนักศึกษาเก็บตกเท่านั้น')).toBeInTheDocument();
+    expect(screen.getByText(/^รับเฉพาะนักศึกษาเก็บตกเท่านั้น/)).toHaveTextContent(
+      'ติดต่อภาควิชาก่อนลงทะเบียน',
+    );
+    expect(
+      screen.queryByRole('button', { name: 'ดูหมายเหตุทั้งหมด' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('collapses a remark longer than two lines behind a labelled expand control', () => {
+    const withRemark = makeSection({
+      teachTableId: 'r',
+      remark:
+        'รับเฉพาะนักศึกษาเก็บตกเท่านั้น\nชั้นปีอื่นลงทะเบียนวันถัดไป\nติดต่อภาควิชาก่อนลงทะเบียน',
+    });
+    render(
+      <SectionRow
+        course={course}
+        section={withRemark}
+        relation={{ kind: 'addable' }}
+        seat={computeSeatStatus(withRemark)}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.getByText(/^รับเฉพาะนักศึกษาเก็บตกเท่านั้น/)).toBeInTheDocument();
     expect(screen.queryByText('ติดต่อภาควิชาก่อนลงทะเบียน')).not.toBeInTheDocument();
     const toggle = screen.getByRole('button', { name: 'ดูหมายเหตุทั้งหมด' });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');

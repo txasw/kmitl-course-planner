@@ -30,11 +30,24 @@ describe('RemarkLine', () => {
     expect(root?.className).not.toContain('text-warn');
   });
 
-  it('reveals the remaining lines behind a labelled control', () => {
+  it('shows a two line remark whole while it fits, with no control', () => {
+    render(
+      <RemarkLine
+        remark={'1st years: Enroll now\nOther years: 2 July 2026'}
+        t={en}
+      />,
+    );
+    const rest = screen.getByText(/^1st years: Enroll now/);
+    expect(rest).toHaveTextContent('Other years: 2 July 2026');
+    expect(rest.className.split(' ')).toContain('line-clamp-2');
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('reveals a remark longer than two lines behind a labelled control', () => {
     render(
       <RemarkLine
         remark={
-          '1st years: Enroll now\nOther year students can enroll on 2 July 2026'
+          '1st years: Enroll now\nSecond line\nOther year students can enroll on 2 July 2026'
         }
         t={en}
       />,

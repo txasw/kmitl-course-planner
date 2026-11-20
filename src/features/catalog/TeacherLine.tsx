@@ -1,8 +1,8 @@
-// The teachers of a section on one line. Most sections name one to three teachers and
-// the line shows them whole; a long list rests as one line with a labelled control
-// that wraps the full list in place, so no name hides behind an ellipsis without a way
-// to read it (ADR-0048 amendment). It is built on the shared one line clamp the
-// condition and remark lines use.
+// The teachers of a section. Most sections name one to three teachers and the line
+// shows them whole, wrapping onto a second line when it must; a list longer than two
+// lines rests at two with a labelled control that wraps the full list in place, so no
+// name hides behind an ellipsis without a way to read it (ADR-0048 amendment). It is
+// built on the shared two line clamp the condition and remark lines use.
 
 import { UserRound } from 'lucide-react';
 import type { Translate } from '@/lib/i18n/t';

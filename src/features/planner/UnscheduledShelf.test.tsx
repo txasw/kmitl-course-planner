@@ -199,10 +199,11 @@ describe('UnscheduledShelf conditions and remark', () => {
       />,
     );
     expect(screen.getByText('เงื่อนไข')).toBeInTheDocument();
-    expect(screen.getByText('เฉพาะคณะวิศวกรรมศาสตร์')).toBeInTheDocument();
+    // Two rules rest whole at two lines, so no expand control shows while they fit.
+    expect(screen.getByText(/^เฉพาะคณะวิศวกรรมศาสตร์/)).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'ดูเงื่อนไขทั้งหมด (2)' }),
-    ).toHaveAttribute('aria-expanded', 'false');
+      screen.queryByRole('button', { name: 'ดูเงื่อนไขทั้งหมด (2)' }),
+    ).not.toBeInTheDocument();
     expect(screen.getByText('หมายเหตุ')).toBeInTheDocument();
     expect(screen.getByText('เรียนออนไลน์ผ่าน MS Teams')).toBeInTheDocument();
   });
