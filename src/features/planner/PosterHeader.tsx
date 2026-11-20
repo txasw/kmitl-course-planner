@@ -1,10 +1,13 @@
 // The preview poster header: the plan name, the semester over year, the total
 // credits, and the date the poster was generated. It is presentation only, shown
-// when the panel is in preview mode, and carries no interactive control.
+// when the panel is in preview mode, and carries no interactive control. The date
+// reads "D MMM BE" in both locales, the Buddhist year the term beside it uses, rather
+// than the Gregorian year an English Intl date would print.
 
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Term } from '@/lib/routing/academicTerms';
 import { summarizeCredits } from '@/lib/planner/credits';
+import { formatLocalDate } from './examText';
 import type { PlacedSection } from './placedSection';
 
 interface PosterHeaderProps {
@@ -30,9 +33,7 @@ export function PosterHeader({
       credit: section.credit,
     })),
   );
-  const date = new Intl.DateTimeFormat(locale === 'th' ? 'th-TH' : 'en-GB', {
-    dateStyle: 'medium',
-  }).format(now);
+  const date = formatLocalDate(now, t);
 
   return (
     // The export clones the poster without its ancestors, so the header carries the

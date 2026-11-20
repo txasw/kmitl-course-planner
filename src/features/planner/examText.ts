@@ -88,17 +88,28 @@ export function examWindowTexts(
   });
 }
 
-/** A moment the app recorded itself, such as the last verification, in the same
- * "D MMM BE HH:MM" form an exam date reads, so one detail list never mixes two date
- * conventions. It reads the local calendar fields of the Date, since the stored value
- * is an ISO instant rather than the API's fixed width exam string. */
-export function formatLocalDateTime(date: Date, t: Translate): string {
-  const parts: ExamDateParts = {
+function localParts(date: Date): ExamDateParts {
+  return {
     yearCE: date.getFullYear(),
     month: date.getMonth() + 1,
     day: date.getDate(),
     hour: date.getHours(),
     minute: date.getMinutes(),
   };
+}
+
+/** A day the app recorded itself, such as the day a poster was made, as "D MMM BE" in
+ * both locales, so the poster never shows a Gregorian year beside the Buddhist year of
+ * its term. It reads the local calendar fields of the Date. */
+export function formatLocalDate(date: Date, t: Translate): string {
+  return formatExamDate(localParts(date), t);
+}
+
+/** A moment the app recorded itself, such as the last verification, in the same
+ * "D MMM BE HH:MM" form an exam date reads, so one detail list never mixes two date
+ * conventions. It reads the local calendar fields of the Date, since the stored value
+ * is an ISO instant rather than the API's fixed width exam string. */
+export function formatLocalDateTime(date: Date, t: Translate): string {
+  const parts = localParts(date);
   return `${formatExamDate(parts, t)} ${clock(parts)}`;
 }
