@@ -19,10 +19,11 @@
 // chevron that reaches the first or last slide disables, so it hands focus to the other
 // chevron beside it, which needs no scroll, rather than to a dot below the slide.
 //
-// Each slide keeps a few px of padding inside the clipping viewport. The viewport's inset
-// focus ring paints in that gap, where the card and the moving track would cover it, and a
-// control at the slide edge, the full width apply button on a phone, keeps its offset
-// outline inside the clip.
+// Each slide keeps 4 px of padding inside the clipping viewport. The viewport's inset focus
+// ring paints in that gap, where the card and the moving track would cover it, and a control
+// near the slide edge keeps its offset outline inside the clip. A portrait slide pads only
+// above and below, since its day columns need the width for a Thai word at 360 px; its apply
+// action insets itself instead.
 
 import {
   useCallback,
@@ -324,7 +325,7 @@ export function SuggestionCarousel({
               key={suggestionKey(card.suggestion)}
               data-suggest-slide={index}
               inert={index !== page}
-              className="w-full min-w-0 shrink-0 p-1"
+              className={`w-full min-w-0 shrink-0 ${orientation === 'portrait' ? 'py-1' : 'p-1'}`}
             >
               <SuggestionCard
                 suggestion={card.suggestion}
