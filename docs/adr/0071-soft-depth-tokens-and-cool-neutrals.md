@@ -80,3 +80,34 @@ places muted text must keep its glyph tops at or below 70 percent of the card he
 soft instead, and `docs/CONTRAST.md` lists the bound and the per tint limits. A token edit that drops a pair under its bar fails `token-contrast.test.ts`. The fallback
 that Tailwind emits for a browser without `color-mix` paints the solid tint, which no supported
 browser reaches, since the Tailwind v4 baseline already requires `color-mix`.
+
+## Amendment, 2026-11-21: the neutral card across the catalog
+
+A conformance review of the redesign found the one card treatment stopped at the event blocks,
+the query chip, and the suggestion cards. The catalog course cards and their section rows kept
+the flat 1 px border, a section row ended in a full height tinted add strip, and the query chip
+at the default stops read as a heavy grey pill above white cards. The panel also drew three
+different count badges.
+
+- A neutral card that repeats down a list takes the quiet stops: `--kcp-tint-quiet-strong` 4
+  percent fading to `--kcp-tint-quiet-weak` 0 percent, with the edge at `--kcp-tint-quiet-edge`
+  22 percent, a near white face with a hairline edge, the highlight, and the light shadow. An
+  added course card takes the settled stops, 7 percent fading to 5 percent, in place of the flat
+  surface-alt fill. The `kcp-soft-quiet` and `kcp-soft-settled` utilities set the card's stop
+  names on the element beside `kcp-soft-card`, so the neutral card still shares the one
+  treatment and differs only in its stops. Both strong stops sit under the default weak stop, so
+  every text step clears 4.5:1 anywhere on them, which the contrast suite proves.
+- The catalog course card and the query chip take the quiet card. The open sections of a card
+  sit in one white inset panel with the light shadow and hairline rules between rows, a lighter
+  step than the card, rather than a bordered card per row, so an open card keeps one level of
+  nesting. The query chip's pencil tile drops from the sunken well to the lighter surface, and
+  the bar pads by the 16 px panel gutter.
+- The panel has one count badge: an ink filled pill with white figures and a ring of the surface,
+  on the filter button, the bottom nav, the header sheet toggle, and the edge rail. It is hidden
+  from assistive technology because each control's name carries the count.
+
+Alternatives considered: the flat divider rows with no card that the screen 03 mockup drew were
+rejected because the owner picked the full soft set for every card. Applying the default stops
+to the catalog cards was rejected because a column of them reads as a grey wash, the fault the
+review found in the query chip. A brand orange badge was rejected because the orange marks what
+can be pressed, and a count is a figure, not a control.

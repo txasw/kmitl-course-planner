@@ -83,6 +83,22 @@ foot, in ink, which clears 4.5:1 through the hatch on both stops. Enforced in
 | `#736B00` | `#E7E6D4`  | `#F4F3EB` | 13.81 | 5.31     | 4.35   | 9.60              |
 | `#A50060` | `#F0D4E4`  | `#F8EBF2` | 12.63 | 4.85     | 5.51   | 9.01              |
 
+## Quiet and settled neutral cards
+
+The catalog course cards and the query chip take the soft depth card of ADR-0071 with the muted
+ink as their tint at lighter stops (the ADR-0071 amendment of 2026-11-21). A card at rest takes
+the quiet stops, 4 percent at the top fading to 0 percent, and an added course card takes the
+settled stops, 7 percent fading to 5 percent. The strong stop is the darkest fill of each, so
+every text step proven there may sit anywhere on the card, with no position bound for the muted
+ink. Enforced in `token-contrast.test.ts`.
+
+| Card    | Strong stop | Ink   | Ink soft | Ink muted |
+| ------- | ----------- | ----- | -------- | --------- |
+| Quiet   | `#F9F9F9`   | 16.53 | 6.35     | 5.03      |
+| Settled | `#F5F5F5`   | 15.96 | 6.13     | 4.86      |
+
+The one count badge of the panel draws white figures on the ink fill, 17.40:1.
+
 ## Export template day color accent
 
 The export template day row labels tint with the traditional Thai day colors, each
