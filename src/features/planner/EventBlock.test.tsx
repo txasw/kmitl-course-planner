@@ -45,11 +45,11 @@ afterEach(() => {
 
 /** Make every fit column report a 20 px overflow while it contains `text`, standing in for
  * the layout jsdom does not perform. */
-function overflowWhileShowing(text: string): void {
+function overflowWhileShowing(...texts: string[]): void {
   vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(80);
   vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
     function (this: HTMLElement) {
-      return this.textContent.includes(text) ? 100 : 80;
+      return texts.some((text) => this.textContent.includes(text)) ? 100 : 80;
     },
   );
 }
@@ -324,9 +324,9 @@ describe('EventBlock', () => {
   });
 
   it('leaves out an empty foot so its margin never costs the name a line', () => {
-    // The column overflows while it holds the time, so the fit drops the id, then the time,
-    // and the foot that held them goes with them.
-    overflowWhileShowing('09:00-12:00');
+    // The column overflows while it holds either foot line, so the fit drops the id, then the
+    // time, the reclaim pass finds neither fits back, and the foot that held them goes too.
+    overflowWhileShowing('09:00-12:00', '90592033');
     const { container } = render(
       <EventBlock
         section={section}
@@ -816,6 +816,25 @@ describe('EventBlock', () => {
     );
     expect(screen.queryByText('09:00-12:00')).not.toBeInTheDocument();
     expect(screen.getByText('90592033')).toBeInTheDocument();
+  });
+
+  it('gives the subject id back when the second name never fit under both names', () => {
+    // The column overflows only while the English second line shows. The walk drops the id
+    // first, then the second line; the reclaim pass then finds the id fits again.
+    overflowWhileShowing('Test subject');
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        nameLanguage="both"
+      />,
+    );
+    expect(screen.queryByText('Test subject')).not.toBeInTheDocument();
+    expect(screen.getByText('90592033')).toBeInTheDocument();
+    expect(screen.getByText('09:00-12:00')).toBeInTheDocument();
   });
 
   it('walks the ladder when the content overflows sideways for any other reason', () => {

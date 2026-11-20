@@ -5,6 +5,7 @@ import {
   sameLevel,
   nextDensityLevel,
   dropWholeFields,
+  nextReclaim,
   type DensityLevel,
   type NameFit,
 } from './blockDensity';
@@ -275,5 +276,63 @@ describe('dropWholeFields', () => {
   it('never brings back a field that was already absent', () => {
     expect(dropWholeFields(bare, [])).toEqual(bare);
     expect(dropWholeFields(bare, ['id', 'time'])).toEqual(bare);
+  });
+});
+
+describe('nextReclaim', () => {
+  it('offers the dropped top rungs back in priority order, each once', () => {
+    const level = { ...fullLevel(allEligible), nameLines: 2 as const };
+    const dropped = {
+      ...level,
+      showTime: false,
+      showSecondary: false,
+      showId: false,
+    };
+    const first = nextReclaim(dropped, allEligible, []);
+    expect(first?.field).toBe('time');
+    expect(first?.level.showTime).toBe(true);
+    expect(nextReclaim(dropped, allEligible, ['time'])?.field).toBe(
+      'secondary',
+    );
+    expect(
+      nextReclaim(dropped, allEligible, ['time', 'secondary'])?.field,
+    ).toBe('id');
+    expect(
+      nextReclaim(dropped, allEligible, ['time', 'secondary', 'id']),
+    ).toBeNull();
+  });
+
+  it('never offers a field the block is not eligible for or already shows', () => {
+    const noSecondary = buildEligibility({
+      hasName: true,
+      hasSecondary: false,
+      hasSection: true,
+      hasId: true,
+      hasPlace: true,
+    });
+    const level = { ...fullLevel(noSecondary), showId: false };
+    expect(nextReclaim(level, noSecondary, [])?.field).toBe('id');
+    expect(nextReclaim(fullLevel(noSecondary), noSecondary, [])).toBeNull();
+  });
+
+  it('offers only fields the ladder drops first while shown, so an overflow undoes it', () => {
+    // Each offered level demotes straight back to the level it came from.
+    const settled = {
+      ...fullLevel(allEligible),
+      showTime: false,
+      showSecondary: false,
+      showId: false,
+      nameLines: 2 as const,
+    };
+    let tried: ('time' | 'secondary' | 'id')[] = [];
+    for (
+      let offer = nextReclaim(settled, allEligible, tried);
+      offer !== null;
+    ) {
+      expect(nextDensityLevel(offer.level)).toEqual(settled);
+      tried = [...tried, offer.field];
+      offer = nextReclaim(settled, allEligible, tried);
+    }
+    expect(tried).toEqual(['time', 'secondary', 'id']);
   });
 });

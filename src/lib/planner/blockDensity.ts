@@ -169,3 +169,53 @@ export function dropWholeFields(
     showTime: level.showTime && !fields.includes('time'),
   };
 }
+
+/** A field the reclaim pass may offer back: the three top rungs of the ladder. */
+export type ReclaimField = 'time' | 'secondary' | 'id';
+
+/** The order the reclaim pass offers fields back, highest priority first, so a field the
+ * ladder ranks higher wins any room two dropped fields compete for. */
+const RECLAIM_ORDER: readonly ReclaimField[] = ['time', 'secondary', 'id'];
+
+function canReclaim(
+  field: ReclaimField,
+  level: DensityLevel,
+  e: DensityEligibility,
+): boolean {
+  switch (field) {
+    case 'time':
+      return !level.showTime;
+    case 'secondary':
+      return e.hasSecondary && !level.showSecondary;
+    case 'id':
+      return e.hasId && !level.showId;
+  }
+}
+
+function withField(level: DensityLevel, field: ReclaimField): DensityLevel {
+  switch (field) {
+    case 'time':
+      return { ...level, showTime: true };
+    case 'secondary':
+      return { ...level, showSecondary: true };
+    case 'id':
+      return { ...level, showId: true };
+  }
+}
+
+/** The next dropped field to offer back once the content fits, or null when every eligible
+ * dropped field has been tried. Only the three top rungs are offered: each is the first field
+ * the ladder drops while shown, so an offer that overflows is undone by the next demotion and
+ * never costs a field ranked above it. */
+export function nextReclaim(
+  level: DensityLevel,
+  e: DensityEligibility,
+  tried: readonly ReclaimField[],
+): { field: ReclaimField; level: DensityLevel } | null {
+  for (const field of RECLAIM_ORDER) {
+    if (!tried.includes(field) && canReclaim(field, level, e)) {
+      return { field, level: withField(level, field) };
+    }
+  }
+  return null;
+}
