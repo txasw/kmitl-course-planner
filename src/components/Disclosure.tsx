@@ -1,13 +1,12 @@
-// A collapsed section behind a quiet text toggle, the system chevron disclosure the
-// catalog groups and the tick list use, in place of a native details element whose
-// browser marker sits outside the icon set. The toggle is a button that states
-// aria-expanded and names the panel it controls while that panel is shown; the chevron
-// points right while collapsed and down while expanded, and under reduced motion it
-// turns without the transition. The panel starts collapsed and holds its own state, so
+// A collapsed section behind a quiet text toggle, in place of a native details element
+// whose browser marker sits outside the icon set. The toggle is a button that states
+// aria-expanded and names the panel it controls while that panel is shown, and carries
+// the shared DisclosureChevron the catalog group and tick list headings carry too, so
+// every disclosure turns alike. The panel starts collapsed and holds its own state, so
 // a parent that remounts it, such as a carousel slide ranked again, starts it collapsed.
 
 import { useId, useState, type ReactNode } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { DisclosureChevron } from './DisclosureChevron';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_HEIGHT } from '@/lib/ui/target';
 
@@ -31,11 +30,7 @@ export function Disclosure({ label, children }: DisclosureProps) {
         }}
         className={`flex w-fit max-w-full items-center gap-1 rounded-kcp px-1 text-left text-ink-soft hover:text-ink ${TARGET_HEIGHT} ${FOCUS_RING}`}
       >
-        <ChevronDown
-          size={14}
-          aria-hidden
-          className={`shrink-0 transition-transform duration-fast motion-reduce:transition-none ${open ? '' : '-rotate-90'}`}
-        />
+        <DisclosureChevron open={open} />
         <span className="min-w-0">{label}</span>
       </button>
       {open ? (
