@@ -198,3 +198,21 @@ compares the grids directly. A carousel library was rejected because the swipe h
 and the sheets use already covers the gesture, and a dependency would add bundle weight for one
 dialog. Keeping a full size view beside the slides was rejected because it would show the same
 grid a second time with only a little more height.
+
+
+
+## Amendment, 2026-11-21: the carousel chevron names open below
+
+The previous and next chevrons of the carousel open their name tooltips below the chevron. A
+tooltip above them reached the dialog header and covered the close button. Below, it falls over
+the top of the slide only while the pointer rests on a chevron. `PagerArrow` takes the tooltip
+side as a prop, and the template gallery keeps the default.
+
+## Amendment, 2026-11-21: a filled entry with its own glyph
+
+The suggest action shares no glyph with another control. Both entries now carry a wand with
+sparkles (lucide WandSparkles) instead of the checklist, which is the icon of the selected courses
+tab in the bottom nav, so the two never read as one destination. The status row entry is a filled
+primary button at rest, primary strong with surface text and the offset focus outline the other
+filled buttons use, since an inset ring would vanish into the fill; the catalog head keeps its
+quiet bordered entry. This replaces the primary soft style of the status row entry above.

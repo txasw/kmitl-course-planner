@@ -108,7 +108,7 @@ describe('SuggestAction', () => {
     ).toBeInTheDocument();
   });
 
-  it('takes the short label and the primary soft look in the status row', () => {
+  it('takes the short label and the filled primary look in the status row', () => {
     act(() => {
       uiStore.getState().setLanguage('en');
     });
@@ -121,7 +121,16 @@ describe('SuggestAction', () => {
       </PanelPortalContext.Provider>,
     );
     const button = screen.getByRole('button', { name: 'Suggest' });
-    expect(button).toHaveClass('bg-primary-soft', 'font-semibold', 'shrink-0');
+    expect(button).toHaveClass(
+      'bg-primary-strong',
+      'text-surface',
+      'font-semibold',
+      'shrink-0',
+    );
+    expect(button).not.toHaveClass('bg-primary-soft');
+    // Its own glyph, never the checklist of the selected courses tab.
+    expect(button.querySelector('svg')).toHaveClass('lucide-wand-sparkles');
+    expect(button.querySelector('.lucide-list-checks')).toBeNull();
   });
 
   it('shows for the active plan of the same term', () => {

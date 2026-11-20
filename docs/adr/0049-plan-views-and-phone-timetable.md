@@ -188,4 +188,6 @@ conflicts) and the title is removed. From 640 px up the row keeps the full words
 wraps its facts rather than cutting them, so the extra word moves to the second line on the
 narrowest phones instead of clipping. Hiding the indicator on phones and showing only the clash
 button was rejected, because the student then cannot tell a plan with no clash from a row that
-has not loaded.
+has not loaded. The suggest action at the end of the row is now a filled primary button with its
+own glyph (ADR-0054 amendment of the same date), replacing the primary soft style and the
+checklist glyph named above.

@@ -1151,7 +1151,7 @@ describe('PlannerPanel suggest action', () => {
     const suggest = within(statusRow()).getByRole('button', {
       name: 'แนะนำตาราง',
     });
-    expect(suggest).toHaveClass('bg-primary-soft', 'text-primary-strong');
+    expect(suggest).toHaveClass('bg-primary-strong', 'text-surface');
     expect(statusRow()).not.toHaveTextContent('หน่วยกิต');
     fireEvent.click(suggest);
     expect(

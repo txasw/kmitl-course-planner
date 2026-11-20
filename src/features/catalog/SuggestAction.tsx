@@ -1,16 +1,17 @@
 // The entry point to plan suggestions (ADR-0054): a quiet button in the catalog column head,
-// and a prominent one at the end of the plan status row, in the thumb zone on a phone
-// (ADR-0049 amendment). Both open the same dialog, and both show only when a suggestion can
+// and a prominent one at the end of the plan status row, a filled primary button in the thumb
+// zone on a phone (ADR-0049 amendment). Both open the same dialog, and both show only when a suggestion can
 // mean something: the settled result is a by_class search, the search by curriculum and
 // class year, it holds at least one curriculum course, and its term is the active plan's,
 // or there is no plan yet. A category or subject id search mixes subjects from outside one
 // curriculum, and a different term could not be added to the plan, so the action is absent
-// rather than disabled in those cases. The icon is a neutral checklist, not a sparkle,
-// since the result is a computed timetable.
+// rather than disabled in those cases. Both carry a wand with sparkles, a glyph no other
+// control uses, so the action never reads as the selected courses tab, whose icon is a
+// checklist.
 
 import { useMemo, useState } from 'react';
 import { useStore } from 'zustand';
-import { ListChecks } from 'lucide-react';
+import { WandSparkles } from 'lucide-react';
 import { isCurriculumCourse } from '@/lib/catalog/subjectGroup';
 import type { SourceQuery } from '@/lib/domain/plan';
 import type { Course } from '@/lib/domain/types';
@@ -20,7 +21,7 @@ import {
   type Term,
 } from '@/lib/routing/academicTerms';
 import { toSourceQuery } from '@/lib/planner/sourceQuery';
-import { FOCUS_RING } from '@/lib/ui/focus';
+import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { SuggestDialog } from '@/features/planner/SuggestDialog';
 import { useActivePlan } from '@/features/plans/planStore';
 import { searchStore } from '@/features/search/searchStore';
@@ -72,14 +73,15 @@ export function useSuggestTarget(): SuggestTarget | null {
   }, [result, query, planYear, planSemester]);
 }
 
-/** The quiet look of the catalog head, or the primary soft look of the plan status row. */
+/** The quiet look of the catalog head, or the filled primary look of the plan status row. */
 export type SuggestActionVariant = 'quiet' | 'prominent';
 
 const VARIANT_CLASS: Record<SuggestActionVariant, string> = {
-  quiet: 'border-border bg-surface px-2 text-ink hover:bg-surface-alt',
+  quiet: `border-border bg-surface px-2 text-ink hover:bg-surface-alt ${FOCUS_RING}`,
   // The status row keeps the label on one line and never lets its neighbours squeeze it.
-  prominent:
-    'shrink-0 whitespace-nowrap border-primary bg-primary-soft px-3 font-semibold text-primary-strong hover:bg-primary-strong hover:text-white',
+  // An inset ring would vanish into the orange fill, so the filled look takes the offset
+  // outline the other filled primary buttons use.
+  prominent: `shrink-0 whitespace-nowrap border-primary-strong bg-primary-strong px-3 font-semibold text-surface hover:border-primary-hover hover:bg-primary-hover ${FOCUS_OUTLINE}`,
 };
 
 interface SuggestActionProps {
@@ -103,9 +105,9 @@ export function SuggestAction({ variant = 'quiet' }: SuggestActionProps) {
         onClick={() => {
           setOpen(true);
         }}
-        className={`inline-flex items-center gap-1.5 rounded-kcp border py-1.5 text-sm transition-colors ${VARIANT_CLASS[variant]} ${TARGET_SIZE} ${FOCUS_RING}`}
+        className={`inline-flex items-center gap-1.5 rounded-kcp border py-1.5 text-sm transition-colors ${VARIANT_CLASS[variant]} ${TARGET_SIZE}`}
       >
-        <ListChecks size={16} strokeWidth={2} aria-hidden />
+        <WandSparkles size={16} strokeWidth={2} aria-hidden />
         {t(variant === 'quiet' ? 'suggest.open' : 'suggest.openShort')}
       </button>
       {open ? (
