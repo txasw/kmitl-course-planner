@@ -6,8 +6,9 @@
 // sheet's body and footer. While a sheet is open the region drops to the panel foot, since
 // the sheet covers the phone bottom nav the region otherwise rises above. The plan region
 // makes room the same way: the toast region reports the height of the toast on show, and
-// the plan region ends in a band of that height, so its status row and the export page
-// caption and dots rise above the toast rather than sit under it.
+// the plan region ends in a band of that height, so its status row, the export page
+// caption and dots, and the phone sharing toolbar rise above the toast rather than sit
+// under it.
 
 import { useEffect } from 'react';
 import { useStore } from 'zustand';

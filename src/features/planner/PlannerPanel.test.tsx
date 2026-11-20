@@ -1018,7 +1018,7 @@ describe('PlannerPanel stats bar', () => {
     expect(container.querySelector('[data-toast-band]')).toBeNull();
   });
 
-  it('keeps the phone sharing toolbar at the foot under the toast band', () => {
+  it('lifts the phone sharing toolbar above the toast band', () => {
     installViewport(390);
     seedTwoSubjects();
     act(() => {
@@ -1031,7 +1031,7 @@ describe('PlannerPanel stats bar', () => {
       expect(band).not.toBeNull();
       expect(
         (band as Node).compareDocumentPosition(screen.getByRole('toolbar')) &
-          Node.DOCUMENT_POSITION_FOLLOWING,
+          Node.DOCUMENT_POSITION_PRECEDING,
       ).toBeTruthy();
     } finally {
       act(() => {
