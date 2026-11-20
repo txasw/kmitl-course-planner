@@ -1396,6 +1396,9 @@ test.describe('the phone layout', () => {
     await addCourse(page, '90000006');
     const nav = bottomNav(page);
     await nav.getByRole('button', { name: 'ตารางเรียน' }).tap();
+    // The phone opens on today's day when it has a class, so choose Monday, where 901
+    // meets, rather than depend on the day the run falls on.
+    await showDay(page, 'วันจันทร์');
     await expect(page.locator(block('900006'))).toBeVisible();
     const navBox = await nav.boundingBox();
 
