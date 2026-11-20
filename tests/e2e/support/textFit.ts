@@ -337,6 +337,18 @@ export async function scanTextFit(
               }
               // A row pinned inside the leaf's own scroller scrolls clear of it.
               if (scroller?.contains(top) === true) continue;
+              // A layer fixed over the scroller's end, such as the phone bottom nav, covers
+              // a line only while the scroller rests short of it. While the scroller still
+              // has room to scroll that far, scrolling brings the line clear, so it is not
+              // a covered line; at the scroller's end it is.
+              if (scroller !== null) {
+                const room =
+                  scroller.scrollHeight -
+                  scroller.clientHeight -
+                  scroller.scrollTop;
+                const under = top.getBoundingClientRect();
+                if (under.top <= y && room >= part.bottom - under.top) continue;
+              }
               cover = top;
             }
           }
