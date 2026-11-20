@@ -82,6 +82,9 @@ describe('BlockHoverCard', () => {
     // The seat line reads from the snapshot seats in the catalog row convention.
     expect(screen.getByText('ว่าง 40 จาก 40')).toBeInTheDocument();
     expect(screen.getByText('วิชาทดสอบ')).toHaveAttribute('lang', 'th');
+    // The other language name reads under it, quieter, as on the catalog card.
+    expect(screen.getByText('Test subject')).toHaveAttribute('lang', 'en');
+    expect(screen.getByText('Test subject')).toHaveClass('text-ink-soft');
     expect(screen.getByRole('tooltip')).toHaveClass(
       'w-72',
       'kcp-scroll',

@@ -15,7 +15,9 @@
 // the block, and on a coarse pointer a finger needs 44 px targets and a surface it cannot
 // knock aside, so both open the same content in a bottom sheet. Either form lands focus on
 // its heading, and closing returns focus to the block. Preview blocks accept no
-// interaction (section 6.4), so the surface renders nothing there.
+// interaction (section 6.4), so the surface renders nothing there. Under the heading the
+// subject is named in the panel language with the other language as a quieter line, as the
+// catalog card names it (brief 6.7).
 
 import { useEffect } from 'react';
 import { ClipboardCopy, ExternalLink } from 'lucide-react';
@@ -23,6 +25,7 @@ import { useStore } from 'zustand';
 import type { PlanEntry } from '@/lib/domain/plan';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { ExamOverlap } from '@/lib/planner/examOverlap';
+import { subjectNameLines } from '@/lib/planner/nameLanguage';
 import { termFromSourceQueryParams } from '@/lib/planner/sourceQuery';
 import { subjectListingUrl } from '@/lib/routing/teachTableUrl';
 import {
@@ -157,10 +160,13 @@ export function BlockDetailSurface({
     return null;
   }
 
-  const name =
-    locale === 'th'
-      ? entry.snapshot.subjectMeta.nameTh
-      : entry.snapshot.subjectMeta.nameEn;
+  const names = subjectNameLines(entry.snapshot.subjectMeta, 'both', locale);
+  const secondary =
+    names.secondary === null ? null : (
+      <span lang={names.secondaryLang ?? undefined} className="block text-xs">
+        {names.secondary}
+      </span>
+    );
   const code = `${entry.subjectId} ${t('section.code')} ${entry.section}`;
   const body = (
     <>
@@ -205,8 +211,9 @@ export function BlockDetailSurface({
         onClose={onClose}
         footer={actions}
       >
-        <p lang={locale} className="text-ink-soft">
-          {name}
+        <p className="break-words text-ink-soft">
+          <span lang={names.primaryLang}>{names.primary}</span>
+          {secondary}
         </p>
         {body}
       </BottomSheet>
@@ -217,7 +224,12 @@ export function BlockDetailSurface({
     <BlockDetailPopover
       anchor={anchor}
       title={code}
-      subtitle={<span lang={locale}>{name}</span>}
+      subtitle={
+        <>
+          <span lang={names.primaryLang}>{names.primary}</span>
+          {secondary}
+        </>
+      }
       closeLabel={t('action.close')}
       onClose={onClose}
       footer={actions}

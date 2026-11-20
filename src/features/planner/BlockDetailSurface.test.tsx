@@ -148,6 +148,17 @@ describe('BlockDetailSurface on a fine pointer from 640 px', () => {
     expect(screen.getByText('Subject')).toHaveAttribute('lang', 'en');
   });
 
+  it('names the subject in the panel language with the other language under it', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry()]);
+    });
+    renderPopover({ locale: 'th' });
+    expect(screen.getByText('วิชา')).toHaveAttribute('lang', 'th');
+    const secondary = screen.getByText('Subject');
+    expect(secondary).toHaveAttribute('lang', 'en');
+    expect(secondary).toHaveClass('text-xs');
+  });
+
   it('caps its height and scrolls the body under a pinned footer', async () => {
     act(() => {
       seedActivePlan([makePlanEntry({ verifyStatus: 'changed' })]);
@@ -529,6 +540,7 @@ describe('BlockDetailSurface below 640 px', () => {
       screen.getByRole('heading', { name: '90000001 Section 901' }),
     ).toHaveFocus();
     expect(screen.getByText('Subject')).toHaveAttribute('lang', 'en');
+    expect(screen.getByText('วิชา')).toHaveAttribute('lang', 'th');
     expect(rowValues('Seats')).toHaveLength(1);
   });
 

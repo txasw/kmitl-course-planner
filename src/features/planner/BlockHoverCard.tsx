@@ -10,7 +10,8 @@
 // both. It shares a family look with the drag conflict card but carries a neutral
 // info accent, a left border in the brand, so a placed block and a blocked drop read
 // differently at a glance. Its body is the compact SectionDetailList, the same list the
-// popover renders in full, so the two surfaces never disagree on a field.
+// popover renders in full, so the two surfaces never disagree on a field. It names the subject
+// in the panel language with the other language under it, as the popover does.
 
 import { useCallback, useEffect } from 'react';
 import {
@@ -31,6 +32,7 @@ import {
 import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 import { SectionDetailList } from './SectionDetailList';
 import type { ExamOverlap } from '@/lib/planner/examOverlap';
+import { subjectNameLines } from '@/lib/planner/nameLanguage';
 
 interface BlockHoverCardProps {
   teachTableId: string;
@@ -106,8 +108,7 @@ export function BlockHoverCard({
     return null;
   }
   const snapshot = entry.snapshot;
-  const name =
-    locale === 'th' ? snapshot.subjectMeta.nameTh : snapshot.subjectMeta.nameEn;
+  const names = subjectNameLines(snapshot.subjectMeta, 'both', locale);
   const badge = blockBadge(entry.verifyStatus, false, examOverlaps.length > 0);
   const badgeText = blockBadgeLabelKeys(
     entry.verifyStatus,
@@ -126,8 +127,14 @@ export function BlockHoverCard({
       className={`z-popover flex w-72 ${PANEL_POPOVER_SCROLL} flex-col gap-1 rounded-kcp border border-l-2 border-border border-l-primary bg-surface p-2.5 text-xs shadow-kcp`}
     >
       <p className="font-semibold text-ink">
-        <span>{snapshot.subjectId}</span> <span lang={locale}>{name}</span>
+        <span>{snapshot.subjectId}</span>{' '}
+        <span lang={names.primaryLang}>{names.primary}</span>
       </p>
+      {names.secondary === null ? null : (
+        <p lang={names.secondaryLang ?? undefined} className="text-ink-soft">
+          {names.secondary}
+        </p>
+      )}
       <p className="text-ink-soft">
         {t('section.code')} {snapshot.section}
       </p>
