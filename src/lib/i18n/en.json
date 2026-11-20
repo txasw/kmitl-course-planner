@@ -429,6 +429,7 @@
   "stats.freeDays": "Free days {days}",
   "mode.export": "Export",
   "mode.backToEdit": "Back to editing",
+  "mode.exportOpened": "Export page opened",
   "plan.untitled": "Plan",
   "planView.label": "Plan views",
   "planView.timetable": "Timetable",

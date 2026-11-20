@@ -15,6 +15,7 @@ import { makePlan } from '../../../tests/support/domain-builders';
 import { resetPlanStore } from '../../../tests/support/plan-store';
 import { planStore } from '@/features/plans/planStore';
 import { autosaveStore } from '@/features/plans/autosaveStore';
+import { statusStore } from './statusStore';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
 afterEach(() => {
@@ -146,6 +147,17 @@ describe('Header', () => {
     expect(screen.queryByRole('button', { name: 'ดูตัวอย่าง' })).toBeNull();
     fireEvent.click(exportButton);
     expect(uiStore.getState().viewMode).toBe('preview');
+  });
+
+  it('announces the export page on entry and stays quiet on the way back', () => {
+    render(<Header titleId="title" />);
+    const before = statusStore.getState().line;
+    fireEvent.click(screen.getByRole('button', { name: 'ส่งออก' }));
+    const entered = statusStore.getState().line;
+    expect(entered).not.toBe(before);
+    expect(entered?.text).toBe('เปิดหน้าส่งออกแล้ว');
+    fireEvent.click(screen.getByRole('button', { name: 'กลับไปแก้ไข' }));
+    expect(statusStore.getState().line).toBe(entered);
   });
 
   it('leads the export page with the way back and drops the edit controls', () => {

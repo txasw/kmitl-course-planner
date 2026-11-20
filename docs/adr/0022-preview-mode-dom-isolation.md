@@ -70,7 +70,9 @@ first back returns to editing and a second closes the panel. Leaving the export 
 or by Escape unwinds that entry. The layer follows the panel's open flag, so a panel closed from
 the export page unwinds the export entry before the overlay's. When the page changes and the pressed
 button unmounts, focus moves to the button of the page just entered, unless another control, such
-as a dialog the change opened, took it.
+as a dialog the change opened, took it. Entering the export page is also spoken through the status
+store of ADR-0048, since focus landing on the way back does not say that a page opened, as the
+pressed state of the removed toggle did; returning to editing says nothing beyond the focus move.
 
 Persistence. The mode is session state only. Every opening of a closed panel starts in edit, from
 the launcher, the toolbar action, or any entry prompt; an open call while the panel is already open

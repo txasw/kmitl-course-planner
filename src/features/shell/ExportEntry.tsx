@@ -7,7 +7,9 @@
 // above the overlay's own (ADR-0067), so a back gesture leaves the export page alone and a
 // second one closes the panel.
 // Each button unmounts when the page changes, which drops the focus it held, so the header
-// hands focus to the other one when no other control has taken it.
+// hands focus to the other one when no other control has taken it. Entering the export page
+// is spoken through the status announcer too, since the focus landing on the way back does
+// not say that a page opened, as the pressed state of the old mode toggle did.
 
 import { useLayoutEffect, useRef, type RefObject } from 'react';
 import { useStore } from 'zustand';
@@ -17,6 +19,7 @@ import { TARGET_SIZE } from '@/lib/ui/target';
 import { uiStore, type ViewMode } from './uiStore';
 import { useBackToClose } from './useBackToClose';
 import { focusIsLost, rootOf } from './useFocusTrap';
+import { statusStore } from './statusStore';
 import { useTranslation } from './useTranslation';
 
 const EXPORT_BUTTON_ID = 'kcp-export-entry';
@@ -69,19 +72,22 @@ export function BackToEditButton() {
  * Moves focus to the button of the page just entered when the page change dropped it,
  * as it does when the pressed button unmounts or Escape leaves the export page from one
  * of its controls. Focus that another control took, such as a dialog the change opened,
- * stays where it is.
+ * stays where it is. Entering the export page is announced either way.
  */
 export function useExportFocusHandoff(
   nodeRef: RefObject<HTMLElement | null>,
   viewMode: ViewMode,
 ): void {
+  const { t } = useTranslation();
   const previous = useRef(viewMode);
   useLayoutEffect(() => {
     if (previous.current === viewMode) return;
     previous.current = viewMode;
+    if (viewMode === 'preview')
+      statusStore.getState().say(t('mode.exportOpened'));
     const node = nodeRef.current;
     if (node === null || !focusIsLost(node)) return;
     const id = viewMode === 'preview' ? BACK_TO_EDIT_ID : EXPORT_BUTTON_ID;
     rootOf(node)?.getElementById(id)?.focus();
-  }, [nodeRef, viewMode]);
+  }, [nodeRef, viewMode, t]);
 }
