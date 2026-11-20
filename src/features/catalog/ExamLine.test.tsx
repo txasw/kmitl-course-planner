@@ -48,11 +48,12 @@ describe('ExamLine', () => {
     expect(screen.queryByText('กลางภาค')).toBeNull();
   });
 
-  it('clamps the exam detail note to one line', () => {
+  it('wraps the exam detail note so it reads whole', () => {
     render(<ExamLine exam={{ note: 'สอบนอกตาราง ห้อง 301' }} t={th} />);
     expect(screen.getByText('จัดสอบเอง')).toBeTruthy();
     const note = screen.getByText('สอบนอกตาราง ห้อง 301');
-    expect(note.className.split(' ')).toContain('truncate');
+    expect(note.className.split(' ')).toContain('break-words');
+    expect(note.className.split(' ')).not.toContain('truncate');
   });
 
   it('omits the note line when the detail is blank', () => {
