@@ -41,7 +41,9 @@ test.use({ actionTimeout: 10_000 });
  */
 const EXCEPTIONS: readonly TextFitException[] = [
   {
-    selector: '[data-collapsible-lines="collapsed"] li',
+    // The control must render beside the line, so a clipped line with no control still fails.
+    selector:
+      '[data-collapsible-lines="collapsed"]:has(> button[aria-expanded]) li',
     reason:
       'a teacher, condition, or remark line rests as one line, and its expand control wraps every line in full',
   },
