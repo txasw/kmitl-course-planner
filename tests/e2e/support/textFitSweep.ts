@@ -18,6 +18,7 @@ import {
   waitForResultsInput,
   waitForTermSettled,
 } from './fixtures';
+import { brokenBlockNames } from './blockNames';
 import { seedStorage } from './onboarding';
 import { extensionWorker } from './worker';
 import {
@@ -47,7 +48,9 @@ const DICTIONARIES: Record<Language, Record<string, string>> = {
   en: dictionary('en'),
 };
 
-interface Recorded extends TextFitFinding {
+interface Recorded extends Omit<TextFitFinding, 'kind'> {
+  /** A text fit fault, or a block name broken inside a word or one grapheme to a line. */
+  kind: TextFitFinding['kind'] | 'broken name';
   surface: string;
   width: number;
 }
@@ -159,6 +162,25 @@ export class Sweep {
       const name = `${this.language}-${String(this.width)}-${String(this.shots).padStart(2, '0')}-${surface.replace(/[^a-z0-9]+/gi, '-')}.png`;
       // A screenshot of a busy machine can outlast the action timeout of the walk.
       await this.page.screenshot({ path: join(dir, name), timeout: 60_000 });
+    }
+  }
+
+  /** Read the block names of every timetable grid in a region with the block name guard, so
+   * a name broken inside a word fails the sweep in either language at every width. */
+  async checkBlockNames(surface: string, region: Locator): Promise<void> {
+    const grids = region.getByRole('group', {
+      name: this.t('grid.label'),
+      includeHidden: true,
+    });
+    for (const grid of await grids.all()) {
+      for (const text of await brokenBlockNames(grid)) {
+        this.findings.push({
+          kind: 'broken name',
+          text,
+          surface,
+          width: this.width,
+        });
+      }
     }
   }
 

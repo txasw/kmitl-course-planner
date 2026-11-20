@@ -3,7 +3,10 @@
 // that gives a narrow block its name only layout, so the check runs in the browser against
 // laid out text. For every shown name it reports a name the block cuts off without the
 // density fit clamping it, and a line that holds a single grapheme of a longer word. A word
-// of one grapheme, such as the 1 that ends a course name, may sit alone on its line.
+// of one grapheme, such as the 1 that ends a course name, may sit alone on its line. A name
+// that is not Thai is held to its word boundaries: any word whose letters run over two lines
+// is reported, since an English name in capitals breaks with no hyphen. A Thai name keeps the
+// browser's dictionary breaks, and a Thai word wider than the whole line may break inside.
 
 import type { Locator } from '@playwright/test';
 
@@ -17,6 +20,8 @@ export async function brokenBlockNames(scope: Locator): Promise<string[]> {
       const box = name.getBoundingClientRect();
       if (box.width === 0 || box.height === 0) continue;
       const text = name.textContent.trim();
+      const keepWords =
+        (name.closest('[lang]')?.getAttribute('lang') ?? 'th') !== 'th';
       const clamped = name.style.getPropertyValue('--kcp-name-lines') !== '';
       const frame = name.closest('[data-fit]')?.getBoundingClientRect();
       if (
@@ -58,6 +63,23 @@ export async function brokenBlockNames(scope: Locator): Promise<string[]> {
             graphemes: Array.from(graphemes.segment(segment)).length,
           }),
         );
+        if (keepWords) {
+          const lineOf = new Map<number, number>();
+          lines.forEach((line, number) => {
+            for (const index of line) lineOf.set(index, number);
+          });
+          for (const { segment, index, isWordLike } of words.segment(value)) {
+            if (isWordLike !== true) continue;
+            const spanned = new Set<number>();
+            for (const grapheme of graphemes.segment(segment)) {
+              const number = lineOf.get(index + grapheme.index);
+              if (number !== undefined) spanned.add(number);
+            }
+            if (spanned.size > 1) {
+              problems.push(`broken inside a word: ${segment} in ${text}`);
+            }
+          }
+        }
         for (const line of lines) {
           const only = line.length === 1 ? line[0] : undefined;
           if (only === undefined) continue;

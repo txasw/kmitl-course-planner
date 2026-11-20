@@ -269,12 +269,14 @@ for (const language of ['th', 'en'] as const) {
         await showTimetable(sweep);
         await dismissToasts(sweep);
         await sweep.scan('timetable', sweep.panel());
+        await sweep.checkBlockNames('timetable', sweep.panel());
         if (sweep.phone) {
           await page
             .getByRole('radiogroup', { name: sweep.t('view.dayPicker') })
             .getByRole('radio', { name: sweep.t('view.weekChip') })
             .click();
           await sweep.scan('timetable week', sweep.panel());
+          await sweep.checkBlockNames('timetable week', sweep.panel());
         }
 
         await page
@@ -425,6 +427,7 @@ for (const language of ['th', 'en'] as const) {
             .first(),
         ).toBeVisible({ timeout: RESULTS_TIMEOUT });
         await sweep.scan('suggest first option', dialog);
+        await sweep.checkBlockNames('suggest options', dialog);
         // The second slide of the carousel, then the subject tick list with every group open.
         await dialog
           .getByRole('button', { name: sweep.t('suggest.next') })
@@ -445,6 +448,10 @@ for (const language of ['th', 'en'] as const) {
         await showTimetable(sweep);
         await dismissToasts(sweep);
         await sweep.scan('timetable from a suggestion', sweep.panel());
+        await sweep.checkBlockNames(
+          'timetable from a suggestion',
+          sweep.panel(),
+        );
 
         await page
           .getByRole('button', { name: sweep.t('mode.export'), exact: true })
