@@ -136,3 +136,11 @@ A similarity threshold over meeting minutes, which would also drop timetables th
 small shift, was rejected: it needs a tuning constant with no clear value, and the reported
 problem was exact repeats. A count stepper for the number of subjects was rejected at the
 owner's request, since ticking the subjects already says how many.
+
+## Amendment, 2026-11-20: a second entry point in the plan status row
+
+The suggest action also ends the plan status row under the timetable, in a primary soft style
+with the short label แนะนำตาราง (Suggest), so a phone reaches it in the thumb zone without going
+back to the catalog pane (ADR-0049 amendment of the same date). Both entries share
+`useSuggestTarget` and open the same dialog, and both are absent rather than disabled when no
+suggestion applies. The catalog head keeps its quiet entry.
