@@ -8,8 +8,9 @@
 //
 // A slide takes the full width of the dialog, so the grid is drawn large enough to read in
 // place, in the orientation the dialog picks for the tier, and fits its box rather than
-// keeping the poster floor, so no meeting sits out of view. The stats flow into as many
-// columns as fit and wrap their labels rather than cutting them.
+// keeping the poster floor, so no meeting sits out of view. Each stat value sits right after
+// its own label, in two columns on a phone and three from the small breakpoint, so a wide
+// dialog never pushes a value across to the next label; a label wraps rather than cuts.
 
 import { useId, useRef } from 'react';
 import { useElementSize } from '@/features/shell/useElementSize';
@@ -227,9 +228,9 @@ export function SuggestionCard({
           exported={false}
         />
       </div>
-      <dl className="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-x-6 gap-y-1 text-xs">
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs sm:grid-cols-3">
         {facts.map(([label, value]) => (
-          <div key={label} className="flex flex-wrap justify-between gap-x-2">
+          <div key={label} className="flex flex-wrap items-baseline gap-x-1.5">
             <dt className="text-ink-soft">{t(label)}</dt>
             <dd className="text-ink tabular-nums">{value}</dd>
           </div>
