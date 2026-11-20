@@ -4,10 +4,9 @@
 // delta, and the section grip stretches to the full row height, so without this the
 // card would sit above the pointer by half a row. Anchoring the top-left (not the
 // centre) keeps the card at the cursor with the reason chip trailing below it. A touch
-// drag anchors the same point, and the overlay content lifts itself above the finger
-// with the kcp-grab-lift class, since only the content knows its own size (ADR-0058).
-// A second modifier then keeps the measured content inside the window, so near an edge
-// the card and the reason chip slide back rather than run past it.
+// drag anchors the same point, and a second modifier lifts the card above the finger
+// (ADR-0058) and keeps the lifted box inside the window, so near an edge the card and the
+// reason chip slide back rather than run past it.
 
 import type { Modifier } from '@dnd-kit/core';
 
@@ -67,11 +66,8 @@ export const snapDragCardToCursor: Modifier = ({
 /** The room the drag overlay keeps from the window edge, so no line of it is cut. */
 export const OVERLAY_EDGE_GAP = 8;
 
-/** The width and height of the drag overlay content. */
-export interface OverlaySize {
-  width: number;
-  height: number;
-}
+/** The gap between a touch point and the bottom edge of the lifted grab card. */
+export const TOUCH_LIFT_GAP = 32;
 
 function clampStart(start: number, size: number, end: number): number {
   const max = Math.max(OVERLAY_EDGE_GAP, end - size - OVERLAY_EDGE_GAP);
@@ -79,22 +75,28 @@ function clampStart(start: number, size: number, end: number): number {
 }
 
 /**
- * Keep the whole drag overlay inside the window. dnd-kit sizes the overlay wrapper to the
- * dragged grip, so the grab card and the reason chip under it overflow that box; the
- * content is measured instead, and near the right or bottom edge the overlay slides back
- * so its every line shows whole (ADR-0048 amendment). Runs after the cursor snap.
+ * Place the drag overlay and keep the whole of it inside the window. dnd-kit hands the
+ * modifier the rect of the overlay's only child, the content sized box that holds the grab
+ * card and the reason chip, so its width and height are the box to keep whole. A touch drag
+ * first lifts that box clear of the finger, centred over the touch point with its bottom edge
+ * TOUCH_LIFT_GAP above it, and the lifted box is what is clamped, so near any edge the card
+ * and the chip slide back rather than run past it (ADR-0048 amendment). Runs after the
+ * cursor snap, which puts the box's top-left at the pointer.
  */
-export function keepOverlayInWindow(size: OverlaySize | null): Modifier {
+export function keepOverlayInWindow(touchLift: boolean): Modifier {
   return ({ draggingNodeRect, transform, windowRect }) => {
-    if (draggingNodeRect === null || windowRect === null || size === null) {
+    if (draggingNodeRect === null || windowRect === null) {
       return transform;
     }
-    const left = draggingNodeRect.left + transform.x;
-    const top = draggingNodeRect.top + transform.y;
+    const { width, height } = draggingNodeRect;
+    const liftX = touchLift ? width / 2 : 0;
+    const liftY = touchLift ? height + TOUCH_LIFT_GAP : 0;
+    const left = draggingNodeRect.left + transform.x - liftX;
+    const top = draggingNodeRect.top + transform.y - liftY;
     return {
       ...transform,
-      x: transform.x + clampStart(left, size.width, windowRect.right) - left,
-      y: transform.y + clampStart(top, size.height, windowRect.bottom) - top,
+      x: clampStart(left, width, windowRect.right) - draggingNodeRect.left,
+      y: clampStart(top, height, windowRect.bottom) - draggingNodeRect.top,
     };
   };
 }

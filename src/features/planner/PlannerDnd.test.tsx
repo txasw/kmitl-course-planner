@@ -36,7 +36,7 @@ function renderDnd() {
 }
 
 function lift(): Element | null {
-  return document.querySelector('.kcp-grab-lift');
+  return document.querySelector('[data-touch-lift]');
 }
 
 beforeEach(() => {
