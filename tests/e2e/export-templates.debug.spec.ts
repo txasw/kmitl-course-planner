@@ -52,8 +52,9 @@ test('exports each template at its exact pixel dimensions', async ({
   await page.getByRole('button', { name: 'ส่งออก', exact: true }).click();
 
   // Every template lands its exact output pixels through the same capture seam, independent
-  // of the viewport. Each is selected through the gallery picker, the dot radiogroup, by its
-  // localized name. The set covers both orientations of phone and tablet plus share and print.
+  // of the viewport. Each is selected through the gallery picker, the named chip radiogroup,
+  // by its localized name. The set covers both orientations of phone and tablet plus share
+  // and print.
   const presets = [
     { name: 'แชร์ 16:9', width: 1920, height: 1080 },
     { name: 'ภาพพื้นหลังโทรศัพท์แนวนอน', width: 2400, height: 1080 },
