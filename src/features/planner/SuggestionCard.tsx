@@ -1,21 +1,18 @@
-// One suggested timetable. It shows the whole week the suggestion would produce, the
-// entries already in the plan included, as a read only mini grid in the frame the dialog
-// shares across the cards, then the stats a student compares suggestions by, one per row
-// in a fixed order, then the ticked courses it leaves out with the reason each one
+// One suggested timetable, one slide of the suggestion carousel. It shows the whole week
+// the suggestion would produce, the entries already in the plan included, as a read only
+// mini grid in the frame the dialog shares across the slides, then the stats a student
+// compares suggestions by, then the ticked courses it leaves out with the reason each one
 // stayed out, collapsed by default, then the apply action, which creates a new plan from
 // it. The grid itself takes no input.
 //
-// The card has five parts in a fixed order. Side by side, the dialog lays them on shared
-// grid rows through a subgrid, so the same stat sits at the same height on every card. A
-// thumbnail card offers to open full size; the full size card takes focus on its heading
-// and draws a taller grid. The grid fits its card rather than keeping the poster floor,
-// in the orientation the dialog picks for the tier, so no meeting sits out of view.
+// A slide takes the full width of the dialog, so the grid is drawn large enough to read in
+// place, in the orientation the dialog picks for the tier, and fits its box rather than
+// keeping the poster floor, so no meeting sits out of view. The stats flow into as many
+// columns as fit and wrap their labels rather than cutting them.
 
-import { useEffect, useId, useRef } from 'react';
+import { useId, useRef } from 'react';
 import { useElementSize } from '@/features/shell/useElementSize';
 import { hourTicks } from '@/lib/planner/grid';
-import { Maximize2 } from 'lucide-react';
-import { Tooltip } from '@/components/Tooltip';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
 import { formatMinutes } from '@/lib/parsing/time';
@@ -25,7 +22,6 @@ import type { LeftOutCourse, Suggestion } from '@/lib/planner/suggest';
 import type { LeftOutReason } from '@/lib/planner/suggestReasons';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
-import type { SwipeGesture } from '@/features/shell/useSwipeGesture';
 import type { Orientation } from './gridGeometry';
 import { isScheduled, type PlacedSection } from './placedSection';
 import type { SuggestionFrame } from './suggestionFrame';
@@ -40,19 +36,22 @@ const MINI_DISPLAY: DisplayOptions = {
   showExams: false,
 };
 
-export type SuggestionCardSize = 'thumb' | 'full';
+/** The mini grid type size, in px. The narrow block rule is in em of it, so a larger size
+ * would put more of a phone's day columns past the width a Thai word needs. */
+const GRID_FONT_PX = 10;
 
-const GRID_FONT_PX: Record<SuggestionCardSize, number> = {
-  thumb: 10,
-  full: 11,
+// The grid box height per orientation. Portrait runs time downward on a phone, so it needs
+// the taller box; landscape rows share the shorter one across the dialog width.
+const GRID_HEIGHT: Record<Orientation, string> = {
+  portrait: 'h-[30rem]',
+  landscape: 'h-80',
 };
 
-// The grid box height per size and orientation. Portrait runs time downward, so it needs
-// the taller box; landscape rows share the shorter one.
-const GRID_HEIGHT: Record<SuggestionCardSize, Record<Orientation, string>> = {
-  thumb: { portrait: 'h-80', landscape: 'h-56' },
-  full: { portrait: 'h-[36rem]', landscape: 'h-[26rem]' },
-};
+// The card edge and padding a slide takes on the wider tiers. A portrait slide, on a phone,
+// gives that width to its day columns instead, so a Thai word fits a 360 px screen's column
+// whole; the sheet edge and the carousel frame it there.
+const CARD_CHROME =
+  'rounded-kcp border border-border bg-surface p-3 shadow-kcp-soft';
 
 // The space an hour label needs along the time axis at the mini grid type size, and the
 // leading day track a landscape grid gives up before the hours begin.
@@ -64,10 +63,6 @@ export function labelStepFor(widthPx: number, hours: number): number {
   const hourPx = (widthPx - DAY_TRACK_PX) / hours;
   return hourPx > 0 ? Math.max(1, Math.ceil(LABEL_SPAN_PX / hourPx)) : 1;
 }
-
-/** The five card parts on the rows of a parent grid, for the side by side view. The list
- * item and the card inside it both take it, so the rows reach the card's parts. */
-export const SUBGRID_CARD = 'row-span-5 grid grid-rows-subgrid';
 
 const REASON_KEY: Record<LeftOutReason['kind'], TranslationKey> = {
   seats: 'suggest.reason.seats',
@@ -127,16 +122,9 @@ interface SuggestionCardProps {
   sections: readonly PlacedSection[];
   frame: SuggestionFrame;
   orientation: Orientation;
-  size: SuggestionCardSize;
-  /** Lay the five parts on the rows of a parent subgrid, for the side by side view. */
-  subgrid?: boolean;
   locale: Locale;
   t: Translate;
   onApply: () => void;
-  /** Open the card full size; offered on a thumbnail only. */
-  onExpand?: () => void;
-  /** The pager swipe, bound to the grid, which holds no control. */
-  swipe?: SwipeGesture;
 }
 
 export function SuggestionCard({
@@ -145,16 +133,11 @@ export function SuggestionCard({
   sections,
   frame,
   orientation,
-  size,
-  subgrid = false,
   locale,
   t,
   onApply,
-  onExpand,
-  swipe,
 }: SuggestionCardProps) {
   const headingId = useId();
-  const headingRef = useRef<HTMLHeadingElement>(null);
   const gridBoxRef = useRef<HTMLDivElement>(null);
   const gridBox = useElementSize(gridBoxRef);
   // A portrait grid runs its hours down a tall box, so only a landscape one thins them.
@@ -162,12 +145,6 @@ export function SuggestionCard({
     orientation === 'landscape'
       ? labelStepFor(gridBox.width, hourTicks(frame.window).length - 1)
       : 1;
-  const isFull = size === 'full';
-  useEffect(() => {
-    if (isFull) {
-      headingRef.current?.focus();
-    }
-  }, [isFull]);
 
   const { stats } = suggestion;
   const facts: [TranslationKey, string][] = [
@@ -178,59 +155,16 @@ export function SuggestionCard({
     ['suggest.stats.latest', clock(stats.latestEndMin, t)],
     ['suggest.stats.idle', hoursText(stats.idleMinutes, locale, t)],
   ];
-  const expandLabel = t('suggest.expand');
 
   return (
     <article
       aria-labelledby={headingId}
-      className={`rounded-kcp border border-border bg-surface p-3 ${
-        subgrid ? SUBGRID_CARD : 'flex flex-col gap-3'
-      }`}
-      style={swipe?.style}
+      className={`flex flex-col gap-3 ${orientation === 'portrait' ? '' : CARD_CHROME}`}
     >
-      <div className="flex min-h-11 items-center gap-2">
-        <h3
-          ref={headingRef}
-          id={headingId}
-          tabIndex={isFull ? -1 : undefined}
-          className="min-w-0 flex-1 text-sm font-semibold outline-none"
-        >
-          {fillTemplate(t('suggest.option'), { number: index + 1 })}
-        </h3>
-        {onExpand === undefined ? null : (
-          <Tooltip label={expandLabel}>
-            {(triggerProps, ref) => (
-              <button
-                ref={ref}
-                {...triggerProps}
-                type="button"
-                aria-label={expandLabel}
-                aria-describedby={headingId}
-                data-suggest-expand={index}
-                onClick={onExpand}
-                className={`flex shrink-0 items-center justify-center rounded-kcp text-ink-soft hover:bg-surface-alt hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
-              >
-                <Maximize2 size={16} aria-hidden />
-              </button>
-            )}
-          </Tooltip>
-        )}
-      </div>
-      <dl
-        className={`flex flex-col gap-0.5 text-xs ${isFull ? 'w-full max-w-xs' : ''}`}
-      >
-        {facts.map(([label, value]) => (
-          <div key={label} className="flex justify-between gap-2">
-            <dt className="text-ink-soft">{t(label)}</dt>
-            <dd className="text-ink tabular-nums">{value}</dd>
-          </div>
-        ))}
-      </dl>
-      <div
-        ref={gridBoxRef}
-        className={`${GRID_HEIGHT[size][orientation]} ${swipe?.touchClass ?? ''}`}
-        {...swipe?.handlers}
-      >
+      <h3 id={headingId} className="text-sm font-semibold">
+        {fillTemplate(t('suggest.option'), { number: index + 1 })}
+      </h3>
+      <div ref={gridBoxRef} className={GRID_HEIGHT[orientation]}>
         <WeeklyGrid
           sections={sections.filter(isScheduled)}
           window={frame.window}
@@ -240,7 +174,7 @@ export function SuggestionCard({
           editable={false}
           display={MINI_DISPLAY}
           orientation={orientation}
-          fontPx={GRID_FONT_PX[size]}
+          fontPx={GRID_FONT_PX}
           posterFloor={false}
           hourLabelStep={hourLabelStep}
           blockSurface="soft"
@@ -248,12 +182,20 @@ export function SuggestionCard({
           exported={false}
         />
       </div>
+      <dl className="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-x-6 gap-y-1 text-xs">
+        {facts.map(([label, value]) => (
+          <div key={label} className="flex flex-wrap justify-between gap-x-2">
+            <dt className="text-ink-soft">{t(label)}</dt>
+            <dd className="text-ink tabular-nums">{value}</dd>
+          </div>
+        ))}
+      </dl>
       <LeftOutList leftOut={suggestion.leftOut} locale={locale} t={t} />
       <button
         type="button"
         aria-describedby={headingId}
         onClick={onApply}
-        className={`${subgrid ? 'w-full' : 'w-full sm:w-auto sm:self-end'} rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover ${TARGET_SIZE} ${FOCUS_OUTLINE}`}
+        className={`w-full rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover sm:w-auto sm:self-end ${TARGET_SIZE} ${FOCUS_OUTLINE}`}
       >
         {t('suggest.apply')}
       </button>

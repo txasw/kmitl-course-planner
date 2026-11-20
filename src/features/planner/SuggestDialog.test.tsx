@@ -24,7 +24,6 @@ import {
   SUGGEST_QUERY,
   SUGGEST_TERM,
 } from '../../../tests/support/suggest';
-import { serializedCss } from '../../../tests/support/css';
 import { installViewport } from '../../../tests/support/viewport';
 import { SuggestDialog } from './SuggestDialog';
 
@@ -58,10 +57,21 @@ function renderDialog(width = 1366) {
   return { onClose, portal };
 }
 
-/** The teach table ids placed on the grid of the first card, in render order. */
+/** The slide the carousel shows, the one slide that is not inert. */
+function shownSlide(): HTMLElement {
+  const shown = document.querySelector<HTMLElement>(
+    '[data-suggest-slide]:not([inert])',
+  );
+  if (shown === null) {
+    throw new Error('no suggestion slide');
+  }
+  return shown;
+}
+
+/** The teach table ids placed on the grid of the first suggestion, sorted. */
 function firstCardBlocks(): string[] {
-  const [first] = screen.getAllByRole('listitem');
-  if (first === undefined) {
+  const first = document.querySelector('[data-suggest-slide="0"]');
+  if (first === null) {
     throw new Error('no suggestion card');
   }
   return Array.from(
@@ -85,133 +95,84 @@ async function findCards(): Promise<HTMLElement[]> {
 }
 
 describe('SuggestDialog', () => {
-  it('opens as a dialog with up to three suggestions', async () => {
+  it('opens as a dialog with up to three suggestions, one per slide', async () => {
     renderDialog();
     expect(screen.getByRole('dialog', { name: 'แนะนำตาราง' })).toBeVisible();
     expect(await findCards()).toHaveLength(3);
+    expect(
+      document.querySelectorAll('[data-suggest-slide]:not([inert])'),
+    ).toHaveLength(1);
     expect(screen.getAllByText('16')).not.toHaveLength(0);
   });
 
-  it('pages one card at a time on a 390 px phone', async () => {
+  it('pages one slide at a time with a portrait grid on a 390 px phone', async () => {
     renderDialog(390);
     expect(screen.getByRole('dialog', { name: 'แนะนำตาราง' })).toBeVisible();
-    expect(await findCards()).toHaveLength(1);
-    expect(screen.queryAllByRole('listitem')).toHaveLength(0);
+    await findCards();
     const dots = within(
-      screen.getByRole('radiogroup', { name: 'ตัวเลือกตาราง' }),
-    ).getAllByRole('radio');
+      screen.getByRole('group', { name: 'ตัวเลือกตาราง' }),
+    ).getAllByRole('button');
     expect(dots).toHaveLength(3);
-    expect(gridColumns()).toEqual([expect.stringMatching(PORTRAIT)]);
+    expect(
+      within(shownSlide()).getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' })
+        .style.gridTemplateColumns,
+    ).toMatch(PORTRAIT);
 
     fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกถัดไป' }));
-    expect(
-      screen.getByRole('heading', { name: 'ตัวเลือกที่ 2' }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: 'ตัวเลือกที่ 2' })).toHaveFocus();
-    fireEvent.keyDown(screen.getByRole('radio', { name: 'ตัวเลือกที่ 2' }), {
-      key: 'End',
-    });
-    expect(
-      screen.getByRole('heading', { name: 'ตัวเลือกที่ 3' }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'ตัวเลือกถัดไป' })).toBeDisabled();
-
-    // A new preference ranks the cards again, so the pager returns to the best one.
-    fireEvent.click(screen.getByRole('button', { name: 'เน้นบ่าย' }));
-    expect(
-      screen.getByRole('heading', { name: 'ตัวเลือกที่ 1' }),
-    ).toBeInTheDocument();
-  });
-
-  it('sets the cards side by side with landscape grids at 768 px', async () => {
-    renderDialog(768);
-    expect(await findCards()).toHaveLength(3);
-    expect(screen.getAllByRole('listitem')).toHaveLength(3);
-    expect(
-      screen.queryByRole('radiogroup', { name: 'ตัวเลือกตาราง' }),
-    ).toBeNull();
-    const columns = gridColumns();
-    expect(columns).toHaveLength(3);
-    for (const column of columns) {
-      expect(column).not.toMatch(PORTRAIT);
-    }
-  });
-
-  it('compares the cards side by side on one frame at 1440 px', async () => {
-    renderDialog(1440);
-    expect(await findCards()).toHaveLength(3);
-    const list = screen.getAllByRole('listitem')[0]?.parentElement;
-    expect(list?.style.gridTemplateColumns).toBe(
-      serializedCss('grid-template-columns', 'repeat(3, minmax(0, 1fr))'),
+    expect(within(shownSlide()).getByRole('heading')).toHaveTextContent(
+      'ตัวเลือกที่ 2',
     );
-    const columns = gridColumns();
-    expect(columns).toHaveLength(3);
-    expect(columns[0]).not.toMatch(PORTRAIT);
-    // One shared frame, so every card draws the same hours on the same columns.
-    expect(new Set(columns).size).toBe(1);
-    for (const card of screen.getAllByRole('article')) {
-      expect(within(card).getByText('เริ่มเร็วสุด')).toBeInTheDocument();
-    }
+    expect(screen.getByText('ตัวเลือก 2 จาก 3')).toHaveAttribute(
+      'aria-live',
+      'polite',
+    );
+
+    // A new preference ranks the suggestions again, so the carousel returns to the best.
+    fireEvent.click(screen.getByRole('button', { name: 'เน้นบ่าย' }));
+    expect(within(shownSlide()).getByRole('heading')).toHaveTextContent(
+      'ตัวเลือกที่ 1',
+    );
   });
 
-  it('opens a card full size and returns focus to it', async () => {
+  it.each([768, 1440])(
+    'shows one slide with a landscape grid on one frame at %i px',
+    async (width) => {
+      renderDialog(width);
+      await findCards();
+      const columns = gridColumns();
+      expect(columns).toHaveLength(3);
+      expect(columns[0]).not.toMatch(PORTRAIT);
+      // One shared frame, so every slide draws the same hours on the same columns.
+      expect(new Set(columns).size).toBe(1);
+      expect(
+        screen.getByRole('group', { name: 'ตัวเลือก 1 จาก 3' }),
+      ).toBeInTheDocument();
+    },
+  );
+
+  it('offers no full size view', async () => {
     renderDialog(1440);
     await findCards();
-    const [, second] = screen.getAllByRole('button', { name: 'ดูขนาดเต็ม' });
-    if (second === undefined) throw new Error('no second card');
-    fireEvent.click(second);
-
-    expect(screen.getByRole('heading', { name: 'ตัวเลือกที่ 2' })).toHaveFocus();
-    expect(screen.getAllByRole('button', { name: 'ใช้ตารางนี้' })).toHaveLength(1);
-    expect(screen.queryByRole('button', { name: 'สมดุล' })).toBeNull();
-
-    fireEvent.click(screen.getByRole('button', { name: 'กลับไปที่ตัวเลือกทั้งหมด' }));
-    expect(await findCards()).toHaveLength(3);
-    expect(
-      screen.getAllByRole('button', { name: 'ดูขนาดเต็ม' })[1],
-    ).toHaveFocus();
+    expect(screen.queryByRole('button', { name: /ขนาดเต็ม/ })).toBeNull();
   });
 
-  it('keeps an expanded subject group expanded after a full size view', async () => {
+  it('still shows one slide after a plan change runs the search again', async () => {
     renderDialog(1440);
     await findCards();
-    const otherName = 'วิชาศึกษาทั่วไป วิชาเลือกเสรี และวิชาอื่น 0 จาก 6';
-    fireEvent.click(screen.getByRole('button', { name: otherName }));
-    expect(
-      screen.getByRole('button', { name: otherName, expanded: true }),
-    ).toBeInTheDocument();
-
-    const [first] = screen.getAllByRole('button', { name: 'ดูขนาดเต็ม' });
-    if (first === undefined) throw new Error('no card');
-    fireEvent.click(first);
-    fireEvent.click(screen.getByRole('button', { name: 'กลับไปที่ตัวเลือกทั้งหมด' }));
-    await findCards();
-    expect(
-      screen.getByRole('button', { name: otherName, expanded: true }),
-    ).toBeInTheDocument();
-  });
-
-  it('leaves full size when a new search no longer holds the card', async () => {
-    renderDialog(1440);
-    await findCards();
-    const [, second] = screen.getAllByRole('button', { name: 'ดูขนาดเต็ม' });
-    if (second === undefined) throw new Error('no second card');
-    fireEvent.click(second);
-    expect(screen.getAllByRole('button', { name: 'ใช้ตารางนี้' })).toHaveLength(1);
-
-    // A placed entry changes every suggestion, so the card opened is gone and the view
-    // returns to the list rather than showing another card in its place.
+    fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกที่ 3' }));
+    expect(within(shownSlide()).getByRole('heading')).toHaveTextContent(
+      'ตัวเลือกที่ 3',
+    );
+    // A placed entry changes every suggestion; the carousel clamps to the slides it has.
     act(() => {
       seedActivePlan(lockSections(courses, [['04186098', '2']]));
     });
     await waitFor(() => {
-      expect(screen.getAllByRole('button', { name: 'ใช้ตารางนี้' })).toHaveLength(
-        3,
-      );
+      expect(
+        screen.getByText('คงรายวิชาที่อยู่ในตารางปัจจุบันไว้ 1 วิชา'),
+      ).toBeInTheDocument();
     });
-    expect(
-      screen.getAllByRole('button', { name: 'ดูขนาดเต็ม' })[1],
-    ).toHaveFocus();
+    expect(shownSlide()).toBeInTheDocument();
   });
 
   it('reorders the cards when the preference changes', async () => {
@@ -237,8 +198,10 @@ describe('SuggestDialog', () => {
     expect(
       screen.getByText('คงรายวิชาที่อยู่ในตารางปัจจุบันไว้ 1 วิชา'),
     ).toBeInTheDocument();
-    const [apply] = await findCards();
-    if (apply === undefined) throw new Error('no apply button');
+    await findCards();
+    const apply = within(shownSlide()).getByRole('button', {
+      name: 'ใช้ตารางนี้',
+    });
     act(() => {
       fireEvent.click(apply);
     });

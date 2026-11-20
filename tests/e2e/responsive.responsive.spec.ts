@@ -577,10 +577,10 @@ test('the edit grid keeps its derived minimum and fits where the column allows',
   }
 });
 
-// A block narrower than 7em, a suggestion thumbnail or a day column of the phone week, shows
+// A block narrower than 7em, a day column of a suggestion slide or of the phone week, shows
 // its name alone, so a long Thai name breaks between words rather than one character per
 // line; the check reads the laid out text, since jsdom cannot evaluate the container query.
-test('keeps block names whole in the suggestion thumbnails and the phone week', async ({
+test('keeps block names whole in the suggestion slides and the phone week', async ({
   context,
 }) => {
   const page = await openPlanner(context);
@@ -598,16 +598,22 @@ test('keeps block names whole in the suggestion thumbnails and the phone week', 
   await waitForResultsInput(page);
   await catalog.getByRole('button', { name: 'แนะนำตาราง' }).click();
   const dialog = page.getByRole('dialog', { name: 'แนะนำตาราง' });
-  const thumbnails = dialog.getByRole('group', {
+  // Every slide is laid out on the track, the inert ones beside the shown one, so each
+  // grid is read where it sits.
+  const slides = dialog.getByRole('group', {
     name: 'ตารางเรียนรายสัปดาห์',
+    includeHidden: true,
   });
-  await expect(thumbnails.first().locator(GRID_BLOCK).first()).toBeVisible();
-  for (const thumbnail of await thumbnails.all()) {
-    expect(await brokenBlockNames(thumbnail)).toEqual([]);
+  await expect(slides.first().locator(GRID_BLOCK).first()).toBeVisible();
+  for (const slide of await slides.all()) {
+    expect(await brokenBlockNames(slide)).toEqual([]);
   }
   if (!isPhone(page)) return;
 
-  await dialog.getByRole('button', { name: 'ใช้ตารางนี้' }).click();
+  await dialog
+    .locator('[data-suggest-slide]:not([inert])')
+    .getByRole('button', { name: 'ใช้ตารางนี้' })
+    .click();
   await expect(dialog).toHaveCount(0);
   await bottomNav(page).getByRole('button', { name: 'ตารางเรียน' }).tap();
   await page

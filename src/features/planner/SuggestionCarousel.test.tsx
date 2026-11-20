@@ -1,0 +1,308 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { useState } from 'react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react';
+import { createTranslator, type Locale } from '@/lib/i18n/t';
+import { suggestPlans } from '@/lib/planner/suggest';
+import { byClassCourses, lockSections } from '../../../tests/support/suggest';
+import { swipe } from '../../../tests/support/swipe';
+import { installViewport } from '../../../tests/support/viewport';
+import { SuggestionCarousel, type SuggestionView } from './SuggestionCarousel';
+import { sharedFrame, suggestionSections } from './suggestionFrame';
+
+const courses = byClassCourses();
+const locked = lockSections(courses, [['04186098', '2']]);
+const allCards: SuggestionView[] = suggestPlans({
+  courses,
+  locked,
+  objective: 'coverAll',
+  preference: 'balanced',
+}).suggestions.map((suggestion) => ({
+  suggestion,
+  sections: suggestionSections(locked, suggestion),
+}));
+
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
+
+function Harness({
+  cards,
+  locale,
+  onApply,
+}: {
+  cards: readonly SuggestionView[];
+  locale: Locale;
+  onApply: () => void;
+}) {
+  const [page, setPage] = useState(0);
+  return (
+    <SuggestionCarousel
+      cards={cards}
+      frame={sharedFrame(cards.map((card) => card.sections))}
+      orientation="landscape"
+      page={page}
+      onPageChange={setPage}
+      busy={false}
+      locale={locale}
+      t={createTranslator(locale)}
+      onApply={onApply}
+    />
+  );
+}
+
+function renderCarousel({
+  count = 3,
+  locale = 'th',
+  reducedMotion = false,
+}: { count?: number; locale?: Locale; reducedMotion?: boolean } = {}) {
+  installViewport(1366, { reducedMotion });
+  const onApply = vi.fn();
+  render(
+    <Harness
+      cards={allCards.slice(0, count)}
+      locale={locale}
+      onApply={onApply}
+    />,
+  );
+  return { onApply };
+}
+
+/** The slide that is shown, the one slide that is not inert. */
+function shownSlide(): HTMLElement {
+  const shown = document.querySelectorAll<HTMLElement>(
+    '[data-suggest-slide]:not([inert])',
+  );
+  const [only] = shown;
+  if (shown.length !== 1 || only === undefined) {
+    throw new Error(`expected one shown slide, found ${String(shown.length)}`);
+  }
+  return only;
+}
+
+function shownHeading(): string {
+  return within(shownSlide()).getByRole('heading').textContent;
+}
+
+function viewport(): HTMLElement {
+  return screen.getByRole('group', { name: /^ตัวเลือก \d จาก \d$/ });
+}
+
+function dot(number: number): HTMLElement {
+  return screen.getByRole('button', { name: `ตัวเลือกที่ ${String(number)}` });
+}
+
+function liveRegion(): HTMLElement {
+  const region = document.querySelector<HTMLElement>('[aria-live="polite"]');
+  if (region === null) throw new Error('expected the position live region');
+  return region;
+}
+
+describe('SuggestionCarousel', () => {
+  it('shows one suggestion per slide with its grid, facts, and apply action', () => {
+    const { onApply } = renderCarousel();
+    expect(document.querySelectorAll('[data-suggest-slide]')).toHaveLength(3);
+    const slide = shownSlide();
+    expect(shownHeading()).toBe('ตัวเลือกที่ 1');
+    expect(
+      within(slide).getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
+    ).toBeInTheDocument();
+    expect(within(slide).getByText('เริ่มเร็วสุด')).toBeInTheDocument();
+    fireEvent.click(within(slide).getByRole('button', { name: 'ใช้ตารางนี้' }));
+    expect(onApply).toHaveBeenCalledOnce();
+    expect(liveRegion()).toHaveTextContent('ตัวเลือก 1 จาก 3');
+    expect(dot(1)).toHaveAttribute('aria-current', 'true');
+    expect(dot(2)).not.toHaveAttribute('aria-current');
+  });
+
+  it('pages with the chevrons and announces the position', () => {
+    renderCarousel();
+    const previous = screen.getByRole('button', { name: 'ตัวเลือกก่อนหน้า' });
+    const next = screen.getByRole('button', { name: 'ตัวเลือกถัดไป' });
+    expect(previous).toBeDisabled();
+
+    fireEvent.click(next);
+    expect(shownHeading()).toBe('ตัวเลือกที่ 2');
+    expect(liveRegion()).toHaveTextContent('ตัวเลือก 2 จาก 3');
+    expect(dot(2)).toHaveAttribute('aria-current', 'true');
+    expect(previous).toBeEnabled();
+
+    // The last step disables the next chevron, so focus lands on the shown dot.
+    fireEvent.click(next);
+    expect(shownHeading()).toBe('ตัวเลือกที่ 3');
+    expect(next).toBeDisabled();
+    expect(dot(3)).toHaveFocus();
+
+    fireEvent.click(previous);
+    expect(shownHeading()).toBe('ตัวเลือกที่ 2');
+    expect(liveRegion()).toHaveTextContent('ตัวเลือก 2 จาก 3');
+  });
+
+  it('jumps to a suggestion from its dot', () => {
+    renderCarousel();
+    fireEvent.click(dot(3));
+    expect(shownHeading()).toBe('ตัวเลือกที่ 3');
+    expect(dot(3)).toHaveAttribute('aria-current', 'true');
+    expect(liveRegion()).toHaveTextContent('ตัวเลือก 3 จาก 3');
+  });
+
+  it('pages with the left and right arrow keys, Home, and End', () => {
+    renderCarousel();
+    fireEvent.keyDown(viewport(), { key: 'ArrowRight' });
+    expect(shownHeading()).toBe('ตัวเลือกที่ 2');
+    fireEvent.keyDown(viewport(), { key: 'ArrowRight' });
+    fireEvent.keyDown(viewport(), { key: 'ArrowRight' });
+    expect(shownHeading()).toBe('ตัวเลือกที่ 3');
+    fireEvent.keyDown(viewport(), { key: 'ArrowLeft' });
+    expect(shownHeading()).toBe('ตัวเลือกที่ 2');
+    expect(liveRegion()).toHaveTextContent('ตัวเลือก 2 จาก 3');
+
+    // On a dot, the keys move focus with the page.
+    dot(2).focus();
+    fireEvent.keyDown(dot(2), { key: 'Home' });
+    expect(shownHeading()).toBe('ตัวเลือกที่ 1');
+    expect(dot(1)).toHaveFocus();
+    fireEvent.keyDown(dot(1), { key: 'End' });
+    expect(shownHeading()).toBe('ตัวเลือกที่ 3');
+    expect(dot(3)).toHaveFocus();
+  });
+
+  it('moves focus to the carousel when a key pages from inside the slide', () => {
+    renderCarousel();
+    const apply = within(shownSlide()).getByRole('button', {
+      name: 'ใช้ตารางนี้',
+    });
+    apply.focus();
+    fireEvent.keyDown(apply, { key: 'ArrowRight' });
+    expect(shownHeading()).toBe('ตัวเลือกที่ 2');
+    expect(apply.closest('[data-suggest-slide]')).toHaveAttribute('inert');
+    expect(viewport()).toHaveFocus();
+  });
+
+  it('pages on a swipe across the slide, clamped at the ends', () => {
+    renderCarousel();
+    swipe(viewport(), 'x', 100);
+    expect(shownHeading()).toBe('ตัวเลือกที่ 1');
+    swipe(viewport(), 'x', -100);
+    expect(shownHeading()).toBe('ตัวเลือกที่ 2');
+    expect(liveRegion()).toHaveTextContent('ตัวเลือก 2 จาก 3');
+    swipe(viewport(), 'x', -100);
+    swipe(viewport(), 'x', -100);
+    expect(shownHeading()).toBe('ตัวเลือกที่ 3');
+    swipe(viewport(), 'x', 100);
+    expect(shownHeading()).toBe('ตัวเลือกที่ 2');
+    // A short drag springs back without paging.
+    swipe(viewport(), 'x', -40);
+    expect(shownHeading()).toBe('ตัวเลือกที่ 2');
+  });
+
+  it('slides the track unless reduced motion is set', () => {
+    renderCarousel();
+    const track = shownSlide().parentElement;
+    expect(track?.style.transform).toBe('translateX(0%)');
+    fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกถัดไป' }));
+    expect(track?.style.transform).toBe('translateX(-100%)');
+    expect(track?.className).toMatch(/transition-transform/);
+    expect(track?.className).toMatch(/motion-reduce:transition-none/);
+  });
+
+  it('does not follow the finger under reduced motion, yet still pages', () => {
+    renderCarousel({ reducedMotion: true });
+    const follower = viewport().firstElementChild;
+    if (!(follower instanceof HTMLElement)) throw new Error('no follower');
+    fireEvent.pointerDown(viewport(), {
+      button: 0,
+      pointerId: 1,
+      clientX: 200,
+      clientY: 100,
+    });
+    Object.defineProperty(Element.prototype, 'setPointerCapture', {
+      configurable: true,
+      value: () => undefined,
+    });
+    try {
+      fireEvent.pointerMove(viewport(), {
+        pointerId: 1,
+        clientX: 100,
+        clientY: 100,
+      });
+      expect(follower.style.transform).toBe('');
+      fireEvent.pointerUp(viewport(), {
+        pointerId: 1,
+        clientX: 100,
+        clientY: 100,
+      });
+    } finally {
+      Reflect.deleteProperty(Element.prototype, 'setPointerCapture');
+    }
+    expect(shownHeading()).toBe('ตัวเลือกที่ 2');
+  });
+
+  it('follows the finger without reduced motion', () => {
+    renderCarousel();
+    const follower = viewport().firstElementChild;
+    if (!(follower instanceof HTMLElement)) throw new Error('no follower');
+    Object.defineProperty(Element.prototype, 'setPointerCapture', {
+      configurable: true,
+      value: () => undefined,
+    });
+    try {
+      fireEvent.pointerDown(viewport(), {
+        button: 0,
+        pointerId: 1,
+        clientX: 200,
+        clientY: 100,
+      });
+      fireEvent.pointerMove(viewport(), {
+        pointerId: 1,
+        clientX: 140,
+        clientY: 100,
+      });
+      expect(follower.style.transform).toMatch(/^translateX\(-\d+px\)$/);
+    } finally {
+      fireEvent.pointerCancel(viewport());
+      Reflect.deleteProperty(Element.prototype, 'setPointerCapture');
+    }
+  });
+
+  it('shows fewer dots for fewer suggestions', () => {
+    renderCarousel({ count: 2 });
+    const dots = within(
+      screen.getByRole('group', { name: 'ตัวเลือกตาราง' }),
+    ).getAllByRole('button');
+    expect(dots).toHaveLength(2);
+    expect(liveRegion()).toHaveTextContent('ตัวเลือก 1 จาก 2');
+  });
+
+  it('shows no navigation for a single suggestion', () => {
+    renderCarousel({ count: 1 });
+    expect(shownHeading()).toBe('ตัวเลือกที่ 1');
+    expect(screen.queryByRole('button', { name: 'ตัวเลือกถัดไป' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'ตัวเลือกก่อนหน้า' })).toBeNull();
+    expect(screen.queryByRole('group', { name: 'ตัวเลือกตาราง' })).toBeNull();
+    expect(document.querySelector('[aria-live]')).toBeNull();
+    // A key or a swipe does nothing with nowhere to go.
+    const slide = shownSlide();
+    fireEvent.keyDown(slide, { key: 'ArrowRight' });
+    expect(shownHeading()).toBe('ตัวเลือกที่ 1');
+  });
+
+  it('names the controls and the position in English', () => {
+    renderCarousel({ locale: 'en' });
+    expect(
+      screen.getByRole('button', { name: 'Previous option' }),
+    ).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Next option' }));
+    expect(liveRegion()).toHaveTextContent('Option 2 of 3');
+    expect(screen.getByRole('button', { name: 'Option 2' })).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
+  });
+});

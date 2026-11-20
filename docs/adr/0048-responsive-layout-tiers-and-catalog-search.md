@@ -655,3 +655,16 @@ row of separate icon toggles for each facet was rejected because six toggles do 
 px row beside the field, and the popover already groups them with their labels. Keeping the
 English name inside the opened body only was rejected because the request was to read it while
 scanning the list.
+
+## Amendment, 2026-11-20: the suggestion carousel position
+
+The plan suggestion dialog shows one suggestion per slide (ADR-0054, amendment of 2026-11-20), and
+`src/features/shell/liveRegions.test.tsx` lists `features/planner/SuggestionCarousel.tsx` with one
+polite region.
+
+- The carousel owns the position line between its chevrons, "ตัวเลือก 2 จาก 3" ("Option 2 of 3"),
+  read when a swipe, a chevron, a dot, or an arrow key changes the slide. The line is visible and
+  atomic, and it is mounted only while there is more than one suggestion to page.
+- No existing owner can carry it. The dialog is modal, so the status announcer and the toaster are
+  hidden while it is open, and the dialog's loading status unmounts once the search settles. The
+  section comparison sheet keeps its own scoped node for the same reason.

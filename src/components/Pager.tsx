@@ -1,6 +1,6 @@
-// The paging controls first built for the export template gallery (ADR-0045) and shared
-// with the compact plan suggestion pager: a previous and next arrow pair and a dot
-// radiogroup for direct jumps. usePager holds the paging rule both consumers follow. A
+// The paging controls first built for the export template gallery (ADR-0045): a previous
+// and next arrow pair, which the plan suggestion carousel shares, and a dot radiogroup for
+// direct jumps. usePager holds the paging rule of the gallery. A
 // move clamps at the first and last page rather than wrapping, and it lands focus on the
 // selected dot, so a keyboard user who pages from an arrow that then disables keeps a
 // focused control. The dots take the arrow keys, Home, and End through the hook's key
