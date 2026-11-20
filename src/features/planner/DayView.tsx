@@ -50,6 +50,8 @@ interface DayViewProps {
   /** Whether the plan holds no section at all, scheduled or not. */
   planEmpty: boolean;
   onChoose: (day: DayOfWeek) => void;
+  /** Returns to the week, the free day notice's action. */
+  onShowWeek: (control: HTMLElement) => void;
   grid: EditGridProps;
 }
 
@@ -61,6 +63,7 @@ export function DayView({
   day,
   planEmpty,
   onChoose,
+  onShowWeek,
   grid,
 }: DayViewProps) {
   const { t } = grid;
@@ -100,7 +103,11 @@ export function DayView({
               planEmpty ? (
                 <GridEmptyState t={t} searchAction />
               ) : flags[day].hasClass ? null : (
-                <FreeDayNotice dayName={dayName} t={t} />
+                <FreeDayNotice
+                  dayName={dayName}
+                  onShowWeek={onShowWeek}
+                  t={t}
+                />
               )
             }
           />

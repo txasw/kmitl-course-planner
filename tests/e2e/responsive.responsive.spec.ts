@@ -1464,7 +1464,10 @@ test.describe('the phone layout', () => {
     await expect(page.locator('[data-drag-card]')).toHaveCount(0);
     const freeDay = page.locator('[data-grid-notice="free-day"]');
     await expect(freeDay).toContainText('วันพฤหัสบดี');
-    await expect(freeDay).toContainText('วันว่าง');
+    await expect(freeDay).toContainText('วันนี้ไม่มีคาบเรียน');
+    await expect(
+      freeDay.getByRole('button', { name: 'ดูทั้งสัปดาห์' }),
+    ).toBeVisible();
 
     // The chip is the path back, and the plan kept its class.
     await friday.tap();

@@ -25,7 +25,8 @@ import {
 import { useElementSize } from '@/features/shell/useElementSize';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { uiStore } from '@/features/shell/uiStore';
-import { DayChips } from './DayChips';
+import { commitAndFocus } from '@/features/shell/commitAndFocus';
+import { DayChips, WEEK_CHIP_ID } from './DayChips';
 import { DayView } from './DayView';
 import { GridEmptyState } from './GridEmptyState';
 import { GridScroller } from './GridScroller';
@@ -102,6 +103,13 @@ export function TimetableView({
           day={shown}
           planEmpty={planEmpty}
           onChoose={onDayChange}
+          onShowWeek={(control) => {
+            // The day view and its notice leave with the switch, so focus moves to the
+            // week chip that now holds the selection.
+            commitAndFocus(control, WEEK_CHIP_ID, () => {
+              setView('week');
+            });
+          }}
           grid={grid}
         />
       ) : (
