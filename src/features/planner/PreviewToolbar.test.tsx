@@ -108,7 +108,7 @@ describe('PreviewToolbar', () => {
     ).toBeInTheDocument();
     // The download action is still present, so the path is never a dead end.
     expect(
-      screen.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' }),
+      screen.getByRole('button', { name: 'ดาวน์โหลด PNG' }),
     ).toBeInTheDocument();
   });
 
@@ -131,7 +131,7 @@ describe('PreviewToolbar', () => {
       screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' }),
+      screen.getByRole('button', { name: 'ดาวน์โหลด PNG' }),
     ).toBeInTheDocument();
   });
 
@@ -198,7 +198,7 @@ describe('PreviewToolbar', () => {
     ).not.toBeInTheDocument();
     // The sharing actions stay available beside the notice, so it never blocks an export.
     expect(
-      screen.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' }),
+      screen.getByRole('button', { name: 'ดาวน์โหลด PNG' }),
     ).toBeInTheDocument();
   });
 
@@ -249,7 +249,7 @@ describe('PreviewToolbar', () => {
       current: document.createElement('div'),
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' }));
+    fireEvent.click(screen.getByRole('button', { name: 'ดาวน์โหลด PNG' }));
     // The pressed action names the capture, and every action is marked disabled.
     const busy = screen.getByRole('button', { name: 'กำลังสร้างรูปภาพ' });
     expect(busy).toHaveAttribute('aria-disabled', 'true');
@@ -270,7 +270,7 @@ describe('PreviewToolbar', () => {
     });
     expect(downloadBlob).toHaveBeenCalledTimes(1);
     expect(
-      screen.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' }),
+      screen.getByRole('button', { name: 'ดาวน์โหลด PNG' }),
     ).toHaveAttribute('aria-disabled', 'false');
     expect(screen.getByRole('toolbar')).toHaveAttribute('aria-busy', 'false');
     expect(toastStore.getState().toast?.message).toBe('ดาวน์โหลดรูปภาพแล้ว');
@@ -284,11 +284,11 @@ describe('PreviewToolbar', () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' }));
+      fireEvent.click(screen.getByRole('button', { name: 'ดาวน์โหลด PNG' }));
       await Promise.resolve();
     });
     expect(
-      screen.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' }),
+      screen.getByRole('button', { name: 'ดาวน์โหลด PNG' }),
     ).toHaveAttribute('aria-disabled', 'false');
     expect(toastStore.getState().toast?.message).toBe('ส่งออกรูปภาพไม่สำเร็จ');
   });
@@ -455,13 +455,23 @@ describe('PreviewToolbar share image', () => {
 });
 
 describe('PreviewToolbar layout by width', () => {
+  // The full name of each action, which is its accessible name at every width.
   const LABELS = [
-    'ตัวเลือกการแสดงผล',
+    'ดาวน์โหลด PNG',
     'แชร์รูปภาพ',
     'คัดลอกรูปภาพ',
-    'ดาวน์โหลดรูปภาพ',
     'คัดลอกข้อความ',
+    'ตัวเลือกการแสดงผล',
   ];
+  // The label each action shows in the phone action row, a short form where the full name
+  // would crowd the cell, kept inside the accessible name.
+  const PHONE_LABELS: Record<string, string> = {
+    'ดาวน์โหลด PNG': 'ดาวน์โหลด PNG',
+    แชร์รูปภาพ: 'แชร์',
+    คัดลอกรูปภาพ: 'คัดลอกรูปภาพ',
+    คัดลอกข้อความ: 'คัดลอกข้อความ',
+    ตัวเลือกการแสดงผล: 'ตัวเลือก',
+  };
 
   // Every action available, so each one's form can be read.
   function renderEveryAction(
@@ -479,19 +489,75 @@ describe('PreviewToolbar layout by width', () => {
     renderToolbar(DEFAULT_DISPLAY_OPTIONS, buildExamSchedule([]), ref);
   }
 
-  it('makes every action an icon button named by its aria-label on a phone', () => {
+  // The glyph class lucide sets on each icon, read so no two actions share a glyph.
+  function glyphOf(button: HTMLElement): string {
+    const glyph = Array.from(button.querySelector('svg')?.classList ?? []).find(
+      (name) => name.startsWith('lucide-'),
+    );
+    if (glyph === undefined) {
+      throw new Error('no glyph');
+    }
+    return glyph;
+  }
+
+  it.each([390, 1366])(
+    'at %i px leads with download as the one filled action',
+    (width) => {
+      installViewport(width);
+      renderEveryAction();
+      const toolbar = screen.getByRole('toolbar');
+      const buttons = within(toolbar).getAllByRole('button');
+      const filled = buttons.filter((button) =>
+        button.classList.contains('bg-primary-strong'),
+      );
+      expect(filled).toEqual([
+        screen.getByRole('button', { name: 'ดาวน์โหลด PNG' }),
+      ]);
+      // Download comes before every other sharing action in the toolbar.
+      const download = screen.getByRole('button', { name: 'ดาวน์โหลด PNG' });
+      for (const label of LABELS.slice(1)) {
+        const other = screen.getByRole('button', { name: label });
+        expect(
+          download.compareDocumentPosition(other) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
+        ).toBeTruthy();
+      }
+    },
+  );
+
+  it('gives every action its own glyph, so no two look alike', () => {
+    installViewport(390);
+    renderEveryAction();
+    const glyphs = LABELS.map((label) =>
+      glyphOf(screen.getByRole('button', { name: label })),
+    );
+    expect(new Set(glyphs).size).toBe(LABELS.length);
+    expect(glyphs).not.toContain('lucide-clipboard');
+    expect(glyphs).not.toContain('lucide-clipboard-copy');
+  });
+
+  it('shows every action with a visible label on a phone, at the touch size', () => {
     installViewport(390);
     renderEveryAction();
     for (const label of LABELS) {
       const button = screen.getByRole('button', { name: label });
-      expect(button).toHaveAttribute('aria-label', label);
-      expect(button).toHaveAttribute('title', label);
-      expect(button).toHaveTextContent('');
+      const shown = PHONE_LABELS[label] ?? '';
+      expect(button).toHaveTextContent(shown);
+      expect(label.startsWith(shown)).toBe(true);
+      expect(button).not.toHaveAttribute('title');
       expect(button).toHaveClass('min-h-(--kcp-target-touch)');
     }
+    // The download fills its own row, and the other actions share the row under it.
+    const download = screen.getByRole('button', { name: 'ดาวน์โหลด PNG' });
+    expect(download).toHaveClass('w-full');
+    const row = screen.getByRole('button', {
+      name: 'คัดลอกรูปภาพ',
+    }).parentElement;
+    expect(row).toHaveClass('grid', 'grid-flow-col', 'auto-cols-fr');
+    expect(row?.contains(download)).toBe(false);
   });
 
-  it('labels every action with visible text from 640 px up', () => {
+  it('labels every action with its full name from 640 px up', () => {
     installViewport(1366);
     renderEveryAction();
     for (const label of LABELS) {
@@ -501,17 +567,18 @@ describe('PreviewToolbar layout by width', () => {
     }
   });
 
-  it('names the running capture on an icon button', async () => {
+  it('names the running capture in the label of the action that started it', async () => {
     installViewport(390);
     vi.mocked(capturePng).mockReturnValue(new Promise<Blob>(() => undefined));
     renderEveryAction({ current: document.createElement('div') });
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' }));
+      fireEvent.click(screen.getByRole('button', { name: 'ดาวน์โหลด PNG' }));
       await Promise.resolve();
     });
     const busy = screen.getByRole('button', { name: 'กำลังสร้างรูปภาพ' });
     expect(busy).toHaveAttribute('aria-disabled', 'true');
-    expect(busy).toHaveTextContent('');
+    expect(busy).toHaveTextContent('กำลังสร้างรูปภาพ');
+    expect(busy).toHaveClass('bg-primary-strong');
   });
 
   // Below 640 px the toolbar is the last thing at the foot, so the notice moves above it.
@@ -541,7 +608,7 @@ describe('PreviewToolbar layout by width', () => {
     const note = within(screen.getByRole('toolbar')).getByText(
       'เบราว์เซอร์นี้คัดลอกรูปภาพไม่ได้ ใช้ดาวน์โหลดแทน',
     );
-    const download = screen.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' });
+    const download = screen.getByRole('button', { name: 'ดาวน์โหลด PNG' });
     expect(
       note.compareDocumentPosition(download) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();

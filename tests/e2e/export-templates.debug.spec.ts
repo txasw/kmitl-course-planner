@@ -35,7 +35,7 @@ async function categorySearch(page: Page): Promise<void> {
 
 async function downloadPng(page: Page): Promise<Buffer> {
   const downloadPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' }).click();
+  await page.getByRole('button', { name: 'ดาวน์โหลด PNG' }).click();
   const download = await downloadPromise;
   const path = await download.path();
   return readFile(path);
