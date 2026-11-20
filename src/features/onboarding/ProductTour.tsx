@@ -128,7 +128,11 @@ function sameBox(a: Box | null, b: Box): boolean {
   );
 }
 
-/** The panel's size and the device safe areas at its head and foot. */
+/**
+ * The panel's size and the room the card leaves at its head and foot: the device safe
+ * areas, and at the foot the phone bottom nav as well, so the card rests above the nav with
+ * its gutter rather than cutting through the nav labels.
+ */
 interface PanelFrame extends Size {
   insetTop: number;
   insetBottom: number;
@@ -217,14 +221,21 @@ function OpenProductTour({ record, panel }: OpenProductTourProps) {
       };
       setSpot((current) => (sameBox(current, next) ? current : next));
       const probe = probeRef.current;
+      const safeBottom =
+        probe === null
+          ? 0
+          : frame.height - probe.offsetTop - probe.offsetHeight;
+      // The nav pads itself clear of the safe area, so its top bounds the foot alone.
+      const nav = panel.querySelector('[data-bottom-nav]');
+      const navFoot =
+        nav === null
+          ? 0
+          : Math.round(frame.bottom - nav.getBoundingClientRect().top);
       const measured: PanelFrame = {
         width: frame.width,
         height: frame.height,
         insetTop: probe?.offsetTop ?? 0,
-        insetBottom:
-          probe === null
-            ? 0
-            : frame.height - probe.offsetTop - probe.offsetHeight,
+        insetBottom: Math.max(safeBottom, navFoot),
       };
       setFrame((current) =>
         current !== null &&
