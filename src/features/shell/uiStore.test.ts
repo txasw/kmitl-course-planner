@@ -92,6 +92,18 @@ describe('ui store', () => {
     expect(store.getState().timetableView).toBe('week');
   });
 
+  it('opens on the day view each time, keeping the week only while open', () => {
+    const store = createUiStore();
+    store.getState().open();
+    store.getState().setTimetableView('week');
+    // The toolbar action on an open panel keeps the page the student is on.
+    store.getState().open();
+    expect(store.getState().timetableView).toBe('week');
+    store.getState().close();
+    store.getState().open();
+    expect(store.getState().timetableView).toBe('day');
+  });
+
   it('starts with no compact pane until one is settled', () => {
     expect(createUiStore().getState().mobilePane).toBeNull();
   });

@@ -329,40 +329,19 @@ describe('prefs repository', () => {
     expect(loaded?.suggestPreference).toBeUndefined();
   });
 
-  it('round trips the timetable view', async () => {
-    const adapter = fakeAdapter();
-    const repo = createPrefsRepository(adapter);
-    const withView: Prefs = {
-      schemaVersion: 1,
-      language: 'th',
-      timetableView: 'week',
-    };
-    await repo.save(withView);
-    expect(await repo.load()).toEqual(withView);
-  });
-
-  it('loads a blob written before the timetable view existed', async () => {
-    const repo = createPrefsRepository(
-      fakeAdapter({ [PREFS_KEY]: { schemaVersion: 1, language: 'en' } }),
-    );
-    const loaded = await repo.load();
-    expect(loaded?.language).toBe('en');
-    expect(loaded).not.toHaveProperty('timetableView');
-  });
-
-  it('reads an unknown timetable view as absent and keeps the rest', async () => {
+  // A build before the ADR-0049 amendment of 2026-11-21 remembered the narrow timetable's
+  // day or week layout. The blob must still load whole, with the layout dropped.
+  it('loads a blob that still carries the retired timetable view', async () => {
     const repo = createPrefsRepository(
       fakeAdapter({
         [PREFS_KEY]: {
           schemaVersion: 1,
           language: 'en',
-          timetableView: 'month',
+          timetableView: 'week',
         },
       }),
     );
-    const loaded = await repo.load();
-    expect(loaded?.language).toBe('en');
-    expect(loaded?.timetableView).toBeUndefined();
+    expect(await repo.load()).toEqual({ schemaVersion: 1, language: 'en' });
   });
 
   it('round trips the catalog hide toggles', async () => {
@@ -399,7 +378,6 @@ describe('prefs repository', () => {
     );
     const loaded = await repo.load();
     expect(loaded?.language).toBe('en');
-    expect(loaded?.timetableView).toBe('week');
     expect(loaded?.catalogHides).toBeUndefined();
   });
 
@@ -429,7 +407,6 @@ describe('prefs repository', () => {
       expect(await repo.load()).toEqual({
         schemaVersion: 1,
         language: 'en',
-        timetableView: 'week',
         catalogHides: { full: true, conflicting: false, unscheduled: false },
       });
     },

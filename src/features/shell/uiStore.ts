@@ -89,8 +89,9 @@ export interface UiState {
   /** The preference the suggestion dialog last searched with, persisted with the prefs. */
   suggestPreference: SuggestPreference;
   /**
-   * The layout a timetable narrower than 640 px shows, the day or the week (ADR-0049),
-   * persisted with the prefs. A wider timetable shows the landscape week whatever it holds.
+   * The layout a timetable narrower than 640 px shows, the day or the week (ADR-0049). Every
+   * opening starts on the day; the week holds until the panel closes. A wider timetable shows
+   * the landscape week whatever it holds.
    */
   timetableView: TimetableView;
   /**
@@ -150,10 +151,17 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     diagnosticsIssueCount: null,
     crashPanel: false,
     open: () => {
-      // An opening starts in edit. An open call while the panel is already open, such as
-      // the toolbar action, keeps the page the student is on.
+      // An opening starts in edit, and a narrow timetable on the day view. An open call
+      // while the panel is already open, such as the toolbar action, keeps the page the
+      // student is on.
       set((state) =>
-        state.isOpen ? state : { isOpen: true, viewMode: 'edit' },
+        state.isOpen
+          ? state
+          : {
+              isOpen: true,
+              viewMode: 'edit',
+              timetableView: DEFAULT_TIMETABLE_VIEW,
+            },
       );
     },
     close: () => {

@@ -5,7 +5,7 @@
 // day and for a time conflict. This module holds the pure rules behind that view, so the chips, the
 // swipe, and their tests share one source.
 
-import type { DayOfWeek } from '../parsing/days';
+import { WEEK_DAYS, type DayOfWeek } from '../parsing/days';
 import type { Meeting } from '../domain/types';
 import { BREAKPOINTS } from '../ui/breakpoints';
 import { WORKING_DAYS } from './freePeriods';
@@ -13,8 +13,8 @@ import type { ConflictDetail } from './placement';
 
 /**
  * The layouts a narrow timetable offers: one day at a time under the day chips, or the whole
- * week in portrait. The day is the default; the week is the student's choice, remembered as
- * a preference.
+ * week in portrait. The day is the default and every opening of the panel starts on it; the
+ * week is the student's choice for the rest of that opening, one tap away on the week chip.
  */
 export const TIMETABLE_VIEWS = ['day', 'week'] as const;
 export type TimetableView = (typeof TIMETABLE_VIEWS)[number];
@@ -92,15 +92,25 @@ export function dayFlags(
 }
 
 /**
- * The day the view opens on: the first offered day with a class, so a plan that starts on
- * Wednesday opens on Wednesday. A plan with no scheduled class opens on the first offered
- * day, Monday.
+ * The day the view opens on: today when the chips offer it and it has a class, so a student
+ * checking the day's classes lands on them; otherwise the first offered day with a class, so a
+ * plan that starts on Wednesday opens on Wednesday. A plan with no scheduled class opens on
+ * the first offered day, Monday.
  */
 export function initialDay(
   days: readonly DayOfWeek[],
   flags: DayFlags,
+  today: DayOfWeek,
 ): DayOfWeek {
+  if (days.includes(today) && flags[today].hasClass) {
+    return today;
+  }
   return days.find((day) => flags[day].hasClass) ?? days[0] ?? 1;
+}
+
+/** The day of the week a moment falls on, in the panel's own Sunday first numbering. */
+export function dayOfWeek(moment: Date): DayOfWeek {
+  return WEEK_DAYS[moment.getDay()] ?? 1;
 }
 
 /**
@@ -112,10 +122,11 @@ export function shownDay(
   days: readonly DayOfWeek[],
   chosen: DayOfWeek | null,
   flags: DayFlags,
+  today: DayOfWeek,
 ): DayOfWeek {
   return chosen !== null && days.includes(chosen)
     ? chosen
-    : initialDay(days, flags);
+    : initialDay(days, flags, today);
 }
 
 /**

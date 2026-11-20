@@ -11,7 +11,6 @@ import { displayOptionsSchema } from '../planner/displayOptions';
 import { curriculumProfileSchema } from '../catalog/curriculumProfile';
 import { SUGGEST_OBJECTIVES } from '../planner/suggestRank';
 import { SUGGEST_PREFERENCES } from '../planner/suggestScore';
-import { TIMETABLE_VIEWS } from '../planner/dayView';
 
 /**
  * The catalog's hide full, hide conflicting, and hide unscheduled toggles. Unlike the
@@ -30,9 +29,10 @@ export type CatalogHides = z.infer<typeof catalogHidesSchema>;
 // written before it existed still validates and falls back to the defaults. The
 // display options schema is owned by the planner, which is the layer that reads
 // them; storage only persists the shape.
-// The panel no longer remembers its last mode (ADR-0022 amendment). A blob written
-// before that still carries a viewMode key, which the object schema strips like any
-// unknown key, so the blob loads whole and the stored mode is ignored.
+// The panel no longer remembers its last mode (ADR-0022 amendment) or the narrow
+// timetable's day or week layout (ADR-0049 amendment of 2026-11-21). A blob written
+// before that still carries a viewMode or a timetableView key, which the object schema
+// strips like any unknown key, so the blob loads whole and the stored value is ignored.
 export const prefsSchema = z.object({
   schemaVersion: z.literal(1),
   language: z.enum(['th', 'en']),
@@ -49,9 +49,6 @@ export const prefsSchema = z.object({
   // language and the other preferences survive and the dialog opens on its default.
   suggestObjective: z.enum(SUGGEST_OBJECTIVES).optional().catch(undefined),
   suggestPreference: z.enum(SUGGEST_PREFERENCES).optional().catch(undefined),
-  // The layout a narrow timetable shows, the day or the week (ADR-0049). An unknown
-  // value reads as absent like the suggestion options, so the view opens on the day.
-  timetableView: z.enum(TIMETABLE_VIEWS).optional().catch(undefined),
   // The catalog hide toggles. A malformed value reads as absent like the options above,
   // so every toggle opens off and the other preferences survive.
   catalogHides: catalogHidesSchema.optional().catch(undefined),
