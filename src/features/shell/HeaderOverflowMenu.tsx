@@ -218,7 +218,7 @@ export function HeaderOverflowMenu() {
                 role="menuitem"
                 tabIndex={-1}
                 onClick={() => {
-                  setOpenFocus(null);
+                  closeToTrigger();
                   debugItem.onSelect();
                 }}
                 className={`mt-1 flex w-full items-center rounded-kcp border-t border-border px-2 py-1.5 text-left text-ink hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`}
