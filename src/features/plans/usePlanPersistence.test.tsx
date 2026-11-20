@@ -15,7 +15,7 @@ import type {
 } from '@/lib/storage/repo';
 import { makePlan } from '../../../tests/support/domain-builders';
 import { toastStore, type Toast } from '@/features/shell/toastStore';
-import { autosaveStore, PLAN_SWITCHER_TRIGGER_ID } from './autosaveStore';
+import { autosaveStore } from './autosaveStore';
 import { planStore } from './planStore';
 import { storageIssueStore } from './storageIssueStore';
 import {
@@ -317,7 +317,7 @@ describe('usePlanPersistence autosave state', () => {
     expect(autosaveStore.getState().status).toBe('saved');
   });
 
-  it('raises one error toast with a retry for a run of failed saves', async () => {
+  it('raises one notice and no toast for a run of failed saves', async () => {
     const { save, settleNext } = deferredSaves();
     await mountWithSaves(save);
     const toasts = recordToasts();
@@ -325,16 +325,16 @@ describe('usePlanPersistence autosave state', () => {
     await advance(300);
     await settleNext(failed);
     expect(autosaveStore.getState().status).toBe('failed');
-    expect(toasts).toHaveLength(1);
-    expect(toasts[0]?.kind).toBe('error');
-    expect(toasts[0]?.message).toBe('บันทึกตารางไม่สำเร็จ');
-    expect(toasts[0]?.action?.label).toBe('บันทึกอีกครั้ง');
+    expect(autosaveStore.getState().notice).toBe(1);
+    // The strip under the header shows the failure; a toast would repeat it over the
+    // plan status row.
+    expect(toasts).toHaveLength(0);
 
     edit();
     await advance(300);
     await settleNext(failed);
     expect(autosaveStore.getState().status).toBe('failed');
-    expect(toasts).toHaveLength(1);
+    expect(autosaveStore.getState().notice).toBe(1);
   });
 
   it('raises nothing for a successful save', async () => {
@@ -345,54 +345,43 @@ describe('usePlanPersistence autosave state', () => {
     await advance(300);
     await settleNext(ok(undefined));
     expect(toasts).toHaveLength(0);
+    expect(autosaveStore.getState().notice).toBeNull();
   });
 
   it('announces a failure again once a save has succeeded', async () => {
     const { save, settleNext } = deferredSaves();
     await mountWithSaves(save);
-    const toasts = recordToasts();
     edit();
     await advance(300);
     await settleNext(failed);
     edit();
     await advance(300);
     await settleNext(ok(undefined));
+    expect(autosaveStore.getState().notice).toBeNull();
     edit();
     await advance(300);
     await settleNext(failed);
-    expect(toasts).toHaveLength(2);
+    expect(autosaveStore.getState().notice).toBe(1);
   });
 
-  it('saves now from the toast retry and moves focus to the plan switcher', async () => {
+  it('saves now from the retry', async () => {
     const { save, settleNext } = deferredSaves();
     await mountWithSaves(save);
-    const toasts = recordToasts();
-    const switcher = document.createElement('button');
-    switcher.id = PLAN_SWITCHER_TRIGGER_ID;
-    const control = document.createElement('button');
-    document.body.append(switcher, control);
-    try {
-      edit();
-      await advance(300);
-      await settleNext(failed);
-      act(() => {
-        toasts[0]?.action?.run(control);
-      });
-      expect(save).toHaveBeenCalledTimes(2);
-      expect(autosaveStore.getState().status).toBe('saving');
-      expect(document.activeElement).toBe(switcher);
-      await settleNext(ok(undefined));
-      expect(autosaveStore.getState().status).toBe('saved');
-    } finally {
-      switcher.remove();
-      control.remove();
-    }
+    edit();
+    await advance(300);
+    await settleNext(failed);
+    act(() => {
+      autosaveStore.getState().retry?.();
+    });
+    expect(save).toHaveBeenCalledTimes(2);
+    expect(autosaveStore.getState().status).toBe('saving');
+    await settleNext(ok(undefined));
+    expect(autosaveStore.getState().status).toBe('saved');
   });
 
   it('announces a failed retry the student asked for', async () => {
     const { save, settleNext } = deferredSaves();
     await mountWithSaves(save);
-    const toasts = recordToasts();
     edit();
     await advance(300);
     await settleNext(failed);
@@ -400,7 +389,7 @@ describe('usePlanPersistence autosave state', () => {
       autosaveStore.getState().retry?.();
     });
     await settleNext(failed);
-    expect(toasts).toHaveLength(2);
+    expect(autosaveStore.getState().notice).toBe(2);
   });
 
   it('treats a rejected save as a failure', async () => {

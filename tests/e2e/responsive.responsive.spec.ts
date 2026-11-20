@@ -378,7 +378,7 @@ async function expectSaveStripWhole(
   retry: string,
 ): Promise<void> {
   const message = page.getByText(sentence, { exact: true });
-  // The error toast carries a button of the same name, so the strip's is found inside it.
+  // The strip is the one place the failure shows, so its button is found inside it.
   const strip = message.locator('..');
   const button = strip.getByRole('button', { name: retry, exact: true });
   for (const part of [message, button, strip]) {
