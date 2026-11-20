@@ -25,7 +25,15 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Tooltip } from '@/components/Tooltip';
-import { courseCountLabel, sectionCountLabel } from '@/lib/i18n/counts';
+import {
+  COURSE_UNIT,
+  MERGED_UNIT,
+  MULTI_MEETING_UNIT,
+  SECTION_UNIT,
+  countWithUnit,
+  courseCountLabel,
+  sectionCountLabel,
+} from '@/lib/i18n/counts';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { termMismatchText } from '@/lib/i18n/termCopy';
 import { fillTemplate } from '@/lib/i18n/template';
@@ -129,14 +137,14 @@ function Summary({
   t: Translate;
 }) {
   const items: SummaryItem[] = [
-    { icon: BookOpen, text: `${String(courses)} ${t('catalog.units.course')}` },
-    { icon: Rows3, text: `${String(sections)} ${t('catalog.units.section')}` },
-    { icon: Merge, text: `${String(merged)} ${t('catalog.units.merged')}` },
+    { icon: BookOpen, text: countWithUnit(t, courses, COURSE_UNIT) },
+    { icon: Rows3, text: countWithUnit(t, sections, SECTION_UNIT) },
+    { icon: Merge, text: countWithUnit(t, merged, MERGED_UNIT) },
     ...(multiMeeting > 0
       ? [
           {
             icon: CalendarRange,
-            text: `${String(multiMeeting)} ${t('catalog.units.multiMeeting')}`,
+            text: countWithUnit(t, multiMeeting, MULTI_MEETING_UNIT),
           },
         ]
       : []),

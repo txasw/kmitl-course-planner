@@ -54,6 +54,18 @@ describe('GridFooter', () => {
     expect(screen.getByText('2 วิชา')).toBeInTheDocument();
   });
 
+  it('reads one credit and one subject in the English singular', () => {
+    render(
+      <GridFooter
+        sections={[{ ...scheduled, credit: 1 }]}
+        locale="en"
+        t={createTranslator('en')}
+      />,
+    );
+    expect(screen.getByText('1 credit')).toBeInTheDocument();
+    expect(screen.getByText('1 subject')).toBeInTheDocument();
+  });
+
   it('shows the scheduled load per day and the unscheduled count', () => {
     render(<GridFooter sections={[scheduled, online]} locale="th" t={t} />);
     // The abbreviation and the screen reader day name are sibling spans of the load.

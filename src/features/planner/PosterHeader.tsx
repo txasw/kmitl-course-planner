@@ -4,6 +4,7 @@
 // reads "D MMM BE" in both locales, the Buddhist year the term beside it uses, rather
 // than the Gregorian year an English Intl date would print.
 
+import { CREDIT_UNIT, countWithUnit } from '@/lib/i18n/counts';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Term } from '@/lib/routing/academicTerms';
 import { summarizeCredits } from '@/lib/planner/credits';
@@ -51,9 +52,7 @@ export function PosterHeader({
             {t('search.semester')} {term.semester}/{term.year}
           </span>
         ) : null}
-        <span>
-          {credits.credits} {t('footer.credits')}
-        </span>
+        <span>{countWithUnit(t, credits.credits, CREDIT_UNIT)}</span>
         <span>{date}</span>
       </div>
     </header>

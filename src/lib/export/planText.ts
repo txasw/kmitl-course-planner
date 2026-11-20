@@ -17,6 +17,7 @@ import type { VerifyStatus } from '../domain/plan';
 import type { DisplayOptions } from '../planner/displayOptions';
 import { summarizeCredits } from '../planner/credits';
 import { subjectNameLines } from '../planner/nameLanguage';
+import { CREDIT_UNIT, countWithUnit } from '../i18n/counts';
 import type { Locale, Translate } from '../i18n/t';
 import { dayLabelKey } from '../i18n/dayLabel';
 import { formatMinutes } from '../parsing/time';
@@ -105,7 +106,7 @@ export function formatPlanText(input: PlanTextInput): string {
       credit: section.credit,
     })),
   ).credits;
-  const header = `${planName}  ${t('search.semester')} ${semester}/${year}  ${String(credits)} ${t('footer.credits')}`;
+  const header = `${planName}  ${t('search.semester')} ${semester}/${year}  ${countWithUnit(t, credits, CREDIT_UNIT)}`;
 
   const rows = sections
     .filter((section) => section.meetings.length > 0)

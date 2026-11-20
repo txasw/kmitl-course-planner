@@ -4,6 +4,7 @@
 // own, since it shares the poster footer row that carries the divider. Edit mode states
 // the same totals in the stats bar.
 
+import { CREDIT_UNIT, SUBJECT_UNIT, countWithUnit } from '@/lib/i18n/counts';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { DayLoads } from './DayLoads';
 import { planTotals } from './planTotals';
@@ -25,11 +26,9 @@ export function GridFooter({ sections, locale, t }: GridFooterProps) {
       className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-soft"
     >
       <span className="font-semibold text-ink">
-        {totals.credits} {t('footer.credits')}
+        {countWithUnit(t, totals.credits, CREDIT_UNIT)}
       </span>
-      <span>
-        {totals.subjects} {t('footer.subjects')}
-      </span>
+      <span>{countWithUnit(t, totals.subjects, SUBJECT_UNIT)}</span>
       <DayLoads load={totals.load} locale={locale} t={t} />
       {totals.unscheduled > 0 ? (
         <span>
