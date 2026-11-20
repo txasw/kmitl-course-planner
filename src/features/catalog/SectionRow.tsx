@@ -36,6 +36,7 @@ import { RemarkLine } from './RemarkLine';
 import { RulesNotice } from './RulesNotice';
 import { DemandChip, SeatDemand } from './SeatDemand';
 import { StatusBadge } from './StatusBadge';
+import { TeacherLine } from './TeacherLine';
 import { meetingLabel, meetingPlace } from './meetingFormat';
 
 /** The accessible name of a section's add control: the action, the subject id and the
@@ -148,19 +149,7 @@ export function SectionRow({
           ))}
         </div>
 
-        {teachers.length > 0 ? (
-          <Tooltip label={teachers.join(', ')}>
-            {(triggerProps, ref) => (
-              <p
-                ref={ref}
-                {...triggerProps}
-                className="mt-1 truncate text-ink-soft"
-              >
-                {teachers.join(', ')}
-              </p>
-            )}
-          </Tooltip>
-        ) : null}
+        <TeacherLine teachers={teachers} t={t} />
         {/* The reason id stays on the seat line alone, so a disabled rail names the seat
             state without the demand counts. */}
         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">

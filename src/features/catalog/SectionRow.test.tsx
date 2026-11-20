@@ -648,7 +648,7 @@ describe('SectionRow density and read only', () => {
     expect(screen.getByText(/D-510/).textContent).toMatch(/\d{2}:\d{2} D-510$/);
   });
 
-  it('truncates the teachers to one line with the full list in a tooltip', async () => {
+  it('shows the teachers under a label with an expand control when the line clips', () => {
     const many = makeSection({
       teachTableId: 'm',
       teachersTh: ['อ. หนึ่ง', 'อ. สอง', 'อ. สาม'],
@@ -663,12 +663,10 @@ describe('SectionRow density and read only', () => {
         t={t}
       />,
     );
-    const teachers = screen.getByText('อ. หนึ่ง, อ. สอง, อ. สาม');
-    expect(teachers.className).toContain('truncate');
-    fireEvent.mouseEnter(teachers);
-    expect(await screen.findByRole('tooltip')).toHaveTextContent(
-      'อ. หนึ่ง, อ. สอง, อ. สาม',
-    );
+    expect(screen.getByText('ผู้สอน')).toBeTruthy();
+    expect(screen.getByText('อ. หนึ่ง, อ. สอง, อ. สาม')).toBeTruthy();
+    // jsdom has no layout, so the one line fits there and no expand control is offered.
+    expect(screen.queryByRole('button', { name: 'ดูผู้สอนทั้งหมด' })).toBeNull();
   });
 
   it('read only hides the actions and the state badge but keeps the facts', () => {
@@ -770,7 +768,9 @@ describe('SectionRow conditions and remark', () => {
     expect(screen.getByText('Only School of Engineering').className).toContain(
       'truncate',
     );
-    expect(screen.getByRole('list')).toHaveAttribute('lang', 'en');
+    expect(
+      screen.getByText('Only School of Engineering').closest('ul'),
+    ).toHaveAttribute('lang', 'en');
   });
 
   it('shows the remark first line inline with a labelled expand control', () => {
