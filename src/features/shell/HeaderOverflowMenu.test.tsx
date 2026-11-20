@@ -16,8 +16,17 @@ import { ExtensionVersionContext } from './ExtensionVersionContext';
 import { HeaderOverflowMenu } from './HeaderOverflowMenu';
 import { Overlay } from './Overlay';
 import { uiStore } from './uiStore';
+import {
+  initialOnboardingData,
+  onboardingStore,
+} from '@/features/onboarding/onboardingStore';
 
 const MORE = 'ตัวเลือกเพิ่มเติม';
+const TOUR = 'แนะนำการใช้งาน';
+
+function tourItem(): HTMLElement {
+  return screen.getByRole('menuitem', { name: TOUR });
+}
 
 function trigger(): HTMLElement {
   return screen.getByRole('button', { name: MORE });
@@ -33,7 +42,9 @@ afterEach(() => {
   act(() => {
     uiStore.getState().close();
     uiStore.getState().setLanguage('th');
+    uiStore.getState().setViewMode('edit');
   });
+  onboardingStore.setState(initialOnboardingData());
 });
 
 describe('HeaderOverflowMenu', () => {
@@ -65,7 +76,9 @@ describe('HeaderOverflowMenu', () => {
     });
     render(<HeaderOverflowMenu />);
     fireEvent.click(trigger());
-    expect(screen.queryByRole('menuitem')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('menuitem', { name: 'Diagnostics' }),
+    ).not.toBeInTheDocument();
     act(() => {
       debugMenuStore.getState().setItem(null);
     });
@@ -88,7 +101,7 @@ describe('HeaderOverflowMenu', () => {
   it('opens on ArrowUp with focus on the last item', () => {
     render(<HeaderOverflowMenu />);
     fireEvent.keyDown(trigger(), { key: 'ArrowUp' });
-    expect(item('English')).toHaveFocus();
+    expect(tourItem()).toHaveFocus();
   });
 
   it('ends the popover with a muted version line outside the menu, shown below sm', () => {
@@ -143,13 +156,47 @@ describe('HeaderOverflowMenu', () => {
     fireEvent.keyDown(item('ไทย'), { key: 'ArrowDown' });
     expect(item('English')).toHaveFocus();
     fireEvent.keyDown(item('English'), { key: 'ArrowDown' });
+    expect(tourItem()).toHaveFocus();
+    fireEvent.keyDown(tourItem(), { key: 'ArrowDown' });
     expect(item('ไทย')).toHaveFocus();
     fireEvent.keyDown(item('ไทย'), { key: 'ArrowUp' });
-    expect(item('English')).toHaveFocus();
-    fireEvent.keyDown(item('English'), { key: 'Home' });
+    expect(tourItem()).toHaveFocus();
+    fireEvent.keyDown(tourItem(), { key: 'Home' });
     expect(item('ไทย')).toHaveFocus();
     fireEvent.keyDown(item('ไทย'), { key: 'End' });
-    expect(item('English')).toHaveFocus();
+    expect(tourItem()).toHaveFocus();
+  });
+
+  it('reopens the product tour from its own item and closes to the trigger', () => {
+    render(<HeaderOverflowMenu />);
+    fireEvent.click(trigger());
+    fireEvent.click(tourItem());
+    expect(onboardingStore.getState().tourOpen).toBe(true);
+    expect(onboardingStore.getState().tourStarted).toBe(true);
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(trigger()).toHaveFocus();
+  });
+
+  it('returns to editing before it reopens the tour from the export page', () => {
+    act(() => {
+      uiStore.getState().setViewMode('preview');
+    });
+    render(<HeaderOverflowMenu />);
+    fireEvent.click(trigger());
+    fireEvent.click(tourItem());
+    expect(uiStore.getState().viewMode).toBe('edit');
+    expect(onboardingStore.getState().tourOpen).toBe(true);
+  });
+
+  it('names the tour item in English', () => {
+    act(() => {
+      uiStore.getState().setLanguage('en');
+    });
+    render(<HeaderOverflowMenu />);
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
+    expect(
+      screen.getByRole('menuitem', { name: 'Product tour' }),
+    ).toBeInTheDocument();
   });
 
   it('applies a choice, closes, and returns focus to the trigger', () => {

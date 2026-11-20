@@ -561,6 +561,7 @@
   "tour.skip": "Skip",
   "tour.ended": "You can open the tour again from the More options menu.",
   "tour.replay": "Show again",
+  "tour.menu": "Product tour",
   "shortcuts.title": "Keyboard shortcuts",
   "shortcuts.close": "Close keyboard shortcuts",
   "shortcuts.filter": "Go to the results filter",
