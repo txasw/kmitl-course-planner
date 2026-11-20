@@ -60,6 +60,8 @@
   "suggest.truncated": "ตัวเลือกมีจำนวนมาก ตารางเหล่านี้ไม่ชนกันแต่อาจยังไม่ใช่ตารางที่ดีที่สุด",
   "suggest.option": "ตัวเลือกที่ {number}",
   "suggest.position": "ตัวเลือก {number} จาก {total}",
+  "suggest.carousel": "ชุดสไลด์",
+  "suggest.slide": "สไลด์",
   "suggest.pager": "ตัวเลือกตาราง",
   "suggest.prev": "ตัวเลือกก่อนหน้า",
   "suggest.next": "ตัวเลือกถัดไป",

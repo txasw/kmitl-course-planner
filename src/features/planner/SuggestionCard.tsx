@@ -168,6 +168,8 @@ interface SuggestionCardProps {
   sections: readonly PlacedSection[];
   frame: SuggestionFrame;
   orientation: Orientation;
+  /** The localized slide role description, while the card is one of several slides. */
+  roleDescription?: string | undefined;
   locale: Locale;
   t: Translate;
   onApply: () => void;
@@ -179,6 +181,7 @@ export function SuggestionCard({
   sections,
   frame,
   orientation,
+  roleDescription,
   locale,
   t,
   onApply,
@@ -205,6 +208,7 @@ export function SuggestionCard({
   return (
     <article
       aria-labelledby={headingId}
+      aria-roledescription={roleDescription}
       className={`flex flex-col gap-3 ${orientation === 'portrait' ? '' : CARD_CHROME}`}
     >
       <h3 id={headingId} className="text-sm font-semibold">

@@ -6,7 +6,8 @@
 // chevrons, a dot per suggestion, and the left and right arrow keys, with Home and End, on
 // the focusable slide area, the shown slide's controls included, and on the dots. The
 // position line between the chevrons is a polite live region, so a change announces the
-// new position. A single suggestion shows no paging at all. Under reduced motion the track
+// new position. The slide area and each slide carry the carousel and slide role
+// descriptions, localized, so assistive technology names the pattern. A single suggestion shows no paging at all. Under reduced motion the track
 // jumps instead of sliding and the track does not follow the finger, while the swipe itself
 // still pages.
 //
@@ -308,6 +309,7 @@ export function SuggestionCarousel({
         {...swipe.handlers}
         onKeyDown={handleKeyDown}
         role={paged ? 'group' : undefined}
+        aria-roledescription={paged ? t('suggest.carousel') : undefined}
         aria-labelledby={paged ? positionId : undefined}
         tabIndex={paged ? 0 : undefined}
         className={`overflow-hidden rounded-kcp select-none ${swipe.touchClass} ${paged ? FOCUS_RING : ''}`}
@@ -330,6 +332,7 @@ export function SuggestionCarousel({
                 sections={card.sections}
                 frame={frame}
                 orientation={orientation}
+                roleDescription={paged ? t('suggest.slide') : undefined}
                 locale={locale}
                 t={t}
                 onApply={() => {
