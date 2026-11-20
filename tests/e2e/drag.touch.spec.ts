@@ -136,6 +136,45 @@ test('a long press on a row drags it onto the grid above the finger and commits'
   await expect(page.locator(GRID_BLOCK)).toHaveCount(1);
 });
 
+test('a lifted grab card stays whole inside the window at each edge', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await denseSearch(page);
+  const from = await centre(
+    page.locator('[data-drag-surface="section"]').first(),
+  );
+  const size = page.viewportSize();
+  if (size === null) throw new Error('expected a viewport');
+  const card = page.locator('[data-drag-card]');
+
+  const finger = await touchDown(page, from);
+  try {
+    // A long press is defined by elapsed time, so this wait is the gesture itself.
+    await page.waitForTimeout(LONG_PRESS_MS);
+    // A finger near each edge would lift and centre the card past it, so the card
+    // slides back to keep every line whole and 8 px clear of the edge.
+    const corners: Point[] = [
+      { x: 6, y: 6 },
+      { x: size.width - 6, y: 6 },
+      { x: 6, y: size.height - 6 },
+      { x: size.width - 6, y: size.height - 6 },
+    ];
+    for (const corner of corners) {
+      await finger.moveTo(corner, 8);
+      await expect(card).toBeVisible();
+      const box = await card.boundingBox();
+      if (box === null) throw new Error('expected the grab card');
+      expect(box.x).toBeGreaterThanOrEqual(7);
+      expect(box.y).toBeGreaterThanOrEqual(7);
+      expect(box.x + box.width).toBeLessThanOrEqual(size.width - 7);
+      expect(box.y + box.height).toBeLessThanOrEqual(size.height - 7);
+    }
+  } finally {
+    await finger.lift();
+  }
+});
+
 test('a tap on a placed block opens its details and never the hover card', async ({
   context,
 }) => {
