@@ -131,6 +131,30 @@ test.describe('at 1024x768', () => {
     expect(Math.abs((monday?.x ?? -1) - edge)).toBeLessThanOrEqual(1);
     await expect(grid.getByLabel('วันจันทร์')).toBeVisible();
   });
+
+  test('keeps the place on a 60 minute block in the landscape grid', async ({
+    context,
+  }) => {
+    const page = await openPlanner(context);
+    await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
+    await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000700');
+    await submitSearch(page);
+    await expect(page.getByText('90642118').first()).toBeVisible({
+      timeout: 15_000,
+    });
+    await waitForResultsInput(page);
+    await expandCourse(page, '90642118');
+    // Section 3 meets Friday 17:00 to 18:00 in E12-101, paired with its 18:00 to 20:00
+    // practice. An hour of this window is 56 px, under 7em of the 11 px grid type, so a
+    // block sized by its meeting length must not fall back to the name alone.
+    await page.getByRole('button', { name: /^เพิ่ม 90642118 \S+ 3$/ }).click();
+    const grid = page.getByRole('group', { name: GRID_NAME });
+    const short = grid.locator('[data-teach-table-id="134040"]');
+    await expect(short).toBeVisible();
+    expect((await short.boundingBox())?.width ?? 0).toBeLessThan(77);
+    await expect(short.getByText(/E12-101/)).toBeVisible();
+    await expect(short.locator('..')).not.toHaveClass(/@container/);
+  });
 });
 
 test('adds a section from its button, then removes it with undo', async ({
