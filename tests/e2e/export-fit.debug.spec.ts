@@ -9,6 +9,10 @@ import type { Page } from '@playwright/test';
 // marker, and each must have its scroll height within its client height at the template's true
 // pixels, so no field is clipped. Because a wrapping transform only scales the on screen view,
 // scrollHeight and clientHeight read the real template pixels, not the scaled ones.
+//
+// Width is measured too (the ADR-0046 amendment of 2026-11-20). The subject id and the time are
+// whole fields on one line that never wraps, so at every preset each one present must fit its
+// line, and a block too narrow for one shows none of it rather than a code cut at its edge.
 
 const PRESETS = [
   'แชร์ 16:9',
@@ -20,8 +24,9 @@ const PRESETS = [
 ];
 
 // The reserved id the mock server answers with the fit regression catalog: three hour blocks,
-// long Thai and English names, Thai place strings, a 34 and 35 pair, and exam windows on
-// every subject but 90000603, which the exam block lists as arranged by the instructor.
+// long Thai and English names, Thai place strings, a 34 and 35 pair, exam windows on every
+// three hour subject but 90000603, which the exam block lists as arranged by the instructor,
+// and a one hour and a ninety minute block, the narrow landscape shapes the id clipped on.
 async function fitRegressionSearch(page: Page): Promise<void> {
   await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
   await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000600');
@@ -34,7 +39,7 @@ async function fitRegressionSearch(page: Page): Promise<void> {
 // No block content wrapper overflows its box, so no field is clipped mid glyph, at whatever
 // template is selected. Waits for fonts and two frames so the fonts triggered fit convergence
 // has committed before the measurement, the same gate the capture waits on.
-async function expectNoBlockClips(page: Page): Promise<void> {
+async function settle(page: Page): Promise<void> {
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
   await page.evaluate(
     () =>
@@ -46,15 +51,54 @@ async function expectNoBlockClips(page: Page): Promise<void> {
         });
       }),
   );
+}
+
+async function expectNoBlockClips(page: Page): Promise<void> {
+  await settle(page);
   const boxes = page.locator('[data-fit]');
   const count = await boxes.count();
   expect(count).toBeGreaterThan(0);
   const overflows = await boxes.evaluateAll((els) =>
-    els.map((el) => el.scrollHeight - el.clientHeight),
+    els.map((el) => ({
+      down: el.scrollHeight - el.clientHeight,
+      across: el.scrollWidth - el.clientWidth,
+    })),
   );
   for (const overflow of overflows) {
-    expect(overflow).toBeLessThanOrEqual(0.5);
+    expect(overflow.down).toBeLessThanOrEqual(0.5);
+    expect(overflow.across).toBeLessThanOrEqual(0.5);
   }
+}
+
+/** Every whole field on the poster blocks fits its own line, and every subject id present
+ * reads as its whole eight digit code on one line. Returns how many ids show. */
+async function expectWholeFields(page: Page, label: string): Promise<number> {
+  await settle(page);
+  const fields = await page.locator('[data-fit-whole]').evaluateAll((els) =>
+    els.map((el) => ({
+      field: el instanceof HTMLElement ? (el.dataset.fitWhole ?? '') : '',
+      text: el.textContent,
+      across: el.scrollWidth - el.clientWidth,
+      lines:
+        el instanceof HTMLElement
+          ? Math.round(
+              el.offsetHeight / parseFloat(getComputedStyle(el).lineHeight),
+            )
+          : 0,
+    })),
+  );
+  for (const field of fields) {
+    expect(
+      field.across,
+      `${label} ${field.field} ${field.text}`,
+    ).toBeLessThanOrEqual(0.5);
+    expect(field.lines, `${label} ${field.field} ${field.text}`).toBe(1);
+  }
+  const ids = fields.filter((field) => field.field === 'id');
+  for (const id of ids) {
+    expect(id.text, label).toMatch(/^\d{8}$/);
+  }
+  return ids.length;
 }
 
 test('no block text clips at any export preset', async ({ context }) => {
@@ -67,6 +111,8 @@ test('no block text clips at any export preset', async ({ context }) => {
   await addCourse(page, '90000602');
   await addCourse(page, '90000603');
   await addCourse(page, '90000634');
+  await addCourse(page, '90000605');
+  await addCourse(page, '90000606');
 
   await page.getByRole('button', { name: 'ส่งออก', exact: true }).click();
 
@@ -80,6 +126,23 @@ test('no block text clips at any export preset', async ({ context }) => {
     await page.getByRole('radio', { name: new RegExp(preset) }).click();
     await expectNoBlockClips(page);
     await expect(page.locator('[data-poster-exams]')).toHaveCount(0);
+  }
+
+  // The width rule per template, in each name language: every id and time shown fits its
+  // line whole, and the wide three hour blocks keep the id so the check is never vacuous.
+  for (const names of ['ไทย', 'อังกฤษ', 'ทั้งสองภาษา']) {
+    await page.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }).click();
+    await page
+      .getByRole('group', { name: 'ชื่อวิชา' })
+      .getByRole('button', { name: names, exact: true })
+      .click();
+    await page.keyboard.press('Escape');
+    for (const preset of PRESETS) {
+      await page.getByRole('radio', { name: new RegExp(preset) }).click();
+      await expectNoBlockClips(page);
+      const shown = await expectWholeFields(page, `${preset} ${names}`);
+      expect(shown, `${preset} ${names}`).toBeGreaterThan(0);
+    }
   }
 
   // The exam schedule takes up to a quarter of the poster height from the grid. Its box carries
