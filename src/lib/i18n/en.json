@@ -407,7 +407,7 @@
   "storage.export": "Copy the set aside data",
   "storage.exported": "Copied the set aside data",
   "storage.exportFailed": "Could not copy the data",
-  "save.failedToast": "The plan could not be saved",
+  "save.failedNotice": "The plan could not be saved",
   "save.failed": "The plan could not be saved. The latest changes are not stored in this browser.",
   "save.retry": "Save again",
   "day.0": "Sun",

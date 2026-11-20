@@ -42,7 +42,8 @@ describe('SaveIndicator', () => {
     for (const status of ['saving', 'saved'] as const) {
       setStatus(status);
       const { container, unmount } = render(<SaveIndicator />);
-      expect(container).toBeEmptyDOMElement();
+      expect(container).toHaveTextContent('');
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
       unmount();
     }
   });
@@ -64,8 +65,8 @@ describe('SaveIndicator', () => {
   it('offers a retry in a danger strip while the latest save failed', () => {
     const retry = vi.fn();
     setStatus('failed', retry);
-    const { container } = render(<SaveIndicator />);
-    const strip = container.firstElementChild;
+    render(<SaveIndicator />);
+    const strip = screen.getByRole('button', { name: RETRY }).parentElement;
     expect(strip).toHaveClass('bg-danger-soft', 'border-danger', 'flex-wrap');
     const message = screen.getByText(MESSAGE);
     const button = screen.getByRole('button', { name: RETRY });
@@ -75,12 +76,42 @@ describe('SaveIndicator', () => {
     expect(retry).toHaveBeenCalledTimes(1);
   });
 
-  it('is no live region, since its toast announces the failure', () => {
-    setStatus('failed');
-    const { container } = render(<SaveIndicator />);
-    expect(
-      container.querySelector('[aria-live], [role="status"], [role="alert"]'),
-    ).toBeNull();
+  it('keeps the strip out of the live region, which speaks each notice once', () => {
+    setStatus('saved');
+    render(<SaveIndicator />);
+    const region = screen.getByRole('status');
+    expect(region).toHaveClass('sr-only');
+    expect(region).toBeEmptyDOMElement();
+
+    act(() => {
+      autosaveStore.getState().setStatus('failed');
+      autosaveStore.getState().announceFailure();
+    });
+    expect(region).toHaveTextContent('บันทึกตารางไม่สำเร็จ');
+    expect(region).not.toContainElement(
+      screen.getByRole('button', { name: RETRY }),
+    );
+    const first = region.firstElementChild;
+
+    // An autosave that fails again raises no notice, so the words stay as they are.
+    act(() => {
+      autosaveStore.getState().setStatus('saving');
+      autosaveStore.getState().setStatus('failed');
+    });
+    expect(region.firstElementChild).toBe(first);
+
+    // A retry that fails raises a fresh notice, which remounts the words to be heard.
+    act(() => {
+      autosaveStore.getState().announceFailure();
+    });
+    expect(region.firstElementChild).not.toBe(first);
+    expect(region).toHaveTextContent('บันทึกตารางไม่สำเร็จ');
+
+    act(() => {
+      autosaveStore.getState().setStatus('saved');
+      autosaveStore.getState().clearNotice();
+    });
+    expect(region).toBeEmptyDOMElement();
   });
 
   it('hands focus to the plan switcher when pressing retry makes it leave', () => {
