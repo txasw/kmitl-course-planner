@@ -14,6 +14,11 @@
 // slop, so a tap on the apply action or the left out list is never taken by the gesture. A
 // page change from a key inside the outgoing slide moves focus to the carousel, since that
 // slide turns inert under the focused control; a key on a dot moves focus to the new dot.
+//
+// Each slide keeps a few px of padding inside the clipping viewport. The viewport's inset
+// focus ring paints in that gap, where the card and the moving track would cover it, and a
+// control at the slide edge, the full width apply button on a phone, keeps its offset
+// outline inside the clip.
 
 import {
   useCallback,
@@ -288,7 +293,7 @@ export function SuggestionCarousel({
                 key={suggestionKey(card.suggestion)}
                 data-suggest-slide={index}
                 inert={index !== page}
-                className="w-full min-w-0 shrink-0"
+                className="w-full min-w-0 shrink-0 p-1"
               >
                 <SuggestionCard
                   suggestion={card.suggestion}
