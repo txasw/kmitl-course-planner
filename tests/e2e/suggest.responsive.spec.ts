@@ -11,10 +11,10 @@ import { swipe } from './support/touch';
 import { bottomNav, isPhone } from './support/tiers';
 
 // The plan suggestion flow on the phone and tablet projects, on the real by_class
-// capture for curriculum 137. The phone shows the suggestions as a bottom sheet that
-// pages one card at a time, with a swipe across the card grid and the dots below it;
-// the tablet sets the three cards side by side in a dialog. Both apply a card as a new
-// plan and find its sections on the timetable with no conflict.
+// capture for curriculum 137. Both show the suggestions one per slide of a carousel, the
+// phone in a bottom sheet with a swipe across the slide, the tablet in a dialog. Both
+// apply a suggestion as a new plan and find its sections on the timetable with no
+// conflict.
 
 const GRID_BLOCK = '[data-teach-table-id]';
 
@@ -60,31 +60,41 @@ test('applies a suggested timetable from the compact layouts', async ({
   await catalog.getByRole('button', { name: 'แนะนำตาราง' }).click();
   const dialog = page.getByRole('dialog', { name: 'แนะนำตาราง' });
   await expect(dialog).toBeVisible();
-  const apply = dialog.getByRole('button', { name: 'ใช้ตารางนี้' });
+  const shown = dialog.locator('[data-suggest-slide]:not([inert])');
+  const apply = shown.getByRole('button', { name: 'ใช้ตารางนี้' });
+  await expect(apply).toHaveCount(1);
+  const dots = dialog
+    .getByRole('group', { name: 'ตัวเลือกตาราง' })
+    .getByRole('button');
+  await expect(dots).toHaveCount(3);
 
   if (isPhone(page)) {
-    // One card at a time, paged by a swipe across its grid or by the dots.
-    await expect(apply).toHaveCount(1);
-    const dots = dialog
-      .getByRole('radiogroup', { name: 'ตัวเลือกตาราง' })
-      .getByRole('radio');
-    await expect(dots).toHaveCount(3);
-    const grid = dialog.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+    // A finger swipe across the slide brings the next suggestion.
+    const grid = shown.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
     await grid.scrollIntoViewIfNeeded();
     const box = await grid.boundingBox();
-    if (box === null) throw new Error('the card grid has no box');
+    if (box === null) throw new Error('the slide grid has no box');
     const y = box.y + box.height / 2;
     await swipe(page, { x: box.x + box.width - 20, y }, { x: box.x + 20, y });
     await expect(
-      dialog.getByRole('heading', { name: 'ตัวเลือกที่ 2' }),
+      shown.getByRole('heading', { name: 'ตัวเลือกที่ 2' }),
     ).toBeVisible();
-    await expect(dots.nth(1)).toHaveAttribute('aria-checked', 'true');
-    // The card fits the phone: the grid and every meeting on it sit inside the
-    // viewport width, so no meeting is out of view.
+    await expect(dots.nth(1)).toHaveAttribute('aria-current', 'true');
+    await expect(dialog.getByText('ตัวเลือก 2 จาก 3')).toBeVisible();
+    // The slide fits the phone once it settles: the grid and every meeting on it sit
+    // inside the viewport width, so no meeting is out of view.
     const width = page.viewportSize()?.width ?? 0;
-    const paged = await grid.boundingBox();
-    expect((paged?.x ?? 0) + (paged?.width ?? 0)).toBeLessThanOrEqual(width);
-    const blocks = await grid.locator(GRID_BLOCK).all();
+    const paged = shown.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+    await expect
+      .poll(async () => {
+        const settled = await paged.boundingBox();
+        return (settled?.x ?? -1) >= 0 &&
+          (settled?.x ?? 0) + (settled?.width ?? 0) <= width
+          ? 'inside'
+          : 'outside';
+      })
+      .toBe('inside');
+    const blocks = await paged.locator(GRID_BLOCK).all();
     expect(blocks.length).toBeGreaterThan(0);
     for (const block of blocks) {
       const placed = await block.boundingBox();
@@ -97,8 +107,11 @@ test('applies a suggested timetable from the compact layouts', async ({
     // that follows the swipe goes through a click.
     await apply.click();
   } else {
-    await expect(apply).toHaveCount(3);
-    await apply.first().tap();
+    await dots.nth(2).tap();
+    await expect(
+      shown.getByRole('heading', { name: 'ตัวเลือกที่ 3' }),
+    ).toBeVisible();
+    await apply.tap();
   }
 
   await expect(dialog).toHaveCount(0);

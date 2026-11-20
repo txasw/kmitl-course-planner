@@ -10,8 +10,8 @@ import {
 import { axeViolations } from './support/axe';
 
 // The plan suggestion flow on the real by_class capture, curriculum 137: a GenEd the
-// student placed by hand is kept, a card opens full size and back, the suggestion is
-// applied as a new plan, and undo returns to the plan it started from.
+// student placed by hand is kept, the carousel pages by its chevron and the arrow keys,
+// the suggestion is applied as a new plan, and undo returns to the plan it started from.
 const GRID_BLOCK = '[data-teach-table-id]';
 
 test('applies a suggested timetable as a new plan and undoes it', async ({
@@ -57,23 +57,27 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
   await expect(
     dialog.getByRole('button', { name: 'เน้นเช้า', pressed: true }),
   ).toBeVisible();
-  const apply = dialog.getByRole('button', { name: 'ใช้ตารางนี้' });
-  await expect(apply).toHaveCount(3);
+  const shown = dialog.locator('[data-suggest-slide]:not([inert])');
+  const apply = shown.getByRole('button', { name: 'ใช้ตารางนี้' });
+  await expect(apply).toHaveCount(1);
   expect(await axeViolations(page)).toEqual([]);
 
-  // The cards sit side by side; one opens full size and the back action returns to all
-  // three with focus on the control that opened it.
-  const expand = dialog.getByRole('button', { name: 'ดูขนาดเต็ม' });
-  await expand.nth(1).click();
+  // One suggestion per slide: the next chevron pages, the position line announces it, and
+  // the arrow keys page back from the slide itself.
+  await dialog.getByRole('button', { name: 'ตัวเลือกถัดไป' }).click();
+  await expect(shown.getByRole('heading', { name: 'ตัวเลือกที่ 2' })).toBeVisible();
+  await expect(dialog.getByText('ตัวเลือก 2 จาก 3')).toHaveAttribute(
+    'aria-live',
+    'polite',
+  );
+  await dialog.getByRole('group', { name: 'ตัวเลือก 2 จาก 3' }).focus();
+  await page.keyboard.press('ArrowLeft');
+  await expect(shown.getByRole('heading', { name: 'ตัวเลือกที่ 1' })).toBeVisible();
   await expect(
-    dialog.getByRole('heading', { name: 'ตัวเลือกที่ 2' }),
-  ).toBeFocused();
-  await expect(apply).toHaveCount(1);
-  await dialog.getByRole('button', { name: 'กลับไปที่ตัวเลือกทั้งหมด' }).click();
-  await expect(apply).toHaveCount(3);
-  await expect(expand.nth(1)).toBeFocused();
+    dialog.getByRole('button', { name: 'ตัวเลือกที่ 1' }),
+  ).toHaveAttribute('aria-current', 'true');
 
-  await apply.first().click();
+  await apply.click();
   await expect(dialog).toHaveCount(0);
   await expect(
     switcher.getByText(`${planName} เน้นเช้า`, { exact: true }),

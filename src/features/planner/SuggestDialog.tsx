@@ -1,24 +1,22 @@
 // The plan suggestion dialog of ADR-0054. It searches the courses the student ticks in
 // the current by_class result, the curriculum courses by default, for timetables that
-// fit beside the active plan, keeping the plan's entries as fixed constraints, and lists
-// up to three as cards whose meeting times differ. The student ticks the subjects and
-// picks an objective and a preference; every change searches again. The ticks last for
-// the dialog only, since a new result holds other courses. Applying a card creates a
-// new plan for the term, so the active plan is never rewritten, and the undo toast can
-// take it back. The objective and the preference last used persist with the prefs, so
-// the dialog opens on them. It is a centered dialog at the full width on the medium and
-// docked tiers, where the cards sit side by side, and the bottom sheet on compact, where
-// they page.
+// fit beside the active plan, keeping the plan's entries as fixed constraints, and shows
+// up to three, whose meeting times differ, one per slide of a carousel. The student ticks
+// the subjects and picks an objective and a preference; every change searches again and
+// returns the carousel to the best suggestion. The ticks last for the dialog only, since a
+// new result holds other courses. Applying a suggestion creates a new plan for the term,
+// so the active plan is never rewritten, and the undo toast can take it back. The
+// objective and the preference last used persist with the prefs, so the dialog opens on
+// them. It is a centered dialog at the full width on the medium and docked tiers and the
+// bottom sheet on compact.
 //
-// The cards share one frame and one grid orientation: time runs downward on compact,
+// The slides share one frame and one grid orientation: time runs downward on compact,
 // where the phone is tall and narrow, and across on every wider tier, the way the edit
-// grid reads. A medium card is narrow too, but a portrait grid there splits five days
-// into columns too slim for a label, while a landscape one keeps each block wide enough
-// for its name. A card opened full size replaces the options and the list until the
-// back action, which returns focus to the control that opened it.
+// grid reads. A slide takes the full dialog width, so its grid reads in place and there is
+// no separate full size view.
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { CalendarX2, ChevronLeft } from 'lucide-react';
+import { useId, useMemo, useState } from 'react';
+import { CalendarX2 } from 'lucide-react';
 import { useStore } from 'zustand';
 import { BottomSheet } from '@/components/BottomSheet';
 import { EmptyState } from '@/components/EmptyState';
@@ -47,19 +45,14 @@ import {
   SUGGEST_PREFERENCES,
   type SuggestPreference,
 } from '@/lib/planner/suggestScore';
-import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
+import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
 import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { useTranslation } from '@/features/shell/useTranslation';
-import { SuggestionCard } from './SuggestionCard';
 import { sharedFrame, suggestionSections } from './suggestionFrame';
-import {
-  SuggestionResults,
-  suggestionKey,
-  type SuggestionView,
-} from './SuggestionResults';
+import { SuggestionCarousel, type SuggestionView } from './SuggestionCarousel';
 import {
   DEFAULT_GROUP_OPEN,
   SuggestSubjects,
@@ -178,9 +171,6 @@ export function SuggestDialog({
   const objective = useStore(uiStore, (state) => state.suggestObjective);
   const preference = useStore(uiStore, (state) => state.suggestPreference);
   const [page, setPage] = useState(0);
-  const [fullKey, setFullKey] = useState<string | null>(null);
-  const bodyRef = useRef<HTMLDivElement>(null);
-  const returnFocus = useRef<number | null>(null);
   const locked = useLockedEntries(term);
   const groups = useMemo(
     () => suggestableCourses(courses, locked),
@@ -217,38 +207,12 @@ export function SuggestDialog({
     [cards],
   );
 
-  // The full size view follows the suggestion it opened, not its rank. A search that runs
-  // again while it is open, after a plan change, may rank other suggestions in that place;
-  // the view then returns to the list rather than showing a card the student did not pick.
-  const fullIndex =
-    fullKey === null
-      ? -1
-      : cards.findIndex((card) => suggestionKey(card.suggestion) === fullKey);
-  const full = cards[fullIndex];
-  const showingFull = full !== undefined;
-
-  // Leaving the full size card hands focus back to the expand control it came from, which
-  // mounts again with the list. A card that left with a new search is forgotten, so it
-  // does not open full size again should a later search bring it back.
-  useEffect(() => {
-    if (showingFull || returnFocus.current === null) {
-      return;
-    }
-    setFullKey(null);
-    bodyRef.current
-      ?.querySelector<HTMLElement>(
-        `[data-suggest-expand="${String(returnFocus.current)}"]`,
-      )
-      ?.focus();
-    returnFocus.current = null;
-  }, [showingFull]);
-
   const compact = tier === 'compact';
   const orientation = compact ? 'portrait' : 'landscape';
   const current = Math.min(page, Math.max(0, cards.length - 1));
 
-  // New ticks, a new objective, or a new preference rank the cards again, so the pager
-  // returns to the best.
+  // New ticks, a new objective, or a new preference rank the suggestions again, so the
+  // carousel returns to the best.
   const handleTicked = (next: ReadonlySet<string>) => {
     setTicked(next);
     setPage(0);
@@ -261,19 +225,6 @@ export function SuggestDialog({
     uiStore.getState().setSuggestPreference(value);
     setPage(0);
   };
-  const handleExpand = (index: number) => {
-    const card = cards[index];
-    if (card === undefined) {
-      return;
-    }
-    returnFocus.current = index;
-    setFullKey(suggestionKey(card.suggestion));
-  };
-  const handleBack = () => {
-    setPage(Math.max(0, fullIndex));
-    setFullKey(null);
-  };
-
   const handleApply = (suggestion: Suggestion) => {
     const plan = planStore.getState().createFromSuggestion({
       name: fillTemplate(t('suggest.planName'), {
@@ -300,34 +251,7 @@ export function SuggestDialog({
           ticked: tickable.filter((course) => ticked.has(course.subjectId))
             .length,
         });
-  const fullBody =
-    full === undefined ? null : (
-      <div className="flex flex-col gap-3 pt-1">
-        <button
-          type="button"
-          onClick={handleBack}
-          className={`inline-flex w-fit items-center gap-1 rounded-kcp px-2 text-sm text-ink-soft hover:bg-surface-alt hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
-        >
-          <ChevronLeft size={16} aria-hidden />
-          {t('suggest.back')}
-        </button>
-        <SuggestionCard
-          key={suggestionKey(full.suggestion)}
-          suggestion={full.suggestion}
-          index={fullIndex}
-          sections={full.sections}
-          frame={frame}
-          orientation={orientation}
-          size="full"
-          locale={language}
-          t={t}
-          onApply={() => {
-            handleApply(full.suggestion);
-          }}
-        />
-      </div>
-    );
-  const listBody = (
+  const body = (
     <div className="flex flex-col gap-4 pt-1">
       <div className="flex flex-col gap-1 text-xs text-ink-soft">
         <p>{t('suggest.scope')}</p>
@@ -376,10 +300,9 @@ export function SuggestDialog({
               {t('suggest.truncated')}
             </p>
           ) : null}
-          <SuggestionResults
+          <SuggestionCarousel
             cards={cards}
             frame={frame}
-            paged={compact}
             orientation={orientation}
             page={current}
             onPageChange={setPage}
@@ -387,13 +310,11 @@ export function SuggestDialog({
             locale={language}
             t={t}
             onApply={handleApply}
-            onExpand={handleExpand}
           />
         </section>
       )}
     </div>
   );
-  const body = <div ref={bodyRef}>{fullBody ?? listBody}</div>;
 
   return compact ? (
     <BottomSheet
