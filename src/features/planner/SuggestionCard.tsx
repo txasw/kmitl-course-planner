@@ -96,17 +96,30 @@ const KIND_KEY: Record<PlacedSection['kind'], TranslationKey> = {
 };
 
 /** The sections a slide places, named in full, which also lists any section with no
- * meeting that the grid cannot draw. A name the grid clamps reads here whole. */
+ * meeting that the grid cannot draw. A name the grid clamps reads here whole, and a plan
+ * subject the suggestion moves says, on its first row, which section it moves from. */
 function PlacedList({
   sections,
+  movedFrom,
   locale,
   t,
 }: {
   sections: readonly PlacedSection[];
+  movedFrom: ReadonlyMap<string, string>;
   locale: Locale;
   t: Translate;
 }) {
   const subjects = new Set(sections.map((section) => section.subjectId)).size;
+  const firstRows = new Set(
+    sections
+      .filter(
+        (section, at) =>
+          sections.findIndex(
+            (other) => other.subjectId === section.subjectId,
+          ) === at,
+      )
+      .map((section) => section.teachTableId),
+  );
   return (
     <Disclosure label={fillTemplate(t('suggest.placed'), { count: subjects })}>
       <ul className="mt-1 flex flex-col gap-1.5 select-text">
@@ -122,6 +135,14 @@ function PlacedList({
                 kind: t(KIND_KEY[section.kind]),
               })}
             </span>
+            {firstRows.has(section.teachTableId) &&
+            movedFrom.has(section.subjectId) ? (
+              <span className="text-ink-soft">
+                {fillTemplate(t('suggest.placed.movedFrom'), {
+                  section: movedFrom.get(section.subjectId) ?? '',
+                })}
+              </span>
+            ) : null}
           </li>
         ))}
       </ul>
@@ -168,6 +189,8 @@ interface SuggestionCardProps {
   index: number;
   /** The sections the card draws: the locked entries plus the suggestion. */
   sections: readonly PlacedSection[];
+  /** The plan's section codes of each subject the suggestion moves, by subject id. */
+  movedFrom: ReadonlyMap<string, string>;
   frame: SuggestionFrame;
   orientation: Orientation;
   /** The localized slide role description, while the card is one of several slides. */
@@ -181,6 +204,7 @@ export function SuggestionCard({
   suggestion,
   index,
   sections,
+  movedFrom,
   frame,
   orientation,
   roleDescription,
@@ -242,7 +266,12 @@ export function SuggestionCard({
           </div>
         ))}
       </dl>
-      <PlacedList sections={sections} locale={locale} t={t} />
+      <PlacedList
+        sections={sections}
+        movedFrom={movedFrom}
+        locale={locale}
+        t={t}
+      />
       <LeftOutList leftOut={suggestion.leftOut} locale={locale} t={t} />
       <button
         type="button"

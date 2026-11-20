@@ -8,10 +8,15 @@ import {
 } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import { suggestPlans } from '@/lib/planner/suggest';
-import { byClassCourses, lockSections } from '../../../tests/support/suggest';
+import { makeMeeting } from '../../../tests/support/domain-builders';
+import {
+  byClassCourses,
+  curriculumCourse,
+  lockSections,
+} from '../../../tests/support/suggest';
 import type { Orientation } from './gridGeometry';
 import { labelStepFor, SuggestionCard } from './SuggestionCard';
-import { sharedFrame, suggestionSections } from './suggestionFrame';
+import { movedFrom, sharedFrame, suggestionSections } from './suggestionFrame';
 
 const t = createTranslator('th');
 const courses = byClassCourses();
@@ -49,6 +54,7 @@ function renderCard({
       suggestion={suggestion}
       index={0}
       sections={sections}
+      movedFrom={movedFrom(entries, suggestion)}
       frame={sharedFrame([sections])}
       orientation={orientation}
       locale="th"
@@ -136,6 +142,41 @@ describe('SuggestionCard', () => {
       within(panel ?? document.body).getAllByText(/^กลุ่มเรียน \S+ (ทฤษฎี|ปฏิบัติ)$/),
     ).toHaveLength(sections.length);
     expect(document.querySelector('details')).toBeNull();
+  });
+
+  it('says which section a moved plan subject moves from', () => {
+    const at = (day: 1 | 2) => [
+      makeMeeting({ day, startMin: 540, endMin: 720 }),
+    ];
+    const held = curriculumCourse('11111111', [
+      { meetings: at(1) },
+      { meetings: at(2) },
+    ]);
+    const mondayOnly = curriculumCourse('22222222', [{ meetings: at(1) }]);
+    const plan = lockSections([held], [['11111111', '1']]);
+    const [moving] = suggestPlans({
+      courses: [held, mondayOnly],
+      entries: plan,
+      objective: 'coverAll',
+      preference: 'balanced',
+    }).suggestions;
+    if (moving === undefined) throw new Error('expected a suggestion');
+    const sections = suggestionSections(plan, moving);
+    render(
+      <SuggestionCard
+        suggestion={moving}
+        index={0}
+        sections={sections}
+        movedFrom={movedFrom(plan, moving)}
+        frame={sharedFrame([sections])}
+        orientation="landscape"
+        locale="th"
+        t={t}
+        onApply={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'วิชาในตัวเลือกนี้ 2 วิชา' }));
+    expect(screen.getAllByText('ย้ายจากกลุ่มเรียน 1 ในตารางปัจจุบัน')).toHaveLength(1);
   });
 
   it('applies the suggestion', () => {

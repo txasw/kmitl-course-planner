@@ -83,6 +83,7 @@
   "suggest.stats.none": "ไม่มี",
   "suggest.placed": "วิชาในตัวเลือกนี้ {count} วิชา",
   "suggest.placed.section": "กลุ่มเรียน {section} {kind}",
+  "suggest.placed.movedFrom": "ย้ายจากกลุ่มเรียน {section} ในตารางปัจจุบัน",
   "suggest.leftOut": "วิชาที่ไม่ได้จัดลงตาราง {count} วิชา",
   "suggest.leftOut.none": "จัดวิชาที่เลือกลงตารางได้ครบทุกวิชา",
   "suggest.reason.seats": "ทุกกลุ่มเรียนเต็มหรือปิด",

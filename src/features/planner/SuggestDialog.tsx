@@ -49,7 +49,7 @@ import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { useTranslation } from '@/features/shell/useTranslation';
-import { sharedFrame, suggestionSections } from './suggestionFrame';
+import { movedFrom, sharedFrame, suggestionSections } from './suggestionFrame';
 import { SuggestionCarousel, type SuggestionView } from './SuggestionCarousel';
 import {
   DEFAULT_GROUP_OPEN,
@@ -195,6 +195,7 @@ export function SuggestDialog({
       (result?.suggestions ?? []).filter(changesPlan).map((suggestion) => ({
         suggestion,
         sections: suggestionSections(entries, suggestion),
+        movedFrom: movedFrom(entries, suggestion),
       })),
     [result, entries],
   );

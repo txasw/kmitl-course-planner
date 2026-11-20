@@ -52,6 +52,8 @@ import type { SuggestionFrame } from './suggestionFrame';
 export interface SuggestionView {
   suggestion: Suggestion;
   sections: readonly PlacedSection[];
+  /** The plan's section codes of each subject the suggestion moves, by subject id. */
+  movedFrom: ReadonlyMap<string, string>;
 }
 
 /** A stable key for a suggestion: the sections it chooses. */
@@ -336,6 +338,7 @@ export function SuggestionCarousel({
                 suggestion={card.suggestion}
                 index={index}
                 sections={card.sections}
+                movedFrom={card.movedFrom}
                 frame={frame}
                 orientation={orientation}
                 roleDescription={paged ? t('suggest.slide') : undefined}
