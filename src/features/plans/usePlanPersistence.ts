@@ -8,20 +8,17 @@
 //
 // The autosave state goes to the autosave store for the header indicator: saving from
 // the first change until the latest save settles, then saved or failed. A failed save
-// raises one error toast with a retry, which is its announcement, since the indicator is
-// no live region. Later failures stay quiet until a save succeeds or the student
-// retries, so a run of failing autosaves never repeats the toast. A successful save
-// raises nothing. The indicator shows only the failed state and leaves once a retry
-// starts saving, so a retry from the toast moves focus to the plan switcher trigger.
+// raises one notice, which the indicator speaks through its live region while its strip
+// under the header offers the retry. There is no toast as well: the strip already says
+// the same thing, and a toast at the panel foot would sit over the plan status row.
+// Later failures stay quiet until a save succeeds or the student retries, so a run of
+// failing autosaves never repeats the announcement. A successful save raises nothing and
+// clears the notice.
 
 import { useEffect } from 'react';
 import { CURRENT_SCHEMA_VERSION } from '@/lib/storage/keys';
 import type { PlanRepository, StorageAdapter } from '@/lib/storage/repo';
-import { createTranslator } from '@/lib/i18n/t';
-import { commitAndFocus } from '@/features/shell/commitAndFocus';
-import { toastStore } from '@/features/shell/toastStore';
-import { uiStore } from '@/features/shell/uiStore';
-import { autosaveStore, PLAN_SWITCHER_TRIGGER_ID } from './autosaveStore';
+import { autosaveStore } from './autosaveStore';
 import { planStore } from './planStore';
 import { storageIssueStore } from './storageIssueStore';
 
@@ -48,28 +45,19 @@ export function usePlanPersistence({
     let latest = 0;
     let announceFailure = true;
 
-    const showFailure = (): void => {
-      const t = createTranslator(uiStore.getState().language);
-      toastStore.getState().show('error', t('save.failedToast'), {
-        label: t('save.retry'),
-        run: (control) => {
-          commitAndFocus(control, PLAN_SWITCHER_TRIGGER_ID, retry);
-        },
-      });
-    };
-
     const settle = (run: number, saved: boolean): void => {
       // A newer save, started or still debounced, owns the state from here.
       if (isCancelled() || run !== latest || timer !== undefined) return;
       if (saved) {
         announceFailure = true;
         autosaveStore.getState().setStatus('saved');
+        autosaveStore.getState().clearNotice();
         return;
       }
       autosaveStore.getState().setStatus('failed');
       if (announceFailure) {
         announceFailure = false;
-        showFailure();
+        autosaveStore.getState().announceFailure();
       }
     };
 
