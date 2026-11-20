@@ -6,8 +6,9 @@
 // full, and an optional status dot leads the name (ADR-0047 amendment of 2026-11-20).
 //
 // Every field wraps rather than ellipsizes. A Thai name breaks at the browser's dictionary word
-// boundaries and an English one at hyphenation points; a break inside a word is the last
-// resort, for a word wider than the whole line. The name shows in full until the density fit
+// boundaries and an English one at spaces; a break inside a word is the last resort, for a word
+// wider than the whole line. The API sends English names in capitals, which Chromium does not
+// hyphenate, so such a word breaks with no hyphen. The name shows in full until the density fit
 // clamps it to the lines the box holds, and the block itself is the expand affordance, opening
 // the full detail.
 //
