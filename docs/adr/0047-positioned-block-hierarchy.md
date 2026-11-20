@@ -107,13 +107,21 @@ the section chip, the name to one line, then the place, and both binding constra
 the box cannot hold is clamped with an ellipsis, and the block itself is the expand affordance: it
 opens the full detail in edit, and a suggestion thumbnail offers its full size card.
 
-Narrow blocks. A block narrower than 7em, measured by a container query on the block wrapper in em
-of the grid type size, shows the name alone at 0.9em with tight padding, the shape the mockup
-gives the phone week and the suggestion thumbnails. The place row, the English line, the foot, and
-the remove control hide there; the block opens its details, which carry them and Remove, the same
-path ADR-0058 gives a coarse pointer. The name breaks at the browser's dictionary word boundaries
-for Thai and at spaces and hyphenation points for English, and a break inside a word stays the
-last resort, for a word wider than the whole line. A layout check at 360, 390, 768, and 1366 px
+Narrow blocks. Where the block width is a day column or a thumbnail track, the portrait edit grid
+and the plan suggestion cards, a block narrower than 7em, measured by a container query on the
+block wrapper in em of the grid type size, shows the name alone at 0.9em with tight padding, the
+shape the mockup gives the phone week and the suggestion thumbnails. The place row, the English
+line, the foot, and the remove control hide there; the block opens its details, which carry them
+and Remove, the same path ADR-0058 gives a coarse pointer. A landscape grid never takes the rule,
+in edit or on the poster, because there a block is as wide as its meeting is long: a 60 minute
+meeting is about 56 to 75 px across the edit grid and the Share 16:9 and Print A4 posters, under
+7em, and a name only block would drop the place before the name's second line, breaking the
+binding constraint above, on the exported image too, where the fit guard cannot see a hidden
+field. A short landscape block walks the density ladder instead. The name breaks at the
+browser's dictionary word boundaries for Thai and at spaces for English, and a break inside a
+word stays the last resort, for a word wider than the whole line. The API sends English names in
+capitals, which Chromium does not hyphenate, so an English word wider than a phone
+week column breaks inside the word with no hyphen. A layout check at 360, 390, 768, and 1366 px
 found no break inside any word, as Intl.Segmenter bounds it, that fits its line, so inserting
 break hints from Intl.Segmenter would add nothing over the native breaker in Chromium; keep-all
 was rejected because Thai has no spaces for it to break at. Hiding the name for the subject id in
@@ -125,3 +133,10 @@ fits the column. In a five to seven column phone week, a word wider than the col
 ประสบการณ์ or an all capitals English word, still breaks inside the word, since the column holds
 about 40 px of text; the day view, the default on a phone, shows every name in full. The poster
 gains the chip in flow and the unclamped name but keeps its flat fill, and its fit guard holds.
+The blocking pulse and the locate ring draw with box-shadow outside any layer, so for their 600 ms
+they replace the soft card's edge, highlight, and shadow with the ring, and under reduced motion
+the locate ring holds still for the same time; this is accepted, since the ring is the message
+while it shows and the card returns when the class drops. A browser check in the responsive
+suite reads the laid out names of the suggestion thumbnails and the phone week and fails on a
+clipped name or a line holding one grapheme of a longer word, and a desktop check keeps the place
+on a 60 minute landscape block.
