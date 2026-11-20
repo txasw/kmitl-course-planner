@@ -7,7 +7,9 @@
 // keeping them out holds the shared image and its measured fit unchanged. The poster
 // also drops the verification pill, which the footer states as text (ADR-0055).
 // Names wrap rather than truncate, so a long Thai name and a second language line under
-// a name language of both show whole in the shared image, which has no hover to expand.
+// a name language of both show whole in the shared image, which has no hover to expand. With
+// nothing cut, a tooltip would only repeat the visible name, and a screen reader would hear it
+// twice through the description, so the row carries none.
 
 import { BookOpen, FlaskConical } from 'lucide-react';
 import { RemarkLine } from '@/features/catalog/RemarkLine';
@@ -18,7 +20,6 @@ import {
   type NameLanguage,
 } from '@/lib/planner/nameLanguage';
 import { Pill } from '@/components/Pill';
-import { Tooltip } from '@/components/Tooltip';
 import type { PlacedSection } from './placedSection';
 import { VerificationPill } from './VerificationPill';
 import { FOCUS_RING } from '@/lib/ui/focus';
@@ -74,24 +75,16 @@ export function UnscheduledShelf({
             <li key={section.teachTableId} className="text-xs">
               <div className="flex items-center justify-between gap-2">
                 <span className="flex min-w-0 flex-col text-ink">
-                  <Tooltip
-                    label={
-                      showSubjectId ? `${section.subjectId} ${name}` : name
-                    }
-                  >
-                    {(triggerProps, ref) => (
-                      <span ref={ref} {...triggerProps} className="break-words">
-                        {showSubjectId ? (
-                          <>
-                            <span className="font-semibold">
-                              {section.subjectId}
-                            </span>{' '}
-                          </>
-                        ) : null}
-                        <span lang={names.primaryLang}>{name}</span>
-                      </span>
-                    )}
-                  </Tooltip>
+                  <span className="break-words">
+                    {showSubjectId ? (
+                      <>
+                        <span className="font-semibold">
+                          {section.subjectId}
+                        </span>{' '}
+                      </>
+                    ) : null}
+                    <span lang={names.primaryLang}>{name}</span>
+                  </span>
                   {names.secondary !== null ? (
                     <span
                       lang={names.secondaryLang ?? undefined}
