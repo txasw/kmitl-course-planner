@@ -167,14 +167,21 @@ describe('StatsBar', () => {
     }
 
     it('leads each count with an icon', () => {
-      renderRow(false);
-      const credits = screen.getByText('3').closest('span.inline-flex');
+      renderRow(false, [scheduled, online]);
+      const credits = screen.getByText('5').closest('span.inline-flex');
       expect(credits?.querySelector('svg')).toHaveAttribute(
         'aria-hidden',
         'true',
       );
-      const subjects = screen.getByText('1').closest('span.inline-flex');
+      const subjects = screen.getByText('2').closest('span.inline-flex');
       expect(subjects?.querySelector('svg')).toHaveAttribute(
+        'aria-hidden',
+        'true',
+      );
+      const unscheduled = screen
+        .getByText('1 ไม่มีคาบเรียน')
+        .closest('span.inline-flex');
+      expect(unscheduled?.querySelector('svg')).toHaveAttribute(
         'aria-hidden',
         'true',
       );

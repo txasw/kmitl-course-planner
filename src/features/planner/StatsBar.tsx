@@ -20,6 +20,7 @@ import type { ReactNode } from 'react';
 import {
   AlertTriangle,
   BookOpen,
+  CalendarOff,
   Info,
   Layers,
   ShieldCheck,
@@ -162,8 +163,11 @@ function PlanFacts({
       )}
       {compact ? null : <DayLoads load={totals.load} locale={locale} t={t} />}
       {totals.unscheduled > 0 ? (
-        <span>
-          {totals.unscheduled} {t('footer.unscheduled')}
+        <span className={FACT}>
+          <CalendarOff {...SMALL_ICON} />
+          <span>
+            {totals.unscheduled} {t('footer.unscheduled')}
+          </span>
         </span>
       ) : null}
       {!compact && freeDays.length > 0 ? (
