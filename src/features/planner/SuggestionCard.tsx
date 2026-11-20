@@ -56,6 +56,10 @@ const GRID_HEIGHT: Record<Orientation, string> = {
 const CARD_CHROME =
   'rounded-kcp border border-border bg-surface p-3 shadow-kcp-soft';
 
+// A portrait slide has no inline padding, so the apply action insets itself by the width its
+// offset focus outline draws, and the carousel clip never cuts the outline at the sides.
+const APPLY_INSET = 'mx-1';
+
 // The space an hour label needs along the time axis at the mini grid type size, and the
 // leading day track a landscape grid gives up before the hours begin.
 const LABEL_SPAN_PX = 40;
@@ -247,7 +251,7 @@ export function SuggestionCard({
         type="button"
         aria-describedby={headingId}
         onClick={onApply}
-        className={`w-full rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover sm:w-auto sm:self-end ${TARGET_SIZE} ${FOCUS_OUTLINE}`}
+        className={`rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover sm:self-end ${orientation === 'portrait' ? APPLY_INSET : ''} ${TARGET_SIZE} ${FOCUS_OUTLINE}`}
       >
         {t('suggest.apply')}
       </button>

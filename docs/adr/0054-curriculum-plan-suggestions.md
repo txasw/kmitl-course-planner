@@ -181,9 +181,11 @@ The full size view is removed. It existed because three cards side by side left 
 224 px tall. A slide takes the full dialog width, and its grid is 320 px tall in landscape on the
 medium and docked tiers and 480 px in portrait on compact, at the 10 px grid type of the old
 cards, so it reads in place. On compact the slide drops the card edge and padding and gives that
-width to the day columns, keeping only the 4 px every slide holds inside the slide area so the
-area's focus ring and the apply action's outline stay in view: at 360 px the padded card left a column too narrow for คอมพิวเตอร์,
-which broke one character onto its own line. The full size card was also the expand affordance
+width to the day columns: at 360 px the padded card left a column too narrow for คอมพิวเตอร์,
+which broke one character onto its own line. Each slide keeps 4 px inside the slide area so the
+area's inset focus ring has a gap to paint in, above and below the slide on compact and on every
+side elsewhere; on compact the apply action takes that 4 px as its own inline margin instead, so
+its offset outline clears the clip and the day columns keep their width. The full size card was also the expand affordance
 ADR-0047 named for a name the grid clamps; that role moves to a collapsed list, "วิชาในตัวเลือกนี้
 {count} วิชา" ("Subjects in this option: {count}"), that names every section the slide places in
 full with its section code and kind, and which also lists a section with no meeting that the grid
