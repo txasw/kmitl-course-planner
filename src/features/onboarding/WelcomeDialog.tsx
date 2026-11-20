@@ -1,9 +1,10 @@
 // The one time welcome shown after install (ADR-0062). It thanks the student, says what
 // the planner does and where saved plans stay, lists the three steps of a plan in
 // order, and says how to open the panel again, naming the shortcut only when the browser
-// reports one. Each step leads with its icon on a quiet sunken tile in ink soft, the
-// neutral treatment of the empty states, since the icon is a picture and not a control
-// and the orange stays for what can be pressed. Start planning is the landing point and
+// reports one. Each step leads with its icon on a quiet sunken tile in ink soft, as the
+// mockup draws it; the empty states keep their round alt circle on purpose, since a step
+// list reads as a row of tiles. The tile is neutral because the icon is a picture and not
+// a control, and the orange stays for what can be pressed. Start planning is the landing point and
 // the likely next step: it closes the welcome and opens the panel at the catalog. The
 // close button, the scrim and Escape close it too, and nothing reopens it, since the
 // claim recorded it as shown.
