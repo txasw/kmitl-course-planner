@@ -27,6 +27,9 @@
 // order after the panel's last control while the panel is open; Tab reaches an undo
 // without the toast ever taking focus when it appears.
 //
+// The region reports the height of what it shows, so the plan region can end in a band
+// of that height and its status row never sits under a toast (sheetToastBand).
+//
 // While the product tour is open (ADR-0074) the region shows nothing, since the tour card
 // sits along the same foot and a toast laid over it would cover its buttons. The live
 // region stays mounted, an ordinary toast waits without counting down, and a pending
@@ -42,7 +45,8 @@ import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { TOAST_REGION_ID, toastStore, type Toast } from './toastStore';
 import { useFootControlsShown } from './mobilePane';
-import { useBottomSheetOpen } from './sheetToastBand';
+import { setToastHeight, useBottomSheetOpen } from './sheetToastBand';
+import { useElementSize } from './useElementSize';
 import { useHoverFocusHold, type HoldHandlers } from './useHoverFocusHold';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
@@ -152,6 +156,17 @@ export function Toaster() {
   const { t, language } = useTranslation();
   const sheetOpen = useBottomSheetOpen();
   const aboveFoot = useFootControlsShown() && isOpen && !sheetOpen;
+  const regionRef = useRef<HTMLDivElement>(null);
+  const { height } = useElementSize(regionRef);
+  useEffect(() => {
+    setToastHeight(height);
+  }, [height]);
+  useEffect(
+    () => () => {
+      setToastHeight(0);
+    },
+    [],
+  );
 
   // The undo toast owns the region while the panel is open; an ordinary toast waits.
   const showUndo = pendingUndo !== null && isOpen;
@@ -201,6 +216,7 @@ export function Toaster() {
 
   return (
     <div
+      ref={regionRef}
       id={TOAST_REGION_ID}
       aria-live="polite"
       aria-atomic="true"
