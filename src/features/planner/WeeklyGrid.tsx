@@ -124,15 +124,15 @@ export interface WeeklyGridProps {
   /** Whether the poster keeps its 44rem floor along the time axis. The plan suggestion
    * cards pass false, so a card fits its column and its frame sets the size instead. */
   posterFloor?: boolean;
-  /** Label every nth hour on the time axis; the suggestion thumbnails thin their labels
-   * so a narrow card keeps them apart. Defaults to every hour. */
+  /** Label every nth hour on the time axis; the suggestion slides thin their labels
+   * so a narrow grid keeps them apart. Defaults to every hour. */
   hourLabelStep?: number;
   /** The block fill. Edit takes the soft depth card and the poster the flat tint its export
    * captures; the plan suggestion cards, read only but never exported, ask for the soft card. */
   blockSurface?: BlockSurface;
   /** Show a block's name alone while it is narrower than 7em. On where the block width is a
-   * day column, the portrait edit grid, by default; the suggestion cards ask for it, since a
-   * thumbnail track is as narrow. Off in landscape, where a block is as wide as its meeting
+   * day column, the portrait edit grid, by default; the suggestion slides ask for it, since a
+   * slide track can be as narrow. Off in landscape, where a block is as wide as its meeting
    * is long, and on the poster, so an exported short meeting keeps its place (ADR-0047). */
   narrowBlocks?: boolean;
   /** Whether this grid is the poster the export rasterizes, which sets the raster line

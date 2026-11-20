@@ -6,7 +6,8 @@
 // heading is a disclosure and sits beside a tick all or untick all action, never
 // inside it. A row is a native checkbox inside its label, so the whole row is the
 // target and every name wraps in full. The dialog holds which groups are open, beside
-// the ticks, so a group the student expanded stays expanded after a full size view.
+// the ticks, so a group the student expanded stays expanded while the student pages the
+// suggestions or they are ranked again.
 
 import { useId } from 'react';
 import { ChevronDown } from 'lucide-react';

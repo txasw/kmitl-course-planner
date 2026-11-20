@@ -13,7 +13,7 @@
 // the full detail.
 //
 // Where the grid asks for the name only rule, a day column of the phone week or a suggestion
-// thumbnail, a block narrower than 7em shows the name alone with tight padding, so the name has
+// slide, a block narrower than 7em shows the name alone with tight padding, so the name has
 // the width it needs to break between words; the place, the chip, and the foot return as soon
 // as the block is wide enough. A landscape block never takes the rule, since its width is the
 // meeting length, so a 60 minute meeting there keeps its place (see narrowBlock).

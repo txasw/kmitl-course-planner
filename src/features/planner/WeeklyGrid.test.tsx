@@ -296,7 +296,7 @@ describe('WeeklyGrid', () => {
     expect(block.textContent).toContain('09:00-12:00');
   });
 
-  it('takes the name only rule only where the block width is a day column or a thumbnail', () => {
+  it('takes the name only rule only where the block width is a day column or a slide', () => {
     // A 60 minute meeting, the case a landscape grid must not reduce to its name.
     const short = makePlaced({
       meetings: [
@@ -335,7 +335,7 @@ describe('WeeklyGrid', () => {
       return container;
     });
     // The landscape edit grid and the poster, landscape or portrait, keep every field; the
-    // portrait edit week and a suggestion thumbnail take the rule.
+    // portrait edit week and a suggestion slide take the rule.
     expect(applied).toEqual([false, false, false, true, true]);
   });
 
