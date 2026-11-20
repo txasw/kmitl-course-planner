@@ -668,3 +668,45 @@ polite region.
 - No existing owner can carry it. The dialog is modal, so the status announcer and the toaster are
   hidden while it is open, and the dialog's loading status unmounts once the search settles. The
   section comparison sheet keeps its own scoped node for the same reason.
+
+## Amendment, 2026-11-20: the clipped text sweep
+
+The owner rule of the redesign is that no layout overlaps or clips text: every label shows in
+full, a Thai label wraps rather than ending in an ellipsis unless an explicit control reveals the
+rest, no chip sits over text, and no fixed height cuts a line. Specs had guarded it one region at
+a time, the status row, the coach mark, the export blocks, so a cut on any other surface reached
+the build unseen. A sweep now guards the whole panel.
+
+- The end to end spec `text-fit.debug.spec.ts` walks every main surface in the debug build at
+  360, 390, 768, and 1366 px, in Thai and in English: the launcher, the coach mark, the welcome,
+  the header and its overflow menu, the plan switcher with its list, create, rename, and import
+  error views, the three search tabs, the query chip, the catalog collapsed and open with the
+  longest Thai names and the longest teacher list in the fixtures, the filter popover and the
+  sort list, the timetable in its day and week views, the block details, the status row, the
+  feedback strip, the drag reason card, the suggest dialog and one opened option, the export
+  page at each template with its display options, the updates dialog, and the undo toast. On each
+  it fails on a text leaf that a box cuts, read as a box that hides its overflow and holds more
+  than it shows or a line that runs past its edge, on a label half hidden in a row that scrolls
+  sideways only, and on two text leaves that draw over each other. Each line is read at its line
+  box height, since the ascent and descent of a Thai face run past a tight line box without any
+  ink being cut. A text a scroller holds is read by scrolling and is not cut, and a sticky or
+  fixed layer, such as a heading the list scrolls under, is compared only with its own leaves.
+- Its exceptions are listed in the spec with their reason, and each has an explicit control that
+  shows the whole text: a teacher, condition, or remark line resting as one line beside its
+  expand control, a long plan name in the header trigger, which opens the plan list that wraps
+  every name whole, and the neighbouring export template slivers, which the pager brings whole
+  into view. The spec stays in the suite, so a regression on any surface fails it.
+- The fixes it drove: the section teachers move onto the shared one line clamp with a Teachers
+  label and a Show all teachers control, the exam note wraps, the search tabs wrap a long name
+  such as Subject category in place of scrolling it out of view, plan names and their summaries
+  wrap in the plan list, the block detail subtitle and the unscheduled shelf names wrap, the plan
+  switcher keeps a minimum width that holds the longest term line whole, and the drag overlay is
+  measured and kept inside the window, so the reason card slides back from an edge rather than
+  running past it. The debug build's diagnostics trigger no longer floats over the open panel; it
+  waits on the host page and moves into the header overflow menu while the panel is open.
+
+Alternatives considered: a per surface assertion in each feature spec was rejected because a new
+surface would start unguarded; one walk names every surface in one place. Reading text through
+the scroll size of its nearest box alone was rejected because a cut by an outer box, such as the
+tab row, does not show there. Raising the header height so a plan name could wrap was rejected
+because the header row stays one line on every width.
