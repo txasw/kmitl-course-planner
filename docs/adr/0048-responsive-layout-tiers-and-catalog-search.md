@@ -761,18 +761,18 @@ below supersedes the earlier text it names.
   arrows would then behave differently by width for no gain the line does not already give.
 - No toast sits over the plan status row. A failed save showed both its strip under the header
   and an error toast at the panel foot, and the toast hid the credits, the subject count, and
-  the clash line of the status row. The strip is now the one place a failed save shows, and
-  it stays no live region. The persistence hook hands the failure to the status announcer
-  through the status store, so the panel's one status region speaks it once, as the toast
-  did, a run of failing autosaves stays quiet, and the live region inventory is unchanged. A
-  live region of the strip's own was rejected, since the strip comes and goes with each
-  autosave while saves keep failing. This supersedes the error toast and its retry in the
-  amendment of 2026-11-20 on the quieter header. Any other toast makes room: the toast region reports the height of
-  the toast on show, and the plan region ends in a band of that height while it shows, so the
-  status row, the export page caption and dots, and the phone sharing toolbar rise above the
-  toast. The toast region therefore rises over the phone foot only for the bottom nav in edit;
-  on the phone export page it rests at the foot and the toolbar rises above it. Lifting the
-  toast over the status row was rejected, since it would then cover the timetable blocks.
+  the clash line of the status row. The strip is now the one place a failed save shows, and it
+  stays no live region. The persistence hook hands the failure to the status announcer through
+  the status store, so the panel's one status region speaks it once, as the toast did, a run of
+  failing autosaves stays quiet, and the live region inventory is unchanged. A live region of
+  the strip's own was rejected, since the strip comes and goes with each autosave while saves
+  keep failing. This supersedes the error toast and its retry in the amendment of 2026-11-20 on
+  the quieter header. Any other toast makes room: the toast region reports the height of the
+  toast on show, and the plan region ends in a band of that height while it shows, so the status
+  row, the export page caption and dots, and the phone sharing toolbar rise above the toast. The
+  toast region therefore rises over the phone foot only for the bottom nav in edit; on the phone
+  export page it rests at the foot and the toolbar rises above it. Lifting the toast over the
+  status row was rejected, since it would then cover the timetable blocks.
 - The clipped text sweep passed while all of the above held, so it now reads more. A text leaf
   fails as covered when the element a press would reach at three points across its line, or just
   inside either end of it, is neither its own element nor around it, which catches a toast, a
