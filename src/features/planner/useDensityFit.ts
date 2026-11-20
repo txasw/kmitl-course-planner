@@ -20,13 +20,18 @@
 // language of both cost a block its id even where the second name never fit (the ADR-0046
 // amendment of 2026-11-20). A reclaimed field that overflows is the top rung the walk drops
 // first, so the level returns to where it was and the field stays tried until the next reset.
+// The pass offers nothing once the walk dropped the section chip or the place, so a returned
+// field never shows above a hidden one the ladder ranks higher and the time never outlives the
+// place.
 //
-// Convergence and no loop: within one reset key the level is monotonic down, and a demotion
-// only hides a field, which never changes the block's box size (the cell size comes from the
-// grid tracks, not the content), so a demotion cannot feed back into the measurement or the
-// reset key. The reset key changes on the inputs that change the box, the geometry and font
-// size, plus the eligibility and the fonts ready signal, and on such a change the level resets
-// to full and re-converges, recovering fields a larger canvas now has room for.
+// Convergence and no loop: within one reset key the walk only demotes, and the reclaim pass
+// promotes at most once per field, three fields in all, so the level settles after a bounded
+// number of passes. A demotion or a reclaim only shows or hides a field, which never changes
+// the block's box size (the cell size comes from the grid tracks, not the content), so neither
+// can feed back into the measurement or the reset key. The reset key changes on the inputs
+// that change the box, the geometry and font size, plus the eligibility and the fonts ready
+// signal, and on such a change the level resets to full, the tried fields clear, and the fit
+// re-converges, recovering fields a larger canvas now has room for.
 //
 // The box also settles asynchronously: the poster's final size resolves over the next few
 // frames as fonts, the gallery scale transform, and the deferred neighbor posters lay out, and
