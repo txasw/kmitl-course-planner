@@ -4,7 +4,12 @@ import { DEFAULT_DISPLAY_OPTIONS } from '@/lib/planner/displayOptions';
 import { usePrefsPersistence } from './usePrefsPersistence';
 import { uiStore } from './uiStore';
 import { catalogStore } from '@/features/catalog/catalogStore';
-import type { Prefs, PrefsRepository } from '@/lib/storage/prefs';
+import {
+  createPrefsRepository,
+  type Prefs,
+  type PrefsRepository,
+} from '@/lib/storage/prefs';
+import { PREFS_KEY } from '@/lib/storage/keys';
 
 interface RecordingRepo extends PrefsRepository {
   saved: Prefs[];
@@ -55,22 +60,17 @@ const PROFILE = {
 };
 
 describe('usePrefsPersistence', () => {
-  it('hydrates the stored language and view mode without writing them back', async () => {
-    const repo = makeRepo({
-      schemaVersion: 1,
-      language: 'en',
-      viewMode: 'preview',
-    });
+  it('hydrates the stored language without writing it back', async () => {
+    const repo = makeRepo({ schemaVersion: 1, language: 'en' });
     renderHook(() => {
       usePrefsPersistence(repo);
     });
     await flush();
     expect(uiStore.getState().language).toBe('en');
-    expect(uiStore.getState().viewMode).toBe('preview');
     expect(repo.saved).toHaveLength(0);
   });
 
-  it('persists a language change with the current view mode', async () => {
+  it('persists a language change with the other preferences', async () => {
     const repo = makeRepo(null);
     renderHook(() => {
       usePrefsPersistence(repo);
@@ -84,7 +84,6 @@ describe('usePrefsPersistence', () => {
       {
         schemaVersion: 1,
         language: 'en',
-        viewMode: 'edit',
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
@@ -94,7 +93,7 @@ describe('usePrefsPersistence', () => {
     ]);
   });
 
-  it('persists a view mode change with the current language', async () => {
+  it('writes nothing when the panel mode changes', async () => {
     const repo = makeRepo(null);
     renderHook(() => {
       usePrefsPersistence(repo);
@@ -104,28 +103,39 @@ describe('usePrefsPersistence', () => {
     act(() => {
       uiStore.getState().setViewMode('preview');
     });
-    expect(repo.saved).toEqual([
-      {
-        schemaVersion: 1,
-        language: 'th',
-        viewMode: 'preview',
-        displayOptions: DEFAULT_DISPLAY_OPTIONS,
-        suggestObjective: 'coverAll',
-        suggestPreference: 'balanced',
-        timetableView: 'day',
-        catalogHides: NO_HIDES,
-      },
-    ]);
+    expect(repo.saved).toHaveLength(0);
   });
 
-  it('keeps the default view mode when the stored blob predates it', async () => {
-    const repo = makeRepo({ schemaVersion: 1, language: 'en' });
+  // An older build wrote the last panel mode. Read through the real repository, the blob
+  // keeps the language and opens in edit, and the next save carries no mode.
+  it('ignores a view mode stored by an older build', async () => {
+    const store: Record<string, unknown> = {
+      [PREFS_KEY]: { schemaVersion: 1, language: 'en', viewMode: 'preview' },
+    };
+    const repo = createPrefsRepository({
+      get: (key) => Promise.resolve(store[key]),
+      set: (key, value) => {
+        store[key] = value;
+        return Promise.resolve();
+      },
+      remove: (key) => {
+        Reflect.deleteProperty(store, key);
+        return Promise.resolve();
+      },
+    });
     renderHook(() => {
       usePrefsPersistence(repo);
     });
     await flush();
     expect(uiStore.getState().language).toBe('en');
     expect(uiStore.getState().viewMode).toBe('edit');
+
+    act(() => {
+      uiStore.getState().setLanguage('th');
+    });
+    await flush();
+    expect(store[PREFS_KEY]).not.toHaveProperty('viewMode');
+    expect(store[PREFS_KEY]).toMatchObject({ language: 'th' });
   });
 
   it('hydrates stored display options without writing them back', async () => {
@@ -159,7 +169,6 @@ describe('usePrefsPersistence', () => {
       {
         schemaVersion: 1,
         language: 'th',
-        viewMode: 'edit',
         displayOptions: { ...DEFAULT_DISPLAY_OPTIONS, showRoom: false },
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
@@ -214,7 +223,6 @@ describe('usePrefsPersistence', () => {
       {
         schemaVersion: 1,
         language: 'th',
-        viewMode: 'edit',
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
         exportTemplate: 'print-a4',
         suggestObjective: 'coverAll',
@@ -255,7 +263,6 @@ describe('usePrefsPersistence', () => {
       {
         schemaVersion: 1,
         language: 'th',
-        viewMode: 'edit',
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
         suggestObjective: 'coverAll',
         suggestPreference: 'morning',
@@ -293,7 +300,6 @@ describe('usePrefsPersistence', () => {
       {
         schemaVersion: 1,
         language: 'th',
-        viewMode: 'edit',
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
@@ -331,7 +337,6 @@ describe('usePrefsPersistence', () => {
       {
         schemaVersion: 1,
         language: 'th',
-        viewMode: 'edit',
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
         curriculumProfile: PROFILE,
         suggestObjective: 'coverAll',
@@ -391,7 +396,6 @@ describe('usePrefsPersistence', () => {
       {
         schemaVersion: 1,
         language: 'th',
-        viewMode: 'edit',
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',

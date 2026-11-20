@@ -25,16 +25,17 @@ export const catalogHidesSchema = z.object({
 });
 export type CatalogHides = z.infer<typeof catalogHidesSchema>;
 
-// language mirrors the i18n Locale union and viewMode mirrors the ui store's view
-// mode; both are declared inline so the storage layer does not depend on the i18n
-// or shell modules. viewMode and displayOptions are optional so a preferences blob
-// written before they existed still validates and falls back to the defaults. The
+// language mirrors the i18n Locale union and is declared inline so the storage layer
+// does not depend on the i18n module. displayOptions is optional so a preferences blob
+// written before it existed still validates and falls back to the defaults. The
 // display options schema is owned by the planner, which is the layer that reads
 // them; storage only persists the shape.
+// The panel no longer remembers its last mode (ADR-0022 amendment). A blob written
+// before that still carries a viewMode key, which the object schema strips like any
+// unknown key, so the blob loads whole and the stored mode is ignored.
 export const prefsSchema = z.object({
   schemaVersion: z.literal(1),
   language: z.enum(['th', 'en']),
-  viewMode: z.enum(['edit', 'preview']).optional(),
   displayOptions: displayOptionsSchema.optional(),
   // The export template slug is a plain string so an unknown value from a newer
   // build still validates; the planner resolves it and falls back to the default.

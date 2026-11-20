@@ -13,7 +13,6 @@ function currentPrefs(): Prefs {
   return {
     schemaVersion: 1,
     language: state.language,
-    viewMode: state.viewMode,
     displayOptions: state.displayOptions,
     // A template the student never chose stays unsaved, so the preview keeps
     // resolving it from the stage shape on the next open.
@@ -30,20 +29,20 @@ function currentPrefs(): Prefs {
   };
 }
 
-// Hydrates the stored UI preferences, the language, the view mode, the poster
+// Hydrates the stored UI preferences, the language, the poster
 // display options, the export template, the curriculum profile, the suggestion
 // options, the narrow timetable view, and the catalog hide toggles, on mount, then
 // persists explicit changes to any of them. They live under one storage key, so a
 // single hook writes the whole preferences object on any change rather than several
 // hooks clobbering each other's field. The subscriptions attach only after hydration,
 // so a hydrated value is not written straight back, and a change made during the
-// async read is respected rather than overwritten by the stored value.
+// async read is respected rather than overwritten by the stored value. The panel mode is
+// not a preference: every opening starts in edit (ADR-0022 amendment).
 export function usePrefsPersistence(repo: PrefsRepository): void {
   useEffect(() => {
     let cancelled = false;
     const unsubscribes: (() => void)[] = [];
     const initialLanguage = uiStore.getState().language;
-    const initialViewMode = uiStore.getState().viewMode;
     const initialDisplayOptions = uiStore.getState().displayOptions;
     const initialTemplate = uiStore.getState().selectedTemplate;
     const initialProfile = uiStore.getState().curriculumProfile;
@@ -58,12 +57,6 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
         const state = uiStore.getState();
         if (state.language === initialLanguage) {
           state.setLanguage(stored.language);
-        }
-        if (
-          stored.viewMode !== undefined &&
-          state.viewMode === initialViewMode
-        ) {
-          state.setViewMode(stored.viewMode);
         }
         if (
           stored.displayOptions !== undefined &&
@@ -116,7 +109,6 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
         uiStore.subscribe((state, previous) => {
           if (
             state.language !== previous.language ||
-            state.viewMode !== previous.viewMode ||
             state.displayOptions !== previous.displayOptions ||
             state.selectedTemplate !== previous.selectedTemplate ||
             state.curriculumProfile !== previous.curriculumProfile ||
