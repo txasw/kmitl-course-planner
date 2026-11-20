@@ -7,7 +7,8 @@ import type { Locator, Page } from '@playwright/test';
 // 2026-11-21). Back to editing leads the header. Download PNG is the one filled action and
 // shows its label at every width; every other sharing action shows a visible label with its
 // own glyph, whole inside the viewport. The template picker is a radiogroup of chips, each
-// showing its name and output size whole, side by side without overlap, and a tap selects one.
+// showing its name and output size whole, side by side without overlap, and a tap selects one,
+// down to the 320 px narrowest width.
 
 const TEMPLATES = [
   ['แชร์ 16:9', '1920 × 1080'],
@@ -60,10 +61,8 @@ function overlaps(
   );
 }
 
-test('the export page leads with a labelled download and names every template', async ({
-  context,
-}) => {
-  const page = await openPlanner(context);
+/** Open the export page and check its header, toolbar, and template chips at the page size. */
+async function checkExportPage(page: Page): Promise<void> {
   await planOneCourse(page);
   await page.getByRole('button', { name: 'ส่งออก', exact: true }).click();
 
@@ -146,4 +145,21 @@ test('the export page leads with a labelled download and names every template', 
   // The choice is marked by a check glyph, not by colour alone.
   await expect(portrait.locator('.lucide-check')).toHaveCount(1);
   await expect(chips.nth(0).locator('.lucide-check')).toHaveCount(0);
+}
+
+test('the export page leads with a labelled download and names every template', async ({
+  context,
+}) => {
+  await checkExportPage(await openPlanner(context));
+});
+
+// The narrowest width the panel supports, where three chips share 288 px of row and the
+// size line of each is tightest.
+test('the export actions and template chips show whole at 320 px', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  test.skip(!isPhone(page), 'the 320 px width is a phone width');
+  await page.setViewportSize({ width: 320, height: 640 });
+  await checkExportPage(page);
 });
