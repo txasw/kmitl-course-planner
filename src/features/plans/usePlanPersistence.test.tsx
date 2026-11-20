@@ -14,6 +14,7 @@ import type {
   StorageAdapter,
 } from '@/lib/storage/repo';
 import { makePlan } from '../../../tests/support/domain-builders';
+import { statusStore } from '@/features/shell/statusStore';
 import { toastStore, type Toast } from '@/features/shell/toastStore';
 import { autosaveStore } from './autosaveStore';
 import { planStore } from './planStore';
@@ -222,6 +223,19 @@ function recordToasts(): Toast[] {
   return shown;
 }
 
+/** Every line handed to the status announcer from here on, in order. */
+function recordLines(): string[] {
+  const said: string[] = [];
+  onTestFinished(
+    statusStore.subscribe((state, previous) => {
+      if (state.line !== null && state.line !== previous.line) {
+        said.push(state.line.text);
+      }
+    }),
+  );
+  return said;
+}
+
 async function advance(ms: number) {
   await act(async () => {
     await vi.advanceTimersByTimeAsync(ms);
@@ -317,15 +331,16 @@ describe('usePlanPersistence autosave state', () => {
     expect(autosaveStore.getState().status).toBe('saved');
   });
 
-  it('raises one notice and no toast for a run of failed saves', async () => {
+  it('speaks one line and raises no toast for a run of failed saves', async () => {
     const { save, settleNext } = deferredSaves();
     await mountWithSaves(save);
     const toasts = recordToasts();
+    const lines = recordLines();
     edit();
     await advance(300);
     await settleNext(failed);
     expect(autosaveStore.getState().status).toBe('failed');
-    expect(autosaveStore.getState().notice).toBe(1);
+    expect(lines).toEqual(['บันทึกตารางไม่สำเร็จ']);
     // The strip under the header shows the failure; a toast would repeat it over the
     // plan status row.
     expect(toasts).toHaveLength(0);
@@ -334,34 +349,35 @@ describe('usePlanPersistence autosave state', () => {
     await advance(300);
     await settleNext(failed);
     expect(autosaveStore.getState().status).toBe('failed');
-    expect(autosaveStore.getState().notice).toBe(1);
+    expect(lines).toHaveLength(1);
   });
 
   it('raises nothing for a successful save', async () => {
     const { save, settleNext } = deferredSaves();
     await mountWithSaves(save);
     const toasts = recordToasts();
+    const lines = recordLines();
     edit();
     await advance(300);
     await settleNext(ok(undefined));
     expect(toasts).toHaveLength(0);
-    expect(autosaveStore.getState().notice).toBeNull();
+    expect(lines).toHaveLength(0);
   });
 
   it('announces a failure again once a save has succeeded', async () => {
     const { save, settleNext } = deferredSaves();
     await mountWithSaves(save);
+    const lines = recordLines();
     edit();
     await advance(300);
     await settleNext(failed);
     edit();
     await advance(300);
     await settleNext(ok(undefined));
-    expect(autosaveStore.getState().notice).toBeNull();
     edit();
     await advance(300);
     await settleNext(failed);
-    expect(autosaveStore.getState().notice).toBe(1);
+    expect(lines).toHaveLength(2);
   });
 
   it('saves now from the retry', async () => {
@@ -382,6 +398,7 @@ describe('usePlanPersistence autosave state', () => {
   it('announces a failed retry the student asked for', async () => {
     const { save, settleNext } = deferredSaves();
     await mountWithSaves(save);
+    const lines = recordLines();
     edit();
     await advance(300);
     await settleNext(failed);
@@ -389,7 +406,7 @@ describe('usePlanPersistence autosave state', () => {
       autosaveStore.getState().retry?.();
     });
     await settleNext(failed);
-    expect(autosaveStore.getState().notice).toBe(2);
+    expect(lines).toHaveLength(2);
   });
 
   it('treats a rejected save as a failure', async () => {
