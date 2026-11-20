@@ -252,19 +252,35 @@ The own group stays an option even when its section has since filled or closed, 
 section the student already holds adds nothing; every other group still passes the add rules,
 since full and closed sections are never options and every pair of chosen groups passes
 `checkPlacement` for time, exam, pair, and duplicate subject. A move is offered only where it
-gains something: after the objective and the preference penalty, the ranking prefers the
-timetable that moves fewer plan subjects, before the section code tie break. A move changes the
-time footprint, so the three suggestions still differ in what the student lives through. An
-unticked plan subject is left out of the suggested timetable and of the plan the suggestion
-creates. With no fixed entries left, the search holds no locked meetings; a left out course that
-clashes with a plan subject the timetable keeps still names it as a clash with the current plan.
+gains something. Moving changes neither the courses nor the credits, so the gain is room for an
+added course or a lower preference penalty: a timetable that moves plan subjects is dropped when
+putting any subset of the moved subjects back at their own groups still fits and scores no worse,
+so the dialog never offers a reshuffle of the student's own sections. Among the timetables that
+remain, after the objective and the preference penalty, the ranking prefers the one that moves
+fewer plan subjects, before the section code tie break. A move changes the time footprint, so the
+three suggestions still differ in what the student lives through, and the placed list of a slide
+names the plan's section each moved subject moves from. An unticked plan subject is left out of
+the suggested timetable and of the plan the suggestion creates. With no fixed entries left, the
+search holds no locked meetings; a left out course that clashes with a plan subject the timetable
+keeps at its own group still names it as a clash with the current plan, while one that clashes
+only with a moved subject reads as not fitting beside the chosen courses, since the current plan
+holds that subject at another section.
 
 A suggestion is offered only when it changes the plan, by adding a ticked course or moving a plan
 subject; a timetable that keeps every plan subject where it is and adds nothing is the plan itself
 and is filtered out through `changesPlan`. When the ticked plan subjects cannot all fit together,
 the search has no timetable and the empty state names the reason `planClash`, asking the student
-to untick one of them. `allPlaced` now also says that the sections cannot be arranged another
-way. Applying keeps the entries of every plan subject held at its own group as they are, drops a
+to untick one of them. This changes the behaviour for a plan that already holds a time or exam
+conflict, such as one revalidation surfaced: its subjects are ticked by default, so the dialog
+shows `planClash` until the student unticks one side of the clash, where the fixed entries before
+this amendment ignored a clash between two of them and still suggested additions. Suggesting
+around a clash the student has not resolved would hide it, so the empty state names it instead;
+the owner may still revisit this. A search the node cap stops before it reaches any timetable
+names the reason `truncated` rather than `planClash`, since the subjects may well fit. When the
+only ticked subjects are the plan's and they already fit as they are, the reason is `planFits`,
+which says so rather than asking for a tick the list already shows; `noneTicked` stays for a tick
+list with nothing ticked, and both offer the action that ticks every subject. `allPlaced` now also
+says that the sections cannot be arranged another way. Applying keeps the entries of every plan subject held at its own group as they are, drops a
 moved or unticked one, and adds every other chosen group through `applyPlanTransaction`. A
 suggestion records the plan entries it was searched against, and applying it to other entries is
 refused as stale, so a subject added after the search is never dropped without the student's
@@ -273,4 +289,6 @@ choice; the dialog searches again on every plan change, so this refusal only gua
 Keeping plan subjects fixed and only listing them by name was rejected, because the owner's pick
 lets the student untick them and the review asked that suggestions be able to rearrange around
 them. Letting a moved subject take any section, including the interchangeable ones, was rejected
-because those would add a section change with no change in the week.
+because those would add a section change with no change in the week. Offering a move that gains
+nothing, ranked after its unmoved twin, was rejected because with the whole curriculum in the plan
+it filled the carousel with near identical reshuffles, the feedback of pick q6.
