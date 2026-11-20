@@ -108,10 +108,10 @@ the box cannot hold is clamped with an ellipsis, and the block itself is the exp
 opens the full detail in edit, and a suggestion slide names every section in full in its
 placed list (ADR-0054, amendment of 2026-11-20 on one suggestion per slide).
 
-Narrow blocks. Where the block width is a day column or a thumbnail track, the portrait edit grid
-and the plan suggestion cards, a block narrower than 7em, measured by a container query on the
+Narrow blocks. Where the block width is a day column or a suggestion slide track, the portrait edit
+grid and the plan suggestion slides, a block narrower than 7em, measured by a container query on the
 block wrapper in em of the grid type size, shows the name alone at 0.9em with tight padding, the
-shape the mockup gives the phone week and the suggestion thumbnails. The place row, the English
+shape the mockup gives the phone week and the suggestion slides. The place row, the English
 line, the foot, and the remove control hide there; the block opens its details, which carry them
 and Remove, the same path ADR-0058 gives a coarse pointer. A landscape grid never takes the rule,
 in edit or on the poster, because there a block is as wide as its meeting is long: a 60 minute
@@ -138,6 +138,6 @@ The blocking pulse and the locate ring draw with box-shadow outside any layer, s
 they replace the soft card's edge, highlight, and shadow with the ring, and under reduced motion
 the locate ring holds still for the same time; this is accepted, since the ring is the message
 while it shows and the card returns when the class drops. A browser check in the responsive
-suite reads the laid out names of the suggestion thumbnails and the phone week and fails on a
+suite reads the laid out names of the suggestion slides and the phone week and fails on a
 clipped name or a line holding one grapheme of a longer word, and a desktop check keeps the place
 on a 60 minute landscape block.

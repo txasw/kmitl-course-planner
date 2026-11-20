@@ -135,8 +135,8 @@ interface EventBlockProps {
   /** The fill: the soft depth card, the default, or the flat tint the poster keeps. */
   surface?: BlockSurface;
   /** Show the name alone while the block is narrower than 7em. Set only where the block
-   * width is a day column or a thumbnail track: the portrait edit grid and the suggestion
-   * cards. A landscape block is as wide as its meeting is long, so a short meeting there
+   * width is a day column or a suggestion slide track: the portrait edit grid and the
+   * suggestion slides. A landscape block is as wide as its meeting is long, so a short meeting there
    * walks the density ladder instead, and the poster never takes the rule (ADR-0047). */
   nameOnlyWhenNarrow?: boolean;
 }

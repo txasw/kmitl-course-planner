@@ -1,7 +1,7 @@
 // The name only rule of a narrow block, as container query classes on the block wrapper in
 // em of the grid type size, so it follows the block's own width at every grid scale. Only a
-// grid whose block width is a day column or a thumbnail track asks for it: the portrait edit
-// grid and the suggestion cards. A landscape block is as wide as its meeting is long, so
+// grid whose block width is a day column or a suggestion slide track asks for it: the portrait
+// edit grid and the suggestion slides. A landscape block is as wide as its meeting is long, so
 // there a short meeting keeps its place and walks the density ladder, and the export poster
 // never takes the rule (ADR-0047).
 

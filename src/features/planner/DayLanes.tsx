@@ -66,7 +66,7 @@ interface DayLanesProps {
   /** The fill of a read only block; an edit block always takes the soft card. */
   surface: BlockSurface;
   /** Show a block's name alone while it is narrower than 7em, where the block width is a
-   * day column or a thumbnail track rather than a meeting length (ADR-0047). */
+   * day column or a suggestion slide track rather than a meeting length (ADR-0047). */
   narrowBlocks: boolean;
   /** Whether this grid is the poster the export rasterizes: its blocks raise the line height
    * for the raster and pin the foot for its measured fit. A plan suggestion is read only but
