@@ -610,6 +610,17 @@ describe('DayView swipe', () => {
     expect(shown()).toBe('5');
   });
 
+  it('stops at Monday rather than landing on the week chip beside it', () => {
+    installViewport(390);
+    seedPlan();
+    renderPanel();
+    fireEvent.click(chip('วันจันทร์'));
+    expect(shown()).toBe('1');
+    swipe(swipeSurface(), 'x', 100);
+    expect(shown()).toBe('1');
+    expect(chip('สัปดาห์')).toHaveAttribute('aria-checked', 'false');
+  });
+
   it('ignores a move under the slop, a short swipe, and a vertical swipe', () => {
     installViewport(390);
     seedPlan();
