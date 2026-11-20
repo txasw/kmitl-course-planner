@@ -66,6 +66,13 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
   // the arrow keys page back from the slide itself.
   await dialog.getByRole('button', { name: 'ตัวเลือกถัดไป' }).click();
   await expect(shown.getByRole('heading', { name: 'ตัวเลือกที่ 2' })).toBeVisible();
+  // The slide names its subjects behind the system chevron disclosure, not a native one.
+  const placedList = shown.getByRole('button', { name: /^วิชาในตัวเลือกนี้/ });
+  await expect(placedList).toHaveAttribute('aria-expanded', 'false');
+  await placedList.click();
+  await expect(placedList).toHaveAttribute('aria-expanded', 'true');
+  await expect(shown.getByText(/^04186098 /).first()).toBeVisible();
+  await expect(dialog.locator('details, summary')).toHaveCount(0);
   await expect(dialog.getByText('ตัวเลือก 2 จาก 3')).toHaveAttribute(
     'aria-live',
     'polite',

@@ -489,6 +489,14 @@ for (const language of ['th', 'en'] as const) {
           await sweep.scan(`suggest ${chevron} with the pointer on it`, dialog);
         }
         await page.mouse.move(0, 0);
+        // The lists of the slide on show, behind their chevron disclosures, read whole.
+        const slideToggles = dialog
+          .locator('[data-suggest-slide]:not([inert])')
+          .locator('button[aria-expanded="false"]');
+        while ((await slideToggles.count()) > 0) {
+          await slideToggles.first().click();
+        }
+        await sweep.scan('suggest option lists', dialog);
         const subjects = dialog.getByRole('group', {
           name: sweep.t('suggest.subjects'),
         });
