@@ -51,11 +51,32 @@ describe('prefs repository', () => {
     expect(adapter.store[PREFS_KEY]).toEqual(valid);
   });
 
+  // A build before the ADR-0022 amendment wrote the last panel mode. The blob must still
+  // load whole, keeping the language and the other preferences, with the mode dropped.
+  it('loads a blob that still carries the retired view mode', async () => {
+    const repo = createPrefsRepository(
+      fakeAdapter({
+        [PREFS_KEY]: {
+          schemaVersion: 1,
+          language: 'en',
+          viewMode: 'preview',
+          exportTemplate: 'share',
+        },
+      }),
+    );
+    const loaded = await repo.load();
+    expect(loaded).toEqual({
+      schemaVersion: 1,
+      language: 'en',
+      exportTemplate: 'share',
+    });
+    expect(loaded).not.toHaveProperty('viewMode');
+  });
+
   it('loads a blob that carries display options', async () => {
     const withOptions: Prefs = {
       schemaVersion: 1,
       language: 'th',
-      viewMode: 'preview',
       displayOptions: {
         showRoom: true,
         showSection: false,
@@ -173,7 +194,6 @@ describe('prefs repository', () => {
     const older = {
       schemaVersion: 1,
       language: 'th',
-      viewMode: 'edit',
       exportTemplate: 'share',
     };
     const repo = createPrefsRepository(fakeAdapter({ [PREFS_KEY]: older }));
@@ -278,14 +298,12 @@ describe('prefs repository', () => {
         [PREFS_KEY]: {
           schemaVersion: 1,
           language: 'en',
-          viewMode: 'preview',
           timetableView: 'month',
         },
       }),
     );
     const loaded = await repo.load();
     expect(loaded?.language).toBe('en');
-    expect(loaded?.viewMode).toBe('preview');
     expect(loaded?.timetableView).toBeUndefined();
   });
 
