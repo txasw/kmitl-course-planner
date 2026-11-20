@@ -156,14 +156,15 @@ describe('SuggestDialog', () => {
     expect(screen.queryByRole('button', { name: /ขนาดเต็ม/ })).toBeNull();
   });
 
-  it('still shows one slide after a plan change runs the search again', async () => {
+  it('returns to the best suggestion after a plan change runs the search again', async () => {
     renderDialog(1440);
     await findCards();
     fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกที่ 3' }));
     expect(within(shownSlide()).getByRole('heading')).toHaveTextContent(
       'ตัวเลือกที่ 3',
     );
-    // A placed entry changes every suggestion; the carousel clamps to the slides it has.
+    // A placed entry ranks every suggestion again, so the third slide would hold another
+    // suggestion; the carousel returns to the first.
     act(() => {
       seedActivePlan(lockSections(courses, [['04186098', '2']]));
     });
@@ -172,7 +173,9 @@ describe('SuggestDialog', () => {
         screen.getByText('คงรายวิชาที่อยู่ในตารางปัจจุบันไว้ 1 วิชา'),
       ).toBeInTheDocument();
     });
-    expect(shownSlide()).toBeInTheDocument();
+    expect(within(shownSlide()).getByRole('heading')).toHaveTextContent(
+      'ตัวเลือกที่ 1',
+    );
   });
 
   it('reorders the cards when the preference changes', async () => {

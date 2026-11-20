@@ -3,7 +3,7 @@
 // fit beside the active plan, keeping the plan's entries as fixed constraints, and shows
 // up to three, whose meeting times differ, one per slide of a carousel. The student ticks
 // the subjects and picks an objective and a preference; every change searches again and
-// returns the carousel to the best suggestion. The ticks last for the dialog only, since a
+// returns the carousel to the best suggestion, and so does a change to the active plan. The ticks last for the dialog only, since a
 // new result holds other courses. Applying a suggestion creates a new plan for the term,
 // so the active plan is never rewritten, and the undo toast can take it back. The
 // objective and the preference last used persist with the prefs, so the dialog opens on
@@ -170,8 +170,15 @@ export function SuggestDialog({
   const tier = useLayoutTier();
   const objective = useStore(uiStore, (state) => state.suggestObjective);
   const preference = useStore(uiStore, (state) => state.suggestPreference);
-  const [page, setPage] = useState(0);
   const locked = useLockedEntries(term);
+  // The shown slide, held with the plan entries it was ranked against. A plan change ranks
+  // the suggestions again, so slide 2 would show another suggestion with no notice; the
+  // carousel returns to the best one instead, as a new tick does.
+  const [paging, setPaging] = useState(() => ({ page: 0, locked }));
+  const page = paging.locked === locked ? paging.page : 0;
+  const setPage = (next: number) => {
+    setPaging({ page: next, locked });
+  };
   const groups = useMemo(
     () => suggestableCourses(courses, locked),
     [courses, locked],

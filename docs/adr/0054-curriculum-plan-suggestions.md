@@ -174,7 +174,8 @@ and a chevron that disables at an end hands focus to the other chevron beside it
 drops to the document and the dialog never scrolls away from the slide to a dot below it. Under reduced motion the track jumps instead of sliding and the slide does not follow
 the finger, while the swipe still pages. Two suggestions show two dots; one suggestion shows no
 chevrons, dots, or position line. A new tick, objective, or preference returns to the first
-slide, as the compact pager did.
+slide, as the compact pager did, and so does a change to the active plan, since the slides are
+ranked again and the same position would show another suggestion with no notice.
 
 The full size view is removed. It existed because three cards side by side left each grid about
 224 px tall. A slide takes the full dialog width, and its grid is 320 px tall in landscape on the
