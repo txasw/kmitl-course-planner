@@ -23,14 +23,14 @@ import { useVisualViewportInset } from './useVisualViewportInset';
 import { VIEWPORT_FIT } from '@/lib/ui/viewportInset';
 
 // The full viewport overlay panel. It renders inside the closed shadow root as a
-// modal dialog: focus is trapped while open, Escape and the close control return
-// to the host, except that Escape on the export page returns to editing first, the
-// host document scroll is locked, and enter and leave fade with
-// a reduced motion path. A back gesture closes it too, through one history entry it holds
-// while open, recorded in ADR-0067. Session state lives in the ui store, so closing and
-// reopening within a page session resumes where the user left off. The root
-// carries the panel language, because the host document's own lang does not follow
-// the language choice, and the popovers portal into this node so they inherit it.
+// modal dialog: focus is trapped while open, Escape and the close control return to the
+// host, except that Escape on the export page returns to editing first, the host document
+// scroll is locked, and enter and leave fade with a reduced motion path. A back gesture
+// closes it too, through one history entry it holds while open, recorded in ADR-0067.
+// Session state lives in the ui store, so closing and reopening within a page session
+// resumes where the user left off. The root carries the panel language, because the host
+// document's own lang does not follow the language choice, and the popovers portal into
+// this node so they inherit it.
 // The header pads itself clear of the top and side safe area insets, and the body pads
 // clear of the side insets and of the bottom one, except while the bottom nav runs along
 // its foot: the nav pads itself there, so its fill reaches the screen edge under the
