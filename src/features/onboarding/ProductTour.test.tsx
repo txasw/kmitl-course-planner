@@ -138,6 +138,30 @@ describe('ProductTour', () => {
     );
   });
 
+  it('returns focus to the selected search tab, not the first', async () => {
+    installViewport(1366, { reducedMotion: true });
+    render(
+      <SearchDepsProvider value={fakeSearchDeps()}>
+        <Overlay>
+          <ProductTour record={fakeRecord()} />
+        </Overlay>
+      </SearchDepsProvider>,
+    );
+    act(() => {
+      uiStore.getState().open();
+    });
+    const second = screen.getAllByRole('tab')[1];
+    if (second === undefined) throw new Error('no second tab');
+    fireEvent.click(second);
+    expect(second).toHaveAttribute('aria-selected', 'true');
+    act(() => {
+      onboardingStore.getState().startTour();
+    });
+    await stepTitled('ค้นหารายวิชา');
+    fireEvent.click(button('ข้าม'));
+    expect(screen.getAllByRole('tab')[1]).toHaveFocus();
+  });
+
   it('finishes on the export step and hands focus to the export button', async () => {
     const record = renderTour(1366);
     await stepTitled('ค้นหารายวิชา');

@@ -104,10 +104,17 @@ interface Shown {
   resolved: ResolvedAnchor;
 }
 
-/** The control focus returns to when the tour ends: the target or a control inside it. */
+/**
+ * The control focus returns to when the tour ends: the target or a control inside it. In
+ * a group with a roving tab stop, such as the search tabs or the day chips, that is the
+ * stop, the selected or checked item, rather than the group's first item.
+ */
 function returnTarget(element: HTMLElement): HTMLElement | null {
   if (element.matches(CONTROLS_SELECTOR)) return element;
-  return element.querySelector<HTMLElement>(CONTROLS_SELECTOR);
+  return (
+    element.querySelector<HTMLElement>('[tabindex="0"]') ??
+    element.querySelector<HTMLElement>(CONTROLS_SELECTOR)
+  );
 }
 
 function sameBox(a: Box | null, b: Box): boolean {
