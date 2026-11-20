@@ -96,7 +96,8 @@ different count badges.
   surface-alt fill. The `kcp-soft-quiet` and `kcp-soft-settled` utilities set the card's stop
   names on the element beside `kcp-soft-card`, so the neutral card still shares the one
   treatment and differs only in its stops. Both strong stops sit under the default weak stop, so
-  every text step clears 4.5:1 anywhere on them, which the contrast suite proves.
+  the ink steps, the success, warn, and danger tones, and the primary strong action text each
+  clear 4.5:1 anywhere on them, which the contrast suite proves.
 - The catalog course card and the query chip take the quiet card. The open sections of a card
   sit in one white inset panel with the light shadow and hairline rules between rows, a lighter
   step than the card, rather than a bordered card per row, so an open card keeps one level of

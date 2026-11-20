@@ -291,9 +291,21 @@ const SOFT_CARD_PAIRS: Pair[] = SOFT_CARD_TINTS.flatMap((tint) => [
 // The quiet and settled neutral cards of the catalog and the query chip mix the muted
 // ink in at lighter stops than the default card. Their strong stop is the darkest fill,
 // so every text step proven there may sit anywhere on such a card, with no position bound.
+// The status tones are text too on these cards: the fit line in success, warn, or danger
+// and the primary strong action text, so they are proven beside the ink steps.
 const NEUTRAL_STOP_PAIRS: Pair[] = (['quiet', 'settled'] as const).flatMap(
   (variant) =>
-    (['ink', 'ink-soft', 'ink-muted'] as const).map((text) => ({
+    (
+      [
+        'ink',
+        'ink-soft',
+        'ink-muted',
+        'success',
+        'warn',
+        'danger',
+        'primary-strong',
+      ] as const
+    ).map((text) => ({
       name: `${text} on the strong stop of a ${variant} neutral soft card`,
       fg: shadowToken(text),
       bg: alphaOver(
