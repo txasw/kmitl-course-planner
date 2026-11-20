@@ -8,7 +8,7 @@ import {
 } from '@testing-library/react';
 import { createTranslator, type Translate } from '@/lib/i18n/t';
 import type { Meeting } from '@/lib/domain/types';
-import { hashColor, hashTint } from '@/lib/utils/hash-color';
+import { hashColor } from '@/lib/utils/hash-color';
 import { EventBlock } from './EventBlock';
 import type { PlacedSection } from './placedSection';
 
@@ -791,24 +791,6 @@ describe('EventBlock', () => {
     for (const line of lines) {
       expect(line).toHaveClass('kcp-hatch-backdrop', 'w-fit', 'max-w-full');
     }
-  });
-
-  it('backs the hatched lines of a flat poster block with its own tint', () => {
-    const { container } = render(
-      <EventBlock
-        section={{ ...section, verifyStatus: 'missing' }}
-        meeting={meeting}
-        style={{}}
-        locale="th"
-        t={t}
-        surface="flat"
-      />,
-    );
-    const fill =
-      container.querySelector<HTMLElement>('[data-fit]')?.parentElement;
-    expect(fill?.style.getPropertyValue('--kcp-hatch-backdrop')).toBe(
-      hashTint(section.subjectId),
-    );
   });
 
   it('keeps the text lines of a block with no hatch on the card fill', () => {

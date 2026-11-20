@@ -20,17 +20,14 @@ export function surfaceClass(surface: BlockSurface): string {
 }
 
 /** The fill style for a surface: the soft card reads its tint from a custom property, and the
- * flat fill paints the composited tint as a concrete hex, which is also the backdrop of its
- * text lines over the danger hatch, so they match the block rather than read grey. */
+ * flat fill paints the composited tint as a concrete hex. */
 export function surfaceStyle(
   surface: BlockSurface,
   subjectId: string,
 ): StyleWithVars {
-  if (surface === 'soft') {
-    return { '--kcp-tint': hashColor(subjectId) };
-  }
-  const tint = hashTint(subjectId);
-  return { backgroundColor: tint, '--kcp-hatch-backdrop': tint };
+  return surface === 'soft'
+    ? { '--kcp-tint': hashColor(subjectId) }
+    : { backgroundColor: hashTint(subjectId) };
 }
 
 /** The width of the solid accent stripe down the left edge. */
