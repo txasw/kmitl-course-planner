@@ -758,6 +758,90 @@ describe('EventBlock', () => {
     expect(screen.queryByText('วิชาทดสอบ')).not.toBeInTheDocument();
   });
 
+  it('keeps the subject id and the time on one line that never wraps', () => {
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    for (const text of ['90592033', '09:00-12:00']) {
+      const field = screen.getByText(text);
+      expect(field).toHaveClass('whitespace-nowrap', 'overflow-hidden');
+      expect(field).not.toHaveClass('break-words');
+      expect(field).toHaveAttribute('data-fit-whole');
+    }
+  });
+
+  it('drops a subject id wider than its line whole and keeps the time and the place', () => {
+    // The id measures wider than its line; every other field fits.
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(40);
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return this.dataset.fitWhole === 'id' ? 56 : 40;
+      },
+    );
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.queryByText('90592033')).not.toBeInTheDocument();
+    expect(screen.getByText('09:00-12:00')).toBeInTheDocument();
+    expect(screen.getByText(/A101/)).toBeInTheDocument();
+  });
+
+  it('drops a time wider than its line whole and keeps the subject id', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(40);
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return this.dataset.fitWhole === 'time' ? 62 : 40;
+      },
+    );
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.queryByText('09:00-12:00')).not.toBeInTheDocument();
+    expect(screen.getByText('90592033')).toBeInTheDocument();
+  });
+
+  it('walks the ladder when the content overflows sideways for any other reason', () => {
+    // The column is wider than the box while the id shows, so the first rung drops it.
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(40);
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return this.hasAttribute('data-fit') &&
+          this.textContent.includes('90592033')
+          ? 60
+          : 40;
+      },
+    );
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.queryByText('90592033')).not.toBeInTheDocument();
+    expect(screen.getByText('09:00-12:00')).toBeInTheDocument();
+  });
+
   it('renders a remove control that fires onRemove in edit mode', () => {
     const onRemove = vi.fn();
     render(

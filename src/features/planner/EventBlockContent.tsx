@@ -5,7 +5,10 @@
 // positioned over text: the section chip trails the place and wraps under it when the row is
 // full, and an optional status dot leads the name (ADR-0047 amendment of 2026-11-20).
 //
-// Every text field wraps rather than ellipsizes. A Thai name breaks at the browser's dictionary word
+// Every text field wraps rather than ellipsizes. The time and the subject id are the exception:
+// they are whole fields on one line that never wraps, since a code split across two lines reads
+// as two codes, and the density fit drops either whole when it is wider than its line rather
+// than let it clip at the block edge (ADR-0046 amendment of 2026-11-20). A Thai name breaks at the browser's dictionary word
 // boundaries and an English one at spaces; a break inside a word is the last resort, for a word
 // wider than the whole line. The API sends English names in capitals, which Chromium does not
 // hyphenate, so such a word breaks with no hyphen. The name shows in full until the density fit
@@ -59,6 +62,10 @@ interface EventBlockContentProps {
 // hides the control, so there the chip stays.
 const REMOVE_STEP_ASIDE =
   'not-pointer-coarse:group-hover/block:opacity-0 not-pointer-coarse:group-focus-within/block:opacity-0';
+
+/** A whole field: one line that never wraps and clips its own overflow, so the fit can read
+ * its scroll width against its line and drop it whole before the overflow ever paints. */
+const WHOLE_FIELD = 'block overflow-hidden whitespace-nowrap';
 
 /** The custom property that carries the name clamp, read by the line clamp utility. */
 const NAME_LINES_PROPERTY = '--kcp-name-lines';
@@ -162,10 +169,17 @@ export function EventBlockContent({
           className={`${footAtBottom ? 'mt-auto' : 'mt-1'} min-h-0 pt-0.5 ${narrowHidden} ${quiet}`}
         >
           {level.showTime ? (
-            <span className="block text-[0.9em] tabular-nums">{time}</span>
+            <span
+              data-fit-whole="time"
+              className={`${WHOLE_FIELD} text-[0.9em] tabular-nums`}
+            >
+              {time}
+            </span>
           ) : null}
           {level.showId ? (
-            <span className="block break-words">{subjectId}</span>
+            <span data-fit-whole="id" className={`${WHOLE_FIELD} tabular-nums`}>
+              {subjectId}
+            </span>
           ) : null}
         </div>
       ) : null}

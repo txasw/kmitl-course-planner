@@ -8,6 +8,12 @@
 // lines the name renders and how many lines of content stand past the box, so the name clamps
 // to the lines that fit in one step rather than one line per pass.
 //
+// The fit reads width as well as height (the ADR-0046 amendment of 2026-11-20). The subject id
+// and the time never wrap, so each marked whole field is measured against its own line: one
+// wider than the line drops at once, whole, before the height walk runs. Any other horizontal
+// overflow of the content wrapper walks the ladder like a height overflow, so no field is ever
+// cut at the right edge of a narrow block.
+//
 // Convergence and no loop: within one reset key the level is monotonic down, and a demotion
 // only hides a field, which never changes the block's box size (the cell size comes from the
 // grid tracks, not the content), so a demotion cannot feed back into the measurement or the
@@ -29,12 +35,14 @@
 
 import { useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import {
+  dropWholeFields,
   fullLevel,
   nextDensityLevel,
   sameLevel,
   type DensityEligibility,
   type DensityLevel,
   type NameFit,
+  type WholeField,
 } from '@/lib/planner/blockDensity';
 import { useFontsReady } from './fontsReady';
 
@@ -45,6 +53,29 @@ const OVERFLOW_EPS = 0.5;
 
 /** The marker on the name element inside a measured content wrapper. */
 const FIT_NAME_ATTR = 'data-fit-name';
+
+/** The marker on a whole field, its value naming the field. */
+export const FIT_WHOLE_ATTR = 'data-fit-whole';
+
+function isWholeField(value: string | undefined): value is WholeField {
+  return value === 'id' || value === 'time';
+}
+
+/** The whole fields wider than their own line. A whole field clips its own overflow, so its
+ * scroll width past its client width is the text it could not show; both are layout sizes,
+ * which a scale transform on the poster stage never changes. */
+function measureWideFields(content: HTMLElement): WholeField[] {
+  const wide: WholeField[] = [];
+  for (const el of content.querySelectorAll<HTMLElement>(
+    `[${FIT_WHOLE_ATTR}]`,
+  )) {
+    const field = el.dataset.fitWhole;
+    if (isWholeField(field) && el.scrollWidth - el.clientWidth > OVERFLOW_EPS) {
+      wide.push(field);
+    }
+  }
+  return wide;
+}
 
 /** Read how many lines the name renders and how many lines of content stand past the box, so
  * the ladder can clamp the name to what fits in one step. Layout sizes, not client rects, so a
@@ -107,9 +138,16 @@ export function useDensityFit(
         return;
       }
     }
-    // Measure the committed content and demote one rung while it overflows.
+    // A whole field wider than its line drops at once: no rung can widen its line.
+    const narrowed = dropWholeFields(level, measureWideFields(el));
+    if (!sameLevel(level, narrowed)) {
+      setLevel(narrowed);
+      return;
+    }
+    // Measure the committed content and demote one rung while it overflows either way.
     const overflow = el.scrollHeight - el.clientHeight;
-    if (overflow > OVERFLOW_EPS) {
+    const overflowX = el.scrollWidth - el.clientWidth;
+    if (overflow > OVERFLOW_EPS || overflowX > OVERFLOW_EPS) {
       const next = nextDensityLevel(level, measureNameFit(el, overflow));
       if (next !== null) {
         setLevel(next);
