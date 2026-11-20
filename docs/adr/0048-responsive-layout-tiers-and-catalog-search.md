@@ -757,9 +757,13 @@ below supersedes the earlier text it names.
   heading.
 - No toast sits over the plan status row. A failed save showed both its strip under the header
   and an error toast at the panel foot, and the toast hid the credits, the subject count, and
-  the clash line of the status row. The strip is now the one place a failed save shows; a
-  polite live region beside it speaks the failure once, as the toast did, and a run of failing
-  autosaves stays quiet. Any other toast makes room: the toast region reports the height of
+  the clash line of the status row. The strip is now the one place a failed save shows, and
+  it stays no live region. The persistence hook hands the failure to the status announcer
+  through the status store, so the panel's one status region speaks it once, as the toast
+  did, a run of failing autosaves stays quiet, and the live region inventory is unchanged. A
+  live region of the strip's own was rejected, since the strip comes and goes with each
+  autosave while saves keep failing. This supersedes the error toast and its retry in the
+  amendment of 2026-11-20 on the quieter header. Any other toast makes room: the toast region reports the height of
   the toast on show, and the plan region ends in a band of that height while it shows, so the
   status row, the export page caption and dots, and the phone sharing toolbar rise above the
   toast. The toast region therefore rises over the phone foot only for the bottom nav in edit;

@@ -8,16 +8,19 @@
 //
 // The autosave state goes to the autosave store for the header indicator: saving from
 // the first change until the latest save settles, then saved or failed. A failed save
-// raises one notice, which the indicator speaks through its live region while its strip
-// under the header offers the retry. There is no toast as well: the strip already says
-// the same thing, and a toast at the panel foot would sit over the plan status row.
-// Later failures stay quiet until a save succeeds or the student retries, so a run of
-// failing autosaves never repeats the announcement. A successful save raises nothing and
-// clears the notice.
+// hands one line to the status announcer, the panel's one status region, while the
+// indicator's strip under the header shows the failure and offers the retry. There is no
+// toast as well: the strip already says the same thing, and a toast at the panel foot
+// would sit over the plan status row. Later failures stay quiet until a save succeeds or
+// the student retries, so a run of failing autosaves never repeats the line. A
+// successful save raises nothing.
 
 import { useEffect } from 'react';
 import { CURRENT_SCHEMA_VERSION } from '@/lib/storage/keys';
 import type { PlanRepository, StorageAdapter } from '@/lib/storage/repo';
+import { createTranslator } from '@/lib/i18n/t';
+import { statusStore } from '@/features/shell/statusStore';
+import { uiStore } from '@/features/shell/uiStore';
 import { autosaveStore } from './autosaveStore';
 import { planStore } from './planStore';
 import { storageIssueStore } from './storageIssueStore';
@@ -51,13 +54,13 @@ export function usePlanPersistence({
       if (saved) {
         announceFailure = true;
         autosaveStore.getState().setStatus('saved');
-        autosaveStore.getState().clearNotice();
         return;
       }
       autosaveStore.getState().setStatus('failed');
       if (announceFailure) {
         announceFailure = false;
-        autosaveStore.getState().announceFailure();
+        const t = createTranslator(uiStore.getState().language);
+        statusStore.getState().say(t('save.failedNotice'));
       }
     };
 
