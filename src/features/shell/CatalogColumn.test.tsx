@@ -577,7 +577,19 @@ describe('CatalogColumn', () => {
     const hide = screen.getByRole('button', { name: 'ซ่อนรายวิชา' });
     expect(hide.parentElement).toHaveClass('h-12', 'justify-start');
     expect(hide.parentElement).not.toHaveClass('pl-4', 'px-4');
-    expect(hide.firstElementChild).toHaveClass('w-11', 'justify-center');
+    expect(hide).toHaveClass('w-11', 'justify-center');
+  });
+
+  it('makes the hide control an icon button named by its label and a tooltip', async () => {
+    installViewport(1440);
+    render(<Harness />);
+    const hide = screen.getByRole('button', { name: 'ซ่อนรายวิชา' });
+    expect(hide).toHaveTextContent(/^$/);
+    expect(hide.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    act(() => {
+      hide.focus();
+    });
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('ซ่อนรายวิชา');
   });
 
   it('carries the slide shadow on its own inert child on the docked tiers only', () => {

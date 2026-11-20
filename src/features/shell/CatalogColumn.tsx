@@ -50,6 +50,7 @@
 import { useLayoutEffect, useRef, type KeyboardEvent } from 'react';
 import { useStore } from 'zustand';
 import { PanelLeftClose, X } from 'lucide-react';
+import { Tooltip } from '@/components/Tooltip';
 import { CatalogPanel } from '@/features/catalog/CatalogPanel';
 import { SearchHeader } from '@/features/search/SearchHeader';
 import {
@@ -244,24 +245,31 @@ function SheetHeader({ closable }: { closable: boolean }) {
 function DockedHeader() {
   const { t } = useTranslation();
 
-  // The control starts at the column's leading edge with a 44 px icon cell, the same
-  // cell the edge rail opens with, so hide and restore sit on one point on screen.
+  // The control is an icon button in a 44 px cell at the column's leading edge, the same
+  // cell the edge rail opens with, so hide and restore sit on one point on screen. Its
+  // name is the accessible name and a tooltip on hover and focus, so the icon carries the
+  // action without a text row.
+  const label = t('catalog.hide');
   return (
     <div className="flex h-12 shrink-0 items-center justify-start border-b border-border pr-4">
-      <button
-        id={CATALOG_HIDE_ID}
-        type="button"
-        aria-controls={CATALOG_COLUMN_ID}
-        onClick={(event) => {
-          hideCatalog(event.currentTarget, event.detail);
-        }}
-        className={`inline-flex h-full items-center pr-3 text-sm text-ink-soft transition-colors hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`}
-      >
-        <span className="flex w-11 shrink-0 justify-center">
-          <PanelLeftClose size={16} strokeWidth={2} aria-hidden />
-        </span>
-        {t('catalog.hide')}
-      </button>
+      <Tooltip label={label} placement="right">
+        {(triggerProps, ref) => (
+          <button
+            ref={ref}
+            {...triggerProps}
+            id={CATALOG_HIDE_ID}
+            type="button"
+            aria-label={label}
+            aria-controls={CATALOG_COLUMN_ID}
+            onClick={(event) => {
+              hideCatalog(event.currentTarget, event.detail);
+            }}
+            className={`inline-flex h-full w-11 shrink-0 items-center justify-center text-ink-soft transition-colors hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`}
+          >
+            <PanelLeftClose size={16} strokeWidth={2} aria-hidden />
+          </button>
+        )}
+      </Tooltip>
       <div className="ml-auto">
         <SuggestAction />
       </div>
