@@ -612,7 +612,7 @@ test('keeps block names whole in the suggestion thumbnails and the phone week', 
   await bottomNav(page).getByRole('button', { name: 'ตารางเรียน' }).tap();
   await page
     .getByRole('radiogroup', { name: 'วันที่แสดง' })
-    .getByRole('radio', { name: 'รายสัปดาห์' })
+    .getByRole('radio', { name: 'สัปดาห์', exact: true })
     .tap();
   const week = page.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
   await expect(week.locator(GRID_BLOCK).first()).toBeVisible();

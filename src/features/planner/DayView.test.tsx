@@ -104,7 +104,7 @@ describe('DayChips', () => {
     // Sunday carries no meeting, so the row never offers it.
     expect(screen.queryByRole('radio', { name: /วันอาทิตย์/ })).toBeNull();
     // The week chip leads the row, so the one group arranges the whole timetable.
-    expect(chip('รายสัปดาห์')).toBeVisible();
+    expect(chip('สัปดาห์')).toBeVisible();
     expect(
       screen.getAllByRole('radio').map((node) => node.dataset.day),
     ).toEqual(['week', '1', '2', '3', '4', '5', '6']);
@@ -131,13 +131,13 @@ describe('DayChips', () => {
 
   it('checks the week chip for the week and leaves every day unchecked', () => {
     render(<ChipsHarness initial="week" />);
-    expect(chip('รายสัปดาห์')).toHaveAttribute('aria-checked', 'true');
-    expect(chip('รายสัปดาห์')).toHaveAttribute('tabindex', '0');
-    expect(chip('รายสัปดาห์')).toHaveTextContent('สัปดาห์');
+    expect(chip('สัปดาห์')).toHaveAttribute('aria-checked', 'true');
+    expect(chip('สัปดาห์')).toHaveAttribute('tabindex', '0');
+    expect(chip('สัปดาห์')).toHaveTextContent('สัปดาห์');
     expect(chip('วันพุธ มีเรียน')).toHaveAttribute('aria-checked', 'false');
     fireEvent.click(chip('วันพุธ มีเรียน'));
     expect(chip('วันพุธ มีเรียน')).toHaveAttribute('aria-checked', 'true');
-    expect(chip('รายสัปดาห์')).toHaveAttribute('aria-checked', 'false');
+    expect(chip('สัปดาห์')).toHaveAttribute('aria-checked', 'false');
   });
 
   it('marks class days and conflicts with hidden dots', () => {
@@ -171,18 +171,18 @@ describe('DayChips', () => {
     render(<ChipsHarness initial={6} />);
     // The row wraps from its last day to the week chip that leads it, then to Monday.
     fireEvent.keyDown(chip('วันเสาร์ มีเรียน'), { key: 'ArrowRight' });
-    expect(chip('รายสัปดาห์')).toHaveAttribute('aria-checked', 'true');
-    expect(chip('รายสัปดาห์')).toHaveFocus();
-    fireEvent.keyDown(chip('รายสัปดาห์'), { key: 'ArrowRight' });
+    expect(chip('สัปดาห์')).toHaveAttribute('aria-checked', 'true');
+    expect(chip('สัปดาห์')).toHaveFocus();
+    fireEvent.keyDown(chip('สัปดาห์'), { key: 'ArrowRight' });
     expect(chip('วันจันทร์ มีรายการชนกัน')).toHaveAttribute('aria-checked', 'true');
     expect(chip('วันจันทร์ มีรายการชนกัน')).toHaveFocus();
     fireEvent.keyDown(chip('วันจันทร์ มีรายการชนกัน'), { key: 'ArrowLeft' });
-    expect(chip('รายสัปดาห์')).toHaveFocus();
-    fireEvent.keyDown(chip('รายสัปดาห์'), { key: 'ArrowLeft' });
+    expect(chip('สัปดาห์')).toHaveFocus();
+    fireEvent.keyDown(chip('สัปดาห์'), { key: 'ArrowLeft' });
     expect(chip('วันเสาร์ มีเรียน')).toHaveFocus();
     fireEvent.keyDown(chip('วันเสาร์ มีเรียน'), { key: 'Home' });
-    expect(chip('รายสัปดาห์')).toHaveFocus();
-    fireEvent.keyDown(chip('รายสัปดาห์'), { key: 'End' });
+    expect(chip('สัปดาห์')).toHaveFocus();
+    fireEvent.keyDown(chip('สัปดาห์'), { key: 'End' });
     expect(chip('วันเสาร์ มีเรียน')).toHaveAttribute('aria-checked', 'true');
   });
 });
@@ -513,16 +513,16 @@ describe('Timetable week chip', () => {
     seedPlan();
     renderPanel();
     expect(layout('วันพุธ มีเรียน')).toHaveAttribute('aria-checked', 'true');
-    expect(layout('รายสัปดาห์')).toHaveAttribute('aria-checked', 'false');
+    expect(layout('สัปดาห์')).toHaveAttribute('aria-checked', 'false');
     // The chip row is the one control: no separate day or week toggle renders.
-    expect(screen.queryByRole('button', { name: 'รายสัปดาห์' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'สัปดาห์' })).toBeNull();
   });
 
   it('switches to the portrait week and back from the same row, remembering the choice', () => {
     installViewport(390);
     seedPlan();
     renderPanel();
-    fireEvent.click(layout('รายสัปดาห์'));
+    fireEvent.click(layout('สัปดาห์'));
     expect(uiStore.getState().timetableView).toBe('week');
     // The row stays in place on the week, so a day is one tap away.
     expect(screen.getByRole('radiogroup', { name: 'วันที่แสดง' })).toBeVisible();
@@ -534,7 +534,7 @@ describe('Timetable week chip', () => {
     expect(blockItem('90000001').style.gridColumn).toBe('4');
     expect(blockItem('90000002').style.gridColumn).toBe('6');
     expect(blockItem('90000001').style.gridRow).toContain(' / ');
-    expect(layout('รายสัปดาห์')).toHaveAttribute('aria-checked', 'true');
+    expect(layout('สัปดาห์')).toHaveAttribute('aria-checked', 'true');
     expect(layout('วันพุธ มีเรียน')).toHaveAttribute('aria-checked', 'false');
 
     // A day chip returns to the day view on the day it names.
@@ -554,7 +554,7 @@ describe('Timetable week chip', () => {
     installViewport(390);
     seedPlan();
     renderPanel();
-    expect(layout('รายสัปดาห์')).toHaveAttribute('aria-checked', 'true');
+    expect(layout('สัปดาห์')).toHaveAttribute('aria-checked', 'true');
     expect(block('90000001')).not.toBeNull();
     expect(block('90000002')).not.toBeNull();
   });
