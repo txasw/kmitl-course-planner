@@ -303,6 +303,12 @@ export async function scanTextFit(
             fragments.push({ text, rect: part, layer, node });
             const y = (part.top + part.bottom) / 2;
             const span = part.right - part.left;
+            // A line its scroller has carried mostly out of view shows only a sliver at the
+            // scroller's edge, where a neighbouring layer may meet it by a border's width.
+            // Scrolling brings such a line back whole, so it is read as scrolled, not covered.
+            const full = fragment.bottom - fragment.top - 2 * inset;
+            if (scroller !== null && part.bottom - part.top < full / 2)
+              continue;
             // The ends sit a little inside the line, clear of the box of a neighbour.
             const end = Math.min(END_PROBE_PX, span / 2);
             for (const x of [

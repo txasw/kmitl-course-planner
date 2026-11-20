@@ -410,6 +410,9 @@ for (const language of ['th', 'en'] as const) {
           await expect(
             sweep.panel().getByText(sweep.t('save.failed'), { exact: true }),
           ).toBeVisible();
+          // The menu closed under the pointer, which may now rest on a block and hold its
+          // hover card open; a touch device has no such card, so the pointer leaves first.
+          await page.mouse.move(0, 0);
           await sweep.scan('timetable after a failed save', sweep.panel());
         } finally {
           await emptyStorage(context);
