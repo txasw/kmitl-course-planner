@@ -1,8 +1,7 @@
 // The day or week choice of the narrow timetable (ADR-0049). It shows only while the grid
 // scroller is narrower than 640 px, where the day view is the default and the week renders
 // in portrait. It takes the quiet segmented look, since it arranges the timetable rather
-// than changing the panel, so the header mode toggle stays the one filled control. The
-// choice lives in the ui store and the prefs persistence writes it, so it survives a reload.
+// than changing what the panel shows. The choice lives in the ui store and the prefs persistence writes it, so it survives a reload.
 
 import { useStore } from 'zustand';
 import { SegmentedControl } from '@/components/SegmentedControl';
