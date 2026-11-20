@@ -46,7 +46,10 @@ open or closed on the medium tier, the catalog column shown or the plan on its t
 docked tiers. The step then takes the first of its controls that is shown, outside every inert
 subtree, laid out and not hidden by visibility, and scrolls it into view within its own scroller
 inside the panel, never the host page. A step whose control does not show within a few frames is
-left out and the count follows, so the spotlight never lands on a hidden element.
+left out and the count follows, so the spotlight never lands on a hidden element. When the tour
+ends the panel stays in the view of the last step shown, with the catalog sheet, the phone pane or
+the plan view as that step left them, rather than returning to the view the tour found. Focus
+returns to the control that step pointed at, and restoring the earlier view would hide it again.
 
 Surface. The tour renders into the panel node, above every layer of the panel. The spotlight is a
 box 4 px around the control, ringed in the surface colour, and the dim is its spread, the ink at
@@ -83,9 +86,11 @@ replay that ends writes a newer mark, and the latest write replaces the stored o
 mark day of ADR-0072. Raising `TOUR_VERSION` shows a revised tour once more to every student.
 
 Reopening. The header overflow menu gains a menuitem, "แนะนำการใช้งาน" or "Product tour", under
-the language group. It starts the tour from the first step, returning to editing first when the
-export page is open. When the tour ends a toast says it can be opened again from the menu and
-offers to show it again.
+the language group and a separator. It starts the tour from the first step, returning to editing
+first when the export page is open. When the tour ends a toast says it can be opened again from
+the menu and offers to show it again, through the same path, so a replay from the export page
+returns to editing too. The tour reads which steps the panel offers on the first frame after it
+opens, once the edit workspace it may have returned to has rendered.
 
 Accessibility. The card is a modal dialog labelled by its title and described by its sentence.
 Focus moves to Next as the tour opens, Tab stays inside the card, and Escape skips. A view change
