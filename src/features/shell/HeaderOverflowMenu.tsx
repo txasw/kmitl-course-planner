@@ -27,8 +27,7 @@ import { IS_DEBUG } from '@/lib/env';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { debugMenuStore } from './debugMenuStore';
-import { onboardingStore } from '@/features/onboarding/onboardingStore';
-import { backToEditing } from './ExportEntry';
+import { openProductTour } from '@/features/onboarding/openProductTour';
 import { useExtensionVersion } from './ExtensionVersionContext';
 import { uiStore } from './uiStore';
 import { useEscapeLayer } from './useEscapeLayer';
@@ -145,8 +144,7 @@ export function HeaderOverflowMenu() {
 
   const startTour = () => {
     closeToTrigger();
-    if (uiStore.getState().viewMode === 'preview') backToEditing();
-    onboardingStore.getState().startTour();
+    openProductTour();
   };
 
   return (

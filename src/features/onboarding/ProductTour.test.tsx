@@ -75,6 +75,7 @@ afterEach(() => {
   act(() => {
     uiStore.getState().close();
     uiStore.getState().setLanguage('th');
+    uiStore.getState().setViewMode('edit');
   });
   onboardingStore.setState(initialOnboardingData());
   toastStore.getState().dismiss();
@@ -197,6 +198,45 @@ describe('ProductTour', () => {
           : null,
       );
     });
+  });
+
+  it('opens from the menu on the export page on the search step and records nothing', async () => {
+    installViewport(1366, { reducedMotion: true });
+    const record = fakeRecord();
+    render(
+      <SearchDepsProvider value={fakeSearchDeps()}>
+        <Overlay>
+          <ProductTour record={record} />
+        </Overlay>
+      </SearchDepsProvider>,
+    );
+    act(() => {
+      uiStore.getState().open();
+      uiStore.getState().setViewMode('preview');
+    });
+    fireEvent.click(button('ตัวเลือกเพิ่มเติม'));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'แนะนำการใช้งาน' }));
+    const dialog = await stepTitled('ค้นหารายวิชา');
+    expect(dialog).toHaveTextContent('1 จาก 4');
+    expect(uiStore.getState().viewMode).toBe('edit');
+    expect(record.patch).not.toHaveBeenCalled();
+    expect(toastStore.getState().toast).toBeNull();
+  });
+
+  it('replays from the toast action after the student moved to the export page', async () => {
+    const record = renderTour(1366);
+    await stepTitled('ค้นหารายวิชา');
+    fireEvent.click(button('ข้าม'));
+    const action = toastStore.getState().toast?.action;
+    act(() => {
+      uiStore.getState().setViewMode('preview');
+    });
+    act(() => {
+      action?.run(document.body);
+    });
+    await stepTitled('ค้นหารายวิชา');
+    expect(uiStore.getState().viewMode).toBe('edit');
+    expect(record.patch).toHaveBeenCalledTimes(1);
   });
 
   it('reads in English', async () => {

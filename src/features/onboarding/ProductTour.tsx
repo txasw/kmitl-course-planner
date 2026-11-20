@@ -56,6 +56,7 @@ import {
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { onboardingStore } from './onboardingStore';
+import { openProductTour } from './openProductTour';
 import { recordTourOutcome } from './recordOnboardingMoment';
 import {
   hasTarget,
@@ -132,9 +133,10 @@ function OpenProductTour({ record, panel }: OpenProductTourProps) {
   const bodyId = useId();
   const cardRef = useRef<HTMLDivElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
-  const [steps, setSteps] = useState<readonly TourStep[]>(() =>
-    availableSteps(TOUR_STEPS, (target) => hasTarget(panel, target)),
-  );
+  // Null until the first frame after the tour opens. The tour can open in the same render
+  // that leaves the export page, and only once that render commits does the panel hold
+  // the edit workspace whose controls the steps point at.
+  const [steps, setSteps] = useState<readonly TourStep[] | null>(null);
   const [index, setIndex] = useState(0);
   const direction = useRef<1 | -1>(1);
   const [shown, setShown] = useState<Shown | null>(null);
@@ -165,9 +167,7 @@ function OpenProductTour({ record, panel }: OpenProductTourProps) {
       );
       toastStore.getState().show('success', t('tour.ended'), {
         label: t('tour.replay'),
-        run: () => {
-          onboardingStore.getState().startTour();
-        },
+        run: openProductTour,
       });
     },
     [panel, record, shown, t],
@@ -231,19 +231,32 @@ function OpenProductTour({ record, panel }: OpenProductTourProps) {
     [panel],
   );
 
-  // A tour with nothing to point at ends at once, as finished, since nothing was missed.
   useEffect(() => {
-    if (steps.length === 0) endRef.current('completed');
-  }, [steps.length]);
+    const handle = requestAnimationFrame(() => {
+      setSteps(
+        availableSteps(TOUR_STEPS, (target) => hasTarget(panel, target)),
+      );
+    });
+    return () => {
+      cancelAnimationFrame(handle);
+    };
+  }, [panel]);
 
   // Lay out the step's view, then wait for its control. A step whose control never shows
   // is left out, and the tour moves on in the direction it was going. A tier change lays
-  // the step out again for the new tier.
+  // the step out again for the new tier. A tour with no step left ends as finished, since
+  // nothing was missed; it ends on the next frame, outside React's commit, so the focus
+  // move that ending makes can flush its own render.
   useEffect(() => {
+    if (steps === null) return undefined;
     const step = steps[index];
     if (step === undefined) {
-      if (steps.length > 0) endRef.current('completed');
-      return undefined;
+      const handle = requestAnimationFrame(() => {
+        endRef.current('completed');
+      });
+      return () => {
+        cancelAnimationFrame(handle);
+      };
     }
     showTourView(step.view, tier);
     let frame = 0;
@@ -261,7 +274,11 @@ function OpenProductTour({ record, panel }: OpenProductTourProps) {
         handle = requestAnimationFrame(look);
         return;
       }
-      setSteps((current) => current.filter((candidate) => candidate !== step));
+      setSteps((current) =>
+        current === null
+          ? current
+          : current.filter((candidate) => candidate !== step),
+      );
       setIndex(indexAfterDrop(index, direction.current));
     };
     handle = requestAnimationFrame(look);
@@ -306,10 +323,11 @@ function OpenProductTour({ record, panel }: OpenProductTourProps) {
     if (firstShown) nextRef.current?.focus({ preventScroll: true });
   }, [firstShown]);
 
-  const shownIndex = shown === null ? -1 : steps.indexOf(shown.step);
+  const tourSteps = steps ?? [];
+  const shownIndex = shown === null ? -1 : tourSteps.indexOf(shown.step);
   const count = fillTemplate(t('tour.count'), {
     current: String(shownIndex + 1),
-    total: String(steps.length),
+    total: String(tourSteps.length),
   });
 
   // The first step is read with the dialog as focus lands in it; each step shown after a
@@ -319,7 +337,7 @@ function OpenProductTour({ record, panel }: OpenProductTourProps) {
       ? `${count} ${t(shown.step.title)} ${t(shown.resolved.anchor.body)}`
       : '';
 
-  const last = shownIndex === steps.length - 1;
+  const last = shownIndex === tourSteps.length - 1;
   const handleNext = (): void => {
     if (last) {
       end('completed');
@@ -394,7 +412,7 @@ function OpenProductTour({ record, panel }: OpenProductTourProps) {
         >
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span aria-hidden="true" className="flex shrink-0 gap-1">
-              {steps.map((step, position) => (
+              {tourSteps.map((step, position) => (
                 <span
                   key={step.id}
                   className={`block h-1 w-3.5 rounded-full ${
