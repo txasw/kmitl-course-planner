@@ -1,29 +1,38 @@
-// The day picker of the narrow timetable (ADR-0049). A radio group of day chips keeps the
-// shape of the week in view while the timetable below shows one day: each chip carries a
-// neutral dot for a day with a class and a danger dot for a day with a time conflict. The
-// dots are decoration, so each chip names its day in full and says in words whether it has
-// classes or a conflict. The chips follow the radio group pattern: one tab stop on the
-// chosen chip, the arrow keys move the choice around the row, and Home and End jump to its
-// ends. A swipe on the timetable also changes the day, but the chips are the path that
-// every input reaches.
+// The chip row of the narrow timetable (ADR-0049). One radio group arranges the timetable: a
+// week chip leads the row and shows the portrait week, and a chip per teaching day shows that
+// day, so the day or week choice and the day choice are one control rather than two. Each day
+// chip carries a neutral dot for a day with a class and a danger dot for a day with a time
+// conflict. The dots are decoration, so each chip names its day in full and says in words
+// whether it has classes or a conflict. The chosen chip reads without colour: it takes the
+// heavier weight, an inset outline, and an underline bar below its label. The chips follow the
+// radio group pattern: one tab stop on the chosen chip, the arrow keys move the choice around
+// the whole row, week chip included, and Home and End jump to its ends. A swipe on the day
+// view also changes the day, but the chips are the path that every input reaches.
 
-import { useRef, type KeyboardEvent } from 'react';
+import { useRef, type KeyboardEvent, type ReactNode } from 'react';
+import { CalendarDays } from 'lucide-react';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import type { Translate } from '@/lib/i18n/t';
 import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
-import { stepDay, type DayFlag, type DayFlags } from '@/lib/planner/dayView';
+import {
+  stepDay,
+  timetableChoices,
+  type DayFlag,
+  type DayFlags,
+  type TimetableChoice,
+} from '@/lib/planner/dayView';
 import { FOCUS_RING } from '@/lib/ui/focus';
-import { TARGET_SIZE } from '@/lib/ui/target';
 
 interface DayChipsProps {
   days: readonly DayOfWeek[];
-  selected: DayOfWeek;
+  /** The chosen chip: a day for the day view, or the week chip for the portrait week. */
+  selected: TimetableChoice;
   flags: DayFlags;
-  onSelect: (day: DayOfWeek) => void;
+  onSelect: (choice: TimetableChoice) => void;
   t: Translate;
 }
 
-/** The accessible name of a chip: the full day name, then its class or conflict state. */
+/** The accessible name of a day chip: the full day name, then its class or conflict state. */
 function chipName(day: DayOfWeek, flag: DayFlag, t: Translate): string {
   const name = t(dayFullLabelKey(day));
   if (flag.hasConflict) {
@@ -39,6 +48,42 @@ function dotClass(flag: DayFlag): string {
   return flag.hasClass ? 'bg-ink-soft' : 'bg-transparent';
 }
 
+// A day chip shares the row's width with its peers, and the week chip keeps the width its
+// label needs. Neither may shrink below its content, and the row wraps before it would clip.
+const CHIP = `inline-flex min-h-11 min-w-(--kcp-target-min) flex-col items-center justify-center gap-1 rounded-kcp-inner px-1 text-xs transition-colors ${FOCUS_RING}`;
+
+function chipState(isSelected: boolean): string {
+  return isSelected
+    ? 'bg-surface-alt font-semibold text-ink ring-1 ring-inset ring-border'
+    : 'text-ink-soft hover:bg-surface-alt hover:text-ink';
+}
+
+interface ChipFaceProps {
+  label: ReactNode;
+  mark: ReactNode;
+  isSelected: boolean;
+}
+
+/** The stacked face of a chip: its label, its mark row, and the underline bar of the chosen
+ * chip, each in the flow so the bar never sits over the label. */
+function ChipFace({ label, mark, isSelected }: ChipFaceProps) {
+  return (
+    <>
+      <span aria-hidden className="whitespace-nowrap">
+        {label}
+      </span>
+      <span aria-hidden className="flex h-3 items-center">
+        {mark}
+      </span>
+      <span
+        aria-hidden
+        data-chip-bar={isSelected ? 'on' : 'off'}
+        className={`h-0.5 w-4 rounded-full ${isSelected ? 'bg-ink' : 'bg-transparent'}`}
+      />
+    </>
+  );
+}
+
 export function DayChips({
   days,
   selected,
@@ -46,11 +91,12 @@ export function DayChips({
   onSelect,
   t,
 }: DayChipsProps) {
-  const chips = useRef(new Map<DayOfWeek, HTMLButtonElement>());
+  const chips = useRef(new Map<TimetableChoice, HTMLButtonElement>());
+  const row = timetableChoices(days);
 
-  const choose = (day: DayOfWeek) => {
-    onSelect(day);
-    chips.current.get(day)?.focus();
+  const choose = (choice: TimetableChoice) => {
+    onSelect(choice);
+    chips.current.get(choice)?.focus();
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
@@ -58,32 +104,67 @@ export function DayChips({
       case 'ArrowRight':
       case 'ArrowDown':
         event.preventDefault();
-        choose(stepDay(days, selected, 1, true));
+        choose(stepDay(row, selected, 1, true));
         break;
       case 'ArrowLeft':
       case 'ArrowUp':
         event.preventDefault();
-        choose(stepDay(days, selected, -1, true));
+        choose(stepDay(row, selected, -1, true));
         break;
       case 'Home':
         event.preventDefault();
-        choose(days[0] ?? selected);
+        choose(row[0] ?? selected);
         break;
       case 'End':
         event.preventDefault();
-        choose(days.at(-1) ?? selected);
+        choose(row.at(-1) ?? selected);
         break;
       default:
         break;
     }
   };
 
+  const register = (
+    choice: TimetableChoice,
+    node: HTMLButtonElement | null,
+  ) => {
+    if (node === null) {
+      chips.current.delete(choice);
+    } else {
+      chips.current.set(choice, node);
+    }
+  };
+
+  const weekSelected = selected === 'week';
+
   return (
     <div
       role="radiogroup"
       aria-label={t('view.dayPicker')}
-      className="flex shrink-0 gap-1 rounded-kcp border border-border p-1"
+      className="flex shrink-0 flex-wrap gap-0.5 rounded-kcp border border-border p-1"
     >
+      <button
+        ref={(node) => {
+          register('week', node);
+        }}
+        type="button"
+        role="radio"
+        aria-checked={weekSelected}
+        aria-label={t('view.layoutWeek')}
+        tabIndex={weekSelected ? 0 : -1}
+        data-day="week"
+        onKeyDown={handleKeyDown}
+        onClick={() => {
+          onSelect('week');
+        }}
+        className={`${CHIP} flex-none px-2 ${chipState(weekSelected)}`}
+      >
+        <ChipFace
+          label={t('view.weekChip')}
+          mark={<CalendarDays size={12} strokeWidth={2} />}
+          isSelected={weekSelected}
+        />
+      </button>
       {days.map((day) => {
         const isSelected = day === selected;
         const flag = flags[day];
@@ -91,11 +172,7 @@ export function DayChips({
           <button
             key={day}
             ref={(node) => {
-              if (node === null) {
-                chips.current.delete(day);
-              } else {
-                chips.current.set(day, node);
-              }
+              register(day, node);
             }}
             type="button"
             role="radio"
@@ -107,19 +184,24 @@ export function DayChips({
             onClick={() => {
               onSelect(day);
             }}
-            className={`inline-flex min-h-9 flex-1 flex-col items-center justify-center gap-1 rounded-kcp-inner text-xs transition-colors ${TARGET_SIZE} ${FOCUS_RING} ${
-              isSelected
-                ? 'bg-surface-alt font-semibold text-ink'
-                : 'text-ink-soft hover:text-ink'
-            }`}
+            className={`${CHIP} flex-1 ${chipState(isSelected)}`}
           >
-            <span aria-hidden>{t(dayLabelKey(day))}</span>
-            <span
-              aria-hidden
-              data-day-dot={
-                flag.hasConflict ? 'conflict' : flag.hasClass ? 'class' : 'none'
+            <ChipFace
+              label={t(dayLabelKey(day))}
+              mark={
+                <span
+                  aria-hidden
+                  data-day-dot={
+                    flag.hasConflict
+                      ? 'conflict'
+                      : flag.hasClass
+                        ? 'class'
+                        : 'none'
+                  }
+                  className={`size-1 rounded-full ${dotClass(flag)}`}
+                />
               }
-              className={`size-1 rounded-full ${dotClass(flag)}`}
+              isSelected={isSelected}
             />
           </button>
         );
