@@ -1,5 +1,5 @@
 // One suggested timetable, one slide of the suggestion carousel. It shows the whole week
-// the suggestion would produce, the entries already in the plan included, as a read only
+// the suggestion would produce, the plan subjects it keeps included, as a read only
 // mini grid in the frame the dialog shares across the slides, then the stats a student
 // compares suggestions by, then the sections it places named in full, then the ticked
 // courses it leaves out with the reason each one stayed out, both lists collapsed by

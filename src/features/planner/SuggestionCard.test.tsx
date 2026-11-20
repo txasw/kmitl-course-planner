@@ -15,13 +15,18 @@ import { sharedFrame, suggestionSections } from './suggestionFrame';
 
 const t = createTranslator('th');
 const courses = byClassCourses();
-const locked = lockSections(courses, [
+// The lab and a GenEd are in the plan, the GenEd added by hand from another search so
+// this result lacks it and it keeps its own section. The student unticks the lab, so
+// the card leaves it out and names what clashes with the GenEd.
+const entries = lockSections(courses, [
   ['01006021', '3'],
   ['04186098', '2'],
 ]);
+const result = courses.filter((course) => course.subjectId !== '04186098');
 const [suggestion] = suggestPlans({
-  courses,
-  locked,
+  courses: result,
+  subjects: new Set(['04186098', '01006020', '01006503', '01006030']),
+  entries,
   objective: 'coverAll',
   preference: 'morning',
 }).suggestions;
@@ -38,7 +43,7 @@ function renderCard({
   orientation?: Orientation;
 } = {}) {
   if (suggestion === undefined) throw new Error('expected a suggestion');
-  const sections = suggestionSections(locked, suggestion);
+  const sections = suggestionSections(entries, suggestion);
   render(
     <SuggestionCard
       suggestion={suggestion}
@@ -69,7 +74,7 @@ describe('SuggestionCard', () => {
     expect(screen.getByText('ช่วงว่าง').nextSibling).toHaveTextContent(/ชม\./);
   });
 
-  it('draws the locked entries and the chosen sections on a read only grid', () => {
+  it('draws the kept plan subjects and the chosen sections on a read only grid', () => {
     const { suggestion: shown } = renderCard();
     const grid = screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
     const placed = new Set(
@@ -78,12 +83,14 @@ describe('SuggestionCard', () => {
         (block) => block.dataset.teachTableId,
       ),
     );
-    for (const entry of locked) {
-      expect(placed.has(entry.teachTableId)).toBe(true);
-    }
+    expect(
+      shown.choices.find((choice) => choice.current)?.course.subjectId,
+    ).toBe('04186098');
     for (const choice of shown.choices) {
       expect(placed.has(choice.section.teachTableId)).toBe(true);
     }
+    // The unticked lab is left out of the drawn week.
+    expect(placed.has(entries[0]?.teachTableId)).toBe(false);
     expect(grid.querySelector('button')).toBeNull();
     // The card is read only but never exported, so its blocks take the soft card.
     for (const block of grid.querySelectorAll('[data-teach-table-id]')) {
@@ -92,20 +99,20 @@ describe('SuggestionCard', () => {
   });
 
   it('lists the courses left out with their reasons behind a collapsed disclosure', () => {
-    renderCard();
+    const { suggestion: shown } = renderCard();
     const toggle = screen.getByRole('button', {
-      name: 'วิชาที่ไม่ได้จัดลงตาราง 2 วิชา',
+      name: `วิชาที่ไม่ได้จัดลงตาราง ${String(shown.leftOut.length)} วิชา`,
     });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByText('ชนกับ 01006021 ในตารางปัจจุบัน')).toBeNull();
+    expect(screen.queryByText('ชนกับ 04186098 ในตารางปัจจุบัน')).toBeNull();
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByText('ชนกับ 01006021 ในตารางปัจจุบัน')).toBeInTheDocument();
+    expect(screen.getByText('ชนกับ 04186098 ในตารางปัจจุบัน')).toBeInTheDocument();
   });
 
   it('names every placed section in full, collapsed', () => {
     const { suggestion: shown } = renderCard();
-    const sections = suggestionSections(locked, shown);
+    const sections = suggestionSections(entries, shown);
     const placedSubjects = new Set(
       sections.map((section) => section.subjectId),
     );

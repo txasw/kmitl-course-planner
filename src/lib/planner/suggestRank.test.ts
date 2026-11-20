@@ -12,15 +12,21 @@ import {
 
 function choice(subjectId: string, code: string): SuggestChoice {
   const section = makeSection({ subjectId, section: code });
-  return { course: makeCourse({ subjectId }), section, group: [section] };
+  return {
+    course: makeCourse({ subjectId }),
+    section,
+    group: [section],
+    current: false,
+  };
 }
 
 function ranked(
   objective: [number, number],
   penalty: number,
   choices: SuggestChoice[],
+  moved = 0,
 ): RankedTimetable {
-  return { objective, penalty, choices, footprint: '' };
+  return { objective, penalty, moved, choices, footprint: '' };
 }
 
 describe('objectiveValue', () => {
@@ -39,6 +45,17 @@ describe('compareRanked', () => {
       calmer,
       more,
       fewer,
+    ]);
+  });
+
+  it('ranks the timetable that moves fewer plan subjects first on a tie', () => {
+    const moves = ranked([2, 6], 100, [choice('11111111', '1')], 1);
+    const keeps = ranked([2, 6], 100, [choice('11111111', '2')], 0);
+    const calmer = ranked([2, 6], 90, [choice('11111111', '3')], 1);
+    expect([moves, keeps, calmer].sort(compareRanked)).toEqual([
+      calmer,
+      keeps,
+      moves,
     ]);
   });
 

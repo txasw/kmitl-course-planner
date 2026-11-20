@@ -96,7 +96,7 @@ describe('suggestPlans on the by_class capture', () => {
       for (const preference of PREFERENCES) {
         const { suggestions, truncated } = suggestPlans({
           courses,
-          locked: [],
+          entries: [],
           objective,
           preference,
         });
@@ -120,7 +120,7 @@ describe('suggestPlans on the by_class capture', () => {
     const most = Math.max(...feasible.map((f) => f.courses));
     const { suggestions } = suggestPlans({
       courses,
-      locked: [],
+      entries: [],
       objective: 'coverAll',
       preference: 'balanced',
     });
@@ -135,7 +135,7 @@ describe('suggestPlans on the by_class capture', () => {
     const most = Math.max(...feasible.map((f) => f.credits));
     const [best] = suggestPlans({
       courses,
-      locked: [],
+      entries: [],
       objective: 'maxCredits',
       preference: 'compact',
     }).suggestions;
@@ -148,7 +148,7 @@ describe('suggestPlans on the by_class capture', () => {
     for (const preference of ['morning', 'afternoon'] as const) {
       const { suggestions } = suggestPlans({
         courses,
-        locked: [],
+        entries: [],
         objective: 'coverAll',
         preference,
       });
@@ -176,7 +176,7 @@ describe('suggestPlans on the by_class capture', () => {
   it('fits all six curriculum courses and leaves the GenEd ones alone', () => {
     const [best] = suggestPlans({
       courses,
-      locked: [],
+      entries: [],
       objective: 'coverAll',
       preference: 'balanced',
     }).suggestions;
@@ -192,55 +192,60 @@ describe('suggestPlans on the by_class capture', () => {
     expect(best?.stats).toMatchObject({ credits: 16, courses: 6 });
   });
 
-  it('keeps locked entries and never clashes with them', () => {
+  it('keeps every ticked plan subject in each timetable without a clash', () => {
     // The lab is a curriculum course the student placed by hand; the GenEd sits on
     // Tuesday afternoon, the only other slot physics and psychology have.
-    const locked = lockSections(courses, [
+    const entries = lockSections(courses, [
       ['01006021', '3'],
       ['04186098', '2'],
     ]);
     const { suggestions } = suggestPlans({
       courses,
-      locked,
+      entries,
       objective: 'coverAll',
       preference: 'morning',
     });
     expect(suggestions.length).toBeGreaterThan(0);
     for (const suggestion of suggestions) {
-      expect(passesAsAWhole(locked, suggestion)).toBe(true);
+      expect(passesAsAWhole([], suggestion)).toBe(true);
       const subjects = suggestion.choices.map((c) => c.course.subjectId);
-      expect(subjects).not.toContain('01006021');
-      expect(subjects).not.toContain('01006020');
-      expect(suggestion.stats.courses).toBe(subjects.length + 2);
-      expect(
-        suggestion.leftOut.map(({ course, reason }) => [
-          course.subjectId,
-          reason.kind,
-          'blocking' in reason
-            ? `${reason.blocking.subjectId}/${reason.blocking.section}`
-            : null,
-        ]),
-      ).toEqual([
-        ['01006020', 'locked', '01006021/3'],
-        ['01006503', 'locked', '04186098/2'],
-      ]);
+      expect(subjects).toEqual(
+        expect.arrayContaining(['01006021', '04186098']),
+      );
+      expect(suggestion.stats.courses).toBe(subjects.length);
+      for (const { course } of suggestion.leftOut) {
+        expect(['01006021', '04186098']).not.toContain(course.subjectId);
+      }
     }
   });
 
+  it('fits more by moving plan subjects than it could around them in place', () => {
+    const entries = lockSections(courses, [
+      ['01006021', '3'],
+      ['04186098', '2'],
+    ]);
+    const [best] = suggestPlans({
+      courses,
+      entries,
+      objective: 'coverAll',
+      preference: 'morning',
+    }).suggestions;
+    // Held in place, the lab and the GenEd shut out physics and psychology.
+    expect(best?.leftOut).toEqual([]);
+    expect(best?.choices.some((c) => !c.current)).toBe(true);
+  });
+
   it('offers only maximal timetables', () => {
-    const locked = lockSections(courses, [['04186098', '2']]);
+    const entries = lockSections(courses, [['04186098', '2']]);
     for (const preference of PREFERENCES) {
       const { suggestions } = suggestPlans({
         courses,
-        locked,
+        entries,
         objective: 'coverAll',
         preference,
       });
       for (const suggestion of suggestions) {
-        const placed = [
-          ...placedSections(locked),
-          ...suggestion.choices.flatMap((c) => c.group),
-        ];
+        const placed = suggestion.choices.flatMap((c) => c.group);
         for (const { course } of suggestion.leftOut) {
           const fits = course.sections.some(
             (s) =>
@@ -256,7 +261,7 @@ describe('suggestPlans on the by_class capture', () => {
   it('gives identical results across runs', () => {
     const input = {
       courses,
-      locked: lockSections(courses, [['04186098', '2']]),
+      entries: lockSections(courses, [['04186098', '2']]),
       objective: 'maxCredits',
       preference: 'balanced',
     } as const;
@@ -267,7 +272,7 @@ describe('suggestPlans on the by_class capture', () => {
     for (const objective of OBJECTIVES) {
       for (const preference of PREFERENCES) {
         const start = performance.now();
-        suggestPlans({ courses, locked: [], objective, preference });
+        suggestPlans({ courses, entries: [], objective, preference });
         expect(performance.now() - start).toBeLessThan(50);
       }
     }
@@ -298,7 +303,7 @@ describe('suggestPlans on synthetic courses', () => {
     ]);
     const [best] = suggestPlans({
       courses: [a, b, sameDay],
-      locked: [],
+      entries: [],
       objective: 'coverAll',
       preference: 'balanced',
     }).suggestions;
@@ -340,11 +345,13 @@ describe('suggestPlans on synthetic courses', () => {
     ]);
     const [best] = suggestPlans({
       courses: [clashing],
-      locked: outcome.result.entries,
+      entries: outcome.result.entries,
       objective: 'coverAll',
       preference: 'balanced',
     }).suggestions;
-    expect(best?.choices).toEqual([]);
+    expect(best?.choices.map((c) => [c.course.subjectId, c.current])).toEqual([
+      ['90000009', true],
+    ]);
     expect(best?.leftOut[0]?.reason).toMatchObject({
       kind: 'exam',
       blocking: { subjectId: '90000009' },
@@ -358,7 +365,7 @@ describe('suggestPlans on synthetic courses', () => {
     ]);
     const { suggestions } = suggestPlans({
       courses: [full],
-      locked: [],
+      entries: [],
       objective: 'coverAll',
       preference: 'balanced',
     });
@@ -373,7 +380,7 @@ describe('suggestPlans on synthetic courses', () => {
     const second = curriculumCourse('66666666', [{ meetings: slot }], 2);
     const result = suggestPlans({
       courses: [second, first],
-      locked: [],
+      entries: [],
       objective: 'maxCredits',
       preference: 'balanced',
     });
@@ -406,7 +413,7 @@ describe('suggestPlans on synthetic courses', () => {
     ]);
     const { suggestions } = suggestPlans({
       courses: [paired],
-      locked: [],
+      entries: [],
       objective: 'coverAll',
       preference: 'morning',
     });
@@ -421,7 +428,7 @@ describe('suggestPlans on synthetic courses', () => {
     const general = makeCourse({ subjectId: '88888888' });
     const { suggestions } = suggestPlans({
       courses: [general],
-      locked: [],
+      entries: [],
       objective: 'coverAll',
       preference: 'balanced',
     });
@@ -429,7 +436,7 @@ describe('suggestPlans on synthetic courses', () => {
     const [best] = suggestPlans({
       courses: [general],
       subjects: new Set(['88888888']),
-      locked: [],
+      entries: [],
       objective: 'coverAll',
       preference: 'balanced',
     }).suggestions;
@@ -444,7 +451,7 @@ describe('suggestPlans on synthetic courses', () => {
     const [best] = suggestPlans({
       courses: [a, b],
       subjects: new Set(['22222222']),
-      locked: [],
+      entries: [],
       objective: 'coverAll',
       preference: 'balanced',
     }).suggestions;
@@ -471,7 +478,7 @@ describe('suggestPlans on synthetic courses', () => {
     );
     const result = suggestPlans({
       courses,
-      locked: [],
+      entries: [],
       objective: 'coverAll',
       preference: 'compact',
     });
@@ -518,7 +525,7 @@ describe('suggestPlans diversity', () => {
     ]);
     const { suggestions } = suggestPlans({
       courses: [a, b],
-      locked: [],
+      entries: [],
       objective: 'coverAll',
       preference: 'balanced',
     });
@@ -543,7 +550,7 @@ describe('suggestPlans diversity', () => {
     ]);
     const { suggestions } = suggestPlans({
       courses: [a],
-      locked: [],
+      entries: [],
       objective: 'coverAll',
       preference: 'balanced',
     });
@@ -563,7 +570,7 @@ describe('suggestPlans diversity', () => {
     ]);
     const { suggestions } = suggestPlans({
       courses: [a, b],
-      locked: [],
+      entries: [],
       objective: 'coverAll',
       preference: 'balanced',
     });
@@ -588,7 +595,7 @@ describe('suggestPlans diversity', () => {
     ]);
     const { suggestions } = suggestPlans({
       courses: [paired],
-      locked: [],
+      entries: [],
       objective: 'coverAll',
       preference: 'balanced',
     });
@@ -608,7 +615,7 @@ describe('suggestPlans diversity', () => {
     ]);
     const { suggestions } = suggestPlans({
       courses: [a, full],
-      locked: [],
+      entries: [],
       objective: 'coverAll',
       preference: 'balanced',
     });
@@ -620,7 +627,7 @@ describe('suggestPlans diversity', () => {
     for (const preference of PREFERENCES) {
       const { suggestions } = suggestPlans({
         courses: byClassCourses(),
-        locked: [],
+        entries: [],
         objective: 'coverAll',
         preference,
       });

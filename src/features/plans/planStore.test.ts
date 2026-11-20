@@ -488,7 +488,7 @@ describe('planStore createFromSuggestion', () => {
   function firstSuggestion(): Suggestion {
     const [suggestion] = suggestPlans({
       courses,
-      locked,
+      entries: locked,
       objective: 'coverAll',
       preference: 'morning',
     }).suggestions;
@@ -579,7 +579,7 @@ describe('planStore createFromSuggestion', () => {
     ]);
     const [suggestion] = suggestPlans({
       courses,
-      locked: [],
+      entries: [],
       objective: 'coverAll',
       preference: 'balanced',
     }).suggestions;

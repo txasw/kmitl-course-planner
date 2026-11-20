@@ -9,6 +9,7 @@ import type { SuggestChoice } from './suggestCandidates';
 import {
   collapseInterchangeable,
   groupFootprint,
+  interchangeable,
   keepDistinct,
   timetableFootprint,
 } from './suggestFootprint';
@@ -43,6 +44,7 @@ function choice(group: Section[]): SuggestChoice {
     course: makeCourse({ subjectId: first.subjectId, sections: group }),
     section: first,
     group,
+    current: false,
   };
 }
 
@@ -54,6 +56,7 @@ function ranked(
   return {
     objective,
     penalty,
+    moved: 0,
     choices,
     footprint: timetableFootprint(choices),
   };
@@ -102,6 +105,31 @@ describe('timetableFootprint', () => {
       choice([section('22222222', '1', [MONDAY])]),
     ];
     expect(timetableFootprint(a)).not.toBe(timetableFootprint(swapped));
+  });
+});
+
+describe('interchangeable', () => {
+  it('holds for groups with one time and exam whatever their section codes', () => {
+    expect(
+      interchangeable(
+        [section('1', '1', [MONDAY], { exam: { final: FINAL_A } })],
+        [section('1', '9', [MONDAY], { exam: { final: FINAL_A } })],
+      ),
+    ).toBe(true);
+  });
+
+  it('fails on another time or another exam window', () => {
+    const own = [section('1', '1', [MONDAY], { exam: { final: FINAL_A } })];
+    expect(
+      interchangeable(own, [
+        section('1', '2', [TUESDAY], { exam: { final: FINAL_A } }),
+      ]),
+    ).toBe(false);
+    expect(
+      interchangeable(own, [
+        section('1', '3', [MONDAY], { exam: { final: FINAL_B } }),
+      ]),
+    ).toBe(false);
   });
 });
 

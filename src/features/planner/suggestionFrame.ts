@@ -1,7 +1,8 @@
 // The sections and the grid frame the plan suggestion cards draw. A card shows the whole
-// week its suggestion would produce, the entries already in the plan included, so its
-// sections are the locked snapshots plus every chosen section and its pair, each shaped
-// exactly as an add would store it. The cards share one frame, the smart window and the
+// week its suggestion would produce, the plan subjects it keeps included, so its sections
+// are every chosen section and its pair: a plan subject kept at its own group as the plan
+// stores it, with its verification status, and every other one shaped exactly as an add
+// would store it. The cards share one frame, the smart window and the
 // visible days over every card's meetings together, so the same hour and the same day sit
 // at the same place on each card and the cards read as a comparison.
 
@@ -22,19 +23,18 @@ export interface SuggestionFrame {
 }
 
 export function suggestionSections(
-  locked: readonly PlanEntry[],
+  entries: readonly PlanEntry[],
   suggestion: Suggestion,
 ): PlacedSection[] {
-  return [
-    ...locked.map((entry) =>
-      toPlacedSection(entry.snapshot, entry.verifyStatus),
-    ),
-    ...suggestion.choices.flatMap((choice) =>
-      choice.group.map((member) =>
-        toPlacedSection(toSnapshot(choice.course, member)),
-      ),
-    ),
-  ];
+  const byId = new Map(entries.map((entry) => [entry.teachTableId, entry]));
+  return suggestion.choices.flatMap((choice) =>
+    choice.group.map((member) => {
+      const entry = choice.current ? byId.get(member.teachTableId) : undefined;
+      return entry === undefined
+        ? toPlacedSection(toSnapshot(choice.course, member))
+        : toPlacedSection(entry.snapshot, entry.verifyStatus);
+    }),
+  );
 }
 
 export function sharedFrame(

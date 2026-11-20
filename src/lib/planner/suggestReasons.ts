@@ -6,9 +6,10 @@
 // open section group cannot be taken at all. An exam overlap that every open group
 // shares with one subject cannot be avoided by picking another section, because a
 // subject often sits one exam for all its sections; it names that subject. A
-// course whose every open group collides with the locked entries names the first
-// one it meets, since removing that entry is the student's call. Anything else
-// fits on its own but not beside the chosen courses.
+// course whose every open group collides with the plan subjects the timetable
+// keeps names the first one it meets, since unticking or removing that subject is
+// the student's call. Anything else fits on its own but not beside the chosen
+// courses.
 
 import type { Section } from '../domain/types';
 import {
@@ -47,8 +48,8 @@ function sharedExamBlocker(outcomes: PlacementResult[]): EntryRef | null {
 
 /**
  * The reason a course is not in a timetable. `open` holds the course's section
- * groups whose members are all open, `locked` the plan's fixed sections, and
- * `placed` the whole timetable, locked and chosen.
+ * groups whose members are all open, `locked` the sections of the plan subjects
+ * the timetable keeps, and `placed` the whole timetable, kept and chosen.
  */
 export function leftOutReason(
   open: Section[][],

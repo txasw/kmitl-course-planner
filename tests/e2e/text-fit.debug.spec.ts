@@ -516,6 +516,20 @@ for (const language of ['th', 'en'] as const) {
           'timetable from a suggestion',
           sweep.panel(),
         );
+        // Opened again from the status row, the dialog lists the plan's own subjects.
+        await sweep
+          .panel()
+          .getByRole('group', { name: sweep.t('stats.region'), exact: true })
+          .getByRole('button', { name: sweep.t('suggest.openShort') })
+          .click();
+        await expect(
+          dialog.getByRole('region', {
+            name: sweep.t('suggest.subjects.planned'),
+          }),
+        ).toBeVisible();
+        await sweep.scan('suggest with the plan subjects', dialog);
+        await page.keyboard.press('Escape');
+        await expect(dialog).toHaveCount(0);
 
         await page
           .getByRole('button', { name: sweep.t('mode.export'), exact: true })

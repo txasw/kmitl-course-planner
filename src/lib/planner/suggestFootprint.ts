@@ -68,6 +68,18 @@ function bySectionCode(a: SuggestChoice, b: SuggestChoice): number {
   });
 }
 
+function interchangeKey(group: readonly Section[]): string {
+  return `${groupFootprint(group)}#${examKey(group)}`;
+}
+
+/** Whether two section groups meet at the same times and sit the same exams. */
+export function interchangeable(
+  a: readonly Section[],
+  b: readonly Section[],
+): boolean {
+  return interchangeKey(a) === interchangeKey(b);
+}
+
 /**
  * The choices of one course with interchangeable groups collapsed: groups with the
  * same meeting times and the same exam windows keep only the lowest section code.
@@ -77,7 +89,7 @@ export function collapseInterchangeable(
 ): SuggestChoice[] {
   const kept = new Map<string, SuggestChoice>();
   for (const choice of [...choices].sort(bySectionCode)) {
-    const key = `${groupFootprint(choice.group)}#${examKey(choice.group)}`;
+    const key = interchangeKey(choice.group);
     if (!kept.has(key)) {
       kept.set(key, choice);
     }
