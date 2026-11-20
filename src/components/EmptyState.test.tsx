@@ -52,24 +52,52 @@ describe('EmptyState', () => {
 });
 
 describe('EmptyStateAction', () => {
-  it('is a primary button at the target size that runs its handler', () => {
+  it('is a neutral button at the target size that runs its handler', () => {
     let pressed = 0;
     render(
       <EmptyStateAction
-        label="Go to search"
+        label="Go to courses"
         onClick={() => {
           pressed += 1;
         }}
       />,
     );
-    const button = screen.getByRole('button', { name: 'Go to search' });
+    const button = screen.getByRole('button', { name: 'Go to courses' });
     expect(button).toHaveAttribute('type', 'button');
-    expect(button).toHaveClass('bg-primary-strong', 'pointer-events-auto');
+    // The mockup draws an empty state's way out as a bordered neutral button, so the
+    // orange stays for the accents rather than for every empty region.
+    expect(button).toHaveClass('border', 'border-border', 'text-ink');
+    expect(button).not.toHaveClass('bg-primary-strong');
+    expect(button).toHaveClass('pointer-events-auto');
     expect(button.className).toContain('min-w-(--kcp-target-min)');
     fireEvent.click(button);
     expect(pressed).toBe(1);
   });
+
+  it('is a borderless text button as a ghost, and filled as a primary', () => {
+    render(
+      <>
+        <EmptyStateAction
+          label="Show the week"
+          variant="ghost"
+          onClick={noop}
+        />
+        <EmptyStateAction label="Retry" variant="primary" onClick={noop} />
+      </>,
+    );
+    const ghost = screen.getByRole('button', { name: 'Show the week' });
+    expect(ghost).toHaveClass('text-primary-strong');
+    expect(ghost).not.toHaveClass('border', 'bg-primary-strong');
+    expect(screen.getByRole('button', { name: 'Retry' })).toHaveClass(
+      'bg-primary-strong',
+      'text-surface',
+    );
+  });
 });
+
+function noop(): void {
+  // The press itself is not under test here.
+}
 
 // Brief 8.2: every empty state is the shared component with an icon, one sentence, and
 // one action. The inventory lists each file that renders it with the count of its uses, so
