@@ -19,8 +19,8 @@ import { useBackToClose } from './useBackToClose';
 import { focusIsLost, rootOf } from './useFocusTrap';
 import { useTranslation } from './useTranslation';
 
-export const EXPORT_BUTTON_ID = 'kcp-export-entry';
-export const BACK_TO_EDIT_ID = 'kcp-export-back';
+const EXPORT_BUTTON_ID = 'kcp-export-entry';
+const BACK_TO_EDIT_ID = 'kcp-export-back';
 
 /** Leave the export page for the edit workspace. */
 export function backToEditing(): void {
