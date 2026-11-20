@@ -126,8 +126,9 @@ accessible name สรุปตาราง (Plan summary). Its facts lead with 
 state, the unscheduled count, and the verification status. From 640 px up it still lists the
 load per day and the free weekdays. On a phone it drops those two, since the day chip dots
 already mark the class days and the summary view carries the load, and the no clash state shows
-as a check glyph with its words kept for assistive technology; a clash stays a worded danger
-button. The suggest action of ADR-0054 ends the row in a primary soft style, its checklist glyph
+as a shield check glyph with its words kept for assistive technology; a clash stays a worded
+danger button. The shield keeps that glyph apart from the plain check of a verified plan, which
+sits beside it in the same green, so the bare icon never reads as a second verified mark. The suggest action of ADR-0054 ends the row in a primary soft style, its checklist glyph
 and the short label แนะนำตาราง (Suggest), outside the wrapping facts so it holds the right edge.
 It follows the same rule as the catalog entry: present only for a by_class result of the plan's
 term, absent otherwise. With such a result and an empty plan the row holds the action alone.
