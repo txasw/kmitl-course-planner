@@ -10,8 +10,10 @@ import {
 import { axeViolations } from './support/axe';
 
 // The plan suggestion flow on the real by_class capture, curriculum 137: a GenEd the
-// student placed by hand is kept, the carousel pages by its chevron and the arrow keys,
-// the suggestion is applied as a new plan, and undo returns to the plan it started from.
+// student placed by hand is listed by name and ticked, the carousel pages by its chevron
+// and the arrow keys, its chevron names open clear of the close button, a slide lists its
+// subjects behind the chevron disclosure, the suggestion is applied as a new plan, and undo
+// returns to the plan it started from.
 const GRID_BLOCK = '[data-teach-table-id]';
 
 test('applies a suggested timetable as a new plan and undoes it', async ({
@@ -26,7 +28,7 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
     timeout: 15_000,
   });
 
-  // Place one GenEd section by hand; a suggestion keeps it as a fixed constraint. Cards
+  // Place one GenEd section by hand; the suggestion lists it ticked and keeps it. Cards
   // start collapsed, so the GenEd card opens first.
   await waitForResultsInput(page);
   await expandCourse(page, '04186098');
@@ -53,6 +55,10 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
     .click();
   const dialog = page.getByRole('dialog', { name: 'แนะนำตาราง' });
   await expect(dialog).toBeVisible();
+  const planned = dialog.getByRole('region', { name: 'อยู่ในตารางแล้ว' });
+  await expect(
+    planned.getByRole('checkbox', { name: /04186098/ }),
+  ).toBeChecked();
   await dialog.getByRole('button', { name: 'เน้นเช้า' }).click();
   await expect(
     dialog.getByRole('button', { name: 'เน้นเช้า', pressed: true }),

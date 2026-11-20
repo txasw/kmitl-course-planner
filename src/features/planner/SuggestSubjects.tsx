@@ -1,8 +1,11 @@
 // The tick list of the suggestion dialog (ADR-0054, as amended): the subjects a
 // suggestion fits. The ticked set is the whole subject count, so the list carries no
-// separate number. It splits the result into the group 2 curriculum subjects, ticked
-// and open by default, and every other course, unticked and collapsed by default, so a
-// long GenEd list stays out of the way until the student wants one of it. Each group
+// separate number. It names the subjects already in the plan, such as a GenEd added by
+// hand, ticked and open by default, so the student sees what every suggestion keeps
+// and can untick one to leave it out; then the group 2 curriculum subjects of the
+// result, ticked and open by default; then every other course, unticked and collapsed
+// by default, so a long GenEd list stays out of the way until the student wants one of
+// it. Each group
 // heading is a disclosure and sits beside a tick all or untick all action, never
 // inside it. A row is a native checkbox inside its label, so the whole row is the
 // target and every name wraps in full. The dialog holds which groups are open, beside
@@ -23,13 +26,18 @@ type GroupKind = keyof SuggestSubjectGroups;
 /** Which tick list groups are expanded. */
 export type SuggestGroupOpen = Readonly<Record<GroupKind, boolean>>;
 
-/** The curriculum group opens expanded and every other course collapsed. */
+/** The plan and curriculum groups open expanded and every other course collapsed. */
 export const DEFAULT_GROUP_OPEN: SuggestGroupOpen = {
+  planned: true,
   curriculum: true,
   other: false,
 };
 
+/** The groups in the order the list shows them. */
+const GROUP_ORDER: readonly GroupKind[] = ['planned', 'curriculum', 'other'];
+
 const HEADING_KEY: Record<GroupKind, TranslationKey> = {
+  planned: 'suggest.subjects.planned',
   curriculum: 'suggest.subjects.curriculum',
   other: 'suggest.subjects.other',
 };
@@ -179,12 +187,10 @@ export function SuggestSubjects({
   t,
 }: SuggestSubjectsProps) {
   const labelId = useId();
-  const tickedCount = [...groups.curriculum, ...groups.other].filter((course) =>
-    ticked.has(course.subjectId),
+  const tickedCount = GROUP_ORDER.flatMap((kind) => groups[kind]).filter(
+    (course) => ticked.has(course.subjectId),
   ).length;
-  const kinds = (['curriculum', 'other'] as const).filter(
-    (kind) => groups[kind].length > 0,
-  );
+  const kinds = GROUP_ORDER.filter((kind) => groups[kind].length > 0);
   if (kinds.length === 0) {
     return null;
   }

@@ -225,3 +225,52 @@ against symbol markers. They use the system disclosure in `components/Disclosure
 that states aria-expanded and names its panel, with a chevron that points right while collapsed
 and down while expanded, turning without motion under reduced motion, as the catalog groups and
 the tick list do. Each list still starts collapsed.
+
+## Amendment, 2026-11-21: subjects already in the plan join the tick list
+
+A conformance review found that pick q5 A was only partly met. The owner picked a tick list in
+which a subject the student added by hand, such as a GenEd, appears by name and can be ticked or
+unticked. The first amendment above kept every plan entry as a fixed constraint instead: a
+subject already in the plan was not listed and showed only as a count line, so the student could
+not see it by name, leave it out, or let a suggestion choose another section of it. This
+amendment replaces the sentence "A subject already in the plan is not listed, because it is a
+locked entry", and the opening line that locked entries stay fixed.
+
+The tick list now opens with its own group, อยู่ในตารางแล้ว (Already in your plan), naming each
+subject of the active plan, ticked and expanded by default, ahead of the group 2 curriculum
+subjects and the other courses. The count line is removed. `suggestableCourses` returns the plan's
+subjects as `planned`, built by `plannedSubjects` in `lib/planner/suggestSubjects.ts`; a subject
+the result holds takes the result's course, and a subject the result lacks, such as a GenEd added
+from another search, takes a course of the plan's own sections. `defaultSuggestSubjects` ticks the
+plan's subjects and the group 2 subjects. The dialog keeps a plan subject's tick by whether the
+student unticked it, so a subject the plan gains while the dialog is open joins the list ticked.
+
+A ticked plan subject is required: every suggestion holds it, and the search never takes its skip
+branch. Its options are its own section group first, then the open groups of the result's course
+that meet at other times or sit other exams, so a suggestion may move it to make room for the rest.
+The own group stays an option even when its section has since filled or closed, because keeping a
+section the student already holds adds nothing; every other group still passes the add rules,
+since full and closed sections are never options and every pair of chosen groups passes
+`checkPlacement` for time, exam, pair, and duplicate subject. A move is offered only where it
+gains something: after the objective and the preference penalty, the ranking prefers the
+timetable that moves fewer plan subjects, before the section code tie break. A move changes the
+time footprint, so the three suggestions still differ in what the student lives through. An
+unticked plan subject is left out of the suggested timetable and of the plan the suggestion
+creates. With no fixed entries left, the search holds no locked meetings; a left out course that
+clashes with a plan subject the timetable keeps still names it as a clash with the current plan.
+
+A suggestion is offered only when it changes the plan, by adding a ticked course or moving a plan
+subject; a timetable that keeps every plan subject where it is and adds nothing is the plan itself
+and is filtered out through `changesPlan`. When the ticked plan subjects cannot all fit together,
+the search has no timetable and the empty state names the reason `planClash`, asking the student
+to untick one of them. `allPlaced` now also says that the sections cannot be arranged another
+way. Applying keeps the entries of every plan subject held at its own group as they are, drops a
+moved or unticked one, and adds every other chosen group through `applyPlanTransaction`. A
+suggestion records the plan entries it was searched against, and applying it to other entries is
+refused as stale, so a subject added after the search is never dropped without the student's
+choice; the dialog searches again on every plan change, so this refusal only guards a race.
+
+Keeping plan subjects fixed and only listing them by name was rejected, because the owner's pick
+lets the student untick them and the review asked that suggestions be able to rearrange around
+them. Letting a moved subject take any section, including the interchangeable ones, was rejected
+because those would add a section change with no change in the week.

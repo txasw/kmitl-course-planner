@@ -87,13 +87,13 @@ export function createPlanCrudSlice(
       const now = deps.now();
       const state = get();
       const active = activePlanOf(state);
-      const locked =
+      const planEntries =
         active !== undefined &&
         termsEqual({ year: active.year, semester: active.semester }, term)
           ? active.entries.map((entry) => ({ ...entry }))
           : EMPTY_ENTRIES;
       const outcome = applySuggestion(
-        locked,
+        planEntries,
         suggestion,
         sourceQuery,
         now,

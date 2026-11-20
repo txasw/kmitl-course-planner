@@ -1,10 +1,12 @@
-// The plan suggestion dialog of ADR-0054. It searches the courses the student ticks in
-// the current by_class result, the curriculum courses by default, for timetables that
-// fit beside the active plan, keeping the plan's entries as fixed constraints, and shows
-// up to three, whose meeting times differ, one per slide of a carousel. The student ticks
-// the subjects and picks an objective and a preference; every change searches again and
-// returns the carousel to the best suggestion, and so does a change to the active plan. The ticks last for the dialog only, since a
-// new result holds other courses. Applying a suggestion creates a new plan for the term,
+// The plan suggestion dialog of ADR-0054. It searches the subjects the student ticks, the
+// active plan's subjects and the curriculum courses of the current by_class result by
+// default, for conflict free timetables, and shows up to three that change the plan and
+// whose meeting times differ, one per slide of a carousel. A ticked plan subject is in
+// every timetable, at its own section or another open one, and an unticked one is left
+// out. The student ticks the subjects and picks an objective and a preference; every
+// change searches again and returns the carousel to the best suggestion, and so does a
+// change to the active plan, where a subject added to the plan meanwhile joins ticked. The
+// ticks last for the dialog only, since a new result holds other courses. Applying a suggestion creates a new plan for the term,
 // so the active plan is never rewritten, and the undo toast can take it back. The
 // objective and the preference last used persist with the prefs, so the dialog opens on
 // them. It is a centered dialog at the full width on the medium and docked tiers and the
@@ -27,16 +29,12 @@ import type { Course } from '@/lib/domain/types';
 import type { Translate, TranslationKey } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
 import { termsEqual, type Term } from '@/lib/routing/academicTerms';
-import { summarizeCredits } from '@/lib/planner/credits';
 import type { Suggestion } from '@/lib/planner/suggest';
 import {
+  changesPlan,
   suggestEmptyReason,
   type SuggestEmptyReason,
 } from '@/lib/planner/suggestEmpty';
-import {
-  defaultSuggestSubjects,
-  suggestableCourses,
-} from '@/lib/planner/suggestSubjects';
 import {
   SUGGEST_OBJECTIVES,
   type SuggestObjective,
@@ -59,6 +57,7 @@ import {
   type SuggestGroupOpen,
 } from './SuggestSubjects';
 import { useSuggestions } from './useSuggestions';
+import { useSuggestTicks } from './useSuggestTicks';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
 const PREFERENCE_LABEL: Record<SuggestPreference, TranslationKey> = {
@@ -71,6 +70,7 @@ const PREFERENCE_LABEL: Record<SuggestPreference, TranslationKey> = {
 
 const EMPTY_KEY: Record<SuggestEmptyReason, TranslationKey> = {
   allPlaced: 'suggest.empty.allPlaced',
+  planClash: 'suggest.empty.planClash',
   noneTicked: 'suggest.empty.noneTicked',
   seats: 'suggest.empty.seats',
   conflicts: 'suggest.empty.conflicts',
@@ -78,8 +78,8 @@ const EMPTY_KEY: Record<SuggestEmptyReason, TranslationKey> = {
 
 const NO_ENTRIES: readonly PlanEntry[] = [];
 
-/** The entries a suggestion keeps: the active plan's, when it shares the term. */
-function useLockedEntries(term: Term): readonly PlanEntry[] {
+/** The entries a suggestion starts from: the active plan's, when it shares the term. */
+function usePlanEntries(term: Term): readonly PlanEntry[] {
   const active = useActivePlan();
   return active !== null &&
     termsEqual({ year: active.year, semester: active.semester }, term)
@@ -170,44 +170,32 @@ export function SuggestDialog({
   const tier = useLayoutTier();
   const objective = useStore(uiStore, (state) => state.suggestObjective);
   const preference = useStore(uiStore, (state) => state.suggestPreference);
-  const locked = useLockedEntries(term);
+  const entries = usePlanEntries(term);
   // The shown slide, held with the plan entries it was ranked against. A plan change ranks
   // the suggestions again, so slide 2 would show another suggestion with no notice; the
   // carousel returns to the best one instead, as a new tick does.
-  const [paging, setPaging] = useState(() => ({ page: 0, locked }));
-  const page = paging.locked === locked ? paging.page : 0;
+  const [paging, setPaging] = useState(() => ({ page: 0, entries }));
+  const page = paging.entries === entries ? paging.page : 0;
   const setPage = (next: number) => {
-    setPaging({ page: next, locked });
+    setPaging({ page: next, entries });
   };
-  const groups = useMemo(
-    () => suggestableCourses(courses, locked),
-    [courses, locked],
-  );
-  const [ticked, setTicked] = useState<ReadonlySet<string>>(() =>
-    defaultSuggestSubjects(courses, locked),
-  );
+  const { groups, ticked, setTicked } = useSuggestTicks(courses, entries);
   const [groupOpen, setGroupOpen] =
     useState<SuggestGroupOpen>(DEFAULT_GROUP_OPEN);
   const { result, busy } = useSuggestions(
     courses,
     ticked,
-    locked,
+    entries,
     objective,
     preference,
   );
-  const lockedSubjects = summarizeCredits(
-    locked.map((entry) => ({
-      subjectId: entry.subjectId,
-      credit: entry.snapshot.subjectMeta.credit,
-    })),
-  ).subjects;
   const cards = useMemo<SuggestionView[]>(
     () =>
-      (result?.suggestions ?? []).map((suggestion) => ({
+      (result?.suggestions ?? []).filter(changesPlan).map((suggestion) => ({
         suggestion,
-        sections: suggestionSections(locked, suggestion),
+        sections: suggestionSections(entries, suggestion),
       })),
-    [result, locked],
+    [result, entries],
   );
   const frame = useMemo(
     () => sharedFrame(cards.map((card) => card.sections)),
@@ -249,6 +237,8 @@ export function SuggestDialog({
     onClose();
   };
 
+  // The empty reason counts only the result's courses outside the plan; ticking every
+  // subject reaches the plan's own too.
   const tickable = [...groups.curriculum, ...groups.other];
   const emptyReason =
     result === null
@@ -260,12 +250,7 @@ export function SuggestDialog({
         });
   const body = (
     <div className="flex flex-col gap-4 pt-1">
-      <div className="flex flex-col gap-1 text-xs text-ink-soft">
-        <p>{t('suggest.scope')}</p>
-        {lockedSubjects > 0 ? (
-          <p>{fillTemplate(t('suggest.locked'), { count: lockedSubjects })}</p>
-        ) : null}
-      </div>
+      <p className="text-xs text-ink-soft">{t('suggest.scope')}</p>
       <SuggestSubjects
         groups={groups}
         ticked={ticked}
@@ -308,7 +293,11 @@ export function SuggestDialog({
                 label={t('suggest.empty.tickEvery')}
                 onClick={() => {
                   handleTicked(
-                    new Set(tickable.map((course) => course.subjectId)),
+                    new Set(
+                      [...groups.planned, ...tickable].map(
+                        (course) => course.subjectId,
+                      ),
+                    ),
                   );
                 }}
               />

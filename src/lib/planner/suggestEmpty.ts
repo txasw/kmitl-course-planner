@@ -1,14 +1,20 @@
-// Why a suggestion search has nothing to offer. The search always keeps the best
-// timetable it finds, so a result with nothing to suggest is one whose best timetable
-// chooses no ticked course; its left out list then says why each candidate stayed
-// out. The interface names one reason for the whole result, from the tick list first
-// and then from the left out reasons.
+// Why a suggestion search has nothing to offer. A suggestion is worth offering only
+// when it changes the plan: it adds a ticked course or moves a subject already in
+// the plan to another section group. A timetable that keeps every plan subject
+// where it is and adds nothing is the plan itself, so the dialog never offers it.
+// The search always keeps the best timetable it finds, so a result with nothing to
+// offer is one whose best timetable adds nothing; its left out list then says why
+// each candidate stayed out. When there is no timetable at all, the ticked plan
+// subjects could not all fit together. The interface names one reason for the whole
+// result, from the tick list first and then from the left out reasons.
 
-import type { SuggestResult } from './suggest';
+import type { SuggestResult, Suggestion } from './suggest';
 
 export type SuggestEmptyReason =
-  /** Every course of the result is already in the plan, so none can be ticked. */
+  /** Every course of the result is already in the plan, and no move helps. */
   | 'allPlaced'
+  /** The ticked subjects already in the plan cannot all fit together. */
+  | 'planClash'
   /** Some course could be ticked, but the student ticked none. */
   | 'noneTicked'
   /** Every section of every ticked course is full or closed. */
@@ -16,10 +22,15 @@ export type SuggestEmptyReason =
   /** The open sections all clash with the plan, or with each other's exams. */
   | 'conflicts';
 
-/** How many courses the tick list offers, and how many of them are ticked. */
+/** How many result courses outside the plan can be ticked, and how many are. */
 export interface SuggestTickCounts {
   tickable: number;
   ticked: number;
+}
+
+/** Whether a suggestion adds a course or moves a plan subject to another group. */
+export function changesPlan(suggestion: Suggestion): boolean {
+  return suggestion.choices.some((choice) => !choice.current);
 }
 
 /** The reason a result has nothing to suggest, or null when it suggests something. */
@@ -27,18 +38,20 @@ export function suggestEmptyReason(
   result: SuggestResult,
   counts: SuggestTickCounts,
 ): SuggestEmptyReason | null {
-  const best = result.suggestions[0];
-  if (best !== undefined && best.choices.length > 0) {
+  if (result.suggestions.some(changesPlan)) {
     return null;
+  }
+  const best = result.suggestions[0];
+  if (best === undefined) {
+    return 'planClash';
   }
   if (counts.tickable === 0) {
     return 'allPlaced';
   }
-  const leftOut = best?.leftOut ?? [];
-  if (counts.ticked === 0 || leftOut.length === 0) {
+  if (counts.ticked === 0 || best.leftOut.length === 0) {
     return 'noneTicked';
   }
-  return leftOut.every(({ reason }) => reason.kind === 'seats')
+  return best.leftOut.every(({ reason }) => reason.kind === 'seats')
     ? 'seats'
     : 'conflicts';
 }

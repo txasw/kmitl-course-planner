@@ -1,8 +1,10 @@
 // The order plan suggestions are ranked in. The objective comes first: coverAll
 // prefers more ticked courses and then more credits, maxCredits the reverse.
-// A tie on the objective goes to the lower preference penalty, and a tie on both
-// to the chosen set that sorts first by subject id and then by section code, so
-// the ranking is a total order and the same input always ranks the same way.
+// A tie on the objective goes to the lower preference penalty, then to the
+// timetable that moves fewer subjects already in the plan off their own section,
+// so a move is offered only where it gains something, and a tie on all three to
+// the chosen set that sorts first by subject id and then by section code, so the
+// ranking is a total order and the same input always ranks the same way.
 
 import type { Course, Section } from '../domain/types';
 import type { SuggestChoice } from './suggestCandidates';
@@ -20,6 +22,8 @@ export type ObjectiveValue = [number, number];
 export interface RankedOrder {
   objective: ObjectiveValue;
   penalty: number;
+  /** How many subjects already in the plan the timetable moves to another group. */
+  moved: number;
   /** The chosen courses, by subject id. */
   choices: SuggestChoice[];
 }
@@ -72,6 +76,7 @@ export function compareRanked(a: RankedOrder, b: RankedOrder): number {
   return (
     compareObjective(b.objective, a.objective) ||
     a.penalty - b.penalty ||
+    a.moved - b.moved ||
     compareChoices(a.choices, b.choices)
   );
 }

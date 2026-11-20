@@ -1,15 +1,17 @@
 // Search the current result for conflict free timetables. Only the subjects the
-// student ticked are candidates, the curriculum subjects by default, and the
-// entries already in the active plan are kept as fixed constraints. The hard rules
-// are exactly the add rules: a section group joins only when checkPlacement accepts
-// it, so time, exam, pair, and duplicate subject rules match the add path, and a
-// full or closed section is never chosen.
+// student ticked are candidates, the plan's subjects and the curriculum subjects by
+// default. A ticked subject already in the plan is in every timetable, at its own
+// section group or at another open one of the result's course, so a suggestion can
+// rearrange the plan around what it adds; an unticked one is left out. The hard
+// rules are exactly the add rules: a section group joins only when checkPlacement
+// accepts it, so time, exam, pair, and duplicate subject rules match the add path,
+// and a full or closed section is never chosen. The plan's own group is the one
+// exception, since keeping it adds nothing.
 //
 // The search is exhaustive depth first over the courses with the fewest options
-// first, each course taking one of its section groups or being skipped. Every rule
-// checkPlacement applies is between two sections, so each group is checked once
-// against the locked entries and the rest is a memoized pairwise compatibility
-// table. Branch and bound prunes a subtree whose best reachable objective, and for
+// first, each course taking one of its section groups or, unless it is a ticked
+// plan subject, being skipped. Every rule checkPlacement applies is between two
+// sections, so the checks are a memoized pairwise compatibility table. Branch and bound prunes a subtree whose best reachable objective, and for
 // a tie its least reachable penalty, cannot beat the worst timetable kept. A node
 // cap bounds the work on a large result and marks the outcome truncated.
 //
@@ -48,8 +50,7 @@ import {
   type SuggestPreference,
   type TimetableStats,
 } from './suggestScore';
-import { defaultSuggestSubjects } from './suggestSubjects';
-import { placedSections } from './transaction';
+import { defaultSuggestSubjects, plannedSubjects } from './suggestSubjects';
 
 /** How many suggestions a search returns by default. */
 export const SUGGEST_LIMIT = 3;
@@ -60,10 +61,10 @@ export const SUGGEST_NODE_CAP = 200_000;
 export interface SuggestInput {
   /** The courses of the current result; only the ticked ones are candidates. */
   courses: readonly Course[];
-  /** The ticked subject ids; the group 2 curriculum subjects when omitted. */
+  /** The ticked subject ids; the plan's and the group 2 subjects when omitted. */
   subjects?: ReadonlySet<string>;
-  /** The entries of the active plan, kept as fixed constraints. */
-  locked: readonly PlanEntry[];
+  /** The entries of the active plan; its ticked subjects join every timetable. */
+  entries: readonly PlanEntry[];
   objective: SuggestObjective;
   preference: SuggestPreference;
   limit?: number;
@@ -75,19 +76,21 @@ export interface LeftOutCourse {
   reason: LeftOutReason;
 }
 
-/** The whole timetable a suggestion produces, locked entries included. */
+/** The whole timetable a suggestion produces, the kept plan subjects included. */
 export interface SuggestStats extends TimetableStats {
   credits: number;
   courses: number;
 }
 
 export interface Suggestion {
-  /** The chosen courses, by subject id. */
+  /** The chosen courses, by subject id, the kept plan subjects included. */
   choices: SuggestChoice[];
   stats: SuggestStats;
   penalty: number;
   /** Every ticked candidate not chosen, by subject id, with the reason. */
   leftOut: LeftOutCourse[];
+  /** The plan entries the search ran against, so a stale apply is refused. */
+  planIds: string[];
 }
 
 export interface SuggestResult {
@@ -116,17 +119,15 @@ function compatibilityTable(
 export function suggestPlans(input: SuggestInput): SuggestResult {
   const limit = input.limit ?? SUGGEST_LIMIT;
   const nodeCap = input.nodeCap ?? SUGGEST_NODE_CAP;
-  const locked = placedSections([...input.locked]);
-  // The locked meetings followed by the chosen ones, grown and shrunk with the
-  // search so a bound or a leaf never rebuilds it.
-  const meetings: Meeting[] = locked.flatMap((section) => section.meetings);
+  // The chosen meetings, grown and shrunk with the search so a bound or a leaf
+  // never rebuilds them.
+  const meetings: Meeting[] = [];
   const subjects =
-    input.subjects ?? defaultSuggestSubjects(input.courses, input.locked);
+    input.subjects ?? defaultSuggestSubjects(input.courses, input.entries);
   const candidates = suggestCandidates(
     input.courses,
     subjects,
-    input.locked,
-    locked,
+    plannedSubjects(input.courses, input.entries),
   );
   const active = candidates
     .filter((candidate) => candidate.options.length > 0)
@@ -147,6 +148,7 @@ export function suggestPlans(input: SuggestInput): SuggestResult {
   const chosen: SuggestOption[] = [];
   const skipped: SuggestCandidate[] = [];
   let chosenCredits = 0;
+  let moved = 0;
   let nodes = 0;
   let truncated = false;
 
@@ -159,6 +161,7 @@ export function suggestPlans(input: SuggestInput): SuggestResult {
     const order: RankedOrder = {
       objective: objectiveValue(input.objective, chosen.length, chosenCredits),
       penalty: preferencePenalty(meetings, input.preference),
+      moved,
       choices: chosen.map((option) => option.choice).sort(bySubject),
     };
     const bar = worstKept();
@@ -214,18 +217,22 @@ export function suggestPlans(input: SuggestInput): SuggestResult {
       }
       if (fitsChosen(option)) {
         const mark = meetings.length;
+        const move = candidate.required && !option.choice.current ? 1 : 0;
         chosen.push(option);
         meetings.push(
           ...option.choice.group.flatMap((member) => member.meetings),
         );
         chosenCredits += candidate.course.credit;
+        moved += move;
         visit(depth + 1);
         chosen.pop();
         meetings.length = mark;
         chosenCredits -= candidate.course.credit;
+        moved -= move;
       }
     }
-    if (truncated) {
+    // A ticked plan subject is never skipped, so a timetable always holds it.
+    if (truncated || candidate.required) {
       return;
     }
     skipped.push(candidate);
@@ -237,7 +244,11 @@ export function suggestPlans(input: SuggestInput): SuggestResult {
 
   return {
     suggestions: kept.map((ranked) =>
-      toSuggestion(ranked, input.locked, locked, candidates),
+      toSuggestion(
+        ranked,
+        candidates,
+        input.entries.map((entry) => entry.teachTableId),
+      ),
     ),
     truncated,
     nodes: Math.min(nodes, nodeCap),
@@ -246,29 +257,34 @@ export function suggestPlans(input: SuggestInput): SuggestResult {
 
 function toSuggestion(
   ranked: RankedTimetable,
-  lockedEntries: readonly PlanEntry[],
-  locked: Section[],
   candidates: SuggestCandidate[],
+  planIds: string[],
 ): Suggestion {
   const chosenSubjects = new Set(
     ranked.choices.map((choice) => choice.course.subjectId),
   );
-  const placed = [...locked, ...ranked.choices.flatMap((c) => c.group)];
-  const credits = summarizeCredits([
-    ...lockedEntries.map((entry) => ({
-      subjectId: entry.subjectId,
-      credit: entry.snapshot.subjectMeta.credit,
-    })),
-    ...ranked.choices.map((choice) => ({
+  const required = new Set(
+    candidates
+      .filter((candidate) => candidate.required)
+      .map((candidate) => candidate.course.subjectId),
+  );
+  const placed = ranked.choices.flatMap((choice) => choice.group);
+  // A left out course that clashes with a plan subject the timetable keeps names
+  // that subject, since unticking it is the student's call.
+  const kept: Section[] = ranked.choices
+    .filter((choice) => required.has(choice.course.subjectId))
+    .flatMap((choice) => choice.group);
+  const credits = summarizeCredits(
+    ranked.choices.map((choice) => ({
       subjectId: choice.course.subjectId,
       credit: choice.course.credit,
     })),
-  ]);
+  );
   const leftOut = candidates
     .filter((candidate) => !chosenSubjects.has(candidate.course.subjectId))
     .map((candidate) => ({
       course: candidate.course,
-      reason: leftOutReason(candidate.open, locked, placed),
+      reason: leftOutReason(candidate.open, kept, placed),
     }))
     .sort(bySubject);
   return {
@@ -280,5 +296,6 @@ function toSuggestion(
     },
     penalty: ranked.penalty,
     leftOut,
+    planIds,
   };
 }

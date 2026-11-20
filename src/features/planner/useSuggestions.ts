@@ -30,13 +30,13 @@ export interface SuggestionsState {
 export function useSuggestions(
   courses: readonly Course[],
   subjects: ReadonlySet<string>,
-  locked: readonly PlanEntry[],
+  entries: readonly PlanEntry[],
   objective: SuggestObjective,
   preference: SuggestPreference,
 ): SuggestionsState {
   const input = useMemo<SuggestInput>(
-    () => ({ courses, subjects, locked, objective, preference }),
-    [courses, subjects, locked, objective, preference],
+    () => ({ courses, subjects, entries, objective, preference }),
+    [courses, subjects, entries, objective, preference],
   );
   const [finished, setFinished] = useState<{
     input: SuggestInput;

@@ -168,11 +168,11 @@ describe('SuggestDialog', () => {
     act(() => {
       seedActivePlan(lockSections(courses, [['04186098', '2']]));
     });
-    await waitFor(() => {
-      expect(
-        screen.getByText('คงรายวิชาที่อยู่ในตารางปัจจุบันไว้ 1 วิชา'),
-      ).toBeInTheDocument();
+    // The subject the plan gained joins the tick list ticked.
+    const planned = await screen.findByRole('region', {
+      name: 'อยู่ในตารางแล้ว',
     });
+    expect(within(planned).getByRole('checkbox')).toBeChecked();
     expect(within(shownSlide()).getByRole('heading')).toHaveTextContent(
       'ตัวเลือกที่ 1',
     );
@@ -198,9 +198,10 @@ describe('SuggestDialog', () => {
     });
     const original = planStore.getState().plans[0];
     const { onClose } = renderDialog();
+    const planned = screen.getByRole('region', { name: 'อยู่ในตารางแล้ว' });
     expect(
-      screen.getByText('คงรายวิชาที่อยู่ในตารางปัจจุบันไว้ 1 วิชา'),
-    ).toBeInTheDocument();
+      within(planned).getByRole('checkbox', { name: /04186098/ }),
+    ).toBeChecked();
     await findCards();
     const apply = within(shownSlide()).getByRole('button', {
       name: 'ใช้ตารางนี้',
@@ -228,7 +229,7 @@ describe('SuggestDialog', () => {
     expect(planStore.getState().activePlanId).toBe('original');
   });
 
-  it('names the reason when there is nothing to suggest', async () => {
+  it('lists the plan subjects ticked and names the reason once they are unticked', async () => {
     const locked = lockSections(courses, [
       ['01006020', '4'],
       ['01006021', '5'],
@@ -241,13 +242,26 @@ describe('SuggestDialog', () => {
       seedActivePlan(locked);
     });
     renderDialog();
+    // Every curriculum subject is in the plan, so it lists them by name, ticked, and the
+    // suggestions rearrange them.
+    const planned = screen.getByRole('region', { name: 'อยู่ในตารางแล้ว' });
+    const plannedBoxes = within(planned).getAllByRole('checkbox');
+    expect(plannedBoxes).toHaveLength(6);
+    for (const box of plannedBoxes) {
+      expect(box).toBeChecked();
+    }
+    expect(
+      screen.queryByRole('region', { name: 'วิชาในหลักสูตร กลุ่ม 2' }),
+    ).toBeNull();
+    expect(await findCards()).not.toHaveLength(0);
+
+    fireEvent.click(
+      within(planned).getByRole('button', { name: 'ยกเลิกการเลือกทั้งหมด' }),
+    );
     expect(
       await screen.findByText('เลือกอย่างน้อยหนึ่งวิชาเพื่อดูตารางที่แนะนำ'),
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'ใช้ตารางนี้' })).toBeNull();
-    expect(
-      screen.queryByRole('region', { name: 'วิชาในหลักสูตร กลุ่ม 2' }),
-    ).toBeNull();
 
     // The GenEd courses are still there to tick, collapsed until opened.
     fireEvent.click(
@@ -255,12 +269,10 @@ describe('SuggestDialog', () => {
         name: 'วิชาศึกษาทั่วไป วิชาเลือกเสรี และวิชาอื่น 0 จาก 6',
       }),
     );
-    const boxes = screen.getAllByRole('checkbox');
-    expect(boxes).toHaveLength(6);
-    for (const box of boxes) {
-      expect(box).not.toBeChecked();
-    }
-    fireEvent.click(screen.getByRole('button', { name: 'เลือกทั้งหมด' }));
+    const other = screen.getByRole('region', {
+      name: 'วิชาศึกษาทั่วไป วิชาเลือกเสรี และวิชาอื่น',
+    });
+    fireEvent.click(within(other).getByRole('button', { name: 'เลือกทั้งหมด' }));
     expect(await findCards()).not.toHaveLength(0);
   });
 
@@ -277,10 +289,17 @@ describe('SuggestDialog', () => {
       seedActivePlan(locked);
     });
     renderDialog();
+    const planned = screen.getByRole('region', { name: 'อยู่ในตารางแล้ว' });
+    fireEvent.click(
+      within(planned).getByRole('button', { name: 'ยกเลิกการเลือกทั้งหมด' }),
+    );
     await screen.findByText('เลือกอย่างน้อยหนึ่งวิชาเพื่อดูตารางที่แนะนำ');
     fireEvent.click(screen.getByRole('button', { name: 'เลือกทุกวิชา' }));
     expect(await findCards()).not.toHaveLength(0);
     expect(screen.queryByRole('button', { name: 'เลือกทุกวิชา' })).toBeNull();
+    for (const box of within(planned).getAllByRole('checkbox')) {
+      expect(box).toBeChecked();
+    }
   });
 
   it('ticks the curriculum subjects by default and searches the ticked set', async () => {

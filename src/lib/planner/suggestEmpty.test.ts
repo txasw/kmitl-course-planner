@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { makeMeeting } from '../../../tests/support/domain-builders';
+import {
+  makeMeeting,
+  makePlanEntry,
+  makeSnapshot,
+} from '../../../tests/support/domain-builders';
 import {
   byClassCourses,
   curriculumCourse,
@@ -11,12 +15,13 @@ import { defaultSuggestSubjects, suggestableCourses } from './suggestSubjects';
 
 /** The reason for a search over the default tick list, or the given one. */
 function reasonFor(input: Parameters<typeof suggestPlans>[0]) {
-  const groups = suggestableCourses(input.courses, input.locked);
+  const groups = suggestableCourses(input.courses, input.entries);
   const subjects =
-    input.subjects ?? defaultSuggestSubjects(input.courses, input.locked);
+    input.subjects ?? defaultSuggestSubjects(input.courses, input.entries);
+  const tickable = [...groups.curriculum, ...groups.other];
   return suggestEmptyReason(suggestPlans({ ...input, subjects }), {
-    tickable: groups.curriculum.length + groups.other.length,
-    ticked: subjects.size,
+    tickable: tickable.length,
+    ticked: tickable.filter((course) => subjects.has(course.subjectId)).length,
   });
 }
 
@@ -25,7 +30,7 @@ describe('suggestEmptyReason', () => {
     expect(
       reasonFor({
         courses: byClassCourses(),
-        locked: [],
+        entries: [],
         objective: 'coverAll',
         preference: 'balanced',
       }),
@@ -37,14 +42,14 @@ describe('suggestEmptyReason', () => {
     expect(
       reasonFor({
         courses,
-        locked: lockSections(courses, [['11111111', '1']]),
+        entries: lockSections(courses, [['11111111', '1']]),
         objective: 'coverAll',
         preference: 'balanced',
       }),
     ).toBe('allPlaced');
   });
 
-  it('asks for a tick once the curriculum courses are all in the plan', () => {
+  it('offers a rearrangement once the curriculum courses are all in the plan', () => {
     const courses = byClassCourses();
     const locked = lockSections(courses, [
       ['01006020', '4'],
@@ -57,11 +62,46 @@ describe('suggestEmptyReason', () => {
     expect(
       reasonFor({
         courses,
-        locked,
+        entries: locked,
+        objective: 'coverAll',
+        preference: 'balanced',
+      }),
+    ).toBeNull();
+  });
+
+  it('asks for a tick when only plan subjects that cannot move are ticked', () => {
+    const courses = [
+      curriculumCourse('11111111', [{}]),
+      curriculumCourse('22222222', [{ meetings: [makeMeeting({ day: 3 })] }]),
+    ];
+    expect(
+      reasonFor({
+        courses,
+        subjects: new Set(['11111111']),
+        entries: lockSections(courses, [['11111111', '1']]),
         objective: 'coverAll',
         preference: 'balanced',
       }),
     ).toBe('noneTicked');
+  });
+
+  it('names ticked plan subjects that cannot all fit together', () => {
+    const clash = (subjectId: string, teachTableId: string) =>
+      makePlanEntry({
+        snapshot: makeSnapshot({
+          subjectId,
+          teachTableId,
+          meetings: [makeMeeting({ day: 4 })],
+        }),
+      });
+    expect(
+      reasonFor({
+        courses: [curriculumCourse('11111111', [{}])],
+        entries: [clash('44444444', 'c1'), clash('55555555', 'c2')],
+        objective: 'coverAll',
+        preference: 'balanced',
+      }),
+    ).toBe('planClash');
   });
 
   it('asks for a tick when the student clears every subject', () => {
@@ -69,7 +109,7 @@ describe('suggestEmptyReason', () => {
       reasonFor({
         courses: byClassCourses(),
         subjects: new Set(),
-        locked: [],
+        entries: [],
         objective: 'coverAll',
         preference: 'balanced',
       }),
@@ -84,7 +124,7 @@ describe('suggestEmptyReason', () => {
     expect(
       reasonFor({
         courses: [full],
-        locked: [],
+        entries: [],
         objective: 'coverAll',
         preference: 'balanced',
       }),
@@ -100,7 +140,7 @@ describe('suggestEmptyReason', () => {
     expect(
       reasonFor({
         courses,
-        locked: lockSections(courses, [['55555555', '1']]),
+        entries: lockSections(courses, [['55555555', '1']]),
         objective: 'coverAll',
         preference: 'balanced',
       }),

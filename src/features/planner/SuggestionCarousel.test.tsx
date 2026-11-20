@@ -19,7 +19,7 @@ const courses = byClassCourses();
 const locked = lockSections(courses, [['04186098', '2']]);
 const allCards: SuggestionView[] = suggestPlans({
   courses,
-  locked,
+  entries: locked,
   objective: 'coverAll',
   preference: 'balanced',
 }).suggestions.map((suggestion) => ({
