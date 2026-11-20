@@ -5,7 +5,11 @@
 // selected dot, so a keyboard user who pages from an arrow that then disables keeps a
 // focused control. The dots take the arrow keys, Home, and End through the hook's key
 // handler; each dot stays small while its button keeps the shared target size, or the full
-// touch size where a consumer makes the dots its main paging control.
+// touch size where a consumer makes the dots its main paging control. A dot carries its
+// name for assistive technology and no hover tooltip: the caption above the dots already
+// names the page on show, and a tooltip over the dots opened on top of that caption.
+// An arrow's tooltip opens on the side the consumer names, so it clears the controls and
+// text around the arrow.
 
 import {
   useCallback,
@@ -14,6 +18,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
+import type { Placement } from '@floating-ui/react';
 import { Tooltip } from '@/components/Tooltip';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
@@ -77,15 +82,18 @@ export function PagerArrow({
   label,
   disabled,
   onActivate,
+  tooltipPlacement = 'top',
   children,
 }: {
   label: string;
   disabled: boolean;
   onActivate: () => void;
+  /** The side the arrow's tooltip opens on, clear of what sits around the arrow. */
+  tooltipPlacement?: Placement;
   children: ReactNode;
 }) {
   return (
-    <Tooltip label={label}>
+    <Tooltip label={label} placement={tooltipPlacement}>
       {(triggerProps, ref) => (
         <button
           ref={ref}
@@ -110,7 +118,7 @@ interface PagerDotsProps {
   onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void;
   /** The accessible name of the radiogroup, already localized. */
   label: string;
-  /** The accessible name and tooltip of each dot, one per page, already localized. */
+  /** The accessible name of each dot, one per page, already localized. */
   itemLabels: readonly string[];
   selected: number;
   onSelect: (index: number) => void;
@@ -137,33 +145,28 @@ export function PagerDots({
       {itemLabels.map((itemLabel, index) => {
         const isSelected = index === selected;
         return (
-          <Tooltip key={itemLabel} label={itemLabel}>
-            {(triggerProps, ref) => (
-              <button
-                ref={ref}
-                {...triggerProps}
-                type="button"
-                role="radio"
-                aria-checked={isSelected}
-                aria-label={itemLabel}
-                tabIndex={isSelected ? 0 : -1}
-                onKeyDown={onKeyDown}
-                onClick={() => {
-                  onSelect(index);
-                }}
-                className={`group/dot inline-flex items-center justify-center rounded-full ${targetClassName} ${FOCUS_RING}`}
-              >
-                <span
-                  aria-hidden
-                  className={`h-2.5 w-2.5 rounded-full border transition-colors ${
-                    isSelected
-                      ? 'border-primary bg-primary'
-                      : 'border-border bg-transparent group-hover/dot:border-ink-soft'
-                  }`}
-                />
-              </button>
-            )}
-          </Tooltip>
+          <button
+            key={itemLabel}
+            type="button"
+            role="radio"
+            aria-checked={isSelected}
+            aria-label={itemLabel}
+            tabIndex={isSelected ? 0 : -1}
+            onKeyDown={onKeyDown}
+            onClick={() => {
+              onSelect(index);
+            }}
+            className={`group/dot inline-flex items-center justify-center rounded-full ${targetClassName} ${FOCUS_RING}`}
+          >
+            <span
+              aria-hidden
+              className={`h-2.5 w-2.5 rounded-full border transition-colors ${
+                isSelected
+                  ? 'border-primary bg-primary'
+                  : 'border-border bg-transparent group-hover/dot:border-ink-soft'
+              }`}
+            />
+          </button>
         );
       })}
     </div>

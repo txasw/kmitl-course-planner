@@ -68,6 +68,33 @@ describe('Pager', () => {
     expect(checked()).toBe('หน้า 1');
   });
 
+  it('opens no tooltip on a dot, which would cover the caption above', () => {
+    render(<Harness />);
+    const dot = screen.getByRole('radio', { name: 'หน้า 1' });
+    fireEvent.focus(dot);
+    fireEvent.mouseEnter(dot);
+    expect(screen.queryByRole('tooltip')).toBeNull();
+    expect(dot).not.toHaveAttribute('aria-describedby');
+  });
+
+  it('opens an arrow tooltip on focus on the side it names', () => {
+    render(
+      <PagerArrow
+        label="ก่อนหน้า"
+        disabled={false}
+        onActivate={() => undefined}
+        tooltipPlacement="right"
+      >
+        previous
+      </PagerArrow>,
+    );
+    fireEvent.focus(screen.getByRole('button', { name: 'ก่อนหน้า' }));
+    expect(screen.getByRole('tooltip')).toHaveAttribute(
+      'data-placement',
+      'right',
+    );
+  });
+
   it('names the group and keeps one dot in the tab order', () => {
     render(<Harness />);
     expect(screen.getByRole('radiogroup', { name: 'หน้า' })).toBeInTheDocument();
