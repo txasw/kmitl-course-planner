@@ -126,3 +126,14 @@ The router behaviour this depends on was read from the live bundle. A host upgra
 treats a same hash `popstate` as a navigation would surface as a reload of the current route behind
 a closing panel, and the check is to be repeated on the live site before each release that changes
 this hook.
+
+## Amendment, 2026-11-20: the export page joins the stack
+
+The export page of the ADR-0022 amendment is a third layer. Its back to editing button holds an
+entry through the same hook while the panel is open on the export page, so a back gesture there
+returns to editing and the next one closes the panel. With the shortcut help open over the export
+page, backs close the help, then the export page, then the panel. The hook relies on React cleaning
+up a nested layer before its parent, which holds when a layer's open flag or mount changes inside a
+panel that stays mounted, as every close does. When the whole tree unmounts at once, React runs the
+parent's cleanup first, so a layer below would see itself as not on top and leave its entry; the
+unit tests therefore leave the export page before they unmount the panel.

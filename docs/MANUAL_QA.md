@@ -102,13 +102,16 @@ button. Never skip it.
 - [ ] Still conflicting swap: drop on a swap target whose removal still leaves the
       incoming section clashing with another block. Nothing changes and the strip names
       the remaining conflict.
-- [ ] Preview: toggle preview. The rails collapse, the grid becomes a full width
-      poster with the plan label, credits, and date, and no add, remove, or drag
-      control is present. Toggle back to edit.
+- [ ] Export page: press Export in the header. The rails collapse, the grid becomes a
+      full width poster with the plan label, credits, and date, and no add, remove, or
+      drag control is present. Return with Back to editing, then enter again and return
+      with Escape, and on a phone with the back gesture; each returns to editing with the
+      panel still open.
 - [ ] Reduced motion: enable the OS reduced motion setting and repeat the valid and
       blocked drags. Outcomes convey through color and text with no settle, pulse, or
       shake.
-- [ ] Persistence: reload the page. The last used mode and language persist.
+- [ ] Persistence: reload the page. The language persists, and the panel opens in edit
+      even when it was closed on the export page.
 - [ ] Data time: run a search. The summary bar reads ข้อมูล ณ with the fetch time
       beside the course count. Leave the panel open past ten minutes; the line turns
       warn and its clock becomes a warning sign. Press โหลดผลค้นหาใหม่; focus stays on
@@ -213,13 +216,13 @@ button. Never skip it.
 
 ## Export and import
 
-Run these against a debug build in Chrome and Firefox. Preview mode is entered from
-the header segmented control.
+Run these against a debug build in Chrome and Firefox. The export page is entered from
+the Export button in the header and left with Back to editing at its top left.
 
-- [ ] Preview toolbar presence: in edit mode there are no sharing controls. Switch to
-      preview and confirm the toolbar shows the display options, share image where the
+- [ ] Preview toolbar presence: in edit mode there are no sharing controls. Open the
+      export page and confirm the toolbar shows the display options, share image where the
       browser can share files, copy image, download image, and copy as text, and that the
-      template picker is the preview gallery itself, not a dropdown. Switch back to edit and
+      template picker is the preview gallery itself, not a dropdown. Go back to editing and
       confirm they leave the DOM. The toolbar and its verification status are never part of
       an exported image.
 - [ ] Download PNG: populate a plan including one unscheduled course. In preview, download
@@ -344,7 +347,7 @@ add and remove controls, so no action is a dead end for the keyboard.
       closes it.
 - [ ] Plan switch: open the plan switcher, move through the plans, and create, rename, or
       delete one entirely by keyboard, confirming the inline delete.
-- [ ] Preview toolbar and gallery: switch to preview and Tab through the display options,
+- [ ] Preview toolbar and gallery: open the export page and Tab through the display options,
       copy image, download image, and copy as text. Tab into the gallery dot radiogroup; the
       arrow keys and Home and End move between templates and the poster follows, each dot names
       its template, and the focus ring is visible. The display options popover is reachable and
