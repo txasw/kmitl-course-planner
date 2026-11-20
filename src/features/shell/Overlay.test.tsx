@@ -245,6 +245,39 @@ describe('Overlay', () => {
     });
   });
 
+  // The toast's own listener stops an Escape it handles before the press reaches the
+  // panel trap's decider, so one press closes one layer: the toast, then the panel.
+  it('dismisses only the toast on Escape from its action, then closes on the next', () => {
+    render(
+      <div>
+        <Overlay />
+        <Toaster />
+      </div>,
+      { wrapper },
+    );
+    act(() => {
+      uiStore.getState().open();
+    });
+    act(() => {
+      toastStore.getState().show('success', 'นำออกแล้ว', {
+        label: 'เลิกทำ',
+        run: () => undefined,
+      });
+    });
+    const undo = screen.getByRole('button', { name: 'เลิกทำ' });
+    undo.focus();
+    fireEvent.keyDown(undo, { key: 'Escape' });
+    expect(toastStore.getState().toast).toBeNull();
+    expect(screen.queryByRole('button', { name: 'เลิกทำ' })).toBeNull();
+    expect(uiStore.getState().isOpen).toBe(true);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    // The trap's own drop recovery has its test in useFocusTrap; jsdom fires no focusout
+    // on removal, so the next press starts on the panel here.
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+    expect(uiStore.getState().isOpen).toBe(false);
+  });
+
   // Each path ends on the host entry it opened from, with the same route and the same
   // history state, router key included, as before the panel opened.
   describe('history', () => {
