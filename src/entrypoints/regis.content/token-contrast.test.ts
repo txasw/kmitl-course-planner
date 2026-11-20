@@ -281,6 +281,23 @@ const SOFT_CARD_PAIRS: Pair[] = SOFT_CARD_TINTS.flatMap((tint) => [
   },
 ]);
 
+// The quiet and settled neutral cards of the catalog and the query chip mix the muted
+// ink in at lighter stops than the default card. Their strong stop is the darkest fill,
+// so every text step proven there may sit anywhere on such a card, with no position bound.
+const NEUTRAL_STOP_PAIRS: Pair[] = (['quiet', 'settled'] as const).flatMap(
+  (variant) =>
+    (['ink', 'ink-soft', 'ink-muted'] as const).map((text) => ({
+      name: `${text} on the strong stop of a ${variant} neutral soft card`,
+      fg: shadowToken(text),
+      bg: alphaOver(
+        shadowToken('ink-muted'),
+        shadowFraction(`tint-${variant}-strong`),
+        shadowToken('surface'),
+      ),
+      min: AA_NORMAL,
+    })),
+);
+
 // The position, in percent of the card height from the top, where the gradient reaches
 // the weak stop. It matches the 70% stop of the kcp-soft-card utility in style.css and
 // the bound that ADR-0071 and docs/CONTRAST.md state for muted text.
@@ -337,7 +354,12 @@ const COACH_MARK_PAIRS: Pair[] = [
 ];
 
 describe('design token contrast', () => {
-  for (const pair of [...PAIRS, ...SOFT_CARD_PAIRS, ...COACH_MARK_PAIRS]) {
+  for (const pair of [
+    ...PAIRS,
+    ...SOFT_CARD_PAIRS,
+    ...NEUTRAL_STOP_PAIRS,
+    ...COACH_MARK_PAIRS,
+  ]) {
     it(`${pair.name} meets ${String(pair.min)}:1`, () => {
       expect(contrastRatio(pair.fg, pair.bg)).toBeGreaterThanOrEqual(pair.min);
     });
