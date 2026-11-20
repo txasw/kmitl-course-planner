@@ -229,7 +229,7 @@ describe('SuggestDialog', () => {
     expect(planStore.getState().activePlanId).toBe('original');
   });
 
-  it('lists the plan subjects ticked and names the reason once they are unticked', async () => {
+  it('lists the plan subjects ticked and says the plan already fits them', async () => {
     const locked = lockSections(courses, [
       ['01006020', '4'],
       ['01006021', '5'],
@@ -242,8 +242,9 @@ describe('SuggestDialog', () => {
       seedActivePlan(locked);
     });
     renderDialog();
-    // Every curriculum subject is in the plan, so it lists them by name, ticked, and the
-    // suggestions rearrange them.
+    // Every curriculum subject is in the plan, so it lists them by name, ticked. No move
+    // gains anything, so it offers no reshuffle and says the ticked subjects fit as they
+    // are rather than asking for a tick the list already shows.
     const planned = screen.getByRole('region', { name: 'อยู่ในตารางแล้ว' });
     const plannedBoxes = within(planned).getAllByRole('checkbox');
     expect(plannedBoxes).toHaveLength(6);
@@ -253,7 +254,16 @@ describe('SuggestDialog', () => {
     expect(
       screen.queryByRole('region', { name: 'วิชาในหลักสูตร กลุ่ม 2' }),
     ).toBeNull();
-    expect(await findCards()).not.toHaveLength(0);
+    expect(
+      await screen.findByText(
+        'ตารางปัจจุบันลงวิชาที่เลือกไว้ได้ครบแล้ว เลือกวิชาอื่นเพิ่มเพื่อดูตารางที่แนะนำ',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('เลือกอย่างน้อยหนึ่งวิชาเพื่อดูตารางที่แนะนำ')).toBeNull();
+    expect(
+      screen.getByRole('button', { name: 'เลือกทุกวิชา' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'ใช้ตารางนี้' })).toBeNull();
 
     fireEvent.click(
       within(planned).getByRole('button', { name: 'ยกเลิกการเลือกทั้งหมด' }),

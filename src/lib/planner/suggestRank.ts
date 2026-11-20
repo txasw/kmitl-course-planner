@@ -2,9 +2,10 @@
 // prefers more ticked courses and then more credits, maxCredits the reverse.
 // A tie on the objective goes to the lower preference penalty, then to the
 // timetable that moves fewer subjects already in the plan off their own section,
-// so a move is offered only where it gains something, and a tie on all three to
-// the chosen set that sorts first by subject id and then by section code, so the
-// ranking is a total order and the same input always ranks the same way.
+// and a tie on all three to the chosen set that sorts first by subject id and then
+// by section code, so the ranking is a total order and the same input always ranks
+// the same way. The search itself drops a move that gains nothing, so the move
+// count only orders timetables whose moves each gain something.
 
 import type { Course, Section } from '../domain/types';
 import type { SuggestChoice } from './suggestCandidates';
