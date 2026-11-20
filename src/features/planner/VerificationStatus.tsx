@@ -22,6 +22,7 @@ import type { ReactNode } from 'react';
 import { planDataDate } from '@/lib/planner/posterHonesty';
 import { hasUpdateItems } from '@/lib/planner/updateReview';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { SMALL_ICON } from '@/lib/ui/icon';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { useActivePlan } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
@@ -30,8 +31,6 @@ import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { verificationText, type VerificationTone } from './verificationText';
-
-const ICON_PROPS = { size: 14, strokeWidth: 2, 'aria-hidden': true } as const;
 
 const TONE_CLASS: Record<VerificationTone, string> = {
   checking: 'text-ink-soft',
@@ -46,18 +45,18 @@ function toneIcon(tone: VerificationTone): ReactNode {
     case 'checking':
       return (
         <RefreshCw
-          {...ICON_PROPS}
+          {...SMALL_ICON}
           className="animate-spin motion-reduce:animate-none"
         />
       );
     case 'ok':
-      return <CheckCircle2 {...ICON_PROPS} className="text-success" />;
+      return <CheckCircle2 {...SMALL_ICON} className="text-success" />;
     case 'changed':
-      return <AlertCircle {...ICON_PROPS} className="text-warn" />;
+      return <AlertCircle {...SMALL_ICON} className="text-warn" />;
     case 'warn':
-      return <AlertTriangle {...ICON_PROPS} />;
+      return <AlertTriangle {...SMALL_ICON} />;
     case 'none':
-      return <CircleDashed {...ICON_PROPS} />;
+      return <CircleDashed {...SMALL_ICON} />;
   }
 }
 
