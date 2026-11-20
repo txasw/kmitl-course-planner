@@ -800,3 +800,34 @@ below supersedes the earlier text it names.
   exception now names the control that shows the whole text, which must be on show for the leaf
   to be excused: the expand control beside a clamped line, the plan switcher trigger for a plan
   name past two lines of the smallest step, and the pager dots for a template sliver.
+
+## Amendment, 2026-11-21: the section add button and the two line rest
+
+A conformance review of the redesign found two catalog patterns left from 1.4 that the owner had
+asked to leave behind.
+
+- The add of a section row is a compact button, a white face with a hairline edge, the accent
+  plus, and the short add word, in its own column at the top right of the row, in place of the
+  full height primary-soft rail on the trailing edge that ran an orange wash down the catalog.
+  Its column is shrink-0 and the row body beside it stays min-w-0 and wraps, so the button never
+  overlaps text at any width. It keeps every section state: an addable or conflicting open
+  section adds, a conflicting add still routes to the blocked feedback strip with the conflict
+  callout as its description, a full, closed, or different term section keeps the add disabled
+  with the reason in the row body and its description, a duplicate or added section has none,
+  and the different term switch action and the drag grip are unchanged. Its accessible name
+  starts with the visible word and names the subject and section.
+- A teacher, condition, or remark list rests at two wrapped lines rather than one. Collapsed, the
+  lines share one item that keeps their breaks and is clamped at two lines; the expand control
+  shows only when the clamp hides text, read through the item's scroll height, or when more than
+  two lines are given, and a list that fits shows whole with no control. This amends the one line
+  rest of the clipped text sweep amendment above; the sweep exception still names only a
+  collapsed list beside its expand control.
+- The unchanged group of the updates dialog folds behind a button disclosure with the panel's
+  chevron instead of a native details element, whose browser triangle matched no other
+  disclosure.
+
+Alternatives considered: an icon only add was rejected because the plus alone reads less clearly
+than the short word beside it. Keeping the one line rest and widening the column was rejected
+because no width holds a long Thai teacher list on one line at 360 px. Placing the add in the
+badge cluster of the first line was rejected because the cluster wraps with the badge width, so
+the add would move from row to row.

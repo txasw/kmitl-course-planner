@@ -105,3 +105,10 @@ size inside a full sized button.
 Shrinking the block remove control on touch was rejected because it would keep a target too
 small for the finger it is shown to. Keeping it at 44 px and letting it cover the block was
 rejected because it would hide the subject name, the one field a block never drops.
+
+## Amendment, 2026-11-21: the section add button
+
+The add rail of a section row is replaced by a compact add button in its own column at the top
+right of the row (ADR-0048, amendment of 2026-11-21). It takes the shared target classes like any
+other control, 24 px under a fine pointer and 44 px in each direction under a coarse pointer, in
+place of the rail widening from w-8 to w-11.
