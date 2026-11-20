@@ -14,6 +14,7 @@ import { useStore } from 'zustand';
 import { CalendarRange, ChevronDown } from 'lucide-react';
 import { useClick, useDismiss, useInteractions } from '@floating-ui/react';
 import { planSchema, type Plan } from '@/lib/domain/plan';
+import type { TranslationKey } from '@/lib/i18n/t';
 import {
   buddhistYears,
   toBuddhistYear,
@@ -56,6 +57,15 @@ type Mode =
   | { kind: 'rename'; value: string; planId: string }
   | { kind: 'confirmDelete'; planId: string }
   | { kind: 'importError'; issues: string[] };
+
+// The sheet heading says what the open view does, so a create never reads as a pick.
+const SHEET_TITLE: Record<Mode['kind'], TranslationKey> = {
+  list: 'planSwitcher.label',
+  create: 'planSwitcher.create',
+  rename: 'planSwitcher.renameTitle',
+  confirmDelete: 'planSwitcher.deleteTitle',
+  importError: 'planData.import',
+};
 
 export function PlanSwitcher() {
   const { t, language } = useTranslation();
@@ -402,7 +412,7 @@ export function PlanSwitcher() {
       />
       {open && sheet ? (
         <BottomSheet
-          title={t('planSwitcher.label')}
+          title={t(SHEET_TITLE[mode.kind])}
           closeLabel={t('action.close')}
           onClose={closeMenu}
         >
