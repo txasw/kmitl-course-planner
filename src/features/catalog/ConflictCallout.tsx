@@ -3,7 +3,7 @@
 // the badge instead of a third red cue. The text goes through the same conflictText
 // funnel as the reason chip and the feedback strip, so a row names a time or exam
 // clash, its blocking section, and the count of further conflicts in the same words a
-// drag would use. The id lets the add rail point its description at the callout.
+// drag would use. The id lets the add button point its description at the callout.
 
 import { AlertTriangle } from 'lucide-react';
 import type { Translate } from '@/lib/i18n/t';

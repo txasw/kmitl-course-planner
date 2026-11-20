@@ -2,7 +2,7 @@
 // the seat text, always visible. It replaces the seat pill, whose label collapsed to a
 // bare icon on a narrow row with the count left in a tooltip on a span that keyboard and
 // touch users could not open. The line never collapses, and a full or closed line states
-// that the section cannot be added, so the reason for a disabled add rail reads in the
+// that the section cannot be added, so the reason for a disabled add button reads in the
 // row body. The full variant, for the section details, adds the host's four counts as
 // labelled figures and, when pre registrations exceed the capacity, a warn line stating
 // that fact. It gives no estimate of a student's chance. A catalog row flags the same

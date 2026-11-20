@@ -223,7 +223,7 @@ describe('shadow stylesheet tokens', () => {
 
   it('lets the course disclosure content shrink to the card width', () => {
     // A grid item keeps a min-content floor, so without this a nowrap line in a section
-    // row widens every row past the card and clips the add rail.
+    // row widens every row past the card and clips the add button.
     expect(css).toMatch(
       /\.kcp-disclosure > \* \{\s*min-height: 0;\s*min-width: 0;\s*\}/,
     );
