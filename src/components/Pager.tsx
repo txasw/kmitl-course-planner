@@ -8,8 +8,8 @@
 // touch size where a consumer makes the dots its main paging control. A dot carries its
 // name for assistive technology and no hover tooltip: the caption above the dots already
 // names the page on show, and a tooltip over the dots opened on top of that caption.
-// An arrow's tooltip opens on the side the consumer names, so it clears the controls and
-// text around the arrow.
+// An arrow names itself in a tooltip, unless its pager sets a position line between the
+// arrows that already names the page.
 
 import {
   useCallback,
@@ -18,7 +18,6 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
-import type { Placement } from '@floating-ui/react';
 import { Tooltip } from '@/components/Tooltip';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
@@ -82,18 +81,18 @@ export function PagerArrow({
   label,
   disabled,
   onActivate,
-  tooltipPlacement = 'top',
+  tooltip = true,
   children,
 }: {
   label: string;
   disabled: boolean;
   onActivate: () => void;
-  /** The side the arrow's tooltip opens on, clear of what sits around the arrow. */
-  tooltipPlacement?: Placement;
+  /** Whether the arrow names itself in a hover and focus tooltip. */
+  tooltip?: boolean;
   children: ReactNode;
 }) {
   return (
-    <Tooltip label={label} placement={tooltipPlacement}>
+    <Tooltip label={label} disabled={!tooltip}>
       {(triggerProps, ref) => (
         <button
           ref={ref}

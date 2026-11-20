@@ -764,10 +764,14 @@ below supersedes the earlier text it names.
   the pointer rested on a dot or a keyboard move focused one. Each dot keeps its name for
   assistive technology. Placing the tooltip under the dots was rejected, since the panel foot
   leaves it no room and it flipped back over the caption.
-- The suggestion carousel arrows open their tooltips toward the position line between them,
-  in the empty run beside each arrow, rather than above, where the next arrow's tooltip covered
-  the dialog's close button, or below, where the previous arrow's would cover the option
-  heading.
+- The suggestion carousel arrows carry no hover tooltip, as the dots do not. The position line
+  between the arrows names the page, and each arrow keeps its name for assistive technology.
+  No side of an arrow is free: above, the next arrow's tooltip covered the dialog's close
+  button; below, the previous arrow's would cover the option heading; and toward the position
+  line, which at 360 px is a short row with the line centred, either tooltip covered the first
+  or last word of the line. Opening the tooltips toward the line, which held from 768 px up,
+  was rejected for that reason, and a tooltip only on the wider tiers was rejected because the
+  arrows would then behave differently by width for no gain the line does not already give.
 - No toast sits over the plan status row. A failed save showed both its strip under the header
   and an error toast at the panel foot, and the toast hid the credits, the subject count, and
   the clash line of the status row. The strip is now the one place a failed save shows, and
@@ -790,10 +794,9 @@ below supersedes the earlier text it names.
   inside the leaf's own scroller is cleared by scrolling, and a dim drawn on purpose, such as
   the product tour's, is named as see through. The walk now reads the timetable with the undo
   toast up and after a failed save, the export page with a copy toast up and with the pointer
-  resting on each template dot, the suggestion carousel with each arrow's tooltip open, which
-  must also lie over no other control, the reopened curriculum form, which must not scroll at
-  the sweep height, and every product tour step, with the phone bottom nav read under the dim.
-  Each exception now names the control that shows the whole text, which must be on show for
-  the leaf to be excused: the expand control beside a clamped line, the plan switcher trigger
-  for a plan name past two lines of the smallest step, and the pager dots for a template
-  sliver.
+  resting on each template dot, the suggestion carousel with the pointer resting on each arrow,
+  the reopened curriculum form, which must not scroll at the sweep height, and every product
+  tour step, with the phone bottom nav read under the dim. Each exception now names the control
+  that shows the whole text, which must be on show for the leaf to be excused: the expand
+  control beside a clamped line, the plan switcher trigger for a plan name past two lines of the
+  smallest step, and the pager dots for a template sliver.
