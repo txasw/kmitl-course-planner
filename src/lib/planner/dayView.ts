@@ -138,7 +138,7 @@ export function timetableChoices(
  * swipe never jumps from Friday back to Monday. It steps the days alone for the swipe and the
  * whole chip row, week chip included, for the arrow keys.
  */
-export function stepDay<T>(
+export function stepChoice<T>(
   items: readonly T[],
   current: T,
   step: 1 | -1,

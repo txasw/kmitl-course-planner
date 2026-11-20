@@ -19,7 +19,7 @@ import { fillTemplate } from '@/lib/i18n/template';
 import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import type { GridWindow } from '@/lib/planner/grid';
-import { stepDay, type DayFlags } from '@/lib/planner/dayView';
+import { stepChoice, type DayFlags } from '@/lib/planner/dayView';
 import { usePrefersReducedMotion } from '@/features/shell/usePresence';
 import {
   useSwipeGesture,
@@ -73,7 +73,7 @@ export function DayView({
     slop: SWIPE_SLOP_PX,
     canStart: noDragLive,
     onSwipe: (direction: SwipeDirection) => {
-      onChoose(stepDay(days, day, direction === 1 ? -1 : 1, false));
+      onChoose(stepChoice(days, day, direction === 1 ? -1 : 1, false));
     },
   });
 

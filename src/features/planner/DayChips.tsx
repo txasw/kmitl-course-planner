@@ -15,7 +15,7 @@ import type { DayOfWeek } from '@/lib/parsing/days';
 import type { Translate } from '@/lib/i18n/t';
 import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
 import {
-  stepDay,
+  stepChoice,
   timetableChoices,
   type DayFlag,
   type DayFlags,
@@ -104,12 +104,12 @@ export function DayChips({
       case 'ArrowRight':
       case 'ArrowDown':
         event.preventDefault();
-        choose(stepDay(row, selected, 1, true));
+        choose(stepChoice(row, selected, 1, true));
         break;
       case 'ArrowLeft':
       case 'ArrowUp':
         event.preventDefault();
-        choose(stepDay(row, selected, -1, true));
+        choose(stepChoice(row, selected, -1, true));
         break;
       case 'Home':
         event.preventDefault();
