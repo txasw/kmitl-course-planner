@@ -119,6 +119,12 @@ describe('SuggestionCarousel', () => {
     expect(liveRegion()).toHaveTextContent('ตัวเลือก 1 จาก 3');
     expect(dot(1)).toHaveAttribute('aria-current', 'true');
     expect(dot(2)).not.toHaveAttribute('aria-current');
+    // The slide area and each slide name the pattern.
+    expect(viewport()).toHaveAttribute('aria-roledescription', 'ชุดสไลด์');
+    expect(within(slide).getByRole('article')).toHaveAttribute(
+      'aria-roledescription',
+      'สไลด์',
+    );
     // Only the shown dot is a tab stop; the keys reach the others.
     expect(dot(1)).toHaveAttribute('tabindex', '0');
     expect(dot(2)).toHaveAttribute('tabindex', '-1');
@@ -374,6 +380,7 @@ describe('SuggestionCarousel', () => {
     expect(screen.queryByRole('button', { name: 'ตัวเลือกก่อนหน้า' })).toBeNull();
     expect(screen.queryByRole('group', { name: 'ตัวเลือกตาราง' })).toBeNull();
     expect(document.querySelector('[aria-live]')).toBeNull();
+    expect(document.querySelector('[aria-roledescription]')).toBeNull();
     // A key or a swipe does nothing with nowhere to go.
     const slide = shownSlide();
     fireEvent.keyDown(slide, { key: 'ArrowRight' });
@@ -387,6 +394,12 @@ describe('SuggestionCarousel', () => {
     ).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: 'Next option' }));
     expect(liveRegion()).toHaveTextContent('Option 2 of 3');
+    expect(
+      screen.getByRole('group', { name: 'Option 2 of 3' }),
+    ).toHaveAttribute('aria-roledescription', 'carousel');
+    expect(
+      document.querySelector('[data-suggest-slide="1"] article'),
+    ).toHaveAttribute('aria-roledescription', 'slide');
     expect(screen.getByRole('button', { name: 'Option 2' })).toHaveAttribute(
       'aria-current',
       'true',

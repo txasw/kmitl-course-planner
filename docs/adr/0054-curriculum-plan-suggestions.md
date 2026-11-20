@@ -168,7 +168,8 @@ threshold the other swipes use; the previous and next chevrons, named "ตัว
 the shown one with aria-current and is the only dot in the tab order; and the left and right arrow keys, with Home and End, on the
 focusable slide area and on the dots. Paging clamps at the ends. The line between the chevrons
 reads "ตัวเลือก 2 จาก 3" ("Option 2 of 3") and is a polite live region, so each change is
-announced. A key that pages from a control in the outgoing slide moves focus to the slide area,
+announced. The slide area carries the role description "ชุดสไลด์" ("carousel") and each slide
+"สไลด์" ("slide"), as the mockup marks them. A key that pages from a control in the outgoing slide moves focus to the slide area,
 and a chevron that disables at an end hands focus to the other chevron beside it, so focus never
 drops to the document and the dialog never scrolls away from the slide to a dot below it. Under reduced motion the track jumps instead of sliding and the slide does not follow
 the finger, while the swipe still pages. Two suggestions show two dots; one suggestion shows no
