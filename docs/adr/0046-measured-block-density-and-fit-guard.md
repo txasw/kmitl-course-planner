@@ -131,6 +131,10 @@ secondary name or the name clamp may have freed the room an earlier drop needed.
 three top rungs, each the first field the ladder drops while shown, so an offer that overflows
 is undone by the next demotion and never costs a field ranked above it. Without the pass, a name
 language of both cost a Share 16:9 block its id even though the second name never fit there.
+The pass offers nothing once the walk has dropped the section chip or the place: past that
+point a returned field would show while a field the ladder ranks higher stays hidden, and on a
+short block whose place wrapped, the one line time could return in the room the place left,
+showing the time without the place, which ADR-0047 forbids.
 
 Name language. An export option names every subject in Thai, English, or both, and applies
 identically to the poster, the PNG, the copied image, the unscheduled shelf, the exam block, and
@@ -140,7 +144,18 @@ the secondary line, which takes the English line's rung in the ladder, so it sho
 allows; the text export has no box to fit and always carries both. A single language falls back
 to the other language when its own name is empty, so a block is never nameless. The choice is an
 optional display options field that reads an unknown value as absent, so no schema version bump
-is needed: a blob written before it loads whole and follows the panel language.
+is needed: a blob written before it loads whole and follows the panel language. The retired
+English names switch is not mapped onto the new choice, so a student on the Thai panel who kept
+its old default, English names on, now gets a Thai only poster until they pick both. This is
+intended: the default follows the panel language in both locales.
+
+Both costs ids where its second line fits. The secondary name ranks above the subject id in the
+ladder, so the reclaim pass returns the id only where the second line itself did not fit. Where
+it fits, it takes the room the id had. With show subject id on, the review exports of the fit
+regression catalog show this on the phone wallpapers. In landscape on the Thai panel, ids show
+on six blocks under Thai names and on two under both. In portrait, the one hour block of
+`90000605` loses its id the same way. On Share 16:9 the second line never fits, so both renders
+pixel identical to the single language there.
 
 Fewer options. The display options keep only what the fit can still change: the name language,
 then the room, the section, the subject id, and the exam schedule. Show English names is
@@ -148,11 +163,14 @@ retired, since the name language covers it in both panel languages; the object s
 stored key, so an older blob loads with every other choice intact. The unscheduled shelf wraps
 its names rather than truncating them, since the shared image has no hover to expand a cut name.
 
-Alternatives considered. Disabling both on the short landscape templates, as the redesign mockup
-draws it, was not taken: the fit drops the second line where it does not fit and the reclaim
-pass keeps the id, so both never costs a field there, and on a template with longer blocks the
-second line shows; the option carries a note that the second name shows where a block has room.
-Moving an id that does not fit into a legend under the poster, also in the mockup, was left out
-of this change: the text export always carries the id, and a legend takes height from the grid
-on exactly the templates that are short of it. Letting the id wrap at a narrower type size was
-rejected because a code split at any size still reads as two codes.
+Alternatives considered. The agreed redesign mockup disables both on Share 16:9 and the phone
+wallpaper landscape, with a note saying why. This change keeps both available everywhere, and
+that is an open decision for the owner rather than a settled one. On Share 16:9 both is
+harmless but does nothing. On the phone wallpapers it trades subject ids for second names, as
+above, and the option note says only that the second name shows where a block has room, not
+that it can take an id's place. The mockup also moves an id that does not fit into a legend
+under the poster and labels the switch as showing subject ids below the image. That is left
+out of this change: the task asked for an id that does not fit to drop whole, the text export
+always carries the id, and a legend takes height from the grid on exactly the templates short
+of it. Whether to follow the mockup on either point is the owner's call. Letting the id wrap at
+a narrower type size was rejected because a code split at any size still reads as two codes.
