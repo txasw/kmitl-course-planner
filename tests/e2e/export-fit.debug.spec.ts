@@ -23,6 +23,15 @@ const PRESETS = [
   'พิมพ์ A4',
 ];
 
+const PRESETS_EN = [
+  'Share 16:9',
+  'Phone wallpaper landscape',
+  'Phone wallpaper portrait',
+  'Tablet wallpaper portrait',
+  'Tablet wallpaper landscape',
+  'Print A4',
+];
+
 // The reserved id the mock server answers with the fit regression catalog: three hour blocks,
 // long Thai and English names, Thai place strings, a 34 and 35 pair, exam windows on every
 // three hour subject but 90000603, which the exam block lists as arranged by the instructor,
@@ -158,5 +167,29 @@ test('no block text clips at any export preset', async ({ context }) => {
     const exams = page.locator('[data-poster-exams]').first();
     await expect(exams).toContainText('ตารางสอบ');
     await expect(exams).toContainText('กลางภาค');
+  }
+
+  // The width rule again under the English panel, the worst case: the primary names are the
+  // long capitalized English ones, so the blocks drop the most ids. A preset may then show
+  // none, so the check that it is not vacuous counts the ids across the whole pass.
+  await page.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }).click();
+  await page.getByRole('menuitemradio', { name: 'English' }).click();
+  await page.getByRole('button', { name: 'Display options' }).click();
+  await page.getByRole('switch', { name: 'Show exam schedule' }).click();
+  await page.keyboard.press('Escape');
+  for (const names of ['Thai', 'English', 'Both']) {
+    await page.getByRole('button', { name: 'Display options' }).click();
+    await page
+      .getByRole('group', { name: 'Subject names' })
+      .getByRole('button', { name: names, exact: true })
+      .click();
+    await page.keyboard.press('Escape');
+    let shown = 0;
+    for (const preset of PRESETS_EN) {
+      await page.getByRole('radio', { name: new RegExp(preset) }).click();
+      await expectNoBlockClips(page);
+      shown += await expectWholeFields(page, `${preset} ${names} en panel`);
+    }
+    expect(shown, `${names} en panel`).toBeGreaterThan(0);
   }
 });
