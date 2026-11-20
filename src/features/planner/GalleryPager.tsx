@@ -1,12 +1,14 @@
-// The paging frame of the export template gallery (ADR-0045): the left and right arrow
-// buttons around the stage viewport, a pointer swipe on the viewport, a vertical or horizontal
-// scroll wheel over it (one notch one page), the caption, and the dot radiogroup below for
-// direct jumps, which also takes the arrow keys, Home, and End. Paging clamps at the first and
-// last page rather than wrapping. The gallery owns the viewport ref, because it measures the
-// stage; the pager renders the viewport and binds its input there.
+// The paging frame of the export template gallery (ADR-0045): the named template chips above
+// the stage, a pointer swipe on the stage viewport, and a vertical or horizontal scroll wheel
+// over it (one notch one page). The chips are a radiogroup for direct choice, which also takes
+// the arrow keys, Home, and End. Paging clamps at the first and last template rather than
+// wrapping. The gallery owns the viewport ref, because it measures the stage; the pager
+// renders the viewport and binds its input there.
 //
-// On a narrow stage the dots grow to the 44 px touch size, since swipe and dots are then the
-// main paging controls; the arrows, keys, and wheel are unchanged.
+// The chips replace the earlier dot row, the arrow rails beside the stage, and the caption
+// under it (ADR-0045 amendment of 2026-11-21): each chip names its template with the exact
+// output pixels, so a student picks by name rather than paging blind, and the stage takes the
+// full width the rails held.
 
 import {
   useEffect,
@@ -15,22 +17,17 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useTranslation } from '@/features/shell/useTranslation';
-import { PagerArrow, PagerDots, usePager } from '@/components/Pager';
-import { TARGET_SIZE, TARGET_TOUCH } from '@/lib/ui/target';
+import type { ExportTemplate } from '@/lib/planner/exportTemplates';
+import { usePager } from '@/components/Pager';
+import { TemplateChips } from './TemplateChips';
 
 interface GalleryPagerProps {
   /** The stage viewport, measured by the gallery; the pager renders it and binds its input. */
   viewportRef: RefObject<HTMLDivElement | null>;
-  /** The accessible name of each page, one per template, already localized. */
-  itemLabels: readonly string[];
-  /** The caption under the stage, already localized. */
-  caption: string;
+  /** The templates, one chip and one page each. */
+  templates: readonly ExportTemplate[];
   selected: number;
   onSelect: (index: number) => void;
-  /** Whether the stage is narrow, which grows the dots to the touch size. */
-  narrow: boolean;
   /** The stage content the viewport frames. */
   children: ReactNode;
 }
@@ -41,19 +38,16 @@ const WHEEL_COOLDOWN_MS = 320; // one wheel notch is one page
 
 export function GalleryPager({
   viewportRef,
-  itemLabels,
-  caption,
+  templates,
   selected,
   onSelect,
-  narrow,
   children,
 }: GalleryPagerProps) {
-  const { t } = useTranslation();
-  const last = itemLabels.length - 1;
+  const last = templates.length - 1;
   const swipe = useRef<{ pointerId: number; startX: number } | null>(null);
 
   const { move, groupRef, handleKeyDown } = usePager({
-    count: itemLabels.length,
+    count: templates.length,
     selected,
     onSelect,
   });
@@ -124,49 +118,22 @@ export function GalleryPager({
 
   return (
     <div data-gallery-pager="" className="flex min-h-0 flex-1 flex-col gap-2">
-      <div className="flex min-h-0 flex-1 items-stretch gap-1">
-        <PagerArrow
-          label={t('preview.gallery.prev')}
-          disabled={selected === 0}
-          onActivate={() => {
-            move(-1);
-          }}
-        >
-          <ChevronLeft size={18} strokeWidth={2} aria-hidden />
-        </PagerArrow>
-
-        <div
-          ref={viewportRef}
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-          className="relative min-h-0 flex-1 touch-pan-y select-none overflow-hidden rounded-kcp bg-surface-alt"
-        >
-          {children}
-        </div>
-
-        <PagerArrow
-          label={t('preview.gallery.next')}
-          disabled={selected === last}
-          onActivate={() => {
-            move(1);
-          }}
-        >
-          <ChevronRight size={18} strokeWidth={2} aria-hidden />
-        </PagerArrow>
-      </div>
-
-      <p className="text-center text-xs text-ink-soft">{caption}</p>
-
-      <PagerDots
-        groupRef={groupRef}
-        onKeyDown={handleKeyDown}
-        label={t('preview.template.label')}
-        itemLabels={itemLabels}
+      <TemplateChips
+        templates={templates}
         selected={selected}
         onSelect={onSelect}
-        targetClassName={narrow ? TARGET_TOUCH : TARGET_SIZE}
+        groupRef={groupRef}
+        onKeyDown={handleKeyDown}
       />
+      <div
+        ref={viewportRef}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        className="relative min-h-0 flex-1 touch-pan-y select-none overflow-hidden rounded-kcp bg-surface-alt"
+      >
+        {children}
+      </div>
     </div>
   );
 }

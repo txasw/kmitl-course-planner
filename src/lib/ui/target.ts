@@ -21,7 +21,8 @@ export const TARGET_HEIGHT =
 
 /**
  * The 44 px touch size at every pointer, for a control that is the main way to act in its
- * region whatever the input, such as the template dots on a narrow preview stage.
+ * region whatever the input, such as the suggestion carousel dots or the phone export
+ * actions.
  */
 export const TARGET_TOUCH =
   'min-h-(--kcp-target-touch) min-w-(--kcp-target-touch)';

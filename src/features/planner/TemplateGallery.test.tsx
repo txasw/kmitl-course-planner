@@ -5,6 +5,7 @@ import {
   cleanup,
   fireEvent,
   act,
+  within,
 } from '@testing-library/react';
 import { useState, type RefObject } from 'react';
 import { useStore } from 'zustand';
@@ -170,13 +171,47 @@ describe('TemplateGallery', () => {
     expect(radios[1]).toHaveAttribute('tabindex', '-1');
   });
 
-  it('captions the selected template with its exact output dimensions', () => {
+  it('names every template on its chip with its exact output pixels', () => {
     renderGallery();
-    // Share 16:9 is the default: 1920 by 1080.
-    expect(screen.getByText(/แชร์ 16:9 · 1920 × 1080/)).toBeInTheDocument();
+    const sizes = [
+      '1920 × 1080',
+      '2400 × 1080',
+      '1080 × 2340',
+      '2048 × 2732',
+      '2732 × 2048',
+      '3508 × 2480',
+    ];
+    EXPORT_TEMPLATES.forEach((template, index) => {
+      const chip = radioAt(index);
+      const size = sizes[index] ?? '';
+      // The name and the size show on the chip itself, not only in a tooltip or a caption.
+      expect(chip).toHaveTextContent(t(template.labelKey));
+      expect(within(chip).getByText(size)).toBeVisible();
+      expect(chip).toHaveAccessibleName(`${t(template.labelKey)} · ${size}`);
+    });
+    // The chips carry no tooltip, so nothing opens over the stage or the chips.
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
 
-  it('selects a template when its dot is clicked', () => {
+  it('marks the selected chip by a check glyph and weight, not by colour alone', () => {
+    renderGallery();
+    const selected = radioAt(0);
+    const other = radioAt(1);
+    expect(selected.querySelector('.lucide-check')).not.toBeNull();
+    expect(other.querySelector('.lucide-check')).toBeNull();
+    expect(within(selected).getByText('แชร์ 16:9')).toHaveClass('font-semibold');
+    expect(
+      within(other).getByText(t('preview.template.phone')),
+    ).not.toHaveClass('font-semibold');
+    // A device glyph names an unselected chip, turned on its side for a landscape canvas.
+    expect(other.querySelector('.lucide-smartphone')).toHaveClass('rotate-90');
+    expect(radioAt(2).querySelector('.lucide-smartphone')).not.toHaveClass(
+      'rotate-90',
+    );
+    expect(radioAt(5).querySelector('.lucide-printer')).not.toBeNull();
+  });
+
+  it('selects a template when its chip is clicked', () => {
     renderGallery();
     const target = EXPORT_TEMPLATES[2];
     fireEvent.click(
@@ -207,17 +242,16 @@ describe('TemplateGallery', () => {
     expect(uiStore.getState().selectedTemplate).toBe(EXPORT_TEMPLATES[0]?.slug);
   });
 
-  it('pages with the arrow buttons and disables them at the clamped ends', () => {
-    renderGallery();
-    // At the first template there is no previous, matching the clamp boundary.
-    expect(screen.getByRole('button', { name: 'แม่แบบก่อนหน้า' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'แม่แบบถัดไป' })).toBeEnabled();
-    fireEvent.click(screen.getByRole('button', { name: 'แม่แบบถัดไป' }));
-    expect(uiStore.getState().selectedTemplate).toBe(EXPORT_TEMPLATES[1]?.slug);
-    // At the last template the next arrow disables and the previous enables.
-    fireEvent.keyDown(radioAt(1), { key: 'End' });
-    expect(screen.getByRole('button', { name: 'แม่แบบถัดไป' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'แม่แบบก่อนหน้า' })).toBeEnabled();
+  it('heads the stage with the chips and keeps no arrow rails or caption', () => {
+    const { container } = renderGallery();
+    // The chips choose directly, so the paging arrows and the caption are gone.
+    expect(screen.queryAllByRole('button')).toHaveLength(0);
+    expect(screen.queryByText(/ · /)).not.toBeInTheDocument();
+    const group = screen.getByRole('radiogroup', { name: 'แม่แบบ' });
+    expect(
+      group.compareDocumentPosition(stageOf(container)) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it('scales the selected poster from the measured stage and follows a resize', () => {
@@ -241,21 +275,16 @@ describe('TemplateGallery', () => {
     expect(selectedBox(container)).toEqual({ width: 1920, height: 1080 });
   });
 
-  it('drops the slivers and grows the dots on a narrow stage', () => {
+  it('drops the slivers on a narrow stage', () => {
     const resize = stubStage({ width: 1200, height: 600 });
     const { container } = renderGallery();
     // A wide stage shows the selected poster and, at the first template, the next sliver.
     expect(container.querySelectorAll('.kcp-poster')).toHaveLength(2);
-    expect(radioAt(0)).not.toHaveClass('min-h-(--kcp-target-touch)');
 
     resize({ width: 600, height: 400 });
     // Below 900 px only the selected poster renders, at 0.94 of the full width.
     expect(container.querySelectorAll('.kcp-poster')).toHaveLength(1);
     expect(selectedBox(container).width).toBeCloseTo(600 * 0.94);
-    for (const radio of screen.getAllByRole('radio')) {
-      expect(radio).toHaveClass('min-h-(--kcp-target-touch)');
-      expect(radio).toHaveClass('min-w-(--kcp-target-touch)');
-    }
 
     // Swipe still pages on a narrow stage.
     swipe(stageOf(container), -100);
