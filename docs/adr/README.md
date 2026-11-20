@@ -82,3 +82,4 @@ withdrawal note above the original text, which is kept as written.
 71. [Soft depth tokens and cool neutrals](0071-soft-depth-tokens-and-cool-neutrals.md)
 72. [Search page coach mark](0072-search-page-coach-mark.md)
 73. [Extension version in the header](0073-extension-version-in-the-header.md)
+74. [First run product tour](0074-first-run-product-tour.md)
