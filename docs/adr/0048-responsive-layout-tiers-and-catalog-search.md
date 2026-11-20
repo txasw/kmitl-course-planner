@@ -702,9 +702,19 @@ the build unseen. A sweep now guards the whole panel.
   such as Subject category in place of scrolling it out of view, plan names and their summaries
   wrap in the plan list, the block detail subtitle and the unscheduled shelf names wrap, the plan
   switcher keeps a minimum width that holds the longest term line whole, and the drag overlay is
-  measured and kept inside the window, so the reason card slides back from an edge rather than
-  running past it. The debug build's diagnostics trigger no longer floats over the open panel; it
-  waits on the host page and moves into the header overflow menu while the panel is open.
+  kept inside the window, so the reason card slides back from an edge rather than running past
+  it. The clamp reads the content box dnd-kit measures for the overlay, and on a touch drag it
+  applies the lift of ADR-0058 first and clamps the lifted box, so a card raised above a finger
+  near any edge stays whole too; a touch spec checks each window corner. The debug build's
+  diagnostics trigger no longer floats over the open panel; it waits on the host page and moves
+  into the header overflow menu while the panel is open.
+- The detector has known limits. It reads a line at its line box, not its ink, and allows up to
+  half the gap between the glyph box and the line box, so a tight single line that hides its
+  overflow can still cut a Thai upper tone mark or lower vowel inside that band unseen. A leaf
+  in a fixed or sticky layer is compared only with its own layer, so a floating chip, strip, or
+  toast drawn over static text is not caught here and needs a check in that surface's own spec.
+  The debug diagnostics trigger sits outside the swept panel region, so its move into
+  the header menu is guarded by a unit test.
 
 Alternatives considered: a per surface assertion in each feature spec was rejected because a new
 surface would start unguarded; one walk names every surface in one place. Reading text through
