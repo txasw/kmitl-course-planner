@@ -45,8 +45,9 @@ the collapsed rails and the poster header; everything else is the same grid.
 
 ## Amendment, 2026-11-20: one export entry, and every opening starts in edit
 
-Supersedes brief section 6.4 where it says the last used mode persists in preferences and the
-default is edit, and the sentence above that has the mode persist under the preferences key. Owner
+Supersedes brief section 6.4 where it says the mode is switched by a segmented control in the
+panel header and where it says the last used mode persists in preferences and the default is edit,
+and the sentence above that has the mode persist under the preferences key. Owner
 decision of 2026-11-20 (feedback item 2, decision q4 A): students who switched to preview got stuck
 there, did not recognise the edit and preview segmented control as the way back, and met the
 preview again on the next opening because the mode was remembered.
