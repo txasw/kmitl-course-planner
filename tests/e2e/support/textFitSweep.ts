@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import type { BrowserContext, Locator, Page } from '@playwright/test';
 import { PREFS_KEY, ROOT_KEY } from '../../../src/lib/storage/keys';
 import { BREAKPOINTS } from '../../../src/lib/ui/breakpoints';
+import { SEARCH_FORM_ID } from '../../../src/features/search/searchIds';
 import {
   expect,
   catalogAtRest,
@@ -25,6 +26,7 @@ import {
   scanTextFit,
   type TextFitException,
   type TextFitFinding,
+  type TextFitScanOptions,
 } from './textFit';
 
 export const WIDTHS = (process.env.TEXT_FIT_WIDTHS ?? '360,390,768,1366')
@@ -131,12 +133,19 @@ export class Sweep {
   async scan(
     surface: string,
     region: Locator,
-    { floating = false }: { floating?: boolean } = {},
+    {
+      floating = false,
+      seeThrough,
+    }: { floating?: boolean } & TextFitScanOptions = {},
   ): Promise<void> {
     const target = region.first();
     await expect(target, surface).toBeVisible();
     await settle(this.page);
-    const found = await scanTextFit(target, this.exceptions);
+    const found = await scanTextFit(
+      target,
+      this.exceptions,
+      seeThrough === undefined ? {} : { seeThrough },
+    );
     for (const finding of found) {
       this.findings.push({ ...finding, surface, width: this.width });
     }
@@ -181,6 +190,94 @@ export class Sweep {
           width: this.width,
         });
       }
+    }
+  }
+
+  /**
+   * Rest the pointer on a control until its tooltip opens, then read the tooltip whole and
+   * in the viewport, check that it lies over no other control, and read the region under
+   * it, so a tooltip that covers a caption or a heading fails as covered text.
+   */
+  async scanTooltip(
+    surface: string,
+    trigger: Locator,
+    region: Locator,
+  ): Promise<void> {
+    await trigger.hover();
+    const tooltip = this.page.getByRole('tooltip');
+    await expect(tooltip, surface).toBeVisible();
+    await this.scan(`${surface} tooltip`, tooltip, { floating: true });
+    const tip = await tooltip.elementHandle();
+    // The controls of the region alone, so a control under a modal dialog, which the
+    // dialog itself already covers, is not read as under the tooltip.
+    const covered = await region.first().evaluate(
+      (area, { node, own }) => {
+        const box = node.getBoundingClientRect();
+        return [
+          ...area.querySelectorAll<HTMLElement>(
+            'button, a[href], input, [role="tab"], [role="radio"]',
+          ),
+        ]
+          .filter((control) => {
+            if (control.getAttribute('aria-label') === own) return false;
+            if (node.contains(control) || !control.checkVisibility()) {
+              return false;
+            }
+            const rect = control.getBoundingClientRect();
+            return (
+              rect.width > 0 &&
+              rect.left < box.right - 0.5 &&
+              box.left < rect.right - 0.5 &&
+              rect.top < box.bottom - 0.5 &&
+              box.top < rect.bottom - 0.5
+            );
+          })
+          .map(
+            (control) =>
+              control.getAttribute('aria-label') ??
+              (control.textContent.replace(/\s+/g, ' ').trim() ||
+                control.outerHTML.slice(0, 80)),
+          );
+      },
+      { node: tip, own: await trigger.getAttribute('aria-label') },
+    );
+    for (const name of covered) {
+      this.findings.push({
+        kind: 'covered',
+        text: name,
+        detail: 'a control under the tooltip',
+        surface: `${surface} tooltip`,
+        width: this.width,
+      });
+    }
+    await this.scan(`${surface} with its tooltip`, region);
+    await this.page.mouse.move(0, 0);
+    await expect(tooltip).toHaveCount(0);
+  }
+
+  /**
+   * Check that the open search form shows whole: at the sweep height its scroller holds
+   * every field and the submit row without scrolling, since a scroller that caps the form
+   * cuts a field through its box, which the text scan reads as scrolled rather than cut.
+   */
+  async expectSearchFormWhole(surface: string): Promise<void> {
+    await settle(this.page);
+    const overflow = await this.page.evaluate((id) => {
+      const root = document.querySelector('kcp-planner-root')?.shadowRoot;
+      const scroller = root?.getElementById(id)?.firstElementChild;
+      if (scroller === null || scroller === undefined) return null;
+      return scroller.scrollHeight - scroller.clientHeight;
+    }, SEARCH_FORM_ID);
+    if (overflow === null) {
+      throw new Error(`${surface}: no search form is on show`);
+    }
+    if (overflow > 1) {
+      this.findings.push({
+        kind: 'clipped',
+        text: `the search form scrolls ${String(overflow)} px`,
+        surface,
+        width: this.width,
+      });
     }
   }
 
@@ -348,6 +445,46 @@ export async function dismissToasts(sweep: Sweep): Promise<void> {
   while ((await close.count()) > 0) await close.first().click();
 }
 
+// The extension storage the worker exposes as a global; the sweep describes only the part
+// it calls.
+interface StorageGlobals {
+  chrome: {
+    storage: {
+      local: {
+        QUOTA_BYTES: number;
+        getBytesInUse(keys: null): Promise<number>;
+        get(key: string): Promise<Record<string, unknown>>;
+        set(items: Record<string, unknown>): Promise<void>;
+        remove(key: string): Promise<void>;
+      };
+    };
+  };
+}
+
+const FILLER_KEY = 'e2e:filler';
+
+/** Fill extension storage to within a few bytes of its quota, so the next plan save fails. */
+export async function fillStorage(context: BrowserContext): Promise<void> {
+  const worker = await extensionWorker(context);
+  await worker.evaluate(async (key) => {
+    // Test only assertion: an extension worker carries the chrome global.
+    const { local } = (globalThis as unknown as StorageGlobals).chrome.storage;
+    const room = local.QUOTA_BYTES - (await local.getBytesInUse(null));
+    await local.set({ [key]: 'x'.repeat(room - 32) });
+  }, FILLER_KEY);
+}
+
+/** Give the storage its room back, so saves land again. */
+export async function emptyStorage(context: BrowserContext): Promise<void> {
+  const worker = await extensionWorker(context);
+  await worker.evaluate(async (key) => {
+    // Test only assertion: an extension worker carries the chrome global.
+    await (globalThis as unknown as StorageGlobals).chrome.storage.local.remove(
+      key,
+    );
+  }, FILLER_KEY);
+}
+
 /**
  * Remove every saved plan, so each width starts from an empty plan list. The page just left
  * may still be writing the plan it saved as it unloaded, so the key is removed until it
@@ -357,18 +494,7 @@ async function clearPlans(context: BrowserContext): Promise<void> {
   const worker = await extensionWorker(context);
   await worker.evaluate(async (key) => {
     // Test only assertion: an extension worker carries the chrome global.
-    const local = (
-      globalThis as unknown as {
-        chrome: {
-          storage: {
-            local: {
-              get(key: string): Promise<Record<string, unknown>>;
-              remove(key: string): Promise<void>;
-            };
-          };
-        };
-      }
-    ).chrome.storage.local;
+    const { local } = (globalThis as unknown as StorageGlobals).chrome.storage;
     for (let attempt = 0; attempt < 10; attempt += 1) {
       await local.remove(key);
       await new Promise((resolve) => setTimeout(resolve, 400));

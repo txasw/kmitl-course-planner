@@ -1,6 +1,6 @@
 // The text fit scan behind the clipped text sweep (ADR-0048 amendment). It walks every
-// visible text leaf under a region and reports two kinds of fault: a leaf whose text a
-// box cuts, and a pair of leaves that draw over each other. A box cuts text when it hides
+// visible text leaf under a region and reports three kinds of fault: a leaf whose text a
+// box cuts, a pair of leaves that draw over each other, and a leaf another layer covers. A box cuts text when it hides
 // or clips its overflow and either holds more than it shows (its scroll size passes its
 // client size, which is also how an active ellipsis or line clamp reads) or a leaf runs
 // past its edge. A leaf that a scroller holds is not cut, since scrolling reveals it, and
@@ -10,32 +10,54 @@
 // as overlapping through their bounding boxes. A sticky or fixed box inside the region is a
 // layer of its own, such as a heading that stays put while the list scrolls under it, so a
 // leaf in that layer and a leaf outside it are not compared.
+//
+// A leaf is covered when the element on top at a point of its line, the one a press there
+// would reach, is neither the leaf's own element nor inside or around it: a toast, a
+// tooltip, or a card laid over the text. Each line is probed at three points across its
+// middle. A layer that lets presses through is drawn for looks, such as a hatch or a
+// shadow, and is not on top for this reading. A cover inside the same scroller as the leaf
+// is a pinned row the list scrolls under, which scrolling clears. A layer that dims the
+// panel on purpose, such as the product tour's, is named as see through by the caller so
+// the probe reads what lies under it.
 
 import type { Locator } from '@playwright/test';
 
-/** A leaf an explicit expand affordance excuses, named by a selector and a reason. */
+/**
+ * A leaf an explicit expand affordance excuses. The leaf sits inside an element matching
+ * the selector; its nearest ancestor matching the scope must be or hold a visible element
+ * matching the control, the affordance that shows the whole text, so a cut text whose
+ * control is missing still fails.
+ */
 export interface TextFitException {
   selector: string;
+  scope: string;
+  control: string;
   reason: string;
 }
 
+export interface TextFitScanOptions {
+  /** Layers a covered text is read through, such as a deliberate dim over the panel. */
+  seeThrough?: readonly string[];
+}
+
 export interface TextFitFinding {
-  kind: 'clipped' | 'outside' | 'overlap';
+  kind: 'clipped' | 'outside' | 'overlap' | 'covered';
   text: string;
   /** Which box cuts the text and by how much, to read a failure by. */
   detail?: string;
 }
 
 /**
- * Scan a region and return its faults. A leaf inside an element that matches one of the
- * exceptions is left out of both checks.
+ * Scan a region and return its faults. A leaf an exception excuses is left out of every
+ * check.
  */
 export async function scanTextFit(
   region: Locator,
   exceptions: readonly TextFitException[],
+  { seeThrough = [] }: TextFitScanOptions = {},
 ): Promise<TextFitFinding[]> {
   return region.evaluate(
-    (root, selectors) => {
+    (root, { excused, through }) => {
       // Subpixel layout can place an edge a fraction past a whole pixel, and a line box
       // read from the centre of an asymmetric Thai face can sit a fraction off it, so a
       // box cuts a leaf only past the same one pixel the scroll size check allows.
@@ -43,7 +65,7 @@ export async function scanTextFit(
       const CUT = 1;
       const SCROLL = 1;
       const findings: {
-        kind: 'clipped' | 'outside' | 'overlap';
+        kind: 'clipped' | 'outside' | 'overlap' | 'covered';
         text: string;
         detail?: string;
       }[] = [];
@@ -93,9 +115,20 @@ export async function scanTextFit(
         const parent = node.parentElement;
         if (text === '' || parent === null) continue;
         if (parent.closest('.sr-only') !== null) continue;
-        if (selectors.some((selector) => parent.closest(selector) !== null)) {
-          continue;
-        }
+        const isExcused = excused.some(({ selector, scope, control }) => {
+          const area = parent.closest(selector)?.closest(scope) ?? null;
+          if (area === null) return false;
+          const affordance = area.matches(control)
+            ? area
+            : area.querySelector(control);
+          return (
+            affordance?.checkVisibility({
+              opacityProperty: true,
+              visibilityProperty: true,
+            }) === true
+          );
+        });
+        if (isExcused) continue;
         if (
           !parent.checkVisibility({
             opacityProperty: true,
@@ -142,6 +175,8 @@ export async function scanTextFit(
         let hidden = false;
         let cut = false;
         let scrolled = false;
+        // The nearest ancestor that scrolls, where a pinned row is part of the list.
+        let scroller: Element | null = null;
         let why = '';
         // The part of the leaf that every clipping or scrolling ancestor passed so far
         // leaves on show. A scroller hides what lies past its edge only until it scrolls,
@@ -207,7 +242,10 @@ export async function scanTextFit(
               why = `${name} holds ${String(element.scrollWidth)}x${String(element.scrollHeight)} in ${String(element.clientWidth)}x${String(element.clientHeight)}`;
             }
           }
-          if (scrollX || scrollY) scrolled = true;
+          if (scrollX || scrollY) {
+            scrolled = true;
+            scroller ??= element;
+          }
           shown = {
             left: Math.max(shown.left, box.left),
             top: Math.max(shown.top, box.top),
@@ -220,6 +258,37 @@ export async function scanTextFit(
         else if (!scrolled && !within(rect, viewport)) {
           findings.push({ kind: 'outside', text });
         }
+        const hitRoot = node.getRootNode();
+        const probe =
+          hitRoot instanceof ShadowRoot || hitRoot instanceof Document
+            ? hitRoot
+            : document;
+        let cover: Element | null = null;
+        // A press passes through an element that takes none, so the probe would read
+        // what lies under the leaf's own box. The leaf's chain takes presses for the
+        // probe and gets its own setting back after it.
+        const passThrough: {
+          element: HTMLElement;
+          value: string;
+          priority: string;
+        }[] = [];
+        for (
+          let element: Element | null = parent;
+          element !== null;
+          element = parentOf(element)
+        ) {
+          if (
+            element instanceof HTMLElement &&
+            getComputedStyle(element).pointerEvents === 'none'
+          ) {
+            passThrough.push({
+              element,
+              value: element.style.getPropertyValue('pointer-events'),
+              priority: element.style.getPropertyPriority('pointer-events'),
+            });
+            element.style.setProperty('pointer-events', 'auto', 'important');
+          }
+        }
         for (const fragment of range.getClientRects()) {
           // Overlap is read on the part of each line that is on show.
           const part = {
@@ -230,7 +299,49 @@ export async function scanTextFit(
           };
           if (part.right - part.left > EDGE && part.bottom - part.top > EDGE) {
             fragments.push({ text, rect: part, layer, node });
+            const y = (part.top + part.bottom) / 2;
+            for (const share of [0.15, 0.5, 0.85]) {
+              if (cover !== null) break;
+              const x = part.left + (part.right - part.left) * share;
+              if (
+                x < 0 ||
+                y < 0 ||
+                x >= viewport.right ||
+                y >= viewport.bottom
+              ) {
+                continue;
+              }
+              const top = probe
+                .elementsFromPoint(x, y)
+                .find(
+                  (element) =>
+                    !through.some((selector) => element.matches(selector)),
+                );
+              if (
+                top === undefined ||
+                top === parent ||
+                parent.contains(top) ||
+                top.contains(parent)
+              ) {
+                continue;
+              }
+              // A row pinned inside the leaf's own scroller scrolls clear of it.
+              if (scroller?.contains(top) === true) continue;
+              cover = top;
+            }
           }
+        }
+        for (const { element, value, priority } of passThrough) {
+          if (value === '') element.style.removeProperty('pointer-events');
+          else element.style.setProperty('pointer-events', value, priority);
+        }
+        if (cover !== null) {
+          const name = `${cover.tagName.toLowerCase()}.${[...cover.classList].slice(0, 4).join('.')}`;
+          findings.push({
+            kind: 'covered',
+            text,
+            detail: `under ${name} ${cover.textContent.replace(/\s+/g, ' ').trim().slice(0, 40)}`,
+          });
         }
       }
 
@@ -262,6 +373,13 @@ export async function scanTextFit(
       }
       return findings;
     },
-    exceptions.map((exception) => exception.selector),
+    {
+      excused: exceptions.map(({ selector, scope, control }) => ({
+        selector,
+        scope,
+        control,
+      })),
+      through: [...seeThrough],
+    },
   );
 }
