@@ -468,6 +468,7 @@ for (const language of ['th', 'en'] as const) {
             .getByRole('radio', { name: new RegExp(sweep.t(template)) })
             .click();
           await sweep.scan(`export ${template}`, sweep.panel());
+          await sweep.checkBlockNames(`export ${template}`, sweep.panel());
         }
         await page
           .getByRole('button', { name: sweep.t('preview.displayOptions') })
