@@ -117,6 +117,30 @@ describe('suggestPlans with subjects already in the plan', () => {
     ]);
   });
 
+  it('names a plan subject as the clash only where the timetable keeps its section', () => {
+    const mondayOnly = curriculumCourse('22222222', [{ meetings: at(1) }]);
+    const tuesdayOnly = curriculumCourse('33333333', [{ meetings: at(2) }]);
+    const { suggestions } = suggestPlans({
+      courses: [held, mondayOnly, tuesdayOnly],
+      entries,
+      objective: 'coverAll',
+      preference: 'balanced',
+    });
+    const reasons = suggestions.map((suggestion) =>
+      suggestion.leftOut.map(({ course, reason }) => [
+        course.subjectId,
+        reason.kind,
+      ]),
+    );
+    // Kept on Monday, the plan's 11111111 is what the Monday course meets; moved to
+    // Tuesday, it is no longer the plan's section, so the Tuesday course just does
+    // not fit beside it.
+    expect(reasons).toEqual([
+      [['22222222', 'locked']],
+      [['33333333', 'noFit']],
+    ]);
+  });
+
   it('leaves an unticked plan subject out of every timetable', () => {
     const mondayOnly = curriculumCourse('22222222', [{ meetings: at(1) }]);
     const { suggestions } = suggestPlans({
