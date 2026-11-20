@@ -9,7 +9,9 @@
 // rather than the inset ring, which would only have thickened the edge by a pixel. Every chip
 // shows its whole text: the name takes the full chip width and wraps there, with the glyph and
 // the size on the line under it, three chips to a row below 1024 px and all six in one row
-// from there up.
+// from there up. A phone turned on its side, 768 px wide or more and at most 500 px tall,
+// also takes all six in one row, since a second row of chips there leaves the poster stage
+// only about 110 px tall.
 
 import type {
   KeyboardEvent as ReactKeyboardEvent,
@@ -78,7 +80,7 @@ export function TemplateChips({
       ref={groupRef}
       role="radiogroup"
       aria-label={t('preview.template.label')}
-      className="grid shrink-0 grid-cols-3 gap-1.5 lg:grid-cols-6"
+      className="grid shrink-0 grid-cols-3 gap-1.5 lg:grid-cols-6 md:[@media(max-height:500px)]:grid-cols-6"
     >
       {templates.map((template, index) => {
         const isSelected = index === selected;
