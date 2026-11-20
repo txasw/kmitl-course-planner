@@ -49,7 +49,7 @@ test('exports each template at its exact pixel dimensions', async ({
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await categorySearch(page);
   await page.getByRole('button', { name: /^เพิ่ม/ }).first().click();
-  await page.getByRole('button', { name: 'ดูตัวอย่าง' }).click();
+  await page.getByRole('button', { name: 'ส่งออก', exact: true }).click();
 
   // Every template lands its exact output pixels through the same capture seam, independent
   // of the viewport. Each is selected through the gallery picker, the dot radiogroup, by its
@@ -78,7 +78,7 @@ test('exports exact template pixels whatever the display scale', async ({
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await categorySearch(page);
   await page.getByRole('button', { name: /^เพิ่ม/ }).first().click();
-  await page.getByRole('button', { name: 'ดูตัวอย่าง' }).click();
+  await page.getByRole('button', { name: 'ส่งออก', exact: true }).click();
   await page.getByRole('radio', { name: /แชร์ 16:9/ }).click();
 
   // A large screen scales the poster past its 960 px layout box on the stage, and a small
@@ -124,7 +124,7 @@ test('keeps verification badges out of the poster and states the data date', asy
   await stats.getByRole('button', { name: 'ตรวจสอบอีกครั้ง' }).click();
 
   // The check found changes, so the updates dialog opens directly. Review later keeps
-  // both reviews open and clears the way to the preview toggle.
+  // both reviews open and clears the way to the export button.
   const dialog = page.getByRole('dialog', {
     name: 'ข้อมูลในตารางมีการเปลี่ยนแปลง',
   });
@@ -141,7 +141,7 @@ test('keeps verification badges out of the poster and states the data date', asy
     page.locator(`${block('900005')}[data-verify="danger"]`),
   ).toBeVisible();
 
-  await page.getByRole('button', { name: 'ดูตัวอย่าง' }).click();
+  await page.getByRole('button', { name: 'ส่งออก', exact: true }).click();
 
   // The poster, which is the capture node, renders both blocks with no verification mark.
   const posters = page.locator('.kcp-poster');

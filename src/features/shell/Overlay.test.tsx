@@ -79,6 +79,11 @@ function holdsPanelEntry(): boolean {
 }
 
 afterEach(async () => {
+  // Leave the export page while mounted, so its history layer unwinds before the
+  // unmount, which cleans up the overlay first and would otherwise strand its entry.
+  act(() => {
+    uiStore.getState().setViewMode('edit');
+  });
   cleanup();
   vi.unstubAllGlobals();
   act(() => {
@@ -275,6 +280,112 @@ describe('Overlay', () => {
       expect(uiStore.getState().isOpen).toBe(false);
       expectHostEntry();
     });
+
+    it('leaves the export page alone on a back gesture and closes the panel on a second', async () => {
+      openFrom(false);
+      fireEvent.click(screen.getByRole('button', { name: 'ส่งออก' }));
+      expect(uiStore.getState().viewMode).toBe('preview');
+      const first = nextPopState();
+      window.history.back();
+      await act(() => first);
+      expect(uiStore.getState().viewMode).toBe('edit');
+      expect(uiStore.getState().isOpen).toBe(true);
+      const second = nextPopState();
+      window.history.back();
+      await act(() => second);
+      expect(uiStore.getState().isOpen).toBe(false);
+      expectHostEntry();
+    });
+
+    it('unwinds the export page entry with the button and keeps the panel entry', async () => {
+      openFrom(false);
+      fireEvent.click(screen.getByRole('button', { name: 'ส่งออก' }));
+      const popped = nextPopState();
+      fireEvent.click(screen.getByRole('button', { name: 'กลับไปแก้ไข' }));
+      await act(() => popped);
+      expect(uiStore.getState().viewMode).toBe('edit');
+      expect(holdsPanelEntry()).toBe(true);
+      const closed = nextPopState();
+      window.history.back();
+      await act(() => closed);
+      expect(uiStore.getState().isOpen).toBe(false);
+      expectHostEntry();
+    });
+
+    it('returns to the host entry when closed from the export page', async () => {
+      openFrom(false);
+      fireEvent.click(screen.getByRole('button', { name: 'ส่งออก' }));
+      fireEvent.click(screen.getByRole('button', { name: 'ปิด' }));
+      while (holdsPanelEntry()) await act(() => nextPopState());
+      expect(uiStore.getState().isOpen).toBe(false);
+      expectHostEntry();
+    });
+  });
+
+  describe('export page', () => {
+    function openPanel(): void {
+      act(() => {
+        uiStore.getState().open();
+      });
+      render(<Overlay />, { wrapper });
+    }
+
+    // A browser focuses a button it presses, which fireEvent.click alone does not.
+    function press(name: string): void {
+      const button = screen.getByRole('button', { name });
+      button.focus();
+      fireEvent.click(button);
+    }
+
+    it('opens from the one export button and moves focus to the way back', () => {
+      openPanel();
+      const header = screen.getByRole('banner');
+      expect(
+        screen.queryByRole('button', { name: 'กลับไปแก้ไข' }),
+      ).not.toBeInTheDocument();
+      press('ส่งออก');
+      expect(uiStore.getState().viewMode).toBe('preview');
+      expect(
+        screen.getByRole('toolbar', { name: 'เครื่องมือสำหรับแชร์' }),
+      ).toBeInTheDocument();
+      const back = screen.getByRole('button', { name: 'กลับไปแก้ไข' });
+      expect(header).toContainElement(back);
+      expect(back).toHaveFocus();
+      expect(
+        screen.queryByRole('button', { name: 'ส่งออก' }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('returns to editing from the back button with focus on the export button', () => {
+      openPanel();
+      press('ส่งออก');
+      press('กลับไปแก้ไข');
+      expect(uiStore.getState().viewMode).toBe('edit');
+      expect(screen.getByRole('button', { name: 'ส่งออก' })).toHaveFocus();
+    });
+
+    it('returns to editing on Escape and keeps the panel open', () => {
+      openPanel();
+      press('ส่งออก');
+      fireEvent.keyDown(screen.getByRole('button', { name: 'กลับไปแก้ไข' }), {
+        key: 'Escape',
+      });
+      expect(uiStore.getState().viewMode).toBe('edit');
+      expect(uiStore.getState().isOpen).toBe(true);
+      fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+      expect(uiStore.getState().isOpen).toBe(false);
+    });
+
+    it('opens in edit again after the panel closed on the export page', () => {
+      openPanel();
+      press('ส่งออก');
+      fireEvent.click(screen.getByRole('button', { name: 'ปิด' }));
+      act(() => {
+        uiStore.getState().open();
+      });
+      expect(uiStore.getState().viewMode).toBe('edit');
+      expect(screen.getByRole('button', { name: 'ส่งออก' })).toBeInTheDocument();
+    });
   });
 
   describe('safe area insets', () => {
@@ -301,10 +412,11 @@ describe('Overlay', () => {
     });
 
     it('pads the bottom inset of the phone preview, which has no nav', () => {
+      openAt(390);
       act(() => {
         uiStore.getState().setViewMode('preview');
       });
-      expect(openAt(390)).toHaveClass(...SIDES, BOTTOM);
+      expect(screen.getByRole('main')).toHaveClass(...SIDES, BOTTOM);
     });
   });
 

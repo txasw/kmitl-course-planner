@@ -22,7 +22,7 @@ test('shows the sharing toolbar only in preview mode', async ({ context }) => {
   );
 
   // Preview mode reveals the display options and the sharing actions.
-  await page.getByRole('button', { name: 'ดูตัวอย่าง' }).click();
+  await page.getByRole('button', { name: 'ส่งออก', exact: true }).click();
   await expect(
     page.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }),
   ).toBeVisible();
@@ -32,7 +32,7 @@ test('shows the sharing toolbar only in preview mode', async ({ context }) => {
   await expect(page.getByRole('button', { name: 'คัดลอกข้อความ' })).toBeVisible();
 
   // Returning to edit removes them from the DOM again.
-  await page.getByRole('button', { name: 'แก้ไข' }).click();
+  await page.getByRole('button', { name: 'กลับไปแก้ไข' }).click();
   await expect(page.getByRole('button', { name: 'ดาวน์โหลดรูปภาพ' })).toHaveCount(
     0,
   );

@@ -416,7 +416,7 @@ for (const locale of LOCALES) {
     const page = await openIn(context, locale);
     await buildPlan(page, locale);
     await page
-      .getByRole('button', { name: tr(locale, 'mode.preview'), exact: true })
+      .getByRole('button', { name: tr(locale, 'mode.export'), exact: true })
       .click();
     await page
       .getByRole('radio', { name: tr(locale, 'preview.template.share') })

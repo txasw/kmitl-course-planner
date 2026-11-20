@@ -7,6 +7,7 @@ import { IS_DEBUG } from '@/lib/env';
 import { uiStore } from './uiStore';
 import { PanelPortalContext } from './PanelPortalContext';
 import { Header } from './Header';
+import { backToEditing } from './ExportEntry';
 import { SaveIndicator } from './SaveIndicator';
 import { Layout } from './Layout';
 import { ShortcutHelp } from './ShortcutHelp';
@@ -23,7 +24,8 @@ import { VIEWPORT_FIT } from '@/lib/ui/viewportInset';
 
 // The full viewport overlay panel. It renders inside the closed shadow root as a
 // modal dialog: focus is trapped while open, Escape and the close control return
-// to the host, the host document scroll is locked, and enter and leave fade with
+// to the host, except that Escape on the export page returns to editing first, the
+// host document scroll is locked, and enter and leave fade with
 // a reduced motion path. A back gesture closes it too, through one history entry it holds
 // while open, recorded in ADR-0067. Session state lives in the ui store, so closing and
 // reopening within a page session resumes where the user left off. The root
@@ -60,9 +62,19 @@ export function Overlay() {
     setHelpOpen(true);
   }, []);
 
+  // Escape that no inner surface claimed leaves the export page first and closes the
+  // panel only from editing, the same order as the back gesture (ADR-0022 amendment).
+  const handleEscape = useCallback(() => {
+    if (uiStore.getState().viewMode === 'preview') {
+      backToEditing();
+    } else {
+      close();
+    }
+  }, [close]);
+
   // Focus enters the panel only once it is mounted; the lock follows the logical
   // open flag so it never waits on the leave animation.
-  useFocusTrap(panelRef, isOpen && mounted, close);
+  useFocusTrap(panelRef, isOpen && mounted, handleEscape);
   usePanelShortcuts(panelRef, { enabled: isOpen && mounted, onHelp: openHelp });
   useScrollLock(isOpen);
   useBackToClose(isOpen, close);
