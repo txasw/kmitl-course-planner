@@ -194,8 +194,11 @@ checklist glyph named above.
 
 ## Amendment, 2026-11-21: tab icons and a quiet count
 
+## Amendment, 2026-11-21: tab icons, a quiet count and touch height
+
 The redesign asks for icons and less text, and the conformance review found the Medium and Wide
-tabs text only, with the subject count in brackets, "วิชาที่เลือก (5)".
+tabs text only, with the subject count in brackets, "วิชาที่เลือก (5)", and a row that stayed 40 px
+(36 px under the height rule) on a touch tablet.
 
 Each tab now leads with the icon its bottom nav item carries on Compact: a calendar for ตารางเรียน,
 a checklist for วิชาที่เลือก and a clipboard for สรุป. One `PLAN_VIEW_ICON` map serves both the
@@ -204,4 +207,6 @@ The selected tab follows its label with the count as a quiet number in the muted
 in the regular weight, with no brackets, as the mockup draws it, and the accessible name joins the
 label and the count, "วิชาที่เลือก 5", with the exam clash wording after it where it applies. The
 count shows at zero too, unlike the nav, because the tab is always the label and the number side
-by side.
+by side. Under a coarse pointer the row is 44 px at any height, the touch target, and the 36 px
+step under `max-height: 800px` now applies to a fine pointer only, so the two height rules never
+compete. The responsive spec checks the tabs as touch targets on the tablet project.
