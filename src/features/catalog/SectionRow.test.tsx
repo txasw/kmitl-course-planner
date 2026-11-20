@@ -38,7 +38,7 @@ describe('SectionRow actions', () => {
     expect(onAdd).toHaveBeenCalledWith(course, section);
   });
 
-  it('renders the add as an icon rail that names the section', () => {
+  it('renders the add as a compact button that names the section', () => {
     render(
       <SectionRow
         course={course}
@@ -51,12 +51,12 @@ describe('SectionRow actions', () => {
       />,
     );
     const add = screen.getByRole('button', { name: /^เพิ่ม/ });
-    // Icon only, with the accessible name naming the section it adds.
-    expect(add.textContent).toBe('');
+    // The visible word leads the accessible name, which also names the section it adds.
+    expect(add.textContent).toBe('เพิ่ม');
     expect(add.getAttribute('aria-label')).toContain(section.section);
   });
 
-  it('renders the add rail as a quiet, own column affordance', () => {
+  it('keeps the add a compact column of its own rather than a tinted strip', () => {
     render(
       <SectionRow
         course={course}
@@ -70,16 +70,36 @@ describe('SectionRow actions', () => {
     );
     const add = screen.getByRole('button', { name: /^เพิ่ม/ });
     const tokens = add.className.split(' ');
-    // Quiet by default: a soft tinted surface with the accent icon. The solid orange is
-    // reserved for the hover and focus states, so it is never the base fill.
-    expect(tokens).toContain('bg-primary-soft');
-    expect(tokens).not.toContain('bg-primary-strong');
-    expect(tokens).toContain('hover:bg-primary-strong');
-    // Its own bordered column that never overlaps the row body: it reserves its width
-    // (shrink-0, border-l) and sits outside the body content column.
+    // A white button with a hairline edge at rest: the orange wash of the old full height
+    // rail is gone, and the soft accent fill shows only on hover.
+    expect(tokens).toContain('bg-surface');
+    expect(tokens).not.toContain('bg-primary-soft');
+    expect(tokens).toContain('hover:bg-primary-soft');
+    expect(tokens).not.toContain('border-l');
+    // Its own column that never shrinks into the row body, and a 44 px target under a
+    // coarse pointer.
     expect(tokens).toContain('shrink-0');
-    expect(tokens).toContain('border-l');
+    expect(tokens).toContain('pointer-coarse:min-h-(--kcp-target-touch)');
     expect(add.closest('.flex-1')).toBeNull();
+  });
+
+  it('reads as a band of the section list rather than a bordered card', () => {
+    const { container } = render(
+      <SectionRow
+        course={course}
+        section={section}
+        relation={{ kind: 'addable' }}
+        seat={openSeat}
+        locale="th"
+        t={t}
+        onAdd={vi.fn()}
+      />,
+    );
+    const row = container.querySelector('[data-section-row]');
+    expect(row).not.toBeNull();
+    const tokens = row?.className.split(' ') ?? [];
+    expect(tokens).not.toContain('border');
+    expect(tokens).not.toContain('rounded-kcp');
   });
 
   it('offers an add button on a conflicting open section that fires the handler', () => {
@@ -150,7 +170,7 @@ describe('SectionRow actions', () => {
     expect(screen.queryByText('ปฏิบัติ')).not.toBeInTheDocument();
   });
 
-  it('shows a disabled add rail for a full section', () => {
+  it('shows a disabled add for a full section', () => {
     const fullSection = makeSection({
       seats: { limit: 40, preCount: 40, queueLeft: 0, enrolled: 'full' },
     });
@@ -165,8 +185,8 @@ describe('SectionRow actions', () => {
         onAdd={vi.fn()}
       />,
     );
-    // The rail stays on the trailing edge but is disabled; the full reason reads
-    // from the seat line in the row body.
+    // The add stays in its column but is disabled; the full reason reads from the seat
+    // line in the row body.
     expect(screen.getByRole('button', { name: /^เพิ่ม/ })).toHaveAttribute(
       'aria-disabled',
       'true',
@@ -174,7 +194,7 @@ describe('SectionRow actions', () => {
     expect(screen.getByText('เต็ม เพิ่มไม่ได้')).toBeInTheDocument();
   });
 
-  it('keeps the disabled rail focusable with its reason as the description', () => {
+  it('keeps the disabled add focusable with its reason as the description', () => {
     const onAdd = vi.fn();
     const fullSection = makeSection({
       seats: { limit: 40, preCount: 40, queueLeft: 0, enrolled: 'full' },
@@ -190,17 +210,17 @@ describe('SectionRow actions', () => {
         onAdd={onAdd}
       />,
     );
-    const rail = screen.getByRole('button', { name: /^เพิ่ม/ });
-    // aria-disabled rather than disabled, so the rail stays in the tab order.
-    expect(rail).not.toHaveAttribute('disabled');
-    rail.focus();
-    expect(rail).toHaveFocus();
-    expect(rail).toHaveAccessibleDescription('เต็ม เพิ่มไม่ได้');
-    fireEvent.click(rail);
+    const add = screen.getByRole('button', { name: /^เพิ่ม/ });
+    // aria-disabled rather than disabled, so the add stays in the tab order.
+    expect(add).not.toHaveAttribute('disabled');
+    add.focus();
+    expect(add).toHaveFocus();
+    expect(add).toHaveAccessibleDescription('เต็ม เพิ่มไม่ได้');
+    fireEvent.click(add);
     expect(onAdd).not.toHaveBeenCalled();
   });
 
-  it('describes a different term rail with the term mismatch', () => {
+  it('describes a different term add with the term mismatch', () => {
     render(
       <SectionRow
         course={course}
@@ -216,9 +236,9 @@ describe('SectionRow actions', () => {
         onAdd={vi.fn()}
       />,
     );
-    const rail = screen.getByRole('button', { name: /^เพิ่ม/ });
-    expect(rail).toHaveAttribute('aria-disabled', 'true');
-    expect(rail).toHaveAccessibleDescription(
+    const add = screen.getByRole('button', { name: /^เพิ่ม/ });
+    expect(add).toHaveAttribute('aria-disabled', 'true');
+    expect(add).toHaveAccessibleDescription(
       'ตารางนี้เป็นภาคการศึกษา 2/2569 แต่กลุ่มเรียนนี้อยู่ในภาคการศึกษา 1/2569',
     );
   });
@@ -476,7 +496,7 @@ describe('SectionRow demand chip', () => {
     );
   });
 
-  it('keeps the demand counts out of the disabled rail reason', () => {
+  it('keeps the demand counts out of the disabled add reason', () => {
     renderDemand(OVERSUBSCRIBED);
     expect(
       screen.getByRole('button', { name: /^เพิ่ม/ }),
@@ -890,14 +910,14 @@ describe('SectionRow conflict badge and reason', () => {
     expect(callout).toBeVisible();
   });
 
-  it('describes the add rail with the callout on a conflicting row', () => {
+  it('describes the add with the callout on a conflicting row', () => {
     const { placed, course, incoming } = examOverlapCourses();
     renderAgainst([placed], course, incoming);
     const add = screen.getByRole('button', { name: /^เพิ่ม/ });
     expect(add).toHaveAccessibleDescription(/^เวลาสอบชนกับ 90000010/);
   });
 
-  it('gives the add rail no callout description on an addable row', () => {
+  it('gives the add no callout description on an addable row', () => {
     render(
       <SectionRow
         course={course}

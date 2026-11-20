@@ -26,7 +26,7 @@ import { computeSeatDemand, seatLineText } from '@/lib/catalog/seatDemand';
 import { computeRowStatus, isConflictStatus } from '@/lib/catalog/rowStatus';
 import type { SectionRelation } from '@/lib/planner/sectionState';
 import { describeConflicts } from '@/lib/planner/describeConflict';
-import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
+import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { NO_DRAG_ARMING } from '@/features/planner/dragArming';
 import { TermSwitchLabel } from '@/features/plans/TermSwitchLabel';
@@ -79,18 +79,19 @@ export function SectionRow({
   // text and the switch term action below AA (ADR-0051).
   const dimmed =
     relation.kind === 'duplicate' || relation.kind === 'different_term';
-  // The add affordance is a full height rail on the trailing edge rather than a
-  // button in the wrapping controls strip, so it stays inside the row bounds. A
-  // section that cannot be added shows the rail disabled with the reason in the row
-  // body rather than omitting it, keeping the trailing edge consistent.
-  const rail = readOnly
+  // The add affordance is a compact button in its own column at the top right of the
+  // row, beside the section code, so it never runs down the row as a tinted strip and
+  // never overlaps the row body. A section that cannot be added shows the button
+  // disabled with the reason in the row body rather than omitting it, keeping the
+  // column consistent.
+  const action = readOnly
     ? 'none'
-    : railKind(relation, seat, onAdd !== undefined);
+    : actionKind(relation, seat, onAdd !== undefined);
   const addLabel = addSectionName(section, t);
   const calloutId = useId();
   const reasonId = useId();
   const demand = computeSeatDemand(section);
-  // A disabled rail names the reason the row body already states: the term mismatch,
+  // A disabled add names the reason the row body already states: the term mismatch,
   // which outranks the seat state, or the full or closed seat line.
   const disabledReason =
     relation.kind === 'different_term'
@@ -106,11 +107,10 @@ export function SectionRow({
 
   return (
     <div
-      className={`flex items-stretch overflow-hidden rounded-kcp border border-border text-xs ${
-        dimmed ? 'bg-surface-alt' : ''
-      }`}
+      data-section-row
+      className={`flex items-start gap-2 p-2 text-xs ${dimmed ? 'bg-surface-alt' : ''}`}
     >
-      <div className="min-w-0 flex-1 p-2">
+      <div className="min-w-0 flex-1">
         {/* The badge cluster wraps under the section code on a narrow row rather than
             shrinking, so the status label never collapses to an icon. */}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -151,7 +151,7 @@ export function SectionRow({
         </div>
 
         <TeacherLine teachers={teachers} t={t} />
-        {/* The reason id stays on the seat line alone, so a disabled rail names the seat
+        {/* The reason id stays on the seat line alone, so a disabled add names the seat
             state without the demand counts. */}
         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
           <div id={relation.kind === 'different_term' ? undefined : reasonId}>
@@ -185,16 +185,18 @@ export function SectionRow({
           </p>
         ) : null}
       </div>
-      {rail === 'add' && onAdd !== undefined ? (
-        <AddRail
+      {action === 'add' && onAdd !== undefined ? (
+        <AddButton
+          text={t('action.add')}
           label={addLabel}
           describedBy={conflict !== null ? calloutId : undefined}
           onAdd={() => {
             onAdd(course, section);
           }}
         />
-      ) : rail === 'disabled' ? (
-        <DisabledRail
+      ) : action === 'disabled' ? (
+        <DisabledAddButton
+          text={t('action.add')}
           label={addLabel}
           reason={disabledReason}
           reasonId={reasonId}
@@ -204,20 +206,20 @@ export function SectionRow({
   );
 }
 
-type RailKind = 'add' | 'disabled' | 'none';
+type ActionKind = 'add' | 'disabled' | 'none';
 
 /**
- * The trailing rail state for a section. A read only row has no rail. A row that is
- * added or a duplicate subject has none either, since neither can be added. A full,
- * closed, or different term section shows a disabled rail with the reason in the row
- * body. Otherwise an addable or a conflicting open section shows the add rail; a
- * conflicting add routes to the blocked feedback like the drag does.
+ * The add control state for a section. A read only row has none. A row that is added or
+ * a duplicate subject has none either, since neither can be added. A full, closed, or
+ * different term section shows the add disabled with the reason in the row body.
+ * Otherwise an addable or a conflicting open section shows the add; a conflicting add
+ * routes to the blocked feedback like the drag does.
  */
-function railKind(
+function actionKind(
   relation: SectionRelation,
   seat: SeatStatus,
   hasAdd: boolean,
-): RailKind {
+): ActionKind {
   if (relation.kind === 'added' || relation.kind === 'duplicate') {
     return 'none';
   }
@@ -232,56 +234,61 @@ function railKind(
   return hasAdd ? 'add' : 'none';
 }
 
-// The add rail is a quiet affordance, not the primary path: drag is primary, add is
-// secondary. It rests as a soft tinted column with the accent icon and fills to solid
-// only on hover and focus. Its own bordered column (w-8, or w-11 under a coarse pointer so
-// a finger has a 44 px target, shrink-0, border-l) means it
-// never overlaps the row body, which stays min-w-0 and clips rather than spilling into
-// the rail at any card width. The accent icon on the soft surface and white on the
-// solid hover fill both clear the AA text bar (token-contrast.test.ts). On a conflicting
-// row its description points at the conflict callout, so a screen reader hears why the
-// add will route to the blocked feedback before pressing it.
-function AddRail({
+// The add is a quiet secondary affordance, since drag is primary: a white button with a
+// hairline edge, the accent plus, and the short add word, sized to its content and
+// pinned to the top of its own shrink-0 column, so the row body beside it stays min-w-0
+// and wraps rather than running under it at any width. It meets the 24 px target and
+// grows to 44 px under a coarse pointer. Its accessible name starts with the visible word
+// and names the subject and section it adds. On a conflicting row its description points
+// at the conflict callout, so a screen reader hears why the add will route to the
+// blocked feedback before pressing it.
+const ADD_BUTTON = `inline-flex shrink-0 items-center justify-center gap-1 rounded-kcp-sm border px-2 text-xs font-semibold whitespace-nowrap ${TARGET_SIZE} ${FOCUS_RING}`;
+
+function AddButton({
+  text,
   label,
   describedBy,
   onAdd,
 }: {
+  text: string;
   label: string;
   describedBy: string | undefined;
   onAdd: () => void;
 }) {
   return (
-    <Tooltip label={label}>
-      {(triggerProps, ref) => (
-        <button
-          ref={ref}
-          {...triggerProps}
-          type="button"
-          aria-label={label}
-          {...(describedBy !== undefined
-            ? { 'aria-describedby': describedBy }
-            : {})}
-          {...NO_DRAG_ARMING}
-          {...tourTargetProps('add')}
-          onClick={onAdd}
-          className={`flex w-8 shrink-0 items-center justify-center border-l border-border bg-primary-soft pointer-coarse:w-11 text-primary-strong hover:bg-primary-strong hover:text-white focus-visible:bg-primary-strong focus-visible:text-white ${FOCUS_OUTLINE}`}
-        >
-          <Plus size={16} strokeWidth={2.5} aria-hidden />
-        </button>
-      )}
-    </Tooltip>
+    <button
+      type="button"
+      aria-label={label}
+      {...(describedBy !== undefined
+        ? { 'aria-describedby': describedBy }
+        : {})}
+      {...NO_DRAG_ARMING}
+      {...tourTargetProps('add')}
+      onClick={onAdd}
+      className={`${ADD_BUTTON} border-border bg-surface text-ink shadow-kcp-soft hover:border-primary hover:bg-primary-soft hover:text-primary-strong`}
+    >
+      <Plus
+        size={14}
+        strokeWidth={2.5}
+        aria-hidden
+        className="text-primary-strong"
+      />
+      {text}
+    </button>
   );
 }
 
-// A section that cannot be added keeps its rail so the trailing edge stays consistent.
-// The rail is aria-disabled rather than disabled, so it stays in the tab order: a
-// keyboard user who reaches it hears the reason through aria-describedby, and a pointer
-// user sees it in the tooltip. The reason itself is always visible in the row body.
-function DisabledRail({
+// A section that cannot be added keeps its add, disabled, so the column stays consistent.
+// It is aria-disabled rather than disabled, so it stays in the tab order: a keyboard user
+// who reaches it hears the reason through aria-describedby, and a pointer user sees it in
+// the tooltip. The reason itself is always visible in the row body.
+function DisabledAddButton({
+  text,
   label,
   reason,
   reasonId,
 }: {
+  text: string;
   label: string;
   reason: string;
   reasonId: string;
@@ -297,9 +304,10 @@ function DisabledRail({
           aria-label={label}
           aria-describedby={reasonId}
           {...NO_DRAG_ARMING}
-          className={`flex w-8 shrink-0 cursor-not-allowed items-center pointer-coarse:w-11 justify-center border-l border-border bg-surface-alt text-ink-soft ${FOCUS_OUTLINE}`}
+          className={`${ADD_BUTTON} cursor-not-allowed border-border bg-surface-alt text-ink-soft`}
         >
-          <Plus size={16} aria-hidden className="opacity-40" />
+          <Plus size={14} aria-hidden />
+          {text}
         </button>
       )}
     </Tooltip>
