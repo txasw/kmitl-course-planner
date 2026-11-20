@@ -8,11 +8,12 @@
 // the exam schedule that lists the clash stays one action away. Arrow keys, Home, and End
 // move focus and activate the tab in one step, and only the active tab sits in the tab
 // order, the roving pattern of the ARIA tablist. The row is 40 px tall and tightens to
-// 36 px under a max height of 800 px, so a 720 or 768 px laptop keeps grid height. A
-// trailing control, the updates indicator of ADR-0060, sits at the right of the row
-// outside the tablist, since a tablist holds tabs only. The heights are minimums, so
-// under a coarse pointer the row grows to the 44 px touch target of that control rather
-// than clip it.
+// 36 px under a max height of 800 px for a fine pointer, so a 720 or 768 px laptop keeps
+// grid height. Under a coarse pointer it is 44 px at any height, the touch target, so a
+// touch tablet gets full size tabs. A trailing control, the updates indicator of
+// ADR-0060, sits at the right of the row outside the tablist, since a tablist holds tabs
+// only. The heights are minimums, so the row also grows to that control rather than clip
+// it.
 
 import { useRef, type KeyboardEvent, type ReactNode } from 'react';
 import {
@@ -103,7 +104,7 @@ export function PlanViewTabs({
   };
 
   return (
-    <div className="flex min-h-10 shrink-0 items-stretch gap-4 border-b border-border [@media(max-height:800px)]:min-h-9">
+    <div className="flex min-h-10 shrink-0 items-stretch gap-4 border-b border-border pointer-coarse:min-h-11 [@media(max-height:800px)_and_(pointer:fine)]:min-h-9">
       <div
         role="tablist"
         aria-label={t('planView.label')}

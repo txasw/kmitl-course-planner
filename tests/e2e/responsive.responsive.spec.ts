@@ -1088,6 +1088,15 @@ test('the controls a finger reaches are 44 px targets', async ({ context }) => {
   for (const [control, name] of controls) {
     await expectTouchTarget(control, name);
   }
+  // The plan view tabs head the grid region on the tablet; the phone has the bottom nav.
+  if (!isPhone(page)) {
+    for (const view of ['ตารางเรียน', 'สรุป']) {
+      await expectTouchTarget(
+        dialog.getByRole('tab', { name: view, exact: true }),
+        `plan view tab ${view}`,
+      );
+    }
+  }
 
   // The search form in the catalog: a tab and the submit.
   const sheet = await openCatalog(page);

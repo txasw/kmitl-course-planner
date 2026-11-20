@@ -55,6 +55,12 @@ describe('PlanViewTabs', () => {
     expect(tab('วิชาที่เลือก 3').textContent).not.toMatch(/[()]/);
   });
 
+  it('grows the row to the touch target under a coarse pointer', () => {
+    render(<Harness />);
+    const row = screen.getByRole('tablist').parentElement;
+    expect(row).toHaveClass('min-h-10', 'pointer-coarse:min-h-11');
+  });
+
   it('marks an exam clash on the summary tab with a dot and in its name', () => {
     const { container } = render(<Harness examClash />);
     expect(tab('สรุป มีวิชาที่สอบชนกัน')).toBeVisible();
