@@ -4,9 +4,12 @@
 // chips are a radiogroup with a roving tab stop; the arrow keys, Home, and End move through
 // the pager hook, which clamps at the ends and lands focus on the selected chip. The selected
 // chip is marked by more than colour: a check glyph takes the place of its device glyph, the
-// name turns semibold, and the edge thickens. Every chip shows its whole text: the name takes
-// the full chip width and wraps there, with the glyph and the size on the line under it, three
-// chips to a row below 1024 px and all six in one row from there up.
+// name turns semibold, and the edge thickens. That edge is an inset orange ring, and the tab
+// stop is always the selected chip, so the chips take the offset focus outline of ADR-0034
+// rather than the inset ring, which would only have thickened the edge by a pixel. Every chip
+// shows its whole text: the name takes the full chip width and wraps there, with the glyph and
+// the size on the line under it, three chips to a row below 1024 px and all six in one row
+// from there up.
 
 import type {
   KeyboardEvent as ReactKeyboardEvent,
@@ -27,7 +30,7 @@ import {
   type ExportTemplate,
 } from '@/lib/planner/exportTemplates';
 import { useTranslation } from '@/features/shell/useTranslation';
-import { FOCUS_RING } from '@/lib/ui/focus';
+import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
 interface TemplateChipsProps {
@@ -55,7 +58,7 @@ function templateSize(template: ExportTemplate): string {
   )}`;
 }
 
-const CHIP = `flex min-w-0 flex-col items-start justify-between gap-0.5 rounded-kcp border px-1.5 py-1.5 sm:px-2 text-left text-ink transition-colors ${TARGET_SIZE} ${FOCUS_RING}`;
+const CHIP = `flex min-w-0 flex-col items-start justify-between gap-0.5 rounded-kcp border px-1.5 py-1.5 sm:px-2 text-left text-ink transition-colors ${TARGET_SIZE} ${FOCUS_OUTLINE}`;
 
 const CHIP_STATE = {
   selected: 'border-primary bg-primary-soft ring-1 ring-primary ring-inset',
