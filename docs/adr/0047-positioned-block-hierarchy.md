@@ -98,6 +98,8 @@ leaves the corner and leads the name in flow. The name keeps a right reserve onl
 control can show, a fine pointer on a block at least 7em wide, and the chip steps aside while that
 control shows, as the corner chip did. Every field wraps rather than ellipsizes: the place, the
 English line, and the subject id lose their single line truncation, and an empty foot is left out.
+The subject id later became a whole field on one line again, shown whole or dropped whole, in the
+ADR-0046 amendment of 2026-11-20.
 
 Names in full. At full density the name is no longer clamped. The ladder gains a rung after the
 time drops: the name clamps to the lines that fit, measured in one step from its line height and
