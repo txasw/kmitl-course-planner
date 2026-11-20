@@ -143,12 +143,15 @@ export function PlanList({
                     }`}
                   />
                   <span className="flex min-w-0 flex-col">
-                    <span id={`${idBase}-${plan.id}-name`} className="truncate">
+                    <span
+                      id={`${idBase}-${plan.id}-name`}
+                      className="break-words"
+                    >
                       {plan.name}
                     </span>
                     <span
                       id={`${idBase}-${plan.id}-summary`}
-                      className="truncate text-2xs text-ink-soft"
+                      className="break-words text-2xs text-ink-soft"
                     >
                       {planSummary(plan, t)}
                     </span>

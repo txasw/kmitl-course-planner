@@ -344,12 +344,14 @@ export function PlanSwitcher() {
     );
 
   // The wrapper is the header item that shrinks first, so the trigger fills it and its
-  // plan name and term truncate before any other header control gives way. Below 640 px
-  // the calendar icon drops out so the name keeps the room, and at the narrowest width
-  // the trigger narrows to its chevron. It keeps the target height but sets no minimum
-  // width, which would push it over its neighbours.
+  // plan name truncates before any other header control gives way; the trigger opens the
+  // plan list, which wraps every name whole. The term line never truncates: the wrapper
+  // keeps a minimum width that holds the longest term line, "ภาคการศึกษา 2/2569" at the
+  // small size, beside the chevron, which still leaves the export, menu, and close
+  // controls their room at 320 px (ADR-0048 amendment). Below 640 px the calendar icon
+  // drops out so the name keeps the room.
   return (
-    <div ref={wrapperRef} className="relative min-w-0 max-w-[16rem]">
+    <div ref={wrapperRef} className="relative max-w-[16rem] min-w-34">
       <button
         ref={setReference}
         id={PLAN_SWITCHER_TRIGGER_ID}
@@ -367,9 +369,11 @@ export function PlanSwitcher() {
           className="hidden shrink-0 text-ink-soft sm:block"
         />
         <span className="flex min-w-0 flex-1 flex-col items-start text-left">
-          <span className="max-w-full truncate">{triggerLabel}</span>
+          <span data-plan-name className="max-w-full truncate">
+            {triggerLabel}
+          </span>
           {activePlan === null ? null : (
-            <span className="max-w-full truncate text-2xs text-ink-soft">
+            <span className="text-2xs whitespace-nowrap text-ink-soft">
               {termLabel(activePlan, t)}
             </span>
           )}
