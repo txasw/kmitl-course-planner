@@ -93,6 +93,7 @@
   "suggest.empty.title": "No plan to suggest",
   "suggest.empty.allPlaced": "Every subject in this result is already in the plan, and its sections cannot be arranged another way.",
   "suggest.empty.planClash": "The ticked subjects from your plan cannot all fit together without a clash. Untick one of them to see suggested plans.",
+  "suggest.empty.truncated": "The search stopped before it found a timetable that fits. Untick a few subjects to narrow it.",
   "suggest.empty.seats": "Every section of the ticked subjects is full or closed.",
   "suggest.empty.conflicts": "No open section fits the plan without a clash.",
   "suggest.created": "Created plan {name}",
