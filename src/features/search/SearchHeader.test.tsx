@@ -210,6 +210,21 @@ describe('SearchHeader', () => {
     expect(disclosure).toHaveFocus();
   });
 
+  it('draws the chip as the quiet soft card inside the 16 px panel gutter', () => {
+    renderHeader();
+    act(() => {
+      searchStore.getState().startQuery(subjectQuery, 'user');
+    });
+    const disclosure = screen.getByRole('button', { name: EDIT_SEARCH });
+    const tokens = disclosure.className.split(' ');
+    // A white face with a hairline edge, in line with the catalog cards under it, not
+    // the default grey stops of a raised pill.
+    expect(tokens).toContain('kcp-soft-card');
+    expect(tokens).toContain('kcp-soft-quiet');
+    const row = disclosure.closest(`#${SEARCH_BAR_ID}`);
+    expect(row?.className.split(' ')).toContain('px-4');
+  });
+
   it('wraps a long category name in full and names the chip by what it shows', () => {
     const longName =
       '90641xxx กลุ่มวิชาเลือกเสรีด้านนวัตกรรมการผลิตขั้นสูงและการจัดการอุตสาหกรรมเพื่อความยั่งยืนของชุมชน';

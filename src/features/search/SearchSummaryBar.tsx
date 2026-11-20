@@ -37,6 +37,14 @@ import { TAB_ICON } from './searchTabs';
 import { useIsPast } from './useIsPast';
 import { tourTargetProps } from '@/lib/onboarding/tour';
 
+// The chip is the quiet neutral soft card the catalog cards use, a white face with a
+// hairline edge and a light shadow, so it sits in line with the list under it rather
+// than as a raised grey pill. Hover darkens the edge only. The bar pads 16 px on each
+// side, the panel gutter, so the refresh or the search again pill at the end of the row
+// keeps the same distance from the screen edge as the rest of the column.
+const QUERY_CHIP =
+  'kcp-soft-card kcp-soft-quiet flex min-h-11 min-w-0 flex-1 items-center gap-2.5 py-1 pr-1.5 pl-2 text-left text-ink hover:[--kcp-tint-edge:45%]';
+
 const EDIT_ID = 'kcp-search-bar-edit';
 const SUMMARY_ID = 'kcp-search-bar-summary';
 const TERM_ID = 'kcp-search-bar-term';
@@ -153,7 +161,7 @@ export function SearchSummaryBar({ query }: SearchSummaryBarProps) {
         STATUS_ID,
         ...(dataTime === null ? [] : [DATA_TIME_ID]),
       ].join(' ')}
-      className={`flex flex-none flex-col gap-1 border-b border-border bg-surface px-3 py-2 ${FOCUS_RING}`}
+      className={`flex flex-none flex-col gap-1 border-b border-border bg-surface px-4 py-2 ${FOCUS_RING}`}
     >
       <div className="flex items-center gap-1">
         <button
@@ -170,7 +178,7 @@ export function SearchSummaryBar({ query }: SearchSummaryBarProps) {
             }
             searchStore.getState().setSearchFormOpen(!formOpen);
           }}
-          className={`kcp-soft-card flex min-h-11 min-w-0 flex-1 items-center gap-2.5 py-1 pr-1.5 pl-2 text-left text-ink hover:[--kcp-tint:var(--kcp-ink-soft)] ${FOCUS_RING}`}
+          className={`${QUERY_CHIP} ${FOCUS_RING}`}
         >
           <span id={EDIT_ID} className="sr-only">
             {t('search.bar.edit')}
@@ -202,7 +210,7 @@ export function SearchSummaryBar({ query }: SearchSummaryBarProps) {
           </span>
           <span
             aria-hidden
-            className="flex size-8 shrink-0 items-center justify-center rounded-kcp-sm bg-surface-sunken text-ink"
+            className="flex size-8 shrink-0 items-center justify-center rounded-kcp-sm bg-surface-alt text-ink"
           >
             <TrailIcon size={16} strokeWidth={2} />
           </span>
