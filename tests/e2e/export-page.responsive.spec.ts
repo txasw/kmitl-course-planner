@@ -174,3 +174,23 @@ test('the export actions and template chips show whole at 320 px', async ({
   await page.setViewportSize({ width: 320, height: 640 });
   await checkExportPage(page);
 });
+
+// A phone turned on its side: the chips take one row, so the poster stage keeps its height.
+test('the template chips share one row on a phone turned on its side', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  test.skip(
+    (page.viewportSize()?.width ?? 0) >= 640,
+    'the landscape case starts from a phone',
+  );
+  await page.setViewportSize({ width: 844, height: 390 });
+  await checkExportPage(page);
+  const tops = await page
+    .getByRole('radiogroup', { name: 'แม่แบบ' })
+    .getByRole('radio')
+    .evaluateAll((nodes) =>
+      nodes.map((node) => Math.round(node.getBoundingClientRect().top)),
+    );
+  expect(new Set(tops).size).toBe(1);
+});

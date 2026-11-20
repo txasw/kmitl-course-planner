@@ -113,14 +113,15 @@ device glyph, the name turns semibold, and its edge thickens. That thicker edge 
 orange ring and the tab stop is always the selected chip, so the chips take the offset focus
 outline of ADR-0034, the same case as a timetable block whose inset ring already carries a
 meaning; an inset focus ring would only have thickened the selected edge by a pixel and left
-keyboard focus hard to tell from selection. Below 1024 px the chips sit three
-to a row and above it all six share one row; a name wraps inside its chip rather than being cut,
-with the glyph and size on the line under it, and no chip carries a tooltip, so nothing opens
-over the chips, the stage, or the toolbar. The arrow rails and the caption are removed, since
-the chips name every template and its size directly and the stage gains the width the rails
-held. Swipe and the scroll wheel over the stage still page between templates, the slivers of
-the neighbouring templates stay on a wide stage as continuation cues, and the stage, its
-scaling, and the capture node are unchanged.
+keyboard focus hard to tell from selection. Below 1024 px the chips sit three to a row and
+above it all six share one row, as they also do on a phone turned on its side (768 px wide or
+more and at most 500 px tall), where two rows of chips left the poster stage about 110 px tall;
+a name wraps inside its chip rather than being cut, with the glyph and size on the line under
+it, and no chip carries a tooltip, so nothing opens over the chips, the stage, or the toolbar.
+The arrow rails and the caption are removed, since the chips name every template and its size
+directly and the stage gains the width the rails held. Swipe and the scroll wheel over the stage
+still page between templates, the slivers of the neighbouring templates stay on a wide stage as
+continuation cues, and the stage, its scaling, and the capture node are unchanged.
 
 Alternatives considered. Keeping the dots and adding a visible name under each was rejected
 because six names under small dots do not fit a phone width. A horizontally scrolling chip row,
