@@ -443,6 +443,7 @@
   "stats.region": "Plan summary",
   "stats.conflicts": "Conflicts: {count}",
   "stats.noConflicts": "No conflicts",
+  "stats.noConflictsShort": "No clash",
   "stats.creditsBelow": "Below the usual minimum of {min} credits",
   "stats.creditsAbove": "Above the usual maximum of {max} credits",
   "stats.freeDays": "Free days {days}",

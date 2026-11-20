@@ -203,11 +203,16 @@ describe('StatsBar', () => {
       expect(screen.getByText('ไม่มีรายการชนกัน')).not.toHaveClass('sr-only');
     });
 
-    it('stays slim on a phone: no day loads or free days, and the clear state as an icon', () => {
+    it('stays slim on a phone: no day loads or free days, and the clear state in a short word', () => {
       renderRow(true, [scheduled, online]);
       expect(screen.queryByText('จ')).toBeNull();
       expect(screen.queryByText(/วันว่าง/)).toBeNull();
-      // The words stay for assistive technology, so the icon never stands alone.
+      // A touch user reads the short word beside the shield, since a tooltip never shows on
+      // touch, and assistive technology keeps the full words.
+      const clearState = document.querySelector('[data-no-conflicts]');
+      expect(clearState).not.toHaveAttribute('title');
+      expect(screen.getByText('ไม่ชน')).not.toHaveClass('sr-only');
+      expect(screen.getByText('ไม่ชน')).toHaveAttribute('aria-hidden');
       expect(screen.getByText('ไม่มีรายการชนกัน')).toHaveClass('sr-only');
       // A shield, so the bare glyph never reads as the verified check beside it.
       const clear = document.querySelector('[data-no-conflicts] svg');

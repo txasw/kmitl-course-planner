@@ -10,8 +10,10 @@
 // so it keeps its place at the right edge (ADR-0049 amendment).
 // A clash is the one item the student acts on, so it is a danger button that points at the
 // first clashing section on the timetable; with none the row says so quietly with a shield
-// check, as an icon alone on a phone with the words kept for assistive technology. The shield
-// keeps that glyph apart from the plain check of a verified plan beside it.
+// check and its words. On a phone the words shorten to ไม่ชน (No clash) beside the shield, so
+// a touch user, who never sees a hover tooltip, reads the meaning, while assistive technology
+// keeps the full words. The shield keeps that glyph apart from the plain check of a verified
+// plan beside it.
 // The poster states the same totals in its own footer line, without the clash control and
 // without the free days, which describe the student's week rather than the timetable
 // being shared.
@@ -151,15 +153,16 @@ function PlanFacts({
           {fillTemplate(t('stats.conflicts'), { count: conflictCount })}
         </button>
       ) : (
-        <span
-          className={FACT}
-          data-no-conflicts
-          title={compact ? t('stats.noConflicts') : undefined}
-        >
+        <span className={FACT} data-no-conflicts>
           <ShieldCheck {...SMALL_ICON} className="text-success" />
-          <span className={compact ? 'sr-only' : undefined}>
-            {t('stats.noConflicts')}
-          </span>
+          {compact ? (
+            <>
+              <span aria-hidden>{t('stats.noConflictsShort')}</span>
+              <span className="sr-only">{t('stats.noConflicts')}</span>
+            </>
+          ) : (
+            <span>{t('stats.noConflicts')}</span>
+          )}
         </span>
       )}
       {compact ? null : <DayLoads load={totals.load} locale={locale} t={t} />}

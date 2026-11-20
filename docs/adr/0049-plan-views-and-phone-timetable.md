@@ -177,3 +177,15 @@ lands on them; otherwise it is the first weekday with a class, as before, and a 
 scheduled class opens on Monday. A free today was rejected as the opening day, since a planner
 opened before the term starts would land on an empty column. The day is read once as the
 timetable mounts, so the view never moves under the student at midnight.
+
+## Amendment, 2026-11-21: the no clash state is worded on a phone
+
+The phone status row showed the no clash state as a bare shield check, with its words only in
+assistive technology text and a title tooltip. A touch user never sees a tooltip, so the green
+shield carried no readable meaning there. On a phone the shield now carries a short visible word,
+ไม่ชน (No clash), while assistive technology keeps the full words ไม่มีรายการชนกัน (No
+conflicts) and the title is removed. From 640 px up the row keeps the full words. The row still
+wraps its facts rather than cutting them, so the extra word moves to the second line on the
+narrowest phones instead of clipping. Hiding the indicator on phones and showing only the clash
+button was rejected, because the student then cannot tell a plan with no clash from a row that
+has not loaded.
