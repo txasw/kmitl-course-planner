@@ -3,9 +3,9 @@
 // from its grid cell, so its content may not fit; rather than clip a line mid glyph, the block
 // drops whole fields by measurement, starting from the full set and demoting one rung at a time
 // until the content fits. The poster and the edit grid walk this one ladder (ADR-0050). An edit
-// block always carries the subject id and never a secondary name, so on a short edit block the
-// id is the first field to go, which is safe because its hover card and its details still show
-// it. This module is the only place the drop priority lives; it is pure so the policy is unit
+// block always carries the subject id and names the subject in both languages, so on a short
+// edit block the id is the first field to go and the second name the next, which is safe
+// because its hover card and its details still show both. This module is the only place the drop priority lives; it is pure so the policy is unit
 // tested apart from the DOM measurement that walks it.
 //
 // The priority inverts the usual reading order because position carries the time. Drop order,

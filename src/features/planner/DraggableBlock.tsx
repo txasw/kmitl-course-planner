@@ -10,6 +10,7 @@ import { useMemo, type CSSProperties, type MouseEvent } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import type { Meeting } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
+import type { NameLanguage } from '@/lib/planner/nameLanguage';
 import { EventBlock } from './EventBlock';
 import type { PlacedSection } from './placedSection';
 import { useTouchPress } from './useTouchPress';
@@ -31,6 +32,7 @@ interface DraggableBlockProps {
   fitKey?: string;
   fitPaused?: boolean;
   nameOnlyWhenNarrow?: boolean;
+  nameLanguage?: NameLanguage;
 }
 
 export function DraggableBlock({

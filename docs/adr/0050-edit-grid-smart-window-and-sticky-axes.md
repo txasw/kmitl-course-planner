@@ -109,3 +109,17 @@ and widens the grid past the 1024 px column. The shared hour rules change export
 because the poster draws the same rules. Edit blocks drop whole fields instead of clipping, at the
 cost of a measurement pass after each window or size change. The pure geometry in `grid.ts` is
 reused unchanged; only its inputs in edit differ.
+
+## Amendment, 2026-11-21: edit blocks name the subject in both languages
+
+Owner item 7 asks for the English name in Thai mode, and brief section 6.7 shows every course name
+in the panel language with the other language as secondary text. The catalog card and the
+selected list did, but an edit block showed the panel language alone, even on a three hour day
+view block at 390 px and on every block at 1366 px, where the box had room. An edit block now
+names its subject as the poster's both choice does: the panel language first, the other language
+under it as a quiet line. The measured fit keeps its drop order, so on a short block the subject
+id goes first and the second name next, each whole, and the second name also drops whole when one
+of its words is wider than its line (ADR-0047 amendment of 2026-11-21). The name only rule of a
+narrow block hides the second name with the place and the foot. The plan suggestion slides keep
+the panel language alone, since their blocks are narrow and their placed list names every
+section.
