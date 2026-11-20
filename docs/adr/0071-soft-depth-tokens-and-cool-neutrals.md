@@ -99,9 +99,9 @@ different count badges.
   the ink steps, the success, warn, and danger tones, and the primary strong action text each
   clear 4.5:1 anywhere on them, which the contrast suite proves.
 - The catalog course card and the query chip take the quiet card. The open sections of a card
-  sit in one white inset panel with the light shadow and hairline rules between rows, a lighter
-  step than the card, rather than a bordered card per row, so an open card keeps one level of
-  nesting. The query chip's pencil tile drops from the sunken well to the lighter surface, and
+  sit on one white band with hairline rules between rows and no edge or shadow of its own, a
+  lighter step than the card, rather than a bordered card per row or a card inside the card, so
+  an open card keeps one level of nesting as the screen 03 mockup draws it. The query chip's pencil tile drops from the sunken well to the lighter surface, and
   the bar pads by the 16 px panel gutter.
 - The filter button, the bottom nav, the header sheet toggle, and the edge rail share one count
   badge: an ink filled pill with white figures and a ring of the surface. It is hidden from

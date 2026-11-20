@@ -59,7 +59,7 @@ import { tourTargetProps } from '@/lib/onboarding/tour';
 const HEADER = 'flex items-start gap-1';
 
 const SECTION_LIST =
-  'flex flex-col divide-y divide-border overflow-hidden rounded-kcp-sm bg-surface shadow-kcp-soft ring-1 ring-border';
+  'flex flex-col divide-y divide-border overflow-hidden rounded-kcp-sm bg-surface';
 
 const COMPARE_ACTION = `inline-flex items-center gap-1 self-start rounded-kcp border border-border px-2 py-1 text-xs text-ink-soft hover:bg-surface-alt hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`;
 
@@ -333,9 +333,10 @@ function CourseCardComponent({
                 {t('compare.open')}
               </button>
             ) : null}
-            {/* The sections share one white inset panel with hairline rules between
-                them, a lighter step of the card rather than a bordered card per row,
-                so the open card keeps one level of nesting. */}
+            {/* The sections share one white band with hairline rules between them
+                and no edge or shadow of its own, a lighter step of the card rather
+                than a card inside the card, so the open card keeps one level of
+                nesting. */}
             <div data-section-list className={SECTION_LIST}>
               {course.sections.map((section) => (
                 <CourseSection
