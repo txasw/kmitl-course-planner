@@ -33,6 +33,7 @@
   "planSwitcher.rowSummary": "Credits {credits}, subjects {subjects}",
   "planSwitcher.rowEmpty": "No subjects yet",
   "suggest.open": "Suggest a plan",
+  "suggest.openShort": "Suggest",
   "suggest.title": "Suggested plans",
   "suggest.close": "Close suggestions",
   "suggest.scope": "Tick the subjects to fit. Group 2 curriculum subjects start ticked, and GenEd or free electives can be ticked too. The plans never clash in class or exam times, and each one differs in its subjects or class times.",

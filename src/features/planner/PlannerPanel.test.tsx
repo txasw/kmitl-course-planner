@@ -12,7 +12,9 @@ import { planStore } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
 import { searchStore } from '@/features/search/searchStore';
 import { uiStore } from '@/features/shell/uiStore';
+import { normalizeTeachTable } from '@/lib/domain/normalize';
 import type { PlanEntry } from '@/lib/domain/plan';
+import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { EXPORT_TEMPLATES } from '@/lib/planner/exportTemplates';
 import type { Meeting } from '@/lib/domain/types';
 import {
@@ -23,6 +25,7 @@ import {
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
 import { expectNoSeriousA11yViolations } from '../../../tests/support/axe';
+import { loadFixture } from '../../../tests/support/fixtures';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { installViewport } from '../../../tests/support/viewport';
@@ -1046,5 +1049,80 @@ describe('PlannerPanel stats bar', () => {
         document.querySelector('[data-teach-table-id="c1"][data-block-order]'),
       ).toHaveFocus();
     });
+  });
+});
+
+describe('PlannerPanel suggest action', () => {
+  const BY_CLASS: TeachTableQuery = {
+    mode: 'by_class',
+    selected_year: '2569',
+    selected_semester: '1',
+    selected_faculty: '01',
+    selected_department: '05',
+    selected_curriculum: '137',
+    selected_class_year: '1',
+    search_all_faculty: false,
+    search_all_department: false,
+    search_all_curriculum: false,
+    search_all_class_year: false,
+  };
+
+  function showCurriculumResult(): void {
+    const result = normalizeTeachTable(
+      loadFixture('teach-table.by_class.capture.json'),
+    );
+    if (!result.ok) throw new Error('by_class capture failed to normalize');
+    act(() => {
+      searchStore
+        .getState()
+        .setResult({ status: 'ready', data: result.value }, BY_CLASS);
+    });
+  }
+
+  function statusRow(): HTMLElement {
+    return screen.getByRole('group', { name: 'สรุปตาราง' });
+  }
+
+  afterEach(() => {
+    act(() => {
+      searchStore.getState().setResult({ status: 'idle' }, null);
+      resetPlanStore();
+    });
+  });
+
+  it('ends the status row of an empty plan with the suggest action on a phone', () => {
+    installViewport(390);
+    showCurriculumResult();
+    renderPanel();
+    const suggest = within(statusRow()).getByRole('button', {
+      name: 'แนะนำตาราง',
+    });
+    expect(suggest).toHaveClass('bg-primary-soft', 'text-primary-strong');
+    expect(statusRow()).not.toHaveTextContent('หน่วยกิต');
+    fireEvent.click(suggest);
+    expect(
+      screen.getByRole('dialog', { name: 'แนะนำตาราง' }),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps the same action at the end of the row on a wide screen', () => {
+    installViewport(1366);
+    seedTwoSubjects();
+    showCurriculumResult();
+    renderPanel();
+    const row = statusRow();
+    expect(row).toHaveTextContent('หน่วยกิต');
+    expect(row.lastElementChild).toContainElement(
+      within(row).getByRole('button', { name: 'แนะนำตาราง' }),
+    );
+  });
+
+  it('leaves the action out when no suggestion applies', () => {
+    installViewport(390);
+    seedTwoSubjects();
+    renderPanel();
+    expect(
+      within(statusRow()).queryByRole('button', { name: 'แนะนำตาราง' }),
+    ).toBeNull();
   });
 });

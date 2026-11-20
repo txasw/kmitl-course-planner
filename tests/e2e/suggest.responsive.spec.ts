@@ -111,3 +111,23 @@ test('applies a suggested timetable from the compact layouts', async ({
     0,
   );
 });
+
+test('keeps the suggest action in the thumb zone under the timetable', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await curriculumSearch(page);
+  await showTimetable(page);
+  const row = page.getByRole('group', { name: 'สรุปตาราง', exact: true });
+  const suggest = row.getByRole('button', { name: 'แนะนำตาราง' });
+  await expect(suggest).toBeVisible();
+  // The row sits at the foot of the plan region, so the action lands in the lower part
+  // of the screen a thumb reaches, at the full touch size.
+  const box = await suggest.boundingBox();
+  const height = page.viewportSize()?.height ?? 0;
+  if (box === null) throw new Error('the suggest action has no box');
+  expect(box.y).toBeGreaterThan(height * 0.6);
+  expect(box.height).toBeGreaterThanOrEqual(44);
+  await suggest.tap();
+  await expect(page.getByRole('dialog', { name: 'แนะนำตาราง' })).toBeVisible();
+});

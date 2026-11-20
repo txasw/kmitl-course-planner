@@ -10,6 +10,7 @@ import { normalizeTeachTable } from '@/lib/domain/normalize';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { searchStore } from '@/features/search/searchStore';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
+import { uiStore } from '@/features/shell/uiStore';
 import { loadFixture } from '../../../tests/support/fixtures';
 import {
   resetPlanStore,
@@ -103,6 +104,25 @@ describe('SuggestAction', () => {
     expect(
       screen.getByRole('dialog', { name: 'แนะนำตาราง' }),
     ).toBeInTheDocument();
+  });
+
+  it('takes the short label and the primary soft look in the status row', () => {
+    act(() => {
+      uiStore.getState().setLanguage('en');
+    });
+    showResult(BY_CLASS);
+    const portal = document.createElement('div');
+    document.body.append(portal);
+    render(
+      <PanelPortalContext.Provider value={portal}>
+        <SuggestAction variant="prominent" />
+      </PanelPortalContext.Provider>,
+    );
+    const button = screen.getByRole('button', { name: 'Suggest' });
+    expect(button).toHaveClass('bg-primary-soft', 'font-semibold', 'shrink-0');
+    act(() => {
+      uiStore.getState().setLanguage('th');
+    });
   });
 
   it('shows for the active plan of the same term', () => {

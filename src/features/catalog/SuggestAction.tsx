@@ -1,5 +1,7 @@
-// The entry point to plan suggestions in the catalog column head (ADR-0054). It shows
-// only when a suggestion can mean something: the settled result is a by_class search,
+// The entry point to plan suggestions (ADR-0054): a quiet button in the catalog column head,
+// and a prominent one at the end of the plan status row, in the thumb zone on a phone
+// (ADR-0049 amendment). Both open the same dialog, and both show only when a suggestion can
+// mean something: the settled result is a by_class search,
 // the search by curriculum and class year, it holds at least one curriculum course, and
 // its term is the active plan's, or there is no plan yet. A category or subject id search
 // mixes subjects from outside one curriculum, and a different term could not be added to
@@ -32,7 +34,7 @@ interface SuggestTarget {
 }
 
 /** What a suggestion would search, or null when the action does not apply. */
-function useSuggestTarget(): SuggestTarget | null {
+export function useSuggestTarget(): SuggestTarget | null {
   const result = useStore(searchStore, (state) => state.result);
   const query = useStore(searchStore, (state) => state.resultQuery);
   const active = useActivePlan();
@@ -69,7 +71,21 @@ function useSuggestTarget(): SuggestTarget | null {
   }, [result, query, planYear, planSemester]);
 }
 
-export function SuggestAction() {
+/** The quiet look of the catalog head, or the primary soft look of the plan status row. */
+export type SuggestActionVariant = 'quiet' | 'prominent';
+
+const VARIANT_CLASS: Record<SuggestActionVariant, string> = {
+  quiet: 'border-border bg-surface px-2 text-ink hover:bg-surface-alt',
+  // The status row keeps the label on one line and never lets its neighbours squeeze it.
+  prominent:
+    'shrink-0 whitespace-nowrap border-primary bg-primary-soft px-3 font-semibold text-primary-strong hover:bg-primary-strong hover:text-white',
+};
+
+interface SuggestActionProps {
+  variant?: SuggestActionVariant;
+}
+
+export function SuggestAction({ variant = 'quiet' }: SuggestActionProps) {
   const { t } = useTranslation();
   const target = useSuggestTarget();
   const [open, setOpen] = useState(false);
@@ -85,10 +101,10 @@ export function SuggestAction() {
         onClick={() => {
           setOpen(true);
         }}
-        className={`inline-flex items-center gap-1.5 rounded-kcp border border-border bg-surface px-2 py-1.5 text-sm text-ink transition-colors hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`}
+        className={`inline-flex items-center gap-1.5 rounded-kcp border py-1.5 text-sm transition-colors ${VARIANT_CLASS[variant]} ${TARGET_SIZE} ${FOCUS_RING}`}
       >
         <ListChecks size={16} strokeWidth={2} aria-hidden />
-        {t('suggest.open')}
+        {t(variant === 'quiet' ? 'suggest.open' : 'suggest.openShort')}
       </button>
       {open ? (
         <SuggestDialog
