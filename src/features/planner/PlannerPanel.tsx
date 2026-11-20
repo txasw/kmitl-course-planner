@@ -65,6 +65,7 @@ import { SelectedCoursesList } from './SelectedCoursesList';
 import { StatsBar } from './StatsBar';
 import { TemplateGallery } from './TemplateGallery';
 import { TimetableView } from './TimetableView';
+import { PLAN_PANE_GAP } from './planPaneGap';
 import { UnscheduledShelf } from './UnscheduledShelf';
 import { VerificationStatus } from './VerificationStatus';
 
@@ -344,7 +345,7 @@ export function PlannerPanel() {
   ) : null;
 
   return (
-    <div ref={rootRef} className="flex h-full flex-col gap-2">
+    <div ref={rootRef} className={`flex h-full flex-col ${PLAN_PANE_GAP}`}>
       {showTabs ? previewToolbar : null}
       {!isPreview && showTabs ? (
         <PlanViewTabs
