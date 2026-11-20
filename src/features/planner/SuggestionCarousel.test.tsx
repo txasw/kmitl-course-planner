@@ -271,6 +271,38 @@ describe('SuggestionCarousel', () => {
     }
   });
 
+  it('keeps claiming a sideways touch move across the renders of a swipe', () => {
+    renderCarousel();
+    const touch = (x: number, y: number) => ({
+      touches: [{ clientX: x, clientY: y }],
+    });
+    Object.defineProperty(Element.prototype, 'setPointerCapture', {
+      configurable: true,
+      value: () => undefined,
+    });
+    try {
+      fireEvent.touchStart(viewport(), touch(200, 100));
+      // The pointer moves past the slop and the follower renders, as a real swipe does
+      // between its touch moves.
+      fireEvent.pointerDown(viewport(), {
+        button: 0,
+        pointerId: 1,
+        clientX: 200,
+        clientY: 100,
+      });
+      fireEvent.pointerMove(viewport(), {
+        pointerId: 1,
+        clientX: 140,
+        clientY: 100,
+      });
+      // fireEvent returns false when a listener cancelled the event.
+      expect(fireEvent.touchMove(viewport(), touch(130, 102))).toBe(false);
+    } finally {
+      fireEvent.pointerCancel(viewport());
+      Reflect.deleteProperty(Element.prototype, 'setPointerCapture');
+    }
+  });
+
   it('shows fewer dots for fewer suggestions', () => {
     renderCarousel({ count: 2 });
     const dots = within(

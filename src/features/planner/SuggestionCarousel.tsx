@@ -16,6 +16,7 @@
 // slide turns inert under the focused control; a key on a dot moves focus to the new dot.
 
 import {
+  useCallback,
   useEffect,
   useId,
   useRef,
@@ -205,6 +206,17 @@ export function SuggestionCarousel({
     },
   });
 
+  // A stable ref, so a render during the swipe keeps the claim attached; a fresh callback
+  // each render would detach it and drop the touch it is tracking.
+  const { bindClaim } = swipe;
+  const bindViewport = useCallback(
+    (node: HTMLDivElement | null) => {
+      viewportRef.current = node;
+      return bindClaim(node);
+    },
+    [bindClaim],
+  );
+
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
     const next = keyTarget(event.key, page, last);
     if (next === null || !paged) {
@@ -257,10 +269,7 @@ export function SuggestionCarousel({
         </div>
       ) : null}
       <div
-        ref={(node) => {
-          viewportRef.current = node;
-          return swipe.bindClaim(node);
-        }}
+        ref={bindViewport}
         {...swipe.handlers}
         onKeyDown={handleKeyDown}
         role={paged ? 'group' : undefined}
