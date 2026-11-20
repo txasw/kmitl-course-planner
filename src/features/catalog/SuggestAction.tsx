@@ -1,12 +1,12 @@
 // The entry point to plan suggestions (ADR-0054): a quiet button in the catalog column head,
 // and a prominent one at the end of the plan status row, in the thumb zone on a phone
 // (ADR-0049 amendment). Both open the same dialog, and both show only when a suggestion can
-// mean something: the settled result is a by_class search,
-// the search by curriculum and class year, it holds at least one curriculum course, and
-// its term is the active plan's, or there is no plan yet. A category or subject id search
-// mixes subjects from outside one curriculum, and a different term could not be added to
-// the plan, so the action is absent rather than disabled in those cases. The icon is a
-// neutral checklist, not a sparkle, since the result is a computed timetable.
+// mean something: the settled result is a by_class search, the search by curriculum and
+// class year, it holds at least one curriculum course, and its term is the active plan's,
+// or there is no plan yet. A category or subject id search mixes subjects from outside one
+// curriculum, and a different term could not be added to the plan, so the action is absent
+// rather than disabled in those cases. The icon is a neutral checklist, not a sparkle,
+// since the result is a computed timetable.
 
 import { useMemo, useState } from 'react';
 import { useStore } from 'zustand';
