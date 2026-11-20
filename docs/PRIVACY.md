@@ -45,7 +45,8 @@ The extension keeps the following in the browser's extension storage on your dev
 - The last search on each search tab, so the form can restore it after a reload.
 - The date and version of the installation.
 - The onboarding state: when the welcome message showed, when the panel first opened,
-  and whether you turned off the entry prompt beside the Planner button.
+  whether you turned off the entry prompt beside the Planner button, and whether and when
+  you finished or skipped the product tour.
 - A short lived record of a tab the extension opened for you, kept in session storage so
   that tab can open the planner.
 
