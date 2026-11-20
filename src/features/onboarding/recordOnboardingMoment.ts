@@ -7,13 +7,16 @@
 //
 // The coach mark snooze day (ADR-0072) goes through the same optimistic write, but it is
 // not a moment kept once: the latest choice replaces the stored day, so it is always
-// written.
+// written. The product tour mark (ADR-0074) is the same kind of write: a replay that ends
+// replaces the mark the first run left.
 
+import { TOUR_VERSION } from '@/lib/onboarding/tour';
 import type {
   OnboardingField,
   OnboardingPatch,
   OnboardingRecord,
   OnboardingRepository,
+  TourMark,
 } from '@/lib/storage/onboarding';
 import { onboardingStore } from './onboardingStore';
 
@@ -52,4 +55,18 @@ export function recordCoachMarkSnooze(record: RecordWriter, day: string): void {
     { ...current, coachMarkSnoozedOn: day },
     { coachMarkSnoozedOn: day },
   );
+}
+
+/** Records how the current tour ended, which keeps it from starting on its own again. */
+export function recordTourOutcome(
+  record: RecordWriter,
+  outcome: TourMark['outcome'],
+): void {
+  const current = onboardingStore.getState().record;
+  const tourSeen: TourMark = {
+    version: TOUR_VERSION,
+    outcome,
+    at: new Date().toISOString(),
+  };
+  writeThrough(record, { ...current, tourSeen }, { tourSeen });
 }

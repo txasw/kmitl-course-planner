@@ -4,9 +4,11 @@ import type {
   OnboardingRecord,
 } from '@/lib/storage/onboarding';
 import { initialOnboardingData, onboardingStore } from './onboardingStore';
+import { TOUR_VERSION } from '@/lib/onboarding/tour';
 import {
   recordCoachMarkSnooze,
   recordOnboardingMoment,
+  recordTourOutcome,
 } from './recordOnboardingMoment';
 
 const EARLIER = '2026-11-01T08:00:00.000Z';
@@ -99,6 +101,41 @@ describe('recordCoachMarkSnooze', () => {
     await flush();
     expect(onboardingStore.getState().record.coachMarkSnoozedOn).toBe(
       '2026-11-20',
+    );
+  });
+});
+
+describe('recordTourOutcome', () => {
+  it('marks this tour version with the outcome in the store before the write', async () => {
+    const record = fakeRecord((fields) => ({ schemaVersion: 1, ...fields }));
+    recordTourOutcome(record, 'skipped');
+    const mark = onboardingStore.getState().record.tourSeen;
+    expect(mark?.version).toBe(TOUR_VERSION);
+    expect(mark?.outcome).toBe('skipped');
+    expect(mark?.at).toEqual(expect.any(String));
+    expect(record.patch).toHaveBeenCalledWith({ tourSeen: mark });
+    await flush();
+    expect(onboardingStore.getState().record.tourSeen).toEqual(mark);
+  });
+
+  it('writes again for a replay, so the latest ending stands', () => {
+    const record = fakeRecord((fields) => ({ schemaVersion: 1, ...fields }));
+    recordTourOutcome(record, 'skipped');
+    recordTourOutcome(record, 'completed');
+    expect(record.patch).toHaveBeenCalledTimes(2);
+    expect(onboardingStore.getState().record.tourSeen?.outcome).toBe(
+      'completed',
+    );
+  });
+
+  it('keeps the optimistic mark when the write fails', async () => {
+    const record = {
+      patch: vi.fn(() => Promise.reject(new Error('quota'))),
+    };
+    recordTourOutcome(record, 'completed');
+    await flush();
+    expect(onboardingStore.getState().record.tourSeen?.outcome).toBe(
+      'completed',
     );
   });
 });
