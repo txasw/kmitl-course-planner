@@ -131,10 +131,11 @@ export function DisplayOptionsPopover() {
   ));
   // The name language heads the options. Under both, a note says the second name yields to
   // the block fit where a block is short, so a block that shows one name is no surprise, and
-  // that the copied text always carries both.
+  // that the copied text always carries both. The column aligns to the start so the segmented
+  // group hugs its three options rather than drawing its border across the full width.
   const options = (
     <>
-      <div className="flex flex-col gap-1 px-2 pt-1 pb-1.5">
+      <div className="flex flex-col items-start gap-1 px-2 pt-1 pb-1.5">
         <span className="text-xs font-semibold text-ink-soft">
           {t('preview.nameLanguage')}
         </span>
