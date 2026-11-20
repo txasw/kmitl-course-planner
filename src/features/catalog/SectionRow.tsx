@@ -281,7 +281,8 @@ function AddButton({
 // A section that cannot be added keeps its add, disabled, so the column stays consistent.
 // It is aria-disabled rather than disabled, so it stays in the tab order: a keyboard user
 // who reaches it hears the reason through aria-describedby, and a pointer user sees it in
-// the tooltip. The reason itself is always visible in the row body.
+// the tooltip. The reason itself is always visible in the row body. It has no edge or
+// shadow and mutes its text, so it reads as unavailable beside a live add.
 function DisabledAddButton({
   text,
   label,
@@ -304,7 +305,7 @@ function DisabledAddButton({
           aria-label={label}
           aria-describedby={reasonId}
           {...NO_DRAG_ARMING}
-          className={`${ADD_BUTTON} cursor-not-allowed border-border bg-surface-alt text-ink-soft`}
+          className={`${ADD_BUTTON} cursor-not-allowed border-transparent bg-surface-alt text-ink-muted`}
         >
           <Plus size={14} aria-hidden />
           {text}

@@ -220,6 +220,39 @@ describe('SectionRow actions', () => {
     expect(onAdd).not.toHaveBeenCalled();
   });
 
+  it('draws the disabled add with no edge and muted text, unlike the live add', () => {
+    const fullSection = makeSection({
+      seats: { limit: 40, preCount: 40, queueLeft: 0, enrolled: 'full' },
+    });
+    const { rerender } = render(
+      <SectionRow
+        course={course}
+        section={fullSection}
+        relation={{ kind: 'addable' }}
+        seat={computeSeatStatus(fullSection)}
+        locale="th"
+        t={t}
+        onAdd={vi.fn()}
+      />,
+    );
+    const disabled = screen.getByRole('button', { name: /^เพิ่ม/ });
+    expect(disabled).toHaveClass('border-transparent', 'text-ink-muted');
+    expect(disabled).not.toHaveClass('shadow-kcp-soft');
+    rerender(
+      <SectionRow
+        course={course}
+        section={section}
+        relation={{ kind: 'addable' }}
+        seat={openSeat}
+        locale="th"
+        t={t}
+        onAdd={vi.fn()}
+      />,
+    );
+    const live = screen.getByRole('button', { name: /^เพิ่ม/ });
+    expect(live).toHaveClass('border-border', 'shadow-kcp-soft');
+  });
+
   it('describes a different term add with the term mismatch', () => {
     render(
       <SectionRow
