@@ -208,7 +208,7 @@ describe('PlannerPanel plan views', () => {
     expect(screen.queryByRole('list', { name: 'วิชาที่เลือก' })).toBeNull();
   });
 
-  // The template dots close the gallery, so the toolbar's place is read against them.
+  // The template chips head the gallery, so the toolbar's place is read against them.
   it.each([
     [1366, 'heads the poster from 640 px up', true],
     [390, 'follows the poster at the panel foot on a phone', false],
