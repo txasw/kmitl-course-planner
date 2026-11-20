@@ -175,6 +175,24 @@ describe('Diagnostics drawer', () => {
     expect(debugMenuStore.getState().item).toBeNull();
   });
 
+  it('steps the trigger aside while the product tour shows', async () => {
+    render(
+      <SearchDepsProvider value={deps()}>
+        <Diagnostics />
+      </SearchDepsProvider>,
+    );
+    act(() => {
+      onboardingStore.getState().startTour();
+    });
+    expect(screen.queryByRole('button', { name: 'Diagnostics' })).toBeNull();
+    act(() => {
+      onboardingStore.getState().endTour();
+    });
+    expect(
+      await screen.findByRole('button', { name: 'Diagnostics' }),
+    ).toBeInTheDocument();
+  });
+
   it('surfaces a missing field in the report and sets the launcher badge', async () => {
     render(
       <SearchDepsProvider value={deps()}>
