@@ -220,26 +220,29 @@ Run these against a debug build in Chrome and Firefox. The export page is entere
 the Export button in the header and left with Back to editing at its top left.
 
 - [ ] Preview toolbar presence: in edit mode there are no sharing controls. Open the
-      export page and confirm the toolbar shows the display options, share image where the
-      browser can share files, copy image, download image, and copy as text, and that the
-      template picker is the preview gallery itself, not a dropdown. Go back to editing and
-      confirm they leave the DOM. The toolbar and its verification status are never part of
-      an exported image.
+      export page and confirm the toolbar leads with download PNG, the only filled button,
+      then shows share image where the browser can share files, copy image, copy as text,
+      and the display options, each with a visible label and a glyph of its own. On a phone
+      download PNG fills its own row above the others, and no label is cut. The template
+      picker is the row of named chips above the poster, not a dropdown. Go back to editing
+      and confirm they leave the DOM. The toolbar and its verification status are never part
+      of an exported image.
 - [ ] Download PNG: populate a plan including one unscheduled course. In preview, download
       the image and open it. The poster header, the grid with block colours, the unscheduled
       shelf, and the footer credits all render, and Thai text is correct. The blocks carry no
       verification badge; the footer shows the ข้อมูล ณ data line with any missing or clash
       counts instead. The file name is kmitl-plan-year-semester-name-template.
-- [ ] Export templates: with the gallery picker, step through Share 16:9, Phone wallpaper
+- [ ] Export templates: with the template chips, step through Share 16:9, Phone wallpaper
       landscape, Phone wallpaper portrait, Tablet wallpaper portrait, Tablet wallpaper
-      landscape, and Print A4. The centred poster reflows to each aspect, and the caption below
-      it states the localized name with the exact output pixels; there is no corner size label.
-      Download each and confirm the opened image is exactly the stated pixels: 1920x1080,
-      2400x1080, 1080x2340, 2048x2732, 2732x2048, and 3508x2480. The picked template persists
-      across a reopen. At the largest preset, Print A4, the Thai glyphs are sharp and correct
-      with no tofu boxes or clipped tone marks, and every day track, the shelf, and the footer
-      credits are still present, never cropped. No block clips any field at any preset: the
-      name stays and the lower fields drop whole rather than clipping (see the next items).
+      landscape, and Print A4. The centred poster reflows to each aspect, and each chip shows
+      the localized name with the exact output pixels; there is no caption under the stage and
+      no corner size label. Download each and confirm the opened image is exactly the stated
+      pixels: 1920x1080, 2400x1080, 1080x2340, 2048x2732, 2732x2048, and 3508x2480. The picked
+      template persists across a reopen. At the largest preset, Print A4, the Thai glyphs are
+      sharp and correct with no tofu boxes or clipped tone marks, and every day track, the shelf,
+      and the footer credits are still present, never cropped. No block clips any field at any
+      preset: the name stays and the lower fields drop whole rather than clipping (see the next
+      items).
 - [ ] Block hierarchy: every block leads with the subject name at the top, the place (building
       and room with a location glyph) reads as the promoted second line, the section is a corner
       chip, and the time sits as quiet metadata at the foot beside the subject id. Position
@@ -256,10 +259,11 @@ the Export button in the header and left with Back to editing at its top left.
       id shown is its full eight digits on one line, never split or cut at the block edge.
 - [ ] Gallery picker: the selected poster is centred with the neighbouring templates peeking at
       both edges wide enough to read as a continuation cue. A pointer swipe past the threshold
-      pages to the neighbour and a short swipe springs back. The dots below name each template
-      on hover, and clicking one jumps to it. At the first template there is no left neighbour
-      and at the last no right neighbour, so paging clamps rather than wraps. With reduced motion
-      the slide is replaced by an instant switch.
+      pages to the neighbour and a short swipe springs back. The chips above the stage show each
+      template's name, size, and device glyph whole, with no tooltip on hover, and clicking one
+      selects it: the check and the semibold name move to that chip. At the first template there
+      is no left neighbour and at the last no right neighbour, so paging clamps rather than wraps.
+      With reduced motion the slide is replaced by an instant switch.
 - [ ] Portrait templates: the phone wallpaper portrait and the tablet wallpaper portrait fill
       the tall canvas top to bottom with days across the top as columns and time down the left
       axis, not a thin band. The block positions match the landscape reading of the same plan.
@@ -357,8 +361,9 @@ add and remove controls, so no action is a dead end for the keyboard.
 - [ ] Preview toolbar and gallery: open the export page and Tab through download PNG, share
       image where offered, copy image, copy as text, and the display options. Tab into the
       template chips; the arrow keys and Home and End move between templates and the poster
-      follows, each chip shows its template name and output size, and the focus ring is
-      visible. The display options popover is reachable and its toggles operate by keyboard.
+      follows, each chip shows its template name and output size, and the focus outline sits
+      outside the chip, distinct from the thicker edge of the selected chip. The display
+      options popover is reachable and its toggles operate by keyboard.
 - [ ] Import rejection: from the plan menu, import a tampered JSON. The per field error list
       is reachable and the back control returns to the menu.
 - [ ] Stats bar and poster footer: the edit stats bar reads as one group named สรุปตาราง
@@ -630,7 +635,9 @@ in the Firefox window that opens on the phone.
       the bottom, scroll inside, and close from their close button and from the scrim.
       The host page behind does not scroll while one is open.
 - [ ] Rotation: turn the phone to landscape and back. The panel takes the tier the new
-      width falls in and keeps the search, the result, and the plan.
+      width falls in and keeps the search, the result, and the plan. On the export page in
+      landscape, the template chips take two rows above the stage; confirm the poster still
+      reads at a useful size between the chips and the toolbar.
 - [ ] Download PNG: in preview, download the image. Firefox saves the PNG, and the Thai
       text in it renders correctly.
 - [ ] Close: the close control leaves the host page as it was, scrolling again.
