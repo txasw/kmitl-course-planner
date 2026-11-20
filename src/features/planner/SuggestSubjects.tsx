@@ -12,7 +12,7 @@
 // while the student pages the suggestions or they are ranked again.
 
 import { useId } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { DisclosureChevron } from '@/components/DisclosureChevron';
 import type { Course } from '@/lib/domain/types';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
@@ -106,11 +106,7 @@ function SubjectGroup({
             }}
             className={`flex w-full items-center gap-1.5 rounded-kcp px-1 text-left text-ink hover:text-ink-soft ${TARGET_HEIGHT} ${FOCUS_RING}`}
           >
-            <ChevronDown
-              size={14}
-              aria-hidden
-              className={`shrink-0 transition-transform duration-fast motion-reduce:transition-none ${open ? '' : '-rotate-90'}`}
-            />
+            <DisclosureChevron open={open} />
             <span id={nameId} className="min-w-0 flex-1">
               {t(HEADING_KEY[kind])}
             </span>{' '}

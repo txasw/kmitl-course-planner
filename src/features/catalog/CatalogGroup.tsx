@@ -5,7 +5,7 @@
 // a single heading result with no filter narrowing it.
 
 import { useId, type ReactNode } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { DisclosureChevron } from '@/components/DisclosureChevron';
 import type { Translate } from '@/lib/i18n/t';
 import { courseCountLabel } from '@/lib/i18n/counts';
 import { FOCUS_RING } from '@/lib/ui/focus';
@@ -41,11 +41,7 @@ export function CatalogGroup({
           onClick={onToggle}
           className={`flex w-full items-center gap-1.5 rounded-kcp text-left hover:text-ink ${TARGET_HEIGHT} ${FOCUS_RING}`}
         >
-          <ChevronDown
-            size={14}
-            aria-hidden
-            className={`shrink-0 transition-transform duration-fast motion-reduce:transition-none ${collapsed ? '-rotate-90' : ''}`}
-          />
+          <DisclosureChevron open={!collapsed} />
           <span className="min-w-0 flex-1">{heading}</span>
           {countLabel === null ? null : (
             <>
