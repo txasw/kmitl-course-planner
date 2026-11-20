@@ -44,6 +44,7 @@ import { NameForm } from './NameForm';
 import { PlanList, termLabel } from './PlanList';
 import { PLAN_SWITCHER_TRIGGER_ID } from './autosaveStore';
 import { planStore, useActivePlan } from './planStore';
+import { planNameClass, WRAPPED_TERM, usePlanNameFit } from './usePlanNameFit';
 
 type Mode =
   | { kind: 'list' }
@@ -81,6 +82,7 @@ export function PlanSwitcher() {
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const nameRef = useRef<HTMLSpanElement>(null);
 
   // A plan needs a real term or its sections could never be added; block create
   // until the search form has a seeded year.
@@ -236,6 +238,8 @@ export function PlanSwitcher() {
 
   const triggerLabel =
     activePlan === null ? t('planSwitcher.noPlan') : activePlan.name;
+  const nameStep = usePlanNameFit(nameRef, wrapperRef, triggerLabel);
+  const wrapped = nameStep > 0;
   // The trigger names the active plan and its term before what it does, so a screen
   // reader hears the plan it is on and the accessible name keeps the visible text.
   const triggerName =
@@ -363,15 +367,17 @@ export function PlanSwitcher() {
       />
     );
 
-  // The wrapper is the header item that shrinks first, so the trigger fills it and its
-  // plan name truncates before any other header control gives way; the trigger opens the
-  // plan list, which wraps every name whole. The term line never truncates: the wrapper
-  // keeps a minimum width that holds the longest term line, "ภาคการศึกษา 2/2569" at the
-  // small size, beside the chevron, which still leaves the export, menu, and close
-  // controls their room at 320 px (ADR-0048 amendment). Below 640 px the calendar icon
-  // drops out so the name keeps the room.
+  // The wrapper is the header item that shrinks first, so the trigger fills it before any
+  // other header control gives way. It has no cap, so a long name takes the room a wide
+  // header leaves it; where that room is short the name wraps onto two lines a step down
+  // the type scale (usePlanNameFit), and the trigger opens the plan list, which wraps
+  // every name whole. The term line never truncates: the wrapper keeps a minimum width
+  // that holds the longest term line, "ภาคการศึกษา 2/2569" at the small size, beside the
+  // chevron, which still leaves the export, menu, and close controls their room at 320 px
+  // (ADR-0048 amendment). Below 640 px the calendar icon drops out so the name keeps the
+  // room.
   return (
-    <div ref={wrapperRef} className="relative max-w-[16rem] min-w-34">
+    <div ref={wrapperRef} className="relative min-w-34">
       <button
         ref={setReference}
         id={PLAN_SWITCHER_TRIGGER_ID}
@@ -380,7 +386,7 @@ export function PlanSwitcher() {
         aria-label={triggerName}
         aria-haspopup={sheet ? 'dialog' : 'true'}
         aria-expanded={open}
-        className={`flex w-full items-center gap-2 overflow-hidden rounded-kcp border border-border px-2 py-px text-sm text-ink hover:bg-surface-alt sm:px-3 ${TARGET_HEIGHT} ${FOCUS_RING}`}
+        className={`flex w-full items-center gap-2 overflow-hidden rounded-kcp border border-border px-2 text-sm text-ink hover:bg-surface-alt sm:px-3 ${wrapped ? 'py-0' : 'py-px'} ${TARGET_HEIGHT} ${FOCUS_RING}`}
       >
         <CalendarRange
           size={16}
@@ -389,11 +395,18 @@ export function PlanSwitcher() {
           className="hidden shrink-0 text-ink-soft sm:block"
         />
         <span className="flex min-w-0 flex-1 flex-col items-start text-left">
-          <span data-plan-name className="max-w-full truncate">
+          <span
+            ref={nameRef}
+            data-plan-name
+            data-plan-name-step={nameStep}
+            className={planNameClass(nameStep)}
+          >
             {triggerLabel}
           </span>
           {activePlan === null ? null : (
-            <span className="text-2xs whitespace-nowrap text-ink-soft">
+            <span
+              className={`whitespace-nowrap text-ink-soft ${wrapped ? WRAPPED_TERM : 'text-2xs'}`}
+            >
               {termLabel(activePlan, t)}
             </span>
           )}
