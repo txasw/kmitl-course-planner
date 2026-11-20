@@ -129,6 +129,17 @@ async function checkExportPage(page: Page): Promise<void> {
     await expect(chip).toContainText(name);
     await expect(chip).toContainText(size);
     await expectWhole(chip);
+    // The size line does not wrap, so it has to fit the chip's content box, not only its
+    // border box, or it runs into the padding at the narrowest width.
+    const room = await chip.evaluate((node) => {
+      const style = getComputedStyle(node);
+      const content =
+        node.clientWidth -
+        Number.parseFloat(style.paddingLeft) -
+        Number.parseFloat(style.paddingRight);
+      return content - (node.lastElementChild?.scrollWidth ?? Infinity);
+    });
+    expect(room).toBeGreaterThanOrEqual(0);
     boxes.push(await chip.boundingBox());
   }
   for (const [index, box] of boxes.entries()) {

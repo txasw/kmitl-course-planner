@@ -58,7 +58,7 @@ function templateSize(template: ExportTemplate): string {
   )}`;
 }
 
-const CHIP = `flex min-w-0 flex-col items-start justify-between gap-0.5 rounded-kcp border px-1.5 py-1.5 sm:px-2 text-left text-ink transition-colors ${TARGET_SIZE} ${FOCUS_OUTLINE}`;
+const CHIP = `flex min-w-0 flex-col items-start justify-between gap-0.5 rounded-kcp border px-1 py-1.5 sm:px-2 text-left text-ink transition-colors ${TARGET_SIZE} ${FOCUS_OUTLINE}`;
 
 const CHIP_STATE = {
   selected: 'border-primary bg-primary-soft ring-1 ring-primary ring-inset',
