@@ -238,6 +238,13 @@ const PAIRS: Pair[] = [
     bg: shadowToken('primary-soft'),
     min: AA_NORMAL,
   },
+  {
+    // The figures of the one count badge.
+    name: 'surface on ink',
+    fg: shadowToken('surface'),
+    bg: shadowToken('ink'),
+    min: AA_NORMAL,
+  },
 ];
 
 // The soft depth card of ADR-0071 mixes its tint into the surface, from the strong stop
