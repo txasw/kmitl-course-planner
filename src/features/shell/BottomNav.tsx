@@ -112,6 +112,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label={t('nav.label')}
+      data-bottom-nav=""
       className="relative flex shrink-0 border-t border-border bg-surface pb-(--kcp-safe-bottom)"
     >
       <div

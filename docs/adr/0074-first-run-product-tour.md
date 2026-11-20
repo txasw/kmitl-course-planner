@@ -126,3 +126,13 @@ lets any text overflow, or is covered at any point by another layer.
 Two dialogs can share a name while the tour runs on the medium tier: the catalog sheet and the
 search step are both "ค้นหารายวิชา". The tour's dialog is modal, so assistive technology meets
 only the tour, and the specs find the card by its data attribute.
+
+## Amendment, 2026-11-21: the card rests above the phone bottom nav
+
+On a phone the card rested at the panel foot over the bottom nav, so its edge cut through the
+dimmed nav labels and left half glyphs below it. The foot the card keeps clear now counts the
+bottom nav as well as the safe area: the tour measures the nav's top, and the card rests above
+it with its 16 px gutter, so every nav label shows whole under the dim. A step that lights a nav
+item keeps the card beside the spotlight as before. Covering the nav fully was rejected, since
+the timetable step lights a nav item that a covering card would hide. The layout guard of the
+end to end specs fails when the card reaches past the nav's top less the gutter.
