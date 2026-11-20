@@ -89,7 +89,7 @@ export function BlockDetailPopover({
           >
             {title}
           </h2>
-          <div className="truncate text-ink-soft">{subtitle}</div>
+          <div className="break-words text-ink-soft">{subtitle}</div>
         </div>
         <button
           type="button"
