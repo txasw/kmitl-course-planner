@@ -13,7 +13,8 @@
 // A press keeps its own target: the swipe starts only once the pointer has travelled past a
 // slop, so a tap on the apply action or the left out list is never taken by the gesture. A
 // page change from a key inside the outgoing slide moves focus to the carousel, since that
-// slide turns inert under the focused control; a key on a dot moves focus to the new dot. A
+// slide turns inert under the focused control; a key on a dot moves focus to the new dot.
+// Only the shown dot is a tab stop, and the keys move between the dots, as in the mockup. A
 // chevron that reaches the first or last slide disables, so it hands focus to the other
 // chevron beside it, which needs no scroll, rather than to a dot below the slide.
 //
@@ -151,6 +152,7 @@ function CarouselDots({
                 type="button"
                 aria-label={name}
                 aria-current={current ? 'true' : undefined}
+                tabIndex={current ? 0 : -1}
                 data-suggest-dot={index}
                 onKeyDown={onKeyDown}
                 onClick={() => {

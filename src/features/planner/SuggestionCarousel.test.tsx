@@ -119,6 +119,10 @@ describe('SuggestionCarousel', () => {
     expect(liveRegion()).toHaveTextContent('ตัวเลือก 1 จาก 3');
     expect(dot(1)).toHaveAttribute('aria-current', 'true');
     expect(dot(2)).not.toHaveAttribute('aria-current');
+    // Only the shown dot is a tab stop; the keys reach the others.
+    expect(dot(1)).toHaveAttribute('tabindex', '0');
+    expect(dot(2)).toHaveAttribute('tabindex', '-1');
+    expect(dot(3)).toHaveAttribute('tabindex', '-1');
   });
 
   it('pages with the chevrons and announces the position', () => {
@@ -157,6 +161,8 @@ describe('SuggestionCarousel', () => {
     fireEvent.click(dot(3));
     expect(shownHeading()).toBe('ตัวเลือกที่ 3');
     expect(dot(3)).toHaveAttribute('aria-current', 'true');
+    expect(dot(3)).toHaveAttribute('tabindex', '0');
+    expect(dot(1)).toHaveAttribute('tabindex', '-1');
     expect(liveRegion()).toHaveTextContent('ตัวเลือก 3 จาก 3');
   });
 

@@ -165,7 +165,7 @@ inert. A student pages four ways: a horizontal swipe across the slide, which sta
 the pointer travels 24 px so a tap on a control keeps its target and pages past the 72 px
 threshold the other swipes use; the previous and next chevrons, named "ตัวเลือกก่อนหน้า" and
 "ตัวเลือกถัดไป" ("Previous option" and "Next option"); a dot per suggestion, a button that marks
-the shown one with aria-current; and the left and right arrow keys, with Home and End, on the
+the shown one with aria-current and is the only dot in the tab order; and the left and right arrow keys, with Home and End, on the
 focusable slide area and on the dots. Paging clamps at the ends. The line between the chevrons
 reads "ตัวเลือก 2 จาก 3" ("Option 2 of 3") and is a polite live region, so each change is
 announced. A key that pages from a control in the outgoing slide moves focus to the slide area,
