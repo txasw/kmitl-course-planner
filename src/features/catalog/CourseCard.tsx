@@ -58,6 +58,9 @@ import { tourTargetProps } from '@/lib/onboarding/tour';
 
 const HEADER = 'flex items-start gap-1';
 
+const SECTION_LIST =
+  'flex flex-col divide-y divide-border overflow-hidden rounded-kcp-sm bg-surface shadow-kcp-soft ring-1 ring-border';
+
 const COMPARE_ACTION = `inline-flex items-center gap-1 self-start rounded-kcp border border-border px-2 py-1 text-xs text-ink-soft hover:bg-surface-alt hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`;
 
 // The whole card header is a pointer drag source. Grabbing it previews every section of
@@ -280,15 +283,16 @@ function CourseCardComponent({
     </>
   );
 
-  // An added card de-emphasizes with a muted surface rather than opacity, which would
-  // drop text below AA. It opens to its sections read only for reference, since a
-  // second section of the same subject cannot be added; changing section happens on
-  // the grid.
+  // The card is the neutral soft card of ADR-0071 at its quiet stops, a near white fill
+  // with a hairline edge and a light shadow, so a long column of cards reads calm. An
+  // added card de-emphasizes with the settled stops rather than opacity, which would drop
+  // text below AA. It opens to its sections read only for reference, since a second
+  // section of the same subject cannot be added; changing section happens on the grid.
   return (
     <article
       ref={cardRef}
       data-course-card={course.subjectId}
-      className={`rounded-kcp border border-border px-3 py-2 hover:border-ink-soft ${added ? 'bg-surface-alt' : 'bg-surface'}`}
+      className={`kcp-soft-card ${added ? 'kcp-soft-settled' : 'kcp-soft-quiet'} px-3 py-2 hover:[--kcp-tint-edge:40%]`}
     >
       {draggable ? (
         <CourseDragHeader course={course} hover={preview.hover}>
@@ -308,7 +312,7 @@ function CourseCardComponent({
         open={open}
         instant={instant}
         renderContent={() => (
-          <div className="flex flex-col gap-1.5 pt-2">
+          <div className="flex flex-col gap-2 pt-2">
             {added ? (
               <p className="text-xs text-ink-soft">
                 {t('catalog.card.addedHint')}
@@ -329,20 +333,25 @@ function CourseCardComponent({
                 {t('compare.open')}
               </button>
             ) : null}
-            {course.sections.map((section) => (
-              <CourseSection
-                key={section.teachTableId}
-                course={course}
-                section={section}
-                placed={placed}
-                locale={locale}
-                t={t}
-                term={term}
-                readOnly={added}
-                onAdd={onAdd}
-                onSwitchTerm={onSwitchTerm}
-              />
-            ))}
+            {/* The sections share one white inset panel with hairline rules between
+                them, a lighter step of the card rather than a bordered card per row,
+                so the open card keeps one level of nesting. */}
+            <div data-section-list className={SECTION_LIST}>
+              {course.sections.map((section) => (
+                <CourseSection
+                  key={section.teachTableId}
+                  course={course}
+                  section={section}
+                  placed={placed}
+                  locale={locale}
+                  t={t}
+                  term={term}
+                  readOnly={added}
+                  onAdd={onAdd}
+                  onSwitchTerm={onSwitchTerm}
+                />
+              ))}
+            </div>
           </div>
         )}
       />
