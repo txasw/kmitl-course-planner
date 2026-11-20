@@ -14,6 +14,7 @@ import { searchStore } from '@/features/search/searchStore';
 import { toastStore } from '@/features/shell/toastStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
+import { installViewport } from '../../../tests/support/viewport';
 import { makeCourse } from '../../../tests/support/domain-builders';
 import { CatalogPanel, useResultCourseCount } from './CatalogPanel';
 
@@ -27,6 +28,7 @@ function renderPanel() {
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals();
   act(() => {
     searchStore.getState().cancelSearch();
     toastStore.getState().dismiss();
@@ -39,6 +41,18 @@ describe('CatalogPanel', () => {
     expect(
       screen.getByRole('heading', { name: 'ยังไม่มีรายวิชา' }),
     ).toBeInTheDocument();
+  });
+
+  // Brief 8.2: an empty state carries an icon, one sentence, and one action.
+  it('offers the idle prompt one action that opens the search', () => {
+    // From 640 px up the action unfolds the form; below it, it switches to the pane.
+    installViewport(1366);
+    act(() => {
+      searchStore.getState().setSearchFormOpen(false);
+    });
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: 'ไปที่การค้นหา' }));
+    expect(searchStore.getState().searchFormOpen).toBe(true);
   });
 
   it('shows a loading status while the query runs', () => {
@@ -173,6 +187,12 @@ describe('CatalogPanel', () => {
       screen.getByRole('heading', { name: 'ไม่พบรายวิชา' }),
     ).toBeInTheDocument();
     expect(screen.getByText('ภาคการศึกษา 1/2569')).toBeInTheDocument();
+    // The one way out of an empty result is to change the search.
+    act(() => {
+      searchStore.getState().setSearchFormOpen(false);
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'แก้ไขการค้นหา' }));
+    expect(searchStore.getState().searchFormOpen).toBe(true);
   });
 });
 

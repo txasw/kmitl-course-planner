@@ -138,3 +138,16 @@ stats bar plus a second strip.
 A floating suggest button over the timetable was rejected because it would sit over blocks and
 text. Moving the facts into a tappable summary button, as the mockup drew, was left for a later
 change, since the summary view is already one nav item away.
+
+## Amendment, 2026-11-20: the free day notice is an empty state with its one action
+
+Brief 8.2 gives every empty state an icon, one sentence, and one action, and the 1.5.0 release
+review found the free day notice short of both: its body was the phrase วันว่าง (Free day) and it
+offered nothing to press. The notice now reads วันนี้ไม่มีคาบเรียน (No class on this day.) under
+the day name and offers ดูทั้งสัปดาห์ (Show the week), which selects the week chip and moves focus
+to it, since the day view and its notice leave with the switch. The chips stay the path to any
+other day. The same review brought the other panel empty states to the shared component with one
+action each: the idle catalog goes to the search, an empty result and a filter that matches
+nothing reopen the search or clear the filters, the empty selected courses list goes to the
+courses, and an empty suggestion either ticks every subject or closes the dialog. The preview
+poster's empty notice keeps no action, because a shared picture carries no control.

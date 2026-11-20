@@ -20,10 +20,12 @@ import {
   CalendarRange,
   ChevronsDownUp,
   ChevronsUpDown,
+  ListFilter,
   Merge,
   Rows3,
   type LucideIcon,
 } from 'lucide-react';
+import { EmptyState, EmptyStateAction } from '@/components/EmptyState';
 import { Tooltip } from '@/components/Tooltip';
 import {
   COURSE_UNIT,
@@ -73,6 +75,8 @@ import { TermSwitchLabel } from '@/features/plans/TermSwitchLabel';
 import { searchStore } from '@/features/search/searchStore';
 import { dragStore } from '@/features/planner/dragStore';
 import { firstFeedbackAction } from '@/features/planner/feedbackAction';
+import { CATALOG_FILTER_ID } from '@/features/shell/catalogVisibility';
+import { commitAndFocus } from '@/features/shell/commitAndFocus';
 import { commitThenFocus } from '@/features/shell/restoreFocus';
 import { rootOf } from '@/features/shell/useFocusTrap';
 import { courseToggle } from './courseFocus';
@@ -422,7 +426,25 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
         t={t}
       />
       {groups.length === 0 ? (
-        <p className="text-sm text-ink-soft">{t('catalog.filterEmpty')}</p>
+        <div className="py-6">
+          <EmptyState
+            icon={ListFilter}
+            title={t('catalog.filterEmpty')}
+            description={t('catalog.filterEmptyBody')}
+            action={
+              <EmptyStateAction
+                label={t('catalog.filter.clearAll')}
+                onClick={(event) => {
+                  // The state leaves with the reset, so focus moves to the filter
+                  // field rather than falling to the document body.
+                  commitAndFocus(event.currentTarget, CATALOG_FILTER_ID, () => {
+                    catalogStore.getState().resetFilter();
+                  });
+                }}
+              />
+            }
+          />
+        </div>
       ) : (
         groups.map((group) => (
           <CatalogGroup

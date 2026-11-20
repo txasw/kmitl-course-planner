@@ -19,7 +19,7 @@ import { useId, useMemo, useState } from 'react';
 import { CalendarX2 } from 'lucide-react';
 import { useStore } from 'zustand';
 import { BottomSheet } from '@/components/BottomSheet';
-import { EmptyState } from '@/components/EmptyState';
+import { EmptyState, EmptyStateAction } from '@/components/EmptyState';
 import { ModalDialog } from '@/components/ModalDialog';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import type { PlanEntry, SourceQuery } from '@/lib/domain/plan';
@@ -299,6 +299,23 @@ export function SuggestDialog({
           icon={CalendarX2}
           title={t('suggest.empty.title')}
           description={t(EMPTY_KEY[emptyReason])}
+          action={
+            // With nothing ticked the way out is to tick every subject across the groups,
+            // which a group's own tick all does for that group alone; otherwise no tick
+            // can help, so the action leaves for the plan.
+            emptyReason === 'noneTicked' ? (
+              <EmptyStateAction
+                label={t('suggest.empty.tickEvery')}
+                onClick={() => {
+                  handleTicked(
+                    new Set(tickable.map((course) => course.subjectId)),
+                  );
+                }}
+              />
+            ) : (
+              <EmptyStateAction label={t('suggest.close')} onClick={onClose} />
+            )
+          }
         />
       ) : (
         <section aria-label={t('suggest.results')} aria-busy={busy}>

@@ -640,6 +640,25 @@ describe('CourseCatalog filter announcement', () => {
     });
   }
 
+  it('states an empty filter result with one action that clears the filters', () => {
+    render(<CourseCatalog catalog={catalog} />);
+    filterTo('zzzz');
+    const empty = screen
+      .getByRole('heading', { name: 'ไม่มีรายวิชาที่ตรงกับตัวกรอง' })
+      .closest('[data-empty-state]');
+    expect(empty).not.toBeNull();
+    expect(empty).toHaveTextContent('ล้างหรือปรับตัวกรองเพื่อดูรายวิชาอื่น');
+    const clear = screen
+      .getAllByRole('button', { name: 'ล้างตัวกรอง' })
+      .find((button) => empty?.contains(button));
+    if (clear === undefined) {
+      throw new Error('expected the clear action in the empty state');
+    }
+    fireEvent.click(clear);
+    expect(catalogStore.getState().filter.text).toBe('');
+    expect(screen.getByRole('searchbox', { name: 'กรองรายการ' })).toHaveFocus();
+  });
+
   it('speaks the result once the filter holds still, and says when nothing matches', () => {
     vi.useFakeTimers();
     render(

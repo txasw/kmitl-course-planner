@@ -8,7 +8,7 @@
 import { useEffect, useState } from 'react';
 import { useStore } from 'zustand';
 import { AlertTriangle, Search, SearchX } from 'lucide-react';
-import { EmptyState } from '@/components/EmptyState';
+import { EmptyState, EmptyStateAction } from '@/components/EmptyState';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import type { Translate } from '@/lib/i18n/t';
 import { searchStore } from '@/features/search/searchStore';
@@ -17,10 +17,12 @@ import { useSearchActions } from '@/features/search/useSearchController';
 import { errorAction, errorMessageKey } from '@/features/search/errorMessage';
 import { SEARCH_SUBMIT_ID } from '@/features/search/searchIds';
 import { commitAndFocus } from '@/features/shell/commitAndFocus';
+import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { CourseCatalog } from './CourseCatalog';
 import { ErrorActionButton } from './ErrorActionButton';
 import { InputGuard } from './InputGuard';
+import { openSearch } from './revealCourse';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
@@ -114,6 +116,7 @@ function CatalogState() {
   const { t } = useTranslation();
   const result = useStore(searchStore, (state) => state.result);
   const query = useStore(searchStore, (state) => state.resultQuery);
+  const tier = useLayoutTier();
 
   if (result.status === 'idle') {
     return (
@@ -121,6 +124,14 @@ function CatalogState() {
         icon={Search}
         title={t('catalog.emptyTitle')}
         description={t('catalog.emptyBody')}
+        action={
+          <EmptyStateAction
+            label={t('grid.goToSearch')}
+            onClick={(event) => {
+              openSearch(event.currentTarget, tier);
+            }}
+          />
+        }
       />
     );
   }
@@ -167,6 +178,15 @@ function CatalogState() {
         icon={SearchX}
         title={t('catalog.resultEmptyTitle')}
         description={termSummary(query, t)}
+        action={
+          <ErrorActionButton
+            action="editSearch"
+            t={t}
+            onRetry={() => {
+              void retry();
+            }}
+          />
+        }
       />
     );
   }
