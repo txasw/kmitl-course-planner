@@ -49,7 +49,7 @@ describe('suggestEmptyReason', () => {
     ).toBe('allPlaced');
   });
 
-  it('offers a rearrangement once the curriculum courses are all in the plan', () => {
+  it('offers no reshuffle once the curriculum courses are all in the plan', () => {
     const courses = byClassCourses();
     const locked = lockSections(courses, [
       ['01006020', '4'],
@@ -66,7 +66,7 @@ describe('suggestEmptyReason', () => {
         objective: 'coverAll',
         preference: 'balanced',
       }),
-    ).toBeNull();
+    ).toBe('planFits');
   });
 
   it('says the plan already fits when only plan subjects that cannot move are ticked', () => {

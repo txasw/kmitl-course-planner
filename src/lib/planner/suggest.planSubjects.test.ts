@@ -1,6 +1,7 @@
 // The plan's own subjects in a suggestion search (ADR-0054, amended 2026-11-21): a
 // ticked plan subject is in every timetable at its own section or another open one,
-// a move is offered only where it gains something, and an unticked one is left out.
+// a move is offered only where it gains room for a course or a lower penalty, and an
+// unticked one is left out.
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -12,8 +13,8 @@ import { curriculumCourse, lockSections } from '../../../tests/support/suggest';
 import { suggestPlans, type Suggestion } from './suggest';
 import { changesPlan } from './suggestEmpty';
 
-const at = (day: 1 | 2 | 3 | 4 | 5) => [
-  makeMeeting({ day, startMin: 540, endMin: 720 }),
+const at = (day: 1 | 2 | 3 | 4 | 5, startMin = 540) => [
+  makeMeeting({ day, startMin, endMin: startMin + 180 }),
 ];
 
 function sectionsOf(suggestion: Suggestion | undefined) {
@@ -47,7 +48,8 @@ describe('suggestPlans with subjects already in the plan', () => {
     expect(best?.leftOut).toEqual([]);
   });
 
-  it('keeps a plan subject at its own section when a move gains nothing', () => {
+  it('never offers a move that gains nothing', () => {
+    // Tuesday instead of Monday is the same two day week, so it only reshuffles.
     const wednesday = curriculumCourse('33333333', [{ meetings: at(3) }]);
     const { suggestions } = suggestPlans({
       courses: [held, wednesday],
@@ -55,14 +57,63 @@ describe('suggestPlans with subjects already in the plan', () => {
       objective: 'coverAll',
       preference: 'balanced',
     });
-    expect(sectionsOf(suggestions[0])).toEqual([
-      ['11111111', '1', true],
-      ['33333333', '1', false],
+    expect(suggestions.map(sectionsOf)).toEqual([
+      [
+        ['11111111', '1', true],
+        ['33333333', '1', false],
+      ],
     ]);
-    // The move is still offered, ranked after, as a different week.
-    expect(sectionsOf(suggestions[1])).toEqual([
-      ['11111111', '2', false],
-      ['33333333', '1', false],
+  });
+
+  it('offers a move that lowers the penalty, ranked first', () => {
+    // A Tuesday afternoon course: moving to Tuesday morning makes a one day week.
+    const tuesday = curriculumCourse('33333333', [{ meetings: at(2, 780) }]);
+    const { suggestions } = suggestPlans({
+      courses: [held, tuesday],
+      entries,
+      objective: 'coverAll',
+      preference: 'fewerDays',
+    });
+    expect(suggestions.map(sectionsOf)).toEqual([
+      [
+        ['11111111', '2', false],
+        ['33333333', '1', false],
+      ],
+      [
+        ['11111111', '1', true],
+        ['33333333', '1', false],
+      ],
+    ]);
+  });
+
+  it('keeps the needed move but not a second one that gains nothing', () => {
+    const other = curriculumCourse('44444444', [
+      { meetings: at(3) },
+      { meetings: at(4) },
+    ]);
+    const mondayOnly = curriculumCourse('22222222', [{ meetings: at(1) }]);
+    const { suggestions } = suggestPlans({
+      courses: [held, other, mondayOnly],
+      entries: lockSections(
+        [held, other],
+        [
+          ['11111111', '1'],
+          ['44444444', '1'],
+        ],
+      ),
+      objective: 'coverAll',
+      preference: 'balanced',
+    });
+    expect(suggestions.map(sectionsOf)).toEqual([
+      [
+        ['11111111', '2', false],
+        ['22222222', '1', false],
+        ['44444444', '1', true],
+      ],
+      [
+        ['11111111', '1', true],
+        ['44444444', '1', true],
+      ],
     ]);
   });
 
@@ -124,13 +175,13 @@ describe('suggestPlans with subjects already in the plan', () => {
     expect(suggestions).toEqual([]);
   });
 
-  it('marks a timetable that keeps the plan as it is as no change', () => {
+  it('offers only the plan as it is when nothing is added and no move gains', () => {
     const { suggestions } = suggestPlans({
       courses: [held],
       entries,
       objective: 'coverAll',
       preference: 'balanced',
     });
-    expect(suggestions.map(changesPlan)).toEqual([false, true]);
+    expect(suggestions.map(changesPlan)).toEqual([false]);
   });
 });

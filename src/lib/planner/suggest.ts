@@ -11,16 +11,22 @@
 // The search is exhaustive depth first over the courses with the fewest options
 // first, each course taking one of its section groups or, unless it is a ticked
 // plan subject, being skipped. Every rule checkPlacement applies is between two
-// sections, so the checks are a memoized pairwise compatibility table. Branch and bound prunes a subtree whose best reachable objective, and for
-// a tie its least reachable penalty, cannot beat the worst timetable kept. A node
-// cap bounds the work on a large result and marks the outcome truncated.
+// sections, so the checks are a memoized pairwise compatibility table. Branch and
+// bound prunes a subtree whose best reachable objective, and for a tie its least
+// reachable penalty, cannot beat the worst timetable kept. A node cap bounds the
+// work on a large result and marks the outcome truncated.
 //
 // A timetable is kept only when it is maximal: a skipped course that still has a
 // fitting section would make a strictly better timetable, so leaving it out is
-// never offered. No two kept timetables share a time footprint: a timetable that
-// only swaps a section for another meeting at the same times is the same week, so
-// it takes the place of its twin only when it ranks first, and the suggestions
-// differ in at least one meeting time or subject.
+// never offered. A timetable that moves plan subjects is kept only when every move
+// gains something: if putting any of the moved subjects back at their own groups
+// still fits and scores no worse, the moves only reshuffle the plan, so it is
+// never offered. Moving changes neither the courses nor the credits, so the gain
+// is either room for an added course or a lower penalty. No two kept timetables
+// share a time footprint: a timetable that only swaps a section for another
+// meeting at the same times is the same week, so it takes the place of its twin
+// only when it ranks first, and the suggestions differ in at least one meeting
+// time or subject.
 
 import type { Course, Meeting, Section } from '../domain/types';
 import type { PlanEntry } from '../domain/plan';
@@ -152,8 +158,53 @@ export function suggestPlans(input: SuggestInput): SuggestResult {
   let nodes = 0;
   let truncated = false;
 
+  // Each move option of a ticked plan subject, mapped to the subject's own group,
+  // which plannedChoices lists first.
+  const ownOf = new Map<number, SuggestOption>();
+  for (const candidate of active) {
+    const [own, ...moves] = candidate.options;
+    if (candidate.required && own !== undefined) {
+      for (const move of moves) {
+        ownOf.set(move.index, own);
+      }
+    }
+  }
+
   const fitsChosen = (option: SuggestOption): boolean =>
     chosen.every((other) => compatible(other, option));
+
+  // Whether putting some of the leaf's moved subjects back at their own groups
+  // still fits and scores no worse, so the moves gain nothing. Every subset is
+  // tried, since two moves can depend on each other; a leaf moves few subjects.
+  const movesGainNothing = (penalty: number): boolean => {
+    const movedAt = chosen.flatMap((option, at) =>
+      ownOf.has(option.index) ? [at] : [],
+    );
+    for (let mask = 1; mask < 1 << movedAt.length; mask += 1) {
+      const undone = [...chosen];
+      movedAt.forEach((at, bit) => {
+        const own = ownOf.get(chosen[at]?.index ?? -1);
+        if ((mask & (1 << bit)) !== 0 && own !== undefined) {
+          undone[at] = own;
+        }
+      });
+      const fits = undone.every((option, at) =>
+        undone.every((other, from) => from <= at || compatible(option, other)),
+      );
+      if (
+        fits &&
+        preferencePenalty(
+          undone.flatMap((option) =>
+            option.choice.group.flatMap((member) => member.meetings),
+          ),
+          input.preference,
+        ) <= penalty
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
   const worstKept = (): RankedTimetable | undefined =>
     kept.length >= limit ? kept[kept.length - 1] : undefined;
 
@@ -169,6 +220,9 @@ export function suggestPlans(input: SuggestInput): SuggestResult {
       return;
     }
     if (skipped.some((candidate) => candidate.options.some(fitsChosen))) {
+      return;
+    }
+    if (moved > 0 && movesGainNothing(order.penalty)) {
       return;
     }
     // The footprint is built only for a leaf that would be kept, since most leaves
