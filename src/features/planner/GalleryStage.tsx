@@ -59,6 +59,7 @@ export function GalleryStage({
     return (
       <div
         aria-hidden
+        data-gallery-sliver={side}
         className={`pointer-events-none absolute inset-y-0 overflow-hidden ${
           side === 'left' ? 'left-0' : 'right-0'
         }`}
