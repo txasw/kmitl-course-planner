@@ -765,3 +765,18 @@ below supersedes the earlier text it names.
   toast. The toast region therefore rises over the phone foot only for the bottom nav in edit;
   on the phone export page it rests at the foot and the toolbar rises above it. Lifting the
   toast over the status row was rejected, since it would then cover the timetable blocks.
+- The clipped text sweep passed while all of the above held, so it now reads more. A text leaf
+  fails as covered when the element a press at three points across its line would reach is
+  neither its own element nor around it, which catches a toast, a tooltip, or a card laid over
+  text; this replaces the known limit that a floating layer over static text needed its own
+  spec. A layer that lets presses through is drawn for looks and is read through, a row pinned
+  inside the leaf's own scroller is cleared by scrolling, and a dim drawn on purpose, such as
+  the product tour's, is named as see through. The walk now reads the timetable with the undo
+  toast up and after a failed save, the export page with a copy toast up and with the pointer
+  resting on each template dot, the suggestion carousel with each arrow's tooltip open, which
+  must also lie over no other control, the reopened curriculum form, which must not scroll at
+  the sweep height, and every product tour step, with the phone bottom nav read under the dim.
+  Each exception now names the control that shows the whole text, which must be on show for
+  the leaf to be excused: the expand control beside a clamped line, the plan switcher trigger
+  for a plan name past two lines of the smallest step, and the pager dots for a template
+  sliver.

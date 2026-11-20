@@ -123,7 +123,7 @@ export function GalleryPager({
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2">
+    <div data-gallery-pager="" className="flex min-h-0 flex-1 flex-col gap-2">
       <div className="flex min-h-0 flex-1 items-stretch gap-1">
         <PagerArrow
           label={t('preview.gallery.prev')}
