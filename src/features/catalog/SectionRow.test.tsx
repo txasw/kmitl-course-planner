@@ -648,7 +648,7 @@ describe('SectionRow density and read only', () => {
     expect(screen.getByText(/D-510/).textContent).toMatch(/\d{2}:\d{2} D-510$/);
   });
 
-  it('shows the teachers under a label with an expand control when the line clips', () => {
+  it('shows the teachers under a label on one line', () => {
     const many = makeSection({
       teachTableId: 'm',
       teachersTh: ['อ. หนึ่ง', 'อ. สอง', 'อ. สาม'],
@@ -665,7 +665,8 @@ describe('SectionRow density and read only', () => {
     );
     expect(screen.getByText('ผู้สอน')).toBeTruthy();
     expect(screen.getByText('อ. หนึ่ง, อ. สอง, อ. สาม')).toBeTruthy();
-    // jsdom has no layout, so the one line fits there and no expand control is offered.
+    // jsdom has no layout, so the one line fits there and no expand control is offered;
+    // TeacherLine.test.tsx stubs the observer to cover the clipped line and its control.
     expect(screen.queryByRole('button', { name: 'ดูผู้สอนทั้งหมด' })).toBeNull();
   });
 
