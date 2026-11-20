@@ -26,10 +26,16 @@
 // The panel focus trap follows the region by its id, so a toast's controls join the Tab
 // order after the panel's last control while the panel is open; Tab reaches an undo
 // without the toast ever taking focus when it appears.
+//
+// While the product tour is open (ADR-0074) the region shows nothing, since the tour card
+// sits along the same foot and a toast laid over it would cover its buttons. The live
+// region stays mounted, an ordinary toast waits without counting down, and a pending
+// undo returns with a fresh window once the tour ends.
 
 import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { useStore } from 'zustand';
 import { CircleCheck, TriangleAlert, X } from 'lucide-react';
+import { onboardingStore } from '@/features/onboarding/onboardingStore';
 import { planStore } from '@/features/plans/planStore';
 import type { Translate } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
@@ -142,6 +148,7 @@ export function Toaster() {
   const dismiss = useStore(toastStore, (state) => state.dismiss);
   const pendingUndo = useStore(planStore, (state) => state.pendingUndo);
   const isOpen = useStore(uiStore, (state) => state.isOpen);
+  const touring = useStore(onboardingStore, (state) => state.tourOpen);
   const { t, language } = useTranslation();
   const sheetOpen = useBottomSheetOpen();
   const aboveFoot = useFootControlsShown() && isOpen && !sheetOpen;
@@ -155,7 +162,7 @@ export function Toaster() {
   useEffect(() => {
     // An ordinary toast auto dismisses only while it is the thing on screen. While an
     // undo toast holds the region, hold the ordinary toast so it queues behind it.
-    if (toast === null || showUndo || held) {
+    if (toast === null || showUndo || held || touring) {
       return;
     }
     const { id } = toast;
@@ -165,7 +172,7 @@ export function Toaster() {
     return () => {
       clearTimeout(timer);
     };
-  }, [toast, dismiss, showUndo, held]);
+  }, [toast, dismiss, showUndo, held, touring]);
 
   // Clear a panel toast when the overlay closes, so it does not linger over the
   // bare host page. A debug toast shown while the panel is already closed sees no
@@ -204,7 +211,7 @@ export function Toaster() {
           : 'bottom-[max(16px,var(--kcp-safe-bottom))]'
       }`}
     >
-      {pendingUndo !== null && isOpen ? (
+      {touring ? null : pendingUndo !== null && isOpen ? (
         <UndoToast key={undoKey} record={pendingUndo} locale={language} t={t} />
       ) : toast !== null ? (
         // The outer element is the sole live region; the id key replays the entrance
