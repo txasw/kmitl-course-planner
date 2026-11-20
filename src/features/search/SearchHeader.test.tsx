@@ -711,6 +711,31 @@ describe('SearchHeader on the phone layout', () => {
     expect(searchStore.getState().barQuery).toBe(subjectQuery);
   });
 
+  it('pins the submit row from 640 px up only when the column cannot hold the form', () => {
+    // The scroller is the fold's child and the form content the scroller's child.
+    const heights = (scroller: number, content: number) =>
+      vi
+        .spyOn(HTMLElement.prototype, 'clientHeight', 'get')
+        .mockImplementation(function (this: HTMLElement) {
+          if (this.parentElement?.id === SEARCH_FORM_ID) return scroller;
+          if (this.parentElement?.parentElement?.id === SEARCH_FORM_ID) {
+            return content;
+          }
+          return 0;
+        });
+
+    const fits = heights(520, 480);
+    const first = renderHeader();
+    expect(submitRow()).not.toHaveClass('sticky');
+    first.unmount();
+    fits.mockRestore();
+
+    heights(400, 480);
+    renderHeader();
+    // A window too short for the whole form scrolls it under a pinned action row.
+    expect(submitRow()).toHaveClass('sticky', 'bottom-0', 'border-t');
+  });
+
   it('keeps the submit in the flow with no cancel from 640 px up', () => {
     const { container } = renderHeader();
     act(() => {

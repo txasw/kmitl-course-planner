@@ -734,3 +734,17 @@ for the length of the notice and returns. The live region stays mounted througho
 add confirmation, which never shows, never moves the grid. An overlay over the top of the grid was
 rejected because it would cover the hour labels, against the owner's rule that no layout hides
 text.
+
+## Amendment, 2026-11-21: nothing cut at the foot or the head
+
+A conformance review against the owner rule found text that the sweep let through. Each fix
+below supersedes the earlier text it names.
+
+- A reopened search form shows whole from 640 px up. The 12rem minimum the results kept under
+  an open form, from the amendment of 2026-11-06, is withdrawn: at 768 and 1366 px it cut the
+  curriculum form short, so the class year box lost its foot and the submit row sat out of view
+  with nothing marking that the form scrolled. The form now takes the height it needs and the
+  results take what is left. Only a window too short for the whole form makes it scroll, and
+  then the submit row pins to the scroller foot with its divider, as on the phone, so the action
+  stays in view and the divider marks that more lies above. Keeping the minimum with a scroll
+  shadow was rejected, since a field would still be cut through its box at the scroller edge.

@@ -54,7 +54,6 @@ import { CatalogPanel } from '@/features/catalog/CatalogPanel';
 import { SearchHeader } from '@/features/search/SearchHeader';
 import {
   searchStore,
-  selectBarVisible,
   selectFormOpen,
   type SearchStore,
 } from '@/features/search/searchStore';
@@ -289,12 +288,6 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
   const yielded = useSheetYield(tier) && sheetOpen;
   const removeZone = useRemoveZoneActive(tier, 'column');
   const container = containerClass(tier, shown, yielded);
-  // While the bar exists and the form is open, the results keep a 12rem minimum, so a
-  // tall form scrolls in its own region rather than pushing the results out of view.
-  const keepResults = useStore(
-    searchStore,
-    (state) => selectBarVisible(state) && selectFormOpen(state),
-  );
   // Below 640 px an open form fills the pane, so the results under it are hidden and
   // inert, derived here from the tier and the disclosure and never stored, so a resize
   // out of the phone layout cannot leave them hidden.
@@ -362,9 +355,9 @@ export function CatalogColumn({ tier }: CatalogColumnProps) {
           tabIndex={resultsStop ? 0 : undefined}
           inert={editing || undefined}
           aria-hidden={editing || undefined}
-          className={`kcp-scroll relative flex flex-1 flex-col overflow-y-auto px-6 pt-6 ${RESULTS_FOOT} [overflow-anchor:none] [scroll-padding-bottom:var(--kcp-overlay-bottom,0px)] ${FOCUS_RING} ${
-            keepResults ? 'min-h-48' : 'min-h-0'
-          } ${editing ? 'invisible' : ''}`}
+          className={`kcp-scroll relative flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pt-6 ${RESULTS_FOOT} [overflow-anchor:none] [scroll-padding-bottom:var(--kcp-overlay-bottom,0px)] ${FOCUS_RING} ${
+            editing ? 'invisible' : ''
+          }`}
         >
           <CatalogDragContext.Provider value={!compact}>
             <CatalogPanel />

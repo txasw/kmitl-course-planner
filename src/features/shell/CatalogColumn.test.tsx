@@ -710,8 +710,11 @@ describe('CatalogColumn', () => {
     expect(node).toHaveClass('min-h-0');
     node.scrollTop = 240;
 
+    // A reopened form takes the height it needs, so the results keep no minimum that
+    // would cut the form short.
     fireEvent.click(screen.getByRole('button', { name: EDIT_SEARCH }));
-    expect(node).toHaveClass('min-h-48');
+    expect(node).toHaveClass('min-h-0');
+    expect(node).not.toHaveClass('min-h-48');
     expect(node.scrollTop).toBe(240);
     fireEvent.click(screen.getByRole('button', { name: EDIT_SEARCH }));
     expect(node).toHaveClass('min-h-0');
