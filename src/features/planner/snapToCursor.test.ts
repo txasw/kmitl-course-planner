@@ -5,6 +5,7 @@ import {
   keepOverlayInWindow,
   OVERLAY_EDGE_GAP,
   snapDragCardToCursor,
+  TOUCH_LIFT_GAP,
 } from './snapToCursor';
 
 function rect(left: number, top: number): ClientRect {
@@ -132,24 +133,39 @@ describe('keepOverlayInWindow', () => {
     width: 360,
     height: 800,
   };
-  const size = { width: 240, height: 90 };
+  const WIDTH = 240;
+  const HEIGHT = 90;
 
-  function clamp(
+  /** The overlay content box dnd-kit measures, at left 100 and top 300. */
+  const content: ClientRect = {
+    left: 100,
+    top: 300,
+    right: 100 + WIDTH,
+    bottom: 300 + HEIGHT,
+    width: WIDTH,
+    height: HEIGHT,
+  };
+
+  function place(
     transform: { x: number; y: number; scaleX: number; scaleY: number },
-    measured: { width: number; height: number } | null = size,
+    touchLift = false,
+    draggingNodeRect: ClientRect | null = content,
   ) {
-    return keepOverlayInWindow(measured)({
-      ...args({
-        activatorEvent: null,
-        draggingNodeRect: rect(100, 60),
-        transform,
-      }),
+    return keepOverlayInWindow(touchLift)({
+      ...args({ activatorEvent: null, draggingNodeRect, transform }),
       windowRect,
     });
   }
 
+  /** The visible box after the modifier, as left, top, right, and bottom. */
+  function box(transform: { x: number; y: number }) {
+    const left = content.left + transform.x;
+    const top = content.top + transform.y;
+    return { left, top, right: left + WIDTH, bottom: top + HEIGHT };
+  }
+
   it('leaves an overlay that fits the window where it is', () => {
-    expect(clamp({ x: 10, y: 20, scaleX: 1, scaleY: 1 })).toEqual({
+    expect(place({ x: 10, y: 20, scaleX: 1, scaleY: 1 })).toEqual({
       x: 10,
       y: 20,
       scaleX: 1,
@@ -158,20 +174,52 @@ describe('keepOverlayInWindow', () => {
   });
 
   it('slides an overlay back from the right and bottom edges', () => {
-    // At left 330 and top 760 the 240 by 90 content would run past 360 and 800.
-    const result = clamp({ x: 230, y: 700, scaleX: 1, scaleY: 1 });
-    expect(100 + result.x + size.width).toBe(360 - OVERLAY_EDGE_GAP);
-    expect(60 + result.y + size.height).toBe(800 - OVERLAY_EDGE_GAP);
+    // At left 330 and top 780 the 240 by 90 content would run past 360 and 800.
+    const result = box(place({ x: 230, y: 480, scaleX: 1, scaleY: 1 }));
+    expect(result.right).toBe(360 - OVERLAY_EDGE_GAP);
+    expect(result.bottom).toBe(800 - OVERLAY_EDGE_GAP);
   });
 
   it('keeps the overlay off the left and top edges', () => {
-    const result = clamp({ x: -150, y: -100, scaleX: 1, scaleY: 1 });
-    expect(100 + result.x).toBe(OVERLAY_EDGE_GAP);
-    expect(60 + result.y).toBe(OVERLAY_EDGE_GAP);
+    const result = box(place({ x: -150, y: -350, scaleX: 1, scaleY: 1 }));
+    expect(result.left).toBe(OVERLAY_EDGE_GAP);
+    expect(result.top).toBe(OVERLAY_EDGE_GAP);
   });
 
-  it('passes the transform through before the content lays out', () => {
+  it('lifts a touch overlay above the finger and centres it on the touch point', () => {
+    // The snap puts the content's top-left at the finger, here at 180 by 400.
+    const result = box(place({ x: 80, y: 100, scaleX: 1, scaleY: 1 }, true));
+    expect(result.left).toBe(180 - WIDTH / 2);
+    expect(result.bottom).toBe(400 - TOUCH_LIFT_GAP);
+  });
+
+  it('keeps a lifted touch overlay inside the left edge', () => {
+    // A finger at x 20 would centre the 240 wide card from x -100.
+    const result = box(place({ x: -80, y: 100, scaleX: 1, scaleY: 1 }, true));
+    expect(result.left).toBe(OVERLAY_EDGE_GAP);
+    expect(result.bottom).toBe(400 - TOUCH_LIFT_GAP);
+  });
+
+  it('keeps a lifted touch overlay inside the right edge, no further from the finger', () => {
+    // A finger at x 340 would centre the card to x 460, past the 360 edge.
+    const result = box(place({ x: 240, y: 100, scaleX: 1, scaleY: 1 }, true));
+    expect(result.right).toBe(360 - OVERLAY_EDGE_GAP);
+  });
+
+  it('keeps a lifted touch overlay below the top edge', () => {
+    // A finger at y 60 would lift the 90 tall card to y -62.
+    const result = box(place({ x: 80, y: -240, scaleX: 1, scaleY: 1 }, true));
+    expect(result.top).toBe(OVERLAY_EDGE_GAP);
+  });
+
+  it('keeps a lifted touch overlay above the bottom edge', () => {
+    // A finger past the window foot still leaves the card whole above the edge.
+    const result = box(place({ x: 80, y: 700, scaleX: 1, scaleY: 1 }, true));
+    expect(result.bottom).toBe(800 - OVERLAY_EDGE_GAP);
+  });
+
+  it('passes the transform through before the content is measured', () => {
     const transform = { x: 230, y: 700, scaleX: 1, scaleY: 1 };
-    expect(clamp(transform, null)).toBe(transform);
+    expect(place(transform, true, null)).toBe(transform);
   });
 });

@@ -17,7 +17,7 @@
 // targets the drag offers in one sentence (ADR-0059).
 
 import type { CSSProperties, ReactNode } from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -50,7 +50,6 @@ import {
   isTouchEvent,
   keepOverlayInWindow,
   snapDragCardToCursor,
-  type OverlaySize,
 } from './snapToCursor';
 import { prioritizedCollision } from './collision';
 import { isOriginId } from './LiftedOrigin';
@@ -353,29 +352,9 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
     [hintText, moveHint],
   );
 
-  // The overlay content is measured for the window clamp, since dnd-kit sizes the
-  // overlay box to the dragged grip rather than to the card and chip it shows. The node
-  // mounts only while a drag is live, so it is held in state and observed while present.
-  const [overlayContent, setOverlayContent] = useState<HTMLDivElement | null>(
-    null,
-  );
-  const [overlaySize, setOverlaySize] = useState<OverlaySize | null>(null);
-  useEffect(() => {
-    if (overlayContent === null) return undefined;
-    const observer = new ResizeObserver(() => {
-      setOverlaySize({
-        width: overlayContent.offsetWidth,
-        height: overlayContent.offsetHeight,
-      });
-    });
-    observer.observe(overlayContent);
-    return () => {
-      observer.disconnect();
-    };
-  }, [overlayContent]);
   const overlayModifiers = useMemo(
-    () => [snapDragCardToCursor, keepOverlayInWindow(overlaySize)],
-    [overlaySize],
+    () => [snapDragCardToCursor, keepOverlayInWindow(touchDrag)],
+    [touchDrag],
   );
 
   const handleCancel = useCallback(() => {
@@ -402,24 +381,21 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
         modifiers={overlayModifiers}
         style={DRAG_OVERLAY_STYLE}
       >
-        {/* dnd-kit measures the overlay's only child and the snap modifier anchors that
-            box at the pointer, so the touch lift sits one level down, where its translate
-            moves the card without moving the measured box. */}
-        <div ref={setOverlayContent} className="w-max">
-          <div className={touchDrag ? 'kcp-grab-lift' : undefined}>
-            {active !== null ? (
-              <div className="flex flex-col items-start gap-1">
-                <DragCard section={active.section} />
-                {active.placement.ok ? null : <ReasonChip active={active} />}
-              </div>
-            ) : blockMove !== null ? (
-              <DragCard section={blockMove.section} />
-            ) : courseDrag !== null ? (
-              <div className="inline-flex items-center gap-1.5 rounded-kcp bg-ink px-2 py-1 text-xs font-semibold text-surface shadow-kcp">
-                {courseDrag.course.subjectId}
-              </div>
-            ) : null}
-          </div>
+        {/* dnd-kit measures the overlay's only child, so this content sized box is the
+            rect the modifiers lift above a finger and keep inside the window. */}
+        <div className="w-max" data-touch-lift={touchDrag ? 'true' : undefined}>
+          {active !== null ? (
+            <div className="flex flex-col items-start gap-1">
+              <DragCard section={active.section} />
+              {active.placement.ok ? null : <ReasonChip active={active} />}
+            </div>
+          ) : blockMove !== null ? (
+            <DragCard section={blockMove.section} />
+          ) : courseDrag !== null ? (
+            <div className="inline-flex items-center gap-1.5 rounded-kcp bg-ink px-2 py-1 text-xs font-semibold text-surface shadow-kcp">
+              {courseDrag.course.subjectId}
+            </div>
+          ) : null}
         </div>
       </DragOverlay>
     </DndContext>
