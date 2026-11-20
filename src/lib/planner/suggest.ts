@@ -317,16 +317,12 @@ function toSuggestion(
   const chosenSubjects = new Set(
     ranked.choices.map((choice) => choice.course.subjectId),
   );
-  const required = new Set(
-    candidates
-      .filter((candidate) => candidate.required)
-      .map((candidate) => candidate.course.subjectId),
-  );
   const placed = ranked.choices.flatMap((choice) => choice.group);
-  // A left out course that clashes with a plan subject the timetable keeps names
-  // that subject, since unticking it is the student's call.
+  // A left out course that clashes with a plan subject the timetable keeps at its
+  // own group names that subject, since unticking it is the student's call. A
+  // moved subject is not the current plan's section, so it is never named as one.
   const kept: Section[] = ranked.choices
-    .filter((choice) => required.has(choice.course.subjectId))
+    .filter((choice) => choice.current)
     .flatMap((choice) => choice.group);
   const credits = summarizeCredits(
     ranked.choices.map((choice) => ({
