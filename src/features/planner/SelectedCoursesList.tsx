@@ -20,13 +20,15 @@ import type { SubjectGroup } from '@/lib/planner/subjectGroups';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_HEIGHT } from '@/lib/ui/target';
-import { EmptyState } from '@/components/EmptyState';
+import { EmptyState, EmptyStateAction } from '@/components/EmptyState';
 import { RulesNotice } from '@/features/catalog/RulesNotice';
 import {
   RemoveButton,
   removeSectionName,
 } from '@/features/catalog/RemoveButton';
+import { revealSearch } from '@/features/catalog/revealCourse';
 import { copyRegistrationList } from '@/features/plans/copyRegistrationList';
+import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { ChangeSectionList } from './ChangeSectionList';
 import { SectionDetailList } from './SectionDetailList';
 import { VerificationPill } from './VerificationPill';
@@ -50,6 +52,7 @@ export function SelectedCoursesList({
   conflictIds,
   examConflictIds,
 }: SelectedCoursesListProps) {
+  const tier = useLayoutTier();
   const id = useId();
   const headingId = `${id}-heading`;
   const listHeadingRef = useRef<HTMLHeadingElement>(null);
@@ -111,6 +114,14 @@ export function SelectedCoursesList({
           icon={ListChecks}
           title={t('selected.emptyTitle')}
           description={t('selected.emptyBody')}
+          action={
+            <EmptyStateAction
+              label={t('summary.goToCourses')}
+              onClick={(event) => {
+                revealSearch(event.currentTarget, tier);
+              }}
+            />
+          }
         />
       ) : (
         <ul aria-labelledby={headingId} className="flex flex-col gap-2">

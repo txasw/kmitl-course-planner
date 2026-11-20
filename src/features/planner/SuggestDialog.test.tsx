@@ -264,6 +264,25 @@ describe('SuggestDialog', () => {
     expect(await findCards()).not.toHaveLength(0);
   });
 
+  it('offers the empty state one action that ticks every subject', async () => {
+    const locked = lockSections(courses, [
+      ['01006020', '4'],
+      ['01006021', '5'],
+      ['01006030', '33'],
+      ['01006503', '1'],
+      ['01476012', '33'],
+      ['01476101', '33'],
+    ]);
+    act(() => {
+      seedActivePlan(locked);
+    });
+    renderDialog();
+    await screen.findByText('เลือกอย่างน้อยหนึ่งวิชาเพื่อดูตารางที่แนะนำ');
+    fireEvent.click(screen.getByRole('button', { name: 'เลือกทุกวิชา' }));
+    expect(await findCards()).not.toHaveLength(0);
+    expect(screen.queryByRole('button', { name: 'เลือกทุกวิชา' })).toBeNull();
+  });
+
   it('ticks the curriculum subjects by default and searches the ticked set', async () => {
     renderDialog();
     await findCards();

@@ -220,6 +220,10 @@ describe('SelectedCoursesList', () => {
       screen.getByRole('heading', { level: 3, name: 'วิชาที่เลือก' }),
     ).toHaveFocus();
     expect(screen.getByText('ยังไม่ได้เลือกรายวิชา')).toBeVisible();
+    // Brief 8.2: the empty state offers its one action, the way to the courses.
+    expect(
+      screen.getByRole('button', { name: 'ไปที่รายวิชา' }),
+    ).toBeInTheDocument();
   });
 
   it('copies the registration list with both halves of a pair', async () => {
