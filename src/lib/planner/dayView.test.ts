@@ -11,10 +11,12 @@ import {
   revealScrollTop,
   shownDay,
   stepDay,
+  timetableChoices,
 } from './dayView';
+import type { DayOfWeek } from '../parsing/days';
 import { planConflicts } from './planConflicts';
 
-const WEEK = [1, 2, 3, 4, 5] as const;
+const WEEK: readonly DayOfWeek[] = [1, 2, 3, 4, 5];
 
 describe('isDayViewWidth', () => {
   it('shows one day below 640 px and the week from 640 px', () => {
@@ -171,6 +173,21 @@ describe('stepDay', () => {
 
   it('starts from the first day when the current day is not offered', () => {
     expect(stepDay(WEEK, 0, 1, false)).toBe(1);
+  });
+
+  it('steps across the week chip when it walks the whole chip row', () => {
+    const row = timetableChoices(WEEK);
+    expect(stepDay(row, 'week', 1, true)).toBe(1);
+    expect(stepDay(row, 1, -1, true)).toBe('week');
+    expect(stepDay(row, 'week', -1, true)).toBe(5);
+    expect(stepDay(row, 5, 1, true)).toBe('week');
+  });
+});
+
+describe('timetableChoices', () => {
+  it('leads the row with the week chip, then the offered days in order', () => {
+    expect(timetableChoices(WEEK)).toEqual(['week', 1, 2, 3, 4, 5]);
+    expect(timetableChoices([...WEEK, 6])).toEqual(['week', 1, 2, 3, 4, 5, 6]);
   });
 });
 

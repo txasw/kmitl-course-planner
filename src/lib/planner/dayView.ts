@@ -1,8 +1,8 @@
 // The narrow timetable of ADR-0049, which shows one day at a time unless the student picks
 // the portrait week. A grid scroller under 640 px reads the plan day by day, and a row of
-// day chips keeps the shape of the week in view: Monday to Friday always, Saturday and
-// Sunday only when a meeting falls on them, each chip marked for a class day and for a
-// time conflict. This module holds the pure rules behind that view, so the chips, the
+// chips keeps the shape of the week in view: a week chip, then Monday to Friday always,
+// Saturday and Sunday only when a meeting falls on them, each day chip marked for a class
+// day and for a time conflict. This module holds the pure rules behind that view, so the chips, the
 // swipe, and their tests share one source.
 
 import type { DayOfWeek } from '../parsing/days';
@@ -119,25 +119,40 @@ export function shownDay(
 }
 
 /**
- * The day a step from the current one lands on, in chip order. The arrow keys of the radio
- * group wrap around the row, as a radio group does; a swipe stops at either end, so a long
- * swipe never jumps from Friday back to Monday.
+ * What a chip of the narrow timetable row picks: one day for the day view, or the whole
+ * week in portrait. The week chip leads the row, so the row reads as the one place the
+ * narrow timetable is arranged.
  */
-export function stepDay(
+export type TimetableChoice = DayOfWeek | 'week';
+
+/** The chips of the row in reading order: the week chip, then the offered days. */
+export function timetableChoices(
   days: readonly DayOfWeek[],
-  current: DayOfWeek,
+): TimetableChoice[] {
+  return ['week', ...days];
+}
+
+/**
+ * The item a step from the current one lands on, in chip order. The arrow keys of the radio
+ * group wrap around the row, as a radio group does; a swipe stops at either end, so a long
+ * swipe never jumps from Friday back to Monday. It steps the days alone for the swipe and the
+ * whole chip row, week chip included, for the arrow keys.
+ */
+export function stepDay<T>(
+  items: readonly T[],
+  current: T,
   step: 1 | -1,
   wrap: boolean,
-): DayOfWeek {
-  const index = days.indexOf(current);
+): T {
+  const index = items.indexOf(current);
   if (index === -1) {
-    return days[0] ?? current;
+    return items[0] ?? current;
   }
   const next = index + step;
   if (wrap) {
-    return days[(next + days.length) % days.length] ?? current;
+    return items[(next + items.length) % items.length] ?? current;
   }
-  return days[Math.max(0, Math.min(days.length - 1, next))] ?? current;
+  return items[Math.max(0, Math.min(items.length - 1, next))] ?? current;
 }
 
 /**
