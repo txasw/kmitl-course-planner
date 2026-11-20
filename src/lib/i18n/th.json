@@ -429,6 +429,7 @@
   "stats.freeDays": "วันว่าง {days}",
   "mode.export": "ส่งออก",
   "mode.backToEdit": "กลับไปแก้ไข",
+  "mode.exportOpened": "เปิดหน้าส่งออกแล้ว",
   "plan.untitled": "ตาราง",
   "planView.label": "มุมมองตาราง",
   "planView.timetable": "ตารางเรียน",
