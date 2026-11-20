@@ -10,7 +10,8 @@
 //
 // The day is read at render, so a page left open past midnight compares against the new
 // day on its next visit. The open state is mirrored into the onboarding store, where the
-// launcher ring and the entry toast read it.
+// launcher ring and the entry toast read it, and so is a Maybe later or Not again today
+// choice, which rings the launcher for every student.
 
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { useStore } from 'zustand';
@@ -93,10 +94,12 @@ export function useCoachMark(
     open,
     dismiss: () => {
       setDismissed(true);
+      onboardingStore.getState().noteCoachMarkDismissed();
     },
     snooze: () => {
       recordCoachMarkSnooze(record, localDayStamp(new Date()));
       setDismissed(true);
+      onboardingStore.getState().noteCoachMarkDismissed();
     },
   };
 }

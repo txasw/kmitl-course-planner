@@ -2,12 +2,11 @@
 // install record and the content owned onboarding record once both are read, and
 // tracks what this document has decided about the first run surfaces: whether the
 // mount handshake and the welcome decision have settled, whether the welcome is
-// open, whether the selector coach mark is open or has shown, and whether this
-// document must stay quiet because it showed the welcome, applied a requested open,
-// or found the welcome pending when it loaded, and whether the product tour is open or
-// has started in this document. It carries
-// no browser or React imports and no persistence; the persistence hook writes the
-// record through the storage repository.
+// open, whether the selector coach mark is open, has shown, or was put off, whether
+// this document must stay quiet because it showed the welcome, applied a requested
+// open, or found the welcome pending when it loaded, and whether the product tour is
+// open or has started in this document. It carries no browser or React imports and no
+// persistence; the persistence hook writes the record through the storage repository.
 
 import { createStore } from 'zustand/vanilla';
 import type { InstallRecord } from '@/lib/storage/install';
@@ -50,6 +49,11 @@ export interface OnboardingData {
    * on the search page, so the entry toast stays quiet for the rest of the document.
    */
   coachMarkShown: boolean;
+  /**
+   * Whether the student dismissed the coach mark with Maybe later or Not again today in
+   * this document, which rings the launcher for every student (ADR-0072).
+   */
+  coachMarkDismissed: boolean;
   /** Whether the product tour is open in the panel (ADR-0074). */
   tourOpen: boolean;
   /**
@@ -73,6 +77,8 @@ export interface OnboardingState extends OnboardingData {
   setShortcut: (shortcut: string | null) => void;
   /** Opens or closes the coach mark; opening it also records that it has shown. */
   setCoachMarkOpen: (open: boolean) => void;
+  /** Records a Maybe later or Not again today choice on the coach mark. */
+  noteCoachMarkDismissed: () => void;
   /** Opens the product tour and records that it has started in this document. */
   startTour: () => void;
   endTour: () => void;
@@ -93,6 +99,7 @@ export function initialOnboardingData(): OnboardingData {
     shortcut: null,
     coachMarkOpen: false,
     coachMarkShown: false,
+    coachMarkDismissed: false,
     tourOpen: false,
     tourStarted: false,
   };
@@ -147,6 +154,9 @@ export function createOnboardingStore() {
         coachMarkOpen,
         coachMarkShown: state.coachMarkShown || coachMarkOpen,
       }));
+    },
+    noteCoachMarkDismissed: () => {
+      set({ coachMarkDismissed: true });
     },
     startTour: () => {
       set({ tourOpen: true, tourStarted: true });
