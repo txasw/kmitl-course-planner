@@ -112,3 +112,10 @@ also waits while the coach mark is open, as it waits for the welcome, so it play
 the student dismisses the coach mark. The coach mark mounts before the launcher, so the shadow root
 stacking order becomes coach mark, launcher, entry toast, overlay, diagnostics, toaster, then the
 welcome.
+
+## Amendment, 2026-11-21: the ring after the coach mark is put off
+
+The ring now also plays for every student, whatever their stored plans or first open, after the
+search page coach mark is put off with Maybe later or Not again today in the same document, as
+recorded in the ADR-0072 amendment of the same date. The first run rule above, the two pulses, the
+8 px growth, and the static reduced motion ring are unchanged.

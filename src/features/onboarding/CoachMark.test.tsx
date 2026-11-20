@@ -14,7 +14,10 @@ import { Launcher, LAUNCHER_ID } from '@/features/shell/Launcher';
 import { uiStore } from '@/features/shell/uiStore';
 import { CoachMark } from './CoachMark';
 import { initialOnboardingData, onboardingStore } from './onboardingStore';
-import { resetPlanStore } from '../../../tests/support/plan-store';
+import {
+  resetPlanStore,
+  seedActivePlan,
+} from '../../../tests/support/plan-store';
 
 const SELECTOR_HASH = '#/teach_table_selector';
 const RESULT_HASH = '#/teach_table?mode=by_subject_owner_id&selected_year=2569';
@@ -280,6 +283,56 @@ describe('CoachMark keyboard cycle', () => {
     settle();
     expect(launcher()).not.toHaveAttribute('inert');
     expect(launcher()).not.toHaveAttribute('aria-hidden');
+    expect(launcher().className).not.toContain('kcp-launcher-ring');
+    fireEvent.click(within(dialog()).getByRole('button', { name: LATER }));
+    expect(launcher().className).toContain('kcp-launcher-ring');
+  });
+});
+
+describe('CoachMark launcher ring for a returning student', () => {
+  const RETURNING = {
+    schemaVersion: 1,
+    panelFirstOpenedAt: '2026-11-06T08:00:00.000Z',
+  } as const;
+
+  function renderReturning() {
+    act(() => {
+      seedActivePlan([]);
+      planStore.setState({ loaded: true });
+    });
+    const view = renderCoachMark();
+    settle(RETURNING);
+    expect(launcher().className).not.toContain('kcp-launcher-ring');
+    return view;
+  }
+
+  it('rings after Maybe later', () => {
+    renderReturning();
+    fireEvent.click(within(dialog()).getByRole('button', { name: LATER }));
+    expect(launcher().className).toContain('kcp-launcher-ring');
+  });
+
+  it('rings after Not again today', () => {
+    renderReturning();
+    fireEvent.click(within(dialog()).getByRole('button', { name: NOT_TODAY }));
+    expect(launcher().className).toContain('kcp-launcher-ring');
+  });
+
+  it('does not ring when the launcher itself opens the panel', () => {
+    renderReturning();
+    fireEvent.click(launcher());
+    act(() => {
+      uiStore.getState().close();
+    });
+    expect(launcher().className).not.toContain('kcp-launcher-ring');
+  });
+
+  it('stops while the coach mark shows on the next visit and rings after it is put off again', () => {
+    renderReturning();
+    fireEvent.click(within(dialog()).getByRole('button', { name: LATER }));
+    navigateTo(RESULT_HASH);
+    navigateTo(SELECTOR_HASH);
+    expect(dialog()).toBeInTheDocument();
     expect(launcher().className).not.toContain('kcp-launcher-ring');
     fireEvent.click(within(dialog()).getByRole('button', { name: LATER }));
     expect(launcher().className).toContain('kcp-launcher-ring');

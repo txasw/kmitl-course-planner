@@ -111,6 +111,45 @@ test('hides for the visit on Maybe later and comes back on the next visit', asyn
   await expect(coachMark(page)).toBeVisible();
 });
 
+// The settled record has the panel opened before, so this is a returning student, whom
+// the first run ring of ADR-0063 never reaches.
+for (const choice of ['later', 'notToday'] as const) {
+  test(`rings the launcher for a returning student after ${choice}`, async ({
+    context,
+  }) => {
+    const page = await openSelector(context);
+    const launcher = page.locator('#kcp-launcher');
+    await expect(launcher).not.toHaveClass(/kcp-launcher-ring/);
+    await coachMark(page).getByRole('button', { name: TH[choice] }).click();
+    await expect(coachMark(page)).toHaveCount(0);
+    await expect(launcher).toHaveClass(/kcp-launcher-ring/);
+    // The ring is the launcher's after pseudo element, two pulses then still.
+    const ring = await launcher.evaluate((node) => {
+      const style = getComputedStyle(node, '::after');
+      return {
+        name: style.animationName,
+        count: style.animationIterationCount,
+      };
+    });
+    expect(ring).toEqual({ name: 'kcp-launcher-ring', count: '2' });
+  });
+}
+
+test('rings the launcher after Maybe later as a static ring under reduced motion', async ({
+  context,
+}) => {
+  const page = await openSelector(context);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await coachMark(page).getByRole('button', { name: TH.later }).click();
+  const launcher = page.locator('#kcp-launcher');
+  await expect(launcher).toHaveClass(/kcp-launcher-ring/);
+  expect(
+    await launcher.evaluate(
+      (node) => getComputedStyle(node, '::after').animationName,
+    ),
+  ).toBe('kcp-launcher-ring-static');
+});
+
 test('hides when the host navigates away while it shows', async ({
   context,
 }) => {

@@ -161,3 +161,29 @@ read once per document too, and one live field would make the record half live.
 A student who uses the planner every day sees the coach mark on every arrival on the search page
 until they choose Not again today, and again on the next day, by owner decision. The owner can
 revisit whether a returning student with stored plans should see it.
+
+## Amendment, 2026-11-21: the launcher ring after the coach mark is put off
+
+The owner asked that the launcher keep blinking after the student picks Maybe later or Not again
+today, for every student. Until now the ring followed ADR-0063 alone, so after either choice it
+played only for a student who had never opened the panel and had no stored plans, and a returning
+student, the student the coach mark speaks to most often, saw nothing move at all.
+
+Decision. The ring is now due in two cases. The first run case of ADR-0063 is unchanged. The new
+case is a coach mark put off in the current document: Maybe later, and Escape or a press on the
+scrim, which act as Maybe later, and Not again today each record `coachMarkDismissed` in the
+onboarding store, and while it is set the pure `needsLauncherAttention` asks for the ring whatever
+the stored plans or `panelFirstOpenedAt` say. Pressing the spotlit launcher is not a dismissal, so
+it rings nothing; the student has found the planner. The ring itself is the one of ADR-0063: two
+900 ms pulses after a 200 ms delay, a static ring held for 2000 ms under reduced motion, and never
+under the welcome or the open coach mark.
+
+The flag lasts for the document and is not stored. Opening and closing the panel leaves the class
+in place, so the finished ring does not replay. When the student leaves the search page and comes
+back, the coach mark shows again and the ring class drops while it is open, then returns after the
+next Maybe later or Not again today, so the ring plays once after each dismissal.
+
+Clearing the flag on the first panel open after the dismissal was rejected as needless: the ring
+has finished by then, and clearing it would remove and add the class again on a later dismissal in
+the same way. Storing the flag was rejected because the ask is about the moment after the choice,
+and a stored flag would ring on pages where the student made no choice.

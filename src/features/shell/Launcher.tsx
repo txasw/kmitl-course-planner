@@ -18,8 +18,10 @@ import { useTranslation } from './useTranslation';
 // transform only, since one shadow level serves the overlay and popovers. The lift and
 // its transition apply only without a reduced motion preference. Until the panel first
 // opens, a student with no stored plans sees a ring pulse twice around it once the
-// welcome and the selector coach mark are out of the way (ADR-0063, ADR-0072). It
-// stays live under the coach mark, which spotlights it and leaves it clickable.
+// welcome and the selector coach mark are out of the way (ADR-0063), and every student
+// sees it after putting the coach mark off with Maybe later or Not again today
+// (ADR-0072). It stays live under the coach mark, which spotlights it and leaves it
+// clickable.
 
 /** The launcher's id, so a layer that closes over it can hand it focus. */
 export const LAUNCHER_ID = 'kcp-launcher';
@@ -59,6 +61,10 @@ function useLauncherAttention(welcomeOpen: boolean): boolean {
     onboardingStore,
     (state) => state.record.panelFirstOpenedAt,
   );
+  const coachMarkDismissed = useStore(
+    onboardingStore,
+    (state) => state.coachMarkDismissed,
+  );
   const plansLoaded = useStore(planStore, (state) => state.loaded);
   const hasStoredPlans = useStore(planStore, (state) => state.plans.length > 0);
   return needsLauncherAttention({
@@ -67,6 +73,7 @@ function useLauncherAttention(welcomeOpen: boolean): boolean {
     hasStoredPlans,
     welcomeOpen,
     coachMarkOpen,
+    coachMarkDismissed,
   });
 }
 

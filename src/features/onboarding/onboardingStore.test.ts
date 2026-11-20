@@ -109,6 +109,15 @@ describe('onboarding store', () => {
     expect(store.getState().coachMarkShown).toBe(true);
   });
 
+  it('records a coach mark put off for the rest of the document', () => {
+    const store = createOnboardingStore();
+    expect(store.getState().coachMarkDismissed).toBe(false);
+    store.getState().noteCoachMarkDismissed();
+    store.getState().setCoachMarkOpen(true);
+    store.getState().setCoachMarkOpen(false);
+    expect(store.getState().coachMarkDismissed).toBe(true);
+  });
+
   it('opens the tour, records that it started, and keeps that after it ends', () => {
     const store = createOnboardingStore();
     expect(store.getState().tourOpen).toBe(false);
