@@ -1,13 +1,13 @@
-// The entry point to plan suggestions (ADR-0054): a quiet button in the catalog column head,
-// and a prominent one at the end of the plan status row, a filled primary button in the thumb
-// zone on a phone (ADR-0049 amendment). Both open the same dialog, and both show only when a suggestion can
-// mean something: the settled result is a by_class search, the search by curriculum and
-// class year, it holds at least one curriculum course, and its term is the active plan's,
-// or there is no plan yet. A category or subject id search mixes subjects from outside one
-// curriculum, and a different term could not be added to the plan, so the action is absent
-// rather than disabled in those cases. Both carry a wand with sparkles, a glyph no other
-// control uses, so the action never reads as the selected courses tab, whose icon is a
-// checklist.
+// The entry point to plan suggestions (ADR-0054): a quiet button in the catalog column
+// head, and a prominent one at the end of the plan status row, a filled primary button in
+// the thumb zone on a phone (ADR-0049 amendment). Both open the same dialog, and both show
+// only when a suggestion can mean something: the settled result is a by_class search, the
+// search by curriculum and class year, it holds at least one curriculum course, and its
+// term is the active plan's, or there is no plan yet. A category or subject id search mixes
+// subjects from outside one curriculum, and a different term could not be added to the
+// plan, so the action is absent rather than disabled in those cases. Both carry a wand with
+// sparkles, a glyph no other control uses, so the action never reads as the selected
+// courses tab, whose icon is a checklist.
 
 import { useMemo, useState } from 'react';
 import { useStore } from 'zustand';

@@ -1,16 +1,15 @@
 // The tick list of the suggestion dialog (ADR-0054, as amended): the subjects a
 // suggestion fits. The ticked set is the whole subject count, so the list carries no
-// separate number. It names the subjects already in the plan, such as a GenEd added by
-// hand, ticked and open by default, so the student sees what every suggestion keeps
-// and can untick one to leave it out; then the group 2 curriculum subjects of the
-// result, ticked and open by default; then every other course, unticked and collapsed
-// by default, so a long GenEd list stays out of the way until the student wants one of
-// it. Each group
-// heading is a disclosure and sits beside a tick all or untick all action, never
-// inside it. A row is a native checkbox inside its label, so the whole row is the
-// target and every name wraps in full. The dialog holds which groups are open, beside
-// the ticks, so a group the student expanded stays expanded while the student pages the
-// suggestions or they are ranked again.
+// separate number. It names the subjects already in the plan, such as a GenEd added
+// by hand, ticked and open by default, so the student sees what every suggestion
+// keeps and can untick one to leave it out; then the group 2 curriculum subjects of
+// the result, ticked and open by default; then every other course, unticked and
+// collapsed by default, so a long GenEd list stays out of the way until the student
+// wants one of it. Each group heading is a disclosure and sits beside a tick all or
+// untick all action, never inside it. A row is a native checkbox inside its label, so
+// the whole row is the target and every name wraps in full. The dialog holds which
+// groups are open, beside the ticks, so a group the student expanded stays expanded
+// while the student pages the suggestions or they are ranked again.
 
 import { useId } from 'react';
 import { ChevronDown } from 'lucide-react';

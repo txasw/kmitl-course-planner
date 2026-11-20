@@ -2,20 +2,20 @@
 // active plan's subjects and the curriculum courses of the current by_class result by
 // default, for conflict free timetables, and shows up to three that change the plan and
 // whose meeting times differ, one per slide of a carousel. A ticked plan subject is in
-// every timetable, at its own section or another open one, and an unticked one is left
-// out. The student ticks the subjects and picks an objective and a preference; every
-// change searches again and returns the carousel to the best suggestion, and so does a
-// change to the active plan, where a subject added to the plan meanwhile joins ticked. The
-// ticks last for the dialog only, since a new result holds other courses. Applying a suggestion creates a new plan for the term,
-// so the active plan is never rewritten, and the undo toast can take it back. The
-// objective and the preference last used persist with the prefs, so the dialog opens on
-// them. It is a centered dialog at the full width on the medium and docked tiers and the
-// bottom sheet on compact.
+// every timetable, at its own section or another open one, and an unticked one is left out.
+// The student ticks the subjects and picks an objective and a preference; every change
+// searches again and returns the carousel to the best suggestion, and so does a change to
+// the active plan, where a subject added to the plan meanwhile joins ticked. The ticks last
+// for the dialog only, since a new result holds other courses. Applying a suggestion
+// creates a new plan for the term, so the active plan is never rewritten, and the undo
+// toast can take it back. The objective and the preference last used persist with the
+// prefs, so the dialog opens on them. It is a centered dialog at the full width on the
+// medium and docked tiers and the bottom sheet on compact.
 //
-// The slides share one frame and one grid orientation: time runs downward on compact,
-// where the phone is tall and narrow, and across on every wider tier, the way the edit
-// grid reads. A slide takes the full dialog width, so its grid reads in place and there is
-// no separate full size view.
+// The slides share one frame and one grid orientation: time runs downward on compact, where
+// the phone is tall and narrow, and across on every wider tier, the way the edit grid
+// reads. A slide takes the full dialog width, so its grid reads in place and there is no
+// separate full size view.
 
 import { useId, useMemo, useState } from 'react';
 import { CalendarX2 } from 'lucide-react';
