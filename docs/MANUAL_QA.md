@@ -354,11 +354,11 @@ add and remove controls, so no action is a dead end for the keyboard.
       closes it.
 - [ ] Plan switch: open the plan switcher, move through the plans, and create, rename, or
       delete one entirely by keyboard, confirming the inline delete.
-- [ ] Preview toolbar and gallery: open the export page and Tab through the display options,
-      copy image, download image, and copy as text. Tab into the gallery dot radiogroup; the
-      arrow keys and Home and End move between templates and the poster follows, each dot names
-      its template, and the focus ring is visible. The display options popover is reachable and
-      its toggles operate by keyboard.
+- [ ] Preview toolbar and gallery: open the export page and Tab through download PNG, share
+      image where offered, copy image, copy as text, and the display options. Tab into the
+      template chips; the arrow keys and Home and End move between templates and the poster
+      follows, each chip shows its template name and output size, and the focus ring is
+      visible. The display options popover is reachable and its toggles operate by keyboard.
 - [ ] Import rejection: from the plan menu, import a tampered JSON. The per field error list
       is reachable and the back control returns to the menu.
 - [ ] Stats bar and poster footer: the edit stats bar reads as one group named สรุปตาราง
@@ -631,7 +631,7 @@ in the Firefox window that opens on the phone.
       The host page behind does not scroll while one is open.
 - [ ] Rotation: turn the phone to landscape and back. The panel takes the tier the new
       width falls in and keeps the search, the result, and the plan.
-- [ ] Download image: in preview, download the image. Firefox saves the PNG, and the Thai
+- [ ] Download PNG: in preview, download the image. Firefox saves the PNG, and the Thai
       text in it renders correctly.
 - [ ] Close: the close control leaves the host page as it was, scrolling again.
 
