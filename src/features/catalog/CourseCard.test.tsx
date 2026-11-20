@@ -96,7 +96,7 @@ describe('CourseCard seat status', () => {
 });
 
 describe('CourseCard section list', () => {
-  it('sets the open sections in one inset panel ruled by hairlines, not a card per row', () => {
+  it('sets the open sections on one white band ruled by hairlines, not a card in the card', () => {
     const course = makeCourse({
       sections: [
         makeSection({ teachTableId: 'a', section: '901' }),
@@ -108,9 +108,10 @@ describe('CourseCard section list', () => {
     );
     const list = container.querySelector('[data-section-list]');
     expect(list).not.toBeNull();
-    expect(list?.className.split(' ')).toEqual(
-      expect.arrayContaining(['divide-y', 'bg-surface', 'shadow-kcp-soft']),
-    );
+    const classes = list?.className.split(' ');
+    expect(classes).toEqual(expect.arrayContaining(['divide-y', 'bg-surface']));
+    expect(classes).not.toContain('shadow-kcp-soft');
+    expect(classes).not.toContain('ring-1');
     expect(list?.children).toHaveLength(2);
   });
 });
