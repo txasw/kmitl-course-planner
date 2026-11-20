@@ -5,7 +5,7 @@ import { CountChip } from './CountChip';
 afterEach(cleanup);
 
 describe('CountChip', () => {
-  it('draws the one count badge: ink filled with white figures and a surface ring', () => {
+  it('draws the shared count badge: ink filled with white figures and a surface ring', () => {
     const { container } = render(<CountChip count={154} />);
     const badge = container.querySelector('[data-count-badge]');
     expect(badge).toHaveTextContent('154');

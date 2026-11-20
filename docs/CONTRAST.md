@@ -98,7 +98,7 @@ too, so they are proven beside the ink steps. Enforced in `token-contrast.test.t
 | Quiet   | `#F9F9F9`   | 16.53 | 6.35     | 5.03      | 5.13    | 5.20 | 5.34   | 5.28           |
 | Settled | `#F5F5F5`   | 15.96 | 6.13     | 4.86      | 4.96    | 5.02 | 5.16   | 5.10           |
 
-The one count badge of the panel draws white figures on the ink fill, 17.40:1.
+The shared count badge draws white figures on the ink fill, 17.40:1.
 
 ## Export template day color accent
 

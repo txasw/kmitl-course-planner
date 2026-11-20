@@ -103,9 +103,10 @@ different count badges.
   step than the card, rather than a bordered card per row, so an open card keeps one level of
   nesting. The query chip's pencil tile drops from the sunken well to the lighter surface, and
   the bar pads by the 16 px panel gutter.
-- The panel has one count badge: an ink filled pill with white figures and a ring of the surface,
-  on the filter button, the bottom nav, the header sheet toggle, and the edge rail. It is hidden
-  from assistive technology because each control's name carries the count.
+- The filter button, the bottom nav, the header sheet toggle, and the edge rail share one count
+  badge: an ink filled pill with white figures and a ring of the surface. It is hidden from
+  assistive technology because each control's name carries the count. A count written into a
+  label, such as the selected courses tab, stays text and takes no badge.
 
 Alternatives considered: the flat divider rows with no card that the screen 03 mockup drew were
 rejected because the owner picked the full soft set for every card. Applying the default stops

@@ -239,7 +239,7 @@ const PAIRS: Pair[] = [
     min: AA_NORMAL,
   },
   {
-    // The figures of the one count badge.
+    // The figures of the shared count badge.
     name: 'surface on ink',
     fg: shadowToken('surface'),
     bg: shadowToken('ink'),
