@@ -67,13 +67,48 @@ interface Region {
 }
 
 /**
- * Read every text leaf under a region: whether its element cuts its text, whether the text
- * leaves the viewport, and which pairs of leaves overlap on screen.
+ * Read every text leaf under a region: whether a box around it cuts its text, whether the
+ * text leaves the viewport, and which pairs of leaves overlap on screen. An inline element
+ * has no client box to measure, so the overflow check reads the nearest box that has one,
+ * and every ancestor up to the region that clips its overflow must hold the whole text.
  */
 async function readRegion(region: Locator): Promise<Region> {
   return region.evaluate((root) => {
     const rects: { text: string; rect: DOMRect }[] = [];
     const leaves: { text: string; clipped: boolean; outside: boolean }[] = [];
+    const hasBox = (element: Element) => {
+      const display = getComputedStyle(element).display;
+      return display !== 'inline' && display !== 'contents';
+    };
+    const overflows = (element: Element) =>
+      element.scrollWidth > element.clientWidth + 1 ||
+      element.scrollHeight > element.clientHeight + 1;
+    const cutBy = (element: Element, rect: DOMRect) => {
+      const style = getComputedStyle(element);
+      if (style.overflowX === 'visible' && style.overflowY === 'visible') {
+        return false;
+      }
+      const box = element.getBoundingClientRect();
+      return (
+        rect.left < box.left - 0.5 ||
+        rect.right > box.right + 0.5 ||
+        rect.top < box.top - 0.5 ||
+        rect.bottom > box.bottom + 0.5
+      );
+    };
+    const clippedAt = (start: Element, rect: DOMRect) => {
+      let box: Element | null = start;
+      while (box !== null && !hasBox(box)) box = box.parentElement;
+      if (box !== null && overflows(box)) return true;
+      for (
+        let element: Element | null = start;
+        element !== null;
+        element = element === root ? null : element.parentElement
+      ) {
+        if (cutBy(element, rect)) return true;
+      }
+      return false;
+    };
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     for (
       let node = walker.nextNode();
@@ -90,9 +125,7 @@ async function readRegion(region: Locator): Promise<Region> {
       if (rect.width === 0 || rect.height === 0) continue;
       leaves.push({
         text,
-        clipped:
-          parent.scrollWidth > parent.clientWidth + 1 ||
-          parent.scrollHeight > parent.clientHeight + 1,
+        clipped: clippedAt(parent, rect),
         outside: rect.left < 0 || rect.right > window.innerWidth + 0.5,
       });
       rects.push({ text, rect });
