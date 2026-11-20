@@ -23,8 +23,8 @@ interface HeaderProps {
 // viewport, padded clear of the device safe areas. Below 640 px the padding and gaps
 // tighten so the touch sized controls still fit a 320 px screen. The leading group
 // holds the brand mark with its version pill from 640 px, the panel title, and the plan
-// switcher; it is the only part that shrinks, and the switcher truncates the plan name
-// before anything else gives way. A failed save shows in its own strip under the
+// switcher; it is the only part that shrinks, and the switcher wraps the plan name onto
+// two lines a step down the type scale before anything else gives way. A failed save shows in its own strip under the
 // header, never in this row.
 // The title shows from 1024 px and stays in the accessibility tree below as sr-only
 // text, so the dialog's aria-labelledby always resolves. The trailing group never

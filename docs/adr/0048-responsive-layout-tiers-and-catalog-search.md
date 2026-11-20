@@ -735,3 +735,14 @@ below supersedes the earlier text it names.
   then the submit row pins to the scroller foot with its divider, as on the phone, so the action
   stays in view and the divider marks that more lies above. Keeping the minimum with a scroll
   shadow was rejected, since a field would still be cut through its box at the scroller edge.
+- The plan name in the header trigger shows whole. The trigger had a 16rem cap and cut the name
+  to one line with an ellipsis even at 1366 px, where the header had room to spare. The cap is
+  gone, so the name takes the room the header leaves it on one line at the body size. Where one
+  line cannot hold it, the name wraps onto two lines at the next step down the type scale, then
+  at the step below, each sized with the term line under it so the trigger stays inside the
+  header row, which still never grows. Only a name longer than two lines of the smallest step
+  can hold, far past any default or suggested name, is shortened with an ellipsis, and the
+  trigger it sits in opens the plan list, which wraps every name whole. This replaces the
+  rejection, in the clipped text sweep amendment, of wrapping the name: the row keeps its
+  height and the name wraps inside it. The default name a suggestion creates, such as "Plan
+  2/2569 Balanced", fits whole at 360 px once it may wrap, so it keeps its wording.
