@@ -277,9 +277,13 @@ export function SuggestionCarousel({
     >
       {paged ? (
         <div ref={arrowsRef} className="flex items-center gap-1">
+          {/* Each arrow's tooltip opens toward the position line, in the empty run between
+              the arrow and the line, so it covers neither the dialog title and close button
+              above nor the option heading below. */}
           <PagerArrow
             label={t('suggest.prev')}
             disabled={page === 0}
+            tooltipPlacement="right"
             onActivate={() => {
               go(page - 1, page - 1 === 0 ? 'next' : null);
             }}
@@ -297,6 +301,7 @@ export function SuggestionCarousel({
           <PagerArrow
             label={t('suggest.next')}
             disabled={page === last}
+            tooltipPlacement="left"
             onActivate={() => {
               go(page + 1, page + 1 === last ? 'previous' : null);
             }}
