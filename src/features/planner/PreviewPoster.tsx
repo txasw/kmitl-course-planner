@@ -109,7 +109,7 @@ function PreviewPosterComponent({
           locale={locale}
           t={t}
           showSection={displayOptions.showSection}
-          showEnglishName={displayOptions.showEnglishNames}
+          nameLanguage={displayOptions.nameLanguage}
           showSubjectId={displayOptions.showSubjectId}
           showVerification={false}
         />

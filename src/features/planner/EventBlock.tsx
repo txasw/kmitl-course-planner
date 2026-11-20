@@ -16,7 +16,7 @@
 // fill, so it reads the same on either surface. On the export poster and in the edit grid
 // alike the content is measured against the box and whole low priority fields are dropped
 // rather than a line clipped mid glyph: the fit walks the density ladder in useDensityFit,
-// dropping the subject id, then the English name, then the time, then clamping the name to
+// dropping the subject id, then the secondary name, then the time, then clamping the name to
 // the lines that fit, then the section chip, then reducing the name to one line, then the
 // place, with the name never dropping (ADR-0046, ADR-0047). The place outlives the name's
 // second line and the time never outlives the place. The edit block keeps its tighter line
@@ -54,6 +54,10 @@ import { formatMinutes } from '@/lib/parsing/time';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_MIN } from '@/lib/ui/target';
 import { buildEligibility } from '@/lib/planner/blockDensity';
+import {
+  subjectNameLines,
+  type NameLanguage,
+} from '@/lib/planner/nameLanguage';
 import type { PlacedSection } from './placedSection';
 import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 import { useDensityFit } from './useDensityFit';
@@ -109,8 +113,9 @@ interface EventBlockProps {
   showRoom?: boolean;
   /** Show the section code beside the subject id. On by default in edit mode. */
   showSection?: boolean;
-  /** Add the English name as a secondary line under a Thai primary name. */
-  showEnglishName?: boolean;
+  /** The language the block names its subject in, Thai, English, or both; unset follows the
+   * locale. A preview display option; the edit grid leaves it unset. */
+  nameLanguage?: NameLanguage | undefined;
   /** Show the subject id in the foot. A preview display option, off by default there; the
    * edit grid leaves it on so the id is always available for cross referencing. */
   showSubjectId?: boolean;
@@ -177,7 +182,7 @@ function EventBlockComponent({
   onHoverLeave,
   showRoom = true,
   showSection = true,
-  showEnglishName = false,
+  nameLanguage,
   showSubjectId = true,
   fitKey = '',
   fitPaused = false,
@@ -187,11 +192,8 @@ function EventBlockComponent({
   surface = 'soft',
   nameOnlyWhenNarrow = false,
 }: EventBlockProps) {
-  const name = locale === 'th' ? section.nameTh : section.nameEn;
-  // The English name is guaranteed visible when the option is on: it is the primary
-  // in English, so it only needs adding as a secondary line under a Thai primary.
-  const englishSecondary =
-    showEnglishName && locale === 'th' && section.nameEn !== '';
+  const names = subjectNameLines(section, nameLanguage, locale);
+  const name = names.primary;
   const time = `${formatMinutes(meeting.startMin)}-${formatMinutes(meeting.endMin)}`;
   const color = hashColor(section.subjectId);
   const badge = showVerification
@@ -213,7 +215,7 @@ function EventBlockComponent({
   const contentRef = useRef<HTMLDivElement>(null);
   const eligibility = buildEligibility({
     hasName: name !== '',
-    hasEnglish: englishSecondary,
+    hasSecondary: names.secondary !== null,
     hasSection: showSection && section.section !== '',
     hasId: showSubjectId && section.subjectId !== '',
     hasPlace: showRoom && place !== '',
@@ -313,9 +315,10 @@ function EventBlockComponent({
         <EventBlockContent
           contentRef={contentRef}
           level={level}
-          locale={locale}
           name={name}
-          nameEn={section.nameEn}
+          nameLang={names.primaryLang}
+          secondary={names.secondary}
+          secondaryLang={names.secondaryLang}
           place={place}
           sectionCode={section.section}
           time={time}

@@ -142,9 +142,9 @@ describe('usePrefsPersistence', () => {
     const displayOptions = {
       showRoom: false,
       showSection: true,
-      showEnglishNames: false,
       showSubjectId: true,
       showExams: true,
+      nameLanguage: 'en' as const,
     };
     const repo = makeRepo({ schemaVersion: 1, language: 'th', displayOptions });
     renderHook(() => {

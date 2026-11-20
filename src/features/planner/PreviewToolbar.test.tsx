@@ -178,10 +178,7 @@ describe('PreviewToolbar', () => {
         }),
       }),
     ]);
-    renderToolbar(
-      { ...DEFAULT_DISPLAY_OPTIONS, showEnglishNames: false, showExams: true },
-      schedule,
-    );
+    renderToolbar({ ...DEFAULT_DISPLAY_OPTIONS, showExams: true }, schedule);
 
     fireEvent.click(screen.getByRole('button', { name: 'คัดลอกข้อความ' }));
     expect(writeText.mock.calls[0]?.[0]).toContain(

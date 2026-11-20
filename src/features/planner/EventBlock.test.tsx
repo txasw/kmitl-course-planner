@@ -313,7 +313,7 @@ describe('EventBlock', () => {
         style={{}}
         locale="th"
         t={t}
-        showEnglishName
+        nameLanguage="both"
       />,
     );
     expect(container.querySelector('.truncate, .line-clamp-1')).toBeNull();
@@ -711,7 +711,7 @@ describe('EventBlock', () => {
     expect(screen.queryByText('A101')).not.toBeInTheDocument();
   });
 
-  it('adds the English name under a Thai primary when showEnglishName is on', () => {
+  it('adds the English name under a Thai primary when the name language is both', () => {
     render(
       <EventBlock
         section={section}
@@ -719,7 +719,7 @@ describe('EventBlock', () => {
         style={{}}
         locale="th"
         t={t}
-        showEnglishName
+        nameLanguage="both"
       />,
     );
     const block = screen.getByLabelText(/90592033/);
@@ -727,7 +727,7 @@ describe('EventBlock', () => {
     expect(within(block).getByText('Test subject')).toBeInTheDocument();
   });
 
-  it('does not duplicate the English name when it is already the primary', () => {
+  it('adds the Thai name under an English primary when the name language is both', () => {
     render(
       <EventBlock
         section={section}
@@ -735,10 +735,27 @@ describe('EventBlock', () => {
         style={{}}
         locale="en"
         t={createTranslator('en')}
-        showEnglishName
+        nameLanguage="both"
       />,
     );
     expect(screen.getAllByText('Test subject')).toHaveLength(1);
+    expect(screen.getByText('Test subject')).toHaveAttribute('lang', 'en');
+    expect(screen.getByText('วิชาทดสอบ')).toHaveAttribute('lang', 'th');
+  });
+
+  it('names the block in the chosen language whatever the panel language', () => {
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        nameLanguage="en"
+      />,
+    );
+    expect(screen.getByText('Test subject')).toHaveAttribute('lang', 'en');
+    expect(screen.queryByText('วิชาทดสอบ')).not.toBeInTheDocument();
   });
 
   it('renders a remove control that fires onRemove in edit mode', () => {

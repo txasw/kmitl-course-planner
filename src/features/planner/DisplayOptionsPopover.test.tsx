@@ -67,25 +67,51 @@ describe('DisplayOptionsPopover', () => {
     expect(screen.getByRole('switch', { name: 'แสดงกลุ่มเรียน' })).toBeChecked();
   });
 
-  it('disables the show English names option in English', () => {
+  it('offers only the switches the fit can still change', () => {
+    render(<DisplayOptionsPopover />);
+    fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }));
+    expect(screen.getAllByRole('switch').map((s) => s.textContent)).toEqual([
+      'แสดงห้อง',
+      'แสดงกลุ่มเรียน',
+      'แสดงรหัสวิชา',
+      'แสดงตารางสอบ',
+    ]);
+  });
+
+  it.each([
+    ['th', 'ตัวเลือกการแสดงผล', 'ชื่อวิชา', 'ไทย'],
+    ['en', 'Display options', 'Subject names', 'English'],
+  ] as const)(
+    'selects the panel language as the name language while unset (%s)',
+    (language, trigger, group, selected) => {
+      act(() => {
+        uiStore.getState().setLanguage(language);
+      });
+      render(<DisplayOptionsPopover />);
+      fireEvent.click(screen.getByRole('button', { name: trigger }));
+      const names = screen.getByRole('group', { name: group });
+      expect(
+        within(names).getByRole('button', { name: selected }),
+      ).toHaveAttribute('aria-pressed', 'true');
+      expect(uiStore.getState().displayOptions.nameLanguage).toBeUndefined();
+    },
+  );
+
+  it('stores the chosen name language and notes the fit under both', () => {
+    render(<DisplayOptionsPopover />);
+    fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }));
+    const names = screen.getByRole('group', { name: 'ชื่อวิชา' });
+    expect(screen.queryByText(/ชื่อภาษาที่สองแสดงในคาบที่มีพื้นที่พอ/)).toBeNull();
+    fireEvent.click(within(names).getByRole('button', { name: 'ทั้งสองภาษา' }));
+    expect(uiStore.getState().displayOptions.nameLanguage).toBe('both');
+    expect(screen.getByText(/ชื่อภาษาที่สองแสดงในคาบที่มีพื้นที่พอ/)).toBeInTheDocument();
+    fireEvent.click(within(names).getByRole('button', { name: 'อังกฤษ' }));
+    expect(uiStore.getState().displayOptions.nameLanguage).toBe('en');
+    // An explicit choice holds when the panel language changes.
     act(() => {
       uiStore.getState().setLanguage('en');
     });
-    render(<DisplayOptionsPopover />);
-    fireEvent.click(screen.getByRole('button', { name: 'Display options' }));
-    const option = screen.getByRole('switch', { name: 'Show English names' });
-    expect(option).toHaveAttribute('aria-disabled', 'true');
-    fireEvent.click(option);
-    // A disabled switch does not change the stored value.
-    expect(uiStore.getState().displayOptions.showEnglishNames).toBe(true);
-  });
-
-  it('leaves the show English names option enabled in Thai', () => {
-    render(<DisplayOptionsPopover />);
-    fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }));
-    expect(
-      screen.getByRole('switch', { name: 'แสดงชื่อภาษาอังกฤษ' }),
-    ).not.toHaveAttribute('aria-disabled');
+    expect(uiStore.getState().displayOptions.nameLanguage).toBe('en');
   });
 });
 

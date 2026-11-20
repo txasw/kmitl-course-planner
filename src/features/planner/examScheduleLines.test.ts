@@ -49,7 +49,7 @@ describe('examScheduleLines', () => {
   it('lists midterms then finals in date order, then the subjects with no dated exam', () => {
     const lines = examScheduleLines(
       buildExamSchedule(PLAN),
-      { ...DEFAULT_DISPLAY_OPTIONS, showEnglishNames: false },
+      DEFAULT_DISPLAY_OPTIONS,
       'th',
       th,
     );
@@ -69,7 +69,7 @@ describe('examScheduleLines', () => {
         ...DEFAULT_DISPLAY_OPTIONS,
         showSubjectId: true,
         showSection: false,
-        showEnglishNames: true,
+        nameLanguage: 'both',
       },
       'th',
       th,
