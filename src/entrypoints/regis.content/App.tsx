@@ -28,6 +28,8 @@ import {
 import { WelcomeLayer } from '@/features/onboarding/WelcomeLayer';
 import { EntryToast } from '@/features/onboarding/EntryToast';
 import { CoachMark } from '@/features/onboarding/CoachMark';
+import { ProductTour } from '@/features/onboarding/ProductTour';
+import { useProductTourStart } from '@/features/onboarding/useProductTourStart';
 import {
   useWelcomeClaim,
   type WelcomeClaimDeps,
@@ -51,7 +53,8 @@ interface AppProps {
 // follows the launcher, so Tab from the launcher reaches it. It hydrates and persists
 // the language, the plans and the onboarding record through the injected
 // repositories, listens for the worker and sends it the mount handshake, decides
-// whether this document claims the welcome, and provides the search dependencies and
+// whether this document claims the welcome and when the product tour opens in the
+// panel, and provides the search dependencies and
 // the extension version so the deep components stay free of the browser binding. The
 // storage and messaging bindings stay at the entrypoint.
 export function App({
@@ -68,6 +71,7 @@ export function App({
   useOnboardingPersistence(onboarding);
   useWorkerHandshake(handshake);
   useWelcomeClaim(welcome);
+  useProductTourStart();
   return (
     <ExtensionVersionContext.Provider value={version}>
       <SearchDepsProvider value={search}>
@@ -76,7 +80,9 @@ export function App({
         <CoachMark record={onboarding.record} />
         <Launcher />
         <EntryToast record={onboarding.record} />
-        <Overlay />
+        <Overlay>
+          <ProductTour record={onboarding.record} />
+        </Overlay>
         <DiagnosticsGate />
         <Toaster />
         <WelcomeLayer />

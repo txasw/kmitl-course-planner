@@ -38,6 +38,9 @@ const INVENTORY: Readonly<Record<string, number>> = {
   'features/onboarding/EntryToast.tsx': 1,
   // Where the planner is, said once as the search page coach mark appears (ADR-0072).
   'features/onboarding/CoachMark.tsx': 1,
+  // Each step of the product tour after the first, which Next keeps focus through, said
+  // from inside the tour card's modal (ADR-0074).
+  'features/onboarding/ProductTour.tsx': 1,
 };
 
 // The drag library mounts one region of its own inside the drag context, which no source

@@ -25,6 +25,11 @@ import type { TranslationKey } from '@/lib/i18n/t';
 /** The tour revision. A stored mark below it means the tour is due again. */
 export const TOUR_VERSION = 1;
 
+/** How long the start conditions must hold before the tour opens, in milliseconds, so it
+ * never lands on a panel that is still settling its first frame or a gesture that just
+ * ended. */
+export const TOUR_START_DELAY_MS = 500;
+
 /** The control a step points at, carried by the control as its data-tour attribute. */
 export type TourTarget =
   | 'search-chip'

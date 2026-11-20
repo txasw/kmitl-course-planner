@@ -242,6 +242,10 @@
     var(--kcp-ink) var(--kcp-scrim-coach-strength),
     transparent
   );
+  /* The product tour of ADR-0074 dims the panel around its spotlight with the ink at
+     this strength: deep enough that the lit control stands out, light enough that the
+     panel around it still reads as the place the step describes. */
+  --kcp-scrim-tour: color-mix(in srgb, var(--kcp-ink) 56%, transparent);
   --kcp-duration-draw: 400ms;
   --kcp-delay-coach-draw: 150ms;
   --kcp-delay-coach-burst: 450ms;
@@ -660,6 +664,32 @@
   .kcp-coach-draw,
   .kcp-coach-pop {
     animation: none;
+  }
+}
+
+/* The product tour of ADR-0074. The spotlight is a box 4 px around the control a step
+   points at, ringed in the surface colour so its edge reads on the dim, and the dim is
+   its spread, a scrim rather than an elevation like the coach mark's. Before the first
+   target is measured the whole panel dims evenly. The spotlight glides from one target
+   to the next; under reduced motion it moves at once. */
+.kcp-tour-spot {
+  border-radius: var(--kcp-radius);
+  box-shadow:
+    0 0 0 2px var(--kcp-surface),
+    0 0 0 200vmax var(--kcp-scrim-tour);
+  pointer-events: none;
+  transition-property: left, top, width, height;
+  transition-duration: var(--kcp-duration-base);
+  transition-timing-function: var(--kcp-ease-standard);
+}
+
+.kcp-tour-dim {
+  background: var(--kcp-scrim-tour);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kcp-tour-spot {
+    transition: none;
   }
 }
 
