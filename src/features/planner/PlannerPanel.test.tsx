@@ -11,6 +11,7 @@ import {
 import { planStore } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
 import { searchStore } from '@/features/search/searchStore';
+import { setToastHeight } from '@/features/shell/sheetToastBand';
 import { uiStore } from '@/features/shell/uiStore';
 import { normalizeTeachTable } from '@/lib/domain/normalize';
 import type { PlanEntry } from '@/lib/domain/plan';
@@ -983,6 +984,52 @@ describe('PlannerPanel stats bar', () => {
     ).toBeInTheDocument();
     for (const poster of container.querySelectorAll('.kcp-poster')) {
       expect(poster).not.toHaveTextContent(offline);
+    }
+  });
+
+  it('ends in a band as tall as a toast under the stats bar while one shows', () => {
+    installViewport(1366);
+    seedTwoSubjects();
+    const { container } = renderPanel();
+    expect(container.querySelector('[data-toast-band]')).toBeNull();
+    act(() => {
+      setToastHeight(52);
+    });
+    try {
+      const band = container.querySelector<HTMLElement>('[data-toast-band]');
+      expect(band).toHaveStyle({ height: '60px' });
+      // The band follows the stats bar, so the bar rises above the toast.
+      expect(
+        stats().compareDocumentPosition(band as Node) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    } finally {
+      act(() => {
+        setToastHeight(0);
+      });
+    }
+    expect(container.querySelector('[data-toast-band]')).toBeNull();
+  });
+
+  it('keeps the phone sharing toolbar at the foot under the toast band', () => {
+    installViewport(390);
+    seedTwoSubjects();
+    act(() => {
+      uiStore.getState().setViewMode('preview');
+      setToastHeight(52);
+    });
+    try {
+      const { container } = renderPanel();
+      const band = container.querySelector('[data-toast-band]');
+      expect(band).not.toBeNull();
+      expect(
+        (band as Node).compareDocumentPosition(screen.getByRole('toolbar')) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    } finally {
+      act(() => {
+        setToastHeight(0);
+      });
     }
   });
 

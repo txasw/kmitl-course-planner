@@ -43,6 +43,7 @@ import { revalidationStore } from '@/features/plans/revalidationStore';
 import { UpdatesDialog } from '@/features/plans/UpdatesDialog';
 import { UpdatesIndicator } from '@/features/plans/UpdatesIndicator';
 import { searchStore } from '@/features/search/searchStore';
+import { usePlanToastBand } from '@/features/shell/sheetToastBand';
 import { uiStore } from '@/features/shell/uiStore';
 import { commitThenFocus } from '@/features/shell/restoreFocus';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
@@ -77,6 +78,7 @@ export function PlannerPanel() {
   const setPlanView = useStore(uiStore, (state) => state.setPlanView);
   const tier = useLayoutTier();
   const showTabs = tier !== 'compact';
+  const toastBand = usePlanToastBand();
   const canSuggest = useSuggestTarget() !== null;
   const displayOptions = useStore(uiStore, (state) => state.displayOptions);
   // The updates dialog renders only in edit, where its actions live (ADR-0060).
@@ -343,6 +345,18 @@ export function PlannerPanel() {
     />
   ) : null;
 
+  // While a toast shows, the region ends in a band as tall as the toast, so the status row
+  // and the export page foot rise above it rather than sit under it.
+  const band =
+    toastBand > 0 ? (
+      <div
+        aria-hidden
+        data-toast-band
+        className="shrink-0"
+        style={{ height: toastBand }}
+      />
+    ) : null;
+
   return (
     <div ref={rootRef} className="flex h-full flex-col gap-2">
       {showTabs ? previewToolbar : null}
@@ -439,6 +453,8 @@ export function PlannerPanel() {
           ) : null}
         </div>
       )}
+      {/* Below 640 px the sharing toolbar keeps the foot, so the band sits above it. */}
+      {isPreview && !showTabs ? band : null}
       {showTabs ? null : previewToolbar}
       {!isPreview && (sections.length > 0 || canSuggest) ? (
         <StatsBar
@@ -455,6 +471,7 @@ export function PlannerPanel() {
           t={t}
         />
       ) : null}
+      {isPreview && !showTabs ? null : band}
       {detail !== null ? (
         <BlockDetailSurface
           teachTableId={detail.teachTableId}
