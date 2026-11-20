@@ -149,6 +149,90 @@ describe('StatsBar', () => {
     ).toHaveClass('sr-only');
   });
 
+  describe('status row', () => {
+    function renderRow(compact: boolean, sections = [scheduled]) {
+      return render(
+        <StatsBar
+          sections={sections}
+          semester={null}
+          conflictCount={0}
+          onShowConflict={vi.fn()}
+          status={<span>สถานะ</span>}
+          action={<button type="button">แนะนำตาราง</button>}
+          compact={compact}
+          locale="th"
+          t={t}
+        />,
+      );
+    }
+
+    it('leads each count with an icon', () => {
+      renderRow(false);
+      const credits = screen.getByText('3').closest('span.inline-flex');
+      expect(credits?.querySelector('svg')).toHaveAttribute(
+        'aria-hidden',
+        'true',
+      );
+      const subjects = screen.getByText('1').closest('span.inline-flex');
+      expect(subjects?.querySelector('svg')).toHaveAttribute(
+        'aria-hidden',
+        'true',
+      );
+    });
+
+    it('ends the row with the action, outside the wrapping facts', () => {
+      renderRow(false);
+      const row = screen.getByRole('group', { name: 'สรุปตาราง' });
+      const action = screen.getByRole('button', { name: 'แนะนำตาราง' });
+      expect(row.lastElementChild).toContainElement(action);
+      expect(row.firstElementChild).not.toContainElement(action);
+      expect(row.firstElementChild).toHaveClass('flex-wrap');
+    });
+
+    it('keeps the day loads and the free days from 640 px', () => {
+      renderRow(false);
+      expect(screen.getByText('จ')).toBeInTheDocument();
+      expect(screen.getByText('วันว่าง อ พ พฤ ศ')).toBeInTheDocument();
+      expect(screen.getByText('ไม่มีรายการชนกัน')).not.toHaveClass('sr-only');
+    });
+
+    it('stays slim on a phone: no day loads or free days, and the clear state as an icon', () => {
+      renderRow(true, [scheduled, online]);
+      expect(screen.queryByText('จ')).toBeNull();
+      expect(screen.queryByText(/วันว่าง/)).toBeNull();
+      // The words stay for assistive technology, so the icon never stands alone.
+      expect(screen.getByText('ไม่มีรายการชนกัน')).toHaveClass('sr-only');
+      // The credits, the subjects, the unscheduled count, and the status still show.
+      expect(screen.getByText('5').parentElement).toHaveTextContent('5 หน่วยกิต');
+      expect(screen.getByText('1 ไม่มีคาบเรียน')).toBeInTheDocument();
+      expect(screen.getByText('สถานะ')).toBeInTheDocument();
+    });
+
+    it('keeps the clash button in words on a phone', () => {
+      render(
+        <StatsBar
+          sections={[scheduled]}
+          semester={null}
+          conflictCount={2}
+          onShowConflict={vi.fn()}
+          compact
+          locale="th"
+          t={t}
+        />,
+      );
+      expect(
+        screen.getByRole('button', { name: 'ชนกัน 2 รายการ' }),
+      ).toBeVisible();
+    });
+
+    it('holds the action alone while the plan is empty', () => {
+      renderRow(true, []);
+      const row = screen.getByRole('group', { name: 'สรุปตาราง' });
+      expect(row).not.toHaveTextContent('หน่วยกิต');
+      expect(screen.getByRole('button', { name: 'แนะนำตาราง' })).toBeVisible();
+    });
+  });
+
   describe('credit load', () => {
     const withCredits = (credits: number[]): PlacedSection[] =>
       credits.map((credit, index) => ({
