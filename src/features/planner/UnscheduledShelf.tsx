@@ -11,6 +11,10 @@ import { BookOpen, FlaskConical } from 'lucide-react';
 import { RemarkLine } from '@/features/catalog/RemarkLine';
 import { RulesNotice } from '@/features/catalog/RulesNotice';
 import type { Locale, Translate } from '@/lib/i18n/t';
+import {
+  subjectNameLines,
+  type NameLanguage,
+} from '@/lib/planner/nameLanguage';
 import { Pill } from '@/components/Pill';
 import { Tooltip } from '@/components/Tooltip';
 import type { PlacedSection } from './placedSection';
@@ -27,8 +31,9 @@ interface UnscheduledShelfProps {
   examConflictIds?: Set<string>;
   /** Show the section code. A preview display option; on by default in edit mode. */
   showSection?: boolean;
-  /** Add the English name as a secondary line under a Thai primary name. */
-  showEnglishName?: boolean;
+  /** The language each row names its subject in; unset follows the locale. A preview
+   * display option; the edit shelf leaves it unset. */
+  nameLanguage?: NameLanguage | undefined;
   /** Show the subject id. A preview display option, off by default there; on in edit mode. */
   showSubjectId?: boolean;
   /** The edit mode shelf. Only it lists each section's conditions and remark, so they
@@ -46,7 +51,7 @@ export function UnscheduledShelf({
   onRemove,
   examConflictIds,
   showSection = true,
-  showEnglishName = false,
+  nameLanguage,
   showSubjectId = true,
   editable = false,
   showVerification = true,
@@ -61,9 +66,8 @@ export function UnscheduledShelf({
       </h3>
       <ul className="flex flex-col gap-1">
         {sections.map((section) => {
-          const name = locale === 'th' ? section.nameTh : section.nameEn;
-          const englishSecondary =
-            showEnglishName && locale === 'th' && section.nameEn !== '';
+          const names = subjectNameLines(section, nameLanguage, locale);
+          const name = names.primary;
           return (
             <li key={section.teachTableId} className="text-xs">
               <div className="flex items-center justify-between gap-2">
@@ -82,13 +86,16 @@ export function UnscheduledShelf({
                             </span>{' '}
                           </>
                         ) : null}
-                        <span lang={locale}>{name}</span>
+                        <span lang={names.primaryLang}>{name}</span>
                       </span>
                     )}
                   </Tooltip>
-                  {englishSecondary ? (
-                    <span lang="en" className="truncate text-ink-soft">
-                      {section.nameEn}
+                  {names.secondary !== null ? (
+                    <span
+                      lang={names.secondaryLang ?? undefined}
+                      className="truncate text-ink-soft"
+                    >
+                      {names.secondary}
                     </span>
                   ) : null}
                 </span>

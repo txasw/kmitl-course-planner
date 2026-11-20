@@ -111,13 +111,13 @@ describe('UnscheduledShelf', () => {
     expect(within(shelf).getByText('วิชาออนไลน์')).toBeInTheDocument();
   });
 
-  it('adds the English name under a Thai primary when showEnglishName is on', () => {
+  it('adds the English name under a Thai primary when the name language is both', () => {
     render(
       <UnscheduledShelf
         sections={[makePlaced()]}
         locale="th"
         t={t}
-        showEnglishName
+        nameLanguage="both"
       />,
     );
     const shelf = screen.getByRole('region', {
@@ -133,11 +133,24 @@ describe('UnscheduledShelf', () => {
         sections={[makePlaced()]}
         locale="th"
         t={t}
-        showEnglishName
+        nameLanguage="both"
       />,
     );
     expect(screen.getByText('วิชาออนไลน์')).toHaveAttribute('lang', 'th');
     expect(screen.getByText('Online subject')).toHaveAttribute('lang', 'en');
+  });
+
+  it('names a subject in English alone under a Thai panel when the name language is English', () => {
+    render(
+      <UnscheduledShelf
+        sections={[makePlaced()]}
+        locale="th"
+        t={t}
+        nameLanguage="en"
+      />,
+    );
+    expect(screen.getByText('Online subject')).toHaveAttribute('lang', 'en');
+    expect(screen.queryByText('วิชาออนไลน์')).not.toBeInTheDocument();
   });
 
   it('pills a missing section in edit mode', () => {

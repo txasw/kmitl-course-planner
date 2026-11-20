@@ -1,9 +1,12 @@
-// The display options popover in the preview toolbar. It toggles the poster
-// options, which apply to the preview and every export, so the choices persist
-// through the ui store and its preferences hook. It is positioned with floating-ui
+// The display options popover in the preview toolbar. It sets the poster options,
+// which apply to the preview and every export, so the choices persist through the ui
+// store and its preferences hook. The name language leads as a three way choice, Thai,
+// English, or both, selected on the panel language until the student picks one; the
+// switches follow, trimmed to the fields a whole field fit can still change: the room,
+// the section, the subject id, and the exam schedule (ADR-0046 amendment of 2026-11-20). It is positioned with floating-ui
 // like the plan switcher, a fixed strategy that escapes the toolbar, dismisses on
 // an outside click, and intercepts Escape so it closes only the popover rather than
-// the whole overlay. Below 640 px the four switches open in a bottom sheet instead, so
+// the whole overlay. Below 640 px the options open in a bottom sheet instead, so
 // they take the full width under a thumb and leave the poster in view above them, and the
 // trigger is an icon button like the other toolbar actions there.
 
@@ -11,7 +14,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { SlidersHorizontal } from 'lucide-react';
 import { useClick, useDismiss, useInteractions } from '@floating-ui/react';
-import type { DisplayOptions } from '@/lib/planner/displayOptions';
+import type { DisplayToggle } from '@/lib/planner/displayOptions';
+import {
+  effectiveNameLanguage,
+  NAME_LANGUAGES,
+  type NameLanguage,
+} from '@/lib/planner/nameLanguage';
 import type { TranslationKey } from '@/lib/i18n/t';
 import { uiStore } from '@/features/shell/uiStore';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
@@ -21,6 +29,7 @@ import {
   usePanelPopover,
 } from '@/features/shell/usePanelPopover';
 import { BottomSheet } from '@/components/BottomSheet';
+import { SegmentedControl } from '@/components/SegmentedControl';
 import { Switch } from '@/components/Switch';
 import {
   TOOLBAR_BUTTON,
@@ -29,15 +38,20 @@ import {
 } from './PreviewToolbarAction';
 
 // Fit to content is retired from the poster: the smart window (grid.ts) now decides the
-// window and day run for every template, so the option no longer has a job and has left
-// the display options schema.
-const OPTIONS: { key: keyof DisplayOptions; labelKey: TranslationKey }[] = [
+// window and day run for every template. Show English names is retired too: the name
+// language choice above the switches covers it in both panel languages.
+const OPTIONS: { key: DisplayToggle; labelKey: TranslationKey }[] = [
   { key: 'showRoom', labelKey: 'preview.showRoom' },
   { key: 'showSection', labelKey: 'preview.showSection' },
   { key: 'showSubjectId', labelKey: 'preview.showSubjectId' },
-  { key: 'showEnglishNames', labelKey: 'preview.showEnglishNames' },
   { key: 'showExams', labelKey: 'preview.showExams' },
 ];
+
+const NAME_LANGUAGE_LABEL: Record<NameLanguage, TranslationKey> = {
+  th: 'preview.nameLanguage.th',
+  en: 'preview.nameLanguage.en',
+  both: 'preview.nameLanguage.both',
+};
 
 export function DisplayOptionsPopover() {
   const { t, language } = useTranslation();
@@ -101,23 +115,50 @@ export function DisplayOptionsPopover() {
     };
   }, [open, close]);
 
-  const switches = OPTIONS.map((option) => {
-    // In English the names already render in English, so the show English names
-    // option has no job; disable it with a tooltip rather than let it read as active.
-    const naEnglish = option.key === 'showEnglishNames' && language === 'en';
-    return (
-      <Switch
-        key={option.key}
-        checked={displayOptions[option.key]}
-        label={t(option.labelKey)}
-        disabled={naEnglish}
-        {...(naEnglish ? { tooltip: t('preview.showEnglishNamesNa') } : {})}
-        onChange={(checked) => {
-          uiStore.getState().setDisplayOption(option.key, checked);
-        }}
-      />
-    );
-  });
+  const nameLanguage = effectiveNameLanguage(
+    displayOptions.nameLanguage,
+    language,
+  );
+  const switches = OPTIONS.map((option) => (
+    <Switch
+      key={option.key}
+      checked={displayOptions[option.key]}
+      label={t(option.labelKey)}
+      onChange={(checked) => {
+        uiStore.getState().setDisplayOption(option.key, checked);
+      }}
+    />
+  ));
+  // The name language heads the options. Under both, a note says the second name yields to
+  // the block fit where a block is short, so a block that shows one name is no surprise, and
+  // that the copied text always carries both.
+  const options = (
+    <>
+      <div className="flex flex-col gap-1 px-2 pt-1 pb-1.5">
+        <span className="text-xs font-semibold text-ink-soft">
+          {t('preview.nameLanguage')}
+        </span>
+        <SegmentedControl
+          ariaLabel={t('preview.nameLanguage')}
+          value={nameLanguage}
+          variant="quiet"
+          options={NAME_LANGUAGES.map((value) => ({
+            value,
+            label: t(NAME_LANGUAGE_LABEL[value]),
+          }))}
+          onChange={(value) => {
+            uiStore.getState().setNameLanguage(value);
+          }}
+        />
+        {nameLanguage === 'both' ? (
+          <p className="max-w-64 text-xs text-ink-soft">
+            {t('preview.nameLanguage.bothNote')}
+          </p>
+        ) : null}
+      </div>
+      {switches}
+    </>
+  );
 
   return (
     <div ref={wrapperRef} className="relative">
@@ -144,7 +185,7 @@ export function DisplayOptionsPopover() {
           closeLabel={t('action.close')}
           onClose={close}
         >
-          <div className="flex flex-col gap-1">{switches}</div>
+          <div className="flex flex-col gap-1">{options}</div>
         </BottomSheet>
       ) : null}
       {open && !sheet ? (
@@ -155,7 +196,7 @@ export function DisplayOptionsPopover() {
           className={`z-popover flex min-w-48 ${PANEL_POPOVER_SCROLL} flex-col gap-0.5 rounded-kcp border border-border bg-surface p-1.5 shadow-kcp`}
           {...getFloatingProps()}
         >
-          {switches}
+          {options}
         </div>
       ) : null}
     </div>

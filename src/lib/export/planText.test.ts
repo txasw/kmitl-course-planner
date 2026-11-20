@@ -61,14 +61,18 @@ const sections: PlanTextSection[] = [scheduled, missing, online];
 
 describe('formatPlanText', () => {
   it('formats a Thai plan with the shelf and a missing marker', () => {
-    // The subject id is turned on here to pin the full line format including the id.
+    // The subject id and both names are turned on here to pin the full line format.
     const text = formatPlanText({
       planName: 'ตาราง 1/2570',
       year: '2570',
       semester: '1',
       sections,
       exams: [],
-      options: { ...DEFAULT_DISPLAY_OPTIONS, showSubjectId: true },
+      options: {
+        ...DEFAULT_DISPLAY_OPTIONS,
+        showSubjectId: true,
+        nameLanguage: 'both',
+      },
       locale: 'th',
       t: createTranslator('th'),
     });
@@ -97,7 +101,6 @@ describe('formatPlanText', () => {
       options: {
         showRoom: false,
         showSection: false,
-        showEnglishNames: false,
         showSubjectId: true,
         showExams: false,
       },
@@ -117,7 +120,7 @@ describe('formatPlanText', () => {
 
   it('drops the subject id from every line when showSubjectId is off', () => {
     // The default has the id off, so the meeting lines and the shelf lines lead with the
-    // name and carry no numeric id.
+    // name and carry no numeric id, and names the subjects in the panel language alone.
     const text = formatPlanText({
       planName: 'ตาราง 1/2570',
       year: '2570',
@@ -132,17 +135,62 @@ describe('formatPlanText', () => {
       [
         'ตาราง 1/2570  ภาคการศึกษา 1/2570  9 หน่วยกิต',
         '',
-        "จ 09:00-11:00 สังคมไทยในวันนี้ TODAY'S THAI SOCIETY (901) A101",
-        'พ 13:00-15:00 ปรัชญาเบื้องต้น Introduction to Philosophy (902) B202 (ไม่พบ)',
+        'จ 09:00-11:00 สังคมไทยในวันนี้ (901) A101',
+        'พ 13:00-15:00 ปรัชญาเบื้องต้น (902) B202 (ไม่พบ)',
         '',
         'รายวิชาที่ไม่มีคาบเรียน',
-        'วิชาออนไลน์ Online subject (1)',
+        'วิชาออนไลน์ (1)',
         '',
         'KCP: ตัววางแผนตารางเรียน สจล.',
       ].join('\n'),
     );
     expect(text).not.toContain('90592008');
     expect(text).not.toContain('01006029');
+  });
+
+  describe('the name language', () => {
+    function lines(
+      nameLanguage: 'th' | 'en' | 'both',
+      locale: 'th' | 'en',
+    ): string[] {
+      return formatPlanText({
+        planName: 'P',
+        year: '2570',
+        semester: '1',
+        sections: [scheduled, online],
+        exams: [],
+        options: { ...DEFAULT_DISPLAY_OPTIONS, nameLanguage },
+        locale,
+        t: createTranslator(locale),
+      })
+        .split('\n')
+        .filter((line) => line.includes('(901)') || line.includes('(1)'));
+    }
+
+    it('names every line in English under a Thai panel when asked', () => {
+      expect(lines('en', 'th')).toEqual([
+        "จ 09:00-11:00 TODAY'S THAI SOCIETY (901) A101",
+        'Online subject (1)',
+      ]);
+    });
+
+    it('names every line in Thai under an English panel when asked', () => {
+      expect(lines('th', 'en')).toEqual([
+        'Mon 09:00-11:00 สังคมไทยในวันนี้ (901) A101',
+        'วิชาออนไลน์ (1)',
+      ]);
+    });
+
+    it('leads with the panel language under both, with the other name after it', () => {
+      expect(lines('both', 'en')).toEqual([
+        "Mon 09:00-11:00 TODAY'S THAI SOCIETY สังคมไทยในวันนี้ (901) A101",
+        'Online subject วิชาออนไลน์ (1)',
+      ]);
+      expect(lines('both', 'th')).toEqual([
+        "จ 09:00-11:00 สังคมไทยในวันนี้ TODAY'S THAI SOCIETY (901) A101",
+        'วิชาออนไลน์ Online subject (1)',
+      ]);
+    });
   });
 
   describe('the exam schedule block', () => {
@@ -171,7 +219,6 @@ describe('formatPlanText', () => {
         exams,
         options: {
           ...DEFAULT_DISPLAY_OPTIONS,
-          showEnglishNames: false,
           showExams: true,
         },
         locale: 'th',

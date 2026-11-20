@@ -281,7 +281,6 @@ const EXAMS = buildExamSchedule([
 
 const SHOW_EXAMS: DisplayOptions = {
   ...DEFAULT_DISPLAY_OPTIONS,
-  showEnglishNames: false,
   showExams: true,
 };
 

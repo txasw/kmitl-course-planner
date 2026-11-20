@@ -80,15 +80,76 @@ describe('prefs repository', () => {
       displayOptions: {
         showRoom: true,
         showSection: false,
-        showEnglishNames: true,
         showSubjectId: true,
         showExams: true,
+        nameLanguage: 'both',
       },
     };
     const repo = createPrefsRepository(
       fakeAdapter({ [PREFS_KEY]: withOptions }),
     );
     expect(await repo.load()).toEqual(withOptions);
+  });
+
+  it('loads a blob written before the name language existed, following the panel', async () => {
+    // A blob from the build that had the show English names switch carries that key and no
+    // name language. It loads whole: the retired key is stripped and the name language reads
+    // as absent, which follows the panel language, so no schema version bump is needed.
+    const repo = createPrefsRepository(
+      fakeAdapter({
+        [PREFS_KEY]: {
+          schemaVersion: 1,
+          language: 'en',
+          exportTemplate: 'print-a4',
+          displayOptions: {
+            showRoom: false,
+            showSection: true,
+            showEnglishNames: true,
+            showSubjectId: true,
+            showExams: false,
+          },
+        },
+      }),
+    );
+    const loaded = await repo.load();
+    expect(loaded).toEqual({
+      schemaVersion: 1,
+      language: 'en',
+      exportTemplate: 'print-a4',
+      displayOptions: {
+        showRoom: false,
+        showSection: true,
+        showSubjectId: true,
+        showExams: false,
+      },
+    });
+    expect(loaded?.displayOptions).not.toHaveProperty('showEnglishNames');
+    expect(loaded?.displayOptions?.nameLanguage).toBeUndefined();
+  });
+
+  it('reads a name language this build does not know as absent and keeps the rest', async () => {
+    const repo = createPrefsRepository(
+      fakeAdapter({
+        [PREFS_KEY]: {
+          schemaVersion: 1,
+          language: 'th',
+          displayOptions: {
+            showRoom: true,
+            showSection: false,
+            showSubjectId: false,
+            showExams: true,
+            nameLanguage: 'zh',
+          },
+        },
+      }),
+    );
+    const loaded = await repo.load();
+    expect(loaded?.language).toBe('th');
+    expect(loaded?.displayOptions).toMatchObject({
+      showSection: false,
+      showExams: true,
+    });
+    expect(loaded?.displayOptions?.nameLanguage).toBeUndefined();
   });
 
   it('defaults show subject id off for a blob written before it existed', async () => {
@@ -113,7 +174,6 @@ describe('prefs repository', () => {
       displayOptions: {
         showRoom: true,
         showSection: true,
-        showEnglishNames: true,
         showSubjectId: false,
         showExams: false,
       },
@@ -140,7 +200,6 @@ describe('prefs repository', () => {
     expect((await repo.load())?.displayOptions).toEqual({
       showRoom: false,
       showSection: true,
-      showEnglishNames: true,
       showSubjectId: true,
       showExams: false,
     });
@@ -170,7 +229,6 @@ describe('prefs repository', () => {
     expect(loaded?.displayOptions).toEqual({
       showRoom: false,
       showSection: true,
-      showEnglishNames: false,
       showSubjectId: true,
       showExams: true,
     });

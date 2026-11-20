@@ -10,7 +10,7 @@ import {
 
 const allEligible = buildEligibility({
   hasName: true,
-  hasEnglish: true,
+  hasSecondary: true,
   hasSection: true,
   hasId: true,
   hasPlace: true,
@@ -29,7 +29,7 @@ function walk(start: DensityLevel, fit?: NameFit): DensityLevel[] {
 
 const bare: DensityLevel = {
   nameLines: 1,
-  showEnglish: false,
+  showSecondary: false,
   showPlace: false,
   showSection: false,
   showTime: false,
@@ -40,14 +40,14 @@ describe('buildEligibility', () => {
   it('derives a stable mask that distinguishes field sets', () => {
     const a = buildEligibility({
       hasName: true,
-      hasEnglish: false,
+      hasSecondary: false,
       hasSection: true,
       hasId: false,
       hasPlace: true,
     });
     const b = buildEligibility({
       hasName: true,
-      hasEnglish: false,
+      hasSecondary: false,
       hasSection: true,
       hasId: false,
       hasPlace: true,
@@ -61,7 +61,7 @@ describe('fullLevel', () => {
   it('shows every eligible field with the name in full and the time on', () => {
     expect(fullLevel(allEligible)).toEqual({
       nameLines: 'all',
-      showEnglish: true,
+      showSecondary: true,
       showPlace: true,
       showSection: true,
       showTime: true,
@@ -70,16 +70,16 @@ describe('fullLevel', () => {
   });
 
   it('drops a field the block never had, keeping the name and the time', () => {
-    const noEnglishNoPlace = buildEligibility({
+    const noSecondaryNoPlace = buildEligibility({
       hasName: true,
-      hasEnglish: false,
+      hasSecondary: false,
       hasSection: true,
       hasId: true,
       hasPlace: false,
     });
-    expect(fullLevel(noEnglishNoPlace)).toEqual({
+    expect(fullLevel(noSecondaryNoPlace)).toEqual({
       nameLines: 'all',
-      showEnglish: false,
+      showSecondary: false,
       showPlace: false,
       showSection: true,
       showTime: true,
@@ -94,18 +94,18 @@ describe('nextDensityLevel', () => {
     expect(walk(full)).toEqual([
       full,
       { ...full, showId: false },
-      { ...full, showId: false, showEnglish: false },
-      { ...full, showId: false, showEnglish: false, showTime: false },
+      { ...full, showId: false, showSecondary: false },
+      { ...full, showId: false, showSecondary: false, showTime: false },
       {
         ...full,
         showId: false,
-        showEnglish: false,
+        showSecondary: false,
         showTime: false,
         nameLines: 2,
       },
       {
         nameLines: 2,
-        showEnglish: false,
+        showSecondary: false,
         showPlace: true,
         showSection: false,
         showTime: false,
@@ -113,7 +113,7 @@ describe('nextDensityLevel', () => {
       },
       {
         nameLines: 1,
-        showEnglish: false,
+        showSecondary: false,
         showPlace: true,
         showSection: false,
         showTime: false,
@@ -203,11 +203,11 @@ describe('nextDensityLevel', () => {
 
   it('drops the subject id first on an edit block', () => {
     // An edit block ignores the display options: it always carries the id, the section, and
-    // the place, and never the English line, so its first rung is the id and its second the
+    // the place, and never a secondary name, so its first rung is the id and its second the
     // time (ADR-0050).
     const edit = buildEligibility({
       hasName: true,
-      hasEnglish: false,
+      hasSecondary: false,
       hasSection: true,
       hasId: true,
       hasPlace: true,
@@ -228,20 +228,20 @@ describe('nextDensityLevel', () => {
   });
 
   it('skips a rung for a field the block never had', () => {
-    const noIdNoEnglish = fullLevel(
+    const noIdNoSecondary = fullLevel(
       buildEligibility({
         hasName: true,
-        hasEnglish: false,
+        hasSecondary: false,
         hasSection: true,
         hasId: false,
         hasPlace: true,
       }),
     );
-    const steps = walk(noIdNoEnglish);
-    // The first demotion drops the time, not a phantom id or english.
+    const steps = walk(noIdNoSecondary);
+    // The first demotion drops the time, not a phantom id or secondary name.
     expect(steps[0]?.showTime).toBe(true);
     expect(steps[1]?.showTime).toBe(false);
-    expect(steps.every((s) => !s.showId && !s.showEnglish)).toBe(true);
+    expect(steps.every((s) => !s.showId && !s.showSecondary)).toBe(true);
   });
 });
 

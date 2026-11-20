@@ -16,6 +16,7 @@ import type { Meeting } from '../domain/types';
 import type { VerifyStatus } from '../domain/plan';
 import type { DisplayOptions } from '../planner/displayOptions';
 import { summarizeCredits } from '../planner/credits';
+import { subjectNameLines } from '../planner/nameLanguage';
 import type { Locale, Translate } from '../i18n/t';
 import { dayLabelKey } from '../i18n/dayLabel';
 import { formatMinutes } from '../parsing/time';
@@ -59,9 +60,10 @@ export interface SubjectNames {
 }
 
 /** A subject as every line of the text export and the poster exam block names it, honouring
- * the display options: the subject id leads with a trailing space when shown, the locale
- * primary name follows with the English name after a Thai one when shown, and the section
- * codes close in parentheses when shown, so the poster and the text read one wording. */
+ * the display options: the subject id leads with a trailing space when shown, the name
+ * follows in the chosen name language, a choice of both adding the other language after
+ * it, and the section codes close in parentheses when shown, so the poster and the text read
+ * one wording. A chat message has no box to fit, so both names always show here. */
 export function subjectText(
   subject: SubjectNames,
   sections: readonly string[],
@@ -69,11 +71,11 @@ export function subjectText(
   locale: Locale,
 ): string {
   const id = options.showSubjectId ? `${subject.subjectId} ` : '';
-  const primary = locale === 'th' ? subject.nameTh : subject.nameEn;
+  const lines = subjectNameLines(subject, options.nameLanguage, locale);
   const name =
-    options.showEnglishNames && locale === 'th' && subject.nameEn !== ''
-      ? `${primary} ${subject.nameEn}`
-      : primary;
+    lines.secondary === null
+      ? lines.primary
+      : `${lines.primary} ${lines.secondary}`;
   const codes =
     options.showSection && sections.length > 0
       ? ` (${sections.join(', ')})`

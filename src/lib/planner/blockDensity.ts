@@ -3,13 +3,14 @@
 // from its grid cell, so its content may not fit; rather than clip a line mid glyph, the block
 // drops whole fields by measurement, starting from the full set and demoting one rung at a time
 // until the content fits. The poster and the edit grid walk this one ladder (ADR-0050). An edit
-// block always carries the subject id and never the English line, so on a short edit block the
+// block always carries the subject id and never a secondary name, so on a short edit block the
 // id is the first field to go, which is safe because its hover card and its details still show
 // it. This module is the only place the drop priority lives; it is pure so the policy is unit
 // tested apart from the DOM measurement that walks it.
 //
 // The priority inverts the usual reading order because position carries the time. Drop order,
-// first dropped to last: the subject id, then the English name, then the time (redundant here,
+// first dropped to last: the subject id, then the secondary name (the second language under a
+// name language of both), then the time (redundant here,
 // the row and extent encode it), then the name gives up the lines past its second, then the
 // section chip, then the name reduces from two clamped lines to one, then the place. The name
 // alone never drops. At full density the name is not clamped, so a name the box can hold shows
@@ -25,7 +26,7 @@
  * options. `mask` is a stable primitive so a reset key can compare eligibility cheaply. */
 export interface DensityEligibility {
   hasName: boolean;
-  hasEnglish: boolean;
+  hasSecondary: boolean;
   hasSection: boolean;
   hasId: boolean;
   hasPlace: boolean;
@@ -40,7 +41,7 @@ export type NameLines = 'all' | number;
  * encodes it. */
 export interface DensityLevel {
   nameLines: NameLines;
-  showEnglish: boolean;
+  showSecondary: boolean;
   showPlace: boolean;
   showSection: boolean;
   showTime: boolean;
@@ -63,7 +64,7 @@ export function buildEligibility(
   e: Omit<DensityEligibility, 'mask'>,
 ): DensityEligibility {
   const bit = (value: boolean): string => (value ? '1' : '0');
-  const mask = `${bit(e.hasName)}${bit(e.hasEnglish)}${bit(e.hasSection)}${bit(e.hasId)}${bit(e.hasPlace)}`;
+  const mask = `${bit(e.hasName)}${bit(e.hasSecondary)}${bit(e.hasSection)}${bit(e.hasId)}${bit(e.hasPlace)}`;
   return { ...e, mask };
 }
 
@@ -73,7 +74,7 @@ export function buildEligibility(
 export function fullLevel(e: DensityEligibility): DensityLevel {
   return {
     nameLines: 'all',
-    showEnglish: e.hasEnglish,
+    showSecondary: e.hasSecondary,
     showPlace: e.hasPlace,
     showSection: e.hasSection,
     showTime: true,
@@ -85,7 +86,7 @@ export function fullLevel(e: DensityEligibility): DensityLevel {
 export function sameLevel(a: DensityLevel, b: DensityLevel): boolean {
   return (
     a.nameLines === b.nameLines &&
-    a.showEnglish === b.showEnglish &&
+    a.showSecondary === b.showSecondary &&
     a.showPlace === b.showPlace &&
     a.showSection === b.showSection &&
     a.showTime === b.showTime &&
@@ -125,8 +126,8 @@ export function nextDensityLevel(
   if (level.showId) {
     return { ...level, showId: false };
   }
-  if (level.showEnglish) {
-    return { ...level, showEnglish: false };
+  if (level.showSecondary) {
+    return { ...level, showSecondary: false };
   }
   if (level.showTime) {
     return { ...level, showTime: false };

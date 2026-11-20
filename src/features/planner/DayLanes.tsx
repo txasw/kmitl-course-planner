@@ -99,7 +99,7 @@ export function DayLanes({
 }: DayLanesProps) {
   const showRoom = display?.showRoom ?? true;
   const showSection = display?.showSection ?? true;
-  const showEnglishName = display?.showEnglishNames ?? false;
+  const nameLanguage = display?.nameLanguage;
   const showSubjectId = display?.showSubjectId ?? false;
   const isPortrait = orientation === 'portrait';
   const removeLabel = t('action.remove');
@@ -231,7 +231,7 @@ export function DayLanes({
             {...common}
             showRoom={showRoom}
             showSection={showSection}
-            showEnglishName={showEnglishName}
+            nameLanguage={nameLanguage}
             showSubjectId={showSubjectId}
             thaiHeadroom={exported}
             showVerification={editable}

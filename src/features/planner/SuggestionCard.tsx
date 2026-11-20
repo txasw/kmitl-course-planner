@@ -30,11 +30,11 @@ import { isScheduled, type PlacedSection } from './placedSection';
 import type { SuggestionFrame } from './suggestionFrame';
 import { WeeklyGrid } from './WeeklyGrid';
 
-/** The mini grid labels each block by its name and section; room and English stay out. */
+/** The mini grid labels each block by its name and section in the panel language; the room
+ * stays out. */
 const MINI_DISPLAY: DisplayOptions = {
   showRoom: false,
   showSection: true,
-  showEnglishNames: false,
   showSubjectId: false,
   showExams: false,
 };

@@ -1,11 +1,11 @@
 // The measured content column of a placed block, in the inverted reading order of ADR-0047:
-// the subject name first, an English secondary name under a Thai primary when asked, the
-// place with its location glyph and the section chip at the end of the same row, and the time
+// the subject name first, a secondary name in the other language under it when the name
+// language asks for both, the place with its location glyph and the section chip at the end of the same row, and the time
 // and the subject id as quiet metadata at the foot. Every line sits in flow, so nothing is
 // positioned over text: the section chip trails the place and wraps under it when the row is
 // full, and an optional status dot leads the name (ADR-0047 amendment of 2026-11-20).
 //
-// Every field wraps rather than ellipsizes. A Thai name breaks at the browser's dictionary word
+// Every text field wraps rather than ellipsizes. A Thai name breaks at the browser's dictionary word
 // boundaries and an English one at spaces; a break inside a word is the last resort, for a word
 // wider than the whole line. The API sends English names in capitals, which Chromium does not
 // hyphenate, so such a word breaks with no hyphen. The name shows in full until the density fit
@@ -33,9 +33,11 @@ import { NARROW_HIDDEN, removeClearance } from './narrowBlock';
 interface EventBlockContentProps {
   contentRef: RefObject<HTMLDivElement | null>;
   level: DensityLevel;
-  locale: Locale;
   name: string;
-  nameEn: string;
+  nameLang: Locale;
+  /** The other language's name under a choice of both, or null. */
+  secondary: string | null;
+  secondaryLang: Locale | null;
   place: string;
   sectionCode: string;
   time: string;
@@ -71,9 +73,10 @@ function nameClampStyle(nameLines: DensityLevel['nameLines']): StyleWithVars {
 export function EventBlockContent({
   contentRef,
   level,
-  locale,
   name,
-  nameEn,
+  nameLang,
+  secondary,
+  secondaryLang,
   place,
   sectionCode,
   time,
@@ -97,7 +100,7 @@ export function EventBlockContent({
     >
       <span
         data-fit-name
-        lang={locale}
+        lang={nameLang}
         className={`shrink-0 font-semibold break-words hyphens-auto ${
           level.nameLines === 'all' ? '' : 'line-clamp-(--kcp-name-lines)'
         } ${reserveRemove ? removeClearance(nameOnlyWhenNarrow) : ''}`}
@@ -113,12 +116,12 @@ export function EventBlockContent({
         ) : null}
         {name}
       </span>
-      {level.showEnglish ? (
+      {level.showSecondary && secondary !== null ? (
         <span
-          lang="en"
+          lang={secondaryLang ?? undefined}
           className={`shrink-0 font-normal break-words hyphens-auto ${narrowHidden} ${quiet}`}
         >
-          {nameEn}
+          {secondary}
         </span>
       ) : null}
       {showRow ? (

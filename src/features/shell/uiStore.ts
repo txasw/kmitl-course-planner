@@ -10,7 +10,9 @@ import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/t';
 import {
   DEFAULT_DISPLAY_OPTIONS,
   type DisplayOptions,
+  type DisplayToggle,
 } from '@/lib/planner/displayOptions';
+import type { NameLanguage } from '@/lib/planner/nameLanguage';
 import type { CurriculumProfile } from '@/lib/catalog/curriculumProfile';
 import type { SuggestObjective } from '@/lib/planner/suggestRank';
 import type { SuggestPreference } from '@/lib/planner/suggestScore';
@@ -115,7 +117,8 @@ export interface UiState {
   /** Settle the compact pane to its default when no pane is set yet; a set pane stays. */
   settleMobilePane: (hasEntries: boolean) => void;
   setDisplayOptions: (options: DisplayOptions) => void;
-  setDisplayOption: (key: keyof DisplayOptions, value: boolean) => void;
+  setDisplayOption: (key: DisplayToggle, value: boolean) => void;
+  setNameLanguage: (language: NameLanguage) => void;
   setSelectedTemplate: (slug: string) => void;
   setCurriculumProfile: (profile: CurriculumProfile | null) => void;
   setSuggestObjective: (objective: SuggestObjective) => void;
@@ -194,6 +197,11 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     setDisplayOption: (key, value) => {
       set((state) => ({
         displayOptions: { ...state.displayOptions, [key]: value },
+      }));
+    },
+    setNameLanguage: (nameLanguage) => {
+      set((state) => ({
+        displayOptions: { ...state.displayOptions, nameLanguage },
       }));
     },
     setSelectedTemplate: (selectedTemplate) => {
