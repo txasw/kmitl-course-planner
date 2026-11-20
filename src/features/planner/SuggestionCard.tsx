@@ -1,9 +1,10 @@
 // One suggested timetable, one slide of the suggestion carousel. It shows the whole week
 // the suggestion would produce, the entries already in the plan included, as a read only
 // mini grid in the frame the dialog shares across the slides, then the stats a student
-// compares suggestions by, then the ticked courses it leaves out with the reason each one
-// stayed out, collapsed by default, then the apply action, which creates a new plan from
-// it. The grid itself takes no input.
+// compares suggestions by, then the sections it places named in full, then the ticked
+// courses it leaves out with the reason each one stayed out, both lists collapsed by
+// default, then the apply action, which creates a new plan from it. The grid itself takes
+// no input; the placed list is where a name the grid clamps reads whole.
 //
 // A slide takes the full width of the dialog, so the grid is drawn large enough to read in
 // place, in the orientation the dialog picks for the tier, and fits its box rather than
@@ -78,6 +79,50 @@ function reasonText(reason: LeftOutReason, t: Translate): string {
 
 function clock(minutes: number | null, t: Translate): string {
   return minutes === null ? t('suggest.stats.none') : formatMinutes(minutes);
+}
+
+const KIND_KEY: Record<PlacedSection['kind'], TranslationKey> = {
+  lecture: 'section.lecture',
+  practice: 'section.practice',
+};
+
+/** The sections a slide places, named in full, which also lists any section with no
+ * meeting that the grid cannot draw. A name the grid clamps reads here whole. */
+function PlacedList({
+  sections,
+  locale,
+  t,
+}: {
+  sections: readonly PlacedSection[];
+  locale: Locale;
+  t: Translate;
+}) {
+  const subjects = new Set(sections.map((section) => section.subjectId)).size;
+  return (
+    <details className="text-xs">
+      <summary
+        className={`w-fit cursor-pointer rounded-kcp text-ink-soft hover:text-ink ${FOCUS_RING}`}
+      >
+        {fillTemplate(t('suggest.placed'), { count: subjects })}
+      </summary>
+      <ul className="mt-2 flex flex-col gap-1.5">
+        {sections.map((section) => (
+          <li key={section.teachTableId} className="flex flex-col">
+            <span className="text-ink">
+              {section.subjectId}{' '}
+              {locale === 'th' ? section.nameTh : section.nameEn}
+            </span>
+            <span className="text-ink-soft">
+              {fillTemplate(t('suggest.placed.section'), {
+                section: section.section,
+                kind: t(KIND_KEY[section.kind]),
+              })}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
 }
 
 function LeftOutList({
@@ -190,6 +235,7 @@ export function SuggestionCard({
           </div>
         ))}
       </dl>
+      <PlacedList sections={sections} locale={locale} t={t} />
       <LeftOutList leftOut={suggestion.leftOut} locale={locale} t={t} />
       <button
         type="button"

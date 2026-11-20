@@ -73,6 +73,8 @@
   "suggest.stats.latest": "Latest end",
   "suggest.stats.idle": "Gaps",
   "suggest.stats.none": "None",
+  "suggest.placed": "Subjects in this option: {count}",
+  "suggest.placed.section": "Section {section}, {kind}",
   "suggest.leftOut": "Subjects left out: {count}",
   "suggest.leftOut.none": "Every ticked subject is in this plan",
   "suggest.reason.seats": "Every section is full or closed",
