@@ -727,13 +727,20 @@ describe('SearchHeader on the phone layout', () => {
     const fits = heights(520, 480);
     const first = renderHeader();
     expect(submitRow()).not.toHaveClass('sticky');
+    expect(
+      formRegion(first.container).firstElementChild?.firstElementChild,
+    ).toHaveClass('pb-6');
     first.unmount();
     fits.mockRestore();
 
     heights(400, 480);
-    renderHeader();
-    // A window too short for the whole form scrolls it under a pinned action row.
+    const { container } = renderHeader();
+    // A window too short for the whole form scrolls it under a pinned action row, whose
+    // own padding takes the place of the form's foot padding.
     expect(submitRow()).toHaveClass('sticky', 'bottom-0', 'border-t');
+    expect(
+      formRegion(container).firstElementChild?.firstElementChild,
+    ).toHaveClass('pb-0');
   });
 
   it('keeps the submit in the flow with no cancel from 640 px up', () => {
