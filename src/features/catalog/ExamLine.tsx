@@ -4,11 +4,10 @@
 // the row and the popover show one date in the same Buddhist year form. A section that
 // announces neither window reads as arranged by the instructor, matching the host, so a
 // missing date is never mistaken for an absent line. Each window stays whole and wraps
-// to its own line on a narrow row; the registrar's exam detail note, when present, is
-// clamped to one line with the full text in a tooltip and in the detail list.
+// to its own line on a narrow row; the registrar's exam detail note, when present, wraps
+// under the windows so it reads whole (ADR-0048 amendment).
 
 import { CalendarClock } from 'lucide-react';
-import { Tooltip } from '@/components/Tooltip';
 import type { Exam } from '@/lib/domain/types';
 import type { Translate } from '@/lib/i18n/t';
 import { examWindowTexts } from '@/features/planner/examText';
@@ -40,15 +39,7 @@ export function ExamLine({ exam, t }: ExamLineProps) {
             ))
           )}
         </p>
-        {note !== '' ? (
-          <Tooltip label={note}>
-            {(triggerProps, ref) => (
-              <p ref={ref} {...triggerProps} className="truncate">
-                {note}
-              </p>
-            )}
-          </Tooltip>
-        ) : null}
+        {note !== '' ? <p className="break-words">{note}</p> : null}
       </div>
     </div>
   );
