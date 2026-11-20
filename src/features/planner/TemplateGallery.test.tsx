@@ -16,6 +16,7 @@ import { DEFAULT_DISPLAY_OPTIONS } from '@/lib/planner/displayOptions';
 import { EXPORT_TEMPLATES } from '@/lib/planner/exportTemplates';
 import { buildExamSchedule } from '@/lib/planner/examSchedule';
 import { resolveStageTemplate } from '@/lib/planner/previewStage';
+import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { uiStore } from '@/features/shell/uiStore';
 import { TemplateGallery } from './TemplateGallery';
 import type { PosterData } from './PreviewPoster';
@@ -209,6 +210,20 @@ describe('TemplateGallery', () => {
       'rotate-90',
     );
     expect(radioAt(5).querySelector('.lucide-printer')).not.toBeNull();
+  });
+
+  it('draws keyboard focus as an offset outline, apart from the inset selected edge', () => {
+    renderGallery();
+    const selected = radioAt(0);
+    // The selected edge is an inset ring, and focus always lands on the selected chip, so
+    // focus draws outside the chip rather than as a second inset ring on the same edge.
+    expect(selected).toHaveClass('ring-inset');
+    expect(selected).toHaveClass(...FOCUS_OUTLINE.split(' '));
+    for (const name of FOCUS_RING.split(' ').filter((n) =>
+      n.includes('ring'),
+    )) {
+      expect(selected).not.toHaveClass(name);
+    }
   });
 
   it('selects a template when its chip is clicked', () => {

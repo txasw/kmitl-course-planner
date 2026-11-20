@@ -109,7 +109,11 @@ phone or a tablet on its side for a landscape canvas, a printer for A4), and the
 pixels. The chips are the radiogroup named แม่แบบ or Template, with a roving tab stop; the arrow
 keys, Home, and End move between them through the same clamped pager hook, so keyboard paging is
 unchanged. The selected chip is marked by more than colour: a check glyph takes the place of its
-device glyph, the name turns semibold, and its edge thickens. Below 1024 px the chips sit three
+device glyph, the name turns semibold, and its edge thickens. That thicker edge is an inset
+orange ring and the tab stop is always the selected chip, so the chips take the offset focus
+outline of ADR-0034, the same case as a timetable block whose inset ring already carries a
+meaning; an inset focus ring would only have thickened the selected edge by a pixel and left
+keyboard focus hard to tell from selection. Below 1024 px the chips sit three
 to a row and above it all six share one row; a name wraps inside its chip rather than being cut,
 with the glyph and size on the line under it, and no chip carries a tooltip, so nothing opens
 over the chips, the stage, or the toolbar. The arrow rails and the caption are removed, since
