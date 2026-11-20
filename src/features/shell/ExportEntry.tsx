@@ -21,6 +21,7 @@ import { useBackToClose } from './useBackToClose';
 import { focusIsLost, rootOf } from './useFocusTrap';
 import { statusStore } from './statusStore';
 import { useTranslation } from './useTranslation';
+import { tourTargetProps } from '@/lib/onboarding/tour';
 
 const EXPORT_BUTTON_ID = 'kcp-export-entry';
 const BACK_TO_EDIT_ID = 'kcp-export-back';
@@ -37,6 +38,7 @@ export function ExportButton() {
   return (
     <button
       id={EXPORT_BUTTON_ID}
+      {...tourTargetProps('export')}
       type="button"
       onClick={() => {
         uiStore.getState().setViewMode('preview');

@@ -46,6 +46,7 @@ import {
 } from './mobilePane';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
+import { tourTargetProps } from '@/lib/onboarding/tour';
 
 const LABEL_KEY: Record<NavItem, TranslationKey> = {
   catalog: 'catalog.open',
@@ -128,6 +129,9 @@ export function BottomNav() {
             <button
               key={item}
               id={navItemId(item)}
+              {...(item === 'timetable'
+                ? tourTargetProps('nav-timetable')
+                : {})}
               type="button"
               aria-current={current ? 'page' : undefined}
               aria-label={itemName(label, count, itemReviews, clashDot, t)}

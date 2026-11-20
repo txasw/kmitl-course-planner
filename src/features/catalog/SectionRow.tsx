@@ -38,6 +38,7 @@ import { DemandChip, SeatDemand } from './SeatDemand';
 import { StatusBadge } from './StatusBadge';
 import { TeacherLine } from './TeacherLine';
 import { meetingLabel, meetingPlace } from './meetingFormat';
+import { tourTargetProps } from '@/lib/onboarding/tour';
 
 /** The accessible name of a section's add control: the action, the subject id and the
  * section, for example เพิ่ม 90592033 กลุ่มเรียน 901. */
@@ -261,6 +262,7 @@ function AddRail({
             ? { 'aria-describedby': describedBy }
             : {})}
           {...NO_DRAG_ARMING}
+          {...tourTargetProps('add')}
           onClick={onAdd}
           className={`flex w-8 shrink-0 items-center justify-center border-l border-border bg-primary-soft pointer-coarse:w-11 text-primary-strong hover:bg-primary-strong hover:text-white focus-visible:bg-primary-strong focus-visible:text-white ${FOCUS_OUTLINE}`}
         >

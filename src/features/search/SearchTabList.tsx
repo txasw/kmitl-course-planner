@@ -14,6 +14,7 @@ import type { Translate } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { SEARCH_TABPANEL_ID, searchTabId } from './searchIds';
 import { TAB_ICON, TAB_LABEL } from './searchTabs';
+import { tourTargetProps } from '@/lib/onboarding/tour';
 
 interface SearchTabListProps {
   activeTab: SearchTab;
@@ -67,6 +68,7 @@ export function SearchTabList({
     <div
       role="tablist"
       aria-label={label}
+      {...tourTargetProps('search-tabs')}
       className="flex overflow-x-auto shadow-[inset_0_-1px_0_var(--color-border)]"
     >
       {SEARCH_TABS.map((tab) => {
