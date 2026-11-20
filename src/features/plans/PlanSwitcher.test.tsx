@@ -20,6 +20,10 @@ import { toastStore } from '@/features/shell/toastStore';
 import { planStore } from './planStore';
 import { PlanSwitcher } from './PlanSwitcher';
 
+// The plan switcher trigger names the active plan and its term before its action, so
+// a query matches the action at the end of the name.
+const PLAN_TRIGGER = /เลือกตาราง$/;
+
 const validBlob = {
   id: 'imported-id',
   name: 'Imported',
@@ -85,13 +89,35 @@ function seedTwoPlans() {
 }
 
 function openMenu() {
-  fireEvent.click(screen.getByRole('button', { name: 'เลือกตาราง' }));
+  fireEvent.click(screen.getByRole('button', { name: PLAN_TRIGGER }));
 }
 
 describe('PlanSwitcher', () => {
   // The dropdown is the form from 640 px up; the sheet below has its own suite.
   beforeEach(() => {
     installViewport(1366);
+  });
+
+  it('names the active plan and its term in the trigger for a screen reader', () => {
+    seedTwoPlans();
+    render(<PlanSwitcher />);
+    const trigger = screen.getByRole('button', {
+      name: 'A ภาคการศึกษา 1/2569 เลือกตาราง',
+    });
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    act(() => {
+      planStore.getState().setActivePlan('b');
+    });
+    expect(
+      screen.getByRole('button', { name: 'B ภาคการศึกษา 2/2569 เลือกตาราง' }),
+    ).toBe(trigger);
+  });
+
+  it('says there is no plan yet in the trigger name before the first plan', () => {
+    render(<PlanSwitcher />);
+    expect(
+      screen.getByRole('button', { name: 'ยังไม่มีตาราง เลือกตาราง' }),
+    ).toBeInTheDocument();
   });
 
   it('lists the plans grouped by term', () => {
@@ -541,7 +567,7 @@ describe('PlanSwitcher below 640 px', () => {
   it('opens the plan menu as a modal bottom sheet with its heading focused', () => {
     seedTwoPlans();
     renderInPanel();
-    const trigger = screen.getByRole('button', { name: 'เลือกตาราง' });
+    const trigger = screen.getByRole('button', { name: PLAN_TRIGGER });
     expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
     openMenu();
     const sheet = screen.getByRole('dialog', { name: 'เลือกตาราง' });
@@ -566,7 +592,7 @@ describe('PlanSwitcher below 640 px', () => {
     fireEvent.click(within(sheet).getByRole('button', { name: 'B' }));
     expect(planStore.getState().activePlanId).toBe('b');
     expect(screen.queryByRole('dialog', { name: 'เลือกตาราง' })).toBeNull();
-    expect(screen.getByRole('button', { name: 'เลือกตาราง' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: PLAN_TRIGGER })).toHaveFocus();
   });
 
   it('holds the name form inside the sheet', () => {
@@ -611,6 +637,6 @@ describe('PlanSwitcher below 640 px', () => {
     document.body.removeEventListener('keydown', outer);
     expect(screen.queryByRole('dialog', { name: 'เลือกตาราง' })).toBeNull();
     expect(outer).not.toHaveBeenCalled();
-    expect(screen.getByRole('button', { name: 'เลือกตาราง' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: PLAN_TRIGGER })).toHaveFocus();
   });
 });

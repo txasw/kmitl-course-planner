@@ -15,6 +15,7 @@ import { CalendarRange, ChevronDown } from 'lucide-react';
 import { useClick, useDismiss, useInteractions } from '@floating-ui/react';
 import { planSchema, type Plan } from '@/lib/domain/plan';
 import type { TranslationKey } from '@/lib/i18n/t';
+import { fillTemplate } from '@/lib/i18n/template';
 import {
   buddhistYears,
   toBuddhistYear,
@@ -235,6 +236,15 @@ export function PlanSwitcher() {
 
   const triggerLabel =
     activePlan === null ? t('planSwitcher.noPlan') : activePlan.name;
+  // The trigger names the active plan and its term before what it does, so a screen
+  // reader hears the plan it is on and the accessible name keeps the visible text.
+  const triggerName =
+    activePlan === null
+      ? t('planSwitcher.triggerEmpty')
+      : fillTemplate(t('planSwitcher.trigger'), {
+          name: activePlan.name,
+          term: termLabel(activePlan, t),
+        });
 
   const menu =
     mode.kind === 'create' ? (
@@ -367,7 +377,7 @@ export function PlanSwitcher() {
         id={PLAN_SWITCHER_TRIGGER_ID}
         type="button"
         {...getReferenceProps()}
-        aria-label={t('planSwitcher.label')}
+        aria-label={triggerName}
         aria-haspopup={sheet ? 'dialog' : 'true'}
         aria-expanded={open}
         className={`flex w-full items-center gap-2 overflow-hidden rounded-kcp border border-border px-2 py-px text-sm text-ink hover:bg-surface-alt sm:px-3 ${TARGET_HEIGHT} ${FOCUS_RING}`}

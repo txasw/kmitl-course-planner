@@ -18,6 +18,10 @@ import { autosaveStore } from '@/features/plans/autosaveStore';
 import { statusStore } from './statusStore';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
+// The plan switcher trigger names the active plan and its term before its action, so
+// a query matches the action at the end of the name.
+const PLAN_TRIGGER = /เลือกตาราง$/;
+
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
@@ -40,7 +44,7 @@ describe('Header', () => {
       'title',
     );
     expect(
-      screen.getByRole('button', { name: 'เลือกตาราง' }),
+      screen.getByRole('button', { name: PLAN_TRIGGER }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }),
@@ -84,7 +88,7 @@ describe('Header', () => {
         ]);
     });
     render(<Header titleId="title" />);
-    const trigger = screen.getByRole('button', { name: 'เลือกตาราง' });
+    const trigger = screen.getByRole('button', { name: PLAN_TRIGGER });
     expect(trigger).toHaveTextContent('แผนหลัก');
     expect(trigger).toHaveTextContent('ภาคการศึกษา 1/2569');
   });
@@ -172,7 +176,7 @@ describe('Header', () => {
       'id',
       'title',
     );
-    for (const name of ['ส่งออก', 'เลือกตาราง', 'รายวิชา']) {
+    for (const name of ['ส่งออก', PLAN_TRIGGER, 'รายวิชา']) {
       expect(screen.queryByRole('button', { name })).toBeNull();
     }
     expect(
