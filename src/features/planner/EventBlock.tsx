@@ -19,7 +19,8 @@
 // dropping the subject id, then the secondary name, then the time, then clamping the name to
 // the lines that fit, then the section chip, then reducing the name to one line, then the
 // place, with the name never dropping (ADR-0046, ADR-0047). The place outlives the name's
-// second line and the time never outlives the place. The edit block keeps its tighter line
+// second line and the time never outlives the place. The subject id and the time never wrap
+// and drop whole when wider than the block, so a code is never cut at the edge. The edit block keeps its tighter line
 // height and always carries the subject id for cross referencing, so the id is the first
 // field it drops; the hover card and the details still show it (ADR-0050). The edit fit
 // pauses during a drag. In edit mode the block is a drag source (the ref and listeners

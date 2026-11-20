@@ -4,6 +4,7 @@ import {
   fullLevel,
   sameLevel,
   nextDensityLevel,
+  dropWholeFields,
   type DensityLevel,
   type NameFit,
 } from './blockDensity';
@@ -254,5 +255,25 @@ describe('sameLevel', () => {
     expect(
       sameLevel({ ...base, nameLines: 3 }, { ...base, nameLines: 2 }),
     ).toBe(false);
+  });
+});
+
+describe('dropWholeFields', () => {
+  it('drops a subject id too wide for its line whole and keeps every other field', () => {
+    const full = fullLevel(allEligible);
+    expect(dropWholeFields(full, ['id'])).toEqual({ ...full, showId: false });
+  });
+
+  it('drops the time whole out of ladder order, ahead of the secondary name', () => {
+    const full = fullLevel(allEligible);
+    const dropped = dropWholeFields(full, ['time']);
+    expect(dropped.showTime).toBe(false);
+    expect(dropped.showSecondary).toBe(true);
+    expect(dropped.showId).toBe(true);
+  });
+
+  it('never brings back a field that was already absent', () => {
+    expect(dropWholeFields(bare, [])).toEqual(bare);
+    expect(dropWholeFields(bare, ['id', 'time'])).toEqual(bare);
   });
 });

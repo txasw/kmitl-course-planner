@@ -21,6 +21,13 @@
 // the sheet, and the time never outlives the place, since the place is the field position
 // cannot encode. The time is kept present as a quiet foot line rather than deleted, so a ninety
 // minute block still reads its exact minutes.
+//
+// Width is measured as well as height (the ADR-0046 amendment of 2026-11-20). The subject id
+// and the time are whole fields: each sits on one unbreakable line, since a code split across
+// two lines or cut at the box edge reads as a different code, so each shows at its full width
+// or drops whole. A whole field the measurement finds wider than its line drops at once, out of
+// ladder order, because no other rung can widen the line it needs; the ladder order then
+// governs the height as before.
 
 /** Which fields a block could show before any measurement, from its data and the display
  * options. `mask` is a stable primitive so a reset key can compare eligibility cheaply. */
@@ -58,6 +65,9 @@ export interface NameFit {
 
 /** The fewest lines the name keeps while the section chip still shows. */
 const NAME_LINES_BEFORE_SECTION = 2;
+
+/** A field that renders on one line that never wraps, so it shows whole or not at all. */
+export type WholeField = 'id' | 'time';
 
 /** Build the eligibility from the raw field predicates, deriving the stable mask. */
 export function buildEligibility(
@@ -145,4 +155,17 @@ export function nextDensityLevel(
     return { ...level, showPlace: false };
   }
   return null;
+}
+
+/** Drop the whole fields the block measured as wider than their line, leaving every other
+ * field as it was. A field already absent stays absent. */
+export function dropWholeFields(
+  level: DensityLevel,
+  fields: readonly WholeField[],
+): DensityLevel {
+  return {
+    ...level,
+    showId: level.showId && !fields.includes('id'),
+    showTime: level.showTime && !fields.includes('time'),
+  };
 }
