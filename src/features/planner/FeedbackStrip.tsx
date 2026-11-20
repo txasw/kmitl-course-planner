@@ -44,6 +44,7 @@ import { toastStore } from '@/features/shell/toastStore';
 import { dragStore } from './dragStore';
 import { BlockedNotice, CrossTermNotice, HintNotice } from './FeedbackNotices';
 import { useOneOutcomeSurface } from './useOneOutcomeSurface';
+import { PLAN_PANE_GAP_CANCEL } from './planPaneGap';
 
 const BLOCKED_WINDOW_MS = 6_000;
 const ANNOUNCE_WINDOW_MS = 4_000;
@@ -69,9 +70,9 @@ const PLACEMENT_CLASS: Record<StripPlacement, string> = {
 };
 
 // The inline strip at rest holds only its live region: no height, and a negative margin
-// that cancels the 8 px column gap after it in the plan pane, so no empty band sits
-// between the tabs and the grid. A notice gives it its height back for as long as it shows.
-const INLINE_AT_REST = '-mb-2';
+// that cancels the column gap after it in the plan pane, so no empty band sits between the
+// tabs and the grid. A notice gives it its height back for as long as it shows.
+const INLINE_AT_REST = PLAN_PANE_GAP_CANCEL;
 
 // How far the floating strip sits above the foot of its container: clear of the panel
 // edge at rest, and clear of the toast region, which shares the panel foot, while a toast
