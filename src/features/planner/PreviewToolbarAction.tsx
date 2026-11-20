@@ -1,35 +1,47 @@
-// One action button of the preview toolbar. From 640 px up it is a labelled button. Below
-// 640 px the toolbar runs along the panel foot under the thumb, where five labelled buttons
-// would not fit one row, so the action is an icon button at the 44 px touch size at every
-// pointer, named by its aria-label and titled with the same text for a pointer hover. A busy
-// action is marked aria-disabled rather than disabled, so the focused button keeps focus
-// through a capture.
+// One action button of the preview toolbar, in one of two weights (ADR-0022 amendment of
+// 2026-11-21). The primary weight is the one filled action of the export page, download, and
+// keeps its label at every width. The secondary weight is an outline button: from 640 px up a
+// labelled button with its glyph before the label, and below 640 px a cell of the phone action
+// row with its glyph over a short label, at the 44 px touch size at every pointer, so every
+// action shows what it does without a hover. Where the short label is a shorter form of the
+// name, the button keeps the full name as its accessible name, which starts with or holds the
+// short label. A busy action is marked aria-disabled rather than disabled, so the focused
+// button keeps focus through a capture.
 
 import type { ReactNode } from 'react';
-import { FOCUS_RING } from '@/lib/ui/focus';
+import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE, TARGET_TOUCH } from '@/lib/ui/target';
 
-const SHARED =
-  'inline-flex items-center rounded-kcp border border-border text-ink hover:bg-surface-alt aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-transparent';
+const BUSY = 'aria-disabled:cursor-not-allowed aria-disabled:opacity-60';
 
-/** The labelled toolbar button, from 640 px up. */
-export const TOOLBAR_BUTTON = `${SHARED} gap-1.5 px-2.5 py-1.5 text-sm ${TARGET_SIZE} ${FOCUS_RING}`;
+const OUTLINE = `rounded-kcp border border-border bg-surface text-ink hover:bg-surface-alt ${BUSY} aria-disabled:hover:bg-surface`;
 
-/** The icon toolbar button, below 640 px. */
-export const TOOLBAR_ICON_BUTTON = `${SHARED} justify-center ${TARGET_TOUCH} ${FOCUS_RING}`;
+/** The labelled outline toolbar button, from 640 px up. */
+const TOOLBAR_BUTTON = `${OUTLINE} inline-flex items-center gap-1.5 px-2.5 py-1.5 text-sm ${TARGET_SIZE} ${FOCUS_RING}`;
+
+/** A cell of the phone action row: the glyph over a short label that may wrap, below 640 px. */
+const TOOLBAR_CELL = `${OUTLINE} flex w-full min-w-0 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-center text-xs ${TARGET_TOUCH} ${FOCUS_RING}`;
+
+/** The one filled action, labelled at every width and the full row wide on a phone. */
+const TOOLBAR_PRIMARY = `inline-flex items-center justify-center gap-1.5 rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface shadow-kcp-soft hover:bg-primary-hover ${BUSY} aria-disabled:hover:bg-primary-strong ${FOCUS_OUTLINE}`;
 
 /** The icon size of a toolbar action at each width. */
 export function toolbarIconSize(compact: boolean): number {
   return compact ? 20 : 16;
 }
 
+type ToolbarWeight = 'primary' | 'secondary';
+
 interface PreviewToolbarActionProps {
   /** The leading icon, or the spinner while the action's capture runs. */
   icon: ReactNode;
-  /** The visible label, or the accessible name and title of an icon button. */
+  /** The full name of the action, its visible label from 640 px up. */
   label: string;
-  /** Below 640 px, where the action is an icon button. */
+  /** The label a phone action row cell shows, when it is shorter than the full name. */
+  shortLabel?: string;
+  /** Below 640 px, where the toolbar runs along the panel foot. */
   compact: boolean;
+  weight: ToolbarWeight;
   /** Whether a capture holds the toolbar, which marks every action disabled. */
   busy: boolean;
   onClick: () => void;
@@ -37,26 +49,42 @@ interface PreviewToolbarActionProps {
   id?: string;
 }
 
+/** The classes of a toolbar action, shared with the display options trigger. */
+export function toolbarActionClass(
+  weight: ToolbarWeight,
+  compact: boolean,
+): string {
+  if (weight === 'primary') {
+    return compact
+      ? `${TOOLBAR_PRIMARY} w-full ${TARGET_TOUCH}`
+      : `${TOOLBAR_PRIMARY} ${TARGET_SIZE}`;
+  }
+  return compact ? TOOLBAR_CELL : TOOLBAR_BUTTON;
+}
+
 export function PreviewToolbarAction({
   icon,
   label,
+  shortLabel,
   compact,
+  weight,
   busy,
   onClick,
   id,
 }: PreviewToolbarActionProps) {
+  const cell = compact && weight === 'secondary';
+  const visible = cell && shortLabel !== undefined ? shortLabel : label;
   return (
     <button
       id={id}
       type="button"
       onClick={onClick}
       aria-disabled={busy}
-      aria-label={compact ? label : undefined}
-      title={compact ? label : undefined}
-      className={compact ? TOOLBAR_ICON_BUTTON : TOOLBAR_BUTTON}
+      aria-label={visible === label ? undefined : label}
+      className={toolbarActionClass(weight, compact)}
     >
       {icon}
-      {compact ? null : label}
+      <span className={cell ? 'max-w-full' : undefined}>{visible}</span>
     </button>
   );
 }

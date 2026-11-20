@@ -8,8 +8,9 @@
 // strategy that escapes the toolbar, dismisses on an outside click, and intercepts
 // Escape so it closes only the popover rather than the whole overlay. Below 640 px the
 // options open in a bottom sheet instead, so they take the full width under a thumb and
-// leave the poster in view above them, and the trigger is an icon button like the other
-// toolbar actions there.
+// leave the poster in view above them, and the trigger is a cell of the phone action row
+// like the other secondary actions there, its glyph over the short label ตัวเลือก or
+// Options, with the full name kept as its accessible name.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
@@ -32,11 +33,7 @@ import {
 import { BottomSheet } from '@/components/BottomSheet';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { Switch } from '@/components/Switch';
-import {
-  TOOLBAR_BUTTON,
-  TOOLBAR_ICON_BUTTON,
-  toolbarIconSize,
-} from './PreviewToolbarAction';
+import { toolbarActionClass, toolbarIconSize } from './PreviewToolbarAction';
 
 // Fit to content is retired from the poster: the smart window (grid.ts) now decides the
 // window and day run for every template. Show English names is retired too: the name
@@ -163,15 +160,17 @@ export function DisplayOptionsPopover() {
   );
 
   return (
-    <div ref={wrapperRef} className="relative">
+    <div
+      ref={wrapperRef}
+      className={sheet ? 'relative flex min-w-0' : 'relative'}
+    >
       <button
         ref={setReference}
         type="button"
         aria-haspopup={sheet ? 'dialog' : undefined}
         aria-expanded={open}
         aria-label={sheet ? t('preview.displayOptions') : undefined}
-        title={sheet ? t('preview.displayOptions') : undefined}
-        className={sheet ? TOOLBAR_ICON_BUTTON : TOOLBAR_BUTTON}
+        className={toolbarActionClass('secondary', sheet)}
         {...getReferenceProps()}
       >
         <SlidersHorizontal
@@ -179,7 +178,11 @@ export function DisplayOptionsPopover() {
           strokeWidth={2}
           aria-hidden
         />
-        {sheet ? null : t('preview.displayOptions')}
+        <span>
+          {sheet
+            ? t('preview.displayOptionsShort')
+            : t('preview.displayOptions')}
+        </span>
       </button>
       {open && sheet ? (
         <BottomSheet

@@ -14,11 +14,16 @@
 // follows the toolbar, both outside the capture node, when the plan holds entries to
 // review before sharing.
 //
-// Below 640 px the panel renders the toolbar under the poster, along the panel foot in the
-// thumb zone, and the actions become one row of icon buttons named by their aria-labels,
-// since five labelled buttons do not fit a phone width. The verification status and any
-// copy image note move to their own lines above that row, and the pre share notice
-// precedes the toolbar there, so the actions stay nearest the edge.
+// Download is the one primary action of the export page and the only filled button, labelled
+// at every width (ADR-0022 amendment of 2026-11-21); share, copy image, copy as text, and the
+// display options are outline buttons with visible labels, each with its own glyph, so no two
+// actions look alike. From 640 px up the toolbar heads the poster as one row that leads with
+// download and wraps where the labels need it. Below 640 px the panel renders the toolbar under
+// the poster, along the panel foot in the thumb zone: download fills its own row, and the
+// other actions share the row under it as equal cells, each a glyph over a short label that
+// wraps rather than clips. The verification status and any copy image note move to their own
+// lines above the actions, and the pre share notice precedes the toolbar there, so the
+// actions stay nearest the edge.
 //
 // An image capture takes a moment on a large template, so while one runs the toolbar is
 // busy: the action that started it reads as creating the image with a spinner, and every
@@ -27,9 +32,9 @@
 
 import type { RefObject } from 'react';
 import {
-  Clipboard,
-  ClipboardCopy,
   Download,
+  FileText,
+  ImageIcon,
   LoaderCircle,
   Share2,
   type LucideIcon,
@@ -102,7 +107,7 @@ export function PreviewToolbar({
   const imageAction = (
     action: ImageAction,
     icon: LucideIcon,
-    label: string,
+    labels: { label: string; shortLabel?: string },
     onClick: () => void,
   ) => {
     const running = capturing === action;
@@ -117,8 +122,9 @@ export function PreviewToolbar({
             }
           />
         }
-        label={running ? t('preview.capturing') : label}
+        {...(running ? { label: t('preview.capturing') } : labels)}
         compact={compact}
+        weight={action === 'download' ? 'primary' : 'secondary'}
         busy={busy}
         onClick={onClick}
         {...(action === 'share' ? { id: SHARE_IMAGE_ID } : {})}
@@ -144,10 +150,20 @@ export function PreviewToolbar({
   };
 
   const shareAction = canShareImage()
-    ? imageAction('share', Share2, t('preview.shareImage'), share)
+    ? imageAction(
+        'share',
+        Share2,
+        { label: t('preview.shareImage'), shortLabel: t('preview.shareShort') },
+        share,
+      )
     : null;
   const copyImageAction = canCopyImage()
-    ? imageAction('copyImage', Clipboard, t('preview.copyImage'), copyImage)
+    ? imageAction(
+        'copyImage',
+        ImageIcon,
+        { label: t('preview.copyImage') },
+        copyImage,
+      )
     : null;
   const copyImageNote =
     copyImageAction === null ? (
@@ -155,19 +171,25 @@ export function PreviewToolbar({
         {t('preview.copyImageUnsupported')}
       </span>
     ) : null;
-  const actions = (
+  const downloadAction = imageAction(
+    'download',
+    Download,
+    { label: t('preview.downloadPng') },
+    download,
+  );
+  const secondary = (
     <>
-      <DisplayOptionsPopover />
       {shareAction}
       {copyImageAction ?? (compact ? null : copyImageNote)}
-      {imageAction('download', Download, t('preview.downloadPng'), download)}
       <PreviewToolbarAction
-        icon={<ClipboardCopy {...iconProps} />}
+        icon={<FileText {...iconProps} />}
         label={t('preview.copyText')}
         compact={compact}
+        weight="secondary"
         busy={busy}
         onClick={handleCopyText}
       />
+      <DisplayOptionsPopover />
     </>
   );
   const toolbarProps = {
@@ -185,8 +207,9 @@ export function PreviewToolbar({
             <VerificationStatus />
           </span>
           {copyImageNote}
-          <div className="flex items-center justify-between gap-2">
-            {actions}
+          {downloadAction}
+          <div className="grid auto-cols-fr grid-flow-col gap-2">
+            {secondary}
           </div>
         </div>
       </>
@@ -197,9 +220,10 @@ export function PreviewToolbar({
     <>
       <div
         {...toolbarProps}
-        className="flex shrink-0 flex-wrap items-end gap-2"
+        className="flex shrink-0 flex-wrap items-center gap-2"
       >
-        {actions}
+        {downloadAction}
+        {secondary}
         <span className="ml-auto self-center text-xs">
           <VerificationStatus />
         </span>
