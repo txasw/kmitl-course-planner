@@ -69,7 +69,7 @@ describe('suggestEmptyReason', () => {
     ).toBeNull();
   });
 
-  it('asks for a tick when only plan subjects that cannot move are ticked', () => {
+  it('says the plan already fits when only plan subjects that cannot move are ticked', () => {
     const courses = [
       curriculumCourse('11111111', [{}]),
       curriculumCourse('22222222', [{ meetings: [makeMeeting({ day: 3 })] }]),
@@ -82,7 +82,7 @@ describe('suggestEmptyReason', () => {
         objective: 'coverAll',
         preference: 'balanced',
       }),
-    ).toBe('noneTicked');
+    ).toBe('planFits');
   });
 
   it('names ticked plan subjects that cannot all fit together', () => {

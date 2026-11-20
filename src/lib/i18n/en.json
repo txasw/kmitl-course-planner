@@ -50,6 +50,7 @@
   "suggest.subjects.tickAll": "Tick all",
   "suggest.subjects.untickAll": "Untick all",
   "suggest.empty.noneTicked": "Tick at least one subject to get a suggested plan.",
+  "suggest.empty.planFits": "Your plan already fits every ticked subject as it is. Tick another subject to add it to a suggested plan.",
   "suggest.empty.tickEvery": "Tick every subject",
   "suggest.objective": "Goal",
   "suggest.objective.coverAll": "Most subjects",

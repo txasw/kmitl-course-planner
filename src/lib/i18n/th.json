@@ -50,6 +50,7 @@
   "suggest.subjects.tickAll": "เลือกทั้งหมด",
   "suggest.subjects.untickAll": "ยกเลิกการเลือกทั้งหมด",
   "suggest.empty.noneTicked": "เลือกอย่างน้อยหนึ่งวิชาเพื่อดูตารางที่แนะนำ",
+  "suggest.empty.planFits": "ตารางปัจจุบันลงวิชาที่เลือกไว้ได้ครบแล้ว เลือกวิชาอื่นเพิ่มเพื่อดูตารางที่แนะนำ",
   "suggest.empty.tickEvery": "เลือกทุกวิชา",
   "suggest.objective": "เป้าหมาย",
   "suggest.objective.coverAll": "ครบทุกวิชา",

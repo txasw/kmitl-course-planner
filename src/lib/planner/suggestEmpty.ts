@@ -5,8 +5,11 @@
 // The search always keeps the best timetable it finds, so a result with nothing to
 // offer is one whose best timetable adds nothing; its left out list then says why
 // each candidate stayed out. When there is no timetable at all, the ticked plan
-// subjects could not all fit together. The interface names one reason for the whole
-// result, from the tick list first and then from the left out reasons.
+// subjects could not all fit together. When no course outside the plan is ticked,
+// the reason tells apart a tick list with nothing ticked from one whose ticked plan
+// subjects already fit as they are, since the second shows ticks on screen. The
+// interface names one reason for the whole result, from the tick list first and
+// then from the left out reasons.
 
 import type { SuggestResult, Suggestion } from './suggest';
 
@@ -17,6 +20,8 @@ export type SuggestEmptyReason =
   | 'planClash'
   /** Some course could be ticked, but the student ticked none. */
   | 'noneTicked'
+  /** Only plan subjects are ticked, and the plan already fits them as it is. */
+  | 'planFits'
   /** Every section of every ticked course is full or closed. */
   | 'seats'
   /** The open sections all clash with the plan, or with each other's exams. */
@@ -49,7 +54,7 @@ export function suggestEmptyReason(
     return 'allPlaced';
   }
   if (counts.ticked === 0 || best.leftOut.length === 0) {
-    return 'noneTicked';
+    return best.choices.length > 0 ? 'planFits' : 'noneTicked';
   }
   return best.leftOut.every(({ reason }) => reason.kind === 'seats')
     ? 'seats'
