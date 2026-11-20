@@ -7,7 +7,7 @@
 // the focusable slide area, the shown slide's controls included, and on the dots. The
 // position line between the chevrons is a polite live region, so a change announces the
 // new position. A single suggestion shows no paging at all. Under reduced motion the track
-// jumps instead of sliding and the slide does not follow the finger, while the swipe itself
+// jumps instead of sliding and the track does not follow the finger, while the swipe itself
 // still pages.
 //
 // A press keeps its own target: the swipe starts only once the pointer has travelled past a
@@ -27,6 +27,7 @@ import {
   useEffect,
   useId,
   useRef,
+  type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
   type RefObject,
 } from 'react';
@@ -96,6 +97,22 @@ function keyTarget(key: string, page: number, last: number): number | null {
     default:
       return null;
   }
+}
+
+/** The track at the shown page. A drag moves the track itself with no fade, resisted past
+ * either end, so a release slides on from where the finger let go rather than snapping
+ * back first; the drag turns the transition off and the release turns it on again. */
+function trackStyle(page: number, last: number, offset: number): CSSProperties {
+  const at = `${String(-page * 100)}%`;
+  if (offset === 0) {
+    return { transform: `translateX(${at})` };
+  }
+  const pastEnd = (page === 0 && offset > 0) || (page === last && offset < 0);
+  const pull = pastEnd ? offset / 3 : offset;
+  return {
+    transform: `translateX(calc(${at} + ${String(pull)}px))`,
+    transition: 'none',
+  };
 }
 
 function CarouselDots({
@@ -293,34 +310,32 @@ export function SuggestionCarousel({
         tabIndex={paged ? 0 : undefined}
         className={`overflow-hidden rounded-kcp select-none ${swipe.touchClass} ${paged ? FOCUS_RING : ''}`}
       >
-        <div style={reducedMotion ? undefined : swipe.style}>
-          <div
-            ref={trackRef}
-            className="flex items-start transition-transform duration-[260ms] ease-out motion-reduce:transition-none"
-            style={{ transform: `translateX(${String(-page * 100)}%)` }}
-          >
-            {cards.map((card, index) => (
-              <div
-                key={suggestionKey(card.suggestion)}
-                data-suggest-slide={index}
-                inert={index !== page}
-                className="w-full min-w-0 shrink-0 p-1"
-              >
-                <SuggestionCard
-                  suggestion={card.suggestion}
-                  index={index}
-                  sections={card.sections}
-                  frame={frame}
-                  orientation={orientation}
-                  locale={locale}
-                  t={t}
-                  onApply={() => {
-                    onApply(card.suggestion);
-                  }}
-                />
-              </div>
-            ))}
-          </div>
+        <div
+          ref={trackRef}
+          className="flex items-start transition-transform duration-[260ms] ease-out motion-reduce:transition-none"
+          style={trackStyle(page, last, reducedMotion ? 0 : swipe.offset)}
+        >
+          {cards.map((card, index) => (
+            <div
+              key={suggestionKey(card.suggestion)}
+              data-suggest-slide={index}
+              inert={index !== page}
+              className="w-full min-w-0 shrink-0 p-1"
+            >
+              <SuggestionCard
+                suggestion={card.suggestion}
+                index={index}
+                sections={card.sections}
+                frame={frame}
+                orientation={orientation}
+                locale={locale}
+                t={t}
+                onApply={() => {
+                  onApply(card.suggestion);
+                }}
+              />
+            </div>
+          ))}
         </div>
       </div>
       {paged ? (

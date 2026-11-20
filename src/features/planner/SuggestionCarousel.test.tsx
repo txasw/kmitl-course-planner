@@ -222,8 +222,8 @@ describe('SuggestionCarousel', () => {
 
   it('does not follow the finger under reduced motion, yet still pages', () => {
     renderCarousel({ reducedMotion: true });
-    const follower = viewport().firstElementChild;
-    if (!(follower instanceof HTMLElement)) throw new Error('no follower');
+    const track = shownSlide().parentElement;
+    if (track === null) throw new Error('no track');
     fireEvent.pointerDown(viewport(), {
       button: 0,
       pointerId: 1,
@@ -240,7 +240,7 @@ describe('SuggestionCarousel', () => {
         clientX: 100,
         clientY: 100,
       });
-      expect(follower.style.transform).toBe('');
+      expect(track.style.transform).toBe('translateX(0%)');
       fireEvent.pointerUp(viewport(), {
         pointerId: 1,
         clientX: 100,
@@ -252,10 +252,10 @@ describe('SuggestionCarousel', () => {
     expect(shownHeading()).toBe('ตัวเลือกที่ 2');
   });
 
-  it('follows the finger without reduced motion', () => {
+  it('moves the track with the finger, without a fade, and slides on from there', () => {
     renderCarousel();
-    const follower = viewport().firstElementChild;
-    if (!(follower instanceof HTMLElement)) throw new Error('no follower');
+    const track = shownSlide().parentElement;
+    if (track === null) throw new Error('no track');
     Object.defineProperty(Element.prototype, 'setPointerCapture', {
       configurable: true,
       value: () => undefined,
@@ -272,7 +272,48 @@ describe('SuggestionCarousel', () => {
         clientX: 140,
         clientY: 100,
       });
-      expect(follower.style.transform).toMatch(/^translateX\(-\d+px\)$/);
+      // 60 px of travel less the 24 px slop.
+      expect(track.style.transform).toBe('translateX(calc(0% - 36px))');
+      expect(track.style.transition).toBe('none');
+      expect(track.style.opacity).toBe('');
+      fireEvent.pointerUp(viewport(), {
+        pointerId: 1,
+        clientX: 100,
+        clientY: 100,
+      });
+      // The release clears the drag in the same update that pages, so the transition
+      // carries the track on from where the finger let go.
+      expect(shownHeading()).toBe('ตัวเลือกที่ 2');
+      expect(track.style.transform).toBe('translateX(-100%)');
+      expect(track.style.transition).toBe('');
+    } finally {
+      fireEvent.pointerCancel(viewport());
+      Reflect.deleteProperty(Element.prototype, 'setPointerCapture');
+    }
+  });
+
+  it('resists a drag past the first slide', () => {
+    renderCarousel();
+    const track = shownSlide().parentElement;
+    if (track === null) throw new Error('no track');
+    Object.defineProperty(Element.prototype, 'setPointerCapture', {
+      configurable: true,
+      value: () => undefined,
+    });
+    try {
+      fireEvent.pointerDown(viewport(), {
+        button: 0,
+        pointerId: 1,
+        clientX: 100,
+        clientY: 100,
+      });
+      fireEvent.pointerMove(viewport(), {
+        pointerId: 1,
+        clientX: 160,
+        clientY: 100,
+      });
+      // A third of the 36 px the finger travelled past the slop.
+      expect(track.style.transform).toBe('translateX(calc(0% + 12px))');
     } finally {
       fireEvent.pointerCancel(viewport());
       Reflect.deleteProperty(Element.prototype, 'setPointerCapture');
