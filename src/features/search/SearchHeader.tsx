@@ -85,8 +85,10 @@ function SearchHead({ compact = false }: SearchHeaderProps) {
   const barVisible = barQuery !== null;
   const fill = compact && formOpen;
   // The form scrolls only when the column is shorter than the whole form; the submit row
-  // then pins to the foot so the action never scrolls out of view. The pinned row is
-  // taller than the flowing one, so pinning never makes the form fit and flip back.
+  // then pins to the foot so the action never scrolls out of view. The pinned row's own
+  // padding takes the place of the form's foot padding, so pinning leaves the form the
+  // height it had: a form that fits never pins, and the choice settles once the fold
+  // has opened rather than holding a pin taken mid fold.
   const overflowing = formOpen && contentHeight > scrollerHeight + 1;
   const pinned = fill || overflowing;
 
@@ -131,7 +133,7 @@ function SearchHead({ compact = false }: SearchHeaderProps) {
               never clipped by the scroller edge. */}
           <div
             ref={formContent}
-            className="border-b border-border px-6 pt-4 pb-6"
+            className={`border-b border-border px-6 pt-4 ${pinned ? 'pb-0' : 'pb-6'}`}
           >
             <SearchForm
               dock={{
