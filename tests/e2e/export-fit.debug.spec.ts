@@ -79,8 +79,10 @@ async function expectNoBlockClips(page: Page): Promise<void> {
   }
 }
 
-/** Every whole field on the poster blocks fits its own line, and every subject id present
- * reads as its whole eight digit code on one line. Returns how many ids show. */
+/** Every whole field on the poster blocks fits its width, the id and the time each on one
+ * line, and every subject id present reads as its whole eight digit code. The secondary name is
+ * a whole field by width only: it wraps between its words and drops whole when a word is wider
+ * than its line. Returns how many ids show. */
 async function expectWholeFields(page: Page, label: string): Promise<number> {
   await settle(page);
   const fields = await page.locator('[data-fit-whole]').evaluateAll((els) =>
@@ -101,7 +103,9 @@ async function expectWholeFields(page: Page, label: string): Promise<number> {
       field.across,
       `${label} ${field.field} ${field.text}`,
     ).toBeLessThanOrEqual(0.5);
-    expect(field.lines, `${label} ${field.field} ${field.text}`).toBe(1);
+    if (field.field !== 'secondary') {
+      expect(field.lines, `${label} ${field.field} ${field.text}`).toBe(1);
+    }
   }
   const ids = fields.filter((field) => field.field === 'id');
   for (const id of ids) {
