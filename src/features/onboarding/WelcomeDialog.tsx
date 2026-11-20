@@ -1,9 +1,12 @@
 // The one time welcome shown after install (ADR-0062). It thanks the student, says what
 // the planner does and where saved plans stay, lists the three steps of a plan in
 // order, and says how to open the panel again, naming the shortcut only when the browser
-// reports one. Start planning is the landing point and the likely next step: it closes
-// the welcome and opens the panel at the catalog. The close button, the scrim and Escape
-// close it too, and nothing reopens it, since the claim recorded it as shown.
+// reports one. Each step leads with its icon on a quiet sunken tile in ink soft, the
+// neutral treatment of the empty states, since the icon is a picture and not a control
+// and the orange stays for what can be pressed. Start planning is the landing point and
+// the likely next step: it closes the welcome and opens the panel at the catalog. The
+// close button, the scrim and Escape close it too, and nothing reopens it, since the
+// claim recorded it as shown.
 //
 // It is a narrow centred dialog from 640 px and a bottom sheet below, like the updates
 // dialog, so it reuses their focus trap, Escape layer and safe area padding. Closing
@@ -96,7 +99,8 @@ export function WelcomeDialog() {
             <li key={title} className="flex items-start gap-3">
               <span
                 aria-hidden="true"
-                className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary-strong"
+                data-step-icon
+                className="flex size-8 shrink-0 items-center justify-center rounded-kcp-sm bg-surface-sunken text-ink-soft"
               >
                 <Icon size={16} strokeWidth={2} />
               </span>

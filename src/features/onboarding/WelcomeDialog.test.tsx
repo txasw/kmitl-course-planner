@@ -102,6 +102,17 @@ describe('WelcomeDialog', () => {
     ).toBeInTheDocument();
   });
 
+  it('sets each step icon on a neutral sunken tile, keeping orange for controls', () => {
+    const dialog = showWelcome();
+    const tiles = dialog.querySelectorAll('[data-step-icon]');
+    expect(tiles).toHaveLength(3);
+    for (const tile of tiles) {
+      expect(tile).toHaveClass('bg-surface-sunken', 'text-ink-soft');
+      expect(tile).toHaveAttribute('aria-hidden', 'true');
+      expect(tile.className).not.toMatch(/primary/);
+    }
+  });
+
   it('starts focus on Start planning and wraps Tab inside', () => {
     showWelcome();
     const start = screen.getByRole('button', { name: START });
