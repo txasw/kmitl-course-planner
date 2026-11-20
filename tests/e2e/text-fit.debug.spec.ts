@@ -65,6 +65,22 @@ const LONG_PLAN_NAME: Record<Language, string> = {
   en: 'Second semester plan with morning classes and a free day',
 };
 
+// The phone plan sheet is titled by the view it shows (list, create, rename, delete, or the
+// import error), so the sweep finds it by any of those titles rather than the list title alone.
+const PLAN_SHEET_TITLES = [
+  'planSwitcher.label',
+  'planSwitcher.create',
+  'planSwitcher.renameTitle',
+  'planSwitcher.deleteTitle',
+  'planData.import',
+] as const;
+
+function planSheetName(sweep: Sweep): RegExp {
+  const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const titles = PLAN_SHEET_TITLES.map((key) => escape(sweep.t(key)));
+  return new RegExp(`^(${titles.join('|')})$`);
+}
+
 for (const language of ['th', 'en'] as const) {
   test.describe(`in ${language}`, () => {
     test('the launcher, coach mark, header, menus, and search form show whole', async ({
@@ -106,7 +122,7 @@ for (const language of ['th', 'en'] as const) {
           name: sweep.t('planSwitcher.create'),
         });
         const menu = sweep.phone
-          ? page.getByRole('dialog', { name: sweep.t('planSwitcher.label') })
+          ? page.getByRole('dialog', { name: planSheetName(sweep) })
           : page.locator('.z-popover').filter({
               has: page.getByRole('textbox').or(create),
             });
@@ -273,7 +289,7 @@ for (const language of ['th', 'en'] as const) {
           .getByRole('button', { name: sweep.t('planSwitcher.label') })
           .click();
         const menu = sweep.phone
-          ? page.getByRole('dialog', { name: sweep.t('planSwitcher.label') })
+          ? page.getByRole('dialog', { name: planSheetName(sweep) })
           : page.locator('.z-popover').filter({
               has: page
                 .getByRole('textbox')
