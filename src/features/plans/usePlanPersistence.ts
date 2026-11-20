@@ -13,7 +13,8 @@
 // toast as well: the strip already says the same thing, and a toast at the panel foot
 // would sit over the plan status row. Later failures stay quiet until a save succeeds or
 // the student retries, so a run of failing autosaves never repeats the line. A
-// successful save raises nothing.
+// successful save raises nothing. The announcer mounts with the panel, so a save that
+// fails while the overlay is closed is not spoken; the strip still shows it on reopen.
 
 import { useEffect } from 'react';
 import { CURRENT_SCHEMA_VERSION } from '@/lib/storage/keys';
