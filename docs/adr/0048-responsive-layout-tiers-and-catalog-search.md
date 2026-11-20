@@ -721,3 +721,16 @@ surface would start unguarded; one walk names every surface in one place. Readin
 the scroll size of its nearest box alone was rejected because a cut by an outer box, such as the
 tab row, does not show there. Raising the header height so a plan name could wrap was rejected
 because the header row stays one line on every width.
+
+## Amendment, 2026-11-21: the docked strip takes room only while it shows
+
+On the docked tiers the feedback strip reserved a 1.75rem band at the top of the grid column so a
+notice never shifted the grid. A conformance review found that band, with the column gaps around
+it, read as an empty strip of about 50 px between the tabs and the time axis on every visit, while
+a notice shows only for a few seconds after a blocked add, a cross term add, or a missed drop. The
+strip now holds only its live region at rest, with no height and a negative margin that cancels
+the column gap after it, and takes its height back while a notice shows, so the grid moves down
+for the length of the notice and returns. The live region stays mounted throughout, so a spoken
+add confirmation, which never shows, never moves the grid. An overlay over the top of the grid was
+rejected because it would cover the hour labels, against the owner's rule that no layout hides
+text.
