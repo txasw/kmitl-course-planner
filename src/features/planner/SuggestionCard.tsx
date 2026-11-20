@@ -4,7 +4,8 @@
 // compares suggestions by, then the sections it places named in full, then the ticked
 // courses it leaves out with the reason each one stayed out, both lists collapsed by
 // default, then the apply action, which creates a new plan from it. The grid itself takes
-// no input; the placed list is where a name the grid clamps reads whole.
+// no input; the placed list is where a name the grid clamps reads whole. The carousel keeps
+// a drag from selecting text, so both lists opt back in and their names can be copied.
 //
 // A slide takes the full width of the dialog, so the grid is drawn large enough to read in
 // place, in the orientation the dialog picks for the tier, and fits its box rather than
@@ -106,7 +107,7 @@ function PlacedList({
       >
         {fillTemplate(t('suggest.placed'), { count: subjects })}
       </summary>
-      <ul className="mt-2 flex flex-col gap-1.5">
+      <ul className="mt-2 flex flex-col gap-1.5 select-text">
         {sections.map((section) => (
           <li key={section.teachTableId} className="flex flex-col">
             <span className="text-ink">
@@ -145,7 +146,7 @@ function LeftOutList({
       >
         {fillTemplate(t('suggest.leftOut'), { count: leftOut.length })}
       </summary>
-      <ul className="mt-2 flex flex-col gap-1.5">
+      <ul className="mt-2 flex flex-col gap-1.5 select-text">
         {leftOut.map(({ course, reason }) => (
           <li key={course.subjectId} className="flex flex-col">
             <span className="text-ink">
