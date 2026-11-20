@@ -50,8 +50,9 @@ class RecordingObserver implements ResizeObserver {
 globalThis.ResizeObserver = RecordingObserver;
 
 function reportClipped(node: HTMLElement): void {
-  Object.defineProperty(node, 'scrollWidth', { value: 400 });
-  Object.defineProperty(node, 'clientWidth', { value: 120 });
+  // The two line clamp hides the rest below its box, so the scroll height passes it.
+  Object.defineProperty(node, 'scrollHeight', { value: 80 });
+  Object.defineProperty(node, 'clientHeight', { value: 32 });
   act(() => {
     report?.(node);
   });
@@ -85,7 +86,7 @@ describe('RulesNotice', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('rests on the first rule with a control that counts every rule', () => {
+  it('rests at two lines with a control that counts every rule', () => {
     const section = dualDegreeSection();
     render(
       <RulesNotice
@@ -96,8 +97,11 @@ describe('RulesNotice', () => {
       />,
     );
     expect(screen.getByText('เงื่อนไข')).toBeInTheDocument();
-    expect(screen.getByText('เฉพาะคณะวิศวกรรมศาสตร์')).toBeInTheDocument();
-    expect(screen.queryByText(/<สองปริญญา>/)).not.toBeInTheDocument();
+    // Collapsed, the rules share one item clamped at two lines, so three rules always
+    // offer the control.
+    const rest = screen.getByText(/^เฉพาะคณะวิศวกรรมศาสตร์/);
+    expect(rest.className.split(' ')).toContain('line-clamp-2');
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
     const toggle = screen.getByRole('button', {
       name: 'ดูเงื่อนไขทั้งหมด (3)',
     });
@@ -148,7 +152,7 @@ describe('RulesNotice', () => {
     );
     expect(screen.getByText('Conditions')).toBeInTheDocument();
     expect(screen.getByRole('list')).toHaveAttribute('lang', 'en');
-    expect(screen.getByText('Only School of Engineering')).toBeInTheDocument();
+    expect(screen.getByText(/^Only School of Engineering/)).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Show all conditions (3)' }),
     ).toBeInTheDocument();
@@ -162,13 +166,13 @@ describe('RulesNotice', () => {
     expect(screen.getByText('เฉพาะนักศึกษาชั้นปี 1')).toBeInTheDocument();
   });
 
-  it('offers no control for a single rule that fits its line', () => {
+  it('offers no control for a single rule that fits in two lines', () => {
     render(<RulesNotice rulesTh="เฉพาะคณะ" rulesEn="" locale="th" t={th} />);
-    expect(screen.getByText('เฉพาะคณะ').className).toContain('truncate');
+    expect(screen.getByText('เฉพาะคณะ').className).toContain('line-clamp-2');
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
-  it('offers the control once a single rule clips its line', () => {
+  it('offers the control once a single rule runs past two lines', () => {
     render(
       <RulesNotice
         rulesTh="เฉพาะสาขาวิศวกรรมคอมพิวเตอร์ (ไม่รับนักศึกษาอื่น)"

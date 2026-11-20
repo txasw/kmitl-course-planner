@@ -1,5 +1,6 @@
-// Reports whether a single line element clips its text, so a one line clamp offers its
-// expand control only when there is hidden text to reveal. A catalog renders hundreds
+// Reports whether a clamped element clips its text, across its width for a one line
+// ellipsis or down its height for a line clamp, so a clamp offers its expand control only
+// when there is hidden text to reveal. A catalog renders hundreds
 // of rows and about half carry a condition or remark line, so every line shares one
 // ResizeObserver rather than each row creating its own. The observer reports each
 // target once when it starts observing and again whenever its box changes, which
@@ -8,6 +9,10 @@
 // there and tests that need a clipped line stub the observer.
 
 import { useEffect, useState, type RefObject } from 'react';
+
+// A Thai face draws its marks a fraction past the line box, which can round the scroll
+// height one pixel over a clamp that hides nothing.
+const CLAMP_SLACK = 1;
 
 const measures = new Map<Element, () => void>();
 let shared: ResizeObserver | null = null;
@@ -34,7 +39,10 @@ export function useTruncated(
       return undefined;
     }
     measures.set(node, () => {
-      setTruncated(node.scrollWidth > node.clientWidth);
+      setTruncated(
+        node.scrollWidth > node.clientWidth ||
+          node.scrollHeight > node.clientHeight + CLAMP_SLACK,
+      );
     });
     const observer = sharedObserver();
     observer.observe(node);

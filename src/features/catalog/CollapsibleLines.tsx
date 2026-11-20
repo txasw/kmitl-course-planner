@@ -1,6 +1,7 @@
-// A labelled list of text lines that rests as one line. Collapsed, it shows the label
-// and the first line clamped to one line; the expand control appears when more lines
-// follow or the first line clips, and expanded it lists every line in full. It carries
+// A labelled list of text lines that rests at two wrapped lines. Collapsed, it shows the
+// label and the lines run together, wrapping, clamped at two lines; the expand control
+// appears only when the text is longer than that, and expanded it lists every line in
+// full. A short list therefore shows whole with no control at all. It carries
 // no box fill, so a catalog where half the rows hold a line does not turn into a wash
 // of tinted boxes. TeacherLine, RulesNotice, and RemarkLine are built on it.
 //
@@ -13,6 +14,9 @@ import type { Locale } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { NO_DRAG_ARMING } from '@/features/planner/dragArming';
 import { useTruncated } from './useTruncated';
+
+/** The lines a collapsed list shows, matching the line-clamp-2 class below. */
+const CLAMP_LINES = 2;
 
 interface CollapsibleLinesProps {
   icon: ReactNode;
@@ -38,15 +42,17 @@ export function CollapsibleLines({
   collapseLabel,
 }: CollapsibleLinesProps) {
   const [expanded, setExpanded] = useState(false);
-  const firstRef = useRef<HTMLLIElement>(null);
+  const restRef = useRef<HTMLLIElement>(null);
   const listId = useId();
-  const first = lines[0] ?? '';
-  const clipped = useTruncated(firstRef, !expanded, first);
+  // Collapsed, the lines share one item that keeps their breaks, so the two line clamp
+  // counts every line and the measure sees all the text.
+  const joined = lines.join('\n');
+  const clipped = useTruncated(restRef, !expanded, joined);
   if (lines.length === 0) {
     return null;
   }
-  const expandable = expanded || lines.length > 1 || clipped;
-  const shown = expanded ? lines : [first];
+  // More lines than the clamp holds always hide some; two lines may or may not fit.
+  const expandable = expanded || lines.length > CLAMP_LINES || clipped;
 
   return (
     <div
@@ -62,15 +68,20 @@ export function CollapsibleLines({
         {...(lang !== undefined ? { lang } : {})}
         className="min-w-0 flex-1 basis-32"
       >
-        {shown.map((line, index) => (
+        {expanded ? (
+          lines.map((line, index) => (
+            <li key={`${String(index)}-${line}`} className="break-words">
+              {line}
+            </li>
+          ))
+        ) : (
           <li
-            key={`${String(index)}-${line}`}
-            ref={index === 0 ? firstRef : undefined}
-            className={expanded ? 'break-words' : 'truncate'}
+            ref={restRef}
+            className="line-clamp-2 break-words whitespace-pre-line"
           >
-            {line}
+            {joined}
           </li>
-        ))}
+        )}
       </ul>
       {expandable ? (
         <button
