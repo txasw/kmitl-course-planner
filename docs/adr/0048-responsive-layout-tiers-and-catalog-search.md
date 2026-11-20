@@ -746,3 +746,12 @@ below supersedes the earlier text it names.
   rejection, in the clipped text sweep amendment, of wrapping the name: the row keeps its
   height and the name wraps inside it. The default name a suggestion creates, such as "Plan
   2/2569 Balanced", fits whole at 360 px once it may wrap, so it keeps its wording.
+- The export template dots carry no hover tooltip. A dot's tooltip opened on top of the caption
+  under the stage, which names the same template, so only a tail of the caption showed while
+  the pointer rested on a dot or a keyboard move focused one. Each dot keeps its name for
+  assistive technology. Placing the tooltip under the dots was rejected, since the panel foot
+  leaves it no room and it flipped back over the caption.
+- The suggestion carousel arrows open their tooltips toward the position line between them,
+  in the empty run beside each arrow, rather than above, where the next arrow's tooltip covered
+  the dialog's close button, or below, where the previous arrow's would cover the option
+  heading.
