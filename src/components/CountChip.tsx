@@ -1,7 +1,10 @@
-// The round chip that shows the course count of the last search result beside a control
-// that brings the catalog into view: the header sheet toggle and the docked column's edge
-// rail. It is a visual repeat of a number the control's accessible name already carries,
-// so the control, not the chip, is what assistive technology reads.
+// The one count badge of the panel: a small ink filled pill with white figures and a ring
+// of the surface, so it reads the same beside a label, over an icon, or in the edge rail.
+// It counts the courses of the last search on the header sheet toggle, the edge rail, and
+// the bottom nav, the selected subjects on the bottom nav, and the filters in use on the
+// filter button. Ink rather than the brand orange, because the orange marks what can be
+// pressed and the badge is a figure, not a control. It is a visual repeat of a number the
+// control's accessible name already carries, so it is hidden from assistive technology.
 
 interface CountChipProps {
   count: number;
@@ -9,7 +12,11 @@ interface CountChipProps {
 
 export function CountChip({ count }: CountChipProps) {
   return (
-    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full border border-border bg-surface px-1.5 text-2xs font-semibold tabular-nums text-ink">
+    <span
+      aria-hidden
+      data-count-badge
+      className="inline-flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-ink px-1 text-2xs leading-none font-semibold text-surface tabular-nums ring-2 ring-surface"
+    >
       {count}
     </span>
   );

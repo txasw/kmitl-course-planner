@@ -45,6 +45,7 @@ import { Combobox, type ComboboxOption } from '@/features/search/Combobox';
 import { catalogStore } from './catalogStore';
 import { CurriculumFilter } from './CurriculumProfilePicker';
 import { SortControl } from './SortControl';
+import { CountChip } from '@/components/CountChip';
 
 const DAYS: DayOfWeek[] = [0, 1, 2, 3, 4, 5, 6];
 
@@ -389,14 +390,7 @@ function FilterPopover({
               {...getReferenceProps()}
             >
               <SlidersHorizontal size={18} strokeWidth={2} aria-hidden />
-              {activeCount > 0 ? (
-                <span
-                  aria-hidden
-                  className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-strong px-1 text-[10px] font-semibold text-surface tabular-nums"
-                >
-                  {activeCount}
-                </span>
-              ) : null}
+              {activeCount > 0 ? <CountChip count={activeCount} /> : null}
             </button>
           </span>
         )}

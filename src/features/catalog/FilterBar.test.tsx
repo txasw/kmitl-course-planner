@@ -89,6 +89,8 @@ describe('FilterBar', () => {
       name: 'ตัวกรอง ใช้อยู่ 2 รายการ',
     });
     expect(button).toHaveTextContent('2');
+    // The shared count badge, the same one the bottom nav and the header carry.
+    expect(button.querySelector('[data-count-badge]')).toHaveTextContent('2');
   });
 
   it('shows the filter name in a tooltip on keyboard focus', async () => {
