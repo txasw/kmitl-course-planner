@@ -773,14 +773,18 @@
   );
 }
 
-/* The solid backdrop each text line of a hatched block sits on: the soft card's top tint
-   made opaque, so the hatch shows around the text and never runs through it, and the text
-   keeps the contrast the palette tests prove on the card fill. */
+/* The solid backdrop each text line of a hatched block sits on, so the hatch shows around
+   the text and never runs through it, and the text keeps the contrast the palette tests prove
+   on the block fill. The flat poster fill sets the backdrop to its own concrete tint, which
+   the capture inlines; the soft card leaves it unset and takes its top tint made opaque. */
 .kcp-hatch-backdrop {
-  background-color: color-mix(
-    in srgb,
-    var(--kcp-tint, var(--kcp-ink-muted)) var(--kcp-tint-strong),
-    var(--kcp-surface)
+  background-color: var(
+    --kcp-hatch-backdrop,
+    color-mix(
+      in srgb,
+      var(--kcp-tint, var(--kcp-ink-muted)) var(--kcp-tint-strong),
+      var(--kcp-surface)
+    )
   );
   border-radius: 2px;
 }
