@@ -13,10 +13,13 @@ import {
   fireEvent,
   cleanup,
   act,
+  within,
 } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { CATALOG_COLUMN_ID } from './catalogVisibility';
 import { Overlay } from './Overlay';
+import { Toaster } from './Toaster';
+import { toastStore } from './toastStore';
 import { openPanelAt } from './openPanel';
 import { uiStore } from './uiStore';
 import { OVERLAY_HISTORY_MARKER } from './useBackToClose';
@@ -204,6 +207,42 @@ describe('Overlay', () => {
       uiStore.getState().close();
     });
     expect(opener).toHaveFocus();
+  });
+
+  it('reaches a toast action by Tab without the toast taking focus', () => {
+    render(
+      <div>
+        <Overlay />
+        <Toaster />
+      </div>,
+      { wrapper },
+    );
+    act(() => {
+      uiStore.getState().open();
+    });
+    const dialog = screen.getByRole('dialog');
+    const close = within(dialog).getByRole('button', { name: 'ปิด' });
+    close.focus();
+    act(() => {
+      toastStore.getState().show('success', 'คัดลอกแล้ว', {
+        label: 'ดูตาราง',
+        run: () => undefined,
+      });
+    });
+    expect(close).toHaveFocus();
+    const stops = Array.from(
+      dialog.querySelectorAll<HTMLElement>('button:not([disabled])'),
+    ).filter((node) => node.closest('[inert]') === null);
+    const last = stops[stops.length - 1];
+    if (last === undefined) {
+      throw new Error('expected a control in the panel');
+    }
+    last.focus();
+    fireEvent.keyDown(last, { key: 'Tab' });
+    expect(screen.getByRole('button', { name: 'ดูตาราง' })).toHaveFocus();
+    act(() => {
+      toastStore.getState().dismiss();
+    });
   });
 
   // Each path ends on the host entry it opened from, with the same route and the same

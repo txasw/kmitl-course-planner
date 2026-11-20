@@ -22,6 +22,10 @@
 // nor the share action a share toast offers again. While a bottom sheet is open it covers
 // those controls and owns the foot, so the region drops back to the foot and the sheet
 // ends in a band the toast sits in, clear of the sheet's content.
+//
+// The panel focus trap follows the region by its id, so a toast's controls join the Tab
+// order after the panel's last control while the panel is open; Tab reaches an undo
+// without the toast ever taking focus when it appears.
 
 import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { useStore } from 'zustand';
@@ -30,7 +34,7 @@ import { planStore } from '@/features/plans/planStore';
 import type { Translate } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
-import { toastStore, type Toast } from './toastStore';
+import { TOAST_REGION_ID, toastStore, type Toast } from './toastStore';
 import { useFootControlsShown } from './mobilePane';
 import { useBottomSheetOpen } from './sheetToastBand';
 import { useHoverFocusHold, type HoldHandlers } from './useHoverFocusHold';
@@ -190,6 +194,7 @@ export function Toaster() {
 
   return (
     <div
+      id={TOAST_REGION_ID}
       aria-live="polite"
       aria-atomic="true"
       lang={language}

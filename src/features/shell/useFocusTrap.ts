@@ -24,6 +24,15 @@
 // listener never sees the next key, so Tab would leave for the host page and Escape
 // would stop working. The features move focus on purpose after such a change; as a
 // backstop the trap pulls focus that was dropped back onto the panel.
+//
+// A trap can name satellite regions by id: nodes in the same root that sit outside the
+// panel but belong to its Tab order, as the toast region does, which stays on its own
+// layer above the panel. Their tab stops follow the panel's last stop, so Tab from the
+// panel's last control reaches a toast action and Tab from the toast's last control wraps
+// to the panel's first. The trap never moves focus into a satellite when one fills, so a
+// toast that appears never takes focus from the control in use. A satellite gets the same
+// keydown and focusout listeners as the panel, so a Tab or a dropped focus there is
+// handled as it is inside the panel.
 
 import { useEffect, useRef, type RefObject } from 'react';
 
@@ -85,13 +94,21 @@ export function focusIsLost(node: Node): boolean {
   );
 }
 
+const NO_SATELLITES: readonly string[] = [];
+
 export function useFocusTrap(
   panelRef: RefObject<HTMLElement | null>,
   active: boolean,
   onEscape?: () => void,
+  satelliteIds: readonly string[] = NO_SATELLITES,
 ): void {
   const openerRef = useRef<HTMLElement | null>(null);
   const escapeRef = useRef<(() => void) | undefined>(onEscape);
+  const satelliteIdsRef = useRef(satelliteIds);
+
+  useEffect(() => {
+    satelliteIdsRef.current = satelliteIds;
+  }, [satelliteIds]);
 
   // Keep the latest callback without re-running the trap effect, which would
   // re-capture the opener and steal focus back to the panel on every render.
@@ -116,6 +133,14 @@ export function useFocusTrap(
     }
 
     const deciderNode: Node = panel.getRootNode();
+    const root = rootOf(panel);
+    const satellites = (): HTMLElement[] =>
+      satelliteIdsRef.current.flatMap((id) => {
+        const node = root?.getElementById(id);
+        return node instanceof HTMLElement && !panel.contains(node)
+          ? [node]
+          : [];
+      });
     // The decider for the latest handed off press. A press an inner surface stopped
     // before the root leaves it attached; the next key to reach the root removes it,
     // and the identity check keeps it from acting on that later key.
@@ -160,7 +185,9 @@ export function useFocusTrap(
       // A nested trap that already wrapped this Tab prevented its default; acting on it
       // again here would read the stop the inner trap just moved to and wrap past it.
       if (event.key !== 'Tab' || event.defaultPrevented) return;
-      const items = getFocusable(panel);
+      const own = getFocusable(panel);
+      const extra = satellites().flatMap(getFocusable);
+      const items = [...own, ...extra];
       const first = items[0];
       const last = items[items.length - 1];
       if (first === undefined || last === undefined) {
@@ -172,12 +199,25 @@ export function useFocusTrap(
       // Focus that sits on the panel itself or on a programmatic landing point, such as
       // a heading, is not a tab stop, so a native Shift+Tab from it would leave the trap.
       const onStop = current instanceof HTMLElement && items.includes(current);
-      if (event.shiftKey && (current === first || !onStop)) {
+      // The satellites sit elsewhere in the document, so the step between the panel's
+      // last stop and a satellite's first is moved by hand in both directions.
+      const ownLast = own[own.length - 1];
+      const extraFirst = extra[0];
+      const move = (target: HTMLElement | undefined): void => {
+        if (target === undefined) return;
         event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && current === last) {
-        event.preventDefault();
-        first.focus();
+        target.focus();
+      };
+      if (event.shiftKey) {
+        if (current === first || !onStop) {
+          move(last);
+        } else if (current === extraFirst) {
+          move(ownLast);
+        }
+      } else if (current === last) {
+        move(first);
+      } else if (current === ownLast && extraFirst !== undefined) {
+        move(extraFirst);
       }
     };
 
@@ -196,11 +236,18 @@ export function useFocusTrap(
       });
     };
 
-    panel.addEventListener('keydown', onKeyDown);
-    panel.addEventListener('focusout', onFocusOut);
+    // A satellite carries no Escape of its own here: its controls claim the press they
+    // handle, and an unclaimed one reaches the same decider through this listener.
+    const listened = [panel, ...satellites()];
+    for (const node of listened) {
+      node.addEventListener('keydown', onKeyDown);
+      node.addEventListener('focusout', onFocusOut);
+    }
     return () => {
-      panel.removeEventListener('keydown', onKeyDown);
-      panel.removeEventListener('focusout', onFocusOut);
+      for (const node of listened) {
+        node.removeEventListener('keydown', onKeyDown);
+        node.removeEventListener('focusout', onFocusOut);
+      }
       clearDecider();
       const previous = openerRef.current;
       if (previous?.isConnected) {
