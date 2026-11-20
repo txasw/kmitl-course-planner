@@ -32,6 +32,7 @@ import { creditLoad, type CreditLoad } from '@/lib/planner/credits';
 import { computeFreePeriods } from '@/lib/planner/freePeriods';
 import type { Semester } from '@/lib/routing/academicTerms';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { SMALL_ICON } from '@/lib/ui/icon';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { DayLoads } from './DayLoads';
 import { planTotals } from './planTotals';
@@ -58,7 +59,6 @@ interface StatsBarProps {
 const NUMBER_TYPE = 'text-base font-semibold tabular-nums';
 const NUMBER = `${NUMBER_TYPE} text-ink`;
 const FACT = 'inline-flex items-center gap-1';
-const ICON = { size: 14, strokeWidth: 2, 'aria-hidden': true } as const;
 
 export function StatsBar({
   sections,
@@ -121,7 +121,7 @@ function PlanFacts({
   return (
     <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1">
       <span className={FACT}>
-        <BookOpen {...ICON} />
+        <BookOpen {...SMALL_ICON} />
         <span>
           <span
             className={`${NUMBER_TYPE} ${load.kind === 'within' ? 'text-ink' : 'text-warn'}`}
@@ -133,7 +133,7 @@ function PlanFacts({
       </span>
       {load.kind === 'within' ? null : <CreditLoadNote load={load} t={t} />}
       <span className={FACT}>
-        <Layers {...ICON} />
+        <Layers {...SMALL_ICON} />
         <span>
           <span className={NUMBER}>{totals.subjects}</span>{' '}
           {t('footer.subjects')}
@@ -145,7 +145,7 @@ function PlanFacts({
           onClick={onShowConflict}
           className={`inline-flex items-center gap-1 rounded-kcp border border-danger bg-surface px-2 py-1 text-danger hover:bg-danger-soft ${TARGET_SIZE} ${FOCUS_RING}`}
         >
-          <AlertTriangle {...ICON} />
+          <AlertTriangle {...SMALL_ICON} />
           {fillTemplate(t('stats.conflicts'), { count: conflictCount })}
         </button>
       ) : (
@@ -154,7 +154,7 @@ function PlanFacts({
           data-no-conflicts
           title={compact ? t('stats.noConflicts') : undefined}
         >
-          <ShieldCheck {...ICON} className="text-success" />
+          <ShieldCheck {...SMALL_ICON} className="text-success" />
           <span className={compact ? 'sr-only' : undefined}>
             {t('stats.noConflicts')}
           </span>
@@ -208,7 +208,7 @@ function CreditLoadNote({ load, t }: CreditLoadNoteProps) {
       : fillTemplate(t('stats.creditsAbove'), { max: load.max });
   return (
     <span className="inline-flex items-center gap-1 text-warn">
-      <Info size={14} strokeWidth={2} aria-hidden />
+      <Info {...SMALL_ICON} />
       {text}
     </span>
   );
