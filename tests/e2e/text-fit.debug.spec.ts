@@ -406,17 +406,22 @@ for (const language of ['th', 'en'] as const) {
             .getByRole('button', { name: sweep.t('suggest.apply') })
             .first(),
         ).toBeVisible({ timeout: RESULTS_TIMEOUT });
-        await sweep.scan('suggest choices', dialog);
-        const expand = dialog.getByRole('button', {
-          name: sweep.t('suggest.expand'),
-        });
-        if ((await expand.count()) > 0) {
-          await expand.first().click();
-          await sweep.scan('suggest option', dialog);
-        }
+        await sweep.scan('suggest first option', dialog);
+        // The second slide of the carousel, then the subject tick list with every group open.
         await dialog
+          .getByRole('button', { name: sweep.t('suggest.next') })
+          .click();
+        await sweep.scan('suggest second option', dialog);
+        const subjects = dialog.getByRole('group', {
+          name: sweep.t('suggest.subjects'),
+        });
+        const closed = subjects.locator('button[aria-expanded="false"]');
+        while ((await closed.count()) > 0) await closed.first().click();
+        await sweep.scan('suggest subject list', dialog);
+        // The slides off screen are inert, so the plan is applied from the slide on show.
+        await dialog
+          .locator('[data-suggest-slide]:not([inert])')
           .getByRole('button', { name: sweep.t('suggest.apply') })
-          .first()
           .click();
         await expect(dialog).toHaveCount(0);
         await showTimetable(sweep);
