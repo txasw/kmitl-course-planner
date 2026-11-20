@@ -72,6 +72,7 @@ const EMPTY_KEY: Record<SuggestEmptyReason, TranslationKey> = {
   allPlaced: 'suggest.empty.allPlaced',
   planClash: 'suggest.empty.planClash',
   noneTicked: 'suggest.empty.noneTicked',
+  planFits: 'suggest.empty.planFits',
   seats: 'suggest.empty.seats',
   conflicts: 'suggest.empty.conflicts',
 };
@@ -285,10 +286,10 @@ export function SuggestDialog({
           title={t('suggest.empty.title')}
           description={t(EMPTY_KEY[emptyReason])}
           action={
-            // With nothing ticked the way out is to tick every subject across the groups,
-            // which a group's own tick all does for that group alone; otherwise no tick
-            // can help, so the action leaves for the plan.
-            emptyReason === 'noneTicked' ? (
+            // With no course outside the plan ticked the way out is to tick every subject
+            // across the groups, which a group's own tick all does for that group alone;
+            // otherwise no tick can help, so the action leaves for the plan.
+            emptyReason === 'noneTicked' || emptyReason === 'planFits' ? (
               <EmptyStateAction
                 label={t('suggest.empty.tickEvery')}
                 onClick={() => {
