@@ -19,7 +19,7 @@ import {
   type TimetableView,
 } from '@/lib/planner/dayView';
 
-/** The timetable presentation mode: full editing, or the inert preview poster. */
+/** The panel page: full editing, or the export page with the inert preview poster. */
 export type ViewMode = 'edit' | 'preview';
 
 /**
@@ -55,6 +55,11 @@ export interface UiState {
    */
   catalogVisible: boolean;
   language: Locale;
+  /**
+   * The edit workspace or the export page, which shows the preview poster with its sharing
+   * toolbar. It is session state that is never persisted, and every opening of the panel
+   * starts in edit (ADR-0022 amendment), so no student reopens onto the export page.
+   */
   viewMode: ViewMode;
   /**
    * The plan view tab in edit mode (ADR-0049). It is session only: it starts on the
@@ -142,7 +147,11 @@ export function createUiStore(language: Locale = DEFAULT_LOCALE) {
     diagnosticsIssueCount: null,
     crashPanel: false,
     open: () => {
-      set({ isOpen: true });
+      // An opening starts in edit. An open call while the panel is already open, such as
+      // the toolbar action, keeps the page the student is on.
+      set((state) =>
+        state.isOpen ? state : { isOpen: true, viewMode: 'edit' },
+      );
     },
     close: () => {
       // Closing the overlay also resets the catalog sheet, which is only meaningful

@@ -5,12 +5,13 @@
 // the overlay already shows the target and no pane flips after it mounts.
 //
 // resume     a plain open that keeps the session layout, the same as the launcher
-// catalog    the catalog with its search, in edit mode since preview collapses it away
+// catalog    the catalog with its search, in edit mode since the export page hides it
 // timetable  the weekly grid, with the catalog sheet closed where it covers the grid
 // updates    the timetable in edit mode with the updates dialog over it when it has items
 //
-// The catalog and updates targets set edit mode, which the preferences persistence saves
-// as the last used mode, the same as the pre share notice's review action.
+// Every opening of a closed panel starts in edit (ADR-0022 amendment). The catalog and
+// updates targets also set edit themselves, so they leave the export page when the panel
+// is already open on it, the same as the pre share notice's review action.
 
 import { planStore } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
