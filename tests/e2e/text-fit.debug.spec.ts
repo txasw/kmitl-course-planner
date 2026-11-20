@@ -14,7 +14,9 @@ import {
   addCourse,
   blockDetail,
   dismissToasts,
+  emptyStorage,
   expandCourse,
+  fillStorage,
   openAt,
   openSweep,
   pick,
@@ -29,35 +31,47 @@ import {
 // clips text: every label shows whole, a Thai label wraps rather than ending in an ellipsis
 // unless an explicit expand control reveals the rest, no chip sits over text, and no fixed
 // height cuts a line. This spec walks every main surface of the panel at 360, 390, 768, and
-// 1366 px, in Thai and in English, and fails on any text leaf a box cuts and any pair of text
-// leaves that draw over each other, so a regression on any surface fails the suite.
+// 1366 px, in Thai and in English, and fails on any text leaf a box cuts, any pair of text
+// leaves that draw over each other, and any text leaf another layer covers, so a regression
+// on any surface fails the suite. The walk reads the timetable and the export page with a
+// toast up and after a failed save, rests the pointer on the export template dots and the
+// suggestion carousel chevrons until their tooltips open, and walks the product tour.
 
 // A walk this long fails at the step that stalls rather than at the test timeout.
 test.use({ actionTimeout: 10_000 });
 
 /**
- * The leaves the sweep excuses, each with the explicit affordance that shows the whole text.
- * Everything else must show whole.
+ * The leaves the sweep excuses, each naming the explicit control that shows the whole text,
+ * which must be on show beside the leaf for the leaf to be excused. Everything else must
+ * show whole.
  */
 const EXCEPTIONS: readonly TextFitException[] = [
   {
-    // The control must render beside the line, so a clipped line with no control still fails.
-    selector:
-      '[data-collapsible-lines="collapsed"]:has(> button[aria-expanded]) li',
+    selector: '[data-collapsible-lines="collapsed"] li',
+    scope: '[data-collapsible-lines="collapsed"]',
+    control: ':scope > button[aria-expanded="false"]',
     reason:
       'a teacher, condition, or remark line rests as one line, and its expand control wraps every line in full',
   },
   {
-    selector: '[data-plan-name]',
+    // Only the last step clamps; a name that two lines of a smaller step hold is whole.
+    selector: '[data-plan-name][data-plan-name-step="2"]',
+    scope: 'button[aria-haspopup][aria-expanded="false"]',
+    control: 'button[aria-haspopup][aria-expanded="false"]',
     reason:
-      'a long plan name rests on one line in the header trigger, which opens the plan list that wraps every name whole',
+      'a plan name past two lines of the smallest step rests clamped in the header trigger, which opens the plan list that wraps every name whole',
   },
   {
     selector: '[data-gallery-sliver]',
+    scope: '[data-gallery-pager]',
+    control: '[role="radiogroup"] [role="radio"]',
     reason:
-      'the neighbouring export templates show as dimmed slivers cropped at the stage edge, hidden from assistive technology, and the pager brings each one whole into view',
+      'the neighbouring export templates show as dimmed slivers cropped at the stage edge, hidden from assistive technology, and the pager dots bring each one whole into view',
   },
 ];
+
+/** The layers of the product tour that dim the panel on purpose, read through. */
+const TOUR_DIM = ['[data-product-tour]', '.kcp-tour-dim'];
 
 /** A plan name longer than the header has room for at any width. */
 const LONG_PLAN_NAME: Record<Language, string> = {
@@ -376,6 +390,30 @@ for (const language of ['th', 'en'] as const) {
           .getByRole('button', { name: sweep.t('block.removeFromPlan') })
           .click();
         await sweep.scan('undo toast', undoToast(sweep));
+        // The plan region makes room for the toast, so the status row stays whole above it.
+        await sweep.scan('timetable with the undo toast', sweep.panel());
+
+        // A save that fails shows its strip under the header and no toast over the plan.
+        // The plan is copied with storage full, a change the save then cannot store.
+        await fillStorage(context);
+        try {
+          await page
+            .getByRole('button', { name: sweep.t('planSwitcher.label') })
+            .click();
+          await menu
+            .getByRole('button', {
+              name: new RegExp(`^${sweep.t('planSwitcher.duplicate')} `),
+            })
+            .first()
+            .click();
+          await expect(menu).toHaveCount(0);
+          await expect(
+            sweep.panel().getByText(sweep.t('save.failed'), { exact: true }),
+          ).toBeVisible();
+          await sweep.scan('timetable after a failed save', sweep.panel());
+        } finally {
+          await emptyStorage(context);
+        }
       }
       sweep.expectClean();
     });
@@ -407,6 +445,9 @@ for (const language of ['th', 'en'] as const) {
           language === 'th' ? 'ความปลอดภัยไซเบอร์' : 'Cyber Security',
         );
         await waitForTermSettled(catalog);
+        // From the second width on the form reopens under the bar of the last search.
+        await sweep.scan('curriculum search form filled', catalog);
+        await sweep.expectSearchFormWhole('curriculum search form filled');
         await catalog
           .getByRole('button', { name: sweep.t('search.submit'), exact: true })
           .click();
@@ -433,6 +474,14 @@ for (const language of ['th', 'en'] as const) {
           .getByRole('button', { name: sweep.t('suggest.next') })
           .click();
         await sweep.scan('suggest second option', dialog);
+        // A phone pages by swipe and shows no chevrons; a disabled one opens no tooltip.
+        for (const chevron of ['suggest.prev', 'suggest.next']) {
+          const button = dialog.getByRole('button', { name: sweep.t(chevron) });
+          if (!(await button.isVisible()) || !(await button.isEnabled())) {
+            continue;
+          }
+          await sweep.scanTooltip(`suggest ${chevron}`, button, dialog);
+        }
         const subjects = dialog.getByRole('group', {
           name: sweep.t('suggest.subjects'),
         });
@@ -469,7 +518,27 @@ for (const language of ['th', 'en'] as const) {
             .click();
           await sweep.scan(`export ${template}`, sweep.panel());
           await sweep.checkBlockNames(`export ${template}`, sweep.panel());
+          // The pointer rests on the dot it just pressed, past the tooltip delay, so
+          // anything that opens over the caption is read as covering it.
+          await page.waitForTimeout(500);
+          await sweep.scan(
+            `export ${template} with the pointer on its dot`,
+            sweep.panel(),
+          );
         }
+        await page
+          .getByRole('button', { name: sweep.t('preview.copyText') })
+          .click();
+        await expect(
+          page
+            .locator('[aria-live="polite"][aria-atomic="true"]')
+            .getByRole('button', {
+              name: sweep.t('action.dismiss'),
+              exact: true,
+            }),
+        ).toBeVisible();
+        await sweep.scan('export page with a toast', sweep.panel());
+        await dismissToasts(sweep);
         await page
           .getByRole('button', { name: sweep.t('preview.displayOptions') })
           .click();
@@ -487,6 +556,46 @@ for (const language of ['th', 'en'] as const) {
       }
       sweep.expectClean();
     });
+  });
+}
+
+for (const language of ['th', 'en'] as const) {
+  test(`in ${language} the product tour shows whole at every step`, async ({
+    context,
+  }) => {
+    test.setTimeout(300_000);
+    const sweep = await openSweep(context, language, EXCEPTIONS);
+    const { page } = sweep;
+    for (const width of WIDTHS) {
+      await openAt(sweep, width);
+      await page.getByRole('button', { name: sweep.t('header.more') }).click();
+      await page.getByRole('menuitem', { name: sweep.t('tour.menu') }).click();
+      const card = page.locator('[data-tour-card]');
+      const finish = card.getByRole('button', {
+        name: sweep.t('tour.finish'),
+        exact: true,
+      });
+      for (let step = 1; ; step += 1) {
+        // The spotlight glides between targets; the scan reads where it rests.
+        await page.waitForTimeout(300);
+        await sweep.scan(`tour step ${String(step)}`, card);
+        // The card rests clear of the phone bottom nav, whose labels show whole under the dim.
+        if (sweep.phone) {
+          await sweep.scan(
+            `tour step ${String(step)} bottom nav`,
+            page.getByRole('navigation', { name: sweep.t('nav.label') }),
+            { seeThrough: TOUR_DIM },
+          );
+        }
+        if ((await finish.count()) > 0) break;
+        await card
+          .getByRole('button', { name: sweep.t('tour.next'), exact: true })
+          .click();
+      }
+      await finish.click();
+      await expect(card).toHaveCount(0);
+    }
+    sweep.expectClean();
   });
 }
 
