@@ -10,7 +10,7 @@ import {
   isDayViewWidth,
   revealScrollTop,
   shownDay,
-  stepDay,
+  stepChoice,
   timetableChoices,
 } from './dayView';
 import type { DayOfWeek } from '../parsing/days';
@@ -154,33 +154,33 @@ describe('shownDay', () => {
   });
 });
 
-describe('stepDay', () => {
+describe('stepChoice', () => {
   it('moves to the neighbouring day in chip order', () => {
-    expect(stepDay(WEEK, 2, 1, false)).toBe(3);
-    expect(stepDay(WEEK, 2, -1, false)).toBe(1);
-    expect(stepDay([...WEEK, 6, 0], 6, 1, false)).toBe(0);
+    expect(stepChoice(WEEK, 2, 1, false)).toBe(3);
+    expect(stepChoice(WEEK, 2, -1, false)).toBe(1);
+    expect(stepChoice([...WEEK, 6, 0], 6, 1, false)).toBe(0);
   });
 
   it('stops at either end without wrapping', () => {
-    expect(stepDay(WEEK, 5, 1, false)).toBe(5);
-    expect(stepDay(WEEK, 1, -1, false)).toBe(1);
+    expect(stepChoice(WEEK, 5, 1, false)).toBe(5);
+    expect(stepChoice(WEEK, 1, -1, false)).toBe(1);
   });
 
   it('wraps around the row when asked, as the arrow keys do', () => {
-    expect(stepDay(WEEK, 5, 1, true)).toBe(1);
-    expect(stepDay(WEEK, 1, -1, true)).toBe(5);
+    expect(stepChoice(WEEK, 5, 1, true)).toBe(1);
+    expect(stepChoice(WEEK, 1, -1, true)).toBe(5);
   });
 
   it('starts from the first day when the current day is not offered', () => {
-    expect(stepDay(WEEK, 0, 1, false)).toBe(1);
+    expect(stepChoice(WEEK, 0, 1, false)).toBe(1);
   });
 
   it('steps across the week chip when it walks the whole chip row', () => {
     const row = timetableChoices(WEEK);
-    expect(stepDay(row, 'week', 1, true)).toBe(1);
-    expect(stepDay(row, 1, -1, true)).toBe('week');
-    expect(stepDay(row, 'week', -1, true)).toBe(5);
-    expect(stepDay(row, 5, 1, true)).toBe('week');
+    expect(stepChoice(row, 'week', 1, true)).toBe(1);
+    expect(stepChoice(row, 1, -1, true)).toBe('week');
+    expect(stepChoice(row, 'week', -1, true)).toBe(5);
+    expect(stepChoice(row, 5, 1, true)).toBe('week');
   });
 });
 
