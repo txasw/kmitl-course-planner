@@ -11,6 +11,7 @@ import {
   submitSearch,
 } from './support/fixtures';
 import { axeViolations } from './support/axe';
+import { brokenBlockNames } from './support/blockNames';
 import { denseSubjectId } from './support/denseCatalog';
 import { expectLauncherInSafeArea } from './support/launcher';
 import { allowEntryToast } from './support/onboarding';
@@ -517,6 +518,52 @@ test('the edit grid keeps its derived minimum and fits where the column allows',
   } else {
     expect(scroll.scrollWidth).toBeGreaterThan(scroll.clientWidth);
   }
+});
+
+// A block narrower than 7em, a suggestion thumbnail or a day column of the phone week, shows
+// its name alone, so a long Thai name breaks between words rather than one character per
+// line; the check reads the laid out text, since jsdom cannot evaluate the container query.
+test('keeps block names whole in the suggestion thumbnails and the phone week', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  // An empty plan opens the phone on the catalog pane; the tablet holds it in a sheet.
+  const catalog = isPhone(page)
+    ? page.locator('#kcp-catalog-column')
+    : await openCatalog(page);
+  await pickOption(page, 'คณะ', '01');
+  await pickOption(page, 'ภาควิชา', '05');
+  await pickOption(page, 'หลักสูตร', 'ความปลอดภัยไซเบอร์');
+  await submitSearch(catalog);
+  await expect(catalog.getByText('01006020').first()).toBeVisible({
+    timeout: 15_000,
+  });
+  await waitForResultsInput(page);
+  await catalog.getByRole('button', { name: 'แนะนำตาราง' }).click();
+  const dialog = page.getByRole('dialog', { name: 'แนะนำตาราง' });
+  const thumbnails = dialog.getByRole('group', {
+    name: 'ตารางเรียนรายสัปดาห์',
+  });
+  await expect(thumbnails.first().locator(GRID_BLOCK).first()).toBeVisible();
+  for (const thumbnail of await thumbnails.all()) {
+    expect(await brokenBlockNames(thumbnail)).toEqual([]);
+  }
+  if (!isPhone(page)) return;
+
+  await dialog.getByRole('button', { name: 'ใช้ตารางนี้' }).click();
+  await expect(dialog).toHaveCount(0);
+  await bottomNav(page).getByRole('button', { name: 'ตารางเรียน' }).tap();
+  await page
+    .getByRole('group', { name: 'รูปแบบตาราง' })
+    .getByRole('button', { name: 'รายสัปดาห์' })
+    .tap();
+  const week = page.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+  await expect(week.locator(GRID_BLOCK).first()).toBeVisible();
+  // The block wrapper is the size container only where the width is a day column.
+  await expect(
+    week.locator(`.\\@container > ${GRID_BLOCK}`).first(),
+  ).toBeVisible();
+  expect(await brokenBlockNames(week)).toEqual([]);
 });
 
 test('a long press holds one point for the full press', async ({ context }) => {
