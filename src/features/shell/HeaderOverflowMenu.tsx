@@ -10,13 +10,15 @@
 // Tab or a press outside closes it and lets focus move on. Below 640 px, where the
 // header hides the brand mark and its version pill, a muted line under the menu shows
 // the extension version. It sits in the popover but outside the menu role, so it is
-// neither an item nor focusable, and a screen reader reads it as a phrase. A debug build
-// adds one plain menu item after the languages, the entry to its diagnostics drawer, from
-// the debug menu slot; production leaves the slot empty.
+// neither an item nor focusable, and a screen reader reads it as a phrase.
+// Under the language group a plain menuitem reopens the product tour (ADR-0074) from its
+// first step. From the export page it returns to editing first, since the tour points at
+// the edit workspace. A debug build adds one more plain menu item after it, the entry to
+// its diagnostics drawer, from the debug menu slot; production leaves the slot empty.
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useStore } from 'zustand';
-import { Check, MoreHorizontal } from 'lucide-react';
+import { Check, Compass, MoreHorizontal } from 'lucide-react';
 import { useDismiss, useInteractions } from '@floating-ui/react';
 import { LanguageFlag } from '@/components/LanguageFlag';
 import type { Locale, TranslationKey } from '@/lib/i18n/t';
@@ -25,6 +27,8 @@ import { IS_DEBUG } from '@/lib/env';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { debugMenuStore } from './debugMenuStore';
+import { onboardingStore } from '@/features/onboarding/onboardingStore';
+import { backToEditing } from './ExportEntry';
 import { useExtensionVersion } from './ExtensionVersionContext';
 import { uiStore } from './uiStore';
 import { useEscapeLayer } from './useEscapeLayer';
@@ -139,6 +143,12 @@ export function HeaderOverflowMenu() {
     closeToTrigger();
   };
 
+  const startTour = () => {
+    closeToTrigger();
+    if (uiStore.getState().viewMode === 'preview') backToEditing();
+    onboardingStore.getState().startTour();
+  };
+
   return (
     <div ref={wrapperRef} className="relative shrink-0">
       <button
@@ -209,10 +219,32 @@ export function HeaderOverflowMenu() {
                 );
               })}
             </div>
+            <div
+              aria-hidden="true"
+              className="mx-1 my-1 border-t border-border"
+            />
+            <button
+              ref={(node) => {
+                itemRefs.current[LOCALES.length] = node;
+              }}
+              type="button"
+              role="menuitem"
+              tabIndex={-1}
+              onClick={startTour}
+              className={`flex w-full items-center gap-2 rounded-kcp px-2 py-1.5 text-left text-ink hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`}
+            >
+              <Compass
+                size={16}
+                strokeWidth={2}
+                aria-hidden
+                className="shrink-0 text-ink-soft"
+              />
+              <span className="min-w-0 break-words">{t('tour.menu')}</span>
+            </button>
             {debugItem === null ? null : (
               <button
                 ref={(node) => {
-                  itemRefs.current[LOCALES.length] = node;
+                  itemRefs.current[LOCALES.length + 1] = node;
                 }}
                 type="button"
                 role="menuitem"
