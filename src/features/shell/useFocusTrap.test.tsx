@@ -385,3 +385,94 @@ describe('useFocusTrap', () => {
     expect(opener).toHaveFocus();
   });
 });
+
+const SATELLITES = ['satellite'] as const;
+
+// The toast region shape: a sibling of the trapped panel that the trap follows by id, so
+// its controls join the panel's Tab order without the trap moving focus into it.
+function SatelliteHarness({ toast }: { toast: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useFocusTrap(ref, true, undefined, SATELLITES);
+  return (
+    <div>
+      <div ref={ref} tabIndex={-1} data-testid="panel">
+        <button type="button" data-testid="first">
+          first
+        </button>
+        <button type="button" data-testid="last">
+          last
+        </button>
+      </div>
+      <button type="button" data-testid="between">
+        between
+      </button>
+      <div id="satellite" data-testid="satellite">
+        {toast ? (
+          <>
+            <button type="button" data-testid="undo">
+              undo
+            </button>
+            <button type="button" data-testid="dismiss">
+              dismiss
+            </button>
+          </>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+describe('useFocusTrap satellites', () => {
+  it('leaves focus in the panel when a satellite fills', () => {
+    const { rerender } = render(<SatelliteHarness toast={false} />);
+    screen.getByTestId('first').focus();
+    rerender(<SatelliteHarness toast />);
+    expect(screen.getByTestId('first')).toHaveFocus();
+  });
+
+  it('moves Tab from the panel last stop to the satellite first stop', () => {
+    render(<SatelliteHarness toast />);
+    const last = screen.getByTestId('last');
+    last.focus();
+    fireEvent.keyDown(last, { key: 'Tab' });
+    expect(screen.getByTestId('undo')).toHaveFocus();
+  });
+
+  it('wraps Tab from the satellite last stop to the panel first stop', () => {
+    render(<SatelliteHarness toast />);
+    const dismiss = screen.getByTestId('dismiss');
+    dismiss.focus();
+    fireEvent.keyDown(dismiss, { key: 'Tab' });
+    expect(screen.getByTestId('first')).toHaveFocus();
+  });
+
+  it('steps Shift+Tab back across both edges', () => {
+    render(<SatelliteHarness toast />);
+    const undo = screen.getByTestId('undo');
+    undo.focus();
+    fireEvent.keyDown(undo, { key: 'Tab', shiftKey: true });
+    expect(screen.getByTestId('last')).toHaveFocus();
+    const first = screen.getByTestId('first');
+    first.focus();
+    fireEvent.keyDown(first, { key: 'Tab', shiftKey: true });
+    expect(screen.getByTestId('dismiss')).toHaveFocus();
+  });
+
+  it('wraps within the panel while the satellite holds no control', () => {
+    render(<SatelliteHarness toast={false} />);
+    const last = screen.getByTestId('last');
+    last.focus();
+    fireEvent.keyDown(last, { key: 'Tab' });
+    expect(screen.getByTestId('first')).toHaveFocus();
+  });
+
+  it('pulls focus dropped inside the satellite back onto the panel', async () => {
+    render(<SatelliteHarness toast />);
+    const undo = screen.getByTestId('undo');
+    undo.focus();
+    undo.blur();
+    fireEvent.focusOut(undo, { relatedTarget: null });
+    await Promise.resolve();
+    expect(screen.getByTestId('panel')).toHaveFocus();
+  });
+});

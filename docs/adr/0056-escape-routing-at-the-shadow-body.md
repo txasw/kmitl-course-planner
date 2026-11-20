@@ -84,3 +84,22 @@ itself. The trap therefore hands Escape to a one time listener on the panel's ro
 root in the extension, the document in tests. That node still sits above the React root and still
 carries the guard, so the decision above holds unchanged. The unit test models the guard on the
 document, and the text base in the shadow style sheet moved from the html element to `#kcp-app`.
+
+## Amendment, 2026-11-20: the toast region joins the overlay Tab order
+
+The toast region renders after the overlay, outside the panel, so a toast over an open sheet is
+never dimmed by its scrim. The overlay trap wrapped Tab within the panel alone, so a keyboard user
+could never reach a toast action such as undo, the one path to it besides the pointer. The trap now
+takes satellite regions by id, nodes in the same root that sit outside the panel but belong to its
+Tab order. The overlay names the toast region. Its tab stops follow the panel's last stop: Tab from
+the panel's last control moves to the toast's first, Tab from the toast's last wraps to the panel's
+first, and Shift+Tab steps back across both edges. The trap never moves focus into a satellite
+when a toast appears, so a toast never takes focus from the control in use, and the satellite gets
+the panel's keydown and focusout listeners, so a press there is decided as above and focus dropped
+by an unmounting toast returns to the panel.
+
+Moving the region inside the panel was rejected: the panel stacks its bottom sheets and dialogs
+above its own children, so the toast would sit under a sheet's scrim, and a region remounted at
+every open and close could miss the announcement of a toast shown as the panel opens. A nested
+trap, such as a bottom sheet's, still keeps Tab inside its own layer, so a toast is out of Tab
+reach while a sheet is open; the sheet's own close returns to the panel, where it is reachable.

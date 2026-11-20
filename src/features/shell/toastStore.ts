@@ -12,6 +12,10 @@ import { createStore } from 'zustand/vanilla';
 
 export type ToastKind = 'success' | 'error';
 
+/** The id of the toast region, which the panel focus trap follows as a satellite so a
+ * toast action is reachable by Tab while the panel is open. */
+export const TOAST_REGION_ID = 'kcp-toast-region';
+
 /** The one action a toast may offer, with its resolved label. */
 export interface ToastAction {
   label: string;
