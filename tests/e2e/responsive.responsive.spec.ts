@@ -1096,6 +1096,11 @@ test('the controls a finger reaches are 44 px targets', async ({ context }) => {
         `plan view tab ${view}`,
       );
     }
+    // The selected tab carries its count in the name, so it is found by its label.
+    await expectTouchTarget(
+      dialog.getByRole('tab', { name: /^วิชาที่เลือก/ }),
+      'plan view tab วิชาที่เลือก',
+    );
   }
 
   // The search form in the catalog: a tab and the submit.
