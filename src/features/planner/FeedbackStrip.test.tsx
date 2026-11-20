@@ -507,6 +507,27 @@ describe('FeedbackStrip', () => {
     expect(screen.getByText('เพิ่มลงตารางแล้ว 90592008')).toBeInTheDocument();
   });
 
+  it('takes no room in the grid column at rest or while it only speaks', () => {
+    const { container, rerender } = render(<FeedbackStrip t={t} />);
+    const strip = container.querySelector('[aria-live="polite"]');
+    // No reserved height, and a margin that cancels the column gap after it.
+    expect(strip).toHaveClass('-mb-2');
+    expect(strip?.className).not.toContain('min-h-');
+    act(() => {
+      dragStore.setState({ announcement: 'เพิ่มลงตารางแล้ว 90592008' });
+    });
+    rerender(<FeedbackStrip t={t} />);
+    expect(strip).toHaveClass('-mb-2');
+  });
+
+  it('gives the grid column strip its room back while a notice shows', () => {
+    showBlockedWithChip();
+    const { container } = render(<FeedbackStrip t={t} />);
+    expect(container.querySelector('[aria-live="polite"]')).not.toHaveClass(
+      '-mb-2',
+    );
+  });
+
   describe('a catalog add confirmation', () => {
     const added = makeSection({ subjectId: '90592033', section: '901' });
 

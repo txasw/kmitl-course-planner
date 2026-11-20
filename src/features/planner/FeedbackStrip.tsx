@@ -1,6 +1,6 @@
 // The placement feedback strip: a slim aria-live region. On the docked tiers it sits at
-// the top of the grid column under the grid header, with a reserved height so a notice
-// never shifts the grid. Below the dock it floats at the bottom of the open catalog
+// the top of the grid column under the grid header and takes room only while a notice
+// shows, so at rest the time axis rises to the tabs rather than under an empty band. Below the dock it floats at the bottom of the open catalog
 // sheet, or of the grid while the sheet is closed, above the sheet's scrim and above a
 // toast at the panel foot, so its chips are never dimmed or covered. Below 640 px it
 // floats over whichever pane shows, at most 32rem wide, above the bottom nav and the
@@ -63,10 +63,15 @@ const FLOATING =
   'pointer-events-none absolute z-drawer *:pointer-events-auto *:shadow-kcp';
 
 const PLACEMENT_CLASS: Record<StripPlacement, string> = {
-  inline: 'min-h-[1.75rem] shrink-0',
+  inline: 'shrink-0',
   sheet: `${FLOATING} left-4 w-[calc(min(24rem,90vw)-2rem)]`,
   grid: `${FLOATING} inset-x-4 mx-auto max-w-[32rem]`,
 };
+
+// The inline strip at rest holds only its live region: no height, and a negative margin
+// that cancels the 8 px column gap after it in the plan pane, so no empty band sits
+// between the tabs and the grid. A notice gives it its height back for as long as it shows.
+const INLINE_AT_REST = '-mb-2';
 
 // How far the floating strip sits above the foot of its container: clear of the panel
 // edge at rest, and clear of the toast region, which shares the panel foot, while a toast
@@ -172,6 +177,8 @@ export function FeedbackStrip({
   const [focusedNotice, setFocusedNotice] = useState<unknown>(null);
   const [hovered, setHovered] = useState(false);
   const visible = crossTerm ?? blocked ?? hint ?? announcement;
+  // The announcement is read aloud only, so it never gives the strip a height.
+  const noticeShows = (crossTerm ?? blocked ?? hint) !== null;
   const handleFocusIn = (event: FocusEvent<HTMLDivElement>) => {
     setFocusedNotice(visible);
     const from = event.relatedTarget;
@@ -230,7 +237,9 @@ export function FeedbackStrip({
       onBlur={handleFocusOut}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
-      className={`${PLACEMENT_CLASS[placement]} ${floating ? offset.className : ''}`}
+      className={`${PLACEMENT_CLASS[placement]} ${floating ? offset.className : ''} ${
+        !floating && !noticeShows ? INLINE_AT_REST : ''
+      }`}
     >
       {crossTerm !== null ? (
         <CrossTermNotice feedback={crossTerm} t={t} />
