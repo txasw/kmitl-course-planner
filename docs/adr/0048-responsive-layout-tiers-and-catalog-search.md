@@ -831,3 +831,12 @@ than the short word beside it. Keeping the one line rest and widening the column
 because no width holds a long Thai teacher list on one line at 360 px. Placing the add in the
 badge cluster of the first line was rejected because the cluster wraps with the badge width, so
 the add would move from row to row.
+
+## Amendment, 2026-11-21: the hide control is an icon button
+
+The docked header's hide control was a text row, the icon cell followed by "ซ่อนรายวิชา". The
+redesign asks for icons and less text, and the mockup draws the collapse as an icon alone. The
+control is now an icon button: the same 44 px icon cell at the leading edge of the 48 px row, so
+it still centres on the rail icon, with "ซ่อนรายวิชา" or "Hide courses" as its accessible name and
+as a tooltip on hover and keyboard focus, placed to its right so it never covers the plan view
+tabs. Focus moves are unchanged.
