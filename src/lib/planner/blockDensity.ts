@@ -27,6 +27,16 @@
 // or drops whole. A whole field the measurement finds wider than its line drops at once, out of
 // ladder order, because no other rung can widen the line it needs; the ladder order then
 // governs the height as before.
+//
+// A word of an English name keeps its letters on one line (the ADR-0047 amendment of
+// 2026-11-21). The browser breaks a Thai name at its dictionary word boundaries, so a Thai name
+// keeps the wrap it has, but an English word wider than the line would break with no hyphen and
+// can strand one letter on a line. So an English name wraps only at its spaces, and where one of
+// its words is wider than the line, the name form steps down instead: first to one type step
+// smaller, then to the subject id in its place, and last, where even the id is wider than the
+// line, to no text at all, the block keeping its color and stripe and its full detail one tap
+// away. The secondary name is held to the same rule as a whole field: wider than its line by a
+// word, it drops whole.
 
 /** Which fields a block could show before any measurement, from its data and the display
  * options. `mask` is a stable primitive so a reset key can compare eligibility cheaply. */
@@ -42,11 +52,17 @@ export interface DensityEligibility {
 /** How many lines the name may take: every line it needs, or a clamp of at least one line. */
 export type NameLines = 'all' | number;
 
+/** How the name line reads: in full, one type step smaller, as the subject id in its place, or
+ * as no text at all, each the next step for a name with a word wider than its line. */
+export const NAME_FORMS = ['full', 'small', 'id', 'bare'] as const;
+export type NameForm = (typeof NAME_FORMS)[number];
+
 /** A chosen field set for one block. `nameLines` is never below 1: the name is the primary
  * anchor and always shows at least one clamped line. The time can drop because position
  * encodes it. */
 export interface DensityLevel {
   nameLines: NameLines;
+  nameForm: NameForm;
   showSecondary: boolean;
   showPlace: boolean;
   showSection: boolean;
@@ -65,8 +81,9 @@ export interface NameFit {
 /** The fewest lines the name keeps while the section chip still shows. */
 const NAME_LINES_BEFORE_SECTION = 2;
 
-/** A field that renders on one line that never wraps, so it shows whole or not at all. */
-export type WholeField = 'id' | 'time';
+/** A field that shows whole or not at all: the subject id and the time on one line that never
+ * wraps, and the secondary name, which wraps only between its words. */
+export type WholeField = 'id' | 'time' | 'secondary';
 
 /** Build the eligibility from the raw field predicates, deriving the stable mask. */
 export function buildEligibility(
@@ -83,6 +100,7 @@ export function buildEligibility(
 export function fullLevel(e: DensityEligibility): DensityLevel {
   return {
     nameLines: 'all',
+    nameForm: 'full',
     showSecondary: e.hasSecondary,
     showPlace: e.hasPlace,
     showSection: e.hasSection,
@@ -95,6 +113,7 @@ export function fullLevel(e: DensityEligibility): DensityLevel {
 export function sameLevel(a: DensityLevel, b: DensityLevel): boolean {
   return (
     a.nameLines === b.nameLines &&
+    a.nameForm === b.nameForm &&
     a.showSecondary === b.showSecondary &&
     a.showPlace === b.showPlace &&
     a.showSection === b.showSection &&
@@ -166,7 +185,23 @@ export function dropWholeFields(
     ...level,
     showId: level.showId && !fields.includes('id'),
     showTime: level.showTime && !fields.includes('time'),
+    showSecondary: level.showSecondary && !fields.includes('secondary'),
   };
+}
+
+/** The next name form for a name with a word wider than its line, or null once the name shows
+ * no text. The subject id takes the name's place, so it leaves the foot as it does. */
+export function nextNameForm(level: DensityLevel): DensityLevel | null {
+  switch (level.nameForm) {
+    case 'full':
+      return { ...level, nameForm: 'small' };
+    case 'small':
+      return { ...level, nameForm: 'id', showId: false };
+    case 'id':
+      return { ...level, nameForm: 'bare' };
+    case 'bare':
+      return null;
+  }
 }
 
 /** A field the reclaim pass may offer back: the three top rungs of the ladder. */
@@ -187,7 +222,7 @@ function canReclaim(
     case 'secondary':
       return e.hasSecondary && !level.showSecondary;
     case 'id':
-      return e.hasId && !level.showId;
+      return e.hasId && !level.showId && level.nameForm !== 'id';
   }
 }
 

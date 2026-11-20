@@ -12,7 +12,11 @@
 // and the time never wrap, so each marked whole field is measured against its own line: one
 // wider than the line drops at once, whole, before the height walk runs. Any other horizontal
 // overflow of the content wrapper walks the ladder like a height overflow, so no field is ever
-// cut at the right edge of a narrow block.
+// cut at the right edge of a narrow block. The secondary name is a whole field too: it wraps
+// only between its words, so one wider than its line drops it whole. An English name wraps only
+// at its spaces, so a word wider than the name's line is read from the name itself and steps the
+// name form down, a smaller type step, then the subject id in its place, then no text, before
+// the height walk runs (the ADR-0047 amendment of 2026-11-21).
 //
 // Once the content fits, a reclaim pass offers back, once each, the time, the secondary name,
 // and the subject id the walk dropped on the way down, since a later rung such as the secondary
@@ -50,6 +54,7 @@ import {
   dropWholeFields,
   fullLevel,
   nextDensityLevel,
+  nextNameForm,
   nextReclaim,
   sameLevel,
   type DensityEligibility,
@@ -72,7 +77,7 @@ const FIT_NAME_ATTR = 'data-fit-name';
 export const FIT_WHOLE_ATTR = 'data-fit-whole';
 
 function isWholeField(value: string | undefined): value is WholeField {
-  return value === 'id' || value === 'time';
+  return value === 'id' || value === 'time' || value === 'secondary';
 }
 
 /** The whole fields wider than their own line. A whole field clips its own overflow, so its
@@ -89,6 +94,13 @@ function measureWideFields(content: HTMLElement): WholeField[] {
     }
   }
   return wide;
+}
+
+/** Whether a word of the name is wider than the name's line. A name that may break inside a
+ * word never overflows its box, so only a name held to its word boundaries can read true. */
+function nameTooWide(content: HTMLElement): boolean {
+  const name = content.querySelector<HTMLElement>(`[${FIT_NAME_ATTR}]`);
+  return name !== null && name.scrollWidth - name.clientWidth > OVERFLOW_EPS;
 }
 
 /** Read how many lines the name renders and how many lines of content stand past the box, so
@@ -160,6 +172,14 @@ export function useDensityFit(
     if (!sameLevel(level, narrowed)) {
       setLevel(narrowed);
       return;
+    }
+    // A name with a word wider than its line steps its form down: no rung widens its line.
+    if (nameTooWide(el)) {
+      const stepped = nextNameForm(level);
+      if (stepped !== null) {
+        setLevel(stepped);
+        return;
+      }
     }
     // Measure the committed content and demote one rung while it overflows either way.
     const overflow = el.scrollHeight - el.clientHeight;

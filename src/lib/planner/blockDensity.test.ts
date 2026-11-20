@@ -5,6 +5,7 @@ import {
   sameLevel,
   nextDensityLevel,
   dropWholeFields,
+  nextNameForm,
   nextReclaim,
   type DensityLevel,
   type NameFit,
@@ -31,6 +32,7 @@ function walk(start: DensityLevel, fit?: NameFit): DensityLevel[] {
 
 const bare: DensityLevel = {
   nameLines: 1,
+  nameForm: 'full',
   showSecondary: false,
   showPlace: false,
   showSection: false,
@@ -63,6 +65,7 @@ describe('fullLevel', () => {
   it('shows every eligible field with the name in full and the time on', () => {
     expect(fullLevel(allEligible)).toEqual({
       nameLines: 'all',
+      nameForm: 'full',
       showSecondary: true,
       showPlace: true,
       showSection: true,
@@ -81,6 +84,7 @@ describe('fullLevel', () => {
     });
     expect(fullLevel(noSecondaryNoPlace)).toEqual({
       nameLines: 'all',
+      nameForm: 'full',
       showSecondary: false,
       showPlace: false,
       showSection: true,
@@ -107,6 +111,7 @@ describe('nextDensityLevel', () => {
       },
       {
         nameLines: 2,
+        nameForm: 'full',
         showSecondary: false,
         showPlace: true,
         showSection: false,
@@ -115,6 +120,7 @@ describe('nextDensityLevel', () => {
       },
       {
         nameLines: 1,
+        nameForm: 'full',
         showSecondary: false,
         showPlace: true,
         showSection: false,
@@ -253,6 +259,7 @@ describe('sameLevel', () => {
     expect(sameLevel(base, { ...base })).toBe(true);
     expect(sameLevel(base, { ...base, showTime: false })).toBe(false);
     expect(sameLevel(base, { ...base, nameLines: 1 })).toBe(false);
+    expect(sameLevel(base, { ...base, nameForm: 'small' })).toBe(false);
     expect(
       sameLevel({ ...base, nameLines: 3 }, { ...base, nameLines: 2 }),
     ).toBe(false);
@@ -273,9 +280,37 @@ describe('dropWholeFields', () => {
     expect(dropped.showId).toBe(true);
   });
 
+  it('drops a secondary name with a word wider than its line whole', () => {
+    const full = fullLevel(allEligible);
+    expect(dropWholeFields(full, ['secondary'])).toEqual({
+      ...full,
+      showSecondary: false,
+    });
+  });
+
   it('never brings back a field that was already absent', () => {
     expect(dropWholeFields(bare, [])).toEqual(bare);
-    expect(dropWholeFields(bare, ['id', 'time'])).toEqual(bare);
+    expect(dropWholeFields(bare, ['id', 'time', 'secondary'])).toEqual(bare);
+  });
+});
+
+describe('nextNameForm', () => {
+  it('steps a name too wide by a word down a type step, then to the id, then to no text', () => {
+    const full = fullLevel(allEligible);
+    const small = nextNameForm(full);
+    expect(small).toEqual({ ...full, nameForm: 'small' });
+    const id = small === null ? null : nextNameForm(small);
+    // The id takes the name's place, so it leaves the foot rather than show twice.
+    expect(id).toEqual({ ...full, nameForm: 'id', showId: false });
+    const none = id === null ? null : nextNameForm(id);
+    expect(none).toEqual({ ...full, nameForm: 'bare', showId: false });
+    expect(none === null ? 'never' : nextNameForm(none)).toBeNull();
+  });
+
+  it('never offers the foot id back while the id stands in for the name', () => {
+    const level = { ...fullLevel(allEligible), nameForm: 'id' as const };
+    const dropped = { ...level, showId: false };
+    expect(nextReclaim(dropped, allEligible, ['time', 'secondary'])).toBeNull();
   });
 });
 

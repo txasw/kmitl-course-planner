@@ -10,11 +10,15 @@
 // they are whole fields on one line that never wraps, since a code split across two lines reads
 // as two codes, and the density fit drops either whole when it is wider than its line rather
 // than let it clip at the block edge (ADR-0046 amendment of 2026-11-20). A Thai name breaks at
-// the browser's dictionary word boundaries and an English one at spaces; a break inside a word
-// is the last resort, for a word wider than the whole line. The API sends English names in
-// capitals, which Chromium does not hyphenate, so such a word breaks with no hyphen. The name
-// shows in full until the density fit clamps it to the lines the box holds, and the block
-// itself is the expand affordance, opening the full detail.
+// the browser's dictionary word boundaries, and a Thai word wider than the whole line breaks
+// inside the word as a last resort. An English name breaks only at its spaces, since the API
+// sends it in capitals, which Chromium does not hyphenate, so a word broken inside would
+// strand letters on a line with no hyphen. Where an English word is wider than the line, the
+// density fit steps the name form down instead: one type step smaller, then the subject id in
+// the name's place, then no text (ADR-0047 amendment of 2026-11-21). The secondary name wraps
+// only between its words in either language and drops whole when a word is wider than its
+// line. The name shows in full until the density fit clamps it to the lines the box holds, and
+// the block itself is the expand affordance, opening the full detail.
 //
 // Where the grid asks for the name only rule, a day column of the phone week or a suggestion
 // slide, a block narrower than 7em shows the name alone with tight padding, so the name has
@@ -25,7 +29,7 @@
 import type { RefObject } from 'react';
 import { MapPin } from 'lucide-react';
 import type { Locale } from '@/lib/i18n/t';
-import type { DensityLevel } from '@/lib/planner/blockDensity';
+import type { DensityLevel, NameForm } from '@/lib/planner/blockDensity';
 import type { BlockBadge } from './blockBadge';
 import {
   chipClass,
@@ -71,6 +75,41 @@ const WHOLE_FIELD = 'block overflow-hidden whitespace-nowrap';
 /** The custom property that carries the name clamp, read by the line clamp utility. */
 const NAME_LINES_PROPERTY = '--kcp-name-lines';
 
+/** How the name wraps: a Thai name at its dictionary words and inside a word wider than the
+ * line, any other name only at its spaces, so the fit sees a word wider than its line as an
+ * overflow of the name and steps the name form down rather than strand letters. */
+function nameWrapClass(nameLang: Locale): string {
+  return nameLang === 'th' ? 'break-words hyphens-auto' : 'break-normal';
+}
+
+/** The text and type of the name line for its form: the subject id stands in for the name one
+ * type step smaller on a line that never wraps, and a bare name shows no text. */
+function nameLine(
+  form: NameForm,
+  name: string,
+  nameLang: Locale,
+  subjectId: string,
+): { text: string; className: string; lang: Locale | undefined } {
+  switch (form) {
+    case 'full':
+      return { text: name, className: nameWrapClass(nameLang), lang: nameLang };
+    case 'small':
+      return {
+        text: name,
+        className: `${nameWrapClass(nameLang)} text-[0.9em]`,
+        lang: nameLang,
+      };
+    case 'id':
+      return {
+        text: subjectId,
+        className: 'whitespace-nowrap text-[0.9em] tabular-nums',
+        lang: undefined,
+      };
+    case 'bare':
+      return { text: '', className: '', lang: undefined };
+  }
+}
+
 /** The name clamp for a level: no clamp while the name shows in full. */
 function nameClampStyle(nameLines: DensityLevel['nameLines']): StyleWithVars {
   return nameLines === 'all'
@@ -100,6 +139,7 @@ export function EventBlockContent({
   const narrowHidden = nameOnlyWhenNarrow ? NARROW_HIDDEN : '';
   // The quiet lines read ink soft, except over the danger hatch, where only ink keeps 4.5:1.
   const quiet = badge === 'danger' ? 'text-ink' : 'text-ink-soft';
+  const line = nameLine(level.nameForm, name, nameLang, subjectId);
   return (
     <div
       ref={contentRef}
@@ -108,8 +148,8 @@ export function EventBlockContent({
     >
       <span
         data-fit-name
-        lang={nameLang}
-        className={`shrink-0 font-semibold break-words hyphens-auto ${
+        lang={line.lang}
+        className={`shrink-0 font-semibold ${line.className} ${
           level.nameLines === 'all' ? '' : 'line-clamp-(--kcp-name-lines)'
         } ${reserveRemove ? removeClearance(nameOnlyWhenNarrow) : ''}`}
         style={nameClampStyle(level.nameLines)}
@@ -122,12 +162,13 @@ export function EventBlockContent({
             }`}
           />
         ) : null}
-        {name}
+        {line.text}
       </span>
       {level.showSecondary && secondary !== null ? (
         <span
+          data-fit-whole="secondary"
           lang={secondaryLang ?? undefined}
-          className={`shrink-0 font-normal break-words hyphens-auto ${narrowHidden} ${quiet}`}
+          className={`shrink-0 overflow-hidden font-normal break-normal ${narrowHidden} ${quiet}`}
         >
           {secondary}
         </span>
