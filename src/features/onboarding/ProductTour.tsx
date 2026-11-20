@@ -28,6 +28,7 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { ChevronLeft } from 'lucide-react';
 import { useStore } from 'zustand';
 import {
   availableSteps,
@@ -442,8 +443,14 @@ function OpenProductTour({ record, panel }: OpenProductTourProps) {
                 <button
                   type="button"
                   onClick={handleBack}
-                  className={QUIET_BUTTON}
+                  className={`${QUIET_BUTTON} gap-0.5`}
                 >
+                  <ChevronLeft
+                    size={16}
+                    strokeWidth={2}
+                    aria-hidden
+                    className="shrink-0"
+                  />
                   {t('tour.back')}
                 </button>
               ) : null}
