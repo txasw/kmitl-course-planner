@@ -46,7 +46,11 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
   const placedBefore = await page.locator(GRID_BLOCK).count();
 
-  await page.getByRole('button', { name: 'แนะนำตาราง' }).click();
+  // The plan status row under the timetable carries the prominent entry point.
+  await page
+    .getByRole('group', { name: 'สรุปตาราง', exact: true })
+    .getByRole('button', { name: 'แนะนำตาราง' })
+    .click();
   const dialog = page.getByRole('dialog', { name: 'แนะนำตาราง' });
   await expect(dialog).toBeVisible();
   await dialog.getByRole('button', { name: 'เน้นเช้า' }).click();

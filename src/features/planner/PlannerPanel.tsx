@@ -6,13 +6,19 @@
 // selected courses list, and the summary: through the tabs above the region on the medium
 // and wide tiers, and through the bottom nav below 640 px, where the region carries no
 // tabs and so no tabpanel semantics. A timetable narrower than 640 px reads one day at a
-// time through the day view, or the portrait week when the student picks it. The stats
-// bar sits under every view, since it sums the plan rather than the view. In preview the
-// sharing toolbar heads the poster, or below 640 px follows it at the panel foot.
+// time through the day view, or the portrait week when the student picks it from the same
+// chip row. The status row sits under every view, since it sums the plan rather than the
+// view, and ends with the suggest action whenever a suggestion applies, so a phone keeps it
+// in the thumb zone. In preview the sharing toolbar heads the poster, or below 640 px follows
+// it at the panel foot.
 
 import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { flushSync } from 'react-dom';
 import { useStore } from 'zustand';
+import {
+  SuggestAction,
+  useSuggestTarget,
+} from '@/features/catalog/SuggestAction';
 import { catalogMeetings } from '@/lib/catalog/catalogMeetings';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import {
@@ -71,6 +77,7 @@ export function PlannerPanel() {
   const setPlanView = useStore(uiStore, (state) => state.setPlanView);
   const tier = useLayoutTier();
   const showTabs = tier !== 'compact';
+  const canSuggest = useSuggestTarget() !== null;
   const displayOptions = useStore(uiStore, (state) => state.displayOptions);
   // The updates dialog renders only in edit, where its actions live (ADR-0060).
   const updatesOpen = useStore(revalidationStore, (state) => state.updatesOpen);
@@ -433,13 +440,17 @@ export function PlannerPanel() {
         </div>
       )}
       {showTabs ? null : previewToolbar}
-      {!isPreview && sections.length > 0 ? (
+      {!isPreview && (sections.length > 0 || canSuggest) ? (
         <StatsBar
           sections={sections}
           semester={activePlan?.semester ?? null}
           conflictCount={honesty.conflictPairCount}
           onShowConflict={handleShowConflict}
           status={<VerificationStatus />}
+          action={
+            canSuggest ? <SuggestAction variant="prominent" /> : undefined
+          }
+          compact={!showTabs}
           locale={language}
           t={t}
         />
