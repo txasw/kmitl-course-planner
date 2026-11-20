@@ -1,42 +1,31 @@
-// The narrow timetable of ADR-0049: one day at a time under a row of day chips. The chips
-// keep the shape of the week in view, and below them the edit grid renders in portrait
-// with the one shown day as its only column, so the time runs down the scroller and each
-// block takes the full width. The window is the edit frame's smart window, so a drag holds
-// it as it does on the week. Blocks stay the same drag sources with the same detail and
-// context menu, and a day with no class says so with the day name.
+// The narrow timetable of ADR-0049: one day at a time under the chip row the timetable view
+// renders above it. The edit grid renders in portrait with the one shown day as its only
+// column, so the time runs down the scroller and each block takes the full width. The window
+// is the edit frame's smart window, so a drag holds it as it does on the week. Blocks stay the
+// same drag sources with the same detail and context menu, and a day with no class says so
+// with the day name. The timetable view resolves the shown day and passes it in, since the
+// chip row above the view reads it too. Each shown day opens scrolled to its first class, so
+// an afternoon class is in view on arrival.
 //
-// Until the student picks a day, the view follows the first day with a class, so a class
-// added from the catalog pane is in view on return; a picked day holds until its chip
-// leaves the row. The planner panel holds the picked day, so an action outside the view,
-// such as the stats bar conflict action, can show the day its target sits on. Each shown
-// day opens scrolled to its first class, so an afternoon class is in view on arrival.
-//
-// A horizontal swipe over the timetable steps the day, stopping at either end of the row.
-// It starts only past 24 px along the row and never while a drag is live. A touch drag
-// waits for a finger held within 8 px, so a finger that has travelled 24 px has already
-// released any pending long press, and a block keeps its tap and its long press. The chips
-// stay the path every input reaches. Under reduced motion the swipe still steps the day,
-// but the column does not follow the finger.
+// A horizontal swipe over the timetable steps the day, stopping at either end of the days; it
+// never lands on the week chip. It starts only past 24 px along the row and never while a drag
+// is live. A touch drag waits for a finger held within 8 px, so a finger that has travelled
+// 24 px has already released any pending long press, and a block keeps its tap and its long
+// press. The chips stay the path every input reaches. Under reduced motion the swipe still
+// steps the day, but the column does not follow the finger.
 
 import { useMemo } from 'react';
 import { fillTemplate } from '@/lib/i18n/template';
 import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import type { GridWindow } from '@/lib/planner/grid';
-import type { ConflictDetail } from '@/lib/planner/placement';
-import {
-  dayChipDays,
-  dayFlags,
-  shownDay,
-  stepDay,
-} from '@/lib/planner/dayView';
+import { stepDay, type DayFlags } from '@/lib/planner/dayView';
 import { usePrefersReducedMotion } from '@/features/shell/usePresence';
 import {
   useSwipeGesture,
   type SwipeDirection,
 } from '@/features/shell/useSwipeGesture';
 import { dragStore, selectDragging } from './dragStore';
-import { DayChips } from './DayChips';
 import { FreeDayNotice, GridEmptyState } from './GridEmptyState';
 import { GridScroller } from './GridScroller';
 import type { PlacedSection } from './placedSection';
@@ -52,12 +41,14 @@ interface DayViewProps {
   /** The scheduled placed sections. */
   sections: PlacedSection[];
   window: GridWindow;
-  /** The time conflicts among the placed sections, which mark their days. */
-  timeConflicts: ReadonlyMap<string, readonly ConflictDetail[]>;
+  /** The days the chip row offers, which the swipe steps through. */
+  days: readonly DayOfWeek[];
+  /** The class and conflict marks of every day. */
+  flags: DayFlags;
+  /** The day shown, resolved by the timetable view. */
+  day: DayOfWeek;
   /** Whether the plan holds no section at all, scheduled or not. */
   planEmpty: boolean;
-  /** The day the student picked, or null to follow the first day with a class. */
-  chosen: DayOfWeek | null;
   onChoose: (day: DayOfWeek) => void;
   grid: EditGridProps;
 }
@@ -65,23 +56,14 @@ interface DayViewProps {
 export function DayView({
   sections,
   window,
-  timeConflicts,
+  days,
+  flags,
+  day,
   planEmpty,
-  chosen,
   onChoose,
   grid,
 }: DayViewProps) {
   const { t } = grid;
-  const meetings = useMemo(
-    () => sections.flatMap((section) => section.meetings),
-    [sections],
-  );
-  const days = useMemo(() => dayChipDays(meetings), [meetings]);
-  const flags = useMemo(
-    () => dayFlags(meetings, timeConflicts),
-    [meetings, timeConflicts],
-  );
-  const day = shownDay(days, chosen, flags);
   const run = useMemo(() => [day], [day]);
   const dayName = t(dayFullLabelKey(day));
   const reducedMotion = usePrefersReducedMotion();
@@ -96,43 +78,34 @@ export function DayView({
   });
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2">
-      <DayChips
-        days={days}
-        selected={day}
-        flags={flags}
-        onSelect={onChoose}
-        t={t}
-      />
-      <div
-        {...handlers}
-        ref={bindClaim}
-        data-day-swipe
-        className={`flex min-h-0 flex-1 flex-col ${touchClass}`}
-        style={reducedMotion ? undefined : style}
-      >
-        <GridScroller revealKey={day}>
-          {(fontPx) => (
-            <WeeklyGrid
-              {...grid}
-              sections={sections}
-              window={window}
-              days={run}
-              orientation="portrait"
-              editable
-              fontPx={fontPx}
-              label={fillTemplate(t('view.dayGrid'), { day: dayName })}
-              notice={
-                planEmpty ? (
-                  <GridEmptyState t={t} searchAction />
-                ) : flags[day].hasClass ? null : (
-                  <FreeDayNotice dayName={dayName} t={t} />
-                )
-              }
-            />
-          )}
-        </GridScroller>
-      </div>
+    <div
+      {...handlers}
+      ref={bindClaim}
+      data-day-swipe
+      className={`flex min-h-0 flex-1 flex-col ${touchClass}`}
+      style={reducedMotion ? undefined : style}
+    >
+      <GridScroller revealKey={day}>
+        {(fontPx) => (
+          <WeeklyGrid
+            {...grid}
+            sections={sections}
+            window={window}
+            days={run}
+            orientation="portrait"
+            editable
+            fontPx={fontPx}
+            label={fillTemplate(t('view.dayGrid'), { day: dayName })}
+            notice={
+              planEmpty ? (
+                <GridEmptyState t={t} searchAction />
+              ) : flags[day].hasClass ? null : (
+                <FreeDayNotice dayName={dayName} t={t} />
+              )
+            }
+          />
+        )}
+      </GridScroller>
     </div>
   );
 }

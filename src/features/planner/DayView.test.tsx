@@ -15,8 +15,11 @@ import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { uiStore } from '@/features/shell/uiStore';
 import { createTranslator } from '@/lib/i18n/t';
-import type { DayOfWeek } from '@/lib/parsing/days';
-import { dayChipDays, dayFlags } from '@/lib/planner/dayView';
+import {
+  dayChipDays,
+  dayFlags,
+  type TimetableChoice,
+} from '@/lib/planner/dayView';
 import { planConflicts } from '@/lib/planner/planConflicts';
 import { gridFontPx } from '@/lib/ui/breakpoints';
 import {
@@ -73,8 +76,8 @@ const meetings = conflicting.flatMap((section) => section.meetings);
 const flags = dayFlags(meetings, planConflicts(conflicting));
 const days = dayChipDays(meetings);
 
-function ChipsHarness({ initial }: { initial: DayOfWeek }) {
-  const [day, setDay] = useState<DayOfWeek>(initial);
+function ChipsHarness({ initial }: { initial: TimetableChoice }) {
+  const [day, setDay] = useState<TimetableChoice>(initial);
   return (
     <DayChips
       days={days}
@@ -100,9 +103,41 @@ describe('DayChips', () => {
     expect(chip('วันเสาร์ มีเรียน')).toBeVisible();
     // Sunday carries no meeting, so the row never offers it.
     expect(screen.queryByRole('radio', { name: /วันอาทิตย์/ })).toBeNull();
+    // The week chip leads the row, so the one group arranges the whole timetable.
+    expect(chip('รายสัปดาห์')).toBeVisible();
     expect(
       screen.getAllByRole('radio').map((node) => node.dataset.day),
-    ).toEqual(['1', '2', '3', '4', '5', '6']);
+    ).toEqual(['week', '1', '2', '3', '4', '5', '6']);
+  });
+
+  it('marks the chosen chip by weight, outline, and an underline bar, not colour alone', () => {
+    render(<ChipsHarness initial={3} />);
+    const chosen = chip('วันพุธ มีเรียน');
+    expect(chosen).toHaveClass('font-semibold', 'ring-1', 'ring-inset');
+    expect(chosen.querySelector('[data-chip-bar]')).toHaveAttribute(
+      'data-chip-bar',
+      'on',
+    );
+    const other = chip('วันอังคาร');
+    expect(other).not.toHaveClass('font-semibold');
+    expect(other).not.toHaveClass('ring-1');
+    expect(other.querySelector('[data-chip-bar]')).toHaveAttribute(
+      'data-chip-bar',
+      'off',
+    );
+    // The bar sits in the flow under the label, never laid over it.
+    expect(chosen.querySelector('[data-chip-bar]')).not.toHaveClass('absolute');
+  });
+
+  it('checks the week chip for the week and leaves every day unchecked', () => {
+    render(<ChipsHarness initial="week" />);
+    expect(chip('รายสัปดาห์')).toHaveAttribute('aria-checked', 'true');
+    expect(chip('รายสัปดาห์')).toHaveAttribute('tabindex', '0');
+    expect(chip('รายสัปดาห์')).toHaveTextContent('สัปดาห์');
+    expect(chip('วันพุธ มีเรียน')).toHaveAttribute('aria-checked', 'false');
+    fireEvent.click(chip('วันพุธ มีเรียน'));
+    expect(chip('วันพุธ มีเรียน')).toHaveAttribute('aria-checked', 'true');
+    expect(chip('รายสัปดาห์')).toHaveAttribute('aria-checked', 'false');
   });
 
   it('marks class days and conflicts with hidden dots', () => {
@@ -134,14 +169,20 @@ describe('DayChips', () => {
 
   it('moves the choice and focus with the arrow keys, wrapping at the ends', () => {
     render(<ChipsHarness initial={6} />);
+    // The row wraps from its last day to the week chip that leads it, then to Monday.
     fireEvent.keyDown(chip('วันเสาร์ มีเรียน'), { key: 'ArrowRight' });
+    expect(chip('รายสัปดาห์')).toHaveAttribute('aria-checked', 'true');
+    expect(chip('รายสัปดาห์')).toHaveFocus();
+    fireEvent.keyDown(chip('รายสัปดาห์'), { key: 'ArrowRight' });
     expect(chip('วันจันทร์ มีรายการชนกัน')).toHaveAttribute('aria-checked', 'true');
     expect(chip('วันจันทร์ มีรายการชนกัน')).toHaveFocus();
     fireEvent.keyDown(chip('วันจันทร์ มีรายการชนกัน'), { key: 'ArrowLeft' });
+    expect(chip('รายสัปดาห์')).toHaveFocus();
+    fireEvent.keyDown(chip('รายสัปดาห์'), { key: 'ArrowLeft' });
     expect(chip('วันเสาร์ มีเรียน')).toHaveFocus();
     fireEvent.keyDown(chip('วันเสาร์ มีเรียน'), { key: 'Home' });
-    expect(chip('วันจันทร์ มีรายการชนกัน')).toHaveFocus();
-    fireEvent.keyDown(chip('วันจันทร์ มีรายการชนกัน'), { key: 'End' });
+    expect(chip('รายสัปดาห์')).toHaveFocus();
+    fireEvent.keyDown(chip('รายสัปดาห์'), { key: 'End' });
     expect(chip('วันเสาร์ มีเรียน')).toHaveAttribute('aria-checked', 'true');
   });
 });
@@ -451,12 +492,11 @@ describe('DayView', () => {
   });
 });
 
-describe('Timetable layout toggle', () => {
+describe('Timetable week chip', () => {
   function layout(name: string): HTMLElement {
-    return within(screen.getByRole('group', { name: 'รูปแบบตาราง' })).getByRole(
-      'button',
-      { name },
-    );
+    return within(
+      screen.getByRole('radiogroup', { name: 'วันที่แสดง' }),
+    ).getByRole('radio', { name });
   }
 
   // The grid item that carries the grid coordinates wraps the labeled block button.
@@ -468,22 +508,24 @@ describe('Timetable layout toggle', () => {
     return wrapper;
   }
 
-  it('opens on the day view with the day pressed below 640 px', () => {
+  it('opens on the day view with a day chip checked below 640 px', () => {
     installViewport(390);
     seedPlan();
     renderPanel();
-    expect(layout('รายวัน')).toHaveAttribute('aria-pressed', 'true');
-    expect(layout('รายสัปดาห์')).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.getByRole('radiogroup', { name: 'วันที่แสดง' })).toBeVisible();
+    expect(layout('วันพุธ มีเรียน')).toHaveAttribute('aria-checked', 'true');
+    expect(layout('รายสัปดาห์')).toHaveAttribute('aria-checked', 'false');
+    // The chip row is the one control: no separate day or week toggle renders.
+    expect(screen.queryByRole('button', { name: 'รายสัปดาห์' })).toBeNull();
   });
 
-  it('switches to the portrait week and back, remembering the choice', () => {
+  it('switches to the portrait week and back from the same row, remembering the choice', () => {
     installViewport(390);
     seedPlan();
     renderPanel();
     fireEvent.click(layout('รายสัปดาห์'));
     expect(uiStore.getState().timetableView).toBe('week');
-    expect(screen.queryByRole('radiogroup')).toBeNull();
+    // The row stays in place on the week, so a day is one tap away.
+    expect(screen.getByRole('radiogroup', { name: 'วันที่แสดง' })).toBeVisible();
     expect(
       screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
     ).toBeInTheDocument();
@@ -492,12 +534,17 @@ describe('Timetable layout toggle', () => {
     expect(blockItem('90000001').style.gridColumn).toBe('4');
     expect(blockItem('90000002').style.gridColumn).toBe('6');
     expect(blockItem('90000001').style.gridRow).toContain(' / ');
-    expect(layout('รายสัปดาห์')).toHaveAttribute('aria-pressed', 'true');
+    expect(layout('รายสัปดาห์')).toHaveAttribute('aria-checked', 'true');
+    expect(layout('วันพุธ มีเรียน')).toHaveAttribute('aria-checked', 'false');
 
-    fireEvent.click(layout('รายวัน'));
+    // A day chip returns to the day view on the day it names.
+    fireEvent.click(layout('วันศุกร์ มีเรียน'));
     expect(uiStore.getState().timetableView).toBe('day');
-    expect(screen.getByRole('radiogroup', { name: 'วันที่แสดง' })).toBeVisible();
-    expect(block('90000002')).toBeNull();
+    expect(layout('วันศุกร์ มีเรียน')).toHaveAttribute('aria-checked', 'true');
+    expect(
+      screen.getByRole('group', { name: 'ตารางเรียนวันศุกร์' }),
+    ).toBeInTheDocument();
+    expect(block('90000001')).toBeNull();
   });
 
   it('opens on a remembered week', () => {
@@ -507,19 +554,19 @@ describe('Timetable layout toggle', () => {
     installViewport(390);
     seedPlan();
     renderPanel();
-    expect(screen.queryByRole('radiogroup')).toBeNull();
+    expect(layout('รายสัปดาห์')).toHaveAttribute('aria-checked', 'true');
     expect(block('90000001')).not.toBeNull();
     expect(block('90000002')).not.toBeNull();
   });
 
-  it('hides the toggle and shows the landscape week from 640 px', () => {
+  it('hides the chip row and shows the landscape week from 640 px', () => {
     act(() => {
       uiStore.getState().setTimetableView('week');
     });
     installViewport(1366);
     seedPlan();
     renderPanel();
-    expect(screen.queryByRole('group', { name: 'รูปแบบตาราง' })).toBeNull();
+    expect(screen.queryByRole('radiogroup', { name: 'วันที่แสดง' })).toBeNull();
     // Landscape puts the day on the row and the time on the columns.
     expect(blockItem('90000001').style.gridColumn).toContain(' / ');
     expect(blockItem('90000001').style.gridRow).toBe('4');
