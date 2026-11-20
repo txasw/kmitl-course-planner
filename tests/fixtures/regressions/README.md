@@ -77,10 +77,11 @@ A synthetic catalog, not a live capture, added on 2026-07-13 after real exports 
 a block's foot line while the suite stayed green. It mirrors the shapes that clipped:
 three hour blocks, long Thai and English subject names, Thai place strings, and a
 lecture and practice pair (sections `34` and `35`), across four subjects with reserved
-ids from `90000601`. Two short subjects, `90000605` with a one hour block and `90000606` with a
-ninety minute block, were added on 2026-11-20 for the whole field width rule of the ADR-0046
-amendment, since a subject id clipped on such narrow landscape blocks. Three of the subjects carry midterm and final windows, so the poster
-exam block from ADR-0064 has dated and arranged by the instructor lines to fit. The mock
-server serves it for the reserved subject id `90000600`, and the export fit guard in
+ids from `90000601`. Two short subjects, `90000605` with a one hour block and `90000606`
+with a ninety minute block, were added on 2026-11-20 for the whole field width rule of
+the ADR-0046 amendment, since a subject id clipped on such narrow landscape blocks.
+Three of the subjects carry midterm and final windows, so the poster exam block from
+ADR-0064 has dated and arranged by the instructor lines to fit. The mock server serves
+it for the reserved subject id `90000600`, and the export fit guard in
 `tests/e2e/export-fit.debug.spec.ts` checks that no block text and no exam line clips at
 any export preset (ADR-0046).

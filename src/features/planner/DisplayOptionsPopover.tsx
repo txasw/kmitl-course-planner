@@ -1,14 +1,15 @@
-// The display options popover in the preview toolbar. It sets the poster options,
-// which apply to the preview and every export, so the choices persist through the ui
-// store and its preferences hook. The name language leads as a three way choice, Thai,
+// The display options popover in the preview toolbar. It sets the poster options, which
+// apply to the preview and every export, so the choices persist through the ui store
+// and its preferences hook. The name language leads as a three way choice, Thai,
 // English, or both, selected on the panel language until the student picks one; the
 // switches follow, trimmed to the fields a whole field fit can still change: the room,
-// the section, the subject id, and the exam schedule (ADR-0046 amendment of 2026-11-20). It is positioned with floating-ui
-// like the plan switcher, a fixed strategy that escapes the toolbar, dismisses on
-// an outside click, and intercepts Escape so it closes only the popover rather than
-// the whole overlay. Below 640 px the options open in a bottom sheet instead, so
-// they take the full width under a thumb and leave the poster in view above them, and the
-// trigger is an icon button like the other toolbar actions there.
+// the section, the subject id, and the exam schedule (ADR-0046 amendment of
+// 2026-11-20). It is positioned with floating-ui like the plan switcher, a fixed
+// strategy that escapes the toolbar, dismisses on an outside click, and intercepts
+// Escape so it closes only the popover rather than the whole overlay. Below 640 px the
+// options open in a bottom sheet instead, so they take the full width under a thumb and
+// leave the poster in view above them, and the trigger is an icon button like the other
+// toolbar actions there.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';

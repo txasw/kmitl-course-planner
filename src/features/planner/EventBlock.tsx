@@ -16,27 +16,27 @@
 // fill, so it reads the same on either surface. On the export poster and in the edit grid
 // alike the content is measured against the box and whole low priority fields are dropped
 // rather than a line clipped mid glyph: the fit walks the density ladder in useDensityFit,
-// dropping the subject id, then the secondary name, then the time, then clamping the name to
-// the lines that fit, then the section chip, then reducing the name to one line, then the
-// place, with the name never dropping (ADR-0046, ADR-0047). The place outlives the name's
-// second line and the time never outlives the place. The subject id and the time never wrap
-// and drop whole when wider than the block, so a code is never cut at the edge. The edit block keeps its tighter line
-// height and always carries the subject id for cross referencing, so the id is the first
-// field it drops; the hover card and the details still show it (ADR-0050). The edit fit
-// pauses during a drag. In edit mode the block is a drag source (the ref and listeners
-// come from the draggable wrapper so this stays free of the drag library) and is itself
-// the button that opens the pinned detail popover on click or Enter and Space, the
-// keyboard path to details and actions; the hover card shows the same detail on hover
-// (ADR-0044), so the block carries no separate info affordance. The only chrome control is
-// the quiet remove button, kept a sibling of the interactive block rather than nested
-// inside it so no interactive control nests in another; a positioning wrapper holds both.
-// Under a coarse pointer the remove button is hidden: a 44 px target would cover a short
-// block, and the detail sheet that a tap or Enter on the block opens carries Remove, so a
-// touch laptop used with a keyboard keeps a keyboard path to removal (ADR-0058). Where the
-// grid asks for the name only rule, a block narrower than 7em hides it too, for the same
-// reason and with the same path, so it never covers the name such a block shows alone.
-// The verification marks are an editing signal for the plan owner, so the export poster
-// renders the block without them (ADR-0055).
+// dropping the subject id, then the secondary name, then the time, then clamping the name
+// to the lines that fit, then the section chip, then reducing the name to one line, then
+// the place, with the name never dropping (ADR-0046, ADR-0047). The place outlives the
+// name's second line and the time never outlives the place. The subject id and the time
+// never wrap and drop whole when wider than the block, so a code is never cut at the edge.
+// The edit block keeps its tighter line height and always carries the subject id for cross
+// referencing, so the id is the first field it drops; the hover card and the details still
+// show it (ADR-0050). The edit fit pauses during a drag. In edit mode the block is a drag
+// source (the ref and listeners come from the draggable wrapper so this stays free of the
+// drag library) and is itself the button that opens the pinned detail popover on click or
+// Enter and Space, the keyboard path to details and actions; the hover card shows the same
+// detail on hover (ADR-0044), so the block carries no separate info affordance. The only
+// chrome control is the quiet remove button, kept a sibling of the interactive block rather
+// than nested inside it so no interactive control nests in another; a positioning wrapper
+// holds both. Under a coarse pointer the remove button is hidden: a 44 px target would
+// cover a short block, and the detail sheet that a tap or Enter on the block opens carries
+// Remove, so a touch laptop used with a keyboard keeps a keyboard path to removal
+// (ADR-0058). Where the grid asks for the name only rule, a block narrower than 7em hides
+// it too, for the same reason and with the same path, so it never covers the name such a
+// block shows alone. The verification marks are an editing signal for the plan owner, so
+// the export poster renders the block without them (ADR-0055).
 
 import {
   memo,

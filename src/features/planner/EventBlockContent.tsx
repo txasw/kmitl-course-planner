@@ -1,19 +1,20 @@
 // The measured content column of a placed block, in the inverted reading order of ADR-0047:
 // the subject name first, a secondary name in the other language under it when the name
-// language asks for both, the place with its location glyph and the section chip at the end of the same row, and the time
-// and the subject id as quiet metadata at the foot. Every line sits in flow, so nothing is
-// positioned over text: the section chip trails the place and wraps under it when the row is
-// full, and an optional status dot leads the name (ADR-0047 amendment of 2026-11-20).
+// language asks for both, the place with its location glyph and the section chip at the end
+// of the same row, and the time and the subject id as quiet metadata at the foot. Every line
+// sits in flow, so nothing is positioned over text: the section chip trails the place and
+// wraps under it when the row is full, and an optional status dot leads the name (ADR-0047
+// amendment of 2026-11-20).
 //
 // Every text field wraps rather than ellipsizes. The time and the subject id are the exception:
 // they are whole fields on one line that never wraps, since a code split across two lines reads
 // as two codes, and the density fit drops either whole when it is wider than its line rather
-// than let it clip at the block edge (ADR-0046 amendment of 2026-11-20). A Thai name breaks at the browser's dictionary word
-// boundaries and an English one at spaces; a break inside a word is the last resort, for a word
-// wider than the whole line. The API sends English names in capitals, which Chromium does not
-// hyphenate, so such a word breaks with no hyphen. The name shows in full until the density fit
-// clamps it to the lines the box holds, and the block itself is the expand affordance, opening
-// the full detail.
+// than let it clip at the block edge (ADR-0046 amendment of 2026-11-20). A Thai name breaks at
+// the browser's dictionary word boundaries and an English one at spaces; a break inside a word
+// is the last resort, for a word wider than the whole line. The API sends English names in
+// capitals, which Chromium does not hyphenate, so such a word breaks with no hyphen. The name
+// shows in full until the density fit clamps it to the lines the box holds, and the block
+// itself is the expand affordance, opening the full detail.
 //
 // Where the grid asks for the name only rule, a day column of the phone week or a suggestion
 // slide, a block narrower than 7em shows the name alone with tight padding, so the name has

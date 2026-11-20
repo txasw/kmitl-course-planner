@@ -10,17 +10,16 @@
 //
 // The priority inverts the usual reading order because position carries the time. Drop order,
 // first dropped to last: the subject id, then the secondary name (the second language under a
-// name language of both), then the time (redundant here,
-// the row and extent encode it), then the name gives up the lines past its second, then the
-// section chip, then the name reduces from two clamped lines to one, then the place. The name
-// alone never drops. At full density the name is not clamped, so a name the box can hold shows
-// in full (the ADR-0047 amendment of 2026-11-20); its first reduction clamps it to the lines
-// that fit in one step, from a measurement the caller passes, and never below two. Two
-// constraints are binding: the place outlives the name's second line, since a one line
-// ellipsized name still identifies the course while a lost room is recoverable nowhere else on
-// the sheet, and the time never outlives the place, since the place is the field position
-// cannot encode. The time is kept present as a quiet foot line rather than deleted, so a ninety
-// minute block still reads its exact minutes.
+// name language of both), then the time (redundant here, the row and extent encode it), then
+// the name gives up the lines past its second, then the section chip, then the name reduces
+// from two clamped lines to one, then the place. The name alone never drops. At full density
+// the name is not clamped, so a name the box can hold shows in full (the ADR-0047 amendment of
+// 2026-11-20); its first reduction clamps it to the lines that fit in one step, from a
+// measurement the caller passes, and never below two. Two constraints are binding: the place
+// outlives the name's second line, since a one line ellipsized name still identifies the course
+// while a lost room is recoverable nowhere else on the sheet, and the time never outlives the
+// place, since the place is the field position cannot encode. The time is kept present as a
+// quiet foot line rather than deleted, so a ninety minute block still reads its exact minutes.
 //
 // Width is measured as well as height (the ADR-0046 amendment of 2026-11-20). The subject id
 // and the time are whole fields: each sits on one unbreakable line, since a code split across
