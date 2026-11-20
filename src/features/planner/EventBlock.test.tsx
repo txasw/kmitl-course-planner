@@ -219,10 +219,10 @@ describe('EventBlock', () => {
     expect(footOf()?.className).toContain('mt-auto');
   });
 
-  it('wraps and hyphenates a long name by its language rather than clipping a glyph', () => {
-    // A long token in a narrow column wraps and, where a forced break is needed, hyphenates
-    // by the text language so it never clips mid glyph; the language attribute also keeps Thai
-    // on its native dictionary breaking (F2, ADR-0046, ADR-0047).
+  it('wraps a Thai name only between its dictionary words', () => {
+    // The language attribute keeps Thai on its native dictionary breaking, and no forced break
+    // splits a word, so a word wider than its column overflows and the fit steps the name form
+    // down instead of stranding a letter on its own line (ADR-0046, ADR-0047).
     render(
       <EventBlock
         section={section}
@@ -234,8 +234,8 @@ describe('EventBlock', () => {
     );
     const block = screen.getByLabelText(/90592033/);
     const nameEl = within(block).getByText('วิชาทดสอบ');
-    expect(nameEl.className).toContain('break-words');
-    expect(nameEl.className).toContain('hyphens-auto');
+    expect(nameEl).toHaveClass('break-normal');
+    expect(nameEl).not.toHaveClass('break-words');
     expect(nameEl).toHaveAttribute('lang', 'th');
   });
 
@@ -468,7 +468,7 @@ describe('EventBlock', () => {
     // At full density the name carries no clamp, so a name the box holds shows in full.
     const name = container.querySelector<HTMLElement>('[data-fit-name]');
     expect(name?.style.getPropertyValue('--kcp-name-lines')).toBe('');
-    expect(name).toHaveClass('break-words', 'hyphens-auto');
+    expect(name).toHaveClass('break-normal');
   });
 
   it('leaves out an empty foot so its margin never costs the name a line', () => {
