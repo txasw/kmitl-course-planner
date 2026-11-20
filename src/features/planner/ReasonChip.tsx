@@ -9,6 +9,7 @@
 import { AlertTriangle } from 'lucide-react';
 import type { ActiveDrag } from './dragStore';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { MORE_CONFLICT_UNIT, countWithUnit } from '@/lib/i18n/counts';
 import { describeConflicts } from '@/lib/planner/describeConflict';
 import { conflictReasonParts } from './conflictText';
 
@@ -36,7 +37,7 @@ export function ReasonChip({ active }: { active: ActiveDrag }) {
         {detail !== null ? <p className="text-ink-soft">{detail}</p> : null}
         {description.moreCount > 0 ? (
           <p className="text-ink-soft">
-            +{String(description.moreCount)} {t('feedback.moreConflicts')}
+            +{countWithUnit(t, description.moreCount, MORE_CONFLICT_UNIT)}
           </p>
         ) : null}
       </div>

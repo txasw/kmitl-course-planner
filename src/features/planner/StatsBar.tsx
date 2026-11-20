@@ -25,6 +25,7 @@ import {
   Layers,
   ShieldCheck,
 } from 'lucide-react';
+import { CREDIT_UNIT, SUBJECT_UNIT, unitWord } from '@/lib/i18n/counts';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
 import { fillTemplate } from '@/lib/i18n/template';
@@ -129,7 +130,7 @@ function PlanFacts({
           >
             {totals.credits}
           </span>{' '}
-          {t('footer.credits')}
+          {unitWord(t, totals.credits, CREDIT_UNIT)}
         </span>
       </span>
       {load.kind === 'within' ? null : <CreditLoadNote load={load} t={t} />}
@@ -137,7 +138,7 @@ function PlanFacts({
         <Layers {...SMALL_ICON} />
         <span>
           <span className={NUMBER}>{totals.subjects}</span>{' '}
-          {t('footer.subjects')}
+          {unitWord(t, totals.subjects, SUBJECT_UNIT)}
         </span>
       </span>
       {conflictCount > 0 ? (

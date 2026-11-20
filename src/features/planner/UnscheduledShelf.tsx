@@ -14,6 +14,7 @@
 import { BookOpen, FlaskConical } from 'lucide-react';
 import { RemarkLine } from '@/features/catalog/RemarkLine';
 import { RulesNotice } from '@/features/catalog/RulesNotice';
+import { CREDIT_UNIT, countWithUnit } from '@/lib/i18n/counts';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import {
   subjectNameLines,
@@ -124,9 +125,7 @@ export function UnscheduledShelf({
                       ? t('section.practice')
                       : t('section.lecture')}
                   </Pill>
-                  <span>
-                    {section.credit} {t('footer.credits')}
-                  </span>
+                  <span>{countWithUnit(t, section.credit, CREDIT_UNIT)}</span>
                   {onRemove !== undefined ? (
                     <button
                       type="button"
