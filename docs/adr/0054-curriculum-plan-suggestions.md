@@ -144,3 +144,10 @@ with the short label แนะนำตาราง (Suggest), so a phone reache
 back to the catalog pane (ADR-0049 amendment of the same date). Both entries share
 `useSuggestTarget` and open the same dialog, and both are absent rather than disabled when no
 suggestion applies. The catalog head keeps its quiet entry.
+
+On the medium and wide tiers both entries show at once, and in Thai both read แนะนำตาราง. The
+duplicate is kept on purpose. Each entry sits beside what it works from: the catalog entry next
+to the result it reads, and the row entry next to the plan it fills. On a phone the catalog pane
+and the timetable are separate views, so there the catalog entry is the only one in reach while
+the student reads the result. Both open the same dialog, so one name for one action follows
+consistent identification (WCAG 3.2.4) rather than giving a screen reader two names for it.
