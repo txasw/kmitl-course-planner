@@ -5,7 +5,8 @@
 // springs back. The consumer binds the handlers to the element that owns the gesture and the
 // style to the element that moves, which may differ: the sheet binds its handle and header
 // only, because capturing the pointer on its scrolling body would break both scrolling and
-// taps there. The touch class hands the other axis to the browser so a pan across the
+// taps there. A consumer that moves its own element, as the suggestion carousel slides its
+// track, reads the tracked offset instead of the style. The touch class hands the other axis to the browser so a pan across the
 // gesture still scrolls. When disabled, for reduced motion, no tracking runs and nothing
 // moves under the pointer, so the close control is the only dismissal. The handlers guard
 // on the enabled flag internally, so their shape is stable across renders.
@@ -62,6 +63,9 @@ export interface SwipeGesture {
     onPointerCancel: () => void;
   };
   style: CSSProperties;
+  /** The tracked distance along the axis, 0 at rest, for a consumer that moves its own
+   * element rather than taking the style. */
+  offset: number;
   touchClass: string;
   /** A callback ref that claims the axis from the browser for touch moves. */
   bindClaim: (node: HTMLElement | null) => (() => void) | undefined;
@@ -205,6 +209,7 @@ export function useSwipeGesture({
   return {
     handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel },
     style,
+    offset,
     touchClass: enabled ? TOUCH_CLASS[axis] : '',
     bindClaim,
   };
