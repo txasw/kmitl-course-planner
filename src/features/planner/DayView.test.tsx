@@ -249,6 +249,22 @@ function noticeBelongsToGrid(notice: string): boolean {
   );
 }
 
+/** Whether the free day is one line at the top of its slot rather than a centered card. */
+function freeDayIsOneLine(): boolean {
+  const node = document.querySelector('[data-grid-notice="free-day"]');
+  if (node === null) return false;
+  const lines = node.querySelectorAll(':scope > p');
+  return (
+    lines.length === 1 &&
+    node.childElementCount === 1 &&
+    !node.classList.contains('items-center') &&
+    !node.className.includes('bg-surface') &&
+    node.querySelector(
+      '[data-empty-state], h3, .sticky, .border, .shadow-kcp, .rounded-full',
+    ) === null
+  );
+}
+
 function block(subjectId: string): HTMLElement | null {
   return screen.queryByRole('button', { name: new RegExp(subjectId) });
 }
@@ -278,13 +294,14 @@ describe('DayView', () => {
 
     fireEvent.click(chip('วันอังคาร'));
     const note = document.querySelector('[data-grid-notice="free-day"]');
-    expect(note).toHaveTextContent('วันอังคาร');
-    expect(note).toHaveTextContent('วันนี้ไม่มีคาบเรียน');
-    // The sticky hour column would otherwise cover the card's leading edge.
+    expect(note).toHaveTextContent(/^วันว่าง ไม่มีคาบเรียน/);
+    // The chip row and the grid label already name the day, so the line does not.
+    expect(note).not.toHaveTextContent('วันอังคาร');
+    // The sticky hour column would otherwise cover the line's leading edge.
     expect(noticeOverBody('free-day')).toBe(true);
-    // The free day reads like every other empty state in the panel, not a card laid over
-    // the lanes.
-    expect(noticeBelongsToGrid('free-day')).toBe(true);
+    // The mockup's single quiet line at the top of the slot: no card, no disc, no wash
+    // over the lanes, and no sticky pin.
+    expect(freeDayIsOneLine()).toBe(true);
   });
 
   it('returns from a free day to the week with focus on the week chip', () => {

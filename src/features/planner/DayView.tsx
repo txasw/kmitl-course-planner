@@ -3,9 +3,9 @@
 // column, so the time runs down the scroller and each block takes the full width. The window
 // is the edit frame's smart window, so a drag holds it as it does on the week. Blocks stay the
 // same drag sources with the same detail and context menu, and a day with no class says so
-// with the day name. The timetable view resolves the shown day and passes it in, since the
-// chip row above the view reads it too. Each shown day opens scrolled to its first class, so
-// an afternoon class is in view on arrival.
+// in one line at the top of its slot. The timetable view resolves the shown day and passes
+// it in, since the chip row above the view reads it too. Each shown day opens scrolled to
+// its first class, so an afternoon class is in view on arrival.
 //
 // A horizontal swipe over the timetable steps the day, stopping at either end of the days; it
 // never lands on the week chip. It starts only past 24 px along the row and never while a drag
@@ -103,11 +103,7 @@ export function DayView({
               planEmpty ? (
                 <GridEmptyState t={t} searchAction />
               ) : flags[day].hasClass ? null : (
-                <FreeDayNotice
-                  dayName={dayName}
-                  onShowWeek={onShowWeek}
-                  t={t}
-                />
+                <FreeDayNotice onShowWeek={onShowWeek} t={t} />
               )
             }
           />
