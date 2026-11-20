@@ -43,9 +43,9 @@ export function Diagnostics() {
   const { data, refresh, setSimulation } = useDiagnosticsData(send);
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>('requests');
-  const coachMarkOpen = useStore(
+  const onboardingOpen = useStore(
     onboardingStore,
-    (state) => state.coachMarkOpen,
+    (state) => state.coachMarkOpen || state.tourOpen,
   );
 
   const panelOpen = useStore(uiStore, (state) => state.isOpen);
@@ -75,9 +75,10 @@ export function Diagnostics() {
     void send({ type: 'debug/setMutation', mutationId }).then(refresh);
   };
 
-  // The trigger steps aside while the search page coach mark shows, since on a phone it
-  // would sit over the coach mark's buttons and it is not what the coach mark points at.
-  if (!open && (coachMarkOpen || panelOpen)) return null;
+  // The trigger steps aside while the search page coach mark or the product tour shows,
+  // since on a phone it would sit over their buttons and copy and it is not what either
+  // points at, and while the panel is open, where the header menu reaches the drawer.
+  if (!open && (onboardingOpen || panelOpen)) return null;
 
   if (!open) {
     return (
