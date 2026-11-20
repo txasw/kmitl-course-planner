@@ -105,7 +105,8 @@ the overflow, never below two lines while the section chip shows. The rest of th
 so the drop order is the subject id, the English name, the time, the name past its second line,
 the section chip, the name to one line, then the place, and both binding constraints stand. A name
 the box cannot hold is clamped with an ellipsis, and the block itself is the expand affordance: it
-opens the full detail in edit, and a suggestion thumbnail offers its full size card.
+opens the full detail in edit, and a suggestion slide names every section in full in its
+placed list (ADR-0054, amendment of 2026-11-20 on one suggestion per slide).
 
 Narrow blocks. Where the block width is a day column or a thumbnail track, the portrait edit grid
 and the plan suggestion cards, a block narrower than 7em, measured by a container query on the

@@ -151,3 +151,45 @@ to the result it reads, and the row entry next to the plan it fills. On a phone 
 and the timetable are separate views, so there the catalog entry is the only one in reach while
 the student reads the result. Both open the same dialog, so one name for one action follows
 consistent identification (WCAG 3.2.4) rather than giving a screen reader two names for it.
+
+## Amendment, 2026-11-20: one suggestion per slide
+
+Owner feedback item 1 asked for the suggestions to read one at a time. The search still returns up
+to three suggestions, and everything above about how they are chosen stands.
+
+The dialog shows the suggestions as a carousel on every tier. Each slide holds one suggestion:
+its mini week grid in the frame the slides share, its stats, the sections it places named in
+full, the ticked courses it leaves out with their reasons, and its apply action. The slides sit
+on one track and only the shown slide takes focus or reaches assistive technology; the others are
+inert. A student pages four ways: a horizontal swipe across the slide, which starts only after
+the pointer travels 24 px so a tap on a control keeps its target and pages past the 72 px
+threshold the other swipes use; the previous and next chevrons, named "ตัวเลือกก่อนหน้า" and
+"ตัวเลือกถัดไป" ("Previous option" and "Next option"); a dot per suggestion, a button that marks
+the shown one with aria-current; and the left and right arrow keys, with Home and End, on the
+focusable slide area and on the dots. Paging clamps at the ends. The line between the chevrons
+reads "ตัวเลือก 2 จาก 3" ("Option 2 of 3") and is a polite live region, so each change is
+announced. A key that pages from a control in the outgoing slide moves focus to the slide area,
+and a chevron that disables at an end hands focus to the shown dot, so focus never drops to the
+document. Under reduced motion the track jumps instead of sliding and the slide does not follow
+the finger, while the swipe still pages. Two suggestions show two dots; one suggestion shows no
+chevrons, dots, or position line. A new tick, objective, or preference returns to the first
+slide, as the compact pager did.
+
+The full size view is removed. It existed because three cards side by side left each grid about
+224 px tall. A slide takes the full dialog width, and its grid is 320 px tall in landscape on the
+medium and docked tiers and 480 px in portrait on compact, at the 10 px grid type of the old
+cards, so it reads in place. On compact the slide drops the card edge and padding and gives that
+width to the day columns: at 360 px the padded card left a column too narrow for คอมพิวเตอร์,
+which broke one character onto its own line. The full size card was also the expand affordance
+ADR-0047 named for a name the grid clamps; that role moves to a collapsed list, "วิชาในตัวเลือกนี้
+{count} วิชา" ("Subjects in this option: {count}"), that names every section the slide places in
+full with its section code and kind, and which also lists a section with no meeting that the grid
+cannot draw.
+
+The side by side comparison on the medium and docked tiers is withdrawn with the cards. Its
+subgrid kept each stat at one height across the cards; a slide shows one suggestion, and the
+shared frame still puts the same hour and day at the same place on every slide, so paging
+compares the grids directly. A carousel library was rejected because the swipe hook the day view
+and the sheets use already covers the gesture, and a dependency would add bundle weight for one
+dialog. Keeping a full size view beside the slides was rejected because it would show the same
+grid a second time with only a little more height.
