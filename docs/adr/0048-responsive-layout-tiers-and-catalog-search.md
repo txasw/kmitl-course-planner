@@ -683,8 +683,9 @@ the build unseen. A sweep now guards the whole panel.
   error views, the three search tabs, the query chip, the catalog collapsed and open with the
   longest Thai names and the longest teacher list in the fixtures, the filter popover and the
   sort list, the timetable in its day and week views, the block details, the status row, the
-  feedback strip, the drag reason card, the suggest dialog and one opened option, the export
-  page at each template with its display options, the updates dialog, and the undo toast. On each
+  feedback strip, the drag reason card, the suggest dialog at its first and second carousel
+  option with every subject group open, the export page at each template with its display
+  options, the updates dialog, and the undo toast. On each
   it fails on a text leaf that a box cuts, read as a box that hides its overflow and holds more
   than it shows or a line that runs past its edge, on a label half hidden in a row that scrolls
   sideways only, and on two text leaves that draw over each other. Each line is read at its line
