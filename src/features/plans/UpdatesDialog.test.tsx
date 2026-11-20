@@ -181,6 +181,26 @@ describe('UpdatesDialog', () => {
     expect(within(dialog).queryByRole('article')).toBeNull();
   });
 
+  it('folds the unchanged entries behind a chevron button, not a native details marker', () => {
+    openDialog([reviewed('1', ['room_changed']), PLAIN]);
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.querySelector('details, summary')).toBeNull();
+    const toggle = within(dialog).getByRole('button', {
+      name: 'ไม่เปลี่ยนแปลง 1 รายการ',
+    });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle).not.toHaveAttribute('aria-controls');
+    expect(toggle.querySelector('svg')).not.toBeNull();
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    const list = document.getElementById(
+      toggle.getAttribute('aria-controls') ?? '',
+    );
+    if (list === null) throw new Error('expected the unchanged list');
+    expect(list.tagName).toBe('UL');
+    expect(within(list).getAllByRole('listitem')).toHaveLength(1);
+  });
+
   it('treats Escape as later: it marks the items shown and the overlay stays open', () => {
     const { opener, onOverlayEscape } = openDialog([
       reviewed('1', ['room_changed']),

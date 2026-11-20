@@ -6,13 +6,15 @@
 // are list items rather than articles, since the list is one review and not a feed. The
 // entries with nothing to review sit in one collapsed group under the same name line.
 
-import type { ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { Pill } from '@/components/Pill';
 import type { PlanEntry, ReviewKind } from '@/lib/domain/plan';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import { pickLocalizedWithLang } from '@/lib/i18n/localize';
 import { fillTemplate } from '@/lib/i18n/template';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_HEIGHT } from '@/lib/ui/target';
 import type {
   UpdateGroup,
   UpdateGroupKey,
@@ -166,20 +168,40 @@ export function UnchangedGroup({
   locale: Locale;
   t: Translate;
 }) {
+  const [open, setOpen] = useState(false);
+  const listId = useId();
+  // A button disclosure with the panel's chevron rather than a native details element,
+  // whose browser triangle matched no other disclosure in the panel. The list unmounts
+  // while folded, as a folded catalog group does.
   return (
-    <details>
-      <summary
-        className={`cursor-pointer rounded-kcp-inner py-1 text-xs text-ink-soft hover:text-ink ${FOCUS_RING}`}
+    <div>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={open ? listId : undefined}
+        onClick={() => {
+          setOpen((value) => !value);
+        }}
+        className={`flex w-full items-center gap-1.5 rounded-kcp-inner py-1 text-left text-xs text-ink-soft hover:text-ink ${TARGET_HEIGHT} ${FOCUS_RING}`}
       >
-        {fillTemplate(t('updates.unchangedGroup'), { count: entries.length })}
-      </summary>
-      <ul className="mt-1 flex flex-col gap-1">
-        {entries.map((entry) => (
-          <li key={entry.teachTableId}>
-            <EntryName entry={entry} locale={locale} t={t} emphasis={false} />
-          </li>
-        ))}
-      </ul>
-    </details>
+        <ChevronDown
+          size={14}
+          aria-hidden
+          className={`shrink-0 transition-transform duration-fast motion-reduce:transition-none ${open ? '' : '-rotate-90'}`}
+        />
+        <span className="min-w-0 flex-1">
+          {fillTemplate(t('updates.unchangedGroup'), { count: entries.length })}
+        </span>
+      </button>
+      {open ? (
+        <ul id={listId} className="mt-1 flex flex-col gap-1">
+          {entries.map((entry) => (
+            <li key={entry.teachTableId}>
+              <EntryName entry={entry} locale={locale} t={t} emphasis={false} />
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
   );
 }
