@@ -427,9 +427,8 @@
   "stats.creditsBelow": "Below the usual minimum of {min} credits",
   "stats.creditsAbove": "Above the usual maximum of {max} credits",
   "stats.freeDays": "Free days {days}",
-  "mode.select": "View mode",
-  "mode.edit": "Edit",
-  "mode.preview": "Preview",
+  "mode.export": "Export",
+  "mode.backToEdit": "Back to editing",
   "plan.untitled": "Plan",
   "planView.label": "Plan views",
   "planView.timetable": "Timetable",
@@ -523,7 +522,7 @@
   "shortcuts.filter": "Go to the results filter",
   "shortcuts.undo": "Undo the last change to the plan while its undo message shows",
   "shortcuts.help": "Show this list",
-  "shortcuts.escape": "Close the open window, or the panel",
+  "shortcuts.escape": "Close the open window, leave the export page, or close the panel",
   "shortcuts.or": "or",
   "shortcuts.note": "Shortcuts do not apply while you type in a field."
 }

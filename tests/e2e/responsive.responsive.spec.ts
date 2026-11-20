@@ -31,7 +31,7 @@ import type { Plan } from '../../src/lib/domain/plan';
 
 // A responsive smoke for the phone and tablet projects. It asserts what holds at both
 // sizes: the host lays out at the device width, the planner opens and closes with focus
-// returned to the launcher, the header keeps close and preview in view and working at
+// returned to the launcher, the header keeps close and export in view and working at
 // the device width and at 320 px, the touch helper delivers real touch events, the edit
 // grid keeps its derived minimum width, a tapped block opens its details as a bottom
 // sheet, the controls a finger reaches are 44 px targets, since both projects are
@@ -230,6 +230,54 @@ test('back, Escape and close each leave the host route and history state as they
   }
 });
 
+// The export page is a layer above editing (ADR-0022 amendment): back and Escape each
+// return to editing with the panel still open, the export entry unwinds on the way back,
+// and a panel closed on the export page, or reopened after a reload, opens in edit.
+test('the export page returns to editing on back and Escape and the panel reopens in edit', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  const dialog = page.getByRole('dialog', { name: OVERLAY });
+  const exportButton = dialog.getByRole('button', {
+    name: 'ส่งออก',
+    exact: true,
+  });
+  const back = dialog.getByRole('button', { name: 'กลับไปแก้ไข' });
+
+  const returns: (() => Promise<unknown>)[] = [
+    () => page.goBack(),
+    () => page.keyboard.press('Escape'),
+    () => back.click(),
+  ];
+  for (const leave of returns) {
+    await exportButton.click();
+    await expect(back).toBeVisible();
+    await expect(
+      dialog.getByRole('toolbar', { name: 'เครื่องมือสำหรับแชร์' }),
+    ).toBeVisible();
+    await leave();
+    await expect(back).toHaveCount(0);
+    await expect(exportButton).toBeVisible();
+    await expect(dialog).toBeVisible();
+  }
+  // The panel still holds its own entry, so one more back closes it.
+  await page.goBack();
+  await expect(dialog).toBeHidden();
+  await page.getByRole('button', { name: LAUNCHER }).click();
+
+  await exportButton.click();
+  await dialog.getByRole('button', { name: 'ปิด', exact: true }).click();
+  await expect(dialog).toBeHidden();
+  await page.getByRole('button', { name: LAUNCHER }).click();
+  await expect(exportButton).toBeVisible();
+
+  await exportButton.click();
+  await page.reload();
+  await page.getByRole('button', { name: LAUNCHER }).click();
+  await expect(exportButton).toBeVisible();
+  await expect(back).toHaveCount(0);
+});
+
 test('the launcher pill stays inside the safe area, with no ring after a first open', async ({
   context,
 }) => {
@@ -242,46 +290,55 @@ test('the launcher pill stays inside the safe area, with no ring after a first o
 });
 
 /**
- * Assert the header keeps its exit and its preview control inside the viewport and
- * working: the header stays one row, preview switches the mode, and close leaves the
- * overlay. Both clicks go through Playwright's actionability checks, so a control that
- * is off screen or covered by a neighbour fails here.
+ * Assert the header keeps its exit and its export button inside the viewport and
+ * working: the header stays one row, export opens the export page, whose back to editing
+ * button stays in view as well, and close leaves the overlay. Every click goes through
+ * Playwright's actionability checks, so a control that is off screen or covered by a
+ * neighbour fails here.
  */
 async function expectHeaderExitsReachable(page: Page): Promise<void> {
   const dialog = page.getByRole('dialog');
-  const header = dialog.locator('header');
+  const header = dialog.getByRole('banner');
   const close = dialog.getByRole('button', { name: 'ปิด', exact: true });
-  const preview = dialog.getByRole('button', { name: 'ดูตัวอย่าง' });
+  const exportButton = dialog.getByRole('button', {
+    name: 'ส่งออก',
+    exact: true,
+  });
+  const back = dialog.getByRole('button', { name: 'กลับไปแก้ไข' });
   const viewport = page.viewportSize();
   expect(viewport).not.toBeNull();
 
-  for (const control of [close, preview]) {
-    await expect(control).toBeInViewport({ ratio: 1 });
-    const box = await control.boundingBox();
-    expect(box).not.toBeNull();
-    expect(box?.x ?? -1).toBeGreaterThanOrEqual(0);
-    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(
-      viewport?.width ?? 0,
-    );
-  }
-  // One row: 56 px, or 48 px on a short viewport, plus the bottom border.
-  const headerBox = await header.boundingBox();
-  expect(headerBox?.height ?? 0).toBeLessThanOrEqual(57);
+  const expectInView = async (controls: Locator[]): Promise<void> => {
+    for (const control of controls) {
+      await expect(control).toBeInViewport({ ratio: 1 });
+      const box = await control.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box?.x ?? -1).toBeGreaterThanOrEqual(0);
+      expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(
+        viewport?.width ?? 0,
+      );
+    }
+    // One row: 56 px, or 48 px on a short viewport, plus the bottom border.
+    const headerBox = await header.boundingBox();
+    expect(headerBox?.height ?? 0).toBeLessThanOrEqual(57);
+  };
 
-  await preview.click();
-  await expect(preview).toHaveAttribute('aria-pressed', 'true');
+  await expectInView([close, exportButton]);
+  await exportButton.click();
+  await expectInView([back, close]);
+  await expect(exportButton).toHaveCount(0);
   await close.click();
   await expect(dialog).toBeHidden();
 }
 
-test('close and preview stay in view and work at the device width', async ({
+test('close and export stay in view and work at the device width', async ({
   context,
 }) => {
   const page = await openPlanner(context);
   await expectHeaderExitsReachable(page);
 });
 
-test('close and preview stay in view and work at 320 px', async ({
+test('close and export stay in view and work at 320 px', async ({
   context,
 }) => {
   const page = await openPlanner(context);
@@ -1012,15 +1069,14 @@ test('the controls a finger reaches are 44 px targets', async ({ context }) => {
   const dialog = page.getByRole('dialog', { name: OVERLAY });
   const header = dialog.locator('header');
 
-  // The header: the plan switcher height, the catalog toggle on the tablet, both mode
-  // segments, the overflow menu and close. The phone reaches the catalog from the nav.
+  // The header: the plan switcher height, the catalog toggle on the tablet, the export
+  // button, the overflow menu and close. The phone reaches the catalog from the nav.
   const switcher = header.getByRole('button', { name: 'เลือกตาราง' });
   expect((await switcher.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(
     TOUCH_TARGET,
   );
   const controls: [Locator, string][] = [
-    [header.getByRole('button', { name: 'แก้ไข' }), 'edit segment'],
-    [header.getByRole('button', { name: 'ดูตัวอย่าง' }), 'preview segment'],
+    [header.getByRole('button', { name: 'ส่งออก', exact: true }), 'export'],
     [header.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }), 'overflow'],
     [header.getByRole('button', { name: 'ปิด', exact: true }), 'close'],
   ];
@@ -1167,7 +1223,7 @@ test.describe('the phone layout', () => {
     await expectNoHorizontalOverflow(page);
 
     // Preview is the poster, with no nav.
-    await page.getByRole('button', { name: 'ดูตัวอย่าง' }).click();
+    await page.getByRole('button', { name: 'ส่งออก', exact: true }).click();
     await expect(nav).toHaveCount(0);
   });
 
@@ -1295,7 +1351,7 @@ test.describe('the phone layout', () => {
     await expect(menu).toHaveCount(0);
     await expect(switcher).toBeFocused();
 
-    await page.getByRole('button', { name: 'ดูตัวอย่าง' }).tap();
+    await page.getByRole('button', { name: 'ส่งออก', exact: true }).tap();
     const trigger = page.getByRole('button', { name: 'ตัวเลือกการแสดงผล' });
     await trigger.tap();
     const options = await expectBottomSheet(page, 'ตัวเลือกการแสดงผล');

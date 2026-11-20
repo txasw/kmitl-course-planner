@@ -417,7 +417,7 @@ test('preview removes the mutating controls and keeps the grid', async ({
   await page.getByRole('button', { name: /^เพิ่ม/ }).first().click();
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
 
-  await page.getByRole('button', { name: 'ดูตัวอย่าง' }).click();
+  await page.getByRole('button', { name: 'ส่งออก', exact: true }).click();
 
   await expect(page.getByRole('button', { name: /^เพิ่ม/ })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /^นำออก/ })).toHaveCount(0);

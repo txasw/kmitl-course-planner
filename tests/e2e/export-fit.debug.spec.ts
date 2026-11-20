@@ -68,7 +68,7 @@ test('no block text clips at any export preset', async ({ context }) => {
   await addCourse(page, '90000603');
   await addCourse(page, '90000634');
 
-  await page.getByRole('button', { name: 'ดูตัวอย่าง' }).click();
+  await page.getByRole('button', { name: 'ส่งออก', exact: true }).click();
 
   // Turn the subject id on so the foot carries both the id and the place, the packed shape
   // that clipped in the real exports, and confirm the fit drops fields whole instead.

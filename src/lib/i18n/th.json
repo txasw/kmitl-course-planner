@@ -427,9 +427,8 @@
   "stats.creditsBelow": "ต่ำกว่าเกณฑ์ขั้นต่ำปกติ {min} หน่วยกิต",
   "stats.creditsAbove": "เกินเกณฑ์ขั้นสูงปกติ {max} หน่วยกิต",
   "stats.freeDays": "วันว่าง {days}",
-  "mode.select": "โหมดการแสดงผล",
-  "mode.edit": "แก้ไข",
-  "mode.preview": "ดูตัวอย่าง",
+  "mode.export": "ส่งออก",
+  "mode.backToEdit": "กลับไปแก้ไข",
   "plan.untitled": "ตาราง",
   "planView.label": "มุมมองตาราง",
   "planView.timetable": "ตารางเรียน",
@@ -523,7 +522,7 @@
   "shortcuts.filter": "ไปที่ช่องกรองรายการ",
   "shortcuts.undo": "เลิกทำการเปลี่ยนแปลงล่าสุดในตาราง ขณะที่ข้อความเลิกทำยังแสดงอยู่",
   "shortcuts.help": "แสดงรายการนี้",
-  "shortcuts.escape": "ปิดหน้าต่างที่เปิดอยู่ หรือปิดแผง",
+  "shortcuts.escape": "ปิดหน้าต่างที่เปิดอยู่ ออกจากหน้าส่งออก หรือปิดแผง",
   "shortcuts.or": "หรือ",
   "shortcuts.note": "แป้นพิมพ์ลัดไม่ทำงานขณะพิมพ์ในช่องข้อความ"
 }

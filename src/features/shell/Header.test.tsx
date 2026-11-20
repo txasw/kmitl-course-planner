@@ -26,6 +26,7 @@ afterEach(() => {
     uiStore.getState().close();
     uiStore.getState().setCatalogVisible(true);
     uiStore.getState().setLanguage('th');
+    uiStore.getState().setViewMode('edit');
   });
 });
 
@@ -132,6 +133,41 @@ describe('Header', () => {
     expect(
       screen.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }),
     ).toBeInTheDocument();
+  });
+
+  it('carries one export button in place of a mode toggle', () => {
+    render(<Header titleId="title" />);
+    const exportButton = screen.getByRole('button', { name: 'ส่งออก' });
+    expect(within(exportButton).getByText('ส่งออก')).toHaveClass(
+      'max-[360px]:sr-only',
+    );
+    expect(exportButton.querySelector('svg')).toHaveAttribute('aria-hidden');
+    expect(screen.queryByRole('button', { name: 'แก้ไข' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'ดูตัวอย่าง' })).toBeNull();
+    fireEvent.click(exportButton);
+    expect(uiStore.getState().viewMode).toBe('preview');
+  });
+
+  it('leads the export page with the way back and drops the edit controls', () => {
+    installViewport(768);
+    act(() => {
+      uiStore.getState().setViewMode('preview');
+    });
+    const { container } = render(<Header titleId="title" />);
+    const [first] = Array.from(container.querySelectorAll('header button'));
+    expect(first).toBe(screen.getByRole('button', { name: 'กลับไปแก้ไข' }));
+    expect(screen.getByRole('heading', { level: 2 })).toHaveAttribute(
+      'id',
+      'title',
+    );
+    for (const name of ['ส่งออก', 'เลือกตาราง', 'รายวิชา']) {
+      expect(screen.queryByRole('button', { name })).toBeNull();
+    }
+    expect(
+      screen.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'กลับไปแก้ไข' }));
+    expect(uiStore.getState().viewMode).toBe('edit');
   });
 
   it('toggles the catalog sheet below the lg tier', () => {

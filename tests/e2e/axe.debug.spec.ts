@@ -44,7 +44,7 @@ test('the panel passes axe across the edit, preview, and dialog surfaces', async
   await page.keyboard.press('Escape');
 
   // 3. Preview mode with the sharing toolbar.
-  await page.getByRole('button', { name: 'ดูตัวอย่าง' }).click();
+  await page.getByRole('button', { name: 'ส่งออก', exact: true }).click();
   await expect(
     page.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }),
   ).toBeVisible();
@@ -56,7 +56,7 @@ test('the panel passes axe across the edit, preview, and dialog surfaces', async
   expect(await axeViolations(page)).toEqual([]);
 
   // Back to edit for the plan menu.
-  await page.getByRole('button', { name: 'แก้ไข' }).click();
+  await page.getByRole('button', { name: 'กลับไปแก้ไข' }).click();
 
   // 5. The import error dialog, reached by feeding a tampered plan JSON.
   await page.getByRole('button', { name: 'เลือกตาราง' }).click();
