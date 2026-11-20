@@ -346,8 +346,9 @@ export function PlannerPanel() {
     />
   ) : null;
 
-  // While a toast shows, the region ends in a band as tall as the toast, so the status row
-  // and the export page foot rise above it rather than sit under it.
+  // While a toast shows, the region ends in a band as tall as the toast, so the status row,
+  // the export page foot, and the phone sharing toolbar rise above it rather than sit
+  // under it.
   const band =
     toastBand > 0 ? (
       <div
@@ -454,8 +455,6 @@ export function PlannerPanel() {
           ) : null}
         </div>
       )}
-      {/* Below 640 px the sharing toolbar keeps the foot, so the band sits above it. */}
-      {isPreview && !showTabs ? band : null}
       {showTabs ? null : previewToolbar}
       {!isPreview && (sections.length > 0 || canSuggest) ? (
         <StatsBar
@@ -472,7 +471,7 @@ export function PlannerPanel() {
           t={t}
         />
       ) : null}
-      {isPreview && !showTabs ? null : band}
+      {band}
       {detail !== null ? (
         <BlockDetailSurface
           teachTableId={detail.teachTableId}

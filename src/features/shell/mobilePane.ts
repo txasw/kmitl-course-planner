@@ -57,15 +57,6 @@ export function useBottomNavShown(): boolean {
   return compact && editing;
 }
 
-/**
- * Whether controls run along the panel foot: the compact tier, where edit mode shows the
- * bottom nav and preview the sharing toolbar in the thumb zone. A surface pinned to the
- * panel foot, such as the toast region, rises above them.
- */
-export function useFootControlsShown(): boolean {
-  return useLayoutTier() === 'compact';
-}
-
 /** Show the pane of a nav item, setting the plan view first for a plan item. */
 export function selectNavItem(item: NavItem): void {
   const ui = uiStore.getState();
