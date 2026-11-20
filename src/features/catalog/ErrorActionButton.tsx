@@ -1,5 +1,5 @@
 // The error card's one action, chosen by errorAction from the error, and the edit action
-// of the empty result, which reopens the form the same way. A retry replaces
+// it shares with the empty result, which reopens the form the same way. A retry replaces
 // the card with the loading state, so focus moves to the summary bar above. An edit
 // opens the form under the bar and leaves the card in place, so focus moves into the
 // form: to the disclosure, or to the subject id field on its tab when the server
@@ -37,7 +37,19 @@ export function ErrorActionButton({
       />
     );
   }
-  const subjectId = action === 'editSubjectId';
+  return <EditSearchAction subjectId={action === 'editSubjectId'} t={t} />;
+}
+
+interface EditSearchActionProps {
+  t: Translate;
+  /** Whether the server rejected the subject id, so the edit opens on its tab. */
+  subjectId?: boolean;
+}
+
+export function EditSearchAction({
+  t,
+  subjectId = false,
+}: EditSearchActionProps) {
   return (
     <EmptyStateAction
       label={t('search.bar.edit')}

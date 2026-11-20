@@ -20,7 +20,7 @@ import { commitAndFocus } from '@/features/shell/commitAndFocus';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { CourseCatalog } from './CourseCatalog';
-import { ErrorActionButton } from './ErrorActionButton';
+import { EditSearchAction, ErrorActionButton } from './ErrorActionButton';
 import { InputGuard } from './InputGuard';
 import { openSearch } from './revealCourse';
 import { FOCUS_RING } from '@/lib/ui/focus';
@@ -178,15 +178,7 @@ function CatalogState() {
         icon={SearchX}
         title={t('catalog.resultEmptyTitle')}
         description={termSummary(query, t)}
-        action={
-          <ErrorActionButton
-            action="editSearch"
-            t={t}
-            onRetry={() => {
-              void retry();
-            }}
-          />
-        }
+        action={<EditSearchAction t={t} />}
       />
     );
   }
