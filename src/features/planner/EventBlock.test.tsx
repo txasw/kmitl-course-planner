@@ -755,6 +755,42 @@ describe('EventBlock', () => {
     expect(container.querySelector('.text-ink-soft')).toBeNull();
   });
 
+  it('sets every text line of a hatched block on a solid backdrop above the hatch', () => {
+    const { container } = render(
+      <EventBlock
+        section={{ ...section, verifyStatus: 'missing' }}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        nameLanguage="both"
+      />,
+    );
+    // The content follows the hatch overlay and is positioned, so it paints above it.
+    const content = container.querySelector('[data-fit]');
+    expect(content).toHaveClass('relative');
+    expect(content?.previousElementSibling).toHaveClass('kcp-hatch');
+    const lines = Array.from(content?.children ?? []);
+    expect(lines.length).toBeGreaterThanOrEqual(4);
+    for (const line of lines) {
+      expect(line).toHaveClass('kcp-hatch-backdrop', 'w-fit', 'max-w-full');
+    }
+  });
+
+  it('keeps the text lines of a block with no hatch on the card fill', () => {
+    const { container } = render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(container.querySelector('.kcp-hatch-backdrop')).toBeNull();
+    expect(container.querySelector('[data-fit]')).not.toHaveClass('relative');
+  });
+
   it('leads the name with the status dot in flow rather than over it', () => {
     const { container } = render(
       <EventBlock
