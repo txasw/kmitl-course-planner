@@ -172,68 +172,6 @@ export class Sweep {
   }
 
   /**
-   * Rest the pointer on a control until its tooltip opens, then read the tooltip whole and
-   * in the viewport, check that it lies over no other control, and read the region under
-   * it, so a tooltip that covers a caption or a heading fails as covered text.
-   */
-  async scanTooltip(
-    surface: string,
-    trigger: Locator,
-    region: Locator,
-  ): Promise<void> {
-    await trigger.hover();
-    const tooltip = this.page.getByRole('tooltip');
-    await expect(tooltip, surface).toBeVisible();
-    await this.scan(`${surface} tooltip`, tooltip, { floating: true });
-    const tip = await tooltip.elementHandle();
-    // The controls of the region alone, so a control under a modal dialog, which the
-    // dialog itself already covers, is not read as under the tooltip.
-    const covered = await region.first().evaluate(
-      (area, { node, own }) => {
-        const box = node.getBoundingClientRect();
-        return [
-          ...area.querySelectorAll<HTMLElement>(
-            'button, a[href], input, [role="tab"], [role="radio"]',
-          ),
-        ]
-          .filter((control) => {
-            if (control.getAttribute('aria-label') === own) return false;
-            if (node.contains(control) || !control.checkVisibility()) {
-              return false;
-            }
-            const rect = control.getBoundingClientRect();
-            return (
-              rect.width > 0 &&
-              rect.left < box.right - 0.5 &&
-              box.left < rect.right - 0.5 &&
-              rect.top < box.bottom - 0.5 &&
-              box.top < rect.bottom - 0.5
-            );
-          })
-          .map(
-            (control) =>
-              control.getAttribute('aria-label') ??
-              (control.textContent.replace(/\s+/g, ' ').trim() ||
-                control.outerHTML.slice(0, 80)),
-          );
-      },
-      { node: tip, own: await trigger.getAttribute('aria-label') },
-    );
-    for (const name of covered) {
-      this.findings.push({
-        kind: 'covered',
-        text: name,
-        detail: 'a control under the tooltip',
-        surface: `${surface} tooltip`,
-        width: this.width,
-      });
-    }
-    await this.scan(`${surface} with its tooltip`, region);
-    await this.page.mouse.move(0, 0);
-    await expect(tooltip).toHaveCount(0);
-  }
-
-  /**
    * Check that the open search form shows whole: at the sweep height its scroller holds
    * every field and the submit row without scrolling, since a scroller that caps the form
    * cuts a field through its box, which the text scan reads as scrolled rather than cut.

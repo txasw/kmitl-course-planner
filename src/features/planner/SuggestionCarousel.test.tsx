@@ -162,6 +162,14 @@ describe('SuggestionCarousel', () => {
     expect(next).toHaveFocus();
   });
 
+  it('opens no tooltip on a chevron, since the position line names the page', () => {
+    renderCarousel();
+    const next = screen.getByRole('button', { name: 'ตัวเลือกถัดไป' });
+    fireEvent.focus(next);
+    fireEvent.mouseEnter(next);
+    expect(screen.queryByRole('tooltip')).toBeNull();
+  });
+
   it('jumps to a suggestion from its dot', () => {
     renderCarousel();
     fireEvent.click(dot(3));

@@ -35,7 +35,7 @@ import {
 // leaves that draw over each other, and any text leaf another layer covers, so a regression
 // on any surface fails the suite. The walk reads the timetable and the export page with a
 // toast up and after a failed save, rests the pointer on the export template dots and the
-// suggestion carousel chevrons until their tooltips open, and walks the product tour.
+// suggestion carousel chevrons past the tooltip delay, and walks the product tour.
 
 // A walk this long fails at the step that stalls rather than at the test timeout.
 test.use({ actionTimeout: 10_000 });
@@ -471,14 +471,18 @@ for (const language of ['th', 'en'] as const) {
           .getByRole('button', { name: sweep.t('suggest.next') })
           .click();
         await sweep.scan('suggest second option', dialog);
-        // A phone pages by swipe and shows no chevrons; a disabled one opens no tooltip.
+        // The chevrons show at every width and carry no tooltip. The pointer rests on each
+        // enabled one past the tooltip delay, so anything that opens over the position line
+        // or the controls around it is read as covering them.
         for (const chevron of ['suggest.prev', 'suggest.next']) {
           const button = dialog.getByRole('button', { name: sweep.t(chevron) });
-          if (!(await button.isVisible()) || !(await button.isEnabled())) {
-            continue;
-          }
-          await sweep.scanTooltip(`suggest ${chevron}`, button, dialog);
+          if (!(await button.isEnabled())) continue;
+          await button.hover();
+          await page.waitForTimeout(500);
+          await expect(page.getByRole('tooltip')).toHaveCount(0);
+          await sweep.scan(`suggest ${chevron} with the pointer on it`, dialog);
         }
+        await page.mouse.move(0, 0);
         const subjects = dialog.getByRole('group', {
           name: sweep.t('suggest.subjects'),
         });
