@@ -14,6 +14,13 @@
 // overflow of the content wrapper walks the ladder like a height overflow, so no field is ever
 // cut at the right edge of a narrow block.
 //
+// Once the content fits, a reclaim pass offers back, once each, the time, the secondary name,
+// and the subject id the walk dropped on the way down, since a later rung such as the secondary
+// name or the name clamp may have freed the room an earlier drop needed. Without it a name
+// language of both cost a block its id even where the second name never fit (the ADR-0046
+// amendment of 2026-11-20). A reclaimed field that overflows is the top rung the walk drops
+// first, so the level returns to where it was and the field stays tried until the next reset.
+//
 // Convergence and no loop: within one reset key the level is monotonic down, and a demotion
 // only hides a field, which never changes the block's box size (the cell size comes from the
 // grid tracks, not the content), so a demotion cannot feed back into the measurement or the
@@ -38,10 +45,12 @@ import {
   dropWholeFields,
   fullLevel,
   nextDensityLevel,
+  nextReclaim,
   sameLevel,
   type DensityEligibility,
   type DensityLevel,
   type NameFit,
+  type ReclaimField,
   type WholeField,
 } from '@/lib/planner/blockDensity';
 import { useFontsReady } from './fontsReady';
@@ -114,6 +123,8 @@ export function useDensityFit(
     fullLevel(eligibility),
   );
   const settledKey = useRef<string | null>(null);
+  // The fields a reclaim pass has tried since the last reset, so each is tried once.
+  const reclaimTried = useRef<ReclaimField[]>([]);
   // The observer callback needs the current eligibility without re-subscribing every render.
   const eligibilityRef = useRef(eligibility);
   eligibilityRef.current = eligibility;
@@ -132,6 +143,7 @@ export function useDensityFit(
     // pass measures from there.
     if (settledKey.current !== resetKey) {
       settledKey.current = resetKey;
+      reclaimTried.current = [];
       const full = fullLevel(eligibility);
       if (!sameLevel(level, full)) {
         setLevel(full);
@@ -152,6 +164,15 @@ export function useDensityFit(
       if (next !== null) {
         setLevel(next);
       }
+      return;
+    }
+    // The content fits. A field the walk dropped on the way down may fit again now that a
+    // later rung freed its room, so offer it back once; if it overflows, the walk drops it
+    // again, since the reclaimed fields are the top rungs.
+    const reclaim = nextReclaim(level, eligibility, reclaimTried.current);
+    if (reclaim !== null) {
+      reclaimTried.current = [...reclaimTried.current, reclaim.field];
+      setLevel(reclaim.level);
     }
   });
 
