@@ -17,7 +17,7 @@
 // targets the drag offers in one sentence (ADR-0059).
 
 import type { CSSProperties, ReactNode } from 'react';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -46,7 +46,12 @@ import { ReasonChip } from './ReasonChip';
 import { isRemoveZoneId } from './RemoveZone';
 import { mayAutoScroll, settleCatalogSlide } from './catalogDragGuards';
 import { resolveCourseForSubject } from './resolveCourse';
-import { isTouchEvent, snapDragCardToCursor } from './snapToCursor';
+import {
+  isTouchEvent,
+  keepOverlayInWindow,
+  snapDragCardToCursor,
+  type OverlaySize,
+} from './snapToCursor';
 import { prioritizedCollision } from './collision';
 import { isOriginId } from './LiftedOrigin';
 import { dropZoneAnnouncement } from './dropZoneAnnouncement';
@@ -348,6 +353,31 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
     [hintText, moveHint],
   );
 
+  // The overlay content is measured for the window clamp, since dnd-kit sizes the
+  // overlay box to the dragged grip rather than to the card and chip it shows. The node
+  // mounts only while a drag is live, so it is held in state and observed while present.
+  const [overlayContent, setOverlayContent] = useState<HTMLDivElement | null>(
+    null,
+  );
+  const [overlaySize, setOverlaySize] = useState<OverlaySize | null>(null);
+  useEffect(() => {
+    if (overlayContent === null) return undefined;
+    const observer = new ResizeObserver(() => {
+      setOverlaySize({
+        width: overlayContent.offsetWidth,
+        height: overlayContent.offsetHeight,
+      });
+    });
+    observer.observe(overlayContent);
+    return () => {
+      observer.disconnect();
+    };
+  }, [overlayContent]);
+  const overlayModifiers = useMemo(
+    () => [snapDragCardToCursor, keepOverlayInWindow(overlaySize)],
+    [overlaySize],
+  );
+
   const handleCancel = useCallback(() => {
     dragStore.getState().clearAnnouncement();
     dragStore.getState().clearActive();
@@ -369,13 +399,13 @@ export function PlannerDnd({ children }: { children: ReactNode }) {
       {children}
       <DragOverlay
         dropAnimation={null}
-        modifiers={[snapDragCardToCursor]}
+        modifiers={overlayModifiers}
         style={DRAG_OVERLAY_STYLE}
       >
         {/* dnd-kit measures the overlay's only child and the snap modifier anchors that
             box at the pointer, so the touch lift sits one level down, where its translate
             moves the card without moving the measured box. */}
-        <div>
+        <div ref={setOverlayContent} className="w-max">
           <div className={touchDrag ? 'kcp-grab-lift' : undefined}>
             {active !== null ? (
               <div className="flex flex-col items-start gap-1">
