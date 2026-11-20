@@ -123,3 +123,16 @@ of its words is wider than its line (ADR-0047 amendment of 2026-11-21). The name
 narrow block hides the second name with the place and the foot. The plan suggestion slides keep
 the panel language alone, since their blocks are narrow and their placed list names every
 section.
+
+## Amendment, 2026-11-21: the day rows share the free height
+
+The landscape edit day rows stopped growing at 7rem and packed to the top, which had kept a tall
+panel from stretching a block into a top and a bottom cluster. The edit foot has since followed
+the place rather than the box bottom, so a tall block keeps its fields together, and a conformance
+review found the cap left a dead band under the last day row at 768 px and, with the reserved
+feedback strip, an empty band between the tabs and the time axis at 1366 px. The edit day rows now
+share the scroller's height, from the 2.5rem floor up, so the week fills its column and a block
+has the room its second name and foot ask for. The feedback strip on the docked tiers takes room
+only while a notice shows (ADR-0048 amendment of 2026-11-21), so at rest the time axis sits under
+the tabs. On a very tall window a block has spare height below its fields, which is accepted over
+a band of empty grid.
