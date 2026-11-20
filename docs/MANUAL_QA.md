@@ -247,12 +247,13 @@ the Export button in the header and left with Back to editing at its top left.
 - [ ] Fields never half render: step through all six presets and sweep the blocks. No field is
       ever cut mid glyph. Every visible line sits fully inside its block, including Thai upper
       vowels and tone marks and low descenders. Where a block is short, the fields drop whole in
-      priority, the subject id first, then the English name, then the time, then the section
-      chip, then the name reduces to one ellipsized line, then the place, and the name never
-      drops. The place always outlives the name's second line and the time never outlives the
-      place. A long English name in the narrow portrait columns hyphenates or ends in an
-      ellipsis, never a clipped glyph; Thai wraps on its dictionary. Turn show subject id on to
-      pack the foot and confirm the fit still drops a field rather than clipping.
+      priority, the subject id first, then the second language name, then the time, then the
+      section chip, then the name reduces to one ellipsized line, then the place, and the name
+      never drops. The place always outlives the name's second line, and no block shows its time
+      without its place. A long English name in the narrow portrait columns hyphenates or ends in
+      an ellipsis, never a clipped glyph; Thai wraps on its dictionary. Turn show subject id on to
+      pack the foot and confirm the fit still drops a field rather than clipping, and that every
+      id shown is its full eight digits on one line, never split or cut at the block edge.
 - [ ] Gallery picker: the selected poster is centred with the neighbouring templates peeking at
       both edges wide enough to read as a continuation cue. A pointer swipe past the threshold
       pages to the neighbour and a short swipe springs back. The dots below name each template
@@ -289,10 +290,16 @@ the Export button in the header and left with Back to editing at its top left.
       Thai with a header line of plan, term, and credits, one line per meeting ordered
       Sunday through Saturday, the unscheduled sections under a label, a missing marker on
       any dropped section, and a footer with the app name. There is no markdown.
-- [ ] Display options are what you get: toggle show room, show section, show subject id,
-      show English names, and show exam schedule. The preview updates in place, and a re
-      exported PNG and a re copied text reflect the same options. The options persist
-      across a reopen.
+- [ ] Display options are what you get: toggle show room, show section, show subject id, and
+      show exam schedule. The preview updates in place, and a re exported PNG and a re copied
+      text reflect the same options. The options persist across a reopen.
+- [ ] Subject names: the choice reads Thai, English, or Both, and with nothing picked it follows
+      the panel language. Pick each in turn in both panel languages: the poster blocks, the
+      shelf, and the exam block name every subject in the chosen language, and a subject with no
+      name in that language falls back to the other rather than showing blank. Under Both the
+      second name shows under the first where a block has room, and a note under the choice says
+      so. Copy as text under Both and paste it: every meeting, shelf, and exam line carries both
+      names, Thai and English, whatever room the blocks had. The choice persists across a reopen.
 - [ ] Show subject id: the option is off by default, so the poster blocks, the shelf, and the
       copy as text lines carry no numeric id and read name first. Turn it on and the id appears
       in all three. In edit mode the id always shows on the blocks regardless of the option.
