@@ -169,8 +169,8 @@ the shown one with aria-current; and the left and right arrow keys, with Home an
 focusable slide area and on the dots. Paging clamps at the ends. The line between the chevrons
 reads "ตัวเลือก 2 จาก 3" ("Option 2 of 3") and is a polite live region, so each change is
 announced. A key that pages from a control in the outgoing slide moves focus to the slide area,
-and a chevron that disables at an end hands focus to the shown dot, so focus never drops to the
-document. Under reduced motion the track jumps instead of sliding and the slide does not follow
+and a chevron that disables at an end hands focus to the other chevron beside it, so focus never
+drops to the document and the dialog never scrolls away from the slide to a dot below it. Under reduced motion the track jumps instead of sliding and the slide does not follow
 the finger, while the swipe still pages. Two suggestions show two dots; one suggestion shows no
 chevrons, dots, or position line. A new tick, objective, or preference returns to the first
 slide, as the compact pager did.
