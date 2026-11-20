@@ -157,7 +157,8 @@ export class Sweep {
       mkdirSync(dir, { recursive: true });
       this.shots += 1;
       const name = `${this.language}-${String(this.width)}-${String(this.shots).padStart(2, '0')}-${surface.replace(/[^a-z0-9]+/gi, '-')}.png`;
-      await this.page.screenshot({ path: join(dir, name) });
+      // A screenshot of a busy machine can outlast the action timeout of the walk.
+      await this.page.screenshot({ path: join(dir, name), timeout: 60_000 });
     }
   }
 
