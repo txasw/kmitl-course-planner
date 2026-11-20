@@ -6,6 +6,8 @@
 // The poster shelf in preview carries none of these: they are planning facts, and
 // keeping them out holds the shared image and its measured fit unchanged. The poster
 // also drops the verification pill, which the footer states as text (ADR-0055).
+// Names wrap rather than truncate, so a long Thai name and a second language line under
+// a name language of both show whole in the shared image, which has no hover to expand.
 
 import { BookOpen, FlaskConical } from 'lucide-react';
 import { RemarkLine } from '@/features/catalog/RemarkLine';
@@ -78,7 +80,7 @@ export function UnscheduledShelf({
                     }
                   >
                     {(triggerProps, ref) => (
-                      <span ref={ref} {...triggerProps} className="truncate">
+                      <span ref={ref} {...triggerProps} className="break-words">
                         {showSubjectId ? (
                           <>
                             <span className="font-semibold">
@@ -93,7 +95,7 @@ export function UnscheduledShelf({
                   {names.secondary !== null ? (
                     <span
                       lang={names.secondaryLang ?? undefined}
-                      className="truncate text-ink-soft"
+                      className="break-words text-ink-soft"
                     >
                       {names.secondary}
                     </span>
