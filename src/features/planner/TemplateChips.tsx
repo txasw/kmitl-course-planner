@@ -104,7 +104,6 @@ export function TemplateChips({
             aria-checked={isSelected}
             aria-label={`${t(template.labelKey)} · ${templateSize(template)}`}
             tabIndex={isSelected ? 0 : -1}
-            data-template={template.slug}
             onKeyDown={onKeyDown}
             onClick={() => {
               onSelect(index);
