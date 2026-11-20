@@ -636,8 +636,9 @@ in the Firefox window that opens on the phone.
       The host page behind does not scroll while one is open.
 - [ ] Rotation: turn the phone to landscape and back. The panel takes the tier the new
       width falls in and keeps the search, the result, and the plan. On the export page in
-      landscape, the template chips take two rows above the stage; confirm the poster still
-      reads at a useful size between the chips and the toolbar.
+      landscape, the template chips share one row above the stage where the phone is 768 px
+      wide or more, and two rows on a narrower phone; confirm the poster still reads at a
+      useful size between the chips and the toolbar.
 - [ ] Download PNG: in preview, download the image. Firefox saves the PNG, and the Thai
       text in it renders correctly.
 - [ ] Close: the close control leaves the host page as it was, scrolling again.
