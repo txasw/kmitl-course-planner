@@ -148,17 +148,15 @@ describe('PlannerPanel plan views', () => {
     ).toContainElement(
       screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' }),
     );
-    expect(
-      screen.getByRole('tab', { name: 'วิชาที่เลือก (2)' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'วิชาที่เลือก 2' })).toBeInTheDocument();
   });
 
   it('switches the region to the selected courses list', () => {
     installViewport(1366);
     seedTwoSubjects();
     renderPanel();
-    fireEvent.click(screen.getByRole('tab', { name: 'วิชาที่เลือก (2)' }));
-    const panel = screen.getByRole('tabpanel', { name: 'วิชาที่เลือก (2)' });
+    fireEvent.click(screen.getByRole('tab', { name: 'วิชาที่เลือก 2' }));
+    const panel = screen.getByRole('tabpanel', { name: 'วิชาที่เลือก 2' });
     expect(panel).toContainElement(
       screen.getByRole('list', { name: 'วิชาที่เลือก' }),
     );
@@ -174,7 +172,7 @@ describe('PlannerPanel plan views', () => {
     renderPanel();
     fireEvent.click(screen.getByRole('button', { name: /90000002/ }));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('tab', { name: 'วิชาที่เลือก (2)' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'วิชาที่เลือก 2' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
@@ -956,7 +954,7 @@ describe('PlannerPanel stats bar', () => {
     seedTwoSubjects();
     renderPanel();
     expect(stats()).toHaveTextContent('ไม่มีรายการชนกัน');
-    fireEvent.click(screen.getByRole('tab', { name: 'วิชาที่เลือก (2)' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'วิชาที่เลือก 2' }));
     expect(stats()).toBeInTheDocument();
   });
 

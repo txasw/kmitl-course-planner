@@ -191,3 +191,17 @@ button was rejected, because the student then cannot tell a plan with no clash f
 has not loaded. The suggest action at the end of the row is now a filled primary button with its
 own glyph (ADR-0054 amendment of the same date), replacing the primary soft style and the
 checklist glyph named above.
+
+## Amendment, 2026-11-21: tab icons and a quiet count
+
+The redesign asks for icons and less text, and the conformance review found the Medium and Wide
+tabs text only, with the subject count in brackets, "วิชาที่เลือก (5)".
+
+Each tab now leads with the icon its bottom nav item carries on Compact: a calendar for ตารางเรียน,
+a checklist for วิชาที่เลือก and a clipboard for สรุป. One `PLAN_VIEW_ICON` map serves both the
+tabs and the nav, so a view keeps one glyph at every width. The label no longer holds the count.
+The selected tab follows its label with the count as a quiet number in the muted ink, tabular and
+in the regular weight, with no brackets, as the mockup draws it, and the accessible name joins the
+label and the count, "วิชาที่เลือก 5", with the exam clash wording after it where it applies. The
+count shows at zero too, unlike the nav, because the tab is always the label and the number side
+by side.

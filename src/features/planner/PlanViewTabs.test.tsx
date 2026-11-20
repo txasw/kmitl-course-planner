@@ -37,8 +37,22 @@ describe('PlanViewTabs', () => {
     render(<Harness />);
     expect(screen.getByRole('tablist', { name: 'มุมมองตาราง' })).toBeVisible();
     expect(tab('ตารางเรียน')).toBeVisible();
-    expect(tab('วิชาที่เลือก (3)')).toBeVisible();
+    expect(tab('วิชาที่เลือก 3')).toBeVisible();
     expect(tab('สรุป')).toBeVisible();
+  });
+
+  it('leads each tab with its view icon and shows the count as a quiet number', () => {
+    const { container } = render(<Harness />);
+    for (const name of ['ตารางเรียน', 'วิชาที่เลือก 3', 'สรุป']) {
+      const icon = tab(name).querySelector('svg');
+      expect(icon).not.toBeNull();
+      expect(icon).toHaveAttribute('aria-hidden', 'true');
+    }
+    const counts = container.querySelectorAll('[data-tab-count]');
+    expect(counts).toHaveLength(1);
+    expect(counts[0]).toHaveTextContent(/^3$/);
+    expect(counts[0]).toHaveClass('text-ink-muted', 'tabular-nums');
+    expect(tab('วิชาที่เลือก 3').textContent).not.toMatch(/[()]/);
   });
 
   it('marks an exam clash on the summary tab with a dot and in its name', () => {
@@ -57,9 +71,9 @@ describe('PlanViewTabs', () => {
     render(<Harness />);
     expect(tab('ตารางเรียน')).toHaveAttribute('aria-selected', 'true');
     expect(tab('ตารางเรียน')).toHaveAttribute('tabindex', '0');
-    expect(tab('วิชาที่เลือก (3)')).toHaveAttribute('aria-selected', 'false');
-    expect(tab('วิชาที่เลือก (3)')).toHaveAttribute('tabindex', '-1');
-    expect(tab('วิชาที่เลือก (3)')).toHaveAttribute(
+    expect(tab('วิชาที่เลือก 3')).toHaveAttribute('aria-selected', 'false');
+    expect(tab('วิชาที่เลือก 3')).toHaveAttribute('tabindex', '-1');
+    expect(tab('วิชาที่เลือก 3')).toHaveAttribute(
       'aria-controls',
       planViewPanelId('selected'),
     );
@@ -67,15 +81,15 @@ describe('PlanViewTabs', () => {
 
   it('switches the view on click', () => {
     render(<Harness />);
-    fireEvent.click(tab('วิชาที่เลือก (3)'));
-    expect(tab('วิชาที่เลือก (3)')).toHaveAttribute('aria-selected', 'true');
+    fireEvent.click(tab('วิชาที่เลือก 3'));
+    expect(tab('วิชาที่เลือก 3')).toHaveAttribute('aria-selected', 'true');
     expect(tab('ตารางเรียน')).toHaveAttribute('aria-selected', 'false');
   });
 
   it('moves focus and activates with the arrow keys, wrapping at the ends', () => {
     render(<Harness />);
     const timetable = tab('ตารางเรียน');
-    const selected = tab('วิชาที่เลือก (3)');
+    const selected = tab('วิชาที่เลือก 3');
     const summary = tab('สรุป');
     timetable.focus();
 

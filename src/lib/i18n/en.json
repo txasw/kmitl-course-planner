@@ -457,7 +457,7 @@
   "plan.untitled": "Plan",
   "planView.label": "Plan views",
   "planView.timetable": "Timetable",
-  "planView.selected": "Selected courses ({count})",
+  "planView.selected": "Selected courses",
   "planView.summary": "Summary",
   "planView.examClash": "has an exam clash",
   "summary.emptyTitle": "This plan has no courses yet",
