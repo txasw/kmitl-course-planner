@@ -1,7 +1,7 @@
 // The notices over a timetable that has nothing to place: the empty plan, shared by the
 // edit grid and every preview poster so the empty state reads the same in both, and the
 // free day of the day view (ADR-0049). Both are the shared empty state the catalog and the
-// summary use, a neutral icon disc, a title, and one sentence, with no surface of their
+// summary use, a neutral icon disc, a title, one sentence, and one action, with no surface of their
 // own: no border, no radius, no shadow, and no tinted disc, so nothing floats over the
 // gridlines as a separate object. The notice instead washes the grid body it stands in for
 // with the surface color, which knocks the lanes and rules back far enough that no rule
@@ -28,9 +28,7 @@ import { CalendarCheck, CalendarPlus, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useStore } from 'zustand';
 import type { Translate } from '@/lib/i18n/t';
-import { FOCUS_OUTLINE } from '@/lib/ui/focus';
-import { TARGET_SIZE } from '@/lib/ui/target';
-import { EmptyState } from '@/components/EmptyState';
+import { EmptyState, EmptyStateAction } from '@/components/EmptyState';
 import { openSearch } from '@/features/catalog/revealCourse';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { dragStore, selectGridFeedback } from './dragStore';
@@ -78,15 +76,12 @@ function GridNotice({ notice, icon, title, body, action }: GridNoticeProps) {
 function GoToSearchButton({ t }: { t: Translate }) {
   const tier = useLayoutTier();
   return (
-    <button
-      type="button"
+    <EmptyStateAction
+      label={t('grid.goToSearch')}
       onClick={(event) => {
         openSearch(event.currentTarget, tier);
       }}
-      className={`pointer-events-auto rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover ${TARGET_SIZE} ${FOCUS_OUTLINE}`}
-    >
-      {t('grid.goToSearch')}
-    </button>
+    />
   );
 }
 
@@ -111,12 +106,15 @@ export function GridEmptyState({
   );
 }
 
-/** The day view's note for a shown day with no class, titled with the day's name. */
+/** The day view's note for a shown day with no class, titled with the day's name. Its
+ * action returns to the week, the view that shows the classes of the other days. */
 export function FreeDayNotice({
   dayName,
+  onShowWeek,
   t,
 }: {
   dayName: string;
+  onShowWeek: (control: HTMLElement) => void;
   t: Translate;
 }) {
   return (
@@ -125,6 +123,14 @@ export function FreeDayNotice({
       icon={CalendarCheck}
       title={dayName}
       body={t('view.freeDay')}
+      action={
+        <EmptyStateAction
+          label={t('view.showWeek')}
+          onClick={(event) => {
+            onShowWeek(event.currentTarget);
+          }}
+        />
+      }
     />
   );
 }

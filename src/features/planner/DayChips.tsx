@@ -52,6 +52,9 @@ function dotClass(flag: DayFlag): string {
 // label needs. Neither may shrink below its content, and the row wraps before it would clip.
 const CHIP = `inline-flex min-h-11 min-w-(--kcp-target-min) flex-col items-center justify-center gap-1 rounded-kcp-inner px-1 text-xs transition-colors ${FOCUS_RING}`;
 
+/** The week chip, where focus lands when the free day notice returns to the week. */
+export const WEEK_CHIP_ID = 'kcp-day-chip-week';
+
 function chipState(isSelected: boolean): string {
   return isSelected
     ? 'bg-surface-alt font-semibold text-ink ring-1 ring-inset ring-border'
@@ -150,6 +153,7 @@ export function DayChips({
         type="button"
         role="radio"
         aria-checked={weekSelected}
+        id={WEEK_CHIP_ID}
         aria-label={t('view.weekChip')}
         tabIndex={weekSelected ? 0 : -1}
         data-day="week"

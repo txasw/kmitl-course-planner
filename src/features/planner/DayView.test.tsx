@@ -279,12 +279,24 @@ describe('DayView', () => {
     fireEvent.click(chip('วันอังคาร'));
     const note = document.querySelector('[data-grid-notice="free-day"]');
     expect(note).toHaveTextContent('วันอังคาร');
-    expect(note).toHaveTextContent('วันว่าง');
+    expect(note).toHaveTextContent('วันนี้ไม่มีคาบเรียน');
     // The sticky hour column would otherwise cover the card's leading edge.
     expect(noticeOverBody('free-day')).toBe(true);
     // The free day reads like every other empty state in the panel, not a card laid over
     // the lanes.
     expect(noticeBelongsToGrid('free-day')).toBe(true);
+  });
+
+  it('returns from a free day to the week with focus on the week chip', () => {
+    installViewport(390);
+    seedPlan();
+    renderPanel();
+    fireEvent.click(chip('วันอังคาร'));
+    fireEvent.click(screen.getByRole('button', { name: 'ดูทั้งสัปดาห์' }));
+    expect(document.querySelector('[data-grid-notice="free-day"]')).toBeNull();
+    const week = chip('สัปดาห์');
+    expect(week).toHaveAttribute('aria-checked', 'true');
+    expect(week).toHaveFocus();
   });
 
   it('opens each shown day scrolled to its first class', () => {
