@@ -1,24 +1,25 @@
 // The text fit scan behind the clipped text sweep (ADR-0048 amendment). It walks every
 // visible text leaf under a region and reports three kinds of fault: a leaf whose text a
-// box cuts, a pair of leaves that draw over each other, and a leaf another layer covers. A box cuts text when it hides
-// or clips its overflow and either holds more than it shows (its scroll size passes its
-// client size, which is also how an active ellipsis or line clamp reads) or a leaf runs
-// past its edge. A leaf that a scroller holds is not cut, since scrolling reveals it, and
-// a leaf wholly outside a clipping box or the viewport is off screen rather than cut, such
-// as a slide of a carousel or the pane the phone layout keeps aside. Overlap is read per
-// line fragment, so a wrapped label and the text that follows its last line do not count
-// as overlapping through their bounding boxes. A sticky or fixed box inside the region is a
-// layer of its own, such as a heading that stays put while the list scrolls under it, so a
-// leaf in that layer and a leaf outside it are not compared.
+// box cuts, a pair of leaves that draw over each other, and a leaf another layer covers. A
+// box cuts text when it hides or clips its overflow and either holds more than it shows
+// (its scroll size passes its client size, which is also how an active ellipsis or line
+// clamp reads) or a leaf runs past its edge. A leaf that a scroller holds is not cut, since
+// scrolling reveals it, and a leaf wholly outside a clipping box or the viewport is off
+// screen rather than cut, such as a slide of a carousel or the pane the phone layout keeps
+// aside. Overlap is read per line fragment, so a wrapped label and the text that follows
+// its last line do not count as overlapping through their bounding boxes. A sticky or fixed
+// box inside the region is a layer of its own, such as a heading that stays put while the
+// list scrolls under it, so a leaf in that layer and a leaf outside it are not compared.
 //
 // A leaf is covered when the element on top at a point of its line, the one a press there
 // would reach, is neither the leaf's own element nor inside or around it: a toast, a
-// tooltip, or a card laid over the text. Each line is probed at three points across its
-// middle. A layer that lets presses through is drawn for looks, such as a hatch or a
-// shadow, and is not on top for this reading. A cover inside the same scroller as the leaf
-// is a pinned row the list scrolls under, which scrolling clears. A layer that dims the
-// panel on purpose, such as the product tour's, is named as see through by the caller so
-// the probe reads what lies under it.
+// tooltip, or a card laid over the text. Each line is probed across its middle at three
+// points and just inside each end, so a layer over the first or last glyph is read too. A
+// layer that lets presses through is drawn for looks, such as a hatch or a shadow, and is
+// not on top for this reading. A cover inside the same scroller as the leaf is a pinned row
+// the list scrolls under, which scrolling clears. A layer that dims the panel on purpose,
+// such as the product tour's, is named as see through by the caller so the probe reads what
+// lies under it.
 
 import type { Locator } from '@playwright/test';
 
@@ -62,6 +63,7 @@ export async function scanTextFit(
       // read from the centre of an asymmetric Thai face can sit a fraction off it, so a
       // box cuts a leaf only past the same one pixel the scroll size check allows.
       const EDGE = 0.5;
+      const END_PROBE_PX = 1.5;
       const CUT = 1;
       const SCROLL = 1;
       const findings: {
@@ -300,9 +302,17 @@ export async function scanTextFit(
           if (part.right - part.left > EDGE && part.bottom - part.top > EDGE) {
             fragments.push({ text, rect: part, layer, node });
             const y = (part.top + part.bottom) / 2;
-            for (const share of [0.15, 0.5, 0.85]) {
+            const span = part.right - part.left;
+            // The ends sit a little inside the line, clear of the box of a neighbour.
+            const end = Math.min(END_PROBE_PX, span / 2);
+            for (const x of [
+              part.left + end,
+              part.left + span * 0.15,
+              part.left + span * 0.5,
+              part.left + span * 0.85,
+              part.right - end,
+            ]) {
               if (cover !== null) break;
-              const x = part.left + (part.right - part.left) * share;
               if (
                 x < 0 ||
                 y < 0 ||
