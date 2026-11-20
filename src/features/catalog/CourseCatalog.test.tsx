@@ -267,14 +267,14 @@ describe('CourseCatalog', () => {
     render(<CourseCatalog catalog={catalog} />);
     expandAll();
     expect(screen.getAllByText('คนละภาค').length).toBeGreaterThan(0);
-    // The banner names the browsed term and every add rail is disabled.
+    // The banner names the browsed term and every add is disabled.
     expect(
       screen.getByText('ตารางนี้เป็นภาคการศึกษา 2/2569 แต่กำลังดูภาคการศึกษา 1/2569'),
     ).toBeInTheDocument();
-    const addRails = screen.getAllByRole('button', { name: /^เพิ่ม/ });
-    expect(addRails.length).toBeGreaterThan(0);
-    for (const rail of addRails) {
-      expect(rail).toHaveAttribute('aria-disabled', 'true');
+    const adds = screen.getAllByRole('button', { name: /^เพิ่ม/ });
+    expect(adds.length).toBeGreaterThan(0);
+    for (const add of adds) {
+      expect(add).toHaveAttribute('aria-disabled', 'true');
     }
     // The switch action creates a plan for the browsed term.
     const [switchButton] = screen.getAllByRole('button', {
