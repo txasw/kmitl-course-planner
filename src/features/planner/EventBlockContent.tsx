@@ -68,6 +68,10 @@ interface EventBlockContentProps {
 const REMOVE_STEP_ASIDE =
   'not-pointer-coarse:group-hover/block:opacity-0 not-pointer-coarse:group-focus-within/block:opacity-0';
 
+/** The backdrop of a text line over the danger hatch: as wide as its text, never past the
+ * column, so the hatch reads beside a short line. */
+const HATCH_BACKDROP = 'kcp-hatch-backdrop w-fit max-w-full';
+
 /** A whole field: one line that never wraps and clips its own overflow, so the fit can read
  * its scroll width against its line and drop it whole before the overflow ever paints. */
 const WHOLE_FIELD = 'block overflow-hidden whitespace-nowrap';
@@ -139,17 +143,22 @@ export function EventBlockContent({
   const narrowHidden = nameOnlyWhenNarrow ? NARROW_HIDDEN : '';
   // The quiet lines read ink soft, except over the danger hatch, where only ink keeps 4.5:1.
   const quiet = badge === 'danger' ? 'text-ink' : 'text-ink-soft';
+  // Over the danger hatch the content stacks above the overlay and each text line sits on a
+  // solid backdrop as wide as its text, so the stripes show around the text, not through it.
+  const backdrop = badge === 'danger' ? HATCH_BACKDROP : '';
   const line = nameLine(level.nameForm, name, nameLang, subjectId);
   return (
     <div
       ref={contentRef}
       data-fit
-      className="flex min-h-0 flex-1 flex-col overflow-hidden"
+      className={`flex min-h-0 flex-1 flex-col overflow-hidden ${
+        badge === 'danger' ? 'relative' : ''
+      }`}
     >
       <span
         data-fit-name
         lang={line.lang}
-        className={`shrink-0 font-semibold ${line.className} ${
+        className={`shrink-0 font-semibold ${line.className} ${backdrop} ${
           level.nameLines === 'all' ? '' : 'line-clamp-(--kcp-name-lines)'
         } ${reserveRemove ? removeClearance(nameOnlyWhenNarrow) : ''}`}
         style={nameClampStyle(level.nameLines)}
@@ -168,14 +177,14 @@ export function EventBlockContent({
         <span
           data-fit-whole="secondary"
           lang={secondaryLang ?? undefined}
-          className={`shrink-0 overflow-hidden font-normal break-normal ${narrowHidden} ${quiet}`}
+          className={`shrink-0 overflow-hidden font-normal break-normal ${backdrop} ${narrowHidden} ${quiet}`}
         >
           {secondary}
         </span>
       ) : null}
       {showRow ? (
         <span
-          className={`mt-0.5 flex shrink-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-ink ${narrowHidden}`}
+          className={`mt-0.5 flex shrink-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-ink ${backdrop} ${narrowHidden}`}
         >
           {level.showPlace ? (
             <span className="min-w-0 break-words">
@@ -208,7 +217,7 @@ export function EventBlockContent({
           margin never costs the name a line. */}
       {level.showTime || level.showId ? (
         <div
-          className={`${footAtBottom ? 'mt-auto' : 'mt-1'} min-h-0 pt-0.5 ${narrowHidden} ${quiet}`}
+          className={`${footAtBottom ? 'mt-auto' : 'mt-1'} min-h-0 pt-0.5 ${backdrop} ${narrowHidden} ${quiet}`}
         >
           {level.showTime ? (
             <span

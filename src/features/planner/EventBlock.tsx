@@ -13,9 +13,10 @@
 // tinted edge and a light shadow; the preview poster and its export keep the flat tint and
 // bar of ADR-0035, so the raster never depends on a gradient (ADR-0047 amendment of
 // 2026-11-20). The danger state draws its ring and hatch on an overlay rather than on the
-// fill, so it reads the same on either surface. On the export poster and in the edit grid
-// alike the content is measured against the box and whole low priority fields are dropped
-// rather than a line clipped mid glyph: the fit walks the density ladder in useDensityFit,
+// fill, so it reads the same on either surface, and each text line sits on a solid tint above
+// the overlay, so the stripes never run through the text. On the export poster and in the
+// edit grid alike the content is measured against the box and whole low priority fields are
+// dropped rather than a line clipped mid glyph: the fit walks the density ladder in useDensityFit,
 // dropping the subject id, then the secondary name, then the time, then clamping the name
 // to the lines that fit, then the section chip, then reducing the name to one line, then
 // the place, with the name never dropping (ADR-0046, ADR-0047). The place outlives the
