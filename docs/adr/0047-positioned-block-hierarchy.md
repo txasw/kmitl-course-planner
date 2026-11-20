@@ -178,3 +178,36 @@ Consequences. In a five column phone week at 360 and 390 px most English course 
 word wider than the column, so those blocks read as the subject id, and the day view, the phone
 default, shows the whole name. A one hour landscape block whose English name holds a long word
 reads its name a step smaller or as the id. No English block name breaks inside a word anywhere.
+
+The name form follows the measured fit on every surface that shares the block content, the
+preview poster and its export included. On a poster a block whose English name holds a word wider
+than its column, such as the portrait phone wallpaper in English, reads the subject id in the
+name's place even while the show subject id display option is off: the option governs the id in
+the foot, and the id here stands in for a name that cannot show whole, so the block still names
+its course. The clipped text sweep runs the block name guard on every export template too.
+
+The rule reads the script of the name as well as its field. International programs send the
+Thai name field in Latin capitals, 66 of the 164 distinct Thai names in the captured catalogs, so a
+Thai field with no Thai letter keeps its words whole like an English name and steps its form down
+the same way, and the guard holds it to its word boundaries too. A Thai name that holds a long
+Latin word inside Thai text keeps the Thai breaks, so that word may still break inside itself where
+it is wider than the whole line, and the guard does not report it. One captured name has that
+shape, a Thai title that ends in EDGE COMPUTING. Splitting one name into runs of two wrap rules
+would cost more than the rare broken word it saves, so the case is accepted and stated here.
+
+## Amendment, 2026-11-21: text over the danger hatch sits on a solid backdrop
+
+Context. The same review found the hatch stripes of a missing or conflicting block running
+through its text. Switching the quiet lines to ink kept the contrast on a stripe, but the stripes
+still crossed the glyphs and made a dense Thai name hard to read.
+
+Decision. Over the hatch the block content is positioned so it paints above the overlay, and each
+text line, the name, the secondary name, the place row, and the foot, sits on a solid backdrop as
+wide as its text and never wider than the column, so the hatch shows around the text and beside a
+short line. On the soft card the backdrop is the card's top tint made opaque. On the flat poster
+fill it is the block's own concrete tint, set by the fill style, so the capture inlines a hex
+rather than a color-mix and the backdrop matches the block rather than reading grey. The text
+keeps the ink the contrast tests prove on the block fill.
+
+Consequences. A hatched block reads as text on its fill with stripes in the gaps, on screen and
+in every export. The ring and the stripes still mark the block as missing or in conflict.
