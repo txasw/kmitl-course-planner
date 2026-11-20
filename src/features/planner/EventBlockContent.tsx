@@ -79,19 +79,13 @@ const WHOLE_FIELD = 'block overflow-hidden whitespace-nowrap';
 /** The custom property that carries the name clamp, read by the line clamp utility. */
 const NAME_LINES_PROPERTY = '--kcp-name-lines';
 
-/** Any letter of the Thai script. */
-const THAI_SCRIPT = /\p{Script=Thai}/u;
-
-/** How the name wraps: a Thai name at its dictionary words and inside a word wider than the
- * line, any other name only at its spaces, so the fit sees a word wider than its line as an
- * overflow of the name and steps the name form down rather than strand letters. The rule reads
- * the script of the text as well as its field: an international program sends its Thai name
- * field in Latin capitals, and that name keeps its words whole like an English one. */
-function nameWrapClass(name: string, nameLang: Locale): string {
-  return nameLang === 'th' && THAI_SCRIPT.test(name)
-    ? 'break-words hyphens-auto'
-    : 'break-normal';
-}
+/** How the name wraps: at the breaks the browser finds between words, which for Thai are its
+ * dictionary words and for any other script its spaces, and never inside a word. A word wider
+ * than the line then overflows the name, and the fit reads that as an overflow and steps the
+ * name form down, to the smaller name and then the subject id, rather than strand letters on
+ * their own lines. Fonts differ by platform, so the same Thai word may fit one machine's column
+ * and not another's; the rule holds on both because it reads the overflow, not a width. */
+const NAME_WRAP = 'break-normal';
 
 /** The text and type of the name line for its form: the subject id stands in for the name one
  * type step smaller on a line that never wraps, and a bare name shows no text. */
@@ -105,13 +99,13 @@ function nameLine(
     case 'full':
       return {
         text: name,
-        className: nameWrapClass(name, nameLang),
+        className: NAME_WRAP,
         lang: nameLang,
       };
     case 'small':
       return {
         text: name,
-        className: `${nameWrapClass(name, nameLang)} text-[0.9em]`,
+        className: `${NAME_WRAP} text-[0.9em]`,
         lang: nameLang,
       };
     case 'id':
