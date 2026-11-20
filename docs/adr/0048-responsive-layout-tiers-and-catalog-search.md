@@ -721,3 +721,17 @@ surface would start unguarded; one walk names every surface in one place. Readin
 the scroll size of its nearest box alone was rejected because a cut by an outer box, such as the
 tab row, does not show there. Raising the header height so a plan name could wrap was rejected
 because the header row stays one line on every width.
+
+## Amendment, 2026-11-21: nothing cut at the foot or the head
+
+A conformance review against the owner rule found text that the sweep let through. Each fix
+below supersedes the earlier text it names.
+
+- A reopened search form shows whole from 640 px up. The 12rem minimum the results kept under
+  an open form, from the amendment of 2026-11-06, is withdrawn: at 768 and 1366 px it cut the
+  curriculum form short, so the class year box lost its foot and the submit row sat out of view
+  with nothing marking that the form scrolled. The form now takes the height it needs and the
+  results take what is left. Only a window too short for the whole form makes it scroll, and
+  then the submit row pins to the scroller foot with its divider, as on the phone, so the action
+  stays in view and the divider marks that more lies above. Keeping the minimum with a scroll
+  shadow was rejected, since a field would still be cut through its box at the scroller edge.

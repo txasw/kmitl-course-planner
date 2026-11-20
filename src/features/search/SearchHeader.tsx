@@ -17,6 +17,12 @@
 // focused field never sits under it (WCAG 2.4.11). While a bar exists the row carries a
 // cancel that folds the form back under it, the same fold Escape gives.
 //
+// From 640 px up a reopened form takes the height it needs and the results under it take
+// what is left, so no field and no action is cut off at the foot of the form. Only a
+// window too short for the whole form makes it scroll, and then the submit row pins to
+// the scroller foot with its divider, so the action stays in view and the divider marks
+// that more of the form lies above it.
+//
 // The head seeds the search on the first open of the page session. A search persisted
 // before a reload reopens folded into its bar; until the seed lands the head holds a
 // fixed placeholder with neither the form nor the bar, so nothing paints and then flips.
@@ -65,6 +71,9 @@ function SearchHead({ compact = false }: SearchHeaderProps) {
   const formScroller = useRef<HTMLDivElement>(null);
   const submitRow = useRef<HTMLDivElement>(null);
   const submitRowHeight = useElementSize(submitRow).height;
+  const formContent = useRef<HTMLDivElement>(null);
+  const scrollerHeight = useElementSize(formScroller).height;
+  const contentHeight = useElementSize(formContent).height;
 
   // Each expand shows the form from its first field.
   useLayoutEffect(() => {
@@ -75,6 +84,11 @@ function SearchHead({ compact = false }: SearchHeaderProps) {
 
   const barVisible = barQuery !== null;
   const fill = compact && formOpen;
+  // The form scrolls only when the column is shorter than the whole form; the submit row
+  // then pins to the foot so the action never scrolls out of view. The pinned row is
+  // taller than the flowing one, so pinning never makes the form fit and flip back.
+  const overflowing = formOpen && contentHeight > scrollerHeight + 1;
+  const pinned = fill || overflowing;
 
   // The Escape that ends an input method composition in a field belongs to the editor,
   // as the sheet and the overlay trap already rule, so it never folds the form.
@@ -106,7 +120,7 @@ function SearchHead({ compact = false }: SearchHeaderProps) {
           ref={formScroller}
           className="kcp-scroll overscroll-contain [scroll-padding-bottom:var(--kcp-overlay-bottom,0px)]"
           style={
-            fill
+            pinned
               ? {
                   scrollPaddingBottom: `calc(${String(submitRowHeight)}px + var(--kcp-overlay-bottom, 0px))`,
                 }
@@ -115,11 +129,14 @@ function SearchHead({ compact = false }: SearchHeaderProps) {
         >
           {/* The padding sits inside the scroller, so the submit focus outline is
               never clipped by the scroller edge. */}
-          <div className="border-b border-border px-6 pt-4 pb-6">
+          <div
+            ref={formContent}
+            className="border-b border-border px-6 pt-4 pb-6"
+          >
             <SearchForm
               dock={{
                 ref: submitRow,
-                sticky: fill,
+                sticky: pinned,
                 onCancel: fill && barVisible ? foldForm : null,
               }}
             />
