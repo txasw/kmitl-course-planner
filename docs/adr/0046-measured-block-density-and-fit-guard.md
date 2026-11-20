@@ -103,3 +103,56 @@ exact. The export is now gated on fonts, a small delay when they are already loa
 guard fails when a block overflows its box, so a future regression is caught in the suite rather
 than by eye. The block color system and the grid geometry are unchanged, which is why this
 amends rather than replaces ADR-0040 and ADR-0043.
+
+## Amendment, 2026-11-20: whole fields by width, the name language, and fewer options
+
+Owner feedback on the redesign train named two export faults. A subject code clipped on the
+small exports: the ADR-0047 amendment of the same day had let the id wrap rather than truncate,
+so on a one hour landscape block the eight digits broke across two lines, which reads as two
+codes, and the fit measured only height, so a field could also run past the right edge unseen.
+And the poster could name subjects only in the panel language, with English as an optional
+second line under Thai alone, so a student browsing in Thai could not share an English
+timetable, and one browsing in English could not add the Thai names.
+
+Whole fields. The subject id and the time are whole fields: each sits on one line that never
+wraps and clips its own overflow, so the fit can read its scroll width against its line. A whole
+field wider than its line drops at once, whole, out of ladder order, since no rung can widen its
+line; this supersedes the ADR-0047 amendment's wrapping id. The content wrapper's own horizontal
+overflow now walks the ladder exactly as a height overflow does, so the fit reads both axes. The
+fit guard checks both axes at every preset and in every name language, asserts that each whole
+field present fits its line on one line and that every id shown is its full eight digits, and
+that at least one id shows per preset so the check is never vacuous. The synthetic fit
+regression catalog gains a one hour and a ninety minute block, the narrow landscape shapes the
+id clipped on.
+
+Reclaim. Once the content fits, the fit offers back, once each, the time, the secondary name,
+and the subject id it dropped on the way down, in that order, because a later rung such as the
+secondary name or the name clamp may have freed the room an earlier drop needed. These are the
+three top rungs, each the first field the ladder drops while shown, so an offer that overflows
+is undone by the next demotion and never costs a field ranked above it. Without the pass, a name
+language of both cost a Share 16:9 block its id even though the second name never fit there.
+
+Name language. An export option names every subject in Thai, English, or both, and applies
+identically to the poster, the PNG, the copied image, the unscheduled shelf, the exam block, and
+the copy as text output through one resolver, `lib/planner/nameLanguage.ts`. Unset, the default,
+it follows the panel language. Both leads with the panel language and adds the other language as
+the secondary line, which takes the English line's rung in the ladder, so it shows where the fit
+allows; the text export has no box to fit and always carries both. A single language falls back
+to the other language when its own name is empty, so a block is never nameless. The choice is an
+optional display options field that reads an unknown value as absent, so no schema version bump
+is needed: a blob written before it loads whole and follows the panel language.
+
+Fewer options. The display options keep only what the fit can still change: the name language,
+then the room, the section, the subject id, and the exam schedule. Show English names is
+retired, since the name language covers it in both panel languages; the object schema strips the
+stored key, so an older blob loads with every other choice intact. The unscheduled shelf wraps
+its names rather than truncating them, since the shared image has no hover to expand a cut name.
+
+Alternatives considered. Disabling both on the short landscape templates, as the redesign mockup
+draws it, was not taken: the fit drops the second line where it does not fit and the reclaim
+pass keeps the id, so both never costs a field there, and on a template with longer blocks the
+second line shows; the option carries a note that the second name shows where a block has room.
+Moving an id that does not fit into a legend under the poster, also in the mockup, was left out
+of this change: the text export always carries the id, and a legend takes height from the grid
+on exactly the templates that are short of it. Letting the id wrap at a narrower type size was
+rejected because a code split at any size still reads as two codes.
