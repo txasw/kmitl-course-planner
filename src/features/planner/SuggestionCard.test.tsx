@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import { suggestPlans } from '@/lib/planner/suggest';
 import { byClassCourses, lockSections } from '../../../tests/support/suggest';
@@ -94,6 +100,29 @@ describe('SuggestionCard', () => {
         ignore: 'summary',
       }),
     ).toBeInTheDocument();
+  });
+
+  it('names every placed section in full, collapsed', () => {
+    const { suggestion: shown } = renderCard();
+    const sections = suggestionSections(locked, shown);
+    const subjects = new Set(sections.map((section) => section.subjectId));
+    const summary = screen.getByText(
+      `วิชาในตัวเลือกนี้ ${String(subjects.size)} วิชา`,
+    );
+    const details = summary.closest('details');
+    expect(details).not.toHaveAttribute('open');
+    for (const section of sections) {
+      expect(
+        within(details ?? document.body).getAllByText(
+          `${section.subjectId} ${section.nameTh}`,
+        ).length,
+      ).toBeGreaterThan(0);
+    }
+    expect(
+      within(details ?? document.body).getAllByText(
+        /^กลุ่มเรียน \S+ (ทฤษฎี|ปฏิบัติ)$/,
+      ),
+    ).toHaveLength(sections.length);
   });
 
   it('applies the suggestion', () => {
