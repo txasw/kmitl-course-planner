@@ -1,5 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
-import type { ReactNode } from 'react';
+import type { MouseEvent, ReactNode, Ref } from 'react';
+import { FOCUS_OUTLINE } from '@/lib/ui/focus';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 interface EmptyStateProps {
   icon: LucideIcon;
@@ -8,11 +10,11 @@ interface EmptyStateProps {
   action?: ReactNode;
 }
 
-// A designed empty state: an icon in a neutral disc, one line of title, one sentence of
-// guidance, and at most one action. It fills the region it stands in for, with no surface
-// of its own, so the catalog, the summary, and the timetable all say "nothing here" the
-// same way. Regions that have no real action yet omit it rather than render a control
-// that does nothing.
+// A designed empty state per brief 8.2: an icon in a neutral disc, one line of title, one
+// sentence of guidance, and one action, so the catalog, the summary, the timetable, and
+// the dialogs all say "nothing here" the same way. The action is an EmptyStateAction, the
+// one way out of the state. Only a surface that is a picture rather than a control, the
+// preview poster, omits it, since a shared image carries no control.
 export function EmptyState({
   icon: Icon,
   title,
@@ -31,5 +33,31 @@ export function EmptyState({
       <p className="max-w-xs text-sm text-ink-soft">{description}</p>
       {action}
     </div>
+  );
+}
+
+interface EmptyStateActionProps {
+  label: string;
+  onClick: (event: MouseEvent<HTMLButtonElement>) => void;
+  buttonRef?: Ref<HTMLButtonElement>;
+}
+
+// The one action of an empty state, a filled primary button at the touch target size. It
+// takes pointer events back where the state sits over the grid, whose notice lets them
+// through to the cells.
+export function EmptyStateAction({
+  label,
+  onClick,
+  buttonRef,
+}: EmptyStateActionProps) {
+  return (
+    <button
+      ref={buttonRef}
+      type="button"
+      onClick={onClick}
+      className={`pointer-events-auto rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover ${TARGET_SIZE} ${FOCUS_OUTLINE}`}
+    >
+      {label}
+    </button>
   );
 }

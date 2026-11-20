@@ -11,9 +11,7 @@ import type { Locale, Translate } from '@/lib/i18n/t';
 import type { WeeklyHours } from '@/lib/planner/credits';
 import type { ExamSchedule } from '@/lib/planner/examSchedule';
 import type { MeetingSpan } from '@/lib/planner/freePeriods';
-import { FOCUS_OUTLINE } from '@/lib/ui/focus';
-import { TARGET_SIZE } from '@/lib/ui/target';
-import { EmptyState } from '@/components/EmptyState';
+import { EmptyState, EmptyStateAction } from '@/components/EmptyState';
 import { revealSearch } from '@/features/catalog/revealCourse';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { ExamSchedulePanel } from './ExamSchedulePanel';
@@ -46,15 +44,12 @@ export function SummaryView({
         title={t('summary.emptyTitle')}
         description={t('summary.emptyBody')}
         action={
-          <button
-            type="button"
+          <EmptyStateAction
+            label={t('summary.goToCourses')}
             onClick={(event) => {
               revealSearch(event.currentTarget, tier);
             }}
-            className={`rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover ${TARGET_SIZE} ${FOCUS_OUTLINE}`}
-          >
-            {t('summary.goToCourses')}
-          </button>
+          />
         }
       />
     );

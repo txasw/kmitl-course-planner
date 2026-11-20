@@ -1,11 +1,12 @@
-// The error card's one action, chosen by errorAction from the error. A retry replaces
+// The error card's one action, chosen by errorAction from the error, and the edit action
+// of the empty result, which reopens the form the same way. A retry replaces
 // the card with the loading state, so focus moves to the summary bar above. An edit
 // opens the form under the bar and leaves the card in place, so focus moves into the
 // form: to the disclosure, or to the subject id field on its tab when the server
 // rejected the id.
 
 import type { Translate } from '@/lib/i18n/t';
-import { FOCUS_OUTLINE } from '@/lib/ui/focus';
+import { EmptyStateAction } from '@/components/EmptyState';
 import type { ErrorAction } from '@/features/search/errorMessage';
 import {
   SEARCH_BAR_ID,
@@ -14,8 +15,6 @@ import {
 } from '@/features/search/searchIds';
 import { searchStore } from '@/features/search/searchStore';
 import { commitAndFocus } from '@/features/shell/commitAndFocus';
-
-const ERROR_ACTION_CLASS = `rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover ${FOCUS_OUTLINE}`;
 
 interface ErrorActionButtonProps {
   action: ErrorAction;
@@ -30,21 +29,18 @@ export function ErrorActionButton({
 }: ErrorActionButtonProps) {
   if (action === 'retry') {
     return (
-      <button
-        type="button"
+      <EmptyStateAction
+        label={t('action.retry')}
         onClick={(event) => {
           commitAndFocus(event.currentTarget, SEARCH_BAR_ID, onRetry);
         }}
-        className={ERROR_ACTION_CLASS}
-      >
-        {t('action.retry')}
-      </button>
+      />
     );
   }
   const subjectId = action === 'editSubjectId';
   return (
-    <button
-      type="button"
+    <EmptyStateAction
+      label={t('search.bar.edit')}
       onClick={(event) => {
         commitAndFocus(
           event.currentTarget,
@@ -58,9 +54,6 @@ export function ErrorActionButton({
           },
         );
       }}
-      className={ERROR_ACTION_CLASS}
-    >
-      {t('search.bar.edit')}
-    </button>
+    />
   );
 }

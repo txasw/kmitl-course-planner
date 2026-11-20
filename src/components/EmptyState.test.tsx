@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { Search } from 'lucide-react';
-import { EmptyState } from './EmptyState';
+import { EmptyState, EmptyStateAction } from './EmptyState';
 
 afterEach(cleanup);
 
@@ -46,5 +46,25 @@ describe('EmptyState', () => {
       <EmptyState icon={Search} title="No data" description="Try a search." />,
     );
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+});
+
+describe('EmptyStateAction', () => {
+  it('is a primary button at the target size that runs its handler', () => {
+    let pressed = 0;
+    render(
+      <EmptyStateAction
+        label="Go to search"
+        onClick={() => {
+          pressed += 1;
+        }}
+      />,
+    );
+    const button = screen.getByRole('button', { name: 'Go to search' });
+    expect(button).toHaveAttribute('type', 'button');
+    expect(button).toHaveClass('bg-primary-strong', 'pointer-events-auto');
+    expect(button.className).toContain('min-w-(--kcp-target-min)');
+    fireEvent.click(button);
+    expect(pressed).toBe(1);
   });
 });

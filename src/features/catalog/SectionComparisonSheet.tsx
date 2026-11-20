@@ -20,7 +20,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { ListFilter } from 'lucide-react';
 import { BottomSheet } from '@/components/BottomSheet';
-import { EmptyState } from '@/components/EmptyState';
+import { EmptyState, EmptyStateAction } from '@/components/EmptyState';
 import { ModalDialog } from '@/components/ModalDialog';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { Switch } from '@/components/Switch';
@@ -37,8 +37,6 @@ import {
   COMPARISON_TABLE_MIN_WIDTH,
   minWidthQuery,
 } from '@/lib/ui/breakpoints';
-import { FOCUS_RING } from '@/lib/ui/focus';
-import { TARGET_SIZE } from '@/lib/ui/target';
 import { addSectionToPlan } from '@/features/plans/addToPlan';
 import { planStore } from '@/features/plans/planStore';
 import { activePlanOf } from '@/features/plans/planStoreState';
@@ -163,16 +161,13 @@ export function SectionComparisonSheet({
             title={t('compare.empty.title')}
             description={t('compare.empty.description')}
             action={
-              <button
-                ref={showAllRef}
-                type="button"
+              <EmptyStateAction
+                buttonRef={showAllRef}
+                label={t('compare.showAll')}
                 onClick={() => {
                   setOnlyAddable(false);
                 }}
-                className={`rounded-kcp border border-border px-3 py-1 text-sm text-ink hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`}
-              >
-                {t('compare.showAll')}
-              </button>
+              />
             }
           />
         </div>
