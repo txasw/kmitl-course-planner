@@ -6,13 +6,16 @@
 // chosen not again today on the search page coach mark (ADR-0072). A spec about the
 // first run asks for the fresh state and meets the install as a student would, a spec
 // about the entry prompt turns it back on before it loads a page, and a spec about the
-// coach mark lets it speak again.
+// coach mark lets it speak again. The settled record also names the product tour as
+// walked (ADR-0074), so the panel a spec opens is never under its spotlight; a spec
+// about the tour clears that mark.
 
 import type { BrowserContext, Page } from '@playwright/test';
 import { SELECTOR_URL } from '../../../src/lib/shell/hostTab';
 import { ONBOARDING_KEY } from '../../../src/lib/storage/keys';
 import type { OnboardingRecord } from '../../../src/lib/storage/onboarding';
 import { nextLocalDayStamp } from '../../../src/lib/onboarding/coachMark';
+import { TOUR_VERSION } from '../../../src/lib/onboarding/tour';
 import { extensionWorker } from './worker';
 
 /** Whether a context starts as a fresh install or as a student past the first run. */
@@ -29,11 +32,12 @@ const POLL_MS = 100;
 
 const SETTLED_AT = '2026-11-06T08:00:00.000Z';
 
-// The first run as done: the welcome seen and the panel opened.
+// The first run as done: the welcome seen, the panel opened, and the tour walked.
 const FIRST_RUN_DONE: OnboardingRecord = {
   schemaVersion: 1,
   welcomeShownAt: SETTLED_AT,
   panelFirstOpenedAt: SETTLED_AT,
+  tourSeen: { version: TOUR_VERSION, outcome: 'completed', at: SETTLED_AT },
 };
 
 // The snooze day the harness seeds, in the same local zone the browser it launches
@@ -132,6 +136,17 @@ export async function allowCoachMark(
   { entryToast = false }: { entryToast?: boolean } = {},
 ): Promise<void> {
   await seedOnboarding(context, entryToast ? FIRST_RUN_DONE : COACHED_RECORD);
+}
+
+/**
+ * Clears the product tour mark in a settled context, as for a student who installed
+ * before the tour existed, so the next panel open starts it. A test harness write, like
+ * the seed it replaces.
+ */
+export async function allowProductTour(context: BrowserContext): Promise<void> {
+  const record = settledRecord();
+  delete record.tourSeen;
+  await seedOnboarding(context, record);
 }
 
 async function seedOnboarding(

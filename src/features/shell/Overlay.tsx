@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, type ReactNode } from 'react';
 import { useStore } from 'zustand';
 import { QuarantineCard } from '@/features/plans/QuarantineCard';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -39,13 +39,19 @@ import { VIEWPORT_FIT } from '@/lib/ui/viewportInset';
 // control such as the plan switcher can open its bottom sheet over the whole panel.
 // The panel fills the visible part of the viewport rather than the layout viewport, so a
 // phone keyboard shrinks it instead of covering its foot, and the sheets and dialogs it
-// hosts fit the same area.
+// hosts fit the same area. A layer the overlay hosts above its body, such as the product
+// tour, comes in as children, so it renders inside the portal context and the trap.
 const TITLE_ID = 'kcp-overlay-title';
 // The toast region stays on its own layer outside the panel, so the trap takes its
 // controls into the Tab order rather than leaving an undo out of keyboard reach.
 const TRAP_SATELLITES = [TOAST_REGION_ID] as const;
 
-export function Overlay() {
+interface OverlayProps {
+  /** Layers that render above the panel body inside the panel node. */
+  children?: ReactNode;
+}
+
+export function Overlay({ children }: OverlayProps) {
   const isOpen = useStore(uiStore, (state) => state.isOpen);
   const close = useStore(uiStore, (state) => state.close);
   const { t, language } = useTranslation();
@@ -124,6 +130,7 @@ export function Overlay() {
             }}
           />
         ) : null}
+        {children}
       </PanelPortalContext.Provider>
     </div>
   );
