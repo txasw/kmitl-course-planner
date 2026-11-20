@@ -369,7 +369,7 @@ test('the failed save strip fits whole at 320 px in Thai and English', async ({
   );
 });
 
-// The clearance ADR-0072 keeps between the version pill and the first text in the
+// The clearance ADR-0073 keeps between the version pill and the first text in the
 // header row: the pill reaches 4 px into the 12 px gap after the mark.
 const PILL_CLEARANCE_PX = 8;
 
