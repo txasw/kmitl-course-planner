@@ -77,22 +77,28 @@ describe('Pager', () => {
     expect(dot).not.toHaveAttribute('aria-describedby');
   });
 
-  it('opens an arrow tooltip on focus on the side it names', () => {
+  it('names an arrow in a tooltip on focus', () => {
+    render(<Harness />);
+    fireEvent.focus(screen.getByRole('button', { name: 'ถัดไป' }));
+    expect(screen.getByRole('tooltip')).toHaveTextContent('ถัดไป');
+  });
+
+  it('opens no tooltip on an arrow that asks for none', () => {
     render(
       <PagerArrow
         label="ก่อนหน้า"
         disabled={false}
         onActivate={() => undefined}
-        tooltipPlacement="right"
+        tooltip={false}
       >
         previous
       </PagerArrow>,
     );
-    fireEvent.focus(screen.getByRole('button', { name: 'ก่อนหน้า' }));
-    expect(screen.getByRole('tooltip')).toHaveAttribute(
-      'data-placement',
-      'right',
-    );
+    const arrow = screen.getByRole('button', { name: 'ก่อนหน้า' });
+    fireEvent.focus(arrow);
+    fireEvent.mouseEnter(arrow);
+    expect(screen.queryByRole('tooltip')).toBeNull();
+    expect(arrow).not.toHaveAttribute('aria-describedby');
   });
 
   it('names the group and keeps one dot in the tab order', () => {
