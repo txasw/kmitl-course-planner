@@ -56,6 +56,18 @@ async function holdsFocus(node: Locator): Promise<boolean> {
   });
 }
 
+/**
+ * Whether focus sits in the overlay's trap: the panel itself or the toast region, whose
+ * controls follow the panel's last stop in its Tab order (ADR-0056 amendment), so the
+ * undo toast a removal shows is a stop the wrap passes through.
+ */
+async function holdsPanelFocus(page: Page, overlay: Locator): Promise<boolean> {
+  return (
+    (await holdsFocus(overlay)) ||
+    (await holdsFocus(page.locator('#kcp-toast-region')))
+  );
+}
+
 /** The focused element, read through the panel's shadow root. */
 async function focusedElement(page: Page): Promise<JSHandle> {
   return page.evaluateHandle(() => {
@@ -73,17 +85,24 @@ async function sameElement(a: JSHandle, b: JSHandle): Promise<boolean> {
 /**
  * Assert Tab wraps at both ends of a trapped container: from the container, Tab lands
  * on its first stop, Shift+Tab from there lands on another stop still inside it, its
- * last, and Tab from that returns to the first.
+ * last, and Tab from that returns to the first. The overlay's trap also takes the toast
+ * region, so for the overlay a toast control counts as inside.
  */
-async function expectTabWraps(page: Page, container: Locator): Promise<void> {
+async function expectTabWraps(
+  page: Page,
+  container: Locator,
+  { withToasts = false }: { withToasts?: boolean } = {},
+): Promise<void> {
+  const inside = (): Promise<boolean> =>
+    withToasts ? holdsPanelFocus(page, container) : holdsFocus(container);
   await container.focus();
   await expect(container).toBeFocused();
   await page.keyboard.press('Tab');
   const first = await focusedElement(page);
-  expect(await holdsFocus(container)).toBe(true);
+  expect(await inside()).toBe(true);
   await page.keyboard.press('Shift+Tab');
   const last = await focusedElement(page);
-  expect(await holdsFocus(container)).toBe(true);
+  expect(await inside()).toBe(true);
   expect(await sameElement(first, last)).toBe(false);
   await page.keyboard.press('Tab');
   expect(await sameElement(await focusedElement(page), first)).toBe(true);
@@ -129,15 +148,23 @@ for (const viewport of [
       const grid = page.getByRole('group', { name: GRID_NAME });
       await expect(grid).toBeFocused();
 
-      // Tab and Shift+Tab across the panel's ends stay inside it.
+      // Tab and Shift+Tab across the panel's ends stay inside its trap, which takes the
+      // undo toast the removal shows.
       await page.keyboard.press('Shift+Tab');
-      expect(await holdsFocus(overlay)).toBe(true);
+      expect(await holdsPanelFocus(page, overlay)).toBe(true);
       await page.keyboard.press('Tab');
-      expect(await holdsFocus(overlay)).toBe(true);
+      expect(await holdsPanelFocus(page, overlay)).toBe(true);
       await page.keyboard.press('Shift+Tab');
-      expect(await holdsFocus(overlay)).toBe(true);
+      expect(await holdsPanelFocus(page, overlay)).toBe(true);
 
-      // Escape still reaches the trap and closes the overlay.
+      // Escape closes one layer per press: on a toast control it dismisses the toast
+      // first, and the next press still reaches the trap and closes the overlay.
+      const toastRegion = page.locator('#kcp-toast-region');
+      if (await holdsFocus(toastRegion)) {
+        await page.keyboard.press('Escape');
+        await expect(toastRegion.getByRole('button')).toHaveCount(0);
+        await expect(overlay).toBeVisible();
+      }
       await page.keyboard.press('Escape');
       await expect(overlay).toBeHidden();
     });
@@ -269,7 +296,9 @@ for (const tier of TIERS.filter((each) => each.kind !== 'docked')) {
 
       // Tab wraps inside the open sheet on the tablet, and inside the panel on the
       // phone, where the catalog is a pane of the panel.
-      await expectTabWraps(page, tier.kind === 'sheet' ? catalog : overlay);
+      await expectTabWraps(page, tier.kind === 'sheet' ? catalog : overlay, {
+        withToasts: tier.kind !== 'sheet',
+      });
 
       // A keyboard remove from the block details takes the last block away, so focus
       // lands on the grid.
@@ -286,7 +315,7 @@ for (const tier of TIERS.filter((each) => each.kind !== 'docked')) {
         page.getByRole('group', { name: ANY_GRID_NAME }),
       ).toBeFocused();
 
-      await expectTabWraps(page, overlay);
+      await expectTabWraps(page, overlay, { withToasts: true });
       await page.keyboard.press('Escape');
       await expect(overlay).toBeHidden();
     });
