@@ -11,6 +11,7 @@ import type { ReactNode } from 'react';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { installViewport } from '../../../tests/support/viewport';
+import { debugMenuStore } from './debugMenuStore';
 import { ExtensionVersionContext } from './ExtensionVersionContext';
 import { HeaderOverflowMenu } from './HeaderOverflowMenu';
 import { Overlay } from './Overlay';
@@ -54,6 +55,20 @@ describe('HeaderOverflowMenu', () => {
     expect(item('ไทย')).toHaveFocus();
     expect(item('ไทย')).toHaveAttribute('aria-checked', 'true');
     expect(item('English')).toHaveAttribute('aria-checked', 'false');
+  });
+
+  it('renders no debug menu item in a production build', () => {
+    act(() => {
+      debugMenuStore
+        .getState()
+        .setItem({ label: 'Diagnostics', onSelect: vi.fn() });
+    });
+    render(<HeaderOverflowMenu />);
+    fireEvent.click(trigger());
+    expect(screen.queryByRole('menuitem')).not.toBeInTheDocument();
+    act(() => {
+      debugMenuStore.getState().setItem(null);
+    });
   });
 
   it('marks each language with its flag beside its name', () => {

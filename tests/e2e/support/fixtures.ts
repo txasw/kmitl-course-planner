@@ -112,6 +112,17 @@ export async function openPlanner(context: BrowserContext): Promise<Page> {
   return page;
 }
 
+/**
+ * Open the debug build's diagnostics drawer. While the panel is open its trigger lives in
+ * the header overflow menu rather than floating over the panel.
+ */
+export async function openDiagnostics(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }).click();
+  await page
+    .getByRole('menuitem', { name: 'Diagnostics', exact: true })
+    .click();
+}
+
 // A cold or contended worker can take many seconds to answer its first requests, the
 // current term among them, so the wait for the settled term allows for that rather
 // than eating into the budget each spec gives its search results.

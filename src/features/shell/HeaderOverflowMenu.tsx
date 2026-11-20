@@ -10,7 +10,9 @@
 // Tab or a press outside closes it and lets focus move on. Below 640 px, where the
 // header hides the brand mark and its version pill, a muted line under the menu shows
 // the extension version. It sits in the popover but outside the menu role, so it is
-// neither an item nor focusable, and a screen reader reads it as a phrase.
+// neither an item nor focusable, and a screen reader reads it as a phrase. A debug build
+// adds one plain menu item after the languages, the entry to its diagnostics drawer, from
+// the debug menu slot; production leaves the slot empty.
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useStore } from 'zustand';
@@ -19,8 +21,10 @@ import { useDismiss, useInteractions } from '@floating-ui/react';
 import { LanguageFlag } from '@/components/LanguageFlag';
 import type { Locale, TranslationKey } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
+import { IS_DEBUG } from '@/lib/env';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
+import { debugMenuStore } from './debugMenuStore';
 import { useExtensionVersion } from './ExtensionVersionContext';
 import { uiStore } from './uiStore';
 import { useEscapeLayer } from './useEscapeLayer';
@@ -43,6 +47,8 @@ export function HeaderOverflowMenu() {
   const version = useExtensionVersion();
   const language = useStore(uiStore, (state) => state.language);
   const setLanguage = useStore(uiStore, (state) => state.setLanguage);
+  const slotItem = useStore(debugMenuStore, (state) => state.item);
+  const debugItem = IS_DEBUG ? slotItem : null;
   const [openFocus, setOpenFocus] = useState<OpenFocus | null>(null);
   const open = openFocus !== null;
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -104,7 +110,7 @@ export function HeaderOverflowMenu() {
   const handleMenuKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
     const items = Array.from(
       event.currentTarget.querySelectorAll<HTMLElement>(
-        '[role="menuitemradio"]',
+        '[role="menuitemradio"], [role="menuitem"]',
       ),
     );
     // The key lands on the focused item. The panel sits in a shadow root, where the
@@ -203,6 +209,23 @@ export function HeaderOverflowMenu() {
                 );
               })}
             </div>
+            {debugItem === null ? null : (
+              <button
+                ref={(node) => {
+                  itemRefs.current[LOCALES.length] = node;
+                }}
+                type="button"
+                role="menuitem"
+                tabIndex={-1}
+                onClick={() => {
+                  setOpenFocus(null);
+                  debugItem.onSelect();
+                }}
+                className={`mt-1 flex w-full items-center rounded-kcp border-t border-border px-2 py-1.5 text-left text-ink hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`}
+              >
+                {debugItem.label}
+              </button>
+            )}
           </div>
           {version === null ? null : (
             <p className="mx-1 mt-1 border-t border-border px-1 pt-1.5 pb-0.5 text-2xs break-words text-ink-muted tabular-nums sm:hidden">

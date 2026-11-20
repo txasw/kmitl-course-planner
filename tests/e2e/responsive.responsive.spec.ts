@@ -829,13 +829,6 @@ test('the strip chips stay tappable over the open catalog', async ({
   await expect(chip).toBeFocused();
   await expect(chip).toBeInViewport({ ratio: 1 });
   await expect(page.getByText(/^เพิ่ม 90000010 กลุ่มเรียน/)).toHaveCount(0);
-  // The debug build's diagnostics launcher floats over the phone's foot, and the
-  // production build has none, so it is set aside before the hit test.
-  await page
-    .getByRole('button', { name: 'Diagnostics', exact: true })
-    .evaluate((node) => {
-      if (node instanceof HTMLElement) node.style.visibility = 'hidden';
-    });
   // The chip is the element a tap at its centre lands on: no scrim, sheet, toast, or
   // nav covers it.
   expect(

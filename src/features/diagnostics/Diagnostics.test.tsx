@@ -19,6 +19,7 @@ import {
   SearchDepsProvider,
   type SearchDeps,
 } from '@/features/search/SearchDepsContext';
+import { debugMenuStore } from '@/features/shell/debugMenuStore';
 import { Diagnostics } from './Diagnostics';
 
 function report(): DataQualityReport {
@@ -138,6 +139,40 @@ describe('Diagnostics drawer', () => {
     expect(
       await screen.findByRole('button', { name: 'Diagnostics' }),
     ).toBeInTheDocument();
+  });
+
+  it('leaves the panel for the header menu slot while the panel is open', async () => {
+    render(
+      <SearchDepsProvider value={deps()}>
+        <Diagnostics />
+      </SearchDepsProvider>,
+    );
+    act(() => {
+      uiStore.getState().open();
+    });
+    expect(screen.queryByRole('button', { name: 'Diagnostics' })).toBeNull();
+    const slot = debugMenuStore.getState().item;
+    expect(slot?.label).toBe('Diagnostics');
+    act(() => {
+      slot?.onSelect();
+    });
+    expect(
+      await screen.findByRole('button', { name: 'Data quality' }),
+    ).toBeInTheDocument();
+    act(() => {
+      uiStore.getState().close();
+    });
+  });
+
+  it('empties the menu slot when it unmounts', () => {
+    const { unmount } = render(
+      <SearchDepsProvider value={deps()}>
+        <Diagnostics />
+      </SearchDepsProvider>,
+    );
+    expect(debugMenuStore.getState().item).not.toBeNull();
+    unmount();
+    expect(debugMenuStore.getState().item).toBeNull();
   });
 
   it('surfaces a missing field in the report and sets the launcher badge', async () => {

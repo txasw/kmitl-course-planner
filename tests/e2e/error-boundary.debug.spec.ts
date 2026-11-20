@@ -4,7 +4,7 @@
 // stay alive. Reloading recovers the panel. This is the wiring the Section 10.2
 // requirement asks for, driven end to end in the built debug extension.
 
-import { test, expect, openPlanner } from './support/fixtures';
+import { test, expect, openDiagnostics, openPlanner } from './support/fixtures';
 
 test('the panel error boundary shows a recovery card and recovers', async ({
   context,
@@ -12,7 +12,7 @@ test('the panel error boundary shows a recovery card and recovers', async ({
   const page = await openPlanner(context);
 
   // Open the debug diagnostics drawer and force a panel render error.
-  await page.getByRole('button', { name: 'Diagnostics', exact: true }).click();
+  await openDiagnostics(page);
   await page.getByRole('button', { name: 'Throw in panel' }).click();
 
   // The recovery card takes the panel body.
