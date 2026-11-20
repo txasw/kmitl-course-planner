@@ -87,3 +87,30 @@ Keeping the remembered mode while adding the back button was rejected because a 
 the panel on the export page would still reopen onto it and have to find the way back first.
 Leaving Escape to close the whole panel from the export page was rejected because the export page
 reads as a page above editing, and every other layer of the panel closes one level per press.
+
+## Amendment, 2026-11-21: one primary action on the export page
+
+A conformance review of the redesign found that the export page offered five outline buttons of
+equal weight, and below 640 px five icon buttons with no visible label, two of them clipboard
+glyphs that look alike; nothing marked the action most students come for. The redesign board the
+owner picked from (screen 06, export page) draws one filled save action above a labelled row of
+secondary actions.
+
+Decision. Download PNG, ดาวน์โหลด PNG, is the one primary action and the only filled button of
+the toolbar, in the strong brand fill with its label at every width. Share image where the
+browser can share a file, copy image, copy as text, and the display options are outline
+buttons with visible labels, each with its own glyph: a share glyph, an image glyph for copy
+image, a document glyph for copy as text, and sliders for the options, so no two actions look
+alike. From 640 px up the toolbar heads the poster as one row that leads with download and wraps
+where the labels need it. Below 640 px it runs along the panel foot: download fills its own row,
+and the secondary actions share the row under it as equal cells, each a glyph over a short label
+that wraps rather than clips; share reads แชร์ or Share and the options ตัวเลือก or Options,
+and each keeps its full name as the accessible name, which holds the short label. The busy
+state, the copy image note, the verification status, and the pre share notice keep their
+places. Back to editing stays where this record put it, leading the export page header with its
+arrow and label in full.
+
+Alternatives considered. Keeping icon only buttons on phones with distinct glyphs alone was
+rejected because a glyph without a label still asks a student to guess on a touch screen, where
+no tooltip appears. Making share the primary action was rejected because share is absent where
+the browser cannot share a file, and download is always present.

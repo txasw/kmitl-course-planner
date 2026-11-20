@@ -93,3 +93,35 @@ the credit text colour through currentColor, the three light squares knock out t
 as negative space through a mask, and the signature accent square keeps its position at 45
 percent opacity, so the brand's figure and ground survive rather than flattening to detached
 filled squares that read as a foreign four square glyph.
+
+## Amendment, 2026-11-21: the templates as named chips
+
+Supersedes the dot row, the arrow buttons, and the caption of this record. A conformance review
+of the redesign found that the export page still picked a template from six unnamed dots between
+two full height arrow rails, with the name and size only in a caption under the stage. The
+redesign board the owner picked from (screen 06, export page) draws the templates as named
+chips above the stage, and its before note names the unnamed dots and the arrow rails as the
+problem to fix.
+
+Decision. The picker is a row of chips above the stage, one per template, each showing the
+template name, a glyph of its device turned to the canvas orientation (a monitor for share, a
+phone or a tablet on its side for a landscape canvas, a printer for A4), and the exact output
+pixels. The chips are the radiogroup named แม่แบบ or Template, with a roving tab stop; the arrow
+keys, Home, and End move between them through the same clamped pager hook, so keyboard paging is
+unchanged. The selected chip is marked by more than colour: a check glyph takes the place of its
+device glyph, the name turns semibold, and its edge thickens. Below 1024 px the chips sit three
+to a row and above it all six share one row; a name wraps inside its chip rather than being cut,
+with the glyph and size on the line under it, and no chip carries a tooltip, so nothing opens
+over the chips, the stage, or the toolbar. The arrow rails and the caption are removed, since
+the chips name every template and its size directly and the stage gains the width the rails
+held. Swipe and the scroll wheel over the stage still page between templates, the slivers of
+the neighbouring templates stay on a wide stage as continuation cues, and the stage, its
+scaling, and the capture node are unchanged.
+
+Alternatives considered. Keeping the dots and adding a visible name under each was rejected
+because six names under small dots do not fit a phone width. A horizontally scrolling chip row,
+as the board draws it on a phone, was rejected because it cuts the chips at the row edge, which
+the owner's rule against cut text forbids. Shorter template names on the chips alone were
+rejected because the accessible name would no longer hold the visible label in English, and
+renaming the templates everywhere reaches the store listing and the landing site, which is out
+of scope for this change.
