@@ -104,6 +104,20 @@ describe('suggestEmptyReason', () => {
     ).toBe('planClash');
   });
 
+  it('names a search the node cap stopped before any timetable', () => {
+    const cut = suggestPlans({
+      courses: byClassCourses(),
+      entries: [],
+      objective: 'coverAll',
+      preference: 'balanced',
+      nodeCap: 1,
+    });
+    expect(cut.suggestions).toEqual([]);
+    expect(suggestEmptyReason(cut, { tickable: 6, ticked: 6 })).toBe(
+      'truncated',
+    );
+  });
+
   it('asks for a tick when the student clears every subject', () => {
     expect(
       reasonFor({

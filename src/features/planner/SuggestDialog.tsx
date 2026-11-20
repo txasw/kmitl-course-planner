@@ -71,6 +71,7 @@ const PREFERENCE_LABEL: Record<SuggestPreference, TranslationKey> = {
 const EMPTY_KEY: Record<SuggestEmptyReason, TranslationKey> = {
   allPlaced: 'suggest.empty.allPlaced',
   planClash: 'suggest.empty.planClash',
+  truncated: 'suggest.empty.truncated',
   noneTicked: 'suggest.empty.noneTicked',
   planFits: 'suggest.empty.planFits',
   seats: 'suggest.empty.seats',
