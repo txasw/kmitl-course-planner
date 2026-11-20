@@ -31,7 +31,7 @@ carries a solid subject color left bar, and uses ink text for the subject name, 
 and the section chip. Ink on every tint clears 4.5:1 with wide margin, and the solid bar
 clears the 3:1 UI bar against its own tint. Since the hierarchy inversion (ADR-0047) the
 block sets the quieter meta, the time, the subject id, and an English secondary name, in
-ink soft, which clears 4.5:1 on every tint (minimum 5.05), enforced alongside the ink pair
+ink soft, which clears 4.5:1 on every tint (minimum 4.95), enforced alongside the ink pair
 in `hash-color.test.ts`.
 
 Contrast alone does not keep a tint reading as a color. A low chroma hue such as brown or
@@ -42,16 +42,16 @@ above the 2.3 just noticeable difference (closest shipped pair, blue and indigo,
 
 | Color     | Tint      | Ink on tint | Bar on tint |
 | --------- | --------- | ----------- | ----------- |
-| `#1F5FA8` | `#DDE7F2` | 13.91       | 5.15        |
-| `#0E7C7B` | `#DBEBEB` | 14.17       | 4.08        |
-| `#2E7D32` | `#E0ECE0` | 14.29       | 4.21        |
-| `#6A3FA0` | `#E9E2F1` | 13.77       | 5.87        |
-| `#B0355F` | `#F3E1E7` | 13.87       | 4.75        |
-| `#3949AB` | `#E1E4F2` | 13.74       | 6.11        |
-| `#A21CAF` | `#F1DDF3` | 13.57       | 4.93        |
-| `#00729F` | `#D9EAF1` | 14.08       | 4.35        |
-| `#736B00` | `#EAE9D9` | 14.22       | 4.48        |
-| `#A50060` | `#F2D9E7` | 13.14       | 5.73        |
+| `#1F5FA8` | `#DDE7F2` | 13.75       | 5.15        |
+| `#0E7C7B` | `#DBEBEB` | 14.01       | 4.08        |
+| `#2E7D32` | `#E0ECE0` | 14.13       | 4.21        |
+| `#6A3FA0` | `#E9E2F1` | 13.61       | 5.87        |
+| `#B0355F` | `#F3E1E7` | 13.71       | 4.75        |
+| `#3949AB` | `#E1E4F2` | 13.59       | 6.11        |
+| `#A21CAF` | `#F1DDF3` | 13.42       | 4.93        |
+| `#00729F` | `#D9EAF1` | 13.92       | 4.35        |
+| `#736B00` | `#EAE9D9` | 14.06       | 4.48        |
+| `#A50060` | `#F2D9E7` | 12.99       | 5.73        |
 
 Since the soft depth amendment of ADR-0047 this flat tint fills the preview poster and its
 export only; the edit grid and the plan suggestion cards take the soft depth block below.
@@ -72,16 +72,16 @@ foot, in ink, which clears 4.5:1 through the hatch on both stops. Enforced in
 
 | Color     | 17 percent | 8 percent | Ink   | Ink soft | Stripe | Ink through hatch |
 | --------- | ---------- | --------- | ----- | -------- | ------ | ----------------- |
-| `#1F5FA8` | `#D9E4F0`  | `#EDF2F8` | 13.51 | 5.19     | 5.00   | 9.39              |
-| `#0E7C7B` | `#D6E9E9`  | `#ECF5F4` | 13.83 | 5.31     | 3.99   | 9.59              |
-| `#2E7D32` | `#DBE9DC`  | `#EEF5EF` | 13.84 | 5.32     | 4.08   | 9.62              |
-| `#6A3FA0` | `#E6DEEF`  | `#F3F0F7` | 13.31 | 5.11     | 5.67   | 9.30              |
-| `#B0355F` | `#F2DDE4`  | `#F9EFF2` | 13.46 | 5.17     | 4.61   | 9.49              |
-| `#3949AB` | `#DDE0F1`  | `#EFF0F8` | 13.27 | 5.10     | 5.90   | 9.27              |
-| `#A21CAF` | `#EFD8F1`  | `#F8EDF9` | 13.06 | 5.02     | 4.75   | 9.25              |
-| `#00729F` | `#D4E7EF`  | `#EBF4F7` | 13.66 | 5.25     | 4.22   | 9.45              |
-| `#736B00` | `#E7E6D4`  | `#F4F3EB` | 13.81 | 5.31     | 4.35   | 9.60              |
-| `#A50060` | `#F0D4E4`  | `#F8EBF2` | 12.63 | 4.85     | 5.51   | 9.01              |
+| `#1F5FA8` | `#D9E4F0`  | `#EDF2F8` | 13.36 | 5.09     | 5.00   | 9.29              |
+| `#0E7C7B` | `#D6E9E9`  | `#ECF5F4` | 13.68 | 5.21     | 3.99   | 9.48              |
+| `#2E7D32` | `#DBE9DC`  | `#EEF5EF` | 13.68 | 5.22     | 4.08   | 9.51              |
+| `#6A3FA0` | `#E6DEEF`  | `#F3F0F7` | 13.16 | 5.01     | 5.67   | 9.20              |
+| `#B0355F` | `#F2DDE4`  | `#F9EFF2` | 13.30 | 5.07     | 4.61   | 9.38              |
+| `#3949AB` | `#DDE0F1`  | `#EFF0F8` | 13.12 | 5.00     | 5.90   | 9.17              |
+| `#A21CAF` | `#EFD8F1`  | `#F8EDF9` | 12.92 | 4.92     | 4.75   | 9.14              |
+| `#00729F` | `#D4E7EF`  | `#EBF4F7` | 13.50 | 5.14     | 4.22   | 9.34              |
+| `#736B00` | `#E7E6D4`  | `#F4F3EB` | 13.66 | 5.20     | 4.35   | 9.49              |
+| `#A50060` | `#F0D4E4`  | `#F8EBF2` | 12.49 | 4.76     | 5.51   | 8.91              |
 
 ## Quiet and settled neutral cards
 
@@ -109,13 +109,13 @@ day tint clears 4.5:1 with wide margin, enforced in `dayColors.test.ts`.
 
 | Day        | Color     | Tint      | Ink on tint |
 | ---------- | --------- | --------- | ----------- |
-| Sun red    | `#D5322F` | `#F8DEDE` | 13.67       |
-| Mon yellow | `#E8B923` | `#FBF4DC` | 15.81       |
-| Tue pink   | `#E7669B` | `#FBE7EF` | 14.73       |
-| Wed green  | `#2E9E5B` | `#DEEFE5` | 14.57       |
-| Thu orange | `#E5852B` | `#FBEBDD` | 14.94       |
-| Fri blue   | `#2F6FBF` | `#DEE8F5` | 14.06       |
-| Sat purple | `#7A3FB0` | `#EAE0F2` | 13.63       |
+| Sun red    | `#D5322F` | `#F8DEDE` | 13.51       |
+| Mon yellow | `#E8B923` | `#FBF4DC` | 15.63       |
+| Tue pink   | `#E7669B` | `#FBE7EF` | 14.57       |
+| Wed green  | `#2E9E5B` | `#DEEFE5` | 14.41       |
+| Thu orange | `#E5852B` | `#FBEBDD` | 14.77       |
+| Fri blue   | `#2F6FBF` | `#DEE8F5` | 13.90       |
+| Sat purple | `#7A3FB0` | `#EAE0F2` | 13.47       |
 
 ## Design token text on background pairs
 
@@ -135,11 +135,11 @@ danger border and text clear 4.5:1 on both (ADR-0059).
 
 | Foreground     | Background       | Ratio | Bar |
 | -------------- | ---------------- | ----- | --- |
-| ink            | surface          | 17.40 | 4.5 |
-| ink            | surface-alt      | 16.26 | 4.5 |
-| ink            | primary-soft     | 15.36 | 4.5 |
-| ink-soft       | surface          | 6.69  | 4.5 |
-| ink-soft       | surface-alt      | 6.25  | 4.5 |
+| ink            | surface          | 17.21 | 4.5 |
+| ink            | surface-alt      | 16.07 | 4.5 |
+| ink            | primary-soft     | 15.19 | 4.5 |
+| ink-soft       | surface          | 6.56  | 4.5 |
+| ink-soft       | surface-alt      | 6.12  | 4.5 |
 | danger         | surface          | 5.62  | 4.5 |
 | danger         | danger-soft      | 4.83  | 4.5 |
 | danger         | danger-zone      | 5.12  | 4.5 |
@@ -149,7 +149,7 @@ danger border and text clear 4.5:1 on both (ADR-0059).
 | warn           | surface-alt      | 5.11  | 4.5 |
 | warn           | primary-soft     | 4.83  | 4.5 |
 | warn           | warn-soft        | 4.97  | 4.5 |
-| ink            | warn-soft        | 15.82 | 4.5 |
+| ink            | warn-soft        | 15.64 | 4.5 |
 | success        | surface-alt      | 5.05  | 4.5 |
 | success        | success-soft     | 4.74  | 4.5 |
 | white          | primary-strong   | 5.56  | 4.5 |
@@ -163,12 +163,19 @@ danger border and text clear 4.5:1 on both (ADR-0059).
 | primary accent | danger-soft      | 3.30  | 3.0 |
 | border-strong  | surface          | 3.77  | 3.0 |
 | border-strong  | surface-alt      | 3.52  | 3.0 |
-| ink            | surface-sunken   | 15.17 | 4.5 |
-| ink-soft       | surface-sunken   | 5.83  | 4.5 |
+| ink            | surface-sunken   | 14.99 | 4.5 |
+| ink-soft       | surface-sunken   | 5.71  | 4.5 |
 | ink-muted      | surface          | 5.30  | 4.5 |
 | ink-muted      | surface-alt      | 4.95  | 4.5 |
 | ink-muted      | surface-sunken   | 4.62  | 4.5 |
 | ink-muted      | primary-soft     | 4.68  | 4.5 |
+| ink-soft       | primary-soft     | 5.79  | 4.5 |
+| ink-soft       | warn-soft        | 5.96  | 4.5 |
+| ink            | danger-soft      | 14.80 | 4.5 |
+| ink-soft       | danger-soft      | 5.64  | 4.5 |
+| ink            | success-soft     | 15.09 | 4.5 |
+| ink-soft       | success-soft     | 5.75  | 4.5 |
+| ink            | danger-zone-over | 14.20 | 4.5 |
 
 ## Soft depth card
 
@@ -186,8 +193,8 @@ ink soft for it. Each row lists the lowest ratio across the eleven tints, enforc
 
 | Foreground | Stop       | Lowest ratio | Lowest tint | Bar |
 | ---------- | ---------- | ------------ | ----------- | --- |
-| ink        | 17 percent | 12.63        | `#A50060`   | 4.5 |
-| ink-soft   | 17 percent | 4.85         | `#A50060`   | 4.5 |
+| ink        | 17 percent | 12.49        | `#A50060`   | 4.5 |
+| ink-soft   | 17 percent | 4.76         | `#A50060`   | 4.5 |
 | ink-muted  | 8 percent  | 4.58         | `#A50060`   | 4.5 |
 
 The bound is the same 70 percent for every tint, but the gradient turns too dark for ink muted

@@ -107,8 +107,10 @@
   --kcp-primary-strong: #b8400a;
   --kcp-primary-hover: #a3380a;
   --kcp-primary-soft: #fdeee5;
-  --kcp-ink: #1a1a1a;
-  --kcp-ink-soft: #5c5c5c;
+  /* The two main text steps carry the same slight blue bias as the surfaces and borders,
+     so text and chrome read as one cool family. See the ADR-0071 amendment. */
+  --kcp-ink: #1a1b1f;
+  --kcp-ink-soft: #5b5d66;
   /* The third text step, for quiet metadata such as hour labels, counts, and a card's
      foot line. A cool grey like the surface and border neutrals, and still 4.5:1 on
      every neutral surface. On a soft card it clears 4.5:1 only where its glyph tops sit
@@ -154,7 +156,8 @@
   /* The top corners of a bottom sheet, rounder than a card so the sheet reads as a
      surface raised from the screen edge. */
   --kcp-radius-sheet: 12px;
-  --kcp-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  /* The overlay and popover shadow, drawn from the cool ink rather than black. */
+  --kcp-shadow: 0 4px 16px rgba(26, 27, 31, 0.1);
 
   /* The soft depth card of ADR-0071: a tinted fill that fades from the strong stop at
      the top to the weak stop, an edge line of the tint, a white top highlight, and a
