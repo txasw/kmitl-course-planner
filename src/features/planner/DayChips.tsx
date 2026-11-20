@@ -150,7 +150,7 @@ export function DayChips({
         type="button"
         role="radio"
         aria-checked={weekSelected}
-        aria-label={t('view.layoutWeek')}
+        aria-label={t('view.weekChip')}
         tabIndex={weekSelected ? 0 : -1}
         data-day="week"
         onKeyDown={handleKeyDown}
