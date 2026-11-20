@@ -1,18 +1,19 @@
 // One suggested timetable, one slide of the suggestion carousel. It shows the whole week
-// the suggestion would produce, the plan subjects it keeps included, as a read only
-// mini grid in the frame the dialog shares across the slides, then the stats a student
-// compares suggestions by, then the sections it places named in full, then the ticked
-// courses it leaves out with the reason each one stayed out, both lists collapsed by
-// default behind the system chevron disclosure, then the apply action, which creates a
-// new plan from it. The grid itself takes
-// no input; the placed list is where a name the grid clamps reads whole. The carousel keeps
-// a drag from selecting text, so both lists opt back in and their names can be copied.
+// the suggestion would produce, the plan subjects it keeps included, as a read only mini
+// grid in the frame the dialog shares across the slides, then the stats a student compares
+// suggestions by, then the sections it places named in full, then the ticked courses it
+// leaves out with the reason each one stayed out, both lists collapsed by default behind
+// the system chevron disclosure, then the apply action, which creates a new plan from it.
+// The grid itself takes no input; the placed list is where a name the grid clamps reads
+// whole. The carousel keeps a drag from selecting text, so both lists opt back in and their
+// names can be copied.
 //
 // A slide takes the full width of the dialog, so the grid is drawn large enough to read in
 // place, in the orientation the dialog picks for the tier, and fits its box rather than
-// keeping the poster floor, so no meeting sits out of view. Each stat value sits right after
-// its own label, in two columns on a phone and three from the small breakpoint, so a wide
-// dialog never pushes a value across to the next label; a label wraps rather than cuts.
+// keeping the poster floor, so no meeting sits out of view. Each stat value sits right
+// after its own label, in two columns on a phone and three from the small breakpoint, so a
+// wide dialog never pushes a value across to the next label; a label wraps rather than
+// cuts.
 
 import { useId, useRef } from 'react';
 import { Disclosure } from '@/components/Disclosure';

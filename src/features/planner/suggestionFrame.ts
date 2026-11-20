@@ -2,9 +2,9 @@
 // week its suggestion would produce, the plan subjects it keeps included, so its sections
 // are every chosen section and its pair: a plan subject kept at its own group as the plan
 // stores it, with its verification status, and every other one shaped exactly as an add
-// would store it. The cards share one frame, the smart window and the
-// visible days over every card's meetings together, so the same hour and the same day sit
-// at the same place on each card and the cards read as a comparison.
+// would store it. The cards share one frame, the smart window and the visible days over
+// every card's meetings together, so the same hour and the same day sit at the same place
+// on each card and the cards read as a comparison.
 
 import type { PlanEntry } from '@/lib/domain/plan';
 import type { DayOfWeek } from '@/lib/parsing/days';
