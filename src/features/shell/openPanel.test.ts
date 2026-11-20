@@ -48,12 +48,18 @@ afterEach(() => {
 
 describe('openPanelAt', () => {
   it.each(['compact', 'medium', 'xl'] as const)(
-    'resume at %s opens and keeps the session layout',
+    'resume at %s opens in edit and keeps the session layout',
     (tier) => {
       openPanelAt('resume', tier);
-      expect(layout()).toEqual({ ...AWAY, isOpen: true });
+      expect(layout()).toEqual({ ...AWAY, viewMode: 'edit', isOpen: true });
     },
   );
+
+  it('resume on a panel already open keeps the export page', () => {
+    uiStore.setState({ isOpen: true });
+    openPanelAt('resume', 'xl');
+    expect(layout()).toEqual({ ...AWAY, isOpen: true });
+  });
 
   it.each<[LayoutTier, Partial<LayoutFields>]>([
     ['compact', { mobilePane: 'catalog' }],
@@ -97,11 +103,13 @@ describe('openPanelAt', () => {
       mobilePane: 'catalog',
       sheetOpen: true,
       ...patch,
+      viewMode: 'edit',
       isOpen: true,
     });
   });
 
-  it('timetable keeps the view mode', () => {
+  it('timetable on a panel already open keeps the view mode', () => {
+    uiStore.setState({ isOpen: true });
     openPanelAt('timetable', 'xl');
     expect(uiStore.getState().viewMode).toBe('preview');
   });

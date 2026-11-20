@@ -28,6 +28,24 @@ describe('ui store', () => {
     expect(store.getState().catalogVisible).toBe(false);
   });
 
+  it('starts every opening in edit, even after leaving on the export page', () => {
+    const store = createUiStore();
+    store.getState().open();
+    store.getState().setViewMode('preview');
+    store.getState().close();
+    expect(store.getState().viewMode).toBe('preview');
+    store.getState().open();
+    expect(store.getState().viewMode).toBe('edit');
+  });
+
+  it('keeps the export page on an open call while the panel is open', () => {
+    const store = createUiStore();
+    store.getState().open();
+    store.getState().setViewMode('preview');
+    store.getState().open();
+    expect(store.getState().viewMode).toBe('preview');
+  });
+
   it('shows the docked column when the sheet opens', () => {
     const store = createUiStore();
     store.getState().setCatalogVisible(false);
