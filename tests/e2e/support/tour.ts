@@ -57,9 +57,10 @@ interface LayoutFaults {
 
 /**
  * The owner's layout rule for one step: the card and the spotlight lie wholly in the
- * viewport, the card never covers the spotlight, no text in the card overflows or is cut
- * by its box, its buttons neither overlap nor leave the card, and a press at each
- * button's centre lands on that button rather than on something laid over it.
+ * viewport, the card never covers the spotlight and rests above a phone bottom nav, no
+ * text in the card overflows or is cut by its box, its buttons neither overlap nor leave
+ * the card, and a press at each button's centre lands on that button rather than on
+ * something laid over it.
  */
 export async function expectTourStepLaidOut(
   page: Page,
@@ -91,6 +92,17 @@ export async function expectTourStepLaidOut(
     if (!inView(lit)) found.push('spotlight leaves the viewport');
     if (lit.width < 8 || lit.height < 8) found.push('spotlight has no box');
     if (overlap(box, lit)) found.push('card covers the spotlight');
+    // On a phone the card rests above the bottom nav with a gutter, rather than cutting
+    // through the nav labels.
+    const nav = root.querySelector('[data-bottom-nav]');
+    if (nav !== null) {
+      const navTop = nav.getBoundingClientRect().top;
+      if (box.bottom > navTop - 8 + 0.5) {
+        found.push(
+          `card reaches the bottom nav: ${box.bottom.toFixed(1)} past ${(navTop - 8).toFixed(1)}`,
+        );
+      }
+    }
     for (const text of node.querySelectorAll<HTMLElement>(
       'h2, p:not(.sr-only), span, button',
     )) {
