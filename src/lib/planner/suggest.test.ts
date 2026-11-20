@@ -277,6 +277,34 @@ describe('suggestPlans on the by_class capture', () => {
       }
     }
   });
+
+  it('finishes within 50 ms with the whole curriculum in the plan and every course ticked', () => {
+    // The reopen after an apply: every plan subject may move, which widens the search.
+    const entries = lockSections(courses, [
+      ['01006020', '4'],
+      ['01006021', '5'],
+      ['01006030', '33'],
+      ['01006503', '1'],
+      ['01476012', '33'],
+      ['01476101', '33'],
+    ]);
+    const subjects = new Set(courses.map((course) => course.subjectId));
+    for (const objective of OBJECTIVES) {
+      for (const preference of PREFERENCES) {
+        const start = performance.now();
+        const result = suggestPlans({
+          courses,
+          subjects,
+          entries,
+          objective,
+          preference,
+        });
+        expect(performance.now() - start).toBeLessThan(50);
+        expect(result.truncated).toBe(false);
+        expect(result.suggestions).not.toHaveLength(0);
+      }
+    }
+  });
 });
 
 describe('suggestPlans on synthetic courses', () => {
