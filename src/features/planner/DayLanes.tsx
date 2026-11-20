@@ -6,7 +6,9 @@
 // holds the grid frame (ADR-0050). Renders a fragment so every item is a direct child of
 // the grid and places by track index. In edit the day labels are sticky inside the
 // planner scroller on an opaque fill, so the day stays readable while the time scrolls
-// beneath it; the poster renders them flat.
+// beneath it; the poster renders them flat. An edit block names its subject in the panel
+// language with the other language under it, as the catalog card does (brief 6.7), and the
+// measured fit drops that second line whole where the block has no room for it.
 
 import { Fragment, useMemo } from 'react';
 import type { CSSProperties, MouseEvent } from 'react';
@@ -16,6 +18,7 @@ import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
 import { Tooltip } from '@/components/Tooltip';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
+import type { NameLanguage } from '@/lib/planner/nameLanguage';
 import type { GridWindow } from '@/lib/planner/grid';
 import { dayTint } from '@/lib/planner/dayColors';
 import { dragStore } from './dragStore';
@@ -30,6 +33,9 @@ import {
   onShownDay,
   type Orientation,
 } from './gridGeometry';
+
+// The edit grid names a subject in both languages, the panel language first.
+const EDIT_NAME_LANGUAGE: NameLanguage = 'both';
 
 // A sticky day label pins to the scroller edge the days run along: the left in landscape,
 // the top in portrait.
@@ -224,6 +230,7 @@ export function DayLanes({
             {...common}
             onRemove={onRemove}
             removeLabel={removeLabel}
+            nameLanguage={EDIT_NAME_LANGUAGE}
           />
         ) : (
           <EventBlock

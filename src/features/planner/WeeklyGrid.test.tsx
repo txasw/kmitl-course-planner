@@ -296,6 +296,68 @@ describe('WeeklyGrid', () => {
     expect(block.textContent).toContain('09:00-12:00');
   });
 
+  it('names an edit block in the panel language with the other language under it', () => {
+    for (const locale of ['th', 'en'] as const) {
+      const { unmount } = render(
+        <WeeklyGrid
+          sections={[makePlaced()]}
+          window={SMART_WINDOW}
+          locale={locale}
+          t={createTranslator(locale)}
+          editable
+          onRemove={vi.fn()}
+        />,
+      );
+      const block = screen.getByLabelText(/90592033/);
+      const [primary, secondary] =
+        locale === 'th'
+          ? ['วิชาทดสอบ', 'Test subject']
+          : ['Test subject', 'วิชาทดสอบ'];
+      expect(within(block).getByText(primary)).toHaveAttribute('lang', locale);
+      expect(within(block).getByText(secondary)).toHaveAttribute(
+        'lang',
+        locale === 'th' ? 'en' : 'th',
+      );
+      unmount();
+    }
+  });
+
+  it('drops the second name from an edit block whole when the box has no room for it', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(80);
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return this.textContent.includes('Test subject') ? 100 : 80;
+      },
+    );
+    render(
+      <WeeklyGrid
+        sections={[makePlaced()]}
+        window={SMART_WINDOW}
+        locale="th"
+        t={t}
+        editable
+        onRemove={vi.fn()}
+      />,
+    );
+    const block = screen.getByLabelText(/90592033/);
+    expect(block.textContent).not.toContain('Test subject');
+    expect(block.textContent).toContain('วิชาทดสอบ');
+    expect(block.textContent).toContain('A101');
+  });
+
+  it('keeps a read only suggestion grid on the panel language alone', () => {
+    render(
+      <WeeklyGrid
+        sections={[makePlaced()]}
+        window={SMART_WINDOW}
+        locale="th"
+        t={t}
+        narrowBlocks
+      />,
+    );
+    expect(screen.queryByText('Test subject')).not.toBeInTheDocument();
+  });
+
   it('takes the name only rule only where the block width is a day column or a slide', () => {
     // A 60 minute meeting, the case a landscape grid must not reduce to its name.
     const short = makePlaced({

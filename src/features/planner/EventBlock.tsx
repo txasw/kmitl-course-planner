@@ -21,9 +21,10 @@
 // the place, with the name never dropping (ADR-0046, ADR-0047). The place outlives the
 // name's second line and the time never outlives the place. The subject id and the time
 // never wrap and drop whole when wider than the block, so a code is never cut at the edge.
-// The edit block keeps its tighter line height and always carries the subject id for cross
-// referencing, so the id is the first field it drops; the hover card and the details still
-// show it (ADR-0050). The edit fit pauses during a drag. In edit mode the block is a drag
+// The edit block keeps its tighter line height, always carries the subject id for cross
+// referencing, and names the subject in both languages, the panel language first, so the id is
+// the first field it drops and the second name the next; the hover card and the details still
+// show both (ADR-0050). The edit fit pauses during a drag. In edit mode the block is a drag
 // source (the ref and listeners come from the draggable wrapper so this stays free of the
 // drag library) and is itself the button that opens the pinned detail popover on click or
 // Enter and Space, the keyboard path to details and actions; the hover card shows the same
@@ -115,7 +116,7 @@ interface EventBlockProps {
   /** Show the section code beside the subject id. On by default in edit mode. */
   showSection?: boolean;
   /** The language the block names its subject in, Thai, English, or both; unset follows the
-   * locale. A preview display option; the edit grid leaves it unset. */
+   * locale. A preview display option; the edit grid always passes both. */
   nameLanguage?: NameLanguage | undefined;
   /** Show the subject id in the foot. A preview display option, off by default there; the
    * edit grid leaves it on so the id is always available for cross referencing. */
