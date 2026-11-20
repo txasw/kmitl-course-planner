@@ -97,3 +97,39 @@ grid. On a phone the timetable reads one full width day at a time while the chip
 visible. Portrait now runs on screen, so its block placement and fit get test coverage in edit
 rather than only in export. The tab row costs 36 to 40 px of height on Medium and Wide, the
 scarcer axis on 720 and 768 px laptops, which is why it tightens under that height rule.
+
+## Amendment, 2026-11-20: one chip row and the plan status row
+
+Owner feedback asked for a prominent suggest entry and for icons with less text at the top of
+the phone timetable. Two parts of this record change; the rest stands.
+
+The day or week toggle joins the day chips. A narrow timetable heads itself with one radio group,
+still named วันที่แสดง (Day shown): a week chip labelled สัปดาห์ (Week) with a calendar glyph leads
+the row, and a chip per teaching day follows as before. A day chip shows the day view and the week
+chip shows the portrait week, so the student moves between a day and the week in one tap, and the
+row stays in place for both. The day view is still the default and the choice is still the
+optional `timetableView` preference. The arrow keys walk the whole row, week chip included, and
+wrap; Home and End reach its ends; a swipe on the day view steps the days only and stops at either
+end, so it never lands on the week. The chosen chip reads without colour: it takes the heavier
+weight, an inset outline, and an underline bar that sits in the flow under the label rather than
+over it. Day chips share the row width and the week chip keeps the width its label needs; no
+chip shrinks below its content, and the row wraps before it would clip, which only a plan with
+both weekend days at 360 px could approach. The separate quiet segmented toggle is removed.
+
+The stats bar becomes the plan status row. It keeps its place at the foot of the plan region
+under every view, which on a phone is the thumb zone above the bottom nav, and keeps its
+accessible name สรุปตาราง (Plan summary). Its facts lead with icons: credits, subjects, the clash
+state, the unscheduled count, and the verification status. From 640 px up it still lists the
+load per day and the free weekdays. On a phone it drops those two, since the day chip dots
+already mark the class days and the summary view carries the load, and the no clash state shows
+as a check glyph with its words kept for assistive technology; a clash stays a worded danger
+button. The suggest action of ADR-0054 ends the row in a primary soft style, its checklist glyph
+and the short label แนะนำตาราง (Suggest), outside the wrapping facts so it holds the right edge.
+It follows the same rule as the catalog entry: present only for a by_class result of the plan's
+term, absent otherwise. With such a result and an empty plan the row holds the action alone.
+Desktop and tablet use the same row, so there is one status surface at every tier rather than a
+stats bar plus a second strip.
+
+A floating suggest button over the timetable was rejected because it would sit over blocks and
+text. Moving the facts into a tappable summary button, as the mockup drew, was left for a later
+change, since the summary view is already one nav item away.
