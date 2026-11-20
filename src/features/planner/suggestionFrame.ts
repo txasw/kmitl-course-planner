@@ -4,7 +4,8 @@
 // stores it, with its verification status, and every other one shaped exactly as an add
 // would store it. The cards share one frame, the smart window and the visible days over
 // every card's meetings together, so the same hour and the same day sit at the same place
-// on each card and the cards read as a comparison.
+// on each card and the cards read as a comparison. A card also names the plan's sections of
+// each subject it moves, since the grid alone does not show that a placed section moved.
 
 import type { PlanEntry } from '@/lib/domain/plan';
 import type { DayOfWeek } from '@/lib/parsing/days';
@@ -35,6 +36,27 @@ export function suggestionSections(
         : toPlacedSection(entry.snapshot, entry.verifyStatus);
     }),
   );
+}
+
+/**
+ * The plan's section codes of each subject a suggestion moves to another group, by subject
+ * id, so a card can say where the subject moves from.
+ */
+export function movedFrom(
+  entries: readonly PlanEntry[],
+  suggestion: Suggestion,
+): Map<string, string> {
+  const moved = new Map<string, string>();
+  for (const choice of suggestion.choices) {
+    const codes = entries
+      .filter((entry) => entry.subjectId === choice.course.subjectId)
+      .map((entry) => entry.section)
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    if (!choice.current && codes.length > 0) {
+      moved.set(choice.course.subjectId, codes.join(', '));
+    }
+  }
+  return moved;
 }
 
 export function sharedFrame(

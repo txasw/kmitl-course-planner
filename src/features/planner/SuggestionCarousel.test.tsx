@@ -13,7 +13,7 @@ import { byClassCourses, lockSections } from '../../../tests/support/suggest';
 import { swipe } from '../../../tests/support/swipe';
 import { installViewport } from '../../../tests/support/viewport';
 import { SuggestionCarousel, type SuggestionView } from './SuggestionCarousel';
-import { sharedFrame, suggestionSections } from './suggestionFrame';
+import { movedFrom, sharedFrame, suggestionSections } from './suggestionFrame';
 
 const courses = byClassCourses();
 const locked = lockSections(courses, [['04186098', '2']]);
@@ -25,6 +25,7 @@ const allCards: SuggestionView[] = suggestPlans({
 }).suggestions.map((suggestion) => ({
   suggestion,
   sections: suggestionSections(locked, suggestion),
+  movedFrom: movedFrom(locked, suggestion),
 }));
 
 afterEach(() => {
