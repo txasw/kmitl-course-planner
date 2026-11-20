@@ -56,6 +56,29 @@ describe('PosterHeader', () => {
     expect(screen.getByText('5 หน่วยกิต')).toBeInTheDocument();
   });
 
+  // Brief 5.3 and 6.6: both locales show the Buddhist year, so the English poster date
+  // never prints the Gregorian year beside a term in the Buddhist year.
+  it.each([
+    ['th', '8 ก.ค. 2569'],
+    ['en', '8 Jul 2569'],
+  ] as const)(
+    'dates the %s poster in the Buddhist year',
+    (locale, expected) => {
+      render(
+        <PosterHeader
+          planName="Plan"
+          term={{ year: '2569', semester: '1' }}
+          sections={sections}
+          locale={locale}
+          t={createTranslator(locale)}
+          now={new Date(2026, 6, 8, 9, 30)}
+        />,
+      );
+      expect(screen.getByText(expected)).toBeInTheDocument();
+      expect(screen.queryByText(/2026/)).toBeNull();
+    },
+  );
+
   it('carries the locale itself, since the export clones it without ancestors', () => {
     render(
       <PosterHeader
