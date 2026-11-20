@@ -54,8 +54,7 @@ export type NameLines = 'all' | number;
 
 /** How the name line reads: in full, one type step smaller, as the subject id in its place, or
  * as no text at all, each the next step for a name with a word wider than its line. */
-export const NAME_FORMS = ['full', 'small', 'id', 'bare'] as const;
-export type NameForm = (typeof NAME_FORMS)[number];
+export type NameForm = 'full' | 'small' | 'id' | 'bare';
 
 /** A chosen field set for one block. `nameLines` is never below 1: the name is the primary
  * anchor and always shows at least one clamped line. The time can drop because position

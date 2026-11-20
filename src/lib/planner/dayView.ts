@@ -16,8 +16,7 @@ import type { ConflictDetail } from './placement';
  * week in portrait. The day is the default and every opening of the panel starts on it; the
  * week is the student's choice for the rest of that opening, one tap away on the week chip.
  */
-export const TIMETABLE_VIEWS = ['day', 'week'] as const;
-export type TimetableView = (typeof TIMETABLE_VIEWS)[number];
+export type TimetableView = 'day' | 'week';
 export const DEFAULT_TIMETABLE_VIEW: TimetableView = 'day';
 
 /**
