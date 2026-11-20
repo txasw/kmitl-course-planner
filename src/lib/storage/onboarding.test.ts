@@ -192,3 +192,82 @@ describe('the coach mark snooze day', () => {
     });
   });
 });
+
+describe('the product tour mark', () => {
+  const MARK = { version: 1, outcome: 'completed', at: FIRST } as const;
+
+  it('loads a record written before the mark existed as version 1', async () => {
+    const repo = createOnboardingRepository(
+      createMemoryStorage({
+        [ONBOARDING_KEY]: { schemaVersion: 1, welcomeShownAt: FIRST },
+      }),
+    );
+    expect((await repo.load()).tourSeen).toBeUndefined();
+  });
+
+  it('loads a valid mark', async () => {
+    const repo = createOnboardingRepository(
+      createMemoryStorage({
+        [ONBOARDING_KEY]: { schemaVersion: 1, tourSeen: MARK },
+      }),
+    );
+    expect((await repo.load()).tourSeen).toEqual(MARK);
+  });
+
+  it.each([
+    ['a version that is not a positive whole number', { ...MARK, version: 0 }],
+    ['an unknown outcome', { ...MARK, outcome: 'closed' }],
+    ['a time that does not parse', { ...MARK, at: 'yesterday' }],
+    ['a string', 'seen'],
+  ])('drops %s alone', async (_label, value) => {
+    const repo = createOnboardingRepository(
+      createMemoryStorage({
+        [ONBOARDING_KEY]: {
+          schemaVersion: 1,
+          panelFirstOpenedAt: FIRST,
+          tourSeen: value,
+        },
+      }),
+    );
+    expect(await repo.load()).toEqual({
+      schemaVersion: 1,
+      panelFirstOpenedAt: FIRST,
+    });
+  });
+
+  it('replaces an earlier mark with the latest one', async () => {
+    const storage = createMemoryStorage({
+      [ONBOARDING_KEY]: {
+        schemaVersion: 1,
+        tourSeen: { ...MARK, outcome: 'skipped' },
+      },
+    });
+    const repo = createOnboardingRepository(storage);
+    const later = { ...MARK, at: LATER };
+    const merged = await repo.patch({ tourSeen: later });
+    expect(merged.tourSeen).toEqual(later);
+    expect(storage.store[ONBOARDING_KEY]).toEqual(merged);
+  });
+
+  it('writes nothing when the same mark is stored already', async () => {
+    const storage = createMemoryStorage({
+      [ONBOARDING_KEY]: { schemaVersion: 1, tourSeen: MARK },
+    });
+    const repo = createOnboardingRepository(storage);
+    await repo.patch({ tourSeen: { ...MARK } });
+    expect(storage.set).not.toHaveBeenCalled();
+  });
+
+  it('carries the mark through a patch of another field', async () => {
+    const storage = createMemoryStorage({
+      [ONBOARDING_KEY]: { schemaVersion: 1, tourSeen: MARK },
+    });
+    const repo = createOnboardingRepository(storage);
+    const merged = await repo.patch({ panelFirstOpenedAt: FIRST });
+    expect(merged).toEqual({
+      schemaVersion: 1,
+      panelFirstOpenedAt: FIRST,
+      tourSeen: MARK,
+    });
+  });
+});
