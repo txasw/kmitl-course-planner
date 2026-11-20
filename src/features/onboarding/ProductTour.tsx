@@ -324,6 +324,14 @@ function OpenProductTour({ record, panel }: OpenProductTourProps) {
     };
   }, [shown, panel, measure]);
 
+  // The card's height is read before paint on each step, so the frame a step first shows
+  // places the card with its own height, not none or the last step's; the follow loop
+  // keeps it current after that.
+  useLayoutEffect(() => {
+    const card = cardRef.current;
+    if (card !== null) setCardHeight(card.offsetHeight);
+  }, [shown]);
+
   // Focus starts on Next once the first step shows.
   const firstShown = shown !== null;
   useLayoutEffect(() => {
