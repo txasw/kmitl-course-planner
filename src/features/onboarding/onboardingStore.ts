@@ -4,7 +4,8 @@
 // mount handshake and the welcome decision have settled, whether the welcome is
 // open, whether the selector coach mark is open or has shown, and whether this
 // document must stay quiet because it showed the welcome, applied a requested open,
-// or found the welcome pending when it loaded. It carries
+// or found the welcome pending when it loaded, and whether the product tour is open or
+// has started in this document. It carries
 // no browser or React imports and no persistence; the persistence hook writes the
 // record through the storage repository.
 
@@ -49,6 +50,14 @@ export interface OnboardingData {
    * on the search page, so the entry toast stays quiet for the rest of the document.
    */
   coachMarkShown: boolean;
+  /** Whether the product tour is open in the panel (ADR-0074). */
+  tourOpen: boolean;
+  /**
+   * Whether the tour has started in this document, on its own or from the menu. It
+   * starts on its own at most once per document, so a tour the panel's close cut short
+   * waits for the next page load rather than returning on the next open.
+   */
+  tourStarted: boolean;
 }
 
 export interface OnboardingState extends OnboardingData {
@@ -64,6 +73,9 @@ export interface OnboardingState extends OnboardingData {
   setShortcut: (shortcut: string | null) => void;
   /** Opens or closes the coach mark; opening it also records that it has shown. */
   setCoachMarkOpen: (open: boolean) => void;
+  /** Opens the product tour and records that it has started in this document. */
+  startTour: () => void;
+  endTour: () => void;
 }
 
 /** The state a document starts with, before either record is read. */
@@ -81,6 +93,8 @@ export function initialOnboardingData(): OnboardingData {
     shortcut: null,
     coachMarkOpen: false,
     coachMarkShown: false,
+    tourOpen: false,
+    tourStarted: false,
   };
 }
 
@@ -133,6 +147,12 @@ export function createOnboardingStore() {
         coachMarkOpen,
         coachMarkShown: state.coachMarkShown || coachMarkOpen,
       }));
+    },
+    startTour: () => {
+      set({ tourOpen: true, tourStarted: true });
+    },
+    endTour: () => {
+      set({ tourOpen: false });
     },
   }));
 }

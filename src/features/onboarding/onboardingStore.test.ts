@@ -109,6 +109,18 @@ describe('onboarding store', () => {
     expect(store.getState().coachMarkShown).toBe(true);
   });
 
+  it('opens the tour, records that it started, and keeps that after it ends', () => {
+    const store = createOnboardingStore();
+    expect(store.getState().tourOpen).toBe(false);
+    expect(store.getState().tourStarted).toBe(false);
+    store.getState().startTour();
+    expect(store.getState().tourOpen).toBe(true);
+    expect(store.getState().tourStarted).toBe(true);
+    store.getState().endTour();
+    expect(store.getState().tourOpen).toBe(false);
+    expect(store.getState().tourStarted).toBe(true);
+  });
+
   it('resets to the initial data through setState', () => {
     const store = createOnboardingStore();
     store.getState().hydrate(INSTALL, { schemaVersion: 1 });
