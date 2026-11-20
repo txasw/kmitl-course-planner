@@ -35,6 +35,7 @@ import { searchStore, selectFormOpen } from './searchStore';
 import { ResultAction } from './ResultAction';
 import { TAB_ICON } from './searchTabs';
 import { useIsPast } from './useIsPast';
+import { tourTargetProps } from '@/lib/onboarding/tour';
 
 const EDIT_ID = 'kcp-search-bar-edit';
 const SUMMARY_ID = 'kcp-search-bar-summary';
@@ -157,6 +158,7 @@ export function SearchSummaryBar({ query }: SearchSummaryBarProps) {
       <div className="flex items-center gap-1">
         <button
           id={SEARCH_DISCLOSURE_ID}
+          {...tourTargetProps('search-chip')}
           type="button"
           aria-expanded={formOpen}
           aria-controls={SEARCH_FORM_ID}

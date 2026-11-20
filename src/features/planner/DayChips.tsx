@@ -22,6 +22,7 @@ import {
   type TimetableChoice,
 } from '@/lib/planner/dayView';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { tourTargetProps } from '@/lib/onboarding/tour';
 
 interface DayChipsProps {
   days: readonly DayOfWeek[];
@@ -144,6 +145,7 @@ export function DayChips({
     <div
       role="radiogroup"
       aria-label={t('view.dayPicker')}
+      {...tourTargetProps('day-chips')}
       className="flex shrink-0 flex-wrap gap-0.5 rounded-kcp border border-border p-1"
     >
       <button

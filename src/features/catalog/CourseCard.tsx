@@ -54,6 +54,7 @@ import { useCatalogDragEnabled } from './catalogDrag';
 import { useCoursePreview } from './useCoursePreview';
 import type { HoverIntentHandlers } from './useHoverIntent';
 import { SectionComparisonSheet } from './SectionComparisonSheet';
+import { tourTargetProps } from '@/lib/onboarding/tour';
 
 const HEADER = 'flex items-start gap-1';
 
@@ -219,6 +220,7 @@ function CourseCardComponent({
         <button
           type="button"
           id={courseToggleId(course.subjectId)}
+          {...tourTargetProps('course')}
           data-course-toggle
           aria-expanded={open}
           aria-controls={bodyId}

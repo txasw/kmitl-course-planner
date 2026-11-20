@@ -16,6 +16,7 @@ import type { Translate, TranslationKey } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import type { PlanView } from '@/features/shell/uiStore';
+import { tourTargetProps } from '@/lib/onboarding/tour';
 
 const VIEWS: readonly PlanView[] = ['timetable', 'selected', 'summary'];
 
@@ -111,6 +112,7 @@ export function PlanViewTabs({
               type="button"
               role="tab"
               id={planViewTabId(view)}
+              {...(view === 'timetable' ? tourTargetProps('plan-tab') : {})}
               aria-selected={active}
               aria-controls={planViewPanelId(view)}
               aria-label={

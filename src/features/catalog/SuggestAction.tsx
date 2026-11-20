@@ -26,6 +26,7 @@ import { useActivePlan } from '@/features/plans/planStore';
 import { searchStore } from '@/features/search/searchStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { TARGET_SIZE } from '@/lib/ui/target';
+import { tourTargetProps } from '@/lib/onboarding/tour';
 
 interface SuggestTarget {
   courses: readonly Course[];
@@ -98,6 +99,7 @@ export function SuggestAction({ variant = 'quiet' }: SuggestActionProps) {
       <button
         type="button"
         aria-haspopup="dialog"
+        {...(variant === 'prominent' ? tourTargetProps('suggest') : {})}
         onClick={() => {
           setOpen(true);
         }}
