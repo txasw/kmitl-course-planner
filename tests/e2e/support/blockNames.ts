@@ -4,9 +4,10 @@
 // laid out text. For every shown name it reports a name the block cuts off without the
 // density fit clamping it, and a line that holds a single grapheme of a longer word. A word
 // of one grapheme, such as the 1 that ends a course name, may sit alone on its line. A name
-// that is not Thai is held to its word boundaries: any word whose letters run over two lines
-// is reported, since an English name in capitals breaks with no hyphen. A Thai name keeps the
-// browser's dictionary breaks, and a Thai word wider than the whole line may break inside.
+// that is not Thai, or a Thai name field written with no Thai letter, is held to its word
+// boundaries: any word whose letters run over two lines is reported, since a name in Latin
+// capitals breaks with no hyphen. A Thai name keeps the browser's dictionary breaks, and a Thai
+// word wider than the whole line may break inside.
 
 import type { Locator } from '@playwright/test';
 
@@ -21,7 +22,8 @@ export async function brokenBlockNames(scope: Locator): Promise<string[]> {
       if (box.width === 0 || box.height === 0) continue;
       const text = name.textContent.trim();
       const keepWords =
-        (name.closest('[lang]')?.getAttribute('lang') ?? 'th') !== 'th';
+        (name.closest('[lang]')?.getAttribute('lang') ?? 'th') !== 'th' ||
+        !/\p{Script=Thai}/u.test(text);
       const clamped = name.style.getPropertyValue('--kcp-name-lines') !== '';
       const frame = name.closest('[data-fit]')?.getBoundingClientRect();
       if (

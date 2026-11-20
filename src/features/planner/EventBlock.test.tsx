@@ -255,6 +255,22 @@ describe('EventBlock', () => {
     expect(nameEl).toHaveAttribute('lang', 'en');
   });
 
+  it('keeps the words whole of a Thai name field written in Latin letters', () => {
+    render(
+      <EventBlock
+        section={{ ...section, nameTh: 'ARTIFICIAL INTELLIGENCE' }}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    const nameEl = screen.getByText('ARTIFICIAL INTELLIGENCE');
+    expect(nameEl.className).toContain('break-normal');
+    expect(nameEl.className).not.toContain('break-words');
+    expect(nameEl).toHaveAttribute('lang', 'th');
+  });
+
   it('steps an English name a type step down while a word is wider than its line', () => {
     // A word is wider than the name line at the full size and fits one step smaller.
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(40);

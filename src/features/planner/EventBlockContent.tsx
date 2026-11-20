@@ -79,11 +79,18 @@ const WHOLE_FIELD = 'block overflow-hidden whitespace-nowrap';
 /** The custom property that carries the name clamp, read by the line clamp utility. */
 const NAME_LINES_PROPERTY = '--kcp-name-lines';
 
+/** Any letter of the Thai script. */
+const THAI_SCRIPT = /\p{Script=Thai}/u;
+
 /** How the name wraps: a Thai name at its dictionary words and inside a word wider than the
  * line, any other name only at its spaces, so the fit sees a word wider than its line as an
- * overflow of the name and steps the name form down rather than strand letters. */
-function nameWrapClass(nameLang: Locale): string {
-  return nameLang === 'th' ? 'break-words hyphens-auto' : 'break-normal';
+ * overflow of the name and steps the name form down rather than strand letters. The rule reads
+ * the script of the text as well as its field: an international program sends its Thai name
+ * field in Latin capitals, and that name keeps its words whole like an English one. */
+function nameWrapClass(name: string, nameLang: Locale): string {
+  return nameLang === 'th' && THAI_SCRIPT.test(name)
+    ? 'break-words hyphens-auto'
+    : 'break-normal';
 }
 
 /** The text and type of the name line for its form: the subject id stands in for the name one
@@ -96,11 +103,15 @@ function nameLine(
 ): { text: string; className: string; lang: Locale | undefined } {
   switch (form) {
     case 'full':
-      return { text: name, className: nameWrapClass(nameLang), lang: nameLang };
+      return {
+        text: name,
+        className: nameWrapClass(name, nameLang),
+        lang: nameLang,
+      };
     case 'small':
       return {
         text: name,
-        className: `${nameWrapClass(nameLang)} text-[0.9em]`,
+        className: `${nameWrapClass(name, nameLang)} text-[0.9em]`,
         lang: nameLang,
       };
     case 'id':
