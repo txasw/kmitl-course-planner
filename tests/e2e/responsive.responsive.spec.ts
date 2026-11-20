@@ -1449,7 +1449,7 @@ test.describe('the phone layout', () => {
     await expectNoHorizontalOverflow(page);
 
     // A swipe to the right that starts on the block brings in the day before. It starts
-    // no drag, and the free day names itself.
+    // no drag, and the free day says so in its one line.
     const box = await classBlock.boundingBox();
     if (box === null) throw new Error('expected a laid out block');
     const from: Point = { x: box.x + 40, y: box.y + box.height / 2 };
@@ -1463,8 +1463,8 @@ test.describe('the phone layout', () => {
     expect(page.url()).toContain('regis.reg.kmitl.ac.th');
     await expect(page.locator('[data-drag-card]')).toHaveCount(0);
     const freeDay = page.locator('[data-grid-notice="free-day"]');
-    await expect(freeDay).toContainText('วันพฤหัสบดี');
-    await expect(freeDay).toContainText('วันนี้ไม่มีคาบเรียน');
+    await expect(freeDay).toHaveText(/^วันว่าง ไม่มีคาบเรียน/);
+    await expect(freeDay).not.toContainText('วันพฤหัสบดี');
     await expect(
       freeDay.getByRole('button', { name: 'ดูทั้งสัปดาห์' }),
     ).toBeVisible();
