@@ -114,7 +114,11 @@ end, so it never lands on the week. The chosen chip reads without colour: it tak
 weight, an inset outline, and an underline bar that sits in the flow under the label rather than
 over it. Day chips share the row width and the week chip keeps the width its label needs; no
 chip shrinks below its content, and the row wraps before it would clip, which only a plan with
-both weekend days at 360 px could approach. The separate quiet segmented toggle is removed.
+both weekend days at 360 px could approach. Day chips keep the 44 px touch height but drop the
+44 px width that a coarse pointer gave the old chips, holding the 24 px minimum of WCAG 2.5.8
+instead. With the week chip and all seven days at 360 px a day chip is about 35 px wide, and a
+44 px floor there would push the row onto a second line, which costs the timetable more height
+than the narrower target costs in reach. The separate quiet segmented toggle is removed.
 
 The stats bar becomes the plan status row. It keeps its place at the foot of the plan region
 under every view, which on a phone is the thumb zone above the bottom nav, and keeps its
