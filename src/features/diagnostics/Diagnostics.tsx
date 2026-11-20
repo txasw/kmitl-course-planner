@@ -6,11 +6,12 @@
 // embeds the canary the production bundle check greps for. Copy is hardcoded
 // English because the drawer is never user facing.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useStore } from 'zustand';
 import { Bug, RefreshCw, X } from 'lucide-react';
 import { onboardingStore } from '@/features/onboarding/onboardingStore';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
+import { debugMenuStore } from '@/features/shell/debugMenuStore';
 import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
@@ -47,7 +48,23 @@ export function Diagnostics() {
     (state) => state.coachMarkOpen,
   );
 
+  const panelOpen = useStore(uiStore, (state) => state.isOpen);
+
   const armed = isSimulationArmed(data.simulation);
+
+  // While the panel is open the drawer is reached from the header overflow menu, so the
+  // floating trigger never covers the panel's text on any width.
+  useEffect(() => {
+    debugMenuStore.getState().setItem({
+      label: 'Diagnostics',
+      onSelect: () => {
+        setOpen(true);
+      },
+    });
+    return () => {
+      debugMenuStore.getState().setItem(null);
+    };
+  }, []);
 
   const setFault = (faultId: string | null) => {
     setSimulation({ ...data.simulation, faultId });
@@ -60,10 +77,8 @@ export function Diagnostics() {
 
   // The trigger steps aside while the search page coach mark shows, since on a phone it
   // would sit over the coach mark's buttons and it is not what the coach mark points at.
-  if (!open && coachMarkOpen) return null;
+  if (!open && (coachMarkOpen || panelOpen)) return null;
 
-  // Below 640 px the launcher rides above the 56 px bottom nav of the phone layout and the
-  // safe area inset the nav pads by, so it never covers the nav item at the leading edge.
   if (!open) {
     return (
       <button
@@ -72,7 +87,7 @@ export function Diagnostics() {
           setOpen(true);
         }}
         aria-label={armed ? 'Diagnostics, simulation armed' : 'Diagnostics'}
-        className={`fixed bottom-[max(20px,var(--kcp-safe-bottom))] left-[max(20px,var(--kcp-safe-left))] z-host inline-flex max-sm:bottom-[calc(80px+var(--kcp-safe-bottom))] items-center gap-2 rounded-kcp border border-border bg-surface px-3 py-2 text-sm text-ink shadow-kcp hover:bg-surface-alt ${FOCUS_RING}`}
+        className={`fixed bottom-[max(20px,var(--kcp-safe-bottom))] left-[max(20px,var(--kcp-safe-left))] z-host inline-flex items-center gap-2 rounded-kcp border border-border bg-surface px-3 py-2 text-sm text-ink shadow-kcp hover:bg-surface-alt ${FOCUS_RING}`}
       >
         <Bug size={16} strokeWidth={2} aria-hidden />
         Diagnostics

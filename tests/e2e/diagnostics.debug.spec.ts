@@ -1,6 +1,7 @@
 import {
   test,
   expect,
+  openDiagnostics,
   openPlanner,
   pickOption,
   submitSearch,
@@ -16,7 +17,7 @@ test('surfaces a dropped teach_time2 in the report', async ({ context }) => {
   await pickOption(page, 'คณะ', '01');
   await pickOption(page, 'หมวดวิชา', '90592xxx');
 
-  await page.getByRole('button', { name: 'Diagnostics' }).click();
+  await openDiagnostics(page);
   await page.getByRole('button', { name: 'Simulation' }).click();
   await page
     .getByRole('combobox', { name: 'Mutation' })
