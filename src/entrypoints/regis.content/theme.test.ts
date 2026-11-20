@@ -99,6 +99,22 @@ describe('shadow stylesheet tokens', () => {
     expect(card).toContain('border-radius: var(--kcp-radius);');
   });
 
+  it('sets the quiet and settled neutral card stops through the card stop names', () => {
+    for (const variant of ['quiet', 'settled']) {
+      const rule = new RegExp(
+        `@utility kcp-soft-${variant} \\{([\\s\\S]*?)\\n\\}`,
+      ).exec(css)?.[1];
+      expect(rule).toBeDefined();
+      expect(rule).toContain(
+        `--kcp-tint-strong: var(--kcp-tint-${variant}-strong);`,
+      );
+      expect(rule).toContain(
+        `--kcp-tint-weak: var(--kcp-tint-${variant}-weak);`,
+      );
+      expect(rule).toContain('--kcp-tint-edge: var(--kcp-tint-quiet-edge);');
+    }
+  });
+
   it('declares the sheet radius', () => {
     expect(css).toContain('--kcp-radius-sheet: 12px;');
     expect(css).toContain('--radius-kcp-sheet: var(--kcp-radius-sheet)');
