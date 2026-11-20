@@ -33,6 +33,10 @@ import { installViewport } from '../../../tests/support/viewport';
 import { installVisualViewport } from '../../../tests/support/visualViewport';
 import { VIEWPORT_BOTTOM_PROPERTY, VIEWPORT_FIT } from '@/lib/ui/viewportInset';
 
+// The plan switcher trigger names the active plan and its term before its action, so
+// a query matches the action at the end of the name.
+const PLAN_TRIGGER = /เลือกตาราง$/;
+
 const deps = fakeSearchDeps();
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -466,7 +470,7 @@ describe('Overlay', () => {
     const panel = screen.getByRole('dialog', {
       name: 'KCP: ตัววางแผนตารางเรียน สจล.',
     });
-    fireEvent.click(screen.getByRole('button', { name: 'เลือกตาราง' }));
+    fireEvent.click(screen.getByRole('button', { name: PLAN_TRIGGER }));
     const sheet = screen.getByRole('dialog', { name: 'เลือกตาราง' });
     expect(panel).toContainElement(sheet);
     // The sheet sits on the panel itself, outside the header it opened from.
@@ -493,7 +497,7 @@ describe('Overlay', () => {
     expect(panel).toHaveClass(...VIEWPORT_FIT.split(' '));
     expect(panel).not.toHaveClass('inset-0');
     // The plan name field lives in a sheet on this tier, which reads the same inset.
-    fireEvent.click(screen.getByRole('button', { name: 'เลือกตาราง' }));
+    fireEvent.click(screen.getByRole('button', { name: PLAN_TRIGGER }));
     const layer = screen.getByRole('dialog', {
       name: 'เลือกตาราง',
     }).parentElement;
