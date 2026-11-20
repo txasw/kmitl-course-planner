@@ -574,11 +574,29 @@ describe('PlanSwitcher below 640 px', () => {
     openMenu();
     const sheet = screen.getByRole('dialog', { name: 'เลือกตาราง' });
     fireEvent.click(within(sheet).getByRole('button', { name: 'สร้างตาราง' }));
+    // The heading follows the view, so the create form says it creates a plan.
+    expect(screen.getByRole('dialog', { name: 'สร้างตาราง' })).toBe(sheet);
+    expect(
+      within(sheet).getByRole('heading', { name: 'สร้างตาราง' }),
+    ).toBeInTheDocument();
     const name = within(sheet).getByRole('textbox', { name: 'ชื่อตาราง' });
     fireEvent.change(name, { target: { value: 'ตารางหลัก' } });
     fireEvent.click(within(sheet).getByRole('button', { name: 'บันทึก' }));
     expect(planStore.getState().plans[0]?.name).toBe('ตารางหลัก');
     expect(screen.queryByRole('dialog', { name: 'เลือกตาราง' })).toBeNull();
+  });
+
+  it('titles the rename and delete views by what they do', () => {
+    seedTwoPlans();
+    renderInPanel();
+    openMenu();
+    const sheet = screen.getByRole('dialog', { name: 'เลือกตาราง' });
+    fireEvent.click(within(sheet).getByRole('button', { name: 'เปลี่ยนชื่อ A' }));
+    expect(screen.getByRole('dialog', { name: 'เปลี่ยนชื่อตาราง' })).toBe(sheet);
+    fireEvent.click(within(sheet).getByRole('button', { name: 'ยกเลิก' }));
+    expect(screen.getByRole('dialog', { name: 'เลือกตาราง' })).toBe(sheet);
+    fireEvent.click(within(sheet).getByRole('button', { name: 'ลบ A' }));
+    expect(screen.getByRole('dialog', { name: 'ลบตาราง' })).toBe(sheet);
   });
 
   it('closes on Escape without the press reaching the overlay', () => {

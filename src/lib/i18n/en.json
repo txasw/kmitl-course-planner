@@ -19,6 +19,8 @@
   "header.versionTag": "v{version}",
   "header.versionLine": "KCP v{version}",
   "planSwitcher.label": "Select plan",
+  "planSwitcher.renameTitle": "Rename plan",
+  "planSwitcher.deleteTitle": "Delete plan",
   "planSwitcher.noPlan": "No plan yet",
   "planSwitcher.create": "Create plan",
   "planSwitcher.rename": "Rename",

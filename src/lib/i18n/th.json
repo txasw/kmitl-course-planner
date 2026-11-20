@@ -19,6 +19,8 @@
   "header.versionTag": "v{version}",
   "header.versionLine": "KCP v{version}",
   "planSwitcher.label": "เลือกตาราง",
+  "planSwitcher.renameTitle": "เปลี่ยนชื่อตาราง",
+  "planSwitcher.deleteTitle": "ลบตาราง",
   "planSwitcher.noPlan": "ยังไม่มีตาราง",
   "planSwitcher.create": "สร้างตาราง",
   "planSwitcher.rename": "เปลี่ยนชื่อ",
