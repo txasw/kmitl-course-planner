@@ -87,7 +87,6 @@ describe('usePrefsPersistence', () => {
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
-        timetableView: 'day',
         catalogHides: NO_HIDES,
       },
     ]);
@@ -172,7 +171,6 @@ describe('usePrefsPersistence', () => {
         displayOptions: { ...DEFAULT_DISPLAY_OPTIONS, showRoom: false },
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
-        timetableView: 'day',
         catalogHides: NO_HIDES,
       },
     ]);
@@ -227,7 +225,6 @@ describe('usePrefsPersistence', () => {
         exportTemplate: 'print-a4',
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
-        timetableView: 'day',
         catalogHides: NO_HIDES,
       },
     ]);
@@ -266,27 +263,12 @@ describe('usePrefsPersistence', () => {
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
         suggestObjective: 'coverAll',
         suggestPreference: 'morning',
-        timetableView: 'day',
         catalogHides: NO_HIDES,
       },
     ]);
   });
 
-  it('hydrates the stored timetable view without writing it back', async () => {
-    const repo = makeRepo({
-      schemaVersion: 1,
-      language: 'th',
-      timetableView: 'week',
-    });
-    renderHook(() => {
-      usePrefsPersistence(repo);
-    });
-    await flush();
-    expect(uiStore.getState().timetableView).toBe('week');
-    expect(repo.saved).toHaveLength(0);
-  });
-
-  it('persists a timetable view change', async () => {
+  it('writes nothing when the timetable view changes', async () => {
     const repo = makeRepo(null);
     renderHook(() => {
       usePrefsPersistence(repo);
@@ -296,17 +278,7 @@ describe('usePrefsPersistence', () => {
     act(() => {
       uiStore.getState().setTimetableView('week');
     });
-    expect(repo.saved).toEqual([
-      {
-        schemaVersion: 1,
-        language: 'th',
-        displayOptions: DEFAULT_DISPLAY_OPTIONS,
-        suggestObjective: 'coverAll',
-        suggestPreference: 'balanced',
-        timetableView: 'week',
-        catalogHides: NO_HIDES,
-      },
-    ]);
+    expect(repo.saved).toHaveLength(0);
   });
 
   it('hydrates a stored curriculum profile without writing it back', async () => {
@@ -341,7 +313,6 @@ describe('usePrefsPersistence', () => {
         curriculumProfile: PROFILE,
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
-        timetableView: 'day',
         catalogHides: NO_HIDES,
       },
     ]);
@@ -399,7 +370,6 @@ describe('usePrefsPersistence', () => {
         displayOptions: DEFAULT_DISPLAY_OPTIONS,
         suggestObjective: 'coverAll',
         suggestPreference: 'balanced',
-        timetableView: 'day',
         catalogHides: { ...NO_HIDES, full: true },
       },
     ]);

@@ -6,6 +6,7 @@ import {
 import {
   dayChipDays,
   dayFlags,
+  dayOfWeek,
   initialDay,
   isDayViewWidth,
   revealScrollTop,
@@ -118,23 +119,38 @@ describe('dayFlags', () => {
 });
 
 describe('initialDay', () => {
-  it('opens on the first day with a class', () => {
-    const flags = dayFlags(
-      [makeMeeting({ day: 5 }), makeMeeting({ day: 3 })],
-      new Map(),
-    );
-    expect(initialDay(WEEK, flags)).toBe(3);
+  const twoDays = dayFlags(
+    [makeMeeting({ day: 5 }), makeMeeting({ day: 3 })],
+    new Map(),
+  );
+
+  it('opens on today when today has a class', () => {
+    expect(initialDay(WEEK, twoDays, 5)).toBe(5);
+  });
+
+  it('opens on the first day with a class when today has none', () => {
+    expect(initialDay(WEEK, twoDays, 2)).toBe(3);
+    // A Sunday the chips do not offer falls back the same way.
+    expect(initialDay(WEEK, twoDays, 0)).toBe(3);
   });
 
   it('opens on a weekend day when only the weekend carries a class', () => {
     const meetings = [makeMeeting({ day: 6 })];
     expect(
-      initialDay(dayChipDays(meetings), dayFlags(meetings, new Map())),
+      initialDay(dayChipDays(meetings), dayFlags(meetings, new Map()), 1),
     ).toBe(6);
   });
 
   it('opens on Monday when no class is scheduled', () => {
-    expect(initialDay(WEEK, dayFlags([], new Map()))).toBe(1);
+    expect(initialDay(WEEK, dayFlags([], new Map()), 3)).toBe(1);
+  });
+});
+
+describe('dayOfWeek', () => {
+  it('numbers the days from Sunday, as the grid does', () => {
+    // 2026-11-22 is a Sunday and 2026-11-27 a Friday, read in local time.
+    expect(dayOfWeek(new Date(2026, 10, 22))).toBe(0);
+    expect(dayOfWeek(new Date(2026, 10, 27))).toBe(5);
   });
 });
 
@@ -142,15 +158,23 @@ describe('shownDay', () => {
   const flags = dayFlags([makeMeeting({ day: 4 })], new Map());
 
   it('keeps the chosen day while the chips offer it', () => {
-    expect(shownDay(WEEK, 2, flags)).toBe(2);
+    expect(shownDay(WEEK, 2, flags, 1)).toBe(2);
   });
 
   it('falls back to the initial day when nothing is chosen', () => {
-    expect(shownDay(WEEK, null, flags)).toBe(4);
+    expect(shownDay(WEEK, null, flags, 1)).toBe(4);
+  });
+
+  it('falls back to today when nothing is chosen and today has a class', () => {
+    const both = dayFlags(
+      [makeMeeting({ day: 4 }), makeMeeting({ day: 2 })],
+      new Map(),
+    );
+    expect(shownDay(WEEK, null, both, 4)).toBe(4);
   });
 
   it('falls back when the chosen day lost its chip', () => {
-    expect(shownDay(WEEK, 6, flags)).toBe(4);
+    expect(shownDay(WEEK, 6, flags, 1)).toBe(4);
   });
 });
 

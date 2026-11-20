@@ -160,3 +160,20 @@ are neutral bordered buttons, and the actions over the timetable are text button
 draws them; only the search error card and the panel recovery card keep the filled orange they
 already had. The preview poster's empty notice keeps no action, because a shared picture carries
 no control.
+
+## Amendment, 2026-11-21: every opening starts on the day, today first
+
+A conformance review found the phone timetable opening on the portrait week. The day view was
+still the default, but the week chip was remembered as the optional `timetableView` preference,
+so one tap on the week kept every later opening on the week, against the agreed mockup and this
+record, which make the day view the phone default. The layout is no longer a preference. Every
+opening of the panel starts on the day view, as every opening starts in edit (ADR-0022
+amendment), and a week the student picks holds until the panel closes, one tap away on the week
+chip throughout. A preferences blob that still carries the field loads whole with it stripped,
+as a stored view mode is, so no schema version bump is due.
+
+The day it opens on is today when today has a class, so a student checking the day's classes
+lands on them; otherwise it is the first weekday with a class, as before, and a plan with no
+scheduled class opens on Monday. A free today was rejected as the opening day, since a planner
+opened before the term starts would land on an empty column. The day is read once as the
+timetable mounts, so the view never moves under the student at midnight.

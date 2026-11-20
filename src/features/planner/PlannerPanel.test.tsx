@@ -77,8 +77,15 @@ function seedCatalog(meeting: Meeting): void {
   });
 }
 
+// The day view opens on today when today has a class, so every test runs on a Sunday,
+// which no plan here meets on, and the view opens on the first day with a class.
+beforeEach(() => {
+  vi.setSystemTime(new Date(2026, 10, 22, 9));
+});
+
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
   seed([]);

@@ -7,10 +7,11 @@
 // place for both, so the student switches between a day and the week in one tap. The measure
 // lives here, in the component that mounts with the timetable, so switching back from the
 // selected courses view starts a fresh observation of the new node. The day the day view
-// shows is held by the planner panel and passed through; until the student picks one, it
-// follows the first day with a class, and a picked day holds until its chip leaves the row.
+// shows is held by the planner panel and passed through; until the student picks one, it is
+// today when today has a class and otherwise the first day with a class, and a picked day
+// holds until its chip leaves the row. Every opening of the panel starts on the day view.
 
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import type { GridFrame } from '@/lib/planner/grid';
@@ -18,6 +19,7 @@ import type { ConflictDetail } from '@/lib/planner/placement';
 import {
   dayChipDays,
   dayFlags,
+  dayOfWeek,
   isDayViewWidth,
   shownDay,
   type TimetableChoice,
@@ -70,7 +72,9 @@ export function TimetableView({
     () => dayFlags(meetings, timeConflicts),
     [meetings, timeConflicts],
   );
-  const shown = shownDay(days, day, flags);
+  // Read once as the timetable mounts, so the day shown never jumps at midnight.
+  const [today] = useState(() => dayOfWeek(new Date()));
+  const shown = shownDay(days, day, flags, today);
   const handleChoose = (choice: TimetableChoice) => {
     if (choice === 'week') {
       setView('week');

@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { useState } from 'react';
 import {
   render,
@@ -39,6 +39,12 @@ import { PlannerDnd } from './PlannerDnd';
 import { PlannerPanel } from './PlannerPanel';
 
 const t = createTranslator('th');
+
+// The day view opens on today when today has a class, so every test runs on a Sunday,
+// which no plan here meets on, unless a test sets its own day.
+beforeEach(() => {
+  vi.setSystemTime(new Date(2026, 10, 22, 9));
+});
 
 afterEach(() => {
   cleanup();
@@ -281,6 +287,26 @@ describe('DayView', () => {
     ).toBeInTheDocument();
     expect(block('90000001')).not.toBeNull();
     expect(block('90000002')).toBeNull();
+  });
+
+  it('opens on today when today has a class', () => {
+    // 2026-11-27 is a Friday, and the plan meets on Wednesday and Friday.
+    vi.setSystemTime(new Date(2026, 10, 27, 9));
+    installViewport(390);
+    seedPlan();
+    renderPanel();
+    expect(chip('วันศุกร์ มีเรียน')).toHaveAttribute('aria-checked', 'true');
+    expect(block('90000002')).not.toBeNull();
+    expect(block('90000001')).toBeNull();
+  });
+
+  it('opens on the first day with a class when today has none', () => {
+    // 2026-11-24 is a Tuesday, a free day in this plan.
+    vi.setSystemTime(new Date(2026, 10, 24, 9));
+    installViewport(390);
+    seedPlan();
+    renderPanel();
+    expect(chip('วันพุธ มีเรียน')).toHaveAttribute('aria-checked', 'true');
   });
 
   it('shows the picked day and names a free day', () => {
@@ -547,7 +573,7 @@ describe('Timetable week chip', () => {
     expect(screen.queryByRole('button', { name: 'สัปดาห์' })).toBeNull();
   });
 
-  it('switches to the portrait week and back from the same row, remembering the choice', () => {
+  it('switches to the portrait week and back from the same row', () => {
     installViewport(390);
     seedPlan();
     renderPanel();
@@ -576,7 +602,7 @@ describe('Timetable week chip', () => {
     expect(block('90000001')).toBeNull();
   });
 
-  it('opens on a remembered week', () => {
+  it('keeps the week chosen earlier in the same opening', () => {
     act(() => {
       uiStore.getState().setTimetableView('week');
     });

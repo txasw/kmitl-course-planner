@@ -24,20 +24,20 @@ function currentPrefs(): Prefs {
       : { curriculumProfile: state.curriculumProfile }),
     suggestObjective: state.suggestObjective,
     suggestPreference: state.suggestPreference,
-    timetableView: state.timetableView,
     catalogHides: selectHides(catalogStore.getState()),
   };
 }
 
 // Hydrates the stored UI preferences, the language, the poster
 // display options, the export template, the curriculum profile, the suggestion
-// options, the narrow timetable view, and the catalog hide toggles, on mount, then
+// options, and the catalog hide toggles, on mount, then
 // persists explicit changes to any of them. They live under one storage key, so a
 // single hook writes the whole preferences object on any change rather than several
 // hooks clobbering each other's field. The subscriptions attach only after hydration,
 // so a hydrated value is not written straight back, and a change made during the
-// async read is respected rather than overwritten by the stored value. The panel mode is
-// not a preference: every opening starts in edit (ADR-0022 amendment).
+// async read is respected rather than overwritten by the stored value. The panel mode and
+// the narrow timetable's day or week layout are not preferences: every opening starts in
+// edit on the day view (ADR-0022 amendment, ADR-0049 amendment of 2026-11-21).
 export function usePrefsPersistence(repo: PrefsRepository): void {
   useEffect(() => {
     let cancelled = false;
@@ -48,7 +48,6 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
     const initialProfile = uiStore.getState().curriculumProfile;
     const initialObjective = uiStore.getState().suggestObjective;
     const initialPreference = uiStore.getState().suggestPreference;
-    const initialTimetableView = uiStore.getState().timetableView;
     const initialHides = selectHides(catalogStore.getState());
 
     void repo.load().then((stored) => {
@@ -88,12 +87,6 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
         ) {
           state.setSuggestPreference(stored.suggestPreference);
         }
-        if (
-          stored.timetableView !== undefined &&
-          state.timetableView === initialTimetableView
-        ) {
-          state.setTimetableView(stored.timetableView);
-        }
         const catalog = catalogStore.getState();
         if (
           stored.catalogHides !== undefined &&
@@ -113,8 +106,7 @@ export function usePrefsPersistence(repo: PrefsRepository): void {
             state.selectedTemplate !== previous.selectedTemplate ||
             state.curriculumProfile !== previous.curriculumProfile ||
             state.suggestObjective !== previous.suggestObjective ||
-            state.suggestPreference !== previous.suggestPreference ||
-            state.timetableView !== previous.timetableView
+            state.suggestPreference !== previous.suggestPreference
           ) {
             save();
           }
