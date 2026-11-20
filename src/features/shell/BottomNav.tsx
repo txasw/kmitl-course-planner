@@ -19,15 +19,10 @@
 // Preview has no nav, because Layout returns before it for the poster.
 
 import { useStore } from 'zustand';
-import {
-  CalendarDays,
-  ClipboardList,
-  ListChecks,
-  Search,
-  type LucideIcon,
-} from 'lucide-react';
+import { Search, type LucideIcon } from 'lucide-react';
 import { CountChip } from '@/components/CountChip';
 import { useResultCourseCount } from '@/features/catalog/CatalogPanel';
+import { PLAN_VIEW_ICON } from '@/features/planner/PlanViewTabs';
 import { NavRemoveBar, useNavRemoving } from '@/features/planner/RemoveZone';
 import { groupEntriesBySubject } from '@/lib/planner/subjectGroups';
 import { useExamSchedule } from '@/features/planner/useExamSchedule';
@@ -55,11 +50,9 @@ const LABEL_KEY: Record<NavItem, TranslationKey> = {
   summary: 'planView.summary',
 };
 
-const ICON: Record<NavItem, LucideIcon> = {
+const ICON: Readonly<Record<NavItem, LucideIcon>> = {
   catalog: Search,
-  timetable: CalendarDays,
-  selected: ListChecks,
-  summary: ClipboardList,
+  ...PLAN_VIEW_ICON,
 };
 
 /** The count an item shows, or null for none. A plan with no subjects shows no zero. */

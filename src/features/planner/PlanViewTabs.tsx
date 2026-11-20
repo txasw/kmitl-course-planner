@@ -1,19 +1,27 @@
 // The plan view tabs of ADR-0049 on the medium and wide tiers: an underline tablist above
 // the grid region that switches between the timetable, the list of placed subjects, and
-// the summary. The selected tab carries the subject count in its visible label, so the
-// count is part of its accessible name. While two placed subjects clash on an exam, the
-// summary tab carries a danger dot with the clash in its accessible name, so the exam
-// schedule that lists the clash stays one action away. Arrow keys, Home, and End move
-// focus and activate the tab in one step, and only the active tab sits in the tab order,
-// the roving pattern of the ARIA tablist. The row is 40 px tall and tightens to 36 px
-// under a max height of 800 px, so a 720 or 768 px laptop keeps grid height. A trailing
-// control, the updates indicator of ADR-0060, sits at the right of the row outside the
-// tablist, since a tablist holds tabs only. The heights are minimums, so under a coarse
-// pointer the row grows to the 44 px touch target of that control rather than clip it.
+// the summary. Each tab leads with the icon its bottom nav item carries on a phone, so a
+// view reads the same at every width and the label can stay short. The selected tab
+// follows its label with the subject count as a quiet muted number, with no brackets,
+// and the count is part of its accessible name. While two placed subjects clash on an
+// exam, the summary tab carries a danger dot with the clash in its accessible name, so
+// the exam schedule that lists the clash stays one action away. Arrow keys, Home, and End
+// move focus and activate the tab in one step, and only the active tab sits in the tab
+// order, the roving pattern of the ARIA tablist. The row is 40 px tall and tightens to
+// 36 px under a max height of 800 px, so a 720 or 768 px laptop keeps grid height. A
+// trailing control, the updates indicator of ADR-0060, sits at the right of the row
+// outside the tablist, since a tablist holds tabs only. The heights are minimums, so
+// under a coarse pointer the row grows to the 44 px touch target of that control rather
+// than clip it.
 
 import { useRef, type KeyboardEvent, type ReactNode } from 'react';
+import {
+  CalendarDays,
+  ClipboardList,
+  ListChecks,
+  type LucideIcon,
+} from 'lucide-react';
 import type { Translate, TranslationKey } from '@/lib/i18n/t';
-import { fillTemplate } from '@/lib/i18n/template';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import type { PlanView } from '@/features/shell/uiStore';
 import { tourTargetProps } from '@/lib/onboarding/tour';
@@ -24,6 +32,14 @@ const LABEL_KEY: Record<PlanView, TranslationKey> = {
   timetable: 'planView.timetable',
   selected: 'planView.selected',
   summary: 'planView.summary',
+};
+
+/** The icon of each plan view, shared by these tabs and the bottom nav items of the
+ * compact tier, so a view keeps one glyph at every width. */
+export const PLAN_VIEW_ICON: Readonly<Record<PlanView, LucideIcon>> = {
+  timetable: CalendarDays,
+  selected: ListChecks,
+  summary: ClipboardList,
 };
 
 /** The id of a plan view tab, which its tabpanel names through aria-labelledby. */
@@ -95,10 +111,17 @@ export function PlanViewTabs({
       >
         {VIEWS.map((view) => {
           const active = view === value;
-          const label = fillTemplate(t(LABEL_KEY[view]), {
-            count: selectedCount,
-          });
+          const Icon = PLAN_VIEW_ICON[view];
+          const label = t(LABEL_KEY[view]);
+          const count = view === 'selected' ? selectedCount : null;
           const clashDot = view === 'summary' && examClash;
+          const name = [
+            label,
+            count === null ? null : String(count),
+            clashDot ? t('planView.examClash') : null,
+          ]
+            .filter((part) => part !== null)
+            .join(' ');
           return (
             <button
               key={view}
@@ -115,25 +138,32 @@ export function PlanViewTabs({
               {...(view === 'timetable' ? tourTargetProps('plan-tab') : {})}
               aria-selected={active}
               aria-controls={planViewPanelId(view)}
-              aria-label={
-                clashDot ? `${label} ${t('planView.examClash')}` : undefined
-              }
+              aria-label={name}
               tabIndex={active ? 0 : -1}
               onClick={() => {
                 onChange(view);
               }}
               onKeyDown={handleKeyDown}
-              className={`-mb-px inline-flex items-center border-b-2 px-1 text-sm transition-colors motion-reduce:transition-none ${FOCUS_RING} ${
+              className={`-mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-1 text-sm transition-colors motion-reduce:transition-none ${FOCUS_RING} ${
                 active
                   ? 'border-primary font-semibold text-primary-strong'
                   : 'border-transparent text-ink-soft hover:text-ink'
               }`}
             >
+              <Icon size={16} strokeWidth={2} aria-hidden />
               {label}
+              {count === null ? null : (
+                <span
+                  data-tab-count
+                  className="text-xs font-normal tabular-nums text-ink-muted"
+                >
+                  {count}
+                </span>
+              )}
               {clashDot ? (
                 <span
                   aria-hidden
-                  className="ml-1.5 size-2 shrink-0 rounded-full bg-danger"
+                  className="size-2 shrink-0 rounded-full bg-danger"
                 />
               ) : null}
             </button>

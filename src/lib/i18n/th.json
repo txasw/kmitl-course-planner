@@ -457,7 +457,7 @@
   "plan.untitled": "ตาราง",
   "planView.label": "มุมมองตาราง",
   "planView.timetable": "ตารางเรียน",
-  "planView.selected": "วิชาที่เลือก ({count})",
+  "planView.selected": "วิชาที่เลือก",
   "planView.summary": "สรุป",
   "planView.examClash": "มีวิชาที่สอบชนกัน",
   "summary.emptyTitle": "ยังไม่มีรายวิชาในตาราง",
