@@ -90,12 +90,13 @@ ink as their tint at lighter stops (the ADR-0071 amendment of 2026-11-21). A car
 the quiet stops, 4 percent at the top fading to 0 percent, and an added course card takes the
 settled stops, 7 percent fading to 5 percent. The strong stop is the darkest fill of each, so
 every text step proven there may sit anywhere on the card, with no position bound for the muted
-ink. Enforced in `token-contrast.test.ts`.
+ink. The status tones of the fit line and the primary strong action text sit on these cards
+too, so they are proven beside the ink steps. Enforced in `token-contrast.test.ts`.
 
-| Card    | Strong stop | Ink   | Ink soft | Ink muted |
-| ------- | ----------- | ----- | -------- | --------- |
-| Quiet   | `#F9F9F9`   | 16.53 | 6.35     | 5.03      |
-| Settled | `#F5F5F5`   | 15.96 | 6.13     | 4.86      |
+| Card    | Strong stop | Ink   | Ink soft | Ink muted | Success | Warn | Danger | Primary strong |
+| ------- | ----------- | ----- | -------- | --------- | ------- | ---- | ------ | -------------- |
+| Quiet   | `#F9F9F9`   | 16.53 | 6.35     | 5.03      | 5.13    | 5.20 | 5.34   | 5.28           |
+| Settled | `#F5F5F5`   | 15.96 | 6.13     | 4.86      | 4.96    | 5.02 | 5.16   | 5.10           |
 
 The one count badge of the panel draws white figures on the ink fill, 17.40:1.
 
