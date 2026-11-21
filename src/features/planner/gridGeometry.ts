@@ -19,6 +19,10 @@ export const QUARTERS_PER_HOUR = 4;
 /** The size of the leading axis track, in em of the grid font. */
 export const AXIS_TRACK_EM = 1.4;
 
+/** The height of the portrait day label row on the poster, taller than the axis track so each
+ * label's soft day tile holds its padding around a full Thai line. */
+export const POSTER_DAY_TRACK_EM = 2.25;
+
 /** The width of the portrait hour column, the leading track down the grid's edge. */
 export const PORTRAIT_AXIS_TRACK = '2.75rem';
 
