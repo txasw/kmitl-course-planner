@@ -190,7 +190,11 @@ describe('SuggestAction', () => {
     if (button === null) throw new Error('no suggest action');
     fireEvent.click(button);
     const dialog = screen.getByRole('dialog', { name: 'แนะนำตาราง' });
-    expect(dialog).toHaveTextContent('ค้นหาตามหลักสูตรก่อน');
+    // The description is the title and the sentence that names the plan's term, never the
+    // action, which focus already names.
+    expect(dialog).toHaveAccessibleDescription(
+      'ค้นหาตามหลักสูตรก่อน ตารางที่แนะนำจัดจากผลการค้นหาตามหลักสูตรในภาคการศึกษาของตารางนี้',
+    );
     const search = screen.getByRole('button', { name: 'ค้นหาตามหลักสูตร' });
     expect(search).toHaveFocus();
     fireEvent.click(search);
@@ -199,6 +203,18 @@ describe('SuggestAction', () => {
     expect(state.activeTab).toBe('by_class');
     expect(state.term).toEqual({ year: '2569', semester: '2' });
     expect(state.searchFormOpen).toBe(true);
+  });
+
+  it('leaves the term out of the note while there is no plan yet', () => {
+    renderAction({ placement: 'status' });
+    const button = openButton();
+    if (button === null) throw new Error('no suggest action');
+    fireEvent.click(button);
+    expect(
+      screen.getByRole('dialog', { name: 'แนะนำตาราง' }),
+    ).toHaveAccessibleDescription(
+      'ค้นหาตามหลักสูตรก่อน ตารางที่แนะนำจัดจากผลการค้นหาตามหลักสูตร',
+    );
   });
 
   it('is absent for a curriculum result with no group 2 course', () => {
