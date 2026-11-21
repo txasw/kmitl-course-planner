@@ -39,6 +39,10 @@ import {
 // block details and the display options it reads the panel, where the opened layer may cover a
 // line whole but its edge may cut none, and it checks the plan name field holds a long name.
 
+// The block detail opens beside its block, with no room to avoid the blocks next to it, so
+// its side edge may cut a line inside a timetable block and nowhere else.
+const BESIDE_BLOCK = ['[data-teach-table-id]'] as const;
+
 // A walk this long fails at the step that stalls rather than at the test timeout.
 test.use({ actionTimeout: 10_000 });
 
@@ -298,6 +302,7 @@ for (const language of ['th', 'en'] as const) {
         await sweep.scan('block detail', blockDetail(sweep));
         await sweep.scan('panel behind the block detail', sweep.panel(), {
           behind: true,
+          besideAnchor: BESIDE_BLOCK,
         });
         await page.keyboard.press('Escape');
 
@@ -418,7 +423,7 @@ for (const language of ['th', 'en'] as const) {
         await sweep.scan(
           'panel behind the missing entry detail',
           sweep.panel(),
-          { behind: true },
+          { behind: true, besideAnchor: BESIDE_BLOCK },
         );
         await page.keyboard.press('Escape');
         await expect(blockDetail(sweep)).toHaveCount(0);
