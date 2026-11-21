@@ -64,9 +64,9 @@ function toneIcon(tone: VerificationTone): ReactNode {
   }
 }
 
-const BUTTON = `inline-flex items-center gap-1 rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink hover:bg-surface-alt disabled:text-ink-soft ${TARGET_SIZE} ${FOCUS_RING}`;
+const BUTTON = `inline-flex items-center gap-1 rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink hover:bg-surface-alt aria-disabled:cursor-not-allowed aria-disabled:text-ink-soft aria-disabled:hover:bg-surface ${TARGET_SIZE} ${FOCUS_RING}`;
 
-const POPOVER_BUTTON = `inline-flex items-center gap-1.5 rounded-kcp border border-border bg-surface px-2 py-1 text-ink hover:bg-surface-alt disabled:text-ink-soft ${TARGET_SIZE} ${FOCUS_RING}`;
+const POPOVER_BUTTON = `inline-flex items-center gap-1.5 rounded-kcp border border-border bg-surface px-2 py-1 text-ink hover:bg-surface-alt aria-disabled:cursor-not-allowed aria-disabled:text-ink-soft aria-disabled:hover:bg-surface ${TARGET_SIZE} ${FOCUS_RING}`;
 
 interface VerificationStatusProps {
   /** Fold the item to its tone glyph, the words and actions a tap away, for the phone row. */
@@ -93,7 +93,11 @@ export function VerificationStatus({
   );
   const checking = status.tone === 'checking';
 
+  // A running check marks the control aria-disabled rather than disabled, so the focus a
+  // keyboard user placed on it stays there instead of dropping to the body, and the press is
+  // ignored until the check ends.
   const handleCheck = (): void => {
+    if (checking) return;
     void checkPlanNow(activePlan, send);
   };
   const handleReview = (): void => {
@@ -130,7 +134,7 @@ export function VerificationStatus({
                 <button
                   type="button"
                   onClick={handleCheck}
-                  disabled={checking}
+                  aria-disabled={checking}
                   className={POPOVER_BUTTON}
                 >
                   <RefreshCw size={14} strokeWidth={2} aria-hidden />
@@ -176,7 +180,7 @@ export function VerificationStatus({
         <button
           type="button"
           onClick={handleCheck}
-          disabled={checking}
+          aria-disabled={checking}
           aria-label={t('revalidation.checkAgain')}
           title={t('revalidation.checkAgain')}
           className={`${BUTTON} justify-center px-1`}
