@@ -47,13 +47,15 @@ describe('fitFieldHeight', () => {
 });
 
 describe('NameForm', () => {
-  it('names the plan in a text area that grows rather than a one line input', () => {
+  it('caps the name and says that Enter saves it', () => {
     render(<Harness onSubmit={() => undefined} />);
     const field = screen.getByRole('textbox', { name: 'ชื่อตาราง' });
-    expect(field.tagName).toBe('TEXTAREA');
-    expect(field).toHaveAttribute('rows', '1');
     expect(field).toHaveAttribute('maxlength', String(PLAN_NAME_MAX));
-    expect(field).toHaveClass('resize-none', 'overflow-hidden');
+    expect(field).toHaveAccessibleDescription(
+      `ไม่เกิน ${String(PLAN_NAME_MAX)} ตัวอักษร กด Enter เพื่อบันทึก`,
+    );
+    // A phone keyboard offers Done rather than a return key, since Enter saves.
+    expect(field).toHaveAttribute('enterkeyhint', 'done');
   });
 
   it('saves on Enter without adding a line', () => {
