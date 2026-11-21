@@ -64,7 +64,6 @@ test.describe('after install', () => {
     }
     // Before any search the add step lights the search fields, not the blocked submit.
     await card.getByRole('button', { name: TOUR.th.next, exact: true }).tap();
-    await tab.waitForTimeout(300);
     await expectAddStepOnSearchFields(tab, 'th');
     await expectTourStepLaidOut(tab, 'th add before a search');
     await card.getByRole('button', { name: TOUR.th.skip }).tap();
