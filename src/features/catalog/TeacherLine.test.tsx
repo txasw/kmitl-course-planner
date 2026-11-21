@@ -97,8 +97,8 @@ describe('TeacherLine', () => {
     render(<TeacherLine teachers={TEACHERS} t={en} />);
     reportClipped(screen.getByText(JOINED));
     expect(
-      screen.getByRole('button', { name: 'Show all teachers' }),
+      screen.getByRole('button', { name: 'Show all instructors' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('Teachers')).toBeInTheDocument();
+    expect(screen.getByText('Instructors')).toBeInTheDocument();
   });
 });

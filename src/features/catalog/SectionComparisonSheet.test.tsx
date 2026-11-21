@@ -197,7 +197,7 @@ describe('SectionComparisonSheet', () => {
     expect(heads.map((head) => head.textContent)).toEqual([
       'กลุ่ม',
       'เวลาและสถานที่',
-      'อาจารย์ผู้สอน',
+      'ผู้สอน',
       'ที่นั่ง',
       'สอบ',
       'เงื่อนไข',

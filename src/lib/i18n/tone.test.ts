@@ -120,6 +120,17 @@ describe('copy tone', () => {
     }
   });
 
+  // One term names the people who teach a section (docs/TERMINOLOGY.md): Instructors in
+  // English and ผู้สอน in Thai, so a label never switches between two words for one thing.
+  it('both dictionaries name the instructor with one term', () => {
+    for (const [key, value] of Object.entries(en)) {
+      expect(/\bteachers?\b/i.test(value), `en ${key}: "${value}"`).toBe(false);
+    }
+    for (const [key, value] of Object.entries(th)) {
+      expect(value.includes('อาจารย์'), `th ${key}: "${value}"`).toBe(false);
+    }
+  });
+
   // All UI copy goes through the dictionaries, so a banned Thai term in a source file is a
   // hardcoded literal, a composed string or an aria label the dictionary scan cannot see.
   it('no source file hardcodes a non-canonical Thai term', () => {
