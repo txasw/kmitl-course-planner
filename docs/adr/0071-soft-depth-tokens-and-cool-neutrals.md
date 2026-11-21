@@ -145,3 +145,32 @@ moves from 5.05 to 4.95. White on the coach mark scrim over white moves from 8.5
 A darker ink soft, `#585A63`, was considered to keep the old margins exactly. It was set aside
 because it closes the step between ink soft and ink muted that the three step hierarchy relies on,
 and the lighter value already clears every bar with room.
+
+## Amendment, 2026-11-21: the quiet card in the plan views and the suggestion slides
+
+A second conformance review found the neutral cards outside the catalog still flat: each subject
+of the selected courses list, the exam day cards, the instructor arranged list and the weekly
+hour tiles of the summary view, and a suggestion slide on the wider tiers were white cards with a
+1 px border. They read as a second card style beside the soft set the owner picked.
+
+Decision. Each of them takes the quiet card, `kcp-soft-card kcp-soft-quiet`, the stops a neutral
+card that repeats down a list already uses. Each keeps one level of nesting: the sections inside a
+selected subject card and the exam rows inside a day card stay rows split by hairline rules, never
+cards of their own. An exam day header drops its grey band for a hairline rule under it, because a
+filled child paints over the inset edge the card draws at its top corners. A portrait suggestion
+slide on a phone keeps no card, since it gives that width to its day columns so a Thai word fits a
+360 px column whole.
+
+The same review found a full section row saying one thing three times: the Full badge, the disabled
+add, and a seat line reading Full, cannot be added, and a closed row likewise. A row whose badge
+names the seat state now leaves the seat line out, so the badge is the one visible statement. The
+sentence moves to the disabled add, which reads it as its description and shows it in its tooltip
+on hover or focus, so the row still gives the text reason brief section 6.3 asks for. The sentence
+sits in a hidden node rather than a visually hidden one, so a screen reader reading in order does
+not hear the badge and the sentence back to back. A different term row keeps its mismatch line,
+since its badge names the term and not the seat, and an oversubscribed row keeps its demand chip.
+
+Alternatives considered: keeping the seat line and dropping the badge was rejected because the
+badge is the row status every other state uses, and a row with no badge would read as addable at a
+glance. Hiding the disabled add was rejected because the add column stays consistent down the
+list and the add is where a keyboard user looks for the reason.
