@@ -11,7 +11,30 @@ import { installViewport } from '../../../tests/support/viewport';
 import { DEFAULT_DISPLAY_OPTIONS } from '@/lib/planner/displayOptions';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { uiStore } from '@/features/shell/uiStore';
-import { DisplayOptionsPopover } from './DisplayOptionsPopover';
+import {
+  DisplayOptionsPanel,
+  DisplayOptionsSheet,
+  DisplayOptionsToggle,
+  useDisplayOptionsDisclosure,
+} from './DisplayOptions';
+
+// The wide form as the toolbar renders it: the toggle in a row and the panel after it.
+function InlineOptions() {
+  const { open, panelId, triggerRef, panelRef, toggle } =
+    useDisplayOptionsDisclosure();
+  return (
+    <>
+      <DisplayOptionsToggle
+        open={open}
+        controls={panelId}
+        buttonRef={triggerRef}
+        onToggle={toggle}
+      />
+      <button type="button">ดาวน์โหลด PNG</button>
+      <DisplayOptionsPanel id={panelId} open={open} panelRef={panelRef} />
+    </>
+  );
+}
 
 afterEach(() => {
   cleanup();
@@ -22,23 +45,78 @@ afterEach(() => {
   });
 });
 
-describe('DisplayOptionsPopover', () => {
-  // The popover is the form from 640 px up; the sheet below has its own suite.
+describe('DisplayOptions from 640 px up', () => {
+  // The inline panel is the form from 640 px up; the sheet below has its own suite.
   beforeEach(() => {
     installViewport(1366);
   });
 
-  it('opens an anchored popover, not a dialog', () => {
-    render(<DisplayOptionsPopover />);
+  it('discloses an inline region the button controls, not a dialog', () => {
+    render(<InlineOptions />);
     const trigger = screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' });
     expect(trigger).not.toHaveAttribute('aria-haspopup');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    const panelId = trigger.getAttribute('aria-controls') ?? '';
+    // The panel stays in the DOM while hidden, so the reference always resolves.
+    const panel = document.getElementById(panelId);
+    expect(panel).not.toBeNull();
+    expect(panel).not.toBeVisible();
+    expect(screen.queryByRole('switch')).toBeNull();
+
+    trigger.focus();
     fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
     expect(screen.queryByRole('dialog')).toBeNull();
+    const region = screen.getByRole('region', { name: 'ตัวเลือกการแสดงผล' });
+    expect(region).toBe(panel);
+    expect(region).toBeVisible();
+    expect(
+      within(region).getByRole('switch', { name: 'แสดงห้อง' }),
+    ).toBeInTheDocument();
+    // Opening moves no focus off the button, as a disclosure does.
+    expect(trigger).toHaveFocus();
+
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('switch')).toBeNull();
+  });
+
+  it('stays open on a press elsewhere on the page', () => {
+    render(<InlineOptions />);
+    fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }));
+    const elsewhere = screen.getByRole('button', { name: 'ดาวน์โหลด PNG' });
+    fireEvent.pointerDown(elsewhere);
+    fireEvent.mouseDown(elsewhere);
+    fireEvent.click(elsewhere);
     expect(screen.getByRole('switch', { name: 'แสดงห้อง' })).toBeInTheDocument();
   });
 
-  it('opens the popover and toggles an option in the store', () => {
-    render(<DisplayOptionsPopover />);
+  it.each(['panel', 'button'] as const)(
+    'closes on Escape from the %s, returns focus, and keeps the overlay open',
+    (from) => {
+      render(<InlineOptions />);
+      const trigger = screen.getByRole('button', {
+        name: 'ตัวเลือกการแสดงผล',
+      });
+      fireEvent.click(trigger);
+      const outer = vi.fn();
+      document.body.addEventListener('keydown', outer);
+      const target =
+        from === 'panel'
+          ? screen.getByRole('switch', { name: 'แสดงห้อง' })
+          : trigger;
+      target.focus();
+      fireEvent.keyDown(target, { key: 'Escape' });
+      document.body.removeEventListener('keydown', outer);
+      expect(screen.queryByRole('switch')).toBeNull();
+      expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      expect(trigger).toHaveFocus();
+      expect(outer).not.toHaveBeenCalled();
+    },
+  );
+
+  it('opens the panel and toggles an option in the store', () => {
+    render(<InlineOptions />);
     fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }));
     const showRoom = screen.getByRole('switch', { name: 'แสดงห้อง' });
     expect(showRoom).toBeChecked();
@@ -48,7 +126,7 @@ describe('DisplayOptionsPopover', () => {
   });
 
   it('offers the exam schedule option off by default and stores it when turned on', () => {
-    render(<DisplayOptionsPopover />);
+    render(<InlineOptions />);
     fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }));
     const showExams = screen.getByRole('switch', { name: 'แสดงตารางสอบ' });
     expect(showExams).not.toBeChecked();
@@ -61,14 +139,14 @@ describe('DisplayOptionsPopover', () => {
     act(() => {
       uiStore.getState().setDisplayOption('showRoom', false);
     });
-    render(<DisplayOptionsPopover />);
+    render(<InlineOptions />);
     fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }));
     expect(screen.getByRole('switch', { name: 'แสดงห้อง' })).not.toBeChecked();
     expect(screen.getByRole('switch', { name: 'แสดงกลุ่มเรียน' })).toBeChecked();
   });
 
   it('offers only the switches the fit can still change', () => {
-    render(<DisplayOptionsPopover />);
+    render(<InlineOptions />);
     fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }));
     expect(screen.getAllByRole('switch').map((s) => s.textContent)).toEqual([
       'แสดงห้อง',
@@ -87,7 +165,7 @@ describe('DisplayOptionsPopover', () => {
       act(() => {
         uiStore.getState().setLanguage(language);
       });
-      render(<DisplayOptionsPopover />);
+      render(<InlineOptions />);
       fireEvent.click(screen.getByRole('button', { name: trigger }));
       const names = screen.getByRole('group', { name: group });
       expect(
@@ -98,7 +176,7 @@ describe('DisplayOptionsPopover', () => {
   );
 
   it('stores the chosen name language and notes the fit under both', () => {
-    render(<DisplayOptionsPopover />);
+    render(<InlineOptions />);
     fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }));
     const names = screen.getByRole('group', { name: 'ชื่อวิชา' });
     expect(screen.queryByText(/ชื่อภาษาที่สองแสดงในคาบที่มีพื้นที่พอ/)).toBeNull();
@@ -115,7 +193,7 @@ describe('DisplayOptionsPopover', () => {
   });
 });
 
-describe('DisplayOptionsPopover below 640 px', () => {
+describe('DisplayOptions below 640 px', () => {
   beforeEach(() => {
     installViewport(390);
   });
@@ -123,7 +201,7 @@ describe('DisplayOptionsPopover below 640 px', () => {
   function renderInPanel() {
     render(
       <PanelPortalContext.Provider value={document.body}>
-        <DisplayOptionsPopover />
+        <DisplayOptionsSheet />
       </PanelPortalContext.Provider>,
     );
   }

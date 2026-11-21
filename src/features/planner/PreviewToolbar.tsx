@@ -1,6 +1,6 @@
 // The preview sharing toolbar. It is rendered only in preview mode and sits outside
 // the poster capture node, so its controls never appear in an exported image. It
-// carries the display options popover and the sharing actions: share the poster
+// carries the display options and the sharing actions: share the poster
 // image through the native share sheet, copy it, download it, and copy the plan as
 // plain text. A copy or download reports through the shared toast, since it has no
 // other visible result on screen. Copy image is feature detected; where the browser
@@ -18,10 +18,11 @@
 // at every width (ADR-0022 amendment of 2026-11-21); share, copy image, copy as text, and the
 // display options are outline buttons with visible labels, each with its own glyph, so no two
 // actions look alike. From 640 px up the toolbar heads the poster as one row that leads with
-// download and wraps where the labels need it. Below 640 px the panel renders the toolbar under
-// the poster, along the panel foot in the thumb zone: download fills its own row, and the
-// other actions share the row under it as equal cells, each a glyph over a short label that
-// wraps rather than clips. The verification status and any copy image note move to their own
+// download and wraps where the labels need it, and the display options open as an inline panel
+// under that row, pushing the chips and the stage down (ADR-0027 amendment). Below 640 px the
+// panel renders the toolbar under the poster, along the panel foot in the thumb zone: download
+// fills its own row, and the other actions share the row under it as equal cells, each a glyph
+// over a short label that wraps rather than clips. The verification status and any copy image note move to their own
 // lines above the actions, and the pre share notice precedes the toolbar there, so the
 // actions stay nearest the edge.
 //
@@ -48,7 +49,12 @@ import { useActivePlan } from '@/features/plans/planStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { copyText } from '@/features/shell/copyText';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
-import { DisplayOptionsPopover } from './DisplayOptionsPopover';
+import {
+  DisplayOptionsPanel,
+  DisplayOptionsSheet,
+  DisplayOptionsToggle,
+  useDisplayOptionsDisclosure,
+} from './DisplayOptions';
 import { examScheduleLines } from './examScheduleLines';
 import { PreShareNotice } from './PreShareNotice';
 import { PreviewToolbarAction, toolbarIconSize } from './PreviewToolbarAction';
@@ -85,6 +91,13 @@ export function PreviewToolbar({
   const { t, language } = useTranslation();
   const activePlan = useActivePlan();
   const compact = useLayoutTier() === 'compact';
+  const {
+    open: optionsOpen,
+    panelId,
+    triggerRef,
+    panelRef,
+    toggle: toggleOptions,
+  } = useDisplayOptionsDisclosure();
   const iconProps = {
     size: toolbarIconSize(compact),
     strokeWidth: 2,
@@ -189,7 +202,16 @@ export function PreviewToolbar({
         busy={busy}
         onClick={handleCopyText}
       />
-      <DisplayOptionsPopover />
+      {compact ? (
+        <DisplayOptionsSheet />
+      ) : (
+        <DisplayOptionsToggle
+          open={optionsOpen}
+          controls={panelId}
+          buttonRef={triggerRef}
+          onToggle={toggleOptions}
+        />
+      )}
     </>
   );
   const toolbarProps = {
@@ -228,6 +250,11 @@ export function PreviewToolbar({
           <VerificationStatus />
         </span>
       </div>
+      <DisplayOptionsPanel
+        id={panelId}
+        open={optionsOpen}
+        panelRef={panelRef}
+      />
       <PreShareNotice />
     </>
   );
