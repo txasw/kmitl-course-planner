@@ -380,6 +380,23 @@ describe('EventBlock', () => {
     expect(nameEl.className).toContain('text-[0.9em]');
   });
 
+  it('names an inert block for a screen reader by its full name', () => {
+    const long = { ...section, nameEn: 'INTRODUCTION TO PROGRAMMING' };
+    render(
+      <EventBlock
+        section={long}
+        meeting={meeting}
+        style={{}}
+        locale="en"
+        t={createTranslator('en')}
+      />,
+    );
+    expect(
+      screen.getByRole('group', { name: /INTRODUCTION TO PROGRAMMING/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
   it('fits a name afresh when a locale switch swaps it for one of the same shape', () => {
     // Neither name has abbreviated forms, so only the name itself tells the fit to reset.
     const short = { ...section, nameEn: 'ART OF WAR' };
