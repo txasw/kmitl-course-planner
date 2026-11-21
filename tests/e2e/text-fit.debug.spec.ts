@@ -443,6 +443,23 @@ for (const language of ['th', 'en'] as const) {
           timeout: RESULTS_TIMEOUT,
         });
         await waitForResultsInput(page);
+        // The phone form reopened under the bar of the search fills the pane over its
+        // pinned action row, which carries the cancel and the clear search, so no control
+        // rests half cut at the foot of the form behind the bottom nav.
+        if (sweep.phone) {
+          await catalog
+            .getByRole('button', { name: sweep.t('search.bar.edit') })
+            .first()
+            .click();
+          await sweep.scan('curriculum search form reopened', catalog);
+          await sweep.expectPinnedRowLast('curriculum search form reopened');
+          await catalog
+            .getByRole('button', {
+              name: sweep.t('search.cancelEdit'),
+              exact: true,
+            })
+            .click();
+        }
         await catalog
           .getByRole('button', { name: sweep.t('suggest.open') })
           .first()

@@ -8,10 +8,13 @@
 // On the phone layout the form fills the catalog pane, so the submit row is pinned to the
 // bottom of the form scroller, above the bottom nav, and stays in reach however far the
 // student scrolls the fields. There it can carry a cancel beside the submit, which folds
-// the form back under the bar of the running search. The row is measured in every
-// layout, so the scroller can pad its focus scroll clear of the pinned row.
+// the form back under the bar of the running search. The clear search control follows the
+// submit: in the flow under it, or inside a pinned row, so the pinned row is always the
+// last thing in the scroller and no control rests half cut at its foot behind it. The row
+// is measured in every layout, so the scroller can pad its focus scroll clear of the
+// pinned row.
 
-import type { RefObject } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import { Search } from 'lucide-react';
 import type { Translate, TranslationKey } from '@/lib/i18n/t';
 import type { SearchField } from '@/lib/search/formState';
@@ -53,11 +56,13 @@ export interface SubmitDock {
   onCancel: ((from: HTMLButtonElement) => void) | null;
 }
 
-const ROW = 'mt-1 flex flex-col gap-1.5';
+const ROW = 'flex flex-col gap-1.5';
 
 // The pinned row spans the form padding, so its surface covers the fields that scroll
-// under it from edge to edge.
-const STICKY_ROW = `${ROW} sticky bottom-0 -mx-6 border-t border-border bg-surface px-6 py-3`;
+// under it from edge to edge. Its divider sets it apart from the last field, so it takes
+// no margin over the in flow row, and it pads tight, since it also carries the clear
+// search and a phone form should hold every field above it at rest.
+const STICKY_ROW = `${ROW} sticky bottom-0 -mx-6 border-t border-border bg-surface px-6 py-2`;
 
 const BUTTON = `inline-flex min-h-9 items-center justify-center gap-2 rounded-kcp border px-4 py-2 text-sm pointer-coarse:min-h-11 ${FOCUS_OUTLINE}`;
 
@@ -69,51 +74,69 @@ interface SearchSubmitProps {
   onSubmit: (from: HTMLButtonElement) => void;
   /** The row placement; without one the row sits in the flow with no cancel. */
   dock?: SubmitDock | undefined;
+  /** The clear search control, carried in a pinned row and set under the row otherwise. */
+  clear: ReactNode;
 }
 
-export function SearchSubmit({ reason, t, onSubmit, dock }: SearchSubmitProps) {
+export function SearchSubmit({
+  reason,
+  t,
+  onSubmit,
+  dock,
+  clear,
+}: SearchSubmitProps) {
   const blocked = reason !== null;
   const onCancel = dock?.onCancel ?? null;
+  const sticky = dock?.sticky === true;
   return (
-    <div ref={dock?.ref} className={dock?.sticky ? STICKY_ROW : ROW}>
-      <div className="flex gap-2">
-        {onCancel !== null ? (
+    <>
+      <div ref={dock?.ref} className={sticky ? STICKY_ROW : `mt-1 ${ROW}`}>
+        <div className="flex gap-2">
+          {onCancel !== null ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                onCancel(event.currentTarget);
+              }}
+              className={`${BUTTON} border-border bg-surface text-ink hover:bg-surface-alt`}
+            >
+              {t('search.cancelEdit')}
+            </button>
+          ) : null}
           <button
+            id={SEARCH_SUBMIT_ID}
+            {...tourTargetProps('search-submit')}
             type="button"
+            aria-disabled={blocked || undefined}
+            aria-describedby={blocked ? REASON_ID : undefined}
             onClick={(event) => {
-              onCancel(event.currentTarget);
+              if (!blocked) {
+                onSubmit(event.currentTarget);
+              }
             }}
-            className={`${BUTTON} border-border bg-surface text-ink hover:bg-surface-alt`}
+            className={`${BUTTON} flex-1 font-semibold ${
+              blocked
+                ? 'cursor-not-allowed border-border bg-surface-alt text-ink-soft'
+                : 'border-transparent bg-primary-strong text-surface hover:bg-primary-hover'
+            }`}
           >
-            {t('search.cancelEdit')}
+            <Search
+              size={16}
+              strokeWidth={2}
+              aria-hidden
+              className="shrink-0"
+            />
+            {t('search.submit')}
           </button>
+        </div>
+        {blocked ? (
+          <p id={REASON_ID} className="text-xs text-ink-soft">
+            {reason}
+          </p>
         ) : null}
-        <button
-          id={SEARCH_SUBMIT_ID}
-          {...tourTargetProps('search-submit')}
-          type="button"
-          aria-disabled={blocked || undefined}
-          aria-describedby={blocked ? REASON_ID : undefined}
-          onClick={(event) => {
-            if (!blocked) {
-              onSubmit(event.currentTarget);
-            }
-          }}
-          className={`${BUTTON} flex-1 font-semibold ${
-            blocked
-              ? 'cursor-not-allowed border-border bg-surface-alt text-ink-soft'
-              : 'border-transparent bg-primary-strong text-surface hover:bg-primary-hover'
-          }`}
-        >
-          <Search size={16} strokeWidth={2} aria-hidden className="shrink-0" />
-          {t('search.submit')}
-        </button>
+        {sticky ? clear : null}
       </div>
-      {blocked ? (
-        <p id={REASON_ID} className="text-xs text-ink-soft">
-          {reason}
-        </p>
-      ) : null}
-    </div>
+      {sticky ? null : clear}
+    </>
   );
 }

@@ -89,6 +89,18 @@ async function settle(page: Page): Promise<void> {
   );
 }
 
+/** What the sweep reads of the open search form and its action row. */
+interface SearchFormRead {
+  /** How far the form scroller can scroll. */
+  overflow: number;
+  /** Whether the action row is pinned to the scroller foot. */
+  pinned: boolean;
+  /** The text of a control that follows the pinned row, or null. */
+  trailing: string | null;
+  /** Whether the scroller cuts the pinned row. */
+  rowCut: boolean;
+}
+
 export class Sweep {
   readonly findings: Recorded[] = [];
   private shots = 0;
@@ -197,26 +209,87 @@ export class Sweep {
    * Check that the open search form shows whole: at the sweep height its scroller holds
    * every field and the submit row without scrolling, since a scroller that caps the form
    * cuts a field through its box, which the text scan reads as scrolled rather than cut.
+   * Its pinned action row, if any, is checked too, as expectPinnedRowLast does.
    */
   async expectSearchFormWhole(surface: string): Promise<void> {
+    const read = await this.readSearchForm(surface);
+    if (read.overflow > 1) {
+      this.fault(
+        surface,
+        `the search form scrolls ${String(read.overflow)} px`,
+      );
+    }
+    this.checkPinnedRow(surface, read);
+  }
+
+  /**
+   * Check the pinned action row of a phone search form, which scrolls its fields under
+   * the row by design: the row shows whole and nothing follows it, since a control after
+   * it rests half cut at the scroller foot with no sign that the form scrolls.
+   */
+  async expectPinnedRowLast(surface: string): Promise<void> {
+    const read = await this.readSearchForm(surface);
+    if (!read.pinned) this.fault(surface, 'the action row is not pinned');
+    this.checkPinnedRow(surface, read);
+  }
+
+  private fault(surface: string, text: string): void {
+    this.findings.push({ kind: 'clipped', text, surface, width: this.width });
+  }
+
+  private checkPinnedRow(surface: string, read: SearchFormRead): void {
+    if (read.trailing !== null) {
+      this.fault(
+        surface,
+        `"${read.trailing}" rests after the pinned action row`,
+      );
+    }
+    if (read.rowCut) {
+      this.fault(surface, 'the pinned action row is cut by the form scroller');
+    }
+  }
+
+  private async readSearchForm(surface: string): Promise<SearchFormRead> {
     await settle(this.page);
-    const overflow = await this.page.evaluate((id) => {
+    const read = await this.page.evaluate((id) => {
       const root = document.querySelector('kcp-planner-root')?.shadowRoot;
       const scroller = root?.getElementById(id)?.firstElementChild;
       if (scroller === null || scroller === undefined) return null;
-      return scroller.scrollHeight - scroller.clientHeight;
+      const pinned = [...scroller.querySelectorAll('*')].find(
+        (element) => getComputedStyle(element).position === 'sticky',
+      );
+      let trailing: string | null = null;
+      for (
+        let element: Element | null = pinned ?? null;
+        element !== null && element !== scroller;
+        element = element.parentElement
+      ) {
+        for (
+          let next = element.nextElementSibling;
+          next !== null && trailing === null;
+          next = next.nextElementSibling
+        ) {
+          const box = next.getBoundingClientRect();
+          if (box.width > 0 && box.height > 0) {
+            trailing = next.textContent.replace(/\s+/g, ' ').trim();
+          }
+        }
+      }
+      const frame = scroller.getBoundingClientRect();
+      const row = pinned?.getBoundingClientRect();
+      return {
+        overflow: scroller.scrollHeight - scroller.clientHeight,
+        pinned: pinned !== undefined,
+        trailing,
+        rowCut:
+          row !== undefined &&
+          (row.top < frame.top - 1 || row.bottom > frame.bottom + 1),
+      };
     }, SEARCH_FORM_ID);
-    if (overflow === null) {
+    if (read === null) {
       throw new Error(`${surface}: no search form is on show`);
     }
-    if (overflow > 1) {
-      this.findings.push({
-        kind: 'clipped',
-        text: `the search form scrolls ${String(overflow)} px`,
-        surface,
-        width: this.width,
-      });
-    }
+    return read;
   }
 
   /** Report every finding across the walk at once, so one run lists them all. */

@@ -682,6 +682,11 @@ describe('SearchHeader on the phone layout', () => {
     expect(head).toHaveClass('absolute', 'inset-0');
     expect(formRegion(container)).toHaveClass('flex-1');
     expect(submitRow()).toHaveClass('sticky', 'bottom-0');
+    // The clear search rides in the pinned row, so the row is the last thing in the
+    // scroller and no control rests half cut at its foot behind it.
+    const clear = screen.getByRole('button', { name: 'ล้างการค้นหา' });
+    expect(submitRow()).toContainElement(clear);
+    expect(submitRow().parentElement?.lastElementChild).toBe(submitRow());
     // Before any search there is no bar to fold back to, so no cancel shows.
     expect(
       screen.queryByRole('button', { name: 'ยกเลิก' }),
@@ -770,5 +775,9 @@ describe('SearchHeader on the phone layout', () => {
     expect(
       screen.queryByRole('button', { name: 'ยกเลิก' }),
     ).not.toBeInTheDocument();
+    // In the flow the clear search sits under the row, not inside it.
+    const clear = screen.getByRole('button', { name: 'ล้างการค้นหา' });
+    expect(submitRow()).not.toContainElement(clear);
+    expect(submitRow().nextElementSibling).toBe(clear);
   });
 });
