@@ -231,7 +231,13 @@ function EventBlockComponent({
     hasId: showSubjectId && section.subjectId !== '',
     hasPlace: showRoom && place !== '',
   });
-  const level = useDensityFit(contentRef, eligibility, fitKey, fitPaused);
+  const level = useDensityFit(
+    contentRef,
+    eligibility,
+    fitKey,
+    fitPaused,
+    dayCard ? 'dayCard' : 'block',
+  );
   // The accessible name is self contained so a screen reader hears the whole meeting
   // from the block alone: subject, name, section, full day, time, the place when it is
   // shown, then any verification state. The place follows the visual toggle so the

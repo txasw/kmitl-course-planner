@@ -224,10 +224,12 @@ the semibold weight. The name in the panel language follows, then the other lang
 the place with its location glyph. The section, named as กลุ่มเรียน with its code, and the lecture
 or practice kind sit as chips at the foot of the card, with the subject id at the end of that line,
 so a long meeting reads as one card from top to bottom. The fill, the stripe, the status dot, the
-hatch, the drag, and the remove control are unchanged. The card walks the same density ladder, so
-a short meeting drops the id, the second name, the time, the name lines, the chips, and the place
-in that order, and the time and the id remain whole fields. The week grid, the poster, and the
-suggestion slides keep the positioned block layout, where position encodes the time.
+hatch, the drag, and the remove control are unchanged. The card walks the density ladder in its
+own order, kept in blockDensity beside the positioned order, because the time leads here: a short
+meeting drops the id, the second name, the name lines past the second, the chips, the name to one
+line, the place, and last the time, so a one hour card keeps its time, a one line name, and its
+place. The time and the id remain whole fields. The week grid, the poster, and the suggestion
+slides keep the positioned block layout and its order, where position encodes the time.
 
 Alternatives considered. Keeping the positioned layout with the foot pinned to the bottom was
 rejected because the time would stay demoted in the one view whose axis is furthest from the text.
