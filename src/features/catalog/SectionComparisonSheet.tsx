@@ -145,7 +145,6 @@ export function SectionComparisonSheet({
           <SegmentedControl
             ariaLabel={t('compare.sort')}
             value={sort}
-            variant="quiet"
             options={SORTS.map((value) => ({
               value,
               label: t(`compare.sort.${value}`),

@@ -1,14 +1,12 @@
 // A two or more option segmented control. Each option is a button and the active
 // one is marked with aria-pressed, so the selected state is conveyed without
-// relying on color. Two looks share the behavior. The filled variant fills the
-// active option with the strong brand orange, for a choice that sets what a whole
-// surface shows, such as the objective of the suggestion dialog. The quiet variant
-// marks the active option with the alternate surface, ink text, and the semibold
-// weight, for settings such as the timetable view, so a bar never shows two orange
-// blocks side by side. Labels never wrap, and every option keeps the shared target
-// size.
+// relying on color. The active option takes the alternate surface, ink text, and the
+// semibold weight, so a bar never shows two orange blocks side by side and a dialog
+// keeps its orange for its primary action. The orange filled look the objective of the
+// suggestion dialog once took is retired with its last caller (ADR-0054 amendment of
+// 2026-11-21). Labels never wrap, and every option keeps the shared target size.
 
-import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
+import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
 interface SegmentedOption<T extends string> {
@@ -16,36 +14,22 @@ interface SegmentedOption<T extends string> {
   label: string;
 }
 
-export type SegmentedVariant = 'filled' | 'quiet';
-
 interface SegmentedControlProps<T extends string> {
   ariaLabel: string;
   value: T;
   options: readonly SegmentedOption<T>[];
   onChange: (value: T) => void;
-  variant?: SegmentedVariant;
 }
 
-const ACTIVE: Record<SegmentedVariant, string> = {
-  filled: 'bg-primary-strong text-white',
-  quiet: 'bg-surface-alt font-semibold text-ink',
-};
+const ACTIVE = 'bg-surface-alt font-semibold text-ink';
 
 const INACTIVE = 'text-ink-soft hover:text-ink';
-
-// An inset ring on the orange fill would fall under the 3:1 bar, so the filled variant
-// keeps the offset outline of ADR-0034 and the quiet one the default inset ring.
-const FOCUS: Record<SegmentedVariant, string> = {
-  filled: FOCUS_OUTLINE,
-  quiet: FOCUS_RING,
-};
 
 export function SegmentedControl<T extends string>({
   ariaLabel,
   value,
   options,
   onChange,
-  variant = 'filled',
 }: SegmentedControlProps<T>) {
   return (
     <div
@@ -63,8 +47,8 @@ export function SegmentedControl<T extends string>({
             onClick={() => {
               onChange(option.value);
             }}
-            className={`inline-flex items-center justify-center whitespace-nowrap rounded-kcp-inner px-2 py-1 text-xs transition-colors ${TARGET_SIZE} ${FOCUS[variant]} ${
-              active ? ACTIVE[variant] : INACTIVE
+            className={`inline-flex items-center justify-center whitespace-nowrap rounded-kcp-inner px-2 py-1 text-xs transition-colors ${TARGET_SIZE} ${FOCUS_RING} ${
+              active ? ACTIVE : INACTIVE
             }`}
           >
             {option.label}
