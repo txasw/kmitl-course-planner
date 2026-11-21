@@ -1248,6 +1248,7 @@ describe('EventBlock', () => {
     function renderCard(
       overrides: Partial<Meeting> = {},
       language: 'th' | 'en' = 'th',
+      conflicted = false,
     ) {
       const translate = createTranslator(language);
       return render(
@@ -1259,6 +1260,7 @@ describe('EventBlock', () => {
           t={translate}
           nameLanguage="both"
           dayCard
+          conflicted={conflicted}
           onRemove={vi.fn()}
           removeLabel={translate('action.remove')}
         />,
@@ -1327,6 +1329,16 @@ describe('EventBlock', () => {
       expect(screen.getByText('09:00-09:30')).toBeInTheDocument();
       expect(screen.queryByText('A · A101')).not.toBeInTheDocument();
       expect(screen.getByText('วิชาทดสอบ')).toBeInTheDocument();
+    });
+
+    it('backs each foot item over the hatch so the id keeps the right edge', () => {
+      renderCard({}, 'th', true);
+      const id = screen.getByText('90592033');
+      const foot = id.parentElement;
+      if (foot === null) throw new Error('The id has no foot');
+      expect(foot).not.toHaveClass('kcp-hatch-backdrop');
+      expect(id).toHaveClass('kcp-hatch-backdrop', 'ml-auto');
+      expect(within(foot).getByText('ทฤษฎี')).toHaveClass('kcp-hatch-backdrop');
     });
 
     it('keeps the remove control beside the card', () => {
