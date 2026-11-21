@@ -2,9 +2,8 @@
 // one is marked with aria-pressed, so the selected state is conveyed without
 // relying on color. The active option takes the alternate surface, ink text, and the
 // semibold weight, so a bar never shows two orange blocks side by side and a dialog
-// keeps its orange for its primary action. The orange filled look the objective of the
-// suggestion dialog once took is retired with its last caller (ADR-0054 amendment of
-// 2026-11-21). Labels never wrap, and every option keeps the shared target size.
+// keeps its orange for its primary action. Labels never wrap, and every option keeps
+// the shared target size.
 
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
