@@ -172,6 +172,6 @@ chip part way behind its edge, which the clipped text rule and its sweep forbid.
 of full names was rejected because the long Thai names wrap to two lines in a half width column
 and the list stays three rows tall.
 
-Consequences. The picker takes about 94 px on a phone instead of 190, and the stage gains that
+Consequences. The picker takes about 98 px on a phone instead of 190, and the stage gains that
 height. The export page responsive spec checks the short names, the cell height, the picker
 height, and the caption.
