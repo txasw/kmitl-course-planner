@@ -239,3 +239,52 @@ because a long Thai name then wraps in half the width.
 Consequences. The phone day view reads like the mockup screen 04. The time is prominent here
 while it stays quiet in the week, which follows this ADR's rule that the time earns emphasis
 only where position does not encode it clearly.
+
+## Amendment, 2026-11-22: the name always shows
+
+Context. The owner reviewed the redesign and ruled that the subject name is the most important
+thing on a timetable and must always show. Under the amendment of 2026-11-21 an English name with
+a word wider than its line read as the subject id in the name's place, and as no text where even
+the id was wider, so the phone week, the suggestion slides, short blocks, and the export poster
+could show a block as a bare code. The owner cancelled every place where the id stands in for the
+name.
+
+Decision. The name never yields. Where a word of the name is wider than its line, the name form
+steps from the full name to one type step smaller, then, for a name in Latin script, through its
+abbreviated forms at that size, least shortened first, and last to the break form, which keeps
+the shortest of those forms and lets the word still too wide break at grapheme cluster
+boundaries. A Thai name keeps the browser's dictionary breaks and has no abbreviated forms, so it
+goes from the smaller step to the break form of the whole name. The abbreviation is a pure
+function in `lib/planner/abbreviateName.ts`: a word of three letters or fewer, and the joiners
+WITH, INTO, FROM, and ONTO, stay whole; every other word is cut to a cap of letters and a period,
+moving back past a vowel it would end on, and the forms lower the cap one letter at a time from
+one that shortens only the longest words, down to two letters, so INTRODUCTION TO COMPUTER
+PROGRAMMING FOR ENGINEERS reads INTR. TO COMP. PROG. FOR ENG. at a cap of four. The fit tries each
+form in turn and keeps the first that fits. The full name stays in the block's accessible name,
+its hover card, and its details. The subject id is its own field again on every form, governed
+by the show subject id option and still the first field to drop, so it never shows twice and
+never stands in for the name. The narrow block rule is unchanged: a narrow block still shows the
+name alone, now always as its name.
+
+This supersedes, from the amendment of 2026-11-21, the subject id in the name's place, the empty
+name, and the poster reading the id while the show subject id option is off. The name form
+follows the same rule on every surface that shares the block content, the edit grid, the phone
+day card, the suggestion slides, and the preview poster and its export.
+
+The block name guard asserts that every shown name has text that is not the eight digit id alone.
+The word and single grapheme rules still apply to every form but the break form, and the break
+form is reported only where its text would fit the line unbroken, so a break inside a word fails
+the guard whenever an abbreviated or smaller form would have fit.
+
+Alternatives considered. Keeping the id as a last fallback below the abbreviations was rejected
+because it is the exact reading the owner asked to remove. Abbreviating Thai names was rejected
+because a cut Thai word does not read as an abbreviation and Thai has no capitals or spaces to cut
+at. Cutting every long word to one fixed length was rejected because it shortens a name further
+than its line needs; the stepped forms keep the longest one that fits.
+
+Consequences. In a five column phone week at 360 and 390 px most English course names read as an
+abbreviation rather than an id, and the day view still shows the whole name. A name in the break
+form can still break inside a word where a column is narrower than its shortest form, and the
+block name guard allows that only where no shorter form fits the line. The fit takes up to
+one pass per abbreviated form on a block that needs them, a bounded few layout passes, since each
+form is tried once per reset.
