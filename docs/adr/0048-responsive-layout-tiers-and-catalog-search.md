@@ -837,6 +837,11 @@ because no width holds a long Thai teacher list on one line at 360 px. Placing t
 badge cluster of the first line was rejected because the cluster wraps with the badge width, so
 the add would move from row to row.
 
+Owner decision, 2026-11-22. The owner confirmed the two line rest: a teacher, condition, or
+remark list rests at two lines, and a show all control beside it reveals the rest. Showing every
+line at rest was not chosen, since a long teacher list would push the next section rows out of
+view, and the one line rest stays retired.
+
 ## Amendment, 2026-11-21: the hide control is an icon button
 
 The docked header's hide control was a text row, the icon cell followed by "ซ่อนรายวิชา". The
