@@ -38,7 +38,10 @@
 // (ADR-0058). Where the grid asks for the name only rule, a block narrower than 7em hides
 // it too, for the same reason and with the same path, so it never covers the name such a
 // block shows alone. The verification marks are an editing signal for the plan owner, so
-// the export poster renders the block without them (ADR-0055).
+// the export poster renders the block without them (ADR-0055). In the phone day view the
+// block is a tall full width card, so it lays its content out as the day card instead, the
+// time range first and the chips at its foot, over the same fill, stripe, marks, drag, and
+// remove control (ADR-0047 amendment of 2026-11-21).
 
 import {
   memo,
@@ -65,6 +68,7 @@ import type { PlacedSection } from './placedSection';
 import { blockBadge, blockBadgeLabelKeys } from './blockBadge';
 import { useDensityFit } from './useDensityFit';
 import { EventBlockContent } from './EventBlockContent';
+import { DayCardContent } from './DayCardContent';
 import { NARROW_HIDDEN, NARROW_PADDING } from './narrowBlock';
 import {
   stripeClass,
@@ -147,6 +151,9 @@ interface EventBlockProps {
    * suggestion slides. A landscape block is as wide as its meeting is long, so a short meeting there
    * walks the density ladder instead, and the poster never takes the rule (ADR-0047). */
   nameOnlyWhenNarrow?: boolean;
+  /** Lay the content out as the phone day card: the block is the full width of the day view
+   * and tall, so the time leads and the chips sit at the foot (ADR-0047 amendment). */
+  dayCard?: boolean;
 }
 
 /** Whether a context menu event came from a finger. Chromium delivers the event as a
@@ -194,6 +201,7 @@ function EventBlockComponent({
   footAtBottom = false,
   surface = 'soft',
   nameOnlyWhenNarrow = false,
+  dayCard = false,
 }: EventBlockProps) {
   const names = subjectNameLines(section, nameLanguage, locale);
   const name = names.primary;
@@ -298,7 +306,7 @@ function EventBlockComponent({
         // focus outline rather than an inset ring, because the danger overlay carries the
         // inset ring. Under the name only rule a block narrower than 7em tightens its
         // padding so its name keeps the width to break between words.
-        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden py-1.5 pr-2 pl-2.5 text-[1em] ${nameOnlyWhenNarrow ? NARROW_PADDING : ''} ${surfaceClass(surface)} ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink ${blockOutlineClass(pressed, interactive)} ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'touch-drag cursor-grab' : ''}`}
+        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden ${dayCard ? 'py-2 pr-2.5 pl-3.5' : 'py-1.5 pr-2 pl-2.5'} text-[1em] ${nameOnlyWhenNarrow ? NARROW_PADDING : ''} ${surfaceClass(surface)} ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink ${blockOutlineClass(pressed, interactive)} ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'touch-drag cursor-grab' : ''}`}
         style={surfaceStyle(surface, section.subjectId)}
         {...dragListeners}
       >
@@ -315,24 +323,45 @@ function EventBlockComponent({
             className="kcp-hatch pointer-events-none absolute inset-0 rounded-[inherit] ring-2 ring-danger ring-inset"
           />
         ) : null}
-        <EventBlockContent
-          contentRef={contentRef}
-          level={level}
-          name={name}
-          nameLang={names.primaryLang}
-          secondary={names.secondary}
-          secondaryLang={names.secondaryLang}
-          place={place}
-          sectionCode={section.section}
-          time={time}
-          subjectId={section.subjectId}
-          color={color}
-          badge={badge}
-          surface={surface}
-          reserveRemove={onRemove !== undefined}
-          footAtBottom={footAtBottom}
-          nameOnlyWhenNarrow={nameOnlyWhenNarrow}
-        />
+        {dayCard ? (
+          <DayCardContent
+            contentRef={contentRef}
+            level={level}
+            name={name}
+            nameLang={names.primaryLang}
+            secondary={names.secondary}
+            secondaryLang={names.secondaryLang}
+            place={place}
+            sectionCode={section.section}
+            kind={meeting.kind}
+            time={time}
+            subjectId={section.subjectId}
+            color={color}
+            badge={badge}
+            surface={surface}
+            reserveRemove={onRemove !== undefined}
+            t={t}
+          />
+        ) : (
+          <EventBlockContent
+            contentRef={contentRef}
+            level={level}
+            name={name}
+            nameLang={names.primaryLang}
+            secondary={names.secondary}
+            secondaryLang={names.secondaryLang}
+            place={place}
+            sectionCode={section.section}
+            time={time}
+            subjectId={section.subjectId}
+            color={color}
+            badge={badge}
+            surface={surface}
+            reserveRemove={onRemove !== undefined}
+            footAtBottom={footAtBottom}
+            nameOnlyWhenNarrow={nameOnlyWhenNarrow}
+          />
+        )}
       </div>
       {onRemove !== undefined ? (
         <button

@@ -1243,4 +1243,74 @@ describe('EventBlock', () => {
     rerender(<EventBlock {...props} pulsing />);
     expect(renders).toBeGreaterThan(afterFirst);
   });
+
+  describe('the phone day card', () => {
+    function renderCard(
+      overrides: Partial<Meeting> = {},
+      language: 'th' | 'en' = 'th',
+    ) {
+      const translate = createTranslator(language);
+      return render(
+        <EventBlock
+          section={section}
+          meeting={{ ...meeting, ...overrides }}
+          style={{}}
+          locale={language}
+          t={translate}
+          nameLanguage="both"
+          dayCard
+          onRemove={vi.fn()}
+          removeLabel={translate('action.remove')}
+        />,
+      );
+    }
+
+    it('reads top to bottom: the time, the names, the place, then the chips and the id', () => {
+      renderCard();
+      const card = document.querySelector<HTMLElement>('[data-day-card]');
+      expect(card).not.toBeNull();
+      const lines = Array.from(card?.children ?? []).map(
+        (line) => line.textContent,
+      );
+      expect(lines).toEqual([
+        '09:00-12:00',
+        'วิชาทดสอบ',
+        'Test subject',
+        'A · A101',
+        'กลุ่มเรียน 901ทฤษฎี90592033',
+      ]);
+    });
+
+    it('sets the time as a whole field on the first line, clear of the remove control', () => {
+      renderCard();
+      const time = screen.getByText('09:00-12:00');
+      expect(time).toHaveAttribute('data-fit-whole', 'time');
+      expect(time).toHaveClass('font-semibold', 'whitespace-nowrap');
+      expect(time.className).toContain('not-pointer-coarse:pr-6');
+    });
+
+    it('pins the chips and the id to the foot of the card', () => {
+      renderCard();
+      const foot = screen.getByText('กลุ่มเรียน 901').parentElement;
+      if (foot === null) throw new Error('The chips have no foot');
+      expect(foot).toHaveClass('mt-auto');
+      expect(within(foot).getByText('ทฤษฎี')).toBeVisible();
+      expect(within(foot).getByText('90592033')).toHaveAttribute(
+        'data-fit-whole',
+        'id',
+      );
+    });
+
+    it('names a practice meeting and reads in English', () => {
+      renderCard({ kind: 'practice' }, 'en');
+      expect(screen.getByText('Section 901')).toBeInTheDocument();
+      expect(screen.getByText('Practice')).toBeInTheDocument();
+      expect(screen.getByText('Test subject')).toHaveAttribute('data-fit-name');
+    });
+
+    it('keeps the remove control beside the card', () => {
+      renderCard();
+      expect(screen.getByRole('button', { name: 'นำออก' })).toBeInTheDocument();
+    });
+  });
 });
