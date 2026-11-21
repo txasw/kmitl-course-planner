@@ -4,6 +4,7 @@ import {
   makePlanEntry,
   makeSnapshot,
 } from '../../../tests/support/domain-builders';
+import { PLAN_NAME_MAX, planSchema } from '@/lib/domain/plan';
 import { createTranslator } from '@/lib/i18n/t';
 import { parsePlanImport } from './parsePlanImport';
 
@@ -29,6 +30,25 @@ describe('parsePlanImport', () => {
   it('rejects text that is not JSON with a single localized message', () => {
     expect(rejectionOf('{"id":', en)).toEqual(['The file is not valid JSON']);
     expect(rejectionOf('not json', th)).toEqual(['ไฟล์ไม่ใช่ JSON ที่ถูกต้อง']);
+  });
+
+  it('accepts a name at the cap and rejects one past it in the active locale', () => {
+    const atCap = makePlan({ name: 'x'.repeat(PLAN_NAME_MAX) });
+    expect(parsePlanImport(JSON.stringify(atCap), en).ok).toBe(true);
+    const past = JSON.stringify(
+      makePlan({ name: 'x'.repeat(PLAN_NAME_MAX + 1) }),
+    );
+    expect(rejectionOf(past, en)).toEqual([
+      `name: Longer than ${String(PLAN_NAME_MAX)} characters`,
+    ]);
+    expect(rejectionOf(past, th)).toEqual([
+      `name: ยาวเกิน ${String(PLAN_NAME_MAX)} ตัวอักษร`,
+    ]);
+  });
+
+  it('leaves a stored plan name uncapped so an older long name still loads', () => {
+    const plan = makePlan({ name: 'x'.repeat(PLAN_NAME_MAX + 1) });
+    expect(planSchema.safeParse(plan).success).toBe(true);
   });
 
   it('lists every missing field of a truncated plan', () => {

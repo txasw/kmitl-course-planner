@@ -108,6 +108,7 @@
   "planData.issue.wrongType": "Wrong type",
   "planData.issue.invalidValue": "Value not allowed",
   "planData.issue.termMismatch": "Entry term does not match the plan",
+  "planData.issue.tooLong": "Longer than {max} characters",
   "planData.issue.malformed": "Malformed",
   "catalog.hide": "Hide courses",
   "catalog.show": "Show courses",

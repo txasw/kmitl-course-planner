@@ -108,6 +108,7 @@
   "planData.issue.wrongType": "ชนิดข้อมูลไม่ถูกต้อง",
   "planData.issue.invalidValue": "ค่าไม่อยู่ในตัวเลือกที่รองรับ",
   "planData.issue.termMismatch": "รายการนี้อยู่คนละภาคกับตาราง",
+  "planData.issue.tooLong": "ยาวเกิน {max} ตัวอักษร",
   "planData.issue.malformed": "รูปแบบข้อมูลไม่ถูกต้อง",
   "catalog.hide": "ซ่อนรายวิชา",
   "catalog.show": "แสดงรายวิชา",
