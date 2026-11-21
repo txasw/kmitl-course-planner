@@ -81,7 +81,7 @@ export function CreditsFact({ facts, compact, t }: CreditsFactProps) {
   }
   const note = creditLoadText(load, t);
   return (
-    <span data-credit-load={load.kind} className="-ml-1 inline-flex">
+    <span className="-ml-1 inline-flex">
       <StatusReveal
         label={fillTemplate(t('stats.creditsWithNote'), {
           count: totals.credits,
@@ -191,20 +191,20 @@ export function FreeDays({ days, t }: FreeDaysProps) {
   );
 }
 
-interface CreditLoadNoteProps {
-  load: Exclude<CreditLoad, { kind: 'within' }>;
-  t: Translate;
-}
+/** A credit load outside the usual range, the only load that carries a note. */
+type OutsideLoad = Exclude<CreditLoad, { kind: 'within' }>;
 
-/** The note that the total sits outside the usual load. It never claims the plan is invalid,
- * since final year students and approved loads may leave the range. */
-function creditLoadText(
-  load: Exclude<CreditLoad, { kind: 'within' }>,
-  t: Translate,
-): string {
+/** The words of the note that the total sits outside the usual load. They never claim the plan
+ * is invalid, since final year students and approved loads may leave the range. */
+function creditLoadText(load: OutsideLoad, t: Translate): string {
   return load.kind === 'below'
     ? fillTemplate(t('stats.creditsBelow'), { min: load.min })
     : fillTemplate(t('stats.creditsAbove'), { max: load.max });
+}
+
+interface CreditLoadNoteProps {
+  load: OutsideLoad;
+  t: Translate;
 }
 
 /** The note in words beside the total, a neutral warn line rather than a control. */
