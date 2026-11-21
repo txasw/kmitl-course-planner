@@ -6,6 +6,7 @@ import {
   PANEL_POPOVER_SCROLL,
   panelPopoverMiddleware,
   usePanelPopover,
+  type PanelColumn,
 } from './usePanelPopover';
 
 function Harness({
@@ -13,7 +14,7 @@ function Harness({
   column = null,
 }: {
   anchor: HTMLElement;
-  column?: Element | null;
+  column?: PanelColumn | null;
 }) {
   const { refs, floatingStyles } = usePanelPopover({
     gap: 4,
@@ -86,7 +87,7 @@ function makeColumn(box: {
 
 async function renderAt(
   viewport: { width: number; height: number },
-  column: Element | null = null,
+  column: PanelColumn | null = null,
 ) {
   stubViewport(viewport.width, viewport.height);
   const anchor = makeAnchor();
@@ -117,7 +118,7 @@ describe('panelPopoverMiddleware', () => {
   });
 
   it('ends with the column step when a column is named', () => {
-    const column = document.createElement('div');
+    const column = { area: document.createElement('div') };
     expect(panelPopoverMiddleware(6, column).map((item) => item.name)).toEqual([
       'offset',
       'flip',
@@ -181,7 +182,7 @@ describe('usePanelPopover available space', () => {
     stubViewport(1024, 600);
     const anchor = makeAnchor();
     stubAnchorBox(anchor, 100, 20);
-    render(<Harness anchor={anchor} column={column} />);
+    render(<Harness anchor={anchor} column={{ area: column }} />);
     const node = screen.getByTestId('floating');
     await waitFor(() => {
       expect(node.style.height).toBe('350px');
@@ -192,9 +193,84 @@ describe('usePanelPopover available space', () => {
 
   it('clips the column to the viewport', async () => {
     const column = makeColumn({ top: 50, height: 700, width: 1024 });
-    const node = await renderAt({ width: 1024, height: 600 }, column);
+    const node = await renderAt({ width: 1024, height: 600 }, { area: column });
     await waitFor(() => {
       expect(node.style.height).toBe('550px');
     });
+  });
+
+  // The head, the timetable's pinned hour row, ends at 80 px: the node starts at its foot,
+  // so its top lies on the head's rule and its side never splits an hour label.
+  it('starts the column at the foot of its head', async () => {
+    const column = makeColumn({ top: 50, height: 350, width: 1024 });
+    const head = document.createElement('div');
+    head.setAttribute('data-head', '');
+    head.getBoundingClientRect = () =>
+      DOMRect.fromRect({ x: 0, y: 50, width: 1024, height: 30 });
+    column.appendChild(head);
+    const node = await renderAt(
+      { width: 1024, height: 600 },
+      { area: column, head: '[data-head]' },
+    );
+    await waitFor(() => {
+      expect(node.style.height).toBe('320px');
+    });
+    expect(node.style.transform).toMatch(/translate\(\d+px, 80px\)/);
+  });
+
+  it('starts at the column top when no head matches', async () => {
+    const column = makeColumn({ top: 50, height: 350, width: 1024 });
+    const node = await renderAt(
+      { width: 1024, height: 600 },
+      { area: column, head: '[data-head]' },
+    );
+    await waitFor(() => {
+      expect(node.style.height).toBe('350px');
+    });
+  });
+
+  it('places the node again when the column resizes', async () => {
+    const observed: Element[] = [];
+    let fire: () => void = () => {
+      /* set when the observer is built */
+    };
+    const original = globalThis.ResizeObserver;
+    globalThis.ResizeObserver = class implements ResizeObserver {
+      constructor(callback: ResizeObserverCallback) {
+        fire = () => {
+          callback([], this);
+        };
+      }
+      observe(target: Element): void {
+        observed.push(target);
+      }
+      unobserve(): void {
+        /* nothing to release */
+      }
+      disconnect(): void {
+        /* nothing to release */
+      }
+    };
+    try {
+      const box = { top: 50, height: 350, width: 1024 };
+      const column = makeColumn(box);
+      const node = await renderAt(
+        { width: 1024, height: 600 },
+        { area: column },
+      );
+      await waitFor(() => {
+        expect(node.style.height).toBe('350px');
+      });
+      expect(observed).toContain(column);
+      // A toast band lifts the status row, so the plan area ends 40 px higher.
+      column.getBoundingClientRect = () =>
+        DOMRect.fromRect({ x: 0, y: 50, width: 1024, height: 310 });
+      fire();
+      await waitFor(() => {
+        expect(node.style.height).toBe('310px');
+      });
+    } finally {
+      globalThis.ResizeObserver = original;
+    }
   });
 });

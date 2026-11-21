@@ -5,11 +5,12 @@
 // than the whole overlay. The node is a column of a pinned header, a body that scrolls
 // inside the capped height, and a pinned footer, so the actions stay in reach however
 // long the detail list grows. Focus lands on the heading on open, the same landing point
-// as the sheet form. It stands as a column beside its block, the full height of the plan
-// area that holds the block, the timetable and shelf above the status row, flipping to the
-// other side of the block where this one has no room. Its top and foot meet the plan
-// area's, so neither edge ends part way across a line of the timetable or of the status
-// row, and a detail taller than the area scrolls in its body.
+// as the sheet form. It stands as a column beside its block in the plan area that holds the
+// block, the timetable and shelf above the status row, flipping to the other side of the
+// block where this one has no room. Its top meets the foot of the timetable's pinned head
+// and its foot meets the plan area's, so neither edge ends part way across a line of the
+// head, of the timetable, or of the status row, and its side never splits an hour label
+// centred on its gridline. A detail taller than the column scrolls in its body.
 
 import {
   useCallback,
@@ -28,7 +29,7 @@ import {
   usePanelPopover,
 } from '@/features/shell/usePanelPopover';
 import { useEscapeLayer } from '@/features/shell/useEscapeLayer';
-import { PLAN_AREA_SELECTOR } from './planArea';
+import { PLAN_AREA_HEAD_SELECTOR, PLAN_AREA_SELECTOR } from './planArea';
 
 interface BlockDetailPopoverProps {
   anchor: HTMLElement;
@@ -56,7 +57,10 @@ export function BlockDetailPopover({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const titleId = useId();
-  const column = useMemo(() => anchor.closest(PLAN_AREA_SELECTOR), [anchor]);
+  const column = useMemo(() => {
+    const area = anchor.closest(PLAN_AREA_SELECTOR);
+    return area === null ? null : { area, head: PLAN_AREA_HEAD_SELECTOR };
+  }, [anchor]);
   const { refs, floatingStyles, context } = usePanelPopover({
     gap: 6,
     open: true,
