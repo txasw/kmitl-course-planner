@@ -20,7 +20,6 @@ import type { Translate, TranslationKey } from '@/lib/i18n/t';
 import type { SearchField } from '@/lib/search/formState';
 import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { SEARCH_SUBMIT_ID } from './searchIds';
-import { tourTargetProps } from '@/lib/onboarding/tour';
 
 const REASON_ID = 'kcp-search-submit-reason';
 
@@ -105,7 +104,6 @@ export function SearchSubmit({
           ) : null}
           <button
             id={SEARCH_SUBMIT_ID}
-            {...tourTargetProps('search-submit')}
             type="button"
             aria-disabled={blocked || undefined}
             aria-describedby={blocked ? REASON_ID : undefined}

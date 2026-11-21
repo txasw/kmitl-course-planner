@@ -166,3 +166,21 @@ Alternatives considered: listing all five tour steps was rejected because the we
 by a line that only says to look at the timetable. A count derived from the list was rejected
 because the list and the tour hold different numbers of steps by design, and two counts on the way
 into the panel read as a contradiction.
+
+## Amendment, 2026-11-21: the add step before a search lights the search fields
+
+The same review found the add step of the first run tour spotlighting the search button, which
+before a search is the greyed, blocked submit: the tour lit a control the student cannot use yet
+to explain a step that cannot happen yet.
+
+Decision. The add step's last control is now the active tab's search fields, the stack between
+the search tabs and the submit, marked `search-fields`, in place of the search button. The card
+says that sections show after a search with these fields, then how to open a course and add a
+section. The add button of an open course and a course to open keep their places ahead of it, so
+the add button is lit only once a search has listed courses. The fields sit in a stack of their
+own at the same gap as before, so the form's layout does not change.
+
+Alternatives considered: the catalog's empty state was rejected as the target, since on a phone
+the open form fills the pane and hides it, and on a short desktop window it rests half below the
+results scroller's edge. A card with no spotlight was rejected because every other step points at
+a real control and the card placement assumes a spotlight to keep clear of.
