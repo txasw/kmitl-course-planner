@@ -3,8 +3,9 @@
 // search of the plan's term. It says in one sentence that suggestions come from a search by
 // curriculum, in the plan's term once a plan exists, and offers that search as its one
 // action, which takes focus on open, since it is the likely next step. The dialog takes the
-// title and the sentence as its description, not the action, which focus already names. It is the bottom sheet on a phone and a narrow dialog wider up,
-// as the suggestion dialog itself is.
+// title and the sentence as its description, not the action, which focus already names. It
+// is the bottom sheet on a phone and a narrow dialog wider up, as the suggestion dialog
+// itself is.
 
 import { useId, useRef } from 'react';
 import { WandSparkles } from 'lucide-react';
