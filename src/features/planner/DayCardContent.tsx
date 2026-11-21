@@ -75,9 +75,11 @@ export function DayCardContent({
   const quiet = badge === 'danger' ? 'text-ink' : 'text-ink-soft';
   const backdrop = badge === 'danger' ? HATCH_BACKDROP : '';
   const line = nameLine(level.nameForm, name, nameLang, subjectId);
+  // Over the danger hatch each foot item takes its own backdrop rather than the foot as a
+  // whole, so the foot keeps its full width and the id still sits at its right edge.
   const chip = `shrink-0 rounded-kcp-inner px-1.5 ${chipClass(surface)} ${
     surface === 'soft' ? quiet : 'text-ink'
-  }`;
+  } ${backdrop}`;
   const clearance = reserveRemove ? REMOVE_CLEARANCE : '';
   const dot =
     badge === null ? null : (
@@ -140,9 +142,7 @@ export function DayCardContent({
         </span>
       ) : null}
       {showFoot ? (
-        <div
-          className={`mt-auto flex shrink-0 flex-wrap items-center gap-1.5 pt-1 text-[0.95em] ${backdrop}`}
-        >
+        <div className="mt-auto flex shrink-0 flex-wrap items-center gap-1.5 pt-1 text-[0.95em]">
           {level.showSection ? (
             <>
               <span className={`${chip} tabular-nums`}>
@@ -156,7 +156,7 @@ export function DayCardContent({
           {level.showId ? (
             <span
               data-fit-whole="id"
-              className={`${WHOLE_FIELD} ml-auto tabular-nums ${quiet}`}
+              className={`${WHOLE_FIELD} ml-auto tabular-nums ${quiet} ${backdrop}`}
             >
               {subjectId}
             </span>
