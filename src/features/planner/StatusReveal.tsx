@@ -8,16 +8,13 @@
 // trigger into any action the popover carries, and Escape or a press outside closes it,
 // handing focus back to the trigger on Escape.
 
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
+import { useCallback, useId, useRef, useState, type ReactNode } from 'react';
 import { useClick, useDismiss, useInteractions } from '@floating-ui/react';
-import { usePanelPopover } from '@/features/shell/usePanelPopover';
+import { useEscapeLayer } from '@/features/shell/useEscapeLayer';
+import {
+  PANEL_POPOVER_SCROLL,
+  usePanelPopover,
+} from '@/features/shell/usePanelPopover';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 
@@ -48,9 +45,11 @@ export function StatusReveal({
     onOpenChange: setOpen,
     placement: 'top-start',
   });
+  // Escape is routed through useEscapeLayer below, so the dismiss hook handles only a press
+  // outside the popover.
   const { getReferenceProps, getFloatingProps } = useInteractions([
     useClick(context),
-    useDismiss(context),
+    useDismiss(context, { escapeKey: false }),
   ]);
 
   const setReference = useCallback(
@@ -67,25 +66,12 @@ export function StatusReveal({
     [refs],
   );
 
-  // The overlay closes on Escape through a body listener, so the popover takes the key first
-  // to close only itself and hand focus back to its trigger.
-  useEffect(() => {
-    const node = wrapperRef.current;
-    if (!open || node === null) {
-      return undefined;
-    }
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.stopPropagation();
-        setOpen(false);
-        triggerRef.current?.focus();
-      }
-    };
-    node.addEventListener('keydown', handleKeyDown);
-    return () => {
-      node.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [open]);
+  const closeToTrigger = useCallback(() => {
+    setOpen(false);
+    triggerRef.current?.focus();
+  }, []);
+
+  useEscapeLayer(wrapperRef, closeToTrigger, open);
 
   return (
     <span ref={wrapperRef} className="inline-flex">
@@ -107,7 +93,7 @@ export function StatusReveal({
           id={popoverId}
           style={floatingStyles}
           data-status-reveal
-          className="z-popover flex max-w-64 flex-col gap-2 rounded-kcp border border-border bg-surface p-2 text-xs text-ink shadow-kcp"
+          className={`z-popover flex ${PANEL_POPOVER_SCROLL} flex-col gap-2 rounded-kcp border border-border bg-surface p-2 text-xs text-ink shadow-kcp`}
           {...getFloatingProps()}
         >
           {detail ?? <p>{label}</p>}
