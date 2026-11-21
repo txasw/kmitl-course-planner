@@ -58,6 +58,7 @@ import {
   nextReclaim,
   sameLevel,
   type DensityEligibility,
+  type DensityLadder,
   type DensityLevel,
   type NameFit,
   type ReclaimField,
@@ -127,15 +128,17 @@ function measureNameFit(
 
 /** Choose the field set for a block by measuring its content wrapper against its box.
  * `fitKey` encodes everything that changes the box pixel size, so a change resets the level
- * to full and re-measures. While `paused` the settled level holds and no measurement runs. */
+ * to full and re-measures. While `paused` the settled level holds and no measurement runs.
+ * `ladder` names the drop order the block walks, the day card keeping its time longest. */
 export function useDensityFit(
   ref: RefObject<HTMLElement | null>,
   eligibility: DensityEligibility,
   fitKey: string,
   paused = false,
+  ladder: DensityLadder = 'block',
 ): DensityLevel {
   const fontsReady = useFontsReady();
-  const resetKey = `${fitKey}|${eligibility.mask}|${fontsReady ? '1' : '0'}`;
+  const resetKey = `${fitKey}|${ladder}|${eligibility.mask}|${fontsReady ? '1' : '0'}`;
   const [level, setLevel] = useState<DensityLevel>(() =>
     fullLevel(eligibility),
   );
@@ -185,7 +188,11 @@ export function useDensityFit(
     const overflow = el.scrollHeight - el.clientHeight;
     const overflowX = el.scrollWidth - el.clientWidth;
     if (overflow > OVERFLOW_EPS || overflowX > OVERFLOW_EPS) {
-      const next = nextDensityLevel(level, measureNameFit(el, overflow));
+      const next = nextDensityLevel(
+        level,
+        measureNameFit(el, overflow),
+        ladder,
+      );
       if (next !== null) {
         setLevel(next);
       }

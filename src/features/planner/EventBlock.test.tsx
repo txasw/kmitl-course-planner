@@ -1308,6 +1308,27 @@ describe('EventBlock', () => {
       expect(screen.getByText('Test subject')).toHaveAttribute('data-fit-name');
     });
 
+    it('keeps the time on a short card and drops the chips before it', () => {
+      // A one hour card cannot hold the chips: the column overflows while they show, so the
+      // fit drops the id, the second name, clamps the name, and then the chips, and the time
+      // the card leads with stays on its first line with the place.
+      overflowWhileShowing('กลุ่มเรียน');
+      renderCard({ startMin: 540, endMin: 600 });
+      expect(screen.getByText('09:00-10:00')).toBeInTheDocument();
+      expect(screen.getByText('A · A101')).toBeInTheDocument();
+      expect(screen.queryByText('กลุ่มเรียน 901')).not.toBeInTheDocument();
+      expect(screen.queryByText('90592033')).not.toBeInTheDocument();
+      expect(screen.queryByText('Test subject')).not.toBeInTheDocument();
+    });
+
+    it('drops the place before the time on a card too short for both', () => {
+      overflowWhileShowing('A · A101');
+      renderCard({ startMin: 540, endMin: 570 });
+      expect(screen.getByText('09:00-09:30')).toBeInTheDocument();
+      expect(screen.queryByText('A · A101')).not.toBeInTheDocument();
+      expect(screen.getByText('วิชาทดสอบ')).toBeInTheDocument();
+    });
+
     it('keeps the remove control beside the card', () => {
       renderCard();
       expect(screen.getByRole('button', { name: 'นำออก' })).toBeInTheDocument();

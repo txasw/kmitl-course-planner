@@ -9,10 +9,11 @@
 // subject id at the end of the same line. The foot sits at the bottom of the card, so a long
 // meeting reads as one card from its first line to its last rather than a cluster at its top.
 //
-// The card walks the same density ladder as every block (ADR-0046): a short meeting drops the
-// subject id first, then the other language's name, then the time line, then clamps the name,
-// then the chips, then the place, with the name never dropping. The time and the subject id
-// are whole fields that show in full or drop whole, so a card never cuts a time or a code.
+// The card walks the density ladder of every block (ADR-0046) in the day card order: a short
+// meeting drops the subject id first, then the other language's name, then clamps the name,
+// then the chips, then reduces the name to one line, then the place, and the time it leads with
+// last, with the name never dropping. The time and the subject id are whole fields that show in
+// full or drop whole, so a card never cuts a time or a code.
 
 import type { RefObject } from 'react';
 import { MapPin } from 'lucide-react';

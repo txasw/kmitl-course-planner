@@ -37,6 +37,13 @@
 // line, to no text at all, the block keeping its color and stripe and its full detail one tap
 // away. The secondary name is held to the same rule as a whole field: wider than its line by a
 // word, it drops whole.
+//
+// The phone day card walks its own order (the ADR-0047 amendment of 2026-11-21). The card leads
+// with the time, since one day column sets the time axis far from the text, so there the time
+// is the last field to drop rather than the third: the subject id, then the secondary name, then
+// the name lines past its second, then the section and kind chips, then the name to one line,
+// then the place, and last the time. A one hour card keeps its time, a one line name, and its
+// place.
 
 /** Which fields a block could show before any measurement, from its data and the display
  * options. `mask` is a stable primitive so a reset key can compare eligibility cheaply. */
@@ -76,6 +83,10 @@ export interface NameFit {
   lines: number;
   excessLines: number;
 }
+
+/** Which drop order a block walks: the positioned block of the week grid and the poster, or
+ * the phone day card that leads with its time. */
+export type DensityLadder = 'block' | 'dayCard';
 
 /** The fewest lines the name keeps while the section chip still shows. */
 const NAME_LINES_BEFORE_SECTION = 2;
@@ -149,12 +160,16 @@ function clampToFit(nameLines: NameLines, fit: NameFit | undefined): number {
 export function nextDensityLevel(
   level: DensityLevel,
   fit?: NameFit,
+  ladder: DensityLadder = 'block',
 ): DensityLevel | null {
   if (level.showId) {
     return { ...level, showId: false };
   }
   if (level.showSecondary) {
     return { ...level, showSecondary: false };
+  }
+  if (ladder === 'dayCard') {
+    return nextDayCardLevel(level, fit);
   }
   if (level.showTime) {
     return { ...level, showTime: false };
@@ -170,6 +185,30 @@ export function nextDensityLevel(
   }
   if (level.showPlace) {
     return { ...level, showPlace: false };
+  }
+  return null;
+}
+
+/** The day card rungs below the id and the secondary name: the name clamp, the chips, the
+ * one line name, and the place all yield before the time the card leads with. */
+function nextDayCardLevel(
+  level: DensityLevel,
+  fit: NameFit | undefined,
+): DensityLevel | null {
+  if (nameAboveSectionFloor(level.nameLines)) {
+    return { ...level, nameLines: clampToFit(level.nameLines, fit) };
+  }
+  if (level.showSection) {
+    return { ...level, showSection: false };
+  }
+  if (level.nameLines !== 1) {
+    return { ...level, nameLines: 1 };
+  }
+  if (level.showPlace) {
+    return { ...level, showPlace: false };
+  }
+  if (level.showTime) {
+    return { ...level, showTime: false };
   }
   return null;
 }

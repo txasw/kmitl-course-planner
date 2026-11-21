@@ -7,6 +7,7 @@ import {
   dropWholeFields,
   nextNameForm,
   nextReclaim,
+  type DensityLadder,
   type DensityLevel,
   type NameFit,
 } from './blockDensity';
@@ -20,12 +21,16 @@ const allEligible = buildEligibility({
 });
 
 /** Walk the ladder from a starting level to the terminus, collecting every level. */
-function walk(start: DensityLevel, fit?: NameFit): DensityLevel[] {
+function walk(
+  start: DensityLevel,
+  fit?: NameFit,
+  ladder?: DensityLadder,
+): DensityLevel[] {
   const steps: DensityLevel[] = [];
   let level: DensityLevel | null = start;
   while (level !== null) {
     steps.push(level);
-    level = nextDensityLevel(level, fit);
+    level = nextDensityLevel(level, fit, ladder);
   }
   return steps;
 }
@@ -250,6 +255,70 @@ describe('nextDensityLevel', () => {
     expect(steps[0]?.showTime).toBe(true);
     expect(steps[1]?.showTime).toBe(false);
     expect(steps.every((s) => !s.showId && !s.showSecondary)).toBe(true);
+  });
+});
+
+describe('nextDensityLevel on the day card', () => {
+  it('drops the chips, the name lines, and the place before the time it leads with', () => {
+    const full = fullLevel(allEligible);
+    const noId = { ...full, showId: false };
+    const noSecondary = { ...noId, showSecondary: false };
+    const clamped = { ...noSecondary, nameLines: 2 as const };
+    const noChips = { ...clamped, showSection: false };
+    const oneLine = { ...noChips, nameLines: 1 as const };
+    const noPlace = { ...oneLine, showPlace: false };
+    expect(walk(full, undefined, 'dayCard')).toEqual([
+      full,
+      noId,
+      noSecondary,
+      clamped,
+      noChips,
+      oneLine,
+      noPlace,
+      bare,
+    ]);
+  });
+
+  it('keeps the time on every level short of the bare name', () => {
+    const steps = walk(fullLevel(allEligible), undefined, 'dayCard');
+    expect(steps.slice(0, -1).every((level) => level.showTime)).toBe(true);
+    expect(nextDensityLevel(bare, undefined, 'dayCard')).toBeNull();
+  });
+
+  it('clamps a full name to the lines that fit in one step', () => {
+    const level = {
+      ...fullLevel(allEligible),
+      showId: false,
+      showSecondary: false,
+    };
+    const next = nextDensityLevel(
+      level,
+      { lines: 5, excessLines: 2 },
+      'dayCard',
+    );
+    expect(next).toEqual({ ...level, nameLines: 3 });
+  });
+
+  it('offers a dropped field back only where an overflow undoes it', () => {
+    // A card whose second name and id dropped settles with the time and chips intact.
+    const settled = {
+      ...fullLevel(allEligible),
+      showSecondary: false,
+      showId: false,
+      nameLines: 2 as const,
+    };
+    let tried: ('time' | 'secondary' | 'id')[] = [];
+    for (
+      let offer = nextReclaim(settled, allEligible, tried);
+      offer !== null;
+    ) {
+      expect(nextDensityLevel(offer.level, undefined, 'dayCard')).toEqual(
+        settled,
+      );
+      tried = [...tried, offer.field];
+      offer = nextReclaim(settled, allEligible, tried);
+    }
+    expect(tried).toEqual(['secondary', 'id']);
   });
 });
 
