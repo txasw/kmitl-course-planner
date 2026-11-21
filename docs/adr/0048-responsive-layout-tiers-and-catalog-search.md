@@ -697,6 +697,11 @@ the build unseen. A sweep now guards the whole panel.
   expand control, a long plan name in the header trigger, which opens the plan list that wraps
   every name whole, and the neighbouring export template slivers, which the pager brings whole
   into view. The spec stays in the suite, so a regression on any surface fails it.
+- Its scope is the resting layout, the panel as it shows with no layer opened: there no text may
+  overlap other text or be covered, at any width, in Thai and in English. A layer the student
+  opens, a menu, a popover, a dialog, or a sheet, may cover the page behind it while it is open.
+  Behind such a layer the sweep fails only on a line the layer's edge cuts, as the amendment of
+  2026-11-21 on opened layers records, and the layer's own text is held to the resting rule.
 - The fixes it drove: the section teachers move onto the shared one line clamp with a Teachers
   label and a Show all teachers control, the exam note wraps, the search tabs wrap a long name
   such as Subject category in place of scrolling it out of view, plan names and their summaries
@@ -935,3 +940,10 @@ line under the edge. The review also found the plan name field showing a long na
   sideways once a long name is typed. A wider field was rejected, since no width holds 100
   characters at 360 px, and an ellipsis was rejected because it hides the name the student is
   editing.
+
+Owner decision, 2026-11-22. The owner confirmed the rule this amendment applies: a layer the
+student opens, a menu, a popover, a dialog, or a sheet, may cover the page behind it while it is
+open, and the resting layout, with no layer open, must never overlap text. Dialogs are named with
+the other layers, since a modal dialog covers the panel by design and closes back to a resting
+layout the sweep reads in full. The clipped text sweep amendment above now states this as the
+sweep's scope.
