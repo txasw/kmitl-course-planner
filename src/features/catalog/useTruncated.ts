@@ -1,8 +1,7 @@
-// Reports whether a clamped element clips its text, across its width for a one line
-// ellipsis or down its height for a line clamp, so a clamp offers its expand control only
-// when there is hidden text to reveal. For a line clamp it also reports where the hidden
-// lines start (clampTail), so the clamp can paint them transparent and no mark of a hidden
-// Thai line shows inside the clip. A catalog renders hundreds of rows and about half carry a
+// Reports whether a line clamp clips its text, down its height or across its width for a
+// word too long to break, so a clamp offers its expand control only when there is hidden
+// text to reveal. It also reports where the hidden lines start (clampTail), so the clamp
+// can paint them transparent and no mark of a hidden Thai line shows inside the clip. A catalog renders hundreds of rows and about half carry a
 // condition or remark line, so every line shares one ResizeObserver rather than each row
 // creating its own. The observer reports each target once when it starts observing and again
 // whenever its box changes, which covers the first layout and a resized panel; a changed text
@@ -43,15 +42,12 @@ interface Measured extends Truncation {
 
 const FITS: Truncation = { clipped: false, tail: null };
 
-/**
- * Measure a clamped element. `lines` is the line count of a line clamp, whose hidden part
- * is then located; a one line ellipsis passes none.
- */
+/** Measure a line clamp of `lines` lines and locate its hidden part. */
 export function useTruncated(
   ref: RefObject<HTMLElement | null>,
   active: boolean,
   text: string,
-  lines?: number,
+  lines: number,
 ): Truncation {
   const [measured, setMeasured] = useState<Measured>({ ...FITS, text });
 
@@ -64,8 +60,7 @@ export function useTruncated(
       const clipped =
         node.scrollWidth > node.clientWidth ||
         node.scrollHeight > node.clientHeight + CLAMP_SLACK;
-      const tail =
-        clipped && lines !== undefined ? clampTailOffset(node, lines) : null;
+      const tail = clipped ? clampTailOffset(node, lines) : null;
       setMeasured((previous) =>
         previous.text === text &&
         previous.clipped === clipped &&
