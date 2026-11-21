@@ -532,7 +532,6 @@
   "welcome.step.search.body": "Search by curriculum and class year, subject id, or subject category.",
   "welcome.step.add.body": "Clashing class times and exam times are flagged as you place them.",
   "welcome.step.suggest.body": "Tick the subjects you need and get timetables whose times do not clash.",
-  "welcome.step.export.body": "Save the timetable as an image or copy it as text to share.",
   "welcome.access.shortcut": "Open it any time from the Planner button at the bottom right, the extension icon, or the shortcut {shortcut}.",
   "welcome.access": "Open it any time from the Planner button at the bottom right or the extension icon.",
   "welcome.start": "Start planning",

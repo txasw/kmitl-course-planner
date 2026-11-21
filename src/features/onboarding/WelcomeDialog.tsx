@@ -55,7 +55,7 @@ const STEPS: readonly WelcomeStep[] = [
   { step: 'search', icon: Search, body: 'welcome.step.search.body' },
   { step: 'add', icon: CalendarPlus, body: 'welcome.step.add.body' },
   { step: 'suggest', icon: WandSparkles, body: 'welcome.step.suggest.body' },
-  { step: 'export', icon: Share, body: 'welcome.step.export.body' },
+  { step: 'export', icon: Share, body: 'tour.export.body' },
 ];
 
 const PRIMARY_BUTTON = `rounded-kcp bg-primary-strong px-4 py-2 text-sm font-semibold text-surface hover:bg-primary-hover ${TARGET_SIZE} ${FOCUS_OUTLINE}`;
