@@ -257,13 +257,13 @@ the Export button in the header and left with Back to editing at its top left.
       an ellipsis, never a clipped glyph; Thai wraps on its dictionary. Turn show subject id on to
       pack the foot and confirm the fit still drops a field rather than clipping, and that every
       id shown is its full eight digits on one line, never split or cut at the block edge.
-- [ ] Gallery picker: the selected poster is centred with the neighbouring templates peeking at
-      both edges wide enough to read as a continuation cue. A pointer swipe past the threshold
-      pages to the neighbour and a short swipe springs back. The chips above the stage show each
+- [ ] Gallery picker: the selected poster is centred alone on the stage, with no part of another
+      template showing at either edge at any width. A pointer swipe past the threshold pages to
+      the next template and a short swipe springs back. The chips above the stage show each
       template's name, size, and device glyph whole, with no tooltip on hover, and clicking one
-      selects it: the check and the semibold name move to that chip. At the first template there
-      is no left neighbour and at the last no right neighbour, so paging clamps rather than wraps.
-      With reduced motion the slide is replaced by an instant switch.
+      selects it: the check and the semibold name move to that chip. At the first and the last
+      template paging clamps rather than wraps. With reduced motion the slide is replaced by an
+      instant switch.
 - [ ] Portrait templates: the phone wallpaper portrait and the tablet wallpaper portrait fill
       the tall canvas top to bottom with days across the top as columns and time down the left
       axis, not a thin band. The block positions match the landscape reading of the same plan.

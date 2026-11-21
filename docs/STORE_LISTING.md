@@ -312,8 +312,8 @@ Screenshot shot list, each captioned:
    the stats bar below. Caption: Build your week on a drag and drop timetable.
 4. Conflict feedback during a blocked placement. Caption: See time and exam conflicts
    before you commit, with suggested alternatives.
-5. The export page with its template gallery: the selected poster centred, the neighbouring
-   templates peeking at both edges, and the dot picker with the size caption below. Caption:
+5. The export page with its template gallery: the selected poster centred, with the named
+   template chips and their output sizes above it. Caption:
    Preview and pick an export at a fixed size, a phone or tablet wallpaper in either
    orientation, share, or print, or copy your plan as text.
 

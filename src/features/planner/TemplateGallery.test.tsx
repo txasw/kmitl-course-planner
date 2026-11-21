@@ -270,13 +270,13 @@ describe('TemplateGallery', () => {
   });
 
   it('scales the selected poster from the measured stage and follows a resize', () => {
-    const resize = stubStage({ width: 1000, height: 600 });
+    const resize = stubStage({ width: 900, height: 600 });
     const { container } = renderGallery();
-    // Share 16:9 lays out at 960 by 540. The 1000 px stage keeps 60 px clear at each edge, so
-    // the width bound of 880 / 960 wins over the height bound.
+    // Share 16:9 lays out at 960 by 540. The width bound of 900 * 0.94 / 960 wins over the
+    // height bound of 600 * 0.94 / 540.
     const wide = selectedBox(container);
-    expect(wide.width).toBeCloseTo(880);
-    expect(wide.height).toBeCloseTo(495);
+    expect(wide.width).toBeCloseTo(900 * 0.94);
+    expect(wide.height).toBeCloseTo((900 * 0.94 * 540) / 960);
 
     resize({ width: 1080, height: 300 });
     // Now the height bound wins: 300 * 0.94 / 540 of the layout box.
@@ -290,20 +290,21 @@ describe('TemplateGallery', () => {
     expect(selectedBox(container)).toEqual({ width: 1920, height: 1080 });
   });
 
-  it('drops the slivers on a narrow stage', () => {
+  it('shows the selected poster alone at every stage width', () => {
     const resize = stubStage({ width: 1200, height: 600 });
     const { container } = renderGallery();
-    // A wide stage shows the selected poster and, at the first template, the next sliver.
-    expect(container.querySelectorAll('.kcp-poster')).toHaveLength(2);
+    // No neighbouring template peeks at a wide stage edge, so no poster text is cut there.
+    expect(container.querySelectorAll('.kcp-poster')).toHaveLength(1);
+    expect(container.querySelector('[data-gallery-sliver]')).toBeNull();
 
     resize({ width: 600, height: 400 });
-    // Below 900 px only the selected poster renders, at 0.94 of the full width.
     expect(container.querySelectorAll('.kcp-poster')).toHaveLength(1);
     expect(selectedBox(container).width).toBeCloseTo(600 * 0.94);
 
-    // Swipe still pages on a narrow stage.
+    // Swipe still pages between templates.
     swipe(stageOf(container), -100);
     expect(uiStore.getState().selectedTemplate).toBe(EXPORT_TEMPLATES[1]?.slug);
+    expect(container.querySelectorAll('.kcp-poster')).toHaveLength(1);
   });
 
   it('pages by swipe and clamps at the first and last template', () => {

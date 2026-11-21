@@ -130,3 +130,26 @@ the owner's rule against cut text forbids. Shorter template names on the chips a
 rejected because the accessible name would no longer hold the visible label in English, and
 renaming the templates everywhere reaches the store listing and the landing site, which is out
 of scope for this change.
+
+## Amendment, 2026-11-21: the selected poster alone
+
+Supersedes the edge anchored slivers of the gallery hierarchy amendment and the line of the
+named chips amendment that kept them. A second conformance review found that at 1366 px the
+slivers of the previous and next templates showed their poster text cut mid word at the stage
+edge, such as "ตาราง", "ภาคการศึ", "Plan", and "Semes". The owner's rule allows no text that is cut
+or shown incompletely at any width, and the clipped text sweep only passed because it excused
+the slivers.
+
+Decision. The stage renders the selected poster alone, centred, at every width. The named chips
+above the stage already show that more templates exist and pick each one directly, so the
+slivers no longer carry a cue the chips lack. With no slivers there is no edge reserve and no
+narrow stage rule: the poster fits the same share of the stage width as of its height at every
+stage size, still capped at twice its layout box. Swipe and the scroll wheel over the stage
+still page between templates, and the capture node and the frame are unchanged. The sweep's
+sliver exception is removed, so a cut text anywhere on the export page fails it.
+
+Alternatives considered. Rendering the slivers as text free silhouettes, the poster frame with a
+blank or blurred fill, was rejected: a silhouette is a second visual system to keep in step with
+the templates, and with the chips naming every template it would only add noise beside the
+selected poster. Masking the slivers to the slide width was rejected because it removes them in
+effect while keeping their rendering cost.

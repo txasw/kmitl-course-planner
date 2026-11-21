@@ -53,13 +53,6 @@ const EXCEPTIONS: readonly TextFitException[] = [
     reason:
       'a teacher, condition, or remark list longer than two lines rests at two, and its expand control wraps every line in full',
   },
-  {
-    selector: '[data-gallery-sliver]',
-    scope: '[data-gallery-pager]',
-    control: '[role="radiogroup"] [role="radio"]',
-    reason:
-      'the neighbouring export templates show as dimmed slivers cropped at the stage edge, hidden from assistive technology, and the pager dots bring each one whole into view',
-  },
 ];
 
 /** The layers of the product tour that dim the panel on purpose, read through. */
