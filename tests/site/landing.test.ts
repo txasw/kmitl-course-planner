@@ -18,8 +18,8 @@ import {
 import {
   EVENT_PALETTE,
   EVENT_TINT_ALPHA,
-  tintOverWhite,
 } from '../../src/lib/utils/hash-color';
+import { alphaOver } from '../support/contrast';
 import { siteTextFiles } from '../../scripts/landing/site-files.mjs';
 
 // Guards the landing site in site/ (ADR-0066): its titles and language alternates, the
@@ -760,7 +760,7 @@ describe('site files', () => {
       ).exec(css);
       expect(rule?.[1], `subject-${String(index)}`).toBe(color.toLowerCase());
       expect(rule?.[2], `subject-${String(index)}`).toBe(
-        tintOverWhite(color, EVENT_TINT_ALPHA),
+        alphaOver(color, EVENT_TINT_ALPHA, '#ffffff'),
       );
     });
   });
