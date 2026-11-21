@@ -45,6 +45,12 @@
 // the name lines past its second, then the section and kind chips, then the name to one line,
 // then the place, and last the time. A one hour card keeps its time, a one line name, and its
 // place.
+//
+// The poster block under a name language of both walks a third order (the ADR-0046 amendment of
+// 2026-11-22): the time drops before the secondary name, since the student asked for both names
+// and the block's position already states the time, so the second name no longer gives way to
+// a line the sheet repeats. Below those two rungs the order is the block's, so the primary name
+// still never drops and the place still outlives its second line.
 
 /** Which fields a block could show before any measurement, from its data and the display
  * options. `mask` is a stable primitive so a reset key can compare eligibility cheaply. */
@@ -90,9 +96,10 @@ export interface NameFit {
   excessLines: number;
 }
 
-/** Which drop order a block walks: the positioned block of the week grid and the poster, or
- * the phone day card that leads with its time. */
-export type DensityLadder = 'block' | 'dayCard';
+/** Which drop order a block walks: the positioned block of the week grid and the poster, the
+ * phone day card that leads with its time, or the poster block naming the subject in both
+ * languages, which drops its time before its second name. */
+export type DensityLadder = 'block' | 'dayCard' | 'posterBoth';
 
 /** The fewest lines the name keeps while the section chip still shows. */
 const NAME_LINES_BEFORE_SECTION = 2;
@@ -172,6 +179,9 @@ export function nextDensityLevel(
 ): DensityLevel | null {
   if (level.showId) {
     return { ...level, showId: false };
+  }
+  if (ladder === 'posterBoth' && level.showTime) {
+    return { ...level, showTime: false };
   }
   if (level.showSecondary) {
     return { ...level, showSecondary: false };
@@ -267,8 +277,13 @@ export function nextNameForm(
 export type ReclaimField = 'time' | 'secondary' | 'id';
 
 /** The order the reclaim pass offers fields back, highest priority first, so a field the
- * ladder ranks higher wins any room two dropped fields compete for. */
-const RECLAIM_ORDER: readonly ReclaimField[] = ['time', 'secondary', 'id'];
+ * ladder ranks higher wins any room two dropped fields compete for. The poster block under
+ * both names ranks its second name above its time. */
+const RECLAIM_ORDER: Record<DensityLadder, readonly ReclaimField[]> = {
+  block: ['time', 'secondary', 'id'],
+  dayCard: ['time', 'secondary', 'id'],
+  posterBoth: ['secondary', 'time', 'id'],
+};
 
 function canReclaim(
   field: ReclaimField,
@@ -311,11 +326,12 @@ export function nextReclaim(
   level: DensityLevel,
   e: DensityEligibility,
   tried: readonly ReclaimField[],
+  ladder: DensityLadder = 'block',
 ): { field: ReclaimField; level: DensityLevel } | null {
   if (!lowerRungsIntact(level, e)) {
     return null;
   }
-  for (const field of RECLAIM_ORDER) {
+  for (const field of RECLAIM_ORDER[ladder]) {
     if (!tried.includes(field) && canReclaim(field, level, e)) {
       return { field, level: withField(level, field) };
     }

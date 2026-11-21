@@ -19,9 +19,11 @@
 // ladder in useDensityFit, dropping the subject id, then the secondary name, then the time,
 // then clamping the name to the lines that fit, then the section chip, then reducing the name
 // to one line, then the place, with the name never dropping (ADR-0046, ADR-0047). The place
-// outlives the name's second line and the time never outlives the place. The subject id and
-// the time never wrap and drop whole when wider than the block, so a code is never cut at the
-// edge.
+// outlives the name's second line and the time never outlives the place. A poster block that
+// names its subject in both languages drops the time before the second name, since the student
+// chose both and the position states the time (ADR-0046 amendment of 2026-11-22). The subject
+// id and the time never wrap and drop whole when wider than the block, so a code is never cut
+// at the edge.
 // The edit block keeps its tighter line height, always carries the subject id for cross
 // referencing, and names the subject in both languages, the panel language first, so the id is
 // the first field it drops and the second name the next; the hover card and the details still
@@ -230,13 +232,15 @@ function EventBlockComponent({
     nameAbbreviations: abbreviations.length,
   });
   // The name joins the reset key, since a locale switch can swap in a name of the same field
-  // set and abbreviation count that needs a fresh fit from the full level.
+  // set and abbreviation count that needs a fresh fit from the full level. The foot pinned to
+  // the bottom marks the poster.
+  const posterBoth = footAtBottom && nameLanguage === 'both';
   const level = useDensityFit(
     contentRef,
     eligibility,
     `${fitKey}|${name}`,
     fitPaused,
-    dayCard ? 'dayCard' : 'block',
+    dayCard ? 'dayCard' : posterBoth ? 'posterBoth' : 'block',
   );
   // The accessible name is self contained so a screen reader hears the whole meeting
   // from the block alone: subject, name, section, full day, time, the place when it is
