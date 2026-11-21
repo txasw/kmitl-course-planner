@@ -10,7 +10,8 @@
 // chip row. The status row sits under every view, since it sums the plan rather than
 // the view, and in edit it always ends with the suggest action, so a phone keeps it in
 // the thumb zone and the first run tour can point at it before any search. In preview
-// the sharing toolbar heads the poster, or below 640 px follows it at the panel foot.
+// the sharing toolbar heads the poster, or below 640 px follows it at the panel foot, and the
+// region grows past the panel height where the stage floor needs it, so the page scrolls.
 
 import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { flushSync } from 'react-dom';
@@ -356,7 +357,10 @@ export function PlannerPanel() {
     ) : null;
 
   return (
-    <div ref={rootRef} className={`flex h-full flex-col ${PLAN_PANE_GAP}`}>
+    <div
+      ref={rootRef}
+      className={`flex ${isPreview ? 'min-h-full' : 'h-full'} flex-col ${PLAN_PANE_GAP}`}
+    >
       {showTabs ? previewToolbar : null}
       {!isPreview && showTabs ? (
         <PlanViewTabs

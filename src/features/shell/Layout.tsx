@@ -64,10 +64,11 @@ export function Layout() {
   useCatalogFocusRepair(bodyRef, tier);
 
   // Preview collapses the catalog column out of the DOM and gives the
-  // timetable the full panel width as a poster composition.
+  // timetable the full panel width as a poster composition. It scrolls when the
+  // display options and the stage floor need more height than the window has.
   if (viewMode === 'preview') {
     return (
-      <div className="h-full p-4">
+      <div className="kcp-scroll h-full overflow-y-auto p-4">
         <StatusAnnouncer />
         <PlannerPanel />
       </div>
