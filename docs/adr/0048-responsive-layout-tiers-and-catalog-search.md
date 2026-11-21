@@ -896,10 +896,16 @@ line under the edge. The review also found the plan name field showing a long na
 
 - The anchored block detail stands as a column of the plan area, the timetable and shelf between
   the view tabs and the status row. It still opens beside its block and flips to the other side
-  where this one has no room, but its top and foot now meet the plan area's own, so neither edge
-  lands part way across a line of the timetable or of the status row, and a detail taller than
-  the area scrolls in its body between the pinned heading and actions. The shared popover recipe
-  takes the column as an option; every other popover keeps its viewport sizing. Capping the
+  where this one has no room, but its foot now meets the plan area's own and its top meets the
+  foot of the timetable's pinned head, the row of hour labels, or of day labels in portrait. So
+  neither edge lands part way across a line of the timetable or of the status row, and its side
+  never meets an hour label: a label is centred on its gridline, and a detail 6 px from a block
+  that starts on that gridline would split it, so that 13:00 read 3:00. A detail taller than the
+  column scrolls in its body between the pinned heading and actions. The column's own size is
+  watched as well as the block's, so a toast band that lifts the status row keeps the detail's
+  foot above it. The shared popover recipe takes the column and its head as an option; every
+  other popover keeps its viewport sizing. Starting the column at the plan area's top was
+  rejected for that split hour label. Capping the
   height to the space above the status row and shifting the node up was rejected: the sweep
   then found its foot across a Friday block's name at 768 and 1366 px and its top across a
   Monday block's time, since a node of its own height ends wherever its content does. Flipping
@@ -909,16 +915,22 @@ line under the edge. The review also found the plan name field showing a long na
   passes, and a line its top or bottom edge cuts fails: each line is probed near its top and near
   its foot at the same points across it, and a line that shows at one and is covered at the
   other at two points or more is cut. A split at one point alone is the layer's rounded corner
-  over a line's end. A line the layer meets only at its side passes, since a layer beside its
-  anchor has no room to avoid the blocks next to it. The scroller rule for a fixed layer over a
-  list's end does not apply behind a layer the student opened. The walk now reads the panel
+  over a line's end. A line covered top to foot at some points and on show at others is cut by
+  the layer's side edge and fails as well, since what shows reads as another word or another
+  time. The one region a side edge may cut is named by the caller as beside the layer's anchor:
+  behind the block detail it is the timetable blocks, which a layer opened beside its block has
+  no room to avoid. An axis label, the status row, the toolbar status, and a template chip have
+  no such excuse. The scroller rule for a fixed layer over a list's end does not apply behind a
+  layer the student opened. The walk now reads the panel
   behind the block detail, behind the detail of the missing section the moved fixture leaves,
   which it also reads whole on its own, and behind the display options of the export page.
 - The plan name field, in create and rename, is a text area that grows to the lines the name
   needs, in place of a one line input that showed a long name scrolled to its end with its first
-  glyph cut at the field edge at 360 px. It keeps the behavior of a one line name: Enter saves, a
-  line break typed or pasted becomes a space, and the 100 character cap and its live count are
-  unchanged. A field cannot show its value as a text leaf of the page, so the sweep checks that
-  the field scrolls neither down nor sideways once a long name is typed. A wider field was
-  rejected, since no width holds 100 characters at 360 px, and an ellipsis was rejected because
-  it hides the name the student is editing.
+  glyph cut at the field edge at 360 px. It keeps the behavior of a one line name: Enter saves,
+  a line break typed or pasted becomes a space, and the 100 character cap and its live count are
+  unchanged. Since a text area is announced as multi-line, its description adds that Enter
+  saves, and a phone keyboard offers Done in place of a return key. A field cannot show its
+  value as a text leaf of the page, so the sweep checks that the field scrolls neither down nor
+  sideways once a long name is typed. A wider field was rejected, since no width holds 100
+  characters at 360 px, and an ellipsis was rejected because it hides the name the student is
+  editing.
