@@ -194,6 +194,40 @@ describe('TemplateGallery', () => {
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
 
+  it('gives each chip a short name for a phone that keeps its device and orientation', () => {
+    renderGallery();
+    const shorts = [
+      'แชร์ 16:9',
+      'โทรศัพท์ แนวนอน',
+      'โทรศัพท์ แนวตั้ง',
+      'แท็บเล็ต แนวตั้ง',
+      'แท็บเล็ต แนวนอน',
+      'พิมพ์ A4',
+    ];
+    shorts.forEach((short, index) => {
+      const line = radioAt(index).querySelector('[data-template-short]');
+      // Shown below 640 px only, and wrapping only between its words.
+      expect(line).toHaveClass('sm:hidden');
+      expect(line).toHaveTextContent(short);
+      for (const word of line?.querySelectorAll('.whitespace-nowrap') ?? []) {
+        expect(short.split(' ')).toContain(word.textContent);
+      }
+    });
+  });
+
+  it('names the selected template in full with its pixels under the stage on a phone', () => {
+    const { container } = renderGallery();
+    const caption = container.querySelector('[data-template-caption]');
+    expect(caption).toHaveClass('sm:hidden');
+    expect(caption).toHaveTextContent('แชร์ 16:9 · 1920 × 1080');
+    expect(
+      stageOf(container).compareDocumentPosition(caption as Node) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    fireEvent.click(radioAt(2));
+    expect(caption).toHaveTextContent('ภาพพื้นหลังโทรศัพท์แนวตั้ง · 1080 × 2340');
+  });
+
   it('marks the selected chip by a check glyph and weight, not by colour alone', () => {
     renderGallery();
     const selected = radioAt(0);
@@ -257,11 +291,10 @@ describe('TemplateGallery', () => {
     expect(uiStore.getState().selectedTemplate).toBe(EXPORT_TEMPLATES[0]?.slug);
   });
 
-  it('heads the stage with the chips and keeps no arrow rails or caption', () => {
+  it('heads the stage with the chips and keeps no arrow rails', () => {
     const { container } = renderGallery();
-    // The chips choose directly, so the paging arrows and the caption are gone.
+    // The chips choose directly, so the paging arrows are gone.
     expect(screen.queryAllByRole('button')).toHaveLength(0);
-    expect(screen.queryByText(/ · /)).not.toBeInTheDocument();
     const group = screen.getByRole('radiogroup', { name: 'แม่แบบ' });
     expect(
       group.compareDocumentPosition(stageOf(container)) &

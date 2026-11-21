@@ -153,3 +153,25 @@ blank or blurred fill, was rejected: a silhouette is a second visual system to k
 the templates, and with the chips naming every template it would only add noise beside the
 selected poster. Masking the slivers to the slide width was rejected because it removes them in
 effect while keeping their rendering cost.
+
+## Amendment, 2026-11-21: a compact picker on a phone
+
+Context. The third conformance review found the six template chips on a phone taking three rows
+of large wrapping cards, about 190 px, while the poster sat small in a mostly empty stage.
+
+Decision. Below 640 px each chip is one compact cell, its glyph and a short name that keeps the
+device and the orientation, such as โทรศัพท์ แนวตั้ง and Phone portrait, in three columns of two
+rows, each cell a 44 px target. The short name wraps only between its words, so a Thai word never
+splits inside. The chip keeps its full name and output pixels as its accessible name, and a quiet
+line under the stage names the selected template in full with its pixels. The selected chip keeps
+its check glyph, semibold name, and thick edge, so the choice is never shown by colour alone. The
+stage takes the freed height, so the poster reads larger. From 640 px up the chips are unchanged.
+
+Alternatives considered. One row of chips that scrolls sideways was rejected: at rest it shows a
+chip part way behind its edge, which the clipped text rule and its sweep forbid. A two column list
+of full names was rejected because the long Thai names wrap to two lines in a half width column
+and the list stays three rows tall.
+
+Consequences. The picker takes about 94 px on a phone instead of 190, and the stage gains that
+height. The export page responsive spec checks the short names, the cell height, the picker
+height, and the caption.
