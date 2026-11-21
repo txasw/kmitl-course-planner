@@ -579,6 +579,9 @@ from 1024 px and an overflow menu below it, so the same setting lived in two pla
   mockup drew, was rejected because the header still spends a slot on a rarely changed setting
   and a flag alone does not say what pressing it does. A two letter code beside the flag was
   rejected as redundant with the language name the menu already shows.
+- Owner decision, 2026-11-22. The owner confirmed that the language choice in the overflow menu
+  shows the flag with the language name, as the items above draw it. The flag stays beside the
+  name, never in its place.
 
 ## Amendment, 2026-11-20: the coach mark live region
 
