@@ -14,13 +14,14 @@
 // amendments of 2026-11-20 and 2026-11-22). The danger state draws its ring and hatch on an
 // overlay rather than on the fill, so the card keeps its edge under it, and each text line sits
 // on a solid tint above the overlay, so the stripes never run through the text. On the export
-// poster and in the edit grid alike the content is measured against the box and whole low priority fields are
-// dropped rather than a line clipped mid glyph: the fit walks the density ladder in useDensityFit,
-// dropping the subject id, then the secondary name, then the time, then clamping the name
-// to the lines that fit, then the section chip, then reducing the name to one line, then
-// the place, with the name never dropping (ADR-0046, ADR-0047). The place outlives the
-// name's second line and the time never outlives the place. The subject id and the time
-// never wrap and drop whole when wider than the block, so a code is never cut at the edge.
+// poster and in the edit grid alike the content is measured against the box and whole low
+// priority fields are dropped rather than a line clipped mid glyph: the fit walks the density
+// ladder in useDensityFit, dropping the subject id, then the secondary name, then the time,
+// then clamping the name to the lines that fit, then the section chip, then reducing the name
+// to one line, then the place, with the name never dropping (ADR-0046, ADR-0047). The place
+// outlives the name's second line and the time never outlives the place. The subject id and
+// the time never wrap and drop whole when wider than the block, so a code is never cut at the
+// edge.
 // The edit block keeps its tighter line height, always carries the subject id for cross
 // referencing, and names the subject in both languages, the panel language first, so the id is
 // the first field it drops and the second name the next; the hover card and the details still
