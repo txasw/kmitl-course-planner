@@ -382,6 +382,10 @@ describe('SuggestDialog', () => {
     // Each group count is a span of its own; no typed dot joins them.
     expect(within(summary).getByText('1 วิชาในตาราง')).toBeInTheDocument();
     expect(within(summary).getByText('6 วิชาในหลักสูตร')).toBeInTheDocument();
+    // The spoken name keeps its word breaks without relying on the flex layout.
+    expect(summary).toHaveAccessibleName(
+      'วิชาที่จะจัดลงตาราง 1 วิชาในตาราง 6 วิชาในหลักสูตร',
+    );
     expect(summary.textContent).not.toMatch(/[\u00b7\u2022\u2027]/);
     expect(screen.queryByRole('checkbox')).toBeNull();
     // The intro is a single sentence.

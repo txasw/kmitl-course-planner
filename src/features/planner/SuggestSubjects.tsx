@@ -216,10 +216,20 @@ export function SuggestSubjects({
     ).length;
     return count === 0 ? [] : [summaryPart(kind, count, t)];
   });
+  // The button is named by its label and each count in turn, so the spoken name keeps a
+  // break between them wherever the flex layout does not supply one.
+  const partId = (index: number) => `${labelId}-part-${String(index)}`;
+  const nameIds = [
+    labelId,
+    ...Array.from({ length: Math.max(parts.length, 1) }, (_, index) =>
+      partId(index),
+    ),
+  ].join(' ');
   return (
     <div role="group" aria-labelledby={labelId} className="flex flex-col gap-2">
       <button
         type="button"
+        aria-labelledby={nameIds}
         aria-expanded={expanded}
         aria-controls={expanded ? listId : undefined}
         onClick={() => {
@@ -234,7 +244,7 @@ export function SuggestSubjects({
           </span>
           <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
             {parts.length === 0 ? (
-              <span>{t('suggest.summary.none')}</span>
+              <span id={partId(0)}>{t('suggest.summary.none')}</span>
             ) : (
               parts.map((part, index) => (
                 <Fragment key={part}>
@@ -244,7 +254,7 @@ export function SuggestSubjects({
                       className="size-1 shrink-0 rounded-full bg-ink-muted"
                     />
                   ) : null}
-                  <span>{part}</span>
+                  <span id={partId(index)}>{part}</span>
                 </Fragment>
               ))
             )}
