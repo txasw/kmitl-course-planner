@@ -8,6 +8,7 @@ import {
   within,
 } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
+import { dayHue } from '@/lib/planner/dayColors';
 import { DEFAULT_WINDOW, SMART_WINDOW } from '@/lib/planner/grid';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import {
@@ -504,7 +505,9 @@ describe('WeeklyGrid', () => {
     );
     // Edit mode leaves the label untinted, so the day color never competes with the
     // subject colored blocks.
-    expect(screen.getByLabelText('วันจันทร์').style.backgroundColor).toBe('');
+    const plain = screen.getByLabelText('วันจันทร์');
+    expect(plain.style.backgroundColor).toBe('');
+    expect(plain.querySelector('.kcp-soft-card')).toBeNull();
     rerender(
       <WeeklyGrid
         sections={[]}
@@ -514,7 +517,16 @@ describe('WeeklyGrid', () => {
         dayAccent
       />,
     );
-    expect(screen.getByLabelText('วันจันทร์').style.backgroundColor).not.toBe('');
+    // The poster label sits on a soft depth tile tinted by the Monday yellow.
+    const tile = screen
+      .getByLabelText('วันจันทร์')
+      .querySelector('.kcp-soft-card');
+    expect(tile).not.toBeNull();
+    expect(
+      tile instanceof HTMLElement
+        ? tile.style.getPropertyValue('--kcp-tint')
+        : '',
+    ).toBe(dayHue(1));
   });
 
   it('shows an hour label at the window start and its last hour', () => {

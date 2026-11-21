@@ -6,9 +6,10 @@
 // holds the grid frame (ADR-0050). Renders a fragment so every item is a direct child of
 // the grid and places by track index. In edit the day labels are sticky inside the
 // planner scroller on an opaque fill, so the day stays readable while the time scrolls
-// beneath it; the poster renders them flat. An edit block names its subject in the panel
-// language with the other language under it, as the catalog card does (brief 6.7), and the
-// measured fit drops that second line whole where the block has no room for it.
+// beneath it; the poster renders them in place, each on a soft depth tile of its Thai day
+// color (ADR-0042, ADR-0047 amendment of 2026-11-22). An edit block names its subject in the
+// panel language with the other language under it, as the catalog card does (brief 6.7), and
+// the measured fit drops that second line whole where the block has no room for it.
 
 import { Fragment, useMemo } from 'react';
 import type { CSSProperties, MouseEvent } from 'react';
@@ -20,7 +21,8 @@ import type { DayOfWeek } from '@/lib/parsing/days';
 import type { DisplayOptions } from '@/lib/planner/displayOptions';
 import type { NameLanguage } from '@/lib/planner/nameLanguage';
 import type { GridWindow } from '@/lib/planner/grid';
-import { dayTint } from '@/lib/planner/dayColors';
+import { dayHue } from '@/lib/planner/dayColors';
+import type { StyleWithVars } from './blockSurface';
 import { dragStore } from './dragStore';
 import { EventBlock } from './EventBlock';
 import { DraggableBlock } from './DraggableBlock';
@@ -77,6 +79,11 @@ interface DayLanesProps {
    * for the raster and pin the foot for its measured fit. A plan suggestion is read only but
    * never exported, so it packs its lines like the edit grid. */
   exported: boolean;
+}
+
+/** The tile of a poster day label: the soft card tinted by the Thai day color. */
+function dayTileStyle(day: DayOfWeek): StyleWithVars {
+  return { '--kcp-tint': dayHue(day) };
 }
 
 export function DayLanes({
@@ -171,18 +178,26 @@ export function DayLanes({
                   ref={ref}
                   {...triggerProps}
                   className={`flex items-center justify-center text-[1.05em] font-semibold ${
-                    dayAccent ? 'text-ink' : 'text-ink-soft'
+                    dayAccent ? 'p-[0.25em] text-ink' : 'text-ink-soft'
                   } ${isPortrait ? 'border-b border-border' : 'border-t border-border'} ${labelFill} ${sticky ? `z-sticky ${isPortrait ? '' : STICKY_DAY_EDGE}` : ''}`}
                   style={{
                     ...(sticky ? stickyDayStyle(orientation) : {}),
                     ...(isPortrait
                       ? { gridColumn: dayTrack, gridRow: 1 }
                       : { gridRow: dayTrack, gridColumn: 1 }),
-                    ...(dayAccent ? { backgroundColor: dayTint(day) } : {}),
                   }}
                   aria-label={t(dayFullLabelKey(day))}
                 >
-                  {t(dayLabelKey(day))}
+                  {dayAccent ? (
+                    <span
+                      className="kcp-soft-card kcp-soft-subject flex h-full w-full items-center justify-center"
+                      style={dayTileStyle(day)}
+                    >
+                      {t(dayLabelKey(day))}
+                    </span>
+                  ) : (
+                    t(dayLabelKey(day))
+                  )}
                 </div>
               )}
             </Tooltip>

@@ -34,6 +34,7 @@ import {
   AXIS_TRACK_EM,
   EDIT_FONT_PX,
   PORTRAIT_AXIS_TRACK,
+  POSTER_DAY_TRACK_EM,
   type Orientation,
 } from './gridGeometry';
 
@@ -44,15 +45,19 @@ function gridTemplate(
   dayCount: number,
   orientation: Orientation,
   editable: boolean,
+  dayAccent: boolean,
 ): CSSProperties {
   const quarters = quarterCount(window);
   // The leading axis track is a fixed size, not auto: each hour label shifts half its size
   // to center on its gridline, so the track sets the axis height and width rather than the
   // labels, and the axis keeps one size across windows, locales, and templates.
   if (orientation === 'portrait') {
+    // The day labels head the columns in the leading row, and on the poster each sits on a
+    // soft day tile, which needs a taller row than the bare label.
+    const dayTrack = dayAccent ? POSTER_DAY_TRACK_EM : AXIS_TRACK_EM;
     return {
       gridTemplateColumns: `${PORTRAIT_AXIS_TRACK} repeat(${String(dayCount)}, minmax(0, 1fr))`,
-      gridTemplateRows: `${String(AXIS_TRACK_EM)}em repeat(${String(quarters)}, minmax(0, 1fr))`,
+      gridTemplateRows: `${String(dayTrack)}em repeat(${String(quarters)}, minmax(0, 1fr))`,
     };
   }
   const rows = (rowMax: string) =>
@@ -185,8 +190,8 @@ export function WeeklyGrid({
   // mode, so it holds stable across a drag or a plan change and is computed once per those
   // inputs.
   const gridStyle = useMemo(
-    () => gridTemplate(window, days.length, orientation, editable),
-    [window, days, orientation, editable],
+    () => gridTemplate(window, days.length, orientation, editable, dayAccent),
+    [window, days, orientation, editable, dayAccent],
   );
   const isPortrait = orientation === 'portrait';
   const floor = !posterFloor
