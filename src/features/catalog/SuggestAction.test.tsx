@@ -156,17 +156,14 @@ describe('SuggestAction', () => {
     expect(openButton()).toBeNull();
   });
 
-  it('takes the filled look in the catalog head only when asked', () => {
+  it('takes the filled look in the catalog head too', () => {
     showResult(BY_CLASS);
-    renderAction({ placement: 'catalog', filled: true });
+    renderAction({ placement: 'catalog' });
     const button = openButton();
     if (button === null) throw new Error('no suggest action');
     expect(button).toHaveClass('bg-primary-strong', 'text-surface');
     // Only the status row entry is the tour's anchor.
     expect(button).not.toHaveAttribute('data-tour');
-    cleanup();
-    renderAction({ placement: 'catalog' });
-    expect(openButton()).not.toHaveClass('bg-primary-strong');
   });
 
   it('keeps the status row entry with no curriculum result, as the tour anchor', () => {

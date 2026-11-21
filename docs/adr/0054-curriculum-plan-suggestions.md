@@ -307,12 +307,15 @@ and sentence, not its action, which the focus already announces. The add rules a
 Leaving the entry disabled was rejected, since a disabled control says nothing to a touch user
 and no tour step may point at a control that does nothing.
 
-The catalog head entry still shows only when a suggestion applies, and its look follows what else
-is in reach. In the phone catalog pane it is the filled primary button, since the status row sits
-on the timetable pane and is out of reach there. In the medium tier sheet it stays quiet, since
-the filled status row entry still shows past the sheet's scrim. The docked column drops it: the
-review's captures at 1366 px show the two side by side, and the status row beside the column
-already holds the filled entry, so each screen carries one filled suggest action.
+The catalog head entry still shows only when a suggestion applies, and only where the status row
+entry is out of reach, where it is the filled primary button too. In the phone catalog pane the
+status row sits on the timetable pane. The medium tier sheet is modal: it traps focus, and the
+status row entry that shows dimmed behind its scrim cannot be reached, so the sheet's entry is the
+only one in reach, as on the phone. A quiet sheet entry was tried and rejected for that reason,
+since it left the reachable control quiet beside an unreachable orange one. The docked column
+drops it: the review's captures at 1366 px show the two side by side, and the status row beside
+the column already holds the filled entry, so each screen carries one filled suggest action in
+reach.
 
 The dialog also reads shorter, after owner note N3 and the mockup's suggest screen. The intro is
 one sentence. The tick list rests collapsed as one summary line that counts the ticked subjects

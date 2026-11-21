@@ -1,10 +1,10 @@
 // The entry points to plan suggestions (ADR-0054). The plan status row ends with a filled
 // primary button in every edit view, in the thumb zone on a phone (ADR-0049 amendment), and it
 // is always there, so the first run tour can point at it before any search (ADR-0074). The
-// catalog head carries a second entry only on the tiers where the status row is out of reach
-// while the student reads the result: filled in the phone catalog pane, which is the only
-// entry there, and quiet in the medium tier sheet, whose scrim still shows the filled one
-// behind it. The docked column carries none, since the status row sits beside it.
+// catalog head carries a second entry, filled too, only on the tiers where the status row is
+// out of reach while the student reads the result: the phone catalog pane, and the medium tier
+// sheet, which traps focus over the timetable. The docked column carries none, since the
+// status row sits beside it.
 //
 // A suggestion means something only when the settled result is a by_class search, the search
 // by curriculum and class year, it holds at least one curriculum course, and its term is the
@@ -28,7 +28,7 @@ import {
   type Term,
 } from '@/lib/routing/academicTerms';
 import { toSourceQuery } from '@/lib/planner/sourceQuery';
-import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
+import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { SuggestDialog } from '@/features/planner/SuggestDialog';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { useActivePlan } from '@/features/plans/planStore';
@@ -86,27 +86,19 @@ export function useSuggestTarget(): SuggestTarget | null {
 /** Where the entry sits: the end of the plan status row, or the catalog head. */
 export type SuggestActionPlacement = 'status' | 'catalog';
 
-const LOOK_CLASS = {
-  quiet: `border-border bg-surface px-2 text-ink hover:bg-surface-alt ${FOCUS_RING}`,
-  // The filled look keeps the label on one line and never lets its neighbours squeeze it.
-  // An inset ring would vanish into the orange fill, so it takes the offset outline the
-  // other filled primary buttons use.
-  filled: `shrink-0 whitespace-nowrap border-primary-strong bg-primary-strong px-3 font-semibold text-surface hover:border-primary-hover hover:bg-primary-hover ${FOCUS_OUTLINE}`,
-} as const;
+// The entry keeps its label on one line and never lets its neighbours squeeze it. An inset
+// ring would vanish into the orange fill, so it takes the offset outline the other filled
+// primary buttons use.
+const FILLED_CLASS = `shrink-0 whitespace-nowrap border-primary-strong bg-primary-strong px-3 font-semibold text-surface hover:border-primary-hover hover:bg-primary-hover ${FOCUS_OUTLINE}`;
 
 interface SuggestActionProps {
   placement: SuggestActionPlacement;
-  /** Whether a catalog head entry takes the filled look; the status row entry always does. */
-  filled?: boolean;
 }
 
 /** Which dialog the entry opened: the suggestions, or the note that a search comes first. */
 type OpenDialog = 'suggest' | 'needsSearch' | null;
 
-export function SuggestAction({
-  placement,
-  filled = false,
-}: SuggestActionProps) {
+export function SuggestAction({ placement }: SuggestActionProps) {
   const { t } = useTranslation();
   const tier = useLayoutTier();
   const target = useSuggestTarget();
@@ -137,7 +129,7 @@ export function SuggestAction({
         onClick={() => {
           setOpen(target === null ? 'needsSearch' : 'suggest');
         }}
-        className={`inline-flex items-center gap-1.5 rounded-kcp border py-1.5 text-sm transition-colors ${LOOK_CLASS[status || filled ? 'filled' : 'quiet']} ${TARGET_SIZE}`}
+        className={`inline-flex items-center gap-1.5 rounded-kcp border py-1.5 text-sm transition-colors ${FILLED_CLASS} ${TARGET_SIZE}`}
       >
         <WandSparkles size={16} strokeWidth={2} aria-hidden />
         {t(status ? 'suggest.openShort' : 'suggest.open')}
