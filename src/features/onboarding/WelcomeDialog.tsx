@@ -3,13 +3,13 @@
 // product tour that follows it walks them (ADR-0074), under the tour's own step titles,
 // and says how to open the panel again, naming the shortcut only when the browser
 // reports one. The heading names no count, so it cannot disagree with the list or with
-// the tour, which also shows how to read the timetable. Each step leads with its icon on a quiet sunken tile in ink soft, as the
-// mockup draws it; the empty states keep their round alt circle on purpose, since a step
-// list reads as a row of tiles. The tile is neutral because the icon is a picture and not
-// a control, and the orange stays for what can be pressed. Start planning is the landing point and
-// the likely next step: it closes the welcome and opens the panel at the catalog. The
-// close button, the scrim and Escape close it too, and nothing reopens it, since the
-// claim recorded it as shown.
+// the tour, which also shows how to read the timetable. Each step leads with its icon on
+// a quiet sunken tile in ink soft, as the mockup draws it; the empty states keep their
+// round alt circle on purpose, since a step list reads as a row of tiles. The tile is
+// neutral because the icon is a picture and not a control, and the orange stays for what
+// can be pressed. Start planning is the landing point and the likely next step: it closes
+// the welcome and opens the panel at the catalog. The close button, the scrim and Escape
+// close it too, and nothing reopens it, since the claim recorded it as shown.
 //
 // It is a narrow centred dialog from 640 px and a bottom sheet below, like the updates
 // dialog, so it reuses their focus trap, Escape layer and safe area padding. Closing
@@ -49,7 +49,7 @@ interface WelcomeStep {
   body: TranslationKey;
 }
 
-// The steps a student acts on, in tour order, each with the icon its control carries.
+// The steps a student acts on, in tour order, each with the icon of the action it names.
 // Reading the timetable is left to the tour, which points at it.
 const STEPS: readonly WelcomeStep[] = [
   { step: 'search', icon: Search, body: 'welcome.step.search.body' },
