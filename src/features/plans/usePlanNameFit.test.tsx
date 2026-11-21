@@ -121,6 +121,6 @@ describe('triggerPadding', () => {
   it('pads the trigger only where it grows past the header row', () => {
     expect(triggerPadding(0)).toBe('py-px');
     expect(triggerPadding(1)).toBe('py-0');
-    expect(triggerPadding(2)).toBe('py-1');
+    expect(triggerPadding(2)).toBe('my-0.5 py-1');
   });
 });
