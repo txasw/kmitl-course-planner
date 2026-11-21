@@ -18,6 +18,7 @@ const allEligible = buildEligibility({
   hasSection: true,
   hasId: true,
   hasPlace: true,
+  nameAbbreviations: 0,
 });
 
 /** Walk the ladder from a starting level to the terminus, collecting every level. */
@@ -38,6 +39,7 @@ function walk(
 const bare: DensityLevel = {
   nameLines: 1,
   nameForm: 'full',
+  nameAbbreviation: 0,
   showSecondary: false,
   showPlace: false,
   showSection: false,
@@ -53,6 +55,7 @@ describe('buildEligibility', () => {
       hasSection: true,
       hasId: false,
       hasPlace: true,
+      nameAbbreviations: 0,
     });
     const b = buildEligibility({
       hasName: true,
@@ -60,6 +63,7 @@ describe('buildEligibility', () => {
       hasSection: true,
       hasId: false,
       hasPlace: true,
+      nameAbbreviations: 0,
     });
     expect(a.mask).toBe(b.mask);
     expect(a.mask).not.toBe(allEligible.mask);
@@ -71,6 +75,7 @@ describe('fullLevel', () => {
     expect(fullLevel(allEligible)).toEqual({
       nameLines: 'all',
       nameForm: 'full',
+      nameAbbreviation: 0,
       showSecondary: true,
       showPlace: true,
       showSection: true,
@@ -86,10 +91,12 @@ describe('fullLevel', () => {
       hasSection: true,
       hasId: true,
       hasPlace: false,
+      nameAbbreviations: 0,
     });
     expect(fullLevel(noSecondaryNoPlace)).toEqual({
       nameLines: 'all',
       nameForm: 'full',
+      nameAbbreviation: 0,
       showSecondary: false,
       showPlace: false,
       showSection: true,
@@ -117,6 +124,7 @@ describe('nextDensityLevel', () => {
       {
         nameLines: 2,
         nameForm: 'full',
+        nameAbbreviation: 0,
         showSecondary: false,
         showPlace: true,
         showSection: false,
@@ -126,6 +134,7 @@ describe('nextDensityLevel', () => {
       {
         nameLines: 1,
         nameForm: 'full',
+        nameAbbreviation: 0,
         showSecondary: false,
         showPlace: true,
         showSection: false,
@@ -224,6 +233,7 @@ describe('nextDensityLevel', () => {
       hasSection: true,
       hasId: true,
       hasPlace: true,
+      nameAbbreviations: 0,
     });
     const steps = walk(fullLevel(edit));
     expect(steps.map((s) => s.showId)).toEqual([
@@ -248,6 +258,7 @@ describe('nextDensityLevel', () => {
         hasSection: true,
         hasId: false,
         hasPlace: true,
+        nameAbbreviations: 0,
       }),
     );
     const steps = walk(noIdNoSecondary);
@@ -329,6 +340,7 @@ describe('sameLevel', () => {
     expect(sameLevel(base, { ...base, showTime: false })).toBe(false);
     expect(sameLevel(base, { ...base, nameLines: 1 })).toBe(false);
     expect(sameLevel(base, { ...base, nameForm: 'small' })).toBe(false);
+    expect(sameLevel(base, { ...base, nameAbbreviation: 1 })).toBe(false);
     expect(
       sameLevel({ ...base, nameLines: 3 }, { ...base, nameLines: 2 }),
     ).toBe(false);
@@ -364,22 +376,49 @@ describe('dropWholeFields', () => {
 });
 
 describe('nextNameForm', () => {
-  it('steps a name too wide by a word down a type step, then to the id, then to no text', () => {
+  it('steps a Latin name down a type step, then through its abbreviations, then to the break', () => {
     const full = fullLevel(allEligible);
-    const small = nextNameForm(full);
+    const small = nextNameForm(full, 2);
     expect(small).toEqual({ ...full, nameForm: 'small' });
-    const id = small === null ? null : nextNameForm(small);
-    // The id takes the name's place, so it leaves the foot rather than show twice.
-    expect(id).toEqual({ ...full, nameForm: 'id', showId: false });
-    const none = id === null ? null : nextNameForm(id);
-    expect(none).toEqual({ ...full, nameForm: 'bare', showId: false });
-    expect(none === null ? 'never' : nextNameForm(none)).toBeNull();
+    const first = small === null ? null : nextNameForm(small, 2);
+    expect(first).toEqual({
+      ...full,
+      nameForm: 'abbreviated',
+      nameAbbreviation: 0,
+    });
+    const second = first === null ? null : nextNameForm(first, 2);
+    expect(second).toEqual({
+      ...full,
+      nameForm: 'abbreviated',
+      nameAbbreviation: 1,
+    });
+    const broken = second === null ? null : nextNameForm(second, 2);
+    expect(broken).toEqual({ ...full, nameForm: 'break' });
+    expect(broken === null ? 'never' : nextNameForm(broken, 2)).toBeNull();
   });
 
-  it('never offers the foot id back while the id stands in for the name', () => {
-    const level = { ...fullLevel(allEligible), nameForm: 'id' as const };
-    const dropped = { ...level, showId: false };
-    expect(nextReclaim(dropped, allEligible, ['time', 'secondary'])).toBeNull();
+  it('steps a name with no abbreviation from the smaller step to the break', () => {
+    const small = { ...fullLevel(allEligible), nameForm: 'small' as const };
+    expect(nextNameForm(small, 0)).toEqual({ ...small, nameForm: 'break' });
+  });
+
+  it('keeps the subject id as its own field on every form', () => {
+    let level: DensityLevel | null = fullLevel(allEligible);
+    while (level !== null) {
+      expect(level.showId).toBe(true);
+      level = nextNameForm(level, 3);
+    }
+  });
+
+  it('offers the foot id back whatever form the name takes', () => {
+    const level = {
+      ...fullLevel(allEligible),
+      nameForm: 'abbreviated' as const,
+      showId: false,
+    };
+    expect(nextReclaim(level, allEligible, ['time', 'secondary'])?.field).toBe(
+      'id',
+    );
   });
 });
 
@@ -413,6 +452,7 @@ describe('nextReclaim', () => {
       hasSection: true,
       hasId: true,
       hasPlace: true,
+      nameAbbreviations: 0,
     });
     const level = { ...fullLevel(noSecondary), showId: false };
     expect(nextReclaim(level, noSecondary, [])?.field).toBe('id');
@@ -467,6 +507,7 @@ describe('nextReclaim', () => {
       hasSection: false,
       hasId: true,
       hasPlace: false,
+      nameAbbreviations: 0,
     });
     const level = { ...fullLevel(noPlaceOrChip), showTime: false };
     expect(nextReclaim(level, noPlaceOrChip, [])?.field).toBe('time');

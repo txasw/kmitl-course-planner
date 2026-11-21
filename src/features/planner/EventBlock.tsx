@@ -45,6 +45,7 @@
 
 import {
   memo,
+  useMemo,
   useRef,
   type CSSProperties,
   type KeyboardEvent,
@@ -60,6 +61,7 @@ import { formatMinutes } from '@/lib/parsing/time';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_MIN } from '@/lib/ui/target';
 import { buildEligibility } from '@/lib/planner/blockDensity';
+import { abbreviationSteps } from '@/lib/planner/abbreviateName';
 import {
   subjectNameLines,
   type NameLanguage,
@@ -224,12 +226,16 @@ function EventBlockComponent({
   // toggles. The measured fit then drops the lowest priority of these that do not fit the
   // box.
   const contentRef = useRef<HTMLDivElement>(null);
+  // The shortened forms a name in Latin script steps through where a word is wider than its
+  // line, so the name never gives way to the subject id (ADR-0047 amendment of 2026-11-22).
+  const abbreviations = useMemo(() => abbreviationSteps(name), [name]);
   const eligibility = buildEligibility({
     hasName: name !== '',
     hasSecondary: names.secondary !== null,
     hasSection: showSection && section.section !== '',
     hasId: showSubjectId && section.subjectId !== '',
     hasPlace: showRoom && place !== '',
+    nameAbbreviations: abbreviations.length,
   });
   const level = useDensityFit(
     contentRef,
@@ -342,6 +348,7 @@ function EventBlockComponent({
             kind={meeting.kind}
             time={time}
             subjectId={section.subjectId}
+            abbreviations={abbreviations}
             color={color}
             badge={badge}
             surface={surface}
@@ -360,6 +367,7 @@ function EventBlockComponent({
             sectionCode={section.section}
             time={time}
             subjectId={section.subjectId}
+            abbreviations={abbreviations}
             color={color}
             badge={badge}
             surface={surface}

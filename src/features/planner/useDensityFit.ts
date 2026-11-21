@@ -13,10 +13,12 @@
 // wider than the line drops at once, whole, before the height walk runs. Any other horizontal
 // overflow of the content wrapper walks the ladder like a height overflow, so no field is ever
 // cut at the right edge of a narrow block. The secondary name is a whole field too: it wraps
-// only between its words, so one wider than its line drops it whole. An English name wraps only
-// at its spaces, so a word wider than the name's line is read from the name itself and steps the
-// name form down, a smaller type step, then the subject id in its place, then no text, before
-// the height walk runs (the ADR-0047 amendment of 2026-11-21).
+// only between its words, so one wider than its line drops it whole. The name wraps only between
+// its words, so a word wider than the name's line is read from the name itself and steps the
+// name form down before the height walk runs: a smaller type step, then for a name in Latin
+// script each abbreviated form in turn, least shortened first, then the break form that lets the
+// word still too wide break inside. The name never gives way to the subject id (the ADR-0047
+// amendment of 2026-11-22).
 //
 // Once the content fits, a reclaim pass offers back, once each, the time, the secondary name,
 // and the subject id the walk dropped on the way down, since a later rung such as the secondary
@@ -178,7 +180,7 @@ export function useDensityFit(
     }
     // A name with a word wider than its line steps its form down: no rung widens its line.
     if (nameTooWide(el)) {
-      const stepped = nextNameForm(level);
+      const stepped = nextNameForm(level, eligibility.nameAbbreviations);
       if (stepped !== null) {
         setLevel(stepped);
         return;
