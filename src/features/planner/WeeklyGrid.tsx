@@ -30,7 +30,6 @@ import { DayLanes } from './DayLanes';
 import { GridAxis } from './GridAxis';
 import { GridRules } from './GridRules';
 import type { PlacedSection } from './placedSection';
-import type { BlockSurface } from './blockSurface';
 import {
   AXIS_TRACK_EM,
   EDIT_FONT_PX,
@@ -127,9 +126,6 @@ export interface WeeklyGridProps {
   /** Label every nth hour on the time axis; the suggestion slides thin their labels
    * so a narrow grid keeps them apart. Defaults to every hour. */
   hourLabelStep?: number;
-  /** The block fill. Edit takes the soft depth card and the poster the flat tint its export
-   * captures; the plan suggestion cards, read only but never exported, ask for the soft card. */
-  blockSurface?: BlockSurface;
   /** Show a block's name alone while it is narrower than 7em. On where the block width is a
    * day column, the portrait edit grid, by default; the suggestion slides ask for it, since a
    * slide track can be as narrow. Off in landscape, where a block is as wide as its meeting
@@ -181,7 +177,6 @@ export function WeeklyGrid({
   label,
   posterFloor = true,
   hourLabelStep = 1,
-  blockSurface = editable ? 'soft' : 'flat',
   narrowBlocks = editable && orientation === 'portrait',
   dayCard = false,
   exported = !editable,
@@ -290,7 +285,6 @@ export function WeeklyGrid({
         dayAccent={dayAccent}
         fontPx={fontPx}
         sticky={editable}
-        surface={blockSurface}
         narrowBlocks={narrowBlocks}
         dayCard={dayCard}
         exported={exported}

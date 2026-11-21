@@ -173,11 +173,11 @@ describe('PreviewPoster verification marks', () => {
     });
     expect(container.querySelector('[data-verify]')).toBeNull();
     expect(container.querySelector('.kcp-hatch')).toBeNull();
-    // The poster keeps the flat tint its capture inlines, never the soft card gradient.
+    // The poster blocks take the soft depth card of the edit grid, tinted by the subject.
     const blocks = container.querySelectorAll('[data-teach-table-id]');
     expect(blocks.length).toBeGreaterThan(0);
     for (const block of blocks) {
-      expect(block).toHaveAttribute('data-surface', 'flat');
+      expect(block).toHaveClass('kcp-soft-card', 'kcp-soft-subject');
     }
     expect(screen.queryByText(/ไม่พบในระบบแล้ว/)).not.toBeInTheDocument();
     // The shelf still lists the row, so the credits it carries stay in the image.

@@ -15,6 +15,10 @@
 
 import { toBlob } from 'html-to-image';
 
+/** The color the capture paints under the poster. It is the surface token the soft depth card
+ * mixes its tint into, so the block stops in the image are the stops the contrast tests prove. */
+export const CAPTURE_BACKGROUND = '#ffffff';
+
 /** Render a node to a PNG blob, throwing when the capture yields no image. The pixel
  * ratio defaults to two, the crisp on screen ratio, and is set per export template. */
 export async function capturePng(
@@ -36,7 +40,7 @@ export async function capturePng(
   }
   const blob = await toBlob(node, {
     pixelRatio,
-    backgroundColor: '#ffffff',
+    backgroundColor: CAPTURE_BACKGROUND,
     skipFonts: true,
   });
   if (blob === null) {

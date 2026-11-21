@@ -55,11 +55,10 @@ export function hashColor(subjectId: string): string {
   return EVENT_PALETTE[index] ?? FALLBACK_COLOR;
 }
 
-/** The alpha of the subject color tint under the block text (ADR-0035). Shared with the
- * contrast test so the value that ships is the value that is proven AA. */
+/** The alpha of the flat subject tint of ADR-0035, which the landing page block mockups
+ * still draw. Every grid in the product now takes the soft depth card (ADR-0047 amendment
+ * of 2026-11-22). Shared with the contrast test so the value drawn is the value proven AA. */
 export const EVENT_TINT_ALPHA = 0.15;
-
-const tintCache = new Map<string, string>();
 
 /** Composite a six digit hex over white at the given alpha, to an opaque six digit hex. */
 export function tintOverWhite(hex: string, alpha: number): string {
@@ -71,19 +70,4 @@ export function tintOverWhite(hex: string, alpha: number): string {
       .padStart(2, '0');
   };
   return `#${channel(0)}${channel(2)}${channel(4)}`;
-}
-
-/**
- * The subject's block color composited over white at EVENT_TINT_ALPHA, a concrete opaque
- * hex so html-to-image inlines a stable fill and the export matches edit and preview.
- * Memoized per subject since the grid paints one per block.
- */
-export function hashTint(subjectId: string): string {
-  const cached = tintCache.get(subjectId);
-  if (cached !== undefined) {
-    return cached;
-  }
-  const tint = tintOverWhite(hashColor(subjectId), EVENT_TINT_ALPHA);
-  tintCache.set(subjectId, tint);
-  return tint;
 }

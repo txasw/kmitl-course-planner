@@ -815,30 +815,10 @@ describe('EventBlock', () => {
     );
     const block = screen.getByLabelText(/90592033/);
     expect(block).toHaveClass('kcp-soft-card', 'kcp-soft-subject');
-    expect(block).toHaveAttribute('data-surface', 'soft');
     expect(block.style.getPropertyValue('--kcp-tint')).toBe(
       hashColor('90592033'),
     );
     expect(block.style.backgroundColor).toBe('');
-  });
-
-  it('keeps the flat tint the poster captures on the flat surface', () => {
-    render(
-      <EventBlock
-        section={section}
-        meeting={meeting}
-        style={{}}
-        locale="th"
-        t={t}
-        surface="flat"
-      />,
-    );
-    const block = screen.getByLabelText(/90592033/);
-    expect(block).not.toHaveClass('kcp-soft-card');
-    expect(block).not.toHaveClass('kcp-soft-subject');
-    expect(block).toHaveClass('rounded-kcp');
-    expect(block.style.backgroundColor).not.toBe('');
-    expect(block.style.getPropertyValue('--kcp-tint')).toBe('');
   });
 
   it('draws the danger ring on the hatch overlay, apart from the soft fill', () => {

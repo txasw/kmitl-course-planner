@@ -25,7 +25,6 @@ import { dragStore } from './dragStore';
 import { EventBlock } from './EventBlock';
 import { DraggableBlock } from './DraggableBlock';
 import type { PlacedSection } from './placedSection';
-import type { BlockSurface } from './blockSurface';
 import {
   FIRST_DAY_INDEX,
   FIRST_TIME_INDEX,
@@ -69,8 +68,6 @@ interface DayLanesProps {
   fontPx: number;
   /** Pin the day labels to the scroller edge, edit mode only. */
   sticky: boolean;
-  /** The fill of a read only block; an edit block always takes the soft card. */
-  surface: BlockSurface;
   /** Show a block's name alone while it is narrower than 7em, where the block width is a
    * day column or a suggestion slide track rather than a meeting length (ADR-0047). */
   narrowBlocks: boolean;
@@ -101,7 +98,6 @@ export function DayLanes({
   dayAccent,
   fontPx,
   sticky,
-  surface,
   narrowBlocks,
   dayCard,
   exported,
@@ -247,7 +243,6 @@ export function DayLanes({
             thaiHeadroom={exported}
             showVerification={editable}
             footAtBottom={exported}
-            surface={surface}
           />
         );
       })}

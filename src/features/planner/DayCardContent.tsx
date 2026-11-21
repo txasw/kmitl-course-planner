@@ -21,7 +21,7 @@ import type { MeetingKind } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { DensityLevel } from '@/lib/planner/blockDensity';
 import type { BlockBadge } from './blockBadge';
-import { chipClass, type BlockSurface } from './blockSurface';
+import { CHIP_CLASS } from './blockSurface';
 import {
   HATCH_BACKDROP,
   NAME_CLAMP,
@@ -46,7 +46,6 @@ interface DayCardContentProps {
   abbreviations: readonly string[];
   color: string;
   badge: BlockBadge | null;
-  surface: BlockSurface;
   /** Keep the first line clear of the remove control that shows in the top right corner on
    * hover and focus under a fine pointer. */
   reserveRemove: boolean;
@@ -70,7 +69,6 @@ export function DayCardContent({
   abbreviations,
   color,
   badge,
-  surface,
   reserveRemove,
   t,
 }: DayCardContentProps) {
@@ -80,9 +78,7 @@ export function DayCardContent({
   const line = nameLine(level, name, nameLang, abbreviations);
   // Over the danger hatch each foot item takes its own backdrop rather than the foot as a
   // whole, so the foot keeps its full width and the id still sits at its right edge.
-  const chip = `shrink-0 rounded-kcp-inner px-1.5 ${chipClass(surface)} ${
-    surface === 'soft' ? quiet : 'text-ink'
-  } ${backdrop}`;
+  const chip = `shrink-0 rounded-kcp-inner px-1.5 ${CHIP_CLASS} ${quiet} ${backdrop}`;
   const clearance = reserveRemove ? REMOVE_CLEARANCE : '';
   const dot =
     badge === null ? null : (

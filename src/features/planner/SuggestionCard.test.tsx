@@ -98,9 +98,9 @@ describe('SuggestionCard', () => {
     // The unticked lab is left out of the drawn week.
     expect(placed.has(entries[0]?.teachTableId)).toBe(false);
     expect(grid.querySelector('button')).toBeNull();
-    // The card is read only but never exported, so its blocks take the soft card.
+    // The blocks take the soft card of the main grid.
     for (const block of grid.querySelectorAll('[data-teach-table-id]')) {
-      expect(block).toHaveAttribute('data-surface', 'soft');
+      expect(block).toHaveClass('kcp-soft-card', 'kcp-soft-subject');
     }
   });
 
