@@ -30,8 +30,8 @@ import { UnscheduledShelf } from './UnscheduledShelf';
 import { WeeklyGrid } from './WeeklyGrid';
 import type { PlacedSection } from './placedSection';
 
-/** The template independent poster inputs the gallery bundles once and passes to every
- * visible poster, so the selected and its peeking neighbors read the same plan snapshot. */
+/** The template independent poster inputs the gallery bundles once and passes to the
+ * selected poster, so a template switch reads the same plan snapshot. */
 export interface PosterData {
   planName: string;
   term: { year: string; semester: '1' | '2' | '3' } | null;

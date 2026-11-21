@@ -300,7 +300,7 @@ export function PlannerPanel() {
   // gallery measures the stage and the one resolved template drives it and the toolbar.
   const template = resolveStageTemplate(selectedTemplate, stageTall);
   // The template independent poster inputs, bundled once so the gallery renders the selected
-  // poster and its peeking neighbors from one plan snapshot and can defer the neighbors.
+  // poster from one plan snapshot that a template switch does not rebuild.
   const posterData = useMemo<PosterData>(
     () => ({
       planName: activePlan?.name ?? t('plan.untitled'),

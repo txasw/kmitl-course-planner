@@ -1,26 +1,21 @@
 import { describe, it, expect } from 'vitest';
 import { DEFAULT_TEMPLATE, templateBySlug } from './exportTemplates';
 import {
-  EDGE_RESERVE_PX,
   MAX_STAGE_SCALE,
-  NARROW_STAGE_PX,
-  isNarrowStage,
   TALL_STAGE_TEMPLATE_SLUG,
   isTallStage,
-  neighborScale,
   resolveStageTemplate,
   selectedScale,
 } from './previewStage';
 
-// Share 16:9 lays out at 960 by 540; the portrait phone wallpaper at 720 by 1560.
+// Share 16:9 lays out at 960 by 540.
 const share = templateBySlug('share-16-9');
-const portrait = templateBySlug('phone-wallpaper-portrait');
 
 describe('selectedScale', () => {
-  it('fits the width left after the edge reserve when width binds', () => {
-    // 1200 px wide keeps 1080 after the reserve; 1080 / 960 is under the height bound.
+  it('fits the width share when width binds, with no edge kept for a neighbour', () => {
+    // 1200 * 0.94 / 960 is under the height bound of 1000 * 0.94 / 540.
     expect(selectedScale(share, { width: 1200, height: 1000 })).toBeCloseTo(
-      (1200 - 2 * EDGE_RESERVE_PX) / 960,
+      (1200 * 0.94) / 960,
     );
   });
 
@@ -43,47 +38,18 @@ describe('selectedScale', () => {
     expect(MAX_STAGE_SCALE).toBe(2);
   });
 
-  it('drops the edge reserve on a narrow stage', () => {
-    // 600 px is narrow, so the poster fits 0.94 of the full width rather than 600 - 120.
+  it('fits the same share of the width on a narrow and a wide stage', () => {
     expect(selectedScale(share, { width: 600, height: 800 })).toBeCloseTo(
       (600 * 0.94) / 960,
     );
-    // At the boundary the reserve applies again.
-    expect(
-      selectedScale(share, { width: NARROW_STAGE_PX, height: 2000 }),
-    ).toBeCloseTo((NARROW_STAGE_PX - 2 * EDGE_RESERVE_PX) / 960);
+    expect(selectedScale(share, { width: 900, height: 2000 })).toBeCloseTo(
+      (900 * 0.94) / 960,
+    );
   });
 
   it('falls back to a small positive scale on an unmeasured stage', () => {
     expect(selectedScale(share, { width: 0, height: 0 })).toBe(0.1);
     expect(selectedScale(share, { width: 300, height: 0 })).toBe(0.1);
-  });
-});
-
-describe('neighborScale', () => {
-  it('sits a neighbor a touch shorter than the selection height', () => {
-    expect(neighborScale(portrait, { width: 1000, height: 800 })).toBeCloseTo(
-      (800 * 0.94 * 0.9) / 1560,
-    );
-  });
-
-  it('shares the selection cap', () => {
-    expect(neighborScale(share, { width: 5000, height: 4000 })).toBe(
-      MAX_STAGE_SCALE,
-    );
-  });
-
-  it('falls back to a small positive scale with no height', () => {
-    expect(neighborScale(share, { width: 900, height: 0 })).toBe(0.1);
-  });
-});
-
-describe('isNarrowStage', () => {
-  it('is narrow below 900 px of stage width', () => {
-    expect(NARROW_STAGE_PX).toBe(900);
-    expect(isNarrowStage({ width: 899, height: 600 })).toBe(true);
-    expect(isNarrowStage({ width: 900, height: 600 })).toBe(false);
-    expect(isNarrowStage({ width: 390, height: 700 })).toBe(true);
   });
 });
 

@@ -38,9 +38,9 @@
 // re-converges, recovering fields a larger canvas now has room for.
 //
 // The box also settles asynchronously: the poster's final size resolves over the next few
-// frames as fonts, the gallery scale transform, and the deferred neighbor posters lay out, and
-// the block's box can resize then with no prop change, so a single measurement can read a
-// transient size and miss the overflow. A ResizeObserver on the measured box resets the fit to
+// frames as fonts and the gallery scale transform lay out, and the block's box can resize
+// then with no prop change, so a single measurement can read a transient size and miss the
+// overflow. A ResizeObserver on the measured box resets the fit to
 // full whenever the box resizes, so the convergence re-runs against the settled size. Because a
 // demotion never resizes this box, the observer fires only on real box changes, not on a drop.
 //
@@ -201,11 +201,11 @@ export function useDensityFit(
     }
   });
 
-  // The poster box does not settle in one frame: fonts, the gallery scale transform, and the
-  // deferred neighbor posters resolve over the next few frames, and the block's box can change
-  // size then with no prop change, so a single measurement can miss the final size. Observe the
-  // measured box and, whenever it resizes, reset to the full field set so the convergence above
-  // re-runs against the settled size. Resetting to a fresh full level always re-renders, which
+  // The poster box does not settle in one frame: fonts and the gallery scale transform resolve
+  // over the next few frames, and the block's box can change size then with no prop change,
+  // so a single measurement can miss the final size. Observe the measured box and, whenever it
+  // resizes, reset to the full field set so the convergence above re-runs against the settled
+  // size. Resetting to a fresh full level always re-renders, which
   // re-arms the convergence even when the level was already full. Demoting a field never
   // resizes this box, which is flex sized by the grid cell, so the observer does not loop.
   useLayoutEffect(() => {
