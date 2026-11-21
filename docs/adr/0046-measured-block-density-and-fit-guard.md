@@ -174,3 +174,15 @@ out of this change: the task asked for an id that does not fit to drop whole, th
 always carries the id, and a legend takes height from the grid on exactly the templates short
 of it. Whether to follow the mockup on either point is the owner's call. Letting the id wrap at
 a narrower type size was rejected because a code split at any size still reads as two codes.
+
+## Amendment, 2026-11-22: the id never takes the name's place
+
+The owner ruled that the subject name must always show on a timetable block (ADR-0047 amendment
+of 2026-11-22). The drop priority of this ADR is unchanged and the name still never drops, but
+the name form no longer steps to the subject id or to no text. A name with a word wider than its
+line steps one type size smaller, then through its abbreviated forms for a name in Latin script,
+then to a break form as the last resort. The subject id is only ever its own whole field, shown
+under the show subject id option and dropped first, so the reclaim pass offers it back on every
+name form. The eligibility carries the count of the name's abbreviated forms in its mask, so a
+change of name resets the fit. The fit guard and the clipped text sweep run the block name guard,
+which now fails a block that shows no name or the id alone, on every export template.
