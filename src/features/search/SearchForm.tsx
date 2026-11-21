@@ -19,6 +19,7 @@ import { useSearchFocusTracking } from '@/features/shell/attentionStore';
 import { commitAndFocus } from '@/features/shell/commitAndFocus';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_HEIGHT } from '@/lib/ui/target';
 import {
   CategoryFields,
   ClassFields,
@@ -218,18 +219,20 @@ export function SearchForm({ dock }: SearchFormProps = {}) {
             t={t}
             onSubmit={handleSubmit}
             dock={dock}
+            clear={
+              <button
+                type="button"
+                onClick={() => {
+                  searchStore.getState().clearActiveForm();
+                  setSubjectIdAttempted(false);
+                }}
+                className={`inline-flex items-center gap-1 self-center rounded-kcp px-2 text-sm text-ink-soft hover:text-ink ${TARGET_HEIGHT} ${FOCUS_RING}`}
+              >
+                <RotateCcw size={14} strokeWidth={2} aria-hidden />
+                {t('search.clear')}
+              </button>
+            }
           />
-          <button
-            type="button"
-            onClick={() => {
-              searchStore.getState().clearActiveForm();
-              setSubjectIdAttempted(false);
-            }}
-            className={`inline-flex min-h-6 items-center gap-1 self-center rounded-kcp px-2 text-sm text-ink-soft hover:text-ink pointer-coarse:min-h-11 ${FOCUS_RING}`}
-          >
-            <RotateCcw size={14} strokeWidth={2} aria-hidden />
-            {t('search.clear')}
-          </button>
         </div>
       </div>
     </div>
