@@ -181,7 +181,7 @@ function SubjectCard({
   const hasSecondary = secondary !== '' && secondary !== primary;
 
   return (
-    <li className="rounded-kcp border border-border bg-surface px-3 py-2">
+    <li className="kcp-soft-card kcp-soft-quiet px-3 py-2">
       <div className="flex items-start gap-2">
         <h4
           ref={headingRef}
