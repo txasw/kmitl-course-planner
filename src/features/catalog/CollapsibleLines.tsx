@@ -8,6 +8,11 @@
 // The control is a text button with a 24 px target, 44 px under a coarse pointer, that
 // takes the line's own height through a negative margin so the row does not grow for it.
 // It stops the press events so pressing it never starts a drag of the row it sits in.
+//
+// The clamp paints the text past its second line transparent (clampTail): a Thai tone mark
+// of the first hidden line rises into the foot of the second, inside the clip, and would
+// otherwise show as a stray mark beside the ellipsis. The layout, the ellipsis, and the
+// accessible text are unchanged.
 
 import { useId, useRef, useState, type ReactNode } from 'react';
 import type { Locale } from '@/lib/i18n/t';
@@ -47,7 +52,12 @@ export function CollapsibleLines({
   // Collapsed, the lines share one item that keeps their breaks, so the two line clamp
   // counts every line and the measure sees all the text.
   const joined = lines.join('\n');
-  const clipped = useTruncated(restRef, !expanded, joined);
+  const { clipped, tail } = useTruncated(
+    restRef,
+    !expanded,
+    joined,
+    CLAMP_LINES,
+  );
   if (lines.length === 0) {
     return null;
   }
@@ -79,7 +89,16 @@ export function CollapsibleLines({
             ref={restRef}
             className="line-clamp-2 break-words whitespace-pre-line"
           >
-            {joined}
+            {tail === null ? (
+              joined
+            ) : (
+              <>
+                {joined.slice(0, tail)}
+                <span data-clamp-tail="" className="text-transparent">
+                  {joined.slice(tail)}
+                </span>
+              </>
+            )}
           </li>
         )}
       </ul>
