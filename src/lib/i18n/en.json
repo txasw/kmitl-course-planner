@@ -397,6 +397,7 @@
   "section.remark.label": "Remark",
   "section.remark.showAll": "Show full remark",
   "section.remark.hide": "Hide remark",
+  "detail.seatsLastKnown": "Last known figures, from before the check on {time}",
   "detail.verifiedAt": "Last checked",
   "month.1": "Jan",
   "month.2": "Feb",

@@ -106,6 +106,7 @@ export function BlockDetailBody({
           locale={locale}
           t={t}
           lastVerifiedAt={entry.lastVerifiedAt}
+          seatsLastKnown={entry.verifyStatus === 'missing'}
         />
       </div>
     </>

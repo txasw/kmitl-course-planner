@@ -112,6 +112,21 @@ describe('SeatDemand full variant', () => {
     }
   });
 
+  it('reads muted last known figures in neutral ink with no tone', () => {
+    const { container } = render(
+      <SeatDemand
+        demand={demandFor(OVERSUBSCRIBED)}
+        t={createTranslator('th')}
+        variant="full"
+        muted
+      />,
+    );
+    expect(container.querySelector('p')).toHaveClass('text-ink-soft');
+    expect(container.querySelector('.text-danger')).toBeNull();
+    expect(container.querySelector('.text-warn')).toBeNull();
+    expect(screen.queryByText('ลงทะเบียนล่วงหน้าเกินจำนวนรับ')).toBeNull();
+  });
+
   it('leaves the capacity out of an uncapped section', () => {
     render(
       <SeatDemand

@@ -15,6 +15,7 @@ import { buildSnapshot, type PlanEntry } from '@/lib/domain/plan';
 import type { Course, Section } from '@/lib/domain/types';
 import { loadFixture } from '../../../tests/support/fixtures';
 import {
+  makeCourse,
   makeMeeting,
   makePlanEntry,
   makeSnapshot,
@@ -25,6 +26,7 @@ import {
 } from '../../../tests/support/plan-store';
 import { planStore } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
+import { searchStore } from '@/features/search/searchStore';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { toastStore } from '@/features/shell/toastStore';
 import { installViewport } from '../../../tests/support/viewport';
@@ -55,6 +57,7 @@ afterEach(() => {
   resetPlanStore();
   uiStore.getState().setViewMode('edit');
   revalidationStore.setState({ runs: {} });
+  searchStore.setState({ resultQuery: null, result: { status: 'idle' } });
   document.querySelectorAll('[data-teach-table-id]').forEach((node) => {
     node.remove();
   });
@@ -383,6 +386,91 @@ describe('BlockDetailSurface on a fine pointer from 640 px', () => {
     expect(rowValues('Conditions')).toEqual(['Year 1 only']);
     expect(rowValues('Remark')).toEqual(['Shared with another faculty']);
     expect(rowValues('Last checked')).toEqual(['6 Nov 2569 08:05']);
+  });
+
+  // A section the latest check no longer lists has no current seats: its counts read in
+  // neutral ink as the last known figures, never in the open green of a live section.
+  function seedMissing(): void {
+    act(() => {
+      seedActivePlan([
+        makePlanEntry({
+          verifyStatus: 'missing',
+          lastVerifiedAt: new Date(2026, 10, 6, 8, 5).toISOString(),
+          snapshot: makeSnapshot({
+            seats: { limit: 45, preCount: 0, queueLeft: 0, enrolled: 33 },
+          }),
+        }),
+      ]);
+    });
+  }
+
+  it('reads the seats of a missing entry as last known, in neutral ink', () => {
+    seedMissing();
+    renderPopover();
+    expect(rowValues('Seats')).toEqual([
+      '12 of 45 openCapacity 45 Enrolled 33 Pre registered 0 Queue 0',
+      'Last known figures, from before the check on 6 Nov 2569 08:05',
+    ]);
+    const line = screen.getByText('12 of 45 open').parentElement;
+    expect(line).toHaveClass('text-ink-soft');
+    expect(line).not.toHaveClass('text-success');
+  });
+
+  it('keeps the live seat tone and no last known note for a verified entry', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry({ verifyStatus: 'verified' })]);
+    });
+    renderPopover();
+    expect(screen.queryByText(/Last known figures/)).not.toBeInTheDocument();
+  });
+
+  it('hides Change section for a missing entry the catalog does not list', () => {
+    seedMissing();
+    renderPopover();
+    expect(
+      screen.queryByRole('button', { name: /^Change section/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('offers Change section for a missing entry while the catalog lists it', () => {
+    seedMissing();
+    act(() => {
+      searchStore.setState({
+        resultQuery: {
+          mode: 'by_subject_id',
+          selected_year: '2569',
+          selected_semester: '1',
+          search_all_faculty: true,
+          search_all_department: true,
+          search_all_curriculum: true,
+          search_all_class_year: true,
+          selected_subject_id: '90000001',
+        },
+        result: {
+          status: 'ready',
+          data: {
+            courses: [makeCourse()],
+            duplicateCount: 0,
+            multiMeetingCount: 0,
+            warnings: [],
+          },
+        },
+      });
+    });
+    renderPopover();
+    expect(
+      screen.getByRole('button', { name: /^Change section/ }),
+    ).toBeInTheDocument();
+  });
+
+  it('offers Change section for a verified entry the catalog does not list', () => {
+    act(() => {
+      seedActivePlan([makePlanEntry({ verifyStatus: 'verified' })]);
+    });
+    renderPopover();
+    expect(
+      screen.getByRole('button', { name: /^Change section/ }),
+    ).toBeInTheDocument();
   });
 
   // The synthetic exam overlap fixture: 90000010/901 and 90000011/901 meet on different
