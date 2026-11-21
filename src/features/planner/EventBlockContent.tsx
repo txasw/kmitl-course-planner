@@ -137,9 +137,14 @@ export function EventBlockContent({
           {secondary}
         </span>
       ) : null}
+      {/* The row spreads the place and the chip with justify-between rather than an auto
+          margin on the chip. The export capture inlines each computed style, and an auto margin
+          reads back as the pixels it resolved to, so a row a fraction wider in the raster
+          wrapped the chip onto a clipped line and the image lost the section. A chip that wraps
+          on a narrow block starts its own line under the place. */}
       {showRow ? (
         <span
-          className={`mt-0.5 flex shrink-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-ink ${backdrop} ${narrowHidden}`}
+          className={`mt-0.5 flex shrink-0 flex-wrap items-baseline justify-between gap-x-1.5 gap-y-0.5 text-ink ${backdrop} ${narrowHidden}`}
         >
           {level.showPlace ? (
             <span className="min-w-0 break-words">
@@ -157,8 +162,6 @@ export function EventBlockContent({
             <span
               className={`shrink-0 rounded-kcp-inner px-1 text-[0.85em] tabular-nums ${chipClass(surface)} ${
                 surface === 'soft' ? quiet : 'text-ink'
-              } ${
-                level.showPlace ? 'ml-auto' : ''
               } ${reserveRemove ? REMOVE_STEP_ASIDE : ''}`}
             >
               {sectionCode}

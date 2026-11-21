@@ -520,7 +520,10 @@ describe('EventBlock', () => {
     // The chip trails the place in the same wrapping row, so it never sits over text.
     const chip = within(block).getByText('901');
     expect(chip.className).not.toContain('absolute');
-    expect(chip).toHaveClass('ml-auto');
+    // The row spreads the place and the chip apart; an auto margin would read back as fixed
+    // pixels in the export capture and wrap the chip out of the image.
+    expect(chip).not.toHaveClass('ml-auto');
+    expect(chip.parentElement).toHaveClass('justify-between');
     expect(chip.parentElement?.textContent).toContain('A · A101');
     // The foot holds the quiet time and id; the promoted place line sits above it, not in it.
     const foot = within(block).getByText('90592033').closest('.mt-1');
