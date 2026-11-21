@@ -1,9 +1,9 @@
 // Reports whether a line clamp clips its text, down its height or across its width for a
 // word too long to break, so a clamp offers its expand control only when there is hidden
 // text to reveal. It also reports where the hidden lines start (clampTail), so the clamp
-// can paint them transparent and no mark of a hidden Thai line shows inside the clip. A catalog renders hundreds of rows and about half carry a
-// condition or remark line, so every line shares one ResizeObserver rather than each row
-// creating its own. The observer reports each target once when it starts observing and again
+// can paint them transparent and no mark of a hidden Thai line shows inside the clip. A
+// catalog renders hundreds of rows and about half carry a condition or remark line, so every
+// line shares one ResizeObserver rather than each row creating its own. The observer reports each target once when it starts observing and again
 // whenever its box changes, which covers the first layout and a resized panel; a changed text
 // re-observes the target so the new text is measured too. Painting the hidden part
 // transparent never changes the box, so it never sets off another report. jsdom has no
