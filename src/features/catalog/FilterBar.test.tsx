@@ -47,7 +47,7 @@ describe('FilterBar', () => {
     // The search glyph and the hint name the field for the eye, so no line is spent
     // on a visible label.
     expect(screen.queryByText('กรองรายการ')).toBeNull();
-    expect(field).toHaveAttribute('placeholder', 'รหัส ชื่อวิชา หรืออาจารย์');
+    expect(field).toHaveAttribute('placeholder', 'รหัส ชื่อวิชา หรือผู้สอน');
     fireEvent.change(field, { target: { value: '9059' } });
     expect(catalogStore.getState().filter.text).toBe('9059');
   });

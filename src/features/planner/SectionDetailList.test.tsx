@@ -79,7 +79,7 @@ describe('SectionDetailList', () => {
     );
     // The hover card keeps the short credit string alone.
     expect(rowValues('ประเภทและหน่วยกิต')).toEqual(['ปฏิบัติ 3(2-2-5)']);
-    expect(rowValues('อาจารย์ผู้สอน')).toEqual(['อ. หนึ่ง', 'อ. สอง']);
+    expect(rowValues('ผู้สอน')).toEqual(['อ. หนึ่ง', 'อ. สอง']);
     expect(screen.getByText('อ. หนึ่ง')).toHaveAttribute('lang', 'th');
   });
 
@@ -145,7 +145,7 @@ describe('SectionDetailList', () => {
         t={th}
       />,
     );
-    expect(rowValues('อาจารย์ผู้สอน')).toEqual(['อ. หนึ่ง', 'อ. หนึ่ง']);
+    expect(rowValues('ผู้สอน')).toEqual(['อ. หนึ่ง', 'อ. หนึ่ง']);
     const errorCalls = consoleError.mock.calls.length;
     consoleError.mockRestore();
     expect(errorCalls).toBe(0);

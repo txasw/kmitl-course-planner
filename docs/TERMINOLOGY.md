@@ -23,7 +23,7 @@ Thai copy consistent with this list.
 | Practice (lect_or_prac ป) | ปฏิบัติ           | Not ปฏิบัติการ.                                         |
 | Seat full                 | เต็ม            | The API sends the marker เต็ม/Full.                   |
 | Seat closed               | ปิด             | The section is not open for enrollment.              |
-| Instructor                | อาจารย์ผู้สอน     | ผู้สอน where space is tight.                           |
+| Instructor                | ผู้สอน           | English Instructors; not Teachers or อาจารย์ผู้สอน.     |
 | Room                      | ห้อง            |                                                      |
 | Building                  | อาคาร          |                                                      |
 | Plan (a saved timetable)  | ตาราง          | English label Plan; the domain type stays Plan.      |
