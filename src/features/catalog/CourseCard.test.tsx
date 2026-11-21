@@ -70,7 +70,7 @@ function describedIds(): string[] {
 }
 
 describe('CourseCard seat status', () => {
-  it('shows the remaining count, full, and closed seat lines', () => {
+  it('shows the remaining count line and states full and closed once, in the badge', () => {
     const course = makeCourse({
       sections: [
         makeSection({
@@ -89,9 +89,11 @@ describe('CourseCard seat status', () => {
     render(
       <Controlled initialOpen course={course} placed={[]} locale="th" t={t} />,
     );
-    expect(screen.getByText('ว่าง 7 จาก 40')).toBeInTheDocument();
-    expect(screen.getByText('เต็ม เพิ่มไม่ได้')).toBeInTheDocument();
-    expect(screen.getByText('ปิด เพิ่มไม่ได้')).toBeInTheDocument();
+    expect(screen.getByText('ว่าง 7 จาก 40')).toBeVisible();
+    expect(screen.getByText('เต็ม')).toBeVisible();
+    expect(screen.getByText('เต็ม เพิ่มไม่ได้')).not.toBeVisible();
+    expect(screen.getByText('ปิด')).toBeVisible();
+    expect(screen.getByText('ปิด เพิ่มไม่ได้')).not.toBeVisible();
   });
 });
 
