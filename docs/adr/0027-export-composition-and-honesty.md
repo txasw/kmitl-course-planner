@@ -56,3 +56,39 @@ menu owns durable plan data and the preview toolbar owns visual sharing, so each
 surface has a single responsibility. A future export format reads the same poster
 node and the same display options, and a future data operation joins the plan menu
 rather than the toolbar.
+
+## Amendment, 2026-11-21: the display options open inline from 640 px up
+
+The stricter text fit sweep read the export page behind the display options and found the
+popover cutting lines at its edges at 768 and 1366 px: anchored to the end of the toolbar, it
+floated over the full width template chips and the poster, so its edges split a chip name such
+as ภาพพื้นหลังโทรศัพท์แนวตั้ง and its size 1080 × 2340, the poster date, the hour labels, and
+the toolbar status. No position of a floating layer avoids them, since the chips and the poster
+fill the width under the toolbar. The rule that no text is cut or hidden at any width, in Thai
+and in English, outranks the word popover in the brief for this control.
+
+- From 640 px up the display options are a disclosure. The same toolbar button toggles an inline
+  panel under the toolbar row, carrying aria-expanded and aria-controls, and the panel pushes the
+  template chips and the stage down rather than float over them. The panel stays in the DOM while
+  hidden, so the reference always resolves. It holds every option of the popover, the name
+  language and the four switches, side by side where the width allows and wrapped where it does
+  not, and the choices persist through the ui store as before. Escape from the button or the
+  panel closes it only and returns focus to the button, through the shared escape layer, so the
+  overlay stays open. A press elsewhere leaves it open, since closing it would move the chips and
+  the poster under the pointer.
+- Below 640 px the options stay a modal bottom sheet. Its scrim covers the page whole, so it cuts
+  no line at an edge the student can read past.
+- From 640 px up the stage keeps a floor of 16rem, so the poster stays readable with the panel
+  open on a short window, and the export page scrolls past that floor rather than shrink the
+  poster or clip the panel. The panel region grows past the panel height for this; edit mode
+  keeps its fixed height. Below 640 px the stage keeps no floor, since the sheet covers the page
+  rather than take height from it, and a floor there would push the foot toolbar out of view on
+  a 320 by 640 window.
+- The sweep reads the export page with the panel open as a page, with no layer to excuse, and
+  reads the sheet below 640 px behind it as before.
+
+An anchored popover capped to the space beside the toolbar was rejected, because the chips start
+directly under the toolbar and any height it takes covers them. Opening the options in a modal
+dialog at every width was rejected, because the student then sets an option without seeing the
+poster change behind a scrim, and the inline panel keeps the poster in view as each switch
+applies.
