@@ -113,6 +113,7 @@ export function NameForm({
   const { t } = useTranslation();
   const inputId = useId();
   const limitId = useId();
+  const enterId = useId();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   useGrowingField(inputRef, value);
   // Focus the field on open so the user can name the plan straight away, done
@@ -141,7 +142,10 @@ export function NameForm({
           rows={1}
           value={value}
           maxLength={PLAN_NAME_MAX}
-          aria-describedby={limitId}
+          // A text area reads as multi-line, but Enter saves the one line name, so the
+          // description says so and a phone keyboard offers Done in place of a return key.
+          aria-describedby={`${limitId} ${enterId}`}
+          enterKeyHint="done"
           onChange={(event) => {
             onChange(toOneLine(event.target.value));
           }}
@@ -155,6 +159,9 @@ export function NameForm({
         />
         <span id={limitId} className="sr-only">
           {fillTemplate(t('planSwitcher.nameLimit'), { max: PLAN_NAME_MAX })}
+        </span>
+        <span id={enterId} className="sr-only">
+          {t('planSwitcher.nameEnterSaves')}
         </span>
       </div>
       {term === undefined ? null : <TermSelects {...term} />}

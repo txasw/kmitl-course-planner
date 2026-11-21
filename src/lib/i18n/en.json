@@ -33,6 +33,7 @@
   "planSwitcher.deletePromptEmpty": "Delete \"{name}\", which has no sections; this cannot be undone.",
   "planSwitcher.nameLabel": "Plan name",
   "planSwitcher.nameLimit": "Up to {max} characters",
+  "planSwitcher.nameEnterSaves": "Press Enter to save",
   "planSwitcher.save": "Save",
   "planSwitcher.copySuffix": "copy",
   "planSwitcher.rowSummary": "Credits {credits}, subjects {subjects}",

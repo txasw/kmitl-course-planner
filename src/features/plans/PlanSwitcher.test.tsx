@@ -427,7 +427,7 @@ describe('PlanSwitcher', () => {
     const input = screen.getByLabelText('ชื่อตาราง');
     expect(input).toHaveAttribute('maxLength', String(PLAN_NAME_MAX));
     expect(input).toHaveAccessibleDescription(
-      `ไม่เกิน ${String(PLAN_NAME_MAX)} ตัวอักษร`,
+      `ไม่เกิน ${String(PLAN_NAME_MAX)} ตัวอักษร กด Enter เพื่อบันทึก`,
     );
     fireEvent.change(input, { target: { value: 'ตาราง' } });
     expect(screen.getByText(`5/${String(PLAN_NAME_MAX)}`)).toBeInTheDocument();
