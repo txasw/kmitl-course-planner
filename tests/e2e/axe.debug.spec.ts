@@ -10,7 +10,7 @@ import {
 const OVERLAY = 'KCP: ตัววางแผนตารางเรียน สจล.';
 
 // Runs axe-core against the panel across its surfaces: populated edit mode, the catalog
-// filter popover, preview with the sharing toolbar, the display options popover, and the
+// filter popover, preview with the sharing toolbar, the display options panel, and the
 // import error dialog.
 test('the panel passes axe across the edit, preview, and dialog surfaces', async ({
   context,
@@ -50,7 +50,7 @@ test('the panel passes axe across the edit, preview, and dialog surfaces', async
   ).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
 
-  // 4. The display options popover.
+  // 4. The display options panel.
   await page.getByRole('button', { name: 'ตัวเลือกการแสดงผล' }).click();
   await expect(page.getByText('แสดงห้อง')).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);

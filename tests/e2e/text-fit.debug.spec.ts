@@ -670,24 +670,32 @@ for (const language of ['th', 'en'] as const) {
         await page
           .getByRole('button', { name: sweep.t('preview.displayOptions') })
           .click();
-        await sweep.scan(
-          'display options',
-          page
-            .getByRole('dialog', { name: sweep.t('preview.displayOptions') })
-            .or(
-              page.locator(
-                `div[aria-label="${sweep.t('preview.displayOptions')}"]`,
-              ),
-            ),
-        );
-        await sweep.scan(
-          'export page behind the display options',
-          sweep.panel(),
-          {
-            behind: true,
-          },
-        );
+        // Below 640 px the options are a modal sheet over the page; from 640 px up they are an
+        // inline panel that pushes the chips and the stage down, so the page with it open is
+        // read as a page, with nothing over it to excuse.
+        const options = sweep.phone
+          ? page.getByRole('dialog', {
+              name: sweep.t('preview.displayOptions'),
+            })
+          : page.getByRole('region', {
+              name: sweep.t('preview.displayOptions'),
+            });
+        await expect(options).toBeVisible();
+        await sweep.scan('display options', options);
+        if (sweep.phone) {
+          await sweep.scan(
+            'export page behind the display options',
+            sweep.panel(),
+            { behind: true },
+          );
+        } else {
+          await sweep.scan(
+            'export page with the display options open',
+            sweep.panel(),
+          );
+        }
         await page.keyboard.press('Escape');
+        await expect(options).toBeHidden();
       }
       sweep.expectClean();
     });
