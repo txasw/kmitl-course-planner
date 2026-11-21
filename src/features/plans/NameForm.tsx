@@ -2,9 +2,13 @@
 // and save stays disabled while the name is blank or past the name cap, which a rename of
 // a plan named before the cap can start from. A live counter shows the room left. A create
 // also picks the plan's year and semester, since a plan belongs to one term for life; a
-// rename never offers it.
+// rename never offers it. The field is a text area that grows to the lines the name needs,
+// so a long name shows whole rather than scrolled to its end with its first glyph cut at
+// the field edge, while it keeps the one line behavior of a name: Enter saves, and a line
+// break typed or pasted becomes a space.
 
 import { useEffect, useId, useRef } from 'react';
+import { useGrowingField } from './useGrowingField';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { PLAN_NAME_MAX } from '@/lib/domain/plan';
 import { fillTemplate } from '@/lib/i18n/template';
@@ -22,6 +26,11 @@ export interface NameFormTerm {
   value: Term;
   years: readonly string[];
   onChange: (term: Term) => void;
+}
+
+/** A typed or pasted name on one line: each line break becomes a space. */
+export function toOneLine(value: string): string {
+  return value.replace(/\r\n|[\r\n]/g, ' ');
 }
 
 /** Whether a typed plan name can be saved: not blank and within the name cap. */
@@ -104,7 +113,8 @@ export function NameForm({
   const { t } = useTranslation();
   const inputId = useId();
   const limitId = useId();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  useGrowingField(inputRef, value);
   // Focus the field on open so the user can name the plan straight away, done
   // through a ref rather than autoFocus to satisfy the accessibility lint.
   useEffect(() => {
@@ -125,15 +135,15 @@ export function NameForm({
             {value.length}/{PLAN_NAME_MAX}
           </span>
         </span>
-        <input
+        <textarea
           ref={inputRef}
           id={inputId}
-          type="text"
+          rows={1}
           value={value}
           maxLength={PLAN_NAME_MAX}
           aria-describedby={limitId}
           onChange={(event) => {
-            onChange(event.target.value);
+            onChange(toOneLine(event.target.value));
           }}
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
@@ -141,7 +151,7 @@ export function NameForm({
               onSubmit();
             }
           }}
-          className={`rounded-kcp border px-2 py-1 text-ink ${CONTROL_BOUNDARY} ${FOCUS_RING}`}
+          className={`resize-none overflow-hidden break-words rounded-kcp border px-2 py-1 text-ink ${CONTROL_BOUNDARY} ${FOCUS_RING}`}
         />
         <span id={limitId} className="sr-only">
           {fillTemplate(t('planSwitcher.nameLimit'), { max: PLAN_NAME_MAX })}

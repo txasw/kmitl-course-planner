@@ -230,6 +230,38 @@ export class Sweep {
     this.checkPinnedRow(surface, read);
   }
 
+  /**
+   * Check that a text field shows its whole value: it scrolls neither down nor sideways, so
+   * no glyph rests cut at its edge. The scan cannot read this, since a field draws its value
+   * inside the control rather than as a text leaf of the page.
+   */
+  async expectFieldWhole(surface: string, field: Locator): Promise<void> {
+    await settle(this.page);
+    const read = await field.evaluate((node) =>
+      node instanceof HTMLTextAreaElement || node instanceof HTMLInputElement
+        ? {
+            scrollWidth: node.scrollWidth,
+            clientWidth: node.clientWidth,
+            scrollHeight: node.scrollHeight,
+            clientHeight: node.clientHeight,
+            scrollLeft: node.scrollLeft,
+          }
+        : null,
+    );
+    if (read === null)
+      throw new Error(`${surface}: the field is not a text field`);
+    if (
+      read.scrollWidth > read.clientWidth + 1 ||
+      read.scrollHeight > read.clientHeight + 1 ||
+      read.scrollLeft > 0
+    ) {
+      this.fault(
+        surface,
+        `the name field holds ${String(read.scrollWidth)}x${String(read.scrollHeight)} in ${String(read.clientWidth)}x${String(read.clientHeight)}`,
+      );
+    }
+  }
+
   private fault(surface: string, text: string): void {
     this.findings.push({ kind: 'clipped', text, surface, width: this.width });
   }

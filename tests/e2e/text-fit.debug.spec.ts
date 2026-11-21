@@ -37,7 +37,7 @@ import {
 // toast up and after a failed save, rests the pointer on the export template dots and the
 // suggestion carousel chevrons past the tooltip delay, and walks the product tour. Behind the
 // block details and the display options it reads the panel, where the opened layer may cover a
-// line whole but its edge may cut none.
+// line whole but its edge may cut none, and it checks the plan name field holds a long name.
 
 // A walk this long fails at the step that stalls rather than at the test timeout.
 test.use({ actionTimeout: 10_000 });
@@ -130,6 +130,16 @@ for (const language of ['th', 'en'] as const) {
         await sweep.scan('plan switcher', menu);
         await create.click();
         await sweep.scan('create plan form', menu);
+        // A long name wraps in the field rather than scrolling it to its end.
+        const createName = menu.getByRole('textbox', {
+          name: sweep.t('planSwitcher.nameLabel'),
+        });
+        await createName.fill(LONG_PLAN_NAME[language]);
+        await sweep.scan('create plan form with a long name', menu);
+        await sweep.expectFieldWhole(
+          'create plan form with a long name',
+          createName,
+        );
         await page.keyboard.press('Escape');
 
         const catalog = await showCatalog(sweep);
@@ -314,10 +324,17 @@ for (const language of ['th', 'en'] as const) {
           .first()
           .click();
         await sweep.scan('rename plan form', menu);
-        // A long name rests on one line in the trigger, and the term under it stays whole.
-        await menu
-          .getByRole('textbox', { name: sweep.t('planSwitcher.nameLabel') })
-          .fill(LONG_PLAN_NAME[language]);
+        // A long name wraps whole in the field, then shows whole in the trigger with the term
+        // under it.
+        const renameName = menu.getByRole('textbox', {
+          name: sweep.t('planSwitcher.nameLabel'),
+        });
+        await renameName.fill(LONG_PLAN_NAME[language]);
+        await sweep.scan('rename plan form with a long name', menu);
+        await sweep.expectFieldWhole(
+          'rename plan form with a long name',
+          renameName,
+        );
         await menu
           .getByRole('button', {
             name: sweep.t('planSwitcher.save'),
