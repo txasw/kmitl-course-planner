@@ -199,8 +199,6 @@ and the sheets use already covers the gesture, and a dependency would add bundle
 dialog. Keeping a full size view beside the slides was rejected because it would show the same
 grid a second time with only a little more height.
 
-
-
 ## Amendment, 2026-11-21: the carousel chevron names open below
 
 The previous and next chevrons of the carousel open their name tooltips below the chevron. A
