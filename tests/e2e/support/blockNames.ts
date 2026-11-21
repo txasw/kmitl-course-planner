@@ -1,17 +1,23 @@
 // A layout check for the block names of a grid, the regression guard for names that broke
-// one character per line in a narrow day column. jsdom cannot evaluate the container query
-// that gives a narrow block its name only layout, so the check runs in the browser against
-// laid out text. For every shown name it reports a name the block cuts off without the
-// density fit clamping it, and a line that holds a single grapheme of a longer word. A word
-// of one grapheme, such as the 1 that ends a course name, may sit alone on its line. A name
-// that is not Thai, or a Thai name field written with no Thai letter, is held to its word
-// boundaries: any word whose letters run over two lines is reported, since a name in Latin
-// capitals breaks with no hyphen. A Thai name keeps the browser's dictionary breaks, and a Thai
-// word wider than the whole line may break inside.
+// one character per line in a narrow day column and for blocks that read as a bare subject
+// id. jsdom cannot evaluate the container query that gives a narrow block its name only
+// layout, so the check runs in the browser against laid out text. Every block shows its name,
+// in full, one type step smaller, or abbreviated (the ADR-0047 amendment of 2026-11-22), so a
+// name with no text or one that reads as the eight digit id alone is reported. For every shown
+// name it also reports a name the block cuts off without the density fit clamping it, and a
+// line that holds a single grapheme of a longer word. A word of one grapheme, such as the 1
+// that ends a course name, may sit alone on its line. A name that is not Thai, or a Thai name
+// field written with no Thai letter, is held to its word boundaries: any word whose letters run
+// over two lines is reported, since a name in Latin capitals breaks with no hyphen. A Thai name
+// keeps the browser's dictionary breaks, and a Thai word wider than the whole line may break
+// inside. The break form, the last resort that lets a word wider than the line break inside,
+// skips the word and grapheme rules and is reported only where its text would fit the line
+// unbroken, since the fit should then have stopped at an abbreviated or smaller form.
 
 import type { Locator } from '@playwright/test';
 
-/** The names in the scope that clip or strand one grapheme of a word on a line. */
+/** The names in the scope that are missing, read as the subject id alone, clip, or strand one
+ * grapheme of a word on a line. */
 export async function brokenBlockNames(scope: Locator): Promise<string[]> {
   return scope.evaluate((root) => {
     const problems: string[] = [];
@@ -21,6 +27,14 @@ export async function brokenBlockNames(scope: Locator): Promise<string[]> {
       const box = name.getBoundingClientRect();
       if (box.width === 0 || box.height === 0) continue;
       const text = name.textContent.trim();
+      if (text === '') {
+        problems.push('no name text');
+        continue;
+      }
+      if (/^\d{8}$/.test(text)) {
+        problems.push(`subject id in place of the name: ${text}`);
+        continue;
+      }
       const keepWords =
         (name.closest('[lang]')?.getAttribute('lang') ?? 'th') !== 'th' ||
         !/\p{Script=Thai}/u.test(text);
@@ -32,6 +46,17 @@ export async function brokenBlockNames(scope: Locator): Promise<string[]> {
         (box.bottom > frame.bottom + 1 || box.right > frame.right + 1)
       ) {
         problems.push(`clipped: ${text}`);
+      }
+      if (name.dataset.nameForm === 'break') {
+        // The break form is the last resort: its text must not fit the line unbroken.
+        const wrap = name.style.overflowWrap;
+        name.style.overflowWrap = 'normal';
+        const fitsWhole = name.scrollWidth <= name.clientWidth;
+        name.style.overflowWrap = wrap;
+        if (fitsWhole) {
+          problems.push(`broken although a shorter form fits: ${text}`);
+        }
+        continue;
       }
       for (const node of name.childNodes) {
         if (node.nodeType !== Node.TEXT_NODE) continue;
