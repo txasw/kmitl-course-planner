@@ -63,7 +63,7 @@
   "suggest.empty.planFits": "ตารางปัจจุบันลงวิชาที่เลือกไว้ได้ครบแล้ว เลือกวิชาอื่นเพิ่มเพื่อดูตารางที่แนะนำ",
   "suggest.empty.tickEvery": "เลือกทุกวิชา",
   "suggest.objective": "เป้าหมาย",
-  "suggest.objective.coverAll": "ครบทุกวิชา",
+  "suggest.objective.coverAll": "วิชามากที่สุด",
   "suggest.objective.maxCredits": "หน่วยกิตมากที่สุด",
   "suggest.preference": "รูปแบบตาราง",
   "suggest.pref.balanced": "สมดุล",
