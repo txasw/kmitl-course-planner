@@ -46,6 +46,15 @@ describe('abbreviationSteps', () => {
     }
   });
 
+  it('keeps a Roman numeral whole, since a cut one reads as another numeral', () => {
+    const steps = abbreviationSteps('ENGINEERING MATHEMATICS VIII');
+    expect(steps.length).toBeGreaterThan(0);
+    for (const step of steps) {
+      expect(step.endsWith(' VIII')).toBe(true);
+    }
+    expect(abbreviationSteps('CIVIL LAW').at(-1)).toBe('CI. LAW');
+  });
+
   it('cuts back past a vowel, as a printed abbreviation does', () => {
     expect(abbreviationSteps('COMPUTER')).toContain('COMP.');
     expect(abbreviationSteps('COMPUTER')).not.toContain('COMPU.');
