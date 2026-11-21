@@ -251,20 +251,20 @@ name.
 
 Decision. The name never yields. Where a word of the name is wider than its line, the name form
 steps from the full name to one type step smaller, then, for a name in Latin script, through its
-abbreviated forms at that size, least shortened first, and last to the break form, which keeps
-the shortest of those forms and lets the word still too wide break at grapheme cluster
-boundaries. A Thai name keeps the browser's dictionary breaks and has no abbreviated forms, so it
-goes from the smaller step to the break form of the whole name. The abbreviation is a pure
-function in `lib/planner/abbreviateName.ts`: a word of three letters or fewer, and the joiners
-WITH, INTO, FROM, and ONTO, stay whole; every other word is cut to a cap of letters and a period,
-moving back past a vowel it would end on, and the forms lower the cap one letter at a time from
-one that shortens only the longest words, down to two letters, so INTRODUCTION TO COMPUTER
-PROGRAMMING FOR ENGINEERS reads INTR. TO COMP. PROG. FOR ENG. at a cap of four. The fit tries each
-form in turn and keeps the first that fits. The full name stays in the block's accessible name,
-its hover card, and its details. The subject id is its own field again on every form, governed
-by the show subject id option and still the first field to drop, so it never shows twice and
-never stands in for the name. The narrow block rule is unchanged: a narrow block still shows the
-name alone, now always as its name.
+abbreviated forms at that size, least shortened first, and last to the break form, which keeps the
+shortest of those forms and lets the word still too wide break at grapheme cluster boundaries. A
+Thai name keeps the browser's dictionary breaks and has no abbreviated forms, so it goes from the
+smaller step to the break form of the whole name. The abbreviation is a pure function in
+`lib/planner/abbreviateName.ts`: a word of three letters or fewer, the joiners WITH, INTO, FROM,
+and ONTO, and a capital Roman numeral to XXXIX stay whole, since a cut VIII reads VI; every other
+word is cut to a cap of letters and a period, moving back past a vowel it would end on, and the
+forms lower the cap one letter at a time from one that shortens only the longest words, down to two
+letters, so INTRODUCTION TO COMPUTER PROGRAMMING FOR ENGINEERS reads INTR. TO COMP. PROG. FOR ENG.
+at a cap of four. The fit tries each form in turn and keeps the first that fits. The full name
+stays in the block's accessible name, its hover card, and its details. The subject id is its own
+field again on every form, governed by the show subject id option and still the first field to
+drop, so it never shows twice and never stands in for the name. The narrow block rule is unchanged:
+a narrow block still shows the name alone, now always as its name.
 
 This supersedes, from the amendment of 2026-11-21, the subject id in the name's place, the empty
 name, and the poster reading the id while the show subject id option is off. The name form
