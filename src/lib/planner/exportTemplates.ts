@@ -21,6 +21,9 @@ import type { TranslationKey } from '@/lib/i18n/t';
 export interface ExportTemplate {
   slug: string;
   labelKey: TranslationKey;
+  /** A short name that keeps the device and the orientation, for the compact picker of a
+   * phone (ADR-0045 amendment of 2026-11-21). */
+  shortLabelKey: TranslationKey;
   /** The box the poster lays out at, in CSS pixels, before the ratio scales it. */
   layoutWidth: number;
   layoutHeight: number;
@@ -37,6 +40,7 @@ export interface ExportTemplate {
 const SHARE_16_9: ExportTemplate = {
   slug: 'share-16-9',
   labelKey: 'preview.template.share',
+  shortLabelKey: 'preview.template.share',
   layoutWidth: 960,
   layoutHeight: 540,
   pixelRatio: 2,
@@ -52,6 +56,7 @@ export const EXPORT_TEMPLATES: readonly ExportTemplate[] = [
     // minor letterboxing, which is acceptable (ADR-0045).
     slug: 'phone-wallpaper',
     labelKey: 'preview.template.phone',
+    shortLabelKey: 'preview.template.phone.short',
     layoutWidth: 1200,
     layoutHeight: 540,
     pixelRatio: 2,
@@ -61,6 +66,7 @@ export const EXPORT_TEMPLATES: readonly ExportTemplate[] = [
   {
     slug: 'phone-wallpaper-portrait',
     labelKey: 'preview.template.phonePortrait',
+    shortLabelKey: 'preview.template.phonePortrait.short',
     layoutWidth: 720,
     layoutHeight: 1560,
     pixelRatio: 1.5,
@@ -70,6 +76,7 @@ export const EXPORT_TEMPLATES: readonly ExportTemplate[] = [
   {
     slug: 'tablet-wallpaper-portrait',
     labelKey: 'preview.template.tabletPortrait',
+    shortLabelKey: 'preview.template.tabletPortrait.short',
     layoutWidth: 1024,
     layoutHeight: 1366,
     pixelRatio: 2,
@@ -79,6 +86,7 @@ export const EXPORT_TEMPLATES: readonly ExportTemplate[] = [
   {
     slug: 'tablet-wallpaper-landscape',
     labelKey: 'preview.template.tabletLandscape',
+    shortLabelKey: 'preview.template.tabletLandscape.short',
     layoutWidth: 1366,
     layoutHeight: 1024,
     pixelRatio: 2,
@@ -88,6 +96,7 @@ export const EXPORT_TEMPLATES: readonly ExportTemplate[] = [
   {
     slug: 'print-a4',
     labelKey: 'preview.template.printA4',
+    shortLabelKey: 'preview.template.printA4',
     layoutWidth: 877,
     layoutHeight: 620,
     pixelRatio: 4,
@@ -114,4 +123,11 @@ export function templateOutputWidth(template: ExportTemplate): number {
 /** The exact output height in pixels: the layout height scaled by the ratio. */
 export function templateOutputHeight(template: ExportTemplate): number {
   return Math.round(template.layoutHeight * template.pixelRatio);
+}
+
+/** The exact output pixels of a template, as its chip and its caption state them. */
+export function templateSizeText(template: ExportTemplate): string {
+  return `${String(templateOutputWidth(template))} × ${String(
+    templateOutputHeight(template),
+  )}`;
 }

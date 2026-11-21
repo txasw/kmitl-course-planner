@@ -8,16 +8,21 @@ import type { Locator, Page } from '@playwright/test';
 // shows its label at every width; every other sharing action shows a visible label with its
 // own glyph, whole inside the viewport. The template picker is a radiogroup of chips, each
 // showing its name and output size whole, side by side without overlap, and a tap selects one,
-// down to the 320 px narrowest width.
+// down to the 320 px narrowest width. Below 640 px each chip shows a short name on a compact
+// line in two rows, its full name and size are its accessible name, and the line under the
+// stage names the selected template in full with its size (ADR-0045 amendment of 2026-11-21).
 
 const TEMPLATES = [
-  ['แชร์ 16:9', '1920 × 1080'],
-  ['ภาพพื้นหลังโทรศัพท์แนวนอน', '2400 × 1080'],
-  ['ภาพพื้นหลังโทรศัพท์แนวตั้ง', '1080 × 2340'],
-  ['ภาพพื้นหลังแท็บเล็ตแนวตั้ง', '2048 × 2732'],
-  ['ภาพพื้นหลังแท็บเล็ตแนวนอน', '2732 × 2048'],
-  ['พิมพ์ A4', '3508 × 2480'],
+  ['แชร์ 16:9', 'แชร์ 16:9', '1920 × 1080'],
+  ['ภาพพื้นหลังโทรศัพท์แนวนอน', 'โทรศัพท์ แนวนอน', '2400 × 1080'],
+  ['ภาพพื้นหลังโทรศัพท์แนวตั้ง', 'โทรศัพท์ แนวตั้ง', '1080 × 2340'],
+  ['ภาพพื้นหลังแท็บเล็ตแนวตั้ง', 'แท็บเล็ต แนวตั้ง', '2048 × 2732'],
+  ['ภาพพื้นหลังแท็บเล็ตแนวนอน', 'แท็บเล็ต แนวนอน', '2732 × 2048'],
+  ['พิมพ์ A4', 'พิมพ์ A4', '3508 × 2480'],
 ] as const;
+
+/** The tallest the compact picker may stand on a phone: two rows of 44 px chips and a gap. */
+const COMPACT_PICKER_MAX_PX = 100;
 
 /** Add one course to the plan from the catalog pane on the phone or the sheet on the tablet. */
 async function planOneCourse(page: Page): Promise<void> {
@@ -123,11 +128,18 @@ async function checkExportPage(page: Page): Promise<void> {
   const group = page.getByRole('radiogroup', { name: 'แม่แบบ' });
   const chips = group.getByRole('radio');
   await expect(chips).toHaveCount(TEMPLATES.length);
+  const compact = (page.viewportSize()?.width ?? 0) < 640;
   const boxes = [];
-  for (const [index, [name, size]] of TEMPLATES.entries()) {
+  for (const [index, [name, short, size]] of TEMPLATES.entries()) {
     const chip = chips.nth(index);
-    await expect(chip).toContainText(name);
-    await expect(chip).toContainText(size);
+    await expect(chip).toHaveAccessibleName(`${name} · ${size}`);
+    if (compact) {
+      await expect(chip.locator('[data-template-short]')).toHaveText(short);
+      expect((await chip.boundingBox())?.height ?? 0).toBeLessThanOrEqual(46);
+    } else {
+      await expect(chip).toContainText(name);
+      await expect(chip).toContainText(size);
+    }
     await expectWhole(chip);
     // The size line does not wrap, so it has to fit the chip's content box, not only its
     // border box, or it runs into the padding at the narrowest width.
@@ -154,8 +166,20 @@ async function checkExportPage(page: Page): Promise<void> {
   await expect(portrait).toHaveAttribute('aria-checked', 'true');
   await expect(chips.nth(0)).toHaveAttribute('aria-checked', 'false');
   // The choice is marked by a check glyph, not by colour alone.
-  await expect(portrait.locator('.lucide-check')).toHaveCount(1);
+  await expect(
+    portrait.locator('.lucide-check').filter({ visible: true }),
+  ).toHaveCount(1);
   await expect(chips.nth(0).locator('.lucide-check')).toHaveCount(0);
+  if (compact) {
+    // The compact picker gives its height to the stage, and the line under the stage names
+    // the selected template in full.
+    expect((await group.boundingBox())?.height ?? 0).toBeLessThanOrEqual(
+      COMPACT_PICKER_MAX_PX,
+    );
+    const caption = page.locator('[data-template-caption]');
+    await expect(caption).toHaveText('ภาพพื้นหลังโทรศัพท์แนวตั้ง · 1080 × 2340');
+    await expectWhole(caption);
+  }
 }
 
 test('the export page leads with a labelled download and names every template', async ({

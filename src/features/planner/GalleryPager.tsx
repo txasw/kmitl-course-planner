@@ -9,6 +9,8 @@
 // under it (ADR-0045 amendment of 2026-11-21): each chip names its template with the exact
 // output pixels, so a student picks by name rather than paging blind, and the stage takes the
 // full width the rails held.
+// On a phone the chips show short names, so a quiet line under the stage names the selected
+// template in full with its output pixels (ADR-0045 amendment of 2026-11-21).
 
 import {
   useEffect,
@@ -17,7 +19,11 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
-import type { ExportTemplate } from '@/lib/planner/exportTemplates';
+import {
+  templateSizeText,
+  type ExportTemplate,
+} from '@/lib/planner/exportTemplates';
+import { useTranslation } from '@/features/shell/useTranslation';
 import { usePager } from '@/components/Pager';
 import { TemplateChips } from './TemplateChips';
 
@@ -43,7 +49,9 @@ export function GalleryPager({
   onSelect,
   children,
 }: GalleryPagerProps) {
+  const { t } = useTranslation();
   const last = templates.length - 1;
+  const current = templates[selected];
   const swipe = useRef<{ pointerId: number; startX: number } | null>(null);
 
   const { move, groupRef, handleKeyDown } = usePager({
@@ -134,6 +142,14 @@ export function GalleryPager({
       >
         {children}
       </div>
+      {current === undefined ? null : (
+        <p
+          data-template-caption
+          className="shrink-0 text-center text-2xs text-ink-soft tabular-nums sm:hidden"
+        >
+          {t(current.labelKey)} · {templateSizeText(current)}
+        </p>
+      )}
     </div>
   );
 }
