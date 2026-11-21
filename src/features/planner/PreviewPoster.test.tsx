@@ -201,6 +201,10 @@ describe('PreviewPoster data line', () => {
     });
     const line = dataLine(container);
     expect(line).toHaveTextContent('ข้อมูล ณ 6 พ.ย. 2569 08:05');
+    // The date and time hold together, so a narrow footer never strands the time alone.
+    expect(line.textContent).toContain(
+      ['6', 'พ.ย.', '2569', '08:05'].join(String.fromCodePoint(0xa0)),
+    );
     expect(line.closest('[data-poster-footer]')).toBe(footerRow(container));
     // A clean plan carries the date line alone.
     expect(line.children).toHaveLength(1);
