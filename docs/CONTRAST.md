@@ -62,16 +62,16 @@ depth block below. The landing page block mockups still draw it, so its pairs st
 Every grid, the edit grid, the plan suggestion cards, and the preview poster with its export,
 fills a block with the soft depth card of ADR-0071 tinted by the subject color, fading from 17
 percent at the top to 8 percent from 70 percent down, with a 3 px stripe of the solid color down
-the left edge (the ADR-0047 amendments of 2026-11-20 and 2026-11-22). Ink and ink soft sit anywhere on it, so the table proves them on the 17 percent
-stop. The stripe is a UI element and clears 3:1 against both stops. A flagged block leads its
-name with a danger or warn status dot, which clears 3:1 against both stops on every tint
-(lowest 4.08 for danger and 3.97 for warn). A danger block lays a hatch of the danger color at
-24 percent with an inset danger ring over the fill. Ink soft falls under 4.5:1 on a hatch
-stripe, so a hatched block sets its quiet lines, the English name, the section chip, and the
-foot, in ink, which clears 4.5:1 through the hatch on both stops. Enforced in
-`hash-color.test.ts`. The export rasterizes the poster over the same white surface the stops
-mix into, so the image paints exactly these stops, which `capture.test.ts` proves with the
-poster text steps on both stops of every subject color.
+the left edge (the ADR-0047 amendments of 2026-11-20 and 2026-11-22). Ink and ink soft sit
+anywhere on it, so the table proves them on the 17 percent stop. The stripe is a UI element and
+clears 3:1 against both stops. A flagged block leads its name with a danger or warn status dot,
+which clears 3:1 against both stops on every tint (lowest 4.08 for danger and 3.97 for warn). A
+danger block lays a hatch of the danger color at 24 percent with an inset danger ring over the
+fill. Ink soft falls under 4.5:1 on a hatch stripe, so a hatched block sets its quiet lines, the
+English name, the section chip, and the foot, in ink, which clears 4.5:1 through the hatch on
+both stops. Enforced in `hash-color.test.ts`. The export rasterizes the poster over the same
+white surface the stops mix into, so the image paints exactly these stops, which
+`capture.test.ts` holds by tying the capture background to the surface token.
 
 | Color     | 17 percent | 8 percent | Ink   | Ink soft | Stripe | Ink through hatch |
 | --------- | ---------- | --------- | ----- | -------- | ------ | ----------------- |
