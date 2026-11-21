@@ -8,6 +8,12 @@
 // size rule because it matches its input width and caps its list height. While open, a
 // node counts as an open surface the student is busy with, unless it is ambient, such as
 // a hover card that follows the pointer rather than a choice to open it.
+//
+// A node may instead stand as a column beside its anchor in a named element, as the block
+// detail does in the plan area: it flips and shifts sideways inside that element, and its
+// top and foot meet the element's own, so neither edge of the node ever lands part way
+// across a line of the timetable inside it or of the status row under it, however tall the
+// detail grows. Its body scrolls inside that height.
 
 import { useMemo } from 'react';
 import { useOpenSurface } from './attentionStore';
@@ -33,16 +39,59 @@ const PANEL_POPOVER_PADDING = 8;
 /** Classes that let a size capped floating node scroll inside with the panel scrollbar. */
 export const PANEL_POPOVER_SCROLL = 'kcp-scroll overflow-y-auto';
 
-export function panelPopoverMiddleware(gap: number): Middleware[] {
+/**
+ * Stand the node as a column of the element: its top and foot meet the element's, clipped
+ * to the viewport. The element is read in viewport terms and moved into the coordinates
+ * floating-ui places the node in, through the anchor's offset between the two.
+ */
+function fillColumn(column: Element): Middleware {
+  return {
+    name: 'fillColumn',
+    fn({ elements, rects, y }) {
+      const area = column.getBoundingClientRect();
+      const top = Math.max(0, area.top);
+      const foot = Math.min(document.documentElement.clientHeight, area.bottom);
+      const height = `${String(Math.max(0, foot - top))}px`;
+      Object.assign(elements.floating.style, { height, maxHeight: height });
+      const toPlaced =
+        rects.reference.y - elements.reference.getBoundingClientRect().top;
+      return { y: Number.isFinite(toPlaced) ? top + toPlaced : y };
+    },
+  };
+}
+
+export function panelPopoverMiddleware(
+  gap: number,
+  column: Element | null = null,
+): Middleware[] {
+  const padding = PANEL_POPOVER_PADDING;
+  const width = (available: number) =>
+    `min(${PANEL_POPOVER_MAX_WIDTH}, ${String(Math.max(0, available))}px)`;
+  if (column !== null) {
+    // Only the side is chosen and kept in: the column middleware sets the block axis.
+    const inside = { padding, boundary: column };
+    return [
+      offset(gap),
+      flip({ ...inside, crossAxis: false }),
+      shift({ ...inside, mainAxis: false, crossAxis: true }),
+      size({
+        ...inside,
+        apply({ availableWidth, elements }) {
+          elements.floating.style.maxWidth = width(availableWidth);
+        },
+      }),
+      fillColumn(column),
+    ];
+  }
   return [
     offset(gap),
-    flip({ padding: PANEL_POPOVER_PADDING }),
-    shift({ padding: PANEL_POPOVER_PADDING }),
+    flip({ padding }),
+    shift({ padding }),
     size({
-      padding: PANEL_POPOVER_PADDING,
+      padding,
       apply({ availableWidth, availableHeight, elements }) {
         Object.assign(elements.floating.style, {
-          maxWidth: `min(${PANEL_POPOVER_MAX_WIDTH}, ${String(Math.max(0, availableWidth))}px)`,
+          maxWidth: width(availableWidth),
           maxHeight: `${String(Math.max(0, availableHeight))}px`,
         });
       },
@@ -59,14 +108,20 @@ export interface PanelPopoverOptions extends Omit<
   /** Whether the node opens by itself, as a hover card does, so it never counts as an
    * open surface that holds the student's attention. */
   ambient?: boolean;
+  /** The element the node stands in as a column beside its anchor, its full height. */
+  column?: Element | null;
 }
 
 export function usePanelPopover<RT extends ReferenceType = ReferenceType>({
   gap,
   ambient = false,
+  column = null,
   ...options
 }: PanelPopoverOptions): UseFloatingReturn<RT> {
-  const middleware = useMemo(() => panelPopoverMiddleware(gap), [gap]);
+  const middleware = useMemo(
+    () => panelPopoverMiddleware(gap, column),
+    [gap, column],
+  );
   useOpenSurface(options.open === true && !ambient);
   return useFloating<RT>({
     ...options,

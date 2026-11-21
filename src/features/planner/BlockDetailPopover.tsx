@@ -5,9 +5,20 @@
 // than the whole overlay. The node is a column of a pinned header, a body that scrolls
 // inside the capped height, and a pinned footer, so the actions stay in reach however
 // long the detail list grows. Focus lands on the heading on open, the same landing point
-// as the sheet form.
+// as the sheet form. It stands as a column beside its block, the full height of the plan
+// area that holds the block, the timetable and shelf above the status row, flipping to the
+// other side of the block where this one has no room. Its top and foot meet the plan
+// area's, so neither edge ends part way across a line of the timetable or of the status
+// row, and a detail taller than the area scrolls in its body.
 
-import { useCallback, useEffect, useId, useRef, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from 'react';
 import { X } from 'lucide-react';
 import { useDismiss, useInteractions } from '@floating-ui/react';
 import { FOCUS_RING } from '@/lib/ui/focus';
@@ -17,6 +28,7 @@ import {
   usePanelPopover,
 } from '@/features/shell/usePanelPopover';
 import { useEscapeLayer } from '@/features/shell/useEscapeLayer';
+import { PLAN_AREA_SELECTOR } from './planArea';
 
 interface BlockDetailPopoverProps {
   anchor: HTMLElement;
@@ -44,6 +56,7 @@ export function BlockDetailPopover({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const titleId = useId();
+  const column = useMemo(() => anchor.closest(PLAN_AREA_SELECTOR), [anchor]);
   const { refs, floatingStyles, context } = usePanelPopover({
     gap: 6,
     open: true,
@@ -53,6 +66,7 @@ export function BlockDetailPopover({
       }
     },
     placement: 'right-start',
+    column,
     elements: { reference: anchor },
   });
   const { getFloatingProps } = useInteractions([useDismiss(context)]);
