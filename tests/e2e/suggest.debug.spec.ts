@@ -48,7 +48,13 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
   await expect(page.locator(GRID_BLOCK).first()).toBeVisible();
   const placedBefore = await page.locator(GRID_BLOCK).count();
 
-  // The plan status row under the timetable carries the prominent entry point.
+  // The plan status row under the timetable carries the one entry point beside the docked
+  // column, which carries none of its own.
+  await expect(
+    page.locator('#kcp-catalog-column').getByRole('button', {
+      name: 'แนะนำตาราง',
+    }),
+  ).toHaveCount(0);
   await page
     .getByRole('group', { name: 'สรุปตาราง', exact: true })
     .getByRole('button', { name: 'แนะนำตาราง' })
@@ -108,4 +114,25 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
   await page.getByRole('button', { name: 'เลิกทำ' }).click();
   await expect(switcher.getByText(planName, { exact: true })).toBeVisible();
   await expect(page.locator(GRID_BLOCK)).toHaveCount(placedBefore);
+});
+
+test('explains the curriculum search before one ran and opens it', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  // Before any search the status row still ends with the action, for the tour to show.
+  const suggest = page
+    .getByRole('group', { name: 'สรุปตาราง', exact: true })
+    .getByRole('button', { name: 'แนะนำตาราง' });
+  await suggest.click();
+  const dialog = page.getByRole('dialog', { name: 'แนะนำตาราง' });
+  await expect(dialog).toContainText('ค้นหาตามหลักสูตรก่อน');
+  const search = dialog.getByRole('button', { name: 'ค้นหาตามหลักสูตร' });
+  await expect(search).toBeFocused();
+  expect(await axeViolations(page)).toEqual([]);
+  await search.click();
+  await expect(dialog).toHaveCount(0);
+  const tab = page.getByRole('tab', { name: 'หลักสูตร' });
+  await expect(tab).toHaveAttribute('aria-selected', 'true');
+  await expect(tab).toBeFocused();
 });

@@ -109,6 +109,7 @@ const EMPTY_STATE_INVENTORY: Readonly<Record<string, number>> = {
   'features/catalog/CatalogPanel.tsx': 3,
   'features/catalog/CourseCatalog.tsx': 1,
   'features/catalog/SectionComparisonSheet.tsx': 1,
+  'features/catalog/SuggestNeedsSearch.tsx': 1,
   'features/planner/GridEmptyState.tsx': 1,
   'features/planner/SelectedCoursesList.tsx': 1,
   'features/planner/SuggestDialog.tsx': 1,

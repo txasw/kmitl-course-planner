@@ -25,14 +25,9 @@ const WELCOME = 'ขอบคุณที่ติดตั้ง KCP: Course Pl
 const OVERLAY = 'KCP: ตัววางแผนตารางเรียน สจล.';
 const LAUNCHER = 'เปิด KCP: Course Planner for KMITL';
 
-// Before any search there is no query chip, no open course and no suggest action, so
-// the tour points at the search tabs and the search button and leaves suggest out.
-const FIRST_RUN_STEPS: readonly TourStepName[] = [
-  'search',
-  'add',
-  'timetable',
-  'export',
-];
+// Before any search there is no query chip and no open course, so the tour points at
+// the search tabs and the search button; the status row's suggest action is there before
+// any search, so the first run walks every step too.
 const FULL_STEPS: readonly TourStepName[] = [
   'search',
   'add',
@@ -71,7 +66,7 @@ test.describe('after install', () => {
     await expect(
       card.getByRole('button', { name: TOUR.th.next }),
     ).toBeFocused();
-    await walkTour(tab, 'th', FIRST_RUN_STEPS);
+    await walkTour(tab, 'th', FULL_STEPS);
     await card.getByRole('button', { name: TOUR.th.finish }).click();
     await expect(card).toHaveCount(0);
     await expect(tab.locator('#kcp-export-entry')).toBeFocused();

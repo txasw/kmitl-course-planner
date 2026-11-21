@@ -1038,9 +1038,13 @@ describe('PlannerPanel stats bar', () => {
     }
   });
 
-  it('renders no stats bar in preview or for an empty plan', () => {
+  it('renders the stats bar of an empty plan with the suggest action alone, and none in preview', () => {
     renderPanel();
-    expect(screen.queryByRole('group', { name: 'สรุปตาราง' })).toBeNull();
+    const empty = screen.getByRole('group', { name: 'สรุปตาราง' });
+    expect(empty).not.toHaveTextContent('หน่วยกิต');
+    expect(
+      within(empty).getByRole('button', { name: 'แนะนำตาราง' }),
+    ).toBeInTheDocument();
     seedTwoSubjects();
     act(() => {
       uiStore.getState().setViewMode('preview');
@@ -1169,12 +1173,17 @@ describe('PlannerPanel suggest action', () => {
     );
   });
 
-  it('leaves the action out when no suggestion applies', () => {
+  it('keeps the action when no suggestion applies, to explain the curriculum search', () => {
     installViewport(390);
     seedTwoSubjects();
     renderPanel();
+    const suggest = within(statusRow()).getByRole('button', {
+      name: 'แนะนำตาราง',
+    });
+    expect(suggest).toHaveAttribute('data-tour', 'suggest');
+    fireEvent.click(suggest);
     expect(
-      within(statusRow()).queryByRole('button', { name: 'แนะนำตาราง' }),
-    ).toBeNull();
+      screen.getByRole('dialog', { name: 'แนะนำตาราง' }),
+    ).toHaveTextContent('ค้นหาตามหลักสูตรก่อน');
   });
 });

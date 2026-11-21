@@ -8,17 +8,14 @@
 // tabs and so no tabpanel semantics. A timetable narrower than 640 px reads one day at a
 // time through the day view, or the portrait week when the student picks it from the same
 // chip row. The status row sits under every view, since it sums the plan rather than the
-// view, and ends with the suggest action whenever a suggestion applies, so a phone keeps it
-// in the thumb zone. In preview the sharing toolbar heads the poster, or below 640 px follows
+// view, and in edit it always ends with the suggest action, so a phone keeps it in the thumb
+// zone and the first run tour can point at it before any search. In preview the sharing toolbar heads the poster, or below 640 px follows
 // it at the panel foot.
 
 import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { flushSync } from 'react-dom';
 import { useStore } from 'zustand';
-import {
-  SuggestAction,
-  useSuggestTarget,
-} from '@/features/catalog/SuggestAction';
+import { SuggestAction } from '@/features/catalog/SuggestAction';
 import { catalogMeetings } from '@/lib/catalog/catalogMeetings';
 import type { DayOfWeek } from '@/lib/parsing/days';
 import {
@@ -80,7 +77,6 @@ export function PlannerPanel() {
   const tier = useLayoutTier();
   const showTabs = tier !== 'compact';
   const toastBand = usePlanToastBand();
-  const canSuggest = useSuggestTarget() !== null;
   const displayOptions = useStore(uiStore, (state) => state.displayOptions);
   // The updates dialog renders only in edit, where its actions live (ADR-0060).
   const updatesOpen = useStore(revalidationStore, (state) => state.updatesOpen);
@@ -456,21 +452,19 @@ export function PlannerPanel() {
         </div>
       )}
       {showTabs ? null : previewToolbar}
-      {!isPreview && (sections.length > 0 || canSuggest) ? (
+      {isPreview ? null : (
         <StatsBar
           sections={sections}
           semester={activePlan?.semester ?? null}
           conflictCount={honesty.conflictPairCount}
           onShowConflict={handleShowConflict}
           status={<VerificationStatus />}
-          action={
-            canSuggest ? <SuggestAction variant="prominent" /> : undefined
-          }
+          action={<SuggestAction placement="status" />}
           compact={!showTabs}
           locale={language}
           t={t}
         />
-      ) : null}
+      )}
       {band}
       {detail !== null ? (
         <BlockDetailSurface

@@ -18,6 +18,7 @@ import {
 } from '../../../tests/support/plan-store';
 import { installViewport } from '../../../tests/support/viewport';
 import { SuggestAction } from './SuggestAction';
+import type { ComponentProps } from 'react';
 
 const BY_CLASS: TeachTableQuery = {
   mode: 'by_class',
@@ -69,12 +70,14 @@ function showResult(query: TeachTableQuery) {
   });
 }
 
-function renderAction() {
+function renderAction(
+  props: ComponentProps<typeof SuggestAction> = { placement: 'catalog' },
+) {
   const portal = document.createElement('div');
   document.body.append(portal);
   render(
     <PanelPortalContext.Provider value={portal}>
-      <SuggestAction />
+      <SuggestAction {...props} />
     </PanelPortalContext.Provider>,
   );
 }
@@ -113,13 +116,7 @@ describe('SuggestAction', () => {
       uiStore.getState().setLanguage('en');
     });
     showResult(BY_CLASS);
-    const portal = document.createElement('div');
-    document.body.append(portal);
-    render(
-      <PanelPortalContext.Provider value={portal}>
-        <SuggestAction variant="prominent" />
-      </PanelPortalContext.Provider>,
-    );
+    renderAction({ placement: 'status' });
     const button = screen.getByRole('button', { name: 'Suggest' });
     expect(button).toHaveClass(
       'bg-primary-strong',
@@ -157,6 +154,51 @@ describe('SuggestAction', () => {
     showResult(BY_CLASS);
     renderAction();
     expect(openButton()).toBeNull();
+  });
+
+  it('takes the filled look in the catalog head only when asked', () => {
+    showResult(BY_CLASS);
+    renderAction({ placement: 'catalog', filled: true });
+    const button = openButton();
+    if (button === null) throw new Error('no suggest action');
+    expect(button).toHaveClass('bg-primary-strong', 'text-surface');
+    // Only the status row entry is the tour's anchor.
+    expect(button).not.toHaveAttribute('data-tour');
+    cleanup();
+    renderAction({ placement: 'catalog' });
+    expect(openButton()).not.toHaveClass('bg-primary-strong');
+  });
+
+  it('keeps the status row entry with no curriculum result, as the tour anchor', () => {
+    renderAction({ placement: 'status' });
+    const button = openButton();
+    if (button === null) throw new Error('no suggest action');
+    expect(button).toHaveAttribute('data-tour', 'suggest');
+    expect(button).toHaveClass('bg-primary-strong');
+    showResult(BY_SUBJECT_ID);
+    expect(openButton()).not.toBeNull();
+  });
+
+  it('explains the curriculum search and opens it on the curriculum tab in the plan term', () => {
+    act(() => {
+      seedActivePlan([], { year: '2569', semester: '2' });
+      searchStore.getState().setActiveTab('by_subject_id');
+      searchStore.getState().seedTerm({ year: '2568', semester: '1' });
+    });
+    renderAction({ placement: 'status' });
+    const button = openButton();
+    if (button === null) throw new Error('no suggest action');
+    fireEvent.click(button);
+    const dialog = screen.getByRole('dialog', { name: 'แนะนำตาราง' });
+    expect(dialog).toHaveTextContent('ค้นหาตามหลักสูตรก่อน');
+    const search = screen.getByRole('button', { name: 'ค้นหาตามหลักสูตร' });
+    expect(search).toHaveFocus();
+    fireEvent.click(search);
+    expect(screen.queryByRole('dialog')).toBeNull();
+    const state = searchStore.getState();
+    expect(state.activeTab).toBe('by_class');
+    expect(state.term).toEqual({ year: '2569', semester: '2' });
+    expect(state.searchFormOpen).toBe(true);
   });
 
   it('is absent for a curriculum result with no group 2 course', () => {

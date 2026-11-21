@@ -129,3 +129,27 @@ export function openSearch(control: Element, tier: LayoutTier): void {
     markFocus: true,
   });
 }
+
+/**
+ * Bring the search form into view on the curriculum tab, in the active plan's term, for
+ * the suggest action before a suggestion can apply: a suggestion reads a curriculum result
+ * of the plan's term, so this is the search it needs. The form opens at every tier, the
+ * phone pane included, since the student came to run this search rather than to read the
+ * results already shown, and focus lands on the curriculum tab. A no op while a drag is in
+ * flight.
+ */
+export function openCurriculumSearch(control: Element, tier: LayoutTier): void {
+  if (selectDragging(dragStore.getState())) return;
+  const term = activePlanTerm();
+  // The form drops inert in the same commit that opens it, so it commits before the
+  // reveal moves focus to the tab inside it.
+  flushSync(() => {
+    const search = searchStore.getState();
+    search.setActiveTab('by_class');
+    if (term !== null) {
+      search.seedTerm(term);
+    }
+    search.setSearchFormOpen(true);
+  });
+  revealCatalog(control, tier, searchTabId('by_class'), { markFocus: true });
+}

@@ -1,7 +1,7 @@
 // The catalog column of ADR-0048: the container header, the search head (the summary
 // bar over the folding search form), then the filter bar and the results in their own
-// scroller. The container header also carries the plan suggestion action of ADR-0054
-// when the result is a curriculum search. The search head sits outside the results
+// scroller. Below the docked tiers the container header also carries the plan suggestion
+// action of ADR-0054 when the result is a curriculum search. The search head sits outside the results
 // scroller, so the bar stays in view while a long list scrolls and opening or closing the
 // form never moves the list. While a reopened form is taller than the room left, it
 // scrolls in its own region above a minimum of results. It mounts exactly once at every
@@ -214,7 +214,10 @@ export function SheetScrim({ tier }: { tier: LayoutTier }) {
 
 /** The header of the sheet and of the compact pane: the catalog name and the plan
  * suggestion action, with a close only on the sheet. The result count is left to the
- * catalog summary line, so the column reads it once. */
+ * catalog summary line, so the column reads it once. The phone pane's suggestion action
+ * is filled, since the status row that carries the other one is on the timetable pane,
+ * out of reach; the sheet's stays quiet, since the filled one still shows past its scrim
+ * (ADR-0054 amendment of 2026-11-21). */
 function SheetHeader({ closable }: { closable: boolean }) {
   const { t } = useTranslation();
 
@@ -224,7 +227,7 @@ function SheetHeader({ closable }: { closable: boolean }) {
         {t('catalog.sheet.title')}
       </h3>
       <div className="ml-auto flex items-center gap-1">
-        <SuggestAction />
+        <SuggestAction placement="catalog" filled={!closable} />
         {closable ? (
           <button
             type="button"
@@ -248,7 +251,8 @@ function DockedHeader() {
   // The control is an icon button in a 44 px cell at the column's leading edge, the same
   // cell the edge rail opens with, so hide and restore sit on one point on screen. Its
   // name is the accessible name and a tooltip on hover and focus, so the icon carries the
-  // action without a text row.
+  // action without a text row. The header carries no suggestion action: the plan status
+  // row beside the column holds the one filled entry (ADR-0054 amendment of 2026-11-21).
   const label = t('catalog.hide');
   return (
     <div className="flex h-12 shrink-0 items-center justify-start border-b border-border pr-4">
@@ -270,9 +274,6 @@ function DockedHeader() {
           </button>
         )}
       </Tooltip>
-      <div className="ml-auto">
-        <SuggestAction />
-      </div>
     </div>
   );
 }
