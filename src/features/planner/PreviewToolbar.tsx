@@ -14,17 +14,17 @@
 // follows the toolbar, both outside the capture node, when the plan holds entries to
 // review before sharing.
 //
-// Download is the one primary action of the export page and the only filled button, labelled
-// at every width (ADR-0022 amendment of 2026-11-21); share, copy image, copy as text, and the
+// Download is the one primary action of the export page and the only filled button, labelled at
+// every width (ADR-0022 amendment of 2026-11-21); share, copy image, copy as text, and the
 // display options are outline buttons with visible labels, each with its own glyph, so no two
 // actions look alike. From 640 px up the toolbar heads the poster as one row that leads with
 // download and wraps where the labels need it, and the display options open as an inline panel
 // under that row, pushing the chips and the stage down (ADR-0027 amendment). Below 640 px the
 // panel renders the toolbar under the poster, along the panel foot in the thumb zone: download
 // fills its own row, and the other actions share the row under it as equal cells, each a glyph
-// over a short label that wraps rather than clips. The verification status and any copy image note move to their own
-// lines above the actions, and the pre share notice precedes the toolbar there, so the
-// actions stay nearest the edge.
+// over a short label that wraps rather than clips. The verification status and any copy image
+// note move to their own lines above the actions, and the pre share notice precedes the toolbar
+// there, so the actions stay nearest the edge.
 //
 // An image capture takes a moment on a large template, so while one runs the toolbar is
 // busy: the action that started it reads as creating the image with a spinner, and every
