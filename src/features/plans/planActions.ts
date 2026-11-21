@@ -5,6 +5,8 @@
 import type { Plan, PlanEntry } from '@/lib/domain/plan';
 import { withReview } from '@/lib/planner/review';
 import type { Term } from '@/lib/routing/academicTerms';
+import { createTranslator, type Locale } from '@/lib/i18n/t';
+import { uiStore } from '@/features/shell/uiStore';
 
 /** A fresh, empty plan for a term. */
 export function makePlan(
@@ -24,9 +26,18 @@ export function makePlan(
   };
 }
 
-/** The default name for a new plan of a term: the Thai schedule label with the term. */
-export function defaultPlanName(term: Term): string {
-  return `ตาราง ${term.semester}/${term.year}`;
+/**
+ * The default name for a new plan of a term: the plan label of the panel language with the
+ * term, so a plan the first add creates in English reads Plan 2/2569 rather than a Thai name.
+ * The name is fixed when the plan is made; a later language switch leaves it as it is, like
+ * any name the student typed.
+ */
+export function defaultPlanName(
+  term: Term,
+  locale: Locale = uiStore.getState().language,
+): string {
+  const label = createTranslator(locale)('plan.untitled');
+  return `${label} ${term.semester}/${term.year}`;
 }
 
 /**
