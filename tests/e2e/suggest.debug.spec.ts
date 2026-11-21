@@ -15,7 +15,7 @@ import { axeViolations } from './support/axe';
 // subjects behind the chevron disclosure, the suggestion is applied as a new plan, and undo
 // returns to the plan it started from.
 const GRID_BLOCK = '[data-teach-table-id]';
-const SOFT_BLOCK = `${GRID_BLOCK}[data-surface="soft"]`;
+const SOFT_BLOCK = `${GRID_BLOCK}.kcp-soft-card`;
 
 test('applies a suggested timetable as a new plan and undoes it', async ({
   context,

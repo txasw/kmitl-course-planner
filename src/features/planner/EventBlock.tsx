@@ -8,14 +8,13 @@
 // here (the H3 principle), and a glyph marks a promoted field only, which is why the promoted
 // place keeps its location pin while the demoted time carries no glyph.
 // The fill is a tint of the subject's stable color under ink text with the solid color as a
-// left stripe; the KMITL orange is never used here. The edit grid and the suggestion mini
-// grids take the soft depth card, a fill that fades from a stronger tint at the top with a
-// tinted edge and a light shadow; the preview poster and its export keep the flat tint and
-// bar of ADR-0035, so the raster never depends on a gradient (ADR-0047 amendment of
-// 2026-11-20). The danger state draws its ring and hatch on an overlay rather than on the
-// fill, so it reads the same on either surface, and each text line sits on a solid tint above
-// the overlay, so the stripes never run through the text. On the export poster and in the
-// edit grid alike the content is measured against the box and whole low priority fields are
+// left stripe; the KMITL orange is never used here. Every grid, the edit grid, the suggestion
+// mini grids, and the preview poster with its export, takes the soft depth card, a fill that
+// fades from a stronger tint at the top with a tinted edge and a light shadow (ADR-0047
+// amendments of 2026-11-20 and 2026-11-22). The danger state draws its ring and hatch on an
+// overlay rather than on the fill, so the card keeps its edge under it, and each text line sits
+// on a solid tint above the overlay, so the stripes never run through the text. On the export
+// poster and in the edit grid alike the content is measured against the box and whole low priority fields are
 // dropped rather than a line clipped mid glyph: the fit walks the density ladder in useDensityFit,
 // dropping the subject id, then the secondary name, then the time, then clamping the name
 // to the lines that fit, then the section chip, then reducing the name to one line, then
@@ -72,12 +71,7 @@ import { useDensityFit } from './useDensityFit';
 import { EventBlockContent } from './EventBlockContent';
 import { DayCardContent } from './DayCardContent';
 import { NARROW_HIDDEN, NARROW_PADDING } from './narrowBlock';
-import {
-  stripeClass,
-  surfaceClass,
-  surfaceStyle,
-  type BlockSurface,
-} from './blockSurface';
+import { STRIPE_CLASS, SURFACE_CLASS, surfaceStyle } from './blockSurface';
 import { PRESSED_CLASS } from './useTouchPress';
 import { meetingOrder } from './blockFocus';
 
@@ -146,8 +140,6 @@ interface EventBlockProps {
   /** Pin the foot to the bottom of the box. On for the export poster, so its measured fit
    * and export pixels hold; the edit foot follows the place line instead. */
   footAtBottom?: boolean;
-  /** The fill: the soft depth card, the default, or the flat tint the poster keeps. */
-  surface?: BlockSurface;
   /** Show the name alone while the block is narrower than 7em. Set only where the block
    * width is a day column or a suggestion slide track: the portrait edit grid and the
    * suggestion slides. A landscape block is as wide as its meeting is long, so a short meeting there
@@ -201,7 +193,6 @@ function EventBlockComponent({
   thaiHeadroom = false,
   showVerification = true,
   footAtBottom = false,
-  surface = 'soft',
   nameOnlyWhenNarrow = false,
   dayCard = false,
 }: EventBlockProps) {
@@ -292,7 +283,6 @@ function EventBlockComponent({
         data-teach-table-id={section.teachTableId}
         data-block-order={interactive ? meetingOrder(meeting) : undefined}
         data-verify={badge ?? undefined}
-        data-surface={surface}
         aria-label={label}
         role={interactive ? 'button' : 'group'}
         tabIndex={interactive ? 0 : undefined}
@@ -321,15 +311,15 @@ function EventBlockComponent({
         // focus outline rather than an inset ring, because the danger overlay carries the
         // inset ring. Under the name only rule a block narrower than 7em tightens its
         // padding so its name keeps the width to break between words.
-        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden ${dayCard ? 'py-2 pr-2.5 pl-3.5' : 'py-1.5 pr-2 pl-2.5'} text-[1em] ${nameOnlyWhenNarrow ? NARROW_PADDING : ''} ${surfaceClass(surface)} ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink ${blockOutlineClass(pressed, interactive)} ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'touch-drag cursor-grab' : ''}`}
-        style={surfaceStyle(surface, section.subjectId)}
+        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden ${dayCard ? 'py-2 pr-2.5 pl-3.5' : 'py-1.5 pr-2 pl-2.5'} text-[1em] ${nameOnlyWhenNarrow ? NARROW_PADDING : ''} ${SURFACE_CLASS} ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink ${blockOutlineClass(pressed, interactive)} ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'touch-drag cursor-grab' : ''}`}
+        style={surfaceStyle(section.subjectId)}
         {...dragListeners}
       >
         {/* The solid subject color as a left stripe carries the identity; the fill is a
             tint of it under ink text. */}
         <span
           aria-hidden
-          className={`pointer-events-none absolute inset-y-0 left-0 ${stripeClass(surface)}`}
+          className={`pointer-events-none absolute inset-y-0 left-0 ${STRIPE_CLASS}`}
           style={{ backgroundColor: color }}
         />
         {badge === 'danger' ? (
@@ -354,7 +344,6 @@ function EventBlockComponent({
             abbreviations={abbreviations}
             color={color}
             badge={badge}
-            surface={surface}
             reserveRemove={onRemove !== undefined}
             t={t}
           />
@@ -373,7 +362,6 @@ function EventBlockComponent({
             abbreviations={abbreviations}
             color={color}
             badge={badge}
-            surface={surface}
             reserveRemove={onRemove !== undefined}
             footAtBottom={footAtBottom}
             nameOnlyWhenNarrow={nameOnlyWhenNarrow}

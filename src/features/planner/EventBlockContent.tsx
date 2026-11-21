@@ -32,7 +32,7 @@ import { MapPin } from 'lucide-react';
 import type { Locale } from '@/lib/i18n/t';
 import type { DensityLevel } from '@/lib/planner/blockDensity';
 import type { BlockBadge } from './blockBadge';
-import { chipClass, type BlockSurface } from './blockSurface';
+import { CHIP_CLASS } from './blockSurface';
 import {
   HATCH_BACKDROP,
   NAME_CLAMP,
@@ -58,7 +58,6 @@ interface EventBlockContentProps {
   abbreviations: readonly string[];
   color: string;
   badge: BlockBadge | null;
-  surface: BlockSurface;
   /** Keep the name clear of the remove control that shows in the top right corner on hover
    * and focus under a fine pointer, and step the section chip aside while it shows. */
   reserveRemove: boolean;
@@ -88,7 +87,6 @@ export function EventBlockContent({
   abbreviations,
   color,
   badge,
-  surface,
   reserveRemove,
   footAtBottom,
   nameOnlyWhenNarrow,
@@ -160,9 +158,9 @@ export function EventBlockContent({
           ) : null}
           {level.showSection ? (
             <span
-              className={`shrink-0 rounded-kcp-inner px-1 text-[0.85em] tabular-nums ${chipClass(surface)} ${
-                surface === 'soft' ? quiet : 'text-ink'
-              } ${reserveRemove ? REMOVE_STEP_ASIDE : ''}`}
+              className={`shrink-0 rounded-kcp-inner px-1 text-[0.85em] tabular-nums ${CHIP_CLASS} ${quiet} ${
+                reserveRemove ? REMOVE_STEP_ASIDE : ''
+              }`}
             >
               {sectionCode}
             </span>

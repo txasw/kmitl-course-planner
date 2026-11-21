@@ -267,7 +267,6 @@ export function SuggestionCard({
           fontPx={GRID_FONT_PX}
           posterFloor={false}
           hourLabelStep={hourLabelStep}
-          blockSurface="soft"
           narrowBlocks
           exported={false}
         />

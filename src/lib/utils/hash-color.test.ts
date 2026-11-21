@@ -6,12 +6,7 @@ import {
   shadowFraction,
   shadowToken,
 } from '../../../tests/support/contrast';
-import {
-  EVENT_PALETTE,
-  EVENT_TINT_ALPHA,
-  hashColor,
-  hashTint,
-} from './hash-color';
+import { EVENT_PALETTE, EVENT_TINT_ALPHA, hashColor } from './hash-color';
 
 const KMITL_ORANGE = '#e35205';
 const WHITE = '#ffffff';
@@ -100,7 +95,9 @@ describe('hashColor', () => {
   });
 });
 
-describe('event block tinted surface', () => {
+// The flat tint of ADR-0035, which the landing page block mockups draw. No grid in the
+// product paints it since the poster took the soft card (ADR-0047 amendment of 2026-11-22).
+describe('flat subject tint', () => {
   it('reads ink on every composited tint at AA', () => {
     for (const color of EVENT_PALETTE) {
       const tint = alphaOver(color, EVENT_TINT_ALPHA, WHITE);
@@ -145,14 +142,6 @@ describe('event block tinted surface', () => {
     for (const tint of tints()) {
       expect(deltaE76(tint, surfaceAlt), tint).toBeGreaterThanOrEqual(
         MIN_TINT_OFF_SURFACE,
-      );
-    }
-  });
-
-  it('composites the subject color over white at the shared alpha', () => {
-    for (const subjectId of ['90592033', '01006029', '90642129']) {
-      expect(hashTint(subjectId)).toBe(
-        alphaOver(hashColor(subjectId), EVENT_TINT_ALPHA, WHITE),
       );
     }
   });
