@@ -19,10 +19,10 @@ import { initialOnboardingData, onboardingStore } from './onboardingStore';
 import { ProductTour } from './ProductTour';
 
 // The panel opens on the catalog with no search yet, so the search step points at the
-// search tabs, the add step at the search button, the timetable step at the timetable
-// tab or the bottom nav item, the suggest step at the status row's suggest action, which
-// is there before any search, and the export step at the header button. The count says
-// five.
+// search tabs, the add step at the search fields with the sentence that says sections
+// show after a search, the timetable step at the timetable tab or the bottom nav item,
+// the suggest step at the status row's suggest action, which is there before any search,
+// and the export step at the header button. The count says five.
 
 function fakeRecord() {
   return {
@@ -110,6 +110,19 @@ describe('ProductTour', () => {
     await waitFor(() => {
       expect(button('ถัดไป')).toHaveFocus();
     });
+  });
+
+  it('points the add step at the search fields before a search', async () => {
+    renderTour(1366);
+    await stepTitled('ค้นหารายวิชา');
+    fireEvent.click(button('ถัดไป'));
+    const add = await stepTitled('เพิ่มกลุ่มเรียนลงตาราง');
+    expect(add).toHaveAccessibleDescription(
+      'กลุ่มเรียนจะแสดงหลังค้นหาด้วยช่องเหล่านี้ จากนั้นกดที่รายวิชา แล้วกดปุ่มบวกที่กลุ่มเรียนเพื่อเพิ่มลงตาราง',
+    );
+    expect(
+      document.querySelector('[data-tour="search-fields"]'),
+    ).not.toBeNull();
   });
 
   it('keeps Tab inside the card', async () => {
