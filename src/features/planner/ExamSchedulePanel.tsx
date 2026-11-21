@@ -65,7 +65,7 @@ export function ExamSchedulePanel({
       ))}
       {schedule.selfArranged.length > 0 ? (
         <SummarySubSection title={t('examSchedule.selfArranged')}>
-          <ul className="divide-y divide-border rounded-kcp border border-border">
+          <ul className="kcp-soft-card kcp-soft-quiet divide-y divide-border">
             {schedule.selfArranged.map((subject) => (
               <li key={subject.subjectId} className="px-3 py-2">
                 <SubjectLines subject={subject} locale={locale} t={t} />
@@ -91,9 +91,9 @@ function KindSection({ group, locale, t }: KindSectionProps) {
         {group.days.map((day) => (
           <li
             key={day.date}
-            className="overflow-hidden rounded-kcp border border-border"
+            className="kcp-soft-card kcp-soft-quiet overflow-hidden"
           >
-            <div className="flex flex-wrap items-baseline justify-between gap-x-2 bg-surface-alt px-3 py-1.5">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-2 border-b border-border px-3 py-1.5">
               <h5 className="text-xs font-semibold text-ink">
                 {dayHeading(day, t)}
               </h5>

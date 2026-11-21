@@ -67,6 +67,18 @@ describe('WorkloadSummary', () => {
     expect(hours).not.toHaveTextContent('ไม่รวม');
   });
 
+  it('draws each hour tile on the quiet soft card with no flat border', () => {
+    renderSummary();
+    const tiles = within(part('ชั่วโมงต่อสัปดาห์ตามหน่วยกิต'))
+      .getAllByRole('term')
+      .map((term) => term.parentElement);
+    expect(tiles).toHaveLength(3);
+    for (const tile of tiles) {
+      expect(tile).toHaveClass('kcp-soft-card', 'kcp-soft-quiet');
+      expect(tile).not.toHaveClass('border');
+    }
+  });
+
   it('says which subjects its sums leave out', () => {
     renderSummary(MEETINGS, { ...HOURS, unstated: 2 });
     expect(part('ชั่วโมงต่อสัปดาห์ตามหน่วยกิต')).toHaveTextContent(
