@@ -97,6 +97,26 @@ describe('ExamSchedulePanel', () => {
     expect(lone).toHaveClass('border-l-transparent');
   });
 
+  it('draws each exam day on the quiet soft card with no flat border', () => {
+    const { container } = renderPanel([
+      entry('a', '10000001', { midterm: MID_A }),
+      entry('c', '10000003', { midterm: MID_C }),
+    ]);
+    const midterm = screen.getByRole('region', { name: 'สอบกลางภาค' });
+    const days = within(midterm)
+      .getAllByRole('heading', { level: 5 })
+      .map((heading) => heading.closest('li'));
+    expect(days).toHaveLength(2);
+    for (const day of days) {
+      expect(day).toHaveClass('kcp-soft-card', 'kcp-soft-quiet');
+      expect(day).not.toHaveClass('border');
+    }
+    // One nesting level: no card sits inside an exam day card.
+    expect(
+      container.querySelectorAll('.kcp-soft-card .kcp-soft-card'),
+    ).toHaveLength(0);
+  });
+
   it('notes a day that holds two or more subjects', () => {
     renderPanel([
       entry('a', '10000001', { midterm: MID_A }),

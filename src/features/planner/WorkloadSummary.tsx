@@ -65,7 +65,7 @@ export function WorkloadSummary({
           {HOUR_KINDS.map(({ key, field }) => (
             <div
               key={field}
-              className="flex flex-col gap-0.5 rounded-kcp border border-border px-3 py-2"
+              className="kcp-soft-card kcp-soft-quiet flex flex-col gap-0.5 px-3 py-2"
             >
               <dt className="text-xs text-ink-soft">{t(key)}</dt>
               <dd className="text-base font-semibold text-ink tabular-nums">
