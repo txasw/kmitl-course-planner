@@ -54,14 +54,6 @@ const EXCEPTIONS: readonly TextFitException[] = [
       'a teacher, condition, or remark list longer than two lines rests at two, and its expand control wraps every line in full',
   },
   {
-    // Only the last step clamps; a name that two lines of a smaller step hold is whole.
-    selector: '[data-plan-name][data-plan-name-step="2"]',
-    scope: 'button[aria-haspopup][aria-expanded="false"]',
-    control: 'button[aria-haspopup][aria-expanded="false"]',
-    reason:
-      'a plan name past two lines of the smallest step rests clamped in the header trigger, which opens the plan list that wraps every name whole',
-  },
-  {
     selector: '[data-gallery-sliver]',
     scope: '[data-gallery-pager]',
     control: '[role="radiogroup"] [role="radio"]',

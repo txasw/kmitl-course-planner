@@ -1,7 +1,11 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 import { useRef } from 'react';
-import { planNameClass, usePlanNameFit } from './usePlanNameFit';
+import {
+  planNameClass,
+  triggerPadding,
+  usePlanNameFit,
+} from './usePlanNameFit';
 
 function Harness({ name }: { name: string }) {
   const room = useRef<HTMLDivElement>(null);
@@ -94,10 +98,29 @@ describe('usePlanNameFit', () => {
     expect(shownStep(container)).toBe('2');
   });
 
-  it('clamps at two lines of the smallest step only as a last resort', () => {
+  it('wraps a name past two lines at the smallest step onto every line, never clamped', () => {
     layOut({ oneLine: 900, room: 140, linesAt: { xs: 6, '2xs': 5 } });
     const { container } = render(<Harness name="a name far too long" />);
     expect(shownStep(container)).toBe('2');
-    expect(container.querySelector('span')).toHaveClass('line-clamp-2');
+    const name = container.querySelector('span');
+    expect(name).toHaveClass('text-2xs', 'break-words');
+    expect(name).not.toHaveClass('line-clamp-2');
+    expect(name).not.toHaveClass('truncate');
+  });
+});
+
+describe('planNameClass', () => {
+  it('clamps or truncates at no wrapped step', () => {
+    for (const step of [1, 2]) {
+      expect(planNameClass(step)).not.toMatch(/line-clamp|truncate|ellipsis/);
+    }
+  });
+});
+
+describe('triggerPadding', () => {
+  it('pads the trigger only where it grows past the header row', () => {
+    expect(triggerPadding(0)).toBe('py-px');
+    expect(triggerPadding(1)).toBe('py-0');
+    expect(triggerPadding(2)).toBe('py-1');
   });
 });

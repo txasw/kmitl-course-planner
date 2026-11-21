@@ -61,8 +61,10 @@ describe('Header', () => {
   it('lays out one row whose leading group alone shrinks', () => {
     const { container } = render(<Header titleId="title" />);
     const header = container.querySelector('header');
-    expect(header).toHaveClass('flex', 'h-14', 'items-center');
+    expect(header).toHaveClass('flex', 'min-h-14', 'items-center');
     expect(header).not.toHaveClass('flex-wrap');
+    // A minimum, not a fixed height, so the row grows with a plan name past two lines.
+    expect(header).not.toHaveClass('h-14');
     const [leading, trailing] = Array.from(header?.children ?? []);
     expect(leading).toHaveClass('min-w-0', 'flex-1');
     expect(trailing).toHaveClass('shrink-0');
