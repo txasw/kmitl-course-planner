@@ -257,7 +257,8 @@ function EventBlockComponent({
   // When onOpenDetail is set the block itself is the button that opens the pinned popover,
   // so a click or Enter or Space anchors it to this block. A drag past the activation
   // distance suppresses the click, so this fires only on a real click, not the tail of a
-  // drag. In preview and export the handler is absent and the block stays inert.
+  // drag. In preview and export the handler is absent and the block stays inert, as a group so
+  // a screen reader announces the label with the full name rather than an abbreviated form.
   const interactive = onOpenDetail !== undefined;
   const handleContextMenu =
     onContextMenu === undefined
@@ -293,7 +294,7 @@ function EventBlockComponent({
         data-verify={badge ?? undefined}
         data-surface={surface}
         aria-label={label}
-        role={interactive ? 'button' : undefined}
+        role={interactive ? 'button' : 'group'}
         tabIndex={interactive ? 0 : undefined}
         onClick={
           interactive
