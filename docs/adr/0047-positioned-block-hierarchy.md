@@ -323,6 +323,15 @@ where the screen showed the section. The row now spreads the place and the chip 
 justify-between, which inlines as a keyword and leaves the free space as slack, and a chip that
 wraps on a narrow block starts its own line under the place in edit and on the poster alike.
 
+A second raster fault cut a clamped name with no ellipsis. The capture copies each computed
+property onto its clone, and Chromium reads the display of a line clamped box back as flow-root,
+where the clamp no longer applies, so the clone cut the name at the inlined box height and a
+shortened name such as สัมมนา read as a whole but wrong subject. For the length of a capture the
+computed style of a box with a line clamp now reports the display the clamp needs, so the image
+keeps the clamp and its ellipsis as the screen shows them; a browser that reads the display back
+as set is left as it is. Rendering the ellipsis into the text in script was rejected, since it
+would measure the name a second time apart from the fit.
+
 Alternatives considered. Computing the soft card stops as concrete hex values in script for
 the poster alone was rejected: the capture already reads resolved colors, and a second copy of
 the card would drift from the stylesheet. Keeping the flat day bands was rejected because they

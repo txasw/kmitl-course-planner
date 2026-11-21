@@ -38,13 +38,77 @@ export async function capturePng(
     await fontSet.ready;
     await new Promise((resolve) => requestAnimationFrame(resolve));
   }
-  const blob = await toBlob(node, {
-    pixelRatio,
-    backgroundColor: CAPTURE_BACKGROUND,
-    skipFonts: true,
-  });
+  const restore = keepLineClampInClone();
+  let blob: Blob | null;
+  try {
+    blob = await toBlob(node, {
+      pixelRatio,
+      backgroundColor: CAPTURE_BACKGROUND,
+      skipFonts: true,
+    });
+  } finally {
+    restore();
+  }
   if (blob === null) {
     throw new Error('poster capture produced no image');
   }
   return blob;
+}
+
+/** A line clamp set to a count of lines, as opposed to none. */
+const LINE_COUNT = /^[1-9]\d*$/;
+
+/** The display a line clamp needs. Chromium reads it back from a clamped box as flow-root. */
+const CLAMP_DISPLAY = '-webkit-box';
+
+/** A computed style that reports the line clamp display in place of the flow-root Chromium
+ * reads back for a clamped box. Every other read passes through to the real declaration. */
+function withClampDisplay(style: CSSStyleDeclaration): CSSStyleDeclaration {
+  return new Proxy(style, {
+    get(target, property): unknown {
+      if (property === 'display') {
+        return CLAMP_DISPLAY;
+      }
+      if (property === 'getPropertyValue') {
+        return (name: string): string =>
+          name === 'display' ? CLAMP_DISPLAY : target.getPropertyValue(name);
+      }
+      const value: unknown = Reflect.get(target, property, target);
+      return typeof value === 'function' ? value.bind(target) : value;
+    },
+  });
+}
+
+/**
+ * Keep a clamped name clamped, with its ellipsis, in the captured image. html-to-image copies
+ * each computed property onto its clone, and Chromium reads the display of a line clamped box
+ * back as flow-root, where the clamp no longer applies; the clone then cut the name at the box
+ * edge with no ellipsis, so a shortened name read as a whole but wrong one. For the length of a
+ * capture the computed style of a box with a line clamp reports the display the clamp needs.
+ * A box with no clamp, and a browser that reads the display back as set, are left as they are.
+ * Returns the function that restores the original.
+ */
+function keepLineClampInClone(): () => void {
+  const read = window.getComputedStyle.bind(window);
+  const own = Object.getOwnPropertyDescriptor(window, 'getComputedStyle');
+  const clampAware: typeof window.getComputedStyle = (element, pseudo) => {
+    const style = read(element, pseudo);
+    return LINE_COUNT.test(style.getPropertyValue('-webkit-line-clamp')) &&
+      style.getPropertyValue('display') === 'flow-root'
+      ? withClampDisplay(style)
+      : style;
+  };
+  // Defined rather than assigned, since a host may expose the global as an accessor pair.
+  Object.defineProperty(window, 'getComputedStyle', {
+    configurable: true,
+    writable: true,
+    value: clampAware,
+  });
+  return () => {
+    if (own === undefined) {
+      Reflect.deleteProperty(window, 'getComputedStyle');
+    } else {
+      Object.defineProperty(window, 'getComputedStyle', own);
+    }
+  };
 }

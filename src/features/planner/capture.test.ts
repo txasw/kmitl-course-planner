@@ -1,6 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { toBlob } from 'html-to-image';
 import { shadowToken } from '../../../tests/support/contrast';
-import { CAPTURE_BACKGROUND } from './capture';
+import { CAPTURE_BACKGROUND, capturePng } from './capture';
+
+vi.mock('html-to-image', () => ({ toBlob: vi.fn() }));
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 // The poster blocks take the soft depth card (ADR-0047 amendment of 2026-11-22), and the export
 // rasterizes them over the capture background. The card mixes its tint into the surface token,
@@ -12,5 +19,60 @@ describe('poster capture background', () => {
     expect(CAPTURE_BACKGROUND.toLowerCase()).toBe(
       shadowToken('surface').toLowerCase(),
     );
+  });
+});
+
+/** A computed style holding the given values. jsdom computes neither a line clamp nor the
+ * flow-root Chromium reads back for a clamped box, so the test supplies both. */
+function computed(values: Record<string, string>): CSSStyleDeclaration {
+  // Test only assertion: the capture reads the display and property values alone.
+  return {
+    display: values.display,
+    getPropertyValue: (name: string) => values[name] ?? '',
+  } as unknown as CSSStyleDeclaration;
+}
+
+describe('poster capture line clamp', () => {
+  it('reads a clamped box as the clamp display while the image is taken', async () => {
+    const clamped = document.createElement('span');
+    const plain = document.createElement('span');
+    const read = vi
+      .spyOn(window, 'getComputedStyle')
+      .mockImplementation((node) =>
+        computed({
+          display: 'flow-root',
+          '-webkit-line-clamp': node === clamped ? '2' : 'none',
+        }),
+      );
+    const seen: string[] = [];
+    vi.mocked(toBlob).mockImplementation(() => {
+      const style = window.getComputedStyle(clamped);
+      seen.push(
+        style.getPropertyValue('display'),
+        style.display,
+        style.getPropertyValue('-webkit-line-clamp'),
+        window.getComputedStyle(plain).getPropertyValue('display'),
+      );
+      return Promise.resolve(new Blob(['png']));
+    });
+
+    await capturePng(document.createElement('div'));
+
+    expect(seen).toEqual(['-webkit-box', '-webkit-box', '2', 'flow-root']);
+    // Once the image is taken the page reads its own computed style again.
+    expect(window).toHaveProperty('getComputedStyle', read);
+    expect(window.getComputedStyle(clamped).display).toBe('flow-root');
+  });
+
+  it('restores the computed style when the capture fails', async () => {
+    const read = vi
+      .spyOn(window, 'getComputedStyle')
+      .mockImplementation(() => computed({ display: 'block' }));
+    vi.mocked(toBlob).mockRejectedValue(new Error('no canvas'));
+
+    await expect(capturePng(document.createElement('div'))).rejects.toThrow(
+      'no canvas',
+    );
+    expect(window).toHaveProperty('getComputedStyle', read);
   });
 });
