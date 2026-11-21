@@ -419,7 +419,11 @@ export function PlannerPanel() {
           />
         </div>
       ) : (
-        <div {...panelProps} className="flex min-h-0 flex-1 flex-col gap-2">
+        <div
+          {...panelProps}
+          data-plan-area
+          className="flex min-h-0 flex-1 flex-col gap-2"
+        >
           <TimetableView
             sections={scheduled}
             frame={frame}

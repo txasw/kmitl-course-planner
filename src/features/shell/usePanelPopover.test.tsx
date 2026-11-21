@@ -8,11 +8,18 @@ import {
   usePanelPopover,
 } from './usePanelPopover';
 
-function Harness({ anchor }: { anchor: HTMLElement }) {
+function Harness({
+  anchor,
+  column = null,
+}: {
+  anchor: HTMLElement;
+  column?: Element | null;
+}) {
   const { refs, floatingStyles } = usePanelPopover({
     gap: 4,
     open: true,
     placement: 'bottom-start',
+    column,
     elements: { reference: anchor },
   });
   const setFloating = useCallback(
@@ -56,11 +63,35 @@ function stubAnchorBox(anchor: HTMLElement, top: number, height: number): void {
     DOMRect.fromRect({ x: 16, y: top, width: 80, height });
 }
 
-async function renderAt(viewport: { width: number; height: number }) {
+// A column element at a given box; floating-ui reads its inner box from its bounding rect
+// and its client size, and the column step reads its bounding rect.
+function makeColumn(box: {
+  top: number;
+  height: number;
+  width: number;
+}): HTMLElement {
+  const boundary = document.createElement('div');
+  document.body.appendChild(boundary);
+  boundary.getBoundingClientRect = () =>
+    DOMRect.fromRect({
+      x: 0,
+      y: box.top,
+      width: box.width,
+      height: box.height,
+    });
+  Object.defineProperty(boundary, 'clientWidth', { value: box.width });
+  Object.defineProperty(boundary, 'clientHeight', { value: box.height });
+  return boundary;
+}
+
+async function renderAt(
+  viewport: { width: number; height: number },
+  column: Element | null = null,
+) {
   stubViewport(viewport.width, viewport.height);
   const anchor = makeAnchor();
   stubAnchorBox(anchor, 100, 20);
-  render(<Harness anchor={anchor} />);
+  render(<Harness anchor={anchor} column={column} />);
   const node = screen.getByTestId('floating');
   await waitFor(() => {
     expect(node.style.maxHeight).not.toBe('');
@@ -82,6 +113,17 @@ describe('panelPopoverMiddleware', () => {
       'flip',
       'shift',
       'size',
+    ]);
+  });
+
+  it('ends with the column step when a column is named', () => {
+    const column = document.createElement('div');
+    expect(panelPopoverMiddleware(6, column).map((item) => item.name)).toEqual([
+      'offset',
+      'flip',
+      'shift',
+      'size',
+      'fillColumn',
     ]);
   });
 });
@@ -129,5 +171,30 @@ describe('usePanelPopover available space', () => {
   it('caps the width to the space left on a narrow viewport', async () => {
     const node = await renderAt({ width: 360, height: 600 });
     expect(node.style.maxWidth).toBe('min(22rem, 344px)');
+  });
+
+  // A column from 50 to 400 px, as the plan area ends above the status row: the node takes
+  // its full height and sits at its top, whatever the anchor's place, so neither edge lands
+  // inside it, though the viewport runs to 600 px.
+  it('stands the node as a column of the named element', async () => {
+    const column = makeColumn({ top: 50, height: 350, width: 1024 });
+    stubViewport(1024, 600);
+    const anchor = makeAnchor();
+    stubAnchorBox(anchor, 100, 20);
+    render(<Harness anchor={anchor} column={column} />);
+    const node = screen.getByTestId('floating');
+    await waitFor(() => {
+      expect(node.style.height).toBe('350px');
+    });
+    expect(node.style.maxHeight).toBe('350px');
+    expect(node.style.transform).toMatch(/translate\(\d+px, 50px\)/);
+  });
+
+  it('clips the column to the viewport', async () => {
+    const column = makeColumn({ top: 50, height: 700, width: 1024 });
+    const node = await renderAt({ width: 1024, height: 600 }, column);
+    await waitFor(() => {
+      expect(node.style.height).toBe('550px');
+    });
   });
 });
