@@ -182,25 +182,29 @@ export async function expectAddStepOnSearchFields(
   await expect(card).toContainText(TOUR[language].addBeforeSearch);
   const fields = page.locator('[data-tour="search-fields"]');
   await expect(fields).toBeVisible();
-  const lit = await page.locator('[data-tour-spot]').boundingBox();
-  const box = await fields.boundingBox();
-  if (lit === null || box === null)
-    throw new Error('no spotlight or no fields');
-  // The spotlight is the control's box with a ring a few pixels wide around it.
-  for (const [spot, target] of [
-    [lit.x, box.x],
-    [lit.y, box.y],
-  ] as const) {
-    expect(target - spot).toBeGreaterThanOrEqual(0);
-    expect(target - spot).toBeLessThanOrEqual(8);
-  }
-  for (const [spot, target] of [
-    [lit.x + lit.width, box.x + box.width],
-    [lit.y + lit.height, box.y + box.height],
-  ] as const) {
-    expect(spot - target).toBeGreaterThanOrEqual(0);
-    expect(spot - target).toBeLessThanOrEqual(8);
-  }
+  // The spotlight is the control's box with a ring a few pixels wide around it. It
+  // moves to the fields after the card changes step, so the measure retries until the
+  // spotlight has arrived rather than sleeping a fixed time first.
+  await expect(async () => {
+    const lit = await page.locator('[data-tour-spot]').boundingBox();
+    const box = await fields.boundingBox();
+    if (lit === null || box === null)
+      throw new Error('no spotlight or no fields');
+    for (const [spot, target] of [
+      [lit.x, box.x],
+      [lit.y, box.y],
+    ] as const) {
+      expect(target - spot).toBeGreaterThanOrEqual(0);
+      expect(target - spot).toBeLessThanOrEqual(8);
+    }
+    for (const [spot, target] of [
+      [lit.x + lit.width, box.x + box.width],
+      [lit.y + lit.height, box.y + box.height],
+    ] as const) {
+      expect(spot - target).toBeGreaterThanOrEqual(0);
+      expect(spot - target).toBeLessThanOrEqual(8);
+    }
+  }).toPass();
 }
 
 /**
