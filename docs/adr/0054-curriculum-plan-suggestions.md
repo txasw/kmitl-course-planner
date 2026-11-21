@@ -303,8 +303,8 @@ focus on that tab (`openCurriculumSearch` in `features/catalog/revealCourse.ts`)
 active the sentence names the plan's term and the search opens in it. Before the first plan, the
 path the tour takes a new student on, the sentence leaves the term out and the search keeps the
 term it holds, since there is no plan term to name. The dialog's description is the note's title
-and sentence, not its action, which the focus already announces. The add rules and the suggestion search are unchanged.
-Leaving the entry disabled was rejected, since a disabled control says nothing to a touch user
+and sentence, not its action, which the focus already announces. The add rules and the suggestion
+search are unchanged. Leaving the entry disabled was rejected, since a disabled control says nothing to a touch user
 and no tour step may point at a control that does nothing.
 
 The catalog head entry still shows only when a suggestion applies, and only where the status row
