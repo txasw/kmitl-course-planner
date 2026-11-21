@@ -183,6 +183,7 @@ the name form no longer steps to the subject id or to no text. A name with a wor
 line steps one type size smaller, then through its abbreviated forms for a name in Latin script,
 then to a break form as the last resort. The subject id is only ever its own whole field, shown
 under the show subject id option and dropped first, so the reclaim pass offers it back on every
-name form. The eligibility carries the count of the name's abbreviated forms in its mask, so a
-change of name resets the fit. The fit guard and the clipped text sweep run the block name guard,
-which now fails a block that shows no name or the id alone, on every export template.
+name form. The fit reset key carries the name itself, so a change of name, such as a locale
+switch, fits the new name afresh from the full level. The fit guard and the clipped text sweep
+run the block name guard, which now fails a block that shows no name or the id alone, on every
+export template.

@@ -380,6 +380,47 @@ describe('EventBlock', () => {
     expect(nameEl.className).toContain('text-[0.9em]');
   });
 
+  it('fits a name afresh when a locale switch swaps it for one of the same shape', () => {
+    // Neither name has abbreviated forms, so only the name itself tells the fit to reset.
+    const short = { ...section, nameEn: 'ART OF WAR' };
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(40);
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return this.hasAttribute('data-fit-name') &&
+          this.textContent.includes('วิชาทดสอบ') &&
+          this.dataset.nameForm !== 'break'
+          ? 52
+          : 40;
+      },
+    );
+    const { rerender } = render(
+      <EventBlock
+        section={short}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+      />,
+    );
+    expect(screen.getByText('วิชาทดสอบ')).toHaveAttribute(
+      'data-name-form',
+      'break',
+    );
+    rerender(
+      <EventBlock
+        section={short}
+        meeting={meeting}
+        style={{}}
+        locale="en"
+        t={createTranslator('en')}
+      />,
+    );
+    expect(screen.getByText('ART OF WAR')).toHaveAttribute(
+      'data-name-form',
+      'full',
+    );
+  });
+
   it('keeps a Thai name on its dictionary breaks whatever its width', () => {
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(40);
     vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(40);
