@@ -59,15 +59,3 @@ export function hashColor(subjectId: string): string {
  * still draw. Every grid in the product now takes the soft depth card (ADR-0047 amendment
  * of 2026-11-22). Shared with the contrast test so the value drawn is the value proven AA. */
 export const EVENT_TINT_ALPHA = 0.15;
-
-/** Composite a six digit hex over white at the given alpha, to an opaque six digit hex. */
-export function tintOverWhite(hex: string, alpha: number): string {
-  const clean = hex.replace('#', '');
-  const channel = (start: number): string => {
-    const front = parseInt(clean.slice(start, start + 2), 16);
-    return Math.round(front * alpha + 255 * (1 - alpha))
-      .toString(16)
-      .padStart(2, '0');
-  };
-  return `#${channel(0)}${channel(2)}${channel(4)}`;
-}
