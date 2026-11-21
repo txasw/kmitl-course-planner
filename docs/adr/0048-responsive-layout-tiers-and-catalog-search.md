@@ -854,9 +854,13 @@ fifth where controls skipped the touch target. Each fix supersedes the text it n
   that step so its lines do not meet its edge, with a hair of margin that keeps it clear of the
   header edges, and the controls stay centred on the row. A name on one or two lines keeps the
   header at exactly its minimum height. The body below takes the height left, so nothing under
-  the header is covered. The sweep exception for the clamped name is removed. Capping the plan
-  name length at create was rejected for this change, since an imported or existing plan can
-  already carry a longer name.
+  the header is covered. The sweep exception for the clamped name is removed. Since the header
+  now grows with the name, a typed or imported name is capped at 100 characters, so a name never
+  fills the screen: the name form shows a live count and keeps save off past the cap, and an
+  import lists a longer name as a field issue and commits nothing. A storage read keeps the name
+  open, so a plan named before the cap still loads and shows whole, and its rename keeps save
+  off until the student shortens it. Clamping the header again past a set height was rejected,
+  since it cuts the name this amendment shows whole.
 - The export stage shows the selected template alone, recorded in the ADR-0045 amendment of the
   same date, and the sweep exception for the template slivers is removed.
 - The phone search form carries the clear search inside its pinned action row, under the
