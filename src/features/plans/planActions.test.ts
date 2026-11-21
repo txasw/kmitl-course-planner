@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { EntryReview, Plan, PlanEntry } from '@/lib/domain/plan';
 import type { Term } from '@/lib/routing/academicTerms';
+import { uiStore } from '@/features/shell/uiStore';
 import {
   makePlanEntry,
   makeSnapshot,
@@ -65,10 +66,22 @@ describe('planActions', () => {
     });
   });
 
-  it('builds the default plan name from the term', () => {
-    expect(defaultPlanName({ year: '2569', semester: '2' })).toBe(
+  it('builds the default plan name from the term in the panel language', () => {
+    expect(defaultPlanName({ year: '2569', semester: '2' }, 'th')).toBe(
       'ตาราง 2/2569',
     );
+    expect(defaultPlanName({ year: '2569', semester: '2' }, 'en')).toBe(
+      'Plan 2/2569',
+    );
+  });
+
+  it('reads the panel language when none is given', () => {
+    const before = uiStore.getState().language;
+    uiStore.getState().setLanguage('en');
+    expect(defaultPlanName({ year: '2569', semester: '1' })).toBe(
+      'Plan 1/2569',
+    );
+    uiStore.getState().setLanguage(before);
   });
 
   it('picks the most recently updated plan by ISO timestamp', () => {
