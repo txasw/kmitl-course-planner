@@ -10,12 +10,20 @@ import { fillTemplate } from '@/lib/i18n/template';
 import type { DataDate, PosterHonesty } from '@/lib/planner/posterHonesty';
 import { formatLocalDateTime } from './examText';
 
+const NO_BREAK_SPACE = String.fromCodePoint(0xa0);
+
+/** The breakable spaces of a date and time held as no break spaces, so a narrow footer wraps
+ * the line before the date rather than strand the time on a line of its own. */
+function keepTogether(text: string): string {
+  return text.replaceAll(' ', NO_BREAK_SPACE);
+}
+
 function dataDateText(dataDate: DataDate, t: Translate): string {
   if (dataDate.kind === 'unverified') {
     return t('poster.unverified');
   }
   return fillTemplate(t('poster.dataAsOf'), {
-    dateTime: formatLocalDateTime(new Date(dataDate.at), t),
+    dateTime: keepTogether(formatLocalDateTime(new Date(dataDate.at), t)),
   });
 }
 
