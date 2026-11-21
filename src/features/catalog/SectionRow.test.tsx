@@ -185,13 +185,35 @@ describe('SectionRow actions', () => {
         onAdd={vi.fn()}
       />,
     );
-    // The add stays in its column but is disabled; the full reason reads from the seat
-    // line in the row body.
-    expect(screen.getByRole('button', { name: /^เพิ่ม/ })).toHaveAttribute(
-      'aria-disabled',
-      'true',
+    // The add stays in its column but is disabled, and the row states full once on
+    // screen, in the badge, rather than again in a seat line beside it.
+    const add = screen.getByRole('button', { name: /^เพิ่ม/ });
+    expect(add).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByText('เต็ม')).toBeVisible();
+    expect(screen.getByText('เต็ม เพิ่มไม่ได้')).not.toBeVisible();
+    expect(add).toHaveAccessibleDescription('เต็ม เพิ่มไม่ได้');
+  });
+
+  it('shows the full reason in a tooltip when the disabled add takes focus', () => {
+    const fullSection = makeSection({
+      seats: { limit: 40, preCount: 40, queueLeft: 0, enrolled: 'full' },
+    });
+    render(
+      <SectionRow
+        course={course}
+        section={fullSection}
+        relation={{ kind: 'addable' }}
+        seat={computeSeatStatus(fullSection)}
+        locale="en"
+        t={createTranslator('en')}
+        onAdd={vi.fn()}
+      />,
     );
-    expect(screen.getByText('เต็ม เพิ่มไม่ได้')).toBeInTheDocument();
+    expect(screen.queryByRole('tooltip')).toBeNull();
+    fireEvent.focus(screen.getByRole('button', { name: /^Add/ }));
+    expect(screen.getByRole('tooltip')).toHaveTextContent(
+      'Full, cannot be added',
+    );
   });
 
   it('keeps the disabled add focusable with its reason as the description', () => {
@@ -364,7 +386,11 @@ describe('SectionRow status badge', () => {
         />,
       );
       expect(screen.queryByText(/^ชนกับ/)).not.toBeInTheDocument();
-      expect(screen.getByText(/เพิ่มไม่ได้$/)).toBeVisible();
+      // The seat badge is the one visible statement; the disabled add carries the reason.
+      expect(screen.getByText(/^(เต็ม|ปิด)$/)).toBeVisible();
+      expect(
+        screen.getByRole('button', { name: /^เพิ่ม/ }),
+      ).toHaveAccessibleDescription(/เพิ่มไม่ได้$/);
       cleanup();
     }
   });
@@ -482,9 +508,10 @@ describe('SectionRow seat line', () => {
     expect(screen.getByText('ไม่จำกัดที่นั่ง')).toBeInTheDocument();
   });
 
-  it('states that a closed section cannot be added', () => {
+  it('states closed once in the badge and gives the reason to the disabled add', () => {
     renderSeats(makeSection({ isClosed: true }));
-    expect(screen.getByText('ปิด เพิ่มไม่ได้')).toBeInTheDocument();
+    expect(screen.getByText('ปิด')).toBeVisible();
+    expect(screen.getByText('ปิด เพิ่มไม่ได้')).not.toBeVisible();
     expect(
       screen.getByRole('button', { name: /^เพิ่ม/ }),
     ).toHaveAccessibleDescription('ปิด เพิ่มไม่ได้');
@@ -522,9 +549,21 @@ describe('SectionRow demand chip', () => {
     expect(chip).toHaveClass('bg-warn-soft', 'text-warn');
     // A screen reader hears the fact the counts stand for ahead of them.
     expect(chip).toHaveTextContent('ลงทะเบียนล่วงหน้าเกินจำนวนรับ ล่วงหน้า 171 คิว 83');
-    // The chip sits on the seat line rather than adding a line of its own.
+    // The full badge states the seat, so the chip keeps its line with no seat line beside
+    // it.
+    expect(chip.parentElement?.children).toHaveLength(1);
+    expect(screen.getByText('เต็ม เพิ่มไม่ได้')).not.toBeVisible();
+  });
+
+  it('keeps the chip beside the seat line of an open oversubscribed row', () => {
+    renderDemand(
+      makeSection({
+        seats: { limit: 45, preCount: 171, queueLeft: 83, enrolled: 40 },
+      }),
+    );
+    const chip = screen.getByText(/ล่วงหน้า 171 คิว 83$/);
     expect(chip.parentElement).toBe(
-      screen.getByText('เต็ม เพิ่มไม่ได้').closest('p')?.parentElement
+      screen.getByText('ว่าง 5 จาก 45').closest('p')?.parentElement
         ?.parentElement,
     );
   });
