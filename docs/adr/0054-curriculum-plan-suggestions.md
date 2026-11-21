@@ -297,10 +297,13 @@ the duplicate on the medium and wide tiers.
 The status row entry now shows in every edit view, before any search included. When a suggestion
 applies it opens the suggestion dialog as before. When none applies, because no search ran or the
 result is not a curriculum search of the plan's term, it opens a short dialog, the bottom sheet on
-a phone, with one sentence saying that suggested plans are built from a search by curriculum in
-the plan's term, and one primary action that closes it and opens the search form on the
-curriculum tab in the plan's term, with focus on that tab (`openCurriculumSearch` in
-`features/catalog/revealCourse.ts`). The add rules and the suggestion search are unchanged.
+a phone, with one sentence saying that suggested plans are built from a search by curriculum,
+and one primary action that closes it and opens the search form on the curriculum tab, with
+focus on that tab (`openCurriculumSearch` in `features/catalog/revealCourse.ts`). When a plan is
+active the sentence names the plan's term and the search opens in it. Before the first plan, the
+path the tour takes a new student on, the sentence leaves the term out and the search keeps the
+term it holds, since there is no plan term to name. The dialog's description is the note's title
+and sentence, not its action, which the focus already announces. The add rules and the suggestion search are unchanged.
 Leaving the entry disabled was rejected, since a disabled control says nothing to a touch user
 and no tour step may point at a control that does nothing.
 

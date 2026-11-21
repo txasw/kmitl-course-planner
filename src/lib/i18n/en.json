@@ -56,6 +56,7 @@
   "suggest.summary.none": "No subjects ticked",
   "suggest.needsSearch.title": "Search by curriculum first",
   "suggest.needsSearch.body": "Suggested plans are built from a search by curriculum in this plan's term.",
+  "suggest.needsSearch.bodyNoPlan": "Suggested plans are built from a search by curriculum.",
   "suggest.needsSearch.action": "Search by curriculum",
   "suggest.empty.noneTicked": "Tick at least one subject to get a suggested plan.",
   "suggest.empty.planFits": "Your plan already fits every ticked subject as it is. Tick another subject to add it to a suggested plan.",

@@ -8,6 +8,9 @@ interface EmptyStateProps {
   title: string;
   description: string;
   action?: ReactNode;
+  /** Ids for the title and the sentence, so a dialog can name them as its description. */
+  titleId?: string;
+  descriptionId?: string;
 }
 
 // A designed empty state per brief 8.2: an icon in a neutral disc, one line of title, one
@@ -20,6 +23,8 @@ export function EmptyState({
   title,
   description,
   action,
+  titleId,
+  descriptionId,
 }: EmptyStateProps) {
   return (
     <div
@@ -29,8 +34,12 @@ export function EmptyState({
       <span className="flex size-12 items-center justify-center rounded-full bg-surface-alt text-ink-soft">
         <Icon size={24} strokeWidth={1.75} aria-hidden />
       </span>
-      <h3 className="text-sm font-semibold text-ink">{title}</h3>
-      <p className="max-w-xs text-sm text-ink-soft">{description}</p>
+      <h3 id={titleId} className="text-sm font-semibold text-ink">
+        {title}
+      </h3>
+      <p id={descriptionId} className="max-w-xs text-sm text-ink-soft">
+        {description}
+      </p>
       {action}
     </div>
   );
