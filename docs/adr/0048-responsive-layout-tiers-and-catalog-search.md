@@ -884,3 +884,41 @@ fifth where controls skipped the touch target. Each fix supersedes the text it n
   control of a rejected import, and the export and close of the storage notice take the shared
   touch target, as the same switch in a section row already did. A touch spec checks the
   clear search, the banner switch, and the import back at 44 px on the phone and the tablet.
+
+## Amendment, 2026-11-21: an opened layer cuts no line at its edge
+
+A third conformance review found a tall block detail ending across the status row: at 1366 px
+the detail of a section no longer listed ran to the viewport foot, and its bottom edge cut the
+tops of "No conflicts" and each day's hours. A layer the student opens on purpose, a popover, a
+menu, or a sheet, may cover the page behind it, but it must not cut a line at its own edge where
+room exists to avoid it. The sweep had read each popover only inside itself, so it never saw the
+line under the edge. The review also found the plan name field showing a long name in part.
+
+- The anchored block detail stands as a column of the plan area, the timetable and shelf between
+  the view tabs and the status row. It still opens beside its block and flips to the other side
+  where this one has no room, but its top and foot now meet the plan area's own, so neither edge
+  lands part way across a line of the timetable or of the status row, and a detail taller than
+  the area scrolls in its body between the pinned heading and actions. The shared popover recipe
+  takes the column as an option; every other popover keeps its viewport sizing. Capping the
+  height to the space above the status row and shifting the node up was rejected: the sweep
+  then found its foot across a Friday block's name at 768 and 1366 px and its top across a
+  Monday block's time, since a node of its own height ends wherever its content does. Flipping
+  the detail above or below its block was rejected because the timetable rows leave no row
+  free of text.
+- The sweep reads the page behind an opened layer. In this reading a line the layer covers whole
+  passes, and a line its top or bottom edge cuts fails: each line is probed near its top and near
+  its foot at the same points across it, and a line that shows at one and is covered at the
+  other at two points or more is cut. A split at one point alone is the layer's rounded corner
+  over a line's end. A line the layer meets only at its side passes, since a layer beside its
+  anchor has no room to avoid the blocks next to it. The scroller rule for a fixed layer over a
+  list's end does not apply behind a layer the student opened. The walk now reads the panel
+  behind the block detail, behind the detail of the missing section the moved fixture leaves,
+  which it also reads whole on its own, and behind the display options of the export page.
+- The plan name field, in create and rename, is a text area that grows to the lines the name
+  needs, in place of a one line input that showed a long name scrolled to its end with its first
+  glyph cut at the field edge at 360 px. It keeps the behavior of a one line name: Enter saves, a
+  line break typed or pasted becomes a space, and the 100 character cap and its live count are
+  unchanged. A field cannot show its value as a text leaf of the page, so the sweep checks that
+  the field scrolls neither down nor sideways once a long name is typed. A wider field was
+  rejected, since no width holds 100 characters at 360 px, and an ellipsis was rejected because
+  it hides the name the student is editing.
