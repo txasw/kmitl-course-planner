@@ -35,7 +35,9 @@ import {
 // leaves that draw over each other, and any text leaf another layer covers, so a regression
 // on any surface fails the suite. The walk reads the timetable and the export page with a
 // toast up and after a failed save, rests the pointer on the export template dots and the
-// suggestion carousel chevrons past the tooltip delay, and walks the product tour.
+// suggestion carousel chevrons past the tooltip delay, and walks the product tour. Behind the
+// block details and the display options it reads the panel, where the opened layer may cover a
+// line whole but its edge may cut none.
 
 // A walk this long fails at the step that stalls rather than at the test timeout.
 test.use({ actionTimeout: 10_000 });
@@ -284,6 +286,9 @@ for (const language of ['th', 'en'] as const) {
           .first()
           .click();
         await sweep.scan('block detail', blockDetail(sweep));
+        await sweep.scan('panel behind the block detail', sweep.panel(), {
+          behind: true,
+        });
         await page.keyboard.press('Escape');
 
         await page
@@ -378,6 +383,30 @@ for (const language of ['th', 'en'] as const) {
         await sweep.scan('updates dialog', updates);
         await page.keyboard.press('Escape');
         await expect(updates).toHaveCount(0);
+
+        // The check against the moved variant left 90000005 missing, the tallest detail, with
+        // its no longer listed line, its exams, and the term it was added from. It keeps to
+        // the plan area, so its edge cuts no line of the status row under it.
+        await page
+          .locator('[data-teach-table-id="900005"]')
+          .filter({ visible: true })
+          .first()
+          .click();
+        await expect(
+          blockDetail(sweep)
+            .getByText(sweep.t('verify.missing'), { exact: true })
+            .first(),
+        ).toBeVisible();
+        await sweep.scan('missing entry detail', blockDetail(sweep));
+        await sweep.scan(
+          'panel behind the missing entry detail',
+          sweep.panel(),
+          { behind: true },
+        );
+        await page.keyboard.press('Escape');
+        await expect(blockDetail(sweep)).toHaveCount(0);
+        // The pointer leaves the block, whose hover card would otherwise open over the next.
+        await page.mouse.move(0, 0);
 
         await page
           .locator('[data-teach-table-id="960002"]')
@@ -628,6 +657,13 @@ for (const language of ['th', 'en'] as const) {
                 `div[aria-label="${sweep.t('preview.displayOptions')}"]`,
               ),
             ),
+        );
+        await sweep.scan(
+          'export page behind the display options',
+          sweep.panel(),
+          {
+            behind: true,
+          },
         );
         await page.keyboard.press('Escape');
       }

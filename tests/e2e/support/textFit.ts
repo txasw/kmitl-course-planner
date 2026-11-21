@@ -20,6 +20,12 @@
 // the list scrolls under, which scrolling clears. A layer that dims the panel on purpose,
 // such as the product tour's, is named as see through by the caller so the probe reads what
 // lies under it.
+//
+// Behind a layer the student opened on purpose, a popover, a menu, or a sheet, the region is
+// read in behind mode: the layer may cover text whole, but no line may end cut by its top or
+// bottom edge, which leaves half of each glyph on show. Each line is probed near its top and
+// near its foot at the same points, and a line that shows at one and is covered at the other
+// is cut at the layer's edge.
 
 import type { Locator } from '@playwright/test';
 
@@ -39,6 +45,9 @@ export interface TextFitException {
 export interface TextFitScanOptions {
   /** Layers a covered text is read through, such as a deliberate dim over the panel. */
   seeThrough?: readonly string[];
+  /** Read the region as lying behind a layer the student opened on purpose: a line the
+   * layer covers whole passes, and a line its top or bottom edge cuts fails. */
+  behind?: boolean;
 }
 
 export interface TextFitFinding {
@@ -55,10 +64,10 @@ export interface TextFitFinding {
 export async function scanTextFit(
   region: Locator,
   exceptions: readonly TextFitException[],
-  { seeThrough = [] }: TextFitScanOptions = {},
+  { seeThrough = [], behind = false }: TextFitScanOptions = {},
 ): Promise<TextFitFinding[]> {
   return region.evaluate(
-    (root, { excused, through }) => {
+    (root, { excused, through, behind }) => {
       // Subpixel layout can place an edge a fraction past a whole pixel, and a line box
       // read from the centre of an asymmetric Thai face can sit a fraction off it, so a
       // box cuts a leaf only past the same one pixel the scroll size check allows.
@@ -332,6 +341,47 @@ export async function scanTextFit(
             element.style.setProperty('pointer-events', 'auto', 'important');
           }
         }
+        // The element on top at a point of the line, when it is neither the leaf's own
+        // element nor inside or around it, or null when the line shows there.
+        const coverAt = (
+          x: number,
+          y: number,
+          foot: number,
+        ): Element | null => {
+          if (x < 0 || y < 0 || x >= viewport.right || y >= viewport.bottom) {
+            return null;
+          }
+          const top = probe
+            .elementsFromPoint(x, y)
+            .find(
+              (element) =>
+                !through.some((selector) => element.matches(selector)),
+            );
+          if (
+            top === undefined ||
+            top === parent ||
+            parent.contains(top) ||
+            top.contains(parent)
+          ) {
+            return null;
+          }
+          // A row pinned inside the leaf's own scroller scrolls clear of it.
+          if (scroller?.contains(top) === true) return null;
+          // A layer fixed over the scroller's end, such as the phone bottom nav, covers
+          // a line only while the scroller rests short of it. While the scroller still
+          // has room to scroll that far, scrolling brings the line clear, so it is not
+          // a covered line; at the scroller's end it is. A layer the student opened is no
+          // such pinned layer, so behind one the rule does not apply.
+          if (!behind && scroller !== null) {
+            const room =
+              scroller.scrollHeight -
+              scroller.clientHeight -
+              scroller.scrollTop;
+            const under = top.getBoundingClientRect();
+            if (under.top <= y && room >= foot - under.top) return null;
+          }
+          return top;
+        };
         for (const fragment of range.getClientRects()) {
           // Overlap is read on the part of each line that is on show.
           const part = {
@@ -352,51 +402,43 @@ export async function scanTextFit(
               continue;
             // The ends sit a little inside the line, clear of the box of a neighbour.
             const end = Math.min(END_PROBE_PX, span / 2);
-            for (const x of [
+            const xs = [
               part.left + end,
               part.left + span * 0.15,
               part.left + span * 0.5,
               part.left + span * 0.85,
               part.right - end,
-            ]) {
-              if (cover !== null) break;
-              if (
-                x < 0 ||
-                y < 0 ||
-                x >= viewport.right ||
-                y >= viewport.bottom
-              ) {
-                continue;
-              }
-              const top = probe
-                .elementsFromPoint(x, y)
-                .find(
-                  (element) =>
-                    !through.some((selector) => element.matches(selector)),
+            ];
+            if (behind) {
+              // Behind a layer the student opened, a line the layer covers whole or meets at
+              // its side is the cover the layer may make; a line it covers only above or
+              // below a point is cut by the layer's top or bottom edge, so the glyphs on
+              // either side of the edge read as other words. A probe a fifth of the way in
+              // from the top and the foot of the line reads each side of such an edge. An edge
+              // runs across the line, so it splits the line at two points or more; a split at
+              // one point alone is the rounded corner of the layer over the line's end.
+              const height = part.bottom - part.top;
+              const splits: Element[] = [];
+              for (const x of xs) {
+                const upper = coverAt(x, part.top + height * 0.2, part.bottom);
+                const lower = coverAt(
+                  x,
+                  part.bottom - height * 0.2,
+                  part.bottom,
                 );
-              if (
-                top === undefined ||
-                top === parent ||
-                parent.contains(top) ||
-                top.contains(parent)
-              ) {
-                continue;
+                const split = upper ?? lower;
+                if ((upper === null) !== (lower === null) && split !== null) {
+                  splits.push(split);
+                }
               }
-              // A row pinned inside the leaf's own scroller scrolls clear of it.
-              if (scroller?.contains(top) === true) continue;
-              // A layer fixed over the scroller's end, such as the phone bottom nav, covers
-              // a line only while the scroller rests short of it. While the scroller still
-              // has room to scroll that far, scrolling brings the line clear, so it is not
-              // a covered line; at the scroller's end it is.
-              if (scroller !== null) {
-                const room =
-                  scroller.scrollHeight -
-                  scroller.clientHeight -
-                  scroller.scrollTop;
-                const under = top.getBoundingClientRect();
-                if (under.top <= y && room >= part.bottom - under.top) continue;
+              if (cover === null && splits.length >= 2) {
+                cover = splits[0] ?? null;
               }
-              cover = top;
+            } else {
+              for (const x of xs) {
+                if (cover !== null) break;
+                cover = coverAt(x, y, part.bottom);
+              }
             }
           }
         }
@@ -409,7 +451,7 @@ export async function scanTextFit(
           findings.push({
             kind: 'covered',
             text,
-            detail: `under ${name} ${cover.textContent.replace(/\s+/g, ' ').trim().slice(0, 40)}`,
+            detail: `${behind ? 'cut at the edge of' : 'under'} ${name} ${cover.textContent.replace(/\s+/g, ' ').trim().slice(0, 40)}`,
           });
         }
       }
@@ -449,6 +491,7 @@ export async function scanTextFit(
         control,
       })),
       through: [...seeThrough],
+      behind,
     },
   );
 }

@@ -140,24 +140,21 @@ export class Sweep {
   /**
    * Scan a region. A floating surface that follows the pointer also has to sit wholly in
    * the viewport, since text pushed off the screen is skipped by the scan as text that is
-   * scrolled or set aside.
+   * scrolled or set aside. A region behind a layer the student opened is scanned behind it,
+   * where the layer may cover a line whole but its edge may not cut one.
    */
   async scan(
     surface: string,
     region: Locator,
     {
       floating = false,
-      seeThrough,
+      ...options
     }: { floating?: boolean } & TextFitScanOptions = {},
   ): Promise<void> {
     const target = region.first();
     await expect(target, surface).toBeVisible();
     await settle(this.page);
-    const found = await scanTextFit(
-      target,
-      this.exceptions,
-      seeThrough === undefined ? {} : { seeThrough },
-    );
+    const found = await scanTextFit(target, this.exceptions, options);
     for (const finding of found) {
       this.findings.push({ ...finding, surface, width: this.width });
     }
