@@ -150,18 +150,28 @@ export function entryTermMatches(
   );
 }
 
+/**
+ * The longest plan name a create, a rename, or an import accepts, counted in UTF-16 code
+ * units as an input maxLength counts them. The header shows a name whole on as many lines
+ * as it needs, so the cap is what keeps a name from filling the screen. A storage read
+ * accepts any length, so a plan named before the cap still loads rather than quarantining
+ * the store.
+ */
+export const PLAN_NAME_MAX = 100;
+
 // A plan belongs to exactly one year and semester pair, and every entry must come
 // from a query for that same term. The refine asserts that invariant, so a mixed
 // term blob is rejected at every trust boundary that parses a plan, including a
-// storage read and a JSON import. The entry schema is a parameter so the import
-// boundary can apply the same plan rules to entries that carry no review.
+// storage read and a JSON import. The entry and name schemas are parameters so the
+// import boundary can apply the same plan rules to entries that carry no review, and
+// cap the name that a storage read leaves open.
 function termConsistentPlanSchema<
   Entry extends z.ZodType<{ sourceQuery: { params: Record<string, string> } }>,
->(entrySchema: Entry) {
+>(entrySchema: Entry, nameSchema: z.ZodString) {
   return z
     .object({
       id: z.string(),
-      name: z.string(),
+      name: nameSchema,
       year: z.string(),
       semester: z.enum(['1', '2', '3']),
       entries: z.array(entrySchema),
@@ -181,14 +191,16 @@ function termConsistentPlanSchema<
     });
 }
 
-export const planSchema = termConsistentPlanSchema(planEntrySchema);
+export const planSchema = termConsistentPlanSchema(planEntrySchema, z.string());
 
 // An imported plan is reset to unverified and reconciled on its first check, so a review
 // written on another device describes nothing the importing student has seen. The import
 // schema leaves review out of each entry, and Zod strips the key along with any other
-// unknown one, so a review in the file, well formed or not, never reaches the store.
+// unknown one, so a review in the file, well formed or not, never reaches the store. It
+// also caps the name, since an imported plan is a new plan, named as a create is.
 export const planImportSchema = termConsistentPlanSchema(
   planEntrySchema.omit({ review: true }),
+  z.string().max(PLAN_NAME_MAX),
 );
 
 export type VerifyStatus = z.infer<typeof verifyStatusSchema>;

@@ -6,15 +6,18 @@
 // is an invalid_value, the same codes a present but wrong value produces. So the value at
 // the path decides: an absent value is missing, a present one keeps its code's reason.
 // The only custom refine on the plan schema is the term invariant, so a custom issue is a
-// term mismatch.
+// term mismatch, and the only upper bound of the import schema is the plan name cap, so a
+// too big issue is a name past that many characters.
 
 import type { ZodError } from 'zod';
 import type { Translate, TranslationKey } from '@/lib/i18n/t';
+import { fillTemplate } from '@/lib/i18n/template';
 
 const CODE_KEY: Record<string, TranslationKey> = {
   invalid_type: 'planData.issue.wrongType',
   invalid_value: 'planData.issue.invalidValue',
   custom: 'planData.issue.termMismatch',
+  too_big: 'planData.issue.tooLong',
 };
 
 // Codes whose issue is raised for both an absent field and a present but wrong one, so a
@@ -55,7 +58,11 @@ export function importIssueMessages(
     const missing =
       PRESENCE_CODES.has(issue.code) &&
       valueAtPath(input, issue.path) === undefined;
-    const message = t(issueKey(issue.code, missing));
+    const template = t(issueKey(issue.code, missing));
+    const message =
+      issue.code === 'too_big'
+        ? fillTemplate(template, { max: String(issue.maximum) })
+        : template;
     return path === '' ? message : `${path}: ${message}`;
   });
 }
