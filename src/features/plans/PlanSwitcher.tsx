@@ -44,7 +44,12 @@ import { NameForm } from './NameForm';
 import { PlanList, termLabel } from './PlanList';
 import { PLAN_SWITCHER_TRIGGER_ID } from './autosaveStore';
 import { planStore, useActivePlan } from './planStore';
-import { planNameClass, WRAPPED_TERM, usePlanNameFit } from './usePlanNameFit';
+import {
+  planNameClass,
+  triggerPadding,
+  WRAPPED_TERM,
+  usePlanNameFit,
+} from './usePlanNameFit';
 
 type Mode =
   | { kind: 'list' }
@@ -370,8 +375,9 @@ export function PlanSwitcher() {
   // The wrapper is the header item that shrinks first, so the trigger fills it before any
   // other header control gives way. It has no cap, so a long name takes the room a wide
   // header leaves it; where that room is short the name wraps onto two lines a step down
-  // the type scale (usePlanNameFit), and the trigger opens the plan list, which wraps
-  // every name whole. The term line never truncates: the wrapper keeps a minimum width
+  // the type scale, and a name two lines cannot hold wraps at the smallest step onto every
+  // line it needs, the trigger and the header growing to hold it (usePlanNameFit), so the
+  // name is never cut. The term line never truncates: the wrapper keeps a minimum width
   // that holds the longest term line, "ภาคการศึกษา 2/2569" at the small size, beside the
   // chevron, which still leaves the export, menu, and close controls their room at 320 px
   // (ADR-0048 amendment). Below 640 px the calendar icon drops out so the name keeps the
@@ -386,7 +392,7 @@ export function PlanSwitcher() {
         aria-label={triggerName}
         aria-haspopup={sheet ? 'dialog' : 'true'}
         aria-expanded={open}
-        className={`flex w-full items-center gap-2 overflow-hidden rounded-kcp border border-border px-2 text-sm text-ink hover:bg-surface-alt sm:px-3 ${wrapped ? 'py-0' : 'py-px'} ${TARGET_HEIGHT} ${FOCUS_RING}`}
+        className={`flex w-full items-center gap-2 overflow-hidden rounded-kcp border border-border px-2 text-sm text-ink hover:bg-surface-alt sm:px-3 ${triggerPadding(nameStep)} ${TARGET_HEIGHT} ${FOCUS_RING}`}
       >
         <CalendarRange
           size={16}
