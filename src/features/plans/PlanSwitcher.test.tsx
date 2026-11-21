@@ -15,6 +15,7 @@ import {
 } from '../../../tests/support/domain-builders';
 import { installViewport } from '../../../tests/support/viewport';
 import { searchStore } from '@/features/search/searchStore';
+import { PLAN_NAME_MAX } from '@/lib/domain/plan';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { toastStore } from '@/features/shell/toastStore';
 import { planStore } from './planStore';
@@ -416,6 +417,45 @@ describe('PlanSwitcher', () => {
     fireEvent.change(input, { target: { value: 'ตารางใหม่' } });
     fireEvent.click(screen.getByRole('button', { name: 'บันทึก' }));
     expect(planStore.getState().plans[0]?.name).toBe('ตารางใหม่');
+  });
+
+  it('caps a typed name and counts the room left', () => {
+    seedTwoPlans();
+    render(<PlanSwitcher />);
+    openMenu();
+    fireEvent.click(screen.getByRole('button', { name: 'สร้างตาราง' }));
+    const input = screen.getByLabelText('ชื่อตาราง');
+    expect(input).toHaveAttribute('maxLength', String(PLAN_NAME_MAX));
+    expect(input).toHaveAccessibleDescription(
+      `ไม่เกิน ${String(PLAN_NAME_MAX)} ตัวอักษร`,
+    );
+    fireEvent.change(input, { target: { value: 'ตาราง' } });
+    expect(screen.getByText(`5/${String(PLAN_NAME_MAX)}`)).toBeInTheDocument();
+  });
+
+  it('keeps save disabled on a name past the cap until it is shortened', () => {
+    const long = 'x'.repeat(PLAN_NAME_MAX + 1);
+    act(() => {
+      planStore.getState().hydrate([
+        makePlan({
+          id: 'a',
+          name: long,
+          year: '2569',
+          semester: '1',
+          entries: [],
+        }),
+      ]);
+    });
+    render(<PlanSwitcher />);
+    openMenu();
+    fireEvent.click(screen.getByRole('button', { name: `เปลี่ยนชื่อ ${long}` }));
+    const input = screen.getByLabelText('ชื่อตาราง');
+    const save = screen.getByRole('button', { name: 'บันทึก' });
+    expect(save).toBeDisabled();
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(planStore.getState().plans[0]?.name).toBe(long);
+    fireEvent.change(input, { target: { value: 'x'.repeat(PLAN_NAME_MAX) } });
+    expect(save).toBeEnabled();
   });
 
   it('dismisses the dropdown on Escape', () => {
