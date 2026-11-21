@@ -22,10 +22,13 @@
 // lies under it.
 //
 // Behind a layer the student opened on purpose, a popover, a menu, or a sheet, the region is
-// read in behind mode: the layer may cover text whole, but no line may end cut by its top or
-// bottom edge, which leaves half of each glyph on show. Each line is probed near its top and
-// near its foot at the same points, and a line that shows at one and is covered at the other
-// is cut at the layer's edge.
+// read in behind mode: the layer may cover text whole, but no line may end cut by its edge,
+// which leaves part of the line on show to read as other words or another time. Each line is
+// probed near its top and near its foot at the same points. A line that shows at one and is
+// covered at the other is cut by the layer's top or bottom edge. A line covered at some
+// points and on show at others is cut by its side edge, which fails too, except inside the
+// regions the caller names as beside the layer's anchor, such as the timetable blocks next
+// to the block detail, which a layer opened beside its anchor has no room to avoid.
 
 import type { Locator } from '@playwright/test';
 
@@ -48,6 +51,9 @@ export interface TextFitScanOptions {
   /** Read the region as lying behind a layer the student opened on purpose: a line the
    * layer covers whole passes, and a line its top or bottom edge cuts fails. */
   behind?: boolean;
+  /** Behind a layer, selectors of the regions next to its anchor whose lines its side edge
+   * may cut, since a layer opened beside its anchor has no room to avoid them. */
+  besideAnchor?: readonly string[];
 }
 
 export interface TextFitFinding {
@@ -64,10 +70,14 @@ export interface TextFitFinding {
 export async function scanTextFit(
   region: Locator,
   exceptions: readonly TextFitException[],
-  { seeThrough = [], behind = false }: TextFitScanOptions = {},
+  {
+    seeThrough = [],
+    behind = false,
+    besideAnchor = [],
+  }: TextFitScanOptions = {},
 ): Promise<TextFitFinding[]> {
   return region.evaluate(
-    (root, { excused, through, behind }) => {
+    (root, { excused, through, behind, beside }) => {
       // Subpixel layout can place an edge a fraction past a whole pixel, and a line box
       // read from the centre of an asymmetric Thai face can sit a fraction off it, so a
       // box cuts a leaf only past the same one pixel the scroll size check allows.
@@ -410,15 +420,18 @@ export async function scanTextFit(
               part.right - end,
             ];
             if (behind) {
-              // Behind a layer the student opened, a line the layer covers whole or meets at
-              // its side is the cover the layer may make; a line it covers only above or
-              // below a point is cut by the layer's top or bottom edge, so the glyphs on
-              // either side of the edge read as other words. A probe a fifth of the way in
-              // from the top and the foot of the line reads each side of such an edge. An edge
-              // runs across the line, so it splits the line at two points or more; a split at
-              // one point alone is the rounded corner of the layer over the line's end.
+              // Behind a layer the student opened, a line the layer covers whole is the cover
+              // the layer may make. A line it covers only above or below a point is cut by
+              // the layer's top or bottom edge, so the glyphs on either side of the edge read
+              // as other words. A probe a fifth of the way in from the top and the foot of the
+              // line reads each side of such an edge. An edge runs across the line, so it
+              // splits the line at two points or more; a split at one point alone is the
+              // rounded corner of the layer over the line's end. A line covered top to foot
+              // at some points and not at others is cut by the layer's side edge, as a label
+              // of 13:00 reads 3:00 with its first glyph under the layer.
               const height = part.bottom - part.top;
               const splits: Element[] = [];
+              const whole: Element[] = [];
               for (const x of xs) {
                 const upper = coverAt(x, part.top + height * 0.2, part.bottom);
                 const lower = coverAt(
@@ -427,12 +440,21 @@ export async function scanTextFit(
                   part.bottom,
                 );
                 const split = upper ?? lower;
-                if ((upper === null) !== (lower === null) && split !== null) {
+                if (upper !== null && lower !== null) {
+                  whole.push(upper);
+                } else if (split !== null) {
                   splits.push(split);
                 }
               }
+              const sideCut =
+                whole.length > 0 &&
+                whole.length < xs.length &&
+                !beside.some((selector) => parent.closest(selector) !== null);
               if (cover === null && splits.length >= 2) {
                 cover = splits[0] ?? null;
+              }
+              if (cover === null && sideCut) {
+                cover = whole[0] ?? null;
               }
             } else {
               for (const x of xs) {
@@ -492,6 +514,7 @@ export async function scanTextFit(
       })),
       through: [...seeThrough],
       behind,
+      beside: [...besideAnchor],
     },
   );
 }
