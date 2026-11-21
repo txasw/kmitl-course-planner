@@ -15,6 +15,7 @@ import { axeViolations } from './support/axe';
 // subjects behind the chevron disclosure, the suggestion is applied as a new plan, and undo
 // returns to the plan it started from.
 const GRID_BLOCK = '[data-teach-table-id]';
+const SOFT_BLOCK = `${GRID_BLOCK}[data-surface="soft"]`;
 
 test('applies a suggested timetable as a new plan and undoes it', async ({
   context,
@@ -78,6 +79,27 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
   const apply = shown.getByRole('button', { name: 'ใช้ตารางนี้' });
   await expect(apply).toHaveCount(1);
   expect(await axeViolations(page)).toEqual([]);
+
+  // A wide slide sits on the quiet card, whose near white stops must not reach its blocks:
+  // each block paints with the same subject stops as a block on the main grid.
+  const softBlocks = page.locator(SOFT_BLOCK);
+  await expect(shown.locator(SOFT_BLOCK).first()).toBeVisible();
+  const stops = await softBlocks.evaluateAll((nodes) =>
+    nodes.map((node) => {
+      const style = window.getComputedStyle(node);
+      return {
+        inSlide: node.closest('[data-suggest-slide]') !== null,
+        stops: ['--kcp-tint-strong', '--kcp-tint-weak', '--kcp-tint-edge']
+          .map((name) => style.getPropertyValue(name).trim())
+          .join(' '),
+      };
+    }),
+  );
+  const gridStops = stops.find((block) => !block.inSlide)?.stops;
+  expect(gridStops).toBeDefined();
+  const slideStops = stops.filter((block) => block.inSlide);
+  expect(slideStops.length).toBeGreaterThan(0);
+  for (const block of slideStops) expect(block.stops).toBe(gridStops);
 
   // One suggestion per slide: the next chevron pages, the position line announces it, and
   // the arrow keys page back from the slide itself.

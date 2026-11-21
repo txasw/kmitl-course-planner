@@ -14,9 +14,11 @@ export type BlockSurface = 'soft' | 'flat';
 /** A style object that may also set custom properties. */
 export type StyleWithVars = CSSProperties & Record<`--${string}`, string>;
 
-/** The fill classes for a surface. The radius is the card radius on both. */
+/** The fill classes for a surface. The radius is the card radius on both. The soft surface
+ * sets the subject stops on itself, so a block keeps its tint inside a quiet neutral card,
+ * whose stops would otherwise inherit into it. */
 export function surfaceClass(surface: BlockSurface): string {
-  return surface === 'soft' ? 'kcp-soft-card' : 'rounded-kcp';
+  return surface === 'soft' ? 'kcp-soft-card kcp-soft-subject' : 'rounded-kcp';
 }
 
 /** The fill style for a surface: the soft card reads its tint from a custom property, and the

@@ -115,6 +115,23 @@ describe('shadow stylesheet tokens', () => {
     }
   });
 
+  it('restores the subject stops on a block inside a quiet card', () => {
+    // The stop names inherit, so a block nested in a quiet card would read its near white
+    // stops. The subject names resolve at the root and keep the default figures.
+    for (const stop of ['strong', 'weak', 'edge']) {
+      expect(css).toContain(
+        `--kcp-tint-subject-${stop}: var(--kcp-tint-${stop});`,
+      );
+    }
+    const rule = /@utility kcp-soft-subject \{([\s\S]*?)\n\}/.exec(css)?.[1];
+    expect(rule).toBeDefined();
+    for (const stop of ['strong', 'weak', 'edge']) {
+      expect(rule).toContain(
+        `--kcp-tint-${stop}: var(--kcp-tint-subject-${stop});`,
+      );
+    }
+  });
+
   it('declares the sheet radius', () => {
     expect(css).toContain('--kcp-radius-sheet: 12px;');
     expect(css).toContain('--radius-kcp-sheet: var(--kcp-radius-sheet)');
