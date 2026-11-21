@@ -237,10 +237,12 @@ function EventBlockComponent({
     hasPlace: showRoom && place !== '',
     nameAbbreviations: abbreviations.length,
   });
+  // The name joins the reset key, since a locale switch can swap in a name of the same field
+  // set and abbreviation count that needs a fresh fit from the full level.
   const level = useDensityFit(
     contentRef,
     eligibility,
-    fitKey,
+    `${fitKey}|${name}`,
     fitPaused,
     dayCard ? 'dayCard' : 'block',
   );
