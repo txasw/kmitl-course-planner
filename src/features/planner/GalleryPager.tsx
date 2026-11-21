@@ -11,6 +11,12 @@
 // full width the rails held.
 // On a phone the chips show short names, so a quiet line under the stage names the selected
 // template in full with its output pixels (ADR-0045 amendment of 2026-11-21).
+//
+// From 640 px up the stage keeps a floor of 16rem, so the poster stays readable when the
+// display options panel or a short window takes height from it; the export page scrolls past
+// that floor rather than shrink the poster to nothing (ADR-0027 amendment of 2026-11-21).
+// Below 640 px the options are a sheet over the page, so the stage takes what the chips and
+// the foot toolbar leave, and the toolbar stays in view at the foot.
 
 import {
   useEffect,
@@ -125,7 +131,7 @@ export function GalleryPager({
   };
 
   return (
-    <div data-gallery-pager="" className="flex min-h-0 flex-1 flex-col gap-2">
+    <div data-gallery-pager="" className="flex flex-1 flex-col gap-2">
       <TemplateChips
         templates={templates}
         selected={selected}
@@ -138,7 +144,7 @@ export function GalleryPager({
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        className="relative min-h-0 flex-1 touch-pan-y select-none overflow-hidden rounded-kcp bg-surface-alt"
+        className="relative min-h-0 flex-1 touch-pan-y select-none overflow-hidden rounded-kcp bg-surface-alt sm:min-h-64"
       >
         {children}
       </div>
