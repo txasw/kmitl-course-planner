@@ -74,6 +74,8 @@ interface DayLanesProps {
   /** Show a block's name alone while it is narrower than 7em, where the block width is a
    * day column or a suggestion slide track rather than a meeting length (ADR-0047). */
   narrowBlocks: boolean;
+  /** Lay each block out as the phone day card (ADR-0047 amendment of 2026-11-21). */
+  dayCard: boolean;
   /** Whether this grid is the poster the export rasterizes: its blocks raise the line height
    * for the raster and pin the foot for its measured fit. A plan suggestion is read only but
    * never exported, so it packs its lines like the edit grid. */
@@ -101,6 +103,7 @@ export function DayLanes({
   sticky,
   surface,
   narrowBlocks,
+  dayCard,
   exported,
 }: DayLanesProps) {
   const showRoom = display?.showRoom ?? true;
@@ -223,6 +226,7 @@ export function DayLanes({
           fitKey: `${String(fontPx)}|${orientation}|${String(window.startMin)}|${String(window.endMin)}|${String(days.length)}|${String(style.gridRow ?? '')}|${String(style.gridColumn ?? '')}`,
           fitPaused: dragging,
           nameOnlyWhenNarrow: narrowBlocks,
+          dayCard,
         };
         return editable && onRemove ? (
           <DraggableBlock

@@ -3,7 +3,10 @@
 // column, so the time runs down the scroller and each block takes the full width. The window
 // is the edit frame's smart window, so a drag holds it as it does on the week. Blocks stay the
 // same drag sources with the same detail and context menu, and a day with no class says so
-// in one line at the top of its slot. The timetable view resolves the shown day and passes
+// in one line at the top of its slot. Each block is as wide as the pane and tall, so it lays
+// out as the day card, the time range first and the chips at its foot, rather than the narrow
+// positioned block stretched (ADR-0047 amendment of 2026-11-21); the name only rule of a
+// narrow column never applies here. The timetable view resolves the shown day and passes
 // it in, since the chip row above the view reads it too. Each shown day opens scrolled to
 // its first class, so an afternoon class is in view on arrival.
 //
@@ -97,6 +100,8 @@ export function DayView({
             days={run}
             orientation="portrait"
             editable
+            dayCard
+            narrowBlocks={false}
             fontPx={fontPx}
             label={fillTemplate(t('view.dayGrid'), { day: dayName })}
             notice={

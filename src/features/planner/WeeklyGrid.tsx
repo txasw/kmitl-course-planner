@@ -135,6 +135,9 @@ export interface WeeklyGridProps {
    * slide track can be as narrow. Off in landscape, where a block is as wide as its meeting
    * is long, and on the poster, so an exported short meeting keeps its place (ADR-0047). */
   narrowBlocks?: boolean;
+  /** Lay each block out as the phone day card, the time first and the chips at its foot.
+   * Set by the day view only, where a block is the full width of the pane and tall. */
+  dayCard?: boolean;
   /** Whether this grid is the poster the export rasterizes, which sets the raster line
    * height and the pinned foot. Defaults to every read only grid; the suggestion cards are
    * read only but never exported, so they pass false. */
@@ -180,6 +183,7 @@ export function WeeklyGrid({
   hourLabelStep = 1,
   blockSurface = editable ? 'soft' : 'flat',
   narrowBlocks = editable && orientation === 'portrait',
+  dayCard = false,
   exported = !editable,
 }: WeeklyGridProps) {
   // The grid template follows only the window, the day count, the orientation, and the
@@ -288,6 +292,7 @@ export function WeeklyGrid({
         sticky={editable}
         surface={blockSurface}
         narrowBlocks={narrowBlocks}
+        dayCard={dayCard}
         exported={exported}
       />
 

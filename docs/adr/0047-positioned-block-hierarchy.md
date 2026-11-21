@@ -210,3 +210,30 @@ preview poster and its export alone, and that path draws no hatch (ADR-0055).
 
 Consequences. A hatched block in the edit grid reads as text on its fill with stripes in the
 gaps. The ring and the stripes still mark the block as missing or in conflict.
+
+## Amendment, 2026-11-21: the phone day card
+
+Context. The day view of ADR-0049 renders one day in portrait, so each block is the full width
+of the pane and about 70 px an hour tall. The conformance review found the block laid out as the
+narrow positioned block stretched: the name, the second name, the place, and a bare section code
+crowded the top fifth of a three hour card and the rest of it stayed empty.
+
+Decision. In the day view a block lays out as the day card of the redesign mockup. A single day
+column leaves the time axis far from the text, so the time range leads as a clear first line in
+the semibold weight. The name in the panel language follows, then the other language's name, then
+the place with its location glyph. The section, named as กลุ่มเรียน with its code, and the lecture
+or practice kind sit as chips at the foot of the card, with the subject id at the end of that line,
+so a long meeting reads as one card from top to bottom. The fill, the stripe, the status dot, the
+hatch, the drag, and the remove control are unchanged. The card walks the same density ladder, so
+a short meeting drops the id, the second name, the time, the name lines, the chips, and the place
+in that order, and the time and the id remain whole fields. The week grid, the poster, and the
+suggestion slides keep the positioned block layout, where position encodes the time.
+
+Alternatives considered. Keeping the positioned layout with the foot pinned to the bottom was
+rejected because the time would stay demoted in the one view whose axis is furthest from the text.
+A right column for the time and the place, as the mockup's first sketch drew it, was rejected
+because a long Thai name then wraps in half the width.
+
+Consequences. The phone day view reads like the mockup screen 04. The time is prominent here
+while it stays quiet in the week, which follows this ADR's rule that the time earns emphasis
+only where position does not encode it clearly.

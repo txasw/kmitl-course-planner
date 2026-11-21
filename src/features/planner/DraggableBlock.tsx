@@ -32,6 +32,7 @@ interface DraggableBlockProps {
   fitKey?: string;
   fitPaused?: boolean;
   nameOnlyWhenNarrow?: boolean;
+  dayCard?: boolean;
   nameLanguage?: NameLanguage;
 }
 
