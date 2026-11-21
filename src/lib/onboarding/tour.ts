@@ -10,8 +10,9 @@
 // an add button of an open course, else at a course to open, else at the search button;
 // the timetable step points at the day chips of a narrow timetable, else at the
 // timetable tab, else at the bottom nav item. A step with none of its controls on the
-// page is left out, so a student with no curriculum search meets no suggest step and the
-// count says four.
+// page is left out. The suggest step points at the status row's suggest action, which
+// stays in place before any search and then explains that suggestions follow a search by
+// curriculum, so a new student meets all five steps.
 //
 // The tour starts on its own once per document when the panel is open in edit, the
 // onboarding record has been read, nothing else holds the panel (the welcome, a dialog,

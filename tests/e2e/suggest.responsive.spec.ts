@@ -57,7 +57,15 @@ test('applies a suggested timetable from the compact layouts', async ({
 }) => {
   const page = await openPlanner(context);
   const catalog = await curriculumSearch(page);
-  await catalog.getByRole('button', { name: 'แนะนำตาราง' }).click();
+  const entry = catalog.getByRole('button', { name: 'แนะนำตาราง' });
+  // The phone pane's entry is the only one in reach there, so it is the filled one; the
+  // tablet sheet's stays quiet, since the status row's filled one shows past its scrim.
+  if (isPhone(page)) {
+    await expect(entry).toHaveClass(/\bbg-primary-strong\b/);
+  } else {
+    await expect(entry).not.toHaveClass(/\bbg-primary-strong\b/);
+  }
+  await entry.click();
   const dialog = page.getByRole('dialog', { name: 'แนะนำตาราง' });
   await expect(dialog).toBeVisible();
   const shown = dialog.locator('[data-suggest-slide]:not([inert])');
@@ -123,6 +131,27 @@ test('applies a suggested timetable from the compact layouts', async ({
   await expect(page.locator(`${GRID_BLOCK}[data-verify="danger"]`)).toHaveCount(
     0,
   );
+});
+
+test('explains the curriculum search before one ran and opens it', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  if (isPhone(page)) {
+    await bottomNav(page).getByRole('button', { name: 'ตารางเรียน' }).tap();
+  }
+  await page
+    .getByRole('group', { name: 'สรุปตาราง', exact: true })
+    .getByRole('button', { name: 'แนะนำตาราง' })
+    .tap();
+  const dialog = page.getByRole('dialog', { name: 'แนะนำตาราง' });
+  await expect(dialog).toContainText('ค้นหาตามหลักสูตรก่อน');
+  await dialog.getByRole('button', { name: 'ค้นหาตามหลักสูตร' }).tap();
+  await expect(dialog).toHaveCount(0);
+  const tab = page.getByRole('tab', { name: 'หลักสูตร' });
+  await expect(tab).toHaveAttribute('aria-selected', 'true');
+  await expect(tab).toBeFocused();
+  await expect(tab).toBeInViewport();
 });
 
 test('keeps the suggest action in the thumb zone under the timetable', async ({

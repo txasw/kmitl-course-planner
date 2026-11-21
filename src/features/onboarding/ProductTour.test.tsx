@@ -20,8 +20,9 @@ import { ProductTour } from './ProductTour';
 
 // The panel opens on the catalog with no search yet, so the search step points at the
 // search tabs, the add step at the search button, the timetable step at the timetable
-// tab or the bottom nav item, and the export step at the header button. No curriculum
-// search ran, so there is no suggest step and the count says four.
+// tab or the bottom nav item, the suggest step at the status row's suggest action, which
+// is there before any search, and the export step at the header button. The count says
+// five.
 
 function fakeRecord() {
   return {
@@ -89,7 +90,7 @@ describe('ProductTour', () => {
     expect(dialog).toHaveAccessibleDescription(
       'ค้นหาตามหลักสูตรและชั้นปี รหัสวิชา หรือหมวดวิชา เลือกวิธีค้นหาจากแถบนี้',
     );
-    expect(dialog).toHaveTextContent('1 จาก 4');
+    expect(dialog).toHaveTextContent('1 จาก 5');
     expect(button('ถัดไป')).toHaveFocus();
     expect(screen.queryByRole('button', { name: 'ย้อนกลับ' })).toBeNull();
   });
@@ -99,9 +100,9 @@ describe('ProductTour', () => {
     await stepTitled('ค้นหารายวิชา');
     fireEvent.click(button('ถัดไป'));
     const add = await stepTitled('เพิ่มกลุ่มเรียนลงตาราง');
-    expect(add).toHaveTextContent('2 จาก 4');
+    expect(add).toHaveTextContent('2 จาก 5');
     expect(add.querySelector('[aria-live="polite"]')).toHaveTextContent(
-      '2 จาก 4 เพิ่มกลุ่มเรียนลงตาราง',
+      '2 จาก 5 เพิ่มกลุ่มเรียนลงตาราง',
     );
     fireEvent.click(button('ย้อนกลับ'));
     await stepTitled('ค้นหารายวิชา');
@@ -169,9 +170,15 @@ describe('ProductTour', () => {
       fireEvent.click(button('ถัดไป'));
       await stepTitled(title);
     }
+    // With no search yet the suggest step still shows, on the status row's action.
+    fireEvent.click(button('ถัดไป'));
+    const suggest = await stepTitled('แนะนำตาราง');
+    expect(suggest).toHaveAccessibleDescription(
+      'หลังค้นหาตามหลักสูตร กดที่นี่ แล้วระบบจะจัดตารางที่เวลาไม่ชนกันให้',
+    );
     fireEvent.click(button('ถัดไป'));
     const last = await stepTitled('ส่งออกตาราง');
-    expect(last).toHaveTextContent('4 จาก 4');
+    expect(last).toHaveTextContent('5 จาก 5');
     fireEvent.click(button('เสร็จสิ้น'));
     expect(onboardingStore.getState().tourOpen).toBe(false);
     expect(record.patch.mock.calls[0]?.[0].tourSeen?.outcome).toBe('completed');
@@ -241,7 +248,7 @@ describe('ProductTour', () => {
     fireEvent.click(button('ตัวเลือกเพิ่มเติม'));
     fireEvent.click(screen.getByRole('menuitem', { name: 'แนะนำการใช้งาน' }));
     const dialog = await stepTitled('ค้นหารายวิชา');
-    expect(dialog).toHaveTextContent('1 จาก 4');
+    expect(dialog).toHaveTextContent('1 จาก 5');
     expect(uiStore.getState().viewMode).toBe('edit');
     expect(record.patch).not.toHaveBeenCalled();
     expect(toastStore.getState().toast).toBeNull();
@@ -269,7 +276,7 @@ describe('ProductTour', () => {
     });
     renderTour(1366);
     const dialog = await stepTitled('Search for courses');
-    expect(dialog).toHaveTextContent('1 of 4');
+    expect(dialog).toHaveTextContent('1 of 5');
     expect(button('Next')).toHaveFocus();
     expect(button('Skip')).toBeInTheDocument();
   });

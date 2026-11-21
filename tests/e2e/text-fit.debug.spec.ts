@@ -414,6 +414,23 @@ for (const language of ['th', 'en'] as const) {
       const { page } = sweep;
       for (const width of WIDTHS) {
         await openAt(sweep, width, context);
+        // The status row keeps its suggest action before a curriculum search; until one
+        // ran it opens the note that offers that search.
+        await showTimetable(sweep);
+        await sweep
+          .panel()
+          .getByRole('group', { name: sweep.t('stats.region'), exact: true })
+          .getByRole('button', { name: sweep.t('suggest.openShort') })
+          .click();
+        const before = page.getByRole('dialog', {
+          name: sweep.t('suggest.title'),
+        });
+        await expect(before).toBeVisible();
+        if ((await before.locator('[data-suggest-needs-search]').count()) > 0) {
+          await sweep.scan('suggest before a curriculum search', before);
+        }
+        await page.keyboard.press('Escape');
+        await expect(before).toHaveCount(0);
         const catalog = await showCatalog(sweep);
         const edit = catalog.getByRole('button', {
           name: sweep.t('search.bar.edit'),
@@ -460,10 +477,18 @@ for (const language of ['th', 'en'] as const) {
             })
             .click();
         }
-        await catalog
-          .getByRole('button', { name: sweep.t('suggest.open') })
-          .first()
-          .click();
+        // The docked column carries no entry of its own; the status row beside it does.
+        await (
+          sweep.docked
+            ? sweep
+                .panel()
+                .getByRole('group', {
+                  name: sweep.t('stats.region'),
+                  exact: true,
+                })
+                .getByRole('button', { name: sweep.t('suggest.openShort') })
+            : catalog.getByRole('button', { name: sweep.t('suggest.open') })
+        ).click();
         const dialog = page.getByRole('dialog', {
           name: sweep.t('suggest.title'),
         });
