@@ -1,7 +1,8 @@
 // The unscheduled shelf: a slim region listing sections with no scheduled
 // meeting, such as online or asynchronous courses, so their credits stay visible
 // even though they never sit on the timetable. It renders only when the plan holds
-// such a section. In edit mode each row adds a remove action, its enrollment
+// such a section. It sits on the quiet card of ADR-0071 in edit and on the poster alike, so the
+// shelf reads as one of the soft depth set. In edit mode each row adds a remove action, its enrollment
 // conditions, and its remark, since an online section has no block to open for them.
 // The poster shelf in preview carries none of these: they are planning facts, and
 // keeping them out holds the shared image and its measured fit unchanged. The poster
@@ -63,7 +64,7 @@ export function UnscheduledShelf({
   return (
     <section
       aria-label={t('shelf.title')}
-      className="shrink-0 rounded-kcp border border-border p-2"
+      className="kcp-soft-card kcp-soft-quiet shrink-0 p-2"
     >
       <h3 className="mb-1 text-xs font-semibold text-ink-soft">
         {t('shelf.title')}
