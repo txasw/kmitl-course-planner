@@ -7,7 +7,7 @@
 // entries with nothing to review sit in one collapsed group under the same name line.
 
 import { useId, useState, type ReactNode } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { DisclosureChevron } from '@/components/DisclosureChevron';
 import { Pill } from '@/components/Pill';
 import type { PlanEntry, ReviewKind } from '@/lib/domain/plan';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
@@ -170,9 +170,9 @@ export function UnchangedGroup({
 }) {
   const [open, setOpen] = useState(false);
   const listId = useId();
-  // A button disclosure with the panel's chevron rather than a native details element,
-  // whose browser triangle matched no other disclosure in the panel. The list unmounts
-  // while folded, as a folded catalog group does.
+  // A button disclosure with the shared DisclosureChevron rather than a native details
+  // element, whose browser triangle matched no other disclosure in the panel. The list
+  // unmounts while folded, as a folded catalog group does.
   return (
     <div>
       <button
@@ -184,11 +184,7 @@ export function UnchangedGroup({
         }}
         className={`flex w-full items-center gap-1.5 rounded-kcp-inner py-1 text-left text-xs text-ink-soft hover:text-ink ${TARGET_HEIGHT} ${FOCUS_RING}`}
       >
-        <ChevronDown
-          size={14}
-          aria-hidden
-          className={`shrink-0 transition-transform duration-fast motion-reduce:transition-none ${open ? '' : '-rotate-90'}`}
-        />
+        <DisclosureChevron open={open} />
         <span className="min-w-0 flex-1">
           {fillTemplate(t('updates.unchangedGroup'), { count: entries.length })}
         </span>

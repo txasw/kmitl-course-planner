@@ -1,7 +1,7 @@
 // The chevron of the system disclosure, shared by the Disclosure toggle, the catalog
-// group headings, and the suggestion tick list groups, so every disclosure turns the same
-// way: right while collapsed, down while expanded, and without the transition under
-// reduced motion.
+// group headings, the suggestion tick list groups, and the unchanged group of the updates
+// dialog, so every disclosure turns the same way: right while collapsed, down while
+// expanded, and without the transition under reduced motion.
 
 import { ChevronDown } from 'lucide-react';
 
