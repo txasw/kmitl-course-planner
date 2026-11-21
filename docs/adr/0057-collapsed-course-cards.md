@@ -114,3 +114,16 @@ before adding from its rows, so the end to end specs that add from a multi cours
 card first through one helper. The title wraps to two lines, so card heights vary with name
 length. On a tablet a vertical swipe that starts on a card header now scrolls instead of starting a
 course drag, which is the intended change until the long press lands.
+
+## Amendment, 2026-11-22: English names as the registration system sends them
+
+The registration system sends English course names in capitals. Owner decision of 2026-11-22: an
+English name shows as it is sent, in capitals and unchanged, in the course card, the course
+preview, the timetable blocks, the exports, and the copied text. The name is never recased; it is
+only clamped and sanitized for display as any upstream field is.
+
+Converting the names to title case was rejected. A recased name would differ from the one the
+student checks against in the registration system, and a case rule cannot tell an acronym or a
+roman numeral from a word, so AI PROGRAMMING would read Ai Programming. The no uppercase
+rule of ADR-0052 applies to the panel's own labels and is unaffected, since it forbids a style
+that raises text, not text that arrives in capitals.
