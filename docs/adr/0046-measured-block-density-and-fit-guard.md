@@ -187,3 +187,30 @@ name form. The fit reset key carries the name itself, so a change of name, such 
 switch, fits the new name afresh from the full level. The fit guard and the clipped text sweep
 run the block name guard, which now fails a block that shows no name or the id alone, on every
 export template.
+
+## Amendment, 2026-11-22: under both names the poster drops the time first
+
+The 1.6.0 release gate found that with subject names set to both, the landscape posters (Share
+16:9, Print A4, and the phone wallpaper landscape) dropped the second name on most blocks while
+they kept the time line. The block's row and extent already state the time (ADR-0047), so a
+student who chose both got an image that looked like a single language export, with the one line
+the sheet repeats still in place. On a poster block with the name language set to both, the time
+now drops before the second name: the subject id goes first, then the time, then the second
+name, and below those rungs the order is unchanged, so the primary name still never drops and
+the place still outlives the name's second line. The reclaim pass offers the second name back
+before the time on such a block, so a block with room for one of the two keeps the name. The edit
+grid, the suggestion grids, the day card, and a poster set to one language keep their orders; the
+edit block's hover card and details carry both names, and a single language poster has no second
+name to rank.
+
+Measured on the fit regression plan, the Share 16:9 export now shows both names on three of the
+five three hour blocks in Thai and in English, against none before, Print A4 on two of them, and
+the phone wallpaper landscape on all five. A block whose two names take four lines together, such
+as a two line Thai workshop name over a two line English one, still has no room once the time has
+gone, so it drops the second name whole as before and takes its time back through the reclaim
+pass.
+
+Alternatives considered. Stepping the poster type scale down one size before the second name
+drops was rejected because it changes the type of every block on the sheet to serve a few. Letting
+the second name clamp to one line with an ellipsis was left out, since the word rule holds the
+second name to a whole field and an ellipsized second name reads as a cut one in a shared image.

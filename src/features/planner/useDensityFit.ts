@@ -203,7 +203,12 @@ export function useDensityFit(
     // The content fits. A field the walk dropped on the way down may fit again now that a
     // later rung freed its room, so offer it back once; if it overflows, the walk drops it
     // again, since the reclaimed fields are the top rungs.
-    const reclaim = nextReclaim(level, eligibility, reclaimTried.current);
+    const reclaim = nextReclaim(
+      level,
+      eligibility,
+      reclaimTried.current,
+      ladder,
+    );
     if (reclaim !== null) {
       reclaimTried.current = [...reclaimTried.current, reclaim.field];
       setLevel(reclaim.level);

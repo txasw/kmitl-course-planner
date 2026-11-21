@@ -333,6 +333,53 @@ describe('nextDensityLevel on the day card', () => {
   });
 });
 
+describe('nextDensityLevel on a poster block naming both languages', () => {
+  it('drops the time before the second name, then walks the block order', () => {
+    const full = fullLevel(allEligible);
+    const noId = { ...full, showId: false };
+    const noTime = { ...noId, showTime: false };
+    const noSecondary = { ...noTime, showSecondary: false };
+    // Past the two swapped rungs the walk is the block's own.
+    expect(walk(full, undefined, 'posterBoth')).toEqual([
+      full,
+      noId,
+      noTime,
+      ...walk(noSecondary),
+    ]);
+  });
+
+  it('never keeps the time past the second name, and ends on the bare name', () => {
+    const steps = walk(fullLevel(allEligible), undefined, 'posterBoth');
+    expect(steps.every((level) => level.showSecondary || !level.showTime)).toBe(
+      true,
+    );
+    expect(steps.at(-1)).toEqual(bare);
+    expect(nextDensityLevel(bare, undefined, 'posterBoth')).toBeNull();
+  });
+
+  it('offers the second name back before the time, each undone by an overflow', () => {
+    const settled = {
+      ...fullLevel(allEligible),
+      showTime: false,
+      showSecondary: false,
+      showId: false,
+      nameLines: 2 as const,
+    };
+    let tried: ('time' | 'secondary' | 'id')[] = [];
+    for (
+      let offer = nextReclaim(settled, allEligible, tried, 'posterBoth');
+      offer !== null;
+    ) {
+      expect(nextDensityLevel(offer.level, undefined, 'posterBoth')).toEqual(
+        settled,
+      );
+      tried = [...tried, offer.field];
+      offer = nextReclaim(settled, allEligible, tried, 'posterBoth');
+    }
+    expect(tried).toEqual(['secondary', 'time', 'id']);
+  });
+});
+
 describe('sameLevel', () => {
   it('is true only when every field matches', () => {
     const base = fullLevel(allEligible);
