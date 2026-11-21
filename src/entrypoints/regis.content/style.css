@@ -179,6 +179,12 @@
   --kcp-tint-quiet-edge: 22%;
   --kcp-tint-settled-strong: 7%;
   --kcp-tint-settled-weak: 5%;
+  /* The subject stops of an event block, kept under names of their own. Each resolves
+     here at the root and inherits as its figure, so a block nested in a quiet card,
+     which sets the stop names for itself and everything inside it, can restore them. */
+  --kcp-tint-subject-strong: var(--kcp-tint-strong);
+  --kcp-tint-subject-weak: var(--kcp-tint-weak);
+  --kcp-tint-subject-edge: var(--kcp-tint-edge);
   --kcp-highlight-soft: inset 0 1px 0 rgba(255, 255, 255, 0.7);
   --kcp-shadow-soft: 0 1px 2px rgba(107, 107, 112, 0.16);
 
@@ -363,6 +369,15 @@
   --kcp-tint-strong: var(--kcp-tint-settled-strong);
   --kcp-tint-weak: var(--kcp-tint-settled-weak);
   --kcp-tint-edge: var(--kcp-tint-quiet-edge);
+}
+
+/* The subject stops of an event block, set on the block beside kcp-soft-card. A custom
+   property inherits, so without them a block inside a quiet card, such as the mini grid
+   of a wide suggestion slide, would read the near white quiet stops of that card. */
+@utility kcp-soft-subject {
+  --kcp-tint-strong: var(--kcp-tint-subject-strong);
+  --kcp-tint-weak: var(--kcp-tint-subject-weak);
+  --kcp-tint-edge: var(--kcp-tint-subject-edge);
 }
 
 /* A drag surface on a touch screen (ADR-0058). The browser keeps its pan and pinch, so

@@ -174,3 +174,26 @@ Alternatives considered: keeping the seat line and dropping the badge was reject
 badge is the row status every other state uses, and a row with no badge would read as addable at a
 glance. Hiding the disabled add was rejected because the add column stays consistent down the
 list and the add is where a keyboard user looks for the reason.
+
+## Amendment, 2026-11-21: a block keeps its subject stops inside a quiet card
+
+A third conformance review found the blocks of a wide suggestion slide near white, from about
+rgb(252, 246, 249) at the top to white, while the same subject on the main grid starts at about
+rgb(248, 235, 242). The slide sits on the quiet card of the amendment above, and the quiet
+utility sets the stop names on its element. A custom property inherits, so every block inside the
+slide's mini grid read the quiet stops of its card rather than the subject stops.
+
+Decision. The root also keeps the subject stops under names of their own,
+`--kcp-tint-subject-strong`, `--kcp-tint-subject-weak` and `--kcp-tint-subject-edge`, each set to
+the matching default stop. They resolve at the root and inherit as their figures, so no card below
+can change them. The `kcp-soft-subject` utility sets the stop names back from them, and the soft
+block surface carries it beside `kcp-soft-card`, so a block paints with the subject stops wherever
+it sits. The default stops stay literal percentages, so the contrast suite still reads them where
+it reads them today and the proven pairs are unchanged. An end to end check compares the stops a
+slide block computes with those of a main grid block.
+
+Alternatives considered: dropping the quiet card from the wide slide was rejected because the owner
+picked the soft set for every card. Declaring the stops as registered properties that do not
+inherit was rejected because property registration inside a shadow root is not honoured across the
+target browsers. Repeating the stop figures in the block utility was rejected because the two
+copies could drift apart.
