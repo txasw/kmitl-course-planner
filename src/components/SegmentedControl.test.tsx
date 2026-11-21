@@ -45,31 +45,14 @@ describe('SegmentedControl', () => {
   });
 });
 
-describe('SegmentedControl variants', () => {
-  it('fills the active option in the default filled variant', () => {
-    render(
-      <SegmentedControl
-        ariaLabel="Choice"
-        value="a"
-        options={options}
-        onChange={() => undefined}
-      />,
-    );
-    const active = screen.getByRole('button', { name: 'Alpha' });
-    expect(active).toHaveClass('bg-primary-strong', 'text-white');
-    expect(screen.getByRole('button', { name: 'Beta' })).not.toHaveClass(
-      'bg-primary-strong',
-    );
-  });
-
-  it('marks the active option with surface, ink, and weight in the quiet variant', () => {
+describe('SegmentedControl look', () => {
+  it('marks the active option with surface, ink, and weight, never orange', () => {
     render(
       <SegmentedControl
         ariaLabel="Choice"
         value="b"
         options={options}
         onChange={() => undefined}
-        variant="quiet"
       />,
     );
     const active = screen.getByRole('button', { name: 'Beta' });

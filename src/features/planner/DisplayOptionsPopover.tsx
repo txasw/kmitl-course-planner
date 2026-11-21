@@ -140,7 +140,6 @@ export function DisplayOptionsPopover() {
         <SegmentedControl
           ariaLabel={t('preview.nameLanguage')}
           value={nameLanguage}
-          variant="quiet"
           options={NAME_LANGUAGES.map((value) => ({
             value,
             label: t(NAME_LANGUAGE_LABEL[value]),
