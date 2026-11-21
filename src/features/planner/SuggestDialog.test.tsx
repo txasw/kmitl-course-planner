@@ -436,6 +436,11 @@ describe('SuggestDialog', () => {
     expect(
       screen.getByRole('button', { name: 'หน่วยกิตมากที่สุด', pressed: true }),
     ).toBeInTheDocument();
+    // The two goals read as a pair, most subjects beside most credits, since the subjects
+    // goal can still leave a subject out.
+    expect(
+      screen.getByRole('button', { name: 'วิชามากที่สุด', pressed: false }),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'เน้นเช้า' }));
     expect(uiStore.getState().suggestPreference).toBe('morning');
   });
