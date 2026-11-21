@@ -923,7 +923,9 @@ line under the edge. The review also found the plan name field showing a long na
   no such excuse. The scroller rule for a fixed layer over a list's end does not apply behind a
   layer the student opened. The walk now reads the panel
   behind the block detail, behind the detail of the missing section the moved fixture leaves,
-  which it also reads whole on its own, and behind the display options of the export page.
+  which it also reads whole on its own, and behind the display options sheet of the export page
+  below 640 px; from 640 px up those options became an inline panel the sweep reads as part of
+  the page (ADR-0027 amendment of 2026-11-21).
 - The plan name field, in create and rename, is a text area that grows to the lines the name
   needs, in place of a one line input that showed a long name scrolled to its end with its first
   glyph cut at the field edge at 360 px. It keeps the behavior of a one line name: Enter saves,
