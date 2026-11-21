@@ -78,6 +78,11 @@ dependency or a heavy import. If the growth is justified, raise the budget in th
 pull request and give the new size and the reason in the description. When a change
 makes the package smaller, lower the budget to keep the margin small.
 
+For release 1.6 the budget is 320 KiB for each target, an owner decision of
+2026-11-22. Replacing libraries with smaller ones to win back room is not pursued for
+this release. A change that would go past 320 KiB is reworked to fit rather than raising
+the budget.
+
 ## Pull requests
 
 Before requesting a merge, perform a written self review of the full diff against
