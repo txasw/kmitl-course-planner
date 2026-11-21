@@ -412,25 +412,28 @@ for (const language of ['th', 'en'] as const) {
       test.setTimeout(420_000);
       const sweep = await openSweep(context, language, EXCEPTIONS);
       const { page } = sweep;
+      // The status row keeps its suggest action before a curriculum search, and until one
+      // runs it opens the note that offers that search: the bottom sheet on a phone and a
+      // dialog wider up. No search has run in this context yet, so the note shows at
+      // every width.
       for (const width of WIDTHS) {
         await openAt(sweep, width, context);
-        // The status row keeps its suggest action before a curriculum search; until one
-        // ran it opens the note that offers that search.
         await showTimetable(sweep);
         await sweep
           .panel()
           .getByRole('group', { name: sweep.t('stats.region'), exact: true })
           .getByRole('button', { name: sweep.t('suggest.openShort') })
           .click();
-        const before = page.getByRole('dialog', {
+        const note = page.getByRole('dialog', {
           name: sweep.t('suggest.title'),
         });
-        await expect(before).toBeVisible();
-        if ((await before.locator('[data-suggest-needs-search]').count()) > 0) {
-          await sweep.scan('suggest before a curriculum search', before);
-        }
+        await expect(note.locator('[data-suggest-needs-search]')).toBeVisible();
+        await sweep.scan('suggest before a curriculum search', note);
         await page.keyboard.press('Escape');
-        await expect(before).toHaveCount(0);
+        await expect(note).toHaveCount(0);
+      }
+      for (const width of WIDTHS) {
+        await openAt(sweep, width, context);
         const catalog = await showCatalog(sweep);
         const edit = catalog.getByRole('button', {
           name: sweep.t('search.bar.edit'),
