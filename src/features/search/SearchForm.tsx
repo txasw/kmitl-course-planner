@@ -19,7 +19,7 @@ import { useSearchFocusTracking } from '@/features/shell/attentionStore';
 import { commitAndFocus } from '@/features/shell/commitAndFocus';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
-import { TARGET_HEIGHT } from '@/lib/ui/target';
+import { TARGET_HEIGHT, TARGET_SIZE } from '@/lib/ui/target';
 import {
   CategoryFields,
   ClassFields,
@@ -169,7 +169,7 @@ export function SearchForm({ dock }: SearchFormProps = {}) {
             <button
               type="button"
               onClick={reloadReference}
-              className={`self-start rounded-kcp bg-primary-strong px-3 py-1.5 text-xs font-semibold text-surface hover:bg-primary-hover ${FOCUS_OUTLINE}`}
+              className={`inline-flex items-center justify-center self-start rounded-kcp bg-primary-strong px-3 py-1.5 text-xs font-semibold text-surface hover:bg-primary-hover ${TARGET_SIZE} ${FOCUS_OUTLINE}`}
             >
               {t('action.retry')}
             </button>

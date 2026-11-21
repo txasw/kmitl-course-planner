@@ -7,6 +7,7 @@ import {
   act,
 } from '@testing-library/react';
 import { storageIssueStore } from './storageIssueStore';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import { QuarantineCard } from './QuarantineCard';
 
 afterEach(() => {
@@ -47,5 +48,20 @@ describe('QuarantineCard', () => {
     render(<QuarantineCard />);
     fireEvent.click(screen.getByRole('button', { name: 'คัดลอกข้อมูลที่กันไว้' }));
     expect(writeText).toHaveBeenCalledWith('{"a":1}');
+  });
+
+  it('sizes the export and the close as shared touch targets', () => {
+    act(() => {
+      storageIssueStore
+        .getState()
+        .setIssue({ kind: 'quarantined', data: '{"a":1}' });
+    });
+    render(<QuarantineCard />);
+    for (const name of ['คัดลอกข้อมูลที่กันไว้', 'ปิด']) {
+      const button = screen.getByRole('button', { name });
+      for (const token of TARGET_SIZE.split(' ')) {
+        expect(button).toHaveClass(token);
+      }
+    }
   });
 });

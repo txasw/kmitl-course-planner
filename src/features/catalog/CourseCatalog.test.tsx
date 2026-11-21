@@ -28,6 +28,7 @@ import { searchStore } from '@/features/search/searchStore';
 import { dragStore } from '@/features/planner/dragStore';
 import { FeedbackStrip } from '@/features/planner/FeedbackStrip';
 import { createTranslator } from '@/lib/i18n/t';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import { EMPTY_DISCLOSURE } from '@/lib/catalog/cardDisclosure';
 import { EMPTY_GROUP_COLLAPSE } from '@/lib/catalog/groupCollapse';
 import { DEFAULT_COURSE_SORT } from '@/lib/catalog/sortCourses';
@@ -276,10 +277,17 @@ describe('CourseCatalog', () => {
     for (const add of adds) {
       expect(add).toHaveAttribute('aria-disabled', 'true');
     }
-    // The switch action creates a plan for the browsed term.
-    const [switchButton] = screen.getAllByRole('button', {
+    // The switch action creates a plan for the browsed term. Every copy of it, the banner's
+    // and each row's, takes the shared touch target.
+    const switches = screen.getAllByRole('button', {
       name: 'สร้างตารางภาค 1/2569',
     });
+    for (const action of switches) {
+      for (const token of TARGET_SIZE.split(' ')) {
+        expect(action).toHaveClass(token);
+      }
+    }
+    const [switchButton] = switches;
     if (switchButton) {
       fireEvent.click(switchButton);
     }
