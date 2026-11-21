@@ -354,8 +354,21 @@ for (const language of ['th', 'en'] as const) {
         await expect(menu).toHaveCount(0);
 
         mock.setFreshSynthetic(true);
-        await page
-          .getByRole('group', { name: sweep.t('stats.region'), exact: true })
+        const statusRow = page.getByRole('group', {
+          name: sweep.t('stats.region'),
+          exact: true,
+        });
+        if (sweep.phone) {
+          // The phone row folds the status into its glyph; a tap reveals the words and the
+          // check action, which the sweep reads before it checks again.
+          await statusRow.locator('[data-verification] button').click();
+          await sweep.scan(
+            'status reveal',
+            statusRow.locator('[data-status-reveal]'),
+            { floating: true },
+          );
+        }
+        await statusRow
           .getByRole('button', { name: sweep.t('updates.recheck') })
           .click();
         const updates = page.getByRole('dialog', {

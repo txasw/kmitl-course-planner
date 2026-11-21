@@ -13,7 +13,9 @@ import { bottomNav, isPhone } from './support/tiers';
 // on the phone and tablet projects with a plan applied from a curriculum suggestion, so the
 // row holds its facts and the suggest action at once. At 360, 390, 768, and 1366 px, in Thai
 // and in English, every text leaf of the chip row and the status row shows whole inside the
-// viewport and no two leaves overlap.
+// viewport and no two leaves overlap. On a phone the status row keeps to two lines, the plan
+// facts and then the checks with the suggest action, so the timetable keeps its height
+// (ADR-0049 amendment of 2026-11-21).
 
 const WIDTHS = [360, 390, 768, 1366] as const;
 
@@ -163,6 +165,27 @@ async function expectRegionWhole(
   expect(overlaps, label).toEqual([]);
 }
 
+/**
+ * Read the phone status row: how many tiers it holds, and for each tier how far it stands
+ * taller than its tallest item, which is above zero only when the tier wraps onto a second line.
+ */
+async function readTiers(row: Locator): Promise<number[]> {
+  return row.evaluate((root) =>
+    Array.from(root.children).map((tier) => {
+      const items = Array.from(tier.children).map(
+        (item) => item.getBoundingClientRect().height,
+      );
+      return tier.getBoundingClientRect().height - Math.max(0, ...items);
+    }),
+  );
+}
+
+async function expectTwoLines(row: Locator, label: string): Promise<void> {
+  const tiers = await readTiers(row);
+  expect(tiers, label).toHaveLength(2);
+  for (const extra of tiers) expect(extra, label).toBeLessThanOrEqual(1);
+}
+
 async function switchToEnglish(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }).click();
   await page.getByRole('menuitemradio', { name: 'English' }).click();
@@ -188,6 +211,7 @@ test('the chip row and the status row show whole at every width in Thai and Engl
         row.getByRole('button', { name: language.suggest }),
       ).toBeVisible();
       await expectRegionWhole(row, label);
+      if (width < 640) await expectTwoLines(row, label);
       const chips = page.getByRole('radiogroup', { name: language.chips });
       if (width < 640) {
         await expect(chips).toBeVisible();

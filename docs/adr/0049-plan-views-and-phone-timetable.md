@@ -210,3 +210,33 @@ count shows at zero too, unlike the nav, because the tab is always the label and
 by side. Under a coarse pointer the row is 44 px at any height, the touch target, and the 36 px
 step under `max-height: 800px` now applies to a fine pointer only, so the two height rules never
 compete. The responsive spec checks the tabs as touch targets on the tablet project.
+
+## Amendment, 2026-11-21: the phone status row keeps to two lines
+
+Context. The third conformance review found the plan status row on a phone wrapping to three or
+four lines at 360 and 390 px: the credits, a below minimum note in words, the subject count, the
+no clash word, and then the checked time with its refresh button, about 110 px taken from the
+timetable height.
+
+Decision. On the Compact tier the row is two fixed tiers. The first holds the plan facts as a
+glyph and a number with its unit: the credits, the subjects, and the unscheduled count, which
+shows its glyph and number and names itself to assistive technology and to a mouse, since the
+labelled shelf under the timetable lists those sections. The second holds the checks, the clash
+state and the verification status, with the suggest action filled at its end. A fact that needs a
+sentence folds into its glyph and keeps its words one tap away: the credit load note turns the
+credit fact into a warn button, the number in warn ink beside an alert glyph, whose accessible
+name and tooltip carry the note and whose tap reveals it; the verification status is its tone
+glyph, its status words with the checked time in its accessible name and tooltip, and a tap
+reveals the words with the details and check actions in words. The reveal is a non modal
+disclosure that follows its trigger in the reading order and closes on Escape or a press outside.
+From 640 px up the row is unchanged. The responsive spec checks that each tier holds one line at
+the phone widths in Thai and English.
+
+Alternatives considered. A sideways scrolling or single line row was rejected because the facts
+and the suggest action do not fit one line at 360 px without clipping. Moving the facts into a
+sheet behind one summary button, as the mockup sketched, was rejected because the clash control
+is the one fact the student acts on and must stay a direct button on the row.
+
+Consequences. The timetable gains about 40 px on a phone. The load note and the checked time are
+a tap away rather than always in words, which the glyph colour and the accessible names make up
+for.

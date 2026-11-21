@@ -8,6 +8,9 @@
 // first, since the dialog's acknowledge and remove actions never enter the preview DOM. A
 // check in edit that finds something new opens the dialog directly. The item is not a live
 // region; a manual check settles through the status announcer (ADR-0060).
+// On the phone status row the item folds to its tone glyph, so the row keeps to two lines: the
+// status words are the glyph's accessible name and its tooltip, and a tap reveals them with the
+// details and check actions in words (ADR-0049 amendment of 2026-11-21).
 
 import { useStore } from 'zustand';
 import {
@@ -30,6 +33,7 @@ import { checkPlanNow } from '@/features/plans/updatesNotice';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { StatusReveal } from './StatusReveal';
 import { verificationText, type VerificationTone } from './verificationText';
 
 const TONE_CLASS: Record<VerificationTone, string> = {
@@ -62,7 +66,16 @@ function toneIcon(tone: VerificationTone): ReactNode {
 
 const BUTTON = `inline-flex items-center gap-1 rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink hover:bg-surface-alt disabled:text-ink-soft ${TARGET_SIZE} ${FOCUS_RING}`;
 
-export function VerificationStatus() {
+const POPOVER_BUTTON = `inline-flex items-center gap-1.5 rounded-kcp border border-border bg-surface px-2 py-1 text-ink hover:bg-surface-alt disabled:text-ink-soft ${TARGET_SIZE} ${FOCUS_RING}`;
+
+interface VerificationStatusProps {
+  /** Fold the item to its tone glyph, the words and actions a tap away, for the phone row. */
+  compact?: boolean;
+}
+
+export function VerificationStatus({
+  compact = false,
+}: VerificationStatusProps) {
   const { t } = useTranslation();
   const { send } = useSearchDeps();
   const activePlan = useActivePlan();
@@ -87,6 +100,55 @@ export function VerificationStatus() {
     uiStore.getState().setViewMode('edit');
     revalidationStore.getState().setUpdatesOpen(true);
   };
+  const reviewable = hasUpdateItems(activePlan.entries);
+
+  if (compact) {
+    return (
+      <span data-verification={status.tone} className="inline-flex">
+        <StatusReveal
+          label={status.text}
+          toneClass={TONE_CLASS[status.tone]}
+          detail={
+            <>
+              <p
+                className={`flex items-start gap-1.5 ${TONE_CLASS[status.tone]}`}
+              >
+                {toneIcon(status.tone)}
+                <span>{status.text}</span>
+              </p>
+              <span className="flex flex-wrap gap-1.5">
+                {reviewable ? (
+                  <button
+                    type="button"
+                    onClick={handleReview}
+                    className={POPOVER_BUTTON}
+                  >
+                    <List size={14} strokeWidth={2} aria-hidden />
+                    {t('revalidation.detail')}
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={handleCheck}
+                  disabled={checking}
+                  className={POPOVER_BUTTON}
+                >
+                  <RefreshCw size={14} strokeWidth={2} aria-hidden />
+                  {t(
+                    status.tone === 'warn'
+                      ? 'action.retry'
+                      : 'revalidation.checkAgain',
+                  )}
+                </button>
+              </span>
+            </>
+          }
+        >
+          {toneIcon(status.tone)}
+        </StatusReveal>
+      </span>
+    );
+  }
 
   return (
     <span
@@ -99,7 +161,7 @@ export function VerificationStatus() {
         {toneIcon(status.tone)}
         {status.text}
       </span>
-      {hasUpdateItems(activePlan.entries) ? (
+      {reviewable ? (
         <button type="button" onClick={handleReview} className={BUTTON}>
           <List size={12} strokeWidth={2} aria-hidden />
           {t('revalidation.detail')}

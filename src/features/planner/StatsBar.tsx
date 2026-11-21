@@ -4,10 +4,17 @@
 // plan's semester (advisory only, nothing is blocked), the distinct subject count, whether any
 // section pair clashes, the count of sections with no meeting when the plan holds any, and the
 // verification status the panel slots in. From 640 px up the row also states the scheduled
-// load per day and the weekdays with no class; on a phone the day chips above the timetable
-// already mark the class days and the summary view carries the load, so the row stays slim.
-// The suggest action the panel slots in sits at the end of the row, outside the wrapping facts,
-// so it keeps its place at the right edge (ADR-0049 amendment).
+// load per day and the weekdays with no class, and the facts wrap beside the suggest action the
+// panel slots in at the end of the row, outside the wrapping facts, so it keeps its place at the
+// right edge (ADR-0049 amendment).
+// On a phone the row keeps to two lines, so the timetable keeps its height (ADR-0049 amendment
+// of 2026-11-21): the first line holds the plan facts as glyphs and numbers, the second the
+// checks, the clash state and the verification glyph, with the suggest action at its end. The
+// day chips above the timetable already mark the class days and the summary view carries the
+// load, so neither repeats here. A fact that needs a sentence folds into its glyph and keeps its
+// words one tap away: the credit load note turns the credit fact into a warn button that reveals
+// the note, the verification status is its tone glyph, and the unscheduled count names itself to
+// assistive technology and to a mouse.
 // A clash is the one item the student acts on, so it is a danger button that points at the
 // first clashing section on the timetable; with none the row says so quietly with a shield
 // check and its words. On a phone the words shorten to ไม่ชน (No clash) beside the shield, so
@@ -19,28 +26,22 @@
 // being shared.
 
 import type { ReactNode } from 'react';
-import {
-  AlertTriangle,
-  BookOpen,
-  CalendarOff,
-  Info,
-  Layers,
-  ShieldCheck,
-} from 'lucide-react';
-import { CREDIT_UNIT, SUBJECT_UNIT, unitWord } from '@/lib/i18n/counts';
-import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
-import { dayFullLabelKey, dayLabelKey } from '@/lib/i18n/dayLabel';
-import { fillTemplate } from '@/lib/i18n/template';
-import type { DayOfWeek } from '@/lib/parsing/days';
-import { creditLoad, type CreditLoad } from '@/lib/planner/credits';
-import { computeFreePeriods } from '@/lib/planner/freePeriods';
+import { CalendarOff } from 'lucide-react';
+import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Semester } from '@/lib/routing/academicTerms';
-import { FOCUS_RING } from '@/lib/ui/focus';
 import { SMALL_ICON } from '@/lib/ui/icon';
-import { TARGET_SIZE } from '@/lib/ui/target';
 import { DayLoads } from './DayLoads';
-import { planTotals } from './planTotals';
 import type { PlacedSection } from './placedSection';
+import {
+  ClashState,
+  CreditLoadNote,
+  CreditsFact,
+  FACT,
+  FreeDays,
+  SubjectsFact,
+  UnscheduledCount,
+  planFacts,
+} from './StatusFacts';
 
 interface StatsBarProps {
   sections: PlacedSection[];
@@ -60,10 +61,6 @@ interface StatsBarProps {
   t: Translate;
 }
 
-const NUMBER_TYPE = 'text-base font-semibold tabular-nums';
-const NUMBER = `${NUMBER_TYPE} text-ink`;
-const FACT = 'inline-flex items-center gap-1';
-
 export function StatsBar({
   sections,
   semester,
@@ -75,149 +72,80 @@ export function StatsBar({
   locale,
   t,
 }: StatsBarProps) {
+  const facts = sections.length > 0 ? planFacts(sections, semester) : null;
+  const actionSlot =
+    action === undefined ? null : <div className="ml-auto">{action}</div>;
+  const clash = (
+    <ClashState
+      conflictCount={conflictCount}
+      onShowConflict={onShowConflict}
+      compact={compact}
+      t={t}
+    />
+  );
+
+  if (compact) {
+    return (
+      <div
+        role="group"
+        aria-label={t('stats.region')}
+        data-status-row="compact"
+        className="flex shrink-0 flex-col gap-1 border-t border-border pt-1.5 text-xs text-ink-soft"
+      >
+        {facts === null ? null : (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <CreditsFact facts={facts} compact t={t} />
+            <SubjectsFact count={facts.totals.subjects} t={t} />
+            {facts.totals.unscheduled > 0 ? (
+              <UnscheduledCount count={facts.totals.unscheduled} t={t} />
+            ) : null}
+          </div>
+        )}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          {facts === null ? null : (
+            <>
+              {clash}
+              {status}
+            </>
+          )}
+          {actionSlot}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       role="group"
       aria-label={t('stats.region')}
       className="flex shrink-0 items-center gap-2 border-t border-border pt-2 text-xs text-ink-soft"
     >
-      {sections.length > 0 ? (
-        <PlanFacts
-          sections={sections}
-          semester={semester}
-          conflictCount={conflictCount}
-          onShowConflict={onShowConflict}
-          status={status}
-          compact={compact}
-          locale={locale}
-          t={t}
-        />
-      ) : null}
-      {action === undefined ? null : <div className="ml-auto">{action}</div>}
-    </div>
-  );
-}
-
-type PlanFactsProps = Omit<StatsBarProps, 'action' | 'compact'> & {
-  compact: boolean;
-};
-
-/** The wrapping facts of the row, which take the room the action leaves. */
-function PlanFacts({
-  sections,
-  semester,
-  conflictCount,
-  onShowConflict,
-  status,
-  compact,
-  locale,
-  t,
-}: PlanFactsProps) {
-  const totals = planTotals(sections);
-  const load: CreditLoad =
-    semester === null
-      ? { kind: 'within' }
-      : creditLoad(totals.credits, semester, sections.length);
-  const { freeDays } = computeFreePeriods(
-    sections.flatMap((section) => section.meetings),
-  );
-
-  return (
-    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1">
-      <span className={FACT}>
-        <BookOpen {...SMALL_ICON} />
-        <span>
-          <span
-            className={`${NUMBER_TYPE} ${load.kind === 'within' ? 'text-ink' : 'text-warn'}`}
-          >
-            {totals.credits}
-          </span>{' '}
-          {unitWord(t, totals.credits, CREDIT_UNIT)}
-        </span>
-      </span>
-      {load.kind === 'within' ? null : <CreditLoadNote load={load} t={t} />}
-      <span className={FACT}>
-        <Layers {...SMALL_ICON} />
-        <span>
-          <span className={NUMBER}>{totals.subjects}</span>{' '}
-          {unitWord(t, totals.subjects, SUBJECT_UNIT)}
-        </span>
-      </span>
-      {conflictCount > 0 ? (
-        <button
-          type="button"
-          onClick={onShowConflict}
-          className={`inline-flex items-center gap-1 rounded-kcp border border-danger bg-surface px-2 py-1 text-danger hover:bg-danger-soft ${TARGET_SIZE} ${FOCUS_RING}`}
-        >
-          <AlertTriangle {...SMALL_ICON} />
-          {fillTemplate(t('stats.conflicts'), { count: conflictCount })}
-        </button>
-      ) : (
-        <span className={FACT} data-no-conflicts>
-          <ShieldCheck {...SMALL_ICON} className="text-success" />
-          {compact ? (
-            <>
-              <span aria-hidden>{t('stats.noConflictsShort')}</span>
-              <span className="sr-only">{t('stats.noConflicts')}</span>
-            </>
-          ) : (
-            <span>{t('stats.noConflicts')}</span>
+      {facts === null ? null : (
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1">
+          <CreditsFact facts={facts} compact={false} t={t} />
+          {facts.load.kind === 'within' ? null : (
+            <CreditLoadNote load={facts.load} t={t} />
           )}
-        </span>
+          <SubjectsFact count={facts.totals.subjects} t={t} />
+          {clash}
+          <DayLoads load={facts.totals.load} locale={locale} t={t} />
+          {facts.totals.unscheduled > 0 ? (
+            <span className={FACT}>
+              <CalendarOff {...SMALL_ICON} />
+              <span>
+                {facts.totals.unscheduled} {t('footer.unscheduled')}
+              </span>
+            </span>
+          ) : null}
+          {facts.freeDays.length > 0 ? (
+            <FreeDays days={facts.freeDays} t={t} />
+          ) : null}
+          {status === undefined ? null : (
+            <span className="ml-auto">{status}</span>
+          )}
+        </div>
       )}
-      {compact ? null : <DayLoads load={totals.load} locale={locale} t={t} />}
-      {totals.unscheduled > 0 ? (
-        <span className={FACT}>
-          <CalendarOff {...SMALL_ICON} />
-          <span>
-            {totals.unscheduled} {t('footer.unscheduled')}
-          </span>
-        </span>
-      ) : null}
-      {!compact && freeDays.length > 0 ? (
-        <FreeDays days={freeDays} t={t} />
-      ) : null}
-      {status === undefined ? null : <span className="ml-auto">{status}</span>}
+      {actionSlot}
     </div>
-  );
-}
-
-interface FreeDaysProps {
-  days: readonly DayOfWeek[];
-  t: Translate;
-}
-
-/** The free weekdays as short labels on screen and as full names to assistive
- * technology, which would otherwise spell out a single character. */
-function FreeDays({ days, t }: FreeDaysProps) {
-  const list = (key: (day: DayOfWeek) => TranslationKey) =>
-    fillTemplate(t('stats.freeDays'), {
-      days: days.map((day) => t(key(day))).join(' '),
-    });
-  return (
-    <span>
-      <span aria-hidden>{list(dayLabelKey)}</span>
-      <span className="sr-only">{list(dayFullLabelKey)}</span>
-    </span>
-  );
-}
-
-interface CreditLoadNoteProps {
-  load: Exclude<CreditLoad, { kind: 'within' }>;
-  t: Translate;
-}
-
-/** A neutral note that the total sits outside the usual load. It never claims the plan is
- * invalid, since final year students and approved loads may leave the range. */
-function CreditLoadNote({ load, t }: CreditLoadNoteProps) {
-  const text =
-    load.kind === 'below'
-      ? fillTemplate(t('stats.creditsBelow'), { min: load.min })
-      : fillTemplate(t('stats.creditsAbove'), { max: load.max });
-  return (
-    <span className="inline-flex items-center gap-1 text-warn">
-      <Info {...SMALL_ICON} />
-      {text}
-    </span>
   );
 }

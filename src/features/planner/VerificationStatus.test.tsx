@@ -195,4 +195,71 @@ describe('VerificationStatus', () => {
       screen.queryByRole('button', { name: /รายละเอียด/ }),
     ).not.toBeInTheDocument();
   });
+
+  describe('on the phone row', () => {
+    function renderCompact(deps: SearchDeps = fakeSearchDeps()) {
+      return render(
+        <SearchDepsProvider value={deps}>
+          <VerificationStatus compact />
+        </SearchDepsProvider>,
+      );
+    }
+
+    it('folds to its tone glyph, the checked time in its name and its tooltip', () => {
+      vi.useFakeTimers({ now: new Date(2026, 10, 6, 15, 0), toFake: ['Date'] });
+      seed(clean);
+      const { container } = renderCompact();
+      const trigger = screen.getByRole('button', { name: 'ตรวจสอบแล้ว 14:32' });
+      expect(trigger).toHaveAttribute('title', 'ตรวจสอบแล้ว 14:32');
+      expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      expect(trigger).toHaveTextContent('');
+      expect(container.querySelector('[data-verification]')).toHaveAttribute(
+        'data-verification',
+        'ok',
+      );
+      // The words and the actions wait for a tap.
+      expect(screen.queryByRole('button', { name: 'ตรวจสอบอีกครั้ง' })).toBeNull();
+    });
+
+    it('reveals the words and the check action in words on a tap', () => {
+      vi.useFakeTimers({ now: new Date(2026, 10, 6, 15, 0), toFake: ['Date'] });
+      seed(clean);
+      renderCompact();
+      const trigger = screen.getByRole('button', { name: 'ตรวจสอบแล้ว 14:32' });
+      fireEvent.click(trigger);
+      expect(trigger).toHaveAttribute('aria-expanded', 'true');
+      const popover = document.getElementById(
+        trigger.getAttribute('aria-controls') ?? '',
+      );
+      expect(popover).toHaveTextContent('ตรวจสอบแล้ว 14:32');
+      expect(
+        screen.getByRole('button', { name: 'ตรวจสอบอีกครั้ง' }),
+      ).toHaveTextContent('ตรวจสอบอีกครั้ง');
+    });
+
+    it('closes on Escape and hands focus back to its glyph', () => {
+      seed(clean);
+      renderCompact();
+      const trigger = screen.getByRole('button', { name: /ตรวจสอบแล้ว/ });
+      fireEvent.click(trigger);
+      const check = screen.getByRole('button', { name: 'ตรวจสอบอีกครั้ง' });
+      check.focus();
+      fireEvent.keyDown(check, { key: 'Escape' });
+      expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      expect(trigger).toHaveFocus();
+    });
+
+    it('offers the retry and the details in the revealed words', () => {
+      seed({ status: 'offline', report: null }, 'missing');
+      renderCompact();
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: 'ยังตรวจสอบไม่ได้ แสดงข้อมูลที่บันทึกไว้',
+        }),
+      );
+      expect(screen.getByRole('button', { name: 'ลองอีกครั้ง' })).toBeVisible();
+      fireEvent.click(screen.getByRole('button', { name: 'รายละเอียด' }));
+      expect(revalidationStore.getState().updatesOpen).toBe(true);
+    });
+  });
 });

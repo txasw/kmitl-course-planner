@@ -458,7 +458,7 @@ export function PlannerPanel() {
           semester={activePlan?.semester ?? null}
           conflictCount={honesty.conflictPairCount}
           onShowConflict={handleShowConflict}
-          status={<VerificationStatus />}
+          status={<VerificationStatus compact={!showTabs} />}
           action={<SuggestAction placement="status" />}
           compact={!showTabs}
           locale={language}

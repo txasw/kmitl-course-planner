@@ -460,6 +460,7 @@
   "stats.noConflictsShort": "No clash",
   "stats.creditsBelow": "Below the usual minimum of {min} credits",
   "stats.creditsAbove": "Above the usual maximum of {max} credits",
+  "stats.creditsWithNote": "{count} {unit}. {note}",
   "stats.freeDays": "Free days {days}",
   "mode.export": "Export",
   "mode.backToEdit": "Back to editing",

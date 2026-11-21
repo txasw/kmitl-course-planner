@@ -316,4 +316,83 @@ describe('StatsBar', () => {
       ).toBeInTheDocument();
     });
   });
+
+  describe('the phone row', () => {
+    const withCredits = (credits: number[]): PlacedSection[] =>
+      credits.map((credit, index) => ({
+        ...scheduled,
+        teachTableId: `p${String(index)}`,
+        subjectId: `9200000${String(index)}`,
+        credit,
+      }));
+
+    function renderPhone(
+      sections: PlacedSection[],
+      semester: Semester | null = null,
+      language: 'th' | 'en' = 'th',
+    ) {
+      return render(
+        <StatsBar
+          sections={sections}
+          semester={semester}
+          conflictCount={0}
+          onShowConflict={vi.fn()}
+          status={<span>สถานะ</span>}
+          action={<button type="button">แนะนำตาราง</button>}
+          compact
+          locale={language}
+          t={createTranslator(language)}
+        />,
+      );
+    }
+
+    it('keeps two tiers: the plan facts, then the checks with the action at the end', () => {
+      renderPhone([scheduled, online]);
+      const row = screen.getByRole('group', { name: 'สรุปตาราง' });
+      expect(row.children).toHaveLength(2);
+      const [facts, checks] = Array.from(row.children);
+      expect(facts).toHaveTextContent('5 หน่วยกิต');
+      expect(facts).toHaveTextContent('2 วิชา');
+      expect(facts).not.toHaveTextContent('ไม่ชน');
+      expect(checks).toHaveTextContent('ไม่ชน');
+      expect(checks).toHaveTextContent('สถานะ');
+      expect(checks?.lastElementChild).toContainElement(
+        screen.getByRole('button', { name: 'แนะนำตาราง' }),
+      );
+    });
+
+    it('shows the unscheduled count as its glyph and number, its words to assistive technology', () => {
+      renderPhone([scheduled, online]);
+      const words = screen.getByText('1 ไม่มีคาบเรียน');
+      expect(words).toHaveClass('sr-only');
+      expect(words.parentElement).toHaveAttribute('title', '1 ไม่มีคาบเรียน');
+    });
+
+    it('folds the credit load note into the credit fact, revealed on a tap', () => {
+      renderPhone(withCredits([3, 3, 2]), '1');
+      expect(screen.queryByText('ต่ำกว่าเกณฑ์ขั้นต่ำปกติ 9 หน่วยกิต')).toBeNull();
+      const fact = screen.getByRole('button', {
+        name: '8 หน่วยกิต ต่ำกว่าเกณฑ์ขั้นต่ำปกติ 9 หน่วยกิต',
+      });
+      expect(fact).toHaveClass('text-warn');
+      expect(fact.querySelectorAll('svg')).toHaveLength(2);
+      expect(screen.getByText('8')).toHaveClass('text-warn');
+      fireEvent.click(fact);
+      expect(screen.getByText('ต่ำกว่าเกณฑ์ขั้นต่ำปกติ 9 หน่วยกิต')).toBeVisible();
+    });
+
+    it('names the folded note in English', () => {
+      renderPhone(withCredits([3, 3, 3, 3, 3, 3, 3, 2]), '1', 'en');
+      expect(
+        screen.getByRole('button', {
+          name: '23 credits. Above the usual maximum of 22 credits',
+        }),
+      ).toBeInTheDocument();
+    });
+
+    it('keeps the credit fact plain within the usual load', () => {
+      renderPhone(withCredits([3, 3, 3]), '1');
+      expect(screen.queryByRole('button', { name: /หน่วยกิต/ })).toBeNull();
+    });
+  });
 });

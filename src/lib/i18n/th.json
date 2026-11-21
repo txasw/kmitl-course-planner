@@ -460,6 +460,7 @@
   "stats.noConflictsShort": "ไม่ชน",
   "stats.creditsBelow": "ต่ำกว่าเกณฑ์ขั้นต่ำปกติ {min} หน่วยกิต",
   "stats.creditsAbove": "เกินเกณฑ์ขั้นสูงปกติ {max} หน่วยกิต",
+  "stats.creditsWithNote": "{count} {unit} {note}",
   "stats.freeDays": "วันว่าง {days}",
   "mode.export": "ส่งออก",
   "mode.backToEdit": "กลับไปแก้ไข",
