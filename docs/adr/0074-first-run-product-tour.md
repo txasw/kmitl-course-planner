@@ -184,3 +184,9 @@ Alternatives considered: the catalog's empty state was rejected as the target, s
 the open form fills the pane and hides it, and on a short desktop window it rests half below the
 results scroller's edge. A card with no spotlight was rejected because every other step points at
 a real control and the card placement assumes a spotlight to keep clear of.
+
+Owner decision, 2026-11-22. The owner confirmed the placement rule on a phone: the card rests at
+the foot above the bottom nav, and when that rest would cover the step's target it moves to the
+panel's head, as the Placement section of the decision says. Keeping the card at the foot in
+every case was not chosen, since a target near the foot, such as the suggest action in the plan
+status row, would then sit under the card.
