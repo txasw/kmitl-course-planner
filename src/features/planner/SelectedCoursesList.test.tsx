@@ -108,6 +108,22 @@ describe('SelectedCoursesList', () => {
     expect(screen.queryByRole('article')).toBeNull();
   });
 
+  it('draws each subject on the quiet soft card the catalog cards use', () => {
+    render(
+      <Harness
+        initial={[
+          entry('p1', '90000001', '901'),
+          entry('p2', '90000001', '902'),
+        ]}
+      />,
+    );
+    const [card] = cards();
+    expect(card).toHaveClass('kcp-soft-card', 'kcp-soft-quiet');
+    expect(card).not.toHaveClass('border', 'border-border');
+    // One nesting level: the sections inside the card are rows, not cards of their own.
+    expect(card?.querySelectorAll('.kcp-soft-card')).toHaveLength(0);
+  });
+
   it('shows the section details and the enrollment conditions', () => {
     render(
       <Harness
