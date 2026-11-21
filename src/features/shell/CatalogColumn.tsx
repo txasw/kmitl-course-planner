@@ -1,16 +1,16 @@
 // The catalog column of ADR-0048: the container header, the search head (the summary
 // bar over the folding search form), then the filter bar and the results in their own
-// scroller. Below the docked tiers the container header also carries the plan suggestion
-// action of ADR-0054 when the result is a curriculum search. The search head sits outside the results
-// scroller, so the bar stays in view while a long list scrolls and opening or closing the
-// form never moves the list. While a reopened form is taller than the room left, it
-// scrolls in its own region above a minimum of results. It mounts exactly once at every
-// width and only its container class follows the layout tier: docked beside the grid
-// from the lg tier, a slide over left sheet on the medium tier, or a full width pane
-// below 640 px, which the bottom nav shows or hides. Switching a class on one
-// element, rather than rendering the catalog in two places, keeps a single drag surface
-// per section and lets the drag registration and the scroll offset survive a tier
-// change.
+// scroller. Below the docked tiers the container header also carries the plan
+// suggestion action of ADR-0054 when the result is a curriculum search. The search head
+// sits outside the results scroller, so the bar stays in view while a long list scrolls
+// and opening or closing the form never moves the list. While a reopened form is taller
+// than the room left, it scrolls in its own region above a minimum of results. It
+// mounts exactly once at every width and only its container class follows the layout
+// tier: docked beside the grid from the lg tier, a slide over left sheet on the medium
+// tier, or a full width pane below 640 px, which the bottom nav shows or hides.
+// Switching a class on one element, rather than rendering the catalog in two places,
+// keeps a single drag surface per section and lets the drag registration and the scroll
+// offset survive a tier change.
 //
 // The closed sheet stays mounted, so the session state of 6.1 is never dropped, and it
 // is inert, so Tab and assistive technology never reach the controls it holds off
@@ -214,10 +214,9 @@ export function SheetScrim({ tier }: { tier: LayoutTier }) {
 
 /** The header of the sheet and of the compact pane: the catalog name and the plan
  * suggestion action, with a close only on the sheet. The result count is left to the
- * catalog summary line, so the column reads it once. The phone pane's suggestion action
- * is filled, since the status row that carries the other one is on the timetable pane,
- * out of reach; the sheet's stays quiet, since the filled one still shows past its scrim
- * (ADR-0054 amendment of 2026-11-21). */
+ * catalog summary line, so the column reads it once. The suggestion action is filled in
+ * both, since the status row that carries the other one is out of reach: on the timetable
+ * pane of a phone, and behind the sheet's scrim (ADR-0054 amendment of 2026-11-21). */
 function SheetHeader({ closable }: { closable: boolean }) {
   const { t } = useTranslation();
 
@@ -227,7 +226,7 @@ function SheetHeader({ closable }: { closable: boolean }) {
         {t('catalog.sheet.title')}
       </h3>
       <div className="ml-auto flex items-center gap-1">
-        <SuggestAction placement="catalog" filled={!closable} />
+        <SuggestAction placement="catalog" />
         {closable ? (
           <button
             type="button"

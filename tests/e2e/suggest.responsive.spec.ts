@@ -58,13 +58,9 @@ test('applies a suggested timetable from the compact layouts', async ({
   const page = await openPlanner(context);
   const catalog = await curriculumSearch(page);
   const entry = catalog.getByRole('button', { name: 'แนะนำตาราง' });
-  // The phone pane's entry is the only one in reach there, so it is the filled one; the
-  // tablet sheet's stays quiet, since the status row's filled one shows past its scrim.
-  if (isPhone(page)) {
-    await expect(entry).toHaveClass(/\bbg-primary-strong\b/);
-  } else {
-    await expect(entry).not.toHaveClass(/\bbg-primary-strong\b/);
-  }
+  // The phone pane's entry and the tablet sheet's are each the only one in reach, the
+  // status row being on the timetable pane or behind the modal sheet, so both are filled.
+  await expect(entry).toHaveClass(/\bbg-primary-strong\b/);
   await entry.click();
   const dialog = page.getByRole('dialog', { name: 'แนะนำตาราง' });
   await expect(dialog).toBeVisible();
