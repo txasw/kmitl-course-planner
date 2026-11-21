@@ -905,15 +905,14 @@ line under the edge. The review also found the plan name field showing a long na
   watched as well as the block's, so a toast band that lifts the status row keeps the detail's
   foot above it. The shared popover recipe takes the column and its head as an option; every
   other popover keeps its viewport sizing. Starting the column at the plan area's top was
-  rejected for that split hour label. Capping the
-  height to the space above the status row and shifting the node up was rejected: the sweep
-  then found its foot across a Friday block's name at 768 and 1366 px and its top across a
-  Monday block's time, since a node of its own height ends wherever its content does. Flipping
-  the detail above or below its block was rejected because the timetable rows leave no row
-  free of text.
+  rejected for that split hour label. Capping the height to the space above the status row and
+  shifting the node up was rejected: the sweep then found its foot across a Friday block's name
+  at 768 and 1366 px and its top across a Monday block's time, since a node of its own height
+  ends wherever its content does. Flipping the detail above or below its block was rejected
+  because the timetable rows leave no row free of text.
 - The sweep reads the page behind an opened layer. In this reading a line the layer covers whole
-  passes, and a line its top or bottom edge cuts fails: each line is probed near its top and near
-  its foot at the same points across it, and a line that shows at one and is covered at the
+  passes, and a line its top or bottom edge cuts fails: each line is probed near its top and
+  near its foot at the same points across it, and a line that shows at one and is covered at the
   other at two points or more is cut. A split at one point alone is the layer's rounded corner
   over a line's end. A line covered top to foot at some points and on show at others is cut by
   the layer's side edge and fails as well, since what shows reads as another word or another
@@ -921,11 +920,11 @@ line under the edge. The review also found the plan name field showing a long na
   behind the block detail it is the timetable blocks, which a layer opened beside its block has
   no room to avoid. An axis label, the status row, the toolbar status, and a template chip have
   no such excuse. The scroller rule for a fixed layer over a list's end does not apply behind a
-  layer the student opened. The walk now reads the panel
-  behind the block detail, behind the detail of the missing section the moved fixture leaves,
-  which it also reads whole on its own, and behind the display options sheet of the export page
-  below 640 px; from 640 px up those options became an inline panel the sweep reads as part of
-  the page (ADR-0027 amendment of 2026-11-21).
+  layer the student opened. The walk now reads the panel behind the block detail, behind the
+  detail of the missing section the moved fixture leaves, which it also reads whole on its own,
+  and behind the display options sheet of the export page below 640 px; from 640 px up those
+  options became an inline panel the sweep reads as part of the page (ADR-0027 amendment of
+  2026-11-21).
 - The plan name field, in create and rename, is a text area that grows to the lines the name
   needs, in place of a one line input that showed a long name scrolled to its end with its first
   glyph cut at the field edge at 360 px. It keeps the behavior of a one line name: Enter saves,
