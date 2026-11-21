@@ -53,11 +53,11 @@ const GRID_HEIGHT: Record<Orientation, string> = {
   landscape: 'h-80',
 };
 
-// The card edge and padding a slide takes on the wider tiers. A portrait slide, on a phone,
-// gives that width to its day columns instead, so a Thai word fits a 360 px screen's column
-// whole; the sheet edge and the carousel frame it there.
-const CARD_CHROME =
-  'rounded-kcp border border-border bg-surface p-3 shadow-kcp-soft';
+// The card a slide takes on the wider tiers: the quiet soft card of ADR-0071, the one
+// neutral card the panel draws. A portrait slide, on a phone, gives that width to its day
+// columns instead, so a Thai word fits a 360 px screen's column whole; the sheet edge and
+// the carousel frame it there.
+const CARD_CHROME = 'kcp-soft-card kcp-soft-quiet p-3';
 
 // A portrait slide has no inline padding, so the apply action insets itself by the width its
 // offset focus outline draws, and the carousel clip never cuts the outline at the sides.

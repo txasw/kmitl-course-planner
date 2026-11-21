@@ -196,6 +196,16 @@ describe('SuggestionCard', () => {
     expect(grid.style.gridTemplateColumns).toMatch(/^2\.75rem repeat\(/);
     expect(grid.className).not.toMatch(/min-h-\[44rem\]/);
   });
+
+  it('frames a landscape slide on the quiet soft card and a portrait one on none', () => {
+    renderCard();
+    const card = screen.getByRole('article');
+    expect(card).toHaveClass('kcp-soft-card', 'kcp-soft-quiet');
+    expect(card).not.toHaveClass('border', 'border-border');
+    cleanup();
+    renderCard({ orientation: 'portrait' });
+    expect(screen.getByRole('article')).not.toHaveClass('kcp-soft-card');
+  });
 });
 
 describe('labelStepFor', () => {
