@@ -9,6 +9,7 @@ import type { TranslationKey } from '@/lib/i18n/t';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { copyText } from '@/features/shell/copyText';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import { storageIssueStore, type StorageIssue } from './storageIssueStore';
 
 function messageKey(issue: StorageIssue): TranslationKey {
@@ -48,7 +49,7 @@ export function QuarantineCard() {
               t('storage.exportFailed'),
             );
           }}
-          className={`rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink hover:bg-surface-alt ${FOCUS_RING}`}
+          className={`inline-flex items-center justify-center rounded-kcp border border-border bg-surface px-2 py-0.5 text-ink hover:bg-surface-alt ${TARGET_SIZE} ${FOCUS_RING}`}
         >
           {t('storage.export')}
         </button>
@@ -58,7 +59,7 @@ export function QuarantineCard() {
         onClick={() => {
           storageIssueStore.getState().setIssue(null);
         }}
-        className={`text-ink-soft underline hover:text-ink ${FOCUS_RING}`}
+        className={`inline-flex items-center justify-center rounded-kcp px-1 text-ink-soft underline hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
       >
         {t('action.close')}
       </button>

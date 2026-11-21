@@ -5,6 +5,7 @@
 import { AlertTriangle } from 'lucide-react';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { TARGET_SIZE } from '@/lib/ui/target';
 
 export interface ImportErrorViewProps {
   issues: string[];
@@ -33,7 +34,7 @@ export function ImportErrorView({ issues, onBack }: ImportErrorViewProps) {
         <button
           type="button"
           onClick={onBack}
-          className={`rounded-kcp border border-border px-2 py-1 text-ink-soft hover:bg-surface-alt hover:text-ink ${FOCUS_RING}`}
+          className={`inline-flex items-center justify-center rounded-kcp border border-border px-2 py-1 text-ink-soft hover:bg-surface-alt hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
         >
           {t('action.back')}
         </button>

@@ -383,7 +383,7 @@ export function CourseCatalog({ catalog }: CourseCatalogProps) {
           onClick={() => {
             handleSwitchTerm(browsedTerm);
           }}
-          className={`rounded-kcp border border-primary bg-surface px-2 py-1 text-primary-strong hover:bg-primary-soft ${FOCUS_RING}`}
+          className={`inline-flex items-center justify-center rounded-kcp border border-primary bg-surface px-2 py-1 text-primary-strong hover:bg-primary-soft ${TARGET_SIZE} ${FOCUS_RING}`}
         >
           <TermSwitchLabel term={browsedTerm} t={t} />
         </button>

@@ -1167,6 +1167,64 @@ test('the controls a finger reaches are 44 px targets', async ({ context }) => {
   );
 });
 
+test('the clear search, the term switch, and the import back are 44 px targets', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  const sheet = await openCatalog(page);
+  await sheet.getByRole('tab', { name: 'หมวดวิชา' }).click();
+  await pickOption(page, 'คณะ', '01');
+  await pickOption(page, 'หมวดวิชา', '90592xxx');
+  await expectTouchTarget(
+    sheet.getByRole('button', { name: 'ล้างการค้นหา' }),
+    'clear search',
+  );
+  await submitSearch(sheet);
+  await expect(sheet.getByText('90592033').first()).toBeVisible({
+    timeout: 15_000,
+  });
+  await waitForResultsInput(page);
+  await expandCourse(page, '90592008');
+  await sheet.getByRole('button', { name: /^เพิ่ม 90592008/ }).tap();
+
+  // Browsing another term than the plan's raises the banner over the catalog, whose
+  // switch is a finger sized target like the same action in each row.
+  await sheet.getByRole('button', { name: 'แก้ไขการค้นหา' }).first().click();
+  // The plan takes the current term of the captures, 2/2569, so the search moves to 1.
+  await pickOption(page, 'ภาคการศึกษา', '1');
+  await submitSearch(sheet);
+  const banner = sheet
+    .getByText('ตารางนี้เป็นภาคการศึกษา 2/2569 แต่กำลังดูภาคการศึกษา 1/2569')
+    .locator('..');
+  await expectTouchTarget(
+    banner.getByRole('button', { name: 'สร้างตารางภาค 1/2569' }),
+    'term switch',
+  );
+
+  // A rejected import shows its issues with a finger sized way back to the plan list.
+  if (isPhone(page)) {
+    await bottomNav(page)
+      .getByRole('button', { name: /^ตารางเรียน/ })
+      .tap();
+  } else {
+    await page.keyboard.press('Escape');
+  }
+  await page
+    .getByRole('dialog', { name: OVERLAY })
+    .locator('header')
+    .getByRole('button', { name: 'เลือกตาราง' })
+    .click();
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'plan.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ name: 1, entries: [{}] })),
+  });
+  await expectTouchTarget(
+    page.getByRole('button', { name: 'ย้อนกลับ', exact: true }),
+    'import back',
+  );
+});
+
 /** The centre of a laid out element, as a point a finger can press. */
 async function centre(locator: Locator): Promise<Point> {
   const box = await locator.boundingBox();

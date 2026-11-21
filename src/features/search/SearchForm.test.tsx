@@ -21,7 +21,8 @@ import {
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import type { RequestMessage } from '@/lib/messaging/protocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
-import { ok } from '@/lib/utils/result';
+import { err, httpError, ok } from '@/lib/utils/result';
+import { TARGET_SIZE } from '@/lib/ui/target';
 import {
   defaultCategoryForm,
   defaultClassForm,
@@ -149,6 +150,19 @@ async function waitEnabled(name: string) {
 }
 
 describe('SearchForm', () => {
+  it('offers a touch sized retry when the reference data fails to load', async () => {
+    const failing = ((message: RequestMessage) =>
+      message.type === 'ref/faculty'
+        ? Promise.resolve(err(httpError(503, 'down')))
+        : resolvingSend(ownerCatalog())(message)) as unknown as TypedSend;
+    renderSearch({ ...deps(), send: failing });
+    expect(await screen.findByText('โหลดตัวเลือกไม่สำเร็จ')).toBeInTheDocument();
+    const retry = screen.getByRole('button', { name: 'ลองอีกครั้ง' });
+    for (const token of TARGET_SIZE.split(' ')) {
+      expect(retry).toHaveClass(token);
+    }
+  });
+
   it('populates the faculty combobox from reference data', async () => {
     renderSearch(deps());
     const faculty = await waitEnabled('คณะ');
