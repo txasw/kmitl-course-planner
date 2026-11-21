@@ -2,7 +2,9 @@
 // shown when the show exams display option is on (ADR-0064). It is ink only, with no danger
 // mark on a clash, because the footer data line already states a clash as text and the reader
 // of a shared image cannot act on an editing signal (ADR-0055). Its text is sized in em, so it
-// follows each template's type scale like the data line and the watermark.
+// follows each template's type scale like the data line and the watermark. It sits on the quiet
+// card of ADR-0071, as the exam day cards of the plan views do, so the poster frame shares the
+// soft depth set of its blocks (ADR-0047 amendment of 2026-11-22).
 //
 // The block yields to the grid: its height is capped at a quarter of the template's layout
 // height, and when the lines do not fit it drops whole lines from the end of the list, closing
@@ -111,7 +113,7 @@ export function PosterExamBlock({
       style={{
         maxHeight: template.layoutHeight * EXAM_BLOCK_HEIGHT_SHARE,
       }}
-      className="shrink-0 overflow-hidden rounded-kcp border border-border p-2 text-[0.8em]"
+      className="kcp-soft-card kcp-soft-quiet shrink-0 overflow-hidden p-2 text-[0.8em]"
     >
       <h3 className="mb-0.5 font-semibold text-ink-soft">
         {t('exam.schedule.title')}
