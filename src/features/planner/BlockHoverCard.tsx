@@ -145,6 +145,8 @@ export function BlockHoverCard({
           density="compact"
           locale={locale}
           t={t}
+          lastVerifiedAt={entry.lastVerifiedAt}
+          seatsLastKnown={entry.verifyStatus === 'missing'}
         />
       </div>
       {badge !== null && badgeText !== '' ? (

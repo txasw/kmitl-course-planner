@@ -11,11 +11,12 @@
 // stays short, and a credit string outside the notation shows no hours line rather than a
 // wrong one. Seats read through the full SeatDemand variant, the catalog row's seat line
 // plus the host's four counts, from the snapshot the latest verification refreshed. A
-// section that announces neither exam date reads as arranged by the instructor rather
-// than leaving the exam rows out, so a missing date is never mistaken for a missing
-// field. The conditions read in the warn tone with the shield icon a catalog row gives
-// them, through the same line split and locale fallback, but listed in full since the
-// popover has the room a row does not.
+// section the latest check no longer lists has no current seats, so its counts read in
+// neutral ink as the last known figures from before that check. A section that announces
+// neither exam date reads as arranged by the instructor rather than leaving the exam rows
+// out, so a missing date is never mistaken for a missing field. The conditions read in the
+// warn tone with the shield icon a catalog row gives them, through the same line split and
+// locale fallback, but listed in full since the popover has the room a row does not.
 
 import { useMemo, type ReactNode } from 'react';
 import { MapPin, ShieldAlert } from 'lucide-react';
@@ -44,8 +45,11 @@ interface SectionDetailListProps {
   density: SectionDetailDensity;
   locale: Locale;
   t: Translate;
-  /** When the latest verification ran, or null before the first. Read in full density. */
+  /** When the latest verification ran, or null before the first. Read in full density,
+   * and in either density for last known seats. */
   lastVerifiedAt?: string | null;
+  /** The seats are the last known figures of a section the latest check no longer lists. */
+  seatsLastKnown?: boolean;
 }
 
 const LABEL_WIDTH: Record<SectionDetailDensity, string> = {
@@ -136,6 +140,7 @@ export function SectionDetailList({
   locale,
   t,
   lastVerifiedAt = null,
+  seatsLastKnown = false,
 }: SectionDetailListProps) {
   const columns = LABEL_WIDTH[density];
   const full = density === 'full';
@@ -211,8 +216,14 @@ export function SectionDetailList({
             demand={computeSeatDemand(section)}
             t={t}
             variant="full"
+            muted={seatsLastKnown}
           />
         </dd>
+        {seatsLastKnown && checkedAt !== null ? (
+          <dd className={`${VALUE_BOX} text-ink-soft`}>
+            {fillTemplate(t('detail.seatsLastKnown'), { time: checkedAt })}
+          </dd>
+        ) : null}
       </DetailRow>
 
       {exams.length === 0 ? (

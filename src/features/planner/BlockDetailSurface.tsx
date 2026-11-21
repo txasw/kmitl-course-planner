@@ -5,10 +5,12 @@
 // verification state with old versus new values for a changed field and any exam overlap,
 // and a pinned footer carries the acknowledge and remove actions. Under the list a change
 // section disclosure moves the subject to another section that fits (ADR-0068), and focus
-// then lands on the new section's block, since this block leaves. The body ends with a copy
-// subject id action and a link to the subject's listing on the host's own result page,
-// opened in a new tab so the plan stays where it is; following a link is the only contact
-// with the host (section 2, rule 6).
+// then lands on the new section's block, since this block leaves. A section the latest check
+// no longer lists shows the disclosure only while the catalog lists its subject, since only
+// then can it offer a section to move to. The body ends with a copy subject id action and a
+// link to the subject's listing on the host's own result page, opened in a new tab so the
+// plan stays where it is; following a link is the only contact with the host (section 2,
+// rule 6).
 //
 // It picks its form from the pointer as well as the width (ADR-0049). On a fine pointer at
 // 640 px and up it is a popover anchored to the block. Below 640 px there is no room beside
@@ -37,6 +39,7 @@ import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { BottomSheet } from '@/components/BottomSheet';
 import { planStore } from '@/features/plans/planStore';
+import { searchStore } from '@/features/search/searchStore';
 import { useActiveRun } from '@/features/plans/revalidationStore';
 import { useReturnFocus } from '@/features/shell/restoreFocus';
 import { useMediaQuery } from '@/features/shell/useMediaQuery';
@@ -46,6 +49,7 @@ import { BlockDetailPopover } from './BlockDetailPopover';
 import { placedItemOf } from './blockFocus';
 import { ChangeSectionList } from './ChangeSectionList';
 import { copySubjectId } from './copySubjectId';
+import { resolveCourseForSubject } from './resolveCourse';
 
 /** After a change of section the surface closes with the block that opened it, so focus
  * moves to the new section on the grid, or to the grid when it shows nowhere. */
@@ -146,6 +150,11 @@ export function BlockDetailSurface({
   const anchored = wide && !coarse;
 
   const entry = entries.find((item) => item.teachTableId === teachTableId);
+  const listed = useStore(
+    searchStore,
+    () =>
+      entry !== undefined && resolveCourseForSubject(entry.subjectId) !== null,
+  );
 
   // Close if the entry left the plan while the surface was open.
   useEffect(() => {
@@ -179,14 +188,16 @@ export function BlockDetailSurface({
         locale={locale}
         t={t}
       />
-      <div className="mt-2 border-t border-border pt-2">
-        <ChangeSectionList
-          entry={entry}
-          t={t}
-          touch={!anchored}
-          focusAfterChange={focusNewSection}
-        />
-      </div>
+      {entry.verifyStatus !== 'missing' || listed ? (
+        <div className="mt-2 border-t border-border pt-2">
+          <ChangeSectionList
+            entry={entry}
+            t={t}
+            touch={!anchored}
+            focusAfterChange={focusNewSection}
+          />
+        </div>
+      ) : null}
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-2">
         <CopySubjectIdButton entry={entry} t={t} touch={!anchored} />
         <OfficialListingLink entry={entry} t={t} touch={!anchored} />

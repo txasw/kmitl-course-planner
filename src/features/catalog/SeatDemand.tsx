@@ -7,7 +7,10 @@
 // variant, for the section details, adds the host's four counts as labelled figures and,
 // when pre registrations exceed the capacity, a warn line stating that fact. It gives no
 // estimate of a student's chance. A catalog row flags the same fact with the demand chip
-// beside its seat line. The icons are decorative; the text carries the meaning.
+// beside its seat line. The muted form, for the last known seats of a section the latest
+// check no longer lists, reads every figure in neutral ink with no open or demand tone, so
+// old counts never pass for current ones. The icons are decorative; the text carries the
+// meaning.
 
 import { Fragment } from 'react';
 import { AlertCircle, Users } from 'lucide-react';
@@ -34,12 +37,20 @@ interface SeatDemandProps {
   demand: SeatDemandModel;
   t: Translate;
   variant?: SeatDemandVariant;
+  /** Read the counts in neutral ink with no tone, for last known figures. */
+  muted?: boolean;
 }
 
-export function SeatDemand({ demand, t, variant = 'inline' }: SeatDemandProps) {
+export function SeatDemand({
+  demand,
+  t,
+  variant = 'inline',
+  muted = false,
+}: SeatDemandProps) {
+  const oversubscribed = demand.oversubscribed && !muted;
   const line = (
     <p
-      className={`flex items-center gap-1 tabular-nums ${TONE_CLASS[demand.state]}`}
+      className={`flex items-center gap-1 tabular-nums ${muted ? 'text-ink-soft' : TONE_CLASS[demand.state]}`}
     >
       <Users size={12} aria-hidden className="shrink-0" />
       <span>{seatLineText(demand, t)}</span>
@@ -55,7 +66,7 @@ export function SeatDemand({ demand, t, variant = 'inline' }: SeatDemandProps) {
         {demandFigures(demand).map((figure, index) => {
           // The pre registered count is the figure that exceeds the capacity, so it alone
           // takes the warn tone, label and value together.
-          const warn = figure.key === 'pre' && demand.oversubscribed;
+          const warn = figure.key === 'pre' && oversubscribed;
           // The space between figures is for the accessible text: the flex gap spaces
           // them on screen, and without it a screen reader runs one value into the
           // next label.
@@ -72,7 +83,7 @@ export function SeatDemand({ demand, t, variant = 'inline' }: SeatDemandProps) {
           );
         })}
       </p>
-      {demand.oversubscribed ? (
+      {oversubscribed ? (
         <p className="flex items-center gap-1 text-warn">
           <AlertCircle size={12} aria-hidden className="shrink-0" />
           <span>{t('seat.demand.oversubscribed')}</span>

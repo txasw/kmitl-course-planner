@@ -232,6 +232,8 @@ function SubjectCard({
               density="compact"
               locale={locale}
               t={t}
+              lastVerifiedAt={entry.lastVerifiedAt}
+              seatsLastKnown={entry.verifyStatus === 'missing'}
             />
             <RulesNotice
               rulesTh={entry.snapshot.rulesTh}
