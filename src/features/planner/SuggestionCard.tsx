@@ -1,9 +1,11 @@
-// One suggested timetable, one slide of the suggestion carousel. It shows the whole week
-// the suggestion would produce, the plan subjects it keeps included, as a read only mini
-// grid in the frame the dialog shares across the slides, then the stats a student compares
-// suggestions by, then the sections it places named in full, then the ticked courses it
-// leaves out with the reason each one stayed out, both lists collapsed by default behind
-// the system chevron disclosure, then the apply action, which creates a new plan from it.
+// One suggested timetable, one slide of the suggestion carousel. Its heading row names the
+// option and carries the apply action, which creates a new plan from it, so the action is
+// in view with the start of the slide on a phone's first screen (ADR-0054 amendment of
+// 2026-11-21). Below it the slide shows the whole week the suggestion would produce, the
+// plan subjects it keeps included, as a read only mini grid in the frame the dialog shares
+// across the slides, then the stats a student compares suggestions by, then the sections it
+// places named in full, then the ticked courses it leaves out with the reason each one
+// stayed out, both lists collapsed by default behind the system chevron disclosure.
 // The grid itself takes no input; the placed list is where a name the grid clamps reads
 // whole. The carousel keeps a drag from selecting text, so both lists opt back in and their
 // names can be copied.
@@ -59,9 +61,9 @@ const GRID_HEIGHT: Record<Orientation, string> = {
 // the carousel frame it there.
 const CARD_CHROME = 'kcp-soft-card kcp-soft-quiet p-3';
 
-// A portrait slide has no inline padding, so the apply action insets itself by the width its
-// offset focus outline draws, and the carousel clip never cuts the outline at the sides.
-const APPLY_INSET = 'mx-1';
+// A portrait slide has no inline padding, so the heading row insets itself by the width the
+// apply action's offset focus outline draws, and the carousel clip never cuts the outline.
+const HEADING_INSET = 'px-1';
 
 // The space an hour label needs along the time axis at the mini grid type size, and the
 // leading day track a landscape grid gives up before the hours begin.
@@ -237,9 +239,21 @@ export function SuggestionCard({
       aria-roledescription={roleDescription}
       className={`flex flex-col gap-3 ${orientation === 'portrait' ? '' : CARD_CHROME}`}
     >
-      <h3 id={headingId} className="text-sm font-semibold">
-        {fillTemplate(t('suggest.option'), { number: index + 1 })}
-      </h3>
+      <div
+        className={`flex flex-wrap items-center justify-between gap-2 ${orientation === 'portrait' ? HEADING_INSET : ''}`}
+      >
+        <h3 id={headingId} className="text-sm font-semibold">
+          {fillTemplate(t('suggest.option'), { number: index + 1 })}
+        </h3>
+        <button
+          type="button"
+          aria-describedby={headingId}
+          onClick={onApply}
+          className={`rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover ${TARGET_SIZE} ${FOCUS_OUTLINE}`}
+        >
+          {t('suggest.apply')}
+        </button>
+      </div>
       <div ref={gridBoxRef} className={GRID_HEIGHT[orientation]}>
         <WeeklyGrid
           sections={sections.filter(isScheduled)}
@@ -273,14 +287,6 @@ export function SuggestionCard({
         t={t}
       />
       <LeftOutList leftOut={suggestion.leftOut} locale={locale} t={t} />
-      <button
-        type="button"
-        aria-describedby={headingId}
-        onClick={onApply}
-        className={`rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover sm:self-end ${orientation === 'portrait' ? APPLY_INSET : ''} ${TARGET_SIZE} ${FOCUS_OUTLINE}`}
-      >
-        {t('suggest.apply')}
-      </button>
     </article>
   );
 }

@@ -12,6 +12,12 @@
 // prefs, so the dialog opens on them. It is a centered dialog at the full width on the
 // medium and docked tiers and the bottom sheet on compact.
 //
+// The dialog reads short (ADR-0054 amendment of 2026-11-21): one sentence of intro, the
+// tick list resting as a one line summary, the objective and the preference, then the
+// carousel, so a phone shows the start of the first slide and its apply action on the
+// first screen of the sheet. The apply action is the dialog's one orange control; the
+// objective takes the quiet segmented look and the selected preference an ink outline.
+//
 // The slides share one frame and one grid orientation: time runs downward on compact, where
 // the phone is tall and narrow, and across on every wider tier, the way the edit grid
 // reads. A slide takes the full dialog width, so its grid reads in place and there is no
@@ -119,10 +125,10 @@ function PreferenceChips({
               onClick={() => {
                 onChange(preference);
               }}
-              className={`rounded-full px-3 py-1 text-xs ${TARGET_SIZE} ${
+              className={`rounded-full border px-3 py-1 text-xs ${TARGET_SIZE} ${
                 active
-                  ? 'bg-primary-strong text-surface'
-                  : 'bg-surface-alt text-ink-soft hover:text-ink'
+                  ? 'border-ink bg-surface font-semibold text-ink'
+                  : 'border-transparent bg-surface-alt text-ink-soft hover:text-ink'
               } ${FOCUS_OUTLINE}`}
             >
               {t(PREFERENCE_LABEL[preference])}
@@ -184,6 +190,7 @@ export function SuggestDialog({
   const { groups, ticked, setTicked } = useSuggestTicks(courses, entries);
   const [groupOpen, setGroupOpen] =
     useState<SuggestGroupOpen>(DEFAULT_GROUP_OPEN);
+  const [subjectsExpanded, setSubjectsExpanded] = useState(false);
   const { result, busy } = useSuggestions(
     courses,
     ticked,
@@ -258,6 +265,8 @@ export function SuggestDialog({
         groups={groups}
         ticked={ticked}
         onChange={handleTicked}
+        expanded={subjectsExpanded}
+        onExpandedChange={setSubjectsExpanded}
         open={groupOpen}
         onOpenChange={setGroupOpen}
         locale={language}

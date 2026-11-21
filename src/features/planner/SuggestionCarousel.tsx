@@ -22,8 +22,8 @@
 // Each slide keeps 4 px of padding inside the clipping viewport. The viewport's inset focus
 // ring paints in that gap, where the card and the moving track would cover it, and a control
 // near the slide edge keeps its offset outline inside the clip. A portrait slide pads only
-// above and below, since its day columns need the width for a Thai word at 360 px; its apply
-// action insets itself instead.
+// above and below, since its day columns need the width for a Thai word at 360 px; its
+// heading row, which holds the apply action, insets itself instead.
 
 import {
   useCallback,

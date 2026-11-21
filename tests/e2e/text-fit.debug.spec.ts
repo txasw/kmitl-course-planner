@@ -549,6 +549,11 @@ for (const language of ['th', 'en'] as const) {
           .getByRole('group', { name: sweep.t('stats.region'), exact: true })
           .getByRole('button', { name: sweep.t('suggest.openShort') })
           .click();
+        await dialog
+          .getByRole('button', {
+            name: new RegExp(`^${sweep.t('suggest.subjects')}`),
+          })
+          .click();
         await expect(
           dialog.getByRole('region', {
             name: sweep.t('suggest.subjects.planned'),
