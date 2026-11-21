@@ -187,3 +187,8 @@ Clearing the flag on the first panel open after the dismissal was rejected as ne
 has finished by then, and clearing it would remove and add the class again on a later dismissal in
 the same way. Storing the flag was rejected because the ask is about the moment after the choice,
 and a stored flag would ring on pages where the student made no choice.
+
+Owner decision, 2026-11-22. The owner confirmed the ring after Maybe later or Not again today as
+it stands: the existing two pulses of ADR-0063, once after each dismissal, with the static ring
+under reduced motion. A longer or repeating ring was not chosen, since a launcher that keeps
+moving competes with the host page the student came to read.
