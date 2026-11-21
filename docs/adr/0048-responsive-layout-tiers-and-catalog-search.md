@@ -840,3 +840,41 @@ control is now an icon button: the same 44 px icon cell at the leading edge of t
 it still centres on the rail icon, with "ซ่อนรายวิชา" or "Hide courses" as its accessible name and
 as a tooltip on hover and keyboard focus, placed to its right so it never covers the plan view
 tabs. Focus moves are unchanged.
+
+## Amendment, 2026-11-21: no exception left for the plan name and the template slivers
+
+A second conformance review found four places where text was still cut or half hidden, and a
+fifth where controls skipped the touch target. Each fix supersedes the text it names above.
+
+- The plan name in the header shows whole at every width. A name that two lines of the second
+  type step cannot hold now wraps at the smallest step onto every line it needs, in place of the
+  two line clamp with an ellipsis that the amendment "nothing cut at the foot or the head" kept
+  as a last resort. The header is now at least 56 px high, or 48 px on a short viewport, rather
+  than exactly that, so the row grows with a name past two lines; the trigger pads a little at
+  that step so its lines do not meet its edge, and the controls stay centred on the row. The
+  body below takes the height left, so nothing under the header is covered. The sweep exception
+  for the clamped name is removed. Capping the plan name length at create was rejected for this
+  change, since an imported or existing plan can already carry a longer name.
+- The export stage shows the selected template alone, recorded in the ADR-0045 amendment of the
+  same date, and the sweep exception for the template slivers is removed.
+- The phone search form carries the clear search inside its pinned action row, under the
+  submit, so the pinned row is always the last thing in the form scroller. The clear search had
+  followed the row in the flow, so on a reopened English form at 360 and 390 px it rested half
+  cut at the scroller foot above the bottom nav, with nothing marking that the form scrolled. The
+  pinned row drops its top margin and pads tighter so the form still fits above it at rest. The
+  sweep now reopens the phone form under the bar of a search and fails on any control resting
+  after the pinned row or on a pinned row the scroller cuts. Padding the scroller by the nav
+  height was rejected: the nav is in the layout flow under the pane, not over it, so the cut was
+  the scroller's own foot.
+- A collapsed teacher, condition, or remark line paints the text past its second line
+  transparent. The clamp clipped its box at the foot of the second line, but a stacked Thai tone
+  mark of the hidden third line rose into that foot and showed beside the ellipsis. The split
+  point is found from the laid out character boxes and leaves the layout, the ellipsis, and the
+  accessible text unchanged. A taller line height was rejected, since no fixed room holds every
+  stack of marks. The sweep now fails on any line clamp that paints a line past its count, read
+  before the exceptions, since the expand control excuses the text a clamp hides, not the ink
+  it lets show.
+- The different term switch above the catalog, the retry of the search options, the back
+  control of a rejected import, and the export and close of the storage notice take the shared
+  touch target, as the same switch in a section row already did. A touch spec checks the
+  clear search, the banner switch, and the import back at 44 px on the phone and the tablet.
