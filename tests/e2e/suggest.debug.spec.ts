@@ -61,6 +61,11 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
     .click();
   const dialog = page.getByRole('dialog', { name: 'แนะนำตาราง' });
   await expect(dialog).toBeVisible();
+  // The tick list rests as its summary line; it opens to name each subject.
+  const summary = dialog.getByRole('button', { name: /^วิชาที่จะจัดลงตาราง/ });
+  await expect(summary).toHaveAttribute('aria-expanded', 'false');
+  await expect(summary).toContainText('1 วิชาในตาราง');
+  await summary.click();
   const planned = dialog.getByRole('region', { name: 'อยู่ในตารางแล้ว' });
   await expect(
     planned.getByRole('checkbox', { name: /04186098/ }),

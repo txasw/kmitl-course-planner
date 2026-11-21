@@ -1,17 +1,21 @@
 // The tick list of the suggestion dialog (ADR-0054, as amended): the subjects a
-// suggestion fits. The ticked set is the whole subject count, so the list carries no
-// separate number. It names the subjects already in the plan, such as a GenEd added
-// by hand, ticked and open by default, so the student sees what every suggestion
-// keeps and can untick one to leave it out; then the group 2 curriculum subjects of
-// the result, ticked and open by default; then every other course, unticked and
-// collapsed by default, so a long GenEd list stays out of the way until the student
+// suggestion fits. It rests as one summary line, collapsed by default, that counts the
+// ticked subjects of each group, such as 6 วิชาในตาราง and 4 วิชาในหลักสูตร, each count a
+// span of its own with a dot drawn between them rather than typed, so the carousel sits
+// near the top of the dialog. The ticked set is the whole subject count, so the list
+// carries no separate number. Expanded, it names the subjects already in the plan, such
+// as a GenEd added by hand, ticked and open by default, so the student sees what every
+// suggestion keeps and can untick one to leave it out; then the group 2 curriculum
+// subjects of the result, ticked and open by default; then every other course, unticked
+// and collapsed by default, so a long GenEd list stays out of the way until the student
 // wants one of it. Each group heading is a disclosure and sits beside a tick all or
 // untick all action, never inside it. A row is a native checkbox inside its label, so
-// the whole row is the target and every name wraps in full. The dialog holds which
-// groups are open, beside the ticks, so a group the student expanded stays expanded
-// while the student pages the suggestions or they are ranked again.
+// the whole row is the target and every name wraps in full. The checkboxes and the tick
+// all actions take the ink, so the dialog keeps its orange for the apply action alone.
+// The dialog holds whether the list and each group are open, beside the ticks, so what
+// the student expanded stays expanded while the suggestions page or rank again.
 
-import { useId } from 'react';
+import { Fragment, useId } from 'react';
 import { DisclosureChevron } from '@/components/DisclosureChevron';
 import type { Course } from '@/lib/domain/types';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
@@ -39,6 +43,12 @@ const HEADING_KEY: Record<GroupKind, TranslationKey> = {
   planned: 'suggest.subjects.planned',
   curriculum: 'suggest.subjects.curriculum',
   other: 'suggest.subjects.other',
+};
+
+const SUMMARY_KEY: Record<GroupKind, TranslationKey> = {
+  planned: 'suggest.summary.planned',
+  curriculum: 'suggest.summary.curriculum',
+  other: 'suggest.summary.other',
 };
 
 interface SubjectGroupProps {
@@ -122,7 +132,7 @@ function SubjectGroup({
           type="button"
           aria-describedby={nameId}
           onClick={handleAll}
-          className={`rounded-kcp px-2 text-xs text-primary-strong hover:bg-surface ${TARGET_SIZE} ${FOCUS_RING}`}
+          className={`rounded-kcp px-2 text-xs text-ink underline decoration-border-strong underline-offset-2 hover:bg-surface ${TARGET_SIZE} ${FOCUS_RING}`}
         >
           {t(
             allTicked
@@ -144,7 +154,7 @@ function SubjectGroup({
                   onChange={() => {
                     handleToggle(course.subjectId);
                   }}
-                  className={`row-span-2 mt-0.5 size-4 accent-primary-strong ${FOCUS_OUTLINE}`}
+                  className={`row-span-2 mt-0.5 size-4 accent-ink ${FOCUS_OUTLINE}`}
                 />
                 <span className="text-sm break-words text-ink">
                   {locale === 'th' ? course.nameTh : course.nameEn}
@@ -162,10 +172,21 @@ function SubjectGroup({
   );
 }
 
+/** The words for a group's ticked count in the summary line. */
+function summaryPart(kind: GroupKind, count: number, t: Translate): string {
+  if (kind === 'other' && count === 1) {
+    return t('suggest.summary.otherOne');
+  }
+  return fillTemplate(t(SUMMARY_KEY[kind]), { count });
+}
+
 interface SuggestSubjectsProps {
   groups: SuggestSubjectGroups;
   ticked: ReadonlySet<string>;
   onChange: (next: ReadonlySet<string>) => void;
+  /** Whether the groups show below the summary line. */
+  expanded: boolean;
+  onExpandedChange: (expanded: boolean) => void;
   open: SuggestGroupOpen;
   onOpenChange: (next: SuggestGroupOpen) => void;
   locale: Locale;
@@ -176,42 +197,79 @@ export function SuggestSubjects({
   groups,
   ticked,
   onChange,
+  expanded,
+  onExpandedChange,
   open,
   onOpenChange,
   locale,
   t,
 }: SuggestSubjectsProps) {
   const labelId = useId();
-  const tickedCount = GROUP_ORDER.flatMap((kind) => groups[kind]).filter(
-    (course) => ticked.has(course.subjectId),
-  ).length;
+  const listId = useId();
   const kinds = GROUP_ORDER.filter((kind) => groups[kind].length > 0);
   if (kinds.length === 0) {
     return null;
   }
+  const parts = kinds.flatMap((kind) => {
+    const count = groups[kind].filter((course) =>
+      ticked.has(course.subjectId),
+    ).length;
+    return count === 0 ? [] : [summaryPart(kind, count, t)];
+  });
   return (
     <div role="group" aria-labelledby={labelId} className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-2 text-xs text-ink-soft">
-        <span id={labelId}>{t('suggest.subjects')}</span>
-        <span>
-          {fillTemplate(t('suggest.subjects.ticked'), { count: tickedCount })}
+      <button
+        type="button"
+        aria-expanded={expanded}
+        aria-controls={expanded ? listId : undefined}
+        onClick={() => {
+          onExpandedChange(!expanded);
+        }}
+        className={`grid w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2 rounded-kcp bg-surface-alt px-3 py-2 text-left text-ink hover:text-ink-soft ${TARGET_HEIGHT} ${FOCUS_RING}`}
+      >
+        <DisclosureChevron open={expanded} />
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <span id={labelId} className="text-xs text-ink-soft">
+            {t('suggest.subjects')}
+          </span>
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
+            {parts.length === 0 ? (
+              <span>{t('suggest.summary.none')}</span>
+            ) : (
+              parts.map((part, index) => (
+                <Fragment key={part}>
+                  {index > 0 ? (
+                    <span
+                      aria-hidden
+                      className="size-1 shrink-0 rounded-full bg-ink-muted"
+                    />
+                  ) : null}
+                  <span>{part}</span>
+                </Fragment>
+              ))
+            )}
+          </span>
         </span>
-      </div>
-      {kinds.map((kind) => (
-        <SubjectGroup
-          key={kind}
-          kind={kind}
-          courses={groups[kind]}
-          ticked={ticked}
-          onChange={onChange}
-          open={open[kind]}
-          onOpenChange={(next) => {
-            onOpenChange({ ...open, [kind]: next });
-          }}
-          locale={locale}
-          t={t}
-        />
-      ))}
+      </button>
+      {expanded ? (
+        <div id={listId} className="flex flex-col gap-2">
+          {kinds.map((kind) => (
+            <SubjectGroup
+              key={kind}
+              kind={kind}
+              courses={groups[kind]}
+              ticked={ticked}
+              onChange={onChange}
+              open={open[kind]}
+              onOpenChange={(next) => {
+                onOpenChange({ ...open, [kind]: next });
+              }}
+              locale={locale}
+              t={t}
+            />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

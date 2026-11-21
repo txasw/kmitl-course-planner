@@ -90,6 +90,13 @@ function gridColumns(): string[] {
     .map((grid) => grid.style.gridTemplateColumns);
 }
 
+/** Open the tick list, which rests as its one line summary. */
+function expandSubjects(): void {
+  fireEvent.click(
+    screen.getByRole('button', { name: /^วิชาที่จะจัดลงตาราง/, expanded: false }),
+  );
+}
+
 async function findCards(): Promise<HTMLElement[]> {
   return screen.findAllByRole('button', { name: 'ใช้ตารางนี้' });
 }
@@ -159,6 +166,7 @@ describe('SuggestDialog', () => {
   it('returns to the best suggestion after a plan change runs the search again', async () => {
     renderDialog(1440);
     await findCards();
+    expandSubjects();
     fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกที่ 3' }));
     expect(within(shownSlide()).getByRole('heading')).toHaveTextContent(
       'ตัวเลือกที่ 3',
@@ -198,6 +206,7 @@ describe('SuggestDialog', () => {
     });
     const original = planStore.getState().plans[0];
     const { onClose } = renderDialog();
+    expandSubjects();
     const planned = screen.getByRole('region', { name: 'อยู่ในตารางแล้ว' });
     expect(
       within(planned).getByRole('checkbox', { name: /04186098/ }),
@@ -242,6 +251,7 @@ describe('SuggestDialog', () => {
       seedActivePlan(locked);
     });
     renderDialog();
+    expandSubjects();
     // Every curriculum subject is in the plan, so it lists them by name, ticked. No move
     // gains anything, so it offers no reshuffle and says the ticked subjects fit as they
     // are rather than asking for a tick the list already shows.
@@ -299,6 +309,7 @@ describe('SuggestDialog', () => {
       seedActivePlan(locked);
     });
     renderDialog();
+    expandSubjects();
     const planned = screen.getByRole('region', { name: 'อยู่ในตารางแล้ว' });
     fireEvent.click(
       within(planned).getByRole('button', { name: 'ยกเลิกการเลือกทั้งหมด' }),
@@ -315,6 +326,7 @@ describe('SuggestDialog', () => {
   it('ticks the curriculum subjects by default and searches the ticked set', async () => {
     renderDialog();
     await findCards();
+    expandSubjects();
     const curriculum = screen.getByRole('region', {
       name: 'วิชาในหลักสูตร กลุ่ม 2',
     });
@@ -323,7 +335,7 @@ describe('SuggestDialog', () => {
     for (const box of boxes) {
       expect(box).toBeChecked();
     }
-    expect(screen.getByText('เลือกไว้ 6 วิชา')).toBeInTheDocument();
+    expect(screen.getByText('6 วิชาในหลักสูตร')).toBeInTheDocument();
     // The GenEd group starts collapsed and unticked.
     expect(
       screen.getByRole('button', {
@@ -338,7 +350,7 @@ describe('SuggestDialog', () => {
     expect(
       await screen.findByText('เลือกอย่างน้อยหนึ่งวิชาเพื่อดูตารางที่แนะนำ'),
     ).toBeInTheDocument();
-    expect(screen.getByText('เลือกไว้ 0 วิชา')).toBeInTheDocument();
+    expect(screen.getByText('ยังไม่ได้เลือกวิชา')).toBeInTheDocument();
 
     const [first] = boxes;
     if (first === undefined) throw new Error('no checkbox');
@@ -355,6 +367,46 @@ describe('SuggestDialog', () => {
     expect(
       within(curriculum).getByRole('button', { name: 'เลือกทั้งหมด' }),
     ).toBeInTheDocument();
+  });
+
+  it('rests short: one sentence, a summary line, and orange only on apply', async () => {
+    act(() => {
+      seedActivePlan(lockSections(courses, [['04186098', '2']]));
+    });
+    const { portal } = renderDialog(390);
+    await findCards();
+    const summary = screen.getByRole('button', {
+      name: /^วิชาที่จะจัดลงตาราง/,
+    });
+    expect(summary).toHaveAttribute('aria-expanded', 'false');
+    // Each group count is a span of its own; no typed dot joins them.
+    expect(within(summary).getByText('1 วิชาในตาราง')).toBeInTheDocument();
+    expect(within(summary).getByText('6 วิชาในหลักสูตร')).toBeInTheDocument();
+    expect(summary.textContent).not.toMatch(/[\u00b7\u2022\u2027]/);
+    expect(screen.queryByRole('checkbox')).toBeNull();
+    // The intro is a single sentence.
+    expect(
+      screen.getByText('เลือกวิชาที่ต้องการ แล้วเลือกตารางที่เวลาเรียนและเวลาสอบไม่ชนกัน'),
+    ).toBeInTheDocument();
+    // The apply action leads the slide, above its grid, and is the one orange fill.
+    const slide = shownSlide();
+    const apply = within(slide).getByRole('button', { name: 'ใช้ตารางนี้' });
+    const grid = within(slide).getByRole('group', {
+      name: 'ตารางเรียนรายสัปดาห์',
+    });
+    expect(
+      apply.compareDocumentPosition(grid) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    const orange = Array.from(
+      within(portal).getByRole('dialog').querySelectorAll('.bg-primary-strong'),
+    );
+    expect(orange.length).toBeGreaterThan(0);
+    for (const element of orange) {
+      expect(element).toHaveAccessibleName('ใช้ตารางนี้');
+    }
+    expect(
+      screen.getByRole('button', { name: 'สมดุล', pressed: true }),
+    ).toHaveClass('border-ink');
   });
 
   it.each([390, 1366])(
