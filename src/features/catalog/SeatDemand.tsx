@@ -3,11 +3,11 @@
 // bare icon on a narrow row with the count left in a tooltip on a span that keyboard and
 // touch users could not open. The line never collapses, and a full or closed line states
 // that the section cannot be added. A catalog row whose badge already says full or closed
-// leaves the line out and gives the sentence to its disabled add instead. The full variant, for the section details, adds the host's four counts as
-// labelled figures and, when pre registrations exceed the capacity, a warn line stating
-// that fact. It gives no estimate of a student's chance. A catalog row flags the same
-// fact with the demand chip beside its seat line. The icons are decorative; the text
-// carries the meaning.
+// leaves the line out and gives the sentence to its disabled add instead. The full
+// variant, for the section details, adds the host's four counts as labelled figures and,
+// when pre registrations exceed the capacity, a warn line stating that fact. It gives no
+// estimate of a student's chance. A catalog row flags the same fact with the demand chip
+// beside its seat line. The icons are decorative; the text carries the meaning.
 
 import { Fragment } from 'react';
 import { AlertCircle, Users } from 'lucide-react';
