@@ -7,20 +7,19 @@
 // amendment of 2026-11-20).
 //
 // Every text field wraps rather than ellipsizes. The time and the subject id are the exception:
-// they are whole fields on one line that never wraps, since a code split across two lines reads
-// as two codes, and the density fit drops either whole when it is wider than its line rather
-// than let it clip at the block edge (ADR-0046 amendment of 2026-11-20). A Thai name breaks at
-// the browser's dictionary word boundaries, and a Thai word wider than the whole line breaks
-// inside the word as a last resort. An English name breaks only at its spaces, since the API
-// sends it in capitals, which Chromium does not hyphenate, so a word broken inside would
-// strand letters on a line with no hyphen. Where a word of the name is wider than the line, the
-// density fit steps the name form down instead: one type step smaller, then for a name in Latin
-// script its abbreviated forms, and last the break form, where the word still too wide breaks
-// inside. The name always shows and the subject id never takes its place (ADR-0047 amendment of
-// 2026-11-22). The secondary name wraps
-// only between its words in either language and drops whole when a word is wider than its
-// line. The name shows in full until the density fit clamps it to the lines the box holds, and
-// the block itself is the expand affordance, opening the full detail.
+// they are whole fields on one line that never wraps, since a code split across two lines reads as
+// two codes, and the density fit drops either whole when it is wider than its line rather than let
+// it clip at the block edge (ADR-0046 amendment of 2026-11-20). A Thai name breaks at the browser's
+// dictionary word boundaries, and a Thai word wider than the whole line breaks inside the word as a
+// last resort. An English name breaks only at its spaces, since the API sends it in capitals, which
+// Chromium does not hyphenate, so a word broken inside would strand letters on a line with no
+// hyphen. Where a word of the name is wider than the line, the density fit steps the name form down
+// instead: one type step smaller, then for a name in Latin script its abbreviated forms, and last
+// the break form, where the word still too wide breaks inside. The name always shows and the
+// subject id never takes its place (ADR-0047 amendment of 2026-11-22). The secondary name wraps
+// only between its words in either language and drops whole when a word is wider than its line. The
+// name shows in full until the density fit clamps it to the lines the box holds, and the block
+// itself is the expand affordance, opening the full detail.
 //
 // Where the grid asks for the name only rule, a day column of the phone week or a suggestion
 // slide, a block narrower than 7em shows the name alone with tight padding, so the name has

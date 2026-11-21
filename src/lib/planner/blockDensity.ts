@@ -31,14 +31,13 @@
 // The name always shows, and the subject id never stands in for it (the ADR-0047 amendment of
 // 2026-11-22, superseding the id form of 2026-11-21). A name wraps only between its words, at the
 // browser's dictionary breaks for Thai and at its spaces otherwise, and where one of its words is
-// wider than the line the name form steps down: first to one type step smaller, then, for a name
-// in Latin script, through its abbreviated forms at that size, least shortened first, and last to
-// the break form, which keeps the shortest of those forms and lets the word still too wide break
-// at grapheme cluster boundaries. A Thai name has no abbreviated forms, so it goes from the
-// smaller step to the break form of the whole name. The subject id
-// stays its own field under the show subject id option and the first field to drop. The
-// secondary name is held to the word rule as a whole field: wider than its line by a word, it
-// drops whole.
+// wider than the line the name form steps down: first to one type step smaller, then, for a name in
+// Latin script, through its abbreviated forms at that size, least shortened first, and last to the
+// break form, which keeps the shortest of those forms and lets the word still too wide break at
+// grapheme cluster boundaries. A Thai name has no abbreviated forms, so it goes from the smaller
+// step to the break form of the whole name. The subject id stays its own field under the show
+// subject id option and the first field to drop. The secondary name is held to the word rule as a
+// whole field: wider than its line by a word, it drops whole.
 //
 // The phone day card walks its own order (the ADR-0047 amendment of 2026-11-21). The card leads
 // with the time, since one day column sets the time axis far from the text, so there the time
