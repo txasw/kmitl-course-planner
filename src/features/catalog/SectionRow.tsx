@@ -8,7 +8,9 @@
 // conflicting section keeps its badge, which reads as an exam clash when every conflict
 // is an exam overlap, and its reason but stays actionable: its add button routes to the
 // blocked feedback strip instead of being disabled, so a keyboard user gets the same
-// reason and alternatives a drag would give.
+// reason and alternatives a drag would give. A full or closed section states its seat
+// once, in the status badge: its seat line would repeat the badge, so the row drops it
+// and the disabled add carries the full sentence as its description and its tooltip.
 // A duplicate reads on a muted surface with its reason. When an add handler is supplied
 // the row offers an add button for an addable or conflicting open section. An added
 // section only ever renders read only, inside the added course card, whose header
@@ -82,8 +84,7 @@ export function SectionRow({
   // The add affordance is a compact button in its own column at the top right of the
   // row, beside the section code, so it never runs down the row as a tinted strip and
   // never overlaps the row body. A section that cannot be added shows the button
-  // disabled with the reason in the row body rather than omitting it, keeping the
-  // column consistent.
+  // disabled with its reason rather than omitting it, keeping the column consistent.
   const action = readOnly
     ? 'none'
     : actionKind(relation, seat, onAdd !== undefined);
@@ -91,8 +92,8 @@ export function SectionRow({
   const calloutId = useId();
   const reasonId = useId();
   const demand = computeSeatDemand(section);
-  // A disabled add names the reason the row body already states: the term mismatch,
-  // which outranks the seat state, or the full or closed seat line.
+  // A disabled add names its reason: the term mismatch, which outranks the seat state and
+  // reads in the row body, or the full or closed seat sentence.
   const disabledReason =
     relation.kind === 'different_term'
       ? termMismatchText(relation.planTerm, relation.browsedTerm, 'section', t)
@@ -104,6 +105,10 @@ export function SectionRow({
     relation.kind === 'conflicting' && isConflictStatus(status)
       ? describeConflicts(relation.conflicts)
       : null;
+  // The badge already says full or closed, so the seat line would be the same statement
+  // a second time beside the muted add. The demand chip stays, since its counts are a
+  // separate fact.
+  const seatInBadge = status === 'full' || status === 'closed';
 
   return (
     <div
@@ -153,12 +158,25 @@ export function SectionRow({
         <TeacherLine teachers={teachers} t={t} />
         {/* The reason id stays on the seat line alone, so a disabled add names the seat
             state without the demand counts. */}
-        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-          <div id={relation.kind === 'different_term' ? undefined : reasonId}>
-            <SeatDemand demand={demand} t={t} />
+        {seatInBadge && !demand.oversubscribed ? null : (
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+            {seatInBadge ? null : (
+              <div
+                id={relation.kind === 'different_term' ? undefined : reasonId}
+              >
+                <SeatDemand demand={demand} t={t} />
+              </div>
+            )}
+            <DemandChip demand={demand} t={t} />
           </div>
-          <DemandChip demand={demand} t={t} />
-        </div>
+        )}
+        {/* Hidden from the reading order, where the badge already states it, and read only
+            as the disabled add's description. */}
+        {seatInBadge && action === 'disabled' ? (
+          <p id={reasonId} hidden>
+            {disabledReason}
+          </p>
+        ) : null}
         <ExamLine exam={section.exam} t={t} />
         <RulesNotice
           rulesTh={section.rulesTh}
@@ -280,9 +298,10 @@ function AddButton({
 
 // A section that cannot be added keeps its add, disabled, so the column stays consistent.
 // It is aria-disabled rather than disabled, so it stays in the tab order: a keyboard user
-// who reaches it hears the reason through aria-describedby, and a pointer user sees it in
-// the tooltip. The reason itself is always visible in the row body. It has no edge or
-// shadow and mutes its text, so it reads as unavailable beside a live add.
+// who reaches it hears the reason through aria-describedby, and a pointer or touch user
+// sees it in the tooltip on hover or focus. The row states the fact once on screen: the
+// full or closed badge, or the term mismatch line. It has no edge or shadow and mutes its
+// text, so it reads as unavailable beside a live add.
 function DisabledAddButton({
   text,
   label,
