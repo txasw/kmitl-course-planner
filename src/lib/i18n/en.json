@@ -559,7 +559,7 @@
   "tour.add.title": "Add a section to the timetable",
   "tour.add.body": "Press the plus button on a section to add it to your timetable. The planner tells you when class or exam times clash.",
   "tour.add.bodyCourse": "Press a course to see its sections, then press the plus button on the section you want.",
-  "tour.add.bodySearch": "After you search, courses show in the list. Press a course, then the plus button on a section to add it.",
+  "tour.add.bodyFields": "Sections show after you search with these fields. Then press a course, and the plus button on a section adds it to your timetable.",
   "tour.timetable.title": "Read your timetable",
   "tour.timetable.body": "The timetable shows the classes you placed across the week. Press a class to see its details.",
   "tour.timetable.bodyDays": "Pick the whole week or one day at a time from this row. Press a class to see its details.",

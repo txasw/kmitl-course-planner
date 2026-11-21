@@ -23,6 +23,8 @@ export const TOUR = {
     skip: 'ข้าม',
     menu: 'แนะนำการใช้งาน',
     more: 'ตัวเลือกเพิ่มเติม',
+    addBeforeSearch:
+      'กลุ่มเรียนจะแสดงหลังค้นหาด้วยช่องเหล่านี้ จากนั้นกดที่รายวิชา แล้วกดปุ่มบวกที่กลุ่มเรียนเพื่อเพิ่มลงตาราง',
   },
   en: {
     titles: {
@@ -40,6 +42,8 @@ export const TOUR = {
     skip: 'Skip',
     menu: 'Product tour',
     more: 'More options',
+    addBeforeSearch:
+      'Sections show after you search with these fields. Then press a course, and the plus button on a section adds it to your timetable.',
   },
 } as const;
 
@@ -162,6 +166,41 @@ export async function expectTourStepLaidOut(
     return { faults: found };
   });
   expect(faults, label).toEqual([]);
+}
+
+/**
+ * The add step before any search: no course is listed, so the card says sections show
+ * after a search and the spotlight rests on the search fields, a live part of the form,
+ * rather than on the submit, which stays blocked until a field is chosen.
+ */
+export async function expectAddStepOnSearchFields(
+  page: Page,
+  language: TourLanguage,
+): Promise<void> {
+  const card = tourCard(page);
+  await expect(card.getByRole('heading')).toHaveText(TOUR[language].titles.add);
+  await expect(card).toContainText(TOUR[language].addBeforeSearch);
+  const fields = page.locator('[data-tour="search-fields"]');
+  await expect(fields).toBeVisible();
+  const lit = await page.locator('[data-tour-spot]').boundingBox();
+  const box = await fields.boundingBox();
+  if (lit === null || box === null)
+    throw new Error('no spotlight or no fields');
+  // The spotlight is the control's box with a ring a few pixels wide around it.
+  for (const [spot, target] of [
+    [lit.x, box.x],
+    [lit.y, box.y],
+  ] as const) {
+    expect(target - spot).toBeGreaterThanOrEqual(0);
+    expect(target - spot).toBeLessThanOrEqual(8);
+  }
+  for (const [spot, target] of [
+    [lit.x + lit.width, box.x + box.width],
+    [lit.y + lit.height, box.y + box.height],
+  ] as const) {
+    expect(spot - target).toBeGreaterThanOrEqual(0);
+    expect(spot - target).toBeLessThanOrEqual(8);
+  }
 }
 
 /**

@@ -34,6 +34,7 @@ import {
   type SubmitDock,
 } from './SearchSubmit';
 import { SearchTabList } from './SearchTabList';
+import { tourTargetProps } from '@/lib/onboarding/tour';
 import { useSearchDeps } from './SearchDepsContext';
 import { useReferenceData, useSearchActions } from './useSearchController';
 
@@ -177,43 +178,51 @@ export function SearchForm({ dock }: SearchFormProps = {}) {
         ) : null}
 
         <div className="flex flex-col gap-3">
-          {activeTab === 'by_class' ? (
-            <ClassFields
-              form={byClass}
-              reference={reference}
-              locale={language}
-              t={t}
-              patch={(patch) => {
-                searchStore.getState().patchClassForm(patch);
-              }}
-            />
-          ) : null}
-          {activeTab === 'by_subject_id' ? (
-            <SubjectIdInput
-              label={t('search.subjectId')}
-              value={bySubjectId.subjectId}
-              hint={t('search.subjectIdHint')}
-              invalid={subjectIdShowMessage}
-              invalidMessage={t('search.subjectIdInvalid')}
-              inputRef={subjectIdRef}
-              onChange={(subjectId) => {
-                searchStore.getState().patchSubjectIdForm({ subjectId });
-                setSubjectIdAttempted(false);
-              }}
-              onSubmit={handleSubmit}
-            />
-          ) : null}
-          {activeTab === 'by_subject_owner_id' ? (
-            <CategoryFields
-              form={byCategory}
-              reference={reference}
-              locale={language}
-              t={t}
-              patch={(patch) => {
-                searchStore.getState().patchCategoryForm(patch);
-              }}
-            />
-          ) : null}
+          {/* The active tab's fields, which the tour's add step points at before a search,
+              when no course is listed yet. They sit in their own stack at the same gap, so
+              the layout is unchanged and the submit stays a sibling of the fields. */}
+          <div
+            className="flex flex-col gap-3"
+            {...tourTargetProps('search-fields')}
+          >
+            {activeTab === 'by_class' ? (
+              <ClassFields
+                form={byClass}
+                reference={reference}
+                locale={language}
+                t={t}
+                patch={(patch) => {
+                  searchStore.getState().patchClassForm(patch);
+                }}
+              />
+            ) : null}
+            {activeTab === 'by_subject_id' ? (
+              <SubjectIdInput
+                label={t('search.subjectId')}
+                value={bySubjectId.subjectId}
+                hint={t('search.subjectIdHint')}
+                invalid={subjectIdShowMessage}
+                invalidMessage={t('search.subjectIdInvalid')}
+                inputRef={subjectIdRef}
+                onChange={(subjectId) => {
+                  searchStore.getState().patchSubjectIdForm({ subjectId });
+                  setSubjectIdAttempted(false);
+                }}
+                onSubmit={handleSubmit}
+              />
+            ) : null}
+            {activeTab === 'by_subject_owner_id' ? (
+              <CategoryFields
+                form={byCategory}
+                reference={reference}
+                locale={language}
+                t={t}
+                patch={(patch) => {
+                  searchStore.getState().patchCategoryForm(patch);
+                }}
+              />
+            ) : null}
+          </div>
           <SearchSubmit
             reason={submitReason}
             t={t}

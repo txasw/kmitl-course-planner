@@ -75,7 +75,7 @@ describe('availableSteps', () => {
 
   it('keeps a step that has only its last fallback target', () => {
     const present = (target: TourTarget) =>
-      target === 'search-submit' || target === 'export';
+      target === 'search-fields' || target === 'export';
     expect(availableSteps(TOUR_STEPS, present).map((step) => step.id)).toEqual([
       'add',
       'export',

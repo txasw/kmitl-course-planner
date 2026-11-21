@@ -7,7 +7,8 @@
 // A step names the panel view it lives in and, in order of preference, the controls it
 // can point at, each with the sentence that fits that control. The search step points at
 // the query chip once a search ran and at the search tabs before; the add step points at
-// an add button of an open course, else at a course to open, else at the search button;
+// an add button of an open course, else at a course to open, else, before any course is
+// listed, at the search fields with a sentence that says sections show after a search;
 // the timetable step points at the day chips of a narrow timetable, else at the
 // timetable tab, else at the bottom nav item. A step with none of its controls on the
 // page is left out. The suggest step points at the status row's suggest action, which
@@ -37,7 +38,7 @@ export type TourTarget =
   | 'search-tabs'
   | 'add'
   | 'course'
-  | 'search-submit'
+  | 'search-fields'
   | 'day-chips'
   | 'plan-tab'
   | 'nav-timetable'
@@ -103,7 +104,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
     anchors: [
       { target: 'add', body: 'tour.add.body' },
       { target: 'course', body: 'tour.add.bodyCourse' },
-      { target: 'search-submit', body: 'tour.add.bodySearch' },
+      { target: 'search-fields', body: 'tour.add.bodyFields' },
     ],
   },
   {

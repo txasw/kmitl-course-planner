@@ -5,6 +5,7 @@ import {
   TOUR,
   tourCard,
   walkTour,
+  expectAddStepOnSearchFields,
   expectTourStepLaidOut,
   type TourStepName,
 } from './support/tour';
@@ -61,6 +62,11 @@ test.describe('after install', () => {
       const box = await card.getByRole('button', { name }).boundingBox();
       expect(box?.height ?? 0).toBeGreaterThanOrEqual(MIN_TARGET_PX);
     }
+    // Before any search the add step lights the search fields, not the blocked submit.
+    await card.getByRole('button', { name: TOUR.th.next, exact: true }).tap();
+    await tab.waitForTimeout(300);
+    await expectAddStepOnSearchFields(tab, 'th');
+    await expectTourStepLaidOut(tab, 'th add before a search');
     await card.getByRole('button', { name: TOUR.th.skip }).tap();
     await expect(card).toHaveCount(0);
   });
