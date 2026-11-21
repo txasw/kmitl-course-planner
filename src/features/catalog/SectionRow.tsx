@@ -229,7 +229,8 @@ type ActionKind = 'add' | 'disabled' | 'none';
 /**
  * The add control state for a section. A read only row has none. A row that is added or
  * a duplicate subject has none either, since neither can be added. A full, closed, or
- * different term section shows the add disabled with the reason in the row body.
+ * different term section shows the add disabled. A different term row states the reason
+ * in the row body; a full or closed row states it in its badge and the add's description.
  * Otherwise an addable or a conflicting open section shows the add; a conflicting add
  * routes to the blocked feedback like the drag does.
  */
@@ -298,10 +299,10 @@ function AddButton({
 
 // A section that cannot be added keeps its add, disabled, so the column stays consistent.
 // It is aria-disabled rather than disabled, so it stays in the tab order: a keyboard user
-// who reaches it hears the reason through aria-describedby, and a pointer or touch user
-// sees it in the tooltip on hover or focus. The row states the fact once on screen: the
-// full or closed badge, or the term mismatch line. It has no edge or shadow and mutes its
-// text, so it reads as unavailable beside a live add.
+// who reaches it hears the reason through aria-describedby, and the tooltip shows it on
+// hover or keyboard focus. The row states the fact once on screen: the full or closed
+// badge, or the term mismatch line. It has no edge or shadow and mutes its text, so it
+// reads as unavailable beside a live add.
 function DisabledAddButton({
   text,
   label,
