@@ -136,6 +136,9 @@ export function GridAxis({
       {sticky ? (
         <div
           aria-hidden
+          // The corner spans the head row's height and pins with it, so its foot is the foot
+          // of the head that the block detail column starts below.
+          data-plan-area-head
           className="pointer-events-none z-sticky-corner bg-surface"
           style={CORNER_STYLE}
         />
