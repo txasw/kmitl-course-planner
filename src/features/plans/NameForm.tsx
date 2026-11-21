@@ -1,9 +1,13 @@
 // The name field of the plan switcher menu, shared by create and rename. Enter saves,
-// and save stays disabled while the name is blank. A create also picks the plan's year
-// and semester, since a plan belongs to one term for life; a rename never offers it.
+// and save stays disabled while the name is blank or past the name cap, which a rename of
+// a plan named before the cap can start from. A live counter shows the room left. A create
+// also picks the plan's year and semester, since a plan belongs to one term for life; a
+// rename never offers it.
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { useTranslation } from '@/features/shell/useTranslation';
+import { PLAN_NAME_MAX } from '@/lib/domain/plan';
+import { fillTemplate } from '@/lib/i18n/template';
 import {
   SEMESTERS,
   parseSemester,
@@ -18,6 +22,11 @@ export interface NameFormTerm {
   value: Term;
   years: readonly string[];
   onChange: (term: Term) => void;
+}
+
+/** Whether a typed plan name can be saved: not blank and within the name cap. */
+export function isSavableName(value: string): boolean {
+  return value.trim() !== '' && value.length <= PLAN_NAME_MAX;
 }
 
 export interface NameFormProps {
@@ -92,6 +101,9 @@ export function NameForm({
   onSubmit,
   onCancel,
 }: NameFormProps) {
+  const { t } = useTranslation();
+  const inputId = useId();
+  const limitId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   // Focus the field on open so the user can name the plan straight away, done
   // through a ref rather than autoFocus to satisfy the accessibility lint.
@@ -101,12 +113,25 @@ export function NameForm({
   }, []);
   return (
     <div className="flex flex-col gap-2">
-      <label className="flex flex-col gap-1 text-ink">
-        <span className="font-semibold">{label}</span>
+      <div className="flex flex-col gap-1 text-ink">
+        <span className="flex items-center justify-between gap-2">
+          <label htmlFor={inputId} className="font-semibold">
+            {label}
+          </label>
+          {/* Outside the label so the field keeps its plain name, and hidden from
+              assistive tech so it is not read on every keystroke; the described-by
+              limit carries the cap a screen reader needs. */}
+          <span aria-hidden className="text-xs tabular-nums text-ink-soft">
+            {value.length}/{PLAN_NAME_MAX}
+          </span>
+        </span>
         <input
           ref={inputRef}
+          id={inputId}
           type="text"
           value={value}
+          maxLength={PLAN_NAME_MAX}
+          aria-describedby={limitId}
           onChange={(event) => {
             onChange(event.target.value);
           }}
@@ -118,7 +143,10 @@ export function NameForm({
           }}
           className={`rounded-kcp border px-2 py-1 text-ink ${CONTROL_BOUNDARY} ${FOCUS_RING}`}
         />
-      </label>
+        <span id={limitId} className="sr-only">
+          {fillTemplate(t('planSwitcher.nameLimit'), { max: PLAN_NAME_MAX })}
+        </span>
+      </div>
       {term === undefined ? null : <TermSelects {...term} />}
       <div className="flex justify-end gap-2">
         <button
@@ -131,7 +159,7 @@ export function NameForm({
         <button
           type="button"
           onClick={onSubmit}
-          disabled={value.trim() === ''}
+          disabled={!isSavableName(value)}
           className={`rounded-kcp bg-primary-strong px-2 py-1 font-semibold text-white hover:bg-primary-hover disabled:opacity-50 ${FOCUS_OUTLINE} ${TARGET_SIZE}`}
         >
           {save}

@@ -32,6 +32,7 @@
   "planSwitcher.deletePromptOne": "ลบตาราง \"{name}\" ที่มี 1 กลุ่มเรียน การลบนี้ย้อนกลับไม่ได้",
   "planSwitcher.deletePromptEmpty": "ลบตาราง \"{name}\" ซึ่งยังไม่มีกลุ่มเรียน การลบนี้ย้อนกลับไม่ได้",
   "planSwitcher.nameLabel": "ชื่อตาราง",
+  "planSwitcher.nameLimit": "ไม่เกิน {max} ตัวอักษร",
   "planSwitcher.save": "บันทึก",
   "planSwitcher.copySuffix": "สำเนา",
   "planSwitcher.rowSummary": "{credits} หน่วยกิต {subjects} วิชา",

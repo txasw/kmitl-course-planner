@@ -40,7 +40,7 @@ import { TARGET_HEIGHT } from '@/lib/ui/target';
 import { copyRegistrationList } from './copyRegistrationList';
 import { DeleteConfirm } from './DeleteConfirm';
 import { ImportErrorView } from './ImportErrorView';
-import { NameForm } from './NameForm';
+import { NameForm, isSavableName } from './NameForm';
 import { PlanList, termLabel } from './PlanList';
 import { PLAN_SWITCHER_TRIGGER_ID } from './autosaveStore';
 import { planStore, useActivePlan } from './planStore';
@@ -181,10 +181,10 @@ export function PlanSwitcher() {
   };
 
   const submitName = (value: string) => {
-    const name = value.trim();
-    if (name === '') {
+    if (!isSavableName(value)) {
       return;
     }
+    const name = value.trim();
     if (mode.kind === 'create') {
       planStore.getState().createPlan(name, mode.term);
       // The chosen term may differ from the search form's; snap the form to the new
