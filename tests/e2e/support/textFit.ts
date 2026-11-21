@@ -130,7 +130,6 @@ export async function scanTextFit(
             }) === true
           );
         });
-        if (isExcused) continue;
         if (
           !parent.checkVisibility({
             opacityProperty: true,
@@ -141,6 +140,48 @@ export async function scanTextFit(
         }
         const range = document.createRange();
         range.selectNodeContents(node);
+        // A line clamp clips its box at the foot of its last shown line, but the hidden lines
+        // still paint under the clip, and a Thai mark of the first rises into the foot of the
+        // last shown line beside the ellipsis. A clamp therefore must not paint any line past
+        // its count, which is read before the exceptions, since a clamp beside its expand
+        // control is excused only for the text it hides, not for ink it lets show.
+        let clamp: Element | null = parent;
+        while (
+          clamp !== null &&
+          !/^\d+$/.test(
+            getComputedStyle(clamp).getPropertyValue('-webkit-line-clamp'),
+          )
+        ) {
+          clamp = clamp === root ? null : parentOf(clamp);
+        }
+        const painted = !/^(transparent|rgba\(.*,\s*0\))$/.test(
+          getComputedStyle(parent).color,
+        );
+        if (clamp instanceof HTMLElement && painted) {
+          const style = getComputedStyle(clamp);
+          const count = Number(style.getPropertyValue('-webkit-line-clamp'));
+          const box = clamp.getBoundingClientRect();
+          const ratio =
+            clamp.offsetHeight > 0 ? box.height / clamp.offsetHeight : 1;
+          const foot =
+            box.top +
+            (parseFloat(style.borderTopWidth) +
+              parseFloat(style.paddingTop) +
+              count * parseFloat(style.lineHeight)) *
+              ratio;
+          const past = [...range.getClientRects()].some(
+            (fragment) =>
+              fragment.width > 0 && (fragment.top + fragment.bottom) / 2 > foot,
+          );
+          if (past) {
+            findings.push({
+              kind: 'clipped',
+              text,
+              detail: `paints a line past its ${String(count)} line clamp`,
+            });
+          }
+        }
+        if (isExcused) continue;
         const bounds = range.getBoundingClientRect();
         if (bounds.width === 0 || bounds.height === 0) continue;
         // A text rect spans the font's whole ascent and descent, which in a Thai face runs

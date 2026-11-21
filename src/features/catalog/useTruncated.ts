@@ -1,14 +1,18 @@
 // Reports whether a clamped element clips its text, across its width for a one line
 // ellipsis or down its height for a line clamp, so a clamp offers its expand control only
-// when there is hidden text to reveal. A catalog renders hundreds
-// of rows and about half carry a condition or remark line, so every line shares one
-// ResizeObserver rather than each row creating its own. The observer reports each
-// target once when it starts observing and again whenever its box changes, which
-// covers the first layout and a resized panel; a changed text re-observes the target
-// so the new text is measured too. jsdom has no layout, so the line reads as fitting
-// there and tests that need a clipped line stub the observer.
+// when there is hidden text to reveal. For a line clamp it also reports where the hidden
+// lines start (clampTail), so the clamp can paint them transparent and no mark of a hidden
+// Thai line shows inside the clip. A catalog renders hundreds of rows and about half carry a
+// condition or remark line, so every line shares one ResizeObserver rather than each row
+// creating its own. The observer reports each target once when it starts observing and again
+// whenever its box changes, which covers the first layout and a resized panel; a changed text
+// re-observes the target so the new text is measured too. Painting the hidden part
+// transparent never changes the box, so it never sets off another report. jsdom has no
+// layout, so the line reads as fitting there and tests that need a clipped line stub the
+// observer.
 
 import { useEffect, useState, type RefObject } from 'react';
+import { clampTailOffset } from './clampTail';
 
 // A Thai face draws its marks a fraction past the line box, which can round the scroll
 // height one pixel over a clamp that hides nothing.
@@ -26,12 +30,30 @@ function sharedObserver(): ResizeObserver {
   return shared;
 }
 
+interface Truncation {
+  /** Whether the clamp hides any of the text. */
+  clipped: boolean;
+  /** The text offset where the hidden lines start, or null when none can be read. */
+  tail: number | null;
+}
+
+interface Measured extends Truncation {
+  text: string;
+}
+
+const FITS: Truncation = { clipped: false, tail: null };
+
+/**
+ * Measure a clamped element. `lines` is the line count of a line clamp, whose hidden part
+ * is then located; a one line ellipsis passes none.
+ */
 export function useTruncated(
   ref: RefObject<HTMLElement | null>,
   active: boolean,
   text: string,
-): boolean {
-  const [truncated, setTruncated] = useState(false);
+  lines?: number,
+): Truncation {
+  const [measured, setMeasured] = useState<Measured>({ ...FITS, text });
 
   useEffect(() => {
     const node = ref.current;
@@ -39,9 +61,17 @@ export function useTruncated(
       return undefined;
     }
     measures.set(node, () => {
-      setTruncated(
+      const clipped =
         node.scrollWidth > node.clientWidth ||
-          node.scrollHeight > node.clientHeight + CLAMP_SLACK,
+        node.scrollHeight > node.clientHeight + CLAMP_SLACK;
+      const tail =
+        clipped && lines !== undefined ? clampTailOffset(node, lines) : null;
+      setMeasured((previous) =>
+        previous.text === text &&
+        previous.clipped === clipped &&
+        previous.tail === tail
+          ? previous
+          : { text, clipped, tail },
       );
     });
     const observer = sharedObserver();
@@ -50,7 +80,10 @@ export function useTruncated(
       observer.unobserve(node);
       measures.delete(node);
     };
-  }, [ref, active, text]);
+  }, [ref, active, text, lines]);
 
-  return truncated;
+  // A measure of an earlier text says nothing of where the new text breaks.
+  return measured.text === text
+    ? { clipped: measured.clipped, tail: measured.tail }
+    : { clipped: measured.clipped, tail: null };
 }
