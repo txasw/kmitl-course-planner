@@ -210,7 +210,7 @@ describe('SearchHeader', () => {
     expect(disclosure).toHaveFocus();
   });
 
-  it('draws the chip as the quiet soft card inside the 16 px panel gutter', () => {
+  it('draws the chip as the quiet soft card in the 12 px bar padding', () => {
     renderHeader();
     act(() => {
       searchStore.getState().startQuery(subjectQuery, 'user');
@@ -222,7 +222,8 @@ describe('SearchHeader', () => {
     expect(tokens).toContain('kcp-soft-card');
     expect(tokens).toContain('kcp-soft-quiet');
     const row = disclosure.closest(`#${SEARCH_BAR_ID}`);
-    expect(row?.className.split(' ')).toContain('px-4');
+    // A wider gutter wraps the summary at 768 and 1366 px and shortens the form under it.
+    expect(row?.className.split(' ')).toContain('px-3');
   });
 
   it('wraps a long category name in full and names the chip by what it shows', () => {

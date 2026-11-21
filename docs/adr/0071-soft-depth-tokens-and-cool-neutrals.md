@@ -101,8 +101,11 @@ different count badges.
 - The catalog course card and the query chip take the quiet card. The open sections of a card
   sit on one white band with hairline rules between rows and no edge or shadow of its own, a
   lighter step than the card, rather than a bordered card per row or a card inside the card, so
-  an open card keeps one level of nesting as the screen 03 mockup draws it. The query chip's pencil tile drops from the sunken well to the lighter surface, and
-  the bar pads by the 16 px panel gutter.
+  an open card keeps one level of nesting as the screen 03 mockup draws it. The query chip's
+  pencil tile drops from the sunken well to the lighter surface. The bar keeps its 12 px side
+  padding: the 16 px panel gutter wrapped the summary onto another line at 768 and 1366 px,
+  and the taller bar left a reopened curriculum form short of its height, which the text fit
+  sweep reads as a cut form.
 - The filter button, the bottom nav, the header sheet toggle, and the edge rail share one count
   badge: an ink filled pill with white figures and a ring of the surface. It is hidden from
   assistive technology because each control's name carries the count. A count written into a

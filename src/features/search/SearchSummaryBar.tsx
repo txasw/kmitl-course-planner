@@ -39,9 +39,9 @@ import { tourTargetProps } from '@/lib/onboarding/tour';
 
 // The chip is the quiet neutral soft card the catalog cards use, a white face with a
 // hairline edge and a light shadow, so it sits in line with the list under it rather
-// than as a raised grey pill. Hover darkens the edge only. The bar pads 16 px on each
-// side, the panel gutter, so the refresh or the search again pill at the end of the row
-// keeps the same distance from the screen edge as the rest of the column.
+// than as a raised grey pill. Hover darkens the edge only. The bar keeps its 12 px side
+// padding: a wider gutter wrapped the summary onto another line at 768 and 1366 px, and
+// the taller bar then left the reopened curriculum form short of the height it needs.
 const QUERY_CHIP =
   'kcp-soft-card kcp-soft-quiet flex min-h-11 min-w-0 flex-1 items-center gap-2.5 py-1 pr-1.5 pl-2 text-left text-ink hover:[--kcp-tint-edge:45%]';
 
@@ -161,7 +161,7 @@ export function SearchSummaryBar({ query }: SearchSummaryBarProps) {
         STATUS_ID,
         ...(dataTime === null ? [] : [DATA_TIME_ID]),
       ].join(' ')}
-      className={`flex flex-none flex-col gap-1 border-b border-border bg-surface px-4 py-2 ${FOCUS_RING}`}
+      className={`flex flex-none flex-col gap-1 border-b border-border bg-surface px-3 py-2 ${FOCUS_RING}`}
     >
       <div className="flex items-center gap-1">
         <button
