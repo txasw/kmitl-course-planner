@@ -288,3 +288,47 @@ form can still break inside a word where a column is narrower than its shortest 
 block name guard allows that only where no shorter form fits the line. The fit takes up to
 one pass per abbreviated form on a block that needs them, a bounded few layout passes, since each
 form is tried once per reset.
+
+## Amendment, 2026-11-22: the poster follows the soft style
+
+Context. The owner found the exported image still in the old design. The soft depth amendment of
+2026-11-20 had kept the flat tint and 4 px bar on the preview poster and its export, on the
+grounds that a gradient over color-mix would leave the raster at the mercy of the capture
+library. The owner picked the soft depth set, direction B of ADR-0071, for the whole product,
+and a shared image that looks unlike the timetable it came from reads as a different product.
+
+Decision. The poster blocks take the same soft depth block as the edit grid: the subject tinted
+gradient, the tinted edge, the white top highlight, the light shadow, the 3 px stripe, and the
+section chip as an outline of the tint with ink soft text, so the poster keeps the edit text
+hierarchy. The flat surface and its prop are removed, so every grid paints one block. The
+capture inlines each element's computed style, where the gradient, the edge, and the shadow have
+already resolved to concrete colors. Exported PNGs of every template in Thai and English were
+compared with the edit grid, and the light shadow renders cleanly, so it stays. A standalone
+check rasterized the same card through the capture library in Firefox and Chromium and read the
+same pixels within one level per channel. The capture paints the poster over white, which is
+the surface the stops mix into, so the image carries the stops the palette suite proves.
+
+The poster frame follows. The unscheduled shelf and the exam schedule block take the quiet card,
+the treatment of the exam day cards in the plan views, in place of a 1 px border; the shelf does
+so in edit as well. Each export day label sits on a soft tile of its Thai day color (ADR-0042)
+in place of a flat band filling its cell, and the portrait day row grows to 2.25em on the poster
+so the tile holds its padding around a full Thai line. The header and the footer keep their
+hairline rules, the same rule the soft set draws under an exam day header.
+
+The export comparison also found a raster fault that the flat chip had hidden. The place row
+pushed the section chip right with an auto margin, which the capture inlines as the pixels it
+resolved to. A row that measured a fraction wider in the raster wrapped the chip onto a line
+the block clips, so the image showed a sliver of the outline, or nothing under the flat fill,
+where the screen showed the section. The row now spreads the place and the chip with
+justify-between, which inlines as a keyword and leaves the free space as slack, and a chip that
+wraps on a narrow block starts its own line under the place in edit and on the poster alike.
+
+Alternatives considered. Computing the soft card stops as concrete hex values in script for
+the poster alone was rejected: the capture already reads resolved colors, and a second copy of
+the card would drift from the stylesheet. Keeping the flat day bands was rejected because they
+read as the old design beside soft blocks.
+
+Consequences. The exported image matches the edit grid. The measured fit and its guards are
+unchanged, since the card draws its edge inside the box as the flat fill did and the padding
+holds. The day tiles are a quieter accent than the bands were. The flat tint remains in the
+palette tests only for the landing page block mockups.
