@@ -136,3 +136,13 @@ it with its 16 px gutter, so every nav label shows whole under the dim. A step t
 item keeps the card beside the spotlight as before. Covering the nav fully was rejected, since
 the timetable step lights a nav item that a covering card would hide. The layout guard of the
 end to end specs fails when the card reaches past the nav's top less the gutter.
+
+## Amendment, 2026-11-21: the suggest step shows on the first run
+
+A conformance review found that a new student never met the suggest step: its anchor, the status
+row's suggest action, rendered only after a curriculum search, and the tour runs right after
+Start planning, before any search. The status row now keeps the action in every edit view
+(ADR-0054 amendment of the same date); before a curriculum search it opens a note that offers
+the search by curriculum. The first run therefore walks all five steps, and the count says five.
+The step's sentence now says that suggestions follow a search by curriculum. This replaces the
+sentence above that a student with no curriculum search meets four steps.

@@ -283,3 +283,42 @@ them. Letting a moved subject take any section, including the interchangeable on
 because those would add a section change with no change in the week. Offering a move that gains
 nothing, ranked after its unmoved twin, was rejected because with the whole curriculum in the plan
 it filled the carousel with near identical reshuffles, the feedback of pick q6.
+
+## Amendment, 2026-11-21: one filled entry per screen, always in the status row
+
+A second conformance review found that the first run tour never showed its suggest step, because
+the status row entry, the step's only anchor, rendered only after a curriculum search in the
+plan's term, and that the wide tiers showed the quiet catalog head entry and the filled status row
+entry side by side, while a phone that had just searched saw only the quiet one (owner items 11
+and 13). This amendment replaces the sentence of the second entry point amendment that both
+entries are absent rather than disabled when no suggestion applies, and its paragraph that keeps
+the duplicate on the medium and wide tiers.
+
+The status row entry now shows in every edit view, before any search included. When a suggestion
+applies it opens the suggestion dialog as before. When none applies, because no search ran or the
+result is not a curriculum search of the plan's term, it opens a short dialog, the bottom sheet on
+a phone, with one sentence saying that suggested plans are built from a search by curriculum in
+the plan's term, and one primary action that closes it and opens the search form on the
+curriculum tab in the plan's term, with focus on that tab (`openCurriculumSearch` in
+`features/catalog/revealCourse.ts`). The add rules and the suggestion search are unchanged.
+Leaving the entry disabled was rejected, since a disabled control says nothing to a touch user
+and no tour step may point at a control that does nothing.
+
+The catalog head entry still shows only when a suggestion applies, and its look follows what else
+is in reach. In the phone catalog pane it is the filled primary button, since the status row sits
+on the timetable pane and is out of reach there. In the medium tier sheet it stays quiet, since
+the filled status row entry still shows past the sheet's scrim. The docked column drops it: the
+review's captures at 1366 px show the two side by side, and the status row beside the column
+already holds the filled entry, so each screen carries one filled suggest action.
+
+The dialog also reads shorter, after owner note N3 and the mockup's suggest screen. The intro is
+one sentence. The tick list rests collapsed as one summary line that counts the ticked subjects
+of each group in separate spans, such as 6 วิชาในตาราง and 4 วิชาในหลักสูตร, with a dot drawn
+between them rather than typed, and expands to the groups as before. The apply action moves from
+the foot of each slide to its heading row, so a phone shows the start of the first slide and its
+apply action on the sheet's first screen. Orange is kept for that one action: the checkboxes and
+the tick all actions take the ink, the objective takes the quiet segmented look, and the selected
+schedule shape takes an ink outline. The orange segmented variant had no other caller and is
+removed. A sticky footer carrying the apply action was considered and rejected for now: it would
+take height from a phone sheet that already reaches the first slide, and it would separate the
+action from the option it applies.
