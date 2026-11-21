@@ -190,7 +190,7 @@ export function DayLanes({
                 >
                   {dayAccent ? (
                     <span
-                      className="kcp-soft-card kcp-soft-subject flex h-full w-full items-center justify-center"
+                      className="kcp-soft-card flex h-full w-full items-center justify-center"
                       style={dayTileStyle(day)}
                     >
                       {t(dayLabelKey(day))}
