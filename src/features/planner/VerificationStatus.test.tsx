@@ -135,11 +135,17 @@ describe('VerificationStatus', () => {
     expect(revalidationStore.getState().runs.p1?.status).toBe('running');
   });
 
-  it('disables the check while a check is running', () => {
+  it('holds the check while a check is running and keeps its focus', () => {
     seed({ status: 'running', report: null });
-    renderStatus();
+    const send = vi.fn();
+    renderStatus(fakeSearchDeps({ send: send as unknown as TypedSend }));
     expect(screen.getByText('กำลังตรวจสอบข้อมูล')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'ตรวจสอบอีกครั้ง' })).toBeDisabled();
+    const check = screen.getByRole('button', { name: 'ตรวจสอบอีกครั้ง' });
+    expect(check).toHaveAttribute('aria-disabled', 'true');
+    check.focus();
+    fireEvent.click(check);
+    expect(send).not.toHaveBeenCalled();
+    expect(check).toHaveFocus();
   });
 
   it('warns offline that it shows saved data and offers a retry', () => {
@@ -235,6 +241,17 @@ describe('VerificationStatus', () => {
       expect(
         screen.getByRole('button', { name: 'ตรวจสอบอีกครั้ง' }),
       ).toHaveTextContent('ตรวจสอบอีกครั้ง');
+    });
+
+    it('keeps focus on the held check inside the popover while a check runs', () => {
+      seed({ status: 'running', report: null });
+      renderCompact();
+      fireEvent.click(screen.getByRole('button', { name: 'กำลังตรวจสอบข้อมูล' }));
+      const check = screen.getByRole('button', { name: 'ตรวจสอบอีกครั้ง' });
+      expect(check).toHaveAttribute('aria-disabled', 'true');
+      check.focus();
+      fireEvent.click(check);
+      expect(check).toHaveFocus();
     });
 
     it('closes on Escape and hands focus back to its glyph', () => {
