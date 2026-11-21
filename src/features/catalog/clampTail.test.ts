@@ -80,9 +80,10 @@ describe('clampTailOffset', () => {
   it('reads past a forced break that draws no box', () => {
     const root = element(`${'ก'.repeat(19)}\n${'ข'.repeat(15)}`);
     layOut(root);
-    // The break at 19 draws no box; the first hidden character is the one at 20.
-    const tail = clampTailOffset(root, 2);
-    expect(tail === 19 || tail === 20).toBe(true);
+    // The break at 19 draws no box, so its line is read from the character at 20 and the
+    // search lands on the break itself. Painting from the break hides the same ink as
+    // painting from 20, since the break draws nothing.
+    expect(clampTailOffset(root, 2)).toBe(19);
   });
 
   it('reads nothing where the document has no layout', () => {
