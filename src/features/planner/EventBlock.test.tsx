@@ -295,41 +295,72 @@ describe('EventBlock', () => {
     expect(nameEl.className).toContain('text-[0.9em]');
   });
 
-  it('shows the subject id in place of an English name too wide by a word at either size', () => {
+  it('abbreviates an English name too wide by a word at either size, never showing the id', () => {
+    const long = { ...section, nameEn: 'INTRODUCTION TO PROGRAMMING' };
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(40);
     vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(
       function (this: HTMLElement) {
         return this.hasAttribute('data-fit-name') &&
-          this.textContent.includes('Test subject')
+          /INTRODUCTION|PROGRAMMING/.test(this.textContent)
           ? 52
           : 40;
       },
     );
     render(
       <EventBlock
-        section={section}
+        section={long}
         meeting={meeting}
         style={{}}
         locale="en"
         t={createTranslator('en')}
+        showSubjectId
       />,
     );
-    expect(screen.queryByText('Test subject')).not.toBeInTheDocument();
-    // The id stands in for the name and leaves the foot, so it shows once, never broken.
+    const block = screen.getByLabelText(/INTRODUCTION TO PROGRAMMING/);
+    const nameEl = block.querySelector<HTMLElement>('[data-fit-name]');
+    // The least shortened form that fits: both long words cut, the joiner whole.
+    expect(nameEl?.textContent).toBe('INTRODUCT. TO PROGRAMM.');
+    expect(nameEl).toHaveAttribute('data-name-form', 'abbreviated');
+    expect(nameEl?.className).toContain('text-[0.9em]');
+    // The id keeps its own place in the foot and never stands in for the name.
     const ids = screen.getAllByText('90592033');
     expect(ids).toHaveLength(1);
-    expect(ids[0]).toHaveAttribute('data-fit-name');
-    expect(ids[0]?.className).toContain('whitespace-nowrap');
-    // The accessible name still carries the whole course name.
-    expect(screen.getByLabelText(/Test subject/)).toBeInTheDocument();
+    expect(ids[0]).toHaveAttribute('data-fit-whole', 'id');
   });
 
-  it('shows no name text where even the subject id is wider than the line', () => {
+  it('breaks the shortest form inside a word only where no abbreviation fits', () => {
+    const long = { ...section, nameEn: 'INTRODUCTION TO PROGRAMMING' };
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(40);
     vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(
       function (this: HTMLElement) {
         return this.hasAttribute('data-fit-name') &&
-          this.textContent.trim() !== ''
+          this.dataset.nameForm !== 'break'
+          ? 52
+          : 40;
+      },
+    );
+    render(
+      <EventBlock
+        section={long}
+        meeting={meeting}
+        style={{}}
+        locale="en"
+        t={createTranslator('en')}
+      />,
+    );
+    const block = screen.getByLabelText(/INTRODUCTION TO PROGRAMMING/);
+    const nameEl = block.querySelector<HTMLElement>('[data-fit-name]');
+    expect(nameEl).toHaveAttribute('data-name-form', 'break');
+    expect(nameEl?.textContent).toBe('IN. TO PR.');
+    expect(nameEl?.className).toContain('wrap-anywhere');
+  });
+
+  it('breaks a Thai name too wide by a word inside it, with no abbreviation', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(40);
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return this.hasAttribute('data-fit-name') &&
+          this.dataset.nameForm !== 'break'
           ? 52
           : 40;
       },
@@ -339,14 +370,14 @@ describe('EventBlock', () => {
         section={section}
         meeting={meeting}
         style={{}}
-        locale="en"
-        t={createTranslator('en')}
+        locale="th"
+        t={t}
       />,
     );
-    const block = screen.getByLabelText(/90592033 Test subject/);
-    expect(screen.queryByText('Test subject')).not.toBeInTheDocument();
-    const nameEl = block.querySelector('[data-fit-name]');
-    expect(nameEl?.textContent).toBe('');
+    const nameEl = screen.getByText('วิชาทดสอบ');
+    expect(nameEl).toHaveAttribute('data-name-form', 'break');
+    expect(nameEl.className).toContain('wrap-anywhere');
+    expect(nameEl.className).toContain('text-[0.9em]');
   });
 
   it('keeps a Thai name on its dictionary breaks whatever its width', () => {

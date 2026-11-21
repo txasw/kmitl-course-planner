@@ -42,6 +42,8 @@ interface DayCardContentProps {
   kind: MeetingKind;
   time: string;
   subjectId: string;
+  /** The abbreviated forms of the name, least shortened first. */
+  abbreviations: readonly string[];
   color: string;
   badge: BlockBadge | null;
   surface: BlockSurface;
@@ -65,6 +67,7 @@ export function DayCardContent({
   kind,
   time,
   subjectId,
+  abbreviations,
   color,
   badge,
   surface,
@@ -74,7 +77,7 @@ export function DayCardContent({
   // The quiet lines read ink soft, except over the danger hatch, where only ink keeps 4.5:1.
   const quiet = badge === 'danger' ? 'text-ink' : 'text-ink-soft';
   const backdrop = badge === 'danger' ? HATCH_BACKDROP : '';
-  const line = nameLine(level.nameForm, name, nameLang, subjectId);
+  const line = nameLine(level, name, nameLang, abbreviations);
   // Over the danger hatch each foot item takes its own backdrop rather than the foot as a
   // whole, so the foot keeps its full width and the id still sits at its right edge.
   const chip = `shrink-0 rounded-kcp-inner px-1.5 ${chipClass(surface)} ${
@@ -111,6 +114,7 @@ export function DayCardContent({
       ) : null}
       <span
         data-fit-name
+        data-name-form={level.nameForm}
         lang={line.lang}
         className={`shrink-0 text-[1.2em] font-semibold ${line.className} ${backdrop} ${
           level.nameLines === 'all' ? '' : NAME_CLAMP

@@ -28,15 +28,17 @@
 // ladder order, because no other rung can widen the line it needs; the ladder order then
 // governs the height as before.
 //
-// A word of an English name keeps its letters on one line (the ADR-0047 amendment of
-// 2026-11-21). The browser breaks a Thai name at its dictionary word boundaries, so a Thai name
-// keeps the wrap it has, but an English word wider than the line would break with no hyphen and
-// can strand one letter on a line. So an English name wraps only at its spaces, and where one of
-// its words is wider than the line, the name form steps down instead: first to one type step
-// smaller, then to the subject id in its place, and last, where even the id is wider than the
-// line, to no text at all, the block keeping its color and stripe and its full detail one tap
-// away. The secondary name is held to the same rule as a whole field: wider than its line by a
-// word, it drops whole.
+// The name always shows, and the subject id never stands in for it (the ADR-0047 amendment of
+// 2026-11-22, superseding the id form of 2026-11-21). A name wraps only between its words, at the
+// browser's dictionary breaks for Thai and at its spaces otherwise, and where one of its words is
+// wider than the line the name form steps down: first to one type step smaller, then, for a name
+// in Latin script, through its abbreviated forms at that size, least shortened first, and last to
+// the break form, which keeps the shortest of those forms and lets the word still too wide break
+// at grapheme cluster boundaries. A Thai name has no abbreviated forms, so it goes from the
+// smaller step to the break form of the whole name. The subject id
+// stays its own field under the show subject id option and the first field to drop. The
+// secondary name is held to the word rule as a whole field: wider than its line by a word, it
+// drops whole.
 //
 // The phone day card walks its own order (the ADR-0047 amendment of 2026-11-21). The card leads
 // with the time, since one day column sets the time axis far from the text, so there the time
@@ -53,15 +55,18 @@ export interface DensityEligibility {
   hasSection: boolean;
   hasId: boolean;
   hasPlace: boolean;
+  /** How many abbreviated forms the name has, zero for a Thai name or one the rule cannot cut. */
+  nameAbbreviations: number;
   mask: string;
 }
 
 /** How many lines the name may take: every line it needs, or a clamp of at least one line. */
 export type NameLines = 'all' | number;
 
-/** How the name line reads: in full, one type step smaller, as the subject id in its place, or
- * as no text at all, each the next step for a name with a word wider than its line. */
-export type NameForm = 'full' | 'small' | 'id' | 'bare';
+/** How the name line reads: in full, one type step smaller, abbreviated at that size, or with
+ * the word still too wide broken at grapheme cluster boundaries, each the next step for a name
+ * with a word wider than its line. Every form shows the name. */
+export type NameForm = 'full' | 'small' | 'abbreviated' | 'break';
 
 /** A chosen field set for one block. `nameLines` is never below 1: the name is the primary
  * anchor and always shows at least one clamped line. The time can drop because position
@@ -69,6 +74,8 @@ export type NameForm = 'full' | 'small' | 'id' | 'bare';
 export interface DensityLevel {
   nameLines: NameLines;
   nameForm: NameForm;
+  /** Which abbreviated form the name shows, an index into its forms, zero outside that form. */
+  nameAbbreviation: number;
   showSecondary: boolean;
   showPlace: boolean;
   showSection: boolean;
@@ -100,7 +107,7 @@ export function buildEligibility(
   e: Omit<DensityEligibility, 'mask'>,
 ): DensityEligibility {
   const bit = (value: boolean): string => (value ? '1' : '0');
-  const mask = `${bit(e.hasName)}${bit(e.hasSecondary)}${bit(e.hasSection)}${bit(e.hasId)}${bit(e.hasPlace)}`;
+  const mask = `${bit(e.hasName)}${bit(e.hasSecondary)}${bit(e.hasSection)}${bit(e.hasId)}${bit(e.hasPlace)}${String(e.nameAbbreviations)}`;
   return { ...e, mask };
 }
 
@@ -111,6 +118,7 @@ export function fullLevel(e: DensityEligibility): DensityLevel {
   return {
     nameLines: 'all',
     nameForm: 'full',
+    nameAbbreviation: 0,
     showSecondary: e.hasSecondary,
     showPlace: e.hasPlace,
     showSection: e.hasSection,
@@ -124,6 +132,7 @@ export function sameLevel(a: DensityLevel, b: DensityLevel): boolean {
   return (
     a.nameLines === b.nameLines &&
     a.nameForm === b.nameForm &&
+    a.nameAbbreviation === b.nameAbbreviation &&
     a.showSecondary === b.showSecondary &&
     a.showPlace === b.showPlace &&
     a.showSection === b.showSection &&
@@ -227,17 +236,30 @@ export function dropWholeFields(
   };
 }
 
-/** The next name form for a name with a word wider than its line, or null once the name shows
- * no text. The subject id takes the name's place, so it leaves the foot as it does. */
-export function nextNameForm(level: DensityLevel): DensityLevel | null {
+/** The next name form for a name with a word wider than its line, or null once the word may
+ * break inside, which never overflows the line. `abbreviations` counts the name's abbreviated
+ * forms, each tried in turn, least shortened first. */
+export function nextNameForm(
+  level: DensityLevel,
+  abbreviations: number,
+): DensityLevel | null {
+  const breakForm: DensityLevel = {
+    ...level,
+    nameForm: 'break',
+    nameAbbreviation: 0,
+  };
   switch (level.nameForm) {
     case 'full':
       return { ...level, nameForm: 'small' };
     case 'small':
-      return { ...level, nameForm: 'id', showId: false };
-    case 'id':
-      return { ...level, nameForm: 'bare' };
-    case 'bare':
+      return abbreviations > 0
+        ? { ...level, nameForm: 'abbreviated', nameAbbreviation: 0 }
+        : breakForm;
+    case 'abbreviated':
+      return level.nameAbbreviation + 1 < abbreviations
+        ? { ...level, nameAbbreviation: level.nameAbbreviation + 1 }
+        : breakForm;
+    case 'break':
       return null;
   }
 }
@@ -260,7 +282,7 @@ function canReclaim(
     case 'secondary':
       return e.hasSecondary && !level.showSecondary;
     case 'id':
-      return e.hasId && !level.showId && level.nameForm !== 'id';
+      return e.hasId && !level.showId;
   }
 }
 
