@@ -76,11 +76,21 @@ export interface TourStep {
   anchors: readonly TourAnchor[];
 }
 
+/** The title of each step. The install welcome lists its steps under the same titles, so
+ * the welcome and the tour that follows it name each step alike. */
+export const TOUR_STEP_TITLES: Readonly<Record<TourStepId, TranslationKey>> = {
+  search: 'tour.search.title',
+  add: 'tour.add.title',
+  timetable: 'tour.timetable.title',
+  suggest: 'tour.suggest.title',
+  export: 'tour.export.title',
+};
+
 export const TOUR_STEPS: readonly TourStep[] = [
   {
     id: 'search',
     view: 'catalog',
-    title: 'tour.search.title',
+    title: TOUR_STEP_TITLES.search,
     anchors: [
       { target: 'search-chip', body: 'tour.search.bodyChip' },
       { target: 'search-tabs', body: 'tour.search.body' },
@@ -89,7 +99,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   {
     id: 'add',
     view: 'catalog',
-    title: 'tour.add.title',
+    title: TOUR_STEP_TITLES.add,
     anchors: [
       { target: 'add', body: 'tour.add.body' },
       { target: 'course', body: 'tour.add.bodyCourse' },
@@ -99,7 +109,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   {
     id: 'timetable',
     view: 'plan',
-    title: 'tour.timetable.title',
+    title: TOUR_STEP_TITLES.timetable,
     anchors: [
       { target: 'day-chips', body: 'tour.timetable.bodyDays' },
       { target: 'plan-tab', body: 'tour.timetable.body' },
@@ -109,13 +119,13 @@ export const TOUR_STEPS: readonly TourStep[] = [
   {
     id: 'suggest',
     view: 'plan',
-    title: 'tour.suggest.title',
+    title: TOUR_STEP_TITLES.suggest,
     anchors: [{ target: 'suggest', body: 'tour.suggest.body' }],
   },
   {
     id: 'export',
     view: 'header',
-    title: 'tour.export.title',
+    title: TOUR_STEP_TITLES.export,
     anchors: [{ target: 'export', body: 'tour.export.body' }],
   },
 ];

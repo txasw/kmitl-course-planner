@@ -146,3 +146,23 @@ Start planning, before any search. The status row now keeps the action in every 
 the search by curriculum. The first run therefore walks all five steps, and the count says five.
 The step's sentence now says that suggestions follow a search by curriculum. This replaces the
 sentence above that a student with no curriculum search meets four steps.
+
+## Amendment, 2026-11-21: the welcome lists the steps the tour walks
+
+A third conformance review found the welcome and the tour that follows it disagreeing: the welcome
+headed its list "เริ่มใช้งานใน 3 ขั้น" and named search, add and share as an image, while the tour
+right after it counts five steps and names suggest and export, which the welcome never mentioned.
+
+Decision. The welcome lists the steps a student acts on in the tour's order, search, add a
+section, suggest a plan and export, under the tour's own titles: the tour keeps one title per step
+in `TOUR_STEP_TITLES`, and the welcome names each line by its tour step and reads the title from
+there, so a renamed step changes both together. Reading the timetable stays a tour step only, since
+the tour points at the timetable itself and the welcome stays four short lines. The heading,
+"วิธีวางแผนตารางเรียน" or "How to plan your timetable", names no count, so it cannot drift from the
+list and does not read against the tour's count of five. A unit test checks that every welcome
+title is a tour title and that the titles keep the tour's order.
+
+Alternatives considered: listing all five tour steps was rejected because the welcome would grow
+by a line that only says to look at the timetable. A count derived from the list was rejected
+because the list and the tour hold different numbers of steps by design, and two counts on the way
+into the panel read as a contradiction.
