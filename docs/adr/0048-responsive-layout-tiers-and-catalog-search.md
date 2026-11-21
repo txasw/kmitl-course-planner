@@ -851,10 +851,12 @@ fifth where controls skipped the touch target. Each fix supersedes the text it n
   two line clamp with an ellipsis that the amendment "nothing cut at the foot or the head" kept
   as a last resort. The header is now at least 56 px high, or 48 px on a short viewport, rather
   than exactly that, so the row grows with a name past two lines; the trigger pads a little at
-  that step so its lines do not meet its edge, and the controls stay centred on the row. The
-  body below takes the height left, so nothing under the header is covered. The sweep exception
-  for the clamped name is removed. Capping the plan name length at create was rejected for this
-  change, since an imported or existing plan can already carry a longer name.
+  that step so its lines do not meet its edge, with a hair of margin that keeps it clear of the
+  header edges, and the controls stay centred on the row. A name on one or two lines keeps the
+  header at exactly its minimum height. The body below takes the height left, so nothing under
+  the header is covered. The sweep exception for the clamped name is removed. Capping the plan
+  name length at create was rejected for this change, since an imported or existing plan can
+  already carry a longer name.
 - The export stage shows the selected template alone, recorded in the ADR-0045 amendment of the
   same date, and the sweep exception for the template slivers is removed.
 - The phone search form carries the clear search inside its pinned action row, under the

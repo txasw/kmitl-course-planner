@@ -51,7 +51,7 @@ export function Header({ titleId }: HeaderProps) {
       ref={headerRef}
       className="box-content flex min-h-14 shrink-0 items-center gap-2 border-b border-border pt-(--kcp-safe-top) pr-[calc(12px_+_var(--kcp-safe-right))] pl-[calc(12px_+_var(--kcp-safe-left))] sm:gap-4 sm:pr-[calc(16px_+_var(--kcp-safe-right))] sm:pl-[calc(16px_+_var(--kcp-safe-left))] [@media(max-height:800px)]:min-h-12"
     >
-      <div className="flex min-w-0 flex-1 items-center gap-3 py-0.5">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
         {exporting ? <BackToEditButton /> : <HeaderBrand />}
         <h2
           id={titleId}

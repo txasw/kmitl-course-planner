@@ -28,9 +28,11 @@ const LAST_STEP = PLAN_NAME_STEPS.length - 1;
 /**
  * The block padding of the trigger at each step: a hair around one line, none around two
  * lines so they keep to the header row, and a little around the smallest step, where the
- * trigger grows with the name and its lines would otherwise meet the trigger edge.
+ * trigger grows with the name and its lines would otherwise meet the trigger edge. That
+ * step alone also keeps a hair of margin, so the grown trigger stays clear of the header
+ * edges while the shorter steps keep the header at its minimum height.
  */
-const TRIGGER_PADDING = ['py-px', 'py-0', 'py-1'] as const;
+const TRIGGER_PADDING = ['py-px', 'py-0', 'my-0.5 py-1'] as const;
 
 /** The block padding of the plan switcher trigger at a step. */
 export function triggerPadding(step: number): string {
