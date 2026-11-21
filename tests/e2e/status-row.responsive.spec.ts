@@ -1,4 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import type { Plan } from '../../src/lib/domain/plan';
 import {
   test,
   expect,
@@ -15,7 +17,8 @@ import { bottomNav, isPhone } from './support/tiers';
 // and in English, every text leaf of the chip row and the status row shows whole inside the
 // viewport and no two leaves overlap. On a phone the status row keeps to two lines, the plan
 // facts and then the checks with the suggest action, so the timetable keeps its height
-// (ADR-0049 amendment of 2026-11-21).
+// (ADR-0049 amendment of 2026-11-21). A plan with a time clash holds the widest second line,
+// the bordered clash control beside the checks and the suggest action, so it is measured too.
 
 const WIDTHS = [360, 390, 768, 1366] as const;
 
@@ -220,6 +223,64 @@ test('the chip row and the status row show whole at every width in Thai and Engl
           `${language.chips} at ${String(width)} px`,
         );
       }
+    }
+  }
+});
+
+/** Export the active plan, add a copy of its first entry under another subject at the same
+ * times, and import it, so the new active plan holds one time clash. */
+async function importClashingCopy(page: Page): Promise<void> {
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'เลือกตาราง' }).click();
+  await page.getByRole('button', { name: 'ส่งออก JSON' }).click();
+  const exported = readFileSync(await (await downloadPromise).path(), 'utf8');
+  // The export is the plan the app validated through its schema before writing it, so the
+  // test reads it as that shape to write the clashing copy into it.
+  const plan = JSON.parse(exported) as Plan;
+  const [first] = plan.entries;
+  if (first === undefined) throw new Error('expected the exported entry');
+  const ids = { teachTableId: '910099', subjectId: '90000011', section: '903' };
+  plan.entries.push({
+    ...first,
+    ...ids,
+    snapshot: {
+      ...first.snapshot,
+      ...ids,
+      pairedSection: null,
+      subjectMeta: { ...first.snapshot.subjectMeta, subjectId: ids.subjectId },
+    },
+  });
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'clash.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(plan)),
+  });
+}
+
+test('the phone status row keeps to two lines with a clash in Thai and English', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  test.skip(!isPhone(page), 'the two line row is the phone layout');
+  await planFromSuggestion(page);
+  await importClashingCopy(page);
+  const languages = [
+    { row: 'สรุปตาราง', clash: /^ชนกัน 1 รายการ/ },
+    { row: 'Plan summary', clash: /^Conflicts: 1/ },
+  ];
+  for (const [index, language] of languages.entries()) {
+    if (index === 1) await switchToEnglish(page);
+    for (const width of [360, 390]) {
+      await page.setViewportSize({ width, height: 800 });
+      const label = `${language.row} with a clash at ${String(width)} px`;
+      const row = page.getByRole('group', { name: language.row, exact: true });
+      await expect(
+        row.getByRole('button', { name: language.clash }),
+      ).toBeVisible({
+        timeout: 15_000,
+      });
+      await expectRegionWhole(row, label);
+      await expectTwoLines(row, label);
     }
   }
 });
