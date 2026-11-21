@@ -53,22 +53,25 @@ above the 2.3 just noticeable difference (closest shipped pair, blue and indigo,
 | `#736B00` | `#EAE9D9` | 14.06       | 4.48        |
 | `#A50060` | `#F2D9E7` | 12.99       | 5.73        |
 
-Since the soft depth amendment of ADR-0047 this flat tint fills the preview poster and its
-export only; the edit grid and the plan suggestion cards take the soft depth block below.
+Since the ADR-0047 amendment of 2026-11-22 no grid in the product paints this flat tint: the
+edit grid, the plan suggestion cards, and the preview poster with its export all take the soft
+depth block below. The landing page block mockups still draw it, so its pairs stay proven.
 
 ## Soft depth event block
 
-The edit grid and the plan suggestion cards fill a block with the soft depth card of ADR-0071
-tinted by the subject color, fading from 17 percent at the top to 8 percent from 70 percent
-down, with a 3 px stripe of the solid color down the left edge (the ADR-0047 amendment of
-2026-11-20). Ink and ink soft sit anywhere on it, so the table proves them on the 17 percent
+Every grid, the edit grid, the plan suggestion cards, and the preview poster with its export,
+fills a block with the soft depth card of ADR-0071 tinted by the subject color, fading from 17
+percent at the top to 8 percent from 70 percent down, with a 3 px stripe of the solid color down
+the left edge (the ADR-0047 amendments of 2026-11-20 and 2026-11-22). Ink and ink soft sit anywhere on it, so the table proves them on the 17 percent
 stop. The stripe is a UI element and clears 3:1 against both stops. A flagged block leads its
 name with a danger or warn status dot, which clears 3:1 against both stops on every tint
 (lowest 4.08 for danger and 3.97 for warn). A danger block lays a hatch of the danger color at
 24 percent with an inset danger ring over the fill. Ink soft falls under 4.5:1 on a hatch
 stripe, so a hatched block sets its quiet lines, the English name, the section chip, and the
 foot, in ink, which clears 4.5:1 through the hatch on both stops. Enforced in
-`hash-color.test.ts`.
+`hash-color.test.ts`. The export rasterizes the poster over the same white surface the stops
+mix into, so the image paints exactly these stops, which `capture.test.ts` proves with the
+poster text steps on both stops of every subject color.
 
 | Color     | 17 percent | 8 percent | Ink   | Ink soft | Stripe | Ink through hatch |
 | --------- | ---------- | --------- | ----- | -------- | ------ | ----------------- |
@@ -102,20 +105,21 @@ The shared count badge draws white figures on the ink fill, 17.40:1.
 
 ## Export template day color accent
 
-The export template day row labels tint with the traditional Thai day colors, each
-composited over white at 16 percent to an opaque hex (ADR-0042). The accent is on only in
-the preview template render, never in edit mode, and the label text is ink. Ink on every
-day tint clears 4.5:1 with wide margin, enforced in `dayColors.test.ts`.
+The export template day row labels sit on a soft depth tile tinted by the traditional Thai day
+colors (ADR-0042, ADR-0047 amendment of 2026-11-22): the soft card stops, 17 percent at the top
+fading to 8 percent, of the day color over white. The accent is on only in the preview template
+render, never in edit mode, and the label text is ink. Ink on both stops of every day tile
+clears 4.5:1 with wide margin, enforced in `dayColors.test.ts`.
 
-| Day        | Color     | Tint      | Ink on tint |
-| ---------- | --------- | --------- | ----------- |
-| Sun red    | `#D5322F` | `#F8DEDE` | 13.51       |
-| Mon yellow | `#E8B923` | `#FBF4DC` | 15.63       |
-| Tue pink   | `#E7669B` | `#FBE7EF` | 14.57       |
-| Wed green  | `#2E9E5B` | `#DEEFE5` | 14.41       |
-| Thu orange | `#E5852B` | `#FBEBDD` | 14.77       |
-| Fri blue   | `#2F6FBF` | `#DEE8F5` | 13.90       |
-| Sat purple | `#7A3FB0` | `#EAE0F2` | 13.47       |
+| Day        | Color     | 17 percent | 8 percent | Ink on 17 | Ink on 8 |
+| ---------- | --------- | ---------- | --------- | --------- | -------- |
+| Sun red    | `#D5322F` | `#F8DCDC`  | `#FCEFEE` | 13.32     | 15.34    |
+| Mon yellow | `#E8B923` | `#FBF3DA`  | `#FDF9ED` | 15.51     | 16.35    |
+| Tue pink   | `#E7669B` | `#FBE5EE`  | `#FDF3F7` | 14.37     | 15.85    |
+| Wed green  | `#2E9E5B` | `#DBEFE3`  | `#EEF7F2` | 14.31     | 15.75    |
+| Thu orange | `#E5852B` | `#FBEADB`  | `#FDF5EE` | 14.66     | 15.95    |
+| Fri blue   | `#2F6FBF` | `#DCE7F4`  | `#EEF3FA` | 13.75     | 15.43    |
+| Sat purple | `#7A3FB0` | `#E8DEF2`  | `#F4F0F9` | 13.24     | 15.30    |
 
 ## Design token text on background pairs
 
