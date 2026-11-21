@@ -1,7 +1,9 @@
 // The one time welcome shown after install (ADR-0062). It thanks the student, says what
-// the planner does and where saved plans stay, lists the three steps of a plan in
-// order, and says how to open the panel again, naming the shortcut only when the browser
-// reports one. Each step leads with its icon on a quiet sunken tile in ink soft, as the
+// the planner does and where saved plans stay, lists the steps of a plan in the order the
+// product tour that follows it walks them (ADR-0074), under the tour's own step titles,
+// and says how to open the panel again, naming the shortcut only when the browser
+// reports one. The heading names no count, so it cannot disagree with the list or with
+// the tour, which also shows how to read the timetable. Each step leads with its icon on a quiet sunken tile in ink soft, as the
 // mockup draws it; the empty states keep their round alt circle on purpose, since a step
 // list reads as a row of tiles. The tile is neutral because the icon is a picture and not
 // a control, and the orange stays for what can be pressed. Start planning is the landing point and
@@ -18,11 +20,18 @@
 
 import { useId, useRef } from 'react';
 import { useStore } from 'zustand';
-import { CalendarPlus, Image, Search, type LucideIcon } from 'lucide-react';
+import {
+  CalendarPlus,
+  Search,
+  Share,
+  WandSparkles,
+  type LucideIcon,
+} from 'lucide-react';
 import { BottomSheet } from '@/components/BottomSheet';
 import { ModalDialog } from '@/components/ModalDialog';
 import type { TranslationKey } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
+import { TOUR_STEP_TITLES, type TourStepId } from '@/lib/onboarding/tour';
 import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { LAUNCHER_ID } from '@/features/shell/Launcher';
@@ -34,27 +43,19 @@ import { useTranslation } from '@/features/shell/useTranslation';
 import { onboardingStore } from './onboardingStore';
 
 interface WelcomeStep {
+  /** The tour step the line names, whose title it shares. */
+  step: TourStepId;
   icon: LucideIcon;
-  title: TranslationKey;
   body: TranslationKey;
 }
 
+// The steps a student acts on, in tour order, each with the icon its control carries.
+// Reading the timetable is left to the tour, which points at it.
 const STEPS: readonly WelcomeStep[] = [
-  {
-    icon: Search,
-    title: 'welcome.step.search.title',
-    body: 'welcome.step.search.body',
-  },
-  {
-    icon: CalendarPlus,
-    title: 'welcome.step.place.title',
-    body: 'welcome.step.place.body',
-  },
-  {
-    icon: Image,
-    title: 'welcome.step.share.title',
-    body: 'welcome.step.share.body',
-  },
+  { step: 'search', icon: Search, body: 'welcome.step.search.body' },
+  { step: 'add', icon: CalendarPlus, body: 'welcome.step.add.body' },
+  { step: 'suggest', icon: WandSparkles, body: 'welcome.step.suggest.body' },
+  { step: 'export', icon: Share, body: 'welcome.step.export.body' },
 ];
 
 const PRIMARY_BUTTON = `rounded-kcp bg-primary-strong px-4 py-2 text-sm font-semibold text-surface hover:bg-primary-hover ${TARGET_SIZE} ${FOCUS_OUTLINE}`;
@@ -96,8 +97,8 @@ export function WelcomeDialog() {
           {t('welcome.steps')}
         </h3>
         <ol className="flex flex-col gap-3">
-          {STEPS.map(({ icon: Icon, title, body: stepBody }) => (
-            <li key={title} className="flex items-start gap-3">
+          {STEPS.map(({ step, icon: Icon, body: stepBody }) => (
+            <li key={step} className="flex items-start gap-3">
               <span
                 aria-hidden="true"
                 data-step-icon
@@ -106,7 +107,9 @@ export function WelcomeDialog() {
                 <Icon size={16} strokeWidth={2} />
               </span>
               <span className="flex min-w-0 flex-col gap-0.5">
-                <span className="font-semibold">{t(title)}</span>
+                <span className="font-semibold">
+                  {t(TOUR_STEP_TITLES[step])}
+                </span>
                 <span className="text-ink-soft">{t(stepBody)}</span>
               </span>
             </li>

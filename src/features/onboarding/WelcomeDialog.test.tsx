@@ -12,6 +12,8 @@ import {
 import { LAUNCHER_ID } from '@/features/shell/Launcher';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { uiStore } from '@/features/shell/uiStore';
+import th from '@/lib/i18n/th.json';
+import { TOUR_STEPS } from '@/lib/onboarding/tour';
 import { installViewport } from '../../../tests/support/viewport';
 import { initialOnboardingData, onboardingStore } from './onboardingStore';
 import { WelcomeDialog } from './WelcomeDialog';
@@ -87,7 +89,7 @@ describe('WelcomeDialog', () => {
     expect(dialog).toHaveClass('rounded-t-kcp-sheet');
   });
 
-  it('lists the three steps in order', () => {
+  it('lists the steps a student acts on under the tour titles, in tour order', () => {
     const dialog = showWelcome();
     const list = within(dialog).getByRole('list');
     expect(list.tagName).toBe('OL');
@@ -95,17 +97,28 @@ describe('WelcomeDialog', () => {
     expect(items.map((item) => item.textContent)).toEqual([
       'ค้นหารายวิชาค้นหาตามหลักสูตรและชั้นปี รหัสวิชา หรือหมวดวิชา',
       'เพิ่มกลุ่มเรียนลงตารางระบบจะแจ้งทันทีเมื่อเวลาเรียนหรือเวลาสอบชนกัน',
-      'แชร์เป็นรูปภาพดาวน์โหลดหรือคัดลอกตารางเป็นรูปภาพเพื่อส่งต่อ',
+      'แนะนำตารางเลือกวิชาที่ต้องการ แล้วระบบจะจัดตารางที่เวลาไม่ชนกันให้',
+      'ส่งออกตารางบันทึกตารางเป็นรูปภาพหรือคัดลอกเป็นข้อความเพื่อแชร์',
     ]);
-    expect(
-      within(dialog).getByRole('heading', { name: 'เริ่มใช้งานใน 3 ขั้น' }),
-    ).toBeInTheDocument();
+    // Each title is a tour step title, and the titles keep the tour's order, so the
+    // welcome never lists a step the tour that follows it does not walk.
+    const tourTitles = TOUR_STEPS.map((step) => th[step.title]);
+    const positions = items.map((item) =>
+      tourTitles.findIndex((title) => item.textContent.startsWith(title)),
+    );
+    expect(positions).not.toContain(-1);
+    expect(positions).toEqual([...positions].sort((a, b) => a - b));
+    // The heading names no count that could drift from the list or from the tour.
+    const heading = within(dialog).getByRole('heading', {
+      name: 'วิธีวางแผนตารางเรียน',
+    });
+    expect(heading.textContent).not.toMatch(/\d/);
   });
 
   it('sets each step icon on a neutral sunken tile, keeping orange for controls', () => {
     const dialog = showWelcome();
     const tiles = dialog.querySelectorAll('[data-step-icon]');
-    expect(tiles).toHaveLength(3);
+    expect(tiles).toHaveLength(4);
     for (const tile of tiles) {
       expect(tile).toHaveClass('bg-surface-sunken', 'text-ink-soft');
       expect(tile).toHaveAttribute('aria-hidden', 'true');
