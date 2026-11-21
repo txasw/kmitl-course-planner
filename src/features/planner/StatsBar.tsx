@@ -89,7 +89,6 @@ export function StatsBar({
       <div
         role="group"
         aria-label={t('stats.region')}
-        data-status-row="compact"
         className="flex shrink-0 flex-col gap-1 border-t border-border pt-1.5 text-xs text-ink-soft"
       >
         {facts === null ? null : (
