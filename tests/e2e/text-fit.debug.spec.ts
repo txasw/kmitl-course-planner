@@ -257,6 +257,23 @@ for (const language of ['th', 'en'] as const) {
             .panel()
             .getByRole('region', { name: sweep.t('section.teachers.label') }),
         ).not.toHaveCount(0);
+        // The browser reads each choice's instructor names as its description, whatever
+        // the scroll; jsdom computes descriptions differently, so this is checked here.
+        const choices = sweep
+          .panel()
+          .getByRole('list', { name: sweep.t('change.listLabel') })
+          .locator('button[aria-describedby]');
+        await expect(choices).not.toHaveCount(0);
+        for (const choice of await choices.all()) {
+          const id = await choice.getAttribute('aria-describedby');
+          const names = await sweep
+            .panel()
+            .locator(`[id="${String(id)}"]`)
+            .innerText();
+          await expect(choice).toHaveAccessibleDescription(
+            names.replace(/\s+/g, ' ').trim(),
+          );
+        }
         await sweep.scan('change section choices', sweep.panel());
       }
       sweep.expectClean();
