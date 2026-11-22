@@ -486,6 +486,7 @@
   "change.listLabel": "Open sections that fit the plan",
   "change.none": "No other open section fits the plan.",
   "change.unavailable": "Search for this course in the plan's semester to change its section.",
+  "change.teachersRegion": "Instructors of section {section}",
   "registration.copy": "Copy registration list",
   "registration.copied": "Registration list copied",
   "registration.copyFailed": "Could not copy the registration list",

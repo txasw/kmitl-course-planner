@@ -2,23 +2,23 @@
 // a section by which group it is, when it meets, where, and who teaches, so the choice shows
 // each of those as its own part: the section code as a chip, each meeting as a bold day, a
 // time, and a place behind a pin, the seat line, and the instructors. The card is the press
-// target through the select button's stretched layer. The instructors sit outside the
-// button, since a button holds no control of its own: their line is one row that scrolls
-// sideways, ending in a fade and an ellipsis while names lie past its edge, and is a tab stop
-// then, so a keyboard scrolls it too; the select button names the list as its description.
-// This line is the owner approved exception to the no ellipsis rule (ADR-0048 amendment of
-// 2026-11-22).
+// target through the select button's stretched layer, and it takes the button's hover and
+// focus ring (the kcp-choice rules in the shadow sheet), so the instructor line, which
+// scrolls rather than selects, never looks pressable. The instructors sit outside the
+// button, since a button holds no control of its own (TeacherScroll), and the button names
+// their list as its description.
 
-import { Fragment, useId, useLayoutEffect, useRef, useState } from 'react';
-import { MapPin, UserRound } from 'lucide-react';
+import { Fragment, useId } from 'react';
+import { MapPin } from 'lucide-react';
 import type { Section } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { dayLabelKey } from '@/lib/i18n/dayLabel';
 import { formatMinutes } from '@/lib/parsing/time';
+import { fillTemplate } from '@/lib/i18n/template';
 import { computeSeatDemand } from '@/lib/catalog/seatDemand';
-import { FOCUS_RING } from '@/lib/ui/focus';
 import { meetingPlace } from '@/features/catalog/meetingFormat';
 import { SeatLine } from '@/features/catalog/SeatDemand';
+import { TeacherScroll } from './TeacherScroll';
 
 interface ChangeOptionRowProps {
   /** The section and its declared pair, in section code order. */
@@ -28,11 +28,6 @@ interface ChangeOptionRowProps {
   touch: boolean;
   onSelect: (control: HTMLElement) => void;
 }
-
-// The card takes the focus ring of its select button, so the ring circles the whole choice
-// the button's stretched layer makes pressable.
-const CARD =
-  'relative rounded-kcp border border-border bg-surface hover:border-ink-soft has-[>button:focus-visible]:ring-(length:--kcp-focus-width) has-[>button:focus-visible]:ring-inset has-[>button:focus-visible]:ring-(color:--kcp-focus-color)';
 
 function MemberLine({
   member,
@@ -65,7 +60,7 @@ function MemberLine({
             const place = meetingPlace(meeting);
             return (
               <Fragment
-                key={`${String(meeting.day)}-${String(meeting.startMin)}`}
+                key={`${String(meeting.day)}-${String(meeting.startMin)}-${String(meeting.endMin)}`}
               >
                 <span className="flex flex-wrap items-center gap-x-2">
                   <span className="font-semibold text-ink">
@@ -95,84 +90,6 @@ function MemberLine({
   );
 }
 
-// While names lie past the end of the line, a fade and an ellipsis close its text row, above
-// the scrollbar a mouse sees. Neither takes a press, so the line scrolls under them, and a
-// keyboard focus on the line drops them so its ring shows whole.
-const MORE =
-  "after:pointer-events-none after:absolute after:top-0 after:right-2 after:flex after:h-[1lh] after:w-10 after:items-center after:justify-end after:bg-linear-to-r after:from-transparent after:to-surface after:to-60% after:content-['…'] has-focus-visible:after:hidden";
-
-interface Fit {
-  /** The line holds more than it shows. */
-  wide: boolean;
-  /** Names still lie past the end of the line. */
-  more: boolean;
-}
-
-function readFit(node: HTMLElement, previous: Fit): Fit {
-  const wide = node.scrollWidth > node.clientWidth + 1;
-  const more = node.scrollLeft + node.clientWidth < node.scrollWidth - 1;
-  return previous.wide === wide && previous.more === more
-    ? previous
-    : { wide, more };
-}
-
-function TeacherScroll({
-  id,
-  names,
-  t,
-}: {
-  id: string;
-  names: string[];
-  t: Translate;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const label = t('section.teachers.label');
-  const [fit, setFit] = useState<Fit>({ wide: false, more: false });
-  const key = names.join(', ');
-  useLayoutEffect(() => {
-    const node = ref.current;
-    if (node === null) return undefined;
-    // An observer reports once as it starts, so a new list is measured as well.
-    const observer = new ResizeObserver(() => {
-      setFit((previous) => readFit(node, previous));
-    });
-    observer.observe(node);
-    return () => {
-      observer.disconnect();
-    };
-  }, [key]);
-  return (
-    <div
-      className={`relative flex items-center gap-1 px-2 pb-1.5 text-ink-soft ${fit.more ? MORE : ''}`}
-    >
-      <UserRound size={12} aria-hidden className="shrink-0" />
-      {/* Only a line that holds more than it shows is a named region and a tab stop, the
-          scrollable region pattern, so a keyboard can scroll it with the arrow keys. */}
-      <div
-        ref={ref}
-        data-teacher-scroll
-        role={fit.wide ? 'region' : undefined}
-        aria-label={fit.wide ? label : undefined}
-        tabIndex={fit.wide ? 0 : undefined}
-        onScroll={(event) => {
-          const node = event.currentTarget;
-          setFit((previous) => readFit(node, previous));
-        }}
-        className={`kcp-scroll min-w-0 flex-1 overflow-x-auto rounded-kcp-inner ${FOCUS_RING}`}
-      >
-        <ul id={id} aria-label={label} className="flex gap-1 whitespace-nowrap">
-          {names.map((name, index) => (
-            <li key={name}>
-              {name}
-              {index < names.length - 1 ? ',' : ''}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-}
-
 export function ChangeOptionRow({
   group,
   locale,
@@ -189,7 +106,9 @@ export function ChangeOptionRow({
     ),
   ];
   return (
-    <div className={`${CARD} ${touch ? 'text-sm' : 'text-xs'}`}>
+    <div
+      className={`kcp-choice relative rounded-kcp border border-border bg-surface ${touch ? 'text-sm' : 'text-xs'}`}
+    >
       <button
         type="button"
         aria-describedby={names.length > 0 ? teachersId : undefined}
@@ -209,7 +128,13 @@ export function ChangeOptionRow({
         ))}
       </button>
       {names.length > 0 ? (
-        <TeacherScroll id={teachersId} names={names} t={t} />
+        <TeacherScroll
+          id={teachersId}
+          names={names}
+          regionLabel={fillTemplate(t('change.teachersRegion'), {
+            section: group.map((member) => member.section).join(', '),
+          })}
+        />
       ) : null}
     </div>
   );
