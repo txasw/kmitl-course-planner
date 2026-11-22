@@ -7,6 +7,7 @@ import {
   fireEvent,
   cleanup,
   waitFor,
+  act,
 } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import type { PlanEntry, VerifyStatus } from '@/lib/domain/plan';
@@ -285,6 +286,38 @@ describe('SelectedCoursesList', () => {
         'คัดลอกรายการลงทะเบียนไม่สำเร็จ',
       );
     });
+  });
+
+  it('reads as copying with a spinner until the clipboard answers', async () => {
+    let answer: () => void = () => undefined;
+    const writeText = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          answer = resolve;
+        }),
+    );
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+    render(<Harness initial={[entry('a1', '90000001', '1')]} />);
+    const copy = screen.getByRole('button', { name: 'คัดลอกรายการลงทะเบียน' });
+    copy.focus();
+    fireEvent.click(copy);
+    expect(copy).toHaveAccessibleName('กำลังคัดลอก');
+    expect(copy).toHaveAttribute('aria-busy', 'true');
+    expect(copy).toHaveAttribute('aria-disabled', 'true');
+    expect(copy).toHaveFocus();
+    expect(copy.querySelector('svg')).toHaveClass('lucide-loader-circle');
+    // The idle label stays in place, hidden, so the button keeps its width.
+    expect(copy).toHaveTextContent('คัดลอกรายการลงทะเบียน');
+    fireEvent.click(copy);
+    expect(writeText).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      answer();
+      await Promise.resolve();
+    });
+    expect(copy).toHaveAccessibleName('คัดลอกรายการลงทะเบียน');
+    expect(copy).toHaveAttribute('aria-busy', 'false');
+    expect(toastStore.getState().toast?.message).toBe('คัดลอกรายการลงทะเบียนแล้ว');
   });
 
   it('offers no registration list copy while the plan is empty', () => {

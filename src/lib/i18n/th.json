@@ -11,6 +11,7 @@
   "action.dismiss": "ปิด",
   "action.cancel": "ยกเลิก",
   "action.drag": "ลากเพื่อเพิ่มลงตาราง",
+  "action.copying": "กำลังคัดลอก",
   "language.select": "เลือกภาษา",
   "language.th": "ไทย",
   "language.en": "English",

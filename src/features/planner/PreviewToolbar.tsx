@@ -159,7 +159,7 @@ export function PreviewToolbar({
       locale: language,
       t,
     });
-    copyText(text, t('preview.textCopied'), t('preview.copyTextFailed'));
+    void copyText(text, t('preview.textCopied'), t('preview.copyTextFailed'));
   };
 
   const shareAction = canShareImage()
