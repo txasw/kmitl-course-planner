@@ -92,11 +92,14 @@ function gridColumns(): string[] {
     .map((grid) => grid.style.gridTemplateColumns);
 }
 
-/** Open the tick list, which rests as its one line summary. */
-function expandSubjects(): void {
-  fireEvent.click(
-    screen.getByRole('button', { name: /^วิชาที่จะจัดลงตาราง/, expanded: false }),
-  );
+/** The group segment whose name starts with the label. */
+function segment(label: string): HTMLElement {
+  return screen.getByRole('button', { name: new RegExp(`^${label} เลือก`) });
+}
+
+/** Open a group's list from its segment. */
+function openGroup(label: string): void {
+  fireEvent.click(segment(label));
 }
 
 async function findCards(): Promise<HTMLElement[]> {
@@ -168,7 +171,6 @@ describe('SuggestDialog', () => {
   it('returns to the best suggestion after a plan change runs the search again', async () => {
     renderDialog(1440);
     await findCards();
-    expandSubjects();
     fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกที่ 3' }));
     expect(within(shownSlide()).getByRole('heading')).toHaveTextContent(
       'ตัวเลือกที่ 3',
@@ -179,6 +181,7 @@ describe('SuggestDialog', () => {
       seedActivePlan(lockSections(courses, [['04186098', '2']]));
     });
     // The subject the plan gained joins the tick list ticked.
+    openGroup('ในตาราง');
     const planned = await screen.findByRole('region', {
       name: 'อยู่ในตารางแล้ว',
     });
@@ -208,7 +211,7 @@ describe('SuggestDialog', () => {
     });
     const original = planStore.getState().plans[0];
     const { onClose, onApplied } = renderDialog();
-    expandSubjects();
+    openGroup('ในตาราง');
     const planned = screen.getByRole('region', { name: 'อยู่ในตารางแล้ว' });
     expect(
       within(planned).getByRole('checkbox', { name: /04186098/ }),
@@ -255,7 +258,7 @@ describe('SuggestDialog', () => {
       seedActivePlan(locked);
     });
     renderDialog();
-    expandSubjects();
+    openGroup('ในตาราง');
     // Every curriculum subject is in the plan, so it lists them by name, ticked. No move
     // gains anything, so it offers no reshuffle and says the ticked subjects fit as they
     // are rather than asking for a tick the list already shows.
@@ -287,12 +290,9 @@ describe('SuggestDialog', () => {
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'ใช้ตารางนี้' })).toBeNull();
 
-    // The GenEd courses are still there to tick, collapsed until opened.
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'วิชาศึกษาทั่วไป วิชาเลือกเสรี และวิชาอื่น 0 จาก 6',
-      }),
-    );
+    // The GenEd courses are still there to tick, one segment away.
+    expect(screen.queryByRole('button', { name: /^ในหลักสูตร/ })).toBeNull();
+    openGroup('ศึกษาทั่วไปและอื่น ๆ');
     const other = screen.getByRole('region', {
       name: 'วิชาศึกษาทั่วไป วิชาเลือกเสรี และวิชาอื่น',
     });
@@ -313,7 +313,7 @@ describe('SuggestDialog', () => {
       seedActivePlan(locked);
     });
     renderDialog();
-    expandSubjects();
+    openGroup('ในตาราง');
     const planned = screen.getByRole('region', { name: 'อยู่ในตารางแล้ว' });
     fireEvent.click(
       within(planned).getByRole('button', { name: 'ยกเลิกการเลือกทั้งหมด' }),
@@ -330,7 +330,26 @@ describe('SuggestDialog', () => {
   it('ticks the curriculum subjects by default and searches the ticked set', async () => {
     renderDialog();
     await findCards();
-    expandSubjects();
+    // The GenEd group opens by default, unticked, so a student sees those can join.
+    expect(segment('ศึกษาทั่วไปและอื่น ๆ')).toHaveAttribute('aria-expanded', 'true');
+    expect(segment('ศึกษาทั่วไปและอื่น ๆ')).toHaveAccessibleName(
+      'ศึกษาทั่วไปและอื่น ๆ เลือก 0 จาก 6',
+    );
+    expect(
+      screen.getByRole('region', {
+        name: 'วิชาศึกษาทั่วไป วิชาเลือกเสรี และวิชาอื่น',
+      }),
+    ).toBeVisible();
+    // The curriculum subjects start ticked, their list collapsed behind the segment.
+    expect(segment('ในหลักสูตร')).toHaveAttribute('aria-expanded', 'false');
+    expect(segment('ในหลักสูตร')).toHaveAccessibleName('ในหลักสูตร เลือก 6 จาก 6');
+    openGroup('ในหลักสูตร');
+    // One group is open at a time.
+    expect(
+      screen.queryByRole('region', {
+        name: 'วิชาศึกษาทั่วไป วิชาเลือกเสรี และวิชาอื่น',
+      }),
+    ).toBeNull();
     const curriculum = screen.getByRole('region', {
       name: 'วิชาในหลักสูตร กลุ่ม 2',
     });
@@ -339,14 +358,6 @@ describe('SuggestDialog', () => {
     for (const box of boxes) {
       expect(box).toBeChecked();
     }
-    expect(screen.getByText('6 วิชาในหลักสูตร')).toBeInTheDocument();
-    // The GenEd group starts collapsed and unticked.
-    expect(
-      screen.getByRole('button', {
-        name: 'วิชาศึกษาทั่วไป วิชาเลือกเสรี และวิชาอื่น 0 จาก 6',
-        expanded: false,
-      }),
-    ).toBeInTheDocument();
 
     fireEvent.click(
       within(curriculum).getByRole('button', { name: 'ยกเลิกการเลือกทั้งหมด' }),
@@ -354,7 +365,7 @@ describe('SuggestDialog', () => {
     expect(
       await screen.findByText('เลือกอย่างน้อยหนึ่งวิชาเพื่อดูตารางที่แนะนำ'),
     ).toBeInTheDocument();
-    expect(screen.getByText('ยังไม่ได้เลือกวิชา')).toBeInTheDocument();
+    expect(segment('ในหลักสูตร')).toHaveAccessibleName('ในหลักสูตร เลือก 0 จาก 6');
 
     const [first] = boxes;
     if (first === undefined) throw new Error('no checkbox');
@@ -373,25 +384,42 @@ describe('SuggestDialog', () => {
     ).toBeInTheDocument();
   });
 
-  it('rests short: one sentence, a summary line, and orange only on apply', async () => {
+  it('heads the list with its group segments and keeps orange for apply', async () => {
     act(() => {
       seedActivePlan(lockSections(courses, [['04186098', '2']]));
     });
     const { portal } = renderDialog(390);
     await findCards();
-    const summary = screen.getByRole('button', {
-      name: /^วิชาที่จะจัดลงตาราง/,
+    // Each segment names its group and its ticked count, the plan's subjects first, and
+    // only the GenEd one starts open. No typed dot joins the parts.
+    expect(segment('ในตาราง')).toHaveAccessibleName('ในตาราง เลือก 1 จาก 1');
+    expect(segment('ในตาราง')).toHaveAttribute('aria-expanded', 'false');
+    expect(segment('ในหลักสูตร')).toHaveAccessibleName('ในหลักสูตร เลือก 6 จาก 6');
+    const other = segment('ศึกษาทั่วไปและอื่น ๆ');
+    expect(other).toHaveAttribute('aria-expanded', 'true');
+    expect(
+      screen.getByRole('group', { name: 'วิชาที่จะจัดลงตาราง' }).textContent,
+    ).not.toMatch(/[\u00b7\u2022\u2027]/);
+    // The open list names its subjects in full, the first rows on a phone and a control for
+    // the rest, which hands focus to the first row it reveals.
+    const list = screen.getByRole('region', {
+      name: 'วิชาศึกษาทั่วไป วิชาเลือกเสรี และวิชาอื่น',
     });
-    expect(summary).toHaveAttribute('aria-expanded', 'false');
-    // Each group count is a span of its own; no typed dot joins them.
-    expect(within(summary).getByText('1 วิชาในตาราง')).toBeInTheDocument();
-    expect(within(summary).getByText('6 วิชาในหลักสูตร')).toBeInTheDocument();
-    // The spoken name keeps its word breaks without relying on the flex layout.
-    expect(summary).toHaveAccessibleName(
-      'วิชาที่จะจัดลงตาราง 1 วิชาในตาราง 6 วิชาในหลักสูตร',
-    );
-    expect(summary.textContent).not.toMatch(/[\u00b7\u2022\u2027]/);
-    expect(screen.queryByRole('checkbox')).toBeNull();
+    const total = Number(/จาก (\d+)/.exec(other.textContent)?.[1]);
+    const shown = within(list).getAllByRole('checkbox');
+    if (total > 5) {
+      expect(shown).toHaveLength(4);
+      fireEvent.click(
+        within(list).getByRole('button', {
+          name: `แสดงอีก ${String(total - 4)} วิชา`,
+        }),
+      );
+      const all = within(list).getAllByRole('checkbox');
+      expect(all).toHaveLength(total);
+      expect(all[4]).toHaveFocus();
+    } else {
+      expect(shown).toHaveLength(total);
+    }
     // The intro is a single sentence.
     expect(
       screen.getByText('เลือกวิชาที่ต้องการ แล้วเลือกตารางที่เวลาเรียนและเวลาสอบไม่ชนกัน'),
@@ -415,6 +443,49 @@ describe('SuggestDialog', () => {
     expect(
       screen.getByRole('button', { name: 'สมดุล', pressed: true }),
     ).toHaveClass('border-ink');
+  });
+
+  it('clears the current plan after a warning, as one undoable step', async () => {
+    const locked = lockSections(courses, [
+      ['01006020', '4'],
+      ['04186098', '2'],
+    ]);
+    act(() => {
+      seedActivePlan(locked);
+    });
+    const before = planStore.getState().entries;
+    renderDialog();
+    await findCards();
+    const clear = screen.getByRole('button', { name: 'ล้างตารางปัจจุบัน' });
+    fireEvent.click(clear);
+    // The warning names how many subjects leave, and focus waits on the safe choice.
+    const prompt = 'ล้างตารางปัจจุบันและนำวิชาออก 2 วิชา เลิกทำได้ภายใน 10 วินาที';
+    expect(screen.getByText(prompt)).toBeVisible();
+    const cancel = screen.getByRole('button', { name: 'ยกเลิก' });
+    expect(cancel).toHaveFocus();
+    expect(cancel).toHaveAccessibleDescription(prompt);
+    fireEvent.click(cancel);
+    expect(screen.queryByText(prompt)).toBeNull();
+    expect(screen.getByRole('button', { name: 'ล้างตารางปัจจุบัน' })).toHaveFocus();
+    expect(planStore.getState().entries).toBe(before);
+
+    fireEvent.click(screen.getByRole('button', { name: 'ล้างตารางปัจจุบัน' }));
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'ล้างตาราง' }));
+    });
+    const state = planStore.getState();
+    expect(state.entries).toEqual([]);
+    expect(state.pendingUndo?.kind).toBe('clear');
+    // The plan group and the clear action leave with the plan's subjects, and focus moves
+    // to the first segment.
+    expect(screen.queryByRole('button', { name: 'ล้างตารางปัจจุบัน' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^ในตาราง/ })).toBeNull();
+    expect(segment('ในหลักสูตร')).toHaveFocus();
+
+    act(() => {
+      planStore.getState().undo();
+    });
+    expect(planStore.getState().entries).toEqual(before);
   });
 
   it.each([390, 1366])(

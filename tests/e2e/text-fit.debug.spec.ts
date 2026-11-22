@@ -669,9 +669,23 @@ for (const language of ['th', 'en'] as const) {
         const subjects = dialog.getByRole('group', {
           name: sweep.t('suggest.subjects'),
         });
-        const closed = subjects.locator('button[aria-expanded="false"]');
-        while ((await closed.count()) > 0) await closed.first().click();
-        await sweep.scan('suggest subject list', dialog);
+        // One group opens at a time, each behind its segment, and an open list shows its
+        // first rows and a control for the rest, so each group is opened in full and read.
+        const segments = subjects.locator('button[aria-expanded]');
+        const morePrefix =
+          sweep.t('suggest.subjects.more').split('{count}')[0] ?? '';
+        const segmentCount = await segments.count();
+        for (let index = 0; index < segmentCount; index += 1) {
+          const segment = segments.nth(index);
+          if ((await segment.getAttribute('aria-expanded')) === 'false') {
+            await segment.click();
+          }
+          const more = subjects.getByRole('button', {
+            name: new RegExp(`^${morePrefix}`),
+          });
+          if ((await more.count()) > 0) await more.click();
+          await sweep.scan(`suggest subject list ${String(index + 1)}`, dialog);
+        }
         // The slides off screen are inert, so the plan is applied from the slide on show.
         await dialog
           .locator('[data-suggest-slide]:not([inert])')
@@ -693,15 +707,23 @@ for (const language of ['th', 'en'] as const) {
           .click();
         await dialog
           .getByRole('button', {
-            name: new RegExp(`^${sweep.t('suggest.subjects')}`),
+            name: new RegExp(`^${sweep.t('suggest.segment.planned')}`),
           })
           .click();
         await expect(
           dialog.getByRole('region', {
-            name: sweep.t('suggest.subjects.planned'),
+            name: sweep.t('suggest.group.planned'),
           }),
         ).toBeVisible();
         await sweep.scan('suggest with the plan subjects', dialog);
+        // The clear plan warning reads whole, then is cancelled.
+        await dialog
+          .getByRole('button', { name: sweep.t('suggest.clear') })
+          .click();
+        await sweep.scan('suggest clear plan warning', dialog);
+        await dialog
+          .getByRole('button', { name: sweep.t('action.cancel'), exact: true })
+          .click();
         await page.keyboard.press('Escape');
         await expect(dialog).toHaveCount(0);
 

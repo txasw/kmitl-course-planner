@@ -67,15 +67,14 @@ test('applies a suggested timetable from the compact layouts', async ({
   const shown = dialog.locator('[data-suggest-slide]:not([inert])');
   const apply = shown.getByRole('button', { name: 'ใช้ตารางนี้' });
   await expect(apply).toHaveCount(1);
-  // The first screen of the sheet or dialog shows the start of the first slide and its
-  // apply action, with nothing scrolled, once the sheet has slid in.
-  const viewportHeight = page.viewportSize()?.height ?? 0;
-  await expect
-    .poll(async () => {
-      const box = await apply.boundingBox();
-      return box === null ? Number.POSITIVE_INFINITY : box.y + box.height;
-    })
-    .toBeLessThanOrEqual(viewportHeight);
+  // The tick list opens on the GenEd group, so the first screen shows that those can join;
+  // the first slide and its apply action follow below it.
+  await expect(
+    dialog.getByRole('region', {
+      name: 'วิชาศึกษาทั่วไป วิชาเลือกเสรี และวิชาอื่น',
+    }),
+  ).toBeInViewport();
+  await apply.scrollIntoViewIfNeeded();
   await expect(apply).toBeInViewport({ ratio: 1 });
   const dots = dialog
     .getByRole('group', { name: 'ตัวเลือกตาราง' })

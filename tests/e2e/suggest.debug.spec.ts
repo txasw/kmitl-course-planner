@@ -13,7 +13,8 @@ import { axeViolations } from './support/axe';
 // student placed by hand is listed by name and ticked, the carousel pages by its chevron
 // and the arrow keys, its chevron names open clear of the close button, a slide lists its
 // subjects behind the chevron disclosure, the suggestion is applied as a new plan, and undo
-// returns to the plan it started from.
+// returns to the plan it started from. The clear plan action asks first, then empties the
+// plan as one undoable step.
 const GRID_BLOCK = '[data-teach-table-id]';
 const SOFT_BLOCK = `${GRID_BLOCK}.kcp-soft-card`;
 
@@ -62,11 +63,16 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
     .click();
   const dialog = page.getByRole('dialog', { name: 'แนะนำตาราง' });
   await expect(dialog).toBeVisible();
-  // The tick list rests as its summary line; it opens to name each subject.
-  const summary = dialog.getByRole('button', { name: /^วิชาที่จะจัดลงตาราง/ });
-  await expect(summary).toHaveAttribute('aria-expanded', 'false');
-  await expect(summary).toContainText('1 วิชาในตาราง');
-  await summary.click();
+  // The tick list opens on the GenEd group; the plan's subject sits behind its segment,
+  // which counts it, and opens to name it.
+  await expect(
+    dialog.getByRole('button', { name: /^ศึกษาทั่วไปและอื่น ๆ เลือก/ }),
+  ).toHaveAttribute('aria-expanded', 'true');
+  const plannedSegment = dialog.getByRole('button', {
+    name: 'ในตาราง เลือก 1 จาก 1',
+  });
+  await expect(plannedSegment).toHaveAttribute('aria-expanded', 'false');
+  await plannedSegment.click();
   const planned = dialog.getByRole('region', { name: 'อยู่ในตารางแล้ว' });
   await expect(
     planned.getByRole('checkbox', { name: /04186098/ }),
@@ -140,6 +146,29 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
 
   await page.getByRole('button', { name: 'เลิกทำ' }).click();
   await expect(switcher.getByText(planName, { exact: true })).toBeVisible();
+  await expect(page.locator(GRID_BLOCK)).toHaveCount(placedBefore);
+
+  // The clear action asks in the page, naming how many subjects leave, with focus on the
+  // safe choice; confirming empties the plan, and the undo toast brings it back.
+  await page
+    .getByRole('group', { name: 'สรุปตาราง', exact: true })
+    .getByRole('button', { name: 'แนะนำตาราง' })
+    .click();
+  await dialog.getByRole('button', { name: 'ล้างตารางปัจจุบัน' }).click();
+  await expect(
+    dialog.getByText('ล้างตารางปัจจุบันและนำวิชาออก 1 วิชา เลิกทำได้ภายใน 10 วินาที'),
+  ).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'ยกเลิก' })).toBeFocused();
+  expect(await axeViolations(page)).toEqual([]);
+  await dialog.getByRole('button', { name: 'ล้างตาราง', exact: true }).click();
+  await expect(
+    dialog.getByRole('button', { name: /^ในตาราง เลือก/ }),
+  ).toHaveCount(0);
+  await expect(page.getByText('ล้างตารางแล้ว นำออก 1 วิชา')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(page.locator(GRID_BLOCK)).toHaveCount(0);
+  await page.getByRole('button', { name: 'เลิกทำ' }).click();
   await expect(page.locator(GRID_BLOCK)).toHaveCount(placedBefore);
 });
 
