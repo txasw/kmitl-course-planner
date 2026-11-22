@@ -259,7 +259,7 @@ function SubjectCard({
         ))}
       </ul>
       <div className="mt-2 border-t border-border pt-2">
-        <ChangeSectionList entry={first} t={t} />
+        <ChangeSectionList entry={first} locale={locale} t={t} />
       </div>
     </li>
   );

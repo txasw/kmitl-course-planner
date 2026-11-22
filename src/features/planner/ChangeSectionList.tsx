@@ -2,7 +2,8 @@
 // on each card of the selected courses view, so a keyboard, touch, or screen reader user
 // reaches the move a block drag commits. Opened, it lists the subject's other section
 // groups that are open and fit the plan once the current one leaves, a pair as one
-// choice, soonest first. A choice moves the subject through the same transaction a drag
+// choice, soonest first, each showing its section, meetings, places, seats, and instructors
+// as separate parts (ChangeOptionRow). A choice moves the subject through the same transaction a drag
 // does, so the change is atomic and leaves one undo. The subject's other sections come
 // from the current catalog, since a plan snapshot does not carry them; when the catalog
 // does not list the subject in the plan's term, the list says to search for it first.
@@ -12,16 +13,16 @@ import { ArrowLeftRight, ChevronDown } from 'lucide-react';
 import { useStore } from 'zustand';
 import type { PlanEntry } from '@/lib/domain/plan';
 import type { Course } from '@/lib/domain/types';
-import type { Translate } from '@/lib/i18n/t';
+import type { Locale, Translate } from '@/lib/i18n/t';
 import { changeOptions, type ChangeOption } from '@/lib/planner/sectionChange';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_HEIGHT } from '@/lib/ui/target';
 import { moveSectionInPlan } from '@/features/plans/addToPlan';
 import { planStore } from '@/features/plans/planStore';
 import { searchStore } from '@/features/search/searchStore';
-import { meetingLabel } from '@/features/catalog/meetingFormat';
 import { commitThenFocus } from '@/features/shell/restoreFocus';
 import { rootOf } from '@/features/shell/useFocusTrap';
+import { ChangeOptionRow } from './ChangeOptionRow';
 import { dragStore } from './dragStore';
 import { resolveCourseForSubject } from './resolveCourse';
 
@@ -30,6 +31,8 @@ type FocusTarget = HTMLElement | null | undefined;
 interface ChangeSectionListProps {
   /** A placed entry of the subject; a pair moves from either half. */
   entry: PlanEntry;
+  /** The language whose instructor names each choice lists. */
+  locale: Locale;
   t: Translate;
   /** Size the controls as 44 px touch targets, for the bottom sheet. */
   touch?: boolean;
@@ -49,18 +52,9 @@ function controlSize(touch: boolean): string {
   return touch ? 'min-h-11 text-sm' : `${TARGET_HEIGHT} text-xs`;
 }
 
-/** The meetings of a group as the catalog rows show them, or the unscheduled label. */
-function groupTimes(option: ChangeOption, t: Translate): string {
-  const meetings = option.group
-    .flatMap((member) => member.meetings)
-    .sort((a, b) => a.day - b.day || a.startMin - b.startMin);
-  return meetings.length === 0
-    ? t('footer.unscheduled')
-    : meetings.map((meeting) => meetingLabel(meeting, t)).join(', ');
-}
-
 interface ChangeOptionsProps {
   entry: PlanEntry;
+  locale: Locale;
   t: Translate;
   touch: boolean;
   onChange: (
@@ -70,7 +64,13 @@ interface ChangeOptionsProps {
   ) => void;
 }
 
-function ChangeOptions({ entry, t, touch, onChange }: ChangeOptionsProps) {
+function ChangeOptions({
+  entry,
+  locale,
+  t,
+  touch,
+  onChange,
+}: ChangeOptionsProps) {
   const labelId = useId();
   const entries = useStore(planStore, (state) => state.entries);
   // The lookup reads the result and the active plan's term, so it reruns on any search
@@ -90,24 +90,18 @@ function ChangeOptions({ entry, t, touch, onChange }: ChangeOptionsProps) {
       <p id={labelId} className="text-xs text-ink-soft">
         {t('change.listLabel')}
       </p>
-      <ul aria-labelledby={labelId} className="flex flex-col gap-1">
+      <ul aria-labelledby={labelId} className="flex flex-col gap-1.5">
         {options.map((option) => (
           <li key={option.section.teachTableId}>
-            <button
-              type="button"
-              onClick={(event) => {
-                onChange(event.currentTarget, course, option);
+            <ChangeOptionRow
+              group={option.group}
+              locale={locale}
+              t={t}
+              touch={touch}
+              onSelect={(control) => {
+                onChange(control, course, option);
               }}
-              className={`${CONTROL} ${controlSize(touch)} w-full flex-wrap py-1`}
-            >
-              <span className="font-semibold">
-                {t('section.code')}{' '}
-                {option.group.map((member) => member.section).join(' ')}
-              </span>
-              <span className="text-ink-soft tabular-nums">
-                {groupTimes(option, t)}
-              </span>
-            </button>
+            />
           </li>
         ))}
       </ul>
@@ -117,6 +111,7 @@ function ChangeOptions({ entry, t, touch, onChange }: ChangeOptionsProps) {
 
 export function ChangeSectionList({
   entry,
+  locale,
   t,
   touch = false,
   focusAfterChange,
@@ -191,6 +186,7 @@ export function ChangeSectionList({
         {open ? (
           <ChangeOptions
             entry={entry}
+            locale={locale}
             t={t}
             touch={touch}
             onChange={handleChange}
