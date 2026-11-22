@@ -716,14 +716,28 @@ for (const language of ['th', 'en'] as const) {
           }),
         ).toBeVisible();
         await sweep.scan('suggest with the plan subjects', dialog);
-        // The clear plan warning reads whole, then is cancelled.
-        await dialog
-          .getByRole('button', { name: sweep.t('suggest.clear') })
-          .click();
+        // The clear plan warning reads whole, then is cancelled; the line a clear leaves
+        // reads whole too, and its own undo brings the plan back.
+        const clear = dialog.getByRole('button', {
+          name: sweep.t('suggest.clear'),
+        });
+        await clear.click();
         await sweep.scan('suggest clear plan warning', dialog);
         await dialog
           .getByRole('button', { name: sweep.t('action.cancel'), exact: true })
           .click();
+        await clear.click();
+        await dialog
+          .getByRole('button', {
+            name: sweep.t('suggest.clear.confirm'),
+            exact: true,
+          })
+          .click();
+        await sweep.scan('suggest cleared line', dialog);
+        await dialog
+          .getByRole('button', { name: sweep.t('action.undo'), exact: true })
+          .click();
+        await expect(clear).toBeVisible();
         await page.keyboard.press('Escape');
         await expect(dialog).toHaveCount(0);
 
