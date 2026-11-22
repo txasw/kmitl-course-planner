@@ -30,7 +30,7 @@ describe('bundle budget', () => {
 
   it('reports the size in KiB and bytes', () => {
     expect(describeBundleSize('chrome', 2048)).toBe(
-      'chrome zip is 2.0 KiB (2048 bytes) against a budget of 320.0 KiB (327680 bytes)',
+      'chrome zip is 2.0 KiB (2048 bytes) against a budget of 325.0 KiB (332800 bytes)',
     );
   });
 
