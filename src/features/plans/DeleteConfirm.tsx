@@ -2,11 +2,10 @@
 // undone, so the menu asks once, in one sentence that names the plan, states how many
 // sections go with it, and says there is no undo, before the switcher deletes it.
 
+import { ConfirmPrompt } from '@/components/ConfirmPrompt';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { fillTemplate } from '@/lib/i18n/template';
 import type { Translate } from '@/lib/i18n/t';
-import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
-import { TARGET_SIZE } from '@/lib/ui/target';
 
 export interface DeleteConfirmProps {
   planName: string;
@@ -34,24 +33,11 @@ export function DeleteConfirm({
 }: DeleteConfirmProps) {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-ink">{deletePrompt(planName, sectionCount, t)}</p>
-      <div className="flex justify-end gap-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className={`rounded-kcp border border-border px-2 py-1 text-ink-soft hover:bg-surface-alt hover:text-ink ${FOCUS_RING} ${TARGET_SIZE}`}
-        >
-          {t('action.cancel')}
-        </button>
-        <button
-          type="button"
-          onClick={onConfirm}
-          className={`rounded-kcp bg-danger px-2 py-1 font-semibold text-white hover:opacity-90 ${FOCUS_OUTLINE} ${TARGET_SIZE}`}
-        >
-          {t('planSwitcher.delete')}
-        </button>
-      </div>
-    </div>
+    <ConfirmPrompt
+      message={deletePrompt(planName, sectionCount, t)}
+      confirmLabel={t('planSwitcher.delete')}
+      onCancel={onCancel}
+      onConfirm={onConfirm}
+    />
   );
 }
