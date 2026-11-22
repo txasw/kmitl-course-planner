@@ -500,6 +500,26 @@ describe('SuggestDialog', () => {
     expect(screen.getByRole('button', { name: 'ล้างตารางปัจจุบัน' })).toHaveFocus();
   });
 
+  it('reopens the GenEd group when a clear empties the open plan group', async () => {
+    act(() => {
+      seedActivePlan(lockSections(courses, [['04186098', '2']]));
+    });
+    renderDialog();
+    await findCards();
+    openGroup('ในตาราง');
+    expect(segment('ในตาราง')).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'ล้างตารางปัจจุบัน' }));
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'ล้างตาราง' }));
+    });
+    expect(segment('ศึกษาทั่วไปและอื่น ๆ')).toHaveAttribute('aria-expanded', 'true');
+    expect(
+      screen.getByRole('region', {
+        name: 'วิชาศึกษาทั่วไป วิชาเลือกเสรี และวิชาอื่น',
+      }),
+    ).toBeVisible();
+  });
+
   it('names one subject in the singular when it warns before a clear in English', async () => {
     act(() => {
       uiStore.getState().setLanguage('en');
