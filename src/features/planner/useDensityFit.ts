@@ -4,9 +4,11 @@
 // set and demotes one rung at a time until the content fits, all inside a layout effect so
 // the settled field set is committed before the browser paints and before the poster is
 // captured. The measured element is the content wrapper only, so the absolute stripe and hatch
-// never contaminate the height. When the ladder reaches the name, the hook also reads how many
-// lines the name renders and how many lines of content stand past the box, so the name clamps
-// to the lines that fit in one step rather than one line per pass.
+// never contaminate the height. The wrapper carries the block's bottom padding, so the glyph
+// extent of its last line, which Firefox counts in the scroll height, stays inside its clip edge
+// (contentEndPadding in blockSurface). When the ladder reaches the name, the hook also reads
+// how many lines the name renders and how many lines of content stand past the box, so the
+// name clamps to the lines that fit in one step rather than one line per pass.
 //
 // The fit reads width as well as height (the ADR-0046 amendment of 2026-11-20). The subject id
 // and the time never wrap, so each marked whole field is measured against its own line: one

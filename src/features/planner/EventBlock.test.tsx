@@ -44,6 +44,22 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+/** Stand in for Firefox, which counts the glyph extent of a text line in the scroll height of the
+ * box that clips it: Thai vowels and tone marks reach about 3 px past a line box, so a column
+ * whose bottom line sits flush against its clip edge reads 3 px taller than it is unless an end
+ * padding inside the column holds the marks. The column has room for every field. */
+function glyphsPastFlushBottom(): void {
+  vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(200);
+  vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+    function (this: HTMLElement) {
+      const padded = Array.from(this.classList).some((name) =>
+        name.startsWith('pb-'),
+      );
+      return this.hasAttribute('data-fit') && !padded ? 203 : 200;
+    },
+  );
+}
+
 /** Make every fit column report a 20 px overflow while it contains `text`, standing in for
  * the layout jsdom does not perform. */
 function overflowWhileShowing(...texts: string[]): void {
@@ -218,6 +234,26 @@ describe('EventBlock', () => {
       />,
     );
     expect(footOf()?.className).toContain('mt-auto');
+  });
+
+  it('keeps the poster foot whose glyphs reach past its line at the box bottom', () => {
+    // The poster pins the time and the id flush against the bottom of the column, so the
+    // column holds its own end padding for their glyph extent rather than read as overflowing.
+    glyphsPastFlushBottom();
+    render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        nameLanguage="both"
+        footAtBottom
+      />,
+    );
+    expect(screen.getByText('09:00-12:00')).toBeInTheDocument();
+    expect(screen.getByText('90592033')).toBeInTheDocument();
+    expect(screen.getByText('901')).toBeInTheDocument();
   });
 
   it('wraps a Thai name only between its dictionary words', () => {
@@ -908,7 +944,7 @@ describe('EventBlock', () => {
     expect(band).not.toHaveClass('inset-0');
     // The content clears the band with a deeper top padding than a plain block's.
     const block = screen.getByLabelText(/90592033/);
-    expect(block).toHaveClass('pt-3.5', 'pb-1.5');
+    expect(block).toHaveClass('pt-3.5');
     expect(block).not.toHaveClass('py-1.5');
   });
 
@@ -964,7 +1000,7 @@ describe('EventBlock', () => {
       />,
     );
     expect(container.querySelector('.kcp-hatch')).toBeNull();
-    expect(screen.getByLabelText(/90592033/)).toHaveClass('py-1.5');
+    expect(screen.getByLabelText(/90592033/)).toHaveClass('pt-1.5');
   });
 
   it('leads the name with the status dot in flow rather than over it', () => {
@@ -1462,6 +1498,19 @@ describe('EventBlock', () => {
       );
     });
 
+    it('keeps the chips and the id on a tall card whose foot glyphs reach past their line', () => {
+      // The foot sits flush against the bottom of the column, so in Firefox the marks of its
+      // Thai chip text stood past the clip edge and the card read as overflowing: the fit
+      // dropped the id, the second name, and the chips of a three hour card with room to spare.
+      glyphsPastFlushBottom();
+      renderCard({ startMin: 780, endMin: 960 });
+      expect(screen.getByText('13:00-16:00')).toBeInTheDocument();
+      expect(screen.getByText('Test subject')).toBeInTheDocument();
+      expect(screen.getByText('กลุ่มเรียน 901')).toBeInTheDocument();
+      expect(screen.getByText('ทฤษฎี')).toBeInTheDocument();
+      expect(screen.getByText('90592033')).toBeInTheDocument();
+    });
+
     it('names a practice meeting and reads in English', () => {
       renderCard({ kind: 'practice' }, 'en');
       expect(screen.getByText('Section 901')).toBeInTheDocument();
@@ -1495,7 +1544,8 @@ describe('EventBlock', () => {
       const band = container.querySelector('[data-hatch-band]');
       expect(band).toHaveClass('kcp-hatch', 'top-0', HATCH_BAND);
       const card = screen.getByLabelText(/90592033/);
-      expect(card).toHaveClass('pt-4', 'pb-2');
+      expect(card).toHaveClass('pt-4');
+      expect(card.querySelector('[data-day-card]')).toHaveClass('pb-2');
       const id = screen.getByText('90592033');
       expect(id).toHaveClass('ml-auto', 'text-ink-soft');
     });

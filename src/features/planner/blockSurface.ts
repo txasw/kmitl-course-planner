@@ -32,11 +32,27 @@ export const CHIP_CLASS =
  * padding the content takes, so the stripes mark the block without running under its text. */
 export const HATCH_BAND = 'h-2';
 
-/** The padding of a block's content box. A danger block deepens the top by the band's height, so
- * its first line starts as far below the band as a plain block's starts below its top edge. */
+/** The padding of a block's surface on every side but the bottom. A danger block deepens the top
+ * by the band's height, so its first line starts as far below the band as a plain block's starts
+ * below its top edge. The bottom padding belongs to the measured content column instead (see
+ * contentEndPadding). */
 export function blockPadding(dayCard: boolean, danger: boolean): string {
   if (dayCard) {
-    return `${danger ? 'pt-4 pb-2' : 'py-2'} pr-2.5 pl-3.5`;
+    return `${danger ? 'pt-4' : 'pt-2'} pr-2.5 pl-3.5`;
   }
-  return `${danger ? 'pt-3.5 pb-1.5' : 'py-1.5'} pr-2 pl-2.5`;
+  return `${danger ? 'pt-3.5' : 'pt-1.5'} pr-2 pl-2.5`;
+}
+
+/** The bottom padding of a block, set on the measured content column rather than the surface
+ * (the ADR-0046 amendment on glyph extent). The column clips its overflow, and a line set flush
+ * against its bottom edge, as the day card's foot always is, draws its glyphs past its line box:
+ * the font's ascent and descent for Thai, with its vowels and tone marks, are taller than the
+ * line height. Firefox counts that glyph extent in the column's scroll height, so a tall card read
+ * as overflowing however much room it had and the fit dropped its second name, its chips, and its
+ * id, and the marks of the bottom line could be cut at the clip edge. Inside the column the padding
+ * holds the glyph extent within the clip edge. Both engines count the end padding in the scroll
+ * height once content reaches into it, so a line that runs into the padding still reads as an
+ * overflow, as it did against the surface padding. The card's outer geometry is unchanged. */
+export function contentEndPadding(dayCard: boolean): string {
+  return dayCard ? 'pb-2' : 'pb-1.5';
 }
