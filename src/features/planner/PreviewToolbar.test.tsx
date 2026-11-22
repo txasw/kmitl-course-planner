@@ -424,6 +424,31 @@ describe('PreviewToolbar share image', () => {
     expect(toastStore.getState().toast).toBeNull();
   });
 
+  it('reads as sharing while the share runs, which may only open the sheet', async () => {
+    let close: () => void = () => undefined;
+    stubShare(
+      () =>
+        new Promise<void>((resolve) => {
+          close = resolve;
+        }),
+    );
+    renderWithPoster();
+
+    fireEvent.click(screen.getByRole('button', { name: SHARE }));
+    await settle();
+    // The sheet is open: no image is being created, so the busy label names the share.
+    const busy = screen.getByRole('button', { name: 'กำลังแชร์' });
+    expect(busy).toHaveAttribute('aria-busy', 'true');
+    await act(async () => {
+      close();
+      await Promise.resolve();
+    });
+    expect(screen.getByRole('button', { name: SHARE })).toHaveAttribute(
+      'aria-busy',
+      'false',
+    );
+  });
+
   it('stays silent when the student closes the share sheet', async () => {
     stubShare(() => Promise.reject(new DOMException('closed', 'AbortError')));
     renderWithPoster();

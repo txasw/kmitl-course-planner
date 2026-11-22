@@ -28,7 +28,7 @@
 //
 // An image capture takes a moment on a large template, and a copy waits on the clipboard, so
 // while one runs the toolbar is busy: the action that started it shows a spinner and names
-// the work, creating or copying, and every action that starts work is marked
+// the work, creating, sharing, or copying, and every action that starts work is marked
 // disabled and ignores presses, so a second press cannot start a parallel run. A busy label
 // fits the width its idle label sets, so the row at rest is the row without a busy state and
 // never shifts while one runs (ADR-0027 amendment of 2026-11-22). The capture and its
@@ -124,14 +124,17 @@ export function PreviewToolbar({
     <PreviewToolbarAction
       icon={icon}
       {...labels}
-      busyLabel={t('preview.creating')}
-      busyName={t('preview.capturing')}
+      {...(action === 'share'
+        ? { busyLabel: t('preview.sharing'), id: SHARE_IMAGE_ID }
+        : {
+            busyLabel: t('preview.creating'),
+            busyName: t('preview.capturing'),
+          })}
       running={running === action}
       compact={compact}
       weight={action === 'download' ? 'primary' : 'secondary'}
       busy={busy}
       onClick={onClick}
-      {...(action === 'share' ? { id: SHARE_IMAGE_ID } : {})}
     />
   );
 
