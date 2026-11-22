@@ -28,6 +28,13 @@ Thai copy consistent with this list.
 | Building                  | อาคาร          |                                                      |
 | Plan (a saved timetable)  | ตาราง          | English label Plan; the domain type stays Plan.      |
 | Unscheduled section       | ไม่มีคาบเรียน     | A section with no meeting, such as an online course. |
+| Clash (time or exam)      | ชน             | English clash; not conflict or overlap.              |
+
+English copy names two meetings or two exams at the same time a clash, as in Time
+clash, Exam clash, No clashes, and Hide clashes, and never conflict or overlap, so
+one idea reads as one word on every surface. Code identifiers and translation keys
+keep their conflict names; the rule covers the copy alone, and the tone test fails
+on conflict or overlap in any English value.
 
 Copy that is the extension's own and has no host equivalent (empty and error
 states, section state badges, and the like) follows the plain, formal tone in
