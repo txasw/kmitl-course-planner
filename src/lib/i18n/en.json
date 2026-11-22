@@ -495,6 +495,7 @@
   "preview.exportFailed": "Could not export the image",
   "preview.capturing": "Creating image",
   "preview.creating": "Creating",
+  "preview.sharing": "Sharing",
   "preview.shareImage": "Share image",
   "preview.shareShort": "Share",
   "preview.shareReady": "The image is ready to share",
