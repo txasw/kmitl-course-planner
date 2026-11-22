@@ -192,6 +192,7 @@ export function BlockDetailSurface({
         <div className="mt-2 border-t border-border pt-2">
           <ChangeSectionList
             entry={entry}
+            locale={locale}
             t={t}
             touch={!anchored}
             focusAfterChange={focusNewSection}

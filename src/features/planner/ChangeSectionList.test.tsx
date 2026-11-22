@@ -47,16 +47,38 @@ const lecture = makeSection({
   teachTableId: 'l',
   section: '902',
   pairedSection: '932',
-  meetings: [makeMeeting({ day: 2, startMin: 540, endMin: 720 })],
+  meetings: [
+    makeMeeting({
+      day: 2,
+      startMin: 540,
+      endMin: 720,
+      building: 'D',
+      room: 'D-201',
+    }),
+  ],
+  teachersTh: ['อ. ดร. จำปูน สำอาง', 'ผศ. ดร. มธุรดา จิตรวงศ์'],
+  teachersEn: ['Dr. Champoon Sam-ang'],
+  seats: { limit: 80, preCount: 0, queueLeft: 0, enrolled: 50 },
 });
 const practice = makeSection({
   teachTableId: 'p',
   section: '932',
   pairedSection: '902',
   kind: 'practice',
+  // A second meeting from teachtime_str, and no place for an online class.
   meetings: [
     makeMeeting({ day: 4, startMin: 780, endMin: 900, kind: 'practice' }),
+    makeMeeting({
+      day: 5,
+      startMin: 780,
+      endMin: 900,
+      kind: 'practice',
+      building: '',
+      room: '',
+    }),
   ],
+  teachersTh: ['อ. ดร. จำปูน สำอาง'],
+  seats: { limit: null, preCount: 0, queueLeft: 0, enrolled: 3 },
 });
 const course = makeCourse({ sections: [current, lecture, practice] });
 
@@ -85,7 +107,7 @@ function seed(listed: Course[]): void {
 function renderList(): void {
   const entry = planStore.getState().entries[0];
   if (entry === undefined) throw new Error('expected a placed entry');
-  render(<ChangeSectionList entry={entry} t={t} />);
+  render(<ChangeSectionList entry={entry} locale="th" t={t} />);
 }
 
 const toggle = () =>
@@ -109,11 +131,110 @@ describe('ChangeSectionList', () => {
     expect(screen.queryByRole('list')).not.toBeInTheDocument();
     fireEvent.click(toggle());
     expect(toggle()).toHaveAttribute('aria-expanded', 'true');
-    const options = screen.getAllByRole('listitem');
+    const options = screen.getByRole('list', {
+      name: 'กลุ่มเรียนที่ว่างและไม่ชนกับตาราง',
+    }).children;
     expect(options).toHaveLength(1);
     expect(
-      screen.getByRole('button', { name: /^กลุ่มเรียน 902 932/ }),
+      screen.getByRole('button', { name: /^กลุ่มเรียน 902 .*กลุ่มเรียน 932/ }),
     ).toBeInTheDocument();
+  });
+
+  it('shows each part of a choice apart: section, meetings, places, seats, instructors', () => {
+    seed([course]);
+    renderList();
+    fireEvent.click(toggle());
+    const choice = screen.getByRole('button', { name: /^กลุ่มเรียน 902/ });
+    // Each member reads its code, kind, every meeting with its place, and its seats, in
+    // that order, and the pair's other half follows.
+    expect(choice).toHaveAccessibleName(
+      'กลุ่มเรียน 902 ทฤษฎี อ 09:00-12:00 D D-201 ว่าง 30 จาก 80 ' +
+        'กลุ่มเรียน 932 ปฏิบัติ พฤ 13:00-15:00 A A101 ศ 13:00-15:00 ไม่จำกัดที่นั่ง',
+    );
+    // The instructors of both halves, each once, are a labelled list the choice names
+    // as its description, outside the button so the list can scroll on its own.
+    const teachers = screen.getByRole('list', { name: 'ผู้สอน' });
+    expect(choice).not.toContainElement(teachers);
+    expect(
+      [...teachers.querySelectorAll('li')].map((item) => item.textContent),
+    ).toEqual(['อ. ดร. จำปูน สำอาง,', 'ผศ. ดร. มธุรดา จิตรวงศ์']);
+    expect(choice).toHaveAccessibleDescription(
+      'อ. ดร. จำปูน สำอาง, ผศ. ดร. มธุรดา จิตรวงศ์',
+    );
+    // jsdom lays nothing out, so the line fits: no region and no tab stop of its own.
+    expect(screen.queryByRole('region')).not.toBeInTheDocument();
+    expect(teachers.parentElement).not.toHaveAttribute('tabindex');
+  });
+
+  it('makes an instructor line that holds more than it shows a tab stop', () => {
+    const observers: ManualObserver[] = [];
+    class ManualObserver implements ResizeObserver {
+      constructor(readonly callback: ResizeObserverCallback) {
+        observers.push(this);
+      }
+      fire(): void {
+        this.callback([], this);
+      }
+      observe(): void {
+        /* fired by hand below */
+      }
+      unobserve(): void {
+        /* fired by hand below */
+      }
+      disconnect(): void {
+        /* fired by hand below */
+      }
+    }
+    const Original = globalThis.ResizeObserver;
+    globalThis.ResizeObserver = ManualObserver;
+    try {
+      seed([course]);
+      renderList();
+      fireEvent.click(toggle());
+      const scroller = screen.getByRole('list', {
+        name: 'ผู้สอน',
+      }).parentElement;
+      if (scroller === null) throw new Error('expected the instructor line');
+      Object.defineProperty(scroller, 'scrollWidth', { value: 400 });
+      Object.defineProperty(scroller, 'clientWidth', { value: 200 });
+      act(() => {
+        for (const observer of observers) observer.fire();
+      });
+      expect(screen.getByRole('region', { name: 'ผู้สอน' })).toBe(scroller);
+      expect(scroller).toHaveAttribute('tabindex', '0');
+      // Names past the end draw the fade and the ellipsis on the line.
+      expect(scroller.parentElement?.className).toContain(
+        "after:content-['…']",
+      );
+      // Scrolled to its end, the line drops the fade and stays a tab stop.
+      Object.defineProperty(scroller, 'scrollLeft', { value: 200 });
+      fireEvent.scroll(scroller);
+      expect(scroller.parentElement?.className).not.toContain('after:content');
+      expect(scroller).toHaveAttribute('tabindex', '0');
+    } finally {
+      globalThis.ResizeObserver = Original;
+    }
+  });
+
+  it('lists the English names in English', () => {
+    seed([course]);
+    const entry = planStore.getState().entries[0];
+    if (entry === undefined) throw new Error('expected a placed entry');
+    render(
+      <ChangeSectionList
+        entry={entry}
+        locale="en"
+        t={createTranslator('en')}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: `Change section ${course.subjectId}`,
+      }),
+    );
+    expect(screen.getByRole('list', { name: 'Instructors' })).toHaveTextContent(
+      'Dr. Champoon Sam-ang',
+    );
   });
 
   it('moves the subject in one undoable step and keeps focus on the toggle', () => {
