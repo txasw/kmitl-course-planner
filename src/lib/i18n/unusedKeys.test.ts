@@ -17,6 +17,8 @@ const DYNAMIC_KEY_PREFIXES = [
   'exam.',
   'compare.sort.',
   'suggest.objective.',
+  'suggest.group.',
+  'suggest.segment.',
 ] as const;
 
 const SRC_DIR = resolve(process.cwd(), 'src');

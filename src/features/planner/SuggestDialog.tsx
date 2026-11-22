@@ -12,13 +12,12 @@
 // prefs, so the dialog opens on them. It is a centered dialog at the full width on the
 // medium and docked tiers and the bottom sheet on compact.
 //
-// The dialog reads short (ADR-0054 amendment of 2026-11-21): one sentence of intro, the
-// tick list resting as a one line summary, the objective and the preference, then the
-// carousel, so a phone shows the start of the first slide and its apply action on the
-// first screen of the sheet. The apply action is the dialog's one orange control; the
-// objective takes the quiet segmented look and the selected preference an ink outline.
-// Applying hands back to the opener, which shows the timetable so the new plan is on
-// screen at once.
+// The dialog reads short (ADR-0054 amendments of 2026-11-21 and 2026-11-22): one sentence
+// of intro, the tick list headed by its group segments with the GenEd group open on its
+// first rows, the objective and the preference, then the carousel. The apply action is the
+// dialog's one orange control; the objective takes the quiet segmented look and the
+// selected preference an ink outline. Applying hands back to the opener, which shows the
+// timetable so the new plan is on screen at once.
 //
 // The slides share one frame and one grid orientation: time runs downward on compact, where
 // the phone is tall and narrow, and across on every wider tier, the way the edit grid
@@ -60,9 +59,9 @@ import { useTranslation } from '@/features/shell/useTranslation';
 import { movedFrom, sharedFrame, suggestionSections } from './suggestionFrame';
 import { SuggestionCarousel, type SuggestionView } from './SuggestionCarousel';
 import {
-  DEFAULT_GROUP_OPEN,
+  defaultOpenGroup,
   SuggestSubjects,
-  type SuggestGroupOpen,
+  type SuggestGroup,
 } from './SuggestSubjects';
 import { useSuggestions } from './useSuggestions';
 import { useSuggestTicks } from './useSuggestTicks';
@@ -193,9 +192,9 @@ export function SuggestDialog({
     setPaging({ page: next, entries });
   };
   const { groups, ticked, setTicked } = useSuggestTicks(courses, entries);
-  const [groupOpen, setGroupOpen] =
-    useState<SuggestGroupOpen>(DEFAULT_GROUP_OPEN);
-  const [subjectsExpanded, setSubjectsExpanded] = useState(false);
+  const [openGroup, setOpenGroup] = useState<SuggestGroup | null>(() =>
+    defaultOpenGroup(groups),
+  );
   const { result, busy } = useSuggestions(
     courses,
     ticked,
@@ -270,10 +269,12 @@ export function SuggestDialog({
         groups={groups}
         ticked={ticked}
         onChange={handleTicked}
-        expanded={subjectsExpanded}
-        onExpandedChange={setSubjectsExpanded}
-        open={groupOpen}
-        onOpenChange={setGroupOpen}
+        open={openGroup}
+        onOpenChange={setOpenGroup}
+        rowCap={compact ? 4 : 6}
+        onClear={() => {
+          planStore.getState().clear();
+        }}
         locale={language}
         t={t}
       />
