@@ -107,18 +107,26 @@ end of a 1.3 s capture.
   the press and the spinner keeps turning on the compositor while the clone holds the main
   thread. The added wait is one task, well inside the share sheet's activation window, and the
   held file fallback for a share that outlasts it stays as it was.
-- Every action whose outcome is a toast and that waits on work shows the same busy state: the
-  image actions of the toolbar (download, copy image, share) read creating the image, copy as
-  text and the registration list copy in the selected courses view read copying. The pressed
-  control swaps its glyph for a spinner, which stands still under reduced motion, carries
-  aria-busy, and stays aria-disabled rather than disabled, so it keeps focus. While one runs,
-  every toolbar action is marked disabled and ignores presses, so no second capture or copy
-  starts beside it; the running action keeps its full color while the others dim.
-- The idle and busy labels share one grid cell, the inactive one hidden from view and from the
-  accessible name, so a control is always as wide and as tall as the longer label and the
-  toolbar never shifts when the label changes. On a phone the action row cells already wrap a
-  label over two lines, and the busy label fits the same two lines, so the row keeps its height
-  down to 320 px.
+- Every action whose outcome is a toast and that waits on work shows the same busy state:
+  download and copy image read creating, with creating the image as their accessible name, a
+  share reads sharing, since a share of a held file only opens the sheet, and copy as text and
+  the registration list copy in the selected courses view read copying. The pressed control
+  swaps its glyph for a spinner, which stands still under reduced motion, carries aria-busy,
+  and stays aria-disabled rather than disabled, so it keeps focus. While one runs, every action
+  that starts work is marked disabled and ignores presses, so no second capture or copy starts
+  beside it; the running action keeps its full color while the others dim. The display options
+  trigger starts no work and stays enabled.
+- The busy label lies over the idle label, and the inactive one is hidden from view and from
+  the accessible name. Only the idle label takes room: the busy label sits out of flow across
+  the idle label's width on one line, and ends in an ellipsis rather than widening the
+  control. The toolbar at rest is therefore the toolbar without a busy state, at every width
+  and in both languages: at 768 px in Thai the five actions keep one row, and in the English
+  phone row, where the idle labels fit one line, every cell keeps its glyph and label where
+  they were. The busy labels are short forms chosen to fit the idle labels they replace, and
+  the export spec checks that the Thai tablet toolbar at rest keeps its one row. Sizing the
+  label by the longer of the two labels was rejected: it widened share and copy image in Thai
+  enough to wrap the row at 768 px, and lifted the glyphs of those two cells in the English
+  phone row, where the longer busy label wrapped.
 - The toolbar runs every action, the image actions and copy as text, through one guard that
   names the running action, so a share of a held file, a toast action, or a copy cannot start
   beside a capture.
@@ -129,6 +137,6 @@ end of a 1.3 s capture.
   for now; they take the same pattern if they ever wait long enough to be seen.
 
 Swapping only the glyph and keeping the label was rejected, because a spinner alone does not
-say what is running, and the label fits at every width once its width is reserved. A minimum
+say what is running, and a short busy label fits the room its idle label already takes. A minimum
 display time for a busy state that ends within a frame was rejected, because it would delay a
 result that is already done; such a copy reads through its toast as before.
