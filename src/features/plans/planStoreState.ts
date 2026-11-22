@@ -6,9 +6,9 @@
 import type { Plan, PlanEntry } from '@/lib/domain/plan';
 
 /** What an entry mutation of the active plan did. The kind drives the feedback wording
- * so a move does not read as a removal. */
+ * so a move does not read as a removal, and a clear names the subjects it took out. */
 export interface EntryUndoRecord {
-  kind: 'remove' | 'move' | 'swap';
+  kind: 'remove' | 'move' | 'swap' | 'clear';
   added: PlanEntry[];
   removed: PlanEntry[];
 }

@@ -134,6 +134,51 @@ describe('planStore write side', () => {
     expect(store.getState().pendingUndo).toBeNull();
   });
 
+  it('clears the whole plan as one step and restores it in its own order', () => {
+    const store = makeStore();
+    const a = makeSection({
+      teachTableId: 'a',
+      subjectId: 'S1',
+      section: '901',
+      meetings: [makeMeeting({ day: 1 })],
+    });
+    const b = makeSection({
+      teachTableId: 'b',
+      subjectId: 'S2',
+      section: '901',
+      meetings: [makeMeeting({ day: 3 })],
+    });
+    store.getState().add(courseFor(a), a, SOURCE_QUERY);
+    store.getState().add(courseFor(b), b, SOURCE_QUERY);
+    const planId = store.getState().activePlanId;
+
+    store.getState().clear();
+    expect(store.getState().entries).toEqual([]);
+    expect(store.getState().plans[0]?.entries).toEqual([]);
+    expect(store.getState().pendingUndo).toMatchObject({
+      kind: 'clear',
+      added: [],
+      removed: [{ teachTableId: 'a' }, { teachTableId: 'b' }],
+    });
+
+    store.getState().undo();
+    expect(store.getState().activePlanId).toBe(planId);
+    expect(store.getState().entries.map((entry) => entry.teachTableId)).toEqual(
+      ['a', 'b'],
+    );
+    expect(store.getState().pendingUndo).toBeNull();
+  });
+
+  it('leaves an empty plan and its pending undo alone on clear', () => {
+    const store = makeStore();
+    const a = makeSection({ teachTableId: 'a', subjectId: 'S1' });
+    store.getState().add(courseFor(a), a, SOURCE_QUERY);
+    store.getState().remove('a');
+    const pending = store.getState().pendingUndo;
+    store.getState().clear();
+    expect(store.getState().pendingUndo).toBe(pending);
+  });
+
   it('clears the pending undo on the next add', () => {
     const store = makeStore();
     const first = makeSection({

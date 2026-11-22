@@ -136,6 +136,29 @@ describe('UndoToast', () => {
     expect(screen.getByText('นำออกแล้ว 2 รายการ')).toBeInTheDocument();
   });
 
+  it('names how many subjects a clear removed, counting a pair once', () => {
+    const entry = (teachTableId: string, subjectId: string) =>
+      makePlanEntry({ snapshot: makeSnapshot({ teachTableId, subjectId }) });
+    const a = entry('c1', '90592001');
+    // Both halves of a pair carry one subject id, so they count as one subject.
+    const pairHalf = entry('c2', '90592001');
+    const b = entry('c3', '90592002');
+    const record: UndoRecord = {
+      kind: 'clear',
+      added: [],
+      removed: [a, pairHalf, b],
+    };
+    seedUndo(record);
+    render(<UndoToast record={record} locale="th" t={t} />);
+    expect(screen.getByText('ล้างตารางแล้ว นำออก 2 วิชา')).toBeInTheDocument();
+    cleanup();
+    const one: UndoRecord = { kind: 'clear', added: [], removed: [a] };
+    render(<UndoToast record={one} locale="en" t={createTranslator('en')} />);
+    expect(
+      screen.getByText('Plan cleared. Subjects removed: 1'),
+    ).toBeInTheDocument();
+  });
+
   it('sizes undo and close as shared touch targets', () => {
     const record = removeRecord();
     seedUndo(record);

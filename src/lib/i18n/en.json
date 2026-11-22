@@ -274,6 +274,7 @@
   "term.open": "Open the {term} plan",
   "term.create": "Create a {term} plan",
   "feedback.removed": "Removed",
+  "feedback.cleared": "Plan cleared. Subjects removed: {count}",
   "feedback.moreConflicts": "more conflicts",
   "feedback.moreConflictOne": "more conflict",
   "unit.sections": "sections",

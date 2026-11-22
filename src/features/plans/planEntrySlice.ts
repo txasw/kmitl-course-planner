@@ -41,6 +41,8 @@ export interface PlanEntryActions {
     sourceQuery: SourceQuery,
   ) => AddOutcome;
   remove: (teachTableId: string) => void;
+  /** Remove every entry of the active plan as one undoable step. */
+  clear: () => void;
   apply: (
     removeIds: string[],
     add: AddInput,
@@ -156,6 +158,21 @@ export function createPlanEntrySlice(
       }
     },
 
+    clear: () => {
+      const state = get();
+      const active = activePlanOf(state);
+      if (active === undefined || active.entries.length === 0) {
+        return;
+      }
+      const now = deps.now();
+      const entries: PlanEntry[] = [];
+      set({
+        plans: replaceEntries(state.plans, active.id, entries, now),
+        entries,
+        pendingUndo: { kind: 'clear', added: [], removed: active.entries },
+      });
+    },
+
     apply: (removeIds, add, kind) => {
       const now = deps.now();
       const state = get();
@@ -214,10 +231,13 @@ export function createPlanEntrySlice(
         pending.added.map((entry) => entry.teachTableId),
       );
       // Restore the removed entries in reverse order, so a coalesced record brings back
-      // the most recent removal first, undoing the folds newest to oldest.
+      // the most recent removal first, undoing the folds newest to oldest. A clear took
+      // the whole plan at once, so it comes back in the plan's own order.
       const entries = [
         ...active.entries.filter((entry) => !addedIds.has(entry.teachTableId)),
-        ...[...pending.removed].reverse(),
+        ...(pending.kind === 'clear'
+          ? pending.removed
+          : [...pending.removed].reverse()),
       ];
       set({
         plans: replaceEntries(state.plans, active.id, entries, now),
