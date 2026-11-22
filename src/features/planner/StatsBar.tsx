@@ -25,7 +25,7 @@
 // without the free days, which describe the student's week rather than the timetable
 // being shared.
 
-import type { ReactNode } from 'react';
+import type { ReactNode, Ref } from 'react';
 import { CalendarOff } from 'lucide-react';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { Semester } from '@/lib/routing/academicTerms';
@@ -57,6 +57,8 @@ interface StatsBarProps {
   action?: ReactNode;
   /** Whether the row sits on a phone, which keeps it to the slim facts. */
   compact?: boolean;
+  /** The row's root, which the panel names as the foot a toast floats above. */
+  footRef?: Ref<HTMLDivElement>;
   locale: Locale;
   t: Translate;
 }
@@ -69,6 +71,7 @@ export function StatsBar({
   status,
   action,
   compact = false,
+  footRef,
   locale,
   t,
 }: StatsBarProps) {
@@ -87,6 +90,7 @@ export function StatsBar({
   if (compact) {
     return (
       <div
+        ref={footRef}
         role="group"
         aria-label={t('stats.region')}
         className="flex shrink-0 flex-col gap-1 border-t border-border pt-1.5 text-xs text-ink-soft"
@@ -115,6 +119,7 @@ export function StatsBar({
 
   return (
     <div
+      ref={footRef}
       role="group"
       aria-label={t('stats.region')}
       className="flex shrink-0 items-center gap-2 border-t border-border pt-2 text-xs text-ink-soft"

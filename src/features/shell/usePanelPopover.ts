@@ -16,7 +16,7 @@
 // the node ever lands part way across a line of the hour row, of the timetable, or of the
 // status row under it, however tall the detail grows, and its side edge never meets an hour
 // label centred on its gridline. Its body scrolls inside that height, and the column's own
-// size is watched, so a status row lifted by a toast keeps the node's foot above it.
+// size is watched, so a status row that wraps onto another line keeps the node's foot above it.
 
 import { useMemo } from 'react';
 import { useOpenSurface } from './attentionStore';
@@ -76,7 +76,7 @@ function fillColumn({ area: column, head }: PanelColumn): Middleware {
 }
 
 /** Keep a column node placed as the page moves, and as the column itself resizes, which
- * the anchor and the node alone do not show: a toast band that lifts the status row
+ * the anchor and the node alone do not show: a status row that wraps onto another line
  * shortens the plan area without moving or resizing the block. */
 function watchColumn(column: PanelColumn) {
   return (

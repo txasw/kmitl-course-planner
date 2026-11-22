@@ -1,4 +1,5 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
+import { useRef } from 'react';
 import {
   render,
   screen,
@@ -19,6 +20,7 @@ import { TARGET_SIZE } from '@/lib/ui/target';
 import { swipe } from '../../../tests/support/swipe';
 import { installViewport } from '../../../tests/support/viewport';
 import { useBottomSheetPresence } from './sheetToastBand';
+import { useToastFoot } from './toastFloor';
 import { Toaster } from './Toaster';
 import { toastStore } from './toastStore';
 import { uiStore } from './uiStore';
@@ -226,8 +228,8 @@ describe('Toaster', () => {
     // Edit runs the bottom nav along the foot.
     expect(region).toHaveClass(ABOVE_FOOT);
     expect(region).not.toHaveClass(AT_FOOT);
-    // The export page has no nav; its sharing toolbar rises above the toast through the
-    // plan region's band instead.
+    // The export page has no nav; the region floats above its sharing toolbar once the
+    // plan region names it as the foot.
     act(() => {
       uiStore.getState().setViewMode('preview');
     });
@@ -238,6 +240,53 @@ describe('Toaster', () => {
       viewport.resize(768);
     });
     expect(region).toHaveClass(AT_FOOT);
+  });
+
+  it('floats above the foot the plan region names, measured by the foot alone', () => {
+    const viewport = installViewport(1366);
+    act(() => {
+      uiStore.getState().open();
+    });
+    function Foot({ height }: { height: number }) {
+      const ref = useRef<HTMLDivElement>(null);
+      useToastFoot(ref, 'status');
+      return <div ref={ref} style={{ height }} />;
+    }
+    const spy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue(new DOMRect(0, 0, 100, 40));
+    try {
+      const { container, rerender } = render(
+        <>
+          <Toaster />
+          <Foot height={40} />
+        </>,
+      );
+      const region = container.querySelector<HTMLElement>(
+        '[aria-live="polite"]',
+      );
+      // The panel padding, the 40 px status row, and the gap, above the safe area inset.
+      expect(region?.style.bottom).toBe('calc(64px + var(--kcp-safe-bottom))');
+      expect(region).not.toHaveClass(
+        'bottom-[max(16px,var(--kcp-safe-bottom))]',
+      );
+      // A toast that shows changes nothing the offset reads.
+      act(() => {
+        toastStore.getState().show('success', 'Done');
+      });
+      expect(region?.style.bottom).toBe('calc(64px + var(--kcp-safe-bottom))');
+      // On the phone the bottom nav runs under the status row, so the offset clears both.
+      act(() => {
+        viewport.resize(390);
+      });
+      expect(region?.style.bottom).toBe('calc(120px + var(--kcp-safe-bottom))');
+      // With no foot named the region rests above the nav again.
+      rerender(<Toaster />);
+      expect(region?.style.bottom).toBe('');
+      expect(region).toHaveClass('bottom-[calc(72px+var(--kcp-safe-bottom))]');
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('drops to the foot while a bottom sheet covers the phone foot controls', () => {

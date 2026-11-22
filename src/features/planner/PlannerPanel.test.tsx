@@ -11,7 +11,8 @@ import {
 import { planStore } from '@/features/plans/planStore';
 import { revalidationStore } from '@/features/plans/revalidationStore';
 import { searchStore } from '@/features/search/searchStore';
-import { setToastHeight } from '@/features/shell/sheetToastBand';
+import { useToastFootHeight } from '@/features/shell/toastFloor';
+import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { normalizeTeachTable } from '@/lib/domain/normalize';
 import type { PlanEntry } from '@/lib/domain/plan';
@@ -992,50 +993,106 @@ describe('PlannerPanel stats bar', () => {
     }
   });
 
-  it('ends in a band as tall as a toast under the stats bar while one shows', () => {
+  // A toast floats above the foot the panel names, so the panel reads the foot's own box
+  // and never the toast's; jsdom lays out nothing, so each node reports a fixed height.
+  function withFootHeight(height: number): () => void {
+    const spy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue(new DOMRect(0, 0, 100, height));
+    return () => {
+      spy.mockRestore();
+    };
+  }
+
+  function FootProbe() {
+    return <output data-foot-probe>{useToastFootHeight()}</output>;
+  }
+
+  function footHeight(): string | null {
+    return document.querySelector('[data-foot-probe]')?.textContent ?? null;
+  }
+
+  it('names the stats bar as the foot a toast floats above and keeps no band', () => {
     installViewport(1366);
     seedTwoSubjects();
-    const { container } = renderPanel();
-    expect(container.querySelector('[data-toast-band]')).toBeNull();
-    act(() => {
-      setToastHeight(52);
-    });
+    const restore = withFootHeight(52);
     try {
-      const band = container.querySelector<HTMLElement>('[data-toast-band]');
-      expect(band).toHaveStyle({ height: '60px' });
-      // The band follows the stats bar, so the bar rises above the toast.
-      expect(
-        stats().compareDocumentPosition(band as Node) &
-          Node.DOCUMENT_POSITION_FOLLOWING,
-      ).toBeTruthy();
+      const { unmount } = render(<FootProbe />);
+      const panel = renderPanel();
+      expect(footHeight()).toBe('52');
+      // A toast that shows adds nothing to the region, so nothing in it moves.
+      act(() => {
+        toastStore.getState().show('success', 'Done');
+      });
+      expect(panel.container.querySelector('[data-toast-band]')).toBeNull();
+      expect(stats().nextElementSibling).toBeNull();
+      panel.unmount();
+      expect(footHeight()).toBe('0');
+      unmount();
     } finally {
       act(() => {
-        setToastHeight(0);
+        toastStore.getState().dismiss();
       });
+      restore();
     }
-    expect(container.querySelector('[data-toast-band]')).toBeNull();
   });
 
-  it('lifts the phone sharing toolbar above the toast band', () => {
+  it('names the phone sharing toolbar as the foot on the export page', () => {
     installViewport(390);
     seedTwoSubjects();
-    act(() => {
-      uiStore.getState().setViewMode('preview');
-      setToastHeight(52);
-    });
+    const restore = withFootHeight(140);
     try {
-      const { container } = renderPanel();
-      const band = container.querySelector('[data-toast-band]');
-      expect(band).not.toBeNull();
-      expect(
-        (band as Node).compareDocumentPosition(screen.getByRole('toolbar')) &
-          Node.DOCUMENT_POSITION_PRECEDING,
-      ).toBeTruthy();
-    } finally {
       act(() => {
-        setToastHeight(0);
+        uiStore.getState().setViewMode('preview');
       });
+      render(<FootProbe />);
+      renderPanel();
+      expect(footHeight()).toBe('140');
+      expect(screen.getByRole('toolbar').nextElementSibling).toBeNull();
+    } finally {
+      restore();
     }
+  });
+
+  it('names no foot from 640 px up on the export page, where the toolbar heads it', () => {
+    installViewport(1366);
+    seedTwoSubjects();
+    const restore = withFootHeight(52);
+    try {
+      act(() => {
+        uiStore.getState().setViewMode('preview');
+      });
+      render(<FootProbe />);
+      renderPanel();
+      expect(footHeight()).toBe('0');
+    } finally {
+      restore();
+    }
+  });
+
+  it('names no foot while the phone shows the catalog pane over the plan', () => {
+    installViewport(390);
+    seedTwoSubjects();
+    const restore = withFootHeight(52);
+    try {
+      act(() => {
+        uiStore.getState().setMobilePane('catalog');
+      });
+      render(<FootProbe />);
+      renderPanel();
+      expect(footHeight()).toBe('0');
+    } finally {
+      restore();
+    }
+  });
+
+  it('pads the timetable scroller for a toast at rest', () => {
+    installViewport(1366);
+    seedTwoSubjects();
+    renderPanel();
+    const grid = screen.getByRole('group', { name: 'ตารางเรียนรายสัปดาห์' });
+    const scroller = grid.closest('.overflow-auto');
+    expect(scroller).toHaveClass('pb-15', 'scroll-pb-15');
   });
 
   it('renders the stats bar of an empty plan with the suggest action alone, and none in preview', () => {

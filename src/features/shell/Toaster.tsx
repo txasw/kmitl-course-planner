@@ -15,21 +15,20 @@
 // a screen reader announces a toast in the voice of the language it is written in. It
 // keeps its 16 px offset from the viewport edges, or the device safe area inset where
 // that is larger, so a toast never sits under the home indicator or a rounded corner.
-// While the phone layout's bottom nav runs along the open panel's foot in edit, the region
-// rises 72 px above the bottom inset, clear of the 56 px nav, so a toast never covers the
-// item its own action, such as ดูตาราง, leads to. The sharing toolbar of the phone export
-// page is part of the plan region, which ends in a band as tall as the toast, so the
-// toolbar, its status line, and the share action a share toast offers again all rise above
-// a toast at the foot. While a bottom sheet is open it covers the nav and owns the foot, so
-// the region drops back to the foot and the sheet ends in a band the toast sits in, clear
-// of the sheet's content.
+// A toast never moves the layout (ADR-0048 amendment of 2026-11-22): it floats over the
+// plan, and while the plan region names a foot element, the status row in edit or the
+// phone sharing toolbar on the export page, the region floats above that element and the
+// bottom nav under it, over the bottom of the timetable, so the status row, the nav item a
+// toast's action such as ดูตาราง leads to, and the toolbar with its status line stay in
+// view (toastFloor). With no foot named, as over the phone catalog pane, the region rises
+// 72 px above the bottom inset while the nav runs along the open panel's foot, clear of the
+// 56 px nav. While a bottom sheet is open it covers the nav and owns the foot, so the
+// region drops back to the foot and the sheet ends in a band the toast sits in, clear of
+// the sheet's content.
 //
 // The panel focus trap follows the region by its id, so a toast's controls join the Tab
 // order after the panel's last control while the panel is open; Tab reaches an undo
 // without the toast ever taking focus when it appears.
-//
-// The region reports the height of what it shows, so the plan region can end in a band
-// of that height and its status row never sits under a toast (sheetToastBand).
 //
 // While the product tour is open (ADR-0074) the region shows nothing, since the tour card
 // sits along the same foot and a toast laid over it would cover its buttons. The live
@@ -46,8 +45,8 @@ import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { TOAST_REGION_ID, toastStore, type Toast } from './toastStore';
 import { useBottomNavShown } from './mobilePane';
-import { setToastHeight, useBottomSheetOpen } from './sheetToastBand';
-import { useElementSize } from './useElementSize';
+import { useBottomSheetOpen } from './sheetToastBand';
+import { toastBottomOverFoot, useToastFootHeight } from './toastFloor';
 import { useHoverFocusHold, type HoldHandlers } from './useHoverFocusHold';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
@@ -156,18 +155,11 @@ export function Toaster() {
   const touring = useStore(onboardingStore, (state) => state.tourOpen);
   const { t, language } = useTranslation();
   const sheetOpen = useBottomSheetOpen();
-  const aboveFoot = useBottomNavShown() && isOpen && !sheetOpen;
-  const regionRef = useRef<HTMLDivElement>(null);
-  const { height } = useElementSize(regionRef);
-  useEffect(() => {
-    setToastHeight(height);
-  }, [height]);
-  useEffect(
-    () => () => {
-      setToastHeight(0);
-    },
-    [],
-  );
+  const navShown = useBottomNavShown();
+  const footHeight = useToastFootHeight();
+  const overPanel = isOpen && !sheetOpen;
+  const overFoot = overPanel && footHeight > 0;
+  const aboveNav = overPanel && navShown && !overFoot;
 
   // The undo toast owns the region while the panel is open; an ordinary toast waits.
   const showUndo = pendingUndo !== null && isOpen;
@@ -217,15 +209,21 @@ export function Toaster() {
 
   return (
     <div
-      ref={regionRef}
       id={TOAST_REGION_ID}
       aria-live="polite"
       aria-atomic="true"
       lang={language}
+      style={
+        overFoot
+          ? { bottom: toastBottomOverFoot(footHeight, navShown) }
+          : undefined
+      }
       className={`pointer-events-none fixed inset-x-0 z-host flex justify-center pr-[max(16px,var(--kcp-safe-right))] pl-[max(16px,var(--kcp-safe-left))] ${
-        aboveFoot
-          ? 'bottom-[calc(72px+var(--kcp-safe-bottom))]'
-          : 'bottom-[max(16px,var(--kcp-safe-bottom))]'
+        overFoot
+          ? ''
+          : aboveNav
+            ? 'bottom-[calc(72px+var(--kcp-safe-bottom))]'
+            : 'bottom-[max(16px,var(--kcp-safe-bottom))]'
       }`}
     >
       {touring ? null : pendingUndo !== null && isOpen ? (
