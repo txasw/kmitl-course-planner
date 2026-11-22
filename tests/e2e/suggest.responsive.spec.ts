@@ -168,6 +168,44 @@ test('applies a suggested timetable from the compact layouts', async ({
   );
 });
 
+test('lands on a day card that shows every field it has room for', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  test.skip(!isPhone(page), 'the day card is the phone timetable');
+  const catalog = await curriculumSearch(page);
+  await catalog.getByRole('button', { name: 'แนะนำตาราง' }).click();
+  const dialog = page.getByRole('dialog', { name: 'แนะนำตาราง' });
+  await dialog
+    .locator('[data-suggest-slide]:not([inert]), [data-suggest-footer]')
+    .getByRole('button', { name: 'ใช้ตารางนี้' })
+    .click();
+  await expect(dialog).toHaveCount(0);
+  await expect(
+    bottomNav(page).getByRole('button', { name: 'ตารางเรียน' }),
+  ).toBeFocused();
+  // A three hour card has room for the chips and the id at its foot. Firefox counted the
+  // glyph extent of the Thai chip text, set flush against the bottom of the measured column,
+  // as an overflow, so the fit dropped the second name, the chips, and the id of a card with
+  // room to spare. The column now holds its bottom padding, so the foot stands clear of the
+  // clip edge by at least a quarter of its type size in every engine.
+  const card = page.locator('[data-day-card]').first();
+  await expect(card).toBeInViewport();
+  await expect(card.getByText(/^กลุ่มเรียน \d+$/)).toBeVisible();
+  await expect(card.getByText(/^(ทฤษฎี|ปฏิบัติ)$/)).toBeVisible();
+  await expect(card.locator('[data-fit-whole="id"]')).toHaveText(/^\d{8}$/);
+  await expect(card.locator('[data-fit-whole="secondary"]')).toBeVisible();
+  const clearance = await card.evaluate((column) => {
+    const foot = column.lastElementChild;
+    if (foot === null) throw new Error('the day card has no foot');
+    const room =
+      column.getBoundingClientRect().bottom -
+      foot.getBoundingClientRect().bottom;
+    return room / parseFloat(getComputedStyle(foot).fontSize);
+  });
+  expect(clearance).toBeGreaterThanOrEqual(0.25);
+});
+
 test('explains the curriculum search before one ran and opens it', async ({
   context,
 }) => {
