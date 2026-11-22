@@ -837,8 +837,9 @@
   }
 }
 
-/* Blocked placement ghost: a hatched danger overlay over the danger soft fill, so
-   the blocked footprint reads differently from the valid one at a glance. */
+/* The danger hatch: over the danger soft fill of a blocked placement ghost, so the blocked
+   footprint reads differently from the valid one at a glance, and as the band across the top
+   of a missing or conflicting placed block. */
 .kcp-hatch {
   background-image: repeating-linear-gradient(
     45deg,
@@ -847,18 +848,6 @@
     transparent 5px,
     transparent 11px
   );
-}
-
-/* The solid backdrop each text line of a hatched block sits on: the soft card's top tint
-   made opaque, so the hatch shows around the text and never runs through it, and the text
-   keeps the contrast the palette tests prove on the card fill. */
-.kcp-hatch-backdrop {
-  background-color: color-mix(
-    in srgb,
-    var(--kcp-tint, var(--kcp-ink-muted)) var(--kcp-tint-strong),
-    var(--kcp-surface)
-  );
-  border-radius: 2px;
 }
 
 /* A blocking block pulses twice to draw the eye to the conflict during a drag. */

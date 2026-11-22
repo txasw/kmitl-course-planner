@@ -197,6 +197,8 @@ would cost more than the rare broken word it saves, so the case is accepted and 
 
 ## Amendment, 2026-11-21: text over the danger hatch sits on a solid backdrop
 
+Superseded by the amendment of 2026-11-22 that moves the hatch to a band above the text.
+
 Context. The same review found the hatch stripes of a missing or conflicting block running
 through its text. Switching the quiet lines to ink kept the contrast on a stripe, but the stripes
 still crossed the glyphs and made a dense Thai name hard to read.
@@ -210,6 +212,36 @@ preview poster and its export alone, and that path draws no hatch (ADR-0055).
 
 Consequences. A hatched block in the edit grid reads as text on its fill with stripes in the
 gaps. The ring and the stripes still mark the block as missing or in conflict.
+
+## Amendment, 2026-11-22: the danger hatch is a band above the text
+
+Context. The 1.6.0 gate review found the missing entry block unfinished beside its neighbours.
+Each line sat on its own backdrop sized to its text, so the plates read as patches, the secondary
+name and the gaps between lines still showed stripes, and the place row shrank to its text, which
+pulled the section chip in from the row end where every other block holds it. The block read as a
+different component rather than the same card in a danger state.
+
+Decision. A missing or conflicting block keeps the soft block anatomy whole: the accent stripe, the
+name, the secondary name, the place row with the section chip at its end, and the quiet foot, in
+the same classes and the same ink soft quiet lines as any other block. The danger state is the
+inset danger ring on an overlay, the danger status dot leading the name, and the hatch as a band
+8 px tall across the top of the card. The content clears the band with a deeper top padding, 14 px
+on a week block and 16 px on the phone day card, so no line ever sits on the stripes and the
+per line backdrop is retired. The rule holds on the edit grid, the phone week and the phone day
+card alike. The preview poster and its export draw no verification marks (ADR-0055), so their
+path is unchanged.
+
+Alternatives considered. A uniform backing under the whole text column, with the hatch showing
+only in the padding around it, was rejected: the padding leaves a frame of 4 to 6 px of stripes
+that reads as a double border rather than a hatch, and the text would sit flush against the
+backing edge. A band down the right edge was rejected because it takes width from a narrow week
+column, where the name needs every pixel to break between its words; the band takes height, which
+the density ladder already trades for the lowest priority field.
+
+Consequences. A danger block reads as a finished card with a caution band, and its quiet lines
+regain the ink soft the palette tests prove on the card fill, so the test that proved ink over a
+stripe is retired. A danger block spends 8 px of height on the band, which the measured fit
+absorbs by dropping its lowest priority field first on a short meeting.
 
 ## Amendment, 2026-11-21: the phone day card
 

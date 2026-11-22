@@ -149,15 +149,13 @@ describe('flat subject tint', () => {
 
 // The soft depth block of the ADR-0047 amendment of 2026-11-20: the soft card of ADR-0071
 // tinted by the subject color, a 3 px stripe of the solid color down its left edge, and on a
-// flagged block a status dot leading the name and, for danger, a hatch with an inset ring over
-// the fill. The fill fades from the strong stop at the top to the weak stop, so every pair is
-// proven on both: text at 4.5:1, and the stripe, the dots, and the ring as UI at 3:1.
+// flagged block a status dot leading the name and, for danger, an inset ring and a hatched band
+// across the top that no text sits on. The fill fades from the strong stop at the top to the weak
+// stop, so every pair is proven on both: text at 4.5:1, and the stripe, the dots, and the ring as
+// UI at 3:1. The text of a danger block reads on the same fill, so these pairs prove it too.
 const SURFACE = shadowToken('surface');
 const DANGER = shadowToken('danger');
 const WARN = shadowToken('warn');
-// The stripe alpha of the .kcp-hatch rule in style.css: the danger color mixed in at 24
-// percent over transparent, so a stripe composites over the fill at that alpha.
-const HATCH_ALPHA = 0.24;
 
 function softStops(color: string): { stop: string; fill: string }[] {
   return (['strong', 'weak'] as const).map((stop) => ({
@@ -181,13 +179,6 @@ describe('soft depth event block', () => {
       it(`shows the status dots and the danger ring on the ${stop} stop of ${color}`, () => {
         expect(contrastRatio(DANGER, fill)).toBeGreaterThanOrEqual(3);
         expect(contrastRatio(WARN, fill)).toBeGreaterThanOrEqual(3);
-      });
-
-      it(`reads ink through the hatch on the ${stop} stop of ${color}`, () => {
-        // Ink soft falls under 4.5:1 on a hatch stripe, so a hatched block sets its quiet
-        // lines, the English name, the chip, and the foot, in ink as well.
-        const hatched = alphaOver(DANGER, HATCH_ALPHA, fill);
-        expect(contrastRatio(INK, hatched)).toBeGreaterThanOrEqual(4.5);
       });
     }
   }

@@ -22,13 +22,7 @@ import type { Locale, Translate } from '@/lib/i18n/t';
 import type { DensityLevel } from '@/lib/planner/blockDensity';
 import type { BlockBadge } from './blockBadge';
 import { CHIP_CLASS } from './blockSurface';
-import {
-  HATCH_BACKDROP,
-  NAME_CLAMP,
-  WHOLE_FIELD,
-  nameClampStyle,
-  nameLine,
-} from './blockText';
+import { NAME_CLAMP, WHOLE_FIELD, nameClampStyle, nameLine } from './blockText';
 
 interface DayCardContentProps {
   contentRef: RefObject<HTMLDivElement | null>;
@@ -75,13 +69,8 @@ export function DayCardContent({
   reserveRemove,
   t,
 }: DayCardContentProps) {
-  // The quiet lines read ink soft, except over the danger hatch, where only ink keeps 4.5:1.
-  const quiet = badge === 'danger' ? 'text-ink' : 'text-ink-soft';
-  const backdrop = badge === 'danger' ? HATCH_BACKDROP : '';
   const line = nameLine(level, name, nameLang, abbreviations);
-  // Over the danger hatch each foot item takes its own backdrop rather than the foot as a
-  // whole, so the foot keeps its full width and the id still sits at its right edge.
-  const chip = `shrink-0 rounded-kcp-inner px-1.5 ${CHIP_CLASS} ${quiet} ${backdrop}`;
+  const chip = `shrink-0 rounded-kcp-inner px-1.5 ${CHIP_CLASS} text-ink-soft`;
   const clearance = reserveRemove ? REMOVE_CLEARANCE : '';
   const dot =
     badge === null ? null : (
@@ -98,14 +87,12 @@ export function DayCardContent({
       ref={contentRef}
       data-fit
       data-day-card
-      className={`flex min-h-0 flex-1 flex-col gap-0.5 overflow-hidden ${
-        badge === 'danger' ? 'relative' : ''
-      }`}
+      className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-hidden"
     >
       {level.showTime ? (
         <span
           data-fit-whole="time"
-          className={`${WHOLE_FIELD} shrink-0 text-[1.1em] font-semibold tabular-nums ${backdrop} ${clearance}`}
+          className={`${WHOLE_FIELD} shrink-0 text-[1.1em] font-semibold tabular-nums ${clearance}`}
         >
           {dot}
           {time}
@@ -115,7 +102,7 @@ export function DayCardContent({
         data-fit-name
         data-name-form={level.nameForm}
         lang={line.lang}
-        className={`shrink-0 text-[1.2em] font-semibold ${line.className} ${backdrop} ${
+        className={`shrink-0 text-[1.2em] font-semibold ${line.className} ${
           level.nameLines === 'all' ? '' : NAME_CLAMP
         } ${level.showTime ? '' : clearance}`}
         style={nameClampStyle(level.nameLines)}
@@ -127,14 +114,14 @@ export function DayCardContent({
         <span
           data-fit-whole="secondary"
           lang={secondaryLang ?? undefined}
-          className={`shrink-0 overflow-hidden break-normal ${backdrop} ${quiet}`}
+          className={`shrink-0 overflow-hidden break-normal text-ink-soft`}
         >
           {secondary}
         </span>
       ) : null}
       {level.showPlace ? (
         <span
-          className={`mt-0.5 shrink-0 break-words ${roomless ? quiet : 'text-ink'} ${backdrop}`}
+          className={`mt-0.5 shrink-0 break-words ${roomless ? 'text-ink-soft' : 'text-ink'}`}
         >
           <MapPin
             size="0.95em"
@@ -161,7 +148,7 @@ export function DayCardContent({
           {level.showId ? (
             <span
               data-fit-whole="id"
-              className={`${WHOLE_FIELD} ml-auto tabular-nums ${quiet} ${backdrop}`}
+              className={`${WHOLE_FIELD} ml-auto tabular-nums text-ink-soft`}
             >
               {subjectId}
             </span>
