@@ -77,6 +77,23 @@ describe('ExamSchedulePanel', () => {
     );
   });
 
+  it.each([
+    ['th', 'กลุ่มเรียน 34 และ 35'],
+    ['en', 'Sections 34 and 35'],
+  ] as const)(
+    'joins the sections of a declared pair with a conjunction in %s',
+    (locale, label) => {
+      renderPanel(
+        [
+          entry('a', '10000001', { midterm: MID_A }, '34'),
+          entry('b', '10000001', { midterm: MID_A }, '35'),
+        ],
+        locale,
+      );
+      expect(screen.getByText(label)).toBeVisible();
+    },
+  );
+
   it('marks an overlap with a danger edge and names the other subject', () => {
     const { container } = renderPanel([
       entry('a', '10000001', { midterm: MID_A }),

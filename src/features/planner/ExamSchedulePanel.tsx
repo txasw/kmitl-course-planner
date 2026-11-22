@@ -14,6 +14,7 @@ import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import { dayFullLabelKey } from '@/lib/i18n/dayLabel';
 import { pickLocalized } from '@/lib/i18n/localize';
 import { fillTemplate } from '@/lib/i18n/template';
+import { sectionCodesLabel } from '@/lib/i18n/list';
 import type { ExamKind } from '@/lib/planner/examOverlap';
 import type {
   ExamDay,
@@ -184,7 +185,7 @@ function SubjectLines({ subject, locale, t }: SubjectLinesProps) {
         ) : null}
       </p>
       <p className="text-xs text-ink-soft tabular-nums">
-        {t('section.code')} {subject.sections.join(' ')}
+        {sectionCodesLabel(t, subject.sections)}
       </p>
     </>
   );

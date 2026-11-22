@@ -8,6 +8,7 @@
 import { useStore } from 'zustand';
 import type { Translate } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
+import { sectionCodesLabel } from '@/lib/i18n/list';
 import {
   replaceOptions,
   type ReplaceOption,
@@ -82,7 +83,7 @@ export function ReplaceActions({
     >
       {fillTemplate(t('feedback.replace'), {
         subject: option.subjectId,
-        section: `${t('section.code')} ${option.sections.join(' ')}`,
+        section: sectionCodesLabel(t, option.sections),
       })}
     </button>
   ));
