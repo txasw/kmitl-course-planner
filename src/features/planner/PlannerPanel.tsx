@@ -292,15 +292,21 @@ export function PlannerPanel() {
   // The element along the panel foot a toast floats above: the status row in edit, unless
   // the phone shows the catalog pane over the plan, and below 640 px the sharing toolbar of
   // the export page, which from 640 px up heads the poster instead.
+  // The unscheduled shelf over the status row scrolls with neither it nor the timetable,
+  // so it counts as part of the foot and a toast floats above it too.
   const footRef = useRef<HTMLDivElement>(null);
+  const shelfRef = useRef<HTMLElement>(null);
+  const shelfShown = planView === 'timetable' && unscheduled.length > 0;
   const footKind = isPreview
     ? showTabs
       ? null
       : 'toolbar'
     : !showTabs && pane === 'catalog'
       ? null
-      : 'status';
-  useToastFoot(footRef, footKind);
+      : shelfShown
+        ? 'status-shelf'
+        : 'status';
+  useToastFoot(footRef, footKind, shelfRef);
   // The tabpanel semantics apply only while the tabs render to name the panel.
   const panelProps = showTabs
     ? {
@@ -453,6 +459,7 @@ export function PlannerPanel() {
           />
           {unscheduled.length > 0 ? (
             <UnscheduledShelf
+              shelfRef={shelfRef}
               sections={unscheduled}
               locale={language}
               t={t}

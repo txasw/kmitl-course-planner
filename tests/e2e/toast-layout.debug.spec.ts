@@ -1,7 +1,19 @@
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Locator } from '@playwright/test';
-import { test, expect } from './support/fixtures';
+import {
+  test,
+  expect,
+  editSearch,
+  expandCourse,
+  openPlanner,
+  pickOption,
+  submitSearch,
+} from './support/fixtures';
+import {
+  addCourse as addSynthetic,
+  syntheticSearch,
+} from './support/synthetic';
 import {
   addCourse,
   blockDetail,
@@ -232,3 +244,55 @@ for (const language of ['th', 'en'] as const) {
     }
   });
 }
+
+// The unscheduled shelf sits between the timetable and the status row and scrolls with
+// neither, so it counts as part of the foot: a toast floats above it rather than over its
+// rows, which no scroll could bring clear of the toast, and the shelf does not move.
+test('a toast floats above the unscheduled shelf and moves nothing', async ({
+  context,
+}) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  const page = await openPlanner(context);
+  // The by_class all curricula path surfaces the unscheduled online course 01006029.
+  await pickOption(page, 'คณะ', '01');
+  await pickOption(page, 'ภาควิชา', '08');
+  await pickOption(page, 'หลักสูตร', 'ทุกหลักสูตร');
+  await submitSearch(page);
+  await expect(page.getByText('01006029').first()).toBeVisible({
+    timeout: 15_000,
+  });
+  await expandCourse(page, '01006029');
+  await page
+    .getByRole('article')
+    .filter({ hasText: '01006029' })
+    .first()
+    .getByRole('button', { name: /^เพิ่ม/ })
+    .click();
+  await editSearch(page);
+  await syntheticSearch(page);
+  await addSynthetic(page, '90000001');
+
+  const shelf = page.getByRole('region', { name: 'รายวิชาที่ไม่มีคาบเรียน' });
+  const statusRow = page.getByRole('group', { name: 'สรุปตาราง', exact: true });
+  await expect(shelf).toBeVisible();
+  const before = await boxes({ shelf, 'status row': statusRow });
+
+  await page
+    .locator('[data-teach-table-id]')
+    .first()
+    .click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'คัดลอกรหัสวิชา' }).click();
+  const toast = page.locator('#kcp-toast-region > *');
+  await expect(toast).toBeVisible();
+  await toast.evaluate((node) =>
+    Promise.all(node.getAnimations().map((animation) => animation.finished)),
+  );
+  const during = await boxes({ shelf, 'status row': statusRow });
+  expect(during).toEqual(before);
+  const toastBox = await boxOf(toast, 'the toast');
+  for (const [name, box] of Object.entries(during)) {
+    expect(intersects(toastBox, box), `the toast covers the ${name}`).toBe(
+      false,
+    );
+  }
+});
