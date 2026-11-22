@@ -28,10 +28,11 @@
 //
 // An image capture takes a moment on a large template, and a copy waits on the clipboard, so
 // while one runs the toolbar is busy: the action that started it shows a spinner and names
-// the work, creating the image or copying, and every sharing action is marked disabled and
-// ignores presses, so a second press cannot start a parallel run. Each label reserves the
-// width of its busy form, so the row never shifts (ADR-0027 amendment of 2026-11-22). The
-// capture and its delivery live in useImageActions.
+// the work, creating or copying, and every action that starts work is marked
+// disabled and ignores presses, so a second press cannot start a parallel run. A busy label
+// fits the width its idle label sets, so the row at rest is the row without a busy state and
+// never shifts while one runs (ADR-0027 amendment of 2026-11-22). The capture and its
+// delivery live in useImageActions.
 
 import type { RefObject } from 'react';
 import {
@@ -123,7 +124,8 @@ export function PreviewToolbar({
     <PreviewToolbarAction
       icon={icon}
       {...labels}
-      busyLabel={t('preview.capturing')}
+      busyLabel={t('preview.creating')}
+      busyName={t('preview.capturing')}
       running={running === action}
       compact={compact}
       weight={action === 'download' ? 'primary' : 'secondary'}

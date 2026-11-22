@@ -494,6 +494,7 @@
   "preview.pngDownloaded": "Image downloaded",
   "preview.exportFailed": "Could not export the image",
   "preview.capturing": "Creating image",
+  "preview.creating": "Creating",
   "preview.shareImage": "Share image",
   "preview.shareShort": "Share",
   "preview.shareReady": "The image is ready to share",

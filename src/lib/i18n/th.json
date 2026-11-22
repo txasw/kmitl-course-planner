@@ -494,6 +494,7 @@
   "preview.pngDownloaded": "ดาวน์โหลดรูปภาพแล้ว",
   "preview.exportFailed": "ส่งออกรูปภาพไม่สำเร็จ",
   "preview.capturing": "กำลังสร้างรูปภาพ",
+  "preview.creating": "กำลังสร้าง",
   "preview.shareImage": "แชร์รูปภาพ",
   "preview.shareShort": "แชร์",
   "preview.shareReady": "รูปภาพพร้อมแชร์แล้ว",
