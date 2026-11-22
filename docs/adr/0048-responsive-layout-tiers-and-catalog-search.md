@@ -979,8 +979,21 @@ lifted over the status row.
   measured by its own box at rest and never by the toast, so a toast that shows or leaves changes
   nothing the offset reads. With no foot named, over the phone catalog pane, the region keeps its
   72 px rise above the nav, and from 640 px up on the export page, where the toolbar heads the
-  poster, it rests at the foot over the stage. While a bottom sheet is open the region still drops
-  to the foot and the sheet keeps its own band, unchanged by this amendment.
+  poster, it rests at the foot over the stage. While a bottom sheet is open the region drops to
+  the foot, since the sheet covers the nav and the plan foot.
+- A bottom sheet makes no room for a toast either. It used to end in an 80 px band while a toast
+  showed, which grew the sheet or, at its height cap, lifted its footer of actions, so it moved
+  the same way. Its body now keeps that room at rest: above a footer, a bottom padding and scroll
+  padding of 80 px, the 8 px gap over the footer, a toast up to 64 px, and a gap; without one, the
+  16 px foot offset or the bottom safe area inset where larger, plus 72 px. A sheet with a footer
+  names it, measured by its own box, and the toast region floats its height plus 8 px above the
+  sheet's foot, so a toast covers none of the sheet's actions; without a footer the region rests
+  at the foot over the padding. The sheet's box, its body, and its footer are then the same
+  before, while, and after a toast shows, and the last item of the body scrolls clear of a toast.
+  A sheet whose action answers with an undo toast still adds the toast region to its focus trap,
+  so the undo stays reachable by Tab. Keeping the band only for a sheet below its height cap was
+  rejected, since the sheet would still grow, and so was laying the toast over the footer, since
+  it would cover the actions the student came to the sheet for.
 - The timetable scroller, and the selected and summary views, end in a bottom padding and scroll
   padding about as tall as a toast, 60 px or 64 px under a coarse pointer where its controls take
   the touch size. The padding is present at rest, so a toast that appears changes nothing, and the
@@ -1004,7 +1017,10 @@ lifted over the status row.
   it is read with the toast seen through. A new walk measures the boxes of the status row, the
   timetable scroller, and the export toolbar and stage before a copy toast, an undo toast, and an
   export copy toast show, while each shows, and after it leaves, at 360, 390, 768, and 1366 px in
-  Thai and in English, and fails on any move.
+  Thai and in English, and fails on any move. At 360 and 390 px it also opens the block detail
+  sheet, scrolls its body to the end, and copies the subject id from it, and fails if the sheet,
+  its body, its footer, or the copy action moves, or if the toast covers the footer or the copy
+  action.
 
 ## Amendment, 2026-11-22: the change section instructor line, an owner approved ellipsis
 
