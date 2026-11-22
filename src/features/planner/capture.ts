@@ -28,15 +28,21 @@ export async function capturePng(
   // Wait for fonts before measuring the raster: the block fit measurement chooses its field
   // set from glyph metrics, so the capture must read the same settled metrics or the image
   // would not match what the fit decided. The extra frame lets the fonts triggered fit
-  // convergence commit before the clone is taken. Guarded so a host without the font loading
-  // API, as jsdom in the tests, skips straight to the capture.
+  // convergence commit before the clone is taken. The clone then runs as one long stretch of
+  // microtasks, which would hold back the paint of that frame, so the capture starts in a task
+  // after it: the busy state the press committed reaches the screen before the main thread
+  // blocks, rather than only once the clone is done (ADR-0027 amendment of 2026-11-22).
+  // Guarded so a host without the font loading API, as jsdom in the tests, skips straight to
+  // the capture.
   // The DOM types fonts as always present, but jsdom omits it, so read it through a widened
   // binding rather than a check the types would call redundant.
   const fontSet: FontFaceSet | undefined =
     typeof document !== 'undefined' ? document.fonts : undefined;
   if (fontSet !== undefined) {
     await fontSet.ready;
-    await new Promise((resolve) => requestAnimationFrame(resolve));
+    await new Promise((resolve) =>
+      requestAnimationFrame(() => setTimeout(resolve)),
+    );
   }
   const restore = keepLineClampInClone();
   let blob: Blob | null;
