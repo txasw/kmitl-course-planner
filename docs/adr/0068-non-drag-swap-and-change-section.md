@@ -97,8 +97,8 @@ is, the day, the time, the room, and who teaches, so each choice now shows those
 parts. The section code is a neutral chip with a bold number, read by a screen reader with the
 section label before it. Each meeting follows on its own line as a bold short day, a time in
 tabular figures, and its place behind a pin glyph in the quieter ink; a section with several
-meetings lists every one, and an online class shows no place. The seat line follows in the
-success ink, from the same summary the catalog rows use. A pair lists both halves, each with its
+meetings lists every one, and an online class shows no place. The seat line follows, the same
+line the catalog rows show, with its people glyph and its state's tone. A pair lists both halves, each with its
 chip, its lecture or practice label, its meetings, and its seats. The instructors of the group,
 each once, sit on one line under the card's parts, in the panel's language.
 
@@ -109,7 +109,8 @@ its description, so a screen reader hears the instructors with the choice. A pre
 instructor line scrolls it rather than choosing the section. Seat and conflict state stay in
 view: every choice is open and fits by construction, the list label says so, and the seat line
 shows the count. The orange stays on actions only; the chip and the card are neutral, and the
-card's edge darkens on hover. The long instructor line is the owner approved ellipsis exception
+card's edge darkens while the pointer is over its select button, never over the instructor
+line, which scrolls rather than selects. The long instructor line is the owner approved ellipsis exception
 recorded in the ADR-0048 amendment of the same date.
 
 A single run of text with stronger punctuation was rejected, since the owner asked that the parts

@@ -967,8 +967,11 @@ ellipsis close its text row; the line scrolls under them by touch, trackpad, or 
 scrollbar a mouse sees; and a line that holds more than it shows is a named region and a tab stop
 in the scrollable region pattern, so the arrow keys scroll it, and its focus ring hides the fade
 so the ring shows whole. Scrolled to its end, the line drops the fade and the ellipsis. The full
-list is always in the page as a labelled list, and the choice names it as its description, so a
-screen reader reads every name whatever the scroll.
+list is always in the page, and the choice names it as its description, so a screen reader reads
+every name whatever the scroll. The list carries no name of its own, since a browser reads a
+referenced element's name in place of its text when it computes a description; the walk below
+asserts the description in Chromium, because jsdom computes it differently. Each region is named
+for its choice, such as Instructors of section 941, so the landmarks of a long list stay apart.
 
 The clipped text sweep names the exception in its list with this reason: a leaf of the
 instructor line is excused only while its line is the named, focusable scroller, the explicit
