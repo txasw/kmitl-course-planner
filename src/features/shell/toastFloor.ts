@@ -7,11 +7,16 @@
 // above it, over the bottom of the timetable. The foot is measured at rest by its own size,
 // never by the toast's, so a toast that shows or leaves changes nothing the offset reads.
 // The scrollers a toast floats over end in a bottom padding about as tall as a toast, present
-// at rest, so their last row can always be scrolled clear of one.
+// at rest, so their last row can always be scrolled clear of one. A layer that floats above
+// a toast, the feedback strip below the dock, reads the same offset, so it rises over a toast
+// wherever the toast floats.
 
 import { useEffect, type RefObject } from 'react';
 import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
+import { useBottomNavShown } from './mobilePane';
+import { useBottomSheetOpen } from './sheetToastBand';
+import { uiStore } from './uiStore';
 
 /** The plan region's padding under its foot element: the p-4 of the grid region and the
  * export page. */
@@ -31,6 +36,10 @@ const TOAST_GAP_PX = 8;
  */
 export const TOAST_CLEARANCE =
   'pb-15 scroll-pb-15 pointer-coarse:pb-16 pointer-coarse:scroll-pb-16';
+
+/** The room a layer that floats above a toast keeps for it: a toast up to the 64 px the
+ * scroller clearance holds, and a gap. */
+export const TOAST_RESERVE_PX = 72;
 
 const footStore = createStore<{ height: number }>(() => ({ height: 0 }));
 
@@ -73,18 +82,32 @@ export function useToastFootHeight(): number {
 }
 
 /**
- * The bottom offset of the toast region over a named foot: the panel padding, the foot, and
- * a gap, plus the bottom nav when it runs under the foot, above the safe area inset that the
- * nav or the panel body pads by.
+ * The bottom offset in pixels of the toast region over a named foot, before the bottom safe
+ * area inset that the nav or the panel body pads by: the panel padding, the foot, and a gap,
+ * plus the bottom nav when it runs under the foot.
  */
-export function toastBottomOverFoot(
-  footHeight: number,
-  navShown: boolean,
-): string {
-  const px =
-    FOOT_PADDING_PX +
-    footHeight +
-    TOAST_GAP_PX +
-    (navShown ? BOTTOM_NAV_PX : 0);
+function toastOffsetOverFoot(footHeight: number, navShown: boolean): number {
+  return (
+    FOOT_PADDING_PX + footHeight + TOAST_GAP_PX + (navShown ? BOTTOM_NAV_PX : 0)
+  );
+}
+
+/** A bottom offset of `px` above the bottom safe area inset, as a CSS length. */
+export function aboveSafeBottom(px: number): string {
   return `calc(${String(px)}px + var(--kcp-safe-bottom))`;
+}
+
+/**
+ * The bottom offset in pixels, before the safe area inset, of the toast region while it
+ * floats over a named foot in the open panel, or null while it rests at its fallback offset:
+ * with no foot named, or while a bottom sheet owns the foot.
+ */
+export function useToastOverFoot(): number | null {
+  const isOpen = useStore(uiStore, (state) => state.isOpen);
+  const sheetOpen = useBottomSheetOpen();
+  const navShown = useBottomNavShown();
+  const footHeight = useToastFootHeight();
+  return isOpen && !sheetOpen && footHeight > 0
+    ? toastOffsetOverFoot(footHeight, navShown)
+    : null;
 }

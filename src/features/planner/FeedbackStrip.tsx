@@ -41,6 +41,11 @@ import { useElementSize } from '@/features/shell/useElementSize';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { uiStore } from '@/features/shell/uiStore';
 import { toastStore } from '@/features/shell/toastStore';
+import {
+  aboveSafeBottom,
+  TOAST_RESERVE_PX,
+  useToastOverFoot,
+} from '@/features/shell/toastFloor';
 import { dragStore } from './dragStore';
 import { BlockedNotice, CrossTermNotice, HintNotice } from './FeedbackNotices';
 import { useOneOutcomeSurface } from './useOneOutcomeSurface';
@@ -80,8 +85,10 @@ const INLINE_AT_REST = PLAN_PANE_GAP_CANCEL;
 // container runs to the screen edge behind the 56 px bottom nav, which pads by the bottom
 // safe area inset, so the strip adds the inset and rises clear of the nav, and above the
 // toast that itself rises 72 px over the nav. Above 640 px the overlay body already clears
-// the inset.
+// the inset. Where the toast floats over the foot of the plan instead, above the status row
+// (toastFloor), the strip rises the same room above the toast's own offset.
 interface FloatOffset {
+  /** The offset as a class, or empty where it is set inline from the toast's offset. */
   className: string;
   px: number;
   /** Whether the offset adds the bottom safe area inset to its pixels. */
@@ -103,7 +110,18 @@ const FLOAT_OFFSET = {
   },
 } as const satisfies Record<string, FloatOffset>;
 
-function floatOffset(aboveToast: boolean, aboveNav: boolean): FloatOffset {
+function floatOffset(
+  aboveToast: boolean,
+  aboveNav: boolean,
+  toastOverFoot: number | null,
+): FloatOffset {
+  if (aboveToast && toastOverFoot !== null) {
+    return {
+      className: '',
+      px: toastOverFoot + TOAST_RESERVE_PX,
+      inset: aboveNav,
+    };
+  }
   if (aboveNav) {
     return aboveToast ? FLOAT_OFFSET.aboveNavAndToast : FLOAT_OFFSET.aboveNav;
   }
@@ -120,6 +138,8 @@ interface FeedbackStripProps {
   aboveToast?: boolean;
   /** Whether the phone layout's bottom nav runs along the container foot. */
   aboveNav?: boolean;
+  /** The toast region's offset while it floats over the plan foot, or null at its rest. */
+  toastOverFoot?: number | null;
 }
 
 /**
@@ -142,9 +162,7 @@ function useOverlayClearance(
     }
     container.style.setProperty(
       OVERLAY_BOTTOM_PROPERTY,
-      inset
-        ? `calc(${String(px)}px + var(--kcp-safe-bottom))`
-        : `${String(px)}px`,
+      inset ? aboveSafeBottom(px) : `${String(px)}px`,
     );
     return () => {
       container.style.removeProperty(OVERLAY_BOTTOM_PROPERTY);
@@ -157,6 +175,7 @@ export function FeedbackStrip({
   placement = 'inline',
   aboveToast = false,
   aboveNav = false,
+  toastOverFoot = null,
 }: FeedbackStripProps) {
   const blocked = useStore(dragStore, (state) => state.blocked);
   const crossTerm = useStore(dragStore, (state) => state.crossTerm);
@@ -165,7 +184,7 @@ export function FeedbackStrip({
   const placed = usePlacedSections();
   const stripRef = useRef<HTMLDivElement>(null);
   const floating = placement !== 'inline';
-  const offset = floatOffset(aboveToast, aboveNav);
+  const offset = floatOffset(aboveToast, aboveNav, toastOverFoot);
   useOverlayClearance(stripRef, floating ? offset : null);
   useOneOutcomeSurface();
   // The control focus came from when it entered the strip, such as the add button whose
@@ -238,6 +257,15 @@ export function FeedbackStrip({
       onBlur={handleFocusOut}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
+      style={
+        floating && offset.className === ''
+          ? {
+              bottom: offset.inset
+                ? aboveSafeBottom(offset.px)
+                : `${String(offset.px)}px`,
+            }
+          : undefined
+      }
       className={`${PLACEMENT_CLASS[placement]} ${floating ? offset.className : ''} ${
         !floating && !noticeShows ? INLINE_AT_REST : ''
       }`}
@@ -268,6 +296,7 @@ export function FloatingFeedbackStrip() {
   const toastShows = useStore(toastStore, (state) => state.toast !== null);
   const undoShows = useStore(planStore, (state) => state.pendingUndo !== null);
   const compact = useLayoutTier() === 'compact';
+  const toastOverFoot = useToastOverFoot();
   // The compact tier has no sheet, so a sheet left open on a wider window that narrowed
   // below 640 px never gives the strip the sheet's width there.
   return (
@@ -276,6 +305,7 @@ export function FloatingFeedbackStrip() {
       placement={sheetOpen && !compact ? 'sheet' : 'grid'}
       aboveToast={toastShows || undoShows}
       aboveNav={compact}
+      toastOverFoot={toastOverFoot}
     />
   );
 }

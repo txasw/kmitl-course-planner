@@ -1,4 +1,5 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
+import { useRef } from 'react';
 import {
   render,
   screen,
@@ -15,6 +16,7 @@ import { searchStore } from '@/features/search/searchStore';
 import { catalogStore } from '@/features/catalog/catalogStore';
 import { Toaster } from '@/features/shell/Toaster';
 import { toastStore } from '@/features/shell/toastStore';
+import { useToastFoot } from '@/features/shell/toastFloor';
 import { uiStore } from '@/features/shell/uiStore';
 import { installViewport } from '../../../tests/support/viewport';
 import {
@@ -668,6 +670,72 @@ describe('FeedbackStrip', () => {
         toastStore.getState().dismiss();
       });
       expect(node).toHaveClass('bottom-[calc(72px+var(--kcp-safe-bottom))]');
+    });
+
+    // A status row named as the foot of the open panel, 40 px tall, which the toast floats
+    // above: at 16 + 40 + 8 px over the panel foot, and 56 px more over the phone nav.
+    function StatusFoot() {
+      const ref = useRef<HTMLDivElement>(null);
+      useToastFoot(ref, 'status');
+      return <div ref={ref} />;
+    }
+
+    function renderOverFoot() {
+      vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(
+        36,
+      );
+      vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(
+        new DOMRect(0, 0, 100, 40),
+      );
+      act(() => {
+        uiStore.getState().open();
+      });
+      showBlockedWithChip();
+      act(() => {
+        toastStore.getState().show('success', 'ok');
+      });
+      render(<StatusFoot />);
+      const { container } = render(<FloatingFeedbackStrip />);
+      const node = container.querySelector<HTMLElement>('[aria-live]');
+      return { container, node };
+    }
+
+    it('rises above a toast that floats over the status row', () => {
+      installViewport(768);
+      try {
+        const { container, node } = renderOverFoot();
+        // The toast's 64 px offset and the 72 px it keeps for the toast.
+        expect(node?.style.bottom).toBe('136px');
+        expect(node).not.toHaveClass('bottom-24');
+        expect(container.style.getPropertyValue(OVERLAY_BOTTOM_PROPERTY)).toBe(
+          '180px',
+        );
+        act(() => {
+          toastStore.getState().dismiss();
+        });
+        expect(node?.style.bottom).toBe('');
+        expect(node).toHaveClass('bottom-4');
+      } finally {
+        act(() => {
+          uiStore.getState().close();
+        });
+      }
+    });
+
+    it('rises above a toast over the phone status row and nav', () => {
+      installViewport(390);
+      try {
+        const { container, node } = renderOverFoot();
+        expect(node?.style.bottom).toBe('calc(192px + var(--kcp-safe-bottom))');
+        expect(container.style.getPropertyValue(OVERLAY_BOTTOM_PROPERTY)).toBe(
+          'calc(236px + var(--kcp-safe-bottom))',
+        );
+      } finally {
+        act(() => {
+          toastStore.getState().dismiss();
+          uiStore.getState().close();
+        });
+      }
     });
 
     it('takes the sheet width while the sheet is open', () => {
