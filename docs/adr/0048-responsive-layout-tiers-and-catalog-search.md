@@ -987,6 +987,16 @@ lifted over the status row.
   last row can always be scrolled clear of a toast, as can a block brought into view. Where the
   week fills its scroller, the rows share the height above the padding, so the toast floats over
   the padding rather than a row.
+- The unscheduled shelf sits between the timetable and the status row and scrolls with neither,
+  so no padding can bring its rows clear of a toast. While the shelf shows, the foot is measured
+  from the top of the shelf to the foot of the status row, so the toast floats above the shelf,
+  over the padding at the end of the timetable, and the shelf keeps its box and its remove
+  controls stay uncovered.
+- Below the dock the feedback strip floats above a toast, since its chips are the next step. Its
+  fixed rises assumed the toast at its old offsets, so a toast lifted over the status row would
+  cover the strip and, on the phone, its reveal action. Wherever the toast floats over a named
+  foot, the strip now rises from the toast's own offset by the 72 px it keeps for a toast of up
+  to 64 px and a gap; its fixed rises still apply where the toast keeps its fallback offsets.
 - Lifting the status row above the toast was rejected, since that is the shift the owner reported,
   and so was measuring the toast to place it, since any offset read from the toast moves with it.
 - The clipped text sweep reads a toast in three parts: the toast itself must show whole, it must
