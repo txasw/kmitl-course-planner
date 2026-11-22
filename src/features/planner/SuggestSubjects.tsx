@@ -337,7 +337,9 @@ export function SuggestSubjects({
                   <DisclosureChevron open={expanded} />
                 </span>
               </span>{' '}
-              <span className="text-sm text-ink">
+              {/* Balanced, so a count that wraps on a narrow phone never leaves its
+                  last number alone on a line. */}
+              <span className="text-sm text-balance text-ink">
                 {fillTemplate(t('suggest.subjects.groupCount'), {
                   ticked: tickedIn(groups[kind], ticked),
                   total: groups[kind].length,
