@@ -13,6 +13,7 @@
 // nothing cut, a tooltip would only repeat the visible name, and a screen reader would hear it
 // twice through the description, so the row carries none.
 
+import type { Ref } from 'react';
 import { BookOpen, FlaskConical } from 'lucide-react';
 import { RemarkLine } from '@/features/catalog/RemarkLine';
 import { RulesNotice } from '@/features/catalog/RulesNotice';
@@ -48,6 +49,9 @@ interface UnscheduledShelfProps {
   /** Draw the verification and conflict pill. On in edit mode; the export poster turns it
    * off and states the same facts as footer text (ADR-0055). */
   showVerification?: boolean;
+  /** The shelf's root, which the edit panel counts as part of the foot a toast floats
+   * above, since the shelf scrolls with neither the timetable nor the status row. */
+  shelfRef?: Ref<HTMLElement>;
 }
 
 export function UnscheduledShelf({
@@ -61,9 +65,11 @@ export function UnscheduledShelf({
   showSubjectId = true,
   editable = false,
   showVerification = true,
+  shelfRef,
 }: UnscheduledShelfProps) {
   return (
     <section
+      ref={shelfRef}
       aria-label={t('shelf.title')}
       className="kcp-soft-card kcp-soft-quiet shrink-0 p-2"
     >

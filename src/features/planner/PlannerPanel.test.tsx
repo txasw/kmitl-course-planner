@@ -1086,6 +1086,43 @@ describe('PlannerPanel stats bar', () => {
     }
   });
 
+  it('counts the unscheduled shelf over the stats bar as part of the foot', () => {
+    installViewport(1366);
+    seed([
+      makePlanEntry({
+        snapshot: makeSnapshot({
+          teachTableId: 'o1',
+          subjectId: '90000002',
+          section: '1',
+          meetings: [],
+        }),
+      }),
+    ]);
+    // The shelf runs from 500 to 560 px and the stats bar from 568 to 608 px.
+    const spy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        return this.matches('section')
+          ? new DOMRect(0, 500, 100, 60)
+          : new DOMRect(0, 568, 100, 40);
+      });
+    try {
+      render(<FootProbe />);
+      renderPanel();
+      expect(
+        screen.getByRole('region', { name: 'รายวิชาที่ไม่มีคาบเรียน' }),
+      ).toBeInTheDocument();
+      expect(footHeight()).toBe('108');
+      // The selected list shows no shelf, so the stats bar alone is the foot.
+      act(() => {
+        uiStore.getState().setPlanView('selected');
+      });
+      expect(footHeight()).toBe('40');
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it('pads the timetable scroller for a toast at rest', () => {
     installViewport(1366);
     seedTwoSubjects();

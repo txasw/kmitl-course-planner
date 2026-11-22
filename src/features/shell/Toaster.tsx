@@ -20,11 +20,11 @@
 // phone sharing toolbar on the export page, the region floats above that element and the
 // bottom nav under it, over the bottom of the timetable, so the status row, the nav item a
 // toast's action such as ดูตาราง leads to, and the toolbar with its status line stay in
-// view (toastFloor). With no foot named, as over the phone catalog pane, the region rises
-// 72 px above the bottom inset while the nav runs along the open panel's foot, clear of the
-// 56 px nav. While a bottom sheet is open it covers the nav and owns the foot, so the
-// region drops back to the foot and the sheet ends in a band the toast sits in, clear of
-// the sheet's content.
+// view (toastFloor). The unscheduled shelf above the status row counts as part of that
+// foot. With no foot named, as over the phone catalog pane, the region rises 72 px above the
+// bottom inset while the nav runs along the open panel's foot, clear of the 56 px nav. While
+// a bottom sheet is open it covers the nav and owns the foot, so the region drops back to the
+// foot and the sheet ends in a band the toast sits in, clear of the sheet's content.
 //
 // The panel focus trap follows the region by its id, so a toast's controls join the Tab
 // order after the panel's last control while the panel is open; Tab reaches an undo

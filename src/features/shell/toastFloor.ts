@@ -7,9 +7,11 @@
 // above it, over the bottom of the timetable. The foot is measured at rest by its own size,
 // never by the toast's, so a toast that shows or leaves changes nothing the offset reads.
 // The scrollers a toast floats over end in a bottom padding about as tall as a toast, present
-// at rest, so their last row can always be scrolled clear of one. A layer that floats above
-// a toast, the feedback strip below the dock, reads the same offset, so it rises over a toast
-// wherever the toast floats.
+// at rest, so their last row can always be scrolled clear of one. What sits between the
+// timetable and the status row and scrolls with neither, the unscheduled shelf, counts as
+// part of the foot, so a toast never covers a shelf row it could not be scrolled clear of.
+// A layer that floats above a toast, the feedback strip below the dock, reads the same
+// offset, so it rises over a toast wherever the toast floats.
 
 import { useEffect, type RefObject } from 'react';
 import { useStore } from 'zustand';
@@ -51,29 +53,41 @@ function setFootHeight(height: number): void {
 
 /**
  * Name the element at the panel foot the toast floats above, measured by its own box for as
- * long as it is mounted and `kind` is set. A change of kind measures the new element, since
- * the status row and the sharing toolbar share the one ref.
+ * long as it is mounted and `kind` is set. A `top` element above it that belongs to the foot,
+ * the unscheduled shelf, extends the measure from the top of that element down. A change of
+ * kind measures the new elements, since the status row and the sharing toolbar share the one
+ * ref, so a kind names whether a top element shows as well.
  */
 export function useToastFoot(
   ref: RefObject<HTMLElement | null>,
   kind: string | null,
+  top?: RefObject<HTMLElement | null>,
 ): void {
   useEffect(() => {
     const node = ref.current;
     if (kind === null || node === null) {
       return undefined;
     }
+    const above = top?.current ?? null;
     const measure = () => {
-      setFootHeight(Math.ceil(node.getBoundingClientRect().height));
+      const foot = node.getBoundingClientRect();
+      const from =
+        above === null
+          ? foot.top
+          : Math.min(foot.top, above.getBoundingClientRect().top);
+      setFootHeight(Math.ceil(foot.bottom - from));
     };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(node);
+    if (above !== null) {
+      observer.observe(above);
+    }
     return () => {
       observer.disconnect();
       setFootHeight(0);
     };
-  }, [ref, kind]);
+  }, [ref, kind, top]);
 }
 
 /** The measured height of the foot element, or zero while none is named. */

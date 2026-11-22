@@ -289,6 +289,47 @@ describe('Toaster', () => {
     }
   });
 
+  it('counts the unscheduled shelf over the status row as part of the foot', () => {
+    installViewport(1366);
+    act(() => {
+      uiStore.getState().open();
+    });
+    // The shelf runs from 500 to 560 px and the status row from 568 to 608 px, so the foot
+    // spans 108 px from the top of the shelf to the foot of the status row.
+    function FootWithShelf() {
+      const ref = useRef<HTMLDivElement>(null);
+      const shelf = useRef<HTMLElement>(null);
+      useToastFoot(ref, 'status-shelf', shelf);
+      return (
+        <>
+          <section ref={shelf} data-box="shelf" />
+          <div ref={ref} data-box="status" />
+        </>
+      );
+    }
+    const spy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        return this.dataset.box === 'shelf'
+          ? new DOMRect(0, 500, 100, 60)
+          : new DOMRect(0, 568, 100, 40);
+      });
+    try {
+      const { container } = render(
+        <>
+          <Toaster />
+          <FootWithShelf />
+        </>,
+      );
+      const region = container.querySelector<HTMLElement>(
+        '[aria-live="polite"]',
+      );
+      expect(region?.style.bottom).toBe('calc(132px + var(--kcp-safe-bottom))');
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it('drops to the foot while a bottom sheet covers the phone foot controls', () => {
     installViewport(390);
     act(() => {
