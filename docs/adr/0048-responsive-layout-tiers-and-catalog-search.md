@@ -663,7 +663,9 @@ scanning the list.
 
 The plan suggestion dialog shows one suggestion per slide (ADR-0054, amendment of 2026-11-20), and
 `src/features/shell/liveRegions.test.tsx` lists `features/planner/SuggestionCarousel.tsx` with one
-polite region.
+polite region. Since the amendment of ADR-0054 of 2026-11-22 the line lives in
+`features/planner/SuggestionPager.tsx`, which the carousel shows above the slides or the phone sheet
+footer pins below them, never both, so the inventory still holds one polite region for it.
 
 - The carousel owns the position line between its chevrons, "ตัวเลือก 2 จาก 3" ("Option 2 of 3"),
   read when a swipe, a chevron, a dot, or an arrow key changes the slide. The line is visible and

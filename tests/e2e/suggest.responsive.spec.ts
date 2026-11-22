@@ -65,17 +65,39 @@ test('applies a suggested timetable from the compact layouts', async ({
   const dialog = page.getByRole('dialog', { name: 'แนะนำตาราง' });
   await expect(dialog).toBeVisible();
   const shown = dialog.locator('[data-suggest-slide]:not([inert])');
-  const apply = shown.getByRole('button', { name: 'ใช้ตารางนี้' });
+  // The apply action for the slide on show leads the slide on the tablet, and rides the
+  // sheet footer on the phone with the pager.
+  const apply = dialog
+    .locator('[data-suggest-slide]:not([inert]), [data-suggest-footer]')
+    .getByRole('button', { name: 'ใช้ตารางนี้' });
   await expect(apply).toHaveCount(1);
-  // The tick list opens on the GenEd group, so the first screen shows that those can join;
-  // the first slide and its apply action follow below it.
+  // The tick list opens on the GenEd group, so the first screen shows that those can join.
   await expect(
     dialog.getByRole('region', {
       name: 'วิชาศึกษาทั่วไป วิชาเลือกเสรี และวิชาอื่น',
     }),
   ).toBeInViewport();
-  await apply.scrollIntoViewIfNeeded();
-  await expect(apply).toBeInViewport({ ratio: 1 });
+  if (isPhone(page)) {
+    // The options start below the first screen of the sheet, so the pager and the apply
+    // action stay pinned in thumb reach before any scroll and after the slide is read to
+    // its foot. The footer sits below the body, so the body's content scrolls clear of it.
+    const footer = dialog.locator('[data-suggest-footer]');
+    await expect(apply).toBeInViewport({ ratio: 1 });
+    await expect(footer.getByText('ตัวเลือก 1 จาก 3')).toBeInViewport();
+    // The slide's last line, the subjects left out or the note that none are.
+    const leftOut = shown.locator('article > :last-child');
+    await leftOut.scrollIntoViewIfNeeded();
+    await expect(leftOut).toBeInViewport({ ratio: 1 });
+    await expect(apply).toBeInViewport({ ratio: 1 });
+    const footerTop = (await footer.boundingBox())?.y ?? 0;
+    const leftOutBox = await leftOut.boundingBox();
+    expect(
+      (leftOutBox?.y ?? 0) + (leftOutBox?.height ?? 0),
+    ).toBeLessThanOrEqual(footerTop);
+  } else {
+    await apply.scrollIntoViewIfNeeded();
+    await expect(apply).toBeInViewport({ ratio: 1 });
+  }
   const dots = dialog
     .getByRole('group', { name: 'ตัวเลือกตาราง' })
     .getByRole('button');

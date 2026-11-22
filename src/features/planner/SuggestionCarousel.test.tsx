@@ -396,6 +396,38 @@ describe('SuggestionCarousel', () => {
     expect(shownHeading()).toBe('ตัวเลือกที่ 1');
   });
 
+  it('leaves the pager and the apply action to a footer that names its position line', () => {
+    installViewport(390);
+    const cards = allCards.slice(0, 3);
+    render(
+      <>
+        <SuggestionCarousel
+          cards={cards}
+          frame={sharedFrame(cards.map((card) => card.sections))}
+          orientation="portrait"
+          page={0}
+          onPageChange={vi.fn()}
+          busy={false}
+          locale="th"
+          t={createTranslator('th')}
+          onApply={vi.fn()}
+          externalPagerId="footer-position"
+        />
+        <p id="footer-position">ตัวเลือก 1 จาก 3</p>
+      </>,
+    );
+    expect(screen.queryByRole('button', { name: 'ตัวเลือกถัดไป' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'ใช้ตารางนี้' })).toBeNull();
+    expect(document.querySelector('[aria-live]')).toBeNull();
+    expect(viewport()).toHaveAttribute('aria-labelledby', 'footer-position');
+    // The dots stay with the slides.
+    expect(
+      within(screen.getByRole('group', { name: 'ตัวเลือกตาราง' })).getAllByRole(
+        'button',
+      ),
+    ).toHaveLength(3);
+  });
+
   it('names the controls and the position in English', () => {
     renderCarousel({ locale: 'en' });
     expect(

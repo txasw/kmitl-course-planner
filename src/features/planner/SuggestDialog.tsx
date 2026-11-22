@@ -19,6 +19,12 @@
 // selected preference an ink outline. Applying hands back to the opener, which shows the
 // timetable so the new plan is on screen at once.
 //
+// On compact the options start below the first screen of the sheet and a slide is taller
+// than the screen, so the pager and the apply action for the slide on show ride a slim footer
+// pinned below the sheet body while there are options to show (ADR-0054 amendment of
+// 2026-11-22). The footer sits outside the scrolling body, so it covers none of it, and the
+// sheet floats a toast above the footer it measures, so a toast moves nothing.
+//
 // The slides share one frame and one grid orientation: time runs downward on compact, where
 // the phone is tall and narrow, and across on every wider tier, the way the edit grid
 // reads. A slide takes the full dialog width, so its grid reads in place and there is no
@@ -59,6 +65,8 @@ import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { movedFrom, sharedFrame, suggestionSections } from './suggestionFrame';
 import { SuggestionCarousel, type SuggestionView } from './SuggestionCarousel';
+import { ApplyButton } from './SuggestionCard';
+import { SuggestionPager } from './SuggestionPager';
 import {
   defaultOpenGroup,
   SuggestSubjects,
@@ -142,6 +150,45 @@ function PreferenceChips({
   );
 }
 
+/** The compact sheet footer: the pager for the slide on show, or its option name where there
+ * is one option only, and the apply action for that slide. */
+function SheetFooter({
+  count,
+  page,
+  onPageChange,
+  onApply,
+  positionId,
+  t,
+}: {
+  count: number;
+  page: number;
+  onPageChange: (page: number) => void;
+  onApply: () => void;
+  positionId: string;
+  t: Translate;
+}) {
+  return (
+    <div data-suggest-footer className="flex items-center gap-3">
+      <div className="min-w-0 flex-1">
+        {count > 1 ? (
+          <SuggestionPager
+            page={page}
+            count={count}
+            onPageChange={onPageChange}
+            positionId={positionId}
+            t={t}
+          />
+        ) : (
+          <p id={positionId} className="text-sm text-ink-soft">
+            {fillTemplate(t('suggest.option'), { number: 1 })}
+          </p>
+        )}
+      </div>
+      <ApplyButton describedBy={positionId} onApply={onApply} t={t} />
+    </div>
+  );
+}
+
 function LoadingCards({ t }: { t: Translate }) {
   return (
     <div
@@ -221,6 +268,7 @@ export function SuggestDialog({
   const compact = tier === 'compact';
   const orientation = compact ? 'portrait' : 'landscape';
   const current = Math.min(page, Math.max(0, cards.length - 1));
+  const footerPositionId = useId();
 
   // New ticks, a new objective, or a new preference rank the suggestions again, so the
   // carousel returns to the best.
@@ -264,6 +312,10 @@ export function SuggestDialog({
           ticked: tickable.filter((course) => ticked.has(course.subjectId))
             .length,
         });
+  // The slide on show, while the carousel has one: the pinned footer pages and applies it.
+  const shownCard =
+    result !== null && emptyReason === null ? cards[current] : undefined;
+  const pinned = compact && shownCard !== undefined;
   const body = (
     <div className="flex flex-col gap-4 pt-1">
       <p className="text-xs text-ink-soft">{t('suggest.scope')}</p>
@@ -351,6 +403,7 @@ export function SuggestDialog({
             locale={language}
             t={t}
             onApply={handleApply}
+            externalPagerId={pinned ? footerPositionId : undefined}
           />
         </section>
       )}
@@ -363,6 +416,20 @@ export function SuggestDialog({
       closeLabel={t('suggest.close')}
       onClose={onClose}
       withToasts
+      footer={
+        shownCard === undefined ? undefined : (
+          <SheetFooter
+            count={cards.length}
+            page={current}
+            onPageChange={setPage}
+            onApply={() => {
+              handleApply(shownCard.suggestion);
+            }}
+            positionId={footerPositionId}
+            t={t}
+          />
+        )
+      }
     >
       {body}
     </BottomSheet>

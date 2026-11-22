@@ -425,15 +425,11 @@ describe('SuggestDialog', () => {
     expect(
       screen.getByText('เลือกวิชาที่ต้องการ แล้วเลือกตารางที่เวลาเรียนและเวลาสอบไม่ชนกัน'),
     ).toBeInTheDocument();
-    // The apply action leads the slide, above its grid, and is the one orange fill.
-    const slide = shownSlide();
-    const apply = within(slide).getByRole('button', { name: 'ใช้ตารางนี้' });
-    const grid = within(slide).getByRole('group', {
-      name: 'ตารางเรียนรายสัปดาห์',
-    });
+    // On a phone the apply action rides the sheet footer rather than the slide, and it is the
+    // one orange fill.
     expect(
-      apply.compareDocumentPosition(grid) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
+      within(shownSlide()).queryByRole('button', { name: 'ใช้ตารางนี้' }),
+    ).toBeNull();
     const orange = Array.from(
       within(portal).getByRole('dialog').querySelectorAll('.bg-primary-strong'),
     );
@@ -444,6 +440,68 @@ describe('SuggestDialog', () => {
     expect(
       screen.getByRole('button', { name: 'สมดุล', pressed: true }),
     ).toHaveClass('border-ink');
+  });
+
+  it('pins the pager and the apply action for the slide on show to the phone sheet footer', async () => {
+    act(() => {
+      seedActivePlan(lockSections(courses, [['04186098', '2']]));
+    });
+    const { onApplied } = renderDialog(390);
+    await findCards();
+    const footer = document.querySelector<HTMLElement>('[data-suggest-footer]');
+    if (footer === null) throw new Error('no sheet footer');
+    // The footer sits outside the scrolling body, so it covers none of the body's content.
+    const body = shownSlide().closest('.kcp-scroll');
+    expect(body).not.toBeNull();
+    expect(body?.contains(footer)).toBe(false);
+    expect(body).toHaveClass('pb-20');
+    // One apply action and one pager, both in the footer; the carousel keeps its dots.
+    const apply = screen.getByRole('button', { name: 'ใช้ตารางนี้' });
+    expect(footer).toContainElement(apply);
+    expect(footer).toContainElement(
+      screen.getByRole('button', { name: 'ตัวเลือกถัดไป' }),
+    );
+    const position = within(footer).getByText('ตัวเลือก 1 จาก 3');
+    expect(position).toHaveAttribute('aria-live', 'polite');
+    expect(apply).toHaveAttribute('aria-describedby', position.id);
+    expect(
+      screen.getByRole('group', { name: 'ตัวเลือก 1 จาก 3' }),
+    ).toHaveAttribute('aria-roledescription', 'ชุดสไลด์');
+
+    // The footer pages the carousel, and applies the slide it now shows.
+    fireEvent.click(screen.getByRole('button', { name: 'ตัวเลือกถัดไป' }));
+    expect(within(shownSlide()).getByRole('heading')).toHaveTextContent(
+      'ตัวเลือกที่ 2',
+    );
+    expect(within(footer).getByText('ตัวเลือก 2 จาก 3')).toBeInTheDocument();
+    const shownIds = new Set(
+      Array.from(
+        shownSlide().querySelectorAll<HTMLElement>('[data-teach-table-id]'),
+        (block) => block.dataset.teachTableId ?? '',
+      ),
+    );
+    expect(shownIds.size).toBeGreaterThan(0);
+    act(() => {
+      fireEvent.click(apply);
+    });
+    expect(onApplied).toHaveBeenCalledOnce();
+    const state = planStore.getState();
+    const created = state.plans.find((plan) => plan.id === state.activePlanId);
+    const placed = new Set(
+      created?.entries.map((entry: PlanEntry) => entry.teachTableId),
+    );
+    for (const id of shownIds) {
+      expect(placed.has(id)).toBe(true);
+    }
+  });
+
+  it('keeps the pager and the apply action in the carousel on a wide dialog', async () => {
+    renderDialog(1366);
+    await findCards();
+    expect(document.querySelector('[data-suggest-footer]')).toBeNull();
+    expect(
+      within(shownSlide()).getByRole('button', { name: 'ใช้ตารางนี้' }),
+    ).toBeInTheDocument();
   });
 
   it('clears the current plan after a warning, as one undoable step', async () => {
