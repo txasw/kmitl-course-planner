@@ -12,7 +12,7 @@ import { formatMinutes } from '@/lib/parsing/time';
 import { formatExamRange } from './examText';
 
 export interface ReasonParts {
-  /** Which section clashes, e.g. "Conflicts with 90000001 Sec 900". */
+  /** Which section clashes, e.g. "Clashes with 90000001 Section 900". */
   headline: string;
   /** When it clashes, e.g. "Mon 09:00-10:00", or null for a duplicate. */
   detail: string | null;
