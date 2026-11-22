@@ -472,6 +472,47 @@ test('the filter days share one row at 360 px in Thai and English', async ({
   await expectDaysOnOneRow(page, 'Day');
 });
 
+// A meeting the API sends with no building and no room once dropped its place line, so the
+// section chip moved into the place slot and the block read in a different order from its
+// neighbours. The slot now holds a quiet placeholder ahead of the chip, on the phone day
+// card and on the tablet week block alike (ADR-0047 amendment of 2026-11-22).
+test('a meeting with no room keeps its place slot ahead of the section chip', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  const catalog = await openCatalog(page);
+  await catalog.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
+  // The real capture with exam windows, where 90642036 section 1 lists no room.
+  await catalog.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000700');
+  await submitSearch(catalog);
+  await expect(
+    catalog.locator('[data-course-card="90642036"]').first(),
+  ).toBeVisible({ timeout: 15_000 });
+  await waitForResultsInput(page);
+  await addCourse(page, '90642036');
+  await timetableControl(page).tap();
+  await showDay(page, 'วันพฤหัสบดี');
+
+  const placed = page.locator(block('136187')).filter({ visible: true });
+  const placeholder = placed.getByText('ไม่ระบุห้อง', { exact: true });
+  await expect(placeholder).toBeVisible();
+  await expectNotClipped(placeholder);
+  const chip = placed.getByText(/^(กลุ่มเรียน )?1$/);
+  const placeBox = await placeholder.boundingBox();
+  const chipBox = await chip.boundingBox();
+  expect(placeBox).not.toBeNull();
+  expect(chipBox).not.toBeNull();
+  if (placeBox === null || chipBox === null) return;
+  // The chip follows the place: at the end of its row on the week block, at the foot
+  // below it on the day card, and never in the slot the place starts.
+  const sameRow = Math.abs(chipBox.y - placeBox.y) < placeBox.height;
+  if (sameRow) {
+    expect(chipBox.x).toBeGreaterThanOrEqual(placeBox.x + placeBox.width);
+  } else {
+    expect(chipBox.y).toBeGreaterThanOrEqual(placeBox.y + placeBox.height - 1);
+  }
+});
+
 // The clearance ADR-0073 keeps between the version pill and the first text in the
 // header row: the pill reaches 4 px into the 12 px gap after the mark.
 const PILL_CLEARANCE_PX = 8;

@@ -341,3 +341,30 @@ Consequences. The exported image matches the edit grid. The measured fit and its
 unchanged, since the card draws its edge inside the box as the flat fill did and the padding
 holds. The day tiles are a quieter accent than the bands were. The flat tint remains in the
 palette tests only for the landing page block mockups.
+
+## Amendment, 2026-11-22: a block with no room keeps its place slot
+
+Context. The owner reviewed the 1.6.0 gate on a phone and found that a meeting the API sends with
+no building and no room laid out differently from its neighbours. The place line was left out, so
+on a week block the section chip slid from the end of the place row to its start, and on a short
+day card the chips moved up into the line the place takes, so one block read in a different order
+from the next.
+
+Decision. A meeting with neither a building nor a room keeps the place slot, filled with the quiet
+placeholder ไม่ระบุห้อง, No room in English. It reads in the quiet ink, as the time and the id do,
+with the location glyph in the same quiet colour rather than the subject colour, so it reads as an
+absent value rather than a room named that way. The placeholder takes part in the measured fit as
+a place does: it is eligible whenever the room display option is on and drops at the place's step
+of the ladder, so the order of ADR-0046 and the rule that the name always shows are unchanged. The
+block's accessible name reads the placeholder too, matching what the block shows. Turning the room
+display off still leaves the place out of every block alike. The rule applies wherever the block
+renders: the week grid, the phone day card, the suggestion slides, and the poster.
+
+Alternatives considered. Leaving the place out and holding the chip at the end of an otherwise
+empty row was rejected: it keeps the week block in shape, but the day card would need an empty line
+to hold its foot, which reads as a fault rather than as no room, and the student still could not
+tell a missing room from a hidden one.
+
+Consequences. Every block lays its fields out in the same order whether or not the room is known,
+and a student sees that the registrar lists no room rather than a gap. A roomless block spends the
+width of a short word on the placeholder, the same as a short room code.

@@ -51,6 +51,8 @@ interface EventBlockContentProps {
   secondary: string | null;
   secondaryLang: Locale | null;
   place: string;
+  /** The place is the no room placeholder, which reads quiet in its usual slot. */
+  roomless: boolean;
   sectionCode: string;
   time: string;
   subjectId: string;
@@ -81,6 +83,7 @@ export function EventBlockContent({
   secondary,
   secondaryLang,
   place,
+  roomless,
   sectionCode,
   time,
   subjectId,
@@ -145,13 +148,13 @@ export function EventBlockContent({
           className={`mt-0.5 flex shrink-0 flex-wrap items-baseline justify-between gap-x-1.5 gap-y-0.5 text-ink ${backdrop} ${narrowHidden}`}
         >
           {level.showPlace ? (
-            <span className="min-w-0 break-words">
+            <span className={`min-w-0 break-words ${roomless ? quiet : ''}`}>
               <MapPin
                 size="0.85em"
                 strokeWidth={2}
                 aria-hidden
                 className="mr-1 inline-block align-[-0.1em]"
-                style={{ color }}
+                style={roomless ? undefined : { color }}
               />
               {place}
             </span>
