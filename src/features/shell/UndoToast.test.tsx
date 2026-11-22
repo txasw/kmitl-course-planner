@@ -152,10 +152,17 @@ describe('UndoToast', () => {
     render(<UndoToast record={record} locale="th" t={t} />);
     expect(screen.getByText('ล้างตารางแล้ว นำออก 2 วิชา')).toBeInTheDocument();
     cleanup();
-    const one: UndoRecord = { kind: 'clear', added: [], removed: [a] };
-    render(<UndoToast record={one} locale="en" t={createTranslator('en')} />);
+    // English names one subject in the singular.
+    const en = createTranslator('en');
+    render(<UndoToast record={record} locale="en" t={en} />);
     expect(
-      screen.getByText('Plan cleared. Subjects removed: 1'),
+      screen.getByText('Plan cleared, 2 subjects removed'),
+    ).toBeInTheDocument();
+    cleanup();
+    const one: UndoRecord = { kind: 'clear', added: [], removed: [a] };
+    render(<UndoToast record={one} locale="en" t={en} />);
+    expect(
+      screen.getByText('Plan cleared, 1 subject removed'),
     ).toBeInTheDocument();
   });
 

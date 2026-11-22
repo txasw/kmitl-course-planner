@@ -24,6 +24,11 @@ export interface CreatedPlanUndoRecord {
 /** What the last mutation did, held for a short undo window. */
 export type UndoRecord = EntryUndoRecord | CreatedPlanUndoRecord;
 
+/** How many subjects the entries hold, counting both halves of a declared pair as one. */
+export function subjectCount(entries: readonly PlanEntry[]): number {
+  return new Set(entries.map((entry) => entry.subjectId)).size;
+}
+
 export interface PlanStoreState {
   /** Every saved plan, each scoped to one year and semester. */
   plans: Plan[];
