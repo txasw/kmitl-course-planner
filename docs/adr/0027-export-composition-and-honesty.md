@@ -92,3 +92,43 @@ directly under the toolbar and any height it takes covers them. Opening the opti
 dialog at every width was rejected, because the student then sets an option without seeing the
 poster change behind a scrim, and the inline panel keeps the poster in view as each switch
 applies.
+
+## Amendment, 2026-11-22: an export or copy shows a busy state until its toast
+
+The owner reviewed the 1.6.0 release candidate on a phone and found the export actions silent:
+a press on Download PNG or Copy image showed nothing until the toast, and a copy did the same.
+The toolbar already named a running capture, but the capture started its clone inside the frame
+callback that follows the font wait, and the clone runs as one long stretch of microtasks, so
+the frame that would paint the busy state waited for the clone. Measured at a sixfold CPU slow
+down on the A4 template, the busy label reached the screen about 1.1 s after the press, near the
+end of a 1.3 s capture.
+
+- The capture now starts in a task after that frame, so the busy state paints within a frame of
+  the press and the spinner keeps turning on the compositor while the clone holds the main
+  thread. The added wait is one task, well inside the share sheet's activation window, and the
+  held file fallback for a share that outlasts it stays as it was.
+- Every action whose outcome is a toast and that waits on work shows the same busy state: the
+  image actions of the toolbar (download, copy image, share) read creating the image, copy as
+  text and the registration list copy in the selected courses view read copying. The pressed
+  control swaps its glyph for a spinner, which stands still under reduced motion, carries
+  aria-busy, and stays aria-disabled rather than disabled, so it keeps focus. While one runs,
+  every toolbar action is marked disabled and ignores presses, so no second capture or copy
+  starts beside it; the running action keeps its full color while the others dim.
+- The idle and busy labels share one grid cell, the inactive one hidden from view and from the
+  accessible name, so a control is always as wide and as tall as the longer label and the
+  toolbar never shifts when the label changes. On a phone the action row cells already wrap a
+  label over two lines, and the busy label fits the same two lines, so the row keeps its height
+  down to 320 px.
+- The toolbar runs every action, the image actions and copy as text, through one guard that
+  names the running action, so a share of a held file, a toast action, or a copy cannot start
+  beside a capture.
+- The toast stays the end state of every action, success or failure. The registration list copy
+  in the plan menu and the copy subject id in the block context menu close their menu on press,
+  so the toast alone reports them, as before. The copy subject id in the block details and the
+  copy of quarantined data write a few characters or a recovery blob and keep their toast alone
+  for now; they take the same pattern if they ever wait long enough to be seen.
+
+Swapping only the glyph and keeping the label was rejected, because a spinner alone does not
+say what is running, and the label fits at every width once its width is reserved. A minimum
+display time for a busy state that ends within a frame was rejected, because it would delay a
+result that is already done; such a copy reads through its toast as before.
