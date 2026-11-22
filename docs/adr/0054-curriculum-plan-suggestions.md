@@ -328,3 +328,59 @@ schedule shape takes an ink outline. The orange segmented variant had no other c
 removed. A sticky footer carrying the apply action was considered and rejected for now: it would
 take height from a phone sheet that already reaches the first slide, and it would separate the
 action from the option it applies.
+
+## Amendment, 2026-11-22: group segments, the GenEd group open, a clear action, and the timetable after apply
+
+The owner reviewed release 1.6.0 on a phone and asked for four changes to the suggestion dialog
+(gate requests 3, 5, 6 and 7). This amendment replaces the tick list summary line of the
+amendment above, its sentence that the plan and curriculum groups open by default and the other
+courses collapsed, and the statement that a phone shows the apply action on the sheet's first
+screen.
+
+The tick list is headed by group segments. Three throwaway layouts were mocked at 390 px: a chip
+cloud with one toggle chip per subject grouped by source, a two column list under one summary bar,
+and a row of group segments with one group's list open below it. The chip cloud was rejected
+because the ticked chips are solid ink blocks that compete with the timetable blocks below, a chip
+drops the subject code and credits that tell two similar names apart, and a long GenEd list grows
+the cloud without bound. The two column list was rejected because at 360 px each column wraps a
+Thai name onto several lines, three groups do not map onto two columns, and the columns end at
+uneven heights. The segment row was picked. It sits on the sunken track the objective control
+already uses, so the dialog reads as one family of controls; the open segment is raised onto the
+surface with the soft shadow of direction B, and the dialog keeps its orange for the apply action.
+Each segment names its group in a short label, ในตาราง, ในหลักสูตร, ศึกษาทั่วไปและอื่น ๆ, and
+its ticked count, เลือก 0 จาก 6, so the row is the summary the old line was, and it is a
+disclosure for its group's list, one group open at a time. The open list keeps its full heading,
+its tick all action, and a native checkbox row per subject with the code and credits, so the tick
+semantics, the plan subjects group, the footprint diversity, and every add rule are unchanged. The
+rows flow into two columns from the small breakpoint and three from the large, and a list shows
+its first four rows on a phone and six wider, with a control that shows the rest and hands focus
+to the first row it reveals; one hidden row is shown rather than hidden behind a control.
+
+The dialog opens on the GenEd group (request 5). Its subjects start unticked, so a student who
+never opened the list did not see that a GenEd could join a suggestion; the plan and curriculum
+subjects start ticked and their segments say so. The open list moves the first slide below the
+first screen on a phone, which the owner accepted with the request; the capped list keeps it one
+short scroll away, and the end to end test now checks that the GenEd list is on the first screen
+and the apply action is reached by scrolling.
+
+While the plan holds a subject, the label row carries ล้างตารางปัจจุบัน, Clear current plan
+(request 6), in the danger text with the bin glyph. It asks first in the page, never with
+window.confirm: a danger tinted panel says how many subjects leave and that the clear can be
+undone for 10 seconds, with a cancel that takes focus as the safe choice and a destructive confirm
+in the danger fill. The prompt is the shared `ConfirmPrompt`, which the plan delete of the
+switcher menu now uses too; both buttons take the sentence as their description. Confirming runs
+the plan store's `clear`, which empties the active plan as one undo record of kind `clear`; the
+undo toast names how many subjects left, counting a declared pair once, and undo brings the
+entries back in the plan's own order. Focus moves to the first segment, since the plan group and
+the clear action leave with the subjects. Placing the action in the plan group's own header was
+considered and rejected, because that group starts collapsed and the action would be out of
+sight.
+
+Applying a suggestion shows the timetable at once (request 3). The dialog hands back to its
+opener, which turns the plan view to the timetable, shows the timetable pane on a phone with focus
+on its nav item, and on the medium tier closes the catalog sheet that covered the grid, focus
+moving to the catalog toggle. The status row entry stays in view under every plan view, so it
+keeps focus. The undo toast that announces the new plan now also says it is shown on the
+timetable. Leaving the student on the catalog with a toast action to the timetable, as a catalog
+add does, was rejected: a catalog add leaves the student mid choice, while an applied suggestion
+is a finished plan the student wants to see.
