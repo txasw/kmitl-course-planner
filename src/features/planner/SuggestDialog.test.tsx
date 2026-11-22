@@ -401,25 +401,26 @@ describe('SuggestDialog', () => {
       screen.getByRole('group', { name: 'วิชาที่จะจัดลงตาราง' }).textContent,
     ).not.toMatch(/[\u00b7\u2022\u2027]/);
     // The open list names its subjects in full, the first rows on a phone and a control for
-    // the rest, which hands focus to the first row it reveals.
+    // the rest, which hands focus to the first row it reveals. The capture's five GenEd and
+    // other subjects are one past the phone cap of four, so all show, since one hidden row
+    // is shown rather than put behind a control; its six curriculum subjects take the cap.
     const list = screen.getByRole('region', {
       name: 'วิชาศึกษาทั่วไป วิชาเลือกเสรี และวิชาอื่น',
     });
-    const total = Number(/จาก (\d+)/.exec(other.textContent)?.[1]);
-    const shown = within(list).getAllByRole('checkbox');
-    if (total > 5) {
-      expect(shown).toHaveLength(4);
-      fireEvent.click(
-        within(list).getByRole('button', {
-          name: `แสดงอีก ${String(total - 4)} วิชา`,
-        }),
-      );
-      const all = within(list).getAllByRole('checkbox');
-      expect(all).toHaveLength(total);
-      expect(all[4]).toHaveFocus();
-    } else {
-      expect(shown).toHaveLength(total);
-    }
+    expect(other).toHaveAccessibleName('ศึกษาทั่วไปและอื่น ๆ เลือก 0 จาก 5');
+    expect(within(list).getAllByRole('checkbox')).toHaveLength(5);
+    expect(within(list).queryByRole('button', { name: /^แสดงอีก/ })).toBeNull();
+    openGroup('ในหลักสูตร');
+    const curriculum = screen.getByRole('region', {
+      name: 'วิชาในหลักสูตร กลุ่ม 2',
+    });
+    expect(within(curriculum).getAllByRole('checkbox')).toHaveLength(4);
+    fireEvent.click(
+      within(curriculum).getByRole('button', { name: 'แสดงอีก 2 วิชา' }),
+    );
+    const all = within(curriculum).getAllByRole('checkbox');
+    expect(all).toHaveLength(6);
+    expect(all[4]).toHaveFocus();
     // The intro is a single sentence.
     expect(
       screen.getByText('เลือกวิชาที่ต้องการ แล้วเลือกตารางที่เวลาเรียนและเวลาสอบไม่ชนกัน'),
