@@ -217,7 +217,7 @@ export function PlanSwitcher() {
     if (activePlan === null) {
       return;
     }
-    copyRegistrationList(activePlan.entries, language, t);
+    void copyRegistrationList(activePlan.entries, language, t);
     closeMenu();
   };
 

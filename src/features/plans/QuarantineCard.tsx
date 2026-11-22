@@ -43,7 +43,7 @@ export function QuarantineCard() {
         <button
           type="button"
           onClick={() => {
-            copyText(
+            void copyText(
               issue.data,
               t('storage.exported'),
               t('storage.exportFailed'),

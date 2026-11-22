@@ -7,7 +7,7 @@ import type { Translate } from '@/lib/i18n/t';
 import { copyText } from '@/features/shell/copyText';
 
 export function copySubjectId(subjectId: string, t: Translate): void {
-  copyText(
+  void copyText(
     subjectId,
     fillTemplate(t('block.subjectIdCopied'), { subjectId }),
     t('block.copySubjectIdFailed'),

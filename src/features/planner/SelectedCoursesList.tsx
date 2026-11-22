@@ -11,7 +11,7 @@
 // section disclosure (ADR-0068); the card outlives the change, so focus returns to its
 // toggle. While the plan holds a subject,
 // the heading row carries the registration list copy, the lines a student reads from in the
-// official registration system.
+// official registration system. It shows a spinner and reads as copying until the toast.
 
 import { useId, useRef } from 'react';
 import { ClipboardCopy, ListChecks } from 'lucide-react';
@@ -20,6 +20,7 @@ import type { SubjectGroup } from '@/lib/planner/subjectGroups';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_HEIGHT } from '@/lib/ui/target';
+import { BusyContent } from '@/components/BusyContent';
 import { EmptyState, EmptyStateAction } from '@/components/EmptyState';
 import { RulesNotice } from '@/features/catalog/RulesNotice';
 import {
@@ -29,6 +30,7 @@ import {
 import { revealSearch } from '@/features/catalog/revealCourse';
 import { copyRegistrationList } from '@/features/plans/copyRegistrationList';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
+import { useBusyAction } from '@/features/shell/useBusyAction';
 import { ChangeSectionList } from './ChangeSectionList';
 import { SectionDetailList } from './SectionDetailList';
 import { VerificationPill } from './VerificationPill';
@@ -57,6 +59,8 @@ export function SelectedCoursesList({
   const headingId = `${id}-heading`;
   const listHeadingRef = useRef<HTMLHeadingElement>(null);
   const cardHeadingRefs = useRef(new Map<string, HTMLHeadingElement>());
+  const [copyRunning, runCopy] = useBusyAction<'copy'>();
+  const copying = copyRunning !== null;
 
   const handleRemove = (index: number) => {
     const group = groups[index];
@@ -96,16 +100,26 @@ export function SelectedCoursesList({
           <button
             type="button"
             onClick={() => {
-              copyRegistrationList(
-                groups.flatMap((group) => group.entries),
-                locale,
-                t,
+              runCopy('copy', () =>
+                copyRegistrationList(
+                  groups.flatMap((group) => group.entries),
+                  locale,
+                  t,
+                ),
               );
             }}
+            aria-disabled={copying}
+            aria-busy={copying}
             className={`inline-flex items-center gap-1.5 rounded-kcp border border-border bg-surface px-2 text-xs text-ink hover:bg-surface-alt ${TARGET_HEIGHT} ${FOCUS_RING}`}
           >
-            <ClipboardCopy size={14} strokeWidth={2} aria-hidden />
-            {t('registration.copy')}
+            <BusyContent
+              icon={ClipboardCopy}
+              size={14}
+              label={t('registration.copy')}
+              busyLabel={t('action.copying')}
+              busy={copying}
+              className="text-start"
+            />
           </button>
         )}
       </div>
