@@ -32,7 +32,7 @@ import { MapPin } from 'lucide-react';
 import type { Locale } from '@/lib/i18n/t';
 import type { DensityLevel } from '@/lib/planner/blockDensity';
 import type { BlockBadge } from './blockBadge';
-import { CHIP_CLASS } from './blockSurface';
+import { CHIP_CLASS, contentEndPadding } from './blockSurface';
 import { NAME_CLAMP, WHOLE_FIELD, nameClampStyle, nameLine } from './blockText';
 import { NARROW_HIDDEN, removeClearance } from './narrowBlock';
 
@@ -95,7 +95,7 @@ export function EventBlockContent({
     <div
       ref={contentRef}
       data-fit
-      className="flex min-h-0 flex-1 flex-col overflow-hidden"
+      className={`flex min-h-0 flex-1 flex-col overflow-hidden ${contentEndPadding(false)}`}
     >
       <span
         data-fit-name

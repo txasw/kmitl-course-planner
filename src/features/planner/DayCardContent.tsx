@@ -21,7 +21,7 @@ import type { MeetingKind } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { DensityLevel } from '@/lib/planner/blockDensity';
 import type { BlockBadge } from './blockBadge';
-import { CHIP_CLASS } from './blockSurface';
+import { CHIP_CLASS, contentEndPadding } from './blockSurface';
 import { NAME_CLAMP, WHOLE_FIELD, nameClampStyle, nameLine } from './blockText';
 
 interface DayCardContentProps {
@@ -87,7 +87,7 @@ export function DayCardContent({
       ref={contentRef}
       data-fit
       data-day-card
-      className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-hidden"
+      className={`flex min-h-0 flex-1 flex-col gap-0.5 overflow-hidden ${contentEndPadding(true)}`}
     >
       {level.showTime ? (
         <span
