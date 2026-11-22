@@ -31,6 +31,34 @@ const TONE_CLASS: Record<SeatState, string> = {
   closed: 'text-ink-soft',
 };
 
+interface SeatLineProps {
+  demand: SeatDemandModel;
+  t: Translate;
+  muted?: boolean;
+  /** A span inside a button, where a paragraph is not allowed. */
+  as?: 'p' | 'span';
+}
+
+/**
+ * The seat line alone: the people icon and the seat text in the tone of its state, so every
+ * surface that states seats reads them in the catalog's colours.
+ */
+export function SeatLine({
+  demand,
+  t,
+  muted = false,
+  as: Line = 'p',
+}: SeatLineProps) {
+  return (
+    <Line
+      className={`flex items-center gap-1 tabular-nums ${muted ? 'text-ink-soft' : TONE_CLASS[demand.state]}`}
+    >
+      <Users size={12} aria-hidden className="shrink-0" />
+      <span>{seatLineText(demand, t)}</span>
+    </Line>
+  );
+}
+
 export type SeatDemandVariant = 'inline' | 'full';
 
 interface SeatDemandProps {
@@ -48,14 +76,7 @@ export function SeatDemand({
   muted = false,
 }: SeatDemandProps) {
   const oversubscribed = demand.oversubscribed && !muted;
-  const line = (
-    <p
-      className={`flex items-center gap-1 tabular-nums ${muted ? 'text-ink-soft' : TONE_CLASS[demand.state]}`}
-    >
-      <Users size={12} aria-hidden className="shrink-0" />
-      <span>{seatLineText(demand, t)}</span>
-    </p>
-  );
+  const line = <SeatLine demand={demand} t={t} muted={muted} />;
   if (variant === 'inline') {
     return line;
   }

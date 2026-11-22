@@ -5,6 +5,7 @@ import {
   fireEvent,
   cleanup,
   act,
+  within,
 } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import type { PlanEntry } from '@/lib/domain/plan';
@@ -154,6 +155,10 @@ describe('ChangeSectionList', () => {
     // The instructors of both halves, each once, are a labelled list the choice names
     // as its description, outside the button so the list can scroll on its own.
     const teachers = screen.getByRole('list', { name: 'ผู้สอน' });
+    // Seats read in the catalog's tones, so a section with no seat limit is open green.
+    expect(within(choice).getByText('ไม่จำกัดที่นั่ง').parentElement).toHaveClass(
+      'text-success',
+    );
     expect(choice).not.toContainElement(teachers);
     expect(
       [...teachers.querySelectorAll('li')].map((item) => item.textContent),
