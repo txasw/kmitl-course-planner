@@ -359,9 +359,11 @@ to the first row it reveals; one hidden row is shown rather than hidden behind a
 The dialog opens on the GenEd group (request 5). Its subjects start unticked, so a student who
 never opened the list did not see that a GenEd could join a suggestion; the plan and curriculum
 subjects start ticked and their segments say so. The open list moves the first slide below the
-first screen on a phone, which the owner accepted with the request; the capped list keeps it one
-short scroll away, and the end to end test now checks that the GenEd list is on the first screen
-and the apply action is reached by scrolling.
+first screen on a phone, a trade the request implies but the owner has still to confirm at the
+1.6.0 review; the capped list keeps it one short scroll away, and the end to end test now checks
+that the GenEd list is on the first screen and the apply action is reached by scrolling. A group
+that empties while it is open, as the plan group does on a clear, hands the list back to the GenEd
+group, so the segment row never heads nothing.
 
 While the plan holds a subject, the label row carries ล้างตารางปัจจุบัน, Clear current plan
 (request 6), in the danger text with the bin glyph. It asks first in the page, never with
@@ -371,10 +373,16 @@ in the danger fill. The prompt is the shared `ConfirmPrompt`, which the plan del
 switcher menu now uses too; both buttons take the sentence as their description. Confirming runs
 the plan store's `clear`, which empties the active plan as one undo record of kind `clear`; the
 undo toast names how many subjects left, counting a declared pair once, and undo brings the
-entries back in the plan's own order. Focus moves to the first segment, since the plan group and
-the clear action leave with the subjects. Placing the action in the plan group's own header was
-considered and rejected, because that group starts collapsed and the action would be out of
-sight.
+entries back in the plan's own order. The dialog is modal, so the undo toast outside it is no sure
+way back from the keyboard or a screen reader: the trap left the toast out of the Tab order, the
+panel undo shortcut waits while a dialog is open, and a screen reader may not speak a live region
+outside an aria-modal dialog. While the clear can be undone, the prompt's place therefore holds a
+line that names the clear, ล้างตารางแล้ว นำออก 1 วิชา, with its own undo, which takes focus with the
+line as its description; that undo returns focus to the clear action. The dialog's trap also takes
+in the toast region, as the overlay panel's does, so the toast's undo is reached by Tab too. The
+line is no live region, since focus already lands on the undo it describes and the inventory of
+ADR-0048 stays closed. Placing the action in the plan group's own header was considered and
+rejected, because that group starts collapsed and the action would be out of sight.
 
 Applying a suggestion shows the timetable at once (request 3). The dialog hands back to its
 opener, which turns the plan view to the timetable, shows the timetable pane on a phone with focus
