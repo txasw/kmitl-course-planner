@@ -46,7 +46,7 @@ import { TARGET_SIZE } from '@/lib/ui/target';
 import { TOAST_REGION_ID, toastStore, type Toast } from './toastStore';
 import { useBottomNavShown } from './mobilePane';
 import { useBottomSheetOpen } from './sheetToastBand';
-import { toastBottomOverFoot, useToastFootHeight } from './toastFloor';
+import { aboveSafeBottom, useToastOverFoot } from './toastFloor';
 import { useHoverFocusHold, type HoldHandlers } from './useHoverFocusHold';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
@@ -156,10 +156,8 @@ export function Toaster() {
   const { t, language } = useTranslation();
   const sheetOpen = useBottomSheetOpen();
   const navShown = useBottomNavShown();
-  const footHeight = useToastFootHeight();
-  const overPanel = isOpen && !sheetOpen;
-  const overFoot = overPanel && footHeight > 0;
-  const aboveNav = overPanel && navShown && !overFoot;
+  const overFoot = useToastOverFoot();
+  const aboveNav = isOpen && !sheetOpen && navShown && overFoot === null;
 
   // The undo toast owns the region while the panel is open; an ordinary toast waits.
   const showUndo = pendingUndo !== null && isOpen;
@@ -214,12 +212,10 @@ export function Toaster() {
       aria-atomic="true"
       lang={language}
       style={
-        overFoot
-          ? { bottom: toastBottomOverFoot(footHeight, navShown) }
-          : undefined
+        overFoot === null ? undefined : { bottom: aboveSafeBottom(overFoot) }
       }
       className={`pointer-events-none fixed inset-x-0 z-host flex justify-center pr-[max(16px,var(--kcp-safe-right))] pl-[max(16px,var(--kcp-safe-left))] ${
-        overFoot
+        overFoot !== null
           ? ''
           : aboveNav
             ? 'bottom-[calc(72px+var(--kcp-safe-bottom))]'

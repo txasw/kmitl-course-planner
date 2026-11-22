@@ -967,6 +967,67 @@ test('the reveal action opens the catalog on the blocked course', async ({
   await expect(reveal).toHaveCount(0);
 });
 
+// An undo toast floats over the timetable above the status row, and the phone bottom nav
+// (ADR-0048 amendment of 2026-11-22). A blocked add made while it shows floats the strip
+// above the toast, so the toast covers neither the notice nor its reveal action, with the
+// catalog open and with it put away.
+test('the strip stays clear of an undo toast over the timetable', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await openCatalog(page);
+  await syntheticSearch(page);
+  await addCourse(page, '90000001');
+  await addCourse(page, '90000005');
+  await page
+    .getByRole('button', { name: /^นำออก 90000005/ })
+    .first()
+    .click();
+  const toast = page.locator('#kcp-toast-region > *');
+  await expect(
+    toast.getByRole('button', { name: 'เลิกทำ', exact: true }),
+  ).toBeVisible();
+  await addCourse(page, '90000002');
+  const reveal = page.getByRole('button', { name: 'แสดงในรายการ' });
+  await expect(reveal).toBeVisible();
+  const notice = page
+    .locator('[aria-live="polite"]')
+    .filter({ has: reveal })
+    .locator('> *')
+    .first();
+
+  const expectClear = async (where: string) => {
+    const a = await notice.boundingBox();
+    const b = await toast.boundingBox();
+    if (a === null || b === null) throw new Error(`${where}: not laid out`);
+    expect(
+      a.y + a.height <= b.y || b.y + b.height <= a.y,
+      `${where}: the toast covers the strip`,
+    ).toBe(true);
+    expect(
+      await reveal.evaluate((node) => {
+        const box = node.getBoundingClientRect();
+        const root = node.getRootNode();
+        if (!(root instanceof ShadowRoot)) return false;
+        const hit = root.elementFromPoint(
+          box.left + box.width / 2,
+          box.top + box.height / 2,
+        );
+        return hit !== null && node.contains(hit);
+      }),
+      `${where}: a tap on the reveal action lands on it`,
+    ).toBe(true);
+  };
+  await expectClear('over the open catalog');
+  await timetableControl(page).tap();
+  await expect(page.locator('#kcp-catalog-column')).toHaveAttribute(
+    'aria-hidden',
+    'true',
+  );
+  await expect(toast).toBeVisible();
+  await expectClear('over the timetable');
+});
+
 /**
  * Assert the focused control lies wholly in the viewport and is what a press lands on at
  * its centre and near each corner, so no sticky submit, strip, toast, or nav covers any
