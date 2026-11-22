@@ -1205,8 +1205,12 @@ async function expectTouchTarget(
   await expect(control, name).toBeVisible();
   const box = await control.boundingBox();
   expect(box, name).not.toBeNull();
-  expect(box?.width ?? 0, `${name} width`).toBeGreaterThanOrEqual(TOUCH_TARGET);
-  expect(box?.height ?? 0, `${name} height`).toBeGreaterThanOrEqual(
+  // A box inside a sheet that has just settled can report a float a hair under the
+  // laid out size (43.99994 for a 44 px control), so compare whole pixels.
+  expect(Math.round(box?.width ?? 0), `${name} width`).toBeGreaterThanOrEqual(
+    TOUCH_TARGET,
+  );
+  expect(Math.round(box?.height ?? 0), `${name} height`).toBeGreaterThanOrEqual(
     TOUCH_TARGET,
   );
 }
