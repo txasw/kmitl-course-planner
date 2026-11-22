@@ -956,6 +956,46 @@ the other layers, since a modal dialog covers the panel by design and closes bac
 layout the sweep reads in full. The clipped text sweep amendment above now states this as the
 sweep's scope.
 
+## Amendment, 2026-11-22: a toast floats and moves nothing
+
+The owner reported a layout shift at 1366 px: a move toast with its undo action made the status
+row and the timetable jump up as it appeared and back down as it left. The band of the 2026-11-21
+amendment above on nothing cut at the foot or the head caused it. The toast region reported the
+toast's height and the plan region ended in a band of that height while a toast showed, so every
+toast resized the plan area, and on the phone export page the band lifted the whole sharing
+toolbar. The owner's rule is now that a toast never causes layout shift. This supersedes the
+band, the clause of that amendment that any other toast makes room, and its rejection of a toast
+lifted over the status row.
+
+- A toast is transient and is read like a layer the student opened, next to the owner decision on
+  opened layers above: while it shows it may cover the page behind it, here the bottom of the
+  timetable, and the resting layout with no toast must never overlap text. Nothing makes room for
+  a toast, so the status row, the timetable, and the sharing toolbar keep their boxes before a
+  toast shows, while it shows, and after it leaves.
+- The toast must still cover none of the controls along the panel foot. The plan region names its
+  foot element, the status row in edit or, below 640 px, the sharing toolbar of the export page,
+  and the toast region floats above it: the panel padding, the foot's height, and an 8 px gap,
+  plus the 56 px bottom nav on the phone in edit, above the bottom safe area inset. The foot is
+  measured by its own box at rest and never by the toast, so a toast that shows or leaves changes
+  nothing the offset reads. With no foot named, over the phone catalog pane, the region keeps its
+  72 px rise above the nav, and from 640 px up on the export page, where the toolbar heads the
+  poster, it rests at the foot over the stage. While a bottom sheet is open the region still drops
+  to the foot and the sheet keeps its own band, unchanged by this amendment.
+- The timetable scroller, and the selected and summary views, end in a bottom padding and scroll
+  padding about as tall as a toast, 60 px or 64 px under a coarse pointer where its controls take
+  the touch size. The padding is present at rest, so a toast that appears changes nothing, and the
+  last row can always be scrolled clear of a toast, as can a block brought into view. Where the
+  week fills its scroller, the rows share the height above the padding, so the toast floats over
+  the padding rather than a row.
+- Lifting the status row above the toast was rejected, since that is the shift the owner reported,
+  and so was measuring the toast to place it, since any offset read from the toast moves with it.
+- The clipped text sweep reads a toast in three parts: the toast itself must show whole, it must
+  cover none of the status row, the phone bottom nav, or the sharing toolbar, and the page behind
+  it is read with the toast seen through. A new walk measures the boxes of the status row, the
+  timetable scroller, and the export toolbar and stage before a copy toast, an undo toast, and an
+  export copy toast show, while each shows, and after it leaves, at 360, 390, 768, and 1366 px in
+  Thai and in English, and fails on any move.
+
 ## Amendment, 2026-11-22: the change section instructor line, an owner approved ellipsis
 
 The owner asked that a change section choice (ADR-0068 amendment of the same date) keep its
