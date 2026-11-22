@@ -427,6 +427,51 @@ test('the failed save strip fits whole at 320 px in Thai and English', async ({
   );
 });
 
+/**
+ * Assert the seven day chips of the open filter popover share one row inside the popover,
+ * each at the 44 px touch height with its label whole.
+ */
+async function expectDaysOnOneRow(page: Page, group: string): Promise<void> {
+  const region = page.getByRole('group', { name: group });
+  const days = region.getByRole('button');
+  await expect(days).toHaveCount(7);
+  // The right edge of the day group, inside the popover padding, which no chip may pass.
+  const right = await region.evaluate(
+    (node) => node.getBoundingClientRect().right,
+  );
+  const tops = new Set<number>();
+  for (const day of await days.all()) {
+    const box = await day.boundingBox();
+    expect(box).not.toBeNull();
+    if (box === null) return;
+    tops.add(Math.round(box.y));
+    expect(box.height).toBeGreaterThanOrEqual(TOUCH_TARGET);
+    expect(box.x + box.width).toBeLessThanOrEqual(right + 0.5);
+    await expectNotClipped(day);
+  }
+  expect([...tops]).toHaveLength(1);
+}
+
+// On a touch screen each day chip once took the 44 px width minimum, and seven of them with
+// their gaps needed more room than a 360 px phone gives the popover, so Saturday wrapped to
+// a row of its own. The days now share seven equal columns and keep the touch height.
+test('the filter days share one row at 360 px in Thai and English', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await page.setViewportSize({ width: 360, height: 800 });
+  const catalog = await openCatalog(page);
+  await categorySearch(page, catalog);
+  await catalog.getByRole('button', { name: 'ตัวกรอง' }).click();
+  await expectDaysOnOneRow(page, 'วัน');
+  await page.keyboard.press('Escape');
+
+  await page.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }).click();
+  await page.getByRole('menuitemradio', { name: 'English' }).click();
+  await catalog.getByRole('button', { name: 'Filters' }).click();
+  await expectDaysOnOneRow(page, 'Day');
+});
+
 // The clearance ADR-0073 keeps between the version pill and the first text in the
 // header row: the pill reaches 4 px into the 12 px gap after the mark.
 const PILL_CLEARANCE_PX = 8;

@@ -5,6 +5,7 @@ import {
   fireEvent,
   cleanup,
   act,
+  within,
 } from '@testing-library/react';
 import { expectNoSeriousA11yViolations } from '../../../tests/support/axe';
 import { loadFixture } from '../../../tests/support/fixtures';
@@ -73,6 +74,25 @@ describe('FilterBar', () => {
     fireEvent.click(screen.getByRole('combobox', { name: CREDIT }));
     fireEvent.mouseDown(screen.getByRole('option', { name: '3' }));
     expect(catalogStore.getState().filter.credit).toBe(3);
+  });
+
+  it('lays the seven days on one row of equal columns at the touch height', () => {
+    render(<FilterBar creditOptions={[3, 4]} />);
+    openFilters();
+    const group = screen.getByRole('group', { name: 'วัน' });
+    const row = group.querySelector('.grid');
+    expect(row).toHaveClass('grid-cols-7');
+    const days = within(group).getAllByRole('button');
+    expect(days).toHaveLength(7);
+    for (const day of days) {
+      // The 44 px minimum holds the height; a 44 px width minimum would wrap Saturday on a
+      // 360 px touch screen, so the width keeps only the 24 px floor.
+      expect(day.className).toContain(
+        'pointer-coarse:min-h-(--kcp-target-touch)',
+      );
+      expect(day.className).not.toContain('min-w-(--kcp-target-touch)');
+      expect(day.className).toContain('min-w-(--kcp-target-min)');
+    }
   });
 
   it('draws the filter as an icon named by its label alone while nothing is in use', () => {

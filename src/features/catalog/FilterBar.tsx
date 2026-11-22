@@ -299,7 +299,11 @@ function FilterPopover({
         <span className="text-xs font-semibold text-ink-soft">
           {t('catalog.filter.day')}
         </span>
-        <div className="flex flex-wrap gap-1">
+        {/* Seven equal columns hold the week on one row at any width. A wrapping row of
+            44 px wide chips needed 332 px on a touch screen, more than a 360 px phone gives
+            the popover, so Saturday wrapped alone; each chip keeps the 44 px touch height
+            and gives up only the width minimum, keeping the 24 px floor of WCAG 2.5.8. */}
+        <div className="grid grid-cols-7 gap-1">
           {DAYS.map((day) => {
             const active = filter.days.includes(day);
             return (
@@ -310,7 +314,7 @@ function FilterPopover({
                 onClick={() => {
                   catalogStore.getState().toggleDay(day);
                 }}
-                className={`flex-1 rounded-kcp px-1 py-1 text-xs ${TARGET_SIZE} ${
+                className={`min-w-(--kcp-target-min) rounded-kcp px-0.5 py-1 text-xs ${TARGET_HEIGHT} ${
                   active
                     ? 'bg-primary-strong text-surface'
                     : 'bg-surface-alt text-ink-soft hover:text-ink'
