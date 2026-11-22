@@ -15,9 +15,10 @@ import type { Section } from '@/lib/domain/types';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { dayLabelKey } from '@/lib/i18n/dayLabel';
 import { formatMinutes } from '@/lib/parsing/time';
-import { computeSeatDemand, seatLineText } from '@/lib/catalog/seatDemand';
+import { computeSeatDemand } from '@/lib/catalog/seatDemand';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { meetingPlace } from '@/features/catalog/meetingFormat';
+import { SeatLine } from '@/features/catalog/SeatDemand';
 
 interface ChangeOptionRowProps {
   /** The section and its declared pair, in section code order. */
@@ -42,7 +43,6 @@ function MemberLine({
   showKind: boolean;
   t: Translate;
 }) {
-  const demand = computeSeatDemand(member);
   // The spaces between the parts are text of their own, which the flex layout drops and
   // the select button's name keeps, so its words stay apart.
   return (
@@ -89,11 +89,7 @@ function MemberLine({
             );
           })
         )}{' '}
-        <span
-          className={demand.state === 'open' ? 'text-success' : 'text-ink-soft'}
-        >
-          {seatLineText(demand, t)}
-        </span>
+        <SeatLine demand={computeSeatDemand(member)} t={t} as="span" />
       </span>
     </span>
   );
