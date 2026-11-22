@@ -701,9 +701,10 @@ for (const language of ['th', 'en'] as const) {
           if ((await more.count()) > 0) await more.click();
           await sweep.scan(`suggest subject list ${String(index + 1)}`, dialog);
         }
-        // The slides off screen are inert, so the plan is applied from the slide on show.
+        // The slides off screen are inert, so the plan is applied from the slide on show, or
+        // on a phone from the sheet footer that carries its apply action.
         await dialog
-          .locator('[data-suggest-slide]:not([inert])')
+          .locator('[data-suggest-slide]:not([inert]), [data-suggest-footer]')
           .getByRole('button', { name: sweep.t('suggest.apply') })
           .click();
         await expect(dialog).toHaveCount(0);

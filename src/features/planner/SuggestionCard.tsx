@@ -1,7 +1,8 @@
 // One suggested timetable, one slide of the suggestion carousel. Its heading row names the
-// option and carries the apply action, which creates a new plan from it, so the action is
-// in view with the start of the slide on a phone's first screen (ADR-0054 amendment of
-// 2026-11-21). Below it the slide shows the whole week the suggestion would produce, the
+// option and, on the medium and docked tiers, carries the apply action, which creates a new
+// plan from it (ADR-0054 amendment of 2026-11-21). On compact the apply action rides the
+// pinned sheet footer instead, so it stays in thumb reach while the slide scrolls (ADR-0054
+// amendment of 2026-11-22). Below it the slide shows the whole week the suggestion would produce, the
 // plan subjects it keeps included, as a read only mini grid in the frame the dialog shares
 // across the slides, then the stats a student compares suggestions by, then the sections it
 // places named in full, then the ticked courses it leaves out with the reason each one
@@ -199,7 +200,31 @@ interface SuggestionCardProps {
   roleDescription?: string | undefined;
   locale: Locale;
   t: Translate;
+  /** Apply the suggestion from the heading row; unset where the apply action rides the
+   * sheet footer instead. */
+  onApply?: (() => void) | undefined;
+}
+
+/** The apply action, the dialog's one orange control, described by the option it applies. */
+export function ApplyButton({
+  describedBy,
+  onApply,
+  t,
+}: {
+  describedBy: string;
   onApply: () => void;
+  t: Translate;
+}) {
+  return (
+    <button
+      type="button"
+      aria-describedby={describedBy}
+      onClick={onApply}
+      className={`shrink-0 rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover ${TARGET_SIZE} ${FOCUS_OUTLINE}`}
+    >
+      {t('suggest.apply')}
+    </button>
+  );
 }
 
 export function SuggestionCard({
@@ -245,14 +270,9 @@ export function SuggestionCard({
         <h3 id={headingId} className="text-sm font-semibold">
           {fillTemplate(t('suggest.option'), { number: index + 1 })}
         </h3>
-        <button
-          type="button"
-          aria-describedby={headingId}
-          onClick={onApply}
-          className={`rounded-kcp bg-primary-strong px-3 py-1.5 text-sm font-semibold text-surface hover:bg-primary-hover ${TARGET_SIZE} ${FOCUS_OUTLINE}`}
-        >
-          {t('suggest.apply')}
-        </button>
+        {onApply === undefined ? null : (
+          <ApplyButton describedBy={headingId} onApply={onApply} t={t} />
+        )}
       </div>
       <div ref={gridBoxRef} className={GRID_HEIGHT[orientation]}>
         <WeeklyGrid

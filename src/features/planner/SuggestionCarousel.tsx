@@ -3,11 +3,13 @@
 // to read without a separate full size view. The slides sit on one track that slides by the
 // shown page, and only the shown slide takes focus or reaches assistive technology; the
 // others are inert. Paging runs four ways: a swipe across the slide, the previous and next
-// chevrons, a dot per suggestion, and the left and right arrow keys, with Home and End, on
-// the focusable slide area, the shown slide's controls included, and on the dots. The
-// position line between the chevrons is a polite live region, so a change announces the
-// new position. The slide area and each slide carry the carousel and slide role
-// descriptions, localized, so assistive technology names the pattern. A single suggestion shows no paging at all. Under reduced motion the track
+// chevrons of the suggestion pager, a dot per suggestion, and the left and right arrow keys,
+// with Home and End, on the focusable slide area, the shown slide's controls included, and on
+// the dots. The pager sits above the slides, or, where the dialog pins it to the sheet footer
+// with the apply action on compact, outside the carousel, which then leaves out the pager and
+// each slide's own apply action and takes the pager's position line as its label. The slide
+// area and each slide carry the carousel and slide role descriptions, localized, so assistive
+// technology names the pattern. A single suggestion shows no paging at all. Under reduced motion the track
 // jumps instead of sliding and the track does not follow the finger, while the swipe itself
 // still pages.
 //
@@ -15,9 +17,7 @@
 // slop, so a tap on the apply action or the left out list is never taken by the gesture. A
 // page change from a key inside the outgoing slide moves focus to the carousel, since that
 // slide turns inert under the focused control; a key on a dot moves focus to the new dot.
-// Only the shown dot is a tab stop, and the keys move between the dots, as in the mockup. A
-// chevron that reaches the first or last slide disables, so it hands focus to the other
-// chevron beside it, which needs no scroll, rather than to a dot below the slide.
+// Only the shown dot is a tab stop, and the keys move between the dots, as in the mockup.
 //
 // Each slide keeps 4 px of padding inside the clipping viewport. The viewport's inset focus
 // ring paints in that gap, where the card and the moving track would cover it, and a control
@@ -34,8 +34,6 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type RefObject,
 } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { PagerArrow } from '@/components/Pager';
 import { Tooltip } from '@/components/Tooltip';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
@@ -48,6 +46,7 @@ import type { Orientation } from './gridGeometry';
 import type { PlacedSection } from './placedSection';
 import { SuggestionCard } from './SuggestionCard';
 import type { SuggestionFrame } from './suggestionFrame';
+import { SuggestionPager } from './SuggestionPager';
 
 export interface SuggestionView {
   suggestion: Suggestion;
@@ -66,7 +65,7 @@ export function suggestionKey(suggestion: Suggestion): string {
 /** The distance a pointer travels before the swipe takes it, as the day view swipe does. */
 const SWIPE_SLOP_PX = 24;
 
-type FocusAfter = 'dot' | 'viewport' | 'previous' | 'next' | null;
+type FocusAfter = 'dot' | 'viewport' | null;
 
 interface SuggestionCarouselProps {
   cards: readonly SuggestionView[];
@@ -79,6 +78,11 @@ interface SuggestionCarouselProps {
   locale: Locale;
   t: Translate;
   onApply: (suggestion: Suggestion) => void;
+  /** The id of the pager's position line, set when the pager and the apply action ride a
+   * footer outside the carousel, so the carousel shows neither and labels its slide area by
+   * that line. Unset, the carousel shows the pager above the slides and an apply action in
+   * each slide. */
+  externalPagerId?: string | undefined;
 }
 
 /** The element that holds focus in the tree of a node, inside a shadow root included. */
@@ -191,13 +195,14 @@ export function SuggestionCarousel({
   locale,
   t,
   onApply,
+  externalPagerId,
 }: SuggestionCarouselProps) {
-  const positionId = useId();
+  const ownPositionId = useId();
+  const positionId = externalPagerId ?? ownPositionId;
   const reducedMotion = usePrefersReducedMotion();
   const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const dotsRef = useRef<HTMLDivElement>(null);
-  const arrowsRef = useRef<HTMLDivElement>(null);
   const focusAfter = useRef<FocusAfter>(null);
   const last = cards.length - 1;
   const paged = cards.length > 1;
@@ -211,14 +216,6 @@ export function SuggestionCarousel({
         ?.focus();
     } else if (target === 'viewport') {
       viewportRef.current?.focus();
-    } else if (target !== null) {
-      arrowsRef.current
-        ?.querySelector<HTMLElement>(
-          target === 'previous'
-            ? 'button:first-of-type'
-            : 'button:last-of-type',
-        )
-        ?.focus();
     }
   }, [page]);
 
@@ -268,49 +265,20 @@ export function SuggestionCarousel({
     go(next, onDot ? 'dot' : null);
   };
 
-  const position = fillTemplate(t('suggest.position'), {
-    number: page + 1,
-    total: cards.length,
-  });
-
   return (
     <div
       className={`flex flex-col gap-2 transition-opacity duration-base motion-reduce:transition-none ${busy ? 'opacity-60' : ''}`}
     >
-      {paged ? (
-        <div ref={arrowsRef} className="flex items-center gap-1">
-          {/* The arrows carry no tooltip: the position line between them names the page,
-              and a tooltip has no free side here. Above it covered the dialog close button,
-              below the option heading, and toward the line, on a phone, the line itself. */}
-          <PagerArrow
-            label={t('suggest.prev')}
-            disabled={page === 0}
-            tooltip={false}
-            onActivate={() => {
-              go(page - 1, page - 1 === 0 ? 'next' : null);
-            }}
-          >
-            <ChevronLeft size={18} strokeWidth={2} aria-hidden />
-          </PagerArrow>
-          <p
-            id={positionId}
-            aria-live="polite"
-            aria-atomic="true"
-            className="min-w-0 flex-1 text-center text-sm text-ink-soft tabular-nums"
-          >
-            {position}
-          </p>
-          <PagerArrow
-            label={t('suggest.next')}
-            disabled={page === last}
-            tooltip={false}
-            onActivate={() => {
-              go(page + 1, page + 1 === last ? 'previous' : null);
-            }}
-          >
-            <ChevronRight size={18} strokeWidth={2} aria-hidden />
-          </PagerArrow>
-        </div>
+      {paged && externalPagerId === undefined ? (
+        <SuggestionPager
+          page={page}
+          count={cards.length}
+          onPageChange={(next) => {
+            go(next, null);
+          }}
+          positionId={positionId}
+          t={t}
+        />
       ) : null}
       <div
         ref={bindViewport}
@@ -344,9 +312,13 @@ export function SuggestionCarousel({
                 roleDescription={paged ? t('suggest.slide') : undefined}
                 locale={locale}
                 t={t}
-                onApply={() => {
-                  onApply(card.suggestion);
-                }}
+                onApply={
+                  externalPagerId === undefined
+                    ? () => {
+                        onApply(card.suggestion);
+                      }
+                    : undefined
+                }
               />
             </div>
           ))}

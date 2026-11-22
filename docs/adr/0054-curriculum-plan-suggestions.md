@@ -392,3 +392,33 @@ keeps focus. The undo toast that announces the new plan now also says it is show
 timetable. Leaving the student on the catalog with a toast action to the timetable, as a catalog
 add does, was rejected: a catalog add leaves the student mid choice, while an applied suggestion
 is a finished plan the student wants to see.
+
+## Amendment, 2026-11-22: a pinned footer pages and applies on a phone
+
+Context. The 1.6.0 gate review found the phone sheet hard to act on. Its first screen holds the
+intro, the group segments, the tick list, the goal, and the schedule shape, so no option shows and
+nothing says one waits below. Once the student scrolls a slide through its stats and its two lists,
+the apply action in the slide heading row has scrolled away, so the student scrolls back up to
+use the plan they just read.
+
+Decision. On the compact tier, while the carousel has an option on show, the sheet pins a slim
+footer below its scrolling body. The footer carries the pager, the previous and next chevrons
+around the position line, Option 1 of 3, and the apply action for the slide on show; with one
+option it names that option in place of the pager. The carousel then leaves out its own pager and
+each slide's apply action, so there is one of each, and labels its slide area by the footer's
+position line, which stays the polite live region that announces a page change. The dots stay
+under the slides and the swipe and the keys still page. The footer is the bottom sheet's own
+footer, outside the scrolling body, so it covers nothing at rest: the body keeps the room a toast
+needs above it, and a toast floats over that room above the footer the sheet measures, so a toast
+moves nothing. The medium and docked tiers keep the pager above the slides and the apply action in
+each slide heading, since the centered dialog shows a slide whole.
+
+Alternatives considered. Keeping the apply action in the slide and adding a second one to the
+footer was rejected: two controls of one name, one of them scrolled away, read as two actions to
+a screen reader. Scrolling the pager into view when the first result arrives was rejected as the
+only change, since it moves the page under the student's finger and still leaves the apply action
+behind once the slide is read.
+
+Consequences. The main action and paging stay in thumb reach wherever the student has scrolled.
+The footer appears when the first option does and leaves while a search finds none, so the body
+grows or shrinks once at those moments, never for a toast.

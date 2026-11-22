@@ -696,8 +696,9 @@ test('keeps block names whole in the suggestion slides and the phone week', asyn
   }
   if (!isPhone(page)) return;
 
+  // On the phone the apply action for the slide on show rides the sheet footer.
   await dialog
-    .locator('[data-suggest-slide]:not([inert])')
+    .locator('[data-suggest-footer]')
     .getByRole('button', { name: 'ใช้ตารางนี้' })
     .click();
   // Applying shows the timetable pane itself.
