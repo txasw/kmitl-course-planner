@@ -9,7 +9,7 @@ import {
   waitForResultsInput,
   submitSearch,
 } from './support/fixtures';
-import { bottomNav, isPhone } from './support/tiers';
+import { isPhone } from './support/tiers';
 
 // The top of the narrow timetable and the plan status row under it (ADR-0049 amendment),
 // on the phone and tablet projects with a plan applied from a curriculum suggestion, so the
@@ -42,15 +42,9 @@ async function planFromSuggestion(page: Page): Promise<void> {
   await catalog.getByRole('button', { name: 'แนะนำตาราง' }).click();
   const dialog = page.getByRole('dialog', { name: 'แนะนำตาราง' });
   await dialog.getByRole('button', { name: 'ใช้ตารางนี้' }).first().click();
+  // Applying shows the timetable itself, the phone's pane or the tablet's grid under the
+  // closed catalog sheet.
   await expect(dialog).toHaveCount(0);
-  if (isPhone(page)) {
-    await bottomNav(page).getByRole('button', { name: 'ตารางเรียน' }).tap();
-  } else {
-    await page
-      .locator('#kcp-catalog-column')
-      .getByRole('button', { name: 'ปิดรายการรายวิชา' })
-      .click();
-  }
   // The undo toast of the apply floats over the panel foot for its window; dismiss it so
   // the rows read as they rest.
   const toast = page

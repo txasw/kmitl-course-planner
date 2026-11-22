@@ -120,7 +120,7 @@ describe('UndoToast', () => {
     });
     render(<UndoToast record={record} locale="th" t={t} />);
     expect(
-      screen.getByText('สร้างตาราง ตาราง 1/2569 เน้นเช้า แล้ว'),
+      screen.getByText('สร้างตาราง ตาราง 1/2569 เน้นเช้า แล้ว แสดงในหน้าตารางเรียน'),
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'เลิกทำ' }));
     expect(planStore.getState().plans.map((plan) => plan.id)).toEqual([

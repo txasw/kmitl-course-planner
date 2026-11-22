@@ -17,6 +17,8 @@
 // carousel, so a phone shows the start of the first slide and its apply action on the
 // first screen of the sheet. The apply action is the dialog's one orange control; the
 // objective takes the quiet segmented look and the selected preference an ink outline.
+// Applying hands back to the opener, which shows the timetable so the new plan is on
+// screen at once.
 //
 // The slides share one frame and one grid orientation: time runs downward on compact, where
 // the phone is tall and narrow, and across on every wider tier, the way the edit grid
@@ -166,6 +168,8 @@ interface SuggestDialogProps {
   /** The term of that result, which the created plan takes. */
   term: Term;
   onClose: () => void;
+  /** Called in place of onClose once a suggestion is applied as a new plan. */
+  onApplied: () => void;
 }
 
 export function SuggestDialog({
@@ -173,6 +177,7 @@ export function SuggestDialog({
   sourceQuery,
   term,
   onClose,
+  onApplied,
 }: SuggestDialogProps) {
   const { t, language } = useTranslation();
   const tier = useLayoutTier();
@@ -244,7 +249,7 @@ export function SuggestDialog({
       toastStore.getState().show('error', t('suggest.applyFailed'));
       return;
     }
-    onClose();
+    onApplied();
   };
 
   // The empty reason counts only the result's courses outside the plan; ticking every

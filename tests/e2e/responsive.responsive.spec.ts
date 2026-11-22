@@ -700,8 +700,8 @@ test('keeps block names whole in the suggestion slides and the phone week', asyn
     .locator('[data-suggest-slide]:not([inert])')
     .getByRole('button', { name: 'ใช้ตารางนี้' })
     .click();
+  // Applying shows the timetable pane itself.
   await expect(dialog).toHaveCount(0);
-  await bottomNav(page).getByRole('button', { name: 'ตารางเรียน' }).tap();
   await page
     .getByRole('radiogroup', { name: 'วันที่แสดง' })
     .getByRole('radio', { name: 'สัปดาห์', exact: true })

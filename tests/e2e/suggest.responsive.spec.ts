@@ -13,8 +13,8 @@ import { bottomNav, isPhone } from './support/tiers';
 // The plan suggestion flow on the phone and tablet projects, on the real by_class
 // capture for curriculum 137. Both show the suggestions one per slide of a carousel, the
 // phone in a bottom sheet with a swipe across the slide, the tablet in a dialog. Both
-// apply a suggestion as a new plan and find its sections on the timetable with no
-// conflict.
+// apply a suggestion as a new plan, which shows the timetable at once, and find its
+// sections there with no conflict.
 
 const GRID_BLOCK = '[data-teach-table-id]';
 
@@ -130,10 +130,18 @@ test('applies a suggested timetable from the compact layouts', async ({
 
   await expect(dialog).toHaveCount(0);
   await expect(
-    page.getByText(/^สร้างตาราง ตาราง \d\/\d{4} สมดุล แล้ว$/),
+    page.getByText(/^สร้างตาราง ตาราง \d\/\d{4} สมดุล แล้ว แสดงในหน้าตารางเรียน$/),
   ).toBeVisible();
-  await showTimetable(page);
-  await expect.poll(() => page.locator(GRID_BLOCK).count()).toBeGreaterThan(0);
+  // The timetable is on screen with no further step: the phone shows its pane with focus
+  // on its nav item, and the tablet closes the catalog sheet that covered it.
+  if (isPhone(page)) {
+    await expect(
+      bottomNav(page).getByRole('button', { name: 'ตารางเรียน' }),
+    ).toBeFocused();
+  } else {
+    await expect(catalog).toHaveCount(0);
+  }
+  await expect(page.locator(GRID_BLOCK).first()).toBeInViewport();
   await expect(page.locator(`${GRID_BLOCK}[data-verify="danger"]`)).toHaveCount(
     0,
   );

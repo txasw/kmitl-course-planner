@@ -107,7 +107,7 @@
   "suggest.empty.truncated": "The search stopped before it found a timetable that fits. Untick a few subjects to narrow it.",
   "suggest.empty.seats": "Every section of the ticked subjects is full or closed.",
   "suggest.empty.conflicts": "No open section fits the plan without a clash.",
-  "suggest.created": "Created plan {name}",
+  "suggest.created": "Created plan {name}, shown on the Timetable",
   "planData.import": "Import JSON",
   "planData.export": "Export JSON",
   "planData.imported": "Plan imported",
