@@ -219,7 +219,14 @@ export function SuggestSubjects({
     return null;
   }
   const planCount = groups.planned.length;
-  const openKind = open !== null && kinds.includes(open) ? open : null;
+  // A group that empties, as the plan group does on a clear, hands the list back to the
+  // one the dialog opens on, so the segment row never heads nothing.
+  const openKind =
+    open === null
+      ? null
+      : kinds.includes(open)
+        ? open
+        : defaultOpenGroup(groups);
 
   // The clear control, the prompt, and the cleared line replace each other, so each hand
   // off names where focus lands: the cancel, back on the clear control, or the cleared
