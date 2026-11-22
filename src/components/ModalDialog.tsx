@@ -33,6 +33,7 @@ import { usePanelPortal } from '@/features/shell/PanelPortalContext';
 import { useOpenSurface } from '@/features/shell/attentionStore';
 import { useEscapeLayer } from '@/features/shell/useEscapeLayer';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
+import { TOAST_SATELLITES } from '@/features/shell/toastStore';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { VIEWPORT_FIT } from '@/lib/ui/viewportInset';
 
@@ -64,6 +65,9 @@ interface ModalDialogProps {
   initialFocusRef?: RefObject<HTMLElement | null>;
   /** The id of the element in the body that describes the dialog. */
   describedBy?: string;
+  /** Whether Tab reaches the toast region too, for a layer whose action answers with an
+   * undo toast that the student should reach without closing the layer first. */
+  withToasts?: boolean;
   /** Who scrolls the content: the dialog body by default, or the content itself. */
   scroll?: keyof typeof BODY_CLASS;
 }
@@ -78,6 +82,7 @@ export function ModalDialog({
   initialFocusRef,
   describedBy,
   scroll = 'body',
+  withToasts = false,
 }: ModalDialogProps) {
   const portalRoot = usePanelPortal();
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -87,7 +92,12 @@ export function ModalDialog({
   // The layer mounts its node only once the portal root exists, which is a commit later
   // when the panel opens with the layer already shown, so focus and Escape wait for it.
   const portalReady = portalRoot !== null;
-  useFocusTrap(dialogRef, portalReady);
+  useFocusTrap(
+    dialogRef,
+    portalReady,
+    undefined,
+    withToasts ? TOAST_SATELLITES : undefined,
+  );
   useOpenSurface(true);
   useEscapeLayer(dialogRef, onClose, portalReady);
   useEffect(() => {

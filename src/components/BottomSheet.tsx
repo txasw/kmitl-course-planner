@@ -44,6 +44,7 @@ import {
 } from '@/features/shell/sheetToastBand';
 import { useEscapeLayer } from '@/features/shell/useEscapeLayer';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
+import { TOAST_SATELLITES } from '@/features/shell/toastStore';
 import { usePrefersReducedMotion } from '@/features/shell/usePresence';
 import { useSwipeGesture } from '@/features/shell/useSwipeGesture';
 
@@ -69,6 +70,9 @@ interface BottomSheetProps {
   initialFocusRef?: RefObject<HTMLElement | null>;
   /** The id of the element in the body that describes the dialog. */
   describedBy?: string;
+  /** Whether Tab reaches the toast region too, for a layer whose action answers with an
+   * undo toast that the student should reach without closing the layer first. */
+  withToasts?: boolean;
   /** Who scrolls the content: the sheet body by default, or the content itself. */
   scroll?: keyof typeof BODY_CLASS;
 }
@@ -83,6 +87,7 @@ export function BottomSheet({
   initialFocusRef,
   describedBy,
   scroll = 'body',
+  withToasts = false,
 }: BottomSheetProps) {
   const portalRoot = usePanelPortal();
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -93,7 +98,12 @@ export function BottomSheet({
   // The layer mounts its node only once the portal root exists, which is a commit later
   // when the panel opens with the layer already shown, so focus and Escape wait for it.
   const portalReady = portalRoot !== null;
-  useFocusTrap(sheetRef, portalReady);
+  useFocusTrap(
+    sheetRef,
+    portalReady,
+    undefined,
+    withToasts ? TOAST_SATELLITES : undefined,
+  );
   useOpenSurface(true);
   useBottomSheetPresence();
   const toastShown = useToastShown();
