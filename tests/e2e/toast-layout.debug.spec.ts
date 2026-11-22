@@ -245,6 +245,70 @@ for (const language of ['th', 'en'] as const) {
   });
 }
 
+// A bottom sheet makes no room for a toast either. Its body keeps the room at rest and the
+// toast floats over it, above the sheet's footer of actions, so the sheet, its body, and its
+// footer keep their boxes before a toast shows, while it shows, and after it leaves. The block
+// detail sheet at 360 and 390 px carries a footer, and its copy subject id action, the last row
+// of its body, shows a toast while the sheet stays open; with the body scrolled to its end, the
+// toast covers neither that row nor the footer.
+for (const language of ['th', 'en'] as const) {
+  test(`a toast moves nothing in an open bottom sheet in ${language}`, async ({
+    context,
+  }) => {
+    test.setTimeout(120_000);
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    const sweep = await openSweep(context, language, []);
+    const { page } = sweep;
+    for (const width of [360, 390] as const) {
+      await openAt(sweep, width, context);
+      const catalog = await showCatalog(sweep);
+      await searchSubjectId(sweep, catalog, '90000000', '90000001');
+      await addCourse(sweep, '90000001');
+      await showTimetable(sweep);
+      await dismissToasts(sweep);
+
+      await page
+        .locator('[data-teach-table-id]')
+        .filter({ visible: true })
+        .first()
+        .click();
+      const sheet = blockDetail(sweep);
+      await expect(sheet).toBeVisible();
+      await sheet.evaluate((node) =>
+        Promise.all(
+          node.getAnimations().map((animation) => animation.finished),
+        ),
+      );
+      const copyButton = page.getByRole('button', {
+        name: sweep.t('block.copySubjectId'),
+      });
+      const copy = sheet.locator(copyButton);
+      const body = sheet.locator(':scope > div').filter({ has: copyButton });
+      const footer = sheet.locator(':scope > div').filter({
+        has: page.getByRole('button', {
+          name: sweep.t('block.removeFromPlan'),
+        }),
+      });
+      // Bring the last row of the body as far up as the body scrolls.
+      await body.evaluate((node) => {
+        node.scrollTop = node.scrollHeight;
+      });
+      await expectNoShift(
+        sweep,
+        'sheet-toast',
+        { sheet, body, footer, 'copy action': copy },
+        { footer, 'copy action': copy },
+        async () => {
+          await copy.click();
+        },
+      );
+      await expect(sheet).toBeVisible();
+      await page.keyboard.press('Escape');
+      await expect(sheet).toHaveCount(0);
+    }
+  });
+}
+
 // The unscheduled shelf sits between the timetable and the status row and scrolls with
 // neither, so it counts as part of the foot: a toast floats above it rather than over its
 // rows, which no scroll could bring clear of the toast, and the shelf does not move.
