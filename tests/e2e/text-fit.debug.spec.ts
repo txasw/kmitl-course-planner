@@ -59,6 +59,15 @@ const EXCEPTIONS: readonly TextFitException[] = [
     reason:
       'a teacher, condition, or remark list longer than two lines rests at two, and its expand control wraps every line in full',
   },
+  {
+    // The owner approved exception to the no ellipsis rule (ADR-0048 amendment of
+    // 2026-11-22): a change section choice keeps its instructors on one line.
+    selector: '[data-teacher-scroll] li',
+    scope: '[data-teacher-scroll]',
+    control: '[data-teacher-scroll][role="region"][tabindex="0"]',
+    reason:
+      'the instructor line of a change section choice ends in an ellipsis past its edge, and the line itself is a named tab stop that scrolls sideways to every name',
+  },
 ];
 
 /** The layers of the product tour that dim the panel on purpose, read through. */
@@ -200,6 +209,55 @@ for (const language of ['th', 'en'] as const) {
           .click();
         await sweep.scan('sort list', page.getByRole('listbox'));
         await page.keyboard.press('Escape');
+      }
+      sweep.expectClean();
+    });
+
+    test('the change section choices show whole', async ({ context }) => {
+      test.setTimeout(300_000);
+      const sweep = await openSweep(context, language, EXCEPTIONS);
+      const { page } = sweep;
+      for (const width of WIDTHS) {
+        await openAt(sweep, width, context);
+        const catalog = await showCatalog(sweep);
+        // From the capture with exam windows: 01076311 section 2 leaves section 1, three
+        // Sunday meetings with no room and 21 instructors, as its choice; 01006020 offers a
+        // section with four instructors; and the 01076002 pair offers the other pair.
+        await searchSubjectId(sweep, catalog, '90000700', '01076311');
+        const longest = await expandCourse(sweep, '01076311');
+        await longest
+          .getByRole('button', {
+            name: new RegExp(`^${sweep.t('action.add')}`),
+          })
+          .nth(1)
+          .click();
+        await addCourse(sweep, '01006020');
+        await addCourse(sweep, '01076002');
+        await showTimetable(sweep);
+        await dismissToasts(sweep);
+        await (
+          sweep.phone
+            ? page
+                .getByRole('navigation', { name: sweep.t('nav.label') })
+                .getByRole('button', {
+                  name: new RegExp(`^${sweep.t('nav.selected')}`),
+                })
+            : page.getByRole('tab', {
+                name: new RegExp(`^${sweep.t('planView.selected')}`),
+              })
+        ).click();
+        const toggles = sweep.panel().getByRole('button', {
+          name: new RegExp(`^${sweep.t('change.open')}`),
+        });
+        await expect(toggles).toHaveCount(3);
+        for (const toggle of await toggles.all()) await toggle.click();
+        // The instructor line that holds more than it shows is a tab stop.
+        await expect(
+          sweep
+            .panel()
+            .getByRole('region', { name: sweep.t('section.teachers.label') }),
+        ).not.toHaveCount(0);
+        await sweep.scan('change section choices', sweep.panel());
       }
       sweep.expectClean();
     });
