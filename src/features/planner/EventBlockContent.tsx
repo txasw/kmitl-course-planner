@@ -33,13 +33,7 @@ import type { Locale } from '@/lib/i18n/t';
 import type { DensityLevel } from '@/lib/planner/blockDensity';
 import type { BlockBadge } from './blockBadge';
 import { CHIP_CLASS } from './blockSurface';
-import {
-  HATCH_BACKDROP,
-  NAME_CLAMP,
-  WHOLE_FIELD,
-  nameClampStyle,
-  nameLine,
-} from './blockText';
+import { NAME_CLAMP, WHOLE_FIELD, nameClampStyle, nameLine } from './blockText';
 import { NARROW_HIDDEN, removeClearance } from './narrowBlock';
 
 interface EventBlockContentProps {
@@ -96,25 +90,18 @@ export function EventBlockContent({
 }: EventBlockContentProps) {
   const showRow = level.showPlace || level.showSection;
   const narrowHidden = nameOnlyWhenNarrow ? NARROW_HIDDEN : '';
-  // The quiet lines read ink soft, except over the danger hatch, where only ink keeps 4.5:1.
-  const quiet = badge === 'danger' ? 'text-ink' : 'text-ink-soft';
-  // Over the danger hatch the content stacks above the overlay and each text line sits on a
-  // solid backdrop as wide as its text, so the stripes show around the text, not through it.
-  const backdrop = badge === 'danger' ? HATCH_BACKDROP : '';
   const line = nameLine(level, name, nameLang, abbreviations);
   return (
     <div
       ref={contentRef}
       data-fit
-      className={`flex min-h-0 flex-1 flex-col overflow-hidden ${
-        badge === 'danger' ? 'relative' : ''
-      }`}
+      className="flex min-h-0 flex-1 flex-col overflow-hidden"
     >
       <span
         data-fit-name
         data-name-form={level.nameForm}
         lang={line.lang}
-        className={`shrink-0 font-semibold ${line.className} ${backdrop} ${
+        className={`shrink-0 font-semibold ${line.className} ${
           level.nameLines === 'all' ? '' : NAME_CLAMP
         } ${reserveRemove ? removeClearance(nameOnlyWhenNarrow) : ''}`}
         style={nameClampStyle(level.nameLines)}
@@ -133,7 +120,7 @@ export function EventBlockContent({
         <span
           data-fit-whole="secondary"
           lang={secondaryLang ?? undefined}
-          className={`shrink-0 overflow-hidden font-normal break-normal ${backdrop} ${narrowHidden} ${quiet}`}
+          className={`shrink-0 overflow-hidden font-normal break-normal ${narrowHidden} text-ink-soft`}
         >
           {secondary}
         </span>
@@ -145,10 +132,12 @@ export function EventBlockContent({
           on a narrow block starts its own line under the place. */}
       {showRow ? (
         <span
-          className={`mt-0.5 flex shrink-0 flex-wrap items-baseline justify-between gap-x-1.5 gap-y-0.5 text-ink ${backdrop} ${narrowHidden}`}
+          className={`mt-0.5 flex shrink-0 flex-wrap items-baseline justify-between gap-x-1.5 gap-y-0.5 text-ink ${narrowHidden}`}
         >
           {level.showPlace ? (
-            <span className={`min-w-0 break-words ${roomless ? quiet : ''}`}>
+            <span
+              className={`min-w-0 break-words ${roomless ? 'text-ink-soft' : ''}`}
+            >
               <MapPin
                 size="0.85em"
                 strokeWidth={2}
@@ -161,7 +150,7 @@ export function EventBlockContent({
           ) : null}
           {level.showSection ? (
             <span
-              className={`shrink-0 rounded-kcp-inner px-1 text-[0.85em] tabular-nums ${CHIP_CLASS} ${quiet} ${
+              className={`shrink-0 rounded-kcp-inner px-1 text-[0.85em] tabular-nums ${CHIP_CLASS} text-ink-soft ${
                 reserveRemove ? REMOVE_STEP_ASIDE : ''
               }`}
             >
@@ -176,7 +165,7 @@ export function EventBlockContent({
           margin never costs the name a line. */}
       {level.showTime || level.showId ? (
         <div
-          className={`${footAtBottom ? 'mt-auto' : 'mt-1'} min-h-0 pt-0.5 ${backdrop} ${narrowHidden} ${quiet}`}
+          className={`${footAtBottom ? 'mt-auto' : 'mt-1'} min-h-0 pt-0.5 ${narrowHidden} text-ink-soft`}
         >
           {level.showTime ? (
             <span

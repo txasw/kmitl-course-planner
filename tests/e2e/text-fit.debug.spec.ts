@@ -485,12 +485,21 @@ for (const language of ['th', 'en'] as const) {
 
         // The check against the moved variant left 90000005 missing, the tallest detail, with
         // its no longer listed line, its exams, and the term it was added from. It keeps to
-        // the plan area, so its edge cuts no line of the status row under it.
-        await page
+        // the plan area, so its edge cuts no line of the status row under it. Its block marks
+        // the state with a hatched band that ends above its first line of text (ADR-0047).
+        const missingBlock = page
           .locator('[data-teach-table-id="900005"]')
           .filter({ visible: true })
-          .first()
-          .click();
+          .first();
+        await expect(missingBlock).toHaveAttribute('data-verify', 'danger');
+        const bandBottom = await missingBlock
+          .locator('[data-hatch-band]')
+          .evaluate((band) => band.getBoundingClientRect().bottom);
+        const textTop = await missingBlock
+          .locator('[data-fit]')
+          .evaluate((content) => content.getBoundingClientRect().top);
+        expect(textTop).toBeGreaterThanOrEqual(bandBottom);
+        await missingBlock.click();
         await expect(
           blockDetail(sweep)
             .getByText(sweep.t('verify.missing'), { exact: true })

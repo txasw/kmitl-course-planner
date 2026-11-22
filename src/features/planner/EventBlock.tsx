@@ -11,9 +11,11 @@
 // left stripe; the KMITL orange is never used here. Every grid, the edit grid, the suggestion
 // mini grids, and the preview poster with its export, takes the soft depth card, a fill that
 // fades from a stronger tint at the top with a tinted edge and a light shadow (ADR-0047
-// amendments of 2026-11-20 and 2026-11-22). The danger state draws its ring and hatch on an
-// overlay rather than on the fill, so the card keeps its edge under it, and each text line sits
-// on a solid tint above the overlay, so the stripes never run through the text. On the export
+// amendments of 2026-11-20 and 2026-11-22). The danger state keeps that anatomy and draws its
+// ring on an overlay rather than on the fill, so the card keeps its edge under it, and its hatch
+// as a band across the top of the card that the content clears with a deeper top padding, so
+// the stripes never run under the text and every line reads on the card fill as on any other
+// block (ADR-0047 amendment of 2026-11-22). On the export
 // poster and in the edit grid alike the content is measured against the box and whole low
 // priority fields are dropped rather than a line clipped mid glyph: the fit walks the density
 // ladder in useDensityFit, dropping the subject id, then the secondary name, then the time,
@@ -74,7 +76,13 @@ import { useDensityFit } from './useDensityFit';
 import { EventBlockContent } from './EventBlockContent';
 import { DayCardContent } from './DayCardContent';
 import { NARROW_HIDDEN, NARROW_PADDING } from './narrowBlock';
-import { STRIPE_CLASS, SURFACE_CLASS, surfaceStyle } from './blockSurface';
+import {
+  HATCH_BAND,
+  STRIPE_CLASS,
+  SURFACE_CLASS,
+  blockPadding,
+  surfaceStyle,
+} from './blockSurface';
 import { PRESSED_CLASS } from './useTouchPress';
 import { meetingOrder } from './blockFocus';
 
@@ -320,7 +328,7 @@ function EventBlockComponent({
         // focus outline rather than an inset ring, because the danger overlay carries the
         // inset ring. Under the name only rule a block narrower than 7em tightens its
         // padding so its name keeps the width to break between words.
-        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden ${dayCard ? 'py-2 pr-2.5 pl-3.5' : 'py-1.5 pr-2 pl-2.5'} text-[1em] ${nameOnlyWhenNarrow ? NARROW_PADDING : ''} ${SURFACE_CLASS} ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink ${blockOutlineClass(pressed, interactive)} ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'touch-drag cursor-grab' : ''}`}
+        className={`kcp-settle relative flex min-w-0 flex-1 flex-col overflow-hidden ${blockPadding(dayCard, badge === 'danger')} text-[1em] ${nameOnlyWhenNarrow ? NARROW_PADDING : ''} ${SURFACE_CLASS} ${thaiHeadroom ? 'leading-[1.5]' : 'leading-tight'} text-ink ${blockOutlineClass(pressed, interactive)} ${pulsing ? 'kcp-pulse' : ''} ${dragListeners ? 'touch-drag cursor-grab' : ''}`}
         style={surfaceStyle(section.subjectId)}
         {...dragListeners}
       >
@@ -332,10 +340,17 @@ function EventBlockComponent({
           style={{ backgroundColor: color }}
         />
         {badge === 'danger' ? (
-          <span
-            aria-hidden
-            className="kcp-hatch pointer-events-none absolute inset-0 rounded-[inherit] ring-2 ring-danger ring-inset"
-          />
+          <>
+            <span
+              aria-hidden
+              data-hatch-band
+              className={`kcp-hatch pointer-events-none absolute inset-x-0 top-0 ${HATCH_BAND}`}
+            />
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-0 rounded-[inherit] ring-2 ring-danger ring-inset"
+            />
+          </>
         ) : null}
         {dayCard ? (
           <DayCardContent

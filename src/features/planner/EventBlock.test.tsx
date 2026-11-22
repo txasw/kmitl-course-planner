@@ -10,6 +10,7 @@ import { createTranslator, type Translate } from '@/lib/i18n/t';
 import type { Meeting } from '@/lib/domain/types';
 import { hashColor } from '@/lib/utils/hash-color';
 import { EventBlock } from './EventBlock';
+import { HATCH_BAND } from './blockSurface';
 import type { PlacedSection } from './placedSection';
 
 const t = createTranslator('th');
@@ -871,7 +872,7 @@ describe('EventBlock', () => {
     expect(block.style.backgroundColor).toBe('');
   });
 
-  it('draws the danger ring on the hatch overlay, apart from the soft fill', () => {
+  it('draws the danger ring on an overlay, apart from the soft fill', () => {
     const { container } = render(
       <EventBlock
         section={{ ...section, verifyStatus: 'missing' }}
@@ -883,18 +884,15 @@ describe('EventBlock', () => {
     );
     // The soft card draws its edge and shadow with box-shadow, so a ring on the block itself
     // would replace them; the overlay carries the ring instead.
-    const hatch = container.querySelector('.kcp-hatch');
-    expect(hatch).toHaveClass('ring-2', 'ring-danger', 'ring-inset');
+    const ring = container.querySelector('.ring-danger');
+    expect(ring).toHaveClass('ring-2', 'ring-inset', 'inset-0');
+    expect(ring).not.toHaveClass('kcp-hatch');
     expect(screen.getByLabelText(/90592033/).className).not.toContain(
       'ring-danger',
     );
-    // Ink soft drops under 4.5:1 on a hatch stripe, so the quiet lines read ink there.
-    expect(screen.getByText('901')).toHaveClass('text-ink');
-    expect(container.querySelector('.mt-1')).toHaveClass('text-ink');
-    expect(container.querySelector('.text-ink-soft')).toBeNull();
   });
 
-  it('sets every text line of a hatched block on a solid backdrop above the hatch', () => {
+  it('keeps the hatch to a band above the content, so no line sits on the stripes', () => {
     const { container } = render(
       <EventBlock
         section={{ ...section, verifyStatus: 'missing' }}
@@ -905,18 +903,57 @@ describe('EventBlock', () => {
         nameLanguage="both"
       />,
     );
-    // The content follows the hatch overlay and is positioned, so it paints above it.
-    const content = container.querySelector('[data-fit]');
-    expect(content).toHaveClass('relative');
-    expect(content?.previousElementSibling).toHaveClass('kcp-hatch');
-    const lines = Array.from(content?.children ?? []);
-    expect(lines.length).toBeGreaterThanOrEqual(4);
-    for (const line of lines) {
-      expect(line).toHaveClass('kcp-hatch-backdrop', 'w-fit', 'max-w-full');
-    }
+    const band = container.querySelector('[data-hatch-band]');
+    expect(band).toHaveClass('kcp-hatch', 'top-0', 'inset-x-0', HATCH_BAND);
+    expect(band).not.toHaveClass('inset-0');
+    // The content clears the band with a deeper top padding than a plain block's.
+    const block = screen.getByLabelText(/90592033/);
+    expect(block).toHaveClass('pt-3.5', 'pb-1.5');
+    expect(block).not.toHaveClass('py-1.5');
   });
 
-  it('keeps the text lines of a block with no hatch on the card fill', () => {
+  it('keeps the normal block anatomy under the danger state', () => {
+    const plain = render(
+      <EventBlock
+        section={section}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        nameLanguage="both"
+      />,
+    );
+    const plainClasses = Array.from(
+      plain.container.querySelector('[data-fit]')?.querySelectorAll('*') ?? [],
+    ).map((node) => node.getAttribute('class'));
+    plain.unmount();
+    const { container } = render(
+      <EventBlock
+        section={{ ...section, verifyStatus: 'missing' }}
+        meeting={meeting}
+        style={{}}
+        locale="th"
+        t={t}
+        nameLanguage="both"
+      />,
+    );
+    // The same lines in the same classes, the status dot aside: the section chip trails the
+    // place at the row end, the quiet lines read ink soft on the card fill, and the accent
+    // stripe still runs down the left edge.
+    const dangerClasses = Array.from(
+      container.querySelector('[data-fit]')?.querySelectorAll('*') ?? [],
+    )
+      .filter((node) => !node.classList.contains('rounded-full'))
+      .map((node) => node.getAttribute('class'));
+    expect(dangerClasses).toEqual(plainClasses);
+    expect(screen.getByText('901')).toHaveClass('text-ink-soft');
+    expect(screen.getByText('901').parentElement).toHaveClass(
+      'justify-between',
+    );
+    expect(container.querySelector('.w-\\[3px\\]')).not.toBeNull();
+  });
+
+  it('draws no hatch on a block with no danger state', () => {
     const { container } = render(
       <EventBlock
         section={section}
@@ -926,8 +963,8 @@ describe('EventBlock', () => {
         t={t}
       />,
     );
-    expect(container.querySelector('.kcp-hatch-backdrop')).toBeNull();
-    expect(container.querySelector('[data-fit]')).not.toHaveClass('relative');
+    expect(container.querySelector('.kcp-hatch')).toBeNull();
+    expect(screen.getByLabelText(/90592033/)).toHaveClass('py-1.5');
   });
 
   it('leads the name with the status dot in flow rather than over it', () => {
@@ -1453,14 +1490,14 @@ describe('EventBlock', () => {
       expect(screen.getByText('วิชาทดสอบ')).toBeInTheDocument();
     });
 
-    it('backs each foot item over the hatch so the id keeps the right edge', () => {
-      renderCard({}, 'th', true);
+    it('keeps the hatch to a band above a danger card, with the id at the right edge', () => {
+      const { container } = renderCard({}, 'th', true);
+      const band = container.querySelector('[data-hatch-band]');
+      expect(band).toHaveClass('kcp-hatch', 'top-0', HATCH_BAND);
+      const card = screen.getByLabelText(/90592033/);
+      expect(card).toHaveClass('pt-4', 'pb-2');
       const id = screen.getByText('90592033');
-      const foot = id.parentElement;
-      if (foot === null) throw new Error('The id has no foot');
-      expect(foot).not.toHaveClass('kcp-hatch-backdrop');
-      expect(id).toHaveClass('kcp-hatch-backdrop', 'ml-auto');
-      expect(within(foot).getByText('ทฤษฎี')).toHaveClass('kcp-hatch-backdrop');
+      expect(id).toHaveClass('ml-auto', 'text-ink-soft');
     });
 
     it('keeps the remove control beside the card', () => {
