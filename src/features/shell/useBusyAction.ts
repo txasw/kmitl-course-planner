@@ -17,12 +17,21 @@ export function useBusyAction<Action extends string>(): [
     if (busyRef.current) {
       return;
     }
-    busyRef.current = true;
-    setRunning(action);
-    void work().finally(() => {
+    const release = () => {
       busyRef.current = false;
       setRunning(null);
-    });
+    };
+    busyRef.current = true;
+    setRunning(action);
+    // The work starts within the press, so a share keeps its user activation. Work that
+    // throws before it returns a promise, such as a missing clipboard, still frees the
+    // controls, and the error reaches the press as it would without the guard.
+    try {
+      void work().finally(release);
+    } catch (error) {
+      release();
+      throw error;
+    }
   };
   return [running, run];
 }
