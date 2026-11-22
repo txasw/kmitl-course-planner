@@ -532,7 +532,7 @@ describe('EventBlock', () => {
     expect(foot?.textContent).not.toContain('A · A101');
   });
 
-  it('sets the chip at the start of its row when there is no place', () => {
+  it('keeps the place slot under a quiet placeholder when there is no room', () => {
     render(
       <EventBlock
         section={section}
@@ -542,7 +542,57 @@ describe('EventBlock', () => {
         t={t}
       />,
     );
-    expect(screen.getByText('901')).not.toHaveClass('ml-auto');
+    // The chip stays at the end of the place row rather than moving into the place slot.
+    const placeholder = screen.getByText('ไม่ระบุห้อง');
+    expect(placeholder).toHaveClass('text-ink-soft');
+    const row = screen.getByText('901').parentElement;
+    expect(row).toHaveClass('justify-between');
+    expect(row?.firstElementChild).toBe(placeholder);
+    // The glyph takes the quiet text color rather than the subject color.
+    expect(placeholder.querySelector('svg')?.getAttribute('style')).toBeNull();
+    // The accessible name reads the placeholder too, as the block shows it.
+    expect(screen.getByLabelText(/ไม่ระบุห้อง$/)).toBeInTheDocument();
+  });
+
+  it('keeps the day card place line under the placeholder in English', () => {
+    const english = createTranslator('en');
+    render(
+      <EventBlock
+        section={section}
+        meeting={{ ...meeting, room: '', building: '' }}
+        style={{}}
+        locale="en"
+        t={english}
+        nameLanguage="both"
+        dayCard
+      />,
+    );
+    const card = document.querySelector<HTMLElement>('[data-day-card]');
+    const lines = Array.from(card?.children ?? []).map(
+      (line) => line.textContent,
+    );
+    expect(lines).toEqual([
+      '09:00-12:00',
+      'Test subject',
+      'วิชาทดสอบ',
+      'No room',
+      'Section 901Lecture90592033',
+    ]);
+    expect(screen.getByText('No room')).toHaveClass('text-ink-soft');
+  });
+
+  it('leaves the place out of every block when the room display is off', () => {
+    render(
+      <EventBlock
+        section={section}
+        meeting={{ ...meeting, room: '', building: '' }}
+        style={{}}
+        locale="th"
+        t={t}
+        showRoom={false}
+      />,
+    );
+    expect(screen.queryByText('ไม่ระบุห้อง')).not.toBeInTheDocument();
   });
 
   it('wraps every field rather than ellipsizing it', () => {

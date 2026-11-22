@@ -38,6 +38,8 @@ interface DayCardContentProps {
   secondary: string | null;
   secondaryLang: Locale | null;
   place: string;
+  /** The place is the no room placeholder, which reads quiet in its usual slot. */
+  roomless: boolean;
   sectionCode: string;
   kind: MeetingKind;
   time: string;
@@ -62,6 +64,7 @@ export function DayCardContent({
   secondary,
   secondaryLang,
   place,
+  roomless,
   sectionCode,
   kind,
   time,
@@ -130,13 +133,15 @@ export function DayCardContent({
         </span>
       ) : null}
       {level.showPlace ? (
-        <span className={`mt-0.5 shrink-0 break-words text-ink ${backdrop}`}>
+        <span
+          className={`mt-0.5 shrink-0 break-words ${roomless ? quiet : 'text-ink'} ${backdrop}`}
+        >
           <MapPin
             size="0.95em"
             strokeWidth={2}
             aria-hidden
             className="mr-1 inline-block align-[-0.1em]"
-            style={{ color }}
+            style={roomless ? undefined : { color }}
           />
           {place}
         </span>

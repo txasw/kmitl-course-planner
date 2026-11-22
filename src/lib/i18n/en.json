@@ -356,6 +356,7 @@
   "block.copySubjectId": "Copy subject id",
   "block.subjectIdCopied": "Subject id {subjectId} copied",
   "block.copySubjectIdFailed": "Could not copy the subject id",
+  "block.noRoom": "No room",
   "exam.midterm": "Midterm",
   "exam.final": "Final",
   "exam.selfArranged": "Arranged by instructor",
