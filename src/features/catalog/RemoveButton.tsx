@@ -9,16 +9,18 @@ import { X } from 'lucide-react';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import type { Translate } from '@/lib/i18n/t';
+import { sectionCodesLabel } from '@/lib/i18n/list';
 import { NO_DRAG_ARMING } from '@/features/planner/dragArming';
 
 /** The accessible name of a catalog remove control: the action, the subject id and
- * the section, for example นำออก 90592033 กลุ่มเรียน 901. */
+ * the sections, for example นำออก 90592033 กลุ่มเรียน 901, or a pair joined with the
+ * locale's conjunction, Remove 90592033 Sections 901 and 902. */
 export function removeSectionName(
   t: Translate,
   subjectId: string,
-  section: string,
+  sections: readonly string[],
 ): string {
-  return `${t('action.remove')} ${subjectId} ${t('section.code')} ${section}`;
+  return `${t('action.remove')} ${subjectId} ${sectionCodesLabel(t, sections)}`;
 }
 
 interface RemoveButtonProps {

@@ -213,7 +213,7 @@ function SubjectCard({
           accessibleName={removeSectionName(
             t,
             group.subjectId,
-            group.entries.map((entry) => entry.snapshot.section).join(' '),
+            group.entries.map((entry) => entry.snapshot.section),
           )}
           onRemove={onRemove}
         />
