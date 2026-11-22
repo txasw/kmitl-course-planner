@@ -955,3 +955,28 @@ open, and the resting layout, with no layer open, must never overlap text. Dialo
 the other layers, since a modal dialog covers the panel by design and closes back to a resting
 layout the sweep reads in full. The clipped text sweep amendment above now states this as the
 sweep's scope.
+
+## Amendment, 2026-11-22: the change section instructor line, an owner approved ellipsis
+
+The owner asked that a change section choice (ADR-0068 amendment of the same date) keep its
+instructors on one line, ending in an ellipsis when they do not fit, and that the line scroll
+sideways to read the rest. This is an owner approved exception to the rule that no text rests
+behind an ellipsis without an explicit control, and it is the only one. The line keeps the rule's
+intent in other ways: while names lie past its end, a fade over its last few glyphs and an
+ellipsis close its text row; the line scrolls under them by touch, trackpad, or the thin
+scrollbar a mouse sees; and a line that holds more than it shows is a named region and a tab stop
+in the scrollable region pattern, so the arrow keys scroll it, and its focus ring hides the fade
+so the ring shows whole. Scrolled to its end, the line drops the fade and the ellipsis. The full
+list is always in the page as a labelled list, and the choice names it as its description, so a
+screen reader reads every name whatever the scroll.
+
+The clipped text sweep names the exception in its list with this reason: a leaf of the
+instructor line is excused only while its line is the named, focusable scroller, the explicit
+control that reveals the rest. A new walk opens every change section list of a three subject
+plan in the selected view at each width and in both languages, one subject of which has 21
+instructors, three meetings, and no room, and one of which is a pair. A line that fits is no
+region and no tab stop, and its text must show whole like any other.
+
+Wrapping the instructors onto further lines, as the catalog rows do behind Show all
+instructors, was rejected here because the owner asked for one line per choice so the choices
+stay short enough to compare at a glance on a phone.
