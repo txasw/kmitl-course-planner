@@ -189,7 +189,7 @@ describe('SelectedCoursesList', () => {
     );
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'นำออก 90000001 กลุ่มเรียน 901 902',
+        name: 'นำออก 90000001 กลุ่มเรียน 901 และ 902',
       }),
     );
     expect(onRemove.mock.calls).toEqual([['p1'], ['p2']]);

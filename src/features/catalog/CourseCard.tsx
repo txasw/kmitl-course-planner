@@ -270,11 +270,9 @@ function CourseCardComponent({
       {placedSection !== undefined && onRemove !== undefined ? (
         <RemoveButton
           label={t('action.remove')}
-          accessibleName={removeSectionName(
-            t,
-            placedSection.subjectId,
+          accessibleName={removeSectionName(t, placedSection.subjectId, [
             placedSection.section,
-          )}
+          ])}
           onRemove={() => {
             onRemove(placedSection.teachTableId);
           }}
