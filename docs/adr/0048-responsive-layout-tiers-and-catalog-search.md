@@ -955,3 +955,14 @@ open, and the resting layout, with no layer open, must never overlap text. Dialo
 the other layers, since a modal dialog covers the panel by design and closes back to a resting
 layout the sweep reads in full. The clipped text sweep amendment above now states this as the
 sweep's scope.
+
+## Amendment, 2026-11-22: the filter days share one row
+
+The owner reviewed the 1.6.0 gate on a phone and found the day choices of the filter popover on one
+row except Saturday, which wrapped to a row of its own. Under a coarse pointer each day chip took
+the 44 px width minimum, and seven chips with their gaps needed 332 px, more than a 360 px phone
+leaves the popover. The days now sit in a grid of seven equal columns, so the week shares one row
+at any width in Thai and English. Each chip keeps the 44 px touch height and gives up only the
+44 px width, holding the 24 px minimum of WCAG 2.5.8, as the timetable day chips of ADR-0049 do.
+A narrower chip label was rejected, since the day abbreviations are already the shortest forms the
+dictionaries carry.
