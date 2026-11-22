@@ -17,7 +17,7 @@ import { useEffect, type RefObject } from 'react';
 import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
 import { useBottomNavShown } from './mobilePane';
-import { useBottomSheetOpen } from './sheetToastBand';
+import { useBottomSheetOpen } from './sheetToast';
 import { uiStore } from './uiStore';
 
 /** The plan region's padding under its foot element: the p-4 of the grid region and the

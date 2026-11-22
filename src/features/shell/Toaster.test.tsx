@@ -19,7 +19,7 @@ import {
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { swipe } from '../../../tests/support/swipe';
 import { installViewport } from '../../../tests/support/viewport';
-import { useBottomSheetPresence } from './sheetToastBand';
+import { useBottomSheetPresence, useSheetToastFoot } from './sheetToast';
 import { useToastFoot } from './toastFloor';
 import { Toaster } from './Toaster';
 import { toastStore } from './toastStore';
@@ -342,8 +342,8 @@ describe('Toaster', () => {
     const { container, rerender } = render(<Toaster />);
     const region = container.querySelector('[aria-live="polite"]');
     expect(region).toHaveClass('bottom-[calc(72px+var(--kcp-safe-bottom))]');
-    // The sheet covers the bottom nav and ends in the band the toast sits in, so the
-    // region sits at the foot rather than over the sheet's content.
+    // The sheet covers the bottom nav and keeps room at its foot for a toast, so the region
+    // drops to the foot over that room.
     rerender(
       <>
         <Toaster />
@@ -353,6 +353,46 @@ describe('Toaster', () => {
     expect(region).toHaveClass('bottom-[max(16px,var(--kcp-safe-bottom))]');
     rerender(<Toaster />);
     expect(region).toHaveClass('bottom-[calc(72px+var(--kcp-safe-bottom))]');
+  });
+
+  it('floats above the footer of an open sheet, by the height of the footer', () => {
+    installViewport(390);
+    act(() => {
+      uiStore.getState().open();
+    });
+    // The footer is 76 px tall, so the region rises 84 px: the footer and an 8 px gap.
+    function SheetWithFooter() {
+      const ref = useRef<HTMLDivElement>(null);
+      useBottomSheetPresence();
+      useSheetToastFoot(ref, true);
+      return <div ref={ref} data-box="footer" />;
+    }
+    const spy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(() => new DOMRect(0, 768, 390, 76));
+    try {
+      const { container, rerender } = render(
+        <>
+          <Toaster />
+          <SheetWithFooter />
+        </>,
+      );
+      const region = container.querySelector<HTMLElement>(
+        '[aria-live="polite"]',
+      );
+      expect(region?.style.bottom).toBe('84px');
+      // A toast that shows changes nothing the offset reads.
+      act(() => {
+        toastStore.getState().show('success', 'Copied');
+      });
+      expect(region?.style.bottom).toBe('84px');
+      // With the sheet closed the region rests above the bottom nav again.
+      rerender(<Toaster />);
+      expect(region?.style.bottom).toBe('');
+      expect(region).toHaveClass('bottom-[calc(72px+var(--kcp-safe-bottom))]');
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('marks the live region with the active language', () => {

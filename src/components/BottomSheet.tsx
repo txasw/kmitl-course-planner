@@ -21,8 +21,10 @@
 // on open in place of the heading, as the modal dialog can. Reduced motion drops the
 // entrance and the swipe tracking, leaving the close button, the scrim, and Escape. While
 // mounted the sheet counts as an open surface, so an unasked dialog waits for it to
-// close. While a toast shows, the sheet ends in the toast band, so the toast that floats
-// over its foot covers none of its body or footer.
+// close. A toast never resizes the sheet (ADR-0048 amendment of 2026-11-22): the body ends at
+// rest in padding as tall as a toast, and the toast floats over that padding, above the
+// footer the sheet names to it, so it covers none of the footer and the last item of the body
+// scrolls clear of it.
 
 import {
   useEffect,
@@ -38,10 +40,10 @@ import { VIEWPORT_FIT } from '@/lib/ui/viewportInset';
 import { usePanelPortal } from '@/features/shell/PanelPortalContext';
 import { useOpenSurface } from '@/features/shell/attentionStore';
 import {
-  SHEET_TOAST_BAND,
+  SHEET_TOAST_ROOM,
   useBottomSheetPresence,
-  useToastShown,
-} from '@/features/shell/sheetToastBand';
+  useSheetToastFoot,
+} from '@/features/shell/sheetToast';
 import { useEscapeLayer } from '@/features/shell/useEscapeLayer';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
 import { TOAST_SATELLITES } from '@/features/shell/toastStore';
@@ -92,6 +94,7 @@ export function BottomSheet({
   const portalRoot = usePanelPortal();
   const sheetRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const reducedMotion = usePrefersReducedMotion();
 
@@ -106,7 +109,8 @@ export function BottomSheet({
   );
   useOpenSurface(true);
   useBottomSheetPresence();
-  const toastShown = useToastShown();
+  const hasFooter = footer !== undefined && footer !== null;
+  useSheetToastFoot(footerRef, portalReady && hasFooter);
   useEscapeLayer(sheetRef, onClose, portalReady);
   // The trap focuses the sheet itself; the heading is the clearer landing point because
   // it is read first and sits above the content.
@@ -127,8 +131,6 @@ export function BottomSheet({
   if (portalRoot === null) {
     return null;
   }
-  const hasFooter = footer !== undefined && footer !== null;
-
   return createPortal(
     <div className={`fixed ${VIEWPORT_FIT} z-sheet flex flex-col justify-end`}>
       <button
@@ -181,19 +183,17 @@ export function BottomSheet({
           </div>
         </div>
         <div
-          className={`min-h-0 flex-1 px-4 text-sm ${BODY_CLASS[scroll]} ${hasFooter ? 'pb-4' : SAFE_BOTTOM_PADDING}`}
+          className={`min-h-0 flex-1 px-4 text-sm ${BODY_CLASS[scroll]} ${hasFooter ? SHEET_TOAST_ROOM.footer : SHEET_TOAST_ROOM.foot}`}
         >
           {children}
         </div>
         {hasFooter ? (
           <div
+            ref={footerRef}
             className={`shrink-0 border-t border-border px-4 pt-3 ${SAFE_BOTTOM_PADDING}`}
           >
             {footer}
           </div>
-        ) : null}
-        {toastShown ? (
-          <div aria-hidden="true" className={`${SHEET_TOAST_BAND} shrink-0`} />
         ) : null}
       </div>
     </div>,
