@@ -358,7 +358,8 @@ a place does: it is eligible whenever the room display option is on and drops at
 of the ladder, so the order of ADR-0046 and the rule that the name always shows are unchanged. The
 block's accessible name reads the placeholder too, matching what the block shows. Turning the room
 display off still leaves the place out of every block alike. The rule applies wherever the block
-renders: the week grid, the phone day card, the suggestion slides, and the poster.
+renders with the room display on: the week grid, the phone day card, and the poster. The suggestion
+slides render with the room display off, so they follow that rule and show no place on any block.
 
 Alternatives considered. Leaving the place out and holding the chip at the end of an otherwise
 empty row was rejected: it keeps the week block in shape, but the day card would need an empty line
