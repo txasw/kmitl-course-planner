@@ -76,3 +76,42 @@ describe('poster capture line clamp', () => {
     expect(window).toHaveProperty('getComputedStyle', read);
   });
 });
+
+// The clone runs as one long stretch of microtasks, so started inside a frame callback it
+// would hold back that frame's paint and the busy state the press committed would show only
+// once the clone was done. The capture starts in a task after the frame instead.
+describe('poster capture start', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    Reflect.deleteProperty(document, 'fonts');
+  });
+
+  it('starts the clone in a task after the next frame, so the busy state paints first', async () => {
+    const order: string[] = [];
+    let frame: FrameRequestCallback = () => undefined;
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      frame = callback;
+      return 1;
+    });
+    Object.defineProperty(document, 'fonts', {
+      configurable: true,
+      value: { ready: Promise.resolve() },
+    });
+    vi.mocked(toBlob).mockImplementation(() => {
+      order.push('clone');
+      return Promise.resolve(new Blob(['png']));
+    });
+
+    const capture = capturePng(document.createElement('div'));
+    await Promise.resolve();
+    await Promise.resolve();
+    order.push('frame');
+    frame(0);
+    // Every microtask the frame queued has run, and still no clone has started.
+    await Promise.resolve();
+    await Promise.resolve();
+    order.push('frame painted');
+    await capture;
+    expect(order).toEqual(['frame', 'frame painted', 'clone']);
+  });
+});
