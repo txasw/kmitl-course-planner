@@ -52,6 +52,7 @@ import {
 } from '@/lib/planner/suggestScore';
 import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { planStore, useActivePlan } from '@/features/plans/planStore';
+import { subjectCount } from '@/features/plans/planStoreState';
 import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
@@ -183,6 +184,7 @@ export function SuggestDialog({
   const objective = useStore(uiStore, (state) => state.suggestObjective);
   const preference = useStore(uiStore, (state) => state.suggestPreference);
   const entries = usePlanEntries(term);
+  const pendingUndo = useStore(planStore, (state) => state.pendingUndo);
   // The shown slide, held with the plan entries it was ranked against. A plan change ranks
   // the suggestions again, so slide 2 would show another suggestion with no notice; the
   // carousel returns to the best one instead, as a new tick does.
@@ -275,6 +277,14 @@ export function SuggestDialog({
         onClear={() => {
           planStore.getState().clear();
         }}
+        cleared={
+          pendingUndo?.kind === 'clear'
+            ? subjectCount(pendingUndo.removed)
+            : null
+        }
+        onUndoClear={() => {
+          planStore.getState().undo();
+        }}
         locale={language}
         t={t}
       />
@@ -352,6 +362,7 @@ export function SuggestDialog({
       title={t('suggest.title')}
       closeLabel={t('suggest.close')}
       onClose={onClose}
+      withToasts
     >
       {body}
     </BottomSheet>
@@ -361,6 +372,7 @@ export function SuggestDialog({
       closeLabel={t('suggest.close')}
       onClose={onClose}
       width="full"
+      withToasts
     >
       {body}
     </ModalDialog>

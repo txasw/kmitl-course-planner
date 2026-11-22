@@ -476,16 +476,51 @@ describe('SuggestDialog', () => {
     const state = planStore.getState();
     expect(state.entries).toEqual([]);
     expect(state.pendingUndo?.kind).toBe('clear');
-    // The plan group and the clear action leave with the plan's subjects, and focus moves
-    // to the first segment.
+    // The plan group and the clear action leave with the plan's subjects. The prompt's
+    // place names the clear in a line inside the dialog, and its own undo takes focus with
+    // the line as its description, so the way back never depends on the toast outside
+    // the modal.
     expect(screen.queryByRole('button', { name: 'ล้างตารางปัจจุบัน' })).toBeNull();
     expect(screen.queryByRole('button', { name: /^ในตาราง/ })).toBeNull();
-    expect(segment('ในหลักสูตร')).toHaveFocus();
+    const cleared = 'ล้างตารางแล้ว นำออก 2 วิชา';
+    expect(within(screen.getByRole('dialog')).getByText(cleared)).toBeVisible();
+    const undo = within(screen.getByRole('dialog')).getByRole('button', {
+      name: 'เลิกทำ',
+    });
+    expect(undo).toHaveFocus();
+    expect(undo).toHaveAccessibleDescription(cleared);
 
+    // Undo from the keyboard brings the plan back and returns focus to the clear action.
     act(() => {
-      planStore.getState().undo();
+      fireEvent.click(undo);
     });
     expect(planStore.getState().entries).toEqual(before);
+    expect(planStore.getState().pendingUndo).toBeNull();
+    expect(screen.queryByText(cleared)).toBeNull();
+    expect(screen.getByRole('button', { name: 'ล้างตารางปัจจุบัน' })).toHaveFocus();
+  });
+
+  it('names one subject in the singular when it warns before a clear in English', async () => {
+    act(() => {
+      uiStore.getState().setLanguage('en');
+      seedActivePlan(lockSections(courses, [['04186098', '2']]));
+    });
+    try {
+      renderDialog();
+      await screen.findAllByRole('button', { name: 'Use this plan' });
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Clear current plan' }),
+      );
+      expect(
+        screen.getByText(
+          'Clear the current plan and remove 1 subject? You can undo it for 10 seconds.',
+        ),
+      ).toBeVisible();
+    } finally {
+      act(() => {
+        uiStore.getState().setLanguage('th');
+      });
+    }
   });
 
   it.each([390, 1366])(

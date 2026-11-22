@@ -149,27 +149,64 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
   await expect(page.locator(GRID_BLOCK)).toHaveCount(placedBefore);
 
   // The clear action asks in the page, naming how many subjects leave, with focus on the
-  // safe choice; confirming empties the plan, and the undo toast brings it back.
+  // safe choice. It runs from the keyboard alone: confirming empties the plan and hands
+  // focus to the undo the dialog itself carries, so the way back never needs the toast
+  // outside the modal, and the toast's own undo is still reached by Tab.
   await page
     .getByRole('group', { name: 'สรุปตาราง', exact: true })
     .getByRole('button', { name: 'แนะนำตาราง' })
     .click();
-  await dialog.getByRole('button', { name: 'ล้างตารางปัจจุบัน' }).click();
-  await expect(
-    dialog.getByText('ล้างตารางปัจจุบันและนำวิชาออก 1 วิชา เลิกทำได้ภายใน 10 วินาที'),
-  ).toBeVisible();
-  await expect(dialog.getByRole('button', { name: 'ยกเลิก' })).toBeFocused();
+  const clear = dialog.getByRole('button', { name: 'ล้างตารางปัจจุบัน' });
+  // The slides draw blocks too, so the plan's own are those outside the dialog.
+  const planBlocks = async () =>
+    (await page.locator(GRID_BLOCK).count()) -
+    (await dialog.locator(GRID_BLOCK).count());
+  const confirmClear = async () => {
+    await clear.focus();
+    await page.keyboard.press('Enter');
+    await expect(
+      dialog.getByText('ล้างตารางปัจจุบันและนำวิชาออก 1 วิชา เลิกทำได้ภายใน 10 วินาที'),
+    ).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'ยกเลิก' })).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(
+      dialog.getByRole('button', { name: 'ล้างตาราง', exact: true }),
+    ).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(
+      dialog.getByRole('button', { name: /^ในตาราง เลือก/ }),
+    ).toHaveCount(0);
+    await expect.poll(planBlocks).toBe(0);
+  };
+  await clear.focus();
+  await page.keyboard.press('Enter');
   expect(await axeViolations(page)).toEqual([]);
-  await dialog.getByRole('button', { name: 'ล้างตาราง', exact: true }).click();
-  await expect(
-    dialog.getByRole('button', { name: /^ในตาราง เลือก/ }),
-  ).toHaveCount(0);
-  await expect(page.getByText('ล้างตารางแล้ว นำออก 1 วิชา')).toBeVisible();
-  await page.keyboard.press('Escape');
-  await expect(dialog).toHaveCount(0);
-  await expect(page.locator(GRID_BLOCK)).toHaveCount(0);
-  await page.getByRole('button', { name: 'เลิกทำ' }).click();
-  await expect(page.locator(GRID_BLOCK)).toHaveCount(placedBefore);
+  await page.keyboard.press('Enter');
+  await expect(clear).toBeFocused();
+
+  await confirmClear();
+  const dialogUndo = dialog.getByRole('button', { name: 'เลิกทำ' });
+  await expect(dialogUndo).toBeFocused();
+  await expect(dialog.getByText('ล้างตารางแล้ว นำออก 1 วิชา')).toBeVisible();
+  expect(await axeViolations(page)).toEqual([]);
+  await page.keyboard.press('Enter');
+  await expect.poll(planBlocks).toBe(placedBefore);
+  await expect(clear).toBeFocused();
+
+  // Shift+Tab from the dialog's first stop wraps to the toast, whose undo works too.
+  await confirmClear();
+  const toastUndo = page
+    .locator('#kcp-toast-region')
+    .getByRole('button', { name: 'เลิกทำ' });
+  await expect(toastUndo).toBeVisible();
+  for (let step = 0; step < 8; step += 1) {
+    if (await toastUndo.evaluate((node) => node.matches(':focus'))) break;
+    await page.keyboard.press('Shift+Tab');
+  }
+  await expect(toastUndo).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect.poll(planBlocks).toBe(placedBefore);
+  await expect(dialog).toBeVisible();
 });
 
 test('explains the curriculum search before one ran and opens it', async ({

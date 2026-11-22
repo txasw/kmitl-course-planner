@@ -15,7 +15,11 @@
 //
 // While the plan holds a subject, the label row carries the clear plan action. It asks
 // first in the page, naming how many subjects leave, with the cancel taking focus as the
-// safe choice; the clear itself is one undoable step whose undo toast follows.
+// safe choice; the clear itself is one undoable step. The dialog is modal, so the undo
+// toast outside it is no sure way back for a keyboard or screen reader user: while that
+// undo is pending the prompt's place holds a line that names the clear and carries its own
+// undo. The undo takes focus with the line as its description, so the clear is said on
+// arrival inside the modal and the dialog needs no live region of its own (ADR-0048).
 
 import { useId, useRef, useState } from 'react';
 import { Trash2 } from 'lucide-react';
@@ -182,6 +186,9 @@ interface SuggestSubjectsProps {
   rowCap: number;
   /** Remove every subject from the active plan, as one undoable step. */
   onClear: () => void;
+  /** The subjects a pending clear took out, or null while no clear can be undone. */
+  cleared: number | null;
+  onUndoClear: () => void;
   locale: Locale;
   t: Translate;
 }
@@ -194,13 +201,17 @@ export function SuggestSubjects({
   onOpenChange,
   rowCap,
   onClear,
+  cleared,
+  onUndoClear,
   locale,
   t,
 }: SuggestSubjectsProps) {
   const labelId = useId();
   const panelId = useId();
+  const clearedId = useId();
   const clearRef = useRef<HTMLButtonElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const undoRef = useRef<HTMLButtonElement>(null);
   const segmentsRef = useRef<HTMLDivElement>(null);
   const [confirming, setConfirming] = useState(false);
   const kinds = GROUP_ORDER.filter((kind) => groups[kind].length > 0);
@@ -210,9 +221,9 @@ export function SuggestSubjects({
   const planCount = groups.planned.length;
   const openKind = open !== null && kinds.includes(open) ? open : null;
 
-  // The clear control and the prompt replace each other, so each hand off names where focus
-  // lands: the cancel, back on the clear control, or, once the plan is empty and the
-  // control has gone, the first segment.
+  // The clear control, the prompt, and the cleared line replace each other, so each hand
+  // off names where focus lands: the cancel, back on the clear control, or the cleared
+  // line's undo, with the first segment as the fallback once nothing else is left.
   const toggleConfirm = (next: boolean, target: () => HTMLElement | null) => {
     commitThenFocus(
       () => {
@@ -227,8 +238,14 @@ export function SuggestSubjects({
         onClear();
         setConfirming(false);
       },
-      () => [segmentsRef.current?.querySelector('button')],
+      () => [undoRef.current, segmentsRef.current?.querySelector('button')],
     );
+  };
+  const handleUndo = () => {
+    commitThenFocus(onUndoClear, () => [
+      clearRef.current,
+      segmentsRef.current?.querySelector('button'),
+    ]);
   };
 
   return (
@@ -265,6 +282,23 @@ export function SuggestSubjects({
             }}
             onConfirm={handleClear}
           />
+        </div>
+      ) : cleared !== null ? (
+        <div className="flex flex-wrap items-center justify-between gap-x-2 rounded-kcp border border-border bg-surface-alt py-1 pr-1 pl-3 text-sm">
+          <p id={clearedId} className="text-ink">
+            {fillTemplate(t('feedback.cleared'), {
+              subjects: countWithUnit(t, cleared, SUBJECT_UNIT),
+            })}
+          </p>
+          <button
+            ref={undoRef}
+            type="button"
+            aria-describedby={clearedId}
+            onClick={handleUndo}
+            className={`rounded-kcp px-1 text-primary-strong underline ${TARGET_SIZE} ${FOCUS_RING}`}
+          >
+            {t('action.undo')}
+          </button>
         </div>
       ) : null}
       <div
