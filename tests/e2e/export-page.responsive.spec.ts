@@ -1,6 +1,7 @@
 import { test, expect, openPlanner } from './support/fixtures';
 import { addCourse, syntheticSearch } from './support/synthetic';
 import { bottomNav, isPhone } from './support/tiers';
+import { holdWork } from './support/holdWork';
 import type { Locator, Page } from '@playwright/test';
 
 // The export page at the phone and tablet sizes (ADR-0022 and ADR-0045 amendments of
@@ -82,7 +83,8 @@ async function checkExportPage(page: Page): Promise<void> {
     name: 'ดาวน์โหลด PNG',
     exact: true,
   });
-  await expect(download).toHaveText('ดาวน์โหลด PNG');
+  // Read as rendered: the busy label waits hidden beside the label, holding its width.
+  await expect(download).toHaveText('ดาวน์โหลด PNG', { useInnerText: true });
   await expectWhole(download);
   // Download is the only filled action of the toolbar.
   const filled = await toolbar
@@ -217,4 +219,61 @@ test('the template chips share one row on a phone turned on its side', async ({
       nodes.map((node) => Math.round(node.getBoundingClientRect().top)),
     );
   expect(new Set(tops).size).toBe(1);
+});
+
+/** Every button box of a toolbar, to prove a busy label moves nothing. */
+async function buttonBoxes(toolbar: Locator): Promise<string[]> {
+  return toolbar.getByRole('button').evaluateAll((nodes) =>
+    nodes.map((node) => {
+      const box = node.getBoundingClientRect();
+      return [box.x, box.y, box.width, box.height].map(Math.round).join(',');
+    }),
+  );
+}
+
+// A capture on a slow phone, or a clipboard that answers late, used to leave the page silent
+// until the toast (ADR-0027 amendment of 2026-11-22). The work is held here so the busy state
+// stands long enough to check: the pressed action keeps focus, shows a spinner and names the
+// work, the others wait, nothing in the toolbar moves, and the toast still ends it.
+test('an export action shows a busy state until its toast, moving nothing', async ({
+  context,
+}) => {
+  const page = await openPlanner(context);
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await planOneCourse(page);
+  await page.getByRole('button', { name: 'ส่งออก', exact: true }).click();
+  const toolbar = page.getByRole('toolbar', { name: 'เครื่องมือสำหรับแชร์' });
+  const download = toolbar.getByRole('button', {
+    name: 'ดาวน์โหลด PNG',
+    exact: true,
+  });
+  await expect(download).toBeVisible();
+  await holdWork(page, 2_500);
+
+  const copyText = toolbar.getByRole('button', {
+    name: 'คัดลอกข้อความ',
+    exact: true,
+  });
+  for (const [action, busyName, done] of [
+    [download, 'กำลังสร้างรูปภาพ', 'ดาวน์โหลดรูปภาพแล้ว'],
+    [copyText, 'กำลังคัดลอก', 'คัดลอกข้อความแล้ว'],
+  ] as const) {
+    await action.scrollIntoViewIfNeeded();
+    const before = await buttonBoxes(toolbar);
+    await action.focus();
+    await page.keyboard.press('Enter');
+    const busy = toolbar.getByRole('button', { name: busyName, exact: true });
+    await expect(busy).toHaveAttribute('aria-busy', 'true');
+    await expect(busy).toBeFocused();
+    await expect(busy.locator('svg')).toHaveClass(/lucide-loader-circle/);
+    await expect(toolbar).toHaveAttribute('aria-busy', 'true');
+    await expect(
+      toolbar.getByRole('button', { name: 'คัดลอกรูปภาพ', exact: true }),
+    ).toHaveAttribute('aria-disabled', 'true');
+    expect(await buttonBoxes(toolbar)).toEqual(before);
+
+    await expect(page.getByText(done)).toBeVisible({ timeout: 10_000 });
+    await expect(busy).toHaveCount(0);
+    await expect(toolbar).toHaveAttribute('aria-busy', 'false');
+  }
 });
