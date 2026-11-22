@@ -214,3 +214,40 @@ Alternatives considered. Stepping the poster type scale down one size before the
 drops was rejected because it changes the type of every block on the sheet to serve a few. Letting
 the second name clamp to one line with an ellipsis was left out, since the word rule holds the
 second name to a whole field and an ellipsized second name reads as a cut one in a shared image.
+
+## Amendment, 2026-11-22: glyph extent at the clip edge
+
+At the 1.6.0 release gate the owner ran the test build in Firefox Nightly on an Android phone and
+found a three hour day card that showed only its time, its Thai name, and its place, with most of
+the card empty: the second name, the section and kind chips, and the subject id were gone. The
+cause was the measurement, not the ladder. The fit reads the overflow of the content column as its
+scroll height past its client height. The day card pins its foot of chips flush against the bottom
+of that column, and the font's ascent and descent for Thai text, with its vowels and tone marks,
+are taller than the line height, so the glyphs of the foot reach two to three pixels past the
+column's bottom edge. Chromium leaves that glyph extent out of the scroll height; Firefox counts it.
+In Firefox the card therefore read as overflowing whatever its height, and the fit walked the day
+card ladder: the subject id, then the second name, then the name clamp, then the chips. With the
+foot gone the bottom of the column was empty and the card fit, and the reclaim pass offers nothing
+once the chips have dropped, so the card stayed at that level. Moving the extension's own built
+card markup and style sheet into Firefox reproduced it: an overflow of two pixels at the full level
+that held through the id and the second name and cleared only once the chips dropped, against none
+in Chromium. The positioned block of the week and the poster has the same shape wherever its foot or
+its last line meets the bottom edge, as the poster's foot always does.
+
+The bottom padding of a block now belongs to the measured content column rather than to the block
+surface (contentEndPadding in blockSurface). The column's clip edge moves out to where the surface
+padding ended, so the glyph extent of the bottom line falls inside it, and the card's outer
+geometry is unchanged. Both engines count the end padding in the scroll height once content reaches
+into it, so a line that truly runs past the content box still reads as an overflow and the ladder
+still demotes, as it did against the surface padding. With the change the same card measures no
+overflow in Firefox at the full level and keeps every field. A unit test stands in for the Firefox
+measurement by reading a flush column as three pixels taller, and the phone suggestion spec lands
+on the day card after Use this plan and asserts the chips, the id, and the second name show, with
+the foot standing clear of the clip edge by at least a quarter of its type size.
+
+Alternatives considered. A larger overflow tolerance was rejected because the glyph extent depends
+on the platform's Thai font, so any fixed number would be wrong on some phone, and a tolerance would
+also pass a line that really is cut. Measuring the bottom of the column's child boxes in place of
+the scroll height was rejected because the week block's foot may shrink below its content, which
+only the scroll height sees. Re-measuring on a timer was not considered a fix, since the overflow
+reading is stable: the card would walk down again each time.
