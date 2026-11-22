@@ -26,17 +26,18 @@
 // note move to their own lines above the actions, and the pre share notice precedes the toolbar
 // there, so the actions stay nearest the edge.
 //
-// An image capture takes a moment on a large template, so while one runs the toolbar is
-// busy: the action that started it reads as creating the image with a spinner, and every
-// sharing action is marked disabled and ignores presses, so a second press cannot start a
-// parallel capture. The capture and its delivery live in useImageActions.
+// An image capture takes a moment on a large template, and a copy waits on the clipboard, so
+// while one runs the toolbar is busy: the action that started it shows a spinner and names
+// the work, creating the image or copying, and every sharing action is marked disabled and
+// ignores presses, so a second press cannot start a parallel run. Each label reserves the
+// width of its busy form, so the row never shifts (ADR-0027 amendment of 2026-11-22). The
+// capture and its delivery live in useImageActions.
 
 import type { RefObject } from 'react';
 import {
   Download,
   FileText,
   ImageIcon,
-  LoaderCircle,
   Share2,
   type LucideIcon,
 } from 'lucide-react';
@@ -49,6 +50,7 @@ import { useActivePlan } from '@/features/plans/planStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { copyText } from '@/features/shell/copyText';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
+import { useBusyAction } from '@/features/shell/useBusyAction';
 import {
   DisplayOptionsPanel,
   DisplayOptionsSheet,
@@ -57,7 +59,7 @@ import {
 } from './DisplayOptions';
 import { examScheduleLines } from './examScheduleLines';
 import { PreShareNotice } from './PreShareNotice';
-import { PreviewToolbarAction, toolbarIconSize } from './PreviewToolbarAction';
+import { PreviewToolbarAction } from './PreviewToolbarAction';
 import { canShareImage } from './imageShare';
 import {
   SHARE_IMAGE_ID,
@@ -98,57 +100,40 @@ export function PreviewToolbar({
     panelRef,
     toggle: toggleOptions,
   } = useDisplayOptionsDisclosure();
-  const iconProps = {
-    size: toolbarIconSize(compact),
-    strokeWidth: 2,
-    'aria-hidden': true,
-  } as const;
 
   const base =
     activePlan === null ? 'kmitl-plan' : planExportBaseName(activePlan);
   const fileName = `${base}-${template.slug}.png`;
 
-  const { capturing, download, copyImage, share } = useImageActions(
+  const [running, run] = useBusyAction<ImageAction | 'copyText'>();
+  const busy = running !== null;
+  const { download, copyImage, share } = useImageActions(
     posterRef,
     template.pixelRatio,
     fileName,
+    run,
   );
-  const busy = capturing !== null;
 
-  // An image action reads as itself while idle and as creating the image while its capture
-  // runs, so the busy state names what is happening where the student pressed.
   const imageAction = (
     action: ImageAction,
     icon: LucideIcon,
     labels: { label: string; shortLabel?: string },
     onClick: () => void,
-  ) => {
-    const running = capturing === action;
-    const Icon = running ? LoaderCircle : icon;
-    return (
-      <PreviewToolbarAction
-        icon={
-          <Icon
-            {...iconProps}
-            className={
-              running ? 'animate-spin motion-reduce:animate-none' : undefined
-            }
-          />
-        }
-        {...(running ? { label: t('preview.capturing') } : labels)}
-        compact={compact}
-        weight={action === 'download' ? 'primary' : 'secondary'}
-        busy={busy}
-        onClick={onClick}
-        {...(action === 'share' ? { id: SHARE_IMAGE_ID } : {})}
-      />
-    );
-  };
+  ) => (
+    <PreviewToolbarAction
+      icon={icon}
+      {...labels}
+      busyLabel={t('preview.capturing')}
+      running={running === action}
+      compact={compact}
+      weight={action === 'download' ? 'primary' : 'secondary'}
+      busy={busy}
+      onClick={onClick}
+      {...(action === 'share' ? { id: SHARE_IMAGE_ID } : {})}
+    />
+  );
 
   const handleCopyText = () => {
-    if (busy) {
-      return;
-    }
     const text = formatPlanText({
       planName: activePlan?.name ?? t('plan.untitled'),
       year: activePlan?.year ?? '',
@@ -159,7 +144,9 @@ export function PreviewToolbar({
       locale: language,
       t,
     });
-    void copyText(text, t('preview.textCopied'), t('preview.copyTextFailed'));
+    run('copyText', () =>
+      copyText(text, t('preview.textCopied'), t('preview.copyTextFailed')),
+    );
   };
 
   const shareAction = canShareImage()
@@ -195,8 +182,10 @@ export function PreviewToolbar({
       {shareAction}
       {copyImageAction ?? (compact ? null : copyImageNote)}
       <PreviewToolbarAction
-        icon={<FileText {...iconProps} />}
+        icon={FileText}
         label={t('preview.copyText')}
+        busyLabel={t('action.copying')}
+        running={running === 'copyText'}
         compact={compact}
         weight="secondary"
         busy={busy}
