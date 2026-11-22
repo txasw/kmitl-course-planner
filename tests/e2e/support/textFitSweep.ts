@@ -11,6 +11,7 @@ import type { BrowserContext, Locator, Page } from '@playwright/test';
 import { PREFS_KEY, ROOT_KEY } from '../../../src/lib/storage/keys';
 import { BREAKPOINTS } from '../../../src/lib/ui/breakpoints';
 import { SEARCH_FORM_ID } from '../../../src/features/search/searchIds';
+import { TOAST_REGION_ID } from '../../../src/features/shell/toastStore';
 import {
   expect,
   catalogAtRest,
@@ -319,6 +320,48 @@ export class Sweep {
       throw new Error(`${surface}: no search form is on show`);
     }
     return read;
+  }
+
+  /**
+   * Read a toast on show (ADR-0048 amendment of 2026-11-22). A toast floats over the plan
+   * like a layer the student opened, so the toast itself must show whole and must cover
+   * none of the foot controls it floats above, the status row, the phone bottom nav, and the
+   * sharing toolbar, while the content behind it may be covered: the region is then read
+   * with the toast seen through.
+   */
+  async scanWithToast(surface: string, region: Locator): Promise<void> {
+    const toast = this.page.locator(`#${TOAST_REGION_ID} > *`);
+    await this.scan(`${surface}: the toast`, toast, { floating: true });
+    const toastBox = await toast.boundingBox();
+    const feet = {
+      'status row': this.page.getByRole('group', {
+        name: this.t('stats.region'),
+        exact: true,
+      }),
+      'bottom nav': this.page.getByRole('navigation', {
+        name: this.t('nav.label'),
+      }),
+      'sharing toolbar': this.page.getByRole('toolbar', {
+        name: this.t('preview.toolbar'),
+      }),
+    };
+    for (const [name, foot] of Object.entries(feet)) {
+      const visible = foot.filter({ visible: true });
+      if (toastBox === null || (await visible.count()) === 0) continue;
+      const box = await visible.first().boundingBox();
+      if (
+        box !== null &&
+        toastBox.x < box.x + box.width &&
+        box.x < toastBox.x + toastBox.width &&
+        toastBox.y < box.y + box.height &&
+        box.y < toastBox.y + toastBox.height
+      ) {
+        this.fault(surface, `the toast covers the ${name}`);
+      }
+    }
+    await this.scan(surface, region, {
+      seeThrough: [`#${TOAST_REGION_ID} *`],
+    });
   }
 
   /** Report every finding across the walk at once, so one run lists them all. */
