@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { useRef, useState } from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
+import { TOAST_REGION_ID } from '@/features/shell/toastStore';
 import { useFocusTrap } from '@/features/shell/useFocusTrap';
 import { ModalDialog } from './ModalDialog';
 import { TARGET_SIZE } from '@/lib/ui/target';
@@ -203,4 +204,40 @@ describe('ModalDialog', () => {
     expect(body).toHaveClass('flex', 'flex-col', 'min-h-0');
     expect(body).not.toHaveClass('overflow-y-auto');
   });
+
+  it.each([
+    [true, 'Undo'],
+    [false, 'Close'],
+  ])(
+    'with toasts %s, moves Tab from its last stop to the %s button',
+    (withToasts, next) => {
+      // The toast region sits outside the dialog, as it sits outside the panel.
+      function ToastPanel() {
+        const [node, setNode] = useState<HTMLDivElement | null>(null);
+        return (
+          <div>
+            <div ref={setNode} />
+            <PanelPortalContext.Provider value={node}>
+              <ModalDialog
+                title="Clear"
+                closeLabel="Close"
+                onClose={vi.fn()}
+                withToasts={withToasts}
+              >
+                <button type="button">Body action</button>
+              </ModalDialog>
+            </PanelPortalContext.Provider>
+            <div id={TOAST_REGION_ID}>
+              <button type="button">Undo</button>
+            </div>
+          </div>
+        );
+      }
+      render(<ToastPanel />);
+      const last = screen.getByRole('button', { name: 'Body action' });
+      last.focus();
+      fireEvent.keyDown(last, { key: 'Tab' });
+      expect(screen.getByRole('button', { name: next })).toHaveFocus();
+    },
+  );
 });

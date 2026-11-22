@@ -14,7 +14,7 @@ import { ShortcutHelp } from './ShortcutHelp';
 import { CrashProbe } from './CrashProbe';
 import { useBottomNavShown } from './mobilePane';
 import { useTranslation } from './useTranslation';
-import { TOAST_REGION_ID } from './toastStore';
+import { TOAST_SATELLITES } from './toastStore';
 import { useFocusTrap } from './useFocusTrap';
 import { usePanelShortcuts } from './usePanelShortcuts';
 import { useScrollLock } from './useScrollLock';
@@ -42,9 +42,6 @@ import { VIEWPORT_FIT } from '@/lib/ui/viewportInset';
 // hosts fit the same area. A layer the overlay hosts above its body, such as the product
 // tour, comes in as children, so it renders inside the portal context and the trap.
 const TITLE_ID = 'kcp-overlay-title';
-// The toast region stays on its own layer outside the panel, so the trap takes its
-// controls into the Tab order rather than leaving an undo out of keyboard reach.
-const TRAP_SATELLITES = [TOAST_REGION_ID] as const;
 
 interface OverlayProps {
   /** Layers that render above the panel body inside the panel node. */
@@ -84,7 +81,9 @@ export function Overlay({ children }: OverlayProps) {
 
   // Focus enters the panel only once it is mounted; the lock follows the logical
   // open flag so it never waits on the leave animation.
-  useFocusTrap(panelRef, isOpen && mounted, handleEscape, TRAP_SATELLITES);
+  // The toast region stays on its own layer outside the panel, so the trap takes its
+  // controls into the Tab order rather than leaving an undo out of keyboard reach.
+  useFocusTrap(panelRef, isOpen && mounted, handleEscape, TOAST_SATELLITES);
   usePanelShortcuts(panelRef, { enabled: isOpen && mounted, onHelp: openHelp });
   useScrollLock(isOpen);
   useBackToClose(isOpen, close);

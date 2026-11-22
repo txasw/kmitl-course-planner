@@ -16,6 +16,9 @@ export type ToastKind = 'success' | 'error';
  * toast action is reachable by Tab while the panel is open. */
 export const TOAST_REGION_ID = 'kcp-toast-region';
 
+/** The satellites of a focus trap whose Tab order takes in the toast region. */
+export const TOAST_SATELLITES: readonly string[] = [TOAST_REGION_ID];
+
 /** The one action a toast may offer, with its resolved label. */
 export interface ToastAction {
   label: string;
