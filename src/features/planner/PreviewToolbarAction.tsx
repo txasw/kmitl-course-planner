@@ -8,6 +8,8 @@
 // short label. A busy action is marked aria-disabled rather than disabled, so the focused
 // button keeps focus through a capture, and ignores presses until the toolbar is free. The
 // running action keeps its full color, with its spinner and busy label, while the others dim.
+// The busy label is short, so it fits the width the idle label sets; where it is a shorter
+// form of the work in progress, the full form is the accessible name while it runs.
 
 import type { LucideIcon } from 'lucide-react';
 import { BusyContent } from '@/components/BusyContent';
@@ -42,8 +44,10 @@ interface PreviewToolbarActionProps {
   label: string;
   /** The label a phone action row cell shows, when it is shorter than the full name. */
   shortLabel?: string;
-  /** The label while the action runs, naming the work in progress. */
+  /** The short label while the action runs, naming the work in progress. */
   busyLabel: string;
+  /** The accessible name while the action runs, when it is longer than the busy label. */
+  busyName?: string;
   /** Whether this action's work is the one running. */
   running: boolean;
   /** Below 640 px, where the toolbar runs along the panel foot. */
@@ -74,6 +78,7 @@ export function PreviewToolbarAction({
   label,
   shortLabel,
   busyLabel,
+  busyName,
   running,
   compact,
   weight,
@@ -90,7 +95,7 @@ export function PreviewToolbarAction({
       onClick={busy ? undefined : onClick}
       aria-disabled={busy}
       aria-busy={running}
-      aria-label={running || visible === label ? undefined : label}
+      aria-label={running ? busyName : visible === label ? undefined : label}
       className={toolbarActionClass(weight, compact)}
     >
       <BusyContent
@@ -99,7 +104,7 @@ export function PreviewToolbarAction({
         label={visible}
         busyLabel={busyLabel}
         busy={running}
-        className={compact ? 'max-w-full text-center' : 'text-start'}
+        className={cell ? 'w-full text-center' : 'text-left'}
       />
     </button>
   );

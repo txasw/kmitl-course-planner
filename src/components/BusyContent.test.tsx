@@ -37,10 +37,15 @@ describe('BusyContent', () => {
     expect(screen.getByText('Copy as text')).toHaveClass('invisible');
   });
 
-  it('stacks both labels in one cell, so the control keeps the wider width', () => {
+  it('lays the busy label over the idle label, which alone takes room', () => {
     renderButton(false);
-    for (const text of ['Copy as text', 'Copying']) {
-      expect(screen.getByText(text)).toHaveClass('col-start-1', 'row-start-1');
-    }
+    // The busy label sits out of flow on one line, so the control at rest is the control
+    // without it; the e2e export spec measures that the boxes match.
+    expect(screen.getByText('Copying')).toHaveClass(
+      'absolute',
+      'inset-x-0',
+      'truncate',
+    );
+    expect(screen.getByText('Copy as text')).not.toHaveClass('absolute');
   });
 });

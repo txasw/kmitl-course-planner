@@ -633,9 +633,13 @@ describe('PreviewToolbar layout by width', () => {
       fireEvent.click(screen.getByRole('button', { name: 'ดาวน์โหลด PNG' }));
       await Promise.resolve();
     });
+    // The short busy label fits the width the idle label sets, and the full form names it.
     const busy = screen.getByRole('button', { name: 'กำลังสร้างรูปภาพ' });
     expect(busy).toHaveAttribute('aria-disabled', 'true');
-    expect(busy).toHaveTextContent('กำลังสร้างรูปภาพ');
+    expect(within(busy).getByText('กำลังสร้าง')).toHaveAttribute(
+      'aria-hidden',
+      'false',
+    );
     expect(busy).toHaveClass('bg-primary-strong');
   });
 

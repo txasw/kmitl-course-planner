@@ -118,7 +118,7 @@ export function SelectedCoursesList({
               label={t('registration.copy')}
               busyLabel={t('action.copying')}
               busy={copying}
-              className="text-start"
+              className="text-left"
             />
           </button>
         )}
