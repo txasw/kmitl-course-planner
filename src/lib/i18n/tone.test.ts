@@ -131,6 +131,20 @@ describe('copy tone', () => {
     }
   });
 
+  // One term names two meetings or exams that fall at the same time (docs/TERMINOLOGY.md):
+  // clash in English and ชน in Thai, so a badge, a filter, and a status line never read as
+  // three ideas. The keys keep their conflict names; only the values are copy.
+  it('both dictionaries name a time or exam clash with one term', () => {
+    for (const [key, value] of Object.entries(en)) {
+      expect(/conflict|overlap/i.test(value), `en ${key}: "${value}"`).toBe(
+        false,
+      );
+    }
+    for (const [key, value] of Object.entries(th)) {
+      expect(/ขัดแย้ง|ทับซ้อน/.test(value), `th ${key}: "${value}"`).toBe(false);
+    }
+  });
+
   // All UI copy goes through the dictionaries, so a banned Thai term in a source file is a
   // hardcoded literal, a composed string or an aria label the dictionary scan cannot see.
   it('no source file hardcodes a non-canonical Thai term', () => {

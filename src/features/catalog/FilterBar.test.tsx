@@ -225,7 +225,7 @@ describe('FilterBar', () => {
       uiStore.getState().setLanguage('en');
     });
     expect(
-      screen.getByRole('switch', { name: 'Hide conflicts' }),
+      screen.getByRole('switch', { name: 'Hide clashes' }),
     ).toBeInTheDocument();
   });
 

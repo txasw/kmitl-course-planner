@@ -46,7 +46,7 @@ describe('dropZoneAnnouncement', () => {
     const store = createDragStore();
     store.getState().start(course, monday, [clash]);
     expect(dropZoneAnnouncement(store.getState(), t)).toBe(
-      'This section conflicts with the plan, so drop on a conflicting block to swap sections',
+      'This section clashes with the plan, so drop on a clashing block to swap sections',
     );
   });
 

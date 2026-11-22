@@ -322,9 +322,9 @@ describe('BlockDetailSurface on a fine pointer from 640 px', () => {
       ],
     });
     // The badge and the overlap section both name the clash.
-    expect(screen.getAllByText('Exam overlap')).toHaveLength(2);
+    expect(screen.getAllByText('Exam clash')).toHaveLength(2);
     expect(
-      screen.getByRole('region', { name: 'Exam overlap' }),
+      screen.getByRole('region', { name: 'Exam clash' }),
     ).toBeInTheDocument();
     expect(screen.getByText('Midterm')).toBeInTheDocument();
     expect(screen.getByText('21 Aug 2569 09:00-12:00')).toBeInTheDocument();
@@ -354,7 +354,7 @@ describe('BlockDetailSurface on a fine pointer from 640 px', () => {
     expect(rowValues('Type and credits')).toEqual([
       'Lecture 3(3-0-6)Lecture 3 h, practice 0 h, self study 6 h per week',
     ]);
-    expect(screen.queryByText('Exam overlap')).not.toBeInTheDocument();
+    expect(screen.queryByText('Exam clash')).not.toBeInTheDocument();
   });
 
   it('reads จัดสอบเอง when both exam windows are null', () => {
@@ -500,7 +500,7 @@ describe('BlockDetailSurface on a fine pointer from 640 px', () => {
       teachTableId: placed.entry.teachTableId,
       examOverlaps: overlaps ?? [],
     });
-    const badge = screen.getByText('Exam overlap Updated');
+    const badge = screen.getByText('Exam clash Updated');
     expect(badge).toHaveClass('text-danger');
   });
 

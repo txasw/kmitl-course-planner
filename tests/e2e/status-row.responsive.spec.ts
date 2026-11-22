@@ -260,7 +260,7 @@ test('the phone status row keeps to two lines with a clash in Thai and English',
   await importClashingCopy(page);
   const languages = [
     { row: 'สรุปตาราง', clash: /^ชนกัน 1 รายการ/ },
-    { row: 'Plan summary', clash: /^Conflicts: 1/ },
+    { row: 'Plan summary', clash: /^Clashes: 1/ },
   ];
   for (const [index, language] of languages.entries()) {
     if (index === 1) await switchToEnglish(page);

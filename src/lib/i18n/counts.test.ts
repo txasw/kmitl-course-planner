@@ -48,7 +48,7 @@ describe('count units', () => {
     expect(countWithUnit(en, 1, MULTI_MEETING_UNIT)).toBe(
       '1 multi meeting section',
     );
-    expect(countWithUnit(en, 1, MORE_CONFLICT_UNIT)).toBe('1 more conflict');
+    expect(countWithUnit(en, 1, MORE_CONFLICT_UNIT)).toBe('1 more clash');
   });
 
   it('uses the English plural unit for zero, a fraction, and many', () => {
