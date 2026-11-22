@@ -9,6 +9,7 @@ import {
 import { normalizeTeachTable } from '@/lib/domain/normalize';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import { searchStore } from '@/features/search/searchStore';
+import { CATALOG_TOGGLE_ID } from '@/features/shell/catalogVisibility';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { uiStore } from '@/features/shell/uiStore';
 import { loadFixture } from '../../../tests/support/fixtures';
@@ -150,6 +151,35 @@ describe('SuggestAction', () => {
       expect(ui.sheetOpen).toBe(sheetOpen);
     },
   );
+
+  it('hands focus to the catalog toggle when the tablet sheet closes on apply', async () => {
+    installViewport(768);
+    act(() => {
+      uiStore.setState({ planView: 'summary', sheetOpen: true });
+    });
+    // The header toggle that opens the sheet again, which the hand off looks up by id.
+    const toggle = document.createElement('button');
+    toggle.id = CATALOG_TOGGLE_ID;
+    document.body.append(toggle);
+    try {
+      showResult(BY_CLASS);
+      renderAction({ placement: 'catalog' });
+      const button = openButton();
+      if (button === null) throw new Error('no suggest action');
+      fireEvent.click(button);
+      const [apply] = await screen.findAllByRole('button', {
+        name: 'ใช้ตารางนี้',
+      });
+      if (apply === undefined) throw new Error('no suggestion');
+      act(() => {
+        fireEvent.click(apply);
+      });
+      expect(uiStore.getState().sheetOpen).toBe(false);
+      expect(toggle).toHaveFocus();
+    } finally {
+      toggle.remove();
+    }
+  });
 
   it('takes the short label and the filled primary look in the status row', () => {
     act(() => {
