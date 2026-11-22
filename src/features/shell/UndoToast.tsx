@@ -17,6 +17,8 @@ import {
   type EntryUndoRecord,
   type UndoRecord,
 } from '@/features/plans/planStore';
+import { subjectCount } from '@/features/plans/planStoreState';
+import { countWithUnit, SUBJECT_UNIT } from '@/lib/i18n/counts';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
 import { FOCUS_RING } from '@/lib/ui/focus';
@@ -49,7 +51,7 @@ function undoMessage(
   }
   if (record.kind === 'clear') {
     return fillTemplate(t('feedback.cleared'), {
-      count: new Set(record.removed.map((entry) => entry.subjectId)).size,
+      subjects: countWithUnit(t, subjectCount(record.removed), SUBJECT_UNIT),
     });
   }
   const subject =

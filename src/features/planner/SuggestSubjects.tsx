@@ -22,12 +22,14 @@ import { Trash2 } from 'lucide-react';
 import { ConfirmPrompt } from '@/components/ConfirmPrompt';
 import { DisclosureChevron } from '@/components/DisclosureChevron';
 import type { Course } from '@/lib/domain/types';
+import { countWithUnit, SUBJECT_UNIT } from '@/lib/i18n/counts';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
 import type { SuggestSubjectGroups } from '@/lib/planner/suggestSubjects';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_HEIGHT, TARGET_SIZE } from '@/lib/ui/target';
 import { commitThenFocus } from '@/features/shell/restoreFocus';
+import { UNDO_WINDOW_MS } from '@/features/shell/UndoToast';
 
 export type SuggestGroup = keyof SuggestSubjectGroups;
 
@@ -253,7 +255,8 @@ export function SuggestSubjects({
         <div className="rounded-kcp border border-danger bg-danger-soft p-3 text-sm">
           <ConfirmPrompt
             message={fillTemplate(t('suggest.clear.prompt'), {
-              count: planCount,
+              subjects: countWithUnit(t, planCount, SUBJECT_UNIT),
+              seconds: UNDO_WINDOW_MS / 1000,
             })}
             confirmLabel={t('suggest.clear.confirm')}
             cancelRef={cancelRef}
