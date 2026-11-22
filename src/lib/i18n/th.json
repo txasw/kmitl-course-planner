@@ -107,7 +107,7 @@
   "suggest.empty.truncated": "การค้นหาหยุดก่อนพบตารางที่ลงได้ ยกเลิกการเลือกบางวิชาเพื่อให้ค้นหาได้แคบลง",
   "suggest.empty.seats": "ทุกกลุ่มเรียนของวิชาที่เลือกเต็มหรือปิดแล้ว",
   "suggest.empty.conflicts": "กลุ่มเรียนที่เปิดอยู่ไม่มีกลุ่มใดลงตารางได้โดยไม่ชนกัน",
-  "suggest.created": "สร้างตาราง {name} แล้ว",
+  "suggest.created": "สร้างตาราง {name} แล้ว แสดงในหน้าตารางเรียน",
   "planData.import": "นำเข้า JSON",
   "planData.export": "ส่งออก JSON",
   "planData.imported": "นำเข้าตารางแล้ว",

@@ -44,6 +44,7 @@ function renderDialog(width = 1366) {
   const portal = document.createElement('div');
   document.body.append(portal);
   const onClose = vi.fn();
+  const onApplied = vi.fn();
   render(
     <PanelPortalContext.Provider value={portal}>
       <SuggestDialog
@@ -51,10 +52,11 @@ function renderDialog(width = 1366) {
         sourceQuery={SUGGEST_QUERY}
         term={SUGGEST_TERM}
         onClose={onClose}
+        onApplied={onApplied}
       />
     </PanelPortalContext.Provider>,
   );
-  return { onClose, portal };
+  return { onClose, onApplied, portal };
 }
 
 /** The slide the carousel shows, the one slide that is not inert. */
@@ -205,7 +207,7 @@ describe('SuggestDialog', () => {
       seedActivePlan(locked, { id: 'original', name: 'ตาราง 1/2569' });
     });
     const original = planStore.getState().plans[0];
-    const { onClose } = renderDialog();
+    const { onClose, onApplied } = renderDialog();
     expandSubjects();
     const planned = screen.getByRole('region', { name: 'อยู่ในตารางแล้ว' });
     expect(
@@ -220,7 +222,9 @@ describe('SuggestDialog', () => {
     });
 
     const state = planStore.getState();
-    expect(onClose).toHaveBeenCalledOnce();
+    // The opener shows the timetable, so applying hands back rather than closing.
+    expect(onApplied).toHaveBeenCalledOnce();
+    expect(onClose).not.toHaveBeenCalled();
     expect(state.plans).toHaveLength(2);
     expect(state.plans[0]).toBe(original);
     const created = state.plans.find((plan) => plan.id === state.activePlanId);

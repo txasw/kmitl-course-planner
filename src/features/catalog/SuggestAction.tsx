@@ -14,6 +14,12 @@
 // offers one action, the search by curriculum in the plan's term. Both carry a wand with
 // sparkles, a glyph no other control uses, so the action never reads as the selected courses
 // tab, whose icon is a checklist.
+//
+// Applying a suggestion shows the timetable at once, where the new plan is: the plan view
+// turns to the timetable, the phone shows the timetable pane, and the medium tier closes the
+// catalog sheet that covers it. An entry the change hides hands focus on to the control
+// that took its place, the timetable nav item or the catalog toggle; the undo toast says the
+// plan was created and is shown on the timetable.
 
 import { useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
@@ -30,6 +36,9 @@ import {
 import { toSourceQuery } from '@/lib/planner/sourceQuery';
 import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { SuggestDialog } from '@/features/planner/SuggestDialog';
+import { closeSheet } from '@/features/shell/catalogVisibility';
+import { selectNavItem, showNavItem } from '@/features/shell/mobilePane';
+import { uiStore } from '@/features/shell/uiStore';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
 import { useActivePlan } from '@/features/plans/planStore';
 import { searchStore } from '@/features/search/searchStore';
@@ -119,6 +128,22 @@ export function SuggestAction({ placement }: SuggestActionProps) {
       openCurriculumSearch(buttonRef.current, tier);
     }
   };
+  const handleApplied = () => {
+    // The dialog closes first and hands focus back to this button.
+    flushSync(() => {
+      setOpen(null);
+    });
+    const button = buttonRef.current;
+    if (status || button === null) {
+      // The status row sits under every plan view, so the entry stays in view.
+      selectNavItem('timetable');
+    } else if (tier === 'compact') {
+      showNavItem(button, 'timetable');
+    } else {
+      uiStore.getState().setPlanView('timetable');
+      closeSheet(button);
+    }
+  };
   return (
     <>
       <button
@@ -142,6 +167,7 @@ export function SuggestAction({ placement }: SuggestActionProps) {
           onClose={() => {
             setOpen(null);
           }}
+          onApplied={handleApplied}
         />
       ) : null}
       {open === 'needsSearch' ? (

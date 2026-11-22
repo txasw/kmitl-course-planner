@@ -129,7 +129,7 @@ test('applies a suggested timetable as a new plan and undoes it', async ({
     switcher.getByText(`${planName} เน้นเช้า`, { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText(`สร้างตาราง ${planName} เน้นเช้า แล้ว`),
+    page.getByText(`สร้างตาราง ${planName} เน้นเช้า แล้ว แสดงในหน้าตารางเรียน`),
   ).toBeVisible();
   await expect
     .poll(() => page.locator(GRID_BLOCK).count())

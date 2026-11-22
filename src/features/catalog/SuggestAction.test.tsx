@@ -94,6 +94,11 @@ afterEach(() => {
   act(() => {
     searchStore.getState().setResult({ status: 'idle' }, null);
     resetPlanStore();
+    uiStore.setState({
+      planView: 'timetable',
+      mobilePane: null,
+      sheetOpen: false,
+    });
     // A test that reads the English labels must not leave them for the next one.
     uiStore.getState().setLanguage('th');
   });
@@ -110,6 +115,41 @@ describe('SuggestAction', () => {
       screen.getByRole('dialog', { name: 'แนะนำตาราง' }),
     ).toBeInTheDocument();
   });
+
+  it.each([
+    ['the status row', 'status', 1366, 'plan', false],
+    ['the phone catalog pane', 'catalog', 390, 'plan', false],
+    ['the tablet catalog sheet', 'catalog', 768, null, false],
+  ] as const)(
+    'shows the timetable once a suggestion from %s applies',
+    async (_where, placement, width, pane, sheetOpen) => {
+      installViewport(width);
+      act(() => {
+        uiStore.setState({
+          planView: 'summary',
+          mobilePane: placement === 'catalog' && width < 640 ? 'catalog' : null,
+          sheetOpen: width === 768,
+        });
+      });
+      showResult(BY_CLASS);
+      renderAction({ placement });
+      const button = openButton();
+      if (button === null) throw new Error('no suggest action');
+      fireEvent.click(button);
+      const [apply] = await screen.findAllByRole('button', {
+        name: 'ใช้ตารางนี้',
+      });
+      if (apply === undefined) throw new Error('no suggestion');
+      act(() => {
+        fireEvent.click(apply);
+      });
+      expect(screen.queryByRole('dialog')).toBeNull();
+      const ui = uiStore.getState();
+      expect(ui.planView).toBe('timetable');
+      expect(ui.mobilePane).toBe(pane);
+      expect(ui.sheetOpen).toBe(sheetOpen);
+    },
+  );
 
   it('takes the short label and the filled primary look in the status row', () => {
     act(() => {
