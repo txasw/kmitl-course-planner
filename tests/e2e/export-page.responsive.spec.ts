@@ -231,10 +231,41 @@ async function buttonBoxes(toolbar: Locator): Promise<string[]> {
   );
 }
 
+/**
+ * The vertical centers of the toolbar's actions that share one row: the whole toolbar on the
+ * tablet, and the action row under download on the phone.
+ */
+async function restCenters(
+  toolbar: Locator,
+  phone: boolean,
+): Promise<number[]> {
+  const names = [
+    'แชร์รูปภาพ',
+    'คัดลอกรูปภาพ',
+    'คัดลอกข้อความ',
+    'ตัวเลือกการแสดงผล',
+    ...(phone ? [] : ['ดาวน์โหลด PNG']),
+  ];
+  const centers: number[] = [];
+  for (const name of names) {
+    const button = toolbar.getByRole('button', { name, exact: true });
+    if ((await button.count()) === 0) continue;
+    const box = await button.boundingBox();
+    if (box === null) throw new Error(`no box for ${name}`);
+    centers.push(box.y + box.height / 2);
+  }
+  return centers;
+}
+
+function spread(values: number[]): number {
+  return Math.max(...values) - Math.min(...values);
+}
+
 // A capture on a slow phone, or a clipboard that answers late, used to leave the page silent
 // until the toast (ADR-0027 amendment of 2026-11-22). The work is held here so the busy state
-// stands long enough to check: the pressed action keeps focus, shows a spinner and names the
-// work, the others wait, nothing in the toolbar moves, and the toast still ends it.
+// stands long enough to check: the toolbar at rest keeps its row and alignment, the pressed
+// action keeps focus, shows a spinner and names the work, the others wait, nothing in
+// the toolbar moves, and the toast still ends it.
 test('an export action shows a busy state until its toast, moving nothing', async ({
   context,
 }) => {
@@ -248,6 +279,11 @@ test('an export action shows a busy state until its toast, moving nothing', asyn
     exact: true,
   });
   await expect(download).toBeVisible();
+  // At rest the toolbar keeps the layout it had before the busy state: on the tablet in Thai the
+  // five actions share one row, so no busy label widens a button enough to wrap it.
+  expect(spread(await restCenters(toolbar, isPhone(page)))).toBeLessThanOrEqual(
+    1,
+  );
   await holdWork(page, 2_500);
 
   const copyText = toolbar.getByRole('button', {
