@@ -34,7 +34,9 @@ import {
 // 1366 px, in Thai and in English, and fails on any text leaf a box cuts, any pair of text
 // leaves that draw over each other, and any text leaf another layer covers, so a regression
 // on any surface fails the suite. The walk reads the timetable and the export page with a
-// toast up and after a failed save, rests the pointer on the export template dots and the
+// toast up and after a failed save, reading the toast whole and clear of the status row, the
+// phone nav, and the sharing toolbar while the content behind it may be covered, as behind a
+// layer the student opened, rests the pointer on the export template dots and the
 // suggestion carousel chevrons past the tooltip delay, and walks the product tour. Behind the
 // block details and the display options it reads the panel, where the opened layer may cover a
 // line whole but its edge may cut none, and it checks the plan name field holds a long name.
@@ -513,9 +515,13 @@ for (const language of ['th', 'en'] as const) {
         await blockDetail(sweep)
           .getByRole('button', { name: sweep.t('block.removeFromPlan') })
           .click();
-        await sweep.scan('undo toast', undoToast(sweep));
-        // The plan region makes room for the toast, so the status row stays whole above it.
-        await sweep.scan('timetable with the undo toast', sweep.panel());
+        await expect(undoToast(sweep)).toBeVisible();
+        // The toast floats above the status row and the phone nav over the timetable, which
+        // it may cover while it shows; the toast itself shows whole.
+        await sweep.scanWithToast(
+          'timetable with the undo toast',
+          sweep.panel(),
+        );
 
         // A save that fails shows its strip under the header and no toast over the plan.
         // The plan is copied with storage full, a change the save then cannot store.
@@ -776,7 +782,7 @@ for (const language of ['th', 'en'] as const) {
               exact: true,
             }),
         ).toBeVisible();
-        await sweep.scan('export page with a toast', sweep.panel());
+        await sweep.scanWithToast('export page with a toast', sweep.panel());
         await dismissToasts(sweep);
         await page
           .getByRole('button', { name: sweep.t('preview.displayOptions') })
