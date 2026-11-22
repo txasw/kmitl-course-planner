@@ -23,8 +23,9 @@
 // view (toastFloor). The unscheduled shelf above the status row counts as part of that
 // foot. With no foot named, as over the phone catalog pane, the region rises 72 px above the
 // bottom inset while the nav runs along the open panel's foot, clear of the 56 px nav. While
-// a bottom sheet is open it covers the nav and owns the foot, so the region drops back to the
-// foot and the sheet ends in a band the toast sits in, clear of the sheet's content.
+// a bottom sheet is open it covers the nav and the plan foot, so the region floats above the
+// footer of actions the sheet names, or drops back to the foot when it has none, over the
+// padding the sheet body keeps at rest for a toast (sheetToast).
 //
 // The panel focus trap follows the region by its id, so a toast's controls join the Tab
 // order after the panel's last control while the panel is open; Tab reaches an undo
@@ -45,7 +46,7 @@ import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { TOAST_REGION_ID, toastStore, type Toast } from './toastStore';
 import { useBottomNavShown } from './mobilePane';
-import { useBottomSheetOpen } from './sheetToastBand';
+import { useBottomSheetOpen, useToastOverSheetFoot } from './sheetToast';
 import { aboveSafeBottom, useToastOverFoot } from './toastFloor';
 import { useHoverFocusHold, type HoldHandlers } from './useHoverFocusHold';
 import { uiStore } from './uiStore';
@@ -157,6 +158,9 @@ export function Toaster() {
   const sheetOpen = useBottomSheetOpen();
   const navShown = useBottomNavShown();
   const overFoot = useToastOverFoot();
+  const overSheetFoot = useToastOverSheetFoot();
+  const bottom =
+    overSheetFoot ?? (overFoot === null ? null : aboveSafeBottom(overFoot));
   const aboveNav = isOpen && !sheetOpen && navShown && overFoot === null;
 
   // The undo toast owns the region while the panel is open; an ordinary toast waits.
@@ -211,11 +215,9 @@ export function Toaster() {
       aria-live="polite"
       aria-atomic="true"
       lang={language}
-      style={
-        overFoot === null ? undefined : { bottom: aboveSafeBottom(overFoot) }
-      }
+      style={bottom === null ? undefined : { bottom }}
       className={`pointer-events-none fixed inset-x-0 z-host flex justify-center pr-[max(16px,var(--kcp-safe-right))] pl-[max(16px,var(--kcp-safe-left))] ${
-        overFoot !== null
+        bottom !== null
           ? ''
           : aboveNav
             ? 'bottom-[calc(72px+var(--kcp-safe-bottom))]'

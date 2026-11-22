@@ -252,22 +252,33 @@ describe('BottomSheet', () => {
     expect(body).not.toHaveClass('overflow-y-auto');
   });
 
-  it('ends in a band below its footer while a toast shows, so the toast covers no content', () => {
+  it('keeps the room for a toast at rest, so a toast that shows changes nothing', () => {
     openSheet({ footer: true });
     const dialog = screen.getByRole('dialog');
     const footer = screen.getByRole('button', { name: 'Act' }).parentElement;
-    // At rest the footer is the last thing in the sheet.
-    expect(dialog.lastElementChild).toBe(footer);
+    const body = footer?.previousElementSibling;
+    // Above a footer the body ends in the room a toast floats over, present at rest.
+    expect(body).toHaveClass('pb-20', 'scroll-pb-20');
+    // The sheet's parts and their classes, which a toast must leave as they are.
+    const parts = () => Array.from(dialog.children, (part) => part.className);
+    const before = parts();
     act(() => {
       toastStore.getState().show('success', 'Copied');
     });
-    const band = dialog.lastElementChild;
-    expect(band).not.toBe(footer);
-    expect(band).toHaveClass('h-20', 'shrink-0');
-    expect(band).toHaveAttribute('aria-hidden', 'true');
+    expect(parts()).toEqual(before);
+    expect(dialog.lastElementChild).toBe(footer);
     act(() => {
       toastStore.getState().dismiss();
     });
-    expect(dialog.lastElementChild).toBe(footer);
+    expect(parts()).toEqual(before);
+  });
+
+  it('keeps the room for a toast at the foot of a sheet without a footer', () => {
+    openSheet();
+    const body = screen.getByRole('dialog').lastElementChild;
+    expect(body).toHaveClass(
+      'pb-[calc(max(16px,var(--kcp-safe-bottom))+72px)]',
+      'scroll-pb-[calc(max(16px,var(--kcp-safe-bottom))+72px)]',
+    );
   });
 });
