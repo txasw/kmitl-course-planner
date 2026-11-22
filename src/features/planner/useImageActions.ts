@@ -3,9 +3,9 @@
 // sheet. A download or a copy reports through the shared toast, since it has no other
 // visible result on screen; a share shows the sheet itself, so it toasts only a failure.
 //
-// An image capture takes a moment on a large template, so while one runs the actions are
-// busy: the hook names the action whose capture runs, and a press on any image action is
-// ignored until the outcome is known, so a second press cannot start a parallel capture.
+// An image capture takes a moment on a large template, so each action runs through the
+// toolbar's one busy guard, which names the running action and ignores a press on any action
+// until the outcome is known, so a second press cannot start a parallel capture.
 //
 // The share sheet opens only within the browser's user activation window after a press. A
 // capture of a large template can outlast it, and the browser then refuses the share. The
@@ -15,7 +15,7 @@
 // file taken from another poster node is never used, so an edit made in between is never
 // shared from a stale image.
 
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { toastStore } from '@/features/shell/toastStore';
 import { commitAndFocus } from '@/features/shell/commitAndFocus';
@@ -29,9 +29,13 @@ export type ImageAction = 'copyImage' | 'download' | 'share';
 /** The id of the share action, where focus returns from the share toast. */
 export const SHARE_IMAGE_ID = 'kcp-preview-share';
 
+/** The toolbar's busy guard, which runs one action at a time and names it while it runs. */
+export type RunAction = (
+  action: ImageAction,
+  work: () => Promise<void>,
+) => void;
+
 export interface ImageActions {
-  /** The image action whose capture is running, or null when the toolbar is idle. */
-  capturing: ImageAction | null;
   download: () => void;
   copyImage: () => void;
   share: () => void;
@@ -71,12 +75,9 @@ export function useImageActions(
   posterRef: RefObject<HTMLDivElement | null>,
   pixelRatio: number,
   fileName: string,
+  run: RunAction,
 ): ImageActions {
   const { t } = useTranslation();
-  const [capturing, setCapturing] = useState<ImageAction | null>(null);
-  // The guard reads a ref rather than the state, so the share toast action, which closes
-  // over an older render, still sees a capture that started after it.
-  const busyRef = useRef(false);
   const heldRef = useRef<HeldShare | null>(null);
   // The toast that offers the held file, which has nothing to share once the toolbar is gone.
   const readyToastRef = useRef<number | null>(null);
@@ -103,22 +104,15 @@ export function useImageActions(
     heldRef.current = { file, node, observer };
   };
 
-  // Capture the poster, hand the image to its destination, and toast the outcome, holding
-  // the actions busy from the press until the outcome is known. A null success message
-  // leaves the success toast to the destination.
-  const runCapture = (
-    action: ImageAction,
+  // Capture the poster, hand the image to its destination, and toast the outcome. A null
+  // success message leaves the success toast to the destination.
+  const capture = (
+    node: HTMLDivElement,
     deliver: (blob: Blob, node: HTMLDivElement) => Promise<void> | void,
     successMessage: string | null,
     failureMessage: string,
-  ) => {
-    const node = posterRef.current;
-    if (node === null || busyRef.current) {
-      return;
-    }
-    busyRef.current = true;
-    setCapturing(action);
-    void capturePng(node, pixelRatio)
+  ): Promise<void> =>
+    capturePng(node, pixelRatio)
       .then((blob) => deliver(blob, node))
       .then(
         () => {
@@ -129,11 +123,19 @@ export function useImageActions(
         () => {
           toastStore.getState().show('error', failureMessage);
         },
-      )
-      .finally(() => {
-        busyRef.current = false;
-        setCapturing(null);
-      });
+      );
+
+  // Run a capture as the named action, holding the toolbar busy until its outcome is known.
+  const runCapture = (
+    action: ImageAction,
+    deliver: (blob: Blob, node: HTMLDivElement) => Promise<void> | void,
+    successMessage: string | null,
+    failureMessage: string,
+  ) => {
+    const node = posterRef.current;
+    if (node !== null) {
+      run(action, () => capture(node, deliver, successMessage, failureMessage));
+    }
   };
 
   // Open the share sheet with a file. A cancel is silent, a lost press holds the file for
@@ -156,32 +158,34 @@ export function useImageActions(
     }
   };
 
+  // The work starts within the press, so a held file reaches the sheet inside the activation
+  // window, and the held file is taken only once the guard lets the share run.
   const share = () => {
     const node = posterRef.current;
-    if (node === null || busyRef.current) {
+    if (node === null) {
       return;
     }
-    const held = heldRef.current;
-    // A change not yet delivered to the observer still waits in its record queue.
-    const unchanged =
-      held?.node === node && held.observer.takeRecords().length === 0;
-    dropHeld();
-    if (held !== null && unchanged) {
-      shareFile(held.file, node).catch(() => {
-        toastStore.getState().show('error', t('preview.shareFailed'));
-      });
-      return;
-    }
-    runCapture(
-      'share',
-      (blob, captured) => shareFile(pngFile(blob, fileName), captured),
-      null,
-      t('preview.shareFailed'),
-    );
+    run('share', () => {
+      const held = heldRef.current;
+      // A change not yet delivered to the observer still waits in its record queue.
+      const unchanged =
+        held?.node === node && held.observer.takeRecords().length === 0;
+      dropHeld();
+      if (held !== null && unchanged) {
+        return shareFile(held.file, node).catch(() => {
+          toastStore.getState().show('error', t('preview.shareFailed'));
+        });
+      }
+      return capture(
+        node,
+        (blob, captured) => shareFile(pngFile(blob, fileName), captured),
+        null,
+        t('preview.shareFailed'),
+      );
+    });
   };
 
   return {
-    capturing,
     download: () => {
       runCapture(
         'download',

@@ -293,6 +293,64 @@ describe('PreviewToolbar', () => {
     expect(toastStore.getState().toast?.message).toBe('ส่งออกรูปภาพไม่สำเร็จ');
   });
 
+  it('marks only the running action busy, which keeps its full color while the rest dim', () => {
+    vi.stubGlobal('ClipboardItem', {});
+    vi.stubGlobal('navigator', { clipboard: { write: vi.fn() } });
+    vi.mocked(capturePng).mockReturnValue(new Promise<Blob>(() => undefined));
+    renderToolbar(DEFAULT_DISPLAY_OPTIONS, buildExamSchedule([]), {
+      current: document.createElement('div'),
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'คัดลอกรูปภาพ' }));
+    const running = screen.getByRole('button', { name: 'กำลังสร้างรูปภาพ' });
+    expect(running).toHaveAttribute('aria-busy', 'true');
+    expect(running).toHaveClass('aria-busy:opacity-100!');
+    // The spinner replaces the glyph, and it stands still under reduced motion.
+    const spinner = running.querySelector('svg');
+    expect(spinner).toHaveClass('lucide-loader-circle');
+    expect(spinner).toHaveClass('animate-spin', 'motion-reduce:animate-none');
+    expect(
+      screen.getByRole('button', { name: 'ดาวน์โหลด PNG' }),
+    ).toHaveAttribute('aria-busy', 'false');
+  });
+
+  it('holds the copy as text action busy until the clipboard answers', async () => {
+    let answer: () => void = () => undefined;
+    const writeText = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          answer = resolve;
+        }),
+    );
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+    renderToolbar();
+
+    const copy = screen.getByRole('button', { name: 'คัดลอกข้อความ' });
+    copy.focus();
+    fireEvent.click(copy);
+    // The pressed button names the copy in progress and keeps focus, and the others wait.
+    expect(copy).toHaveAccessibleName('กำลังคัดลอก');
+    expect(copy).toHaveAttribute('aria-busy', 'true');
+    expect(copy).toHaveAttribute('aria-disabled', 'true');
+    expect(copy).toHaveFocus();
+    expect(
+      screen.getByRole('button', { name: 'ดาวน์โหลด PNG' }),
+    ).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('toolbar')).toHaveAttribute('aria-busy', 'true');
+
+    // A second press while the copy runs writes nothing more.
+    fireEvent.click(copy);
+    expect(writeText).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      answer();
+      await Promise.resolve();
+    });
+    expect(copy).toHaveAccessibleName('คัดลอกข้อความ');
+    expect(copy).toHaveAttribute('aria-disabled', 'false');
+    expect(toastStore.getState().toast?.message).toBe('คัดลอกข้อความแล้ว');
+  });
+
   it('shows no pre share notice for a clean plan', () => {
     act(() => {
       seedActivePlan([makePlanEntry({ verifyStatus: 'verified' })]);

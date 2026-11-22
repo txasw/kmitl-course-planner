@@ -6,13 +6,16 @@
 // action shows what it does without a hover. Where the short label is a shorter form of the
 // name, the button keeps the full name as its accessible name, which starts with or holds the
 // short label. A busy action is marked aria-disabled rather than disabled, so the focused
-// button keeps focus through a capture.
+// button keeps focus through a capture, and ignores presses until the toolbar is free. The
+// running action keeps its full color, with its spinner and busy label, while the others dim.
 
-import type { ReactNode } from 'react';
+import type { LucideIcon } from 'lucide-react';
+import { BusyContent } from '@/components/BusyContent';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE, TARGET_TOUCH } from '@/lib/ui/target';
 
-const BUSY = 'aria-disabled:cursor-not-allowed aria-disabled:opacity-60';
+const BUSY =
+  'aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-busy:opacity-100!';
 
 const OUTLINE = `rounded-kcp border border-border bg-surface text-ink hover:bg-surface-alt ${BUSY} aria-disabled:hover:bg-surface`;
 
@@ -33,16 +36,20 @@ export function toolbarIconSize(compact: boolean): number {
 type ToolbarWeight = 'primary' | 'secondary';
 
 interface PreviewToolbarActionProps {
-  /** The leading icon, or the spinner while the action's capture runs. */
-  icon: ReactNode;
+  /** The leading icon, which turns into a spinner while the action runs. */
+  icon: LucideIcon;
   /** The full name of the action, its visible label from 640 px up. */
   label: string;
   /** The label a phone action row cell shows, when it is shorter than the full name. */
   shortLabel?: string;
+  /** The label while the action runs, naming the work in progress. */
+  busyLabel: string;
+  /** Whether this action's work is the one running. */
+  running: boolean;
   /** Below 640 px, where the toolbar runs along the panel foot. */
   compact: boolean;
   weight: ToolbarWeight;
-  /** Whether a capture holds the toolbar, which marks every action disabled. */
+  /** Whether a running action holds the toolbar, which marks every action disabled. */
   busy: boolean;
   onClick: () => void;
   /** The id a toast action returns focus to. */
@@ -66,6 +73,8 @@ export function PreviewToolbarAction({
   icon,
   label,
   shortLabel,
+  busyLabel,
+  running,
   compact,
   weight,
   busy,
@@ -78,13 +87,20 @@ export function PreviewToolbarAction({
     <button
       id={id}
       type="button"
-      onClick={onClick}
+      onClick={busy ? undefined : onClick}
       aria-disabled={busy}
-      aria-label={visible === label ? undefined : label}
+      aria-busy={running}
+      aria-label={running || visible === label ? undefined : label}
       className={toolbarActionClass(weight, compact)}
     >
-      {icon}
-      <span className={cell ? 'max-w-full' : undefined}>{visible}</span>
+      <BusyContent
+        icon={icon}
+        size={toolbarIconSize(compact)}
+        label={visible}
+        busyLabel={busyLabel}
+        busy={running}
+        className={compact ? 'max-w-full text-center' : 'text-start'}
+      />
     </button>
   );
 }
