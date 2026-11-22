@@ -212,10 +212,14 @@ function EventBlockComponent({
         .join(' ')
     : '';
   // Room and building read together as the place. Both can be empty on an online
-  // course, so the middot separator only appears when both are present.
-  const place = [meeting.building, meeting.room]
+  // course, so the middot separator only appears when both are present. A meeting with
+  // neither keeps its place slot under a quiet placeholder, so the section chip and every
+  // other field hold the same position on every block whether or not the room is known.
+  const room = [meeting.building, meeting.room]
     .filter((part) => part !== '')
     .join(' · ');
+  const roomless = room === '';
+  const place = roomless ? t('block.noRoom') : room;
   // Which fields this block could show before any measurement, from its data and the display
   // toggles. The measured fit then drops the lowest priority of these that do not fit the
   // box.
@@ -228,7 +232,7 @@ function EventBlockComponent({
     hasSecondary: names.secondary !== null,
     hasSection: showSection && section.section !== '',
     hasId: showSubjectId && section.subjectId !== '',
-    hasPlace: showRoom && place !== '',
+    hasPlace: showRoom,
     nameAbbreviations: abbreviations.length,
   });
   // The name joins the reset key, since a locale switch can swap in a name of the same field
@@ -246,7 +250,7 @@ function EventBlockComponent({
   // from the block alone: subject, name, section, full day, time, the place when it is
   // shown, then any verification state. The place follows the visual toggle so the
   // label matches what is on screen.
-  const placeText = showRoom && place !== '' ? ` ${place}` : '';
+  const placeText = showRoom ? ` ${place}` : '';
   const label = `${section.subjectId} ${name} ${t('section.code')} ${section.section} ${t(dayFullLabelKey(meeting.day))} ${time}${placeText}${
     badgeText === '' ? '' : ` ${badgeText}`
   }`;
@@ -342,6 +346,7 @@ function EventBlockComponent({
             secondary={names.secondary}
             secondaryLang={names.secondaryLang}
             place={place}
+            roomless={roomless}
             sectionCode={section.section}
             kind={meeting.kind}
             time={time}
@@ -361,6 +366,7 @@ function EventBlockComponent({
             secondary={names.secondary}
             secondaryLang={names.secondaryLang}
             place={place}
+            roomless={roomless}
             sectionCode={section.section}
             time={time}
             subjectId={section.subjectId}
