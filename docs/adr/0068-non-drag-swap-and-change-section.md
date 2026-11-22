@@ -88,3 +88,30 @@ plan's term, the same limit a block move has; closing it would need the worker t
 on demand, which this decision does not add. The replace action and the change list are derived
 by pure functions with unit tests, and both commit through `applyPlanTransaction`, so they inherit
 pair atomicity, the term check, and the exam hard block without checks of their own.
+
+## Amendment, 2026-11-22: a choice shows what a student picks by
+
+The owner reviewed the change section list on a phone and found each choice read only as a section
+code and its times, one run of text in one weight. A student picks a section by which group it
+is, the day, the time, the room, and who teaches, so each choice now shows those as separate
+parts. The section code is a neutral chip with a bold number, read by a screen reader with the
+section label before it. Each meeting follows on its own line as a bold short day, a time in
+tabular figures, and its place behind a pin glyph in the quieter ink; a section with several
+meetings lists every one, and an online class shows no place. The seat line follows in the
+success ink, from the same summary the catalog rows use. A pair lists both halves, each with its
+chip, its lecture or practice label, its meetings, and its seats. The instructors of the group,
+each once, sit on one line under the card's parts, in the panel's language.
+
+The whole card is the press target, through a stretched layer of its select button, and the
+button keeps the selection, keyboard, and focus behavior the list had. The instructor line sits
+outside the button, since a button can hold no tab stop of its own, and the button names it as
+its description, so a screen reader hears the instructors with the choice. A press on the
+instructor line scrolls it rather than choosing the section. Seat and conflict state stay in
+view: every choice is open and fits by construction, the list label says so, and the seat line
+shows the count. The orange stays on actions only; the chip and the card are neutral, and the
+card's edge darkens on hover. The long instructor line is the owner approved ellipsis exception
+recorded in the ADR-0048 amendment of the same date.
+
+A single run of text with stronger punctuation was rejected, since the owner asked that the parts
+not share one style. Showing the instructor line inside the button was rejected because the
+line has to scroll on its own and be a tab stop, which a button cannot hold.
