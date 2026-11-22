@@ -274,6 +274,7 @@
   "term.open": "เปิดตารางภาค {term}",
   "term.create": "สร้างตารางภาค {term}",
   "feedback.removed": "นำออกแล้ว",
+  "feedback.cleared": "ล้างตารางแล้ว นำออก {count} วิชา",
   "feedback.moreConflicts": "รายการที่ชนกัน",
   "feedback.moreConflictOne": "รายการที่ชนกัน",
   "unit.sections": "รายการ",

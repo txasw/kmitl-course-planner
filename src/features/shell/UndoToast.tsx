@@ -1,5 +1,5 @@
-// The undo toast, shown in the bottom feedback region after a removal, move, or swap,
-// or after a suggestion created a plan.
+// The undo toast, shown in the bottom feedback region after a removal, move, swap, or
+// clear, or after a suggestion created a plan.
 // It sits where the eye already is, on the block that just changed, rather than at the
 // top of the panel where the old undo strip went unnoticed. It names what changed,
 // offers undo after the text, and drains a thin progress bar over the plan store's ten
@@ -27,14 +27,18 @@ import { useSwipeGesture } from './useSwipeGesture';
 /** Matches the plan store's undo window; the drain bar and the timer both run for it. */
 export const UNDO_WINDOW_MS = 10_000;
 
-const MUTATION_LABEL: Record<EntryUndoRecord['kind'], TranslationKey> = {
+const MUTATION_LABEL: Record<
+  Exclude<EntryUndoRecord['kind'], 'clear'>,
+  TranslationKey
+> = {
   remove: 'feedback.removed',
   move: 'feedback.moved',
   swap: 'feedback.swapped',
 };
 
-/** What the toast says: a created plan by name, a removal by what left, and a move or
- * swap by what is now placed. Null when an entry record names no entry. */
+/** What the toast says: a created plan by name, a cleared plan by how many subjects left,
+ * a removal by what left, and a move or swap by what is now placed. Null when an entry
+ * record names no entry. */
 function undoMessage(
   record: UndoRecord,
   locale: Locale,
@@ -42,6 +46,11 @@ function undoMessage(
 ): string | null {
   if (record.kind === 'create') {
     return fillTemplate(t('suggest.created'), { name: record.planName });
+  }
+  if (record.kind === 'clear') {
+    return fillTemplate(t('feedback.cleared'), {
+      count: new Set(record.removed.map((entry) => entry.subjectId)).size,
+    });
   }
   const subject =
     record.kind === 'remove' ? record.removed[0] : record.added[0];
