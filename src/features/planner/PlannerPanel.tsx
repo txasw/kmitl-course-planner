@@ -12,6 +12,9 @@
 // the thumb zone and the first run tour can point at it before any search. In preview
 // the sharing toolbar heads the poster, or below 640 px follows it at the panel foot, and the
 // region grows past the panel height where the stage floor needs it, so the page scrolls.
+// A toast never moves the region: the status row, or the phone sharing toolbar, is named as
+// the foot the toast floats above, and the views a toast floats over end in a padding about
+// as tall as a toast, present at rest, so their last row scrolls clear of one (toastFloor).
 
 import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { flushSync } from 'react-dom';
@@ -41,7 +44,8 @@ import { revalidationStore } from '@/features/plans/revalidationStore';
 import { UpdatesDialog } from '@/features/plans/UpdatesDialog';
 import { UpdatesIndicator } from '@/features/plans/UpdatesIndicator';
 import { searchStore } from '@/features/search/searchStore';
-import { usePlanToastBand } from '@/features/shell/sheetToastBand';
+import { useMobilePane } from '@/features/shell/mobilePane';
+import { TOAST_CLEARANCE, useToastFoot } from '@/features/shell/toastFloor';
 import { uiStore } from '@/features/shell/uiStore';
 import { commitThenFocus } from '@/features/shell/restoreFocus';
 import { useLayoutTier } from '@/features/shell/useLayoutTier';
@@ -77,7 +81,7 @@ export function PlannerPanel() {
   const setPlanView = useStore(uiStore, (state) => state.setPlanView);
   const tier = useLayoutTier();
   const showTabs = tier !== 'compact';
-  const toastBand = usePlanToastBand();
+  const pane = useMobilePane();
   const displayOptions = useStore(uiStore, (state) => state.displayOptions);
   // The updates dialog renders only in edit, where its actions live (ADR-0060).
   const updatesOpen = useStore(revalidationStore, (state) => state.updatesOpen);
@@ -285,6 +289,18 @@ export function PlannerPanel() {
   // image carries the plan and not the surrounding chrome.
   const posterRef = useRef<HTMLDivElement>(null);
   const isPreview = viewMode === 'preview';
+  // The element along the panel foot a toast floats above: the status row in edit, unless
+  // the phone shows the catalog pane over the plan, and below 640 px the sharing toolbar of
+  // the export page, which from 640 px up heads the poster instead.
+  const footRef = useRef<HTMLDivElement>(null);
+  const footKind = isPreview
+    ? showTabs
+      ? null
+      : 'toolbar'
+    : !showTabs && pane === 'catalog'
+      ? null
+      : 'status';
+  useToastFoot(footRef, footKind);
   // The tabpanel semantics apply only while the tabs render to name the panel.
   const panelProps = showTabs
     ? {
@@ -340,21 +356,9 @@ export function PlannerPanel() {
       sections={sections}
       displayOptions={displayOptions}
       examSchedule={examSchedule}
+      footRef={footRef}
     />
   ) : null;
-
-  // While a toast shows, the region ends in a band as tall as the toast, so the status row,
-  // the export page foot, and the phone sharing toolbar rise above it rather than sit
-  // under it.
-  const band =
-    toastBand > 0 ? (
-      <div
-        aria-hidden
-        data-toast-band
-        className="shrink-0"
-        style={{ height: toastBand }}
-      />
-    ) : null;
 
   return (
     <div
@@ -396,7 +400,7 @@ export function PlannerPanel() {
         <div
           key="summary"
           {...panelProps}
-          className="kcp-scroll min-h-0 flex-1 overflow-y-auto"
+          className={`kcp-scroll min-h-0 flex-1 overflow-y-auto ${TOAST_CLEARANCE}`}
         >
           <SummaryView
             schedule={examSchedule}
@@ -411,7 +415,7 @@ export function PlannerPanel() {
         <div
           key="selected"
           {...panelProps}
-          className="kcp-scroll min-h-0 flex-1 overflow-y-auto"
+          className={`kcp-scroll min-h-0 flex-1 overflow-y-auto ${TOAST_CLEARANCE}`}
         >
           <SelectedCoursesList
             groups={subjectGroups}
@@ -469,11 +473,11 @@ export function PlannerPanel() {
           status={<VerificationStatus compact={!showTabs} />}
           action={<SuggestAction placement="status" />}
           compact={!showTabs}
+          footRef={footRef}
           locale={language}
           t={t}
         />
       )}
-      {band}
       {detail !== null ? (
         <BlockDetailSurface
           teachTableId={detail.teachTableId}

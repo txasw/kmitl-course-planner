@@ -262,7 +262,7 @@ describe('usePanelPopover available space', () => {
         expect(node.style.height).toBe('350px');
       });
       expect(observed).toContain(column);
-      // A toast band lifts the status row, so the plan area ends 40 px higher.
+      // The status row wraps onto another line, so the plan area ends 40 px higher.
       column.getBoundingClientRect = () =>
         DOMRect.fromRect({ x: 0, y: 50, width: 1024, height: 310 });
       fire();

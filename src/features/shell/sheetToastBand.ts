@@ -5,10 +5,7 @@
 // covering it: while a toast shows, the sheet ends in a band the toast sits in, below the
 // sheet's body and footer. While a sheet is open the region drops to the panel foot, since
 // the sheet covers the phone bottom nav the region otherwise rises above. The plan region
-// makes room the same way: the toast region reports the height of the toast on show, and
-// the plan region ends in a band of that height, so its status row, the export page
-// caption and dots, and the phone sharing toolbar rise above the toast rather than sit
-// under it.
+// makes no such room; the toast floats over it instead (toastFloor).
 
 import { useEffect } from 'react';
 import { useStore } from 'zustand';
@@ -53,30 +50,4 @@ export function useToastShown(): boolean {
   const undo = useStore(planStore, (state) => state.pendingUndo !== null);
   const isOpen = useStore(uiStore, (state) => state.isOpen);
   return toast || (undo && isOpen);
-}
-
-// The height of the toast on show, measured by the toast region, or zero while it shows
-// nothing. The plan region reads it to keep its status row clear of the toast.
-const toastHeightStore = createStore<{ height: number }>(() => ({
-  height: 0,
-}));
-
-/** Record the measured height of the toast region, called by the region itself. */
-export function setToastHeight(height: number): void {
-  if (toastHeightStore.getState().height !== height) {
-    toastHeightStore.setState({ height });
-  }
-}
-
-/** The gap the plan region keeps between its foot content and a toast below it. */
-export const TOAST_BAND_GAP_PX = 8;
-
-/**
- * The band the plan region ends in while a toast shows: the toast's measured height and a
- * gap, so the status row and the poster foot rise above the toast rather than sit under
- * it. Zero while no toast shows, so the region keeps its full height at rest.
- */
-export function usePlanToastBand(): number {
-  const height = useStore(toastHeightStore, (state) => state.height);
-  return height > 0 ? height + TOAST_BAND_GAP_PX : 0;
 }

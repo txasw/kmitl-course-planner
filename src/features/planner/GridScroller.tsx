@@ -16,11 +16,17 @@
 // open on empty morning rows. Each time the reveal key changes, and when the measured font
 // steps, the scroller lifts its earliest block to just under the sticky header; a later
 // manual scroll on the same day is left alone.
+//
+// A toast floats over the foot of the scroller rather than moving the layout (toastFloor),
+// so the scroller ends in a bottom padding and scroll padding about as tall as a toast. It is
+// present at rest, so a toast that shows changes nothing, and the last row can always be
+// scrolled clear of a toast, as can a block brought into view.
 
 import { useLayoutEffect, useRef, type ReactNode } from 'react';
 import { revealScrollTop } from '@/lib/planner/dayView';
 import { EDIT_DAY_AXIS_PX } from '@/lib/planner/grid';
 import { gridFontPx } from '@/lib/ui/breakpoints';
+import { TOAST_CLEARANCE } from '@/features/shell/toastFloor';
 import { useElementSize } from '@/features/shell/useElementSize';
 import { AXIS_TRACK_EM } from './gridGeometry';
 import { useScrollEdges } from './useScrollEdges';
@@ -71,7 +77,7 @@ export function GridScroller({ children, revealKey }: GridScrollerProps) {
     <div ref={regionRef} className="relative flex min-h-0 flex-1 flex-col">
       <div
         ref={scrollerRef}
-        className="relative min-h-0 flex-1 overflow-auto kcp-scroll"
+        className={`relative min-h-0 flex-1 overflow-auto kcp-scroll ${TOAST_CLEARANCE}`}
       >
         {children(fontPx)}
       </div>

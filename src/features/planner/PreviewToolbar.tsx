@@ -34,7 +34,7 @@
 // never shifts while one runs (ADR-0027 amendment of 2026-11-22). The capture and its
 // delivery live in useImageActions.
 
-import type { RefObject } from 'react';
+import type { Ref, RefObject } from 'react';
 import {
   Download,
   FileText,
@@ -82,6 +82,9 @@ interface PreviewToolbarProps {
   displayOptions: DisplayOptions;
   /** The plan's exam schedule, which the text export appends when the option is on. */
   examSchedule: ExamSchedule;
+  /** Below 640 px, the toolbar row along the panel foot, which the panel names as the foot
+   * a toast floats above. */
+  footRef?: Ref<HTMLDivElement>;
 }
 
 export function PreviewToolbar({
@@ -90,6 +93,7 @@ export function PreviewToolbar({
   sections,
   displayOptions,
   examSchedule,
+  footRef,
 }: PreviewToolbarProps) {
   const { t, language } = useTranslation();
   const activePlan = useActivePlan();
@@ -218,7 +222,11 @@ export function PreviewToolbar({
     return (
       <>
         <PreShareNotice />
-        <div {...toolbarProps} className="flex shrink-0 flex-col gap-2">
+        <div
+          ref={footRef}
+          {...toolbarProps}
+          className="flex shrink-0 flex-col gap-2"
+        >
           <span className="self-start text-xs empty:hidden">
             <VerificationStatus />
           </span>
