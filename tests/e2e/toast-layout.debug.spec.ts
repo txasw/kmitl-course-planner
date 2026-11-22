@@ -100,7 +100,10 @@ async function frames(sweep: Sweep): Promise<void> {
 
 /**
  * Show a toast and check that nothing in `targets` moves while it shows or after it leaves,
- * and that the toast, whole in the viewport, covers none of the `clear` controls.
+ * and that the toast, whole in the viewport, covers none of the `clear` controls. When the
+ * action that shows the toast also changes the plan (a removal shows the undo toast), the
+ * status row may rewrap for its new text, so the layout while the toast shows is compared
+ * with the layout once it leaves, both after the change, rather than with the one before.
  */
 async function expectNoShift(
   sweep: Sweep,
@@ -108,6 +111,7 @@ async function expectNoShift(
   targets: Record<string, Locator>,
   clear: Record<string, Locator>,
   showToast: () => Promise<void>,
+  options: { changesPlan?: boolean } = {},
 ): Promise<void> {
   await frames(sweep);
   const before = await boxes(targets);
@@ -122,9 +126,10 @@ async function expectNoShift(
   );
   await frames(sweep);
   await shot(sweep, `${surface}-toast`);
-  expect(await boxes(targets), `${surface} while a toast shows`).toEqual(
-    before,
-  );
+  const during = await boxes(targets);
+  if (options.changesPlan !== true) {
+    expect(during, `${surface} while a toast shows`).toEqual(before);
+  }
   await expect(toast).toBeInViewport({ ratio: 1 });
   const toastBox = await boxOf(toast, 'the toast');
   for (const [name, locator] of Object.entries(clear)) {
@@ -138,7 +143,7 @@ async function expectNoShift(
   await expect(toast).toHaveCount(0);
   await frames(sweep);
   expect(await boxes(targets), `${surface} after the toast leaves`).toEqual(
-    before,
+    options.changesPlan === true ? during : before,
   );
 }
 
@@ -212,6 +217,8 @@ for (const language of ['th', 'en'] as const) {
             }),
           ).toBeVisible();
         },
+
+        { changesPlan: true },
       );
 
       await page
