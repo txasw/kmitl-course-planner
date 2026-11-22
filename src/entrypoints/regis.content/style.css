@@ -448,6 +448,38 @@
   background-color: var(--kcp-ink-soft);
 }
 
+/* A change section choice (ADR-0068 amendment of 2026-11-22). The card takes the hover
+   and the inset focus ring of its select button, whose stretched layer makes the card
+   the press target, and not of its instructor line, which scrolls rather than selects. */
+.kcp-choice:has(> button:hover) {
+  border-color: var(--kcp-ink-soft);
+}
+
+.kcp-choice:has(> button:focus-visible) {
+  box-shadow: inset 0 0 0 var(--kcp-focus-width) var(--kcp-focus-color);
+}
+
+/* While names lie past the end of an instructor line, a fade and an ellipsis close its
+   text row, above the scrollbar a mouse sees. Neither takes a press, so the line scrolls
+   under them, and a keyboard focus on the line drops them so its ring shows whole. */
+.kcp-more::after {
+  content: '…';
+  position: absolute;
+  top: 0;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 2.5rem;
+  height: 1lh;
+  background: linear-gradient(to right, transparent, var(--kcp-surface) 60%);
+  pointer-events: none;
+}
+
+.kcp-more:has(:focus-visible)::after {
+  display: none;
+}
+
 /* The search form fold. The region animates its single grid row between the form's
    height and zero, so the results rise into the space as the form closes. The form
    fades faster than it folds. Visibility is discrete and the visible value wins, so a

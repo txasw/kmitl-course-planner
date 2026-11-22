@@ -2,9 +2,9 @@
 // on each card of the selected courses view, so a keyboard, touch, or screen reader user
 // reaches the move a block drag commits. Opened, it lists the subject's other section
 // groups that are open and fit the plan once the current one leaves, a pair as one
-// choice, soonest first, each showing its section, meetings, places, seats, and instructors
-// as separate parts (ChangeOptionRow). A choice moves the subject through the same transaction a drag
-// does, so the change is atomic and leaves one undo. The subject's other sections come
+// choice, soonest first, each showing its section, meetings, places, seats, and
+// instructors as separate parts (ChangeOptionRow). A choice moves the subject through the
+// same transaction a drag does, so the change is atomic and leaves one undo. The subject's other sections come
 // from the current catalog, since a plan snapshot does not carry them; when the catalog
 // does not list the subject in the plan's term, the list says to search for it first.
 

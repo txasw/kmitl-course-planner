@@ -111,6 +111,15 @@ function renderList(): void {
   render(<ChangeSectionList entry={entry} locale="th" t={t} />);
 }
 
+// The instructor list of the one open choice, which carries no accessible name of its own.
+function teacherList(): HTMLElement {
+  const list = document.querySelector<HTMLElement>(
+    '[data-teacher-scroll] > ul',
+  );
+  if (list === null) throw new Error('expected an instructor list');
+  return list;
+}
+
 const toggle = () =>
   screen.getByRole('button', {
     name: `เปลี่ยนกลุ่มเรียน ${course.subjectId}`,
@@ -152,9 +161,12 @@ describe('ChangeSectionList', () => {
       'กลุ่มเรียน 902 ทฤษฎี อ 09:00-12:00 D D-201 ว่าง 30 จาก 80 ' +
         'กลุ่มเรียน 932 ปฏิบัติ พฤ 13:00-15:00 A A101 ศ 13:00-15:00 ไม่จำกัดที่นั่ง',
     );
-    // The instructors of both halves, each once, are a labelled list the choice names
-    // as its description, outside the button so the list can scroll on its own.
-    const teachers = screen.getByRole('list', { name: 'ผู้สอน' });
+    // The instructors of both halves, each once, are a list the choice names as its
+    // description, outside the button so the list can scroll on its own. The list has no
+    // name of its own, which a browser would read as the description in place of its names
+    // (jsdom ignores it, so the e2e focus walk checks the browser).
+    const teachers = teacherList();
+    expect(teachers).not.toHaveAttribute('aria-label');
     // Seats read in the catalog's tones, so a section with no seat limit is open green.
     expect(within(choice).getByText('ไม่จำกัดที่นั่ง').parentElement).toHaveClass(
       'text-success',
@@ -181,13 +193,13 @@ describe('ChangeSectionList', () => {
         this.callback([], this);
       }
       observe(): void {
-        /* fired by hand below */
+        /* no layout in jsdom */
       }
       unobserve(): void {
-        /* fired by hand below */
+        /* no layout in jsdom */
       }
       disconnect(): void {
-        /* fired by hand below */
+        /* no layout in jsdom */
       }
     }
     const Original = globalThis.ResizeObserver;
@@ -196,25 +208,24 @@ describe('ChangeSectionList', () => {
       seed([course]);
       renderList();
       fireEvent.click(toggle());
-      const scroller = screen.getByRole('list', {
-        name: 'ผู้สอน',
-      }).parentElement;
+      const scroller = teacherList().parentElement;
       if (scroller === null) throw new Error('expected the instructor line');
       Object.defineProperty(scroller, 'scrollWidth', { value: 400 });
       Object.defineProperty(scroller, 'clientWidth', { value: 200 });
       act(() => {
         for (const observer of observers) observer.fire();
       });
-      expect(screen.getByRole('region', { name: 'ผู้สอน' })).toBe(scroller);
+      // The region names its choice, so the landmarks of a long list stay apart.
+      expect(screen.getByRole('region', { name: 'ผู้สอนกลุ่มเรียน 902, 932' })).toBe(
+        scroller,
+      );
       expect(scroller).toHaveAttribute('tabindex', '0');
       // Names past the end draw the fade and the ellipsis on the line.
-      expect(scroller.parentElement?.className).toContain(
-        "after:content-['…']",
-      );
+      expect(scroller.parentElement).toHaveClass('kcp-more');
       // Scrolled to its end, the line drops the fade and stays a tab stop.
       Object.defineProperty(scroller, 'scrollLeft', { value: 200 });
       fireEvent.scroll(scroller);
-      expect(scroller.parentElement?.className).not.toContain('after:content');
+      expect(scroller.parentElement).not.toHaveClass('kcp-more');
       expect(scroller).toHaveAttribute('tabindex', '0');
     } finally {
       globalThis.ResizeObserver = Original;
@@ -237,9 +248,7 @@ describe('ChangeSectionList', () => {
         name: `Change section ${course.subjectId}`,
       }),
     );
-    expect(screen.getByRole('list', { name: 'Instructors' })).toHaveTextContent(
-      'Dr. Champoon Sam-ang',
-    );
+    expect(teacherList()).toHaveTextContent('Dr. Champoon Sam-ang');
   });
 
   it('moves the subject in one undoable step and keeps focus on the toggle', () => {
