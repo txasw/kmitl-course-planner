@@ -117,6 +117,24 @@ describe('useWelcomeClaim', () => {
     expect(onboardingStore.getState().welcomeOpen).toBe(false);
   });
 
+  it('sends no claim and writes nothing on a registration page', async () => {
+    window.location.hash = '#/pre_registration';
+    try {
+      const { storage, deps } = setup();
+      renderHook(() => {
+        useWelcomeClaim(deps);
+      });
+      settle();
+      await flush();
+      expect(deps.send).not.toHaveBeenCalled();
+      expect(storedRecord(storage)).toBeUndefined();
+      expect(onboardingStore.getState().welcomeSettled).toBe(true);
+      expect(onboardingStore.getState().welcomeOpen).toBe(false);
+    } finally {
+      window.location.hash = '';
+    }
+  });
+
   it('sends no claim once the welcome has been shown', async () => {
     const { deps } = setup();
     renderHook(() => {

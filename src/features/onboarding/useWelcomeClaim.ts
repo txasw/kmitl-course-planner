@@ -22,6 +22,7 @@ import {
   type RequestMessage,
 } from '@/lib/messaging/protocol';
 import type { OnboardingRepository } from '@/lib/storage/onboarding';
+import { isQuietRoute } from '@/features/shell/quietRoute';
 import { onboardingStore } from './onboardingStore';
 
 export interface WelcomeClaimDeps {
@@ -32,10 +33,16 @@ export interface WelcomeClaimDeps {
   ) => Promise<unknown>;
 }
 
+// A registration page never shows the welcome: it is a modal that locks the host scroll
+// and would cover the form a student came to fill. Nothing is written, so it shows in a
+// later document on another page.
 function mayClaim(): boolean {
   const { install, record, openRequested } = onboardingStore.getState();
   return (
-    install !== null && record.welcomeShownAt === undefined && !openRequested
+    install !== null &&
+    record.welcomeShownAt === undefined &&
+    !openRequested &&
+    !isQuietRoute()
   );
 }
 
