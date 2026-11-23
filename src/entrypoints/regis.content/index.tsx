@@ -7,6 +7,8 @@ import { defineContentScript } from 'wxt/utils/define-content-script';
 import { IS_DEBUG } from '@/lib/env';
 import { REGIS_MATCH_PATTERN } from '@/lib/shell/hostTab';
 import { sendTyped } from '@/lib/messaging/sendTyped';
+import { quietAwareSend } from '@/lib/regis/quietMode';
+import { isQuietRoute } from '@/features/shell/quietRoute';
 import { createPrefsRepository } from '@/lib/storage/prefs';
 import { createSearchStateRepository } from '@/lib/storage/lastSearch';
 import { createBrowserStorageAdapter } from '@/lib/storage/browserAdapter';
@@ -47,7 +49,9 @@ export default defineContentScript({
         const prefs = createPrefsRepository(adapter);
         const plans = { repo: createPlanRepository(adapter), adapter };
         const search = {
-          send: sendTyped,
+          // Every search, check, and reference read starts here, so a request started on
+          // a registration page never retries (ADR-0075).
+          send: quietAwareSend(sendTyped, isQuietRoute),
           repo: createSearchStateRepository(adapter),
         };
         // One onboarding repository for the document, so the welcome claim's write

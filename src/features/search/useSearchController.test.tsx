@@ -29,7 +29,11 @@ import { teachTableResult } from '../../../tests/support/searchDeps';
 import { planStore } from '@/features/plans/planStore';
 import { searchStore, selectTermSettled } from './searchStore';
 import type { SearchDeps } from './SearchDepsContext';
-import { useSearchActions, useSearchInit } from './useSearchController';
+import {
+  useReferenceData,
+  useSearchActions,
+  useSearchInit,
+} from './useSearchController';
 
 const term = { year: '2569', semester: '1' } as const;
 const capture = currentTermSchema.parse(
@@ -180,6 +184,25 @@ describe('useSearchInit', () => {
     await controlled.answer(ok(capture));
     const next = { year: '2569', semester: '2' };
     expect(formTerm()).toEqual(next);
+  });
+
+  it('reads the current term from the cache alone on a registration page', async () => {
+    window.location.hash = '#/pre_registration';
+    try {
+      const sent: RequestMessage[] = [];
+      const send = ((message: RequestMessage) => {
+        sent.push(message);
+        return Promise.resolve(err(networkError('no cached copy')));
+      }) as unknown as TypedSend;
+      render(<InitProbe deps={{ send, repo: repoReturning(null) }} />);
+      await waitFor(() => {
+        expect(selectTermSettled(searchStore.getState())).toBe(true);
+      });
+      expect(sent).toEqual([{ type: 'ref/currentTerm', cacheOnly: true }]);
+      expect(formTerm()).toEqual(fallback);
+    } finally {
+      window.location.hash = '';
+    }
   });
 
   it('leaves a term the student edited before the answer', async () => {
@@ -410,5 +433,73 @@ describe('useSearchActions', () => {
     expect(state.result).toEqual({ status: 'idle' });
     expect(state.barQuery).toBeNull();
     expect(state.searchFormOpen).toBe(true);
+  });
+});
+
+describe('useReferenceData', () => {
+  function idleLists(): void {
+    searchStore.setState({
+      faculties: { status: 'idle' },
+      departments: { status: 'idle' },
+      curricula: { status: 'idle' },
+      subjectOwners: { status: 'idle' },
+    });
+  }
+
+  function recordingSend(sent: RequestMessage[]): TypedSend {
+    // A recording arrow cannot satisfy the generic send signature, so it is cast here.
+    return (message: RequestMessage) => {
+      sent.push(message);
+      return Promise.resolve(err(networkError('no cached copy')));
+    };
+  }
+
+  afterEach(idleLists);
+
+  it('reads the lists from the cache alone on a registration page', async () => {
+    idleLists();
+    window.location.hash = '#/registration';
+    try {
+      const sent: RequestMessage[] = [];
+      const { result } = renderHook(() =>
+        useReferenceData(recordingSend(sent)),
+      );
+      await waitFor(() => {
+        expect(searchStore.getState().subjectOwners.status).toBe('error');
+      });
+      expect(sent.map((message) => message.type)).toEqual([
+        'ref/faculty',
+        'ref/department',
+        'ref/curriculum',
+        'ref/subjectOwner',
+      ]);
+      expect(sent.every((message) => 'cacheOnly' in message)).toBe(true);
+
+      // The retry in the banner is the student's request, so it may fetch.
+      sent.length = 0;
+      act(() => {
+        result.current();
+      });
+      expect(sent).toHaveLength(4);
+      expect(sent.some((message) => 'cacheOnly' in message)).toBe(false);
+    } finally {
+      window.location.hash = '';
+    }
+  });
+
+  it('loads a failed list again when the form mounts on another page', async () => {
+    searchStore.setState({
+      faculties: { status: 'error', error: networkError('no cached copy') },
+      departments: { status: 'loading' },
+      curricula: { status: 'loading' },
+      subjectOwners: { status: 'loading' },
+    });
+    const sent: RequestMessage[] = [];
+    renderHook(() => {
+      useReferenceData(recordingSend(sent));
+    });
+    await waitFor(() => {
+      expect(sent).toEqual([{ type: 'ref/faculty' }]);
+    });
   });
 });
