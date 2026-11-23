@@ -83,3 +83,4 @@ withdrawal note above the original text, which is kept as written.
 72. [Search page coach mark](0072-search-page-coach-mark.md)
 73. [Extension version in the header](0073-extension-version-in-the-header.md)
 74. [First run product tour](0074-first-run-product-tour.md)
+75. [Quiet mode and address hygiene on the registration pages](0075-quiet-mode-and-address-hygiene.md)
