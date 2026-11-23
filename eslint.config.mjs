@@ -31,6 +31,39 @@ const HTML_SYNTAX = [
   },
 ];
 
+// The page's own web storage, where the host keeps its session. KCP keeps its state in
+// the extension storage, so no product file reads or writes either store (ADR-0075).
+const NO_WEB_STORAGE =
+  'KCP keeps its state in browser.storage; the page web storage holds the host session.';
+const WEB_STORAGE_GLOBALS = ['sessionStorage', 'localStorage'].map((name) => ({
+  name,
+  message: NO_WEB_STORAGE,
+}));
+const WEB_STORAGE_PROPERTIES = ['window', 'globalThis', 'self'].flatMap(
+  (object) =>
+    ['sessionStorage', 'localStorage'].map((property) => ({
+      object,
+      property,
+      message: NO_WEB_STORAGE,
+    })),
+);
+
+// The raw host address, which can carry a token or a student id. Only the shell reader
+// reads it, sanitized (ADR-0075).
+const NO_RAW_LOCATION =
+  'Read the host address through features/shell/hostLocation, which sanitizes it.';
+const LOCATION_PART = '/^(hash|href)$/';
+const LOCATION_SYNTAX = [
+  {
+    selector: `MemberExpression[object.name='location'][property.name=${LOCATION_PART}]`,
+    message: NO_RAW_LOCATION,
+  },
+  {
+    selector: `MemberExpression[object.property.name='location'][property.name=${LOCATION_PART}]`,
+    message: NO_RAW_LOCATION,
+  },
+];
+
 // A focus ring or outline class written by hand, in a string or a template literal.
 // The shared constants hold the one indicator, so the tokens change it in one place.
 const FOCUS_CLASS = String.raw`/focus(-visible|-within)?:(ring|outline)/`;
@@ -116,6 +149,22 @@ export default tseslint.config(
       'no-eval': 'error',
       'no-new-func': 'error',
       'no-console': 'error',
+      'no-restricted-syntax': [
+        'error',
+        ...HTML_SYNTAX,
+        ...FOCUS_SYNTAX,
+        ...LOCATION_SYNTAX,
+      ],
+      'no-restricted-globals': ['error', ...WEB_STORAGE_GLOBALS],
+      'no-restricted-properties': ['error', ...WEB_STORAGE_PROPERTIES],
+    },
+  },
+
+  // The shell reader is the one place the raw address is read, and tests set and read
+  // the address of the test document to drive the routes.
+  {
+    files: ['src/features/shell/hostLocation.ts', 'src/**/*.test.{ts,tsx}'],
+    rules: {
       'no-restricted-syntax': ['error', ...HTML_SYNTAX, ...FOCUS_SYNTAX],
     },
   },
@@ -124,7 +173,9 @@ export default tseslint.config(
   // asserts them.
   {
     files: ['src/lib/ui/focus.ts', 'src/lib/ui/focus.test.ts'],
-    rules: { 'no-restricted-syntax': ['error', ...HTML_SYNTAX] },
+    rules: {
+      'no-restricted-syntax': ['error', ...HTML_SYNTAX, ...LOCATION_SYNTAX],
+    },
   },
 
   // The logger is the single sanctioned console sink; the console is disabled
@@ -141,11 +192,16 @@ export default tseslint.config(
       'src/features/**/*.{ts,tsx}',
     ],
     rules: {
-      'no-restricted-globals': ['error', { name: 'fetch', message: NO_FETCH }],
+      'no-restricted-globals': [
+        'error',
+        { name: 'fetch', message: NO_FETCH },
+        ...WEB_STORAGE_GLOBALS,
+      ],
       'no-restricted-properties': [
         'error',
         { object: 'window', property: 'fetch', message: NO_FETCH },
         { object: 'globalThis', property: 'fetch', message: NO_FETCH },
+        ...WEB_STORAGE_PROPERTIES,
       ],
     },
   },
