@@ -14,7 +14,7 @@ import {
 import { checklistMarksSchema, type ChecklistMarks } from '../regis/checklist';
 import { createSerialQueue } from '../utils/serialQueue';
 import type { StorageAdapter } from './repo';
-import { CHECKLIST_KEY, REGKIT_KEY, quarantineKey } from './keys';
+import { CHECKLIST_KEY, FILL_KEY, REGKIT_KEY, quarantineKey } from './keys';
 
 const LIST_VERSION = 1;
 
@@ -122,4 +122,33 @@ export function createChecklistRepository(
     planIdOf: (marks) => marks.planId,
     ...(now === undefined ? {} : { now }),
   });
+}
+
+/** The student's fill switch and the latched host builds; fill is on by default. */
+export const fillSettingsSchema = z.object({
+  off: z.boolean(),
+  latched: z.array(z.string().max(120)).max(20),
+});
+export type FillSettings = z.infer<typeof fillSettingsSchema>;
+
+export interface FillSettingsRepository {
+  load(): Promise<FillSettings>;
+  save(settings: FillSettings): Promise<void>;
+}
+
+export const DEFAULT_FILL_SETTINGS: FillSettings = { off: false, latched: [] };
+
+/** A read that does not validate falls back to the defaults, latching nothing. */
+export function createFillSettingsRepository(
+  adapter: StorageAdapter,
+): FillSettingsRepository {
+  return {
+    async load() {
+      const parsed = fillSettingsSchema.safeParse(await adapter.get(FILL_KEY));
+      return parsed.success ? parsed.data : DEFAULT_FILL_SETTINGS;
+    },
+    async save(settings) {
+      await adapter.set(FILL_KEY, settings);
+    },
+  };
 }

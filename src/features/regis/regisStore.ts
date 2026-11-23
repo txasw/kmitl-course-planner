@@ -11,11 +11,17 @@ import {
   type ChecklistMark,
   type ChecklistMarks,
 } from '@/lib/regis/checklist';
-import type { ListRepository } from '@/lib/storage/regis';
+import {
+  DEFAULT_FILL_SETTINGS,
+  type FillSettings,
+  type FillSettingsRepository,
+  type ListRepository,
+} from '@/lib/storage/regis';
 
 export interface RegisRepositories {
   kits: ListRepository<RegistrationKit>;
   checklists: ListRepository<ChecklistMarks>;
+  fill: FillSettingsRepository;
 }
 
 /** The prepare action's progress for one plan. */
@@ -39,7 +45,13 @@ export interface RegisState {
   /** Whether the desktop dock shows its full content rather than the narrow bar. */
   dockExpanded: boolean | null;
   sheetLevel: SheetLevel;
+  /** The student's fill switch and the host builds fill is latched off for. */
+  fill: FillSettings;
   hydrate: (kits: RegistrationKit[], checklists: ChecklistMarks[]) => void;
+  hydrateFill: (fill: FillSettings) => void;
+  setFillOff: (off: boolean) => void;
+  /** Latch fill off for a host build after an actuator refusal (ADR-0078). */
+  latchBuild: (key: string) => void;
   saveKit: (kit: RegistrationKit) => void;
   setMark: (plan: Plan, subjectId: string, mark: ChecklistMark | null) => void;
   setRun: (run: PrepareRun) => void;
@@ -70,8 +82,24 @@ function createRegisStore() {
     dockOpen: false,
     dockExpanded: null,
     sheetLevel: 'peek',
+    fill: DEFAULT_FILL_SETTINGS,
     hydrate: (kits, checklists) => {
       set({ kits, checklists, loaded: true });
+    },
+    hydrateFill: (fill) => {
+      set({ fill });
+    },
+    setFillOff: (off) => {
+      const fill = { ...get().fill, off };
+      set({ fill });
+      void repositories?.fill.save(fill);
+    },
+    latchBuild: (key) => {
+      const { fill } = get();
+      if (fill.latched.includes(key)) return;
+      const next = { ...fill, latched: [...fill.latched, key].slice(-20) };
+      set({ fill: next });
+      void repositories?.fill.save(next);
     },
     saveKit: (kit) => {
       set({ kits: replaceFor(get().kits, kit) });

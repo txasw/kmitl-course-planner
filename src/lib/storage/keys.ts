@@ -64,6 +64,12 @@ export const REGKIT_KEY = 'kcp:regkit';
  */
 export const CHECKLIST_KEY = 'kcp:checklist';
 
+/**
+ * Content owned fill settings (ADR-0078): whether the student turned fill off, and the
+ * host builds an actuator refusal latched fill off for, by their public script names.
+ */
+export const FILL_KEY = 'kcp:regfill';
+
 /** Key under which a corrupt root blob is preserved for later export. */
 export function quarantineKey(timestamp: string): string {
   return `kcp:quarantine:${timestamp}`;

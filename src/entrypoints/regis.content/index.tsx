@@ -17,6 +17,7 @@ import { createInstallRepository } from '@/lib/storage/install';
 import { createOnboardingRepository } from '@/lib/storage/onboarding';
 import {
   createChecklistRepository,
+  createFillSettingsRepository,
   createRegKitRepository,
 } from '@/lib/storage/regis';
 import { readExtensionVersion } from '@/lib/shell/extensionVersion';
@@ -74,6 +75,7 @@ export default defineContentScript({
         const regis = {
           kits: createRegKitRepository(adapter),
           checklists: createChecklistRepository(adapter),
+          fill: createFillSettingsRepository(adapter),
         };
         root.render(
           <App
