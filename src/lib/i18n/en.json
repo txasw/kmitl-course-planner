@@ -724,6 +724,7 @@
   "regis.fill.stop.notOffered": "The page does not offer the planned section to you. Pick another section below.",
   "regis.fill.stop.notVisible": "KCP cannot see this section in the list. Pick it on the page, then continue.",
   "regis.fill.stop.practiceMissing": "The page does not offer the planned practice section. Pick another section below.",
+  "regis.fill.stop.practiceUnplanned": "The page would add a practice section the plan does not hold, so KCP does not press Add. Check the page and press Add yourself.",
   "regis.fill.stop.duplicateCode": "This section has more than one curriculum. Pick yours on the page, then continue.",
   "regis.fill.stop.full": "More students applied than there are seats; results come later. Fill this section anyway or pick another.",
   "regis.fill.stop.hostClash": "The page reports a class or exam clash. Pick another section below.",

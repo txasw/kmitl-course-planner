@@ -29,6 +29,7 @@ export const STOP_REASONS = [
   'notOffered',
   'notVisible',
   'practiceMissing',
+  'practiceUnplanned',
   'duplicateCode',
   'full',
   'hostClash',
@@ -166,6 +167,21 @@ export function pickOption(
   if (options[index]?.curriculum !== null && !half.shared)
     return 'duplicateCode';
   return index;
+}
+
+/**
+ * Whether the add row's practice half is the planned one: the planned code, or, for a
+ * group the plan holds without a practice, no practice row at all. A host that locks a
+ * practice to the chosen lecture, or asks for one, would otherwise have KCP add a
+ * section the plan does not hold.
+ */
+export function practiceHolds(
+  card: NonNullable<HostObservation['card']>,
+  target: FillTarget,
+): boolean {
+  return target.practice === null
+    ? card.practice === null && !card.practiceSelect
+    : card.practice?.section === target.practice.code;
 }
 
 /** Whether more students applied than the section seats, the pause owner answer 4A asks. */

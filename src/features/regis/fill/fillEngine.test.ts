@@ -209,6 +209,51 @@ describe('runFill', () => {
     expect(page.state.list.map((row) => row.section)).toEqual(['1', '102']);
   });
 
+  it.each([
+    [
+      'locks a practice to the lecture',
+      [
+        ['1', 'lecture', '101'],
+        ['101', 'practice', '1'],
+      ] as Spec['sections'],
+    ],
+    [
+      'asks for a practice',
+      [
+        ['1', 'lecture', null],
+        ['101', 'practice', null],
+      ] as Spec['sections'],
+    ],
+  ])(
+    'presses no Add when the page %s the plan does not hold',
+    async (_name, sections) => {
+      // The plan holds the lecture alone, as a plan made before the pair was declared.
+      const { plan, kit, targets, catalog } = setup([
+        { id: A, sections, planned: ['1'] },
+      ]);
+      replica = mountReplica(document);
+      replica.configure({ delay: 5, catalog });
+      const outcome = await runFill({
+        doc: document,
+        plan,
+        kit,
+        targets,
+        allowFull: new Set(),
+        stopRequested: () => false,
+        onStep: () => undefined,
+        onRefusal: () => undefined,
+        tripwire: { count: () => 0, stop: () => undefined },
+        timing: { pace: 0, poll: 2, answer: 150, settle: 150, acknowledge: 0 },
+      });
+      expect(outcome).toMatchObject({
+        status: 'stopped',
+        reason: 'practiceUnplanned',
+      });
+      expect(replica.counters.clicks.add ?? 0).toBe(0);
+      expect(replica.state.list).toEqual([]);
+    },
+  );
+
   it('fills every named subject one at a time', async () => {
     const { outcome, page } = await fill([
       SINGLE,

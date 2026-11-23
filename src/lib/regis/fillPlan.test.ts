@@ -20,6 +20,7 @@ import {
   overSubscribed,
   pageBlock,
   pickOption,
+  practiceHolds,
   type FillTarget,
 } from './fillPlan';
 
@@ -214,6 +215,37 @@ describe('listedState', () => {
       listedState(page({ list: [{ ...lecture, section: '2' }] }), target(A)),
     ).toBe('other');
     expect(listedState(page(), target(A))).toBe('absent');
+  });
+});
+
+describe('practiceHolds', () => {
+  const card = page().card;
+  if (card === null) throw new Error('no card');
+  const lectureOnly = { ...target(A), practice: null };
+
+  it('holds the planned practice and no other', () => {
+    const practice = { section: '101', curriculum: null };
+    expect(practiceHolds({ ...card, practice }, target(A))).toBe(true);
+    expect(
+      practiceHolds(
+        { ...card, practice: { section: '102', curriculum: null } },
+        target(A),
+      ),
+    ).toBe(false);
+    expect(practiceHolds(card, target(A))).toBe(false);
+  });
+
+  it('holds no practice row for a group planned without one', () => {
+    expect(practiceHolds(card, lectureOnly)).toBe(true);
+    expect(
+      practiceHolds(
+        { ...card, practice: { section: '101', curriculum: null } },
+        lectureOnly,
+      ),
+    ).toBe(false);
+    expect(practiceHolds({ ...card, practiceSelect: true }, lectureOnly)).toBe(
+      false,
+    );
   });
 });
 

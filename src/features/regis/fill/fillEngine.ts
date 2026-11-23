@@ -16,6 +16,7 @@ import {
   overSubscribed,
   pageBlock,
   pickOption,
+  practiceHolds,
   type FillHalf,
   type FillTarget,
   type StopReason,
@@ -266,13 +267,11 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
       );
     }
     await chooseHalf(target, 'primary', target.primary);
-    if (target.practice !== null) {
-      const row = page().card;
-      if (row?.practiceSelect === true) {
-        await chooseHalf(target, 'practice', target.practice);
-      } else if (row?.practice?.section !== target.practice.code) {
-        stop('practiceMissing');
-      }
+    const row = page().card;
+    if (target.practice !== null && row?.practiceSelect === true) {
+      await chooseHalf(target, 'practice', target.practice);
+    } else if (row === null || !practiceHolds(row, target)) {
+      stop(target.practice === null ? 'practiceUnplanned' : 'practiceMissing');
     }
     observation = await waitFor(
       (seen) => (seen.card?.colour === 'pending' ? null : seen),
@@ -303,8 +302,7 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
         row.subjectId === target.subjectId &&
         row.colour === 'fits' &&
         row.primary?.section === target.primary.code &&
-        (target.practice === null ||
-          row.practice?.section === target.practice.code);
+        practiceHolds(row, target);
       const add = holds ? resolveAdd(doc) : null;
       return !holds ? 'stale' : add === null ? null : pressAdd(add);
     });
