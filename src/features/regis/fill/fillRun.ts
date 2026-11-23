@@ -1,9 +1,10 @@
 // The lifecycle of a fill run (ADR-0078), held in memory. A run starts only from a
 // student press, which it consumes, on the tested host build that no refusal latched,
-// outside a staff surrogate session, and never while another run is active. It is bound
-// to the page address at the press, so a hash change, a surrogate session, or a press of
-// Stop ends it at the next step boundary. A refusal from the actuator latches fill off
-// for the build; nothing else here is stored.
+// outside a staff surrogate session, while the student's fill switch is on, and never
+// while another run is active. It is bound to the page address at the press, so a hash
+// change, a surrogate session, a press of Stop, or the switch turned off ends it at the
+// next step boundary. A refusal from the actuator latches fill off for the build; nothing
+// else here is stored.
 
 import { createStore } from 'zustand/vanilla';
 import type { Plan } from '@/lib/domain/plan';
@@ -67,7 +68,11 @@ export async function startFill(
   request: FillRequest,
 ): Promise<void> {
   if (!consumeStudentPress(press)) return;
-  if (fillStore.getState().run.status === 'running' || isSurrogateSession()) {
+  if (
+    fillStore.getState().run.status === 'running' ||
+    regisStore.getState().fill.off ||
+    isSurrogateSession()
+  ) {
     return;
   }
   const scope = request.items.map((item) => item.subjectId);
@@ -103,6 +108,7 @@ export async function startFill(
     allowFull: new Set(request.allowFull ?? []),
     stopRequested: () =>
       fillStore.getState().stop ||
+      regisStore.getState().fill.off ||
       readLocationHash() !== hash ||
       isSurrogateSession(),
     onStep: (subjectId, step, prerequisites) => {

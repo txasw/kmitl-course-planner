@@ -7,6 +7,7 @@ import type { Plan } from '@/lib/domain/plan';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
 import { DEFAULT_FILL_SETTINGS } from '@/lib/storage/regis';
 import { regisStore } from '../regisStore';
+import { runFill, type FillDeps } from './fillEngine';
 import { fillStore, startFill } from './fillRun';
 import { issueStudentPress } from './studentPress';
 
@@ -19,6 +20,10 @@ const surrogate = vi.hoisted(() => ({ on: false }));
 vi.mock('../host/surrogate', () => ({
   isSurrogateSession: () => surrogate.on,
 }));
+vi.mock('./fillEngine', async (load) => {
+  const actual = await load<typeof import('./fillEngine')>();
+  return { ...actual, runFill: vi.fn(actual.runFill) };
+});
 
 const TESTED = ['app.454d9e95.js', 'chunk-vendors.7ab4925e.js'];
 // Test only: the gate stops the run before any plan or kit field is read.
@@ -44,6 +49,7 @@ function press() {
 }
 
 beforeEach(() => {
+  vi.mocked(runFill).mockClear();
   replica = mountReplica(document);
   fillStore.setState({ run: { status: 'idle' }, stop: false });
   regisStore.setState({ fill: DEFAULT_FILL_SETTINGS });
@@ -92,5 +98,30 @@ describe('startFill', () => {
     fillStore.setState({ run: { status: 'idle' } });
     await startFill(once, request);
     expect(fillStore.getState().run.status).toBe('idle');
+  });
+
+  it('starts nothing while the student has switched fill off', async () => {
+    scripts(TESTED);
+    regisStore.setState({ fill: { off: true, latched: [] } });
+    await startFill(press(), request);
+    expect(fillStore.getState().run.status).toBe('idle');
+    expect(runFill).not.toHaveBeenCalled();
+  });
+
+  it('ends a run at the next step once the student switches fill off', async () => {
+    scripts(TESTED);
+    const seen: boolean[] = [];
+    vi.mocked(runFill).mockImplementationOnce((deps: FillDeps) => {
+      seen.push(deps.stopRequested());
+      regisStore.setState({ fill: { off: true, latched: [] } });
+      seen.push(deps.stopRequested());
+      return Promise.resolve({
+        status: 'stopped',
+        subjectId: null,
+        reason: 'stopped',
+      });
+    });
+    await startFill(press(), request);
+    expect(seen).toEqual([false, true]);
   });
 });
