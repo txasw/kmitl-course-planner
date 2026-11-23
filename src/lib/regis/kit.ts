@@ -8,7 +8,12 @@
 // is the planned one when the stored id is no longer listed.
 
 import type { NormalizedCatalog } from '../domain/normalize';
-import type { Plan, PlanEntry, SectionSnapshot } from '../domain/plan';
+import {
+  snapshotToSection,
+  type Plan,
+  type PlanEntry,
+  type SectionSnapshot,
+} from '../domain/plan';
 import type { Course, Section } from '../domain/types';
 import type { TeachTableQuery } from '../messaging/protocol';
 import { computeSeatStatus } from '../catalog/seatStatus';
@@ -267,6 +272,48 @@ export function buildRegistrationKit(input: KitInput): RegistrationKit {
     subjects,
     unread,
   };
+}
+
+/** The course a kit subject's sections form, as a search result would carry it. */
+export function kitSubjectCourse(subject: KitSubject): Course {
+  return {
+    subjectId: subject.subjectId,
+    nameTh: subject.nameTh,
+    nameEn: subject.nameEn,
+    credit: subject.credit,
+    creditStr: subject.creditStr,
+    groupNameTh: '',
+    groupNameEn: '',
+    sections: subject.sections.map(snapshotToSection),
+  };
+}
+
+/**
+ * Check a kit again against the plan as it stands now, from the sections the kit already
+ * holds, with no read. A backup saved to the plan moves the planned group and changes
+ * what fits, so the badges follow the plan. A subject added to the plan after the kit
+ * was prepared has no sections in it, so it reads as not prepared.
+ */
+export function refitKit(
+  kit: RegistrationKit,
+  plan: Plan,
+  profileCurriculum: string | null = null,
+): RegistrationKit {
+  const results = new Map<string, NormalizedCatalog | null>();
+  for (const subject of kit.subjects) {
+    results.set(subject.subjectId, {
+      courses: [kitSubjectCourse(subject)],
+      duplicateCount: 0,
+      multiMeetingCount: 0,
+      warnings: [],
+    });
+  }
+  return buildRegistrationKit({
+    plan,
+    results,
+    preparedAt: kit.preparedAt,
+    profileCurriculum,
+  });
 }
 
 /** What a readiness card needs to say about one subject. */
