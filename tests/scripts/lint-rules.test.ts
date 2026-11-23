@@ -46,8 +46,12 @@ const STORAGE_SOURCES = [
 
 const LOCATION_SOURCES = [
   'export const hash = window.location.hash;',
-  'export const href = location.href;',
   'export const both = document.location.href + globalThis.location.hash;',
+  'export const { hash } = window.location;',
+  'export const query = window["location"].search;',
+  'export const page = document.URL;',
+  'export const entry = navigation.currentEntry;',
+  'addEventListener("hashchange", (event) => event.newURL);',
 ];
 
 describe('the web storage guard', () => {
@@ -72,14 +76,21 @@ describe('the web storage guard', () => {
   });
 });
 
+// A bare location global is forbidden in every file, the reader and tests included,
+// since each of them reaches the address through window.
+const BARE_LOCATION = [
+  'export const href = location.href;',
+  'export const text = String(location);',
+];
+
 describe('the raw address guard', () => {
   it.each([
     'src/features/search/useHashRoute.ts',
     'src/features/shell/useBackToClose.ts',
     'src/lib/routing/locationHash.ts',
     'src/lib/ui/focus.ts',
-  ])('forbids a raw hash or href read in %s', async (file) => {
-    for (const source of LOCATION_SOURCES) {
+  ])('forbids a raw address read in %s', async (file) => {
+    for (const source of [...LOCATION_SOURCES, ...BARE_LOCATION]) {
       const messages = await messagesFor(file, source);
       expect(messages.join(' ')).toMatch(/hostLocation/);
     }
@@ -96,10 +107,22 @@ describe('the raw address guard', () => {
     }
   });
 
+  it('forbids a bare location global even in the reader and the tests', async () => {
+    for (const file of [
+      'src/features/shell/hostLocation.ts',
+      'src/features/shell/hostLocation.test.tsx',
+    ]) {
+      for (const source of BARE_LOCATION) {
+        const messages = await messagesFor(file, source);
+        expect(messages.join(' ')).toMatch(/hostLocation/);
+      }
+    }
+  });
+
   it('leaves other uses of the names alone', async () => {
     const messages = await messagesFor(
       'src/lib/utils/download.ts',
-      'const link = { href: "" }; link.href = "x"; const url = new URL("https://a"); url.hash;',
+      'const link = { href: "" }; link.href = "x"; const url = new URL("https://a"); url.hash; function at(location) { return `${location}.x`; }',
     );
     expect(messages).toEqual([]);
   });
