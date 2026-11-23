@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CACHE_PREFIX,
   CHECKLIST_KEY,
+  FILL_KEY,
   INSTALL_KEY,
   ONBOARDING_KEY,
   PREFS_KEY,
@@ -42,6 +43,7 @@ describe('onboarding keys', () => {
     TAB_INTENTS_KEY,
     REGKIT_KEY,
     CHECKLIST_KEY,
+    FILL_KEY,
   ];
 
   it('names the install, onboarding and tab intent records', () => {

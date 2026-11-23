@@ -1,6 +1,6 @@
-// Binds the registration helper store to storage: on mount it reads the kits and the
-// checklist marks, a failed read counting as empty so a storage fault never blocks the
-// dock, and binds the repositories the store writes through.
+// Binds the registration helper store to storage: on mount it reads the kits, the
+// checklist marks, and the fill settings, a failed read counting as empty so a storage
+// fault never blocks the dock, and binds the repositories the store writes through.
 
 import { useEffect } from 'react';
 import {
@@ -23,6 +23,12 @@ export function useRegisPersistence(repos: RegisRepositories): void {
             checklists.status === 'fulfilled' ? checklists.value : [],
           );
       },
+    );
+    void repos.fill.load().then(
+      (fill) => {
+        if (!cancelled) regisStore.getState().hydrateFill(fill);
+      },
+      () => undefined,
     );
     return () => {
       cancelled = true;

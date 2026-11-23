@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { createMemoryStorage } from '../../../tests/support/memoryStorage';
 import type { RegistrationKit } from '../regis/kitSchema';
 import type { ChecklistMarks } from '../regis/checklist';
-import { CHECKLIST_KEY, REGKIT_KEY } from './keys';
+import { CHECKLIST_KEY, FILL_KEY, REGKIT_KEY } from './keys';
 import {
   createChecklistRepository,
+  createFillSettingsRepository,
   createRegKitRepository,
   REGIS_RECORD_LIMIT,
 } from './regis';
@@ -113,5 +114,27 @@ describe('checklist repository', () => {
     const repo = createChecklistRepository(storage, () => NOW);
     expect(await repo.load()).toEqual([marks('a')]);
     expect(storage.store[`kcp:quarantine:checklist:${NOW}`]).toEqual([bad]);
+  });
+});
+
+describe('fill settings repository', () => {
+  it('starts with fill on and nothing latched, and keeps what is saved', async () => {
+    const storage = createMemoryStorage();
+    const repo = createFillSettingsRepository(storage);
+    expect(await repo.load()).toEqual({ off: false, latched: [] });
+    await repo.save({ off: true, latched: ['app.454d9e95.js'] });
+    expect(await repo.load()).toEqual({
+      off: true,
+      latched: ['app.454d9e95.js'],
+    });
+  });
+
+  it('falls back to the defaults on a blob that does not validate', async () => {
+    const storage = createMemoryStorage();
+    await storage.set(FILL_KEY, { off: 'yes' });
+    expect(await createFillSettingsRepository(storage).load()).toEqual({
+      off: false,
+      latched: [],
+    });
   });
 });
