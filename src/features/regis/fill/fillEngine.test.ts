@@ -403,6 +403,43 @@ describe('runFill', () => {
     expect(replica.counters.clicks.add ?? 0).toBe(0);
   });
 
+  it('chooses no option whose curriculum changed after the list was read', async () => {
+    const { plan, kit, targets, catalog } = setup([SINGLE]);
+    replica = mountReplica(document);
+    replica.configure({ delay: 5, catalog });
+    let changed = false;
+    // After the engine reads the open list, the same code gains a curriculum the kit
+    // does not explain, before the pace delay ends and the option is clicked.
+    const swap = new MutationObserver(() => {
+      const title = document.querySelector(
+        '[role="option"] .v-list-item__title',
+      );
+      if (changed || title === null) return;
+      changed = true;
+      setTimeout(() => {
+        title.textContent = ' 1  (EE) ';
+      }, 5);
+    });
+    swap.observe(document.body, { subtree: true, childList: true });
+    const outcome = await runFill({
+      doc: document,
+      plan,
+      kit,
+      targets,
+      allowFull: new Set(),
+      stopRequested: () => false,
+      onStep: () => undefined,
+      onRefusal: () => undefined,
+      tripwire: { count: () => 0, stop: () => undefined },
+      timing: { pace: 30, poll: 2, answer: 300, settle: 300, acknowledge: 0 },
+    });
+    swap.disconnect();
+    expect(changed).toBe(true);
+    expect(outcome).toMatchObject({ status: 'stopped', reason: 'pageChanged' });
+    expect(replica.counters.clicks.option ?? 0).toBe(0);
+    expect(replica.state.list).toEqual([]);
+  });
+
   it('stops when the page starts a request it did not expect', async () => {
     const { plan, kit, targets, catalog } = setup([SINGLE]);
     replica = mountReplica(document);
