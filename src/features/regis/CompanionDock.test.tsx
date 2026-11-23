@@ -53,7 +53,7 @@ function renderPage(hash: string) {
 beforeEach(() => {
   regisStore.setState({
     kits: [],
-    checklists: [],
+    choices: [],
     dockOpen: false,
     dockExpanded: null,
     sheetLevel: 'peek',
@@ -80,7 +80,7 @@ describe('CompanionDock', () => {
     expect(within(dock).getByText('เช็กลิสต์ 0/1')).toBeInTheDocument();
   });
 
-  it('lists the plan and records a mark from the raised sheet', () => {
+  it('lists the plan from the raised sheet', () => {
     renderPage('#/pre_registration');
     act(() => {
       regisStore.getState().setDockOpen(true);
@@ -91,13 +91,7 @@ describe('CompanionDock', () => {
     expect(
       within(dock).getByText('ลงทะเบียนล่วงหน้าส่งได้ครั้งเดียวและแก้ไขภายหลังไม่ได้'),
     ).toBeInTheDocument();
-    fireEvent.change(within(dock).getByLabelText('สถานะในหน้าลงทะเบียน'), {
-      target: { value: 'added' },
-    });
-    expect(regisStore.getState().checklists[0]?.marks['01476107']?.state).toBe(
-      'added',
-    );
-    expect(within(dock).getByText('เช็กลิสต์ 1/1')).toBeInTheDocument();
+    expect(within(dock).getByText('เช็กลิสต์ 0/1')).toBeInTheDocument();
   });
 
   it('lowers a raised sheet to its peek bar on a press on the page', () => {
@@ -107,7 +101,9 @@ describe('CompanionDock', () => {
       regisStore.getState().setSheetLevel('half');
     });
     const dock = screen.getByRole('complementary', { name: 'ตัวช่วยลงทะเบียน' });
-    fireEvent.pointerDown(within(dock).getByLabelText('สถานะในหน้าลงทะเบียน'));
+    fireEvent.pointerDown(
+      within(dock).getByRole('button', { name: 'คัดลอกรหัสวิชา 01476107' }),
+    );
     expect(regisStore.getState().sheetLevel).toBe('half');
     fireEvent.pointerDown(document.body);
     expect(regisStore.getState().sheetLevel).toBe('peek');
@@ -123,10 +119,6 @@ describe('CompanionDock', () => {
       screen.getByText(
         'ในหน้านี้ KCP แสดงรายการตามตารางเท่านั้น คุณเป็นผู้ตรวจรายการในหน้าลงทะเบียนเอง',
       ),
-    ).toBeInTheDocument();
-    // Only pre registration is a one time submit, so the review does not say so here.
-    expect(
-      screen.getByText('ยังไม่ตรงกับแผน 1 วิชา ตรวจก่อนกดยืนยัน'),
     ).toBeInTheDocument();
     expect(screen.queryByText(/ส่งได้ครั้งเดียว/)).not.toBeInTheDocument();
   });

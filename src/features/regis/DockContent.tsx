@@ -8,9 +8,8 @@
 import { CalendarDays, ShieldCheck } from 'lucide-react';
 import type { Plan } from '@/lib/domain/plan';
 import { fillTemplate } from '@/lib/i18n/template';
-import { pickLocalized } from '@/lib/i18n/localize';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
-import { finalReview, type Checklist } from '@/lib/regis/checklist';
+import type { Checklist } from '@/lib/regis/checklist';
 import type { CompanionRoute } from '@/lib/regis/route';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
 import type { ObserverHealth } from '@/lib/regis/observerHealth';
@@ -21,7 +20,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { formatLocalDateTime } from '@/features/planner/examText';
 import { termLabel } from '@/features/plans/PlanList';
 import { uiStore } from '@/features/shell/uiStore';
-import { ChecklistRow, STATE_KEY, StateIcon } from './ChecklistRow';
+import { ChecklistRow } from './ChecklistRow';
 import { FillPanel, FillRowButton } from './fill/FillControls';
 import { saveBackupToPlan } from './saveBackup';
 import type { KitState } from './useCompanion';
@@ -66,66 +65,6 @@ function OpenPlannerButton({ t }: { t: Translate }) {
       <CalendarDays size={14} aria-hidden />
       {t('regis.openPlanner')}
     </button>
-  );
-}
-
-function FinalReview({
-  route,
-  checklist,
-  locale,
-  t,
-}: {
-  route: CompanionRoute;
-  checklist: Checklist;
-  locale: Locale;
-  t: Translate;
-}) {
-  const review = finalReview(checklist);
-  const mismatches = review.filter((item) => item.kind === 'mismatch').length;
-  return (
-    <section className="flex flex-col gap-2 rounded-kcp border border-border p-3 text-xs">
-      <h3 className="text-sm font-semibold">{t('regis.review')}</h3>
-      <p
-        className={mismatches > 0 ? 'font-semibold text-warn' : 'text-success'}
-      >
-        {mismatches > 0
-          ? fillTemplate(
-              t(
-                // Only pre registration is a one time submit, so only it says so.
-                route === 'preRegistration'
-                  ? 'regis.reviewMismatch'
-                  : 'regis.reviewMismatchRegistration',
-              ),
-              { count: mismatches },
-            )
-          : fillTemplate(t('regis.reviewAllMatch'), { count: checklist.total })}
-      </p>
-      <ul className="flex flex-col gap-1">
-        {review.map(({ row, kind }) => (
-          <li key={row.subjectId} className="flex items-start gap-1.5">
-            <StateIcon state={row.state} />
-            <span className="min-w-0">
-              <span className="font-semibold tabular-nums">
-                {row.subjectId}
-              </span>{' '}
-              {pickLocalized(row.nameTh, row.nameEn, locale)}{' '}
-              <span className="text-ink-soft">{t(STATE_KEY[row.state])}</span>
-              {kind === 'checkCurriculum' ? (
-                <span className="block text-warn">
-                  {t('regis.reviewCurriculum')}
-                </span>
-              ) : null}
-              {kind === 'conditional' ? (
-                <span className="block text-warn">
-                  {t('regis.conditionalNote')}
-                </span>
-              ) : null}
-            </span>
-          </li>
-        ))}
-      </ul>
-      <p>{t('regis.handOff')}</p>
-    </section>
   );
 }
 
@@ -250,13 +189,14 @@ export function DockContent({
               kit === null || row.chosen === null
                 ? null
                 : () => {
-                    saveBackupToPlan(plan, kit, row, t);
+                    if (row.chosen !== null) {
+                      saveBackupToPlan(plan, kit, row.subjectId, row.chosen, t);
+                    }
                   }
             }
           />
         ))}
       </ol>
-      <FinalReview route={route} checklist={checklist} locale={locale} t={t} />
       <div className="flex flex-col gap-2 border-t border-border pt-2">
         <OpenPlannerButton t={t} />
         <p className="text-ink-soft">{t('regis.noRequests')}</p>

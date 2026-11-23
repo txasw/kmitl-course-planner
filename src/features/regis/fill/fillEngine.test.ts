@@ -89,7 +89,7 @@ function setup(specs: Spec[]) {
     ),
     preparedAt: '2026-11-22T14:10:00.000Z',
   });
-  const targets = deriveChecklist({ plan, kit, marks: null, pageTerm: null })
+  const targets = deriveChecklist({ plan, kit, choices: null, pageTerm: null })
     .rows.map((row) => fillTarget(row, plan, kit))
     .filter((target): target is FillTarget => typeof target !== 'string');
   const catalog: Record<string, CatalogSubject> = Object.fromEntries(
@@ -507,7 +507,7 @@ describe('runFill', () => {
     const targets = deriveChecklist({
       plan,
       kit: flagged,
-      marks: null,
+      choices: null,
       pageTerm: null,
     })
       .rows.map((row) => fillTarget(row, plan, flagged))

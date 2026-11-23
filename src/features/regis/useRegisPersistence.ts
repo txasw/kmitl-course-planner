@@ -1,5 +1,5 @@
 // Binds the registration helper store to storage: on mount it reads the kits, the
-// checklist marks, and the fill settings, a failed read counting as empty so a storage
+// section choices, and the fill settings, a failed read counting as empty so a storage
 // fault never blocks the dock, and binds the repositories the store writes through.
 
 import { useEffect } from 'react';
@@ -13,14 +13,14 @@ export function useRegisPersistence(repos: RegisRepositories): void {
   useEffect(() => {
     let cancelled = false;
     bindRegisRepositories(repos);
-    void Promise.allSettled([repos.kits.load(), repos.checklists.load()]).then(
-      ([kits, checklists]) => {
+    void Promise.allSettled([repos.kits.load(), repos.choices.load()]).then(
+      ([kits, choices]) => {
         if (cancelled) return;
         regisStore
           .getState()
           .hydrate(
             kits.status === 'fulfilled' ? kits.value : [],
-            checklists.status === 'fulfilled' ? checklists.value : [],
+            choices.status === 'fulfilled' ? choices.value : [],
           );
       },
     );

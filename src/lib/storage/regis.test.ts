@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { createMemoryStorage } from '../../../tests/support/memoryStorage';
 import type { RegistrationKit } from '../regis/kitSchema';
-import type { ChecklistMarks } from '../regis/checklist';
+import type { SectionChoices } from '../regis/choices';
 import { CHECKLIST_KEY, FILL_KEY, REGKIT_KEY } from './keys';
 import {
-  createChecklistRepository,
+  createChoicesRepository,
   createFillSettingsRepository,
   createRegKitRepository,
   REGIS_RECORD_LIMIT,
@@ -23,12 +23,12 @@ function kit(planId: string): RegistrationKit {
   };
 }
 
-function marks(planId: string): ChecklistMarks {
+function choices(planId: string): SectionChoices {
   return {
     planId,
     year: '2569',
     semester: '2',
-    marks: { '01476107': { state: 'added', at: NOW } },
+    choices: { '01476107': ['T2'] },
   };
 }
 
@@ -91,28 +91,41 @@ describe('registration kit repository', () => {
   });
 });
 
-describe('checklist repository', () => {
-  it('stores marks per plan under its own key', async () => {
+describe('section choices repository', () => {
+  it('stores choices per plan under its own key', async () => {
     const storage = createMemoryStorage();
-    const repo = createChecklistRepository(storage, () => NOW);
-    await repo.put('a', marks('a'));
+    const repo = createChoicesRepository(storage, () => NOW);
+    await repo.put('a', choices('a'));
     expect(storage.store[CHECKLIST_KEY]).toEqual({
       schemaVersion: 1,
-      items: [marks('a')],
+      items: [choices('a')],
     });
-    expect(await repo.load()).toEqual([marks('a')]);
+    expect(await repo.load()).toEqual([choices('a')]);
   });
 
-  it('drops a mark of an unknown state into quarantine', async () => {
-    const bad = {
-      ...marks('b'),
-      marks: { x: { state: 'submitted', at: NOW } },
+  it('reads a record of hand marks as one with no choices', async () => {
+    const old = {
+      planId: 'b',
+      year: '2569',
+      semester: '2',
+      marks: { x: { state: 'added', at: NOW } },
     };
     const storage = createMemoryStorage({
-      [CHECKLIST_KEY]: { schemaVersion: 1, items: [bad, marks('a')] },
+      [CHECKLIST_KEY]: { schemaVersion: 1, items: [old] },
     });
-    const repo = createChecklistRepository(storage, () => NOW);
-    expect(await repo.load()).toEqual([marks('a')]);
+    const repo = createChoicesRepository(storage, () => NOW);
+    expect(await repo.load()).toEqual([
+      { planId: 'b', year: '2569', semester: '2', choices: {} },
+    ]);
+  });
+
+  it('drops a choice of no ids into quarantine', async () => {
+    const bad = { ...choices('b'), choices: { x: [] } };
+    const storage = createMemoryStorage({
+      [CHECKLIST_KEY]: { schemaVersion: 1, items: [bad, choices('a')] },
+    });
+    const repo = createChoicesRepository(storage, () => NOW);
+    expect(await repo.load()).toEqual([choices('a')]);
     expect(storage.store[`kcp:quarantine:checklist:${NOW}`]).toEqual([bad]);
   });
 });

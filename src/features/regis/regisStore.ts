@@ -1,16 +1,12 @@
 // The registration helper's state (ADR-0076): the kits the prepare action built, the
-// checklist marks the student set, the prepare run in flight, and which of the helper's
-// surfaces are open. The kits and marks persist through the repositories bound at mount;
+// section groups the student chose for this registration, the prepare run in flight, and which of the helper's
+// surfaces are open. The kits and choices persist through the repositories bound at mount;
 // the run and the surfaces are session memory only. Nothing here comes from the host page.
 
 import { createStore } from 'zustand/vanilla';
 import type { Plan } from '@/lib/domain/plan';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
-import {
-  withMark,
-  type ChecklistMark,
-  type ChecklistMarks,
-} from '@/lib/regis/checklist';
+import { withChoice, type SectionChoices } from '@/lib/regis/choices';
 import {
   DEFAULT_FILL_SETTINGS,
   type FillSettings,
@@ -20,7 +16,7 @@ import {
 
 export interface RegisRepositories {
   kits: ListRepository<RegistrationKit>;
-  checklists: ListRepository<ChecklistMarks>;
+  choices: ListRepository<SectionChoices>;
   fill: FillSettingsRepository;
 }
 
@@ -38,7 +34,7 @@ export type SheetLevel = 'peek' | 'half' | 'full';
 export interface RegisState {
   loaded: boolean;
   kits: RegistrationKit[];
-  checklists: ChecklistMarks[];
+  choices: SectionChoices[];
   run: PrepareRun;
   readinessOpen: boolean;
   dockOpen: boolean;
@@ -47,13 +43,18 @@ export interface RegisState {
   sheetLevel: SheetLevel;
   /** The student's fill switch and the host builds fill is latched off for. */
   fill: FillSettings;
-  hydrate: (kits: RegistrationKit[], checklists: ChecklistMarks[]) => void;
+  hydrate: (kits: RegistrationKit[], choices: SectionChoices[]) => void;
   hydrateFill: (fill: FillSettings) => void;
   setFillOff: (off: boolean) => void;
   /** Latch fill off for a host build after an actuator refusal (ADR-0078). */
   latchBuild: (key: string) => void;
   saveKit: (kit: RegistrationKit) => void;
-  setMark: (plan: Plan, subjectId: string, mark: ChecklistMark | null) => void;
+  /** Choose a kit group for one subject in this registration, or null for the plan's. */
+  setChoice: (
+    plan: Plan,
+    subjectId: string,
+    ids: readonly string[] | null,
+  ) => void;
   setRun: (run: PrepareRun) => void;
   setReadinessOpen: (open: boolean) => void;
   setDockOpen: (open: boolean) => void;
@@ -63,7 +64,7 @@ export interface RegisState {
 
 let repositories: RegisRepositories | null = null;
 
-/** Bind the storage the kits and marks persist to; the content script mount calls it. */
+/** Bind the storage the kits and choices persist to; the content script mount calls it. */
 export function bindRegisRepositories(repos: RegisRepositories | null): void {
   repositories = repos;
 }
@@ -76,15 +77,15 @@ function createRegisStore() {
   return createStore<RegisState>()((set, get) => ({
     loaded: false,
     kits: [],
-    checklists: [],
+    choices: [],
     run: { status: 'idle' },
     readinessOpen: false,
     dockOpen: false,
     dockExpanded: null,
     sheetLevel: 'peek',
     fill: DEFAULT_FILL_SETTINGS,
-    hydrate: (kits, checklists) => {
-      set({ kits, checklists, loaded: true });
+    hydrate: (kits, choices) => {
+      set({ kits, choices, loaded: true });
     },
     hydrateFill: (fill) => {
       set({ fill });
@@ -105,12 +106,12 @@ function createRegisStore() {
       set({ kits: replaceFor(get().kits, kit) });
       void repositories?.kits.put(kit.planId, kit);
     },
-    setMark: (plan, subjectId, mark) => {
+    setChoice: (plan, subjectId, ids) => {
       const current =
-        get().checklists.find((item) => item.planId === plan.id) ?? null;
-      const next = withMark(current, plan, subjectId, mark);
-      set({ checklists: replaceFor(get().checklists, next) });
-      void repositories?.checklists.put(plan.id, next);
+        get().choices.find((item) => item.planId === plan.id) ?? null;
+      const next = withChoice(current, plan, subjectId, ids);
+      set({ choices: replaceFor(get().choices, next) });
+      void repositories?.choices.put(plan.id, next);
     },
     setRun: (run) => {
       set({ run });

@@ -5,7 +5,7 @@
 // what the page shows (ADR-0077); a mark the student sets overrides it and both stay in
 // view. A backup chosen here stays a mark until saved.
 
-import { useId, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -21,12 +21,10 @@ import type { Plan } from '@/lib/domain/plan';
 import { fillTemplate } from '@/lib/i18n/template';
 import { pickLocalized } from '@/lib/i18n/localize';
 import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
-import {
-  MARK_STATES,
-  type ChecklistRow as Row,
-  type MarkState,
-  type RowAlternative,
-  type RowState,
+import type {
+  ChecklistRow as Row,
+  RowAlternative,
+  RowState,
 } from '@/lib/regis/checklist';
 import type { ObservedState } from '@/lib/regis/observedRow';
 import type { KitFit } from '@/lib/regis/kitSchema';
@@ -36,20 +34,6 @@ import { TARGET_HEIGHT, TARGET_SIZE } from '@/lib/ui/target';
 import { copySubjectId } from '@/features/planner/copySubjectId';
 import { regisStore } from './regisStore';
 import { SectionLines } from './SectionLines';
-
-export const STATE_KEY: Record<RowState, TranslationKey> = {
-  notDone: 'regis.state.notDone',
-  added: 'regis.state.added',
-  addedOther: 'regis.state.addedOther',
-  conditional: 'regis.state.conditional',
-  skipped: 'regis.state.skipped',
-  termMismatch: 'regis.state.termMismatch',
-  refused: 'regis.state.refused',
-  submitted: 'regis.state.submitted',
-  granted: 'regis.state.granted',
-  notGranted: 'regis.state.notGranted',
-  notSubmitted: 'regis.state.notSubmitted',
-};
 
 const OBSERVED_KEY: Record<ObservedState, TranslationKey> = {
   notListed: 'regis.observed.notListed',
@@ -70,7 +54,7 @@ const FIT_KEY: Record<KitFit, TranslationKey> = {
 };
 
 /** The icon that carries a row state beside its text, never colour alone. */
-export function StateIcon({ state }: { state: RowState }) {
+function StateIcon({ state }: { state: RowState }) {
   const props = { size: 18, 'aria-hidden': true, className: 'shrink-0' };
   switch (state) {
     case 'added':
@@ -87,8 +71,6 @@ export function StateIcon({ state }: { state: RowState }) {
       return <CircleSlash {...props} className="shrink-0 text-danger" />;
     case 'notSubmitted':
       return <AlertTriangle {...props} className="shrink-0 text-danger" />;
-    case 'skipped':
-      return <CircleSlash {...props} className="shrink-0 text-ink-soft" />;
     case 'termMismatch':
       return <AlertTriangle {...props} className="shrink-0 text-danger" />;
     case 'notDone':
@@ -177,25 +159,10 @@ export function ChecklistRow({
   onSave,
   fill = null,
 }: ChecklistRowProps) {
-  const selectId = useId();
   const primary = pickLocalized(row.nameTh, row.nameEn, locale);
   const secondary = pickLocalized(row.nameEn, row.nameTh, locale);
   const conditions = locale === 'th' ? row.conditionsTh : row.conditionsEn;
   const mismatch = row.state === 'termMismatch';
-  const setMark = (state: MarkState | 'notDone', chosenIds?: string[]) => {
-    regisStore.getState().setMark(
-      plan,
-      row.subjectId,
-      state === 'notDone'
-        ? null
-        : {
-            state,
-            at: new Date().toISOString(),
-            ...(chosenIds === undefined ? {} : { chosenIds }),
-          },
-    );
-  };
-
   return (
     <li className="flex flex-col gap-2 rounded-kcp border border-border bg-surface p-3 text-xs">
       <div className="flex items-start gap-2">
@@ -294,9 +261,6 @@ export function ChecklistRow({
               })}
             </p>
           ) : null}
-          {row.mark === null ? null : (
-            <p className="text-ink-soft">{t('regis.markOverride')}</p>
-          )}
         </div>
       )}
       {row.chosen !== null ? (
@@ -332,7 +296,9 @@ export function ChecklistRow({
                 chosen={row.chosen?.ids.join(' ') === option.ids.join(' ')}
                 disabled={mismatch}
                 onChoose={() => {
-                  setMark('addedOther', option.ids);
+                  regisStore
+                    .getState()
+                    .setChoice(plan, row.subjectId, option.ids);
                 }}
                 t={t}
               />
@@ -340,37 +306,6 @@ export function ChecklistRow({
           </ul>
         </Disclosure>
       ) : null}
-      <div className="flex flex-wrap items-center gap-2">
-        <label htmlFor={selectId} className="text-ink-soft">
-          {t('regis.status')}
-        </label>
-        <select
-          id={selectId}
-          value={mismatch ? 'termMismatch' : (row.mark ?? 'notDone')}
-          disabled={mismatch}
-          onChange={(event) => {
-            const next = MARKS.find((state) => state === event.target.value);
-            if (next === undefined) return;
-            setMark(next, next === 'addedOther' ? row.chosen?.ids : undefined);
-          }}
-          className={`rounded-kcp border border-border bg-surface px-2 text-xs text-ink ${TARGET_HEIGHT} ${FOCUS_RING}`}
-        >
-          {mismatch ? (
-            <option value="termMismatch">{t(STATE_KEY.termMismatch)}</option>
-          ) : null}
-          {MARKS.map((state) => (
-            <option key={state} value={state}>
-              {t(
-                state === 'notDone' && row.observed !== null
-                  ? 'regis.mark.follow'
-                  : STATE_KEY[state],
-              )}
-            </option>
-          ))}
-        </select>
-      </div>
     </li>
   );
 }
-
-const MARKS: readonly (MarkState | 'notDone')[] = ['notDone', ...MARK_STATES];

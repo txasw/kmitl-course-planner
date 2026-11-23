@@ -69,7 +69,11 @@ export interface FillTarget {
   group: SectionSnapshot[];
 }
 
-/** What to fill for a checklist row, or why it cannot be filled from the kit. */
+/**
+ * What to fill for a checklist row, or why it cannot be filled from the kit. The group is
+ * the one the student chose for this registration, else the planned one; a chosen group
+ * is always a kit option, so it passes the same identity checks.
+ */
 export function fillTarget(
   row: ChecklistRow,
   plan: Plan,
@@ -80,8 +84,9 @@ export function fillTarget(
   );
   const id = kit === null ? null : plannedSubjectId(row.subjectId, plan, kit);
   if (subject === undefined || id === null || row.missing) return 'noKit';
-  const lecture = row.planned.find((section) => section.kind === 'lecture');
-  const practice = row.planned.find((section) => section.kind === 'practice');
+  const group = row.chosen?.sections ?? row.planned;
+  const lecture = group.find((section) => section.kind === 'lecture');
+  const practice = group.find((section) => section.kind === 'practice');
   const primary = lecture ?? practice;
   if (primary === undefined) return 'noKit';
   const half = (section: SectionSnapshot): FillHalf => ({
@@ -101,15 +106,15 @@ export function fillTarget(
     primary: half(primary),
     practice:
       lecture !== undefined && practice !== undefined ? half(practice) : null,
-    group: row.planned,
+    group,
   };
 }
 
 /**
  * The rows a press fills: those it names, in checklist order, that are still to do. A
- * subject the page lists, one the student marked, or one the page lists with another
- * section the student kept is settled, so Continue after a stop on it goes on to the
- * next subject rather than stopping on the same one again.
+ * subject the page lists, with the group this registration uses or another one, is
+ * settled, so a fill pressed again after a stop on it goes on to the next subject rather
+ * than stopping on the same one again.
  */
 export function rowsToFill(
   rows: readonly ChecklistRow[],

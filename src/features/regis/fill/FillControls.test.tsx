@@ -52,7 +52,7 @@ const KIT = buildRegistrationKit({
 const CHECKLIST = deriveChecklist({
   plan: PLAN,
   kit: KIT,
-  marks: null,
+  choices: null,
   pageTerm: null,
 });
 const t = createTranslator('en');

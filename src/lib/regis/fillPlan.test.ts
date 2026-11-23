@@ -24,6 +24,7 @@ import {
   rowsToFill,
   type FillTarget,
 } from './fillPlan';
+import { withChoice } from './choices';
 
 // The pure decisions of a fill against a kit built from real domain sections.
 
@@ -97,7 +98,7 @@ const kit = buildRegistrationKit({
   ),
   preparedAt: '2026-11-22T14:10:00.000Z',
 });
-const rows = deriveChecklist({ plan, kit, marks: null, pageTerm: null }).rows;
+const rows = deriveChecklist({ plan, kit, choices: null, pageTerm: null }).rows;
 
 function target(subjectId: string): FillTarget {
   const row = rows.find((item) => item.subjectId === subjectId);
@@ -145,6 +146,21 @@ describe('fillTarget', () => {
       listed: 1,
       duplicate: false,
     });
+  });
+
+  it('fills the group chosen for this registration in place of the plan', () => {
+    const chosen = deriveChecklist({
+      plan,
+      kit,
+      choices: withChoice(null, plan, A, ['A2']),
+      pageTerm: null,
+    }).rows.find((item) => item.subjectId === A);
+    if (chosen === undefined) throw new Error('no row');
+    const made = fillTarget(chosen, plan, kit);
+    if (typeof made === 'string') throw new Error(made);
+    expect(made.primary.code).toBe('2');
+    expect(made.practice).toBeNull();
+    expect(made.group.map((section) => section.teachTableId)).toEqual(['A2']);
   });
 
   it('refuses a subject without a kit entry', () => {
