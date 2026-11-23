@@ -111,10 +111,11 @@ export function resolveOptions(
     ) {
       return null;
     }
+    const all = [...listbox.querySelectorAll('[role="option"]')];
+    // An option wrapped in anything, such as a label or a link, is not the tested list.
+    if (all.some((element) => element.parentElement !== listbox)) return null;
     const options: SectionOption[] = [];
-    for (const element of listbox.querySelectorAll(
-      ':scope > [role="option"]',
-    )) {
+    for (const element of all) {
       const match = SECTION_LABEL.exec(text(element));
       const control = make('option', element, activator.card, [menu]);
       if (match?.[1] === undefined || control === null) return null;

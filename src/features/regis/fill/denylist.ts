@@ -61,12 +61,43 @@ export function isDeniedLabel(text: string): boolean {
 const FORBIDDEN_CONTAINER =
   '.v-dialog, .v-dialog__content, [role="dialog"], form, .deep-orange, .warning, .v-menu__content';
 
-/** Whether an element or an ancestor is a container KCP never acts inside. */
+// A dispatched click runs the activation behaviour of the nearest element on its path
+// that has one, and reaches every click listener above the target: a label clicks the
+// control it names, a link navigates, a summary toggles, and a host button or button role
+// runs its own handler. None of these may sit above a target, whatever its colour.
+const ACTIVATING_ANCESTOR =
+  'a[href], area[href], button, label, summary, select, textarea, [role="button"], [role="link"], [role="menuitem"], [role="checkbox"], [role="switch"], [role="tab"], [onclick]';
+
+/**
+ * Whether a target would act beyond itself when clicked or given input: a link, a label,
+ * or a button or field that a form owns, which a button does by its default submit type
+ * or by a form attribute naming a form anywhere on the page.
+ */
+function activatesBeyond(element: Element): boolean {
+  if (element.hasAttribute('href') || element.matches('label, summary')) {
+    return true;
+  }
+  if (element instanceof HTMLButtonElement) {
+    return (
+      element.type !== 'button' ||
+      element.form !== null ||
+      element.hasAttribute('formaction') ||
+      element.hasAttribute('popovertarget') ||
+      element.hasAttribute('commandfor')
+    );
+  }
+  if (element instanceof HTMLInputElement) {
+    return element.type !== 'text' || element.form !== null;
+  }
+  return element.getAttribute('type') === 'submit';
+}
+
+/** Whether an element or an ancestor is a container or a control KCP never acts inside. */
 export function insideForbidden(
   element: Element,
   allowed: readonly Element[],
 ): boolean {
-  if (element.getAttribute('type') === 'submit') return true;
+  if (activatesBeyond(element)) return true;
   for (
     let node: Element | null = element;
     node !== null;
@@ -75,6 +106,7 @@ export function insideForbidden(
     if (!allowed.includes(node) && node.matches(FORBIDDEN_CONTAINER)) {
       return true;
     }
+    if (node !== element && node.matches(ACTIVATING_ANCESTOR)) return true;
   }
   return false;
 }
