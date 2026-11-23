@@ -4,7 +4,7 @@ import {
   subscribeHashRoute,
   useHashRoute,
 } from '@/features/search/useHashRoute';
-import { readLocationHash } from './hostLocation';
+import { readLocationHash, readLocationMarker } from './hostLocation';
 
 // A token after a sign in, and a student id under both names the host uses.
 const SECRETS = ['SECRET', '65010001', '64010999'];
@@ -35,6 +35,7 @@ describe('readLocationHash', () => {
     (hash) => {
       window.history.replaceState(null, '', hash);
       expectNoSecret(readLocationHash());
+      expectNoSecret(readLocationMarker());
     },
   );
 
@@ -43,6 +44,16 @@ describe('readLocationHash', () => {
     expect(readLocationHash()).toBe('#/google_oauth_handling');
     window.history.replaceState(null, '', RESULT_HASH);
     expect(readLocationHash()).toMatch(/^#\/teach_table\?mode=by_subject_id&/);
+  });
+});
+
+describe('readLocationMarker', () => {
+  it('tells one address from another without carrying either', () => {
+    window.history.replaceState(null, '', TOKEN_HASH);
+    const first = readLocationMarker();
+    expect(readLocationMarker()).toBe(first);
+    window.history.replaceState(null, '', STUDENT_HASH);
+    expect(readLocationMarker()).not.toBe(first);
   });
 });
 
