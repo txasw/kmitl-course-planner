@@ -106,6 +106,8 @@ function useDockBody() {
         kit={view.kit}
         storedKit={view.storedKit}
         kitState={view.kitState}
+        health={view.health}
+        pageTerm={view.pageTerm}
         locale={language}
         t={t}
       />

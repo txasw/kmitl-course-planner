@@ -42,6 +42,9 @@ const INVENTORY: Readonly<Record<string, number>> = {
   // Each step of the product tour after the first, which Next keeps focus through, said
   // from inside the tour card's modal (ADR-0074).
   'features/onboarding/ProductTour.tsx': 1,
+  // How many planned subjects the registration page lists, said once as the host's own
+  // confirm dialog opens over a list that differs from the plan (ADR-0077).
+  'features/regis/host/ConfirmBanner.tsx': 1,
 };
 
 // The drag library mounts one region of its own inside the drag context, which no source

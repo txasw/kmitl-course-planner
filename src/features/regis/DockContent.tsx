@@ -1,17 +1,20 @@
 // The body of the registration helper dock and sheet: a header with the plan, its term,
 // the credits and the progress, the fixed lines that KCP never submits and that pre
 // registration goes in once, the kit status, one row per planned subject, the final
-// review with differences first, and the way back to the full planner. It reads only the
-// plan, the kit, and the student's marks; nothing on the host page.
+// review with differences first, and the way back to the full planner. It reads the plan,
+// the kit, the student's marks, and on pre registration what the read only observer saw
+// on the page, with a line saying whether that reading is on (ADR-0077).
 
 import { CalendarDays, ShieldCheck } from 'lucide-react';
 import type { Plan } from '@/lib/domain/plan';
 import { fillTemplate } from '@/lib/i18n/template';
 import { pickLocalized } from '@/lib/i18n/localize';
-import type { Locale, Translate } from '@/lib/i18n/t';
+import type { Locale, Translate, TranslationKey } from '@/lib/i18n/t';
 import { finalReview, type Checklist } from '@/lib/regis/checklist';
 import type { CompanionRoute } from '@/lib/regis/route';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
+import type { ObserverHealth } from '@/lib/regis/observerHealth';
+import type { Term } from '@/lib/routing/academicTerms';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_HEIGHT } from '@/lib/ui/target';
 import { EmptyState } from '@/components/EmptyState';
@@ -29,8 +32,23 @@ interface DockContentProps {
   kit: RegistrationKit | null;
   storedKit: RegistrationKit | null;
   kitState: KitState;
+  health: ObserverHealth;
+  pageTerm: Term | null;
   locale: Locale;
   t: Translate;
+}
+
+/** The observer line on pre registration, or null while it waits for the page. */
+function observerKey(health: ObserverHealth): TranslationKey | null {
+  if (health.status === 'healthy') return 'regis.observer.on';
+  if (health.status === 'waiting') return null;
+  if (health.status === 'off' && health.reason === 'untestedBuild') {
+    return 'regis.observer.untested';
+  }
+  if (health.status === 'off' && health.reason === 'surrogate') {
+    return 'regis.observer.surrogate';
+  }
+  return 'regis.observer.degraded';
 }
 
 function openPlanner() {
@@ -117,9 +135,12 @@ export function DockContent({
   kit,
   storedKit,
   kitState,
+  health,
+  pageTerm,
   locale,
   t,
 }: DockContentProps) {
+  const observer = route === 'preRegistration' ? observerKey(health) : null;
   if (plan === null || checklist === null || checklist.total === 0) {
     return (
       <div className="flex flex-col gap-3 p-3">
@@ -146,9 +167,43 @@ export function DockContent({
             total: checklist.total,
           })}
         </p>
-        <p className="text-ink-soft">
-          {fillTemplate(t('regis.termCheck'), { term: termLabel(plan, t) })}
+        <p
+          className={
+            checklist.termMismatch
+              ? 'font-semibold text-danger'
+              : 'text-ink-soft'
+          }
+        >
+          {pageTerm === null
+            ? fillTemplate(t('regis.termCheck'), { term: termLabel(plan, t) })
+            : checklist.termMismatch
+              ? fillTemplate(t('regis.pageTermMismatch'), {
+                  plan: termLabel(plan, t),
+                  page: termLabel(pageTerm, t),
+                })
+              : fillTemplate(t('regis.pageTermMatch'), {
+                  term: termLabel(pageTerm, t),
+                })}
         </p>
+        {observer === null ? null : (
+          <p
+            data-observer={health.status}
+            className={
+              health.status === 'healthy' ? 'text-ink-soft' : 'text-warn'
+            }
+          >
+            {t(observer)}
+          </p>
+        )}
+        {checklist.extras.length > 0 ? (
+          <p className="text-warn">
+            {fillTemplate(t('regis.extras'), {
+              items: checklist.extras
+                .map((item) => `${item.subjectId} (${item.codes.join(' ')})`)
+                .join(', '),
+            })}
+          </p>
+        ) : null}
       </div>
       <div className="flex flex-col gap-1 rounded-kcp bg-surface-alt p-2">
         <p className="flex items-start gap-1.5 font-semibold">

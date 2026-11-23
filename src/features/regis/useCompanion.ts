@@ -1,8 +1,8 @@
 // The registration helper's view of the active plan: which companion page is open, the
 // plan's kit when one younger than the age limit exists, checked again against the plan
-// as it stands, and the checklist derived from it and the student's marks. The page term
-// is not read in this release, so the rows never enter the term mismatch state here and
-// the dock asks the student to compare the term instead.
+// as it stands, and the checklist derived from it, the student's marks, and what the read
+// only observer last saw on the page while healthy (ADR-0077), including the page term,
+// which puts every row in the term mismatch state when it differs from the plan.
 
 import { useMemo, useSyncExternalStore } from 'react';
 import { useStore } from 'zustand';
@@ -11,12 +11,15 @@ import { companionRoute, type CompanionRoute } from '@/lib/regis/route';
 import { isKitFresh, kitMatchesPlan, refitKit } from '@/lib/regis/kit';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
 import { deriveChecklist, type Checklist } from '@/lib/regis/checklist';
+import type { ObserverHealth } from '@/lib/regis/observerHealth';
+import type { Term } from '@/lib/routing/academicTerms';
 import { planStore } from '@/features/plans/planStore';
 import { activePlanOf } from '@/features/plans/planStoreState';
 import { readLocationHash } from '@/features/shell/hostLocation';
 import { uiStore } from '@/features/shell/uiStore';
 import { subscribeHashRoute } from '@/features/search/useHashRoute';
 import { regisStore } from './regisStore';
+import { hostStore } from './host/hostStore';
 
 function currentCompanionRoute(): CompanionRoute | null {
   return companionRoute(readLocationHash());
@@ -41,6 +44,9 @@ export interface CompanionView {
   kit: RegistrationKit | null;
   kitState: KitState;
   checklist: Checklist | null;
+  health: ObserverHealth;
+  /** The term the page shows while the observer is healthy, or null. */
+  pageTerm: Term | null;
 }
 
 /** The kit stored for a plan in its current term, if any. */
@@ -57,6 +63,8 @@ export function useCompanionView(): CompanionView {
   const kits = useStore(regisStore, (state) => state.kits);
   const checklists = useStore(regisStore, (state) => state.checklists);
   const profile = useStore(uiStore, (state) => state.curriculumProfile);
+  const page = useStore(hostStore, (state) => state.page);
+  const health = useStore(hostStore, (state) => state.health);
   return useMemo(() => {
     const storedKit = storedKitFor(kits, plan);
     const fresh =
@@ -67,6 +75,7 @@ export function useCompanionView(): CompanionView {
       fresh !== null && plan !== null
         ? refitKit(fresh, plan, profile?.curriculumId ?? null)
         : null;
+    const pageTerm = page?.observation.term ?? null;
     const kitState: KitState =
       storedKit === null ? 'none' : fresh === null ? 'stale' : 'fresh';
     const marks =
@@ -76,7 +85,7 @@ export function useCompanionView(): CompanionView {
     const checklist =
       plan === null
         ? null
-        : deriveChecklist({ plan, kit, marks, pageTerm: null });
-    return { plan, storedKit, kit, kitState, checklist };
-  }, [plan, kits, checklists, profile]);
+        : deriveChecklist({ plan, kit, marks, pageTerm, page });
+    return { plan, storedKit, kit, kitState, checklist, health, pageTerm };
+  }, [plan, kits, checklists, profile, page, health]);
 }
