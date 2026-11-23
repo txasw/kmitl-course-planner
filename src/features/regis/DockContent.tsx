@@ -51,10 +51,12 @@ function OpenPlannerButton({ t }: { t: Translate }) {
 }
 
 function FinalReview({
+  route,
   checklist,
   locale,
   t,
 }: {
+  route: CompanionRoute;
   checklist: Checklist;
   locale: Locale;
   t: Translate;
@@ -68,7 +70,15 @@ function FinalReview({
         className={mismatches > 0 ? 'font-semibold text-warn' : 'text-success'}
       >
         {mismatches > 0
-          ? fillTemplate(t('regis.reviewMismatch'), { count: mismatches })
+          ? fillTemplate(
+              t(
+                // Only pre registration is a one time submit, so only it says so.
+                route === 'preRegistration'
+                  ? 'regis.reviewMismatch'
+                  : 'regis.reviewMismatchRegistration',
+              ),
+              { count: mismatches },
+            )
           : fillTemplate(t('regis.reviewAllMatch'), { count: checklist.total })}
       </p>
       <ul className="flex flex-col gap-1">
@@ -164,6 +174,7 @@ export function DockContent({
         {checklist.rows.map((row) => (
           <ChecklistRow
             key={row.subjectId}
+            route={route}
             row={row}
             plan={plan}
             locale={locale}
@@ -178,7 +189,7 @@ export function DockContent({
           />
         ))}
       </ol>
-      <FinalReview checklist={checklist} locale={locale} t={t} />
+      <FinalReview route={route} checklist={checklist} locale={locale} t={t} />
       <div className="flex flex-col gap-2 border-t border-border pt-2">
         <OpenPlannerButton t={t} />
         <p className="text-ink-soft">{t('regis.noRequests')}</p>

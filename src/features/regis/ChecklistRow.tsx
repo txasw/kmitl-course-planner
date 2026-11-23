@@ -27,6 +27,7 @@ import {
   type RowState,
 } from '@/lib/regis/checklist';
 import type { KitFit } from '@/lib/regis/kitSchema';
+import type { CompanionRoute } from '@/lib/regis/route';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_HEIGHT, TARGET_SIZE } from '@/lib/ui/target';
 import { copySubjectId } from '@/features/planner/copySubjectId';
@@ -128,6 +129,7 @@ function Alternative({
 }
 
 interface ChecklistRowProps {
+  route: CompanionRoute;
   row: Row;
   plan: Plan;
   locale: Locale;
@@ -137,6 +139,7 @@ interface ChecklistRowProps {
 }
 
 export function ChecklistRow({
+  route,
   row,
   plan,
   locale,
@@ -205,7 +208,16 @@ export function ChecklistRow({
         />
       ) : null}
       {row.plannedSeat === 'full' ? (
-        <Note tone="info" text={t('regis.fullNote')} />
+        <Note
+          tone="info"
+          text={t(
+            // Pre registration assigns seats later; on regular registration a full
+            // section stays full, so that page's seat count is the one to trust.
+            route === 'preRegistration'
+              ? 'regis.fullNote'
+              : 'regis.fullNoteRegistration',
+          )}
+        />
       ) : null}
       {row.plannedSeat === 'closed' ? (
         <Note tone="warn" text={t('regis.closedNote')} />
