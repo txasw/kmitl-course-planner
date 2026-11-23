@@ -66,28 +66,29 @@ export const teachTableQuerySchema = z.discriminatedUnion('mode', [
 
 export type TeachTableQuery = z.infer<typeof teachTableQuerySchema>;
 
+// The options a request that can reach the network carries. refresh skips the cache, and
+// noRetry makes a transient failure final after one attempt. A reference list may also
+// be read from the cache alone, which answers a miss with a network error and fetches
+// nothing. The registration pages use the last two (ADR-0075).
+const networkOptions = {
+  refresh: z.boolean().optional(),
+  noRetry: z.boolean().optional(),
+};
+const referenceOptions = {
+  ...networkOptions,
+  cacheOnly: z.boolean().optional(),
+};
+
 export const requestMessageSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('ref/faculty'), refresh: z.boolean().optional() }),
-  z.object({
-    type: z.literal('ref/department'),
-    refresh: z.boolean().optional(),
-  }),
-  z.object({
-    type: z.literal('ref/curriculum'),
-    refresh: z.boolean().optional(),
-  }),
-  z.object({
-    type: z.literal('ref/subjectOwner'),
-    refresh: z.boolean().optional(),
-  }),
-  z.object({
-    type: z.literal('ref/currentTerm'),
-    refresh: z.boolean().optional(),
-  }),
+  z.object({ type: z.literal('ref/faculty'), ...referenceOptions }),
+  z.object({ type: z.literal('ref/department'), ...referenceOptions }),
+  z.object({ type: z.literal('ref/curriculum'), ...referenceOptions }),
+  z.object({ type: z.literal('ref/subjectOwner'), ...referenceOptions }),
+  z.object({ type: z.literal('ref/currentTerm'), ...referenceOptions }),
   z.object({
     type: z.literal('teachTable/query'),
     query: teachTableQuerySchema,
-    refresh: z.boolean().optional(),
+    ...networkOptions,
   }),
   z.object({
     type: z.literal('teachTable/cancel'),

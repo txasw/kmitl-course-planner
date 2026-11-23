@@ -163,8 +163,63 @@ describe('createGateway', () => {
       env: makeEnv(fetchImpl),
     });
     await gateway.reference(probeEndpoint);
-    await gateway.reference(probeEndpoint, true);
+    await gateway.reference(probeEndpoint, { refresh: true });
     expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries a 5xx by default and not at all when noRetry is set', async () => {
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockImplementation(() =>
+        Promise.resolve(new Response('busy', { status: 503 })),
+      );
+    const gateway = createGateway({
+      cache: newCache(),
+      env: makeEnv(fetchImpl),
+    });
+    await gateway.reference(probeEndpoint);
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
+    fetchImpl.mockClear();
+    const quiet = await gateway.teachTable(ownerQuery, { noRetry: true });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(quiet).toMatchObject({
+      ok: false,
+      error: { kind: 'http', status: 503 },
+    });
+  });
+
+  it('answers a cache only read from the cache and never fetches', async () => {
+    const fetchImpl = vi.fn<typeof fetch>();
+    const cache = newCache();
+    const gateway = createGateway({ cache, env: makeEnv(fetchImpl) });
+    const miss = await gateway.reference(probeEndpoint, { cacheOnly: true });
+    expect(miss).toMatchObject({ ok: false, error: { kind: 'network' } });
+    await cache.set(probeEndpoint.cacheKey, [{ id: 'a' }], {
+      fetchedAt: 0,
+      expiresAt: 1000,
+    });
+    const hit = await gateway.reference(probeEndpoint, { cacheOnly: true });
+    expect(hit).toEqual({ ok: true, value: [{ id: 'a' }] });
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('keeps a cache only read out of an in flight fetch', async () => {
+    let release: (response: Response) => void = () => undefined;
+    const fetchImpl = vi.fn<typeof fetch>().mockReturnValue(
+      new Promise<Response>((resolve) => {
+        release = resolve;
+      }),
+    );
+    const gateway = createGateway({
+      cache: newCache(),
+      env: makeEnv(fetchImpl),
+    });
+    const fetching = gateway.reference(probeEndpoint);
+    const cached = await gateway.reference(probeEndpoint, { cacheOnly: true });
+    expect(cached).toMatchObject({ ok: false, error: { kind: 'network' } });
+    release(okResponse([{ id: 'a' }]));
+    expect(await fetching).toEqual({ ok: true, value: [{ id: 'a' }] });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
   it('honors the 24 hour reference ttl', async () => {
@@ -301,7 +356,7 @@ describe('createGateway', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     expect(hit.ok && hit.value.fetchedAt).toBe(1_000);
     // A refresh fetches again and reports the new time.
-    const refreshed = await gateway.teachTable(ownerQuery, true);
+    const refreshed = await gateway.teachTable(ownerQuery, { refresh: true });
     expect(refreshed.ok && refreshed.value.fetchedAt).toBe(61_000);
   });
 

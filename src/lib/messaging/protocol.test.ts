@@ -105,6 +105,27 @@ describe('requestMessageSchema', () => {
     ).toBe(true);
   });
 
+  it('carries the no retry and cache only options', () => {
+    expect(
+      requestMessageSchema.parse({
+        type: 'ref/curriculum',
+        cacheOnly: true,
+        noRetry: true,
+      }),
+    ).toEqual({ type: 'ref/curriculum', cacheOnly: true, noRetry: true });
+    expect(
+      requestMessageSchema.parse({
+        type: 'teachTable/query',
+        query: byClassQuery,
+        noRetry: true,
+      }),
+    ).toMatchObject({ noRetry: true });
+    expect(
+      requestMessageSchema.safeParse({ type: 'ref/faculty', noRetry: 'yes' })
+        .success,
+    ).toBe(false);
+  });
+
   it('rejects a teach table message whose nested query is invalid', () => {
     expect(
       requestMessageSchema.safeParse({
