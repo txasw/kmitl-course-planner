@@ -55,6 +55,9 @@ export const HOST_LABELS = {
   creditRange: ['หน่วยกิตที่ลงได้', 'Credits available to the student'],
   creditTotal: ['หน่วยกิตรวมวิชาที่เลือกทั้งหมด', 'All registered credits'],
   term: ['ภาคการศึกษาที่', 'Semester'],
+  /** The two controls fill presses by label: the local add button and the grade dialog's. */
+  addButton: ['เพิ่ม', 'Add'],
+  acknowledge: ['รับทราบ', 'Acknowledged'],
 } as const;
 
 /** The add row's inline background, by the host's status: pending, fits, clash. */
