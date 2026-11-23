@@ -18,6 +18,7 @@ import { ENTRY_TOAST_DELAY_MS } from '@/lib/onboarding/entryToast';
 import type { PrefsRepository } from '@/lib/storage/prefs';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { fakePlanDeps } from '../../../tests/support/planDeps';
+import { fakeRegisDeps } from '../../../tests/support/regisDeps';
 import {
   fakeHandshakeDeps,
   fakeOnboardingDeps,
@@ -52,6 +53,7 @@ function renderApp(): void {
       onboarding={fakeOnboardingDeps()}
       handshake={fakeHandshakeDeps()}
       welcome={fakeWelcomeDeps()}
+      regis={fakeRegisDeps()}
       version="1.5.0"
     />,
   );
@@ -76,6 +78,7 @@ describe('App', () => {
         onboarding={fakeOnboardingDeps()}
         handshake={fakeHandshakeDeps()}
         welcome={fakeWelcomeDeps()}
+        regis={fakeRegisDeps()}
         version="1.5.0"
       />,
     );
@@ -97,6 +100,7 @@ describe('App', () => {
         onboarding={fakeOnboardingDeps()}
         handshake={fakeHandshakeDeps()}
         welcome={fakeWelcomeDeps()}
+        regis={fakeRegisDeps()}
         version="1.5.0"
       />,
     );

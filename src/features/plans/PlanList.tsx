@@ -7,6 +7,7 @@
 import { useId, useMemo } from 'react';
 import {
   Check,
+  ClipboardCheck,
   ClipboardCopy,
   Copy,
   Download,
@@ -77,6 +78,8 @@ export interface PlanListProps {
   onExport: (() => void) | null;
   /** Null when the active plan has no entry to list for registration. */
   onCopyRegistration: (() => void) | null;
+  /** Opens the registration helper's readiness card; null without an entry to prepare. */
+  onPrepareRegistration: (() => void) | null;
 }
 
 export function PlanList({
@@ -91,6 +94,7 @@ export function PlanList({
   onImport,
   onExport,
   onCopyRegistration,
+  onPrepareRegistration,
 }: PlanListProps) {
   const { t } = useTranslation();
   const groups = useMemo(() => groupByTerm(plans), [plans]);
@@ -213,6 +217,13 @@ export function PlanList({
             icon={<ClipboardCopy size={14} strokeWidth={2} aria-hidden />}
             label={t('registration.copy')}
             onClick={onCopyRegistration}
+          />
+        ) : null}
+        {onPrepareRegistration !== null ? (
+          <ActionButton
+            icon={<ClipboardCheck size={14} strokeWidth={2} aria-hidden />}
+            label={t('regis.title')}
+            onClick={onPrepareRegistration}
           />
         ) : null}
       </div>
