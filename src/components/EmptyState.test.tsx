@@ -114,6 +114,7 @@ const EMPTY_STATE_INVENTORY: Readonly<Record<string, number>> = {
   'features/planner/SelectedCoursesList.tsx': 1,
   'features/planner/SuggestDialog.tsx': 1,
   'features/planner/SummaryView.tsx': 1,
+  'features/regis/DockContent.tsx': 1,
 };
 
 const SRC_DIR = resolve(process.cwd(), 'src');
