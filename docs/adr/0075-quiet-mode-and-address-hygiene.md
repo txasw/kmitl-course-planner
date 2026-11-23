@@ -14,10 +14,10 @@ The content script mounts on every route of the host, including the pages where 
 `#/registration_for_officer`, `#/registration_x`, `#/registration_queue`, and
 `#/registration_future_innovation`. When pre registration opened on 2026-11-23 the registrar was
 overloaded: the public `get-teach-table-show` endpoint did not answer within the 45 second timeout,
-and a direct request to it failed. KCP added to that load. Opening the panel checked the active plan against live data,
-the search form fetched the four reference lists and the current term, and each failed request was
-retried twice with backoff. None of that helps a student who is registering at that moment; the plan
-they need is already stored.
+and a direct request to it failed. KCP added to that load. Opening the panel checked the active
+plan against live data, the search form fetched the four reference lists and the current term, and
+each failed request was retried twice with backoff. None of that helps a student who is registering
+at that moment; the plan they need is already stored.
 
 A study of the host bundle also showed that its address can carry what KCP must never hold. A sign
 in lands on `#/google_oauth_handling?token=...`, some officer and report routes take `student_id` or
@@ -61,9 +61,17 @@ says nothing about the address itself.
 
 Two lint rules hold the source to this. `sessionStorage` and `localStorage` are forbidden in every
 file under `src`, since KCP keeps its state in the extension storage and the page web storage holds
-the host session. A read of `location.hash` or `location.href` is forbidden outside the shell reader
-and the tests. A test reads the rule settings from the repository config and fires them on sample
-sources, so dropping either guard fails the suite.
+the host session. Reaching the location object through `window`, `document`, `globalThis`, or any
+other object, by name or by a computed key, is forbidden outside the shell reader and the tests, and
+so are `document.URL`, `documentURI`, `baseURI`, the navigation `currentEntry`, and the hash change
+`newURL` and `oldURL`, which expose the same address. A bare `location` global is forbidden in every
+file, since the reader and the tests reach the address through `window`. A test reads the rule
+settings from the repository config and fires them on sample sources, so dropping either guard fails
+the suite.
+
+The reader keeps a teach table search field only when its value has the shape a search sends, a mode
+name, a digit code, a string flag, or the `x` sentinel, so a credential that a redirect folds into a
+field value, after a second query mark or as an encoded query, is dropped with that field.
 
 ## Alternatives
 
