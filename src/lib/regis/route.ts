@@ -22,6 +22,27 @@ export const REGISTRATION_ROUTES: readonly string[] = [
  * without regard to case or a trailing slash, so neither changes the answer.
  */
 export function isRegistrationRoute(hash: string): boolean {
-  const path = routePath(hash).toLowerCase().replace(/\/+$/, '');
-  return REGISTRATION_ROUTES.includes(path);
+  return REGISTRATION_ROUTES.includes(normalizedPath(hash));
+}
+
+function normalizedPath(hash: string): string {
+  return routePath(hash).toLowerCase().replace(/\/+$/, '');
+}
+
+/**
+ * The registration pages a student fills in, where the launcher opens the registration
+ * helper dock beside the page instead of the full panel (ADR-0076). Only the student
+ * pre registration and regular registration pages qualify, matched by the exact path,
+ * so the officer, graduate, queue, and other pages that share a prefix keep the panel.
+ */
+export type CompanionRoute = 'preRegistration' | 'registration';
+
+const COMPANION_ROUTES: Readonly<Record<string, CompanionRoute>> = {
+  '/pre_registration': 'preRegistration',
+  '/registration': 'registration',
+};
+
+/** The companion page a location hash names, or null for every other page. */
+export function companionRoute(hash: string): CompanionRoute | null {
+  return COMPANION_ROUTES[normalizedPath(hash)] ?? null;
 }
