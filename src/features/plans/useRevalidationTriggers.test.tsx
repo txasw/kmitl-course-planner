@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import { ok, err, networkError, type Result } from '@/lib/utils/result';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
@@ -131,6 +131,29 @@ describe('useRevalidationTriggers', () => {
     expect(planStore.getState().entries[0]?.review).toBeDefined();
     expect(planStore.getState().quietPlanId).toBeNull();
     expect(revalidationStore.getState().pendingOpen).toBeNull();
+  });
+
+  it('sends nothing on open or on a plan switch on a registration page', () => {
+    window.location.hash = '#/pre_registration';
+    try {
+      seedActivePlan([placed()], { id: 'p1' });
+      const send = vi.fn(fakeSend(ok(movedCatalog())));
+      renderHook(() => {
+        // The spy keeps the fake signature, which the cast narrows back to the seam.
+        useRevalidationTriggers(send as unknown as TypedSend);
+      });
+      openPanel();
+      act(() => {
+        planStore.setState({ activePlanId: null });
+      });
+      act(() => {
+        planStore.setState({ activePlanId: 'p1' });
+      });
+      expect(send).not.toHaveBeenCalled();
+      expect(revalidationStore.getState().runs.p1).toBeUndefined();
+    } finally {
+      window.location.hash = '';
+    }
   });
 
   it('never asks after an offline run', async () => {

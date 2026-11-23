@@ -1,6 +1,6 @@
 // The search hooks that talk to the worker. useReferenceData fetches the four
 // reference lists once, coalescing on their status so reopening the overlay does
-// not refetch, and returns a reload for the error retry path. useSearchBoot starts
+// not refetch a loaded list, and returns a reload for the error retry path. useSearchBoot starts
 // loading the persisted search when the app mounts, so it is ready by the first open.
 // useSearchInit, at that open, applies it and seeds the term from the first source
 // that has one: the teach table route captured then, the persisted search, the active
@@ -29,7 +29,9 @@ import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import type { AsyncState } from '@/lib/utils/async';
 import type { Result } from '@/lib/utils/result';
+import { automaticReferenceRead } from '@/lib/regis/quietMode';
 import { activePlanTerm } from '@/features/plans/planStore';
+import { isQuietRoute } from '@/features/shell/quietRoute';
 import { searchStore, type QueryIntent } from './searchStore';
 import type { SearchDeps } from './SearchDepsContext';
 
@@ -47,22 +49,42 @@ function loadInto<T>(
   });
 }
 
+// A list loads on mount while it holds no data and no load is running, so a reopened
+// panel tries again a list that failed, such as one a registration page found missing
+// from the cache, rather than keeping its banner up.
+function needsLoad(list: AsyncState<unknown>): boolean {
+  return list.status === 'idle' || list.status === 'error';
+}
+
 export function useReferenceData(send: TypedSend): () => void {
   const loadAll = useCallback(
-    (onlyIdle: boolean) => {
+    (automatic: boolean) => {
       const state = searchStore.getState();
-      if (!onlyIdle || state.faculties.status === 'idle') {
-        loadInto(() => send({ type: 'ref/faculty' }), state.setFaculties);
-      }
-      if (!onlyIdle || state.departments.status === 'idle') {
-        loadInto(() => send({ type: 'ref/department' }), state.setDepartments);
-      }
-      if (!onlyIdle || state.curricula.status === 'idle') {
-        loadInto(() => send({ type: 'ref/curriculum' }), state.setCurricula);
-      }
-      if (!onlyIdle || state.subjectOwners.status === 'idle') {
+      // On a registration page the load on mount reads the worker cache alone; the
+      // retry in the banner is the student's own request (ADR-0075).
+      const quiet = automatic && isQuietRoute();
+      if (!automatic || needsLoad(state.faculties)) {
         loadInto(
-          () => send({ type: 'ref/subjectOwner' }),
+          () => send(automaticReferenceRead({ type: 'ref/faculty' }, quiet)),
+          state.setFaculties,
+        );
+      }
+      if (!automatic || needsLoad(state.departments)) {
+        loadInto(
+          () => send(automaticReferenceRead({ type: 'ref/department' }, quiet)),
+          state.setDepartments,
+        );
+      }
+      if (!automatic || needsLoad(state.curricula)) {
+        loadInto(
+          () => send(automaticReferenceRead({ type: 'ref/curriculum' }, quiet)),
+          state.setCurricula,
+        );
+      }
+      if (!automatic || needsLoad(state.subjectOwners)) {
+        loadInto(
+          () =>
+            send(automaticReferenceRead({ type: 'ref/subjectOwner' }, quiet)),
           state.setSubjectOwners,
         );
       }
@@ -124,7 +146,13 @@ export function useSearchInit(
       if (initial.source !== 'fallback') {
         return;
       }
-      void send({ type: 'ref/currentTerm' }).then((result) => {
+      // On a registration page the current term comes from the worker cache or not at
+      // all, and the form keeps the local fallback (ADR-0075).
+      const read = automaticReferenceRead(
+        { type: 'ref/currentTerm' },
+        isQuietRoute(),
+      );
+      void send(read).then((result) => {
         // The plan is read again because plans may have hydrated meanwhile. A failed
         // fetch resolves without a current term, so the term settles on that plan or
         // on the fallback the form already shows and is no longer pending.
