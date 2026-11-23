@@ -1,0 +1,332 @@
+// The fill engine (ADR-0078): for each subject the student's press named, one at a time,
+// it reads the page, asks the pure decisions what to do, acts once through the
+// actuator, waits for the host's answer, and verifies it from a fresh reading before the
+// next step. A wait that reaches its ceiling is a stop, never a retry, and the first stop
+// ends the run (owner answer 3A). It sends no request of its own: the only request in a
+// run is the host's own eligibility read after the field is filled, which the tripwire
+// counts. What it reads stays in memory.
+
+import type { Plan } from '@/lib/domain/plan';
+import type { HostObservation } from '@/lib/regis/hostObservation';
+import type { RegistrationKit } from '@/lib/regis/kitSchema';
+import {
+  listClash,
+  listedState,
+  overCredits,
+  overSubscribed,
+  pageBlock,
+  pickOption,
+  type FillHalf,
+  type FillTarget,
+  type StopReason,
+} from '@/lib/regis/fillPlan';
+import { readHostPage } from '../host/hostDom';
+import {
+  chooseOption,
+  enterSubjectId,
+  openMenu,
+  pressAcknowledge,
+  pressAdd,
+  type Actuation,
+} from './hostActuator';
+import {
+  resolveAcknowledge,
+  resolveActivator,
+  resolveAdd,
+  resolveField,
+  resolveOptions,
+} from './hostControls';
+import type { Tripwire } from './tripwire';
+
+export type FillStep =
+  'enter' | 'wait' | 'conditional' | 'choose' | 'practice' | 'add';
+
+export type FillOutcome =
+  | { status: 'done'; filled: number }
+  | { status: 'stopped'; subjectId: string | null; reason: StopReason };
+
+export interface FillTiming {
+  /** The least time between two events, so the student can follow. */
+  pace: number;
+  poll: number;
+  /** How long the host may take to answer the eligibility read. */
+  answer: number;
+  /** How long any other host change may take. */
+  settle: number;
+  /** How long the condition shows in the dock before KCP acknowledges the dialog. */
+  acknowledge: number;
+}
+
+export const FILL_TIMING: FillTiming = {
+  pace: 250,
+  poll: 100,
+  answer: 60_000,
+  settle: 3000,
+  acknowledge: 1500,
+};
+
+export interface FillDeps {
+  doc: Document;
+  plan: Plan;
+  kit: RegistrationKit;
+  targets: readonly FillTarget[];
+  /** Subjects the student chose to fill although over subscribed (owner answer 4A). */
+  allowFull: ReadonlySet<string>;
+  /** The student pressed Stop, the route changed, or a surrogate session began. */
+  stopRequested: () => boolean;
+  onStep: (
+    subjectId: string,
+    step: FillStep,
+    prerequisites: readonly string[],
+  ) => void;
+  /** Latch fill off for this host build after an actuator refusal. */
+  onRefusal: () => void;
+  tripwire: Tripwire;
+  timing?: FillTiming;
+  now?: () => number;
+}
+
+class Stop extends Error {
+  constructor(readonly reason: StopReason) {
+    super(reason);
+  }
+}
+
+function stop(reason: StopReason): never {
+  throw new Stop(reason);
+}
+
+export async function runFill(deps: FillDeps): Promise<FillOutcome> {
+  const { doc, plan, kit, tripwire } = deps;
+  const timing = deps.timing ?? FILL_TIMING;
+  const now = deps.now ?? (() => Date.now());
+  const planned = new Set(deps.targets.map((target) => target.subjectId));
+  const sleep = (ms: number) =>
+    new Promise<void>((resolve) => {
+      setTimeout(resolve, ms);
+    });
+
+  function read(): HostObservation | null {
+    const reading = readHostPage(doc, planned);
+    return reading.reading === 'ok' ? reading.observation : null;
+  }
+
+  function page(): HostObservation {
+    const observation = read();
+    const block = pageBlock(observation, plan);
+    if (observation === null || block !== null) stop(block ?? 'notRecognised');
+    return observation;
+  }
+
+  async function waitFor<T>(
+    test: (observation: HostObservation) => T | null,
+    ceiling: number,
+    onTimeout: StopReason,
+  ): Promise<T> {
+    const until = now() + ceiling;
+    for (;;) {
+      if (deps.stopRequested()) stop('stopped');
+      const observation = read();
+      const value = observation === null ? null : test(observation);
+      if (value !== null) return value;
+      if (now() > until) stop(onTimeout);
+      await sleep(timing.poll);
+    }
+  }
+
+  // Resolves the control and acts in one task, after the pace and a Stop check.
+  async function act(perform: () => Actuation | null): Promise<void> {
+    if (deps.stopRequested()) stop('stopped');
+    await sleep(timing.pace);
+    if (deps.stopRequested()) stop('stopped');
+    const outcome = perform();
+    if (outcome === 'refused') {
+      deps.onRefusal();
+      stop('notRecognised');
+    }
+    if (outcome !== 'done')
+      stop(outcome === null ? 'notRecognised' : 'pageChanged');
+  }
+
+  function selected(
+    observation: HostObservation,
+    which: 'primary' | 'practice',
+  ) {
+    return (
+      (which === 'primary'
+        ? observation.card?.primary
+        : observation.card?.practice) ?? null
+    );
+  }
+
+  async function chooseHalf(
+    target: FillTarget,
+    which: 'primary' | 'practice',
+    half: FillHalf,
+  ): Promise<void> {
+    deps.onStep(
+      target.subjectId,
+      which === 'primary' ? 'choose' : 'practice',
+      [],
+    );
+    const shown = selected(page(), which);
+    if (shown !== null) {
+      if (shown.section !== half.code) stop('pageChanged');
+      return;
+    }
+    await act(() => {
+      const activator = resolveActivator(doc, which);
+      return activator === null ? null : openMenu(activator);
+    });
+    const options = await waitFor(
+      () => resolveOptions(doc, which),
+      timing.settle,
+      'notRecognised',
+    );
+    const index = pickOption(options, half);
+    if (typeof index === 'string') stop(index);
+    await act(() => {
+      const option = resolveOptions(doc, which)?.[index];
+      return option?.section === half.code
+        ? chooseOption(option.control)
+        : 'stale';
+    });
+    await waitFor(
+      (observation) =>
+        selected(observation, which)?.section === half.code &&
+        resolveOptions(doc, which) === null
+          ? true
+          : null,
+      timing.settle,
+      'notRecognised',
+    );
+  }
+
+  async function fillOne(target: FillTarget): Promise<boolean> {
+    let observation = page();
+    const listed = listedState(observation, target);
+    if (listed === 'listed') return false;
+    if (listed === 'other') stop('listedOther');
+    if (overCredits(observation, target)) stop('credits');
+    const clash = listClash(observation, target, kit);
+    if (clash !== null) stop(clash);
+    const card = observation.card;
+    const toasts = observation.toasts.length;
+    let requests = tripwire.count();
+    const resume =
+      card?.status === 'offered' && card.subjectId === target.subjectId;
+    if (!resume) {
+      if (card?.status !== 'empty') stop('fieldNotEmpty');
+      deps.onStep(target.subjectId, 'enter', []);
+      await act(() => {
+        const field = resolveField(doc);
+        return field === null ? null : enterSubjectId(field, target.id);
+      });
+      deps.onStep(target.subjectId, 'wait', []);
+      const answer = await waitFor(
+        (seen) => {
+          if (seen.dialog?.kind === 'gradeNotAnnounced') return 'offered';
+          if (seen.card?.status === 'offered') return 'offered';
+          const fresh = seen.toasts.slice(toasts);
+          if (fresh.some((toast) => toast.kind === 'alreadyListed')) {
+            return 'listedOther';
+          }
+          if (fresh.some((toast) => toast.kind === 'refused')) return 'refused';
+          return fresh.length > 0 ? 'notRecognised' : null;
+        },
+        timing.answer,
+        'noAnswer',
+      );
+      if (tripwire.count() - requests > 1) stop('notRecognised');
+      if (answer !== 'offered') stop(answer);
+      requests = tripwire.count();
+    }
+    observation = read() ?? stop('notRecognised');
+    if (observation.dialog?.kind === 'gradeNotAnnounced') {
+      // Owner answer 5B: show the condition in the dock first, then acknowledge.
+      deps.onStep(
+        target.subjectId,
+        'conditional',
+        observation.dialog.prerequisites,
+      );
+      await sleep(timing.acknowledge);
+      await act(() => {
+        const button = resolveAcknowledge(doc);
+        return button === null ? null : pressAcknowledge(button);
+      });
+      await waitFor(
+        (seen) => (seen.dialog === null ? true : null),
+        timing.settle,
+        'notRecognised',
+      );
+    }
+    await chooseHalf(target, 'primary', target.primary);
+    if (target.practice !== null) {
+      const row = page().card;
+      if (row?.practiceSelect === true) {
+        await chooseHalf(target, 'practice', target.practice);
+      } else if (row?.practice?.section !== target.practice.code) {
+        stop('practiceMissing');
+      }
+    }
+    observation = await waitFor(
+      (seen) => (seen.card?.colour === 'pending' ? null : seen),
+      timing.settle,
+      'notRecognised',
+    );
+    const clashed = observation.toasts
+      .slice(toasts)
+      .some((toast) => toast.kind === 'clash');
+    if (observation.card?.colour === 'clash' || clashed) stop('hostClash');
+    if (overSubscribed(observation) && !deps.allowFull.has(target.subjectId)) {
+      stop('full');
+    }
+    if (tripwire.count() !== requests) stop('notRecognised');
+    const seenToasts = observation.toasts.length;
+    deps.onStep(target.subjectId, 'add', []);
+    await act(() => {
+      // The whole selection is checked again in the same task as the press.
+      const seen = read();
+      const row = seen?.card;
+      const holds =
+        seen !== null &&
+        row !== null &&
+        row !== undefined &&
+        pageBlock(seen, plan) === null &&
+        seen.dialog === null &&
+        seen.toasts.length === seenToasts &&
+        row.subjectId === target.subjectId &&
+        row.colour === 'fits' &&
+        row.primary?.section === target.primary.code &&
+        (target.practice === null ||
+          row.practice?.section === target.practice.code);
+      const add = holds ? resolveAdd(doc) : null;
+      return !holds ? 'stale' : add === null ? null : pressAdd(add);
+    });
+    await waitFor(
+      (seen) =>
+        listedState(seen, target) === 'listed' && seen.card?.status === 'empty'
+          ? true
+          : null,
+      timing.settle,
+      'notRecognised',
+    );
+    if (tripwire.count() !== requests) stop('notRecognised');
+    return true;
+  }
+
+  let current: string | null = null;
+  let filled = 0;
+  try {
+    for (const target of deps.targets) {
+      current = target.subjectId;
+      if (await fillOne(target)) filled += 1;
+    }
+    return { status: 'done', filled };
+  } catch (error) {
+    if (error instanceof Stop) {
+      return { status: 'stopped', subjectId: current, reason: error.reason };
+    }
+    throw error;
+  }
+}
