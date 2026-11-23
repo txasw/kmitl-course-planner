@@ -49,20 +49,35 @@ const WEB_STORAGE_PROPERTIES = ['window', 'globalThis', 'self'].flatMap(
 );
 
 // The raw host address, which can carry a token or a student id. Only the shell reader
-// reads it, sanitized (ADR-0075).
+// reads it, sanitized (ADR-0075). The guard covers the location object itself, so a
+// destructuring, a toString, or a computed key cannot read around it, plus the other
+// properties and events that expose the full address. A bare location global is held by
+// the globals rule below, which resolves scope.
 const NO_RAW_LOCATION =
   'Read the host address through features/shell/hostLocation, which sanitizes it.';
-const LOCATION_PART = '/^(hash|href)$/';
 const LOCATION_SYNTAX = [
   {
-    selector: `MemberExpression[object.name='location'][property.name=${LOCATION_PART}]`,
+    selector: "MemberExpression[property.name='location']",
     message: NO_RAW_LOCATION,
   },
   {
-    selector: `MemberExpression[object.property.name='location'][property.name=${LOCATION_PART}]`,
+    selector: "MemberExpression[computed=true][property.value='location']",
+    message: NO_RAW_LOCATION,
+  },
+  {
+    selector:
+      "MemberExpression[object.name='document'][property.name=/^(URL|documentURI|baseURI)$/]",
+    message: NO_RAW_LOCATION,
+  },
+  {
+    selector:
+      'MemberExpression[property.name=/^(currentEntry|newURL|oldURL)$/]',
     message: NO_RAW_LOCATION,
   },
 ];
+// A bare location read as a global, such as location.href or String(location). It holds
+// the reader and the tests too, which reach the address through window.
+const LOCATION_GLOBALS = [{ name: 'location', message: NO_RAW_LOCATION }];
 
 // A focus ring or outline class written by hand, in a string or a template literal.
 // The shared constants hold the one indicator, so the tokens change it in one place.
@@ -155,7 +170,11 @@ export default tseslint.config(
         ...FOCUS_SYNTAX,
         ...LOCATION_SYNTAX,
       ],
-      'no-restricted-globals': ['error', ...WEB_STORAGE_GLOBALS],
+      'no-restricted-globals': [
+        'error',
+        ...WEB_STORAGE_GLOBALS,
+        ...LOCATION_GLOBALS,
+      ],
       'no-restricted-properties': ['error', ...WEB_STORAGE_PROPERTIES],
     },
   },
@@ -196,6 +215,7 @@ export default tseslint.config(
         'error',
         { name: 'fetch', message: NO_FETCH },
         ...WEB_STORAGE_GLOBALS,
+        ...LOCATION_GLOBALS,
       ],
       'no-restricted-properties': [
         'error',
