@@ -864,10 +864,15 @@ export function mountReplica(doc, overrides = {}) {
   const ofKind = (kind) =>
     current?.sections.filter((row) => row.kind === kind) ?? [];
   const paired = () => ofKind('ท').length > 0 && ofKind('ป').length > 0;
+  // Without a searched subject the primary menu lists the patched sections.
   const menuItems = (which) =>
-    which === 'practice' || ofKind('ท').length === 0
-      ? ofKind('ป')
-      : ofKind('ท');
+    current === null
+      ? which === 'primary'
+        ? (state.add.sections ?? [])
+        : []
+      : which === 'practice' || ofKind('ท').length === 0
+        ? ofKind('ป')
+        : ofKind('ท');
   const codeOf = (text) => text.trim().split(' ')[0];
 
   function resetAdd() {

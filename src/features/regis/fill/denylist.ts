@@ -81,3 +81,27 @@ const DENIED: ReadonlySet<string> = new Set([
 export function isDeniedLabel(text: string): boolean {
   return DENIED.has(text.replace(/\s+/g, ' ').trim());
 }
+
+// Containers KCP never acts inside: any dialog, a form, and the host's commit and warning
+// colours. A select menu and the grade dialog are allowed only to the handle that names
+// them, and only that element itself is exempt, so a menu nested in a dialog still fails.
+const FORBIDDEN_CONTAINER =
+  '.v-dialog, .v-dialog__content, [role="dialog"], form, .deep-orange, .warning, .v-menu__content';
+
+/** Whether an element or an ancestor is a container KCP never acts inside. */
+export function insideForbidden(
+  element: Element,
+  allowed: readonly Element[],
+): boolean {
+  if (element.getAttribute('type') === 'submit') return true;
+  for (
+    let node: Element | null = element;
+    node !== null;
+    node = node.parentElement
+  ) {
+    if (!allowed.includes(node) && node.matches(FORBIDDEN_CONTAINER)) {
+      return true;
+    }
+  }
+  return false;
+}
