@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ESLint, Linter } from 'eslint';
 
 // The guards of ADR-0075 live in the lint config, so this test asserts they apply where
@@ -10,6 +10,10 @@ const GUARDED = ['no-restricted-globals', 'no-restricted-properties'] as const;
 const SYNTAX = 'no-restricted-syntax';
 
 const eslint = new ESLint();
+
+// Resolving the repository config loads every plugin, which takes seconds on its own and
+// longer while the whole suite runs in parallel, so this file allows more than the default.
+vi.setConfig({ testTimeout: 60_000 });
 
 async function rulesFor(file: string): Promise<Linter.RulesRecord> {
   // ESLint types the calculated config loosely; the rules record is the part read here.
