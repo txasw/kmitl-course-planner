@@ -1,0 +1,138 @@
+import { describe, expect, it } from 'vitest';
+import shape from '../../../tests/fixtures/host/pre-regis.shape.json';
+import {
+  CREDIT_RANGE,
+  CREDIT_TOTAL,
+  HOST_LABELS,
+  LIST_HEADER_CLASSES,
+  SCRIPT_NAME,
+  SECTION_LABEL,
+  TERM_TEXT,
+  isLabel,
+  isTestedBuild,
+  rowColour,
+} from './hostContract';
+
+// The contract against the shape fixture: the keys, classes, and labels of the tested
+// host build. A host change that renames a label or a class shows up as a diff here.
+
+function rgb(hex: string): string {
+  const [r, g, b] = [1, 3, 5].map((start) =>
+    Number.parseInt(hex.slice(start, start + 2), 16),
+  );
+  return `rgb(${String(r)}, ${String(g)}, ${String(b)})`;
+}
+
+const LANGS = [shape.labels.th, shape.labels.en];
+
+describe('the host contract', () => {
+  it('gates on the tested build only', () => {
+    expect(isTestedBuild([shape.build.app, shape.build.vendors])).toBe(true);
+    expect(isTestedBuild([shape.build.app])).toBe(false);
+    expect(isTestedBuild(['app.00000000.js', shape.build.vendors])).toBe(false);
+  });
+
+  it.each(LANGS)('carries the host labels of each language', (labels) => {
+    const pairs: [readonly string[], string][] = [
+      [
+        HOST_LABELS.addHeading,
+        labels['pre_regis_add_subject.list_subject_need_to_regis'],
+      ],
+      [HOST_LABELS.early, `(${labels['pre_regis_add_subject.early']})`],
+      [HOST_LABELS.early, labels['pre_regis_complete.early']],
+      [HOST_LABELS.practiceRow, labels['pre_regis_add_subject.practice']],
+      [
+        HOST_LABELS.gradeDialog,
+        labels['pre_regis_add_subject.grade_not_release'],
+      ],
+      [
+        HOST_LABELS.confirmDialog,
+        labels['pre_regis_add_subject.one_time_registration'],
+      ],
+      [
+        HOST_LABELS.toastPrefix,
+        labels['pre_regis_add_subject.error_in_taking_this_course'],
+      ],
+      [
+        HOST_LABELS.alreadyListed,
+        labels['pre_regis_add_subject.already_in_list'],
+      ],
+      [
+        HOST_LABELS.submitted,
+        labels['pre_regis_add_subject.pre_registration_complete'],
+      ],
+      [
+        HOST_LABELS.creditRange,
+        labels['pre_regis_add_subject.credits_that_student_can_take'],
+      ],
+      [
+        HOST_LABELS.creditTotal,
+        labels['pre_regis_add_subject.all_registered_credits'],
+      ],
+      [
+        HOST_LABELS.resultHeading,
+        labels['pre_regis_complete.list_of_registered_subjects'],
+      ],
+      [
+        HOST_LABELS.violateCondition,
+        labels['pre_regis_complete.can_not_register_violate_condition'],
+      ],
+      [HOST_LABELS.term, labels['pre_regis_panel.semester']],
+      [HOST_LABELS.lectureChip, labels['lect_or_prac_chip.lecture']],
+      [HOST_LABELS.practiceChip, labels['lect_or_prac_chip.practice']],
+    ];
+    for (const [set, label] of pairs) expect(set).toContain(label);
+    expect(HOST_LABELS.steps).toContainEqual(labels.pre_regis_stepper);
+  });
+
+  it('holds no host button label, since it reads and never presses', () => {
+    const all: string[] = Object.values(HOST_LABELS).flat(2);
+    for (const labels of LANGS) {
+      for (const button of [
+        labels['pre_regis_add_subject.add'],
+        labels['pre_regis_add_subject.continuous'],
+        labels['pre_regis_add_subject.roger'],
+      ]) {
+        expect(all).not.toContain(button);
+      }
+    }
+  });
+
+  it('matches the list header classes and the row colours', () => {
+    LIST_HEADER_CLASSES.forEach((name, index) => {
+      const classes = shape.classes.listHeader[index]?.split(' ') ?? [];
+      if (name !== null) expect(classes).toContain(name);
+    });
+    expect(rowColour(rgb(shape.rowColours.fits))).toBe('fits');
+    expect(rowColour(rgb(shape.rowColours.clash))).toBe('clash');
+    expect(rowColour(rgb(shape.rowColours.pending))).toBe('pending');
+    expect(rowColour('rgb(0, 0, 0)')).toBeUndefined();
+  });
+
+  it('reads section labels and the term column by their grammar', () => {
+    expect(SECTION_LABEL.exec('101 (CE)')?.slice(1)).toEqual(['101', 'CE']);
+    expect(SECTION_LABEL.exec('1')?.slice(1)).toEqual(['1', undefined]);
+    expect(SECTION_LABEL.test('1, 2')).toBe(false);
+    expect(TERM_TEXT.exec('ภาคการศึกษาที่ : 2 / 2569')?.slice(1)).toEqual([
+      '2',
+      '2569',
+    ]);
+    expect(TERM_TEXT.test('รหัสนักศึกษา : 65010001')).toBe(false);
+  });
+
+  it('reads the credit lines, with the ends unset before the host loads them', () => {
+    expect(CREDIT_RANGE.exec(': 9 - 22')?.slice(1)).toEqual(['9', '22']);
+    expect(CREDIT_RANGE.exec(': -')?.slice(1)).toEqual([undefined, undefined]);
+    expect(CREDIT_RANGE.exec(': NaN - NaN')?.slice(1)).toEqual(['NaN', 'NaN']);
+    expect(CREDIT_TOTAL.exec(': 18')?.[1]).toBe('18');
+    expect(CREDIT_TOTAL.test(': 18 (x)')).toBe(false);
+  });
+
+  it('names the host scripts and matches labels exactly after trimming', () => {
+    expect(SCRIPT_NAME.test(shape.build.app)).toBe(true);
+    expect(SCRIPT_NAME.test('app.454d9e95.js.map')).toBe(false);
+    expect(isLabel('  ทฤษฎี ', HOST_LABELS.lectureChip)).toBe(true);
+    expect(isLabel('ทฤษฎี 1', HOST_LABELS.lectureChip)).toBe(false);
+    expect(isLabel(null, HOST_LABELS.lectureChip)).toBe(false);
+  });
+});
