@@ -65,8 +65,8 @@ export interface ChecklistRow {
   chosen: RowAlternative | null;
   conditionsTh: string[];
   conditionsEn: string[];
-  /** Whether the planned code is listed more than once, under different curricula. */
-  duplicate: boolean;
+  /** A planned code listed more than once under different curricula, or null. */
+  duplicateCode: string | null;
   /** Whether a fresh kit lacks the planned group, or could not read the subject. */
   missing: boolean;
   /** The planned group's seats at prepare time, or null without a kit. */
@@ -185,9 +185,9 @@ export function deriveChecklist(input: ChecklistInput): Checklist {
           subject === undefined ? [] : kitConditions(subject, 'rulesTh'),
         conditionsEn:
           subject === undefined ? [] : kitConditions(subject, 'rulesEn'),
-        duplicate: planned.some((section) =>
-          duplicateCodes.has(section.section),
-        ),
+        duplicateCode:
+          planned.find((section) => duplicateCodes.has(section.section))
+            ?.section ?? null,
         missing: unread || (subject !== undefined && fromKit.length === 0),
         plannedSeat:
           subject?.options.find((option) => option.planned)?.seat ?? null,
@@ -221,7 +221,7 @@ export function reviewKind(row: ChecklistRow): ReviewKind {
     return 'mismatch';
   }
   if (row.state === 'conditional') return 'conditional';
-  if (row.duplicate) return 'checkCurriculum';
+  if (row.duplicateCode !== null) return 'checkCurriculum';
   return 'match';
 }
 
