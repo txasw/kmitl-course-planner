@@ -1,6 +1,6 @@
 # Privacy policy
 
-Effective date: 2026-11-10.
+Effective date: 2026-11-23.
 
 This policy covers the KCP: Course Planner for KMITL browser extension and its project
 site. It is the privacy policy linked from the Chrome Web Store and Firefox Add-ons
@@ -32,6 +32,13 @@ polling. A request carries only the search you chose, such as the term, the facu
 curriculum, or a subject id. As with any web request, those servers also receive your IP
 address and basic browser details. KCP never signs in, never reads your KMITL login, and
 never sends your plans anywhere.
+
+On the registration pages, pre registration and registration, KCP sends no request of its
+own. It shows your plan from what it has stored, makes a request only when you search or
+check, and does not retry a request that fails there, so it adds no load while
+registration is busy. Of the page address, KCP reads only which page is open and, on the
+course search result page, the search shown there. It keeps nothing else the address
+carries.
 
 ## Data storage
 
