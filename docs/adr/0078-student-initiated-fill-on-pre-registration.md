@@ -67,7 +67,13 @@ never sets host component state, and never calls host methods.
    which must be the only button of an open dialog whose title is the grade not announced title
    while no confirm dialog is open); เพิ่ม must be the first button of the block after the table,
    carry the green class, and be followed by the deep orange button; an option must sit in the
-   listbox the add row's own activator names.
+   listbox the add row's own activator names, as its direct child. Because a dispatched click
+   runs the activation behaviour of the nearest element on its path, a target is also refused
+   when it is a link, a label, a button that is not of type button or that a form owns, or a
+   field a form owns, and when any ancestor is a link, a label, a button, a button or link role,
+   or carries a click attribute. A label for Continue around an option, or an Add left at the
+   default submit type naming a form elsewhere, would otherwise turn an allowed press into a
+   press of Continue or a form submit.
 2. **One actuator** (`features/regis/fill/hostActuator.ts`). The only module in `src` that may
    dispatch an event, call `click`, or write a value on a host element. Immediately before each
    event, in the same task, it checks that the card is not loading, that focus is not inside the
@@ -85,7 +91,11 @@ never sets host component state, and never calls host methods.
    anywhere but the fill controls.
 5. **Lint confinement.** The existing ban on dispatch, click, submit, focus, value writes, and
    event construction in `features/regis`, `lib/regis` and the content entry keeps applying
-   everywhere except the actuator; the actuator may still not build a keyboard event.
+   everywhere except the actuator; the actuator may still not build a keyboard event. Each
+   action is matched as any reference to its member, computed or destructured, so a call through
+   `.call`, `Reflect.apply`, or a string key is caught, each event as a bare or a namespaced
+   constructor, and the property writes include `disabled` and `hidden` and writes through
+   `Object.assign` or `Reflect.set`.
 6. **Write name scan.** The test from ADR-0077 that fails on any registration write name in the
    sources, the fixtures, the replica, and the built bundles.
 7. **Tested build gate and refusal latch** (`lib/regis/hostBuild.ts`). Fill runs only on the
@@ -111,7 +121,8 @@ Identity proof without a teach table id: the kit, read from the public data at a
 show the planned code once for its subject and kind; exactly one rendered option must carry the
 planned code; a curriculum suffix on it must be one the kit explains by a code shared across
 lecture and practice. Otherwise KCP stops with the duplicate code reason and the student picks on
-the page.
+the page. The proof runs again on the list as it stands in the task of the click, and a list that
+changed since it was read is a stop.
 
 Before เพิ่ม KCP checks the row the host coloured as fitting, the seats (an over subscribed section
 stops with a "continue with this section" button, 4A), and its own placement engine for the
@@ -126,7 +137,8 @@ continues with the sections (5B).
 
 กรอกวิชานี้ (Fill this subject) on each row and กรอกทุกวิชา (Fill all subjects) in the header,
 หยุดกรอก (Stop filling) during a run, กรอกต่อ (Continue filling) after a stop, and a switch
-กรอกในหน้าลงทะเบียนให้ (Fill the registration page for me), on by default. Every stop names its
+กรอกในหน้าลงทะเบียนให้ (Fill the registration page for me), on by default; turning it off during a
+run ends the run at the next step like หยุดกรอก. Every stop names its
 reason in one sentence with the next step, in Thai and English. During a run the header warns not
 to press ดำเนินการต่อ until every subject is in; after it the final review hands off to the student,
 and the count line beside the confirm dialog stays. One status line announces the step, the stop,
