@@ -14,8 +14,9 @@ import type {
 // outside the allowlist (Continue, the confirm dialog's buttons, the trash icons, the
 // links, the pattern table) got a press or an event, that nothing was written, and that
 // KCP sent no request of its own. The hostile variants relabel the buttons, dress the
-// confirm dialog as the grade dialog, move focus to Continue, submit on Enter, or serve
-// an untested build, and each must end with the fill stopped or never started.
+// confirm dialog as the grade dialog, move focus to Continue, submit on Enter, wrap an
+// option in a label for Continue, let Add submit a form elsewhere, or serve an untested
+// build, and each must end with the fill stopped or never started.
 
 declare global {
   interface Window {
@@ -220,6 +221,55 @@ test('stops on a relabelled Add and presses no Continue', async ({
     timeout: 15_000,
   });
   expect(await listed(page)).toEqual([]);
+  await expectNothingForbidden(page);
+});
+
+const ACTIVATING_VARIANTS = [
+  ['an option wrapped in a label for Continue', 'labelledOption'],
+  ['an Add that submits a form elsewhere on the page', 'formAdd'],
+] as const;
+
+for (const [name, variant] of ACTIVATING_VARIANTS) {
+  test(`stops on ${name} and presses no Continue`, async ({
+    context,
+    serviceWorker,
+  }) => {
+    const page = await openPlanner(context);
+    await setUp(page, serviceWorker, (section) => ({
+      variant,
+      catalog: { [SUBJECT]: { sections: [{ section, kind: 'ท' }] } },
+    }));
+    await press(page, 'กรอกทุกวิชา');
+    await expect(page.locator('[data-fill-stop="notRecognised"]')).toBeVisible({
+      timeout: 15_000,
+    });
+    expect(await listed(page)).toEqual([]);
+    await expectNothingForbidden(page);
+  });
+}
+
+test('ends the run when the student switches fill off', async ({
+  context,
+  serviceWorker,
+}) => {
+  const page = await openPlanner(context);
+  await setUp(page, serviceWorker, (section) => ({
+    delay: 3000,
+    catalog: { [SUBJECT]: { sections: [{ section, kind: 'ท' }] } },
+  }));
+  await press(page, 'กรอกทุกวิชา');
+  await expect(page.locator('[data-fill="running"]')).toBeVisible();
+  // The subject is entered and the host is still reading it.
+  await page.waitForFunction(() => window.replica.state.add.loading);
+  await page.getByRole('checkbox', { name: 'กรอกในหน้าลงทะเบียนให้' }).click();
+  await expect(page.locator('[data-fill="stopped"]')).toBeVisible();
+  // The host answers after the switch went off, and the run acts on nothing more.
+  await page.waitForTimeout(3500);
+  expect(await listed(page)).toEqual([]);
+  const reached = await page.evaluate(
+    () => window.replica.counters.untrustedOn,
+  );
+  expect(Object.keys(reached)).toEqual(['subjectField']);
   await expectNothingForbidden(page);
 });
 

@@ -315,6 +315,16 @@ describe('runFill', () => {
       { config: { variant: 'focusContinue' as const } },
       'pageChanged',
     ],
+    [
+      'an option inside a label for Continue',
+      { config: { variant: 'labelledOption' as const } },
+      'notRecognised',
+    ],
+    [
+      'an Add that submits a form elsewhere',
+      { config: { variant: 'formAdd' as const } },
+      'notRecognised',
+    ],
   ])(
     'stops on %s and leaves the page to the student',
     async (_name, options, reason) => {
