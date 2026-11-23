@@ -15,7 +15,7 @@ import { readLocationHash } from '@/features/shell/hostLocation';
 import { regisStore } from '../regisStore';
 import { readScriptNames } from '../host/hostDom';
 import { isSurrogateSession } from '../host/surrogate';
-import { runFill, type FillStep } from './fillEngine';
+import { runFill, type FillOutcome, type FillStep } from './fillEngine';
 import { consumeStudentPress, type StudentPress } from './studentPress';
 import { startTripwire } from './tripwire';
 
@@ -100,36 +100,44 @@ export async function startFill(
       total: targets.length,
     },
   });
-  const outcome = await runFill({
-    doc: document,
-    plan: request.plan,
-    kit: request.kit,
-    targets,
-    allowFull: new Set(request.allowFull ?? []),
-    stopRequested: () =>
-      fillStore.getState().stop ||
-      regisStore.getState().fill.off ||
-      readLocationHash() !== hash ||
-      isSurrogateSession(),
-    onStep: (subjectId, step, prerequisites) => {
-      fillStore.setState({
-        run: {
-          status: 'running',
-          subjectId,
-          step,
-          prerequisites,
-          done: targets.findIndex((target) => target.subjectId === subjectId),
-          total: targets.length,
-        },
-      });
-    },
-    onRefusal: () => {
-      const key = buildKey(names);
-      if (key !== null) regisStore.getState().latchBuild(key);
-    },
-    tripwire,
-  });
-  tripwire.stop();
+  // A fault inside the run ends it as a stop the student can read, never as a run that
+  // stays running with a Stop that no step reads and the fill buttons hidden.
+  let outcome: FillOutcome;
+  try {
+    outcome = await runFill({
+      doc: document,
+      plan: request.plan,
+      kit: request.kit,
+      targets,
+      allowFull: new Set(request.allowFull ?? []),
+      stopRequested: () =>
+        fillStore.getState().stop ||
+        regisStore.getState().fill.off ||
+        readLocationHash() !== hash ||
+        isSurrogateSession(),
+      onStep: (subjectId, step, prerequisites) => {
+        fillStore.setState({
+          run: {
+            status: 'running',
+            subjectId,
+            step,
+            prerequisites,
+            done: targets.findIndex((target) => target.subjectId === subjectId),
+            total: targets.length,
+          },
+        });
+      },
+      onRefusal: () => {
+        const key = buildKey(names);
+        if (key !== null) regisStore.getState().latchBuild(key);
+      },
+      tripwire,
+    });
+  } catch {
+    outcome = { status: 'stopped', subjectId: null, reason: 'notRecognised' };
+  } finally {
+    tripwire.stop();
+  }
   const item = request.items[blocked];
   if (outcome.status === 'stopped') {
     stopped(outcome.subjectId, outcome.reason, scope);
