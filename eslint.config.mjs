@@ -91,6 +91,26 @@ const HOST_ACTION_SYNTAX = [
   "CallExpression[callee.property.name='setAttribute']",
 ].map((selector) => ({ selector, message: NO_HOST_ACTION }));
 
+// The fill actuator is the one module that may act on a host control (ADR-0078): it may
+// dispatch an event, click, and write a field value, and nothing else on this list.
+const ACTUATOR_SYNTAX = [
+  'CallExpression[callee.property.name=/^(submit|requestSubmit|focus)$/]',
+  'AssignmentExpression[left.property.name=/^(checked|selected|textContent|innerText)$/]',
+  'NewExpression[callee.name=/^(KeyboardEvent|InputEvent|PointerEvent|FocusEvent|SubmitEvent)$/]',
+  "CallExpression[callee.property.name='setAttribute']",
+].map((selector) => ({
+  selector,
+  message:
+    'The fill actuator only writes the field, dispatches input, and clicks.',
+}));
+
+// Only a fill button's click handler may issue the student press that starts a run.
+const PRESS_ISSUER = {
+  group: ['**/studentPress'],
+  importNames: ['issueStudentPress'],
+  message: 'Only the fill buttons issue a student press (ADR-0078).',
+};
+
 // Modules that read the host page keep what they read in memory: they may not reach the
 // storage, the worker messaging, the logger, or the diagnostics (ADR-0077).
 const NO_HOST_EGRESS =
@@ -273,19 +293,47 @@ export default tseslint.config(
     },
   },
 
-  // The host page readers keep what they read in memory only.
+  // The fill actuator acts on the host controls its handles name, and only that way.
+  {
+    files: ['src/features/regis/fill/hostActuator.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...HTML_SYNTAX,
+        ...FOCUS_SYNTAX,
+        ...LOCATION_SYNTAX,
+        ...ACTUATOR_SYNTAX,
+      ],
+    },
+  },
+
+  // No product module but the fill buttons may issue a student press.
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['**/*.test.{ts,tsx}', 'src/features/regis/fill/FillControls.tsx'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [PRESS_ISSUER] }],
+    },
+  },
+
+  // The host page readers and the fill engine keep what they read in memory only.
   {
     files: [
       'src/features/regis/host/**/*.{ts,tsx}',
+      'src/features/regis/fill/**/*.{ts,tsx}',
       'src/lib/regis/host*.ts',
       'src/lib/regis/observ*.ts',
+      'src/lib/regis/fill*.ts',
     ],
-    ignores: ['**/*.test.{ts,tsx}'],
+    ignores: ['**/*.test.{ts,tsx}', 'src/features/regis/fill/FillControls.tsx'],
     rules: {
       'no-restricted-imports': [
         'error',
         {
-          patterns: [{ group: HOST_EGRESS_PATTERNS, message: NO_HOST_EGRESS }],
+          patterns: [
+            { group: HOST_EGRESS_PATTERNS, message: NO_HOST_EGRESS },
+            PRESS_ISSUER,
+          ],
         },
       ],
     },

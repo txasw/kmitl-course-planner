@@ -210,3 +210,81 @@ describe('the surrogate presence check', () => {
     expect(elsewhere.join(' ')).toMatch(/browser\.storage/);
   });
 });
+
+// The fill actuator is the one module that may act on a host control (ADR-0078).
+describe('the fill actuator confinement', () => {
+  const actuator = 'src/features/regis/fill/hostActuator.ts';
+
+  it('lets the actuator dispatch, click, and write the field', async () => {
+    for (const source of [
+      'el.dispatchEvent(new Event("input", { bubbles: true }));',
+      'el.dispatchEvent(new MouseEvent("click", { bubbles: true }));',
+      'button.click();',
+      'input.value = "01476107";',
+    ]) {
+      expect(await messagesFor(actuator, source)).toEqual([]);
+    }
+  });
+
+  it('still forbids the actuator every other action', async () => {
+    for (const source of [
+      'export const key = new KeyboardEvent("keydown");',
+      'el.focus();',
+      'form.submit();',
+      'form.requestSubmit();',
+      'option.selected = true;',
+      'el.setAttribute("aria-selected", "true");',
+    ]) {
+      const messages = await messagesFor(actuator, source);
+      expect(messages.join(' ')).toMatch(/only writes the field/);
+    }
+  });
+
+  it.each([
+    'src/features/regis/fill/hostControls.ts',
+    'src/features/regis/fill/fillEngine.ts',
+    'src/features/regis/fill/FillControls.tsx',
+    'src/lib/regis/fillPlan.ts',
+  ])('forbids acting on a host control in %s', async (file) => {
+    for (const source of HOST_ACTIONS) {
+      const messages = await messagesFor(file, source);
+      expect(messages.join(' ')).toMatch(/only reads the host page/);
+    }
+  });
+});
+
+describe('the student press issuer', () => {
+  const source = 'import { issueStudentPress } from "./studentPress";';
+
+  it('is imported by the fill buttons only', async () => {
+    expect(
+      await messagesFor('src/features/regis/fill/FillControls.tsx', source),
+    ).toEqual([]);
+    for (const file of [
+      'src/features/regis/fill/fillEngine.ts',
+      'src/features/regis/fill/hostControls.ts',
+      'src/features/regis/DockContent.tsx',
+      'src/entrypoints/regis.content/App.tsx',
+    ]) {
+      const messages = await messagesFor(file, source);
+      expect(messages.join(' ')).toMatch(/Only the fill buttons/);
+    }
+  });
+
+  it('leaves the press type and its consumer free to import', async () => {
+    expect(
+      await messagesFor(
+        'src/features/regis/fill/fillEngine.ts',
+        'import { consumeStudentPress } from "./studentPress";',
+      ),
+    ).toEqual([]);
+  });
+
+  it('keeps the fill engine out of storage and messages', async () => {
+    const messages = await messagesFor(
+      'src/features/regis/fill/fillEngine.ts',
+      'import { x } from "@/lib/storage/regis";',
+    );
+    expect(messages.join(' ')).toMatch(/stay in memory/);
+  });
+});
