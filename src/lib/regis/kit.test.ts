@@ -18,6 +18,7 @@ import {
   kitConditions,
   kitMatchesPlan,
   plannedSections,
+  refitKit,
   subjectQuery,
   summarizeKit,
 } from './kit';
@@ -341,5 +342,42 @@ describe('summarizeKit', () => {
       preparedAt: '2026-11-22T14:10:00.000Z',
     });
     expect(summarizeKit(gone).subjects[0]?.reasons).toEqual(['missing']);
+  });
+});
+
+describe('refitKit', () => {
+  it('follows a section saved to the plan without a read', () => {
+    const plan = makePlan({
+      entries: [entryFor(COURSE_A, A1), entryFor(COURSE_B, B1)],
+    });
+    const kit = buildRegistrationKit({
+      plan,
+      results: new Map([
+        ['A', catalogOf(COURSE_A)],
+        ['B', catalogOf(COURSE_B)],
+      ]),
+      preparedAt: '2026-11-22T14:10:00.000Z',
+    });
+    const moved = makePlan({ entries: [entryFor(COURSE_A, A2)] });
+    const refit = refitKit(kit, moved);
+    expect(refit.preparedAt).toBe(kit.preparedAt);
+    expect(refit.subjects.map((subject) => subject.subjectId)).toEqual(['A']);
+    expect(refit.subjects[0]?.plannedIds).toEqual(['A2']);
+    // With B gone, A1 on Monday fits again.
+    expect(
+      refit.subjects[0]?.options.find((option) => option.ids[0] === 'A1')?.fit,
+    ).toBe('fits');
+  });
+
+  it('reads a subject added after the kit as not prepared', () => {
+    const kit = buildRegistrationKit({
+      plan: makePlan({ entries: [entryFor(COURSE_A, A1)] }),
+      results: new Map([['A', catalogOf(COURSE_A)]]),
+      preparedAt: '2026-11-22T14:10:00.000Z',
+    });
+    const grown = makePlan({
+      entries: [entryFor(COURSE_A, A1), entryFor(COURSE_B, B1)],
+    });
+    expect(refitKit(kit, grown).unread).toEqual(['B']);
   });
 });
