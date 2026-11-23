@@ -131,8 +131,18 @@ describe('fillTarget', () => {
   it('fills the planned lecture and its practice from the kit', () => {
     const made = target(A);
     expect(made.id.value).toBe(A);
-    expect(made.primary).toEqual({ code: '1', shared: false, listed: 2 });
-    expect(made.practice).toEqual({ code: '101', shared: false, listed: 1 });
+    expect(made.primary).toEqual({
+      code: '1',
+      shared: false,
+      listed: 2,
+      duplicate: false,
+    });
+    expect(made.practice).toEqual({
+      code: '101',
+      shared: false,
+      listed: 1,
+      duplicate: false,
+    });
   });
 
   it('refuses a subject without a kit entry', () => {
@@ -141,12 +151,22 @@ describe('fillTarget', () => {
     expect(fillTarget(row, plan, null)).toBe('noKit');
   });
 
-  it('refuses a planned code listed twice for its kind', () => {
+  it('leaves a code the kit lists under two curricula to the student', () => {
+    // A stop before the subject is entered would stop again on every Continue, so the
+    // subject is entered and the half is marked for the student to choose.
+    const flagged = {
+      ...kit,
+      subjects: kit.subjects.map((subject) =>
+        subject.subjectId === B
+          ? { ...subject, duplicateCodes: ['1'] }
+          : subject,
+      ),
+    };
     const row = rows.find((item) => item.subjectId === B);
     if (row === undefined) throw new Error('no row');
-    expect(fillTarget({ ...row, duplicateCode: '1' }, plan, kit)).toBe(
-      'duplicateCode',
-    );
+    const made = fillTarget({ ...row, duplicateCode: '1' }, plan, flagged);
+    if (typeof made === 'string') throw new Error(made);
+    expect(made.primary.duplicate).toBe(true);
   });
 });
 
@@ -198,7 +218,7 @@ describe('listedState', () => {
 });
 
 describe('pickOption', () => {
-  const half = { code: '1', shared: false, listed: 2 };
+  const half = { code: '1', shared: false, listed: 2, duplicate: false };
 
   it('picks the one option with the planned code', () => {
     expect(
@@ -229,9 +249,18 @@ describe('pickOption', () => {
     ).toBe(0);
   });
 
+  it('never chooses a code the kit lists under two curricula', () => {
+    expect(
+      pickOption([{ section: '1', curriculum: null }], {
+        ...half,
+        duplicate: true,
+      }),
+    ).toBe('duplicateCode');
+  });
+
   it('tells a code the page does not offer from one beyond the first 20', () => {
     expect(pickOption([{ section: '2', curriculum: null }], half)).toBe(
-      'refused',
+      'notOffered',
     );
     const twenty = Array.from({ length: 20 }, (_, index) => ({
       section: String(index + 30),

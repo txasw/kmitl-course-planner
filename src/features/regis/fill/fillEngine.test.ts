@@ -450,6 +450,51 @@ describe('runFill', () => {
     expect(replica.state.list).toEqual([]);
   });
 
+  it('leaves a code under two curricula to the student, then adds their pick', async () => {
+    const { plan, kit, catalog } = setup([SINGLE]);
+    const flagged = {
+      ...kit,
+      subjects: kit.subjects.map((subject) => ({
+        ...subject,
+        duplicateCodes: ['1'],
+      })),
+    };
+    const targets = deriveChecklist({
+      plan,
+      kit: flagged,
+      marks: null,
+      pageTerm: null,
+    })
+      .rows.map((row) => fillTarget(row, plan, flagged))
+      .filter((target): target is FillTarget => typeof target !== 'string');
+    replica = mountReplica(document);
+    replica.configure({ delay: 5, catalog });
+    const run = () =>
+      runFill({
+        doc: document,
+        plan,
+        kit: flagged,
+        targets,
+        allowFull: new Set(),
+        stopRequested: () => false,
+        onStep: () => undefined,
+        onRefusal: () => undefined,
+        tripwire: { count: () => 0, stop: () => undefined },
+        timing: { pace: 0, poll: 2, answer: 150, settle: 150, acknowledge: 0 },
+      });
+    expect(await run()).toMatchObject({
+      status: 'stopped',
+      reason: 'duplicateCode',
+    });
+    expect(replica.counters.clicks.option ?? 0).toBe(0);
+    expect(replica.state.list).toEqual([]);
+    // The student picks their own curriculum's row, then presses Continue.
+    replica.pick('primary', 0);
+    expect(await run()).toEqual({ status: 'done', filled: 1 });
+    expect(replica.state.list.map((row) => row.section)).toEqual(['1']);
+    expect(replica.counters.reads).toBe(1);
+  });
+
   it('stops when the page starts a request it did not expect', async () => {
     const { plan, kit, targets, catalog } = setup([SINGLE]);
     replica = mountReplica(document);
