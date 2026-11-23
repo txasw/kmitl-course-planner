@@ -183,10 +183,14 @@ export function FillPanel({
                 />
               ) : null}
               {run.status === 'stopped' && rest.length > 0 ? (
-                <PressButton
-                  label={t('regis.fill.continue')}
-                  onPress={start(rest)}
-                />
+                // After an over subscribed stop a plain Continue would stop on the same
+                // section again; the student fills it anyway or picks another below.
+                run.reason === 'full' ? null : (
+                  <PressButton
+                    label={t('regis.fill.continue')}
+                    onPress={start(rest)}
+                  />
+                )
               ) : rows.length > 0 ? (
                 <PressButton
                   label={t('regis.fill.all')}
