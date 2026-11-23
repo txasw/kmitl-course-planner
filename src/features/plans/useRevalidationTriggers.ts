@@ -3,8 +3,9 @@
 // minutes. A manual check runs from the verification status and bypasses the throttle. A
 // run that leaves new review items asks for the updates dialog, which opens at the next
 // idle moment (ADR-0060), except the check after a first add created the plan, which runs
-// but opens no dialog. On a host registration page neither trigger runs (ADR-0075). The hook mounts once at the app root and reads the injected send so it
-// stays off the search store's live catalog.
+// but opens no dialog. On a host registration page neither trigger runs (ADR-0075). The
+// hook mounts once at the app root and reads the injected send so it stays off the search
+// store's live catalog.
 
 import { useEffect } from 'react';
 import type { Plan } from '@/lib/domain/plan';
