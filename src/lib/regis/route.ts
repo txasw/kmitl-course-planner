@@ -5,6 +5,8 @@
 // is pure and reads only the route path, never the query, so it never needs anything
 // the address may carry besides the page name.
 
+import { routePath } from '../routing/locationHash';
+
 /** The registration pages of the host, by route path without the leading hash. */
 export const REGISTRATION_ROUTES: readonly string[] = [
   '/pre_registration',
@@ -14,17 +16,6 @@ export const REGISTRATION_ROUTES: readonly string[] = [
   '/registration_queue',
   '/registration_future_innovation',
 ];
-
-// A route path is a slash followed by the characters the host route names use. The
-// match stops at the first other character, so a query, or a sign in redirect that
-// appends its fields after an ampersand, is never part of the path.
-const ROUTE_PATH = /^\/[A-Za-z0-9_/-]*/;
-
-/** The route path a location hash names, or an empty string when it names none. */
-export function routePath(hash: string): string {
-  const raw = hash.startsWith('#') ? hash.slice(1) : hash;
-  return ROUTE_PATH.exec(raw)?.[0] ?? '';
-}
 
 /**
  * Whether a location hash names a registration page. The host router matches paths

@@ -39,10 +39,8 @@ import {
 import { planStore } from '@/features/plans/planStore';
 import { activePlanOf } from '@/features/plans/planStoreState';
 import { uiStore } from '@/features/shell/uiStore';
-import {
-  readLocationHash,
-  subscribeHashRoute,
-} from '@/features/search/useHashRoute';
+import { readLocationHash } from '@/features/shell/hostLocation';
+import { subscribeHashRoute } from '@/features/search/useHashRoute';
 import { leaveEntryToast } from './leaveEntryToast';
 import { onboardingStore } from './onboardingStore';
 

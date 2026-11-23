@@ -23,10 +23,8 @@ import {
 } from '@/lib/onboarding/coachMark';
 import type { OnboardingRepository } from '@/lib/storage/onboarding';
 import { uiStore } from '@/features/shell/uiStore';
-import {
-  readLocationHash,
-  subscribeHashRoute,
-} from '@/features/search/useHashRoute';
+import { readLocationHash } from '@/features/shell/hostLocation';
+import { subscribeHashRoute } from '@/features/search/useHashRoute';
 import { onboardingStore } from './onboardingStore';
 import { recordCoachMarkSnooze } from './recordOnboardingMoment';
 
