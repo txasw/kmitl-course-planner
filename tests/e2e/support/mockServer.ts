@@ -14,6 +14,45 @@ import { generate } from 'selfsigned';
 import { denseCatalogJson } from './denseCatalog';
 
 const FIXTURE_DIR = resolve(process.cwd(), 'tests/fixtures');
+const REPLICA_DIR = resolve(process.cwd(), 'tests/e2e/host/pre_registration');
+
+// The host build names the observer was tested against, and a name it was not.
+const TESTED_APP = '454d9e95';
+const TESTED_VENDOR = '7ab4925e';
+const UNTESTED_APP = '00000000';
+
+/**
+ * The static pre registration replica and its scripts, or null for any other path. The
+ * page names its scripts like the host build, the tested one unless the query asks for
+ * an untested build, so the observer's build gate sees the names it compares.
+ */
+function replicaFile(url: URL): { type: string; body: string } | null {
+  const js = 'text/javascript';
+  if (url.pathname === '/replica/pre_registration') {
+    const app =
+      url.searchParams.get('build') === 'untested' ? UNTESTED_APP : TESTED_APP;
+    const html = readFileSync(resolve(REPLICA_DIR, 'index.html'), 'utf8')
+      .replace('__APP__', app)
+      .replace('__VENDOR__', TESTED_VENDOR);
+    return { type: 'text/html', body: html };
+  }
+  if (url.pathname === '/replica/replica.js') {
+    return {
+      type: js,
+      body: readFileSync(resolve(REPLICA_DIR, 'replica.js'), 'utf8'),
+    };
+  }
+  if (/^\/js\/app\.[0-9a-f]{8}\.js$/.test(url.pathname)) {
+    return {
+      type: js,
+      body: readFileSync(resolve(REPLICA_DIR, 'boot.js'), 'utf8'),
+    };
+  }
+  if (/^\/js\/chunk-vendors\.[0-9a-f]{8}\.js$/.test(url.pathname)) {
+    return { type: js, body: '' };
+  }
+  return null;
+}
 
 function fixtureBody(name: string): string {
   return readFileSync(resolve(FIXTURE_DIR, name), 'utf8');
@@ -199,8 +238,9 @@ export async function startMockServer(): Promise<MockServer> {
           sendJson('teach-table.by_subject_owner_id-32.capture.json');
           return;
         }
-        res.writeHead(200, { 'content-type': 'text/html' });
-        res.end(HOST_HTML);
+        const replica = replicaFile(url);
+        res.writeHead(200, { 'content-type': replica?.type ?? 'text/html' });
+        res.end(replica?.body ?? HOST_HTML);
         return;
       }
 
