@@ -21,6 +21,7 @@ import {
   pageBlock,
   pickOption,
   practiceHolds,
+  rowsToFill,
   type FillTarget,
 } from './fillPlan';
 
@@ -168,6 +169,18 @@ describe('fillTarget', () => {
     const made = fillTarget({ ...row, duplicateCode: '1' }, plan, flagged);
     if (typeof made === 'string') throw new Error(made);
     expect(made.primary.duplicate).toBe(true);
+  });
+});
+
+describe('rowsToFill', () => {
+  it('keeps the named rows still to do, in checklist order', () => {
+    const settled = rows.map((row) =>
+      row.subjectId === A ? { ...row, state: 'addedOther' as const } : row,
+    );
+    expect(rowsToFill(settled, [B, A]).map((row) => row.subjectId)).toEqual([
+      B,
+    ]);
+    expect(rowsToFill(rows, [A]).map((row) => row.subjectId)).toEqual([A]);
   });
 });
 

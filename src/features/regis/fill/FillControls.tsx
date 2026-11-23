@@ -11,7 +11,7 @@ import type { Plan } from '@/lib/domain/plan';
 import { fillTemplate } from '@/lib/i18n/template';
 import type { Translate } from '@/lib/i18n/t';
 import type { Checklist, ChecklistRow } from '@/lib/regis/checklist';
-import { fillTarget, type StopReason } from '@/lib/regis/fillPlan';
+import { fillTarget, rowsToFill, type StopReason } from '@/lib/regis/fillPlan';
 import { fillGate } from '@/lib/regis/hostBuild';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
 import { FOCUS_RING } from '@/lib/ui/focus';
@@ -108,13 +108,10 @@ export function FillPanel({
   const start =
     (subjects: readonly string[], allowFull?: string[]) =>
     (press: StudentPress) => {
-      const chosen = checklist.rows.filter((row) =>
-        subjects.includes(row.subjectId),
-      );
       void startFill(press, {
         plan,
         kit,
-        items: itemsFor(chosen, plan, kit),
+        items: itemsFor(rowsToFill(checklist.rows, subjects), plan, kit),
         ...(allowFull === undefined ? {} : { allowFull }),
       });
     };
