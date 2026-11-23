@@ -1,19 +1,35 @@
-// The registration helper's view of the active plan: the plan's kit when one younger than
-// the age limit exists, checked again against the plan as it stands, and the checklist
-// derived from it and the student's marks. The page term is not read in this release, so
-// the rows never enter the term mismatch state here and the dock asks the student to
-// compare the term instead.
+// The registration helper's view of the active plan: which companion page is open, the
+// plan's kit when one younger than the age limit exists, checked again against the plan
+// as it stands, and the checklist derived from it and the student's marks. The page term
+// is not read in this release, so the rows never enter the term mismatch state here and
+// the dock asks the student to compare the term instead.
 
-import { useMemo } from 'react';
+import { useMemo, useSyncExternalStore } from 'react';
 import { useStore } from 'zustand';
 import type { Plan } from '@/lib/domain/plan';
+import { companionRoute, type CompanionRoute } from '@/lib/regis/route';
 import { isKitFresh, kitMatchesPlan, refitKit } from '@/lib/regis/kit';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
 import { deriveChecklist, type Checklist } from '@/lib/regis/checklist';
 import { planStore } from '@/features/plans/planStore';
 import { activePlanOf } from '@/features/plans/planStoreState';
+import { readLocationHash } from '@/features/shell/hostLocation';
 import { uiStore } from '@/features/shell/uiStore';
+import { subscribeHashRoute } from '@/features/search/useHashRoute';
 import { regisStore } from './regisStore';
+
+function currentCompanionRoute(): CompanionRoute | null {
+  return companionRoute(readLocationHash());
+}
+
+/** The companion page on screen, kept current across host navigation. */
+export function useCompanionRoute(): CompanionRoute | null {
+  return useSyncExternalStore(
+    subscribeHashRoute,
+    currentCompanionRoute,
+    currentCompanionRoute,
+  );
+}
 
 export type KitState = 'none' | 'stale' | 'fresh';
 
