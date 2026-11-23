@@ -79,6 +79,33 @@ const LOCATION_SYNTAX = [
 // the reader and the tests too, which reach the address through window.
 const LOCATION_GLOBALS = [{ name: 'location', message: NO_RAW_LOCATION }];
 
+// The registration helper reads the host page and never acts on it (ADR-0077): no event
+// dispatch, no click, no submit, no value written into a control, no focus moved, and no
+// event constructed, so nothing in these folders can press a host control.
+const NO_HOST_ACTION =
+  'The registration helper only reads the host page; it never acts on a host control.';
+const HOST_ACTION_SYNTAX = [
+  'CallExpression[callee.property.name=/^(dispatchEvent|click|submit|requestSubmit|focus)$/]',
+  'AssignmentExpression[left.property.name=/^(value|checked|selected|textContent|innerText)$/]',
+  'NewExpression[callee.name=/^(Event|CustomEvent|InputEvent|KeyboardEvent|MouseEvent|PointerEvent|FocusEvent|SubmitEvent)$/]',
+  "CallExpression[callee.property.name='setAttribute']",
+].map((selector) => ({ selector, message: NO_HOST_ACTION }));
+
+// Modules that read the host page keep what they read in memory: they may not reach the
+// storage, the worker messaging, the logger, or the diagnostics (ADR-0077).
+const NO_HOST_EGRESS =
+  'Host page readings stay in memory; this module may not import storage, messaging, the logger, or diagnostics.';
+const HOST_EGRESS_PATTERNS = [
+  '@/lib/storage/**',
+  '@/lib/messaging/**',
+  '@/lib/utils/logger',
+  '@/features/diagnostics/**',
+  '**/storage/**',
+  '**/messaging/**',
+  '**/logger',
+  '**/diagnostics/**',
+];
+
 // A focus ring or outline class written by hand, in a string or a template literal.
 // The shared constants hold the one indicator, so the tokens change it in one place.
 const FOCUS_CLASS = String.raw`/focus(-visible|-within)?:(ring|outline)/`;
@@ -222,6 +249,61 @@ export default tseslint.config(
         { object: 'window', property: 'fetch', message: NO_FETCH },
         { object: 'globalThis', property: 'fetch', message: NO_FETCH },
         ...WEB_STORAGE_PROPERTIES,
+      ],
+    },
+  },
+
+  // The registration helper and the content entry read the host page and never act on
+  // it. Tests set up their fixture documents, so they are exempt.
+  {
+    files: [
+      'src/features/regis/**/*.{ts,tsx}',
+      'src/lib/regis/**/*.ts',
+      'src/entrypoints/regis.content/**/*.{ts,tsx}',
+    ],
+    ignores: ['**/*.test.{ts,tsx}'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...HTML_SYNTAX,
+        ...FOCUS_SYNTAX,
+        ...LOCATION_SYNTAX,
+        ...HOST_ACTION_SYNTAX,
+      ],
+    },
+  },
+
+  // The host page readers keep what they read in memory only.
+  {
+    files: [
+      'src/features/regis/host/**/*.{ts,tsx}',
+      'src/lib/regis/host*.ts',
+      'src/lib/regis/observ*.ts',
+    ],
+    ignores: ['**/*.test.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [{ group: HOST_EGRESS_PATTERNS, message: NO_HOST_EGRESS }],
+        },
+      ],
+    },
+  },
+
+  // The one read of the page web storage: whether the staff surrogate key is present,
+  // so the observer stays off on a page that belongs to another person (ADR-0077).
+  {
+    files: [
+      'src/features/regis/host/surrogate.ts',
+      'src/features/regis/host/surrogate.test.ts',
+    ],
+    rules: {
+      'no-restricted-globals': [
+        'error',
+        { name: 'fetch', message: NO_FETCH },
+        { name: 'localStorage', message: NO_WEB_STORAGE },
+        ...LOCATION_GLOBALS,
       ],
     },
   },
