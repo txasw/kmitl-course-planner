@@ -40,6 +40,12 @@ registration is busy. Of the page address, KCP reads only which page is open and
 course search result page, the search shown there. It keeps nothing else the address
 carries.
 
+On those two pages the Planner button opens the registration helper, a checklist of your
+plan beside the page. It shows what KCP stored before: your plan and, when you prepared
+for registration, the sections of your planned subjects. It reads nothing on the page,
+fills in nothing, and presses nothing there. You enter your subjects and submit your
+registration yourself. The marks you set in the checklist stay on your device.
+
 ## Data storage
 
 The extension keeps the following in the browser's extension storage on your device:
@@ -50,6 +56,10 @@ The extension keeps the following in the browser's extension storage on your dev
   lists, the current registration term, and recent course search results.
 - Your interface preferences, such as the language and the display options.
 - The last search on each search tab, so the form can restore it after a reload.
+- Registration helper data: for each plan you prepared for registration, the public
+  course data of every section of its subjects, read once when you pressed prepare, and
+  the checklist marks you set yourself. If this data is ever unreadable, a copy is set
+  aside on the device, as for plans.
 - The date and version of the installation.
 - The onboarding state: when the welcome message showed, when the panel first opened,
   whether you turned off the entry prompt beside the Planner button, and whether and when
@@ -64,6 +74,7 @@ The extension keeps the following in the browser's extension storage on your dev
 | Faculty, department, curriculum, and category lists, and the current term    | Used for up to 24 hours, then fetched again               |
 | Course search results                                                        | Used for up to 10 minutes, then fetched again             |
 | Preferences, last search per tab, install date and version, onboarding state | Until changed or until you remove the extension           |
+| Registration helper data and checklist marks                                 | Kept for your 12 most recent plans, used for 7 days       |
 | Record of a tab KCP opened for you (session storage)                         | At most one minute, and cleared when the browser restarts |
 
 None of this data is uploaded anywhere.
