@@ -111,6 +111,11 @@ describe('CompanionDock', () => {
         'ในหน้านี้ KCP แสดงรายการตามตารางเท่านั้น คุณเป็นผู้ตรวจรายการในหน้าลงทะเบียนเอง',
       ),
     ).toBeInTheDocument();
+    // Only pre registration is a one time submit, so the review does not say so here.
+    expect(
+      screen.getByText('ยังไม่ตรงกับแผน 1 วิชา ตรวจก่อนกดยืนยัน'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/ส่งได้ครั้งเดียว/)).not.toBeInTheDocument();
   });
 
   it('leaves the panel launcher alone on other pages', () => {
