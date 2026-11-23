@@ -180,6 +180,28 @@ describe('deriveChecklist', () => {
   });
 });
 
+describe('duplicate codes', () => {
+  it('names the planned code to check by eye in the review', () => {
+    const twin = { ...A1, teachTableId: 'A1-twin' };
+    const course = makeCourse({ subjectId: 'A', sections: [A1, twin] });
+    const single = makePlan({ entries: [entryFor(course, A1)] });
+    const dupKit = buildRegistrationKit({
+      plan: single,
+      results: new Map([['A', catalogOf(course)]]),
+      preparedAt: '2026-11-22T14:10:00.000Z',
+    });
+    const marks = withMark(null, single, 'A', { state: 'added', at: AT });
+    const list = deriveChecklist({
+      plan: single,
+      kit: dupKit,
+      marks,
+      pageTerm: null,
+    });
+    expect(list.rows[0]?.duplicateCode).toBe('1');
+    expect(finalReview(list)[0]?.kind).toBe('checkCurriculum');
+  });
+});
+
 describe('finalReview', () => {
   it('lists rows that differ from the plan first', () => {
     let marks = withMark(null, plan, 'A', { state: 'added', at: AT });
