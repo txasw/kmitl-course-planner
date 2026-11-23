@@ -73,6 +73,40 @@ describe('sanitizeHash', () => {
     });
   });
 
+  it('drops a token or a student id written in any letter case', () => {
+    keepsNoSecret(
+      '#/teach_table?selected_year=2569&TOKEN=SECRET.jwt.value&Student_ID=65010001&STD_ID=64010999',
+    );
+    keepsNoSecret(
+      '#/report_student?STUDENT_ID=65010001&Token=SECRET.jwt.value',
+    );
+  });
+
+  it('drops a token or a student id under an encoded name', () => {
+    const hash =
+      '#/teach_table?selected_year=2569&t%6Fken=SECRET.jwt.value&student%5Fid=65010001&std_%69d=64010999';
+    keepsNoSecret(hash);
+    expect(sanitizeHash(hash)).toBe('#/teach_table?selected_year=2569');
+    keepsNoSecret('#/google_oauth_handling%3Ftoken%3DSECRET.jwt.value');
+  });
+
+  it('drops every copy of a repeated token or student id', () => {
+    keepsNoSecret(
+      '#/teach_table?token=SECRET.jwt.value&selected_year=2569&token=SECRET.jwt.value&student_id=65010001&std_id=64010999&student_id=65010001',
+    );
+  });
+
+  it('drops a search field whose value carries a folded in query', () => {
+    for (const hash of [
+      '#/teach_table?mode=by_class&selected_year=2569?token=SECRET.jwt.value',
+      '#/teach_table?mode=by_class&selected_year=2569%26student_id%3D65010001',
+      '#/teach_table?mode=by_class&selected_year=2569#std_id=64010999',
+    ]) {
+      keepsNoSecret(hash);
+      expect(sanitizeHash(hash)).toBe('#/teach_table?mode=by_class');
+    }
+  });
+
   it('keeps every field each search mode sends', () => {
     const hash =
       '#/teach_table?mode=by_class&selected_year=2569&selected_semester=2&selected_faculty=01&selected_department=05&selected_curriculum=137&selected_class_year=0&search_all_faculty=false&search_all_department=false&search_all_curriculum=false&search_all_class_year=true&selected_subject_id=01076001&selected_subject_owner_id=32';
