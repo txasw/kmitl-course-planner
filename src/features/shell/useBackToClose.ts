@@ -6,9 +6,9 @@
 // that layer alone calls onBack and leaves history alone. Any other close goes back once, and
 // only when history still has the length and URL the layer expects, so an entry someone else
 // pushed is never unwound. The URL is compared through an opaque marker, so the layer never
-// holds the address itself (ADR-0075). It never reads history.state: Chromium caches that value per world
-// and refreshes it only for the world that read it last, so once the page reads it the content
-// script keeps seeing a stale value.
+// holds the address itself (ADR-0075). It never reads history.state: Chromium caches that
+// value per world and refreshes it only for the world that read it last, so once the page
+// reads it the content script keeps seeing a stale value.
 // A back is a queued traversal whose popstate belongs to no layer, so an opening or a close
 // that starts before the popstate of an earlier back waits for it, and the two traversals
 // cannot cross.
