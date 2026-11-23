@@ -5,7 +5,7 @@
 // what the page shows (ADR-0077); a mark the student sets overrides it and both stay in
 // view. A backup chosen here stays a mark until saved.
 
-import { useId } from 'react';
+import { useId, type ReactNode } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -164,6 +164,8 @@ interface ChecklistRowProps {
   t: Translate;
   /** Saves the chosen backup to the plan; null when no kit backs the row. */
   onSave: (() => void) | null;
+  /** The row's fill control on pre registration, or null. */
+  fill?: ReactNode;
 }
 
 export function ChecklistRow({
@@ -173,6 +175,7 @@ export function ChecklistRow({
   locale,
   t,
   onSave,
+  fill = null,
 }: ChecklistRowProps) {
   const selectId = useId();
   const primary = pickLocalized(row.nameTh, row.nameEn, locale);
@@ -225,6 +228,7 @@ export function ChecklistRow({
         </div>
       </div>
       <SectionLines sections={row.planned} t={t} />
+      {fill}
       {row.missing ? (
         <Note
           tone="warn"
