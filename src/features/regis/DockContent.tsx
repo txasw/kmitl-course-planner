@@ -22,6 +22,7 @@ import { formatLocalDateTime } from '@/features/planner/examText';
 import { termLabel } from '@/features/plans/PlanList';
 import { uiStore } from '@/features/shell/uiStore';
 import { ChecklistRow, STATE_KEY, StateIcon } from './ChecklistRow';
+import { FillPanel, FillRowButton } from './fill/FillControls';
 import { saveBackupToPlan } from './saveBackup';
 import type { KitState } from './useCompanion';
 
@@ -141,6 +142,9 @@ export function DockContent({
   t,
 }: DockContentProps) {
   const observer = route === 'preRegistration' ? observerKey(health) : null;
+  // Fill needs the page read and a fresh kit (ADR-0078).
+  const fillKit =
+    route === 'preRegistration' && health.status === 'healthy' ? kit : null;
   if (plan === null || checklist === null || checklist.total === 0) {
     return (
       <div className="flex flex-col gap-3 p-3">
@@ -195,6 +199,9 @@ export function DockContent({
             {t(observer)}
           </p>
         )}
+        {fillKit === null ? null : (
+          <FillPanel plan={plan} kit={fillKit} checklist={checklist} t={t} />
+        )}
         {checklist.extras.length > 0 ? (
           <p className="text-warn">
             {fillTemplate(t('regis.extras'), {
@@ -234,6 +241,11 @@ export function DockContent({
             plan={plan}
             locale={locale}
             t={t}
+            fill={
+              fillKit === null ? null : (
+                <FillRowButton row={row} plan={plan} kit={fillKit} t={t} />
+              )
+            }
             onSave={
               kit === null || row.chosen === null
                 ? null
