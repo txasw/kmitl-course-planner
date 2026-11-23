@@ -1,0 +1,5 @@
+---
+'kmitl-course-planner': minor
+---
+
+On the pre registration page the helper can now fill in the page's form for you. Press Fill this subject on a row, or Fill all subjects at the top, and KCP enters each planned subject id, picks the planned section and practice section in the page's own lists, and presses the page's Add button, one subject at a time, while the helper shows each step. It stops at the first problem and says why and what to do next, for example a section the page does not offer you, a section listed for more than one curriculum, a clash, or a section with more applicants than seats, which you can still choose to fill. When the page says a prerequisite grade is not out yet, the helper first shows you the condition and then presses Acknowledged. KCP never presses Continue or Confirm and never submits your registration: you check the list on the page and submit it yourself. Filling is on by default, can be turned off in the helper, and works only on the version of the page KCP was tested with. You need to prepare for registration first, so KCP knows every section of your subjects.
