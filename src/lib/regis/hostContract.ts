@@ -1,0 +1,110 @@
+// What the read only observer expects of the host's pre registration page (ADR-0077), in
+// one place: the host builds KCP was tested against, the structural anchors and the fixed
+// labels the host prints from its own dictionaries in both of its languages, the row
+// colours, and the grammar of the few texts the observer reads. A label here is the host's
+// own interface text, never a server message, so matching it reveals nothing about the
+// student. Any mismatch turns the observer off and leaves the manual marks.
+
+/** The host script names the observer was tested against, both required (owner 20A). */
+export const TESTED_BUILDS: readonly (readonly [string, string])[] = [
+  ['app.454d9e95.js', 'chunk-vendors.7ab4925e.js'],
+];
+
+/** Host labels in Thai and English, matched by exact equality after trimming. */
+export const HOST_LABELS = {
+  addHeading: ['รายการวิชาที่ต้องการลงทะเบียน', 'List of subjects to register'],
+  early: ['(ล่วงหน้า)', '(In advance)'],
+  resultHeading: ['รายการวิชาที่ลงทะเบียน', 'List of registered subjects.'],
+  practiceRow: ['(ปฏิบัติ)', '(practice)'],
+  lectureChip: ['ทฤษฎี', 'Lecture'],
+  practiceChip: ['ปฏิบัติ', 'Practice'],
+  steps: [
+    ['เริ่มต้น', 'เลือกรายวิชา', 'เสร็จสิ้น'],
+    ['Start', 'Select Subjects', 'Complete'],
+  ],
+  gradeDialog: [
+    'มีวิชาที่เกรดยังไม่ออก',
+    'There are subjects whose grades have not yet been released',
+  ],
+  confirmDialog: [
+    'การลงทะเบียนล่วงหน้าสามารถลงได้ครั้งเดียว',
+    'Pre-registration may only be completed once.',
+  ],
+  timeSlotDialog: ['รหัสวิชา:', 'Subject ID:'],
+  toastPrefix: [
+    'มีข้อผิดพลาดสำหรับการลงวิชา: ',
+    'There was an error registering for the course: ',
+  ],
+  alreadyListed: [
+    'มีวิชานี้อยู่ในรายการที่จะลงอยู่แล้ว',
+    'This subject is already in the list.',
+  ],
+  clash: [
+    'มีวันเวลาสอบชนกับวิชาที่เลือกไว้แล้ว',
+    'มีวันเวลาเรียนชนกับวิชาที่เลือกไว้แล้ว',
+    'An exam date and time conflict with the selected subjects.',
+    'A class date and time conflict with the selected subjects.',
+    'A practice exam date and time conflict with the selected subjects.',
+    'A practice class date and time conflict with the selected subjects.',
+  ],
+  submitted: ['ลงทะเบียนล่วงหน้าสำเร็จ', 'Pre-Registration Complete'],
+  violateCondition: [
+    'ไม่ได้รับสิทธิ์เนื่องจากผิดเงื่อนไข',
+    'You are not eligible because the conditions were not met.',
+  ],
+  creditRange: ['หน่วยกิตที่ลงได้', 'Credits available to the student'],
+  creditTotal: ['หน่วยกิตรวมวิชาที่เลือกทั้งหมด', 'All registered credits'],
+  term: ['ภาคการศึกษาที่', 'Semester'],
+} as const;
+
+/** The add row's inline background, by the host's status: pending, fits, clash. */
+const ROW_COLOURS = new Map<string, 'pending' | 'fits' | 'clash'>([
+  ['rgb(255, 241, 217)', 'pending'],
+  ['rgb(219, 255, 184)', 'fits'],
+  ['rgb(255, 207, 204)', 'clash'],
+]);
+
+/** The host status an add row background stands for, or undefined when unknown. */
+export function rowColour(background: string) {
+  return ROW_COLOURS.get(background);
+}
+
+/** The host list table's header cells, by the classes its render function gives them. */
+export const LIST_HEADER_CLASSES: readonly (string | null)[] = [
+  'delete',
+  'subject-id',
+  'subject-name',
+  null,
+  'section',
+  null,
+  null,
+  'last-cell',
+];
+
+/** A section cell: the code, then an optional curriculum suffix the host adds. */
+export const SECTION_LABEL = /^(\d{1,4})(?: \((.{1,60})\))?$/;
+
+/** The term column of the panel header: the label, then semester / year. */
+export const TERM_TEXT = /^(?:ภาคการศึกษาที่|Semester) : ([123]) \/ (\d{4})$/;
+
+/** The credit lines after their label: a range whose ends may be unset, and a total. */
+export const CREDIT_RANGE = /^: (\d{1,2}|NaN)? ?- ?(\d{1,2}|NaN)?$/;
+export const CREDIT_TOTAL = /^: (\d{1,2})$/;
+
+/** A host script name of the two kinds the build gate compares. */
+export const SCRIPT_NAME = /^(?:app|chunk-vendors)\.[0-9a-f]{8}\.js$/;
+
+/** Whether a text equals one of the host labels after trimming. */
+export function isLabel(
+  text: string | null | undefined,
+  set: readonly string[],
+): boolean {
+  return set.includes((text ?? '').trim());
+}
+
+/** Whether both script names of one tested build are on the page. */
+export function isTestedBuild(names: readonly string[]): boolean {
+  return TESTED_BUILDS.some((build) =>
+    build.every((name) => names.includes(name)),
+  );
+}
