@@ -28,6 +28,7 @@ export interface ReplicaAdd {
   selected: string | null;
   practice: { locked: boolean; section: string | null } | null;
   colour: 'pending' | 'fits' | 'clash';
+  seats: { limit: number; count: number } | null;
 }
 
 export interface ReplicaState {
@@ -44,6 +45,45 @@ export interface ReplicaState {
   toasts: { kind: string; text: string }[];
   results: ReplicaResult[] | null;
   resultsLoading: boolean;
+  menu: 'primary' | 'practice' | null;
+}
+
+/** One section the fake eligibility read returns for a subject. */
+export interface CatalogSection {
+  section: string;
+  kind: Kind;
+  curriculum?: string | null;
+  /** The practice code a lecture is locked to, as the host's sec_pair. */
+  pair?: string | null;
+  limit?: number;
+  count?: number;
+}
+
+export interface CatalogSubject {
+  sections: CatalogSection[];
+  credit?: number;
+  /** Ids the grade not announced dialog names, when the read raises it. */
+  prerequisites?: string[];
+  refused?: boolean;
+  /** Whether a full selection colours the add row as a clash. */
+  clash?: boolean;
+  /** Whether the read never answers. */
+  hang?: boolean;
+}
+
+export type Variant =
+  | 'continueAsAdd'
+  | 'swapped'
+  | 'confirmAsGrade'
+  | 'gradeConfirmButton'
+  | 'focusContinue'
+  | 'enterSubmits';
+
+export interface ReplicaConfig {
+  catalog?: Record<string, CatalogSubject>;
+  delay?: number;
+  variant?: Variant | null;
+  xhr?: boolean;
 }
 
 export type ReplicaPatch = Partial<Omit<ReplicaState, 'add'>> & {
@@ -52,7 +92,16 @@ export type ReplicaPatch = Partial<Omit<ReplicaState, 'add'>> & {
 
 export interface Replica {
   state: ReplicaState;
-  counters: { clicks: Record<string, number>; untrusted: number };
+  counters: {
+    clicks: Record<string, number>;
+    untrusted: number;
+    untrustedOn: Record<string, number>;
+    writes: number;
+    reads: number;
+  };
+  configure(options: ReplicaConfig): void;
+  forbidden(): number;
+  pick(which: 'primary' | 'practice', index: number): void;
   set(patch: ReplicaPatch): void;
   toast(
     kind: 'alreadyListed' | 'clash' | 'refused' | 'submitted',
