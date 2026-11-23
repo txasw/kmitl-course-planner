@@ -33,6 +33,15 @@ const cardSchema = z.strictObject({
   colour: z.enum(['pending', 'fits', 'clash']),
   primary: selectionSchema.nullable(),
   practice: selectionSchema.nullable(),
+  /** Whether the practice row offers its own select, a pair the lecture does not lock. */
+  practiceSelect: z.boolean(),
+  /** The selected section's seats: a null limit is the host's dash for none set. */
+  seats: z
+    .strictObject({
+      limit: z.number().int().min(0).nullable(),
+      count: z.number().int().min(0),
+    })
+    .nullable(),
 });
 
 const dialogSchema = z.strictObject({

@@ -52,6 +52,8 @@ describe('readHostPage', () => {
         colour: 'pending',
         primary: null,
         practice: null,
+        practiceSelect: false,
+        seats: null,
       },
       list: [],
       credits: { total: 0, min: 9, max: 22 },
@@ -111,6 +113,8 @@ describe('readHostPage', () => {
       colour: 'fits',
       primary: { section: '1', curriculum: 'CE' },
       practice: { section: '101', curriculum: null },
+      practiceSelect: false,
+      seats: { limit: null, count: 0 },
     });
     replica?.set({
       add: {
@@ -124,7 +128,21 @@ describe('readHostPage', () => {
     expect(observation().card).toMatchObject({
       colour: 'clash',
       practice: null,
+      practiceSelect: true,
     });
+  });
+
+  it('reads the seats of the selected section for the over subscribed pause', () => {
+    mount({
+      add: {
+        value: '01476107',
+        sections: [{ section: '1', kind: 'ท' }],
+        selected: '1',
+        seats: { limit: 40, count: 45 },
+        colour: 'fits',
+      },
+    });
+    expect(observation().card?.seats).toEqual({ limit: 40, count: 45 });
   });
 
   it('classifies toasts by kind and keeps only a planned subject id', () => {

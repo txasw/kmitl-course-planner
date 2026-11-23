@@ -38,12 +38,12 @@ function clean(value: string | null | undefined): string {
   return (value ?? '').replace(/\s+/g, ' ').trim();
 }
 
-function text(node: Element | null | undefined): string {
+export function text(node: Element | null | undefined): string {
   return clean(node?.textContent);
 }
 
 /** The element's own text nodes, without the text of its child elements. */
-function ownText(element: Element): string {
+export function ownText(element: Element): string {
   let value = '';
   for (const node of element.childNodes) {
     if (node.nodeType === Node.TEXT_NODE) value += node.textContent ?? '';
@@ -51,7 +51,7 @@ function ownText(element: Element): string {
   return clean(value);
 }
 
-function cellsOf(row: Element): Element[] {
+export function cellsOf(row: Element): Element[] {
   return [...row.children].filter((cell) => cell.tagName === 'TD');
 }
 
@@ -60,7 +60,10 @@ function cell(row: Element, index: number): Element {
 }
 
 /** A card headed by a host heading with the early span beside it. */
-function cardsHeaded(doc: Document, heading: readonly string[]): Element[] {
+export function cardsHeaded(
+  doc: Document,
+  heading: readonly string[],
+): Element[] {
   return [...doc.querySelectorAll('.v-card h2')]
     .filter(
       (h2) =>
@@ -160,16 +163,33 @@ function readToasts(doc: Document) {
   );
 }
 
+/** The add card's table rows split at the space row, or null when it has none. */
+export function addRowsOf(card: Element): {
+  rows: Element[];
+  space: number;
+  add: Element | undefined;
+  practice: Element | undefined;
+} | null {
+  const rows = tableOf(card, true);
+  const space = rows.findIndex((row) =>
+    row.classList.contains('table-space-tr'),
+  );
+  if (space < 0) return null;
+  return { rows, space, add: rows[space + 1], practice: rows[space + 2] };
+}
+
+/** A seat cell: the host prints a dash for an unset limit. */
+function seatValue(value: string, dash: boolean): number | null {
+  if (dash && value === '-') return null;
+  return /^\d{1,4}$/.test(value) ? Number(value) : drift();
+}
+
 function readCard(
   card: Element,
   toasts: readonly { kind: ToastKind; subjectId: string | null }[],
   planned: ReadonlySet<string>,
 ) {
-  const rows = tableOf(card, true);
-  const space = rows.findIndex((row) =>
-    row.classList.contains('table-space-tr'),
-  );
-  if (space < 0) drift();
+  const { rows, space } = addRowsOf(card) ?? drift();
   const list = rows.slice(0, space).flatMap((row) => {
     const cells = cellsOf(row);
     if (cells.length === 1 && cells[0]?.getAttribute('colspan') === '8')
@@ -217,15 +237,26 @@ function readCard(
           : told === 'alreadyListed' || told === 'refused'
             ? told
             : 'entered';
+  const primary = offered ? selection(cell(add, 4)) : null;
   return {
     list,
     card: {
       status,
       subjectId: planned.has(value) ? value : null,
       colour,
-      primary: offered ? selection(cell(add, 4)) : null,
+      primary,
       practice:
         practiceRow === undefined ? null : selection(cell(practiceRow, 4)),
+      practiceSelect:
+        practiceRow !== undefined &&
+        cell(practiceRow, 4).querySelector('.v-select') !== null,
+      seats:
+        primary === null
+          ? null
+          : {
+              limit: seatValue(text(cell(add, 6)), true),
+              count: seatValue(text(cell(add, 7)), false) ?? 0,
+            },
     },
     credits: readCredits(card),
   };

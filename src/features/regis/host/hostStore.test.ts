@@ -26,6 +26,8 @@ const GRADE_DIALOG = observation({
     colour: 'pending',
     primary: null,
     practice: null,
+    practiceSelect: false,
+    seats: null,
   },
   dialog: { kind: 'gradeNotAnnounced', prerequisites: ['01476105'] },
 });
