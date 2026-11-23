@@ -17,6 +17,11 @@ const RESULT_FIELDS: ReadonlySet<string> = new Set(
   teachTableQuerySchema.options.flatMap((mode) => Object.keys(mode.shape)),
 );
 
+// A search field value is a mode name, a digit code, a string flag, or the x sentinel.
+// A value with any other character, such as a credential a redirect folded into a field
+// after a second query mark or as an encoded query, is dropped together with its field.
+const FIELD_VALUE = /^[A-Za-z0-9_]{0,24}$/;
+
 // A route path is a slash followed by the characters the host route names use. The
 // match stops at the first other character, so a query, or a sign in redirect that
 // appends its fields after an ampersand, is never part of the path.
@@ -30,7 +35,7 @@ export function routePath(hash: string): string {
 
 /**
  * The location hash reduced to its route path, plus the teach table search fields on
- * the result route. A hash that names no route reduces to an empty string, as an
+ * the result route whose values have the shape a search sends. A hash that names no route reduces to an empty string, as an
  * absent hash reads.
  */
 export function sanitizeHash(hash: string): string {
@@ -44,7 +49,7 @@ export function sanitizeHash(hash: string): string {
   }
   const kept = new URLSearchParams();
   for (const [key, value] of new URLSearchParams(raw.slice(path.length + 1))) {
-    if (RESULT_FIELDS.has(key)) {
+    if (RESULT_FIELDS.has(key) && FIELD_VALUE.test(value)) {
       kept.append(key, value);
     }
   }
