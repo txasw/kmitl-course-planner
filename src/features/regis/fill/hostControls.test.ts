@@ -53,7 +53,7 @@ describe('the host control allowlist', () => {
     expect(activator?.element.getAttribute('aria-owns')).toBe('list-101');
     expect(resolveActivator(document, 'practice')).toBeNull();
     if (activator === null) throw new Error('no activator');
-    expect(resolveOptions(document, activator)).toBeNull();
+    expect(resolveOptions(document, 'primary')).toBeNull();
     page.set({
       menu: 'primary',
       add: {
@@ -64,7 +64,7 @@ describe('the host control allowlist', () => {
         ],
       },
     });
-    const options = resolveOptions(document, activator);
+    const options = resolveOptions(document, 'primary');
     expect(
       options?.map(({ section, curriculum }) => ({ section, curriculum })),
     ).toEqual([
