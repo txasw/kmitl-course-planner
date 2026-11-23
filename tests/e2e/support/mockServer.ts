@@ -36,6 +36,10 @@ export interface MockServer {
    * sees a changed section. Off by default, so the block interaction specs that share
    * the synthetic id keep the stable base catalog. */
   setFreshSynthetic: (fresh: boolean) => void;
+  /** The API function of every request to either KMITL API, in arrival order. The host
+   * page itself calls no API here, so each one came from the extension. */
+  apiCalls: () => readonly string[];
+  clearApiCalls: () => void;
   close: () => Promise<void>;
 }
 
@@ -43,6 +47,7 @@ export async function startMockServer(): Promise<MockServer> {
   const pems = await generate([{ name: 'commonName', value: 'localhost' }]);
   let apiFailure = false;
   let freshSynthetic = false;
+  const calls: string[] = [];
 
   const server: Server = createServer(
     { key: pems.private, cert: pems.cert },
@@ -53,6 +58,12 @@ export async function startMockServer(): Promise<MockServer> {
       const host = (req.headers.host ?? '').split(':')[0] ?? '';
       const url = new URL(req.url ?? '/', `https://${host}`);
       const fn = url.searchParams.get('function');
+      if (
+        host === 'api.reg.kmitl.ac.th' ||
+        (host === 'regis.reg.kmitl.ac.th' && url.pathname.startsWith('/api'))
+      ) {
+        calls.push(fn ?? url.pathname);
+      }
 
       const sendJson = (name: string): void => {
         res.writeHead(200, { 'content-type': 'application/json' });
@@ -216,6 +227,10 @@ export async function startMockServer(): Promise<MockServer> {
     },
     setFreshSynthetic: (fresh) => {
       freshSynthetic = fresh;
+    },
+    apiCalls: () => [...calls],
+    clearApiCalls: () => {
+      calls.length = 0;
     },
     close: () =>
       new Promise<void>((resolveClose, rejectClose) => {
