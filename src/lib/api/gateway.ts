@@ -6,10 +6,12 @@
 // validation so the diagnostics report captures drift even when it also breaks the
 // hard gate. Reference responses return the validated raw arrays; the teach table
 // response is normalized after validation and returned with the time of the fetch
-// behind it, which a cache hit takes from its entry.
+// behind it, which a cache hit takes from its entry. A request started on a host
+// registration page asks for no retry, and its automatic reference reads ask for the
+// cache alone, so KCP adds no load there (ADR-0075).
 
 import type { z } from 'zod';
-import { ok, type Result } from '../utils/result';
+import { err, networkError, ok, type Result } from '../utils/result';
 import { validate } from '../domain/schemas';
 import { normalizeTeachTable } from '../domain/normalize';
 import type { TeachTableQuery } from '../messaging/protocol';
@@ -41,14 +43,25 @@ export interface GatewayDeps {
   env: GatewayEnv;
 }
 
+/**
+ * How one request may load. refresh skips the cache; noRetry makes a transient failure
+ * final after one attempt; cacheOnly answers from the cache alone and fails on a miss
+ * without fetching. A message from the content side carries these fields as is.
+ */
+export interface LoadOptions {
+  refresh?: boolean | undefined;
+  noRetry?: boolean | undefined;
+  cacheOnly?: boolean | undefined;
+}
+
 export interface Gateway {
   reference<T>(
     endpoint: ReferenceEndpoint<T>,
-    refresh?: boolean,
+    options?: LoadOptions,
   ): Promise<Result<T>>;
   teachTable(
     query: TeachTableQuery,
-    refresh?: boolean,
+    options?: LoadOptions,
   ): Promise<Result<TeachTableResult>>;
   /** Abort an in flight teach table query so the UI can cancel a slow one. */
   cancelTeachTable(query: TeachTableQuery): void;
@@ -137,6 +150,7 @@ export function createGateway(deps: GatewayDeps): Gateway {
   async function runFetch(
     context: RequestContext,
     signal: AbortSignal,
+    noRetry: boolean,
   ): Promise<HttpOutcome> {
     const directive = getSimulation()?.intercept(context) ?? null;
     if (directive?.kind === 'fixture') {
@@ -147,7 +161,11 @@ export function createGateway(deps: GatewayDeps): Gateway {
         timings: NO_TIMINGS,
       };
     }
-    const fetchOptions = { timeoutMs: context.timeoutMs, signal };
+    const fetchOptions = {
+      timeoutMs: context.timeoutMs,
+      signal,
+      ...(noRetry ? { maxRetries: 0 } : {}),
+    };
     if (directive?.kind === 'fault') {
       return fetchJson(
         context.url,
@@ -162,38 +180,47 @@ export function createGateway(deps: GatewayDeps): Gateway {
     return outcome;
   }
 
+  async function readCache<T>(
+    context: RequestContext,
+    cacheKey: string,
+    schema: z.ZodType<T>,
+  ): Promise<Result<Loaded<T>> | null> {
+    const hit = await cache.get(cacheKey, env.now());
+    if (!hit) {
+      return null;
+    }
+    logger.debug('cache hit', context.endpoint, hit.source);
+    record(context, {
+      cacheHit: true,
+      status: null,
+      retryCount: 0,
+      durationMs: 0,
+      timings: NO_TIMINGS,
+      validateMs: 0,
+    });
+    // The cache holds untyped values, so a hit from either tier is narrowed
+    // through the schema again. A storage hit crosses a trust boundary; a memory
+    // hit was validated before it was cached, and re-checking it costs a few
+    // milliseconds on the largest payload rather than an unchecked assertion.
+    return narrowLoaded(schema, { value: hit.value, fetchedAt: hit.fetchedAt });
+  }
+
   async function doLoad<T>(
     context: RequestContext,
     cacheKey: string,
     ttlMs: number,
-    refresh: boolean,
+    options: LoadOptions,
     schema: z.ZodType<T>,
     signal: AbortSignal,
   ): Promise<Result<Loaded<T>>> {
-    if (!refresh) {
-      const hit = await cache.get(cacheKey, env.now());
-      if (hit) {
-        logger.debug('cache hit', context.endpoint, hit.source);
-        record(context, {
-          cacheHit: true,
-          status: null,
-          retryCount: 0,
-          durationMs: 0,
-          timings: NO_TIMINGS,
-          validateMs: 0,
-        });
-        // The cache holds untyped values, so a hit from either tier is narrowed
-        // through the schema again. A storage hit crosses a trust boundary; a memory
-        // hit was validated before it was cached, and re-checking it costs a few
-        // milliseconds on the largest payload rather than an unchecked assertion.
-        return narrowLoaded(schema, {
-          value: hit.value,
-          fetchedAt: hit.fetchedAt,
-        });
+    if (options.refresh !== true) {
+      const cached = await readCache(context, cacheKey, schema);
+      if (cached !== null) {
+        return cached;
       }
     }
     const start = env.now();
-    const fetched = await runFetch(context, signal);
+    const fetched = await runFetch(context, signal, options.noRetry === true);
     const fetchMs = env.now() - start;
     if (!fetched.result.ok) {
       record(context, {
@@ -237,13 +264,21 @@ export function createGateway(deps: GatewayDeps): Gateway {
     return ok({ value: validated.value, fetchedAt });
   }
 
-  function load<T>(
+  async function load<T>(
     context: RequestContext,
     cacheKey: string,
     ttlMs: number,
-    refresh: boolean,
+    options: LoadOptions,
     schema: z.ZodType<T>,
   ): Promise<Result<Loaded<T>>> {
+    // A cache only read neither joins nor claims an in flight slot, so a fetching
+    // caller never waits on it and it never waits on a fetch.
+    if (options.cacheOnly === true) {
+      return (
+        (await readCache(context, cacheKey, schema)) ??
+        err(networkError('no cached copy'))
+      );
+    }
     const existing = inFlight.get(cacheKey);
     if (existing) {
       // One map holds the slots of every endpoint, so it types the value as
@@ -261,7 +296,7 @@ export function createGateway(deps: GatewayDeps): Gateway {
       context,
       cacheKey,
       ttlMs,
-      refresh,
+      options,
       schema,
       controller.signal,
     );
@@ -284,7 +319,7 @@ export function createGateway(deps: GatewayDeps): Gateway {
   }
 
   return {
-    async reference(endpoint, refresh = false) {
+    async reference(endpoint, options = {}) {
       const context: RequestContext = {
         endpoint: endpoint.endpoint,
         params: {},
@@ -295,12 +330,12 @@ export function createGateway(deps: GatewayDeps): Gateway {
         context,
         endpoint.cacheKey,
         endpoint.ttlMs,
-        refresh,
+        options,
         endpoint.schema,
       );
       return loaded.ok ? ok(loaded.value.value) : loaded;
     },
-    async teachTable(query, refresh = false) {
+    async teachTable(query, options = {}) {
       const context: RequestContext = {
         endpoint: teachTableEndpoint.endpoint,
         params: teachTableParams(query),
@@ -311,7 +346,7 @@ export function createGateway(deps: GatewayDeps): Gateway {
         context,
         teachTableCacheKey(query),
         teachTableEndpoint.ttlMs,
-        refresh,
+        options,
         teachTableEndpoint.schema,
       );
       if (!validated.ok) {
