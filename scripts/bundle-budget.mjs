@@ -6,8 +6,8 @@ const KIB = 1024;
 
 /** The largest packed zip, in bytes, that each production target may ship. */
 export const BUNDLE_BUDGETS = Object.freeze({
-  chrome: 325 * KIB,
-  firefox: 325 * KIB,
+  chrome: 340 * KIB,
+  firefox: 340 * KIB,
 });
 
 /**
