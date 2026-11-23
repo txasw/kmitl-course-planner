@@ -27,6 +27,7 @@ import {
 } from '@/features/onboarding/useWorkerHandshake';
 import { WelcomeLayer } from '@/features/onboarding/WelcomeLayer';
 import { CompanionDock } from '@/features/regis/CompanionDock';
+import { HostObserverLayer } from '@/features/regis/host/HostObserverLayer';
 import { ReadinessLayer } from '@/features/regis/ReadinessDialog';
 import type { RegisRepositories } from '@/features/regis/regisStore';
 import { useRegisPersistence } from '@/features/regis/useRegisPersistence';
@@ -88,6 +89,7 @@ export function App({
         <Launcher />
         <EntryToast record={onboarding.record} />
         <CompanionDock />
+        <HostObserverLayer />
         <Overlay>
           <ProductTour record={onboarding.record} />
           <ReadinessLayer />

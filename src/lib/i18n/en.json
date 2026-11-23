@@ -691,5 +691,13 @@
   "regis.observed.notGrantedCondition": "Not granted because a condition was not met",
   "regis.observed.prerequisites": "Conditional on prerequisites that have no grade yet: {ids}",
   "regis.markOverride": "Your mark is used instead of what the registration page shows",
-  "regis.mark.follow": "As the registration page shows"
+  "regis.mark.follow": "As the registration page shows",
+  "regis.observer.on": "KCP reads the list on the registration page to tick the rows. It keeps and sends nothing it reads.",
+  "regis.observer.degraded": "KCP cannot check the registration page right now. You can mark the rows yourself.",
+  "regis.observer.untested": "The registration page has been updated and KCP has not been tested with it yet. You can mark the rows yourself.",
+  "regis.observer.surrogate": "This page is open on behalf of a student, so KCP does not read it. You can mark the rows yourself.",
+  "regis.pageTermMismatch": "This plan is for {plan}, but the registration page is for {page}",
+  "regis.pageTermMatch": "The registration page shows {term}, the same as this plan",
+  "regis.extras": "On the page, not in the plan: {items}",
+  "regis.banner": "The registration page has {listed} of the {total} planned subjects. Check before you confirm."
 }
