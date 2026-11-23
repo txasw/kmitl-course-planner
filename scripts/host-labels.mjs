@@ -1,7 +1,8 @@
-// Prints every label the host bundle gives a clickable element, in both of the host's
-// languages, for the fill denylist in src/features/regis/fill/denylist.ts. It reads the
-// render functions of a saved host bundle as text and evaluates none of it: a label is a
-// $t key that is the only text child of an element with a click handler, and each key is
+// Prints every label the host bundle gives a clickable element in its registration
+// dictionaries, in both of the host's languages, for the fill denylist in
+// src/features/regis/fill/denylist.ts. It reads the render functions of a saved host
+// bundle as text and evaluates none of it: a label is a $t key that is the only text
+// child of an element with a click handler, in a registration namespace, and each key is
 // resolved in every dictionary block of its namespace. Run it on a new tested build:
 //
 //   node scripts/host-labels.mjs path/to/app.<hash>.js
@@ -33,6 +34,11 @@ function valuesOf(key) {
   return found;
 }
 
-const keys = new Set([...source.matchAll(CLICKABLE)].map((match) => match[1]));
+const REGISTRATION = /^(pre_regis|registration|regis_|queue_table)/;
+const keys = new Set(
+  [...source.matchAll(CLICKABLE)]
+    .map((match) => match[1])
+    .filter((key) => REGISTRATION.test(key)),
+);
 const labels = new Set([...keys].flatMap(valuesOf));
 console.log(JSON.stringify([...labels].sort(), null, 2));
