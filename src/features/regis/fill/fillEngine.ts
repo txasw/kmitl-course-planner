@@ -186,8 +186,13 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
     const index = pickOption(options, half);
     if (typeof index === 'string') stop(index);
     await act(() => {
-      const option = resolveOptions(doc, which)?.[index];
-      return option?.section === half.code
+      // The identity proof runs again on the list as it stands at the click, so a list
+      // that changed after the read, such as a curriculum added to the code, is stale.
+      const fresh = resolveOptions(doc, which);
+      const option = fresh?.[index];
+      return fresh !== null &&
+        option !== undefined &&
+        pickOption(fresh, half) === index
         ? chooseOption(option.control)
         : 'stale';
     });
