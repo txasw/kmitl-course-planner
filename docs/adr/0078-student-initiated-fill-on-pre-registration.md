@@ -129,7 +129,8 @@ continues with the sections (5B).
 กรอกในหน้าลงทะเบียนให้ (Fill the registration page for me), on by default. Every stop names its
 reason in one sentence with the next step, in Thai and English. During a run the header warns not
 to press ดำเนินการต่อ until every subject is in; after it the final review hands off to the student,
-and the count line beside the confirm dialog stays.
+and the count line beside the confirm dialog stays. One status line announces the step, the stop,
+or the end of a run, and joins the live region inventory of ADR-0048.
 
 ## Alternatives
 
