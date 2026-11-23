@@ -5,7 +5,8 @@
 // and a popstate belongs to the topmost one only: it means the student left that entry, so
 // that layer alone calls onBack and leaves history alone. Any other close goes back once, and
 // only when history still has the length and URL the layer expects, so an entry someone else
-// pushed is never unwound. It never reads history.state: Chromium caches that value per world
+// pushed is never unwound. The URL is compared through an opaque marker, so the layer never
+// holds the address itself (ADR-0075). It never reads history.state: Chromium caches that value per world
 // and refreshes it only for the world that read it last, so once the page reads it the content
 // script keeps seeing a stale value.
 // A back is a queued traversal whose popstate belongs to no layer, so an opening or a close
@@ -13,12 +14,16 @@
 // cannot cross.
 
 import { useEffect, useRef } from 'react';
+import { readLocationMarker } from './hostLocation';
 
 export const OVERLAY_HISTORY_MARKER = 'kcpOverlay';
 
+// A pushed entry is known by the history length after the push and an opaque marker of
+// the address, never the address itself, which can carry a token or a student id
+// (ADR-0075). Equal addresses give equal markers, so the check is unchanged.
 interface PushedEntry {
   length: number;
-  href: string;
+  marker: string;
 }
 
 interface Layer {
@@ -44,7 +49,7 @@ function hasUserActivation(): boolean {
 function isStillOnTop(entry: PushedEntry): boolean {
   return (
     window.history.length === entry.length &&
-    window.location.href === entry.href
+    readLocationMarker() === entry.marker
   );
 }
 
@@ -129,7 +134,10 @@ export function useBackToClose(active: boolean, onBack: () => void): void {
         '',
       );
       layer = {
-        entry: { length: window.history.length, href: window.location.href },
+        entry: {
+          length: window.history.length,
+          marker: readLocationMarker(),
+        },
         onBack: () => {
           onBackRef.current();
         },
