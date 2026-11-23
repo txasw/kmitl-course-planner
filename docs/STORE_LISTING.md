@@ -81,8 +81,9 @@ What it does:
   icon, or with Alt+Shift+P (Option+Shift+P on macOS).
 
 Privacy: all data stays in your browser. There is no account, no backend, and no
-analytics or telemetry of any kind. The extension is read only with respect to the
-registration site; it never submits forms and never performs registration actions.
+analytics or telemetry of any kind. The extension never submits forms and never performs
+registration actions. On the pre registration page, only when you press Fill, it enters
+your planned subjects into the page's own form for you to review; you submit it yourself.
 
 ### Thai, short summary
 
@@ -175,8 +176,10 @@ reviewers. Each states what the permission is for and that data stays on the dev
   extension opened, so that tab can open the planner. No data leaves the browser.
 - Host access to https://regis.reg.kmitl.ac.th/*: Mount the planner interface on the
   registration site, read the public teach table course data the site itself loads, and
-  read the current registration term that sets the default term of the search form.
-  Read only; the extension never submits forms and never performs registration actions.
+  read the current registration term that sets the default term of the search form,
+  and, on the pre registration page after you press Fill, enter your planned subjects
+  into the page's own form for you to review. The extension never submits forms and never
+  performs registration actions.
 - Host access to https://api.reg.kmitl.ac.th/*: Read the public faculty, department,
   curriculum, and subject owner reference lists used to build the search filters. Read
   only.
