@@ -90,6 +90,12 @@ describe('prepareRegistrationKit', () => {
           : message.type,
       ),
     ).toEqual(['A', 'B']);
+    expect(
+      sent.every(
+        (message) =>
+          message.type !== 'teachTable/query' || message.noRetry === true,
+      ),
+    ).toBe(true);
     expect(pause).toHaveBeenCalledTimes(1);
     expect(progress).toEqual([0, 1, 2]);
     expect(outcome.status).toBe('done');
