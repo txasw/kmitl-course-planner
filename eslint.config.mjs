@@ -81,28 +81,50 @@ const LOCATION_GLOBALS = [{ name: 'location', message: NO_RAW_LOCATION }];
 
 // The registration helper reads the host page and never acts on it (ADR-0077): no event
 // dispatch, no click, no submit, no value written into a control, no focus moved, and no
-// event constructed, so nothing in these folders can press a host control.
+// event constructed, so nothing in these folders can press a host control. Each action
+// is matched as any reference to its member, computed or destructured, and each event
+// as a bare or a namespaced constructor, so a call through `.call`, `Reflect.apply`, a
+// string key, or `window.MouseEvent` is caught as well as a plain call.
 const NO_HOST_ACTION =
   'The registration helper only reads the host page; it never acts on a host control.';
-const HOST_ACTION_SYNTAX = [
-  'CallExpression[callee.property.name=/^(dispatchEvent|click|submit|requestSubmit|focus)$/]',
-  'AssignmentExpression[left.property.name=/^(value|checked|selected|textContent|innerText)$/]',
-  'NewExpression[callee.name=/^(Event|CustomEvent|InputEvent|KeyboardEvent|MouseEvent|PointerEvent|FocusEvent|SubmitEvent)$/]',
-  "CallExpression[callee.property.name='setAttribute']",
-].map((selector) => ({ selector, message: NO_HOST_ACTION }));
+const ACTION_METHODS =
+  'submit|requestSubmit|focus|reset|showModal|showPopover|togglePopover|setRangeText|setAttribute|setAttributeNS|removeAttribute|toggleAttribute';
+const STATE_PROPERTIES =
+  'checked|selected|textContent|innerText|disabled|hidden|indeterminate';
+const EVENT_TYPES =
+  'Event|CustomEvent|InputEvent|KeyboardEvent|MouseEvent|PointerEvent|FocusEvent|SubmitEvent';
+const KEY_EVENT_TYPES =
+  'KeyboardEvent|InputEvent|PointerEvent|FocusEvent|SubmitEvent';
+
+function actionSyntax(methods, properties, events, message) {
+  return [
+    `MemberExpression[property.name=/^(${methods})$/]`,
+    `MemberExpression[computed=true][property.value=/^(${methods})$/]`,
+    `ObjectPattern > Property[key.name=/^(${methods})$/]`,
+    `AssignmentExpression[left.property.name=/^(${properties})$/]`,
+    `AssignmentExpression[left.property.value=/^(${properties})$/]`,
+    "CallExpression[callee.object.name='Object'][callee.property.name=/^(assign|defineProperty|defineProperties)$/]",
+    "CallExpression[callee.object.name='Reflect'][callee.property.name=/^(set|defineProperty)$/]",
+    `NewExpression[callee.name=/^(${events})$/]`,
+    `NewExpression[callee.property.name=/^(${events})$/]`,
+  ].map((selector) => ({ selector, message }));
+}
+
+const HOST_ACTION_SYNTAX = actionSyntax(
+  `dispatchEvent|click|${ACTION_METHODS}`,
+  `value|${STATE_PROPERTIES}`,
+  EVENT_TYPES,
+  NO_HOST_ACTION,
+);
 
 // The fill actuator is the one module that may act on a host control (ADR-0078): it may
 // dispatch an event, click, and write a field value, and nothing else on this list.
-const ACTUATOR_SYNTAX = [
-  'CallExpression[callee.property.name=/^(submit|requestSubmit|focus)$/]',
-  'AssignmentExpression[left.property.name=/^(checked|selected|textContent|innerText)$/]',
-  'NewExpression[callee.name=/^(KeyboardEvent|InputEvent|PointerEvent|FocusEvent|SubmitEvent)$/]',
-  "CallExpression[callee.property.name='setAttribute']",
-].map((selector) => ({
-  selector,
-  message:
-    'The fill actuator only writes the field, dispatches input, and clicks.',
-}));
+const ACTUATOR_SYNTAX = actionSyntax(
+  ACTION_METHODS,
+  STATE_PROPERTIES,
+  KEY_EVENT_TYPES,
+  'The fill actuator only writes the field, dispatches input, and clicks.',
+);
 
 // Only a fill button's click handler may issue the student press that starts a run.
 const PRESS_ISSUER = {
