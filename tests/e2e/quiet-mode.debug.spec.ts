@@ -11,6 +11,8 @@ import { addCourse, block, syntheticSearch } from './support/synthetic';
 // the student presses still runs, once. On the search page the open checks as before.
 
 const LAUNCHER = 'เปิด KCP: Course Planner for KMITL';
+const DOCK_LAUNCHER = 'เปิดเช็กลิสต์ ตัวช่วยลงทะเบียน';
+const OPEN_PLANNER = 'เปิดตารางเรียน';
 const PRE_REGISTRATION_URL = `${REGIS_ORIGIN}/#/pre_registration`;
 const TEACH_TABLE = 'get-teach-table-show';
 
@@ -80,7 +82,10 @@ test('sends nothing on its own on the pre registration page', async ({
   mock.clearApiCalls();
 
   await page.goto(PRE_REGISTRATION_URL);
-  await page.getByRole('button', { name: LAUNCHER }).click();
+  // On the registration pages the launcher opens the helper dock (ADR-0076), and the
+  // dock opens the full panel; neither step may send a request.
+  await page.getByRole('button', { name: DOCK_LAUNCHER }).click();
+  await page.getByRole('button', { name: OPEN_PLANNER }).click();
   await expect(page.locator(block('900001'))).toBeVisible();
   await expect(page.locator('[data-quiet-notice]')).toBeVisible();
   await page.waitForTimeout(SETTLE_MS);
