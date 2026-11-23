@@ -6,7 +6,11 @@ import { ESLint, Linter } from 'eslint';
 // config the repository lints with, then run on plain JavaScript, which needs no type
 // information, so the test proves the configured rules rather than a copy of them.
 
-const GUARDED = ['no-restricted-globals', 'no-restricted-properties'] as const;
+const GUARDED = [
+  'no-restricted-globals',
+  'no-restricted-properties',
+  'no-restricted-imports',
+] as const;
 const SYNTAX = 'no-restricted-syntax';
 
 const eslint = new ESLint();
@@ -129,5 +133,80 @@ describe('the raw address guard', () => {
       'const link = { href: "" }; link.href = "x"; const url = new URL("https://a"); url.hash; function at(location) { return `${location}.x`; }',
     );
     expect(messages).toEqual([]);
+  });
+});
+
+// The registration helper reads the host page and never acts on it (ADR-0077).
+const HOST_ACTIONS = [
+  'el.dispatchEvent(new Event("input", { bubbles: true }));',
+  'button.click();',
+  'form.submit();',
+  'form.requestSubmit();',
+  'input.value = "01476107";',
+  'option.selected = true;',
+  'el.focus();',
+  'el.setAttribute("aria-selected", "true");',
+  'export const key = new KeyboardEvent("keydown");',
+  'export const press = new MouseEvent("click");',
+];
+
+describe('the host action guard', () => {
+  it.each([
+    'src/features/regis/host/hostDom.ts',
+    'src/features/regis/ChecklistRow.tsx',
+    'src/lib/regis/checklist.ts',
+    'src/entrypoints/regis.content/index.tsx',
+  ])('forbids acting on a host control in %s', async (file) => {
+    for (const source of HOST_ACTIONS) {
+      const messages = await messagesFor(file, source);
+      expect(messages.join(' ')).toMatch(/only reads the host page/);
+    }
+  });
+
+  it('leaves the tests free to build their fixture pages', async () => {
+    for (const source of HOST_ACTIONS) {
+      expect(
+        await messagesFor('src/features/regis/host/hostDom.test.ts', source),
+      ).toEqual([]);
+    }
+  });
+});
+
+describe('the host reading egress guard', () => {
+  it.each([
+    'src/features/regis/host/hostDom.ts',
+    'src/features/regis/host/useHostObserver.ts',
+    'src/lib/regis/hostObservation.ts',
+    'src/lib/regis/observedRow.ts',
+  ])('keeps host readings out of storage and messages in %s', async (file) => {
+    for (const source of [
+      'import { x } from "@/lib/storage/regis";',
+      'import { x } from "@/lib/messaging/protocol";',
+      'import { logger } from "@/lib/utils/logger";',
+      'import { x } from "@/features/diagnostics/store";',
+      'import { x } from "../../lib/storage/repo";',
+    ]) {
+      const messages = await messagesFor(file, source);
+      expect(messages.join(' ')).toMatch(/stay in memory/);
+    }
+  });
+});
+
+describe('the surrogate presence check', () => {
+  it('is the one place the session store is read', async () => {
+    const file = 'src/features/regis/host/surrogate.ts';
+    expect(
+      await messagesFor(
+        file,
+        'sessionStorage.getItem("surrogated_student_id");',
+      ),
+    ).toEqual([]);
+    const local = await messagesFor(file, 'localStorage.getItem("x");');
+    expect(local.join(' ')).toMatch(/browser\.storage/);
+    const elsewhere = await messagesFor(
+      'src/features/regis/host/hostDom.ts',
+      'sessionStorage.getItem("surrogated_student_id");',
+    );
+    expect(elsewhere.join(' ')).toMatch(/browser\.storage/);
   });
 });
