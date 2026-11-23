@@ -4,9 +4,11 @@
 // open. On a desktop it is a dock on the right edge, open in full from 1440 px and a
 // narrow bar below that the student can expand. On a phone it is a bottom sheet with a
 // peek bar, raised to half or full height on demand; at rest only the peek bar shows, so
-// it sits below a host dialog's buttons rather than over them.
+// it sits below a host dialog's buttons rather than over them, and a press anywhere on
+// the page lowers a raised sheet to that bar, so the dialog a press on Continue opens is
+// never hidden behind it.
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 import { useStore } from 'zustand';
 import {
   ChevronDown,
@@ -216,9 +218,37 @@ const LOWER: Record<SheetLevel, SheetLevel> = {
   full: 'half',
 };
 
+// Lowers a raised sheet to its peek bar on a press outside KCP. It only compares the
+// press target with KCP's own nodes and never reads or changes the page. A press inside
+// KCP's closed shadow root reaches the document retargeted to the shadow host, and a
+// press inside the sheet itself, where no shadow root wraps it, carries the sheet in its
+// path.
+function useLowerOnOutsidePress(
+  ref: RefObject<HTMLElement | null>,
+  raised: boolean,
+) {
+  useEffect(() => {
+    const node = ref.current;
+    if (!raised || node === null) return undefined;
+    const root = rootOf(node);
+    const host = root instanceof ShadowRoot ? root.host : null;
+    const doc = node.ownerDocument;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (event.target === host || event.composedPath().includes(node)) return;
+      regisStore.getState().setSheetLevel('peek');
+    };
+    doc.addEventListener('pointerdown', handlePointerDown, true);
+    return () => {
+      doc.removeEventListener('pointerdown', handlePointerDown, true);
+    };
+  }, [ref, raised]);
+}
+
 function PhoneSheet() {
   const level = useStore(regisStore, (state) => state.sheetLevel);
   const { body, t, language, done, total, next } = useDockBody();
+  const asideRef = useRef<HTMLElement>(null);
+  useLowerOnOutsidePress(asideRef, level !== 'peek');
   const progress = fillTemplate(t('regis.launcher'), { done, total });
   const setLevel = (next: SheetLevel) => {
     regisStore.getState().setSheetLevel(next);
@@ -227,6 +257,7 @@ function PhoneSheet() {
     <aside
       aria-label={t('regis.title')}
       lang={language}
+      ref={asideRef}
       className={`fixed inset-x-0 bottom-0 z-host flex flex-col rounded-t-kcp border-t border-border bg-surface pr-(--kcp-safe-right) pb-(--kcp-safe-bottom) pl-(--kcp-safe-left) text-ink shadow-kcp ${SHEET_HEIGHT[level]}`}
     >
       <div className="flex min-h-16 shrink-0 items-center gap-1 px-2">

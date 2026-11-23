@@ -100,6 +100,19 @@ describe('CompanionDock', () => {
     expect(within(dock).getByText('เช็กลิสต์ 1/1')).toBeInTheDocument();
   });
 
+  it('lowers a raised sheet to its peek bar on a press on the page', () => {
+    renderPage('#/pre_registration');
+    act(() => {
+      regisStore.getState().setDockOpen(true);
+      regisStore.getState().setSheetLevel('half');
+    });
+    const dock = screen.getByRole('complementary', { name: 'ตัวช่วยลงทะเบียน' });
+    fireEvent.pointerDown(within(dock).getByLabelText('สถานะในหน้าลงทะเบียน'));
+    expect(regisStore.getState().sheetLevel).toBe('half');
+    fireEvent.pointerDown(document.body);
+    expect(regisStore.getState().sheetLevel).toBe('peek');
+  });
+
   it('says on regular registration that the student checks the list', () => {
     renderPage('#/registration');
     act(() => {
