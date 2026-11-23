@@ -124,4 +124,23 @@ describe('startFill', () => {
     await startFill(press(), request);
     expect(seen).toEqual([false, true]);
   });
+
+  it('ends a run that faults as a stop, with its tripwire released', async () => {
+    scripts(TESTED);
+    let released = false;
+    vi.mocked(runFill).mockImplementationOnce((deps: FillDeps) => {
+      const { stop } = deps.tripwire;
+      deps.tripwire.stop = () => {
+        released = true;
+        stop();
+      };
+      return Promise.reject(new TypeError('host node vanished'));
+    });
+    await startFill(press(), request);
+    expect(fillStore.getState().run).toMatchObject({
+      status: 'stopped',
+      reason: 'notRecognised',
+    });
+    expect(released).toBe(true);
+  });
 });
