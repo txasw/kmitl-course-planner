@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { REGISTRATION_ROUTES, isRegistrationRoute } from './route';
+import {
+  REGISTRATION_ROUTES,
+  companionRoute,
+  isRegistrationRoute,
+} from './route';
 
 describe('isRegistrationRoute', () => {
   it.each(REGISTRATION_ROUTES)('treats %s as a registration page', (path) => {
@@ -27,5 +31,23 @@ describe('isRegistrationRoute', () => {
   it('does not match a page whose name only starts like one', () => {
     expect(isRegistrationRoute('#/registrations')).toBe(false);
     expect(isRegistrationRoute('#/pre_registration_result')).toBe(false);
+  });
+});
+
+describe('companionRoute', () => {
+  it('names the two student registration pages', () => {
+    expect(companionRoute('#/pre_registration')).toBe('preRegistration');
+    expect(companionRoute('#/Pre_Registration/?step=2')).toBe(
+      'preRegistration',
+    );
+    expect(companionRoute('#/registration')).toBe('registration');
+  });
+
+  it('leaves the officer, graduate, queue, and search pages to the panel', () => {
+    expect(companionRoute('#/registration_for_officer')).toBeNull();
+    expect(companionRoute('#/registration_x')).toBeNull();
+    expect(companionRoute('#/registration_queue')).toBeNull();
+    expect(companionRoute('#/teach_table_selector')).toBeNull();
+    expect(companionRoute('')).toBeNull();
   });
 });
