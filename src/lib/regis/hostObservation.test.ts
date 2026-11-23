@@ -14,6 +14,8 @@ const VALID: HostObservation = {
     colour: 'fits',
     primary: { section: '1', curriculum: 'CE' },
     practice: { section: '101', curriculum: null },
+    practiceSelect: false,
+    seats: { limit: 40, count: 12 },
   },
   list: [
     { subjectId: '01476106', section: '2', kind: 'lecture', curriculum: null },
