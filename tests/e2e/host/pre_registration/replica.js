@@ -505,12 +505,18 @@ export function mountReplica(doc, overrides = {}) {
             'add',
             state.add.colour !== 'fits',
           );
+    // A default type button that names a form elsewhere submits that form when clicked.
+    if (config.variant === 'formAdd') {
+      add.removeAttribute('type');
+      add.setAttribute('form', 'regis-form');
+    }
     const block = h('div', { class: 'mt-2' }, [add]);
     const next = button(
       'mt-5 deep-orange white--text',
       'ดำเนินการต่อ',
       'continue',
     );
+    next.id = 'host-continue';
     return config.variant === 'swapped' ? [next, block] : [block, next];
   }
 
@@ -791,6 +797,7 @@ export function mountReplica(doc, overrides = {}) {
               ]),
         ]),
       ]),
+      config.variant === 'formAdd' ? farForm() : '',
     );
     for (const old of app.querySelectorAll(
       ':scope > .v-dialog__content, :scope > .v-menu__content',
@@ -817,6 +824,25 @@ export function mountReplica(doc, overrides = {}) {
     );
   }
 
+  // An option as the host renders it, or wrapped in a label that names Continue, whose
+  // activation would turn a click on the option into a click on Continue.
+  function optionWrapper(tag, props, children) {
+    const option = h(tag, props, children);
+    return config.variant === 'labelledOption'
+      ? h('label', { for: 'host-continue' }, [option])
+      : option;
+  }
+
+  // A form elsewhere on the page, whose submit counts as a write.
+  function farForm() {
+    const form = h('form', { id: 'regis-form' });
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      counters.writes += 1;
+    });
+    return form;
+  }
+
   // The detached menu of a select, under the app root, with the first 20 options the
   // way Vuetify renders them until the list is scrolled.
   function menu(which) {
@@ -838,7 +864,7 @@ export function mountReplica(doc, overrides = {}) {
             class: 'v-list v-select-list v-sheet theme--light v-list--dense',
           },
           items.map((item, index) =>
-            h(
+            optionWrapper(
               'div',
               {
                 role: 'option',

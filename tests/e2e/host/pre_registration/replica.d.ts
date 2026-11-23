@@ -77,7 +77,9 @@ export type Variant =
   | 'confirmAsGrade'
   | 'gradeConfirmButton'
   | 'focusContinue'
-  | 'enterSubmits';
+  | 'enterSubmits'
+  | 'labelledOption'
+  | 'formAdd';
 
 export interface ReplicaConfig {
   catalog?: Record<string, CatalogSubject>;
