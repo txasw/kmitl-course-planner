@@ -42,9 +42,16 @@ carries.
 
 On those two pages the Planner button opens the registration helper, a checklist of your
 plan beside the page. It shows what KCP stored before: your plan and, when you prepared
-for registration, the sections of your planned subjects. It reads nothing on the page,
-fills in nothing, and presses nothing there. You enter your subjects and submit your
-registration yourself. The marks you set in the checklist stay on your device.
+for registration, the sections of your planned subjects. On the pre registration page it
+also reads which of your planned subjects the page lists, with their sections, what the
+page says about them, the term, and the step you are on, so the checklist ticks itself.
+It reads only these course facts, never your name or student id and never the text of a
+message the page shows, keeps them in memory while the page is open, and stores, logs,
+or sends none of them. It does not read a version of the page KCP was not tested with,
+or a page a staff member opened on a student's behalf; for that it checks only whether
+the page marks such a session. It fills in nothing and presses nothing on the page. You
+enter your subjects and submit your registration yourself. The marks you set in the
+checklist stay on your device.
 
 ## Data storage
 
