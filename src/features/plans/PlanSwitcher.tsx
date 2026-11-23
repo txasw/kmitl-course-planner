@@ -38,6 +38,7 @@ import { BottomSheet } from '@/components/BottomSheet';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_HEIGHT } from '@/lib/ui/target';
 import { copyRegistrationList } from './copyRegistrationList';
+import { regisStore } from '@/features/regis/regisStore';
 import { DeleteConfirm } from './DeleteConfirm';
 import { ImportErrorView } from './ImportErrorView';
 import { NameForm, isSavableName } from './NameForm';
@@ -221,6 +222,11 @@ export function PlanSwitcher() {
     closeMenu();
   };
 
+  const handlePrepareRegistration = () => {
+    closeMenu();
+    regisStore.getState().setReadinessOpen(true);
+  };
+
   // Validate the imported blob at the trust boundary and, on any issue, list the
   // exact failing fields without committing anything. On success importPlan lands a
   // new unverified plan that revalidation reconciles on first open.
@@ -367,6 +373,11 @@ export function PlanSwitcher() {
         onCopyRegistration={
           activePlan !== null && activePlan.entries.length > 0
             ? handleCopyRegistration
+            : null
+        }
+        onPrepareRegistration={
+          activePlan !== null && activePlan.entries.length > 0
+            ? handlePrepareRegistration
             : null
         }
       />

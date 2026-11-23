@@ -26,6 +26,9 @@ import {
   type WorkerHandshakeDeps,
 } from '@/features/onboarding/useWorkerHandshake';
 import { WelcomeLayer } from '@/features/onboarding/WelcomeLayer';
+import { ReadinessLayer } from '@/features/regis/ReadinessDialog';
+import type { RegisRepositories } from '@/features/regis/regisStore';
+import { useRegisPersistence } from '@/features/regis/useRegisPersistence';
 import { EntryToast } from '@/features/onboarding/EntryToast';
 import { CoachMark } from '@/features/onboarding/CoachMark';
 import { ProductTour } from '@/features/onboarding/ProductTour';
@@ -42,6 +45,7 @@ interface AppProps {
   onboarding: OnboardingPersistenceDeps;
   handshake: WorkerHandshakeDeps;
   welcome: WelcomeClaimDeps;
+  regis: RegisRepositories;
   /** The loaded extension's version from its manifest, or null when it is unreadable. */
   version: string | null;
 }
@@ -64,11 +68,13 @@ export function App({
   onboarding,
   handshake,
   welcome,
+  regis,
   version,
 }: AppProps) {
   usePrefsPersistence(prefs);
   usePlanPersistence(plans);
   useOnboardingPersistence(onboarding);
+  useRegisPersistence(regis);
   useWorkerHandshake(handshake);
   useWelcomeClaim(welcome);
   useProductTourStart();
@@ -82,6 +88,7 @@ export function App({
         <EntryToast record={onboarding.record} />
         <Overlay>
           <ProductTour record={onboarding.record} />
+          <ReadinessLayer />
         </Overlay>
         <DiagnosticsGate />
         <Toaster />

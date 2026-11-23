@@ -15,6 +15,10 @@ import { createBrowserStorageAdapter } from '@/lib/storage/browserAdapter';
 import { createPlanRepository } from '@/lib/storage/repo';
 import { createInstallRepository } from '@/lib/storage/install';
 import { createOnboardingRepository } from '@/lib/storage/onboarding';
+import {
+  createChecklistRepository,
+  createRegKitRepository,
+} from '@/lib/storage/regis';
 import { readExtensionVersion } from '@/lib/shell/extensionVersion';
 import { App } from './App';
 
@@ -67,6 +71,10 @@ export default defineContentScript({
           send: sendTyped,
         };
         const welcome = { record: onboardingRecord, send: sendTyped };
+        const regis = {
+          kits: createRegKitRepository(adapter),
+          checklists: createChecklistRepository(adapter),
+        };
         root.render(
           <App
             prefs={prefs}
@@ -75,6 +83,7 @@ export default defineContentScript({
             onboarding={onboarding}
             handshake={handshake}
             welcome={welcome}
+            regis={regis}
             version={readExtensionVersion(() => browser.runtime.getManifest())}
           />,
         );
