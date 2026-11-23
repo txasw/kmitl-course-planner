@@ -86,3 +86,4 @@ withdrawal note above the original text, which is kept as written.
 75. [Quiet mode and address hygiene on the registration pages](0075-quiet-mode-and-address-hygiene.md)
 76. [Registration helper companion](0076-registration-helper-companion.md)
 77. [Read only observer on the pre registration page](0077-read-only-observer-on-pre-registration.md)
+78. [Student initiated fill on the pre registration page](0078-student-initiated-fill-on-pre-registration.md)
