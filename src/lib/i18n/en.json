@@ -721,6 +721,7 @@
   "regis.fill.stop.fieldNotEmpty": "Clear the subject id field with the trash icon, then continue.",
   "regis.fill.stop.listedOther": "The page already lists another section of this subject. Remove it on the page if unwanted, then continue.",
   "regis.fill.stop.refused": "The page does not offer this section to you. Read the page message and pick another section below.",
+  "regis.fill.stop.notOffered": "The page does not offer the planned section to you. Pick another section below.",
   "regis.fill.stop.notVisible": "KCP cannot see this section in the list. Pick it on the page, then continue.",
   "regis.fill.stop.practiceMissing": "The page does not offer the planned practice section. Pick another section below.",
   "regis.fill.stop.duplicateCode": "This section has more than one curriculum. Pick yours on the page, then continue.",

@@ -26,6 +26,7 @@ export const STOP_REASONS = [
   'fieldNotEmpty',
   'listedOther',
   'refused',
+  'notOffered',
   'notVisible',
   'practiceMissing',
   'duplicateCode',
@@ -51,6 +52,11 @@ export interface FillHalf {
   shared: boolean;
   /** How many sections of this kind the kit lists for the subject. */
   listed: number;
+  /**
+   * Whether the kit lists this code under more than one curriculum. Only the student
+   * may choose such an option; KCP accepts the choice once the page shows the code.
+   */
+  duplicate: boolean;
 }
 
 export interface FillTarget {
@@ -73,7 +79,6 @@ export function fillTarget(
   );
   const id = kit === null ? null : plannedSubjectId(row.subjectId, plan, kit);
   if (subject === undefined || id === null || row.missing) return 'noKit';
-  if (row.duplicateCode !== null) return 'duplicateCode';
   const lecture = row.planned.find((section) => section.kind === 'lecture');
   const practice = row.planned.find((section) => section.kind === 'practice');
   const primary = lecture ?? practice;
@@ -86,6 +91,7 @@ export function fillTarget(
     ),
     listed: subject.sections.filter((other) => other.kind === section.kind)
       .length,
+    duplicate: subject.duplicateCodes.includes(section.section),
   });
   return {
     id,
@@ -137,13 +143,16 @@ export function listedState(
 
 /**
  * The option that is provably the planned half, or why KCP may not choose. A code the
- * page shows twice, or with a suffix the kit cannot explain, is the duplicate code stop;
- * a code missing from a list the page cut at 20 is not visible rather than not offered.
+ * kit lists under more than one curriculum, a code the page shows twice, or one with a
+ * suffix the kit cannot explain is the duplicate code stop, which leaves the choice to
+ * the student; a code missing from a list the page cut at 20 is not visible rather than
+ * not offered.
  */
 export function pickOption(
   options: readonly { section: string; curriculum: string | null }[],
   half: FillHalf,
 ): number | StopReason {
+  if (half.duplicate) return 'duplicateCode';
   const matches = options.flatMap((option, index) =>
     option.section === half.code ? [index] : [],
   );
@@ -152,7 +161,7 @@ export function pickOption(
   if (index === undefined) {
     return options.length >= 20 && half.listed > options.length
       ? 'notVisible'
-      : 'refused';
+      : 'notOffered';
   }
   if (options[index]?.curriculum !== null && !half.shared)
     return 'duplicateCode';
