@@ -93,12 +93,14 @@ export function resolveActivator(
   });
 }
 
-/** The options of the listbox an activator names, or null when it is not open. */
+/** The options of the listbox a select's activator names, or null when it is not open. */
 export function resolveOptions(
   doc: Document,
-  activator: HostControl<'activator'>,
+  which: 'primary' | 'practice',
 ): SectionOption[] | null {
   return attempt(() => {
+    const activator = resolveActivator(doc, which);
+    if (activator === null) return null;
     const owns = activator.element.getAttribute('aria-owns') ?? '';
     const listbox = doc.getElementById(owns);
     const menu = listbox?.parentElement;
