@@ -253,9 +253,9 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.node } },
   },
 
-  // The landing site's one script runs in the visitor's browser.
+  // The landing site's one script and the host page replica run in a browser.
   {
-    files: ['site/**/*.js'],
+    files: ['site/**/*.js', 'tests/e2e/host/**/*.js'],
     languageOptions: { globals: { ...globals.browser } },
   },
 
