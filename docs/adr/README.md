@@ -85,3 +85,4 @@ withdrawal note above the original text, which is kept as written.
 74. [First run product tour](0074-first-run-product-tour.md)
 75. [Quiet mode and address hygiene on the registration pages](0075-quiet-mode-and-address-hygiene.md)
 76. [Registration helper companion](0076-registration-helper-companion.md)
+77. [Read only observer on the pre registration page](0077-read-only-observer-on-pre-registration.md)
