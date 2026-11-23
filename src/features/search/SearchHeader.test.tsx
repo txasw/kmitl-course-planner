@@ -117,6 +117,27 @@ afterEach(() => {
 });
 
 describe('SearchHeader', () => {
+  it('leads with the busy notice only while a registration page is open', () => {
+    const notice =
+      'ระบบลงทะเบียนอาจมีผู้ใช้หนาแน่น KCP จึงส่งคำขอเฉพาะเมื่อคุณค้นหาหรือตรวจสอบเอง';
+    try {
+      renderHeader();
+      expect(screen.queryByText(notice)).not.toBeInTheDocument();
+      act(() => {
+        window.location.hash = '#/pre_registration';
+        window.dispatchEvent(new HashChangeEvent('hashchange'));
+      });
+      expect(screen.getByText(notice)).toBeInTheDocument();
+      act(() => {
+        window.location.hash = '#/teach_table_selector';
+        window.dispatchEvent(new HashChangeEvent('hashchange'));
+      });
+      expect(screen.queryByText(notice)).not.toBeInTheDocument();
+    } finally {
+      window.location.hash = '';
+    }
+  });
+
   it('shows the open form and no bar before a search', () => {
     const { container } = renderHeader();
     expect(

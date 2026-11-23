@@ -23,6 +23,9 @@
 // the scroller foot with its divider, so the action stays in view and the divider marks
 // that more of the form lies above it.
 //
+// On a host registration page a one line notice leads the head, above the bar and the
+// form, saying that KCP sends a request there only when the student asks (ADR-0075).
+//
 // The head seeds the search on the first open of the page session. A search persisted
 // before a reload reopens folded into its bar; until the seed lands the head holds a
 // fixed placeholder with neither the form nor the bar, so nothing paints and then flips.
@@ -32,6 +35,7 @@ import { useStore } from 'zustand';
 import { claimEscape } from '@/lib/ui/escape';
 import { commitAndFocus } from '@/features/shell/commitAndFocus';
 import { useElementSize } from '@/features/shell/useElementSize';
+import { QuietNotice } from './QuietNotice';
 import { SearchForm } from './SearchForm';
 import { useSearchDeps } from './SearchDepsContext';
 import { SEARCH_DISCLOSURE_ID, SEARCH_FORM_ID } from './searchIds';
@@ -111,6 +115,7 @@ function SearchHead({ compact = false }: SearchHeaderProps) {
       }
       onKeyDown={handleKeyDown}
     >
+      <QuietNotice />
       {barVisible ? <SearchSummaryBar query={barQuery} /> : null}
       <div
         id={SEARCH_FORM_ID}
