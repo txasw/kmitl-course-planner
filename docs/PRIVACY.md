@@ -49,9 +49,18 @@ It reads only these course facts, never your name or student id and never the te
 message the page shows, keeps them in memory while the page is open, and stores, logs,
 or sends none of them. It does not read a version of the page KCP was not tested with,
 or a page a staff member opened on a student's behalf; for that it checks only whether
-the page marks such a session. It fills in nothing and presses nothing on the page. You
-enter your subjects and submit your registration yourself. The marks you set in the
-checklist stay on your device.
+the page marks such a session. The marks you set in the checklist stay on your device.
+
+On the pre registration page, when you press Fill this subject or Fill all subjects, KCP
+enters your planned subjects and sections into the page's own form for you to review, one
+subject at a time, through the same subject id field, section lists, and Add button you
+would use. It writes only the planned public subject id into the page, presses the page's
+Acknowledged button only after it has shown you a prerequisite condition the page raised,
+and stops at the first problem. The only request this causes is the page's own check of
+each subject, the same one typing the id causes. It never presses Continue or Confirm,
+never submits or confirms your registration, and does not fill on a version of the page it
+was not tested with. You can turn filling off in the helper. You review the list and
+submit your registration yourself.
 
 ## Data storage
 
@@ -67,6 +76,9 @@ The extension keeps the following in the browser's extension storage on your dev
   course data of every section of its subjects, read once when you pressed prepare, and
   the checklist marks you set yourself. If this data is ever unreadable, a copy is set
   aside on the device, as for plans.
+- The fill setting: whether you turned filling off, and the script names of any version of
+  the registration page on which KCP turned filling off for safety. These names are the
+  same for every student.
 - The date and version of the installation.
 - The onboarding state: when the welcome message showed, when the panel first opened,
   whether you turned off the entry prompt beside the Planner button, and whether and when
@@ -82,6 +94,7 @@ The extension keeps the following in the browser's extension storage on your dev
 | Course search results                                                        | Used for up to 10 minutes, then fetched again             |
 | Preferences, last search per tab, install date and version, onboarding state | Until changed or until you remove the extension           |
 | Registration helper data and checklist marks                                 | Kept for your 12 most recent plans, used for 7 days       |
+| The fill setting                                                             | Until changed or until you remove the extension           |
 | Record of a tab KCP opened for you (session storage)                         | At most one minute, and cleared when the browser restarts |
 
 None of this data is uploaded anywhere.
