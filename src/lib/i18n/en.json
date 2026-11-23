@@ -677,5 +677,19 @@
   "regis.sheetRaise": "Show more of the checklist",
   "regis.sheetLower": "Show less of the checklist",
   "regis.next": "Next {subjectId}",
-  "regis.allDone": "Every subject is marked"
+  "regis.allDone": "Every subject is marked",
+  "regis.state.refused": "Not offered on the page",
+  "regis.state.submitted": "Submitted, waiting for the result",
+  "regis.state.granted": "Granted",
+  "regis.state.notGranted": "Not granted",
+  "regis.state.notSubmitted": "Not submitted",
+  "regis.observed": "Registration page: {state}",
+  "regis.observed.notListed": "Not on the list yet",
+  "regis.observed.listed": "On the list as planned",
+  "regis.observed.listedOther": "On the list with section {codes}, which differs from the plan",
+  "regis.observed.refused": "Not offered to you. Read the message on the registration page.",
+  "regis.observed.notGrantedCondition": "Not granted because a condition was not met",
+  "regis.observed.prerequisites": "Conditional on prerequisites that have no grade yet: {ids}",
+  "regis.markOverride": "Your mark is used instead of what the registration page shows",
+  "regis.mark.follow": "As the registration page shows"
 }

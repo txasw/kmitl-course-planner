@@ -1,7 +1,8 @@
-// The registration checklist at L0, where KCP reads nothing from the host page: one row
-// per planned subject, its planned section group, the other groups from the kit, and the
-// mark the student set by hand. The derivation is one pure function, so the dock and the
-// tests read the same states. A plan of another term than the page, a kit of another
+// The registration checklist: one row per planned subject, its planned section group, the
+// other groups from the kit, what the read only observer saw on the page while it is
+// healthy (ADR-0077), and the mark the student set by hand, which overrides the page and
+// is shown beside it. The derivation is one pure function, so the dock and the tests
+// read the same states. A plan of another term than the page, a kit of another
 // term than the plan, and marks saved for another term are never mixed in: a kit or a
 // mark of another term is ignored, and a page term that differs puts every row in the
 // term mismatch state.
@@ -12,6 +13,13 @@ import { groupEntriesBySubject } from '../planner/subjectGroups';
 import { planCredits } from '../planner/transaction';
 import { termsEqual, type Term } from '../routing/academicTerms';
 import { kitConditions, kitMatchesPlan, plannedSections } from './kit';
+import {
+  observeRow,
+  pageExtras,
+  type ObservedPage,
+  type ObservedRow,
+  type ObservedState,
+} from './observedRow';
 import type { KitFit, KitSeat, KitSubject, RegistrationKit } from './kitSchema';
 
 /** The marks a student can set on a row by hand. */
@@ -40,7 +48,36 @@ export const checklistMarksSchema = z.object({
 });
 export type ChecklistMarks = z.infer<typeof checklistMarksSchema>;
 
-export type RowState = 'notDone' | MarkState | 'termMismatch';
+export type RowState =
+  | 'notDone'
+  | MarkState
+  | 'termMismatch'
+  | 'refused'
+  | 'submitted'
+  | 'granted'
+  | 'notGranted'
+  | 'notSubmitted';
+
+/** The row state each page reading stands for when the student set no mark. */
+const OBSERVED_STATE: Record<ObservedState, RowState> = {
+  notListed: 'notDone',
+  listed: 'added',
+  listedOther: 'addedOther',
+  refused: 'refused',
+  waiting: 'submitted',
+  granted: 'granted',
+  notGranted: 'notGranted',
+  notGrantedCondition: 'notGranted',
+  notSubmitted: 'notSubmitted',
+};
+
+/** States that do not settle a row: nothing done yet, or the page turned it down. */
+const UNSETTLED: readonly RowState[] = [
+  'notDone',
+  'termMismatch',
+  'refused',
+  'notSubmitted',
+];
 
 /** One other section group of a subject, with its fit and seats at prepare time. */
 export interface RowAlternative {
@@ -61,6 +98,10 @@ export interface ChecklistRow {
   /** Other groups, fitting and open first, earliest start first; empty without a kit. */
   alternatives: RowAlternative[];
   state: RowState;
+  /** The student's own mark, which overrides the page, or null. */
+  mark: MarkState | null;
+  /** What the page shows for the subject while the observer is healthy, or null. */
+  observed: ObservedRow | null;
   /** The group marked as taken instead, when the student chose one from the kit. */
   chosen: RowAlternative | null;
   conditionsTh: string[];
@@ -80,7 +121,13 @@ export interface Checklist {
   /** Whether a fresh kit of this plan's term backs the rows. */
   hasKit: boolean;
   rows: ChecklistRow[];
-  /** Rows the student has settled: any mark. */
+  /** Whether a healthy page observation backs the rows. */
+  observed: boolean;
+  /** Subjects the page lists that the plan does not hold. */
+  extras: { subjectId: string; codes: string[] }[];
+  /** Planned subjects the page lists with their planned group. */
+  listedPlanned: number;
+  /** Rows settled by a mark or by the page. */
   done: number;
   total: number;
   credits: number;
@@ -93,6 +140,8 @@ export interface ChecklistInput {
   marks: ChecklistMarks | null;
   /** The term the page shows, or null when KCP does not read it. */
   pageTerm: Term | null;
+  /** The healthy page observation, or null while the observer is off or waiting. */
+  page?: ObservedPage | null;
 }
 
 function earliest(sections: readonly SectionSnapshot[]): number {
@@ -153,6 +202,7 @@ export function deriveChecklist(input: ChecklistInput): Checklist {
     input.kit !== null && kitMatchesPlan(input.kit, plan) ? input.kit : null;
   const termMismatch = pageTerm !== null && !termsEqual(pageTerm, term);
   const marks = marksBelongTo(input.marks, plan) ? input.marks.marks : {};
+  const page = termMismatch ? null : (input.page ?? null);
   const rows = groupEntriesBySubject(plan.entries).map(
     (group): ChecklistRow => {
       const meta = group.entries[0]?.snapshot.subjectMeta;
@@ -171,6 +221,14 @@ export function deriveChecklist(input: ChecklistInput): Checklist {
             ) ?? null)
           : null;
       const planned = fromKit.length > 0 ? fromKit : snapshots;
+      const observed =
+        page === null ? null : observeRow(page, group.subjectId, planned);
+      const fromPage =
+        observed === null
+          ? 'notDone'
+          : observed.state === 'listed' && observed.prerequisites.length > 0
+            ? 'conditional'
+            : OBSERVED_STATE[observed.state];
       const duplicateCodes = new Set(subject?.duplicateCodes ?? []);
       return {
         subjectId: group.subjectId,
@@ -179,7 +237,9 @@ export function deriveChecklist(input: ChecklistInput): Checklist {
         credit: subject?.credit ?? meta?.credit ?? 0,
         planned,
         alternatives,
-        state: termMismatch ? 'termMismatch' : (mark?.state ?? 'notDone'),
+        state: termMismatch ? 'termMismatch' : (mark?.state ?? fromPage),
+        mark: mark?.state ?? null,
+        observed,
         chosen,
         conditionsTh:
           subject === undefined ? [] : kitConditions(subject, 'rulesTh'),
@@ -194,14 +254,17 @@ export function deriveChecklist(input: ChecklistInput): Checklist {
       };
     },
   );
+  const plannedIds = new Set(rows.map((row) => row.subjectId));
   return {
     term,
     termMismatch,
     hasKit: kit !== null,
     rows,
-    done: rows.filter(
-      (row) => row.state !== 'notDone' && row.state !== 'termMismatch',
-    ).length,
+    observed: page !== null,
+    extras: page === null ? [] : pageExtras(page.observation, plannedIds),
+    listedPlanned: rows.filter((row) => row.observed?.state === 'listed')
+      .length,
+    done: rows.filter((row) => !UNSETTLED.includes(row.state)).length,
     total: rows.length,
     credits: planCredits(plan.entries).credits,
   };
@@ -211,15 +274,18 @@ export function deriveChecklist(input: ChecklistInput): Checklist {
 export type ReviewKind =
   'mismatch' | 'conditional' | 'checkCurriculum' | 'match';
 
+const MISMATCH: readonly RowState[] = [
+  'notDone',
+  'addedOther',
+  'skipped',
+  'termMismatch',
+  'refused',
+  'notGranted',
+  'notSubmitted',
+];
+
 export function reviewKind(row: ChecklistRow): ReviewKind {
-  if (
-    row.state === 'notDone' ||
-    row.state === 'addedOther' ||
-    row.state === 'skipped' ||
-    row.state === 'termMismatch'
-  ) {
-    return 'mismatch';
-  }
+  if (MISMATCH.includes(row.state)) return 'mismatch';
   if (row.state === 'conditional') return 'conditional';
   if (row.duplicateCode !== null) return 'checkCurriculum';
   return 'match';

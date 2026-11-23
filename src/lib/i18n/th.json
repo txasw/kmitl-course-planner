@@ -677,5 +677,19 @@
   "regis.sheetRaise": "ขยายเช็กลิสต์",
   "regis.sheetLower": "ย่อเช็กลิสต์",
   "regis.next": "ถัดไป {subjectId}",
-  "regis.allDone": "ทำเครื่องหมายครบแล้ว"
+  "regis.allDone": "ทำเครื่องหมายครบแล้ว",
+  "regis.state.refused": "หน้าลงทะเบียนไม่เปิดให้ลง",
+  "regis.state.submitted": "ส่งแล้ว รอผล",
+  "regis.state.granted": "ได้รับสิทธิ์",
+  "regis.state.notGranted": "ไม่ได้รับสิทธิ์",
+  "regis.state.notSubmitted": "ไม่ได้ส่งวิชานี้",
+  "regis.observed": "หน้าลงทะเบียน: {state}",
+  "regis.observed.notListed": "ยังไม่มีในรายการ",
+  "regis.observed.listed": "อยู่ในรายการ ตรงตามแผน",
+  "regis.observed.listedOther": "อยู่ในรายการ กลุ่ม {codes} ไม่ตรงกับแผน",
+  "regis.observed.refused": "ไม่เปิดให้คุณลงวิชานี้ อ่านข้อความในหน้าลงทะเบียน",
+  "regis.observed.notGrantedCondition": "ไม่ได้รับสิทธิ์เนื่องจากผิดเงื่อนไข",
+  "regis.observed.prerequisites": "ลงได้แบบมีเงื่อนไข วิชาที่ต้องผ่านก่อนยังไม่มีเกรด: {ids}",
+  "regis.markOverride": "ใช้เครื่องหมายที่คุณเลือกแทนสิ่งที่หน้าลงทะเบียนแสดง",
+  "regis.mark.follow": "ตามหน้าลงทะเบียน"
 }
