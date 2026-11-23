@@ -85,8 +85,9 @@ describe('the host contract', () => {
     expect(HOST_LABELS.steps).toContainEqual(labels.pre_regis_stepper);
   });
 
-  it('holds no host button label, since it reads and never presses', () => {
-    const all: string[] = Object.values(HOST_LABELS).flat(2);
+  it('holds only the two button labels a fill presses, never Continue', () => {
+    const { addButton, acknowledge, ...read } = HOST_LABELS;
+    const all: string[] = Object.values(read).flat(2);
     for (const labels of LANGS) {
       for (const button of [
         labels['pre_regis_add_subject.add'],
@@ -95,7 +96,10 @@ describe('the host contract', () => {
       ]) {
         expect(all).not.toContain(button);
       }
+      expect(addButton).toContain(labels['pre_regis_add_subject.add']);
+      expect(acknowledge).toContain(labels['pre_regis_add_subject.roger']);
     }
+    expect([...addButton, ...acknowledge]).not.toContain('ดำเนินการต่อ');
   });
 
   it('matches the list header classes and the row colours', () => {
