@@ -313,6 +313,19 @@ describe('readHostPage', () => {
     breakIt(document);
     expect(readHostPage(document, PLANNED)).toEqual({ reading: 'drift' });
   });
+
+  it('drops the reading on a failure it does not name, rather than throwing', () => {
+    mount({ list: [{ subjectId: '01476107', section: '1', kind: 'ท' }] });
+    const table = document.querySelector('.v-data-table table');
+    if (table === null) throw new Error('no table');
+    // A host node whose own lookup fails, as a broken or hostile page might give.
+    Object.defineProperty(table, 'querySelectorAll', {
+      value: () => {
+        throw new TypeError('not a node list');
+      },
+    });
+    expect(readHostPage(document, PLANNED)).toEqual({ reading: 'drift' });
+  });
 });
 
 describe('readScriptNames', () => {

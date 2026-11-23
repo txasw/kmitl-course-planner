@@ -421,16 +421,20 @@ function readPage(doc: Document, planned: ReadonlySet<string>): PageReading {
     : { reading: 'drift' };
 }
 
-/** Read the page once. The planned subject ids bound which numbers may be kept. */
+/**
+ * Read the page once. The planned subject ids bound which numbers may be kept. Any
+ * failure is a drift, not only the ones the reader names: an error thrown out of here
+ * would leave the observer's last healthy reading in place and end a fill run without a
+ * stop, so a page KCP cannot read degrades instead.
+ */
 export function readHostPage(
   doc: Document,
   planned: ReadonlySet<string>,
 ): PageReading {
   try {
     return readPage(doc, planned);
-  } catch (error) {
-    if (error === DRIFT) return { reading: 'drift' };
-    throw error;
+  } catch {
+    return { reading: 'drift' };
   }
 }
 
