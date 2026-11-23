@@ -1,6 +1,6 @@
 // The registration helper's view of the active plan: which companion page is open, the
 // plan's kit when one younger than the age limit exists, checked again against the plan
-// as it stands, and the checklist derived from it, the student's marks, and what the read
+// as it stands, and the checklist derived from it, the student's choices, and what the read
 // only observer last saw on the page while healthy (ADR-0077), including the page term,
 // which puts every row in the term mismatch state when it differs from the plan.
 
@@ -61,7 +61,7 @@ export function storedKitFor(
 export function useCompanionView(): CompanionView {
   const plan = useStore(planStore, (state) => activePlanOf(state) ?? null);
   const kits = useStore(regisStore, (state) => state.kits);
-  const checklists = useStore(regisStore, (state) => state.checklists);
+  const choices = useStore(regisStore, (state) => state.choices);
   const profile = useStore(uiStore, (state) => state.curriculumProfile);
   const page = useStore(hostStore, (state) => state.page);
   const health = useStore(hostStore, (state) => state.health);
@@ -78,14 +78,14 @@ export function useCompanionView(): CompanionView {
     const pageTerm = page?.observation.term ?? null;
     const kitState: KitState =
       storedKit === null ? 'none' : fresh === null ? 'stale' : 'fresh';
-    const marks =
+    const chosen =
       plan === null
         ? null
-        : (checklists.find((item) => item.planId === plan.id) ?? null);
+        : (choices.find((item) => item.planId === plan.id) ?? null);
     const checklist =
       plan === null
         ? null
-        : deriveChecklist({ plan, kit, marks, pageTerm, page });
+        : deriveChecklist({ plan, kit, choices: chosen, pageTerm, page });
     return { plan, storedKit, kit, kitState, checklist, health, pageTerm };
-  }, [plan, kits, checklists, profile, page, health]);
+  }, [plan, kits, choices, profile, page, health]);
 }

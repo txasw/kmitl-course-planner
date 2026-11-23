@@ -16,7 +16,7 @@ import { createPlanRepository } from '@/lib/storage/repo';
 import { createInstallRepository } from '@/lib/storage/install';
 import { createOnboardingRepository } from '@/lib/storage/onboarding';
 import {
-  createChecklistRepository,
+  createChoicesRepository,
   createFillSettingsRepository,
   createRegKitRepository,
 } from '@/lib/storage/regis';
@@ -74,7 +74,7 @@ export default defineContentScript({
         const welcome = { record: onboardingRecord, send: sendTyped };
         const regis = {
           kits: createRegKitRepository(adapter),
-          checklists: createChecklistRepository(adapter),
+          choices: createChoicesRepository(adapter),
           fill: createFillSettingsRepository(adapter),
         };
         root.render(

@@ -3,7 +3,7 @@
 
 import type { RegisRepositories } from '@/features/regis/regisStore';
 import {
-  createChecklistRepository,
+  createChoicesRepository,
   createFillSettingsRepository,
   createRegKitRepository,
 } from '@/lib/storage/regis';
@@ -13,7 +13,7 @@ export function fakeRegisDeps(): RegisRepositories {
   const storage = createMemoryStorage();
   return {
     kits: createRegKitRepository(storage),
-    checklists: createChecklistRepository(storage),
+    choices: createChoicesRepository(storage),
     fill: createFillSettingsRepository(storage),
   };
 }

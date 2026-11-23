@@ -1,5 +1,5 @@
 // The two content owned records of the registration helper (ADR-0076): the kits the
-// prepare action built, and the checklist marks the student set. Each is a versioned
+// prepare action built, and the section groups the student chose for a registration. Each is a versioned
 // list of per plan items. A read validates each item through Zod on its own, so one bad
 // item is moved aside under a quarantine key while the rest load, as the plan
 // repository does; a blob whose root is malformed is moved aside whole. A blob from a
@@ -11,14 +11,14 @@ import {
   registrationKitSchema,
   type RegistrationKit,
 } from '../regis/kitSchema';
-import { checklistMarksSchema, type ChecklistMarks } from '../regis/checklist';
+import { sectionChoicesSchema, type SectionChoices } from '../regis/choices';
 import { createSerialQueue } from '../utils/serialQueue';
 import type { StorageAdapter } from './repo';
 import { CHECKLIST_KEY, FILL_KEY, REGKIT_KEY, quarantineKey } from './keys';
 
 const LIST_VERSION = 1;
 
-/** How many plans keep a kit or marks; the oldest beyond it drop on save. */
+/** How many plans keep a kit or choices; the oldest beyond it drop on save. */
 export const REGIS_RECORD_LIMIT = 12;
 
 export interface ListRepository<T> {
@@ -111,15 +111,15 @@ export function createRegKitRepository(
   });
 }
 
-export function createChecklistRepository(
+export function createChoicesRepository(
   adapter: StorageAdapter,
   now?: () => string,
-): ListRepository<ChecklistMarks> {
+): ListRepository<SectionChoices> {
   return createListRepository(adapter, {
     key: CHECKLIST_KEY,
     tag: 'checklist',
-    schema: checklistMarksSchema,
-    planIdOf: (marks) => marks.planId,
+    schema: sectionChoicesSchema,
+    planIdOf: (choices) => choices.planId,
     ...(now === undefined ? {} : { now }),
   });
 }

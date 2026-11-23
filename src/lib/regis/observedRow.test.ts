@@ -8,19 +8,12 @@ import {
   makeSection,
 } from '../../../tests/support/domain-builders';
 import { toSnapshot } from '../planner/transaction';
-import {
-  deriveChecklist,
-  finalReview,
-  withMark,
-  type ChecklistMarks,
-} from './checklist';
+import { deriveChecklist } from './checklist';
 import type { HostObservation } from './hostObservation';
 import type { ObservedPage } from './observedRow';
 
-// The checklist ticks itself from what the read only observer saw on the page, and the
-// student's own mark overrides it while both stay in view (ADR-0077).
-
-const AT = '2026-11-24T01:00:00.000Z';
+// The checklist ticks itself from what the read only observer saw on the page, the only
+// source of a row's state (ADR-0077).
 
 function entryFor(course: Course, section: Section) {
   return makePlanEntry({ snapshot: toSnapshot(course, section) });
@@ -82,14 +75,11 @@ function observed(
   };
 }
 
-function derive(
-  page: ObservedPage | null,
-  marks: ChecklistMarks | null = null,
-) {
+function derive(page: ObservedPage | null) {
   return deriveChecklist({
     plan,
     kit: null,
-    marks,
+    choices: null,
     pageTerm: page?.observation.term ?? null,
     page,
   });
@@ -107,7 +97,7 @@ const practice = (section: string) => ({
 });
 
 describe('deriveChecklist with the page observed', () => {
-  it('keeps the marks only while no observation backs the rows', () => {
+  it('shows no page state while no observation backs the rows', () => {
     const list = derive(null);
     expect(list.observed).toBe(false);
     expect(list.rows.map((row) => row.observed)).toEqual([null, null]);
@@ -141,7 +131,6 @@ describe('deriveChecklist with the page observed', () => {
     );
     expect(list.rows[0]?.state).toBe('refused');
     expect(list.done).toBe(0);
-    expect(finalReview(list)[0]?.kind).toBe('mismatch');
   });
 
   it('carries the prerequisite ids and lists the row as conditional', () => {
@@ -161,19 +150,6 @@ describe('deriveChecklist with the page observed', () => {
       }),
     );
     expect(list.extras).toEqual([{ subjectId: '90641007', codes: ['3'] }]);
-  });
-
-  it('lets the student mark override the page and keeps both', () => {
-    const marks = withMark(null, plan, '01476107', {
-      state: 'skipped',
-      at: AT,
-    });
-    const row = derive(
-      observed({ list: [lecture('1'), practice('101')] }),
-      marks,
-    ).rows[1];
-    expect(row).toMatchObject({ state: 'skipped', mark: 'skipped' });
-    expect(row?.observed?.state).toBe('listed');
   });
 
   it('shows no page state on a page of another term', () => {

@@ -10,15 +10,8 @@ import {
 } from '../../../tests/support/domain-builders';
 import { toSnapshot } from '../planner/transaction';
 import { buildRegistrationKit } from './kit';
-import {
-  checklistMarksSchema,
-  deriveChecklist,
-  finalReview,
-  withMark,
-  type ChecklistMarks,
-} from './checklist';
-
-const AT = '2026-11-24T01:00:00.000Z';
+import { deriveChecklist } from './checklist';
+import { sectionChoicesSchema, withChoice } from './choices';
 
 function catalogOf(...courses: Course[]): NormalizedCatalog {
   return { courses, duplicateCount: 0, multiMeetingCount: 0, warnings: [] };
@@ -72,8 +65,8 @@ const kit = buildRegistrationKit({
 });
 
 describe('deriveChecklist', () => {
-  it('lists every planned subject as not done until a mark', () => {
-    const list = deriveChecklist({ plan, kit, marks: null, pageTerm: null });
+  it('lists every planned subject as not done until the page lists it', () => {
+    const list = deriveChecklist({ plan, kit, choices: null, pageTerm: null });
     expect(list.rows.map((row) => [row.subjectId, row.state])).toEqual([
       ['A', 'notDone'],
       ['B', 'notDone'],
@@ -82,7 +75,7 @@ describe('deriveChecklist', () => {
   });
 
   it('orders the other sections fitting first, then by start', () => {
-    const row = deriveChecklist({ plan, kit, marks: null, pageTerm: null })
+    const row = deriveChecklist({ plan, kit, choices: null, pageTerm: null })
       .rows[0];
     // A2 clashes with B on Wednesday afternoon; A3 fits on Tuesday.
     expect(
@@ -93,31 +86,31 @@ describe('deriveChecklist', () => {
     ]);
   });
 
-  it('applies the student marks and counts them done', () => {
-    let marks = withMark(null, plan, 'A', { state: 'added', at: AT });
-    marks = withMark(marks, plan, 'B', { state: 'conditional', at: AT });
-    const list = deriveChecklist({ plan, kit, marks, pageTerm: null });
-    expect(list.rows.map((row) => row.state)).toEqual(['added', 'conditional']);
-    expect(list.done).toBe(2);
-    expect(checklistMarksSchema.safeParse(marks).success).toBe(true);
+  it('resolves the section the student chose for this registration', () => {
+    const choices = withChoice(null, plan, 'A', ['A3']);
+    const row = deriveChecklist({ plan, kit, choices, pageTerm: null }).rows[0];
+    expect(row?.state).toBe('notDone');
+    expect(row?.chosen?.ids).toEqual(['A3']);
   });
 
-  it('resolves the section the student took instead', () => {
-    const marks = withMark(null, plan, 'A', {
-      state: 'addedOther',
-      chosenIds: ['A3'],
-      at: AT,
+  it('drops the hand marks a record held before choices', () => {
+    const parsed = sectionChoicesSchema.parse({
+      planId: plan.id,
+      year: plan.year,
+      semester: plan.semester,
+      marks: { A: { state: 'added', at: '2026-11-24T01:00:00.000Z' } },
     });
-    const row = deriveChecklist({ plan, kit, marks, pageTerm: null }).rows[0];
-    expect(row?.state).toBe('addedOther');
-    expect(row?.chosen?.ids).toEqual(['A3']);
+    expect(parsed.choices).toEqual({});
+    expect(
+      deriveChecklist({ plan, kit, choices: parsed, pageTerm: null }).done,
+    ).toBe(0);
   });
 
   it('works from the plan snapshots alone when there is no kit', () => {
     const list = deriveChecklist({
       plan,
       kit: null,
-      marks: null,
+      choices: null,
       pageTerm: null,
     });
     expect(list.hasKit).toBe(false);
@@ -128,23 +121,20 @@ describe('deriveChecklist', () => {
     expect(list.rows[0]?.plannedSeat).toBeNull();
   });
 
-  it('ignores a kit and marks of another plan or term', () => {
+  it('ignores a kit and choices of another plan or term', () => {
     const other = makePlan({ id: 'plan-2', entries: plan.entries });
-    const marks: ChecklistMarks = withMark(null, plan, 'A', {
-      state: 'added',
-      at: AT,
-    });
-    const list = deriveChecklist({ plan: other, kit, marks, pageTerm: null });
+    const choices = withChoice(null, plan, 'A', ['A3']);
+    const list = deriveChecklist({ plan: other, kit, choices, pageTerm: null });
     expect(list.hasKit).toBe(false);
-    expect(list.rows[0]?.state).toBe('notDone');
+    expect(list.rows[0]?.chosen).toBeNull();
   });
 
   it('puts every row in the term mismatch state when the page term differs', () => {
-    const marks = withMark(null, plan, 'A', { state: 'added', at: AT });
+    const choices = null;
     const list = deriveChecklist({
       plan,
       kit,
-      marks,
+      choices,
       pageTerm: { year: '2569', semester: '2' },
     });
     expect(list.termMismatch).toBe(true);
@@ -153,7 +143,7 @@ describe('deriveChecklist', () => {
     const same = deriveChecklist({
       plan,
       kit,
-      marks,
+      choices,
       pageTerm: { year: '2569', semester: '1' },
     });
     expect(same.termMismatch).toBe(false);
@@ -171,7 +161,7 @@ describe('deriveChecklist', () => {
     const rows = deriveChecklist({
       plan,
       kit: gone,
-      marks: null,
+      choices: null,
       pageTerm: null,
     }).rows;
     expect(rows.map((row) => row.missing)).toEqual([true, true]);
@@ -181,7 +171,7 @@ describe('deriveChecklist', () => {
 });
 
 describe('duplicate codes', () => {
-  it('names the planned code to check by eye in the review', () => {
+  it('names the planned code listed under more than one curriculum', () => {
     const twin = { ...A1, teachTableId: 'A1-twin' };
     const course = makeCourse({ subjectId: 'A', sections: [A1, twin] });
     const single = makePlan({ entries: [entryFor(course, A1)] });
@@ -190,39 +180,25 @@ describe('duplicate codes', () => {
       results: new Map([['A', catalogOf(course)]]),
       preparedAt: '2026-11-22T14:10:00.000Z',
     });
-    const marks = withMark(null, single, 'A', { state: 'added', at: AT });
     const list = deriveChecklist({
       plan: single,
       kit: dupKit,
-      marks,
+      choices: null,
       pageTerm: null,
     });
     expect(list.rows[0]?.duplicateCode).toBe('1');
-    expect(finalReview(list)[0]?.kind).toBe('checkCurriculum');
   });
 });
 
-describe('finalReview', () => {
-  it('lists rows that differ from the plan first', () => {
-    let marks = withMark(null, plan, 'A', { state: 'added', at: AT });
-    marks = withMark(marks, plan, 'B', { state: 'skipped', at: AT });
-    const review = finalReview(
-      deriveChecklist({ plan, kit, marks, pageTerm: null }),
-    );
-    expect(review.map((item) => [item.row.subjectId, item.kind])).toEqual([
-      ['B', 'mismatch'],
-      ['A', 'match'],
-    ]);
-  });
-});
-
-describe('withMark', () => {
-  it('clears a mark and starts fresh marks for another term', () => {
-    const marks = withMark(null, plan, 'A', { state: 'added', at: AT });
-    expect(withMark(marks, plan, 'A', null).marks).toEqual({});
+describe('withChoice', () => {
+  it('clears a choice and starts fresh choices for another term', () => {
+    const choices = withChoice(null, plan, 'A', ['A3']);
+    expect(choices.choices).toEqual({ A: ['A3'] });
+    expect(withChoice(choices, plan, 'A', null).choices).toEqual({});
     const next = makePlan({ semester: '2', entries: [] });
-    expect(
-      withMark(marks, next, 'B', { state: 'skipped', at: AT }),
-    ).toMatchObject({ semester: '2', marks: { B: { state: 'skipped' } } });
+    expect(withChoice(choices, next, 'B', ['B1'])).toMatchObject({
+      semester: '2',
+      choices: { B: ['B1'] },
+    });
   });
 });
