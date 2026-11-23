@@ -139,58 +139,65 @@ export function FillPanel({
       </label>
       {gate === 'off' ? null : gate !== 'ok' ? (
         <p className="text-warn">{t(`regis.fill.stop.${gate}`)}</p>
-      ) : run.status === 'running' ? (
-        <>
-          <p role="status" className="font-semibold">
-            {fillTemplate(t('regis.fill.running'), {
-              done: run.done + 1,
-              total: run.total,
-            })}{' '}
-            <span className="font-normal">{stepText(run, t)}</span>
-          </p>
-          <p className="font-semibold text-warn">{t('regis.fill.warn')}</p>
-          <button
-            type="button"
-            onClick={requestStop}
-            className={`${BUTTON} border border-border text-ink hover:bg-surface-alt`}
-          >
-            {t('regis.fill.stop')}
-          </button>
-        </>
       ) : (
         <>
-          {run.status === 'stopped' ? (
-            <p role="status" data-fill-stop={run.reason} className="text-warn">
-              {run.subjectId === null ? '' : `${run.subjectId} `}
-              {t(`regis.fill.stop.${run.reason}`)}
-            </p>
-          ) : null}
-          {run.status === 'done' ? (
-            <p role="status" className="text-success">
-              {t('regis.fill.done')}
-            </p>
-          ) : null}
-          <div className="flex flex-wrap gap-2">
-            {run.status === 'stopped' &&
-            run.reason === 'full' &&
-            run.subjectId !== null ? (
-              <PressButton
-                label={t('regis.fill.continueFull')}
-                onPress={start(rest, [run.subjectId])}
-              />
-            ) : null}
-            {run.status === 'stopped' && rest.length > 0 ? (
-              <PressButton
-                label={t('regis.fill.continue')}
-                onPress={start(rest)}
-              />
-            ) : rows.length > 0 ? (
-              <PressButton
-                label={t('regis.fill.all')}
-                onPress={start(rows.map((row) => row.subjectId))}
-              />
-            ) : null}
-          </div>
+          {/* The one node that announces a run: its step, its stop, or its end. */}
+          <p
+            role="status"
+            data-fill-stop={run.status === 'stopped' ? run.reason : undefined}
+            className={
+              run.status === 'done'
+                ? 'text-success'
+                : run.status === 'stopped'
+                  ? 'text-warn'
+                  : 'font-semibold'
+            }
+          >
+            {run.status === 'running'
+              ? `${fillTemplate(t('regis.fill.running'), {
+                  done: run.done + 1,
+                  total: run.total,
+                })} ${stepText(run, t)}`
+              : run.status === 'stopped'
+                ? `${run.subjectId ?? ''} ${t(`regis.fill.stop.${run.reason}`)}`.trim()
+                : run.status === 'done'
+                  ? t('regis.fill.done')
+                  : ''}
+          </p>
+          {run.status === 'running' ? (
+            <>
+              <p className="font-semibold text-warn">{t('regis.fill.warn')}</p>
+              <button
+                type="button"
+                onClick={requestStop}
+                className={`${BUTTON} border border-border text-ink hover:bg-surface-alt`}
+              >
+                {t('regis.fill.stop')}
+              </button>
+            </>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {run.status === 'stopped' &&
+              run.reason === 'full' &&
+              run.subjectId !== null ? (
+                <PressButton
+                  label={t('regis.fill.continueFull')}
+                  onPress={start(rest, [run.subjectId])}
+                />
+              ) : null}
+              {run.status === 'stopped' && rest.length > 0 ? (
+                <PressButton
+                  label={t('regis.fill.continue')}
+                  onPress={start(rest)}
+                />
+              ) : rows.length > 0 ? (
+                <PressButton
+                  label={t('regis.fill.all')}
+                  onPress={start(rows.map((row) => row.subjectId))}
+                />
+              ) : null}
+            </div>
+          )}
         </>
       )}
     </section>
