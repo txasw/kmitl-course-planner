@@ -24,7 +24,8 @@ one who enters and submits the registration, which cannot be undone.
 
 **The registration kit.** A prepare action in the plan menu, labelled ตัวช่วยลงทะเบียน in Thai and
 Registration helper in English, reads each planned subject once by subject id through the existing
-gateway, one subject at a time with a short pause, and only when the student presses it. It is
+gateway, one subject at a time with a short pause and with retries turned off, so a failed read
+is reported as unread rather than sent again, and only when the student presses it. It is
 refused on the registration pages with a one line reason before any request is sent, a run that
 reaches such a page stops, and the student can cancel, which aborts the read in flight. From the
 results `lib/regis/kit.ts` builds a kit per plan: every section of each planned subject with its
@@ -44,15 +45,19 @@ instead of the overlay. The dock is not modal: no focus trap, no scroll lock, no
 host page stays usable, and the full planner is one action away. It docks on the right, in full
 from 1440 px and as a narrow bar below that the student can expand; on a phone it is a bottom
 sheet whose peek bar names the next subject with a copy button, raised to half or full height on
-demand, so at rest it sits below a host dialog's buttons. Each row shows the subject id with a copy
+demand, so at rest it sits below a host dialog's buttons; a press anywhere on the page lowers a
+raised sheet to the peek bar, so the dialog that press opens is in view. The install welcome, a
+modal, never opens on these pages. Each row shows the subject id with a copy
 button, the name and credits, the planned section and its practice pair with every meeting and exam
 window, the condition and duplicate code notes, the other sections with their fit, and the
 student's mark: not added yet, added on the page, added another section, conditional on a
 prerequisite, or skipped. The header shows the plan, its term with a prompt to compare it with the
 page, the credits, and a fixed line that KCP never submits and that the student presses
 ดำเนินการต่อ and confirms themselves; on pre registration it adds that pre registration can be
-submitted only once, and on regular registration that the student checks the list. A final review
-lists the rows that differ from the plan first, then the conditional rows and those whose curriculum
+submitted only once, and on regular registration that the student checks the list. The one time
+submit warning in the final review and the note that pre registration assigns the seats of a
+full section later appear on pre registration only. A final review lists the rows that differ
+from the plan first, then the conditional rows and those whose curriculum
 must be checked by eye. Without a kit, or with one older than 7 days, the dock lists the plan from
 its snapshots and asks the student to prepare at a calm time.
 
