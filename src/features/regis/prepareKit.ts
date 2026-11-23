@@ -1,14 +1,16 @@
 // The prepare action (ADR-0076): on the student's press, read each planned subject once
-// through the gateway by subject id, one at a time with a short pause between reads, then
-// build and save the kit. It runs at a calm time only: on the registration pages it is
-// refused before anything is sent, since those pages carry the registrar's heaviest load.
-// A cancel stops between reads and aborts the read in flight through the worker; a
-// cancelled run and a run whose every read failed keep the previous kit.
+// through the gateway by subject id, one at a time with a short pause between reads and
+// no retry, then build and save the kit. It runs at a calm time only: on the
+// registration pages it is refused before anything is sent, since those pages carry the
+// registrar's heaviest load. A cancel stops between reads and aborts the read in flight
+// through the worker; a cancelled run and a run whose every read failed keep the
+// previous kit.
 
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import type { Plan } from '@/lib/domain/plan';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
+import { withoutRetry } from '@/lib/regis/quietMode';
 import { buildRegistrationKit, subjectQuery } from '@/lib/regis/kit';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
 
@@ -66,7 +68,11 @@ export function prepareRegistrationKit(
       if (deps.isQuiet()) return { status: 'refused' };
       const query = subjectQuery(term, subjectId);
       state.inFlight = query;
-      const result = await deps.send({ type: 'teachTable/query', query });
+      // One read per subject: a failed read is reported as unread rather than retried,
+      // so a busy registrar never sees more than one request per subject from a press.
+      const result = await deps.send(
+        withoutRetry({ type: 'teachTable/query', query }),
+      );
       state.inFlight = null;
       if (isCancelled()) return { status: 'cancelled' };
       results.set(subjectId, result.ok ? result.value.catalog : null);
