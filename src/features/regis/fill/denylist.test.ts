@@ -71,6 +71,10 @@ describe('insideForbidden', () => {
       '<div class="deep-orange"><span data-target></span></div>',
       '<button class="warning" data-target></button>',
       '<button type="submit" data-target></button>',
+      '<button data-target></button>',
+      '<label><div data-target></div></label>',
+      '<a href="#/registration"><div data-target></div></a>',
+      '<div role="button"><button type="button" data-target></button></div>',
       '<div class="v-menu__content"><div data-target></div></div>',
     ]) {
       expect(insideForbidden(tree(html), [])).toBe(true);
@@ -96,7 +100,7 @@ describe('insideForbidden', () => {
     expect(
       insideForbidden(
         tree(
-          '<div class="v-card"><div class="mt-2"><button class="green" data-target></button></div></div>',
+          '<div class="v-card"><div class="mt-2"><button type="button" class="green" data-target></button></div></div>',
         ),
         [],
       ),
