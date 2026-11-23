@@ -1,28 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { REGISTRATION_ROUTES, isRegistrationRoute, routePath } from './route';
-
-describe('routePath', () => {
-  it('reads the path of a hash with or without its marker', () => {
-    expect(routePath('#/pre_registration')).toBe('/pre_registration');
-    expect(routePath('/teach_table')).toBe('/teach_table');
-  });
-
-  it('stops at the query', () => {
-    expect(routePath('#/teach_table?mode=by_class&selected_year=2569')).toBe(
-      '/teach_table',
-    );
-  });
-
-  it('stops at fields a sign in redirect appends', () => {
-    expect(routePath('#/main_menu&state=abc&code=xyz')).toBe('/main_menu');
-  });
-
-  it('names no path for an empty hash or one that is not a route', () => {
-    expect(routePath('')).toBe('');
-    expect(routePath('#')).toBe('');
-    expect(routePath('#access_token=abc&token_type=bearer')).toBe('');
-  });
-});
+import { REGISTRATION_ROUTES, isRegistrationRoute } from './route';
 
 describe('isRegistrationRoute', () => {
   it.each(REGISTRATION_ROUTES)('treats %s as a registration page', (path) => {

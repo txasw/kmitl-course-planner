@@ -4,10 +4,8 @@
 
 import { useSyncExternalStore } from 'react';
 import { isRegistrationRoute } from '@/lib/regis/route';
-import {
-  readLocationHash,
-  subscribeHashRoute,
-} from '@/features/search/useHashRoute';
+import { readLocationHash } from './hostLocation';
+import { subscribeHashRoute } from '@/features/search/useHashRoute';
 
 /** Whether the current host route is a registration page. */
 export function isQuietRoute(): boolean {

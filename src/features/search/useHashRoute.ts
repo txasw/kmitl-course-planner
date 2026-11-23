@@ -12,24 +12,23 @@
 // API rather than only in its absence, so a browser that exposes the API without
 // delivering its events to a content script still hears the host. One set of listeners
 // serves every subscriber, and the observer reports only a hash that moved, so the host's
-// own rendering never wakes a subscriber. Nothing here writes to the host.
+// own rendering never wakes a subscriber. Nothing here writes to the host. The hash is
+// read sanitized (ADR-0075), so what a subscriber sees and what is held between
+// signals is the route path and the teach table search fields, never anything else the
+// address carries.
 
 import { useSyncExternalStore } from 'react';
 import {
   parseTeachTableRoute,
   type TeachTableRoute,
 } from '@/lib/routing/parseTeachTableRoute';
+import { readLocationHash } from '@/features/shell/hostLocation';
 
 const NAVIGATION_EVENT = 'currententrychange';
 
 const subscribers = new Set<() => void>();
 let detach: (() => void) | null = null;
 let seenHash = '';
-
-/** The host location hash as it stands. */
-export function readLocationHash(): string {
-  return window.location.hash;
-}
 
 function notifySubscribers(): void {
   seenHash = readLocationHash();
