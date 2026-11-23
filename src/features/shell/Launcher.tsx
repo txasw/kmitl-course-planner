@@ -1,8 +1,14 @@
-import { CalendarDays } from 'lucide-react';
+import { CalendarDays, ListChecks } from 'lucide-react';
 import { useStore } from 'zustand';
 import { onboardingStore } from '@/features/onboarding/onboardingStore';
 import { planStore } from '@/features/plans/planStore';
 import { needsLauncherAttention } from '@/lib/onboarding/launcherAttention';
+import { fillTemplate } from '@/lib/i18n/template';
+import { regisStore } from '@/features/regis/regisStore';
+import {
+  useCompanionRoute,
+  useCompanionView,
+} from '@/features/regis/useCompanion';
 import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
@@ -21,7 +27,8 @@ import { useTranslation } from './useTranslation';
 // welcome and the selector coach mark are out of the way (ADR-0063), and every student
 // sees it after putting the coach mark off with Maybe later or Not again today
 // (ADR-0072). It stays live under the coach mark, which spotlights it and leaves it
-// clickable.
+// clickable. On the two student registration pages it names the checklist and its
+// progress and opens the registration helper dock instead of the overlay.
 
 /** The launcher's id, so a layer that closes over it can hand it focus. */
 export const LAUNCHER_ID = 'kcp-launcher';
@@ -40,6 +47,26 @@ export function LauncherFace() {
     <>
       <CalendarDays size={20} strokeWidth={2} aria-hidden />
       <span>{t('launcher.label')}</span>
+    </>
+  );
+}
+
+/** On a registration page the launcher names the checklist and its progress instead. */
+function CompanionLauncherFace() {
+  const { t } = useTranslation();
+  const { checklist } = useCompanionView();
+  const total = checklist?.total ?? 0;
+  return (
+    <>
+      <ListChecks size={20} strokeWidth={2} aria-hidden />
+      <span>
+        {total === 0
+          ? t('regis.launcherEmpty')
+          : fillTemplate(t('regis.launcher'), {
+              done: checklist?.done ?? 0,
+              total,
+            })}
+      </span>
     </>
   );
 }
@@ -80,8 +107,18 @@ function useLauncherAttention(welcomeOpen: boolean): boolean {
 export function Launcher() {
   const isOpen = useStore(uiStore, (state) => state.isOpen);
   const welcomeOpen = useStore(onboardingStore, (state) => state.welcomeOpen);
-  const covered = isOpen || welcomeOpen;
-  const open = useStore(uiStore, (state) => state.open);
+  // On the two student registration pages the launcher opens the registration helper
+  // dock beside the page, and hides while the dock is open (ADR-0076).
+  const companion = useCompanionRoute() !== null;
+  const dockOpen = useStore(regisStore, (state) => state.dockOpen);
+  const docked = companion && dockOpen;
+  const covered = isOpen || welcomeOpen || docked;
+  const openPanel = useStore(uiStore, (state) => state.open);
+  const open = companion
+    ? () => {
+        regisStore.getState().setDockOpen(true);
+      }
+    : openPanel;
   const issueCount = useStore(uiStore, (state) => state.diagnosticsIssueCount);
   const attention = useLauncherAttention(welcomeOpen);
   const { t, language } = useTranslation();
@@ -93,13 +130,11 @@ export function Launcher() {
       onClick={open}
       inert={covered || undefined}
       aria-hidden={covered || undefined}
-      aria-label={t('launcher.open')}
+      aria-label={t(companion ? 'regis.launcherOpen' : 'launcher.open')}
       lang={language}
-      className={
-        attention ? `${LAUNCHER_CLASS} kcp-launcher-ring` : LAUNCHER_CLASS
-      }
+      className={`${LAUNCHER_CLASS}${attention ? ' kcp-launcher-ring' : ''}${docked ? ' invisible' : ''}`}
     >
-      <LauncherFace />
+      {companion ? <CompanionLauncherFace /> : <LauncherFace />}
       {issueCount !== null && issueCount > 0 ? (
         <span
           aria-hidden
