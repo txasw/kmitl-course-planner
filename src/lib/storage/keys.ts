@@ -52,6 +52,18 @@ export const TAB_INTENTS_KEY = 'kcp:session:tabIntents';
 /** How long a recorded tab intent stays valid before it is ignored and pruned. */
 export const TAB_INTENT_TTL_MS = 60 * 1000;
 
+/**
+ * Content owned registration kits: per plan, the public course data the prepare action
+ * read at a calm time, so the registration pages need no request (ADR-0076).
+ */
+export const REGKIT_KEY = 'kcp:regkit';
+
+/**
+ * Content owned registration checklist marks: per plan and term, the marks the student
+ * set by hand on the registration pages. Nothing read from the host page is kept here.
+ */
+export const CHECKLIST_KEY = 'kcp:checklist';
+
 /** Key under which a corrupt root blob is preserved for later export. */
 export function quarantineKey(timestamp: string): string {
   return `kcp:quarantine:${timestamp}`;

@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   CACHE_PREFIX,
+  CHECKLIST_KEY,
   INSTALL_KEY,
   ONBOARDING_KEY,
   PREFS_KEY,
   REFERENCE_TTL_MS,
+  REGKIT_KEY,
   ROOT_KEY,
   SEARCH_KEY,
   TAB_INTENTS_KEY,
@@ -34,7 +36,13 @@ describe('cache keys', () => {
 });
 
 describe('onboarding keys', () => {
-  const recordKeys = [INSTALL_KEY, ONBOARDING_KEY, TAB_INTENTS_KEY];
+  const recordKeys = [
+    INSTALL_KEY,
+    ONBOARDING_KEY,
+    TAB_INTENTS_KEY,
+    REGKIT_KEY,
+    CHECKLIST_KEY,
+  ];
 
   it('names the install, onboarding and tab intent records', () => {
     expect(INSTALL_KEY).toBe('kcp:install');
