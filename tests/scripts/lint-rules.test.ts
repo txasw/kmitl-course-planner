@@ -148,6 +148,35 @@ const HOST_ACTIONS = [
   'el.setAttribute("aria-selected", "true");',
   'export const key = new KeyboardEvent("keydown");',
   'export const press = new MouseEvent("click");',
+  // The same actions reached around a plain member call or a bare constructor name.
+  'el["click"]();',
+  'HTMLElement.prototype.click.call(button);',
+  'Reflect.apply(el.dispatchEvent, el, [event]);',
+  'const { click } = button; click.call(button);',
+  'HTMLFormElement.prototype.requestSubmit.call(form);',
+  'export const press = new window.MouseEvent("click");',
+  'export const key = new globalThis.KeyboardEvent("keydown");',
+  'Object.assign(input, { value: "01476107" });',
+  'button.disabled = false;',
+  'button.removeAttribute("disabled");',
+  'form.reset();',
+  'dialog.showModal();',
+];
+
+// What the actuator may still never do, in every form the host action guard knows.
+const ACTUATOR_FORBIDDEN = [
+  'export const key = new KeyboardEvent("keydown");',
+  'export const key = new window.KeyboardEvent("keydown");',
+  'el.focus();',
+  'el["focus"]();',
+  'form.submit();',
+  'form.requestSubmit();',
+  'HTMLFormElement.prototype.submit.call(form);',
+  'option.selected = true;',
+  'el.setAttribute("aria-selected", "true");',
+  'button.removeAttribute("disabled");',
+  'button.disabled = false;',
+  'Object.assign(input, { checked: true });',
 ];
 
 describe('the host action guard', () => {
@@ -227,14 +256,7 @@ describe('the fill actuator confinement', () => {
   });
 
   it('still forbids the actuator every other action', async () => {
-    for (const source of [
-      'export const key = new KeyboardEvent("keydown");',
-      'el.focus();',
-      'form.submit();',
-      'form.requestSubmit();',
-      'option.selected = true;',
-      'el.setAttribute("aria-selected", "true");',
-    ]) {
+    for (const source of ACTUATOR_FORBIDDEN) {
       const messages = await messagesFor(actuator, source);
       expect(messages.join(' ')).toMatch(/only writes the field/);
     }
