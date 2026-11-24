@@ -242,6 +242,35 @@ test('acknowledges the real grade dialog only after showing the condition', asyn
   await expectNothingForbidden(page);
 });
 
+test('leaves the grade dialog alone once the card stops showing the condition', async ({
+  context,
+  serviceWorker,
+}) => {
+  const page = await openPlanner(context);
+  await setUp(page, serviceWorker, (section) => ({
+    catalog: {
+      [SUBJECT]: {
+        sections: [{ section, kind: 'ท' }],
+        prerequisites: ['90000002'],
+      },
+    },
+  }));
+  await press(page);
+  await expect(page.getByText('รอเกรด 90000002')).toBeVisible({
+    timeout: 15_000,
+  });
+  // The list view hides the focus section that shows the condition.
+  await page.getByRole('button', { name: /^เพิ่มแล้ว/ }).click();
+  await expect(page.locator('[data-fill="stopped"]')).toBeVisible({
+    timeout: 15_000,
+  });
+  expect(
+    await page.evaluate(() => window.replica.counters.clicks.acknowledge ?? 0),
+  ).toBe(0);
+  expect(await listed(page)).toEqual([]);
+  await expectNothingForbidden(page);
+});
+
 test('stops when focus moves to Continue', async ({
   context,
   serviceWorker,
