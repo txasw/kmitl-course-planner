@@ -45,9 +45,10 @@ const INVENTORY: Readonly<Record<string, number>> = {
   // How many planned subjects the registration page lists, said once as the host's own
   // confirm dialog opens over a list that differs from the plan (ADR-0077).
   'features/regis/host/ConfirmBanner.tsx': 1,
-  // The step, the stop with its reason, or the end of a fill run, in the helper's fill
-  // panel, one line replaced as the run moves on (ADR-0078).
-  'features/regis/fill/FillControls.tsx': 1,
+  // The registration helper's one region: a subject's status change, a fill run's step or
+  // stop, a copy, the page turning unreadable or readable, and the hide (ADR-0076,
+  // ADR-0078). Nothing is said when the card opens on its own.
+  'features/regis/RegisHelper.tsx': 1,
 };
 
 // The drag library mounts one region of its own inside the drag context, which no source

@@ -285,7 +285,7 @@ describe('the student press issuer', () => {
     for (const file of [
       'src/features/regis/fill/fillEngine.ts',
       'src/features/regis/fill/hostControls.ts',
-      'src/features/regis/DockContent.tsx',
+      'src/features/regis/HelperCard.tsx',
       'src/entrypoints/regis.content/App.tsx',
     ]) {
       const messages = await messagesFor(file, source);

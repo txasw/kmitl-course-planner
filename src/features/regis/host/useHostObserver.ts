@@ -1,8 +1,10 @@
 // The read only observer's lifecycle on the pre registration page (ADR-0077). It reads
 // the page once on arrival and again 150 ms after the watched roots settle, through one
 // MutationObserver scoped to the registration panel, the dialogs, and the toasts, and
-// stops for the document once the health machine turns it off. It sends no request,
-// stores nothing, and acts on nothing: a reading only updates the memory store.
+// stops for the document once the health machine turns it off. The student's Check again
+// starts the reading over, and the health machine keeps it off once it is off. It sends
+// no request, stores nothing, and acts on nothing: a reading only updates the memory
+// store.
 
 import { useEffect } from 'react';
 import { useStore } from 'zustand';
@@ -22,6 +24,7 @@ function plannedKeyOf(subjectIds: readonly string[]): string {
 
 export function useHostObserver(): void {
   const onPage = useCompanionRoute() === 'preRegistration';
+  const checks = useStore(hostStore, (state) => state.checks);
   const plannedKey = useStore(planStore, (state) =>
     plannedKeyOf(
       activePlanOf(state)?.entries.map((entry) => entry.subjectId) ?? [],
@@ -59,5 +62,5 @@ export function useHostObserver(): void {
       observer.disconnect();
       hostStore.getState().leave();
     };
-  }, [onPage, plannedKey]);
+  }, [onPage, plannedKey, checks]);
 }

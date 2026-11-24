@@ -1,25 +1,26 @@
-// The student's fill controls in the registration helper (ADR-0078): the switch, Fill all
-// in the header and Fill this subject on each row, Stop during a run, and Continue after
-// a stop, with the reason and the next step in one sentence. These buttons are the only
-// code that issues a student press, from their own click, so nothing but a deliberate
-// press starts a run. Stop and Continue sit in different places, so one bounce cannot
-// stop and resume a run, and a held key repeats nothing.
+// The student's fill controls in the registration helper (ADR-0078): Add for me on the
+// subject in focus and on each list row, and the step progress with Stop during a run. These buttons are the only code that issues a student
+// press, from their own click, so nothing but a deliberate press starts a run. A press
+// counts only once its button has been on screen for a moment, so a button that turns
+// from disabled to enabled is a new button whose moment starts then. Stop takes the place
+// of Add for me while a run is active, so one bounce cannot stop and resume a run, and a
+// held key repeats nothing.
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { useStore } from 'zustand';
+import { Plus, X } from 'lucide-react';
 import type { Plan } from '@/lib/domain/plan';
 import { fillTemplate } from '@/lib/i18n/template';
 import type { Translate } from '@/lib/i18n/t';
-import type { Checklist, ChecklistRow } from '@/lib/regis/checklist';
-import { fillTarget, rowsToFill, type StopReason } from '@/lib/regis/fillPlan';
+import type { ChecklistRow } from '@/lib/regis/checklist';
+import { fillTarget, type StopReason } from '@/lib/regis/fillPlan';
 import { fillGate } from '@/lib/regis/hostBuild';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
-import { FOCUS_RING } from '@/lib/ui/focus';
-import { TARGET_HEIGHT } from '@/lib/ui/target';
+import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { readScriptNames } from '../host/hostDom';
 import { regisStore } from '../regisStore';
+import type { FillStep } from './fillEngine';
 import {
-  fillStore,
   requestStop,
   startFill,
   type FillRequest,
@@ -27,15 +28,18 @@ import {
 } from './fillRun';
 import { issueStudentPress, type StudentPress } from './studentPress';
 
-const BUTTON = `w-fit rounded-kcp px-2 text-xs font-semibold ${TARGET_HEIGHT} ${FOCUS_RING}`;
+/** The shared box of the action row's buttons, 36 px high and 44 px on a phone. */
+export const ACTION_BUTTON =
+  'inline-flex min-h-9 min-w-0 flex-1 basis-0 items-center justify-center gap-1.5 rounded-kcp px-2 text-sm max-sm:min-h-11 pointer-coarse:min-h-11';
+
+const PRIMARY = `${ACTION_BUTTON} bg-primary-strong font-semibold text-white hover:bg-primary-hover ${FOCUS_OUTLINE}`;
 
 interface FillProps {
   plan: Plan;
   kit: RegistrationKit;
-  t: Translate;
 }
 
-function itemsFor(
+export function itemsFor(
   rows: readonly ChecklistRow[],
   plan: Plan,
   kit: RegistrationKit,
@@ -48,13 +52,19 @@ function itemsFor(
   });
 }
 
+interface PressButtonProps {
+  label: string;
+  onPress: (press: StudentPress) => void;
+  className: string;
+  children: ReactNode;
+}
+
 function PressButton({
   label,
   onPress,
-}: {
-  label: string;
-  onPress: (press: StudentPress) => void;
-}) {
+  className,
+  children,
+}: PressButtonProps) {
   // A press counts only once the button has been on screen for a moment.
   const shownAt = useRef(Number.POSITIVE_INFINITY);
   useEffect(() => {
@@ -63,6 +73,7 @@ function PressButton({
   return (
     <button
       type="button"
+      aria-label={label}
       data-fill-press
       onKeyDown={(event) => {
         if (event.repeat) event.preventDefault();
@@ -71,159 +82,135 @@ function PressButton({
         const press = issueStudentPress(event.nativeEvent, shownAt.current);
         if (press !== null) onPress(press);
       }}
-      className={`${BUTTON} bg-primary-strong text-white hover:bg-primary-hover`}
+      className={className}
     >
-      {label}
+      {children}
     </button>
   );
 }
 
-/** Whether fill is available: switched on and allowed on this host build. */
-function useFillGate(): StopReason | 'ok' | 'off' {
+/** Whether fill can act here: switched on and allowed on this host build. */
+export function useFillGate(): StopReason | 'ok' | 'off' {
   const fill = useStore(regisStore, (state) => state.fill);
   if (fill.off) return 'off';
   return fillGate(readScriptNames(document), fill.latched);
 }
 
-function stepText(
-  run: Extract<FillRun, { status: 'running' }>,
-  t: Translate,
-): string {
-  return fillTemplate(t(`regis.fill.step.${run.step}`), {
-    subjectId: run.subjectId,
-    ids: run.prerequisites.join(' '),
-  });
+interface AddForMeProps extends FillProps {
+  row: ChecklistRow;
+  /** Fill the planned section even though the page shows it over subscribed. */
+  allowFull: boolean;
+  /** Show the plus icon alone, for a list row, with the label as its name. */
+  compact?: boolean;
+  t: Translate;
 }
 
-export function FillPanel({
-  plan,
-  kit,
-  checklist,
-  t,
-}: FillProps & { checklist: Checklist }) {
-  const off = useStore(regisStore, (state) => state.fill.off);
-  const run = useStore(fillStore, (state) => state.run);
-  const gate = useFillGate();
-  const rows = checklist.rows.filter((row) => row.state === 'notDone');
-  const start =
-    (subjects: readonly string[], allowFull?: string[]) =>
-    (press: StudentPress) => {
-      void startFill(press, {
-        plan,
-        kit,
-        items: itemsFor(rowsToFill(checklist.rows, subjects), plan, kit),
-        ...(allowFull === undefined ? {} : { allowFull }),
-      });
-    };
-  const rest =
-    run.status === 'stopped'
-      ? run.scope.slice(Math.max(0, run.scope.indexOf(run.subjectId ?? '')))
-      : [];
-  return (
-    <section
-      data-fill={run.status}
-      className="flex flex-col gap-2 rounded-kcp border border-border p-2"
-    >
-      <label className="flex items-center gap-2 font-semibold">
-        <input
-          type="checkbox"
-          checked={!off}
-          onChange={(event) => {
-            regisStore.getState().setFillOff(!event.currentTarget.checked);
-          }}
-        />
-        {t('regis.fill.switch')}
-      </label>
-      {gate === 'off' ? null : gate !== 'ok' ? (
-        <p className="text-warn">{t(`regis.fill.stop.${gate}`)}</p>
-      ) : (
-        <>
-          {/* The one node that announces a run: its step, its stop, or its end. */}
-          <p
-            role="status"
-            data-fill-stop={run.status === 'stopped' ? run.reason : undefined}
-            className={
-              run.status === 'done'
-                ? 'text-success'
-                : run.status === 'stopped'
-                  ? 'text-warn'
-                  : 'font-semibold'
-            }
-          >
-            {run.status === 'running'
-              ? `${fillTemplate(t('regis.fill.running'), {
-                  done: run.done + 1,
-                  total: run.total,
-                })} ${stepText(run, t)}`
-              : run.status === 'stopped'
-                ? `${run.subjectId ?? ''} ${t(`regis.fill.stop.${run.reason}`)}`.trim()
-                : run.status === 'done'
-                  ? t('regis.fill.done')
-                  : ''}
-          </p>
-          {run.status === 'running' ? (
-            <>
-              <p className="font-semibold text-warn">{t('regis.fill.warn')}</p>
-              <button
-                type="button"
-                onClick={requestStop}
-                className={`${BUTTON} border border-border text-ink hover:bg-surface-alt`}
-              >
-                {t('regis.fill.stop')}
-              </button>
-            </>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {run.status === 'stopped' &&
-              run.reason === 'full' &&
-              run.subjectId !== null ? (
-                <PressButton
-                  label={t('regis.fill.continueFull')}
-                  onPress={start(rest, [run.subjectId])}
-                />
-              ) : null}
-              {run.status === 'stopped' && rest.length > 0 ? (
-                // After an over subscribed stop a plain Continue would stop on the same
-                // section again; the student fills it anyway or picks another below.
-                run.reason === 'full' ? null : (
-                  <PressButton
-                    label={t('regis.fill.continue')}
-                    onPress={start(rest)}
-                  />
-                )
-              ) : rows.length > 0 ? (
-                <PressButton
-                  label={t('regis.fill.all')}
-                  onPress={start(rows.map((row) => row.subjectId))}
-                />
-              ) : null}
-            </div>
-          )}
-        </>
-      )}
-    </section>
-  );
-}
-
-/** Fill this subject, on a row the page does not list yet, while no run is active. */
-export function FillRowButton({
+/** Add for me on one subject still to add: a press starts a run for that subject. */
+export function AddForMeButton({
   row,
   plan,
   kit,
+  allowFull,
+  compact = false,
   t,
-}: FillProps & { row: ChecklistRow }) {
-  const running = useStore(
-    fillStore,
-    (state) => state.run.status === 'running',
-  );
-  const gate = useFillGate();
-  if (gate !== 'ok' || running || row.state !== 'notDone') return null;
+}: AddForMeProps) {
+  const label = t('regis.addForMe');
   return (
     <PressButton
-      label={t('regis.fill.one')}
+      label={compact ? `${label} ${row.subjectId}` : label}
       onPress={(press) => {
-        void startFill(press, { plan, kit, items: itemsFor([row], plan, kit) });
+        void startFill(press, {
+          plan,
+          kit,
+          items: itemsFor([row], plan, kit),
+          ...(allowFull ? { allowFull: [row.subjectId] } : {}),
+        });
       }}
-    />
+      className={
+        compact
+          ? `inline-flex size-11 shrink-0 items-center justify-center rounded-kcp bg-primary-strong text-white hover:bg-primary-hover sm:size-9 ${FOCUS_OUTLINE}`
+          : PRIMARY
+      }
+    >
+      <Plus size={16} strokeWidth={2.5} aria-hidden />
+      {compact ? null : <span>{label}</span>}
+    </PressButton>
+  );
+}
+
+/** The three steps the progress shows, from the engine's finer steps. */
+const STEP_OF: Readonly<Record<FillStep, 1 | 2 | 3>> = {
+  enter: 1,
+  wait: 1,
+  conditional: 1,
+  choose: 2,
+  practice: 2,
+  add: 3,
+};
+
+export function stepNumber(step: FillStep): 1 | 2 | 3 {
+  return STEP_OF[step];
+}
+
+/** The word of each of the three steps. */
+export const STEP_WORD = {
+  1: 'regis.step.1',
+  2: 'regis.step.2',
+  3: 'regis.step.3',
+} as const;
+
+const SEGMENT =
+  'h-1 rounded-full transition-colors motion-reduce:transition-none';
+
+/** The action row of a subject being added: its step, the step bar, and Stop. */
+export function RunProgress({
+  run,
+  t,
+}: {
+  run: Extract<FillRun, { status: 'running' }>;
+  t: Translate;
+}) {
+  const step = STEP_OF[run.step];
+  const stepOf = fillTemplate(t('regis.stepOf'), { n: step });
+  return (
+    <>
+      <div
+        role="group"
+        aria-label={stepOf}
+        className="flex min-w-0 flex-1 basis-0 flex-col justify-center gap-1.5"
+      >
+        <p className="flex items-baseline gap-1.5">
+          <span className="text-xs font-semibold text-ink-soft tabular-nums">
+            {step}/3
+          </span>
+          <span className="text-sm font-semibold text-ink">
+            {t(STEP_WORD[step])}
+          </span>
+        </p>
+        <span aria-hidden className="grid grid-cols-3 gap-1">
+          {([1, 2, 3] as const).map((index) => (
+            <span
+              key={index}
+              className={`${SEGMENT} ${
+                index < step
+                  ? 'bg-ink-soft'
+                  : index === step
+                    ? 'bg-primary'
+                    : 'bg-border'
+              }`}
+            />
+          ))}
+        </span>
+      </div>
+      <button
+        type="button"
+        id="kcp-regis-stop"
+        onClick={requestStop}
+        className={`${ACTION_BUTTON} border border-border bg-surface text-ink hover:bg-surface-alt ${FOCUS_RING}`}
+      >
+        <X size={16} aria-hidden />
+        {t('regis.stop')}
+      </button>
+    </>
   );
 }

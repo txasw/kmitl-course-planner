@@ -28,19 +28,12 @@ export type PrepareRun =
   | { status: 'cancelled'; planId: string }
   | { status: 'failed'; planId: string };
 
-/** How far the phone sheet is raised. */
-export type SheetLevel = 'peek' | 'half' | 'full';
-
 export interface RegisState {
   loaded: boolean;
   kits: RegistrationKit[];
   choices: SectionChoices[];
   run: PrepareRun;
   readinessOpen: boolean;
-  dockOpen: boolean;
-  /** Whether the desktop dock shows its full content rather than the narrow bar. */
-  dockExpanded: boolean | null;
-  sheetLevel: SheetLevel;
   /** The student's fill switch and the host builds fill is latched off for. */
   fill: FillSettings;
   hydrate: (kits: RegistrationKit[], choices: SectionChoices[]) => void;
@@ -57,9 +50,6 @@ export interface RegisState {
   ) => void;
   setRun: (run: PrepareRun) => void;
   setReadinessOpen: (open: boolean) => void;
-  setDockOpen: (open: boolean) => void;
-  setDockExpanded: (expanded: boolean) => void;
-  setSheetLevel: (level: SheetLevel) => void;
 }
 
 let repositories: RegisRepositories | null = null;
@@ -80,9 +70,6 @@ function createRegisStore() {
     choices: [],
     run: { status: 'idle' },
     readinessOpen: false,
-    dockOpen: false,
-    dockExpanded: null,
-    sheetLevel: 'peek',
     fill: DEFAULT_FILL_SETTINGS,
     hydrate: (kits, choices) => {
       set({ kits, choices, loaded: true });
@@ -118,15 +105,6 @@ function createRegisStore() {
     },
     setReadinessOpen: (readinessOpen) => {
       set({ readinessOpen });
-    },
-    setDockOpen: (dockOpen) => {
-      set({ dockOpen });
-    },
-    setDockExpanded: (dockExpanded) => {
-      set({ dockExpanded });
-    },
-    setSheetLevel: (sheetLevel) => {
-      set({ sheetLevel });
     },
   }));
 }

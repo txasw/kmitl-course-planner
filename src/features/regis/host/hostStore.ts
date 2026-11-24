@@ -18,7 +18,11 @@ export interface HostState {
   health: ObserverHealth;
   page: ObservedPage | null;
   conditional: Readonly<Record<string, readonly string[]>>;
+  /** How many times the student asked for the page to be read again. */
+  checks: number;
   record: (gate: Gate, reading: PageReading) => void;
+  /** Read the page again now, as the helper's Check again asks; an off state stays. */
+  recheck: () => void;
   /** Forget the page when the student leaves it; an off state lasts the document. */
   leave: () => void;
 }
@@ -27,6 +31,10 @@ export const hostStore = createStore<HostState>()((set, get) => ({
   health: INITIAL_HEALTH,
   page: null,
   conditional: {},
+  checks: 0,
+  recheck: () => {
+    set({ checks: get().checks + 1 });
+  },
   record: (gate, reading) => {
     const health = nextHealth(get().health, gate, reading.reading);
     if (health.status !== 'healthy' || reading.reading !== 'ok') {
