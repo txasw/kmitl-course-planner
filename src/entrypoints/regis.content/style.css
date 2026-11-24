@@ -528,6 +528,43 @@
   animation: kcp-fade-in var(--kcp-duration-fast) ease-out;
 }
 
+/* The registration helper card, fixed 12 px above its 48 px launcher at the bottom right,
+   320 px wide, or the width of a phone screen less its gutters. It rises into place with
+   no transform left at the end, so the fixed section menu inside it places against the
+   viewport. */
+.kcp-regis-card {
+  position: fixed;
+  right: max(20px, var(--kcp-safe-right));
+  bottom: calc(max(20px, var(--kcp-safe-bottom)) + 60px);
+  width: 320px;
+  max-height: calc(100dvh - max(20px, var(--kcp-safe-bottom)) - 76px);
+}
+
+@media (width < 40rem) {
+  .kcp-regis-card {
+    left: max(16px, var(--kcp-safe-left));
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .kcp-regis-card {
+    animation: kcp-card-in var(--kcp-duration-base) var(--kcp-ease-enter);
+  }
+}
+
+@keyframes kcp-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Reduced motion swaps the form and the summary status in the same frame. */
 @media (prefers-reduced-motion: reduce) {
   .kcp-fold,

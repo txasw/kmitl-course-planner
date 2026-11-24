@@ -26,8 +26,8 @@ import {
   type WorkerHandshakeDeps,
 } from '@/features/onboarding/useWorkerHandshake';
 import { WelcomeLayer } from '@/features/onboarding/WelcomeLayer';
-import { CompanionDock } from '@/features/regis/CompanionDock';
 import { HostObserverLayer } from '@/features/regis/host/HostObserverLayer';
+import { RegisHelper } from '@/features/regis/RegisHelper';
 import { ReadinessLayer } from '@/features/regis/ReadinessDialog';
 import type { RegisRepositories } from '@/features/regis/regisStore';
 import { useRegisPersistence } from '@/features/regis/useRegisPersistence';
@@ -86,9 +86,9 @@ export function App({
         <SearchBoot />
         <RevalidationTriggers />
         <CoachMark record={onboarding.record} />
+        <RegisHelper />
         <Launcher />
         <EntryToast record={onboarding.record} />
-        <CompanionDock />
         <HostObserverLayer />
         <Overlay>
           <ProductTour record={onboarding.record} />

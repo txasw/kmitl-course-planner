@@ -1,14 +1,25 @@
-import { CalendarDays, ListChecks } from 'lucide-react';
+import {
+  CalendarDays,
+  ChevronDown,
+  CircleCheck,
+  ListChecks,
+  LoaderCircle,
+} from 'lucide-react';
 import { useStore } from 'zustand';
 import { onboardingStore } from '@/features/onboarding/onboardingStore';
 import { planStore } from '@/features/plans/planStore';
 import { needsLauncherAttention } from '@/lib/onboarding/launcherAttention';
 import { fillTemplate } from '@/lib/i18n/template';
-import { regisStore } from '@/features/regis/regisStore';
 import {
-  useCompanionRoute,
-  useCompanionView,
-} from '@/features/regis/useCompanion';
+  CARD_ID,
+  COUNT_ID,
+  helperStore,
+  setCollapsed,
+} from '@/features/regis/helperStore';
+import { useCompanionRoute } from '@/features/regis/useCompanion';
+import { useHelperModel } from '@/features/regis/useHelperModel';
+import { commitThenFocus } from './restoreFocus';
+import { rootOf } from './useFocusTrap';
 import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
@@ -28,7 +39,10 @@ import { useTranslation } from './useTranslation';
 // sees it after putting the coach mark off with Maybe later or Not again today
 // (ADR-0072). It stays live under the coach mark, which spotlights it and leaves it
 // clickable. On the two student registration pages it names the checklist and its
-// progress and opens the registration helper dock instead of the overlay.
+// progress and toggles the registration helper card above it instead of opening the
+// overlay (ADR-0076, design C2). It stays orange and in place while the card is open, with
+// a chevron that collapses it; collapsed, it shows a loader while a fill run adds a
+// subject, a check once every subject is added, and a dot when a subject needs a look.
 
 /** The launcher's id, so a layer that closes over it can hand it focus. */
 export const LAUNCHER_ID = 'kcp-launcher';
@@ -52,23 +66,47 @@ export function LauncherFace() {
 }
 
 /** On a registration page the launcher names the checklist and its progress instead. */
-function CompanionLauncherFace() {
+function useCompanionFace(open: boolean) {
   const { t } = useTranslation();
-  const { checklist } = useCompanionView();
-  const total = checklist?.total ?? 0;
-  return (
+  const model = useHelperModel();
+  const busy = model.run.status === 'running';
+  const complete = model.total > 0 && model.done === model.total;
+  const progress =
+    model.total === 0
+      ? t('regis.launcherEmpty')
+      : fillTemplate(t('regis.launcher'), {
+          done: model.done,
+          total: model.total,
+        });
+  const dot = !open && model.attention;
+  const Icon =
+    busy && !open ? LoaderCircle : complete ? CircleCheck : ListChecks;
+  const face = (
     <>
-      <ListChecks size={20} strokeWidth={2} aria-hidden />
-      <span>
-        {total === 0
-          ? t('regis.launcherEmpty')
-          : fillTemplate(t('regis.launcher'), {
-              done: checklist?.done ?? 0,
-              total,
-            })}
-      </span>
+      <Icon
+        size={20}
+        strokeWidth={2}
+        aria-hidden
+        className={busy && !open ? 'motion-safe:animate-spin' : undefined}
+      />
+      <span>{progress}</span>
+      {open ? <ChevronDown size={16} aria-hidden className="-ml-1" /> : null}
+      {dot ? (
+        <span
+          aria-hidden
+          className="absolute -top-1 -right-1 size-3 rounded-full bg-danger ring-2 ring-surface"
+        />
+      ) : null}
     </>
   );
+  const name = [
+    progress,
+    dot ? t('regis.needsLook') : null,
+    busy && !open ? t('regis.status.adding') : null,
+  ]
+    .filter((part) => part !== null)
+    .join(', ');
+  return { face, name };
 }
 
 const LAUNCHER_CLASS = `fixed right-[max(20px,var(--kcp-safe-right))] bottom-[max(20px,var(--kcp-safe-bottom))] z-host ${LAUNCHER_BOX} bg-primary-strong text-white shadow-kcp hover:bg-primary-hover motion-safe:transition-[translate,background-color] motion-safe:duration-fast motion-safe:ease-out motion-safe:hover:-translate-y-0.5 motion-safe:focus-visible:-translate-y-0.5 ${FOCUS_OUTLINE}`;
@@ -105,44 +143,87 @@ function useLauncherAttention(welcomeOpen: boolean): boolean {
 }
 
 export function Launcher() {
+  const companion = useCompanionRoute() !== null;
+  return companion ? <CompanionLauncher /> : <PanelLauncher />;
+}
+
+function useCovered(): boolean {
   const isOpen = useStore(uiStore, (state) => state.isOpen);
   const welcomeOpen = useStore(onboardingStore, (state) => state.welcomeOpen);
-  // On the two student registration pages the launcher opens the registration helper
-  // dock beside the page, and hides while the dock is open (ADR-0076).
-  const companion = useCompanionRoute() !== null;
-  const dockOpen = useStore(regisStore, (state) => state.dockOpen);
-  const docked = companion && dockOpen;
-  const covered = isOpen || welcomeOpen || docked;
-  const openPanel = useStore(uiStore, (state) => state.open);
-  const open = companion
-    ? () => {
-        regisStore.getState().setDockOpen(true);
-      }
-    : openPanel;
+  return isOpen || welcomeOpen;
+}
+
+function IssueBadge() {
   const issueCount = useStore(uiStore, (state) => state.diagnosticsIssueCount);
+  return issueCount !== null && issueCount > 0 ? (
+    <span
+      aria-hidden
+      className="absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-xs font-semibold text-white"
+    >
+      {issueCount}
+    </span>
+  ) : null;
+}
+
+function PanelLauncher() {
+  const covered = useCovered();
+  const welcomeOpen = useStore(onboardingStore, (state) => state.welcomeOpen);
+  const openPanel = useStore(uiStore, (state) => state.open);
   const attention = useLauncherAttention(welcomeOpen);
   const { t, language } = useTranslation();
-
   return (
     <button
       id={LAUNCHER_ID}
       type="button"
-      onClick={open}
+      onClick={openPanel}
       inert={covered || undefined}
       aria-hidden={covered || undefined}
-      aria-label={t(companion ? 'regis.launcherOpen' : 'launcher.open')}
+      aria-label={t('launcher.open')}
       lang={language}
-      className={`${LAUNCHER_CLASS}${attention ? ' kcp-launcher-ring' : ''}${docked ? ' invisible' : ''}`}
+      className={`${LAUNCHER_CLASS}${attention ? ' kcp-launcher-ring' : ''}`}
     >
-      {companion ? <CompanionLauncherFace /> : <LauncherFace />}
-      {issueCount !== null && issueCount > 0 ? (
-        <span
-          aria-hidden
-          className="absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-xs font-semibold text-white"
-        >
-          {issueCount}
-        </span>
-      ) : null}
+      <LauncherFace />
+      <IssueBadge />
+    </button>
+  );
+}
+
+// Expanding hands focus to the card's count, so the keyboard lands where the card starts.
+function CompanionLauncher() {
+  const covered = useCovered();
+  const collapsed = useStore(helperStore, (state) => state.collapsed);
+  const hidden = useStore(helperStore, (state) => state.hidden);
+  const open = !collapsed && !covered;
+  const { face, name } = useCompanionFace(open);
+  const { language } = useTranslation();
+  if (hidden) return null;
+  return (
+    <button
+      id={LAUNCHER_ID}
+      type="button"
+      onClick={(event) => {
+        if (open) {
+          setCollapsed(true);
+          return;
+        }
+        const root = rootOf(event.currentTarget);
+        commitThenFocus(
+          () => {
+            setCollapsed(false);
+          },
+          () => [root?.getElementById(COUNT_ID)],
+        );
+      }}
+      inert={covered || undefined}
+      aria-hidden={covered || undefined}
+      aria-expanded={open}
+      aria-controls={CARD_ID}
+      aria-label={name}
+      lang={language}
+      className={LAUNCHER_CLASS}
+    >
+      {face}
+      <IssueBadge />
     </button>
   );
 }

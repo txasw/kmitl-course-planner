@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import {
   makeCourse,
   makePlan,
@@ -9,14 +9,14 @@ import {
 import { createTranslator } from '@/lib/i18n/t';
 import { deriveChecklist } from '@/lib/regis/checklist';
 import { buildRegistrationKit } from '@/lib/regis/kit';
-import type { StopReason } from '@/lib/regis/fillPlan';
 import { toSnapshot } from '@/lib/planner/transaction';
 import { DEFAULT_FILL_SETTINGS } from '@/lib/storage/regis';
 import { regisStore } from '../regisStore';
-import { FillPanel } from './FillControls';
+import { AddForMeButton, RunProgress } from './FillControls';
 import { fillStore } from './fillRun';
 
-// The controls a stopped run offers: each one starts a run that can get past the stop.
+// The fill controls: Add for me starts a run only from a trusted press, the progress
+// shows the step, and Stop asks the run to end.
 
 const SUBJECT = '01476107';
 const COURSE = makeCourse({
@@ -57,13 +57,6 @@ const CHECKLIST = deriveChecklist({
 });
 const t = createTranslator('en');
 
-function stoppedOn(reason: StopReason) {
-  fillStore.setState({
-    run: { status: 'stopped', subjectId: SUBJECT, reason, scope: [SUBJECT] },
-  });
-  render(<FillPanel plan={PLAN} kit={KIT} checklist={CHECKLIST} t={t} />);
-}
-
 beforeEach(() => {
   for (const name of ['app.454d9e95.js', 'chunk-vendors.7ab4925e.js']) {
     const script = document.createElement('script');
@@ -80,21 +73,60 @@ afterEach(() => {
   fillStore.setState({ run: { status: 'idle' }, stop: false });
 });
 
-describe('FillPanel after a stop', () => {
-  it('offers Continue after a stop the student can clear on the page', () => {
-    stoppedOn('fieldNotEmpty');
-    expect(
-      screen.getByRole('button', { name: 'Continue filling' }),
-    ).toBeDefined();
+const ROW = CHECKLIST.rows[0];
+
+describe('AddForMeButton', () => {
+  it('starts nothing from a click the browser did not make', () => {
+    if (ROW === undefined) throw new Error('no row');
+    render(
+      <AddForMeButton
+        row={ROW}
+        plan={PLAN}
+        kit={KIT}
+        allowFull={false}
+        t={t}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Add for me' }));
+    expect(fillStore.getState().run.status).toBe('idle');
   });
 
-  it('offers only Fill this section anyway after an over subscribed stop', () => {
-    stoppedOn('full');
+  it('names the subject on a compact list row button', () => {
+    if (ROW === undefined) throw new Error('no row');
+    render(
+      <AddForMeButton
+        row={ROW}
+        plan={PLAN}
+        kit={KIT}
+        allowFull={false}
+        compact
+        t={t}
+      />,
+    );
     expect(
-      screen.getByRole('button', { name: 'Fill this section anyway' }),
+      screen.getByRole('button', { name: `Add for me ${SUBJECT}` }),
     ).toBeDefined();
-    expect(
-      screen.queryByRole('button', { name: 'Continue filling' }),
-    ).toBeNull();
+  });
+});
+
+describe('RunProgress', () => {
+  it('shows the step and asks the run to stop', () => {
+    render(
+      <RunProgress
+        run={{
+          status: 'running',
+          subjectId: SUBJECT,
+          step: 'choose',
+          prerequisites: [],
+          done: 0,
+          total: 1,
+        }}
+        t={t}
+      />,
+    );
+    expect(screen.getByRole('group', { name: 'Step 2 of 3' })).toBeDefined();
+    expect(screen.getByText('Pick section')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Stop' }));
+    expect(fillStore.getState().stop).toBe(true);
   });
 });

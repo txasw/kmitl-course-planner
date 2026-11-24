@@ -1,16 +1,15 @@
 import type { Page, Worker } from '@playwright/test';
-import { REGKIT_KEY, ROOT_KEY } from '../../src/lib/storage/keys';
 import { REGIS_ORIGIN } from '../../src/lib/shell/hostTab';
 import { test, expect, openPlanner } from './support/fixtures';
-import { addCourse, block, syntheticSearch } from './support/synthetic';
+import { planWithKit } from './support/regisKit';
 import type {
   Replica,
   ReplicaConfig,
 } from './host/pre_registration/replica.js';
 
 // Fill on the behaviour replica of the pre registration page (ADR-0078). A student press
-// on Fill all enters the planned subject, chooses its section through the host's own
-// menu, and presses Add, and nothing else. Every spec ends by proving that no control
+// on Add for me on the helper card enters the planned subject, chooses its section
+// through the host's own menu, and presses Add, and nothing else. Every spec ends by proving that no control
 // outside the allowlist (Continue, the confirm dialog's buttons, the trash icons, the
 // links, the pattern table) got a press or an event, that nothing was written, and that
 // KCP sent no request of its own. The hostile variants relabel the buttons, dress the
@@ -26,100 +25,8 @@ declare global {
 
 const REPLICA_URL = `${REGIS_ORIGIN}/replica/pre_registration`;
 const HASH = '#/pre_registration';
-const DOCK_LAUNCHER = 'เปิดเช็กลิสต์ ตัวช่วยลงทะเบียน';
+const ADD_FOR_ME = 'เพิ่มให้';
 const SUBJECT = '90000001';
-
-interface StoredEntry {
-  subjectId: string;
-  teachTableId: string;
-  section: string;
-  sourceQuery: unknown;
-  snapshot: {
-    section: string;
-    kind: 'lecture' | 'practice';
-    subjectMeta: {
-      nameTh: string;
-      nameEn: string;
-      credit: number;
-      creditStr: string;
-    };
-  };
-}
-
-interface StoredPlan {
-  id: string;
-  year: string;
-  semester: string;
-  entries: StoredEntry[];
-}
-
-interface WorkerStorage {
-  chrome: {
-    storage: {
-      local: {
-        get(key: string): Promise<Record<string, { plans: StoredPlan[] }>>;
-        set(items: Record<string, unknown>): Promise<void>;
-      };
-    };
-  };
-}
-
-/**
- * Plan one section, then store a kit for it as the prepare action would have at a calm
- * time, built from the stored plan entry, so the spec sends no kit read of its own.
- */
-async function planWithKit(page: Page, serviceWorker: Worker) {
-  await syntheticSearch(page);
-  await addCourse(page, SUBJECT);
-  await expect(page.locator(block('900001'))).toBeVisible();
-  // Autosave debounces at 300 ms.
-  await page.waitForTimeout(500);
-  return serviceWorker.evaluate(
-    async ({ root, regkit, now }) => {
-      // Test only: the debug extension worker carries the storage global above.
-      const { local } = (globalThis as unknown as WorkerStorage).chrome.storage;
-      const plan = (await local.get(root))[root]?.plans[0];
-      const entry = plan?.entries[0];
-      if (plan === undefined || entry === undefined) throw new Error('no plan');
-      const meta = entry.snapshot.subjectMeta;
-      const kit = {
-        planId: plan.id,
-        year: plan.year,
-        semester: plan.semester,
-        preparedAt: now,
-        subjects: [
-          {
-            subjectId: entry.subjectId,
-            nameTh: meta.nameTh,
-            nameEn: meta.nameEn,
-            credit: meta.credit,
-            creditStr: meta.creditStr,
-            sourceQuery: entry.sourceQuery,
-            sections: [entry.snapshot],
-            plannedIds: [entry.teachTableId],
-            options: [
-              {
-                ids: [entry.teachTableId],
-                planned: true,
-                fit: 'fits',
-                seat: 'open',
-                ownCurriculum: null,
-              },
-            ],
-            duplicateCodes: [],
-          },
-        ],
-        unread: [],
-      };
-      await local.set({ [regkit]: { schemaVersion: 1, items: [kit] } });
-      return {
-        term: { year: plan.year, semester: plan.semester },
-        section: entry.snapshot.section,
-      };
-    },
-    { root: ROOT_KEY, regkit: REGKIT_KEY, now: new Date().toISOString() },
-  );
-}
 
 async function openReplica(
   page: Page,
@@ -136,7 +43,8 @@ async function openReplica(
     },
     { next: term, options: config },
   );
-  await page.getByRole('button', { name: DOCK_LAUNCHER }).click();
+  // The helper card opens on its own on each visit (owner answer 5B).
+  await expect(page.locator('#kcp-regis-card')).toBeVisible();
 }
 
 async function setUp(
@@ -147,14 +55,22 @@ async function setUp(
   }),
   query = '',
 ) {
-  const { term, section } = await planWithKit(page, serviceWorker);
+  const { term, sections } = await planWithKit(page, serviceWorker, [SUBJECT]);
+  const section = sections[SUBJECT] ?? '';
   await openReplica(page, term, config(section), query);
   return section;
 }
 
-/** Press a fill control the way a student does, after it has been on screen a moment. */
-async function press(page: Page, name: string): Promise<void> {
-  const button = page.getByRole('button', { name, exact: true });
+/** The live Add for me, the one control that issues a student press. */
+function addForMe(page: Page) {
+  return page
+    .getByRole('button', { name: ADD_FOR_ME, exact: true })
+    .and(page.locator('[data-fill-press]'));
+}
+
+/** Press Add for me the way a student does, after it has been on screen a moment. */
+async function press(page: Page): Promise<void> {
+  const button = addForMe(page);
   await expect(button).toBeVisible();
   await page.waitForTimeout(700);
   await button.click();
@@ -189,14 +105,16 @@ test('fills the planned subject on a press and touches nothing else', async ({
   const page = await openPlanner(context);
   const section = await setUp(page, serviceWorker);
   mock.clearApiCalls();
-  await press(page, 'กรอกทุกวิชา');
+  await press(page);
   await expect(page.locator('[data-fill="done"]')).toBeVisible({
     timeout: 15_000,
   });
   expect(await listed(page)).toEqual([`${SUBJECT} ${section}`]);
   await expect(
-    page.locator('li').filter({ hasText: SUBJECT }).locator('[data-observed]'),
-  ).toHaveAttribute('data-observed', 'listed');
+    page
+      .getByRole('list', { name: 'รายวิชา' })
+      .locator(`[data-status][aria-label^="${SUBJECT}"]`),
+  ).toHaveAttribute('data-status', 'added');
   const reached = await page.evaluate(
     () => window.replica.counters.untrustedOn,
   );
@@ -216,7 +134,7 @@ test('stops on a relabelled Add and presses no Continue', async ({
     variant: 'continueAsAdd',
     catalog: { [SUBJECT]: { sections: [{ section, kind: 'ท' }] } },
   }));
-  await press(page, 'กรอกทุกวิชา');
+  await press(page);
   await expect(page.locator('[data-fill-stop="notRecognised"]')).toBeVisible({
     timeout: 15_000,
   });
@@ -239,7 +157,7 @@ for (const [name, variant] of ACTIVATING_VARIANTS) {
       variant,
       catalog: { [SUBJECT]: { sections: [{ section, kind: 'ท' }] } },
     }));
-    await press(page, 'กรอกทุกวิชา');
+    await press(page);
     await expect(page.locator('[data-fill-stop="notRecognised"]')).toBeVisible({
       timeout: 15_000,
     });
@@ -257,11 +175,12 @@ test('ends the run when the student switches fill off', async ({
     delay: 3000,
     catalog: { [SUBJECT]: { sections: [{ section, kind: 'ท' }] } },
   }));
-  await press(page, 'กรอกทุกวิชา');
+  await press(page);
   await expect(page.locator('[data-fill="running"]')).toBeVisible();
   // The subject is entered and the host is still reading it.
   await page.waitForFunction(() => window.replica.state.add.loading);
-  await page.getByRole('checkbox', { name: 'กรอกในหน้าลงทะเบียนให้' }).click();
+  await page.getByRole('button', { name: 'เพิ่มเติม' }).click();
+  await page.getByRole('menuitemcheckbox', { name: 'ใช้ปุ่มเพิ่มให้' }).click();
   await expect(page.locator('[data-fill="stopped"]')).toBeVisible();
   // The host answers after the switch went off, and the run acts on nothing more.
   await page.waitForTimeout(3500);
@@ -287,7 +206,7 @@ test('presses nothing in a confirm dialog dressed as the grade dialog', async ({
       },
     },
   }));
-  await press(page, 'กรอกทุกวิชา');
+  await press(page);
   await expect(page.locator('[data-fill-stop="notRecognised"]')).toBeVisible({
     timeout: 15_000,
   });
@@ -307,8 +226,8 @@ test('acknowledges the real grade dialog only after showing the condition', asyn
       },
     },
   }));
-  await press(page, 'กรอกทุกวิชา');
-  await expect(page.getByText('ต้องผ่าน 90000002 ก่อน')).toBeVisible({
+  await press(page);
+  await expect(page.getByText('รอเกรด 90000002')).toBeVisible({
     timeout: 15_000,
   });
   expect(
@@ -332,7 +251,7 @@ test('stops when focus moves to Continue', async ({
     variant: 'focusContinue',
     catalog: { [SUBJECT]: { sections: [{ section, kind: 'ท' }] } },
   }));
-  await press(page, 'กรอกทุกวิชา');
+  await press(page);
   await expect(page.locator('[data-fill-stop="pageChanged"]')).toBeVisible({
     timeout: 15_000,
   });
@@ -349,7 +268,7 @@ test('sends no key, so a page that submits on Enter submits nothing', async ({
     variant: 'enterSubmits',
     catalog: { [SUBJECT]: { sections: [{ section, kind: 'ท' }] } },
   }));
-  const button = page.getByRole('button', { name: 'กรอกทุกวิชา', exact: true });
+  const button = addForMe(page);
   await expect(button).toBeVisible();
   await page.waitForTimeout(700);
   await button.focus();
@@ -370,11 +289,10 @@ test('offers no fill on an untested host build', async ({
   const page = await openPlanner(context);
   await setUp(page, serviceWorker, undefined, '?build=untested');
   await expect(page.locator('[data-observer="off"]')).toBeVisible();
+  // Add for me shows disabled with its reason, and no control that issues a press exists.
   await expect(
-    page.getByRole('button', { name: 'กรอกทุกวิชา', exact: true }),
-  ).toHaveCount(0);
-  await expect(
-    page.getByRole('button', { name: 'กรอกวิชานี้', exact: true }),
-  ).toHaveCount(0);
+    page.getByRole('button', { name: ADD_FOR_ME, exact: true }),
+  ).toHaveAttribute('aria-disabled', 'true');
+  await expect(page.locator('[data-fill-press]')).toHaveCount(0);
   expect(await page.evaluate(() => window.replica.interactions())).toBe(0);
 });

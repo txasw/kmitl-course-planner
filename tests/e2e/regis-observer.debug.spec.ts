@@ -6,12 +6,12 @@ import { addCourse, block, syntheticSearch } from './support/synthetic';
 import type { Replica, ReplicaPatch } from './host/pre_registration/replica.js';
 
 // The read only observer on the static replica of the pre registration page (ADR-0077).
-// The checklist row ticks itself as the page changes: not on the list, on the list as
-// planned, another section, conditional on a prerequisite, refused, and the result on
-// the complete step. The student's own mark overrides the page and both stay in view,
-// and a count line shows over the host's confirm dialog while the list differs from the
-// plan. Every host control on the replica counts its presses and every untrusted event
-// is counted, so each spec ends by proving KCP pressed nothing and sent nothing.
+// The helper card opens on its own and the subject's status follows the page: not added,
+// added as planned, another section, conditional on a prerequisite, refused, and
+// submitted on the complete step. No hand mark exists to set it. A count line shows over
+// the host's confirm dialog while the list differs from the plan. Every host control on
+// the replica counts its presses and every untrusted event is counted, so each spec ends
+// by proving KCP pressed nothing and sent nothing.
 
 declare global {
   interface Window {
@@ -21,7 +21,6 @@ declare global {
 
 const REPLICA_URL = `${REGIS_ORIGIN}/replica/pre_registration`;
 const HASH = '#/pre_registration';
-const DOCK_LAUNCHER = 'เปิดเช็กลิสต์ ตัวช่วยลงทะเบียน';
 const SUBJECT = '90000001';
 const LISTED = { subjectId: SUBJECT, section: '901', kind: 'ท' } as const;
 
@@ -67,8 +66,15 @@ async function openReplica(page: Page, query = ''): Promise<void> {
   await page.waitForFunction(() => 'replica' in window);
 }
 
-function checklistRow(page: Page): Locator {
-  return page.locator('li').filter({ hasText: SUBJECT }).first();
+function card(page: Page): Locator {
+  return page.locator('#kcp-regis-card');
+}
+
+/** The subject's chip in the helper queue, which carries its status. */
+function chip(page: Page): Locator {
+  return card(page)
+    .getByRole('list', { name: 'รายวิชา' })
+    .locator('[data-status]');
 }
 
 async function expectUntouched(page: Page): Promise<void> {
@@ -85,39 +91,39 @@ test('ticks the checklist as the page changes and never acts on it', async ({
   await openReplica(page);
   await drive(page, { term });
   mock.clearApiCalls();
-  await page.getByRole('button', { name: DOCK_LAUNCHER }).click();
 
-  const row = checklistRow(page);
-  const observed = row.locator('[data-observed]');
+  // The card opens on arrival with no press, and the status is the page's own.
+  const status = chip(page);
   await expect(page.locator('[data-observer="healthy"]')).toBeVisible();
-  await expect(observed).toHaveAttribute('data-observed', 'notListed');
+  await expect(status).toHaveAttribute('data-status', 'todo');
+  await expect(card(page).locator('select')).toHaveCount(0);
 
   await drive(page, { list: [LISTED] });
-  await expect(observed).toHaveAttribute('data-observed', 'listed');
-  await expect(page.getByText('ทำแล้ว 1 จาก 1 วิชา')).toBeVisible();
+  await expect(status).toHaveAttribute('data-status', 'added');
+  await expect(card(page).locator('#kcp-regis-count')).toContainText('1/1');
 
   await drive(page, { list: [{ ...LISTED, section: '902' }] });
-  await expect(observed).toHaveAttribute('data-observed', 'listedOther');
+  await expect(status).toHaveAttribute('data-status', 'other');
 
-  // The grade not announced dialog names the prerequisite; the row keeps it after the
+  // The grade not announced dialog names the prerequisite; the card keeps it after the
   // dialog closes and the subject reaches the list.
   await drive(page, {
     list: [],
     add: { value: SUBJECT, sections: [{ section: '901', kind: 'ท' }] },
     dialog: { kind: 'grade', subjectId: SUBJECT, prerequisites: ['90000002'] },
   });
-  await expect(row).toContainText('90000002');
+  await expect(card(page)).toContainText('รอเกรด 90000002');
   await drive(page, { dialog: null, add: {}, list: [LISTED] });
-  await expect(observed).toHaveAttribute('data-observed', 'listed');
-  await expect(row).toContainText('ลงได้แบบมีเงื่อนไข');
-  await expect(row).toContainText('90000002');
+  await expect(status).toHaveAttribute('data-status', 'cond');
+  await expect(card(page)).toContainText('เพิ่มแล้ว มีเงื่อนไข');
+  await expect(card(page)).toContainText('รอเกรด 90000002');
 
   // A refusal toast for the subject, with the subject off the list.
   await drive(page, { list: [], add: { value: SUBJECT } });
   await page.evaluate((id) => {
     window.replica.toast('refused', id);
   }, SUBJECT);
-  await expect(observed).toHaveAttribute('data-observed', 'refused');
+  await expect(status).toHaveAttribute('data-status', 'refused');
 
   // The count line over the host's confirm dialog while the list differs from the plan.
   await drive(page, { add: {}, toasts: [], dialog: { kind: 'confirm' } });
@@ -129,17 +135,12 @@ test('ticks the checklist as the page changes and never acts on it', async ({
   await expect(banner).toHaveCount(0);
   await drive(page, { dialog: null });
 
-  // The student's mark overrides the page, and the page reading stays beside it.
-  await row.getByRole('combobox').selectOption('skipped');
-  await expect(row).toContainText('ใช้เครื่องหมายที่คุณเลือกแทน');
-  await expect(observed).toHaveAttribute('data-observed', 'listed');
-  await row.getByRole('combobox').selectOption('notDone');
-
   await drive(page, {
     step: 3,
     results: [{ subjectId: SUBJECT, section: '901', kind: 'ท', grade: 'Y' }],
   });
-  await expect(observed).toHaveAttribute('data-observed', 'granted');
+  await expect(status).toHaveAttribute('data-status', 'sent');
+  await expect(card(page).locator('#kcp-regis-count')).toContainText('ส่งแล้ว');
 
   await expectUntouched(page);
   expect(mock.apiCalls()).toEqual([]);
@@ -155,11 +156,11 @@ test('stays off on an untested host build and in a surrogate session', async ({
 
   await openReplica(page, '?build=untested');
   await drive(page, { term, list: [LISTED] });
-  await page.getByRole('button', { name: DOCK_LAUNCHER }).click();
+  // The page lists the subject, but KCP does not read it, so the status stays its own.
   await expect(page.locator('[data-observer="off"]')).toContainText(
-    'ยังไม่ได้ทดสอบ',
+    'อ่านหน้าไม่ได้',
   );
-  await expect(checklistRow(page).locator('[data-observed]')).toHaveCount(0);
+  await expect(chip(page)).toHaveAttribute('data-status', 'todo');
   await expectUntouched(page);
 
   // The surrogate key is checked for presence only; the session store survives the
@@ -170,11 +171,10 @@ test('stays off on an untested host build and in a surrogate session', async ({
   mock.clearApiCalls();
   await openReplica(page);
   await drive(page, { term, list: [LISTED] });
-  await page.getByRole('button', { name: DOCK_LAUNCHER }).click();
   await expect(page.locator('[data-observer="off"]')).toContainText(
-    'เปิดแทนนักศึกษา',
+    'อ่านหน้าไม่ได้',
   );
-  await expect(checklistRow(page).locator('[data-observed]')).toHaveCount(0);
+  await expect(chip(page)).toHaveAttribute('data-status', 'todo');
   await expectUntouched(page);
   expect(mock.apiCalls()).toEqual([]);
 });
