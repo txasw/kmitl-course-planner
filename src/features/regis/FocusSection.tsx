@@ -24,7 +24,11 @@ import {
   PickOtherButton,
   UseInPlanButton,
 } from './ActionRow';
-import { AddForMeButton, RunProgress } from './fill/FillControls';
+import {
+  AddForMeButton,
+  RunProgress,
+  useShowCondition,
+} from './fill/FillControls';
 import { clearStop, helperStore } from './helperStore';
 import { regisStore } from './regisStore';
 import { saveBackupToPlan } from './saveBackup';
@@ -135,6 +139,13 @@ export function FocusSection({
     running?.subjectId === id && running.step === 'conditional'
       ? running.prerequisites
       : (row.observed?.prerequisites ?? []);
+  useShowCondition(
+    running?.subjectId === id &&
+      running.step === 'conditional' &&
+      prerequisites.length > 0
+      ? id
+      : null,
+  );
 
   return (
     <div className="flex flex-col">

@@ -38,9 +38,15 @@ export type FillRun =
     }
   | { status: 'done'; filled: number };
 
-export const fillStore = createStore<{ run: FillRun; stop: boolean }>()(() => ({
+export const fillStore = createStore<{
+  run: FillRun;
+  stop: boolean;
+  /** The subject whose condition KCP's card shows now, and since when (owner answer 5B). */
+  shown: { subjectId: string; at: number } | null;
+}>()(() => ({
   run: { status: 'idle' },
   stop: false,
+  shown: null,
 }));
 
 export function requestStop(): void {
@@ -130,6 +136,10 @@ export async function startFill(
       onRefusal: () => {
         const key = buildKey(names);
         if (key !== null) regisStore.getState().latchBuild(key);
+      },
+      conditionShownSince: (subjectId) => {
+        const { shown } = fillStore.getState();
+        return shown?.subjectId === subjectId ? shown.at : null;
       },
       tripwire,
     });

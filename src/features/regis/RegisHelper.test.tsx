@@ -17,7 +17,8 @@ import {
   makePlanEntry,
   makeSection,
 } from '../../../tests/support/domain-builders';
-import { helperStore, startVisit } from './helperStore';
+import { fillStore } from './fill/fillRun';
+import { helperStore, setView, startVisit } from './helperStore';
 import { RegisHelper } from './RegisHelper';
 import { regisStore } from './regisStore';
 
@@ -66,6 +67,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  fillStore.setState({ run: { status: 'idle' }, stop: false, shown: null });
   act(() => {
     uiStore.getState().close();
   });
@@ -122,6 +124,34 @@ describe('RegisHelper', () => {
       key: 'Escape',
     });
     expect(helperStore.getState().collapsed).toBe(true);
+  });
+
+  it('records the condition as shown only while the card shows it', () => {
+    renderPage('#/pre_registration');
+    act(() => {
+      fillStore.setState({
+        run: {
+          status: 'running',
+          subjectId: '01476107',
+          step: 'conditional',
+          prerequisites: ['01476105'],
+          done: 0,
+          total: 1,
+        },
+      });
+    });
+    expect(within(card()).getByText(/01476105/)).toBeInTheDocument();
+    expect(fillStore.getState().shown?.subjectId).toBe('01476107');
+    act(() => {
+      setView('list');
+    });
+    expect(fillStore.getState().shown).toBeNull();
+    act(() => {
+      setView('card');
+    });
+    expect(fillStore.getState().shown?.subjectId).toBe('01476107');
+    fireEvent.click(screen.getByRole('button', { name: /^เช็กลิสต์ 0\/1/ }));
+    expect(fillStore.getState().shown).toBeNull();
   });
 
   it('renders nothing off the helper pages', () => {
