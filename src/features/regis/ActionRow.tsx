@@ -121,6 +121,8 @@ export function PickOtherButton({
     <button
       {...trigger.props}
       type="button"
+      // A combobox takes no name from its content, so the visible label is stated.
+      aria-label={t('regis.pickOther')}
       className={`${ACTION_BUTTON} bg-primary-strong font-semibold text-white hover:bg-primary-hover ${FOCUS_OUTLINE}`}
     >
       <span>{t('regis.pickOther')}</span>
