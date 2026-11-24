@@ -195,3 +195,12 @@ unchanged, and each control still issues a press only from the student's own tru
 - The switch is Use Add for me in the more menu, on by default; turning it off during a run still
   ends the run at the next step. Fill all subjects is dropped; each subject's Add for me replaces
   it. The stop sentence for a run shows under the action row of its subject.
+- Add for me is keyed by its subject and by whether it keeps an over subscribed section, so a
+  change of what it adds, such as the focus moving on after the page shows a subject settled, is a
+  new button whose half second starts then.
+- The condition before the grade not announced dialog is shown on the card's focus section, which
+  appears only for the subject in focus in the card view. The focus section records which
+  subject's condition it shows and since when, and the run acknowledges the dialog only when that
+  record names the subject and has stood for at least half the wait. A collapsed card, the list,
+  another subject in focus, or the planner over the card stops the run as for an open dialog, and
+  the student reads and closes the dialog on the page.
