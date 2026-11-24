@@ -316,24 +316,6 @@ export function refitKit(
   });
 }
 
-/** What a readiness card needs to say about one subject. */
-export type AttentionReason =
-  'missing' | 'unread' | 'full' | 'closed' | 'conditions' | 'duplicate';
-
-export interface KitSubjectSummary {
-  subjectId: string;
-  /** Other groups that fit the plan and had seats at prepare time. */
-  fittingAlternatives: number;
-  reasons: AttentionReason[];
-}
-
-export interface KitSummary {
-  /** Planned subjects whose planned group is in the kit. */
-  ready: number;
-  total: number;
-  subjects: KitSubjectSummary[];
-}
-
 /** The planned sections of a kit subject, in section code order. */
 export function plannedSections(subject: KitSubject): SectionSnapshot[] {
   const ids = new Set(subject.plannedIds);
@@ -349,44 +331,4 @@ export function kitConditions(
     .map((section) => section[field].trim())
     .filter((rule) => rule !== '');
   return [...new Set(rules)];
-}
-
-function subjectReasons(subject: KitSubject): AttentionReason[] {
-  if (subject.plannedIds.length === 0) return ['missing'];
-  const reasons: AttentionReason[] = [];
-  const planned = subject.options.find((option) => option.planned);
-  if (planned?.seat === 'closed') reasons.push('closed');
-  if (planned?.seat === 'full') reasons.push('full');
-  if (
-    kitConditions(subject, 'rulesTh').length > 0 ||
-    kitConditions(subject, 'rulesEn').length > 0
-  ) {
-    reasons.push('conditions');
-  }
-  const codes = new Set(subject.duplicateCodes);
-  if (plannedSections(subject).some((section) => codes.has(section.section))) {
-    reasons.push('duplicate');
-  }
-  return reasons;
-}
-
-/** Summarize a kit for the readiness card. */
-export function summarizeKit(kit: RegistrationKit): KitSummary {
-  const subjects: KitSubjectSummary[] = kit.subjects.map((subject) => ({
-    subjectId: subject.subjectId,
-    fittingAlternatives: subject.options.filter(
-      (option) =>
-        !option.planned && option.fit === 'fits' && option.seat === 'open',
-    ).length,
-    reasons: subjectReasons(subject),
-  }));
-  for (const subjectId of kit.unread) {
-    subjects.push({ subjectId, fittingAlternatives: 0, reasons: ['unread'] });
-  }
-  return {
-    ready: kit.subjects.filter((subject) => subject.plannedIds.length > 0)
-      .length,
-    total: kit.subjects.length + kit.unread.length,
-    subjects,
-  };
 }
