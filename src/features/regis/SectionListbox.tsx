@@ -3,9 +3,9 @@
 // first, then the kit's other groups, each with the one worst fact the kit knew at
 // prepare time: closed, full, a class or exam clash, or a fit. Choosing a group makes it
 // the one this registration uses; the plan changes only through its own save. Focus stays
-// on the trigger, which names the active option, so the keys move through the options
-// without leaving it; a closed group, or one the page turned down in this visit, can be
-// reached but not chosen.
+// on the trigger, a select only combobox that names the active option, so the keys move
+// through the options without leaving it; a closed group, or one the page turned down in
+// this visit, can be reached but not chosen.
 
 import {
   useCallback,
@@ -206,6 +206,7 @@ export function SectionListbox({
             setOpen(!open);
           },
           onKeyDown: handleKeyDown,
+          role: 'combobox',
           'aria-haspopup': 'listbox',
           'aria-expanded': open,
           'aria-controls': open ? listId : undefined,
