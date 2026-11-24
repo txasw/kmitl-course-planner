@@ -116,3 +116,34 @@ read, so the checklist never claims the page agrees; the student compares it. Pe
 - Fit badges reflect the data at prepare time; seats change after it, which the notes state.
 - The package grows by the dock, the rows, and their strings, recorded with the budget raise.
 - Reading the page, and the fill the owner ruled on, each need their own decision record.
+
+## Amendment, 2026-11-24: the helper card replaces the dock
+
+The owner chose design C2 for the helper. The 360 px dock, its narrow bar, and the phone sheet with
+three levels are replaced by a 320 px card that rises 12 px above the launcher at the bottom right,
+and spans the screen less its gutters on a phone. From the top it holds a count of the subjects the
+page lists, which opens a list of every subject, a more menu, at most one bar (a page KCP cannot
+read, a page of another term, or nothing prepared), a queue of chips with each full 8 digit subject
+id and a status icon, and the subject in focus with a status band, its section tile, and one action
+row.
+
+- **Status comes from the page only.** The manual marks and the status select are gone. A stored
+  mark record still validates and is read as one with no choices. On the regular registration page,
+  which KCP does not read, every subject stays not added and the card is a list to copy from.
+- **The section choice replaces the mark.** The section tile and Other section open a custom
+  listbox, never a native select, that sets the section this registration uses, per plan and term,
+  and offers to save it to the plan through the existing transaction.
+- **Visits.** The card opens on every arrival on a helper page and never takes focus on its own. A
+  collapse, by the launcher, Escape, or on a phone a press anywhere on the page, lasts for that
+  visit only and is never stored. Hide on this page removes the card and the launcher until the
+  next visit.
+- **Launcher.** It stays orange, stays visible while the card is open, and toggles it; collapsed,
+  it shows a loader while a run adds a subject, a check once every subject is listed, and a dot
+  when a subject needs a look.
+- **Prepare card.** The per subject review after preparing is gone; the count and the list on the
+  registration page read the same facts against the page. The prepare action is unchanged.
+- **Announcements.** One polite live region in the helper says a status change, a run step or
+  stop, a copy, the page turning unreadable or readable, and the hide. It replaces the fill panel's
+  status line in the live region inventory of ADR-0048.
+
+The package budget moves to 350 KiB with this change.

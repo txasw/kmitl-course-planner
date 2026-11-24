@@ -175,3 +175,23 @@ or the end of a run, and joins the live region inventory of ADR-0048.
 The host leaves Vue 2, the host starts rejecting untrusted events, duplicate codes prove common,
 the regular registration page gets its live look, or the university states a rule on form filling
 tools.
+
+## Amendment, 2026-11-24: Add for me on the helper card
+
+The student's controls move to the helper card of the ADR-0076 amendment; every guard above is
+unchanged, and each control still issues a press only from the student's own trusted click.
+
+- **Add for me** (เพิ่มให้) is the right hand button of the action row, beside Copy ID, for the
+  subject in focus while the page does not list it, and the plus button on each list row. A press
+  starts a run for that one subject with the section the student chose, or the planned one. A
+  section the page shows over subscribed offers Add for me again to fill it anyway.
+- While a run is active the action row becomes the step progress, enter the id, pick the section,
+  press add, with **Stop** (หยุด) in place of Add for me, so one bounce cannot stop and resume a
+  run. Collapsing the card does not stop a run.
+- When Add for me cannot run it stays focusable with `aria-disabled` and its reason, first reason
+  first: not on this page, switched off, nothing prepared, page unreadable, another term, outside
+  the choose subjects step, or another run active. The reason shows as a tooltip, or as a line
+  under the row on touch.
+- The switch is Use Add for me in the more menu, on by default; turning it off during a run still
+  ends the run at the next step. Fill all subjects is dropped; each subject's Add for me replaces
+  it. The stop sentence for a run shows under the action row of its subject.
