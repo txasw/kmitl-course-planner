@@ -321,14 +321,3 @@ export function plannedSections(subject: KitSubject): SectionSnapshot[] {
   const ids = new Set(subject.plannedIds);
   return subject.sections.filter((section) => ids.has(section.teachTableId));
 }
-
-/** The conditions printed for the planned sections, each once, in one language. */
-export function kitConditions(
-  subject: KitSubject,
-  field: 'rulesTh' | 'rulesEn',
-): string[] {
-  const rules = plannedSections(subject)
-    .map((section) => section[field].trim())
-    .filter((rule) => rule !== '');
-  return [...new Set(rules)];
-}

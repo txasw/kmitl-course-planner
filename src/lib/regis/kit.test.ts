@@ -15,7 +15,6 @@ import {
   entryCurriculum,
   isKitFresh,
   KIT_MAX_AGE_MS,
-  kitConditions,
   kitMatchesPlan,
   plannedSections,
   refitKit,
@@ -296,8 +295,8 @@ describe('kit age and term', () => {
   });
 });
 
-describe('kitConditions', () => {
-  it('reads the conditions of the planned section once', () => {
+describe('plannedSections', () => {
+  it('reads the planned section of a kit subject', () => {
     const ruled = { ...A1, rulesTh: 'ต้องผ่าน 01476105', rulesEn: '' };
     const course = makeCourse({ subjectId: 'A', sections: [ruled, A2, A3] });
     const kit = buildRegistrationKit({
@@ -307,9 +306,9 @@ describe('kitConditions', () => {
     });
     const [first] = kit.subjects;
     if (first === undefined) throw new Error('the kit lists no subject');
-    expect(kitConditions(first, 'rulesTh')).toEqual(['ต้องผ่าน 01476105']);
-    expect(kitConditions(first, 'rulesEn')).toEqual([]);
-    expect(plannedSections(first)).toHaveLength(1);
+    expect(
+      plannedSections(first).map((section) => section.teachTableId),
+    ).toEqual([ruled.teachTableId]);
   });
 });
 

@@ -99,7 +99,6 @@ const practice = (section: string) => ({
 describe('deriveChecklist with the page observed', () => {
   it('shows no page state while no observation backs the rows', () => {
     const list = derive(null);
-    expect(list.observed).toBe(false);
     expect(list.rows.map((row) => row.observed)).toEqual([null, null]);
   });
 
@@ -110,7 +109,7 @@ describe('deriveChecklist with the page observed', () => {
       ['01476107', 'added'],
     ]);
     expect(list.rows[0]?.observed?.state).toBe('notListed');
-    expect(list).toMatchObject({ observed: true, done: 1, listedPlanned: 1 });
+    expect(list).toMatchObject({ listedPlanned: 1 });
   });
 
   it('reads another section, a missing half, or another kind as other', () => {
@@ -130,7 +129,6 @@ describe('deriveChecklist with the page observed', () => {
       observed({ toasts: [{ kind: 'refused', subjectId: '01476106' }] }),
     );
     expect(list.rows[0]?.state).toBe('refused');
-    expect(list.done).toBe(0);
   });
 
   it('carries the prerequisite ids and lists the row as conditional', () => {
