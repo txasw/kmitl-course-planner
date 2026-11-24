@@ -21,6 +21,7 @@ import { readScriptNames } from '../host/hostDom';
 import { regisStore } from '../regisStore';
 import type { FillStep } from './fillEngine';
 import {
+  fillStore,
   requestStop,
   startFill,
   type FillRequest,
@@ -87,6 +88,20 @@ function PressButton({
       {children}
     </button>
   );
+}
+
+/**
+ * Records, while it is mounted with a subject, that the card shows that subject's
+ * condition, so the run acknowledges the grade dialog only while KCP shows it (5B).
+ */
+export function useShowCondition(subjectId: string | null): void {
+  useEffect(() => {
+    if (subjectId === null) return undefined;
+    fillStore.setState({ shown: { subjectId, at: Date.now() } });
+    return () => {
+      fillStore.setState({ shown: null });
+    };
+  }, [subjectId]);
 }
 
 /** Whether fill can act here: switched on and allowed on this host build. */

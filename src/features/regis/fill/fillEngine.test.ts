@@ -149,6 +149,8 @@ interface RunOptions {
   ) => Record<string, CatalogSubject>;
   allowFull?: string[];
   stopAfter?: FillStep;
+  /** When KCP's UI began showing the condition, or null while it does not. */
+  shownSince?: number | null;
 }
 
 async function fill(specs: Spec[], options: RunOptions = {}) {
@@ -176,6 +178,8 @@ async function fill(specs: Spec[], options: RunOptions = {}) {
     onRefusal: () => {
       refusals += 1;
     },
+    conditionShownSince: () =>
+      options.shownSince === undefined ? 0 : options.shownSince,
     tripwire: { count: () => 0, stop: () => undefined },
     timing: { pace: 0, poll: 2, answer: 150, settle: 150, acknowledge: 0 },
   };
@@ -242,6 +246,7 @@ describe('runFill', () => {
         stopRequested: () => false,
         onStep: () => undefined,
         onRefusal: () => undefined,
+        conditionShownSince: () => 0,
         tripwire: { count: () => 0, stop: () => undefined },
         timing: { pace: 0, poll: 2, answer: 150, settle: 150, acknowledge: 0 },
       });
@@ -282,6 +287,26 @@ describe('runFill', () => {
       shown,
     );
     expect(page.counters.clicks.acknowledge).toBe(1);
+  });
+
+  it.each([
+    ['while KCP does not show the condition', null],
+    ['when KCP began showing it only now', Number.POSITIVE_INFINITY],
+  ])('leaves the grade dialog to the student %s', async (_name, shownSince) => {
+    const { outcome, page } = await fill([SINGLE], {
+      subjects: (catalog) => ({
+        [A]: {
+          ...catalog[A],
+          sections: catalog[A]?.sections ?? [],
+          prerequisites: ['01476105'],
+        },
+      }),
+      shownSince,
+    });
+    expect(outcome).toMatchObject({ status: 'stopped', reason: 'dialogOpen' });
+    expect(page.counters.clicks.acknowledge ?? 0).toBe(0);
+    expect(page.counters.clicks.add ?? 0).toBe(0);
+    expect(page.state.list).toEqual([]);
   });
 
   it('skips a subject the page already lists as planned', async () => {
@@ -446,6 +471,7 @@ describe('runFill', () => {
       stopRequested: () => false,
       onStep: () => undefined,
       onRefusal: () => undefined,
+      conditionShownSince: () => 0,
       tripwire: { count: () => 0, stop: () => undefined },
       timing: { pace: 0, poll: 2, answer: 150, settle: 150, acknowledge: 0 },
     });
@@ -485,6 +511,7 @@ describe('runFill', () => {
       stopRequested: () => false,
       onStep: () => undefined,
       onRefusal: () => undefined,
+      conditionShownSince: () => 0,
       tripwire: { count: () => 0, stop: () => undefined },
       timing: { pace: 30, poll: 2, answer: 300, settle: 300, acknowledge: 0 },
     });
@@ -524,6 +551,7 @@ describe('runFill', () => {
         stopRequested: () => false,
         onStep: () => undefined,
         onRefusal: () => undefined,
+        conditionShownSince: () => 0,
         tripwire: { count: () => 0, stop: () => undefined },
         timing: { pace: 0, poll: 2, answer: 150, settle: 150, acknowledge: 0 },
       });
@@ -556,6 +584,7 @@ describe('runFill', () => {
         if (step === 'choose') seen = 1;
       },
       onRefusal: () => undefined,
+      conditionShownSince: () => 0,
       tripwire: { count: () => seen, stop: () => undefined },
       timing: { pace: 0, poll: 2, answer: 150, settle: 150, acknowledge: 0 },
     });

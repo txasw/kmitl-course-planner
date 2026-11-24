@@ -82,6 +82,11 @@ export interface FillDeps {
   ) => void;
   /** Latch fill off for this host build after an actuator refusal. */
   onRefusal: () => void;
+  /**
+   * When KCP's own UI began showing this subject's condition, in the clock of `now`, or
+   * null while it does not show it (owner answer 5B).
+   */
+  conditionShownSince: (subjectId: string) => number | null;
   tripwire: Tripwire;
   timing?: FillTiming;
   now?: () => number;
@@ -256,6 +261,13 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
         observation.dialog.prerequisites,
       );
       await sleep(timing.acknowledge);
+      // The condition must still be on screen in KCP and have been for most of the wait.
+      // A collapsed card, the list, another subject in focus, or the planner over the
+      // card leaves the dialog for the student to read and close.
+      const since = deps.conditionShownSince(target.subjectId);
+      if (since === null || now() - since < timing.acknowledge / 2) {
+        stop('dialogOpen');
+      }
       await act(() => {
         const button = resolveAcknowledge(doc);
         return button === null ? null : pressAcknowledge(button);
