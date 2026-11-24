@@ -105,7 +105,11 @@ interface AddForMeProps extends FillProps {
   t: Translate;
 }
 
-/** Add for me on one subject still to add: a press starts a run for that subject. */
+/**
+ * Add for me on one subject still to add: a press starts a run for that subject. On a list
+ * row it is a quiet outlined icon, so the card's own Add for me stays the one filled orange
+ * control in the helper.
+ */
 export function AddForMeButton({
   row,
   plan,
@@ -131,7 +135,7 @@ export function AddForMeButton({
       }}
       className={
         compact
-          ? `inline-flex size-11 shrink-0 items-center justify-center rounded-kcp bg-primary-strong text-white hover:bg-primary-hover sm:size-9 ${FOCUS_OUTLINE}`
+          ? `inline-flex size-11 shrink-0 items-center justify-center rounded-kcp bg-surface text-primary-strong ring-1 ring-border ring-inset hover:bg-surface-alt sm:size-9 ${FOCUS_RING}`
           : PRIMARY
       }
     >
