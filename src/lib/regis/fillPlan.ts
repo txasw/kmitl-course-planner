@@ -110,21 +110,6 @@ export function fillTarget(
   };
 }
 
-/**
- * The rows a press fills: those it names, in checklist order, that are still to do. A
- * subject the page lists, with the group this registration uses or another one, is
- * settled, so a fill pressed again after a stop on it goes on to the next subject rather
- * than stopping on the same one again.
- */
-export function rowsToFill(
-  rows: readonly ChecklistRow[],
-  subjects: readonly string[],
-): ChecklistRow[] {
-  return rows.filter(
-    (row) => row.state === 'notDone' && subjects.includes(row.subjectId),
-  );
-}
-
 /** What stops any fill on this page before a subject is touched, or null. */
 export function pageBlock(
   observation: HostObservation | null,

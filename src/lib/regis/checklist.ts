@@ -9,10 +9,9 @@
 
 import type { Plan, SectionSnapshot } from '../domain/plan';
 import { groupEntriesBySubject } from '../planner/subjectGroups';
-import { planCredits } from '../planner/transaction';
 import { termsEqual, type Term } from '../routing/academicTerms';
 import { choicesBelongTo, type SectionChoices } from './choices';
-import { kitConditions, kitMatchesPlan, plannedSections } from './kit';
+import { kitMatchesPlan, plannedSections } from './kit';
 import {
   observeRow,
   pageExtras,
@@ -47,14 +46,6 @@ const OBSERVED_STATE: Record<ObservedState, RowState> = {
   notSubmitted: 'notSubmitted',
 };
 
-/** States that do not settle a row: nothing done yet, or the page turned it down. */
-const UNSETTLED: readonly RowState[] = [
-  'notDone',
-  'termMismatch',
-  'refused',
-  'notSubmitted',
-];
-
 /** One other section group of a subject, with its fit and seats at prepare time. */
 export interface RowAlternative {
   ids: string[];
@@ -78,8 +69,6 @@ export interface ChecklistRow {
   observed: ObservedRow | null;
   /** The other group the student chose for this registration, or null for the plan's. */
   chosen: RowAlternative | null;
-  conditionsTh: string[];
-  conditionsEn: string[];
   /** A planned code listed more than once under different curricula, or null. */
   duplicateCode: string | null;
   /** Whether a fresh kit lacks the planned group, or could not read the subject. */
@@ -95,16 +84,11 @@ export interface Checklist {
   /** Whether a fresh kit of this plan's term backs the rows. */
   hasKit: boolean;
   rows: ChecklistRow[];
-  /** Whether a healthy page observation backs the rows. */
-  observed: boolean;
   /** Subjects the page lists that the plan does not hold. */
   extras: { subjectId: string; codes: string[] }[];
   /** Planned subjects the page lists with their planned group. */
   listedPlanned: number;
-  /** Rows the page shows settled. */
-  done: number;
   total: number;
-  credits: number;
 }
 
 export interface ChecklistInput {
@@ -207,10 +191,6 @@ export function deriveChecklist(input: ChecklistInput): Checklist {
         state: termMismatch ? 'termMismatch' : fromPage,
         observed,
         chosen,
-        conditionsTh:
-          subject === undefined ? [] : kitConditions(subject, 'rulesTh'),
-        conditionsEn:
-          subject === undefined ? [] : kitConditions(subject, 'rulesEn'),
         duplicateCode:
           planned.find((section) => duplicateCodes.has(section.section))
             ?.section ?? null,
@@ -226,12 +206,9 @@ export function deriveChecklist(input: ChecklistInput): Checklist {
     termMismatch,
     hasKit: kit !== null,
     rows,
-    observed: page !== null,
     extras: page === null ? [] : pageExtras(page.observation, plannedIds),
     listedPlanned: rows.filter((row) => row.observed?.state === 'listed')
       .length,
-    done: rows.filter((row) => !UNSETTLED.includes(row.state)).length,
     total: rows.length,
-    credits: planCredits(plan.entries).credits,
   };
 }

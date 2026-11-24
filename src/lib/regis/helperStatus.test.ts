@@ -24,8 +24,6 @@ function row(subjectId: string, state: RowState): ChecklistRow {
     state,
     observed: null,
     chosen: null,
-    conditionsTh: [],
-    conditionsEn: [],
     duplicateCode: null,
     missing: false,
     plannedSeat: null,
@@ -38,12 +36,9 @@ function checklist(...rows: ChecklistRow[]): Checklist {
     termMismatch: false,
     hasKit: true,
     rows,
-    observed: true,
     extras: [],
     listedPlanned: 0,
-    done: 0,
     total: rows.length,
-    credits: 0,
   };
 }
 

@@ -71,7 +71,7 @@ describe('deriveChecklist', () => {
       ['A', 'notDone'],
       ['B', 'notDone'],
     ]);
-    expect(list).toMatchObject({ done: 0, total: 2, credits: 4, hasKit: true });
+    expect(list).toMatchObject({ total: 2, hasKit: true });
   });
 
   it('orders the other sections fitting first, then by start', () => {
@@ -102,8 +102,10 @@ describe('deriveChecklist', () => {
     });
     expect(parsed.choices).toEqual({});
     expect(
-      deriveChecklist({ plan, kit, choices: parsed, pageTerm: null }).done,
-    ).toBe(0);
+      deriveChecklist({ plan, kit, choices: parsed, pageTerm: null }).rows.map(
+        (row) => row.state,
+      ),
+    ).toEqual(plan.entries.map(() => 'notDone'));
   });
 
   it('works from the plan snapshots alone when there is no kit', () => {
@@ -139,7 +141,6 @@ describe('deriveChecklist', () => {
     });
     expect(list.termMismatch).toBe(true);
     expect(list.rows.every((row) => row.state === 'termMismatch')).toBe(true);
-    expect(list.done).toBe(0);
     const same = deriveChecklist({
       plan,
       kit,
