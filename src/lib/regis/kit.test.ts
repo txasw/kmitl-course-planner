@@ -20,7 +20,6 @@ import {
   plannedSections,
   refitKit,
   subjectQuery,
-  summarizeKit,
 } from './kit';
 import { registrationKitSchema } from './kitSchema';
 
@@ -297,51 +296,20 @@ describe('kit age and term', () => {
   });
 });
 
-describe('summarizeKit', () => {
-  it('counts ready subjects, fitting alternatives, and what needs attention', () => {
+describe('kitConditions', () => {
+  it('reads the conditions of the planned section once', () => {
     const ruled = { ...A1, rulesTh: 'ต้องผ่าน 01476105', rulesEn: '' };
     const course = makeCourse({ subjectId: 'A', sections: [ruled, A2, A3] });
     const kit = buildRegistrationKit({
-      plan: makePlan({
-        entries: [entryFor(course, ruled), entryFor(COURSE_B, B1)],
-      }),
-      results: new Map([
-        ['A', catalogOf(course)],
-        ['B', null],
-      ]),
+      plan: makePlan({ entries: [entryFor(course, ruled)] }),
+      results: new Map([['A', catalogOf(course)]]),
       preparedAt: '2026-11-22T14:10:00.000Z',
     });
-    const summary = summarizeKit(kit);
-    expect(summary).toMatchObject({ ready: 1, total: 2 });
-    expect(summary.subjects).toEqual([
-      // A2 clashes with B, which still holds its place though its read failed, and
-      // A3 was full, so no other section of A both fits and had a seat.
-      { subjectId: 'A', fittingAlternatives: 0, reasons: ['conditions'] },
-      { subjectId: 'B', fittingAlternatives: 0, reasons: ['unread'] },
-    ]);
     const [first] = kit.subjects;
     if (first === undefined) throw new Error('the kit lists no subject');
     expect(kitConditions(first, 'rulesTh')).toEqual(['ต้องผ่าน 01476105']);
+    expect(kitConditions(first, 'rulesEn')).toEqual([]);
     expect(plannedSections(first)).toHaveLength(1);
-  });
-
-  it('names a full planned section and a missing one', () => {
-    const kit = buildRegistrationKit({
-      plan: makePlan({ entries: [entryFor(COURSE_A, A3)] }),
-      results: new Map([['A', catalogOf(COURSE_A)]]),
-      preparedAt: '2026-11-22T14:10:00.000Z',
-    });
-    expect(summarizeKit(kit).subjects[0]).toEqual({
-      subjectId: 'A',
-      fittingAlternatives: 2,
-      reasons: ['full'],
-    });
-    const gone = buildRegistrationKit({
-      plan: makePlan({ entries: [entryFor(COURSE_A, A3)] }),
-      results: new Map([['A', catalogOf(COURSE_B)]]),
-      preparedAt: '2026-11-22T14:10:00.000Z',
-    });
-    expect(summarizeKit(gone).subjects[0]?.reasons).toEqual(['missing']);
   });
 });
 
