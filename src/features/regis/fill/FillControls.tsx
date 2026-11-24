@@ -115,8 +115,11 @@ export function AddForMeButton({
   t,
 }: AddForMeProps) {
   const label = t('regis.addForMe');
+  // The focus card keeps this button in place while its subject changes, so a new target
+  // is a new button whose moment starts then, as a button that turns enabled is.
   return (
     <PressButton
+      key={`${row.subjectId} ${String(allowFull)}`}
       label={compact ? `${label} ${row.subjectId}` : label}
       onPress={(press) => {
         void startFill(press, {
