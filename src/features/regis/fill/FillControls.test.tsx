@@ -91,6 +91,38 @@ describe('AddForMeButton', () => {
     expect(fillStore.getState().run.status).toBe('idle');
   });
 
+  it('takes no click from a held key, on the card or on a list row', () => {
+    if (ROW === undefined) throw new Error('no row');
+    render(
+      <>
+        <AddForMeButton
+          row={ROW}
+          plan={PLAN}
+          kit={KIT}
+          allowFull={false}
+          t={t}
+        />
+        <AddForMeButton
+          row={ROW}
+          plan={PLAN}
+          kit={KIT}
+          allowFull={false}
+          compact
+          t={t}
+        />
+      </>,
+    );
+    for (const name of ['Add for me', `Add for me ${SUBJECT}`]) {
+      const button = screen.getByRole('button', { name });
+      // fireEvent returns false when a listener cancelled the event's default.
+      expect(fireEvent.keyDown(button, { key: 'Enter', repeat: true })).toBe(
+        false,
+      );
+      expect(fireEvent.keyDown(button, { key: 'Enter' })).toBe(true);
+    }
+    expect(fillStore.getState().run.status).toBe('idle');
+  });
+
   it('names the subject on a compact list row button', () => {
     if (ROW === undefined) throw new Error('no row');
     render(
