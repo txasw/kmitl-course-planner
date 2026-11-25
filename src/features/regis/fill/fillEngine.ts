@@ -25,7 +25,7 @@ import {
   type FillTarget,
   type StopReason,
 } from '@/lib/regis/fillPlan';
-import { readHostPage } from '../host/hostDom';
+import { panelOf, readHostPage } from '../host/hostDom';
 import {
   chooseOption,
   enterSubjectId,
@@ -131,12 +131,17 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
   let requests = 0;
   let quieted = false;
 
-  // A page with no panel ends the run at once: the host can unmount the panel on its own,
-  // as the period check of app.a1e43722 does when it rewrites the period, and nothing on a
-  // page without one may be acted on or waited for.
+  // A page with no panel, or with another panel than the run began on, ends the run at
+  // once: the host can unmount the panel on its own, as the period check of app.a1e43722
+  // does when it rewrites the period, and mount a new one from its own empty data, which
+  // has lost the subjects already added. Nothing on such a page may be acted on or waited
+  // for, and this holds without the tripwire, which some browsers lack.
+  const startPanel = panelOf(doc);
   function read(): HostObservation | null {
     const reading = readHostPage(doc, planned);
-    if (reading.reading === 'absent') stop(acted ? 'pageChanged' : 'notReady');
+    if (reading.reading === 'absent' || panelOf(doc) !== startPanel) {
+      stop(acted ? 'pageChanged' : 'notReady');
+    }
     return reading.reading === 'ok' ? reading.observation : null;
   }
 
