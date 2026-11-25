@@ -212,12 +212,6 @@ const AWAY: readonly (readonly [string, (page: Page) => Promise<void>])[] = [
       await page.keyboard.press('Escape');
     },
   ],
-  [
-    'collapses the card from the launcher',
-    async (page) => {
-      await page.locator('#kcp-launcher').click();
-    },
-  ],
 ];
 
 for (const [name, away] of AWAY) {
@@ -246,6 +240,30 @@ for (const [name, away] of AWAY) {
     await expectNothingForbidden(page);
   });
 }
+
+// The launcher sits where a thumb rests on a phone, so a press of it during a run is no
+// reason to stop: the card stays open, focus moves to Stop, and the run goes on.
+test('keeps the run going when the launcher is pressed', async ({
+  context,
+  serviceWorker,
+}) => {
+  const page = await openPlanner(context);
+  const section = await setUp(page, serviceWorker, (planned) => ({
+    delay: 3000,
+    catalog: { [SUBJECT]: { sections: [{ section: planned, kind: 'ท' }] } },
+  }));
+  await press(page);
+  await expect(page.locator('[data-fill="running"]')).toBeVisible();
+  await page.waitForFunction(() => window.replica.state.add.loading);
+  await page.locator('#kcp-launcher').click();
+  await expect(page.locator('#kcp-regis-card')).toBeVisible();
+  await expect(page.locator('#kcp-regis-stop')).toBeFocused();
+  await expect(page.locator('[data-fill="done"]')).toBeVisible({
+    timeout: 15_000,
+  });
+  expect(await listed(page)).toEqual([`${SUBJECT} ${section}`]);
+  await expectNothingForbidden(page);
+});
 
 test('presses nothing in a confirm dialog dressed as the grade dialog', async ({
   context,

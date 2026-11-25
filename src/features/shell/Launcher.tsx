@@ -13,13 +13,14 @@ import { fillTemplate } from '@/lib/i18n/template';
 import {
   CARD_ID,
   COUNT_ID,
+  STOP_ID,
   chooseCollapsed,
   helperStore,
   markReady,
 } from '@/features/regis/helperStore';
 import { useCompanionRoute } from '@/features/regis/useCompanion';
 import { useHelperModel } from '@/features/regis/useHelperModel';
-import { commitThenFocus } from './restoreFocus';
+import { commitThenFocus, focusFirst } from './restoreFocus';
 import { rootOf } from './useFocusTrap';
 import { FOCUS_OUTLINE } from '@/lib/ui/focus';
 import { uiStore } from './uiStore';
@@ -43,7 +44,8 @@ import { useTranslation } from './useTranslation';
 // clickable. On the two student registration pages it names the checklist and its
 // progress and toggles the registration helper card above it instead of opening the
 // overlay (ADR-0076, design C2). It stays orange and in place while the card is open, with
-// a chevron that collapses it and no count, since the card's header shows the count;
+// a chevron that collapses it, outside a fill run, and no count, since the card's header
+// shows the count;
 // collapsed, it shows the count, a loader while a fill run adds a
 // subject, a check once every subject is added, and a dot when a subject needs a look.
 
@@ -111,7 +113,7 @@ function useCompanionFace(open: boolean) {
   ]
     .filter((part) => part !== null)
     .join(', ');
-  return { face, name };
+  return { face, name, busy };
 }
 
 const LAUNCHER_FACE = `z-host ${LAUNCHER_BOX} bg-primary-strong text-white shadow-kcp hover:bg-primary-hover motion-safe:transition-[translate,background-color] motion-safe:duration-fast motion-safe:ease-out motion-safe:hover:-translate-y-0.5 motion-safe:focus-visible:-translate-y-0.5 ${FOCUS_OUTLINE}`;
@@ -202,13 +204,17 @@ function PanelLauncher() {
 }
 
 // Expanding hands focus to the card's count, so the keyboard lands where the card starts.
+// While Add for me runs, a press keeps the card open and hands focus to Stop instead of
+// collapsing it, since a collapse would end the run: the launcher sits where a thumb rests
+// on a phone, so a press of it is as likely to be a stray touch as a choice to stop. Stop
+// and Escape inside the card stay the deliberate ways to stop (ADR-0078).
 function CompanionLauncher() {
   const covered = useCovered();
   const collapsed = useStore(helperStore, (state) => state.collapsed);
   const hidden = useStore(helperStore, (state) => state.hidden);
   const ready = useStore(helperStore, (state) => state.ready);
   const open = !collapsed && ready && !covered;
-  const { face, name } = useCompanionFace(open);
+  const { face, name, busy } = useCompanionFace(open);
   const { language } = useTranslation();
   if (hidden) return null;
   return (
@@ -216,11 +222,18 @@ function CompanionLauncher() {
       id={LAUNCHER_ID}
       type="button"
       onClick={(event) => {
+        const root = rootOf(event.currentTarget);
+        if (open && busy) {
+          focusFirst([
+            root?.getElementById(STOP_ID),
+            root?.getElementById(COUNT_ID),
+          ]);
+          return;
+        }
         if (open) {
           chooseCollapsed(true);
           return;
         }
-        const root = rootOf(event.currentTarget);
         commitThenFocus(
           () => {
             markReady();

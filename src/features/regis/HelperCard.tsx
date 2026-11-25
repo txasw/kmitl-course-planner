@@ -301,7 +301,8 @@ export function HelperCard({ model }: { model: HelperModel }) {
   // A tap outside KCP collapses the card on a phone, so the keyboard or a host dialog is
   // never hidden behind it. A scroll of the page is no tap, and while Add for me runs no
   // tap outside collapses it at all: collapsing ends the run, and a stray touch on the
-  // page is no reason to stop. Stop, Escape, and the launcher remain the ways to stop.
+  // page is no reason to stop. Stop and Escape remain the ways to stop; a press of the
+  // launcher during a run hands focus to Stop rather than collapsing the card.
   const running = model.run.status === 'running';
   useOutsidePress(ref, phone && !running, collapse, true);
   const { checklist, current } = model;

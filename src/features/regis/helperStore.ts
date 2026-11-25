@@ -14,6 +14,8 @@ import type { FillRun } from './fill/fillRun';
 /** The ids the launcher and the card hand focus between. */
 export const CARD_ID = 'kcp-regis-card';
 export const COUNT_ID = 'kcp-regis-count';
+/** The Stop of a running fill, which a press of the launcher during a run hands focus to. */
+export const STOP_ID = 'kcp-regis-stop';
 
 export type HelperView = 'card' | 'list';
 

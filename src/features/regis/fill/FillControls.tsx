@@ -23,6 +23,7 @@ import {
 import { fillGate } from '@/lib/regis/hostBuild';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
+import { STOP_ID } from '../helperStore';
 import { readScriptNames } from '../host/hostDom';
 import { regisStore } from '../regisStore';
 import type { FillStep } from './fillEngine';
@@ -307,7 +308,7 @@ export function RunProgress({
       </div>
       <button
         type="button"
-        id="kcp-regis-stop"
+        id={STOP_ID}
         onClick={requestStop}
         className={`${ACTION_BUTTON} border border-border bg-surface text-ink hover:bg-surface-alt ${FOCUS_RING}`}
       >
