@@ -30,6 +30,7 @@ export const GROUP_MS = 500;
  */
 const FAILED: readonly StopReason[] = [
   'noAnswer',
+  'cardLoading',
   'pageChanged',
   'notRecognised',
 ];

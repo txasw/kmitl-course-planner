@@ -773,13 +773,44 @@ describe('runFill on the route of app.a1e43722', () => {
     replica = page;
     page.configure({ delay: 50, catalog: setupOf.catalog });
     page.set({ period: 'open' });
-    // The add card reads its credits first, with the card loading, and the run waits.
+    // The add card reads its credits first, with the card loading, and the run waits,
+    // showing the subject waiting in the dock rather than the step before.
     expect(page.state.add.loading).toBe(true);
-    expect(await runFill(deps(setupOf))).toEqual({
+    const steps: FillStep[] = [];
+    expect(
+      await runFill(
+        deps(setupOf, (_subject, step) => {
+          steps.push(step);
+        }),
+      ),
+    ).toEqual({
       status: 'done',
       filled: 1,
     });
+    expect(steps).toEqual(['wait', 'enter', 'wait', 'choose', 'add']);
     expect(page.state.list.map((row) => row.section)).toEqual(['1']);
+  });
+
+  it('stops with its own reason when the add card never finishes loading', async () => {
+    const setupOf = setup([SINGLE]);
+    const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
+    replica = page;
+    page.configure({ delay: 5, catalog: setupOf.catalog });
+    page.set({ add: { loading: true } });
+    const steps: FillStep[] = [];
+    const outcome = await runFill({
+      ...deps(setupOf, (_subject, step) => {
+        steps.push(step);
+      }),
+      timing: { ...ROUTE_TIMING, answer: 50 },
+    });
+    expect(outcome).toEqual({
+      status: 'stopped',
+      subjectId: A,
+      reason: 'cardLoading',
+    });
+    expect(steps).toEqual(['wait']);
+    expect(page.interactions()).toBe(0);
   });
 
   // The tripwire as the page's own requests count it: the host's eligibility reads and

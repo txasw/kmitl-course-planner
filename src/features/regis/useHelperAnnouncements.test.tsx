@@ -129,6 +129,22 @@ describe('useHelperAnnouncements', () => {
     expect(helperStore.getState().announcement.seq).toBe(seq);
   });
 
+  it('shows the error toast for an add card that never finished loading', () => {
+    const view = render(<Probe statuses={{}} />);
+    view.rerender(
+      <Probe
+        statuses={{}}
+        run={{
+          status: 'stopped',
+          subjectId: 'A',
+          reason: 'cardLoading',
+          scope: ['A'],
+        }}
+      />,
+    );
+    expect(toastStore.getState().toast).toMatchObject({ kind: 'error' });
+  });
+
   it('reads a stop for a request of the page aloud, with no error toast', () => {
     const view = render(<Probe statuses={{}} />);
     view.rerender(
