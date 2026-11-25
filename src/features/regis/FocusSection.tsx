@@ -9,7 +9,11 @@ import { useId, type ReactNode } from 'react';
 import { useStore } from 'zustand';
 import { pickLocalized } from '@/lib/i18n/localize';
 import type { Locale, Translate } from '@/lib/i18n/t';
-import type { ChecklistRow, RowAlternative } from '@/lib/regis/checklist';
+import {
+  listedGroup,
+  shownSections,
+  type ChecklistRow,
+} from '@/lib/regis/checklist';
 import {
   STATUS_TONE,
   needsAction,
@@ -55,20 +59,6 @@ interface FocusSectionProps {
   t: Translate;
 }
 
-/** The kit group the page lists for a subject listed with another section, if known. */
-function listedGroup(row: ChecklistRow): RowAlternative | null {
-  const codes = [...(row.observed?.codes ?? [])].sort().join(' ');
-  return (
-    row.alternatives.find(
-      (option) =>
-        option.sections
-          .map((section) => section.section)
-          .sort()
-          .join(' ') === codes,
-    ) ?? null
-  );
-}
-
 function codesOf(option: { sections: readonly { section: string }[] }) {
   return option.sections.map((section) => section.section).join(' ');
 }
@@ -87,9 +77,7 @@ export function FocusSection({
   const cleared = useStore(helperStore, (state) => state.clearedStop);
   const tone = STATUS_TONE[status];
   const id = row.subjectId;
-  const shown =
-    status === 'other' ? (listedGroup(row)?.sections ?? null) : null;
-  const parts = sectionParts(shown ?? row.chosen?.sections ?? row.planned, t);
+  const parts = sectionParts(shownSections(row, status === 'other'), t);
   const swap =
     status === 'other'
       ? listedGroup(row)
