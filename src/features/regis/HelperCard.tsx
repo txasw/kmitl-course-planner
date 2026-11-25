@@ -43,6 +43,7 @@ import { FocusSection, STALE_TEXT_ID } from './FocusSection';
 import {
   CARD_ID,
   COUNT_ID,
+  chooseCollapsed,
   helperStore,
   setCollapsed,
   setCurrent,
@@ -65,7 +66,7 @@ function collapseFrom(node: HTMLElement) {
   const root = rootOf(node);
   commitThenFocus(
     () => {
-      setCollapsed(true);
+      chooseCollapsed(true);
     },
     () => [root?.getElementById(LAUNCHER_ID)],
   );
