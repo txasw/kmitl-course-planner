@@ -145,6 +145,55 @@ test.describe('at a laptop width', () => {
   });
 });
 
+test.describe('Add all for me', () => {
+  test('adds every subject still to add in one run, one at a time', async ({
+    context,
+    mock,
+    serviceWorker,
+  }) => {
+    const page = await openPlanner(context);
+    await openHelper(page, serviceWorker, { width: 1366, height: 768 });
+    mock.clearApiCalls();
+    await expect(card(page)).toBeVisible();
+
+    // The first subject is already on the page, so the press names the other two.
+    await page.evaluate((id) => {
+      window.replica.set({
+        list: [{ subjectId: id, section: '901', kind: 'ท' }],
+      });
+    }, FIRST);
+    await expect(chip(page, FIRST)).toHaveAttribute('data-status', 'added');
+
+    await card(page).getByRole('button', { name: 'เพิ่มเติม' }).click();
+    const addAll = page
+      .getByRole('menuitem', { name: 'เพิ่มให้ทุกวิชา' })
+      .and(page.locator('[data-fill-press]'));
+    await expect(addAll).toBeVisible();
+    await page.waitForTimeout(700);
+    await addAll.click();
+    await expect(page.getByRole('menu')).toHaveCount(0);
+    await expect(card(page)).toHaveAttribute('data-fill', 'running');
+    await expect(card(page)).toHaveAttribute('data-fill', 'done', {
+      timeout: 30_000,
+    });
+    for (const id of SUBJECTS) {
+      await expect(chip(page, id)).toHaveAttribute('data-status', 'added');
+    }
+    const listed = await page.evaluate(() =>
+      window.replica.state.list.map((row) => row.subjectId),
+    );
+    expect(listed).toEqual([...SUBJECTS]);
+    await expectNothingForbidden(page);
+    expect(mock.apiCalls()).toEqual([]);
+
+    // With nothing left to add the menu offers no Add all for me.
+    await card(page).getByRole('button', { name: 'เพิ่มเติม' }).click();
+    await expect(
+      page.getByRole('menuitem', { name: 'เพิ่มให้ทุกวิชา' }),
+    ).toHaveCount(0);
+  });
+});
+
 test.describe('at a phone width', () => {
   test('opens, lists every subject, and folds away on a page press', async ({
     context,
