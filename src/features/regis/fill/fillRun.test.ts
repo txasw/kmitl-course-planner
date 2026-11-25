@@ -7,7 +7,12 @@ import type { Plan } from '@/lib/domain/plan';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
 import { DEFAULT_FILL_SETTINGS } from '@/lib/storage/regis';
 import { uiStore } from '@/features/shell/uiStore';
-import { helperStore, hideHelper, startVisit } from '../helperStore';
+import {
+  helperStore,
+  hideHelper,
+  setCollapsed,
+  startVisit,
+} from '../helperStore';
 import { regisStore } from '../regisStore';
 import { runFill, type FillDeps } from './fillEngine';
 import { fillStore, startFill } from './fillRun';
@@ -129,9 +134,12 @@ describe('startFill', () => {
     expect(seen).toEqual([false, true]);
   });
 
-  it('starts nothing while the helper is hidden or the planner is open', async () => {
+  it('starts nothing while the helper is hidden, collapsed, or under the planner', async () => {
     scripts(TESTED);
     hideHelper();
+    await startFill(press(), request);
+    startVisit();
+    setCollapsed(true);
     await startFill(press(), request);
     startVisit();
     uiStore.getState().open();
@@ -142,6 +150,12 @@ describe('startFill', () => {
 
   for (const [name, away] of [
     ['hides the helper on this page', hideHelper],
+    [
+      'collapses the card to the launcher',
+      () => {
+        setCollapsed(true);
+      },
+    ],
     [
       'opens the planner over the page',
       () => {
@@ -164,9 +178,8 @@ describe('startFill', () => {
       });
       await startFill(press(), request);
       expect(seen).toEqual([false, true]);
-      expect(helperStore.getState().hidden || uiStore.getState().isOpen).toBe(
-        true,
-      );
+      const { hidden, collapsed } = helperStore.getState();
+      expect(hidden || collapsed || uiStore.getState().isOpen).toBe(true);
     });
   }
 
