@@ -25,7 +25,10 @@
 // bottom inset while the nav runs along the open panel's foot, clear of the 56 px nav. While
 // a bottom sheet is open it covers the nav and the plan foot, so the region floats above the
 // footer of actions the sheet names, or drops back to the foot when it has none, over the
-// padding the sheet body keeps at rest for a toast (sheetToast).
+// padding the sheet body keeps at rest for a toast (sheetToast). On a helper page on a
+// phone, with the panel closed, the region floats above the helper card, or above the
+// launcher while the card is collapsed, so a toast never covers either, and it keeps to
+// the part of a wide page on screen (helperToastFloor, HelperViewport).
 //
 // The panel focus trap follows the region by its id, so a toast's controls join the Tab
 // order after the panel's last control while the panel is open; Tab reaches an undo
@@ -41,6 +44,7 @@ import { useStore } from 'zustand';
 import { CircleCheck, TriangleAlert, X } from 'lucide-react';
 import { onboardingStore } from '@/features/onboarding/onboardingStore';
 import { planStore } from '@/features/plans/planStore';
+import { useHelperToastFloor } from '@/features/regis/helperToastFloor';
 import type { Translate } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
@@ -159,8 +163,15 @@ export function Toaster() {
   const navShown = useBottomNavShown();
   const overFoot = useToastOverFoot();
   const overSheetFoot = useToastOverSheetFoot();
+  const regionRef = useRef<HTMLDivElement>(null);
+  const helperFloor = useHelperToastFloor(regionRef);
   const bottom =
-    overSheetFoot ?? (overFoot === null ? null : aboveSafeBottom(overFoot));
+    overSheetFoot ??
+    (overFoot !== null
+      ? aboveSafeBottom(overFoot)
+      : helperFloor === null
+        ? null
+        : `${String(helperFloor)}px`);
   const aboveNav = isOpen && !sheetOpen && navShown && overFoot === null;
 
   // The undo toast owns the region while the panel is open; an ordinary toast waits.
@@ -211,12 +222,13 @@ export function Toaster() {
 
   return (
     <div
+      ref={regionRef}
       id={TOAST_REGION_ID}
       aria-live="polite"
       aria-atomic="true"
       lang={language}
       style={bottom === null ? undefined : { bottom }}
-      className={`pointer-events-none fixed inset-x-0 z-host flex justify-center pr-[max(16px,var(--kcp-safe-right))] pl-[max(16px,var(--kcp-safe-left))] ${
+      className={`pointer-events-none fixed right-[var(--kcp-visible-right,0px)] left-[var(--kcp-visible-left,0px)] z-host flex justify-center pr-[max(16px,var(--kcp-safe-right))] pl-[max(16px,var(--kcp-safe-left))] ${
         bottom !== null
           ? ''
           : aboveNav
