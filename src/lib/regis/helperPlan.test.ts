@@ -25,11 +25,14 @@ function pick(
   activePlanId: string | null,
   pageTerm: Term | null,
   picked: string | null = null,
+  options: { termPending?: boolean; rememberedTerm?: Term | null } = {},
 ) {
   return pickHelperPlan({
     plans: PLANS,
     activePlanId,
     pageTerm,
+    termPending: options.termPending ?? false,
+    rememberedTerm: options.rememberedTerm ?? null,
     pickedPlanId: picked,
   });
 }
@@ -39,9 +42,39 @@ function planId(result: ReturnType<typeof pickHelperPlan>) {
 }
 
 describe('pickHelperPlan', () => {
-  it('uses the active plan while the page term is not known', () => {
-    expect(planId(pick('s1', null))).toBe('s1');
+  it('falls back to the active plan, unconfirmed, once no reading can bring the term', () => {
+    const result = pick('s1', null);
+    expect(planId(result)).toBe('s1');
+    expect(result.kind === 'plan' && result.confirmed).toBe(false);
     expect(planId(pick(null, null))).toBe('none');
+  });
+
+  it('names no plan while a reading may still bring the page term', () => {
+    expect(pick('s1', null, null, { termPending: true })).toEqual({
+      kind: 'reading',
+    });
+    // A remembered term is no proof of this page's term, so it names nothing either.
+    expect(
+      pick('s1', null, 's1', { termPending: true, rememberedTerm: TERM2 }),
+    ).toEqual({ kind: 'reading' });
+  });
+
+  it('prefers a plan of the remembered term in the fallback, still unconfirmed', () => {
+    const result = pick('s1', null, null, { rememberedTerm: TERM2 });
+    expect(planId(result)).toBe('s2b');
+    expect(result.kind === 'plan' && result.confirmed).toBe(false);
+    expect(
+      planId(
+        pick('s1', null, null, {
+          rememberedTerm: { year: '2570', semester: '1' },
+        }),
+      ),
+    ).toBe('s1');
+  });
+
+  it('confirms a plan only when it is of the term read from the page', () => {
+    const result = pick('s1', TERM2, null, { rememberedTerm: TERM2 });
+    expect(result.kind === 'plan' && result.confirmed).toBe(true);
   });
 
   it('uses the active plan when it is of the page term', () => {

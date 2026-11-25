@@ -71,7 +71,11 @@ function openMore(card: HTMLElement) {
 beforeEach(() => {
   regisStore.setState({ kits: [], choices: [] });
   // The page has been read once, so the card opens with no wait.
-  hostStore.setState({ health: { status: 'healthy' }, page: null });
+  hostStore.setState({
+    health: { status: 'healthy' },
+    page: null,
+    term: { year: '2569', semester: '1' },
+  });
   startVisit();
 });
 

@@ -37,6 +37,8 @@ afterEach(() => {
     health: INITIAL_HEALTH,
     page: null,
     term: null,
+    lastTerm: null,
+    termWaitOver: false,
     conditional: {},
   });
 });
@@ -110,5 +112,16 @@ describe('hostStore', () => {
     record(OPEN, { reading: 'ok', observation: observation({ term: TERM }) });
     record({ surrogate: true, testedBuild: true }, { reading: 'absent' });
     expect(hostStore.getState().term).toBeNull();
+  });
+
+  it('keeps the last read term as a hint after leaving the page', () => {
+    const { record } = hostStore.getState();
+    record(OPEN, { reading: 'ok', observation: observation({ term: TERM }) });
+    hostStore.getState().endTermWait();
+    hostStore.getState().leave();
+    const state = hostStore.getState();
+    expect(state.term).toBeNull();
+    expect(state.termWaitOver).toBe(false);
+    expect(state.lastTerm).toEqual(TERM);
   });
 });

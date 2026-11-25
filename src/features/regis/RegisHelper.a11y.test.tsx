@@ -94,7 +94,11 @@ function card() {
 
 beforeEach(() => {
   regisStore.setState({ kits: [KIT], choices: [] });
-  hostStore.setState({ health: { status: 'healthy' }, page: null });
+  hostStore.setState({
+    health: { status: 'healthy' },
+    page: null,
+    term: { year: '2569', semester: '1' },
+  });
   startVisit();
 });
 

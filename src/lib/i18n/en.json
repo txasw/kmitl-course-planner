@@ -712,6 +712,9 @@
   "regis.reason.duplicate": "Section {code} is offered under more than one curriculum. Choose the one for your curriculum on the registration page.",
   "regis.addForMe.failed": "Could not add",
   "regis.planGroup": "Plans for {term}",
+  "regis.readingTerm": "Reading the term from this page",
+  "regis.planTerm": "Plan {term}",
+  "regis.planTermUnread": "Plan for {term}. KCP could not read the term of this page.",
   "regis.noPlanForTerm": "No plan for {term} yet",
   "regis.noPlanForTermBody": "This page registers {term}. Create a plan for this term and choose its subjects, and they will be listed here.",
   "regis.createPlanForTerm": "Create plan {term}"

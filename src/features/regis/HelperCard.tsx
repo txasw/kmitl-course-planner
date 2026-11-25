@@ -19,6 +19,7 @@ import {
   ChevronsUpDown,
   ClipboardList,
   EyeOff,
+  LoaderCircle,
   RefreshCw,
 } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
@@ -213,6 +214,46 @@ function NoPlanForTerm({ term, t }: { term: Term; t: Translate }) {
   );
 }
 
+// While the page term may still arrive, the card names no plan, so a reload never shows a
+// plan of another term over a page still loading: one quiet row, with no subjects and no
+// count, and the more menu so Hide on this page stays in reach.
+function ReadingCard({ model, t }: { model: HelperModel; t: Translate }) {
+  return (
+    <EmptyCard model={model} t={t}>
+      <p
+        data-helper-reading
+        className="flex items-center gap-2 text-sm text-ink-soft"
+      >
+        <LoaderCircle
+          size={16}
+          aria-hidden
+          className="shrink-0 motion-safe:animate-spin"
+        />
+        <span>{t('regis.readingTerm')}</span>
+      </p>
+    </EmptyCard>
+  );
+}
+
+// The term of a plan the helper shows without having read the page's own term, so it is
+// never taken for the term of the page.
+function UnconfirmedTerm({ model, t }: { model: HelperModel; t: Translate }) {
+  const { pick } = model;
+  if (pick.kind !== 'plan' || pick.confirmed) return null;
+  const term = termText({ year: pick.plan.year, semester: pick.plan.semester });
+  return (
+    <span
+      data-helper-plan-term
+      className="mr-auto ml-1 inline-flex min-h-6 items-center rounded-full bg-warn-soft px-2 text-xs font-semibold text-warn"
+    >
+      <span aria-hidden>{fillTemplate(t('regis.planTerm'), { term })}</span>
+      <span className="sr-only">
+        {fillTemplate(t('regis.planTermUnread'), { term })}
+      </span>
+    </span>
+  );
+}
+
 interface CardViewProps {
   model: HelperModel;
   coarse: boolean;
@@ -296,7 +337,9 @@ export function HelperCard({ model }: { model: HelperModel }) {
       data-fill={model.run.status}
       className="kcp-regis-card z-host flex flex-col rounded-kcp border border-border bg-surface text-sm text-ink shadow-kcp"
     >
-      {model.pick.kind === 'noPlanForTerm' ? (
+      {model.pick.kind === 'reading' ? (
+        <ReadingCard model={model} t={t} />
+      ) : model.pick.kind === 'noPlanForTerm' ? (
         <EmptyCard model={model} t={t}>
           <NoPlanForTerm term={model.pick.term} t={t} />
         </EmptyCard>
@@ -347,6 +390,7 @@ export function HelperCard({ model }: { model: HelperModel }) {
                 <ChevronsUpDown size={16} aria-hidden />
               )}
             </button>
+            <UnconfirmedTerm model={model} t={t} />
             <HelperMoreMenu model={model} t={t} />
           </div>
           <Bar model={model} t={t} />

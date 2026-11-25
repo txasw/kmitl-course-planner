@@ -90,7 +90,7 @@ const SEM2B = planOf(
   '2026-11-10T00:00:00.000Z',
 );
 
-function renderOn(plans: Plan[], active: string, term: Term) {
+function renderOn(plans: Plan[], active: string, term: Term | null) {
   window.location.hash = '#/pre_registration';
   act(() => {
     planStore.getState().hydrate(plans);
@@ -135,10 +135,56 @@ afterEach(() => {
       health: INITIAL_HEALTH,
       page: null,
       term: null,
+      lastTerm: null,
+      termWaitOver: false,
       conditional: {},
     });
   });
   window.location.hash = '';
+});
+
+describe('the helper before the page term is read', () => {
+  it('names no plan, no subject, and no count while the term may still arrive', () => {
+    const card = renderOn([SEM1, SEM2], 'sem1', null);
+    expect(card).toHaveTextContent('กำลังอ่านภาคการศึกษาจากหน้านี้');
+    expect(card).not.toHaveTextContent('01000001');
+    expect(card).not.toHaveTextContent('02000002');
+    expect(card).not.toHaveTextContent('0/1');
+    const launcher = screen.getByRole('button', { name: 'เช็กลิสต์' });
+    expect(launcher).not.toHaveTextContent('/');
+
+    act(() => {
+      hostStore.getState().record(
+        { surrogate: false, testedBuild: true },
+        {
+          reading: 'ok',
+          observation: {
+            step: 2,
+            term: TERM2,
+            card: null,
+            list: [],
+            credits: null,
+            dialog: null,
+            toasts: [],
+            results: null,
+          },
+        },
+      );
+    });
+    expect(card).toHaveTextContent('02000002');
+    expect(card).not.toHaveTextContent('01000001');
+    expect(card.querySelector('[data-helper-plan-term]')).toBeNull();
+  });
+
+  it('labels the fallback plan with its own term once the wait runs out', () => {
+    const card = renderOn([SEM1, SEM2], 'sem1', null);
+    act(() => {
+      hostStore.getState().endTermWait();
+    });
+    expect(card).toHaveTextContent('01000001');
+    const label = card.querySelector('[data-helper-plan-term]');
+    expect(label).toHaveTextContent('ตาราง 1/2569');
+  });
 });
 
 describe('the helper on a page of another term than the active plan', () => {
