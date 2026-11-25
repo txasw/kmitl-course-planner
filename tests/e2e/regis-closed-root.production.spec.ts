@@ -109,7 +109,10 @@ async function openReplica(
   query = '',
 ): Promise<{ page: Page; root: ClosedRoot }> {
   const page = context.pages()[0] ?? (await context.newPage());
-  await page.goto(`${REPLICA_URL}${query}${HASH}`);
+  // The term rides the query too, so the page shows it from its first render.
+  const search = new URLSearchParams(query.replace(/^\?/, ''));
+  search.set('term', `${term.semester}/${term.year}`);
+  await page.goto(`${REPLICA_URL}?${search.toString()}${HASH}`);
   await page.waitForFunction(() => 'replica' in window);
   await page.evaluate(
     ({ next, catalog }) => {
@@ -134,7 +137,16 @@ async function openReplica(
     },
   );
   const root = await ClosedRoot.attach(page);
-  await root.waitFor(withAttr('id', 'kcp-regis-card'), 'helper card');
+  // The card lists the plan once the page term has been read, or offers to make one.
+  const ready =
+    term.year === seeded.term.year && term.semester === seeded.term.semester
+      ? FIRST
+      : 'สร้างตาราง';
+  await root.waitFor(
+    (node) =>
+      attr(node, 'id') === 'kcp-regis-card' && textOf(node).includes(ready),
+    'helper card for the page term',
+  );
   return { page, root };
 }
 
@@ -299,4 +311,26 @@ test('Check again on the bar and in the more menu reads a drifted page anew', as
   expect(await root.find(menuItem('ตรวจอีกครั้ง'))).toBeNull();
   await expectNothingForbidden(page);
   expect(mock.apiCalls()).toEqual([]);
+});
+
+test('making a plan for a page term with none opens the planner on a tap', async ({
+  context,
+  mock,
+  serviceWorker,
+}) => {
+  test.setTimeout(150_000);
+  const seeded = await seedThroughDebug(mock);
+  await store(serviceWorker, seeded.blobs);
+  const next = {
+    year: String(Number(seeded.term.year) + 1),
+    semester: seeded.term.semester,
+  };
+  const { page, root } = await openReplica(context, seeded, next);
+  const label = `สร้างตาราง ${next.semester}/${next.year}`;
+  await root.tap(
+    (node) => node.nodeName === 'BUTTON' && textOf(node).includes(label),
+    'make a plan button',
+  );
+  await expect.poll(() => overlayOpen(page)).toBe(true);
+  await expectNothingForbidden(page);
 });
