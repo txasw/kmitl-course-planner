@@ -1,0 +1,154 @@
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react';
+import { toSnapshot } from '@/lib/planner/transaction';
+import { Launcher } from '@/features/shell/Launcher';
+import { planStore } from '@/features/plans/planStore';
+import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
+import type { TypedSend } from '@/lib/messaging/sendTyped';
+import {
+  makeCourse,
+  makePlan,
+  makePlanEntry,
+  makeSection,
+} from '../../../tests/support/domain-builders';
+import { fillStore } from './fill/fillRun';
+import { hostStore } from './host/hostStore';
+import { setCollapsed, startVisit } from './helperStore';
+import { RegisHelper } from './RegisHelper';
+import { regisStore } from './regisStore';
+
+// The helper's bar for a plan with nothing prepared: one line with the reason, and on the
+// pre registration page the press that prepares there, its progress with Cancel, and Add
+// for me held with its reason while it reads. The registration page offers no press.
+
+const COURSE = makeCourse({
+  subjectId: '01476107',
+  nameTh: 'การเขียนโปรแกรม',
+  sections: [makeSection({ teachTableId: 'T1', subjectId: '01476107' })],
+});
+const PLAN = makePlan({
+  entries: [
+    makePlanEntry({
+      snapshot: toSnapshot(COURSE, COURSE.sections[0] ?? makeSection()),
+    }),
+  ],
+});
+
+// The bar must send nothing in these tests, so the send only counts.
+let sends = 0;
+const send: TypedSend = () => {
+  sends += 1;
+  return new Promise<never>(() => undefined);
+};
+
+function renderOn(hash: string) {
+  window.location.hash = hash;
+  act(() => {
+    planStore.getState().hydrate([PLAN]);
+    planStore.getState().setActivePlan(PLAN.id);
+  });
+  render(
+    <SearchDepsProvider
+      value={{
+        send,
+        repo: {
+          load: () => Promise.resolve(null),
+          save: () => Promise.resolve(),
+        },
+      }}
+    >
+      <RegisHelper />
+      <Launcher />
+    </SearchDepsProvider>,
+  );
+  act(() => {
+    setCollapsed(false);
+  });
+  return screen.getByRole('region', { name: 'เช็กลิสต์' });
+}
+
+beforeEach(() => {
+  // A tested host build, so Add for me is held by the missing kit and not by the build.
+  for (const name of ['app.a1e43722.js', 'chunk-vendors.7ab4925e.js']) {
+    const script = document.createElement('script');
+    script.setAttribute('src', `/js/${name}`);
+    script.type = 'text/plain';
+    document.head.append(script);
+  }
+  regisStore.setState({ kits: [], choices: [], run: { status: 'idle' } });
+  hostStore.setState({
+    health: { status: 'healthy' },
+    page: null,
+    term: { year: '2569', semester: '1' },
+  });
+  startVisit();
+  sends = 0;
+});
+
+afterEach(() => {
+  cleanup();
+  document.head.replaceChildren();
+  regisStore.setState({ run: { status: 'idle' } });
+  fillStore.setState({ run: { status: 'idle' }, stop: false, shown: null });
+  window.location.hash = '';
+});
+
+describe('the kit bar', () => {
+  it('states the reason once and offers Prepare data on pre registration', () => {
+    const card = renderOn('#/pre_registration');
+    expect(within(card).getAllByText('ยังไม่ได้เตรียมข้อมูล')).toHaveLength(1);
+    const add = within(card).getByRole('button', { name: 'เพิ่มให้' });
+    expect(add).toHaveAttribute('aria-describedby', 'kcp-regis-kit');
+    const prepare = within(card).getByRole('button', { name: 'เตรียมข้อมูล' });
+    // A press the browser did not make starts nothing.
+    fireEvent.click(prepare);
+    expect(sends).toBe(0);
+    expect(regisStore.getState().run.status).toBe('idle');
+  });
+
+  it('offers no press on the registration page', () => {
+    const card = renderOn('#/registration');
+    expect(within(card).getByText('ยังไม่ได้เตรียมข้อมูล')).toBeVisible();
+    expect(
+      within(card).queryByRole('button', { name: 'เตรียมข้อมูล' }),
+    ).toBeNull();
+  });
+
+  it('shows the progress with Cancel and holds Add for me while it reads', () => {
+    const card = renderOn('#/pre_registration');
+    act(() => {
+      regisStore
+        .getState()
+        .setRun({ status: 'running', planId: PLAN.id, done: 1, total: 3 });
+    });
+    expect(within(card).getByText('กำลังอ่านวิชา 1 จาก 3')).toBeVisible();
+    expect(within(card).getByRole('button', { name: 'ยกเลิก' })).toBeVisible();
+    expect(
+      within(card).queryByRole('button', { name: 'เตรียมข้อมูล' }),
+    ).toBeNull();
+    const add = within(card).getByRole('button', { name: 'เพิ่มให้' });
+    expect(add).toHaveAttribute('aria-disabled', 'true');
+    expect(add).not.toHaveAttribute('data-fill-press');
+    expect(add).toHaveAttribute('aria-describedby', 'kcp-regis-kit');
+    fireEvent.click(add);
+    expect(fillStore.getState().run.status).toBe('idle');
+  });
+
+  it('says a failed read and offers the press again', () => {
+    const card = renderOn('#/pre_registration');
+    act(() => {
+      regisStore.getState().setRun({ status: 'failed', planId: PLAN.id });
+    });
+    expect(within(card).getByText('อ่านข้อมูลไม่สำเร็จ')).toBeVisible();
+    expect(
+      within(card).getByRole('button', { name: 'เตรียมข้อมูล' }),
+    ).toBeVisible();
+  });
+});

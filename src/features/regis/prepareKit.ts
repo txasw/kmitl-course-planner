@@ -1,8 +1,9 @@
 // The prepare action (ADR-0076): on the student's press, read each planned subject once
 // through the gateway by subject id, one at a time with a short pause between reads and
-// no retry, then build and save the kit. It runs at a calm time only: on the
-// registration pages it is refused before anything is sent, since those pages carry the
-// registrar's heaviest load. A cancel stops between reads and aborts the read in flight
+// no retry, then build and save the kit. It runs at a calm time: on the registration
+// pages it is refused before anything is sent, since those pages carry the registrar's
+// heaviest load, except the helper's own press on pre registration (prepareRefused). A
+// cancel stops between reads and aborts the read in flight
 // through the worker; a cancelled run and a run whose every read failed keep the
 // previous kit.
 
@@ -21,7 +22,7 @@ export interface PrepareDeps {
   send: TypedSend;
   now: () => string;
   pause: (ms: number) => Promise<void>;
-  /** Whether the host page is a registration page right now. */
+  /** Whether the host page on screen refuses prepare right now. */
   isQuiet: () => boolean;
   profileCurriculum: string | null;
   onProgress: (done: number, total: number) => void;
@@ -63,7 +64,7 @@ export function prepareRegistrationKit(
     deps.onProgress(0, ids.length);
     for (const [index, subjectId] of ids.entries()) {
       if (index > 0) await deps.pause(PREPARE_PAUSE_MS);
-      // The student may have opened a registration page while the run paused.
+      // The student may have opened a page that refuses prepare while the run paused.
       if (isCancelled()) return { status: 'cancelled' };
       if (deps.isQuiet()) return { status: 'refused' };
       const query = subjectQuery(term, subjectId);

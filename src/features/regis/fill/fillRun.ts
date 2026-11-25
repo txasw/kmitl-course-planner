@@ -1,7 +1,8 @@
 // The lifecycle of a fill run (ADR-0078), held in memory. A run starts only from a
 // student press, which it consumes, on the tested host build that no refusal latched,
 // outside a staff surrogate session, while the student's fill switch is on, while the
-// helper shows and the planner is closed, and never while another run is active. It is
+// helper shows and the planner is closed, and never while another run or a prepare run is
+// active. It is
 // bound to the page address at the press, so a hash change, a surrogate session, a press
 // of Stop, the switch turned off, Hide on this page, the card collapsed to the launcher, or
 // the planner opening over the page ends it at the next step boundary, as Stop does. A refusal from the actuator latches
@@ -89,6 +90,7 @@ export async function startFill(
   if (!consumeStudentPress(press)) return;
   if (
     fillStore.getState().run.status === 'running' ||
+    regisStore.getState().run.status === 'running' ||
     regisStore.getState().fill.off ||
     helperAway() ||
     isSurrogateSession()

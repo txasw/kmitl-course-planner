@@ -46,3 +46,21 @@ const COMPANION_ROUTES: Readonly<Record<string, CompanionRoute>> = {
 export function companionRoute(hash: string): CompanionRoute | null {
   return COMPANION_ROUTES[normalizedPath(hash)] ?? null;
 }
+
+/**
+ * Where a press of prepare comes from: the prepare card in the planner, or the helper's
+ * own row on the page where the student found nothing prepared.
+ */
+export type PrepareSource = 'planner' | 'helper';
+
+/**
+ * Whether the prepare action is refused on a page (ADR-0076). It runs at a calm time, so
+ * every registration page refuses it, except pre registration when the student presses
+ * prepare in the helper there: that page is where a student who never prepared is stuck,
+ * its reads go through the background gateway to the public API one subject at a time
+ * with no retry, and it is not the first come page. Registration itself always refuses.
+ */
+export function prepareRefused(hash: string, source: PrepareSource): boolean {
+  if (!isRegistrationRoute(hash)) return false;
+  return !(source === 'helper' && companionRoute(hash) === 'preRegistration');
+}

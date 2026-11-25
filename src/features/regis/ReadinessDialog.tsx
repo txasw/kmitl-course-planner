@@ -2,7 +2,9 @@
 // prepare action, runs it on the student's press, and says when the kit was prepared. The
 // helper card's count and list on the registration page read each subject from there, so
 // this card keeps no review of its own. On a registration page the action is refused with
-// a one line reason before anything is sent (ADR-0075).
+// a one line reason before anything is sent (ADR-0075); on the pre registration page the
+// reason points to the helper's own Prepare data, the one place prepare runs there
+// (ADR-0076).
 
 import { useStore } from 'zustand';
 import { LoaderCircle } from 'lucide-react';
@@ -16,7 +18,7 @@ import { useQuietRoute } from '@/features/shell/quietRoute';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { cancelPrepare, startPrepare } from './prepareController';
 import { regisStore } from './regisStore';
-import { useCompanionView } from './useCompanion';
+import { useCompanionRoute, useCompanionView } from './useCompanion';
 
 const BUTTON = `inline-flex items-center justify-center gap-1.5 rounded-kcp px-3 py-1.5 text-sm font-semibold ${TARGET_HEIGHT}`;
 
@@ -29,6 +31,7 @@ function ReadinessDialog() {
   const { t } = useTranslation();
   const { send } = useSearchDeps();
   const quiet = useQuietRoute();
+  const inHelper = useCompanionRoute() === 'preRegistration';
   // The prepare card prepares the plan the planner shows, whatever page it opens over.
   const { plan, storedKit, kitState } = useCompanionView('active');
   const run = useStore(regisStore, (state) => state.run);
@@ -42,7 +45,7 @@ function ReadinessDialog() {
     <div className="flex flex-wrap items-center justify-end gap-2">
       {quiet ? (
         <p className="mr-auto min-w-0 flex-1 text-xs text-warn">
-          {t('regis.prepareRefused')}
+          {t(inHelper ? 'regis.prepareInHelper' : 'regis.prepareRefused')}
         </p>
       ) : null}
       {running ? (
