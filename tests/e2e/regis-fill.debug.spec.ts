@@ -192,6 +192,39 @@ test('ends the run when the student switches fill off', async ({
   await expectNothingForbidden(page);
 });
 
+const AWAY = [
+  ['hides the helper on this page', 'ซ่อนในหน้านี้'],
+  ['opens the planner over the page', 'เปิดตารางเรียน'],
+] as const;
+
+for (const [name, item] of AWAY) {
+  test(`ends the run when the student ${name}`, async ({
+    context,
+    serviceWorker,
+  }) => {
+    const page = await openPlanner(context);
+    await setUp(page, serviceWorker, (section) => ({
+      delay: 3000,
+      catalog: { [SUBJECT]: { sections: [{ section, kind: 'ท' }] } },
+    }));
+    await press(page);
+    await expect(page.locator('[data-fill="running"]')).toBeVisible();
+    // The subject is entered and the host is still reading it.
+    await page.waitForFunction(() => window.replica.state.add.loading);
+    await page.getByRole('button', { name: 'เพิ่มเติม' }).click();
+    await page.getByRole('menuitem', { name: item }).click();
+    await expect(page.locator('#kcp-regis-card')).toHaveCount(0);
+    // The host answers after the helper left the page, and the run acts on nothing more.
+    await page.waitForTimeout(3500);
+    expect(await listed(page)).toEqual([]);
+    const reached = await page.evaluate(
+      () => window.replica.counters.untrustedOn,
+    );
+    expect(Object.keys(reached)).toEqual(['subjectField']);
+    await expectNothingForbidden(page);
+  });
+}
+
 test('presses nothing in a confirm dialog dressed as the grade dialog', async ({
   context,
   serviceWorker,
