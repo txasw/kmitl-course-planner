@@ -93,6 +93,13 @@ export interface ReplicaConfig {
   xhr?: boolean;
   /** The period the next period check answers, which then applies it once. */
   answer?: Period | null;
+  /**
+   * Count each eligibility read and period check when its response ends, as the fill
+   * tripwire's resource entries arrive, rather than when it starts.
+   */
+  countAtEnd?: boolean;
+  /** How long a period check that sends no real request takes to answer, in ms. */
+  pollLatency?: number;
 }
 
 /** The host builds whose route the replica renders around the panel. */
