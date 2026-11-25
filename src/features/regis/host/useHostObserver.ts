@@ -5,8 +5,11 @@
 // once the health machine turns it off. The student's Check again
 // starts the reading over, and the health machine keeps it off once it is off. It sends
 // no request, stores nothing, and acts on nothing: a reading only updates the memory
-// store. The helper names no plan until the page term is read, for at most TERM_WAIT_MS
-// on each arrival, so a page that never shows its header still gets a checklist.
+// store. The helper names no plan until the page term is read. After TERM_WAIT_MS on an
+// arrival, a page whose panel shows with no term in its header gets the fallback
+// checklist; a page that shows no panel at all, as a slow page does, keeps the helper
+// waiting, up to EMPTY_PAGE_WAIT_MS, so a page that is still loading never shows a plan of
+// another term.
 
 import { useEffect } from 'react';
 import { useStore } from 'zustand';
@@ -17,8 +20,11 @@ import { hostStore } from './hostStore';
 import { isSurrogateSession } from './surrogate';
 import { watchHostPage } from './watchPage';
 
-/** The longest the helper waits for the page term before it falls back to the active plan. */
+/** How long the helper waits for the page term before a panel with no term falls back. */
 export const TERM_WAIT_MS = 15_000;
+
+/** The longest the helper waits for the page term on a page that never shows its panel. */
+export const EMPTY_PAGE_WAIT_MS = 60_000;
 
 function plannedKeyOf(subjectIds: readonly string[]): string {
   return [...new Set(subjectIds)].sort().join(' ');
@@ -38,11 +44,15 @@ export function useHostObserver(): void {
   // planned set or a Check again starts over and keeps the term the header showed.
   useEffect(() => {
     if (!onPage) return undefined;
-    const timer = window.setTimeout(() => {
-      hostStore.getState().endTermWait();
+    const due = window.setTimeout(() => {
+      hostStore.getState().dueTermWait();
     }, TERM_WAIT_MS);
+    const ceiling = window.setTimeout(() => {
+      hostStore.getState().endTermWait();
+    }, EMPTY_PAGE_WAIT_MS);
     return () => {
-      window.clearTimeout(timer);
+      window.clearTimeout(due);
+      window.clearTimeout(ceiling);
       hostStore.getState().leave();
     };
   }, [onPage]);

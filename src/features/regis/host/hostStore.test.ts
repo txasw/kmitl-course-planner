@@ -39,6 +39,7 @@ afterEach(() => {
     term: null,
     lastTerm: null,
     termWaitOver: false,
+    termWaitDue: false,
     conditional: {},
   });
 });
@@ -114,6 +115,33 @@ describe('hostStore', () => {
     expect(hostStore.getState().term).toBeNull();
   });
 
+  it('keeps waiting for the term while the page shows no panel', () => {
+    const { record } = hostStore.getState();
+    record(OPEN, { reading: 'absent' });
+    hostStore.getState().dueTermWait();
+    expect(hostStore.getState().termWaitOver).toBe(false);
+    record(OPEN, { reading: 'absent' });
+    expect(hostStore.getState().termWaitOver).toBe(false);
+    // The panel shows with no term in its header: the term is not coming.
+    record(OPEN, { reading: 'ok', observation: observation({}) });
+    expect(hostStore.getState().termWaitOver).toBe(true);
+  });
+
+  it('ends the wait at once when the panel already showed with no term', () => {
+    const { record } = hostStore.getState();
+    record(OPEN, { reading: 'ok', observation: observation({}) });
+    expect(hostStore.getState().termWaitOver).toBe(false);
+    hostStore.getState().dueTermWait();
+    expect(hostStore.getState().termWaitOver).toBe(true);
+  });
+
+  it('never ends the wait for a panel read before the usual wait passed', () => {
+    const { record } = hostStore.getState();
+    record(OPEN, { reading: 'ok', observation: observation({}) });
+    record(OPEN, { reading: 'ok', observation: observation({}) });
+    expect(hostStore.getState().termWaitOver).toBe(false);
+  });
+
   it('keeps the last read term as a hint after leaving the page', () => {
     const { record } = hostStore.getState();
     record(OPEN, { reading: 'ok', observation: observation({ term: TERM }) });
@@ -122,6 +150,7 @@ describe('hostStore', () => {
     const state = hostStore.getState();
     expect(state.term).toBeNull();
     expect(state.termWaitOver).toBe(false);
+    expect(state.termWaitDue).toBe(false);
     expect(state.lastTerm).toEqual(TERM);
   });
 });
