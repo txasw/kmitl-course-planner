@@ -138,7 +138,11 @@ whole document. A student's Check again starts it over from the initial state, a
 readings is still bounded by the three strikes, so a page that keeps drifting turns off again after
 three more. The press is the only way back: nothing restarts the observer on its own. A staff
 session and a host build outside the tested list still keep it off for the document, since no
-reading within it can change either, and the helper offers no Check again for them. When a
+reading within it can change either, and the helper offers no Check again for them. There is no
+cap per document on how often the student may ask: the bound is per press, three drifted readings
+after each, and a new planned set starts the reading over the same way. This never lets add for me
+act on a drifted page, since the fill engine reads the page itself, stops on a reading it does not
+recognise, and stays blocked while the observer waits for its first reading after a press. When a
 reading can help, the whole unreadable bar is one press with Check again in its visible text, and
 the more menu holds the same item; when none can, the bar is plain with no control, and on an
 untested build it says the registration page was updated and to enter the list by hand.
