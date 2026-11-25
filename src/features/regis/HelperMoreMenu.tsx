@@ -1,5 +1,6 @@
 // The more menu of the helper card, after the menu button pattern: the trigger opens the
-// menu with focus on its first item, the arrow keys, Home, and End move between items,
+// menu with focus on its first item, the arrow keys, Home, End, and a typed first letter
+// move between items,
 // and Escape closes it back to the trigger without collapsing the card. It holds the
 // actions a student needs once or rarely: add every subject still to add in one run, open
 // the planner, read the page again, turn add for me off or on, and hide the helper on
@@ -159,10 +160,32 @@ function handleMenuKeyDown(event: KeyboardEvent<HTMLElement>) {
     Home: 0,
     End: last,
   };
-  const move = moves[event.key];
+  const move = moves[event.key] ?? typeAhead(items, at, event);
   if (move === undefined) return;
   event.preventDefault();
   focusFirst([items[move]]);
+}
+
+/** The next item after the focused one whose name starts with the typed character. */
+function typeAhead(
+  items: readonly HTMLElement[],
+  at: number,
+  event: KeyboardEvent<HTMLElement>,
+): number | undefined {
+  const typed = event.key.toLocaleLowerCase();
+  if (typed.length !== 1 || typed.trim() === '') return undefined;
+  if (event.ctrlKey || event.metaKey || event.altKey) return undefined;
+  const nameOf = (item: HTMLElement) =>
+    (item.getAttribute('aria-label') ?? item.textContent)
+      .trim()
+      .toLocaleLowerCase();
+  const order = [...items.keys()].map(
+    (index) => (at + 1 + index) % items.length,
+  );
+  return order.find((index) => {
+    const item = items[index];
+    return item !== undefined && nameOf(item).startsWith(typed);
+  });
 }
 
 export function HelperMoreMenu({
