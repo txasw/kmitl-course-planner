@@ -4,11 +4,13 @@
 // every subject, and the more menu; under it sits at most one bar, for a page KCP cannot
 // read, a page of another term, or a plan with nothing prepared; then the queue of
 // subjects and the subject in focus. A page of a term the student has no plan for shows
-// one empty state that offers to make that plan. Escape inside it collapses it to the
+// one empty state that offers to make that plan, and a plan with no subjects shows one
+// that opens the planner; both keep the header's more menu, so the plan picker and Hide on
+// this page stay in reach. Escape inside it collapses it to the
 // launcher. On a phone a press anywhere on the page collapses it too, so the keyboard or a
 // host dialog is never hidden behind it (kept from commit 036227e).
 
-import { useEffect, useRef, type RefObject } from 'react';
+import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
 import { useStore } from 'zustand';
 import {
   CalendarClock,
@@ -161,32 +163,52 @@ function Bar({ model, t }: { model: HelperModel; t: Translate }) {
 
 const EMPTY_ACTION = `inline-flex min-h-9 items-center gap-1.5 rounded-kcp bg-primary-strong px-3 text-sm font-semibold text-white hover:bg-primary-hover max-sm:min-h-11 ${FOCUS_RING}`;
 
+// An empty state keeps the header row with the more menu alone at its end, so a student
+// who picked a plan with no subjects can pick another, and Hide on this page and Check
+// again stay where they are on every other state of the card.
+function EmptyCard({
+  model,
+  t,
+  children,
+}: {
+  model: HelperModel;
+  t: Translate;
+  children: ReactNode;
+}) {
+  return (
+    <>
+      <div className="flex min-h-10 shrink-0 items-center justify-end p-1">
+        <HelperMoreMenu model={model} t={t} />
+      </div>
+      <div className="px-3 pb-3">{children}</div>
+    </>
+  );
+}
+
 // The page registers a term the student has no plan for. Its one action makes a plan of
 // that term and opens the planner on it, on the student's own press, so the active plan
 // changes only when they ask.
 function NoPlanForTerm({ term, t }: { term: Term; t: Translate }) {
   const values = { term: termText(term) };
   return (
-    <div className="p-3">
-      <EmptyState
-        icon={CalendarClock}
-        title={fillTemplate(t('regis.noPlanForTerm'), values)}
-        description={fillTemplate(t('regis.noPlanForTermBody'), values)}
-        action={
-          <button
-            type="button"
-            onClick={() => {
-              switchOrCreatePlanForTerm(term);
-              uiStore.getState().open();
-            }}
-            className={EMPTY_ACTION}
-          >
-            <CalendarDays size={16} aria-hidden />
-            {fillTemplate(t('regis.createPlanForTerm'), values)}
-          </button>
-        }
-      />
-    </div>
+    <EmptyState
+      icon={CalendarClock}
+      title={fillTemplate(t('regis.noPlanForTerm'), values)}
+      description={fillTemplate(t('regis.noPlanForTermBody'), values)}
+      action={
+        <button
+          type="button"
+          onClick={() => {
+            switchOrCreatePlanForTerm(term);
+            uiStore.getState().open();
+          }}
+          className={EMPTY_ACTION}
+        >
+          <CalendarDays size={16} aria-hidden />
+          {fillTemplate(t('regis.createPlanForTerm'), values)}
+        </button>
+      }
+    />
   );
 }
 
@@ -273,9 +295,11 @@ export function HelperCard({ model }: { model: HelperModel }) {
       className="kcp-regis-card z-host flex flex-col rounded-kcp border border-border bg-surface text-sm text-ink shadow-kcp"
     >
       {model.pick.kind === 'noPlanForTerm' ? (
-        <NoPlanForTerm term={model.pick.term} t={t} />
+        <EmptyCard model={model} t={t}>
+          <NoPlanForTerm term={model.pick.term} t={t} />
+        </EmptyCard>
       ) : checklist === null || checklist.total === 0 ? (
-        <div className="p-3">
+        <EmptyCard model={model} t={t}>
           <EmptyState
             icon={CalendarDays}
             title={t('regis.noPlan')}
@@ -293,7 +317,7 @@ export function HelperCard({ model }: { model: HelperModel }) {
               </button>
             }
           />
-        </div>
+        </EmptyCard>
       ) : (
         <>
           <div className="flex min-h-10 shrink-0 items-center justify-between p-1">
