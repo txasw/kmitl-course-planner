@@ -126,9 +126,10 @@ const LAUNCHER_CLASS = `fixed right-[calc(max(20px,var(--kcp-safe-right))_+_var(
 
 // On a helper page the launcher rises 64 px to clear the host's own back to top button, a
 // 56 px round button 16 px above the bottom right corner, measured on app.a1e43722 on a
-// 412 px phone, so it sits 12 px above it rather than over it (Section 6.1). The card and
-// the toast floor sit on the launcher, so they rise with it (style.css .kcp-regis-card).
-const COMPANION_LAUNCHER_CLASS = `fixed right-[calc(max(20px,var(--kcp-safe-right))_+_var(--kcp-visible-right,0px))] bottom-[calc(max(20px,var(--kcp-safe-bottom))_+_64px_+_var(--kcp-visible-bottom,0px))] ${LAUNCHER_FACE}`;
+// 412 px phone, so it sits 12 px above it rather than over it (Section 6.1). It rises only
+// on a screen tall enough to keep the card above it whole (--kcp-helper-lift in style.css).
+// The card and the toast floor sit on the launcher, so they rise with it.
+const COMPANION_LAUNCHER_CLASS = `fixed right-[calc(max(20px,var(--kcp-safe-right))_+_var(--kcp-visible-right,0px))] bottom-[calc(max(20px,var(--kcp-safe-bottom))_+_var(--kcp-helper-lift)_+_var(--kcp-visible-bottom,0px))] ${LAUNCHER_FACE}`;
 
 // The welcome decision counts as part of the load, so the ring never starts in the
 // moment before a welcome opens over it and then plays a second time after it closes.

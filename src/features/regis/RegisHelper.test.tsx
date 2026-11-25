@@ -273,6 +273,28 @@ describe('RegisHelper', () => {
     expect(screen.queryByRole('region', { name: 'เช็กลิสต์' })).toBeNull();
   });
 
+  it('starts collapsed on a phone turned on its side', () => {
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(915);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(412);
+    // A partial MediaQueryList, as in tests/setup.ts: the helper reads matches only.
+    vi.spyOn(window, 'matchMedia').mockImplementation(
+      (query: string) =>
+        ({
+          matches: query === '(pointer: coarse)',
+          media: query,
+          onchange: null,
+          addEventListener: () => undefined,
+          removeEventListener: () => undefined,
+          dispatchEvent: () => false,
+        }) as unknown as MediaQueryList,
+    );
+    renderPage('#/pre_registration');
+    expect(screen.queryByRole('region', { name: 'เช็กลิสต์' })).toBeNull();
+    expect(
+      screen.getByRole('button', { name: /^เช็กลิสต์ 0\/1/ }),
+    ).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('collapses on Escape inside the card', () => {
     renderPage('#/pre_registration');
     fireEvent.keyDown(within(card()).getByRole('button', { name: 'เพิ่มเติม' }), {

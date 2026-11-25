@@ -199,6 +199,12 @@
   --kcp-safe-bottom: env(safe-area-inset-bottom, 0px);
   --kcp-safe-left: env(safe-area-inset-left, 0px);
 
+  /* How far the launcher and the helper card above it rise on a helper page to clear the
+     host's back to top button (Launcher.tsx). Only a screen at least 30rem tall gives
+     them that room: on a shorter one, a phone turned on its side, the rise would leave
+     the card too little height to show its subject whole, so it stays down there. */
+  --kcp-helper-lift: 0px;
+
   /* The pointer target sizes. Every control keeps at least the 24 px minimum target of
      WCAG 2.5.8, and grows to 44 px under a coarse pointer, where a finger covers more
      than a cursor. TARGET_SIZE in lib/ui/target.ts reads them. */
@@ -528,10 +534,16 @@
   animation: kcp-fade-in var(--kcp-duration-fast) ease-out;
 }
 
+@media (height >= 30rem) {
+  :host {
+    --kcp-helper-lift: 64px;
+  }
+}
+
 /* The registration helper card, fixed 12 px above its 48 px launcher at the bottom right,
    320 px wide, or the width of a phone screen less its gutters. On a helper page the
-   launcher rises 64 px to clear the host's back to top button (Launcher.tsx), and
-   the card with it. It rises into place with
+   launcher rises by --kcp-helper-lift to clear the host's back to top button
+   (Launcher.tsx), and the card with it. It rises into place with
    no transform left at the end, so the fixed section menu inside it places against the
    viewport. The --kcp-visible-* bands keep it on the part of the page the screen shows
    when a phone browser grows the layout viewport past the screen (HelperViewport); they
@@ -540,12 +552,13 @@
   position: fixed;
   right: calc(max(20px, var(--kcp-safe-right)) + var(--kcp-visible-right, 0px));
   bottom: calc(
-    max(20px, var(--kcp-safe-bottom)) + 124px + var(--kcp-visible-bottom, 0px)
+    max(20px, var(--kcp-safe-bottom)) + 60px + var(--kcp-helper-lift) +
+      var(--kcp-visible-bottom, 0px)
   );
   width: 320px;
   max-height: calc(
     var(--kcp-visible-height, 100dvh) - max(20px, var(--kcp-safe-bottom)) -
-      140px
+      76px - var(--kcp-helper-lift)
   );
 }
 
