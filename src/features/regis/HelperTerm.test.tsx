@@ -137,6 +137,7 @@ afterEach(() => {
       term: null,
       lastTerm: null,
       termWaitOver: false,
+      termWaitDue: false,
       conditional: {},
     });
   });

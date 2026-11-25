@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { Page, Worker } from '@playwright/test';
 import { REGIS_ORIGIN } from '../../src/lib/shell/hostTab';
 import { ROOT_KEY } from '../../src/lib/storage/keys';
 import { test, expect, openPlanner } from './support/fixtures';
@@ -157,15 +157,15 @@ interface Sample {
   entryToast: boolean;
 }
 
-test('a reload never shows the active plan of another term, even while the page loads', async ({
-  context,
-  serviceWorker,
-}) => {
-  const page = await openPlanner(context);
-  const { term } = await planWithKit(page, serviceWorker, SUBJECTS);
+/**
+ * Make the active plan a newer one of another term with one subject, so its count, 0/1,
+ * and its chip would show if the helper fell back to it before the term is read.
+ */
+async function addNewerPlanOfAnotherTerm(
+  serviceWorker: Worker,
+  term: { year: string; semester: string },
+): Promise<void> {
   const other = term.semester === '3' ? '1' : String(Number(term.semester) + 1);
-  // The active plan is a newer one of another term with one subject, so its count, 0/1,
-  // and its chip would show if the helper fell back to it before the term is read.
   await serviceWorker.evaluate(
     async ({ root, semester }) => {
       const { local } = (globalThis as unknown as WorkerStorage).chrome.storage;
@@ -201,13 +201,11 @@ test('a reload never shows the active plan of another term, even while the page 
     },
     { root: ROOT_KEY, semester: other },
   );
+}
 
-  // The page shows nothing for two and a half seconds, as the live page does while it
-  // loads, then renders its header and panel with the plan's own term.
-  await page.goto(
-    `${REGIS_ORIGIN}/replica/pre_registration?term=${term.semester}/${term.year}&loading=2500#/pre_registration`,
-  );
-  const samples = await page.evaluate(async () => {
+/** Sample what the helper and the page show every 25 ms for the given time. */
+async function sampleHelper(page: Page, ms: number): Promise<Sample[]> {
+  return page.evaluate(async (span) => {
     const out: Sample[] = [];
     const root = (): ShadowRoot | null => {
       for (const node of Array.from(document.body.children)) {
@@ -217,7 +215,7 @@ test('a reload never shows the active plan of another term, even while the page 
       }
       return null;
     };
-    const until = Date.now() + 6000;
+    const until = Date.now() + span;
     while (Date.now() < until) {
       const shadow = root();
       const card = shadow?.getElementById('kcp-regis-card') ?? null;
@@ -235,7 +233,23 @@ test('a reload never shows the active plan of another term, even while the page 
       await new Promise((resolve) => setTimeout(resolve, 25));
     }
     return out;
-  });
+  }, ms);
+}
+
+test('a reload never shows the active plan of another term, even while the page loads', async ({
+  context,
+  serviceWorker,
+}) => {
+  const page = await openPlanner(context);
+  const { term } = await planWithKit(page, serviceWorker, SUBJECTS);
+  await addNewerPlanOfAnotherTerm(serviceWorker, term);
+
+  // The page shows nothing for two and a half seconds, as the live page does while it
+  // loads, then renders its header and panel with the plan's own term.
+  await page.goto(
+    `${REGIS_ORIGIN}/replica/pre_registration?term=${term.semester}/${term.year}&loading=2500#/pre_registration`,
+  );
+  const samples = await sampleHelper(page, 6000);
 
   const loading = samples.filter((sample) => !sample.loaded);
   expect(loading.length).toBeGreaterThan(10);
@@ -260,4 +274,33 @@ test('a reload never shows the active plan of another term, even while the page 
   // The entry toast never shows on this page, long after it would have elsewhere.
   await page.waitForTimeout(3000);
   await expect(page.locator('[data-entry-toast]')).toHaveCount(0);
+});
+
+test('a page that loads past the term wait never shows the other term either', async ({
+  context,
+  serviceWorker,
+}) => {
+  test.setTimeout(90_000);
+  const page = await openPlanner(context);
+  const { term } = await planWithKit(page, serviceWorker, SUBJECTS);
+  await addNewerPlanOfAnotherTerm(serviceWorker, term);
+  // A phone, where the card starts folded and the launcher is the only surface.
+  await page.setViewportSize({ width: 412, height: 915 });
+
+  // The page stays empty for 19 s, past the usual 15 s wait for its term, as a slow page
+  // at the registrar's busiest time does.
+  await page.goto(
+    `${REGIS_ORIGIN}/replica/pre_registration?term=${term.semester}/${term.year}&loading=19000#/pre_registration`,
+  );
+  const samples = await sampleHelper(page, 21_000);
+  expect(samples.filter((sample) => !sample.loaded).length).toBeGreaterThan(
+    100,
+  );
+  for (const sample of samples) {
+    expect(sample.count ?? '').not.toContain('/1');
+    expect(sample.launcher ?? '').not.toContain('/1');
+  }
+  await expect(page.locator('#kcp-launcher')).toContainText(
+    `0/${String(SUBJECTS.length)}`,
+  );
 });
