@@ -184,9 +184,10 @@ boundary, so the panel can unmount and mount again while the page stays open, wi
 **The bound on readings.** Before this build only a navigation could add or remove the panel, and
 while it was absent the observer watched the whole app root for text and attribute changes. The
 countdown would have read the page once a second for as long as it stayed open, so the watch now
-lives in `features/regis/host/watchPage.ts` with a stated bound. While the last reading found none
-of the anchors, the watch sees only elements added or removed under the app root, and two readings
-are at least 1000 ms apart, so text the page rewrites in place reads nothing and no change of the
+lives in `features/regis/host/watchPage.ts` with a stated bound. While the page shows no panel,
+whether the last reading found none of the anchors or found a page it could not read, the watch
+sees only elements added or removed under the app root, and two readings are at least 1000 ms
+apart, so text the page rewrites in place reads nothing and no change of the
 page can read it more than once a second. While the panel shows, the watch keeps to the panel's
 subtree, the children of each of its ancestors up to the app root, the app root's children, each
 dialog's class, and the toast container, with a reading 150 ms after they settle; the countdown
@@ -207,4 +208,9 @@ countdown patched in place, the panel or the page info, a period change that unm
 with its dialogs or mounts it again from empty data with the add card loading, and a period check
 stub that fires a GET every few seconds, on a focus, and on a visibility change. The stub's address
 sits off the API path, so the mock server's API call log still lists the extension's requests only.
-The older script names keep the bare panel.
+The older script names keep the bare panel. The replica keeps the panel element while the panel
+stays mounted and can count a request when its response ends; ADR-0078 records why.
+
+**Labels.** `scripts/host-labels.mjs` was run again on `app.a1e43722.js`. It prints the labels of
+`app.020e81ed.js` and one more pair, Try again and ลองอีกครั้ง, the retry button of the registration
+periods section. The observer reads neither, and the fill denylist holds both (ADR-0078).

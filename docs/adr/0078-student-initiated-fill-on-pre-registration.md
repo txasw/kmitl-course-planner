@@ -266,7 +266,13 @@ one actuator, never presses ดำเนินการต่อ or any confirm 
   or from the list when the add had landed, so a check costs one press and no second eligibility
   read. Add all for me names only the subjects the page does not list, so its next press goes on
   from the first subject not yet added. With a check every 60 s and a few seconds a subject, a
-  focus on returning to the window is the likeliest way a run meets one.
+  focus on returning to the window during a run is the likeliest way a run meets one; the press
+  that focuses the window is waited out, as the amendment below records.
+- **The sentence names a cause it cannot check.** The tripwire reads no names, so the same
+  sentence also follows an unknown request, including one after the press of Add, which before
+  this amendment sent the student to enter the list by hand. That is accepted because the panel
+  of the tested build is byte identical to the builds before it and the build gate is by exact
+  name, so the only request this build adds is the period check, and the run stops either way.
 - **A panel that leaves ends the run at once.** A reading that finds no panel stops the run with
   the page changed reason once it has acted, or not ready before, instead of waiting out the answer
   ceiling, and the same check runs in the task of each action, so nothing is ever dispatched on a
@@ -275,3 +281,39 @@ one actuator, never presses ดำเนินการต่อ or any confirm 
   student's credits with the card loading; a subject that starts then waits for the card as for the
   host's answer, up to the same ceiling, and checks what it settles to, so a typed id still stops
   as a field that is not empty.
+- **The dock shows that wait.** The subject is named as waiting before the wait begins, so the
+  dock no longer shows the step before it, and a card that never finishes loading stops with its
+  own sentence (`cardLoading`), which says the page is still loading and that KCP entered nothing,
+  in place of the sentence for a host that has not answered.
+
+## Amendment, 2026-11-25: review fixes to the polling host support
+
+- **The press that focuses the window is waited out.** A press of Add for me from another window
+  is the click that focuses the browser, and the polling build checks its period on that focus.
+  The GET ends just after the run begins, so its resource entry joined the host's eligibility read
+  in the first window, and every such run stopped the first subject with the field filled. Before
+  KCP first acts in a run, it now waits until the request count stays the same for 1500 ms, at
+  most the 3000 ms settle ceiling, and counts from there. A request that ends before KCP's first
+  action cannot be one KCP caused. A request still running when the wait ends lands in a window
+  after an action and stops the run as before. Allowing one more request after an action stays
+  rejected.
+- **The count carries across subjects.** Until KCP first acts the count starts over at each
+  subject; from then on it carries from one subject to the next, so a request that ends just after
+  one subject's Add is counted against the next subject's first window instead of being dropped.
+  Every window after an action is exact.
+- **A run keeps to the panel it began on.** The run records the panel element it starts on and
+  stops, as a page that changed once it has acted or as not ready before, whenever a reading finds
+  another. A Vue `v-if` mount always makes a new element, and a new panel has lost the subjects
+  already added, since the host keeps the list in component data. Before, a remount that completed
+  between one subject's last check and the next subject's first reading would have let the run
+  fill the new panel and count the lost subject as filled. This holds without the tripwire, which
+  browsers without `PerformanceObserver` lack.
+- **The denylist was regenerated.** `scripts/host-labels.mjs` run on `app.a1e43722.js` prints the
+  labels of `app.020e81ed.js` and one more pair, Try again and ลองอีกครั้ง, the retry button that
+  the registration periods section shows when its check fails and that runs the check again. No
+  resolver reaches it, since it sits outside the add card and the dialogs, and the denylist holds
+  it, so guard 3 again lists every clickable label of the tested build.
+- **The replica counts as the tripwire does.** It can count each eligibility read and period check
+  when its response ends, as a resource entry arrives, and it keeps the panel element while the
+  panel stays mounted, as Vue patches it in place. The unit tests of the first two bullets and of
+  the panel identity rely on both.
