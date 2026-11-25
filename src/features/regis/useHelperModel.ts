@@ -18,6 +18,7 @@ import {
 } from '@/lib/regis/helperStatus';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
 import type { CompanionRoute } from '@/lib/regis/route';
+import { canRecheck, type OffReason } from '@/lib/regis/observerHealth';
 import { fillStore, type FillRun } from './fill/fillRun';
 import { hostStore } from './host/hostStore';
 import { helperStore, recordLast, setCurrent } from './helperStore';
@@ -32,6 +33,13 @@ export interface HelperModel {
   sent: boolean;
   /** Whether the page cannot be read now, so the statuses are the last known ones. */
   stale: boolean;
+  /**
+   * Whether Check again can change what KCP reads: always, except once the observer is off
+   * on a host build KCP was not tested with or in a staff session, which no reading mends.
+   */
+  recheckable: boolean;
+  /** Why the observer is off, or null while it is not. */
+  offReason: OffReason | null;
   termMismatch: boolean;
   hasKit: boolean;
   /** Whether a subject is turned down or the page needs a look, for the launcher dot. */
@@ -118,6 +126,8 @@ export function useHelperModel(): HelperModel {
     statuses,
     sent,
     stale,
+    recheckable: canRecheck(health),
+    offReason: health.status === 'off' ? health.reason : null,
     termMismatch,
     hasKit: checklist?.hasKit ?? false,
     attention: needsLook(statuses) || stale || termMismatch,
