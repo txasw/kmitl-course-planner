@@ -707,5 +707,6 @@
   "regis.count.showList": "ดูทั้งหมด",
   "regis.count.showCard": "ย่อรายการ",
   "regis.reason.conditions": "มีเงื่อนไขรายวิชา: {text}",
-  "regis.reason.duplicate": "กลุ่ม {code} มีมากกว่าหนึ่งหลักสูตร เลือกกลุ่มของหลักสูตรตนเองในหน้าลงทะเบียน"
+  "regis.reason.duplicate": "กลุ่ม {code} มีมากกว่าหนึ่งหลักสูตร เลือกกลุ่มของหลักสูตรตนเองในหน้าลงทะเบียน",
+  "regis.addForMe.failed": "เพิ่มให้ไม่สำเร็จ"
 }

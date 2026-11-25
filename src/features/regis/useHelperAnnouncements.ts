@@ -1,14 +1,18 @@
-// What the registration helper's one live region says.
+// What the registration helper's one live region says, and the toast a failed run shows.
 // Status changes within half a second are read as one sentence: the subject and its new
 // status when one subject changed, or how many changed when more did, so a page that
 // settles several rows at once is not read out row by row, and a status that changes and
 // changes back within the window is not read at all. The page turning unreadable or
-// readable again, a run step, and a run stop are read as they happen.
+// readable again, a run step, and a run stop are read as they happen. A run that fails,
+// because a step was not confirmed in time or the page could not be read, also shows the
+// error toast, which stays on screen after the card is collapsed.
 
 import { useEffect, useRef } from 'react';
 import { fillTemplate } from '@/lib/i18n/template';
 import type { Translate } from '@/lib/i18n/t';
+import type { StopReason } from '@/lib/regis/fillPlan';
 import type { HelperStatus } from '@/lib/regis/helperStatus';
+import { toastStore } from '@/features/shell/toastStore';
 import { STEP_WORD, stepNumber } from './fill/FillControls';
 import type { FillRun } from './fill/fillRun';
 import { announce } from './helperStore';
@@ -17,6 +21,13 @@ import type { HelperModel } from './useHelperModel';
 
 /** How long status changes gather before they are read as one sentence. */
 export const GROUP_MS = 500;
+
+/** The stops that are a failure of the run itself, not the page turning a subject down. */
+const FAILED: readonly StopReason[] = [
+  'noAnswer',
+  'pageChanged',
+  'notRecognised',
+];
 
 type Statuses = Readonly<Record<string, HelperStatus>>;
 
@@ -100,6 +111,9 @@ function useRunAnnouncements(run: FillRun, t: Translate): void {
     if (stopped === null || stopped === seen.current) return;
     seen.current = stopped;
     announce(t(`regis.fill.stop.${stopped.reason}`));
+    if (FAILED.includes(stopped.reason)) {
+      toastStore.getState().show('error', t('regis.addForMe.failed'));
+    }
   }, [stopped, t]);
 }
 
