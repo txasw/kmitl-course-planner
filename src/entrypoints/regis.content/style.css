@@ -529,7 +529,9 @@
 }
 
 /* The registration helper card, fixed 12 px above its 48 px launcher at the bottom right,
-   320 px wide, or the width of a phone screen less its gutters. It rises into place with
+   320 px wide, or the width of a phone screen less its gutters. On a helper page the
+   launcher rises 64 px to clear the host's back to top button (Launcher.tsx), and
+   the card with it. It rises into place with
    no transform left at the end, so the fixed section menu inside it places against the
    viewport. The --kcp-visible-* bands keep it on the part of the page the screen shows
    when a phone browser grows the layout viewport past the screen (HelperViewport); they
@@ -538,11 +540,12 @@
   position: fixed;
   right: calc(max(20px, var(--kcp-safe-right)) + var(--kcp-visible-right, 0px));
   bottom: calc(
-    max(20px, var(--kcp-safe-bottom)) + 60px + var(--kcp-visible-bottom, 0px)
+    max(20px, var(--kcp-safe-bottom)) + 124px + var(--kcp-visible-bottom, 0px)
   );
   width: 320px;
   max-height: calc(
-    var(--kcp-visible-height, 100dvh) - max(20px, var(--kcp-safe-bottom)) - 76px
+    var(--kcp-visible-height, 100dvh) - max(20px, var(--kcp-safe-bottom)) -
+      140px
   );
 }
 
