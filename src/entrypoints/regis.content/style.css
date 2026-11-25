@@ -531,18 +531,24 @@
 /* The registration helper card, fixed 12 px above its 48 px launcher at the bottom right,
    320 px wide, or the width of a phone screen less its gutters. It rises into place with
    no transform left at the end, so the fixed section menu inside it places against the
-   viewport. */
+   viewport. The --kcp-visible-* bands keep it on the part of the page the screen shows
+   when a phone browser grows the layout viewport past the screen (HelperViewport); they
+   are unset, and so zero, everywhere else. */
 .kcp-regis-card {
   position: fixed;
-  right: max(20px, var(--kcp-safe-right));
-  bottom: calc(max(20px, var(--kcp-safe-bottom)) + 60px);
+  right: calc(max(20px, var(--kcp-safe-right)) + var(--kcp-visible-right, 0px));
+  bottom: calc(
+    max(20px, var(--kcp-safe-bottom)) + 60px + var(--kcp-visible-bottom, 0px)
+  );
   width: 320px;
-  max-height: calc(100dvh - max(20px, var(--kcp-safe-bottom)) - 76px);
+  max-height: calc(
+    var(--kcp-visible-height, 100dvh) - max(20px, var(--kcp-safe-bottom)) - 76px
+  );
 }
 
 @media (width < 40rem) {
   .kcp-regis-card {
-    left: max(16px, var(--kcp-safe-left));
+    left: calc(max(16px, var(--kcp-safe-left)) + var(--kcp-visible-left, 0px));
     width: auto;
   }
 }
