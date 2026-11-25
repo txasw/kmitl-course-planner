@@ -4,8 +4,9 @@
 // settles several rows at once is not read out row by row, and a status that changes and
 // changes back within the window is not read at all. The page turning unreadable or
 // readable again, a run step, and a run stop are read as they happen. A run that fails,
-// because a step was not confirmed in time or the page could not be read, also shows the
-// error toast, which stays on screen after the card is collapsed.
+// because a step was not confirmed in time or the page could not be read, shows the error
+// toast instead, which stays on screen after the card is collapsed; the toast's own live
+// region reads it, so the failure is read once.
 
 import { useEffect, useRef } from 'react';
 import { fillTemplate } from '@/lib/i18n/template';
@@ -110,10 +111,11 @@ function useRunAnnouncements(run: FillRun, t: Translate): void {
   useEffect(() => {
     if (stopped === null || stopped === seen.current) return;
     seen.current = stopped;
-    announce(t(`regis.fill.stop.${stopped.reason}`));
     if (FAILED.includes(stopped.reason)) {
       toastStore.getState().show('error', t('regis.addForMe.failed'));
+      return;
     }
+    announce(t(`regis.fill.stop.${stopped.reason}`));
   }, [stopped, t]);
 }
 
