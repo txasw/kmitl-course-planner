@@ -340,6 +340,45 @@ describe('planStore multi-plan', () => {
     );
   });
 
+  it('moves a section within a named plan that is not active, without an undo', () => {
+    const store = makeStore();
+    const planA = store.getState().createPlan('A', TERM_S1);
+    const placed = makeSection({
+      teachTableId: 'a',
+      subjectId: 'S1',
+      section: '901',
+    });
+    const other = makeSection({
+      teachTableId: 'a2',
+      subjectId: 'S1',
+      section: '902',
+      meetings: [makeMeeting({ day: 4 })],
+    });
+    const course = makeCourse({ subjectId: 'S1', sections: [placed, other] });
+    store.getState().add(course, placed, SOURCE_QUERY);
+    const planB = store.getState().createPlan('B', TERM_S2);
+    store.getState().setActivePlan(planB);
+
+    const outcome = store
+      .getState()
+      .apply(
+        ['a'],
+        { course, section: other, sourceQuery: SOURCE_QUERY },
+        'move',
+        planA,
+      );
+    expect(outcome.ok).toBe(true);
+    const state = store.getState();
+    expect(state.activePlanId).toBe(planB);
+    expect(state.entries).toEqual([]);
+    expect(state.pendingUndo).toBeNull();
+    expect(
+      state.plans
+        .find((plan) => plan.id === planA)
+        ?.entries.map((entry) => entry.teachTableId),
+    ).toEqual(['a2']);
+  });
+
   it('falls back to the most recently updated plan when the active one is deleted', () => {
     const store = makeStore();
     const first = store.getState().createPlan('first', TERM_S1);

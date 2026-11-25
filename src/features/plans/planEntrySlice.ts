@@ -43,10 +43,16 @@ export interface PlanEntryActions {
   remove: (teachTableId: string) => void;
   /** Remove every entry of the active plan as one undoable step. */
   clear: () => void;
+  /**
+   * Move or swap within the active plan, or within the named plan, which the registration
+   * helper passes when it shows a plan of the page term that is not the active one. A
+   * plan other than the active one changes without becoming active, and without an undo.
+   */
   apply: (
     removeIds: string[],
     add: AddInput,
     kind: 'move' | 'swap',
+    planId?: string,
   ) => TransactionOutcome;
   undo: () => void;
   clearUndo: () => void;
@@ -173,10 +179,13 @@ export function createPlanEntrySlice(
       });
     },
 
-    apply: (removeIds, add, kind) => {
+    apply: (removeIds, add, kind, planId) => {
       const now = deps.now();
       const state = get();
-      const active = activePlanOf(state);
+      const active =
+        planId === undefined
+          ? activePlanOf(state)
+          : state.plans.find((plan) => plan.id === planId);
       if (active === undefined) {
         // A move or swap always acts on a placed block, so an active plan exists.
         return { ok: false, conflicts: [] };
@@ -193,11 +202,12 @@ export function createPlanEntrySlice(
       );
       if (outcome.ok) {
         const { entries, added, removed } = outcome.result;
-        set({
-          plans: replaceEntries(state.plans, active.id, entries, now),
-          entries,
-          pendingUndo: { kind, added, removed },
-        });
+        const plans = replaceEntries(state.plans, active.id, entries, now);
+        set(
+          active.id === state.activePlanId
+            ? { plans, entries, pendingUndo: { kind, added, removed } }
+            : { plans },
+        );
       }
       return outcome;
     },
