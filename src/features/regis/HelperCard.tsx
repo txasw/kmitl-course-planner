@@ -7,8 +7,9 @@
 // one empty state that offers to make that plan, and a plan with no subjects shows one
 // that opens the planner; both keep the header's more menu, so the plan picker and Hide on
 // this page stay in reach. Escape inside it collapses it to the
-// launcher. On a phone a press anywhere on the page collapses it too, so the keyboard or a
-// host dialog is never hidden behind it (kept from commit 036227e).
+// launcher. On a phone a tap anywhere on the page collapses it too, so the keyboard or a
+// host dialog is never hidden behind it (kept from commit 036227e), except while a fill run
+// is active, which a collapse would stop.
 
 import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
 import { useStore } from 'zustand';
@@ -296,9 +297,12 @@ export function HelperCard({ model }: { model: HelperModel }) {
   const coarse = useMediaQuery(COARSE_POINTER_QUERY);
   const view = useStore(helperStore, (state) => state.view);
   const ref = useRef<HTMLElement>(null);
-  // A press outside KCP collapses the card on a phone, so the keyboard or a host dialog
-  // is never hidden behind it.
-  useOutsidePress(ref, phone, collapse, true);
+  // A tap outside KCP collapses the card on a phone, so the keyboard or a host dialog is
+  // never hidden behind it. A scroll of the page is no tap, and while Add for me runs no
+  // tap outside collapses it at all: collapsing ends the run, and a stray touch on the
+  // page is no reason to stop. Stop, Escape, and the launcher remain the ways to stop.
+  const running = model.run.status === 'running';
+  useOutsidePress(ref, phone && !running, collapse, true);
   const { checklist, current } = model;
   const list = view === 'list';
   const countLabel = t(model.sent ? 'regis.count.sent' : 'regis.short.added');
