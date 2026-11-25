@@ -30,6 +30,8 @@ describe('isDeniedLabel', () => {
     'Register',
     'ยกเลิกคิว',
     'ปิด',
+    'ลองอีกครั้ง',
+    'Try again',
   ])('refuses %s, also with the host padding', (label) => {
     expect(isDeniedLabel(label)).toBe(true);
     expect(isDeniedLabel(`  ${label} `)).toBe(true);

@@ -24,7 +24,9 @@
  * window focus, and on a visibility change, and can unmount the panel or mount it again
  * with no navigation. The observer bounds its readings and reads the panel leaving
  * (watchPage.ts), and a check that lands in a fill run stops it as a request of the
- * page's own (fillEngine.ts).
+ * page's own (fillEngine.ts). scripts/host-labels.mjs run on it prints the labels of
+ * app.020e81ed and one more pair, Try again and ลองอีกครั้ง, the retry button of the
+ * periods section when its check fails, which the fill denylist now holds too.
  */
 export const TESTED_BUILDS: readonly (readonly [string, string])[] = [
   ['app.454d9e95.js', 'chunk-vendors.7ab4925e.js'],
