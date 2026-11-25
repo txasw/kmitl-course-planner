@@ -64,8 +64,9 @@ export function CopyIdButton({
 /**
  * Add for me while it cannot run: still focusable, with the reason linked to it, shown as
  * a tooltip under a fine pointer and as a line under the row on touch, where no tooltip
- * shows. It starts nothing. On a list row it is the plus icon alone, named with the
- * subject and the reason.
+ * shows. A press starts nothing and shows the reason in the error toast, which a touch
+ * press reaches too. On a list row it is the plus icon alone, named with the subject and
+ * the reason.
  */
 export function BlockedAddButton({
   reason,
@@ -91,6 +92,9 @@ export function BlockedAddButton({
           type="button"
           aria-disabled="true"
           aria-describedby={reasonId}
+          onClick={() => {
+            toastStore.getState().show('error', reason);
+          }}
           aria-label={
             subjectId === undefined
               ? undefined
