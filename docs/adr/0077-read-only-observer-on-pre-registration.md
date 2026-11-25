@@ -152,3 +152,11 @@ write endpoint; the deploy changed staff and payment pages only. The pair is add
 list, which keeps the exact two name gate of ruling 20A. A gate on the vendor bundle alone was
 considered and not taken here, since it would also accept an app change that structure and labels
 cannot see; it is left for the owner to decide.
+
+**The page term.** The term the header shows now chooses which plan the helper follows (ADR-0076
+amendment of this date), so the store keeps the last term the header showed through readings that
+drift or degrade, in memory only, and forgets it when the student leaves the page. A new planned
+set or a Check again starts the reading over and keeps it. A page of another term than the
+helper's plan can then only arise before the term is read, so the term mismatch state stays as a
+guard rather than the usual answer. On a host build outside the tested list the term is not read,
+and the helper shows the active plan.
