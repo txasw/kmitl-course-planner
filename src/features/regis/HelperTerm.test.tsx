@@ -175,4 +175,20 @@ describe('the helper on a page of another term than the active plan', () => {
     const menu = screen.getByRole('menu', { name: 'เพิ่มเติม' });
     expect(within(menu).queryByRole('menuitemradio')).toBeNull();
   });
+
+  it('offers to make a plan for a page term with none, only on a press', () => {
+    const card = renderOn([SEM1], 'sem1', TERM2);
+    expect(card).toHaveTextContent('ยังไม่มีตารางของภาค 2/2569');
+    expect(card).not.toHaveTextContent('01000001');
+    expect(planStore.getState().plans).toHaveLength(1);
+    expect(planStore.getState().activePlanId).toBe('sem1');
+
+    fireEvent.click(
+      within(card).getByRole('button', { name: 'สร้างตาราง 2/2569' }),
+    );
+    const { plans, activePlanId } = planStore.getState();
+    const created = plans.find((plan) => plan.id === activePlanId);
+    expect(created).toMatchObject({ year: '2569', semester: '2' });
+    expect(uiStore.getState().isOpen).toBe(true);
+  });
 });
