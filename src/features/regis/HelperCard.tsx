@@ -231,6 +231,7 @@ function CardView({ model, coarse, locale, t, onPick }: CardViewProps) {
       statuses={model.statuses}
       currentId={current?.subjectId ?? null}
       stale={model.stale}
+      coarse={coarse}
       locale={locale}
       t={t}
       onPick={onPick}
