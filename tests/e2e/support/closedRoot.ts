@@ -31,6 +31,13 @@ export function textOf(node: DomNode): string {
     .join('');
 }
 
+export interface Box {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
 export class ClosedRoot {
   private constructor(
     private readonly page: Page,
@@ -93,14 +100,20 @@ export class ClosedRoot {
     }
   }
 
-  /** Tap the centre of a node with the touchscreen, as a phone press would. */
-  async tap(match: (node: DomNode) => boolean, what: string): Promise<void> {
+  /** The border box of a node, in the page's client pixels. */
+  async box(match: (node: DomNode) => boolean, what: string): Promise<Box> {
     const node = await this.waitFor(match, what);
     const { model } = (await this.cdp.send('DOM.getBoxModel', {
       backendNodeId: node.backendNodeId,
     })) as { model: { border: number[] } };
-    const [x1 = 0, y1 = 0, , , x3 = 0, y3 = 0] = model.border;
-    await this.page.touchscreen.tap((x1 + x3) / 2, (y1 + y3) / 2);
+    const [left = 0, top = 0, , , right = 0, bottom = 0] = model.border;
+    return { left, top, right, bottom };
+  }
+
+  /** Tap the centre of a node with the touchscreen, as a phone press would. */
+  async tap(match: (node: DomNode) => boolean, what: string): Promise<void> {
+    const { left, top, right, bottom } = await this.box(match, what);
+    await this.page.touchscreen.tap((left + right) / 2, (top + bottom) / 2);
   }
 }
 
