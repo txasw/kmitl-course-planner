@@ -12,6 +12,16 @@
 // Every host control counts its clicks, and every untrusted event on the page is counted
 // by the control it was aimed at, so a spec can prove what KCP pressed and what it never
 // touched. Hostile variants change the markup or the behaviour to test the fill guards.
+//
+// Mounted with the route of app.a1e43722 (deployed 2026-11-25 at 09:53 GMT) it also
+// renders that build's PreRegistration route around the panel, from its render function:
+// the route card, the RegistrationHeader with its title and its semester over year
+// subtitle, the RegistrationPeriods section above the panel with its countdown that
+// rewrites its digits in place every second, and the panel or the page info in the card
+// text. Its period check stub fires a GET every few seconds, on a window focus, and on
+// a visibility change, as the build's check_date mixin does every 60 s, and a period
+// change unmounts the panel or mounts it again from its own empty data, as the build's
+// state does when the check rewrites the period flags.
 
 const STEPS = ['เริ่มต้น', 'เลือกรายวิชา', 'เสร็จสิ้น'];
 const COLOURS = { pending: '#fff1d9', fits: '#dbffb8', clash: '#ffcfcc' };
@@ -22,10 +32,41 @@ const TOAST_TEXT = {
   refused: 'ไม่สามารถลงทะเบียนรายวิชานี้ได้',
 };
 
+/** The host builds whose route the replica renders around the panel. */
+export const ROUTE_BUILDS = ['a1e43722'];
+
+// The period card's chip, the count label, and the seconds the countdown starts from, by
+// the period's status, in the build's Thai dictionary.
+const PERIODS = {
+  before: { chip: 'ยังไม่เปิด', count: 'เปิดในอีก', seconds: 86_400 + 7_384 },
+  open: {
+    chip: 'เปิดให้ทำรายการ',
+    count: 'เหลือเวลาทำรายการ',
+    seconds: 2 * 86_400 + 3 * 3_600 + 4 * 60 + 5,
+  },
+  closed: { chip: 'สิ้นสุดแล้ว', count: null, seconds: 0 },
+};
+const UNITS = ['วัน', 'ชั่วโมง', 'นาที', 'วินาที'];
+const PAGE_INFO = {
+  before: 'ไม่อยู่ในช่วงเวลาลงทะเบียนล่วงหน้า',
+  closed: 'นักศึกษาไม่ได้ลงทะเบียนล่วงหน้าในช่วงเวลาที่กำหนด',
+};
+
+/** Days, hours, minutes, and seconds left, as the build's countdown splits them. */
+function split(seconds) {
+  return [
+    Math.floor(seconds / 86_400),
+    Math.floor(seconds / 3_600) % 24,
+    Math.floor(seconds / 60) % 60,
+    seconds % 60,
+  ];
+}
+
 /** The default page: the choose subjects step with an empty list. */
 export function initialState() {
   return {
     step: 2,
+    period: 'open',
     term: { semester: '1', year: '2569' },
     list: [],
     add: {
@@ -46,18 +87,30 @@ export function initialState() {
   };
 }
 
-export function mountReplica(doc, overrides = {}) {
+export function mountReplica(doc, overrides = {}, options = {}) {
+  const route = ROUTE_BUILDS.includes(options.route) ? options.route : null;
   const counters = {
     clicks: {},
     untrusted: 0,
     untrustedOn: {},
     writes: 0,
     reads: 0,
+    polls: 0,
   };
-  const config = { catalog: {}, delay: 200, variant: null, xhr: false };
+  const config = {
+    catalog: {},
+    delay: 200,
+    variant: null,
+    xhr: false,
+    answer: null,
+  };
   let current = null;
   const state = { ...initialState(), ...overrides };
   state.add = { ...initialState().add, ...overrides.add };
+  let clock = PERIODS[state.period]?.seconds ?? 0;
+  const timers = [];
+  const listeners = [];
+  let live = true;
 
   // An event aimed at the host page, as opposed to one inside the extension's own UI,
   // which the browser retargets to the extension's host element under the body.
@@ -749,6 +802,283 @@ export function mountReplica(doc, overrides = {}) {
     ];
   }
 
+  // The registration panel: the stepper, the header row with the term in its third
+  // column, and the step's card, as PreRegistrationPanel renders them.
+  function panel() {
+    return h('div', {}, [
+      state.step >= 1 ? stepper() : null,
+      h(
+        'div',
+        {
+          class: 'row text-center grey lighten-2 mb-4 mx-auto',
+          style: 'color: rgb(85, 85, 85);',
+        },
+        [
+          h('div', { class: 'col-md-4 col-12' }, ' รหัสนักศึกษา : 00000000 '),
+          h('div', { class: 'col-md-4 col-12' }, ' ชื่อ-นามสกุล: นักศึกษา ทดสอบ '),
+          h(
+            'div',
+            { class: 'col-md-4 col-12' },
+            ` ภาคการศึกษาที่ : ${state.term.semester} / ${state.term.year} `,
+          ),
+        ],
+      ),
+      h('div', { class: 'px-1 px-md-3 px-xl-6' }, [
+        state.step === 2 ? h('div', {}, [addCard()]) : null,
+        state.step === 3 ? h('div', {}, [resultCard()]) : null,
+      ]),
+    ]);
+  }
+
+  // RegistrationHeader: the title, then the semester over the year while both are known.
+  function registrationHeader() {
+    return h('div', { class: 'registration-header' }, [
+      h('div', { class: 'v-card__title' }, [
+        h(
+          'h1',
+          { class: 'pt-4 deep-orange--text' },
+          'ลงทะเบียนล่วงหน้า ระดับปริญญาตรี',
+        ),
+      ]),
+      h('div', { class: 'v-card__subtitle' }, [
+        h(
+          'h2',
+          { class: 'pt-2' },
+          `${state.term.semester} / ${state.term.year}`,
+        ),
+      ]),
+    ]);
+  }
+
+  function clockLabel(parts) {
+    return parts.map((value, index) => `${value} ${UNITS[index]}`).join(' ');
+  }
+
+  // RegistrationPeriods with the one pre registration key: a card with its status chip,
+  // its open and close dates, and a countdown while the period is not over.
+  function periods() {
+    const status = state.period;
+    const meta = PERIODS[status];
+    const parts = split(clock);
+    return h(
+      'section',
+      {
+        class: 'registration-periods mx-3 mx-sm-4 mb-4',
+        'aria-label': 'กำหนดการลงทะเบียน',
+      },
+      [
+        h('div', { class: 'period-grid' }, [
+          h(
+            'div',
+            {
+              class: `period${status === 'open' ? ' period-open' : ''} v-sheet v-sheet--outlined theme--dark rounded`,
+            },
+            [
+              h(
+                'div',
+                {
+                  class:
+                    'd-flex flex-wrap align-center justify-space-between mb-2 period-heading',
+                },
+                [
+                  h(
+                    'span',
+                    { class: 'period-title subtitle-2 font-weight-bold' },
+                    'ลงทะเบียนล่วงหน้า',
+                  ),
+                  h(
+                    'span',
+                    {
+                      class: `v-chip v-chip--no-color theme--dark v-size--small period-status period-status-${status}`,
+                    },
+                    [h('span', { class: 'v-chip__content' }, ` ${meta.chip} `)],
+                  ),
+                ],
+              ),
+              h('dl', { class: 'period-dates' }, [
+                h('dt', {}, 'เปิด'),
+                h('dd', {}, [
+                  'จันทร์ 23 พฤศจิกายน 2569',
+                  h('span', { class: 'period-time' }, ' 09:00'),
+                ]),
+                h('dt', {}, 'ปิด'),
+                h('dd', {}, [
+                  'ศุกร์ 27 พฤศจิกายน 2569',
+                  h('span', { class: 'period-time' }, ' 16:30'),
+                ]),
+              ]),
+              meta.count === null
+                ? null
+                : h('div', { class: 'period-count mt-3 pt-2' }, [
+                    h(
+                      'div',
+                      { class: 'period-count-label caption' },
+                      meta.count,
+                    ),
+                    h(
+                      'div',
+                      {
+                        class: 'period-digits',
+                        'aria-label': clockLabel(parts),
+                      },
+                      parts.map((value, index) =>
+                        h(
+                          'span',
+                          { class: 'period-clock-unit', 'aria-hidden': 'true' },
+                          [
+                            index > 0
+                              ? h(
+                                  'span',
+                                  { class: 'period-clock-separator' },
+                                  ':',
+                                )
+                              : null,
+                            h('strong', {}, String(value).padStart(2, '0')),
+                            h('small', {}, UNITS[index]),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ]),
+            ],
+          ),
+        ]),
+      ],
+    );
+  }
+
+  // One second of the countdown, patched in place as Vue patches it: each digit's text
+  // node and the clock's label change, and no element is added or removed.
+  function tick() {
+    clock = Math.max(0, clock - 1);
+    const digits = doc.querySelector('.registration-periods .period-digits');
+    if (digits === null) return;
+    const parts = split(clock);
+    digits.setAttribute('aria-label', clockLabel(parts));
+    digits.querySelectorAll('strong').forEach((strong, index) => {
+      const node = strong.firstChild;
+      const next = String(parts[index]).padStart(2, '0');
+      if (node !== null && node.data !== next) node.data = next;
+    });
+  }
+
+  // PageInfoPreRegis for a page outside the period: before it opens, or after it closed
+  // for a student who never pre registered, with the calendar link.
+  function pageInfo() {
+    return h('div', { class: 'text-center pb-16' }, [
+      h('div', {}, [
+        h('h1', { class: 'mt-4' }, ` ${PAGE_INFO[state.period] ?? ''} `),
+        state.period === 'closed'
+          ? h(
+              'button',
+              {
+                type: 'button',
+                class:
+                  'v-btn v-btn--has-bg theme--light elevation-3 v-size--default orange darken-2 mt-3 mb-3',
+                count: 'calendar',
+              },
+              [
+                h('span', { class: 'v-btn__content' }, [
+                  h(
+                    'a',
+                    {
+                      class: 'btn_calendar',
+                      href: 'https://www.reg.kmitl.ac.th/educalendar/',
+                      target: '_blank',
+                    },
+                    'ดูปฏิทินการศึกษา',
+                  ),
+                ]),
+              ],
+            )
+          : null,
+      ]),
+    ]);
+  }
+
+  // The route card of app.a1e43722: the header, the periods, then the panel while the
+  // period is open, or the page info outside it, in the card text.
+  function routeCard() {
+    const open = state.period === 'open' && state.step !== 0;
+    return h('div', { class: 'v-card v-sheet theme--light' }, [
+      registrationHeader(),
+      periods(),
+      h('div', { class: 'v-card__text px-0' }, [open ? panel() : pageInfo()]),
+    ]);
+  }
+
+  // The panel mounts again from its own data: its mounted hook opens the choose subjects
+  // step, and the add card starts with an empty list and an empty field and reads the
+  // credits and the pattern subjects with the card loading.
+  function remount() {
+    state.step = 2;
+    state.list = [];
+    resetAdd();
+    state.add.loading = true;
+    if (config.xhr) {
+      for (const path of ['student-credit', 'pattern-subject']) {
+        const request = new XMLHttpRequest();
+        request.open('GET', `/replica/${path}`);
+        request.send();
+      }
+    }
+    setTimeout(() => {
+      state.add.loading = false;
+      render();
+    }, config.delay);
+  }
+
+  // A period check answer that rewrites the flags: the panel unmounts with its dialogs
+  // and menus when the period is not open, and mounts again when it opens.
+  function setPeriod(next) {
+    const was = state.period;
+    state.period = next;
+    clock = PERIODS[next]?.seconds ?? 0;
+    if (next !== 'open') {
+      state.dialog = null;
+      state.menu = null;
+    } else if (was !== 'open') {
+      remount();
+    }
+    render();
+  }
+
+  // The build's period check: skipped while the page is hidden, a GET of the period
+  // endpoint, whose answer may rewrite the period.
+  function poll() {
+    if (doc.hidden) return;
+    counters.polls += 1;
+    const answer = () => {
+      const next = config.answer;
+      config.answer = null;
+      if (next !== null && next !== undefined) setPeriod(next);
+    };
+    if (!config.xhr) {
+      answer();
+      return;
+    }
+    const request = new XMLHttpRequest();
+    request.open(
+      'GET',
+      `/replica/check-registration-datetime?level_id=1&year=${state.term.year}&semester=${state.term.semester}`,
+    );
+    request.addEventListener('loadend', answer);
+    request.send();
+  }
+
+  if (route !== null) {
+    timers.push(setInterval(tick, 1000));
+    const every = options.poll ?? 4000;
+    if (every > 0) timers.push(setInterval(poll, every));
+    const view = doc.defaultView;
+    view?.addEventListener('focus', poll);
+    doc.addEventListener('visibilitychange', poll);
+    listeners.push(() => {
+      view?.removeEventListener('focus', poll);
+      doc.removeEventListener('visibilitychange', poll);
+    });
+  }
+
   const app = h('div', {
     'data-app': 'true',
     class: 'v-application v-application--is-ltr theme--light',
@@ -759,42 +1089,15 @@ export function mountReplica(doc, overrides = {}) {
   doc.body.append(app);
 
   function render() {
+    if (!live) return;
+    // On the route of app.a1e43722 the add card's dialogs and menus belong to the panel,
+    // and leave with it.
+    const mounted =
+      route === null || (state.step !== 0 && state.period === 'open');
     wrap.replaceChildren(
       h('main', { class: 'v-main' }, [
         h('div', { class: 'v-main__wrap' }, [
-          state.step === 0
-            ? null
-            : h('div', {}, [
-                state.step >= 1 ? stepper() : null,
-                h(
-                  'div',
-                  {
-                    class: 'row text-center grey lighten-2 mb-4 mx-auto',
-                    style: 'color: rgb(85, 85, 85);',
-                  },
-                  [
-                    h(
-                      'div',
-                      { class: 'col-md-4 col-12' },
-                      ' รหัสนักศึกษา : 00000000 ',
-                    ),
-                    h(
-                      'div',
-                      { class: 'col-md-4 col-12' },
-                      ' ชื่อ-นามสกุล: นักศึกษา ทดสอบ ',
-                    ),
-                    h(
-                      'div',
-                      { class: 'col-md-4 col-12' },
-                      ` ภาคการศึกษาที่ : ${state.term.semester} / ${state.term.year} `,
-                    ),
-                  ],
-                ),
-                h('div', { class: 'px-1 px-md-3 px-xl-6' }, [
-                  state.step === 2 ? h('div', {}, [addCard()]) : null,
-                  state.step === 3 ? h('div', {}, [resultCard()]) : null,
-                ]),
-              ]),
+          route !== null ? routeCard() : state.step === 0 ? null : panel(),
         ]),
       ]),
       config.variant === 'formAdd' ? farForm() : '',
@@ -803,8 +1106,8 @@ export function mountReplica(doc, overrides = {}) {
       ':scope > .v-dialog__content, :scope > .v-menu__content',
     ))
       old.remove();
-    app.append(...dialogs().filter(Boolean));
-    if (state.menu) app.append(menu(state.menu));
+    if (mounted) app.append(...dialogs().filter(Boolean));
+    if (mounted && state.menu) app.append(menu(state.menu));
     let container = doc.querySelector('.toasted-container');
     if (state.toasts.length > 0 && container === null) {
       container = h('div', { class: 'toasted-container top-right' });
@@ -1065,9 +1368,21 @@ export function mountReplica(doc, overrides = {}) {
     },
     /** Merge a change into the page state and render it, as a host update would. */
     set(patch) {
-      Object.assign(state, patch);
+      const { period, ...rest } = patch;
+      Object.assign(state, rest);
       if (patch.add) state.add = { ...initialState().add, ...patch.add };
-      render();
+      if (period === undefined) render();
+      else setPeriod(period);
+    },
+    /** Run one period check now, as the build's timer, a focus, or a visibility change does. */
+    poll,
+    /** Advance the countdown by one second. */
+    tick,
+    /** Stop the countdown, the period checks, and every later render. */
+    destroy() {
+      live = false;
+      for (const timer of timers) clearInterval(timer);
+      for (const remove of listeners) remove();
     },
     /** Raise a host toast of a kind about a subject, with the host's own wording. */
     toast(kind, subjectId) {
