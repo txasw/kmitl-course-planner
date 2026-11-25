@@ -6,9 +6,10 @@ import type { TestOptions } from './tests/e2e/support/fixtures';
 // shadow root the browser driven specs need, production for the isolation
 // assertions and for the closed root spec, which taps the closed root's own
 // nodes through the DevTools protocol at a phone size, since a press inside a
-// closed root behaves in ways the debug build's open root cannot show. The extension directory is resolved against the working directory
-// by the fixtures, so relative paths are enough here. Extension contexts are
-// heavy, so runs stay serial.
+// closed root behaves in ways the debug build's open root cannot show. The
+// extension directory is resolved against the working directory by the
+// fixtures, so relative paths are enough here. Extension contexts are heavy,
+// so runs stay serial.
 
 // The desktop size every existing spec runs and passes at. It sits in the xl tier
 // of ADR-0048, where the catalog column, with the search form at its head, docks
