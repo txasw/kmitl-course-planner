@@ -5,7 +5,8 @@
 // ends the run (owner answer 3A). It sends no request of its own: the only request in a
 // run is the host's own eligibility read after the field is filled, which the tripwire
 // counts, and any other, such as the period check the host build app.a1e43722 runs every
-// 60 s and on a focus, stops the run as a request of the page's own. The subject stays to
+// 60 s and on a focus, stops the run as a request of the page's own, unless it ended
+// before KCP first acted, which the run waits out at its start. The subject stays to
 // add, and the student's next press picks it up where the page left it. What it reads
 // stays in memory.
 
@@ -59,6 +60,11 @@ export interface FillTiming {
   settle: number;
   /** How long the condition shows in the dock before KCP acknowledges the dialog. */
   acknowledge: number;
+  /**
+   * How long the request count must stay the same before KCP first acts in a run,
+   * waited for at most `settle`.
+   */
+  quiet: number;
 }
 
 export const FILL_TIMING: FillTiming = {
@@ -67,6 +73,7 @@ export const FILL_TIMING: FillTiming = {
   answer: 60_000,
   settle: 3000,
   acknowledge: 1500,
+  quiet: 1500,
 };
 
 export interface FillDeps {
@@ -118,6 +125,11 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
   // Whether the run has acted on the page yet, so a page with no panel is a page that
   // changed under the run rather than one that was never ready.
   let acted = false;
+  // The request count each step is measured from. It starts over only until KCP first
+  // acts; from then on it carries from one subject to the next, so no request after an
+  // action of KCP's is ever left out.
+  let requests = 0;
+  let quieted = false;
 
   // A page with no panel ends the run at once: the host can unmount the panel on its own,
   // as the period check of app.a1e43722 does when it rewrites the period, and nothing on a
@@ -241,7 +253,31 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
     return page();
   }
 
+  // The press that starts a run can be the click that focuses the window, and the host
+  // checks its period on a focus, so that request can end just after the run began. A
+  // request that ends before KCP first acts cannot be one KCP caused, so the run first
+  // waits for the count to stay the same for a moment, and counts from there.
+  async function quietPage(): Promise<void> {
+    const until = now() + timing.settle;
+    let seen = tripwire.count();
+    let since = now();
+    while (now() - since < timing.quiet && now() <= until) {
+      if (deps.stopRequested()) stop('stopped');
+      read();
+      await sleep(timing.poll);
+      const count = tripwire.count();
+      if (count !== seen) {
+        seen = count;
+        since = now();
+      }
+    }
+  }
+
   async function fillOne(target: FillTarget): Promise<boolean> {
+    if (!acted && !quieted) {
+      await quietPage();
+      quieted = true;
+    }
     let observation = await settledPage();
     const listed = listedState(observation, target);
     if (listed === 'listed') return false;
@@ -251,7 +287,7 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
     if (clash !== null) stop(clash);
     const card = observation.card;
     const toasts = observation.toasts.length;
-    let requests = tripwire.count();
+    if (!acted) requests = tripwire.count();
     const resume =
       card?.status === 'offered' && card.subjectId === target.subjectId;
     if (!resume) {

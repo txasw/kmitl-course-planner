@@ -18,7 +18,12 @@ import { deriveChecklist } from '@/lib/regis/checklist';
 import { fillTarget, type FillTarget } from '@/lib/regis/fillPlan';
 import { buildRegistrationKit } from '@/lib/regis/kit';
 import { toSnapshot } from '@/lib/planner/transaction';
-import { runFill, type FillDeps, type FillStep } from './fillEngine';
+import {
+  runFill,
+  type FillDeps,
+  type FillStep,
+  type FillTiming,
+} from './fillEngine';
 
 // The engine against the behaviour replica: each subject is entered, its sections are
 // chosen through the host's own menus, and Add is pressed, one step at a time; every
@@ -182,7 +187,14 @@ async function fill(specs: Spec[], options: RunOptions = {}) {
     conditionShownSince: () =>
       options.shownSince === undefined ? 0 : options.shownSince,
     tripwire: { count: () => 0, stop: () => undefined },
-    timing: { pace: 0, poll: 2, answer: 150, settle: 150, acknowledge: 0 },
+    timing: {
+      pace: 0,
+      poll: 2,
+      answer: 150,
+      settle: 150,
+      acknowledge: 0,
+      quiet: 0,
+    },
   };
   const outcome = await runFill(deps);
   return { outcome, steps, refusals, page: replica };
@@ -249,7 +261,14 @@ describe('runFill', () => {
         onRefusal: () => undefined,
         conditionShownSince: () => 0,
         tripwire: { count: () => 0, stop: () => undefined },
-        timing: { pace: 0, poll: 2, answer: 150, settle: 150, acknowledge: 0 },
+        timing: {
+          pace: 0,
+          poll: 2,
+          answer: 150,
+          settle: 150,
+          acknowledge: 0,
+          quiet: 0,
+        },
       });
       expect(outcome).toMatchObject({
         status: 'stopped',
@@ -474,7 +493,14 @@ describe('runFill', () => {
       onRefusal: () => undefined,
       conditionShownSince: () => 0,
       tripwire: { count: () => 0, stop: () => undefined },
-      timing: { pace: 0, poll: 2, answer: 150, settle: 150, acknowledge: 0 },
+      timing: {
+        pace: 0,
+        poll: 2,
+        answer: 150,
+        settle: 150,
+        acknowledge: 0,
+        quiet: 0,
+      },
     });
     relabel.disconnect();
     expect(outcome).toMatchObject({
@@ -514,7 +540,14 @@ describe('runFill', () => {
       onRefusal: () => undefined,
       conditionShownSince: () => 0,
       tripwire: { count: () => 0, stop: () => undefined },
-      timing: { pace: 30, poll: 2, answer: 300, settle: 300, acknowledge: 0 },
+      timing: {
+        pace: 30,
+        poll: 2,
+        answer: 300,
+        settle: 300,
+        acknowledge: 0,
+        quiet: 0,
+      },
     });
     swap.disconnect();
     expect(changed).toBe(true);
@@ -554,7 +587,14 @@ describe('runFill', () => {
         onRefusal: () => undefined,
         conditionShownSince: () => 0,
         tripwire: { count: () => 0, stop: () => undefined },
-        timing: { pace: 0, poll: 2, answer: 150, settle: 150, acknowledge: 0 },
+        timing: {
+          pace: 0,
+          poll: 2,
+          answer: 150,
+          settle: 150,
+          acknowledge: 0,
+          quiet: 0,
+        },
       });
     expect(await run()).toMatchObject({
       status: 'stopped',
@@ -587,7 +627,14 @@ describe('runFill', () => {
       onRefusal: () => undefined,
       conditionShownSince: () => 0,
       tripwire: { count: () => seen, stop: () => undefined },
-      timing: { pace: 0, poll: 2, answer: 150, settle: 150, acknowledge: 0 },
+      timing: {
+        pace: 0,
+        poll: 2,
+        answer: 150,
+        settle: 150,
+        acknowledge: 0,
+        quiet: 0,
+      },
     });
     expect(outcome).toMatchObject({
       status: 'stopped',
@@ -598,6 +645,17 @@ describe('runFill', () => {
 });
 
 describe('runFill on the route of app.a1e43722', () => {
+  const ROUTE_TIMING: FillTiming = {
+    pace: 0,
+    poll: 2,
+    answer: 5000,
+    settle: 150,
+    acknowledge: 0,
+    quiet: 0,
+  };
+  // A quiet spell long enough to outlast a period check started just before the run.
+  const QUIET: FillTiming = { ...ROUTE_TIMING, quiet: 100, settle: 1000 };
+
   // The build's period check can unmount the panel with no navigation, and mount it
   // again from its own empty data; a run never acts on a page without a panel.
   function deps(
@@ -615,7 +673,7 @@ describe('runFill on the route of app.a1e43722', () => {
       onRefusal: () => undefined,
       conditionShownSince: () => 0,
       tripwire: { count: () => 0, stop: () => undefined },
-      timing: { pace: 0, poll: 2, answer: 5000, settle: 150, acknowledge: 0 },
+      timing: ROUTE_TIMING,
     };
   }
 
@@ -786,5 +844,76 @@ describe('runFill on the route of app.a1e43722', () => {
     expect(second).toEqual({ status: 'done', filled: 1 });
     expect(page.state.list.map((row) => row.subjectId)).toEqual([early, late]);
     expect(page.counters.reads).toBe(2);
+  });
+
+  // The press that starts a run can be the click that focuses the window, which starts a
+  // period check that ends a moment later, counted as the tripwire counts it, at its end.
+  it('waits out a period check the focusing press started, then fills', async () => {
+    const setupOf = setup([SINGLE]);
+    const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
+    replica = page;
+    page.configure({
+      delay: 30,
+      catalog: setupOf.catalog,
+      countAtEnd: true,
+      pollLatency: 60,
+    });
+    page.poll();
+    const outcome = await runFill({
+      ...deps(setupOf),
+      tripwire: requests(page),
+      timing: QUIET,
+    });
+    expect(outcome).toEqual({ status: 'done', filled: 1 });
+    expect(page.counters).toMatchObject({ polls: 1, reads: 1 });
+  });
+
+  it('still stops on a period check that ends after KCP first acts', async () => {
+    const setupOf = setup([SINGLE]);
+    const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
+    replica = page;
+    page.configure({
+      delay: 400,
+      catalog: setupOf.catalog,
+      countAtEnd: true,
+      pollLatency: 300,
+    });
+    page.poll();
+    const outcome = await runFill({
+      ...deps(setupOf),
+      tripwire: requests(page),
+      timing: QUIET,
+    });
+    expect(outcome).toMatchObject({ status: 'stopped', reason: 'pageRequest' });
+    expect(page.state.list).toEqual([]);
+    expect(page.counters.clicks.add ?? 0).toBe(0);
+  });
+
+  it('counts a request between two subjects against the next one', async () => {
+    const setupOf = setup([SINGLE, { ...SINGLE, id: B, day: 3 }]);
+    const late = setupOf.targets[1]?.subjectId;
+    const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
+    replica = page;
+    page.configure({ delay: 30, catalog: setupOf.catalog });
+    // A request that ends just after the first subject's last check, before the second
+    // subject starts: it may follow KCP's press of Add, so it is never left out.
+    let extra = 0;
+    const outcome = await runFill({
+      ...deps(setupOf),
+      tripwire: {
+        count: () => {
+          const value = page.counters.reads + extra;
+          if (page.state.list.length === 1) extra = 1;
+          return value;
+        },
+        stop: () => undefined,
+      },
+    });
+    expect(outcome).toMatchObject({
+      status: 'stopped',
+      subjectId: late,
+      reason: 'pageRequest',
+    });
+    expect(page.state.list).toHaveLength(1);
   });
 });
