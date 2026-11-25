@@ -158,6 +158,26 @@ async function overlayOpen(page: Page): Promise<boolean> {
   );
 }
 
+/** Turn the observer off for drift: the page's subject id header loses its class. */
+async function driftOff(page: Page, root: ClosedRoot): Promise<void> {
+  for (let strike = 0; strike < 4; strike += 1) {
+    await page.evaluate((n) => {
+      const head = document.querySelectorAll('thead th')[1];
+      if (head === undefined) throw new Error('no subject id header');
+      head.classList.remove('subject-id');
+      head.classList.toggle(`drift-${String(n)}`);
+    }, strike);
+    await page.waitForTimeout(400);
+  }
+  await untilCard(root, 'data-observer', 'off');
+  await page.evaluate(() => {
+    document.querySelectorAll('thead th')[1]?.classList.add('subject-id');
+  });
+  await page.waitForTimeout(400);
+  // An off observer stays off on its own, until the student asks again.
+  expect(await cardAttr(root, 'data-observer')).toBe('off');
+}
+
 async function expectNothingForbidden(page: Page): Promise<void> {
   const counters = await page.evaluate(() => ({
     forbidden: window.replica.forbidden(),
@@ -236,4 +256,47 @@ test('every press in the closed root does what it says on a phone', async ({
   await root.tap(headerMore, 'header more trigger');
   await root.waitGone(withAttr('role', 'menu'), 'header menu');
   await expectNothingForbidden(page);
+});
+
+test('Check again on the bar and in the more menu reads a drifted page anew', async ({
+  context,
+  mock,
+  serviceWorker,
+}) => {
+  test.setTimeout(150_000);
+  const seeded = await seedThroughDebug(mock);
+  await store(serviceWorker, seeded.blobs);
+  const { page, root } = await openReplica(context, seeded);
+  await untilCard(root, 'data-observer', 'healthy');
+  mock.clearApiCalls();
+
+  // A tap on the words of the bar is the Check again the student meant.
+  await driftOff(page, root);
+  await root.tap(withAttr('id', 'kcp-regis-stale'), 'unreadable words');
+  await untilCard(root, 'data-observer', 'healthy');
+  await root.waitGone(withAttr('id', 'kcp-regis-stale'), 'unreadable bar');
+
+  // Check again in the more menu does the same.
+  await driftOff(page, root);
+  await root.tap(moreTrigger, 'more trigger');
+  await root.tap(menuItem('ตรวจอีกครั้ง'), 'Check again item');
+  await root.waitGone(withAttr('role', 'menu'), 'more menu');
+  await untilCard(root, 'data-observer', 'healthy');
+
+  // On a build KCP was not tested with no reading can help, so no control offers one.
+  await openReplica(context, seeded, seeded.term, '?build=untested');
+  await untilCard(root, 'data-observer', 'off');
+  const bar = await root.waitFor(withAttr('id', 'kcp-regis-stale'), 'bar');
+  expect(textOf(bar)).toContain('หน้าลงทะเบียนเปลี่ยนรุ่น');
+  const offers = await root.findAll(
+    (node) =>
+      (attr(node, 'role') === 'menuitem' || node.nodeName === 'BUTTON') &&
+      textOf(node).includes('ตรวจอีกครั้ง'),
+  );
+  expect(offers).toEqual([]);
+  await root.tap(moreTrigger, 'more trigger');
+  await root.waitFor(withAttr('role', 'menu'), 'more menu');
+  expect(await root.find(menuItem('ตรวจอีกครั้ง'))).toBeNull();
+  await expectNothingForbidden(page);
+  expect(mock.apiCalls()).toEqual([]);
 });
