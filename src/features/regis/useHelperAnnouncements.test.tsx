@@ -2,13 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, render } from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import type { HelperStatus } from '@/lib/regis/helperStatus';
+import { toastStore } from '@/features/shell/toastStore';
 import type { FillRun } from './fill/fillRun';
 import { helperStore, startVisit } from './helperStore';
 import { GROUP_MS, useHelperAnnouncements } from './useHelperAnnouncements';
 import type { HelperModel } from './useHelperModel';
 
 // The helper's live region reads status changes within half a second as one sentence,
-// and reads each run stop.
+// reads each run stop, and a failed run also shows the error toast.
 
 const t = createTranslator('en');
 
@@ -36,6 +37,7 @@ function said(): string {
 beforeEach(() => {
   vi.useFakeTimers();
   startVisit();
+  toastStore.setState({ toast: null });
 });
 
 afterEach(() => {
@@ -103,5 +105,38 @@ describe('useHelperAnnouncements', () => {
     const { seq } = helperStore.getState().announcement;
     view.rerender(<Probe statuses={{}} run={stop()} />);
     expect(helperStore.getState().announcement.seq).toBe(seq + 1);
+  });
+
+  it('shows the error toast for a failed run and not for a stop', () => {
+    const view = render(<Probe statuses={{}} />);
+    const stop = (reason: 'noAnswer' | 'stopped'): FillRun => ({
+      status: 'stopped',
+      subjectId: 'A',
+      reason,
+      scope: ['A'],
+    });
+    view.rerender(<Probe statuses={{}} run={stop('stopped')} />);
+    expect(said()).toBe('Adding stopped.');
+    expect(toastStore.getState().toast).toBeNull();
+    view.rerender(<Probe statuses={{}} run={stop('noAnswer')} />);
+    expect(toastStore.getState().toast).toMatchObject({
+      kind: 'error',
+      message: 'Could not add',
+    });
+  });
+
+  it('shows no toast for a stop found on arrival', () => {
+    render(
+      <Probe
+        statuses={{}}
+        run={{
+          status: 'stopped',
+          subjectId: 'A',
+          reason: 'pageChanged',
+          scope: ['A'],
+        }}
+      />,
+    );
+    expect(toastStore.getState().toast).toBeNull();
   });
 });
