@@ -25,6 +25,17 @@ export interface HostState {
    * keeps following it; leaving the page forgets it.
    */
   term: Term | null;
+  /**
+   * The term a page header last showed in this document, kept when the student leaves the
+   * page. It is only a hint for the helper's fallback when the term cannot be read, never
+   * proof of the term a page shows now.
+   */
+  lastTerm: Term | null;
+  /**
+   * Whether the wait for the page term ran out on this page, so the helper stops waiting
+   * for it and falls back to the active plan, labelled with its own term.
+   */
+  termWaitOver: boolean;
   conditional: Readonly<Record<string, readonly string[]>>;
   /** How many times the student asked for the page to be read again. */
   checks: number;
@@ -36,7 +47,12 @@ export interface HostState {
    * dropped and a health short of off starts again, while the term the header showed stays.
    */
   restart: () => void;
-  /** Forget the page and its term when the student leaves it; an off state lasts the document. */
+  /** End the wait for the page term on this page. */
+  endTermWait: () => void;
+  /**
+   * Forget the page and its term when the student leaves it, keeping the term as a hint;
+   * an off state lasts the document.
+   */
   leave: () => void;
 }
 
@@ -44,6 +60,8 @@ export const hostStore = createStore<HostState>()((set, get) => ({
   health: INITIAL_HEALTH,
   page: null,
   term: null,
+  lastTerm: null,
+  termWaitOver: false,
   conditional: {},
   checks: 0,
   recheck: () => {
@@ -57,8 +75,9 @@ export const hostStore = createStore<HostState>()((set, get) => ({
       : reading.reading === 'ok'
         ? (reading.observation.term ?? get().term)
         : get().term;
+    const lastTerm = term ?? get().lastTerm;
     if (health.status !== 'healthy' || reading.reading !== 'ok') {
-      set({ health, term, page: null });
+      set({ health, term, lastTerm, page: null });
       return;
     }
     const { observation } = reading;
@@ -70,7 +89,13 @@ export const hostStore = createStore<HostState>()((set, get) => ({
             [subjectId]: observation.dialog.prerequisites,
           }
         : get().conditional;
-    set({ health, term, conditional, page: { observation, conditional } });
+    set({
+      health,
+      term,
+      lastTerm,
+      conditional,
+      page: { observation, conditional },
+    });
   },
   restart: () => {
     const { health } = get();
@@ -79,8 +104,11 @@ export const hostStore = createStore<HostState>()((set, get) => ({
       health: health.status === 'off' ? health : INITIAL_HEALTH,
     });
   },
+  endTermWait: () => {
+    if (!get().termWaitOver) set({ termWaitOver: true });
+  },
   leave: () => {
     get().restart();
-    set({ term: null });
+    set({ term: null, termWaitOver: false });
   },
 }));
