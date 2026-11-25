@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+  NO_EDGES,
   NO_INSET,
   bandBehind,
   sameInset,
   viewportInset,
+  visibleEdges,
 } from './viewportInset';
 
 // The band of a fixed layer that fills a layout viewport of the given height.
@@ -68,5 +70,56 @@ describe('viewportInset', () => {
     expect(sameInset({ top: 0, bottom: 4 }, { top: 0, bottom: 4 })).toBe(true);
     expect(sameInset({ top: 0, bottom: 4 }, { top: 1, bottom: 4 })).toBe(false);
     expect(sameInset({ top: 0, bottom: 4 }, NO_INSET)).toBe(false);
+  });
+});
+
+describe('visibleEdges', () => {
+  // A 390 by 844 screen showing a page 497 px wide: the browser grows the layout
+  // viewport to 497 by 1076 and shows its top left part.
+  const wide = { left: 0, top: 0, right: 497, bottom: 1076 };
+
+  it('reports no edges while the visual viewport fills the layout viewport', () => {
+    expect(
+      visibleEdges(
+        { left: 0, top: 0, right: 390, bottom: 844 },
+        { offsetLeft: 0, offsetTop: 0, width: 390, height: 844, scale: 1 },
+      ),
+    ).toBe(NO_EDGES);
+  });
+
+  it('reports the bands right of and below the screen on a page wider than it', () => {
+    expect(
+      visibleEdges(wide, {
+        offsetLeft: 0,
+        offsetTop: 0,
+        width: 390,
+        height: 844,
+        scale: 1,
+      }),
+    ).toEqual({ top: 0, right: 107, bottom: 232, left: 0 });
+  });
+
+  it('follows the screen as the student pans across the wide page', () => {
+    expect(
+      visibleEdges(wide, {
+        offsetLeft: 60,
+        offsetTop: 100,
+        width: 390,
+        height: 844,
+        scale: 1,
+      }),
+    ).toEqual({ top: 100, right: 47, bottom: 132, left: 60 });
+  });
+
+  it('ignores a pinch zoom', () => {
+    expect(
+      visibleEdges(wide, {
+        offsetLeft: 60,
+        offsetTop: 100,
+        width: 195,
+        height: 422,
+        scale: 2,
+      }),
+    ).toBe(NO_EDGES);
   });
 });

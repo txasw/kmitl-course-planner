@@ -101,9 +101,10 @@ describe('Launcher', () => {
 
   it('keeps its corner offset or the device safe area inset, whichever is larger', () => {
     render(<Launcher />);
+    // The visible bands are set only on a helper page, and are zero everywhere else.
     expect(screen.getByRole('button')).toHaveClass(
-      'right-[max(20px,var(--kcp-safe-right))]',
-      'bottom-[max(20px,var(--kcp-safe-bottom))]',
+      'right-[calc(max(20px,var(--kcp-safe-right))_+_var(--kcp-visible-right,0px))]',
+      'bottom-[calc(max(20px,var(--kcp-safe-bottom))_+_var(--kcp-visible-bottom,0px))]',
     );
   });
 
