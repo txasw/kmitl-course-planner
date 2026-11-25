@@ -9,6 +9,7 @@ import type { ObservedPage } from '@/lib/regis/observedRow';
 import {
   INITIAL_HEALTH,
   nextHealth,
+  recheckHealth,
   type Gate,
   type ObserverHealth,
 } from '@/lib/regis/observerHealth';
@@ -21,7 +22,7 @@ export interface HostState {
   /** How many times the student asked for the page to be read again. */
   checks: number;
   record: (gate: Gate, reading: PageReading) => void;
-  /** Read the page again now, as the helper's Check again asks; an off state stays. */
+  /** Read the page again now, as the helper's Check again asks; a drift off reads anew. */
   recheck: () => void;
   /** Forget the page when the student leaves it; an off state lasts the document. */
   leave: () => void;
@@ -33,7 +34,7 @@ export const hostStore = createStore<HostState>()((set, get) => ({
   conditional: {},
   checks: 0,
   recheck: () => {
-    set({ checks: get().checks + 1 });
+    set({ checks: get().checks + 1, health: recheckHealth(get().health) });
   },
   record: (gate, reading) => {
     const health = nextHealth(get().health, gate, reading.reading);

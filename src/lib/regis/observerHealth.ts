@@ -33,6 +33,23 @@ function strikesOf(health: ObserverHealth): number {
     : 0;
 }
 
+/**
+ * The health a student's Check again starts from. Drift may have passed (the page was
+ * mid render, or a dialog stood in the way), so a drift off reads again from the start,
+ * still bounded by the strikes; a surrogate session or an untested build cannot change
+ * within the document, so it stays off and the helper offers no Check again for it.
+ */
+export function recheckHealth(current: ObserverHealth): ObserverHealth {
+  return current.status === 'off' && current.reason === 'drift'
+    ? INITIAL_HEALTH
+    : current;
+}
+
+/** Whether a Check again can change what the observer reads. */
+export function canRecheck(health: ObserverHealth): boolean {
+  return health.status !== 'off' || health.reason === 'drift';
+}
+
 export function nextHealth(
   current: ObserverHealth,
   gate: Gate,
