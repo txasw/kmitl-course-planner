@@ -42,6 +42,16 @@ describe('the host contract', () => {
     ).toBe(false);
   });
 
+  it('gates on the polling route of 2026-11-25 09:53 GMT', () => {
+    expect(
+      isTestedBuild(['chunk-vendors.7ab4925e.js', 'app.a1e43722.js']),
+    ).toBe(true);
+    expect(isTestedBuild(['app.a1e43722.js'])).toBe(false);
+    expect(
+      isTestedBuild(['app.a1e43722.js', 'chunk-vendors.00000000.js']),
+    ).toBe(false);
+  });
+
   it.each(LANGS)('carries the host labels of each language', (labels) => {
     const pairs: [readonly string[], string][] = [
       [
