@@ -224,3 +224,30 @@ export function deriveChecklist(input: ChecklistInput): Checklist {
     total: rows.length,
   };
 }
+
+/** The kit group the page lists for a subject listed with another section, if known. */
+export function listedGroup(row: ChecklistRow): RowAlternative | null {
+  const codes = [...(row.observed?.codes ?? [])].sort().join(' ');
+  return (
+    row.alternatives.find(
+      (option) =>
+        option.sections
+          .map((section) => section.section)
+          .sort()
+          .join(' ') === codes,
+    ) ?? null
+  );
+}
+
+/**
+ * The sections a row names. A subject the page lists with another section names the
+ * group the page lists, when the kit knows it, since that is what the student registers;
+ * every other row names the group chosen for this registration, else the planned one.
+ */
+export function shownSections(
+  row: ChecklistRow,
+  listedOther: boolean,
+): SectionSnapshot[] {
+  const listed = listedOther ? listedGroup(row) : null;
+  return listed?.sections ?? row.chosen?.sections ?? row.planned;
+}
