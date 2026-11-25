@@ -1,10 +1,11 @@
 // The lifecycle of a fill run (ADR-0078), held in memory. A run starts only from a
 // student press, which it consumes, on the tested host build that no refusal latched,
-// outside a staff surrogate session, while the student's fill switch is on, and never
-// while another run is active. It is bound to the page address at the press, so a hash
-// change, a surrogate session, a press of Stop, or the switch turned off ends it at the
-// next step boundary. A refusal from the actuator latches fill off for the build; nothing
-// else here is stored.
+// outside a staff surrogate session, while the student's fill switch is on, while the
+// helper shows and the planner is closed, and never while another run is active. It is
+// bound to the page address at the press, so a hash change, a surrogate session, a press
+// of Stop, the switch turned off, Hide on this page, or the planner opening over the page
+// ends it at the next step boundary, as Stop does. A refusal from the actuator latches
+// fill off for the build; nothing else here is stored.
 
 import { createStore } from 'zustand/vanilla';
 import type { Plan } from '@/lib/domain/plan';
@@ -12,6 +13,8 @@ import type { FillTarget, StopReason } from '@/lib/regis/fillPlan';
 import { buildKey, fillGate } from '@/lib/regis/hostBuild';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
 import { readLocationHash } from '@/features/shell/hostLocation';
+import { uiStore } from '@/features/shell/uiStore';
+import { helperStore } from '../helperStore';
 import { regisStore } from '../regisStore';
 import { readScriptNames } from '../host/hostDom';
 import { isSurrogateSession } from '../host/surrogate';
@@ -61,6 +64,14 @@ export interface FillRequest {
   allowFull?: readonly string[];
 }
 
+/**
+ * Whether the student has taken the helper off the page: hidden it here, or opened the
+ * planner over it. Either leaves no Stop on screen, so the run ends as if Stop was pressed.
+ */
+function helperAway(): boolean {
+  return helperStore.getState().hidden || uiStore.getState().isOpen;
+}
+
 function stopped(
   subjectId: string | null,
   reason: StopReason,
@@ -77,6 +88,7 @@ export async function startFill(
   if (
     fillStore.getState().run.status === 'running' ||
     regisStore.getState().fill.off ||
+    helperAway() ||
     isSurrogateSession()
   ) {
     return;
@@ -119,6 +131,7 @@ export async function startFill(
       stopRequested: () =>
         fillStore.getState().stop ||
         regisStore.getState().fill.off ||
+        helperAway() ||
         readLocationHash() !== hash ||
         isSurrogateSession(),
       onStep: (subjectId, step, prerequisites) => {
