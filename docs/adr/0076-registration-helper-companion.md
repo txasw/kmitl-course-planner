@@ -147,3 +147,33 @@ row.
   status line in the live region inventory of ADR-0048.
 
 The package budget moves to 350 KiB with this change.
+
+## Amendment, 2026-11-25: the rest of design C2
+
+With the owner's ruling that features come before package size, the parts of the C2 spec the card
+build deferred land.
+
+- **More menu.** It holds Add all for me (ADR-0078), Open the planner, Check again, Use Add for me,
+  and Hide on this page, the first, third, and fourth on the pre registration page only. It is at
+  least 208 px wide, hangs below its trigger at the end edge, and moves by a typed first letter as
+  well as the arrow keys, Home, and End.
+- **Placement.** The more menu and the section menu float with floating-ui against the viewport,
+  with flip, shift, and a height cap to the room on screen, so neither clips on a short screen. With
+  the menus free of any scroller, the queue, the status band, and the section tile scroll together
+  inside the card while the header and the action row stay in view.
+- **Conditions.** A subject the page lists is conditional when the page named a prerequisite or
+  when its section group prints conditions. The condition pill and the several curricula pill carry
+  their full sentence as a tooltip and as their description; a printed condition that names an 8
+  digit subject id shows as the grade it waits for.
+- **Announcements.** Status changes within 500 ms are read as one sentence, the subject and its
+  status, or how many subjects changed.
+- **Opening.** On the pre registration page the card waits for the observer's first reading, up to
+  500 ms, before it opens; on the registration page it opens at once.
+- **Details.** The count's name ends with Show all or Back to card, the launcher's dot sits 2 px
+  outside its corner, chip ids carry 0.01em letter spacing, a list row's neutral icon is ink soft,
+  and the list row's Add for me icon names itself in a tooltip.
+- **Not built: section closed.** The status needs the page to say that a section is closed. The
+  host contract holds no label for such a message, the toast reader classifies any error toast it
+  does not recognise as a refusal, and rule 6 forbids reading or keeping a toast's free text. A
+  closed section therefore reads as not accepted, and the section menu still shows a section closed
+  at prepare time from the kit.

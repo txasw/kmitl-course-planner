@@ -204,3 +204,32 @@ unchanged, and each control still issues a press only from the student's own tru
   record names the subject and has stood for at least half the wait. A collapsed card, the list,
   another subject in focus, or the planner over the card stops the run as for an open dialog, and
   the student reads and closes the dialog on the page.
+
+## Amendment, 2026-11-25: Add all for me, and the helper leaving the page
+
+The owner ruled that features come before package size, so the parts the card build cut return.
+Every guard above is unchanged: a run still starts only from a trusted student press on a fill
+control, the actuator acts only on its allowlist, a press counts only once its control has shown
+for half a second and is keyed by what it names, and the grade dialog is acknowledged only while
+the card shows the condition. KCP never presses ดำเนินการต่อ or any confirm control, and never
+causes a host write.
+
+- **Add all for me** (เพิ่มให้ทุกวิชา) returns as an item of the more menu on the pre
+  registration page. One press starts one run that names every subject whose status is not added,
+  in plan order. A subject the page refused, or that a run stopped on as full or as a clash, is left
+  for the student's own choice of another section, so a second press never stops on it again. The
+  run still goes one subject at a time, waits for the page between steps, and ends at the first
+  stop (3A). The item is a press control in the fill controls module, keyed by the subjects it
+  names. The press returns the card to its card view with no subject pinned, so the focus follows
+  the subject being added and its condition can show before the dialog is acknowledged; a chip the
+  student presses during the run pins the focus again, and then a grade dialog stops the run as
+  above. When it cannot run the item stays, with its reason under its label.
+- **A press on a disabled Add for me**, on the card, a list row, or the menu, shows its reason in
+  the error toast and starts nothing, because a touch screen shows no tooltip.
+- **Leaving the page ends a run.** Hide on this page, or the planner opening over the page, ends a
+  run at its next step boundary exactly as Stop does, and a press cannot start one in either state,
+  since in both the step progress and its Stop are off screen.
+- **A failed run**, one whose step was not confirmed in time, whose page changed under it, or whose
+  page could not be read, also shows Could not add (เพิ่มให้ไม่สำเร็จ) in the error toast.
+
+The package budget moves to 420 KiB with this amendment.
