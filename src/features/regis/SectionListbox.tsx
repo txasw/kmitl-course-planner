@@ -5,7 +5,10 @@
 // the one this registration uses; the plan changes only through its own save. Focus stays
 // on the trigger, a select only combobox that names the active option, so the keys move
 // through the options without leaving it; a closed group, or one the page turned down in
-// this visit, can be reached but not chosen.
+// this visit, can be reached but not chosen. The menu is placed with floating-ui against
+// the viewport: above its trigger by preference, flipped below and shifted sideways when
+// a short screen has no room, and capped to the height there is, so it never clips. Its
+// fixed strategy also lets it escape the card's scrolling body.
 
 import {
   useCallback,
@@ -32,6 +35,7 @@ import type { Translate, TranslationKey } from '@/lib/i18n/t';
 import type { ChecklistRow } from '@/lib/regis/checklist';
 import type { KitFit, KitSeat } from '@/lib/regis/kitSchema';
 import { PartsLine, sectionParts } from './SectionTile';
+import { useHelperFloating } from './useHelperFloating';
 import { useOutsidePress } from './useOutsidePress';
 
 export interface SectionOption {
@@ -110,6 +114,9 @@ export interface SectionTrigger {
   open: boolean;
 }
 
+/** The tallest the menu grows, before the room on screen caps it lower. */
+const MAX_MENU_HEIGHT = 320;
+
 interface SectionListboxProps {
   subjectId: string;
   options: readonly SectionOption[];
@@ -140,6 +147,11 @@ export function SectionListbox({
   const [active, setActive] = useState(0);
   const listId = useId();
   const wrapperRef = useRef<HTMLSpanElement | null>(null);
+  const { setReference, setFloating, floatingStyles } = useHelperFloating(
+    open,
+    align === 'end' ? 'top-end' : 'top-start',
+    MAX_MENU_HEIGHT,
+  );
   const close = useCallback(() => {
     setOpen(false);
   }, []);
@@ -193,7 +205,7 @@ export function SectionListbox({
 
   const optionId = (index: number) => `${listId}-${String(index)}`;
   const label = fillTemplate(t('regis.pickSectionFor'), { subjectId });
-  // The menu opens upward inside the card, which rises from the bottom of the screen.
+  // The menu prefers to open upward, since the card rises from the bottom of the screen.
   return (
     <span
       ref={wrapperRef}
@@ -201,6 +213,7 @@ export function SectionListbox({
     >
       {children({
         props: {
+          ref: setReference,
           onClick: () => {
             setActive(chosenIndex);
             setOpen(!open);
@@ -216,9 +229,9 @@ export function SectionListbox({
       })}
       {open ? (
         <div
-          className={`kcp-scroll absolute bottom-full z-popover mb-1 max-h-80 overflow-y-auto rounded-kcp border border-border bg-surface py-1 text-ink shadow-kcp kcp-fade-in ${
-            align === 'end' ? 'right-0' : 'left-0'
-          } w-[296px] max-sm:w-[calc(100vw-60px)]`}
+          ref={setFloating}
+          style={floatingStyles}
+          className="kcp-scroll z-popover w-[296px] overflow-y-auto rounded-kcp border border-border bg-surface py-1 text-ink shadow-kcp kcp-fade-in max-sm:w-[calc(100vw-60px)]"
         >
           <p
             role="presentation"

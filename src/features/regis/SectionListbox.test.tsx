@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import {
+  cleanup,
+  waitFor,
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react';
 import { createTranslator } from '@/lib/i18n/t';
 import { toSnapshot } from '@/lib/planner/transaction';
 import {
@@ -92,5 +98,16 @@ describe('SectionListbox', () => {
     fireEvent.keyDown(trigger, { key: 'Enter' });
     expect(onChoose).toHaveBeenCalledWith(OPTIONS[1]);
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('floats against the viewport, capped to the room on screen', async () => {
+    const { trigger } = renderMenu();
+    fireEvent.click(trigger);
+    const panel = screen.getByRole('listbox').parentElement;
+    // A fixed menu escapes the card's scrolling body, and the size middleware caps it.
+    expect(panel?.style.position).toBe('fixed');
+    await waitFor(() => {
+      expect(panel?.style.maxHeight).toMatch(/px$/);
+    });
   });
 });

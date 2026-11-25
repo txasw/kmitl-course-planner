@@ -30,6 +30,7 @@ import { hideHelper, setCurrent, setView } from './helperStore';
 import { hostStore } from './host/hostStore';
 import { regisStore } from './regisStore';
 import { useAddAllBlock } from './useAddBlock';
+import { useHelperFloating } from './useHelperFloating';
 import type { HelperModel } from './useHelperModel';
 import { useOutsidePress } from './useOutsidePress';
 
@@ -180,8 +181,26 @@ export function HelperMoreMenu({
   const closeQuietly = useCallback(() => {
     setOpen(false);
   }, []);
-  // The menu sits in the card, which rises above the page, so it opens upward from the
-  // trigger.
+  // The menu hangs below the trigger at its end edge, over the card, and flips above it
+  // or shifts sideways when a short screen has no room there.
+  const { setReference, setFloating, floatingStyles } = useHelperFloating(
+    open,
+    'bottom-end',
+  );
+  const setTrigger = useCallback(
+    (node: HTMLButtonElement | null) => {
+      triggerRef.current = node;
+      setReference(node);
+    },
+    [setReference],
+  );
+  const setMenu = useCallback(
+    (node: HTMLDivElement | null) => {
+      menuRef.current = node;
+      setFloating(node);
+    },
+    [setFloating],
+  );
   useOutsidePress(wrapperRef, open, closeQuietly);
   useEffect(() => {
     if (!open) return;
@@ -199,7 +218,7 @@ export function HelperMoreMenu({
   return (
     <div ref={wrapperRef} className="relative">
       <button
-        ref={triggerRef}
+        ref={setTrigger}
         type="button"
         onClick={() => {
           setOpen(!open);
@@ -214,8 +233,9 @@ export function HelperMoreMenu({
       </button>
       {open ? (
         <div
-          ref={menuRef}
-          className="absolute right-0 bottom-full z-popover mb-1 min-w-44 rounded-kcp border border-border bg-surface p-1 shadow-kcp kcp-fade-in"
+          ref={setMenu}
+          style={floatingStyles}
+          className="kcp-scroll z-popover min-w-44 overflow-y-auto rounded-kcp border border-border bg-surface p-1 shadow-kcp kcp-fade-in"
         >
           <div
             id={menuId}
