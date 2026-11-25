@@ -5,7 +5,8 @@
 // once the health machine turns it off. The student's Check again
 // starts the reading over, and the health machine keeps it off once it is off. It sends
 // no request, stores nothing, and acts on nothing: a reading only updates the memory
-// store.
+// store. The helper names no plan until the page term is read, for at most TERM_WAIT_MS
+// on each arrival, so a page that never shows its header still gets a checklist.
 
 import { useEffect } from 'react';
 import { useStore } from 'zustand';
@@ -15,6 +16,9 @@ import { readHostPage, readScriptNames, type PageReading } from './hostDom';
 import { hostStore } from './hostStore';
 import { isSurrogateSession } from './surrogate';
 import { watchHostPage } from './watchPage';
+
+/** The longest the helper waits for the page term before it falls back to the active plan. */
+export const TERM_WAIT_MS = 15_000;
 
 function plannedKeyOf(subjectIds: readonly string[]): string {
   return [...new Set(subjectIds)].sort().join(' ');
@@ -34,7 +38,11 @@ export function useHostObserver(): void {
   // planned set or a Check again starts over and keeps the term the header showed.
   useEffect(() => {
     if (!onPage) return undefined;
+    const timer = window.setTimeout(() => {
+      hostStore.getState().endTermWait();
+    }, TERM_WAIT_MS);
     return () => {
+      window.clearTimeout(timer);
       hostStore.getState().leave();
     };
   }, [onPage]);

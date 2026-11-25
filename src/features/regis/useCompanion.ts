@@ -44,21 +44,38 @@ export type KitState = 'none' | 'stale' | 'fresh';
 export type PlanSource = 'helper' | 'active';
 
 /**
- * The plan the helper shows: of the page term when the page term is known, and never by
- * changing the planner's active plan. The active source ignores the page.
+ * The plan the helper shows: of the page term when the page term is known, none while a
+ * reading of the pre registration page may still bring it, and never by changing the
+ * planner's active plan. The active source ignores the page.
  */
 export function useHelperPlanPick(
   source: PlanSource = 'helper',
 ): HelperPlanPick {
   const plans = useStore(planStore, (state) => state.plans);
   const activePlanId = useStore(planStore, (state) => state.activePlanId);
+  const route = useCompanionRoute();
   const term = useStore(hostStore, (state) => state.term);
+  const off = useStore(hostStore, (state) => state.health.status === 'off');
+  const waitOver = useStore(hostStore, (state) => state.termWaitOver);
+  const lastTerm = useStore(hostStore, (state) => state.lastTerm);
   const picked = useStore(helperStore, (state) => state.planId);
-  const pageTerm = source === 'helper' ? term : null;
-  const pickedPlanId = source === 'helper' ? picked : null;
+  const helper = source === 'helper';
+  const pageTerm = helper ? term : null;
+  const termPending =
+    helper && route === 'preRegistration' && term === null && !off && !waitOver;
+  const pickedPlanId = helper ? picked : null;
+  const rememberedTerm = helper ? lastTerm : null;
   return useMemo(
-    () => pickHelperPlan({ plans, activePlanId, pageTerm, pickedPlanId }),
-    [plans, activePlanId, pageTerm, pickedPlanId],
+    () =>
+      pickHelperPlan({
+        plans,
+        activePlanId,
+        pageTerm,
+        termPending,
+        rememberedTerm,
+        pickedPlanId,
+      }),
+    [plans, activePlanId, pageTerm, termPending, rememberedTerm, pickedPlanId],
   );
 }
 

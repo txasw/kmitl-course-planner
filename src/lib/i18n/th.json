@@ -712,6 +712,9 @@
   "regis.reason.duplicate": "กลุ่ม {code} มีมากกว่าหนึ่งหลักสูตร เลือกกลุ่มของหลักสูตรตนเองในหน้าลงทะเบียน",
   "regis.addForMe.failed": "เพิ่มให้ไม่สำเร็จ",
   "regis.planGroup": "ตารางของภาค {term}",
+  "regis.readingTerm": "กำลังอ่านภาคการศึกษาจากหน้านี้",
+  "regis.planTerm": "ตาราง {term}",
+  "regis.planTermUnread": "ตารางของภาคการศึกษา {term} KCP ยังอ่านภาคการศึกษาของหน้านี้ไม่ได้",
   "regis.noPlanForTerm": "ยังไม่มีตารางของภาค {term}",
   "regis.noPlanForTermBody": "หน้านี้ลงทะเบียนภาคการศึกษา {term} สร้างตารางของภาคนี้แล้วเลือกวิชา รายการจะแสดงที่นี่",
   "regis.createPlanForTerm": "สร้างตาราง {term}"
