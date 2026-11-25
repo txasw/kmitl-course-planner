@@ -91,7 +91,8 @@ describe('the unreadable bar', () => {
     const bar = within(card).getByRole('button', {
       name: 'อ่านหน้าไม่ได้ ตรวจอีกครั้ง',
     });
-    expect(bar).toHaveTextContent('ตรวจอีกครั้ง');
+    // The visible words hold the same space as the name.
+    expect(bar.textContent).toBe('อ่านหน้าไม่ได้ ตรวจอีกครั้ง');
     const checks = hostStore.getState().checks;
     fireEvent.click(within(bar).getByText('อ่านหน้าไม่ได้'));
     expect(hostStore.getState().checks).toBe(checks + 1);
