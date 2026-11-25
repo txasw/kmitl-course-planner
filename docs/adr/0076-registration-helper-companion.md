@@ -177,3 +177,31 @@ build deferred land.
   does not recognise as a refusal, and rule 6 forbids reading or keeping a toast's free text. A
   closed section therefore reads as not accepted, and the section menu still shows a section closed
   at prepare time from the kit.
+
+## Amendment, 2026-11-25: the helper follows the page term, and presses in the closed root
+
+A student tested the helper on a phone and found it showing the plan of another term, and found
+that the more menu's items did nothing.
+
+- **Which plan.** The helper no longer shows the planner's active plan. While the page term is
+  known it shows a plan of that term: the one the student picked in the more menu on this visit,
+  else the active plan when it is of that term, else the most recently updated plan of that term
+  (`lib/regis/helperPlan.ts`). The term the header showed is kept in memory through readings that
+  drift, until the student leaves the page, and is dropped in a staff session. When the term has
+  more than one plan, the more menu opens with them as a group of radio items. When it has none,
+  the card says so and names the term, and its one button creates a plan of that term and opens
+  the planner on it. The helper never changes the active plan by itself; only that press does.
+  A backup section saved from the helper goes into the helper's plan, which changes without
+  becoming active and without an undo record. The prepare card in the planner keeps the active
+  plan. Until the page term is read, the helper shows the active plan as before.
+- **The active plan survives a reload.** The plan root carries an optional `activePlanId`, saved on
+  every switch, and a load reopens it while that plan exists. It needs no schema version bump: an
+  older root loads unchanged and an older build strips the key. Two open tabs still each write the
+  whole root, so the last tab to write wins, as it already did for the plans.
+- **Presses in the closed root.** The production build mounts in a closed shadow root, where a
+  document listener sees a press inside KCP retargeted to the shadow host. The helper's outside
+  press check now decides a press inside KCP with a listener on the shadow root, so a more menu item
+  or a section option no longer counts as outside and closes its menu before its click. The
+  planner's own menus with a toggling trigger use `usePanelDismiss`, which lets the trigger's press
+  count as inside. A production spec taps the closed root's nodes through the DevTools protocol at a
+  phone size with touch, since every other regis spec runs on the debug build's open root.
