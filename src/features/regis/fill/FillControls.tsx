@@ -23,6 +23,8 @@ import {
 import { fillGate } from '@/lib/regis/hostBuild';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
+import { focusFirst } from '@/features/shell/restoreFocus';
+import { focusIsLost } from '@/features/shell/useFocusTrap';
 import { STOP_ID } from '../helperStore';
 import { readScriptNames } from '../host/hostDom';
 import { regisStore } from '../regisStore';
@@ -137,6 +139,8 @@ interface AddForMeProps extends FillProps {
   allowFull: boolean;
   /** Show the plus icon alone, for a list row, with the label as its name. */
   compact?: boolean;
+  /** Called on a counted press before the run starts, to put the card in view. */
+  onStart?: () => void;
   t: Translate;
 }
 
@@ -151,12 +155,14 @@ export function AddForMeButton({
   kit,
   allowFull,
   compact = false,
+  onStart,
   t,
 }: AddForMeProps) {
   const label = t('regis.addForMe');
   const items = itemsFor([row], plan, kit);
   const full = allowFull ? [row.subjectId] : [];
   const onPress = (press: StudentPress) => {
+    onStart?.();
     void startFill(press, {
       plan,
       kit,
@@ -276,6 +282,13 @@ export function RunProgress({
 }) {
   const step = STEP_OF[run.step];
   const stepOf = fillTemplate(t('regis.stepOf'), { n: step });
+  // Stop takes the place of the Add for me that started the run, or of the list row that
+  // did, so it takes the focus that control dropped; focus held anywhere else stays.
+  const stopRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const node = stopRef.current;
+    if (node !== null && focusIsLost(node)) focusFirst([node]);
+  }, []);
   return (
     <>
       <div
@@ -307,6 +320,7 @@ export function RunProgress({
         </span>
       </div>
       <button
+        ref={stopRef}
         type="button"
         id={STOP_ID}
         onClick={requestStop}
