@@ -31,7 +31,8 @@ import { useTranslation } from './useTranslation';
 // focus returns here when the overlay closes. It sits outside the overlay root,
 // so it carries the panel language itself rather than inheriting the host
 // document's. It keeps its 20 px offset from the corner, or the device safe area
-// inset where that is larger. It is a fully rounded pill in the strong primary
+// inset where that is larger, from the corner of the part of the page on screen on a
+// helper page (HelperViewport). It is a fully rounded pill in the strong primary
 // colour, 48 px tall at least, and lifts 2 px on hover and keyboard focus through a
 // transform only, since one shadow level serves the overlay and popovers. The lift and
 // its transition apply only without a reduced motion preference. Until the panel first
@@ -110,7 +111,7 @@ function useCompanionFace(open: boolean) {
   return { face, name };
 }
 
-const LAUNCHER_CLASS = `fixed right-[max(20px,var(--kcp-safe-right))] bottom-[max(20px,var(--kcp-safe-bottom))] z-host ${LAUNCHER_BOX} bg-primary-strong text-white shadow-kcp hover:bg-primary-hover motion-safe:transition-[translate,background-color] motion-safe:duration-fast motion-safe:ease-out motion-safe:hover:-translate-y-0.5 motion-safe:focus-visible:-translate-y-0.5 ${FOCUS_OUTLINE}`;
+const LAUNCHER_CLASS = `fixed right-[calc(max(20px,var(--kcp-safe-right))_+_var(--kcp-visible-right,0px))] bottom-[calc(max(20px,var(--kcp-safe-bottom))_+_var(--kcp-visible-bottom,0px))] z-host ${LAUNCHER_BOX} bg-primary-strong text-white shadow-kcp hover:bg-primary-hover motion-safe:transition-[translate,background-color] motion-safe:duration-fast motion-safe:ease-out motion-safe:hover:-translate-y-0.5 motion-safe:focus-visible:-translate-y-0.5 ${FOCUS_OUTLINE}`;
 
 // The welcome decision counts as part of the load, so the ring never starts in the
 // moment before a welcome opens over it and then plays a second time after it closes.

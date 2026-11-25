@@ -82,3 +82,50 @@ export function bandBehind(
 export function sameInset(a: ViewportInset, b: ViewportInset): boolean {
   return a.top === b.top && a.bottom === b.bottom;
 }
+
+/** The four edges of the box a fixed layer resolves against, in client pixels. */
+export interface LayoutBox extends LayoutBand {
+  left: number;
+  right: number;
+}
+
+/** The visual viewport fields the four sided inset reads. */
+export interface VisualViewportRect extends VisualViewportBox {
+  offsetLeft: number;
+  width: number;
+}
+
+/** How far the visible part of the page sits inside the layout viewport on each side. */
+export interface ViewportEdges {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+export const NO_EDGES: ViewportEdges = { top: 0, right: 0, bottom: 0, left: 0 };
+
+/**
+ * The band on each side of the visual viewport inside the layout viewport. A phone browser
+ * grows the layout viewport past the screen when a page is wider than the screen, and a
+ * fixed layer pinned to its bottom right corner then sits off screen; a layer that adds
+ * these edges to its offsets stays in the part of the page on screen. A pinch zoom reports
+ * none, as for the top and bottom inset.
+ */
+export function visibleEdges(
+  layout: LayoutBox,
+  viewport: VisualViewportRect,
+): ViewportEdges {
+  if (Math.abs(viewport.scale - 1) > SCALE_TOLERANCE) {
+    return NO_EDGES;
+  }
+  const { top, bottom } = viewportInset(layout, viewport);
+  const left = Math.max(0, Math.floor(viewport.offsetLeft - layout.left));
+  const right = Math.max(
+    0,
+    Math.floor(layout.right - viewport.offsetLeft - viewport.width),
+  );
+  return top === 0 && right === 0 && bottom === 0 && left === 0
+    ? NO_EDGES
+    : { top, right, bottom, left };
+}
