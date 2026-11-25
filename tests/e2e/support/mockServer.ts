@@ -205,7 +205,14 @@ export async function startMockServer(): Promise<MockServer> {
           // A synthetic catalog of overlapping and multi section courses the block
           // move and swap specs need, served for one reserved subject id so no other
           // spec sees it.
-          if (url.searchParams.get('selected_subject_id') === '90000000') {
+          // The prepare action reads each planned synthetic subject by its own id, so a
+          // read for 90000001 to 90000009 gets the same synthetic catalog, which holds it.
+          if (
+            url.searchParams.get('selected_subject_id') === '90000000' ||
+            /^9000000[1-9]$/.test(
+              url.searchParams.get('selected_subject_id') ?? '',
+            )
+          ) {
             sendJson(
               freshSynthetic
                 ? 'synthetic.block-interactions.fresh.json'

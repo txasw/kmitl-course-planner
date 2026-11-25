@@ -131,3 +131,56 @@ export async function planWithKit(
     },
   );
 }
+
+/**
+ * Plans synthetic sections on the search page and stores no kit, as a student who never
+ * pressed prepare has it, and returns the plan's term and each subject's planned section.
+ */
+export async function planWithoutKit(
+  page: Page,
+  serviceWorker: Worker,
+  subjectIds: readonly string[],
+): Promise<PlannedKit> {
+  await syntheticSearch(page);
+  for (const subjectId of subjectIds) await addCourse(page, subjectId);
+  await expect(page.locator('[data-teach-table-id]')).toHaveCount(
+    subjectIds.length,
+  );
+  // Autosave debounces at 300 ms.
+  await page.waitForTimeout(500);
+  return serviceWorker.evaluate(async (root) => {
+    // Test only: the debug extension worker carries the storage global above.
+    const { local } = (globalThis as unknown as WorkerStorage).chrome.storage;
+    const plan = (await local.get(root))[root]?.plans[0];
+    if (plan === undefined) throw new Error('no plan');
+    return {
+      term: { year: plan.year, semester: plan.semester },
+      sections: Object.fromEntries(
+        plan.entries.map((entry) => [entry.subjectId, entry.section]),
+      ),
+    };
+  }, ROOT_KEY);
+}
+
+/** The kits the prepare action stored, by plan id, read from the worker's storage. */
+export async function storedKitPlans(serviceWorker: Worker): Promise<string[]> {
+  return serviceWorker.evaluate(async (regkit) => {
+    // Test only: the debug extension worker carries the storage global above.
+    const { local } = (
+      globalThis as unknown as {
+        chrome: {
+          storage: {
+            local: {
+              get(
+                key: string,
+              ): Promise<Record<string, { items: { planId: string }[] }>>;
+            };
+          };
+        };
+      }
+    ).chrome.storage;
+    return ((await local.get(regkit))[regkit]?.items ?? []).map(
+      (item) => item.planId,
+    );
+  }, REGKIT_KEY);
+}
