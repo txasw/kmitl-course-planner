@@ -321,3 +321,23 @@ export function plannedSections(subject: KitSubject): SectionSnapshot[] {
   const ids = new Set(subject.plannedIds);
   return subject.sections.filter((section) => ids.has(section.teachTableId));
 }
+
+/** The conditions printed for a section group, each once, in one language. */
+export function groupConditions(
+  sections: readonly SectionSnapshot[],
+  field: 'rulesTh' | 'rulesEn',
+): string[] {
+  const rules = sections
+    .map((section) => section[field].trim())
+    .filter((rule) => rule !== '');
+  return [...new Set(rules)];
+}
+
+/** The 8 digit subject ids a condition names, each once, in the order they appear. */
+export function conditionIds(conditions: readonly string[]): string[] {
+  return [
+    ...new Set(
+      conditions.flatMap((rule) => rule.match(/(?<!\d)\d{8}(?!\d)/g) ?? []),
+    ),
+  ];
+}
