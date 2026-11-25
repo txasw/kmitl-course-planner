@@ -164,3 +164,47 @@ set or a Check again starts the reading over and keeps it. A page of another ter
 helper's plan can then only arise before the term is read, so the term mismatch state stays as a
 guard rather than the usual answer. On a host build outside the tested list the term is not read,
 and the helper shows the active plan.
+
+## Amendment, 2026-11-25: the polling route of app.a1e43722, and a bound on readings
+
+**Tested builds.** The host deployed `app.a1e43722.js` on 2026-11-25 at 09:53 GMT beside the same
+`chunk-vendors.7ab4925e.js`. Compared with both tested builds with the minified names normalised,
+the add subject card, the stepper, the panel, the complete, consent, and flow chart steps, the
+grade not announced dialog with its one acknowledgement, every host label in the contract, every
+reference to a registration write endpoint, and the surrogate key are the same, so the pair joins
+the tested list under the exact two name gate of ruling 20A. The `PreRegistration` route around the
+panel changed in three ways. A `RegistrationHeader` replaces the card title with an h1 and a
+subtitle h2 of the semester over the year, which the card search passes over because its text is
+not a heading label. A `RegistrationPeriods` section above the panel shows the period's dates and a
+countdown that rewrites its digits every second. And the period flags, which the route reads to
+decide whether the panel is mounted, are now set by a check of `check-registration-datetime` that
+runs every 60 s, on a window focus, on a visibility change, and when the countdown passes a
+boundary, so the panel can unmount and mount again while the page stays open, with no navigation.
+
+**The bound on readings.** Before this build only a navigation could add or remove the panel, and
+while it was absent the observer watched the whole app root for text and attribute changes. The
+countdown would have read the page once a second for as long as it stayed open, so the watch now
+lives in `features/regis/host/watchPage.ts` with a stated bound. While the last reading found none
+of the anchors, the watch sees only elements added or removed under the app root, and two readings
+are at least 1000 ms apart, so text the page rewrites in place reads nothing and no change of the
+page can read it more than once a second. While the panel shows, the watch keeps to the panel's
+subtree, the children of each of its ancestors up to the app root, the app root's children, each
+dialog's class, and the toast container, with a reading 150 ms after they settle; the countdown
+sits outside all of them. Unit tests on fake timers hold the countdown at no reading over thirty
+seconds on either side of the panel, and a page that adds an element every 200 ms at no more than
+one reading a second.
+
+**The panel leaving.** The ancestors' children are watched so that the host removing the panel from
+its card, which changes no child of the app root when no dialog was ever opened, is read at once.
+The reading is absent, which the health machine treats as waiting, not as drift: each subject
+reads as not added, since no list is on the page, the helper offers no live Add for me since the
+page is not on the choose subjects step, and nothing is acted on. When the period opens again the panel mounts from
+its own empty data, and the next reading after the gap reads it with no navigation and no press.
+
+**Replica.** Served under the script name `app.a1e43722.js`, the replica renders that build's route
+around the panel from its render functions: the route card, the header, the periods with a
+countdown patched in place, the panel or the page info, a period change that unmounts the panel
+with its dialogs or mounts it again from empty data with the add card loading, and a period check
+stub that fires a GET every few seconds, on a focus, and on a visibility change. The stub's address
+sits off the API path, so the mock server's API call log still lists the extension's requests only.
+The older script names keep the bare panel.
