@@ -612,6 +612,7 @@
   "regis.prepareFailedShort": "The data could not be read",
   "regis.prepareInHelper": "On this page, prepare from the checklist. Close the planner and press Prepare data in the checklist.",
   "regis.preparing": "Reading subject {done} of {total}",
+  "regis.preparingOther": "Another plan is being prepared",
   "regis.prepareCancelled": "Preparing stopped. The earlier data is kept.",
   "regis.prepareFailed": "The data could not be read. Try again later.",
   "regis.prepareDone": "Registration data prepared",

@@ -612,6 +612,7 @@
   "regis.prepareFailedShort": "อ่านข้อมูลไม่สำเร็จ",
   "regis.prepareInHelper": "หน้านี้เตรียมข้อมูลได้จากเช็กลิสต์ ปิดตารางแล้วกด เตรียมข้อมูล ในเช็กลิสต์",
   "regis.preparing": "กำลังอ่านวิชา {done} จาก {total}",
+  "regis.preparingOther": "กำลังเตรียมข้อมูลของตารางอื่นอยู่",
   "regis.prepareCancelled": "หยุดเตรียมแล้ว ข้อมูลเดิมยังอยู่",
   "regis.prepareFailed": "อ่านข้อมูลไม่สำเร็จ ลองอีกครั้งภายหลัง",
   "regis.prepareDone": "เตรียมข้อมูลลงทะเบียนแล้ว",
