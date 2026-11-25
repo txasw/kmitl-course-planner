@@ -75,11 +75,15 @@ function useCompanionFace(open: boolean) {
   const { t } = useTranslation();
   const model = useHelperModel();
   const busy = model.run.status === 'running';
-  const complete = model.total > 0 && model.done === model.total;
+  // A plan the helper shows without having read the page term may be of another term, and
+  // folded on a phone the launcher has no room for the card's label of that plan's term,
+  // so it shows a count only for a plan of the term read from the page.
+  const confirmed = model.pick.kind === 'plan' && model.pick.confirmed;
+  const complete = confirmed && model.total > 0 && model.done === model.total;
   // While the card is open its header carries the count, so the launcher names the
   // checklist alone and the same count never shows twice.
   const progress =
-    model.total === 0 || open
+    model.total === 0 || open || !confirmed
       ? t('regis.launcherEmpty')
       : fillTemplate(t('regis.launcher'), {
           done: model.done,

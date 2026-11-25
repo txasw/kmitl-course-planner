@@ -185,6 +185,38 @@ describe('the helper before the page term is read', () => {
     const label = card.querySelector('[data-helper-plan-term]');
     expect(label).toHaveTextContent('ตาราง 1/2569');
   });
+
+  it('shows no count on the folded launcher for a plan of an unread term', () => {
+    renderOn([SEM1, SEM2], 'sem1', null);
+    act(() => {
+      hostStore.getState().endTermWait();
+    });
+    const launcher = screen.getByRole('button', { name: /^เช็กลิสต์/ });
+    fireEvent.click(launcher);
+    expect(launcher).toHaveAttribute('aria-expanded', 'false');
+    expect(launcher).not.toHaveTextContent('/');
+    expect(launcher).toHaveAccessibleName('เช็กลิสต์');
+    // Once the page term is read, the launcher counts the plan of that term.
+    act(() => {
+      hostStore.getState().record(
+        { surrogate: false, testedBuild: true },
+        {
+          reading: 'ok',
+          observation: {
+            step: 2,
+            term: TERM2,
+            card: null,
+            list: [],
+            credits: null,
+            dialog: null,
+            toasts: [],
+            results: null,
+          },
+        },
+      );
+    });
+    expect(launcher).toHaveTextContent('0/1');
+  });
 });
 
 describe('the helper on a page of another term than the active plan', () => {
