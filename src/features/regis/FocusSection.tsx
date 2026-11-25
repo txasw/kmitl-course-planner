@@ -5,7 +5,7 @@
 // section offers to use that section in the plan; a settled subject offers nothing. When
 // a fill stops on the subject, the reason and what to do next sit under the row.
 
-import { useId } from 'react';
+import { useId, type ReactNode } from 'react';
 import { useStore } from 'zustand';
 import { Hourglass, Layers, ShieldAlert } from 'lucide-react';
 import { Pill } from '@/components/Pill';
@@ -47,6 +47,8 @@ import type { HelperModel } from './useHelperModel';
 export const STALE_TEXT_ID = 'kcp-regis-stale';
 
 interface FocusSectionProps {
+  /** The queue of chips, which scrolls with the band and the body. */
+  queue: ReactNode;
   model: HelperModel;
   row: ChecklistRow;
   status: HelperStatus;
@@ -74,6 +76,7 @@ function codesOf(option: { sections: readonly { section: string }[] }) {
 }
 
 export function FocusSection({
+  queue,
   model,
   row,
   status,
@@ -148,51 +151,54 @@ export function FocusSection({
   );
 
   return (
-    <div className="flex flex-col">
-      <div
-        className={`flex min-h-10 items-center gap-2 border-t px-3 py-2 text-sm font-semibold transition-colors motion-reduce:transition-none ${
-          stale ? STALE_FILL : TONE_FILL[tone]
-        }`}
-      >
-        <StatusIcon
-          status={status}
-          size={18}
-          className={
-            stale
-              ? 'text-ink-muted'
-              : tone === 'neutral' || tone === 'busy'
-                ? TONE_ICON[tone]
-                : ''
-          }
-        />
-        <span>{t(bandKey(status))}</span>
-      </div>
-      <div className="flex items-center gap-3 p-3">
-        {pickable ? (
-          listbox('start', (trigger) => (
-            <SectionTile
-              subjectId={id}
-              parts={parts}
-              trigger={{
-                ...trigger,
-                label: `${partsText(parts)}, ${t('regis.pickSection')}`,
-              }}
-            />
-          ))
-        ) : (
-          <SectionTile subjectId={id} parts={parts} />
-        )}
-        <div className="flex min-w-0 flex-1 flex-col">
-          <span className="text-sm font-semibold text-ink tabular-nums">
-            {id}
-          </span>
-          <span className="text-sm text-ink-soft">{name}</span>
-          <Pills
-            row={row}
+    <>
+      <div className="kcp-scroll flex min-h-0 flex-1 flex-col overflow-y-auto kcp-fade-in">
+        {queue}
+        <div
+          className={`flex shrink-0 min-h-10 items-center gap-2 border-t px-3 py-2 text-sm font-semibold transition-colors motion-reduce:transition-none ${
+            stale ? STALE_FILL : TONE_FILL[tone]
+          }`}
+        >
+          <StatusIcon
             status={status}
-            prerequisites={prerequisites}
-            t={t}
+            size={18}
+            className={
+              stale
+                ? 'text-ink-muted'
+                : tone === 'neutral' || tone === 'busy'
+                  ? TONE_ICON[tone]
+                  : ''
+            }
           />
+          <span>{t(bandKey(status))}</span>
+        </div>
+        <div className="flex shrink-0 items-center gap-3 p-3">
+          {pickable ? (
+            listbox('start', (trigger) => (
+              <SectionTile
+                subjectId={id}
+                parts={parts}
+                trigger={{
+                  ...trigger,
+                  label: `${partsText(parts)}, ${t('regis.pickSection')}`,
+                }}
+              />
+            ))
+          ) : (
+            <SectionTile subjectId={id} parts={parts} />
+          )}
+          <div className="flex min-w-0 flex-1 flex-col">
+            <span className="text-sm font-semibold text-ink tabular-nums">
+              {id}
+            </span>
+            <span className="text-sm text-ink-soft">{name}</span>
+            <Pills
+              row={row}
+              status={status}
+              prerequisites={prerequisites}
+              t={t}
+            />
+          </div>
         </div>
       </div>
       {swap !== null && kit !== null && plan !== null ? (
@@ -251,7 +257,7 @@ export function FocusSection({
           {t(`regis.fill.stop.${stopped.reason}`)}
         </p>
       )}
-    </div>
+    </>
   );
 }
 
