@@ -117,11 +117,17 @@ export function useShowCondition(subjectId: string | null): void {
   }, [subjectId]);
 }
 
+/** Whether this host build allows fill: tested, and with no refusal latched for it. */
+export function useFillBuildGate(): StopReason | 'ok' {
+  const latched = useStore(regisStore, (state) => state.fill.latched);
+  return fillGate(readScriptNames(document), latched);
+}
+
 /** Whether fill can act here: switched on and allowed on this host build. */
 export function useFillGate(): StopReason | 'ok' | 'off' {
-  const fill = useStore(regisStore, (state) => state.fill);
-  if (fill.off) return 'off';
-  return fillGate(readScriptNames(document), fill.latched);
+  const off = useStore(regisStore, (state) => state.fill.off);
+  const build = useFillBuildGate();
+  return off ? 'off' : build;
 }
 
 interface AddForMeProps extends FillProps {
