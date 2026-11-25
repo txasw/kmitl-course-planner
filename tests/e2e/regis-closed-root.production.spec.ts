@@ -3,6 +3,7 @@ import { REGIS_ORIGIN } from '../../src/lib/shell/hostTab';
 import { REGKIT_KEY, ROOT_KEY } from '../../src/lib/storage/keys';
 import {
   ClosedRoot,
+  type Box,
   attr,
   roleNamed,
   textOf,
@@ -205,6 +206,32 @@ async function expectNothingForbidden(page: Page): Promise<void> {
   });
 }
 
+/** The part of the page the screen shows, in the page's client pixels. */
+function onScreen(page: Page): Promise<Box> {
+  return page.evaluate(() => {
+    const view = window.visualViewport;
+    if (view === null) throw new Error('no visual viewport');
+    return {
+      left: view.offsetLeft,
+      top: view.offsetTop,
+      right: view.offsetLeft + view.width,
+      bottom: view.offsetTop + view.height,
+    };
+  });
+}
+
+/** A tap lands on any box, shown or not, so a box is checked to lie on screen. */
+async function expectOnScreen(page: Page, box: Box, what: string) {
+  const screen = await onScreen(page);
+  expect(
+    box.left >= screen.left - 1 &&
+      box.top >= screen.top - 1 &&
+      box.right <= screen.right + 1 &&
+      box.bottom <= screen.bottom + 1,
+    `${what} ${JSON.stringify(box)} lies on screen ${JSON.stringify(screen)}`,
+  ).toBe(true);
+}
+
 const moreTrigger = withAttr('aria-label', 'เพิ่มเติม');
 const menuItem = (words: string) => roleNamed('menuitem', words);
 const sectionTrigger = (node: DomNode) =>
@@ -311,6 +338,49 @@ test('Check again on the bar and in the more menu reads a drifted page anew', as
   expect(await root.find(menuItem('ตรวจอีกครั้ง'))).toBeNull();
   await expectNothingForbidden(page);
   expect(mock.apiCalls()).toEqual([]);
+});
+
+test('the card and the launcher stay on screen, also on a page wider than the phone', async ({
+  context,
+  mock,
+  serviceWorker,
+}) => {
+  test.setTimeout(150_000);
+  const seeded = await seedThroughDebug(mock);
+  await store(serviceWorker, seeded.blobs);
+  for (const query of ['', '?wide']) {
+    const { page, root } = await openReplica(
+      context,
+      seeded,
+      seeded.term,
+      query,
+    );
+    // The replica fits the phone as the host does, and grows past it when asked, when
+    // the browser grows the layout viewport the fixed layers resolve against with it.
+    const widths = await page.evaluate(() => [
+      document.documentElement.scrollWidth,
+      window.innerWidth,
+    ]);
+    expect(widths.map((width) => width > PHONE.width)).toEqual(
+      query === '' ? [false, false] : [true, true],
+    );
+    await expectOnScreen(page, await root.box(card, 'helper card'), 'card');
+    const launcher = withAttr('id', 'kcp-launcher');
+    await expectOnScreen(
+      page,
+      await root.box(launcher, 'launcher'),
+      'launcher',
+    );
+    // Collapsed, the launcher stays where the student can press it again.
+    await root.tap(launcher, 'launcher');
+    await root.waitGone(card, 'helper card');
+    await expectOnScreen(
+      page,
+      await root.box(launcher, 'launcher'),
+      'launcher',
+    );
+    await expectNothingForbidden(page);
+  }
 });
 
 test('making a plan for a page term with none opens the planner on a tap', async ({
