@@ -1,6 +1,6 @@
 // Which plan the registration helper shows. The helper follows the term the page
-// registers, not the planner's active plan: the active plan when it is of that term, else
-// the plan of that term the student picked on this visit, else the one most recently
+// registers, not the planner's active plan: the plan of that term the student picked on
+// this visit, else the active plan when it is of that term, else the one most recently
 // updated. Choosing never changes the planner's active plan. While the page term is not
 // known the helper falls back to the active plan, as before.
 
