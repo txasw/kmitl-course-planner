@@ -14,6 +14,7 @@ import {
   CARD_ID,
   COUNT_ID,
   helperStore,
+  markReady,
   setCollapsed,
 } from '@/features/regis/helperStore';
 import { useCompanionRoute } from '@/features/regis/useCompanion';
@@ -193,7 +194,8 @@ function CompanionLauncher() {
   const covered = useCovered();
   const collapsed = useStore(helperStore, (state) => state.collapsed);
   const hidden = useStore(helperStore, (state) => state.hidden);
-  const open = !collapsed && !covered;
+  const ready = useStore(helperStore, (state) => state.ready);
+  const open = !collapsed && ready && !covered;
   const { face, name } = useCompanionFace(open);
   const { language } = useTranslation();
   if (hidden) return null;
@@ -209,6 +211,7 @@ function CompanionLauncher() {
         const root = rootOf(event.currentTarget);
         commitThenFocus(
           () => {
+            markReady();
             setCollapsed(false);
           },
           () => [root?.getElementById(COUNT_ID)],

@@ -16,6 +16,8 @@ export const COUNT_ID = 'kcp-regis-count';
 export type HelperView = 'card' | 'list';
 
 export interface HelperVisitState {
+  /** Whether the visit's card may open: the first page reading came, or the wait ran out. */
+  ready: boolean;
   collapsed: boolean;
   /** Hidden on this page, launcher and all, until the next visit. */
   hidden: boolean;
@@ -30,6 +32,7 @@ export interface HelperVisitState {
 }
 
 const FRESH: HelperVisitState = {
+  ready: false,
   collapsed: false,
   hidden: false,
   view: 'card',
@@ -43,6 +46,10 @@ export const helperStore = createStore<HelperVisitState>()(() => FRESH);
 
 export function startVisit(): void {
   helperStore.setState(FRESH);
+}
+
+export function markReady(): void {
+  if (!helperStore.getState().ready) helperStore.setState({ ready: true });
 }
 
 export function setCollapsed(collapsed: boolean): void {

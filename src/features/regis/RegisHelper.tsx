@@ -1,25 +1,52 @@
 // The registration helper on the two student registration pages (ADR-0076): the card
 // and the one live region that announces what changes on it. Each arrival on a helper
 // page starts a visit, so the card opens expanded every time (owner answer 5B), and the
-// card stays out of the way while the planner overlay is open. The live region is the
-// only source of the helper's announcements; nothing is read out when the card opens on
-// its own.
+// card stays out of the way while the planner overlay is open. On the pre registration
+// page the card waits for the observer's first reading, up to half a second, so it never
+// opens on a status it is about to change; on the registration page, which KCP does not
+// read, it opens at once. The live region is the only source of the helper's
+// announcements; nothing is read out when the card opens on its own.
 
 import { useEffect } from 'react';
 import { useStore } from 'zustand';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { HelperCard } from './HelperCard';
-import { announce, helperStore, startVisit } from './helperStore';
+import { hostStore } from './host/hostStore';
+import { announce, helperStore, markReady, startVisit } from './helperStore';
+import type { CompanionRoute } from '@/lib/regis/route';
 import { useCompanionRoute } from './useCompanion';
 import { useHelperAnnouncements } from './useHelperAnnouncements';
 import { useHelperModel } from './useHelperModel';
+
+/** The longest the card waits for the first page reading before it opens anyway. */
+export const FIRST_READING_MS = 500;
+
+function useFirstReading(route: CompanionRoute | null, ready: boolean): void {
+  useEffect(() => {
+    if (route === null || ready) return undefined;
+    const read = () => hostStore.getState().health.status !== 'waiting';
+    if (route !== 'preRegistration' || read()) {
+      markReady();
+      return undefined;
+    }
+    const unsubscribe = hostStore.subscribe(() => {
+      if (read()) markReady();
+    });
+    const timer = window.setTimeout(markReady, FIRST_READING_MS);
+    return () => {
+      unsubscribe();
+      window.clearTimeout(timer);
+    };
+  }, [route, ready]);
+}
 
 export function RegisHelper() {
   const route = useCompanionRoute();
   const overlayOpen = useStore(uiStore, (state) => state.isOpen);
   const collapsed = useStore(helperStore, (state) => state.collapsed);
   const hidden = useStore(helperStore, (state) => state.hidden);
+  const ready = useStore(helperStore, (state) => state.ready);
   const announcement = useStore(helperStore, (state) => state.announcement);
   const model = useHelperModel();
   const { t } = useTranslation();
@@ -29,6 +56,7 @@ export function RegisHelper() {
   useEffect(() => {
     if (route !== null) startVisit();
   }, [route]);
+  useFirstReading(route, ready);
   useEffect(() => {
     if (hidden) announce(t('regis.hidden'));
   }, [hidden, t]);
@@ -36,7 +64,7 @@ export function RegisHelper() {
   if (route === null) return null;
   return (
     <>
-      {overlayOpen || collapsed ? null : <HelperCard model={model} />}
+      {overlayOpen || collapsed || !ready ? null : <HelperCard model={model} />}
       <p aria-live="polite" aria-atomic="true" className="sr-only">
         {announcement.text}
       </p>
