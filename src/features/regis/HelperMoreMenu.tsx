@@ -105,6 +105,7 @@ function AddAllItem({
   onDone: () => void;
   t: Translate;
 }) {
+  const labelId = useId();
   const reasonId = useId();
   const order = model.checklist?.rows ?? [];
   const ids = new Set(
@@ -148,8 +149,9 @@ function AddAllItem({
       role="menuitem"
       tabIndex={-1}
       aria-disabled="true"
-      // The reason under the label is its description, not part of its name.
-      aria-label={label}
+      // The label alone is its name and the reason under it its description, so the name
+      // is the visible label and the reason is read after it.
+      aria-labelledby={labelId}
       aria-describedby={reasonId}
       onClick={() => {
         toastStore.getState().show('error', reason);
@@ -158,7 +160,7 @@ function AddAllItem({
     >
       {icon}
       <span className="flex min-w-0 flex-col">
-        <span>{label}</span>
+        <span id={labelId}>{label}</span>
         <span id={reasonId} className="text-xs text-ink-soft">
           {reason}
         </span>
