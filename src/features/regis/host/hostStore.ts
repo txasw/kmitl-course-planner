@@ -6,6 +6,7 @@
 
 import { createStore } from 'zustand/vanilla';
 import type { ObservedPage } from '@/lib/regis/observedRow';
+import type { Term } from '@/lib/routing/academicTerms';
 import {
   INITIAL_HEALTH,
   nextHealth,
@@ -18,19 +19,31 @@ import type { PageReading } from './hostDom';
 export interface HostState {
   health: ObserverHealth;
   page: ObservedPage | null;
+  /**
+   * The term the page header last showed in this document. The host fixes the term when
+   * the page mounts, so it outlives a later reading that drifts or degrades, and the helper
+   * keeps following it; leaving the page forgets it.
+   */
+  term: Term | null;
   conditional: Readonly<Record<string, readonly string[]>>;
   /** How many times the student asked for the page to be read again. */
   checks: number;
   record: (gate: Gate, reading: PageReading) => void;
   /** Read the page again now, as the helper's Check again asks; a drift off reads anew. */
   recheck: () => void;
-  /** Forget the page when the student leaves it; an off state lasts the document. */
+  /**
+   * Start the reading over, as a new planned set or a Check again does: the page is
+   * dropped and a health short of off starts again, while the term the header showed stays.
+   */
+  restart: () => void;
+  /** Forget the page and its term when the student leaves it; an off state lasts the document. */
   leave: () => void;
 }
 
 export const hostStore = createStore<HostState>()((set, get) => ({
   health: INITIAL_HEALTH,
   page: null,
+  term: null,
   conditional: {},
   checks: 0,
   recheck: () => {
@@ -38,8 +51,14 @@ export const hostStore = createStore<HostState>()((set, get) => ({
   },
   record: (gate, reading) => {
     const health = nextHealth(get().health, gate, reading.reading);
+    // A surrogate session is not the student's own registration, so its term is dropped.
+    const term = gate.surrogate
+      ? null
+      : reading.reading === 'ok'
+        ? (reading.observation.term ?? get().term)
+        : get().term;
     if (health.status !== 'healthy' || reading.reading !== 'ok') {
-      set({ health, page: null });
+      set({ health, term, page: null });
       return;
     }
     const { observation } = reading;
@@ -51,13 +70,17 @@ export const hostStore = createStore<HostState>()((set, get) => ({
             [subjectId]: observation.dialog.prerequisites,
           }
         : get().conditional;
-    set({ health, conditional, page: { observation, conditional } });
+    set({ health, term, conditional, page: { observation, conditional } });
   },
-  leave: () => {
+  restart: () => {
     const { health } = get();
     set({
       page: null,
       health: health.status === 'off' ? health : INITIAL_HEALTH,
     });
+  },
+  leave: () => {
+    get().restart();
+    set({ term: null });
   },
 }));

@@ -13,13 +13,14 @@ import type { RegistrationKit } from '@/lib/regis/kitSchema';
 import { deriveChecklist, type Checklist } from '@/lib/regis/checklist';
 import type { ObserverHealth } from '@/lib/regis/observerHealth';
 import type { Term } from '@/lib/routing/academicTerms';
+import { pickHelperPlan, type HelperPlanPick } from '@/lib/regis/helperPlan';
 import { planStore } from '@/features/plans/planStore';
-import { activePlanOf } from '@/features/plans/planStoreState';
 import { readLocationHash } from '@/features/shell/hostLocation';
 import { uiStore } from '@/features/shell/uiStore';
 import { subscribeHashRoute } from '@/features/search/useHashRoute';
 import { regisStore } from './regisStore';
 import { hostStore } from './host/hostStore';
+import { helperStore } from './helperStore';
 
 function currentCompanionRoute(): CompanionRoute | null {
   return companionRoute(readLocationHash());
@@ -36,7 +37,34 @@ export function useCompanionRoute(): CompanionRoute | null {
 
 export type KitState = 'none' | 'stale' | 'fresh';
 
+/**
+ * Which plan a view follows: the helper's, of the term the page registers, or the
+ * planner's active plan, as the prepare card in the planner does.
+ */
+export type PlanSource = 'helper' | 'active';
+
+/**
+ * The plan the helper shows: of the page term when the page term is known, and never by
+ * changing the planner's active plan. The active source ignores the page.
+ */
+export function useHelperPlanPick(
+  source: PlanSource = 'helper',
+): HelperPlanPick {
+  const plans = useStore(planStore, (state) => state.plans);
+  const activePlanId = useStore(planStore, (state) => state.activePlanId);
+  const term = useStore(hostStore, (state) => state.term);
+  const picked = useStore(helperStore, (state) => state.planId);
+  const pageTerm = source === 'helper' ? term : null;
+  const pickedPlanId = source === 'helper' ? picked : null;
+  return useMemo(
+    () => pickHelperPlan({ plans, activePlanId, pageTerm, pickedPlanId }),
+    [plans, activePlanId, pageTerm, pickedPlanId],
+  );
+}
+
 export interface CompanionView {
+  /** Which plan the helper follows, or why it has none. */
+  pick: HelperPlanPick;
   plan: Plan | null;
   /** The plan's kit as stored, fresh or not, for its prepared date. */
   storedKit: RegistrationKit | null;
@@ -45,7 +73,7 @@ export interface CompanionView {
   kitState: KitState;
   checklist: Checklist | null;
   health: ObserverHealth;
-  /** The term the page shows while the observer is healthy, or null. */
+  /** The term the page shows while the observer is healthy, the term no plan is for, or null. */
   pageTerm: Term | null;
 }
 
@@ -58,8 +86,9 @@ export function storedKitFor(
   return kits.find((kit) => kitMatchesPlan(kit, plan)) ?? null;
 }
 
-export function useCompanionView(): CompanionView {
-  const plan = useStore(planStore, (state) => activePlanOf(state) ?? null);
+export function useCompanionView(source: PlanSource = 'helper'): CompanionView {
+  const pick = useHelperPlanPick(source);
+  const plan = pick.kind === 'plan' ? pick.plan : null;
   const kits = useStore(regisStore, (state) => state.kits);
   const choices = useStore(regisStore, (state) => state.choices);
   const profile = useStore(uiStore, (state) => state.curriculumProfile);
@@ -75,7 +104,10 @@ export function useCompanionView(): CompanionView {
       fresh !== null && plan !== null
         ? refitKit(fresh, plan, profile?.curriculumId ?? null)
         : null;
-    const pageTerm = page?.observation.term ?? null;
+    const pageTerm =
+      pick.kind === 'noPlanForTerm'
+        ? pick.term
+        : (page?.observation.term ?? null);
     const kitState: KitState =
       storedKit === null ? 'none' : fresh === null ? 'stale' : 'fresh';
     const chosen =
@@ -86,6 +118,15 @@ export function useCompanionView(): CompanionView {
       plan === null
         ? null
         : deriveChecklist({ plan, kit, choices: chosen, pageTerm, page });
-    return { plan, storedKit, kit, kitState, checklist, health, pageTerm };
-  }, [plan, kits, choices, profile, page, health]);
+    return {
+      pick,
+      plan,
+      storedKit,
+      kit,
+      kitState,
+      checklist,
+      health,
+      pageTerm,
+    };
+  }, [pick, plan, kits, choices, profile, page, health]);
 }

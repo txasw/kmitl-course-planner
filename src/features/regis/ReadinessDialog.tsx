@@ -29,7 +29,8 @@ function ReadinessDialog() {
   const { t } = useTranslation();
   const { send } = useSearchDeps();
   const quiet = useQuietRoute();
-  const { plan, storedKit, kitState } = useCompanionView();
+  // The prepare card prepares the plan the planner shows, whatever page it opens over.
+  const { plan, storedKit, kitState } = useCompanionView('active');
   const run = useStore(regisStore, (state) => state.run);
   const close = () => {
     regisStore.getState().setReadinessOpen(false);

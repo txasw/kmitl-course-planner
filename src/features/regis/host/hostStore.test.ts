@@ -33,8 +33,15 @@ const GRADE_DIALOG = observation({
 });
 
 afterEach(() => {
-  hostStore.setState({ health: INITIAL_HEALTH, page: null, conditional: {} });
+  hostStore.setState({
+    health: INITIAL_HEALTH,
+    page: null,
+    term: null,
+    conditional: {},
+  });
 });
+
+const TERM = { year: '2569', semester: '2' } as const;
 
 describe('hostStore', () => {
   it('keeps the conditional ids after the dialog closes', () => {
@@ -78,5 +85,30 @@ describe('hostStore', () => {
       status: 'off',
       reason: 'surrogate',
     });
+  });
+
+  it('keeps the term the header showed through a drift and a restart', () => {
+    const { record } = hostStore.getState();
+    record(OPEN, { reading: 'ok', observation: observation({ term: TERM }) });
+    record(OPEN, { reading: 'drift' });
+    expect(hostStore.getState()).toMatchObject({ page: null, term: TERM });
+    record(OPEN, { reading: 'ok', observation: observation({ term: null }) });
+    expect(hostStore.getState().term).toEqual(TERM);
+    hostStore.getState().restart();
+    expect(hostStore.getState()).toMatchObject({
+      page: null,
+      term: TERM,
+      health: INITIAL_HEALTH,
+    });
+  });
+
+  it('forgets the term on leaving the page and in a staff session', () => {
+    const { record } = hostStore.getState();
+    record(OPEN, { reading: 'ok', observation: observation({ term: TERM }) });
+    hostStore.getState().leave();
+    expect(hostStore.getState().term).toBeNull();
+    record(OPEN, { reading: 'ok', observation: observation({ term: TERM }) });
+    record({ surrogate: true, testedBuild: true }, { reading: 'absent' });
+    expect(hostStore.getState().term).toBeNull();
   });
 });
