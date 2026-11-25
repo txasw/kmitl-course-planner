@@ -3,8 +3,8 @@
 // outside a staff surrogate session, while the student's fill switch is on, while the
 // helper shows and the planner is closed, and never while another run is active. It is
 // bound to the page address at the press, so a hash change, a surrogate session, a press
-// of Stop, the switch turned off, Hide on this page, or the planner opening over the page
-// ends it at the next step boundary, as Stop does. A refusal from the actuator latches
+// of Stop, the switch turned off, Hide on this page, the card collapsed to the launcher, or
+// the planner opening over the page ends it at the next step boundary, as Stop does. A refusal from the actuator latches
 // fill off for the build; nothing else here is stored.
 
 import { createStore } from 'zustand/vanilla';
@@ -65,11 +65,13 @@ export interface FillRequest {
 }
 
 /**
- * Whether the student has taken the helper off the page: hidden it here, or opened the
- * planner over it. Either leaves no Stop on screen, so the run ends as if Stop was pressed.
+ * Whether the student has taken the helper off the page: hidden it here, collapsed the
+ * card to the launcher, or opened the planner over it. Each leaves no Stop on screen, so
+ * the run ends as if Stop was pressed.
  */
 function helperAway(): boolean {
-  return helperStore.getState().hidden || uiStore.getState().isOpen;
+  const { hidden, collapsed } = helperStore.getState();
+  return hidden || collapsed || uiStore.getState().isOpen;
 }
 
 function stopped(
