@@ -408,4 +408,19 @@ describe('the replica counters', () => {
     expect(page.counters.clicks).toEqual({ continue: 1 });
     expect(page.counters.untrusted).toBe(1);
   });
+
+  it('count a request when its response ends, as a resource entry arrives', async () => {
+    const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
+    replica = page;
+    page.configure({ countAtEnd: true, pollLatency: 20, delay: 20 });
+    page.poll();
+    const field = document.querySelector<HTMLInputElement>('#input-50');
+    if (field === null) throw new Error('no subject id field');
+    field.value = '01476107';
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(page.counters).toMatchObject({ polls: 0, reads: 0 });
+    await new Promise((resolve) => setTimeout(resolve, 40));
+    expect(page.counters).toMatchObject({ polls: 1, reads: 1 });
+    page.destroy();
+  });
 });

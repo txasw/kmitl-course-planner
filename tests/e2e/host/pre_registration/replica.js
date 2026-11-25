@@ -103,6 +103,8 @@ export function mountReplica(doc, overrides = {}, options = {}) {
     variant: null,
     xhr: false,
     answer: null,
+    countAtEnd: false,
+    pollLatency: 0,
   };
   let current = null;
   const state = { ...initialState(), ...overrides };
@@ -1044,17 +1046,20 @@ export function mountReplica(doc, overrides = {}, options = {}) {
   }
 
   // The build's period check: skipped while the page is hidden, a GET of the period
-  // endpoint, whose answer may rewrite the period.
+  // endpoint, whose answer may rewrite the period. A request is counted when it starts,
+  // or, as the fill tripwire's resource entries are, when its response ends.
   function poll() {
     if (doc.hidden) return;
-    counters.polls += 1;
+    if (!config.countAtEnd) counters.polls += 1;
     const answer = () => {
+      if (config.countAtEnd) counters.polls += 1;
       const next = config.answer;
       config.answer = null;
       if (next !== null && next !== undefined) setPeriod(next);
     };
     if (!config.xhr) {
-      answer();
+      if (config.pollLatency > 0) setTimeout(answer, config.pollLatency);
+      else answer();
       return;
     }
     const request = new XMLHttpRequest();
@@ -1224,7 +1229,7 @@ export function mountReplica(doc, overrides = {}, options = {}) {
       return;
     }
     const subject = config.catalog[id];
-    counters.reads += 1;
+    if (!config.countAtEnd) counters.reads += 1;
     if (config.xhr) {
       const request = new XMLHttpRequest();
       request.open('GET', '/replica/eligibility');
@@ -1234,6 +1239,7 @@ export function mountReplica(doc, overrides = {}, options = {}) {
     render();
     if (subject?.hang) return;
     setTimeout(() => {
+      if (config.countAtEnd) counters.reads += 1;
       state.add.loading = false;
       if (subject === undefined || subject.refused) {
         addToast('refused', id);
