@@ -194,6 +194,37 @@ describe('RegisHelper', () => {
     expect(screen.queryByRole('menu')).toBeNull();
   });
 
+  it('puts the add for me switch above Add all, so turning it moves nothing under it', () => {
+    for (const name of ['app.454d9e95.js', 'chunk-vendors.7ab4925e.js']) {
+      const script = document.createElement('script');
+      script.setAttribute('src', `/js/${name}`);
+      script.type = 'text/plain';
+      document.head.append(script);
+    }
+    try {
+      renderPage('#/pre_registration');
+      fireEvent.click(within(card()).getByRole('button', { name: 'เพิ่มเติม' }));
+      const menu = screen.getByRole('menu', { name: 'เพิ่มเติม' });
+      const items = () =>
+        Array.from(menu.querySelectorAll<HTMLElement>('[role^="menuitem"]'));
+      expect(
+        items()
+          .slice(0, 2)
+          .map((item) => item.getAttribute('role')),
+      ).toEqual(['menuitemcheckbox', 'menuitem']);
+      const toggle = within(menu).getByRole('menuitemcheckbox');
+      fireEvent.click(toggle);
+      expect(toggle).toHaveAttribute('aria-checked', 'false');
+      // The switch stays first, so the next press in the same place turns it back.
+      expect(items()[0]).toBe(toggle);
+      fireEvent.click(toggle);
+      expect(toggle).toHaveAttribute('aria-checked', 'true');
+    } finally {
+      document.head.replaceChildren();
+      regisStore.getState().setFillOff(false);
+    }
+  });
+
   it('scrolls the queue and the subject in focus, and keeps the action in view', () => {
     renderPage('#/pre_registration');
     const queue = within(card()).getByRole('list', { name: 'รายวิชา' });
