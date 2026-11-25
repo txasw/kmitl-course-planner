@@ -703,5 +703,7 @@
   "regis.hidden": "ซ่อนแล้ว จะแสดงอีกครั้งเมื่อเปิดหน้านี้ใหม่",
   "regis.needsLook": "มีวิชาที่ต้องดู",
   "regis.statusChangedMany": "เปลี่ยนสถานะ {count} วิชา",
-  "regis.addAll": "เพิ่มให้ทุกวิชา"
+  "regis.addAll": "เพิ่มให้ทุกวิชา",
+  "regis.count.showList": "ดูทั้งหมด",
+  "regis.count.showCard": "ย่อรายการ"
 }

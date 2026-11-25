@@ -91,8 +91,10 @@ describe('RegisHelper', () => {
     renderPage('#/pre_registration');
     const count = within(card()).getByRole('button', { name: /^เพิ่มแล้ว 0\/1/ });
     expect(count).toHaveAttribute('aria-expanded', 'false');
+    expect(count).toHaveAccessibleName('เพิ่มแล้ว 0/1, ดูทั้งหมด');
     fireEvent.click(count);
     expect(count).toHaveAttribute('aria-expanded', 'true');
+    expect(count).toHaveAccessibleName('เพิ่มแล้ว 0/1, ย่อรายการ');
     const list = within(card()).getByRole('list', { name: 'รายวิชา' });
     fireEvent.click(within(list).getByRole('button', { name: /^01476107/ }));
     expect(helperStore.getState().view).toBe('card');

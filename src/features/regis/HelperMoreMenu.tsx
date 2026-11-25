@@ -235,7 +235,7 @@ export function HelperMoreMenu({
         <div
           ref={setMenu}
           style={floatingStyles}
-          className="kcp-scroll z-popover min-w-44 overflow-y-auto rounded-kcp border border-border bg-surface p-1 shadow-kcp kcp-fade-in"
+          className="kcp-scroll z-popover min-w-52 overflow-y-auto rounded-kcp border border-border bg-surface p-1 shadow-kcp kcp-fade-in"
         >
           <div
             id={menuId}

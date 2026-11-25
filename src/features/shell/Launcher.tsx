@@ -94,7 +94,7 @@ function useCompanionFace(open: boolean) {
       {dot ? (
         <span
           aria-hidden
-          className="absolute -top-1 -right-1 size-3 rounded-full bg-danger ring-2 ring-surface"
+          className="absolute -top-0.5 -right-0.5 size-3 rounded-full bg-danger ring-2 ring-surface"
         />
       ) : null}
     </>

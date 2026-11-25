@@ -16,7 +16,13 @@ import { AddForMeButton } from './fill/FillControls';
 import { BlockedAddButton } from './ActionRow';
 import { PartsLine, partsText, sectionParts } from './SectionTile';
 import { StatusIcon } from './StatusIcon';
-import { STALE_FILL, TONE_FILL, bandKey, shortKey } from './statusMeta';
+import {
+  STALE_FILL,
+  TONE_FILL,
+  TONE_ICON,
+  bandKey,
+  shortKey,
+} from './statusMeta';
 import { useAddBlock } from './useAddBlock';
 import type { HelperModel } from './useHelperModel';
 
@@ -113,7 +119,17 @@ export function QueueList({
                   model.stale ? STALE_FILL : TONE_FILL[tone]
                 }`}
               >
-                <StatusIcon status={status} size={16} className="" />
+                <StatusIcon
+                  status={status}
+                  size={16}
+                  className={
+                    model.stale
+                      ? 'text-ink-muted'
+                      : tone === 'neutral' || tone === 'busy'
+                        ? TONE_ICON[tone]
+                        : ''
+                  }
+                />
                 {t(shortKey(status))}
               </span>
               <span className="flex min-w-0 flex-col justify-center px-3 py-2 hover:bg-surface-alt">

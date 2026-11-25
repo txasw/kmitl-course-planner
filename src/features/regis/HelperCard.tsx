@@ -247,6 +247,8 @@ export function HelperCard({ model }: { model: HelperModel }) {
               id={COUNT_ID}
               aria-expanded={list}
               aria-controls={LIST_ID}
+              // The name keeps the visible count first and says what a press does.
+              aria-label={`${countLabel} ${figure}, ${t(list ? 'regis.count.showCard' : 'regis.count.showList')}`}
               onClick={() => {
                 setView(list ? 'card' : 'list');
               }}

@@ -118,7 +118,7 @@ export function QueueChips({
                       stale ? 'text-ink-muted' : TONE_ICON[STATUS_TONE[status]]
                     }
                   />
-                  <span>{row.subjectId}</span>
+                  <span className="tracking-[0.01em]">{row.subjectId}</span>
                 </button>
               )}
             </Tooltip>
