@@ -26,7 +26,8 @@ one who enters and submits the registration, which cannot be undone.
 Registration helper in English, reads each planned subject once by subject id through the existing
 gateway, one subject at a time with a short pause and with retries turned off, so a failed read
 is reported as unread rather than sent again, and only when the student presses it. It is
-refused on the registration pages with a one line reason before any request is sent, a run that
+refused on the registration pages with a one line reason before any request is sent (except the
+helper's own press on pre registration, amendment of 2026-11-26), a run that
 reaches such a page stops, and the student can cancel, which aborts the read in flight. From the
 results `lib/regis/kit.ts` builds a kit per plan: every section of each planned subject with its
 meetings, exam windows, seats at prepare time, and printed conditions, which group is the planned
@@ -236,3 +237,58 @@ A design review and a never submit review of the build above found these, and ea
   only on the student's own press of a KCP control that names the term, the term passes the plan
   schema (a four digit year and a semester of 1, 2, or 3) before it is used, and it is public
   timetable data, never the student's identity. It awaits the owner's acknowledgement.
+
+## Amendment, 2026-11-26: a calm helper on a phone, the page term, and prepare where the student is stuck
+
+The owner tested the helper on Firefox for Android on the live pre registration page (app.a1e43722,
+term 2/2569, one plan per term) and found it confusing at rest, unable to add, and showing the
+wrong plan during a reload. Each finding is fixed as follows.
+
+- **No plan before the page term.** A reload showed the active plan, of term 1/2569, over the half
+  loaded page and then switched to the 2/2569 plan once the header was read. On the pre registration
+  page the helper now names no plan while a reading may still bring the page term: the card shows
+  one quiet row, กำลังอ่านภาคการศึกษาจากหน้านี้, with no subject chips and no count, and the launcher
+  shows เช็กลิสต์ with no count. Only when no reading can bring the term (the observer is off, the
+  wait of 15 seconds on each arrival ran out, or the page is the registration page, which KCP does
+  not read) does it fall back: to a plan of the term this document last read from a page, kept in
+  memory as a hint, else to the active plan. A fallback plan is marked unconfirmed and the card's
+  header names its own term (ตาราง 1/2569), so it is never taken for the page's. A term read from the
+  page always replaces the fallback; the remembered term is never proof. Nothing is stored. This
+  supersedes "Until the page term is read, the helper shows the active plan as before" above.
+- **No entry toast on the helper pages.** The planner's entry toast named the active plan, of the
+  wrong term during that reload, and sat over the card's controls and footer. It no longer shows on
+  the two helper pages, and one shown elsewhere goes for good when the host navigates to them.
+- **A calm start on a phone.** On a narrow screen (below 640 px) a visit now starts with the card
+  collapsed to the launcher, so the countdown and the form read first; the student opens it with
+  the launcher. There a later visit in the same document follows the student's own open or
+  collapse, made with the launcher or Escape. A wide screen still opens the card on every visit, as
+  owner answer 5B asks. While the card is open the launcher names the checklist alone, since the
+  card's header carries the count, so one count shows at a time. On both helper pages the launcher,
+  and the card above it, sit 64 px higher, clear of the host's back to top button, a 56 px round
+  button 16 px above the bottom right corner on every host route (Section 6.1 asks KCP never to
+  cover host floating elements). Its position is a measured constant, not read from the page, since
+  rule 6 does not let KCP read that element.
+- **Prepare where the student is stuck.** A student who reached pre registration without preparing
+  saw Add for me held by ยังไม่ได้เตรียมข้อมูล and no action, since the prepare card refuses on every
+  registration page. On the pre registration page only, the helper's bar for a plan with nothing
+  prepared now offers เตรียมข้อมูล on the same line as the reason. It runs the same kit pipeline as
+  the prepare card: one subject at a time with a pause, retries off, Cancel aborting the read in
+  flight, and the existing done and failed outcomes; a failed run says อ่านข้อมูลไม่สำเร็จ and offers
+  the press again, which is the student's own. It starts only from a trusted press, never on its
+  own, never while a fill run is active, and a fill run cannot start while it reads (ADR-0078). Its
+  reads go through the background gateway to the public API, never through the page. The refusal
+  scope above therefore narrows: prepare is refused on every registration page except pre
+  registration from the helper's own press (`prepareRefused` in `lib/regis/route.ts`); the
+  registration page, the first come page, offers no press and refuses, and the prepare card in the
+  planner keeps refusing on every registration page, on pre registration with a line that points to
+  the helper. Owner ruling 2A, prepare at a calm time, stays the advice; this is the exception for a
+  student who would otherwise lose the window, which closes 2026-11-27 at 16:30. The reason now
+  shows once, in the bar, and the note under Add for me that repeated it is gone; the button points
+  at the bar's words.
+- **Tests.** Unit tests cover the plan pick before and after the term (pending, fallback, remembered
+  hint, confirmed), the entry toast choice and schedule on the helper pages, the prepare route scope,
+  press only start, and fill exclusion, the kit bar's states, and the narrow start. Debug specs
+  sample the helper every 25 ms through a reload whose page first renders nothing for 2.5 seconds,
+  with the active plan of another term, and find no chip, no count, no other plan, and no entry
+  toast; prepare on the replica from noKit to a stored kit and a working Add for me, with the press
+  absent on the registration page; and open the card from the launcher at a phone size.
