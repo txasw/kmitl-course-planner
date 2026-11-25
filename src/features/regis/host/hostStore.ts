@@ -36,6 +36,13 @@ export interface HostState {
    * for it and falls back to the active plan, labelled with its own term.
    */
   termWaitOver: boolean;
+  /**
+   * Whether the usual wait for the page term has passed on this page. A page still empty
+   * then, as a slow page at the registrar's busiest time is, keeps the helper waiting: the
+   * wait runs out only once a reading finds the panel with no term in the header, or at
+   * the longer ceiling for a page that never shows one.
+   */
+  termWaitDue: boolean;
   conditional: Readonly<Record<string, readonly string[]>>;
   /** How many times the student asked for the page to be read again. */
   checks: number;
@@ -47,7 +54,12 @@ export interface HostState {
    * dropped and a health short of off starts again, while the term the header showed stays.
    */
   restart: () => void;
-  /** End the wait for the page term on this page. */
+  /**
+   * The usual wait for the page term has passed: it runs out now if the page shows its
+   * panel with no term, or at the first reading that does.
+   */
+  dueTermWait: () => void;
+  /** End the wait for the page term on this page, panel or not. */
   endTermWait: () => void;
   /**
    * Forget the page and its term when the student leaves it, keeping the term as a hint;
@@ -62,6 +74,7 @@ export const hostStore = createStore<HostState>()((set, get) => ({
   term: null,
   lastTerm: null,
   termWaitOver: false,
+  termWaitDue: false,
   conditional: {},
   checks: 0,
   recheck: () => {
@@ -76,6 +89,10 @@ export const hostStore = createStore<HostState>()((set, get) => ({
         ? (reading.observation.term ?? get().term)
         : get().term;
     const lastTerm = term ?? get().lastTerm;
+    // A panel with no term in the header once the usual wait passed: the term is not coming.
+    if (get().termWaitDue && reading.reading === 'ok' && term === null) {
+      get().endTermWait();
+    }
     if (health.status !== 'healthy' || reading.reading !== 'ok') {
       set({ health, term, lastTerm, page: null });
       return;
@@ -104,11 +121,15 @@ export const hostStore = createStore<HostState>()((set, get) => ({
       health: health.status === 'off' ? health : INITIAL_HEALTH,
     });
   },
+  dueTermWait: () => {
+    set({ termWaitDue: true });
+    if (get().page !== null && get().term === null) get().endTermWait();
+  },
   endTermWait: () => {
     if (!get().termWaitOver) set({ termWaitOver: true });
   },
   leave: () => {
     get().restart();
-    set({ term: null, termWaitOver: false });
+    set({ term: null, termWaitOver: false, termWaitDue: false });
   },
 }));
