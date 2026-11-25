@@ -7,9 +7,6 @@
 
 import { useId, type ReactNode } from 'react';
 import { useStore } from 'zustand';
-import { Hourglass, Layers, ShieldAlert } from 'lucide-react';
-import { Pill } from '@/components/Pill';
-import { fillTemplate } from '@/lib/i18n/template';
 import { pickLocalized } from '@/lib/i18n/localize';
 import type { Locale, Translate } from '@/lib/i18n/t';
 import type { ChecklistRow, RowAlternative } from '@/lib/regis/checklist';
@@ -29,6 +26,7 @@ import {
   RunProgress,
   useShowCondition,
 } from './fill/FillControls';
+import { FocusPills } from './FocusPills';
 import { clearStop, helperStore } from './helperStore';
 import { regisStore } from './regisStore';
 import { saveBackupToPlan } from './saveBackup';
@@ -192,10 +190,12 @@ export function FocusSection({
               {id}
             </span>
             <span className="text-sm text-ink-soft">{name}</span>
-            <Pills
+            <FocusPills
               row={row}
               status={status}
               prerequisites={prerequisites}
+              plannedCodes={codesOf({ sections: row.planned })}
+              locale={locale}
               t={t}
             />
           </div>
@@ -258,44 +258,5 @@ export function FocusSection({
         </p>
       )}
     </>
-  );
-}
-
-function Pills({
-  row,
-  status,
-  prerequisites,
-  t,
-}: {
-  row: ChecklistRow;
-  status: HelperStatus;
-  prerequisites: readonly string[];
-  t: Translate;
-}) {
-  const pills = [
-    prerequisites.length > 0 ? (
-      <Pill key="grade" tone="warn" icon={<Hourglass size={12} />}>
-        {fillTemplate(t('regis.waitGrade'), { ids: prerequisites.join(' ') })}
-      </Pill>
-    ) : status === 'cond' ? (
-      <Pill key="cond" tone="warn" icon={<ShieldAlert size={12} />}>
-        {t('regis.short.cond')}
-      </Pill>
-    ) : null,
-    status === 'other' ? (
-      <Pill key="plan" tone="neutral">
-        {fillTemplate(t('regis.planSection'), {
-          codes: codesOf({ sections: row.planned }),
-        })}
-      </Pill>
-    ) : null,
-    status === 'todo' && row.duplicateCode !== null ? (
-      <Pill key="dup" tone="neutral" icon={<Layers size={12} />}>
-        {t('regis.severalCurricula')}
-      </Pill>
-    ) : null,
-  ].filter((pill) => pill !== null);
-  return pills.length === 0 ? null : (
-    <span className="mt-1 flex flex-wrap gap-1">{pills}</span>
   );
 }
