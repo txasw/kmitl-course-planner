@@ -7,6 +7,10 @@
 // useful first: changes that still wait for review, then the host result route the
 // document loaded on, then a plan with subjects, then an empty plan, then no plan at all.
 //
+// On the two student registration pages the registration helper already names the plan of
+// the page's own term beside the launcher, so the toast never shows there: it would name
+// the planner's active plan, which can be of another term, and cover the helper card.
+//
 // The route offer belongs to the page the student arrived on. It applies only when the
 // hash at mount and the hash when the wait ends are the same result route, and only when
 // that route maps to a search the panel can run; any other route falls through to the
@@ -15,6 +19,7 @@
 import type { Plan, PlanEntry } from '../domain/plan';
 import { summarizeCredits } from '../planner/credits';
 import { countUpdateItems } from '../planner/updateReview';
+import { companionRoute } from '../regis/route';
 import { parseTeachTableRoute } from '../routing/parseTeachTableRoute';
 import { routeSearchPrefill, type SearchPrefill } from '../search/queryForms';
 
@@ -144,7 +149,8 @@ export function selectEntryToast(
     input.isOpen ||
     input.welcomeOpen ||
     input.documentSuppressed ||
-    input.coachMarkShown
+    input.coachMarkShown ||
+    companionRoute(input.hash.atShow) !== null
   ) {
     return null;
   }

@@ -246,6 +246,21 @@ describe('selectEntryToast route offer', () => {
     ).toBe('plan');
   });
 
+  it('shows nothing on a registration helper page, whatever the plan', () => {
+    const plan = makePlan({ entries: [placed('1', '90592033', '901')] });
+    for (const hash of ['#/pre_registration', '#/registration']) {
+      expect(selectEntryToast(input({ plan, hash: onHash(hash) }))).toBeNull();
+      expect(
+        selectEntryToast(input({ plan, hash: onHash(SELECTOR_HASH, hash) })),
+      ).toBeNull();
+    }
+    expect(
+      selectEntryToast(
+        input({ plan: null, hash: onHash('#/pre_registration') }),
+      ),
+    ).toBeNull();
+  });
+
   it('shows nothing on a result route while a gate holds', () => {
     expect(
       selectEntryToast(input({ isOpen: true, hash: onHash(RESULT_HASH) })),
