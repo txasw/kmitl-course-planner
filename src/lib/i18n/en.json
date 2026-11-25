@@ -619,7 +619,6 @@
   "regis.launcher": "Checklist {done}/{total}",
   "regis.launcherEmpty": "Checklist",
   "regis.openPlanner": "Open the planner",
-  "regis.copyId": "Copy subject id {subjectId}",
   "regis.fit.fits": "Fits",
   "regis.fit.time": "Time clash",
   "regis.fit.exam": "Exam clash",
