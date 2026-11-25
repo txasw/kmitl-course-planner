@@ -54,9 +54,9 @@ export interface PlanCrudActions {
   /** Delete a plan; if it was active, fall back to the most recently updated one. */
   deletePlan: (id: string) => void;
   setActivePlan: (id: string) => void;
-  /** Replace the plan list, activating the most recently updated plan, and mark the
-   * load settled. */
-  hydrate: (plans: Plan[]) => void;
+  /** Replace the plan list, reopening the stored active plan while it still exists and
+   * else the most recently updated one, and mark the load settled. */
+  hydrate: (plans: Plan[], activePlanId?: string | null) => void;
   /** Mark the load settled without plans, for a read that was refused or failed. */
   markLoaded: () => void;
 }
@@ -177,8 +177,10 @@ export function createPlanCrudSlice(
       });
     },
 
-    hydrate: (plans) => {
-      const active = mostRecentlyUpdated(plans);
+    hydrate: (plans, activePlanId) => {
+      const active =
+        plans.find((plan) => plan.id === activePlanId) ??
+        mostRecentlyUpdated(plans);
       set({
         plans,
         activePlanId: active?.id ?? null,

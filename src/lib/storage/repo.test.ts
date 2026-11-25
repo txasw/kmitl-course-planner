@@ -49,6 +49,33 @@ describe('createPlanRepository', () => {
     }
   });
 
+  it('round trips the active plan id', async () => {
+    const { adapter } = memoryAdapter();
+    const repo = createPlanRepository(adapter);
+    const root: PersistedRoot = {
+      ...emptyRoot(),
+      plans: [makePlan()],
+      activePlanId: 'plan-1',
+    };
+    expect((await repo.save(root)).ok).toBe(true);
+    const outcome = await repo.load();
+    expect(outcome.status === 'ok' && outcome.root.activePlanId).toBe('plan-1');
+  });
+
+  it('loads a root without an active plan id, or with a malformed one', async () => {
+    for (const activePlanId of [undefined, 42]) {
+      const { adapter } = memoryAdapter({
+        [ROOT_KEY]: { schemaVersion: 1, plans: [makePlan()], activePlanId },
+      });
+      const outcome = await createPlanRepository(adapter).load();
+      expect(outcome.status).toBe('ok');
+      if (outcome.status === 'ok') {
+        expect(outcome.root.plans).toHaveLength(1);
+        expect(outcome.root.activePlanId).toBeNull();
+      }
+    }
+  });
+
   it('applies migrations for an older stored schema', async () => {
     const { adapter } = memoryAdapter({
       [ROOT_KEY]: { schemaVersion: 0, plans: [] },
@@ -103,7 +130,11 @@ describe('createPlanRepository', () => {
       expect(outcome.quarantineKey).toBe(quarantineKey('T1'));
     }
     expect(store.get(quarantineKey('T1'))).toEqual([invalidPlan]);
-    expect(store.get(ROOT_KEY)).toEqual({ schemaVersion: 1, plans: [valid] });
+    expect(store.get(ROOT_KEY)).toEqual({
+      schemaVersion: 1,
+      plans: [valid],
+      activePlanId: null,
+    });
   });
 
   it('quarantines a non object blob using the default clock', async () => {

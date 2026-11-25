@@ -10,6 +10,7 @@ import {
 import { emptyRoot } from '@/lib/storage/repo';
 import type {
   LoadOutcome,
+  PersistedRoot,
   PlanRepository,
   StorageAdapter,
 } from '@/lib/storage/repo';
@@ -81,6 +82,55 @@ describe('usePlanPersistence', () => {
       expect(planStore.getState().plans.map((p) => p.id)).toEqual(['stored']);
     });
     expect(planStore.getState().loaded).toBe(true);
+  });
+
+  it('reopens the plan last switched to after a reload, not the newest one', async () => {
+    const older = makePlan({
+      id: 'sem2',
+      semester: '2',
+      updatedAt: '2026-11-01T00:00:00.000Z',
+    });
+    const newer = makePlan({
+      id: 'sem1',
+      semester: '1',
+      updatedAt: '2026-11-20T00:00:00.000Z',
+    });
+    let saved: PersistedRoot = { schemaVersion: 1, plans: [older, newer] };
+    const repo: PlanRepository = {
+      load: () => Promise.resolve({ status: 'ok', root: saved }),
+      save: (root) => {
+        saved = root;
+        return Promise.resolve(ok(undefined));
+      },
+    };
+    const first = render(<Harness repo={repo} adapter={fakeAdapter()} />);
+    await waitFor(() => {
+      expect(planStore.getState().loaded).toBe(true);
+    });
+    expect(planStore.getState().activePlanId).toBe('sem1');
+    // Switching alone changes no plan, and still saves the choice.
+    act(() => {
+      planStore.getState().setActivePlan('sem2');
+    });
+    await waitFor(
+      () => {
+        expect(saved.activePlanId).toBe('sem2');
+      },
+      { timeout: 1000 },
+    );
+    first.unmount();
+    // A reload: a fresh store reads storage again.
+    planStore.setState({
+      plans: [],
+      activePlanId: null,
+      entries: [],
+      loaded: false,
+    });
+    render(<Harness repo={repo} adapter={fakeAdapter()} />);
+    await waitFor(() => {
+      expect(planStore.getState().loaded).toBe(true);
+    });
+    expect(planStore.getState().activePlanId).toBe('sem2');
   });
 
   it('stays unloaded until the read settles', async () => {

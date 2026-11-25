@@ -358,6 +358,23 @@ describe('planStore multi-plan', () => {
     store.getState().hydrate([older, newer]);
     expect(store.getState().activePlanId).toBe('new');
   });
+
+  it('hydrates the stored active plan over the most recently updated one', () => {
+    const store = makeStore();
+    const older = makePlan('old', '2026-01-01T00:00:00.001Z', TERM_S1);
+    const newer = makePlan('new', '2026-01-01T00:00:00.900Z', TERM_S2);
+    store.getState().hydrate([older, newer], 'old');
+    expect(store.getState().activePlanId).toBe('old');
+    expect(store.getState().entries).toBe(older.entries);
+  });
+
+  it('falls back to the latest plan when the stored active plan is gone', () => {
+    const store = makeStore();
+    const older = makePlan('old', '2026-01-01T00:00:00.001Z', TERM_S1);
+    const newer = makePlan('new', '2026-01-01T00:00:00.900Z', TERM_S2);
+    store.getState().hydrate([older, newer], 'deleted');
+    expect(store.getState().activePlanId).toBe('new');
+  });
 });
 
 describe('planStore load settle', () => {

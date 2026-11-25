@@ -17,9 +17,16 @@ import {
 import { ROOT_KEY, CURRENT_SCHEMA_VERSION, quarantineKey } from './keys';
 import { runMigrations, MIGRATIONS, type Migration } from './migrations';
 
+// The active plan id rides the root so a reload reopens the plan the student last
+// switched to. It is optional, so a root written before it existed still loads at the
+// same schema version, and an older build reading a newer root strips it like any unknown
+// key; a malformed value reads as absent rather than costing the plans.
+const activePlanIdSchema = z.string().nullable().optional().catch(undefined);
+
 export const persistedRootSchema = z.object({
   schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
   plans: z.array(planSchema),
+  activePlanId: activePlanIdSchema,
 });
 export type PersistedRoot = z.infer<typeof persistedRootSchema>;
 
@@ -30,6 +37,7 @@ const versionSchema = z.object({ schemaVersion: z.number() });
 const rootShapeSchema = z.object({
   schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
   plans: z.array(z.unknown()),
+  activePlanId: activePlanIdSchema,
 });
 
 /** Minimal async key value store the repository reads and writes. */
@@ -111,19 +119,25 @@ export function createPlanRepository(
         invalid.push(candidate);
       }
     }
+    const activePlanId = shape.data.activePlanId ?? null;
     if (invalid.length > 0) {
       const key = quarantineKey(now());
       await adapter.set(key, invalid);
       const root: PersistedRoot = {
         schemaVersion: CURRENT_SCHEMA_VERSION,
         plans: valid,
+        activePlanId,
       };
       await adapter.set(ROOT_KEY, root);
       return { status: 'quarantined', root, quarantineKey: key };
     }
     return {
       status: 'ok',
-      root: { schemaVersion: CURRENT_SCHEMA_VERSION, plans: valid },
+      root: {
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        plans: valid,
+        activePlanId,
+      },
     };
   }
 
