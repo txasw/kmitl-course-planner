@@ -169,6 +169,42 @@ describe('the helper on a page of another term than the active plan', () => {
     expect(planStore.getState().activePlanId).toBe('sem1');
   });
 
+  it('keeps the plan choice on a picked plan with no subjects, so the student gets back', () => {
+    const empty = makePlan({
+      id: 'sem2-empty',
+      name: 'ว่าง 2/2569',
+      year: TERM2.year,
+      semester: TERM2.semester,
+      updatedAt: '2026-10-01T00:00:00.000Z',
+      entries: [],
+    });
+    const card = renderOn([SEM2, empty], 'sem2', TERM2);
+    const pick = (name: string) => {
+      fireEvent.click(within(card).getByRole('button', { name: 'เพิ่มเติม' }));
+      fireEvent.click(screen.getByRole('menuitemradio', { name }));
+    };
+    pick('ว่าง 2/2569');
+    expect(card).not.toHaveTextContent('02000002');
+    fireEvent.click(within(card).getByRole('button', { name: 'เพิ่มเติม' }));
+    const menu = screen.getByRole('menu', { name: 'เพิ่มเติม' });
+    expect(
+      within(menu).getByRole('menuitem', { name: 'ซ่อนในหน้านี้' }),
+    ).toBeVisible();
+    fireEvent.click(
+      within(menu).getByRole('menuitemradio', { name: 'ตาราง 2/2569' }),
+    );
+    expect(card).toHaveTextContent('02000002');
+  });
+
+  it('keeps the more menu on a page term with no plan', () => {
+    const card = renderOn([SEM1], 'sem1', TERM2);
+    fireEvent.click(within(card).getByRole('button', { name: 'เพิ่มเติม' }));
+    const menu = screen.getByRole('menu', { name: 'เพิ่มเติม' });
+    expect(
+      within(menu).getByRole('menuitem', { name: 'ซ่อนในหน้านี้' }),
+    ).toBeVisible();
+  });
+
   it('offers no plan choice when the page term has one plan', () => {
     const card = renderOn([SEM1, SEM2], 'sem1', TERM2);
     fireEvent.click(within(card).getByRole('button', { name: 'เพิ่มเติม' }));
