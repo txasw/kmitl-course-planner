@@ -153,10 +153,15 @@ The package budget moves to 350 KiB with this change.
 With the owner's ruling that features come before package size, the parts of the C2 spec the card
 build deferred land.
 
-- **More menu.** It holds Add all for me (ADR-0078), Open the planner, Check again, Use Add for me,
-  and Hide on this page, the first, third, and fourth on the pre registration page only. It is at
-  least 208 px wide, hangs below its trigger at the end edge, and moves by a typed first letter as
-  well as the arrow keys, Home, and End.
+- **More menu.** It holds Use Add for me, Add all for me (ADR-0078), Open the planner, Check again,
+  and Hide on this page, the first, second, and fourth on the pre registration page only, and Use
+  Add for me only on a host build where Add for me can run. The switch stays open on a press and
+  sits above Add all, whose reason line comes and goes with it, so nothing moves under the pointer.
+  It is at least 208 px wide, hangs below its trigger at the end edge, and moves by a typed first
+  letter as well as the arrow keys, Home, and End; a Thai name also matches the consonant after a
+  leading vowel, since a student types ป for เปิดตารางเรียน. The empty states, a plan with no
+  subjects and a page term with no plan, keep the header row with the more menu, so a student who
+  picked an empty plan can pick another and Hide on this page stays in reach.
 - **Placement.** The more menu and the section menu float with floating-ui against the viewport,
   with flip, shift, and a height cap to the room on screen, so neither clips on a short screen. With
   the menus free of any scroller, the queue, the status band, and the section tile scroll together
@@ -205,3 +210,29 @@ that the more menu's items did nothing.
   planner's own menus with a toggling trigger use `usePanelDismiss`, which lets the trigger's press
   count as inside. A production spec taps the closed root's nodes through the DevTools protocol at a
   phone size with touch, since every other regis spec runs on the debug build's open root.
+
+## Amendment, 2026-11-25: the review of the page term build
+
+A design review and a never submit review of the build above found these, and each is fixed.
+
+- **On screen on a wide page.** A phone browser grows the layout viewport past the screen when a
+  page is wider than the screen, and the card and the launcher, fixed to its bottom right corner,
+  sat off screen. On a helper page an invisible fixed probe measures the layout viewport and the
+  visual viewport gives the part on screen; the band on each side is set as custom properties on
+  the app root, and the card, the launcher, and the toast region add them to their offsets. A pinch
+  zoom sets none, as for the panel's keyboard inset. The bands follow the on screen keyboard too, so
+  a collapsed launcher stays above it.
+- **Toasts on a phone.** With the planner closed the toast region floats above the card, or above
+  the launcher when the card is collapsed or leaves no room above it, so a toast never covers the
+  checklist count or the card's controls.
+- **Names.** Copy ID takes its name from its visible label followed by the subject id, the
+  unreadable bar's words carry a space between the state and Check again, and the disabled Add all
+  item is named by its label, with its reason as its description.
+- **A list row of another section** names the group the page lists, as the card's tile does.
+- **Touch.** A queue chip shows no tooltip on a coarse pointer, where a tap would leave it up.
+- **The page term in storage.** Create a plan for this term (สร้างตาราง) makes a plan of the term
+  the header shows and saves it, and the active plan id, to storage. Rule 6 keeps every host read in
+  memory, so this is recorded as the one derivation a host read may leave in storage: it happens
+  only on the student's own press of a KCP control that names the term, the term passes the plan
+  schema (a four digit year and a semester of 1, 2, or 3) before it is used, and it is public
+  timetable data, never the student's identity. It awaits the owner's acknowledgement.
