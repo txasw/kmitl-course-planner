@@ -5,7 +5,7 @@
 
 import { pickLocalized } from '@/lib/i18n/localize';
 import type { Locale, Translate } from '@/lib/i18n/t';
-import type { ChecklistRow } from '@/lib/regis/checklist';
+import { shownSections, type ChecklistRow } from '@/lib/regis/checklist';
 import {
   STATUS_TONE,
   needsAction,
@@ -93,7 +93,7 @@ export function QueueList({
       {rows.map((row) => {
         const status = model.statuses[row.subjectId] ?? 'todo';
         const tone = STATUS_TONE[status];
-        const parts = sectionParts(row.chosen?.sections ?? row.planned, t);
+        const parts = sectionParts(shownSections(row, status === 'other'), t);
         const name = pickLocalized(row.nameTh, row.nameEn, locale);
         const current = row.subjectId === currentId;
         const band = t(bandKey(status));

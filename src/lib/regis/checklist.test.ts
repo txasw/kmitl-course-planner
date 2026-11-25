@@ -10,7 +10,7 @@ import {
 } from '../../../tests/support/domain-builders';
 import { toSnapshot } from '../planner/transaction';
 import { buildRegistrationKit } from './kit';
-import { deriveChecklist } from './checklist';
+import { deriveChecklist, listedGroup, shownSections } from './checklist';
 import { sectionChoicesSchema, withChoice } from './choices';
 
 function catalogOf(...courses: Course[]): NormalizedCatalog {
@@ -201,5 +201,34 @@ describe('withChoice', () => {
       semester: '2',
       choices: { B: ['B1'] },
     });
+  });
+});
+
+describe('shownSections', () => {
+  const row = deriveChecklist({ plan, kit, choices: null, pageTerm: null })
+    .rows[0];
+  if (row === undefined) throw new Error('no row');
+  const listedAs = (codes: string[]) => ({
+    ...row,
+    observed: { state: 'listedOther' as const, codes, prerequisites: [] },
+  });
+
+  it('names the group the page lists for a subject listed with another section', () => {
+    const other = listedAs(['3']);
+    expect(listedGroup(other)?.ids).toEqual(['A3']);
+    expect(shownSections(other, true).map((s) => s.teachTableId)).toEqual([
+      'A3',
+    ]);
+    expect(shownSections(other, false).map((s) => s.teachTableId)).toEqual([
+      'A1',
+    ]);
+  });
+
+  it('falls back to the chosen or planned group when the kit does not know the listed one', () => {
+    const unknown = listedAs(['9']);
+    expect(listedGroup(unknown)).toBeNull();
+    expect(shownSections(unknown, true).map((s) => s.teachTableId)).toEqual([
+      'A1',
+    ]);
   });
 });
