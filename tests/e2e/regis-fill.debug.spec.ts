@@ -332,11 +332,15 @@ test('leaves the grade dialog alone once the card stops showing the condition', 
   await expect(page.getByText('รอเกรด 90000002')).toBeVisible({
     timeout: 15_000,
   });
-  // The list view hides the focus section that shows the condition.
-  await page.getByRole('button', { name: /^เพิ่มแล้ว/ }).click();
-  await expect(page.locator('[data-fill="stopped"]')).toBeVisible({
-    timeout: 15_000,
-  });
+  // Escape folds the card, which takes the condition off screen. The list, which hid it
+  // before, no longer opens during a run.
+  await page.locator('#kcp-regis-stop').focus();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#kcp-regis-card')).toHaveCount(0);
+  // The run reaches the dialog's step with the condition off screen and leaves it alone.
+  await page.waitForTimeout(3500);
+  await page.locator('#kcp-launcher').click();
+  await expect(page.locator('[data-fill="stopped"]')).toBeVisible();
   expect(
     await page.evaluate(() => window.replica.counters.clicks.acknowledge ?? 0),
   ).toBe(0);
