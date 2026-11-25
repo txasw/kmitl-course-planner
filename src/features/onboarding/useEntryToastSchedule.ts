@@ -41,6 +41,7 @@ import { activePlanOf } from '@/features/plans/planStoreState';
 import { uiStore } from '@/features/shell/uiStore';
 import { readLocationHash } from '@/features/shell/hostLocation';
 import { subscribeHashRoute } from '@/features/search/useHashRoute';
+import { companionRoute } from '@/lib/regis/route';
 import { leaveEntryToast } from './leaveEntryToast';
 import { onboardingStore } from './onboardingStore';
 
@@ -157,6 +158,16 @@ export function useEntryToastSchedule(
   }, [routeShown, mountHash, boxRef]);
 
   const shown = phase.stage === 'shown';
+  useEffect(() => {
+    if (!shown) return undefined;
+    return subscribeHashRoute(() => {
+      if (companionRoute(readLocationHash()) === null) return;
+      leaveEntryToast(boxRef.current, () => {
+        setPhase(DONE);
+      });
+    });
+  }, [shown, boxRef]);
+
   useEffect(() => {
     if (!shown || held) return undefined;
     const timer = setTimeout(() => {

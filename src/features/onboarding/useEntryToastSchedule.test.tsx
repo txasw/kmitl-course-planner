@@ -186,6 +186,26 @@ describe('useEntryToastSchedule once per document', () => {
     expect(result.current.content).toBeNull();
   });
 
+  it('never shows on a registration helper page', () => {
+    placeHash('#/pre_registration');
+    const { result } = renderSchedule();
+    settle();
+    advance(ENTRY_TOAST_DELAY_MS + ENTRY_TOAST_VISIBLE_MS);
+    expect(result.current.content).toBeNull();
+  });
+
+  it('hides for good when the host navigates to a registration helper page', () => {
+    const { result } = renderSchedule();
+    settle();
+    advance(ENTRY_TOAST_DELAY_MS);
+    expect(result.current.content?.kind).toBe('noPlan');
+    navigateTo('#/pre_registration');
+    expect(result.current.content).toBeNull();
+    navigateTo(SELECTOR_HASH);
+    advance(ENTRY_TOAST_DELAY_MS + ENTRY_TOAST_VISIBLE_MS);
+    expect(result.current.content).toBeNull();
+  });
+
   it('chooses the content from the plan as it stands when the wait ends', () => {
     const { result } = renderSchedule();
     settle();
