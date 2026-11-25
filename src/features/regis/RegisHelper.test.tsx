@@ -19,6 +19,7 @@ import {
 } from '../../../tests/support/domain-builders';
 import { toastStore } from '@/features/shell/toastStore';
 import { fillStore } from './fill/fillRun';
+import { hostStore } from './host/hostStore';
 import { helperStore, setView, startVisit } from './helperStore';
 import { RegisHelper } from './RegisHelper';
 import { regisStore } from './regisStore';
@@ -155,7 +156,7 @@ describe('RegisHelper', () => {
     expect(fillStore.getState().shown).toBeNull();
   });
 
-  it('offers Add all for me in the more menu, with its reason when it cannot run', () => {
+  it('offers Add all for me and Check again in the more menu', () => {
     renderPage('#/pre_registration');
     fireEvent.click(within(card()).getByRole('button', { name: 'เพิ่มเติม' }));
     const menu = screen.getByRole('menu', { name: 'เพิ่มเติม' });
@@ -172,6 +173,10 @@ describe('RegisHelper', () => {
       message: 'ยังใช้เพิ่มให้ไม่ได้',
     });
     expect(fillStore.getState().run.status).toBe('idle');
+    const checks = hostStore.getState().checks;
+    fireEvent.click(within(menu).getByRole('menuitem', { name: 'ตรวจอีกครั้ง' }));
+    expect(hostStore.getState().checks).toBe(checks + 1);
+    expect(screen.queryByRole('menu')).toBeNull();
   });
 
   it('renders nothing off the helper pages', () => {
