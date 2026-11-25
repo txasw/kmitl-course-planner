@@ -1,7 +1,9 @@
 // The list view of the helper card, opened from the count: every planned subject as a
 // compact row with its status cell, its section, and its full id and name, so the whole
 // registration reads at a glance. Pressing a row puts that subject in focus on the card. A
-// subject still to add carries Add for me on its row, the same action the card offers.
+// subject still to add carries Add for me on its row, the same action the card offers; its
+// press returns to the card with that subject in focus, where the run shows its step and
+// Stop, since the list shows neither and stays closed while a run is active.
 
 import { pickLocalized } from '@/lib/i18n/localize';
 import type { Locale, Translate } from '@/lib/i18n/t';
@@ -23,6 +25,7 @@ import {
   bandKey,
   shortKey,
 } from './statusMeta';
+import { setCurrent, setView } from './helperStore';
 import { useAddBlock } from './useAddBlock';
 import type { HelperModel } from './useHelperModel';
 
@@ -59,6 +62,10 @@ function RowAction({
           kit={kit}
           allowFull={status === 'full'}
           compact
+          onStart={() => {
+            setCurrent(row.subjectId);
+            setView('card');
+          }}
           t={t}
         />
       </span>
