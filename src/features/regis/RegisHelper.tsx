@@ -5,62 +5,15 @@
 // only source of the helper's announcements; nothing is read out when the card opens on
 // its own.
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useStore } from 'zustand';
-import { fillTemplate } from '@/lib/i18n/template';
-import type { Translate } from '@/lib/i18n/t';
 import { uiStore } from '@/features/shell/uiStore';
 import { useTranslation } from '@/features/shell/useTranslation';
-import { STEP_WORD, stepNumber } from './fill/FillControls';
 import { HelperCard } from './HelperCard';
 import { announce, helperStore, startVisit } from './helperStore';
-import { bandKey } from './statusMeta';
 import { useCompanionRoute } from './useCompanion';
-import { useHelperModel, type HelperModel } from './useHelperModel';
-
-function useAnnouncements(model: HelperModel, t: Translate): void {
-  const { statuses, stale, run } = model;
-  const before = useRef<{ statuses: typeof statuses; stale: boolean } | null>(
-    null,
-  );
-  useEffect(() => {
-    const last = before.current;
-    before.current = { statuses, stale };
-    if (last === null) return;
-    if (last.stale !== stale) {
-      announce(t(stale ? 'regis.unreadable' : 'regis.readableAgain'));
-      return;
-    }
-    const changed = Object.keys(statuses).filter(
-      (id) =>
-        last.statuses[id] !== undefined &&
-        last.statuses[id] !== statuses[id] &&
-        statuses[id] !== 'adding',
-    );
-    const [only] = changed;
-    if (changed.length > 1) {
-      announce(
-        fillTemplate(t('regis.statusChangedMany'), { count: changed.length }),
-      );
-    } else if (only !== undefined) {
-      const status = statuses[only] ?? 'todo';
-      announce(`${only} ${t(bandKey(status))}`);
-    }
-  }, [statuses, stale, t]);
-
-  const stepAt = run.status === 'running' ? stepNumber(run.step) : null;
-  const runningId = run.status === 'running' ? run.subjectId : null;
-  const stopReason = run.status === 'stopped' ? run.reason : null;
-  useEffect(() => {
-    if (stepAt !== null && runningId !== null) {
-      announce(
-        `${fillTemplate(t('regis.stepOf'), { n: stepAt })} ${t(STEP_WORD[stepAt])}`,
-      );
-    } else if (stopReason !== null) {
-      announce(t(`regis.fill.stop.${stopReason}`));
-    }
-  }, [stepAt, runningId, stopReason, t]);
-}
+import { useHelperAnnouncements } from './useHelperAnnouncements';
+import { useHelperModel } from './useHelperModel';
 
 export function RegisHelper() {
   const route = useCompanionRoute();
@@ -70,7 +23,7 @@ export function RegisHelper() {
   const announcement = useStore(helperStore, (state) => state.announcement);
   const model = useHelperModel();
   const { t } = useTranslation();
-  useAnnouncements(model, t);
+  useHelperAnnouncements(model, t);
 
   // Each arrival on a helper page, or a move between the two, is a new visit.
   useEffect(() => {
