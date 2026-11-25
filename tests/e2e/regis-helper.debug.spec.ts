@@ -195,7 +195,7 @@ test.describe('Add all for me', () => {
 });
 
 test.describe('at a phone width', () => {
-  test('opens, lists every subject, and folds away on a page press', async ({
+  test('starts folded, opens on a press, lists every subject, and folds away on a page tap', async ({
     context,
     mock,
     serviceWorker,
@@ -204,7 +204,16 @@ test.describe('at a phone width', () => {
     await openHelper(page, serviceWorker, { width: 390, height: 844 });
     mock.clearApiCalls();
 
+    // On a phone the host page reads first: the card waits behind the launcher, which
+    // carries the count, until the student opens it.
+    const launcher = page.locator(LAUNCHER_ID);
+    await expect(launcher).toHaveAttribute('aria-expanded', 'false');
+    await expect(launcher).toContainText(`0/${String(SUBJECTS.length)}`);
+    await expect(card(page)).toHaveCount(0);
+    await launcher.click();
     await expect(card(page)).toBeVisible();
+    // Open, the launcher drops the count the card's header now shows.
+    await expect(launcher).not.toContainText('/');
     await expect(card(page)).toHaveAttribute('lang', 'th');
 
     // The count opens the list of every subject, and a row puts it in focus.
