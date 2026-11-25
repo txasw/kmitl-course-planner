@@ -18,6 +18,7 @@ import {
   makePlanEntry,
   makeSection,
 } from '../../../tests/support/domain-builders';
+import { toastStore } from '@/features/shell/toastStore';
 import { fillStore } from './fill/fillRun';
 import { hostStore } from './host/hostStore';
 import { setCollapsed, startVisit } from './helperStore';
@@ -150,6 +151,26 @@ describe('the kit bar', () => {
     expect(add).toHaveAttribute('aria-describedby', 'kcp-regis-kit');
     fireEvent.click(add);
     expect(fillStore.getState().run.status).toBe('idle');
+  });
+
+  it('holds the press with its reason while another plan prepares', () => {
+    const card = renderOn('#/pre_registration');
+    act(() => {
+      regisStore
+        .getState()
+        .setRun({ status: 'running', planId: 'another', done: 1, total: 4 });
+    });
+    const prepare = within(card).getByRole('button', {
+      name: 'เตรียมข้อมูล, กำลังเตรียมข้อมูลของตารางอื่นอยู่',
+    });
+    expect(prepare).toHaveAttribute('aria-disabled', 'true');
+    fireEvent.click(prepare);
+    expect(toastStore.getState().toast).toMatchObject({
+      kind: 'error',
+      message: 'กำลังเตรียมข้อมูลของตารางอื่นอยู่',
+    });
+    expect(sends).toBe(0);
+    expect(regisStore.getState().run).toMatchObject({ planId: 'another' });
   });
 
   it('says a failed read and offers the press again', () => {

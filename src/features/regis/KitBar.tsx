@@ -6,14 +6,19 @@
 // shows its progress and Cancel; a failed read says so and offers the press again, which
 // is the student's own, never a retry KCP makes. On the registration page, the first come
 // page, and for a plan the helper shows without having read the page term, the bar only
-// says that nothing is prepared.
+// says that nothing is prepared. While another plan prepares, the press is held, with the
+// reason on hover and, on a touch screen, in the error toast a press shows.
 
 import { useStore } from 'zustand';
 import { ClipboardList, LoaderCircle } from 'lucide-react';
 import { fillTemplate } from '@/lib/i18n/template';
 import type { Translate } from '@/lib/i18n/t';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
+import { Tooltip } from '@/components/Tooltip';
+import { COARSE_POINTER_QUERY } from '@/lib/ui/breakpoints';
 import { useOptionalSearchDeps } from '@/features/search/SearchDepsContext';
+import { toastStore } from '@/features/shell/toastStore';
+import { useMediaQuery } from '@/features/shell/useMediaQuery';
 import { cancelPrepare, startHelperPrepare } from './prepareController';
 import { regisStore } from './regisStore';
 import type { HelperModel } from './useHelperModel';
@@ -29,11 +34,14 @@ const BAR_BUTTON =
 
 export function KitBar({ model, t }: { model: HelperModel; t: Translate }) {
   const deps = useOptionalSearchDeps();
+  const coarse = useMediaQuery(COARSE_POINTER_QUERY);
   const run = useStore(regisStore, (state) => state.run);
   const { plan } = model;
   const ours = run.status !== 'idle' && run.planId === plan?.id;
   const running = ours && run.status === 'running' ? run : null;
   const failed = ours && run.status === 'failed';
+  // One prepare runs at a time, so while another plan's reads, this bar's press waits.
+  const elsewhere = !ours && run.status === 'running';
   // Only a plan of the term read from the page: a fallback plan may be of another term,
   // and preparing it would read that term's subjects at the registrar's busiest time.
   const confirmed = model.pick.kind === 'plan' && model.pick.confirmed;
@@ -73,7 +81,25 @@ export function KitBar({ model, t }: { model: HelperModel; t: Translate }) {
       <span id={KIT_TEXT_ID} className="min-w-0 flex-1 text-left">
         {t(failed ? 'regis.prepareFailedShort' : 'regis.noKitShort')}
       </span>
-      {offered ? (
+      {offered && elsewhere ? (
+        <Tooltip label={t('regis.preparingOther')} disabled={coarse}>
+          {(triggerProps, ref) => (
+            <button
+              ref={ref}
+              {...triggerProps}
+              type="button"
+              aria-disabled="true"
+              aria-label={`${t('regis.prepareInline')}, ${t('regis.preparingOther')}`}
+              onClick={() => {
+                toastStore.getState().show('error', t('regis.preparingOther'));
+              }}
+              className={`${BAR_BUTTON} cursor-not-allowed bg-surface text-ink-muted ring-1 ring-border ring-inset ${FOCUS_RING}`}
+            >
+              {t('regis.prepareInline')}
+            </button>
+          )}
+        </Tooltip>
+      ) : offered ? (
         <button
           type="button"
           onClick={(event) => {
