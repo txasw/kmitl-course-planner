@@ -6,9 +6,10 @@
 // of Add for me while a run is active, so one bounce cannot stop and resume a run, and a
 // held key repeats nothing.
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode, type Ref } from 'react';
 import { useStore } from 'zustand';
 import { Plus, X } from 'lucide-react';
+import { Tooltip } from '@/components/Tooltip';
 import type { Plan } from '@/lib/domain/plan';
 import { fillTemplate } from '@/lib/i18n/template';
 import type { Translate } from '@/lib/i18n/t';
@@ -58,6 +59,9 @@ interface PressButtonProps {
   onPress: (press: StudentPress) => void;
   className: string;
   children: ReactNode;
+  /** Props of a wrapper such as a tooltip or a menu, spread first so the press handlers win. */
+  extra?: Record<string, unknown>;
+  buttonRef?: Ref<HTMLButtonElement>;
 }
 
 function PressButton({
@@ -65,6 +69,8 @@ function PressButton({
   onPress,
   className,
   children,
+  extra,
+  buttonRef,
 }: PressButtonProps) {
   // A press counts only once the button has been on screen for a moment.
   const shownAt = useRef(Number.POSITIVE_INFINITY);
@@ -73,6 +79,8 @@ function PressButton({
   }, []);
   return (
     <button
+      ref={buttonRef}
+      {...extra}
       type="button"
       aria-label={label}
       data-fill-press
@@ -134,29 +142,46 @@ export function AddForMeButton({
   t,
 }: AddForMeProps) {
   const label = t('regis.addForMe');
+  const onPress = (press: StudentPress) => {
+    void startFill(press, {
+      plan,
+      kit,
+      items: itemsFor([row], plan, kit),
+      ...(allowFull ? { allowFull: [row.subjectId] } : {}),
+    });
+  };
   // The focus card keeps this button in place while its subject changes, so a new target
   // is a new button whose moment starts then, as a button that turns enabled is.
+  const key = `${row.subjectId} ${String(allowFull)}`;
+  if (!compact) {
+    return (
+      <PressButton
+        key={key}
+        label={label}
+        onPress={onPress}
+        className={PRIMARY}
+      >
+        <Plus size={16} strokeWidth={2.5} aria-hidden />
+        <span>{label}</span>
+      </PressButton>
+    );
+  }
+  // The icon alone on a list row says what it does in a tooltip on hover and focus.
   return (
-    <PressButton
-      key={`${row.subjectId} ${String(allowFull)}`}
-      label={compact ? `${label} ${row.subjectId}` : label}
-      onPress={(press) => {
-        void startFill(press, {
-          plan,
-          kit,
-          items: itemsFor([row], plan, kit),
-          ...(allowFull ? { allowFull: [row.subjectId] } : {}),
-        });
-      }}
-      className={
-        compact
-          ? `inline-flex size-11 shrink-0 items-center justify-center rounded-kcp bg-surface text-primary-strong ring-1 ring-border ring-inset hover:bg-surface-alt sm:size-9 ${FOCUS_RING}`
-          : PRIMARY
-      }
-    >
-      <Plus size={16} strokeWidth={2.5} aria-hidden />
-      {compact ? null : <span>{label}</span>}
-    </PressButton>
+    <Tooltip label={label}>
+      {(triggerProps, ref) => (
+        <PressButton
+          key={key}
+          label={`${label} ${row.subjectId}`}
+          onPress={onPress}
+          extra={triggerProps}
+          buttonRef={ref}
+          className={`inline-flex size-11 shrink-0 items-center justify-center rounded-kcp bg-surface text-primary-strong ring-1 ring-border ring-inset hover:bg-surface-alt sm:size-9 ${FOCUS_RING}`}
+        >
+          <Plus size={16} strokeWidth={2.5} aria-hidden />
+        </PressButton>
+      )}
+    </Tooltip>
   );
 }
 

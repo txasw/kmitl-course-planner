@@ -135,9 +135,13 @@ describe('AddForMeButton', () => {
         t={t}
       />,
     );
-    expect(
-      screen.getByRole('button', { name: `Add for me ${SUBJECT}` }),
-    ).toBeDefined();
+    const button = screen.getByRole('button', {
+      name: `Add for me ${SUBJECT}`,
+    });
+    expect(button).toHaveAttribute('data-fill-press');
+    // The icon alone says what it does in a tooltip on focus and hover.
+    fireEvent.focus(button);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Add for me');
   });
 });
 
