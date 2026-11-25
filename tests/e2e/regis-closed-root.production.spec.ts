@@ -138,6 +138,11 @@ async function openReplica(
     },
   );
   const root = await ClosedRoot.attach(page);
+  // On a phone a visit starts with the card folded into the launcher, so the page reads
+  // first; the student opens it with a tap.
+  if ((page.viewportSize()?.width ?? DESKTOP.width) < 640) {
+    await root.tap(withAttr('id', 'kcp-launcher'), 'launcher');
+  }
   // The card lists the plan once the page term has been read, or offers to make one.
   const ready =
     term.year === seeded.term.year && term.semester === seeded.term.semester
