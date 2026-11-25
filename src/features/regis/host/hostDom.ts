@@ -456,23 +456,51 @@ const SUBTREE: MutationObserverInit = {
   attributeFilter: ['class', 'style', 'disabled'],
 };
 
+// Until the panel shows, only an element added or removed can bring it.
+const INSERTIONS: MutationObserverInit = { subtree: true, childList: true };
+
+const CHILDREN: MutationObserverInit = { childList: true };
+
+/** The registration panel: the element that holds the header row with the term. */
+export function panelOf(doc: Document): Element | null {
+  return headerRow(doc)?.parentElement ?? null;
+}
+
 /**
- * The roots the observer watches: the registration panel, or the app root until the
- * panel shows; the app root's direct children, where the host attaches its dialogs; each
- * dialog's own class, which says whether it is open; and the toast container.
+ * The roots the observer watches: the registration panel and each of its ancestors up to
+ * the app root, whose children change when the host unmounts the panel, as the period
+ * check of app.a1e43722 can make it do with no navigation; the app root's direct children,
+ * where the host attaches its dialogs; each dialog's own class, which says whether it is
+ * open; and the toast container. Without the panel the app root is watched instead, and
+ * while the last reading found no anchor at all only for elements added or removed under
+ * it, so text the page rewrites in place, such as the countdown of the registration
+ * periods above the panel, reads nothing.
  */
-export function observedRoots(doc: Document): [Node, MutationObserverInit][] {
+export function observedRoots(
+  doc: Document,
+  absent = false,
+): [Node, MutationObserverInit][] {
   const app = doc.querySelector('[data-app]') ?? doc.body;
-  const panel = headerRow(doc)?.parentElement ?? null;
-  const roots: [Node, MutationObserverInit][] = [
-    [panel ?? app, SUBTREE],
-    [doc.body, { childList: true }],
-  ];
-  if (panel !== null) roots.push([app, { childList: true }]);
+  const panel = panelOf(doc);
+  const roots: [Node, MutationObserverInit][] = [];
+  if (panel === null) {
+    roots.push([app, absent ? INSERTIONS : SUBTREE]);
+  } else {
+    roots.push([panel, SUBTREE]);
+    for (
+      let node = panel.parentElement;
+      node !== null && node !== app;
+      node = node.parentElement
+    ) {
+      roots.push([node, CHILDREN]);
+    }
+    roots.push([app, CHILDREN]);
+  }
+  roots.push([doc.body, CHILDREN]);
   for (const dialog of doc.querySelectorAll('.v-dialog__content')) {
     roots.push([dialog, { attributes: true, attributeFilter: ['class'] }]);
   }
   const toasts = doc.querySelector('.toasted-container');
-  if (toasts !== null) roots.push([toasts, { childList: true }]);
+  if (toasts !== null) roots.push([toasts, CHILDREN]);
   return roots;
 }
