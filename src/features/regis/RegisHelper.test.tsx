@@ -122,6 +122,38 @@ describe('RegisHelper', () => {
     expect(fillStore.getState().run.status).toBe('idle');
   });
 
+  it('stays open on a phone when a tap lands on the page while Add for me runs', () => {
+    renderPage('#/pre_registration');
+    const page = document.createElement('button');
+    document.body.append(page);
+    const tapPage = () => {
+      fireEvent.pointerDown(page, { pointerId: 1, isPrimary: true });
+      fireEvent.pointerUp(page, { pointerId: 1, isPrimary: true });
+    };
+    act(() => {
+      fillStore.setState({
+        run: {
+          status: 'running',
+          subjectId: '01476107',
+          step: 'enter',
+          prerequisites: [],
+          done: 0,
+          total: 1,
+        },
+      });
+    });
+    act(tapPage);
+    expect(card()).toBeInTheDocument();
+    expect(helperStore.getState().collapsed).toBe(false);
+    // With no run, a tap on the page collapses the card on a phone, as before.
+    act(() => {
+      fillStore.setState({ run: { status: 'idle' } });
+    });
+    act(tapPage);
+    expect(helperStore.getState().collapsed).toBe(true);
+    page.remove();
+  });
+
   it('collapses to the launcher and opens again on the next visit', () => {
     renderPage('#/pre_registration');
     const launcher = screen.getByRole('button', { name: /^เช็กลิสต์ 0\/1/ });
