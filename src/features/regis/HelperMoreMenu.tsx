@@ -1,9 +1,10 @@
 // The more menu of the helper card, after the menu button pattern: the trigger opens the
 // menu with focus on its first item, the arrow keys, Home, End, and a typed first letter
 // move between items, and Escape closes it back to the trigger without collapsing the
-// card. It holds the actions a student needs once or rarely: add every subject still to
-// add in one run, open the planner, read the page again, turn add for me off or on, and
-// hide the helper on this page. When the page term has more than one plan, the menu
+// card. It holds the actions a student needs once or rarely: turn add for me off or on,
+// add every subject still to add in one run, open the planner, read the page again, and
+// hide the helper on this page. The switch sits above Add all for me, since turning it
+// adds or drops the reason line under Add all. When the page term has more than one plan, the menu
 // opens with them, so the student picks the one the helper follows without changing the
 // planner's own. Add all for me is a student press like Add for me, so only the fill
 // controls render it; when it cannot run it stays in the menu with its reason under its
@@ -349,6 +350,19 @@ export function HelperMoreMenu({
             }}
           >
             <TermPlans model={model} onPick={close} t={t} />
+            {/* The switch stays open on a press and sits above Add all, whose reason
+                line comes and goes with it, so nothing moves under the pointer and a
+                second press in the same place turns it back. */}
+            {pre && switchable ? (
+              <Item
+                icon={<Check size={16} />}
+                label={t('regis.fill.switch')}
+                checked={!off}
+                onSelect={() => {
+                  regisStore.getState().setFillOff(!off);
+                }}
+              />
+            ) : null}
             {pre ? (
               <AddAllItem
                 model={model}
@@ -373,16 +387,6 @@ export function HelperMoreMenu({
                 onSelect={() => {
                   close();
                   hostStore.getState().recheck();
-                }}
-              />
-            ) : null}
-            {pre && switchable ? (
-              <Item
-                icon={<Check size={16} />}
-                label={t('regis.fill.switch')}
-                checked={!off}
-                onSelect={() => {
-                  regisStore.getState().setFillOff(!off);
                 }}
               />
             ) : null}
