@@ -31,8 +31,13 @@ export interface ReplicaAdd {
   seats: { limit: number; count: number } | null;
 }
 
+/** The pre registration period, as the period check reports it. */
+export type Period = 'before' | 'open' | 'closed';
+
 export interface ReplicaState {
   step: 0 | 1 | 2 | 3;
+  /** On the route of app.a1e43722, whether the panel shows: only while open. */
+  period: Period;
   term: { semester: string; year: string };
   list: ReplicaRow[];
   add: ReplicaAdd;
@@ -86,6 +91,18 @@ export interface ReplicaConfig {
   delay?: number;
   variant?: Variant | null;
   xhr?: boolean;
+  /** The period the next period check answers, which then applies it once. */
+  answer?: Period | null;
+}
+
+/** The host builds whose route the replica renders around the panel. */
+export type RouteBuild = 'a1e43722';
+
+export interface RouteOptions {
+  /** Render this build's route around the panel, with its periods and its period check. */
+  route?: RouteBuild | null;
+  /** How often the period check runs, in milliseconds, or 0 for only on focus. */
+  poll?: number;
 }
 
 export type ReplicaPatch = Partial<Omit<ReplicaState, 'add'>> & {
@@ -100,6 +117,8 @@ export interface Replica {
     untrustedOn: Record<string, number>;
     writes: number;
     reads: number;
+    /** The period checks the route ran. */
+    polls: number;
   };
   configure(options: ReplicaConfig): void;
   forbidden(): number;
@@ -110,7 +129,19 @@ export interface Replica {
     subjectId: string,
   ): void;
   interactions(): number;
+  /** Run one period check now, as the build's timer, a focus, or a visibility change does. */
+  poll(): void;
+  /** Advance the countdown by one second. */
+  tick(): void;
+  /** Stop the countdown, the period checks, and every later render. */
+  destroy(): void;
 }
 
+export const ROUTE_BUILDS: readonly RouteBuild[];
+
 export function initialState(): ReplicaState;
-export function mountReplica(doc: Document, overrides?: ReplicaPatch): Replica;
+export function mountReplica(
+  doc: Document,
+  overrides?: ReplicaPatch,
+  options?: RouteOptions,
+): Replica;

@@ -19,18 +19,23 @@ const REPLICA_DIR = resolve(process.cwd(), 'tests/e2e/host/pre_registration');
 // The host build names the observer was tested against, and a name it was not.
 const TESTED_APP = '454d9e95';
 const TESTED_VENDOR = '7ab4925e';
-const UNTESTED_APP = '00000000';
+// The app builds a spec may ask for by name: one KCP was not tested with, and the build
+// of 2026-11-25 09:53 GMT, whose route with its periods and its period check the replica
+// renders when served under its name.
+const NAMED_APPS: Readonly<Record<string, string>> = {
+  untested: '00000000',
+  a1e43722: 'a1e43722',
+};
 
 /**
  * The static pre registration replica and its scripts, or null for any other path. The
- * page names its scripts like the host build, the tested one unless the query asks for
- * an untested build, so the observer's build gate sees the names it compares.
+ * page names its scripts like the host build, the tested one unless the query names
+ * another build, so the observer's build gate sees the names it compares.
  */
 function replicaFile(url: URL): { type: string; body: string } | null {
   const js = 'text/javascript';
   if (url.pathname === '/replica/pre_registration') {
-    const app =
-      url.searchParams.get('build') === 'untested' ? UNTESTED_APP : TESTED_APP;
+    const app = NAMED_APPS[url.searchParams.get('build') ?? ''] ?? TESTED_APP;
     const html = readFileSync(resolve(REPLICA_DIR, 'index.html'), 'utf8')
       .replace('__APP__', app)
       .replace('__VENDOR__', TESTED_VENDOR);
@@ -50,6 +55,15 @@ function replicaFile(url: URL): { type: string; body: string } | null {
   }
   if (/^\/js\/chunk-vendors\.[0-9a-f]{8}\.js$/.test(url.pathname)) {
     return { type: js, body: '' };
+  }
+  // The replica's own period check, which the specs drive by its answer in the page, so
+  // the body only needs to be a well formed reply. It sits off the API path, so the API
+  // call log keeps listing the extension's requests alone.
+  if (url.pathname === '/replica/check-registration-datetime') {
+    return {
+      type: 'application/json',
+      body: '{"pre_regis":{"before_date":false,"on_date":true,"after_date":false}}',
+    };
   }
   return null;
 }
