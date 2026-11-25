@@ -107,6 +107,13 @@ describe('RegisHelper', () => {
     const reason = add.getAttribute('aria-describedby');
     expect(reason).not.toBeNull();
     expect(add).not.toHaveAttribute('data-fill-press');
+    // A press, which on touch shows no tooltip, shows the reason in the error toast.
+    fireEvent.click(add);
+    expect(toastStore.getState().toast).toMatchObject({
+      kind: 'error',
+      message: 'ยังใช้เพิ่มให้ไม่ได้',
+    });
+    expect(fillStore.getState().run.status).toBe('idle');
   });
 
   it('collapses to the launcher and opens again on the next visit', () => {
