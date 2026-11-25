@@ -29,6 +29,7 @@ import { fillTemplate } from '@/lib/i18n/template';
 import { termText } from '@/lib/routing/academicTerms';
 import { stillToAdd } from '@/lib/regis/helperStatus';
 import { FOCUS_RING } from '@/lib/ui/focus';
+import { startsWithTyped } from '@/lib/ui/typeAhead';
 import { focusFirst } from '@/features/shell/restoreFocus';
 import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
@@ -255,7 +256,7 @@ function typeAhead(
   );
   return order.find((index) => {
     const item = items[index];
-    return item !== undefined && nameOf(item).startsWith(typed);
+    return item !== undefined && startsWithTyped(nameOf(item), typed);
   });
 }
 
