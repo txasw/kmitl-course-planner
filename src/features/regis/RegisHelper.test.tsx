@@ -157,6 +157,33 @@ describe('RegisHelper', () => {
     page.remove();
   });
 
+  it('keeps the card open and hands focus to Stop when the launcher is pressed during a run', () => {
+    renderPage('#/pre_registration');
+    act(() => {
+      fillStore.setState({
+        run: {
+          status: 'running',
+          subjectId: '01476107',
+          step: 'enter',
+          prerequisites: [],
+          done: 0,
+          total: 1,
+        },
+      });
+    });
+    // A stray touch on the launcher, where a thumb rests on a phone, does not stop the run.
+    fireEvent.click(screen.getByRole('button', { name: /^เช็กลิสต์/ }));
+    expect(helperStore.getState().collapsed).toBe(false);
+    expect(card()).toBeInTheDocument();
+    expect(within(card()).getByRole('button', { name: 'หยุด' })).toHaveFocus();
+    // With no run, the same press collapses the card, as before.
+    act(() => {
+      fillStore.setState({ run: { status: 'idle' } });
+    });
+    fireEvent.click(screen.getByRole('button', { name: /^เช็กลิสต์/ }));
+    expect(helperStore.getState().collapsed).toBe(true);
+  });
+
   it('collapses to the launcher, and opens again on the next visit on a wide screen', () => {
     renderPage('#/pre_registration');
     // Open, the launcher names the checklist alone; the card's header has the count.
@@ -225,7 +252,10 @@ describe('RegisHelper', () => {
       setView('card');
     });
     expect(fillStore.getState().shown?.subjectId).toBe('01476107');
-    fireEvent.click(screen.getByRole('button', { name: 'เช็กลิสต์' }));
+    // Escape inside the card collapses it, a deliberate way to stop.
+    fireEvent.keyDown(within(card()).getByRole('button', { name: 'เพิ่มเติม' }), {
+      key: 'Escape',
+    });
     expect(fillStore.getState().shown).toBeNull();
   });
 
