@@ -72,6 +72,7 @@ export function usePlanPersistence({
         .save({
           schemaVersion: CURRENT_SCHEMA_VERSION,
           plans: planStore.getState().plans,
+          activePlanId: planStore.getState().activePlanId,
         })
         .then(
           (result) => {
@@ -100,7 +101,11 @@ export function usePlanPersistence({
       if (isCancelled() || unsubscribe !== undefined) return;
       autosaveStore.getState().attach(retry);
       unsubscribe = planStore.subscribe((state, previous) => {
-        if (state.plans !== previous.plans) {
+        // Switching plans saves too, so a reload reopens the plan last switched to.
+        if (
+          state.plans !== previous.plans ||
+          state.activePlanId !== previous.activePlanId
+        ) {
           if (timer !== undefined) clearTimeout(timer);
           autosaveStore.getState().setStatus('saving');
           timer = setTimeout(() => {
@@ -123,7 +128,9 @@ export function usePlanPersistence({
           planStore.getState().markLoaded();
           return;
         }
-        planStore.getState().hydrate(outcome.root.plans);
+        planStore
+          .getState()
+          .hydrate(outcome.root.plans, outcome.root.activePlanId);
         // Attach the autosave before the quarantine blob read, so a failed read cannot
         // leave persistence silently disabled.
         subscribe();
