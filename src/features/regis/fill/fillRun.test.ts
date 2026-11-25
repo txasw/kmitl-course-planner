@@ -6,6 +6,8 @@ import {
 import type { Plan } from '@/lib/domain/plan';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
 import { DEFAULT_FILL_SETTINGS } from '@/lib/storage/regis';
+import { uiStore } from '@/features/shell/uiStore';
+import { helperStore, hideHelper, startVisit } from '../helperStore';
 import { regisStore } from '../regisStore';
 import { runFill, type FillDeps } from './fillEngine';
 import { fillStore, startFill } from './fillRun';
@@ -57,6 +59,8 @@ beforeEach(() => {
 
 afterEach(() => {
   expect(replica?.interactions() ?? 0).toBe(0);
+  startVisit();
+  uiStore.getState().close();
   document.head.replaceChildren();
   document.body.replaceChildren();
   surrogate.on = false;
@@ -124,6 +128,47 @@ describe('startFill', () => {
     await startFill(press(), request);
     expect(seen).toEqual([false, true]);
   });
+
+  it('starts nothing while the helper is hidden or the planner is open', async () => {
+    scripts(TESTED);
+    hideHelper();
+    await startFill(press(), request);
+    startVisit();
+    uiStore.getState().open();
+    await startFill(press(), request);
+    expect(fillStore.getState().run.status).toBe('idle');
+    expect(runFill).not.toHaveBeenCalled();
+  });
+
+  for (const [name, away] of [
+    ['hides the helper on this page', hideHelper],
+    [
+      'opens the planner over the page',
+      () => {
+        uiStore.getState().open();
+      },
+    ],
+  ] as const) {
+    it(`ends a run at the next step once the student ${name}`, async () => {
+      scripts(TESTED);
+      const seen: boolean[] = [];
+      vi.mocked(runFill).mockImplementationOnce((deps: FillDeps) => {
+        seen.push(deps.stopRequested());
+        away();
+        seen.push(deps.stopRequested());
+        return Promise.resolve({
+          status: 'stopped',
+          subjectId: null,
+          reason: 'stopped',
+        });
+      });
+      await startFill(press(), request);
+      expect(seen).toEqual([false, true]);
+      expect(helperStore.getState().hidden || uiStore.getState().isOpen).toBe(
+        true,
+      );
+    });
+  }
 
   it('ends a run that faults as a stop, with its tripwire released', async () => {
     scripts(TESTED);
