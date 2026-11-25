@@ -367,9 +367,30 @@ describe('observedRoots', () => {
 
   it('watches the app root until the panel shows', () => {
     mount({ step: 0 });
-    expect(observedRoots(document)[0]?.[0]).toBe(
-      document.querySelector('[data-app]'),
-    );
+    const app = document.querySelector('[data-app]');
+    expect(observedRoots(document)[0]).toEqual([
+      app,
+      expect.objectContaining({ characterData: true }),
+    ]);
+    // While the last reading found no anchor, only elements added or removed count.
+    expect(observedRoots(document, true)[0]).toEqual([
+      app,
+      { subtree: true, childList: true },
+    ]);
+  });
+
+  it("watches the children of each of the panel's ancestors", () => {
+    mount();
+    const panel = document.querySelector('.row.grey')?.parentElement;
+    const roots = observedRoots(document, true);
+    expect(roots[0]?.[0]).toBe(panel);
+    for (
+      let node = panel?.parentElement ?? null;
+      node !== null && !node.hasAttribute('data-app');
+      node = node.parentElement
+    ) {
+      expect(roots).toContainEqual([node, { childList: true }]);
+    }
   });
 });
 

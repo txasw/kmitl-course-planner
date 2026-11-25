@@ -112,8 +112,16 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
       setTimeout(resolve, ms);
     });
 
+  // Whether the run has acted on the page yet, so a page with no panel is a page that
+  // changed under the run rather than one that was never ready.
+  let acted = false;
+
+  // A page with no panel ends the run at once: the host can unmount the panel on its own,
+  // as the period check of app.a1e43722 does when it rewrites the period, and nothing on a
+  // page without one may be acted on or waited for.
   function read(): HostObservation | null {
     const reading = readHostPage(doc, planned);
+    if (reading.reading === 'absent') stop(acted ? 'pageChanged' : 'notReady');
     return reading.reading === 'ok' ? reading.observation : null;
   }
 
@@ -145,6 +153,8 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
     if (deps.stopRequested()) stop('stopped');
     await sleep(timing.pace);
     if (deps.stopRequested()) stop('stopped');
+    read();
+    acted = true;
     const outcome = perform();
     if (outcome === 'refused') {
       deps.onRefusal();

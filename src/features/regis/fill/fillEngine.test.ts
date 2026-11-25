@@ -137,6 +137,7 @@ let replica: Replica | null = null;
 
 afterEach(() => {
   expect(replica?.forbidden() ?? 0).toBe(0);
+  replica?.destroy();
   document.body.replaceChildren();
   replica = null;
 });
@@ -593,5 +594,98 @@ describe('runFill', () => {
       reason: 'notRecognised',
     });
     expect(replica.state.list).toEqual([]);
+  });
+});
+
+describe('runFill on the route of app.a1e43722', () => {
+  // The build's period check can unmount the panel with no navigation, and mount it
+  // again from its own empty data; a run never acts on a page without a panel.
+  function deps(
+    setupOf: ReturnType<typeof setup>,
+    onStep: FillDeps['onStep'] = () => undefined,
+  ): FillDeps {
+    return {
+      doc: document,
+      plan: setupOf.plan,
+      kit: setupOf.kit,
+      targets: setupOf.targets,
+      allowFull: new Set(),
+      stopRequested: () => false,
+      onStep,
+      onRefusal: () => undefined,
+      conditionShownSince: () => 0,
+      tripwire: { count: () => 0, stop: () => undefined },
+      timing: { pace: 0, poll: 2, answer: 5000, settle: 150, acknowledge: 0 },
+    };
+  }
+
+  it('fills through the route card around the panel', async () => {
+    const setupOf = setup([SINGLE]);
+    replica = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
+    replica.configure({ delay: 5, catalog: setupOf.catalog });
+    expect(await runFill(deps(setupOf))).toEqual({
+      status: 'done',
+      filled: 1,
+    });
+    expect(replica.state.list.map((row) => row.section)).toEqual(['1']);
+  });
+
+  it('stops at once when the panel unmounts under a run, and acts on nothing more', async () => {
+    const setupOf = setup([SINGLE]);
+    const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
+    replica = page;
+    page.configure({ delay: 300, catalog: setupOf.catalog });
+    const started = Date.now();
+    const outcome = await runFill(
+      deps(setupOf, (_subject, step) => {
+        // The period closes while the host reads the entered subject.
+        if (step === 'wait') {
+          setTimeout(() => {
+            page.set({ period: 'closed' });
+          }, 20);
+        }
+      }),
+    );
+    expect(outcome).toMatchObject({ status: 'stopped', reason: 'pageChanged' });
+    // Well before the 5 s answer ceiling, so the run waited for nothing.
+    expect(Date.now() - started).toBeLessThan(1000);
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    expect(page.state.list).toEqual([]);
+    expect(Object.keys(page.counters.untrustedOn)).toEqual(['subjectField']);
+    expect(page.counters.clicks).toEqual({});
+  });
+
+  it('starts nothing while the period keeps the panel unmounted', async () => {
+    const setupOf = setup([SINGLE]);
+    replica = mountReplica(
+      document,
+      { period: 'before' },
+      { route: 'a1e43722', poll: 0 },
+    );
+    replica.configure({ delay: 5, catalog: setupOf.catalog });
+    expect(await runFill(deps(setupOf))).toMatchObject({
+      status: 'stopped',
+      reason: 'notReady',
+    });
+    expect(replica.interactions()).toBe(0);
+  });
+
+  it('fills the panel the host mounted again from its empty data', async () => {
+    const setupOf = setup([SINGLE]);
+    const page = mountReplica(
+      document,
+      { period: 'closed' },
+      { route: 'a1e43722', poll: 0 },
+    );
+    replica = page;
+    page.configure({ delay: 5, catalog: setupOf.catalog });
+    page.set({ period: 'open' });
+    // The add card reads its credits first, with the card loading.
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(await runFill(deps(setupOf))).toEqual({
+      status: 'done',
+      filled: 1,
+    });
+    expect(page.state.list.map((row) => row.section)).toEqual(['1']);
   });
 });
