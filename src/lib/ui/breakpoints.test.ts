@@ -4,6 +4,7 @@ import {
   BREAKPOINTS,
   gridFontPx,
   isDockedTier,
+  isPhoneScreen,
   minWidthQuery,
   tierForWidth,
 } from './breakpoints';
@@ -67,4 +68,20 @@ describe('gridFontPx', () => {
   it('keeps the base size before the first measurement', () => {
     expect(gridFontPx(0)).toBe(BASE_GRID_FONT_PX);
   });
+});
+
+describe('isPhoneScreen', () => {
+  it.each([
+    [412, 915, true, true],
+    [915, 412, true, true],
+    [915, 412, false, false],
+    [639, 900, false, true],
+    [1024, 768, true, false],
+    [1280, 800, false, false],
+  ])(
+    'reads %i by %i, coarse %s, as a phone: %s',
+    (width, height, coarse, phone) => {
+      expect(isPhoneScreen({ width, height, coarse })).toBe(phone);
+    },
+  );
 });

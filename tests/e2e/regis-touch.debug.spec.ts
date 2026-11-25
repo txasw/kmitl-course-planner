@@ -31,9 +31,10 @@ async function openOnPhone(
   page: Page,
   serviceWorker: Worker,
   delay: number,
+  size: { width: number; height: number } = PHONE,
 ): Promise<void> {
   const { term, sections } = await planWithKit(page, serviceWorker, SUBJECTS);
-  await page.setViewportSize(PHONE);
+  await page.setViewportSize(size);
   await page.goto(`${REPLICA_URL}?build=a1e43722&poll=0#/pre_registration`);
   await page.waitForFunction(() => 'replica' in window);
   await page.evaluate(
@@ -157,4 +158,30 @@ test('Stop still stops the run at once on a phone', async ({
   const listed = await page.evaluate(() => window.replica.state.list.length);
   expect(listed).toBe(0);
   await expectNothingForbidden(page);
+});
+
+// A phone turned on its side is 915 px wide, so it is no narrow screen by width, yet only
+// 412 px tall: the card starts folded, and opened it shows its subject whole, with no part
+// of the queue or the subject cut off or under the action row or the launcher.
+test('a phone on its side starts folded and opens with nothing cut off', async ({
+  context,
+  serviceWorker,
+}) => {
+  const page = await openPlanner(context);
+  await openOnPhone(page, serviceWorker, 900, { width: 915, height: 412 });
+  const scroller = card(page).locator('.kcp-scroll');
+  const fits = await scroller.evaluate(
+    (node) => node.scrollHeight <= node.clientHeight + 1,
+  );
+  expect(fits).toBe(true);
+  const add = card(page)
+    .getByRole('button', { name: 'เพิ่มให้', exact: true })
+    .first();
+  const addBox = await add.boundingBox();
+  const launcherBox = await page.locator('#kcp-launcher').boundingBox();
+  if (addBox === null || launcherBox === null) throw new Error('no box');
+  expect(addBox.y + addBox.height).toBeLessThanOrEqual(launcherBox.y);
+  const cardBox = await card(page).boundingBox();
+  if (cardBox === null) throw new Error('no card');
+  expect(cardBox.y).toBeGreaterThanOrEqual(0);
 });

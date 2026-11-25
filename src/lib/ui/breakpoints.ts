@@ -69,3 +69,19 @@ export function gridFontPx(width: number): number {
 /** The media query for a coarse primary pointer such as a finger, the same condition as
  * the Tailwind pointer-coarse variant, so code and markup agree on what reads as touch. */
 export const COARSE_POINTER_QUERY = '(pointer: coarse)';
+
+/**
+ * Whether a screen reads as a phone: narrower than the sm breakpoint, or touch driven with
+ * its short side under it, which is a phone turned on its side. Width alone takes a 915 by
+ * 412 phone in landscape for a wide screen.
+ */
+export function isPhoneScreen(screen: {
+  width: number;
+  height: number;
+  coarse: boolean;
+}): boolean {
+  return (
+    screen.width < BREAKPOINTS.sm ||
+    (screen.coarse && Math.min(screen.width, screen.height) < BREAKPOINTS.sm)
+  );
+}
