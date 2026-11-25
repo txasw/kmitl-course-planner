@@ -192,6 +192,31 @@ describe('RegisHelper', () => {
     expect(scroller?.contains(add)).toBe(false);
   });
 
+  it('moves through the more menu by its first letters', () => {
+    act(() => {
+      uiStore.getState().setLanguage('en');
+    });
+    renderPage('#/pre_registration');
+    const region = screen.getByRole('region', { name: 'Checklist' });
+    fireEvent.click(within(region).getByRole('button', { name: 'More' }));
+    const menu = screen.getByRole('menu', { name: 'More' });
+    const first = within(menu).getByRole('menuitem', {
+      name: 'Add all for me',
+    });
+    first.focus();
+    fireEvent.keyDown(first, { key: 'h' });
+    expect(
+      within(menu).getByRole('menuitem', { name: 'Hide on this page' }),
+    ).toHaveFocus();
+    fireEvent.keyDown(document.activeElement ?? menu, { key: 'C' });
+    expect(
+      within(menu).getByRole('menuitem', { name: 'Check again' }),
+    ).toHaveFocus();
+    act(() => {
+      uiStore.getState().setLanguage('th');
+    });
+  });
+
   it('renders nothing off the helper pages', () => {
     renderPage('#/teach_table_selector');
     expect(screen.queryByRole('region', { name: 'เช็กลิสต์' })).toBeNull();
