@@ -713,6 +713,41 @@ describe('runFill on the route of app.a1e43722', () => {
     expect(page.counters.clicks).toEqual({});
   });
 
+  it('stops when the host mounts a new panel between two subjects', async () => {
+    const setupOf = setup([SINGLE, { ...SINGLE, id: B, day: 3 }]);
+    const late = setupOf.targets[1]?.subjectId;
+    const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
+    replica = page;
+    page.configure({ delay: 0, catalog: setupOf.catalog });
+    let remounted = false;
+    const outcome = await runFill({
+      ...deps(setupOf),
+      tripwire: {
+        // Two period answers just after the first subject's last check, so no reading
+        // ever finds the page without a panel, and the new panel has lost that subject.
+        count: () => {
+          if (page.state.list.length === 1 && !remounted) {
+            remounted = true;
+            queueMicrotask(() => {
+              page.set({ period: 'closed' });
+              page.set({ period: 'open' });
+            });
+          }
+          return 0;
+        },
+        stop: () => undefined,
+      },
+    });
+    expect(remounted).toBe(true);
+    expect(outcome).toMatchObject({
+      status: 'stopped',
+      subjectId: late,
+      reason: 'pageChanged',
+    });
+    expect(page.state.list).toEqual([]);
+    expect(page.counters.untrustedOn.subjectField).toBe(1);
+  });
+
   it('starts nothing while the period keeps the panel unmounted', async () => {
     const setupOf = setup([SINGLE]);
     replica = mountReplica(
