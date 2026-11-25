@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   DRIFT_STRIKES,
   INITIAL_HEALTH,
+  canRecheck,
+  recheckHealth,
   nextHealth,
   type Gate,
   type ObserverHealth,
@@ -68,5 +70,30 @@ describe('nextHealth', () => {
       status: 'off',
       reason: 'drift',
     });
+  });
+});
+
+describe('recheckHealth', () => {
+  it('reads a drift off page again from the start', () => {
+    expect(recheckHealth({ status: 'off', reason: 'drift' })).toEqual(
+      INITIAL_HEALTH,
+    );
+    expect(canRecheck({ status: 'off', reason: 'drift' })).toBe(true);
+  });
+
+  it('keeps an untested build and a surrogate session off, with no Check again', () => {
+    for (const reason of ['untestedBuild', 'surrogate'] as const) {
+      expect(recheckHealth({ status: 'off', reason })).toEqual({
+        status: 'off',
+        reason,
+      });
+      expect(canRecheck({ status: 'off', reason })).toBe(false);
+    }
+  });
+
+  it('leaves a degraded page to the read the check starts', () => {
+    const degraded = { status: 'degraded', strikes: 2 } as const;
+    expect(recheckHealth(degraded)).toBe(degraded);
+    expect(canRecheck(degraded)).toBe(true);
   });
 });
