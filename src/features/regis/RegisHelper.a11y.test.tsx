@@ -131,6 +131,22 @@ describe('the helper card, accessibly', () => {
     await expectNoSeriousA11yViolations(view.container);
   });
 
+  it('names Copy ID with its visible label first, before and after a press', async () => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: () => Promise.resolve() },
+    });
+    renderHelper();
+    const copy = within(card()).getByRole('button', {
+      name: `คัดลอกรหัส ${SUBJECT}`,
+    });
+    await act(async () => {
+      fireEvent.click(copy);
+      await Promise.resolve();
+    });
+    expect(copy).toHaveAccessibleName(`คัดลอกแล้ว ${SUBJECT}`);
+  });
+
   it('turns the loader only without a reduced motion preference', () => {
     renderHelper();
     act(() => {

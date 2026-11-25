@@ -619,7 +619,6 @@
   "regis.launcher": "เช็กลิสต์ {done}/{total}",
   "regis.launcherEmpty": "เช็กลิสต์",
   "regis.openPlanner": "เปิดตารางเรียน",
-  "regis.copyId": "คัดลอกรหัสวิชา {subjectId}",
   "regis.fit.fits": "ลงตัว",
   "regis.fit.time": "เวลาชน",
   "regis.fit.exam": "สอบชน",
