@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   act,
   cleanup,
@@ -21,7 +21,7 @@ import { toastStore } from '@/features/shell/toastStore';
 import { fillStore } from './fill/fillRun';
 import { hostStore } from './host/hostStore';
 import { helperStore, setView, startVisit } from './helperStore';
-import { RegisHelper } from './RegisHelper';
+import { FIRST_READING_MS, RegisHelper } from './RegisHelper';
 import { regisStore } from './regisStore';
 
 // The registration helper card (ADR-0076, design C2): it opens on its own on each visit,
@@ -64,6 +64,8 @@ function card() {
 
 beforeEach(() => {
   regisStore.setState({ kits: [], choices: [] });
+  // The page has been read once, so the card opens with no wait.
+  hostStore.setState({ health: { status: 'healthy' }, page: null });
   startVisit();
 });
 
@@ -222,6 +224,37 @@ describe('RegisHelper', () => {
     act(() => {
       uiStore.getState().setLanguage('th');
     });
+  });
+
+  it('waits for the first page reading, at most half a second, before opening', () => {
+    vi.useFakeTimers();
+    try {
+      hostStore.setState({ health: { status: 'waiting', strikes: 0 } });
+      renderPage('#/pre_registration');
+      expect(screen.queryByRole('region', { name: 'เช็กลิสต์' })).toBeNull();
+      act(() => {
+        hostStore.setState({ health: { status: 'healthy' } });
+      });
+      expect(card()).toBeInTheDocument();
+      // A page that shows nothing to read yet opens the card once the wait runs out.
+      act(() => {
+        hostStore.setState({ health: { status: 'waiting', strikes: 0 } });
+        startVisit();
+      });
+      expect(screen.queryByRole('region', { name: 'เช็กลิสต์' })).toBeNull();
+      act(() => {
+        vi.advanceTimersByTime(FIRST_READING_MS);
+      });
+      expect(card()).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('opens at once on the registration page, which KCP does not read', () => {
+    hostStore.setState({ health: { status: 'waiting', strikes: 0 } });
+    renderPage('#/registration');
+    expect(card()).toBeInTheDocument();
   });
 
   it('renders nothing off the helper pages', () => {
