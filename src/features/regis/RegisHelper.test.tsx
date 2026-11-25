@@ -177,6 +177,8 @@ describe('RegisHelper', () => {
     });
     expect(addAll).toHaveAttribute('aria-disabled', 'true');
     expect(addAll).toHaveAccessibleDescription('ยังใช้เพิ่มให้ไม่ได้');
+    // The name comes from the visible label, not from a separate copy of it.
+    expect(addAll).not.toHaveAttribute('aria-label');
     expect(addAll).not.toHaveAttribute('data-fill-press');
     fireEvent.click(addAll);
     expect(toastStore.getState().toast).toMatchObject({
