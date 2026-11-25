@@ -144,15 +144,16 @@ function Bar({ model, t }: { model: HelperModel; t: Translate }) {
     return <div className={`${bar} py-1 pr-2`}>{words}</div>;
   }
   return (
+    // The name is the bar's own words, the state and then Check again, with a space
+    // between them so the name and the visible text read alike.
     <button
       type="button"
-      aria-label={`${t(key)} ${t('regis.recheck')}`}
       onClick={() => {
         hostStore.getState().recheck();
       }}
       className={`${bar} w-[calc(100%-0.5rem)] hover:brightness-95 ${FOCUS_RING}`}
     >
-      {words}
+      {words}{' '}
       <span className="inline-flex shrink-0 items-center gap-1 px-2">
         <span className="max-sm:sr-only">{t('regis.recheck')}</span>
         <RefreshCw size={16} aria-hidden />
