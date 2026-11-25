@@ -70,11 +70,14 @@ beforeEach(() => {
     page: null,
     term: { year: '2569', semester: '1' },
   });
+  // Each test is a new document, with no open or collapsed choice made yet.
+  helperStore.setState({ chosen: null });
   startVisit();
 });
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
   fillStore.setState({ run: { status: 'idle' }, stop: false, shown: null });
   act(() => {
     uiStore.getState().close();
@@ -154,17 +157,40 @@ describe('RegisHelper', () => {
     page.remove();
   });
 
-  it('collapses to the launcher and opens again on the next visit', () => {
+  it('collapses to the launcher, and opens again on the next visit on a wide screen', () => {
     renderPage('#/pre_registration');
-    const launcher = screen.getByRole('button', { name: /^เช็กลิสต์ 0\/1/ });
+    // Open, the launcher names the checklist alone; the card's header has the count.
+    const launcher = screen.getByRole('button', { name: 'เช็กลิสต์' });
     expect(launcher).toHaveAttribute('aria-expanded', 'true');
+    expect(launcher).not.toHaveTextContent('0/1');
     fireEvent.click(launcher);
     expect(screen.queryByRole('region', { name: 'เช็กลิสต์' })).toBeNull();
     expect(launcher).toHaveAttribute('aria-expanded', 'false');
+    expect(launcher).toHaveAccessibleName(/^เช็กลิสต์ 0\/1/);
     act(() => {
       startVisit();
     });
     expect(card()).toBeInTheDocument();
+  });
+
+  it('starts collapsed on a narrow screen until the student opens it', () => {
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(412);
+    renderPage('#/pre_registration');
+    expect(screen.queryByRole('region', { name: 'เช็กลิสต์' })).toBeNull();
+    const launcher = screen.getByRole('button', { name: /^เช็กลิสต์ 0\/1/ });
+    expect(launcher).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(launcher);
+    expect(card()).toBeInTheDocument();
+    // On a narrow screen a later visit follows the student's own choice.
+    act(() => {
+      startVisit(true);
+    });
+    expect(card()).toBeInTheDocument();
+    fireEvent.click(launcher);
+    act(() => {
+      startVisit(true);
+    });
+    expect(screen.queryByRole('region', { name: 'เช็กลิสต์' })).toBeNull();
   });
 
   it('collapses on Escape inside the card', () => {
@@ -199,7 +225,7 @@ describe('RegisHelper', () => {
       setView('card');
     });
     expect(fillStore.getState().shown?.subjectId).toBe('01476107');
-    fireEvent.click(screen.getByRole('button', { name: /^เช็กลิสต์ 0\/1/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'เช็กลิสต์' }));
     expect(fillStore.getState().shown).toBeNull();
   });
 

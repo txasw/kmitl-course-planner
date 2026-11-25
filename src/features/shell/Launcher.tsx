@@ -13,9 +13,9 @@ import { fillTemplate } from '@/lib/i18n/template';
 import {
   CARD_ID,
   COUNT_ID,
+  chooseCollapsed,
   helperStore,
   markReady,
-  setCollapsed,
 } from '@/features/regis/helperStore';
 import { useCompanionRoute } from '@/features/regis/useCompanion';
 import { useHelperModel } from '@/features/regis/useHelperModel';
@@ -43,7 +43,8 @@ import { useTranslation } from './useTranslation';
 // clickable. On the two student registration pages it names the checklist and its
 // progress and toggles the registration helper card above it instead of opening the
 // overlay (ADR-0076, design C2). It stays orange and in place while the card is open, with
-// a chevron that collapses it; collapsed, it shows a loader while a fill run adds a
+// a chevron that collapses it and no count, since the card's header shows the count;
+// collapsed, it shows the count, a loader while a fill run adds a
 // subject, a check once every subject is added, and a dot when a subject needs a look.
 
 /** The launcher's id, so a layer that closes over it can hand it focus. */
@@ -73,8 +74,10 @@ function useCompanionFace(open: boolean) {
   const model = useHelperModel();
   const busy = model.run.status === 'running';
   const complete = model.total > 0 && model.done === model.total;
+  // While the card is open its header carries the count, so the launcher names the
+  // checklist alone and the same count never shows twice.
   const progress =
-    model.total === 0
+    model.total === 0 || open
       ? t('regis.launcherEmpty')
       : fillTemplate(t('regis.launcher'), {
           done: model.done,
@@ -111,7 +114,15 @@ function useCompanionFace(open: boolean) {
   return { face, name };
 }
 
-const LAUNCHER_CLASS = `fixed right-[calc(max(20px,var(--kcp-safe-right))_+_var(--kcp-visible-right,0px))] bottom-[calc(max(20px,var(--kcp-safe-bottom))_+_var(--kcp-visible-bottom,0px))] z-host ${LAUNCHER_BOX} bg-primary-strong text-white shadow-kcp hover:bg-primary-hover motion-safe:transition-[translate,background-color] motion-safe:duration-fast motion-safe:ease-out motion-safe:hover:-translate-y-0.5 motion-safe:focus-visible:-translate-y-0.5 ${FOCUS_OUTLINE}`;
+const LAUNCHER_FACE = `z-host ${LAUNCHER_BOX} bg-primary-strong text-white shadow-kcp hover:bg-primary-hover motion-safe:transition-[translate,background-color] motion-safe:duration-fast motion-safe:ease-out motion-safe:hover:-translate-y-0.5 motion-safe:focus-visible:-translate-y-0.5 ${FOCUS_OUTLINE}`;
+
+const LAUNCHER_CLASS = `fixed right-[calc(max(20px,var(--kcp-safe-right))_+_var(--kcp-visible-right,0px))] bottom-[calc(max(20px,var(--kcp-safe-bottom))_+_var(--kcp-visible-bottom,0px))] ${LAUNCHER_FACE}`;
+
+// On a helper page the launcher rises 64 px to clear the host's own back to top button, a
+// 56 px round button 16 px above the bottom right corner, measured on app.a1e43722 on a
+// 412 px phone, so it sits 12 px above it rather than over it (Section 6.1). The card and
+// the toast floor sit on the launcher, so they rise with it (style.css .kcp-regis-card).
+const COMPANION_LAUNCHER_CLASS = `fixed right-[calc(max(20px,var(--kcp-safe-right))_+_var(--kcp-visible-right,0px))] bottom-[calc(max(20px,var(--kcp-safe-bottom))_+_64px_+_var(--kcp-visible-bottom,0px))] ${LAUNCHER_FACE}`;
 
 // The welcome decision counts as part of the load, so the ring never starts in the
 // moment before a welcome opens over it and then plays a second time after it closes.
@@ -206,14 +217,14 @@ function CompanionLauncher() {
       type="button"
       onClick={(event) => {
         if (open) {
-          setCollapsed(true);
+          chooseCollapsed(true);
           return;
         }
         const root = rootOf(event.currentTarget);
         commitThenFocus(
           () => {
             markReady();
-            setCollapsed(false);
+            chooseCollapsed(false);
           },
           () => [root?.getElementById(COUNT_ID)],
         );
@@ -224,7 +235,7 @@ function CompanionLauncher() {
       aria-controls={CARD_ID}
       aria-label={name}
       lang={language}
-      className={LAUNCHER_CLASS}
+      className={COMPANION_LAUNCHER_CLASS}
     >
       {face}
       <IssueBadge />
