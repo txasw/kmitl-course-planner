@@ -231,8 +231,9 @@ causes a host write.
 - **A press on a disabled Add for me**, on the card, a list row, or the menu, shows its reason in
   the error toast and starts nothing, because a touch screen shows no tooltip.
 - **Leaving the page ends a run.** A run ends at its next step boundary exactly as Stop does when
-  the student hides the helper on this page, collapses the card to the launcher (by Escape, a press
-  of the launcher, or on a phone a press on the page), or opens the planner over the page, and a
+  the student hides the helper on this page, collapses the card to the launcher (by Escape or a
+  press of the launcher; on a phone a tap on the page collapses it only while no run is active, see
+  the amendment of 2026-11-26), or opens the planner over the page, and a
   press cannot start one in any of these states, since in each the step progress and its Stop are
   off screen. Keeping a
   Stop on the collapsed launcher was considered and not taken: collapse is the natural gesture for
@@ -317,3 +318,41 @@ one actuator, never presses ดำเนินการต่อ or any confirm 
   when its response ends, as a resource entry arrives, and it keeps the panel element while the
   panel stays mounted, as Vue patches it in place. The unit tests of the first two bullets and of
   the panel identity rely on both.
+
+## Amendment, 2026-11-26: what stops a run on a touch screen
+
+The owner tried Add all for me on Firefox for Android and found that it stopped when a finger
+touched the screen by accident. The card collapsed on any pointerdown outside KCP on a phone, the
+start of a scroll on the host page included, and a collapsed card is one of the states above in
+which a run ends. A stray touch is no reason to stop, so the rules change as follows.
+
+- **A run keeps the card open.** While a run is active a press outside KCP never collapses the card,
+  so the step progress and Stop stay on screen. Stop, Escape inside the card, and a press of the
+  launcher still collapse it or stop the run at once, as before; they are the deliberate ways to
+  stop. Removing the collapsed state from the stop conditions instead was rejected: a collapsed
+  card shows no Stop, and a run the student cannot see must not go on.
+- **Outside press means a tap.** Everywhere in the helper, the card on a phone and the section and
+  more menus, an outside press counts only when the pointer comes up within 10 px of where it went
+  down, with no second pointer down, no scroll in between, and no pointercancel, which touch
+  browsers send when they take a gesture over for scrolling or zoom. Scrolling or pinching the host
+  page never collapses the card or closes a menu.
+- **Every other touch path was checked.** The address bar hiding during a scroll changes the visual
+  viewport, which only moves the helper's fixed layers through their custom properties; a resize
+  does the same, and the phone breakpoint reads the width, which a scroll does not change. Nothing
+  in the helper or the run listens for focus, blur, or visibility. The hidden flag changes only from
+  Hide on this page in the more menu, and the planner opens only from a KCP control, never from a
+  touch on the page; the entry toast, which offered one, no longer shows on the helper pages
+  (ADR-0076). A real page change still stops a run: a hash change, the panel going away or a new
+  panel, the tripwire, a host dialog the engine does not expect, and the engine's own state checks
+  when the student presses a host control mid run.
+- **Prepare and fill exclude each other.** The helper may now prepare on the pre registration page
+  (ADR-0076). A run cannot start while prepare reads, Add for me says why (รอให้เตรียมข้อมูลเสร็จก่อน),
+  and prepare cannot start while a run is active. Prepare's reads go through the background gateway
+  to the public API, not through the page, so the page's performance timeline holds no entry for
+  them and the tripwire, which counts the page's own XMLHttpRequest resource entries, cannot count
+  them.
+- **Tests.** Unit tests cover the tap rule (a move past 10 px, a scroll, a pointercancel, and a
+  second finger are no tap) and the card staying open on a page tap while a run is active. A debug
+  spec at 412 by 915 with touch emulation taps the page, scrolls it, and taps its header during Add
+  all for me on the a1e43722 route; the run adds every subject with nothing forbidden pressed and
+  nothing written, and Stop still stops at once. The spec fails with the old collapse.
