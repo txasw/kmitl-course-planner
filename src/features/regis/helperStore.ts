@@ -27,6 +27,11 @@ export interface HelperVisitState {
   last: Readonly<Record<string, HelperStatus>>;
   /** The stopped run the student moved past, so its stop no longer names a status. */
   clearedStop: FillRun | null;
+  /**
+   * The plan of the page term the student picked in the helper on this visit, or null to
+   * follow the default. It never changes the planner's active plan.
+   */
+  planId: string | null;
   /** The latest sentence for the helper's one live region, with a count so a repeat reads. */
   announcement: { text: string; seq: number };
 }
@@ -39,6 +44,7 @@ const FRESH: HelperVisitState = {
   current: null,
   last: {},
   clearedStop: null,
+  planId: null,
   announcement: { text: '', seq: 0 },
 };
 
@@ -67,6 +73,11 @@ export function setView(view: HelperView): void {
 /** Put a subject in focus, or null to let the run or the first that needs action lead. */
 export function setCurrent(current: string | null): void {
   helperStore.setState({ current });
+}
+
+/** Show another plan of the page term; the focus and last statuses start over for it. */
+export function pickHelperPlanId(planId: string): void {
+  helperStore.setState({ planId, current: null, last: {}, clearedStop: null });
 }
 
 export function recordLast(last: Readonly<Record<string, HelperStatus>>): void {

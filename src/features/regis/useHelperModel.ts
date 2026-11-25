@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useStore } from 'zustand';
 import type { Plan } from '@/lib/domain/plan';
 import type { Checklist, ChecklistRow } from '@/lib/regis/checklist';
+import type { HelperPlanPick } from '@/lib/regis/helperPlan';
 import {
   advanceCurrent,
   deriveHelperStatuses,
@@ -26,6 +27,8 @@ import { useCompanionRoute, useCompanionView } from './useCompanion';
 
 export interface HelperModel {
   route: CompanionRoute | null;
+  /** Which plan of the page term the helper follows, or why it has none. */
+  pick: HelperPlanPick;
   plan: Plan | null;
   kit: RegistrationKit | null;
   checklist: Checklist | null;
@@ -120,6 +123,7 @@ export function useHelperModel(): HelperModel {
   const termMismatch = checklist?.termMismatch ?? false;
   return {
     route,
+    pick: view.pick,
     plan: view.plan,
     kit: view.kit,
     checklist,

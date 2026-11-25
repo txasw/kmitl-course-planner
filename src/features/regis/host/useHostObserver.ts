@@ -9,9 +9,7 @@
 import { useEffect } from 'react';
 import { useStore } from 'zustand';
 import { isTestedBuild } from '@/lib/regis/hostContract';
-import { planStore } from '@/features/plans/planStore';
-import { activePlanOf } from '@/features/plans/planStoreState';
-import { useCompanionRoute } from '../useCompanion';
+import { useCompanionRoute, useHelperPlanPick } from '../useCompanion';
 import { observedRoots, readHostPage, readScriptNames } from './hostDom';
 import { hostStore } from './hostStore';
 import { isSurrogateSession } from './surrogate';
@@ -25,11 +23,21 @@ function plannedKeyOf(subjectIds: readonly string[]): string {
 export function useHostObserver(): void {
   const onPage = useCompanionRoute() === 'preRegistration';
   const checks = useStore(hostStore, (state) => state.checks);
-  const plannedKey = useStore(planStore, (state) =>
-    plannedKeyOf(
-      activePlanOf(state)?.entries.map((entry) => entry.subjectId) ?? [],
-    ),
+  // The planned ids are those of the plan the helper shows, which follows the page term.
+  const pick = useHelperPlanPick();
+  const plannedKey = plannedKeyOf(
+    pick.kind === 'plan'
+      ? pick.plan.entries.map((entry) => entry.subjectId)
+      : [],
   );
+  // The page and its term are forgotten only on leaving it; reading it again for another
+  // planned set or a Check again starts over and keeps the term the header showed.
+  useEffect(() => {
+    if (!onPage) return undefined;
+    return () => {
+      hostStore.getState().leave();
+    };
+  }, [onPage]);
   useEffect(() => {
     if (!onPage) return;
     const planned = new Set(plannedKey.split(' ').filter((id) => id !== ''));
@@ -60,7 +68,7 @@ export function useHostObserver(): void {
     return () => {
       window.clearTimeout(timer);
       observer.disconnect();
-      hostStore.getState().leave();
+      hostStore.getState().restart();
     };
   }, [onPage, plannedKey, checks]);
 }

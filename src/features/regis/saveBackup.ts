@@ -38,6 +38,7 @@ export function saveBackupToPlan(
       removeIds,
       { course, section, sourceQuery: subject.sourceQuery },
       'move',
+      plan.id,
     );
   if (!outcome.ok) {
     toastStore.getState().show('error', t('regis.saveBlocked'));
