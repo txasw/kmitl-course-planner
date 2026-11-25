@@ -37,6 +37,7 @@ export const STOP_REASONS = [
   'listUnknown',
   'credits',
   'noAnswer',
+  'pageRequest',
   'pageChanged',
   'untestedBuild',
   'latched',

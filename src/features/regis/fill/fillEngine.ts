@@ -4,7 +4,10 @@
 // next step. A wait that reaches its ceiling is a stop, never a retry, and the first stop
 // ends the run (owner answer 3A). It sends no request of its own: the only request in a
 // run is the host's own eligibility read after the field is filled, which the tripwire
-// counts. What it reads stays in memory.
+// counts, and any other, such as the period check the host build app.a1e43722 runs every
+// 60 s and on a focus, stops the run as a request of the page's own. The subject stays to
+// add, and the student's next press picks it up where the page left it. What it reads
+// stays in memory.
 
 import type { Plan } from '@/lib/domain/plan';
 import type { HostObservation } from '@/lib/regis/hostObservation';
@@ -258,7 +261,7 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
         timing.answer,
         'noAnswer',
       );
-      if (tripwire.count() - requests > 1) stop('notRecognised');
+      if (tripwire.count() - requests > 1) stop('pageRequest');
       if (answer !== 'offered') stop(answer);
       requests = tripwire.count();
     }
@@ -307,7 +310,7 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
     if (overSubscribed(observation) && !deps.allowFull.has(target.subjectId)) {
       stop('full');
     }
-    if (tripwire.count() !== requests) stop('notRecognised');
+    if (tripwire.count() !== requests) stop('pageRequest');
     const seenToasts = observation.toasts.length;
     deps.onStep(target.subjectId, 'add', []);
     await act(() => {
@@ -336,7 +339,7 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
       timing.settle,
       'notRecognised',
     );
-    if (tripwire.count() !== requests) stop('notRecognised');
+    if (tripwire.count() !== requests) stop('pageRequest');
     return true;
   }
 
