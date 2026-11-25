@@ -645,6 +645,7 @@
   "regis.fill.stop.listUnknown": "KCP cannot check a subject on the page list for clashes. You can enter the list yourself.",
   "regis.fill.stop.credits": "The credits would exceed what this page allows. Remove a subject from the plan first.",
   "regis.fill.stop.noAnswer": "The page is still waiting for the server, and KCP resent nothing. Press Add for me again once it shows the sections.",
+  "regis.fill.stop.cardLoading": "The page is still loading its list of subjects to register, and KCP has not entered this subject. Press Add for me again once it has loaded.",
   "regis.fill.stop.pageRequest": "The page sent a request of its own, so KCP stopped to be safe. Press Add for me to go on.",
   "regis.fill.stop.pageChanged": "The page changed while adding. Check it, then press Add for me again.",
   "regis.fill.stop.untestedBuild": "The registration page has been updated and KCP has not been tested with it yet. You can enter the list yourself.",

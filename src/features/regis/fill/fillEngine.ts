@@ -246,13 +246,15 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
   // The add card can be loading as a subject starts: the host reads the student's credits
   // when the panel mounts again after its period check, or still reads a subject the
   // student typed. The subject waits for the card as for the host's answer, and its checks
-  // run on what the card settles to.
-  async function settledPage(): Promise<HostObservation> {
+  // run on what the card settles to. The dock shows the subject waiting meanwhile, and a
+  // card that never settles stops with its own sentence, since no subject was entered.
+  async function settledPage(target: FillTarget): Promise<HostObservation> {
     if (read()?.card?.status === 'searching') {
+      deps.onStep(target.subjectId, 'wait', []);
       await waitFor(
         (seen) => (seen.card?.status === 'searching' ? null : true),
         timing.answer,
-        'noAnswer',
+        'cardLoading',
       );
     }
     return page();
@@ -283,7 +285,7 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
       await quietPage();
       quieted = true;
     }
-    let observation = await settledPage();
+    let observation = await settledPage(target);
     const listed = listedState(observation, target);
     if (listed === 'listed') return false;
     if (listed === 'other') stop('listedOther');
