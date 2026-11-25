@@ -88,6 +88,40 @@ describe('watchHostPage', () => {
     expect(readings.at(-1)).toBe('absent');
   });
 
+  it('keeps the same bound when a page with no panel does not read as absent', async () => {
+    // The stepper and the add card show, but not the header row that holds the term, so
+    // there is no panel and the reading is not absent.
+    replica = mountReplica(document);
+    document.querySelector('.row.grey')?.remove();
+    const readings = watch();
+    expect(readings).toHaveLength(1);
+    expect(readings[0]).not.toBe('absent');
+    const main = document.querySelector('.v-main__wrap');
+    const text = document.createTextNode('0');
+    main?.append(text);
+    const settled = readings.length;
+    // Text rewritten in place, as a countdown does, reads nothing.
+    let tick = 0;
+    const digits = setInterval(() => {
+      tick += 1;
+      text.data = String(tick);
+    }, 1000);
+    await vi.advanceTimersByTimeAsync(10_000);
+    clearInterval(digits);
+    expect(readings.length).toBeLessThanOrEqual(settled + 1);
+    // Elements added every 200 ms read at most once a second.
+    const before = readings.length;
+    const noise = setInterval(() => {
+      main?.append(document.createElement('span'));
+    }, 200);
+    await vi.advanceTimersByTimeAsync(10_000);
+    clearInterval(noise);
+    expect(readings.length - before).toBeGreaterThan(5);
+    expect(readings.length - before).toBeLessThanOrEqual(
+      10_000 / WAITING_GAP_MS,
+    );
+  });
+
   it('reads nothing while the countdown ticks beside a shown panel', async () => {
     mountRoute();
     const readings = watch();

@@ -456,7 +456,7 @@ const SUBTREE: MutationObserverInit = {
   attributeFilter: ['class', 'style', 'disabled'],
 };
 
-// Until the panel shows, only an element added or removed can bring it.
+// While no panel shows, only an element added or removed can bring it.
 const INSERTIONS: MutationObserverInit = { subtree: true, childList: true };
 
 const CHILDREN: MutationObserverInit = { childList: true };
@@ -471,20 +471,17 @@ export function panelOf(doc: Document): Element | null {
  * the app root, whose children change when the host unmounts the panel, as the period
  * check of app.a1e43722 can make it do with no navigation; the app root's direct children,
  * where the host attaches its dialogs; each dialog's own class, which says whether it is
- * open; and the toast container. Without the panel the app root is watched instead, and
- * while the last reading found no anchor at all only for elements added or removed under
- * it, so text the page rewrites in place, such as the countdown of the registration
- * periods above the panel, reads nothing.
+ * open; and the toast container. Without the panel the app root is watched instead, only
+ * for elements added or removed under it, whatever the last reading found, so text the
+ * page rewrites in place, such as the countdown of the registration periods above the
+ * panel, reads nothing.
  */
-export function observedRoots(
-  doc: Document,
-  absent = false,
-): [Node, MutationObserverInit][] {
+export function observedRoots(doc: Document): [Node, MutationObserverInit][] {
   const app = doc.querySelector('[data-app]') ?? doc.body;
   const panel = panelOf(doc);
   const roots: [Node, MutationObserverInit][] = [];
   if (panel === null) {
-    roots.push([app, absent ? INSERTIONS : SUBTREE]);
+    roots.push([app, INSERTIONS]);
   } else {
     roots.push([panel, SUBTREE]);
     for (
