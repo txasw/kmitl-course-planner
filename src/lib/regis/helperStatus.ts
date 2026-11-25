@@ -146,6 +146,31 @@ export function advanceCurrent(
 }
 
 /**
+ * The subject to pin in focus once the one in focus settles on the page, or null to leave
+ * the focus as it is. While a run adds with no subject pinned, the run leads the focus, so
+ * nothing is pinned then: pinning the next subject that needs action could pick one the
+ * run does not name, such as a refused subject between two it adds, and the grade dialog
+ * of the subject it adds next would then find its condition off screen.
+ */
+export function focusOnSettle(input: {
+  order: readonly string[];
+  statuses: Readonly<Record<string, HelperStatus>>;
+  /** The subject in focus now, or null. */
+  current: string | null;
+  /** That subject's status at the previous reading, or undefined when it had none. */
+  was: HelperStatus | undefined;
+  /** Whether a run is adding while no subject is pinned. */
+  runLeads: boolean;
+}): string | null {
+  const { order, statuses, current, was, runLeads } = input;
+  if (runLeads || current === null || was === undefined || isDone(was)) {
+    return null;
+  }
+  const next = advanceCurrent(order, statuses, current);
+  return next === current ? null : next;
+}
+
+/**
  * The subjects Add all for me names, in plan order: those not added and not turned down.
  * A subject the page refused, or stopped on as full or as a clash, waits for the student's
  * own choice of another section, so pressing Add all again never stops on it a second time.

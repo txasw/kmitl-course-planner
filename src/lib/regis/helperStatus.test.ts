@@ -5,6 +5,7 @@ import {
   advanceCurrent,
   deriveHelperStatuses,
   doneCount,
+  focusOnSettle,
   needsLook,
   pickCurrent,
   stillToAdd,
@@ -153,6 +154,51 @@ describe('the focus and the counts', () => {
     expect(advanceCurrent(order, { ...statuses, D: 'other' }, 'D')).toBe('C');
     expect(advanceCurrent(order, statuses, 'C')).toBe('C');
     expect(advanceCurrent(['A'], { A: 'added' }, 'A')).toBe('A');
+  });
+
+  describe('focusOnSettle', () => {
+    // Add all names A and B; X, refused earlier, sits between them in plan order.
+    const runOrder = ['A', 'X', 'B'];
+    const settled = { A: 'added', X: 'refused', B: 'todo' } as const;
+
+    it('pins the next subject that needs action once the focus settles', () => {
+      expect(
+        focusOnSettle({
+          order: runOrder,
+          statuses: settled,
+          current: 'A',
+          was: 'adding',
+          runLeads: false,
+        }),
+      ).toBe('X');
+    });
+
+    it('pins nothing while a run with no subject pinned leads the focus', () => {
+      expect(
+        focusOnSettle({
+          order: runOrder,
+          statuses: settled,
+          current: 'A',
+          was: 'adding',
+          runLeads: true,
+        }),
+      ).toBeNull();
+    });
+
+    it('pins nothing for a subject that was already settled or has no reading', () => {
+      const input = {
+        order: runOrder,
+        statuses: settled,
+        current: 'A',
+        runLeads: false,
+      };
+      expect(focusOnSettle({ ...input, was: 'added' })).toBeNull();
+      expect(focusOnSettle({ ...input, was: undefined })).toBeNull();
+      expect(
+        focusOnSettle({ ...input, current: null, was: 'todo' }),
+      ).toBeNull();
+      expect(focusOnSettle({ ...input, current: 'B', was: 'todo' })).toBeNull();
+    });
   });
 });
 

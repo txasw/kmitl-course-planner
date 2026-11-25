@@ -9,10 +9,9 @@ import type { Plan } from '@/lib/domain/plan';
 import type { Checklist, ChecklistRow } from '@/lib/regis/checklist';
 import type { HelperPlanPick } from '@/lib/regis/helperPlan';
 import {
-  advanceCurrent,
   deriveHelperStatuses,
   doneCount,
-  isDone,
+  focusOnSettle,
   needsLook,
   pickCurrent,
   type HelperStatus,
@@ -110,14 +109,20 @@ export function useHelperModel(): HelperModel {
         : pickCurrent(order, statuses);
 
   // Once the subject in focus settles on the page, the focus moves on to the next one
-  // that needs action. A subject the student presses after it settled stays in focus.
+  // that needs action, unless a run with no subject pinned leads it. A subject the student
+  // presses after it settled stays in focus.
   const before = useRef(statuses);
   useEffect(() => {
     const was = currentId === null ? undefined : before.current[currentId];
     before.current = statuses;
-    if (currentId === null || was === undefined || isDone(was)) return;
-    const next = advanceCurrent(order, statuses, currentId);
-    if (next !== currentId) setCurrent(next);
+    const next = focusOnSettle({
+      order,
+      statuses,
+      current: currentId,
+      was,
+      runLeads: adding !== null && pinned === null,
+    });
+    if (next !== null) setCurrent(next);
   });
 
   const termMismatch = checklist?.termMismatch ?? false;
