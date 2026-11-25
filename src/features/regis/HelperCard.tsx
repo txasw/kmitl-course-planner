@@ -19,7 +19,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
-import type { Translate } from '@/lib/i18n/t';
+import type { Locale, Translate } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import {
   BREAKPOINTS,
@@ -137,6 +137,46 @@ function Bar({ model, t }: { model: HelperModel; t: Translate }) {
   );
 }
 
+interface CardViewProps {
+  model: HelperModel;
+  coarse: boolean;
+  locale: Locale;
+  t: Translate;
+  onPick: (subjectId: string) => void;
+}
+
+// The queue and the subject in focus scroll together on a short screen, while the header
+// and the action row stay in view.
+function CardView({ model, coarse, locale, t, onPick }: CardViewProps) {
+  const { checklist, current } = model;
+  const queue = (
+    <QueueChips
+      rows={checklist?.rows ?? []}
+      statuses={model.statuses}
+      currentId={current?.subjectId ?? null}
+      stale={model.stale}
+      locale={locale}
+      t={t}
+      onPick={onPick}
+    />
+  );
+  return current === null ? (
+    <div className="kcp-scroll min-h-0 flex-1 overflow-y-auto kcp-fade-in">
+      {queue}
+    </div>
+  ) : (
+    <FocusSection
+      queue={queue}
+      model={model}
+      row={current}
+      status={model.statuses[current.subjectId] ?? 'todo'}
+      coarse={coarse}
+      locale={locale}
+      t={t}
+    />
+  );
+}
+
 export function HelperCard({ model }: { model: HelperModel }) {
   const { t, language } = useTranslation();
   const phone = !useMediaQuery(minWidthQuery(BREAKPOINTS.sm));
@@ -236,31 +276,13 @@ export function HelperCard({ model }: { model: HelperModel }) {
               onPick={backToCard}
             />
           ) : (
-            // Only the queue scrolls on a short screen, so the subject in focus and its
-            // action stay in view and its section menu is never clipped by a scroller.
-            <>
-              <div className="kcp-scroll min-h-0 flex-1 overflow-y-auto kcp-fade-in">
-                <QueueChips
-                  rows={checklist.rows}
-                  statuses={model.statuses}
-                  currentId={current?.subjectId ?? null}
-                  stale={model.stale}
-                  locale={language}
-                  t={t}
-                  onPick={pick}
-                />
-              </div>
-              {current === null ? null : (
-                <FocusSection
-                  model={model}
-                  row={current}
-                  status={model.statuses[current.subjectId] ?? 'todo'}
-                  coarse={coarse}
-                  locale={language}
-                  t={t}
-                />
-              )}
-            </>
+            <CardView
+              model={model}
+              coarse={coarse}
+              locale={language}
+              t={t}
+              onPick={pick}
+            />
           )}
         </>
       )}

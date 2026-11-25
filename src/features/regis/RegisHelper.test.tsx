@@ -179,6 +179,17 @@ describe('RegisHelper', () => {
     expect(screen.queryByRole('menu')).toBeNull();
   });
 
+  it('scrolls the queue and the subject in focus, and keeps the action in view', () => {
+    renderPage('#/pre_registration');
+    const queue = within(card()).getByRole('list', { name: 'รายวิชา' });
+    const scroller = queue.closest('.overflow-y-auto');
+    expect(scroller).not.toBeNull();
+    expect(scroller).toHaveTextContent('ยังไม่เพิ่ม');
+    expect(scroller).toHaveTextContent('การเขียนโปรแกรม');
+    const add = within(card()).getByRole('button', { name: 'เพิ่มให้' });
+    expect(scroller?.contains(add)).toBe(false);
+  });
+
   it('renders nothing off the helper pages', () => {
     renderPage('#/teach_table_selector');
     expect(screen.queryByRole('region', { name: 'เช็กลิสต์' })).toBeNull();
