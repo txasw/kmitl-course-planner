@@ -231,9 +231,9 @@ causes a host write.
 - **A press on a disabled Add for me**, on the card, a list row, or the menu, shows its reason in
   the error toast and starts nothing, because a touch screen shows no tooltip.
 - **Leaving the page ends a run.** A run ends at its next step boundary exactly as Stop does when
-  the student hides the helper on this page, collapses the card to the launcher (by Escape or a
-  press of the launcher; on a phone a tap on the page collapses it only while no run is active, see
-  the amendment of 2026-11-26), or opens the planner over the page, and a
+  the student hides the helper on this page, collapses the card to the launcher (by Escape; a press
+  of the launcher and, on a phone, a tap on the page collapse it only while no run is active, see
+  the amendments of 2026-11-26), or opens the planner over the page, and a
   press cannot start one in any of these states, since in each the step progress and its Stop are
   off screen. Keeping a
   Stop on the collapsed launcher was considered and not taken: collapse is the natural gesture for
@@ -327,9 +327,9 @@ start of a scroll on the host page included, and a collapsed card is one of the 
 which a run ends. A stray touch is no reason to stop, so the rules change as follows.
 
 - **A run keeps the card open.** While a run is active a press outside KCP never collapses the card,
-  so the step progress and Stop stay on screen. Stop, Escape inside the card, and a press of the
-  launcher still collapse it or stop the run at once, as before; they are the deliberate ways to
-  stop. Removing the collapsed state from the stop conditions instead was rejected: a collapsed
+  so the step progress and Stop stay on screen. Stop and Escape inside the card still stop the run
+  at once, as before; they are the deliberate ways to stop. (A press of the launcher stopped it too
+  until the second amendment of this date.) Removing the collapsed state from the stop conditions instead was rejected: a collapsed
   card shows no Stop, and a run the student cannot see must not go on.
 - **Outside press means a tap.** Everywhere in the helper, the card on a phone and the section and
   more menus, an outside press counts only when the pointer comes up within 10 px of where it went
@@ -339,7 +339,8 @@ which a run ends. A stray touch is no reason to stop, so the rules change as fol
 - **Every other touch path was checked.** The address bar hiding during a scroll changes the visual
   viewport, which only moves the helper's fixed layers through their custom properties; a resize
   does the same, and the phone breakpoint reads the width, which a scroll does not change. Nothing
-  in the helper or the run listens for focus, blur, or visibility. The hidden flag changes only from
+  in the helper or the run listens for focus, blur, or visibility, but the host does, and that path
+  is not closed: see the second amendment of this date. The hidden flag changes only from
   Hide on this page in the more menu, and the planner opens only from a KCP control, never from a
   touch on the page; the entry toast, which offered one, no longer shows on the helper pages
   (ADR-0076). A real page change still stops a run: a hash change, the panel going away or a new
@@ -356,3 +357,45 @@ which a run ends. A stray touch is no reason to stop, so the rules change as fol
   spec at 412 by 915 with touch emulation taps the page, scrolls it, and taps its header during Add
   all for me on the a1e43722 route; the run adds every subject with nothing forbidden pressed and
   nothing written, and Stop still stops at once. The spec fails with the old collapse.
+
+## Amendment, 2026-11-26: the stray touches a review found left
+
+A review of the amendment above with touch emulation at 412 by 915 found that a tap, a scroll, a
+pinch, a long press, a resize, and a rotation on the host page no longer stop a run, and that two
+stray touches and one gap remained. Every guard above is unchanged: a run starts only from a
+trusted student press, acts only on the allowlist through the one actuator, never presses
+ดำเนินการต่อ or any confirm control, and never causes a host write.
+
+- **A press of the launcher no longer stops a run.** The launcher sits at the bottom right, where a
+  thumb rests on a phone, and on a tall screen it sits 64 px higher on the helper pages than
+  elsewhere, further into that zone (ADR-0076). While a run is active a press of it keeps the card
+  open and moves focus to Stop, so the run goes on with Stop in view. Stop and Escape inside the
+  card stay the deliberate ways to stop. Keeping the collapse and letting the run go on behind the
+  launcher was rejected, since a run with no Stop on screen must not go on, which is why a collapse
+  ends a run.
+- **The list no longer hides Stop during a run.** The count in the card's header opens the list of
+  every subject, which shows neither the step progress nor Stop, so a stray tap on the count left a
+  run going with no Stop on screen. While a run is active the card keeps its card view: the count is
+  held, its name says the list opens once Add for me ends, and a press of it changes nothing. Add
+  for me on a list row returns to the card with that subject in focus, and Stop takes the focus the
+  pressed control dropped, which also holds for the card's own Add for me.
+- **The period check on a window focus still stops a run.** The amendment above says nothing in the
+  helper or the run listens for focus or visibility, which is true, but the host does: app.a1e43722
+  checks its registration period on a window focus, on a visibility change, and every 60 s, and the
+  tripwire counts that request and stops the run as `pageRequest`. Firefox for Android takes focus
+  off the page when a finger touches its toolbar or address bar, so the next touch on the page
+  focuses the window again and the check lands in the run. This is the likeliest stop left, from a
+  touch or from the 60 s timer with no touch at all. The stop is fail closed and costs the student
+  one press of Add for me, which goes on from the first subject not yet added. Telling the request
+  apart by its address stays rejected, since entry names carry the student id. One name blind
+  option is for KCP to listen for its own window focus and visibility change events and to accept
+  exactly one request that starts within a short window after such an event, and only while the
+  page reading is unchanged (no new toast or dialog, the same list, the same panel). It loosens
+  guard 8, which the amendment of 2026-11-25 kept exact after an action, so it awaits the owner's
+  decision and is not built.
+- **Tests.** A unit test presses the launcher during a run and finds the card open and Stop
+  focused, and the same press with no run collapses the card; another finds the count held and the
+  list closed during a run, and the list back once the run ends. A debug spec presses the launcher
+  while the host reads a subject and the run fills it, and the touch spec at 412 by 915 also taps
+  the count and the launcher during Add all for me, which still adds every subject with nothing
+  forbidden pressed and nothing written.

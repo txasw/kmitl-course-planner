@@ -292,3 +292,41 @@ wrong plan during a reload. Each finding is fixed as follows.
   with the active plan of another term, and find no chip, no count, no other plan, and no entry
   toast; prepare on the replica from noKit to a stored kit and a working Add for me, with the press
   absent on the registration page; and open the card from the launcher at a phone size.
+
+## Amendment, 2026-11-26: review fixes to the calm phone helper
+
+A review of the amendment above with touch emulation found these, and each is fixed.
+
+- **No count on the launcher for a plan of an unread term.** Once the wait for the page term ran
+  out, the helper fell back to a plan of another term, labelled with that term inside the card. On
+  a phone the card is folded and the launcher is the only surface, and it showed that plan's count
+  as if it were the page's, and kept it for good on a direct load of the registration page, which
+  KCP does not read. The launcher now shows a count, and the all added check, only for a plan of the
+  term read from the page, and names the checklist alone otherwise.
+- **The wait for the term outlasts a slow page.** The wait ended on a fixed 15 s timer, so a page
+  still empty after 15 s, as at the registrar's busiest time, got the fallback plan of another term
+  until it loaded. After 15 s the wait now ends only once a reading finds the panel with no term in
+  its header; a page that shows no panel keeps the reading row up to a 60 s ceiling, after which it
+  gets the labelled fallback. This supersedes "the wait of 15 seconds on each arrival ran out" above.
+- **The rise above the back to top button needs a tall screen.** The 64 px rise took 64 px from the
+  card's height, and on a phone turned on its side, 915 by 412, the card was left 252 px for about
+  292 px of content, so the action row cut the section tile and the subject name. The rise is now
+  the token `--kcp-helper-lift`, 64 px on a screen at least 30rem tall and 0 below it, where the
+  launcher covers the host's back to top button as it did before the rise; the card keeps its 12 px
+  above the launcher either way. A visit treats a touch screen whose short side is under 640 px as
+  a phone (`isPhoneScreen` in `lib/ui/breakpoints.ts`), so a phone on its side starts with the card
+  folded too. A landscape screen under about 390 px tall still scrolls the card's subject. The 64 px
+  was measured from a screenshot of app.a1e43722 at 412 px and is worth checking on the live page at
+  360 and 412 px, with the Firefox bottom toolbar shown.
+- **Prepare only for the plan of the page term.** The bar offered เตรียมข้อมูล for a fallback plan of
+  another term, which would read that term's subjects at the busiest time for a plan fill refuses.
+  It now offers the press only for a plan of the term read from the page.
+- **A held press while another plan prepares.** One prepare runs per document, and a press for
+  another plan while one read did nothing and said nothing. The press is now held with its reason,
+  กำลังเตรียมข้อมูลของตารางอื่นอยู่, on hover, in its name, and in the error toast a press shows.
+- **Tests.** Unit tests cover the launcher with no count for an unconfirmed plan and its count once
+  the term is read, the wait that holds while the page shows no panel and ends at the first panel
+  with no term, the phone check on its side, the landscape start folded, the bar with no press for
+  an unconfirmed plan, and the held press with its toast. Debug specs sample the launcher on a phone
+  through a reload whose page stays empty for 19 s and find no other term's count, and open the card
+  on a phone on its side with nothing cut off and its action row clear of the launcher.
