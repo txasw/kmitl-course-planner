@@ -5,9 +5,17 @@
 // own interface text, never a server message, so matching it reveals nothing about the
 // student. Any mismatch turns the observer off and leaves the manual marks.
 
-/** The host script names the observer was tested against, both required (owner 20A). */
+/**
+ * The host script names the observer was tested against, both required (owner 20A).
+ * app.020e81ed, deployed 2026-11-25 at 04:09 GMT, was compared with app.454d9e95 with its
+ * minified names normalised: the four pre registration render functions (the add subject
+ * card, the stepper, the panel, and the complete step) are the same, every host label
+ * here appears as often, and so does every reference to a registration write endpoint.
+ * The redeploy changed staff and payment pages only, and the vendor bundle is the same.
+ */
 export const TESTED_BUILDS: readonly (readonly [string, string])[] = [
   ['app.454d9e95.js', 'chunk-vendors.7ab4925e.js'],
+  ['app.020e81ed.js', 'chunk-vendors.7ab4925e.js'],
 ];
 
 /** Host labels in Thai and English, matched by exact equality after trimming. */

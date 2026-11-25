@@ -32,6 +32,16 @@ describe('the host contract', () => {
     expect(isTestedBuild(['app.00000000.js', shape.build.vendors])).toBe(false);
   });
 
+  it('gates on the 2026-11-25 redeploy, whose pre registration page is the same', () => {
+    expect(
+      isTestedBuild(['chunk-vendors.7ab4925e.js', 'app.020e81ed.js']),
+    ).toBe(true);
+    expect(isTestedBuild(['app.020e81ed.js'])).toBe(false);
+    expect(
+      isTestedBuild(['app.020e81ed.js', 'chunk-vendors.00000000.js']),
+    ).toBe(false);
+  });
+
   it.each(LANGS)('carries the host labels of each language', (labels) => {
     const pairs: [readonly string[], string][] = [
       [

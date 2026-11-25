@@ -8,6 +8,12 @@ describe('fillGate', () => {
     expect(fillGate(TESTED, [])).toBe('ok');
   });
 
+  it('lets fill run on the 2026-11-25 redeploy', () => {
+    expect(fillGate(['chunk-vendors.7ab4925e.js', 'app.020e81ed.js'], [])).toBe(
+      'ok',
+    );
+  });
+
   it('turns fill off on any other build', () => {
     expect(fillGate(['app.00000000.js', TESTED[0] ?? ''], [])).toBe(
       'untestedBuild',
