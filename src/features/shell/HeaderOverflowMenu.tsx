@@ -19,7 +19,8 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useStore } from 'zustand';
 import { Check, Compass, MoreHorizontal } from 'lucide-react';
-import { useDismiss, useInteractions } from '@floating-ui/react';
+import { useInteractions } from '@floating-ui/react';
+import { usePanelDismiss } from './usePanelDismiss';
 import { LanguageFlag } from '@/components/LanguageFlag';
 import type { Locale, TranslationKey } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
@@ -71,7 +72,7 @@ export function HeaderOverflowMenu() {
   // Escape is routed through useEscapeLayer below, so the dismiss hook handles only a
   // press outside the menu.
   const { getReferenceProps, getFloatingProps } = useInteractions([
-    useDismiss(context, { escapeKey: false }),
+    usePanelDismiss(context, { escapeKey: false }),
   ]);
 
   const setReference = useCallback(

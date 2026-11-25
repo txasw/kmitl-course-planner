@@ -17,12 +17,8 @@ import {
   type ReactNode,
 } from 'react';
 import { useStore } from 'zustand';
-import {
-  useClick,
-  useDismiss,
-  useInteractions,
-  FloatingPortal,
-} from '@floating-ui/react';
+import { useClick, useInteractions, FloatingPortal } from '@floating-ui/react';
+import { usePanelDismiss } from '@/features/shell/usePanelDismiss';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { Switch } from '@/components/Switch';
 import { Tooltip } from '@/components/Tooltip';
@@ -241,7 +237,7 @@ function FilterPopover({
   // the popover may portal out of the trigger's wrapper and the overlay closes on Escape too.
   const { getReferenceProps, getFloatingProps } = useInteractions([
     useClick(context),
-    useDismiss(context, { escapeKey: false }),
+    usePanelDismiss(context, { escapeKey: false }),
   ]);
 
   const setReference = useCallback(
