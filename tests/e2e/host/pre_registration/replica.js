@@ -21,7 +21,12 @@
 // text. Its period check stub fires a GET every few seconds, on a window focus, and on
 // a visibility change, as the build's check_date mixin does every 60 s, and a period
 // change unmounts the panel or mounts it again from its own empty data, as the build's
-// state does when the check rewrites the period flags.
+// state does when the check rewrites the period flags. On that route it also renders the
+// App's back to top button, a 56 px round button fixed near the bottom right corner on
+// every host route, placed as the owner's screenshot of the live page shows it on a
+// 412 px phone, so a spec can prove KCP's launcher never covers it. Mounted with a loading
+// time it first renders the main area empty, as the live page does while its scripts and
+// data load, with no header and no panel, so a spec can watch KCP before the term exists.
 
 const STEPS = ['เริ่มต้น', 'เลือกรายวิชา', 'เสร็จสิ้น'];
 const COLOURS = { pending: '#fff1d9', fits: '#dbffb8', clash: '#ffcfcc' };
@@ -107,6 +112,7 @@ export function mountReplica(doc, overrides = {}, options = {}) {
     pollLatency: 0,
   };
   let current = null;
+  let loading = (options.loading ?? 0) > 0;
   const state = { ...initialState(), ...overrides };
   state.add = { ...initialState().add, ...overrides.add };
   let clock = PERIODS[state.period]?.seconds ?? 0;
@@ -1106,8 +1112,41 @@ export function mountReplica(doc, overrides = {}, options = {}) {
   app.append(wrap);
   doc.body.append(app);
 
+  // The App's back to top button, which a click scrolls to the top as the host's does.
+  function toTop() {
+    const fab = h(
+      'button',
+      {
+        type: 'button',
+        class:
+          'v-btn v-btn--is-elevated v-btn--fab v-btn--has-bg v-btn--round theme--dark v-size--default primary to-top',
+        count: 'toTop',
+        style:
+          'position: fixed; bottom: 16px; right: 40px; width: 56px; height: 56px; border-radius: 50%; border: 0; background: #1976d2; color: #fff; z-index: 4;',
+      },
+      [
+        h('span', { class: 'v-btn__content' }, [
+          h('i', {
+            'aria-hidden': 'true',
+            class: 'v-icon notranslate mdi mdi-arrow-collapse-up theme--dark',
+          }),
+        ]),
+      ],
+    );
+    fab.addEventListener('click', () => {
+      doc.defaultView?.scrollTo(0, 0);
+    });
+    return fab;
+  }
+
   function render() {
     if (!live) return;
+    if (loading) {
+      wrap.replaceChildren(
+        h('main', { class: 'v-main' }, [h('div', { class: 'v-main__wrap' })]),
+      );
+      return;
+    }
     // On the route of app.a1e43722 the add card's dialogs and menus belong to the panel,
     // and leave with it.
     const mounted =
@@ -1120,6 +1159,7 @@ export function mountReplica(doc, overrides = {}, options = {}) {
         ]),
       ]),
       config.variant === 'formAdd' ? farForm() : '',
+      route !== null ? toTop() : '',
     );
     if (!panelShown) panelRoot = null;
     for (const old of app.querySelectorAll(
@@ -1358,6 +1398,12 @@ export function mountReplica(doc, overrides = {}, options = {}) {
   });
 
   render();
+  if (loading) {
+    setTimeout(() => {
+      loading = false;
+      render();
+    }, options.loading);
+  }
   return {
     state,
     counters,

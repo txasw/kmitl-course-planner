@@ -110,6 +110,8 @@ export interface RouteOptions {
   route?: RouteBuild | null;
   /** How often the period check runs, in milliseconds, or 0 for only on focus. */
   poll?: number;
+  /** How long the page shows an empty main area before its first render, in ms. */
+  loading?: number;
 }
 
 export type ReplicaPatch = Partial<Omit<ReplicaState, 'add'>> & {
