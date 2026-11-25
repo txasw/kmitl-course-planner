@@ -4,6 +4,17 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>KMITL</title>
+    <!-- The host's Vuetify sheet scrolls a wide table inside its wrapper and keeps a
+         dialog inside the screen, so the live page fits a phone. These two rules stand
+         in for it, so the replica fits a 390 px screen too. -->
+    <style>
+      .v-data-table__wrapper {
+        overflow-x: auto;
+      }
+      .v-dialog {
+        max-width: calc(100% - 48px);
+      }
+    </style>
     <script src="/js/chunk-vendors.__VENDOR__.js"></script>
     <script type="module" src="/js/app.__APP__.js"></script>
   </head>
