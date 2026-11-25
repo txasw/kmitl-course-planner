@@ -24,6 +24,12 @@ import { hostStore } from './host/hostStore';
 import { helperStore, recordLast, setCurrent } from './helperStore';
 import { useCompanionRoute, useCompanionView } from './useCompanion';
 
+/**
+ * The one bar under the card's header: a page KCP cannot read, a page of another term, or
+ * a plan with nothing prepared, first first.
+ */
+export type HelperBar = 'stale' | 'termMismatch' | 'kit';
+
 export interface HelperModel {
   route: CompanionRoute | null;
   /** Which plan of the page term the helper follows, or why it has none. */
@@ -44,6 +50,8 @@ export interface HelperModel {
   offReason: OffReason | null;
   termMismatch: boolean;
   hasKit: boolean;
+  /** The bar under the header, or null when none shows. */
+  bar: HelperBar | null;
   /** Whether a subject is turned down or the page needs a look, for the launcher dot. */
   attention: boolean;
   done: number;
@@ -126,6 +134,7 @@ export function useHelperModel(): HelperModel {
   });
 
   const termMismatch = checklist?.termMismatch ?? false;
+  const hasKit = checklist?.hasKit ?? false;
   return {
     route,
     pick: view.pick,
@@ -138,7 +147,14 @@ export function useHelperModel(): HelperModel {
     recheckable: canRecheck(health),
     offReason: health.status === 'off' ? health.reason : null,
     termMismatch,
-    hasKit: checklist?.hasKit ?? false,
+    hasKit,
+    bar: stale
+      ? 'stale'
+      : termMismatch
+        ? 'termMismatch'
+        : hasKit
+          ? null
+          : 'kit',
     attention: needsLook(statuses) || stale || termMismatch,
     done: sent ? rows.length : doneCount(statuses),
     total: rows.length,

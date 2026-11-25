@@ -17,7 +17,6 @@ import {
   CalendarDays,
   ChevronsDownUp,
   ChevronsUpDown,
-  ClipboardList,
   EyeOff,
   LoaderCircle,
   RefreshCw,
@@ -49,6 +48,7 @@ import {
   setView,
 } from './helperStore';
 import { HelperMoreMenu } from './HelperMoreMenu';
+import { KitBar } from './KitBar';
 import { hostStore } from './host/hostStore';
 import { QueueChips } from './QueueChips';
 import { LIST_ID, QueueList } from './QueueList';
@@ -102,33 +102,28 @@ function useEscapeInside(ref: RefObject<HTMLElement | null>) {
 }
 
 // One bar at a time under the header: a page KCP cannot read, a page of another term, or
-// a plan with nothing prepared. Only the first can offer an action, Check again, and then
-// the whole bar is that one press, its words included, so a tap on what the student reads
-// is the Check again they meant. When no reading can help, on a host build KCP was not
-// tested with or in a staff session, it is a plain bar that says so, with no control.
+// a plan with nothing prepared, which has its own bar that can prepare (KitBar). Only the
+// first can offer Check again, and then the whole bar is that one press, its words
+// included, so a tap on what the student reads is the Check again they meant. When no
+// reading can help, on a host build KCP was not tested with or in a staff session, it is a
+// plain bar that says so, with no control.
 function Bar({ model, t }: { model: HelperModel; t: Translate }) {
-  const [Icon, key, tone] = model.stale
-    ? ([
-        EyeOff,
-        model.offReason === 'untestedBuild'
-          ? 'regis.newHostBuild'
-          : 'regis.unreadable',
-        'bg-warn-soft text-warn',
-      ] as const)
-    : model.termMismatch
+  if (model.bar === null) return null;
+  if (model.bar === 'kit') return <KitBar model={model} t={t} />;
+  const [Icon, key, tone] =
+    model.bar === 'stale'
       ? ([
+          EyeOff,
+          model.offReason === 'untestedBuild'
+            ? 'regis.newHostBuild'
+            : 'regis.unreadable',
+          'bg-warn-soft text-warn',
+        ] as const)
+      : ([
           CalendarClock,
           'regis.state.termMismatch',
           'bg-warn-soft text-warn',
-        ] as const)
-      : !model.hasKit
-        ? ([
-            ClipboardList,
-            'regis.noKitShort',
-            'bg-surface-alt text-ink-soft',
-          ] as const)
-        : [null, null, null];
-  if (Icon === null) return null;
+        ] as const);
   const bar = `mx-1 mb-2 flex min-h-8 items-center gap-2 rounded-kcp-sm pl-2 text-xs font-semibold max-sm:min-h-11 ${tone}`;
   const words = (
     <>

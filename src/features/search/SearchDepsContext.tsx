@@ -34,3 +34,11 @@ export function useSearchDeps(): SearchDeps {
   }
   return deps;
 }
+
+/**
+ * The dependencies when a provider gives them, or null, for a part that offers a network
+ * action only where the content script bound one.
+ */
+export function useOptionalSearchDeps(): SearchDeps | null {
+  return useContext(SearchDepsContext);
+}
