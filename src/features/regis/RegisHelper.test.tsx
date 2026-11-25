@@ -186,6 +186,8 @@ describe('RegisHelper', () => {
       message: 'ยังใช้เพิ่มให้ไม่ได้',
     });
     expect(fillStore.getState().run.status).toBe('idle');
+    // Add for me can never run on this build, so its switch is not offered.
+    expect(within(menu).queryByRole('menuitemcheckbox')).toBeNull();
     const checks = hostStore.getState().checks;
     fireEvent.click(within(menu).getByRole('menuitem', { name: 'ตรวจอีกครั้ง' }));
     expect(hostStore.getState().checks).toBe(checks + 1);

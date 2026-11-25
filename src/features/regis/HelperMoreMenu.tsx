@@ -10,7 +10,7 @@
 // label. Check again sits here and on the bar of a page KCP cannot read, so the student
 // can ask for a fresh reading whenever the card looks behind the page; on a host build
 // KCP was not tested with, or in a staff session, no reading can help, so neither place
-// offers it.
+// offers it. The add for me switch shows only on a host build where add for me can run.
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent, ReactNode } from 'react';
@@ -31,7 +31,7 @@ import { FOCUS_RING } from '@/lib/ui/focus';
 import { focusFirst } from '@/features/shell/restoreFocus';
 import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
-import { AddAllMenuItem } from './fill/FillControls';
+import { AddAllMenuItem, useFillBuildGate } from './fill/FillControls';
 import {
   hideHelper,
   pickHelperPlanId,
@@ -270,6 +270,9 @@ export function HelperMoreMenu({
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const off = useStore(regisStore, (state) => state.fill.off);
+  // On a host build KCP was not tested with, or one a refusal latched, Add for me can
+  // never run, so its switch would do nothing and is not offered.
+  const switchable = useFillBuildGate() === 'ok';
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const closeQuietly = useCallback(() => {
     setOpen(false);
@@ -373,7 +376,7 @@ export function HelperMoreMenu({
                 }}
               />
             ) : null}
-            {pre ? (
+            {pre && switchable ? (
               <Item
                 icon={<Check size={16} />}
                 label={t('regis.fill.switch')}
