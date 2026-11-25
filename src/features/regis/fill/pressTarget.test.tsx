@@ -98,6 +98,32 @@ describe('AddForMeButton target', () => {
     expect(shownAtOfClick()).toBe(5000);
   });
 
+  it('starts its moment again when the helper follows another plan', () => {
+    const clock = vi.spyOn(performance, 'now').mockReturnValue(1000);
+    const view = render(
+      <AddForMeButton
+        row={row('01476107')}
+        plan={PLAN}
+        kit={KIT}
+        allowFull={false}
+        t={t}
+      />,
+    );
+    clock.mockReturnValue(5000);
+    act(() => {
+      view.rerender(
+        <AddForMeButton
+          row={row('01476107')}
+          plan={makePlan({ id: 'plan-2' })}
+          kit={KIT}
+          allowFull={false}
+          t={t}
+        />,
+      );
+    });
+    expect(shownAtOfClick()).toBe(5000);
+  });
+
   it('keeps its moment while it adds the same subject the same way', () => {
     const clock = vi.spyOn(performance, 'now').mockReturnValue(1000);
     const view = render(
