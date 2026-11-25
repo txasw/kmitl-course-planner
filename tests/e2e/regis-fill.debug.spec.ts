@@ -192,12 +192,35 @@ test('ends the run when the student switches fill off', async ({
   await expectNothingForbidden(page);
 });
 
-const AWAY = [
-  ['hides the helper on this page', 'ซ่อนในหน้านี้'],
-  ['opens the planner over the page', 'เปิดตารางเรียน'],
-] as const;
+/** Pick an item in the card's more menu. */
+function fromMenu(item: string) {
+  return async (page: Page) => {
+    await page.getByRole('button', { name: 'เพิ่มเติม' }).click();
+    await page.getByRole('menuitem', { name: item }).click();
+  };
+}
 
-for (const [name, item] of AWAY) {
+// Each way the student takes the helper off the page leaves no Stop on screen, so each
+// ends the run as Stop does.
+const AWAY: readonly (readonly [string, (page: Page) => Promise<void>])[] = [
+  ['hides the helper on this page', fromMenu('ซ่อนในหน้านี้')],
+  ['opens the planner over the page', fromMenu('เปิดตารางเรียน')],
+  [
+    'collapses the card with Escape',
+    async (page) => {
+      await page.locator('#kcp-regis-stop').focus();
+      await page.keyboard.press('Escape');
+    },
+  ],
+  [
+    'collapses the card from the launcher',
+    async (page) => {
+      await page.locator('#kcp-launcher').click();
+    },
+  ],
+];
+
+for (const [name, away] of AWAY) {
   test(`ends the run when the student ${name}`, async ({
     context,
     serviceWorker,
@@ -211,8 +234,7 @@ for (const [name, item] of AWAY) {
     await expect(page.locator('[data-fill="running"]')).toBeVisible();
     // The subject is entered and the host is still reading it.
     await page.waitForFunction(() => window.replica.state.add.loading);
-    await page.getByRole('button', { name: 'เพิ่มเติม' }).click();
-    await page.getByRole('menuitem', { name: item }).click();
+    await away(page);
     await expect(page.locator('#kcp-regis-card')).toHaveCount(0);
     // The host answers after the helper left the page, and the run acts on nothing more.
     await page.waitForTimeout(3500);
