@@ -12,10 +12,24 @@
  * card, the stepper, the panel, and the complete step) are the same, every host label
  * here appears as often, and so does every reference to a registration write endpoint.
  * The redeploy changed staff and payment pages only, and the vendor bundle is the same.
+ *
+ * app.a1e43722, deployed 2026-11-25 at 09:53 GMT beside the same vendor bundle, was
+ * compared with both: the add subject card, the stepper, the panel, the complete step,
+ * the consent and flow chart steps, the grade not announced dialog with its one
+ * acknowledgement, every host label here, and every reference to a registration write
+ * endpoint are the same, and so is the surrogate key. Its PreRegistration route changed
+ * around the panel: a RegistrationHeader with an h1 title and a subtitle h2 of the semester
+ * over the year, a RegistrationPeriods section above the panel whose countdown ticks every
+ * second, and a period check that polls check-registration-datetime every 60 s, on a
+ * window focus, and on a visibility change, and can unmount the panel or mount it again
+ * with no navigation. The observer bounds its readings and reads the panel leaving
+ * (watchPage.ts), and a check that lands in a fill run stops it as a request of the
+ * page's own (fillEngine.ts).
  */
 export const TESTED_BUILDS: readonly (readonly [string, string])[] = [
   ['app.454d9e95.js', 'chunk-vendors.7ab4925e.js'],
   ['app.020e81ed.js', 'chunk-vendors.7ab4925e.js'],
+  ['app.a1e43722.js', 'chunk-vendors.7ab4925e.js'],
 ];
 
 /** Host labels in Thai and English, matched by exact equality after trimming. */
