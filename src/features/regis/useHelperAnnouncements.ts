@@ -23,7 +23,11 @@ import type { HelperModel } from './useHelperModel';
 /** How long status changes gather before they are read as one sentence. */
 export const GROUP_MS = 500;
 
-/** The stops that are a failure of the run itself, not the page turning a subject down. */
+/**
+ * The stops that are a failure of the run itself, not the page turning a subject down. A
+ * request of the page's own is neither: KCP stopped to be safe and the next press goes on,
+ * so its stop sentence is read in the helper's live region.
+ */
 const FAILED: readonly StopReason[] = [
   'noAnswer',
   'pageChanged',

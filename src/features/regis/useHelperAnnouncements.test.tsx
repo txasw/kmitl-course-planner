@@ -129,6 +129,25 @@ describe('useHelperAnnouncements', () => {
     expect(helperStore.getState().announcement.seq).toBe(seq);
   });
 
+  it('reads a stop for a request of the page aloud, with no error toast', () => {
+    const view = render(<Probe statuses={{}} />);
+    view.rerender(
+      <Probe
+        statuses={{}}
+        run={{
+          status: 'stopped',
+          subjectId: 'A',
+          reason: 'pageRequest',
+          scope: ['A'],
+        }}
+      />,
+    );
+    expect(said()).toBe(
+      'The page sent a request of its own, so KCP stopped to be safe. Press Add for me to go on.',
+    );
+    expect(toastStore.getState().toast).toBeNull();
+  });
+
   it('shows no toast for a stop found on arrival', () => {
     render(
       <Probe

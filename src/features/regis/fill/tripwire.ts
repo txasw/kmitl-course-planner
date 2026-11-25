@@ -2,9 +2,13 @@
 // starts through XMLHttpRequest while the run is active, without reading an entry's name,
 // which carries the student id. The run expects at most one, the host's own eligibility
 // read, after it enters a subject id, and none after any other step; any other count
-// stops the run. It sees a request only after it started, so it backs up the tested
-// build gate rather than replacing it, and it does not latch, because the host's token
-// refresh can add an entry. A browser without the observer gets no tripwire.
+// stops the run as a request of the page's own. It sees a request only after it started,
+// so it backs up the tested build gate rather than replacing it, and it does not latch,
+// because the host's token refresh can add an entry, and so can the period check that
+// app.a1e43722 runs every 60 s, on a window focus, and on a visibility change. Telling
+// that check apart by its address would mean reading the names, so a run it lands in
+// stops, and the student's next press goes on. A browser without the observer gets no
+// tripwire.
 
 export interface Tripwire {
   /** The XMLHttpRequest entries seen since the tripwire started. */

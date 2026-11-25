@@ -591,7 +591,7 @@ describe('runFill', () => {
     });
     expect(outcome).toMatchObject({
       status: 'stopped',
-      reason: 'notRecognised',
+      reason: 'pageRequest',
     });
     expect(replica.state.list).toEqual([]);
   });
@@ -687,5 +687,104 @@ describe('runFill on the route of app.a1e43722', () => {
       filled: 1,
     });
     expect(page.state.list.map((row) => row.section)).toEqual(['1']);
+  });
+
+  // The tripwire as the page's own requests count it: the host's eligibility reads and
+  // its period checks, by number alone.
+  function requests(page: Replica): FillDeps['tripwire'] {
+    return {
+      count: () => page.counters.reads + page.counters.polls,
+      stop: () => undefined,
+    };
+  }
+
+  it.each<[string, FillStep]>([
+    ['while the host reads the entered subject', 'wait'],
+    ['while the section is chosen', 'choose'],
+  ])(
+    'stops on a period check %s, and the next press finishes the subject',
+    async (_name, during) => {
+      const setupOf = setup([SINGLE]);
+      const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
+      replica = page;
+      page.configure({ delay: 30, catalog: setupOf.catalog });
+      let polled = false;
+      const first = await runFill({
+        ...deps(setupOf, (_subject, step) => {
+          if (step === during && !polled) {
+            polled = true;
+            page.poll();
+          }
+        }),
+        tripwire: requests(page),
+      });
+      expect(first).toMatchObject({
+        status: 'stopped',
+        subjectId: A,
+        reason: 'pageRequest',
+      });
+      expect(page.state.list).toEqual([]);
+      expect(page.counters.clicks.add ?? 0).toBe(0);
+      // A fresh press: the subject is still in the field as the page left it, so the run
+      // picks it up there and reads nothing again.
+      const second = await runFill({
+        ...deps(setupOf),
+        tripwire: requests(page),
+      });
+      expect(second).toEqual({ status: 'done', filled: 1 });
+      expect(page.state.list.map((row) => row.section)).toEqual(['1']);
+      expect(page.counters.reads).toBe(1);
+    },
+  );
+
+  it('stops on a period check after Add, and the next press finds the subject listed', async () => {
+    const setupOf = setup([SINGLE]);
+    const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
+    replica = page;
+    page.configure({ delay: 30, catalog: setupOf.catalog });
+    const first = await runFill({
+      ...deps(setupOf, (_subject, step) => {
+        if (step === 'add') page.poll();
+      }),
+      tripwire: requests(page),
+    });
+    expect(first).toMatchObject({ status: 'stopped', reason: 'pageRequest' });
+    expect(page.state.list.map((row) => row.section)).toEqual(['1']);
+    expect(
+      await runFill({ ...deps(setupOf), tripwire: requests(page) }),
+    ).toEqual({ status: 'done', filled: 0 });
+    expect(page.counters.clicks.add).toBe(1);
+  });
+
+  it('goes on from the first subject not yet added on the next press', async () => {
+    const setupOf = setup([SINGLE, { ...SINGLE, id: B, day: 3 }]);
+    const [early, late] = setupOf.targets.map((target) => target.subjectId);
+    const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
+    replica = page;
+    page.configure({ delay: 30, catalog: setupOf.catalog });
+    let polled = false;
+    const first = await runFill({
+      ...deps(setupOf, (subject, step) => {
+        if (subject === late && step === 'wait' && !polled) {
+          polled = true;
+          page.poll();
+        }
+      }),
+      tripwire: requests(page),
+    });
+    expect(first).toMatchObject({
+      status: 'stopped',
+      subjectId: late,
+      reason: 'pageRequest',
+    });
+    expect(page.state.list.map((row) => row.subjectId)).toEqual([early]);
+    const second = await runFill({
+      ...deps(setupOf),
+      tripwire: requests(page),
+    });
+    // The listed subject is skipped and the stopped one is finished from the field.
+    expect(second).toEqual({ status: 'done', filled: 1 });
+    expect(page.state.list.map((row) => row.subjectId)).toEqual([early, late]);
+    expect(page.counters.reads).toBe(2);
   });
 });

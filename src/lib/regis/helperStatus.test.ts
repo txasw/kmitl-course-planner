@@ -249,4 +249,19 @@ describe('stillToAdd', () => {
     ).toEqual(['B', 'E', 'F']);
     expect(stillToAdd(['A'], { A: 'adding' })).toEqual([]);
   });
+
+  it('names a subject a request of the page stopped on, from the first not added', () => {
+    // A run of A, B, and C added A, then the page's own request stopped it on B.
+    const list = checklist(
+      row('A', 'added'),
+      row('B', 'notDone'),
+      row('C', 'notDone'),
+    );
+    const { statuses } = derive({
+      list,
+      stop: { subjectId: 'B', reason: 'pageRequest' },
+    });
+    expect(statuses).toEqual({ A: 'added', B: 'todo', C: 'todo' });
+    expect(stillToAdd(['A', 'B', 'C'], statuses)).toEqual(['B', 'C']);
+  });
 });
