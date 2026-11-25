@@ -696,6 +696,7 @@
   "regis.waitGrade": "รอเกรด {ids}",
   "regis.severalCurricula": "หลายหลักสูตร",
   "regis.unreadable": "อ่านหน้าไม่ได้",
+  "regis.newHostBuild": "หน้าลงทะเบียนเปลี่ยนรุ่น กรอกเองได้ตามรายการ",
   "regis.readableAgain": "อ่านหน้าได้แล้ว",
   "regis.recheck": "ตรวจอีกครั้ง",
   "regis.noKitShort": "ยังไม่ได้เตรียมข้อมูล",

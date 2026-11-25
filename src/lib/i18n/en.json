@@ -696,6 +696,7 @@
   "regis.waitGrade": "Awaits grade {ids}",
   "regis.severalCurricula": "Several curricula",
   "regis.unreadable": "Page not readable",
+  "regis.newHostBuild": "Registration page updated. Enter the list yourself.",
   "regis.readableAgain": "Page readable again",
   "regis.recheck": "Check again",
   "regis.noKitShort": "Nothing prepared yet",

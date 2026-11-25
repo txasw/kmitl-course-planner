@@ -7,7 +7,8 @@
 // this page. Add all for me is a student press like Add for me, so only the fill controls
 // render it; when it cannot run it stays in the menu with its reason under its label.
 // Check again sits here and on the bar of a page KCP cannot read, so the student can ask
-// for a fresh reading whenever the card looks behind the page.
+// for a fresh reading whenever the card looks behind the page; on a host build KCP was not
+// tested with, or in a staff session, no reading can help, so neither place offers it.
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent, ReactNode } from 'react';
@@ -292,7 +293,7 @@ export function HelperMoreMenu({
                 uiStore.getState().open();
               }}
             />
-            {pre ? (
+            {pre && model.recheckable ? (
               <Item
                 icon={<RefreshCw size={16} />}
                 label={t('regis.recheck')}

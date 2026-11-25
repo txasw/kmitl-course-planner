@@ -95,45 +95,63 @@ function useEscapeInside(ref: RefObject<HTMLElement | null>) {
 }
 
 // One bar at a time under the header: a page KCP cannot read, a page of another term, or
-// a plan with nothing prepared. Only the first offers an action, Check again.
+// a plan with nothing prepared. Only the first can offer an action, Check again, and then
+// the whole bar is that one press, its words included, so a tap on what the student reads
+// is the Check again they meant. When no reading can help, on a host build KCP was not
+// tested with or in a staff session, it is a plain bar that says so, with no control.
 function Bar({ model, t }: { model: HelperModel; t: Translate }) {
   const [Icon, key, tone] = model.stale
-    ? ([EyeOff, 'regis.unreadable', 'bg-warn-soft text-warn'] as const)
+    ? ([
+        EyeOff,
+        model.offReason === 'untestedBuild'
+          ? 'regis.newHostBuild'
+          : 'regis.unreadable',
+        'bg-warn-soft text-warn',
+      ] as const)
     : model.termMismatch
       ? ([
           CalendarClock,
           'regis.state.termMismatch',
-          'bg-warn-soft pr-2 text-warn',
+          'bg-warn-soft text-warn',
         ] as const)
       : !model.hasKit
         ? ([
             ClipboardList,
             'regis.noKitShort',
-            'bg-surface-alt pr-2 text-ink-soft',
+            'bg-surface-alt text-ink-soft',
           ] as const)
         : [null, null, null];
   if (Icon === null) return null;
-  return (
-    <div
-      className={`mx-1 mb-2 flex min-h-8 items-center gap-2 rounded-kcp-sm pl-2 text-xs font-semibold max-sm:min-h-11 ${tone}`}
-    >
+  const bar = `mx-1 mb-2 flex min-h-8 items-center gap-2 rounded-kcp-sm pl-2 text-xs font-semibold max-sm:min-h-11 ${tone}`;
+  const words = (
+    <>
       <Icon size={16} aria-hidden className="shrink-0" />
-      <span id={model.stale ? STALE_TEXT_ID : undefined} className="flex-1">
+      <span
+        id={model.stale ? STALE_TEXT_ID : undefined}
+        className="flex-1 text-left"
+      >
         {t(key)}
       </span>
-      {model.stale ? (
-        <button
-          type="button"
-          aria-label={t('regis.recheck')}
-          onClick={() => {
-            hostStore.getState().recheck();
-          }}
-          className={`inline-flex size-8 shrink-0 items-center justify-center rounded-kcp hover:bg-surface-alt max-sm:size-11 ${FOCUS_RING}`}
-        >
-          <RefreshCw size={16} aria-hidden />
-        </button>
-      ) : null}
-    </div>
+    </>
+  );
+  if (!model.stale || !model.recheckable) {
+    return <div className={`${bar} py-1 pr-2`}>{words}</div>;
+  }
+  return (
+    <button
+      type="button"
+      aria-label={`${t(key)} ${t('regis.recheck')}`}
+      onClick={() => {
+        hostStore.getState().recheck();
+      }}
+      className={`${bar} w-[calc(100%-0.5rem)] hover:brightness-95 ${FOCUS_RING}`}
+    >
+      {words}
+      <span className="inline-flex shrink-0 items-center gap-1 px-2">
+        <span className="max-sm:sr-only">{t('regis.recheck')}</span>
+        <RefreshCw size={16} aria-hidden />
+      </span>
+    </button>
   );
 }
 

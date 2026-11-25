@@ -158,7 +158,7 @@ test('stays off on an untested host build and in a surrogate session', async ({
   await drive(page, { term, list: [LISTED] });
   // The page lists the subject, but KCP does not read it, so the status stays its own.
   await expect(page.locator('[data-observer="off"]')).toContainText(
-    'อ่านหน้าไม่ได้',
+    'หน้าลงทะเบียนเปลี่ยนรุ่น',
   );
   await expect(chip(page)).toHaveAttribute('data-status', 'todo');
   await expectUntouched(page);
