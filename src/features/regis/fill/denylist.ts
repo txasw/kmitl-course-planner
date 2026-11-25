@@ -6,7 +6,9 @@
 // the target's own trimmed text, never on an ancestor's text, which holds Continue for
 // every control in the add card, and never by substring, which would catch a course
 // named "Continuous ...". The Thai label of the flow chart's enter button is left out: it
-// shows only before the add card exists.
+// shows only before the add card exists. The retry button of the registration periods,
+// which app.a1e43722 shows above the panel when its period check fails, is listed though
+// no resolver can reach it, so the list stays the whole set the script prints.
 
 const DENIED: ReadonlySet<string> = new Set([
   'Academic Calendar',
@@ -26,6 +28,7 @@ const DENIED: ReadonlySet<string> = new Set([
   'Save',
   'Submit',
   'Timetable',
+  'Try again',
   'View Add / Change / Withdraw Transactions',
   'View Retrospective List',
   'Withdraw',
@@ -44,6 +47,7 @@ const DENIED: ReadonlySet<string> = new Set([
   'ยืนยัน',
   'ย้อนกลับ',
   'ลงทะเบียน',
+  'ลองอีกครั้ง',
   'ส่ง',
   'หลักสูตรหน้าเว็บ KRESO',
   'หลักสูตรหน้าเว็บ OAQ',
