@@ -678,10 +678,10 @@ describe('runFill on the route of app.a1e43722', () => {
       { route: 'a1e43722', poll: 0 },
     );
     replica = page;
-    page.configure({ delay: 5, catalog: setupOf.catalog });
+    page.configure({ delay: 50, catalog: setupOf.catalog });
     page.set({ period: 'open' });
-    // The add card reads its credits first, with the card loading.
-    await new Promise((resolve) => setTimeout(resolve, 20));
+    // The add card reads its credits first, with the card loading, and the run waits.
+    expect(page.state.add.loading).toBe(true);
     expect(await runFill(deps(setupOf))).toEqual({
       status: 'done',
       filled: 1,
