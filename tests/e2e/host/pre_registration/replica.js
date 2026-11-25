@@ -806,7 +806,20 @@ export function mountReplica(doc, overrides = {}, options = {}) {
 
   // The registration panel: the stepper, the header row with the term in its third
   // column, and the step's card, as PreRegistrationPanel renders them.
+  // The panel element stays the same while the panel stays mounted, as Vue patches it in
+  // place; only an unmount and a mount again make a new one.
+  let panelRoot = null;
+  let panelShown = false;
+
   function panel() {
+    panelShown = true;
+    const fresh = panelContent();
+    if (panelRoot === null) panelRoot = fresh;
+    else panelRoot.replaceChildren(...fresh.childNodes);
+    return panelRoot;
+  }
+
+  function panelContent() {
     return h('div', {}, [
       state.step >= 1 ? stepper() : null,
       h(
@@ -1099,6 +1112,7 @@ export function mountReplica(doc, overrides = {}, options = {}) {
     // and leave with it.
     const mounted =
       route === null || (state.step !== 0 && state.period === 'open');
+    panelShown = false;
     wrap.replaceChildren(
       h('main', { class: 'v-main' }, [
         h('div', { class: 'v-main__wrap' }, [
@@ -1107,6 +1121,7 @@ export function mountReplica(doc, overrides = {}, options = {}) {
       ]),
       config.variant === 'formAdd' ? farForm() : '',
     );
+    if (!panelShown) panelRoot = null;
     for (const old of app.querySelectorAll(
       ':scope > .v-dialog__content, :scope > .v-menu__content',
     ))
