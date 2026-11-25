@@ -12,7 +12,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { CalendarRange, ChevronDown } from 'lucide-react';
-import { useClick, useDismiss, useInteractions } from '@floating-ui/react';
+import { useClick, useInteractions } from '@floating-ui/react';
+import { usePanelDismiss } from '@/features/shell/usePanelDismiss';
 import { planSchema, type Plan } from '@/lib/domain/plan';
 import type { TranslationKey } from '@/lib/i18n/t';
 import { fillTemplate } from '@/lib/i18n/template';
@@ -113,7 +114,7 @@ export function PlanSwitcher() {
   // read every tap inside it as outside; the sheet closes through its own scrim instead.
   const { getReferenceProps, getFloatingProps } = useInteractions([
     useClick(context),
-    useDismiss(context, { enabled: !sheet }),
+    usePanelDismiss(context, { enabled: !sheet }),
   ]);
 
   const setReference = useCallback(

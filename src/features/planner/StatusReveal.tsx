@@ -9,7 +9,8 @@
 // handing focus back to the trigger on Escape.
 
 import { useCallback, useId, useRef, useState, type ReactNode } from 'react';
-import { useClick, useDismiss, useInteractions } from '@floating-ui/react';
+import { useClick, useInteractions } from '@floating-ui/react';
+import { usePanelDismiss } from '@/features/shell/usePanelDismiss';
 import { useEscapeLayer } from '@/features/shell/useEscapeLayer';
 import {
   PANEL_POPOVER_SCROLL,
@@ -49,7 +50,7 @@ export function StatusReveal({
   // outside the popover.
   const { getReferenceProps, getFloatingProps } = useInteractions([
     useClick(context),
-    useDismiss(context, { escapeKey: false }),
+    usePanelDismiss(context, { escapeKey: false }),
   ]);
 
   const setReference = useCallback(
