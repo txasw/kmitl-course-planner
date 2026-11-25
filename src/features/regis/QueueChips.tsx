@@ -4,7 +4,8 @@
 // grey. The chip in focus carries the orange ring. The grid is one tab stop: the chip in
 // focus holds it, the arrow keys move between chips, and Enter or Space puts a chip in
 // focus. Each chip's name and tooltip carry the subject name, so the id is never the only
-// identity.
+// identity. On a touch screen a tap would leave the tooltip up over the next chips, and
+// the subject in focus names itself under the queue, so there the chips show none.
 
 import type { KeyboardEvent } from 'react';
 import { Tooltip } from '@/components/Tooltip';
@@ -26,6 +27,8 @@ interface QueueChipsProps {
   statuses: Readonly<Record<string, HelperStatus>>;
   currentId: string | null;
   stale: boolean;
+  /** Whether the pointer is coarse, where a tap would leave the tooltip up. */
+  coarse: boolean;
   locale: Locale;
   t: Translate;
   onPick: (subjectId: string) => void;
@@ -75,6 +78,7 @@ export function QueueChips({
   statuses,
   currentId,
   stale,
+  coarse,
   locale,
   t,
   onPick,
@@ -91,7 +95,7 @@ export function QueueChips({
         const done = isDone(status);
         return (
           <li key={row.subjectId} className="flex">
-            <Tooltip label={name} placement="top">
+            <Tooltip label={name} placement="top" disabled={coarse}>
               {(triggerProps, ref) => (
                 <button
                   ref={ref}
