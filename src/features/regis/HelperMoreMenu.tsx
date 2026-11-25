@@ -2,14 +2,23 @@
 // menu with focus on its first item, the arrow keys, Home, and End move between items,
 // and Escape closes it back to the trigger without collapsing the card. It holds the
 // actions a student needs once or rarely: add every subject still to add in one run, open
-// the planner, turn add for me off or on, and hide the helper on this
-// page. Add all for me is a student press like Add for me, so only the fill controls
+// the planner, read the page again, turn add for me off or on, and hide the helper on
+// this page. Add all for me is a student press like Add for me, so only the fill controls
 // render it; when it cannot run it stays in the menu with its reason under its label.
+// Check again sits here and on the bar of a page KCP cannot read, so the student can ask
+// for a fresh reading whenever the card looks behind the page.
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent, ReactNode } from 'react';
 import { useStore } from 'zustand';
-import { CalendarDays, Check, Ellipsis, EyeOff, ListPlus } from 'lucide-react';
+import {
+  CalendarDays,
+  Check,
+  Ellipsis,
+  EyeOff,
+  ListPlus,
+  RefreshCw,
+} from 'lucide-react';
 import type { Translate } from '@/lib/i18n/t';
 import { stillToAdd } from '@/lib/regis/helperStatus';
 import { FOCUS_RING } from '@/lib/ui/focus';
@@ -18,6 +27,7 @@ import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
 import { AddAllMenuItem } from './fill/FillControls';
 import { hideHelper, setCurrent, setView } from './helperStore';
+import { hostStore } from './host/hostStore';
 import { regisStore } from './regisStore';
 import { useAddAllBlock } from './useAddBlock';
 import type { HelperModel } from './useHelperModel';
@@ -239,6 +249,16 @@ export function HelperMoreMenu({
                 uiStore.getState().open();
               }}
             />
+            {pre ? (
+              <Item
+                icon={<RefreshCw size={16} />}
+                label={t('regis.recheck')}
+                onSelect={() => {
+                  close();
+                  hostStore.getState().recheck();
+                }}
+              />
+            ) : null}
             {pre ? (
               <Item
                 icon={<Check size={16} />}
