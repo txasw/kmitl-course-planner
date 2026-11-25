@@ -12,7 +12,7 @@ import { buildRegistrationKit } from '@/lib/regis/kit';
 import { toSnapshot } from '@/lib/planner/transaction';
 import { DEFAULT_FILL_SETTINGS } from '@/lib/storage/regis';
 import { regisStore } from '../regisStore';
-import { AddForMeButton, RunProgress } from './FillControls';
+import { AddAllMenuItem, AddForMeButton, RunProgress } from './FillControls';
 import { fillStore } from './fillRun';
 
 // The fill controls: Add for me starts a run only from a trusted press, the progress
@@ -142,6 +142,36 @@ describe('AddForMeButton', () => {
     // The icon alone says what it does in a tooltip on focus and hover.
     fireEvent.focus(button);
     expect(screen.getByRole('tooltip')).toHaveTextContent('Add for me');
+  });
+});
+
+describe('AddAllMenuItem', () => {
+  it('is a press control that starts nothing from a click the browser did not make', () => {
+    if (ROW === undefined) throw new Error('no row');
+    let started = 0;
+    render(
+      <div role="menu">
+        <AddAllMenuItem
+          rows={[ROW]}
+          plan={PLAN}
+          kit={KIT}
+          label="Add all for me"
+          onStart={() => {
+            started += 1;
+          }}
+          className=""
+        >
+          Add all for me
+        </AddAllMenuItem>
+      </div>,
+    );
+    const item = screen.getByRole('menuitem', { name: 'Add all for me' });
+    expect(item).toHaveAttribute('data-fill-press');
+    expect(item).toHaveAttribute('tabindex', '-1');
+    expect(fireEvent.keyDown(item, { key: 'Enter', repeat: true })).toBe(false);
+    fireEvent.click(item);
+    expect(started).toBe(0);
+    expect(fillStore.getState().run.status).toBe('idle');
   });
 });
 

@@ -702,5 +702,6 @@
   "regis.hideHere": "Hide on this page",
   "regis.hidden": "Hidden until you open this page again",
   "regis.needsLook": "A subject needs attention",
-  "regis.statusChangedMany": "Status changed for {count} subjects"
+  "regis.statusChangedMany": "Status changed for {count} subjects",
+  "regis.addAll": "Add all for me"
 }

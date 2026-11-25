@@ -1,20 +1,25 @@
 // The more menu of the helper card, after the menu button pattern: the trigger opens the
 // menu with focus on its first item, the arrow keys, Home, and End move between items,
 // and Escape closes it back to the trigger without collapsing the card. It holds the
-// actions a student needs rarely: open the planner, turn add for me off or on, and hide
-// the helper on this page. Reading the page again sits on the bar of a page KCP cannot
-// read, the one time it helps.
+// actions a student needs once or rarely: add every subject still to add in one run, open
+// the planner, turn add for me off or on, and hide the helper on this
+// page. Add all for me is a student press like Add for me, so only the fill controls
+// render it; when it cannot run it stays in the menu with its reason under its label.
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent, ReactNode } from 'react';
 import { useStore } from 'zustand';
-import { CalendarDays, Check, Ellipsis, EyeOff } from 'lucide-react';
+import { CalendarDays, Check, Ellipsis, EyeOff, ListPlus } from 'lucide-react';
 import type { Translate } from '@/lib/i18n/t';
+import { stillToAdd } from '@/lib/regis/helperStatus';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { focusFirst } from '@/features/shell/restoreFocus';
+import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
-import { hideHelper } from './helperStore';
+import { AddAllMenuItem } from './fill/FillControls';
+import { hideHelper, setCurrent, setView } from './helperStore';
 import { regisStore } from './regisStore';
+import { useAddAllBlock } from './useAddBlock';
 import type { HelperModel } from './useHelperModel';
 import { useOutsidePress } from './useOutsidePress';
 
@@ -50,6 +55,83 @@ function Item({
         {icon}
       </span>
       <span className="min-w-0">{label}</span>
+    </button>
+  );
+}
+
+/**
+ * Add all for me: a press starts one run over every subject still to add. A run puts the
+ * card in view with no subject pinned, so the focus follows the subject being added and
+ * its condition can show before the grade dialog is acknowledged. When it cannot run, the
+ * item keeps its place with the reason under its label, and a press shows the reason.
+ */
+function AddAllItem({
+  model,
+  onDone,
+  t,
+}: {
+  model: HelperModel;
+  onDone: () => void;
+  t: Translate;
+}) {
+  const reasonId = useId();
+  const order = model.checklist?.rows ?? [];
+  const ids = new Set(
+    stillToAdd(
+      order.map((row) => row.subjectId),
+      model.statuses,
+    ),
+  );
+  const rows = order.filter((row) => ids.has(row.subjectId));
+  const { block, reason } = useAddAllBlock(model, rows, t);
+  const { plan, kit } = model;
+  if (rows.length === 0 || model.sent) return null;
+  const label = t('regis.addAll');
+  const icon = (
+    <span aria-hidden className="flex shrink-0 text-ink-soft">
+      <ListPlus size={16} />
+    </span>
+  );
+  if (block === null && plan !== null && kit !== null) {
+    return (
+      <AddAllMenuItem
+        rows={rows}
+        plan={plan}
+        kit={kit}
+        label={label}
+        onStart={() => {
+          onDone();
+          setCurrent(null);
+          setView('card');
+        }}
+        className={ITEM}
+      >
+        {icon}
+        <span className="min-w-0">{label}</span>
+      </AddAllMenuItem>
+    );
+  }
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      tabIndex={-1}
+      aria-disabled="true"
+      // The reason under the label is its description, not part of its name.
+      aria-label={label}
+      aria-describedby={reasonId}
+      onClick={() => {
+        toastStore.getState().show('error', reason);
+      }}
+      className={`${ITEM} cursor-not-allowed text-ink-muted`}
+    >
+      {icon}
+      <span className="flex min-w-0 flex-col">
+        <span>{label}</span>
+        <span id={reasonId} className="text-xs text-ink-soft">
+          {reason}
+        </span>
+      </span>
     </button>
   );
 }
@@ -140,6 +222,15 @@ export function HelperMoreMenu({
               handleMenuKeyDown(event);
             }}
           >
+            {pre ? (
+              <AddAllItem
+                model={model}
+                onDone={() => {
+                  setOpen(false);
+                }}
+                t={t}
+              />
+            ) : null}
             <Item
               icon={<CalendarDays size={16} />}
               label={t('regis.openPlanner')}

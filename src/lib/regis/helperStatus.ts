@@ -145,6 +145,18 @@ export function advanceCurrent(
   return rotated.find((id) => needsAction(statuses[id] ?? 'todo')) ?? current;
 }
 
+/**
+ * The subjects Add all for me names, in plan order: those not added and not turned down.
+ * A subject the page refused, or stopped on as full or as a clash, waits for the student's
+ * own choice of another section, so pressing Add all again never stops on it a second time.
+ */
+export function stillToAdd(
+  order: readonly string[],
+  statuses: Readonly<Record<string, HelperStatus>>,
+): string[] {
+  return order.filter((id) => (statuses[id] ?? 'todo') === 'todo');
+}
+
 /** Why add for me cannot run for a subject still to add, first reason first. */
 export type AddBlock =
   | 'unavailable'

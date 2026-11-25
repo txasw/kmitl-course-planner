@@ -7,6 +7,7 @@ import {
   doneCount,
   needsLook,
   pickCurrent,
+  stillToAdd,
   type AddFacts,
   type HelperInput,
 } from './helperStatus';
@@ -184,5 +185,20 @@ describe('addForMeBlock', () => {
       'notInStep',
     );
     expect(addForMeBlock({ ...ready, busy: true })).toBe('busy');
+  });
+});
+
+describe('stillToAdd', () => {
+  it('names the subjects not added and not turned down, in plan order', () => {
+    expect(
+      stillToAdd(['A', 'B', 'C', 'D', 'E', 'F'], {
+        A: 'added',
+        B: 'todo',
+        C: 'full',
+        D: 'clash',
+        F: 'todo',
+      }),
+    ).toEqual(['B', 'E', 'F']);
+    expect(stillToAdd(['A'], { A: 'adding' })).toEqual([]);
   });
 });

@@ -17,6 +17,7 @@ import {
   makePlanEntry,
   makeSection,
 } from '../../../tests/support/domain-builders';
+import { toastStore } from '@/features/shell/toastStore';
 import { fillStore } from './fill/fillRun';
 import { helperStore, setView, startVisit } from './helperStore';
 import { RegisHelper } from './RegisHelper';
@@ -152,6 +153,25 @@ describe('RegisHelper', () => {
     expect(fillStore.getState().shown?.subjectId).toBe('01476107');
     fireEvent.click(screen.getByRole('button', { name: /^เช็กลิสต์ 0\/1/ }));
     expect(fillStore.getState().shown).toBeNull();
+  });
+
+  it('offers Add all for me in the more menu, with its reason when it cannot run', () => {
+    renderPage('#/pre_registration');
+    fireEvent.click(within(card()).getByRole('button', { name: 'เพิ่มเติม' }));
+    const menu = screen.getByRole('menu', { name: 'เพิ่มเติม' });
+    // Off the tested host build the item stays, with its reason, and starts nothing.
+    const addAll = within(menu).getByRole('menuitem', {
+      name: 'เพิ่มให้ทุกวิชา',
+    });
+    expect(addAll).toHaveAttribute('aria-disabled', 'true');
+    expect(addAll).toHaveAccessibleDescription('ยังใช้เพิ่มให้ไม่ได้');
+    expect(addAll).not.toHaveAttribute('data-fill-press');
+    fireEvent.click(addAll);
+    expect(toastStore.getState().toast).toMatchObject({
+      kind: 'error',
+      message: 'ยังใช้เพิ่มให้ไม่ได้',
+    });
+    expect(fillStore.getState().run.status).toBe('idle');
   });
 
   it('renders nothing off the helper pages', () => {
