@@ -9,7 +9,8 @@ import { GROUP_MS, useHelperAnnouncements } from './useHelperAnnouncements';
 import type { HelperModel } from './useHelperModel';
 
 // The helper's live region reads status changes within half a second as one sentence,
-// reads each run stop, and a failed run also shows the error toast.
+// reads each run stop, and a failed run shows the error toast, which its own live region
+// reads, in place of the stop sentence.
 
 const t = createTranslator('en');
 
@@ -107,7 +108,7 @@ describe('useHelperAnnouncements', () => {
     expect(helperStore.getState().announcement.seq).toBe(seq + 1);
   });
 
-  it('shows the error toast for a failed run and not for a stop', () => {
+  it('shows the error toast for a failed run, read once, and not for a stop', () => {
     const view = render(<Probe statuses={{}} />);
     const stop = (reason: 'noAnswer' | 'stopped'): FillRun => ({
       status: 'stopped',
@@ -118,11 +119,14 @@ describe('useHelperAnnouncements', () => {
     view.rerender(<Probe statuses={{}} run={stop('stopped')} />);
     expect(said()).toBe('Adding stopped.');
     expect(toastStore.getState().toast).toBeNull();
+    const { seq } = helperStore.getState().announcement;
     view.rerender(<Probe statuses={{}} run={stop('noAnswer')} />);
     expect(toastStore.getState().toast).toMatchObject({
       kind: 'error',
       message: 'Could not add',
     });
+    // The toast region reads the failure, so the helper's region says nothing more.
+    expect(helperStore.getState().announcement.seq).toBe(seq);
   });
 
   it('shows no toast for a stop found on arrival', () => {
