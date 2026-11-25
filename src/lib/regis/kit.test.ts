@@ -15,6 +15,8 @@ import {
   entryCurriculum,
   isKitFresh,
   KIT_MAX_AGE_MS,
+  conditionIds,
+  groupConditions,
   kitMatchesPlan,
   plannedSections,
   refitKit,
@@ -309,6 +311,25 @@ describe('plannedSections', () => {
     expect(
       plannedSections(first).map((section) => section.teachTableId),
     ).toEqual([ruled.teachTableId]);
+  });
+});
+
+describe('groupConditions and conditionIds', () => {
+  it('reads each printed condition once, in one language, and the ids it names', () => {
+    const ruled = { ...A1, rulesTh: ' ต้องผ่าน 01476105 ', rulesEn: '' };
+    const twin = { ...A2, rulesTh: 'ต้องผ่าน 01476105', rulesEn: '' };
+    const sections = [ruled, twin, A3].map((section) =>
+      toSnapshot(makeCourse({ subjectId: 'A' }), section),
+    );
+    const conditions = groupConditions(sections, 'rulesTh');
+    expect(conditions).toEqual(['ต้องผ่าน 01476105']);
+    expect(groupConditions(sections, 'rulesEn')).toEqual([]);
+    expect(
+      conditionIds([
+        ...conditions,
+        'Pass 01476105 or 90641001; room 123456789',
+      ]),
+    ).toEqual(['01476105', '90641001']);
   });
 });
 

@@ -25,6 +25,8 @@ function row(subjectId: string, state: RowState): ChecklistRow {
     state,
     observed: null,
     chosen: null,
+    conditionsTh: [],
+    conditionsEn: [],
     duplicateCode: null,
     missing: false,
     plannedSeat: null,

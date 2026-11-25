@@ -141,6 +141,32 @@ describe('deriveChecklist with the page observed', () => {
     expect(row?.observed?.prerequisites).toEqual(['01476105']);
   });
 
+  it('lists a subject as conditional when its group prints conditions', () => {
+    const ruled = { ...SOLO, rulesTh: 'ต้องผ่าน 01476105', rulesEn: '' };
+    const conditionalPlan = makePlan({ entries: [entryFor(SINGLE, ruled)] });
+    const list = deriveChecklist({
+      plan: conditionalPlan,
+      kit: null,
+      choices: null,
+      pageTerm: { year: '2569', semester: '1' },
+      page: observed({ list: [{ ...lecture('2'), subjectId: '01476106' }] }),
+    });
+    expect(list.rows[0]).toMatchObject({
+      state: 'conditional',
+      conditionsTh: ['ต้องผ่าน 01476105'],
+      conditionsEn: [],
+    });
+    // Not listed yet, the conditions alone do not make it added.
+    const waiting = deriveChecklist({
+      plan: conditionalPlan,
+      kit: null,
+      choices: null,
+      pageTerm: null,
+      page: observed({}),
+    });
+    expect(waiting.rows[0]?.state).toBe('notDone');
+  });
+
   it('names the subjects the page lists that the plan does not hold', () => {
     const list = derive(
       observed({

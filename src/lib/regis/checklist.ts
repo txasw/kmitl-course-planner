@@ -11,7 +11,7 @@ import type { Plan, SectionSnapshot } from '../domain/plan';
 import { groupEntriesBySubject } from '../planner/subjectGroups';
 import { termsEqual, type Term } from '../routing/academicTerms';
 import { choicesBelongTo, type SectionChoices } from './choices';
-import { kitMatchesPlan, plannedSections } from './kit';
+import { groupConditions, kitMatchesPlan, plannedSections } from './kit';
 import {
   observeRow,
   pageExtras,
@@ -69,6 +69,9 @@ export interface ChecklistRow {
   observed: ObservedRow | null;
   /** The other group the student chose for this registration, or null for the plan's. */
   chosen: RowAlternative | null;
+  /** The conditions printed for the group this registration uses, in each language. */
+  conditionsTh: string[];
+  conditionsEn: string[];
   /** A planned code listed more than once under different curricula, or null. */
   duplicateCode: string | null;
   /** Whether a fresh kit lacks the planned group, or could not read the subject. */
@@ -168,16 +171,23 @@ export function deriveChecklist(input: ChecklistInput): Checklist {
           : (alternatives.find((option) => sameIds(option.ids, choice)) ??
             null);
       const planned = fromKit.length > 0 ? fromKit : snapshots;
+      const used = chosen?.sections ?? planned;
+      const conditionsTh = groupConditions(used, 'rulesTh');
+      const conditionsEn = groupConditions(used, 'rulesEn');
       // The page is read against the group this registration uses, so a chosen group
       // the page lists counts as added as intended.
       const observed =
-        page === null
-          ? null
-          : observeRow(page, group.subjectId, chosen?.sections ?? planned);
+        page === null ? null : observeRow(page, group.subjectId, used);
+      // A subject listed with a prerequisite the page named, or with conditions printed
+      // for its group, is added on a condition (design C2, rule 4.2).
+      const conditional =
+        (observed?.prerequisites.length ?? 0) > 0 ||
+        conditionsTh.length > 0 ||
+        conditionsEn.length > 0;
       const fromPage =
         observed === null
           ? 'notDone'
-          : observed.state === 'listed' && observed.prerequisites.length > 0
+          : observed.state === 'listed' && conditional
             ? 'conditional'
             : OBSERVED_STATE[observed.state];
       const duplicateCodes = new Set(subject?.duplicateCodes ?? []);
@@ -191,6 +201,8 @@ export function deriveChecklist(input: ChecklistInput): Checklist {
         state: termMismatch ? 'termMismatch' : fromPage,
         observed,
         chosen,
+        conditionsTh,
+        conditionsEn,
         duplicateCode:
           planned.find((section) => duplicateCodes.has(section.section))
             ?.section ?? null,
