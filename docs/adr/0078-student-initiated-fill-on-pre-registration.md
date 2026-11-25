@@ -187,7 +187,7 @@ unchanged, and each control still issues a press only from the student's own tru
   section the page shows over subscribed offers Add for me again to fill it anyway.
 - While a run is active the action row becomes the step progress, enter the id, pick the section,
   press add, with **Stop** (หยุด) in place of Add for me, so one bounce cannot stop and resume a
-  run. Collapsing the card does not stop a run.
+  run. Collapsing the card ends a run, as the amendment below records.
 - When Add for me cannot run it stays focusable with `aria-disabled` and its reason, first reason
   first: not on this page, switched off, nothing prepared, page unreadable, another term, outside
   the choose subjects step, or another run active. The reason shows as a tooltip, or as a line
@@ -195,9 +195,10 @@ unchanged, and each control still issues a press only from the student's own tru
 - The switch is Use Add for me in the more menu, on by default; turning it off during a run still
   ends the run at the next step. Fill all subjects is dropped; each subject's Add for me replaces
   it. The stop sentence for a run shows under the action row of its subject.
-- Add for me is keyed by its subject and by whether it keeps an over subscribed section, so a
-  change of what it adds, such as the focus moving on after the page shows a subject settled, is a
-  new button whose half second starts then.
+- Add for me is keyed by the helper's plan, its subject, the sections it fills, and whether it
+  keeps an over subscribed section, so a change of what it adds, such as the focus moving on after
+  the page shows a subject settled or the helper's plan changing under it, is a new button whose
+  half second starts then.
 - The condition before the grade not announced dialog is shown on the card's focus section, which
   appears only for the subject in focus in the card view. The focus section records which
   subject's condition it shows and since when, and the run acknowledges the dialog only when that
@@ -219,17 +220,26 @@ causes a host write.
   in plan order. A subject the page refused, or that a run stopped on as full or as a clash, is left
   for the student's own choice of another section, so a second press never stops on it again. The
   run still goes one subject at a time, waits for the page between steps, and ends at the first
-  stop (3A). The item is a press control in the fill controls module, keyed by the subjects it
-  names. The press returns the card to its card view with no subject pinned, so the focus follows
-  the subject being added and its condition can show before the dialog is acknowledged; a chip the
-  student presses during the run pins the focus again, and then a grade dialog stops the run as
-  above. When it cannot run the item stays, with its reason under its label.
+  stop (3A). The item is a press control in the fill controls module, keyed by the helper's plan
+  and the sections it fills for each subject it names. The press returns the card to its card view
+  with no subject pinned, so the focus follows the subject being added and its condition can show
+  before the dialog is acknowledged. While such a run adds, the card never moves the focus on by
+  itself when a subject settles, since the next subject that needs action can be one the run does
+  not name, such as a refused subject between two it adds; only a chip the student presses pins
+  the focus again, and then a grade dialog stops the run as above. When it cannot run the item
+  stays, with its reason under its label.
 - **A press on a disabled Add for me**, on the card, a list row, or the menu, shows its reason in
   the error toast and starts nothing, because a touch screen shows no tooltip.
-- **Leaving the page ends a run.** Hide on this page, or the planner opening over the page, ends a
-  run at its next step boundary exactly as Stop does, and a press cannot start one in either state,
-  since in both the step progress and its Stop are off screen.
+- **Leaving the page ends a run.** A run ends at its next step boundary exactly as Stop does when
+  the student hides the helper on this page, collapses the card to the launcher (by Escape, a press
+  of the launcher, or on a phone a press on the page), or opens the planner over the page, and a
+  press cannot start one in any of these states, since in each the step progress and its Stop are
+  off screen. Keeping a
+  Stop on the collapsed launcher was considered and not taken: collapse is the natural gesture for
+  making the helper go away, and a run the student cannot see should not go on.
 - **A failed run**, one whose step was not confirmed in time, whose page changed under it, or whose
-  page could not be read, also shows Could not add (เพิ่มให้ไม่สำเร็จ) in the error toast.
+  page could not be read, shows Could not add (เพิ่มให้ไม่สำเร็จ) in the error toast, whose live
+  region reads it, in place of its stop sentence in the helper's live region, so the failure is
+  read once. The stop sentence still shows under the action row.
 
 The package budget moves to 420 KiB with this amendment.
