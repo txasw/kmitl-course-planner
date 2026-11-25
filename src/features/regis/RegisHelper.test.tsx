@@ -22,6 +22,7 @@ import { fillStore } from './fill/fillRun';
 import { hostStore } from './host/hostStore';
 import { helperStore, setView, startVisit } from './helperStore';
 import { FIRST_READING_MS, RegisHelper } from './RegisHelper';
+import { LIST_ID } from './QueueList';
 import { regisStore } from './regisStore';
 
 // The registration helper card (ADR-0076, design C2): it opens on its own on each visit,
@@ -184,6 +185,58 @@ describe('RegisHelper', () => {
     expect(helperStore.getState().collapsed).toBe(true);
   });
 
+  it('keeps the card view with its Stop while Add for me runs', () => {
+    renderPage('#/pre_registration');
+    act(() => {
+      fillStore.setState({
+        run: {
+          status: 'running',
+          subjectId: '01476107',
+          step: 'conditional',
+          prerequisites: ['01476105'],
+          done: 0,
+          total: 1,
+        },
+      });
+    });
+    const count = within(card()).getByRole('button', { name: /^เพิ่มแล้ว 0\/1/ });
+    expect(count).toHaveAttribute('aria-disabled', 'true');
+    expect(count).toHaveAccessibleName('เพิ่มแล้ว 0/1, ดูทั้งหมดได้เมื่อเพิ่มให้จบ');
+    // A stray tap on the count leaves the step progress, Stop, and the condition on screen.
+    fireEvent.click(count);
+    act(() => {
+      setView('list');
+    });
+    expect(card().querySelector(`#${LIST_ID}`)).toBeNull();
+    expect(within(card()).getByRole('button', { name: 'หยุด' })).toBeVisible();
+    expect(fillStore.getState().shown?.subjectId).toBe('01476107');
+    // Once the run ends the count opens the list again.
+    act(() => {
+      fillStore.setState({ run: { status: 'idle' } });
+    });
+    expect(card().querySelector(`#${LIST_ID}`)).not.toBeNull();
+  });
+
+  it('hands focus to Stop when the control that started the run leaves', () => {
+    renderPage('#/pre_registration');
+    const more = within(card()).getByRole('button', { name: 'เพิ่มเติม' });
+    more.focus();
+    act(() => {
+      more.blur();
+      fillStore.setState({
+        run: {
+          status: 'running',
+          subjectId: '01476107',
+          step: 'enter',
+          prerequisites: [],
+          done: 0,
+          total: 1,
+        },
+      });
+    });
+    expect(within(card()).getByRole('button', { name: 'หยุด' })).toHaveFocus();
+  });
+
   it('collapses to the launcher, and opens again on the next visit on a wide screen', () => {
     renderPage('#/pre_registration');
     // Open, the launcher names the checklist alone; the card's header has the count.
@@ -243,14 +296,6 @@ describe('RegisHelper', () => {
       });
     });
     expect(within(card()).getByText(/01476105/)).toBeInTheDocument();
-    expect(fillStore.getState().shown?.subjectId).toBe('01476107');
-    act(() => {
-      setView('list');
-    });
-    expect(fillStore.getState().shown).toBeNull();
-    act(() => {
-      setView('card');
-    });
     expect(fillStore.getState().shown?.subjectId).toBe('01476107');
     // Escape inside the card collapses it, a deliberate way to stop.
     fireEvent.keyDown(within(card()).getByRole('button', { name: 'เพิ่มเติม' }), {

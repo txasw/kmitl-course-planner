@@ -712,6 +712,7 @@
   "regis.addAll": "เพิ่มให้ทุกวิชา",
   "regis.count.showList": "ดูทั้งหมด",
   "regis.count.showCard": "ย่อรายการ",
+  "regis.count.listAfterRun": "ดูทั้งหมดได้เมื่อเพิ่มให้จบ",
   "regis.reason.conditions": "มีเงื่อนไขรายวิชา: {text}",
   "regis.reason.duplicate": "กลุ่ม {code} มีมากกว่าหนึ่งหลักสูตร เลือกกลุ่มของหลักสูตรตนเองในหน้าลงทะเบียน",
   "regis.addForMe.failed": "เพิ่มให้ไม่สำเร็จ",

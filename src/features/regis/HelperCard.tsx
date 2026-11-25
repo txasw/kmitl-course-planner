@@ -306,7 +306,9 @@ export function HelperCard({ model }: { model: HelperModel }) {
   const running = model.run.status === 'running';
   useOutsidePress(ref, phone && !running, collapse, true);
   const { checklist, current } = model;
-  const list = view === 'list';
+  // The list shows no step progress and no Stop, so a run keeps the card view: a stray tap
+  // on the count never leaves a run going with no Stop on screen.
+  const list = view === 'list' && !running;
   const countLabel = t(model.sent ? 'regis.count.sent' : 'regis.short.added');
   const figure = `${String(model.done)}/${String(model.total)}`;
 
@@ -372,12 +374,13 @@ export function HelperCard({ model }: { model: HelperModel }) {
               id={COUNT_ID}
               aria-expanded={list}
               aria-controls={LIST_ID}
+              aria-disabled={running || undefined}
               // The name keeps the visible count first and says what a press does.
-              aria-label={`${countLabel} ${figure}, ${t(list ? 'regis.count.showCard' : 'regis.count.showList')}`}
+              aria-label={`${countLabel} ${figure}, ${t(running ? 'regis.count.listAfterRun' : list ? 'regis.count.showCard' : 'regis.count.showList')}`}
               onClick={() => {
-                setView(list ? 'card' : 'list');
+                if (!running) setView(list ? 'card' : 'list');
               }}
-              className={`inline-flex min-h-8 items-center gap-1.5 rounded-kcp px-2 text-ink-soft hover:bg-surface-alt hover:text-ink max-sm:min-h-11 ${FOCUS_RING}`}
+              className={`inline-flex min-h-8 items-center gap-1.5 rounded-kcp px-2 text-ink-soft max-sm:min-h-11 ${running ? 'cursor-default' : 'hover:bg-surface-alt hover:text-ink'} ${FOCUS_RING}`}
             >
               <span className="text-xs">{countLabel}</span>{' '}
               <span
@@ -385,7 +388,7 @@ export function HelperCard({ model }: { model: HelperModel }) {
               >
                 {figure}
               </span>
-              {list ? (
+              {running ? null : list ? (
                 <ChevronsDownUp size={16} aria-hidden />
               ) : (
                 <ChevronsUpDown size={16} aria-hidden />

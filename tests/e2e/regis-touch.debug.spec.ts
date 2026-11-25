@@ -12,9 +12,9 @@ declare global {
 }
 
 // Add for me on a phone with a touch screen (ADR-0078): a stray touch is no reason to
-// stop. Taps on the host page, a scroll of it, and a tap on its header while Add all for
-// me runs leave the card open and the run going until every subject is added; Stop still
-// stops at once. The run presses nothing outside its allowlist and writes nothing.
+// stop. Taps on the host page, a scroll of it, a tap on its header, and taps on the card's
+// count and on the launcher while Add all for me runs leave the card open, Stop on screen,
+// and the run going until every subject is added; Stop still stops at once. The run presses nothing outside its allowlist and writes nothing.
 
 const REPLICA_URL = `${REGIS_ORIGIN}/replica/pre_registration`;
 const SUBJECTS = ['90000001', '90000003', '90000005'] as const;
@@ -120,6 +120,16 @@ test('a tap, a scroll, and a tap on the header mid run leave Add all for me runn
   });
   await tap(page, await centreOf(page, '.registration-header h1'));
   await expect(card(page)).toBeVisible();
+
+  // A tap on the card's count keeps the card view, with the step progress and Stop.
+  await tap(page, await centreOf(page, '#kcp-regis-count'));
+  await expect(page.locator('#kcp-regis-list')).toHaveCount(0);
+  await expect(page.locator('#kcp-regis-stop')).toBeVisible();
+
+  // A tap on the launcher, where a thumb rests, keeps the card open and the run going.
+  await tap(page, await centreOf(page, '#kcp-launcher'));
+  await expect(card(page)).toBeVisible();
+  await expect(page.locator('#kcp-regis-stop')).toBeVisible();
 
   await expect(card(page)).toHaveAttribute('data-fill', 'done', {
     timeout: 30_000,

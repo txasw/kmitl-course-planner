@@ -712,6 +712,7 @@
   "regis.addAll": "Add all for me",
   "regis.count.showList": "Show all",
   "regis.count.showCard": "Back to card",
+  "regis.count.listAfterRun": "Show all once Add for me ends",
   "regis.reason.conditions": "Has conditions: {text}",
   "regis.reason.duplicate": "Section {code} is offered under more than one curriculum. Choose the one for your curriculum on the registration page.",
   "regis.addForMe.failed": "Could not add",
