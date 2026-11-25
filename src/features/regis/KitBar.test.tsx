@@ -96,6 +96,7 @@ afterEach(() => {
   cleanup();
   document.head.replaceChildren();
   regisStore.setState({ run: { status: 'idle' } });
+  hostStore.setState({ termWaitOver: false });
   fillStore.setState({ run: { status: 'idle' }, stop: false, shown: null });
   window.location.hash = '';
 });
@@ -116,6 +117,16 @@ describe('the kit bar', () => {
   it('offers no press on the registration page', () => {
     const card = renderOn('#/registration');
     expect(within(card).getByText('ยังไม่ได้เตรียมข้อมูล')).toBeVisible();
+    expect(
+      within(card).queryByRole('button', { name: 'เตรียมข้อมูล' }),
+    ).toBeNull();
+  });
+
+  it('offers no press for a plan of a term the page has not shown', () => {
+    hostStore.setState({ term: null, termWaitOver: true });
+    const card = renderOn('#/pre_registration');
+    expect(within(card).getByText('ยังไม่ได้เตรียมข้อมูล')).toBeVisible();
+    expect(card.querySelector('[data-helper-plan-term]')).not.toBeNull();
     expect(
       within(card).queryByRole('button', { name: 'เตรียมข้อมูล' }),
     ).toBeNull();
