@@ -211,6 +211,7 @@ describe('addForMeBlock', () => {
     termMismatch: false,
     inStep: true,
     busy: false,
+    preparing: false,
   };
 
   it('allows add for me only when every condition holds', () => {
@@ -223,6 +224,10 @@ describe('addForMeBlock', () => {
     ).toBe('unavailable');
     expect(addForMeBlock({ ...ready, off: true, stale: true })).toBe('off');
     expect(addForMeBlock({ ...ready, target: false })).toBe('noKit');
+    expect(addForMeBlock({ ...ready, target: false, preparing: true })).toBe(
+      'preparing',
+    );
+    expect(addForMeBlock({ ...ready, preparing: true })).toBe('preparing');
     expect(addForMeBlock({ ...ready, stale: true, inStep: false })).toBe(
       'stale',
     );

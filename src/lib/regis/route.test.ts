@@ -3,6 +3,7 @@ import {
   REGISTRATION_ROUTES,
   companionRoute,
   isRegistrationRoute,
+  prepareRefused,
 } from './route';
 
 describe('isRegistrationRoute', () => {
@@ -49,5 +50,26 @@ describe('companionRoute', () => {
     expect(companionRoute('#/registration_queue')).toBeNull();
     expect(companionRoute('#/teach_table_selector')).toBeNull();
     expect(companionRoute('')).toBeNull();
+  });
+});
+
+describe('prepareRefused', () => {
+  it('allows prepare anywhere outside the registration pages', () => {
+    expect(prepareRefused('#/teach_table_selector', 'planner')).toBe(false);
+    expect(prepareRefused('#/teach_table_selector', 'helper')).toBe(false);
+  });
+
+  it('allows it on pre registration only from the helper', () => {
+    expect(prepareRefused('#/pre_registration', 'helper')).toBe(false);
+    expect(prepareRefused('#/Pre_Registration/', 'helper')).toBe(false);
+    expect(prepareRefused('#/pre_registration', 'planner')).toBe(true);
+  });
+
+  it('refuses it on registration and every other registration page', () => {
+    for (const path of REGISTRATION_ROUTES) {
+      if (path === '/pre_registration') continue;
+      expect(prepareRefused(`#${path}`, 'helper')).toBe(true);
+      expect(prepareRefused(`#${path}`, 'planner')).toBe(true);
+    }
   });
 });

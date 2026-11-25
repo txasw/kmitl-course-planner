@@ -186,6 +186,7 @@ export function stillToAdd(
 export type AddBlock =
   | 'unavailable'
   | 'off'
+  | 'preparing'
   | 'noKit'
   | 'stale'
   | 'termMismatch'
@@ -197,6 +198,8 @@ export interface AddFacts {
   available: boolean;
   /** Whether the student switched fill off. */
   off: boolean;
+  /** Whether the prepare action is reading the plan's subjects now. */
+  preparing: boolean;
   /** Whether the kit gives the subject a fill target. */
   target: boolean;
   stale: boolean;
@@ -210,6 +213,7 @@ export interface AddFacts {
 export function addForMeBlock(facts: AddFacts): AddBlock | null {
   if (!facts.available) return 'unavailable';
   if (facts.off) return 'off';
+  if (facts.preparing) return 'preparing';
   if (!facts.target) return 'noKit';
   if (facts.stale) return 'stale';
   if (facts.termMismatch) return 'termMismatch';

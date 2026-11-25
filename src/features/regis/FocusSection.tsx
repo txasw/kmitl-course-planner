@@ -31,6 +31,7 @@ import {
   useShowCondition,
 } from './fill/FillControls';
 import { FocusPills } from './FocusPills';
+import { KIT_TEXT_ID } from './KitBar';
 import { clearStop, helperStore } from './helperStore';
 import { regisStore } from './regisStore';
 import { saveBackupToPlan } from './saveBackup';
@@ -93,6 +94,13 @@ export function FocusSection({
       : null;
 
   const { block, reason } = useAddBlock(model, row, t);
+  // A reason the bar under the header already states is read from there, not said twice.
+  const barId =
+    block === 'stale'
+      ? STALE_TEXT_ID
+      : (block === 'noKit' || block === 'preparing') && model.bar === 'kit'
+        ? KIT_TEXT_ID
+        : null;
   const targetIds = (row.chosen?.sections ?? row.planned).map(
     (section) => section.teachTableId,
   );
@@ -222,14 +230,14 @@ export function FocusSection({
           ) : (
             <BlockedAddButton
               reason={reason}
-              reasonId={block === 'stale' ? STALE_TEXT_ID : reasonId}
+              reasonId={barId ?? reasonId}
               coarse={coarse}
               t={t}
             />
           )}
         </div>
       ) : null}
-      {needsAction(status) && block !== null && block !== 'stale' ? (
+      {needsAction(status) && block !== null && barId === null ? (
         <p
           id={reasonId}
           className={coarse ? 'px-3 pb-3 text-xs text-ink-soft' : 'sr-only'}

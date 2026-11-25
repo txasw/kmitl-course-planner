@@ -7,12 +7,15 @@ import { fillTarget } from '@/lib/regis/fillPlan';
 import { addForMeBlock, type AddBlock } from '@/lib/regis/helperStatus';
 import { fillTemplate } from '@/lib/i18n/template';
 import type { Translate, TranslationKey } from '@/lib/i18n/t';
+import { useStore } from 'zustand';
 import { useFillGate } from './fill/FillControls';
+import { regisStore } from './regisStore';
 import type { HelperModel } from './useHelperModel';
 
 const BLOCK_TEXT: Readonly<Record<AddBlock, TranslationKey>> = {
   unavailable: 'regis.addForMe.unavailable',
   off: 'regis.addForMe.off',
+  preparing: 'regis.addForMe.preparing',
   noKit: 'regis.noKitShort',
   stale: 'regis.unreadable',
   termMismatch: 'regis.state.termMismatch',
@@ -36,6 +39,10 @@ function useBlock(
   t: Translate,
 ): AddBlockResult {
   const gate = useFillGate();
+  const preparing = useStore(
+    regisStore,
+    (state) => state.run.status === 'running',
+  );
   const { plan, kit, run } = model;
   const busyId = run.status === 'running' ? run.subjectId : null;
   const block =
@@ -47,6 +54,7 @@ function useBlock(
             gate !== 'untestedBuild' &&
             gate !== 'latched',
           off: gate === 'off',
+          preparing,
           target:
             first !== null && typeof fillTarget(first, plan, kit) !== 'string',
           stale: model.stale,
