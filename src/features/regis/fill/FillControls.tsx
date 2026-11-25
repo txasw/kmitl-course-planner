@@ -1,5 +1,6 @@
 // The student's fill controls in the registration helper (ADR-0078): Add for me on the
-// subject in focus and on each list row, and the step progress with Stop during a run. These buttons are the only code that issues a student
+// subject in focus and on each list row, Add all for me in the more menu, and the step
+// progress with Stop during a run. These buttons are the only code that issues a student
 // press, from their own click, so nothing but a deliberate press starts a run. A press
 // counts only once its button has been on screen for a moment, so a button that turns
 // from disabled to enabled is a new button whose moment starts then. Stop takes the place
@@ -182,6 +183,47 @@ export function AddForMeButton({
         </PressButton>
       )}
     </Tooltip>
+  );
+}
+
+interface AddAllProps extends FillProps {
+  /** Every subject still to add, in plan order; the press names exactly these. */
+  rows: readonly ChecklistRow[];
+  label: string;
+  /** Called on a counted press before the run starts, to put the card in view. */
+  onStart: () => void;
+  className: string;
+  children: ReactNode;
+}
+
+/**
+ * Add all for me, a more menu item: one press starts one run that names every subject
+ * still to add. The run still goes one subject at a time, waits for the page between
+ * steps, and ends at the first stop (owner answer 3A). The item is keyed by the subjects
+ * it names, so a change of that list is a new item whose moment starts then.
+ */
+export function AddAllMenuItem({
+  rows,
+  plan,
+  kit,
+  label,
+  onStart,
+  className,
+  children,
+}: AddAllProps) {
+  return (
+    <PressButton
+      key={rows.map((row) => row.subjectId).join(' ')}
+      label={label}
+      extra={{ role: 'menuitem', tabIndex: -1 }}
+      onPress={(press) => {
+        onStart();
+        void startFill(press, { plan, kit, items: itemsFor(rows, plan, kit) });
+      }}
+      className={className}
+    >
+      {children}
+    </PressButton>
   );
 }
 

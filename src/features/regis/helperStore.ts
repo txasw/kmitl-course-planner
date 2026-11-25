@@ -57,7 +57,8 @@ export function setView(view: HelperView): void {
   helperStore.setState({ view });
 }
 
-export function setCurrent(current: string): void {
+/** Put a subject in focus, or null to let the run or the first that needs action lead. */
+export function setCurrent(current: string | null): void {
   helperStore.setState({ current });
 }
 
