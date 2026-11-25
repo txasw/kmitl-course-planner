@@ -33,6 +33,43 @@ interface Fixtures extends TestOptions {
   extensionId: string;
 }
 
+/** The emulated screen an extension context is launched with. */
+export interface ScreenOptions {
+  viewport: { width: number; height: number } | null;
+  isMobile?: boolean;
+  hasTouch?: boolean;
+  deviceScaleFactor?: number | undefined;
+}
+
+/**
+ * Launch a fresh profile with the built extension in a directory loaded, with both KCP
+ * hosts mapped to the mock server. A spec that needs a second flavor beside its own, as
+ * the closed root spec seeds its plan through the debug build, launches it here too.
+ */
+export async function launchExtension(
+  extensionDir: string,
+  mock: MockServer,
+  { viewport, isMobile, hasTouch, deviceScaleFactor }: ScreenOptions,
+): Promise<BrowserContext> {
+  const dir = resolve(extensionDir);
+  // The device options are passed on by hand so the emulated screen of each
+  // project is stated where the context is built, rather than depending on the
+  // runner applying its defaults to a context this fixture launches itself.
+  return chromium.launchPersistentContext('', {
+    viewport,
+    ...(isMobile !== undefined ? { isMobile } : {}),
+    ...(hasTouch !== undefined ? { hasTouch } : {}),
+    ...(deviceScaleFactor !== undefined ? { deviceScaleFactor } : {}),
+    channel: 'chromium',
+    args: [
+      `--disable-extensions-except=${dir}`,
+      `--load-extension=${dir}`,
+      `--host-resolver-rules=MAP regis.reg.kmitl.ac.th 127.0.0.1:${String(mock.port)}, MAP api.reg.kmitl.ac.th 127.0.0.1:${String(mock.port)}`,
+      '--ignore-certificate-errors',
+    ],
+  });
+}
+
 export const test = base.extend<Fixtures>({
   extensionDir: ['', { option: true }],
   onboarding: ['settled', { option: true }],
@@ -58,22 +95,11 @@ export const test = base.extend<Fixtures>({
     if (extensionDir === '') {
       throw new Error('extensionDir option is not set for this project');
     }
-    const dir = resolve(extensionDir);
-    // The device options are passed on by hand so the emulated screen of each
-    // project is stated where the context is built, rather than depending on the
-    // runner applying its defaults to a context this fixture launches itself.
-    const context = await chromium.launchPersistentContext('', {
+    const context = await launchExtension(extensionDir, mock, {
       viewport,
       isMobile,
       hasTouch,
-      ...(deviceScaleFactor !== undefined ? { deviceScaleFactor } : {}),
-      channel: 'chromium',
-      args: [
-        `--disable-extensions-except=${dir}`,
-        `--load-extension=${dir}`,
-        `--host-resolver-rules=MAP regis.reg.kmitl.ac.th 127.0.0.1:${String(mock.port)}, MAP api.reg.kmitl.ac.th 127.0.0.1:${String(mock.port)}`,
-        '--ignore-certificate-errors',
-      ],
+      deviceScaleFactor,
     });
     if (onboarding === 'settled') {
       await settleOnboarding(context);
