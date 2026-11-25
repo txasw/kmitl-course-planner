@@ -15,7 +15,11 @@ import type { Plan } from '@/lib/domain/plan';
 import { fillTemplate } from '@/lib/i18n/template';
 import type { Translate } from '@/lib/i18n/t';
 import type { ChecklistRow } from '@/lib/regis/checklist';
-import { fillTarget, type StopReason } from '@/lib/regis/fillPlan';
+import {
+  fillPressKey,
+  fillTarget,
+  type StopReason,
+} from '@/lib/regis/fillPlan';
 import { fillGate } from '@/lib/regis/hostBuild';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
@@ -143,17 +147,20 @@ export function AddForMeButton({
   t,
 }: AddForMeProps) {
   const label = t('regis.addForMe');
+  const items = itemsFor([row], plan, kit);
+  const full = allowFull ? [row.subjectId] : [];
   const onPress = (press: StudentPress) => {
     void startFill(press, {
       plan,
       kit,
-      items: itemsFor([row], plan, kit),
-      ...(allowFull ? { allowFull: [row.subjectId] } : {}),
+      items,
+      ...(allowFull ? { allowFull: full } : {}),
     });
   };
-  // The focus card keeps this button in place while its subject changes, so a new target
-  // is a new button whose moment starts then, as a button that turns enabled is.
-  const key = `${row.subjectId} ${String(allowFull)}`;
+  // The focus card keeps this button in place while its subject, its sections, or the
+  // helper's plan change, so a new target is a new button whose moment starts then, as a
+  // button that turns enabled is.
+  const key = fillPressKey(plan.id, items, full);
   if (!compact) {
     return (
       <PressButton
@@ -199,8 +206,8 @@ interface AddAllProps extends FillProps {
 /**
  * Add all for me, a more menu item: one press starts one run that names every subject
  * still to add. The run still goes one subject at a time, waits for the page between
- * steps, and ends at the first stop (owner answer 3A). The item is keyed by the subjects
- * it names, so a change of that list is a new item whose moment starts then.
+ * steps, and ends at the first stop (owner answer 3A). The item is keyed by the plan and
+ * the sections it fills, so a change of either is a new item whose moment starts then.
  */
 export function AddAllMenuItem({
   rows,
@@ -211,14 +218,15 @@ export function AddAllMenuItem({
   className,
   children,
 }: AddAllProps) {
+  const items = itemsFor(rows, plan, kit);
   return (
     <PressButton
-      key={rows.map((row) => row.subjectId).join(' ')}
+      key={fillPressKey(plan.id, items)}
       label={label}
       extra={{ role: 'menuitem', tabIndex: -1 }}
       onPress={(press) => {
         onStart();
-        void startFill(press, { plan, kit, items: itemsFor(rows, plan, kit) });
+        void startFill(press, { plan, kit, items });
       }}
       className={className}
     >

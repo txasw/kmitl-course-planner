@@ -9,7 +9,7 @@
 
 import { createStore } from 'zustand/vanilla';
 import type { Plan } from '@/lib/domain/plan';
-import type { FillTarget, StopReason } from '@/lib/regis/fillPlan';
+import type { FillItem, FillTarget, StopReason } from '@/lib/regis/fillPlan';
 import { buildKey, fillGate } from '@/lib/regis/hostBuild';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
 import { readLocationHash } from '@/features/shell/hostLocation';
@@ -60,7 +60,7 @@ export interface FillRequest {
   plan: Plan;
   kit: RegistrationKit;
   /** The subjects the press named, in order, each a target or the reason it is not one. */
-  items: readonly (FillTarget | { subjectId: string; reason: StopReason })[];
+  items: readonly FillItem[];
   allowFull?: readonly string[];
 }
 

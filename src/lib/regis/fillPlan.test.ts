@@ -13,6 +13,7 @@ import { buildRegistrationKit } from './kit';
 import { deriveChecklist } from './checklist';
 import type { HostObservation } from './hostObservation';
 import {
+  fillPressKey,
   fillTarget,
   listClash,
   listedState,
@@ -184,6 +185,33 @@ describe('fillTarget', () => {
     const made = fillTarget({ ...row, duplicateCode: '1' }, plan, flagged);
     if (typeof made === 'string') throw new Error(made);
     expect(made.primary.duplicate).toBe(true);
+  });
+});
+
+describe('fillPressKey', () => {
+  it('names the plan, the sections each subject fills, and a kept full section', () => {
+    const items = [target(A), { subjectId: C, reason: 'noKit' as const }];
+    expect(fillPressKey(plan.id, items)).toBe(
+      `${plan.id} ${A}:A1+A101 ${C}:noKit`,
+    );
+    expect(fillPressKey(plan.id, [target(A)], [A])).toBe(
+      `${plan.id} ${A}:A1+A101:full`,
+    );
+  });
+
+  it('changes with the plan and with the sections a subject fills', () => {
+    const planned = fillPressKey(plan.id, [target(A)]);
+    expect(fillPressKey('plan-2', [target(A)])).not.toBe(planned);
+    const chosen = deriveChecklist({
+      plan,
+      kit,
+      choices: withChoice(null, plan, A, ['A2']),
+      pageTerm: null,
+    }).rows.find((item) => item.subjectId === A);
+    if (chosen === undefined) throw new Error('no row');
+    const other = fillTarget(chosen, plan, kit);
+    if (typeof other === 'string') throw new Error(other);
+    expect(fillPressKey(plan.id, [other])).not.toBe(planned);
   });
 });
 

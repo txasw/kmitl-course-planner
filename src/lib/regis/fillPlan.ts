@@ -110,6 +110,31 @@ export function fillTarget(
   };
 }
 
+/** One subject a fill press names: what it fills, or why it cannot be filled. */
+export type FillItem = FillTarget | { subjectId: string; reason: StopReason };
+
+/**
+ * What a fill press names, as one key: the plan, and for each subject the sections it
+ * fills or why it fills nothing, and whether it keeps an over subscribed section. A press
+ * control keyed by it is a new control whose moment starts again whenever any of these
+ * changes, such as the helper's plan changing while the control stays on screen.
+ */
+export function fillPressKey(
+  planId: string,
+  items: readonly FillItem[],
+  allowFull: readonly string[] = [],
+): string {
+  const parts = items.map((item) => {
+    const fills =
+      'reason' in item
+        ? item.reason
+        : item.group.map((section) => section.teachTableId).join('+');
+    const full = allowFull.includes(item.subjectId) ? ':full' : '';
+    return `${item.subjectId}:${fills}${full}`;
+  });
+  return [planId, ...parts].join(' ');
+}
+
 /** What stops any fill on this page before a subject is touched, or null. */
 export function pageBlock(
   observation: HostObservation | null,
