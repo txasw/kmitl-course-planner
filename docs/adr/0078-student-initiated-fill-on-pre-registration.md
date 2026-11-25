@@ -243,3 +243,35 @@ causes a host write.
   read once. The stop sentence still shows under the action row.
 
 The package budget moves to 420 KiB with this amendment.
+
+## Amendment, 2026-11-25: the polling host, and a request of the page's own
+
+The host build `app.a1e43722.js` (ADR-0077 amendment of this date) checks the registration period
+with a GET every 60 s, on a window focus, on a visibility change, and at a countdown boundary, and
+the answer can unmount the panel or mount it again with no navigation. Every guard above is
+unchanged: a run starts only from a trusted student press, acts only on the allowlist through the
+one actuator, never presses ดำเนินการต่อ or any confirm control, and never causes a host write.
+
+- **The tripwire stays count based and name blind.** A period check that lands in a run moves the
+  request count, so the run stops at the same three checks as before. Telling the check apart by
+  its address was considered and not taken, because it would mean reading resource entry names,
+  which carry the student id. Allowing one more request by count was not taken either, because it
+  would also let an unknown request pass at that step. The stop is the correct fail closed answer.
+- **The stop has its own reason**, a request of the page's own (`pageRequest`), in place of the
+  page that cannot be read, whose sentence sent the student to enter the list by hand. Its sentence
+  says the page sent a request of its own, so KCP stopped to be safe, and to press Add for me to go
+  on. It is read in the helper's live region and shows no error toast, since the run did not fail.
+  The subject stays to add. Nothing retries on its own: the next run begins only from a new student
+  press, which picks the subject up where the page left it, from the offered sections in the field
+  or from the list when the add had landed, so a check costs one press and no second eligibility
+  read. Add all for me names only the subjects the page does not list, so its next press goes on
+  from the first subject not yet added. With a check every 60 s and a few seconds a subject, a
+  focus on returning to the window is the likeliest way a run meets one.
+- **A panel that leaves ends the run at once.** A reading that finds no panel stops the run with
+  the page changed reason once it has acted, or not ready before, instead of waiting out the answer
+  ceiling, and the same check runs in the task of each action, so nothing is ever dispatched on a
+  page without a panel.
+- **A loading add card is waited for.** When the panel mounts again its add card reads the
+  student's credits with the card loading; a subject that starts then waits for the card as for the
+  host's answer, up to the same ceiling, and checks what it settles to, so a typed id still stops
+  as a field that is not empty.
