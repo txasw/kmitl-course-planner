@@ -35,9 +35,10 @@ export function CopyIdButton({
     };
   }, [copied]);
   return (
+    // The name is the visible label and then the subject id, read but not shown, so it
+    // always starts with what the student sees, before and after a press.
     <button
       type="button"
-      aria-label={fillTemplate(t('regis.copyId'), { subjectId })}
       onClick={() => {
         navigator.clipboard.writeText(subjectId).then(
           () => {
@@ -56,7 +57,8 @@ export function CopyIdButton({
       ) : (
         <Copy size={16} aria-hidden className="shrink-0" />
       )}
-      <span>{t(copied ? 'regis.copied' : 'regis.copy')}</span>
+      <span>{t(copied ? 'regis.copied' : 'regis.copy')}</span>{' '}
+      <span className="sr-only">{subjectId}</span>
     </button>
   );
 }
