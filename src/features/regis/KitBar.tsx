@@ -5,7 +5,8 @@
 // with a pause and no retry, through the background gateway. While it reads, the line
 // shows its progress and Cancel; a failed read says so and offers the press again, which
 // is the student's own, never a retry KCP makes. On the registration page, the first come
-// page, the bar only says that nothing is prepared.
+// page, and for a plan the helper shows without having read the page term, the bar only
+// says that nothing is prepared.
 
 import { useStore } from 'zustand';
 import { ClipboardList, LoaderCircle } from 'lucide-react';
@@ -33,8 +34,14 @@ export function KitBar({ model, t }: { model: HelperModel; t: Translate }) {
   const ours = run.status !== 'idle' && run.planId === plan?.id;
   const running = ours && run.status === 'running' ? run : null;
   const failed = ours && run.status === 'failed';
+  // Only a plan of the term read from the page: a fallback plan may be of another term,
+  // and preparing it would read that term's subjects at the registrar's busiest time.
+  const confirmed = model.pick.kind === 'plan' && model.pick.confirmed;
   const offered =
-    model.route === 'preRegistration' && deps !== null && plan !== null;
+    model.route === 'preRegistration' &&
+    deps !== null &&
+    plan !== null &&
+    confirmed;
 
   if (running !== null) {
     return (
