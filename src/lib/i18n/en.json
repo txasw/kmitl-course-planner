@@ -710,5 +710,8 @@
   "regis.reason.conditions": "Has conditions: {text}",
   "regis.reason.duplicate": "Section {code} is offered under more than one curriculum. Choose the one for your curriculum on the registration page.",
   "regis.addForMe.failed": "Could not add",
-  "regis.planGroup": "Plans for {term}"
+  "regis.planGroup": "Plans for {term}",
+  "regis.noPlanForTerm": "No plan for {term} yet",
+  "regis.noPlanForTermBody": "This page registers {term}. Create a plan for this term and choose its subjects, and they will be listed here.",
+  "regis.createPlanForTerm": "Create plan {term}"
 }
