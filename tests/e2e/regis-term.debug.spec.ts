@@ -136,3 +136,128 @@ test('a page term with no plan offers to make one, on the press only', async ({
     )
     .toEqual(next);
 });
+
+interface StoredEntry {
+  sourceQuery: { params: Record<string, string> };
+}
+interface StoredPlanWithEntries {
+  id: string;
+  name: string;
+  semester: string;
+  entries: StoredEntry[];
+}
+
+/** What the helper and the page showed at one moment, read through the open root. */
+interface Sample {
+  loaded: boolean;
+  chips: number;
+  count: string | null;
+  reading: boolean;
+  launcher: string | null;
+  entryToast: boolean;
+}
+
+test('a reload never shows the active plan of another term, even while the page loads', async ({
+  context,
+  serviceWorker,
+}) => {
+  const page = await openPlanner(context);
+  const { term } = await planWithKit(page, serviceWorker, SUBJECTS);
+  const other = term.semester === '3' ? '1' : String(Number(term.semester) + 1);
+  // The active plan is a newer one of another term with one subject, so its count, 0/1,
+  // and its chip would show if the helper fell back to it before the term is read.
+  await serviceWorker.evaluate(
+    async ({ root, semester }) => {
+      const { local } = (globalThis as unknown as WorkerStorage).chrome.storage;
+      const stored = (await local.get(root))[root];
+      if (stored === undefined) throw new Error('no root');
+      const first = stored.plans[0] as unknown as
+        StoredPlanWithEntries | undefined;
+      if (first === undefined) throw new Error('no plan');
+      const entries = first.entries.slice(0, 1).map((entry) => ({
+        ...entry,
+        sourceQuery: {
+          ...entry.sourceQuery,
+          params: { ...entry.sourceQuery.params, selected_semester: semester },
+        },
+      }));
+      await local.set({
+        [root]: {
+          ...stored,
+          activePlanId: '00000000-0000-4000-8000-000000000098',
+          plans: [
+            ...stored.plans,
+            {
+              ...first,
+              id: '00000000-0000-4000-8000-000000000098',
+              name: 'อีกภาค',
+              semester,
+              entries,
+              updatedAt: new Date(Date.now() + 60_000).toISOString(),
+            },
+          ],
+        },
+      });
+    },
+    { root: ROOT_KEY, semester: other },
+  );
+
+  // The page shows nothing for two and a half seconds, as the live page does while it
+  // loads, then renders its header and panel with the plan's own term.
+  await page.goto(
+    `${REGIS_ORIGIN}/replica/pre_registration?term=${term.semester}/${term.year}&loading=2500#/pre_registration`,
+  );
+  const samples = await page.evaluate(async () => {
+    const out: Sample[] = [];
+    const root = (): ShadowRoot | null => {
+      for (const node of Array.from(document.body.children)) {
+        if (node.shadowRoot?.getElementById('kcp-launcher')) {
+          return node.shadowRoot;
+        }
+      }
+      return null;
+    };
+    const until = Date.now() + 6000;
+    while (Date.now() < until) {
+      const shadow = root();
+      const card = shadow?.getElementById('kcp-regis-card') ?? null;
+      out.push({
+        loaded:
+          document.querySelector('.v-main__wrap')?.childElementCount !== 0,
+        chips: card?.querySelectorAll('[data-status]').length ?? 0,
+        count: shadow?.getElementById('kcp-regis-count')?.textContent ?? null,
+        reading:
+          (card?.querySelector('[data-helper-reading]') ?? null) !== null,
+        launcher: shadow?.getElementById('kcp-launcher')?.textContent ?? null,
+        entryToast:
+          (shadow?.querySelector('[data-entry-toast]') ?? null) !== null,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    return out;
+  });
+
+  const loading = samples.filter((sample) => !sample.loaded);
+  expect(loading.length).toBeGreaterThan(10);
+  // While the page loads the helper names no plan: no chip, no count anywhere.
+  for (const sample of loading) {
+    expect(sample.chips).toBe(0);
+    expect(sample.count).toBeNull();
+    expect(sample.launcher ?? '').not.toContain('/');
+  }
+  expect(loading.some((sample) => sample.reading)).toBe(true);
+  // At no moment does the other term's plan show, by its one subject count.
+  for (const sample of samples) {
+    expect(sample.count ?? '').not.toContain('/1');
+    expect(sample.launcher ?? '').not.toContain('/1');
+    expect(sample.entryToast).toBe(false);
+  }
+  // Once the page shows its term, the helper shows that term's plan.
+  const card = page.locator('#kcp-regis-card');
+  await expect(card.locator('#kcp-regis-count')).toContainText(
+    `0/${String(SUBJECTS.length)}`,
+  );
+  // The entry toast never shows on this page, long after it would have elsewhere.
+  await page.waitForTimeout(3000);
+  await expect(page.locator('[data-entry-toast]')).toHaveCount(0);
+});
