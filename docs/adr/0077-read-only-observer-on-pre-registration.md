@@ -130,3 +130,25 @@ from a fill stop. While the observer is degraded or off, each subject keeps the 
 page showed in this visit, drawn as stale, and the card shows a page unreadable bar with Check
 again, which starts the reading over; the health machine still keeps an off observer off for the
 document. Nothing read is stored, and the count line beside the host's confirm dialog stays.
+
+## Amendment, 2026-11-25: Check again revives a drifted page, and the redeploy of that day
+
+**Check again.** An observer that three drifted readings turned off no longer stays off for the
+whole document. A student's Check again starts it over from the initial state, and each run of
+readings is still bounded by the three strikes, so a page that keeps drifting turns off again after
+three more. The press is the only way back: nothing restarts the observer on its own. A staff
+session and a host build outside the tested list still keep it off for the document, since no
+reading within it can change either, and the helper offers no Check again for them. When a
+reading can help, the whole unreadable bar is one press with Check again in its visible text, and
+the more menu holds the same item; when none can, the bar is plain with no control, and on an
+untested build it says the registration page was updated and to enter the list by hand.
+
+**Tested builds.** The host redeployed its app bundle on 2026-11-25 at 04:09 GMT as
+`app.020e81ed.js` beside the same `chunk-vendors.7ab4925e.js`, which turned the observer and fill
+off everywhere. The new bundle was compared with the tested one with its minified names
+normalised: the add subject card, the stepper, the panel, and the complete step render the same,
+every host label in the contract appears as often, and so does every reference to a registration
+write endpoint; the deploy changed staff and payment pages only. The pair is added to the tested
+list, which keeps the exact two name gate of ruling 20A. A gate on the vendor bundle alone was
+considered and not taken here, since it would also accept an app change that structure and labels
+cannot see; it is left for the owner to decide.
