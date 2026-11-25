@@ -4,7 +4,9 @@ import type { TestOptions } from './tests/e2e/support/fixtures';
 // The smoke project reads the built production manifest off disk. The debug and
 // production projects load the matching built extension: debug for the open
 // shadow root the browser driven specs need, production for the isolation
-// assertions. The extension directory is resolved against the working directory
+// assertions and for the closed root spec, which taps the closed root's own
+// nodes through the DevTools protocol at a phone size, since a press inside a
+// closed root behaves in ways the debug build's open root cannot show. The extension directory is resolved against the working directory
 // by the fixtures, so relative paths are enough here. Extension contexts are
 // heavy, so runs stay serial.
 
