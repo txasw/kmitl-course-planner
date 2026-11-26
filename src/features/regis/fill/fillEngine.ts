@@ -4,11 +4,11 @@
 // next step. A wait that reaches its ceiling is a stop, never a retry, and the first stop
 // ends the run (owner answer 3A). It sends no request of its own: the only request in a
 // run is the host's own eligibility read after the field is filled, which the tripwire
-// counts, and any other, such as the period check the host build app.a1e43722 runs every
-// 60 s and on a focus, stops the run as a request of the page's own, unless it ended
-// before KCP first acted, which the run waits out at its start. The subject stays to
-// add, and the student's next press picks it up where the page left it. What it reads
-// stays in memory.
+// counts. The host's period check, which app.a1e43722 runs every 60 s and on a focus, is
+// left out of the count (owner ruling of 2026-11-26), and any other request stops the run
+// as a request of the page's own, unless it ended before KCP first acted, which the run
+// waits out at its start. The subject stays to add, and the student's next press picks
+// it up where the page left it. What it reads stays in memory.
 
 import type { Plan } from '@/lib/domain/plan';
 import type { HostObservation } from '@/lib/regis/hostObservation';
@@ -261,9 +261,10 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
   }
 
   // The press that starts a run can be the click that focuses the window, and the host
-  // checks its period on a focus, so that request can end just after the run began. A
-  // request that ends before KCP first acts cannot be one KCP caused, so the run first
-  // waits for the count to stay the same for a moment, and counts from there.
+  // can send a request of its own on a focus, such as a token refresh, which can end just
+  // after the run began. A request that ends before KCP first acts cannot be one KCP
+  // caused, so the run first waits for the count to stay the same for a moment, and
+  // counts from there. The period check the host sends on a focus is not counted.
   async function quietPage(): Promise<void> {
     const until = now() + timing.settle;
     let seen = tripwire.count();
