@@ -39,8 +39,12 @@ async function visit(
   build: string,
   term: { year: string; semester: string },
   section: string,
+  reload = false,
 ): Promise<void> {
-  await page.goto(`${REPLICA_URL}?build=${build}${HASH}`);
+  // A second visit reloads the page, since a navigation to the same address with its hash
+  // would keep the document and its list.
+  if (reload) await page.reload();
+  else await page.goto(`${REPLICA_URL}?build=${build}${HASH}`);
   await page.waitForFunction(() => 'replica' in window);
   await page.evaluate(
     ({ next, options }) => {
@@ -98,7 +102,7 @@ test('turns fill on for an untested name whose parts match a tested build', asyn
   expect(mock.apiCalls()).toEqual([]);
 
   // A second visit to the same build answers from what the worker kept.
-  await visit(page, 'verified', term, section);
+  await visit(page, 'verified', term, section, true);
   await expect(addForMe(page)).toBeVisible();
   expect(mock.scriptReads()).toEqual(['/js/app.c0ffee01.js']);
 });
@@ -125,7 +129,7 @@ test('keeps fill off when a part differs and names it in the debug line', async 
   expect(mock.scriptReads()).toEqual(['/js/app.c0ffee02.js']);
 
   // The mismatch is kept too, so the same build is never read again.
-  await visit(page, 'changed', term, section);
+  await visit(page, 'changed', term, section, true);
   await expect(page.locator('[data-observer="off"]')).toBeVisible();
   expect(mock.scriptReads()).toEqual(['/js/app.c0ffee02.js']);
   expect(mock.apiCalls()).toEqual([]);
