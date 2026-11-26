@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   mountReplica,
   type CatalogSubject,
@@ -19,11 +19,13 @@ import { fillTarget, type FillTarget } from '@/lib/regis/fillPlan';
 import { buildRegistrationKit } from '@/lib/regis/kit';
 import { toSnapshot } from '@/lib/planner/transaction';
 import {
+  FILL_TIMING,
   runFill,
   type FillDeps,
   type FillStep,
   type FillTiming,
 } from './fillEngine';
+import { watchPage, type PageWatch } from './pageWatch';
 import { startTripwire } from './tripwire';
 
 type Callback = (list: { getEntries: () => PerformanceEntry[] }) => void;
@@ -52,6 +54,8 @@ interface Spec {
   sections: [string, 'lecture' | 'practice', string | null][];
   planned: string[];
   day?: number;
+  /** The meeting start in minutes, 09:00 unless named. */
+  start?: number;
 }
 
 function setup(specs: Spec[]) {
@@ -68,8 +72,8 @@ function setup(specs: Spec[]) {
           meetings: [
             makeMeeting({
               day: DAYS[((spec.day ?? 0) + index) % DAYS.length] ?? 1,
-              startMin: 540,
-              endMin: 600,
+              startMin: spec.start ?? 540,
+              endMin: (spec.start ?? 540) + 60,
             }),
           ],
         }),
@@ -199,7 +203,6 @@ async function fill(specs: Spec[], options: RunOptions = {}) {
       options.shownSince === undefined ? 0 : options.shownSince,
     tripwire: { count: () => 0, quiet: () => true, stop: () => undefined },
     timing: {
-      pace: 0,
       poll: 2,
       answer: 150,
       settle: 150,
@@ -273,7 +276,6 @@ describe('runFill', () => {
         conditionShownSince: () => 0,
         tripwire: { count: () => 0, quiet: () => true, stop: () => undefined },
         timing: {
-          pace: 0,
           poll: 2,
           answer: 150,
           settle: 150,
@@ -505,7 +507,6 @@ describe('runFill', () => {
       conditionShownSince: () => 0,
       tripwire: { count: () => 0, quiet: () => true, stop: () => undefined },
       timing: {
-        pace: 0,
         poll: 2,
         answer: 150,
         settle: 150,
@@ -528,18 +529,22 @@ describe('runFill', () => {
     replica.configure({ delay: 5, catalog });
     let changed = false;
     // After the engine reads the open list, the same code gains a curriculum the kit
-    // does not explain, before the pace delay ends and the option is clicked.
-    const swap = new MutationObserver(() => {
-      const title = document.querySelector(
-        '[role="option"] .v-list-item__title',
-      );
-      if (changed || title === null) return;
-      changed = true;
-      setTimeout(() => {
-        title.textContent = ' 1  (EE) ';
-      }, 5);
-    });
-    swap.observe(document.body, { subtree: true, childList: true });
+    // does not explain, in the task between that reading and the option's click.
+    const swap = (doc: Document): PageWatch => {
+      const real = watchPage(doc);
+      return {
+        ...real,
+        task: async () => {
+          await real.task();
+          const title = doc.querySelector(
+            '[role="option"] .v-list-item__title',
+          );
+          if (changed || title === null) return;
+          changed = true;
+          title.textContent = ' 1  (EE) ';
+        },
+      };
+    };
     const outcome = await runFill({
       doc: document,
       plan,
@@ -552,15 +557,14 @@ describe('runFill', () => {
       conditionShownSince: () => 0,
       tripwire: { count: () => 0, quiet: () => true, stop: () => undefined },
       timing: {
-        pace: 30,
         poll: 2,
         answer: 300,
         settle: 300,
         acknowledge: 0,
         quiet: 0,
       },
+      watchPage: swap,
     });
-    swap.disconnect();
     expect(changed).toBe(true);
     expect(outcome).toMatchObject({ status: 'stopped', reason: 'pageChanged' });
     expect(replica.counters.clicks.option ?? 0).toBe(0);
@@ -599,7 +603,6 @@ describe('runFill', () => {
         conditionShownSince: () => 0,
         tripwire: { count: () => 0, quiet: () => true, stop: () => undefined },
         timing: {
-          pace: 0,
           poll: 2,
           answer: 150,
           settle: 150,
@@ -639,7 +642,6 @@ describe('runFill', () => {
       conditionShownSince: () => 0,
       tripwire: { count: () => seen, quiet: () => true, stop: () => undefined },
       timing: {
-        pace: 0,
         poll: 2,
         answer: 150,
         settle: 150,
@@ -657,7 +659,6 @@ describe('runFill', () => {
 
 describe('runFill on the route of app.a1e43722', () => {
   const ROUTE_TIMING: FillTiming = {
-    pace: 0,
     poll: 2,
     answer: 5000,
     settle: 150,
@@ -1113,5 +1114,169 @@ describe('runFill on the route of app.a1e43722', () => {
       reason: 'pageRequest',
     });
     expect(page.state.list).toHaveLength(1);
+  });
+});
+
+// The shipped timing on fake timers: a run waits on the host's answers and on nothing of
+// its own (ADR-0078, the timing amendment). The host's eligibility read takes 250 ms; the
+// page watch takes its next task from the fake clock too, so each wait shows here as the
+// fake time it cost.
+describe('runFill timing', () => {
+  const READ = 250;
+  const fakeTask = () =>
+    new Promise<void>((resolve) => {
+      setTimeout(resolve, 0);
+    });
+
+  class Silent {
+    observe() {
+      return undefined;
+    }
+    disconnect() {
+      return undefined;
+    }
+  }
+
+  interface Timed {
+    specs: Spec[];
+    /** Requests of the page that ended this long before the press, in ms. */
+    endedAgo?: number[];
+    prerequisites?: string[];
+    /** When the student presses Stop, in ms after the press. */
+    stopAt?: number;
+  }
+
+  async function timed(options: Timed) {
+    vi.useFakeTimers();
+    let onClick: ((event: Event) => void) | null = null;
+    try {
+      const { plan, kit, targets, catalog } = setup(options.specs);
+      // No credit range, so eight subjects fit.
+      const page = mountReplica(document, {
+        credits: { min: null, max: null },
+      });
+      replica = page;
+      const subjects = { ...catalog };
+      if (options.prerequisites !== undefined) {
+        for (const [id, subject] of Object.entries(subjects)) {
+          subjects[id] = { ...subject, prerequisites: options.prerequisites };
+        }
+      }
+      page.configure({ delay: READ, catalog: subjects });
+      const started = Date.now();
+      const steps: { step: FillStep; at: number }[] = [];
+      const acknowledged: number[] = [];
+      onClick = (event) => {
+        const target = event.target;
+        if (
+          target instanceof Element &&
+          target.closest('[data-count="acknowledge"]') !== null
+        ) {
+          acknowledged.push(Date.now() - started);
+        }
+      };
+      document.addEventListener('click', onClick, true);
+      let shownAt: number | null = null;
+      let stopped = false;
+      if (options.stopAt !== undefined) {
+        setTimeout(() => {
+          stopped = true;
+        }, options.stopAt);
+      }
+      const before = (options.endedAgo ?? []).map(
+        (ago) =>
+          // Test only: a plain object standing in for a resource entry, which jsdom lacks.
+          ({
+            initiatorType: 'xmlhttprequest',
+            name: 'https://regis.reg.kmitl.ac.th/api/?function=get-student-credit',
+            responseEnd: started - ago,
+          }) as unknown as PerformanceEntry,
+      );
+      let outcome: Awaited<ReturnType<typeof runFill>> | undefined;
+      void runFill({
+        doc: document,
+        plan,
+        kit,
+        targets,
+        allowFull: new Set(),
+        stopRequested: () => stopped,
+        onStep: (_subject, step) => {
+          steps.push({ step, at: Date.now() - started });
+          // KCP's card shows the condition as the step announces it.
+          if (step === 'conditional') shownAt = Date.now();
+        },
+        onRefusal: () => undefined,
+        conditionShownSince: () => shownAt,
+        tripwire: startTripwire(Silent, {
+          entries: () => before,
+          clock: () => Date.now(),
+        }),
+        timing: FILL_TIMING,
+        watchPage: (doc) => watchPage(doc, fakeTask),
+      }).then((result) => {
+        outcome = result;
+      });
+      while (outcome === undefined && Date.now() - started < 120_000) {
+        await vi.advanceTimersByTimeAsync(1);
+      }
+      return { outcome, elapsed: Date.now() - started, steps, acknowledged };
+    } finally {
+      if (onClick !== null)
+        document.removeEventListener('click', onClick, true);
+      vi.useRealTimers();
+    }
+  }
+
+  // Eight subjects on six weekdays, the last two later in the day, so none clash.
+  const EIGHT: Spec[] = Array.from({ length: 8 }, (_, index) => ({
+    id: `0150000${String(index)}`,
+    sections: [['1', 'lecture', null]],
+    planned: ['1'],
+    day: index,
+    start: index < 6 ? 540 : 660,
+  }));
+
+  it('adds eight subjects in the time of the host reads alone', async () => {
+    const { outcome, elapsed, steps } = await timed({ specs: EIGHT });
+    expect(outcome).toEqual({ status: 'done', filled: 8 });
+    expect(replica?.state.list).toHaveLength(8);
+    expect(elapsed).toBeGreaterThanOrEqual(8 * READ);
+    // No pace, no fixed wait, and no wait for a quiet page that made no request.
+    expect(elapsed).toBeLessThan(8 * READ + 40);
+    expect(steps[0]).toEqual({ step: 'enter', at: 0 });
+  });
+
+  it('pays the quiet wait once, when the page made a request just before', async () => {
+    const { outcome, elapsed, steps } = await timed({
+      specs: EIGHT.slice(0, 2),
+      endedAgo: [10],
+    });
+    expect(outcome).toEqual({ status: 'done', filled: 2 });
+    const entered = steps.filter((item) => item.step === 'enter');
+    expect(entered[0]?.at).toBeGreaterThanOrEqual(FILL_TIMING.quiet);
+    expect(entered[0]?.at).toBeLessThan(
+      FILL_TIMING.quiet + FILL_TIMING.poll + 10,
+    );
+    // The second subject starts as soon as the first is on the list.
+    expect(elapsed - (entered[0]?.at ?? 0)).toBeLessThan(2 * READ + 20);
+  });
+
+  it('does not wait for a request that ended well before the press', async () => {
+    const { outcome, steps } = await timed({
+      specs: EIGHT.slice(0, 1),
+      endedAgo: [FILL_TIMING.quiet + 1],
+    });
+    expect(outcome).toEqual({ status: 'done', filled: 1 });
+    expect(steps[0]).toEqual({ step: 'enter', at: 0 });
+  });
+
+  it('reads a Stop press within one poll while the host still reads', async () => {
+    const { outcome, elapsed } = await timed({
+      specs: [{ ...SINGLE }],
+      stopAt: 120,
+    });
+    expect(outcome).toMatchObject({ status: 'stopped', reason: 'stopped' });
+    expect(elapsed).toBeLessThan(120 + FILL_TIMING.poll + 10);
+    expect(replica?.counters.clicks).toEqual({});
   });
 });
