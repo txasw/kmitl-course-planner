@@ -286,3 +286,8 @@ for me off, and the owner asked that host changes unrelated to the companion sto
 
 Only the setup hash moved from version 3. A staff menu change in the shell now verifies; a change
 to how the shell behaves, or to anything a page part reaches, still needs a review.
+
+**Where the request runs.** The helper asks the worker only while the host is on
+`#/pre_registration`, the one page whose observer and fill read the verdict. The function that sends
+the message refuses on any other route as well as the hook that calls it, so no other page, the
+regular registration page and the planner included, makes the request.
