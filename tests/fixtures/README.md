@@ -103,6 +103,20 @@ The mock serves it for the reserved subject id `90000500`, and serves the real 4
 capture for `90000499`, so the profiling run measures both the normalize path on the real
 payload and the render and drag at scale. The generator header records the full provenance.
 
+## Host check replica bundle
+
+`host-fingerprint/app.replica.js` is KCP's own stand in for the host's app script, written
+by hand in the shape the host's build emits: one module function that holds the pre
+registration route, its header, periods, and period check, the panel, the add subject card
+with its grade not announced dialog, the stepper, the consent, flow chart, and complete
+steps, an API client, and the two message catalogs. None of it is host code, and it names
+no real registration write endpoint. The host check unit tests fingerprint it and apply
+the synthetic edits of `src/lib/regis/fingerprint/probes.ts` to it, and the end to end
+specs serve it to the worker under a name KCP was never tested with. Its fingerprint is
+the debug only record in `src/lib/api/debug/replicaBuild.ts`; print it again with
+`node scripts/host-fingerprint.mjs tests/fixtures/host-fingerprint/app.replica.js` after
+an edit. See ADR-0079.
+
 ## Regressions
 
 `regressions/` holds payloads captured from live contract deviations. See its README
