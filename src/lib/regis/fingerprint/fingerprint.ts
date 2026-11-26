@@ -17,7 +17,7 @@ import { WRITE_DIGESTS, writeReferences } from './writes.ts';
  * The version of the extraction and the canonical text. A change to either changes
  * every fingerprint, so the recorded table and any stored fingerprint are of a version.
  */
-export const FINGERPRINT_VERSION = 1;
+export const FINGERPRINT_VERSION = 2;
 
 export type Fingerprint = Partial<Record<PartId, string>>;
 

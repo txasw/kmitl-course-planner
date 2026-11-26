@@ -12,26 +12,26 @@ export const RECORDED_BUILDS: readonly RecordedBuild[] = [
   {
     builds: ['app.454d9e95.js', 'app.020e81ed.js'],
     parts: {
-      route: '4be570d72bd75a0d2a5eb69b88b6b62fc39714d90aa1558ded04814c1fc00c54',
-      panel: 'd2ae446e49f0ef78c2eacd5e2537657e557d0abf6bbe12655f571a9a2a008f36',
+      route: 'd28d385c71516fb73e5cd4a36f82e8a6c7d631368392d8ca6658841ce93a9e39',
+      panel: '700d0271f372419f4ec08f1d152322b17acb78d12dca7d73b246748098f07467',
       addSubject:
-        'bf553712a97b162d4515d90a696e7e377cff3e4f3ff718b1f7e012da908d5905',
+        '04f1ed02d34aa1200cb080e0564b4f4d6513973d63651559f3159afd0f0733fe',
       patternTable:
-        'bc0fff7bceae25dbbeeb7a1ec9f64a195e912174ef32a1bf55b56af5babf32c9',
+        '7b3d4fdfa2a8a9158d572b0185b65ad8e1118ab2d5639415ed5edc8c962b492b',
       subjectDialog:
-        '695b7657782808d5b781b16cc47b8cc647a5de346adb76f68efe0214814f7510',
+        'e1deeec5102d764af01620cf11b0511ee13effd1e9fc4a7b0cb3ac1666cf4f21',
       stepper:
-        'eec9a04b2c4e3e2d5c1e64c1189fdd23ada321a37fef232fb635577e25276075',
+        '17a9a9ff858db5a2ea9ad03a1a424ea494eedf89ef6c8cc91655ced097140d62',
       consent:
-        '396c475a73cbba983494d8773f88e85fbfb93113189425117203c39ba07d8993',
+        '1a07dfcc2c34e0c9de22def88e3a04a99d9e53406ab7681b0c3ee250c7d27397',
       flowChart:
-        '7a580b7d1828cb77fe3e62101e016bb6bd903dc554fcc3809f2b535e2b43666e',
+        '7e71a8bcf1e6df8320287fbbc9d4aed43b704c6a55cf0b6b08bb63c5d29b1c48',
       complete:
-        'f6ed3d07c4347f107d5c4113a81daac82f28b8da8a6036d2d348f7d1d06cde81',
+        '9b5de63e577fc3e490e0f7d9b50258e3ca5402338a0d973765fad67b41f74474',
       gradeDialog:
-        '8ae273a47de8bb4679aa9472ad253acf68c2165c575e219146fab0759aefb13c',
+        '1aeed084e86f2b911c29e2ccb8e487f19fe7850d6f14b1d2ede96bf1bd46ae0c',
       client:
-        'befe39511e066cc8376e8511e3cfe7145636bc97f7e18f67befdb3b57a96a0a8',
+        'c101a0afde53f6cf5e851c500d9ecad99e7160674f3f7699c16d9983b90b35a1',
       writes:
         '4566a4d6a8ea5c3a35bfef4d1b3b4a32bae4659469541d0a93c2c239898dcb76',
       labels:
@@ -41,32 +41,32 @@ export const RECORDED_BUILDS: readonly RecordedBuild[] = [
   {
     builds: ['app.a1e43722.js', 'app.ba450963.js'],
     parts: {
-      route: '84ebeb09605a28dd6efa244c1ee52b2eec153d9dfe4435550180bbdce684eff7',
+      route: '976dfe4336a2eaa35f1494fa73742549c590e1c9dc834efadbb22d080d53a7b5',
       header:
-        'b5437dadc93ca223254425cb4b53d172c2b092ec346643d559f53829835081a5',
+        'd8ff3da2549ffd4d2d2fc36868b342c08caf219b48a8a70d05e39a8f7fa8892c',
       periods:
-        'f978b8396e3a3e5ed53adbfe6da89fec68618f7910f2e0cc6c1bd5819545f51c',
-      panel: 'd2ae446e49f0ef78c2eacd5e2537657e557d0abf6bbe12655f571a9a2a008f36',
+        '5f91508436279fe06cf59dcf4866c7ae0234a228b09367584583a0653867affa',
+      panel: '700d0271f372419f4ec08f1d152322b17acb78d12dca7d73b246748098f07467',
       addSubject:
-        'bf553712a97b162d4515d90a696e7e377cff3e4f3ff718b1f7e012da908d5905',
+        '04f1ed02d34aa1200cb080e0564b4f4d6513973d63651559f3159afd0f0733fe',
       patternTable:
-        'bc0fff7bceae25dbbeeb7a1ec9f64a195e912174ef32a1bf55b56af5babf32c9',
+        '7b3d4fdfa2a8a9158d572b0185b65ad8e1118ab2d5639415ed5edc8c962b492b',
       subjectDialog:
-        '695b7657782808d5b781b16cc47b8cc647a5de346adb76f68efe0214814f7510',
+        'e1deeec5102d764af01620cf11b0511ee13effd1e9fc4a7b0cb3ac1666cf4f21',
       stepper:
-        'eec9a04b2c4e3e2d5c1e64c1189fdd23ada321a37fef232fb635577e25276075',
+        '17a9a9ff858db5a2ea9ad03a1a424ea494eedf89ef6c8cc91655ced097140d62',
       consent:
-        '396c475a73cbba983494d8773f88e85fbfb93113189425117203c39ba07d8993',
+        '1a07dfcc2c34e0c9de22def88e3a04a99d9e53406ab7681b0c3ee250c7d27397',
       flowChart:
-        '7a580b7d1828cb77fe3e62101e016bb6bd903dc554fcc3809f2b535e2b43666e',
+        '7e71a8bcf1e6df8320287fbbc9d4aed43b704c6a55cf0b6b08bb63c5d29b1c48',
       complete:
-        'f6ed3d07c4347f107d5c4113a81daac82f28b8da8a6036d2d348f7d1d06cde81',
+        '9b5de63e577fc3e490e0f7d9b50258e3ca5402338a0d973765fad67b41f74474',
       gradeDialog:
-        '8ae273a47de8bb4679aa9472ad253acf68c2165c575e219146fab0759aefb13c',
+        '1aeed084e86f2b911c29e2ccb8e487f19fe7850d6f14b1d2ede96bf1bd46ae0c',
       periodCheck:
-        'e64bc851fc51e71a8ac512747b5378a6f9cdb647651d2c538aef10402aaf18e8',
+        'bd0e99163d846e00f5357160cc64cc2393a1fe7552ba15e791a91601ed202024',
       client:
-        'befe39511e066cc8376e8511e3cfe7145636bc97f7e18f67befdb3b57a96a0a8',
+        'c101a0afde53f6cf5e851c500d9ecad99e7160674f3f7699c16d9983b90b35a1',
       writes:
         '4566a4d6a8ea5c3a35bfef4d1b3b4a32bae4659469541d0a93c2c239898dcb76',
       labels:
