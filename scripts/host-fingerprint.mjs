@@ -5,7 +5,9 @@
 // src/lib/regis/fingerprint/recorded.ts, then prints the bundles grouped by identical
 // fingerprints as entries for that table. With --prove it also applies each synthetic
 // edit in src/lib/regis/fingerprint/probes.ts to every bundle and fails unless each edit
-// changes the part it is in. Run it on a new build after a review:
+// changes the part it is in, and applies each neutral edit of the App shell in
+// src/lib/regis/fingerprint/shellProbes.ts and fails unless each changes no part. Run it
+// on a new build after a review:
 //
 //   node scripts/host-fingerprint.mjs [--prove] path/to/app.<hash>.js ...
 import { readFileSync } from 'node:fs';
@@ -17,6 +19,7 @@ import {
 import { PART_IDS } from '../src/lib/regis/fingerprint/partIds.ts';
 import { PROBES } from '../src/lib/regis/fingerprint/probes.ts';
 import { RECORDED_BUILDS } from '../src/lib/regis/fingerprint/recorded.ts';
+import { NEUTRAL_EDITS } from '../src/lib/regis/fingerprint/shellProbes.ts';
 import { WRITE_DIGESTS } from '../src/lib/regis/fingerprint/writes.ts';
 
 const args = process.argv.slice(2);
@@ -68,6 +71,26 @@ for (const path of paths) {
     if (!flips) failed = true;
     console.log(
       `  probe ${probe.id} (${probe.describe}): ${flips ? 'changes' : 'MISSED'} ${changed.join(', ')}`,
+    );
+  }
+  for (const edit of NEUTRAL_EDITS) {
+    const edited = await edit.apply(source, WRITE_DIGESTS);
+    if (edited === null) {
+      console.log(`  neutral ${edit.id}: no anchor in this bundle`);
+      continue;
+    }
+    const after = await fingerprintScript(edited);
+    const changed =
+      after === null
+        ? ['unreadable']
+        : PART_IDS.filter((part) => after[part] !== fingerprint[part]);
+    if (changed.length > 0) failed = true;
+    console.log(
+      `  neutral ${edit.id} (${edit.describe}): ${
+        changed.length === 0
+          ? 'keeps every part'
+          : `CHANGED ${changed.join(', ')}`
+      }`,
     );
   }
 }

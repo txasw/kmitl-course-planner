@@ -143,18 +143,33 @@ export function moduleOf(bundle: Bundle, index: number): ModuleScope | null {
 /** A name a part reaches: the part it belongs to, or nothing to follow. */
 export type Boundary = ReadonlyMap<string, string>;
 
+/** The word a run of tokens is written as, and the index just past the run. */
+export interface Replacement {
+  word: string;
+  end: number;
+}
+
+export interface CanonicalOptions {
+  /** The larger function a part found inside it sits in, so its bindings read in scope. */
+  within?: Span;
+  /** Runs of tokens written as one word, by the index each starts at (shell.ts). */
+  replacements?: ReadonlyMap<number, Replacement>;
+}
+
 /**
  * The canonical text of the spans of a part and of every definition they reach, or null
  * when the part reaches more than PART_LIMITS allow. A part found inside a larger
  * function names that function as `within`, so its bindings are read in their scopes.
+ * A replaced run holds no name, so it reaches nothing.
  */
 export function canonicalText(
   bundle: Bundle,
   module: ModuleScope,
   roots: readonly Span[],
   boundary: Boundary,
-  within?: Span,
+  options: CanonicalOptions = {},
 ): string | null {
+  const { within, replacements } = options;
   // Free names in order of first use; each followed definition is queued with its label.
   const free = new Map<string, string>();
   const queue: { span: Span; label: string; scope: Span }[] = roots.map(
@@ -192,6 +207,12 @@ export function canonicalText(
     for (let index = span.start; index < span.end; index += 1) {
       const token = bundle.tokens[index];
       if (token === undefined) break;
+      const replaced = replacements?.get(index);
+      if (replaced !== undefined && replaced.end <= span.end) {
+        words.push(replaced.word);
+        index = replaced.end - 1;
+        continue;
+      }
       const role = table.role(index);
       if (role.kind === 'binding') words.push(`v${String(role.id)}`);
       else if (role.kind === 'free') {

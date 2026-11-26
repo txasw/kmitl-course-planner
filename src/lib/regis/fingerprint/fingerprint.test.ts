@@ -14,6 +14,7 @@ import {
 import { PART_IDS } from './partIds';
 import { PROBES } from './probes';
 import { RECORDED_BUILDS } from './recorded';
+import { NEUTRAL_EDITS } from './shellProbes';
 
 // The replica bundle is KCP's own stand in for the host's app script, shaped as the
 // host's build emits it, with every part the companion depends on. It names no real
@@ -77,6 +78,19 @@ describe('fingerprintScript on the replica bundle', () => {
       const after = await fingerprintScript(edited ?? '', digests);
       expect(after?.[probe.part]).toBeDefined();
       expect(after?.[probe.part]).not.toBe(before?.[probe.part]);
+    },
+  );
+
+  it.each(NEUTRAL_EDITS.map((edit) => [edit.id, edit] as const))(
+    'reads the same after the shell data edit %s',
+    async (_id, edit) => {
+      const digests = await replicaDigests();
+      const edited = await edit.apply(REPLICA, digests);
+      expect(edited).not.toBeNull();
+      expect(edited).not.toBe(REPLICA);
+      expect(await fingerprintScript(edited ?? '', digests)).toEqual(
+        await fingerprintScript(REPLICA, digests),
+      );
     },
   );
 
@@ -148,6 +162,6 @@ describe('RECORDED_BUILDS', () => {
   });
 
   it('is of the current fingerprint version', () => {
-    expect(FINGERPRINT_VERSION).toBe(3);
+    expect(FINGERPRINT_VERSION).toBe(4);
   });
 });

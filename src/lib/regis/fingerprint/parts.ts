@@ -84,7 +84,9 @@ export function locateParts(
   if (dialog !== null && render !== null) {
     write(
       'gradeDialog',
-      canonicalText(bundle, module, [dialog], boundaryFor(null), render),
+      canonicalText(bundle, module, [dialog], boundaryFor(null), {
+        within: render,
+      }),
     );
   }
   const mixins = periodMixins(bundle, components.get('route'));
@@ -114,6 +116,7 @@ export function locateParts(
         module,
         setup.roots,
         setupBoundary(boundaryFor(null), setup),
+        { replacements: setup.replacements },
       ),
     );
   }
