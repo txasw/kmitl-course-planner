@@ -20,6 +20,11 @@ import type {
   TeachTableResult,
 } from '../api/types';
 import type { DataQualityReport } from '../contract/report';
+import {
+  hostBuildVerdictSchema,
+  type HostBuildVerdict,
+} from '../regis/buildVerdict';
+import { APP_SCRIPT_NAME, VENDOR_SCRIPT_NAME } from '../regis/hostContract';
 
 // The three search modes mirror Section 4.1. Booleans stay booleans here; the
 // endpoint layer serializes the search_all_* flags to the string form the API
@@ -95,6 +100,13 @@ export const requestMessageSchema = z.discriminatedUnion('type', [
     query: teachTableQuerySchema,
   }),
   z.object({ type: z.literal('shell/mounted') }),
+  // The host check (ADR-0079) takes the page's two public script names, each held to
+  // its pattern here and again in the worker, which builds the address itself.
+  z.object({
+    type: z.literal('regis/hostBuild'),
+    app: z.string().regex(APP_SCRIPT_NAME),
+    vendors: z.string().regex(VENDOR_SCRIPT_NAME),
+  }),
   z.object({ type: z.literal('onboarding/claimWelcome') }),
   z.object({ type: z.literal('debug/getRequestLog') }),
   z.object({ type: z.literal('debug/getReport') }),
@@ -150,6 +162,15 @@ export const claimWelcomeReplySchema = z.object({
   value: welcomeClaimSchema,
 });
 
+/**
+ * The successful regis/hostBuild reply, checked on receipt, so an error Result and a
+ * malformed reply alike leave the build untested.
+ */
+export const hostBuildReplySchema = z.object({
+  ok: z.literal(true),
+  value: hostBuildVerdictSchema,
+});
+
 export type RequestType = RequestMessage['type'];
 
 /** The response payload each request type resolves to, keyed by discriminant. */
@@ -162,6 +183,7 @@ export interface ResponseMap {
   'teachTable/query': Result<TeachTableResult>;
   'teachTable/cancel': Result<void>;
   'shell/mounted': Result<MountHandshake>;
+  'regis/hostBuild': Result<HostBuildVerdict>;
   'onboarding/claimWelcome': Result<WelcomeClaim>;
   'debug/getRequestLog': Result<RequestLogEntry[]>;
   'debug/getReport': Result<DataQualityReport | null>;

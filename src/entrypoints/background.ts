@@ -13,6 +13,10 @@ import { handleInstalled } from '@/lib/shell/install';
 import { answerMountHandshake } from '@/lib/shell/mountHandshake';
 import { answerWelcomeClaim } from '@/lib/shell/welcomeClaim';
 import { createCacheStore } from '@/lib/api/cache';
+import { createHostCheck } from '@/lib/api/hostCheck';
+import type { RecordedBuild } from '@/lib/regis/fingerprint/fingerprint';
+import { RECORDED_BUILDS } from '@/lib/regis/fingerprint/recorded';
+import { createHostCheckRepository } from '@/lib/storage/hostChecks';
 import { createDefaultEnv, createGateway } from '@/lib/api/gateway';
 import {
   currentTermEndpoint,
@@ -63,7 +67,16 @@ function hasHostAccess(): Promise<boolean> {
 // handle through a dynamic import that dead code eliminates from production.
 export default defineBackground(() => {
   const cache = createCacheStore(createBrowserStorageAdapter());
-  const gateway = createGateway({ cache, env: createDefaultEnv() });
+  const env = createDefaultEnv();
+  const gateway = createGateway({ cache, env });
+  // The tested builds the host check compares a new build with; a debug build adds the
+  // replica bundle's, so the end to end specs can serve it under an untested name.
+  const recorded: RecordedBuild[] = [...RECORDED_BUILDS];
+  const hostCheck = createHostCheck({
+    env,
+    repo: createHostCheckRepository(createBrowserStorageAdapter()),
+    recorded: () => recorded,
+  });
   // One store for the whole worker, since its queue is what serializes the steps.
   const session = createSessionStorageAdapter();
   const intents = session === null ? null : createTabIntentStore(session);
@@ -124,6 +137,8 @@ export default defineBackground(() => {
       ),
     'onboarding/claimWelcome': async (_message, context) =>
       ok(await answerWelcomeClaim(context, { intents })),
+    'regis/hostBuild': async (message) =>
+      ok(await hostCheck.check({ app: message.app, vendors: message.vendors })),
   };
 
   const router = createRouter({ handlers, runtimeId: browser.runtime.id });
@@ -149,6 +164,9 @@ export default defineBackground(() => {
         router,
         clearCache: () => cache.clear(),
         actionClick: onActionClick,
+        addRecorded: (build) => {
+          recorded.push(build);
+        },
       });
       logger.debug('diagnostics interceptors installed');
     });

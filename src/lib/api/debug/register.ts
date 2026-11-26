@@ -15,6 +15,8 @@ import type { RequestMessage } from '../../messaging/protocol';
 import type { ActionClickOutcome, ClickedTab } from '../../shell/actionClick';
 import { createAuditInterceptor } from './audit';
 import { createSimulationInterceptor } from './simulation';
+import type { RecordedBuild } from '../../regis/fingerprint/fingerprint';
+import { REPLICA_BUILD } from './replicaBuild';
 import { createDebugState, type DebugState } from './state';
 
 /** @canary The marker the CI bundle check greps for (ADR-0014). */
@@ -70,6 +72,8 @@ export interface InstallDebugDeps {
   actionClick: (tab: ClickedTab) => Promise<ActionClickOutcome>;
   now?: () => string;
   fixtures?: Record<string, unknown>;
+  /** Records a build the host check accepts, for the replica bundle (ADR-0079). */
+  addRecorded?: (build: RecordedBuild) => void;
 }
 
 export function installDebug(deps: InstallDebugDeps): DebugState {
@@ -103,6 +107,7 @@ export function installDebug(deps: InstallDebugDeps): DebugState {
     }),
   );
   setDebugDispatch(createDebugDispatch(state, deps.clearCache));
+  deps.addRecorded?.(REPLICA_BUILD);
 
   // The worker cannot message itself, so the console handle calls the router
   // directly with a synthetic same-extension sender.
