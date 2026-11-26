@@ -10,7 +10,8 @@
 // 2026-11-26). It is told apart by its address alone: the host API path and a function
 // query parameter equal to check-registration-datetime, compared as the entry is taken
 // and then dropped. An entry name can carry the student id, so nothing of it is kept,
-// logged, or sent; the tripwire keeps a count and nothing else. The host sends its
+// logged, or sent; the tripwire keeps a count and the time the last counted request
+// ended, and nothing else. The host sends its
 // writes as a POST whose function is in the body, so a write's address carries no
 // function and is counted, as is every other request. A browser without the observer
 // gets no tripwire.
@@ -21,12 +22,20 @@
 // while its callback has not yet run. So each reading of the count first takes the
 // buffered entries itself, and the eligibility read always lands in the window of the
 // step that caused it.
+//
+// The same timeline tells whether the page made a request in the moment before the run,
+// so the run pays its quiet wait only then (ADR-0078, the timing amendment).
 
 import { REGIS_ORIGIN } from '@/lib/shell/hostTab';
 
 export interface Tripwire {
   /** The XMLHttpRequest entries seen since the tripwire started, less period checks. */
   count: () => number;
+  /**
+   * Whether no request it would count ended in the last `within` ms, as far as the page's
+   * resource timeline shows, so a run can skip its quiet wait.
+   */
+  quiet: (within: number) => boolean;
   stop: () => void;
 }
 
@@ -39,6 +48,18 @@ interface ObserverInstance {
 type ObserverClass = new (
   callback: (list: { getEntries: () => PerformanceEntry[] }) => void,
 ) => ObserverInstance;
+
+/** Where the tripwire reads the requests that ended before it started, and the time. */
+export interface TripwireSources {
+  entries: () => readonly PerformanceEntry[];
+  clock: () => number;
+}
+
+/**
+ * The resource timeline's default size. A full timeline takes no more entries, so it can
+ * no longer show a recent request, and the run then always waits for a quiet page.
+ */
+const TIMELINE_SIZE = 250;
 
 /** The address the host's API client sends every request to, before its query. */
 const HOST_API = `${REGIS_ORIGIN}/api/`;
@@ -70,14 +91,56 @@ function pageObserver(): ObserverClass | undefined {
     : undefined;
 }
 
+function pageSources(): TripwireSources {
+  return {
+    // A timeline without the entry list shows no request, as an empty one does.
+    entries: () =>
+      typeof performance.getEntriesByType === 'function'
+        ? performance.getEntriesByType('resource')
+        : [],
+    clock: () => performance.now(),
+  };
+}
+
 const isRequest = (entry: PerformanceEntry) =>
   'initiatorType' in entry && entry.initiatorType === 'xmlhttprequest';
 
+/** When the entry's response ended, or null when the entry does not say. */
+function endOf(entry: PerformanceEntry): number | null {
+  const end =
+    'responseEnd' in entry && typeof entry.responseEnd === 'number'
+      ? entry.responseEnd
+      : entry.startTime + entry.duration;
+  return Number.isFinite(end) ? end : null;
+}
+
+/**
+ * The latest end of a request the tripwire would count among the entries, or infinity
+ * when one cannot be read or the timeline is full, so the page reads as busy.
+ */
+function lastEnd(entries: readonly PerformanceEntry[]): number {
+  if (entries.length >= TIMELINE_SIZE) return Number.POSITIVE_INFINITY;
+  let last = Number.NEGATIVE_INFINITY;
+  try {
+    for (const entry of entries) {
+      if (!isRequest(entry) || isPeriodCheck(entry.name)) continue;
+      last = Math.max(last, endOf(entry) ?? Number.POSITIVE_INFINITY);
+    }
+  } catch {
+    return Number.POSITIVE_INFINITY;
+  }
+  return last;
+}
+
 export function startTripwire(
   Observer: ObserverClass | undefined = pageObserver(),
+  sources: TripwireSources = pageSources(),
 ): Tripwire {
   let seen = 0;
-  if (Observer === undefined) return { count: () => 0, stop: () => undefined };
+  if (Observer === undefined) {
+    return { count: () => 0, quiet: () => true, stop: () => undefined };
+  }
+  let ended = lastEnd(sources.entries());
   // Every request is counted unless it reads as the period check, so an entry that cannot
   // be read counts its whole batch and the run stops, never the other way.
   const take = (entries: readonly PerformanceEntry[]) => {
@@ -86,9 +149,12 @@ export function startTripwire(
       for (const entry of entries) {
         if (!isRequest(entry) || isPeriodCheck(entry.name)) continue;
         counted += 1;
+        // An entry the observer hands over has just ended.
+        ended = Math.max(ended, endOf(entry) ?? sources.clock());
       }
     } catch {
       seen += entries.length;
+      ended = Number.POSITIVE_INFINITY;
       return;
     }
     seen += counted;
@@ -104,6 +170,10 @@ export function startTripwire(
     count: () => {
       flush();
       return seen;
+    },
+    quiet: (within) => {
+      flush();
+      return sources.clock() - ended >= within;
     },
     stop: () => {
       observer.disconnect();
