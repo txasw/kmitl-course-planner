@@ -4,8 +4,9 @@
 // 03:21 GMT changed staff pages only, so they read the same as the build before each.
 // The route of 2026-11-25 09:53 GMT added the header, the periods, and the period check,
 // and its labels, so it starts the second entry. The redeploy of 2026-11-26 09:38 GMT
-// regrouped the menu data of the App's drawer, which the setup reads as one word since
-// fingerprint version 4 (shell.ts), so it too reads the same as the build before it. A
+// regrouped the menu data of the App's drawer, whose menu value the setup reads as one
+// word since fingerprint version 4 (shell.ts, drawerMenu.ts; version 5 holds it to the
+// drawer's own vocabulary), so it too reads the same as the build before it. A
 // new build is added here only after a review, with the script's output for it.
 
 import type { RecordedBuild } from './fingerprint.ts';

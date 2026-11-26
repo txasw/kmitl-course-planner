@@ -291,3 +291,75 @@ to how the shell behaves, or to anything a page part reaches, still needs a revi
 `#/pre_registration`, the one page whose observer and fill read the verdict. The function that sends
 the message refuses on any other route as well as the hook that calls it, so no other page, the
 regular registration page and the planner included, makes the request.
+
+## Amendment, 2026-11-27: review fixes to the shell boundary and the setup
+
+A read only review of the shell boundary found that pure literals are not inert in a Vue page, and
+that the setup missed declarations that run code as the module loads. Each fix below has a probe or
+a unit test, and `app.2ef67281.js` still reads as `app.a1e43722.js`.
+
+- **The bar, the App, and the footer.** The app bar binds its `attrs` data onto its login button,
+  so an inline handler there runs as an attribute, with no click, and a `javascript:` link there
+  is one. The data of the App, the bar, and the footer has never changed, so it is read in full
+  again. The boundary is the drawer alone.
+- **Data keys.** Vue sets a data key over a method or a computed value of the same name, so a key
+  such as `student_id` beside the menu would decide what the drawer requests. The boundary is now
+  the value of `nav` in a drawer data value with no other key, and the key stays in the canonical
+  text. Any other key is read in full.
+- **The drawer's vocabulary.** Any pure literal passed before, but the drawer's render hands `href`
+  and `to` to Vuetify and the router. Each menu entry is now checked key by key against what the
+  drawer has always held (`drawerMenu.ts`, which replaces `pureData.ts`): `to` as a path of lower
+  case letters, digits, and underscores or as `{name}` with a route name, `href` on
+  `https://www.reg.kmitl.ac.th/storage/`, `target` as `_blank`, a message key, an `mdi-` icon,
+  permission names or null, the condition as a boolean or null, `active` and `noti_badge` as
+  booleans, `action` as login or logout, and `subItems` of entries that follow the same rules. A
+  choice stands only on a module constant written as a boolean, and a spread only of an array
+  literal, since code that runs anywhere could fill a named constant at run time. An entry with
+  any other key or value is read in full, so a regroup or a moved entry stays neutral and a
+  changed entry turns fill off.
+- **Actions.** The word the menu is written as counts its login and logout actions, so a logout
+  action moved onto the homepage item is a change.
+- **Declarations.** A top level declarator is now read whenever its value makes a call, a `new`,
+  a tagged template, a write, or a delete outside the functions it defines (`effects.ts`), so a
+  document listener or a request made in a comma expression is a change. Left out are a webpack
+  require and its default export getter, the call that binds a component with the App's own
+  binding, a `new` of a service class whose construction runs only `super(...)` up to the API
+  client, and a call to a helper a running pattern binds, such as `mapFields`. Each declarator is
+  read alone, and the names a pattern binds are written as one word, so the staff services and
+  pages that share a statement stay out. The setup now also reads the router, the i18n instance,
+  the keycloak client, the four `mapFields` helpers, and the staff constant lists built with
+  `sort`; a change to one of those lists turns fill off until a review.
+- **Not covered.** The page components KCP does not depend on, such as Home and MainMenu, are
+  still read by no part. A hook one of them installs as it is created, which a student meets in
+  the same session before pre registration, reads as a tested build. A digest of the global effects
+  of every student page was considered and left for the owner, since it trades directly against
+  staff redeploys turning fill off. The CSS bundle is not fingerprinted; fill clicks elements, not
+  screen positions, so a style cannot redirect a fill click. The drawer's scoped style id stays a
+  boundary, since no observer or fill code keys on scope ids.
+
+The fingerprint version moved to 5, and every tested build and the replica were recorded again.
+`--prove` on all five bundles and the replica shows each earlier probe still changes its part, and
+five new probes change the setup: an inline handler in the app bar's data, a key beside the
+drawer's menu, a `javascript:` link in a menu entry, a logout action added to a menu entry, and a
+document listener added inside a declaration. The four neutral edits still change no part.
+
+| Part          | 454d9e95, 020e81ed | a1e43722, ba450963, 2ef67281 |
+| :------------ | :----------------- | :--------------------------- |
+| route         | d28d385c           | 976dfe43                     |
+| header        | absent             | d8ff3da2                     |
+| periods       | absent             | 5f915084                     |
+| panel         | 700d0271           | 700d0271                     |
+| addSubject    | 04f1ed02           | 04f1ed02                     |
+| patternTable  | 7b3d4fdf           | 7b3d4fdf                     |
+| subjectDialog | e1deeec5           | e1deeec5                     |
+| stepper       | 17a9a9ff           | 17a9a9ff                     |
+| consent       | 1a07dfcc           | 1a07dfcc                     |
+| flowChart     | 7e71a8bc           | 7e71a8bc                     |
+| complete      | 9b5de63e           | 9b5de63e                     |
+| gradeDialog   | 1aeed084           | 1aeed084                     |
+| periodCheck   | absent             | bd0e9916                     |
+| client        | c101a0af           | c101a0af                     |
+| writes        | 4566a4d6           | 4566a4d6                     |
+| store         | ebbcfaee           | ebbcfaee                     |
+| setup         | 4a05338b           | 4a05338b                     |
+| labels        | 33a230da           | a5a9e7fb                     |
