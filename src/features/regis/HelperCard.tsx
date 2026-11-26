@@ -38,6 +38,7 @@ import { commitThenFocus } from '@/features/shell/restoreFocus';
 import { rootOf } from '@/features/shell/useFocusTrap';
 import { uiStore } from '@/features/shell/uiStore';
 import { useMediaQuery } from '@/features/shell/useMediaQuery';
+import { HostCheckDetailGate } from './HostCheckDetailGate';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { FocusSection, STALE_TEXT_ID } from './FocusSection';
 import {
@@ -398,6 +399,7 @@ export function HelperCard({ model }: { model: HelperModel }) {
             <HelperMoreMenu model={model} t={t} />
           </div>
           <Bar model={model} t={t} />
+          {model.offReason === 'untestedBuild' ? <HostCheckDetailGate /> : null}
           {list ? (
             <QueueList
               model={model}
