@@ -33,10 +33,15 @@ curriculum, or a subject id. As with any web request, those servers also receive
 address and basic browser details. KCP never signs in, never reads your KMITL login, and
 never sends your plans anywhere.
 
-On the registration pages, pre registration and registration, KCP sends no request of its
-own. It shows your plan from what it has stored, makes a request only when you search or
-check, and does not retry a request that fails there, so it adds no load while
-registration is busy. Of the page address, KCP reads only which page is open and, on the
+On the registration pages, pre registration and registration, KCP sends one request of its
+own, and only on the pre registration page: when the site has put out a version of its app
+script that KCP has not checked before, KCP downloads that public script file once, in the
+background, to compare the parts it relies on with the versions KCP was tested with. The
+request carries no cookie and nothing about you, only the file name the page itself loaded.
+KCP keeps the result, so each new version is downloaded once per browser; a download that
+fails is tried again only on a visit an hour later. Otherwise KCP shows your plan from what
+it has stored, makes a request only when you search or check, and does not retry a request
+that fails there, so it adds little load while registration is busy. Of the page address, KCP reads only which page is open and, on the
 course search result page, the search shown there. It keeps nothing else the address
 carries.
 
@@ -48,7 +53,8 @@ page says about them, the term, and the step you are on, so the checklist ticks 
 It reads only these course facts, never your name or student id and never the text of a
 message the page shows, keeps them in memory while the page is open, and stores, logs,
 or sends none of them. It does not read a version of the page KCP was not tested with,
-or a page a staff member opened on a student's behalf; for that it checks only whether
+unless the check above finds every part KCP relies on unchanged, or a page a staff member
+opened on a student's behalf; for that it checks only whether
 the page marks such a session. The marks you set in the checklist stay on your device.
 
 On the pre registration page, when you press Fill this subject or Fill all subjects, KCP
@@ -59,7 +65,7 @@ Acknowledged button only after it has shown you a prerequisite condition the pag
 and stops at the first problem. The only request this causes is the page's own check of
 each subject, the same one typing the id causes. It never presses Continue or Confirm,
 never submits or confirms your registration, and does not fill on a version of the page it
-was not tested with. You can turn filling off in the helper. You review the list and
+was not tested with, unless the check above finds every part KCP relies on unchanged. You can turn filling off in the helper. You review the list and
 submit your registration yourself.
 
 ## Data storage
@@ -79,6 +85,10 @@ The extension keeps the following in the browser's extension storage on your dev
 - The fill setting: whether you turned filling off, and the script names of any version of
   the registration page on which KCP turned filling off for safety. These names are the
   same for every student.
+- The page version check: for up to eight versions of the registration site's app script,
+  the script's public file name and a fingerprint of each part KCP compares, or that the
+  file could not be read, or the time a download did not complete. These names and
+  fingerprints are the same for every student.
 - The date and version of the installation.
 - The onboarding state: when the welcome message showed, when the panel first opened,
   whether you turned off the entry prompt beside the Planner button, and whether and when
@@ -95,6 +105,7 @@ The extension keeps the following in the browser's extension storage on your dev
 | Preferences, last search per tab, install date and version, onboarding state | Until changed or until you remove the extension           |
 | Registration helper data and checklist marks                                 | Kept for your 12 most recent plans, used for 7 days       |
 | The fill setting                                                             | Until changed or until you remove the extension           |
+| The page version check                                                       | Kept for the eight most recent versions of the page       |
 | Record of a tab KCP opened for you (session storage)                         | At most one minute, and cleared when the browser restarts |
 
 None of this data is uploaded anywhere.
