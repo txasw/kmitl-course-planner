@@ -17,6 +17,7 @@ import type { GatewayEnv } from '../types';
 import type { StorageAdapter } from '../../storage/repo';
 import type { TeachTableQuery } from '../../messaging/protocol';
 import { loadFixture } from '../../../../tests/support/fixtures';
+import { REPLICA_BUILD } from './replicaBuild';
 
 const noopRouter: RouterListener = () => undefined;
 
@@ -62,6 +63,19 @@ describe('installDebug', () => {
     expect(getAudit()).not.toBeNull();
     expect(getRecorder()).not.toBeNull();
     expect(readHandle()).toBeDefined();
+  });
+
+  it('records the replica build for the host check', () => {
+    const addRecorded = vi.fn();
+    installDebug({
+      extensionVersion: '0.0.0',
+      runtimeId: 'id',
+      router: noopRouter,
+      clearCache: noopClear,
+      actionClick: noopAction,
+      addRecorded,
+    });
+    expect(addRecorded).toHaveBeenCalledWith(REPLICA_BUILD);
   });
 
   it('runs the toolbar action handler from the console handle', async () => {
