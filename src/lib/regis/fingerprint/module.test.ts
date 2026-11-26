@@ -136,9 +136,25 @@ describe('canonicalText', () => {
     expect(text).toContain('=?');
   });
 
-  it('keeps a long global as written', () => {
+  it('keeps a global as written, marked apart from the labels', () => {
     expect(canonicalOf('var r=function(){return window.open}', 'r')).toContain(
-      'window . open',
+      '?window . open',
+    );
+  });
+
+  it('tells two short globals apart, as it does two long ones', () => {
+    const set = canonicalOf('var r=function(){return new Set}', 'r');
+    const map = canonicalOf('var r=function(){return new Map}', 'r');
+    expect(set).toContain('?Set');
+    expect(map).not.toBe(set);
+    expect(canonicalOf('var r=function(){return top.x}', 'r')).not.toBe(
+      canonicalOf('var r=function(){return URL.x}', 'r'),
+    );
+  });
+
+  it('keeps a wrapper parameter as written, so another one reads apart', () => {
+    expect(canonicalOf('var r=function(){return t(5)}', 'r')).not.toBe(
+      canonicalOf('var r=function(){return e(5)}', 'r'),
     );
   });
 
