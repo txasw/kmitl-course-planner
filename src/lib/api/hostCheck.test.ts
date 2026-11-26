@@ -10,6 +10,21 @@ const REPLICA = readFileSync(
   resolve(process.cwd(), 'tests/fixtures/host-fingerprint/app.replica.js'),
   'utf8',
 );
+// A script body the mocked reader faults on, as a bug in the reader would.
+const READER_FAULT = 'kcp reader fault';
+
+vi.mock('../regis/fingerprint/fingerprint', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('../regis/fingerprint/fingerprint')>();
+  return {
+    ...actual,
+    fingerprintScript: (source: string) =>
+      source === 'kcp reader fault'
+        ? Promise.reject(new RangeError('reader fault'))
+        : actual.fingerprintScript(source),
+  };
+});
+
 const VENDORS = 'chunk-vendors.7ab4925e.js';
 const NEW_APP = 'app.c0ffee01.js';
 const JS = { 'content-type': 'text/javascript' };
@@ -115,6 +130,15 @@ describe('the host check', () => {
     const { check, fetch } = setup('var a="');
     const pair = { app: NEW_APP, vendors: VENDORS };
     expect(await check.check(pair)).toEqual({ status: 'unreadable' });
+    expect(await check.check(pair)).toEqual({ status: 'unreadable' });
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a script the reader faults on as unreadable, never read again', async () => {
+    const { check, fetch, advance } = setup(READER_FAULT);
+    const pair = { app: NEW_APP, vendors: VENDORS };
+    expect(await check.check(pair)).toEqual({ status: 'unreadable' });
+    advance(HOST_CHECK_RETRY_MS * 3);
     expect(await check.check(pair)).toEqual({ status: 'unreadable' });
     expect(fetch).toHaveBeenCalledTimes(1);
   });
