@@ -197,7 +197,7 @@ async function fill(specs: Spec[], options: RunOptions = {}) {
     },
     conditionShownSince: () =>
       options.shownSince === undefined ? 0 : options.shownSince,
-    tripwire: { count: () => 0, stop: () => undefined },
+    tripwire: { count: () => 0, quiet: () => true, stop: () => undefined },
     timing: {
       pace: 0,
       poll: 2,
@@ -271,7 +271,7 @@ describe('runFill', () => {
         onStep: () => undefined,
         onRefusal: () => undefined,
         conditionShownSince: () => 0,
-        tripwire: { count: () => 0, stop: () => undefined },
+        tripwire: { count: () => 0, quiet: () => true, stop: () => undefined },
         timing: {
           pace: 0,
           poll: 2,
@@ -503,7 +503,7 @@ describe('runFill', () => {
       onStep: () => undefined,
       onRefusal: () => undefined,
       conditionShownSince: () => 0,
-      tripwire: { count: () => 0, stop: () => undefined },
+      tripwire: { count: () => 0, quiet: () => true, stop: () => undefined },
       timing: {
         pace: 0,
         poll: 2,
@@ -550,7 +550,7 @@ describe('runFill', () => {
       onStep: () => undefined,
       onRefusal: () => undefined,
       conditionShownSince: () => 0,
-      tripwire: { count: () => 0, stop: () => undefined },
+      tripwire: { count: () => 0, quiet: () => true, stop: () => undefined },
       timing: {
         pace: 30,
         poll: 2,
@@ -597,7 +597,7 @@ describe('runFill', () => {
         onStep: () => undefined,
         onRefusal: () => undefined,
         conditionShownSince: () => 0,
-        tripwire: { count: () => 0, stop: () => undefined },
+        tripwire: { count: () => 0, quiet: () => true, stop: () => undefined },
         timing: {
           pace: 0,
           poll: 2,
@@ -637,7 +637,7 @@ describe('runFill', () => {
       },
       onRefusal: () => undefined,
       conditionShownSince: () => 0,
-      tripwire: { count: () => seen, stop: () => undefined },
+      tripwire: { count: () => seen, quiet: () => true, stop: () => undefined },
       timing: {
         pace: 0,
         poll: 2,
@@ -683,7 +683,7 @@ describe('runFill on the route of app.a1e43722', () => {
       onStep,
       onRefusal: () => undefined,
       conditionShownSince: () => 0,
-      tripwire: { count: () => 0, stop: () => undefined },
+      tripwire: { count: () => 0, quiet: () => true, stop: () => undefined },
       timing: ROUTE_TIMING,
     };
   }
@@ -746,6 +746,7 @@ describe('runFill on the route of app.a1e43722', () => {
           }
           return 0;
         },
+        quiet: () => true,
         stop: () => undefined,
       },
     });
@@ -834,7 +835,10 @@ describe('runFill on the route of app.a1e43722', () => {
   const PERIOD_NAME = `${HOST_API}?function=check-registration-datetime&level_id=1&year=2569&semester=1`;
   const STRAY_NAME = `${HOST_API}?function=get-student-data`;
 
-  function requests(page: Replica): {
+  function requests(
+    page: Replica,
+    before: readonly PerformanceEntry[] = [],
+  ): {
     tripwire: FillDeps['tripwire'];
     stray: () => void;
   } {
@@ -850,7 +854,10 @@ describe('runFill on the route of app.a1e43722', () => {
         return undefined;
       }
     }
-    const tripwire = startTripwire(Timeline);
+    const tripwire = startTripwire(Timeline, {
+      entries: () => before,
+      clock: () => performance.now(),
+    });
     const sent = { reads: 0, polls: 0 };
     const send = (name: string, times: number) => {
       const entries = Array.from({ length: times }, () => resourceEntry(name));
@@ -868,6 +875,7 @@ describe('runFill on the route of app.a1e43722', () => {
           sync();
           return tripwire.count();
         },
+        quiet: tripwire.quiet,
         stop: tripwire.stop,
       },
       stray: () => {
@@ -1007,15 +1015,24 @@ describe('runFill on the route of app.a1e43722', () => {
     expect(page.counters.reads).toBe(2);
   });
 
-  // The press that starts a run can be the click that focuses the window, which can start
-  // a request of the page's own that ends a moment later, counted as the tripwire counts
-  // it, at its end.
-  it('waits out a request the focusing press started, then fills', async () => {
+  // A request that ended just before the press, such as the reads of a panel that mounted
+  // again, says the page is busy, and another can end a moment later, counted as the
+  // tripwire counts it, at its end.
+  function endedAgo(name: string, ms: number): PerformanceEntry {
+    // Test only: a plain object standing in for a resource entry, which jsdom lacks.
+    return {
+      initiatorType: 'xmlhttprequest',
+      name,
+      responseEnd: performance.now() - ms,
+    } as unknown as PerformanceEntry;
+  }
+
+  it('waits out a busy page before it first acts, then fills', async () => {
     const setupOf = setup([SINGLE]);
     const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
     replica = page;
     page.configure({ delay: 30, catalog: setupOf.catalog });
-    const timeline = requests(page);
+    const timeline = requests(page, [endedAgo(STRAY_NAME, 10)]);
     setTimeout(timeline.stray, 60);
     const outcome = await runFill({
       ...deps(setupOf),
@@ -1025,6 +1042,32 @@ describe('runFill on the route of app.a1e43722', () => {
     expect(outcome).toEqual({ status: 'done', filled: 1 });
     expect(page.counters.reads).toBe(1);
   });
+
+  it.each([
+    ['no request', []],
+    ['a request that ended a while ago', [endedAgo(STRAY_NAME, 500)]],
+    ['a period check just now', [endedAgo(PERIOD_NAME, 5)]],
+  ])(
+    'acts at once on a page with %s before the press',
+    async (_name, before) => {
+      const setupOf = setup([SINGLE]);
+      const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
+      replica = page;
+      page.configure({ delay: 30, catalog: setupOf.catalog });
+      const started = Date.now();
+      let entered = Number.POSITIVE_INFINITY;
+      const outcome = await runFill({
+        ...deps(setupOf, (_subject, step) => {
+          if (step === 'enter') entered = Date.now();
+        }),
+        tripwire: requests(page, before).tripwire,
+        timing: { ...QUIET, quiet: 400 },
+      });
+      expect(outcome).toEqual({ status: 'done', filled: 1 });
+      // Well inside the quiet spell, which it did not wait for.
+      expect(entered - started).toBeLessThan(200);
+    },
+  );
 
   it('still stops on a request that ends after KCP first acts', async () => {
     const setupOf = setup([SINGLE]);
@@ -1060,6 +1103,7 @@ describe('runFill on the route of app.a1e43722', () => {
           if (page.state.list.length === 1) extra = 1;
           return value;
         },
+        quiet: () => true,
         stop: () => undefined,
       },
     });
