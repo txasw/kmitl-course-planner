@@ -22,34 +22,7 @@ import {
   type Bundle,
   type ModuleScope,
 } from './module.ts';
-
-/** The page components KCP reads or acts on, by the name the host gives each. */
-export const COMPONENT_PARTS = {
-  route: 'PreRegistration',
-  header: 'RegistrationHeader',
-  periods: 'RegistrationPeriods',
-  panel: 'PreRegistrationPanel',
-  addSubject: 'PreRegisAddSubject',
-  patternTable: 'PatternTable',
-  subjectDialog: 'SubjectDialog',
-  stepper: 'PreRegisStepper',
-  consent: 'PreRegisConfirmConsent',
-  flowChart: 'PreRegisFlowChart',
-  complete: 'PreRegisComplete',
-} as const;
-
-export type ComponentPart = keyof typeof COMPONENT_PARTS;
-
-export const PART_IDS = [
-  ...(Object.keys(COMPONENT_PARTS) as ComponentPart[]),
-  'gradeDialog',
-  'periodCheck',
-  'client',
-  'writes',
-  'labels',
-] as const;
-
-export type PartId = (typeof PART_IDS)[number];
+import { COMPONENT_PARTS, type ComponentPart, type PartId } from './partIds.ts';
 
 export interface LocatedParts {
   module: ModuleScope;

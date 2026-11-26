@@ -18,7 +18,7 @@ import {
 } from './locate.ts';
 import { catalogOpens, valueIndex } from './labels.ts';
 import { readBundle, type Bundle, type Span } from './module.ts';
-import { COMPONENT_PARTS, type PartId } from './parts.ts';
+import { COMPONENT_PARTS, type PartId } from './partIds.ts';
 import { writeReferences } from './writes.ts';
 
 export interface Probe {

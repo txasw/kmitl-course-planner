@@ -8,7 +8,8 @@
 import { sha256 } from './digest.ts';
 import { labelsText } from './labels.ts';
 import { readBundle, type Bundle } from './module.ts';
-import { PART_IDS, locateParts, type PartId } from './parts.ts';
+import { PART_IDS, type PartId } from './partIds.ts';
+import { locateParts } from './parts.ts';
 import { TokenError } from './tokens.ts';
 import { WRITE_DIGESTS, writeReferences } from './writes.ts';
 

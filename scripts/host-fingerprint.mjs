@@ -14,7 +14,7 @@ import {
   compareFingerprint,
   fingerprintScript,
 } from '../src/lib/regis/fingerprint/fingerprint.ts';
-import { PART_IDS } from '../src/lib/regis/fingerprint/parts.ts';
+import { PART_IDS } from '../src/lib/regis/fingerprint/partIds.ts';
 import { PROBES } from '../src/lib/regis/fingerprint/probes.ts';
 import { RECORDED_BUILDS } from '../src/lib/regis/fingerprint/recorded.ts';
 import { WRITE_DIGESTS } from '../src/lib/regis/fingerprint/writes.ts';
