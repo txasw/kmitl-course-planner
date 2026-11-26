@@ -11,10 +11,10 @@ import type {
 // whose page wraps the same panel in a header, a ticking period countdown, and a period
 // check that polls on a timer and on a focus and can unmount or remount the panel with
 // no navigation. The observer reads the page through the new route and follows the panel
-// leaving and coming back; a period check that lands in a run stops it as a request of
-// the page's own, and the student's next press finishes it. Every spec ends by proving no
-// control outside the allowlist got a press or an event, nothing was written, and KCP
-// sent no request of its own.
+// leaving and coming back; a period check that lands in a run lets it go on (owner ruling
+// of 2026-11-26), while any other request of the page's own stops it, and the student's
+// next press finishes it. Every spec ends by proving no control outside the allowlist got
+// a press or an event, nothing was written, and KCP sent no request of its own.
 
 declare global {
   interface Window {
@@ -95,6 +95,15 @@ async function focusWindow(page: Page): Promise<void> {
   await page.evaluate(() => {
     window.dispatchEvent(new Event('focus'));
   });
+}
+
+/** The page sends a GET of the host API with this function, as a request of its own. */
+async function sendPageRequest(page: Page, fn: string): Promise<void> {
+  await page.evaluate((name) => {
+    const request = new XMLHttpRequest();
+    request.open('GET', `/api/?function=${name}&level_id=1`);
+    request.send();
+  }, fn);
 }
 
 async function expectNothingForbidden(page: Page): Promise<void> {
@@ -186,7 +195,46 @@ test('reads the page through the new route and follows the panel leaving', async
   expect(mock.apiCalls()).toEqual([]);
 });
 
-test('stops when the period check lands in a run, and a fresh press finishes', async ({
+test('goes on when the period check lands in a run', async ({
+  context,
+  mock,
+  serviceWorker,
+}) => {
+  const page = await openPlanner(context);
+  // The check runs every second on its timer while the host takes three seconds to read
+  // the subject, so several land in the run, and a focus and a visibility change add more.
+  const sections = await openRoute(
+    page,
+    serviceWorker,
+    [FIRST],
+    { delay: 3000 },
+    1000,
+  );
+  mock.clearApiCalls();
+  await pressAddForMe(page);
+  await expect(card(page)).toHaveAttribute('data-fill', 'running');
+  await page.waitForFunction(() => window.replica.state.add.loading);
+  const before = await page.evaluate(() => window.replica.counters.polls);
+  await focusWindow(page);
+  await page.evaluate(() => {
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(card(page)).toHaveAttribute('data-fill', 'done', {
+    timeout: 15_000,
+  });
+  expect(
+    await page.evaluate(() => window.replica.counters.polls),
+  ).toBeGreaterThanOrEqual(before + 3);
+  await expect(page.locator('[data-fill-stop]')).toHaveCount(0);
+  expect(await listed(page)).toEqual([`${FIRST} ${sections[FIRST] ?? ''}`]);
+  expect(await page.evaluate(() => window.replica.counters.reads)).toBe(1);
+  await expectNothingForbidden(page);
+  // The page's period checks reach the server under their own name and are not
+  // listed, so the log still shows KCP sent no request of its own.
+  expect(mock.apiCalls()).toEqual([]);
+});
+
+test('stops when another page request lands in a run, and a fresh press finishes', async ({
   context,
   mock,
   serviceWorker,
@@ -198,9 +246,10 @@ test('stops when the period check lands in a run, and a fresh press finishes', a
   mock.clearApiCalls();
   await pressAddForMe(page);
   await expect(card(page)).toHaveAttribute('data-fill', 'running');
-  // The subject is entered and the host is still reading it when the check fires.
+  // The subject is entered and the host is still reading it when the page sends a GET
+  // whose function only starts with the period check's name.
   await page.waitForFunction(() => window.replica.state.add.loading);
-  await focusWindow(page);
+  await sendPageRequest(page, 'check-registration-datetime-x');
   const stop = page.locator('[data-fill-stop="pageRequest"]');
   await expect(stop).toHaveText(
     'หน้าลงทะเบียนส่งคำขอของตัวเอง KCP จึงหยุดไว้เพื่อความปลอดภัย กด เพิ่มให้ เพื่อทำต่อ',
@@ -224,10 +273,11 @@ test('stops when the period check lands in a run, and a fresh press finishes', a
   expect(await listed(page)).toEqual([`${FIRST} ${sections[FIRST] ?? ''}`]);
   expect(await page.evaluate(() => window.replica.counters.reads)).toBe(1);
   await expectNothingForbidden(page);
-  expect(mock.apiCalls()).toEqual([]);
+  // The one request listed is the page's own near miss, not one KCP sent.
+  expect(mock.apiCalls()).toEqual(['check-registration-datetime-x']);
 });
 
-test('goes on with Add all from the first subject not yet added', async ({
+test('Add all goes on through a period check and adds every subject', async ({
   context,
   mock,
   serviceWorker,
@@ -246,6 +296,41 @@ test('goes on with Add all from the first subject not yet added', async ({
     SECOND,
   );
   await focusWindow(page);
+  await expect(card(page)).toHaveAttribute('data-fill', 'done', {
+    timeout: 15_000,
+  });
+  await expect(page.locator('[data-fill-stop]')).toHaveCount(0);
+  expect(
+    await page.evaluate(() => window.replica.counters.polls),
+  ).toBeGreaterThanOrEqual(1);
+  expect(await listed(page)).toEqual(
+    SUBJECTS.map((id) => `${id} ${sections[id] ?? ''}`),
+  );
+  expect(await page.evaluate(() => window.replica.counters.reads)).toBe(2);
+  await expectNothingForbidden(page);
+  expect(mock.apiCalls()).toEqual([]);
+});
+
+test('Add all goes on from the first subject not yet added after a stop', async ({
+  context,
+  mock,
+  serviceWorker,
+}) => {
+  const page = await openPlanner(context);
+  const sections = await openRoute(page, serviceWorker, SUBJECTS, {
+    delay: 1500,
+  });
+  mock.clearApiCalls();
+  await pressAddAll(page);
+  await expect(card(page)).toHaveAttribute('data-fill', 'running');
+  // The first subject is added, and the page sends a request of its own while the host
+  // reads the second.
+  await page.waitForFunction(
+    (id) =>
+      window.replica.state.add.value === id && window.replica.state.add.loading,
+    SECOND,
+  );
+  await sendPageRequest(page, 'get-student-data');
   await expect(page.locator('[data-fill-stop="pageRequest"]')).toBeVisible({
     timeout: 15_000,
   });
@@ -264,7 +349,7 @@ test('goes on with Add all from the first subject not yet added', async ({
   // second from the field.
   expect(await page.evaluate(() => window.replica.counters.reads)).toBe(2);
   await expectNothingForbidden(page);
-  expect(mock.apiCalls()).toEqual([]);
+  expect(mock.apiCalls()).toEqual(['get-student-data']);
 });
 
 test('stops when the panel unmounts under a run, and fills it once it is back', async ({

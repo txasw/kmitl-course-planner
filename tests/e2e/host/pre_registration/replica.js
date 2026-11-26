@@ -1065,8 +1065,9 @@ export function mountReplica(doc, overrides = {}, options = {}) {
   }
 
   // The build's period check: skipped while the page is hidden, a GET of the period
-  // endpoint, whose answer may rewrite the period. A request is counted when it starts,
-  // or, as the fill tripwire's resource entries are, when its response ends.
+  // endpoint at the address the host's API client sends it to, whose answer may rewrite
+  // the period. A request is counted when it starts, or, as the fill tripwire's resource
+  // entries are, when its response ends.
   function poll() {
     if (doc.hidden) return;
     if (!config.countAtEnd) counters.polls += 1;
@@ -1084,7 +1085,7 @@ export function mountReplica(doc, overrides = {}, options = {}) {
     const request = new XMLHttpRequest();
     request.open(
       'GET',
-      `/replica/check-registration-datetime?level_id=1&year=${state.term.year}&semester=${state.term.semester}`,
+      `/api/?function=check-registration-datetime&level_id=1&year=${state.term.year}&semester=${state.term.semester}`,
     );
     request.addEventListener('loadend', answer);
     request.send();
