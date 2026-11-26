@@ -214,3 +214,15 @@ stays mounted and can count a request when its response ends; ADR-0078 records w
 **Labels.** `scripts/host-labels.mjs` was run again on `app.a1e43722.js`. It prints the labels of
 `app.020e81ed.js` and one more pair, Try again and ลองอีกครั้ง, the retry button of the registration
 periods section. The observer reads neither, and the fill denylist holds both (ADR-0078).
+
+## Amendment, 2026-11-26: the staff only redeploy app.ba450963
+
+The host deployed `app.ba450963.js` on 2026-11-26 at 03:21 GMT beside the same
+`chunk-vendors.7ab4925e.js`, and the helper turned Add for me off on it as designed. Compared with
+`app.a1e43722.js` with the minified names normalised, the only changes are on staff pages: a staff
+tool for acting as another account was renamed and its page gained a student lookup, and a staff
+report gained a department filter. The `PreRegistration` route with its header, periods and period
+check, the panel, the add subject card, the stepper, the complete, consent, and flow chart steps,
+every reference to a registration write endpoint, and the output of `scripts/host-labels.mjs` are
+the same, so the pair joins the tested list under the exact two name gate of ruling 20A. The
+replica keeps the script name `app.a1e43722.js`, since the route it renders did not change.
