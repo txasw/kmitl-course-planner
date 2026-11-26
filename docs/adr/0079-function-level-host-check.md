@@ -33,7 +33,8 @@ the helper asks the background worker once per document, sending only the two pu
 name is held to its pattern, `^app\.[0-9a-f]{8}\.js$` and `^chunk-vendors\.[0-9a-f]{8}\.js$`, in
 the message schema and again in the worker. The worker builds the address itself on
 `https://regis.reg.kmitl.ac.th/js/` and never takes an address from the page. It makes one GET
-with no cookie, no referrer, and no redirect, with a 20 second timeout and no retry, refuses a
+with no cookie, no referrer, and no redirect, with a 20 second timeout and no retry within the
+visit, refuses a
 body over 8 MB or one that is not UTF-8, and reads the body as text. It never evaluates it.
 
 ### The parts
@@ -43,10 +44,12 @@ the companion depends on: the PreRegistration route, its RegistrationHeader, its
 RegistrationPeriods, and the mixin it polls the period check with; the PreRegistrationPanel; the
 PreRegisAddSubject card with its PatternTable and SubjectDialog children; the grade not announced
 dialog inside the card, by the flag that opens it; the PreRegisStepper; the consent, flow chart,
-and complete steps; the API client class that holds the host's request instance, whose `get` puts
-the function in the query and whose `create` puts it in the body, which the tripwire relies on
-(ADR-0078, amendment of 2026-11-26); every method that names a registration write endpoint; and
-the labels. The label part is the value in both languages of every message key a part names,
+and complete steps; the API client class that holds the host's request instance, whose `get` and
+`delete` put the function in the query and whose `create` puts it in the body, so no write address
+is the period check's exact address that the tripwire exempts (ADR-0078, amendments of
+2026-11-26); every method that names a registration write endpoint; and
+the store with every module it takes, the module setup, and the labels. The label part is the
+value in both languages of every message key a page part names,
 which holds the fixed labels the observer matches, and every clickable registration label exactly
 as `scripts/host-labels.mjs` prints it for the denylist, through the same shared reader.
 
@@ -97,8 +100,12 @@ there is no fingerprint; production renders nothing there.
 The request reads a public static asset the page itself just loaded, from the worker, the single
 network authority. It carries no student data: no cookie, no referrer, no identity, and only the
 script name the page already published. It is no host write and touches no registration endpoint.
-It runs once per new build per browser, is never polled and never retried, and is served by the
-host's static file server rather than its registration API. Nothing runs in the page's JavaScript
+It runs once per new build per browser and is never polled. A request that did not complete is
+tried again only on a visit an hour later, and a build is read again only after eight newer builds
+pushed its kept result out. It is served by the host's static file server rather than its
+registration API. It is a request KCP starts by itself on a registration page, an exception to the
+quiet mode of ADR-0075, which its amendment of 2026-11-26 records as an open question for the
+owner: on arrival, as built, or only on the student's press. Nothing runs in the page's JavaScript
 world.
 
 ## Alternatives
@@ -135,35 +142,39 @@ world.
 
 ## Fingerprints of the tested builds
 
-The four tested builds share two fingerprints. `app.454d9e95.js` and `app.020e81ed.js` read the
-same in every part, and so do `app.a1e43722.js` and `app.ba450963.js`. The second pair adds the
-header, the periods, and the period check, and its route and labels differ from the first; every
-other part reads the same in all four. Hashes are shortened here; the table holds them in full.
+The four tested builds share two fingerprints, at fingerprint version 3. `app.454d9e95.js` and
+`app.020e81ed.js` read the same in every part, and so do `app.a1e43722.js` and `app.ba450963.js`.
+The second pair adds the header, the periods, and the period check, and its route and labels differ
+from the first; every other part, the store and the setup included, reads the same in all four.
+Hashes are shortened here; the table holds them in full.
 
 | Part          | 454d9e95, 020e81ed | a1e43722, ba450963 |
 | :------------ | :----------------- | :----------------- |
-| route         | 4be570d7           | 84ebeb09           |
-| header        | absent             | b5437dad           |
-| periods       | absent             | f978b839           |
-| periodCheck   | absent             | e64bc851           |
-| panel         | d2ae446e           | d2ae446e           |
-| addSubject    | bf553712           | bf553712           |
-| patternTable  | bc0fff7b           | bc0fff7b           |
-| subjectDialog | 695b7657           | 695b7657           |
-| stepper       | eec9a04b           | eec9a04b           |
-| consent       | 396c475a           | 396c475a           |
-| flowChart     | 7a580b7d           | 7a580b7d           |
-| complete      | f6ed3d07           | f6ed3d07           |
-| gradeDialog   | 8ae273a4           | 8ae273a4           |
-| client        | befe3951           | befe3951           |
+| route         | d28d385c           | 976dfe43           |
+| header        | absent             | d8ff3da2           |
+| periods       | absent             | 5f915084           |
+| panel         | 700d0271           | 700d0271           |
+| addSubject    | 04f1ed02           | 04f1ed02           |
+| patternTable  | 7b3d4fdf           | 7b3d4fdf           |
+| subjectDialog | e1deeec5           | e1deeec5           |
+| stepper       | 17a9a9ff           | 17a9a9ff           |
+| consent       | 1a07dfcc           | 1a07dfcc           |
+| flowChart     | 7e71a8bc           | 7e71a8bc           |
+| complete      | 9b5de63e           | 9b5de63e           |
+| gradeDialog   | 1aeed084           | 1aeed084           |
+| periodCheck   | absent             | bd0e9916           |
+| client        | c101a0af           | c101a0af           |
 | writes        | 4566a4d6           | 4566a4d6           |
+| store         | ebbcfaee           | ebbcfaee           |
+| setup         | 4d540e7e           | 4d540e7e           |
 | labels        | 33a230da           | a5a9e7fb           |
 
 On each of the four bundles, `--prove` shows an added option on every page component, a button of
 the add subject card calling another method, an added call in one of its methods, a changed
 attribute of the grade not announced dialog, a changed number in the period check and in the API
-client, a changed write endpoint name, and a changed English label of the add button each change
-the part they are in.
+client, a changed write endpoint name, a plugin and an action call added to the store, a global
+mixin added as a statement and inside a declaration, the pre registration route moved, and a changed
+English label of the add button each change the part they are in.
 
 ## Tests
 
@@ -183,3 +194,33 @@ serves a script with no parts as one that could not be read, and sees each build
 
 The host changes its bundler or splits its pages into chunks, the vendor script changes, the host
 starts serving its scripts from another folder, or the owner asks to cover the vendor bundle.
+
+## Amendment, 2026-11-26: review fixes to the host check
+
+A review found host code the parts did not reach, and three smaller faults.
+
+- **The store and the module setup.** Every part named the host store and stopped there, and
+  nothing read the store's modules, the plugins and global mixins installed as the module loads,
+  the router guard, or the root instance with the App, its bar, and its drawer. A store plugin that
+  posts on every mutation, a global mixin that watches the subject list, and an edited token action,
+  which the API client dispatches on every request, each read as verified on `app.a1e43722.js`. Two
+  parts now cover that code. The store part follows the one store definition with every module it
+  takes. The setup part reads every top level statement of the module and every top level
+  declaration whose value installs a mixin, a plugin, a directive, a filter, a guard, a store hook,
+  or a root as it is made, and the route entries that name a page part. The route table and the
+  lists of route names the guard checks are boundaries of the setup, since the staff pages they list
+  change often; reading them would turn fill off on every staff redeploy again, and what the guard
+  does with them is in the setup. The store and the setup name no label KCP matches, so their message
+  keys stay out of the label part. Each new part has probes, and both hold on all four bundles.
+- **Short globals.** A free name under four letters that the module does not define, a global or a
+  parameter of the bundle wrapper, took a label by first use and had no line saying what it was, so
+  `new Set` and `new Map`, or `top` and `URL`, read the same. Every such name is now written as
+  written with a mark that keeps it apart from the binding labels.
+- **A reader fault.** An exception from the reader was kept as a failed request, so the same
+  script, whose name names its content, was downloaded again every hour. It is now kept as
+  unreadable; a release that changes the reader moves the fingerprint version, which drops it.
+- **While the check runs.** The fill gate has a checking state with its own sentence, recorded in
+  the review amendment of ADR-0078.
+
+The fingerprint version moved to 3, the tested builds and the replica were recorded again, and
+`app.ba450963.js` still reads the same as `app.a1e43722.js` in every part.
