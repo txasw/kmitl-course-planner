@@ -150,6 +150,11 @@ describe('startTripwire', () => {
       'http://regis.reg.kmitl.ac.th/api/?function=check-registration-datetime',
     ],
     ['a relative name', '/api/?function=check-registration-datetime'],
+    ['an array function', `${PERIOD}&function[]=get-config`],
+    ['an encoded array function', `${PERIOD}&function%5B%5D=get-config`],
+    ['a function key in capitals', `${PERIOD}&FUNCTION=get-config`],
+    ['a key the period check never sends', `${PERIOD}&student_id=1`],
+    ['a key sent twice', `${PERIOD}&year=2570`],
   ])('still counts %s', (_name, name) => {
     expect(isPeriodCheck(name)).toBe(false);
     const { tripwire } = observe([entry('xmlhttprequest', name)]);
@@ -209,6 +214,11 @@ describe('startTripwire', () => {
     expect(isPeriodCheck(`${API}?function=check-registration-datetime`)).toBe(
       true,
     );
+    expect(isPeriodCheck(`${PERIOD}&sub_level_id=2`)).toBe(true);
+    // An encoded name is the same request.
+    expect(
+      isPeriodCheck(`${API}?func%74ion=check-registration%2Ddatetime`),
+    ).toBe(true);
   });
 
   it('counts nothing where the browser has no observer', () => {
