@@ -36,6 +36,11 @@
  * scripts/host-labels.mjs, and every reference to a registration write endpoint are the
  * same. The redeploy renamed a staff tool and added a staff student lookup and a staff
  * department filter only.
+ *
+ * Beside this list, the host check (ADR-0079) treats as tested a build whose vendor script
+ * is one of these and whose app script reads, part by part, as one of these builds, by the
+ * fingerprints in fingerprint/recorded.ts. This list stays the fast path, which sends
+ * nothing.
  */
 export const TESTED_BUILDS: readonly (readonly [string, string])[] = [
   ['app.454d9e95.js', 'chunk-vendors.7ab4925e.js'],
