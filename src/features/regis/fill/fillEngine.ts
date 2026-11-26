@@ -64,7 +64,10 @@ export interface FillTiming {
   answer: number;
   /** How long any other host change may take. */
   settle: number;
-  /** How long the condition shows in the dock before KCP acknowledges the dialog. */
+  /**
+   * How long KCP's own UI must have shown the condition before KCP acknowledges the
+   * dialog (owner answer 5B), waited for at most `settle`.
+   */
   acknowledge: number;
   /**
    * How long the request count must stay the same before KCP first acts in a run,
@@ -84,7 +87,7 @@ export const FILL_TIMING: FillTiming = {
   poll: 100,
   answer: 60_000,
   settle: 3000,
-  acknowledge: 1500,
+  acknowledge: 750,
   quiet: 1500,
 };
 
@@ -298,6 +301,26 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
     }
   }
 
+  // The condition must be on screen in KCP, and have been for the whole of the least
+  // time, before KCP acknowledges the dialog. KCP's card renders in its own root, which
+  // the page watch does not see, so this wait reads its clock and ends the moment the
+  // least time is up. The helper keeps the condition it read for the subject after the
+  // dialog closes, so this is the least time the student can read it, not the only time.
+  // A collapsed card, the list, another subject in focus, or the planner over the card
+  // leaves the dialog for the student to read and close.
+  async function conditionShown(subjectId: string): Promise<void> {
+    const until = now() + timing.settle;
+    for (;;) {
+      if (deps.stopRequested()) stop('stopped');
+      read();
+      const since = deps.conditionShownSince(subjectId);
+      const left = since === null ? null : since + timing.acknowledge - now();
+      if (left !== null && left <= 0) return;
+      if (now() > until) stop('dialogOpen');
+      await sleep(Math.min(left ?? timing.poll, timing.poll));
+    }
+  }
+
   async function fillOne(target: FillTarget): Promise<boolean> {
     if (!acted && !quieted) {
       if (!tripwire.quiet(timing.quiet)) await quietPage();
@@ -349,14 +372,7 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
         'conditional',
         observation.dialog.prerequisites,
       );
-      await sleep(timing.acknowledge);
-      // The condition must still be on screen in KCP and have been for most of the wait.
-      // A collapsed card, the list, another subject in focus, or the planner over the
-      // card leaves the dialog for the student to read and close.
-      const since = deps.conditionShownSince(target.subjectId);
-      if (since === null || now() - since < timing.acknowledge / 2) {
-        stop('dialogOpen');
-      }
+      await conditionShown(target.subjectId);
       await act(() => {
         const button = resolveAcknowledge(doc);
         return button === null ? null : pressAcknowledge(button);
