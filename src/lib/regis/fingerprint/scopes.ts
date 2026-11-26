@@ -251,6 +251,8 @@ class Binder {
 export interface ScopeTable {
   /** What the name token at `index` is, for the fingerprint. */
   role: (index: number) => NameRole;
+  /** Whether the token at `index` sits in a function, so it runs only when called. */
+  nested: (index: number) => boolean;
 }
 
 /** The scopes and bindings of the tokens in [start, end). */
@@ -355,6 +357,7 @@ export function analyseScopes(
     }
   }
   return {
+    nested: (index) => holderOf(index) !== root,
     role: (index) => {
       const token = tokens[index];
       if (
