@@ -14,25 +14,51 @@ import { generate } from 'selfsigned';
 import { denseCatalogJson } from './denseCatalog';
 
 const FIXTURE_DIR = resolve(process.cwd(), 'tests/fixtures');
+const HOST_CHECK_REPLICA = resolve(
+  FIXTURE_DIR,
+  'host-fingerprint/app.replica.js',
+);
 const REPLICA_DIR = resolve(process.cwd(), 'tests/e2e/host/pre_registration');
 
 // The host build names the observer was tested against, and a name it was not.
 const TESTED_APP = '454d9e95';
 const TESTED_VENDOR = '7ab4925e';
-// The app builds a spec may ask for by name: one KCP was not tested with, and the build
-// of 2026-11-25 09:53 GMT, whose route with its periods and its period check the replica
-// renders when served under its name.
+// The app builds a spec may ask for by name: one KCP was not tested with, the build of
+// 2026-11-25 09:53 GMT, whose route with its periods and its period check the replica
+// renders when served under its name, and two names KCP was never tested with whose app
+// script the host check reads (ADR-0079): one whose parts are the replica bundle's, which
+// the debug build records, and one with a label changed.
 const NAMED_APPS: Readonly<Record<string, string>> = {
   untested: '00000000',
   a1e43722: 'a1e43722',
+  verified: 'c0ffee01',
+  changed: 'c0ffee02',
 };
+
+/**
+ * The app script the worker's host check reads, told from the page's own script load by
+ * its fetch destination: the replica bundle under the verified name, the same with one
+ * label changed under the changed name, and the boot script, which has no parts, under
+ * any other name.
+ */
+function checkedScript(hash: string): string {
+  const replica = readFileSync(HOST_CHECK_REPLICA, 'utf8');
+  if (hash === NAMED_APPS.verified) return replica;
+  if (hash === NAMED_APPS.changed) {
+    return replica.replace('continuous:"Continue"', 'continuous:"Next"');
+  }
+  return readFileSync(resolve(REPLICA_DIR, 'boot.js'), 'utf8');
+}
 
 /**
  * The static pre registration replica and its scripts, or null for any other path. The
  * page names its scripts like the host build, the tested one unless the query names
  * another build, so the observer's build gate sees the names it compares.
  */
-function replicaFile(url: URL): { type: string; body: string } | null {
+function replicaFile(
+  url: URL,
+  destination: string,
+): { type: string; body: string } | null {
   const js = 'text/javascript';
   if (url.pathname === '/replica/pre_registration') {
     const app = NAMED_APPS[url.searchParams.get('build') ?? ''] ?? TESTED_APP;
@@ -47,10 +73,14 @@ function replicaFile(url: URL): { type: string; body: string } | null {
       body: readFileSync(resolve(REPLICA_DIR, 'replica.js'), 'utf8'),
     };
   }
-  if (/^\/js\/app\.[0-9a-f]{8}\.js$/.test(url.pathname)) {
+  const app = /^\/js\/app\.([0-9a-f]{8})\.js$/.exec(url.pathname);
+  if (app !== null) {
     return {
       type: js,
-      body: readFileSync(resolve(REPLICA_DIR, 'boot.js'), 'utf8'),
+      body:
+        destination === 'script'
+          ? readFileSync(resolve(REPLICA_DIR, 'boot.js'), 'utf8')
+          : checkedScript(app[1] ?? ''),
     };
   }
   if (/^\/js\/chunk-vendors\.[0-9a-f]{8}\.js$/.test(url.pathname)) {
@@ -104,6 +134,8 @@ export interface MockServer {
    * page itself calls no API here, so each one came from the extension. */
   apiCalls: () => readonly string[];
   clearApiCalls: () => void;
+  /** Every app script the extension read for the host check, by path, in order. */
+  scriptReads: () => readonly string[];
   close: () => Promise<void>;
 }
 
@@ -112,6 +144,7 @@ export async function startMockServer(): Promise<MockServer> {
   let apiFailure = false;
   let freshSynthetic = false;
   const calls: string[] = [];
+  const scriptReads: string[] = [];
 
   const server: Server = createServer(
     { key: pems.private, cert: pems.cert },
@@ -293,7 +326,11 @@ export async function startMockServer(): Promise<MockServer> {
           }, wait);
           return;
         }
-        const replica = replicaFile(url);
+        const destination = req.headers['sec-fetch-dest'] ?? '';
+        const replica = replicaFile(url, destination);
+        if (url.pathname.startsWith('/js/app.') && destination !== 'script') {
+          scriptReads.push(url.pathname);
+        }
         res.writeHead(200, { 'content-type': replica?.type ?? 'text/html' });
         res.end(replica?.body ?? HOST_HTML);
         return;
@@ -327,6 +364,7 @@ export async function startMockServer(): Promise<MockServer> {
     clearApiCalls: () => {
       calls.length = 0;
     },
+    scriptReads: () => [...scriptReads],
     close: () =>
       new Promise<void>((resolveClose, rejectClose) => {
         server.close((error) => {
