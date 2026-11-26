@@ -34,6 +34,8 @@ export const RECORDED_BUILDS: readonly RecordedBuild[] = [
         'c101a0afde53f6cf5e851c500d9ecad99e7160674f3f7699c16d9983b90b35a1',
       writes:
         '4566a4d6a8ea5c3a35bfef4d1b3b4a32bae4659469541d0a93c2c239898dcb76',
+      store: 'ebbcfaeeacfef4fc23d171533b36c39654373b1c98f6e7d3a12b914bc601c074',
+      setup: '4d540e7e6ded2579880e7a27fced36a5a10eadfff942df5d0f3bf73a0fbdb0cb',
       labels:
         '33a230da4818ec61e35dee38f078c94a79f88a5e5b23ece7e148f29e5c00135b',
     },
@@ -69,6 +71,8 @@ export const RECORDED_BUILDS: readonly RecordedBuild[] = [
         'c101a0afde53f6cf5e851c500d9ecad99e7160674f3f7699c16d9983b90b35a1',
       writes:
         '4566a4d6a8ea5c3a35bfef4d1b3b4a32bae4659469541d0a93c2c239898dcb76',
+      store: 'ebbcfaeeacfef4fc23d171533b36c39654373b1c98f6e7d3a12b914bc601c074',
+      setup: '4d540e7e6ded2579880e7a27fced36a5a10eadfff942df5d0f3bf73a0fbdb0cb',
       labels:
         'a5a9e7fb69629a7eb389145f300d04c6310242035c17594e135ff74a5c2f4e35',
     },

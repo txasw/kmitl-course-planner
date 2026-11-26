@@ -1,9 +1,9 @@
 // The parts of the host bundle the registration companion depends on, and the canonical
 // text of each (ADR-0079): the page components, the grade not announced dialog, the
 // period check, the API client, every method that names a registration write endpoint,
-// and the labels. The host's message catalogs, its store, and each other part are
-// boundaries: a part that reaches one names it and does not follow it, so a change
-// shows in the part it belongs to.
+// the store, the module setup, and the labels. The host's message catalogs, its store,
+// and each other part are boundaries: a part that reaches one names it and does not
+// follow it, so a change shows in the part it belongs to.
 
 import {
   catalogNames,
@@ -23,6 +23,7 @@ import {
   type ModuleScope,
 } from './module.ts';
 import { COMPONENT_PARTS, type ComponentPart, type PartId } from './partIds.ts';
+import { setupBoundary, setupRoots, storeSpan } from './setup.ts';
 
 export interface LocatedParts {
   module: ModuleScope;
@@ -58,7 +59,8 @@ export function locateParts(
   if (catalogs === null) return null;
   const shared = new Map<string, string>();
   for (const name of catalogs) shared.set(name, 'catalog');
-  for (const name of storeNames(bundle, module)) shared.set(name, 'store');
+  const stores = storeNames(bundle, module);
+  for (const name of stores) shared.set(name, 'store');
   const boundaryFor = (own: ComponentPart | null): Boundary => {
     const boundary = new Map(shared);
     for (const [part, component] of components) {
@@ -96,6 +98,25 @@ export function locateParts(
   if (client !== null)
     write('client', canonicalText(bundle, module, [client], boundaryFor(null)));
   write('writes', writesText(bundle, module, writes, boundaryFor(null)));
+  const store = storeSpan(module, stores);
+  if (store !== null)
+    write('store', canonicalText(bundle, module, [store], boundaryFor(null)));
+  const pages = new Set<string>();
+  for (const component of components.values()) {
+    for (const name of component.names) pages.add(name);
+  }
+  const setup = setupRoots(bundle, module, pages);
+  if (setup.roots.length > 0) {
+    write(
+      'setup',
+      canonicalText(
+        bundle,
+        module,
+        setup.roots,
+        setupBoundary(boundaryFor(null), setup),
+      ),
+    );
+  }
   return { module, texts, catalogs };
 }
 

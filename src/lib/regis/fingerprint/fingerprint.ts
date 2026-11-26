@@ -17,7 +17,10 @@ import { WRITE_DIGESTS, writeReferences } from './writes.ts';
  * The version of the extraction and the canonical text. A change to either changes
  * every fingerprint, so the recorded table and any stored fingerprint are of a version.
  */
-export const FINGERPRINT_VERSION = 2;
+export const FINGERPRINT_VERSION = 3;
+
+/** The parts that run around the pages, whose message keys are no label KCP matches. */
+const NO_LABELS: ReadonlySet<string> = new Set(['store', 'setup']);
 
 export type Fingerprint = Partial<Record<PartId, string>>;
 
@@ -49,12 +52,16 @@ export async function partTexts(
   );
   if (located === null) return null;
   const texts: Partial<Record<PartId, string>> = { ...located.texts };
+  // The labels are the ones the pages show, so the store and the setup name none.
+  const pages = Object.entries(located.texts)
+    .filter(([part]) => !NO_LABELS.has(part))
+    .map(([, text]) => text);
   texts.labels = labelsText(
     bundle,
     located.module,
     source,
     located.catalogs,
-    Object.values(located.texts),
+    pages,
   );
   return texts;
 }
