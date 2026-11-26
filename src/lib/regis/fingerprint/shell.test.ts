@@ -93,7 +93,8 @@ describe('the shell data boundary', () => {
     const base = setupOf();
     for (const data of [
       '{nav:[{to:"home",label:"drawer.home",icon:"mdi-account",active:!1}]}',
-      '{nav:[{to:"x",label:"drawer.new",icon:"mdi-x",active:!0},{to:"home",label:"drawer.home",icon:"mdi-home",n:-1,s:null,t:`plain`,list:["a",1,!0,false]}]}',
+      '{nav:[{to:"x",label:"drawer.new",icon:"mdi-x",active:!0},{to:"home",label:"drawer.home",icon:"mdi-home",check_permission:["home",...[]],check_permission_condition:null,noti_badge:false}]}',
+      '{nav:[{to:"",label:"drawer.manual",subItems:[{href:"https://www.reg.kmitl.ac.th/storage/reg/Manual_2.pdf",target:"_blank"},{to:{name:"teach_table_selector"}}]}]}',
       '{nav:[{label:"drawer.home",subItems:[{to:"home"},...[{to:"more"}]]}]}',
     ]) {
       expect(setupOf({ data }), data).toBe(base);
@@ -127,23 +128,70 @@ describe('the shell data boundary', () => {
     );
   });
 
-  it('keeps in full a data entry that holds no pure data', () => {
+  it('keeps in full a menu entry outside the drawer vocabulary', () => {
     for (const entry of [
       '{to:"x",run:function(){return 1}}',
-      '{to:"x",run:()=>1}',
-      '{to:"x",run:g()}',
-      '{to:"x",run:N.y}',
-      '{to:"x",run:Q}',
-      '{to:"x",run:`a${1}`}',
-      '{to:"x",get run(){return 1}}',
+      '{to:"x",to2:()=>1}',
+      '{to:"x",label:g()}',
+      '{to:"x",label:N.y}',
+      '{to:"x",label:Q}',
+      '{to:"x",label:`a${1}`}',
+      '{to:"x",get label(){return 1}}',
       '{to:"x",[k]:1}',
-      '{to:"x",...q?[1]:[]}',
+      '{to:"x",...q?{a:1}:{}}',
+      // Values the render passes to Vuetify and the router, which a wrong shape turns
+      // into script or into another request.
+      '{to:"x",href:"javascript:fetch(1)"}',
+      '{to:"x",href:"https://example.com/storage/a.pdf"}',
+      '{to:"x",target:"_self"}',
+      '{to:"x/y"}',
+      '{to:{name:"pre_registration",query:{auto:"1"}}}',
+      '{to:{path:"/pre_registration"}}',
+      '{to:"x",label:"Home"}',
+      '{to:"x",icon:"fa-home"}',
+      '{to:"x",check_permission:{includes(){return!0}}}',
+      '{to:"x",check_permission:["a b"]}',
+      '{to:"x",check_permission_condition:1}',
+      '{to:"x",active:"yes"}',
+      '{to:"x",action:"submit"}',
+      '{to:"x",to:"y"}',
+      String.raw`{to:"x",label:"drawer.\u0061"}`,
+      '{to:"x",subItems:[{to:"y",onclick:"go()"}]}',
     ]) {
       const data = `{nav:[{to:"home"},${entry}]}`;
-      expect(setupOf({ data }), entry).not.toBe(
-        setupOf({ data: data.replace('"x"', '"z"') }),
-      );
       expect(setupOf({ data }), entry).toContain('nav : [ @data ,');
+    }
+  });
+
+  it('reads a choice only on a module constant written as a boolean', () => {
+    const menu = (flag: string) =>
+      `{nav:[{to:"home"},...${flag}?[{to:"staff"}]:[],{to:"a",active:${flag}?!0:!1}]}`;
+    for (const extra of [
+      'var Fl=!1;',
+      'var Fl=!0;',
+      'var Fl=true;',
+      'var Fl=!1,Fm=Fl;',
+    ]) {
+      const flag = extra.includes('Fm') ? 'Fm' : 'Fl';
+      expect(setupOf({ extra, data: menu(flag) }), extra).toContain(
+        '{ nav : @data }',
+      );
+    }
+    for (const extra of ['var Fl="x";', 'var Fl=1;', 'var Fl=[];', '']) {
+      expect(setupOf({ extra, data: menu('Fl') }), extra).not.toContain(
+        '{ nav : @data }',
+      );
+    }
+  });
+
+  it('keeps in full a spread of a named constant, which code could fill', () => {
+    for (const [extra, element] of [
+      ['var Wc={};', '{...Wc,to:"x"}'],
+      ['var Wb=[];', '...Wb'],
+      ['var Fl=!1,Wb=[];', '...Fl?Wb:[]'],
+    ] as const) {
+      const data = `{nav:[{to:"home"},${element}]}`;
+      expect(setupOf({ extra, data }), element).toContain('nav : [ @data ,');
     }
   });
 
