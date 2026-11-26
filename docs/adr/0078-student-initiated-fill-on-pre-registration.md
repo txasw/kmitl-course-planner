@@ -543,3 +543,14 @@ Only how long the run waits changed.
   subject, that no read answers early, that eight subjects finish within 2 s over their reads, that
   the grade dialog waits from 750 ms to 1350 ms, and that nothing forbidden was pressed, nothing was
   written, and KCP sent no request.
+
+## Amendment, 2026-11-26: the host check
+
+Fill no longer needs an exact tested pair of script names. ADR-0079 adds a host check: when the
+vendor script is a tested one, the worker reads the page's app script once by its exact name,
+fingerprints the parts fill depends on, and the build counts as tested when every part equals a
+recorded tested build's. Any other outcome keeps fill off with the untested build sentence, as the
+owner asked (1A). The exact list stays the fast path, and every guard here, the tripwire, the per
+step verification, and the refusal latch stay as they are. This supersedes "gated to the tested
+host builds" in the context and the first consequence's "a host redeploy turns it off until a
+release ships with the new names" for a redeploy whose parts read the same.

@@ -226,3 +226,11 @@ check, the panel, the add subject card, the stepper, the complete, consent, and 
 every reference to a registration write endpoint, and the output of `scripts/host-labels.mjs` are
 the same, so the pair joins the tested list under the exact two name gate of ruling 20A. The
 replica keeps the script name `app.a1e43722.js`, since the route it renders did not change.
+
+## Amendment, 2026-11-26: the host check
+
+The observer's tested build gate now also accepts a build the host check of ADR-0079 verified: a
+tested vendor script beside an app script whose every part reads as a recorded tested build's.
+While the check runs the observer waits rather than turning off, since an off reading lasts the
+document; a build the check does not verify turns it off as an untested build, as before. The
+anchors, labels, and drift strikes stay as they are on every build.
