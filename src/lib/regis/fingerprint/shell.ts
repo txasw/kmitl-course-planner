@@ -2,18 +2,19 @@
 // 2026-11-27). The root instance renders the App, and the App registers the bar, the
 // drawer, and the footer that wrap every page. The drawer's menu lists staff pages, which
 // the host regroups often, so the value of `nav`, the one key of the drawer's data, is a
-// boundary: each pure static literal in it (pureData.ts) is written as one word, and so
-// is the drawer's scoped style id, which vue-loader derives from the component's file.
-// Everything else stays in the fingerprint: the data of the App, the bar, and the footer,
-// whose values Vue binds onto elements, any other key of the drawer's data, which Vue
-// would set over a method or a computed value of the same name, every option, method,
-// computed value, watcher, hook, render function, handler, and directive, with every
-// literal in them, and every entry of the menu that holds a function, a call, or any name
-// that is no module constant.
+// boundary: when every entry in it is plain navigation in the drawer's own vocabulary
+// (drawerMenu.ts) it is written as one word, and otherwise each entry that is plain
+// navigation is. The drawer's scoped style id, which vue-loader derives from the
+// component's file, is written as one word too. Everything else stays in the
+// fingerprint: the data of the App, the bar, and the footer, whose values Vue binds onto
+// elements, any other key of the drawer's data, which Vue would set over a method or a
+// computed value of the same name, every option, method, computed value, watcher, hook,
+// render function, handler, and directive, and every menu entry with any other key or
+// value.
 
 import { locateComponent, text } from './locate.ts';
 import type { Bundle, ModuleScope, Replacement, Span } from './module.ts';
-import { isOpenLiteral, valueEnd, type PureContext } from './pureData.ts';
+import { menuElementEnd, menuEnd, type MenuContext } from './drawerMenu.ts';
 
 /** The components the App registers around every page, by the key it gives each. */
 const SHELL_KEYS = ['AppBar', 'Drawer', 'Footer'] as const;
@@ -168,6 +169,11 @@ export function shellComponents(
   return found;
 }
 
+function isOpenLiteral(bundle: Bundle, at: number): boolean {
+  const word = text(bundle, at);
+  return (word === '{' || word === '[') && bundle.tokens[at]?.kind === 'punct';
+}
+
 /** Whether the token just past the brackets that open at `open` is `next`. */
 function closesBefore(bundle: Bundle, open: number, next: string): boolean {
   return text(bundle, (bundle.pairs[open] ?? open) + 1) === next;
@@ -215,40 +221,6 @@ export function dataValue(bundle: Bundle, options: Span): number {
 }
 
 /**
- * Each pure literal in the data value at `value`: the value itself when pure, or else
- * each pure literal among its property values or elements, down through those that are
- * not pure, so a function inside the data keeps the entry that holds it in full.
- */
-function dataLiterals(
-  context: PureContext,
-  value: number,
-  out: Map<number, Replacement>,
-): void {
-  const { bundle } = context;
-  const end = valueEnd(context, value);
-  if (end >= 0) {
-    out.set(value, { word: '@data', end });
-    return;
-  }
-  if (!isOpenLiteral(bundle, value)) return;
-  const object = text(bundle, value) === '{';
-  const close = bundle.pairs[value] ?? value;
-  for (let at = value + 1; at < close; at += 1) {
-    if (bundle.parents[at] !== value || !isOpenLiteral(bundle, at)) continue;
-    const key = bundle.tokens[at - 2]?.kind;
-    const placed = object
-      ? text(bundle, at - 1) === ':' &&
-        (key === 'name' || key === 'string' || key === 'number') &&
-        ['{', ','].includes(text(bundle, at - 3))
-      : ['[', ','].includes(text(bundle, at - 1));
-    const past = (bundle.pairs[at] ?? at) + 1;
-    if (placed && (past === close || text(bundle, past) === ',')) {
-      dataLiterals(context, at, out);
-    }
-  }
-}
-
-/**
  * The menu of a drawer data value written `{nav:[...]}`, with no other key, or -1. Its
  * key stays in the canonical text, so a key added beside it is read in full.
  */
@@ -265,6 +237,37 @@ function menuValue(bundle: Bundle, value: number): number {
     : -1;
 }
 
+/**
+ * The runs of the menu array at `menu` written as one word: the whole array when every
+ * element is plain navigation, or else each element that is.
+ */
+function menuRuns(
+  context: MenuContext,
+  menu: number,
+  out: Map<number, Replacement>,
+): void {
+  const { bundle } = context;
+  const end = menuEnd(context, menu);
+  if (end >= 0) {
+    out.set(menu, { word: '@data', end });
+    return;
+  }
+  const close = bundle.pairs[menu] ?? menu;
+  for (let at = menu + 1; at < close;) {
+    const past = menuElementEnd(context, at);
+    const valid = past >= 0 && (past === close || text(bundle, past) === ',');
+    if (valid) out.set(at, { word: '@data', end: past });
+    let next = valid ? past : at;
+    while (
+      next < close &&
+      (text(bundle, next) !== ',' || bundle.parents[next] !== menu)
+    ) {
+      next += 1;
+    }
+    at = next + 1;
+  }
+}
+
 /** What the setup part writes as one word inside the App shell: the drawer's menu. */
 export function shellReplacements(
   bundle: Bundle,
@@ -276,7 +279,7 @@ export function shellReplacements(
     const value =
       component.options === null ? -1 : dataValue(bundle, component.options);
     const menu = value < 0 ? -1 : menuValue(bundle, value);
-    if (menu >= 0) dataLiterals({ bundle, module }, menu, out);
+    if (menu >= 0) menuRuns({ bundle, module }, menu, out);
     if (component.scopeId >= 0) {
       out.set(component.scopeId, {
         word: '@scope',
