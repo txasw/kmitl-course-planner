@@ -27,11 +27,20 @@
  * page's own (fillEngine.ts). scripts/host-labels.mjs run on it prints the labels of
  * app.020e81ed and one more pair, Try again and ลองอีกครั้ง, the retry button of the
  * periods section when its check fails, which the fill denylist now holds too.
+ *
+ * app.ba450963, deployed 2026-11-26 at 03:21 GMT beside the same vendor bundle, was
+ * compared with app.a1e43722 with its minified names normalised: the PreRegistration route
+ * with its header, periods and period check, the panel, the add subject card, the stepper,
+ * the complete, consent and flow chart steps, every host label printed by
+ * scripts/host-labels.mjs, and every reference to a registration write endpoint are the
+ * same. The redeploy renamed a staff tool and added a staff student lookup and a staff
+ * department filter only.
  */
 export const TESTED_BUILDS: readonly (readonly [string, string])[] = [
   ['app.454d9e95.js', 'chunk-vendors.7ab4925e.js'],
   ['app.020e81ed.js', 'chunk-vendors.7ab4925e.js'],
   ['app.a1e43722.js', 'chunk-vendors.7ab4925e.js'],
+  ['app.ba450963.js', 'chunk-vendors.7ab4925e.js'],
 ];
 
 /** Host labels in Thai and English, matched by exact equality after trimming. */
