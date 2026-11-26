@@ -4,7 +4,8 @@
 // every binding by its order, so a build that renames nothing but minified names reads
 // the same, and it follows each free name to its definition, so a change in a helper the
 // part calls is a change in the part. A free name that names another part is written as
-// that part and not followed, so each part has its own fingerprint.
+// that part and not followed, so each part has its own fingerprint. A free name the
+// module does not define is written as written.
 
 import { analyseScopes, expressionEnd } from './scopes.ts';
 import { matchBrackets, tokenize, type Token } from './tokens.ts';
@@ -194,12 +195,12 @@ export function canonicalText(
       const role = table.role(index);
       if (role.kind === 'binding') words.push(`v${String(role.id)}`);
       else if (role.kind === 'free') {
-        // A long free name the module does not define is a global, kept as written.
+        // A free name the module does not define is a global or a parameter of the
+        // bundle's wrapper, whose letters the build keeps, so it is written as written,
+        // marked so it never reads as a label: new Set and new Map stay apart.
         const follow =
-          boundary.has(role.name) ||
-          module.definitions.has(role.name) ||
-          role.name.length < 4;
-        words.push(follow ? labelOf(role.name) : role.name);
+          boundary.has(role.name) || module.definitions.has(role.name);
+        words.push(follow ? labelOf(role.name) : `?${role.name}`);
       } else words.push(token.text);
     }
     lines.push(words.join(' '));
