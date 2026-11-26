@@ -11,14 +11,17 @@
 //
 // One request is never counted: the host's own period check, which the polling builds
 // send every 60 s, on a window focus, and on a visibility change (owner ruling of
-// 2026-11-26). It is told apart by its address alone: the host API path and a function
-// query parameter equal to check-registration-datetime, compared as the entry is taken
-// and then dropped. An entry name can carry the student id, so nothing of it is kept,
-// logged, or sent; the tripwire keeps a count and the time the last counted request
-// ended, and nothing else. The host sends its
-// writes as a POST whose function is in the body, so a write's address carries no
-// function and is counted, as is every other request. A browser without the observer
-// gets no tripwire.
+// 2026-11-26). It is told apart by its address alone: the host API path, one function
+// query parameter equal to check-registration-datetime, and no query key but the ones
+// the host's period check sends, compared as the entry is taken and then dropped. A key
+// such as function[] or FUNCTION, which a server may read as another function, makes it
+// a counted request. An entry does not show its method, so the exact address is what
+// tells. An entry name can carry the student id, so nothing of it is kept, logged, or
+// sent; the tripwire keeps a count and the time the last counted request ended, and
+// nothing else. The host sends most of its writes as a POST with the function in the
+// body and one through its client's delete with the function in the query; neither
+// address is the period check's, so each is counted, as is every other request. A
+// browser without the observer gets no tripwire.
 //
 // A run reads the count in the tasks right after the host's answer, and the browser does
 // not promise that the observer's own callback task runs before them: in Chromium and
@@ -70,9 +73,19 @@ const HOST_API = `${REGIS_ORIGIN}/api/`;
 /** The function of the host's period check, a read only GET (ADR-0078). */
 export const PERIOD_CHECK_FUNCTION = 'check-registration-datetime';
 
+/** The query keys the host's period check sends, each at most once. */
+const PERIOD_CHECK_KEYS: ReadonlySet<string> = new Set([
+  'function',
+  'level_id',
+  'year',
+  'semester',
+  'sub_level_id',
+]);
+
 /**
  * Whether a resource entry name is the host's period check: the host API path with one
- * function query parameter equal to the period check's, by exact comparison.
+ * function query parameter equal to the period check's, by exact comparison, and no
+ * query key but the period check's own, each once.
  */
 export function isPeriodCheck(name: string): boolean {
   let url: URL;
@@ -84,6 +97,13 @@ export function isPeriodCheck(name: string): boolean {
     return false;
   }
   if (url.origin + url.pathname !== HOST_API) return false;
+  const keys = [...url.searchParams.keys()];
+  if (
+    new Set(keys).size !== keys.length ||
+    keys.some((key) => !PERIOD_CHECK_KEYS.has(key))
+  ) {
+    return false;
+  }
   const functions = url.searchParams.getAll('function');
   return functions.length === 1 && functions[0] === PERIOD_CHECK_FUNCTION;
 }
