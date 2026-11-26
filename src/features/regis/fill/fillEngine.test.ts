@@ -24,6 +24,17 @@ import {
   type FillStep,
   type FillTiming,
 } from './fillEngine';
+import { startTripwire } from './tripwire';
+
+type Callback = (list: { getEntries: () => PerformanceEntry[] }) => void;
+
+function resourceEntry(name: string): PerformanceEntry {
+  // Test only: a plain object standing in for a resource entry, which jsdom lacks.
+  return {
+    initiatorType: 'xmlhttprequest',
+    name,
+  } as unknown as PerformanceEntry;
+}
 
 // The engine against the behaviour replica: each subject is entered, its sections are
 // chosen through the host's own menus, and Add is pressed, one step at a time; every
@@ -653,7 +664,7 @@ describe('runFill on the route of app.a1e43722', () => {
     acknowledge: 0,
     quiet: 0,
   };
-  // A quiet spell long enough to outlast a period check started just before the run.
+  // A quiet spell long enough to outlast a request started just before the run.
   const QUIET: FillTiming = { ...ROUTE_TIMING, quiet: 100, settle: 1000 };
 
   // The build's period check can unmount the panel with no navigation, and mount it
@@ -813,34 +824,116 @@ describe('runFill on the route of app.a1e43722', () => {
     expect(page.interactions()).toBe(0);
   });
 
-  // The tripwire as the page's own requests count it: the host's eligibility reads and
-  // its period checks, by number alone.
-  function requests(page: Replica): FillDeps['tripwire'] {
+  // The tripwire as the page's own timeline feeds it: one resource entry for each
+  // eligibility read and each period check of the replica, under the address the host
+  // sends it to, and one for each stray request a case adds, which stands for any other
+  // request of the page's own. The count comes from the real tripwire, which leaves the
+  // period checks out (owner ruling of 2026-11-26).
+  const HOST_API = 'https://regis.reg.kmitl.ac.th/api/';
+  const READ_NAME = `${HOST_API}?function=get-pattern-subject-from-subject-id`;
+  const PERIOD_NAME = `${HOST_API}?function=check-registration-datetime&level_id=1&year=2569&semester=1`;
+  const STRAY_NAME = `${HOST_API}?function=get-student-data`;
+
+  function requests(page: Replica): {
+    tripwire: FillDeps['tripwire'];
+    stray: () => void;
+  } {
+    let deliver: Callback = () => undefined;
+    class Timeline {
+      constructor(callback: Callback) {
+        deliver = callback;
+      }
+      observe() {
+        return undefined;
+      }
+      disconnect() {
+        return undefined;
+      }
+    }
+    const tripwire = startTripwire(Timeline);
+    const sent = { reads: 0, polls: 0 };
+    const send = (name: string, times: number) => {
+      const entries = Array.from({ length: times }, () => resourceEntry(name));
+      if (entries.length > 0) deliver({ getEntries: () => entries });
+    };
+    const sync = () => {
+      send(READ_NAME, page.counters.reads - sent.reads);
+      send(PERIOD_NAME, page.counters.polls - sent.polls);
+      sent.reads = page.counters.reads;
+      sent.polls = page.counters.polls;
+    };
     return {
-      count: () => page.counters.reads + page.counters.polls,
-      stop: () => undefined,
+      tripwire: {
+        count: () => {
+          sync();
+          return tripwire.count();
+        },
+        stop: tripwire.stop,
+      },
+      stray: () => {
+        send(STRAY_NAME, 1);
+      },
     };
   }
 
   it.each<[string, FillStep]>([
     ['while the host reads the entered subject', 'wait'],
     ['while the section is chosen', 'choose'],
+    ['as Add is pressed', 'add'],
+  ])('goes on through a period check %s', async (_name, during) => {
+    const setupOf = setup([SINGLE]);
+    const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
+    replica = page;
+    page.configure({ delay: 30, catalog: setupOf.catalog });
+    const outcome = await runFill({
+      ...deps(setupOf, (_subject, step) => {
+        if (step === during) page.poll();
+      }),
+      tripwire: requests(page).tripwire,
+    });
+    expect(outcome).toEqual({ status: 'done', filled: 1 });
+    expect(page.state.list.map((row) => row.section)).toEqual(['1']);
+    expect(page.counters).toMatchObject({ polls: 1, reads: 1 });
+  });
+
+  it('goes on through a period check at every step of Add all', async () => {
+    const setupOf = setup([SINGLE, { ...SINGLE, id: B, day: 3 }]);
+    const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
+    replica = page;
+    page.configure({ delay: 30, catalog: setupOf.catalog });
+    page.poll();
+    const outcome = await runFill({
+      ...deps(setupOf, () => {
+        page.poll();
+      }),
+      tripwire: requests(page).tripwire,
+    });
+    expect(outcome).toEqual({ status: 'done', filled: 2 });
+    expect(page.state.list).toHaveLength(2);
+    expect(page.counters.reads).toBe(2);
+    expect(page.counters.polls).toBeGreaterThan(4);
+  });
+
+  it.each<[string, FillStep]>([
+    ['while the host reads the entered subject', 'wait'],
+    ['while the section is chosen', 'choose'],
   ])(
-    'stops on a period check %s, and the next press finishes the subject',
+    'stops on another request of the page %s, and the next press finishes the subject',
     async (_name, during) => {
       const setupOf = setup([SINGLE]);
       const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
       replica = page;
       page.configure({ delay: 30, catalog: setupOf.catalog });
-      let polled = false;
+      const timeline = requests(page);
+      let strayed = false;
       const first = await runFill({
         ...deps(setupOf, (_subject, step) => {
-          if (step === during && !polled) {
-            polled = true;
-            page.poll();
+          if (step === during && !strayed) {
+            strayed = true;
+            timeline.stray();
           }
         }),
-        tripwire: requests(page),
+        tripwire: timeline.tripwire,
       });
       expect(first).toMatchObject({
         status: 'stopped',
@@ -853,7 +946,7 @@ describe('runFill on the route of app.a1e43722', () => {
       // picks it up there and reads nothing again.
       const second = await runFill({
         ...deps(setupOf),
-        tripwire: requests(page),
+        tripwire: requests(page).tripwire,
       });
       expect(second).toEqual({ status: 'done', filled: 1 });
       expect(page.state.list.map((row) => row.section)).toEqual(['1']);
@@ -861,21 +954,22 @@ describe('runFill on the route of app.a1e43722', () => {
     },
   );
 
-  it('stops on a period check after Add, and the next press finds the subject listed', async () => {
+  it('stops on another request after Add, and the next press finds the subject listed', async () => {
     const setupOf = setup([SINGLE]);
     const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
     replica = page;
     page.configure({ delay: 30, catalog: setupOf.catalog });
+    const timeline = requests(page);
     const first = await runFill({
       ...deps(setupOf, (_subject, step) => {
-        if (step === 'add') page.poll();
+        if (step === 'add') timeline.stray();
       }),
-      tripwire: requests(page),
+      tripwire: timeline.tripwire,
     });
     expect(first).toMatchObject({ status: 'stopped', reason: 'pageRequest' });
     expect(page.state.list.map((row) => row.section)).toEqual(['1']);
     expect(
-      await runFill({ ...deps(setupOf), tripwire: requests(page) }),
+      await runFill({ ...deps(setupOf), tripwire: requests(page).tripwire }),
     ).toEqual({ status: 'done', filled: 0 });
     expect(page.counters.clicks.add).toBe(1);
   });
@@ -886,15 +980,16 @@ describe('runFill on the route of app.a1e43722', () => {
     const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
     replica = page;
     page.configure({ delay: 30, catalog: setupOf.catalog });
-    let polled = false;
+    const timeline = requests(page);
+    let strayed = false;
     const first = await runFill({
       ...deps(setupOf, (subject, step) => {
-        if (subject === late && step === 'wait' && !polled) {
-          polled = true;
-          page.poll();
+        if (subject === late && step === 'wait' && !strayed) {
+          strayed = true;
+          timeline.stray();
         }
       }),
-      tripwire: requests(page),
+      tripwire: timeline.tripwire,
     });
     expect(first).toMatchObject({
       status: 'stopped',
@@ -904,7 +999,7 @@ describe('runFill on the route of app.a1e43722', () => {
     expect(page.state.list.map((row) => row.subjectId)).toEqual([early]);
     const second = await runFill({
       ...deps(setupOf),
-      tripwire: requests(page),
+      tripwire: requests(page).tripwire,
     });
     // The listed subject is skipped and the stopped one is finished from the field.
     expect(second).toEqual({ status: 'done', filled: 1 });
@@ -912,42 +1007,35 @@ describe('runFill on the route of app.a1e43722', () => {
     expect(page.counters.reads).toBe(2);
   });
 
-  // The press that starts a run can be the click that focuses the window, which starts a
-  // period check that ends a moment later, counted as the tripwire counts it, at its end.
-  it('waits out a period check the focusing press started, then fills', async () => {
+  // The press that starts a run can be the click that focuses the window, which can start
+  // a request of the page's own that ends a moment later, counted as the tripwire counts
+  // it, at its end.
+  it('waits out a request the focusing press started, then fills', async () => {
     const setupOf = setup([SINGLE]);
     const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
     replica = page;
-    page.configure({
-      delay: 30,
-      catalog: setupOf.catalog,
-      countAtEnd: true,
-      pollLatency: 60,
-    });
-    page.poll();
+    page.configure({ delay: 30, catalog: setupOf.catalog });
+    const timeline = requests(page);
+    setTimeout(timeline.stray, 60);
     const outcome = await runFill({
       ...deps(setupOf),
-      tripwire: requests(page),
+      tripwire: timeline.tripwire,
       timing: QUIET,
     });
     expect(outcome).toEqual({ status: 'done', filled: 1 });
-    expect(page.counters).toMatchObject({ polls: 1, reads: 1 });
+    expect(page.counters.reads).toBe(1);
   });
 
-  it('still stops on a period check that ends after KCP first acts', async () => {
+  it('still stops on a request that ends after KCP first acts', async () => {
     const setupOf = setup([SINGLE]);
     const page = mountReplica(document, {}, { route: 'a1e43722', poll: 0 });
     replica = page;
-    page.configure({
-      delay: 400,
-      catalog: setupOf.catalog,
-      countAtEnd: true,
-      pollLatency: 300,
-    });
-    page.poll();
+    page.configure({ delay: 400, catalog: setupOf.catalog });
+    const timeline = requests(page);
+    setTimeout(timeline.stray, 300);
     const outcome = await runFill({
       ...deps(setupOf),
-      tripwire: requests(page),
+      tripwire: timeline.tripwire,
       timing: QUIET,
     });
     expect(outcome).toMatchObject({ status: 'stopped', reason: 'pageRequest' });
