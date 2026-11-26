@@ -24,6 +24,8 @@ function fakeObserver() {
 }
 
 const API = 'https://regis.reg.kmitl.ac.th/api/';
+// An image of the page itself, outside the API.
+const LOGO = 'https://regis.reg.kmitl.ac.th/img/logo.png';
 // The period check as the host's API client sends it, its params after the function.
 const PERIOD = `${API}?function=check-registration-datetime&level_id=1&year=2569&semester=2`;
 
@@ -63,19 +65,57 @@ function observe(...batches: PerformanceEntry[][]) {
 }
 
 describe('startTripwire', () => {
-  it('counts the page XMLHttpRequest entries', () => {
+  it('counts the page XMLHttpRequest entries and every host API call', () => {
     const { tripwire, state } = observe(
       [
         entry('xmlhttprequest', `${API}?function=get-student-data`),
-        entry('img', `${API}logo.png`),
+        entry('img', LOGO),
         entry('fetch', `${API}?function=get-config`),
       ],
       [entry('xmlhttprequest', `${API}?function=get-pattern-subject`)],
     );
     expect(state.type).toBe('resource');
-    expect(tripwire.count()).toBe(2);
+    expect(tripwire.count()).toBe(3);
     tripwire.stop();
     expect(state.off).toBe(true);
+  });
+
+  it.each([
+    ['a fetch', 'fetch', `${API}?function=get-config`],
+    ['a beacon', 'beacon', API],
+    ['an image', 'img', `${API}?function=get-config`],
+    ['another kind', 'other', API],
+    ['a call to the API site', 'fetch', 'https://api.reg.kmitl.ac.th/x/'],
+    [
+      'an API folder in capitals',
+      'beacon',
+      'https://regis.reg.kmitl.ac.th/API/',
+    ],
+    ['an address that cannot be read', 'beacon', 'not an address'],
+  ])('counts %s to the host API', (_name, kind, name) => {
+    const { tripwire } = observe([entry(kind, name)]);
+    expect(tripwire.count()).toBe(1);
+  });
+
+  it.each([
+    [
+      'an analytics beacon',
+      'beacon',
+      'https://www.google-analytics.com/g/collect',
+    ],
+    ['an analytics fetch', 'fetch', 'https://analytics.google.com/g/collect'],
+    ['a page image', 'img', LOGO],
+    ['a page script', 'script', 'https://regis.reg.kmitl.ac.th/js/chunk.js'],
+  ])('leaves out %s', (_name, kind, name) => {
+    const { tripwire } = observe([entry(kind, name)]);
+    expect(tripwire.count()).toBe(0);
+  });
+
+  it('still counts an XMLHttpRequest to another site', () => {
+    const { tripwire } = observe([
+      entry('xmlhttprequest', 'https://example.com/x'),
+    ]);
+    expect(tripwire.count()).toBe(1);
   });
 
   it('does not count the host period check mid run', () => {
@@ -216,7 +256,7 @@ describe('startTripwire', () => {
 
     it.each([
       ['a period check', PERIOD],
-      ['an image', `${API}logo.png`],
+      ['an image', LOGO],
     ])('leaves out %s', (_name, name) => {
       const before =
         name === PERIOD
@@ -245,7 +285,7 @@ describe('startTripwire', () => {
     it.each([
       [
         'a full timeline, which takes no more entries',
-        Array.from({ length: 250 }, () => entry('img', `${API}logo.png`)),
+        Array.from({ length: 250 }, () => entry('img', LOGO)),
       ],
       [
         'an entry that does not say when it ended',
