@@ -234,3 +234,18 @@ tested vendor script beside an app script whose every part reads as a recorded t
 While the check runs the observer waits rather than turning off, since an off reading lasts the
 document; a build the check does not verify turns it off as an untested build, as before. The
 anchors, labels, and drift strikes stay as they are on every build.
+
+## Amendment, 2026-11-26: the drawer menu redeploy app.2ef67281
+
+The host deployed `app.2ef67281.js` on 2026-11-26 at 09:38 GMT beside the same
+`chunk-vendors.7ab4925e.js`, and the host check of ADR-0079 read it as a mismatch in the setup part
+only, so Add for me stayed off as designed. The review compared it with `app.a1e43722.js` part by
+part with `scripts/host-fingerprint.mjs --prove`, whose probes all changed the part they are in,
+and again by hand with the minified names normalised. Every part but the setup reads the same, and
+so does the output of `scripts/host-labels.mjs`. The setup differs only in the navigation drawer of
+the App shell: its menu data was regrouped, with the staff entries and the manual entry moved and
+the tuition and report entries put under new staff headings, and the drawer's scoped style id
+changed with its file. No method, handler, computed value, or write endpoint of the drawer changed,
+and the drawer is no part of the pre registration page. The pair joins the tested list under the
+exact two name gate of ruling 20A, and its fingerprint joins the recorded table. The replica keeps
+the script name `app.a1e43722.js`, since the route it renders did not change.

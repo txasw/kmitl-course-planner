@@ -24,6 +24,7 @@ describe('fillGate', () => {
       'app.020e81ed.js',
       'app.a1e43722.js',
       'app.ba450963.js',
+      'app.2ef67281.js',
     ]) {
       expect(fillGate([VENDORS, app], [], null), app).toBe('ok');
     }
