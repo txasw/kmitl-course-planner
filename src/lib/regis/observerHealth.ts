@@ -1,10 +1,13 @@
 // The read only observer's health (ADR-0077), as one pure transition. The observer runs
-// only on a host build KCP was tested against and never in a staff surrogate session;
-// either finding turns it off for the rest of the document. A page that shows none of
+// only on a host build KCP was tested against, by name or by the host check (ADR-0079),
+// and never in a staff surrogate session; either finding turns it off for the rest of the
+// document. While the host check runs, the observer waits. A page that shows none of
 // the anchors yet is waiting, not broken. A page whose anchors are present but do not
 // read as the contract says is degraded, and the observation is dropped whole; three
 // degraded readings in a row turn the observer off. While it is not healthy the
 // checklist shows the student's own marks only.
+
+import type { BuildTrust } from './hostBuild';
 
 export type OffReason = 'surrogate' | 'untestedBuild' | 'drift';
 
@@ -19,7 +22,7 @@ export type Reading = 'ok' | 'absent' | 'drift';
 
 export interface Gate {
   surrogate: boolean;
-  testedBuild: boolean;
+  build: BuildTrust;
 }
 
 /** The strikes after which a drifting page turns the observer off. */
@@ -57,7 +60,11 @@ export function nextHealth(
 ): ObserverHealth {
   if (current.status === 'off') return current;
   if (gate.surrogate) return { status: 'off', reason: 'surrogate' };
-  if (!gate.testedBuild) return { status: 'off', reason: 'untestedBuild' };
+  if (gate.build === 'untested')
+    return { status: 'off', reason: 'untestedBuild' };
+  if (gate.build === 'checking') {
+    return { status: 'waiting', strikes: strikesOf(current) };
+  }
   if (reading === 'ok') return { status: 'healthy' };
   if (reading === 'absent') {
     return { status: 'waiting', strikes: strikesOf(current) };

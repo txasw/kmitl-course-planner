@@ -26,6 +26,7 @@ import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { focusFirst } from '@/features/shell/restoreFocus';
 import { focusIsLost } from '@/features/shell/useFocusTrap';
 import { STOP_ID } from '../helperStore';
+import { buildCheckStore } from '../host/buildCheckStore';
 import { readScriptNames } from '../host/hostDom';
 import { regisStore } from '../regisStore';
 import type { FillStep } from './fillEngine';
@@ -120,10 +121,14 @@ export function useShowCondition(subjectId: string | null): void {
   }, [subjectId]);
 }
 
-/** Whether this host build allows fill: tested, and with no refusal latched for it. */
+/**
+ * Whether this host build allows fill: tested by name or by the host check, and with no
+ * refusal latched for it.
+ */
 export function useFillBuildGate(): StopReason | 'ok' {
   const latched = useStore(regisStore, (state) => state.fill.latched);
-  return fillGate(readScriptNames(document), latched);
+  const check = useStore(buildCheckStore, (state) => state.check);
+  return fillGate(readScriptNames(document), latched, check);
 }
 
 /** Whether fill can act here: switched on and allowed on this host build. */

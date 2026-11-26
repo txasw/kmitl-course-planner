@@ -13,8 +13,9 @@
 
 import { useEffect } from 'react';
 import { useStore } from 'zustand';
-import { isTestedBuild } from '@/lib/regis/hostContract';
+import { buildTrust } from '@/lib/regis/hostBuild';
 import { useCompanionRoute, useHelperPlanPick } from '../useCompanion';
+import { buildCheckStore } from './buildCheckStore';
 import { readHostPage, readScriptNames, type PageReading } from './hostDom';
 import { hostStore } from './hostStore';
 import { isSurrogateSession } from './surrogate';
@@ -33,6 +34,11 @@ function plannedKeyOf(subjectIds: readonly string[]): string {
 export function useHostObserver(): void {
   const onPage = useCompanionRoute() === 'preRegistration';
   const checks = useStore(hostStore, (state) => state.checks);
+  // The build's trust changes once, when the host check answers, and the reading starts
+  // over with it.
+  const build = useStore(buildCheckStore, (state) =>
+    buildTrust(readScriptNames(document), state.check),
+  );
   // The planned ids are those of the plan the helper shows, which follows the page term.
   const pick = useHelperPlanPick();
   const plannedKey = plannedKeyOf(
@@ -60,11 +66,8 @@ export function useHostObserver(): void {
     if (!onPage) return;
     const planned = new Set(plannedKey.split(' ').filter((id) => id !== ''));
     const end = watchHostPage(document, () => {
-      const gate = {
-        surrogate: isSurrogateSession(),
-        testedBuild: isTestedBuild(readScriptNames(document)),
-      };
-      const open = !gate.surrogate && gate.testedBuild;
+      const gate = { surrogate: isSurrogateSession(), build };
+      const open = !gate.surrogate && gate.build === 'tested';
       const reading: PageReading = open
         ? readHostPage(document, planned)
         : { reading: 'absent' };
@@ -77,5 +80,5 @@ export function useHostObserver(): void {
       end();
       hostStore.getState().restart();
     };
-  }, [onPage, plannedKey, checks]);
+  }, [onPage, plannedKey, checks, build]);
 }

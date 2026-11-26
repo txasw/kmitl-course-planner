@@ -96,7 +96,7 @@ function renderOn(plans: Plan[], active: string, term: Term | null) {
     planStore.getState().hydrate(plans);
     planStore.getState().setActivePlan(active);
     hostStore.getState().record(
-      { surrogate: false, testedBuild: true },
+      { surrogate: false, build: 'tested' as const },
       {
         reading: 'ok',
         observation: {
@@ -156,7 +156,7 @@ describe('the helper before the page term is read', () => {
 
     act(() => {
       hostStore.getState().record(
-        { surrogate: false, testedBuild: true },
+        { surrogate: false, build: 'tested' as const },
         {
           reading: 'ok',
           observation: {
@@ -200,7 +200,7 @@ describe('the helper before the page term is read', () => {
     // Once the page term is read, the launcher counts the plan of that term.
     act(() => {
       hostStore.getState().record(
-        { surrogate: false, testedBuild: true },
+        { surrogate: false, build: 'tested' as const },
         {
           reading: 'ok',
           observation: {
