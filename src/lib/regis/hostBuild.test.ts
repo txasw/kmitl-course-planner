@@ -20,6 +20,12 @@ describe('fillGate', () => {
     );
   });
 
+  it('lets fill run on the staff only redeploy of 2026-11-26', () => {
+    expect(fillGate(['chunk-vendors.7ab4925e.js', 'app.ba450963.js'], [])).toBe(
+      'ok',
+    );
+  });
+
   it('turns fill off on any other build', () => {
     expect(fillGate(['app.00000000.js', TESTED[0] ?? ''], [])).toBe(
       'untestedBuild',
