@@ -363,3 +363,20 @@ document listener added inside a declaration. The four neutral edits still chang
 | store         | ebbcfaee           | ebbcfaee                     |
 | setup         | 4a05338b           | 4a05338b                     |
 | labels        | 33a230da           | a5a9e7fb                     |
+
+## Amendment, 2026-11-27: the owner's rulings on timing and the observer
+
+The owner answered the two questions this record left open on 2026-11-27.
+
+- **Timing, answer 4A.** The check runs on arrival at `#/pre_registration`, as built. ADR-0075
+  records the same ruling as the one exception to its quiet mode.
+- **An unverified build, answer 5A.** When the check finds a change in a part KCP uses, or cannot
+  finish, the observer stays off as well as fill. The checklist falls back to the student's own
+  marks and KCP reads nothing on the page until a review records the build. Keeping the observer
+  on while only fill is off was the rejected alternative, since the observer's anchors are the
+  parts that changed.
+
+The digest of every student page noted as not covered in the amendment above was not adopted. A
+hook a page KCP does not depend on installs is the host's own code on its own page, and during a
+run the tripwire still stops at the first host API call it did not expect, so such a hook cannot
+turn a fill press into a write that goes unseen.
