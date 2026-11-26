@@ -39,7 +39,9 @@ function setupText(body: string, pages: string[] = []): string | null {
   const setup = setupRoots(bundle, module, new Set(pages));
   const boundary = new Map(setup.boundary);
   for (const page of pages) boundary.set(page, 'page');
-  return canonicalText(bundle, module, setup.roots, boundary);
+  return canonicalText(bundle, module, setup.roots, boundary, {
+    replacements: setup.replacements,
+  });
 }
 
 describe('moduleItems', () => {
@@ -91,6 +93,58 @@ describe('setupRoots', () => {
     expect(setupText('var q=(s.Ay.mixin({x:1}),2);')).toContain('mixin');
     expect(setupText('var q=function(){s.Ay.mixin({x:1})};')).toBe('');
     expect(setupText('var q=()=>s.Ay.use(p);')).toBe('');
+  });
+
+  it('reads a declaration whose value makes a call, a new, or a write', () => {
+    for (const value of [
+      '(document.addEventListener("click",()=>{},!0),0)',
+      'window.fetch("/api/",{method:"POST"})',
+      '(document.onclick=function(){},0)',
+      'fetch`/api/`',
+      '(()=>{g()})()',
+      'import("x")',
+      'delete window.fetch',
+      'new K',
+    ]) {
+      const text = setupText(
+        `class K{constructor(){this.x=h()}}var q=${value};`,
+      );
+      expect(text, value).not.toBe('');
+      expect(text, value).not.toBeNull();
+    }
+  });
+
+  it('leaves out what the build writes around every component', () => {
+    const app =
+      'var Ao={name:"App"},Ar=function(){return 1},Ac=(0,N.A)(Ao,Ar,[],!1,null,null,null),Ae=Ac.exports;';
+    for (const body of [
+      'var a=t(12),b=t.n(a);',
+      `${app}var Bo={name:"B"},Bc=(0,N.A)(Bo,Ar,[],!1,null,null,null);`,
+      'class K{}var c=new K;',
+      'class K{m(){fetch("/api/")}}class L extends K{constructor(A){super("u")}}var c=new L;',
+      'var x={delete:1,new:2},y=["1","2"];',
+    ]) {
+      expect(setupText(body), body).toBe('');
+    }
+    expect(
+      setupText(`${app}var Bc=(0,N.B)({},null,[],!1,null,null,null);`),
+    ).toContain('. B )');
+    expect(
+      setupText('class K{constructor(){fetch("/a")}}var c=new K;'),
+    ).toContain('fetch');
+  });
+
+  it('reads each running declarator alone, and a helper made in a pattern', () => {
+    expect(setupText('var a=s.Ay.mixin({}),b={staff:1};')).not.toContain(
+      'staff',
+    );
+    const helper = (name: string, page: string) =>
+      `var {mapFields:${name}}=(0,x.y)({getterType:"a/b"}),P={computed:{...${name}({${page}:"k"})}};`;
+    const text = setupText(helper('Hs', 'config'));
+    expect(text).toContain('{ mapFields : @bound } = ( 0 , ?x . y )');
+    expect(text).not.toContain('computed');
+    expect(setupText(helper('Zq', 'other'))).toBe(text);
+    expect(setupText('var {a:b=g()}=(0,x.y)({});')).toContain('g (');
   });
 
   it('leaves the route table as a boundary and reads the page routes in full', () => {
