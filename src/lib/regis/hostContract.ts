@@ -37,6 +37,14 @@
  * same. The redeploy renamed a staff tool and added a staff student lookup and a staff
  * department filter only.
  *
+ * app.2ef67281, deployed 2026-11-26 at 09:38 GMT beside the same vendor bundle, was
+ * compared with app.a1e43722 by the host check's parts and with its minified names
+ * normalised: every part but the setup reads the same, and every host label printed by
+ * scripts/host-labels.mjs is the same. The setup differs only in the navigation drawer of
+ * the App shell: its menu data was regrouped, with the staff entries and the manual entry
+ * moved and the tuition and report entries put under new staff headings, and its scoped
+ * style id changed with it. No method, handler, or write endpoint of the drawer changed.
+ *
  * Beside this list, the host check (ADR-0079) treats as tested a build whose vendor script
  * is one of these and whose app script reads, part by part, as one of these builds, by the
  * fingerprints in fingerprint/recorded.ts. This list stays the fast path, which sends
@@ -47,6 +55,7 @@ export const TESTED_BUILDS: readonly (readonly [string, string])[] = [
   ['app.020e81ed.js', 'chunk-vendors.7ab4925e.js'],
   ['app.a1e43722.js', 'chunk-vendors.7ab4925e.js'],
   ['app.ba450963.js', 'chunk-vendors.7ab4925e.js'],
+  ['app.2ef67281.js', 'chunk-vendors.7ab4925e.js'],
 ];
 
 /** Host labels in Thai and English, matched by exact equality after trimming. */
