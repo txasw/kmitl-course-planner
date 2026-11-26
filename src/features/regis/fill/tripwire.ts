@@ -1,5 +1,9 @@
 // The request tripwire of a fill run (ADR-0078). It counts the resource entries the page
-// starts through XMLHttpRequest while the run is active. The run expects at most one, the
+// starts while the run is active: every XMLHttpRequest, and every entry addressed to the
+// host API however the page starts it, by fetch, a beacon, an image, or any other way,
+// since a build KCP never reviewed may write by any of them. A request to another site,
+// such as the page's analytics, is no host write and is left out, as are the page's own
+// scripts, styles, and images outside the API. The run expects at most one, the
 // host's own eligibility read, after it enters a subject id, and none after any other
 // step; any other count stops the run as a request of the page's own. It sees a request
 // only after it started, so it backs up the tested build gate rather than replacing it,
@@ -26,10 +30,10 @@
 // The same timeline tells whether the page made a request in the moment before the run,
 // so the run pays its quiet wait only then (ADR-0078, the timing amendment).
 
-import { REGIS_ORIGIN } from '@/lib/shell/hostTab';
+import { API_ORIGIN, REGIS_ORIGIN } from '@/lib/shell/hostTab';
 
 export interface Tripwire {
-  /** The XMLHttpRequest entries seen since the tripwire started, less period checks. */
+  /** The requests seen since the tripwire started, less period checks. */
   count: () => number;
   /**
    * Whether no request it would count ended in the last `within` ms, as far as the page's
@@ -102,8 +106,27 @@ function pageSources(): TripwireSources {
   };
 }
 
+/**
+ * Whether an address is the host API's: the API site, or a path of the registration site
+ * that starts with its API folder in any case. An address that cannot be read is.
+ */
+export function isHostApi(name: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(name);
+  } catch {
+    return true;
+  }
+  if (url.origin === API_ORIGIN) return true;
+  return (
+    url.origin === REGIS_ORIGIN && url.pathname.toLowerCase().startsWith('/api')
+  );
+}
+
+/** Whether the tripwire counts an entry: every XMLHttpRequest, and any host API call. */
 const isRequest = (entry: PerformanceEntry) =>
-  'initiatorType' in entry && entry.initiatorType === 'xmlhttprequest';
+  ('initiatorType' in entry && entry.initiatorType === 'xmlhttprequest') ||
+  isHostApi(entry.name);
 
 /** When the entry's response ended, or null when the entry does not say. */
 function endOf(entry: PerformanceEntry): number | null {
