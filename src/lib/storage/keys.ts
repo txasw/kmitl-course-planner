@@ -70,6 +70,13 @@ export const CHECKLIST_KEY = 'kcp:checklist';
  */
 export const FILL_KEY = 'kcp:regfill';
 
+/**
+ * Worker owned host check record (ADR-0079): the part fingerprints of each host app
+ * script the worker read, by its public name, so each new build costs one request per
+ * browser. Content never reads or writes it.
+ */
+export const HOST_CHECK_KEY = 'kcp:hostcheck';
+
 /** Key under which a corrupt root blob is preserved for later export. */
 export function quarantineKey(timestamp: string): string {
   return `kcp:quarantine:${timestamp}`;
