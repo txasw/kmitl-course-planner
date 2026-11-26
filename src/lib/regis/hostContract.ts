@@ -131,12 +131,41 @@ export const CREDIT_TOTAL = /^: (\d{1,2})$/;
 /** A host script name of the two kinds the build gate compares. */
 export const SCRIPT_NAME = /^(?:app|chunk-vendors)\.[0-9a-f]{8}\.js$/;
 
+/** A host app script name, the one the host check fetches (ADR-0079). */
+export const APP_SCRIPT_NAME = /^app\.[0-9a-f]{8}\.js$/;
+
+/** A host vendor script name, which the host check requires to be a tested one. */
+export const VENDOR_SCRIPT_NAME = /^chunk-vendors\.[0-9a-f]{8}\.js$/;
+
 /** Whether a text equals one of the host labels after trimming. */
 export function isLabel(
   text: string | null | undefined,
   set: readonly string[],
 ): boolean {
   return set.includes((text ?? '').trim());
+}
+
+/**
+ * Whether a vendor script name is one KCP was tested with. The host check fingerprints
+ * the app script only; the Vue and Vuetify runtime the actuator relies on stays exact.
+ */
+export function isTestedVendor(name: string): boolean {
+  return TESTED_BUILDS.some(([, vendors]) => vendors === name);
+}
+
+/** The page's one app and one vendor script name, or null when it has not one of each. */
+export function hostPair(
+  names: readonly string[],
+): { app: string; vendors: string } | null {
+  const apps = [...new Set(names.filter((name) => APP_SCRIPT_NAME.test(name)))];
+  const vendors = [
+    ...new Set(names.filter((name) => VENDOR_SCRIPT_NAME.test(name))),
+  ];
+  const [app] = apps;
+  const [vendor] = vendors;
+  return apps.length === 1 && vendors.length === 1 && app && vendor
+    ? { app, vendors: vendor }
+    : null;
 }
 
 /** Whether both script names of one tested build are on the page. */
