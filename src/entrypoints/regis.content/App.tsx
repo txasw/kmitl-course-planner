@@ -31,6 +31,7 @@ import { RegisHelper } from '@/features/regis/RegisHelper';
 import { ReadinessLayer } from '@/features/regis/ReadinessDialog';
 import type { RegisRepositories } from '@/features/regis/regisStore';
 import { useRegisPersistence } from '@/features/regis/useRegisPersistence';
+import { useHostBuildCheck } from '@/features/regis/useHostBuildCheck';
 import { EntryToast } from '@/features/onboarding/EntryToast';
 import { CoachMark } from '@/features/onboarding/CoachMark';
 import { ProductTour } from '@/features/onboarding/ProductTour';
@@ -78,6 +79,7 @@ export function App({
   useOnboardingPersistence(onboarding);
   useRegisPersistence(regis);
   useWorkerHandshake(handshake);
+  useHostBuildCheck(search.send);
   useWelcomeClaim(welcome);
   useProductTourStart();
   return (

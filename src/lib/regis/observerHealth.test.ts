@@ -10,7 +10,7 @@ import {
   type Reading,
 } from './observerHealth';
 
-const OPEN: Gate = { surrogate: false, testedBuild: true };
+const OPEN: Gate = { surrogate: false, build: 'tested' as const };
 
 function run(readings: readonly Reading[], gate: Gate = OPEN): ObserverHealth {
   return readings.reduce(
@@ -29,20 +29,30 @@ describe('nextHealth', () => {
   });
 
   it('turns off for an untested host build whatever the page shows', () => {
-    const gate = { surrogate: false, testedBuild: false };
+    const gate = { surrogate: false, build: 'untested' as const };
     expect(run(['ok'], gate)).toEqual({
       status: 'off',
       reason: 'untestedBuild',
     });
   });
 
+  it('waits, keeping its strikes, while the host check runs', () => {
+    const checking = { surrogate: false, build: 'checking' as const };
+    expect(run(['ok'], checking)).toEqual({ status: 'waiting', strikes: 0 });
+    const degraded = nextHealth(INITIAL_HEALTH, OPEN, 'drift');
+    expect(nextHealth(degraded, checking, 'ok')).toEqual({
+      status: 'waiting',
+      strikes: 1,
+    });
+  });
+
   it('turns off in a staff surrogate session', () => {
-    const gate = { surrogate: true, testedBuild: true };
+    const gate = { surrogate: true, build: 'tested' as const };
     expect(run(['ok'], gate)).toEqual({ status: 'off', reason: 'surrogate' });
   });
 
   it('stays off for the document once off', () => {
-    const off = run(['ok'], { surrogate: true, testedBuild: true });
+    const off = run(['ok'], { surrogate: true, build: 'tested' as const });
     expect(nextHealth(off, OPEN, 'ok')).toBe(off);
   });
 

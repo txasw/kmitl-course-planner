@@ -3,7 +3,7 @@ import type { HostObservation } from '@/lib/regis/hostObservation';
 import { INITIAL_HEALTH } from '@/lib/regis/observerHealth';
 import { hostStore } from './hostStore';
 
-const OPEN = { surrogate: false, testedBuild: true };
+const OPEN = { surrogate: false, build: 'tested' as const };
 
 function observation(patch: Partial<HostObservation>): HostObservation {
   return {
@@ -65,7 +65,7 @@ describe('hostStore', () => {
       health: { status: 'degraded' },
     });
     record(
-      { surrogate: false, testedBuild: false },
+      { surrogate: false, build: 'untested' as const },
       { reading: 'ok', observation: observation({}) },
     );
     expect(hostStore.getState()).toMatchObject({
@@ -82,7 +82,10 @@ describe('hostStore', () => {
       page: null,
       health: INITIAL_HEALTH,
     });
-    record({ surrogate: true, testedBuild: true }, { reading: 'absent' });
+    record(
+      { surrogate: true, build: 'tested' as const },
+      { reading: 'absent' },
+    );
     leave();
     expect(hostStore.getState().health).toEqual({
       status: 'off',
@@ -111,7 +114,10 @@ describe('hostStore', () => {
     hostStore.getState().leave();
     expect(hostStore.getState().term).toBeNull();
     record(OPEN, { reading: 'ok', observation: observation({ term: TERM }) });
-    record({ surrogate: true, testedBuild: true }, { reading: 'absent' });
+    record(
+      { surrogate: true, build: 'tested' as const },
+      { reading: 'absent' },
+    );
     expect(hostStore.getState().term).toBeNull();
   });
 
