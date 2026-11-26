@@ -7,8 +7,9 @@
 // counts. The host's period check, which app.a1e43722 runs every 60 s and on a focus, is
 // left out of the count (owner ruling of 2026-11-26), and any other request stops the run
 // as a request of the page's own, unless it ended before KCP first acted, which the run
-// waits out at its start. The subject stays to add, and the student's next press picks
-// it up where the page left it. What it reads stays in memory.
+// waits out at its start when the page made a request just before. The subject stays to
+// add, and the student's next press picks it up where the page left it. What it reads
+// stays in memory.
 
 import type { Plan } from '@/lib/domain/plan';
 import type { HostObservation } from '@/lib/regis/hostObservation';
@@ -62,7 +63,7 @@ export interface FillTiming {
   acknowledge: number;
   /**
    * How long the request count must stay the same before KCP first acts in a run,
-   * waited for at most `settle`.
+   * waited for at most `settle`, and only when the page made a request this recently.
    */
   quiet: number;
 }
@@ -260,11 +261,13 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
     return page();
   }
 
-  // The press that starts a run can be the click that focuses the window, and the host
-  // can send a request of its own on a focus, such as a token refresh, which can end just
-  // after the run began. A request that ends before KCP first acts cannot be one KCP
-  // caused, so the run first waits for the count to stay the same for a moment, and
-  // counts from there. The period check the host sends on a focus is not counted.
+  // The press that starts a run can come while the page is busy with requests of its own,
+  // such as the reads the panel makes when it mounts again or a token refresh, and one
+  // can end just after the run began. A request that ends before KCP first acts cannot be
+  // one KCP caused, so when the page made one in the moment before, the run first waits
+  // for the count to stay the same for a moment, and counts from there. A page with no
+  // such request is not made to wait. The period check the host sends on a focus is not
+  // counted either way.
   async function quietPage(): Promise<void> {
     const until = now() + timing.settle;
     let seen = tripwire.count();
@@ -283,7 +286,7 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
 
   async function fillOne(target: FillTarget): Promise<boolean> {
     if (!acted && !quieted) {
-      await quietPage();
+      if (!tripwire.quiet(timing.quiet)) await quietPage();
       quieted = true;
     }
     let observation = await settledPage(target);

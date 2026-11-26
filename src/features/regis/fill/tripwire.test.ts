@@ -129,6 +129,8 @@ describe('startTripwire', () => {
       });
     }).not.toThrow();
     expect(tripwire.count()).toBe(3);
+    // And the page no longer reads as quiet, whatever the clock says.
+    expect(tripwire.quiet(0)).toBe(false);
   });
 
   it('takes the entries its callback has not had yet when the count is read', () => {
@@ -147,7 +149,10 @@ describe('startTripwire', () => {
         return taken;
       }
     }
-    const tripwire = startTripwire(Buffering);
+    const tripwire = startTripwire(Buffering, {
+      entries: () => [],
+      clock: () => 0,
+    });
     // A request ended, and the page's handler of its end reads the count before the
     // observer's callback task runs.
     buffered = [entry('xmlhttprequest', `${API}?function=get-config`)];
@@ -168,5 +173,88 @@ describe('startTripwire', () => {
 
   it('counts nothing where the browser has no observer', () => {
     expect(startTripwire(undefined).count()).toBe(0);
+    expect(startTripwire(undefined).quiet(1500)).toBe(true);
+  });
+
+  describe('quiet', () => {
+    function ended(name: string, at: number): PerformanceEntry {
+      // Test only: a plain object standing in for a resource entry, which jsdom lacks.
+      return {
+        initiatorType: 'xmlhttprequest',
+        name,
+        responseEnd: at,
+      } as unknown as PerformanceEntry;
+    }
+
+    function tripwireAt(
+      clock: { now: number },
+      before: readonly PerformanceEntry[],
+    ) {
+      const { Fake, state } = fakeObserver();
+      const tripwire = startTripwire(Fake, {
+        entries: () => before,
+        clock: () => clock.now,
+      });
+      return { tripwire, state };
+    }
+
+    it('reads a page with no request before the run as quiet', () => {
+      const { tripwire } = tripwireAt({ now: 10_000 }, []);
+      expect(tripwire.quiet(1500)).toBe(true);
+    });
+
+    it('reads a request that ended in the moment before as busy, until it passes', () => {
+      const clock = { now: 10_000 };
+      const { tripwire } = tripwireAt(clock, [
+        ended(`${API}?function=get-student-credit`, 9_200),
+        ended(`${API}?function=get-pattern-subject`, 8_000),
+      ]);
+      expect(tripwire.quiet(1500)).toBe(false);
+      clock.now = 10_700;
+      expect(tripwire.quiet(1500)).toBe(true);
+    });
+
+    it.each([
+      ['a period check', PERIOD],
+      ['an image', `${API}logo.png`],
+    ])('leaves out %s', (_name, name) => {
+      const before =
+        name === PERIOD
+          ? [ended(name, 9_900)]
+          : [
+              {
+                initiatorType: 'img',
+                name,
+                responseEnd: 9_900,
+              } as unknown as PerformanceEntry,
+            ];
+      const { tripwire } = tripwireAt({ now: 10_000 }, before);
+      expect(tripwire.quiet(1500)).toBe(true);
+    });
+
+    it('reads a request that ends after the start as busy', () => {
+      const clock = { now: 10_000 };
+      const { tripwire, state } = tripwireAt(clock, []);
+      state.callback?.({
+        getEntries: () => [ended(`${API}?function=get-config`, 10_050)],
+      });
+      clock.now = 10_100;
+      expect(tripwire.quiet(1500)).toBe(false);
+    });
+
+    it.each([
+      [
+        'a full timeline, which takes no more entries',
+        Array.from({ length: 250 }, () => entry('img', `${API}logo.png`)),
+      ],
+      [
+        'an entry that does not say when it ended',
+        [entry('xmlhttprequest', API)],
+      ],
+      ['an entry that cannot be read', [unreadable()]],
+    ])('reads %s as busy', (_name, before) => {
+      const { tripwire } = tripwireAt({ now: 10_000 }, before);
+      expect(tripwire.quiet(1500)).toBe(false);
+    });
   });
 });
