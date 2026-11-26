@@ -1270,6 +1270,23 @@ describe('runFill timing', () => {
     expect(steps[0]).toEqual({ step: 'enter', at: 0 });
   });
 
+  it('acknowledges the grade dialog the moment the condition has shown for the least time', async () => {
+    const { outcome, steps, acknowledged } = await timed({
+      specs: EIGHT.slice(0, 1),
+      prerequisites: ['01476105'],
+    });
+    expect(outcome).toEqual({ status: 'done', filled: 1 });
+    const shown = steps.find((item) => item.step === 'conditional')?.at ?? 0;
+    expect(shown).toBeGreaterThanOrEqual(READ);
+    expect(acknowledged).toHaveLength(1);
+    expect((acknowledged[0] ?? 0) - shown).toBeGreaterThanOrEqual(
+      FILL_TIMING.acknowledge,
+    );
+    expect((acknowledged[0] ?? 0) - shown).toBeLessThan(
+      FILL_TIMING.acknowledge + 10,
+    );
+  });
+
   it('reads a Stop press within one poll while the host still reads', async () => {
     const { outcome, elapsed } = await timed({
       specs: [{ ...SINGLE }],
