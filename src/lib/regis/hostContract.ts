@@ -23,10 +23,11 @@
  * second, and a period check that polls check-registration-datetime every 60 s, on a
  * window focus, and on a visibility change, and can unmount the panel or mount it again
  * with no navigation. The observer bounds its readings and reads the panel leaving
- * (watchPage.ts), and a check that lands in a fill run stops it as a request of the
- * page's own (fillEngine.ts). scripts/host-labels.mjs run on it prints the labels of
- * app.020e81ed and one more pair, Try again and ลองอีกครั้ง, the retry button of the
- * periods section when its check fails, which the fill denylist now holds too.
+ * (watchPage.ts), and the fill tripwire leaves that check out of its count by its exact
+ * function name, so a check that lands in a fill run does not stop it (tripwire.ts).
+ * scripts/host-labels.mjs run on it prints the labels of app.020e81ed and one more pair,
+ * Try again and ลองอีกครั้ง, the retry button of the periods section when its check
+ * fails, which the fill denylist now holds too.
  *
  * app.ba450963, deployed 2026-11-26 at 03:21 GMT beside the same vendor bundle, was
  * compared with app.a1e43722 with its minified names normalised: the PreRegistration route
