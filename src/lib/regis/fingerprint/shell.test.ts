@@ -83,7 +83,7 @@ describe('shellComponents', () => {
 describe('the shell data boundary', () => {
   it('writes the menu data and the scoped style id as one word each', () => {
     const text = setupOf() ?? '';
-    expect(text).toContain('data : ( ) => ( @data )');
+    expect(text).toContain('data : ( ) => ( { nav : @data } )');
     expect(text).toContain('@scope');
     expect(text).not.toContain('drawer.home');
     expect(text).not.toContain('0a1b2c3d');
@@ -94,7 +94,7 @@ describe('the shell data boundary', () => {
     for (const data of [
       '{nav:[{to:"home",label:"drawer.home",icon:"mdi-account",active:!1}]}',
       '{nav:[{to:"x",label:"drawer.new",icon:"mdi-x",active:!0},{to:"home",label:"drawer.home",icon:"mdi-home",n:-1,s:null,t:`plain`,list:["a",1,!0,false]}]}',
-      '{nav:[{label:"drawer.home",subItems:[{to:"home"},...[{to:"more"}]]}],other:{deep:[[1],[2]]}}',
+      '{nav:[{label:"drawer.home",subItems:[{to:"home"},...[{to:"more"}]]}]}',
     ]) {
       expect(setupOf({ data }), data).toBe(base);
     }
@@ -123,7 +123,7 @@ describe('the shell data boundary', () => {
       setupOf({ extra, data: choice('drawer.b') }),
     );
     expect(setupOf({ extra, data: choice('drawer.a') })).toContain(
-      'data : ( ) => ( @data )',
+      'data : ( ) => ( { nav : @data } )',
     );
   });
 
@@ -157,6 +157,34 @@ describe('the shell data boundary', () => {
       setupOf({ render: 'e("nav",{attrs:{role:"list"}})' }),
     );
     expect(setupOf({ scope: 'null' })).not.toBe(setupOf());
+  });
+
+  it('keeps in full a drawer data key beside the menu', () => {
+    // Vue sets a data key over a method or a computed value of the same name.
+    for (const extra of ['student_id:"65010001",', 'logout:"x",']) {
+      const data = `{${extra}nav:[{to:"home"}]}`;
+      expect(setupOf({ data }), extra).toContain(extra.slice(0, 6));
+      expect(setupOf({ data }), extra).not.toBe(
+        setupOf({ data: data.replace('"home"', '"other"') }),
+      );
+    }
+    expect(setupOf({ data: '{nav:[{to:"home"}],extra:[1]}' })).not.toBe(
+      setupOf({ data: '{nav:[{to:"home"}],extra:[2]}' }),
+    );
+  });
+
+  it('keeps the data of the app bar and of the footer in full', () => {
+    // The app bar binds its `attrs` onto a button, so a literal there is an attribute.
+    const bar = (attrs: string) =>
+      setupOf({ key: 'AppBar', data: `{on:null,attrs:${attrs}}` });
+    expect(bar('{onanimationstart:"go()"}')).not.toBe(bar('null'));
+    expect(bar('{href:"javascript:void 0"}')).not.toBe(bar('null'));
+    expect(setupOf({ key: 'AppBar', scope: '"9f8e7d6c"' })).not.toBe(
+      setupOf({ key: 'AppBar' }),
+    );
+    expect(setupOf({ key: 'Footer', data: '{a:[1]}' })).not.toBe(
+      setupOf({ key: 'Footer', data: '{a:[2]}' }),
+    );
   });
 
   it('keeps the data in full outside the shell', () => {

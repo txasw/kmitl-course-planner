@@ -1,6 +1,7 @@
-// The probes and neutral edits of the App shell (ADR-0079, amendment of 2026-11-26). The
-// probes are shell changes the setup part must still see: a function in the drawer's
-// menu data, a drawer method that calls the API, and a click handler on the app bar.
+// The probes and neutral edits of the App shell (ADR-0079, amendments of 2026-11-26 and
+// 2026-11-27). The probes are shell changes the setup part must still see: a function in
+// the drawer's menu data, a drawer method that calls the API, a click handler on the app
+// bar, an attribute in the app bar's data, and a key beside the drawer's menu.
 // The neutral edits are the shell changes it leaves out, which must change no part: the
 // drawer's menu entries regrouped, an entry added, and a changed label and icon. Nothing
 // here ships: the worker imports none of it.
@@ -29,10 +30,16 @@ function shellOf(bundle: Bundle, key: string) {
   );
 }
 
+/** The opening brace of the data value of a shell component, or -1. */
+function dataOf(bundle: Bundle, key: string): number {
+  const options = shellOf(bundle, key)?.options ?? null;
+  const value = options === null ? -1 : dataValue(bundle, options);
+  return text(bundle, value) === '{' ? value : -1;
+}
+
 /** The first array the drawer's data holds, as its menu is, by its opening bracket. */
 function drawerMenu(bundle: Bundle): number {
-  const options = shellOf(bundle, 'Drawer')?.options ?? null;
-  const value = options === null ? -1 : dataValue(bundle, options);
+  const value = dataOf(bundle, 'Drawer');
   if (value < 0) return -1;
   return firstIn(
     { start: value, end: bundle.pairs[value] ?? value },
@@ -128,6 +135,37 @@ export const SHELL_PROBES: readonly Probe[] = [
             attrs,
             'on:{click:function(){kcpProbe()}},attrs',
           );
+    },
+  },
+  {
+    id: 'attrs:shellBar',
+    part: 'setup',
+    describe:
+      "an inline handler in the app bar's data, which Vue binds onto a button",
+    apply: (source) => {
+      const bundle = readBundle(source);
+      const value = dataOf(bundle, 'AppBar');
+      return value < 0
+        ? null
+        : insertAfter(
+            source,
+            bundle,
+            value,
+            'attrs:{onanimationstart:"kcpProbe()"},',
+          );
+    },
+  },
+  {
+    id: 'key:shellData',
+    part: 'setup',
+    describe:
+      "a key beside the drawer's menu, which Vue sets over a computed value",
+    apply: (source) => {
+      const bundle = readBundle(source);
+      const value = dataOf(bundle, 'Drawer');
+      return value < 0
+        ? null
+        : insertAfter(source, bundle, value, 'student_id:"kcp_probe",');
     },
   },
 ];
