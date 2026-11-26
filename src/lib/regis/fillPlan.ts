@@ -40,6 +40,7 @@ export const STOP_REASONS = [
   'cardLoading',
   'pageRequest',
   'pageChanged',
+  'checking',
   'untestedBuild',
   'latched',
   'notRecognised',
