@@ -76,6 +76,9 @@ function periodCheck(host: string, url: URL): string | null {
     : null;
 }
 
+/** The longest a spec may ask the replica's eligibility read to take, in ms. */
+const ELIGIBILITY_WAIT_CAP = 10_000;
+
 function fixtureBody(name: string): string {
   return readFileSync(resolve(FIXTURE_DIR, name), 'utf8');
 }
@@ -274,6 +277,20 @@ export async function startMockServer(): Promise<MockServer> {
             return;
           }
           sendJson('teach-table.by_subject_owner_id-32.capture.json');
+          return;
+        }
+        // The replica's eligibility read answers after the wait its query names, as the
+        // host's own read takes its time, so a spec can time a run against a host that
+        // answers at a realistic pace.
+        if (url.pathname === '/replica/eligibility') {
+          const wait = Math.min(
+            Number(url.searchParams.get('wait') ?? '0') || 0,
+            ELIGIBILITY_WAIT_CAP,
+          );
+          setTimeout(() => {
+            res.writeHead(200, { 'content-type': 'application/json' });
+            res.end('{"data":[]}');
+          }, wait);
           return;
         }
         const replica = replicaFile(url);
