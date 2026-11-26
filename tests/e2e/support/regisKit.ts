@@ -5,7 +5,12 @@
 import type { Page, Worker } from '@playwright/test';
 import { REGKIT_KEY, ROOT_KEY } from '../../../src/lib/storage/keys';
 import { expect } from './fixtures';
-import { addCourse, syntheticSearch } from './synthetic';
+import {
+  SYNTHETIC_SEARCH,
+  addCourse,
+  syntheticSearch,
+  type ReservedSearch,
+} from './synthetic';
 
 interface StoredEntry {
   subjectId: string;
@@ -63,8 +68,9 @@ export async function planWithKit(
   serviceWorker: Worker,
   subjectIds: readonly string[],
   alternatives: Readonly<Record<string, readonly KitAlternative[]>> = {},
+  search: ReservedSearch = SYNTHETIC_SEARCH,
 ): Promise<PlannedKit> {
-  await syntheticSearch(page);
+  await syntheticSearch(page, search);
   for (const subjectId of subjectIds) await addCourse(page, subjectId);
   await expect(page.locator('[data-teach-table-id]')).toHaveCount(
     subjectIds.length,

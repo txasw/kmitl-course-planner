@@ -18,12 +18,30 @@ export function block(id: string): string {
   return `[data-teach-table-id="${id}"]`;
 }
 
-/** Run the by subject id search for the reserved synthetic id and wait for results. */
-export async function syntheticSearch(page: Page): Promise<void> {
+/** A reserved search id the mock server answers, and a subject id its result shows. */
+export interface ReservedSearch {
+  id: string;
+  shows: string;
+}
+
+/** The synthetic catalog of the reserved id 90000000. */
+export const SYNTHETIC_SEARCH: ReservedSearch = {
+  id: '90000000',
+  shows: '90000001',
+};
+
+/**
+ * Run the by subject id search for a reserved id, the synthetic one unless another is
+ * named, and wait for results.
+ */
+export async function syntheticSearch(
+  page: Page,
+  search: ReservedSearch = SYNTHETIC_SEARCH,
+): Promise<void> {
   await page.getByRole('tab', { name: 'รหัสวิชา', exact: true }).click();
-  await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill('90000000');
+  await page.getByRole('textbox', { name: 'รหัสวิชา' }).fill(search.id);
   await submitSearch(page);
-  await expect(page.getByText('90000001').first()).toBeVisible({
+  await expect(page.getByText(search.shows).first()).toBeVisible({
     timeout: 15_000,
   });
   await waitForResultsInput(page);
