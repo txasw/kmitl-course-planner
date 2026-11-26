@@ -163,6 +163,23 @@ describe('the shell data boundary', () => {
     }
   });
 
+  it('counts the actions of the menu, so an added logout is a change', () => {
+    const base =
+      '{nav:[{to:"/",label:"app_bar.homepage"},{to:"",action:"logout"}]}';
+    expect(setupOf({ data: base })).toContain('{ nav : @data(logout=1) }');
+    expect(
+      setupOf({ data: base.replace('homepage"', 'homepage",action:"logout"') }),
+    ).toContain('{ nav : @data(logout=2) }');
+    expect(
+      setupOf({
+        data: base.replace(
+          '{to:"",action:"logout"}',
+          '{to:"",action:"login"},{action:"logout"}',
+        ),
+      }),
+    ).toContain('{ nav : @data(login=1,logout=1) }');
+  });
+
   it('reads a choice only on a module constant written as a boolean', () => {
     const menu = (flag: string) =>
       `{nav:[{to:"home"},...${flag}?[{to:"staff"}]:[],{to:"a",active:${flag}?!0:!1}]}`;
