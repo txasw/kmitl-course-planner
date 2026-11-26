@@ -167,6 +167,9 @@ export default tseslint.config(
       '.wrangler/**',
       'coverage/**',
       'node_modules/**',
+      // A minified stand in for the host's app script, which the host check tests read
+      // as text and never run.
+      'tests/fixtures/host-fingerprint/**',
     ],
   },
   js.configs.recommended,
