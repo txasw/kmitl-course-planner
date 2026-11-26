@@ -36,7 +36,7 @@ export const REPLICA_BUILD: RecordedBuild = {
     client: '3fa81115a7a42db6a5f1abba652b505d807992805d197169e055b83b3624acc4',
     writes: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
     store: '8d65ab75fa74e901e1bba1cce3f3ee07065d1f1bfcfeec1f274514b0fcb7c61d',
-    setup: 'de49545b2e48bf43b14c16d7f6be75498e0cb35b9c23a86efaa86792399170fe',
+    setup: 'e385c6f19f34defb6cd5ecb4f761b296c44021a33b1160bfb18104071bf52217',
     labels: 'edb78657b5a03987e25d11813a0da82887ca94301d724b0f26af4c69089d3313',
   },
 };

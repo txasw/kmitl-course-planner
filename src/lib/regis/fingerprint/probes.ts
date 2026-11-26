@@ -4,9 +4,11 @@
 // changed attribute in the grade not announced dialog, a changed interval in the period
 // check, a changed timeout in the API client, a changed write endpoint name, a plugin
 // and an action call added to the store, a statement and a global mixin added to what
-// the module runs as it loads, the pre registration route moved, and a changed label. scripts/host-fingerprint.mjs runs them on the saved host bundles and the
-// unit tests run them on the replica bundle, so both check the same edits. Nothing here
-// ships: the worker imports none of it.
+// the module runs as it loads, the pre registration route moved, a changed label, and
+// the App shell probes of shellProbes.ts. scripts/host-fingerprint.mjs runs them, and
+// the shell's neutral edits, on the saved host bundles and the unit tests run them on
+// the replica bundle, so both check the same edits. Nothing here ships: the worker
+// imports none of it.
 
 import {
   catalogNames,
@@ -23,58 +25,14 @@ import { readBundle, type Bundle, type Span } from './module.ts';
 import { COMPONENT_PARTS, type PartId } from './partIds.ts';
 import { expressionEnd } from './scopes.ts';
 import { moduleItems, storeSpan } from './setup.ts';
+import { firstIn, insertAfter, replaceAt, type Probe } from './probeEdits.ts';
+import { SHELL_PROBES } from './shellProbes.ts';
 import { writeReferences } from './writes.ts';
-
-export interface Probe {
-  id: string;
-  /** The part the edit is in, whose fingerprint must change. */
-  part: PartId;
-  describe: string;
-  /** The bundle with the edit, or null when its anchor is not in this bundle. */
-  apply: (
-    source: string,
-    writeDigests: ReadonlySet<string>,
-  ) => Promise<string | null> | string | null;
-}
-
-function replaceAt(
-  source: string,
-  bundle: Bundle,
-  index: number,
-  value: string,
-): string | null {
-  const token = bundle.tokens[index];
-  if (token === undefined || index < 0) return null;
-  return (
-    source.slice(0, token.start) +
-    value +
-    source.slice(token.start + token.text.length)
-  );
-}
-
-function insertAfter(
-  source: string,
-  bundle: Bundle,
-  index: number,
-  value: string,
-): string | null {
-  const token = bundle.tokens[index];
-  if (token === undefined || index < 0) return null;
-  const end = token.start + token.text.length;
-  return source.slice(0, end) + value + source.slice(end);
-}
 
 /** The host store's definition in a bundle, or null. */
 function storeOf(bundle: Bundle): Span | null {
   const module = addSubject(bundle)?.module ?? null;
   return module === null ? null : storeSpan(module, storeNames(bundle, module));
-}
-
-function firstIn(span: Span, test: (index: number) => boolean): number {
-  for (let index = span.start; index < span.end; index += 1) {
-    if (test(index)) return index;
-  }
-  return -1;
 }
 
 function addSubject(bundle: Bundle) {
@@ -318,6 +276,7 @@ export const PROBES: readonly Probe[] = [
         : replaceAt(source, bundle, path, '"/pre_registration_probe"');
     },
   },
+  ...SHELL_PROBES,
   {
     id: 'label:labels',
     part: 'labels',
