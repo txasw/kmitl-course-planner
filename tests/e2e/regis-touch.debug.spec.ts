@@ -14,7 +14,10 @@ declare global {
 // Add for me on a phone with a touch screen (ADR-0078): a stray touch is no reason to
 // stop. Taps on the host page, a scroll of it, a tap on its header, and taps on the card's
 // count and on the launcher while Add all for me runs leave the card open, Stop on screen,
-// and the run going until every subject is added; Stop still stops at once. The run presses nothing outside its allowlist and writes nothing.
+// and the run going until every subject is added; Stop still stops at once. The host's
+// period check runs every second, as well as on a focus and a visibility change, and lands
+// in the run without stopping it (owner ruling of 2026-11-26). The run presses nothing
+// outside its allowlist and writes nothing.
 
 const REPLICA_URL = `${REGIS_ORIGIN}/replica/pre_registration`;
 const SUBJECTS = ['90000001', '90000003', '90000005'] as const;
@@ -26,7 +29,10 @@ function card(page: Page): Locator {
   return page.locator('#kcp-regis-card');
 }
 
-/** Plan at the planner's desktop size, then open the a1e43722 route at a phone size. */
+/**
+ * Plan at the planner's desktop size, then open the a1e43722 route at a phone size, its
+ * period check running every second.
+ */
 async function openOnPhone(
   page: Page,
   serviceWorker: Worker,
@@ -35,7 +41,7 @@ async function openOnPhone(
 ): Promise<void> {
   const { term, sections } = await planWithKit(page, serviceWorker, SUBJECTS);
   await page.setViewportSize(size);
-  await page.goto(`${REPLICA_URL}?build=a1e43722&poll=0#/pre_registration`);
+  await page.goto(`${REPLICA_URL}?build=a1e43722&poll=1000#/pre_registration`);
   await page.waitForFunction(() => 'replica' in window);
   await page.evaluate(
     ({ next, catalog, wait }) => {
@@ -139,6 +145,10 @@ test('a tap, a scroll, and a tap on the header mid run leave Add all for me runn
     window.replica.state.list.map((row) => row.subjectId),
   );
   expect(listed).toEqual([...SUBJECTS]);
+  // The period check ran through the run and stopped nothing.
+  expect(
+    await page.evaluate(() => window.replica.counters.polls),
+  ).toBeGreaterThanOrEqual(3);
   await expectNothingForbidden(page);
 });
 

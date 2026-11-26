@@ -56,16 +56,24 @@ function replicaFile(url: URL): { type: string; body: string } | null {
   if (/^\/js\/chunk-vendors\.[0-9a-f]{8}\.js$/.test(url.pathname)) {
     return { type: js, body: '' };
   }
-  // The replica's own period check, which the specs drive by its answer in the page, so
-  // the body only needs to be a well formed reply. It sits off the API path, so the API
-  // call log keeps listing the extension's requests alone.
-  if (url.pathname === '/replica/check-registration-datetime') {
-    return {
-      type: 'application/json',
-      body: '{"pre_regis":{"before_date":false,"on_date":true,"after_date":false}}',
-    };
-  }
   return null;
+}
+
+/** The host's period check, under the function name and the address the host uses. */
+const PERIOD_CHECK = 'check-registration-datetime';
+
+/**
+ * The replica's period check, which the specs drive by its answer in the page, so the
+ * body only needs to be a well formed reply, or a near miss of its name a spec sends as
+ * another request of the page's own. Only the page sends these, never the extension.
+ */
+function periodCheck(host: string, url: URL): string | null {
+  const fn = url.searchParams.get('function') ?? '';
+  return host === 'regis.reg.kmitl.ac.th' &&
+    url.pathname === '/api/' &&
+    fn.startsWith(PERIOD_CHECK)
+    ? '{"pre_regis":{"before_date":false,"on_date":true,"after_date":false}}'
+    : null;
 }
 
 function fixtureBody(name: string): string {
@@ -111,6 +119,15 @@ export async function startMockServer(): Promise<MockServer> {
       const host = (req.headers.host ?? '').split(':')[0] ?? '';
       const url = new URL(req.url ?? '/', `https://${host}`);
       const fn = url.searchParams.get('function');
+      // The page's own period check is answered here and left out of the API call log,
+      // which lists what the extension sent; a near miss of its name is listed.
+      const period = periodCheck(host, url);
+      if (period !== null) {
+        if (fn !== PERIOD_CHECK) calls.push(fn ?? url.pathname);
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(period);
+        return;
+      }
       if (
         host === 'api.reg.kmitl.ac.th' ||
         (host === 'regis.reg.kmitl.ac.th' && url.pathname.startsWith('/api'))
