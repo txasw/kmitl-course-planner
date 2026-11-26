@@ -80,11 +80,21 @@ async function startAddAll(page: Page): Promise<void> {
   await expect(card(page)).toHaveAttribute('data-fill', 'running');
 }
 
-/** A point on the host page, in the middle of a host element, outside KCP. */
+/**
+ * A point on the host page, in the middle of a host element, outside KCP. The period
+ * check renders the periods section again on each run, so the element can be between two
+ * renders at the moment it is read; the box is read again until one is there.
+ */
 async function centreOf(page: Page, selector: string) {
-  const box = await page.locator(selector).first().boundingBox();
-  if (box === null) throw new Error(`no ${selector}`);
-  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  const element = page.locator(selector).first();
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const box = await element.boundingBox();
+    if (box !== null) {
+      return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    }
+    await page.waitForTimeout(50);
+  }
+  throw new Error(`no ${selector}`);
 }
 
 async function expectNothingForbidden(page: Page): Promise<void> {
