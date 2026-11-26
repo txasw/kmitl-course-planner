@@ -6,9 +6,10 @@
 //
 // What was read for an app script is kept by its name, in worker memory and in
 // storage.local, so each new build costs one request per browser and is never read again
-// while kept; a mismatch is kept as well, since the same name serves the same file. A
-// request that did not complete is kept with its time and tried again only on a visit
-// an hour later, so nothing polls the host. Any failure answers with a verdict that keeps
+// while kept; a mismatch is kept as well, since the same name serves the same file, and
+// so is a script the reader could not read or faulted on. A request that did not
+// complete is kept with its time and tried again only on a visit an hour later, so
+// nothing polls the host. Any failure answers with a verdict that keeps
 // fill off. The page's names reach the worker only as these two public file names.
 
 import type { HostBuildVerdict } from '../regis/buildVerdict';
@@ -70,8 +71,10 @@ export function createHostCheck(deps: HostCheckDeps): HostCheck {
       const parts = await fingerprintScript(outcome.source);
       return parts === null ? { kind: 'unreadable' } : { kind: 'read', parts };
     } catch {
-      // A fault in the reading is KCP's, so it is not kept as the script's verdict.
-      return { kind: 'failed', at: deps.env.now() };
+      // A fault in the reading repeats for this script, whose name names its content,
+      // so it is kept as unreadable rather than read again every hour. A release that
+      // changes the reader moves the fingerprint version, which drops what was kept.
+      return { kind: 'unreadable' };
     }
   }
 
