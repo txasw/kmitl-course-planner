@@ -101,3 +101,15 @@ loads the reference lists on open.
 The address KCP holds is now only a route path and public search fields. A future feature that needs
 more of the address, or a new registration route, changes the reader or the classifier and its
 tests, not a consumer. Permissions are unchanged, `["storage"]` and the two host origins.
+
+## Amendment, 2026-11-26: the host check request
+
+ADR-0079 adds one request KCP starts by itself on the pre registration page: when the page loaded
+an app script KCP has not checked before beside a tested vendor script, the worker downloads that
+public script file once to fingerprint it. It carries no cookie, no referrer, and nothing of the
+student, and it goes to the host's static file server, not its registration API. A result is kept
+by the script's name, so the file is read once per new build per browser; a request that did not
+complete is tried again only on a visit an hour later. This is an exception to "While one of them is
+on screen KCP starts no request by itself" above. Whether the check may run on arrival, as built,
+or only on the student's press is an open question for the owner, recorded here so the two
+decisions do not disagree in silence.

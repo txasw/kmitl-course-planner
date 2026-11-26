@@ -427,7 +427,8 @@ period check; it only stops counting it.
   puts its parameters in the query, and they are the level, year, and semester. Resource timing does
   not expose the method, and none is needed: the client's `create` and `post` send the function in
   the JSON body, so a registration write such as regis-pre-regis reaches `/api/` with no function in
-  its address and is counted. Any other request still stops the run in every window: after the
+  its address and is counted. (Corrected by the review amendment below: one write goes through the
+  client's `delete` with its function in the query, and is counted all the same.) Any other request still stops the run in every window: after the
   subject id is entered only the eligibility read may follow, and after every other step nothing.
 - **The run does not wait for the check or read its answer.** A check whose answer closes the
   period unmounts the panel, and the run stops at once as a page that changed, as the amendment of
@@ -554,3 +555,37 @@ owner asked (1A). The exact list stays the fast path, and every guard here, the 
 step verification, and the refusal latch stay as they are. This supersedes "gated to the tested
 host builds" in the context and the first consequence's "a host redeploy turns it off until a
 release ships with the new names" for a redeploy whose parts read the same.
+
+## Amendment, 2026-11-26: review fixes to the tripwire and the build gate
+
+A review of the host check found the tripwire too narrow for builds nobody reviewed, since it is
+now the last backstop there.
+
+- **Every host API call counts.** The tripwire counted only XMLHttpRequest entries, so a request the
+  page started through fetch, a beacon, or an image went unseen. It now counts every XMLHttpRequest,
+  as before, and every entry addressed to the host API however it was started: any address on
+  `https://api.reg.kmitl.ac.th`, and any path of `https://regis.reg.kmitl.ac.th` that starts with
+  its API folder in any letter case. An address it cannot read counts. Counting every resource entry
+  was rejected, because during a run the page loads its own scripts, styles, and images and sends
+  its analytics to another site, and none of those can be a host write. KCP itself starts no request
+  in the page.
+- **The period check exemption reads every key.** An address with one `function` equal to the
+  period check's still passed with another key beside it, such as `function[]`, its encoded form,
+  or `FUNCTION`, which a PHP or qs server may read as another function. The exemption now also
+  requires every query key to be one the period check sends, `function`, `level_id`, `year`,
+  `semester`, and `sub_level_id`, each once. Encoded spellings of the exact address stay exempt,
+  since they are the same request.
+- **The write address reasoning.** The period check amendment said a write carries its function
+  only in the body. In all four studied bundles one rule 6 write, the queue cancel, goes through the
+  client's `delete` with its function in the query. Safety held, since that address is not the
+  exact exempt one and is counted, and the reasoning in the code and here now says so.
+- **A checking gate.** While the host check reads a new build, the gate read as untested, so a run
+  met in that window would have stopped with the sentence that KCP had not been tested with the
+  page, although the build may be verified seconds later. The gate now has a checking state: Add
+  for me says that KCP is checking this page version, and a run that meets it stops with a sentence
+  that asks the student to try again in a moment. Holding the press until the answer was rejected,
+  since a run begins only on the press it names.
+
+Tests cover each initiator to the host API, the analytics, page image, and page script left out, an
+XMLHttpRequest to another site still counted, the extra key cases, the encoded exact address, the
+checking gate, and the checking block on the card.
