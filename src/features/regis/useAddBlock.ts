@@ -13,6 +13,7 @@ import { regisStore } from './regisStore';
 import type { HelperModel } from './useHelperModel';
 
 const BLOCK_TEXT: Readonly<Record<AddBlock, TranslationKey>> = {
+  checking: 'regis.addForMe.checking',
   unavailable: 'regis.addForMe.unavailable',
   off: 'regis.addForMe.off',
   preparing: 'regis.addForMe.preparing',
@@ -51,8 +52,10 @@ function useBlock(
       : addForMeBlock({
           available:
             model.route === 'preRegistration' &&
+            gate !== 'checking' &&
             gate !== 'untestedBuild' &&
             gate !== 'latched',
+          checking: gate === 'checking',
           off: gate === 'off',
           preparing,
           target:

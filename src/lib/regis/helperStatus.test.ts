@@ -205,6 +205,7 @@ describe('the focus and the counts', () => {
 describe('addForMeBlock', () => {
   const ready: AddFacts = {
     available: true,
+    checking: false,
     off: false,
     target: true,
     stale: false,
@@ -222,6 +223,9 @@ describe('addForMeBlock', () => {
     expect(
       addForMeBlock({ ...ready, available: false, stale: true, busy: true }),
     ).toBe('unavailable');
+    expect(
+      addForMeBlock({ ...ready, available: false, checking: true, off: true }),
+    ).toBe('checking');
     expect(addForMeBlock({ ...ready, off: true, stale: true })).toBe('off');
     expect(addForMeBlock({ ...ready, target: false })).toBe('noKit');
     expect(addForMeBlock({ ...ready, target: false, preparing: true })).toBe(
