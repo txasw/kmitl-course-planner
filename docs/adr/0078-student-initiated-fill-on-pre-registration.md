@@ -450,3 +450,96 @@ period check; it only stops counting it.
   with the period check's name and another host function each still stop a run that the next press
   finishes, and the touch spec at 412 by 915 runs with the check every second. With the function
   name changed in the tripwire, the first of these specs fails.
+
+## Amendment, 2026-11-26: Add for me at the host's pace
+
+The owner asked on 2026-11-26 for Add for me to be faster, since a run felt like a person pressing
+one button at a time. Every guard above is unchanged: a run starts only from a trusted student
+press, acts only on the allowlist through the one actuator, goes one subject at a time and never
+starts a subject before the one before it is on the page's list, never acts before the host's
+answer to the step before is verified from a fresh reading, ends at the first stop, reads Stop
+within 100 ms, never presses ดำเนินการต่อ or any confirm control, and never causes a host write.
+Only how long the run waits changed.
+
+- **What was measured.** A new debug spec (`regis-speed.debug.spec.ts`) runs Add all for me on the
+  replica of the app.a1e43722 route, whose eligibility read now answers only when its request ends,
+  250 ms after it starts, as the host renders its answer in the read's own resolution. It records
+  in the page each event KCP dispatches and each answer of the host. Before this amendment, eight
+  subjects took 12.4 s. The first subject took 2.9 s, 1.8 s of it before the id was typed (the
+  1500 ms quiet wait and the 250 ms pace); every later subject took 1.35 s: typing the id 255 ms,
+  the host's read 270 ms, opening the menu 315 ms, choosing the section 258 ms, pressing Add
+  260 ms, and the list row 1 ms. The host's own answer was a fifth of each subject; the rest was
+  the pace before each event and the 100 ms poll after it. Three subjects with a grade dialog on
+  the second, with the period check every second, took 7.3 s, 1.8 s of it at the dialog.
+- **After.** Eight subjects take 2.4 s to 2.6 s: each subject takes 280 ms to 335 ms, of which the
+  host's read is 260 ms to 280 ms; typing the id, opening the menu, choosing, and pressing Add take
+  1 ms to 24 ms each. The grade dialog run takes 1.7 s, 770 ms of it at the dialog. The time of a
+  subject is now the host's answer.
+- **No pace between events.** The host needs none, by its render functions in app.a1e43722: the
+  subject field is a `v-text-field` whose `input` listener and `v-model` run on the one input event
+  and start the search; a section `v-select` opens on the activator's click and takes an option on
+  the option's click, then runs its async check of time and exam clashes, which sends no request,
+  and colours the row; and Add pushes to the list on its click. Each renders in a Vue microtask.
+  Since the run verifies each answer before it acts again, a pace only made the student wait. Each
+  action still begins on a task of its own, after a Stop check, so a Stop press in between is read
+  first.
+- **Waits end on the host's change** (`features/regis/fill/pageWatch.ts`). A mutation observer on
+  the whole document ends a wait at the first task after the page changes, and the run reads the
+  page again from the start; the 100 ms poll stays as the fallback that reads Stop and the
+  ceilings when the page is still. The reading runs one task after the change, never inside the
+  mutation callback, because the host chains microtasks after its render, such as the section
+  check that colours the add row and the move of a dialog to the app root on the next tick, and all
+  of them end before the next task. The task is a message on a channel of KCP's own, which a
+  browser does not throttle in a background tab the way it throttles timers. Watching only the
+  roots the read only observer watches was not taken: the menus and dialogs attach under the app
+  root and the toasts under the body, and a countdown tick on the whole document costs only a
+  second reading. Resolving inside the callback was rejected, since it can read half an answer.
+- **The tripwire takes its buffered entries when the count is read.** A probe in Chromium and
+  Firefox found that at the end of a request the resource entry is already in the observer's
+  buffer while the observer's callback has not yet run. The run now reads the count in the tasks
+  that follow the host's answer, and the browser does not promise which task runs first, so each
+  reading of the count first takes the buffered entries itself (`takeRecords`). The eligibility read
+  then always lands in the window of the step that caused it, and every window stays exact. On the
+  replica the run also passed without it, so this removes an ordering the run would otherwise rely
+  on rather than fixing a measured stop. A batch with an entry that cannot be read is now counted
+  whole without the callback throwing.
+- **The quiet wait is paid only on a busy page.** Before KCP first acts, the run waits for the
+  request count to stay the same for 1500 ms only when the page's resource timeline shows a request
+  the tripwire would count that ended in the last 1500 ms, such as the reads of a panel that just
+  mounted again; the period check is left out as before, so a press that focuses the window no
+  longer waits. A full timeline, which takes no more entries after 250, and an entry that cannot be
+  read both read as busy. The tripwire keeps the time the last counted request ended, a number,
+  and nothing of any name. What this gives up: a request still running at the press is not in the
+  timeline, so one that ends after KCP's first action stops the run as a request of the page's own,
+  and the next press goes on. In the studied bundles the only request the page starts on a focus is
+  the period check, and the token refresh runs on its own timer, so such a request is rare, and a
+  run that takes seconds rather than tens of seconds meets fewer requests of the page's own mid
+  run as well.
+- **The grade dialog waits only for the shown condition.** The fixed 1500 ms wait is gone. The run
+  acknowledges the dialog the moment KCP's card has shown the subject's condition for 750 ms, the
+  same least time as before, which was half the old wait; it reads the card's record and its clock,
+  since the card renders in KCP's own root, which the page watch does not see. A card that does not
+  show it within the 3000 ms settle ceiling stops the run as an open dialog, as before. The
+  condition is still on screen in the task of the check, and only one task now separates the check
+  from the click, where the pace used to put 250 ms. The helper keeps the condition it read after
+  the dialog closes. The wait for the dialog to close is observed as before.
+- **What this supersedes.** "At least 250 ms between events" in the mechanism section, the wait "so
+  the student can read it" of 1500 ms, the record that "has stood for at least half the wait", and
+  the quiet wait the review fixes amendment of 2026-11-25 paid on every run.
+- **Rejected.** A shorter pace, such as 50 ms, adds four to six waits a subject that check nothing.
+  Setting the host's component state or calling its methods to skip the menus stays forbidden by
+  rule 6. Two subjects at once stays forbidden, since the page has one add row and the first stop
+  must end the run. Dropping the quiet wait altogether would lose the busy page it was made for.
+- **Tests.** Unit tests on fake timers run the shipped timing on the replica with a 250 ms read:
+  eight subjects take the time of the eight reads plus less than 40 ms, the first id is typed at
+  once, the quiet wait is paid once and only after a request just before the press, a request
+  that ended before that window is not waited for, the grade dialog is acknowledged between 750 ms
+  and 760 ms after the condition shows, and a Stop press during the read ends the run within one
+  poll. The page watch is tested for its wake at the next task after the host's chained microtasks,
+  its fallback time, one task for many waits, and its stop. The tripwire is tested for taking the
+  buffered entries once, the busy and quiet readings of its timeline, and an unreadable batch. The
+  engine test of an option list that changes after it was read now makes the change in the task
+  between the reading and the click. The speed spec asserts the order of every event of every
+  subject, that no read answers early, that eight subjects finish within 2 s over their reads, that
+  the grade dialog waits from 750 ms to 1350 ms, and that nothing forbidden was pressed, nothing was
+  written, and KCP sent no request.
