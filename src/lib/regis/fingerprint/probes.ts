@@ -2,8 +2,9 @@
 // probe makes one small edit at a token it finds in a bundle: an added option on every
 // page component, a changed button handler and an added call in the add subject card, a
 // changed attribute in the grade not announced dialog, a changed interval in the period
-// check, a changed timeout in the API client, a changed write endpoint name, and a
-// changed label. scripts/host-fingerprint.mjs runs them on the saved host bundles and the
+// check, a changed timeout in the API client, a changed write endpoint name, a plugin
+// and an action call added to the store, a statement and a global mixin added to what
+// the module runs as it loads, the pre registration route moved, and a changed label. scripts/host-fingerprint.mjs runs them on the saved host bundles and the
 // unit tests run them on the replica bundle, so both check the same edits. Nothing here
 // ships: the worker imports none of it.
 
@@ -13,12 +14,15 @@ import {
   gradeDialogSpan,
   locateComponent,
   periodMixins,
+  storeNames,
   stringsOf,
   text,
 } from './locate.ts';
 import { catalogOpens, valueIndex } from './labels.ts';
 import { readBundle, type Bundle, type Span } from './module.ts';
 import { COMPONENT_PARTS, type PartId } from './partIds.ts';
+import { expressionEnd } from './scopes.ts';
+import { moduleItems, storeSpan } from './setup.ts';
 import { writeReferences } from './writes.ts';
 
 export interface Probe {
@@ -58,6 +62,12 @@ function insertAfter(
   if (token === undefined || index < 0) return null;
   const end = token.start + token.text.length;
   return source.slice(0, end) + value + source.slice(end);
+}
+
+/** The host store's definition in a bundle, or null. */
+function storeOf(bundle: Bundle): Span | null {
+  const module = addSubject(bundle)?.module ?? null;
+  return module === null ? null : storeSpan(module, storeNames(bundle, module));
 }
 
 function firstIn(span: Span, test: (index: number) => boolean): number {
@@ -209,6 +219,103 @@ export const PROBES: readonly Probe[] = [
         write,
         `"${text(bundle, write).slice(1, -1)}-probe"`,
       );
+    },
+  },
+  {
+    id: 'plugin:store',
+    part: 'store',
+    describe: 'a plugin added to the store',
+    apply: (source) => {
+      const bundle = readBundle(source);
+      const store = storeOf(bundle);
+      if (store === null) return null;
+      const open = firstIn(
+        store,
+        (index) =>
+          text(bundle, index) === '{' && text(bundle, index - 1) === '(',
+      );
+      return insertAfter(source, bundle, open, 'plugins:[kcpProbe],');
+    },
+  },
+  {
+    id: 'action:store',
+    part: 'store',
+    describe: 'an added call in an action of a store module',
+    apply: (source) => {
+      const bundle = readBundle(source);
+      const store = storeOf(bundle);
+      const module = addSubject(bundle)?.module ?? null;
+      if (store === null || module === null) return null;
+      const modules = firstIn(
+        store,
+        (index) =>
+          text(bundle, index) === 'modules' && text(bundle, index + 1) === ':',
+      );
+      const first = module.definitions.get(text(bundle, modules + 5)) ?? null;
+      if (modules < 0 || first === null) return null;
+      const body = firstIn(
+        first,
+        (index) =>
+          text(bundle, index) === '{' && text(bundle, index - 1) === ')',
+      );
+      return insertAfter(source, bundle, body, 'this.kcpProbe();');
+    },
+  },
+  {
+    id: 'statement:setup',
+    part: 'setup',
+    describe: 'a global mixin added as a statement the module runs as it loads',
+    apply: (source) => {
+      const bundle = readBundle(source);
+      const module = addSubject(bundle)?.module ?? null;
+      return module === null
+        ? null
+        : insertAfter(source, bundle, module.body, 'kcpProbe.mixin({});');
+    },
+  },
+  {
+    id: 'declaration:setup',
+    part: 'setup',
+    describe: 'a global mixin made inside a declaration as the module loads',
+    apply: (source) => {
+      const bundle = readBundle(source);
+      const module = addSubject(bundle)?.module ?? null;
+      if (module === null) return null;
+      const item = moduleItems(bundle, module).find(
+        ({ span }) =>
+          text(bundle, span.start) === 'var' &&
+          text(bundle, span.start + 2) === '=',
+      );
+      if (item === undefined) return null;
+      const equals = item.span.start + 2;
+      const end =
+        bundle.tokens[expressionEnd(bundle, equals + 1, item.span.end)];
+      const after = bundle.tokens[equals];
+      if (end === undefined || after === undefined) return null;
+      const close = end.start;
+      const open = after.start + after.text.length;
+      return (
+        source.slice(0, open) +
+        '(kcpProbe.mixin({}),' +
+        source.slice(open, close) +
+        ')' +
+        source.slice(close)
+      );
+    },
+  },
+  {
+    id: 'route:setup',
+    part: 'setup',
+    describe: 'the pre registration route given another path',
+    apply: (source) => {
+      const bundle = readBundle(source);
+      const path = stringsOf(bundle, '"/pre_registration"').find(
+        (index) =>
+          text(bundle, index - 2) === 'path' && text(bundle, index - 1) === ':',
+      );
+      return path === undefined
+        ? null
+        : replaceAt(source, bundle, path, '"/pre_registration_probe"');
     },
   },
   {

@@ -25,6 +25,8 @@ export const PART_IDS = [
   'periodCheck',
   'client',
   'writes',
+  'store',
+  'setup',
   'labels',
 ] as const;
 
