@@ -162,6 +162,6 @@ describe('RECORDED_BUILDS', () => {
   });
 
   it('is of the current fingerprint version', () => {
-    expect(FINGERPRINT_VERSION).toBe(4);
+    expect(FINGERPRINT_VERSION).toBe(5);
   });
 });

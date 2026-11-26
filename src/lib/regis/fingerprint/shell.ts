@@ -1,12 +1,15 @@
-// The App shell as the setup part reads it (ADR-0079, amendment of 2026-11-26). The root
-// instance renders the App, and the App registers the bar, the drawer, and the footer
-// that wrap every page. Their menus list staff pages, which the host regroups often, so
-// within these four components the value their data function returns is a boundary:
-// each pure static literal in it (pureData.ts) is written as one word, and so is the
-// scoped style id vue-loader derives from the component's file. Everything else stays in
-// the fingerprint: every other option, method, computed value, watcher, hook, render
-// function, handler, and directive, with every literal in them, and every entry of the
-// data that holds a function, a call, or any name that is no module constant.
+// The App shell as the setup part reads it (ADR-0079, amendments of 2026-11-26 and
+// 2026-11-27). The root instance renders the App, and the App registers the bar, the
+// drawer, and the footer that wrap every page. The drawer's menu lists staff pages, which
+// the host regroups often, so the value of `nav`, the one key of the drawer's data, is a
+// boundary: each pure static literal in it (pureData.ts) is written as one word, and so
+// is the drawer's scoped style id, which vue-loader derives from the component's file.
+// Everything else stays in the fingerprint: the data of the App, the bar, and the footer,
+// whose values Vue binds onto elements, any other key of the drawer's data, which Vue
+// would set over a method or a computed value of the same name, every option, method,
+// computed value, watcher, hook, render function, handler, and directive, with every
+// literal in them, and every entry of the menu that holds a function, a call, or any name
+// that is no module constant.
 
 import { locateComponent, text } from './locate.ts';
 import type { Bundle, ModuleScope, Replacement, Span } from './module.ts';
@@ -14,6 +17,9 @@ import { isOpenLiteral, valueEnd, type PureContext } from './pureData.ts';
 
 /** The components the App registers around every page, by the key it gives each. */
 const SHELL_KEYS = ['AppBar', 'Drawer', 'Footer'] as const;
+
+/** The one shell component whose menu data and scoped style id are a boundary. */
+const MENU_KEY = 'Drawer';
 
 /** A scoped style id as vue-loader writes it, derived from the component's file. */
 const SCOPE_ID = /^"[0-9a-f]{8}"$/;
@@ -242,16 +248,35 @@ function dataLiterals(
   }
 }
 
-/** What the setup part writes as one word inside the App shell components. */
+/**
+ * The menu of a drawer data value written `{nav:[...]}`, with no other key, or -1. Its
+ * key stays in the canonical text, so a key added beside it is read in full.
+ */
+function menuValue(bundle: Bundle, value: number): number {
+  const menu = value + 3;
+  return text(bundle, value) === '{' &&
+    bundle.tokens[value + 1]?.kind === 'name' &&
+    text(bundle, value + 1) === 'nav' &&
+    text(bundle, value + 2) === ':' &&
+    isOpenLiteral(bundle, menu) &&
+    text(bundle, menu) === '[' &&
+    (bundle.pairs[menu] ?? menu) + 1 === bundle.pairs[value]
+    ? menu
+    : -1;
+}
+
+/** What the setup part writes as one word inside the App shell: the drawer's menu. */
 export function shellReplacements(
   bundle: Bundle,
   module: ModuleScope,
 ): Map<number, Replacement> {
   const out = new Map<number, Replacement>();
   for (const component of shellComponents(bundle, module)) {
+    if (component.key !== MENU_KEY) continue;
     const value =
       component.options === null ? -1 : dataValue(bundle, component.options);
-    if (value >= 0) dataLiterals({ bundle, module }, value, out);
+    const menu = value < 0 ? -1 : menuValue(bundle, value);
+    if (menu >= 0) dataLiterals({ bundle, module }, menu, out);
     if (component.scopeId >= 0) {
       out.set(component.scopeId, {
         word: '@scope',

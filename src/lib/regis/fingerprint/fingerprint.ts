@@ -17,7 +17,7 @@ import { WRITE_DIGESTS, writeReferences } from './writes.ts';
  * The version of the extraction and the canonical text. A change to either changes
  * every fingerprint, so the recorded table and any stored fingerprint are of a version.
  */
-export const FINGERPRINT_VERSION = 4;
+export const FINGERPRINT_VERSION = 5;
 
 /** The parts that run around the pages, whose message keys are no label KCP matches. */
 const NO_LABELS: ReadonlySet<string> = new Set(['store', 'setup']);
