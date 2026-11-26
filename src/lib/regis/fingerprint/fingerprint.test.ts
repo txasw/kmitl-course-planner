@@ -11,7 +11,7 @@ import {
   partTexts,
   type RecordedBuild,
 } from './fingerprint';
-import { PART_IDS } from './parts';
+import { PART_IDS } from './partIds';
 import { PROBES } from './probes';
 import { RECORDED_BUILDS } from './recorded';
 
