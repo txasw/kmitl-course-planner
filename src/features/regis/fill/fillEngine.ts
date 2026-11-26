@@ -1,7 +1,9 @@
 // The fill engine (ADR-0078): for each subject the student's press named, one at a time,
 // it reads the page, asks the pure decisions what to do, acts once through the
 // actuator, waits for the host's answer, and verifies it from a fresh reading before the
-// next step. A wait that reaches its ceiling is a stop, never a retry, and the first stop
+// next step. A wait ends as soon as the page changes into the answer it waits for, so a
+// run moves at the host's pace, not a clock's (the timing amendment of 2026-11-26). A
+// wait that reaches its ceiling is a stop, never a retry, and the first stop
 // ends the run (owner answer 3A). It sends no request of its own: the only request in a
 // run is the host's own eligibility read after the field is filled, which the tripwire
 // counts. The host's period check, which app.a1e43722 runs every 60 s and on a focus, is
@@ -42,6 +44,7 @@ import {
   resolveField,
   resolveOptions,
 } from './hostControls';
+import { watchPage, type PageWatch } from './pageWatch';
 import type { Tripwire } from './tripwire';
 
 export type FillStep =
@@ -52,8 +55,10 @@ export type FillOutcome =
   | { status: 'stopped'; subjectId: string | null; reason: StopReason };
 
 export interface FillTiming {
-  /** The least time between two events, so the student can follow. */
-  pace: number;
+  /**
+   * The longest a wait goes without reading the page when the page does not change, so
+   * a Stop press and a ceiling are read within this time.
+   */
   poll: number;
   /** How long the host may take to answer the eligibility read. */
   answer: number;
@@ -68,8 +73,14 @@ export interface FillTiming {
   quiet: number;
 }
 
+// There is no pace between events. The host's handlers take each event in its own task:
+// the field's v-model and its search run on the one input event, a select opens its menu
+// on the activator's click and takes an option on the option's click, and Add pushes to
+// the list on its click, each rendered by Vue in a microtask. The run verifies every
+// answer from a fresh reading before it acts again, so a delay would only make the
+// student wait. Each action still begins on a task of its own, so a Stop press in
+// between is read first.
 export const FILL_TIMING: FillTiming = {
-  pace: 250,
   poll: 100,
   answer: 60_000,
   settle: 3000,
@@ -101,6 +112,8 @@ export interface FillDeps {
   tripwire: Tripwire;
   timing?: FillTiming;
   now?: () => number;
+  /** How the run waits for the page to change; the tests wrap the real one. */
+  watchPage?: (doc: Document) => PageWatch;
 }
 
 class Stop extends Error {
@@ -122,6 +135,7 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
     new Promise<void>((resolve) => {
       setTimeout(resolve, ms);
     });
+  const watch = (deps.watchPage ?? watchPage)(doc);
 
   // Whether the run has acted on the page yet, so a page with no panel is a page that
   // changed under the run rather than one that was never ready.
@@ -165,14 +179,14 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
       const value = observation === null ? null : test(observation);
       if (value !== null) return value;
       if (now() > until) stop(onTimeout);
-      await sleep(timing.poll);
+      await watch.change(timing.poll);
     }
   }
 
-  // Resolves the control and acts in one task, after the pace and a Stop check.
+  // Resolves the control and acts in one task of its own, after a Stop check.
   async function act(perform: () => Actuation | null): Promise<void> {
     if (deps.stopRequested()) stop('stopped');
-    await sleep(timing.pace);
+    await watch.task();
     if (deps.stopRequested()) stop('stopped');
     read();
     acted = true;
@@ -418,5 +432,7 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
       return { status: 'stopped', subjectId: current, reason: error.reason };
     }
     throw error;
+  } finally {
+    watch.stop();
   }
 }
