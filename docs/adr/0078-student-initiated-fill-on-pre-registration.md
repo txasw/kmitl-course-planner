@@ -399,3 +399,54 @@ trusted student press, acts only on the allowlist through the one actuator, neve
   while the host reads a subject and the run fills it, and the touch spec at 412 by 915 also taps
   the count and the launcher during Add all for me, which still adds every subject with nothing
   forbidden pressed and nothing written.
+
+## Amendment, 2026-11-26: the host's period check no longer stops a run
+
+The owner ruled on 2026-11-26, answering the question the amendment above left open, that Add for
+me must not stop because of the host's own period check. Every guard above is unchanged: a run
+starts only from a trusted student press, acts only on the allowlist through the one actuator, one
+subject at a time with the host's answer verified at each step, ends at the first stop, never
+presses ดำเนินการต่อ or any confirm control, and never causes a host write. KCP never sends the
+period check; it only stops counting it.
+
+- **The tripwire leaves out one request by its exact name.** For each XMLHttpRequest resource
+  entry, the observer callback parses the entry name as a URL and leaves the entry out of the
+  count only when its origin and path are the host API, `https://regis.reg.kmitl.ac.th/api/`, and it
+  carries exactly one `function` query parameter equal to `check-registration-datetime`. The
+  comparison is by exact equality: another case, a prefix, a suffix such as
+  `check-registration-datetime-x`, a second `function` parameter, an empty one, another path, a path
+  below the API, another origin, plain http, and a name that is no URL are all counted. Every entry
+  is counted before any name is looked at, so a name that cannot be read leaves the count high and
+  the run stops.
+- **Why the exact name match is safe.** The name is compared in memory inside the callback and then
+  dropped; the tripwire keeps a count and nothing else, so nothing of a name is stored, logged,
+  shown, or sent. Some names carry the student id, and comparing them against one fixed constant
+  extracts and retains no part of them, so rule 6 holds. The request is the host's own read only
+  GET: in every studied build (app.454d9e95, app.020e81ed, app.a1e43722, and app.ba450963) the
+  function appears once, in `checkRegistrationDateTime`, sent through the API client's `get`, which
+  puts its parameters in the query, and they are the level, year, and semester. Resource timing does
+  not expose the method, and none is needed: the client's `create` and `post` send the function in
+  the JSON body, so a registration write such as regis-pre-regis reaches `/api/` with no function in
+  its address and is counted. Any other request still stops the run in every window: after the
+  subject id is entered only the eligibility read may follow, and after every other step nothing.
+- **The run does not wait for the check or read its answer.** A check whose answer closes the
+  period unmounts the panel, and the run stops at once as a page that changed, as the amendment of
+  2026-11-25 records. The quiet wait before KCP first acts stays, for any other request the press
+  that focuses the window may start, such as a token refresh.
+- **What this supersedes.** "The tripwire stays count based and name blind" and "Telling the request
+  apart by its address stays rejected" above, and the stop of a run on a period check. The name
+  blind option of listening for focus and visibility events is not built: it would loosen every
+  window around a focus and still miss the 60 s timer. Allowing one more request by count stays
+  rejected, since it would let an unknown request pass at that step, and so does a prefix or
+  substring match, which a near miss would pass.
+- **Tests.** Unit tests feed the tripwire resource entries and find the period check left out mid
+  run while another function, every near miss listed above, and an unreadable name together with the
+  rest of its batch are counted. The engine, fed through the real tripwire, goes on through a period
+  check while the host reads the entered subject, while a section is chosen, as Add is pressed, and
+  at every step of Add all, and still stops on another request at each of those steps. The
+  replica's period check now goes to the host's own address, `/api/` with the real function name,
+  so the debug specs exercise the exact match: a run goes on through checks from the timer, a focus,
+  and a visibility change, Add all adds every subject through one, a GET whose function only starts
+  with the period check's name and another host function each still stop a run that the next press
+  finishes, and the touch spec at 412 by 915 runs with the check every second. With the function
+  name changed in the tripwire, the first of these specs fails.
