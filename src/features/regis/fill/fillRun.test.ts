@@ -79,7 +79,7 @@ const request = { plan: PLAN, kit: KIT, items: [] };
 
 describe('startFill', () => {
   it('refuses an untested host build', async () => {
-    scripts(['app.00000000.js', TESTED[1] ?? '']);
+    scripts(['app.00000000.js', 'chunk-vendors.00000000.js']);
     await startFill(press(), request);
     expect(fillStore.getState().run).toMatchObject({
       status: 'stopped',
@@ -89,9 +89,9 @@ describe('startFill', () => {
 
   it('refuses a new build while the host check runs or found it changed', async () => {
     scripts(NEW);
-    for (const verdict of [
-      null,
-      { status: 'mismatch', parts: ['labels'] },
+    for (const [verdict, reason] of [
+      [null, 'checking'],
+      [{ status: 'mismatch', parts: ['labels'] }, 'untestedBuild'],
     ] as const) {
       buildCheckStore.setState({
         check: {
@@ -103,7 +103,7 @@ describe('startFill', () => {
       await startFill(press(), request);
       expect(fillStore.getState().run).toMatchObject({
         status: 'stopped',
-        reason: 'untestedBuild',
+        reason,
       });
     }
   });

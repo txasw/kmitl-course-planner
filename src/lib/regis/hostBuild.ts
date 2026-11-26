@@ -2,7 +2,8 @@
 // ADR-0079). A build is tested when its script names are an exact tested pair, or when
 // the worker's host check found every part of its app script equal to a tested build's
 // beside a tested vendor script. Until the check answers, the build is checking: the
-// observer waits and fill stays off. Any other verdict leaves it untested, since
+// observer waits and fill stays off with a sentence of its own, since the answer may
+// turn it on in a moment. Any other verdict leaves it untested, since
 // structure and labels alone cannot see a host change in what a button means. An
 // actuator refusal latches fill off for the build it happened on, kept by the build's
 // script names, which are public, until an extension update ships a newer allowlist.
@@ -15,7 +16,7 @@ import {
   isTestedVendor,
 } from './hostContract';
 
-export type FillGate = 'ok' | 'untestedBuild' | 'latched';
+export type FillGate = 'ok' | 'checking' | 'untestedBuild' | 'latched';
 
 export type BuildTrust = 'tested' | 'checking' | 'untested';
 
@@ -57,7 +58,9 @@ export function fillGate(
   latched: readonly string[],
   check: BuildCheck | null,
 ): FillGate {
-  if (buildTrust(names, check) !== 'tested') return 'untestedBuild';
+  const trust = buildTrust(names, check);
+  if (trust === 'checking') return 'checking';
+  if (trust !== 'tested') return 'untestedBuild';
   const key = buildKey(names);
   return key !== null && latched.includes(key) ? 'latched' : 'ok';
 }

@@ -184,6 +184,7 @@ export function stillToAdd(
 
 /** Why add for me cannot run for a subject still to add, first reason first. */
 export type AddBlock =
+  | 'checking'
   | 'unavailable'
   | 'off'
   | 'preparing'
@@ -196,6 +197,8 @@ export type AddBlock =
 export interface AddFacts {
   /** Whether fill can act on this page at all: pre registration on a tested build. */
   available: boolean;
+  /** Whether the host check is still reading a build KCP has not seen before. */
+  checking: boolean;
   /** Whether the student switched fill off. */
   off: boolean;
   /** Whether the prepare action is reading the plan's subjects now. */
@@ -211,7 +214,7 @@ export interface AddFacts {
 }
 
 export function addForMeBlock(facts: AddFacts): AddBlock | null {
-  if (!facts.available) return 'unavailable';
+  if (!facts.available) return facts.checking ? 'checking' : 'unavailable';
   if (facts.off) return 'off';
   if (facts.preparing) return 'preparing';
   if (!facts.target) return 'noKit';

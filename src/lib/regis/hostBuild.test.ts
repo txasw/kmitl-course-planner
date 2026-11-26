@@ -33,11 +33,9 @@ describe('fillGate', () => {
     expect(fillGate(NEW, [], answered({ status: 'verified' }))).toBe('ok');
   });
 
-  it('keeps fill off on a new build until the check answers', () => {
-    expect(fillGate(NEW, [], null)).toBe('untestedBuild');
-    expect(fillGate(NEW, [], { key: NEW_KEY, verdict: null })).toBe(
-      'untestedBuild',
-    );
+  it('keeps fill off on a new build as checking until the check answers', () => {
+    expect(fillGate(NEW, [], null)).toBe('checking');
+    expect(fillGate(NEW, [], { key: NEW_KEY, verdict: null })).toBe('checking');
   });
 
   const OFF: HostBuildVerdict[] = [
@@ -56,7 +54,7 @@ describe('fillGate', () => {
 
   it('reads a verdict only for the build it was given for', () => {
     const other = answered({ status: 'verified' }, 'app.00000000.js x');
-    expect(fillGate(NEW, [], other)).toBe('untestedBuild');
+    expect(fillGate(NEW, [], other)).toBe('checking');
   });
 
   it('turns fill off on a build missing a script or with an untested vendor', () => {
