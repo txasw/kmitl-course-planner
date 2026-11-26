@@ -4,7 +4,8 @@
 // changed attribute in the grade not announced dialog, a changed interval in the period
 // check, a changed timeout in the API client, a changed write endpoint name, a plugin
 // and an action call added to the store, a statement and a global mixin added to what
-// the module runs as it loads, the pre registration route moved, a changed label, and
+// the module runs as it loads, a document listener added inside a declaration, the pre
+// registration route moved, a changed label, and
 // the App shell probes of shellProbes.ts. scripts/host-fingerprint.mjs runs them, and
 // the shell's neutral edits, on the saved host bundles and the unit tests run them on
 // the replica bundle, so both check the same edits. Nothing here ships: the worker
@@ -61,6 +62,32 @@ const optionProbes: Probe[] = (
       : insertAfter(source, bundle, key, ',kcpProbe:1');
   },
 }));
+
+/** The bundle with `effect` run in a comma expression in the first `var` declaration. */
+function inDeclaration(source: string, effect: string): string | null {
+  const bundle = readBundle(source);
+  const module = addSubject(bundle)?.module ?? null;
+  if (module === null) return null;
+  const item = moduleItems(bundle, module).find(
+    ({ span }) =>
+      text(bundle, span.start) === 'var' &&
+      text(bundle, span.start + 2) === '=',
+  );
+  if (item === undefined) return null;
+  const equals = item.span.start + 2;
+  const end = bundle.tokens[expressionEnd(bundle, equals + 1, item.span.end)];
+  const after = bundle.tokens[equals];
+  if (end === undefined || after === undefined) return null;
+  const close = end.start;
+  const open = after.start + after.text.length;
+  return (
+    source.slice(0, open) +
+    `(${effect},` +
+    source.slice(open, close) +
+    ')' +
+    source.slice(close)
+  );
+}
 
 export const PROBES: readonly Probe[] = [
   ...optionProbes,
@@ -235,31 +262,18 @@ export const PROBES: readonly Probe[] = [
     id: 'declaration:setup',
     part: 'setup',
     describe: 'a global mixin made inside a declaration as the module loads',
-    apply: (source) => {
-      const bundle = readBundle(source);
-      const module = addSubject(bundle)?.module ?? null;
-      if (module === null) return null;
-      const item = moduleItems(bundle, module).find(
-        ({ span }) =>
-          text(bundle, span.start) === 'var' &&
-          text(bundle, span.start + 2) === '=',
-      );
-      if (item === undefined) return null;
-      const equals = item.span.start + 2;
-      const end =
-        bundle.tokens[expressionEnd(bundle, equals + 1, item.span.end)];
-      const after = bundle.tokens[equals];
-      if (end === undefined || after === undefined) return null;
-      const close = end.start;
-      const open = after.start + after.text.length;
-      return (
-        source.slice(0, open) +
-        '(kcpProbe.mixin({}),' +
-        source.slice(open, close) +
-        ')' +
-        source.slice(close)
-      );
-    },
+    apply: (source) => inDeclaration(source, 'kcpProbe.mixin({})'),
+  },
+  {
+    id: 'listener:setup',
+    part: 'setup',
+    describe:
+      'a document listener added inside a declaration as the module loads',
+    apply: (source) =>
+      inDeclaration(
+        source,
+        'document.addEventListener("click",function(){},!0)',
+      ),
   },
   {
     id: 'route:setup',

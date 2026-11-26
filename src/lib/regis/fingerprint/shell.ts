@@ -51,6 +51,16 @@ function componentCallOpen(bundle: Bundle, span: Span): number {
   return shaped && (bundle.pairs[open] ?? -1) + 1 === span.end ? open : -1;
 }
 
+/** The `x.y` the App component is bound with, as `(0,x.y)(...)`, or null. */
+export function appBinder(bundle: Bundle, module: ModuleScope): string | null {
+  const app = locateComponent(bundle, 'App');
+  if (app?.module.body !== module.body) return null;
+  const { start } = app.call;
+  return componentCallOpen(bundle, app.call) < 0
+    ? null
+    : `${text(bundle, start + 3)}.${text(bundle, start + 5)}`;
+}
+
 /** The spans of the arguments of the call whose parenthesis opens at `open`. */
 function callArgs(bundle: Bundle, open: number): Span[] {
   const close = bundle.pairs[open] ?? open;
