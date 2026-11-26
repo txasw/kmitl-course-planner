@@ -110,6 +110,7 @@ export function mountReplica(doc, overrides = {}, options = {}) {
     answer: null,
     countAtEnd: false,
     pollLatency: 0,
+    latency: null,
   };
   let current = null;
   let loading = (options.loading ?? 0) > 0;
@@ -1286,15 +1287,28 @@ export function mountReplica(doc, overrides = {}, options = {}) {
     }
     const subject = config.catalog[id];
     if (!config.countAtEnd) counters.reads += 1;
+    // With a latency the read answers when its request ends, as the host renders the
+    // offered sections in the read's own resolution; otherwise after the fixed delay.
+    const answerOnLoad = config.xhr && typeof config.latency === 'number';
+    let request = null;
     if (config.xhr) {
-      const request = new XMLHttpRequest();
-      request.open('GET', '/replica/eligibility');
+      request = new XMLHttpRequest();
+      request.open(
+        'GET',
+        answerOnLoad
+          ? `/replica/eligibility?wait=${String(config.latency)}`
+          : '/replica/eligibility',
+      );
       request.send();
     }
     state.add.loading = true;
     render();
     if (subject?.hang) return;
-    setTimeout(() => {
+    const answer = (handler) => {
+      if (answerOnLoad) request.addEventListener('loadend', handler);
+      else setTimeout(handler, config.delay);
+    };
+    answer(() => {
       if (config.countAtEnd) counters.reads += 1;
       state.add.loading = false;
       if (subject === undefined || subject.refused) {
@@ -1316,7 +1330,7 @@ export function mountReplica(doc, overrides = {}, options = {}) {
       if (config.variant === 'focusContinue') {
         doc.querySelector('[data-count="continue"]')?.focus();
       }
-    }, config.delay);
+    });
   }
 
   function choose(which, index) {

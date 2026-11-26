@@ -100,6 +100,11 @@ export interface ReplicaConfig {
   countAtEnd?: boolean;
   /** How long a period check that sends no real request takes to answer, in ms. */
   pollLatency?: number;
+  /**
+   * With `xhr`, how long the eligibility read's request takes, in ms; the read then
+   * answers when that request ends, as the host's does, in place of after `delay`.
+   */
+  latency?: number | null;
 }
 
 /** The host builds whose route the replica renders around the panel. */
