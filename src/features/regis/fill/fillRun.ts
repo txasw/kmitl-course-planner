@@ -1,5 +1,5 @@
 // The lifecycle of a fill run (ADR-0078), held in memory. A run starts only from a
-// student press, which it consumes, on the tested host build that no refusal latched,
+// student press, which it consumes, on a tested host build that no refusal latched,
 // outside a staff surrogate session, while the student's fill switch is on, while the
 // helper shows and the planner is closed, and never while another run or a prepare run is
 // active. It is
@@ -17,6 +17,7 @@ import { readLocationHash } from '@/features/shell/hostLocation';
 import { uiStore } from '@/features/shell/uiStore';
 import { helperStore } from '../helperStore';
 import { regisStore } from '../regisStore';
+import { buildCheckStore } from '../host/buildCheckStore';
 import { readScriptNames } from '../host/hostDom';
 import { isSurrogateSession } from '../host/surrogate';
 import { runFill, type FillOutcome, type FillStep } from './fillEngine';
@@ -99,7 +100,11 @@ export async function startFill(
   }
   const scope = request.items.map((item) => item.subjectId);
   const names = readScriptNames(document);
-  const gate = fillGate(names, regisStore.getState().fill.latched);
+  const gate = fillGate(
+    names,
+    regisStore.getState().fill.latched,
+    buildCheckStore.getState().check,
+  );
   if (gate !== 'ok') {
     stopped(null, gate, scope);
     return;

@@ -13,14 +13,15 @@ import {
   setCollapsed,
   startVisit,
 } from '../helperStore';
+import { buildCheckStore } from '../host/buildCheckStore';
 import { regisStore } from '../regisStore';
 import { runFill, type FillDeps } from './fillEngine';
 import { fillStore, startFill } from './fillRun';
 import { issueStudentPress } from './studentPress';
 
-// The run gate: a run starts only from an unused student press, on the tested host
-// build, with no latch for it, and never in a surrogate session. A refused start acts on
-// nothing.
+// The run gate: a run starts only from an unused student press, on a tested host build,
+// by name or by the host check, with no latch for it, and never in a surrogate session.
+// A refused start acts on nothing.
 
 // The surrogate presence check reads the page web storage, which only its own module may.
 const surrogate = vi.hoisted(() => ({ on: false }));
@@ -33,6 +34,8 @@ vi.mock('./fillEngine', async (load) => {
 });
 
 const TESTED = ['app.454d9e95.js', 'chunk-vendors.7ab4925e.js'];
+const NEW = ['app.c0ffee01.js', 'chunk-vendors.7ab4925e.js'];
+const NEW_KEY = [...NEW].sort().join(' ');
 // Test only: the gate stops the run before any plan or kit field is read.
 const PLAN = {} as Plan;
 const KIT = {} as RegistrationKit;
@@ -69,6 +72,7 @@ afterEach(() => {
   document.head.replaceChildren();
   document.body.replaceChildren();
   surrogate.on = false;
+  buildCheckStore.setState({ check: null });
 });
 
 const request = { plan: PLAN, kit: KIT, items: [] };
@@ -81,6 +85,36 @@ describe('startFill', () => {
       status: 'stopped',
       reason: 'untestedBuild',
     });
+  });
+
+  it('refuses a new build while the host check runs or found it changed', async () => {
+    scripts(NEW);
+    for (const verdict of [
+      null,
+      { status: 'mismatch', parts: ['labels'] },
+    ] as const) {
+      buildCheckStore.setState({
+        check: {
+          key: NEW_KEY,
+          verdict:
+            verdict === null ? null : { ...verdict, parts: [...verdict.parts] },
+        },
+      });
+      await startFill(press(), request);
+      expect(fillStore.getState().run).toMatchObject({
+        status: 'stopped',
+        reason: 'untestedBuild',
+      });
+    }
+  });
+
+  it('runs on a new build the host check verified', async () => {
+    scripts(NEW);
+    buildCheckStore.setState({
+      check: { key: NEW_KEY, verdict: { status: 'verified' } },
+    });
+    await startFill(press(), request);
+    expect(fillStore.getState().run).toEqual({ status: 'done', filled: 0 });
   });
 
   it('refuses a build an actuator refusal latched', async () => {

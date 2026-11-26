@@ -30,7 +30,7 @@ const SEM2B = makePlan({
   semester: '2',
   updatedAt: '2026-10-01T00:00:00.000Z',
 });
-const OPEN = { surrogate: false, testedBuild: true };
+const OPEN = { surrogate: false, build: 'tested' as const };
 
 function pageShowing(term: Term) {
   hostStore.getState().record(OPEN, {
