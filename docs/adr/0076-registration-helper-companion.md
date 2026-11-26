@@ -330,3 +330,23 @@ A review of the amendment above with touch emulation found these, and each is fi
   an unconfirmed plan, and the held press with its toast. Debug specs sample the launcher on a phone
   through a reload whose page stays empty for 19 s and find no other term's count, and open the card
   on a phone on its side with nothing cut off and its action row clear of the launcher.
+
+## Amendment, 2026-11-26: the owner consents to the page term in storage
+
+The amendment of 2026-11-25 on the review of the page term build recorded one derivation a host read
+may leave in storage and left it awaiting the owner's acknowledgement. The owner consented on
+2026-11-26: the term read from the page header may be stored in the plan created from the helper's
+สร้างตาราง {term} button.
+
+- **What the path stores today, unchanged.** The card shows the button only when the student has no
+  plan of the page term. Its press calls `switchOrCreatePlanForTerm` with the page term from the
+  helper's plan pick, and `createPlan` makes a plan whose `year` and `semester` are the page term and
+  whose name is the default, ตาราง {semester}/{year} in Thai. The plan store saves it with the active
+  plan id to `storage.local` under `kcp:v1`. The term passes the plan schema before it is saved, and
+  it is public timetable data, never the student's identity.
+- **Only on a press.** The plan is made only on the student's own press of the button, which names
+  the term it makes; showing the card, reading the header, or a fallback term never writes one.
+- **Tests.** `HelperTerm.test.tsx` renders the card on a page of a term with no plan, finds nothing
+  created before the press, and after a press of สร้างตาราง 2/2569 finds the new active plan with
+  year 2569 and semester 2 and the planner open; `switchPlanTerm.test.ts` covers the create and the
+  switch to the most recently updated plan of the term.
