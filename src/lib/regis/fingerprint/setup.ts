@@ -5,12 +5,20 @@
 // as it loads: every top level statement, such as a plugin installed with `use`, a
 // global mixin, a router guard, and the root Vue instance with the App, its bar, and its
 // drawer, and every top level declaration whose value does any of that as it is made.
-// The router's route table and its lists of route names are boundaries (routes.ts).
+// The router's route table and its lists of route names are boundaries (routes.ts), and
+// so are the menu data and the scoped style ids of the App shell components (shell.ts).
 
 import { text } from './locate.ts';
-import type { Boundary, Bundle, ModuleScope, Span } from './module.ts';
+import type {
+  Boundary,
+  Bundle,
+  ModuleScope,
+  Replacement,
+  Span,
+} from './module.ts';
 import { routeRoots } from './routes.ts';
 import { analyseScopes, expressionEnd } from './scopes.ts';
+import { shellReplacements } from './shell.ts';
 
 /** The member names that install or change something for every component or route. */
 const SETUP_MEMBERS = new Set([
@@ -165,13 +173,15 @@ export interface SetupRoots {
   roots: Span[];
   /** The route table and the route name lists, as boundaries of the setup. */
   boundary: Map<string, string>;
+  /** The App shell's data literals and scoped style ids, each written as one word. */
+  replacements: Map<number, Replacement>;
 }
 
 /**
  * The spans the setup part reads: each top level statement, each top level declaration
  * that installs something as it is made, and each route entry that names one of the
  * page components KCP depends on, with the route table and the lists of route names it
- * leaves as boundaries.
+ * leaves as boundaries, and the App shell's data literals it writes as one word each.
  */
 export function setupRoots(
   bundle: Bundle,
@@ -186,7 +196,11 @@ export function setupRoots(
     }
   }
   const routes = routeRoots(bundle, module, pages);
-  return { roots: [...roots, ...routes.roots], boundary: routes.boundary };
+  return {
+    roots: [...roots, ...routes.roots],
+    boundary: routes.boundary,
+    replacements: shellReplacements(bundle, module),
+  };
 }
 
 /** The setup boundary over the parts' own, for the setup part. */

@@ -109,9 +109,11 @@ payload and the render and drag at scale. The generator header records the full 
 by hand in the shape the host's build emits: one module function that holds the pre
 registration route, its header, periods, and period check, the panel, the add subject card
 with its grade not announced dialog, the stepper, the consent, flow chart, and complete
-steps, an API client, and the two message catalogs. None of it is host code, and it names
-no real registration write endpoint. The host check unit tests fingerprint it and apply
-the synthetic edits of `src/lib/regis/fingerprint/probes.ts` to it, and the end to end
+steps, an API client, the App with its bar, drawer, and footer, and the two message
+catalogs. None of it is host code, and it names no real registration write endpoint. The
+host check unit tests fingerprint it and apply the synthetic edits of
+`src/lib/regis/fingerprint/probes.ts` and the neutral edits of
+`src/lib/regis/fingerprint/shellProbes.ts` to it, and the end to end
 specs serve it to the worker under a name KCP was never tested with. Its fingerprint is
 the debug only record in `src/lib/api/debug/replicaBuild.ts`; print it again with
 `node scripts/host-fingerprint.mjs tests/fixtures/host-fingerprint/app.replica.js` after

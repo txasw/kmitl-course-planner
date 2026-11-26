@@ -142,7 +142,8 @@ world.
 
 ## Fingerprints of the tested builds
 
-The four tested builds share two fingerprints, at fingerprint version 3. `app.454d9e95.js` and
+The four tested builds share two fingerprints, at fingerprint version 3. The amendment on the App
+shell's menu data below gives the table at version 4. `app.454d9e95.js` and
 `app.020e81ed.js` read the same in every part, and so do `app.a1e43722.js` and `app.ba450963.js`.
 The second pair adds the header, the periods, and the period check, and its route and labels differ
 from the first; every other part, the store and the setup included, reads the same in all four.
@@ -224,3 +225,64 @@ A review found host code the parts did not reach, and three smaller faults.
 
 The fingerprint version moved to 3, the tested builds and the replica were recorded again, and
 `app.ba450963.js` still reads the same as `app.a1e43722.js` in every part.
+
+## Amendment, 2026-11-26: the App shell's menu data
+
+The host deployed `app.2ef67281.js` on 2026-11-26 at 09:38 GMT, and the check read it as a mismatch
+in the setup part only. The review (ADR-0077, amendment of that day) found the only change in the
+navigation drawer of the App shell: its menu data was regrouped, and the drawer's scoped style id,
+which vue-loader derives from the component's file, changed with it. The setup reaches the App, its
+bar, its drawer, and its footer through the root instance, so every staff menu change turned Add
+for me off, and the owner asked that host changes unrelated to the companion stop doing so.
+
+- **The boundary.** Within the App and the bar, drawer, and footer it registers under those keys,
+  found from the App by name and its `components` option (`shell.ts`), the value the data function
+  returns is a boundary: each pure static literal in it is written as one word, and so is each
+  shell component's scoped style id. A pure static literal is an object or an array whose entries
+  are only strings, numbers, booleans, null, templates with no substitution, spreads of pure data,
+  nested pure data, and a choice between pure data on a module constant, a name the module defines
+  once as pure data with no name in it, as the minifier writes the build flag the drawer's staff
+  entries choose on (`pureData.ts`). A data entry that holds a function, a call, a member access,
+  a getter, a computed or shorthand key, or any other name is read in full. Only a data function
+  that takes no parameter is read this way, so every name in its value is the module's.
+- **What stays.** Every other option, method, computed value, watcher, hook, render function,
+  handler, and directive of the shell is read as before, with every literal in it, including the
+  arrays a method passes to the store and the attributes a render function sets. Every component
+  outside these four, every global mixin and plugin, and every page part, the store, the client,
+  the writes, and the labels are read as before; no other part takes the boundary.
+- **The version.** The fingerprint version moved to 4, and every tested build and the replica were
+  recorded again. The replica gained an App bar, a drawer with menu data and a choice on a build
+  flag, and a footer, so the unit tests see the boundary.
+- **Proof.** Fingerprinted against the records of the four earlier builds alone, `app.2ef67281.js`
+  matched the recorded `app.a1e43722.js` before its own record was added; it joins that entry and
+  the exact tested list. On all five bundles and the replica, `--prove` shows every earlier probe
+  still changes the part it is in, the store plugin, the global mixins, and the edited token action
+  among them, and three new probes change the setup: a function added to an entry of the drawer's
+  menu data, a drawer method that calls the API, and a click handler added to the app bar. Four
+  neutral edits leave every part as it was: the drawer's first two menu entries swapped, an entry
+  with a new label added, and a changed label and a changed icon. The script fails when a neutral
+  edit changes any part.
+
+| Part          | 454d9e95, 020e81ed | a1e43722, ba450963, 2ef67281 |
+| :------------ | :----------------- | :--------------------------- |
+| route         | d28d385c           | 976dfe43                     |
+| header        | absent             | d8ff3da2                     |
+| periods       | absent             | 5f915084                     |
+| panel         | 700d0271           | 700d0271                     |
+| addSubject    | 04f1ed02           | 04f1ed02                     |
+| patternTable  | 7b3d4fdf           | 7b3d4fdf                     |
+| subjectDialog | e1deeec5           | e1deeec5                     |
+| stepper       | 17a9a9ff           | 17a9a9ff                     |
+| consent       | 1a07dfcc           | 1a07dfcc                     |
+| flowChart     | 7e71a8bc           | 7e71a8bc                     |
+| complete      | 9b5de63e           | 9b5de63e                     |
+| gradeDialog   | 1aeed084           | 1aeed084                     |
+| periodCheck   | absent             | bd0e9916                     |
+| client        | c101a0af           | c101a0af                     |
+| writes        | 4566a4d6           | 4566a4d6                     |
+| store         | ebbcfaee           | ebbcfaee                     |
+| setup         | e804e493           | e804e493                     |
+| labels        | 33a230da           | a5a9e7fb                     |
+
+Only the setup hash moved from version 3. A staff menu change in the shell now verifies; a change
+to how the shell behaves, or to anything a page part reaches, still needs a review.
