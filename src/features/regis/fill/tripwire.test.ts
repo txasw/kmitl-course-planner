@@ -127,8 +127,36 @@ describe('startTripwire', () => {
           entry('xmlhttprequest', `${API}?function=get-config`),
         ],
       });
-    }).toThrow('no name');
+    }).not.toThrow();
     expect(tripwire.count()).toBe(3);
+  });
+
+  it('takes the entries its callback has not had yet when the count is read', () => {
+    let buffered: PerformanceEntry[] = [];
+    class Buffering {
+      constructor(readonly callback: Callback) {}
+      observe() {
+        return undefined;
+      }
+      disconnect() {
+        return undefined;
+      }
+      takeRecords() {
+        const taken = buffered;
+        buffered = [];
+        return taken;
+      }
+    }
+    const tripwire = startTripwire(Buffering);
+    // A request ended, and the page's handler of its end reads the count before the
+    // observer's callback task runs.
+    buffered = [entry('xmlhttprequest', `${API}?function=get-config`)];
+    expect(tripwire.count()).toBe(1);
+    // Taken once, out of the buffer the callback reads, so the count stays.
+    expect(buffered).toEqual([]);
+    expect(tripwire.count()).toBe(1);
+    buffered = [entry('xmlhttprequest', PERIOD)];
+    expect(tripwire.count()).toBe(1);
   });
 
   it('knows the period check by its exact address', () => {
