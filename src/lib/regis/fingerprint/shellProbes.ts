@@ -1,7 +1,8 @@
 // The probes and neutral edits of the App shell (ADR-0079, amendments of 2026-11-26 and
 // 2026-11-27). The probes are shell changes the setup part must still see: a function in
 // the drawer's menu data, a drawer method that calls the API, a click handler on the app
-// bar, an attribute in the app bar's data, and a key beside the drawer's menu.
+// bar, an attribute in the app bar's data, a key beside the drawer's menu, and a menu
+// link that runs script.
 // The neutral edits are the shell changes it leaves out, which must change no part: the
 // drawer's menu entries regrouped, an entry added, and a changed label and icon. Nothing
 // here ships: the worker imports none of it.
@@ -166,6 +167,19 @@ export const SHELL_PROBES: readonly Probe[] = [
       return value < 0
         ? null
         : insertAfter(source, bundle, value, 'student_id:"kcp_probe",');
+    },
+  },
+  {
+    id: 'href:shellData',
+    part: 'setup',
+    describe: "a javascript link added to an entry of the drawer's menu",
+    apply: (source) => {
+      const bundle = readBundle(source);
+      const menu = drawerMenu(bundle);
+      const [entry] = menu < 0 ? [] : menuEntries(bundle, menu);
+      return entry === undefined
+        ? null
+        : insertAfter(source, bundle, entry, 'href:"javascript:kcpProbe()",');
     },
   },
 ];
