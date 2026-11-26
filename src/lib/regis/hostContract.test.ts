@@ -8,8 +8,10 @@ import {
   SCRIPT_NAME,
   SECTION_LABEL,
   TERM_TEXT,
+  hostPair,
   isLabel,
   isTestedBuild,
+  isTestedVendor,
   rowColour,
 } from './hostContract';
 
@@ -158,5 +160,40 @@ describe('the host contract', () => {
     expect(isLabel('  ทฤษฎี ', HOST_LABELS.lectureChip)).toBe(true);
     expect(isLabel('ทฤษฎี 1', HOST_LABELS.lectureChip)).toBe(false);
     expect(isLabel(null, HOST_LABELS.lectureChip)).toBe(false);
+  });
+});
+
+describe('the page build pair', () => {
+  it('reads one app and one vendor script name', () => {
+    expect(
+      hostPair(['chunk-vendors.7ab4925e.js', 'app.c0ffee01.js', 'main.js']),
+    ).toEqual({ app: 'app.c0ffee01.js', vendors: 'chunk-vendors.7ab4925e.js' });
+    expect(
+      hostPair([
+        'app.c0ffee01.js',
+        'app.c0ffee01.js',
+        'chunk-vendors.7ab4925e.js',
+      ]),
+    ).toEqual({
+      app: 'app.c0ffee01.js',
+      vendors: 'chunk-vendors.7ab4925e.js',
+    });
+  });
+
+  it('reads no pair from a page with two app scripts or none of either', () => {
+    expect(
+      hostPair([
+        'app.c0ffee01.js',
+        'app.c0ffee02.js',
+        'chunk-vendors.7ab4925e.js',
+      ]),
+    ).toBeNull();
+    expect(hostPair(['app.c0ffee01.js'])).toBeNull();
+    expect(hostPair(['chunk-vendors.7ab4925e.js'])).toBeNull();
+  });
+
+  it('knows the vendor script KCP was tested with', () => {
+    expect(isTestedVendor('chunk-vendors.7ab4925e.js')).toBe(true);
+    expect(isTestedVendor('chunk-vendors.00000000.js')).toBe(false);
   });
 });
