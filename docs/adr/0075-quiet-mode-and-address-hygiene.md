@@ -113,3 +113,13 @@ complete is tried again only on a visit an hour later. This is an exception to "
 on screen KCP starts no request by itself" above. Whether the check may run on arrival, as built,
 or only on the student's press is an open question for the owner, recorded here so the two
 decisions do not disagree in silence.
+
+## Amendment, 2026-11-27: the owner's ruling on the host check request
+
+The owner answered the open question of the amendment above on 2026-11-27 with answer 4A: the
+host check runs on arrival, as built. When the pre registration page has loaded an app script KCP
+has not checked, the worker reads that one public script once, so the helper can say before any
+press whether Add for me can run. This is the single request KCP starts by itself on a
+registration page. It stays bound by ADR-0079: only on `#/pre_registration`, once per new build per
+browser, never polled, no cookie or referrer, and no registration endpoint. Every other request on
+these pages still waits for the student's press.
