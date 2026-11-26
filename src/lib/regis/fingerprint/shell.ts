@@ -3,8 +3,8 @@
 // drawer, and the footer that wrap every page. The drawer's menu lists staff pages, which
 // the host regroups often, so the value of `nav`, the one key of the drawer's data, is a
 // boundary: when every entry in it is plain navigation in the drawer's own vocabulary
-// (drawerMenu.ts) it is written as one word, and otherwise each entry that is plain
-// navigation is. The drawer's scoped style id, which vue-loader derives from the
+// (drawerMenu.ts) it is written as one word with the count of each action it holds, and
+// otherwise each entry that is plain navigation is. The drawer's scoped style id, which vue-loader derives from the
 // component's file, is written as one word too. Everything else stays in the
 // fingerprint: the data of the App, the bar, and the footer, whose values Vue binds onto
 // elements, any other key of the drawer's data, which Vue would set over a method or a
@@ -237,9 +237,30 @@ function menuValue(bundle: Bundle, value: number): number {
     : -1;
 }
 
+/** The word a menu run is written as: `@data`, with the count of each action it holds. */
+function menuWord(bundle: Bundle, start: number, end: number): string {
+  const actions = new Map<string, number>();
+  for (let at = start; at < end; at += 1) {
+    const value = bundle.tokens[at + 2];
+    if (
+      text(bundle, at) === 'action' &&
+      text(bundle, at + 1) === ':' &&
+      value?.kind === 'string'
+    ) {
+      const action = value.text.slice(1, -1);
+      actions.set(action, (actions.get(action) ?? 0) + 1);
+    }
+  }
+  const counts = [...actions]
+    .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+    .map(([action, count]) => `${action}=${String(count)}`);
+  return counts.length === 0 ? '@data' : `@data(${counts.join(',')})`;
+}
+
 /**
  * The runs of the menu array at `menu` written as one word: the whole array when every
- * element is plain navigation, or else each element that is.
+ * element is plain navigation, or else each element that is. The word counts the login
+ * and logout actions in its run, so an action moved onto another entry is a change.
  */
 function menuRuns(
   context: MenuContext,
@@ -249,14 +270,14 @@ function menuRuns(
   const { bundle } = context;
   const end = menuEnd(context, menu);
   if (end >= 0) {
-    out.set(menu, { word: '@data', end });
+    out.set(menu, { word: menuWord(bundle, menu, end), end });
     return;
   }
   const close = bundle.pairs[menu] ?? menu;
   for (let at = menu + 1; at < close;) {
     const past = menuElementEnd(context, at);
     const valid = past >= 0 && (past === close || text(bundle, past) === ',');
-    if (valid) out.set(at, { word: '@data', end: past });
+    if (valid) out.set(at, { word: menuWord(bundle, at, past), end: past });
     let next = valid ? past : at;
     while (
       next < close &&
