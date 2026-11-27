@@ -7,8 +7,8 @@ import type { Replica, ReplicaPatch } from './host/pre_registration/replica.js';
 
 // The read only observer on the static replica of the pre registration page (ADR-0077).
 // The helper card opens on its own and the subject's status follows the page: not added,
-// added as planned, another section, conditional on a prerequisite, refused, and
-// submitted on the complete step. No hand mark exists to set it. A count line shows over
+// added as planned, another section, conditional on a prerequisite, refused, and on the
+// complete step submitted or missing from the submitted list. No hand mark exists to set it. A count line shows over
 // the host's confirm dialog while the list differs from the plan. Every host control on
 // the replica counts its presses and every untrusted event is counted, so each spec ends
 // by proving KCP pressed nothing and sent nothing.
@@ -141,6 +141,16 @@ test('ticks the checklist as the page changes and never acts on it', async ({
   });
   await expect(status).toHaveAttribute('data-status', 'sent');
   await expect(card(page).locator('#kcp-regis-count')).toContainText('ส่งแล้ว');
+  await expect(card(page).locator('#kcp-regis-count')).toContainText('1/1');
+
+  // A planned subject missing from the submitted list says so, and the count is the
+  // subjects submitted over those planned (owner answer A2).
+  await drive(page, {
+    results: [{ subjectId: '90000009', section: '901', kind: 'ท', grade: '' }],
+  });
+  await expect(status).toHaveAttribute('data-status', 'notSent');
+  await expect(card(page).locator('#kcp-regis-count')).toContainText('0/1');
+  await expect(card(page)).toContainText('ไม่อยู่ในรายการที่ส่ง');
 
   await expectUntouched(page);
   expect(mock.apiCalls()).toEqual([]);

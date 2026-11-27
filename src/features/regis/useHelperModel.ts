@@ -15,6 +15,7 @@ import {
   focusOnSettle,
   needsLook,
   pickCurrent,
+  sentCount,
   type HelperStatus,
 } from '@/lib/regis/helperStatus';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
@@ -150,7 +151,8 @@ export function useHelperModel(): HelperModel {
     hasKit,
     bar: helperBar({ stale, termMismatch, hasKit }),
     attention: needsLook(statuses) || stale || termMismatch,
-    done: sent ? rows.length : doneCount(statuses),
+    // On the complete step the count is the subjects submitted over those planned.
+    done: sent ? sentCount(statuses) : doneCount(statuses),
     total: rows.length,
     current: rows.find((row) => row.subjectId === currentId) ?? null,
     inStep: step === 2,

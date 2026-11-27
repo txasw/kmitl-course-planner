@@ -8,6 +8,7 @@ import {
   focusOnSettle,
   needsLook,
   pickCurrent,
+  sentCount,
   stillToAdd,
   type AddFacts,
   type HelperInput,
@@ -81,13 +82,39 @@ describe('deriveHelperStatuses', () => {
     expect(sent).toBe(false);
   });
 
-  it('reads every subject as sent once the page shows the submitted list', () => {
+  // Owner answer A2, 2026-11-27: on the complete step each subject reads on its own, so a
+  // planned subject missing from the submitted list no longer reads as submitted.
+  it('reads each subject from the submitted list on its own', () => {
     const { statuses, sent } = derive({
-      list: checklist(row('A', 'granted'), row('B', 'notDone')),
+      list: checklist(
+        row('A', 'submitted'),
+        row('B', 'notSubmitted'),
+        row('C', 'granted'),
+        row('D', 'notGranted'),
+        row('E', 'notGrantedCondition'),
+      ),
       adding: 'B',
+      stop: { subjectId: 'B', reason: 'full' },
     });
-    expect(statuses).toEqual({ A: 'sent', B: 'sent' });
+    // No announced result has been seen live, so each still reads as waiting.
+    expect(statuses).toEqual({
+      A: 'sent',
+      B: 'notSent',
+      C: 'sent',
+      D: 'sent',
+      E: 'sent',
+    });
     expect(sent).toBe(true);
+    expect(sentCount(statuses)).toBe(4);
+  });
+
+  it('reads every subject as not sent when the list holds none of the plan', () => {
+    const { statuses, sent } = derive({
+      list: checklist(row('A', 'notSubmitted'), row('B', 'notSubmitted')),
+    });
+    expect(statuses).toEqual({ A: 'notSent', B: 'notSent' });
+    expect(sent).toBe(true);
+    expect(sentCount(statuses)).toBe(0);
   });
 
   it('shows the subject a run is adding before what the page shows', () => {

@@ -33,6 +33,7 @@ export type RowState =
   | 'submitted'
   | 'granted'
   | 'notGranted'
+  | 'notGrantedCondition'
   | 'notSubmitted';
 
 /** The row state each page reading stands for. */
@@ -44,7 +45,7 @@ const OBSERVED_STATE: Record<ObservedState, RowState> = {
   waiting: 'submitted',
   granted: 'granted',
   notGranted: 'notGranted',
-  notGrantedCondition: 'notGranted',
+  notGrantedCondition: 'notGrantedCondition',
   notSubmitted: 'notSubmitted',
 };
 

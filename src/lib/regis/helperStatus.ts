@@ -3,6 +3,9 @@
 // run reports (ADR-0078). There are no hand marks: a subject is added when the page lists
 // it, and the helper never claims more than the page shows. While the page cannot be
 // read, each subject keeps the last status the page showed in this visit, marked stale.
+// On the complete step each subject reads on its own (owner answer A2, 2026-11-27): one in
+// the submitted list waits for its result, and one missing from it says so, so the count
+// is the subjects submitted over those planned.
 
 import type { Checklist, RowState } from './checklist';
 import type { StopReason } from './fillPlan';
@@ -17,6 +20,7 @@ export const HELPER_STATUSES = [
   'refused',
   'clash',
   'sent',
+  'notSent',
 ] as const;
 export type HelperStatus = (typeof HELPER_STATUSES)[number];
 
@@ -32,6 +36,7 @@ export const STATUS_TONE: Readonly<Record<HelperStatus, StatusTone>> = {
   refused: 'danger',
   clash: 'danger',
   sent: 'neutral',
+  notSent: 'warn',
 };
 
 /** Statuses the page shows as settled: the subject is on the list in some group. */
@@ -53,10 +58,23 @@ const PAGE_STATUS: Readonly<Record<RowState, HelperStatus>> = {
   conditional: 'cond',
   refused: 'refused',
   submitted: 'sent',
+  // The page's announced results keep their own row states, but no announced result has
+  // been seen live yet, so until one is, each reads as submitted and waiting. Reading them
+  // as their own statuses later changes only these lines.
   granted: 'sent',
   notGranted: 'sent',
-  notSubmitted: 'sent',
+  notGrantedCondition: 'sent',
+  notSubmitted: 'notSent',
 };
+
+/** The row states of the complete step, where the page shows the submitted list. */
+const RESULT_STATES: ReadonlySet<RowState> = new Set<RowState>([
+  'submitted',
+  'granted',
+  'notGranted',
+  'notGrantedCondition',
+  'notSubmitted',
+]);
 
 /** The fill stops that are the page turning a subject down, and how the helper names them. */
 const STOP_STATUS: Partial<Readonly<Record<StopReason, HelperStatus>>> = {
@@ -80,13 +98,16 @@ export interface HelperInput {
 
 export interface HelperStatuses {
   statuses: Readonly<Record<string, HelperStatus>>;
-  /** Whether the page shows the submitted list, which every subject then reads as. */
+  /**
+   * Whether the page shows the submitted list. Each subject then reads from it alone, in
+   * it or missing from it, since nothing can be added on that step.
+   */
   sent: boolean;
 }
 
 export function deriveHelperStatuses(input: HelperInput): HelperStatuses {
   const { checklist, stale, last, adding, stop } = input;
-  const sent = checklist.rows.some((row) => PAGE_STATUS[row.state] === 'sent');
+  const sent = checklist.rows.some((row) => RESULT_STATES.has(row.state));
   const statuses: Record<string, HelperStatus> = {};
   for (const row of checklist.rows) {
     const id = row.subjectId;
@@ -94,7 +115,7 @@ export function deriveHelperStatuses(input: HelperInput): HelperStatuses {
     const stopped =
       stop?.subjectId === id ? (STOP_STATUS[stop.reason] ?? 'todo') : 'todo';
     statuses[id] = sent
-      ? 'sent'
+      ? page
       : adding === id
         ? 'adding'
         : stale
@@ -109,6 +130,11 @@ export function deriveHelperStatuses(input: HelperInput): HelperStatuses {
 /** How many subjects the page shows settled. */
 export function doneCount(statuses: Readonly<Record<string, HelperStatus>>) {
   return Object.values(statuses).filter(isDone).length;
+}
+
+/** How many subjects the submitted list holds. */
+export function sentCount(statuses: Readonly<Record<string, HelperStatus>>) {
+  return Object.values(statuses).filter((status) => status === 'sent').length;
 }
 
 /** Whether any subject is turned down, so the collapsed launcher asks for a look. */
