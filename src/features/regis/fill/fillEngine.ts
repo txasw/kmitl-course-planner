@@ -153,14 +153,21 @@ export async function runFill(deps: FillDeps): Promise<FillOutcome> {
   // once: the host can unmount the panel on its own, as the period check of app.a1e43722
   // does when it rewrites the period, and mount a new one from its own empty data, which
   // has lost the subjects already added. Nothing on such a page may be acted on or waited
-  // for, and this holds without the tripwire, which some browsers lack.
+  // for, and this holds without the tripwire, which some browsers lack. The host's confirm
+  // dialog, which only the student's press of the host's continue control opens, ends the
+  // run at the reading it first shows in, whatever step the run is at, so KCP neither acts
+  // nor waits under it.
   const startPanel = panelOf(doc);
   function read(): HostObservation | null {
     const reading = readHostPage(doc, planned);
     if (reading.reading === 'absent' || panelOf(doc) !== startPanel) {
       stop(acted ? 'pageChanged' : 'notReady');
     }
-    return reading.reading === 'ok' ? reading.observation : null;
+    if (reading.reading !== 'ok') return null;
+    if (reading.observation.dialog?.kind === 'confirmSubmit') {
+      stop('confirmOpen');
+    }
+    return reading.observation;
   }
 
   function page(): HostObservation {

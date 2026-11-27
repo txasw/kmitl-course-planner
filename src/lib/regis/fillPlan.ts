@@ -23,6 +23,7 @@ export const STOP_REASONS = [
   'notReady',
   'termMismatch',
   'dialogOpen',
+  'confirmOpen',
   'fieldNotEmpty',
   'listedOther',
   'refused',
@@ -149,6 +150,9 @@ export function pageBlock(
   if (term?.year !== plan.year || term.semester !== plan.semester) {
     return 'termMismatch';
   }
+  // The host's confirm dialog has its own stop, since the student opened it with the
+  // host's continue control and KCP presses nothing in it.
+  if (observation.dialog?.kind === 'confirmSubmit') return 'confirmOpen';
   if (
     observation.dialog !== null &&
     observation.dialog.kind !== 'gradeNotAnnounced'
