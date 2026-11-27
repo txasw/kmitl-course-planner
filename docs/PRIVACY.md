@@ -57,7 +57,7 @@ unless the check above finds every part KCP relies on unchanged, or a page a sta
 opened on a student's behalf; for that it checks only whether
 the page marks such a session. The marks you set in the checklist stay on your device.
 
-On the pre registration page, when you press Fill this subject or Fill all subjects, KCP
+On the pre registration page, when you press Add for me or Add all for me, KCP
 enters your planned subjects and sections into the page's own form for you to review, one
 subject at a time, through the same subject id field, section lists, and Add button you
 would use. It writes only the planned public subject id into the page, presses the page's
