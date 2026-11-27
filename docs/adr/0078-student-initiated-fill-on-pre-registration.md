@@ -141,8 +141,9 @@ continues with the sections (5B).
 กรอกในหน้าลงทะเบียนให้ (Fill the registration page for me), on by default; turning it off during a
 run ends the run at the next step like หยุดกรอก. Every stop names its
 reason in one sentence with the next step, in Thai and English. During a run the header warns not
-to press ดำเนินการต่อ until every subject is in; after it the final review hands off to the student,
-and the count line beside the confirm dialog stays. One status line announces the step, the stop,
+to press ดำเนินการต่อ until every subject is in. The final line that hands off to the student once
+every planned subject is in was not built with the card; it landed in the helper card amendment of
+2026-11-27 of ADR-0076. The count line beside the confirm dialog stays. One status line announces the step, the stop,
 or the end of a run, and joins the live region inventory of ADR-0048.
 
 ## Alternatives
@@ -163,8 +164,8 @@ or the end of a run, and joins the live region inventory of ADR-0048.
   until a release ships with the new names after a calm look at the new bundle.
 - The behaviour replica and its counters are written from KCP's own reading of the host, so they
   cannot catch a change in what a button means; the tested build gate is what covers that.
-- The identity proof is by uniqueness, not by id; the final review asks the student to check the
-  curriculum by eye where the kit knows of variants.
+- The identity proof is by uniqueness, not by id; the helper card's several curricula pill asks the
+  student to check the curriculum by eye where the kit knows of variants.
 - Not yet built: comparing the page's time text with the kit, a watcher that tells a mutation KCP
   caused from one it did not between steps (each step's fresh reading covers the same fields),
   and the stuck page message after the host's own 120 second timeout.
@@ -590,3 +591,28 @@ now the last backstop there.
 Tests cover each initiator to the host API, the analytics, page image, and page script left out, an
 XMLHttpRequest to another site still counted, the extra key cases, the encoded exact address, the
 checking gate, and the checking block on the card.
+
+## Amendment, 2026-11-27: a stop of its own for the confirm dialog
+
+The host's confirm dialog opens only on the student's own press of ดำเนินการต่อ. A run met it as the
+generic open window stop, `dialogOpen`, and only when a step began through `pageBlock`, while the
+engine's own reading reacted mid run only to the grade not announced dialog, so a run waiting for
+the host's answer read on under the confirm dialog until its next step.
+
+- **Its own reason.** `confirmOpen` joins `STOP_REASONS` in `lib/regis/fillPlan.ts`, and `pageBlock`
+  maps `confirmSubmit` to it ahead of the generic reason, which stays for any other dialog.
+- **Every reading.** The engine's one reading function, which every step and every wait goes
+  through, ends the run with `confirmOpen` the moment a reading shows the confirm dialog, so the run
+  stops at the step the dialog appears in and never acts or waits under it.
+- **What the sentence says.** It says what KCP did, not what the host holds: KCP stopped adding and
+  presses nothing in that window, and the student can go back with the window's own back button. It
+  makes no claim about what the page sent. It is read in the helper's live region, as other stops
+  that are not failures of the run are.
+- **Focus.** The stop collapses nothing and calls no focus, so the focus the dialog holds stays
+  where it is.
+- **Tests.** Unit tests cover the mapping, the dialog opening at the wait, choose, and add steps of a
+  run of two subjects with no Add, confirm, or back press and no second subject entered, and a run
+  pressed while the dialog is open starting nothing. A spec on the pre registration replica, which
+  renders the confirm dialog, has the student press the host's Continue while the host reads a
+  subject, and checks the stop, its sentence, that `document.activeElement` is the same across the
+  stop and the host's later answer, and that KCP sent no event outside the subject field.
