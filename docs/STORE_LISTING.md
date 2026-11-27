@@ -53,8 +53,9 @@ independent student tool, not affiliated with KMITL.
 
 KCP: Course Planner for KMITL is an independent tool built by a student. It is not
 affiliated with, sponsored by, endorsed by, or officially connected to King Mongkut's
-Institute of Technology Ladkrabang (KMITL). It reads only the public course data the
-registration site already exposes.
+Institute of Technology Ladkrabang (KMITL). It reads the public course data the
+registration site already exposes, and on the registration pages only the course rows the
+page shows.
 
 KCP is a KMITL course planner for pre registration. The KMITL registration site lists
 course offerings as a dense table that repeats the same section across curriculum
@@ -77,12 +78,15 @@ What it does:
   removed section is flagged rather than silently wrong.
 - Export a plan as an image at a fixed size for sharing, a phone or tablet wallpaper, or
   print, or copy it as plain text for chat apps, with an optional exam schedule.
+- On the pre registration page, follow a checklist of your planned subjects read from the
+  page, and press Add for me to enter them into the page's own form one at a time. You
+  check the list and submit it yourself.
 - Open the planner from the Planner button on the registration site, from the toolbar
   icon, or with Alt+Shift+P (Option+Shift+P on macOS).
 
 Privacy: all data stays in your browser. There is no account, no backend, and no
 analytics or telemetry of any kind. The extension never submits forms and never performs
-registration actions. On the pre registration page, only when you press Fill, it enters
+registration actions. On the pre registration page, only when you press Add for me, it enters
 your planned subjects into the page's own form for you to review; you submit it yourself.
 
 ### Thai, short summary
@@ -94,7 +98,7 @@ KCP ส่วนขยายสำหรับจัดตารางเรี�
 
 KCP: Course Planner for KMITL เป็นเครื่องมือที่พัฒนาโดยนักศึกษาอย่างอิสระ ไม่มีความเกี่ยวข้อง
 ไม่ได้รับการสนับสนุน และไม่ได้รับการรับรองจากสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง (สจล.)
-โปรแกรมอ่านเฉพาะข้อมูลรายวิชาที่เปิดเผยเป็นสาธารณะบนหน้าลงทะเบียนอยู่แล้วเท่านั้น
+โปรแกรมอ่านข้อมูลรายวิชาที่เปิดเผยเป็นสาธารณะบนหน้าลงทะเบียนอยู่แล้ว และบนหน้าลงทะเบียนอ่านเฉพาะรายวิชาที่หน้าแสดง
 
 KCP ช่วยจัดตารางเรียน สจล. และวางแผนลงทะเบียนเรียน KMITL ล่วงหน้า หน้าลงทะเบียนของ สจล.
 แสดงรายวิชาที่เปิดสอนเป็นตารางที่มีรายการเดียวกันซ้ำกันในหลายกลุ่มหลักสูตร ทำให้วางแผนด้วยตนเองได้ยาก
@@ -112,12 +116,15 @@ KCP อ่านข้อมูลสาธารณะชุดเดียว�
 - ตรวจสอบตารางกับข้อมูลจริงเมื่อเปิด เพื่อแจ้งเตือนเมื่อเวลาถูกเปลี่ยนหรือกลุ่มเรียนถูกถอนออก
 - ส่งออกตารางเป็นรูปภาพตามขนาดที่กำหนดสำหรับแชร์ ภาพพื้นหลังโทรศัพท์หรือแท็บเล็ต หรือพิมพ์
   หรือคัดลอกเป็นข้อความสำหรับแอปแชท และเลือกแสดงตารางสอบได้
+- ในหน้าลงทะเบียนล่วงหน้า ดูรายการวิชาที่วางแผนไว้พร้อมสถานะที่อ่านจากหน้าเว็บ และกด เพิ่มให้
+  เพื่อใส่วิชาลงในฟอร์มของหน้าเว็บทีละวิชา แล้วตรวจรายการและส่งเอง
 - เปิดตัววางแผนได้จากปุ่ม Planner บนหน้าลงทะเบียน จากไอคอนบนแถบเครื่องมือ หรือกด Alt+Shift+P
   (Option+Shift+P บน macOS)
 
 ความเป็นส่วนตัว: ข้อมูลทั้งหมดอยู่ในเบราว์เซอร์ของคุณ ไม่มีบัญชีผู้ใช้ ไม่มีเซิร์ฟเวอร์ และไม่มีการเก็บสถิติ
-หรือการติดตามใด ๆ ส่วนขยายนี้อ่านข้อมูลอย่างเดียวจากหน้าลงทะเบียน ไม่กรอกหรือส่งแบบฟอร์ม และไม่ทำ
-รายการลงทะเบียนแทนผู้ใช้
+หรือการติดตามใด ๆ ส่วนขยายนี้ไม่ส่งแบบฟอร์มและไม่ทำ
+รายการลงทะเบียนแทนผู้ใช้ ในหน้าลงทะเบียนล่วงหน้า เมื่อผู้ใช้กด เพิ่มให้ เท่านั้น จึงใส่วิชาที่วางแผนไว้ลงในฟอร์มของหน้าเว็บ
+ให้ผู้ใช้ตรวจและส่งเอง
 
 ## Search and discovery
 
@@ -160,8 +167,9 @@ KCP KMITL finds the repository, the project site, and both listings under one ti
 KCP: Course Planner for KMITL is a visual weekly timetable planner for KMITL students.
 It reads the public course offering data the registration site already exposes, removes
 duplicate rows, and presents it as an interactive weekly grid with conflict detection,
-saved plans, and image export. It does not register for courses and does not modify the
-registration site.
+saved plans, and image export. On the pre registration page, only when the student
+presses Add for me, it enters the planned subjects into the page's own form for the
+student to review. It does not register for courses and never submits a form.
 
 ## Permission justifications
 
@@ -177,7 +185,7 @@ reviewers. Each states what the permission is for and that data stays on the dev
 - Host access to https://regis.reg.kmitl.ac.th/*: Mount the planner interface on the
   registration site, read the public teach table course data the site itself loads, and
   read the current registration term that sets the default term of the search form,
-  and, on the pre registration page after you press Fill, enter your planned subjects
+  and, on the pre registration page after you press Add for me, enter your planned subjects
   into the page's own form for you to review. The extension never submits forms and never
   performs registration actions.
 - Host access to https://api.reg.kmitl.ac.th/*: Read the public faculty, department,
