@@ -1,5 +1,0 @@
----
-'kmitl-course-planner': minor
----
-
-On the pre registration page the helper reads each subject's status from the page itself: not added, added as planned, added with another section, added with a condition such as a prerequisite grade not out yet, refused by the page, and after you submit, waiting for the result. There is nothing to mark by hand. If the page cannot be read, the helper keeps the last status it saw and says so, and a tap anywhere on that notice checks the page again. When the registration page has been updated to a version KCP has not been tested with, the notice says so and that you can enter the list yourself. When the page closes or opens the registration period on its own while it stays open, the helper waits and reads the page again, and the countdown on the page never makes it read the page over and over. While the page's confirm window is open over a list that differs from your plan, a line above it says how many planned subjects the page holds. KCP reads only these course facts, never your name or student id, keeps them in memory only, and sends nothing.

@@ -1,5 +1,0 @@
----
-'kmitl-course-planner': minor
----
-
-When the registration site puts out a new version of its pages, the helper no longer turns Add for me off at once. On the pre registration page KCP reads the site's new app script once, in the background, and compares the parts it relies on, the pre registration page, its buttons, its dialogs, its labels, the requests it can send, the shared data the pages use, and what the site sets up as it loads, with the versions KCP was tested with. While it reads, Add for me says that KCP is checking this page version. When they are all unchanged, the checklist reads the page and Add for me works as before. A change only to the entries of the site's own menu bar and side menu, which mostly list staff pages, does not count. When any of them changed, or the check cannot run, Add for me stays off and the checklist keeps your own marks until KCP is reviewed with the new version. Each new version is read once per browser and sends nothing about you; a read that fails is tried again only on a visit an hour later, and KCP keeps what it read for the eight most recent versions.
