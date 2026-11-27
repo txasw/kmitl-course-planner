@@ -192,7 +192,7 @@ describe('deriveChecklist with the page observed', () => {
     const result = (
       subjectId: string,
       section: string,
-      outcome: 'waiting' | 'granted' | 'notGranted',
+      outcome: 'waiting' | 'granted' | 'notGranted' | 'notGrantedCondition',
     ) => ({
       subjectId,
       section,
@@ -228,6 +228,22 @@ describe('deriveChecklist with the page observed', () => {
     expect(mixed.rows.map((row) => row.state)).toEqual([
       'notGranted',
       'submitted',
+    ]);
+    // A result not granted on a condition keeps its own row state, apart from not granted.
+    const conditional = derive(
+      observed({
+        step: 3,
+        list: null,
+        results: [
+          result('01476107', '1', 'granted'),
+          result('01476107', '101', 'notGrantedCondition'),
+          result('01476106', '2', 'notGranted'),
+        ],
+      }),
+    );
+    expect(conditional.rows.map((row) => [row.subjectId, row.state])).toEqual([
+      ['01476106', 'notGranted'],
+      ['01476107', 'notGrantedCondition'],
     ]);
   });
 
