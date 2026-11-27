@@ -234,7 +234,8 @@ function ReadingCard({ model, t }: { model: HelperModel; t: Translate }) {
 }
 
 // The term of a plan the helper shows without having read the page's own term, so it is
-// never taken for the term of the page.
+// never taken for the term of the page. On pre registration KCP tried to read the term and
+// could not; on regular registration it never reads the page, and the words say which.
 function UnconfirmedTerm({ model, t }: { model: HelperModel; t: Translate }) {
   const { pick } = model;
   if (pick.kind !== 'plan' || pick.confirmed) return null;
@@ -246,7 +247,14 @@ function UnconfirmedTerm({ model, t }: { model: HelperModel; t: Translate }) {
     >
       <span aria-hidden>{fillTemplate(t('regis.planTerm'), { term })}</span>
       <span className="sr-only">
-        {fillTemplate(t('regis.planTermUnread'), { term })}
+        {fillTemplate(
+          t(
+            model.route === 'registration'
+              ? 'regis.planTermNotRead'
+              : 'regis.planTermUnread',
+          ),
+          { term },
+        )}
       </span>
     </span>
   );

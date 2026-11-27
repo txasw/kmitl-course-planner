@@ -185,6 +185,25 @@ describe('the helper before the page term is read', () => {
     expect(card).toHaveTextContent('01000001');
     const label = card.querySelector('[data-helper-plan-term]');
     expect(label).toHaveTextContent('ตาราง 1/2569');
+    expect(label).toHaveTextContent(
+      'ตารางของภาคการศึกษา 1/2569 KCP ยังอ่านภาคการศึกษาของหน้านี้ไม่ได้',
+    );
+  });
+
+  it('says on regular registration that KCP does not read the page, not that it could not', () => {
+    window.location.hash = '#/registration';
+    act(() => {
+      planStore.getState().hydrate([SEM1]);
+      planStore.getState().setActivePlan('sem1');
+    });
+    render(<RegisHelper />);
+    const card = screen.getByRole('region', { name: 'เช็กลิสต์' });
+    expect(card).toHaveTextContent('01000001');
+    const label = card.querySelector('[data-helper-plan-term]');
+    expect(label).toHaveTextContent(
+      'ตารางของภาคการศึกษา 1/2569 KCP ไม่อ่านข้อมูลจากหน้านี้',
+    );
+    expect(label).not.toHaveTextContent('ยังอ่านภาคการศึกษาของหน้านี้ไม่ได้');
   });
 
   it('shows no count on the folded launcher for a plan of an unread term', () => {
