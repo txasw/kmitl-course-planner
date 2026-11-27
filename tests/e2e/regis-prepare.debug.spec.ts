@@ -155,19 +155,17 @@ test('keeps an 8 day old kit as older data and never fills from it', async ({
   await expect(card(page)).toBeVisible();
   const bar = card(page).locator('[data-kit-bar]');
   await expect(bar).toHaveAttribute('data-kit-bar', 'stale');
-  await expect(bar).toContainText(
-    'ข้อมูลกลุ่มเรียนเก่ากว่า 7 วัน เตรียมใหม่ในเวลาที่ระบบไม่หนาแน่น',
-  );
+  const barText = 'ข้อมูลกลุ่มเรียนเก่ากว่า 7 วัน เตรียมอีกครั้งในเวลาที่ระบบไม่หนาแน่น';
+  await expect(bar).toContainText(barText);
   await expect(
     card(page).getByRole('button', { name: 'เตรียมอีกครั้ง', exact: true }),
   ).toBeVisible();
 
-  // The stale kit is no fill input: Add for me says why and no press can start a run.
+  // The stale kit is no fill input: Add for me reads the bar's words, the one instruction
+  // the card gives, and no press can start a run.
   const add = card(page).getByRole('button', { name: 'เพิ่มให้', exact: true });
   await expect(add).toHaveAttribute('aria-disabled', 'true');
-  await expect(add).toHaveAccessibleDescription(
-    'ข้อมูลกลุ่มเรียนเก่ากว่า 7 วัน เตรียมใหม่ที่หน้าค้นหารายวิชา',
-  );
+  await expect(add).toHaveAccessibleDescription(barText);
   await expect(page.locator('[data-fill-press]')).toHaveCount(0);
   await page.waitForTimeout(700);
   // The button is aria disabled, so the press is forced past the actionability wait.
