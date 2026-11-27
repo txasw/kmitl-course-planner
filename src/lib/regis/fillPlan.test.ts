@@ -9,7 +9,7 @@ import {
   makeSection,
 } from '../../../tests/support/domain-builders';
 import { toSnapshot } from '../planner/transaction';
-import { buildRegistrationKit } from './kit';
+import { KIT_MAX_AGE_MS, buildRegistrationKit, companionKits } from './kit';
 import { deriveChecklist } from './checklist';
 import type { HostObservation } from './hostObservation';
 import {
@@ -129,6 +129,36 @@ function page(patch: Partial<HostObservation> = {}): HostObservation {
     ...patch,
   };
 }
+
+describe('a kit past the age limit', () => {
+  const prepared = Date.parse(kit.preparedAt);
+
+  it('keeps a fresh kit as the fill input, with no stale kit beside it', () => {
+    const kits = companionKits(kit, plan, prepared + KIT_MAX_AGE_MS);
+    expect(kits.kit).not.toBeNull();
+    expect(kits.staleKit).toBeNull();
+  });
+
+  it('shows the saved choice and the other groups but yields no fill target', () => {
+    const kits = companionKits(kit, plan, prepared + KIT_MAX_AGE_MS + 1);
+    expect(kits.kit).toBeNull();
+    expect(kits.staleKit).not.toBeNull();
+    const list = deriveChecklist({
+      plan,
+      kit: kits.kit,
+      staleKit: kits.staleKit,
+      choices: withChoice(null, plan, A, ['A2']),
+      pageTerm: null,
+    });
+    expect(list.hasKit).toBe(false);
+    const row = list.rows.find((item) => item.subjectId === A);
+    expect(row?.chosen?.ids).toEqual(['A2']);
+    expect(row?.alternatives.map((option) => option.ids)).toEqual([['A2']]);
+    for (const item of list.rows) {
+      expect(fillTarget(item, plan, kits.kit)).toBe('noKit');
+    }
+  });
+});
 
 describe('fillTarget', () => {
   it('fills the planned lecture and its practice from the kit', () => {

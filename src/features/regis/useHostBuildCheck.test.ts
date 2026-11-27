@@ -149,6 +149,7 @@ describe('useHostBuildCheck', () => {
       off: false,
       preparing: false,
       target: true,
+      kitStale: false,
       stale: false,
       termMismatch: false,
       inStep: false,

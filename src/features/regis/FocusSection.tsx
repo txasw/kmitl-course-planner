@@ -121,6 +121,7 @@ export function FocusSection({
       chosen={targetIds}
       refused={status === 'refused' ? targetIds : null}
       hasKit={model.hasKit}
+      olderData={model.staleKit !== null}
       onChoose={choose}
       align={align}
       t={t}
@@ -194,6 +195,11 @@ export function FocusSection({
               locale={locale}
               t={t}
             />
+            {model.staleKit !== null && row.chosen !== null ? (
+              <span data-older-data className="mt-1 text-xs text-warn">
+                {t('regis.chosenOlder')}
+              </span>
+            ) : null}
           </div>
         </div>
       </div>

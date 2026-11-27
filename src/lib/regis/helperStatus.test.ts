@@ -209,6 +209,7 @@ describe('addForMeBlock', () => {
     checking: false,
     off: false,
     target: true,
+    kitStale: false,
     stale: false,
     termMismatch: false,
     inStep: true,
@@ -228,6 +229,7 @@ describe('addForMeBlock', () => {
       off: true,
       preparing: true,
       target: false,
+      kitStale: true,
       stale: true,
       termMismatch: true,
       inStep: false,
@@ -260,6 +262,17 @@ describe('addForMeBlock', () => {
     ).toBe('checking');
     expect(addForMeBlock({ ...ready, off: true, stale: true })).toBe('off');
     expect(addForMeBlock({ ...ready, target: false })).toBe('noKit');
+    expect(addForMeBlock({ ...ready, target: false, kitStale: true })).toBe(
+      'kitStale',
+    );
+    expect(
+      addForMeBlock({
+        ...ready,
+        target: false,
+        kitStale: true,
+        preparing: true,
+      }),
+    ).toBe('preparing');
     expect(addForMeBlock({ ...ready, target: false, preparing: true })).toBe(
       'preparing',
     );

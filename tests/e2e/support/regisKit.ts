@@ -1,6 +1,7 @@
 // Plans synthetic sections on the search page, then stores a registration kit for them as
 // the prepare action would have at a calm time, built from the stored plan entries, so a
-// registration helper spec sends no kit read of its own.
+// registration helper spec sends no kit read of its own. A spec may date the kit in the
+// past to test one past the age limit.
 
 import type { Page, Worker } from '@playwright/test';
 import { REGKIT_KEY, ROOT_KEY } from '../../../src/lib/storage/keys';
@@ -69,6 +70,8 @@ export async function planWithKit(
   subjectIds: readonly string[],
   alternatives: Readonly<Record<string, readonly KitAlternative[]>> = {},
   search: ReservedSearch = SYNTHETIC_SEARCH,
+  /** How long ago the kit was prepared, in ms: past seven days it is stale. */
+  ageMs = 0,
 ): Promise<PlannedKit> {
   await syntheticSearch(page, search);
   for (const subjectId of subjectIds) await addCourse(page, subjectId);
@@ -132,7 +135,7 @@ export async function planWithKit(
     {
       root: ROOT_KEY,
       regkit: REGKIT_KEY,
-      now: new Date().toISOString(),
+      now: new Date(Date.now() - ageMs).toISOString(),
       others: alternatives,
     },
   );

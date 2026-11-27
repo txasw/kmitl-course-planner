@@ -1,7 +1,12 @@
 import type { Locator, Page } from '@playwright/test';
 import { REGIS_ORIGIN } from '../../src/lib/shell/hostTab';
 import { test, expect, openPlanner } from './support/fixtures';
-import { planWithoutKit, storedKitPlans } from './support/regisKit';
+import {
+  planWithKit,
+  planWithoutKit,
+  storedKitPlans,
+} from './support/regisKit';
+import { SYNTHETIC_SEARCH } from './support/synthetic';
 import type { Replica } from './host/pre_registration/replica.js';
 
 declare global {
@@ -113,4 +118,67 @@ test('prepares on the pre registration page from the helper, on a press only', a
     writes: window.replica.counters.writes,
   }));
   expect(afterFill).toEqual({ forbidden: 0, writes: 0 });
+});
+
+test('keeps an 8 day old kit as older data and never fills from it', async ({
+  context,
+  mock,
+  serviceWorker,
+}) => {
+  const page = await openPlanner(context);
+  const subject = SUBJECTS[0];
+  const { term, sections } = await planWithKit(
+    page,
+    serviceWorker,
+    [subject],
+    {},
+    SYNTHETIC_SEARCH,
+    8 * 24 * 60 * 60 * 1000,
+  );
+  mock.clearApiCalls();
+  await page.goto(`${REPLICA_URL}#/pre_registration`);
+  await page.waitForFunction(() => 'replica' in window);
+  await page.evaluate(
+    ({ next, catalog }) => {
+      window.replica.set({ term: next });
+      window.replica.configure({ catalog, xhr: true });
+    },
+    {
+      next: term,
+      catalog: {
+        [subject]: {
+          sections: [{ section: sections[subject] ?? '', kind: 'ท' as const }],
+        },
+      },
+    },
+  );
+  await expect(card(page)).toBeVisible();
+  const bar = card(page).locator('[data-kit-bar]');
+  await expect(bar).toHaveAttribute('data-kit-bar', 'stale');
+  await expect(bar).toContainText(
+    'ข้อมูลกลุ่มเรียนเก่ากว่า 7 วัน เตรียมใหม่ในเวลาที่ระบบไม่หนาแน่น',
+  );
+  await expect(
+    card(page).getByRole('button', { name: 'เตรียมอีกครั้ง', exact: true }),
+  ).toBeVisible();
+
+  // The stale kit is no fill input: Add for me says why and no press can start a run.
+  const add = card(page).getByRole('button', { name: 'เพิ่มให้', exact: true });
+  await expect(add).toHaveAttribute('aria-disabled', 'true');
+  await expect(add).toHaveAccessibleDescription(
+    'ข้อมูลกลุ่มเรียนเก่ากว่า 7 วัน เตรียมใหม่ที่หน้าค้นหารายวิชา',
+  );
+  await expect(page.locator('[data-fill-press]')).toHaveCount(0);
+  await page.waitForTimeout(700);
+  // The button is aria disabled, so the press is forced past the actionability wait.
+  await add.click({ force: true });
+  await page.waitForTimeout(500);
+  await expect(card(page)).toHaveAttribute('data-fill', 'idle');
+  expect(
+    await page.evaluate(() => ({
+      interactions: window.replica.interactions(),
+      writes: window.replica.counters.writes,
+    })),
+  ).toEqual({ interactions: 0, writes: 0 });
+  expect(mock.apiCalls()).toEqual([]);
 });

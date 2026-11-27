@@ -316,6 +316,32 @@ export function refitKit(
   });
 }
 
+/** The kits the helper reads for a plan, by what each may be used for. */
+export interface CompanionKits {
+  /** The fresh kit checked against the plan as it stands: the one input fill reads. */
+  kit: RegistrationKit | null;
+  /**
+   * A kit past the age limit, checked against the plan the same way, kept only to show
+   * the student's saved section choices and the other sections as from older data. Fill
+   * never reads it, so a stale kit can never start a run.
+   */
+  staleKit: RegistrationKit | null;
+}
+
+/** Split a plan's stored kit into the fresh kit and the display only stale one. */
+export function companionKits(
+  stored: RegistrationKit | null,
+  plan: Plan | null,
+  nowMs: number,
+  profileCurriculum: string | null = null,
+): CompanionKits {
+  if (stored === null || plan === null) return { kit: null, staleKit: null };
+  const refit = refitKit(stored, plan, profileCurriculum);
+  return isKitFresh(stored, nowMs)
+    ? { kit: refit, staleKit: null }
+    : { kit: null, staleKit: refit };
+}
+
 /** The planned sections of a kit subject, in section code order. */
 export function plannedSections(subject: KitSubject): SectionSnapshot[] {
   const ids = new Set(subject.plannedIds);
