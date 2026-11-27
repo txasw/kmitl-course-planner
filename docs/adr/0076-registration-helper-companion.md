@@ -451,5 +451,7 @@ registration page stays at L0.
   state; component tests cover the line only in the all added state and on neither the submitted
   list nor regular registration, the carried label on both routes, and the toast on each
   registration route. Debug specs check the not sent status and the count on the replica's complete
-  step, the line at a 360 px width with the text fit scan clean and focus unchanged, and the carried
-  label as the hash moves from pre registration to regular registration and back.
+  step, the line and then the complete step with a subject not sent, its band and its short word in
+  the list, at a 360 px width in Thai and in English with the text fit scan clean and focus
+  unchanged, and the carried label as the hash moves from pre registration to regular registration
+  and back.
