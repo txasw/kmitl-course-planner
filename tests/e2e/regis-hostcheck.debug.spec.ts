@@ -179,3 +179,32 @@ test('names the pre registration page on regular registration and reads no scrip
   expect(mock.apiCalls()).toEqual([]);
   expect(await page.evaluate(() => window.replica.interactions())).toBe(0);
 });
+
+test('keeps fill off after moving from pre registration to regular registration', async ({
+  context,
+  mock,
+  serviceWorker,
+}) => {
+  const page = await openPlanner(context);
+  await openBuild(page, serviceWorker, 'verified');
+  await expect(addForMe(page)).toBeVisible();
+  mock.clearApiCalls();
+  // The verified build stands for the document, so only the route keeps fill off here.
+  await page.evaluate(() => {
+    window.location.hash = '#/registration';
+  });
+  const card = page.locator('#kcp-regis-card');
+  const add = card.getByRole('button', { name: 'เพิ่มให้', exact: true });
+  await expect(add).toHaveAttribute('aria-disabled', 'true');
+  await expect(add).toHaveAccessibleDescription(
+    'เพิ่มให้ใช้ได้ในหน้าลงทะเบียนล่วงหน้า กรอกรหัสวิชาจากเช็กลิสต์',
+  );
+  await expect(page.locator('[data-fill-press]')).toHaveCount(0);
+  // The button is aria disabled, so the press is forced past the actionability wait.
+  await add.click({ force: true });
+  await page.waitForTimeout(1000);
+  await expect(card).toHaveAttribute('data-fill', 'idle');
+  expect(await page.evaluate(() => window.replica.interactions())).toBe(0);
+  await expectNothingForbidden(page);
+  expect(mock.apiCalls()).toEqual([]);
+});

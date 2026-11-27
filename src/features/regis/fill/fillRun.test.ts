@@ -59,6 +59,7 @@ function press() {
 }
 
 beforeEach(() => {
+  window.location.hash = '#/pre_registration';
   vi.mocked(runFill).mockClear();
   replica = mountReplica(document);
   fillStore.setState({ run: { status: 'idle' }, stop: false });
@@ -73,6 +74,7 @@ afterEach(() => {
   document.body.replaceChildren();
   surrogate.on = false;
   buildCheckStore.setState({ check: null });
+  window.location.hash = '';
 });
 
 const request = { plan: PLAN, kit: KIT, items: [] };
@@ -115,6 +117,19 @@ describe('startFill', () => {
     });
     await startFill(press(), request);
     expect(fillStore.getState().run).toEqual({ status: 'done', filled: 0 });
+  });
+
+  it('starts nothing off pre registration, even on a build the host check verified', async () => {
+    scripts(NEW);
+    buildCheckStore.setState({
+      check: { key: NEW_KEY, verdict: { status: 'verified' } },
+    });
+    for (const hash of ['#/registration', '#/teach_table_selector']) {
+      window.location.hash = hash;
+      await startFill(press(), request);
+      expect(fillStore.getState().run.status).toBe('idle');
+    }
+    expect(runFill).not.toHaveBeenCalled();
   });
 
   it('refuses a build an actuator refusal latched', async () => {
