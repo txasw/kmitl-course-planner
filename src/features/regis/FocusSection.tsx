@@ -4,9 +4,9 @@
 // me again for a section the page shows over subscribed; one the page lists with another
 // section offers to use that section in the plan; a settled subject offers nothing. When
 // a fill stops on the subject, the reason and what to do next sit under the row. On
-// regular registration a section chosen for the plan on pre registration still shows,
-// since choices are kept per plan and term, and says it was chosen for pre registration
-// until the student chooses again on this page.
+// regular registration a section chosen earlier still shows, since choices are kept per
+// plan and term with no page, and says only that it was chosen earlier for this term,
+// which holds whichever page it was chosen on, until the student chooses again here.
 
 import { useId, type ReactNode } from 'react';
 import { useStore } from 'zustand';
@@ -215,7 +215,7 @@ export function FocusSection({
             />
             {carried ? (
               <span data-carried-choice className="mt-1 text-xs text-ink-soft">
-                {t('regis.chosenForPre')}
+                {t('regis.chosenEarlier')}
               </span>
             ) : null}
             {model.staleKit !== null && row.chosen !== null ? (

@@ -436,9 +436,12 @@ registration page stays at L0.
 - **The carried choice (C1).** Section choices are kept per plan and term with no route key
   (`lib/regis/choices.ts`), so a section chosen on pre registration shows on regular registration as
   the plan's choice. It keeps carrying, with no storage change, and on regular registration the
-  focused subject and that option in the section menu now say it was chosen for pre registration.
-  A choice the student makes again on that page drops the label for the rest of the visit, since
-  the stored record cannot tell the two pages apart; a later visit labels it again.
+  focused subject and that option in the section menu now say it was chosen earlier for this term.
+  The label does not say pre registration: the stored record cannot tell the two pages apart, so a
+  section chosen on regular registration in an earlier visit, or one chosen with pre registration
+  never opened, would read as a pre registration choice, a claim KCP cannot back. Chosen earlier
+  for this term is true in every case it shows. A choice the student makes again on that page drops
+  the label for the rest of the visit; a later visit labels it again, which stays true.
 - **The entry toast.** It now stays away from every registration page, the officer, queue, and other
   pages included, and the rule that hides one shown elsewhere uses the same route predicate, so the
   show and leave rules stay one rule. This is a choice about a busy page, not a quiet mode fix,

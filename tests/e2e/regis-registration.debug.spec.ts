@@ -106,7 +106,7 @@ test('stays at L0 on the registration route over the pre registration markup', a
   ).toEqual({ clicks: {}, interactions: 0, forbidden: 0, writes: 0, reads: 0 });
 });
 
-test('labels a section chosen on pre registration when it carries to registration', async ({
+test('labels a section chosen on pre registration as chosen earlier on registration', async ({
   context,
   mock,
   serviceWorker,
@@ -138,17 +138,17 @@ test('labels a section chosen on pre registration when it carries to registratio
   await expect(card.getByRole('combobox')).toHaveAccessibleName(/902/);
   await expect(label).toHaveCount(0);
 
-  // On regular registration the choice carries, labelled as made for pre registration.
+  // On regular registration the choice carries, labelled as chosen earlier for the term.
   await page.evaluate(() => {
     window.location.hash = '#/registration';
   });
   await focus();
   await expect(card.getByRole('combobox')).toHaveAccessibleName(/902/);
-  await expect(label).toHaveText('เลือกไว้สำหรับลงทะเบียนล่วงหน้า');
+  await expect(label).toHaveText('เลือกไว้ก่อนหน้าสำหรับภาคการศึกษานี้');
   await card.getByRole('combobox').click();
   await expect(
     page.getByRole('option', { name: /902/ }).locator('[data-carried-choice]'),
-  ).toHaveText('เลือกไว้สำหรับลงทะเบียนล่วงหน้า');
+  ).toHaveText('เลือกไว้ก่อนหน้าสำหรับภาคการศึกษานี้');
   await page.keyboard.press('Escape');
 
   // Back on pre registration the label goes again.
