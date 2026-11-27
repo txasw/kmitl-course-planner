@@ -9,6 +9,7 @@ import {
   needsLook,
   pickCurrent,
   sentCount,
+  showsHandOff,
   stillToAdd,
   type AddFacts,
   type HelperInput,
@@ -344,5 +345,33 @@ describe('stillToAdd', () => {
     });
     expect(statuses).toEqual({ A: 'added', B: 'todo', C: 'todo' });
     expect(stillToAdd(['A', 'B', 'C'], statuses)).toEqual(['B', 'C']);
+  });
+});
+
+describe('showsHandOff', () => {
+  const facts = {
+    onPage: true,
+    stale: false,
+    sent: false,
+    running: false,
+    statuses: { A: 'added', B: 'other', C: 'cond' },
+  } as const;
+
+  it('shows once the page lists every planned subject on pre registration', () => {
+    expect(showsHandOff(facts)).toBe(true);
+  });
+
+  it('stays hidden in every other state', () => {
+    expect(
+      showsHandOff({ ...facts, statuses: { A: 'added', B: 'todo' } }),
+    ).toBe(false);
+    expect(
+      showsHandOff({ ...facts, statuses: { A: 'added', B: 'full' } }),
+    ).toBe(false);
+    expect(showsHandOff({ ...facts, statuses: {} })).toBe(false);
+    expect(showsHandOff({ ...facts, onPage: false })).toBe(false);
+    expect(showsHandOff({ ...facts, stale: true })).toBe(false);
+    expect(showsHandOff({ ...facts, sent: true })).toBe(false);
+    expect(showsHandOff({ ...facts, running: true })).toBe(false);
   });
 });

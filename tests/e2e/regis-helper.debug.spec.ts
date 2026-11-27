@@ -2,6 +2,7 @@ import type { Locator, Page, Worker } from '@playwright/test';
 import { REGIS_ORIGIN } from '../../src/lib/shell/hostTab';
 import { test, expect, openPlanner } from './support/fixtures';
 import { planWithKit } from './support/regisKit';
+import { scanTextFit } from './support/textFit';
 import type { Replica } from './host/pre_registration/replica.js';
 
 // The registration helper card on the behaviour replica of the pre registration page
@@ -179,6 +180,8 @@ test.describe('Add all for me', () => {
     for (const id of SUBJECTS) {
       await expect(chip(page, id)).toHaveAttribute('data-status', 'added');
     }
+    // With every subject on the list, one line hands the submit to the student.
+    await expect(card(page).locator('[data-helper-handoff]')).toHaveCount(1);
     const listed = await page.evaluate(() =>
       window.replica.state.list.map((row) => row.subjectId),
     );
@@ -232,6 +235,51 @@ test.describe('at a phone width', () => {
     await expect(page.locator(LAUNCHER_ID)).toBeVisible();
     await page.locator(LAUNCHER_ID).click();
     await expect(card(page)).toBeVisible();
+
+    await expectNothingForbidden(page);
+    expect(mock.apiCalls()).toEqual([]);
+  });
+
+  test('hands the submit to the student in one line that fits, once all are listed', async ({
+    context,
+    mock,
+    serviceWorker,
+  }) => {
+    const page = await openPlanner(context);
+    await openHelper(page, serviceWorker, { width: 360, height: 740 });
+    mock.clearApiCalls();
+    await page.locator(LAUNCHER_ID).click();
+    await expect(card(page)).toBeVisible();
+    const line = card(page).locator('[data-helper-handoff]');
+    await expect(line).toHaveCount(0);
+
+    const focused = () =>
+      page.evaluate(() => document.activeElement?.outerHTML ?? null);
+    const before = await focused();
+    await page.evaluate((ids) => {
+      window.replica.set({
+        list: ids.map((id) => ({ subjectId: id, section: '901', kind: 'ท' })),
+      });
+    }, SUBJECTS);
+    for (const id of SUBJECTS) {
+      await expect(chip(page, id)).toHaveAttribute('data-status', 'added');
+    }
+    await expect(line).toHaveCount(1);
+    await expect(line).toContainText('ดำเนินการต่อ');
+    await expect(line).toBeInViewport({ ratio: 1 });
+    // The line names the host control as text: nothing in it can be pressed, it moved no
+    // focus, and no text on the card is cut or covered at this width.
+    await expect(line.locator('button, a, [tabindex]')).toHaveCount(0);
+    expect(await focused()).toBe(before);
+    expect(await scanTextFit(card(page), [])).toEqual([]);
+
+    // A subject off the list again takes the line away.
+    await page.evaluate((id) => {
+      window.replica.set({
+        list: [{ subjectId: id, section: '901', kind: 'ท' }],
+      });
+    }, FIRST);
+    await expect(line).toHaveCount(0);
 
     await expectNothingForbidden(page);
     expect(mock.apiCalls()).toEqual([]);

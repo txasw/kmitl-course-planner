@@ -19,6 +19,7 @@ import {
   ChevronsDownUp,
   ChevronsUpDown,
   EyeOff,
+  ListChecks,
   LoaderCircle,
   RefreshCw,
 } from 'lucide-react';
@@ -260,6 +261,25 @@ function UnconfirmedTerm({ model, t }: { model: HelperModel; t: Translate }) {
   );
 }
 
+// The one line that hands the submit to the student once the page lists every planned
+// subject (owner answer B1). It names the host's continue control by its label as text
+// only: it points at nothing on the page, highlights nothing, and takes no focus.
+function HandOffLine({ t }: { t: Translate }) {
+  return (
+    <p
+      data-helper-handoff
+      className="flex shrink-0 items-start gap-2 border-t border-border px-3 py-2 text-xs text-ink"
+    >
+      <ListChecks
+        size={16}
+        aria-hidden
+        className="mt-px shrink-0 text-success"
+      />
+      <span className="min-w-0 flex-1">{t('regis.handOff')}</span>
+    </p>
+  );
+}
+
 interface CardViewProps {
   model: HelperModel;
   coarse: boolean;
@@ -425,6 +445,7 @@ export function HelperCard({ model }: { model: HelperModel }) {
               onPick={pick}
             />
           )}
+          {model.handOff ? <HandOffLine t={t} /> : null}
         </>
       )}
     </section>
