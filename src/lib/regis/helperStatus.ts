@@ -139,15 +139,19 @@ export function sentCount(statuses: Readonly<Record<string, HelperStatus>>) {
 
 /**
  * Whether the card shows its one hand off line (owner answer B1, 2026-11-27): on the pre
- * registration page, the one page KCP reads, while the page can be read, no run adds, and
- * the page lists every planned subject. The student then checks the list and presses the
- * host's own continue control; KCP never does.
+ * registration page, the one page KCP reads, while the page can be read, no run adds, the
+ * host's confirm dialog is not open, and the page lists every planned subject. The student
+ * then checks the list and presses the host's own continue control; KCP never does. Once
+ * the student has pressed it and the confirm dialog shows, the line would ask for a press
+ * already made, so it goes, and the line above the dialog speaks instead.
  */
 export function showsHandOff(facts: {
   onPage: boolean;
   stale: boolean;
   sent: boolean;
   running: boolean;
+  /** Whether the host's confirm dialog is open. */
+  confirmOpen: boolean;
   statuses: Readonly<Record<string, HelperStatus>>;
 }): boolean {
   const all = Object.values(facts.statuses);
@@ -156,6 +160,7 @@ export function showsHandOff(facts: {
     !facts.stale &&
     !facts.sent &&
     !facts.running &&
+    !facts.confirmOpen &&
     all.length > 0 &&
     all.every(isDone)
   );
@@ -243,6 +248,7 @@ export type AddBlock =
   | 'noKit'
   | 'stale'
   | 'termMismatch'
+  | 'confirmOpen'
   | 'notInStep'
   | 'busy';
 
@@ -267,6 +273,11 @@ export interface AddFacts {
   kitStale: boolean;
   stale: boolean;
   termMismatch: boolean;
+  /**
+   * Whether the host's confirm dialog is open. A run never starts under it, since the
+   * engine stops at its first reading, so the control reads as blocked, not as live.
+   */
+  confirmOpen: boolean;
   /** Whether the page shows the choose subjects step. */
   inStep: boolean;
   /** Whether a run is active for another subject. */
@@ -281,6 +292,7 @@ export function addForMeBlock(facts: AddFacts): AddBlock | null {
   if (!facts.target) return facts.kitStale ? 'kitStale' : 'noKit';
   if (facts.stale) return 'stale';
   if (facts.termMismatch) return 'termMismatch';
+  if (facts.confirmOpen) return 'confirmOpen';
   if (!facts.inStep) return 'notInStep';
   if (facts.busy) return 'busy';
   return null;

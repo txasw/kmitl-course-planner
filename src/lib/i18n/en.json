@@ -698,6 +698,7 @@
   "regis.addForMe.off": "Add for me is off",
   "regis.addForMe.preparing": "Wait until the data is prepared",
   "regis.addForMe.kitStale": "The section data is older than 7 days. Prepare again first.",
+  "regis.addForMe.confirmOpen": "Add for me works once the confirm window on the page is closed",
   "regis.addForMe.onlyInStep": "Add for me works while the page shows the choose subjects step",
   "regis.addForMe.busy": "Adding {subjectId}",
   "regis.stop": "Stop",

@@ -116,6 +116,15 @@ describe('the hand off line', () => {
     expect(line()).toBeNull();
   });
 
+  it('stays hidden while the host confirm dialog is open', () => {
+    renderOn('#/pre_registration', {
+      list: [LISTED],
+      dialog: { kind: 'confirmSubmit', prerequisites: [] },
+    });
+    expect(screen.getByRole('region', { name: 'เช็กลิสต์' })).toBeVisible();
+    expect(line()).toBeNull();
+  });
+
   it('stays hidden once the page shows the submitted list', () => {
     renderOn('#/pre_registration', {
       step: 3,

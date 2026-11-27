@@ -224,6 +224,12 @@ test('stops when the student opens the confirm dialog and leaves focus where it 
   await expect(page.locator('[data-fill-stop="confirmOpen"]')).toHaveText(
     'KCP หยุดเพิ่มแล้ว และไม่กดปุ่มใดในหน้าต่างนี้ หากต้องการกลับ ใช้ปุ่มย้อนกลับของหน้าต่างนี้',
   );
+  // Under the dialog Add for me reads as blocked with its reason, not as a live press.
+  const add = page.getByRole('button', { name: ADD_FOR_ME, exact: true });
+  await expect(add).toHaveAttribute('aria-disabled', 'true');
+  await expect(add).toHaveAccessibleDescription(
+    'เพิ่มให้ใช้ได้เมื่อปิดหน้าต่างยืนยันในหน้าแล้ว',
+  );
   expect(await focused()).toBe(before);
   // The host answers after the stop, and the run acts on nothing more, focus included.
   await page.waitForTimeout(3500);

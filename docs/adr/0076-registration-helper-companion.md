@@ -429,8 +429,8 @@ registration page stays at L0.
   the host list the student checks the list and presses ดำเนินการต่อ themselves, and that it is sent
   once, was never built with the card. It is now one line at the foot of the card, shown only on
   pre registration, the one page where KCP knows the state, while the page can be read, no run adds,
-  the submitted list is not yet shown, and every planned subject is on the list as planned, with
-  another section, or on a condition (`showsHandOff`). It names the host control by its label as
+  the host's confirm dialog is not open, the submitted list is not yet shown, and every planned
+  subject is on the list as planned, with another section, or on a condition (`showsHandOff`). It names the host control by its label as
   text only, holds no control, points at and highlights nothing on the page, takes no focus, and
   wraps at a phone width with nothing cut or covered.
 - **The carried choice (C1).** Section choices are kept per plan and term with no route key

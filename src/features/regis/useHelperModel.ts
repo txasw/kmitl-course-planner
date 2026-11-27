@@ -61,6 +61,8 @@ export interface HelperModel {
   total: number;
   /** Whether the card shows the line that hands the submit to the student. */
   handOff: boolean;
+  /** Whether the page shows the host's confirm dialog. */
+  confirmOpen: boolean;
   current: ChecklistRow | null;
   /** Whether the page shows the choose subjects step, where add for me works. */
   inStep: boolean;
@@ -75,6 +77,10 @@ export function useHelperModel(): HelperModel {
   const view = useCompanionView();
   const run = useStore(fillStore, (state) => state.run);
   const step = useStore(hostStore, (state) => state.page?.observation.step);
+  const confirmOpen = useStore(
+    hostStore,
+    (state) => state.page?.observation.dialog?.kind === 'confirmSubmit',
+  );
   const last = useStore(helperStore, (state) => state.last);
   const cleared = useStore(helperStore, (state) => state.clearedStop);
   const pinned = useStore(helperStore, (state) => state.current);
@@ -162,8 +168,10 @@ export function useHelperModel(): HelperModel {
       stale,
       sent,
       running: run.status === 'running',
+      confirmOpen,
       statuses,
     }),
+    confirmOpen,
     current: rows.find((row) => row.subjectId === currentId) ?? null,
     inStep: step === 2,
     observer: health.status,
