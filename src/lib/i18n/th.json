@@ -698,6 +698,7 @@
   "regis.addForMe.off": "ปิดใช้เพิ่มให้อยู่",
   "regis.addForMe.preparing": "รอให้เตรียมข้อมูลเสร็จก่อน",
   "regis.addForMe.kitStale": "ข้อมูลกลุ่มเรียนเก่ากว่า 7 วัน ต้องเตรียมอีกครั้งก่อน",
+  "regis.addForMe.confirmOpen": "เพิ่มให้ใช้ได้เมื่อปิดหน้าต่างยืนยันในหน้าแล้ว",
   "regis.addForMe.onlyInStep": "เพิ่มให้ใช้ได้ขณะที่หน้าแสดงขั้นเลือกวิชา",
   "regis.addForMe.busy": "กำลังเพิ่ม {subjectId}",
   "regis.stop": "หยุด",

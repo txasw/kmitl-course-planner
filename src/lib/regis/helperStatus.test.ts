@@ -240,6 +240,7 @@ describe('addForMeBlock', () => {
     kitStale: false,
     stale: false,
     termMismatch: false,
+    confirmOpen: false,
     inStep: true,
     busy: false,
     preparing: false,
@@ -260,6 +261,7 @@ describe('addForMeBlock', () => {
       kitStale: true,
       stale: true,
       termMismatch: true,
+      confirmOpen: true,
       inStep: false,
       busy: true,
     };
@@ -311,6 +313,13 @@ describe('addForMeBlock', () => {
     expect(addForMeBlock({ ...ready, termMismatch: true })).toBe(
       'termMismatch',
     );
+    expect(
+      addForMeBlock({ ...ready, termMismatch: true, confirmOpen: true }),
+    ).toBe('termMismatch');
+    // Under the host's confirm dialog the control reads as blocked, not as a live press.
+    expect(addForMeBlock({ ...ready, confirmOpen: true, busy: true })).toBe(
+      'confirmOpen',
+    );
     expect(addForMeBlock({ ...ready, inStep: false, busy: true })).toBe(
       'notInStep',
     );
@@ -354,6 +363,7 @@ describe('showsHandOff', () => {
     stale: false,
     sent: false,
     running: false,
+    confirmOpen: false,
     statuses: { A: 'added', B: 'other', C: 'cond' },
   } as const;
 
@@ -373,5 +383,7 @@ describe('showsHandOff', () => {
     expect(showsHandOff({ ...facts, stale: true })).toBe(false);
     expect(showsHandOff({ ...facts, sent: true })).toBe(false);
     expect(showsHandOff({ ...facts, running: true })).toBe(false);
+    // The student already pressed continue, so the line would ask for a press made.
+    expect(showsHandOff({ ...facts, confirmOpen: true })).toBe(false);
   });
 });

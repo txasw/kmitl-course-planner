@@ -610,6 +610,11 @@ the host's answer read on under the confirm dialog until its next step.
   that are not failures of the run are.
 - **Focus.** The stop collapses nothing and calls no focus, so the focus the dialog holds stays
   where it is.
+- **Under the dialog.** While a reading shows the confirm dialog, `addForMeBlock` names
+  `confirmOpen` as the block, so Add for me and Add all for me read as blocked with that reason
+  rather than as a live press beside the stop sentence, and the hand off line of ADR-0076 is hidden,
+  since it would ask for the press the student already made. Neither change points at or presses a
+  host control.
 - **Tests.** Unit tests cover the mapping, the dialog opening at the wait, choose, and add steps of a
   run of two subjects with no Add, confirm, or back press and no second subject entered, and a run
   pressed while the dialog is open starting nothing. A spec on the pre registration replica, which

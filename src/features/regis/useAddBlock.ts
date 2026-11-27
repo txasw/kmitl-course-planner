@@ -22,6 +22,7 @@ const BLOCK_TEXT: Readonly<Record<AddBlock, TranslationKey>> = {
   noKit: 'regis.noKitShort',
   stale: 'regis.unreadable',
   termMismatch: 'regis.state.termMismatch',
+  confirmOpen: 'regis.addForMe.confirmOpen',
   notInStep: 'regis.addForMe.onlyInStep',
   busy: 'regis.addForMe.busy',
 };
@@ -65,6 +66,7 @@ function useBlock(
     kitStale: model.staleKit !== null,
     stale: model.stale,
     termMismatch: model.termMismatch,
+    confirmOpen: model.confirmOpen,
     inStep: model.inStep,
     busy,
   });
