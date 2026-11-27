@@ -276,4 +276,19 @@ describe('the kit bar over data past the age limit', () => {
     expect(card.querySelector('[data-fill-press]')).toBeNull();
     expect(sends).toBe(0);
   });
+
+  it('lists the other sections with their facts, marked as from older data', () => {
+    storeOldKit();
+    const card = renderOn('#/pre_registration', plan);
+    fireEvent.click(within(card).getByRole('combobox'));
+    const listbox = screen.getByRole('listbox');
+    const options = within(listbox).getAllByRole('option');
+    expect(options).toHaveLength(2);
+    for (const option of options) {
+      expect(option).toHaveTextContent(/ลงตัว|เวลาชน|สอบชน|ปิดกลุ่ม|เต็ม/);
+    }
+    expect(listbox).toHaveTextContent('จากข้อมูลกลุ่มเรียนที่เก่ากว่า 7 วัน');
+    expect(listbox).not.toHaveTextContent('ยังไม่ได้เตรียมข้อมูล');
+    expect(sends).toBe(0);
+  });
 });
