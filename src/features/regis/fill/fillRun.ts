@@ -1,5 +1,6 @@
 // The lifecycle of a fill run (ADR-0078), held in memory. A run starts only from a
-// student press, which it consumes, on a tested host build that no refusal latched,
+// student press, which it consumes, on the pre registration route, on a tested host build
+// that no refusal latched,
 // outside a staff surrogate session, while the student's fill switch is on, while the
 // helper shows and the planner is closed, and never while another run or a prepare run is
 // active. It is
@@ -13,6 +14,7 @@ import type { Plan } from '@/lib/domain/plan';
 import type { FillItem, FillTarget, StopReason } from '@/lib/regis/fillPlan';
 import { buildKey, fillGate } from '@/lib/regis/hostBuild';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
+import { companionRoute } from '@/lib/regis/route';
 import { readLocationHash } from '@/features/shell/hostLocation';
 import { uiStore } from '@/features/shell/uiStore';
 import { helperStore } from '../helperStore';
@@ -89,7 +91,11 @@ export async function startFill(
   request: FillRequest,
 ): Promise<void> {
   if (!consumeStudentPress(press)) return;
+  // The host check's verdict stands for the whole document, so a student who moves from
+  // pre registration to another route keeps a verified build: the route is checked here
+  // too, not only by the helper hiding the press.
   if (
+    companionRoute(readLocationHash()) !== 'preRegistration' ||
     fillStore.getState().run.status === 'running' ||
     regisStore.getState().run.status === 'running' ||
     regisStore.getState().fill.off ||
