@@ -8,10 +8,10 @@ import type { Replica, ReplicaPatch } from './host/pre_registration/replica.js';
 // The read only observer on the static replica of the pre registration page (ADR-0077).
 // The helper card opens on its own and the subject's status follows the page: not added,
 // added as planned, another section, conditional on a prerequisite, refused, and on the
-// complete step submitted or missing from the submitted list. No hand mark exists to set it. A count line shows over
-// the host's confirm dialog while the list differs from the plan. Every host control on
-// the replica counts its presses and every untrusted event is counted, so each spec ends
-// by proving KCP pressed nothing and sent nothing.
+// complete step submitted or missing from the submitted list. No hand mark exists to set
+// it. A count line shows over the host's confirm dialog while the list differs from the
+// plan. Every host control on the replica counts its presses and every untrusted event
+// is counted, so each spec ends by proving KCP pressed nothing and sent nothing.
 
 declare global {
   interface Window {
