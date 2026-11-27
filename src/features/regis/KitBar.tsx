@@ -7,10 +7,11 @@
 // is the student's own, never a retry KCP makes. On the registration page, the first come
 // page, and for a plan the helper shows without having read the page term, the bar only
 // says that nothing is prepared. Data past the age limit is no fresh kit, so the same bar
-// says it is older than 7 days and offers to prepare again where a press is offered; the
-// checklist still shows the student's choices from it as older data, and fill never reads
-// it. While another plan prepares, the press is held, with the reason on hover and, on a
-// touch screen, in the error toast a press shows.
+// says it is older than 7 days and offers to prepare again where a press is offered, or
+// names the course search page where none is; the checklist still shows the student's
+// choices from it as older data, and fill never reads it. While another plan prepares,
+// the press is held, with the reason on hover and, on a touch screen, in the error toast
+// a press shows.
 
 import { useStore } from 'zustand';
 import { ClipboardList, LoaderCircle } from 'lucide-react';
@@ -93,7 +94,9 @@ export function KitBar({ model, t }: { model: HelperModel; t: Translate }) {
           failed
             ? 'regis.prepareFailedShort'
             : older
-              ? 'regis.kitStale'
+              ? offered
+                ? 'regis.kitStale'
+                : 'regis.kitStaleSearch'
               : 'regis.noKitShort',
         )}
       </span>

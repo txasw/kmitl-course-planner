@@ -17,6 +17,7 @@ import {
 import {
   STATUS_TONE,
   needsAction,
+  type AddBlock,
   type HelperStatus,
 } from '@/lib/regis/helperStatus';
 import {
@@ -60,6 +61,13 @@ interface FocusSectionProps {
   t: Translate;
 }
 
+/** The blocks the kit bar states in its own words, stale data with its press among them. */
+const KIT_BLOCKS: ReadonlySet<AddBlock> = new Set<AddBlock>([
+  'noKit',
+  'kitStale',
+  'preparing',
+]);
+
 function codesOf(option: { sections: readonly { section: string }[] }) {
   return option.sections.map((section) => section.section).join(' ');
 }
@@ -98,7 +106,7 @@ export function FocusSection({
   const barId =
     block === 'stale'
       ? STALE_TEXT_ID
-      : (block === 'noKit' || block === 'preparing') && model.bar === 'kit'
+      : block !== null && KIT_BLOCKS.has(block) && model.bar === 'kit'
         ? KIT_TEXT_ID
         : null;
   const targetIds = (row.chosen?.sections ?? row.planned).map(

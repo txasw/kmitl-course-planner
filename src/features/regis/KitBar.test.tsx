@@ -235,37 +235,39 @@ describe('the kit bar over data past the age limit', () => {
     });
   }
 
+  const BAR_HERE = 'ข้อมูลกลุ่มเรียนเก่ากว่า 7 วัน เตรียมอีกครั้งในเวลาที่ระบบไม่หนาแน่น';
+
   it('keeps the saved choice as older data and offers to prepare again, never to fill', () => {
     storeOldKit();
     const card = renderOn('#/pre_registration', plan);
     const bar = card.querySelector('[data-kit-bar]');
     expect(bar).toHaveAttribute('data-kit-bar', 'stale');
-    expect(bar).toHaveTextContent(
-      'ข้อมูลกลุ่มเรียนเก่ากว่า 7 วัน เตรียมใหม่ในเวลาที่ระบบไม่หนาแน่น',
-    );
+    expect(bar).toHaveTextContent(BAR_HERE);
     expect(
       within(card).getByRole('button', { name: 'เตรียมอีกครั้ง' }),
     ).toBeVisible();
     expect(card.querySelector('[data-older-data]')).toHaveTextContent(
       'กลุ่มเรียนที่เลือกมาจากข้อมูลที่เก่ากว่า 7 วัน',
     );
+    // Add for me reads the bar's words, so the card gives one instruction, not two.
     const add = within(card).getByRole('button', { name: 'เพิ่มให้' });
     expect(add).toHaveAttribute('aria-disabled', 'true');
-    expect(add).toHaveAccessibleDescription(
-      'ข้อมูลกลุ่มเรียนเก่ากว่า 7 วัน เตรียมใหม่ที่หน้าค้นหารายวิชา',
-    );
+    expect(add).toHaveAttribute('aria-describedby', 'kcp-regis-kit');
+    expect(add).toHaveAccessibleDescription(BAR_HERE);
+    expect(within(card).getAllByText(/เก่ากว่า 7 วัน เตรียม/)).toHaveLength(1);
     expect(card.querySelector('[data-fill-press]')).toBeNull();
     fireEvent.click(add);
     expect(fillStore.getState().run.status).toBe('idle');
     expect(sends).toBe(0);
   });
 
-  it('says the data is older on regular registration and offers no press', () => {
+  it('says the data is older on regular registration and names where to prepare', () => {
     storeOldKit();
     const card = renderOn('#/registration', plan);
-    expect(card.querySelector('[data-kit-bar]')).toHaveAttribute(
-      'data-kit-bar',
-      'stale',
+    const bar = card.querySelector('[data-kit-bar]');
+    expect(bar).toHaveAttribute('data-kit-bar', 'stale');
+    expect(bar).toHaveTextContent(
+      'ข้อมูลกลุ่มเรียนเก่ากว่า 7 วัน เตรียมอีกครั้งที่หน้าค้นหารายวิชา',
     );
     expect(
       within(card).queryByRole('button', { name: 'เตรียมอีกครั้ง' }),
