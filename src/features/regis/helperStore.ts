@@ -40,7 +40,7 @@ export interface HelperVisitState {
   /**
    * The subjects whose section the student chose in this visit. A choice is stored per
    * plan and term with no page, so on regular registration one made here is no longer
-   * the choice carried over from pre registration.
+   * labelled as chosen earlier.
    */
   choseHere: readonly string[];
   /**

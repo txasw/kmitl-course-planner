@@ -5,11 +5,11 @@
 // the one this registration uses; the plan changes only through its own save. Focus stays
 // on the trigger, a select only combobox that names the active option, so the keys move
 // through the options without leaving it; a closed group, or one the page turned down in
-// this visit, can be reached but not chosen. On regular registration a group carried
-// over from pre registration says so on its option. The menu is placed with floating-ui against
-// the viewport: above its trigger by preference, flipped below and shifted sideways when
-// a short screen has no room, and capped to the height there is, so it never clips. Its
-// fixed strategy also lets it escape the card's scrolling body.
+// this visit, can be reached but not chosen. On regular registration a group chosen
+// before this visit says it was chosen earlier on its option. The menu is placed with
+// floating-ui against the viewport: above its trigger by preference, flipped below and
+// shifted sideways when a short screen has no room, and capped to the height there is, so
+// it never clips. Its fixed strategy also lets it escape the card's scrolling body.
 
 import {
   useCallback,
@@ -131,7 +131,7 @@ interface SectionListboxProps {
    * at prepare time, and the menu says they are from older data.
    */
   olderData?: boolean;
-  /** Whether the chosen group is the one carried over from pre registration. */
+  /** Whether the chosen group was chosen before this visit to regular registration. */
   carried?: boolean;
   onChoose: (option: SectionOption) => void;
   /** Which edge of the trigger the menu lines up with: the tile's start or the button's end. */
@@ -292,7 +292,7 @@ export function SectionListbox({
                         data-carried-choice
                         className="basis-full text-2xs text-ink-soft"
                       >
-                        {t('regis.chosenForPre')}
+                        {t('regis.chosenEarlier')}
                       </span>
                     ) : null}
                   </PartsLine>

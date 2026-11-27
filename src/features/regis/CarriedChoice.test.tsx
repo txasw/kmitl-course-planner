@@ -27,7 +27,7 @@ import { RegisHelper } from './RegisHelper';
 import { regisStore } from './regisStore';
 
 // A section chosen on pre registration is kept per plan and term, so regular registration
-// shows it as the plan's choice and says it was chosen for pre registration (owner
+// shows it as the plan's choice and says it was chosen earlier for this term (owner
 // answer C1), until the student chooses again on that page. Pre registration shows no
 // such label.
 
@@ -52,7 +52,7 @@ const PLAN = makePlan({
     }),
   ],
 });
-const LABEL = 'เลือกไว้สำหรับลงทะเบียนล่วงหน้า';
+const LABEL = 'เลือกไว้ก่อนหน้าสำหรับภาคการศึกษานี้';
 
 function renderOn(hash: string) {
   window.location.hash = hash;
@@ -119,7 +119,7 @@ afterEach(() => {
 });
 
 describe('a section chosen on pre registration', () => {
-  it('shows on regular registration, labelled as chosen for pre registration', () => {
+  it('shows on regular registration, labelled as chosen earlier for this term', () => {
     const card = renderOn('#/registration');
     expect(card.querySelector('[data-carried-choice]')).toHaveTextContent(
       LABEL,

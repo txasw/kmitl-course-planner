@@ -621,7 +621,7 @@
   "regis.kitStaleSearch": "The section data is older than 7 days. Prepare again on the course search page.",
   "regis.olderData": "From section data older than 7 days",
   "regis.chosenOlder": "Chosen from section data older than 7 days",
-  "regis.chosenForPre": "Chosen for pre registration",
+  "regis.chosenEarlier": "Chosen earlier for this term",
   "regis.noPlan": "This plan has no subjects yet",
   "regis.noPlanBody": "Choose subjects in the planner first, and they will be listed here.",
   "regis.launcher": "Checklist {done}/{total}",
