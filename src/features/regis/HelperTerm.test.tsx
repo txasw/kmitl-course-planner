@@ -204,6 +204,12 @@ describe('the helper before the page term is read', () => {
       'ตารางของภาคการศึกษา 1/2569 KCP ไม่อ่านข้อมูลจากหน้านี้',
     );
     expect(label).not.toHaveTextContent('ยังอ่านภาคการศึกษาของหน้านี้ไม่ได้');
+    // No host check runs on this route, so Add for me names the page, not a check.
+    const add = within(card).getByRole('button', { name: 'เพิ่มให้' });
+    expect(add).toHaveAttribute('aria-disabled', 'true');
+    expect(add).toHaveAccessibleDescription(
+      'เพิ่มให้ใช้ได้ในหน้าลงทะเบียนล่วงหน้า กรอกรหัสวิชาจากเช็กลิสต์',
+    );
   });
 
   it('shows no count on the folded launcher for a plan of an unread term', () => {
