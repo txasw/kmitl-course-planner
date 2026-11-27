@@ -31,9 +31,14 @@ desktop, and Firefox for Android 142 or later. Other mobile browsers are not sup
   schedule and the weekly workload.
 - Exports a plan as an image sized for sharing, a phone or tablet wallpaper, or A4 print,
   or copies it as plain text.
+- Adds a registration helper to the pre registration page: a checklist card that reads the
+  status of each planned subject from the page, and Add for me, which enters your planned
+  subjects and sections into the page's own form, one subject at a time, when you press it.
 
-KCP only reads public course data. It never signs in, never submits forms, and never
-registers for courses; registration still happens on the registration site.
+KCP reads public course data, and on the registration pages only the course rows the page
+shows, kept in memory. It never signs in, never submits forms, and never registers for
+you: it never presses Continue or Confirm, so you check the page's list and submit it
+yourself.
 
 KCP: Course Planner for KMITL is an independent tool built by a student. It is not
 affiliated with, sponsored by, or endorsed by King Mongkut's Institute of Technology
@@ -58,6 +63,9 @@ before the other. Release notes are in [CHANGELOG.md](CHANGELOG.md) and on the
    tap the Planner button.
 3. Choose the term, run a search, and add sections to the timetable.
 4. Switch to Preview to export the plan as an image or copy it as text.
+5. On the pre registration page, open the Checklist card at the bottom right and press Add
+   for me on a subject, or Add all for me in the card's menu. Check the page's list, then
+   submit it yourself.
 
 The shortcut can be changed in the browser's extension shortcut settings. If another
 extension already uses Alt+Shift+P, the browser may leave it unassigned; assign a different
