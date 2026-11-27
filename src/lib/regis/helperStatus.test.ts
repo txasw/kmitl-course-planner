@@ -109,6 +109,19 @@ describe('deriveHelperStatuses', () => {
     expect(sentCount(statuses)).toBe(4);
   });
 
+  it('counts every subject in the submitted list, whatever its result', () => {
+    const { statuses } = derive({
+      list: checklist(
+        row('A', 'submitted'),
+        row('B', 'granted'),
+        row('C', 'notGranted'),
+        row('D', 'notGrantedCondition'),
+        row('E', 'notSubmitted'),
+      ),
+    });
+    expect(sentCount(statuses)).toBe(4);
+  });
+
   it('reads every subject as not sent when the list holds none of the plan', () => {
     const { statuses, sent } = derive({
       list: checklist(row('A', 'notSubmitted'), row('B', 'notSubmitted')),
