@@ -189,6 +189,7 @@ export type AddBlock =
   | 'unavailable'
   | 'off'
   | 'preparing'
+  | 'kitStale'
   | 'noKit'
   | 'stale'
   | 'termMismatch'
@@ -210,8 +211,10 @@ export interface AddFacts {
   off: boolean;
   /** Whether the prepare action is reading the plan's subjects now. */
   preparing: boolean;
-  /** Whether the kit gives the subject a fill target. */
+  /** Whether the fresh kit gives the subject a fill target. */
   target: boolean;
+  /** Whether the only kit is past the age limit, kept to show but never to fill. */
+  kitStale: boolean;
   stale: boolean;
   termMismatch: boolean;
   /** Whether the page shows the choose subjects step. */
@@ -225,7 +228,7 @@ export function addForMeBlock(facts: AddFacts): AddBlock | null {
   if (!facts.available) return facts.checking ? 'checking' : 'unavailable';
   if (facts.off) return 'off';
   if (facts.preparing) return 'preparing';
-  if (!facts.target) return 'noKit';
+  if (!facts.target) return facts.kitStale ? 'kitStale' : 'noKit';
   if (facts.stale) return 'stale';
   if (facts.termMismatch) return 'termMismatch';
   if (!facts.inStep) return 'notInStep';

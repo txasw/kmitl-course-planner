@@ -5,7 +5,9 @@
 // the tests read the same states. A plan of another term than the page, a kit of another
 // term than the plan, and choices saved for another term are never mixed in: a kit or a
 // choice of another term is ignored, and a page term that differs puts every row in the
-// term mismatch state.
+// term mismatch state. A kit past the age limit may stand in for display only: the rows
+// then show its other groups and the student's chosen one, while the checklist says no
+// fresh kit backs them, so nothing that fills reads it.
 
 import type { Plan, SectionSnapshot } from '../domain/plan';
 import { groupEntriesBySubject } from '../planner/subjectGroups';
@@ -98,6 +100,11 @@ export interface ChecklistInput {
   plan: Plan;
   /** A kit already checked for age by the caller, or null. */
   kit: RegistrationKit | null;
+  /**
+   * A kit past the age limit, shown only while no fresh kit exists: its groups fill the
+   * rows for display, and `hasKit` stays false.
+   */
+  staleKit?: RegistrationKit | null;
   choices: SectionChoices | null;
   /** The term the page shows, or null when KCP does not read it. */
   pageTerm: Term | null;
@@ -147,8 +154,11 @@ function sameIds(a: readonly string[], b: readonly string[]): boolean {
 export function deriveChecklist(input: ChecklistInput): Checklist {
   const { plan, pageTerm } = input;
   const term: Term = { year: plan.year, semester: plan.semester };
-  const kit =
+  const fresh =
     input.kit !== null && kitMatchesPlan(input.kit, plan) ? input.kit : null;
+  const older = input.staleKit ?? null;
+  const kit =
+    fresh ?? (older !== null && kitMatchesPlan(older, plan) ? older : null);
   const termMismatch = pageTerm !== null && !termsEqual(pageTerm, term);
   const choices = choicesBelongTo(input.choices, plan)
     ? input.choices.choices
@@ -216,7 +226,7 @@ export function deriveChecklist(input: ChecklistInput): Checklist {
   return {
     term,
     termMismatch,
-    hasKit: kit !== null,
+    hasKit: fresh !== null,
     rows,
     extras: page === null ? [] : pageExtras(page.observation, plannedIds),
     listedPlanned: rows.filter((row) => row.observed?.state === 'listed')

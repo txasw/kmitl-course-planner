@@ -6,8 +6,11 @@
 // shows its progress and Cancel; a failed read says so and offers the press again, which
 // is the student's own, never a retry KCP makes. On the registration page, the first come
 // page, and for a plan the helper shows without having read the page term, the bar only
-// says that nothing is prepared. While another plan prepares, the press is held, with the
-// reason on hover and, on a touch screen, in the error toast a press shows.
+// says that nothing is prepared. Data past the age limit is no fresh kit, so the same bar
+// says it is older than 7 days and offers to prepare again where a press is offered; the
+// checklist still shows the student's choices from it as older data, and fill never reads
+// it. While another plan prepares, the press is held, with the reason on hover and, on a
+// touch screen, in the error toast a press shows.
 
 import { useStore } from 'zustand';
 import { ClipboardList, LoaderCircle } from 'lucide-react';
@@ -38,6 +41,8 @@ export function KitBar({ model, t }: { model: HelperModel; t: Translate }) {
   const coarse = useMediaQuery(COARSE_POINTER_QUERY);
   const run = useStore(regisStore, (state) => state.run);
   const { plan } = model;
+  const older = model.staleKit !== null;
+  const press = t(older ? 'regis.prepareAgain' : 'regis.prepareInline');
   const ours = run.status !== 'idle' && run.planId === plan?.id;
   const running = ours && run.status === 'running' ? run : null;
   const failed = ours && run.status === 'failed';
@@ -78,10 +83,19 @@ export function KitBar({ model, t }: { model: HelperModel; t: Translate }) {
     );
   }
   return (
-    <div className={BAR} data-kit-bar={failed ? 'failed' : 'none'}>
+    <div
+      className={BAR}
+      data-kit-bar={failed ? 'failed' : older ? 'stale' : 'none'}
+    >
       <ClipboardList size={16} aria-hidden className="shrink-0" />
       <span id={KIT_TEXT_ID} className="min-w-0 flex-1 text-left">
-        {t(failed ? 'regis.prepareFailedShort' : 'regis.noKitShort')}
+        {t(
+          failed
+            ? 'regis.prepareFailedShort'
+            : older
+              ? 'regis.kitStale'
+              : 'regis.noKitShort',
+        )}
       </span>
       {offered && elsewhere ? (
         <Tooltip label={t('regis.preparingOther')} disabled={coarse}>
@@ -91,13 +105,13 @@ export function KitBar({ model, t }: { model: HelperModel; t: Translate }) {
               {...triggerProps}
               type="button"
               aria-disabled="true"
-              aria-label={`${t('regis.prepareInline')}, ${t('regis.preparingOther')}`}
+              aria-label={`${press}, ${t('regis.preparingOther')}`}
               onClick={() => {
                 toastStore.getState().show('error', t('regis.preparingOther'));
               }}
               className={`${BAR_BUTTON} cursor-not-allowed bg-surface text-ink-muted ring-1 ring-border ring-inset ${FOCUS_RING}`}
             >
-              {t('regis.prepareInline')}
+              {press}
             </button>
           )}
         </Tooltip>
@@ -109,7 +123,7 @@ export function KitBar({ model, t }: { model: HelperModel; t: Translate }) {
           }}
           className={`${BAR_BUTTON} bg-primary-strong text-white hover:bg-primary-hover ${FOCUS_OUTLINE}`}
         >
-          {t('regis.prepareInline')}
+          {press}
         </button>
       ) : null}
     </div>

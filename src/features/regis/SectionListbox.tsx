@@ -125,6 +125,11 @@ interface SectionListboxProps {
   refused: readonly string[] | null;
   /** Whether a kit backs the options; without one only the planned group shows. */
   hasKit: boolean;
+  /**
+   * Whether the options come from a kit past the age limit: they show with their facts
+   * at prepare time, and the menu says they are from older data.
+   */
+  olderData?: boolean;
   onChoose: (option: SectionOption) => void;
   /** Which edge of the trigger the menu lines up with: the tile's start or the button's end. */
   align: 'start' | 'end';
@@ -138,6 +143,7 @@ export function SectionListbox({
   chosen,
   refused,
   hasKit,
+  olderData = false,
   onChoose,
   align,
   t,
@@ -278,7 +284,7 @@ export function SectionListbox({
                       <Pill tone="neutral">{t('regis.plan')}</Pill>
                     ) : null}
                   </PartsLine>
-                  {hasKit ? (
+                  {hasKit || olderData ? (
                     <Pill tone={fact.tone} icon={fact.icon}>
                       {t(fact.key)}
                     </Pill>
@@ -292,7 +298,7 @@ export function SectionListbox({
                 className="flex items-center gap-2 px-2 py-1.5 text-xs text-ink-soft"
               >
                 <ClipboardList size={16} aria-hidden className="shrink-0" />
-                {t('regis.noKitShort')}
+                {t(olderData ? 'regis.olderData' : 'regis.noKitShort')}
               </li>
             )}
           </ul>

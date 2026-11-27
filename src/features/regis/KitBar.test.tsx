@@ -12,6 +12,9 @@ import { Launcher } from '@/features/shell/Launcher';
 import { planStore } from '@/features/plans/planStore';
 import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
+import type { Plan } from '@/lib/domain/plan';
+import { withChoice } from '@/lib/regis/choices';
+import { KIT_MAX_AGE_MS, buildRegistrationKit } from '@/lib/regis/kit';
 import {
   makeCourse,
   makePlan,
@@ -49,11 +52,11 @@ const send: TypedSend = () => {
   return new Promise<never>(() => undefined);
 };
 
-function renderOn(hash: string) {
+function renderOn(hash: string, plan: Plan = PLAN) {
   window.location.hash = hash;
   act(() => {
-    planStore.getState().hydrate([PLAN]);
-    planStore.getState().setActivePlan(PLAN.id);
+    planStore.getState().hydrate([plan]);
+    planStore.getState().setActivePlan(plan.id);
   });
   render(
     <SearchDepsProvider
@@ -182,5 +185,93 @@ describe('the kit bar', () => {
     expect(
       within(card).getByRole('button', { name: 'เตรียมข้อมูล' }),
     ).toBeVisible();
+  });
+});
+
+describe('the kit bar over data past the age limit', () => {
+  const SUBJECT = '01476108';
+  const course = makeCourse({
+    subjectId: SUBJECT,
+    nameTh: 'โครงสร้างข้อมูล',
+    sections: [
+      makeSection({ teachTableId: 'S1', subjectId: SUBJECT, section: '1' }),
+      makeSection({ teachTableId: 'S2', subjectId: SUBJECT, section: '2' }),
+    ],
+  });
+  const planned = course.sections[0] ?? makeSection();
+  const plan = makePlan({
+    id: 'stale-plan',
+    entries: [
+      makePlanEntry({
+        subjectId: SUBJECT,
+        teachTableId: planned.teachTableId,
+        section: planned.section,
+        snapshot: toSnapshot(course, planned),
+      }),
+    ],
+  });
+
+  function storeOldKit() {
+    const kit = buildRegistrationKit({
+      plan,
+      results: new Map([
+        [
+          SUBJECT,
+          {
+            courses: [course],
+            duplicateCount: 0,
+            multiMeetingCount: 0,
+            warnings: [],
+          },
+        ],
+      ]),
+      preparedAt: new Date(
+        Date.now() - KIT_MAX_AGE_MS - 86_400_000,
+      ).toISOString(),
+    });
+    regisStore.setState({
+      kits: [kit],
+      choices: [withChoice(null, plan, SUBJECT, ['S2'])],
+    });
+  }
+
+  it('keeps the saved choice as older data and offers to prepare again, never to fill', () => {
+    storeOldKit();
+    const card = renderOn('#/pre_registration', plan);
+    const bar = card.querySelector('[data-kit-bar]');
+    expect(bar).toHaveAttribute('data-kit-bar', 'stale');
+    expect(bar).toHaveTextContent(
+      'ข้อมูลกลุ่มเรียนเก่ากว่า 7 วัน เตรียมใหม่ในเวลาที่ระบบไม่หนาแน่น',
+    );
+    expect(
+      within(card).getByRole('button', { name: 'เตรียมอีกครั้ง' }),
+    ).toBeVisible();
+    expect(card.querySelector('[data-older-data]')).toHaveTextContent(
+      'กลุ่มเรียนที่เลือกมาจากข้อมูลที่เก่ากว่า 7 วัน',
+    );
+    const add = within(card).getByRole('button', { name: 'เพิ่มให้' });
+    expect(add).toHaveAttribute('aria-disabled', 'true');
+    expect(add).toHaveAccessibleDescription(
+      'ข้อมูลกลุ่มเรียนเก่ากว่า 7 วัน เตรียมใหม่ที่หน้าค้นหารายวิชา',
+    );
+    expect(card.querySelector('[data-fill-press]')).toBeNull();
+    fireEvent.click(add);
+    expect(fillStore.getState().run.status).toBe('idle');
+    expect(sends).toBe(0);
+  });
+
+  it('says the data is older on regular registration and offers no press', () => {
+    storeOldKit();
+    const card = renderOn('#/registration', plan);
+    expect(card.querySelector('[data-kit-bar]')).toHaveAttribute(
+      'data-kit-bar',
+      'stale',
+    );
+    expect(
+      within(card).queryByRole('button', { name: 'เตรียมอีกครั้ง' }),
+    ).toBeNull();
+    expect(card.querySelector('[data-older-data]')).not.toBeNull();
+    expect(card.querySelector('[data-fill-press]')).toBeNull();
+    expect(sends).toBe(0);
   });
 });

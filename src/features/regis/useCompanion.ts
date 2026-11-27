@@ -2,13 +2,16 @@
 // plan's kit when one younger than the age limit exists, checked again against the plan
 // as it stands, and the checklist derived from it, the student's choices, and what the read
 // only observer last saw on the page while healthy (ADR-0077), including the page term,
-// which puts every row in the term mismatch state when it differs from the plan.
+// which puts every row in the term mismatch state when it differs from the plan. A kit past
+// the age limit is kept apart as display only: the checklist shows the student's saved
+// choices and the other sections from it as older data, and the fresh kit, the one fill
+// reads, stays null.
 
 import { useMemo, useSyncExternalStore } from 'react';
 import { useStore } from 'zustand';
 import type { Plan } from '@/lib/domain/plan';
 import { companionRoute, type CompanionRoute } from '@/lib/regis/route';
-import { isKitFresh, kitMatchesPlan, refitKit } from '@/lib/regis/kit';
+import { companionKits, kitMatchesPlan } from '@/lib/regis/kit';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
 import { deriveChecklist, type Checklist } from '@/lib/regis/checklist';
 import type { ObserverHealth } from '@/lib/regis/observerHealth';
@@ -85,8 +88,10 @@ export interface CompanionView {
   plan: Plan | null;
   /** The plan's kit as stored, fresh or not, for its prepared date. */
   storedKit: RegistrationKit | null;
-  /** The fresh kit checked against the plan as it stands, or null. */
+  /** The fresh kit checked against the plan as it stands, or null: the one fill reads. */
   kit: RegistrationKit | null;
+  /** A kit past the age limit, for display only, or null. Fill never reads it. */
+  staleKit: RegistrationKit | null;
   kitState: KitState;
   checklist: Checklist | null;
   health: ObserverHealth;
@@ -113,20 +118,18 @@ export function useCompanionView(source: PlanSource = 'helper'): CompanionView {
   const health = useStore(hostStore, (state) => state.health);
   return useMemo(() => {
     const storedKit = storedKitFor(kits, plan);
-    const fresh =
-      storedKit !== null && isKitFresh(storedKit, Date.now())
-        ? storedKit
-        : null;
-    const kit =
-      fresh !== null && plan !== null
-        ? refitKit(fresh, plan, profile?.curriculumId ?? null)
-        : null;
+    const { kit, staleKit } = companionKits(
+      storedKit,
+      plan,
+      Date.now(),
+      profile?.curriculumId ?? null,
+    );
     const pageTerm =
       pick.kind === 'noPlanForTerm'
         ? pick.term
         : (page?.observation.term ?? null);
     const kitState: KitState =
-      storedKit === null ? 'none' : fresh === null ? 'stale' : 'fresh';
+      storedKit === null ? 'none' : kit === null ? 'stale' : 'fresh';
     const chosen =
       plan === null
         ? null
@@ -134,12 +137,20 @@ export function useCompanionView(source: PlanSource = 'helper'): CompanionView {
     const checklist =
       plan === null
         ? null
-        : deriveChecklist({ plan, kit, choices: chosen, pageTerm, page });
+        : deriveChecklist({
+            plan,
+            kit,
+            staleKit,
+            choices: chosen,
+            pageTerm,
+            page,
+          });
     return {
       pick,
       plan,
       storedKit,
       kit,
+      staleKit,
       kitState,
       checklist,
       health,

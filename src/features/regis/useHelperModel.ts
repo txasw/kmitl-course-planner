@@ -30,7 +30,13 @@ export interface HelperModel {
   /** Which plan of the page term the helper follows, or why it has none. */
   pick: HelperPlanPick;
   plan: Plan | null;
+  /** The fresh kit, the one fill reads, or null. */
   kit: RegistrationKit | null;
+  /**
+   * A kit past the age limit, or null: display only, for the kit bar and the checklist,
+   * which mark what comes from it as older data. Nothing that fills reads it.
+   */
+  staleKit: RegistrationKit | null;
   checklist: Checklist | null;
   statuses: Readonly<Record<string, HelperStatus>>;
   sent: boolean;
@@ -133,6 +139,7 @@ export function useHelperModel(): HelperModel {
     pick: view.pick,
     plan: view.plan,
     kit: view.kit,
+    staleKit: view.staleKit,
     checklist,
     statuses,
     sent,

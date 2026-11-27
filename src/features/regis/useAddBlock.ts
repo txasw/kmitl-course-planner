@@ -18,6 +18,7 @@ const BLOCK_TEXT: Readonly<Record<AddBlock, TranslationKey>> = {
   unavailable: 'regis.addForMe.unavailable',
   off: 'regis.addForMe.off',
   preparing: 'regis.addForMe.preparing',
+  kitStale: 'regis.addForMe.kitStale',
   noKit: 'regis.noKitShort',
   stale: 'regis.unreadable',
   termMismatch: 'regis.state.termMismatch',
@@ -61,6 +62,7 @@ function useBlock(
       plan !== null &&
       first !== null &&
       typeof fillTarget(first, plan, kit) !== 'string',
+    kitStale: model.staleKit !== null,
     stale: model.stale,
     termMismatch: model.termMismatch,
     inStep: model.inStep,
