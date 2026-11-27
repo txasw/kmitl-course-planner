@@ -21,10 +21,12 @@ import {
   makePlanEntry,
   makeSection,
 } from '../../../tests/support/domain-builders';
+import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
 import { toastStore } from '@/features/shell/toastStore';
 import { fillStore } from './fill/fillRun';
 import { hostStore } from './host/hostStore';
 import { setCollapsed, startVisit } from './helperStore';
+import { ReadinessLayer } from './ReadinessDialog';
 import { RegisHelper } from './RegisHelper';
 import { regisStore } from './regisStore';
 
@@ -70,6 +72,9 @@ function renderOn(hash: string, plan: Plan = PLAN) {
     >
       <RegisHelper />
       <Launcher />
+      <PanelPortalContext.Provider value={document.body}>
+        <ReadinessLayer />
+      </PanelPortalContext.Provider>
     </SearchDepsProvider>,
   );
   act(() => {
@@ -289,6 +294,22 @@ describe('the kit bar over data past the age limit', () => {
     }
     expect(listbox).toHaveTextContent('จากข้อมูลกลุ่มเรียนที่เก่ากว่า 7 วัน');
     expect(listbox).not.toHaveTextContent('ยังไม่ได้เตรียมข้อมูล');
+    expect(sends).toBe(0);
+  });
+
+  it('names Prepare again in the planner prepare card, the press the checklist shows', () => {
+    storeOldKit();
+    renderOn('#/pre_registration', plan);
+    act(() => {
+      regisStore.getState().setReadinessOpen(true);
+    });
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveTextContent(
+      'หน้านี้เตรียมข้อมูลได้จากเช็กลิสต์ ปิดตารางแล้วกด เตรียมอีกครั้ง ในเช็กลิสต์',
+    );
+    act(() => {
+      regisStore.getState().setReadinessOpen(false);
+    });
     expect(sends).toBe(0);
   });
 });

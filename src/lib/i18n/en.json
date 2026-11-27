@@ -610,7 +610,7 @@
   "regis.prepareRefused": "Preparing is not available on the registration pages. Open the course search page and prepare there.",
   "regis.prepareInline": "Prepare data",
   "regis.prepareFailedShort": "The data could not be read",
-  "regis.prepareInHelper": "On this page, prepare from the checklist. Close the planner and press Prepare data in the checklist.",
+  "regis.prepareInHelper": "On this page, prepare from the checklist. Close the planner and press {press} in the checklist.",
   "regis.preparing": "Reading subject {done} of {total}",
   "regis.preparingOther": "Another plan is being prepared",
   "regis.prepareCancelled": "Preparing stopped. The earlier data is kept.",
