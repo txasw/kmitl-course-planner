@@ -19,6 +19,7 @@ const HOST_CHECK_REPLICA = resolve(
   'host-fingerprint/app.replica.js',
 );
 const REPLICA_DIR = resolve(process.cwd(), 'tests/e2e/host/pre_registration');
+const REGISTRATION_DIR = resolve(process.cwd(), 'tests/e2e/host/registration');
 
 // The host build names the observer was tested against, and a name it was not.
 const TESTED_APP = '454d9e95';
@@ -50,10 +51,21 @@ function checkedScript(hash: string): string {
   return readFileSync(resolve(REPLICA_DIR, 'boot.js'), 'utf8');
 }
 
+/** A replica page, its scripts named like the host build the query names. */
+function replicaPage(dir: string, url: URL): { type: string; body: string } {
+  const app = NAMED_APPS[url.searchParams.get('build') ?? ''] ?? TESTED_APP;
+  const html = readFileSync(resolve(dir, 'index.html'), 'utf8')
+    .replace('__APP__', app)
+    .replace('__VENDOR__', TESTED_VENDOR);
+  return { type: 'text/html', body: html };
+}
+
 /**
- * The static pre registration replica and its scripts, or null for any other path. The
- * page names its scripts like the host build, the tested one unless the query names
- * another build, so the observer's build gate sees the names it compares.
+ * The static pre registration and regular registration replicas and their scripts, or
+ * null for any other path. Each page names its scripts like the host build, the tested
+ * one unless the query names another build, so the observer's build gate sees the names
+ * it compares. The regular registration page loads its app script with a page query,
+ * which the host check's own read of the script by its name never carries.
  */
 function replicaFile(
   url: URL,
@@ -61,11 +73,10 @@ function replicaFile(
 ): { type: string; body: string } | null {
   const js = 'text/javascript';
   if (url.pathname === '/replica/pre_registration') {
-    const app = NAMED_APPS[url.searchParams.get('build') ?? ''] ?? TESTED_APP;
-    const html = readFileSync(resolve(REPLICA_DIR, 'index.html'), 'utf8')
-      .replace('__APP__', app)
-      .replace('__VENDOR__', TESTED_VENDOR);
-    return { type: 'text/html', body: html };
+    return replicaPage(REPLICA_DIR, url);
+  }
+  if (url.pathname === '/replica/registration') {
+    return replicaPage(REGISTRATION_DIR, url);
   }
   if (url.pathname === '/replica/replica.js') {
     return {
@@ -73,13 +84,23 @@ function replicaFile(
       body: readFileSync(resolve(REPLICA_DIR, 'replica.js'), 'utf8'),
     };
   }
+  if (url.pathname === '/replica/registration/replica.js') {
+    return {
+      type: js,
+      body: readFileSync(resolve(REGISTRATION_DIR, 'replica.js'), 'utf8'),
+    };
+  }
   const app = /^\/js\/app\.([0-9a-f]{8})\.js$/.exec(url.pathname);
   if (app !== null) {
+    const dir =
+      url.searchParams.get('page') === 'registration'
+        ? REGISTRATION_DIR
+        : REPLICA_DIR;
     return {
       type: js,
       body:
         destination === 'script'
-          ? readFileSync(resolve(REPLICA_DIR, 'boot.js'), 'utf8')
+          ? readFileSync(resolve(dir, 'boot.js'), 'utf8')
           : checkedScript(app[1] ?? ''),
     };
   }
