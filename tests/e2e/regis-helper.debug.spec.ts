@@ -6,11 +6,12 @@ import { scanTextFit } from './support/textFit';
 import type { Replica } from './host/pre_registration/replica.js';
 
 // The registration helper card on the behaviour replica of the pre registration page
-// (ADR-0076, design C2), in Thai at a laptop width and a phone width. The card opens on
-// its own on every visit, collapses to the launcher and opens again on the next visit,
-// takes each subject's status from the page alone, and Add for me on the subject in
-// focus fills it through the host's own controls. Each spec ends by proving no control
-// outside the allowlist got a press, nothing was written, and KCP sent no request.
+// (ADR-0076, design C2), in Thai at a laptop width and a phone width, and in English at a
+// phone width for the hand off line and the complete step. The card opens on its own on
+// every visit, collapses to the launcher and opens again on the next visit, takes each
+// subject's status from the page alone, and Add for me on the subject in focus fills it
+// through the host's own controls. Each spec ends by proving no control outside the
+// allowlist got a press, nothing was written, and KCP sent no request.
 
 declare global {
   interface Window {
@@ -23,6 +24,39 @@ const HASH = '#/pre_registration';
 const SUBJECTS = ['90000001', '90000003', '90000005'] as const;
 const [FIRST, SECOND] = SUBJECTS;
 const LAUNCHER_ID = '#kcp-launcher';
+const LANGUAGES = ['th', 'en'] as const;
+type Language = (typeof LANGUAGES)[number];
+
+/** The copy a spec reads in each language. */
+const COPY: Readonly<
+  Record<
+    Language,
+    {
+      name: string;
+      queue: string;
+      handOff: string;
+      notSent: string;
+      notSentShort: string;
+    }
+  >
+> = {
+  th: {
+    name: 'Thai',
+    queue: 'รายวิชา',
+    handOff:
+      'ครบทุกวิชาตามแผนแล้ว ตรวจรายการในหน้า แล้วกด ดำเนินการต่อ เอง ลงทะเบียนล่วงหน้าส่งได้ครั้งเดียว',
+    notSent: 'ไม่อยู่ในรายการที่ส่ง',
+    notSentShort: 'ไม่ได้ส่ง',
+  },
+  en: {
+    name: 'English',
+    queue: 'Subjects',
+    handOff:
+      'Every planned subject is on the list. Check the list on the page, then press ดำเนินการต่อ (Continue) yourself. Pre registration can be sent only once.',
+    notSent: 'Not in the submitted list',
+    notSentShort: 'Not sent',
+  },
+};
 
 function card(page: Page): Locator {
   return page.locator('#kcp-regis-card');
@@ -34,15 +68,26 @@ function chip(page: Page, subjectId: string): Locator {
     .locator(`[data-status][aria-label^="${subjectId}"]`);
 }
 
-/** Plan the subjects at the planner's desktop size, then open the page at this width. */
+/**
+ * Plan the subjects at the planner's desktop size, in Thai, then switch the panel to the
+ * given language and open the page at this width.
+ */
 async function openHelper(
   page: Page,
   serviceWorker: Worker,
   viewport: { width: number; height: number },
+  language: Language = 'th',
 ): Promise<void> {
   const { term, sections } = await planWithKit(page, serviceWorker, SUBJECTS, {
     [SECOND]: [{ teachTableId: '900004', section: '902', day: 3 }],
   });
+  if (language === 'en') {
+    await page.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }).click();
+    await page.getByRole('menuitemradio', { name: 'English' }).click();
+    await expect(
+      page.getByRole('button', { name: 'More options' }),
+    ).toBeVisible();
+  }
   await page.setViewportSize(viewport);
   await page.goto(`${REPLICA_URL}${HASH}`);
   await page.waitForFunction(() => 'replica' in window);
@@ -240,48 +285,87 @@ test.describe('at a phone width', () => {
     expect(mock.apiCalls()).toEqual([]);
   });
 
-  test('hands the submit to the student in one line that fits, once all are listed', async ({
-    context,
-    mock,
-    serviceWorker,
-  }) => {
-    const page = await openPlanner(context);
-    await openHelper(page, serviceWorker, { width: 360, height: 740 });
-    mock.clearApiCalls();
-    await page.locator(LAUNCHER_ID).click();
-    await expect(card(page)).toBeVisible();
-    const line = card(page).locator('[data-helper-handoff]');
-    await expect(line).toHaveCount(0);
+  // The hand off line and the complete step's statuses, in each language, at the narrowest
+  // phone width: the English line is the longer one, and the not sent band and its short
+  // word in the list's status column are the longest words the complete step adds.
+  for (const language of LANGUAGES) {
+    const copy = COPY[language];
+    test(`hands the submit to the student in one line that fits, in ${copy.name}`, async ({
+      context,
+      mock,
+      serviceWorker,
+    }) => {
+      const page = await openPlanner(context);
+      await openHelper(
+        page,
+        serviceWorker,
+        { width: 360, height: 740 },
+        language,
+      );
+      mock.clearApiCalls();
+      await page.locator(LAUNCHER_ID).click();
+      await expect(card(page)).toBeVisible();
+      await expect(card(page)).toHaveAttribute('lang', language);
+      const line = card(page).locator('[data-helper-handoff]');
+      await expect(line).toHaveCount(0);
+      const status = (id: string) =>
+        card(page)
+          .getByRole('list', { name: copy.queue })
+          .locator(`[data-status][aria-label^="${id}"]`);
 
-    const focused = () =>
-      page.evaluate(() => document.activeElement?.outerHTML ?? null);
-    const before = await focused();
-    await page.evaluate((ids) => {
-      window.replica.set({
-        list: ids.map((id) => ({ subjectId: id, section: '901', kind: 'ท' })),
-      });
-    }, SUBJECTS);
-    for (const id of SUBJECTS) {
-      await expect(chip(page, id)).toHaveAttribute('data-status', 'added');
-    }
-    await expect(line).toHaveCount(1);
-    await expect(line).toContainText('ดำเนินการต่อ');
-    await expect(line).toBeInViewport({ ratio: 1 });
-    // The line names the host control as text: nothing in it can be pressed, it moved no
-    // focus, and no text on the card is cut or covered at this width.
-    await expect(line.locator('button, a, [tabindex]')).toHaveCount(0);
-    expect(await focused()).toBe(before);
-    expect(await scanTextFit(card(page), [])).toEqual([]);
+      const focused = () =>
+        page.evaluate(() => document.activeElement?.outerHTML ?? null);
+      const before = await focused();
+      await page.evaluate((ids) => {
+        window.replica.set({
+          list: ids.map((id) => ({ subjectId: id, section: '901', kind: 'ท' })),
+        });
+      }, SUBJECTS);
+      for (const id of SUBJECTS) {
+        await expect(status(id)).toHaveAttribute('data-status', 'added');
+      }
+      await expect(line).toHaveCount(1);
+      await expect(line).toHaveText(copy.handOff);
+      await expect(line).toBeInViewport({ ratio: 1 });
+      // The line names the host control as text: nothing in it can be pressed, it moved
+      // no focus, and no text on the card is cut or covered at this width.
+      await expect(line.locator('button, a, [tabindex]')).toHaveCount(0);
+      expect(await focused()).toBe(before);
+      expect(await scanTextFit(card(page), [])).toEqual([]);
 
-    // A subject off the list again takes the line away.
-    await page.evaluate((id) => {
-      window.replica.set({
-        list: [{ subjectId: id, section: '901', kind: 'ท' }],
-      });
-    }, FIRST);
-    await expect(line).toHaveCount(0);
+      // A subject off the list again takes the line away.
+      await page.evaluate((id) => {
+        window.replica.set({
+          list: [{ subjectId: id, section: '901', kind: 'ท' }],
+        });
+      }, FIRST);
+      await expect(line).toHaveCount(0);
 
-    await expectNothingForbidden(page);
-    expect(mock.apiCalls()).toEqual([]);
-  });
+      // On the complete step the first subject is missing from the submitted list. Its
+      // band and its short word in the list fit, with nothing cut or covered.
+      await page.evaluate((ids) => {
+        window.replica.set({
+          step: 3,
+          results: ids.map((id) => ({
+            subjectId: id,
+            section: '901',
+            kind: 'ท',
+            grade: '',
+          })),
+        });
+      }, SUBJECTS.slice(1));
+      await expect(status(FIRST)).toHaveAttribute('data-status', 'notSent');
+      await expect(card(page)).toContainText(copy.notSent);
+      await expect(line).toHaveCount(0);
+      expect(await scanTextFit(card(page), [])).toEqual([]);
+      const count = card(page).locator('#kcp-regis-count');
+      await count.click();
+      const list = card(page).locator('#kcp-regis-list');
+      await expect(list).toContainText(copy.notSentShort);
+      expect(await scanTextFit(card(page), [])).toEqual([]);
+
+      await expectNothingForbidden(page);
+      expect(mock.apiCalls()).toEqual([]);
+    });
+  }
 });
