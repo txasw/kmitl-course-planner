@@ -605,8 +605,10 @@ the host's answer read on under the confirm dialog until its next step.
   through, ends the run with `confirmOpen` the moment a reading shows the confirm dialog, so the run
   stops at the step the dialog appears in and never acts or waits under it.
 - **What the sentence says.** It says what KCP did, not what the host holds: KCP stopped adding and
-  presses nothing in that window, and the student can go back with the window's own back button. It
-  makes no claim about what the page sent. It is read in the helper's live region, as other stops
+  presses nothing in that window, and the student can go back with that window's กลับไปดูข้อมูล
+  button, named by its label as every other host control in the helper's copy is, so it cannot be
+  read as the browser's own Back, which would leave the page. It makes no claim about what the page
+  sent. It is read in the helper's live region, as other stops
   that are not failures of the run are.
 - **Focus.** The stop collapses nothing and calls no focus, so the focus the dialog holds stays
   where it is.
