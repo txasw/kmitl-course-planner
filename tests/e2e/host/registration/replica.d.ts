@@ -15,5 +15,6 @@ export function mountRegistration(
   options?: {
     state?: RegistrationState;
     term?: { semester: string; year: string };
+    variant?: 'orangeConfirm';
   },
 ): RegistrationReplica;

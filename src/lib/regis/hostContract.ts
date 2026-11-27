@@ -103,6 +103,11 @@ export const HOST_LABELS = {
   creditRange: ['หน่วยกิตที่ลงได้', 'Credits available to the student'],
   creditTotal: ['หน่วยกิตรวมวิชาที่เลือกทั้งหมด', 'All registered credits'],
   term: ['ภาคการศึกษาที่', 'Semester'],
+  /**
+   * The button after the local add block, read only as an anchor of the add button's place
+   * and never pressed: the denylist refuses it to every handle.
+   */
+  continueAnchor: ['ดำเนินการต่อ', 'Continue'],
   /** The two controls fill presses by label: the local add button and the grade dialog's. */
   addButton: ['เพิ่ม', 'Add'],
   acknowledge: ['รับทราบ', 'Acknowledged'],
