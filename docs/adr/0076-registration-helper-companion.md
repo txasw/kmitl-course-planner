@@ -257,7 +257,8 @@ wrong plan during a reload. Each finding is fixed as follows.
   supersedes "Until the page term is read, the helper shows the active plan as before" above.
 - **No entry toast on the helper pages.** The planner's entry toast named the active plan, of the
   wrong term during that reload, and sat over the card's controls and footer. It no longer shows on
-  the two helper pages, and one shown elsewhere goes for good when the host navigates to them.
+  the two helper pages, and one shown elsewhere goes for good when the host navigates to them. Since
+  the amendment of 2026-11-27 both rules cover every registration page.
 - **A calm start on a phone.** On a narrow screen (below 640 px) a visit now starts with the card
   collapsed to the launcher, so the countdown and the form read first; the student opens it with
   the launcher. There a later visit in the same document follows the student's own open or
@@ -407,3 +408,44 @@ guards on fill that narrow it further.
   (Continue), rather than relying on that button's deep orange colour. A unit test stubs the
   anchor to each card and area of the replica, including a variant whose confirm is deep orange,
   and finds no control of the area or of the queue panel.
+
+## Amendment, 2026-11-27: results per subject, the hand off line, and the carried choice
+
+The owner answered three open questions on 2026-11-27 (A2, B1, C1). Each changes only what the card
+shows; what KCP reads, stores, and sends on every registration route is unchanged, and the regular
+registration page stays at L0.
+
+- **Results per subject (A2).** On the complete step every planned subject read as submitted once
+  any row did, and the count read every planned subject as done, so a subject missing from the
+  submitted list read as submitted too. The unit test that locked that collapse is replaced. Each
+  subject now reads from the list alone: one in it reads as submitted, awaiting result, and one
+  missing from it gets a status of its own, not in the submitted list, in the warning tone; the
+  count is the subjects submitted over those planned, so the launcher's check shows only when every
+  planned subject was submitted. The announced results keep their own row states, and the not
+  granted on a condition result is now one of them rather than being merged into not granted, but
+  no announced result has been seen live, so each still reads as submitted and waiting; a later
+  change flips only the mapping in `lib/regis/helperStatus.ts`.
+- **The hand off line (B1).** The final line of the design, that once every planned subject is on
+  the host list the student checks the list and presses ดำเนินการต่อ themselves, and that it is sent
+  once, was never built with the card. It is now one line at the foot of the card, shown only on
+  pre registration, the one page where KCP knows the state, while the page can be read, no run adds,
+  the submitted list is not yet shown, and every planned subject is on the list as planned, with
+  another section, or on a condition (`showsHandOff`). It names the host control by its label as
+  text only, holds no control, points at and highlights nothing on the page, takes no focus, and
+  wraps at a phone width with nothing cut or covered.
+- **The carried choice (C1).** Section choices are kept per plan and term with no route key
+  (`lib/regis/choices.ts`), so a section chosen on pre registration shows on regular registration as
+  the plan's choice. It keeps carrying, with no storage change, and on regular registration the
+  focused subject and that option in the section menu now say it was chosen for pre registration.
+  A choice the student makes again on that page drops the label for the rest of the visit, since
+  the stored record cannot tell the two pages apart; a later visit labels it again.
+- **The entry toast.** It now stays away from every registration page, the officer, queue, and other
+  pages included, and the rule that hides one shown elsewhere uses the same route predicate, so the
+  show and leave rules stay one rule. This is a choice about a busy page, not a quiet mode fix,
+  since the toast sends no request.
+- **Tests.** Unit tests cover each result state, the count, and the hand off predicate in every
+  state; component tests cover the line only in the all added state and on neither the submitted
+  list nor regular registration, the carried label on both routes, and the toast on each
+  registration route. Debug specs check the not sent status and the count on the replica's complete
+  step, the line at a 360 px width with the text fit scan clean and focus unchanged, and the carried
+  label as the hash moves from pre registration to regular registration and back.
