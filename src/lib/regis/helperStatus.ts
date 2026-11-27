@@ -60,21 +60,35 @@ const PAGE_STATUS: Readonly<Record<RowState, HelperStatus>> = {
   submitted: 'sent',
   // The page's announced results keep their own row states, but no announced result has
   // been seen live yet, so until one is, each reads as submitted and waiting. Reading them
-  // as their own statuses later changes only these lines.
+  // as their own statuses later changes only these lines: the submitted count follows
+  // this mapping through SUBMITTED_STATUSES.
   granted: 'sent',
   notGranted: 'sent',
   notGrantedCondition: 'sent',
   notSubmitted: 'notSent',
 };
 
-/** The row states of the complete step, where the page shows the submitted list. */
-const RESULT_STATES: ReadonlySet<RowState> = new Set<RowState>([
+/** The row states of the complete step whose subject is in the submitted list. */
+const SUBMITTED_STATES: readonly RowState[] = [
   'submitted',
   'granted',
   'notGranted',
   'notGrantedCondition',
+];
+
+/** The row states of the complete step, where the page shows the submitted list. */
+const RESULT_STATES: ReadonlySet<RowState> = new Set<RowState>([
+  ...SUBMITTED_STATES,
   'notSubmitted',
 ]);
+
+/**
+ * The statuses a subject in the submitted list reads as, taken from PAGE_STATUS, so a
+ * result that later reads as a status of its own still counts as submitted.
+ */
+const SUBMITTED_STATUSES: ReadonlySet<HelperStatus> = new Set(
+  SUBMITTED_STATES.map((state) => PAGE_STATUS[state]),
+);
 
 /** The fill stops that are the page turning a subject down, and how the helper names them. */
 const STOP_STATUS: Partial<Readonly<Record<StopReason, HelperStatus>>> = {
@@ -132,9 +146,11 @@ export function doneCount(statuses: Readonly<Record<string, HelperStatus>>) {
   return Object.values(statuses).filter(isDone).length;
 }
 
-/** How many subjects the submitted list holds. */
+/** How many subjects the submitted list holds, whatever result each one reads as. */
 export function sentCount(statuses: Readonly<Record<string, HelperStatus>>) {
-  return Object.values(statuses).filter((status) => status === 'sent').length;
+  return Object.values(statuses).filter((status) =>
+    SUBMITTED_STATUSES.has(status),
+  ).length;
 }
 
 /**

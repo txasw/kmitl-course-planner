@@ -424,7 +424,8 @@ registration page stays at L0.
   planned subject was submitted. The announced results keep their own row states, and the not
   granted on a condition result is now one of them rather than being merged into not granted, but
   no announced result has been seen live, so each still reads as submitted and waiting; a later
-  change flips only the mapping in `lib/regis/helperStatus.ts`.
+  change flips only the mapping in `lib/regis/helperStatus.ts`, since the submitted count takes the
+  statuses of the submitted row states from that mapping rather than naming one status.
 - **The hand off line (B1).** The final line of the design, that once every planned subject is on
   the host list the student checks the list and presses ดำเนินการต่อ themselves, and that it is sent
   once, was never built with the card. It is now one line at the foot of the card, shown only on
