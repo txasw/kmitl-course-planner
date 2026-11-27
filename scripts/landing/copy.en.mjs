@@ -104,11 +104,14 @@ export const en = {
   },
   privacy: {
     h2: 'Your data stays in your browser.',
-    sub: 'No account, no server of its own, no tracking. KCP only reads public course data.',
+    sub: 'No account, no server of its own, no tracking. KCP reads public course data, and on the registration page only the course rows it shows, kept in memory.',
     heading: 'Permissions',
     perms: [
       ['storage', 'Keeps your plans on this device.'],
-      ['regis.reg.kmitl.ac.th', 'Shows the planner on the registration site.'],
+      [
+        'regis.reg.kmitl.ac.th',
+        'Shows the planner and the registration helper on the registration site.',
+      ],
       ['api.reg.kmitl.ac.th', 'Reads faculty, curriculum and category lists.'],
     ],
     link: 'Read the privacy policy',
@@ -127,7 +130,7 @@ export const en = {
       ],
       [
         'Can KCP register for courses for me?',
-        'No. KCP is for planning only. You still register on the registration site.',
+        "No. KCP never registers or submits for you. On the pre registration page, Add for me enters your planned subjects into the page's own form when you press it, and you check the list and submit it yourself.",
       ],
       [
         'Can I use it on my phone?',
