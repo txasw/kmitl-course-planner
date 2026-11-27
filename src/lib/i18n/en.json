@@ -639,7 +639,7 @@
   "regis.fill.stop.notReady": "Open the choose subjects step first, then press Add for me again.",
   "regis.fill.stop.termMismatch": "This page is for another term than the plan. Change the plan first.",
   "regis.fill.stop.dialogOpen": "Close the open window on the page, then press Add for me again.",
-  "regis.fill.stop.confirmOpen": "KCP stopped adding and presses nothing in this window. To go back, use the window's own back button.",
+  "regis.fill.stop.confirmOpen": "KCP stopped adding and presses nothing in this window. To go back, press กลับไปดูข้อมูล in this window.",
   "regis.fill.stop.fieldNotEmpty": "Clear the subject id field with the trash icon, then press Add for me again.",
   "regis.fill.stop.listedOther": "The page already lists another section of this subject. Remove it on the page if unwanted, then press Add for me again.",
   "regis.fill.stop.refused": "The page does not offer this section to you. Read the page message and pick another section.",
