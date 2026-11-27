@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useStore } from 'zustand';
 import type { Plan } from '@/lib/domain/plan';
 import type { Checklist, ChecklistRow } from '@/lib/regis/checklist';
+import { helperBar, pageStale, type HelperBar } from '@/lib/regis/helperBar';
 import type { HelperPlanPick } from '@/lib/regis/helperPlan';
 import {
   deriveHelperStatuses,
@@ -23,12 +24,6 @@ import { fillStore, type FillRun } from './fill/fillRun';
 import { hostStore } from './host/hostStore';
 import { helperStore, recordLast, setCurrent } from './helperStore';
 import { useCompanionRoute, useCompanionView } from './useCompanion';
-
-/**
- * The one bar under the card's header: a page KCP cannot read, a page of another term, or
- * a plan with nothing prepared, first first.
- */
-export type HelperBar = 'stale' | 'termMismatch' | 'kit';
 
 export interface HelperModel {
   route: CompanionRoute | null;
@@ -74,9 +69,7 @@ export function useHelperModel(): HelperModel {
   const cleared = useStore(helperStore, (state) => state.clearedStop);
   const pinned = useStore(helperStore, (state) => state.current);
   const { checklist, health } = view;
-  const stale =
-    route === 'preRegistration' &&
-    (health.status === 'degraded' || health.status === 'off');
+  const stale = pageStale(route, health);
   const adding = run.status === 'running' ? run.subjectId : null;
   const stopped = run.status === 'stopped' && run !== cleared ? run : null;
   const stopSubject = stopped?.subjectId ?? null;
@@ -148,13 +141,7 @@ export function useHelperModel(): HelperModel {
     offReason: health.status === 'off' ? health.reason : null,
     termMismatch,
     hasKit,
-    bar: stale
-      ? 'stale'
-      : termMismatch
-        ? 'termMismatch'
-        : hasKit
-          ? null
-          : 'kit',
+    bar: helperBar({ stale, termMismatch, hasKit }),
     attention: needsLook(statuses) || stale || termMismatch,
     done: sent ? rows.length : doneCount(statuses),
     total: rows.length,

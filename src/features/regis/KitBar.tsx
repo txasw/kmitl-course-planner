@@ -13,6 +13,7 @@ import { useStore } from 'zustand';
 import { ClipboardList, LoaderCircle } from 'lucide-react';
 import { fillTemplate } from '@/lib/i18n/template';
 import type { Translate } from '@/lib/i18n/t';
+import { canPrepareInHelper } from '@/lib/regis/helperBar';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { Tooltip } from '@/components/Tooltip';
 import { COARSE_POINTER_QUERY } from '@/lib/ui/breakpoints';
@@ -42,14 +43,15 @@ export function KitBar({ model, t }: { model: HelperModel; t: Translate }) {
   const failed = ours && run.status === 'failed';
   // One prepare runs at a time, so while another plan's reads, this bar's press waits.
   const elsewhere = !ours && run.status === 'running';
-  // Only a plan of the term read from the page: a fallback plan may be of another term,
-  // and preparing it would read that term's subjects at the registrar's busiest time.
-  const confirmed = model.pick.kind === 'plan' && model.pick.confirmed;
   const offered =
-    model.route === 'preRegistration' &&
     deps !== null &&
     plan !== null &&
-    confirmed;
+    canPrepareInHelper({
+      route: model.route,
+      confirmed: model.pick.kind === 'plan' && model.pick.confirmed,
+      bar: model.bar,
+      samePlan: true,
+    });
 
   if (running !== null) {
     return (
