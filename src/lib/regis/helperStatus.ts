@@ -184,6 +184,7 @@ export function stillToAdd(
 
 /** Why add for me cannot run for a subject still to add, first reason first. */
 export type AddBlock =
+  | 'otherPage'
   | 'checking'
   | 'unavailable'
   | 'off'
@@ -195,7 +196,13 @@ export type AddBlock =
   | 'busy';
 
 export interface AddFacts {
-  /** Whether fill can act on this page at all: pre registration on a tested build. */
+  /**
+   * Whether the page is pre registration, the one page fill acts on. Every other page,
+   * regular registration included, never runs the host check, so it is read first and no
+   * other reason, the host check's included, can stand in for it there.
+   */
+  onPage: boolean;
+  /** Whether fill can act on this page: a tested build and a plan to follow. */
   available: boolean;
   /** Whether the host check is still reading a build KCP has not seen before. */
   checking: boolean;
@@ -214,6 +221,7 @@ export interface AddFacts {
 }
 
 export function addForMeBlock(facts: AddFacts): AddBlock | null {
+  if (!facts.onPage) return 'otherPage';
   if (!facts.available) return facts.checking ? 'checking' : 'unavailable';
   if (facts.off) return 'off';
   if (facts.preparing) return 'preparing';

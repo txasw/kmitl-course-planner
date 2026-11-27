@@ -13,6 +13,7 @@ import { regisStore } from './regisStore';
 import type { HelperModel } from './useHelperModel';
 
 const BLOCK_TEXT: Readonly<Record<AddBlock, TranslationKey>> = {
+  otherPage: 'regis.addForMe.otherPage',
   checking: 'regis.addForMe.checking',
   unavailable: 'regis.addForMe.unavailable',
   off: 'regis.addForMe.off',
@@ -46,25 +47,25 @@ function useBlock(
   );
   const { plan, kit, run } = model;
   const busyId = run.status === 'running' ? run.subjectId : null;
-  const block =
-    plan === null
-      ? 'unavailable'
-      : addForMeBlock({
-          available:
-            model.route === 'preRegistration' &&
-            gate !== 'checking' &&
-            gate !== 'untestedBuild' &&
-            gate !== 'latched',
-          checking: gate === 'checking',
-          off: gate === 'off',
-          preparing,
-          target:
-            first !== null && typeof fillTarget(first, plan, kit) !== 'string',
-          stale: model.stale,
-          termMismatch: model.termMismatch,
-          inStep: model.inStep,
-          busy,
-        });
+  const block = addForMeBlock({
+    onPage: model.route === 'preRegistration',
+    available:
+      plan !== null &&
+      gate !== 'checking' &&
+      gate !== 'untestedBuild' &&
+      gate !== 'latched',
+    checking: plan !== null && gate === 'checking',
+    off: gate === 'off',
+    preparing,
+    target:
+      plan !== null &&
+      first !== null &&
+      typeof fillTarget(first, plan, kit) !== 'string',
+    stale: model.stale,
+    termMismatch: model.termMismatch,
+    inStep: model.inStep,
+    busy,
+  });
   return {
     block,
     reason:

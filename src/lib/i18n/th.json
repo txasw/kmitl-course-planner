@@ -684,6 +684,7 @@
   "regis.copied": "คัดลอกแล้ว",
   "regis.copiedAnnounce": "คัดลอก {subjectId} แล้ว",
   "regis.addForMe": "เพิ่มให้",
+  "regis.addForMe.otherPage": "เพิ่มให้ใช้ได้ในหน้าลงทะเบียนล่วงหน้า กรอกรหัสวิชาจากเช็กลิสต์",
   "regis.addForMe.checking": "KCP กำลังตรวจรุ่นของหน้านี้",
   "regis.addForMe.unavailable": "ยังใช้เพิ่มให้ไม่ได้",
   "regis.addForMe.off": "ปิดใช้เพิ่มให้อยู่",
