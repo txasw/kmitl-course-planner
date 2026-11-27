@@ -41,7 +41,7 @@ import { activePlanOf } from '@/features/plans/planStoreState';
 import { uiStore } from '@/features/shell/uiStore';
 import { readLocationHash } from '@/features/shell/hostLocation';
 import { subscribeHashRoute } from '@/features/search/useHashRoute';
-import { companionRoute } from '@/lib/regis/route';
+import { isRegistrationRoute } from '@/lib/regis/route';
 import { leaveEntryToast } from './leaveEntryToast';
 import { onboardingStore } from './onboardingStore';
 
@@ -161,7 +161,7 @@ export function useEntryToastSchedule(
   useEffect(() => {
     if (!shown) return undefined;
     return subscribeHashRoute(() => {
-      if (companionRoute(readLocationHash()) === null) return;
+      if (!isRegistrationRoute(readLocationHash())) return;
       leaveEntryToast(boxRef.current, () => {
         setPhase(DONE);
       });

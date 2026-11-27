@@ -246,9 +246,17 @@ describe('selectEntryToast route offer', () => {
     ).toBe('plan');
   });
 
-  it('shows nothing on a registration helper page, whatever the plan', () => {
+  it('shows nothing on any registration page, whatever the plan', () => {
     const plan = makePlan({ entries: [placed('1', '90592033', '901')] });
-    for (const hash of ['#/pre_registration', '#/registration']) {
+    for (const hash of [
+      '#/pre_registration',
+      '#/registration',
+      '#/registration_for_officer',
+      '#/registration_queue',
+      '#/registration_x',
+      '#/registration_future_innovation',
+      '#/Registration_Queue/',
+    ]) {
       expect(selectEntryToast(input({ plan, hash: onHash(hash) }))).toBeNull();
       expect(
         selectEntryToast(input({ plan, hash: onHash(SELECTOR_HASH, hash) })),
