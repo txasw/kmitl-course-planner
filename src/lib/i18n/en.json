@@ -686,7 +686,7 @@
   "regis.short.clash": "Clash",
   "regis.short.sent": "Waiting",
   "regis.short.notSent": "Not sent",
-  "regis.handOff": "Every planned subject is on the list. Check the list on the page, then press ดำเนินการต่อ (Continue) yourself. Pre registration is sent once.",
+  "regis.handOff": "Every planned subject is on the list. Check the list on the page, then press ดำเนินการต่อ (Continue) yourself. Pre registration can be sent only once.",
   "regis.sectionWord": "Section",
   "regis.copy": "Copy ID",
   "regis.copied": "Copied",
