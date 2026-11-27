@@ -684,6 +684,7 @@
   "regis.short.clash": "เวลาชน",
   "regis.short.sent": "รอผล",
   "regis.short.notSent": "ไม่ได้ส่ง",
+  "regis.handOff": "ครบทุกวิชาตามแผนแล้ว ตรวจรายการบนหน้าเว็บ แล้วกด ดำเนินการต่อ ด้วยตนเอง ลงทะเบียนล่วงหน้าส่งได้ครั้งเดียว",
   "regis.sectionWord": "กลุ่ม",
   "regis.copy": "คัดลอกรหัส",
   "regis.copied": "คัดลอกแล้ว",

@@ -16,6 +16,7 @@ import {
   needsLook,
   pickCurrent,
   sentCount,
+  showsHandOff,
   type HelperStatus,
 } from '@/lib/regis/helperStatus';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
@@ -58,6 +59,8 @@ export interface HelperModel {
   attention: boolean;
   done: number;
   total: number;
+  /** Whether the card shows the line that hands the submit to the student. */
+  handOff: boolean;
   current: ChecklistRow | null;
   /** Whether the page shows the choose subjects step, where add for me works. */
   inStep: boolean;
@@ -154,6 +157,13 @@ export function useHelperModel(): HelperModel {
     // On the complete step the count is the subjects submitted over those planned.
     done: sent ? sentCount(statuses) : doneCount(statuses),
     total: rows.length,
+    handOff: showsHandOff({
+      onPage: route === 'preRegistration',
+      stale,
+      sent,
+      running: run.status === 'running',
+      statuses,
+    }),
     current: rows.find((row) => row.subjectId === currentId) ?? null,
     inStep: step === 2,
     observer: health.status,

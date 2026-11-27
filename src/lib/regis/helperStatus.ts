@@ -137,6 +137,30 @@ export function sentCount(statuses: Readonly<Record<string, HelperStatus>>) {
   return Object.values(statuses).filter((status) => status === 'sent').length;
 }
 
+/**
+ * Whether the card shows its one hand off line (owner answer B1, 2026-11-27): on the pre
+ * registration page, the one page KCP reads, while the page can be read, no run adds, and
+ * the page lists every planned subject. The student then checks the list and presses the
+ * host's own continue control; KCP never does.
+ */
+export function showsHandOff(facts: {
+  onPage: boolean;
+  stale: boolean;
+  sent: boolean;
+  running: boolean;
+  statuses: Readonly<Record<string, HelperStatus>>;
+}): boolean {
+  const all = Object.values(facts.statuses);
+  return (
+    facts.onPage &&
+    !facts.stale &&
+    !facts.sent &&
+    !facts.running &&
+    all.length > 0 &&
+    all.every(isDone)
+  );
+}
+
 /** Whether any subject is turned down, so the collapsed launcher asks for a look. */
 export function needsLook(
   statuses: Readonly<Record<string, HelperStatus>>,
