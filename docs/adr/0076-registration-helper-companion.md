@@ -350,3 +350,43 @@ may leave in storage and left it awaiting the owner's acknowledgement. The owner
   created before the press, and after a press of สร้างตาราง 2/2569 finds the new active plan with
   year 2569 and semester 2 and the planner open; `switchPlanTerm.test.ts` covers the create and the
   switch to the most recently updated plan of the term.
+
+## Amendment, 2026-11-27: the regular registration page and a stale kit
+
+A read only study of the helper on the regular registration page, where KCP stays at L0 under rule
+6, found four places where the helper said something the code does not do. Each is fixed as
+follows, with no change to what KCP reads or sends on any registration route.
+
+- **A route reason for Add for me.** On `#/registration` the host check never runs, so the build
+  read as still being checked and Add for me said KCP was checking the page version for as long as
+  the page stayed open. `addForMeBlock` in `lib/regis/helperStatus.ts` now takes the route as its
+  first fact: every page but pre registration gets the reason `otherPage`, which says Add for me
+  works on the pre registration page and the student types the subject id from the checklist. The
+  checking reason is reachable only on pre registration.
+- **Route scoped copy.** The hidden term line of an unconfirmed plan said KCP could not read the
+  term; on regular registration KCP never tries, so that page now says the plan is shown for its
+  term and KCP does not read the page, and pre registration keeps the could not read wording. The
+  prepare refusal no longer claims the system is taking registrations, so it fits all six
+  registration routes, and the choose subjects step reason no longer promises a step that may not
+  come after the window closes. No observer timing changed.
+- **One predicate for the prepare card.** The planner's prepare card pointed the student to the
+  helper's Prepare data whenever the route was pre registration, though the helper offers that
+  press only for a plan of the page term, under its kit bar, and for the plan it follows.
+  `canPrepareInHelper` in `lib/regis/helperBar.ts` now decides both; the kit bar adds its own
+  connected search check, and the card points to the course search page whenever the predicate is
+  false.
+- **A stale kit kept as reference, fill still blocked.** A kit older than seven days was dropped
+  whole, so the kit bar said nothing was prepared and the saved section choices and alternatives
+  vanished, though kits prepared from 2026-11-23 expire before regular registration opens. The
+  stale kit is now a separate, display only field (`staleKit`): the checklist shows its choices and
+  other sections, the chosen section labelled as from older data, and the kit bar says the data is
+  older than seven days. The fill input stays strictly fresh: `kit`, the one input `fillTarget`
+  reads, stays null for a stale kit, so a stale kit yields no fill target, and Add for me shows its
+  own reason, `kitStale`, ahead of `noKit`, pointing to the course search page. Prepare stays
+  refused on every registration route except the helper's own press on pre registration.
+- **Tests.** Unit tests cover the block order with the route first, the host check sending nothing
+  on regular registration, the shared prepare predicate's negative cases, and a stale kit giving no
+  fill target. A hand written replica of the regular registration page, modelled on the host build
+  of 2026-11-23 only, backs a debug spec that proves L0 in each of its states and over the pre
+  registration markup: the route reason and the not read term line show, no fill press exists, the
+  observer stays waiting, no host check or other request is sent, and no host control is pressed.

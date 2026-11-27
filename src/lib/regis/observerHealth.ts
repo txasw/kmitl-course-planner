@@ -4,8 +4,9 @@
 // document. While the host check runs, the observer waits. A page that shows none of
 // the anchors yet is waiting, not broken. A page whose anchors are present but do not
 // read as the contract says is degraded, and the observation is dropped whole; three
-// degraded readings in a row turn the observer off. While it is not healthy the
-// checklist shows the student's own marks only.
+// degraded readings in a row turn the observer off. While it is degraded or off each
+// subject keeps the last status the page showed in this visit, marked stale, and a page
+// never read in this visit shows every subject as still to add.
 
 import type { BuildTrust } from './hostBuild';
 
