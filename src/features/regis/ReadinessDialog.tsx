@@ -3,15 +3,16 @@
 // helper card's count and list on the registration page read each subject from there, so
 // this card keeps no review of its own. On a registration page the action is refused with
 // a one line reason before anything is sent (ADR-0075). On the pre registration page the
-// reason points to the helper's own Prepare data, the one place prepare runs there
-// (ADR-0076), but only while the helper offers that press for the plan this card would
-// prepare; otherwise it points to the course search page, as on every other registration
-// page.
+// reason points to the helper's own prepare press, the one place prepare runs there
+// (ADR-0076), named by the label the checklist shows, but only while the helper offers
+// that press for the plan this card would prepare; otherwise it points to the course
+// search page, as on every other registration page.
 
 import { useStore } from 'zustand';
 import { LoaderCircle } from 'lucide-react';
 import { ModalDialog } from '@/components/ModalDialog';
 import { fillTemplate } from '@/lib/i18n/template';
+import type { TranslationKey } from '@/lib/i18n/t';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_HEIGHT } from '@/lib/ui/target';
 import {
@@ -39,12 +40,15 @@ export function ReadinessLayer() {
   return open ? <ReadinessDialog /> : null;
 }
 
-/** Whether the helper offers Prepare data for this plan now, as its kit bar decides. */
+/**
+ * Whether the helper offers its prepare press for this plan now, as its kit bar decides,
+ * and the label that press shows: Prepare again over data past the age limit.
+ */
 function helperOffers(
   route: CompanionRoute | null,
   helper: CompanionView,
   planId: string | null,
-): boolean {
+): TranslationKey | null {
   const { pick, checklist } = helper;
   // The helper shows no bar at all over an empty checklist.
   const bar =
@@ -55,12 +59,16 @@ function helperOffers(
           termMismatch: checklist.termMismatch,
           hasKit: checklist.hasKit,
         });
-  return canPrepareInHelper({
+  const offered = canPrepareInHelper({
     route,
     confirmed: pick.kind === 'plan' && pick.confirmed,
     bar,
     samePlan: pick.kind === 'plan' && pick.plan.id === planId,
   });
+  if (!offered) return null;
+  return helper.staleKit === null
+    ? 'regis.prepareInline'
+    : 'regis.prepareAgain';
 }
 
 function ReadinessDialog() {
@@ -71,7 +79,7 @@ function ReadinessDialog() {
   const helper = useCompanionView('helper');
   // The prepare card prepares the plan the planner shows, whatever page it opens over.
   const { plan, storedKit, kitState } = useCompanionView('active');
-  const inHelper = helperOffers(route, helper, plan?.id ?? null);
+  const helperPress = helperOffers(route, helper, plan?.id ?? null);
   const run = useStore(regisStore, (state) => state.run);
   const close = () => {
     regisStore.getState().setReadinessOpen(false);
@@ -83,7 +91,11 @@ function ReadinessDialog() {
     <div className="flex flex-wrap items-center justify-end gap-2">
       {quiet ? (
         <p className="mr-auto min-w-0 flex-1 text-xs text-warn">
-          {t(inHelper ? 'regis.prepareInHelper' : 'regis.prepareRefused')}
+          {helperPress === null
+            ? t('regis.prepareRefused')
+            : fillTemplate(t('regis.prepareInHelper'), {
+                press: t(helperPress),
+              })}
         </p>
       ) : null}
       {running ? (
