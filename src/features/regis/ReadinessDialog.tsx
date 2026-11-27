@@ -2,9 +2,11 @@
 // prepare action, runs it on the student's press, and says when the kit was prepared. The
 // helper card's count and list on the registration page read each subject from there, so
 // this card keeps no review of its own. On a registration page the action is refused with
-// a one line reason before anything is sent (ADR-0075); on the pre registration page the
+// a one line reason before anything is sent (ADR-0075). On the pre registration page the
 // reason points to the helper's own Prepare data, the one place prepare runs there
-// (ADR-0076).
+// (ADR-0076), but only while the helper offers that press for the plan this card would
+// prepare; otherwise it points to the course search page, as on every other registration
+// page.
 
 import { useStore } from 'zustand';
 import { LoaderCircle } from 'lucide-react';
@@ -12,13 +14,23 @@ import { ModalDialog } from '@/components/ModalDialog';
 import { fillTemplate } from '@/lib/i18n/template';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_HEIGHT } from '@/lib/ui/target';
+import {
+  canPrepareInHelper,
+  helperBar,
+  pageStale,
+} from '@/lib/regis/helperBar';
+import type { CompanionRoute } from '@/lib/regis/route';
 import { formatLocalDateTime } from '@/features/planner/examText';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { useQuietRoute } from '@/features/shell/quietRoute';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { cancelPrepare, startPrepare } from './prepareController';
 import { regisStore } from './regisStore';
-import { useCompanionRoute, useCompanionView } from './useCompanion';
+import {
+  useCompanionRoute,
+  useCompanionView,
+  type CompanionView,
+} from './useCompanion';
 
 const BUTTON = `inline-flex items-center justify-center gap-1.5 rounded-kcp px-3 py-1.5 text-sm font-semibold ${TARGET_HEIGHT}`;
 
@@ -27,13 +39,39 @@ export function ReadinessLayer() {
   return open ? <ReadinessDialog /> : null;
 }
 
+/** Whether the helper offers Prepare data for this plan now, as its kit bar decides. */
+function helperOffers(
+  route: CompanionRoute | null,
+  helper: CompanionView,
+  planId: string | null,
+): boolean {
+  const { pick, checklist } = helper;
+  // The helper shows no bar at all over an empty checklist.
+  const bar =
+    checklist === null || checklist.total === 0
+      ? null
+      : helperBar({
+          stale: pageStale(route, helper.health),
+          termMismatch: checklist.termMismatch,
+          hasKit: checklist.hasKit,
+        });
+  return canPrepareInHelper({
+    route,
+    confirmed: pick.kind === 'plan' && pick.confirmed,
+    bar,
+    samePlan: pick.kind === 'plan' && pick.plan.id === planId,
+  });
+}
+
 function ReadinessDialog() {
   const { t } = useTranslation();
   const { send } = useSearchDeps();
   const quiet = useQuietRoute();
-  const inHelper = useCompanionRoute() === 'preRegistration';
+  const route = useCompanionRoute();
+  const helper = useCompanionView('helper');
   // The prepare card prepares the plan the planner shows, whatever page it opens over.
   const { plan, storedKit, kitState } = useCompanionView('active');
+  const inHelper = helperOffers(route, helper, plan?.id ?? null);
   const run = useStore(regisStore, (state) => state.run);
   const close = () => {
     regisStore.getState().setReadinessOpen(false);
