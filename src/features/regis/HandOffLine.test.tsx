@@ -103,7 +103,7 @@ describe('the hand off line', () => {
       line() as HTMLElement | null,
     );
     expect(line()).toHaveTextContent(
-      'ครบทุกวิชาตามแผนแล้ว ตรวจรายการบนหน้าเว็บ แล้วกด ดำเนินการต่อ ด้วยตนเอง ลงทะเบียนล่วงหน้าส่งได้ครั้งเดียว',
+      'ครบทุกวิชาตามแผนแล้ว ตรวจรายการในหน้า แล้วกด ดำเนินการต่อ เอง ลงทะเบียนล่วงหน้าส่งได้ครั้งเดียว',
     );
     expect(document.querySelectorAll('[data-helper-handoff]')).toHaveLength(1);
     expect(line()?.querySelector('button, a, [tabindex]')).toBeNull();
