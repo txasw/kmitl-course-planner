@@ -7,6 +7,7 @@ import {
   Circle,
   CircleCheck,
   ClipboardCheck,
+  ClipboardX,
   GitBranch,
   LoaderCircle,
   OctagonX,
@@ -28,6 +29,7 @@ export const STATUS_ICON: Readonly<Record<HelperStatus, LucideIcon>> = {
   refused: OctagonX,
   clash: TriangleAlert,
   sent: ClipboardCheck,
+  notSent: ClipboardX,
 };
 
 /** The band word of a status, which the card, the names, and the announcements use. */
