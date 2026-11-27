@@ -131,8 +131,10 @@ export function resolveOptions(
 
 /**
  * The local add button: the first button of the block right after the add table, green
- * and labelled Add, with the deep orange continue button after that block, so a swapped
- * or relabelled order resolves nothing.
+ * and labelled Add, with the deep orange button labelled Continue after that block, so a
+ * swapped or relabelled order resolves nothing. The Continue label is read, never only
+ * the colour: another area of a registration page with the same table, block, and button
+ * shape, such as the add, change, and withdraw area, follows its block with a confirm.
  */
 export function resolveAdd(doc: Document): HostControl<'add'> | null {
   return attempt(() => {
@@ -143,6 +145,7 @@ export function resolveAdd(doc: Document): HostControl<'add'> | null {
       card === null ||
       block?.matches('div.mt-2') !== true ||
       block.nextElementSibling?.matches('button.v-btn.deep-orange') !== true ||
+      !isLabel(text(block.nextElementSibling), HOST_LABELS.continueAnchor) ||
       button?.matches('button.v-btn.green') !== true ||
       !isLabel(text(button), HOST_LABELS.addButton)
     ) {

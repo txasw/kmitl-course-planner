@@ -9,10 +9,12 @@ import { addCard, resolveAcknowledge, resolveAdd } from './hostControls';
 
 // The fill resolvers against the hand written replica of the regular registration page,
 // modelled on the host build of 2026-11-23 only. KCP stays at L0 there and never runs a
-// resolver, so this guards the next layer down: even with the add card anchor stubbed to
-// resolve to any card or area of the page, no resolver returns a control of the add,
-// change, and withdraw area or of the queue panel, and the denylist refuses every one of
-// their labels but Add, which only the local add resolver may name.
+// resolver, and the add card anchor, whose heading needs the (ล่วงหน้า) span, is the first
+// barrier. This guards the next layer down: with the anchor stubbed to resolve to any card
+// or area of the page, no resolver returns a control of the add, change, and withdraw area
+// or of the queue panel. The local add resolver needs the button after its block to read
+// Continue, so it refuses the area's Add even when the area's confirm is coloured as the
+// continue button is. The denylist refuses every label of those controls but Add.
 
 const stub = vi.hoisted(() => ({ card: null as Element | null }));
 
@@ -36,8 +38,14 @@ const COMMIT_CONTROLS = [
 
 let replica: RegistrationReplica | null = null;
 
-function mount(state: RegistrationState): RegistrationReplica {
-  replica = mountRegistration(document, { state });
+function mount(
+  state: RegistrationState,
+  variant?: 'orangeConfirm',
+): RegistrationReplica {
+  replica = mountRegistration(
+    document,
+    variant === undefined ? { state } : { state, variant },
+  );
   return replica;
 }
 
@@ -81,18 +89,33 @@ describe('the resolvers on the regular registration page', () => {
     );
   });
 
-  it('never resolves a commit or queue control, whatever the anchor resolves to', () => {
-    mount('SUMMARY_REGIS');
-    const forbidden = commitControls();
-    expect(forbidden).toHaveLength(COMMIT_CONTROLS.length);
-    for (const anchor of anchors()) {
-      stub.card = anchor;
-      expect(addCard(document)).toBe(anchor);
-      const add = resolveAdd(document);
-      const acknowledge = resolveAcknowledge(document);
-      expect(forbidden).not.toContain(add?.element);
-      expect(forbidden).not.toContain(acknowledge?.element);
-    }
+  it.each([undefined, 'orangeConfirm'] as const)(
+    'never resolves a commit or queue control, whatever the anchor resolves to (%s)',
+    (variant) => {
+      mount('SUMMARY_REGIS', variant);
+      const forbidden = commitControls();
+      expect(forbidden).toHaveLength(COMMIT_CONTROLS.length);
+      for (const anchor of anchors()) {
+        stub.card = anchor;
+        expect(addCard(document)).toBe(anchor);
+        const add = resolveAdd(document);
+        const acknowledge = resolveAcknowledge(document);
+        expect(forbidden).not.toContain(add?.element);
+        expect(forbidden).not.toContain(acknowledge?.element);
+      }
+    },
+  );
+
+  it('refuses the area Add when its confirm is coloured as the continue button', () => {
+    mount('SUMMARY_REGIS', 'orangeConfirm');
+    const area = document.querySelector('.add-change-delete');
+    // The area matches every structural check of the local add but the Continue label.
+    expect(
+      area?.querySelector('.v-data-table')?.nextElementSibling
+        ?.nextElementSibling,
+    ).toHaveClass('deep-orange');
+    stub.card = area;
+    expect(resolveAdd(document)).toBeNull();
   });
 
   it('refuses every commit and queue label but Add, which needs its own handle', () => {

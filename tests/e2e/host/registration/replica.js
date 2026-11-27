@@ -6,7 +6,9 @@
 // (ล่วงหน้า) span; SUMMARY_REGIS, the registered list with the add, change, and withdraw
 // area and the queue panel; and closed, the one heading the page shows outside the
 // period. Every host control counts its clicks, and every untrusted event aimed at the
-// page is counted too, so a spec can prove KCP pressed and dispatched nothing here.
+// page is counted too, so a spec can prove KCP pressed and dispatched nothing here. The
+// orangeConfirm variant colours the area's confirm deep orange, as the continue button
+// is, so a test can prove the local add resolver reads the label and not the colour.
 
 const STEPS = ['เริ่มต้น', 'เลือกรายวิชา', 'เสร็จสิ้น'];
 const HEAD = [
@@ -37,6 +39,8 @@ export function mountRegistration(doc, options = {}) {
     state: STATES.includes(options.state) ? options.state : 'REGIS',
     term: options.term ?? { semester: '2', year: '2569' },
   };
+  const confirmColour =
+    options.variant === 'orangeConfirm' ? 'deep-orange' : 'green';
   const counters = { clicks: {}, untrusted: 0 };
 
   function h(tag, props, children) {
@@ -305,7 +309,7 @@ export function mountRegistration(doc, options = {}) {
           button('orange white--text elevation-0', 'เปลี่ยน', 'acdChange'),
           button('red white--text elevation-0', 'ถอน', 'acdWithdraw'),
         ]),
-        button('mt-5 green white--text', 'ยืนยัน', 'acdConfirm'),
+        button(`mt-5 ${confirmColour} white--text`, 'ยืนยัน', 'acdConfirm'),
       ]),
       h('div', { class: 'queue-panel mt-4' }, [
         h('h3', {}, ' รายการแถวคอย '),

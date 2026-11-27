@@ -108,7 +108,7 @@ describe('the host contract', () => {
   });
 
   it('holds only the two button labels a fill presses, never Continue', () => {
-    const { addButton, acknowledge, ...read } = HOST_LABELS;
+    const { addButton, acknowledge, continueAnchor, ...read } = HOST_LABELS;
     const all: string[] = Object.values(read).flat(2);
     for (const labels of LANGS) {
       for (const button of [
@@ -118,6 +118,9 @@ describe('the host contract', () => {
       ]) {
         expect(all).not.toContain(button);
       }
+      expect(continueAnchor).toContain(
+        labels['pre_regis_add_subject.continuous'],
+      );
       expect(addButton).toContain(labels['pre_regis_add_subject.add']);
       expect(acknowledge).toContain(labels['pre_regis_add_subject.roger']);
     }
