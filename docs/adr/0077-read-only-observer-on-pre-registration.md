@@ -124,14 +124,14 @@ the one exception to captured fixtures for host markup.
 
 ## Amendment, 2026-11-24: the observer is the only source of status
 
-With the helper card of the ADR-0076 amendment, the observer's reading is the only thing that sets
-a subject's status; there is no manual mark to override it. Each subject reads as not added, added
-as planned, another section, conditional, or refused from the page, on the complete step as
-submitted or as not in the submitted list (the amendment of 2026-11-27 of ADR-0076), and full or
-clash from a fill stop. While the observer is degraded or off, each subject keeps the last status the
-page showed in this visit, drawn as stale, and the card shows a page unreadable bar with Check
-again, which starts the reading over; the health machine still keeps an off observer off for the
-document. Nothing read is stored, and the count line beside the host's confirm dialog stays.
+With the helper card of the ADR-0076 amendment, the observer's reading is the only thing that sets a
+subject's status; there is no manual mark to override it. Each subject reads as not added, added as
+planned, another section, conditional, or refused from the page, on the complete step as submitted
+or as not in the submitted list (the amendment of 2026-11-27 of ADR-0076), and full or clash from a
+fill stop. While the observer is degraded or off, each subject keeps the last status the page showed
+in this visit, drawn as stale, and the card shows a page unreadable bar with Check again, which
+starts the reading over; the health machine still keeps an off observer off for the document.
+Nothing read is stored, and the count line beside the host's confirm dialog stays.
 
 ## Amendment, 2026-11-25: Check again revives a drifted page, and the redeploy of that day
 
