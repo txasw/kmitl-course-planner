@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, renderHook } from '@testing-library/react';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
+import { addForMeBlock } from '@/lib/regis/helperStatus';
+import { companionRoute } from '@/lib/regis/route';
 import { buildCheckStore } from './host/buildCheckStore';
 import { checkHostBuild, useHostBuildCheck } from './useHostBuildCheck';
 
@@ -127,5 +129,33 @@ describe('useHostBuildCheck', () => {
       await Promise.resolve();
     });
     expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  it('sends nothing on regular registration, where Add for me names the page instead', async () => {
+    loadScripts(NEW);
+    const { send, typed } = sender({ ok: true, value: { status: 'verified' } });
+    navigate('#/registration');
+    renderHook(() => {
+      useHostBuildCheck(typed);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    // No check ran, so the build reads as checking, and the route fact still comes first.
+    const block = addForMeBlock({
+      onPage: companionRoute(window.location.hash) === 'preRegistration',
+      available: false,
+      checking: true,
+      off: false,
+      preparing: false,
+      target: true,
+      stale: false,
+      termMismatch: false,
+      inStep: false,
+      busy: false,
+    });
+    expect(block).toBe('otherPage');
+    expect(send).not.toHaveBeenCalled();
+    expect(buildCheckStore.getState().check).toBeNull();
   });
 });

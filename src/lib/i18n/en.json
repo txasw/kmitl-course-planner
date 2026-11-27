@@ -684,6 +684,7 @@
   "regis.copied": "Copied",
   "regis.copiedAnnounce": "Copied {subjectId}",
   "regis.addForMe": "Add for me",
+  "regis.addForMe.otherPage": "Add for me works on the pre registration page. Type the subject id from the checklist.",
   "regis.addForMe.checking": "KCP is checking this page version",
   "regis.addForMe.unavailable": "Add for me is not available yet",
   "regis.addForMe.off": "Add for me is off",

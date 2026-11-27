@@ -204,6 +204,7 @@ describe('the focus and the counts', () => {
 
 describe('addForMeBlock', () => {
   const ready: AddFacts = {
+    onPage: true,
     available: true,
     checking: false,
     off: false,
@@ -217,6 +218,37 @@ describe('addForMeBlock', () => {
 
   it('allows add for me only when every condition holds', () => {
     expect(addForMeBlock(ready)).toBeNull();
+  });
+
+  it('names another page before any other reason, the host check included', () => {
+    const blocked: AddFacts = {
+      onPage: false,
+      available: false,
+      checking: true,
+      off: true,
+      preparing: true,
+      target: false,
+      stale: true,
+      termMismatch: true,
+      inStep: false,
+      busy: true,
+    };
+    expect(addForMeBlock(blocked)).toBe('otherPage');
+    expect(addForMeBlock({ ...ready, onPage: false })).toBe('otherPage');
+    expect(
+      addForMeBlock({
+        ...ready,
+        onPage: false,
+        available: false,
+        checking: true,
+      }),
+    ).toBe('otherPage');
+  });
+
+  it('reads the host check as checking only on the pre registration page', () => {
+    const pending = { ...ready, available: false, checking: true };
+    expect(addForMeBlock(pending)).toBe('checking');
+    expect(addForMeBlock({ ...pending, onPage: false })).toBe('otherPage');
   });
 
   it('names the first reason that applies', () => {

@@ -151,3 +151,31 @@ test('keeps fill off on a script with no parts and says it could not be read', a
   await expect(page.locator('[data-fill-press]')).toHaveCount(0);
   expect(mock.scriptReads()).toEqual(['/js/app.00000000.js']);
 });
+
+test('names the pre registration page on regular registration and reads no script', async ({
+  context,
+  mock,
+  serviceWorker,
+}) => {
+  const page = await openPlanner(context);
+  await planWithKit(page, serviceWorker, [SUBJECT]);
+  mock.clearApiCalls();
+  // The verified build would turn fill on at pre registration, but regular registration
+  // never runs the host check, so Add for me names the page rather than a check that
+  // never comes.
+  await page.goto(`${REPLICA_URL}?build=verified#/registration`);
+  await page.waitForFunction(() => 'replica' in window);
+  const card = page.locator('#kcp-regis-card');
+  await expect(card).toBeVisible();
+  const add = card.getByRole('button', { name: 'เพิ่มให้', exact: true });
+  await expect(add).toHaveAttribute('aria-disabled', 'true');
+  await expect(add).toHaveAccessibleDescription(
+    'เพิ่มให้ใช้ได้ในหน้าลงทะเบียนล่วงหน้า กรอกรหัสวิชาจากเช็กลิสต์',
+  );
+  await expect(card.getByText('KCP กำลังตรวจรุ่นของหน้านี้')).toHaveCount(0);
+  await expect(page.locator('[data-fill-press]')).toHaveCount(0);
+  await page.waitForTimeout(1000);
+  expect(mock.scriptReads()).toEqual([]);
+  expect(mock.apiCalls()).toEqual([]);
+  expect(await page.evaluate(() => window.replica.interactions())).toBe(0);
+});
