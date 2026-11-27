@@ -192,6 +192,66 @@ test('ends the run when the student switches fill off', async ({
   await expectNothingForbidden(page);
 });
 
+test('stops when the student opens the confirm dialog and leaves focus where it is', async ({
+  context,
+  mock,
+  serviceWorker,
+}) => {
+  const page = await openPlanner(context);
+  await setUp(page, serviceWorker, (section) => ({
+    delay: 3000,
+    catalog: { [SUBJECT]: { sections: [{ section, kind: 'ท' }] } },
+  }));
+  mock.clearApiCalls();
+  await press(page);
+  await expect(page.locator('[data-fill="running"]')).toBeVisible();
+  // The subject is entered and the host is still reading it when the student presses
+  // the host's own Continue, which opens the confirm dialog.
+  await page.waitForFunction(() => window.replica.state.add.loading);
+  await page.locator('#host-continue').click();
+  await page.waitForFunction(
+    () => window.replica.state.dialog?.kind === 'confirm',
+  );
+  const focused = () =>
+    page.evaluate(() => {
+      const active = document.activeElement;
+      return active === null
+        ? null
+        : `${active.tagName}#${active.id}.${active.className}`;
+    });
+  const before = await focused();
+  await expect(page.locator('[data-fill-stop="confirmOpen"]')).toBeVisible();
+  await expect(page.locator('[data-fill-stop="confirmOpen"]')).toHaveText(
+    'KCP หยุดเพิ่มแล้ว และไม่กดปุ่มใดในหน้าต่างนี้ หากต้องการกลับ ใช้ปุ่มย้อนกลับของหน้าต่างนี้',
+  );
+  expect(await focused()).toBe(before);
+  // The host answers after the stop, and the run acts on nothing more, focus included.
+  await page.waitForTimeout(3500);
+  expect(await focused()).toBe(before);
+  expect(await listed(page)).toEqual([]);
+  const after = await page.evaluate(() => ({
+    dialog: window.replica.state.dialog?.kind ?? null,
+    reached: Object.keys(window.replica.counters.untrustedOn),
+    forbidden: window.replica.forbidden(),
+    continue: window.replica.counters.clicks.continue ?? 0,
+    writes: window.replica.counters.writes,
+    confirm: window.replica.counters.clicks.confirm ?? 0,
+    back: window.replica.counters.clicks.back ?? 0,
+  }));
+  // The one press outside the allowlist is the student's own Continue, a trusted click;
+  // KCP sent no event to any control but the subject id field.
+  expect(after).toEqual({
+    dialog: 'confirm',
+    reached: ['subjectField'],
+    forbidden: 1,
+    continue: 1,
+    writes: 0,
+    confirm: 0,
+    back: 0,
+  });
+  expect(mock.apiCalls()).toEqual([]);
+});
+
 /** Pick an item in the card's more menu. */
 function fromMenu(item: string) {
   return async (page: Page) => {

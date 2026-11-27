@@ -172,6 +172,8 @@ interface RunOptions {
   stopAfter?: FillStep;
   /** When KCP's UI began showing the condition, or null while it does not. */
   shownSince?: number | null;
+  /** The step at which the student opens the host's confirm dialog. */
+  confirmAt?: FillStep;
 }
 
 async function fill(specs: Spec[], options: RunOptions = {}) {
@@ -195,6 +197,8 @@ async function fill(specs: Spec[], options: RunOptions = {}) {
     onStep: (_subject, step, prerequisites) => {
       steps.push({ step, prerequisites });
       if (step === options.stopAfter) stopped = true;
+      if (step === options.confirmAt)
+        replica?.set({ dialog: { kind: 'confirm' } });
     },
     onRefusal: () => {
       refusals += 1;
@@ -340,6 +344,40 @@ describe('runFill', () => {
     expect(page.counters.clicks.acknowledge ?? 0).toBe(0);
     expect(page.counters.clicks.add ?? 0).toBe(0);
     expect(page.state.list).toEqual([]);
+  });
+
+  it.each(['wait', 'choose', 'add'] as const)(
+    'stops at the %s step the moment the confirm dialog opens',
+    async (step) => {
+      const { outcome, steps, page } = await fill(
+        [SINGLE, { ...SINGLE, id: B }],
+        {
+          confirmAt: step,
+        },
+      );
+      expect(outcome).toMatchObject({
+        status: 'stopped',
+        reason: 'confirmOpen',
+      });
+      // The run ends on the first subject, at the step the dialog opened in.
+      expect(steps.filter((item) => item.step === 'enter')).toHaveLength(1);
+      expect(steps.at(-1)?.step).toBe(step);
+      expect(page.state.dialog).toEqual({ kind: 'confirm' });
+      expect(page.counters.clicks.add ?? 0).toBe(0);
+      expect(page.counters.clicks.confirm ?? 0).toBe(0);
+      expect(page.counters.clicks.back ?? 0).toBe(0);
+      expect(page.counters.writes).toBe(0);
+      expect(page.state.list).toEqual([]);
+    },
+  );
+
+  it('starts nothing while the confirm dialog is open', async () => {
+    const { outcome, steps, page } = await fill([SINGLE], {
+      patch: { dialog: { kind: 'confirm' } },
+    });
+    expect(outcome).toMatchObject({ status: 'stopped', reason: 'confirmOpen' });
+    expect(steps).toEqual([]);
+    expect(page.interactions()).toBe(0);
   });
 
   it('skips a subject the page already lists as planned', async () => {

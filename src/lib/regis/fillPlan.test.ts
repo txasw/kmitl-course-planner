@@ -261,6 +261,11 @@ describe('pageBlock', () => {
     [
       'the confirm dialog',
       page({ dialog: { kind: 'confirmSubmit', prerequisites: [] } }),
+      'confirmOpen',
+    ],
+    [
+      'another dialog',
+      page({ dialog: { kind: 'other', prerequisites: [] } }),
       'dialogOpen',
     ],
   ])('stops on %s', (_name, observation, reason) => {
