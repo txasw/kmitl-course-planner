@@ -355,7 +355,8 @@ may leave in storage and left it awaiting the owner's acknowledgement. The owner
 
 A read only study of the helper on the regular registration page, where KCP stays at L0 under rule
 6, found four places where the helper said something the code does not do. Each is fixed as
-follows, with no change to what KCP reads or sends on any registration route.
+follows, with no change to what KCP reads or sends on any registration route, beside two
+guards on fill that narrow it further.
 
 - **A route reason for Add for me.** On `#/registration` the host check never runs, so the build
   read as still being checked and Add for me said KCP was checking the page version for as long as
@@ -374,15 +375,20 @@ follows, with no change to what KCP reads or sends on any registration route.
   press only for a plan of the page term, under its kit bar, and for the plan it follows.
   `canPrepareInHelper` in `lib/regis/helperBar.ts` now decides both; the kit bar adds its own
   connected search check, and the card points to the course search page whenever the predicate is
-  false.
+  false. Where it points to the helper, the card names the press by the label the helper shows,
+  Prepare again over a stale kit and Prepare data otherwise.
 - **A stale kit kept as reference, fill still blocked.** A kit older than seven days was dropped
   whole, so the kit bar said nothing was prepared and the saved section choices and alternatives
   vanished, though kits prepared from 2026-11-23 expire before regular registration opens. The
   stale kit is now a separate, display only field (`staleKit`): the checklist shows its choices and
   other sections, the chosen section labelled as from older data, and the kit bar says the data is
-  older than seven days. The fill input stays strictly fresh: `kit`, the one input `fillTarget`
-  reads, stays null for a stale kit, so a stale kit yields no fill target, and Add for me shows its
-  own reason, `kitStale`, ahead of `noKit`, pointing to the course search page. Prepare stays
+  older than seven days. Where the bar offers Prepare again it says to prepare at a quiet time,
+  and where it offers no press, as on regular registration, it names the course search page. The
+  fill input stays strictly fresh: `kit`, the one input `fillTarget` reads, stays null for a stale
+  kit, so a stale kit yields no fill target, and Add for me is blocked with its own reason,
+  `kitStale`, ahead of `noKit`. Under the kit bar the focused row reads the bar's words for that
+  reason, as it does for `noKit`, so the card gives one instruction; elsewhere, on list rows and in
+  the more menu, the reason says only that the data must be prepared again first. Prepare stays
   refused on every registration route except the helper's own press on pre registration.
 - **Tests.** Unit tests cover the block order with the route first, the host check sending nothing
   on regular registration, the shared prepare predicate's negative cases, and a stale kit giving no
@@ -390,3 +396,14 @@ follows, with no change to what KCP reads or sends on any registration route.
   of 2026-11-23 only, backs a debug spec that proves L0 in each of its states and over the pre
   registration markup: the route reason and the not read term line show, no fill press exists, the
   observer stays waiting, no host check or other request is sent, and no host control is pressed.
+- **A route check at the press.** The host check's verdict stands for the whole document, so a
+  student who moves inside the page from pre registration to regular registration keeps a verified
+  build. Hiding the press was the only barrier there; `startFill` now also starts nothing unless the
+  route is pre registration, and a debug spec makes that move and proves nothing is pressed.
+- **The add, change, and withdraw area.** Its controls are kept from fill first by the add card
+  anchor, whose heading needs the (ล่วงหน้า) span the regular page does not print. Below that,
+  the area has the same table, block, and button shape as the local add, so the local add
+  resolver now also reads the label of the button after its block and needs ดำเนินการต่อ
+  (Continue), rather than relying on that button's deep orange colour. A unit test stubs the
+  anchor to each card and area of the replica, including a variant whose confirm is deep orange,
+  and finds no control of the area or of the queue panel.

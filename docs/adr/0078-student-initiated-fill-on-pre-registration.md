@@ -66,7 +66,8 @@ never sets host component state, and never calls host methods.
    ancestor is a dialog, a form, deep orange or warning (the acknowledgement button excepted,
    which must be the only button of an open dialog whose title is the grade not announced title
    while no confirm dialog is open); เพิ่ม must be the first button of the block after the table,
-   carry the green class, and be followed by the deep orange button; an option must sit in the
+   carry the green class, and be followed by the deep orange button labelled ดำเนินการต่อ
+   (Continue), read as a label and never pressed; an option must sit in the
    listbox the add row's own activator names, as its direct child. Because a dispatched click
    runs the activation behaviour of the nearest element on its path, a target is also refused
    when it is a link, a label, a button that is not of type button or that a form owns, or a
