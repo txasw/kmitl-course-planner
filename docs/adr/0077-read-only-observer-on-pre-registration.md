@@ -59,8 +59,9 @@ nothing into the page, dispatches no event, calls no host code, and stores nothi
 list, or the staff surrogate key present in the page's session store, turns the observer off for
 the document. A page that shows none of the anchors yet is waiting. A page whose anchors do not
 read as the contract says is degraded and the reading is dropped whole; three in a row turn the
-observer off. Whenever it is not healthy, the checklist shows the student's marks only and the
-dock says why in one line. The surrogate check, in `features/regis/host/surrogate.ts`, is the one
+observer off. Whenever it is degraded or off, each subject keeps the last status the page showed
+in this visit, marked stale, a page never read shows every subject as still to add, and the
+helper says why in one line. The surrogate check, in `features/regis/host/surrogate.ts`, is the one
 read of the page's web storage in KCP: whether one key is present, never its value, and a store
 that cannot be read counts as present.
 
@@ -105,7 +106,7 @@ the one exception to captured fixtures for host markup.
   server message. Rejected in favour of the structural allowlist.
 - **Run on any host build while the anchors are found.** Structure alone cannot see a change in
   what the page means, and the owner chose the tested build gate (20A). Rejected; a host redeploy
-  leaves the manual marks until a release carries the new names.
+  leaves the checklist with no status from the page until a release carries the new names.
 - **Keep observing while degraded and show partial states.** A half read page could tick a row it
   should not. Rejected; the whole reading is dropped.
 

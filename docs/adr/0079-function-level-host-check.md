@@ -371,8 +371,9 @@ The owner answered the two questions this record left open on 2026-11-27.
 - **Timing, answer 4A.** The check runs on arrival at `#/pre_registration`, as built. ADR-0075
   records the same ruling as the one exception to its quiet mode.
 - **An unverified build, answer 5A.** When the check finds a change in a part KCP uses, or cannot
-  finish, the observer stays off as well as fill. The checklist falls back to the student's own
-  marks and KCP reads nothing on the page until a review records the build. Keeping the observer
+  finish, the observer stays off as well as fill. The checklist shows no status from the page,
+  every subject as still to add under the bar that names a new host build, and KCP reads nothing
+  on the page until a review records the build. Keeping the observer
   on while only fill is off was the rejected alternative, since the observer's anchors are the
   parts that changed.
 
