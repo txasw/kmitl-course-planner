@@ -3,7 +3,10 @@
 // ID and Add for me; one the page turned down offers Copy ID and Other section, or Add for
 // me again for a section the page shows over subscribed; one the page lists with another
 // section offers to use that section in the plan; a settled subject offers nothing. When
-// a fill stops on the subject, the reason and what to do next sit under the row.
+// a fill stops on the subject, the reason and what to do next sit under the row. On
+// regular registration a section chosen for the plan on pre registration still shows,
+// since choices are kept per plan and term, and says it was chosen for pre registration
+// until the student chooses again on this page.
 
 import { useId, type ReactNode } from 'react';
 import { useStore } from 'zustand';
@@ -33,7 +36,7 @@ import {
 } from './fill/FillControls';
 import { FocusPills } from './FocusPills';
 import { KIT_TEXT_ID } from './KitBar';
-import { clearStop, helperStore } from './helperStore';
+import { clearStop, helperStore, noteChoiceHere } from './helperStore';
 import { regisStore } from './regisStore';
 import { saveBackupToPlan } from './saveBackup';
 import {
@@ -84,6 +87,7 @@ export function FocusSection({
   const reasonId = useId();
   const { plan, kit, run, stale } = model;
   const cleared = useStore(helperStore, (state) => state.clearedStop);
+  const choseHere = useStore(helperStore, (state) => state.choseHere);
   const tone = STATUS_TONE[status];
   const id = row.subjectId;
   const parts = sectionParts(shownSections(row, status === 'other'), t);
@@ -115,6 +119,7 @@ export function FocusSection({
   const choose = (option: SectionOption) => {
     if (plan === null) return;
     if (run.status === 'stopped') clearStop(run);
+    if (model.route === 'registration') noteChoiceHere(id);
     regisStore
       .getState()
       .setChoice(plan, id, option.planned ? null : option.ids);
@@ -130,6 +135,7 @@ export function FocusSection({
       refused={status === 'refused' ? targetIds : null}
       hasKit={model.hasKit}
       olderData={model.staleKit !== null}
+      carried={carried}
       onChoose={choose}
       align={align}
       t={t}
@@ -137,6 +143,10 @@ export function FocusSection({
       {render}
     </SectionListbox>
   );
+  const carried =
+    model.route === 'registration' &&
+    row.chosen !== null &&
+    !choseHere.includes(id);
   const pickable =
     needsAction(status) && !model.sent && row.alternatives.length > 0;
 
@@ -203,6 +213,11 @@ export function FocusSection({
               locale={locale}
               t={t}
             />
+            {carried ? (
+              <span data-carried-choice className="mt-1 text-xs text-ink-soft">
+                {t('regis.chosenForPre')}
+              </span>
+            ) : null}
             {model.staleKit !== null && row.chosen !== null ? (
               <span data-older-data className="mt-1 text-xs text-warn">
                 {t('regis.chosenOlder')}

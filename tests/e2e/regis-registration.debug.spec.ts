@@ -105,3 +105,66 @@ test('stays at L0 on the registration route over the pre registration markup', a
     })),
   ).toEqual({ clicks: {}, interactions: 0, forbidden: 0, writes: 0, reads: 0 });
 });
+
+test('labels a section chosen on pre registration when it carries to registration', async ({
+  context,
+  mock,
+  serviceWorker,
+}) => {
+  const page = await openPlanner(context);
+  const [, second] = SUBJECTS;
+  const { term } = await planWithKit(page, serviceWorker, SUBJECTS, {
+    [second]: [{ teachTableId: '900004', section: '902', day: 3 }],
+  });
+  mock.clearApiCalls();
+  await page.goto(`${PRE_REGISTRATION_URL}?build=verified#/pre_registration`);
+  await page.waitForFunction(() => 'replica' in window);
+  await page.evaluate((next) => {
+    window.replica.set({ term: next });
+  }, term);
+  const card = page.locator('#kcp-regis-card');
+  const label = card.locator('[data-carried-choice]');
+  const focus = async () => {
+    await card
+      .getByRole('list', { name: 'รายวิชา' })
+      .locator(`[data-status][aria-label^="${second}"]`)
+      .click();
+  };
+
+  // The student chooses another section on pre registration, where no label shows.
+  await focus();
+  await card.getByRole('combobox').click();
+  await page.getByRole('option', { name: /902/ }).click();
+  await expect(card.getByRole('combobox')).toHaveAccessibleName(/902/);
+  await expect(label).toHaveCount(0);
+
+  // On regular registration the choice carries, labelled as made for pre registration.
+  await page.evaluate(() => {
+    window.location.hash = '#/registration';
+  });
+  await focus();
+  await expect(card.getByRole('combobox')).toHaveAccessibleName(/902/);
+  await expect(label).toHaveText('เลือกไว้สำหรับลงทะเบียนล่วงหน้า');
+  await card.getByRole('combobox').click();
+  await expect(
+    page.getByRole('option', { name: /902/ }).locator('[data-carried-choice]'),
+  ).toHaveText('เลือกไว้สำหรับลงทะเบียนล่วงหน้า');
+  await page.keyboard.press('Escape');
+
+  // Back on pre registration the label goes again.
+  await page.evaluate(() => {
+    window.location.hash = '#/pre_registration';
+  });
+  await focus();
+  await expect(card.getByRole('combobox')).toHaveAccessibleName(/902/);
+  await expect(label).toHaveCount(0);
+
+  expect(
+    await page.evaluate(() => ({
+      interactions: window.replica.interactions(),
+      forbidden: window.replica.forbidden(),
+      writes: window.replica.counters.writes,
+    })),
+  ).toEqual({ interactions: 0, forbidden: 0, writes: 0 });
+  expect(mock.apiCalls()).toEqual([]);
+});

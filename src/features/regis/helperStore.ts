@@ -1,7 +1,8 @@
 // The registration helper's memory for one visit (owner answer 5B): whether the student
 // collapsed or hid it, the card or the list, the subject in focus, the last status the
-// page showed for each subject, and the fill stop the student moved past by choosing
-// another section, and the sentence its live region reads. A visit starts on each arrival
+// page showed for each subject, the fill stop the student moved past by choosing another
+// section, the subjects whose section the student chose in this visit, and the sentence
+// its live region reads. A visit starts on each arrival
 // on a helper page, which clears all of it. The card opens expanded on a wide screen, every
 // visit (owner answer 5B), and starts collapsed to the launcher on a narrow one, so a phone
 // shows the host page first; there a later visit follows the open or collapse the student
@@ -37,6 +38,12 @@ export interface HelperVisitState {
   /** The stopped run the student moved past, so its stop no longer names a status. */
   clearedStop: FillRun | null;
   /**
+   * The subjects whose section the student chose in this visit. A choice is stored per
+   * plan and term with no page, so on regular registration one made here is no longer
+   * the choice carried over from pre registration.
+   */
+  choseHere: readonly string[];
+  /**
    * The plan of the page term the student picked in the helper on this visit, or null to
    * follow the default. It never changes the planner's active plan.
    */
@@ -54,6 +61,7 @@ const FRESH: HelperVisitState = {
   current: null,
   last: {},
   clearedStop: null,
+  choseHere: [],
   planId: null,
   announcement: { text: '', seq: 0 },
 };
@@ -101,7 +109,13 @@ export function setCurrent(current: string | null): void {
 
 /** Show another plan of the page term; the focus and last statuses start over for it. */
 export function pickHelperPlanId(planId: string): void {
-  helperStore.setState({ planId, current: null, last: {}, clearedStop: null });
+  helperStore.setState({
+    planId,
+    current: null,
+    last: {},
+    clearedStop: null,
+    choseHere: [],
+  });
 }
 
 export function recordLast(last: Readonly<Record<string, HelperStatus>>): void {
@@ -110,6 +124,14 @@ export function recordLast(last: Readonly<Record<string, HelperStatus>>): void {
 
 export function clearStop(run: FillRun): void {
   helperStore.setState({ clearedStop: run });
+}
+
+/** Note that the student chose a subject's section in this visit. */
+export function noteChoiceHere(subjectId: string): void {
+  const { choseHere } = helperStore.getState();
+  if (!choseHere.includes(subjectId)) {
+    helperStore.setState({ choseHere: [...choseHere, subjectId] });
+  }
 }
 
 export function announce(text: string): void {
