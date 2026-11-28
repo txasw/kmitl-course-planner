@@ -8,7 +8,7 @@
 // run, which keeps fill off with the untested build sentence.
 
 import { useEffect } from 'react';
-import { hostBuildReplySchema } from '@/lib/messaging/protocol';
+import { hostBuildReplySchema } from '@/lib/regis/protocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import { buildKey, checkablePair } from '@/lib/regis/hostBuild';
 import { companionRoute } from '@/lib/routing/registrationRoute';

@@ -11,6 +11,16 @@ describe('requestMessageSchema', () => {
     ).toBe(true);
   });
 
+  it('accepts the host check with its two script names', () => {
+    expect(
+      requestMessageSchema.safeParse({
+        type: 'regis/hostBuild',
+        app: 'app.c0ffee01.js',
+        vendors: 'chunk-vendors.7ab4925e.js',
+      }).success,
+    ).toBe(true);
+  });
+
   it('accepts the debug simulation controls with a null id', () => {
     expect(
       requestMessageSchema.safeParse({
