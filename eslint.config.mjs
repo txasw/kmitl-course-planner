@@ -358,11 +358,15 @@ export default tseslint.config(
   },
 
   // The registration helper and the content entry read the host page and never act on
-  // it. Tests set up their fixture documents, so they are exempt.
+  // it. The route classifier and quiet mode left lib/regis but still decide what KCP does
+  // on the registration pages, so they keep the guard by name. Tests set up their fixture
+  // documents, so they are exempt.
   {
     files: [
       'src/features/regis/**/*.{ts,tsx}',
       'src/lib/regis/**/*.ts',
+      'src/lib/routing/registrationRoute.ts',
+      'src/lib/api/quietMode.ts',
       'src/entrypoints/regis.content/**/*.{ts,tsx}',
     ],
     ignores: ['**/*.test.{ts,tsx}'],
