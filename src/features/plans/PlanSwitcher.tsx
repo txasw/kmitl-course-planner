@@ -1,6 +1,7 @@
 // The plan switcher in the overlay header. It lists the saved plans grouped by term,
 // switches the active plan, and creates, renames, duplicates, or deletes a plan. Its
-// data row imports and exports a plan as JSON and copies the registration list.
+// data row imports and exports a plan as JSON and copies the registration list, and
+// offers Prepare for registration while the helper fills that slot (planMenuSlotStore).
 // Switching a plan snaps the search form to that plan's term so the next search
 // reflects it. A new plan offers the term the search tabs share and lets the user pick
 // another, and creating it snaps the search form to that term. The dropdown is
@@ -28,6 +29,7 @@ import { planExportBaseName } from '@/lib/planner/exportName';
 import { parsePlanImport } from '@/lib/plans/parsePlanImport';
 import { downloadText } from '@/lib/utils/download';
 import { searchStore } from '@/features/search/searchStore';
+import { planMenuSlotStore } from '@/features/shell/planMenuSlotStore';
 import { toastStore } from '@/features/shell/toastStore';
 import {
   PANEL_POPOVER_SCROLL,
@@ -39,7 +41,6 @@ import { BottomSheet } from '@/components/BottomSheet';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_HEIGHT } from '@/lib/ui/target';
 import { copyRegistrationList } from './copyRegistrationList';
-import { regisStore } from '@/features/regis/regisStore';
 import { DeleteConfirm } from './DeleteConfirm';
 import { ImportErrorView } from './ImportErrorView';
 import { NameForm, isSavableName } from './NameForm';
@@ -80,6 +81,10 @@ export function PlanSwitcher() {
   const { t, language } = useTranslation();
   const plans = useStore(planStore, (state) => state.plans);
   const activePlan = useActivePlan();
+  const prepareRegistration = useStore(
+    planMenuSlotStore,
+    (state) => state.prepareRegistration,
+  );
   // A new plan defaults to the one term every search tab shares, so the active tab
   // never decides it.
   const searchTerm = useStore(searchStore, (state) => state.term);
@@ -223,10 +228,13 @@ export function PlanSwitcher() {
     closeMenu();
   };
 
-  const handlePrepareRegistration = () => {
-    closeMenu();
-    regisStore.getState().setReadinessOpen(true);
-  };
+  const handlePrepareRegistration =
+    prepareRegistration === null
+      ? null
+      : () => {
+          closeMenu();
+          prepareRegistration();
+        };
 
   // Validate the imported blob at the trust boundary and, on any issue, list the
   // exact failing fields without committing anything. On success importPlan lands a

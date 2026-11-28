@@ -78,7 +78,10 @@ export interface PlanListProps {
   onExport: (() => void) | null;
   /** Null when the active plan has no entry to list for registration. */
   onCopyRegistration: (() => void) | null;
-  /** Opens the registration helper's readiness card; null without an entry to prepare. */
+  /**
+   * Opens the registration helper's readiness card; null while the helper leaves its
+   * slot empty or without an entry to prepare.
+   */
   onPrepareRegistration: (() => void) | null;
 }
 

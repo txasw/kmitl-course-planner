@@ -6,8 +6,11 @@
 // reason points to the helper's own prepare press, the one place prepare runs there
 // (ADR-0076), named by the label the checklist shows, but only while the helper offers
 // that press for the plan this card would prepare; otherwise it points to the course
-// search page, as on every other registration page.
+// search page, as on every other registration page. The layer fills the plan menu's
+// slot with the action that opens the card while it is mounted, so the plan menu
+// imports nothing of the helper.
 
+import { useEffect } from 'react';
 import { useStore } from 'zustand';
 import { LoaderCircle } from 'lucide-react';
 import { ModalDialog } from '@/components/ModalDialog';
@@ -23,6 +26,7 @@ import {
 import type { CompanionRoute } from '@/lib/regis/route';
 import { formatLocalDateTime } from '@/features/planner/examText';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
+import { planMenuSlotStore } from '@/features/shell/planMenuSlotStore';
 import { useQuietRoute } from '@/features/shell/quietRoute';
 import { useTranslation } from '@/features/shell/useTranslation';
 import { cancelPrepare, startPrepare } from './prepareController';
@@ -35,8 +39,19 @@ import {
 
 const BUTTON = `inline-flex items-center justify-center gap-1.5 rounded-kcp px-3 py-1.5 text-sm font-semibold ${TARGET_HEIGHT}`;
 
+function openReadiness(): void {
+  regisStore.getState().setReadinessOpen(true);
+}
+
 export function ReadinessLayer() {
   const open = useStore(regisStore, (state) => state.readinessOpen);
+  useEffect(() => {
+    const slot = planMenuSlotStore.getState();
+    slot.setPrepareRegistration(openReadiness);
+    return () => {
+      slot.setPrepareRegistration(null);
+    };
+  }, []);
   return open ? <ReadinessDialog /> : null;
 }
 
