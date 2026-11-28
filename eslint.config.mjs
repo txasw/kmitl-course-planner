@@ -176,14 +176,10 @@ const REGIS_EXCEPTIONS = [
   'src/lib/api/hostCheck.ts',
   'src/lib/api/hostScript.ts',
 ];
-// These still read the route classifier, quiet mode, and the host check names from
-// lib/regis, which move out of it in their own changes and take these entries with them.
+// These still read the host check names from lib/regis, which move out of it in their
+// own change and take these entries with them.
 // Each file may import only the names it reads today; any other regis import is refused.
 const REGIS_MOVES_PENDING = [
-  {
-    file: 'src/features/search/useSearchController.ts',
-    imports: { '@/lib/regis/quietMode': ['automaticReferenceRead'] },
-  },
   {
     file: 'src/lib/messaging/protocol.ts',
     imports: {
