@@ -1,0 +1,157 @@
+name: Deploy site
+
+# Deploys the landing site at https://kcp.cecs.sh/ (ADR-0066, ADR-0080). The release
+# workflow calls it with the released commit when a version is tagged. A dispatch from
+# main with a released tag deploys that tag again, which is also how a deploy rolls back.
+# The build job installs and runs the repository's code without any Cloudflare secret.
+# The deploy job runs in the cloudflare-production environment, which waits for the
+# owner's approval, and runs no package the build job installed, so no dependency script
+# runs while the token is in scope.
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Full SHA of the released commit
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Released tag to deploy, such as v1.7.2
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      commit: ${{ steps.commit.outputs.sha }}
+      wrangler-version: ${{ steps.wrangler.outputs.version }}
+    steps:
+      # A call passes a commit SHA and a dispatch a tag. Both arrive through env and are
+      # matched as whole strings before anything uses them.
+      - id: ref
+        name: Check the ref to deploy
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          CALL_REF: ${{ inputs.ref }}
+          DISPATCH_TAG: ${{ inputs.tag }}
+        run: |
+          if [ "$EVENT_NAME" = 'workflow_dispatch' ]; then
+            if [[ ! "$DISPATCH_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::the tag must be a release tag such as v1.7.2"
+              exit 1
+            fi
+            echo "ref=refs/tags/${DISPATCH_TAG}" >> "$GITHUB_OUTPUT"
+          else
+            if [[ ! "$CALL_REF" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "::error::the ref must be a full commit SHA"
+              exit 1
+            fi
+            echo "ref=${CALL_REF}" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.ref.outputs.ref }}
+          persist-credentials: false
+      # The deploy job checks out this exact commit, so a tag moved while the deploy waits
+      # for approval changes nothing.
+      - id: commit
+        name: Record the commit
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      # Read before the install, from the lockfile entry the frozen install also uses.
+      - id: wrangler
+        name: Read the pinned Wrangler version
+        run: |
+          version="$(sed -n -E 's/^  wrangler@([0-9]+\.[0-9]+\.[0-9]+):$/\1/p' pnpm-lock.yaml)"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::pnpm-lock.yaml must pin exactly one Wrangler version"
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # The same check as the quality job in ci.yml, written out here because a rollback
+      # checks out a tag that may predate any shared script.
+      - name: Check the committed landing site is current
+        run: |
+          pnpm site:build
+          changed="$(git status --porcelain -- site)"
+          if [ -n "$changed" ]; then
+            echo "$changed"
+            echo "::error::site/ differs from what pnpm site:build renders"
+            exit 1
+          fi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: site
+          path: site/
+          retention-days: 14
+          if-no-files-found: error
+      # Validates the configuration and reads the assets without a token. For a
+      # configuration with assets alone the output is only the no op Worker that Wrangler
+      # generates again at deploy, so it is not kept.
+      - name: Dry run the deploy
+        env:
+          WRANGLER_SEND_METRICS: 'false'
+        run: pnpm exec wrangler deploy --dry-run --outdir "${RUNNER_TEMP}/wrangler-dry"
+
+  deploy:
+    name: deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: cloudflare-production
+      url: https://kcp.cecs.sh/
+    permissions:
+      contents: read
+    # One deploy at a time. A running deploy is never cancelled. A newer one waits, and
+    # one newer still takes the place of the one waiting.
+    concurrency:
+      group: deploy-site-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      # Installed outside the workspace with lifecycle scripts disabled, before anything
+      # from the build job is present.
+      - name: Install Wrangler
+        env:
+          WRANGLER_VERSION: ${{ needs.build.outputs.wrangler-version }}
+        run: |
+          if [[ ! "$WRANGLER_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::the build job passed no Wrangler version"
+            exit 1
+          fi
+          npm install --prefix "${RUNNER_TEMP}/wrangler" --ignore-scripts --no-audit \
+            --no-fund --no-save --no-package-lock "wrangler@${WRANGLER_VERSION}"
+      # The configuration comes from the commit, not from the artifact, so nothing the
+      # build job ran can add a build command that would run beside the token.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.build.outputs.commit }}
+          persist-credentials: false
+          sparse-checkout: /wrangler.jsonc
+          sparse-checkout-cone-mode: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: site
+          path: site
+      - name: Deploy to Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: 'false'
+        run: '"${RUNNER_TEMP}/wrangler/node_modules/.bin/wrangler" deploy'
