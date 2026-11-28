@@ -188,7 +188,8 @@ against `.output/chrome-mv3-debug`.
 - `tests/site` checks for the landing site
 - `tests/support` and `tests/setup.ts` shared test helpers and setup
 - `site` the landing site served at https://kcp.cecs.sh/, the committed output of
-  `pnpm site:build`, deployed as `wrangler.jsonc` describes (ADR-0066 and CONTRIBUTING.md)
+  `pnpm site:build`, deployed by the release workflow as `wrangler.jsonc` describes (ADR-0066,
+  ADR-0080, and CONTRIBUTING.md)
 - `scripts` the commit message guard, the icon generator, and the landing site generator
   in `scripts/landing`
 - `assets` the source icon

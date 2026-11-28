@@ -611,3 +611,21 @@ write it would keep a file whose only value is now a copy of `package.json`.
 
 Copy that describes a feature of an unreleased version still waits on its landing branch, since
 every merge to `main` that changes `site/` deploys at once.
+
+## Amendment, 2026-11-28: the release workflow deploys the site
+
+ADR-0080 moves the deploy from Cloudflare Workers Builds to the workflow
+`.github/workflows/deploy-site.yml`, which the release workflow calls once a version is tagged
+and which a dispatch from `main` runs again for a released tag, also to roll back. Each deploy
+waits for the owner's approval in the GitHub Environment `cloudflare-production`, which holds the
+deploy token. Workers Builds is disconnected after the first dispatched deploy succeeds, so from
+then on a merge to `main` deploys nothing by itself.
+
+This replaces the automatic deploys described in the amendment of 2026-11-10 and the deploy
+through Workers Builds in the amendment of 2026-11-20. What stays: `site/` is committed and
+continuous integration fails when it differs from what `pnpm site:build` renders, the deploy
+publishes that committed folder as it is, Wrangler is the version pinned in the lockfile, and
+`send_metrics` stays off. What changes: a landing change goes live with the next release rather
+than on its merge, so copy that describes an unreleased feature can merge with that feature, and
+the line in Consequences that every merge to `main` deploys no longer holds. CONTRIBUTING.md
+describes the workflow, the environment, and the token.
