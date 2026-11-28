@@ -15,6 +15,11 @@ on:
         description: Full SHA of the released commit
         required: true
         type: string
+    # A called workflow sees an environment secret only when the caller passes it, even
+    # in a job that names the environment; without it the token is an empty string.
+    secrets:
+      CLOUDFLARE_API_TOKEN:
+        required: true
   workflow_dispatch:
     inputs:
       tag:
