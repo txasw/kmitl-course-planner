@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, cleanup, act } from '@testing-library/react';
-import { extensionChrome } from '@/entrypoints/regis.content/extensionChrome';
+import { versionBadgeChrome } from '../../../tests/support/shellChrome';
 import {
   DEFAULT_SHELL_CHROME,
   ShellChromeContext,
@@ -19,7 +19,7 @@ afterEach(() => {
 
 function renderBrand(version: string | null) {
   return render(
-    <ShellChromeContext.Provider value={extensionChrome(version)}>
+    <ShellChromeContext.Provider value={versionBadgeChrome(version)}>
       <HeaderBrand />
     </ShellChromeContext.Provider>,
   );
@@ -97,7 +97,7 @@ describe('HeaderBrand', () => {
 
   it('sits in the header leading group before the title', () => {
     const { container } = render(
-      <ShellChromeContext.Provider value={extensionChrome('1.5.0')}>
+      <ShellChromeContext.Provider value={versionBadgeChrome('1.5.0')}>
         <Header titleId="title" />
       </ShellChromeContext.Provider>,
     );

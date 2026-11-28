@@ -12,7 +12,7 @@ import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { installViewport } from '../../../tests/support/viewport';
 import { debugMenuStore } from './debugMenuStore';
-import { extensionChrome } from '@/entrypoints/regis.content/extensionChrome';
+import { versionBadgeChrome } from '../../../tests/support/shellChrome';
 import { DEFAULT_SHELL_CHROME, ShellChromeContext } from './ShellChromeContext';
 import { HeaderOverflowMenu } from './HeaderOverflowMenu';
 import { Overlay } from './Overlay';
@@ -107,7 +107,7 @@ describe('HeaderOverflowMenu', () => {
 
   it('ends the popover with a muted version line outside the menu, shown below sm', () => {
     render(
-      <ShellChromeContext.Provider value={extensionChrome('1.5.0')}>
+      <ShellChromeContext.Provider value={versionBadgeChrome('1.5.0')}>
         <HeaderOverflowMenu />
       </ShellChromeContext.Provider>,
     );
@@ -132,7 +132,7 @@ describe('HeaderOverflowMenu', () => {
       uiStore.getState().setLanguage('en');
     });
     render(
-      <ShellChromeContext.Provider value={extensionChrome('1.5.0.2')}>
+      <ShellChromeContext.Provider value={versionBadgeChrome('1.5.0.2')}>
         <HeaderOverflowMenu />
       </ShellChromeContext.Provider>,
     );
