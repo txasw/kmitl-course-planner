@@ -42,7 +42,8 @@ jobs:
       # CHANGESETS_OUTPUT, which the action reads to set the published output.
       # release:version runs changeset version and then rebuilds the landing site, and
       # the action commits every changed file, so the release pull request carries the
-      # page that states the new version and merging it deploys that page (ADR-0066).
+      # page that states the new version, and the deploy-site job below deploys that page
+      # once the merge is tagged (ADR-0066).
       - id: changesets
         uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         with:
@@ -79,6 +80,20 @@ jobs:
               --title "v${version}" \
               --notes "See CHANGELOG.md for the release notes."
           fi
+
+  # Deploys the landing site from the released commit, which the tag created above
+  # points at, after the owner approves it in the cloudflare-production environment
+  # (ADR-0080). The environment's own secret reaches the called workflow's deploy job, so
+  # this job passes none.
+  deploy-site:
+    name: deploy-site
+    needs: release
+    if: needs.release.outputs.published == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/deploy-site.yml
+    with:
+      ref: ${{ github.sha }}
 
   # Store publish jobs stay gated behind GitHub Environments with required
   # reviewers. They run only after a release is tagged and a reviewer approves,
