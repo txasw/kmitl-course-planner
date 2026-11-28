@@ -12,6 +12,5 @@
     "tests/**/*.{ts,tsx,mjs}"
   ],
   "ignoreExportsUsedInFile": true,
-  "ignoreDependencies": ["wrangler"],
   "tags": ["-canary"]
 }
