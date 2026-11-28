@@ -73,9 +73,13 @@ export function setDebugDispatch(dispatch: DebugDispatch | null): void {
   debugDispatch = dispatch;
 }
 
+// The response map is never inferred from the handlers, so a handler written inline
+// is checked against the protocol's real response types. A caller names it as an
+// explicit type argument; left out, it defaults to never, and any handler then fails
+// to compile rather than widening to unknown.
 export interface RouterDeps<M extends TypedMessage, R extends ResponsesOf<M>> {
   schema: z.ZodType<M>;
-  handlers: HandlerMap<M, R>;
+  handlers: HandlerMap<M, NoInfer<R>>;
   runtimeId: string;
 }
 
@@ -109,11 +113,10 @@ function contextOf(sender: MessageSender): HandlerContext {
   return { tabId: isTabId(tabId) ? tabId : null };
 }
 
-export function createRouter<M extends TypedMessage, R extends ResponsesOf<M>>({
-  schema,
-  handlers,
-  runtimeId,
-}: RouterDeps<M, R>): RouterListener {
+export function createRouter<
+  M extends TypedMessage,
+  R extends ResponsesOf<M> = never,
+>({ schema, handlers, runtimeId }: RouterDeps<M, R>): RouterListener {
   return (message, sender) => {
     // A message from any context other than this extension is dropped without a
     // response channel, which is the defense against foreign senders.
